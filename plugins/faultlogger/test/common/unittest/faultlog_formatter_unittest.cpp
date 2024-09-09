@@ -56,8 +56,10 @@ HWTEST_F(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext:
     int32_t fd = -1;
     std::string path = "/testError";
     FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
+    ASSERT_EQ(fd, -1);
     path = "/data/test/test_faultlogger_data/plugin_config_test";
     FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
+    ASSERT_EQ(fd, -1);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
