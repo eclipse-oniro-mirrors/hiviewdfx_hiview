@@ -516,7 +516,7 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
         sysEvent->SetEventValue("LAST_FRAME", eventInfos["LAST_FRAME"].empty() ? "/" :
                                 StringUtil::EscapeJsonStringValue(eventInfos["LAST_FRAME"]));
     }
-    sysEvent->SetEventValue("FINGERPRINT", eventInfos["fingerPrint"]);
+    sysEvent->SetEventValue("FINGERPRINT", eventInfos["FINGERPRINT"]);
     if (isJsError) {
         ReportJsErrorToAppEvent(sysEvent);
     }

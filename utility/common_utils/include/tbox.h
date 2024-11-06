@@ -33,8 +33,8 @@ public:
     ~Tbox();
     static std::string CalcFingerPrint(const std::string& val, size_t mask, int mode);
     static bool GetPartial(const std::string& src, const std::string& res, std::string& des);
-    static bool IsCallStack(std::string& line);
-    static std::string GetStackName(std::string line);
+    static bool IsCallStack(const std::string& line);
+    static std::string GetStackName(const std::string& line);
     static bool HasCausedBy(const std::string& line);
     static void FilterTrace(std::map<std::string, std::string>& eventInfo, std::string eventType = "");
     static bool WaitForDoneFile(const std::string& file, unsigned int timeout);

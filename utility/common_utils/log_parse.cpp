@@ -195,7 +195,12 @@ string LogParse::GetValidBlock(stack<string> inStack, vector<string>& lastPart) 
             break;
         }
     }
-    return Tbox::ARRAY_STR + StringUtil::VectorToString(validStack, false);
+
+    vector<string> validStackName;
+    for (const auto& it : validStack) {
+        validStackName.push_back(Tbox::GetStackName(it));
+    }
+    return Tbox::ARRAY_STR + StringUtil::VectorToString(validStackName, false);
 }
 
 vector<string> LogParse::GetValidStack(size_t num, stack<string>& inStack) const
@@ -203,12 +208,11 @@ vector<string> LogParse::GetValidStack(size_t num, stack<string>& inStack) const
     stack<string> src = inStack;
     vector<string> validStack;
     stack<string> outStatck;
-    string stackName;
     size_t len = src.size();
     for (size_t i = 0; i < len; i++) {
-        stackName = Tbox::GetStackName(src.top());  // extract function name from the stack
-        if (!IsIgnoreLibrary(stackName)) {
-            validStack.push_back(stackName);
+        auto stackFrame = src.top();
+        if (!IsIgnoreLibrary(stackFrame)) {
+            validStack.push_back(stackFrame);
         }
         src.pop();
     }
@@ -216,8 +220,7 @@ vector<string> LogParse::GetValidStack(size_t num, stack<string>& inStack) const
         MatchIgnoreLibrary(inStack, outStatck, num);
         len = outStatck.size();
         for (size_t i = 0; i < len; i++) {
-            stackName = Tbox::GetStackName(outStatck.top());
-            validStack.push_back(stackName);
+            validStack.push_back(outStatck.top());
             outStatck.pop();
         }
     }
@@ -291,7 +294,7 @@ void LogParse::SetFrame(std::stack<std::string>& stack, std::map<std::string, st
     size_t len = stack.size();
     for (size_t i = 0; i < len; i++) {
         if (eventInfo.find(name[i]) == eventInfo.end()) {
-            eventInfo[name[i]] = stack.top();
+            eventInfo[name[i]] = Tbox::GetStackName(stack.top());
         }
         stack.pop();
     }
