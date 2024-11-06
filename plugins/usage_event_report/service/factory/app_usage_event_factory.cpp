@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,15 +79,9 @@ void AppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>>& eve
 
 void AppUsageEventFactory::GetAllCreatedOsAccountIds(std::vector<int32_t>& ids)
 {
-    std::vector<OsAccountInfo> osAccountInfos;
-    auto res = OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
-    if (res != ERR_OK) {
+    if (auto res = OsAccountManager::QueryActiveOsAccountIds(ids); res != ERR_OK) {
         HIVIEW_LOGE("failed to get userId, err=%{public}d", res);
         ids.push_back(DEFAULT_USER_ID);
-        return;
-    }
-    for (auto info : osAccountInfos) {
-        ids.push_back(info.GetLocalId());
     }
 }
 
