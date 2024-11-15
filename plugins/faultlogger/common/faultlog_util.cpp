@@ -217,6 +217,15 @@ std::string GetCppCrashTempLogName(const FaultLogInfo& info)
         std::to_string(info.time);
 }
 
+std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
+{
+    return std::string(DEFAULT_FAULTLOG_TEMP_FOLDER) +
+        "stacktrace-" +
+        std::to_string(info.pid) +
+        "-" +
+        std::to_string(info.time);
+}
+
 std::string GetThreadStack(const std::string& path, int32_t threadId)
 {
     std::string stack;

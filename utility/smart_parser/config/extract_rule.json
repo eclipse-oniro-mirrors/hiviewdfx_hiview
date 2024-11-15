@@ -195,5 +195,13 @@
             {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"name=", "v_start":"(tid=@{BasicParam.v_tid}@, state=BLOCKED)"},
             {"namespace":"MainCallTrace", "depend":"MainCallTrace.v_start", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"}
         ]
+    },
+    "Rule18":{
+        "DirOrFile":"/data/log/faultlog/temp/",
+        "Subcatalog":"stacktrace-\\d+-\\d+",
+        "featureId":"64_ADDR_SANITIZER_01",
+        "rules":[
+            {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}\\d+, Name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+        ]
     }
 }

@@ -95,5 +95,10 @@
             "SECOND_FRAME": "BasicParam.v_second",
             "LAST_FRAME": "BasicParam.v_last"
         }
+    },
+    "ADDR_SANITIZER": {
+        "64_ADDR_SANITIZER_01":{
+            "END_STACK": "MainCallTrace.v_trace"
+        }
     }
 }
