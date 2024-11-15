@@ -45,7 +45,7 @@
     },
     "Rule5":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"sysfreeze-.*-\\d+-\\d+",
+        "Subcatalog":"sysfreeze-(?!HUNGTASK).*-\\d+-\\d+",
         "featureId":"63_SYS_FREEZE_01",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
@@ -183,6 +183,17 @@
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+        ]
+    },
+    "Rule17":{
+        "DirOrFile":"/data/log/faultlog/faultlogger/",
+        "Subcatalog":"sysfreeze-HUNGTASK-\\d+-\\d+",
+        "featureId":"63_SYS_FREEZE_02",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
+            {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"name=", "v_start":"(tid=@{BasicParam.v_tid}@, state=BLOCKED)"},
+            {"namespace":"MainCallTrace", "depend":"MainCallTrace.v_start", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"}
         ]
     }
 }

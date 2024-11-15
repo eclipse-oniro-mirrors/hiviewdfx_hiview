@@ -19,6 +19,10 @@
                 "QUEUE_NAME": "BasicParam.v_queue_name",
                 "TIME_OUT": "BasicParam.v_timeout",
                 "END_STACK":"MainCallTrace.v_trace"
+            },
+            "63_SYS_FREEZE_02": {
+                "PNAME": "BasicParam.v_process",
+                "END_STACK":"MainCallTrace.v_trace"
             }
     },
     "SYS_WARNING": {
