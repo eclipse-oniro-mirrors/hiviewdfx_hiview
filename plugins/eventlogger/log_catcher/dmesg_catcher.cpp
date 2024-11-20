@@ -65,8 +65,8 @@ bool DmesgCatcher::DumpSysrqToFile(int fd, char *data, int size)
     std::string line;
     bool res = false;
  
-    while(std::getline(ss, line)) {
-        if(line.find("hguard-worker") != std::string::npos ||
+    while (std::getline(ss, line)) {
+        if (line.find("hguard-worker") != std::string::npos ||
             line.find("memview_dump_") != std::string::npos ||
             line.find("dump_one_process") != std::string::npos) {
             line += "\n";
