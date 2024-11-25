@@ -41,7 +41,8 @@ public:
     std::map<std::string, std::string> sectionMaps;
 
     bool Marshalling(Parcel &parcel) const override;
-    static FaultLogInfoOhos* Unmarshalling(Parcel &parcel);
+    static sptr<FaultLogInfoOhos> Unmarshalling(Parcel &parcel);
+    static bool ReadString(Parcel& parcel, std::string strItem, std::string& strValue);
 
     FaultLogInfoOhos(){};
     ~FaultLogInfoOhos() {};

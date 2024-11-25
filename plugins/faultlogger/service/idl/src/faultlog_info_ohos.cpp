@@ -64,82 +64,52 @@ bool FaultLogInfoOhos::Marshalling(Parcel& parcel) const
     return true;
 }
 
-FaultLogInfoOhos* FaultLogInfoOhos::Unmarshalling(Parcel& parcel)
+bool FaultLogInfoOhos::ReadString(Parcel& parcel, std::string strItem, std::string& strValue)
 {
+    if (!parcel.ReadString(strValue)) {
+        HIVIEW_LOGE("Parcel failed to read %{public}s(%{public}s).", strItem.c_str(), strValue.c_str());
+        return false;
+    }
+    return true;
+}
+
+sptr<FaultLogInfoOhos> FaultLogInfoOhos::Unmarshalling(Parcel& parcel)
+{
+    sptr<FaultLogInfoOhos> FaultLogInfo = new FaultLogInfoOhos();
+
+    if (!parcel.ReadInt64(FaultLogInfo->time) || !parcel.ReadInt32(FaultLogInfo->uid) ||
+        !parcel.ReadInt32(FaultLogInfo->pid) || !parcel.ReadInt32(FaultLogInfo->faultLogType)) {
+        HIVIEW_LOGE("Parcel failed to read int number.");
+        return nullptr;
+    }
+    if (!FaultLogInfoOhos::ReadString(parcel, "module", FaultLogInfo->module) ||
+        !FaultLogInfoOhos::ReadString(parcel, "reason", FaultLogInfo->reason) ||
+        !FaultLogInfoOhos::ReadString(parcel, "summary", FaultLogInfo->summary) ||
+        !FaultLogInfoOhos::ReadString(parcel, "logPath", FaultLogInfo->logPath) ||
+        !FaultLogInfoOhos::ReadString(parcel, "registers", FaultLogInfo->registers)) {
+        return nullptr;
+    }
+
     const uint32_t maxSize = 128;
-    uint32_t size;
-    uint32_t i;
-    FaultLogInfoOhos* ret = new FaultLogInfoOhos();
-    if (!parcel.ReadInt64(ret->time)) {
-        goto error;
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size) || (size > maxSize)) {
+        return nullptr;
     }
-
-    if (!parcel.ReadInt32(ret->uid)) {
-        goto error;
-    }
-
-    if (!parcel.ReadInt32(ret->pid)) {
-        goto error;
-    }
-
-    if (!parcel.ReadInt32(ret->faultLogType)) {
-        goto error;
-    }
-
-    if (!parcel.ReadString(ret->module)) {
-        HIVIEW_LOGE("Parcel failed to read module(%{public}s).", ret->module.c_str());
-        goto error;
-    }
-
-    if (!parcel.ReadString(ret->reason)) {
-        HIVIEW_LOGE("Parcel failed to read reason(%{public}s).", ret->reason.c_str());
-        goto error;
-    }
-
-    if (!parcel.ReadString(ret->summary)) {
-        HIVIEW_LOGE("Parcel failed to read summary(%{public}s).", ret->summary.c_str());
-        goto error;
-    }
-
-    if (!parcel.ReadString(ret->logPath)) {
-        HIVIEW_LOGE("Parcel failed to read log path(%{public}s).", ret->logPath.c_str());
-        goto error;
-    }
-
-    if (!parcel.ReadString(ret->registers)) {
-        HIVIEW_LOGE("Parcel failed to read registers(%{public}s).", ret->registers.c_str());
-        goto error;
-    }
-
-    if (!parcel.ReadUint32(size)) {
-        goto error;
-    }
-
-    if (size > maxSize) {
-        goto error;
-    }
-
-    for (i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         std::string key;
         std::string value;
         if (!parcel.ReadString(key)) {
             HIVIEW_LOGE("Parcel failed to read key of sectionMaps(%{public}s).", key.c_str());
-            goto error;
+            return nullptr;
         }
-
         if (!parcel.ReadString(value)) {
             HIVIEW_LOGE("Parcel failed to read value of sectionMaps(%{public}s).", value.c_str());
-            goto error;
+            return nullptr;
         }
-
-        ret->sectionMaps[key] = value;
+        FaultLogInfo->sectionMaps[key] = value;
     }
-    return ret;
 
-error:
-    delete ret;
-    ret = nullptr;
-    return nullptr;
+    return FaultLogInfo;
 }
 }  // namespace hiview
 }  // namespace OHOS
