@@ -56,13 +56,13 @@ struct EventRawDataInfo {
 
 class SysEventRepeatGuard {
 public:
-    static void Check(std::shared_ptr<SysEvent> event);
+    static void Check(SysEvent& event);
     static void RegisterListeningUeSwitch();
     static void UnregisterListeningUeSwitch();
 private:
-    static bool IsEventRepeat(std::shared_ptr<SysEvent> event);
+    static bool IsEventRepeat(SysEvent& event);
     static int64_t GetMinValidTime();
-    static bool GetEventUniqueId(std::shared_ptr<SysEvent> event, std::string& uniqueId);
+    static bool GetEventUniqueId(SysEvent& event, std::string& uniqueId);
 };
 } // HiviewDFX
 } // OHOS

@@ -63,30 +63,27 @@ int64_t SysEventRepeatGuard::GetMinValidTime()
 }
 
  
-void SysEventRepeatGuard::Check(std::shared_ptr<SysEvent> event)
+void SysEventRepeatGuard::Check(SysEvent& event)
 {
-    if (event->GetEventType() != SysEventCreator::EventType::FAULT) {
+    if (event.GetEventType() != SysEventCreator::EventType::FAULT) {
         return;
     }
     if (IsEventRepeat(event)) {
-        event->SetLog(LOG_NOT_ALLOW_PACK|LOG_REPEAT);
+        event.SetLog(LOG_NOT_ALLOW_PACK|LOG_REPEAT);
         return;
     }
-    event->SetLog(LOG_ALLOW_PACK|LOG_PACKED);
+    event.SetLog(LOG_ALLOW_PACK|LOG_PACKED);
     return;
 }
 
-bool SysEventRepeatGuard::GetEventUniqueId(std::shared_ptr<SysEvent> event, std::string& uniqueId)
+bool SysEventRepeatGuard::GetEventUniqueId(SysEvent& event, std::string& uniqueId)
 {
-    if (event == nullptr) {
-        return false;
-    }
-    uniqueId = event->GetEventValue("FINGERPRINT");
+    uniqueId = event.GetEventValue("FINGERPRINT");
     if (!uniqueId.empty()) {
         return true;
     }
     
-    uint8_t* eventData = event->AsRawData();
+    uint8_t* eventData = event.AsRawData();
     if (eventData == nullptr) {
         HIVIEW_LOGE("invalid eventData.");
         return false;
@@ -99,9 +96,9 @@ bool SysEventRepeatGuard::GetEventUniqueId(std::shared_ptr<SysEvent> event, std:
     return true;
 }
 
-bool SysEventRepeatGuard::IsEventRepeat(std::shared_ptr<SysEvent> event)
+bool SysEventRepeatGuard::IsEventRepeat(SysEvent& event)
 {
-    SysEventHashRecord sysEventHashRecord(event->domain_, event->eventName_);
+    SysEventHashRecord sysEventHashRecord(event.domain_, event.eventName_);
     if (!GetEventUniqueId(event, sysEventHashRecord.eventHash)) {
         HIVIEW_LOGE("GetShaStr failed.");
         return false;
