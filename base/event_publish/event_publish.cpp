@@ -111,7 +111,8 @@ std::string GetSandBoxBasePath(int32_t uid, const std::string& bundleName)
         .append("/base/");
     AppExecFwk::BundleMgrClient client;
     AppExecFwk::BundleInfo bundleInfo;
-    bool getInfoResult = client.GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+    bool getInfoResult = client.GetBundleInfo(
+        bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!getInfoResult) {
         HIVIEW_LOGE("Failed to get bundleInfo from bms, bundleName=%{public}s.", bundleName.c_str());
         return path;
