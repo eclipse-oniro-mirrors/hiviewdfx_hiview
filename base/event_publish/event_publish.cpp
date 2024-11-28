@@ -108,9 +108,27 @@ std::string GetSandBoxBasePath(int32_t uid, const std::string& bundleName)
     std::string path;
     path.append("/data/app/el2/")
         .append(std::to_string(userId))
-        .append("/base/")
-        .append(bundleName)
-        .append("/cache/hiappevent");
+        .append("/base/");
+    AppExecFwk::BundleMgrClient client;
+    AppExecFwk::BundleInfo bundleInfo;
+    bool getInfoResult = client.GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+    if (!getInfoResult) {
+        HIVIEW_LOGE("Failed to get bundleInfo from bms, bundleName=%{public}s.", bundleName.s_str());
+        return path;
+    }
+    if (bundleInfo.entryInstallationFree) {
+        // the bundleName is atomicService.
+        std::string atomicServiceName;
+        ErrCode getDirResult = client.GetDirByBundleNameAndAppIndex(bundleName, bundleInfo.appIndex, atomicServiceName);
+        if (getDirResult != Err_OK) {
+            HIVIEW_LOGE("GetDirByBundleNameAndAppIndex failed, ret:%{public}d", getDirResult);
+            return path;
+        }
+        path.append(atomicServiceName);
+    } else {
+        path.append(bundleName)
+    }
+    path.append("/cache/hiappevent");
     return path;
 }
 
