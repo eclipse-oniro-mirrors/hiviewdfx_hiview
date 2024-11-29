@@ -105,17 +105,18 @@ std::string GetBundleNameById(int32_t uid)
 std::string GetSandBoxBasePath(int32_t uid, const std::string& bundleName)
 {
     int userId = uid / VALUE_MOD;
-    std::string path;
-    path.append("/data/app/el2/")
-        .append(std::to_string(userId))
-        .append("/base/");
+    std::string atomicServicePath;
+    atomicServicePath.append("/data/app/el2/")
+                     .append(std::to_string(userId))
+                     .append("/base/");
+    std::string defaultPath = atomicServicePath.append(bundleName).append("/cache/hiappevent");
     AppExecFwk::BundleMgrClient client;
     AppExecFwk::BundleInfo bundleInfo;
     bool getInfoResult = client.GetBundleInfo(
         bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!getInfoResult) {
         HIVIEW_LOGE("Failed to get bundleInfo from bms, bundleName=%{public}s.", bundleName.c_str());
-        return path;
+        return defaultPath;
     }
     if (bundleInfo.entryInstallationFree) {
         // the bundleName is atomicService.
@@ -123,14 +124,12 @@ std::string GetSandBoxBasePath(int32_t uid, const std::string& bundleName)
         ErrCode getDirResult = client.GetDirByBundleNameAndAppIndex(bundleName, bundleInfo.appIndex, atomicServiceName);
         if (getDirResult != ERR_OK) {
             HIVIEW_LOGE("GetDirByBundleNameAndAppIndex failed, ret:%{public}d", getDirResult);
-            return path;
+            return defaultPath;
         }
-        path.append(atomicServiceName);
-    } else {
-        path.append(bundleName);
+        atomicServicePath.append(atomicServiceName).append("/cache/hiappevent");
+        return atomicServicePath;
     }
-    path.append("/cache/hiappevent");
-    return path;
+    return defaultPath;
 }
 
 std::string GetSandBoxLogPath(int32_t uid, const std::string& bundleName, const ExternalLogInfo &externalLogInfo)
