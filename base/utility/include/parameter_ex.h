@@ -19,6 +19,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 constexpr char KEY_BUILD_CHARACTER[] = "ro.build.characteristics";
+constexpr char KEY_GLOBAL_LOCALE[] = "const.global.locale";
 constexpr char KEY_HIVIEW_VERSION_TYPE[] = "const.logsystem.versiontype";
 constexpr char KEY_DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
@@ -35,6 +36,7 @@ bool SetProperty(const std::string& key, const std::string& defaultValue);
 int WaitParamSync(const char *key, const char *value, int timeout);
 typedef void (*ParameterChgPtr)(const char *key, const char *value, void *context);
 int WatchParamChange(const char *keyPrefix, ParameterChgPtr callback, void *context);
+bool IsOversea();
 bool IsBetaVersion();
 bool IsDeveloperMode();
 bool IsUCollectionSwitchOn();

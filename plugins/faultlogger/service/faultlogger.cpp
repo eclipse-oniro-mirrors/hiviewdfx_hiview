@@ -996,6 +996,10 @@ int Faultlogger::DoGetHilogProcess(int32_t pid, int writeFd) const
 
 bool Faultlogger::GetHilog(int32_t pid, std::string& log) const
 {
+    if (Parameter::IsOversea() && !Parameter::IsBetaVersion()) {
+        HIVIEW_LOGI("Do not get hilog in oversea commercial version.");
+        return false;
+    }
     int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
     if (pipe(fds) != 0) {
         HIVIEW_LOGE("Failed to create pipe for get log.");

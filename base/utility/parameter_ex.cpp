@@ -67,6 +67,12 @@ std::string GetDisplayVersionStr()
     return displayedVersionStr;
 }
 
+bool IsOversea()
+{
+    static bool isOversea = GetString(KEY_GLOBAL_LOCALE, "unknown").find("zh-Hans-CN") == std::string::npos;
+    return isOversea;
+}
+
 bool IsBetaVersion()
 {
     static bool isBetaVersion = GetString(KEY_HIVIEW_VERSION_TYPE, "unknown").find("beta") != std::string::npos;
