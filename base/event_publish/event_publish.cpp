@@ -121,7 +121,7 @@ std::string GetSandBoxBasePath(int32_t uid, const std::string& bundleName)
         ErrCode getDirResult = client.GetDirByBundleNameAndAppIndex(bundleName, bundleInfo.appIndex, atomicServiceName);
         if (getDirResult != ERR_OK) {
             HIVIEW_LOGE("GetDirByBundleNameAndAppIndex failed, ret:%{public}d", getDirResult);
-            return path;
+            return "";
         }
         path = "/data/app/el2/" + std::to_string(userId) + "/base/" + atomicServiceName + "/cache/hiappevent";
     }
