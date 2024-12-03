@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+Device info:MatePad Pro
+Build info:OpenHarmony 3.2.3.5
+Module name:com.ohos.launcher
+Version:1.0.0
+Pid:2769
+Uid:20010025
+Reason:SIGSEGV
+Tid:2769 Name:com.ohos.launch
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)
+#02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#03 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#04 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#05 pc 000000000001608c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+96)
+#06 pc 000000000009380c /system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372)
+#07 pc 00000000000144b8 /system/bin/appspawn
+#08 pc 00000000000139ec /system/bin/appspawn
+#09 pc 000000000001fd90 /system/lib64/libbegetutil.z.so
+#10 pc 000000000001f980 /system/lib64/libbegetutil.z.so
+#11 pc 000000000001ccd0 /system/lib64/libbegetutil.z.so(ProcessEvent+108)
+#12 pc 000000000001c6cc /system/lib64/libbegetutil.z.so
+#13 pc 00000000000128b4 /system/bin/appspawn
+#14 pc 000000000001053c /system/bin/appspawn
+#15 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)
+Tid:3444, Name:com.example.jsi
+#00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
+#01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
+#02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
+#03 pc 000000000004c6d4 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+328)
+#04 pc 000000000004c7b8 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::StartWorkLoop()+36)
+#05 pc 000000000004d3c0 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::JoinThread(bool)+56)
+#06 pc 0000000000046a80 /system/lib64/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler()+224)
+#07 pc 0000000000046e78 /system/lib64/libipc_core.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::IPCWorkThread::*)(), OHOS::IPCWorkThread*> > >(void*)+68)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3445, Name:com.example.jsi
+#00 pc 00000000000bb464 /system/lib64/libc.so(__ioctl+4)
+#01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
+#02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
+#03 pc 000000000004c6d4 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+328)
+#04 pc 000000000004c7b8 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::StartWorkLoop()+36)
+#05 pc 000000000004d3c0 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::JoinThread(bool)+56)
+#06 pc 0000000000046a80 /system/lib64/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler()+224)
+#07 pc 0000000000046e78 /system/lib64/libipc_core.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::IPCWorkThread::*)(), OHOS::IPCWorkThread*> > >(void*)+68)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3446, Name:WatchDogRunner
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#08 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#09 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#10 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#11 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3447, Name:com.example.jsi
+#00 pc 00000000000bb464 /system/lib64/libc.so(__ioctl+4)
+#01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
+#02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
+#03 pc 000000000004c6d4 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+328)
+#04 pc 000000000004c7b8 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::StartWorkLoop()+36)
+#05 pc 000000000004d3c0 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::JoinThread(bool)+56)
+#06 pc 0000000000046a80 /system/lib64/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler()+224)
+#07 pc 0000000000046e78 /system/lib64/libipc_core.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::IPCWorkThread::*)(), OHOS::IPCWorkThread*> > >(void*)+68)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)

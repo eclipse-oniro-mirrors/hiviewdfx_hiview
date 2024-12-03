@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+Device info:MatePad Pro
+Build info:OpenHarmony 3.2.6.1
+Module name:com.example.jsinject
+Version:1.0.0
+Pid:3608
+Uid:20010048
+Lifetime: 0.000000s
+Js-Engine: ark
+page: pages/index/index.js
+Error message: temp is not defined
+SourceCode: 
+    this.printContent = "注入JS Crash异常";
+^
+Stacktrace:
+    at judgeDeviceType (/ets/vm/notificationManagenmentViewModel.ts:67:9)
+    at ViewModelInit (/ets/vm/notificationManag3enmentrViewModel.ts:32:5)
+    at aboutToAppear00 (/ets/pages/notifica4tionManagenment.ets:191:5)
+    at aboutToAppear2 (/ets/pages/notificationManagenment3.ets:191:5)
+    at aboutToAppear3 (/ets/pages/not6ificationManagenment2.ets:1222:15)
+    at aboutToAppearlast (/ets/pag4es/notifi5cationManagenment2.ets:2343:000)
