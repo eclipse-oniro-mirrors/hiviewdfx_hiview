@@ -54,6 +54,10 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
         FileUtil::SaveStringToFile(logPath, info.summary);
         needDelete = true;
     }
+    std::string binderStack = "";
+    if (eventInfos.count(TERMINAL_THREAD_STACK) > 0 && !eventInfos[TERMINAL_THREAD_STACK].empty()) {
+        binderStack = eventInfos[TERMINAL_THREAD_STACK];
+    }
 
     eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
     if (needDelete) {
@@ -63,6 +67,10 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
         eventInfos.insert(std::make_pair("FINGERPRINT", Tbox::CalcFingerPrint(info.module + info.reason +
             info.summary, 0, FP_BUFFER)));
         return false;
+    }
+    if (!binderStack.empty()) {
+        // Update ENDSTACK, ENDSTACK is used in Tbox::FilterTrace to extract F1/F2/F3
+        eventInfos[PARAMETER_ENDSTACK] = binderStack;
     }
     Tbox::FilterTrace(eventInfos, eventType);
     std::string fingerRawString;
