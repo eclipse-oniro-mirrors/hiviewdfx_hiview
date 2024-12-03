@@ -8,9 +8,6 @@
                 "LAST_FRAME":"BasicParam.v_state",
                 "TRACER_PID":"BasicParam.v_tracer",
                 "DUMPCATCH_RESULT":"BasicParam.v_dumpcatch_result"
-            },
-            "63_APP_FREEZE_01": {
-                "LAST_FRAME":"BasicParam.v_exit"
             }
     },
     "SYS_FREEZE": {
