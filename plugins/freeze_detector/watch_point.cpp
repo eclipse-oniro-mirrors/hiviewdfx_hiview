@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
-    : seq_(0), timestamp_(0), pid_(0), uid_(0), tid_(0), domain_(""), stringId_(""), msg_("")
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), domain_(""), stringId_(""), msg_("")
 {
 }
 
@@ -28,8 +28,9 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     : seq_(builder.seq_),
     timestamp_(builder.timestamp_),
     pid_(builder.pid_),
-    uid_(builder.uid_),
     tid_(builder.tid_),
+    uid_(builder.uid_),
+    terminalThreadStack_(builder.terminalThreadStack_),
     domain_(builder.domain_),
     stringId_(builder.stringId_),
     msg_(builder.msg_),
@@ -43,7 +44,7 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
 }
 
 WatchPoint::Builder::Builder()
-    : seq_(0), timestamp_(0), pid_(0), uid_(0), tid_(0), domain_(""), stringId_(""), msg_("")
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), domain_(""), stringId_(""), msg_("")
 {
 }
 
@@ -67,15 +68,21 @@ WatchPoint::Builder& WatchPoint::Builder::InitPid(long pid)
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitTid(long tid)
+{
+    tid_ = tid;
+    return *this;
+}
+
 WatchPoint::Builder& WatchPoint::Builder::InitUid(long uid)
 {
     uid_ = uid;
     return *this;
 }
 
-WatchPoint::Builder& WatchPoint::Builder::InitTid(long tid)
+WatchPoint::Builder& WatchPoint::Builder::InitTerminalThreadStack(const std::string& terminalThreadStack)
 {
-    tid_ = tid;
+    terminalThreadStack_ = terminalThreadStack;
     return *this;
 }
 
@@ -154,14 +161,19 @@ long WatchPoint::GetPid() const
     return pid_;
 }
 
+long WatchPoint::GetTid() const
+{
+    return tid_;
+}
+
 long WatchPoint::GetUid() const
 {
     return uid_;
 }
 
-long WatchPoint::GetTid() const
+std::string WatchPoint::GetTerminalThreadStack() const
 {
-    return tid_;
+    return terminalThreadStack_;
 }
 
 std::string WatchPoint::GetDomain() const

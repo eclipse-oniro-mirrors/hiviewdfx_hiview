@@ -35,6 +35,7 @@ public:
     static constexpr const char* const EVENT_PROCESS_NAME = "PROCESS_NAME";
     static constexpr const char* const HIREACE_TIME = "HITRACE_TIME";
     static constexpr const char* const SYSRQ_TIME = "SYSRQ_TIME";
+    static constexpr const char* const TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
 
     FreezeCommon();
     ~FreezeCommon();

@@ -21,6 +21,13 @@ namespace HiviewDFX {
 // do not dynamic alloc any memory in sub class, may cause leakage
 class EventLogCatcher {
 public:
+    struct TerminalBinder {
+        int pid;
+        int tid;
+        std::string threadStack;
+    };
+    std::string name_ = "";
+    TerminalBinder terminalBinder_ = {0, 0, ""};
 
     EventLogCatcher() {};
     int GetLogSize() const;
@@ -44,7 +51,6 @@ protected:
     bool useStreamFilter_ = false;
     volatile bool needStop_ = false;
     std::string description_ = "";
-    std::string name_ = "";
 };
 } // namespace HiviewDFX
 } // namespace OHOS

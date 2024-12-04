@@ -72,7 +72,8 @@ int OpenStacktraceCatcher::Catch(int fd, int jsonFd)
     int originSize = GetFdSize(fd);
 
 #ifdef DUMP_STACK_IN_PROCESS
-    LogCatcherUtils::DumpStacktrace(fd, pid_);
+    std::string threadStack;
+    LogCatcherUtils::DumpStacktrace(fd, pid_, threadStack);
 #else
     ForkAndDumpStackTrace(fd);
 #endif
@@ -103,7 +104,8 @@ int32_t OpenStacktraceCatcher::ForkAndDumpStackTrace(int32_t fd)
 
     if (pid == 0) {
         auto newFd = dup(fd);
-        int ret = LogCatcherUtils::DumpStacktrace(newFd, pid_);
+        std::string threadStack;
+        int ret = LogCatcherUtils::DumpStacktrace(newFd, pid_, threadStack);
         HIVIEW_LOGD("LogCatcherUtils::DumpStacktrace ret %{public}d", ret);
         close(newFd);
         _exit(ret);

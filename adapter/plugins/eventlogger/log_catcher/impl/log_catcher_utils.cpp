@@ -116,7 +116,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
     return -1;
 }
 
-int DumpStacktrace(int fd, int pid)
+int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int terminalBinderPid, int terminalBinderTid)
 {
     if (fd < 0) {
         return -1;
@@ -142,8 +142,43 @@ int DumpStacktrace(int fd, int pid)
     if (msg == "") {
         msg = "dumpCatch return empty stack!!!!";
     }
+    if (terminalBinderPid > 0 && pid == terminalBinderPid) {
+        terminalBinderTid  = (terminalBinderTid > 0) ? terminalBinderTid : terminalBinderPid;
+        GetThreadStack(msg, terminalBinderStack, terminalBinderTid);
+    }
+
     FileUtil::SaveStringToFd(fd, msg);
     return 0;
+}
+
+void GetThreadStack(const std::string& processStack, std::string& stack, int tid)
+{
+    if (tid <= 0) {
+        return;
+    }
+
+    std::istringstream issStack(processStack);
+    std::string regTidString = "^Tid:" + std::to_string(tid) + ", Name:(.{0,32})$";
+    std::regex regTid(regTidString);
+    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
+    std::string line;
+    while (std::getline(issStack, line)) {
+        if (!issStack.good()) {
+            break;
+        }
+
+        if (!std::regex_match(line, regTid)) {
+            continue;
+        }
+
+        while (std::getline(issStack, line) && std::regex_match(line, regStack)) {
+            stack.append(line + "\n");
+            if (!issStack.good()) {
+                break;
+            }
+        };
+        break;
+    }
 }
 
 int DumpStackFfrt(int fd, const std::string& pid)

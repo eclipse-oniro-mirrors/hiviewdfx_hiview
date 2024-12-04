@@ -88,6 +88,12 @@ namespace {
     static constexpr const char* const MONITOR_STACK_FLIE_NAME[] = {
         "jsstack",
     };
+    const static std::map<std::string, std::vector<std::string>> PB_EVENT_CONFIGS = {
+        {"UI_BLOCK", {"UI_BLOCK_3S", "6000"}},
+        {"THREAD_BLOCK", {"THREAD_BLOCK_3S", "14000"}},
+        {"BUSSNESS_THREAD_BLOCK", {"BUSSNESS_THREAD_BLOCK_3S", "14000"}},
+        {"LIFECYCLE", {"LIFECYCLE_HALF_TIMEOUT", "30000"}}
+    };
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -348,13 +354,13 @@ std::string EventLogger::StabilityGetTempFreqInfo()
     return tempInfo;
 }
 
-void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd)
+void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
 {
     auto start = TimeUtil::GetMilliseconds();
     WriteStartTime(fd, start);
     WriteCommonHead(fd, event);
     std::vector<std::string> binderPids;
-    WriteFreezeJsonInfo(fd, jsonFd, event, binderPids);
+    WriteFreezeJsonInfo(fd, jsonFd, event, binderPids, threadStack);
     std::for_each(binderPids.begin(), binderPids.end(), [fd] (const std::string& binderPid) {
         LogCatcherUtils::DumpStackFfrt(fd, binderPid);
     });
@@ -377,12 +383,51 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     if (ret != EventLogTask::TASK_SUCCESS) {
         HIVIEW_LOGE("capture fail %{public}d", ret);
     }
+    SetEventTerminalBinder(event, threadStack, std::move(logTask));
     CollectMemInfo(fd, event);
     FreezeCommon::WriteStartInfoToFd(fd, "start collect ctabilityGetTempFreqInfo: ");
     FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
     auto end = TimeUtil::GetMilliseconds();
     FreezeCommon::WriteEndInfoToFd(fd, "\nend collect ctabilityGetTempFreqInfo: ");
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
+}
+
+void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
+    std::unique_ptr<EventLogTask>&& logTask)
+{
+    std::string pbEventKey = "";
+    long pid = event->GetEventIntValue("PID") ? event->GetEventIntValue("PID") : event->GetPid();
+    std::string eventName = event->eventName_;
+    std::vector<std::string> pbEventConfig;
+    if (eventName == "APP_INPUT_BLOCK") {
+        event->SetEventValue("TERMINAL_THREAD_STACK", threadStack);
+    } else if (std::any_of(PB_EVENT_CONFIGS.begin(), PB_EVENT_CONFIGS.end(),
+        [&pbEventKey, &pbEventConfig, &eventName] (const auto& it) {
+        bool result = eventName.find(it.first) != std::string::npos;
+        if (result) {
+            pbEventKey = it.first;
+            pbEventConfig = it.second;
+        }
+        return result;
+    })) {
+        std::string processName = event->GetEventValue("PROCESS_NAME");
+        uint64_t happenTime = event->happenTime_;
+        terminalBindeMutex_.lock();
+        if (eventName == pbEventConfig[0]) {
+            terminalBinder_.eventName = eventName;
+            terminalBinder_.happenTime = happenTime;
+            terminalBinder_.processName = processName;
+            terminalBinder_.pid = pid;
+            terminalBinder_.threadStack = logTask->terminalThreadStack_;
+        } else if (terminalBinder_.pid == pid && terminalBinder_.processName == processName &&
+            terminalBinder_.eventName == pbEventConfig[0] &&
+            happenTime - terminalBinder_.happenTime <= std::stoull(pbEventConfig[1])) {
+            event->SetEventValue("TERMINAL_THREAD_STACK", terminalBinder_.threadStack);
+        }
+        terminalBindeMutex_.unlock();
+    } else {
+        event->SetEventValue("TERMINAL_THREAD_STACK", logTask->terminalThreadStack_);
+    }
 }
 
 void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
@@ -401,7 +446,8 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
         jsonFd = FreezeJsonUtil::GetFd(jsonFilePath);
     }
 
-    WriteInfoToLog(event, fd, jsonFd);
+    std::string terminalBinderThreadStack;
+    WriteInfoToLog(event, fd, jsonFd, terminalBinderThreadStack);
     close(fd);
     if (jsonFd >= 0) {
         close(jsonFd);
@@ -741,7 +787,7 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
 }
 
 bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEvent> event,
-    std::vector<std::string>& binderPids)
+    std::vector<std::string>& binderPids, std::string& threadStack)
 {
     std::string msg = StringUtil::ReplaceStr(event->GetEventValue("MSG"), "\\n", "\n");
     std::string stack;
@@ -749,19 +795,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     if (FreezeJsonUtil::IsAppFreeze(event -> eventName_)) {
         std::string kernelStack = "";
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
-        size_t splitIndex = binderInfo.find(",");
-        if (splitIndex != std::string::npos && jsonFd >= 0) {
-            HIVIEW_LOGI("Current binderInfo is? binderInfo:%{public}s", binderInfo.c_str());
-            StringUtil::SplitStr(binderInfo.substr(splitIndex + 1), " ", binderPids);
-            std::string binderPath = binderInfo.substr(0, splitIndex);
-            if (FileUtil::FileExists(binderPath)) {
-                binderInfo = GetAppFreezeFile(binderPath);
-            }
-            std::string binderInfoJsonStr;
-            ParsePeerBinder(binderInfo, binderInfoJsonStr);
-            FreezeJsonUtil::WriteKeyValue(jsonFd, "peer_binder", binderInfoJsonStr);
-            ParsePeerStack(binderInfo, kernelStack);
-        }
+        WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
         WriteKernelStackToFile(event, fd, kernelStack);
     } else {
         stack = event->GetEventValue("STACK");
@@ -788,6 +822,33 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     FileUtil::SaveStringToFd(fd, oss.str());
     WriteCallStack(event, fd);
     return true;
+}
+
+void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
+    std::string& threadStack, std::string& kernelStack)
+{
+    size_t indexOne = binderInfo.find(",");
+    size_t indexTwo = binderInfo.rfind(",");
+    if (indexOne != std::string::npos && indexTwo != std::string::npos && indexTwo > indexOne && jsonFd >= 0) {
+        HIVIEW_LOGI("Current binderInfo is? binderInfo:%{public}s", binderInfo.c_str());
+        StringUtil::SplitStr(binderInfo.substr(indexOne + 1, indexTwo - indexOne - 1), " ", binderPids);
+        int terminalBinderTid = std::atoi(binderInfo.substr(indexTwo + 1).c_str());
+        std::string binderPath = binderInfo.substr(0, indexOne);
+        if (FileUtil::FileExists(binderPath)) {
+            binderInfo = GetAppFreezeFile(binderPath);
+        }
+        std::string stackStart = "TerminalBinder stacktrace:\n";
+        size_t startIndex = binderInfo.find(stackStart);
+        size_t endIndex = binderInfo.find("TerminalBinder stacktrace ends here!\n");
+        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
+            LogCatcherUtils::GetThreadStack(binderInfo.substr(startIndex + stackStart.size(),
+                endIndex - startIndex - stackStart.size()), threadStack, terminalBinderTid);
+        }
+        std::string binderInfoJsonStr;
+        ParsePeerBinder(binderInfo, binderInfoJsonStr);
+        FreezeJsonUtil::WriteKeyValue(jsonFd, "peer_binder", binderInfoJsonStr);
+        ParsePeerStack(binderInfo, kernelStack);
+    }
 }
 
 void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysEvent> event)
