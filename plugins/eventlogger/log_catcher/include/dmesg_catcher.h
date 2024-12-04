@@ -40,6 +40,7 @@ private:
     std::string DmesgSaveTofile();
     bool DumpDmesgLog(int fd);
     bool WriteSysrq();
+    bool DumpSysrqToFile(int fd, char *buffer, int size);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

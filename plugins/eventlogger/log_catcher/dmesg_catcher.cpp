@@ -20,6 +20,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sstream>
+#include <iostream>
 
 #include "hiview_logger.h"
 #include "log_catcher_utils.h"
@@ -56,6 +58,22 @@ bool DmesgCatcher::Init(std::shared_ptr<SysEvent> event)
     return true;
 }
 
+bool DmesgCatcher::DumpSysrqToFile(int fd, char *data, int size)
+{
+    std::string dataStr = std::string(data, size);
+    std::stringstream ss(dataStr);
+    std::string line;
+    bool res = false;
+ 
+    while (std::getline(ss, line)) {
+        if (line.find("hguard-worker") != std::string::npos) {
+            line += "\n";
+            res = FileUtil::SaveStringToFd(fd, line);
+        }
+    }
+    return res;
+}
+
 bool DmesgCatcher::DumpDmesgLog(int fd)
 {
     if (fd < 0) {
@@ -76,7 +94,7 @@ bool DmesgCatcher::DumpDmesgLog(int fd)
         free(data);
         return false;
     }
-    bool res = FileUtil::SaveStringToFd(fd, data);
+    bool res = needWriteSysrq_ ? DumpSysrqToFile(fd, data, size) : FileUtil::SaveStringToFd(fd, data);
     free(data);
     return res;
 }
