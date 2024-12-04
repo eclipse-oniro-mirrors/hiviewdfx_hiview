@@ -215,10 +215,10 @@ void PeerBinderCatcher::BinderInfoParser(std::ifstream& fin, int fd,
     int asyncBinderSize = asyncBinderPairs.size();
     int individualMaxSize = 2;
     for (int i = 0; i < individualMaxSize; i++) {
-        if (freeAsyncSpaceSize > 0 && i < freeAsyncSpaceSize) {
+        if (i < freeAsyncSpaceSize) {
             asyncPids.insert(freeAsyncSpacePairs[i].first);
         }
-        if (asyncBinderSize > 0 && i < asyncBinderSize) {
+        if (i < asyncBinderSize) {
             asyncPids.insert(asyncBinderPairs[i].first);
         }
     }
