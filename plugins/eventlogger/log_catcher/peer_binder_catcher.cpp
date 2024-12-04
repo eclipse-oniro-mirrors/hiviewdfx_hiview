@@ -93,10 +93,7 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
     }
     std::set<int> asyncPids;
     std::set<int> syncPids = GetBinderPeerPids(fd, jsonFd, asyncPids);
-    std::set<int> pids;
-    pids.insert(syncPids.begin(), syncPids.end());
-    pids.insert(asyncPids.begin(), asyncPids.end());
-    if (pids.empty()) {
+    if (syncPids.empty()) {
         std::string content = "PeerBinder pids is empty\r\n";
         FileUtil::SaveStringToFd(fd, content);
     }
@@ -104,9 +101,9 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
     ForkToDumpHiperf(syncPids);
 #endif
     std::string pidStr = "";
-    for (auto pidTemp : pids) {
+    for (auto pidTemp : syncPids) {
         if (pidTemp == pid_ || IsAncoProc(pidTemp)) {
-            HIVIEW_LOGI("Stack of pid %{public}d is catched.", pidTemp);
+            HIVIEW_LOGI("Stack of PeerBinder pid %{public}d is catched.", pidTemp);
             continue;
         }
 
@@ -114,9 +111,15 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
             CatcherStacktrace(fd, pidTemp);
             pidStr += "," + std::to_string(pidTemp);
         }
-        if (syncPids.find(pidTemp) != syncPids.end()) {
-            CatcherFfrtStack(fd, pidTemp);
+        CatcherFfrtStack(fd, pidTemp);
+    }
+    for (auto pidTemp : asyncPids) {
+        if (pidTemp == pid_ || IsAncoProc(pidTemp) || syncPids.find(pidTemp) != syncPids.end() ||
+            catchedPids_.count(pidTemp) != 0) {
+            HIVIEW_LOGI("Stack of AsyncBinder pid %{public}d is catched.", pidTemp);
+            continue;
         }
+        CatcherStacktrace(fd, pidTemp, false);
     }
 
     if (event_ != nullptr) {
@@ -331,15 +334,16 @@ bool PeerBinderCatcher::IsAncoProc(int pid) const
 
 void PeerBinderCatcher::CatcherFfrtStack(int fd, int pid) const
 {
-    std::string content =  "PeerBinderCatcher start catcher ffrt stack for pid : " + std::to_string(pid) + "\r\n";
+    std::string content =  "PeerBinder catcher ffrt stacktrace for pid : " + std::to_string(pid) + "\r\n";
     FileUtil::SaveStringToFd(fd, content);
 
     LogCatcherUtils::DumpStackFfrt(fd, std::to_string(pid));
 }
 
-void PeerBinderCatcher::CatcherStacktrace(int fd, int pid) const
+void PeerBinderCatcher::CatcherStacktrace(int fd, int pid, bool sync) const
 {
-    std::string content =  "PeerBinderCatcher start catcher stacktrace for pid : " + std::to_string(pid) + "\r\n";
+    std::string content = sync ? "PeerBinder" : "AsyncBinder";
+    content += " catcher stacktrace for pid : " + std::to_string(pid) + "\r\n";
     FileUtil::SaveStringToFd(fd, content);
 
     LogCatcherUtils::DumpStacktrace(fd, pid);
