@@ -88,11 +88,6 @@ std::string SysEvent::GetEventValue(const std::string& key)
     return nullptr;
 }
 
-void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
-    const std::string& paramJson)
-{
-}
-
 bool EventLoop::RemoveEvent(uint64_t seq)
 {
     return true;
