@@ -1,0 +1,696 @@
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+Device info:MatePad Pro
+Build info:OpenHarmony 3.2.3.5
+Module name:com.example.jsinject
+Version:1.0.0
+Pid:3443
+Uid:20010039
+Reason:UI_BLOCK_6S
+Summary:
+SUMMARY:
+SUMMARY:
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+DOMAIN:ACE
+STRINGID:UI_BLOCK_6S
+TIMESTAMP:7334295231
+PID:3443
+UID:20010039
+PACKAGE_NAME:com.example.jsinject
+PROCESS_NAME:
+MSG:Blocked thread id = 3454
+JSVM instance id = 0
+ Page: pages/index/index.js
+SourceCode: 
+    console.log(\"Begin Trigger JS Freeze\");
+^
+Stacktrace:
+    at containedClick (\\pages\\index\\index.js:17:9)
+
+
+*******************************************
+start time: 7334293207
+UI_BLOCK_3S
+PID = 3443
+UID = 20010039
+MSG = Blocked thread id = 3454
+JSVM instance id = 0
+
+PACKAGE_NAME = com.example.jsinject
+eventLog_action = s,pb:0
+eventLog_interval = 0
+
+OpenStacktraceCatcher -- pid==3443 packageName is com.example.jsinject
+:
+com.example.jsinject
+Timestamp:1970-03-26 21:18:13.000
+Pid:3443
+Uid:20010039
+Process name:com.example.jsinject
+Tid:3443, Name:com.example.jsi
+#00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#08 pc 000000000001608c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+96)
+#09 pc 000000000009380c /system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372)
+#10 pc 00000000000144b8 /system/bin/appspawn
+#11 pc 00000000000139ec /system/bin/appspawn
+#12 pc 000000000001fd90 /system/lib64/libbegetutil.z.so
+#13 pc 000000000001f980 /system/lib64/libbegetutil.z.so
+#14 pc 000000000001ccd0 /system/lib64/libbegetutil.z.so(ProcessEvent+108)
+#15 pc 000000000001c6cc /system/lib64/libbegetutil.z.so
+#16 pc 00000000000128b4 /system/bin/appspawn
+#17 pc 000000000001053c /system/bin/appspawn
+#18 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)
+Tid:3444, Name:com.example.jsi
+#00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
+#01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
+#02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
+#03 pc 000000000004c6d4 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+328)
+#04 pc 000000000004c7b8 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::StartWorkLoop()+36)
+#05 pc 000000000004d3c0 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::JoinThread(bool)+56)
+#06 pc 0000000000046a80 /system/lib64/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler()+224)
+#07 pc 0000000000046e78 /system/lib64/libipc_core.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::IPCWorkThread::*)(), OHOS::IPCWorkThread*> > >(void*)+68)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3445, Name:com.example.jsi
+#00 pc 00000000000bb464 /system/lib64/libc.so(__ioctl+4)
+#01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
+#02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
+#03 pc 000000000004c6d4 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+328)
+#04 pc 000000000004c7b8 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::StartWorkLoop()+36)
+#05 pc 000000000004d3c0 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::JoinThread(bool)+56)
+#06 pc 0000000000046a80 /system/lib64/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler()+224)
+#07 pc 0000000000046e78 /system/lib64/libipc_core.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::IPCWorkThread::*)(), OHOS::IPCWorkThread*> > >(void*)+68)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3446, Name:WatchDogRunner
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#08 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#09 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#10 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#11 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3447, Name:com.example.jsi
+#00 pc 00000000000bb464 /system/lib64/libc.so(__ioctl+4)
+#01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
+#02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
+#03 pc 000000000004c6d4 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+328)
+#04 pc 000000000004c7b8 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::StartWorkLoop()+36)
+#05 pc 000000000004d3c0 /system/lib64/libipc_core.z.so(OHOS::BinderInvoker::JoinThread(bool)+56)
+#06 pc 0000000000046a80 /system/lib64/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler()+224)
+#07 pc 0000000000046e78 /system/lib64/libipc_core.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::IPCWorkThread::*)(), OHOS::IPCWorkThread*> > >(void*)+68)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3448, Name:DfxThreadName
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 00000000000173b8 /system/lib64/libeventhandler.z.so
+#08 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#09 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#10 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#11 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3449, Name:com.example.jsi
+#00 pc 00000000000bc084 /system/lib64/libc.so(nanosleep+4)
+#01 pc 00000000000bb258 /system/lib64/libc++.so(std::__1::this_thread::sleep_for(std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > const&)+96)
+#02 pc 00000000000ae150 /system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::WatchDog::Timer()+76)
+#03 pc 00000000000ae8a0 /system/lib64/libappkit_native.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, bool (OHOS::AppExecFwk::WatchDog::*)(), OHOS::AppExecFwk::WatchDog*> >(void*)+68)
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3450, Name:TaskRunner
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 00000000000173b8 /system/lib64/libeventhandler.z.so
+#08 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#09 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#10 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#11 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3451, Name:mmi_client_Even
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 00000000000173b8 /system/lib64/libeventhandler.z.so
+#08 pc 000000000001608c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+96)
+#09 pc 0000000000046018 /system/lib64/libmmi-client.z.so(OHOS::MMI::InputManagerImpl::OnThread()+480)
+#10 pc 0000000000049c94 /system/lib64/libmmi-client.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::MMI::InputManagerImpl::*)(), OHOS::MMI::InputManagerImpl*> > >(void*)+64)
+#11 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#12 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3452, Name:mmi_client_Recv
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)
+#02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#03 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#04 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#05 pc 000000000001608c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+96)
+#06 pc 00000000000511ac /system/lib64/libmmi-client.z.so(OHOS::MMI::MMIClient::OnRecvThread()+560)
+#07 pc 0000000000049c94 /system/lib64/libmmi-client.z.so(void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, std::__1::__bind<void (OHOS::MMI::InputManagerImpl::*)(), OHOS::MMI::InputManagerImpl*> > >(void*)+64)
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3453, Name:RSRenderThread
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)
+#02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#03 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#04 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#05 pc 000000000001608c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventRunner::Run()+96)
+#06 pc 00000000000abd98 /system/lib64/librender_service_client.z.so
+#07 pc 00000000000add70 /system/lib64/librender_service_client.z.so
+#08 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#09 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3454, Name:jsThread-1
+#00 pc 00000000001b39b8 /system/lib64/libark_jsruntime.so
+#01 pc 00000000001aa4d0 /system/lib64/libark_jsruntime.so
+#02 pc 000000000010ea84 /system/lib64/libark_jsruntime.so
+#03 pc 00000000001aa1a4 /system/lib64/libark_jsruntime.so
+#04 pc 000000000010ea84 /system/lib64/libark_jsruntime.so
+#05 pc 00000000001aa1a4 /system/lib64/libark_jsruntime.so
+#06 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#07 pc 000000000010a020 /system/lib64/libark_jsruntime.so
+#08 pc 00000000001aa1a4 /system/lib64/libark_jsruntime.so
+#09 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#10 pc 0000000000108e94 /system/lib64/libark_jsruntime.so
+#11 pc 00000000001acf00 /system/lib64/libark_jsruntime.so
+#12 pc 00000000001aa4d0 /system/lib64/libark_jsruntime.so
+#13 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#14 pc 0000000000108e94 /system/lib64/libark_jsruntime.so
+#15 pc 00000000001acf00 /system/lib64/libark_jsruntime.so
+#16 pc 00000000001aa4d0 /system/lib64/libark_jsruntime.so
+#17 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#18 pc 0000000000108e94 /system/lib64/libark_jsruntime.so
+#19 pc 00000000001acf00 /system/lib64/libark_jsruntime.so
+#20 pc 00000000001aa4d0 /system/lib64/libark_jsruntime.so
+#21 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#22 pc 00000000000ee8cc /system/lib64/libark_jsruntime.so
+#23 pc 00000000001acf00 /system/lib64/libark_jsruntime.so
+#24 pc 00000000001aa4d0 /system/lib64/libark_jsruntime.so
+#25 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#26 pc 0000000000108e94 /system/lib64/libark_jsruntime.so
+#27 pc 00000000001acf00 /system/lib64/libark_jsruntime.so
+#28 pc 00000000001aa4d0 /system/lib64/libark_jsruntime.so
+#29 pc 0000000000222844 /system/lib64/libark_jsruntime.so
+#30 pc 0000000000271530 /system/lib64/libark_jsruntime.so(panda::FunctionRef::Call(panda::ecmascript::EcmaVM const*, panda::Local<panda::JSValueRef>, panda::Local<panda::JSValueRef> const*, int)+632)
+#31 pc 0000000000037ca8 /system/lib64/libace_engine_ark.z.so
+#32 pc 00000000000a3464 /system/lib64/libace_engine_ark.z.so
+#33 pc 00000000000a65ac /system/lib64/libace_engine_ark.z.so
+#34 pc 00000000005556fc /system/lib64/libace.z.so
+#35 pc 0000000000684940 /system/lib64/libace.z.so
+#36 pc 000000000079afdc /system/lib64/libace.z.so
+#37 pc 00000000007a4960 /system/lib64/libace.z.so
+#38 pc 00000000007a8e58 /system/lib64/libace.z.so
+#39 pc 00000000007a489c /system/lib64/libace.z.so
+#40 pc 00000000007a7f20 /system/lib64/libace.z.so
+#41 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#42 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3455, Name:anr
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 00000000007a8e08 /system/lib64/libace.z.so
+#02 pc 00000000007a489c /system/lib64/libace.z.so
+#03 pc 00000000007a7f20 /system/lib64/libace.z.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3457, Name:com.example.jsi
+#00 pc 00000000000bb284 /system/lib64/libc.so(__accept4+4)
+#01 pc 000000000000229c /system/lib64/libnetd_client.so
+#02 pc 0000000000031d68 /system/lib64/libconnectserver_debugger.z.so(boost::asio::detail::socket_ops::sync_accept(int, unsigned char, sockaddr*, unsigned long*, boost::system::error_code&)+192)
+#03 pc 0000000000031b00 /system/lib64/libconnectserver_debugger.z.so
+#04 pc 000000000002a50c /system/lib64/libconnectserver_debugger.z.so
+#05 pc 000000000002974c /system/lib64/libconnectserver_debugger.z.so(OHOS::Ace::ConnectServer::RunServer()+412)
+#06 pc 0000000000027418 /system/lib64/libconnectserver_debugger.z.so(OHOS::Ace::HandleDebugManager(void*)+92)
+#07 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#08 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3458, Name:1.ui
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 00000000007a8e08 /system/lib64/libace.z.so
+#02 pc 00000000007a489c /system/lib64/libace.z.so
+#03 pc 00000000007a7f20 /system/lib64/libace.z.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3459, Name:1.gpu
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 00000000007a8e08 /system/lib64/libace.z.so
+#02 pc 00000000007a489c /system/lib64/libace.z.so
+#03 pc 00000000007a7f20 /system/lib64/libace.z.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3460, Name:1.io
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 00000000007a8e08 /system/lib64/libace.z.so
+#02 pc 00000000007a489c /system/lib64/libace.z.so
+#03 pc 00000000007a7f20 /system/lib64/libace.z.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3461, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3462, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3463, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3464, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3465, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3466, Name:event_runner#1
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)
+#02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#03 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#04 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#05 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#06 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#07 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#08 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3467, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3468, Name:GC_WorkerThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 00000000000347dc /system/lib64/libarkbase.so(panda::os::unix::memory::futex::ConditionVariable::Wait(panda::os::unix::memory::futex::Mutex*)+700)
+#02 pc 0000000000281b30 /system/lib64/libark_jsruntime.so
+#03 pc 00000000002811dc /system/lib64/libark_jsruntime.so
+#04 pc 0000000000281254 /system/lib64/libark_jsruntime.so
+#05 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#06 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3469, Name:jsThread-1
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000002db38 /system/lib64/libark_debugger.z.so
+#02 pc 000000000002d71c /system/lib64/libark_debugger.z.so
+#03 pc 000000000002d318 /system/lib64/libark_debugger.z.so
+#04 pc 000000000002a784 /system/lib64/libark_debugger.z.so(OHOS::Ace::Framework::WsServer::RunServer()+1096)
+#05 pc 0000000000028b48 /system/lib64/libark_debugger.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3470, Name:window_listener
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+#03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable::__do_timed_wait(std::__1::unique_lock<std::__1::mutex>&, std::__1::chrono::time_point<std::__1::chrono::system_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > >)+112)
+#04 pc 000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204)
+#05 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#06 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#07 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#08 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#09 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#10 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#11 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3471, Name:ace.bg.1
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3472, Name:ace.bg.2
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3473, Name:ace.bg.3
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3474, Name:ace.bg.4
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3475, Name:ace.bg.5
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3476, Name:ace.bg.6
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3477, Name:ace.bg.7
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3478, Name:ace.bg.8
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 0000000000071674 /system/lib64/libc++.so(std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)+24)
+#04 pc 000000000052b9d8 /system/lib64/libace.z.so
+#05 pc 000000000052be5c /system/lib64/libace.z.so
+#06 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#07 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3480, Name:mali-mem-purge
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004ec428 /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3481, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3482, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3483, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3484, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3485, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3486, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3487, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3488, Name:mali-utility-wo
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 000000000007bdac /system/lib64/libc.so(sem_wait+120)
+#03 pc 00000000004cde5c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3489, Name:mali-cmar-backe
+#00 pc 00000000000bb4a4 /system/lib64/libc.so(__ppoll+4)
+#01 pc 000000000007a8dc /system/lib64/libc.so(poll+92)
+#02 pc 00000000004ce168 /system/lib64/libGLES_mali.so
+#03 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#04 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3490, Name:jsThread-1
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000001b674 /system/lib64/libace_napi.z.so(NativeEngineInterface::UVThreadRunner(void*)+148)
+#02 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#03 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3492, Name:RSRenderThread
+#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)
+#01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)
+#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)
+#03 pc 000000000051b55c /system/lib64/libGLES_mali.so
+#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+Tid:3493, Name:vsync_thread
+#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)
+#02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
+#03 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::GetEvent()+112)
+#04 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+#05 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+#06 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
+#07 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
+#08 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
+
+PeerBinderCatcher -- pid==3443 layer_ == 0
+:
+
+BinderCatcher --
+
+
+pid	context		request	started	max	ready	free_async_space
+3443	binder	0	2	16	3	520192
+3355	binder	0	2	16	3	520192
+705	binder	0	0	15	0	520192
+3222	binder	0	3	16	4	520192
+682	binder	0	0	15	0	520192
+2685	binder	0	0	15	0	520192
+2968	binder	0	2	16	3	520192
+679	binder	0	0	15	0	520192
+705	hwbinder	0	0	0	0	520192
+2620	binder	0	0	15	0	520192
+2584	binder	0	0	15	0	520192
+2685	binder	0	3	16	4	520192
+2676	binder	0	3	16	4	520192
+2665	binder	0	3	16	4	520192
+2658	binder	0	2	16	3	520192
+706	binder	0	0	15	0	520192
+2643	binder	0	2	16	3	520192
+2620	binder	0	3	16	4	520192
+2584	binder	0	3	16	4	520192
+687	binder	0	1	16	3	520192
+697	binder	0	1	16	3	520192
+707	binder	0	1	16	3	520192
+484	binder	0	1	16	3	520192
+602	binder	0	0	15	0	520192
+689	binder	0	2	16	4	520192
+722	binder	0	1	16	3	520192
+690	binder	0	2	16	4	520192
+602	hwbinder	0	1	15	2	520192
+688	binder	0	2	16	4	520192
+702	binder	0	2	16	4	520192
+713	binder	0	3	16	5	520192
+524	binder	0	2	16	4	520192
+704	binder	0	2	16	3	520192
+507	binder	0	2	16	4	520192
+497	binder	0	3	16	4	520192
+509	binder	0	1	16	3	520192
+664	binder	0	1	16	3	520192
+678	binder	0	0	15	0	520192
+510	binder	0	1	16	3	520192
+663	binder	0	1	16	3	520192
+1427	binder	0	2	16	4	520192
+529	binder	0	2	16	4	520192
+1425	binder	0	2	16	4	520192
+678	hwbinder	0	1	2	3	520192
+1426	binder	0	2	16	4	520192
+1334	binder	0	3	16	5	520192
+597	binder	0	1	16	3	520192
+712	binder	0	1	16	3	520192
+598	binder	0	1	16	3	520192
+715	binder	0	1	16	3	520192
+705	binder	0	4	16	5	520192
+724	binder	0	2	16	4	520192
+501	hwbinder	0	1	8	2	520192
+667	binder	0	2	16	4	520192
+682	hwbinder	0	0	2	2	520192
+680	hwbinder	0	0	0	1	520192
+513	binder	0	1	16	3	520192
+695	binder	0	3	16	5	520192
+706	binder	0	7	16	9	520192
+693	binder	0	1	16	3	520192
+686	binder	0	2	16	4	520192
+526	binder	0	1	16	3	520192
+703	binder	0	1	16	3	520192
+692	binder	0	1	16	3	520192
+714	binder	0	1	16	3	520192
+710	binder	0	1	16	3	520192
+678	binder	0	4	16	5	520192
+671	binder	0	1	16	2	520192
+691	binder	0	1	16	3	520192
+668	binder	0	1	16	2	520192
+711	binder	0	1	16	3	520192
+677	binder	0	2	16	3	520192
+679	hwbinder	0	2	2	4	520192
+681	binder	0	1	16	2	520192
+528	binder	0	1	16	3	520192
+516	binder	0	2	16	4	520192
+709	binder	0	1	16	3	520192
+508	binder	0	2	16	4	520192
+674	binder	0	1	16	2	520192
+672	binder	0	1	16	2	520192
+680	binder	0	1	16	2	520192
+723	binder	0	1	16	3	520192
+676	binder	0	2	16	3	520192
+669	binder	0	2	16	3	520192
+682	binder	0	4	16	5	520192
+673	binder	0	1	16	2	520192
+679	binder	0	1	16	2	520192
+683	binder	0	3	16	4	520192
+725	binder	0	4	16	6	520192
+512	binder	0	1	16	3	520192
+670	binder	0	1	16	2	520192
+696	binder	0	0	16	2	520192
+675	binder	0	1	16	2	520192
+514	binder	0	1	16	3	520192
+515	binder	0	2	16	4	520192
+511	binder	0	4	16	5	520192
+527	binder	0	1	16	3	520192
+525	binder	0	1	16	3	520192
+498	binder	0	1	16	3	520192
+480	binder	0	1	16	3	520192
+485	binder	0	5	16	7	520192
+486	binder	0	2	16	4	520192
+477	hwbinder	0	0	0	0	520192
+481	binder	0	1	1	2	520192
+478	vndbinder	0	0	0	1	65536
+
+
+PeerBinder Stacktrace --
+
+PeerBinder pids is empty
+
+
+Catcher log total time is 334ms
+*******************************************
+start time: 7334295238
+UI_BLOCK_6S
+PID = 3443
+UID = 20010039
+MSG = Blocked thread id = 3454
+JSVM instance id = 0
+ Page: pages/index/index.js
+SourceCode: 
+    console.log(\"Begin Trigger JS Freeze\");
+^
+Stacktrace:
+    at containedClick (\\pages\\index\\index.js:17:9)
+
+PACKAGE_NAME = com.example.jsinject
+eventLog_action = c,m
+eventLog_interval = 0
+
+CommandCatcher -- pid==3443 packageName is com.example.jsinject
+:
+
+-------------------------------[cpuusage]-------------------------------
+
+Load average: 27.68 / 9.28 / 3.30; the cpu load average in 1 min, 5 min and 15 min
+CPU usage from 1970-03-26 21:18:15 to 1970-03-26 21:18:15
+Total: 18%; User Space: 12%; Kernel Space: 6%; iowait: 0%; irq: 1%; idle: 79%
+Details of Processes:
+    PID   Total Usage	   User Space    Kernel Space    Page Fault Minor    Page Fault Major    Name
+    3443      15%              11%             4%              644800                  17        com.example.jsi
+
+-------------------------------[memory]-------------------------------
+
+                         Pss        Shared        Shared       Private       Private          Swap       SwapPss
+                       Total         Clean         Dirty         Clean         Dirty         Total         Total
+                      ( kB )        ( kB )        ( kB )        ( kB )        ( kB )        ( kB )        ( kB )
+              --------------------------------------------------------------------------------------------------
+   ark js heap          5184             0             0             0          5184             0             0
+         other         22164          7456          4596           204         19996             0             0
+            so          7463         51292          7652           872          1604             0             0
+         stack            36             0             0             0            36             0             0
+----------------------------------------------------------------------------------------------------------------
+         Total         34847         58748         12248          1076         26820             0             0
+
+
+Catcher log total time is 319ms

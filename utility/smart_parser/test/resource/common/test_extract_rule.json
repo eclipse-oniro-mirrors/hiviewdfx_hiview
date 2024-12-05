@@ -67,7 +67,7 @@
     ],
     "Rule1":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"rustpanic-.*-\\d+-\\d+",
+        "Subcatalog":"rustpanic-.*-\\d+-\\d+\\.log",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_pname":"Module name:(.*)"},
             {"namespace":"MainCallTrace", "matchKey":"Thread name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
@@ -75,7 +75,7 @@
     },
     "Rule2":{
         "DirOrFile":"",
-        "Subcatalog":"rustpanic-.*-\\d+-\\d+",
+        "Subcatalog":"rustpanic-.*-\\d+-\\d+\\.log",
         "featureId":"01_RUST_PANIC_01",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_pname":"Module name:(.*)"},
@@ -84,7 +84,7 @@
     },
     "Rule3":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"rustpanic-.*-\\d+-\\d+",
+        "Subcatalog":"rustpanic-.*-\\d+-\\d+\\.log",
         "featureId":"01_RUST_PANIC_02",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_pname":"Module name:(.*)"},
@@ -93,17 +93,17 @@
     },
     "Rule4":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"rustpanic-.*-\\d+-\\d+",
+        "Subcatalog":"rustpanic-.*-\\d+-\\d+\\.log",
         "featureId":"01_RUST_PANIC_03"
     },
     "Rule5":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"cppcrash-.*-\\d+-\\d+",
+        "Subcatalog":"cppcrash-.*-\\d+-\\d+\\.log",
         "featureId":"02_CPP_CRASH_01"
     },
     "Rule6":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"cppcrash-.*-\\d+-\\d+",
+        "Subcatalog":"cppcrash-.*-\\d+-\\d+\\.log",
         "featureId":"02_CPP_CRASH_02",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
