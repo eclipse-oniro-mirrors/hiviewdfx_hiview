@@ -38,7 +38,11 @@
 #include "hiview_platform_config.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+
+#ifdef PARAM_UPDATE_ENABLE
 #include "param_event_manager.h"
+#endif
+
 #include "plugin_config.h"
 #include "plugin_factory.h"
 #include "string_util.h"
@@ -143,7 +147,11 @@ bool HiviewPlatform::InitEnvironment(const std::string& platformConfigDir)
     isReady_ = true;
     NotifyPluginReady();
     ScheduleCheckUnloadablePlugins();
+
+#ifdef PARAM_UPDATE_ENABLE
     OHOS::Singleton<ParamEventManager>::GetInstance().SubscriberEvent();
+#endif
+
     if (Parameter::IsBetaVersion()) {
         AddWatchDog();
     }

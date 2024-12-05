@@ -16,11 +16,14 @@
 #ifndef OHOS_HIVIEWDFX_EVENT_PUBLISH_H
 #define OHOS_HIVIEWDFX_EVENT_PUBLISH_H
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 #include <mutex>
 #include <string>
 #include <thread>
 
 #include "json/json.h"
+#endif
+
 #include "hisysevent.h"
 #include "singleton.h"
 
@@ -39,11 +42,8 @@ constexpr const char* const EVENT_ADDRESS_SANITIZER = "ADDRESS_SANITIZER";
 constexpr const char* const EVENT_MAIN_THREAD_JANK = "MAIN_THREAD_JANK";
 constexpr const char* const EVENT_APP_START = "APP_START";
 }
+#ifdef APPEVENT_PUBLISH_ENABLE
 class EventPublish : public OHOS::DelayedRefSingleton<EventPublish> {
-public:
-    EventPublish() {};
-    ~EventPublish() {};
-
 public:
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
         const std::string& paramJson);
@@ -61,6 +61,13 @@ private:
     std::unique_ptr<std::thread> sendingThread_ = nullptr;
     std::unique_ptr<std::thread> sendingOverlimitThread_ = nullptr;
 };
+#else
+class EventPublish : public OHOS::DelayedRefSingleton<EventPublish> {
+public:
+    void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
+        const std::string& paramJson) {}
+};
+#endif
 } // namespace HiviewDFX
 } // namespace OHOS
 

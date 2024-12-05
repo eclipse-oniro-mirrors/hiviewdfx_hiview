@@ -21,10 +21,12 @@ using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 namespace {
 constexpr char BUNDLE_NAME_FOR_TEST[] = "test";
+#ifdef APPEVENT_PUBLISH_ENABLE
 constexpr char PSS_MEMORY[] = "pss_memory";
 constexpr char JS_HEAP[] = "js_heap";
 constexpr char FD[] = "fd";
 constexpr char THREAD[] = "thread";
+#endif
 }
 
 class AppEventHandlerTest : public testing::Test {
@@ -35,6 +37,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 /**
  * @tc.name: AppEventHandlerTest001
  * @tc.desc: used to test PostEvent
@@ -112,3 +115,18 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest005, TestSize.Level1)
     appLaunchInfo.bundleName = BUNDLE_NAME_FOR_TEST;
     ASSERT_EQ(handler->PostEvent(appLaunchInfo), 0);
 }
+#else
+/**
+ * @tc.name: AppEventHandlerTest001
+ * @tc.desc: used to test PostEvent
+ * @tc.type: FUNC
+*/
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level1)
+{
+    AppEventHandler::CpuUsageHighInfo cpuUsageHighInfo;
+    auto handler = std::make_shared<AppEventHandler>();
+    ASSERT_EQ(handler->PostEvent(cpuUsageHighInfo), -1);
+    cpuUsageHighInfo.bundleName = BUNDLE_NAME_FOR_TEST;
+    ASSERT_EQ(handler->PostEvent(cpuUsageHighInfo), -1);
+}
+#endif
