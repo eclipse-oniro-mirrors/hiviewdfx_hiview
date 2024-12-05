@@ -237,6 +237,13 @@ void ShellCatcher::GetCpuCoreFreqInfo(int fd) const
     }
 
     const SysCpuUsage& sysCpuUsage = resultInfo.data;
+    std::string temp = "";
+    for (auto i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
+        temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
+            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) + "\n";
+        FileUtil::SaveStringToFd(fd, temp);
+        temp = "";
+    }
     CollectResult<std::vector<CpuFreq>> resultCpuFreq = collector->CollectCpuFrequency();
     if (resultCpuFreq.retCode != UCollect::UcError::SUCCESS) {
         FileUtil::SaveStringToFd(fd, "\n Get each cpu freq failed.\n");
@@ -244,13 +251,10 @@ void ShellCatcher::GetCpuCoreFreqInfo(int fd) const
     }
 
     const std::vector<CpuFreq>& cpuFreqs = resultCpuFreq.data;
-    std::string temp = "";
-    for (auto i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
-        temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
-            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) +
-            ", cpuFreq=" + std::to_string(cpuFreqs[i].curFreq) +
-            ", minFreq=" + std::to_string(cpuFreqs[i].minFreq) +
-            ", maxFreq=" + std::to_string(cpuFreqs[i].maxFreq) + "\n";
+    for (auto i = 0; i < cpuFreqs.size(); i++) {
+        temp = "\ncpu" + std::to_string(cpuFreqs[i].cpuId) + ", cpuFreq=" + std::to_string(cpuFreqs[i].curFreq) +
+               ", minFreq=" + std::to_string(cpuFreqs[i].minFreq) + ", maxFreq=" + std::to_string(cpuFreqs[i].maxFreq) +
+               "\n";
         FileUtil::SaveStringToFd(fd, temp);
         temp = "";
     }
