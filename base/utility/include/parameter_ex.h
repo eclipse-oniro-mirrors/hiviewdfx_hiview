@@ -19,7 +19,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 constexpr char KEY_BUILD_CHARACTER[] = "ro.build.characteristics";
-constexpr char KEY_GLOBAL_LOCALE[] = "const.global.locale";
 constexpr char KEY_HIVIEW_VERSION_TYPE[] = "const.logsystem.versiontype";
 constexpr char KEY_DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
@@ -28,6 +27,13 @@ constexpr char DEVELOP_HIVIEW_TRACE_RECORDER[] = "persist.hiview.trace_recorder"
 constexpr char KEY_LABORATORY_MODE_STATE[] = "persist.sys.hiview.testtype";
 constexpr char KEY_LEAKDECTOR_MODE_STATE[] = "persist.hiview.leak_detector";
 namespace Parameter {
+enum UserType: uint8_t {
+    USER_TYPE_CHINA_COMMERCIAL = 1,
+    USER_TYPE_CHINA_BETA = 3,
+    USER_TYPE_OVERSEA_COMMERCIAL = 5,
+    USER_TYPE_OVERSEA_BETA = 6
+};
+
 std::string GetString(const std::string& key, const std::string& defaultValue);
 int64_t GetInteger(const std::string& key, const int64_t defaultValue);
 uint64_t GetUnsignedInteger(const std::string& key, const uint64_t defaultValue);
@@ -36,9 +42,10 @@ bool SetProperty(const std::string& key, const std::string& defaultValue);
 int WaitParamSync(const char *key, const char *value, int timeout);
 typedef void (*ParameterChgPtr)(const char *key, const char *value, void *context);
 int WatchParamChange(const char *keyPrefix, ParameterChgPtr callback, void *context);
-bool IsOversea();
 bool IsBetaVersion();
 bool IsDeveloperMode();
+bool IsOversea();
+UserType GetUserType();
 bool IsUCollectionSwitchOn();
 bool IsTraceCollectionSwitchOn();
 bool IsLaboratoryMode();
