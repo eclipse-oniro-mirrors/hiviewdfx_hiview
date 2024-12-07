@@ -20,13 +20,9 @@ config("ucollection_utility_test_config") {
   include_dirs = [
     ".",
     "$hiview_framework/native/unified_collection/collector/inner_include",
-    "$hiview_base/utility/include",
   ]
 
   cflags = [ "-D__UNITTEST__" ]
-  if (has_hiperf) {
-    cflags += [ "-DHAS_HIPERF" ]
-  }
 }
 
 ohos_unittest("UCollectionUtilityUnitTest") {
@@ -51,10 +47,6 @@ ohos_unittest("UCollectionUtilityUnitTest") {
     "wm_collector_test.cpp",
   ]
 
-  if (has_hiprofiler) {
-    sources += [ "mem_profiler_collector_test.cpp" ]
-  }
-
   cflags_cc = []
 
   deps = [
@@ -78,13 +70,11 @@ ohos_unittest("UCollectionUtilityUnitTest") {
   ]
 
   if (has_hiprofiler) {
+    sources += [ "mem_profiler_collector_test.cpp" ]
     external_deps += [ "hiprofiler:libnative_daemon_client" ]
   }
 
-  if (has_hiperf) {
-    cflags = [ "-DHAS_HIPERF" ]
-  }
-
+  cflags = []
   if (thermal_manager_enable) {
     cflags += [ "-DTHERMAL_MANAGER_ENABLE" ]
   }

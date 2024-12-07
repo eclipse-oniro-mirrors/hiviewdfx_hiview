@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef HAS_HIPERF
 #include "perf_decorator.h"
 
 namespace OHOS {
@@ -124,4 +123,3 @@ CollectResult<bool> PerfDecorator::Stop()
 } // namespace UCollectUtil
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // HAS_HIPERF
