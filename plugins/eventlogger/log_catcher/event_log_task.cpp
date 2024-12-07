@@ -145,6 +145,9 @@ EventLogTask::Status EventLogTask::StartCompose()
 
         AddSeparator(dupedFd, catcher);
         int curLogSize = catcher->Catch(dupedFd, dupedJsonFd);
+        if (catcher->name_ == "PeerBinderCatcher") {
+            terminalThreadStack_ = catcher->terminalBinder_.threadStack;
+        }
         HIVIEW_LOGI("finish catcher: %{public}s, curLogSize: %{public}d", catcher->GetDescription().c_str(),
             curLogSize);
         if (ShouldStopLogTask(dupedFd, catcherIndex, curLogSize, catcher)) {

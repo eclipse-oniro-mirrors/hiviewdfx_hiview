@@ -34,8 +34,10 @@ public:
 
 private:
     struct BinderInfo {
-        int client;
-        int server;
+        int clientPid;
+        int clientTid;
+        int serverPid;
+        int serverTid;
         int wait;
     };
     struct OutputBinderInfo {
@@ -43,6 +45,7 @@ private:
         int pid = 0;
     };
 
+    bool firstLayerInit_ = false;
     int pid_ = 0;
     int layer_ = 0;
     std::string perfCmd_ = "";
@@ -54,13 +57,16 @@ private:
     void BinderInfoParser(std::ifstream& fin, int fd,
         std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
         std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList) const;
-    void GetFileToList(std::string line, std::vector<std::string>& strList) const;
+    void BinderInfoLineParser(std::ifstream& fin, int fd,
+        std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
+        std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList) const;
+    std::vector<std::string> GetFileToList(std::string line) const;
     void ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-    std::set<int>& pids, int pid) const;
-    std::set<int> GetBinderPeerPids(int fd, int jsonFd) const;
+        std::set<int>& pids, int pid);
+    std::set<int> GetBinderPeerPids(int fd, int jsonFd);
     bool IsAncoProc(int pid) const;
     void CatcherFfrtStack(int fd, int pid) const;
-    void CatcherStacktrace(int fd, int pid) const;
+    void CatcherStacktrace(int fd, int pid);
     void AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const;
 #ifdef HAS_HIPERF
     void ForkToDumpHiperf(const std::set<int>& pids);
