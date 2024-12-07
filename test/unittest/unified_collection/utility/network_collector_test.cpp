@@ -12,14 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 #include <iostream>
 
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
+#endif
+
 #include "network_collector.h"
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 #include "token_setproc.h"
 #ifdef COMMUNICATION_WIFI_ENABLE
 #include "wifi_device.h"
+#endif
 #endif
 
 #include <gtest/gtest.h>
@@ -29,6 +35,7 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
 
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 namespace {
 void NativeTokenGet(const char* perms[], int size)
 {
@@ -83,6 +90,7 @@ bool IsWifiEnabled()
 #endif
 }
 }
+#endif
 
 class NetworkCollectorTest : public testing::Test {
 public:
@@ -92,6 +100,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 /**
  * @tc.name: NetworkCollectorTest001
  * @tc.desc: used to test NetworkCollector.CollectRate
@@ -108,3 +117,16 @@ HWTEST_F(NetworkCollectorTest, NetworkCollectorTest001, TestSize.Level1)
     }
     DisablePermissionAccess();
 }
+#else
+/**
+ * @tc.name: NetworkCollectorTest001
+ * @tc.desc: used to test empty NetworkCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(NetworkCollectorTest, NetworkCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<NetworkCollector> collector = NetworkCollector::Create();
+    CollectResult<NetworkRate> data = collector->CollectRate();
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

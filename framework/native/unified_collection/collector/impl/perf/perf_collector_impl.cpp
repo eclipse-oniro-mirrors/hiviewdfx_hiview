@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef HAS_HIPERF
 #include "perf_collector_impl.h"
 
 #include <atomic>
@@ -216,4 +215,3 @@ CollectResult<bool> PerfCollectorImpl::Stop()
 } // UCollectUtil
 } // HivewDFX
 } // OHOS
-#endif // HAS_HIPERF

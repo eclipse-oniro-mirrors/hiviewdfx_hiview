@@ -28,7 +28,10 @@
             "hiview_param_update_enable",
             "hiview_sysevent_store_enable",
             "hiview_privacy_enable",
-            "hiview_usage_stat_enable"
+            "hiview_usage_stat_enable",
+            "hiview_unified_collector_perf_enable",
+            "hiview_unified_collector_ebpf_enable",
+            "hiview_unified_collector_network_enable"
         ],
         "rom": "",
         "ram": "",

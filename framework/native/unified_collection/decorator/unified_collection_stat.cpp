@@ -23,17 +23,26 @@
 #include "cpu_decorator.h"
 #include "gpu_decorator.h"
 #include "graphic_memory_decorator.h"
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
 #include "hiebpf_decorator.h"
+#endif
+
 #include "hilog_decorator.h"
 #include "io_decorator.h"
 #ifdef HAS_HIPROFILER
 #include "mem_profiler_decorator.h"
 #endif
 #include "memory_decorator.h"
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 #include "network_decorator.h"
+#endif
+
 #ifdef HAS_HIPERF
 #include "perf_decorator.h"
 #endif
+
 #include "process_decorator.h"
 #include "thermal_decorator.h"
 #include "trace_decorator.h"
@@ -75,20 +84,30 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     CpuDecorator::SaveStatCommonInfo();
     GpuDecorator::SaveStatCommonInfo();
     GraphicMemoryDecorator::SaveStatCommonInfo();
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     HiebpfDecorator::SaveStatCommonInfo();
+#endif
+
     HilogDecorator::SaveStatCommonInfo();
     IoDecorator::SaveStatCommonInfo();
     MemoryDecorator::SaveStatCommonInfo();
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::SaveStatCommonInfo();
+#endif
+
     ProcessDecorator::SaveStatCommonInfo();
     ThermalDecorator::SaveStatCommonInfo();
     TraceDecorator::SaveStatCommonInfo();
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::SaveStatCommonInfo();
 #endif
+
 #ifdef HAS_HIPERF
     PerfDecorator::SaveStatCommonInfo();
 #endif
+
     WmDecorator::SaveStatCommonInfo();
 
     TraceDecorator::SaveStatSpecialInfo();
@@ -108,11 +127,19 @@ void UnifiedCollectionStat::ResetAllStatInfo()
     CpuDecorator::ResetStatInfo();
     GpuDecorator::ResetStatInfo();
     GraphicMemoryDecorator::ResetStatInfo();
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     HiebpfDecorator::ResetStatInfo();
+#endif
+
     HilogDecorator::ResetStatInfo();
     IoDecorator::ResetStatInfo();
     MemoryDecorator::ResetStatInfo();
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::ResetStatInfo();
+#endif
+
     ProcessDecorator::ResetStatInfo();
     ThermalDecorator::ResetStatInfo();
     TraceDecorator::ResetStatInfo();
@@ -120,6 +147,7 @@ void UnifiedCollectionStat::ResetAllStatInfo()
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::ResetStatInfo();
 #endif
+
 #ifdef HAS_HIPERF
     PerfDecorator::ResetStatInfo();
 #endif
