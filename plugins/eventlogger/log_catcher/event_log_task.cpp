@@ -392,10 +392,6 @@ void EventLogTask::Screenshot()
 
 void EventLogTask::HilogCapture()
 {
-    if (Parameter::IsOversea() && !Parameter::IsBetaVersion()) {
-        HIVIEW_LOGI("Do not capture hilog in oversea commercial version.");
-        return;
-    }
     auto capture = std::make_shared<ShellCatcher>();
     capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
     tasks_.push_back(capture);
@@ -403,10 +399,6 @@ void EventLogTask::HilogCapture()
 
 void EventLogTask::LightHilogCapture()
 {
-    if (Parameter::IsOversea() && !Parameter::IsBetaVersion()) {
-        HIVIEW_LOGI("Do not capture light hilog in oversea commercial version.");
-        return;
-    }
     auto capture = std::make_shared<ShellCatcher>();
     capture->Initialize("hilog -z 1000 -P", ShellCatcher::CATCHER_LIGHT_HILOG, pid_);
     tasks_.push_back(capture);
@@ -504,10 +496,6 @@ void EventLogTask::DumpAppMapCapture()
 
 void EventLogTask::InputHilogCapture()
 {
-    if (Parameter::IsOversea() && !Parameter::IsBetaVersion()) {
-        HIVIEW_LOGI("Do not capture input hilog in oversea commercial version.");
-        return;
-    }
     auto capture = std::make_shared<ShellCatcher>();
     int32_t eventId = event_->GetEventIntValue("INPUT_ID");
     if (eventId > 0) {
