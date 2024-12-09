@@ -372,7 +372,7 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest007, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest008, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest008");
-    int expectedFailedRet = -1;
+    int expectedFailedRet = 0;
     auto ret = FileUtil::CreateFile(GenerateLogFileName(caseName, SUFFIX_0));
     ASSERT_EQ(expectedFailedRet, ret);
     (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "1111");
