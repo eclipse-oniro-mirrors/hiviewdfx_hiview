@@ -22,7 +22,6 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-#ifdef APPEVENT_PUBLISH_ENABLE
 class DllExport AppEventPublisherFactory {
 public:
     static void RegisterPublisher(const std::string& name);
@@ -32,14 +31,6 @@ public:
 private:
     static std::shared_ptr<std::unordered_map<std::string, bool>> GetPublisherRegistryMap();
 };
-#else
-class DllExport AppEventPublisherFactory {
-public:
-    static void RegisterPublisher(const std::string& name) {}
-    static void UnregisterPublisher(const std::string& name) {}
-    static bool IsPublisher(const std::string& name) { return false; }
-};
-#endif
 
 class PublisherRegister {
 public:

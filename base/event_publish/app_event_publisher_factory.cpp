@@ -15,6 +15,7 @@
 
 #include "app_event_publisher_factory.h"
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -66,3 +67,15 @@ void AppEventPublisherFactory::UnregisterPublisher(const std::string& name)
 }
 } // namespace HiviewDFX
 } // namespace OHOS
+#else // feature not supported
+bool OHOS::HiviewDFX::AppEventPublisherFactory::IsPublisher(const std::string& name)
+{
+    return false;
+}
+
+void OHOS::HiviewDFX::AppEventPublisherFactory::RegisterPublisher(const std::string& name)
+{}
+
+void OHOS::HiviewDFX::AppEventPublisherFactory::UnregisterPublisher(const std::string& name)
+{}
+#endif
