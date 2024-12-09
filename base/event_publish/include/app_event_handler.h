@@ -135,19 +135,11 @@ public:
         std::vector<std::string> logPath;
     };
 
-#ifdef APPEVENT_PUBLISH_ENABLE
     int PostEvent(const AppLaunchInfo& event);
     int PostEvent(const ScrollJankInfo& event);
     int PostEvent(const ResourceOverLimitInfo& event);
     int PostEvent(const CpuUsageHighInfo& event);
     int PostEvent(const BatteryUsageInfo& event);
-#else
-    int PostEvent(const AppLaunchInfo& event) { return -1; }
-    int PostEvent(const ScrollJankInfo& event) { return -1; }
-    int PostEvent(const ResourceOverLimitInfo& event) { return -1; }
-    int PostEvent(const CpuUsageHighInfo& event) { return -1; }
-    int PostEvent(const BatteryUsageInfo& event) { return -1; }
-#endif
 };
 } // namespace HiviewDFX
 } // namespace OHOS
