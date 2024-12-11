@@ -35,6 +35,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+    static constexpr uint8_t ARR_SIZE = 7;
+    static constexpr uint8_t DECIMAL = 10;
     static constexpr const char* const LOGGER_EVENT_PEERBINDER = "PeerBinder";
     enum {
         LOGGER_BINDER_STACK_ONE = 0,
@@ -173,77 +175,73 @@ std::map<int, std::list<PeerBinderCatcher::BinderInfo>> PeerBinderCatcher::Binde
     return manager;
 }
 
-void PeerBinderCatcher::GetFileToList(std::string line,
-    std::vector<std::string>& strList) const
+std::vector<std::string> PeerBinderCatcher::GetFileToList(std::string line) const
 {
+    std::vector<std::string> strList;
     std::istringstream lineStream(line);
     std::string tmpstr;
     while (lineStream >> tmpstr) {
         strList.push_back(tmpstr);
     }
     HIVIEW_LOGD("strList size: %{public}zu", strList.size());
+    return strList;
 }
 
 void PeerBinderCatcher::BinderInfoParser(std::ifstream& fin, int fd,
     std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
     std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList) const
 {
-    const int DECIMAL = 10;
+    BinderInfoLineParser(fin, fd, manager, outputBinderInfoList);
+}
+
+void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
+    std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
+    std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList) const
+{
     std::string line;
-    bool findBinderHeader = false;
+    bool isBinderMatchup = false;
     while (getline(fin, line)) {
         FileUtil::SaveStringToFd(fd, line + "\n");
-        if (findBinderHeader) {
+        isBinderMatchup = (!isBinderMatchup && line.find("free_async_space") != line.npos) ? true : isBinderMatchup;
+        if (isBinderMatchup || line.find("async\t") != std::string::npos) {
             continue;
         }
 
-        if (line.find("async\t") != std::string::npos) {
-            continue;
-        }
-
-        std::vector<std::string> strList;
-        GetFileToList(line, strList);
-        auto stringSplit = [](const std::string& str, uint16_t index) -> std::string {
+        std::vector<std::string> strList = GetFileToList(line);
+        auto strSplit = [](const std::string& str, uint16_t index) -> std::string {
             std::vector<std::string> strings;
             StringUtil::SplitStr(str, ":", strings);
-            if (index < strings.size()) {
-                return strings[index];
-            }
-            return "";
+            return index < strings.size() ? strings[index] : "";
         };
-
-        if (strList.size() >= 7) { // 7: valid array size
-            BinderInfo info = {0};
-            OutputBinderInfo outputInfo;
-            // 2: binder peer id,
-            std::string server = stringSplit(strList[2], 0);
+        if (strList.size() >= ARR_SIZE) { // 7: valid array size
             // 0: binder local id,
-            std::string client = stringSplit(strList[0], 0);
-            // 5: binder wait time, s
-            std::string wait = stringSplit(strList[5], 1);
-            if (server == "" || client == "" || wait == "") {
+            std::string clientPid = strSplit(strList[0], 0);
+            std::string clientTid = strSplit(strList[0], 1);
+            // 2: binder peer id,
+            std::string serverPid = strSplit(strList[2], 0);
+            std::string serverTid = strSplit(strList[2], 1);
+            std::string wait = strSplit(strList[5], 1);
+            if (clientPid == "" || clientTid == "" || serverPid == "" || serverTid == "" || wait == "") {
                 HIVIEW_LOGI("server:%{public}s, client:%{public}s, wait:%{public}s",
-                    server.c_str(), client.c_str(), wait.c_str());
+                    serverPid.c_str(), clientPid.c_str(), wait.c_str());
                 continue;
             }
-            info.server = std::strtol(server.c_str(), nullptr, DECIMAL);
-            info.client = std::strtol(client.c_str(), nullptr, DECIMAL);
-            info.wait = std::strtol(wait.c_str(), nullptr, DECIMAL);
-            HIVIEW_LOGD("server:%{public}d, client:%{public}d, wait:%{public}d", info.server, info.client, info.wait);
-            manager[info.client].push_back(info);
-            outputInfo.info = StringUtil::TrimStr(line);
-            outputInfo.pid = info.server;
+            BinderInfo info = {
+                std::strtol(clientPid.c_str(), nullptr, DECIMAL), std::strtol(clientTid.c_str(), nullptr, DECIMAL),
+                std::strtol(serverPid.c_str(), nullptr, DECIMAL), std::strtol(serverTid.c_str(), nullptr, DECIMAL),
+                std::strtol(wait.c_str(), nullptr, DECIMAL)};
+            HIVIEW_LOGD("server:%{public}d, client:%{public}d, wait:%{public}d", info.serverPid, info.clientPid,
+                info.wait);
+            manager[info.clientPid].push_back(info);
+            OutputBinderInfo outputInfo = {StringUtil::TrimStr(line), info.serverPid};
             outputBinderInfoList.push_back(outputInfo);
         } else {
             HIVIEW_LOGI("strList size: %{public}zu, line: %{public}s", strList.size(), line.c_str());
         }
-        if (line.find("context") != line.npos) {
-            findBinderHeader = true;
-        }
     }
 }
 
-std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd) const
+std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd)
 {
     std::set<int> pids;
     std::ifstream fin;
@@ -265,7 +263,12 @@ std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd) const
 
     if (layer_ == LOGGER_BINDER_STACK_ONE) {
         for (auto each : manager[pid_]) {
-            pids.insert(each.server);
+            if (!firstLayerInit_) {
+                terminalBinder_.pid = each.serverPid;
+                terminalBinder_.tid = each.serverTid;
+                firstLayerInit_ = true;
+            }
+            pids.insert(each.serverPid);
         }
     } else if (layer_ == LOGGER_BINDER_STACK_ALL) {
         ParseBinderCallChain(manager, pids, pid_);
@@ -274,14 +277,22 @@ std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd) const
 }
 
 void PeerBinderCatcher::ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-    std::set<int>& pids, int pid) const
+    std::set<int>& pids, int pid)
 {
+    bool isGetLayerBinder = false;
     for (auto& each : manager[pid]) {
-        if (pids.find(each.server) != pids.end()) {
+        if (pids.find(each.serverPid) != pids.end()) {
             continue;
         }
-        pids.insert(each.server);
-        ParseBinderCallChain(manager, pids, each.server);
+        pids.insert(each.serverPid);
+        if (!firstLayerInit_ || (!isGetLayerBinder && terminalBinder_.pid == each.clientPid &&
+            terminalBinder_.tid == each.clientTid)) {
+            terminalBinder_.pid = each.serverPid;
+            terminalBinder_.tid = each.serverTid;
+            firstLayerInit_ = true;
+            isGetLayerBinder = true;
+        }
+        ParseBinderCallChain(manager, pids, each.serverPid);
     }
 }
 
@@ -300,12 +311,12 @@ void PeerBinderCatcher::CatcherFfrtStack(int fd, int pid) const
     LogCatcherUtils::DumpStackFfrt(fd, std::to_string(pid));
 }
 
-void PeerBinderCatcher::CatcherStacktrace(int fd, int pid) const
+void PeerBinderCatcher::CatcherStacktrace(int fd, int pid)
 {
     std::string content =  "PeerBinderCatcher start catcher stacktrace for pid : " + std::to_string(pid) + "\r\n";
     FileUtil::SaveStringToFd(fd, content);
 
-    LogCatcherUtils::DumpStacktrace(fd, pid);
+    LogCatcherUtils::DumpStacktrace(fd, pid, terminalBinder_.threadStack, terminalBinder_.pid, terminalBinder_.tid);
 }
 
 #ifdef HAS_HIPERF
