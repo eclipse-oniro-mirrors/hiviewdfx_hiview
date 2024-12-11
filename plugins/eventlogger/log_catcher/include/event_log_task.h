@@ -30,6 +30,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class EventLogTask {
 public:
+    std::string terminalThreadStack_ = "";
     enum Status {
         TASK_RUNNABLE = 0,
         TASK_RUNNING = 1,

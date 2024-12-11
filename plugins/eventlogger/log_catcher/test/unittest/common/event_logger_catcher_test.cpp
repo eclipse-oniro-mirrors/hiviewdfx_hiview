@@ -500,19 +500,23 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
     pids.insert(2);
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     PeerBinderCatcher::BinderInfo info = {
-        .client = 1,
-        .server = 1,
+        .clientPid = 1,
+        .clientTid = 0,
+        .serverPid = 1,
+        .serverTid = 0,
         .wait = 1
     };
     std::map<int, std::list<OHOS::HiviewDFX::PeerBinderCatcher::BinderInfo>> manager;
-    manager[info.client].push_back(info);
+    manager[info.clientPid].push_back(info);
     peerBinderCatcher->ParseBinderCallChain(manager, pids, 0);
     PeerBinderCatcher::BinderInfo info1 = {
-        .client = 2,
-        .server = 2,
+        .clientPid = 2,
+        .clientTid = 0,
+        .serverPid = 2,
+        .serverTid = 0,
         .wait = 0
     };
-    manager[info1.client].push_back(info1);
+    manager[info1.clientPid].push_back(info1);
     peerBinderCatcher->ParseBinderCallChain(manager, pids, 1);
     EXPECT_TRUE(!pids.empty());
 #ifdef HAS_HIPERF
@@ -721,10 +725,11 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_003, TestSize.Level1)
 HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level1)
 {
     int pid = getpid();
-    int ret = LogCatcherUtils::DumpStacktrace(-1, pid);
+    std::string threadStack;
+    int ret = LogCatcherUtils::DumpStacktrace(-1, pid, threadStack);
     EXPECT_EQ(ret, -1);
-    LogCatcherUtils::DumpStacktrace(1, pid);
-    LogCatcherUtils::DumpStacktrace(2, pid);
+    LogCatcherUtils::DumpStacktrace(1, pid, threadStack);
+    LogCatcherUtils::DumpStacktrace(2, pid, threadStack);
     ret = LogCatcherUtils::WriteKernelStackToFd(2, "Test", -1);
     EXPECT_EQ(ret, -1);
     ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test\n", getprocpid());

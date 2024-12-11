@@ -21,7 +21,9 @@ namespace HiviewDFX {
 namespace LogCatcherUtils {
 static constexpr int WAIT_CHILD_PROCESS_COUNT = 200;
 
-int DumpStacktrace(int fd, int pid);
+int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int terminalBinderPid = 0,
+    int terminalBinderTid = 0);
+void GetThreadStack(const std::string& processStack, std::string& stack, int tid);
 int DumpStackFfrt(int fd, const std::string& pid);
 int WriteKernelStackToFd(int originFd, const std::string& msg, int pid);
 void ReadShellToFile(int fd, const std::string& serviceName, const std::string& cmd, int& count);

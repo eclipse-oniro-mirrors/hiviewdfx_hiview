@@ -24,6 +24,7 @@
 
 #include "event.h"
 #include "event_loop.h"
+#include "event_log_task.h"
 #include "ffrt.h"
 #include "log_store_ex.h"
 #include "hiview_logger.h"
@@ -41,6 +42,14 @@ struct BinderInfo {
     int client;
     int server;
     unsigned long wait;
+};
+
+struct TerminalBinder {
+    long pid;
+    uint64_t happenTime;
+    std::string eventName;
+    std::string processName;
+    std::string threadStack;
 };
 
 class EventLogger : public EventListener, public Plugin {
@@ -61,6 +70,7 @@ private:
 #ifdef WINDOW_MANAGER_ENABLE
     std::vector<uint64_t> backTimes_;
 #endif
+    TerminalBinder terminalBinder_ = {0, 0, "", "", ""};
     std::unique_ptr<DBHelper> dbHelper_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::shared_ptr<LogStoreEx> logStore_;
@@ -72,6 +82,7 @@ private:
     std::shared_ptr<EventLoop> threadLoop_ = nullptr;
     int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
+    ffrt::mutex terminalBindeMutex_;
     std::unique_ptr<ActiveKeyEvent> activeKeyEvent_;
     std::string cmdlinePath_ = "/proc/cmdline";
     std::string cmdlineContent_ = "";
@@ -85,7 +96,9 @@ private:
     void CollectMemInfo(int fd, std::shared_ptr<SysEvent> event);
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
     std::string StabilityGetTempFreqInfo();
-    void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd);
+    void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
+    void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
+        std::unique_ptr<EventLogTask>&& logTask);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
@@ -100,7 +113,9 @@ private:
     void WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int originFd,
         const std::string& kernelStack);
     bool WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEvent> event,
-        std::vector<std::string>& binderPids);
+        std::vector<std::string>& binderPids, std::string& threadStack);
+    void WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
+        std::string& threadStack, std::string& kernelStack);
     bool UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile);
     void CreateAndPublishEvent(std::string& dirPath, std::string& fileName);
     bool CheckProcessRepeatFreeze(const std::string& eventName, long pid);

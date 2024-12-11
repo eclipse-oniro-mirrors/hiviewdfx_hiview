@@ -34,8 +34,10 @@ public:
 
 private:
     struct BinderInfo {
-        int client;
-        int server;
+        int clientPid;
+        int clientTid;
+        int serverPid;
+        int serverTid;
         int wait;
     };
     struct OutputBinderInfo {
@@ -43,6 +45,7 @@ private:
         int pid = 0;
     };
 
+    bool firstLayerInit_ = false;
     int pid_ = 0;
     int layer_ = 0;
     std::string perfCmd_ = "";
@@ -61,11 +64,11 @@ private:
         std::vector<std::pair<uint32_t, uint64_t>>& freezeAsyncSpacePairs) const;
     std::vector<std::string> GetFileToList(std::string line) const;
     void ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-        std::set<int>& pids, int pid) const;
-    std::set<int> GetBinderPeerPids(int fd, int jsonFd, std::set<int>& asyncPids) const;
+        std::set<int>& pids, int pid);
+    std::set<int> GetBinderPeerPids(int fd, int jsonFd, std::set<int>& asyncPids);
     bool IsAncoProc(int pid) const;
     void CatcherFfrtStack(int fd, int pid) const;
-    void CatcherStacktrace(int fd, int pid, bool sync = true) const;
+    void CatcherStacktrace(int fd, int pid, bool sync = true);
     void AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const;
 #ifdef HAS_HIPERF
     void ForkToDumpHiperf(const std::set<int>& pids);

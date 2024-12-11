@@ -149,6 +149,9 @@ EventLogTask::Status EventLogTask::StartCompose()
 
         FreezeCommon::WriteStartInfoToFd(dupedFd, catcher->GetDescription() + "start time: ");
         int curLogSize = catcher->Catch(dupedFd, dupedJsonFd);
+        if (catcher->name_ == "PeerBinderCatcher") {
+            terminalThreadStack_ = catcher->terminalBinder_.threadStack;
+        }
         HIVIEW_LOGI("finish catcher: %{public}s, curLogSize: %{public}d", catcher->GetDescription().c_str(),
             curLogSize);
         FreezeCommon::WriteEndInfoToFd(dupedFd, catcher->GetDescription() + "end time: ");

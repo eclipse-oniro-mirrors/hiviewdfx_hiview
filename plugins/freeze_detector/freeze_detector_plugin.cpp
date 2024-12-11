@@ -116,14 +116,10 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     std::string hiteaceTime = sysEvent.GetEventValue(FreezeCommon::HIREACE_TIME);
     std::string sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     std::string info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
+    std::string terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
-    std::string logPath = "";
-    if (std::regex_search(info, result, reg)) {
-        logPath = result[1].str();
-    } else if (info == "nolog") {
-        logPath = info;
-    }
+    std::string logPath = std::regex_search(info, result, reg) ? result[1].str() : info;
     std::string foreGround = "";
     CheckForeGround(uid, pid, event.happenTime_, foreGround);
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
@@ -134,6 +130,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitPid(pid)
         .InitTid(tid)
         .InitUid(uid)
+        .InitTerminalThreadStack(terminalThreadStack)
         .InitPackageName(packageName)
         .InitProcessName(processName)
         .InitForeGround(foreGround)

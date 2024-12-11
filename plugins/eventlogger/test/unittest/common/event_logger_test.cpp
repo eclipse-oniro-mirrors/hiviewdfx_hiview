@@ -281,15 +281,16 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_001, TestSize.Leve
     sysEvent->eventName_ = "UI_BLOCK_6S";
     sysEvent->SetEventValue("BINDER_INFO", "async\\nEventLoggerTest");
     std::vector<std::string> binderPids;
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    std::string threadStack;
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
     sysEvent->SetEventValue("BINDER_INFO", "context");
     binderPids.clear();
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
     std::string binderInfo = "1:1\\n1:1\\n" + std::to_string(getpid()) +
         ":1\\n1:1\\n1:1\\n1:1\\n1:1";
     sysEvent->SetEventValue("BINDER_INFO", binderInfo);
     binderPids.clear();
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
 }
 
 /**
@@ -308,12 +309,13 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_002, TestSize.Leve
     sysEvent->eventName_ = "THREAD_BLOCK_6S";
     sysEvent->SetEventValue("BINDER_INFO", TEST_PATH + ", "
         "async\\tEventLoggerTest\\n 1:2 2:3 3:4 3:4 context");
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    std::string threadStack;
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
     sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
     sysEvent->SetEventValue("BINDER_INFO", TEST_PATH + ", "
         "22000:22000 to 12001:12001 code 9 wait:1 s test");
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
 }
 
 /**
@@ -331,7 +333,8 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_003, TestSize.Leve
     std::vector<std::string> binderPids;
     EXPECT_TRUE(FileUtil::FileExists("/data/test/log/test.txt"));
     sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
-    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids), true);
+    std::string threadStack;
+    EXPECT_EQ(eventLogger->WriteFreezeJsonInfo(1, 1, sysEvent, binderPids, threadStack), true);
 }
 
 /**
