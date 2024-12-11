@@ -41,7 +41,7 @@ PerfCollectorImpl::PerfCollectorImpl()
 {
     opt_.SetFrequency(DEFAULT_PERF_RECORD_FREQUENCY);
     opt_.SetCallGraph(DEFAULT_PERF_RECORD_CALLGRAPH);
-    opt_.SetOffCPU(true);
+    opt_.SetOffCPU(false);
 }
 
 void PerfCollectorImpl::SetSelectPids(const std::vector<pid_t> &selectPids)
