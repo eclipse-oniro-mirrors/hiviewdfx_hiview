@@ -17,6 +17,7 @@
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_TRACE_COLLECTOR_IMPL_H
 
 #include "trace_collector.h"
+#include "trace_utils.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -35,6 +36,8 @@ public:
 private:
     CollectResult<std::vector<std::string>> StartDumpTrace(UCollect::TraceCaller &caller,
         int32_t timeLimit, uint64_t happenTime = 0);
+    TraceRetInfo RecordTraceEvent(DumpEvent &dumpEvent, UCollect::TraceCaller &caller,
+        int32_t timeLimit, uint64_t happenTime);
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX

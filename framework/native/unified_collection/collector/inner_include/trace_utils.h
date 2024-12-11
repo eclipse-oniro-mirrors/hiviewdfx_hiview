@@ -19,6 +19,7 @@
 #include <string>
 #include <contrib/minizip/zip.h>
 
+#include "hisysevent.h"
 #include "hitrace_dump.h"
 #include "trace_collector.h"
 
@@ -46,6 +47,25 @@ const std::map<TraceErrorCode, UcError> CODE_MAP = {
 };
 }
 
+struct DumpEvent {
+    std::string caller;
+    int32_t errorCode = 0;
+    uint64_t ipcTime = 0;
+    uint64_t reqTime = 0;
+    int32_t reqDuration = 0;
+    uint64_t execTime = 0;
+    int32_t execDuration = 0;
+    int32_t coverDuration = 0;
+    int32_t coverRatio = 0;
+    std::string tagGroup;
+    int32_t fileSize = 0;
+    int32_t sysMemTotal = 0;
+    int32_t sysMemFree = 0;
+    int32_t sysMemAvail = 0;
+    int32_t sysCpu = 0;
+    int32_t dumpCpu = 0;
+};
+
 UcError TransCodeToUcError(TraceErrorCode ret);
 void FileRemove(UCollect::TraceCaller &caller);
 void CheckAndCreateDirectory(const std::string &tmpDirPath);
@@ -59,6 +79,9 @@ std::vector<std::string> GetUnifiedSpecialFiles(Hitrace::TraceRetInfo ret,
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);
 void CheckCurrentCpuLoad();
+void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
+void LoadMemoryInfo(DumpEvent &dumpEvent);
+int64_t GetTraceSize(TraceRetInfo ret);
 } // HiViewDFX
 } // OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_FILE_UTILS_H

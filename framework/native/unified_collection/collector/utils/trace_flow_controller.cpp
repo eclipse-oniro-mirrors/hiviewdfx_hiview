@@ -108,9 +108,8 @@ bool TraceFlowController::NeedDump()
         traceFlowRecord_.usedSize < TRACE_QUOTA.at(caller_).second : true;
 }
 
-bool TraceFlowController::NeedUpload(TraceRetInfo ret)
+bool TraceFlowController::NeedUpload(int64_t traceSize)
 {
-    int64_t traceSize = GetTraceSize(ret);
     HIVIEW_LOGI("start to upload , traceSize = %{public}" PRId64 ".", traceSize);
     if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
         return true;
@@ -151,21 +150,6 @@ void TraceFlowController::StoreDb()
         traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(),
         traceFlowRecord_.usedSize);
     traceStorage_->Store(traceFlowRecord_);
-}
-
-int64_t TraceFlowController::GetTraceSize(TraceRetInfo ret)
-{
-    struct stat fileInfo;
-    int64_t traceSize = 0;
-    for (const auto &tracePath : ret.outputFiles) {
-        int ret = stat(tracePath.c_str(), &fileInfo);
-        if (ret != 0) {
-            HIVIEW_LOGE("%{public}s is not exists, ret = %{public}d.", tracePath.c_str(), ret);
-            continue;
-        }
-        traceSize += fileInfo.st_size;
-    }
-    return traceSize;
 }
 
 std::string TraceFlowController::GetDate()
