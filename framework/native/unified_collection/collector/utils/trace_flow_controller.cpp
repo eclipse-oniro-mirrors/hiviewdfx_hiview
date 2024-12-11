@@ -214,7 +214,6 @@ bool TraceFlowController::RecordCaller(std::shared_ptr<AppCallerEvent> appEvent)
     }
     AppEventTask appEventTask;
     appEventTask.taskDate_ = dateNum;
-    appEventTask.taskDate_ = std::stoll(date, nullptr, 0);
     appEventTask.taskType_ = APP_EVENT_TASK_TYPE_JANK_EVENT;
     appEventTask.uid_ = appEvent->uid_;
     appEventTask.pid_ = appEvent->pid_;
