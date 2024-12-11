@@ -14,6 +14,7 @@
  */
 #ifdef HAS_HIPERF
 #include <charconv>
+
 #include "cpu_perf_dump.h"
 #include "file_util.h"
 #include "time_util.h"
