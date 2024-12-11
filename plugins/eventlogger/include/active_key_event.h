@@ -48,6 +48,7 @@ private:
     std::shared_ptr<LogStoreEx> logStore_;
     uint64_t triggeringTime_;
     uint8_t taskOutDeps = 0;
+    int reportLimit_ = 0;
 
     static const inline std::string CMD_LIST[] = {
         "cmd:w",

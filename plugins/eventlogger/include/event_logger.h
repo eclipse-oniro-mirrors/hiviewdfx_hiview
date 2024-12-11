@@ -144,6 +144,9 @@ private:
     void GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysEvent> event);
     bool GetMatchString(const std::string& src, std::string& dst, const std::string& pattern) const;
     void WriteCallStack(std::shared_ptr<SysEvent> event, int fd);
+    std::string GetStringFromFile(const std::string path);
+    int GetNumFromString(const std::string &mem);
+    void CheckString(int fd, const std::string &mem, std::string &data, const std::string key, const std::string path);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

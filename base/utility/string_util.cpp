@@ -449,6 +449,18 @@ std::string FormatCmdLine(const std::string& cmdLine)
     return cmdLine.substr(startPos, endPos - startPos);
 }
 
+void FormatProcessName(std::string& processName)
+{
+    processName = FormatCmdLine(processName);
+    std::for_each(processName.begin(), processName.end(), [] (char &c) {
+        if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == ',') || (c == '-') ||
+        (c == '_')) {
+            return;
+        };
+        c = '_';
+    });
+}
+
 std::string HideSnInfo(const std::string& str)
 {
     return ReplaceMatchedStrWithAsterisk(str, R"(_([-=+$a-zA-Z0-9\[\)\>]{12,50})_)");

@@ -36,7 +36,7 @@ void DBHelper::GetResultMap(const std::string& watchPackage, const FreezeResult&
         packageName = packageName.empty() ?
             record->GetEventValue(FreezeCommon::EVENT_PROCESS_NAME) : packageName;
         if (result.GetSamePackage() == "true" && watchPackage != packageName) {
-            HIVIEW_LOGE("failed to match the same package: %{public}s and  %{public}s",
+            HIVIEW_LOGE("failed to match the same package: %{public}s and %{public}s",
                 watchPackage.c_str(), packageName.c_str());
             continue;
         }
@@ -80,10 +80,14 @@ void DBHelper::SelectEventFromDB(unsigned long long start, unsigned long long en
 
     auto eventQuery = EventStore::SysEventDao::BuildQuery(result.GetDomain(), {result.GetStringId()});
     std::vector<std::string> selections { EventStore::EventCol::TS };
-    (*eventQuery).Select(selections)
-        .Where(EventStore::EventCol::TS, EventStore::Op::GE, static_cast<int64_t>(start))
-        .And(EventStore::EventCol::TS, EventStore::Op::LE, static_cast<int64_t>(end));
-
+    if (eventQuery) {
+        eventQuery->Select(selections)
+            .Where(EventStore::EventCol::TS, EventStore::Op::GE, static_cast<int64_t>(start))
+            .And(EventStore::EventCol::TS, EventStore::Op::LE, static_cast<int64_t>(end));
+    } else {
+        HIVIEW_LOGE("event query selections failed.");
+        return;
+    }
     EventStore::ResultSet set = eventQuery->Execute();
     if (set.GetErrCode() != 0) {
         HIVIEW_LOGE("failed to select event from db, error:%{public}d.", set.GetErrCode());

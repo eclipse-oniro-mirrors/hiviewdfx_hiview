@@ -84,6 +84,8 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
         [this] { this->DumpAppMapCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("t:input",
         [this] { this->InputHilogCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("cmd:remoteS",
+        [this] { this->RemoteStackCapture(); }));
 }
 
 void EventLogTask::AddLog(const std::string &cmd)
@@ -368,6 +370,11 @@ void EventLogTask::HilogCapture()
 {
     auto capture = std::make_shared<ShellCatcher>();
     capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
+    if (event_->eventName_ == "SCREEN_ON") {
+        capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
+    } else {
+        capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
+    }
     tasks_.push_back(capture);
 }
 
@@ -468,6 +475,14 @@ void EventLogTask::InputHilogCapture()
         capture->Initialize("hilog -T InputKeyFlow -x", ShellCatcher::CATCHER_INPUT_HILOG,
             pid_);
     }
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::RemoteStackCapture()
+{
+    auto capture = std::make_shared<OpenStacktraceCatcher>();
+    int32_t remotePid = event_->GetEventIntValue("REMOTE_PID");
+    capture->Initialize(event_->GetEventValue("PROCESS_NAME"), remotePid, 0);
     tasks_.push_back(capture);
 }
 } // namespace HiviewDFX

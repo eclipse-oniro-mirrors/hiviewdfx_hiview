@@ -23,8 +23,12 @@
 #include "sys_event.h"
 #include "time_util.h"
 #include "trace_collector.h"
+#include "parameter_ex.h"
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+    static constexpr int REPORT_LIMIT = 3;
+}
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-ActiveKeyEvent");
 ActiveKeyEvent::ActiveKeyEvent()
 {
@@ -146,7 +150,8 @@ void ActiveKeyEvent::DumpCapture(int fd)
 void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
     HIVIEW_LOGI("Receive CombinationKeyHandle.");
-    if (logStore_ == nullptr) {
+    if (logStore_ == nullptr || !Parameter::IsBetaVersion() || reportLimit_ > REPORT_LIMIT) {
+        HIVIEW_LOGI("Don't report ACTIVE_KEY_EVENT");
         return;
     }
 
@@ -182,6 +187,7 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
     std::string totalTime = "\n\nCatcher log total time is " + std::to_string(end - sysStart) + "ms\n";
     FileUtil::SaveStringToFd(fd, totalTime);
     close(fd);
+    reportLimit_++;
 }
 
 void ActiveKeyEvent::CombinationKeyCallback(std::shared_ptr<MMI::KeyEvent> keyEvent)

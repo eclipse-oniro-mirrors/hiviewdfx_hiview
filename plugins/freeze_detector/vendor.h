@@ -39,8 +39,8 @@ public:
     bool Init();
     std::string GetTimeString(unsigned long long timestamp) const;
     void DumpEventInfo(std::ostringstream& oss, const std::string& header, const WatchPoint& watchPoint) const;
-    void InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::string& retPath,
-        std::string& logPath, std::string& logName) const;
+    void InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::string& pubLogPathName,
+        std::string& processName, std::string& isScbPro) const;
     void InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
         bool& isFileExists) const;
     std::string MergeEventLog(
@@ -51,8 +51,8 @@ public:
 private:
     static const int MAX_LINE_NUM = 100;
     static const int TIME_STRING_LEN = 16;
-    static const int MAX_FILE_NUM = 500;
-    static const int MAX_FOLDER_SIZE = 50 * 1024 * 1024;
+    static const int MAX_FILE_NUM = 5;
+    static const int MAX_FOLDER_SIZE = 5 * 1024 * 1024;
     static const inline std::string TRIGGER_HEADER = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
     static const inline std::string HEADER = "*******************************************";
     static const inline std::string HYPHEN = "-";
@@ -64,17 +64,18 @@ private:
     static const inline std::string SP_SYSTEMHUNGFAULT = "SystemHungFault";
     static const inline std::string SP_APPFREEZE = "AppFreeze";
     static const inline std::string SP_ENDSTACK = "END_STACK";
-    static const inline std::string FREEZE_DETECTOR_PATH = "/data/log/faultlog/";
+    static const inline std::string FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze";
     static const inline std::string FAULT_LOGGER_PATH = "/data/log/faultlog/faultlogger/";
     static const inline std::string SMART_PARSER_PATH = "/system/etc/hiview/";
 
     static void FormatProcessName(std::string& processName);
-    std::string SendFaultLog(const WatchPoint &watchPoint, const std::string& logPath,
-        const std::string& logName) const;
+    std::string SendFaultLog(const WatchPoint &watchPoint, const std::string& logPath, const std::string& type,
+        const std::string& processName, const std::string& isScbPro) const;
     void MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const;
     static void InitLogFfrt(const WatchPoint &watchPoint, std::ostringstream& ffrt);
     static std::string GetDisPlayPowerInfo();
     static std::string GetPowerStateString(OHOS::PowerMgr::PowerState state);
+    static std::string IsScbProName(std::string& processName);
 
     std::unique_ptr<LogStoreEx> logStore_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;

@@ -35,6 +35,9 @@
         },{
            "domain":"SYSTEM_NAV_UE",
            "include":["GESTURE_NAVIGATION_BACK"]
-        }
+        },{
+            "domain":"HMOS_SVC_BROKER",
+            "include":["RETRY_EXCEPTION"]
+         }
     ]
 }

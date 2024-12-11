@@ -130,7 +130,7 @@ void PeerBinderCatcher::AddBinderJsonInfo(std::list<OutputBinderInfo> outputBind
         if (cmdLineFile) {
             std::getline(cmdLineFile, processName);
             cmdLineFile.close();
-            processName = StringUtil::FormatCmdLine(processName);
+            StringUtil::FormatProcessName(processName);
             processNameMap[pid] = processName;
         } else {
             HIVIEW_LOGE("Fail to open /proc/%{public}d/cmdline", pid);
