@@ -273,35 +273,8 @@ void Faultlogger::AddPublicInfo(FaultLogInfo &info)
     info.sectionMap["PID"] = std::to_string(info.pid);
     info.module = RegulateModuleNameIfNeed(info.module);
     info.sectionMap["MODULE"] = info.module;
-    DfxBundleInfo bundleInfo;
-    if (info.id >= MIN_APP_USERID && GetDfxBundleInfo(info.module, bundleInfo)) {
-        if (!bundleInfo.versionName.empty()) {
-            info.sectionMap["VERSION"] = bundleInfo.versionName;
-            info.sectionMap["VERSION_CODE"] = std::to_string(bundleInfo.versionCode);
-        }
-
-        if (bundleInfo.isPreInstalled) {
-            info.sectionMap["PRE_INSTALL"] = "Yes";
-        } else {
-            info.sectionMap["PRE_INSTALL"] = "No";
-        }
-    }
-
-    if (info.sectionMap["FOREGROUND"].empty() && info.id >= MIN_APP_USERID) {
-        if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) ==
-            UCollectUtil::FOREGROUND) {
-            info.sectionMap["FOREGROUND"] = "Yes";
-        } else if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) ==
-            UCollectUtil::BACKGROUND) {
-            int64_t lastFgTime = static_cast<int64_t>(UCollectUtil::ProcessStatus::GetInstance()
-                .GetProcessLastForegroundTime(info.pid));
-            if (lastFgTime > info.time) {
-                info.sectionMap["FOREGROUND"] = "Yes";
-            } else {
-                info.sectionMap["FOREGROUND"] = "No";
-            }
-        }
-    }
+    AddVersionInfo(info);
+    AddForegroundInfo(info);
 
     if (info.reason.empty()) {
         info.reason = info.sectionMap["REASON"];
@@ -315,10 +288,45 @@ void Faultlogger::AddPublicInfo(FaultLogInfo &info)
         info.sectionMap["SUMMARY"] = info.summary;
     }
 
+    if (info.sectionMap.count("TERMINAL_THREAD_STACK") > 0 && !info.sectionMap["TERMINAL_THREAD_STACK"].empty()) {
+        info.parsedLogInfo["TERMINAL_THREAD_STACK"] =
+            StringUtil::ReplaceStr(info.sectionMap["TERMINAL_THREAD_STACK"], "\\n", "\n");
+    }
+
     // parse fingerprint by summary or temp log for native crash
     AnalysisFaultlog(info, info.parsedLogInfo);
     info.sectionMap.insert(info.parsedLogInfo.begin(), info.parsedLogInfo.end());
     info.parsedLogInfo.clear();
+}
+
+void Faultlogger::AddVersionInfo(FaultLogInfo& info)
+{
+    DfxBundleInfo bundleInfo;
+    if (info.id < MIN_APP_USERID || !GetDfxBundleInfo(info.module, bundleInfo)) {
+        return;
+    }
+
+    if (!bundleInfo.versionName.empty()) {
+        info.sectionMap["VERSION"] = bundleInfo.versionName;
+        info.sectionMap["VERSION_CODE"] = std::to_string(bundleInfo.versionCode);
+    }
+
+    info.sectionMap["PRE_INSTALL"] = bundleInfo.isPreInstalled ? "Yes" : "No";
+}
+
+void Faultlogger::AddForegroundInfo(FaultLogInfo& info)
+{
+    if (!info.sectionMap["FOREGROUND"].empty() || info.id < MIN_APP_USERID) {
+        return;
+    }
+
+    if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) == UCollectUtil::FOREGROUND) {
+        info.sectionMap["FOREGROUND"] = "Yes";
+    } else if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) == UCollectUtil::BACKGROUND) {
+        int64_t lastFgTime = static_cast<int64_t>(UCollectUtil::ProcessStatus::GetInstance()
+                                                  .GetProcessLastForegroundTime(info.pid));
+        info.sectionMap["FOREGROUND"] = lastFgTime > info.time ? "Yes" : "No";
+    }
 }
 
 void Faultlogger::AddCppCrashInfo(FaultLogInfo& info)

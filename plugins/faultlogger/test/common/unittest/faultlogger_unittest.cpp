@@ -231,6 +231,8 @@ public:
     }
 };
 
+static const std::string APPFREEZE_FAULT_FILE = "/data/test/test_data/SmartParser/test_faultlogger_data/";
+
 /**
  * @tc.name: dumpFileListTest001
  * @tc.desc: dump with cmds, check the result
@@ -1565,6 +1567,95 @@ HWTEST_F(FaultloggerUnittest, OnEventTest001, testing::ext::TestSize.Level3)
         auto result = SendSysEvent(sysEventCreator);
         ASSERT_EQ(result, true);
     }
+}
+
+/**
+ * @tc.name: AppFreezeCrashLogTest001
+ * @tc.desc: test AddFaultLog, check F1/F2/F3
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    FaultLogInfo info;
+    info.time = 1607161163;
+    info.id = 20010039;
+    info.pid = 7497;
+    info.faultLogType = FaultLogType::APP_FREEZE;
+    info.module = "com.example.jsinject";
+    info.logPath = APPFREEZE_FAULT_FILE + "AppFreezeCrashLogTest001/" +
+        "appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
+    plugin->AddFaultLog(info);
+
+    const std::string firstFrame = "/system/lib64/libeventhandler.z.so"
+        "(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204";
+    ASSERT_EQ(info.sectionMap["FIRST_FRAME"], firstFrame);
+    const std::string secondFrame = "/system/lib64/libeventhandler.z.so"
+        "(OHOS::AppExecFwk::EventQueue::WaitUntilLocked"
+        "(std::__1::chrono::time_point<std::__1::chrono::steady_clock, "
+        "std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, "
+        "std::__1::unique_lock<std::__1::mutex>&)+96";
+    ASSERT_EQ(info.sectionMap["SECOND_FRAME"], secondFrame);
+}
+
+/**
+ * @tc.name: AppFreezeCrashLogTest002
+ * @tc.desc: test AddFaultLog, add TERMINAL_THREAD_STACK, check F1/F2/F3
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest002, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    FaultLogInfo info;
+    info.time = 1607161163;
+    info.id = 20010039;
+    info.pid = 7497;
+    info.faultLogType = FaultLogType::APP_FREEZE;
+    info.module = "com.example.jsinject";
+    info.logPath = APPFREEZE_FAULT_FILE + "AppFreezeCrashLogTest002/" +
+        "appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
+    std::string binderSatck = "#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)\n"
+        "#01 pc 0000000000070cc4 "
+        "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)\n"
+        "#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)\n"
+        "#03 pc 000000000051b55c /system/lib64/libGLES_mali.so\n"
+        "#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)\n"
+        "#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)";
+    info.sectionMap["TERMINAL_THREAD_STACK"] = binderSatck;
+    plugin->AddFaultLog(info);
+    ASSERT_EQ(info.sectionMap["FIRST_FRAME"], "/system/lib64/libGLES_mali.so");
+    ASSERT_TRUE(info.sectionMap["SECOND_FRAME"].empty());
+    ASSERT_TRUE(info.sectionMap["LAST_FRAME"].empty());
+}
+
+/**
+ * @tc.name: AppFreezeCrashLogTest003
+ * @tc.desc: test AddFaultLog, add TERMINAL_THREAD_STACK("\n"), check F1/F2/F3
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest003, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    FaultLogInfo info;
+    info.time = 1607161163;
+    info.id = 20010039;
+    info.pid = 7497;
+    info.faultLogType = FaultLogType::APP_FREEZE;
+    info.module = "com.example.jsinject";
+    info.logPath = APPFREEZE_FAULT_FILE + "AppFreezeCrashLogTest003/" +
+        "appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
+    std::string binderSatck = "#00 pc 000000000006ca3c /system/lib64/libc.so(syscall+28)\\n"
+        "#01 pc 0000000000070cc4 "
+        "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, int, bool, timespec const*)+144)\\n"
+        "#02 pc 00000000000cf228 /system/lib64/libc.so(pthread_cond_wait+64)\\n"
+        "#03 pc 000000000051b55c /system/lib64/libGLES_mali.so\\n"
+        "#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)\\n"
+        "#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)";
+    info.sectionMap["TERMINAL_THREAD_STACK"] = binderSatck;
+    plugin->AddFaultLog(info);
+    ASSERT_EQ(info.sectionMap["FIRST_FRAME"], "/system/lib64/libGLES_mali.so");
+    ASSERT_TRUE(info.sectionMap["SECOND_FRAME"].empty());
+    ASSERT_TRUE(info.sectionMap["LAST_FRAME"].empty());
 }
 
 /**

@@ -24,6 +24,7 @@ namespace OHOS {
 namespace HiviewDFX {
 static const std::string UNKNOWN_STR = "unknown";
 static const std::string PARAMETER_ENDSTACK = "END_STACK";
+const char* const TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
 static constexpr auto SMART_PARSER_PATH = "/system/etc/hiview/";
 // buffer size
 static const int HAS_LEN = 128;

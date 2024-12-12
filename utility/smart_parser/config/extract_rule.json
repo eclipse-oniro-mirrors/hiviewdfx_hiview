@@ -131,7 +131,7 @@
     },
     "Rule12":{
         "DirOrFile":"/data/log/faultlog/",
-        "Subcatalog":"*.appfreeze-.*.tmp",
+        "Subcatalog":"appfreeze-.*.tmp",
         "featureId":"63_APP_FREEZE_00,63_APP_FREEZE_01",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
