@@ -81,7 +81,7 @@ std::string AddVersionInfoToZipName(const std::string &srcZipPath);
 void CheckCurrentCpuLoad();
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
 void LoadMemoryInfo(DumpEvent &dumpEvent);
-int64_t GetTraceSize(TraceRetInfo ret);
+int64_t GetTraceSize(TraceRetInfo &ret);
 } // HiViewDFX
 } // OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_FILE_UTILS_H

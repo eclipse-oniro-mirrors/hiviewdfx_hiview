@@ -529,7 +529,7 @@ std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo ret, UCollect::Trac
     return files;
 }
 
-int64_t GetTraceSize(TraceRetInfo ret)
+int64_t GetTraceSize(TraceRetInfo &ret)
 {
     struct stat fileInfo;
     int64_t traceSize = 0;
@@ -564,7 +564,7 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
         "SYS_MEM_AVAIL", dumpEvent.sysMemAvail,
         "SYS_CPU", dumpEvent.sysCpu,
         "DUMP_CPU", dumpEvent.dumpCpu);
-    if (ret == 0) {
+    if (ret != 0) {
         HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
     }
 }
@@ -576,18 +576,18 @@ void LoadMemoryInfo(DumpEvent &dumpEvent)
     long totalMemory = 0;
     long freeMemory = 0;
     long availMemory = 0;
-    if (meminfo.is_open()) {
+    if (meminfo.good()) {
         while (std::getline(meminfo, line)) {
-            if (line.find("MemAvailable:") != std::string::npos) {
-                freeMemory = std::stol(line.substr(line.find(":") + 1));
-                continue;
-            }
             if (line.find("MemTotal:") != std::string::npos) {
-                totalMemory = std::stol(line.substr(line.find(":") + 1));
+                totalMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
                 continue;
             }
             if (line.find("MemFree:") != std::string::npos) {
-                availMemory = std::stol(line.substr(line.find(":") + 1));
+                freeMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
+                continue;
+            }
+            if (line.find("MemAvailable:") != std::string::npos) {
+                availMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
                 continue;
             }
         }

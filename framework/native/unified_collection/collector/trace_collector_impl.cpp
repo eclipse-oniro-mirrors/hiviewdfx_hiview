@@ -43,7 +43,6 @@ constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
 }
 
-
 std::shared_ptr<TraceCollector> TraceCollector::Create()
 {
     return std::make_shared<TraceDecorator>(std::make_shared<TraceCollectorImpl>());
