@@ -127,7 +127,7 @@ int SysEventDatabase::Insert(const std::shared_ptr<SysEvent>& event)
     return sysEventDoc->Insert(event);
 }
 
-void SysEventDatabase::CheckRepeat(std::shared_ptr<SysEvent> event)
+void SysEventDatabase::CheckRepeat(SysEvent& event)
 {
     SysEventRepeatGuard::Check(event);
 }

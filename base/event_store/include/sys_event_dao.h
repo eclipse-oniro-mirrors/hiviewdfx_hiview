@@ -36,7 +36,7 @@ public:
         const std::vector<std::string>& names, uint32_t type, int64_t toSeq, int64_t fromSeq);
 
     static int Insert(std::shared_ptr<SysEvent> sysEvent);
-    static void CheckRepeat(std::shared_ptr<SysEvent> event);
+    static void CheckRepeat(SysEvent& event);
     static void Backup();
     static void Restore();
     static std::string GetDatabaseDir();

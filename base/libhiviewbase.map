@@ -370,7 +370,7 @@
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendUid(unsigned int)";
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::Build()";
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::EncodedTag(unsigned char)";
-        "OHOS::HiviewDFX::EventStore::SysEventDao::CheckRepeat(std::__h::shared_ptr<OHOS::HiviewDFX::SysEvent>)";
+        "OHOS::HiviewDFX::EventStore::SysEventDao::CheckRepeat(OHOS::HiviewDFX::SysEvent&)";
         "OHOS::HiviewDFX::EventStore::SysEventDao::Clear()";
         "OHOS::HiviewDFX::EventStore::SysEventDao::Insert(std::__h::shared_ptr<OHOS::HiviewDFX::SysEvent>)";
         "OHOS::HiviewDFX::FileUtil::CreateDirWithDefaultPerm(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int, unsigned int)";

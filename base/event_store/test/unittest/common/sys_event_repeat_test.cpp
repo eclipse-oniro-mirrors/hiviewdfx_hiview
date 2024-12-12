@@ -72,19 +72,19 @@ HWTEST_F(SysEventRepeatTest, CheckEventRepeatTest_01, testing::ext::TestSize.Lev
     sysEventCreator.SetKeyValue("KEY", values);
     time_t now = time(nullptr);
     sysEventCreator.SetKeyValue("testTime", now);
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
-    sysEvent->SetLevel("CRITICAL");
+    SysEvent sysEvent("test", nullptr, sysEventCreator);
+    sysEvent.SetLevel("CRITICAL");
     int64_t testSeq = 0;
-    sysEvent->SetEventSeq(testSeq);
+    sysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(sysEvent);
-    ASSERT_EQ(sysEvent->log_, LOG_ALLOW_PACK|LOG_PACKED);
+    ASSERT_EQ(sysEvent.log_, LOG_ALLOW_PACK|LOG_PACKED);
 
-    std::shared_ptr<SysEvent> repeatSysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    SysEvent repeatSysEvent("test", nullptr, sysEventCreator);
     testSeq++;
-    repeatSysEvent->SetLevel("CRITICAL");
-    repeatSysEvent->SetEventSeq(testSeq);
+    repeatSysEvent.SetLevel("CRITICAL");
+    repeatSysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(repeatSysEvent);
-    ASSERT_EQ(repeatSysEvent->log_, LOG_NOT_ALLOW_PACK|LOG_REPEAT);
+    ASSERT_EQ(repeatSysEvent.log_, LOG_NOT_ALLOW_PACK|LOG_REPEAT);
 }
 
 /**
@@ -103,31 +103,31 @@ HWTEST_F(SysEventRepeatTest, CheckEventRepeatTest_02, testing::ext::TestSize.Lev
     sysEventCreator.SetKeyValue("testTime", now);
     auto testHash = "testhash" + std::to_string(now);
     sysEventCreator.SetKeyValue("FINGERPRINT", testHash);
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
-    sysEvent->SetLevel("CRITICAL");
+    SysEvent sysEvent("test", nullptr, sysEventCreator);
+    sysEvent.SetLevel("CRITICAL");
     int64_t testSeq = 0;
-    sysEvent->SetEventSeq(testSeq);
+    sysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(sysEvent);
-    ASSERT_EQ(sysEvent->log_, LOG_ALLOW_PACK|LOG_PACKED);
+    ASSERT_EQ(sysEvent.log_, LOG_ALLOW_PACK|LOG_PACKED);
 
     sysEventCreator.SetKeyValue("other", "abcdef");
-    std::shared_ptr<SysEvent> repeatSysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    SysEvent repeatSysEvent("test", nullptr, sysEventCreator);
     testSeq++;
-    repeatSysEvent->SetLevel("CRITICAL");
-    repeatSysEvent->SetEventSeq(testSeq);
+    repeatSysEvent.SetLevel("CRITICAL");
+    repeatSysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(repeatSysEvent);
-    ASSERT_EQ(repeatSysEvent->log_, LOG_NOT_ALLOW_PACK|LOG_REPEAT);
+    ASSERT_EQ(repeatSysEvent.log_, LOG_NOT_ALLOW_PACK|LOG_REPEAT);
 
     SysEventHashRecord sysEventHashRecord("WINDOWMANAGER", "NO_FOCUS_WINDOW");
     sysEventHashRecord.eventHash = testHash;
     sysEventHashRecord.happentime = time(nullptr) - TWO_HOURS;
     ASSERT_TRUE(SysEventRepeatDb::GetInstance().Update(sysEventHashRecord));
-    std::shared_ptr<SysEvent> repackSysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    SysEvent repackSysEvent("test", nullptr, sysEventCreator);
     testSeq++;
-    repackSysEvent->SetLevel("CRITICAL");
-    repackSysEvent->SetEventSeq(testSeq);
+    repackSysEvent.SetLevel("CRITICAL");
+    repackSysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(repackSysEvent);
-    ASSERT_EQ(repackSysEvent->log_, LOG_ALLOW_PACK|LOG_PACKED);
+    ASSERT_EQ(repackSysEvent.log_, LOG_ALLOW_PACK|LOG_PACKED);
 }
 
 /**
@@ -144,20 +144,19 @@ HWTEST_F(SysEventRepeatTest, CheckEventRepeatTest_03, testing::ext::TestSize.Lev
     sysEventCreator.SetKeyValue("KEY", values);
     time_t now = time(nullptr);
     sysEventCreator.SetKeyValue("testTime", now);
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
-    sysEvent->SetLevel("CRITICAL");
+    SysEvent sysEvent("test", nullptr, sysEventCreator);
+    sysEvent.SetLevel("CRITICAL");
     int64_t testSeq = 0;
-    sysEvent->SetEventSeq(testSeq);
+    sysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(sysEvent);
-    ASSERT_EQ(sysEvent->log_, 0);
+    ASSERT_EQ(sysEvent.log_, 0);
 
-    EventStore::SysEventDao::Insert(sysEvent);
-    std::shared_ptr<SysEvent> repeatSysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    SysEvent repeatSysEvent("test", nullptr, sysEventCreator);
     testSeq++;
-    repeatSysEvent->SetLevel("CRITICAL");
-    repeatSysEvent->SetEventSeq(testSeq);
+    repeatSysEvent.SetLevel("CRITICAL");
+    repeatSysEvent.SetEventSeq(testSeq);
     EventStore::SysEventDao::CheckRepeat(repeatSysEvent);
-    ASSERT_EQ(repeatSysEvent->log_, 0);
+    ASSERT_EQ(repeatSysEvent.log_, 0);
 }
 
 /**
