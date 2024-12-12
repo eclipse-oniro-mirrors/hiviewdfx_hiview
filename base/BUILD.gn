@@ -71,6 +71,7 @@ ohos_source_set("hiview_base") {
     "plugin.cpp",
     "plugin_factory.cpp",
     "plugin_proxy.cpp",
+    "privacy_manager.cpp",
     "sys_event.cpp",
   ]
 

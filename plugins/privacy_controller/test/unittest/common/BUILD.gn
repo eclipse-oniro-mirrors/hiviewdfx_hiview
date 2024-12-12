@@ -39,11 +39,7 @@ ohos_unittest("PrivacyControllerTest") {
   ]
 
   external_deps = [
-    "cJSON:cjson",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
-
-  resource_config_file =
-      "$hiview_plugin/privacy_controller/test/resource/ohos_test.xml"
 }

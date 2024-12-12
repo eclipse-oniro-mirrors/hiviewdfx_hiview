@@ -195,12 +195,6 @@ std::string GetVersionTypeStr()
     return IsBetaVersion() ? "Beta" : "Commercial";
 }
 
-int32_t GetRegionCode()
-{
-    constexpr int32_t defaultCode = 156;
-    return defaultCode;
-}
-
 std::string GetPatchVersionStr()
 {
     return GetString(PATCH_VERSION, "");
