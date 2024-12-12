@@ -23,6 +23,9 @@ namespace HisysEventUtil {
 bool IsEventProcessed(const std::string& name, const std::string& key, const std::string& value)
 {
     auto sysEventQuery = EventStore::SysEventDao::BuildQuery("KERNEL_VENDOR", {name});
+    if (sysEventQuery == nullptr) {
+        return false;
+    }
     std::vector<std::string> selections{EventStore::EventCol::TS};
     EventStore::ResultSet resultSet = sysEventQuery->Select(selections).
         Where(key, EventStore::Op::EQ, value).Execute();
