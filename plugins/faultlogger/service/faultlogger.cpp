@@ -423,7 +423,7 @@ bool Faultlogger::JudgmentRateLimiting(std::shared_ptr<Event> event)
     long pid = sysEvent->GetPid();
     std::string eventPid = std::to_string(pid);
 
-    std::time_t now = std::time(0);
+    std::time_t now = std::time(nullptr);
     for (auto it = eventTagTime_.begin(); it != eventTagTime_.end();) {
         if ((now - it->second) >= interval) {
             it = eventTagTime_.erase(it);
