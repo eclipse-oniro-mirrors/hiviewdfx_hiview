@@ -793,7 +793,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerTest001, testing::ext::TestSize.Lev
     ASSERT_TRUE(faultEventListener->CheckKeyWords());
 }
 
-std::string getTargetFileName(int32_t faultLogType, int64_t time)
+std::string GetTargetFileName(int32_t faultLogType, int64_t time)
 {
     fileNames_.clear();
     fileNames_ = {
@@ -839,7 +839,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerTest003, testing::ext::TestSize.Lev
         if (fileName.find("FaultloggerUnittest1111") == std::string::npos) {
             FAIL();
         }
-        std::string targetFileName = getTargetFileName(i, info.time);
+        std::string targetFileName = GetTargetFileName(i, info.time);
         ASSERT_EQ(fileName, targetFileName);
     }
 }

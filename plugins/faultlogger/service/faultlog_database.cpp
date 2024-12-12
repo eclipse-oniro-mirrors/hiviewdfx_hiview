@@ -48,18 +48,18 @@ bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, Fault
         return false;
     }
     auto sysEvent = std::make_unique<SysEvent>("FaultLogDatabase", nullptr, rawData);
-    constexpr string::size_type FIRST_200_BYTES = 200;
-    HIVIEW_LOGI("parse FaultLogInfo from %{public}s.", sysEvent->AsJsonStr().substr(0, FIRST_200_BYTES).c_str());
-    constexpr int64_t DEFAULT_INT_VALUE = 0;
+    constexpr string::size_type first200Bytes = 200;
+    HIVIEW_LOGI("parse FaultLogInfo from %{public}s.", sysEvent->AsJsonStr().substr(0, first200Bytes).c_str());
+    constexpr int64_t defaultIntValue = 0;
     info.time = static_cast<int64_t>(std::atoll(sysEvent->GetEventValue("HAPPEN_TIME").c_str()));
-    if (info.time == DEFAULT_INT_VALUE) {
-        info.time = sysEvent->GetEventIntValue("HAPPEN_TIME") != DEFAULT_INT_VALUE?
+    if (info.time == defaultIntValue) {
+        info.time = sysEvent->GetEventIntValue("HAPPEN_TIME") != defaultIntValue ?
                     sysEvent->GetEventIntValue("HAPPEN_TIME") : sysEvent->GetEventIntValue("time_");
     }
-    info.pid = sysEvent->GetEventIntValue("PID") != DEFAULT_INT_VALUE ?
+    info.pid = sysEvent->GetEventIntValue("PID") != defaultIntValue ?
                sysEvent->GetEventIntValue("PID") : sysEvent->GetEventIntValue("pid_");
 
-    info.id = sysEvent->GetEventIntValue("UID") != DEFAULT_INT_VALUE ?
+    info.id = sysEvent->GetEventIntValue("UID") != defaultIntValue ?
               sysEvent->GetEventIntValue("UID") : sysEvent->GetEventIntValue("uid_");
     info.faultLogType = static_cast<int32_t>(std::stoi(sysEvent->GetEventValue("FAULT_TYPE").c_str()));
     info.module = sysEvent->GetEventValue("MODULE");

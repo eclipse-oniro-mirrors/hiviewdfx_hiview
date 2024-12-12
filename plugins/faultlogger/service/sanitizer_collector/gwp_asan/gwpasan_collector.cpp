@@ -50,8 +50,6 @@ constexpr unsigned ASAN_LOG_SIZE = 350 * 1024;
 constexpr unsigned BUF_SIZE = 128;
 constexpr unsigned ERRTYPE_FIELD = 4;
 static std::stringstream g_asanlog;
-const std::string ASAN_RECORD_REGEX =
-    "==([0-9a-zA-Z_.]+)==(\\d+)==ERROR: (AddressSanitizer|LeakSanitizer): (\\S+)";
 }
 
 void WriteGwpAsanLog(char* buf, size_t sz)
@@ -108,8 +106,10 @@ std::string GetErrorTypeFromAsanLog(const std::string& gwpAsanBuffer)
 {
     std::string errType = "";
     std::smatch captured;
-    static const std::regex RECORD_RE(ASAN_RECORD_REGEX);
-    if (std::regex_search(gwpAsanBuffer, captured, RECORD_RE)) {
+    constexpr const char* const asanRecordRegex =
+        "==([0-9a-zA-Z_.]+)==(\\d+)==ERROR: (AddressSanitizer|LeakSanitizer): (\\S+)";
+    static const std::regex recordRe(asanRecordRegex);
+    if (std::regex_search(gwpAsanBuffer, captured, recordRe)) {
         errType = captured[ERRTYPE_FIELD].str();
         HILOG_INFO(LOG_CORE, "ASAN errType is %{public}s.", errType.c_str());
     } else {

@@ -46,8 +46,7 @@ bool SignalInfo::IsSignalInfoAvaliable(int32_t signal)
 
 bool SignalInfo::IsSignalAddrAvaliable(int32_t signal)
 {
-    return ((signal == SIGABRT) || (signal == SIGBUS) || (signal == SIGILL)
-        || (signal == SIGSEGV) || (signal == SIGTRAP));
+    return signal == SIGABRT || signal == SIGBUS || signal == SIGILL || signal == SIGSEGV || signal == SIGTRAP;
 }
 
 bool SignalInfo::IsSignalPidAvaliable(int32_t sigCode)

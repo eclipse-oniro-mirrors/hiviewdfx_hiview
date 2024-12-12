@@ -99,11 +99,11 @@ void BBoxDetectorPlugin::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent)
     std::string event = sysEvent->GetEventValue("REASON");
     std::string module = sysEvent->GetEventValue("MODULE");
     std::string timeStr = sysEvent->GetEventValue("SUB_LOG_PATH");
-    std::string LOG_PATH = sysEvent->GetEventValue("LOG_PATH");
+    std::string logPath = sysEvent->GetEventValue("LOG_PATH");
     std::string name = sysEvent->GetEventValue("name_");
 
-    std::string dynamicPaths = ((!LOG_PATH.empty() && LOG_PATH[LOG_PATH.size() - 1] == '/') ?
-                                  LOG_PATH : LOG_PATH + '/') + timeStr;
+    std::string dynamicPaths = ((!logPath.empty() && logPath[logPath.size() - 1] == '/') ?
+                                logPath : logPath + '/') + timeStr;
     if (HisysEventUtil::IsEventProcessed(name, "LOG_PATH", dynamicPaths)) {
         HIVIEW_LOGE("HandleBBoxEvent is processed event path is %{public}s", dynamicPaths.c_str());
         return;
