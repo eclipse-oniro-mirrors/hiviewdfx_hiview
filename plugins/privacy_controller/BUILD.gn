@@ -32,17 +32,11 @@ ohos_source_set("privacy_controller") {
 
   configs = [ ":privacy_controller_config" ]
 
-  sources = [
-    "config/area_policy.cpp",
-    "privacy_controller.cpp",
-  ]
+  sources = [ "privacy_controller.cpp" ]
 
   deps = [ "$hiview_base:hiviewbase" ]
 
-  external_deps = [
-    "cJSON:cjson",
-    "hilog:libhilog",
-  ]
+  external_deps = [ "hilog:libhilog" ]
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
