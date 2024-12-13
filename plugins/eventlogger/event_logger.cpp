@@ -149,6 +149,10 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     auto sysEvent = Event::DownCastTo<SysEvent>(onEvent);
 
     long pid = sysEvent->GetEventIntValue("PID") ? sysEvent->GetEventIntValue("PID") : sysEvent->GetPid();
+    if (pid < 0) {
+        pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
+        sysEvent->SetEventValue("PID", pid);
+    }
     std::string eventName = sysEvent->eventName_;
     if (eventName == "GESTURE_NAVIGATION_BACK" || eventName == "FREQUENT_CLICK_WARNING") {
 #ifdef WINDOW_MANAGER_ENABLE
