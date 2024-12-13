@@ -39,7 +39,7 @@ DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
-const int64_t XPERF_SIZE = 1750 * 1024 * 1024;
+const int64_t XPERF_SIZE = 1800 * 1024 * 1024;
 const int64_t XPOWER_SIZE = 700 * 1024 * 1024;
 const int64_t RELIABILITY_SIZE = 750 * 1024 * 1024;
 const int64_t HIVIEW_SIZE = 350 * 1024 * 1024;
