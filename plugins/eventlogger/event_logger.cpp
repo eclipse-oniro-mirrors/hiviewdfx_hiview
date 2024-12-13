@@ -156,7 +156,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
 #ifdef WINDOW_MANAGER_ENABLE
     EventFocusListener::RegisterFocusListener();
 #endif
-    auto sysEvent = Event::DownCastTo<SysEvent>(onEvent);
+    std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
 
     long pid = GetEventPid(sysEvent);
     std::string eventName = sysEvent->eventName_;
