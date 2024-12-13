@@ -132,7 +132,7 @@ private:
     std::string GetStringFromFile(const std::string path);
     int GetNumFromString(const std::string &mem);
     void CheckString(int fd, const std::string &mem, std::string &data, const std::string key, const std::string path);
-    long GetEventPid(const std::shared_ptr<SysEvent> &sysEvent);
+    long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
