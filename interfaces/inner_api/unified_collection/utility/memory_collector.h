@@ -45,6 +45,8 @@ public:
     virtual CollectResult<uint64_t> CollectProcessVss(int32_t pid) = 0;
     virtual CollectResult<MemoryLimit> CollectMemoryLimit() = 0;
     virtual CollectResult<uint32_t> CollectDdrFreq() = 0;
+    virtual CollectResult<ProcessMemoryDetail> CollectProcessMemoryDetail(int32_t pid,
+        bool isLowLatencyMode = false) = 0;
 }; // MemoryCollector
 } // UCollectUtil
 } // HiviewDFX
