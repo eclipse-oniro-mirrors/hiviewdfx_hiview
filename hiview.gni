@@ -99,4 +99,5 @@ declare_args() {
   hiview_unified_collector_perf_enable = true
   hiview_unified_collector_ebpf_enable = true
   hiview_unified_collector_network_enable = true
+  hiview_eventlogger_window_manager_enable = true
 }
