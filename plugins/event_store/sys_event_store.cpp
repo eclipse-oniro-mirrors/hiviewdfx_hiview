@@ -115,11 +115,13 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
         EventStore::SysEventSequenceManager::GetInstance().SetSequence(++eventSeq);
         sysEventDbMgr_->SaveToStore(sysEvent);
 
-        std::string dateStr(TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d"));
-        if (IsNeedBackup(dateStr)) {
-            EventStore::SysEventDao::Backup();
-            lastBackupTime_ = dateStr;
-            Parameter::SetProperty(PROP_LAST_BACKUP, dateStr);
+        if (!Parameter::IsOversea()) {
+            std::string dateStr(TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d"));
+            if (IsNeedBackup(dateStr)) {
+                EventStore::SysEventDao::Backup();
+                lastBackupTime_ = dateStr;
+                Parameter::SetProperty(PROP_LAST_BACKUP, dateStr);
+            }
         }
     }
     return true;

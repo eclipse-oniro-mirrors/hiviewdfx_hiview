@@ -19,6 +19,7 @@
 
 #include "file_util.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 #include "sys_event_dao.h"
 
 namespace OHOS {
@@ -75,7 +76,7 @@ SysEventSequenceManager& SysEventSequenceManager::GetInstance()
 
 SysEventSequenceManager::SysEventSequenceManager()
 {
-    if (!FileUtil::FileExists(GetSequenceFile())) {
+    if (!Parameter::IsOversea() && !FileUtil::FileExists(GetSequenceFile())) {
         EventStore::SysEventDao::Restore();
     }
     int64_t seq = 0;
