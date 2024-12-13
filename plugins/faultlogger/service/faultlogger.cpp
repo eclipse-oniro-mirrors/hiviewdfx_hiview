@@ -495,6 +495,7 @@ static void UpdateSysEvent(SysEvent &sysEvent, FaultLogInfo &info)
     sysEvent.SetEventValue("HAPPEN_TIME", sysEvent.happenTime_);
     sysEvent.SetEventValue("tz_", TimeUtil::GetTimeZone());
     sysEvent.SetEventValue("VERSION", info.sectionMap["VERSION"]);
+    sysEvent.SetEventValue("VERSION_CODE", info.sectionMap["VERSION_CODE"]);
     sysEvent.SetEventValue("PRE_INSTALL", info.sectionMap["PRE_INSTALL"]);
     sysEvent.SetEventValue("FOREGROUND", info.sectionMap["FOREGROUND"]);
     std::map<std::string, std::string> eventInfos;
