@@ -30,8 +30,8 @@ namespace Parameter {
 enum UserType: uint8_t {
     USER_TYPE_CHINA_COMMERCIAL = 1,
     USER_TYPE_CHINA_BETA = 3,
-    USER_TYPE_OVERSEA_COMMERCIAL = 5,
-    USER_TYPE_OVERSEA_BETA = 6
+    USER_TYPE_OVERSEA_BETA = 5,
+    USER_TYPE_OVERSEA_COMMERCIAL = 6
 };
 
 std::string GetString(const std::string& key, const std::string& defaultValue);
@@ -62,7 +62,6 @@ std::string GetDistributionOsVersionStr();
 std::string GetProductModelStr();
 std::string GetSysVersionDetailsStr();
 std::string GetVersionTypeStr();
-int32_t GetRegionCode();
 std::string GetPatchVersionStr();
 };
 } // namespace HiviewDFX

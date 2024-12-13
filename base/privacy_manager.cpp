@@ -13,35 +13,34 @@
  * limitations under the License.
  */
 
-#include "privacy_controller.h"
-
-#include "hiview_logger.h"
-#include "plugin_factory.h"
 #include "privacy_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-REGISTER(PrivacyController);
-DEFINE_LOG_TAG("PrivacyController");
-
-void PrivacyController::OnLoad()
-{
-    HIVIEW_LOGI("load privacy controller.");
+namespace {
+static std::shared_ptr<IPrivacyController> g_privacyController;
 }
 
-bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
+void PrivacyManager::SetPrivacyController(std::shared_ptr<IPrivacyController> privacyController)
 {
-    if (event == nullptr) {
-        return false;
-    }
+    g_privacyController = privacyController;
+}
 
-    auto sysEvent = std::static_pointer_cast<SysEvent>(event);
-    if (!PrivacyManager::IsAllowed(sysEvent)) {
-        HIVIEW_LOGD("event[%{public}s|%{public}s] is not allowed",
-            sysEvent->domain_.c_str(), sysEvent->eventName_.c_str());
-        return sysEvent->OnFinish();
+bool PrivacyManager::IsAllowed(std::shared_ptr<SysEvent> event)
+{
+    return g_privacyController == nullptr ? true : g_privacyController->IsAllowed(event);
+}
+
+bool PrivacyManager::IsAllowed(uint8_t level, uint8_t privacy)
+{
+    return g_privacyController == nullptr ? true : g_privacyController->IsAllowed(level, privacy);
+}
+
+void PrivacyManager::OnConfigUpdate()
+{
+    if (g_privacyController != nullptr) {
+        g_privacyController->OnConfigUpdate();
     }
-    return true;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
