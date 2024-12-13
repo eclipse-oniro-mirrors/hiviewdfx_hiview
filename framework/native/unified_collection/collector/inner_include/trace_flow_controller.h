@@ -34,7 +34,7 @@ public:
     TraceFlowController(UCollect::TraceCaller caller = UCollect::TraceCaller::INVALIDITY);
     ~TraceFlowController() = default;
     bool NeedDump();
-    bool NeedUpload(TraceRetInfo ret);
+    bool NeedUpload(int64_t traceSize);
     void StoreDb();
 
     /**
@@ -63,7 +63,6 @@ private:
     void InitTraceDb();
     void InitTraceStorage();
     std::string GetDate();
-    int64_t GetTraceSize(Hitrace::TraceRetInfo ret);
     bool IsLowerLimit(int64_t nowSize, int64_t traceSize, int64_t limitSize);
     TraceFlowRecord QueryDb();
 

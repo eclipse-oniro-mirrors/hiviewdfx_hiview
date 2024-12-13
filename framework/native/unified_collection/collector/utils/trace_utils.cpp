@@ -55,6 +55,8 @@ const uint32_t UNIFIED_SPECIAL_OTHER = 5;
 constexpr uint32_t READ_MORE_LENGTH = 100 * 1024;
 const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
+constexpr uint32_t MB_TO_KB = 1024;
+constexpr uint32_t KB_TO_BYTE = 1024;
 }
 
 enum {
@@ -525,6 +527,75 @@ std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo ret, UCollect::Trac
     // file delete
     FileRemove(caller);
     return files;
+}
+
+int64_t GetTraceSize(TraceRetInfo &ret)
+{
+    struct stat fileInfo;
+    int64_t traceSize = 0;
+    for (const auto &tracePath : ret.outputFiles) {
+        int ret = stat(tracePath.c_str(), &fileInfo);
+        if (ret != 0) {
+            HIVIEW_LOGE("%{public}s is not exists, ret = %{public}d.", tracePath.c_str(), ret);
+            continue;
+        }
+        traceSize += fileInfo.st_size;
+    }
+    return traceSize;
+}
+
+void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
+{
+    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY, "TRACE_DUMP",
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
+        "CALLER", dumpEvent.caller,
+        "ERROR_CODE", dumpEvent.errorCode,
+        "IPC_TIME", dumpEvent.ipcTime,
+        "REQ_TIME", dumpEvent.reqTime,
+        "REQ_DURATION", dumpEvent.reqDuration,
+        "EXEC_TIME", dumpEvent.execTime,
+        "EXEC_DURATION", dumpEvent.execDuration,
+        "COVER_DURATION", dumpEvent.coverDuration,
+        "COVER_RATIO", dumpEvent.coverRatio,
+        "TAG_GROUP", dumpEvent.tagGroup,
+        "FILE_SIZE", dumpEvent.fileSize,
+        "SYS_MEM_TOTAL", dumpEvent.sysMemTotal,
+        "SYS_MEM_FREE", dumpEvent.sysMemFree,
+        "SYS_MEM_AVAIL", dumpEvent.sysMemAvail,
+        "SYS_CPU", dumpEvent.sysCpu,
+        "DUMP_CPU", dumpEvent.dumpCpu);
+    if (ret != 0) {
+        HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
+    }
+}
+
+void LoadMemoryInfo(DumpEvent &dumpEvent)
+{
+    std::ifstream meminfo("/proc/meminfo");
+    std::string line;
+    long totalMemory = 0;
+    long freeMemory = 0;
+    long availMemory = 0;
+    if (meminfo.good()) {
+        while (std::getline(meminfo, line)) {
+            if (line.find("MemTotal:") != std::string::npos) {
+                totalMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
+                continue;
+            }
+            if (line.find("MemFree:") != std::string::npos) {
+                freeMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
+                continue;
+            }
+            if (line.find("MemAvailable:") != std::string::npos) {
+                availMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
+                continue;
+            }
+        }
+        meminfo.close();
+    }
+    dumpEvent.sysMemTotal = totalMemory / MB_TO_KB;
+    dumpEvent.sysMemFree = freeMemory / MB_TO_KB;
+    dumpEvent.sysMemAvail = availMemory / MB_TO_KB;
 }
 } // HiViewDFX
 } // OHOS

@@ -16,14 +16,15 @@
 #include "trace_collector_impl.h"
 
 #include <climits>
+#include <fstream>
 #include <memory>
 #include <mutex>
+#include <string>
 
 #include "hiview_logger.h"
 #include "trace_decorator.h"
 #include "trace_flow_controller.h"
 #include "trace_manager.h"
-#include "trace_utils.h"
 
 using namespace OHOS::HiviewDFX;
 using OHOS::HiviewDFX::TraceFlowController;
@@ -38,6 +39,8 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 std::mutex g_dumpTraceMutex;
 constexpr int32_t FULL_TRACE_DURATION = -1;
+constexpr uint32_t MB_TO_KB = 1024;
+constexpr uint32_t KB_TO_BYTE = 1024;
 }
 
 std::shared_ptr<TraceCollector> TraceCollector::Create()
@@ -77,17 +80,18 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(UColl
         HIVIEW_LOGI("trace is over flow, can not dump.");
         return result;
     }
-
-    TraceRetInfo traceRetInfo;
-    if (timeLimit == FULL_TRACE_DURATION) {
-        traceRetInfo = OHOS::HiviewDFX::Hitrace::DumpTrace(0, happenTime);
-    } else {
-        traceRetInfo = OHOS::HiviewDFX::Hitrace::DumpTrace(timeLimit, happenTime);
+    DumpEvent dumpEvent;
+    TraceRetInfo traceRetInfo = RecordTraceEvent(dumpEvent, caller, timeLimit, happenTime);
+    int64_t traceSize = GetTraceSize(traceRetInfo);
+    if (traceSize <= INT32_MAX * MB_TO_KB * KB_TO_BYTE) {
+        dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
     // check 2, judge whether to upload or not
-    if (!controlPolicy->NeedUpload(traceRetInfo)) {
+    if (!controlPolicy->NeedUpload(traceSize)) {
         result.retCode = UcError::TRACE_OVER_FLOW;
         HIVIEW_LOGI("trace is over flow, can not upload.");
+        dumpEvent.errorCode = result.retCode;
+        WriteDumpTraceHisysevent(dumpEvent);
         return result;
     }
     if (traceRetInfo.errorCode == TraceErrorCode::SUCCESS) {
@@ -98,12 +102,36 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(UColl
             result.data = outputFiles;
         }
     }
-
     result.retCode = TransCodeToUcError(traceRetInfo.errorCode);
+    dumpEvent.errorCode = result.retCode;
+    WriteDumpTraceHisysevent(dumpEvent);
     // step3： update db
     controlPolicy->StoreDb();
     HIVIEW_LOGI("DumpTrace, retCode = %{public}d, data.size = %{public}zu.", result.retCode, result.data.size());
     return result;
+}
+
+TraceRetInfo TraceCollectorImpl::RecordTraceEvent(DumpEvent &dumpEvent, UCollect::TraceCaller &caller,
+    int32_t timeLimit, uint64_t happenTime)
+{
+    TraceRetInfo traceRetInfo;
+    dumpEvent.caller = EnumToString(caller);
+    dumpEvent.reqDuration = timeLimit;
+    dumpEvent.reqTime = happenTime;
+    dumpEvent.execTime = TimeUtil::GenerateTimestamp();
+    auto start = std::chrono::steady_clock::now();
+    if (timeLimit == FULL_TRACE_DURATION) {
+        traceRetInfo = OHOS::HiviewDFX::Hitrace::DumpTrace(0, happenTime);
+    } else {
+        traceRetInfo = OHOS::HiviewDFX::Hitrace::DumpTrace(timeLimit, happenTime);
+    }
+    auto end = std::chrono::steady_clock::now();
+    dumpEvent.execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    dumpEvent.coverDuration = traceRetInfo.coverDuration;
+    dumpEvent.coverRatio = traceRetInfo.coverRatio;
+    dumpEvent.tagGroup = traceRetInfo.tagGroup;
+    LoadMemoryInfo(dumpEvent);
+    return traceRetInfo;
 }
 
 CollectResult<int32_t> TraceCollectorImpl::TraceOn()
