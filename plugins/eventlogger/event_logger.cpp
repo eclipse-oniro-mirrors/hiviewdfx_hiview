@@ -137,7 +137,7 @@ bool EventLogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
     return true;
 }
 
-long EventLogger::GetEventPid(const std::shared_ptr<SysEvent> &sysEvent)
+long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
 {
     long pid = sysEvent->GetEventIntValue("PID") ? sysEvent->GetEventIntValue("PID") : sysEvent->GetPid();
     if (pid < 0) {
