@@ -23,8 +23,9 @@ namespace HiviewDFX {
 class PrivacyManager {
 public:
     static void SetPrivacyController(std::shared_ptr<IPrivacyController> privacyController);
-    static bool IsAllowed(std::shared_ptr<SysEvent> event);
+    static bool IsAllowed(const std::string& domain, uint8_t type, const std::string& level, uint8_t privacy);
     static bool IsAllowed(uint8_t level, uint8_t privacy);
+    static bool IsPrivacyAllowed(uint8_t privacy);
     static void OnConfigUpdate();
 };
 } // namespace HiviewDFX

@@ -26,14 +26,19 @@ void PrivacyManager::SetPrivacyController(std::shared_ptr<IPrivacyController> pr
     g_privacyController = privacyController;
 }
 
-bool PrivacyManager::IsAllowed(std::shared_ptr<SysEvent> event)
+bool PrivacyManager::IsAllowed(const std::string& domain, uint8_t type, const std::string& level, uint8_t privacy)
 {
-    return g_privacyController == nullptr ? true : g_privacyController->IsAllowed(event);
+    return g_privacyController == nullptr ? true : g_privacyController->IsAllowed(domain, type, level, privacy);
 }
 
 bool PrivacyManager::IsAllowed(uint8_t level, uint8_t privacy)
 {
     return g_privacyController == nullptr ? true : g_privacyController->IsAllowed(level, privacy);
+}
+
+bool PrivacyManager::IsPrivacyAllowed(uint8_t privacy)
+{
+    return g_privacyController == nullptr ? true : g_privacyController->IsPrivacyAllowed(privacy);
 }
 
 void PrivacyManager::OnConfigUpdate()

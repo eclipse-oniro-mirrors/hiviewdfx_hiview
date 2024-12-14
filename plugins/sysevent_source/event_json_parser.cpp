@@ -21,6 +21,8 @@
 #include <map>
 
 #include "hiview_logger.h"
+#include "parameter_ex.h"
+#include "privacy_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -75,27 +77,28 @@ bool EventJsonParser::GetPreserveByDomainAndName(const std::string& domain, cons
 BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain,
     const std::string& name) const
 {
-    if (hiSysEventDefMap_ == nullptr) {
+    if (sysEventDefMap_ == nullptr) {
         HIVIEW_LOGD("sys def map is null");
         return BaseInfo();
     }
-    auto domainIter = hiSysEventDefMap_->find(domain);
-    if (domainIter == hiSysEventDefMap_->end()) {
+    auto domainIter = sysEventDefMap_->find(domain);
+    if (domainIter == sysEventDefMap_->end()) {
         HIVIEW_LOGD("domain %{public}s is not defined.", domain.c_str());
         return BaseInfo();
     }
-    auto domainNames = hiSysEventDefMap_->at(domain);
+    auto domainNames = sysEventDefMap_->at(domain);
     auto nameIter = domainNames.find(name);
     if (nameIter == domainNames.end()) {
-        HIVIEW_LOGD("%{public}s is not defined in domain %{public}s.", name.c_str(), domain.c_str());
+        HIVIEW_LOGD("%{public}s is not defined in domain %{public}s, or privacy not allowed.",
+            name.c_str(), domain.c_str());
         return BaseInfo();
     }
     return nameIter->second;
 }
 
-bool EventJsonParser::HasIntMember(const Json::Value& jsonObj, const std::string& name) const
+bool EventJsonParser::HasUIntMember(const Json::Value& jsonObj, const std::string& name) const
 {
-    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isInt();
+    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isUInt();
 }
 
 bool EventJsonParser::HasStringMember(const Json::Value& jsonObj, const std::string& name) const
@@ -156,9 +159,8 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.tag = baseJsonInfo[TAG].asString();
     }
 
-    if (HasIntMember(baseJsonInfo, PRIVACY)) {
-        int privacy = baseJsonInfo[PRIVACY].asInt();
-        baseInfo.privacy = privacy > 0 ? static_cast<uint8_t>(privacy) : baseInfo.privacy;
+    if (HasUIntMember(baseJsonInfo, PRIVACY)) {
+        baseInfo.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
     if (HasBoolMember(baseJsonInfo, PRESERVE)) {
@@ -168,23 +170,68 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
     return baseInfo;
 }
 
-void EventJsonParser::ParseHiSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap)
+void EventJsonParser::ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap)
 {
-    InitEventInfoMapRef(hiSysEventDef, [this, sysDefMap] (const std::string& key, const Json::Value& value) {
-       sysDefMap->insert(std::make_pair(key, this->ParseNameConfig(value)));
+    InitEventInfoMapRef(hiSysEventDef, [this, sysDefMap] (const std::string& domain, const Json::Value& value) {
+       sysDefMap->insert(std::make_pair(domain, this->ParseEventNameConfig(domain, value)));
     });
 }
 
-NAME_INFO_MAP EventJsonParser::ParseNameConfig(const Json::Value& domainJson) const
+NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const
 {
     NAME_INFO_MAP allNames;
-    if (!domainJson.isObject()) {
-        return allNames;
-    }
-    InitEventInfoMapRef(domainJson, [this, &allNames] (const std::string& key, const Json::Value& value) {
-        allNames[key] = ParseBaseConfig(value);
+    InitEventInfoMapRef(domainJson,
+        [this, &domain, &allNames] (const std::string& eventName, const Json::Value& eventContent) {
+        BaseInfo baseInfo = ParseBaseConfig(eventContent);
+        if (PrivacyManager::IsAllowed(domain, baseInfo.type, baseInfo.level, baseInfo.privacy)) {
+            baseInfo.disallowParams = ParseEventParamInfo(eventContent);
+            allNames[eventName] = baseInfo;
+        } else {
+            HIVIEW_LOGD("not allowed event: %{public}s | %{public}s", domain.c_str(), eventName.c_str());
+        }
     });
     return allNames;
+}
+
+PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& eventContent) const
+{
+    PARAM_INFO_MAP_PTR paramMaps = nullptr;
+    auto attrList = eventContent.getMemberNames();
+    if (attrList.empty()) {
+        return paramMaps;
+    }
+    for (const auto& paramName : attrList) {
+        if (paramName.empty() || paramName == BASE) {
+            // skip the definition of event, only care about the params
+            continue;
+        }
+        Json::Value paramContent = eventContent[paramName];
+        if (!paramContent.isObject()) {
+            continue;
+        }
+        if (!HasUIntMember(paramContent, PRIVACY)) {
+            // no privacy configured for this param, follow the event
+            continue;
+        }
+        uint8_t privacy = static_cast<uint8_t>(paramContent[PRIVACY].asUInt());
+        if (PrivacyManager::IsPrivacyAllowed(privacy)) {
+            // the privacy level of param is ok, no need to be recorded
+            continue;
+        }
+        if (paramMaps == nullptr) {
+            // if all params meet the privacy, no need to create the param instance
+            paramMaps = std::make_shared<std::map<std::string, std::shared_ptr<ParamInfo>>>();
+        }
+        std::shared_ptr<ParamInfo> paramInfo = nullptr;
+        if (Parameter::IsOversea() &&
+            HasStringMember(paramContent, "allowlist") && HasUIntMember(paramContent, "throwtype")) {
+            std::string allowListFile = paramContent["allowlist"].asString();
+            uint8_t throwType = static_cast<uint8_t>(paramContent["throwtype"].asUInt());
+            paramInfo = std::make_shared<ParamInfo>(allowListFile, throwType);
+        }
+        paramMaps->insert(std::make_pair(paramName, paramInfo));
+    }
+    return paramMaps;
 }
 
 void EventJsonParser::ReadDefFile(const std::string& defFilePath)
@@ -195,8 +242,8 @@ void EventJsonParser::ReadDefFile(const std::string& defFilePath)
         return;
     }
     auto tmpMap = std::make_shared<DOMAIN_INFO_MAP>();
-    ParseHiSysEventDef(hiSysEventDef, tmpMap);
-    hiSysEventDefMap_ = tmpMap;
+    ParseSysEventDef(hiSysEventDef, tmpMap);
+    sysEventDefMap_ = tmpMap;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

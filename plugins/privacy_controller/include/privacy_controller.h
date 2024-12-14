@@ -16,7 +16,12 @@
 #ifndef HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
 #define HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
 
+#include <map>
+#include <string>
+#include <unordered_set>
+
 #include "plugin.h"
+#include "sys_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -24,6 +29,15 @@ class PrivacyController : public Plugin {
 public:
     bool OnEvent(std::shared_ptr<Event>& event) override;
     void OnLoad() override;
+
+private:
+    bool IsBundleNameAllow(const std::string& bundleName, const std::string& allowListFile);
+    bool IsValidParam(std::shared_ptr<SysEvent>& sysEvent,
+        const std::string& paramName, const std::string& allowListFile);
+
+private:
+    // allow list content, <allowListFile, set<BundleName>>
+    std::map<std::string, std::unordered_set<std::string>> allowBundleNameMap_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
