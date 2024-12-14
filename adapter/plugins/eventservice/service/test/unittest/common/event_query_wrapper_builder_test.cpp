@@ -22,6 +22,18 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+std::string BuildAndCondWithSize(size_t arrSize)
+{
+    std::string condStr("{\"and\":[");
+    for (size_t i = 0; i < arrSize; ++i) {
+        condStr.append("{\"param\":\"PID\",\"op\":\"=\",""\"value\":1}");
+        if (i != (arrSize - 1)) {
+            condStr.append(",");
+        }
+    }
+    condStr.append("]}");
+    return condStr;
+}
 }
 
 void EventQueryWrapperBuilderTest::SetUpTestCase() {}
@@ -60,7 +72,7 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest002, testing:
     EventStore::Cond condition;
     std::string condListeral = "-1";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -76,7 +88,7 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest003, testing:
     std::string condListeral = "{\"version1\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op\":\"=\","
         "\"value\":1000},{\"param\":\"PACKAGE_NAME\",\"op\":\"=\",\"value\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -92,7 +104,7 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest004, testing:
     std::string condListeral = "{\"version\":\"V1\",\"condition1\":{\"and\":[{\"param\":\"PID\",\"op\":\"=\","
         "\"value\":1000},{\"param\":\"PACKAGE_NAME\",\"op\":\"=\",\"value\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -108,7 +120,7 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest005, testing:
     std::string condListeral = "{\"version\":\"V1\",\"condition\":{\"and1\":[{\"param\":\"PID\",\"op\":\"=\","
         "\"value\":1000},{\"param\":\"PACKAGE_NAME\",\"op\":\"=\",\"value\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -124,7 +136,7 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest006, testing:
     std::string condListeral = "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param1\":\"PID\",\"op\":\"=\","
         "\"value\":1000},{\"param1\":\"PACKAGE_NAME\",\"op\":\"=\",\"value\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -140,7 +152,7 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest007, testing:
     std::string condListeral = "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op1\":\"=\","
         "\"value\":1000},{\"param\":\"PACKAGE_NAME\",\"op1\":\"=\",\"value\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -156,7 +168,24 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest008, testing:
     std::string condListeral = "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op\":\"=\","
         "\"value1\":1000},{\"param\":\"PACKAGE_NAME\",\"op\":\"=\",\"value1\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
-    ASSERT_TRUE(!ret);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: EventQueryWrapperBuilderTest009
+ * @tc.desc: Test ParseCondition api with string literal with invalid param size
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest009, testing::ext::TestSize.Level3)
+{
+    ConditionParser parser;
+    EventStore::Cond condition;
+    constexpr size_t maxCondSize = 256;
+    auto ret = parser.ParseCondition(BuildAndCondWithSize(maxCondSize), condition);
+    ASSERT_TRUE(ret);
+
+    ret = parser.ParseCondition(BuildAndCondWithSize(maxCondSize + 1), condition);
+    ASSERT_FALSE(ret);
 }
 }
 }
