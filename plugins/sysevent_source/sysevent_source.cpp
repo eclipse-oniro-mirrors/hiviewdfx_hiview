@@ -135,6 +135,14 @@ void SysEventSource::OnLoad()
     SysEventServiceAdapter::StartService(this, notifyFunc);
     SysEventServiceAdapter::SetWorkLoop(looper);
 
+    // watch parameter
+    if (WatchParameter(TEST_TYPE_PARAM_KEY, ParameterWatchCallback, this) != 0) {
+        HIVIEW_LOGW("failed to watch the change of parameter %{public}s", TEST_TYPE_PARAM_KEY);
+    }
+}
+
+void SysEventSource::ParseEventDefineFile()
+{
     auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
     HIVIEW_LOGI("init json parser with %{public}s", defFilePath.c_str());
     sysEventParser_ = std::make_shared<EventJsonParser>(defFilePath);
@@ -147,11 +155,6 @@ void SysEventSource::OnLoad()
         [this] (const std::string& domain, const std::string& name) {
             return this->sysEventParser_->GetTypeByDomainAndName(domain, name);
         });
-
-    // watch parameter
-    if (WatchParameter(TEST_TYPE_PARAM_KEY, ParameterWatchCallback, this) != 0) {
-        HIVIEW_LOGW("failed to watch the change of parameter %{public}s", TEST_TYPE_PARAM_KEY);
-    }
 }
 
 void SysEventSource::InitController()
@@ -177,6 +180,7 @@ void SysEventSource::OnUnload()
 void SysEventSource::StartEventSource()
 {
     HIVIEW_LOGI("SysEventSource start");
+    ParseEventDefineFile();
     std::shared_ptr<EventReceiver> sysEventReceiver = std::make_shared<SysEventReceiver>(*this);
     eventServer_.AddReceiver(sysEventReceiver);
     eventServer_.Start();
@@ -311,7 +315,7 @@ bool SysEventSource::IsValidSysEvent(const std::shared_ptr<SysEvent> event)
     }
     auto baseInfo = sysEventParser_->GetDefinedBaseInfoByDomainName(event->domain_, event->eventName_);
     if (baseInfo.type == INVALID_EVENT_TYPE) {
-        HIVIEW_LOGW("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] is invalid.",
+        HIVIEW_LOGW("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] invalid, or privacy dismatch.",
             event->domain_.c_str(), event->eventName_.c_str(), event->happenTime_);
         return false;
     }
@@ -351,6 +355,7 @@ void SysEventSource::DecorateSysEvent(const std::shared_ptr<SysEvent> event, con
     event->preserve_ = baseInfo.preserve;
     // add hashcode id
     event->SetId(id);
+    event->SetInvalidParams(baseInfo.disallowParams);
 }
 
 bool SysEventSource::IsDuplicateEvent(const uint64_t eventId)
