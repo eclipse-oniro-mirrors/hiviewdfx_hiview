@@ -158,6 +158,9 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
     }
 
     std::istringstream issStack(processStack);
+    if (issStack.fail()) {
+        return;
+    }
     std::string regTidString = "^Tid:" + std::to_string(tid) + ", Name:(.{0,32})$";
     std::regex regTid(regTidString);
     std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
