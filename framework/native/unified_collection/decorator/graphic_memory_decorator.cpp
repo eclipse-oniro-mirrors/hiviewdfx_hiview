@@ -21,9 +21,11 @@ namespace UCollectUtil {
 const std::string GRAPHIC_MEM_COLLECTOR_NAME = "GraphicMemoryCollector";
 StatInfoWrapper GraphicMemoryDecorator::statInfoWrapper_;
 
-CollectResult<int32_t> GraphicMemoryDecorator::GetGraphicUsage(int32_t pid, GraphicType type)
+CollectResult<int32_t> GraphicMemoryDecorator::GetGraphicUsage(int32_t pid, GraphicType type, bool isLowLatencyMode)
 {
-    auto task = [this, type, pid] { return graphicMemoryCollector_->GetGraphicUsage(pid, type); };
+    auto task = [this, pid, type, isLowLatencyMode] {
+        return graphicMemoryCollector_->GetGraphicUsage(pid, type, isLowLatencyMode);
+    };
     return Invoke(task, statInfoWrapper_, GRAPHIC_MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 

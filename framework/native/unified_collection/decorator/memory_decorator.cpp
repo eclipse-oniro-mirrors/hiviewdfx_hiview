@@ -116,6 +116,14 @@ CollectResult<uint32_t> MemoryDecorator::CollectDdrFreq()
     return Invoke(task, statInfoWrapper_, MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 
+CollectResult<ProcessMemoryDetail> MemoryDecorator::CollectProcessMemoryDetail(int32_t pid, bool isLowLatencyMode)
+{
+    auto task = [this, pid, isLowLatencyMode] {
+        return memoryCollector_->CollectProcessMemoryDetail(pid, isLowLatencyMode);
+    };
+    return Invoke(task, statInfoWrapper_, MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+}
+
 void MemoryDecorator::SaveStatCommonInfo()
 {
     std::map<std::string, StatInfo> statInfo = statInfoWrapper_.GetStatInfo();

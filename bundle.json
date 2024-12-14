@@ -32,6 +32,7 @@
             "hiview_unified_collector_perf_enable",
             "hiview_unified_collector_ebpf_enable",
             "hiview_unified_collector_network_enable",
+            "hiview_freeze_collect_enable",
             "hiview_eventlogger_window_manager_enable"
         ],
         "rom": "",
@@ -151,15 +152,6 @@
                         "header_files": [
                             "client/cpu_collector_client.h",
                             "client/trace_collector_client.h"
-                        ]
-                    }
-                },
-                {
-                    "name": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
-                    "header": {
-                        "header_base": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection",
-                        "header_files": [
-                            "utility/graphic_memory_collector.h"
                         ]
                     }
                 },
