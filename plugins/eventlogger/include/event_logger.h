@@ -91,8 +91,8 @@ private:
 
 #ifdef WINDOW_MANAGER_ENABLE
     void ReportUserPanicWarning(std::shared_ptr<SysEvent> event, long pid);
-#endif
     void StartFfrtDump(std::shared_ptr<SysEvent> event);
+#endif
     void CollectMemInfo(int fd, std::shared_ptr<SysEvent> event);
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
     std::string StabilityGetTempFreqInfo();

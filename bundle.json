@@ -32,7 +32,8 @@
             "hiview_unified_collector_perf_enable",
             "hiview_unified_collector_ebpf_enable",
             "hiview_unified_collector_network_enable",
-            "hiview_freeze_collect_enable"
+            "hiview_freeze_collect_enable",
+            "hiview_eventlogger_window_manager_enable"
         ],
         "rom": "",
         "ram": "",

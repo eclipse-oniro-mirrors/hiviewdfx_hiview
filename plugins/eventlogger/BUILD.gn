@@ -48,7 +48,7 @@ ohos_source_set("eventlogger") {
   ]
 
   defines = []
-  if (window_manager_enable) {
+  if (window_manager_enable && hiview_eventlogger_window_manager_enable) {
     sources += [ "event_focus_listener.cpp" ]
     external_deps += [
       "window_manager:libwm",
