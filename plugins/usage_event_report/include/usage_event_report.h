@@ -21,10 +21,9 @@
 
 #include "event_loop.h"
 #include "ffrt.h"
-#include "fold_app_usage_event_factory.h"
-#include "fold_event_cacher.h"
 #include "plugin.h"
 #include "shutdown/iasync_shutdown_callback.h"
+#include "usage_fold_event_report.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -53,19 +52,18 @@ private:
     static void StartServiceByOption(const std::string& opt);
     static void SavePluginStatsEvents();
     static void SaveSysUsageEvent();
-    void InitFoldEventCacher(const std::string& workPath);
+    void InitFoldEventReport(const std::string& workPath);
 
 private:
     sptr<PowerMgr::IAsyncShutdownCallback> callback_;
     uint64_t timeOutCnt_;
     ffrt::mutex runningMutex_;
     bool isRunning_;
+    UsageFoldEventReport foldEventReport_;
     static uint64_t lastSysReportTime_;
     static uint64_t lastReportTime_;
     static uint64_t nextReportTime_;
     static std::string workPath_;
-    std::unique_ptr<FoldEventCacher> foldEventCacher_;
-    std::unique_ptr<FoldAppUsageEventFactory> foldAppUsageFactory_;
 }; // UsageEventReport
 } // namespace HiviewDFX
 } // namespace OHOS
