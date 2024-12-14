@@ -34,6 +34,7 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-SysEventQueryBuilder");
 namespace {
 constexpr char LOGIC_AND_COND[] = "and";
+constexpr size_t LOGIC_COND_MAX_SIZE = 256;
 constexpr int64_t INVALID_SEQ = -1;
 constexpr int64_t TRANS_DEFAULT_CNT = 0;
 constexpr int32_t IGNORED_DEFAULT_CNT = 0;
@@ -91,8 +92,8 @@ void ConditionParser::SpliceConditionByLogic(EventStore::Cond& condition, const 
 bool ConditionParser::ParseLogicCondition(const Json::Value& root, const std::string& logic,
     EventStore::Cond& condition)
 {
-    if (!root.isMember(logic) || !root[logic].isArray()) {
-        HIVIEW_LOGE("ParseLogicCondition err1.");
+    if (!root.isMember(logic) || !root[logic].isArray() || root[logic].size() > LOGIC_COND_MAX_SIZE) {
+        HIVIEW_LOGE("invalid logic=%{public}s", logic.c_str());
         return false;
     }
 
