@@ -556,14 +556,13 @@ void HiviewPlatform::StartEventSource(std::shared_ptr<EventSource> source)
     auto workLoop = source->GetWorkLoop();
     auto name = source->GetName();
     if (workLoop == nullptr) {
-        HIVIEW_LOGW("No work loop available, start event source[%s] in current thead!", name.c_str());
+        HIVIEW_LOGW("No work loop available, start event source[%{public}s] in current thead!", name.c_str());
         source->StartEventSource();
     } else {
-        HIVIEW_LOGI("Start event source[%s] in thead[%s].", name.c_str(), workLoop->GetName().c_str());
+        HIVIEW_LOGI("Start event source[%{public}s] in thead[%{public}s].", name.c_str(), workLoop->GetName().c_str());
         auto task = std::bind(&EventSource::StartEventSource, source.get());
         workLoop->AddEvent(nullptr, nullptr, task);
     }
-    HIVIEW_LOGI("Start event source[%s] in current thead done.", name.c_str());
 }
 
 // only call from main thread

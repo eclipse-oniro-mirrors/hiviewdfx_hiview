@@ -36,7 +36,11 @@ ohos_source_set("privacy_controller") {
 
   deps = [ "$hiview_base:hiviewbase" ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "hilog:libhilog"
+  ]
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
