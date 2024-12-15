@@ -73,6 +73,7 @@ public:
     RawDataBuilder& AppendTraceFlag(const uint8_t traceFlag);
     RawDataBuilder& AppendTraceInfo(const uint64_t traceId, const uint32_t spanId,
         const uint32_t pSpanId, const uint8_t traceFlag);
+    RawDataBuilder& RemoveParam(const std::string& paramName);
 
     template<typename T>
     bool ParseValueByKey(const std::string& key, T& dest)

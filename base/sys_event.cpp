@@ -288,6 +288,26 @@ uint8_t SysEvent::GetPrivacy() const
     return privacy_;
 }
 
+void SysEvent::SetInvalidParams(PARAM_INFO_MAP_PTR invalidParams)
+{
+    invalidParams_ = invalidParams;
+}
+
+PARAM_INFO_MAP_PTR SysEvent::GetInvalidParams()
+{
+    return invalidParams_;
+}
+
+bool SysEvent::RemoveParam(const std::string& paramName)
+{
+    if (!InitBuilder()) {
+        return false;
+    }
+    builder_->RemoveParam(paramName);
+    isUpdated_ = true;
+    return true;
+}
+
 std::string SysEvent::GetEventValue(const std::string& key)
 {
     if (!InitBuilder()) {
