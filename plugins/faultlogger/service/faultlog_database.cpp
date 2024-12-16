@@ -127,6 +127,9 @@ std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateQueries(
         std::vector<std::string> domains = { HiSysEvent::Domain::ACE, HiSysEvent::Domain::AAFWK };
         for (std::string domain : domains) {
             auto query = EventStore::SysEventDao::BuildQuery(domain, faultNames);
+            if (query == nullptr) {
+                continue;
+            }
             query->And(lowerCaseCond);
             query->Select(QUERY_ITEMS).Order("time_", false);
             queries.push_back(query);
@@ -140,6 +143,9 @@ std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateQueries(
         }
         for (auto name : faultNames) {
             auto query = EventStore::SysEventDao::BuildQuery(HiSysEvent::Domain::RELIABILITY, name);
+            if (query == nullptr) {
+                continue;
+            }
             query->And(upperCaseCond);
             query->Select(QUERY_ITEMS).Order("time_", false);
             queries.push_back(query);
