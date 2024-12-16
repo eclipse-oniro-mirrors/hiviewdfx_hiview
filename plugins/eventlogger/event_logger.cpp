@@ -145,9 +145,12 @@ long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
     }
     pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
     if (pid > 0) {
+        sysEvent->SetEventValue("PID", pid);
         return pid;
     }
-    return sysEvent->GetPid();
+    pid = sysEvent->GetPid();
+    sysEvent->SetEventValue("PID", pid);
+    return pid;
 }
 
 bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
