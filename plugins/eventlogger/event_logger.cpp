@@ -139,12 +139,15 @@ bool EventLogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
 
 long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
 {
-    long pid = sysEvent->GetEventIntValue("PID") ? sysEvent->GetEventIntValue("PID") : sysEvent->GetPid();
-    if (pid < 0) {
-        pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
-        sysEvent->SetEventValue("PID", pid);
+    long pid = sysEvent->GetEventIntValue("PID");
+    if (pid > 0) {
+        return pid;
     }
-    return pid;
+    pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
+    if (pid > 0) {
+        return pid;
+    }
+    return sysEvent->GetPid();
 }
 
 bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
