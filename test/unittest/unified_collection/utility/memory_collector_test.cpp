@@ -19,7 +19,9 @@
 #include <regex>
 #include <string>
 
+#include "common_utils.h"
 #include "file_util.h"
+#include "string_util.h"
 #include "memory_collector.h"
 
 #include <gtest/gtest.h>
@@ -324,5 +326,23 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest015, TestSize.Level1)
         ASSERT_TRUE(flag);
     } else {
         ASSERT_EQ(data.retCode, UcError::UNSUPPORT);
+    }
+}
+
+/**
+ * @tc.name: MemoryCollectorTest016
+ * @tc.desc: used to test MemoryCollector.CollectDdrFreq
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemoryCollectorTest, MemoryCollectorTest016, TestSize.Level1)
+{
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    CollectResult<uint32_t> data = collector->CollectDdrFreq();
+    std::cout << "collect DDR current frequency info result" << data.retCode << std::endl;
+    if (!FileUtil::FileExists("/sys/class/devfreq/ddrfreq/cur_freq")) {
+        ASSERT_EQ(data.retCode, UcError::UNSUPPORT);
+    } else {
+        ASSERT_EQ(data.retCode, UcError::SUCCESS);
+        ASSERT_GT(data.data, 0);
     }
 }

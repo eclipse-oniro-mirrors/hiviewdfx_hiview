@@ -1,0 +1,10 @@
+{
+  global:
+    extern "C++" {
+      "OHOS::HiviewDFX::UCollectUtil::GraphicMemoryCollector::Create()";
+      "OHOS::HiviewDFX::UCollectUtil::GraphicMemoryDecorator::ResetStatInfo()";
+      "OHOS::HiviewDFX::UCollectUtil::GraphicMemoryDecorator::SaveStatCommonInfo()";
+    };
+  local:
+    *;
+};

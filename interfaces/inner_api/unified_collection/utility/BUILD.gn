@@ -41,3 +41,44 @@ ohos_shared_library("libucollection_utility") {
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 }
+
+config("ucolletciton_graphic_config") {
+  visibility = [ "*:*" ]
+  include_dirs = [
+    "$hiview_base/utility/include",
+    "$hiview_framework/native/unified_collection/collector/inner_include",
+    "$hiview_framework/native/unified_collection/decorator/include",
+    "$hiview_framework/native/unified_collection/graphic_memory/include",
+    "$hiview_interfaces/inner_api/unified_collection",
+    "$hiview_interfaces/inner_api/unified_collection/resource",
+    "$hiview_interfaces/inner_api/unified_collection/utility",
+  ]
+}
+
+ohos_shared_library("libucollection_graphic") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  public_configs = [ ":ucolletciton_graphic_config" ]
+
+  sources = [
+    "$hiview_base/utility/time_util.cpp",
+    "$hiview_framework/native/unified_collection/collector/graphic_memory_collector_impl.cpp",
+    "$hiview_framework/native/unified_collection/decorator/decorator.cpp",
+    "$hiview_framework/native/unified_collection/decorator/graphic_memory_decorator.cpp",
+  ]
+
+  deps = [ "$hiview_framework/native/unified_collection/graphic_memory:libgraphic_memory" ]
+
+  external_deps = [ "hilog:libhilog" ]
+
+  version_script = "libucollectiongraphic.map"
+
+  innerapi_tags = [ "platformsdk" ]
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

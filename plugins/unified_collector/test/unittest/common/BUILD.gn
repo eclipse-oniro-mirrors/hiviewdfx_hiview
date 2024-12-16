@@ -147,6 +147,7 @@ ohos_unittest("TraceStateChangeTest") {
     "$hiview_base/utility/string_util.cpp",
     "$hiview_base/utility/thread_util.cpp",
     "$hiview_base/utility/time_util.cpp",
+    "$hiview_framework/native/unified_collection/decorator/unified_collection_stat.cpp",
     "$hiview_plugin/unified_collector/app_trace/app_trace_context.cpp",
     "$hiview_plugin/unified_collector/observer/uc_app_state_observer.cpp",
     "$hiview_plugin/unified_collector/observer/uc_observer_mgr.cpp",
@@ -161,7 +162,10 @@ ohos_unittest("TraceStateChangeTest") {
     "trace_state_change_test.cpp",
   ]
 
-  deps = [ "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility" ]
+  deps = [
+    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_graphic",
+    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
+  ]
 
   external_deps = [
     "ability_runtime:app_manager",

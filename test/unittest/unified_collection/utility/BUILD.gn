@@ -39,6 +39,7 @@ ohos_unittest("UCollectionUtilityUnitTest") {
     "$hiview_framework/native/unified_collection/collector/utils/trace_utils.cpp",
     "cpu_collector_test.cpp",
     "gpu_collector_test.cpp",
+    "graphic_memory_collector_test.cpp",
     "hiebpf_collector_test.cpp",
     "hilog_collector_test.cpp",
     "io_collector_test.cpp",
@@ -58,6 +59,7 @@ ohos_unittest("UCollectionUtilityUnitTest") {
   deps = [
     "$hiview_base/event_report:hiview_event_report",
     "$hiview_base/utility:hiview_utility",
+    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_graphic",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
   ]
 

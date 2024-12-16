@@ -59,3 +59,16 @@ HWTEST_F(MemoryCollectorClientTest, MemoryCollectorClientTest001, TestSize.Level
     ASSERT_EQ(collectResult.retCode, UcError::SUCCESS);
     ASSERT_EQ(collectResult.data, 0);
 }
+
+/**
+ * @tc.name: MemoryCollectorClientTest002
+ * @tc.desc: used to test the function of MemoryCollector.GetGraphicUsage;
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemoryCollectorClientTest, MemoryCollectorClientTest002, TestSize.Level1)
+{
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    auto collectResult = collector->GetGraphicUsage();
+    std::cout << "GetGraphicUsage result:" << collectResult.data << std::endl;
+    ASSERT_EQ(collectResult.retCode, UcError::SUCCESS);
+}

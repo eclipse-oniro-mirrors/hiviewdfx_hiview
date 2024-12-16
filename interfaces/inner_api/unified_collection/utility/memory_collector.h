@@ -44,6 +44,7 @@ public:
     virtual CollectResult<std::string> CollectHprof(int32_t pid) = 0;
     virtual CollectResult<uint64_t> CollectProcessVss(int32_t pid) = 0;
     virtual CollectResult<MemoryLimit> CollectMemoryLimit() = 0;
+    virtual CollectResult<uint32_t> CollectDdrFreq() = 0;
 }; // MemoryCollector
 } // UCollectUtil
 } // HiviewDFX

@@ -22,6 +22,7 @@
 
 #include "cpu_decorator.h"
 #include "gpu_decorator.h"
+#include "graphic_memory_decorator.h"
 #include "hiebpf_decorator.h"
 #include "hilog_decorator.h"
 #include "io_decorator.h"
@@ -33,6 +34,7 @@
 #ifdef HAS_HIPERF
 #include "perf_decorator.h"
 #endif
+#include "process_decorator.h"
 #include "trace_decorator.h"
 #include "wm_decorator.h"
 
@@ -71,11 +73,13 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     UCDecorator::WriteLinesToFile({UC_API_STAT_TITLE, UC_API_STAT_ITEM}, false);
     CpuDecorator::SaveStatCommonInfo();
     GpuDecorator::SaveStatCommonInfo();
+    GraphicMemoryDecorator::SaveStatCommonInfo();
     HiebpfDecorator::SaveStatCommonInfo();
     HilogDecorator::SaveStatCommonInfo();
     IoDecorator::SaveStatCommonInfo();
     MemoryDecorator::SaveStatCommonInfo();
     NetworkDecorator::SaveStatCommonInfo();
+    ProcessDecorator::SaveStatCommonInfo();
     TraceDecorator::SaveStatCommonInfo();
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::SaveStatCommonInfo();
@@ -101,11 +105,13 @@ void UnifiedCollectionStat::ResetAllStatInfo()
 {
     CpuDecorator::ResetStatInfo();
     GpuDecorator::ResetStatInfo();
+    GraphicMemoryDecorator::ResetStatInfo();
     HiebpfDecorator::ResetStatInfo();
     HilogDecorator::ResetStatInfo();
     IoDecorator::ResetStatInfo();
     MemoryDecorator::ResetStatInfo();
     NetworkDecorator::ResetStatInfo();
+    ProcessDecorator::ResetStatInfo();
     TraceDecorator::ResetStatInfo();
     WmDecorator::ResetStatInfo();
 #ifdef HAS_HIPROFILER

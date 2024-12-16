@@ -24,6 +24,7 @@ namespace HiviewDFX {
 class HiViewServiceMemoryDelegate {
 public:
     static CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
+    static CollectResult<int32_t> GetGraphicUsage();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

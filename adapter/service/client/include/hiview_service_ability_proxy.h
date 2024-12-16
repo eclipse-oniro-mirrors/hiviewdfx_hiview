@@ -46,6 +46,7 @@ public:
     CollectResultParcelable<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller) override;
     CollectResultParcelable<double> GetSysCpuUsage() override;
     CollectResultParcelable<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;
+    CollectResultParcelable<int32_t> GetGraphicUsage() override;
 
 private:
     int32_t CopyOrMoveFile(

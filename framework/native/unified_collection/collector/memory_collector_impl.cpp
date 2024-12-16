@@ -23,6 +23,7 @@
 #include <mutex>
 #include <regex>
 #include <securec.h>
+#include <sstream>
 #include <string_ex.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -33,9 +34,10 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "memory_decorator.h"
+#include "process_status.h"
 #include "string_util.h"
 #include "time_util.h"
-#include "process_status.h"
+
 
 const std::size_t MAX_FILE_SAVE_SIZE = 10;
 const std::size_t WIDTH = 12;
@@ -50,6 +52,7 @@ DEFINE_LOG_TAG("UCollectUtil");
 
 std::mutex g_memMutex;
 const int NON_PC_APP_STATE = -1;
+const std::string DDR_CUR_FREQ = "/sys/class/devfreq/ddrfreq/cur_freq";
 
 static std::string GetCurrTimestamp()
 {
@@ -654,6 +657,20 @@ CollectResult<MemoryLimit> MemoryCollectorImpl::CollectMemoryLimit()
         return result;
     }
     memoryLimit.vssLimit = rlim.rlim_cur >> BYTE_2_KB_SHIFT_BITS;
+    result.retCode = UcError::SUCCESS;
+    return result;
+}
+
+CollectResult<uint32_t> MemoryCollectorImpl::CollectDdrFreq()
+{
+    CollectResult<uint32_t> result;
+    if (!FileUtil::FileExists(DDR_CUR_FREQ)) {
+        return result;
+    }
+    std::string content;
+    FileUtil::LoadStringFromFile(DDR_CUR_FREQ, content);
+    std::stringstream ss(content);
+    ss >> result.data;
     result.retCode = UcError::SUCCESS;
     return result;
 }
