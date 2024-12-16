@@ -11,7 +11,7 @@
     ],
     "Rule1":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"rustpanic-.*-\\d+-\\d+",
+        "Subcatalog":"rustpanic-.*-\\d+-\\d+\\.log",
         "featureId":"01_RUST_PANIC_01",
         "rules":[
             {}
@@ -27,7 +27,7 @@
     },
     "Rule3":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"rustpanic-.*-\\d+-\\d+",
+        "Subcatalog":"rustpanic-.*-\\d+-\\d+\\.log",
         "featureId":"01_RUST_PANIC_04",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_pname":"Module name:(.*)"},
