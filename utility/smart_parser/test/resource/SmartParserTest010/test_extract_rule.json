@@ -9,7 +9,7 @@
     ],
     "Rule1":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"appfreeze-.*-\\d+-\\d+",
+        "Subcatalog":"appfreeze-.*-\\d+-\\d+\\.log",
         "featureId":"63_APP_FREEZE_01",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
@@ -19,7 +19,7 @@
     },
     "Rule2":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
-        "Subcatalog":"appfreeze-.*-\\d+-\\d+",
+        "Subcatalog":"appfreeze-.*-\\d+-\\d+\\.log",
         "featureId":"63_APP_FREEZE_02",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},

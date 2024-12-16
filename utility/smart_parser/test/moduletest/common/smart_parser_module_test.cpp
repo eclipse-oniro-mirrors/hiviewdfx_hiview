@@ -58,7 +58,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest001, TestSize.Level1)
      * @tc.steps: step1. Set taskSheet fault log path and eventid.
      */
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-                            "/SmartParserTest001/cppcrash-com.ohos.launcher-20010025-19700324235211";
+                            "/SmartParserTest001/cppcrash-com.ohos.launcher-20010025-19700324235211000.log";
     std::string trustStack = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest001/trace.txt";
 
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
@@ -99,7 +99,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest002, TestSize.Level1)
      * @tc.steps: step1. Set taskSheet fault log path and eventid.
      */
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-                            "/SmartParserTest002/jscrash-com.example.jsinject-20010041-19700424183123";
+                            "/SmartParserTest002/jscrash-com.example.jsinject-20010041-19700424183123000.log";
     std::string trustStack = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest002/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(trustStack), true);
@@ -139,7 +139,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest003, TestSize.Level1)
      * @tc.steps: step1. Set taskSheet fault log path and eventid.
      */
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-                            "/SmartParserTest003/appfreeze-com.example.jsinject-20010039-19700326211815";
+                            "/SmartParserTest003/appfreeze-com.example.jsinject-20010039-19700326211815000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest003/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(traceFile), true);
@@ -304,7 +304,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest008, TestSize.Level1)
      * @tc.steps: step1. Set taskSheet fault log path and eventid.
      */
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest006/rustpanic-rustpanic_maker-0-20230419222113";
+        "/SmartParserTest006/rustpanic-rustpanic_maker-0-20230419222113000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest006/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(traceFile), true);
@@ -387,7 +387,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest010, TestSize.Level1)
     std::list<std::pair<std::string, std::map<std::string, std::string>>> compose;
     std::map<std::string, std::vector<std::string>> segStatusCfg;
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest006/rustpanic-rustpanic_maker-0-20230419222113";
+        "/SmartParserTest006/rustpanic-rustpanic_maker-0-20230419222113000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest006/trace.txt";
 
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
@@ -431,7 +431,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest011, TestSize.Level1)
     std::list<std::pair<std::string, std::map<std::string, std::string>>> compose;
     std::map<std::string, std::vector<std::string>> segStatusCfg;
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest007/rustpanic-rustpanic_maker-0-20230419222113";
+        "/SmartParserTest007/rustpanic-rustpanic_maker-0-20230419222113000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest007/trace.txt";
 
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
@@ -531,7 +531,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest013, TestSize.Level1)
     std::list<std::pair<std::string, std::map<std::string, std::string>>> compose;
     std::map<std::string, std::vector<std::string>> segStatusCfg;
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest009/rustpanic-rustpanic_maker-0-20230419222113";
+        "/SmartParserTest009/rustpanic-rustpanic_maker-0-20230419222113000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest009/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(traceFile), true);
@@ -581,7 +581,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest014, TestSize.Level1)
     std::list<std::pair<std::string, std::map<std::string, std::string>>> compose;
     std::map<std::string, std::vector<std::string>> segStatusCfg;
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest010/appfreeze-com.example.jsinject-20010039-19700326211815";
+        "/SmartParserTest010/appfreeze-com.example.jsinject-20010039-19700326211815000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest010/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(traceFile), true);
@@ -631,7 +631,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest015, TestSize.Level1)
     std::list<std::pair<std::string, std::map<std::string, std::string>>> compose;
     std::map<std::string, std::vector<std::string>> segStatusCfg;
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest011/appfreeze-com.example.jsinject-20010039-19700326211815";
+        "/SmartParserTest011/appfreeze-com.example.jsinject-20010039-19700326211815000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest011/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(traceFile), true);
@@ -694,7 +694,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest016, TestSize.Level1)
     std::list<std::pair<std::string, std::map<std::string, std::string>>> compose;
     std::map<std::string, std::vector<std::string>> segStatusCfg;
     std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR +
-        "/SmartParserTest012/rustpanic-rustpanic_maker-0-20230419222113";
+        "/SmartParserTest012/rustpanic-rustpanic_maker-0-20230419222113000.log";
     std::string traceFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest012/trace.txt";
 
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
