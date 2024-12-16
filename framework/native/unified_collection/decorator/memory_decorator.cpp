@@ -110,6 +110,12 @@ CollectResult<MemoryLimit> MemoryDecorator::CollectMemoryLimit()
     return Invoke(task, statInfoWrapper_, MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 
+CollectResult<uint32_t> MemoryDecorator::CollectDdrFreq()
+{
+    auto task = [this] { return memoryCollector_->CollectDdrFreq(); };
+    return Invoke(task, statInfoWrapper_, MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+}
+
 void MemoryDecorator::SaveStatCommonInfo()
 {
     std::map<std::string, StatInfo> statInfo = statInfoWrapper_.GetStatInfo();

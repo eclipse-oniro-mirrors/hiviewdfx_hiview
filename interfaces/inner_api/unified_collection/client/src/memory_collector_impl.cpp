@@ -28,6 +28,7 @@ public:
     virtual ~MemoryCollectorImpl() = default;
 public:
     CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;
+    CollectResult<int32_t> GetGraphicUsage() override;
 };
 
 std::shared_ptr<MemoryCollector> MemoryCollector::Create()
@@ -38,6 +39,11 @@ std::shared_ptr<MemoryCollector> MemoryCollector::Create()
 CollectResult<int32_t> MemoryCollectorImpl::SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller)
 {
     return HiViewServiceMemoryDelegate::SetAppResourceLimit(memoryCaller);
+}
+
+CollectResult<int32_t> MemoryCollectorImpl::GetGraphicUsage()
+{
+    return HiViewServiceMemoryDelegate::GetGraphicUsage();
 }
 }
 }

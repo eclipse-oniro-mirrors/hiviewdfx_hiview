@@ -18,6 +18,7 @@
 #include <string>
 #include <unistd.h>
 
+#include "common_utils.h"
 #include "hiview_service_ability_proxy.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
@@ -34,6 +35,21 @@ void HiviewSATest::SetUp() {}
 
 void HiviewSATest::TearDown() {}
 
+sptr<IRemoteObject> GetHiviewRemoteObject()
+{
+    sptr<ISystemAbilityManager> serviceManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (serviceManager == nullptr) {
+        printf("serviceManager == nullptr");
+        return nullptr;
+    }
+    sptr<IRemoteObject> abilityObject = serviceManager->CheckSystemAbility(DFX_SYS_HIVIEW_ABILITY_ID);
+    if (abilityObject == nullptr) {
+        printf("abilityObjext == nullptr");
+        return nullptr;
+    }
+    return abilityObject;
+}
+
 /**
  * @tc.name: CommonTest001
  * @tc.desc: Check whether the SA is successfully obtained.
@@ -42,22 +58,11 @@ void HiviewSATest::TearDown() {}
  */
 HWTEST_F(HiviewSATest, CommonTest001, testing::ext::TestSize.Level3)
 {
-    sptr<ISystemAbilityManager> serviceManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (serviceManager == nullptr) {
-        printf("serviceManager == nullptr");
-        ASSERT_NE(serviceManager, nullptr);
-    }
-
-    printf("ISystemAbilityManager ok \r\n");
-
-    sptr<IRemoteObject> abilityObjext = serviceManager->CheckSystemAbility(DFX_SYS_HIVIEW_ABILITY_ID);
+    sptr<IRemoteObject> abilityObjext = GetHiviewRemoteObject();
     if (abilityObjext == nullptr) {
-        printf("abilityObjext == nullptr");
-        ASSERT_NE(abilityObjext, nullptr);
+        printf("CheckSystemAbility error \r\n");
+        assert(false);
     }
-
-    printf("CheckSystemAbility ok \r\n");
-
     auto hiviewSAProxy = new HiviewServiceAbilityProxy(abilityObjext);
     if (hiviewSAProxy == nullptr) {
         printf("hiviewSAProxy == nullptr");
@@ -68,7 +73,7 @@ HWTEST_F(HiviewSATest, CommonTest001, testing::ext::TestSize.Level3)
 }
 
 /**
- * @tc.name: CommonTest001
+ * @tc.name: CommonTest002
  * @tc.desc: Check hidumper -s 1201.
  * @tc.type: FUNC
  * @tc.require: AR000FJLO2
@@ -88,6 +93,32 @@ HWTEST_F(HiviewSATest, CommonTest002, testing::ext::TestSize.Level3)
         printf("hidumper -s 1201 fail!\r\n");
         FAIL();
     }
+}
+
+/**
+ * @tc.name: CommonTest003
+ * @tc.desc: Check GetGraphicUsage
+ * @tc.type: FUNC
+ */
+HWTEST_F(HiviewSATest, CommonTest003, testing::ext::TestSize.Level3)
+{
+    sptr<IRemoteObject> abilityObjext = GetHiviewRemoteObject();
+    if (abilityObjext == nullptr) {
+        printf("CheckSystemAbility error \r\n");
+        return;
+    }
+    auto hiviewSAProxy = new HiviewServiceAbilityProxy(abilityObjext);
+    auto systemuiPid = CommonUtils::GetPidByName("com.ohos.systemui");
+    auto launcherPid = CommonUtils::GetPidByName("com.ohos.sceneboard");
+    auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
+    if (pid <= 0) {
+        std::cout << "Get pid failed" << std::endl;
+        return;
+    }
+    CollectResult<int32_t> data = hiviewSAProxy->GetGraphicUsage().result_;
+    ASSERT_EQ(data.retCode, UCollect::UcError::SUCCESS);
+    std::cout << "GetGraphicUsage result:" << data.data << std::endl;
+    ASSERT_GE(data.data, 0);
 }
 }
 }

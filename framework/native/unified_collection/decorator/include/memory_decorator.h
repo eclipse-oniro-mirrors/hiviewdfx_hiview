@@ -16,8 +16,8 @@
 #ifndef HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_MEMORY_DECORATOR_H
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_MEMORY_DECORATOR_H
 
-#include "memory_collector.h"
 #include "decorator.h"
+#include "memory_collector.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -43,6 +43,7 @@ public:
     virtual CollectResult<std::string> CollectHprof(int32_t pid) override;
     virtual CollectResult<uint64_t> CollectProcessVss(int32_t pid) override;
     virtual CollectResult<MemoryLimit> CollectMemoryLimit() override;
+    virtual CollectResult<uint32_t> CollectDdrFreq() override;
     static void SaveStatCommonInfo();
     static void ResetStatInfo();
 

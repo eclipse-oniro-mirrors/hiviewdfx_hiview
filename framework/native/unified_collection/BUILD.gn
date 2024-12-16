@@ -72,7 +72,6 @@ ohos_source_set("ucollection_source") {
     "decorator/perf_decorator.cpp",
     "decorator/process_decorator.cpp",
     "decorator/trace_decorator.cpp",
-    "decorator/unified_collection_stat.cpp",
     "decorator/wm_decorator.cpp",
     "process/process_status.cpp",
     "utils/cpu_util.cpp",

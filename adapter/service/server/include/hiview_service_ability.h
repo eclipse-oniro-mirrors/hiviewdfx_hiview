@@ -64,6 +64,7 @@ protected:
     void OnDump() override;
     void OnStart() override;
     void OnStop() override;
+    CollectResultParcelable<int32_t> GetGraphicUsage(int32_t pid) override;
 
 private:
     template<typename T>

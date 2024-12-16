@@ -38,6 +38,7 @@ public:
 
 public:
     virtual CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) = 0;
+    virtual CollectResult<int32_t> GetGraphicUsage() = 0;
     static std::shared_ptr<MemoryCollector> Create();
 }; // MemoryCollector
 } // UCollectClient

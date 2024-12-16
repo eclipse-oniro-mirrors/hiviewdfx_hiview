@@ -40,6 +40,7 @@ ohos_source_set("unified_collector") {
   configs = [ ":unified_collector_config" ]
 
   sources = [
+    "$hiview_framework/native/unified_collection/decorator/unified_collection_stat.cpp",
     "app_trace/app_trace_context.cpp",
     "observer/uc_app_state_observer.cpp",
     "observer/uc_observer_mgr.cpp",
@@ -53,6 +54,7 @@ ohos_source_set("unified_collector") {
 
   deps = [
     "$hiview_base:hiviewbase",
+    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_graphic",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
     "config:UnifiedCollector_event",
   ]
