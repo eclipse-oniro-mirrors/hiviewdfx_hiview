@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <ctime>
 #include <mutex>
+#include <securec.h>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
@@ -29,6 +30,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 constexpr int DEFAULT_BUFFER_SIZE = 64;
+constexpr uint64_t TIME_RATIO = 1000;
 constexpr const char* const DEFAULT_FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
 } // namespace
 
@@ -36,7 +38,7 @@ std::string GetFormatedTime(uint64_t target)
 {
     time_t now = time(nullptr);
     if (target > static_cast<uint64_t>(now)) {
-        target = target / 1000; // 1000 : convert millisecond to seconds
+        target = target / TIME_RATIO; // 1000 : convert millisecond to seconds
     }
 
     time_t out = static_cast<time_t>(target);
@@ -49,6 +51,17 @@ std::string GetFormatedTime(uint64_t target)
     char buf[DEFAULT_BUFFER_SIZE] = {0};
     strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%Y%m%d%H%M%S", timeInfo);
     return std::string(buf, strlen(buf));
+}
+
+std::string GetFormatedTimeWithMillsec(uint64_t time)
+{
+    char millBuf[DEFAULT_BUFFER_SIZE] = {0};
+    int ret = snprintf_s(millBuf, sizeof(millBuf), sizeof(millBuf) - 1, "%03lu", time % TIME_RATIO);
+    if (ret <= 0) {
+        return GetFormatedTime(time) + "000";
+    }
+    std::string millStr(millBuf);
+    return GetFormatedTime(time) + millStr;
 }
 
 std::string GetFaultNameByType(int32_t faultType, bool asFileName)
@@ -104,7 +117,8 @@ std::string GetFaultLogName(const FaultLogInfo& info)
     ret.append("-");
     ret.append(std::to_string(info.id));
     ret.append("-");
-    ret.append(GetFormatedTime(info.time));
+    ret.append(GetFormatedTimeWithMillsec(info.time));
+    ret.append(".log");
     return ret;
 }
 
@@ -134,13 +148,26 @@ FaultLogInfo ExtractInfoFromFileName(const std::string& fileName)
     // FileName LogType-PackageName-Uid-YYYYMMDDHHMMSS
     FaultLogInfo info;
     std::vector<std::string> splitStr;
+    const int32_t idxOfType = 0;
+    const int32_t idxOfMoudle = 1;
+    const int32_t idxOfUid = 2;
+    const int32_t idxOfTime = 3;
     const int32_t expectedVecSize = 4;
+    const size_t tailWithMillSecLen = 7u;
+    const size_t tailWithLogLen = 4u;
     StringUtil::SplitStr(fileName, "-", splitStr);
     if (splitStr.size() == expectedVecSize) {
-        info.faultLogType = GetLogTypeByName(splitStr[0]);                 // 0 : index of log type
-        info.module = splitStr[1];                                         // 1 : index of module name
-        StringUtil::ConvertStringTo<int32_t>(splitStr[2], info.id);        // 2 : index of uid
-        info.time = TimeUtil::StrToTimeStamp(splitStr[3], "%Y%m%d%H%M%S"); // 3 : index of timestamp
+        info.faultLogType = GetLogTypeByName(splitStr[idxOfType]);
+        info.module = splitStr[idxOfMoudle];
+        StringUtil::ConvertStringTo<int32_t>(splitStr[idxOfUid], info.id);
+        size_t timeStampStrLen = splitStr[idxOfTime].length();
+        if (timeStampStrLen > tailWithMillSecLen &&
+                splitStr[idxOfTime].substr(timeStampStrLen - tailWithLogLen).compare(".log") == 0) {
+            info.time = TimeUtil::StrToTimeStamp(splitStr[idxOfTime].substr(0, timeStampStrLen - tailWithMillSecLen),
+                "%Y%m%d%H%M%S");
+        } else {
+            info.time = TimeUtil::StrToTimeStamp(splitStr[idxOfTime], "%Y%m%d%H%M%S");
+        }
     }
     info.pid = 0;
     return info;

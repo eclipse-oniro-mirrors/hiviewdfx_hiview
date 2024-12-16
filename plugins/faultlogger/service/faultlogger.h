@@ -36,6 +36,7 @@ namespace HiviewDFX {
 struct DumpRequest {
     bool requestDetail;
     bool requestList;
+    bool compatFlag;
     std::string fileName;
     std::string moduleName;
     time_t time;

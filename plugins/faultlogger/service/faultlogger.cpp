@@ -78,6 +78,7 @@ using namespace FaultLogger;
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr char FILE_SEPERATOR[] = "******";
+constexpr uint32_t MAX_TIMESTR_LEN = 256;
 constexpr uint32_t DUMP_MAX_NUM = 100;
 constexpr int32_t MAX_QUERY_NUM = 100;
 constexpr int MIN_APP_UID = 10000;
@@ -101,11 +102,19 @@ DumpRequest InitDumpRequest()
     request.fileName = "";
     request.moduleName = "";
     request.time = -1;
+    request.compatFlag = false;
     return request;
 }
 
 bool IsLogNameValid(const std::string& name)
 {
+    const int32_t idxOfType = 0;
+    const int32_t idxOfMoudle = 1;
+    const int32_t idxOfUid = 2;
+    const int32_t idxOfTime = 3;
+    const int32_t expectedVecSize = 4;
+    const size_t tailWithMillSecLen = 7u;
+    const size_t tailWithLogLen = 4u;
     if (name.empty() || name.size() > MAX_NAME_LENGTH) {
         HIVIEW_LOGI("invalid log name.");
         return false;
@@ -113,28 +122,33 @@ bool IsLogNameValid(const std::string& name)
 
     std::vector<std::string> out;
     StringUtil::SplitStr(name, "-", out, true, false);
-    if (out.size() != 4) { // FileName LogType-ModuleName-uid-YYYYMMDDHHMMSS, thus contains 4 sections
+    if (out.size() != expectedVecSize) {
         return false;
     }
 
     std::regex reType("^[a-z]+$");
-    if (!std::regex_match(out[0], reType)) { // 0 : type section
+    if (!std::regex_match(out[idxOfType], reType)) {
         HIVIEW_LOGI("invalid type.");
         return false;
     }
 
-    if (!IsModuleNameValid(out[1])) { // 1 : module section
+    if (!IsModuleNameValid(out[idxOfMoudle])) {
         HIVIEW_LOGI("invalid module name.");
         return false;
     }
 
     std::regex reDigits("^[0-9]*$");
-    if (!std::regex_match(out[2], reDigits)) { // 2 : uid section
+    if (!std::regex_match(out[idxOfUid], reDigits)) {
         HIVIEW_LOGI("invalid uid.");
         return false;
     }
 
-    if (!std::regex_match(out[3], reDigits)) { // 3 : time section
+    if (out[idxOfTime].length() > tailWithMillSecLen &&
+        out[idxOfTime].substr(out[idxOfTime].length() - expectedVecSize).compare(".log") == 0) {
+        out[idxOfTime] = out[idxOfTime].substr(0, out[idxOfTime].length() - tailWithMillSecLen);
+    }
+
+    if (!std::regex_match(out[idxOfTime], reDigits)) {
         HIVIEW_LOGI("invalid digits.");
         return false;
     }
@@ -356,6 +370,11 @@ void Faultlogger::Dump(int fd, const std::vector<std::string> &cmds)
             continue;
         } else if ((*it) == "Faultlogger") {
             // skip first params
+            request.compatFlag = true;
+            continue;
+        } else if ((*it) == "-LogSuffixWithMs") {
+            // skip first params
+            request.compatFlag = false;
             continue;
         } else if ((!(*it).empty()) && ((*it).at(0) == '-')) {
             dprintf(fd, "Unknown command.\n");
@@ -391,21 +410,37 @@ void Faultlogger::Dump(int fd, const DumpRequest &request) const
         }
         return;
     }
-
     auto fileList = mgr_->GetFaultLogFileList(request.moduleName, request.time, -1, 0, DUMP_MAX_NUM);
     if (fileList.empty()) {
         dprintf(fd, "No fault log exist.\n");
         return;
     }
-
     dprintf(fd, "Fault log list:\n");
     dprintf(fd, "%s\n", FILE_SEPERATOR);
+    std::map<std::string, std::string> fileNameMap;
+    const size_t tailWithMillsecLen = 7;
+    const size_t tailWithLogLen = 4;
     for (auto &file : fileList) {
         std::string fileName = FileUtil::ExtractFileName(file);
-        dprintf(fd, "%s\n", fileName.c_str());
+        if (fileName.length() <= tailWithMillsecLen) {
+            continue;
+        }
+        if (!request.compatFlag && fileName.substr(fileName.length() - tailWithLogLen).compare(".log") != 0) {
+            continue;
+        } else if (request.compatFlag && fileName.substr(fileName.length() - tailWithLogLen).compare(".log") == 0) {
+            if (fileNameMap[fileName.substr(0, fileName.length() - tailWithMillsecLen)].compare(fileName) < 0) {
+                fileNameMap[fileName.substr(0, fileName.length() - tailWithMillsecLen)] = fileName;
+            }
+            continue;
+        }
+        fileNameMap[fileName] = fileName;
+    }
+    for (auto it = fileNameMap.begin(); it != fileNameMap.end(); ++it) {
+        dprintf(fd, "%s\n", it->first.c_str());
         if (request.requestDetail) {
             std::string content;
-            if (FileUtil::LoadStringFromFile(file, content)) {
+            std::string fullFileName = "/data/log/faultlog/faultlogger/" + it->second;
+            if (FileUtil::LoadStringFromFile(fullFileName, content)) {
                 dprintf(fd, "%s\n", content.c_str());
             } else {
                 dprintf(fd, "Fail to dump detail log.\n");
@@ -483,7 +518,16 @@ static FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent)
     auto summary = sysEvent.GetEventValue("SUMMARY");
     info.summary = StringUtil::UnescapeJsonStringValue(summary);
     info.sectionMap = sysEvent.GetKeyValuePairs();
-
+    uint64_t secTime = sysEvent.happenTime_ / TimeUtil::SEC_TO_MILLISEC;
+    char strBuff[MAX_TIMESTR_LEN] = {0};
+    if (snprintf_s(strBuff, sizeof(strBuff), sizeof(strBuff) - 1, "%s.%03lu",
+            TimeUtil::TimestampFormatToDate(secTime, "%Y-%m-%d %H:%M:%S").c_str(),
+            sysEvent.happenTime_ % TimeUtil::SEC_TO_MILLISEC) < 0) {
+        HIVIEW_LOGE("fill faultlog info timestamp snprintf fail!");
+        info.sectionMap["TIMESTAMP"] = "1970-01-01 00:00:00.000";
+    } else {
+        info.sectionMap["TIMESTAMP"] = std::string(strBuff);
+    }
     return info;
 }
 
