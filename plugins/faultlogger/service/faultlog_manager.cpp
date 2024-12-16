@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <fcntl.h>
+#include <filesystem>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -182,7 +183,20 @@ std::list<std::string> FaultLogManager::GetFaultLogFileList(const std::string &m
 
 bool FaultLogManager::GetFaultLogContent(const std::string &name, std::string &content) const
 {
-    auto path = std::string(DEFAULT_FAULTLOG_FOLDER) + name;
+    auto path = std::string(DEFAULT_FAULTLOG_FOLDER);
+    std::string matchName;
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        std::filesystem::path filePath = entry.path();
+        std::string fileName = filePath.filename().string();
+        if (fileName.find(name) != std::string::npos && matchName.compare(fileName) < 0) {
+            matchName = fileName;
+            continue;
+        }
+    }
+    if (matchName.empty()) {
+        return false;
+    }
+    path = path + matchName;
     return FileUtil::LoadStringFromFile(path, content);
 }
 
