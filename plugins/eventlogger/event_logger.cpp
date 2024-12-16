@@ -137,6 +137,22 @@ bool EventLogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
     return true;
 }
 
+long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
+{
+    long pid = sysEvent->GetEventIntValue("PID");
+    if (pid > 0) {
+        return pid;
+    }
+    pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
+    if (pid > 0) {
+        sysEvent->SetEventValue("PID", pid);
+        return pid;
+    }
+    pid = sysEvent->GetPid();
+    sysEvent->SetEventValue("PID", pid);
+    return pid;
+}
+
 bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
 {
     if (onEvent == nullptr) {
@@ -146,9 +162,9 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
 #ifdef WINDOW_MANAGER_ENABLE
     EventFocusListener::RegisterFocusListener();
 #endif
-    auto sysEvent = Event::DownCastTo<SysEvent>(onEvent);
+    std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
 
-    long pid = sysEvent->GetEventIntValue("PID") ? sysEvent->GetEventIntValue("PID") : sysEvent->GetPid();
+    long pid = GetEventPid(sysEvent);
     std::string eventName = sysEvent->eventName_;
     if (eventName == "GESTURE_NAVIGATION_BACK" || eventName == "FREQUENT_CLICK_WARNING") {
 #ifdef WINDOW_MANAGER_ENABLE
