@@ -48,7 +48,7 @@ HWTEST_F(SystemServiceOhosTest, SystemServiceTest001, testing::ext::TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI64QXL
  */
-HWTEST_F(SystemServiceOhosTest, SystemServiceTest003, testing::ext::TestSize.Level3)
+HWTEST_F(SystemServiceOhosTest, SystemServiceTest002, testing::ext::TestSize.Level3)
 {
     auto ret1 = Parameter::GetUnsignedInteger("TEST_KEY1", 200);
     ASSERT_TRUE(ret1 == 200);
@@ -60,6 +60,37 @@ HWTEST_F(SystemServiceOhosTest, SystemServiceTest003, testing::ext::TestSize.Lev
     ASSERT_TRUE(ret4 == "1234");
     auto ret5 = Parameter::GetInteger("TEST_KEY3", 0);
     ASSERT_TRUE(ret5 == 1234);
+}
+
+/**
+ * @tc.name: SystemServiceTest003
+ * @tc.desc: Test user type
+ * @tc.type: FUNC
+ * @tc.require: issueIB934A
+ */
+HWTEST_F(SystemServiceOhosTest, SystemServiceTest003, testing::ext::TestSize.Level3)
+{
+    std::string region = Parameter::GetString("const.global.region", "CN");
+    bool isBeta = Parameter::IsBetaVersion();
+    bool isOversea = Parameter::IsOversea();
+    Parameter::UserType userType = Parameter::GetUserType();
+    if (isBeta) {
+        if (region == "CN") {
+            ASSERT_FALSE(isOversea);
+            ASSERT_EQ(Parameter::UserType::USER_TYPE_CHINA_BETA, userType);
+        } else {
+            ASSERT_TRUE(isOversea);
+            ASSERT_EQ(Parameter::UserType::USER_TYPE_OVERSEA_BETA, userType);
+        }
+    } else {
+        if (region == "CN") {
+            ASSERT_FALSE(isOversea);
+            ASSERT_EQ(Parameter::UserType::USER_TYPE_CHINA_COMMERCIAL, userType);
+        } else {
+            ASSERT_TRUE(isOversea);
+            ASSERT_EQ(Parameter::UserType::USER_TYPE_OVERSEA_COMMERCIAL, userType);
+        }
+    }
 }
 }
 }
