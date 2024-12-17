@@ -21,6 +21,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <regex>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,6 +55,9 @@ struct GwpAsanCurrInfo {
 void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& errType);
 std::string GetNameByPid(int32_t pid);
 std::string CalcCollectedLogName(const GwpAsanCurrInfo &currInfo);
-std::string GetErrorTypeFromAsanLog(const std::string& gwpAsanBuffer);
+std::string GetErrorTypeFromHwAsanLog(const std::string& hwAsanBuffer);
+std::string GetErrorTypeFromAsanLog(const std::string& asanBuffer);
+std::string GetErrorTypeFromLog(const std::string& logBuffer, const std::regex& recordRe,
+    int errTypeField, const std::string& defaultType);
 
 #endif // GWPASAN_COLLECTOR_H
