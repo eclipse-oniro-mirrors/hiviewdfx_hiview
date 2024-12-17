@@ -102,6 +102,7 @@ private:
     void InputHilogCapture();
     void GetThermalInfo(int fd);
     void RemoteStackCapture();
+    void GetGPUProcessStack();
 };
 } // namespace HiviewDFX
 } // namespace OHOS
