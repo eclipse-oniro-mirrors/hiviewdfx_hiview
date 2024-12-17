@@ -100,6 +100,8 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
         [this] { this->InputHilogCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:remoteS",
         [this] { this->RemoteStackCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("GpuStack",
+        [this] { this->GetGPUProcessStack(); }));
 }
 
 void EventLogTask::AddLog(const std::string &cmd)
@@ -537,6 +539,19 @@ void EventLogTask::RemoteStackCapture()
     int32_t remotePid = event_->GetEventIntValue("REMOTE_PID");
     capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), remotePid, 0);
     tasks_.push_back(capture);
+}
+
+void EventLogTask::GetGPUProcessStack()
+{
+    auto capture = std::make_shared<OpenStacktraceCatcher>();
+    std::string bundleName = event_->GetEventValue("PACKAGE_NAME");
+    bundleName += ":gpu";
+    int pid = CommonUtils::GetPidByName(bundleName);
+    HIVIEW_LOGI("get pid of gpu: %{public}d.", pid);
+    if (pid != -1) {
+        capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), pid, 0);
+        tasks_.push_back(capture);
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS
