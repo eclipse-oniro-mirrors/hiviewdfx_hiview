@@ -40,12 +40,12 @@ public:
 */
 HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Level1)
 {
-    const std::string SYSTEMUI_PROC_NAME = "com.ohos.systemui";
-    const std::string SCENEBOARD_RPOC_NAME = "com.ohos.sceneboard";
-    auto systemuiPid = CommonUtils::GetPidByName(SYSTEMUI_PROC_NAME);
-    auto launcherPid = CommonUtils::GetPidByName(SCENEBOARD_RPOC_NAME);
+    const std::string systemuiProcName = "com.ohos.systemui";
+    const std::string sceneBoardProcName = "com.ohos.sceneboard";
+    auto systemuiPid = CommonUtils::GetPidByName(systemuiProcName);
+    auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
-    const std::string procName = systemuiPid > 0 ? SYSTEMUI_PROC_NAME : SCENEBOARD_RPOC_NAME;
+    const std::string procName = systemuiPid > 0 ? systemuiProcName : sceneBoardProcName;
     if (pid <= 0) {
         std::cout << "Get pid failed" << std::endl;
         return;
