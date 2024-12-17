@@ -27,6 +27,13 @@ constexpr char DEVELOP_HIVIEW_TRACE_RECORDER[] = "persist.hiview.trace_recorder"
 constexpr char KEY_LABORATORY_MODE_STATE[] = "persist.sys.hiview.testtype";
 constexpr char KEY_LEAKDECTOR_MODE_STATE[] = "persist.hiview.leak_detector";
 namespace Parameter {
+enum UserType: uint8_t {
+    USER_TYPE_CHINA_COMMERCIAL = 1,
+    USER_TYPE_CHINA_BETA = 3,
+    USER_TYPE_OVERSEA_BETA = 5,
+    USER_TYPE_OVERSEA_COMMERCIAL = 6
+};
+
 std::string GetString(const std::string& key, const std::string& defaultValue);
 int64_t GetInteger(const std::string& key, const int64_t defaultValue);
 uint64_t GetUnsignedInteger(const std::string& key, const uint64_t defaultValue);
@@ -37,6 +44,8 @@ typedef void (*ParameterChgPtr)(const char *key, const char *value, void *contex
 int WatchParamChange(const char *keyPrefix, ParameterChgPtr callback, void *context);
 bool IsBetaVersion();
 bool IsDeveloperMode();
+bool IsOversea();
+UserType GetUserType();
 bool IsUCollectionSwitchOn();
 bool IsTraceCollectionSwitchOn();
 bool IsLaboratoryMode();
