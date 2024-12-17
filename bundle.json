@@ -22,7 +22,8 @@
         "features": [
             "hiview_enable_leak_detector",
             "hiview_enable_performance_monitor",
-            "hiview_unified_collector_PC_app_state_collect_enable"
+            "hiview_unified_collector_PC_app_state_collect_enable",
+            "hiview_enable_crash_validator"
         ],
         "rom": "",
         "ram": "",
