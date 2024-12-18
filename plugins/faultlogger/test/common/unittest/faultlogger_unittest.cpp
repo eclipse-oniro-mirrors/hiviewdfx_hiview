@@ -1559,7 +1559,10 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest001, testing::ext::TestSize.Le
     info.reason = "GWP-ASAN";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "gwpasan-test-0-19700101080000");
-    info.reason = "GWP-ASANS";
+    info.reason = "ASAN_stack-buffer-overflow";
+    str = GetFaultLogName(info);
+    ASSERT_EQ(str, "asan-test-0-19700101080000");
+    info.reason = "TSANs";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "sanitizer-test-0-19700101080000");
 
