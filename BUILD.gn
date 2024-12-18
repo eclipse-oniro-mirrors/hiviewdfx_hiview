@@ -122,7 +122,6 @@ group("hiview_package") {
   deps = [
     ":hiview",
     ":plugin_config",
-    "$hiview_plugin/crash_validator:libcrashvalidator",
     "$hiview_plugin/eventlogger:eventloggerso",
     "$hiview_plugin/faultlogger:libfaultlogger",
     "$hiview_plugin/performance:xperformance",
@@ -130,6 +129,10 @@ group("hiview_package") {
     "$hiview_plugin/plugin_build:bdfr",
     "$hiview_root/utility/analysis_faultlog:analysis_faultlog",
   ]
+
+  if (hiview_enable_crash_validator) {
+    deps += [ "$hiview_plugin/crash_validator:libcrashvalidator" ]
+  }
 
   if (enable_hiview_usage_event_report_build) {
     deps += [ "plugins/usage_event_report/service:usage_report" ]

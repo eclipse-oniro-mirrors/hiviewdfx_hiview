@@ -88,5 +88,6 @@ declare_args() {
   hiview_unified_collector_PC_app_state_collect_enable = false
   hiview_enable_performance_monitor = false
 
+  hiview_enable_crash_validator = true
   hiview_eventlogger_window_manager_enable = true
 }
