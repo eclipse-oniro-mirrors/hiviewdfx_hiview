@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #ifdef HAS_HIPERF
+#include <charconv>
+
 #include "cpu_perf_dump.h"
 #include "file_util.h"
 #include "time_util.h"
@@ -150,8 +152,16 @@ bool CpuPerfDump::CompareFilenames(const std::string &name1, const std::string &
 {
     std::string timestamp1 = GetTimestamp(name1);
     std::string timestamp2 = GetTimestamp(name2);
-    uint64_t time1 = std::stoull(timestamp1);
-    uint64_t time2 = std::stoull(timestamp2);
+    uint64_t time1 = 0;
+    uint64_t time2 = 0;
+    auto result1 = std::from_chars(timestamp1.c_str(), timestamp1.c_str() + timestamp1.size(), time1);
+    if (result1.ec != std::errc()) {
+        HIVIEW_LOGW("convert error, timestamp1: %{public}s", timestamp1.c_str());
+    }
+    auto result2 = std::from_chars(timestamp2.c_str(), timestamp2.c_str() + timestamp2.size(), time2);
+    if (result2.ec != std::errc()) {
+        HIVIEW_LOGW("convert error, timestamp2: %{public}s", timestamp2.c_str());
+    }
     return time1 < time2;
 }
 

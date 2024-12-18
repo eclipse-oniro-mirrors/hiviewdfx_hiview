@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <charconv>
 #include <chrono>
 #include <cinttypes>
 #include <ctime>
@@ -191,17 +192,28 @@ bool TraceFlowController::HasCallOnceToday(int32_t uid, uint64_t happenTime)
 
     AppEventTask appEventTask;
     appEventTask.id_ = 0;
-    traceStorage_->QueryAppEventTask(uid, std::stoll(date, nullptr, 0), appEventTask);
+    int32_t dateNum = 0;
+    auto result = std::from_chars(date.c_str(), date.c_str() + date.size(), dateNum);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGW("convert error, dateStr: %{public}s", date.c_str());
+        return false;
+    }
+    traceStorage_->QueryAppEventTask(uid, dateNum, appEventTask);
     return appEventTask.id_ > 0;
 }
 
 bool TraceFlowController::RecordCaller(std::shared_ptr<AppCallerEvent> appEvent)
 {
-    AppEventTask appEventTask;
-
     uint64_t happenTimeInSecond = appEvent->happenTime_ / TimeUtil::SEC_TO_MILLISEC;
     std::string date = TimeUtil::TimestampFormatToDate(happenTimeInSecond, "%Y%m%d");
-    appEventTask.taskDate_ = std::stoll(date, nullptr, 0);
+    int64_t dateNum = 0;
+    auto result = std::from_chars(date.c_str(), date.c_str() + date.size(), dateNum);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGW("convert error, dateStr: %{public}s", date.c_str());
+        return false;
+    }
+    AppEventTask appEventTask;
+    appEventTask.taskDate_ = dateNum;
     appEventTask.taskType_ = APP_EVENT_TASK_TYPE_JANK_EVENT;
     appEventTask.uid_ = appEvent->uid_;
     appEventTask.pid_ = appEvent->pid_;
@@ -228,8 +240,14 @@ void TraceFlowController::CleanOldAppTrace()
     }
     uint64_t timeThreeDaysAgo = timeNow - secondsOfThreeDays;
     std::string dateThreeDaysAgo = TimeUtil::TimestampFormatToDate(timeThreeDaysAgo, "%Y%m%d");
-    int32_t eventDate = std::stoll(dateThreeDaysAgo, nullptr, 0);
-    traceStorage_->RemoveOldAppEventTask(eventDate);
+    int32_t dateNum = 0;
+    auto result = std::from_chars(dateThreeDaysAgo.c_str(),
+        dateThreeDaysAgo.c_str() + dateThreeDaysAgo.size(), dateNum);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGW("convert error, dateStr: %{public}s", dateThreeDaysAgo.c_str());
+        return;
+    }
+    traceStorage_->RemoveOldAppEventTask(dateNum);
 }
 } // HiViewDFX
 } // OHOS
