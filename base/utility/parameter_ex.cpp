@@ -78,6 +78,22 @@ bool IsDeveloperMode()
     return GetBoolean(KEY_DEVELOPER_MODE_STATE, false);
 }
 
+bool IsOversea()
+{
+    // if param not been set, take it as china version
+    static bool isOversea = (GetString("const.global.region", "CN") != "CN");
+    return isOversea;
+}
+
+UserType GetUserType()
+{
+    if (IsOversea()) {
+        return IsBetaVersion() ? USER_TYPE_OVERSEA_BETA : USER_TYPE_OVERSEA_COMMERCIAL;
+    } else {
+        return IsBetaVersion() ? USER_TYPE_CHINA_BETA : USER_TYPE_CHINA_COMMERCIAL;
+    }
+}
+
 bool IsLeakStateMode()
 {
     auto leakState = OHOS::system::GetParameter(KEY_LEAKDECTOR_MODE_STATE, "unknown");

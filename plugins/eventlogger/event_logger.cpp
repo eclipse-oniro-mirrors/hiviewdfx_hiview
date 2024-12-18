@@ -231,6 +231,7 @@ int EventLogger::GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, 
     return logStore_->CreateLogFile(logFile);
 }
 
+#ifdef WINDOW_MANAGER_ENABLE
 void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 {
     if (event->eventName_ != "GET_DISPLAY_SNAPSHOT" && event->eventName_ != "CREATE_VIRTUAL_SCREEN") {
@@ -267,6 +268,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     }
     close(ffrtFd);
 }
+#endif
 
 std::string EventLogger::GetStringFromFile(const std::string path)
 {

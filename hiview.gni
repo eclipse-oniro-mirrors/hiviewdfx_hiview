@@ -89,4 +89,5 @@ declare_args() {
   hiview_enable_performance_monitor = false
 
   hiview_enable_crash_validator = true
+  hiview_eventlogger_window_manager_enable = true
 }

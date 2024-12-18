@@ -116,7 +116,13 @@ extern "C" {
         faultLogInfoContext->faultType = faultType;
         FaultLogExecute(faultLogInfoContext);
         faultInfos.size = static_cast<int64_t>(faultLogInfoContext->infoVector.size());
+        if (faultInfos.size == 0) {
+            return faultInfos;
+        }
         CFaultLogInfo *retValue = static_cast<CFaultLogInfo *>(malloc(sizeof(CFaultLogInfo) * faultInfos.size));
+        if (retValue == nullptr) {
+            return faultInfos;
+        }
         if (faultLogInfoContext->resolved) {
             int i = 0;
             for (auto& infoItem : faultLogInfoContext->infoVector) {

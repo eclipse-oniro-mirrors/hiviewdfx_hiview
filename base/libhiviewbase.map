@@ -438,6 +438,8 @@
         "OHOS::HiviewDFX::StringUtil::HideDeviceIdInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FocusedEventUtil::IsFocusedEvent(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::StringUtil::IsValidRegex(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::Parameter::GetUserType()";
+        "OHOS::HiviewDFX::Parameter::IsOversea()";
     };
   local:
     *;
