@@ -343,6 +343,8 @@ const std::string EnumToString(UCollect::TraceCaller &caller)
             return HIVIEW;
         case UCollect::TraceCaller::FOUNDATION:
             return FOUNDATION;
+        case UCollect::TraceCaller::DEVELOP:
+            return "Develop";
         default:
             return OTHER;
     }

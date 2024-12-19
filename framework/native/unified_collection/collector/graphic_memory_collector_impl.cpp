@@ -31,7 +31,7 @@ CollectResult<int32_t> GraphicMemoryCollectorImpl::GetGraphicUsage(int32_t pid, 
     CollectResult<int32_t> result;
     Graphic::CollectResult data;
     switch (type) {
-        case GraphicType::TOATL:
+        case GraphicType::TOTAL:
             data = Graphic::GetGraphicUsage(pid);
             break;
         case GraphicType::GL:

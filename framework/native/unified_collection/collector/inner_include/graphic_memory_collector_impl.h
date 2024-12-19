@@ -27,7 +27,7 @@ public:
     virtual ~GraphicMemoryCollectorImpl() = default;
 
 public:
-    virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type = GraphicType::TOATL) override;
+    virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type = GraphicType::TOTAL) override;
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX
