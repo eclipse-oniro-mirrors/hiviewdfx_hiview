@@ -118,7 +118,8 @@ int32_t WritePracelableToMessage(MessageParcel& dest, Parcelable& data)
 int32_t HiviewServiceAbilityStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    HIVIEW_LOGI("cmd = %{public}d, flags= %{public}d", code, option.GetFlags());
+    HIVIEW_LOGI("cmd = %{public}d, flags = %{public}d, callingPid = %{public}d", code, option.GetFlags(),
+        IPCObjectStub::GetCallingPid());
     std::u16string descripter = HiviewServiceAbilityStub::GetDescriptor();
     std::u16string remoteDescripter = data.ReadInterfaceToken();
     if (descripter != remoteDescripter) {
