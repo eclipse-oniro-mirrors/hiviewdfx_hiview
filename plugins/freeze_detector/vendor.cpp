@@ -27,6 +27,8 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
     static constexpr const char* const SYSWARNING = "syswarning";
+    static constexpr const char* const SCB_PROCESS = "SCBPROCESS";
+    static constexpr const char* const SCB_PRO_PREFIX = "ohos.sceneboard:";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -96,24 +98,12 @@ std::string Vendor::GetTimeString(unsigned long long timestamp) const
 }
 
 std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string& logPath,
-    const std::string& logName) const
+    const std::string& type, const std::string& processName, const std::string& isScbPro) const
 {
     if (freezeCommon_ == nullptr) {
         return "";
     }
-    std::string packageName = StringUtil::TrimStr(watchPoint.GetPackageName());
-    std::string processName = StringUtil::TrimStr(watchPoint.GetProcessName());
     std::string stringId = watchPoint.GetStringId();
-
-    std::string type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ?
-        APPFREEZE : (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE :
-        SYSWARNING);
-    processName = processName.empty() ? (packageName.empty() ? stringId : packageName) : processName;
-    if (stringId == "SCREEN_ON") {
-        processName = stringId;
-    } else {
-        FormatProcessName(processName);
-    }
 
     FaultLogInfoInner info;
     info.time = watchPoint.GetTimestamp();
@@ -131,6 +121,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.sectionMaps[FreezeCommon::HIREACE_TIME] = watchPoint.GetHitraceTime();
     info.sectionMaps[FreezeCommon::SYSRQ_TIME] = watchPoint.GetSysrqTime();
     info.sectionMaps[FreezeCommon::FORE_GROUND] = watchPoint.GetForeGround();
+    info.sectionMaps[SCB_PROCESS] = isScbPro;
     AddFaultLog(info);
     return logPath;
 }
@@ -192,52 +183,27 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     HIVIEW_LOGI("success to merge FreezeJsonFiles!");
 }
 
-void Vendor::FormatProcessName(std::string& processName)
-{
-    std::regex regExpress("[\\/:*?\"<>|]");
-    bool isLegal = !std::regex_search(processName, regExpress);
-    if (isLegal) {
-        return;
-    }
-    processName = std::regex_replace(processName, regExpress, "_");
-    HIVIEW_LOGD("FormatProcessName processName=%{public}s", processName.c_str());
-}
-
-void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::string& retPath,
-    std::string& logPath, std::string& logName) const
+void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::string& pubLogPathName,
+    std::string& processName, std::string& isScbPro) const
 {
     std::string stringId = watchPoint.GetStringId();
     std::string timestamp = GetTimeString(watchPoint.GetTimestamp());
     long uid = watchPoint.GetUid();
     std::string packageName = StringUtil::TrimStr(watchPoint.GetPackageName());
-    std::string processName = StringUtil::TrimStr(watchPoint.GetProcessName());
+    processName = StringUtil::TrimStr(watchPoint.GetProcessName());
     type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
         (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
     processName = processName.empty() ? (packageName.empty() ? stringId : packageName) : processName;
     if (stringId == "SCREEN_ON") {
         processName = stringId;
     } else {
-        FormatProcessName(processName);
+        isScbPro = IsScbProName(processName);
+        StringUtil::FormatProcessName(processName);
     }
-    if (freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId())) {
-        retPath = FAULT_LOGGER_PATH + APPFREEZE + HYPHEN + processName +
-            HYPHEN + std::to_string(uid) + HYPHEN + timestamp;
-        logPath = FREEZE_DETECTOR_PATH + APPFREEZE + HYPHEN + processName +
-            HYPHEN + std::to_string(uid) + HYPHEN + timestamp + POSTFIX;
-        logName = APPFREEZE + HYPHEN + processName + HYPHEN + std::to_string(uid) + HYPHEN + timestamp + POSTFIX;
-    } else if (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId())) {
-        retPath = FAULT_LOGGER_PATH + SYSFREEZE + HYPHEN + processName +
-            HYPHEN + std::to_string(uid) + HYPHEN + timestamp;
-        logPath = FREEZE_DETECTOR_PATH + SYSFREEZE + HYPHEN + processName +
-            HYPHEN + std::to_string(uid) + HYPHEN + timestamp + POSTFIX;
-        logName = SYSFREEZE + HYPHEN + processName + HYPHEN + std::to_string(uid) + HYPHEN + timestamp + POSTFIX;
-    } else {
-        retPath = FAULT_LOGGER_PATH + SYSWARNING + HYPHEN + processName +
-            HYPHEN + std::to_string(uid) + HYPHEN + timestamp;
-        logPath = FREEZE_DETECTOR_PATH + SYSWARNING + HYPHEN + processName +
-            HYPHEN + std::to_string(uid) + HYPHEN + timestamp + POSTFIX;
-        logName = SYSWARNING + HYPHEN + processName + HYPHEN + std::to_string(uid) + HYPHEN + timestamp + POSTFIX;
-    }
+    type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
+        (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
+    pubLogPathName = type + std::string(HYPHEN) + processName + std::string(HYPHEN) + std::to_string(uid) +
+        std::string(HYPHEN) + timestamp;
 }
 
 void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
@@ -307,10 +273,13 @@ std::string Vendor::MergeEventLog(
     }
 
     std::string type;
-    std::string retPath;
-    std::string logPath;
-    std::string logName;
-    InitLogInfo(watchPoint, type, retPath, logPath, logName);
+    std::string pubLogPathName;
+    std::string processName;
+    std::string isScbPro;
+    InitLogInfo(watchPoint, type, pubLogPathName, processName, isScbPro);
+    std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
+    std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
+    std::string tmpLogPath = std::string(FREEZE_DETECTOR_PATH) + tmpLogName;
 
     if (FileUtil::FileExists(retPath)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", retPath.c_str());
@@ -341,9 +310,9 @@ std::string Vendor::MergeEventLog(
         MergeFreezeJsonFile(watchPoint, list);
     }
 
-    int fd = logStore_->CreateLogFile(logName);
+    int fd = logStore_->CreateLogFile(tmpLogName);
     if (fd < 0) {
-        HIVIEW_LOGE("failed to create log file %{public}s.", logPath.c_str());
+        HIVIEW_LOGE("failed to create log file %{public}s.", tmpLogPath.c_str());
         return "";
     }
 
@@ -351,7 +320,7 @@ std::string Vendor::MergeEventLog(
     FileUtil::SaveStringToFd(fd, body.str());
     FileUtil::SaveStringToFd(fd, ffrt.str());
     close(fd);
-    return SendFaultLog(watchPoint, logPath, logName);
+    return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
 
 bool Vendor::Init()
@@ -399,6 +368,26 @@ std::string Vendor::GetPowerStateString(OHOS::PowerMgr::PowerState state)
             break;
     }
     return std::string("UNKNOWN");
+}
+
+std::string Vendor::IsScbProName(std::string& processName)
+{
+    std::string isScb = "No";
+    size_t scbIndex = processName.find(SCB_PRO_PREFIX);
+    if (scbIndex != std::string::npos) {
+        isScb = "Yes";
+        processName = processName.substr(scbIndex + std::strlen(SCB_PRO_PREFIX));
+        size_t colonIndex = processName.rfind(":");
+        if (colonIndex != std::string::npos) {
+            std::string pNameEndStr = processName.substr(colonIndex + std::strlen(":"));
+            if (std::all_of(pNameEndStr.begin(), pNameEndStr.end(), [] (const char& c) {
+                return isdigit(c);
+            })) {
+                processName = processName.substr(0, colonIndex);
+            }
+        }
+    }
+    return isScb;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

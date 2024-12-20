@@ -435,7 +435,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitPackageName("com.package.name")
         .InitMsg("msg")
         .Build();
-    vendor1->SendFaultLog(watchPoint, "test", "test");
+    vendor1->SendFaultLog(watchPoint, "test", "sysfreeze", "processName", "No");
 
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret1 = freezeCommon->Init();

@@ -97,6 +97,7 @@ private:
     void SCBWMSEVTCapture();
     void DumpAppMapCapture();
     void InputHilogCapture();
+    void RemoteStackCapture();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

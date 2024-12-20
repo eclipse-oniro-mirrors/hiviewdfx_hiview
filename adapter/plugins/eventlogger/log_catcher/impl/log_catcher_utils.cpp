@@ -78,14 +78,6 @@ void FinshDump(int pid, const std::string& msg)
     getSync.notify_all();
 }
 
-void FormatFileName(std::string& processName)
-{
-    std::regex regExpress("[\\/:*?\"<>|]");
-    if (std::regex_search(processName, regExpress)) {
-        processName = std::regex_replace(processName, regExpress, "_");
-    }
-}
-
 int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
 {
     std::string logPath = "/data/log/eventlog/";
@@ -108,7 +100,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
         if (procName.empty()) {
             return -1;
         }
-        FormatFileName(procName);
+        StringUtil::FormatProcessName(procName);
         auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
         std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
         std::string logName = procName + "-" + std::to_string(pid) +

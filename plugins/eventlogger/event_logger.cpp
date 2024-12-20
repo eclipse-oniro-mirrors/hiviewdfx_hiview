@@ -52,6 +52,15 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+static constexpr const char* const ASHMEM_PATH = "/proc/ashmem_process_info";
+static constexpr const char* const DMAHEAP_PATH = "/proc/dmaheap_process_info";
+static constexpr const char* const GPUMEM_PATH = "/proc/gpumem_process_info";
+static constexpr const char* const ASHMEM = "AshmemUsed";
+static constexpr const char* const DMAHEAP = "DmaHeapTotalUsed";
+static constexpr const char* const GPUMEM = "GpuTotalUsed";
+static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
+static constexpr int DECIMEL = 10;
+
 REGISTER(EventLogger);
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger");
 bool EventLogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
@@ -211,16 +220,57 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     close(ffrtFd);
 }
 
+std::string EventLogger::GetStringFromFile(const std::string path)
+{
+    std::string content;
+    FileUtil::LoadStringFromFile(path, content);
+    return content;
+}
+
+int EventLogger::GetNumFromString(const std::string &mem)
+{
+    int num = 0;
+    for (const char &c : mem) {
+        if (isdigit(c)) {
+            num += num * DECIMEL + (c - '0');
+        }
+        if (num > INT_MAX) {
+            return INT_MAX;
+        }
+    }
+    return num;
+}
+
+void EventLogger::CheckString(
+    int fd, const std::string &mem, std::string &data, const std::string key, const std::string path)
+{
+    if (mem.find(key) != std::string::npos) {
+        int memsize = GetNumFromString(mem);
+        if (memsize > OVER_MEM_SIZE) {
+            data += GetStringFromFile(path);
+        }
+    }
+}
+
 void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
 {
     std::string content = event->GetEventValue("FREEZE_MEMORY");
+    std::string data = "";
     if (!content.empty()) {
         std::vector<std::string> vec;
         OHOS::SplitStr(content, "\\n", vec);
         FileUtil::SaveStringToFd(fd, "\nMemoryCatcher --\n");
         for (const std::string& mem : vec) {
             FileUtil::SaveStringToFd(fd, mem + "\n");
+            CheckString(fd, mem, data, ASHMEM, ASHMEM_PATH);
+            CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
+            CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
         }
+    }
+    if (!data.empty()) {
+        FileUtil::SaveStringToFd(fd, data);
+    } else {
+        FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
     }
 }
 
@@ -393,7 +443,7 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
             if (cmdLineFile) {
                 std::getline(cmdLineFile, processName);
                 cmdLineFile.close();
-                processName = StringUtil::FormatCmdLine(processName);
+                StringUtil::FormatProcessName(processName);
                 processNameMap[pidStr] = processName;
             } else {
                 HIVIEW_LOGE("Fail to open /proc/%{public}s/cmdline", pidStr.c_str());
@@ -843,7 +893,11 @@ void EventLogger::OnLoad()
     auto context = GetHiviewContext();
     if (context != nullptr) {
         auto plugin = context->GetPluginByName("FreezeDetectorPlugin");
-        HIVIEW_LOGE("plugin plugin %{public}s.", plugin->GetName().c_str());
+        if (plugin == nullptr) {
+            HIVIEW_LOGE("freeze_detecotr plugin is null.");
+            return;
+        }
+        HIVIEW_LOGI("plugin: %{public}s.", plugin->GetName().c_str());
         context->AddDispatchInfo(plugin, {}, eventNames, {}, {});
 
         auto ptr = std::static_pointer_cast<EventLogger>(shared_from_this());

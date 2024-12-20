@@ -184,6 +184,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     logTask->HitraceCapture();
     logTask->SCBWMSEVTCapture();
     logTask->InputHilogCapture();
+    logTask->RemoteStackCapture();
     logTask->AddLog("Test");
     logTask->AddLog("cmd:w");
     logTask->status_ = EventLogTask::Status::TASK_RUNNING;
@@ -679,9 +680,6 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level1)
     EXPECT_EQ(ret, 0);
     ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test\n", getprocpid());
     EXPECT_EQ(ret, 0);
-    std::string procName = "Test?Test:Test";
-    LogCatcherUtils::FormatFileName(procName);
-    printf("FormatFileName procName: %s\n", procName.c_str());
 }
 } // namespace HiviewDFX
 } // namespace OHOS

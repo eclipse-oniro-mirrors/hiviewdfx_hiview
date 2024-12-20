@@ -48,6 +48,7 @@ public:
         CATCHER_UI,
         CATCHER_SNAPSHOT,
         CATCHER_HILOG,
+        CATCHER_TAGHILOG,
         CATCHER_LIGHT_HILOG,
         CATCHER_SCBSESSION,
         CATCHER_SCBVIEWPARAM,
@@ -67,6 +68,7 @@ private:
 
     int DoChildProcesscatcher(int writeFd);
     int CaDoInChildProcesscatcher(int writeFd);
+    int DoOtherChildProcesscatcher(int writeFd);
     void DoChildProcess(int writeFd);
     bool ReadShellToFile(int fd, const std::string& cmd);
     void ParseFocusWindowId();

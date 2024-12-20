@@ -43,6 +43,23 @@ void ShellCatcher::SetEvent(std::shared_ptr<SysEvent> event)
     event_ = event;
 }
 
+int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
+{
+    int ret = -1;
+    switch (catcherType_) {
+        case CATCHER_TAGHILOG:
+            ret = execl("/system/bin/hilog",
+                "hilog",
+                "-T",
+                "PowerState,PowerSuspend,PowerInput,DisplayState,DfxFaultLogger",
+                nullptr);
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+
 int ShellCatcher::DoChildProcesscatcher(int writeFd)
 {
     int ret = -1;
@@ -73,6 +90,7 @@ int ShellCatcher::DoChildProcesscatcher(int writeFd)
             }
             break;
         default:
+            ret = DoOtherChildProcesscatcher(writeFd);
             break;
     }
     return ret;
