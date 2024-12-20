@@ -40,6 +40,8 @@ constexpr char APP_EVENT_PARAM_BEGIN_TIME[] = "begin_time";
 constexpr char APP_EVENT_PARAM_END_TIME[] = "end_time";
 constexpr char APP_EVENT_PARAM_ISBUSINESSJANK[] = "is_business_jank";
 constexpr char APP_EVENT_PARAM_EXTERNAL_LOG[] = "external_log";
+constexpr char APP_EVENT_PARAM_APP_START_JIFFIES_TIME[] = "app_start_jiffies_time";
+constexpr char APP_EVENT_PARAM_HEAVIEST_STACK[] = "heaviest_stack";
 
 constexpr char SYS_EVENT_PARAM_BUNDLE_NAME[] = "BUNDLE_NAME";
 constexpr char SYS_EVENT_PARAM_BUNDLE_VERSION[] = "BUNDLE_VERSION";
@@ -50,6 +52,8 @@ constexpr char SYS_EVENT_PARAM_EXTERNAL_LOG[] = "EXTERNAL_LOG";
 constexpr char SYS_EVENT_PARAM_THREAD_NAME[] = "THREAD_NAME";
 constexpr char SYS_EVENT_PARAM_FOREGROUND[] = "FOREGROUND";
 constexpr char SYS_EVENT_PARAM_LOG_TIME[] = "LOG_TIME";
+constexpr char SYS_EVENT_PARAM_APP_START_JIFFIES_TIME[] = "APP_START_JIFFIES_TIME";
+constexpr char SYS_EVENT_PARAM_HEAVIEST_STACK[] = "HEAVIEST_STACK";
 constexpr int32_t SYS_EVENT_JANK_LEVEL_VALUE_TRACE = 1;
 } // UCollectUtil
 } // HiviewDFX
