@@ -75,7 +75,7 @@ const std::list<std::pair<std::string, MemoryItemType>> SUFFIX_LIST = {
     {".db-shm", MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM},
     {".hap", MemoryItemType::MEMORY_ITEM_ENTITY_HAP},
     {".hsp", MemoryItemType::MEMORY_ITEM_ENTITY_HSP},
-    {".so.1.bss", MemoryItemType::MEMORY_ITEM_TYPE_ANON_BSS},
+    {".so.1.bss]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_BSS},
 };
 
 const std::map<MemoryItemType, MemoryClass> TYPE_TO_CLASS_MAP = {
