@@ -356,3 +356,23 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest016, TestSize.Level1)
         ASSERT_GT(data.data, 0);
     }
 }
+
+/**
+ * @tc.name: MemoryCollectorTest017
+ * @tc.desc: used to test MemoryCollector.CollectDdrFreq
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemoryCollectorTest, MemoryCollectorTest017, TestSize.Level1)
+{
+    std::cout << "MemoryCollector test" << std::endl;
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    auto data = collector->CollectProcessMemoryDetail(1, false);
+    std::cout << "collect processMemoryDetail result" << data.retCode << std::endl;
+    ASSERT_EQ(data.data.name, "init");
+    ASSERT_GT(data.data.totalPss, 0);
+    ASSERT_GT(data.data.details.size(), 0);
+    auto data2 = collector->CollectProcessMemoryDetail(1, true);
+    ASSERT_EQ(data2.retCode, UcError::SUCCESS);
+    auto data3 = collector->CollectProcessMemoryDetail(1, true);
+    ASSERT_EQ(data3.retCode, UcError::SUCCESS);
+}

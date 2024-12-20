@@ -13,28 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GRAPHIC_MEMORY_COLLECTOR_IMPL_H
-#define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GRAPHIC_MEMORY_COLLECTOR_IMPL_H
-
-#include <mutex>
+#ifndef HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GRAPHIC_MEMORY_COLLECTOR_ENTITY_H
+#define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GRAPHIC_MEMORY_COLLECTOR_ENTITY_H
 
 #include "graphic_memory_collector.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-class GraphicMemoryCollectorImpl : public GraphicMemoryCollector {
+class GraphicMemoryCollectorEntity : public GraphicMemoryCollector {
 public:
-    GraphicMemoryCollectorImpl() = default;
-    virtual ~GraphicMemoryCollectorImpl() = default;
+    GraphicMemoryCollectorEntity() = default;
+    virtual ~GraphicMemoryCollectorEntity() = default;
 
 public:
     virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type, bool isLowLatencyMode) override;
-
-private:
-    std::mutex mutexLock_;
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GRAPHIC_MEMORY_COLLECTOR_IMPL_H
+#endif // HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GRAPHIC_MEMORY_COLLECTOR_ENTITY_H

@@ -15,37 +15,52 @@
 
 #include "graphic_memory_collector_impl.h"
 
-#include "graphic_memory.h"
+#include <dlfcn.h>
+
 #include "graphic_memory_decorator.h"
+#include "hiview_logger.h"
+#include "memory.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
+namespace {
+DEFINE_LOG_TAG("GraphicCollector");
+constexpr const char *LIB_NAME = "libucollection_graphic.z.so";
+constexpr const char *GET_INSTANCE = "GetInstance";
+}
 std::shared_ptr<GraphicMemoryCollector> GraphicMemoryCollector::Create()
 {
     return std::make_shared<GraphicMemoryDecorator>(std::make_shared<GraphicMemoryCollectorImpl>());
 }
 
-CollectResult<int32_t> GraphicMemoryCollectorImpl::GetGraphicUsage(int32_t pid, GraphicType type)
+CollectResult<int32_t> GraphicMemoryCollectorImpl::GetGraphicUsage(int32_t pid, GraphicType type,
+    bool isLowLatencyMode)
 {
-    CollectResult<int32_t> result;
-    Graphic::CollectResult data;
-    switch (type) {
-        case GraphicType::TOTAL:
-            data = Graphic::GetGraphicUsage(pid);
-            break;
-        case GraphicType::GL:
-            data = Graphic::GetGraphicUsage(pid, Graphic::Type::GL);
-            break;
-        case GraphicType::GRAPH:
-            data = Graphic::GetGraphicUsage(pid, Graphic::Type::GRAPH);
-            break;
-        default:
-            return result;
+    std::lock_guard<std::mutex> lock(mutexLock_);
+    static GraphicMemoryCollector *graphCollectorInstance = nullptr;
+    if (graphCollectorInstance != nullptr) {
+        return graphCollectorInstance->GetGraphicUsage(pid, type, false);
     }
-    if (data.retCode == Graphic::ResultCode::SUCCESS) {
-        result.retCode = UCollect::SUCCESS;
-        result.data = data.graphicData;
+
+    CollectResult<int32_t> result;
+    void *handler = dlopen(LIB_NAME, RTLD_LAZY);
+    if (handler == nullptr) {
+        HIVIEW_LOGW("dlopen failed, error: %{public}s", dlerror());
+        return result;
+    }
+
+    auto getInterface = reinterpret_cast<GraphicMemoryCollector *(*)()>(dlsym(handler, GET_INSTANCE));
+    if (getInterface == nullptr) {
+        HIVIEW_LOGW("dlsym failed, error: %{public}s", dlerror());
+        return result;
+    }
+    graphCollectorInstance = getInterface();
+    result = graphCollectorInstance->GetGraphicUsage(pid, type, false);
+    if (!isLowLatencyMode) {
+        dlclose(handler);
+        handler = nullptr;
+        graphCollectorInstance = nullptr;
     }
     return result;
 }
