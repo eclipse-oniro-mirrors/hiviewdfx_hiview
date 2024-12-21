@@ -21,18 +21,28 @@
 #include "cpu_decorator.h"
 #include "file_util.h"
 #include "gpu_decorator.h"
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
 #include "hiebpf_decorator.h"
+#endif
+
 #include "hilog_decorator.h"
 #include "io_decorator.h"
 #include "memory_decorator.h"
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 #include "network_decorator.h"
+#endif
+
 #include "trace_decorator.h"
 #include "trace_manager.h"
 #include "wm_decorator.h"
+
 #ifdef HAS_HIPROFILER
 #include "mem_profiler_decorator.h"
 #include "native_memory_profiler_sa_client_manager.h"
 #endif
+
 #ifdef HAS_HIPERF
 #include "perf_decorator.h"
 #endif
@@ -67,8 +77,8 @@ const std::vector<std::regex> REGEXS = {
 };
 
 std::unordered_set<std::string> COLLECTOR_NAMES = {
-    "CpuCollector", "GpuCollector", "HiebpfCollector", "HilogCollector",
-    "IoCollector", "MemoryCollector", "NetworkCollector", "TraceCollector", "WmCollector",
+    "CpuCollector", "GpuCollector", "HilogCollector",
+    "IoCollector", "MemoryCollector", "TraceCollector", "WmCollector",
 };
 
 void CallCollectorFuncs()
@@ -77,25 +87,36 @@ void CallCollectorFuncs()
     (void)cpuCollector->CollectSysCpuUsage();
     auto gpuCollector = GpuCollector::Create();
     (void)gpuCollector->CollectSysGpuLoad();
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     auto hiebpfCollector = HiebpfCollector::Create();
     (void)hiebpfCollector->StartHiebpf(5, "com.ohos.launcher", "/data/local/tmp/ebpf.txt"); // 5 : test duration
+#endif
+
     auto hilogCollector = HilogCollector::Create();
     (void)hilogCollector->CollectLastLog(getpid(), TEST_LINE_NUM);
     auto ioCollector = IoCollector::Create();
     (void)ioCollector->CollectRawDiskStats();
+
 #ifdef HAS_HIPROFILER
     auto memProfilerCollector = MemProfilerCollector::Create();
     memProfilerCollector->Start(NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
         0, TEST_DURATION, TEST_INTERVAL);
 #endif
+
     auto memCollector = MemoryCollector::Create();
     (void)memCollector->CollectSysMemory();
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     auto networkCollector = NetworkCollector::Create();
     (void)networkCollector->CollectRate();
+#endif
+
 #ifdef HAS_HIPERF
     auto perfCollector = PerfCollector::Create();
     (void)perfCollector->StartPerf("/data/local/tmp/");
 #endif
+
     auto traceCollector = TraceCollector::Create();
     UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
     const std::vector<std::string> tagGroups = {"scene_performance"};
@@ -111,18 +132,29 @@ void CallStatFuncs()
 {
     CpuDecorator::SaveStatCommonInfo();
     GpuDecorator::SaveStatCommonInfo();
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     HiebpfDecorator::SaveStatCommonInfo();
+#endif
+
     HilogDecorator::SaveStatCommonInfo();
     IoDecorator::SaveStatCommonInfo();
     MemoryDecorator::SaveStatCommonInfo();
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::SaveStatCommonInfo();
+#endif
+
     TraceDecorator::SaveStatCommonInfo();
+
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::SaveStatCommonInfo();
 #endif
+
 #ifdef HAS_HIPERF
     PerfDecorator::SaveStatCommonInfo();
 #endif
+
     WmDecorator::SaveStatCommonInfo();
     TraceDecorator::SaveStatSpecialInfo();
 }
@@ -179,8 +211,17 @@ public:
 #ifdef HAS_HIPROFILER
         COLLECTOR_NAMES.insert("MemProfilerCollector");
 #endif
+
 #ifdef HAS_HIPERF
         COLLECTOR_NAMES.insert("PerfCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
+        COLLECTOR_NAMES.insert("NetworkCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
+        COLLECTOR_NAMES.insert("HiebpfCollector");
 #endif
     };
     static void TearDownTestCase() {};

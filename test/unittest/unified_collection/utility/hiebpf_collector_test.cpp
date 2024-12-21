@@ -30,6 +30,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
 /**
  * @tc.name: PerfCollectorTest001
  * @tc.desc: used to test PerfCollector.StartPerf
@@ -43,3 +44,16 @@ HWTEST_F(HiebpfCollectorTest, HiebpfCollectorTest001, TestSize.Level1)
     data = hiebpfCollector->StopHiebpf();
     std::cout << "collect hiebpf data result = " << data.retCode << std::endl;
 }
+#else
+/**
+ * @tc.name: PerfCollectorTest001
+ * @tc.desc: used to test empty PerfCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(HiebpfCollectorTest, HiebpfCollectorTest001, TestSize.Level1)
+{
+    auto hiebpfCollector = UCollectUtil::HiebpfCollector::Create();
+    CollectResult<bool> data = hiebpfCollector->StartHiebpf(0, "", "");
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ enum UcError {
     WRITE_FAILED = 3,
     PERMISSION_CHECK_FAILED = 4,
     SYSTEM_ERROR = 5,
+    FEATURE_CLOSED = 6,
 
     // for trace call
     TRACE_IS_OCCUPIED = 1002,
@@ -58,9 +59,10 @@ enum UcError {
 
 template<typename T> class CollectResult {
 public:
-    CollectResult()
+    CollectResult() : CollectResult(UCollect::UcError::UNSUPPORT) {}
+
+    CollectResult(UCollect::UcError errCode) : retCode(errCode)
     {
-        retCode = UCollect::UcError::UNSUPPORT;
         data = {};
     }
 

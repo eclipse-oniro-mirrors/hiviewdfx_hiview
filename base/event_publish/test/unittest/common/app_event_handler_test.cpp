@@ -19,6 +19,7 @@
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
+#ifdef APPEVENT_PUBLISH_ENABLE
 namespace {
 constexpr char BUNDLE_NAME_FOR_TEST[] = "test";
 constexpr char PSS_MEMORY[] = "pss_memory";
@@ -26,6 +27,7 @@ constexpr char JS_HEAP[] = "js_heap";
 constexpr char FD[] = "fd";
 constexpr char THREAD[] = "thread";
 }
+#endif
 
 class AppEventHandlerTest : public testing::Test {
 public:
@@ -35,6 +37,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 /**
  * @tc.name: AppEventHandlerTest001
  * @tc.desc: used to test PostEvent
@@ -112,3 +115,28 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest005, TestSize.Level1)
     appLaunchInfo.bundleName = BUNDLE_NAME_FOR_TEST;
     ASSERT_EQ(handler->PostEvent(appLaunchInfo), 0);
 }
+#else
+/**
+ * @tc.name: AppEventHandlerTest001
+ * @tc.desc: used to test empty PostEvent
+ * @tc.type: FUNC
+*/
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level1)
+{
+    auto handler = std::make_shared<AppEventHandler>();
+    AppEventHandler::CpuUsageHighInfo cpuUsageHighInfo;
+    ASSERT_EQ(handler->PostEvent(cpuUsageHighInfo), -1);
+
+    AppEventHandler::BatteryUsageInfo batteryUsageInfo;
+    ASSERT_EQ(handler->PostEvent(batteryUsageInfo), -1);
+
+    AppEventHandler::ResourceOverLimitInfo resourceOverLimitInfo;
+    ASSERT_EQ(handler->PostEvent(resourceOverLimitInfo), -1);
+
+    AppEventHandler::ScrollJankInfo scrollJankInfo;
+    ASSERT_EQ(handler->PostEvent(scrollJankInfo), -1);
+
+    AppEventHandler::AppLaunchInfo appLaunchInfo;
+    ASSERT_EQ(handler->PostEvent(appLaunchInfo), -1);
+}
+#endif

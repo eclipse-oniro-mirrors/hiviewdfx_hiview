@@ -15,6 +15,7 @@
 
 #include "app_event_handler.h"
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 #include <sstream>
 
 #include "bundle_mgr_client.h"
@@ -253,3 +254,30 @@ int AppEventHandler::PostEvent(const BatteryUsageInfo& event)
 }
 } // namespace HiviewDFX
 } // namespace OHOS
+
+#else // feature not supported
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AppLaunchInfo& event)
+{
+    return -1;
+}
+
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const ScrollJankInfo& event)
+{
+    return -1;
+}
+
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
+{
+    return -1;
+}
+
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const CpuUsageHighInfo& event)
+{
+    return -1;
+}
+
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const BatteryUsageInfo& event)
+{
+    return -1;
+}
+#endif

@@ -17,10 +17,13 @@ config("hiview_core_config") {
   visibility = [ "*:*" ]
   include_dirs = [
     "include",
-    "$hiview_core/param_update/include",
     "$hiview_root/include",
   ]
   cflags_cc = [ "-D__HIVIEW_OHOS__" ]
+
+  if (hiview_param_update_enable) {
+    defines = [ "PARAM_UPDATE_ENABLE" ]
+  }
 }
 
 ohos_source_set("hiview_core") {
@@ -42,9 +45,12 @@ ohos_source_set("hiview_core") {
 
   deps = [
     "$hiview_base:hiviewbase",
-    "param_update:hiview_param_update",
     "platform_config:hiviewplatform_config",
   ]
+
+  if (hiview_param_update_enable) {
+    deps += [ "param_update:hiview_param_update" ]
+  }
 
   external_deps = [
     "ability_base:base",

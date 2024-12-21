@@ -32,13 +32,22 @@ ohos_shared_library("adft") {
   deps = [
     ":adft_plugin_config",
     "$hiview_base:hiviewbase",
-    "$hiview_plugin/event_store:sys_event_store",
-    "$hiview_plugin/privacy_controller:privacy_controller",
     "$hiview_plugin/sys_dispatcher:sys_dispatcher",
     "$hiview_plugin/sysevent_source:sysevent_source",
     "$hiview_plugin/unified_collector:unified_collector",
-    "$hiview_plugin/usage_event_report:usage_event_report",
   ]
+
+  if (hiview_sysevent_store_enable) {
+    deps += [ "$hiview_plugin/event_store:sys_event_store" ]
+  }
+
+  if (hiview_privacy_enable) {
+    deps += [ "$hiview_plugin/privacy_controller:privacy_controller" ]
+  }
+
+  if (hiview_usage_stat_enable) {
+    deps += [ "$hiview_plugin/usage_event_report:usage_event_report" ]
+  }
 
   external_deps = [
     "c_utils:utils",

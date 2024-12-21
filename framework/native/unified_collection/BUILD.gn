@@ -14,8 +14,9 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-config("ucolletciton_source_config") {
+config("ucollection_source_config") {
   visibility = [ "*:*" ]
+
   include_dirs = [
     "calculator/include",
     "collector/inner_include",
@@ -26,29 +27,46 @@ config("ucolletciton_source_config") {
     "$hiview_interfaces/inner_api/unified_collection/utility",
     "$hiview_interfaces/inner_api/unified_collection/resource",
   ]
+
+  if (hiview_unified_collector_ebpf_enable) {
+    include_dirs += [ "collector/impl/hiebpf" ]
+  } else {
+    include_dirs += [ "collector/empty_impl/hiebpf" ]
+  }
+
+  if (hiview_unified_collector_network_enable) {
+    include_dirs += [ "collector/impl/network" ]
+  } else {
+    include_dirs += [ "collector/empty_impl/network" ]
+  }
+
+  if (hiview_unified_collector_perf_enable) {
+    include_dirs += [ "collector/impl/perf" ]
+  } else {
+    include_dirs += [ "collector/empty_impl/perf" ]
+  }
+
   defines = [ "PC_APP_STATE_COLLECT_ENABLE = $hiview_unified_collector_PC_app_state_collect_enable" ]
 }
 
 ohos_source_set("ucollection_source") {
   configs = [
-    ":ucolletciton_source_config",
+    ":ucollection_source_config",
     "$hiview_base:logger_config",
     "$hiview_base/event_report:hiview_event_report_config",
   ]
 
-  public_configs = [ ":ucolletciton_source_config" ]
+  public_configs = [ ":ucollection_source_config" ]
+
   sources = [
     "calculator/cpu_calculator.cpp",
     "calculator/io_calculator.cpp",
     "collector/common_util.cpp",
     "collector/cpu_collector_impl.cpp",
     "collector/gpu_collector_impl.cpp",
-    "collector/hiebpf_collector_impl.cpp",
     "collector/hilog_collector_impl.cpp",
     "collector/io_collector_impl.cpp",
     "collector/memory_collector_impl.cpp",
-    "collector/network_collector_impl.cpp",
-    "collector/perf_collector_impl.cpp",
     "collector/process_collector_impl.cpp",
     "collector/process_state_info_collector.cpp",
     "collector/sys_cpu_usage_collector.cpp",
@@ -65,12 +83,9 @@ ohos_source_set("ucollection_source") {
     "decorator/cpu_decorator.cpp",
     "decorator/decorator.cpp",
     "decorator/gpu_decorator.cpp",
-    "decorator/hiebpf_decorator.cpp",
     "decorator/hilog_decorator.cpp",
     "decorator/io_decorator.cpp",
     "decorator/memory_decorator.cpp",
-    "decorator/network_decorator.cpp",
-    "decorator/perf_decorator.cpp",
     "decorator/process_decorator.cpp",
     "decorator/thermal_decorator.cpp",
     "decorator/trace_decorator.cpp",
@@ -78,13 +93,6 @@ ohos_source_set("ucollection_source") {
     "process/process_status.cpp",
     "utils/cpu_util.cpp",
   ]
-
-  if (has_hiprofiler) {
-    sources += [
-      "collector/mem_profiler_collector_impl.cpp",
-      "decorator/mem_profiler_decorator.cpp",
-    ]
-  }
 
   deps = [
     "$hiview_base:hiviewbase",
@@ -103,26 +111,58 @@ ohos_source_set("ucollection_source") {
     "zlib:libz",
   ]
 
+  defines = []
+
+  if (hiview_unified_collector_ebpf_enable) {
+    sources += [
+      "collector/impl/hiebpf/hiebpf_collector_impl.cpp",
+      "decorator/hiebpf_decorator.cpp",
+    ]
+    defines += [ "UNIFIED_COLLECTOR_EBPF_ENABLE" ]
+  } else {
+    sources += [ "collector/empty_impl/hiebpf/hiebpf_collector_empty_impl.cpp" ]
+  }
+
+  if (hiview_unified_collector_network_enable) {
+    sources += [
+      "collector/impl/network/network_collector_impl.cpp",
+      "decorator/network_decorator.cpp",
+    ]
+    defines += [ "UNIFIED_COLLECTOR_NETWORK_ENABLE" ]
+
+    if (is_wifi_enable) {
+      external_deps += [ "wifi:wifi_sdk" ]
+      defines += [ "COMMUNICATION_WIFI_ENABLE" ]
+    }
+  } else {
+    sources +=
+        [ "collector/empty_impl/network/network_collector_empty_impl.cpp" ]
+  }
+
   cflags = []
   if (has_hiprofiler) {
     cflags += [ "-DHAS_HIPROFILER" ]
     external_deps += [ "hiprofiler:libnative_daemon_client" ]
+    sources += [
+      "collector/mem_profiler_collector_impl.cpp",
+      "decorator/mem_profiler_decorator.cpp",
+    ]
   }
 
-  if (has_hiperf) {
+  if (has_hiperf && hiview_unified_collector_perf_enable) {
+    sources += [
+      "collector/impl/perf/perf_collector_impl.cpp",
+      "decorator/perf_decorator.cpp",
+    ]
     cflags += [ "-DHAS_HIPERF" ]
     external_deps += [ "hiperf:hiperf_client" ]
+  } else {
+    sources += [ "collector/empty_impl/perf/perf_collector_empty_impl.cpp" ]
   }
 
   if (thermal_manager_enable) {
     cflags += [ "-DTHERMAL_MANAGER_ENABLE" ]
     external_deps += [ "thermal_manager:thermalsrv_client" ]
-  }
-
-  defines = []
-  if (is_wifi_enable) {
-    external_deps += [ "wifi:wifi_sdk" ]
-    defines += [ "COMMUNICATION_WIFI_ENABLE" ]
   }
 
   part_name = "hiview"
