@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef HAS_HIPERF
 #include <iostream>
 
 #include "file_util.h"
@@ -35,6 +34,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef HAS_HIPERF
 /**
  * @tc.name: PerfCollectorTest001
  * @tc.desc: used to test PerfCollector.StartPerf
@@ -175,4 +175,38 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest005, TestSize.Level1)
         ASSERT_EQ(FileUtil::FileExists(filepath), true);
     }
 }
+#else
+/**
+ * @tc.name: PerfCollectorTest001
+ * @tc.desc: used to test empty PerfCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(PerfCollectorTest, PerfCollectorTest001, TestSize.Level1)
+{
+    auto perfCollector = UCollectUtil::PerfCollector::Create();
+    perfCollector->SetSelectPids({});
+    perfCollector->SetTargetSystemWide(true);
+    perfCollector->SetTimeStopSec(0);
+    perfCollector->SetFrequency(0);
+    perfCollector->SetOffCPU(true);
+    perfCollector->SetOutputFilename("");
+    perfCollector->SetCallGraph("");
+    perfCollector->SetSelectEvents({});
+    perfCollector->SetCpuPercent(0);
+    perfCollector->SetCpuPercent(true);
+
+    CollectResult<bool> data = perfCollector->StartPerf("");
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+    data = perfCollector->Prepare("");
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+    data = perfCollector->StartRun();
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+    data = perfCollector->Pause();
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+    data = perfCollector->Resume();
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+    data = perfCollector->Stop();
+    ASSERT_TRUE(data.retCode == UcError::FEATURE_CLOSED);
+}
 #endif // HAS_HIPERF
+

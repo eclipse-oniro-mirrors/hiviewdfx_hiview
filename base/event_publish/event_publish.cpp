@@ -15,6 +15,7 @@
 
 #include "event_publish.h"
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 #include "bundle_mgr_client.h"
 #include "file_util.h"
 #include "json/json.h"
@@ -413,3 +414,9 @@ void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEve
 }
 } // namespace HiviewDFX
 } // namespace OHOS
+
+#else // feature not supported
+void OHOS::HiviewDFX::EventPublish::PushEvent(int32_t uid, const std::string& eventName,
+    HiSysEvent::EventType eventType, const std::string& paramJson)
+{}
+#endif

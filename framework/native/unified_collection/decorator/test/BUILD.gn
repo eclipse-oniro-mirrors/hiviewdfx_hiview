@@ -18,7 +18,6 @@ config("decorator_test_config") {
 
   include_dirs = [
     ".",
-    "$hiview_base/utility/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_framework/native/unified_collection/decorator/include",
   ]
@@ -47,9 +46,5 @@ ohos_unittest("DecoratorUnitTest") {
   if (has_hiprofiler) {
     cflags += [ "-DHAS_HIPROFILER" ]
     external_deps += [ "hiprofiler:libnative_daemon_client" ]
-  }
-
-  if (has_hiperf) {
-    cflags += [ "-DHAS_HIPERF" ]
   }
 }

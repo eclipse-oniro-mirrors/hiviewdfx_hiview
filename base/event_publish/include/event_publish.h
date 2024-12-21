@@ -21,6 +21,7 @@
 #include <thread>
 
 #include "json/json.h"
+
 #include "hisysevent.h"
 #include "singleton.h"
 
@@ -40,10 +41,6 @@ constexpr const char* const EVENT_MAIN_THREAD_JANK = "MAIN_THREAD_JANK";
 constexpr const char* const EVENT_APP_START = "APP_START";
 }
 class EventPublish : public OHOS::DelayedRefSingleton<EventPublish> {
-public:
-    EventPublish() {};
-    ~EventPublish() {};
-
 public:
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
         const std::string& paramJson);
