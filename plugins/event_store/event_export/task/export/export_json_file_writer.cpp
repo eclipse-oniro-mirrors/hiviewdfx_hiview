@@ -73,9 +73,40 @@ std::string GenerateDeviceId()
     return "";
 }
 
+std::string GenerateUuid()
+{
+    std::string uuid;
+    int8_t retryTimes = 3; // max retry 3 times
+    do {
+        FileUtil::LoadStringFromFile("/proc/sys/kernel/random/uuid", uuid);
+        if (!uuid.empty()) {
+            break;
+        }
+        --retryTimes;
+    } while (retryTimes > 0);
+
+    if (!uuid.empty() && uuid.back() == '\n') {
+        // remove line breaks at the end
+        uuid.pop_back();
+    }
+    return uuid;
+}
+
+std::string GetPackId()
+{
+    if (auto packId = Parameter::GetString("persist.hiviewdfx.priv.packid", ""); !packId.empty()) {
+        return packId;
+    }
+    std::string uuid = GenerateUuid();
+    uuid.erase(std::remove(uuid.begin(), uuid.end(), '-'), uuid.end()); // remove character '-'
+    Parameter::SetProperty("persist.hiviewdfx.priv.packid", uuid);
+    return uuid;
+}
+
 std::string GetDeviceId()
 {
-    static std::string deviceId = GenerateDeviceId();
+    static std::string deviceId =
+        Parameter::GetUserType() == Parameter::USER_TYPE_OVERSEA_COMMERCIAL ? GetPackId() : GenerateDeviceId();
     return deviceId;
 }
  
