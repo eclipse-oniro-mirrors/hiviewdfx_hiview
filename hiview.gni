@@ -101,4 +101,15 @@ declare_args() {
   hiview_unified_collector_perf_enable = true
   hiview_unified_collector_ebpf_enable = true
   hiview_unified_collector_network_enable = true
+  hiview_unified_collector_graphic_enable = true
+  hiview_unified_collector_gpu_enable = true
+  hiview_unified_collector_cpu_enable = true
+  hiview_unified_collector_mem_profiler_enable = true
+  hiview_unified_collector_io_enable = true
+  hiview_unified_collector_thermal_enable = true
+  hiview_unified_collector_memory_enable = true
+  hiview_unified_collector_hilog_enable = true
+  hiview_unified_collector_wm_enable = true
+  hiview_unified_collector_process_enable = true
+  hiview_unified_collector_trace_enable = true
 }

@@ -23,14 +23,6 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
 
-namespace {
-DEFINE_LOG_TAG("HilogCollectorTest");
-const std::string TEST_STR = "HilogCollectorTest";
-constexpr uint32_t HILOG_LINE_NUM = 100;
-constexpr uint32_t SLEEP_TIME = 300 * 1000; // 300ms
-constexpr uint32_t LOG_SLEEP_TIME = 1000; // 1ms
-}
-
 class HilogCollectorTest : public testing::Test {
 public:
     void SetUp() {};
@@ -38,6 +30,15 @@ public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
 };
+
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
+namespace {
+DEFINE_LOG_TAG("HilogCollectorTest");
+const std::string TEST_STR = "HilogCollectorTest";
+constexpr uint32_t HILOG_LINE_NUM = 100;
+constexpr uint32_t SLEEP_TIME = 300 * 1000; // 300ms
+constexpr uint32_t LOG_SLEEP_TIME = 1000; // 1ms
+}
 
 /**
  * @tc.name: HilogCollectorTest001
@@ -80,3 +81,16 @@ HWTEST_F(HilogCollectorTest, HilogCollectorTest001, TestSize.Level1)
         ASSERT_TRUE(result.data == "");
     }
 }
+#else
+/**
+ * @tc.name: HilogCollectorTest001
+ * @tc.desc: empty test
+ * @tc.type: FUNC
+*/
+HWTEST_F(HilogCollectorTest, HilogCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<HilogCollector> collector = HilogCollector::Create();
+    CollectResult<std::string> result = collector->CollectLastLog(0, 0);
+    ASSERT_TRUE(result.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

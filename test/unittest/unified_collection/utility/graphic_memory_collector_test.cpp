@@ -33,6 +33,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_GRAPHIC_ENABLE
 /**
  * @tc.name: GraphicMemoryCollectorTest001
  * @tc.desc: used to test GraphicMemoryCollector.GetGraphicUsage
@@ -67,3 +68,20 @@ HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Lev
     std::cout << std::endl;
     ASSERT_GE(graphicData.data, 0);
 }
+#else
+/**
+ * @tc.name: GraphicMemoryCollectorTest001
+ * @tc.desc: used to test empty GraphicMemoryCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
+    CollectResult<int32_t> data = collector->GetGraphicUsage(0, GraphicType::TOTAL, false);
+    ASSERT_EQ(data.retCode, UcError::FEATURE_CLOSED);
+    CollectResult<int32_t> glData = collector->GetGraphicUsage(0, GraphicType::GL, false);
+    ASSERT_EQ(glData.retCode, UcError::FEATURE_CLOSED);
+    CollectResult<int32_t> graphicData = collector->GetGraphicUsage(0, GraphicType::GRAPH, false);
+    ASSERT_EQ(graphicData.retCode, UcError::FEATURE_CLOSED);
+}
+#endif

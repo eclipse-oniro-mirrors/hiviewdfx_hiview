@@ -29,6 +29,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
 void TestResult(const CollectResult<int32_t>& result)
 {
     if (result.retCode == UCollect::UcError::SUCCESS) {
@@ -74,3 +75,20 @@ HWTEST_F(ThermalCollectorTest, ThermalCollectorTest002, TestSize.Level1)
     ASSERT_EQ(result.retCode, UCollect::UcError::UNSUPPORT);
 #endif
 }
+#else
+
+/**
+ * @tc.name: ThermalCollectorTest001
+ * @tc.desc: used to test empty ThermalCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(ThermalCollectorTest, ThermalCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
+    auto result1 = collector->CollectDevThermal(ThermalZone::SHELL_FRONT);
+    ASSERT_EQ(result1.retCode, UCollect::UcError::FEATURE_CLOSED);
+
+    auto result2 = collector->CollectThermaLevel();
+    ASSERT_EQ(result2.retCode, UCollect::UcError::FEATURE_CLOSED);
+}
+#endif

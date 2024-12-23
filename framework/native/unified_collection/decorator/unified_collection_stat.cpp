@@ -20,20 +20,37 @@
 #include "hiview_logger.h"
 #include "time_util.h"
 
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
 #include "cpu_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
 #include "gpu_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GRAPHIC_ENABLE
 #include "graphic_memory_decorator.h"
+#endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
 #include "hiebpf_decorator.h"
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
 #include "hilog_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
 #include "io_decorator.h"
+#endif
+
 #ifdef HAS_HIPROFILER
 #include "mem_profiler_decorator.h"
 #endif
+
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
 #include "memory_decorator.h"
+#endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 #include "network_decorator.h"
@@ -43,10 +60,21 @@
 #include "perf_decorator.h"
 #endif
 
+#ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
 #include "process_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
 #include "thermal_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
 #include "wm_decorator.h"
+#endif
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -81,25 +109,51 @@ void UnifiedCollectionStat::SaveAllStatInfo()
 {
     UCDecorator::WriteLinesToFile({UC_STAT_DATE, date_}, true);
     UCDecorator::WriteLinesToFile({UC_API_STAT_TITLE, UC_API_STAT_ITEM}, false);
+
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
     CpuDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
     GpuDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GRAPHIC_ENABLE
     GraphicMemoryDecorator::SaveStatCommonInfo();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     HiebpfDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
     HilogDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
     IoDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     MemoryDecorator::SaveStatCommonInfo();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
     ProcessDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
     ThermalDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::SaveStatCommonInfo();
+#endif
+
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::SaveStatCommonInfo();
 #endif
@@ -108,9 +162,13 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     PerfDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
     WmDecorator::SaveStatCommonInfo();
+#endif
 
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::SaveStatSpecialInfo();
+#endif
 
     int32_t ret = HiSysEventWrite(
         HiSysEvent::Domain::HIVIEWDFX,
@@ -124,26 +182,54 @@ void UnifiedCollectionStat::SaveAllStatInfo()
 
 void UnifiedCollectionStat::ResetAllStatInfo()
 {
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
     CpuDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
     GpuDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GRAPHIC_ENABLE
     GraphicMemoryDecorator::ResetStatInfo();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     HiebpfDecorator::ResetStatInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
     HilogDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
     IoDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     MemoryDecorator::ResetStatInfo();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::ResetStatInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
     ProcessDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
     ThermalDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::ResetStatInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
     WmDecorator::ResetStatInfo();
+#endif
+
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::ResetStatInfo();
 #endif

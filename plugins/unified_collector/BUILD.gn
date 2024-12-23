@@ -22,6 +22,7 @@ config("unified_collector_config") {
     "storage/include",
     "task/include",
     "power/include",
+    "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_framework/native/unified_collection/process/include",
     "$hiview_framework/native/unified_collection/decorator/include",

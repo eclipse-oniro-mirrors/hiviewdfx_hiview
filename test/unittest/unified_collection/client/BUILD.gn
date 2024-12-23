@@ -33,7 +33,22 @@ ohos_unittest("UCollectionClientUnitTest") {
     "trace_collector_client_test.cpp",
   ]
 
-  cflags_cc = []
+  defines = []
+  if (hiview_unified_collector_cpu_enable) {
+    defines += [ "UNIFIED_COLLECTOR_CPU_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_memory_enable) {
+    defines += [ "UNIFIED_COLLECTOR_MEMORY_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_graphic_enable) {
+    defines += [ "UNIFIED_COLLECTOR_GRAPHIC_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_trace_enable) {
+    defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+  }
 
   deps = [
     "$hiview_base:hiviewbase",

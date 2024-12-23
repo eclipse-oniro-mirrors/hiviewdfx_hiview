@@ -25,6 +25,15 @@ using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
+
+class WmCollectorTest : public testing::Test {
+public:
+    void SetUp() {};
+    void TearDown() {};
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+};
+
 namespace {
 void NativeTokenGet(const char* perms[], int size)
 {
@@ -59,14 +68,7 @@ void DisablePermissionAccess()
 }
 }
 
-class WmCollectorTest : public testing::Test {
-public:
-    void SetUp() {};
-    void TearDown() {};
-    static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
-};
-
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
 /**
  * @tc.name: WmCollectorTest001
  * @tc.desc: used to test WmCollector.ExportWindowsInfo
@@ -109,3 +111,22 @@ HWTEST_F(WmCollectorTest, WmCollectorTest003, TestSize.Level1)
     std::cout << "export Gpu memory result " << result.retCode << std::endl;
     ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::UNSUPPORT);
 }
+#else
+/**
+ * @tc.name: WmCollectorTest001
+ * @tc.desc: used to test empty WmCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(WmCollectorTest, WmCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<WmCollector> collector = WmCollector::Create();
+    auto result1 = collector->ExportWindowsInfo();
+    ASSERT_TRUE(result1.retCode == UcError::FEATURE_CLOSED);
+
+    auto result2 = collector->ExportWindowsMemory();
+    ASSERT_TRUE(result2.retCode == UcError::FEATURE_CLOSED);
+
+    auto result3 = collector->ExportGpuMemory();
+    ASSERT_TRUE(result3.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

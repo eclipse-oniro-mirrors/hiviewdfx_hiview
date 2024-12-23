@@ -17,7 +17,7 @@ import("//build/ohos.gni")
 config("collect_device_client_config") {
   visibility = [ "*:*" ]
   include_dirs = [
-    ".",
+    "include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
   ]
 }

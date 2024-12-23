@@ -31,6 +31,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
 /**
  * @tc.name: GpuCollectorTest001
  * @tc.desc: used to test GpuCollector.CollectSysGpuLoad
@@ -56,3 +57,18 @@ HWTEST_F(GpuCollectorTest, GpuCollectorTest002, TestSize.Level1)
     std::cout << "collect system gpu frequency result" << data.retCode << std::endl;
     ASSERT_TRUE(data.retCode == UcError::SUCCESS);
 }
+#else
+/**
+ * @tc.name: GpuCollectorTest001
+ * @tc.desc: used to test empty GpuCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(GpuCollectorTest, GpuCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<GpuCollector> collector = GpuCollector::Create();
+    auto data1 = collector->CollectSysGpuLoad();
+    ASSERT_TRUE(data1.retCode == UcError::FEATURE_CLOSED);
+    auto data2 = collector->CollectGpuFrequency();
+    ASSERT_TRUE(data1.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

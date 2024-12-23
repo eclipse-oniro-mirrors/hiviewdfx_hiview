@@ -15,7 +15,9 @@
 
 #ifndef INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_PROCESS_COLLECTOR_H
 #define INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_PROCESS_COLLECTOR_H
+
 #include <memory>
+#include <string>
 #include <unordered_set>
 
 #include "collect_result.h"

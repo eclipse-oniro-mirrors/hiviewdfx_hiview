@@ -43,7 +43,7 @@ ohos_unittest("DecoratorUnitTest") {
   ]
 
   cflags = []
-  if (has_hiprofiler) {
+  if (has_hiprofiler && hiview_unified_collector_mem_profiler_enable) {
     cflags += [ "-DHAS_HIPROFILER" ]
     external_deps += [ "hiprofiler:libnative_daemon_client" ]
   }

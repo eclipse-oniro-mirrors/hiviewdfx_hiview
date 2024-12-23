@@ -53,6 +53,7 @@ config("statetest_config") {
     "$hiview_plugin/unified_collector/storage/include",
     "$hiview_plugin/unified_collector/task/include",
     "$hiview_plugin/unified_collector/power/include",
+    "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_framework/native/unified_collection/process/include",
     "$hiview_framework/native/unified_collection/decorator/include",

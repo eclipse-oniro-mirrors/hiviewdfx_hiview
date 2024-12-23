@@ -18,25 +18,45 @@
 #include <regex>
 #include <unordered_set>
 
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
 #include "cpu_decorator.h"
+#endif
+
+#include "decorator.h"
 #include "file_util.h"
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
 #include "gpu_decorator.h"
+#endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
 #include "hiebpf_decorator.h"
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
 #include "hilog_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
 #include "io_decorator.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
 #include "memory_decorator.h"
+#endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
 #include "network_decorator.h"
 #endif
 
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_decorator.h"
 #include "trace_manager.h"
+#endif
+
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
 #include "wm_decorator.h"
+#endif
 
 #ifdef HAS_HIPROFILER
 #include "mem_profiler_decorator.h"
@@ -50,13 +70,12 @@
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
+
+#ifdef HAS_HIPROFILER
 using namespace OHOS::Developtools::NativeDaemon;
+#endif
 
 namespace {
-constexpr uint32_t TEST_LINE_NUM = 100;
-constexpr int TEST_DURATION = 10;
-constexpr int TEST_INTERVAL = 1;
-TraceManager g_traceManager;
 const std::vector<std::regex> REGEXS = {
     std::regex("^Date:$"),
     std::regex("^\\d{4}-\\d{2}-\\d{2}$"),
@@ -76,36 +95,52 @@ const std::vector<std::regex> REGEXS = {
     std::regex("^0.142800$")
 };
 
-std::unordered_set<std::string> COLLECTOR_NAMES = {
-    "CpuCollector", "GpuCollector", "HilogCollector",
-    "IoCollector", "MemoryCollector", "TraceCollector", "WmCollector",
-};
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+TraceManager g_traceManager;
+#endif
+
+std::unordered_set<std::string> g_collector_names;
 
 void CallCollectorFuncs()
 {
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
     auto cpuCollector = CpuCollector::Create();
     (void)cpuCollector->CollectSysCpuUsage();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
     auto gpuCollector = GpuCollector::Create();
     (void)gpuCollector->CollectSysGpuLoad();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     auto hiebpfCollector = HiebpfCollector::Create();
     (void)hiebpfCollector->StartHiebpf(5, "com.ohos.launcher", "/data/local/tmp/ebpf.txt"); // 5 : test duration
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
+    constexpr uint32_t TEST_LINE_NUM = 100;
     auto hilogCollector = HilogCollector::Create();
     (void)hilogCollector->CollectLastLog(getpid(), TEST_LINE_NUM);
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
     auto ioCollector = IoCollector::Create();
     (void)ioCollector->CollectRawDiskStats();
+#endif
 
 #ifdef HAS_HIPROFILER
+    constexpr int TEST_DURATION = 10;
+    constexpr int TEST_INTERVAL = 1;
     auto memProfilerCollector = MemProfilerCollector::Create();
     memProfilerCollector->Start(NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
         0, TEST_DURATION, TEST_INTERVAL);
 #endif
 
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     auto memCollector = MemoryCollector::Create();
     (void)memCollector->CollectSysMemory();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     auto networkCollector = NetworkCollector::Create();
@@ -117,6 +152,7 @@ void CallCollectorFuncs()
     (void)perfCollector->StartPerf("/data/local/tmp/");
 #endif
 
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     auto traceCollector = TraceCollector::Create();
     UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
     const std::vector<std::string> tagGroups = {"scene_performance"};
@@ -124,28 +160,47 @@ void CallCollectorFuncs()
     CollectResult<std::vector<std::string>> resultDumpTrace = traceCollector->DumpTrace(caller);
     (void)g_traceManager.CloseTrace();
     (void)traceCollector->TraceOff();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
     auto wmCollector = WmCollector::Create();
     (void)wmCollector->ExportWindowsInfo();
+#endif
 }
 
 void CallStatFuncs()
 {
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
     CpuDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
     GpuDecorator::SaveStatCommonInfo();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
     HiebpfDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
     HilogDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
     IoDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     MemoryDecorator::SaveStatCommonInfo();
+#endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::SaveStatCommonInfo();
+#endif
 
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::SaveStatCommonInfo();
@@ -155,8 +210,13 @@ void CallStatFuncs()
     PerfDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
     WmDecorator::SaveStatCommonInfo();
+#endif
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::SaveStatSpecialInfo();
+#endif
 }
 
 bool IsMatchAnyRegex(const std::string& line, const std::vector<std::regex>& regs)
@@ -177,6 +237,10 @@ void RemoveCollectorNameIfMatched(const std::string& line, std::unordered_set<st
 bool CheckContent(const std::string& fileName, const std::vector<std::regex>& regs,
     std::unordered_set<std::string>& collectorNames)
 {
+    if (g_collector_names.empty()) {
+        return true;
+    }
+
     std::ifstream file;
     file.open(fileName.c_str());
     if (!file.is_open()) {
@@ -209,19 +273,47 @@ public:
     static void SetUpTestCase()
     {
 #ifdef HAS_HIPROFILER
-        COLLECTOR_NAMES.insert("MemProfilerCollector");
+        g_collector_names.insert("MemProfilerCollector");
 #endif
 
 #ifdef HAS_HIPERF
-        COLLECTOR_NAMES.insert("PerfCollector");
+        g_collector_names.insert("PerfCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-        COLLECTOR_NAMES.insert("NetworkCollector");
+        g_collector_names.insert("NetworkCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-        COLLECTOR_NAMES.insert("HiebpfCollector");
+        g_collector_names.insert("HiebpfCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
+        g_collector_names.insert("CpuCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_GPU_ENABLE
+        g_collector_names.insert("GpuCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
+        g_collector_names.insert("HilogCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
+        g_collector_names.insert("IoCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
+        g_collector_names.insert("MemoryCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+        g_collector_names.insert("TraceCollector");
+#endif
+
+#ifdef UNIFIED_COLLECTOR_WM_ENABLE
+        g_collector_names.insert("WmCollector");
 #endif
     };
     static void TearDownTestCase() {};
@@ -236,7 +328,7 @@ HWTEST_F(DecoratorTest, DecoratorTest001, TestSize.Level1)
 {
     CallCollectorFuncs();
     CallStatFuncs();
-    bool res = CheckContent(UC_STAT_LOG_PATH, REGEXS, COLLECTOR_NAMES);
+    bool res = CheckContent(UC_STAT_LOG_PATH, REGEXS, g_collector_names);
     ASSERT_TRUE(res);
     if (FileUtil::FileExists(UC_STAT_LOG_PATH)) {
         FileUtil::RemoveFile(UC_STAT_LOG_PATH);
