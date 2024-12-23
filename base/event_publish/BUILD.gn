@@ -17,35 +17,40 @@ import("//build/ohos.gni")
 config("hiview_event_publish_config") {
   visibility = [ "*:*" ]
 
-  include_dirs = [
-    "$hiview_base/include",
-    "include",
-  ]
+  include_dirs = [ "include" ]
+
+  if (hiview_appevent_publish_enable) {
+    defines = [ "APPEVENT_PUBLISH_ENABLE" ]
+  }
 }
 
 ohos_source_set("hiview_event_publish") {
+  public_configs = [ ":hiview_event_publish_config" ]
+
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "jsoncpp:jsoncpp",
+  ]
+
   sources = [
     "app_event_handler.cpp",
     "app_event_publisher_factory.cpp",
     "event_publish.cpp",
   ]
 
-  external_deps = [
-    "ability_base:want",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "jsoncpp:jsoncpp",
-    "storage_service:storage_manager_acl",
-  ]
+  deps = [ "$hiview_base:logger" ]
 
-  public_configs = [ ":hiview_event_publish_config" ]
+  if (hiview_appevent_publish_enable) {
+    external_deps += [
+      "ability_base:want",
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
+      "hilog:libhilog",
+      "storage_service:storage_manager_acl",
+    ]
 
-  deps = [
-    "$hiview_base:logger",
-    "$hiview_base/utility:hiview_utility",
-  ]
+    deps += [ "$hiview_base/utility:hiview_utility" ]
+  }
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"

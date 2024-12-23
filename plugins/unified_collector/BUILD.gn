@@ -69,10 +69,6 @@ ohos_source_set("unified_collector") {
     "samgr:samgr_proxy",
   ]
 
-  if (has_hiperf) {
-    cflags = [ "-DHAS_HIPERF" ]
-  }
-
   if (power_manager_enable) {
     external_deps += [
       "common_event_service:cesfwk_innerkits",
