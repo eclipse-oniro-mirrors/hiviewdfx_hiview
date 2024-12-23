@@ -400,7 +400,6 @@
         "OHOS::HiviewDFX::CJsonUtil::ParseJsonRoot(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::Parameter::GetVersionTypeStr()";
         "OHOS::HiviewDFX::CJsonUtil::GetArrayValue(cJSON const*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::Parameter::GetRegionCode()";
         "OHOS::HiviewDFX::CJsonUtil::GetIntValue(cJSON const*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::CJsonUtil::GetBoolValue(cJSON const*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool&)";
         "OHOS::HiviewDFX::CJsonUtil::GetObjectValue(cJSON const*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -440,6 +439,10 @@
         "OHOS::HiviewDFX::StringUtil::IsValidRegex(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::Parameter::GetUserType()";
         "OHOS::HiviewDFX::Parameter::IsOversea()";
+        "OHOS::HiviewDFX::PrivacyManager::IsAllowed(std::__h::shared_ptr<OHOS::HiviewDFX::SysEvent>)";
+        "OHOS::HiviewDFX::PrivacyManager::IsAllowed(unsigned char, unsigned char)";
+        "OHOS::HiviewDFX::PrivacyManager::SetPrivacyController(std::__h::shared_ptr<OHOS::HiviewDFX::IPrivacyController>)";
+        "OHOS::HiviewDFX::PrivacyManager::OnConfigUpdate()";
     };
   local:
     *;

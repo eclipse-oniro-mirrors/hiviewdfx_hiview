@@ -13,18 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
-#define HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
+#ifndef HIVIEWDFX_PRIVACY_MANAGER_H
+#define HIVIEWDFX_PRIVACY_MANAGER_H
 
-#include "plugin.h"
+#include "i_privacy_controller.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class PrivacyController : public Plugin {
+class PrivacyManager {
 public:
-    bool OnEvent(std::shared_ptr<Event>& event) override;
-    void OnLoad() override;
+    static void SetPrivacyController(std::shared_ptr<IPrivacyController> privacyController);
+    static bool IsAllowed(std::shared_ptr<SysEvent> event);
+    static bool IsAllowed(uint8_t level, uint8_t privacy);
+    static void OnConfigUpdate();
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
+#endif
