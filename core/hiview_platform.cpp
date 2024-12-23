@@ -145,6 +145,8 @@ bool HiviewPlatform::InitEnvironment(const std::string& platformConfigDir)
     }
     eventSourceList_.clear();
     isReady_ = true;
+    // mark the finish of hiview initilization
+    Parameter::SetProperty("hiviewdfx.hiview.ready", "1");
     NotifyPluginReady();
     ScheduleCheckUnloadablePlugins();
 
