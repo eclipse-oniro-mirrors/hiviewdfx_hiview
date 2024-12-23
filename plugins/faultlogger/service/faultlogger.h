@@ -74,6 +74,9 @@ private:
     bool VerifiedDumpPermission();
     void AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> event);
     void AddPublicInfo(FaultLogInfo& info);
+    static void AddBundleInfo(FaultLogInfo& info);
+    static void AddForegroundInfo(FaultLogInfo& info);
+    static void UpdateTerminalThreadStack(FaultLogInfo& info);
     void AddCppCrashInfo(FaultLogInfo& info);
     void Dump(int fd, const DumpRequest& request) const;
     void StartBootScan();
