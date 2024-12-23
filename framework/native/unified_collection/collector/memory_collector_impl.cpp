@@ -33,6 +33,7 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "memory_decorator.h"
+#include "memory_utils.h"
 #include "process_status.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -667,6 +668,17 @@ CollectResult<uint32_t> MemoryCollectorImpl::CollectDdrFreq()
     std::stringstream ss(content);
     ss >> result.data;
     result.retCode = UcError::SUCCESS;
+    return result;
+}
+
+CollectResult<ProcessMemoryDetail> MemoryCollectorImpl::CollectProcessMemoryDetail(int32_t pid, bool isLowLatencyMode)
+{
+    CollectResult<ProcessMemoryDetail> result;
+    if (ParseSmaps(pid, result.data, isLowLatencyMode)) {
+        result.retCode = UcError::SUCCESS;
+    } else {
+        result.retCode = UcError::READ_FAILED;
+    }
     return result;
 }
 } // UCollectUtil

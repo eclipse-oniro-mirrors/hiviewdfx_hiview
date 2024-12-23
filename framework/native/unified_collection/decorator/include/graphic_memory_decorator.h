@@ -28,7 +28,7 @@ public:
     virtual ~GraphicMemoryDecorator() = default;
 
 public:
-    virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type = GraphicType::TOTAL) override;
+    virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type, bool isLowLatencyMode) override;
     static void SaveStatCommonInfo();
     static void ResetStatInfo();
 

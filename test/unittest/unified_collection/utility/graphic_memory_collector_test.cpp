@@ -51,17 +51,17 @@ HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Lev
         return;
     }
     std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
-    CollectResult<int32_t> data = collector->GetGraphicUsage(pid);
+    CollectResult<int32_t> data = collector->GetGraphicUsage(pid, GraphicType::TOTAL, false);
     ASSERT_EQ(data.retCode, UcError::SUCCESS);
     std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] total result:" << data.data;
     std::cout << std::endl;
     ASSERT_GE(data.data, 0);
-    CollectResult<int32_t> glData = collector->GetGraphicUsage(pid, GraphicType::GL);
+    CollectResult<int32_t> glData = collector->GetGraphicUsage(pid, GraphicType::GL, false);
     ASSERT_EQ(glData.retCode, UcError::SUCCESS);
     std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] gl result:" << glData.data;
     std::cout << std::endl;
     ASSERT_GE(glData.data, 0);
-    CollectResult<int32_t> graphicData = collector->GetGraphicUsage(pid, GraphicType::GRAPH);
+    CollectResult<int32_t> graphicData = collector->GetGraphicUsage(pid, GraphicType::GRAPH, false);
     ASSERT_EQ(graphicData.retCode, UcError::SUCCESS);
     std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] graphic result:" << graphicData.data;
     std::cout << std::endl;

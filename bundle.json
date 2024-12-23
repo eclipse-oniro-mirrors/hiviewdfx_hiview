@@ -157,15 +157,6 @@
                     }
                 },
                 {
-                    "name": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
-                    "header": {
-                        "header_base": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection",
-                        "header_files": [
-                            "utility/graphic_memory_collector.h"
-                        ]
-                    }
-                },
-                {
                     "name": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
                     "header": {
                         "header_base": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection",

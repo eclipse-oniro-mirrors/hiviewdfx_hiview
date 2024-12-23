@@ -45,9 +45,8 @@ ohos_shared_library("libucollection_utility") {
 config("ucolletciton_graphic_config") {
   visibility = [ "*:*" ]
   include_dirs = [
-    "$hiview_base/utility/include",
+    "$hiview_base/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
-    "$hiview_framework/native/unified_collection/decorator/include",
     "$hiview_framework/native/unified_collection/graphic_memory/include",
     "$hiview_interfaces/inner_api/unified_collection",
     "$hiview_interfaces/inner_api/unified_collection/resource",
@@ -65,12 +64,7 @@ ohos_shared_library("libucollection_graphic") {
   }
   public_configs = [ ":ucolletciton_graphic_config" ]
 
-  sources = [
-    "$hiview_base/utility/time_util.cpp",
-    "$hiview_framework/native/unified_collection/collector/graphic_memory_collector_impl.cpp",
-    "$hiview_framework/native/unified_collection/decorator/decorator.cpp",
-    "$hiview_framework/native/unified_collection/decorator/graphic_memory_decorator.cpp",
-  ]
+  sources = [ "$hiview_framework/native/unified_collection/collector/graphic_memory_collector_entity.cpp" ]
 
   deps = [ "$hiview_framework/native/unified_collection/graphic_memory:libgraphic_memory" ]
 

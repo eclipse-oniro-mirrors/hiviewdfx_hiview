@@ -29,7 +29,7 @@ public:
 
 public:
     static std::shared_ptr<GraphicMemoryCollector> Create();
-    virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type = GraphicType::TOTAL) = 0;
+    virtual CollectResult<int32_t> GetGraphicUsage(int32_t pid, GraphicType type, bool isLowLatencyMode) = 0;
 }; // GraphicMemoryCollector
 } // UCollectUtil
 } // HiviewDFX
