@@ -78,6 +78,7 @@ private:
     static void AddForegroundInfo(FaultLogInfo& info);
     static void UpdateTerminalThreadStack(FaultLogInfo& info);
     void AddCppCrashInfo(FaultLogInfo& info);
+    void AddDebugSignalInfo(FaultLogInfo& info) const;
     void Dump(int fd, const DumpRequest& request) const;
     void StartBootScan();
     bool JudgmentRateLimiting(std::shared_ptr<Event> event);
@@ -95,10 +96,12 @@ private:
     std::string GetMemoryStrByPid(long pid) const;
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
     void ReportAppFreezeToAppEvent(const FaultLogInfo& info) const;
+    void ReportEventToAppEvent(const FaultLogInfo& info);
     bool CheckFaultLog(FaultLogInfo info);
     void CheckFaultLogAsync(const FaultLogInfo& info);
     void FillHilog(const std::string &hilogStr, Json::Value &hilog) const;
     void FaultlogLimit(const std::string &logPath, int32_t faultType) const;
+    FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent) const;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

@@ -352,6 +352,13 @@ void Faultlogger::AddCppCrashInfo(FaultLogInfo& info)
     info.sectionMap["HILOG"] = log;
 }
 
+void Faultlogger::AddDebugSignalInfo(FaultLogInfo& info) const
+{
+    info.reportToAppEvent = false;
+    info.dumpLogToFautlogger = false;
+    info.logPath = GetDebugSignalTempLogName(info);
+}
+
 bool Faultlogger::VerifiedDumpPermission()
 {
     using namespace Security::AccessToken;
@@ -517,7 +524,12 @@ bool Faultlogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
     return true;
 }
 
-static FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent)
+static bool IsDebugSignal(const FaultLogInfo& info)
+{
+    return info.faultLogType == FaultLogType::ADDR_SANITIZER && info.reason.find("DEBUG SIGNAL") != std::string::npos;
+}
+
+FaultLogInfo Faultlogger::FillFaultLogInfo(SysEvent &sysEvent) const
 {
     FaultLogInfo info;
     info.time = static_cast<int64_t>(sysEvent.happenTime_);
@@ -533,6 +545,11 @@ static FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent)
     info.module = info.faultLogType == FaultLogType::JS_CRASH ?
         sysEvent.GetEventValue("PACKAGE_NAME") : sysEvent.GetEventValue("MODULE");
     info.reason = sysEvent.GetEventValue("REASON");
+    if (IsDebugSignal(info)) {
+        info.pid = sysEvent.GetEventIntValue("PID");
+        info.time = sysEvent.GetEventIntValue("HAPPEN_TIME");
+        AddDebugSignalInfo(info);
+    }
     auto summary = sysEvent.GetEventValue("SUMMARY");
     info.summary = StringUtil::UnescapeJsonStringValue(summary);
     info.sectionMap = sysEvent.GetKeyValuePairs();
@@ -554,7 +571,10 @@ static void UpdateSysEvent(SysEvent &sysEvent, FaultLogInfo &info)
     sysEvent.SetEventValue("FAULT_TYPE", std::to_string(info.faultLogType));
     sysEvent.SetEventValue("MODULE", info.module);
     sysEvent.SetEventValue("LOG_PATH", info.logPath);
-    sysEvent.SetEventValue("HAPPEN_TIME", sysEvent.happenTime_);
+    // DEBUG SIGNAL does not need update HAPPEN_TIME
+    if (!IsDebugSignal(info)) {
+        sysEvent.SetEventValue("HAPPEN_TIME", sysEvent.happenTime_);
+    }
     sysEvent.SetEventValue("tz_", TimeUtil::GetTimeZone());
     sysEvent.SetEventValue("VERSION", info.sectionMap["VERSION"]);
     sysEvent.SetEventValue("VERSION_CODE", info.sectionMap["VERSION_CODE"]);
@@ -597,18 +617,17 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
     HIVIEW_LOGI("Receive %{public}s Event:%{public}s.", event->eventName_.c_str(), sysEvent->AsJsonStr().c_str());
     FaultLogInfo info = FillFaultLogInfo(*sysEvent);
-    if (info.faultLogType == FaultLogType::ADDR_SANITIZER && info.summary.empty()) {
-        HIVIEW_LOGI("Skip non address_sanitizer request.");
-        return true;
-    }
     AddFaultLog(info);
     UpdateSysEvent(*sysEvent, info);
+    if (!info.reportToAppEvent) {
+        return true;
+    }
     if (info.faultLogType == FaultLogType::JS_CRASH) {
         ReportJsErrorToAppEvent(sysEvent);
     }
     // DEBUG FD is used for debugging and is not reported to the application.
     // The kernel writes a special reason field to prevent reporting.
-    if (info.faultLogType == FaultLogType::ADDR_SANITIZER && info.reason != "DEBUG SIGNAL(BADFD)") {
+    if (info.faultLogType == FaultLogType::ADDR_SANITIZER) {
         ReportSanitizerToAppEvent(sysEvent);
     }
     return true;
@@ -748,6 +767,11 @@ void Faultlogger::AddFaultLog(FaultLogInfo& info)
         return;
     }
 
+    if ((info.faultLogType <= FaultLogType::ALL) || (info.faultLogType > FaultLogType::ADDR_SANITIZER)) {
+        HIVIEW_LOGW("Unsupported fault type");
+        return;
+    }
+
     AddFaultLogIfNeed(info, nullptr);
 }
 
@@ -822,10 +846,6 @@ void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) c
 
 void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> event)
 {
-    if ((info.faultLogType <= FaultLogType::ALL) || (info.faultLogType > FaultLogType::ADDR_SANITIZER)) {
-        HIVIEW_LOGW("Unsupported fault type");
-        return;
-    }
     HIVIEW_LOGI("Start saving Faultlog of Process:%{public}d, Name:%{public}s, Reason:%{public}s.",
         info.pid, info.module.c_str(), info.reason.c_str());
     info.sectionMap["PROCESS_NAME"] = info.module; // save process name
@@ -852,7 +872,9 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
         info.sectionMap["STACK"] = GetThreadStack(info.logPath, info.pid);
     }
 
-    mgr_->SaveFaultLogToFile(info);
+    if (info.dumpLogToFautlogger) {
+        mgr_->SaveFaultLogToFile(info);
+    }
     if (info.faultLogType != FaultLogType::JS_CRASH && info.faultLogType != FaultLogType::RUST_PANIC
         && info.faultLogType != FaultLogType::ADDR_SANITIZER) {
         mgr_->SaveFaultInfoToRawDb(info);
@@ -860,18 +882,14 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
     HIVIEW_LOGI("\nSave Faultlog of Process:%{public}d\n"
                 "ModuleName:%{public}s\n"
                 "Reason:%{public}s\n",
-                info.pid,
-                info.module.c_str(),
-                info.reason.c_str());
+                info.pid, info.module.c_str(), info.reason.c_str());
 
-    if (!isSystemProcess && info.faultLogType == FaultLogType::CPP_CRASH) {
-        CheckFaultLogAsync(info);
-        ReportCppCrashToAppEvent(info);
-    } else if (!isSystemProcess && info.faultLogType == FaultLogType::APP_FREEZE) {
-        ReportAppFreezeToAppEvent(info);
+    if (!isSystemProcess && info.reportToAppEvent) {
+        ReportEventToAppEvent(info);
     }
 
-    if (((info.faultLogType == FaultLogType::CPP_CRASH) || (info.faultLogType == FaultLogType::APP_FREEZE)) &&
+    if (info.dumpLogToFautlogger &&
+        ((info.faultLogType == FaultLogType::CPP_CRASH) || (info.faultLogType == FaultLogType::APP_FREEZE)) &&
         IsFaultLogLimit()) {
         FaultlogLimit(info.logPath, info.faultLogType);
     }
@@ -920,7 +938,7 @@ void Faultlogger::StartBootScan()
             HIVIEW_LOGI("Skip processed fault.(%{public}d:%{public}d) ", info.pid, info.id);
             continue;
         }
-        AddFaultLogIfNeed(info, nullptr);
+        AddFaultLog(info);
     }
 }
 
@@ -1205,6 +1223,20 @@ void Faultlogger::ReportAppFreezeToAppEvent(const FaultLogInfo& info) const
     HIVIEW_LOGI("Report FreezeJson Successfully!");
 }
 
+void Faultlogger::ReportEventToAppEvent(const FaultLogInfo& info)
+{
+    switch (info.faultLogType) {
+        case FaultLogType::CPP_CRASH:
+            CheckFaultLogAsync(info);
+            ReportCppCrashToAppEvent(info);
+            break;
+        case FaultLogType::APP_FREEZE:
+            ReportAppFreezeToAppEvent(info);
+            break;
+        default:
+            break;
+    }
+}
 /*
  * return value: 0 means fault log invalid; 1 means fault log valid.
  */
