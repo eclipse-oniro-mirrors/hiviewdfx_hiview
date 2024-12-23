@@ -27,6 +27,7 @@ namespace HiviewDFX {
 namespace EventStore {
 namespace {
 DEFINE_LOG_TAG("HiView-SysEventSeqMgr");
+constexpr int64_t SEQ_INCREMENT = 100; // increment of seq each time it is read from the file
 
 bool SaveStringToFile(const std::string& filePath, const std::string& content)
 {
@@ -81,13 +82,20 @@ SysEventSequenceManager::SysEventSequenceManager()
     }
     int64_t seq = 0;
     ReadSeqFromFile(seq);
-    curSeq_.store(seq, std::memory_order_release);
+    int64_t startSeq = seq + SEQ_INCREMENT;
+    HIVIEW_LOGI("start seq=%{public}" PRId64, startSeq);
+    WriteSeqToFile(startSeq);
+    curSeq_.store(startSeq, std::memory_order_release);
 }
 
 void SysEventSequenceManager::SetSequence(int64_t seq)
 {
     curSeq_.store(seq, std::memory_order_release);
-    WriteSeqToFile(seq);
+    static int64_t setCount = 0;
+    ++setCount;
+    if (setCount % SEQ_INCREMENT == 0) {
+        WriteSeqToFile(seq);
+    }
 }
 
 int64_t SysEventSequenceManager::GetSequence()

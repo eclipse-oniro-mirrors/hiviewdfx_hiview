@@ -23,6 +23,7 @@
 #include "file_util.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 #include "time_util.h"
 
 namespace OHOS {
@@ -35,6 +36,10 @@ char errMsg[BUF_SIZE] = { 0 };
 
 void RunningStatusLogger::Log(const std::string& logInfo)
 {
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGD("Do not write files on the commercial version.");
+        return;
+    }
     std::lock_guard<std::mutex> lock(writeMutex_);
     std::string destFile = GetLogWroteDestFile(logInfo);
     HIVIEW_LOGD("writing \"%{public}s\" into %{public}s.", logInfo.c_str(), destFile.c_str());
