@@ -35,6 +35,8 @@
             "hiview_unified_collector_ebpf_enable",
             "hiview_unified_collector_network_enable",
             "hiview_usage_fold_stat_enable",
+            "hiview_unified_collector_graphic_enable",
+            "hiview_unified_collector_gpu_enable",
             "hiview_unified_collector_cpu_enable",
             "hiview_unified_collector_mem_profiler_enable",
             "hiview_unified_collector_io_enable",
