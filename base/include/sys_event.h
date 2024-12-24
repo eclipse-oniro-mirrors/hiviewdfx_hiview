@@ -50,6 +50,16 @@ public:
 };
 }
 
+struct EventParamInfo {
+    std::string allowListFile;
+    uint8_t throwType = 0;
+    EventParamInfo(const std::string& allowListFile, uint8_t throwType)
+        : allowListFile(allowListFile), throwType(throwType) {}
+};
+
+// param info of one event, like <paramName, EventParamInfo>
+using PARAM_INFO_MAP_PTR = std::shared_ptr<std::map<std::string, std::shared_ptr<EventParamInfo>>>;
+
 constexpr uint8_t LOG_ALLOW_PACK = 0 << 5;
 constexpr uint8_t LOG_NOT_ALLOW_PACK = 1 << 5;
 constexpr uint8_t LOG_PACKED = 1;
@@ -96,6 +106,9 @@ public:
     bool GetEventUintArrayValue(const std::string& key, std::vector<uint64_t>& dest);
     bool GetEventDoubleArrayValue(const std::string& key, std::vector<double>& dest);
     bool GetEventStringArrayValue(const std::string& key, std::vector<std::string>& dest);
+    bool RemoveParam(const std::string& paramName);
+    void SetInvalidParams(PARAM_INFO_MAP_PTR invalidParams);
+    PARAM_INFO_MAP_PTR GetInvalidParams();
     std::string AsJsonStr();
     uint8_t* AsRawData();
     std::string GetSysVersion();
@@ -153,6 +166,7 @@ private:
     std::shared_ptr<EventRaw::RawDataBuilder> builder_;
     std::string sysVersion_;
     std::string patchVersion_;
+    PARAM_INFO_MAP_PTR invalidParams_;
 };
 
 class SysEventCreator {

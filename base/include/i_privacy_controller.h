@@ -16,7 +16,7 @@
 #ifndef HIVIEWDFX_I_PRIVACY_CONTROLLER_H
 #define HIVIEWDFX_I_PRIVACY_CONTROLLER_H
 
-#include "sys_event.h"
+#include <string>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -24,8 +24,10 @@ class IPrivacyController {
 public:
     IPrivacyController() = default;
     virtual ~IPrivacyController() = default;
-    virtual bool IsAllowed(std::shared_ptr<SysEvent> event) const = 0;
+    virtual bool IsAllowed(
+        const std::string& domain, uint8_t type, const std::string& level, uint8_t privacy) const = 0;
     virtual bool IsAllowed(uint8_t level, uint8_t privacy) const = 0;
+    virtual bool IsPrivacyAllowed(uint8_t privacy) const = 0;
     virtual void OnConfigUpdate();
 };
 } // namespace HiviewDFX

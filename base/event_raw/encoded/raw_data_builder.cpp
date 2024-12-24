@@ -263,6 +263,21 @@ RawDataBuilder& RawDataBuilder::AppendValue(std::shared_ptr<EncodedParam> param)
     return *this;
 }
 
+RawDataBuilder& RawDataBuilder::RemoveParam(const std::string& paramName)
+{
+    std::lock_guard<std::mutex> lock(paramsOptMtx_);
+    for (auto iter = allParams_.begin(); iter != allParams_.end(); ++iter) {
+        if ((*iter) == nullptr) {
+            continue;
+        }
+        if ((*iter)->GetKey() == paramName) {
+            allParams_.erase(iter);
+            break;
+        }
+    }
+    return *this;
+}
+
 std::shared_ptr<EncodedParam> RawDataBuilder::GetValue(const std::string& key)
 {
     std::lock_guard<std::mutex> lock(paramsOptMtx_);
