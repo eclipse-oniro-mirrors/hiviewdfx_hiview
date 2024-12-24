@@ -122,7 +122,6 @@ group("hiview_package") {
   deps = [
     ":hiview",
     ":plugin_config",
-    "$hiview_plugin/eventlogger:eventloggerso",
     "$hiview_plugin/faultlogger:libfaultlogger",
     "$hiview_plugin/performance:xperformance",
     "$hiview_plugin/plugin_build:adft",
@@ -136,6 +135,10 @@ group("hiview_package") {
 
   if (enable_hiview_usage_event_report_build) {
     deps += [ "plugins/usage_event_report/service:usage_report" ]
+  }
+
+  if (hiview_freeze_collect_enable) {
+    deps += [ "$hiview_plugin/eventlogger:eventloggerso" ]
   }
 
   deps += plugin_dynamic_deps
