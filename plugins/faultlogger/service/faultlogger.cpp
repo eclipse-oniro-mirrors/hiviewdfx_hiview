@@ -571,7 +571,7 @@ static void UpdateSysEvent(SysEvent &sysEvent, FaultLogInfo &info)
     sysEvent.SetEventValue("FAULT_TYPE", std::to_string(info.faultLogType));
     sysEvent.SetEventValue("MODULE", info.module);
     sysEvent.SetEventValue("LOG_PATH", info.logPath);
-    // DEBUG SIGNAL does not need update HAPPEN_TIME
+    // DEBUG SIGNAL does not need to update HAPPEN_TIME
     if (!IsDebugSignal(info)) {
         sysEvent.SetEventValue("HAPPEN_TIME", sysEvent.happenTime_);
     }

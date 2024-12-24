@@ -19,19 +19,19 @@
             <option name="push" value="common/extract_rule.json -> /data/test/test_data/SmartParser/common" src="res"/>
             <option name="push" value="common/test_compose_rule.json -> /data/test/test_data/SmartParser/common" src="res"/>
             <option name="push" value="common/test_extract_rule.json -> /data/test/test_data/SmartParser/common" src="res"/>
-            <option name="push" value="SmartParserTest001/cppcrash-com.ohos.launcher-20010025-19700324235211 -> /data/test/test_data/SmartParser/SmartParserTest001" src="res"/>
+            <option name="push" value="SmartParserTest001/cppcrash-com.ohos.launcher-20010025-19700324235211000.log -> /data/test/test_data/SmartParser/SmartParserTest001" src="res"/>
             <option name="push" value="SmartParserTest001/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest001" src="res"/>
-            <option name="push" value="SmartParserTest002/jscrash-com.example.jsinject-20010041-19700424183123 -> /data/test/test_data/SmartParser/SmartParserTest002" src="res"/>
+            <option name="push" value="SmartParserTest002/jscrash-com.example.jsinject-20010041-19700424183123000.log -> /data/test/test_data/SmartParser/SmartParserTest002" src="res"/>
             <option name="push" value="SmartParserTest002/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest002" src="res"/>
-            <option name="push" value="SmartParserTest003/appfreeze-com.example.jsinject-20010039-19700326211815 -> /data/test/test_data/SmartParser/SmartParserTest003" src="res"/>
+            <option name="push" value="SmartParserTest003/appfreeze-com.example.jsinject-20010039-19700326211815000.log -> /data/test/test_data/SmartParser/SmartParserTest003" src="res"/>
             <option name="push" value="SmartParserTest003/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest003" src="res"/>
             <option name="push" value="SmartParserTest004/last_kmsg -> /data/test/test_data/SmartParser/SmartParserTest004" src="res"/>
             <option name="push" value="SmartParserTest004/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest004" src="res"/>
             <option name="push" value="SmartParserTest005/last_kmsg -> /data/test/test_data/SmartParser/SmartParserTest005" src="res"/>
             <option name="push" value="SmartParserTest005/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest005" src="res"/>
-            <option name="push" value="SmartParserTest006/rustpanic-rustpanic_maker-0-20230419222113 -> /data/test/test_data/SmartParser/SmartParserTest006" src="res"/>
+            <option name="push" value="SmartParserTest006/rustpanic-rustpanic_maker-0-20230419222113000.log -> /data/test/test_data/SmartParser/SmartParserTest006" src="res"/>
             <option name="push" value="SmartParserTest006/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest006" src="res"/>
-            <option name="push" value="SmartParserTest007/rustpanic-rustpanic_maker-0-20230419222113 -> /data/test/test_data/SmartParser/SmartParserTest007" src="res"/>
+            <option name="push" value="SmartParserTest007/rustpanic-rustpanic_maker-0-20230419222113000.log -> /data/test/test_data/SmartParser/SmartParserTest007" src="res"/>
             <option name="push" value="SmartParserTest007/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest007" src="res"/>
             <option name="push" value="SmartParserTest007/test_compose_rule.json -> /data/test/test_data/SmartParser/SmartParserTest007" src="res"/>
             <option name="push" value="SmartParserTest007/test_extract_rule.json -> /data/test/test_data/SmartParser/SmartParserTest007" src="res"/>
@@ -39,19 +39,19 @@
             <option name="push" value="SmartParserTest008/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest008" src="res"/>
             <option name="push" value="SmartParserTest008/test_compose_rule.json -> /data/test/test_data/SmartParser/SmartParserTest008" src="res"/>
             <option name="push" value="SmartParserTest008/test_extract_rule.json -> /data/test/test_data/SmartParser/SmartParserTest008" src="res"/>
-            <option name="push" value="SmartParserTest009/rustpanic-rustpanic_maker-0-20230419222113 -> /data/test/test_data/SmartParser/SmartParserTest009" src="res"/>
+            <option name="push" value="SmartParserTest009/rustpanic-rustpanic_maker-0-20230419222113000.log -> /data/test/test_data/SmartParser/SmartParserTest009" src="res"/>
             <option name="push" value="SmartParserTest009/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest009" src="res"/>
             <option name="push" value="SmartParserTest009/test_compose_rule.json -> /data/test/test_data/SmartParser/SmartParserTest009" src="res"/>
             <option name="push" value="SmartParserTest009/test_extract_rule.json -> /data/test/test_data/SmartParser/SmartParserTest009" src="res"/>
-            <option name="push" value="SmartParserTest010/appfreeze-com.example.jsinject-20010039-19700326211815 -> /data/test/test_data/SmartParser/SmartParserTest010" src="res"/>
+            <option name="push" value="SmartParserTest010/appfreeze-com.example.jsinject-20010039-19700326211815000.log -> /data/test/test_data/SmartParser/SmartParserTest010" src="res"/>
             <option name="push" value="SmartParserTest010/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest010" src="res"/>
             <option name="push" value="SmartParserTest010/test_compose_rule.json -> /data/test/test_data/SmartParser/SmartParserTest010" src="res"/>
             <option name="push" value="SmartParserTest010/test_extract_rule.json -> /data/test/test_data/SmartParser/SmartParserTest010" src="res"/>
-            <option name="push" value="SmartParserTest011/appfreeze-com.example.jsinject-20010039-19700326211815 -> /data/test/test_data/SmartParser/SmartParserTest011" src="res"/>
+            <option name="push" value="SmartParserTest011/appfreeze-com.example.jsinject-20010039-19700326211815000.log -> /data/test/test_data/SmartParser/SmartParserTest011" src="res"/>
             <option name="push" value="SmartParserTest011/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest011" src="res"/>
             <option name="push" value="SmartParserTest011/test_compose_rule.json -> /data/test/test_data/SmartParser/SmartParserTest011" src="res"/>
             <option name="push" value="SmartParserTest011/test_extract_rule.json -> /data/test/test_data/SmartParser/SmartParserTest011" src="res"/>
-            <option name="push" value="SmartParserTest012/rustpanic-rustpanic_maker-0-20230419222113 -> /data/test/test_data/SmartParser/SmartParserTest012" src="res"/>
+            <option name="push" value="SmartParserTest012/rustpanic-rustpanic_maker-0-20230419222113000.log -> /data/test/test_data/SmartParser/SmartParserTest012" src="res"/>
             <option name="push" value="SmartParserTest012/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest012" src="res"/>
             <option name="push" value="SmartParserTest012/test_compose_rule.json -> /data/test/test_data/SmartParser/SmartParserTest012" src="res"/>
             <option name="push" value="SmartParserTest012/test_extract_rule.json -> /data/test/test_data/SmartParser/SmartParserTest012" src="res"/>
