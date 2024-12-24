@@ -39,6 +39,7 @@ constexpr int32_t UID_SHELL = 2000;
 constexpr int32_t UID_ROOT = 0;
 constexpr int32_t UID_HIDUMPER = 1212;
 constexpr int32_t UID_HIVIEW = 1201;
+constexpr int32_t UID_FAULTLOGGERD = 1202;
 }
 void FaultloggerServiceOhos::ClearQueryStub(int32_t uid)
 {
@@ -111,7 +112,7 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
 
     int32_t uid = IPCSkeleton::GetCallingUid();
     HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d", info.uid, uid, info.pid);
-    if (((uid != static_cast<int32_t>(getuid()))) && (uid != info.uid)) {
+    if ((uid != static_cast<int32_t>(getuid())) && uid != info.uid && uid != UID_FAULTLOGGERD) {
         HIVIEW_LOGW("Fail to add fault log, mismatch uid:%{public}d(%{public}d)", uid, info.uid);
         return;
     }
