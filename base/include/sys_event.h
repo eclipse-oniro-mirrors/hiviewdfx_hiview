@@ -50,15 +50,15 @@ public:
 };
 }
 
-struct EventParamInfo  {
+struct EventParamInfo {
     std::string allowListFile;
     uint8_t throwType = 0;
-    EventParamInfo (const std::string& allowListFile, uint8_t throwType)
+    EventParamInfo(const std::string& allowListFile, uint8_t throwType)
         : allowListFile(allowListFile), throwType(throwType) {}
 };
 
-// param info of one event, like <paramName, EventParamInfo >
-using PARAM_INFO_MAP_PTR = std::shared_ptr<std::map<std::string, std::shared_ptr<EventParamInfo >>>;
+// param info of one event, like <paramName, EventParamInfo>
+using PARAM_INFO_MAP_PTR = std::shared_ptr<std::map<std::string, std::shared_ptr<EventParamInfo>>>;
 
 constexpr uint8_t LOG_ALLOW_PACK = 0 << 5;
 constexpr uint8_t LOG_NOT_ALLOW_PACK = 1 << 5;
