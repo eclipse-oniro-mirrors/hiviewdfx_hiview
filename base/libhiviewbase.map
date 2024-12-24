@@ -340,6 +340,7 @@
         "OHOS::HiviewDFX::EventRaw::DecodedEvent::~DecodedEvent()";
         "OHOS::HiviewDFX::EventStore::ResultSet::GetErrCode() const";
         "OHOS::HiviewDFX::FreezeJsonUtil::IsAppFreeze(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::FreezeJsonUtil::IsAppHicollie(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FreezeJsonUtil::GetFd(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FreezeJsonUtil::WrapByParenthesis(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::StringUtil::FormatCmdLine(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

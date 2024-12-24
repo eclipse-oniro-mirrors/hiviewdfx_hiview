@@ -59,6 +59,7 @@ const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
     { EVENT_ADDRESS_SANITIZER, 7 },
     { EVENT_MAIN_THREAD_JANK, 8 },
     { EVENT_APP_START, 9 },
+    { EVENT_APP_HICOLLIE, 10 },
 };
 
 struct ExternalLogInfo {
@@ -402,7 +403,7 @@ void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEve
     }
     eventJson[PARAM_PROPERTY] = params;
     const std::set<std::string> immediateEvents = {EVENT_APP_CRASH, EVENT_APP_FREEZE, EVENT_ADDRESS_SANITIZER,
-        EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK};
+        EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK, EVENT_APP_HICOLLIE};
     if (immediateEvents.find(eventName) != immediateEvents.end()) {
         SaveEventAndLogToSandBox(uid, eventName, bundleName, eventJson);
     } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {

@@ -298,7 +298,7 @@ std::string Vendor::MergeEventLog(
         return "";
     }
 
-    if (type == APPFREEZE) {
+    if (type == APPFREEZE || FreezeJsonUtil::IsAppHicollie(watchPoint.GetStringId())) {
         MergeFreezeJsonFile(watchPoint, list);
     }
 

@@ -92,6 +92,7 @@ constexpr time_t FORTYEIGHT_HOURS = 48 * 60 * 60;
 constexpr int READ_HILOG_BUFFER_SIZE = 1024;
 constexpr char APP_CRASH_TYPE[] = "APP_CRASH";
 constexpr char APP_FREEZE_TYPE[] = "APP_FREEZE";
+constexpr char APP_HICOLLIE_TYPE[] = "APP_HICOLLIE";
 constexpr int REPORT_HILOG_LINE = 100;
 constexpr const char STACK_ERROR_MESSAGE[] = "Cannot get SourceMap info, dump raw stack:";
 DumpRequest InitDumpRequest()
@@ -1188,7 +1189,7 @@ FreezeJsonUtil::FreezeJsonCollector Faultlogger::GetFreezeJsonCollector(const Fa
     return collector;
 }
 
-void Faultlogger::ReportAppFreezeToAppEvent(const FaultLogInfo& info) const
+void Faultlogger::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie) const
 {
     HIVIEW_LOGI("Start to report freezeJson !!!");
 
@@ -1200,7 +1201,7 @@ void Faultlogger::ReportAppFreezeToAppEvent(const FaultLogInfo& info) const
     FreezeJsonParams freezeJsonParams = FreezeJsonParams::Builder()
         .InitTime(collector.timestamp)
         .InitUuid(collector.uuid)
-        .InitFreezeType("AppFreeze")
+        .InitFreezeType(isAppHicollie ? "AppHicollie" : "AppFreeze")
         .InitForeground(collector.foreground)
         .InitBundleVersion(collector.version)
         .InitBundleName(collector.package_name)
@@ -1218,13 +1219,18 @@ void Faultlogger::ReportAppFreezeToAppEvent(const FaultLogInfo& info) const
         .InitThreads(collector.stack)
         .InitMemory(collector.memory)
         .Build();
-    EventPublish::GetInstance().PushEvent(info.id, APP_FREEZE_TYPE,
+    EventPublish::GetInstance().PushEvent(info.id, isAppHicollie ? APP_HICOLLIE_TYPE : APP_FREEZE_TYPE,
         HiSysEvent::EventType::FAULT, freezeJsonParams.JsonStr());
     HIVIEW_LOGI("Report FreezeJson Successfully!");
 }
 
 void Faultlogger::ReportEventToAppEvent(const FaultLogInfo& info)
 {
+    if (FreezeJsonUtil::IsAppHicollie(info.reason)) {
+        ReportAppFreezeToAppEvent(info, true);
+        return;
+    }
+
     switch (info.faultLogType) {
         case FaultLogType::CPP_CRASH:
             CheckFaultLogAsync(info);
