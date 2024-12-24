@@ -115,9 +115,9 @@
                     }
                 },
                 {
-                    "name": "//base/hiviewdfx/hiview/interfaces/innerkits/xpower_event:libxpower_event",
+                    "name": "//base/hiviewdfx/hiview/interfaces/inner_api/xpower_event:libxpower_event",
                     "header": {
-                        "header_base": "//base/hiviewdfx/hiview/interfaces/innerkits/xpower_event/include",
+                        "header_base": "//base/hiviewdfx/hiview/interfaces/inner_api/xpower_event/include",
                         "header_files": [
                             "xpower_event_common.h",
                             "xpower_event.h"
@@ -125,9 +125,9 @@
                     }
                 },
                 {
-                    "name": "//base/hiviewdfx/hiview/interfaces/innerkits/xpower_event:libxpower_event_js",
+                    "name": "//base/hiviewdfx/hiview/interfaces/inner_api/xpower_event:libxpower_event_js",
                     "header": {
-                        "header_base": "//base/hiviewdfx/hiview/interfaces/innerkits/xpower_event/include",
+                        "header_base": "//base/hiviewdfx/hiview/interfaces/inner_api/xpower_event/include",
                         "header_files": [
                             "xpower_event_common.h",
                             "xpower_event_js.h",

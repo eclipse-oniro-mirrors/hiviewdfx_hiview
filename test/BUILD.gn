@@ -82,7 +82,7 @@ ohos_unittest("ReportXPowerEventTest") {
 
   sources = [ "unittest/xpower_event/xpower_event_test.cpp" ]
 
-  deps = [ "$hiview_root/interfaces/innerkits/xpower_event:libxpower_event" ]
+  deps = [ "$hiview_root/interfaces/inner_api/xpower_event:libxpower_event" ]
 
   external_deps = [
     "googletest:gtest_main",
@@ -105,7 +105,7 @@ if (!defined(ohos_lite)) {
 
     sources = [ "unittest/xpower_event/xpower_jsevent_test.cpp" ]
     deps =
-        [ "$hiview_root/interfaces/innerkits/xpower_event:libxpower_event_js" ]
+        [ "$hiview_root/interfaces/inner_api/xpower_event:libxpower_event_js" ]
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
