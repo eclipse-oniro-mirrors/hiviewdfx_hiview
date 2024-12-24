@@ -29,6 +29,15 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectClient;
 using namespace OHOS::HiviewDFX::UCollect;
 
+class TraceCollectorTest : public testing::Test {
+public:
+    void SetUp() {};
+    void TearDown() {};
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
+};
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 namespace {
 constexpr int SLEEP_DURATION = 10;
 
@@ -80,14 +89,6 @@ int GenerateUid()
     return uid;
 }
 }
-
-class TraceCollectorTest : public testing::Test {
-public:
-    void SetUp() {};
-    void TearDown() {};
-    static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
-};
 
 /**
  * @tc.name: TraceCollectorTest001
@@ -555,3 +556,22 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest011, TestSize.Level1)
         sleep(10);
     }
 }
+#else
+/**
+ * @tc.name: TraceCollectorTest001
+ * @tc.desc: test empty TraceCollector.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
+{
+    auto traceCollector = TraceCollector::Create();
+    auto ret1 = traceCollector->DumpSnapshot();
+    ASSERT_TRUE(ret1.retCode == UcError::FEATURE_CLOSED);
+
+    auto ret2 = traceCollector->RecordingOn();
+    ASSERT_TRUE(ret2.retCode == UcError::FEATURE_CLOSED);
+
+    auto ret3 = traceCollector->RecordingOff();
+    ASSERT_TRUE(ret3.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

@@ -25,11 +25,6 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectClient;
 using namespace OHOS::HiviewDFX::UCollect;
 
-namespace {
-    constexpr int CPU_USAGE_MIN_VALUE = 0;
-    constexpr int CPU_USAGE_MAX_VALUE = 1;
-}
-
 class CpuCollectorTest : public testing::Test {
 public:
     void SetUp() {};
@@ -37,6 +32,12 @@ public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
 };
+
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
+namespace {
+constexpr int CPU_USAGE_MIN_VALUE = 0;
+constexpr int CPU_USAGE_MAX_VALUE = 1;
+}
 
 /**
  * @tc.name: CpuCollectorTest01
@@ -50,3 +51,16 @@ HWTEST_F(CpuCollectorTest, CpuCollectorTest01, TestSize.Level1)
     ASSERT_TRUE(collectResult.retCode == UcError::SUCCESS);
     ASSERT_TRUE(collectResult.data >= CPU_USAGE_MIN_VALUE && collectResult.data <= CPU_USAGE_MAX_VALUE);
 }
+#else
+/**
+ * @tc.name: CpuCollectorTest01
+ * @tc.desc: used to test the function of empty CpuCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(CpuCollectorTest, CpuCollectorTest01, TestSize.Level1)
+{
+    std::shared_ptr<CpuCollector> collector = CpuCollector::Create();
+    auto collectResult = collector->GetSysCpuUsage();
+    ASSERT_TRUE(collectResult.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

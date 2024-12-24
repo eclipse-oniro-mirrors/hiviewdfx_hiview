@@ -33,6 +33,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_CPU_ENABLE
 /**
  * @tc.name: CpuCollectorTest001
  * @tc.desc: used to test CpuCollector.CollectSysCpuLoad
@@ -384,3 +385,34 @@ HWTEST_F(CpuCollectorTest, CpuCollectorTest019, TestSize.Level1)
     ASSERT_NE(collector4, nullptr);
     ASSERT_NE(collector3, collector4);
 }
+#else
+/**
+ * @tc.name: CpuCollectorTest001
+ * @tc.desc: used to test empty CpuCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(CpuCollectorTest, CpuCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<CpuCollector> collector = CpuCollector::Create();
+    auto result1 = collector->CollectSysCpuLoad();
+    ASSERT_TRUE(result1.retCode == UcError::FEATURE_CLOSED);
+
+    auto result2 = collector->CollectSysCpuUsage();
+    ASSERT_TRUE(result2.retCode == UcError::FEATURE_CLOSED);
+
+    auto result3 = collector->GetSysCpuUsage();
+    ASSERT_TRUE(result3.retCode == UcError::FEATURE_CLOSED);
+
+    auto result4 = collector->CollectProcessCpuStatInfo(0);
+    ASSERT_TRUE(result4.retCode == UcError::FEATURE_CLOSED);
+
+    auto result5 = collector->CollectCpuFrequency();
+    ASSERT_TRUE(result5.retCode == UcError::FEATURE_CLOSED);
+
+    auto result6 = collector->CollectProcessCpuStatInfos();
+    ASSERT_TRUE(result6.retCode == UcError::FEATURE_CLOSED);
+
+    auto result7 = collector->CreateThreadCollector(0);
+    ASSERT_TRUE(result7 == nullptr);
+}
+#endif

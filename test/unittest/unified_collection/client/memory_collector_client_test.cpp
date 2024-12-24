@@ -72,5 +72,13 @@ HWTEST_F(MemoryCollectorClientTest, MemoryCollectorClientTest002, TestSize.Level
     std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
     auto collectResult = collector->GetGraphicUsage();
     std::cout << "GetGraphicUsage result:" << collectResult.data << std::endl;
+#ifdef UNIFIED_COLLECTOR_GRAPHIC_ENABLE
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     ASSERT_EQ(collectResult.retCode, UcError::SUCCESS);
+#else
+    ASSERT_EQ(collectResult.retCode, UcError::FEATURE_CLOSED);
+#endif
+#else
+    ASSERT_EQ(collectResult.retCode, UcError::FEATURE_CLOSED);
+#endif
 }

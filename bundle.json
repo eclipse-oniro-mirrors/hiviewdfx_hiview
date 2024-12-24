@@ -34,7 +34,16 @@
             "hiview_unified_collector_perf_enable",
             "hiview_unified_collector_ebpf_enable",
             "hiview_unified_collector_network_enable",
-            "hiview_usage_fold_stat_enable"
+            "hiview_usage_fold_stat_enable",
+            "hiview_unified_collector_cpu_enable",
+            "hiview_unified_collector_mem_profiler_enable",
+            "hiview_unified_collector_io_enable",
+            "hiview_unified_collector_thermal_enable",
+            "hiview_unified_collector_memory_enable",
+            "hiview_unified_collector_hilog_enable",
+            "hiview_unified_collector_wm_enable",
+            "hiview_unified_collector_process_enable",
+            "hiview_unified_collector_trace_enable"
         ],
         "rom": "",
         "ram": "",

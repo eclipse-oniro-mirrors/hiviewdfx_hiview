@@ -39,6 +39,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
 namespace {
 // eg: 123   ab-cd   456 789 0   -123  0
 //     123   ab cd   0   0   0   0     0
@@ -376,3 +377,64 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest017, TestSize.Level1)
     auto data3 = collector->CollectProcessMemoryDetail(1, true);
     ASSERT_EQ(data3.retCode, UcError::SUCCESS);
 }
+#else
+/**
+ * @tc.name: MemoryCollectorTest001
+ * @tc.desc: used to test empty MemoryCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemoryCollectorTest, MemoryCollectorTest001, TestSize.Level1)
+{
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    auto ret1 = collector->CollectProcessMemory(0);
+    ASSERT_EQ(ret1.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret2 = collector->CollectSysMemory();
+    ASSERT_EQ(ret2.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret3 = collector->CollectRawMemInfo();
+    ASSERT_EQ(ret3.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret4 = collector->ExportMemView();
+    ASSERT_EQ(ret4.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret5 = collector->CollectAllProcessMemory();
+    ASSERT_EQ(ret5.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret6 = collector->ExportAllProcessMemory();
+    ASSERT_EQ(ret6.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret7 = collector->CollectRawSlabInfo();
+    ASSERT_EQ(ret7.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret8 = collector->CollectRawPageTypeInfo();
+    ASSERT_EQ(ret8.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret9 = collector->CollectRawDMA();
+    ASSERT_EQ(ret9.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret10 = collector->CollectAllAIProcess();
+    ASSERT_EQ(ret10.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret11 = collector->ExportAllAIProcess();
+    ASSERT_EQ(ret11.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret12 = collector->CollectRawSmaps(0);
+    ASSERT_EQ(ret12.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret13 = collector->CollectHprof(0);
+    ASSERT_EQ(ret13.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret14 = collector->CollectProcessVss(0);
+    ASSERT_EQ(ret14.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret15 = collector->CollectMemoryLimit();
+    ASSERT_EQ(ret15.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret16 = collector->CollectDdrFreq();
+    ASSERT_EQ(ret16.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret17 = collector->CollectProcessMemoryDetail(0);
+    ASSERT_EQ(ret17.retCode, UcError::FEATURE_CLOSED);
+}
+#endif

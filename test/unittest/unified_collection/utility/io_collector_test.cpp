@@ -34,6 +34,7 @@ public:
     static void TearDownTestCase() {};
 };
 
+#ifdef UNIFIED_COLLECTOR_IO_ENABLE
 namespace {
 // %-13s\t%12s\t%12s\t%12s\t%12s\t%12s\t%12s\t%20s\t%20s
 const std::regex ALL_PROC_IO_STATS1("^\\d{1,}\\s{1,}[\\w/\\.:-]{1,}\\s{1,}\\d{1,}(\\s{1,}\\d{1,}\\.\\d{2}){6}$");
@@ -266,3 +267,43 @@ HWTEST_F(IoCollectorTest, IoCollectorTest012, TestSize.Level1)
     bool flag = CheckFormat(result.data, SYS_IO_STATS1, SYS_IO_STATS2);
     ASSERT_TRUE(flag);
 }
+#else
+/**
+ * @tc.name: IoCollectorTest001
+ * @tc.desc: used to test empty IoCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(IoCollectorTest, IoCollectorTest012, TestSize.Level1)
+{
+    std::shared_ptr<IoCollector> collect = IoCollector::Create();
+    auto result1 = collect->CollectProcessIo(0);
+    ASSERT_TRUE(result1.retCode == UcError::FEATURE_CLOSED);
+
+    auto result2 = collect->CollectRawDiskStats();
+    ASSERT_TRUE(result2.retCode == UcError::FEATURE_CLOSED);
+
+    auto result3 = collect->CollectDiskStats();
+    ASSERT_TRUE(result3.retCode == UcError::FEATURE_CLOSED);
+
+    auto result4 = collect->ExportDiskStats();
+    ASSERT_TRUE(result4.retCode == UcError::FEATURE_CLOSED);
+
+    auto result5 = collect->CollectEMMCInfo();
+    ASSERT_TRUE(result5.retCode == UcError::FEATURE_CLOSED);
+
+    auto result6 = collect->ExportEMMCInfo();
+    ASSERT_TRUE(result6.retCode == UcError::FEATURE_CLOSED);
+
+    auto result7 = collect->CollectAllProcIoStats();
+    ASSERT_TRUE(result7.retCode == UcError::FEATURE_CLOSED);
+
+    auto result8 = collect->ExportAllProcIoStats();
+    ASSERT_TRUE(result8.retCode == UcError::FEATURE_CLOSED);
+
+    auto result9 = collect->CollectSysIoStats();
+    ASSERT_TRUE(result9.retCode == UcError::FEATURE_CLOSED);
+
+    auto result10 = collect->ExportSysIoStats();
+    ASSERT_TRUE(result10.retCode == UcError::FEATURE_CLOSED);
+}
+#endif

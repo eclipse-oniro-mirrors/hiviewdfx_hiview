@@ -26,14 +26,6 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
 
-namespace {
-TraceManager g_traceManager;
-constexpr uint32_t TIME_0S = 0;
-constexpr uint32_t TIME_10S = 10;
-constexpr uint32_t TIME_20S = 20;
-constexpr uint32_t TIME_30S = 30;
-}
-
 class TraceCollectorTest : public testing::Test {
 public:
     void SetUp() {};
@@ -41,6 +33,15 @@ public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
 };
+
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+namespace {
+TraceManager g_traceManager;
+constexpr uint32_t TIME_0S = 0;
+constexpr uint32_t TIME_10S = 10;
+constexpr uint32_t TIME_20S = 20;
+constexpr uint32_t TIME_30S = 30;
+}
 
 /**
  * @tc.name: TraceCollectorTest001
@@ -414,3 +415,26 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest018, TestSize.Level1)
     ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), UcError::TRACE_IS_OCCUPIED);
     ASSERT_EQ(g_traceManager.CloseTrace(), UcError::SUCCESS);
 }
+#else
+/**
+ * @tc.name: TraceCollectorTest001
+ * @tc.desc: used to test empty TraceCollector
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
+{
+    UCollect::TraceCaller caller = UCollect::TraceCaller::XPERF;
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    auto ret1 = collector->DumpTrace(caller);
+    ASSERT_EQ(ret1.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret2 = collector->DumpTraceWithDuration(caller, 0);
+    ASSERT_EQ(ret2.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret3 = collector->TraceOn();
+    ASSERT_EQ(ret3.retCode, UcError::FEATURE_CLOSED);
+
+    auto ret4 = collector->TraceOff();
+    ASSERT_EQ(ret4.retCode, UcError::FEATURE_CLOSED);
+}
+#endif

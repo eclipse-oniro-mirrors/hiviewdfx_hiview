@@ -14,8 +14,9 @@
  */
 #ifndef INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_WM_COLLECTOR_H
 #define INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_WM_COLLECTOR_H
+
 #include <memory>
-#include <vector>
+#include <string>
 
 #include "collect_result.h"
 
