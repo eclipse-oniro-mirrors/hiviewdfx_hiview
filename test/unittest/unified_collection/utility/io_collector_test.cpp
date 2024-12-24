@@ -273,7 +273,7 @@ HWTEST_F(IoCollectorTest, IoCollectorTest012, TestSize.Level1)
  * @tc.desc: used to test empty IoCollector
  * @tc.type: FUNC
 */
-HWTEST_F(IoCollectorTest, IoCollectorTest012, TestSize.Level1)
+HWTEST_F(IoCollectorTest, IoCollectorTest001, TestSize.Level1)
 {
     std::shared_ptr<IoCollector> collect = IoCollector::Create();
     auto result1 = collect->CollectProcessIo(0);

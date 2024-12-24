@@ -46,9 +46,9 @@ void HilogCollectorImpl::ExecuteHilog(int32_t pid, uint32_t lineCount, int write
 
 void HilogCollectorImpl::ReadHilog(int readFd, std::string& log) const
 {
-    constexpr int READ_HILOG_BUFFER_SIZE = 1024;
+    constexpr int readBufferSize = 1024;
     while (true) {
-        char buffer[READ_HILOG_BUFFER_SIZE] = {0};
+        char buffer[readBufferSize] = {0};
         ssize_t nread = read(readFd, buffer, sizeof(buffer) - 1);
         if (nread <= 0) {
             HIVIEW_LOGI("read hilog finished");
