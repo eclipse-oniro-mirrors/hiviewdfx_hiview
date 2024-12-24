@@ -169,7 +169,7 @@ bool IsNameLine(const std::string& line, std::string &name, uint64_t &iNode)
 bool GetTypeAndValue(const std::string& line, std::string& type, uint64_t& value)
 {
     std::size_t pos = line.find(':');
-    if (pos!= std::string::npos) {
+    if (pos != std::string::npos) {
         type = line.substr(0, pos);
         auto valueStr = line.substr(pos + 1);
         value = strtoull(valueStr.c_str(), nullptr, 10); // 10 : convert string to decimal
