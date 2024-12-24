@@ -84,9 +84,9 @@ bool PrivacyController::IsValidParam(std::shared_ptr<SysEvent>& sysEvent,
     std::vector<std::string> values;
     if (sysEvent->GetEventStringArrayValue(paramName, values)) {
         bool isNeedHideParam = false;
-        for (auto iter = values.begin(); iter != values.end();) {
-            if (!IsBundleNameAllow(*iter, allowListFile)) {
-                *iter = "*";
+        for (auto& value : values) {
+            if (!IsBundleNameAllow(value, allowListFile)) {
+                value = "*";
                 isNeedHideParam = true;
             }
         }
