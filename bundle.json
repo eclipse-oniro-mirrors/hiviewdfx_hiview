@@ -24,6 +24,7 @@
             "hiview_enable_performance_monitor",
             "hiview_unified_collector_PC_app_state_collect_enable",
             "hiview_enable_crash_validator",
+            "hiview_freeze_collect_enable",
             "hiview_eventlogger_window_manager_enable",
             "hiview_appevent_publish_enable",
             "hiview_param_update_enable",
@@ -33,8 +34,7 @@
             "hiview_unified_collector_perf_enable",
             "hiview_unified_collector_ebpf_enable",
             "hiview_unified_collector_network_enable",
-            "hiview_usage_fold_stat_enable",
-            "hiview_freeze_collect_enable"
+            "hiview_usage_fold_stat_enable"
         ],
         "rom": "",
         "ram": "",
