@@ -59,7 +59,7 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithDuratio
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(UCollect::TraceCaller &caller)
 {
-    return StartDumpTrace(caller, FULL_TRACE_DURATION, static_cast<uint64_t>(0));
+    return StartDumpTrace(caller, 0, static_cast<uint64_t>(0));
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(UCollect::TraceCaller &caller,
@@ -83,7 +83,7 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(UColl
     DumpEvent dumpEvent;
     TraceRetInfo traceRetInfo = RecordTraceEvent(dumpEvent, caller, timeLimit, happenTime);
     int64_t traceSize = GetTraceSize(traceRetInfo);
-    if (traceSize <= INT32_MAX * MB_TO_KB * KB_TO_BYTE) {
+    if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
     // check 2, judge whether to upload or not
@@ -118,7 +118,7 @@ TraceRetInfo TraceCollectorImpl::RecordTraceEvent(DumpEvent &dumpEvent, UCollect
     dumpEvent.caller = EnumToString(caller);
     dumpEvent.reqDuration = timeLimit;
     dumpEvent.reqTime = happenTime;
-    dumpEvent.execTime = TimeUtil::GenerateTimestamp();
+    dumpEvent.execTime = TimeUtil::GenerateTimestamp() / 1000; // convert execTime into ms unit
     auto start = std::chrono::steady_clock::now();
     if (timeLimit == FULL_TRACE_DURATION) {
         traceRetInfo = OHOS::HiviewDFX::Hitrace::DumpTrace(0, happenTime);
@@ -129,7 +129,7 @@ TraceRetInfo TraceCollectorImpl::RecordTraceEvent(DumpEvent &dumpEvent, UCollect
     dumpEvent.execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     dumpEvent.coverDuration = traceRetInfo.coverDuration;
     dumpEvent.coverRatio = traceRetInfo.coverRatio;
-    dumpEvent.tagGroup = traceRetInfo.tagGroup;
+    dumpEvent.tags = std::move(traceRetInfo.tags);
     LoadMemoryInfo(dumpEvent);
     return traceRetInfo;
 }
