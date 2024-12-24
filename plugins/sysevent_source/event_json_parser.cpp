@@ -220,14 +220,14 @@ PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& event
         }
         if (paramMaps == nullptr) {
             // if all params meet the privacy, no need to create the param instance
-            paramMaps = std::make_shared<std::map<std::string, std::shared_ptr<ParamInfo>>>();
+            paramMaps = std::make_shared<std::map<std::string, std::shared_ptr<EventParamInfo>>>();
         }
-        std::shared_ptr<ParamInfo> paramInfo = nullptr;
+        std::shared_ptr<EventParamInfo> paramInfo = nullptr;
         if (Parameter::IsOversea() &&
             HasStringMember(paramContent, "allowlist") && HasUIntMember(paramContent, "throwtype")) {
             std::string allowListFile = paramContent["allowlist"].asString();
             uint8_t throwType = static_cast<uint8_t>(paramContent["throwtype"].asUInt());
-            paramInfo = std::make_shared<ParamInfo>(allowListFile, throwType);
+            paramInfo = std::make_shared<EventParamInfo>(allowListFile, throwType);
         }
         paramMaps->insert(std::make_pair(paramName, paramInfo));
     }
