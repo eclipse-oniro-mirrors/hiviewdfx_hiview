@@ -1037,7 +1037,7 @@ bool EventLogger::CheckScreenOnRepeat(std::shared_ptr<SysEvent> event)
     eventMap["RELIABILITY"] = {"CPP_CRASH"};
 
     uint64_t endTime = event->happenTime_;
-    uint64_t startTime = endTime - 70 * 1000;
+    uint64_t startTime = endTime - 15 * 1000;
     for (const auto &pair : eventMap) {
         std::vector<std::string> eventNames = pair.second;
         std::vector<SysEvent> records = dbHelper_->SelectRecords(startTime, endTime, pair.first, eventNames);
@@ -1049,6 +1049,8 @@ bool EventLogger::CheckScreenOnRepeat(std::shared_ptr<SysEvent> event)
             }
             if (std::find(std::begin(CORE_PORCESSES), std::end(CORE_PORCESSES), processName) !=
                 std::end(CORE_PORCESSES)) {
+                HIVIEW_LOGI("avoid SCREEN_ON repeated report, previous eventName=%{public}s, processName=%{public}s",
+                    record.eventName_.c_str(), processName.c_str());
                 return true;
             }
         }
