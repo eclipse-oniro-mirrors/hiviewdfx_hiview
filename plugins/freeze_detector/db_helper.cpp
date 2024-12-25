@@ -110,5 +110,29 @@ void DBHelper::SelectEventFromDB(unsigned long long start, unsigned long long en
 
     HIVIEW_LOGI("select event from db, size =%{public}zu.", list.size());
 }
+
+std::vector<SysEvent> DBHelper::SelectRecords(unsigned long long start, unsigned long long end,
+    const std::string& domain, const std::vector<std::string>& eventNames)
+{
+    std::vector<SysEvent> records;
+    if (freezeCommon_ == nullptr || start >= end) {
+        return records;
+    }
+    auto eventQuery = EventStore::SysEventDao::BuildQuery(domain, eventNames);
+    if (!eventQuery) {
+        return records;
+    }
+    eventQuery->Select({ EventStore::EventCol::TS })
+        .Where(EventStore::EventCol::TS, EventStore::Op::GE, static_cast<int64_t>(start))
+        .And(EventStore::EventCol::TS, EventStore::Op::LE, static_cast<int64_t>(end));
+    EventStore::ResultSet set = eventQuery->Execute();
+    if (set.GetErrCode() == 0) {
+        while (set.HasNext()) {
+            auto record = set.Next();
+            records.emplace_back(*record);
+        }
+    }
+    return records;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -119,6 +119,7 @@ private:
     bool UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile);
     void CreateAndPublishEvent(std::string& dirPath, std::string& fileName);
     bool CheckProcessRepeatFreeze(const std::string& eventName, long pid);
+    bool CheckScreenOnRepeat(std::shared_ptr<SysEvent> event);
     bool IsHandleAppfreeze(std::shared_ptr<SysEvent> event);
     void CheckEventOnContinue(std::shared_ptr<SysEvent> event);
     bool CanProcessRebootEvent(const Event& event);

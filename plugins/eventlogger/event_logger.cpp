@@ -88,6 +88,9 @@ namespace {
     static constexpr const char* const MONITOR_STACK_FLIE_NAME[] = {
         "jsstack",
     };
+    static constexpr const char* const CORE_PORCESSES[] = {
+        "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
+    };
     const static std::map<std::string, std::vector<std::string>> PB_EVENT_CONFIGS = {
         {"UI_BLOCK", {"UI_BLOCK_3S", "6000"}},
         {"THREAD_BLOCK", {"THREAD_BLOCK_3S", "14000"}},
@@ -181,7 +184,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     std::string domain = sysEvent->domain_;
     HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld", domain.c_str(), eventName.c_str(), pid);
 
-    if (CheckProcessRepeatFreeze(eventName, pid)) {
+    if (CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
         return true;
     }
     if (sysEvent->GetValue("eventLog_action").empty()) {
@@ -1036,6 +1039,39 @@ bool EventLogger::CheckProcessRepeatFreeze(const std::string& eventName, long pi
         if (lastPid == pid) {
             HIVIEW_LOGI("eventName=%{public}s, pid=%{public}ld has happened", lastEventName.c_str(), pid);
             return true;
+        }
+    }
+    return false;
+}
+
+bool EventLogger::CheckScreenOnRepeat(std::shared_ptr<SysEvent> event)
+{
+    std::string eventName = event->eventName_;
+    if (eventName != "SCREEN_ON" || dbHelper_ == nullptr) {
+        return false;
+    }
+    std::map<std::string, std::vector<std::string>> eventMap;
+    eventMap["AAFWK"] = {"APP_INPUT_BLOCK", "LIFECYCLE_TIMEOUT", "JS_ERROR", "THREAD_BLOCK_6S"};
+    eventMap["FRAMEWORK"] = {"IPC_FULL", "SERVICE_BLOCK", "SERVICE_TIMEOUT", "SERVICE_TIMEOUT_WARNING"};
+    eventMap["RELIABILITY"] = {"CPP_CRASH"};
+
+    uint64_t endTime = event->happenTime_;
+    uint64_t startTime = endTime - 15 * 1000;
+    for (const auto &pair : eventMap) {
+        std::vector<std::string> eventNames = pair.second;
+        std::vector<SysEvent> records = dbHelper_->SelectRecords(startTime, endTime, pair.first, eventNames);
+        for (auto& record : records) {
+            std::string processName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+            StringUtil::FormatProcessName(processName);
+            if (pair.first == "AAFWK" && processName != "com.ohos.sceneboard") {
+                continue;
+            }
+            if (std::find(std::begin(CORE_PORCESSES), std::end(CORE_PORCESSES), processName) !=
+                std::end(CORE_PORCESSES)) {
+                HIVIEW_LOGI("avoid SCREEN_ON repeated report, previous eventName=%{public}s, processName=%{public}s",
+                    record.eventName_.c_str(), processName.c_str());
+                return true;
+            }
         }
     }
     return false;

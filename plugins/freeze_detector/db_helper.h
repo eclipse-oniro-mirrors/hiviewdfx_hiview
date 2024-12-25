@@ -39,6 +39,8 @@ public:
         EventStore::ResultSet& set, std::map<std::string, WatchPoint>& resultMap);
     void SelectEventFromDB(unsigned long long start, unsigned long long end, std::vector<WatchPoint>& list,
         const struct WatchParams& watchParams, const FreezeResult& result);
+    std::vector<SysEvent> SelectRecords(unsigned long long start, unsigned long long end, const std::string& domain,
+        const std::vector<std::string>& eventNames);
 private:
     std::shared_ptr<FreezeCommon> freezeCommon_;
 };
