@@ -34,8 +34,6 @@ void FaultLoggerServiceProxy::AddFaultLog(const FaultLogInfoOhos& info)
     }
 
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
     if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
         return;
     }
@@ -50,6 +48,9 @@ void FaultLoggerServiceProxy::AddFaultLog(const FaultLogInfoOhos& info)
         }
         close(info.pipeFd);
     }
+
+    MessageParcel reply;
+    MessageOption option;
     auto flags = option.GetFlags();
     option.SetFlags(flags | 0x01); // 0X01 return immediately
     if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ADD_FAULTLOG),
@@ -66,8 +67,6 @@ sptr<IRemoteObject> FaultLoggerServiceProxy::QuerySelfFaultLog(int32_t faultType
     }
 
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
     if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
         return nullptr;
     }
@@ -80,6 +79,8 @@ sptr<IRemoteObject> FaultLoggerServiceProxy::QuerySelfFaultLog(int32_t faultType
         return nullptr;
     }
 
+    MessageParcel reply;
+    MessageOption option;
     if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::QUERY_SELF_FAULTLOG),
         data, reply, option) != ERR_OK) {
         return nullptr;
@@ -100,12 +101,12 @@ void FaultLoggerServiceProxy::Destroy()
     }
 
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
     if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
         return;
     }
 
+    MessageParcel reply;
+    MessageOption option;
     if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DESTROY),
         data, reply, option) != ERR_OK) {
         return;
