@@ -390,7 +390,8 @@ HWTEST_F(FaultloggerUnittest, DumpTest004, testing::ext::TestSize.Level3)
         appName = info.module;
     }
     std::string fileName = "cppcrash-" + appName + "-" + std::to_string(info.id) + "-" + timeStr + ".log";
-    ASSERT_EQ(FileUtil::FileExists(fileName), true);
+    auto path = "/data/log/faultlog/faultlogger/" + fileName;
+    ASSERT_EQ(FileUtil::FileExists(path), true);
 
     int fd = TEMP_FAILURE_RETRY(open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, 770));
     bool isSuccess = fd >= 0;
@@ -410,7 +411,7 @@ HWTEST_F(FaultloggerUnittest, DumpTest004, testing::ext::TestSize.Level3)
 
     close(fd);
     fd = -1;
-    std::string keywords[] = { "Device info", "Build info", "Fingerprint", "Moudle name" };
+    std::string keywords[] = { "Device info", "Build info", "Fingerprint", "Module name" };
     int length = sizeof(keywords) / sizeof(keywords[0]);
     ASSERT_EQ(CheckKeyWordsInFile("/data/test/testFile", keywords, length, false), length);
 }
