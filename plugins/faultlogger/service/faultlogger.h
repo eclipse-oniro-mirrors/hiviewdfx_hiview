@@ -95,7 +95,7 @@ private:
     std::string GetSanitizerReason(const int32_t faultLogType, const std::string &reason) const;
     std::string GetMemoryStrByPid(long pid) const;
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
-    void ReportAppFreezeToAppEvent(const FaultLogInfo& info) const;
+    void ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie = false) const;
     void ReportEventToAppEvent(const FaultLogInfo& info);
     bool CheckFaultLog(FaultLogInfo info);
     void CheckFaultLogAsync(const FaultLogInfo& info);

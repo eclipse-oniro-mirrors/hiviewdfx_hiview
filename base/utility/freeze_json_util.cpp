@@ -44,6 +44,11 @@ bool IsAppFreeze(const std::string& eventName)
     return IncludeWith(APPFREEZE_TYPE_LIST, eventName);
 }
 
+bool IsAppHicollie(const std::string& eventName)
+{
+    return IncludeWith(APPHICOLLIE_TYPE_LIST, eventName);
+}
+
 std::string GetFilePath(long pid, long uid, unsigned long long timestamp)
 {
     std::stringstream ss;

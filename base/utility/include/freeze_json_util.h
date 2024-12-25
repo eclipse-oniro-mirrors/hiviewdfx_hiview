@@ -53,6 +53,10 @@ const std::list<std::string> APPFREEZE_TYPE_LIST{
     "BUSSINESS_THREAD_BLOCK_6S"
 };
 
+const std::list<std::string> APPHICOLLIE_TYPE_LIST{
+    "APP_HICOLLIE"
+};
+
 const std::list<std::string> KEY_IN_LOGFILE{
     "timestamp",
     "pid",
@@ -100,6 +104,8 @@ struct FreezeJsonCollector {
 };
 
 bool IsAppFreeze(const std::string& eventName);
+
+bool IsAppHicollie(const std::string& eventName);
 
 std::string GetFilePath(long pid, long uid, unsigned long long timestamp);
 

@@ -458,7 +458,7 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
     }
 
     int jsonFd = -1;
-    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_) || FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         std::string jsonFilePath = FreezeJsonUtil::GetFilePath(event->GetEventIntValue("PID"),
             event->GetEventIntValue("UID"), event->happenTime_);
         jsonFd = FreezeJsonUtil::GetFd(jsonFilePath);
@@ -809,19 +809,20 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
 {
     std::string msg = StringUtil::ReplaceStr(event->GetEventValue("MSG"), "\\n", "\n");
     std::string stack;
+    std::string kernelStack = "";
     std::string binderInfo = event -> GetEventValue("BINDER_INFO");
-    if (FreezeJsonUtil::IsAppFreeze(event -> eventName_)) {
-        std::string kernelStack = "";
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
         WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
         WriteKernelStackToFile(event, fd, kernelStack);
+    } else if (FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
+        GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
     } else {
         stack = event->GetEventValue("STACK");
         HIVIEW_LOGI("Current stack is? stack:%{public}s", stack.c_str());
         if (FileUtil::FileExists(stack)) {
             stack = GetAppFreezeFile(stack);
             std::string tempStack = "";
-            std::string kernelStack = "";
             GetNoJsonStack(tempStack, stack, kernelStack, false);
             WriteKernelStackToFile(event, fd, kernelStack);
             stack = tempStack;
