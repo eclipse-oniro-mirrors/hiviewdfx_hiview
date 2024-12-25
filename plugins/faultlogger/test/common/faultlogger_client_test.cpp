@@ -14,6 +14,7 @@
  */
 #include "faultlogger_client_test.h"
 
+#include <securec.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -24,19 +25,49 @@
 #include "file_util.h"
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+constexpr int DEFAULT_BUFFER_SIZE = 64;
+constexpr uint64_t TIME_RATIO = 1000;
+
+std::string GetFormatedTime(uint64_t target)
+{
+    time_t now = time(nullptr);
+    if (target > static_cast<uint64_t>(now)) {
+        target = target / TIME_RATIO; // 1000 : convert millisecond to seconds
+    }
+
+    time_t out = static_cast<time_t>(target);
+    struct tm tmStruct {0};
+    struct tm* timeInfo = localtime_r(&out, &tmStruct);
+    if (timeInfo == nullptr) {
+        return "00000000000000";
+    }
+
+    char buf[DEFAULT_BUFFER_SIZE] = {0};
+    int charsWritten = strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%Y%m%d%H%M%S", timeInfo);
+    if ((charsWritten < 0) || (charsWritten >= DEFAULT_BUFFER_SIZE - 1)) {
+        return "00000000000000";
+    }
+    return std::string(buf, strlen(buf));
+}
+
+std::string GetFormatedTimeWithMillsec(uint64_t time)
+{
+    char millBuf[DEFAULT_BUFFER_SIZE] = {0};
+    int ret = snprintf_s(millBuf, sizeof(millBuf), sizeof(millBuf) - 1, "%03lu", time % TIME_RATIO);
+    if (ret <= 0) {
+        return GetFormatedTime(time) + "000";
+    }
+    std::string millStr(millBuf);
+    return GetFormatedTime(time) + millStr;
+}
+} // namespace
+
 std::string GetFaultLogName(const time_t& time, int32_t id, const std::string& type, const std::string& module)
 {
     static std::mutex localMutex;
     std::lock_guard<std::mutex> lock(localMutex);
-    const int32_t bufLen = 64;
-    struct tm* timeInfo = localtime(&time);
-    if (timeInfo == nullptr) {
-        return "";
-    }
-
-    char buf[bufLen] = {0};
-    strftime(buf, bufLen - 1, "%Y%m%d%H%M%S", timeInfo);
-    auto fileName = type + "-" + module + "-" + std::to_string(id) + "-" + std::string(buf, strlen(buf));
+    auto fileName = type + "-" + module + "-" + std::to_string(id) + "-" + GetFormatedTimeWithMillsec(time) + ".log";
     return fileName;
 }
 
