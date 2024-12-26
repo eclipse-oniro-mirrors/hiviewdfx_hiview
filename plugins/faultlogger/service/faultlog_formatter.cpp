@@ -62,7 +62,7 @@ static const char *TIMESTAMP[] = {"TIMESTAMP", "Timestamp:"};
 static const char *MEMORY_NEAR_REGISTERS[] = {"MEMORY_NEAR_REGISTERS", "Memory near registers:\n"};
 static const char *PRE_INSTALL[] = {"PRE_INSTALL", "PreInstalled:"};
 static const char *VERSION_CODE[] = {"VERSION_CODE", "VersionCode:"};
-static const char *FINGERPRINT[] = {"fingerPrint", "Fingerprint:"};
+static const char *FINGERPRINT[] = {"FINGERPRINT", "Fingerprint:"};
 static const char *APPEND_ORIGIN_LOG[] = {"APPEND_ORIGIN_LOG", ""};
 
 auto CPP_CRASH_LOG_SEQUENCE = {

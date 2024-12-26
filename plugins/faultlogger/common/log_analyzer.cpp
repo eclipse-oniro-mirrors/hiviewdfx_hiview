@@ -60,14 +60,14 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
         FileUtil::RemoveFile(logPath);
     }
     if (eventInfos.empty()) {
-        eventInfos.insert(std::make_pair("fingerPrint", Tbox::CalcFingerPrint(info.module + info.reason +
+        eventInfos.insert(std::make_pair("FINGERPRINT", Tbox::CalcFingerPrint(info.module + info.reason +
             info.summary, 0, FP_BUFFER)));
         return false;
     }
     Tbox::FilterTrace(eventInfos, eventType);
     std::string fingerRawString;
     GetFingerRawString(fingerRawString, info, eventInfos);
-    eventInfos["fingerPrint"] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
+    eventInfos["FINGERPRINT"] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
 
     if (eventType == "APP_FREEZE" && eventInfos["LAST_FRAME"].empty()) {
         if (!eventInfos["TRACER_PID"].empty()) {

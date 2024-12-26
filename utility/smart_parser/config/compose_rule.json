@@ -4,15 +4,10 @@
             "63_APP_FREEZE_00": {
                 "PNAME": "BasicParam.v_process",
                 "TIME_OUT": "BasicParam.v_timeout",
-                "END_STACK":"MainCallTrace.v_trace"
-            },
-            "63_APP_FREEZE_01": {
+                "END_STACK":"MainCallTrace.v_trace",
                 "LAST_FRAME":"BasicParam.v_state",
                 "TRACER_PID":"BasicParam.v_tracer",
                 "DUMPCATCH_RESULT":"BasicParam.v_dumpcatch_result"
-            },
-            "63_APP_FREEZE_02": {
-                "LAST_FRAME":"BasicParam.v_exit"
             }
     },
     "SYS_FREEZE": {

@@ -538,7 +538,7 @@ HWTEST_F(FaultloggerUnittest, genCppCrashtoAnalysisFaultlog001, testing::ext::Te
     info.reason = "TestReason";
     std::map<std::string, std::string> eventInfos;
     ASSERT_EQ(AnalysisFaultlog(info, eventInfos), false);
-    ASSERT_EQ(!eventInfos["fingerPrint"].empty(), true);
+    ASSERT_EQ(!eventInfos["FINGERPRINT"].empty(), true);
 }
 
 /**
@@ -561,7 +561,7 @@ HWTEST_F(FaultloggerUnittest, genJsCrashtoAnalysisFaultlog001, testing::ext::Tes
     info.reason = "TestReason";
     std::map<std::string, std::string> eventInfos;
     ASSERT_EQ(AnalysisFaultlog(info, eventInfos), false);
-    ASSERT_EQ(!eventInfos["fingerPrint"].empty(), true);
+    ASSERT_EQ(!eventInfos["FINGERPRINT"].empty(), true);
 }
 
 /**

@@ -30,12 +30,12 @@
     "Rule4":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
         "Subcatalog":"appfreeze-.*-\\d+-\\d+",
-        "featureId":"63_APP_FREEZE_00,63_APP_FREEZE_01,63_APP_FREEZE_02",
+        "featureId":"63_APP_FREEZE_00",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
             {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"PID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
-            {"namespace":"BasicParam", "matchKey":"State:", "v_state":"\\bState:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"State:", "v_state":"^State:(.*)"},
             {"namespace":"BasicParam", "matchKey":"TracerPid:", "v_tracer":"TracerPid:(.*)"},
             {"namespace":"BasicParam", "matchKey":"hidumper: No such process", "v_exit":"hidumper: (.*):"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
@@ -133,12 +133,12 @@
     "Rule12":{
         "DirOrFile":"/data/log/faultlog/freeze/",
         "Subcatalog":"*.appfreeze-.*.tmp",
-        "featureId":"63_APP_FREEZE_00,63_APP_FREEZE_01,63_APP_FREEZE_02",
+        "featureId":"63_APP_FREEZE_00",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
             {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"PID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
-            {"namespace":"BasicParam", "matchKey":"State:", "v_state":"\\bState:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"State:", "v_state":"^State:(.*)"},
             {"namespace":"BasicParam", "matchKey":"TracerPid:", "v_tracer":"TracerPid:(.*)"},
             {"namespace":"BasicParam", "matchKey":"hidumper: No such process", "v_exit":"hidumper:(.*):"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},

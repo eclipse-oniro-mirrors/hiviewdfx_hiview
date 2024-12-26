@@ -80,7 +80,7 @@ bool Tbox::GetPartial(const string& src, const string& res, string& des)
     return false;
 }
 
-bool Tbox::IsCallStack(string& line)
+bool Tbox::IsCallStack(const string& line)
 {
     if (regex_search(line, regex("^\\s+at (.*)\\(.*")) ||
         regex_search(line, regex("^\\s*at .*")) ||
@@ -107,30 +107,31 @@ bool Tbox::HasCausedBy(const string& line)
  * format1:  com.ohos.launcher:extension
  * format2:  #06 pc 00000000000bb328  /system/lib/libart.so (__epoll_pwait+8)
  */
-string Tbox::GetStackName(string line)
+string Tbox::GetStackName(const string& line)
 {
     string stackname = UNKNOWN_STR;
-    if (IsCallStack(line)) {
-        stackname = line;
-        string str;
-        if (GetPartial(line, "^\\s+at (.*)\\).*", str) ||
-            GetPartial(line, "^\\s*at (.*)", str) || // for jsCrash
-            GetPartial(line, "#\\d+ pc [0-9a-f]+ (.*\\+\\d+)\\)", str) ||
-            GetPartial(line, "#\\d+ pc [0-9a-f]+ (.*)", str) ||
-            GetPartial(line, "([0-9a-zA-Z_]+\\+0x[0-9a-f]+/0x[0-9a-f]+)", str)) {
+    string str;
+    if (GetPartial(line, "^\\s+at (.*)\\).*", str) ||
+        GetPartial(line, "^\\s*at (.*)", str) || // for jsCrash
+        GetPartial(line, "#\\d+ pc [0-9a-f]+ (.*\\+\\d+)\\)", str) ||
+        GetPartial(line, "#\\d+ pc [0-9a-f]+ (.*)", str) ||
+        GetPartial(line, "([0-9a-zA-Z_]+\\+0x[0-9a-f]+/0x[0-9a-f]+)", str)) {
+        stackname = str;
+    } else if (GetPartial(line, "^\\s+- (.*)\\(.*", str)) {
+        size_t ret = str.find_last_of("+");
+        if (ret != string::npos) {
+            str.replace(ret, string::npos, ")\0");
             stackname = str;
-        } else if (GetPartial(line, "^\\s+- (.*)\\(.*", str)) {
-            size_t ret = str.find_last_of("+");
-            if (ret != string::npos) {
-                str.replace(ret, string::npos, ")\0");
-                stackname = str;
-            } else {
-                stackname = UNKNOWN_STR;
-            }
+        } else {
+            stackname = UNKNOWN_STR;
         }
-        regex re("(.+?)-(.+)==(.+)");
-        stackname = regex_replace(stackname, re, "$1$3");
+    } else if (IsCallStack(line)) {
+        stackname = line;
+    } else {
+        return stackname;
     }
+    regex re("(.+?)-(.+)==(.+)");
+    stackname = regex_replace(stackname, re, "$1$3");
     return stackname;
 }
 
@@ -144,7 +145,6 @@ void Tbox::FilterTrace(std::map<std::string, std::string>& eventInfo, string eve
     LogParse logparse;
     std::string block = logparse.GetFilterTrace(iterEndStack->second, trace, eventType);
     eventInfo[PARAMETER_ENDSTACK] = block;
-    eventInfo["FINGERPRINT"] = Tbox::CalcFingerPrint(block, 0, FP_BUFFER);
     std::stack<std::string> stackTop = logparse.GetStackTop(trace, 3);  // 3 : first/second/last frame
     logparse.SetFrame(stackTop, eventInfo);
 }
