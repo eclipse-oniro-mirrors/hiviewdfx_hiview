@@ -311,12 +311,12 @@ void AssembleMemoryDetails(ProcessMemoryDetail& processMemoryDetail, const std::
 }
 }
 
-bool ParseSmaps(int32_t pid, ProcessMemoryDetail& processMemoryDetail, bool isLowLatencyMode)
+bool ParseSmaps(int32_t pid, const std::string& smapsPath, ProcessMemoryDetail& processMemoryDetail,
+    bool isLowLatencyMode)
 {
-    std::string path = "/proc/" + std::to_string(pid) + "/smaps";
-    std::ifstream file(path.c_str());
+    std::ifstream file(smapsPath.c_str());
     if (!file.is_open()) {
-        HIVIEW_LOGW("open file fail, path: %{public}s.", path.c_str());
+        HIVIEW_LOGW("open file fail, pid: %{public}d.", pid);
         return false;
     }
     std::string line;

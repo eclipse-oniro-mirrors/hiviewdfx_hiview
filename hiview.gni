@@ -25,6 +25,8 @@ hiview_service = "//base/hiviewdfx/hiview/service"
 hiview_framework = "//base/hiviewdfx/hiview/framework"
 hiview_interfaces = "//base/hiviewdfx/hiview/interfaces"
 hiview_test = "//base/hiviewdfx/hiview/test"
+hiview_ucollection =
+    "//base/hiviewdfx/hiview/framework/native/unified_collection"
 
 # hiview plugin path definitions
 hiview_faultlogger = "//base/hiviewdfx/hiview/plugins/faultlogger"
