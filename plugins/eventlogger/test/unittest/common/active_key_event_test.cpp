@@ -69,6 +69,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_001, TestSize.Level3)
     activeKeyEvent->triggeringTime_ = 0;
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyHandle(keyEvent);
+    sleep(1);
 }
 
 /**
@@ -87,6 +88,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_002, TestSize.Level3)
     activeKeyEvent->triggeringTime_ = 0;
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyCallback(keyEvent);
+    sleep(1);
 }
 
 /**
@@ -104,6 +106,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_003, TestSize.Level3)
     std::set<int32_t> preKeys;
     preKeys.insert(OHOS::MMI::KeyEvent::KEYCODE_VOLUME_UP);
     activeKeyEvent->InitSubscribe(preKeys, OHOS::MMI::KeyEvent::KEYCODE_VOLUME_DOWN, 5, 500);
+    sleep(1);
 }
 
 /**
@@ -121,6 +124,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_004, TestSize.Level3)
     std::set<int32_t> preKeys;
     preKeys.insert(OHOS::MMI::KeyEvent::KEYCODE_VOLUME_UP);
     activeKeyEvent->InitSubscribe(preKeys, OHOS::MMI::KeyEvent::KEYCODE_VOLUME_DOWN, 5, 500);
+    sleep(1);
 }
 
 /**
@@ -135,6 +139,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_005, TestSize.Level3)
     EXPECT_TRUE(activeKeyEvent->triggeringTime_ > 0);
     std::shared_ptr<OHOS::MMI::KeyEvent> keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyCallback(keyEvent);
+    sleep(1);
 }
 
 /**
@@ -148,6 +153,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_006, TestSize.Level3)
     activeKeyEvent->triggeringTime_ = 0;
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyCallback(keyEvent);
+    sleep(1);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

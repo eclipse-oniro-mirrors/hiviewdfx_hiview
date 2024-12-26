@@ -138,6 +138,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     eventLogger->OnLoad();
+    sleep(1);
 
     auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
     long pid = getpid();
@@ -496,6 +497,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     eventLogger->OnLoad();
+    sleep(1);
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
         "MODULE", "foundation", "MSG", "test remove");
     sleep(3);
@@ -589,6 +591,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_001, TestSize.L
 {
     auto eventLogger = std::make_shared<EventLogger>();
     eventLogger->OnLoad();
+    sleep(1);
 
     auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
     long pid = getpid();
@@ -738,6 +741,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
 {
     auto eventLogger = std::make_shared<EventLogger>();
     eventLogger->OnLoad();
+    sleep(1);
 #ifdef WINDOW_MANAGER_ENABLE
     EventFocusListener::RegisterFocusListener();
     EventFocusListener::registerState_ = EventFocusListener::REGISTERED;
