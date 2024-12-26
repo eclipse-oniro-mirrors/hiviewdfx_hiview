@@ -106,7 +106,7 @@ namespace {
 #endif
     static constexpr int DUMP_TIME_RATIO = 2;
     static constexpr int EVENT_MAX_ID = 1000000;
-    static constexpr int MAX_FILE_NUM = 500;
+    static constexpr int MIN_KEEP_FILE_NUM = 500;
     static constexpr int MAX_FOLDER_SIZE = 500 * 1024 * 1024;
     static constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
     static constexpr int HISTORY_EVENT_LIMIT = 500;
@@ -340,7 +340,10 @@ void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
         return;
     }
     std::vector<std::string> lines;
-    FileUtil::LoadLinesFromFile(historyFile, lines);
+    if (!FileUtil::LoadLinesFromFile(historyFile, lines)) {
+        HIVIEW_LOGE("failed to loadlines from file=%{public}s, errno=%{public}d", historyFile.c_str(), errno);
+        return;
+    }
     bool truncated = false;
     if (lines.size() > HISTORY_EVENT_LIMIT) {
         truncated = true;
@@ -1089,7 +1092,7 @@ void EventLogger::OnLoad()
     SetName("EventLogger");
     SetVersion("1.0");
     logStore_->SetMaxSize(MAX_FOLDER_SIZE);
-    logStore_->SetMinKeepingFileNumber(MAX_FILE_NUM);
+    logStore_->SetMinKeepingFileNumber(MIN_KEEP_FILE_NUM);
     LogStoreEx::LogFileComparator comparator = [this](const LogFile &lhs, const LogFile &rhs) {
         return rhs < lhs;
     };
