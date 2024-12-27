@@ -1,0 +1,1075 @@
+00a8f000-00a90000 ---p 00000000 00:00 1                                  /data/other.db
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   1 kB
+Pss:                   1 kB
+Pss_Dirty:             1 kB
+Shared_Clean:          1 kB
+Shared_Dirty:          1 kB
+Private_Clean:         1 kB
+Private_Dirty:         1 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  1 kB
+SwapPss:               1 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 2                                  /data/other.db-shm
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   2 kB
+Pss:                   2 kB
+Pss_Dirty:             2 kB
+Shared_Clean:          2 kB
+Shared_Dirty:          2 kB
+Private_Clean:         2 kB
+Private_Dirty:         2 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  2 kB
+SwapPss:               2 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 3                                  /system/app/other.hap
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   3 kB
+Pss:                   3 kB
+Pss_Dirty:             3 kB
+Shared_Clean:          3 kB
+Shared_Dirty:          3 kB
+Private_Clean:         3 kB
+Private_Dirty:         3 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  3 kB
+SwapPss:               3 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 4                                  /system/app/other.hsp
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   4 kB
+Pss:                   4 kB
+Pss_Dirty:             4 kB
+Shared_Clean:          4 kB
+Shared_Dirty:          4 kB
+Private_Clean:         4 kB
+Private_Dirty:         4 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  4 kB
+SwapPss:               4 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 5                                  /system/lib/other.so
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   5 kB
+Pss:                   5 kB
+Pss_Dirty:             5 kB
+Shared_Clean:          5 kB
+Shared_Dirty:          5 kB
+Private_Clean:         5 kB
+Private_Dirty:         5 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  5 kB
+SwapPss:               5 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 6                                  /system/lib/other.so.1
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   6 kB
+Pss:                   6 kB
+Pss_Dirty:             6 kB
+Shared_Clean:          6 kB
+Shared_Dirty:          6 kB
+Private_Clean:         6 kB
+Private_Dirty:         6 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  6 kB
+SwapPss:               6 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 7                                  /system/fonts/other.ttf
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   7 kB
+Pss:                   7 kB
+Pss_Dirty:             7 kB
+Shared_Clean:          7 kB
+Shared_Dirty:          7 kB
+Private_Clean:         7 kB
+Private_Dirty:         7 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  7 kB
+SwapPss:               7 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 8                                  /dev/__parameters__/u:object_r:debug_param:s0
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   8 kB
+Pss:                   8 kB
+Pss_Dirty:             8 kB
+Shared_Clean:          8 kB
+Shared_Dirty:          8 kB
+Private_Clean:         8 kB
+Private_Dirty:         8 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  8 kB
+SwapPss:               8 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 9                                  /dev/other
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   9 kB
+Pss:                   9 kB
+Pss_Dirty:             9 kB
+Shared_Clean:          9 kB
+Shared_Dirty:          9 kB
+Private_Clean:         9 kB
+Private_Dirty:         9 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  9 kB
+SwapPss:               9 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 10                                  /data/storage/other
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   10 kB
+Pss:                   10 kB
+Pss_Dirty:             10 kB
+Shared_Clean:          10 kB
+Shared_Dirty:          10 kB
+Private_Clean:         10 kB
+Private_Dirty:         10 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  10 kB
+SwapPss:               10 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 11                                  /dmabuf:1000
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   11 kB
+Pss:                   11 kB
+Pss_Dirty:             11 kB
+Shared_Clean:          11 kB
+Shared_Dirty:          11 kB
+Private_Clean:         11 kB
+Private_Dirty:         11 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  11 kB
+SwapPss:               11 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 12                                  /other
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   12 kB
+Pss:                   12 kB
+Pss_Dirty:             12 kB
+Shared_Clean:          12 kB
+Shared_Dirty:          12 kB
+Private_Clean:         12 kB
+Private_Dirty:         12 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  12 kB
+SwapPss:               12 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 13                                  anon_inode:dev/other
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   13 kB
+Pss:                   13 kB
+Pss_Dirty:             13 kB
+Shared_Clean:          13 kB
+Shared_Dirty:          13 kB
+Private_Clean:         13 kB
+Private_Dirty:         13 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  13 kB
+SwapPss:               13 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 14                                  [anon:ArkTS Code:1000]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   14 kB
+Pss:                   14 kB
+Pss_Dirty:             14 kB
+Shared_Clean:          14 kB
+Shared_Dirty:          14 kB
+Private_Clean:         14 kB
+Private_Dirty:         14 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  14 kB
+SwapPss:               14 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 15                                  [anon:ArkTS Heap]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   15 kB
+Pss:                   15 kB
+Pss_Dirty:             15 kB
+Shared_Clean:          15 kB
+Shared_Dirty:          15 kB
+Private_Clean:         15 kB
+Private_Dirty:         15 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  15 kB
+SwapPss:               15 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 16                                  [anon:guard:1000]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   16 kB
+Pss:                   16 kB
+Pss_Dirty:             16 kB
+Shared_Clean:          16 kB
+Shared_Dirty:          16 kB
+Private_Clean:         16 kB
+Private_Dirty:         16 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  16 kB
+SwapPss:               16 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 17                                  [anon:ld-musl-arm.so.1.bss]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   17 kB
+Pss:                   17 kB
+Pss_Dirty:             17 kB
+Shared_Clean:          17 kB
+Shared_Dirty:          17 kB
+Private_Clean:         17 kB
+Private_Dirty:         17 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  17 kB
+SwapPss:               17 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 18                                  [anon:native_heap:brk]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   18 kB
+Pss:                   18 kB
+Pss_Dirty:             18 kB
+Shared_Clean:          18 kB
+Shared_Dirty:          18 kB
+Private_Clean:         18 kB
+Private_Dirty:         18 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  18 kB
+SwapPss:               18 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 19                                  [anon:native_heap:jemalloc]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   19 kB
+Pss:                   19 kB
+Pss_Dirty:             19 kB
+Shared_Clean:          19 kB
+Shared_Dirty:          19 kB
+Private_Clean:         19 kB
+Private_Dirty:         19 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  19 kB
+SwapPss:               19 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 20                                  [anon:native_heap:jemalloc meta]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   20 kB
+Pss:                   20 kB
+Pss_Dirty:             20 kB
+Shared_Clean:          20 kB
+Shared_Dirty:          20 kB
+Private_Clean:         20 kB
+Private_Dirty:         20 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  20 kB
+SwapPss:               20 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 21                                  [anon:native_heap:jemalloc tsd]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   21 kB
+Pss:                   21 kB
+Pss_Dirty:             21 kB
+Shared_Clean:          21 kB
+Shared_Dirty:          21 kB
+Private_Clean:         21 kB
+Private_Dirty:         21 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  21 kB
+SwapPss:               21 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 22                                  [anon:native_heap:meta]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   22 kB
+Pss:                   22 kB
+Pss_Dirty:             22 kB
+Shared_Clean:          22 kB
+Shared_Dirty:          22 kB
+Private_Clean:         22 kB
+Private_Dirty:         22 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  22 kB
+SwapPss:               22 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 23                                  [anon:native_heap:mmap]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   23 kB
+Pss:                   23 kB
+Pss_Dirty:             23 kB
+Shared_Clean:          23 kB
+Shared_Dirty:          23 kB
+Private_Clean:         23 kB
+Private_Dirty:         23 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  23 kB
+SwapPss:               23 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 24                                  [anon:native_heap:other]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   24 kB
+Pss:                   24 kB
+Pss_Dirty:             24 kB
+Shared_Clean:          24 kB
+Shared_Dirty:          24 kB
+Private_Clean:         24 kB
+Private_Dirty:         24 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  24 kB
+SwapPss:               24 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 25                                  [anon:signal_stack:1000]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   25 kB
+Pss:                   25 kB
+Pss_Dirty:             25 kB
+Shared_Clean:          25 kB
+Shared_Dirty:          25 kB
+Private_Clean:         25 kB
+Private_Dirty:         25 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  25 kB
+SwapPss:               25 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 26                                  [anon:stack:1000]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   26 kB
+Pss:                   26 kB
+Pss_Dirty:             26 kB
+Shared_Clean:          26 kB
+Shared_Dirty:          26 kB
+Private_Clean:         26 kB
+Private_Dirty:         26 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  26 kB
+SwapPss:               26 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 27                                  [anon:v8]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   27 kB
+Pss:                   27 kB
+Pss_Dirty:             27 kB
+Shared_Clean:          27 kB
+Shared_Dirty:          27 kB
+Private_Clean:         27 kB
+Private_Dirty:         27 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  27 kB
+SwapPss:               27 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 28                                  [anon:other]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   28 kB
+Pss:                   28 kB
+Pss_Dirty:             28 kB
+Shared_Clean:          28 kB
+Shared_Dirty:          28 kB
+Private_Clean:         28 kB
+Private_Dirty:         28 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  28 kB
+SwapPss:               28 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 29                                  [contiguous]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   29 kB
+Pss:                   29 kB
+Pss_Dirty:             29 kB
+Shared_Clean:          29 kB
+Shared_Dirty:          29 kB
+Private_Clean:         29 kB
+Private_Dirty:         29 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  29 kB
+SwapPss:               29 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 30                                  [copage]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   30 kB
+Pss:                   30 kB
+Pss_Dirty:             30 kB
+Shared_Clean:          30 kB
+Shared_Dirty:          30 kB
+Private_Clean:         30 kB
+Private_Dirty:         30 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  30 kB
+SwapPss:               30 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 31                                  [file]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   31 kB
+Pss:                   31 kB
+Pss_Dirty:             31 kB
+Shared_Clean:          31 kB
+Shared_Dirty:          31 kB
+Private_Clean:         31 kB
+Private_Dirty:         31 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  31 kB
+SwapPss:               31 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 32                                  [guard]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   32 kB
+Pss:                   32 kB
+Pss_Dirty:             32 kB
+Shared_Clean:          32 kB
+Shared_Dirty:          32 kB
+Private_Clean:         32 kB
+Private_Dirty:         32 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  32 kB
+SwapPss:               32 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 33                                  [heap]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   33 kB
+Pss:                   33 kB
+Pss_Dirty:             33 kB
+Shared_Clean:          33 kB
+Shared_Dirty:          33 kB
+Private_Clean:         33 kB
+Private_Dirty:         33 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  33 kB
+SwapPss:               33 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 34                                  [io]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   34 kB
+Pss:                   34 kB
+Pss_Dirty:             34 kB
+Shared_Clean:          34 kB
+Shared_Dirty:          34 kB
+Private_Clean:         34 kB
+Private_Dirty:         34 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  34 kB
+SwapPss:               34 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 35                                  [kshare]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   35 kB
+Pss:                   35 kB
+Pss_Dirty:             35 kB
+Shared_Clean:          35 kB
+Shared_Dirty:          35 kB
+Private_Clean:         35 kB
+Private_Dirty:         35 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  35 kB
+SwapPss:               35 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 36                                  [anon:libc_malloc]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   36 kB
+Pss:                   36 kB
+Pss_Dirty:             36 kB
+Shared_Clean:          36 kB
+Shared_Dirty:          36 kB
+Private_Clean:         36 kB
+Private_Dirty:         36 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  36 kB
+SwapPss:               36 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 37                                  [prehistoric]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   37 kB
+Pss:                   37 kB
+Pss_Dirty:             37 kB
+Shared_Clean:          37 kB
+Shared_Dirty:          37 kB
+Private_Clean:         37 kB
+Private_Dirty:         37 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  37 kB
+SwapPss:               37 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 38                                  [reserve]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   38 kB
+Pss:                   38 kB
+Pss_Dirty:             38 kB
+Shared_Clean:          38 kB
+Shared_Dirty:          38 kB
+Private_Clean:         38 kB
+Private_Dirty:         38 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  38 kB
+SwapPss:               38 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 39                                  [shmm]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   39 kB
+Pss:                   39 kB
+Pss_Dirty:             39 kB
+Shared_Clean:          39 kB
+Shared_Dirty:          39 kB
+Private_Clean:         39 kB
+Private_Dirty:         39 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  39 kB
+SwapPss:               39 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 40                                  [stack]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   40 kB
+Pss:                   40 kB
+Pss_Dirty:             40 kB
+Shared_Clean:          40 kB
+Shared_Dirty:          40 kB
+Private_Clean:         40 kB
+Private_Dirty:         40 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  40 kB
+SwapPss:               40 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 41                                  [unknown]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   41 kB
+Pss:                   41 kB
+Pss_Dirty:             41 kB
+Shared_Clean:          41 kB
+Shared_Dirty:          41 kB
+Private_Clean:         41 kB
+Private_Dirty:         41 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  41 kB
+SwapPss:               41 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 42                                  [vnodes]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   42 kB
+Pss:                   42 kB
+Pss_Dirty:             42 kB
+Shared_Clean:          42 kB
+Shared_Dirty:          42 kB
+Private_Clean:         42 kB
+Private_Dirty:         42 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  42 kB
+SwapPss:               42 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me
+00a8f000-00a90000 ---p 00000000 00:00 43                                  [other]
+Size:                  0 kB
+KernelPageSize:        0 kB
+MMUPageSize:           0 kB
+Rss:                   43 kB
+Pss:                   43 kB
+Pss_Dirty:             43 kB
+Shared_Clean:          43 kB
+Shared_Dirty:          43 kB
+Private_Clean:         43 kB
+Private_Dirty:         43 kB
+Referenced:            0 kB
+Anonymous:             0 kB
+KSM:                   0 kB
+LazyFree:              0 kB
+AnonHugePages:         0 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:         0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  43 kB
+SwapPss:               43 kB
+Locked:                0 kB
+THPeligible:           0
+VmFlags: mr mw me

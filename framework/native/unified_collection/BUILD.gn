@@ -344,4 +344,8 @@ group("unittest") {
   if (hiview_unified_collector_trace_enable) {
     deps += [ "collector/impl/trace/utils/test:TraceStorageUnitTest" ]
   }
+
+  if (hiview_unified_collector_graphic_enable) {
+    deps += [ "collector/impl/memory/utils/test/unittest:MemoryUtilsUnitTest" ]
+  }
 }
