@@ -39,8 +39,8 @@
             "domain":"HMOS_SVC_BROKER",
             "include":["RETRY_EXCEPTION"]
          },{
-             "domain":"RELIABILITY",
-             "include":["APP_FREEZE_BETACLUB"]
+            "domain":"RELIABILITY",
+            "include":["APP_FREEZE_BETACLUB"]
          }
     ]
 }
