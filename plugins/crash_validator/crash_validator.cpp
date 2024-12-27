@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-static const int CHECK_TIME = 15;
+static const int CHECK_TIME = 75; // match proceesdump report and kernel snapshot check interval(60s)
 static const int CRASH_DUMP_LOCAL_REPORT = 206;
 
 REGISTER(CrashValidator);

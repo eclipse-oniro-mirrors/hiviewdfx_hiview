@@ -262,6 +262,17 @@ static bool IsSystemProcess(const std::string &processName, int32_t uid)
             (processName.compare(0, sysBin.length(), sysBin) == 0) ||
             (processName.compare(0, venBin.length(), venBin) == 0));
 }
+
+void ProcessKernelSnapshot(FaultLogInfo& info)
+{
+    if (info.reason.find("CppCrashKernelSnapshot") == std::string::npos) {
+        return;
+    }
+
+    info.dumpLogToFautlogger = false;
+    info.reportToAppEvent = false;
+    info.logPath = GetCppCrashTempLogName(info);
+}
 } // namespace
 
 void Faultlogger::AddPublicInfo(FaultLogInfo &info)
@@ -873,6 +884,7 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
         info.sectionMap["STACK"] = GetThreadStack(info.logPath, info.pid);
     }
 
+    ProcessKernelSnapshot(info);
     if (info.dumpLogToFautlogger) {
         mgr_->SaveFaultLogToFile(info);
     }
@@ -1268,4 +1280,3 @@ void Faultlogger::CheckFaultLogAsync(const FaultLogInfo& info)
 }
 } // namespace HiviewDFX
 } // namespace OHOS
-
