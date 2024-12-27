@@ -784,7 +784,7 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     if (binderInfo.empty() || !IsKernelStack(binderInfo)) {
         return;
     }
-    std::string tags = "PeerBinder catcher stacktrace for pid ";
+    std::string tags = "Binder catcher stacktrace, ";
     auto index = binderInfo.find(tags);
     if (index == std::string::npos) {
         return;
@@ -859,17 +859,20 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
         if (FileUtil::FileExists(binderPath)) {
             binderInfo = GetAppFreezeFile(binderPath);
         }
-        std::string stackStart = "TerminalBinder stacktrace:\n";
-        size_t startIndex = binderInfo.find(stackStart);
-        size_t endIndex = binderInfo.find("TerminalBinder stacktrace ends here!\n");
-        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
-            LogCatcherUtils::GetThreadStack(binderInfo.substr(startIndex + stackStart.size(),
-                endIndex - startIndex - stackStart.size()), threadStack, terminalBinderTid);
-        }
         std::string binderInfoJsonStr;
         ParsePeerBinder(binderInfo, binderInfoJsonStr);
         FreezeJsonUtil::WriteKeyValue(jsonFd, "peer_binder", binderInfoJsonStr);
         ParsePeerStack(binderInfo, kernelStack);
+        std::string terminalBinderTag = "Binder catcher stacktrace, terminal binder tag\n";
+        size_t tagSize = terminalBinderTag.size();
+        size_t startIndex = binderInfo.find(terminalBinderTag);
+        size_t endIndex = binderInfo.rfind(terminalBinderTag);
+        if (startIndex != std::string::npos && endIndex != std::string::npos && endIndex > startIndex) {
+            LogCatcherUtils::GetThreadStack(binderInfo.substr(startIndex + tagSize,
+                endIndex - startIndex - tagSize), threadStack, terminalBinderTid);
+            binderInfo.erase(startIndex, tagSize);
+            binderInfo.erase(endIndex - tagSize, tagSize);
+        }
     }
 }
 
