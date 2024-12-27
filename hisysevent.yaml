@@ -214,22 +214,3 @@ CPP_CRASH_DISMATCH:
   UID: {type: INT32, desc: crash uid}
   SUMMARY: {type: STRING, desc: fault summary}
   HAPPEN_TIME: {type: INT64, desc: crash time}
-
-TRACE_DUMP:
-  __BASE: {type: BEHAVIOR, level: CRITICAL, tag: STABILITY, desc: trace dump statistics}
-  CALLER: {type: STRING, desc: caller index}
-  ERROR_CODE: {type: INT32, desc: error code}
-  IPC_TIME: {type: UINT64, desc: ipc time in unix time}
-  REQ_TIME: {type: UINT64, desc: target trace end time in unix time}
-  REQ_DURATION: {type: INT32, desc: target trace duration in seconds}
-  EXEC_TIME: {type: UINT64, desc: dump start time in unix time}
-  EXEC_DURATION: {type: INT32, desc: dump duration in milliseconds}
-  COVER_DURATION: {type: INT32, desc: time coverage of captured trace on requested interval in seconds}
-  COVER_RATIO: {type: INT32, desc: time coverage ratio expressed in premille}
-  TAG_GROUP: {type: STRING, desc: tag group}
-  FILE_SIZE: {type: INT32, desc: total trace file size in MB}
-  SYS_MEM_TOTAL: {type: INT32, desc: total system memory in MB}
-  SYS_MEM_FREE: {type: INT32, desc: free system memory in MB}
-  SYS_MEM_AVAIL: {type: INT32, desc: available system memory in MB}
-  SYS_CPU: {type: INT32, desc: average system cpu usage}
-  DUMP_CPU: {type: INT32, desc: dump process cpu usage}

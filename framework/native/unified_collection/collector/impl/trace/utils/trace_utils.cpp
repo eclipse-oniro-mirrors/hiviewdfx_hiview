@@ -23,6 +23,7 @@
 #include "ffrt.h"
 #include "hiview_logger.h"
 #include "hiview_event_report.h"
+#include "memory_collector.h"
 #include "parameter_ex.h"
 #include "securec.h"
 #include "string_util.h"
@@ -548,7 +549,7 @@ int64_t GetTraceSize(TraceRetInfo &ret)
 
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 {
-    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY, "TRACE_DUMP",
+    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::PROFILER, "DUMP_TRACE",
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
         "CALLER", dumpEvent.caller,
         "ERROR_CODE", dumpEvent.errorCode,
@@ -559,13 +560,12 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
         "EXEC_DURATION", dumpEvent.execDuration,
         "COVER_DURATION", dumpEvent.coverDuration,
         "COVER_RATIO", dumpEvent.coverRatio,
-        "TAG_GROUP", dumpEvent.tagGroup,
+        "TAGS", dumpEvent.tags,
         "FILE_SIZE", dumpEvent.fileSize,
         "SYS_MEM_TOTAL", dumpEvent.sysMemTotal,
         "SYS_MEM_FREE", dumpEvent.sysMemFree,
         "SYS_MEM_AVAIL", dumpEvent.sysMemAvail,
-        "SYS_CPU", dumpEvent.sysCpu,
-        "DUMP_CPU", dumpEvent.dumpCpu);
+        "SYS_CPU", dumpEvent.sysCpu);
     if (ret != 0) {
         HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
     }
@@ -573,31 +573,11 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 
 void LoadMemoryInfo(DumpEvent &dumpEvent)
 {
-    std::ifstream meminfo("/proc/meminfo");
-    std::string line;
-    long totalMemory = 0;
-    long freeMemory = 0;
-    long availMemory = 0;
-    if (meminfo.good()) {
-        while (std::getline(meminfo, line)) {
-            if (line.find("MemTotal:") != std::string::npos) {
-                totalMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
-                continue;
-            }
-            if (line.find("MemFree:") != std::string::npos) {
-                freeMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
-                continue;
-            }
-            if (line.find("MemAvailable:") != std::string::npos) {
-                availMemory = StringUtil::StrToInt(line.substr(line.find(":") + 1));
-                continue;
-            }
-        }
-        meminfo.close();
-    }
-    dumpEvent.sysMemTotal = totalMemory / MB_TO_KB;
-    dumpEvent.sysMemFree = freeMemory / MB_TO_KB;
-    dumpEvent.sysMemAvail = availMemory / MB_TO_KB;
+    std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
+    CollectResult<SysMemory> data = collector->CollectSysMemory();
+    dumpEvent.sysMemTotal = data.data.memTotal / MB_TO_KB;
+    dumpEvent.sysMemFree = data.data.memFree / MB_TO_KB;
+    dumpEvent.sysMemAvail = data.data.memAvailable / MB_TO_KB;
 }
 } // HiViewDFX
 } // OHOS

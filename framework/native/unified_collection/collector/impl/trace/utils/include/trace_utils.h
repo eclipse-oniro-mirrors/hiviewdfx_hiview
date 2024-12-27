@@ -57,13 +57,12 @@ struct DumpEvent {
     int32_t execDuration = 0;
     int32_t coverDuration = 0;
     int32_t coverRatio = 0;
-    std::string tagGroup;
+    std::vector<std::string> tags;
     int32_t fileSize = 0;
     int32_t sysMemTotal = 0;
     int32_t sysMemFree = 0;
     int32_t sysMemAvail = 0;
     int32_t sysCpu = 0;
-    int32_t dumpCpu = 0;
 };
 
 UcError TransCodeToUcError(TraceErrorCode ret);
