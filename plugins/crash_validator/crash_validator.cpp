@@ -31,6 +31,7 @@ namespace OHOS {
 namespace HiviewDFX {
 static const int CHECK_TIME = 75; // match proceesdump report and kernel snapshot check interval(60s)
 static const int CRASH_DUMP_LOCAL_REPORT = 206;
+constexpr int MAX_CRASH_EVENT_SIZE = 100;
 
 REGISTER(CrashValidator);
 DEFINE_LOG_LABEL(0xD002D11, "HiView-CrashValidator");
@@ -95,17 +96,28 @@ void CrashValidator::InitWorkLoop()
     workLoop_ = GetHiviewContext()->GetSharedWorkLoop();
 }
 
-/* check process event map empty or not. if empty, clear crash and crash exception maps */
-bool CrashValidator::CheckProcessMapEmpty()
+/* remove event in map. if empty, clear crash and crash exception maps */
+void CrashValidator::RemoveMatchEvent(int32_t pid)
 {
+    cppCrashEvents_.erase(pid);
+    cppCrashExceptionEvents_.erase(pid);
+    processExitEvents_.erase(pid);
     if (processExitEvents_.empty()) {
-        HIVIEW_LOGI("exit processes empty");
+        HIVIEW_LOGI("processe events empty");
         cppCrashEvents_.clear();
         cppCrashExceptionEvents_.clear();
-        return true;
     }
+}
 
-    return false;
+bool CrashValidator::MatchKernelSnapshotEvent(int32_t pid)
+{
+    if (cppCrashEvents_.find(pid) == cppCrashEvents_.end() ||
+        cppCrashEvents_[pid]->GetEventValue("REASON") != "CppCrashKernelSnapshot") {
+        return false;
+    }
+    ReportMatchEvent("CPP_CRASH_MATCHED", cppCrashEvents_[pid]);
+    RemoveMatchEvent(pid);
+    return true;
 }
 
 /* only process exit with status !=0 will trigger this func be called */
@@ -113,7 +125,7 @@ bool CrashValidator::MatchEvent(int32_t pid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (CheckProcessMapEmpty()) {
+    if (processExitEvents_.empty()) {
         return false;
     }
 
@@ -122,17 +134,17 @@ bool CrashValidator::MatchEvent(int32_t pid)
         return false;
     }
 
+    if (MatchKernelSnapshotEvent(pid)) {
+        return true;
+    }
     if (cppCrashExceptionEvents_.find(pid) != cppCrashExceptionEvents_.end()) {
         ReportMatchEvent("CPP_CRASH_EXCEPTION_MATCHED", cppCrashExceptionEvents_[pid]);
-        cppCrashExceptionEvents_.erase(pid);
     } else if (cppCrashEvents_.find(pid) != cppCrashEvents_.end()) {
         ReportMatchEvent("CPP_CRASH_MATCHED", cppCrashEvents_[pid]);
-        cppCrashEvents_.erase(pid);
     } else {
         ReportDisMatchEvent(processExitEvents_[pid]);
     }
-    processExitEvents_.erase(pid);
-    CheckProcessMapEmpty();
+    RemoveMatchEvent(pid);
     return true;
 }
 
@@ -141,6 +153,14 @@ void CrashValidator::AddEventToMap(int32_t pid, std::shared_ptr<SysEvent> sysEve
 {
     int64_t happendTime = sysEvent->GetEventIntValue("time_");
     std::lock_guard<std::mutex> lock(mutex_);
+
+    if (processExitEvents_.size() > MAX_CRASH_EVENT_SIZE ||
+        cppCrashEvents_.size() > MAX_CRASH_EVENT_SIZE ||
+        cppCrashExceptionEvents_.size() > MAX_CRASH_EVENT_SIZE) {
+        HIVIEW_LOGE("crash execption events size is too large, current don't add %{public}d %{public}s event to map",
+            pid, sysEvent->eventName_.c_str());
+        return;
+    }
 
     if ((sysEvent->eventName_ == "PROCESS_EXIT")) {
         processExitEvents_.try_emplace(pid, sysEvent);

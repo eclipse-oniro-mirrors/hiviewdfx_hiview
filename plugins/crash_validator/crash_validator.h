@@ -37,7 +37,8 @@ public:
 private:
     void InitWorkLoop();
     bool MatchEvent(int32_t pid);
-    bool CheckProcessMapEmpty();
+    bool MatchKernelSnapshotEvent(int32_t pid);
+    void RemoveMatchEvent(int32_t pid);
     void AddEventToMap(int32_t pid, std::shared_ptr<SysEvent> sysEvent);
     void ReportMatchEvent(std::string eventName, std::shared_ptr<SysEvent> sysEvent);
     void ReportDisMatchEvent(std::shared_ptr<SysEvent> sysEvent);
