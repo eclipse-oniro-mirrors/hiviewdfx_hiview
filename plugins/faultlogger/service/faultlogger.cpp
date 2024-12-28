@@ -115,7 +115,6 @@ bool IsLogNameValid(const std::string& name)
     const int32_t idxOfTime = 3;
     const int32_t expectedVecSize = 4;
     const size_t tailWithMillSecLen = 7u;
-    const size_t tailWithLogLen = 4u;
     if (name.empty() || name.size() > MAX_NAME_LENGTH) {
         HIVIEW_LOGI("invalid log name.");
         return false;
@@ -144,8 +143,7 @@ bool IsLogNameValid(const std::string& name)
         return false;
     }
 
-    if (out[idxOfTime].length() > tailWithMillSecLen &&
-        out[idxOfTime].substr(out[idxOfTime].length() - expectedVecSize).compare(".log") == 0) {
+    if (StringUtil::EndWith(out[idxOfTime], ".log") && out[idxOfTime].length() > tailWithMillSecLen) {
         out[idxOfTime] = out[idxOfTime].substr(0, out[idxOfTime].length() - tailWithMillSecLen);
     }
 
@@ -456,15 +454,14 @@ void Faultlogger::Dump(int fd, const DumpRequest &request) const
     dprintf(fd, "%s\n", FILE_SEPERATOR);
     std::map<std::string, std::string> fileNameMap;
     const size_t tailWithMillsecLen = 7;
-    const size_t tailWithLogLen = 4;
     for (auto &file : fileList) {
         std::string fileName = FileUtil::ExtractFileName(file);
         if (fileName.length() <= tailWithMillsecLen) {
             continue;
         }
-        if (!request.compatFlag && fileName.substr(fileName.length() - tailWithLogLen).compare(".log") != 0) {
+        if (!request.compatFlag && StringUtil::EndWith(fileName, ".log") == false) {
             continue;
-        } else if (request.compatFlag && fileName.substr(fileName.length() - tailWithLogLen).compare(".log") == 0) {
+        } else if (request.compatFlag && StringUtil::EndWith(fileName, ".log")) {
             if (fileNameMap[fileName.substr(0, fileName.length() - tailWithMillsecLen)].compare(fileName) < 0) {
                 fileNameMap[fileName.substr(0, fileName.length() - tailWithMillsecLen)] = fileName;
             }
