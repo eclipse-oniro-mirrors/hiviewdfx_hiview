@@ -75,13 +75,6 @@ FaultLogDatabase::FaultLogDatabase(const std::shared_ptr<EventLoop>& eventLoop) 
 void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (info.faultLogType == FaultLogType::SYS_FREEZE) {
-        AnalysisFaultlog(info, info.parsedLogInfo);
-        for (const auto& logInfo : info.parsedLogInfo) {
-            info.sectionMap[logInfo.first] = logInfo.second;
-        }
-        info.parsedLogInfo.clear();
-    }
     if (!eventLoop_) {
         HIVIEW_LOGE("eventLoop_ is not inited.");
         return;

@@ -53,6 +53,7 @@
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"FfrtCallback: task(SERIAL_TASK_TIMEOUT:", "v_queue_name":"FfrtCallback: task\\(SERIAL_TASK_TIMEOUT:.*queue name \\[(sq_\\w+)_\\d+\\]"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
+            {"namespace":"BasicParam", "matchKey":"Result: pid", "v_dumpcatch_result":"Result: pid\\(\\d+\\) (process .*)\\."},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
@@ -202,6 +203,31 @@
         "featureId":"64_ADDR_SANITIZER_01",
         "rules":[
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}\\d+, Name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+        ]
+    },
+    "Rule19":{
+        "DirOrFile":"/data/log/faultlog/freeze/",
+        "Subcatalog":"sysfreeze-(?!HUNGTASK).*-\\d+-\\d+\\.tmp",
+        "featureId":"63_SYS_FREEZE_01",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"PID = (.*)"},
+            {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
+            {"namespace":"BasicParam", "matchKey":"FfrtCallback: task(SERIAL_TASK_TIMEOUT:", "v_queue_name":"FfrtCallback: task\\(SERIAL_TASK_TIMEOUT:.*queue name \\[(sq_\\w+)_\\d+\\]"},
+            {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
+            {"namespace":"BasicParam", "matchKey":"Result: pid", "v_dumpcatch_result":"Result: pid\\(\\d+\\) (process .*)\\."},
+            {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+        ]
+    },
+    "Rule20":{
+        "DirOrFile":"/data/log/faultlog/freeze/",
+        "Subcatalog":"sysfreeze-HUNGTASK-\\d+-\\d+\\.tmp",
+        "featureId":"63_SYS_FREEZE_02",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
+            {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"name=", "v_start":"(tid=@{BasicParam.v_tid}@, state=BLOCKED)"},
+            {"namespace":"MainCallTrace", "depend":"MainCallTrace.v_start", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"}
         ]
     }
 }

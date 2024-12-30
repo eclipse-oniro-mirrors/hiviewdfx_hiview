@@ -77,7 +77,7 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
     GetFingerRawString(fingerRawString, info, eventInfos);
     eventInfos["FINGERPRINT"] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
 
-    if (eventType == "APP_FREEZE" && eventInfos["LAST_FRAME"].empty()) {
+    if ((eventType == "APP_FREEZE" || eventType == "SYS_FREEZE") && eventInfos["FIRST_FRAME"].empty()) {
         if (!eventInfos["TRACER_PID"].empty()) {
             int32_t pid = 0;
             if (sscanf_s(eventInfos["TRACER_PID"].c_str(), "%d", &pid) == 1 && pid > 0) {
