@@ -119,6 +119,10 @@ bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
     }
     std::string droppedParam;
     for (const auto& iter : *invalidParams) {
+        if (!sysEvent->IsParamExist(iter.first)) {
+            // param not exist in this event, no need check
+            continue;
+        }
         if (iter.second != nullptr) {
             if (IsValidParam(sysEvent, iter.first, iter.second->allowListFile)) {
                 continue;

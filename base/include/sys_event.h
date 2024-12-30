@@ -106,6 +106,7 @@ public:
     bool GetEventUintArrayValue(const std::string& key, std::vector<uint64_t>& dest);
     bool GetEventDoubleArrayValue(const std::string& key, std::vector<double>& dest);
     bool GetEventStringArrayValue(const std::string& key, std::vector<std::string>& dest);
+    bool IsParamExist(const std::string& paramName);
     bool RemoveParam(const std::string& paramName);
     void SetInvalidParams(PARAM_INFO_MAP_PTR invalidParams);
     PARAM_INFO_MAP_PTR GetInvalidParams();

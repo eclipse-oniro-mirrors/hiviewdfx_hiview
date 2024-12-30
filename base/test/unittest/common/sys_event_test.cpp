@@ -571,6 +571,28 @@ HWTEST_F(SysEventTest, TestSysEventValueParse011, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: TestSysEventValueParse012
+ * @tc.desc: test param interface of sysevent
+ * @tc.type: FUNC
+ * @tc.require: IBEQMI
+ */
+HWTEST_F(SysEventTest, TestSysEventValueParse012, testing::ext::TestSize.Level3)
+{
+    const std::string testParamName("test_new_param");
+    const std::string testParamValue("any value");
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, GetOriginTestString());
+    ASSERT_FALSE(sysEvent->IsParamExist(testParamName));
+
+    sysEvent->SetEventValue(testParamName, testParamValue);
+    ASSERT_TRUE(sysEvent->IsParamExist(testParamName));
+    ASSERT_EQ(testParamValue, sysEvent->GetEventValue(testParamName));
+
+    sysEvent->RemoveParam(testParamName);
+    ASSERT_FALSE(sysEvent->IsParamExist(testParamName));
+    ASSERT_EQ("", sysEvent->GetEventValue(testParamName));
+}
+
+/**
  * @tc.name: TestSysEventTranslation01
  * @tc.desc: Test translation from sys event to json string
  * @tc.type: FUNC

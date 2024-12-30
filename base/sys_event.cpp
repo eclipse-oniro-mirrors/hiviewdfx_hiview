@@ -308,6 +308,14 @@ bool SysEvent::RemoveParam(const std::string& paramName)
     return true;
 }
 
+bool SysEvent::IsParamExist(const std::string& paramName)
+{
+    if (!InitBuilder()) {
+        return false;
+    }
+    return builder_->GetValue(paramName) != nullptr;
+}
+
 std::string SysEvent::GetEventValue(const std::string& key)
 {
     if (!InitBuilder()) {
