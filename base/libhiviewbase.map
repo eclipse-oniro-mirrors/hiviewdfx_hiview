@@ -448,6 +448,7 @@
         "OHOS::HiviewDFX::SysEvent::RemoveParam(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::SysEvent::SetInvalidParams(std::__h::shared_ptr<std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::shared_ptr<OHOS::HiviewDFX::EventParamInfo>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::shared_ptr<OHOS::HiviewDFX::EventParamInfo>>>>>)";
         "OHOS::HiviewDFX::SysEvent::GetInvalidParams()";
+        "OHOS::HiviewDFX::SysEvent::IsParamExist(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;
