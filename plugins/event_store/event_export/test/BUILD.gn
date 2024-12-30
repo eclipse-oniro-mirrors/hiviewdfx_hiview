@@ -47,6 +47,7 @@ ohos_unittest("EventExportConfigTest") {
 
   external_deps = [
     "cJSON:cjson",
+    "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -76,6 +77,7 @@ ohos_unittest("EventExportDbMgrTest") {
   ]
 
   external_deps = [
+    "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -110,6 +112,7 @@ ohos_unittest("EventExportMgrTest") {
     "cJSON:cjson",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",

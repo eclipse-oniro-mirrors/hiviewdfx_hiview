@@ -16,18 +16,16 @@
 #ifndef HIVIEW_BASE_EVENT_EXPORT_EXPORT_DB_MGR_H
 #define HIVIEW_BASE_EVENT_EXPORT_EXPORT_DB_MGR_H
 
-#include <map>
-#include <memory>
 #include <string>
-#include <vector>
 
 #include "export_db_storage.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 class ExportDbManager {
 public:
-    ExportDbManager(const std::string& dbStoreDir);
+    ExportDbManager(const std::string& dbStoreDir) : dbStoreDir_(dbStoreDir) {}
     ~ExportDbManager() = default;
 
 public:
@@ -38,10 +36,8 @@ public:
     bool IsUnrecordedModule(const std::string& moduleName);
 
 private:
-    ExportDetailRecord GetExportDetailRecord(const std::string& moduleName);
-
-private:
-    std::shared_ptr<ExportDbStorage> storage_;
+    ffrt::mutex dbMutex_;
+    std::string dbStoreDir_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
