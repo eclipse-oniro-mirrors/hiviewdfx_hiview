@@ -64,7 +64,7 @@ private:
     static const inline std::string SP_SYSTEMHUNGFAULT = "SystemHungFault";
     static const inline std::string SP_APPFREEZE = "AppFreeze";
     static const inline std::string SP_ENDSTACK = "END_STACK";
-    static const inline std::string FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze";
+    static const inline std::string FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
     static const inline std::string FAULT_LOGGER_PATH = "/data/log/faultlog/faultlogger/";
     static const inline std::string SMART_PARSER_PATH = "/system/etc/hiview/";
 
