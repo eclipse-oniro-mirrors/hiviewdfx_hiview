@@ -36,6 +36,7 @@ time_t GetFileLastAccessTimeStamp(const std::string& fileName);
 std::string GetCppCrashTempLogName(const FaultLogInfo& info);
 std::string GetDebugSignalTempLogName(const FaultLogInfo& info);
 std::string GetThreadStack(const std::string& path, int32_t threadId);
+bool IsValidPath(const std::string& path);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEWDFX_HIVIEW_FAULTLOGGER_UTIL_H
