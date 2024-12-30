@@ -35,6 +35,9 @@
         },{
            "domain":"SYSTEM_NAV_UE",
            "include":["GESTURE_NAVIGATION_BACK"]
+        },{
+           "domain":"RELIABILITY",
+           "include":["APP_FREEZE_BETACLUB"]
         }
     ]
 }
