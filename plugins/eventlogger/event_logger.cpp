@@ -113,6 +113,7 @@ namespace {
     static constexpr uint8_t LONGPRESS_PRIVACY = 1;
     static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
     static constexpr int DECIMEL = 10;
+    static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
 }
 
 REGISTER(EventLogger);
@@ -1056,12 +1057,14 @@ bool EventLogger::CheckScreenOnRepeat(std::shared_ptr<SysEvent> event)
     eventMap["RELIABILITY"] = {"CPP_CRASH"};
 
     uint64_t endTime = event->happenTime_;
-    uint64_t startTime = endTime - 15 * 1000;
+    uint64_t startTime = endTime - QUERY_KEY_PROCESS_EVENT_INTERVAL;
     for (const auto &pair : eventMap) {
         std::vector<std::string> eventNames = pair.second;
         std::vector<SysEvent> records = dbHelper_->SelectRecords(startTime, endTime, pair.first, eventNames);
         for (auto& record : records) {
             std::string processName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+            processName = processName.empty() ? record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : processName;
+            processName = processName.empty() ? record.GetEventValue("MODULE") : processName;
             StringUtil::FormatProcessName(processName);
             if (pair.first == "AAFWK" && processName != "com.ohos.sceneboard") {
                 continue;
