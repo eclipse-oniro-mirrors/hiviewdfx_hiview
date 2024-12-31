@@ -27,9 +27,8 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
     static const int MILLISECOND = 1000;
-    static const int MAX_LINE_NUM = 100;
     static const int TIME_STRING_LEN = 16;
-    static const int MAX_FILE_NUM = 5;
+    static const int MIN_KEEP_FILE_NUM = 5;
     static const int MAX_FOLDER_SIZE = 5 * 1024 * 1024;
     static constexpr const char* const TRIGGER_HEADER = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
     static constexpr const char* const HEADER = "*******************************************";
@@ -321,7 +320,10 @@ bool Vendor::Init()
     }
     logStore_ = std::make_unique<LogStoreEx>(FREEZE_DETECTOR_PATH, true);
     logStore_->SetMaxSize(MAX_FOLDER_SIZE);
-    logStore_->SetMinKeepingFileNumber(MAX_FILE_NUM);
+    logStore_->SetMinKeepingFileNumber(MIN_KEEP_FILE_NUM);
+    LogStoreEx::LogFileComparator comparator = [this](const LogFile &lhs, const LogFile &rhs) {
+        return rhs < lhs;
+    };
     logStore_->Init();
     return true;
 }

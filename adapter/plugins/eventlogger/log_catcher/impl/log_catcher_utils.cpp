@@ -205,7 +205,10 @@ void ReadShellToFile(int fd, const std::string& serviceName, const std::string& 
         if (fd < 0 || dup2(fd, STDOUT_FILENO) == -1 || dup2(fd, STDIN_FILENO) == -1 || dup2(fd, STDERR_FILENO) == -1) {
             _exit(-1);
         }
-        execl("/system/bin/hidumper", "hidumper", "-s", serviceName.c_str(), "-a", cmd.c_str(), nullptr);
+        int ret = execl("/system/bin/hidumper", "hidumper", "-s", serviceName.c_str(), "-a", cmd.c_str(), nullptr);
+        if (ret < 0) {
+            _exit(-1);
+        }
     } else {
         int ret = waitpid(childPid, nullptr, WNOHANG);
         while (count > 0 && (ret == 0)) {
