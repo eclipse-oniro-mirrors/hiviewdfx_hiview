@@ -20,6 +20,7 @@
 #include "event_log_catcher.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef STACKTRACE_CATCHER_ENABLE
 class OpenStacktraceCatcher : public EventLogCatcher {
 public:
     explicit OpenStacktraceCatcher();
@@ -33,6 +34,7 @@ private:
     int32_t pid_ = -1;
     std::string packageName_ = "";
 };
+#endif // STACKTRACE_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif // EVENT_LOGGER_BACKTRACE_LOG_CATCHER

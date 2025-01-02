@@ -22,7 +22,9 @@
 #include "hiview_logger.h"
 #include "sys_event.h"
 #include "time_util.h"
+#ifdef HITRACE_CATCHER_ENABLE
 #include "trace_collector.h"
+#endif // HITRACE_CATCHER_ENABLE
 #include "parameter_ex.h"
 namespace OHOS {
 namespace HiviewDFX {
@@ -120,6 +122,7 @@ void ActiveKeyEvent::Init(std::shared_ptr<LogStoreEx> logStore)
         ffrt::task_attr().name("initSubscribeOnlyPower").qos(ffrt::qos_default));
 }
 
+#ifdef HITRACE_CATCHER_ENABLE
 void ActiveKeyEvent::HitraceCapture()
 {
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
@@ -130,6 +133,7 @@ void ActiveKeyEvent::HitraceCapture()
         return;
     }
 }
+#endif // HITRACE_CATCHER_ENABLE
 
 void ActiveKeyEvent::SysMemCapture(int fd)
 {
@@ -188,8 +192,10 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
     }
     FileUtil::SaveStringToFd(fd, startTimeStr.str());
 
+#ifdef HITRACE_CATCHER_ENABLE
     auto hitraceCapture = [this] { this->HitraceCapture(); };
     ffrt::submit(hitraceCapture, {}, {}, ffrt::task_attr().name("HitraceCapture").qos(ffrt::qos_user_initiated));
+#endif // HITRACE_CATCHER_ENABLE
 
     DumpCapture(fd);
     auto end = ActiveKeyEvent::SystemTimeMillisecond();

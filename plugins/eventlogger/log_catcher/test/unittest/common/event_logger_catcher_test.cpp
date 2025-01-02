@@ -27,15 +27,27 @@
 #include "common_utils.h"
 #include "file_util.h"
 #define private public
+#ifdef DMESG_CATCHER_ENABLE
 #include "dmesg_catcher.h"
+#endif // DMESG_CATCHER_ENABLE
 #include "event_log_task.h"
+#ifdef STACKTRACE_CATCHER_ENABLE
 #include "open_stacktrace_catcher.h"
+#endif // STACKTRACE_CATCHER_ENABLE
 #include "shell_catcher.h"
+#ifdef BINDER_CATCHER_ENABLE
 #include "peer_binder_catcher.h"
+#endif // BINDER_CATCHER_ENABLE
 #undef private
+#ifdef BINDER_CATCHER_ENABLE
 #include "binder_catcher.h"
+#endif // BINDER_CATCHER_ENABLE
+#ifdef OTHER_CATCHER_ENABLE
 #include "ffrt_catcher.h"
+#endif // OTHER_CATCHER_ENABLE
+#ifdef USAGE_CATCHER_ENABLE
 #include "memory_catcher.h"
+#endif // USAGE_CATCHER_ENABLE
 #include "event_logger.h"
 #include "event_log_catcher.h"
 #include "sys_event.h"
@@ -161,44 +173,73 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
     std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
     logTask->AddLog("cmd:scbCS");
+#ifdef STACKTRACE_CATCHER_ENABLE
     logTask->AppStackCapture();
     logTask->SystemStackCapture();
+    logTask->RemoteStackCapture();
+    logTask->GetGPUProcessStack();
+#endif // STACKTRACE_CATCHER_ENABLE
+
+#ifdef BINDER_CATCHER_ENABLE
     logTask->BinderLogCapture();
+    EXPECT_EQ(logTask->PeerBinderCapture("Test"), false);
+    EXPECT_EQ(logTask->PeerBinderCapture("pb"), false);
+    EXPECT_EQ(logTask->PeerBinderCapture("pb:1:a"), true);
+#endif // BINDER_CATCHER_ENABLE
+
+#ifdef HILOG_CATCHER_ENABLE
+    logTask->HilogCapture();
+    logTask->LightHilogCapture();
+    logTask->InputHilogCapture();
+#endif // HILOG_CATCHER_ENABLE
+
+#ifdef SCB_CATCHER_ENABLE
+    logTask->SCBSessionCapture();
+    logTask->SCBViewParamCapture();
+    logTask->SCBWMSCapture();
+    logTask->SCBWMSEVTCapture();
+#endif // SCB_CATCHER_ENABLE
+
+#ifdef USAGE_CATCHER_ENABLE
+    logTask->DumpAppMapCapture();
     logTask->WMSUsageCapture();
     logTask->AMSUsageCapture();
     logTask->PMSUsageCapture();
     logTask->DPMSUsageCapture();
-    logTask->HilogCapture();
     logTask->RSUsageCapture();
-    logTask->Screenshot();
-    logTask->DmesgCapture();
-    logTask->SCBSessionCapture();
-    logTask->SCBViewParamCapture();
-    logTask->LightHilogCapture();
-    logTask->SCBWMSCapture();
-    logTask->DumpAppMapCapture();
-    logTask->SCBWMSEVTCapture();
-    logTask->SysrqCapture(true);
-    logTask->FfrtCapture();
     logTask->MemoryUsageCapture();
-    logTask->DMSUsageCapture();
     logTask->CpuUsageCapture();
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef DMESG_CATCHER_ENABLE
+    logTask->DmesgCapture();
+    logTask->SysrqCapture(true);
+#endif // DMESG_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+    logTask->Screenshot();
+    logTask->FfrtCapture();
+    logTask->DMSUsageCapture();
     logTask->MMIUsageCapture();
+    logTask->EECStateCapture();
+    logTask->GECStateCapture();
+    logTask->UIStateCapture();
+#endif // OTHER_CATCHER_ENABLE
+
+#ifdef HITRACE_CATCHER_ENABLE
     logTask->HitraceCapture();
-    logTask->SCBWMSEVTCapture();
-    logTask->InputHilogCapture();
-    logTask->RemoteStackCapture();
+#endif // HITRACE_CATCHER_ENABLE
+
     logTask->AddLog("Test");
     logTask->AddLog("cmd:w");
     logTask->status_ = EventLogTask::Status::TASK_RUNNING;
     auto ret = logTask->StartCompose();
     printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
-    EXPECT_EQ(logTask->PeerBinderCapture("Test"), false);
-    EXPECT_EQ(logTask->PeerBinderCapture("pb"), false);
-    EXPECT_EQ(logTask->PeerBinderCapture("pb:1:a"), true);
+
     close(fd);
 }
 
+#ifdef BINDER_CATCHER_ENABLE
 /**
  * @tc.name: BinderCatcherTest_001
  * @tc.desc: add testcase code coverage
@@ -218,7 +259,9 @@ HWTEST_F(EventloggerCatcherTest, BinderCatcherTest_001, TestSize.Level1)
     EXPECT_TRUE(res > 0);
     close(fd);
 }
+#endif // BINDER_CATCHER_ENABLE
 
+#ifdef USAGE_CATCHER_ENABLE
 /**
  * @tc.name: MemoryCatcherTest_001
  * @tc.desc: add testcase code coverage
@@ -241,7 +284,9 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_001, TestSize.Level1)
     printf("memoryCatcher result: %d\n", res);
     close(fd);
 }
+#endif // USAGE_CATCHER_ENABLE
 
+#ifdef OTHER_CATCHER_ENABLE
 /**
  * @tc.name: FfrtCatcherTest_001
  * @tc.desc: add testcase code coverage
@@ -290,7 +335,9 @@ HWTEST_F(EventloggerCatcherTest, FfrtCatcherTest_002, TestSize.Level1)
     printf("ffrtCatcher result: %d\n", res);
     close(fd);
 }
+#endif // OTHER_CATCHER_ENABLE
 
+#ifdef DMESG_CATCHER_ENABLE
 /**
  * @tc.name: DmesgCatcherTest_001
  * @tc.desc: add testcase code coverage
@@ -361,7 +408,9 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     printf("DmesgSaveTofile size: %zu\n", res.size());
     close(fd);
 }
+#endif // DMESG_CATCHER_ENABLE
 
+#ifdef STACKTRACE_CATCHER_ENABLE
 /**
  * @tc.name: OpenStacktraceCatcherTest_001
  * @tc.desc: add testcase code coverage
@@ -412,7 +461,9 @@ HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_002, TestSize.Level1)
     EXPECT_EQ(openStackCatcher->ForkAndDumpStackTrace(fd), 0);
     close(fd);
 }
+#endif // STACKTRACE_CATCHER_ENABLE
 
+#ifdef BINDER_CATCHER_ENABLE
 /**
  * @tc.name: PeerBinderCatcherTest_001
  * @tc.desc: add testcase code coverage
@@ -611,6 +662,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     EXPECT_TRUE(pids.empty());
     fin.close();
 }
+#endif // BINDER_CATCHER_ENABLE
 
 /**
  * @tc.name: ShellCatcherTest
@@ -628,13 +680,16 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level1)
     auto shellCatcher = std::make_shared<ShellCatcher>();
     int pid = CommonUtils::GetPidByName("foundation");
 
+#ifdef USAGE_CATCHER_ENABLE
     bool res = shellCatcher->Initialize("", ShellCatcher::CATCHER_WMS, pid);
     EXPECT_TRUE(res);
+#endif // USAGE_CATCHER_ENABLE
 
     int jsonFd = 1;
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) < 0);
 
     std::string cmd = "ShellCatcherTest_001";
+#ifdef USAGE_CATCHER_ENABLE
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_WMS, pid);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
 
@@ -651,12 +706,15 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level1)
 
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_RS, pid);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
+#endif // USAGE_CATCHER_ENABLE
 
+#ifdef HILOG_CATCHER_ENABLE
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_HILOG, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
 
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_LIGHT_HILOG, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
+#endif // HILOG_CATCHER_ENABLE
 
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_SNAPSHOT, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
@@ -678,30 +736,39 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_002, TestSize.Level1)
     auto shellCatcher = std::make_shared<ShellCatcher>();
     int jsonFd = 1;
     std::string cmd = "ShellCatcherTest_002";
+#ifdef HILOG_CATCHER_ENABLE
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_INPUT_HILOG, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_INPUT_EVENT_HILOG, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
+#endif // HILOG_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_EEC, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_GEC, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_UI, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
+    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_SNAPSHOT, 0);
+    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
+    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_MMI, 0);
+    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
+    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_DMS, 0);
+    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
+#endif // OTHER_CATCHER_ENABLE
     auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("ShellCatcherTest", nullptr, jsonStr);
     event->SetValue("FOCUS_WINDOW", 4); // 4 test value
     shellCatcher->SetEvent(event);
+#ifdef SCB_CATCHER_ENABLE
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_SCBWMSEVT, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_SCBVIEWPARAM, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
-    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_MMI, 0);
-    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
-    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_DMS, 0);
-    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) >= 0);
+#endif // SCB_CATCHER_ENABLE
     close(fd);
 }
 

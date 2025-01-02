@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef STACKTRACE_CATCHER_ENABLE
 namespace {
     static const inline int SLEEP_TIME_US = 100000;
     static const inline int MAX_RETRY_COUNT = 10;
@@ -137,5 +138,6 @@ int32_t OpenStacktraceCatcher::ForkAndDumpStackTrace(int32_t fd)
         leftTimeMicroSecond -= SLEEP_TIME_US;
     }
 }
+#endif // STACKTRACE_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

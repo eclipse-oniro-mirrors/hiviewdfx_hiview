@@ -66,12 +66,26 @@ private:
     CATCHER_TYPE catcherType_ = CATCHER_TYPE::CATCHER_UNKNOWN;
     std::shared_ptr<SysEvent> event_ = nullptr;
 
-    int DoChildProcesscatcher(int writeFd);
-    int CaDoInChildProcesscatcher(int writeFd);
     int DoOtherChildProcesscatcher(int writeFd);
     void DoChildProcess(int writeFd);
     bool ReadShellToFile(int fd, const std::string& cmd);
+
+#ifdef HILOG_CATCHER_ENABLE
+    int DoHilogCatcher(writeFd);
+#endif // HILOG_CATCHER_ENABLE
+
+#ifdef USAGE_CATCHER_ENABLE
+    int DoUsageCatcher(writeFd);
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef SCB_CATCHER_ENABLE
+    int DoScbCatcher(writeFd);
+#endif // SCB_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+    int DoOtherCatcher(writeFd);
     void GetCpuCoreFreqInfo(int fd) const;
+#endif // OTHER_CATCHER_ENABLE
 };
 } // namespace HiviewDFX
 } // namespace OHOS

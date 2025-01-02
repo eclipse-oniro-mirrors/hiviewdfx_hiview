@@ -20,6 +20,7 @@
 #include "event_log_catcher.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef BINDER_CATCHER_ENABLE
 class BinderCatcher : public EventLogCatcher {
 public:
     explicit BinderCatcher();
@@ -27,6 +28,7 @@ public:
     bool Initialize(const std::string& strParam1, int intParam1, int intParam2) override;
     int Catch(int fd, int jsonFd) override;
 };
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif // EVENT_LOGGER_BINDER_LOG_CATCHER

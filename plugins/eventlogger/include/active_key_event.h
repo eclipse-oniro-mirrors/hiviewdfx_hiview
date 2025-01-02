@@ -38,7 +38,9 @@ private:
     void InitSubscribe(std::set<int32_t> preKeys, int32_t finalKey, int32_t count, int32_t holdTime);
     void CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEvent);
     void CombinationKeyCallback(std::shared_ptr<MMI::KeyEvent> keyEvent);
+#ifdef HITRACE_CATCHER_ENABLE
     void HitraceCapture();
+#endif // HITRACE_CATCHER_ENABLE
     void SysMemCapture(int fd);
     void DumpCapture(int fd);
 
