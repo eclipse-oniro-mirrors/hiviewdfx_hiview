@@ -16,6 +16,7 @@
 #ifndef SYS_EVENT_REPEAT_DB_H
 #define SYS_EVENT_REPEAT_DB_H
 
+#include <mutex>
 #include <string>
 
 #include "rdb_store.h"
@@ -41,6 +42,7 @@ public:
     bool Update(const SysEventHashRecord &sysEventHashRecord);
     void CheckAndClearDb(const int64_t happentime);
     void Clear(const int64_t happentime);
+    void Release();
 
 private:
     bool CheckDbStoreValid();
@@ -52,6 +54,7 @@ private:
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
     int64_t dbCount_ = 0;
+    std::mutex dbMutex_;
 };
 } // HiviewDFX
 } // OHOS

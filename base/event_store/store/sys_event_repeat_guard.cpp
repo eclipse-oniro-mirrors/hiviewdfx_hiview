@@ -116,6 +116,7 @@ bool SysEventRepeatGuard::IsEventRepeat(SysEvent& event)
         SysEventRepeatDb::GetInstance().Insert(sysEventHashRecord);
         SysEventRepeatDb::GetInstance().CheckAndClearDb(minValidTime);
     }
+    SysEventRepeatDb::GetInstance().Release();
     return false;
 }
 
@@ -134,6 +135,7 @@ void SysEventRepeatGuard::RegisterListeningUeSwitch()
             if (val == KEY_ON) {
                 int64_t curTime = time(nullptr);
                 SysEventRepeatDb::GetInstance().Clear(curTime);
+                SysEventRepeatDb::GetInstance().Release();
             }
         };
         bool success = false;

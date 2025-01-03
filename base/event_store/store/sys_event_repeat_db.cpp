@@ -134,22 +134,32 @@ void SysEventRepeatDb::InitDbStore()
     }
 }
 
+void SysEventRepeatDb::Release()
+{
+    std::lock_guard<std::mutex> lock(dbMutex_);
+    dbStore_ = nullptr;
+}
+
 void SysEventRepeatDb::CheckAndClearDb(const int64_t happentime)
 {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     if (dbCount_ <= MAX_DB_COUNT) {
         return;
     }
-    Clear(happentime);
+    ClearHistory(happentime);
+    RefreshDbCount();
 }
 
 void SysEventRepeatDb::Clear(const int64_t happentime)
 {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     ClearHistory(happentime);
     RefreshDbCount();
 }
 
 bool SysEventRepeatDb::Insert(const SysEventHashRecord &sysEventHashRecord)
 {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     if (!CheckDbStoreValid()) {
         HIVIEW_LOGE("dbStore_ not valid.");
         return false;
@@ -171,6 +181,7 @@ bool SysEventRepeatDb::Insert(const SysEventHashRecord &sysEventHashRecord)
 
 bool SysEventRepeatDb::Update(const SysEventHashRecord &sysEventHashRecord)
 {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     if (!CheckDbStoreValid()) {
         return false;
     }
@@ -228,6 +239,7 @@ void SysEventRepeatDb::RefreshDbCount()
 
 int64_t SysEventRepeatDb::QueryHappentime(SysEventHashRecord &sysEventHashRecord)
 {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     if (!CheckDbStoreValid()) {
         return 0;
     }
