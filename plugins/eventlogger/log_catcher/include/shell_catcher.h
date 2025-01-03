@@ -71,19 +71,19 @@ private:
     bool ReadShellToFile(int fd, const std::string& cmd);
 
 #ifdef HILOG_CATCHER_ENABLE
-    int DoHilogCatcher(writeFd);
+    int DoHilogCatcher(int writeFd);
 #endif // HILOG_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
-    int DoUsageCatcher(writeFd);
+    int DoUsageCatcher(int writeFd);
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef SCB_CATCHER_ENABLE
-    int DoScbCatcher(writeFd);
+    int DoScbCatcher(int writeFd);
 #endif // SCB_CATCHER_ENABLE
 
 #ifdef OTHER_CATCHER_ENABLE
-    int DoOtherCatcher(writeFd);
+    int DoOtherCatcher(int writeFd);
     void GetCpuCoreFreqInfo(int fd) const;
 #endif // OTHER_CATCHER_ENABLE
 };

@@ -239,7 +239,7 @@ int ShellCatcher::DoOtherCatcher(int writeFd)
                 ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
             }
             break;
-                   case CATCHER_MMI:
+        case CATCHER_MMI:
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "MultimodalInput", "-a", "-w", nullptr);
             break;
         case CATCHER_DMS:

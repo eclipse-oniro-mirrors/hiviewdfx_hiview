@@ -29,7 +29,7 @@
 
 #ifdef STACKTRACE_CATCHER_ENABLE
 #include "open_stacktrace_catcher.h"
-#endif STACKTRACE_CATCHER_ENABLE
+#endif // STACKTRACE_CATCHER_ENABLE
 
 #ifdef BINDER_CATCHER_ENABLE
 #include "binder_catcher.h"
