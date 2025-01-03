@@ -229,5 +229,15 @@
             {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"name=", "v_start":"(tid=@{BasicParam.v_tid}@, state=BLOCKED)"},
             {"namespace":"MainCallTrace", "depend":"MainCallTrace.v_start", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"}
         ]
+    },
+    "Rule21":{
+        "DirOrFile":"/data/hisi_logs/",
+        "Subcatalog":"\\d{14}-\\d{8}/dpa_log/reset.log",
+        "featureId":"03_DPACRASH_00",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"brief:", "v_first":"^brief:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"task_name:", "v_second":"^task_name:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"modid:", "v_last":"^modid:(.*)"}
+        ]
     }
 }

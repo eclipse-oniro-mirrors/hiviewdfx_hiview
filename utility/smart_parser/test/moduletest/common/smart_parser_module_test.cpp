@@ -927,5 +927,29 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest023, TestSize.Level1)
     auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "PANIC");
     ASSERT_EQ(eventInfos.empty(), false);
 }
+
+/**
+ * @tc.name: SmartParserTest024
+ * @tc.desc: process DPACRASH fault, this case match test_compose_rule.json and test_extract_rule.json.
+ *           1. fault log should can be read;
+ *           2. compose_rule.json and extract_rule.json. should match the json file in perforce.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: jincong
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest024, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Set taskSheet fault log path and eventid.
+     */
+    std::string faultFile = LogUtil::SMART_PARSER_TEST_DIR + "/SmartParserTest017/reset.log";
+    ASSERT_EQ(FileUtil::FileExists(faultFile), true);
+
+    /**
+     * @tc.steps: step2. smart parser process crash fault log
+     */
+    auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "DPACRASH");
+    ASSERT_EQ(eventInfos.empty(), false);
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

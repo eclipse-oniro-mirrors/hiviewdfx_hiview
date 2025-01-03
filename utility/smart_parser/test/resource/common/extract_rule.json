@@ -141,5 +141,15 @@
             {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"MID(Master id)", "v_first":"(MID\\(Master id\\).*)"},
             {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"qic_addr", "v_second":"(qic_addr.*)"}
         ]
+    },
+    "Rule13":{
+        "DirOrFile":"/data/hisi_logs/",
+        "Subcatalog":"\\d{14}-\\d{8}/dpa_log/reset.log",
+        "featureId":"03_DPACRASH_00",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"brief:", "v_first":"^brief:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"task_name:", "v_second":"^task_name:(.*)"},
+            {"namespace":"BasicParam", "matchKey":"modid:", "v_last":"^modid:(.*)"}
+        ]
     }
 }
