@@ -22,6 +22,7 @@
 #include "defines.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef BINDER_CATCHER_ENABLE
 using namespace OHOS::HiviewDFX::CommonUtils;
 BinderCatcher::BinderCatcher() : EventLogCatcher()
 {
@@ -63,5 +64,6 @@ int BinderCatcher::Catch(int fd, int jsonFd)
     }
     return logSize_;
 };
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

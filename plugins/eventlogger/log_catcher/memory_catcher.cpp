@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef USAGE_CATCHER_ENABLE
 using namespace UCollect;
 using namespace UCollectUtil;
 MemoryCatcher::MemoryCatcher() : EventLogCatcher()
@@ -60,5 +61,6 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
 
     return logSize_;
 };
+#endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

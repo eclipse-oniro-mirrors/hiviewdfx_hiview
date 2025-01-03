@@ -29,14 +29,8 @@ ohos_source_set("log_catcher") {
   public_configs = [ ":log_catcher_config" ]
 
   sources = [
-    "binder_catcher.cpp",
-    "dmesg_catcher.cpp",
     "event_log_catcher.cpp",
     "event_log_task.cpp",
-    "ffrt_catcher.cpp",
-    "memory_catcher.cpp",
-    "open_stacktrace_catcher.cpp",
-    "peer_binder_catcher.cpp",
     "shell_catcher.cpp",
   ]
 
@@ -56,5 +50,47 @@ ohos_source_set("log_catcher") {
 
   if (has_hiperf) {
     cflags = [ "-DHAS_HIPERF" ]
+  }
+
+  defines = []
+
+  if (hiview_eventlogger_stacktrace_catcher_enable) {
+    sources += [ "open_stacktrace_catcher.cpp" ]
+    defines += [ "STACKTRACE_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_binder_catcher_enable) {
+    sources += [
+      "binder_catcher.cpp",
+      "peer_binder_catcher.cpp",
+    ]
+    defines += [ "BINDER_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_dmesg_catcher_enable) {
+    sources += [ "dmesg_catcher.cpp" ]
+    defines += [ "DMESG_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_hilog_catcher_enable) {
+    defines += [ "HILOG_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_hitrace_catcher_enable) {
+    defines += [ "HITRACE_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_usage_catcher_enable) {
+    sources += [ "memory_catcher.cpp" ]
+    defines += [ "USAGE_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_scb_catcher_enable) {
+    defines += [ "SCB_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_other_catcher_enable) {
+    sources += [ "ffrt_catcher.cpp" ]
+    defines += [ "OTHER_CATCHER_ENABLE" ]
   }
 }

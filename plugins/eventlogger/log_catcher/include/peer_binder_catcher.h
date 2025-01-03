@@ -24,6 +24,7 @@
 #include "event_log_catcher.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef BINDER_CATCHER_ENABLE
 class PeerBinderCatcher : public EventLogCatcher {
 public:
     explicit PeerBinderCatcher();
@@ -75,6 +76,7 @@ private:
     void DoExecHiperf(const std::string& fileName, const std::set<int>& pids);
 #endif
 };
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif // EVENT_LOGGER_PEER_BINDER_LOG_CATCHER

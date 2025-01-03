@@ -18,7 +18,9 @@
 #include <sys/wait.h>
 #include "hiview_logger.h"
 #include "common_utils.h"
+#ifdef USAGE_CATCHER_ENABLE
 #include "cpu_collector.h"
+#endif // USAGE_CATCHER_ENABLE
 #include "log_catcher_utils.h"
 #include "securec.h"
 #include "time_util.h"
@@ -44,11 +46,56 @@ void ShellCatcher::SetEvent(std::shared_ptr<SysEvent> event)
     event_ = event;
 }
 
+void ShellCatcher::DoChildProcess(int writeFd)
+{
+    if (writeFd < 0 || dup2(writeFd, STDOUT_FILENO) == -1 ||
+        dup2(writeFd, STDIN_FILENO) == -1 || dup2(writeFd, STDERR_FILENO) == -1) {
+        HIVIEW_LOGE("dup2 writeFd fail");
+        _exit(-1);
+    }
 
-int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
+    int ret = -1;
+#ifdef HILOG_CATCHER_ENABLE
+    ret = DoHilogCatcher(writeFd);
+#endif // HILOG_CATCHER_ENABLE
+
+#ifdef USAGE_CATCHER_ENABLE
+    ret = DoUsageCatcher(writeFd);
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef SCB_CATCHER_ENABLE
+    ret = DoScbCatcher(writeFd);
+#endif // SCB_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+    ret = DoOtherCatcher(writeFd);
+#endif // OTHER_CATCHER_ENABLE
+
+    if (ret < 0) {
+        HIVIEW_LOGE("execl %{public}d, errno: %{public}d", ret, errno);
+        _exit(-1);
+    }
+}
+
+#ifdef HILOG_CATCHER_ENABLE
+int ShellCatcher::DoHilogCatcher(int writeFd)
 {
     int ret = -1;
     switch (catcherType_) {
+        case CATCHER_HILOG:
+            ret = execl("/system/bin/hilog", "hilog", "-x", nullptr);
+            break;
+        case CATCHER_LIGHT_HILOG:
+            ret = execl("/system/bin/hilog", "hilog", "-z", "1000", "-P", std::to_string(pid_).c_str(),
+                nullptr);
+            break;
+        case CATCHER_INPUT_EVENT_HILOG:
+            ret = execl("/system/bin/hilog", "hilog", "-T", "InputKeyFlow", "-e",
+                std::to_string(pid_).c_str(), "-x", nullptr);
+            break;
+        case CATCHER_INPUT_HILOG:
+            ret = execl("/system/bin/hilog", "hilog", "-T", "InputKeyFlow", "-x", nullptr);
+            break;
         case CATCHER_TAGHILOG:
             ret = execl("/system/bin/hilog",
                 "hilog",
@@ -61,98 +108,11 @@ int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
     }
     return ret;
 }
+#endif // HILOG_CATCHER_ENABLE
 
-int ShellCatcher::DoChildProcesscatcher(int writeFd)
+#ifdef USAGE_CATCHER_ENABLE
+int ShellCatcher::DoUsageCatcher(int writeFd)
 {
-    int ret = -1;
-    switch (catcherType_) {
-        case CATCHER_INPUT_EVENT_HILOG:
-            ret = execl("/system/bin/hilog", "hilog", "-T", "InputKeyFlow", "-e",
-                std::to_string(pid_).c_str(), "-x", nullptr);
-            break;
-        case CATCHER_INPUT_HILOG:
-            ret = execl("/system/bin/hilog", "hilog", "-T", "InputKeyFlow", "-x", nullptr);
-            break;
-        case CATCHER_EEC:
-            {
-                std::string cmd = "-b EventExclusiveCommander getAllEventExclusiveCaller";
-                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
-            }
-            break;
-        case CATCHER_GEC:
-            {
-                std::string cmd = "-b SCBGestureManager getAllGestureEnableCaller";
-                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
-            }
-            break;
-        case CATCHER_UI:
-            {
-                std::string cmd = "-p 0";
-                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
-            }
-            break;
-        default:
-            ret = DoOtherChildProcesscatcher(writeFd);
-            break;
-    }
-    return ret;
-}
-
-int ShellCatcher::CaDoInChildProcesscatcher(int writeFd)
-{
-    int ret = -1;
-    switch (catcherType_) {
-        case CATCHER_HILOG:
-            ret = execl("/system/bin/hilog", "hilog", "-x", nullptr);
-            break;
-        case CATCHER_LIGHT_HILOG:
-            ret = execl("/system/bin/hilog", "hilog", "-z", "1000", "-P", std::to_string(pid_).c_str(),
-                nullptr);
-            break;
-        case CATCHER_DAM:
-            ret = execl("/system/bin/hidumper", "hidumper", "-s", "1910", "-a", "DumpAppMap", nullptr);
-            break;
-        case CATCHER_SCBWMS:
-        case CATCHER_SCBWMSEVT:
-            {
-                std::string cmdSuffix = (catcherType_ == CATCHER_SCBWMS) ? " -simplify" : " -event";
-                std::string cmd = "-w " + focusWindowId_ + cmdSuffix;
-                ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a",
-                    cmd.c_str(), nullptr);
-            }
-            break;
-        case CATCHER_SNAPSHOT:
-            {
-                std::string path = "/data/log/eventlog/snapshot_display_";
-                path += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
-                    "%Y%m%d%H%M%S");
-                path += ".jpeg";
-                ret = execl("/system/bin/snapshot_display", "snapshot_display", "-f", path.c_str(), nullptr);
-            }
-            break;
-        case CATCHER_SCBSESSION:
-        case CATCHER_SCBVIEWPARAM:
-            {
-                std::string cmd = (catcherType_ == CATCHER_SCBSESSION) ? "-b SCBScenePanel getContainerSession" :
-                    "-b SCBScenePanel getViewParam";
-                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
-            }
-            break;
-        default:
-            ret = DoChildProcesscatcher(writeFd);
-            break;
-    }
-    return ret;
-}
-
-void ShellCatcher::DoChildProcess(int writeFd)
-{
-    if (writeFd < 0 || dup2(writeFd, STDOUT_FILENO) == -1 ||
-        dup2(writeFd, STDIN_FILENO) == -1 || dup2(writeFd, STDERR_FILENO) == -1) {
-        HIVIEW_LOGE("dup2 writeFd fail");
-        _exit(-1);
-    }
-
     int ret = -1;
     switch (catcherType_) {
         case CATCHER_AMS:
@@ -174,6 +134,111 @@ void ShellCatcher::DoChildProcess(int writeFd)
         case CATCHER_RS:
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "RenderService", "-a", "allInfo", nullptr);
             break;
+        case CATCHER_DAM:
+            ret = execl("/system/bin/hidumper", "hidumper", "-s", "1910", "-a", "DumpAppMap", nullptr);
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+
+void ShellCatcher::GetCpuCoreFreqInfo(int fd) const
+{
+    std::shared_ptr<UCollectUtil::CpuCollector> collector =
+        UCollectUtil::CpuCollector::Create();
+    CollectResult<SysCpuUsage> resultInfo = collector->CollectSysCpuUsage(true);
+    if (resultInfo.retCode != UCollect::UcError::SUCCESS) {
+        FileUtil::SaveStringToFd(fd, "\n Get each cpu info failed.\n");
+        return;
+    }
+
+    const SysCpuUsage& sysCpuUsage = resultInfo.data;
+    std::string temp = "";
+    for (size_t i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
+        temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
+            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) + "\n";
+        FileUtil::SaveStringToFd(fd, temp);
+        temp = "";
+    }
+    CollectResult<std::vector<CpuFreq>> resultCpuFreq = collector->CollectCpuFrequency();
+    if (resultCpuFreq.retCode != UCollect::UcError::SUCCESS) {
+        FileUtil::SaveStringToFd(fd, "\n Get each cpu freq failed.\n");
+        return;
+    }
+
+    const std::vector<CpuFreq>& cpuFreqs = resultCpuFreq.data;
+    for (size_t i = 0; i < cpuFreqs.size(); i++) {
+        temp = "\ncpu" + std::to_string(cpuFreqs[i].cpuId) + ", cpuFreq=" + std::to_string(cpuFreqs[i].curFreq) +
+               ", minFreq=" + std::to_string(cpuFreqs[i].minFreq) + ", maxFreq=" + std::to_string(cpuFreqs[i].maxFreq) +
+               "\n";
+        FileUtil::SaveStringToFd(fd, temp);
+        temp = "";
+    }
+}
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef SCB_CATCHER_ENABLE
+int ShellCatcher::DoScbCatcher(int writeFd)
+{
+    int ret = -1;
+    switch (catcherType_) {
+        case CATCHER_SCBWMS:
+        case CATCHER_SCBWMSEVT:
+            {
+                std::string cmdSuffix = (catcherType_ == CATCHER_SCBWMS) ? " -simplify" : " -event";
+                std::string cmd = "-w " + focusWindowId_ + cmdSuffix;
+                ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a",
+                    cmd.c_str(), nullptr);
+            }
+            break;
+        case CATCHER_SCBSESSION:
+        case CATCHER_SCBVIEWPARAM:
+            {
+                std::string cmd = (catcherType_ == CATCHER_SCBSESSION) ? "-b SCBScenePanel getContainerSession" :
+                    "-b SCBScenePanel getViewParam";
+                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
+            }
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+#endif // SCB_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+int ShellCatcher::DoOtherCatcher(int writeFd)
+{
+    int ret = -1;
+    switch (catcherType_) {
+        case CATCHER_SNAPSHOT:
+            {
+                std::string path = "/data/log/eventlog/snapshot_display_";
+                path += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+                    "%Y%m%d%H%M%S");
+                path += ".jpeg";
+                ret = execl("/system/bin/snapshot_display", "snapshot_display", "-f", path.c_str(), nullptr);
+            }
+            break;
+        case CATCHER_EEC:
+            {
+                std::string cmd = "-b EventExclusiveCommander getAllEventExclusiveCaller";
+                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
+            }
+            break;
+        case CATCHER_GEC:
+            {
+                std::string cmd = "-b SCBGestureManager getAllGestureEnableCaller";
+                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
+            }
+            break;
+        case CATCHER_UI:
+            {
+                std::string cmd = "-p 0";
+                ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
+            }
+            break;
         case CATCHER_MMI:
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "MultimodalInput", "-a", "-w", nullptr);
             break;
@@ -181,13 +246,28 @@ void ShellCatcher::DoChildProcess(int writeFd)
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "DisplayManagerService", "-a", "-a", nullptr);
             break;
         default:
-            ret = CaDoInChildProcesscatcher(writeFd);
+            ret = DoOtherChildProcesscatcher(writeFd);
             break;
     }
-    if (ret < 0) {
-        HIVIEW_LOGE("execl %{public}d, errno: %{public}d", ret, errno);
-        _exit(-1);
+    return ret;
+}
+#endif // OTHER_CATCHER_ENABLE
+
+int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
+{
+    int ret = -1;
+    switch (catcherType_) {
+        case CATCHER_TAGHILOG:
+            ret = execl("/system/bin/hilog",
+                "hilog",
+                "-T",
+                "PowerState,PowerSuspend,PowerInput,DisplayState,DfxFaultLogger",
+                nullptr);
+            break;
+        default:
+            break;
     }
+    return ret;
 }
 
 void ShellCatcher::SetFocusWindowId(const std::string& focusWindowId)
@@ -224,40 +304,6 @@ int ShellCatcher::Catch(int fd, int jsonFd)
     ReadShellToFile(fd, catcherCmd_);
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
-}
-
-void ShellCatcher::GetCpuCoreFreqInfo(int fd) const
-{
-    std::shared_ptr<UCollectUtil::CpuCollector> collector =
-        UCollectUtil::CpuCollector::Create();
-    CollectResult<SysCpuUsage> resultInfo = collector->CollectSysCpuUsage(true);
-    if (resultInfo.retCode != UCollect::UcError::SUCCESS) {
-        FileUtil::SaveStringToFd(fd, "\n Get each cpu info failed.\n");
-        return;
-    }
-
-    const SysCpuUsage& sysCpuUsage = resultInfo.data;
-    std::string temp = "";
-    for (size_t i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
-        temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
-            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) + "\n";
-        FileUtil::SaveStringToFd(fd, temp);
-        temp = "";
-    }
-    CollectResult<std::vector<CpuFreq>> resultCpuFreq = collector->CollectCpuFrequency();
-    if (resultCpuFreq.retCode != UCollect::UcError::SUCCESS) {
-        FileUtil::SaveStringToFd(fd, "\n Get each cpu freq failed.\n");
-        return;
-    }
-
-    const std::vector<CpuFreq>& cpuFreqs = resultCpuFreq.data;
-    for (size_t i = 0; i < cpuFreqs.size(); i++) {
-        temp = "\ncpu" + std::to_string(cpuFreqs[i].cpuId) + ", cpuFreq=" + std::to_string(cpuFreqs[i].curFreq) +
-               ", minFreq=" + std::to_string(cpuFreqs[i].minFreq) + ", maxFreq=" + std::to_string(cpuFreqs[i].maxFreq) +
-               "\n";
-        FileUtil::SaveStringToFd(fd, temp);
-        temp = "";
-    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

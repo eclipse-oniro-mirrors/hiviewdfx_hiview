@@ -24,6 +24,7 @@
 #include "event_log_catcher.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef DMESG_CATCHER_ENABLE
 class DmesgCatcher : public EventLogCatcher {
 public:
     explicit DmesgCatcher();
@@ -42,6 +43,7 @@ private:
     bool WriteSysrq();
     bool DumpSysrqToFile(int fd, char *buffer, int size);
 };
+#endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif // EVENT_LOGGER_DMESG_CATCHER

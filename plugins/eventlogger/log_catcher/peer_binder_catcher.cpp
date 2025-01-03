@@ -34,6 +34,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef BINDER_CATCHER_ENABLE
 namespace {
     static constexpr uint8_t ARR_SIZE = 7;
     static constexpr uint8_t DECIMAL = 10;
@@ -440,5 +441,6 @@ void PeerBinderCatcher::ForkToDumpHiperf(const std::set<int>& pids)
 #endif
 }
 #endif
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

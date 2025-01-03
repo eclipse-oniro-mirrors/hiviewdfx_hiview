@@ -20,6 +20,7 @@
 #include "event_log_catcher.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef USAGE_CATCHER_ENABLE
 class MemoryCatcher : public EventLogCatcher {
 public:
     explicit MemoryCatcher();
@@ -27,6 +28,7 @@ public:
     bool Initialize(const std::string& strParam1, int intParam1, int intParam2) override;
     int Catch(int fd, int jsonFd) override;
 };
+#endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif // EVENT_LOGGER_MEMORY_CATCHER

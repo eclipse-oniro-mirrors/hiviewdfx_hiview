@@ -17,22 +17,40 @@
 #include <unistd.h>
 #include <regex>
 
-#include "binder_catcher.h"
 #include "common_utils.h"
-#include "dmesg_catcher.h"
-#include "ffrt_catcher.h"
 #include "hiview_logger.h"
-#include "memory_catcher.h"
-#include "open_stacktrace_catcher.h"
 #include "parameter_ex.h"
-#include "peer_binder_catcher.h"
 #include "securec.h"
 #include "shell_catcher.h"
 #include "string_util.h"
-#include "trace_collector.h"
 #include "time_util.h"
 #include "freeze_common.h"
 #include "thermal_mgr_client.h"
+
+#ifdef STACKTRACE_CATCHER_ENABLE
+#include "open_stacktrace_catcher.h"
+#endif // STACKTRACE_CATCHER_ENABLE
+
+#ifdef BINDER_CATCHER_ENABLE
+#include "binder_catcher.h"
+#include "peer_binder_catcher.h"
+#endif // BINDER_CATCHER_ENABLE
+
+#ifdef DMESG_CATCHER_ENABLE
+#include "dmesg_catcher.h"
+#endif // DMESG_CATCHER_ENABLE
+
+#ifdef HITRACE_CATCHER_ENABLE
+#include "trace_collector.h"
+#endif // HITRACE_CATCHER_ENABLE
+
+#ifdef USAGE_CATCHER_ENABLE
+#include "memory_catcher.h"
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+#include "ffrt_catcher.h"
+#endif // OTHER_CATCHER_ENABLE
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -61,10 +79,17 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 {
     int pid = event_->GetEventIntValue("PID");
     pid_ = pid ? pid : event_->GetPid();
+#ifdef STACKTRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("s", [this] { this->AppStackCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("S", [this] { this->SystemStackCapture(); }));
+#endif // STACKTRACE_CATCHER_ENABLE
+#ifdef BINDER_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("b", [this] { this->BinderLogCapture(); }));
+#endif // BINDER_CATCHER_ENABLE
+#ifdef OTHER_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("ffrt", [this] { this->FfrtCapture(); }));
+#endif // OTHER_CATCHER_ENABLE
+#ifdef USAGE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:m", [this] { this->MemoryUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:c", [this] { this->CpuUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:w", [this] { this->WMSUsageCapture(); }));
@@ -72,20 +97,30 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
     captureList_.insert(std::pair<std::string, capture>("cmd:p", [this] { this->PMSUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:d", [this] { this->DPMSUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:rs", [this] { this->RSUsageCapture(); }));
+#endif // USAGE_CATCHER_ENABLE
+#ifdef OTHER_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:mmi", [this] { this->MMIUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:dms", [this] { this->DMSUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:eec", [this] { this->EECStateCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:gec", [this] { this->GECStateCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:ui", [this] { this->UIStateCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:ss", [this] { this->Screenshot(); }));
+#endif // OTHER_CATCHER_ENABLE
+#ifdef HILOG_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("T", [this] { this->HilogCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("t", [this] { this->LightHilogCapture(); }));
+#endif // HILOG_CATCHER_ENABLE
+#ifdef DMESG_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("e", [this] { this->DmesgCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysRq",
         [this] { this->SysrqCapture(false); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysRqFile",
         [this] { this->SysrqCapture(true); }));
+#endif // DMESG_CATCHER_ENABLE
+#ifdef HITRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("tr", [this] { this->HitraceCapture(); }));
+#endif // HITRACE_CATCHER_ENABLE
+#ifdef SCB_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:scbCS",
         [this] { this->SCBSessionCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:scbVP",
@@ -94,14 +129,21 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
         [this] { this->SCBWMSCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:scbWMSEVT",
         [this] { this->SCBWMSEVTCapture(); }));
+#endif // SCB_CATCHER_ENABLE
+#ifdef USAGE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:dam",
         [this] { this->DumpAppMapCapture(); }));
+#endif // USAGE_CATCHER_ENABLE
+#ifdef HILOG_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("t:input",
         [this] { this->InputHilogCapture(); }));
+#endif // HILOG_CATCHER_ENABLE
+#ifdef STACKTRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:remoteS",
         [this] { this->RemoteStackCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("GpuStack",
         [this] { this->GetGPUProcessStack(); }));
+#endif // STACKTRACE_CATCHER_ENABLE
 }
 
 void EventLogTask::AddLog(const std::string &cmd)
@@ -114,7 +156,9 @@ void EventLogTask::AddLog(const std::string &cmd)
         captureList_[cmd]();
         return;
     }
+#ifdef BINDER_CATCHER_ENABLE
     PeerBinderCapture(cmd);
+#endif // BINDER_CATCHER_ENABLE
     catchedPids_.clear();
 }
 
@@ -254,6 +298,7 @@ long EventLogTask::GetLogSize() const
     return taskLogSize_;
 }
 
+#ifdef STACKTRACE_CATCHER_ENABLE
 void EventLogTask::AppStackCapture()
 {
     auto capture = std::make_shared<OpenStacktraceCatcher>();
@@ -271,25 +316,32 @@ void EventLogTask::SystemStackCapture()
     }
 }
 
-void EventLogTask::BinderLogCapture()
+void EventLogTask::RemoteStackCapture()
 {
-    auto capture = std::make_shared<BinderCatcher>();
-    capture->Initialize("", 0, 0);
+    auto capture = std::make_shared<OpenStacktraceCatcher>();
+    int32_t remotePid = event_->GetEventIntValue("REMOTE_PID");
+    capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), remotePid, 0);
     tasks_.push_back(capture);
 }
 
-void EventLogTask::FfrtCapture()
+void EventLogTask::GetGPUProcessStack()
 {
-    if (pid_ > 0) {
-        auto capture = std::make_shared<FfrtCatcher>();
-        capture->Initialize("", pid_, 0);
+    auto capture = std::make_shared<OpenStacktraceCatcher>();
+    std::string bundleName = event_->GetEventValue("PACKAGE_NAME");
+    bundleName += ":gpu";
+    int pid = CommonUtils::GetPidByName(bundleName);
+    HIVIEW_LOGI("get pid of gpu: %{public}d.", pid);
+    if (pid != -1) {
+        capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), pid, 0);
         tasks_.push_back(capture);
     }
 }
+#endif // STACKTRACE_CATCHER_ENABLE
 
-void EventLogTask::MemoryUsageCapture()
+#ifdef BINDER_CATCHER_ENABLE
+void EventLogTask::BinderLogCapture()
 {
-    auto capture = std::make_shared<MemoryCatcher>();
+    auto capture = std::make_shared<BinderCatcher>();
     capture->Initialize("", 0, 0);
     tasks_.push_back(capture);
 }
@@ -313,6 +365,93 @@ bool EventLogTask::PeerBinderCapture(const std::string &cmd)
     capture->Init(event_, "", catchedPids_);
     tasks_.push_back(capture);
     return true;
+}
+#endif // BINDER_CATCHER_ENABLE
+
+#ifdef DMESG_CATCHER_ENABLE
+void EventLogTask::DmesgCapture()
+{
+    auto capture = std::make_shared<DmesgCatcher>();
+    capture->Initialize("", 0, 0);
+    capture->Init(event_);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::SysrqCapture(bool isWriteNewFile)
+{
+    auto capture = std::make_shared<DmesgCatcher>();
+    capture->Initialize("", isWriteNewFile, 1);
+    capture->Init(event_);
+    tasks_.push_back(capture);
+}
+#endif // DMESG_CATCHER_ENABLE
+
+#ifdef HILOG_CATCHER_ENABLE
+void EventLogTask::HilogCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    if (event_->eventName_ == "SCREEN_ON") {
+        capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
+    } else {
+        capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
+    }
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::LightHilogCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hilog -z 1000 -P", ShellCatcher::CATCHER_LIGHT_HILOG, pid_);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::InputHilogCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    int32_t eventId = event_->GetEventIntValue("INPUT_ID");
+    if (eventId > 0) {
+        std::string cmd = "hilog -T InputKeyFlow -e " +
+            std::to_string(eventId) + " -x";
+        capture->Initialize(cmd, ShellCatcher::CATCHER_INPUT_EVENT_HILOG, eventId);
+    } else {
+        capture->Initialize("hilog -T InputKeyFlow -x", ShellCatcher::CATCHER_INPUT_HILOG,
+            pid_);
+    }
+    tasks_.push_back(capture);
+}
+#endif // HILOG_CATCHER_ENABLE
+
+#ifdef HITRACE_CATCHER_ENABLE
+void EventLogTask::HitraceCapture()
+{
+    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
+    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
+    std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
+    std::string timeStamp = event_->GetEventValue("MSG");
+    std::smatch match;
+    timeStamp = std::regex_search(timeStamp, match, reg) ? match[1].str() : "";
+    uint64_t faultTime = timeStamp.empty() ? (event_->happenTime_ / MILLISEC_TO_SEC) :
+        static_cast<uint64_t>(TimeUtil::StrToTimeStamp(timeStamp, "%Y/%m/%d-%H:%M:%S"));
+    faultTime += DELAY_TIME;
+    uint64_t currentTime = TimeUtil::GetMilliseconds() / MILLISEC_TO_SEC;
+    if (currentTime >= (TRACE_OUT_OF_TIME + faultTime)) {
+        faultTime = currentTime - DELAY_OUT_OF_TIME;
+    }
+    HIVIEW_LOGI("get hitrace start, faultTime: %{public}" PRIu64, faultTime);
+    auto result = collector->DumpTraceWithDuration(caller, MAX_DUMP_TRACE_LIMIT, faultTime);
+    if (result.retCode != 0) {
+        HIVIEW_LOGE("get hitrace fail! error code : %{public}d", result.retCode);
+        return;
+    }
+}
+#endif // HITRACE_CATCHER_ENABLE
+
+#ifdef USAGE_CATCHER_ENABLE
+void EventLogTask::MemoryUsageCapture()
+{
+    auto capture = std::make_shared<MemoryCatcher>();
+    capture->Initialize("", 0, 0);
+    tasks_.push_back(capture);
 }
 
 void EventLogTask::CpuUsageCapture()
@@ -355,6 +494,70 @@ void EventLogTask::RSUsageCapture()
     auto capture = std::make_shared<ShellCatcher>();
     capture->Initialize("hidumper -s RenderService -a allInfo", ShellCatcher::CATCHER_RS, pid_);
     tasks_.push_back(capture);
+}
+
+void EventLogTask::DumpAppMapCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hidumper -s 1910 -a DumpAppMap", ShellCatcher::CATCHER_DAM, pid_);
+    tasks_.push_back(capture);
+}
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef SCB_CATCHER_ENABLE
+void EventLogTask::SCBSessionCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hidumper -s 4606 -a '-b SCBScenePanel getContainerSession'",
+        ShellCatcher::CATCHER_SCBSESSION, pid_);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::SCBViewParamCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hidumper -s 4606 -a '-b SCBScenePanel getViewParam'",
+        ShellCatcher::CATCHER_SCBVIEWPARAM, pid_);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::SCBWMSCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->SetEvent(event_);
+    if (focusWindowId_.empty()) {
+        HIVIEW_LOGE("dump simplify get focus window error");
+        return;
+    }
+    std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -simplify";
+    capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
+    capture->SetFocusWindowId(focusWindowId_);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::SCBWMSEVTCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->SetEvent(event_);
+    if (focusWindowId_.empty()) {
+        HIVIEW_LOGE("dump event get focus window error");
+        return;
+    }
+    std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -event";
+    capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMSEVT, pid_);
+    capture->SetFocusWindowId(focusWindowId_);
+    tasks_.push_back(capture);
+}
+#endif // SCB_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+void EventLogTask::FfrtCapture()
+{
+    if (pid_ > 0) {
+        auto capture = std::make_shared<FfrtCatcher>();
+        capture->Initialize("", pid_, 0);
+        tasks_.push_back(capture);
+    }
 }
 
 void EventLogTask::MMIUsageCapture()
@@ -400,129 +603,7 @@ void EventLogTask::Screenshot()
     capture->Initialize("snapshot_display -f x.jpeg", ShellCatcher::CATCHER_SNAPSHOT, pid_);
     tasks_.push_back(capture);
 }
-
-void EventLogTask::HilogCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    if (event_->eventName_ == "SCREEN_ON") {
-        capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
-    } else {
-        capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
-    }
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::LightHilogCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hilog -z 1000 -P", ShellCatcher::CATCHER_LIGHT_HILOG, pid_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::DmesgCapture()
-{
-    auto capture = std::make_shared<DmesgCatcher>();
-    capture->Initialize("", 0, 0);
-    capture->Init(event_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::SysrqCapture(bool isWriteNewFile)
-{
-    auto capture = std::make_shared<DmesgCatcher>();
-    capture->Initialize("", isWriteNewFile, 1);
-    capture->Init(event_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::HitraceCapture()
-{
-    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
-    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
-    std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
-    std::string timeStamp = event_->GetEventValue("MSG");
-    std::smatch match;
-    timeStamp = std::regex_search(timeStamp, match, reg) ? match[1].str() : "";
-    uint64_t faultTime = timeStamp.empty() ? (event_->happenTime_ / MILLISEC_TO_SEC) :
-        static_cast<uint64_t>(TimeUtil::StrToTimeStamp(timeStamp, "%Y/%m/%d-%H:%M:%S"));
-    faultTime += DELAY_TIME;
-    uint64_t currentTime = TimeUtil::GetMilliseconds() / MILLISEC_TO_SEC;
-    if (currentTime >= (TRACE_OUT_OF_TIME + faultTime)) {
-        faultTime = currentTime - DELAY_OUT_OF_TIME;
-    }
-    HIVIEW_LOGI("get hitrace start, faultTime: %{public}" PRIu64, faultTime);
-    auto result = collector->DumpTraceWithDuration(caller, MAX_DUMP_TRACE_LIMIT, faultTime);
-    if (result.retCode != 0) {
-        HIVIEW_LOGE("get hitrace fail! error code : %{public}d", result.retCode);
-        return;
-    }
-}
-
-void EventLogTask::SCBSessionCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hidumper -s 4606 -a '-b SCBScenePanel getContainerSession'",
-        ShellCatcher::CATCHER_SCBSESSION, pid_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::SCBViewParamCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hidumper -s 4606 -a '-b SCBScenePanel getViewParam'",
-        ShellCatcher::CATCHER_SCBVIEWPARAM, pid_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::SCBWMSCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->SetEvent(event_);
-    if (focusWindowId_.empty()) {
-        HIVIEW_LOGE("dump simplify get focus window error");
-        return;
-    }
-    std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -simplify";
-    capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
-    capture->SetFocusWindowId(focusWindowId_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::SCBWMSEVTCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->SetEvent(event_);
-    if (focusWindowId_.empty()) {
-        HIVIEW_LOGE("dump event get focus window error");
-        return;
-    }
-    std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -event";
-    capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMSEVT, pid_);
-    capture->SetFocusWindowId(focusWindowId_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::DumpAppMapCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hidumper -s 1910 -a DumpAppMap", ShellCatcher::CATCHER_DAM, pid_);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::InputHilogCapture()
-{
-    auto capture = std::make_shared<ShellCatcher>();
-    int32_t eventId = event_->GetEventIntValue("INPUT_ID");
-    if (eventId > 0) {
-        std::string cmd = "hilog -T InputKeyFlow -e " +
-            std::to_string(eventId) + " -x";
-        capture->Initialize(cmd, ShellCatcher::CATCHER_INPUT_EVENT_HILOG, eventId);
-    } else {
-        capture->Initialize("hilog -T InputKeyFlow -x", ShellCatcher::CATCHER_INPUT_HILOG,
-            pid_);
-    }
-    tasks_.push_back(capture);
-}
+#endif // OTHER_CATCHER_ENABLE
 
 void EventLogTask::GetThermalInfo(int fd)
 {
@@ -531,27 +612,6 @@ void EventLogTask::GetThermalInfo(int fd)
     int tempNum = static_cast<int>(temp);
     FileUtil::SaveStringToFd(fd, "\n ThermalMgrClient info: " + std::to_string(tempNum) + "\n");
     FreezeCommon::WriteEndInfoToFd(fd, "\nend collect hotInfo: ");
-}
-
-void EventLogTask::RemoteStackCapture()
-{
-    auto capture = std::make_shared<OpenStacktraceCatcher>();
-    int32_t remotePid = event_->GetEventIntValue("REMOTE_PID");
-    capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), remotePid, 0);
-    tasks_.push_back(capture);
-}
-
-void EventLogTask::GetGPUProcessStack()
-{
-    auto capture = std::make_shared<OpenStacktraceCatcher>();
-    std::string bundleName = event_->GetEventValue("PACKAGE_NAME");
-    bundleName += ":gpu";
-    int pid = CommonUtils::GetPidByName(bundleName);
-    HIVIEW_LOGI("get pid of gpu: %{public}d.", pid);
-    if (pid != -1) {
-        capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), pid, 0);
-        tasks_.push_back(capture);
-    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

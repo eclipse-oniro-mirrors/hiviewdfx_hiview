@@ -90,8 +90,18 @@ declare_args() {
   hiview_enable_performance_monitor = false
 
   hiview_enable_crash_validator = true
+
+  # hiview dfr feature
   hiview_freeze_collect_enable = true
   hiview_eventlogger_window_manager_enable = true
+  hiview_eventlogger_stacktrace_catcher_enable = true
+  hiview_eventlogger_binder_catcher_enable = true
+  hiview_eventlogger_dmesg_catcher_enable = true
+  hiview_eventlogger_hilog_catcher_enable = true
+  hiview_eventlogger_hitrace_catcher_enable = true
+  hiview_eventlogger_usage_catcher_enable = true
+  hiview_eventlogger_scb_catcher_enable = true
+  hiview_eventlogger_other_catcher_enable = true
 
   # hiview dft feature
   hiview_unified_collector_PC_app_state_collect_enable = false
