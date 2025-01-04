@@ -28,7 +28,6 @@
 #include "faultlog_info.h"
 #include "faultlog_manager.h"
 #include "faultlog_query_result_inner.h"
-#include "faultlogger_plugin.h"
 #include "freeze_json_util.h"
 
 namespace OHOS {
@@ -42,7 +41,7 @@ struct DumpRequest {
     time_t time;
 };
 
-class Faultlogger : public FaultloggerPlugin, public EventListener {
+class Faultlogger : public Plugin {
 public:
     Faultlogger() : mgr_(nullptr), hasInit_(false) {};
     virtual ~Faultlogger(){};
@@ -58,16 +57,11 @@ public:
     // dump debug infos through cmdline
     void Dump(int fd, const std::vector<std::string> &cmds) override;
 
-    // implementations of FaultloggerPlugin interfaces
-    void AddFaultLog(FaultLogInfo& info) override;
-    std::unique_ptr<FaultLogInfo> GetFaultLogInfo(const std::string& logPath) override;
+    void AddFaultLog(FaultLogInfo& info);
+    std::unique_ptr<FaultLogInfo> GetFaultLogInfo(const std::string& logPath);
     std::unique_ptr<FaultLogQueryResultInner> QuerySelfFaultLog(int32_t uid,
-        int32_t pid, int32_t faultType, int32_t maxNum) override;
+        int32_t pid, int32_t faultType, int32_t maxNum);
 
-    // implementations of EventListener interfaces
-    // for intercepting JsCrash from engine pipeline
-    void OnUnorderedEvent(const Event &msg) override;
-    std::string GetListenerName() override;
     static int RunSanitizerd();
 
 private:
@@ -82,9 +76,6 @@ private:
     void Dump(int fd, const DumpRequest& request) const;
     void StartBootScan();
     bool JudgmentRateLimiting(std::shared_ptr<Event> event);
-    std::unique_ptr<FaultLogManager> mgr_;
-    volatile bool hasInit_;
-    std::unordered_map<std::string, std::time_t> eventTagTime_;
     static void HandleNotify(int32_t type, const std::string& fname);
     void ReportCppCrashToAppEvent(const FaultLogInfo& info) const;
     bool GetHilog(int32_t pid, std::string& log) const;
@@ -102,6 +93,13 @@ private:
     void FillHilog(const std::string &hilogStr, Json::Value &hilog) const;
     void FaultlogLimit(const std::string &logPath, int32_t faultType) const;
     FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent) const;
+    void AddBootScanEvent();
+
+    std::unique_ptr<FaultLogManager> mgr_;
+    volatile bool hasInit_;
+    std::unordered_map<std::string, std::time_t> eventTagTime_;
+    class FaultloggerListener;
+    std::shared_ptr<FaultloggerListener> eventListener_;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

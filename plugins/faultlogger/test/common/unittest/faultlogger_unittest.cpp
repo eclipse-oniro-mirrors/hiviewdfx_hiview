@@ -703,17 +703,6 @@ HWTEST_F(FaultloggerUnittest, ReadyToLoad, testing::ext::TestSize.Level3)
 };
 
 /**
- * @tc.name: GetListenerName
- * @tc.desc: Test calling GetListenerName Func
- * @tc.type: FUNC
- */
-HWTEST_F(FaultloggerUnittest, GetListenerName, testing::ext::TestSize.Level3)
-{
-    auto testPlugin = GetFaultloggerInstance();
-    ASSERT_EQ(testPlugin->GetListenerName(), "FaultLogger");
-};
-
-/**
  * @tc.name: SaveFaultLogInfoTest001
  * @tc.desc: Test calling SaveFaultLogInfo Func
  * @tc.type: FUNC
