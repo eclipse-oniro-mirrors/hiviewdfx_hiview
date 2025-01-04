@@ -262,6 +262,7 @@ int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
                 "hilog",
                 "-T",
                 "PowerState,PowerSuspend,PowerInput,DisplayState,DfxFaultLogger",
+                "-x",
                 nullptr);
             break;
         default:

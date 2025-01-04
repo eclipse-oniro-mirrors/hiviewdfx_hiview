@@ -114,10 +114,12 @@ namespace {
     static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
     static constexpr int DECIMEL = 10;
     static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
+    static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
 }
 
 REGISTER(EventLogger);
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger");
+
 bool EventLogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
 {
     if (event == nullptr) {
@@ -207,7 +209,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
         this->StartLogCollect(sysEvent);
     };
     HIVIEW_LOGI("before submit event task to ffrt, eventName=%{public}s, pid=%{public}ld", eventName.c_str(), pid);
-    ffrt::submit(task, {}, {}, ffrt::task_attr().name("eventlogger"));
+    queue_->submit(task, ffrt::task_attr().name("eventlogger"));
     HIVIEW_LOGD("after submit event task to ffrt, eventName=%{public}s, pid=%{public}ld", eventName.c_str(), pid);
     return true;
 }
@@ -1092,11 +1094,8 @@ void EventLogger::CheckEventOnContinue(std::shared_ptr<SysEvent> event)
     event->OnContinue();
 }
 
-void EventLogger::OnLoad()
+void EventLogger::LogStoreSetting()
 {
-    HIVIEW_LOGI("EventLogger OnLoad.");
-    SetName("EventLogger");
-    SetVersion("1.0");
     logStore_->SetMaxSize(MAX_FOLDER_SIZE);
     logStore_->SetMinKeepingFileNumber(MIN_KEEP_FILE_NUM);
     LogStoreEx::LogFileComparator comparator = [this](const LogFile &lhs, const LogFile &rhs) {
@@ -1104,6 +1103,17 @@ void EventLogger::OnLoad()
     };
     logStore_->SetLogFileComparator(comparator);
     logStore_->Init();
+}
+
+void EventLogger::OnLoad()
+{
+    HIVIEW_LOGI("EventLogger OnLoad.");
+    SetName("EventLogger");
+    SetVersion("1.0");
+    LogStoreSetting();
+    this->queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
+        "EventLogger_queue",
+        ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_TASK_MAX_CONCURRENCY_NUM));
     threadLoop_ = GetWorkLoop();
 
     EventLoggerConfig logConfig;
