@@ -101,5 +101,12 @@
         "64_ADDR_SANITIZER_01":{
             "END_STACK": "MainCallTrace.v_trace"
         }
+    },
+    "DPACRASH": {
+        "03_DPACRASH_00":{
+            "FIRST_FRAME": "BasicParam.v_first",
+            "SECOND_FRAME": "BasicParam.v_second",
+            "LAST_FRAME": "BasicParam.v_last"
+        }
     }
 }
