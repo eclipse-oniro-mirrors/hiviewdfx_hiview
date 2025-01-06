@@ -572,6 +572,10 @@ FaultLogInfo Faultlogger::FillFaultLogInfo(SysEvent &sysEvent) const
     } else {
         info.sectionMap["TIMESTAMP"] = std::string(strBuff);
     }
+    HIVIEW_LOGI("eventName:%{public}s, time %{public}lld, uid %{public}d, pid %{public}d, "
+                "module: %{public}s, reason: %{public}s",
+                sysEvent.eventName_.c_str(), info.time, info.id, info.pid,
+                info.module.c_str(), info.reason.c_str());
     return info;
 }
 
@@ -624,7 +628,6 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
         return false;
     }
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
-    HIVIEW_LOGI("Receive %{public}s Event:%{public}s.", event->eventName_.c_str(), sysEvent->AsJsonStr().c_str());
     FaultLogInfo info = FillFaultLogInfo(*sysEvent);
     AddFaultLog(info);
     UpdateSysEvent(*sysEvent, info);
