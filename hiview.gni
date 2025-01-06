@@ -85,6 +85,12 @@ declare_args() {
     window_manager_enable = false
   }
 
+  multimodalinput_input_enable = true
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.multimodalinput_input)) {
+    multimodalinput_input_enable = false
+  }
+
   hiview_enable_leak_detector = false
 
   hiview_enable_performance_monitor = false

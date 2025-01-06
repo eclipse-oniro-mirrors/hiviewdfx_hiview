@@ -51,10 +51,15 @@ ohos_unittest("EventloggerPluginTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "input:libmmi-client",
     "jsoncpp:jsoncpp",
     "window_manager:libwm",
   ]
+
+  defines = []
+  if (multimodalinput_input_enable) {
+    external_deps += [ "input:libmmi-client" ]
+    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
+  }
 
   resource_config_file =
       "//base/hiviewdfx/hiview/plugins/eventlogger/test/resource/ohos_test.xml"
@@ -80,9 +85,14 @@ ohos_unittest("ActiveKeyEventTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
-    "input:libmmi-client",
     "jsoncpp:jsoncpp",
   ]
+
+  defines = []
+  if (multimodalinput_input_enable) {
+    external_deps += [ "input:libmmi-client" ]
+    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
+  }
 }
 
 ohos_unittest("EventLoggerTest") {
@@ -107,7 +117,6 @@ ohos_unittest("EventLoggerTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
-    "input:libmmi-client",
     "jsoncpp:jsoncpp",
   ]
 
@@ -115,5 +124,9 @@ ohos_unittest("EventLoggerTest") {
   if (window_manager_enable) {
     external_deps += [ "window_manager:libwm" ]
     defines += [ "WINDOW_MANAGER_ENABLE" ]
+  }
+  if (multimodalinput_input_enable) {
+    external_deps += [ "input:libmmi-client" ]
+    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
   }
 }

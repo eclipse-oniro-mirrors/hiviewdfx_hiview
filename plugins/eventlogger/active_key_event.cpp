@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
 #include "active_key_event.h"
 
 #include <vector>
@@ -220,3 +220,4 @@ void ActiveKeyEvent::CombinationKeyCallback(std::shared_ptr<MMI::KeyEvent> keyEv
 }
 } // namespace HiviewDFX
 } // namespace OHOS
+#endif // MULTIMODALINPUT_INPUT_ENABLE

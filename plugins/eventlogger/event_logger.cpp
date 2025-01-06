@@ -1108,9 +1108,10 @@ void EventLogger::OnLoad()
 
     EventLoggerConfig logConfig;
     eventLoggerConfig_ = logConfig.GetConfig();
-
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
     activeKeyEvent_ = std::make_unique<ActiveKeyEvent>();
     activeKeyEvent_ ->Init(logStore_);
+#endif
     FreezeCommon freezeCommon;
     if (!freezeCommon.Init()) {
         HIVIEW_LOGE("FreezeCommon filed.");

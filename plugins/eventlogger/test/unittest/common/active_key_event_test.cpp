@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
 #include "active_key_event_test.h"
-
 #include <ctime>
 #include <memory>
 #include <vector>
@@ -157,3 +157,5 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_006, TestSize.Level3)
 }
 } // namespace HiviewDFX
 } // namespace OHOS
+#endif // MULTIMODALINPUT_INPUT_ENABLE
+
