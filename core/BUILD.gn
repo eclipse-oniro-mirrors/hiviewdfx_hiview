@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,9 +13,17 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
+ohos_prebuilt_etc("plugin_bundle.json") {
+  source = "bundle_config/config/plugin_bundle.json"
+  relative_install_dir = "hiview/bundle"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
 config("hiview_core_config") {
   visibility = [ "*:*" ]
   include_dirs = [
+    "bundle_config/include",
     "include",
     "$hiview_root/include",
   ]
@@ -38,12 +46,14 @@ ohos_source_set("hiview_core") {
   public_configs = [ ":hiview_core_config" ]
 
   sources = [
+    "bundle_config/plugin_bundle_config.cpp",
     "hiview_platform.cpp",
     "plugin_bundle.cpp",
     "plugin_config.cpp",
   ]
 
   deps = [
+    ":plugin_bundle.json",
     "$hiview_base:hiviewbase",
     "platform_config:hiviewplatform_config",
   ]
@@ -55,6 +65,7 @@ ohos_source_set("hiview_core") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "cJSON:cjson",
     "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
     "hicollie:libhicollie",
@@ -72,6 +83,7 @@ ohos_source_set("hiview_core_for_test") {
   public_configs = [ ":hiview_core_config" ]
 
   sources = [
+    "bundle_config/plugin_bundle_config.cpp",
     "hiview_platform.cpp",
     "plugin_bundle.cpp",
     "plugin_config.cpp",
@@ -86,6 +98,7 @@ ohos_source_set("hiview_core_for_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "cJSON:cjson",
     "faultloggerd:libbacktrace_local",
     "ffrt:libffrt",
     "hicollie:libhicollie",

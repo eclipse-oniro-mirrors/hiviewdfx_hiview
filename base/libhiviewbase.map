@@ -416,7 +416,6 @@
         "OHOS::HiviewDFX::Parameter::GetProductModelStr()";
         "OHOS::HiviewDFX::Parameter::GetMarketNameStr()";
         "OHOS::HiviewDFX::Parameter::GetDeviceTypeStr()";
-        "OHOS::HiviewDFX::Parameter::GetVersionStr()";
         "OHOS::HiviewDFX::CJsonUtil::GetIntValue(cJSON const*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
         "OHOS::HiviewDFX::Parameter::GetSysVersionDetailsStr()";
         "OHOS::HiviewDFX::HiviewZipUnit::HiviewZipUnit(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";

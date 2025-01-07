@@ -59,6 +59,7 @@
         <preparer>
             <option name="push" value="base/hiview_platform_config -> /data/test/test_data/" src="res"/>
             <option name="push" value="base/bundletest_plugin_config -> /data/test/test_data/" src="res"/>
+            <option name="push" value="base/plugin_bundle.json -> /data/test/test_data/bundle/" src="res"/>
             <option name="push" value="base/plugin_config_3 -> /data/test/test_data/plugin_config" src="res"/>
             <option name="push" value="hiviewdfx/hiview/libbundletest.z.so -> /system/lib64/" src="out"/>
             <option name="push" value="hiviewdfx/hiview/libbundletest.z.so -> /system/lib/" src="out"/>
