@@ -802,10 +802,15 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     std::string kernelStack;
     for (auto lineIt = lines.begin(); lineIt != lines.end(); lineIt++) {
         std::string line = tags + *lineIt;
+        size_t firstLineIndex = line.find("\n");
+        std::string firstLine = (firstLineIndex != std::string::npos) ? line.substr(0, firstLineIndex) : tags;
         stack = "";
         kernelStack = "";
         GetNoJsonStack(stack, line, kernelStack, false);
         binderPeerStack += kernelStack;
+        if (line != "[]") {
+            stack = firstLine + "\n" + stack;
+        }
         oss << stack << std::endl;
     }
     binderInfo = oss.str();

@@ -866,8 +866,8 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ParsePeerStack_001, TestSize.Level3)
     binderInfo = "Test";
     eventLogger->ParsePeerStack(binderInfo, binderPeerStack);
     EXPECT_TRUE(binderPeerStack.empty());
-    binderInfo = "PeerBinder catcher stacktrace for pid : 111\n Stack "
-        "backtrace: Test\n PeerBinder catcher stacktrace for pid : 112\n Test";
+    binderInfo = "Binder catcher stacktrace, type is peer, pid : 111\n Stack "
+        "backtrace: Test\n Binder catcher stacktrace, type is peer, pid : 112\n Test";
     eventLogger->ParsePeerStack(binderInfo, binderPeerStack);
     EXPECT_TRUE(!binderPeerStack.empty());
     binderPeerStack = "";
