@@ -85,10 +85,8 @@ group("unittest") {
       "log_catcher/test:EventloggerCatcherTest",
       "test:EventLoggerTest",
     ]
-    defines = []
     if (multimodalinput_input_enable) {
       deps += [ "test:ActiveKeyEventTest" ]
-      defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
     }
   }
 }
