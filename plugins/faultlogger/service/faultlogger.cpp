@@ -784,6 +784,11 @@ void Faultlogger::AddFaultLog(FaultLogInfo& info)
         return;
     }
 
+    if (info.reason.find("CppCrashKernelSnapshot") != std::string::npos) {
+        HIVIEW_LOGI("Skip cpp crash kernel snapshot fault %{public}d", info.pid);
+        return;
+    }
+
     AddFaultLogIfNeed(info, nullptr);
 }
 
