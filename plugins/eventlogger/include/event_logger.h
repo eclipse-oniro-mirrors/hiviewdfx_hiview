@@ -83,7 +83,9 @@ private:
     int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
     ffrt::mutex terminalBindeMutex_;
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
     std::unique_ptr<ActiveKeyEvent> activeKeyEvent_;
+#endif
     std::string cmdlinePath_ = "/proc/cmdline";
     std::string cmdlineContent_ = "";
     std::string lastEventName_ = "";
