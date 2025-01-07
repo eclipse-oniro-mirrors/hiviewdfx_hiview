@@ -47,6 +47,7 @@ public:
     CollectResultParcelable<double> GetSysCpuUsage() override;
     CollectResultParcelable<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;
     CollectResultParcelable<int32_t> GetGraphicUsage() override;
+    CollectResultParcelable<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList) override;
 
 private:
     int32_t CopyOrMoveFile(
