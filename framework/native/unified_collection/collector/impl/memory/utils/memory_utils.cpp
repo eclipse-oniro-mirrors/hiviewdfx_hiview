@@ -242,9 +242,10 @@ void GetGraphMemoryItems(int32_t pid, std::vector<MemoryItem>& items, bool isLow
 {
     auto collector = UCollectUtil::GraphicMemoryCollector::Create();
     auto glResult = collector->GetGraphicUsage(pid, GraphicType::GL, isLowLatencyMode);
-    auto glValue = (glResult.retCode == UCollect::UcError::SUCCESS) ? glResult.data : 0;
+    auto glValue = (glResult.retCode == UCollect::UcError::SUCCESS) ? static_cast<uint64_t>(glResult.data) : 0;
     auto graphResult = collector->GetGraphicUsage(pid, GraphicType::GRAPH, isLowLatencyMode);
-    auto graphValue = (graphResult.retCode == UCollect::UcError::SUCCESS) ? graphResult.data : 0;
+    auto graphValue =
+        (graphResult.retCode == UCollect::UcError::SUCCESS) ? static_cast<uint64_t>(graphResult.data) : 0;
     MemoryItem glMemoryItem = {
         .type = MemoryItemType::MEMORY_ITEM_TYPE_GRAPH_GL,
         .pss = glValue,

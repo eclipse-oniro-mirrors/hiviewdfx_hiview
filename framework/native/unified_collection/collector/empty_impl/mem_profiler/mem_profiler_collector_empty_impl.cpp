@@ -23,7 +23,7 @@ int MemProfilerCollectorEmptyImpl::Prepare()
     return RET_FAIL;
 }
 
-int MemProfilerCollectorEmptyImpl::Start(ProfilerType type, int pid, int duration, int sampleInterval)
+int MemProfilerCollectorEmptyImpl::Start(const MemoryProfilerConfig& memoryProfilerConfig)
 {
     return RET_FAIL;
 }
@@ -43,13 +43,12 @@ int MemProfilerCollectorEmptyImpl::Stop(const std::string& processName)
     return RET_FAIL;
 }
 
-int MemProfilerCollectorEmptyImpl::Start(int fd, ProfilerType type, int pid, int duration, int sampleInterval)
+int MemProfilerCollectorEmptyImpl::Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig)
 {
     return RET_FAIL;
 }
 
-int MemProfilerCollectorEmptyImpl::Start(int fd, ProfilerType type, std::string processName, int duration,
-    int sampleInterval, bool startup)
+int MemProfilerCollectorEmptyImpl::Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig)
 {
     return RET_FAIL;
 }

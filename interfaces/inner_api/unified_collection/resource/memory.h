@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -125,17 +125,17 @@ enum class MemoryItemType {
 struct MemoryItem {
     MemoryItemType type = MemoryItemType::MEMORY_ITEM_TYPE_OTHER;
     std::string name;
-    int32_t rss = 0;
-    int32_t pss = 0;
-    int32_t swapPss = 0;
-    int32_t swap = 0;
-    int32_t allPss = 0; // pss + swapPass;
-    int32_t allSwap = 0; // swap + swapPass
-    int32_t sharedDirty = 0;
-    int32_t privateDirty = 0;
-    int32_t sharedClean = 0;
-    int32_t privateClean = 0;
-    int32_t iNode = 0;
+    uint64_t rss = 0;
+    uint64_t pss = 0;
+    uint64_t swapPss = 0;
+    uint64_t swap = 0;
+    uint64_t allPss = 0; // pss + swapPass;
+    uint64_t allSwap = 0; // swap + swapPass
+    uint64_t sharedDirty = 0;
+    uint64_t privateDirty = 0;
+    uint64_t sharedClean = 0;
+    uint64_t privateClean = 0;
+    uint64_t iNode = 0;
 
     void ResetValue()
     {
@@ -155,32 +155,32 @@ struct MemoryItem {
 
 struct  MemoryDetail {
     MemoryClass memoryClass = MemoryClass::MEMORY_CLASS_OTHER;
-    int32_t totalRss = 0;
-    int32_t totalPss = 0;
-    int32_t totalAllPss = 0;
-    int32_t totalAllSwap = 0;
-    int32_t totalSharedDirty = 0;
-    int32_t totalPrivateDirty = 0;
-    int32_t totalSharedClean = 0;
-    int32_t totalPrivateClean = 0;
-    int32_t totalSwap = 0;
-    int32_t totalSwapPss = 0;
+    uint64_t totalRss = 0;
+    uint64_t totalPss = 0;
+    uint64_t totalAllPss = 0;
+    uint64_t totalAllSwap = 0;
+    uint64_t totalSharedDirty = 0;
+    uint64_t totalPrivateDirty = 0;
+    uint64_t totalSharedClean = 0;
+    uint64_t totalPrivateClean = 0;
+    uint64_t totalSwap = 0;
+    uint64_t totalSwapPss = 0;
     std::vector<MemoryItem> items;
 };
 
 struct ProcessMemoryDetail {
-    int32_t pid = 0;
+    uint64_t pid = 0;
     std::string name;
-    int32_t totalRss = 0;
-    int32_t totalPss = 0;
-    int32_t totalAllPss = 0;
-    int32_t totalAllSwap = 0;
-    int32_t totalSharedDirty = 0;
-    int32_t totalPrivateDirty = 0;
-    int32_t totalSharedClean = 0;
-    int32_t totalPrivateClean = 0;
-    int32_t totalSwap = 0;
-    int32_t totalSwapPss = 0;
+    uint64_t totalRss = 0;
+    uint64_t totalPss = 0;
+    uint64_t totalAllPss = 0;
+    uint64_t totalAllSwap = 0;
+    uint64_t totalSharedDirty = 0;
+    uint64_t totalPrivateDirty = 0;
+    uint64_t totalSharedClean = 0;
+    uint64_t totalPrivateClean = 0;
+    uint64_t totalSwap = 0;
+    uint64_t totalSwapPss = 0;
     std::vector<MemoryDetail> details;
 };
 

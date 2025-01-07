@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,8 +55,7 @@ int MemProfilerCollectorImpl::Prepare()
     return RET_SUCC;
 }
 
-int MemProfilerCollectorImpl::Start(ProfilerType type,
-                                    int pid, int duration, int sampleInterval)
+int MemProfilerCollectorImpl::Start(const MemoryProfilerConfig& memoryProfilerConfig)
 {
     OHOS::system::SetParameter("hiviewdfx.hiprofiler.memprofiler.start", "1");
     int time = 0;
@@ -69,7 +68,8 @@ int MemProfilerCollectorImpl::Start(ProfilerType type,
         return RET_FAIL;
     }
     HIVIEW_LOGI("mem_profiler_collector starting");
-    return NativeMemoryProfilerSaClientManager::Start(type, pid, duration, sampleInterval);
+    return NativeMemoryProfilerSaClientManager::Start(memoryProfilerConfig.type, memoryProfilerConfig.pid,
+        memoryProfilerConfig.duration, memoryProfilerConfig.sampleInterval);
 }
 
 int MemProfilerCollectorImpl::StartPrintNmd(int fd, int pid, int type)
@@ -103,8 +103,7 @@ int MemProfilerCollectorImpl::Stop(const std::string& processName)
     return NativeMemoryProfilerSaClientManager::Stop(processName);
 }
 
-int MemProfilerCollectorImpl::Start(int fd, ProfilerType type,
-                                    int pid, int duration, int sampleInterval)
+int MemProfilerCollectorImpl::Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig)
 {
     OHOS::system::SetParameter("hiviewdfx.hiprofiler.memprofiler.start", "1");
     int time = 0;
@@ -117,14 +116,14 @@ int MemProfilerCollectorImpl::Start(int fd, ProfilerType type,
         return RET_FAIL;
     }
     std::shared_ptr<NativeMemoryProfilerSaConfig> config = std::make_shared<NativeMemoryProfilerSaConfig>();
-    if (type == ProfilerType::MEM_PROFILER_LIBRARY) {
+    if (memoryProfilerConfig.type == ProfilerType::MEM_PROFILER_LIBRARY) {
         config->responseLibraryMode_ = true;
-    } else if (type == ProfilerType::MEM_PROFILER_CALL_STACK) {
+    } else if (memoryProfilerConfig.type == ProfilerType::MEM_PROFILER_CALL_STACK) {
         config->responseLibraryMode_ = false;
     }
-    config->pid_ = pid;
-    config->duration_ = (uint32_t)duration;
-    config->sampleInterval_ = (uint32_t)sampleInterval;
+    config->pid_ = memoryProfilerConfig.pid;
+    config->duration_ = (uint32_t)memoryProfilerConfig.duration;
+    config->sampleInterval_ = (uint32_t)memoryProfilerConfig.sampleInterval;
     uint32_t fiveMinutes = 300;
     uint32_t jsStackDeps = 10;
     config->statisticsInterval_ = fiveMinutes;
@@ -134,8 +133,7 @@ int MemProfilerCollectorImpl::Start(int fd, ProfilerType type,
     return NativeMemoryProfilerSaClientManager::DumpData(fd, config);
 }
 
-int MemProfilerCollectorImpl::Start(int fd, ProfilerType type,
-                                    std::string processName, int duration, int sampleInterval, bool startup)
+int MemProfilerCollectorImpl::Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig)
 {
     OHOS::system::SetParameter("hiviewdfx.hiprofiler.memprofiler.start", "1");
     int time = 0;
@@ -148,15 +146,15 @@ int MemProfilerCollectorImpl::Start(int fd, ProfilerType type,
         return RET_FAIL;
     }
     std::shared_ptr<NativeMemoryProfilerSaConfig> config = std::make_shared<NativeMemoryProfilerSaConfig>();
-    if (type == ProfilerType::MEM_PROFILER_LIBRARY) {
+    if (memoryProfilerConfig.type == ProfilerType::MEM_PROFILER_LIBRARY) {
         config->responseLibraryMode_ = true;
-    } else if (type == ProfilerType::MEM_PROFILER_CALL_STACK) {
+    } else if (memoryProfilerConfig.type == ProfilerType::MEM_PROFILER_CALL_STACK) {
         config->responseLibraryMode_ = false;
     }
     config->startupMode_ = startup;
-    config->processName_ = processName;
-    config->duration_ = (uint32_t)duration;
-    config->sampleInterval_ = (uint32_t)sampleInterval;
+    config->processName_ = memoryProfilerConfig.processName;
+    config->duration_ = (uint32_t)memoryProfilerConfig.duration;
+    config->sampleInterval_ = (uint32_t)memoryProfilerConfig.sampleInterval;
     uint32_t fiveMinutes = 300;
     config->statisticsInterval_ = fiveMinutes;
     HIVIEW_LOGI("mem_profiler_collector dumping data");

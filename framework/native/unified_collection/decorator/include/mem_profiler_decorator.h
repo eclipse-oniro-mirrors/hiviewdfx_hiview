@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,13 +26,12 @@ class MemProfilerDecorator : public MemProfilerCollector, public UCDecorator {
 public:
     MemProfilerDecorator(std::shared_ptr<MemProfilerCollector> collector) : memProfilerCollector_(collector) {};
     virtual ~MemProfilerDecorator() = default;
-    int Start(ProfilerType type, int pid, int duration, int sampleInterval) override;
+    int Start(const MemoryProfilerConfig& memoryProfilerConfig) override;
     int Stop(int pid) override;
     int Stop(const std::string& processName) override;
-    int Start(int fd, ProfilerType type, int pid, int duration, int sampleInterval) override;
+    int Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig) override;
     int StartPrintNmd(int fd, int pid, int type) override;
-    int Start(int fd, ProfilerType type, std::string processName, int duration, int sampleInterval,
-              bool startup = false) override;
+    int Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig) override;
     int Prepare() override;
     
     void GenerateStatInfo(uint64_t startTime, const std::string& funcName, int result);

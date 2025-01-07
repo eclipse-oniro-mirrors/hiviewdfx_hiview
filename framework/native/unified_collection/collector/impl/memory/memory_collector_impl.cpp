@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -674,11 +674,7 @@ CollectResult<uint32_t> MemoryCollectorImpl::CollectDdrFreq()
 CollectResult<ProcessMemoryDetail> MemoryCollectorImpl::CollectProcessMemoryDetail(int32_t pid, bool isLowLatencyMode)
 {
     CollectResult<ProcessMemoryDetail> result;
-    std::string smapsPath;
-    if (!FileUtil::PathToRealPath("/proc/" + std::to_string(pid) + "/smaps", smapsPath)) {
-        result.retCode = UcError::READ_FAILED;
-        return result;
-    }
+    std::string smapsPath = "/proc/" + std::to_string(pid) + "/smaps";
     if (ParseSmaps(pid, smapsPath, result.data, isLowLatencyMode)) {
         result.retCode = UcError::SUCCESS;
     } else {

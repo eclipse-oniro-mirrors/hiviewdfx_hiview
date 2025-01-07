@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,8 +50,13 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest001, TestSize.Level1)
 {
     std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
     collector->Prepare();
-    collector->Start(NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
-                     0, DURATION, INTERVAL);
+    MemoryProfilerConfig memoryProfilerConfig = {
+        .type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
+        .pid = 0,
+        .duration = DURATION,
+        .sampleInterval = INTERVAL,
+    };
+    collector->Start(memoryProfilerConfig);
     int time = 0;
     while (!COMMON::IsProcessExist(NATIVE_DAEMON_NAME, g_nativeDaemonPid) && time < FINAL_TIME) {
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_EXIT_MILLS));
@@ -70,8 +75,13 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest002, TestSize.Level1)
 {
     std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
     collector->Prepare();
-    collector->Start(NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
-                     0, DURATION, INTERVAL);
+    MemoryProfilerConfig memoryProfilerConfig = {
+        .type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
+        .pid = 0,
+        .duration = DURATION,
+        .sampleInterval = INTERVAL,
+    };
+    collector->Start(memoryProfilerConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     int time = 0;
@@ -82,8 +92,8 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest002, TestSize.Level1)
     ASSERT_FALSE(time < FINAL_TIME);
     std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
     collector->Prepare();
-    collector->Start(NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_CALL_STACK,
-                     0, DURATION, INTERVAL);
+    memoryProfilerConfig.type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_CALL_STACK;
+    collector->Start(memoryProfilerConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     time = 0;
@@ -104,8 +114,13 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest003, TestSize.Level1)
 {
     std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
     collector->Prepare();
-    collector->Start(0, NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
-                     0, DURATION, INTERVAL);
+    MemoryProfilerConfig memoryProfilerConfig = {
+        .type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
+        .pid = 0,
+        .duration = DURATION,
+        .sampleInterval = INTERVAL,
+    };
+    collector->Start(0, memoryProfilerConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     int time = 0;
@@ -116,8 +131,8 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest003, TestSize.Level1)
     ASSERT_FALSE(time < FINAL_TIME);
     std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
     collector->Prepare();
-    collector->Start(0, NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_CALL_STACK,
-                     0, DURATION, INTERVAL);
+    memoryProfilerConfig.type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_CALL_STACK;
+    collector->Start(0, memoryProfilerConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     time = 0;
@@ -138,8 +153,12 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest004, TestSize.Level1)
 {
     std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
     collector->Prepare();
-    collector->Start(0, NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
-                     "", DURATION, INTERVAL, true);
+    MemoryProfilerConfig memoryProfilerConfig = {
+        .type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
+        .duration = DURATION,
+        .sampleInterval = INTERVAL,
+    };
+    collector->Start(0, true, memoryProfilerConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     int time = 0;
@@ -150,8 +169,8 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest004, TestSize.Level1)
     ASSERT_FALSE(time < FINAL_TIME);
     std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
     collector->Prepare();
-    collector->Start(0, NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_CALL_STACK,
-                     "", DURATION, INTERVAL, true);
+    memoryProfilerConfig.type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_CALL_STACK;
+    collector->Start(0, memoryProfilerConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     time = 0;
