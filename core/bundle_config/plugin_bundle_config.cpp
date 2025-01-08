@@ -28,7 +28,7 @@ bool ParseBundleNames(const cJSON* config, std::vector<std::string>& bundleNames
     cJSON_ArrayForEach(bundleName, config) {
         if (bundleName == nullptr || !cJSON_IsString(bundleName)) {
             HIVIEW_LOGW("bundle name is not string");
-            return false;
+            continue;
         }
         bundleNames.emplace_back(bundleName->valuestring);
     }
@@ -59,9 +59,10 @@ void PluginBundleConfig::Parse(const std::string& configPath)
     if (!ParseBundleNames(config, bundleNames_)) {
         HIVIEW_LOGW("failed to parse bundle names, file=%{public}s, version=%{public}s",
             configPath.c_str(), version.c_str());
+    } else {
+        HIVIEW_LOGI("succ to parse bundle config=%{public}s", configPath.c_str());
     }
     cJSON_Delete(root);
-    HIVIEW_LOGI("succ to parse bundle config=%{public}s", configPath.c_str());
 }
 } // namespace HiviewDFX
 } // namespace OHOS
