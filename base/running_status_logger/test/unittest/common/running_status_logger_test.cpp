@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,13 +16,16 @@
 
 #include <chrono>
 #include <ctime>
+#include <functional>
 #include <gmock/gmock.h>
 #include <iostream>
 #include <memory>
+#include <vector>
 #include <thread>
 
 #include "file_util.h"
 #include "hiview_global.h"
+#include "parameter_ex.h"
 #include "plugin.h"
 #include "running_status_logger.h"
 #include "time_util.h"
@@ -31,41 +34,23 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 constexpr char TEST_LOG_DIR[] = "/data/log/hiview/sys_event_test";
-constexpr int TIME_STAMP_OFFSET = 24 * 60 * 60; // one day
-const char TIME_FORMAT[] = "%Y%m%d";
-constexpr int SIZE_512 = 512; // test value
-constexpr int SIZE_10 = 10; // test value
-constexpr int SIZE_10240 = 10240; // test value
-std::string FormatTimeStamp()
-{
-    time_t lt;
-    (void)time(&lt);
-    return TimeUtil::TimestampFormatToDate(lt - TIME_STAMP_OFFSET, TIME_FORMAT);
-}
 
-std::string GetLogDir()
-{
-    std::string workPath = HiviewGlobal::GetInstance()->GetHiViewDirectory(
-        HiviewContext::DirectoryType::WORK_DIRECTORY);
-    if (workPath.back() != '/') {
-        workPath = workPath + "/";
-    }
-    std::string logDestDir = workPath + "sys_event/";
-    if (!FileUtil::FileExists(logDestDir)) {
-        FileUtil::ForceCreateDirectory(logDestDir, FileUtil::FILE_PERM_770);
-    }
-    return logDestDir;
-}
+constexpr uint64_t BLOCK_DATA_500K = 500 * 1024; // 500Kb
 
-std::string GenerateInvalidFileName(int index)
-{
-    return GetLogDir() + "runningstatus_2024_0" + std::to_string(index);
-}
+constexpr uint64_t RUNNING_STATUS_LOG_FILE_MAX_SIZE = 2 * 1024 * 1024;
+constexpr size_t RUNNING_STATUS_LOG_FILE_MAX_CNT = 10;
+constexpr char RUNNING_STATUS_LOG_FILE_NAME_PREFIX[] = "runningstatus";
 
-std::string GenerateYesterdayLogFileName()
-{
-    return GetLogDir() + "runningstatus_" + FormatTimeStamp() + "_01";
-}
+constexpr uint64_t EVENT_RUNNING_LOG_FILE_MAX_SIZE = 10 * 1024 * 1024;
+constexpr size_t EVENT_RUNNING_LOG_FILE_MAX_CNT = 20;
+constexpr char EVENT_RUNNING_LOG_FILE_NAME_PREFIX[] = "event_running_log";
+
+constexpr uint64_t COUNT_STATISTIC_LOG_FILE_MAX_SIZE = 1024 * 1024;
+constexpr size_t COUNT_STATISTIC_LOG_FILE_MAX_CNT = 3;
+constexpr char COUNT_STATISTIC_LOG_FILE_NAME_PREFIX[] = "event_count_statistic";
+
+constexpr size_t EXPECTED_ONE_FILE_CNT = 1;
+constexpr size_t EXPECTED_TWO_FILES_CNT = 2;
 
 class HiviewTestContext : public HiviewContext {
 public:
@@ -74,7 +59,72 @@ public:
         return TEST_LOG_DIR;
     }
 };
+
+std::string GetLogDir()
+{
+    std::string workPath = HiviewGlobal::GetInstance()->GetHiViewDirectory(
+        HiviewContext::DirectoryType::WORK_DIRECTORY);
+    if (workPath.back() != '/') {
+        workPath = workPath + "/";
+    }
+    std::string logDestDir = workPath + "sys_event_log/";
+    if (!FileUtil::FileExists(logDestDir)) {
+        FileUtil::ForceCreateDirectory(logDestDir, FileUtil::FILE_PERM_770);
+    }
+    return logDestDir;
 }
+
+void WriteStringWithDesignatedLength(uint64_t len, std::function<void(const std::string&)> writer)
+{
+    std::string contentToWrite;
+    contentToWrite.resize(BLOCK_DATA_500K);
+    size_t loopCnt = len / BLOCK_DATA_500K;
+    for (size_t cnt = 0; cnt < loopCnt; ++cnt) {
+        writer(contentToWrite);
+    }
+}
+
+void AssertFileWithDesignatedParams(const size_t fileCnt, const std::string& prefix,
+    const uint64_t singleFileMaxSize)
+{
+    if (!Parameter::IsBetaVersion()) { // only run in beta version
+        ASSERT_TRUE(true);
+        return;
+    }
+    std::vector<std::string> allLogFiles;
+    FileUtil::GetDirFiles(GetLogDir(), allLogFiles);
+    ASSERT_EQ(allLogFiles.size(), fileCnt);
+    for (const auto& logFile : allLogFiles) {
+        auto fileName = FileUtil::ExtractFileName(logFile);
+        ASSERT_EQ(fileName.rfind(prefix, 0), 0);
+        ASSERT_LE(FileUtil::GetFileSize(logFile), singleFileMaxSize);
+    }
+}
+
+void AssertFileLimitCnt(const size_t fileLimitCnt, const std::string& prefix,
+    const uint64_t singleFileMaxSize)
+{
+    if (!Parameter::IsBetaVersion()) { // only run in beta version
+        ASSERT_TRUE(true);
+        return;
+    }
+    std::vector<std::string> allLogFiles;
+    FileUtil::GetDirFiles(GetLogDir(), allLogFiles);
+    ASSERT_EQ(allLogFiles.size(), fileLimitCnt);
+    for (const auto& logFile : allLogFiles) {
+        auto fileName = FileUtil::ExtractFileName(logFile);
+        ASSERT_EQ(fileName.rfind(prefix, 0), 0);
+        ASSERT_LE(FileUtil::GetFileSize(logFile), singleFileMaxSize);
+    }
+}
+
+void CreateFileWithDesignatedPrefix(const std::string& namePrefix)
+{
+    std::string logFilePath = GetLogDir() + "/" + namePrefix + "_100";
+    FileUtil::SaveStringToFile(logFilePath, "   ");
+}
+}
+
 void RunningStatusLoggerTest::SetUpTestCase()
 {
 }
@@ -85,178 +135,176 @@ void RunningStatusLoggerTest::TearDownTestCase()
 
 void RunningStatusLoggerTest::SetUp()
 {
+    (void)FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
 }
 
 void RunningStatusLoggerTest::TearDown()
 {
-    (void)FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
 }
 
 /**
  * @tc.name: RunningStatusLoggerTest_001
- * @tc.desc: write logs with size less than 2M into a local file
+ * @tc.desc: write logs with size less than 2M into log file which name begins with runningstatus
  * @tc.type: FUNC
- * @tc.require: issueI62PQY
+ * @tc.require: issueIBA9CN
  */
 HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_001, testing::ext::TestSize.Level3)
 {
-    /**
-     * @tc.steps: step1. init hiview global with customized hiview context
-     * @tc.steps: step2. init string with 2k size
-     * @tc.steps: step3. log string with total size less than 2M to local file
-     */
-    FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
-    ASSERT_TRUE(true);
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::string singleLine;
-    for (int index = 0; index < SIZE_512; index++) {
-        singleLine += "ohos";
-    }
-    for (int index = 0; index < SIZE_512; index++) {
-        RunningStatusLogger::GetInstance().Log(singleLine);
-    }
-    ASSERT_TRUE(true);
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 4, [] (const std::string& content) { // multiple 4 < 2M
+        RunningStatusLogger::GetInstance().LogRunningStatusInfo(content);
+    });
+    AssertFileWithDesignatedParams(EXPECTED_ONE_FILE_CNT, RUNNING_STATUS_LOG_FILE_NAME_PREFIX,
+        RUNNING_STATUS_LOG_FILE_MAX_SIZE);
 }
 
 /**
  * @tc.name: RunningStatusLoggerTest_002
- * @tc.desc: write logs with size less more 2M into local files
+ * @tc.desc: write logs with size less than 10M into log file which name begins with event_running_log
  * @tc.type: FUNC
- * @tc.require: issueI64Q4L
+ * @tc.require: issueIBA9CN
  */
 HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_002, testing::ext::TestSize.Level3)
 {
-    /**
-     * @tc.steps: step1. init hiview global with customized hiview context
-     * @tc.steps: step2. init string with 2K size
-     * @tc.steps: step3. log string with total size less than 2M to local file
-     * @tc.steps: step4. keep logging string with size more than 2M to local file
-     */
-    FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
-    ASSERT_TRUE(true);
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::string singleLine;
-    for (int index = 0; index < SIZE_512; index++) {
-        singleLine += "ohos";
-    }
-    for (int index = 0; index < SIZE_512; index++) {
-        RunningStatusLogger::GetInstance().Log(singleLine);
-    }
-    ASSERT_TRUE(true);
-    for (int index = 0; index < SIZE_512; index++) {
-        RunningStatusLogger::GetInstance().Log(singleLine);
-    }
-    ASSERT_TRUE(true);
-}
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
 
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 10, [] (const std::string& content) { // multiple 10 < 10M
+        RunningStatusLogger::GetInstance().LogEventRunningLogInfo(content);
+    });
+    AssertFileWithDesignatedParams(EXPECTED_ONE_FILE_CNT, EVENT_RUNNING_LOG_FILE_NAME_PREFIX,
+        EVENT_RUNNING_LOG_FILE_MAX_SIZE);
+}
 
 /**
  * @tc.name: RunningStatusLoggerTest_003
- * @tc.desc: write logs with size more than 20M into local files
+ * @tc.desc: write logs with size less than 1M into log file which name begins with event_count_statistic
  * @tc.type: FUNC
- * @tc.require: issueI64Q4L
+ * @tc.require: issueIBA9CN
  */
 HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_003, testing::ext::TestSize.Level3)
 {
-    /**
-     * @tc.steps: step1. init hiview global with customized hiview context
-     * @tc.steps: step2. init string with 2K size
-     * @tc.steps: step3. log string with size more than 20M to local files
-     * @tc.steps: step4. keep logging string to local file
-     */
-    FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
-    ASSERT_TRUE(true);
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::string singleLine;
-    for (int index = 0; index < SIZE_512; index++) {
-        singleLine += "ohos";
-    }
-    for (int index = 0; index < SIZE_10240; index++) {
-        RunningStatusLogger::GetInstance().Log(singleLine);
-    }
-    ASSERT_TRUE(true);
-    for (int index = 0; index < SIZE_512; index++) {
-        RunningStatusLogger::GetInstance().Log(singleLine);
-    }
-    ASSERT_TRUE(true);
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 2, [] (const std::string& content) { // multiple 2 < 1M
+        RunningStatusLogger::GetInstance().LogEventCountStatisticInfo(content);
+    });
+    AssertFileWithDesignatedParams(EXPECTED_ONE_FILE_CNT, COUNT_STATISTIC_LOG_FILE_NAME_PREFIX,
+        COUNT_STATISTIC_LOG_FILE_MAX_SIZE);
 }
 
 /**
  * @tc.name: RunningStatusLoggerTest_004
- * @tc.desc: write logs with newer timestamp
+ * @tc.desc: write logs with size more than 2M into log file which name begins with runningstatus
  * @tc.type: FUNC
- * @tc.require: issueI64Q4L
+ * @tc.require: issueIBA9CN
  */
 HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_004, testing::ext::TestSize.Level3)
 {
-    /**
-     * @tc.steps: step1. init hiview global with customized hiview context
-     * @tc.steps: step2. init string with 2K size
-     * @tc.steps: step3. log string to a local file with yesterday's time stamp
-     * @tc.steps: step4. keep logging string to local file
-     */
-    FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
-    ASSERT_TRUE(true);
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::string singleLine;
-    for (int index = 0; index < SIZE_512; index++) {
-        singleLine += "ohos";
-    }
-    (void)FileUtil::SaveStringToFile(GenerateYesterdayLogFileName(), singleLine);
-    for (int index = 0; index < SIZE_10; index++) {
-        RunningStatusLogger::GetInstance().Log(singleLine);
-    }
-    ASSERT_TRUE(true);
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 5, [] (const std::string& content) { // multiple 5 > 2M
+        RunningStatusLogger::GetInstance().LogRunningStatusInfo(content);
+    });
+    AssertFileWithDesignatedParams(EXPECTED_TWO_FILES_CNT, RUNNING_STATUS_LOG_FILE_NAME_PREFIX,
+        RUNNING_STATUS_LOG_FILE_MAX_SIZE);
 }
 
 /**
  * @tc.name: RunningStatusLoggerTest_005
- * @tc.desc: time stamp format
+ * @tc.desc: write logs with size more than 10M into log file which name begins with event_running_log
  * @tc.type: FUNC
- * @tc.require: issueI62PQY
+ * @tc.require: issueIBA9CN
  */
 HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_005, testing::ext::TestSize.Level3)
 {
-    auto simpleTimeStamp = RunningStatusLogger::GetInstance().FormatTimeStamp(true);
-    ASSERT_TRUE(!simpleTimeStamp.empty());
-    auto normalTimeStamp = RunningStatusLogger::GetInstance().FormatTimeStamp(false);
-    ASSERT_TRUE(!normalTimeStamp.empty() && normalTimeStamp.find(':') != std::string::npos &&
-        normalTimeStamp.find('/') != std::string::npos);
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 35, [] (const std::string& content) { // multiple 35 > 10M
+        RunningStatusLogger::GetInstance().LogEventRunningLogInfo(content);
+    });
+    AssertFileWithDesignatedParams(EXPECTED_TWO_FILES_CNT, EVENT_RUNNING_LOG_FILE_NAME_PREFIX,
+        EVENT_RUNNING_LOG_FILE_MAX_SIZE);
+}
+
+/**
+ * @tc.name: RunningStatusLoggerTest_006
+ * @tc.desc: write logs with size more than 1M into log file which name begins with event_count_statistic
+ * @tc.type: FUNC
+ * @tc.require: issueIBA9CN
+ */
+HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_006, testing::ext::TestSize.Level3)
+{
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 3, [] (const std::string& content) { // multiple 3 > 1M
+        RunningStatusLogger::GetInstance().LogEventCountStatisticInfo(content);
+    });
+    AssertFileWithDesignatedParams(EXPECTED_TWO_FILES_CNT, COUNT_STATISTIC_LOG_FILE_NAME_PREFIX,
+        COUNT_STATISTIC_LOG_FILE_MAX_SIZE);
 }
 
 /**
  * @tc.name: RunningStatusLoggerTest_007
- * @tc.desc: write logs with newer timestamp
+ * @tc.desc: write logs with size more than 20M into log file which name begins with runningstatus
  * @tc.type: FUNC
- * @tc.require: issueI64Q4L
+ * @tc.require: issueIBA9CN
  */
 HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_007, testing::ext::TestSize.Level3)
 {
-    /**
-     * @tc.steps: step1. init hiview global with customized hiview context
-      * @tc.steps: step2. init string with 2K size
-     * @tc.steps: step3. init 3 local files with invalid name
-     * @tc.steps: step4. log string to a local file with yesterday's time stamp
-     * @tc.steps: step5. keep logging string to local file
-     */
-    FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
-    ASSERT_TRUE(true);
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::string singleLine;
-    for (int index = 0; index < SIZE_512; index++) {
-        singleLine += "ohos";
-    }
-    for (int index = 0; index < SIZE_10; index++) {
-        (void)FileUtil::SaveStringToFile(GenerateInvalidFileName(index), singleLine);
-    }
-    RunningStatusLogger::GetInstance().Log(singleLine);
-    ASSERT_TRUE(true);
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    CreateFileWithDesignatedPrefix(RUNNING_STATUS_LOG_FILE_NAME_PREFIX);
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 41, [] (const std::string& content) { // multiple 41 > 20M
+        RunningStatusLogger::GetInstance().LogRunningStatusInfo(content);
+    });
+    AssertFileLimitCnt(RUNNING_STATUS_LOG_FILE_MAX_CNT, RUNNING_STATUS_LOG_FILE_NAME_PREFIX,
+        RUNNING_STATUS_LOG_FILE_MAX_SIZE);
 }
 
+/**
+ * @tc.name: RunningStatusLoggerTest_008
+ * @tc.desc: write logs with size more than 100M into log file which name begins with event_running_log
+ * @tc.type: FUNC
+ * @tc.require: issueIBA9CN
+ */
+HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_008, testing::ext::TestSize.Level3)
+{
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    CreateFileWithDesignatedPrefix(EVENT_RUNNING_LOG_FILE_NAME_PREFIX);
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 401, [] (const std::string& content) { // multiple 401 > 100M
+        RunningStatusLogger::GetInstance().LogEventRunningLogInfo(content);
+    });
+    AssertFileLimitCnt(EVENT_RUNNING_LOG_FILE_MAX_CNT, EVENT_RUNNING_LOG_FILE_NAME_PREFIX,
+        EVENT_RUNNING_LOG_FILE_MAX_SIZE);
+}
+
+/**
+ * @tc.name: RunningStatusLoggerTest_009
+ * @tc.desc: write logs with size more than 10M into log file which name begins with event_count_statistic
+ * @tc.type: FUNC
+ * @tc.require: issueIBA9CN
+ */
+HWTEST_F(RunningStatusLoggerTest, RunningStatusLoggerTest_009, testing::ext::TestSize.Level3)
+{
+    HiviewTestContext context;
+    HiviewGlobal::CreateInstance(context);
+
+    CreateFileWithDesignatedPrefix(COUNT_STATISTIC_LOG_FILE_NAME_PREFIX);
+    WriteStringWithDesignatedLength(BLOCK_DATA_500K * 21, [] (const std::string& content) { // multiple 21 > 10M
+        RunningStatusLogger::GetInstance().LogEventCountStatisticInfo(content);
+    });
+    AssertFileLimitCnt(COUNT_STATISTIC_LOG_FILE_MAX_CNT, COUNT_STATISTIC_LOG_FILE_NAME_PREFIX,
+        COUNT_STATISTIC_LOG_FILE_MAX_SIZE);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

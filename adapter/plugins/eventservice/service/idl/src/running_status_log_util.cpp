@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,7 +45,7 @@ void RunningStatusLogUtil::LogTooManyQueryRules(const std::vector<SysEventQueryR
     }
     info.erase(info.end() - 1);
     info.append("]");
-    LogDetail(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void RunningStatusLogUtil::LogTooManyWatchRules(const std::vector<SysEventRule>& rules)
@@ -65,28 +65,21 @@ void RunningStatusLogUtil::LogTooManyWatchRules(const std::vector<SysEventRule>&
     }
     info.erase(info.end() - 1);
     info.append("]");
-    LogDetail(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void RunningStatusLogUtil::LogTooManyWatchers(const int limit)
 {
     std::string info { "TOOMANYWATCHERS COUNT > " };
     info.append(std::to_string(limit));
-    LogDetail(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void RunningStatusLogUtil::LogTooManyEvents(const int limit)
 {
     std::string info{"TOOMANYEVENTS COUNT > "};
     info.append(std::to_string(limit));
-    LogDetail(info);
-}
-
-void RunningStatusLogUtil::LogDetail(const std::string& detail)
-{
-    std::string info = RunningStatusLogger::GetInstance().FormatTimeStamp();
-    info.append(LOG_DETAIL_CONCAT).append(detail);
-    RunningStatusLogger::GetInstance().Log(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

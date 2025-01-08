@@ -13,35 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_HIVIEWDFX_RUNNIG_STATUS_LOGGER_H
-#define OHOS_HIVIEWDFX_RUNNIG_STATUS_LOGGER_H
+#ifndef OHOS_HIVIEWDFX_RUNNING_STATUS_LOGGER_H
+#define OHOS_HIVIEWDFX_RUNNING_STATUS_LOGGER_H
 
-#include <atomic>
-#include <functional>
+#include <unordered_map>
+#include <memory>
 #include <mutex>
-#include <queue>
 #include <string>
-#include <vector>
 
 #include "singleton.h"
+#include "log_file_writer.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-using LogWritingTask = std::pair<std::string, std::function<void(const std::string&)>>;
 class RunningStatusLogger : public OHOS::DelayedRefSingleton<RunningStatusLogger> {
 public:
-    void Log(const std::string& logInfo);
-    std::string FormatTimeStamp(bool simpleMode = false);
+    void LogRunningStatusInfo(const std::string& logInfo);
+    void LogEventCountStatisticInfo(const std::string& logInfo);
+    void LogEventRunningLogInfo(const std::string& logInfo);
 
 private:
-    std::string GenerateNewestFileName(const std::string& suffix);
-    std::string GetLogDir();
-    std::string GetLogWroteDestFile(const std::string& content);
+   std::shared_ptr<LogFileWriter> GetLogFileWriter(const LogStrategy& strategy);
 
 private:
-    std::mutex writeMutex_;
+    std::mutex logMutex_;
+    std::unordered_map<std::string, std::shared_ptr<LogFileWriter>> allWriters_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // OHOS_HIVIEWDFX_RUNNIG_STATUS_LOGGER_H
+#endif // OHOS_HIVIEWDFX_RUNNING_STATUS_LOGGER_H
