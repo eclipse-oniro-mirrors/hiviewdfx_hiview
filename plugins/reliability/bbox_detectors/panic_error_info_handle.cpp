@@ -120,10 +120,6 @@ void RKTransData(std::string bboxTime, std::string bboxSysreset)
         HIVIEW_LOGE("Failed to open file: %{public}s, error=%{public}d", SYS_FS_PSTORE_PATH, errno);
         return;
     }
-    if (!FileUtil::FileExists(HISTORY_LOG_PATH)) {
-        HIVIEW_LOGE("The path of target file: %{public}s is not existed", HISTORY_LOG_PATH);
-        return;
-    }
     ErrorInfo info = {};
     fin.read(reinterpret_cast<char* >(&info), sizeof(ErrorInfo));
     if (!fin) {
