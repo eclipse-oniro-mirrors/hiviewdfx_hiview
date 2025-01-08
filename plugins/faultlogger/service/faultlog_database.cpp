@@ -65,7 +65,7 @@ bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, Fault
     info.reason = sysEvent->GetEventValue("REASON");
     info.summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("SUMMARY"));
     info.logPath = LOG_PATH_BASE + GetFaultLogName(info);
-    HIVIEW_LOGI("eventName:%{public}s, time %{public}lld, uid %{public}d, pid %{public}d, "
+    HIVIEW_LOGI("eventName:%{public}s, time %{public}" PRId64 ", uid %{public}d, pid %{public}d, "
                 "module: %{public}s, reason: %{public}s",
                 sysEvent->eventName_.c_str(), info.time, info.id, info.pid,
                 info.module.c_str(), info.reason.c_str());
