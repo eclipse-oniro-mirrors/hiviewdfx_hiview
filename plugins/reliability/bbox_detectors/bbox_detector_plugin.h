@@ -44,15 +44,18 @@ private:
     void NotifyBootStable();
     void NotifyBootCompleted();
     void InitPanicReporter();
+    void AddBootScanEvent();
+
     static constexpr int SECONDS = 60;
     static constexpr int READ_LINE_NUM = 5;
     static constexpr int MILLSECONDS = 1000;
     static constexpr int ONE_DAY = 86400 * MILLSECONDS;
     bool hisiHistoryPath_ = false;
-    std::shared_ptr<EventLoop> eventLoop_;
     uint64_t timeEventId_ = 0;
     std::mutex lock_;
     bool timeEventAdded_ = false;
+    class BBoxListener;
+    std::shared_ptr<BBoxListener> eventListener_;
 };
 }
 }
