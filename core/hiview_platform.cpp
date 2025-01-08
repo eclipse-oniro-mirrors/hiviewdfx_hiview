@@ -336,7 +336,10 @@ void HiviewPlatform::LoadPluginBundle(const std::string& bundleName, const std::
 
 void HiviewPlatform::LoadPluginBundles()
 {
-    PluginBundleConfig bundleConfig(defaultConfigDir_ + "bundle/plugin_bundle.json");
+    std::string bundlePath = defaultConfigDir_ + "bundle/plugin_bundle.json";
+    std::string extBundlePath = defaultConfigDir_ + "bundle/plugin_bundle_ext.json";
+    std::string realBundlepath = FileUtil::FileExists(extBundlePath) ? extBundlePath : bundlePath;
+    PluginBundleConfig bundleConfig(realBundlepath);
     std::vector<std::string> bundleNames = bundleConfig.GetBundleNames();
     for (const auto& bundleName : bundleNames) {
         std::string configPath = defaultConfigDir_ + bundleName + "_plugin_config";
