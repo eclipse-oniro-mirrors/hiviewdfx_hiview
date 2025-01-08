@@ -83,7 +83,8 @@ const std::map<uint32_t, std::string> CPU_PERMISSION_MAP = {
 
 const std::map<uint32_t, std::string> MEMORY_PERMISSION_MAP = {
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_SET_APPRESOURCE_LIMIT), ""},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_GET_GRAPHIC_USAGE), ""}
+    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_GET_GRAPHIC_USAGE), ""},
+    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_SET_SPLIT_MEMORY_VALUE), ""}
 };
 
 bool HasAccessPermission(uint32_t code, const std::map<uint32_t, std::string>& permissions)
@@ -238,6 +239,11 @@ std::map<uint32_t, RequestHandler> HiviewServiceAbilityStub::GetMemoryRequestHan
         {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_GET_GRAPHIC_USAGE),
             [this] (MessageParcel& data, MessageParcel& reply, MessageOption& option) {
                 return HandleGetGraphicUsageRequest(data, reply, option);
+            }
+        },
+        {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_SET_SPLIT_MEMORY_VALUE),
+            [this] (MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+                return HandleSetSplitMemoryValueRequest(data, reply, option);
             }
         }
     };
@@ -556,6 +562,41 @@ int32_t HiviewServiceAbilityStub::HandleGetGraphicUsageRequest(MessageParcel& da
         return TraceErrCode::ERR_SEND_REQUEST;
     }
     auto ret = GetGraphicUsage(pid);
+    return WritePracelableToMessage(reply, ret);
+}
+
+int32_t HiviewServiceAbilityStub::HandleSetSplitMemoryValueRequest(MessageParcel& data, MessageParcel& reply,
+    MessageOption& option)
+{
+    int32_t size = 0;
+    if (!data.ReadInt32(size) || size <= 0) {
+        HIVIEW_LOGW("HandleSetSplitMemoryValueRequest failed to read list size from parcel");
+        return TraceErrCode::ERR_READ_MSG_PARCEL;
+    }
+
+    std::vector<UCollectClient::MemoryCaller> memList(size);
+    for (int i = 0; i < size; i++) {
+        if (!data.ReadInt32(memList[i].pid)) {
+            HIVIEW_LOGW("HandleSetSplitMemoryValueRequest failed to read pid from parcel");
+            return TraceErrCode::ERR_READ_MSG_PARCEL;
+        }
+
+        if (!data.ReadString(memList[i].resourceType)) {
+            HIVIEW_LOGW("HandleSetSplitMemoryValueRequest failed to read type from parcel");
+            return TraceErrCode::ERR_READ_MSG_PARCEL;
+        }
+
+        if (!data.ReadInt32(memList[i].limitValue)) {
+            HIVIEW_LOGW("HandleSetSplitMemoryValueRequest failed to read value from parcel");
+            return TraceErrCode::ERR_READ_MSG_PARCEL;
+        }
+
+        if (!data.ReadBool(memList[i].enabledDebugLog)) {
+            HIVIEW_LOGW("HandleSetSplitMemoryValueRequest failed to read enabledDebugLog from parcel");
+            return TraceErrCode::ERR_READ_MSG_PARCEL;
+        }
+    }
+    auto ret = SetSplitMemoryValue(memList);
     return WritePracelableToMessage(reply, ret);
 }
 } // namespace HiviewDFX
