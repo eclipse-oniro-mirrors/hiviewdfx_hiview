@@ -260,8 +260,6 @@
         "OHOS::HiviewDFX::EventStore::SysEventDao::BuildQuery(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, unsigned int, long long, long long)";
         "OHOS::HiviewDFX::EventStore::SysEventQuery::Where(OHOS::HiviewDFX::EventStore::Cond const&)";
         "OHOS::HiviewDFX::EventStore::SysEventQuery::Order(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
-        "OHOS::HiviewDFX::RunningStatusLogger::FormatTimeStamp(bool)";
-        "OHOS::HiviewDFX::RunningStatusLogger::Log(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::EventStore::SysEventDao::BuildQuery(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, unsigned int, long, long)";
         "OHOS::HiviewDFX::EventStore::SysEventDao::BuildQuery(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
         "OHOS::HiviewDFX::EventStore::SysEventQuery::Select(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
@@ -448,6 +446,10 @@
         "OHOS::HiviewDFX::SysEvent::SetInvalidParams(std::__h::shared_ptr<std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::shared_ptr<OHOS::HiviewDFX::EventParamInfo>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::shared_ptr<OHOS::HiviewDFX::EventParamInfo>>>>>)";
         "OHOS::HiviewDFX::SysEvent::GetInvalidParams()";
         "OHOS::HiviewDFX::SysEvent::IsParamExist(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::FileUtil::GetLastModifiedTimeStamp(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::RunningStatusLogger::LogRunningStatusInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::RunningStatusLogger::LogEventCountStatisticInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::RunningStatusLogger::LogEventRunningLogInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

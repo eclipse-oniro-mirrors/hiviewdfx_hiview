@@ -15,112 +15,60 @@
 
 #include "running_status_logger.h"
 
-#include <algorithm>
-#include <cerrno>
-#include <chrono>
-#include <vector>
-
-#include "file_util.h"
-#include "hiview_global.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
-#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-RunningStatusLogger");
 namespace {
-constexpr size_t BUF_SIZE = 2000;
-char errMsg[BUF_SIZE] = { 0 };
+constexpr size_t CNT_STATISTIC_FILE_MAX_CNT = 3;
+constexpr size_t EVENT_LOG_FILE_MAX_CNT = 20;
+constexpr size_t RUNNING_STATUS_FILE_MAX_CNT = 10;
+constexpr uint64_t CNT_STATISTIC_FILE_SIZE_LIMIT = 1024 * 1024;
+constexpr uint64_t EVENT_LOG_FILE_SIZE_LIMIT = 10 * 1024 * 1024;
+constexpr uint64_t RUNNING_STATUS_FILE_SIZE_LIMIT = 2 * 1024 * 1024;
 }
 
-void RunningStatusLogger::Log(const std::string& logInfo)
+void RunningStatusLogger::LogEventCountStatisticInfo(const std::string& logInfo)
+{
+    LogStrategy strategy { "event_count_statistic", CNT_STATISTIC_FILE_MAX_CNT, CNT_STATISTIC_FILE_SIZE_LIMIT };
+    auto logFileWriter = GetLogFileWriter(strategy);
+    logFileWriter->Write(logInfo);
+}
+
+void RunningStatusLogger::LogEventRunningLogInfo(const std::string& logInfo)
 {
     if (!Parameter::IsBetaVersion()) {
         HIVIEW_LOGD("Do not write files on the commercial version.");
         return;
     }
-    std::lock_guard<std::mutex> lock(writeMutex_);
-    std::string destFile = GetLogWroteDestFile(logInfo);
-    HIVIEW_LOGD("writing \"%{public}s\" into %{public}s.", logInfo.c_str(), destFile.c_str());
-    if (!FileUtil::SaveStringToFile(destFile, logInfo + "\n", false)) {
-        strerror_r(errno, errMsg, BUF_SIZE);
-        HIVIEW_LOGE("failed to persist log to file, error=%{public}d, msg=%{public}s",
-            errno, errMsg);
-    }
+    LogStrategy strategy { "event_running_log", EVENT_LOG_FILE_MAX_CNT, EVENT_LOG_FILE_SIZE_LIMIT };
+    auto logFileWriter = GetLogFileWriter(strategy);
+    logFileWriter->Write(logInfo);
 }
 
-std::string RunningStatusLogger::FormatTimeStamp(bool simpleMode)
+void RunningStatusLogger::LogRunningStatusInfo(const std::string& logInfo)
 {
-    time_t lt;
-    (void)time(&lt);
-    std::string format { simpleMode ? "%Y%m%d" : "%Y/%m/%d %H:%M:%S" };
-    return TimeUtil::TimestampFormatToDate(lt, format);
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGD("Do not write files on the commercial version.");
+        return;
+    }
+    LogStrategy strategy { "runningstatus", RUNNING_STATUS_FILE_MAX_CNT, RUNNING_STATUS_FILE_SIZE_LIMIT };
+    auto logFileWriter = GetLogFileWriter(strategy);
+    logFileWriter->Write(logInfo);
 }
 
-std::string RunningStatusLogger::GenerateNewestFileName(const std::string& suffix)
+std::shared_ptr<LogFileWriter> RunningStatusLogger::GetLogFileWriter(const LogStrategy& strategy)
 {
-    std::string newFileName = GetLogDir() + "runningstatus_" + FormatTimeStamp(true) + suffix;
-    HIVIEW_LOGD("create new log file: %{public}s.", newFileName.c_str());
-    return newFileName;
-}
-
-std::string RunningStatusLogger::GetLogDir()
-{
-    std::string workPath = HiviewGlobal::GetInstance()->GetHiViewDirectory(
-        HiviewContext::DirectoryType::WORK_DIRECTORY);
-    if (workPath.back() != '/') {
-        workPath = workPath + "/";
+    std::lock_guard<std::mutex> lock(logMutex_);
+    auto iter = allWriters_.find(strategy.fileNamePrefix);
+    if (iter == allWriters_.end()) {
+        auto fileWriter = std::make_shared<LogFileWriter>(strategy);
+        allWriters_.emplace(strategy.fileNamePrefix, fileWriter);
+        return fileWriter;
     }
-    std::string logDestDir = workPath + "sys_event/";
-    if (!FileUtil::FileExists(logDestDir)) {
-        if (FileUtil::ForceCreateDirectory(logDestDir, FileUtil::FILE_PERM_770)) {
-            HIVIEW_LOGD("create listener log directory %{public}s succeed.", logDestDir.c_str());
-        } else {
-            logDestDir = workPath;
-            HIVIEW_LOGW("create listener log directory %{public}s failed, use default directory %{public}s.",
-                logDestDir.c_str(), workPath.c_str());
-        }
-    }
-    return logDestDir;
-}
-
-std::string RunningStatusLogger::GetLogWroteDestFile(const std::string& content)
-{
-    std::vector<std::string> allLogFiles;
-    FileUtil::GetDirFiles(GetLogDir(), allLogFiles);
-    if (allLogFiles.empty()) {
-        return GenerateNewestFileName("_01");
-    }
-    sort(allLogFiles.begin(), allLogFiles.end());
-    std::vector<std::string>::size_type logFileCntLimit = 10; // max count of log file exist is limited to be 10
-    if (allLogFiles.back().find(FormatTimeStamp(true)) == std::string::npos) {
-        if ((allLogFiles.size() == logFileCntLimit) && !FileUtil::RemoveFile(allLogFiles.front())) {
-            strerror_r(errno, errMsg, BUF_SIZE);
-            HIVIEW_LOGE("failed to delete oldest log file, error=%{public}d, msg=%{public}s",
-                errno, errMsg);
-        }
-        return GenerateNewestFileName("_01");
-    }
-    std::uintmax_t singleLogFileSizeLimit = 2 * 1024 * 1024; // size of each log file is limited to 2M
-    if (FileUtil::GetFileSize(allLogFiles.back()) + content.size() < singleLogFileSizeLimit) {
-        return allLogFiles.back();
-    }
-    std::string newestFileName = allLogFiles.back();
-    auto lastUnderLinePos = newestFileName.find_last_of("_");
-    int index = 0;
-    int decimal = 10;
-    while (++lastUnderLinePos < newestFileName.size()) {
-        index *= decimal;
-        index += static_cast<int>(newestFileName.at(lastUnderLinePos) - '0');
-    }
-    index += 1;
-    if ((allLogFiles.size() == logFileCntLimit) && !FileUtil::RemoveFile(allLogFiles.front())) {
-        strerror_r(errno, errMsg, BUF_SIZE);
-        HIVIEW_LOGE("failed to delete oldest log file, error=%{public}d, msg=%{public}s",
-            errno, errMsg);
-    }
-    return GenerateNewestFileName(std::string(((index < decimal) ? "_0" : "_")).append(std::to_string(index)));
+    return iter->second;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
