@@ -73,7 +73,8 @@
                 "hitrace",
                 "wifi",
                 "window_manager",
-                "zlib"
+                "zlib",
+                "thermal_manager"
             ]
         },
         "build": {
