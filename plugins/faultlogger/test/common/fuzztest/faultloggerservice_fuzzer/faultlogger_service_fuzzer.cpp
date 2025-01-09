@@ -178,16 +178,6 @@ void FuzzServiceInterfaceAddFaultLog(const uint8_t* data, size_t size)
     serviceOhos.Destroy();
 }
 
-void FuzzServiceInterfaceGetFaultLogInfo(const uint8_t* data, size_t size)
-{
-    auto service = CreateFaultloggerInstance();
-    std::vector<std::string> files;
-    FileUtil::GetDirFiles("/data/log/faultlog/temp/", files);
-    for (const auto& file : files) {
-        service->GetFaultLogInfo(file);
-    }
-}
-
 void FuzzServiceInterfaceOnEvent(const uint8_t* data, size_t size)
 {
     auto service = CreateFaultloggerInstance();
@@ -242,7 +232,6 @@ void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
     FuzzServiceInterfaceQuerySelfFaultLog(data, size);
     FuzzServiceInterfaceCreateTempFaultLogFile(data, size);
     FuzzServiceInterfaceAddFaultLog(data, size);
-    FuzzServiceInterfaceGetFaultLogInfo(data, size);
     FuzzServiceInterfaceOnEvent(data, size);
     usleep(10000); // 10000 : pause for 10000 microseconds to avoid resource depletion
 }

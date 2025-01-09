@@ -58,7 +58,6 @@ public:
     void Dump(int fd, const std::vector<std::string> &cmds) override;
 
     void AddFaultLog(FaultLogInfo& info);
-    std::unique_ptr<FaultLogInfo> GetFaultLogInfo(const std::string& logPath);
     std::unique_ptr<FaultLogQueryResultInner> QuerySelfFaultLog(int32_t uid,
         int32_t pid, int32_t faultType, int32_t maxNum);
 

@@ -803,17 +803,6 @@ void Faultlogger::AddFaultLog(FaultLogInfo& info)
     AddFaultLogIfNeed(info, nullptr);
 }
 
-std::unique_ptr<FaultLogInfo> Faultlogger::GetFaultLogInfo(const std::string &logPath)
-{
-    if (!hasInit_) {
-        return nullptr;
-    }
-
-    auto info = std::make_unique<FaultLogInfo>(FaultLogger::ParseFaultLogInfoFromFile(logPath));
-    info->logPath = logPath;
-    return info;
-}
-
 std::unique_ptr<FaultLogQueryResultInner> Faultlogger::QuerySelfFaultLog(int32_t id,
     int32_t pid, int32_t faultType, int32_t maxNum)
 {
