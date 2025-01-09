@@ -14,6 +14,7 @@
  */
 #include "calc_fingerprint.h"
 
+#include <dlfcn.h>
 #include <securec.h>
 
 #include "common_defines.h"
@@ -22,6 +23,21 @@
 using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+constexpr const char *LIB_NAME = "libcrypto_openssl.z.so";
+constexpr const char *SHA256_INIT_FUNC_NAME = "SHA256_Init";
+constexpr const char *SHA256_UPDATE_FUNC_NAME = "SHA256_Update";
+constexpr const char *SHA256_FINAL_FUNC_NAME = "SHA256_Final";
+constexpr const char *SHA256_FUNC_NAME = "SHA256";
+struct DlCloseDeleter {
+    void operator()(void* handle)
+    {
+        if (handle) {
+            dlclose(handle);
+        }
+    }
+};
+}
 DEFINE_LOG_TAG("CalcFingerprint");
 int CalcFingerprint::ConvertToString(const unsigned char hash[SHA256_DIGEST_LENGTH], char *outstr, size_t len)
 {
@@ -90,18 +106,33 @@ int CalcFingerprint::CalcFileShaOriginal(const string& filePath, unsigned char *
         return errno; // if file not exist, errno will be ENOENT
     }
 
+    unique_ptr<void, DlCloseDeleter> handle(dlopen(LIB_NAME, RTLD_LAZY));
+    if (!handle) {
+        HIVIEW_LOGE("dlopen %{public}s failed, %{public}s.", LIB_NAME, dlerror());
+        return EINVAL;
+    }
+    auto sha256Init = reinterpret_cast<int (*)(SHA256_CTX *c)>(dlsym(handle.get(), SHA256_INIT_FUNC_NAME));
+    auto sha256Update = reinterpret_cast<int (*)(SHA256_CTX *c, const void *data, size_t len)>(dlsym(handle.get(),
+        SHA256_UPDATE_FUNC_NAME));
+    auto sha256Final = reinterpret_cast<int (*)(unsigned char *md, SHA256_CTX *c)>(dlsym(handle.get(),
+        SHA256_FINAL_FUNC_NAME));
+    if (!sha256Init || !sha256Update || !sha256Final) {
+        HIVIEW_LOGE("dlsym failed, %{public}s.", dlerror());
+        return EINVAL;
+    }
+
     size_t n;
     char buffer[HASH_BUFFER_SIZE] = {0};
     SHA256_CTX ctx;
-    SHA256_Init(&ctx);
+    sha256Init(&ctx);
     while ((n = fread(buffer, 1, sizeof(buffer), fp))) {
-        SHA256_Update(&ctx, (unsigned char *)buffer, n);
+        sha256Update(&ctx, (unsigned char *)buffer, n);
     }
     if (fclose(fp)) {
         HIVIEW_LOGE("fclose is failed");
     }
     fp = nullptr;
-    SHA256_Final(hash, &ctx);
+    sha256Final(hash, &ctx);
     return 0;
 }
 
@@ -140,8 +171,21 @@ int CalcFingerprint::CalcBufferSha(unsigned char* source, size_t sourceLen, char
     if (source == nullptr || hash == nullptr || sourceLen == 0) {
         return EINVAL;
     }
+
+    unique_ptr<void, DlCloseDeleter> handle(dlopen(LIB_NAME, RTLD_LAZY));
+    if (!handle) {
+        HIVIEW_LOGE("dlopen %{public}s failed, %{public}s.", LIB_NAME, dlerror());
+        return EINVAL;
+    }
+    using SHA256Func = unsigned char *(*)(const unsigned char *d, size_t n, unsigned char *md);
+    auto sha256 = reinterpret_cast<SHA256Func>(dlsym(handle.get(), SHA256_FUNC_NAME));
+    if (!sha256) {
+        HIVIEW_LOGE("dlsym %{public}s failed, %{public}s.", SHA256_FUNC_NAME, dlerror());
+        return EINVAL;
+    }
+
     unsigned char value[SHA256_DIGEST_LENGTH] = {0};
-    SHA256(source, sourceLen, value);
+    sha256(source, sourceLen, value);
     return ConvertToString(value, hash, hashLen);
 }
 }
