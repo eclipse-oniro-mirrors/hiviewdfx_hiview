@@ -24,9 +24,7 @@
 #include "fold_app_usage_event_factory.h"
 #include "fold_event_cacher.h"
 #include "plugin.h"
-#ifdef POWER_MANAGER_ENABLE
 #include "shutdown/iasync_shutdown_callback.h"
-#endif
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -58,9 +56,7 @@ private:
     void InitFoldEventCacher(const std::string& workPath);
 
 private:
-#ifdef POWER_MANAGER_ENABLE
     sptr<PowerMgr::IAsyncShutdownCallback> callback_;
-#endif
     uint64_t timeOutCnt_;
     ffrt::mutex runningMutex_;
     bool isRunning_;

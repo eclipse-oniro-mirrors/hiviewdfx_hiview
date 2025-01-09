@@ -51,12 +51,8 @@ using namespace OHOS::Rosen;
 using namespace SysUsageDbSpace;
 using namespace SysUsageEventSpace;
 
-UsageEventReport::UsageEventReport() : timeOutCnt_(0), isRunning_(false)
-{
-#ifdef POWER_MANAGER_ENABLE
-    callback_ = nullptr;
-#endif
-}
+UsageEventReport::UsageEventReport() : callback_(nullptr), timeOutCnt_(0), isRunning_(false)
+{}
 
 void UsageEventReport::OnLoad()
 {
@@ -81,12 +77,12 @@ bool UsageEventReport::OnEvent(std::shared_ptr<Event>& event)
 void UsageEventReport::OnUnload()
 {
     HIVIEW_LOGI("start to clean up the env");
-#ifdef POWER_MANAGER_ENABLE
     if (callback_ != nullptr) {
+#ifdef POWER_MANAGER_ENABLE
         PowerMgr::ShutdownClient::GetInstance().UnRegisterShutdownCallback(callback_);
+#endif
         callback_ = nullptr;
     }
-#endif
     Stop();
 }
 
@@ -194,12 +190,10 @@ void UsageEventReport::TimeOut()
     ReportTimeOutEvent();
     ReportDailyEvent();
 
-#ifdef POWER_MANAGER_ENABLE
     // init shutdown callback if necessary
     if (callback_ == nullptr) {
         InitCallback();
     }
-#endif
 
     RunTask();
     if (foldEventCacher_ != nullptr) {
