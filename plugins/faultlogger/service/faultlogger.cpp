@@ -863,6 +863,10 @@ void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) c
 
 void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> event)
 {
+    if (!IsValidPath(info.logPath)) {
+        HIVIEW_LOGE("The log path is incorrect, and the current log path is: %{public}s.", info.logPath.c_str());
+        return;
+    }
     HIVIEW_LOGI("Start saving Faultlog of Process:%{public}d, Name:%{public}s, Reason:%{public}s.",
         info.pid, info.module.c_str(), info.reason.c_str());
     info.sectionMap["PROCESS_NAME"] = info.module; // save process name
