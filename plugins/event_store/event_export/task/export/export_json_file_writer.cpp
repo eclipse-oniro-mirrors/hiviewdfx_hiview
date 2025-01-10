@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -201,6 +201,7 @@ cJSON* CreateEventsJsonArray(const std::string& domain,
     cJSON* dataJsonArray = cJSON_CreateArray();
     if (dataJsonArray == nullptr) {
         HIVIEW_LOGE("failed to create data json array");
+        cJSON_Delete(eventsJsonArray);
         return nullptr;
     }
     for (const auto& event : events) {
@@ -209,11 +210,18 @@ cJSON* CreateEventsJsonArray(const std::string& domain,
             HIVIEW_LOGI("write event to json: [%{public}s|%{public}s]", domain.c_str(),
                 event.first.c_str());
         }
+        if (eventItem == nullptr) {
+            HIVIEW_LOGW("failed to create json for event: [%{public}s|%{public}s]", domain.c_str(),
+                event.first.c_str());
+            continue;
+        }
         cJSON_AddItemToArray(dataJsonArray, eventItem);
     }
     cJSON* anonymousJsonObj = cJSON_CreateObject();
     if (anonymousJsonObj == nullptr) {
         HIVIEW_LOGE("failed to create anonymousJsonObj json object");
+        cJSON_Delete(dataJsonArray);
+        cJSON_Delete(eventsJsonArray);
         return nullptr;
     }
     cJSON_AddItemToObjectCS(anonymousJsonObj, DATA_KEY, dataJsonArray);
@@ -317,21 +325,16 @@ void PersistJsonStrToLocalFile(cJSON* root, const std::string& localFile)
     (void)fclose(file);
     cJSON_free(parsedJsonStr);
 }
-}
 
-bool ExportJsonFileWriter::Write()
+cJSON* CreateDomainsJson(
+    const std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>>& sysEvents)
 {
-    cJSON* root = CreateJsonObjectByVersion(eventVersion_);
-    if (root == nullptr) {
-        return false;
-    }
-    cJSON* domainsJsonArray = cJSON_CreateArray();
-    if (domainsJsonArray == nullptr) {
+    cJSON* domainsArrayJson = cJSON_CreateArray();
+    if (domainsArrayJson == nullptr) {
         HIVIEW_LOGE("failed to create json array");
-        cJSON_Delete(root);
-        return false;
+        return nullptr;
     }
-    for (const auto& sysEvent : sysEventMap_) {
+    for (const auto& sysEvent : sysEvents) {
         cJSON* domainJsonObj = cJSON_CreateObject();
         if (domainJsonObj == nullptr) {
             continue;
@@ -340,19 +343,39 @@ bool ExportJsonFileWriter::Write()
         cJSON* domainInfoJsonObj = cJSON_CreateObject();
         if (domainInfoJsonObj == nullptr) {
             HIVIEW_LOGE("failed to create domain info json object");
+            cJSON_Delete(domainJsonObj);
             continue;
         }
         cJSON_AddStringToObject(domainInfoJsonObj, H_NAME_KEY, sysEvent.first.c_str());
         cJSON_AddItemToObjectCS(domainJsonObj, DOMAIN_INFO_KEY, domainInfoJsonObj);
         cJSON* eventsJsonObj = CreateEventsJsonArray(sysEvent.first, sysEvent.second);
         if (eventsJsonObj == nullptr) {
+            HIVIEW_LOGE("failed to create json object for event array");
+            cJSON_Delete(domainJsonObj);
             continue;
         }
         cJSON_AddItemToObjectCS(domainJsonObj, EVENTS_KEY, eventsJsonObj);
-        cJSON_AddItemToArray(domainsJsonArray, domainJsonObj);
+        cJSON_AddItemToArray(domainsArrayJson, domainJsonObj);
+    }
+    return domainsArrayJson;
+}
+}
+
+bool ExportJsonFileWriter::Write()
+{
+    cJSON* root = CreateJsonObjectByVersion(eventVersion_);
+    if (root == nullptr) {
+        HIVIEW_LOGE("failed to create event json root");
+        return false;
     }
     // add domains
-    cJSON_AddItemToObjectCS(root, DOMAINS_KEY, domainsJsonArray);
+    cJSON* domainsJson = CreateDomainsJson(sysEventMap_);
+    if (domainsJson == nullptr) {
+        HIVIEW_LOGD("failed to created json with key %{public}s", DOMAINS_KEY);
+        cJSON_Delete(root);
+        return false;
+    }
+    cJSON_AddItemToObjectCS(root, DOMAINS_KEY, domainsJson);
     // create export json file HiSysEvent.json
     auto packagedFile = GetHiSysEventJsonTempDir(moduleName_, eventVersion_).append(EXPORT_JSON_FILE_NAME);
     HIVIEW_LOGD("packagedFile: %{public}s", packagedFile.c_str());
