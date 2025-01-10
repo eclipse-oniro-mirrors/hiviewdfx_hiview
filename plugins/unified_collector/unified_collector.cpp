@@ -25,6 +25,7 @@
 #include "hitrace_dump.h"
 #include "hiview_logger.h"
 #include "io_collector.h"
+#include "memory_collector.h"
 #include "parameter_ex.h"
 #include "plugin_factory.h"
 #include "process_status.h"
@@ -58,6 +59,9 @@ const std::string DEVELOP_TRACE_RECORDER_TRUE = "true";
 const std::string DEVELOP_TRACE_RECORDER_FALSE = "false";
 const std::string HIVIEW_UCOLLECTION_TEST_APP_TRACE_STATE_TRUE = "true";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
+constexpr int HIVEW_PERF_MONITOR_INTERVAL = 5;
+constexpr int HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60;
+constexpr int HITRACE_CACHE_DURATION_LIMIT_PER_EVENT = 2 * 60;
 
 const int8_t STATE_COUNT = 2;
 const int8_t COML_STATE = 0;
@@ -328,6 +332,7 @@ void UnifiedCollector::Init()
     InitWorkLoop();
     InitWorkPath();
     bool isAllowCollect = Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn();
+    RunHiviewMonitorTask();
     if (isAllowCollect) {
         RunIoCollectionTask();
         RunUCollectionStatTask();
@@ -505,6 +510,39 @@ void UnifiedCollector::RunRecordTraceTask()
     }
     int ret = Parameter::WatchParamChange(DEVELOP_HIVIEW_TRACE_RECORDER, OnSwitchRecordTraceStateChanged, this);
     HIVIEW_LOGI("add ucollection trace switch param watcher ret: %{public}d", ret);
+}
+
+void UnifiedCollector::RunHiviewMonitorTask()
+{
+    if (workPath_.empty() || isHiviewPerfMonitorRunning_) {
+        HIVIEW_LOGE("Hiview Monitor Task prerequisites are not met.");
+        return;
+    }
+    HIVIEW_LOGE("Hiview Monitor running.");
+    isHiviewPerfMonitorRunning_ = true;
+    auto task = [this] { this->HiviewPerfMonitorFfrtTask(); };
+    ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_hiviewMonitor").qos(ffrt::qos_default));
+}
+
+void UnifiedCollector::HiviewPerfMonitorFfrtTask()
+{
+    std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
+    
+    while (true) {
+        HIVIEW_LOGE("Hiview Monitor running.");
+        if (!isHiviewPerfMonitorRunning_) {
+            HIVIEW_LOGE("exit hiview low availability detection task");
+            break;
+        }
+        // check db for availability, and update db for interval
+        ffrt::this_task::sleep_for(5s);
+        CollectResult<SysMemory> data = collector->CollectSysMemory();
+        // check memAvailable in KB unit
+        if (data.data.memAvailable < 10240 * 1024) { // 1G, to be adjusted according to product hardware
+            HIVIEW_LOGE("low memory availability detected, memAvailable: %{public}lld KB", data.data.memAvailable);
+        }
+        // update db for 5s.
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS
