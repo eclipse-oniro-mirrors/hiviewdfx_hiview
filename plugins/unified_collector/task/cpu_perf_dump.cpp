@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024  Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2025  Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,7 @@ constexpr int64_t DUMP_HIPERF_DELAY_TIME = 2 * 60 * 1000; //ms
 
 CpuPerfDump::CpuPerfDump()
 {
-    perfCollector_ = UCollectUtil::PerfCollector::Create();
+    perfCollector_ = UCollectUtil::PerfCollector::Create(PerfCaller::UNIFIED_COLLECTOR);
     if (!FileUtil::FileExists(HIPERF_LOG_PATH)) {
         FileUtil::ForceCreateDirectory(HIPERF_LOG_PATH, FileUtil::FILE_PERM_770);
     }

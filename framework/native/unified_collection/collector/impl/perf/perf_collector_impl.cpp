@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,27 +17,34 @@
 #include <atomic>
 #include <ctime>
 #include <fstream>
+#include <map>
 
 #include "hiperf_client.h"
 #include "hiview_logger.h"
-#include "perf_decorator.h"
 #include "parameter_ex.h"
+#include "perf_decorator.h"
 
 using namespace OHOS::HiviewDFX::UCollect;
 using namespace OHOS::Developtools::HiPerf::HiperfClient;
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
+namespace {
 DEFINE_LOG_TAG("UCollectUtil-PerfCollectorImpl");
-constexpr uint8_t MAX_PERF_USE_COUNT = 8;
-constexpr int DEFAULT_PERF_RECORD_TIME = 5;
 constexpr int DEFAULT_PERF_RECORD_FREQUENCY = 100;
 const std::string DEFAULT_PERF_RECORD_CALLGRAPH = "fp";
+const std::map<PerfCaller, uint8_t> PERF_MAX_COUNT_FOR_CALLER = {
+    // key : caller, value : max hiperf processes count can be started simultaneously
+    {PerfCaller::EVENTLOGGER, 2},
+    {PerfCaller::XPOWER, 2},
+    {PerfCaller::UNIFIED_COLLECTOR, 2},
+    {PerfCaller::PERFORMANCE_FACTORY, 8},
+};
+}
 
 std::atomic<uint8_t> PerfCollectorImpl::inUseCount_(0);
-uint8_t PerfCollectorImpl::limitUseCount_ = MAX_PERF_USE_COUNT;
 
-PerfCollectorImpl::PerfCollectorImpl()
+PerfCollectorImpl::PerfCollectorImpl(PerfCaller perfCaller) : perfCaller_(perfCaller)
 {
     opt_.SetFrequency(DEFAULT_PERF_RECORD_FREQUENCY);
     opt_.SetCallGraph(DEFAULT_PERF_RECORD_CALLGRAPH);
@@ -104,17 +111,23 @@ void PerfCollectorImpl::DecreaseUseCount()
     inUseCount_.fetch_sub(1);
 }
 
-std::shared_ptr<PerfCollector> PerfCollector::Create()
+std::shared_ptr<PerfCollector> PerfCollector::Create(PerfCaller perfCaller)
 {
-    return std::make_shared<PerfDecorator>(std::make_shared<PerfCollectorImpl>());
+    return std::make_shared<PerfDecorator>(std::make_shared<PerfCollectorImpl>(perfCaller));
 }
 
 CollectResult<bool> PerfCollectorImpl::CheckUseCount()
 {
+    CollectResult<bool> result;
+    if (PERF_MAX_COUNT_FOR_CALLER.find(perfCaller_) == PERF_MAX_COUNT_FOR_CALLER.end()) {
+        HIVIEW_LOGI("not find perf caller");
+        result.data = false;
+        result.retCode = UcError::PERF_CALLER_NOT_FIND;
+        return result;
+    }
     HIVIEW_LOGI("current used count : %{public}d", inUseCount_.load());
     IncreaseUseCount();
-    CollectResult<bool> result;
-    if (inUseCount_ > limitUseCount_) {
+    if (inUseCount_.load() > PERF_MAX_COUNT_FOR_CALLER.at(perfCaller_)) {
         HIVIEW_LOGI("current used count over limit.");
         result.data = false;
         result.retCode = UcError::USAGE_EXCEED_LIMIT;
