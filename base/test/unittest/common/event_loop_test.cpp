@@ -396,6 +396,7 @@ HWTEST_F(EventLoopTest, EventLoopOverheadTest001, TestSize.Level3)
         currentLooper_->AddEvent(overheadCounter, event, nullptr);
     }
     sleep(10);
+    ASSERT_EQ(overheadCounter->processedEventCount_, 100);
     printf("TotalDeliverOverHeadCost:%" PRIu64 ".\n", overheadCounter->totalDeliverOverHead_);
     printf("TotalProcessEventCount:%" PRIu64 ".\n", overheadCounter->processedEventCount_);
     printf("EventTransferOverhead:%" PRIu64 ".\n",
