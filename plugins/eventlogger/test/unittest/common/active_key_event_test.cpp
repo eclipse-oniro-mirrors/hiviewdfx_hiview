@@ -151,6 +151,7 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_006, TestSize.Level3)
 {
     std::shared_ptr<ActiveKeyEvent> activeKeyEvent = std::make_shared<ActiveKeyEvent>();
     activeKeyEvent->triggeringTime_ = 0;
+    EXPECT_TRUE(activeKeyEvent->triggeringTime_ == 0);
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyCallback(keyEvent);
     sleep(1);

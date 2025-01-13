@@ -692,6 +692,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_006, TestSize.Level3)
 HWTEST_F(FreezeDetectorUnittest, FreezeCommon_007, TestSize.Level3)
 {
     auto freezeCommon = std::make_unique<FreezeCommon>();
+    ASSERT_TRUE(freezeCommon != nullptr);
     freezeCommon->GetPrincipalStringIds();
     freezeCommon->Init();
     freezeCommon->GetPrincipalStringIds();
