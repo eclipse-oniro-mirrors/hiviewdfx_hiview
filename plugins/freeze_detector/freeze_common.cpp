@@ -16,6 +16,8 @@
 #include "freeze_common.h"
 
 #include "hiview_logger.h"
+#include "file_util.h"
+#include "time_util.h"
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -65,7 +67,7 @@ bool FreezeCommon::IsAssignedEvent(const std::string& domain, const std::string&
         HIVIEW_LOGW("freezeRuleCluster_ == nullptr.");
         return false;
     }
-
+ 
     std::map<std::string, std::pair<std::string, bool>> pairs;
     switch (freezeId) {
         case APPLICATION_RESULT_ID:
@@ -135,6 +137,24 @@ std::set<std::string> FreezeCommon::GetPrincipalStringIds() const
     }
 
     return set;
+}
+
+void FreezeCommon::WriteStartInfoToFd(int fd, const std::string& msg)
+{
+    uint64_t logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+    std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y/%m/%d-%H:%M:%S");
+    FileUtil::SaveStringToFd(fd, "\n---------------------------------------------------\n");
+    std::string description = msg + formatTime + "\n";
+    FileUtil::SaveStringToFd(fd, description);
+}
+
+void FreezeCommon::WriteEndInfoToFd(int fd, const std::string& msg)
+{
+    uint64_t logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+    std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y/%m/%d-%H:%M:%S");
+    std::string description = msg + formatTime + "\n";
+    FileUtil::SaveStringToFd(fd, description);
+    FileUtil::SaveStringToFd(fd, "-----------------------------------------------------\n");
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

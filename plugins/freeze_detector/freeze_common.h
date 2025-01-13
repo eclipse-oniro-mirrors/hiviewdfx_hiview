@@ -65,6 +65,8 @@ public:
     {
         return freezeRuleCluster_;
     }
+    static void WriteStartInfoToFd(int fd, const std::string& msg);
+    static void WriteEndInfoToFd(int fd, const std::string& msg);
 
 private:
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_;

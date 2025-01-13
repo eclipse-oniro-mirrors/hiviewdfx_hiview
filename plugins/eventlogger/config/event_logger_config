@@ -18,7 +18,7 @@ event id="" name="GET_DISPLAY_SNAPSHOT" action="cmd:w,cmd:rs,cmd:scbWMSEVT,cmd:s
 event id="" name="CREATE_VIRTUAL_SCREEN" action="cmd:w,cmd:rs,cmd:scbWMSEVT,cmd:scbCS,cmd:scbVP,cmd:mmi,cmd:dms,cmd:eec,cmd:gec,cmd:ui,cmd:scbW,cmd:scbWMS" interval="20"
 event id="" name="REPEAT_SET_UI_NODE_ID" action="cmd:w,cmd:rs,cmd:scbCS,cmd:scbVP" interval="300"
 event id="" name="SAMGR_SERVICE_BLOCK" action="s,pb:0:a,cmd:c,cmd:m" interval="0"
-event id="" name="SCREEN_ON" action="cmd:p,cmd:d,cmd:w" interval="0"
+event id="" name="SCREEN_ON" action="T,cmd:p,cmd:d,cmd:w" interval="0"
 event id="" name="SCREEN_OFF" action="cmd:p,cmd:d,cmd:w" interval="0"
 event id="" name="HUNGTASK" action="k:SysRq" interval="0"
 event id="" name="SERIAL_TASK_TIMEOUT" action="s,pb:0:a,k:SysRq,cmd:c,cmd:m" interval="0"

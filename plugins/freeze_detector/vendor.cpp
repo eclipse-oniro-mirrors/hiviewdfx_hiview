@@ -191,8 +191,6 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
     long uid = watchPoint.GetUid();
     std::string packageName = StringUtil::TrimStr(watchPoint.GetPackageName());
     processName = StringUtil::TrimStr(watchPoint.GetProcessName());
-    type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
-        (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
     processName = processName.empty() ? (packageName.empty() ? stringId : packageName) : processName;
     if (stringId == "SCREEN_ON") {
         processName = stringId;

@@ -28,6 +28,9 @@
 #include "shell_catcher.h"
 #include "string_util.h"
 #include "trace_collector.h"
+#include "time_util.h"
+#include "freeze_common.h"
+#include "thermal_mgr_client.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -128,14 +131,17 @@ EventLogTask::Status EventLogTask::StartCompose()
             return TASK_FAIL;
         }
 
+        FreezeCommon::WriteStartInfoToFd(dupedFd, "start time: ");
         AddSeparator(dupedFd, catcher);
         int curLogSize = catcher->Catch(dupedFd, dupedJsonFd);
         HIVIEW_LOGI("finish catcher: %{public}s, curLogSize: %{public}d", catcher->GetDescription().c_str(),
             curLogSize);
+        FreezeCommon::WriteEndInfoToFd(dupedFd, "end time: ");
         if (ShouldStopLogTask(dupedFd, catcherIndex, curLogSize, catcher)) {
             break;
         }
     }
+    GetThermalInfo(dupedFd);
     close(dupedFd);
     if (dupedJsonFd >= 0) {
         close(dupedJsonFd);
@@ -343,7 +349,7 @@ void EventLogTask::EECStateCapture()
         ShellCatcher::CATCHER_EEC, pid_);
     tasks_.push_back(capture);
 }
-
+ 
 void EventLogTask::GECStateCapture()
 {
     auto capture = std::make_shared<ShellCatcher>();
@@ -351,7 +357,7 @@ void EventLogTask::GECStateCapture()
         ShellCatcher::CATCHER_GEC, pid_);
     tasks_.push_back(capture);
 }
-
+ 
 void EventLogTask::UIStateCapture()
 {
     auto capture = std::make_shared<ShellCatcher>();
@@ -369,7 +375,6 @@ void EventLogTask::Screenshot()
 void EventLogTask::HilogCapture()
 {
     auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
     if (event_->eventName_ == "SCREEN_ON") {
         capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
     } else {
@@ -482,8 +487,17 @@ void EventLogTask::RemoteStackCapture()
 {
     auto capture = std::make_shared<OpenStacktraceCatcher>();
     int32_t remotePid = event_->GetEventIntValue("REMOTE_PID");
-    capture->Initialize(event_->GetEventValue("PROCESS_NAME"), remotePid, 0);
+    capture->Initialize(event_->GetEventValue("PROGRAM_NAME"), remotePid, 0);
     tasks_.push_back(capture);
+}
+
+void EventLogTask::GetThermalInfo(int fd)
+{
+    FreezeCommon::WriteStartInfoToFd(fd, "start collect hotInfo: ");
+    PowerMgr::ThermalLevel temp = PowerMgr::ThermalMgrClient::GetInstance().GetThermalLevel();
+    int tempNum = static_cast<int>(temp);
+    FileUtil::SaveStringToFd(fd, "\n ThermalMgrClient info: " + std::to_string(tempNum) + "\n");
+    FreezeCommon::WriteEndInfoToFd(fd, "\nend collect hotInfo: ");
 }
 } // namespace HiviewDFX
 } // namespace OHOS
