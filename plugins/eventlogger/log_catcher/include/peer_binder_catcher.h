@@ -61,17 +61,22 @@ private:
     std::shared_ptr<SysEvent> event_ = nullptr;
     std::set<int> catchedPids_ = {0};
     std::map<int, std::list<PeerBinderCatcher::BinderInfo>> BinderInfoParser(std::ifstream& fin,
-        int fd, int jsonFd) const;
+        int fd, int jsonFd, std::set<int>& aysncPids) const;
     void BinderInfoParser(std::ifstream& fin, int fd,
         std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-        std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList) const;
-    void GetFileToList(std::string line, std::vector<std::string>& strList) const;
+        std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList, std::set<int>& asyncPids) const;
+    void BinderInfoLineParser(std::ifstream& fin, int fd,
+        std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
+        std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList,
+        std::map<uint32_t, uint32_t>& asyncBinderMap,
+        std::vector<std::pair<uint32_t, uint64_t>>& freezeAsyncSpacePairs) const;
+    std::vector<std::string> GetFileToList(std::string line) const;
     void ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-    std::set<int>& pids, int pid) const;
-    std::set<int> GetBinderPeerPids(int fd, int jsonFd) const;
+        std::set<int>& pids, int pid) const;
+    std::set<int> GetBinderPeerPids(int fd, int jsonFd, std::set<int>& asyncPids) const;
     bool IsAncoProc(int pid) const;
     void CatcherFfrtStack(int fd, int pid) const;
-    void CatcherStacktrace(int fd, int pid) const;
+    void CatcherStacktrace(int fd, int pid, bool sync = true) const;
     void AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const;
 #ifdef HAS_HIPERF
     void ForkToDumpHiperf(const std::set<int>& pids);

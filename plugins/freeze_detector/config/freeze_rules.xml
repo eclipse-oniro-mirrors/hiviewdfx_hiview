@@ -212,7 +212,14 @@
     <rule id="7" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
-          <result code="0" scope="app" samePackage="true"/>
+          <result code="2" scope="sysWarning" samePackage="true"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="8" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
+      <links type="watchpoint">
+        <event window="0" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNIING -->
+          <result code="2" scope="sysWarning" samePackage="true"/>
         </event>
       </links>
     </rule>

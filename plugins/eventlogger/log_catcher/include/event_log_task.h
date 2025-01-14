@@ -98,6 +98,7 @@ private:
     void DumpAppMapCapture();
     void InputHilogCapture();
     void RemoteStackCapture();
+    void GetThermalInfo(int fd);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

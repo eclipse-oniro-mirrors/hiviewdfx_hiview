@@ -72,6 +72,7 @@ private:
     void DoChildProcess(int writeFd);
     bool ReadShellToFile(int fd, const std::string& cmd);
     void ParseFocusWindowId();
+    void GetCpuCoreFreqInfo(int fd) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

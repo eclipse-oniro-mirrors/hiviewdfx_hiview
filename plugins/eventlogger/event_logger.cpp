@@ -52,12 +52,12 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-static constexpr const char* const ASHMEM_PATH = "/proc/ashmem_process_info";
-static constexpr const char* const DMAHEAP_PATH = "/proc/dmaheap_process_info";
-static constexpr const char* const GPUMEM_PATH = "/proc/gpumem_process_info";
-static constexpr const char* const ASHMEM = "AshmemUsed";
-static constexpr const char* const DMAHEAP = "DmaHeapTotalUsed";
-static constexpr const char* const GPUMEM = "GpuTotalUsed";
+static constexpr const char *const ASHMEM_PATH = "/proc/ashmem_process_info";
+static constexpr const char *const DMAHEAP_PATH = "/proc/dmaheap_process_info";
+static constexpr const char *const GPUMEM_PATH = "/proc/gpumem_process_info";
+static constexpr const char *const ASHMEM = "AshmemUsed";
+static constexpr const char *const DMAHEAP = "DmaHeapTotalUsed";
+static constexpr const char *const GPUMEM = "GpuTotalUsed";
 static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
 static constexpr int DECIMEL = 10;
 
@@ -171,7 +171,7 @@ int EventLogger::GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, 
     } else {
         logFile = "ffrt_" + std::to_string(pid) + "_" + formatTime;
     }
-
+ 
     if (FileUtil::FileExists(LOGGER_EVENT_LOG_PATH + "/" + logFile)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", logFile.c_str());
         if (!isFfrt) {
@@ -201,14 +201,14 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     } else {
         type = LogCatcherUtils::GetFfrtDumpType(pid);
     }
-
+ 
     std::string ffrtFile;
     int ffrtFd = GetFile(event, ffrtFile, true);
     if (ffrtFd < 0) {
         HIVIEW_LOGE("create ffrt log file %{public}s failed, %{public}d", ffrtFile.c_str(), ffrtFd);
         return;
     }
-
+ 
     int count = (type == LogCatcherUtils::TOP) ? LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT * DUMP_TIME_RATIO :
         LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT;
     if (type == LogCatcherUtils::TOP) {
@@ -275,6 +275,7 @@ void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
     if (!content.empty()) {
         std::vector<std::string> vec;
         OHOS::SplitStr(content, "\\n", vec);
+        FreezeCommon::WriteStartInfoToFd(fd, "start collect meminfo: ");
         FileUtil::SaveStringToFd(fd, "\nMemoryCatcher --\n");
         for (const std::string& mem : vec) {
             FileUtil::SaveStringToFd(fd, mem + "\n");
@@ -282,6 +283,7 @@ void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
             CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
             CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
         }
+        FreezeCommon::WriteEndInfoToFd(fd, "\nend collect meminfo: ");
     }
     if (!data.empty()) {
         FileUtil::SaveStringToFd(fd, data);
@@ -513,7 +515,7 @@ void EventLogger::WriteCallStack(std::shared_ptr<SysEvent> event, int fd)
         "\\n", "\n");
         stackOss << "CallStack = " << stackMsg << std::endl;
         FileUtil::SaveStringToFd(fd, stackOss.str());
-
+ 
         std::ostringstream appNameOss;
         std::string appMsg = StringUtil::ReplaceStr(event->GetEventValue("EVENT_KEY_FORM_BLOCK_APPNAME"),
         "\\n", "\n");
@@ -706,19 +708,17 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
         long pid = event->GetEventIntValue("PID") ? event->GetEventIntValue("PID") : event->GetPid();
         std::string packageName = event->GetEventValue("PACKAGE_NAME").empty() ?
             event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
-
+ 
         std::vector<WatchPoint> list;
         FreezeResult freezeResult(0, "FRAMEWORK", "PROCESS_KILL");
         freezeResult.SetSamePackage("true");
+        DBHelper::WatchParams params = {pid, packageName};
         dbHelper_->SelectEventFromDB(event->happenTime_ - QUERY_PROCESS_KILL_INTERVAL, event->happenTime_, list,
-            packageName, freezeResult);
-
+            params, freezeResult);
         std::string appendStack = "";
-        for (auto watchPoint : list) {
-            if (watchPoint.GetPid() == pid) {
-                appendStack += "\n" + watchPoint.GetMsg();
-            }
-        }
+        std::for_each(list.begin(), list.end(), [&appendStack] (const WatchPoint& watchPoint) {
+            appendStack += "\n" + watchPoint.GetMsg();
+        });
         stack += appendStack.empty() ? "\ncan not get process kill reason" : "\nprocess may be killed by : "
             + appendStack;
     }

@@ -720,6 +720,18 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_007, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeCommon_008
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeCommon_008, TestSize.Level3)
+{
+    auto freezeCommon = std::make_unique<FreezeCommon>();
+    freezeCommon->WriteStartInfoToFd(0, "FreezeCommon_008 test");
+    freezeCommon->WriteEndInfoToFd(0, "FreezeCommon_008 test");
+    ASSERT_TRUE(freezeCommon != nullptr);
+}
+
+/**
  * @tc.name: FreezeWatchPoint_001
  * @tc.desc: FreezeDetector
  */
@@ -842,7 +854,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_001, TestSize.Level3)
     unsigned long long start = TimeUtil::GetMilliseconds() - 5L;
     unsigned long long end = TimeUtil::GetMilliseconds();
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
-    db->SelectEventFromDB(start, end, list, watchPoint.GetPackageName(), result);
+    DBHelper::WatchParams params = {watchPoint.GetPid(), watchPoint.GetPackageName()};
+    db->SelectEventFromDB(start, end, list, params, result);
 }
 
 /**
@@ -875,7 +888,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_002, TestSize.Level3)
     unsigned long long start = TimeUtil::GetMilliseconds() + 1000L;
     unsigned long long end = TimeUtil::GetMilliseconds();
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
-    db->SelectEventFromDB(start, end, list, watchPoint.GetPackageName(), result);
+    DBHelper::WatchParams params = {watchPoint.GetPid(), watchPoint.GetPackageName()};
+    db->SelectEventFromDB(start, end, list, params, result);
 }
 }
 }

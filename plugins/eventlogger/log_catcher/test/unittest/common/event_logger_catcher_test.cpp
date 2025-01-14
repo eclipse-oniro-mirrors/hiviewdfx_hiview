@@ -140,6 +140,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_002, TestSize.Level3)
     ret = logTask->StartCompose();
     EXPECT_EQ(ret, 1);
     EXPECT_EQ(logTask->GetLogSize(), 0);
+    logTask->GetThermalInfo(fd);
     close(fd);
 }
 
@@ -482,7 +483,8 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_004, TestSize.Level1)
         FAIL();
     }
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
-    std::set<int> pids = peerBinderCatcher->GetBinderPeerPids(fd, 1);
+    std::set<int> asyncPids;
+    std::set<int> pids = peerBinderCatcher->GetBinderPeerPids(fd, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
 }
 
@@ -544,10 +546,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
         printf("Fail to create peerTestFile. errno: %d\n", errno);
         FAIL();
     }
-    peerBinderCatcher->BinderInfoParser(fin, fd1, 1);
-    std::set<int> pids = peerBinderCatcher->GetBinderPeerPids(fd, 1);
+    std::set<int> asyncPids;
+    peerBinderCatcher->BinderInfoParser(fin, fd1, 1, asyncPids);
+    std::set<int> pids = peerBinderCatcher->GetBinderPeerPids(fd, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
-    pids = peerBinderCatcher->GetBinderPeerPids(-1, 1);
+    pids = peerBinderCatcher->GetBinderPeerPids(-1, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
     fin.close();
 }
@@ -626,7 +629,7 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level1)
 
     close(fd);
 }
-
+ 
 /**
  * @tc.name: ShellCatcherTest
  * @tc.desc: GET_DISPLAY_SNAPSHOT test
@@ -642,7 +645,7 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_002, TestSize.Level1)
     printf("HiSysEventWrite: %d\n", ret);
     EXPECT_EQ(ret, 0);
 }
-
+ 
 /**
  * @tc.name: ShellCatcherTest
  * @tc.desc: add test

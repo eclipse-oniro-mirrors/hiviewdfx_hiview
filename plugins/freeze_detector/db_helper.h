@@ -28,12 +28,17 @@ namespace OHOS {
 namespace HiviewDFX {
 class DBHelper {
 public:
+    struct WatchParams {
+        long pid;
+        std::string packageName;
+    };
+
     explicit DBHelper(std::shared_ptr<FreezeCommon> fc) : freezeCommon_(fc) {};
     ~DBHelper() {};
-    void GetResultMap(const std::string& watchPackage, const FreezeResult& result,
+    void GetResultMap(const struct WatchParams& watchParams, const FreezeResult& result,
         EventStore::ResultSet& set, std::map<std::string, WatchPoint>& resultMap);
     void SelectEventFromDB(unsigned long long start, unsigned long long end, std::vector<WatchPoint>& list,
-        const std::string& watchPackage, const FreezeResult& result);
+        const struct WatchParams& watchParams, const FreezeResult& result);
 private:
     std::shared_ptr<FreezeCommon> freezeCommon_;
 };

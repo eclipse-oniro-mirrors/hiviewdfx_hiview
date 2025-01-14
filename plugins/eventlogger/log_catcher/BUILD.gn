@@ -18,6 +18,7 @@ config("log_catcher_config") {
   include_dirs = [
     "include",
     "$hiview_adapter/plugins/eventlogger/log_catcher/include",
+    "$hiview_plugin/freeze_detector",
   ]
 
   cflags_cc = [ "-DDUMP_STACK_IN_PROCESS" ]
@@ -44,7 +45,12 @@ ohos_source_set("log_catcher") {
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "ability_base:want",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "thermal_manager:thermalsrv_client",
+  ]
 
   if (has_hiperf) {
     cflags = [ "-DHAS_HIPERF" ]
