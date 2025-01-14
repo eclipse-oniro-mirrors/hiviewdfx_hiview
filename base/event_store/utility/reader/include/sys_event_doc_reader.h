@@ -41,10 +41,10 @@ private:
     void Init(const std::string& path);
     void InitEventInfo(const std::string& path);
     int Read(ReadCallback callback);
-    int ReadContent(uint8_t** content, uint32_t& contentSize);
+    int ReadContent(uint8_t** content, uint32_t& contentSize, uint32_t pageIndex);
     int ReadPages(ReadCallback callback);
     bool HasReadFileEnd();
-    bool HasReadPageEnd();
+    bool HasReadPageEnd(uint32_t pageIndex);
     bool IsValidHeader(const DocHeader& header);
     bool CheckEventInfo(uint8_t* content);
     int SeekgPage(uint32_t pageIndex);

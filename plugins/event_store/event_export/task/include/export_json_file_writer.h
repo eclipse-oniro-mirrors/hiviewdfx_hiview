@@ -33,11 +33,6 @@ struct EventVersion {
 
     // patch version
     std::string patchVersion;
-
-    bool operator<(const EventVersion& other) const
-    {
-        return systemVersion < other.systemVersion && patchVersion < other.patchVersion;
-    }
 };
 
 class ExportJsonFileWriter {
