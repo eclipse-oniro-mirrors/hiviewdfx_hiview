@@ -36,10 +36,6 @@ protected:
 private:
     bool InitReadRequest(std::shared_ptr<EventReadRequest> readReq) const;
     bool ParseExportEventList(ExportEventList& list) const;
-
-private:
-    int64_t curBeginSeqInQuery_ = 0;
-    int64_t curEndSeqInQuery_ = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

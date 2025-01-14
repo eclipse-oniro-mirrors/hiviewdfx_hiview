@@ -142,41 +142,16 @@ bool EventExportEngine::RegistSettingObserver(std::shared_ptr<ExportConfig> conf
         HIVIEW_LOGW("failed to regist setting db observer for module %{public}s", config->moduleName.c_str());
         return regRet;
     }
-    InitModuleExportInfo(config);
-    HIVIEW_LOGI("succeed to regist setting db observer for module %{public}s", config->moduleName.c_str());
-    return regRet;
-}
-
-void EventExportEngine::InitModuleExportInfo(std::shared_ptr<ExportConfig> config)
-{
-    int64_t exportEnabledSeq = dbMgr_->GetExportEnabledSeq(config->moduleName);
-    bool isExportSwitchOff = (SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name) !=
-        config->exportSwitchParam.enabledVal);
-    if (isExportSwitchOff) {
-        HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
-        if (exportEnabledSeq != INVALID_SEQ_VAL) { // handle setting parameter listening error
-            exportEnabledSeq = INVALID_SEQ_VAL;
-            dbMgr_->HandleExportSwitchChanged(config->moduleName, exportEnabledSeq);
-        }
-        return;
-    }
-    HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
-    bool needUpdateRecord = false;
-    if (exportEnabledSeq == INVALID_SEQ_VAL) { // handle setting parameter listening error
-        exportEnabledSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
-        needUpdateRecord = true;
-    }
     if (dbMgr_->IsUnrecordedModule(config->moduleName)) { // first time to export event for current module
         auto upgradeParam = config->sysUpgradeParam;
         if (!upgradeParam.name.empty() &&
             SettingObserverManager::GetInstance()->GetStringValue(upgradeParam.name) == upgradeParam.enabledVal) {
-            exportEnabledSeq = 0;
-            needUpdateRecord = true;
+            HIVIEW_LOGI("reset enabled sequence to 0 for moudle %{public}s", config->moduleName.c_str());
+            dbMgr_->HandleExportSwitchChanged(config->moduleName, 0);
         }
     }
-    if (needUpdateRecord) {
-        dbMgr_->HandleExportSwitchChanged(config->moduleName, exportEnabledSeq);
-    }
+    HIVIEW_LOGI("succeed to regist setting db observer for module %{public}s", config->moduleName.c_str());
+    return regRet;
 }
 
 void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
@@ -199,6 +174,11 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
 
 void EventExportEngine::HandleExportSwitchOn(const std::string& moduleName)
 {
+    int64_t enabledSeq = dbMgr_->GetExportEnabledSeq(moduleName);
+    if (enabledSeq == 0) {
+        // expport enabled sequence has been reset to 0, no need to update
+        return;
+    }
     auto curEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
     HIVIEW_LOGI("update enabled seq:%{public}" PRId64 " for moudle %{public}s", curEventSeq, moduleName.c_str());
     dbMgr_->HandleExportSwitchChanged(moduleName, curEventSeq);

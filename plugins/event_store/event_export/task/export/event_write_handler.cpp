@@ -22,6 +22,16 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventWriteHandler");
+namespace {
+std::string TransEventVersionToStr(const EventVersion& eventVersion)
+{
+    std::string concactedContent;
+    concactedContent.append(eventVersion.systemVersion).append("_");
+    concactedContent.append(eventVersion.patchVersion);
+    return concactedContent;
+}
+}
+
 bool EventWriteHandler::HandleRequest(RequestPtr req)
 {
     auto writeReq = BaseRequest::DownCastTo<EventWriteRequest>(req);
@@ -53,7 +63,7 @@ bool EventWriteHandler::HandleRequest(RequestPtr req)
 std::shared_ptr<ExportJsonFileWriter> EventWriteHandler::GetEventWriter(const EventVersion& eventVersion,
     std::shared_ptr<EventWriteRequest> writeReq)
 {
-    auto writerKey = std::make_pair(writeReq->moduleName, eventVersion);
+    auto writerKey = std::make_pair(writeReq->moduleName, TransEventVersionToStr(eventVersion));
     auto iter = allJsonFileWriters_.find(writerKey);
     if (iter == allJsonFileWriters_.end()) {
         HIVIEW_LOGI("create json file writer with system version[%{public}s] and patch version[%{public}s]",

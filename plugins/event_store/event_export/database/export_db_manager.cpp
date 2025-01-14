@@ -53,7 +53,7 @@ int64_t ExportDbManager::GetExportBeginSeq(const std::string& moduleName)
 
 void ExportDbManager::HandleExportSwitchChanged(const std::string& moduleName, int64_t curSeq)
 {
-    HIVIEW_LOGD("export switch for %{public}s module is changed, current event sequence is %{public}" PRId64 "",
+    HIVIEW_LOGI("export switch for %{public}s module is changed, current event sequence is %{public}" PRId64 "",
         moduleName.c_str(), curSeq);
     if (IsUnrecordedModule(moduleName)) {
         HIVIEW_LOGW("no export details record found of %{public}s module in db", moduleName.c_str());
@@ -74,7 +74,7 @@ void ExportDbManager::HandleExportSwitchChanged(const std::string& moduleName, i
 
 void ExportDbManager::HandleExportTaskFinished(const std::string& moduleName, int64_t eventSeq)
 {
-    HIVIEW_LOGD("export task of %{public}s module is finished, maximum event sequence is %{public}" PRId64 "",
+    HIVIEW_LOGI("export task of %{public}s module is finished, maximum event sequence is %{public}" PRId64 "",
         moduleName.c_str(), eventSeq);
     if (IsUnrecordedModule(moduleName)) {
         HIVIEW_LOGW("no export details record found of %{public}s module in db", moduleName.c_str());

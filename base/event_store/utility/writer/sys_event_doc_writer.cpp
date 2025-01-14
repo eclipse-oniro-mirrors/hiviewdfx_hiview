@@ -187,6 +187,10 @@ int SysEventDocWriter::WriteContent(const std::shared_ptr<SysEvent>& sysEvent, u
 
     // content.rawData
     uint8_t* rawData = sysEvent->AsRawData();
+    if (rawData == nullptr) {
+        HIVIEW_LOGE("The raw data of event is null");
+        return DOC_STORE_ERROR_NULL;
+    }
     uint32_t dataSize = *(reinterpret_cast<uint32_t*>(rawData)) - RAW_DATA_OFFSET;
     out_.write(reinterpret_cast<const char*>(rawData + RAW_DATA_OFFSET), dataSize);
 

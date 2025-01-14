@@ -142,7 +142,8 @@ int SysEventDocReader::Read(ReadCallback callback)
     if (pageSize_ == 0) {
         uint8_t* content = nullptr;
         uint32_t contentSize = 0;
-        if (auto ret = ReadContent(&content, contentSize); ret != DOC_STORE_SUCCESS) {
+        uint32_t pageIndex = 0;
+        if (auto ret = ReadContent(&content, contentSize, pageIndex); ret != DOC_STORE_SUCCESS) {
             return ret;
         }
         callback(content, contentSize);
@@ -175,7 +176,7 @@ int SysEventDocReader::ReadPages(ReadCallback callback)
     while (!HasReadFileEnd()) {
         uint8_t* content = nullptr;
         uint32_t contentSize = 0;
-        if (ReadContent(&content, contentSize) != DOC_STORE_SUCCESS) {
+        if (ReadContent(&content, contentSize, pageIndex) != DOC_STORE_SUCCESS) {
             pageIndex++;
             if (SeekgPage(pageIndex) != DOC_STORE_SUCCESS) {
                 HIVIEW_LOGD("end to seekg the next page index=%{public}" PRIu32 ", file=%{public}s",
@@ -199,7 +200,7 @@ bool SysEventDocReader::HasReadFileEnd()
     return (static_cast<int>(in_.tellg()) < 0) || in_.eof();
 }
 
-bool SysEventDocReader::HasReadPageEnd()
+bool SysEventDocReader::HasReadPageEnd(uint32_t pageIndex)
 {
     if (HasReadFileEnd()) {
         return true;
@@ -208,12 +209,19 @@ bool SysEventDocReader::HasReadPageEnd()
     if (curPos <= docHeaderSize_) {
         return false;
     }
+    if (curPos == docHeaderSize_ + pageSize_ * (pageIndex + 1)) {
+        /* if no byte of current page is filled with '\0' charactor,
+         * when position is at the end of current page,
+         * we should check whether page is end by page index increment.
+         */
+        return true;
+    }
     return ((curPos - docHeaderSize_) % pageSize_ + BLOCK_SIZE) >= pageSize_;
 }
 
-int SysEventDocReader::ReadContent(uint8_t** content, uint32_t& contentSize)
+int SysEventDocReader::ReadContent(uint8_t** content, uint32_t& contentSize, uint32_t pageIndex)
 {
-    if (HasReadPageEnd()) {
+    if (HasReadPageEnd(pageIndex)) {
         HIVIEW_LOGD("end to read the page, file=%{public}s", docPath_.c_str());
         return DOC_STORE_READ_EMPTY;
     }

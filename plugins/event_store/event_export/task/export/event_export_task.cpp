@@ -17,6 +17,7 @@
 
 #include "file_util.h"
 #include "hiview_logger.h"
+#include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
 
 namespace OHOS {
@@ -36,12 +37,36 @@ std::shared_ptr<ExportEventListParser> GetParser(ExportEventListParsers& parsers
     }
     return iter->second;
 }
+
+bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
+{
+    bool isSwitchOff = (SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name) !=
+        config->exportSwitchParam.enabledVal);
+    if (isSwitchOff) {
+        HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
+        int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
+        if (enabledSeq != INVALID_SEQ_VAL && enabledSeq != 0) { // handle setting parameter listening error
+            dbMgr->HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
+        }
+        return true;
+    }
+    HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
+    int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
+    if (enabledSeq == INVALID_SEQ_VAL) { // handle setting parameter listening error
+        enabledSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+        dbMgr->HandleExportSwitchChanged(config->moduleName, enabledSeq);
+    }
+    return false;
+}
 }
 
 void EventExportTask::OnTaskRun()
 {
     if (config_ == nullptr || dbMgr_ == nullptr) {
         HIVIEW_LOGE("config manager or db manager is invalid");
+        return;
+    }
+    if (IsExportSwitchOff(config_, dbMgr_)) {
         return;
     }
     if (FileUtil::GetFolderSize(config_->exportDir) >= static_cast<uint64_t>(config_->maxCapcity * BYTE_TO_MB)) {
@@ -59,23 +84,21 @@ void EventExportTask::OnTaskRun()
     // init read handler
     auto readHandler = std::make_shared<EventReadHandler>();
     readHandler->SetEventExportedListener([this] (int64_t beginSeq, int64_t endSeq) {
-        HIVIEW_LOGW("export end sequence is updated with %{public}" PRId64 "", endSeq);
-        curBeginSeqInQuery_ = beginSeq;
-        curEndSeqInQuery_ = endSeq;
+        HIVIEW_LOGW("finished exporting events in range [%{public}" PRId64 ", %{public}" PRId64 ")",
+            beginSeq, endSeq);
+        // sync export progress to db
+        dbMgr_->HandleExportTaskFinished(config_->moduleName, endSeq);
     });
     // init handler chain
     readHandler->SetNextHandler(writeHandler);
     // start handler chain
     if (!readHandler->HandleRequest(readReq)) {
-        HIVIEW_LOGE("failed to export events in range [%{public}" PRId64 ",%{public}" PRId64 ")",
-            curBeginSeqInQuery_, curEndSeqInQuery_);
-        // record export progress
-        dbMgr_->HandleExportTaskFinished(config_->moduleName, curEndSeqInQuery_);
+        HIVIEW_LOGE("failed to export all events in range [%{public}" PRId64 ",%{public}" PRId64 ")",
+            readReq->beginSeq, readReq->endSeq);
         return;
     }
     // record export progress
-    dbMgr_->HandleExportTaskFinished(config_->moduleName, readReq->endSeq);
-    HIVIEW_LOGI("succeed to export events in range [%{public}" PRId64 ",%{public}" PRId64 ")", readReq->beginSeq,
+    HIVIEW_LOGI("succeed to export all events in range [%{public}" PRId64 ",%{public}" PRId64 ")", readReq->beginSeq,
         readReq->endSeq);
 }
 

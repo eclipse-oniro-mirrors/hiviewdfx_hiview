@@ -78,7 +78,7 @@ private:
 
 private:
     // <key: <module name, event version>, value: writer>
-    std::map<std::pair<std::string, EventVersion>, std::shared_ptr<ExportJsonFileWriter>> allJsonFileWriters_;
+    std::map<std::pair<std::string, std::string>, std::shared_ptr<ExportJsonFileWriter>> allJsonFileWriters_;
     // <tmpZipFilePath, destZipFilePath>
     std::unordered_map<std::string, std::string> zippedExportFileMap_;
 };
