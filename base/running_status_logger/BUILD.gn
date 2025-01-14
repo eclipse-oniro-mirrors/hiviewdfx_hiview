@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -41,7 +41,10 @@ ohos_source_set("running_status_logger_source") {
 
   configs = [ ":running_status_logger_private_config" ]
 
-  sources = [ "running_status_logger.cpp" ]
+  sources = [
+    "log_file_writer.cpp",
+    "running_status_logger.cpp",
+  ]
 
   deps = [
     "$hiview_base/event_raw:hiview_event_raw_base",

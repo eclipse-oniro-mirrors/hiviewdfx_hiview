@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,21 +22,27 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
 using ProfilerType = Developtools::NativeDaemon::NativeMemoryProfilerSaClientManager::NativeMemProfilerType;
+
+struct MemoryProfilerConfig {
+    ProfilerType type;
+    int pid = 0;
+    int duration = 0;
+    int sampleInterval = 0;
+    std::string processName;
+};
+
 class MemProfilerCollector {
 public:
     MemProfilerCollector() = default;
     virtual ~MemProfilerCollector() = default;
 
 public:
-    virtual int Start(ProfilerType type,
-                      int pid, int duration, int sampleInterval) = 0;
+    virtual int Start(const MemoryProfilerConfig& memoryProfilerConfig) = 0;
     virtual int StartPrintNmd(int fd, int pid, int type) = 0;
     virtual int Stop(int pid) = 0;
     virtual int Stop(const std::string& processName) = 0;
-    virtual int Start(int fd, ProfilerType type,
-                      int pid, int duration, int sampleInterval) = 0;
-    virtual int Start(int fd, ProfilerType type,
-                      std::string processName, int duration, int sampleInterval, bool startup = false) = 0;
+    virtual int Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig) = 0;
+    virtual int Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig) = 0;
     virtual int Prepare() = 0;
     static std::shared_ptr<MemProfilerCollector> Create();
 }; // MemProfilerCollector

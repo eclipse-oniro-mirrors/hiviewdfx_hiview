@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,7 +52,7 @@ void QueryStatusLogUtil::LogTooManyQueryRules(const std::string sql)
 {
     std::string info { "PLUGIN TOOMANYQUERYCONDITION SQL=" };
     info.append(sql);
-    Logging(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void QueryStatusLogUtil::LogTooManyConcurrentQueries(const int limit, bool innerQuery)
@@ -60,14 +60,14 @@ void QueryStatusLogUtil::LogTooManyConcurrentQueries(const int limit, bool inner
     std::string info { innerQuery ? "HIVIEW TOOMANYCOCURRENTQUERIES " : "TOOMANYCOCURRENTQUERIES " };
     info.append("COUNT > ");
     info.append(std::to_string(limit));
-    Logging(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void QueryStatusLogUtil::LogQueryOverTime(time_t costTime, const std::string sql, bool innerQuery)
 {
     std::string info { innerQuery ? "PLUGIN QUERYOVERTIME " : "QUERYOVERTIME " };
     info.append(std::to_string(costTime)).append(SPACE_CONCAT).append("SQL=").append(sql);
-    Logging(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void QueryStatusLogUtil::LogQueryCountOverLimit(const int32_t queryCount, const std::string& sql,
@@ -75,7 +75,7 @@ void QueryStatusLogUtil::LogQueryCountOverLimit(const int32_t queryCount, const 
 {
     std::string info { innerQuery ? "PLUGIN QUERYCOUNTOVERLIMIT " : "QUERYCOUNTOVERLIMIT " };
     info.append(std::to_string(queryCount)).append(SPACE_CONCAT).append("SQL=").append(sql);
-    Logging(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 void QueryStatusLogUtil::LogQueryTooFrequently(const std::string& sql, const std::string& processName,
@@ -86,14 +86,7 @@ void QueryStatusLogUtil::LogQueryTooFrequently(const std::string& sql, const std
         info.append(processName).append(SPACE_CONCAT);
     }
     info.append("SQL=").append(sql);
-    Logging(info);
-}
-
-void QueryStatusLogUtil::Logging(const std::string& detail)
-{
-    std::string info = RunningStatusLogger::GetInstance().FormatTimeStamp();
-    info.append(SPACE_CONCAT).append(detail);
-    RunningStatusLogger::GetInstance().Log(info);
+    RunningStatusLogger::GetInstance().LogRunningStatusInfo(info);
 }
 
 ConcurrentQueries SysEventQueryWrapper::concurrentQueries_ = { DEFAULT_CONCURRENT_CNT, DEFAULT_CONCURRENT_CNT };

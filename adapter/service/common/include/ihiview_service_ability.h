@@ -48,6 +48,8 @@ public:
     virtual CollectResultParcelable<double> GetSysCpuUsage() = 0;
     virtual CollectResultParcelable<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) = 0;
     virtual CollectResultParcelable<int32_t> GetGraphicUsage() = 0;
+    virtual CollectResultParcelable<int32_t> SetSplitMemoryValue(
+        std::vector<UCollectClient::MemoryCaller>& memList) = 0;
 
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.HiviewDFX.IHiviewServiceAbility");

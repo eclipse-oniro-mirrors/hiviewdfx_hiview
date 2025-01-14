@@ -25,10 +25,7 @@ ohos_source_set("eventlogger") {
   part_name = "hiview"
   public_configs = [ ":event_logger_config" ]
 
-  sources = [
-    "active_key_event.cpp",
-    "event_logger.cpp",
-  ]
+  sources = [ "event_logger.cpp" ]
 
   deps = [
     "$hiview_base:hiviewbase",
@@ -43,7 +40,6 @@ ohos_source_set("eventlogger") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",
-    "input:libmmi-client",
     "ipc:ipc_single",
     "libxml2:libxml2",
   ]
@@ -56,6 +52,11 @@ ohos_source_set("eventlogger") {
       "window_manager:libwm_lite",
     ]
     defines += [ "WINDOW_MANAGER_ENABLE" ]
+  }
+  if (multimodalinput_input_enable) {
+    sources += [ "active_key_event.cpp" ]
+    external_deps += [ "input:libmmi-client" ]
+    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
   }
 }
 
@@ -82,9 +83,11 @@ group("unittest") {
     deps += [
       "config/test:EventloggerConfigTest",
       "log_catcher/test:EventloggerCatcherTest",
-      "test:ActiveKeyEventTest",
       "test:EventLoggerTest",
     ]
+    if (multimodalinput_input_enable) {
+      deps += [ "test:ActiveKeyEventTest" ]
+    }
   }
 }
 

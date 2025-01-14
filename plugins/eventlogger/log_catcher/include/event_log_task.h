@@ -70,39 +70,62 @@ private:
     void AddStopReason(int fd, std::shared_ptr<EventLogCatcher> catcher, const std::string& reason);
     void AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher) const;
     void RecordCatchedPids(const std::string& packageName);
+    void GetThermalInfo(int fd);
 
+#ifdef STACKTRACE_CATCHER_ENABLE
     void AppStackCapture();
     void SystemStackCapture();
+    void RemoteStackCapture();
+    void GetGPUProcessStack();
+#endif // STACKTRACE_CATCHER_ENABLE
+
+#ifdef BINDER_CATCHER_ENABLE
     void BinderLogCapture();
-    void FfrtCapture();
-    void MemoryUsageCapture();
     bool PeerBinderCapture(const std::string &cmd);
+#endif // BINDER_CATCHER_ENABLE
+
+#ifdef DMESG_CATCHER_ENABLE
+    void DmesgCapture();
+    void SysrqCapture(bool isWriteNewFile);
+#endif // DMESG_CATCHER_ENABLE
+
+#ifdef HILOG_CATCHER_ENABLE
+    void HilogCapture();
+    void LightHilogCapture();
+    void InputHilogCapture();
+#endif // HILOG_CATCHER_ENABLE
+
+#ifdef HITRACE_CATCHER_ENABLE
+    void HitraceCapture();
+#endif // HITRACE_CATCHER_ENABLE
+
+#ifdef USAGE_CATCHER_ENABLE
+    void MemoryUsageCapture();
     void CpuUsageCapture();
     void WMSUsageCapture();
     void AMSUsageCapture();
     void PMSUsageCapture();
     void DPMSUsageCapture();
     void RSUsageCapture();
+    void DumpAppMapCapture();
+#endif // USAGE_CATCHER_ENABLE
+
+#ifdef SCB_CATCHER_ENABLE
+    void SCBSessionCapture();
+    void SCBViewParamCapture();
+    void SCBWMSCapture();
+    void SCBWMSEVTCapture();
+#endif // SCB_CATCHER_ENABLE
+
+#ifdef OTHER_CATCHER_ENABLE
+    void FfrtCapture();
     void MMIUsageCapture();
     void DMSUsageCapture();
     void EECStateCapture();
     void GECStateCapture();
     void UIStateCapture();
     void Screenshot();
-    void HilogCapture();
-    void LightHilogCapture();
-    void DmesgCapture();
-    void SysrqCapture(bool isWriteNewFile);
-    void HitraceCapture();
-    void SCBSessionCapture();
-    void SCBViewParamCapture();
-    void SCBWMSCapture();
-    void SCBWMSEVTCapture();
-    void DumpAppMapCapture();
-    void InputHilogCapture();
-    void GetThermalInfo(int fd);
-    void RemoteStackCapture();
-    void GetGPUProcessStack();
+#endif // OTHER_CATCHER_ENABLE
 };
 } // namespace HiviewDFX
 } // namespace OHOS

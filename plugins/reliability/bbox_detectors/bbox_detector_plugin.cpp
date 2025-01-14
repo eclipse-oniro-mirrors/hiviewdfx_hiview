@@ -48,17 +48,31 @@ namespace {
     };
 }
 
+class BBoxDetectorPlugin::BBoxListener : public EventListener {
+public:
+    explicit BBoxListener(BBoxDetectorPlugin& bBoxDetector);
+    ~BBoxListener() {}
+    void OnUnorderedEvent(const Event &msg) override;
+    std::string GetListenerName() override;
+
+private:
+    BBoxDetectorPlugin& bBoxDetector_;
+};
+
 void BBoxDetectorPlugin::OnLoad()
 {
     SetName("BBoxDetectorPlugin");
     SetVersion("BBoxDetector1.0");
-    eventLoop_ = GetHiviewContext()->GetSharedWorkLoop();
-    if (eventLoop_ != nullptr) {
-        eventLoop_->AddTimerEvent(nullptr, nullptr, [&]() {
-            StartBootScan();
-        }, SECONDS, false); // delay 60s
+    auto context = GetHiviewContext();
+    if (context == nullptr) {
+        HIVIEW_LOGE("GetHiviewContext failed.");
+        return;
     }
+    workLoop_ = context->GetSharedWorkLoop();
     InitPanicReporter();
+
+    eventListener_ = std::make_shared<BBoxListener>(*this);
+    context->RegisterUnorderedEventListener(eventListener_);
 }
 
 void BBoxDetectorPlugin::OnUnload()
@@ -227,8 +241,8 @@ std::map<std::string, std::string> BBoxDetectorPlugin::GetValueFromHistory(std::
 void BBoxDetectorPlugin::AddDetectBootCompletedTask()
 {
     std::lock_guard<std::mutex> lock(lock_);
-    if (eventLoop_ && !timeEventAdded_) {
-        timeEventId_ = eventLoop_->AddTimerEvent(nullptr, nullptr, [this] {
+    if (workLoop_ && !timeEventAdded_) {
+        timeEventId_ = workLoop_->AddTimerEvent(nullptr, nullptr, [this] {
             if (PanicReport::IsBootCompleted()) {
                 NotifyBootCompleted();
             }
@@ -240,8 +254,8 @@ void BBoxDetectorPlugin::AddDetectBootCompletedTask()
 void BBoxDetectorPlugin::RemoveDetectBootCompletedTask()
 {
     std::lock_guard<std::mutex> lock(lock_);
-    if (eventLoop_ && timeEventAdded_) {
-        eventLoop_->RemoveEvent(timeEventId_);
+    if (workLoop_ && timeEventAdded_) {
+        workLoop_->RemoveEvent(timeEventId_);
         timeEventId_ = 0;
         timeEventAdded_ = false;
     }
@@ -251,7 +265,7 @@ void BBoxDetectorPlugin::NotifyBootStable()
 {
     if (PanicReport::TryToReportRecoveryPanicEvent()) {
         constexpr int timeout = 10; // 10s
-        eventLoop_->AddTimerEvent(nullptr, nullptr, [] {
+        workLoop_->AddTimerEvent(nullptr, nullptr, [] {
             PanicReport::ConfirmReportResult();
         }, timeout, false);
     }
@@ -262,7 +276,7 @@ void BBoxDetectorPlugin::NotifyBootCompleted()
     HIVIEW_LOGI("System boot completed, remove the task");
     RemoveDetectBootCompletedTask();
     constexpr int timeout = 60 * 10; // 10min
-    eventLoop_->AddTimerEvent(nullptr, nullptr, [this] {
+    workLoop_->AddTimerEvent(nullptr, nullptr, [this] {
         NotifyBootStable();
     }, timeout, false);
 }
@@ -273,6 +287,39 @@ void BBoxDetectorPlugin::InitPanicReporter()
         return;
     }
     AddDetectBootCompletedTask();
+}
+
+void BBoxDetectorPlugin::AddBootScanEvent()
+{
+    if (workLoop_ == nullptr) {
+        HIVIEW_LOGE("workLoop_ is nullptr.");
+        return;
+    }
+
+    auto task = [this]() {
+        StartBootScan();
+    };
+    workLoop_->AddTimerEvent(nullptr, nullptr, task, SECONDS, false); // delay 60s
+}
+
+BBoxDetectorPlugin::BBoxListener::BBoxListener(BBoxDetectorPlugin& bBoxDetector) : bBoxDetector_(bBoxDetector)
+{
+    AddListenerInfo(Event::MessageType::PLUGIN_MAINTENANCE);
+}
+
+void BBoxDetectorPlugin::BBoxListener::OnUnorderedEvent(const Event &msg)
+{
+    if (msg.messageType_ != Event::MessageType::PLUGIN_MAINTENANCE ||
+        msg.eventId_ != Event::EventId::PLUGIN_LOADED) {
+        HIVIEW_LOGE("messageType_(%{public}u), eventId_(%{public}u).", msg.messageType_, msg.eventId_);
+        return;
+    }
+    bBoxDetector_.AddBootScanEvent();
+}
+
+std::string BBoxDetectorPlugin::BBoxListener::GetListenerName()
+{
+    return "BBoxListener";
 }
 }
 }

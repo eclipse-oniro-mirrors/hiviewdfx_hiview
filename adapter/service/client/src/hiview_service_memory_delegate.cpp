@@ -42,5 +42,18 @@ CollectResult<int32_t> HiViewServiceMemoryDelegate::GetGraphicUsage()
     HiviewServiceAbilityProxy proxy(service);
     return proxy.GetGraphicUsage().result_;
 }
+
+CollectResult<int32_t> HiViewServiceMemoryDelegate::SetSplitMemoryValue(
+    std::vector<UCollectClient::MemoryCaller>& memList)
+{
+    auto service = RemoteService::GetHiViewRemoteService();
+    if (!service) {
+        CollectResult<int32_t> ret;
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    HiviewServiceAbilityProxy proxy(service);
+    return proxy.SetSplitMemoryValue(memList).result_;
+}
 }
 }

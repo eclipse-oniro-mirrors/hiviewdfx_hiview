@@ -31,6 +31,7 @@
 #include "securec.h"
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef DMESG_CATCHER_ENABLE
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-DmesgCatcher");
 namespace {
     constexpr int SYSLOG_ACTION_READ_ALL = 3;
@@ -166,5 +167,6 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
 }
+#endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

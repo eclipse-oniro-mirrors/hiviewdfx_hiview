@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,10 +27,10 @@ int MemProfilerDecorator::Prepare()
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 
-int MemProfilerDecorator::Start(ProfilerType type, int pid, int duration, int sampleInterval)
+int MemProfilerDecorator::Start(const MemoryProfilerConfig& memoryProfilerConfig)
 {
-    auto task = [this, &type, &pid, &duration, &sampleInterval] {
-        return memProfilerCollector_->Start(type, pid, duration, sampleInterval);
+    auto task = [this, &memoryProfilerConfig] {
+        return memProfilerCollector_->Start(memoryProfilerConfig);
     };
     // has same func name, rename it with num "-1"
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-1");
@@ -50,10 +50,10 @@ int MemProfilerDecorator::Stop(const std::string& processName)
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-2");
 }
 
-int MemProfilerDecorator::Start(int fd, ProfilerType type, int pid, int duration, int sampleInterval)
+int MemProfilerDecorator::Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig)
 {
-    auto task = [this, &fd, &type, &pid, &duration, &sampleInterval] {
-        return memProfilerCollector_->Start(fd, type, pid, duration, sampleInterval);
+    auto task = [this, &fd, &memoryProfilerConfig] {
+        return memProfilerCollector_->Start(fd, memoryProfilerConfig);
     };
     // has same func name, rename it with num "-2"
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-2");
@@ -65,11 +65,10 @@ int MemProfilerDecorator::StartPrintNmd(int fd, int pid, int type)
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 
-int MemProfilerDecorator::Start(int fd, ProfilerType type, std::string processName, int duration,
-                                int sampleInterval, bool startup)
+int MemProfilerDecorator::Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig)
 {
-    auto task = [this, &fd, &type, &processName, &duration, &sampleInterval, &startup] {
-        return memProfilerCollector_->Start(fd, type, processName, duration, sampleInterval, startup);
+    auto task = [this, &fd, &startup, &memoryProfilerConfig] {
+        return memProfilerCollector_->Start(fd, startup, memoryProfilerConfig);
     };
     // has same func name, rename it with num "-2"
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-3");

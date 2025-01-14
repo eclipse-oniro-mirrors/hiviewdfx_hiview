@@ -459,8 +459,6 @@ static void GenCppCrashLogTestCommon(int32_t uid, bool ifFileExist)
         std::to_string(info.id) + "-" + timeStr + ".log";
     ASSERT_EQ(FileUtil::FileExists(fileName), true);
     ASSERT_GT(FileUtil::GetFileSize(fileName), 0ul);
-    auto parsedInfo = plugin->GetFaultLogInfo(fileName);
-    ASSERT_EQ(parsedInfo->module, appName);
     // check appevent json info
     ASSERT_EQ(FileUtil::FileExists("/data/test_cppcrash_info_7496"), ifFileExist);
 }
@@ -700,17 +698,6 @@ HWTEST_F(FaultloggerUnittest, ReadyToLoad, testing::ext::TestSize.Level3)
 {
     auto testPlugin = GetFaultloggerInstance();
     ASSERT_TRUE(testPlugin->ReadyToLoad());
-};
-
-/**
- * @tc.name: GetListenerName
- * @tc.desc: Test calling GetListenerName Func
- * @tc.type: FUNC
- */
-HWTEST_F(FaultloggerUnittest, GetListenerName, testing::ext::TestSize.Level3)
-{
-    auto testPlugin = GetFaultloggerInstance();
-    ASSERT_EQ(testPlugin->GetListenerName(), "FaultLogger");
 };
 
 /**
@@ -1238,7 +1225,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest001, testing::ext::TestSize.Level3)
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-BootScanUnittest-0-" + timeStr + ".log";
     ASSERT_TRUE(FileUtil::FileExists(fileName));
     ASSERT_GT(FileUtil::GetFileSize(fileName), 0ul);
-    ASSERT_EQ(plugin->GetFaultLogInfo(fileName)->module, "BootScanUnittest");
 
     // check event database
     ASSERT_TRUE(faultEventListener->CheckKeyWords());
@@ -1297,8 +1283,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest003, testing::ext::TestSize.Level3)
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-BootScanUnittest-0-" + timeStr + ".log";
     ASSERT_TRUE(FileUtil::FileExists(fileName));
     ASSERT_GT(FileUtil::GetFileSize(fileName), 0ul);
-    auto info = plugin->GetFaultLogInfo(fileName);
-    ASSERT_EQ(info->module, "BootScanUnittest");
 
     // check regs and otherThreadInfo is ok
     std::string logInfo;
@@ -1661,14 +1645,13 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest003, testing::ext::TestSize.L
 
 /**
  * @tc.name: FaultloggerUnittest001
- * @tc.desc: test GetFaultLogInfo, QuerySelfFaultLog and GetMemoryStrByPid
+ * @tc.desc: test QuerySelfFaultLog and GetMemoryStrByPid
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerUnittest001, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
     plugin->hasInit_ = false;
-    plugin->GetFaultLogInfo("test");
     std::unique_ptr<FaultLogQueryResultInner> obj = plugin->QuerySelfFaultLog(1, 1, 1, 1);
     ASSERT_EQ(obj, nullptr);
 

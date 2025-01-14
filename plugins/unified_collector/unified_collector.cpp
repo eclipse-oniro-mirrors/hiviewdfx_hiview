@@ -31,6 +31,7 @@
 #include "process_status.h"
 #include "sys_event.h"
 #include "time_util.h"
+#include "trace_behavior_controller.h"
 #include "trace_flow_controller.h"
 #include "trace_manager.h"
 #include "uc_observer_mgr.h"
@@ -524,24 +525,61 @@ void UnifiedCollector::RunHiviewMonitorTask()
     ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_hiviewMonitor").qos(ffrt::qos_default));
 }
 
+// // check whether the cache duration exceeds the limit, if so, return false. otherwise, update database for 5 seconds
+// bool UnifiedCollector::UpdateCacheLimit(int duration)
+// {
+//     std::shared_ptr<TraceFlowController> controlPolicy = std::make_shared<TraceFlowController>(caller);
+
+// }
+
 void UnifiedCollector::HiviewPerfMonitorFfrtTask()
 {
+    // get db 
+    std::shared_ptr<TraceBehaviorController> traceBehaviorController = std::make_shared<TraceBehaviorController>();
+    if (traceBehaviorController == nullptr) {
+        HIVIEW_LOGE("failed to create trace behavior controller");
+        return;
+    }
     std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
-    
+    int cacheOffCountdown = 2;
+    bool isCacheOn = false;
+    // check db for availability, quit if overflow
     while (true) {
         HIVIEW_LOGE("Hiview Monitor running.");
         if (!isHiviewPerfMonitorRunning_) {
             HIVIEW_LOGE("exit hiview low availability detection task");
             break;
         }
-        // check db for availability, and update db for interval
-        ffrt::this_task::sleep_for(5s);
+        // check db for availability, and update db for interval = 5s
+        // if overflow, close loop, wait for next day. sleep until next day
+
+        // check current cache state and single event duration, if overlimit, close cache, wait until return to normal
+
+        // sleep for 5s
+        ffrt::this_task::sleep_for(5s); // 5s: monitoring interval
+
+        // check memory availability
         CollectResult<SysMemory> data = collector->CollectSysMemory();
-        // check memAvailable in KB unit
-        if (data.data.memAvailable < 10240 * 1024) { // 1G, to be adjusted according to product hardware
-            HIVIEW_LOGE("low memory availability detected, memAvailable: %{public}lld KB", data.data.memAvailable);
+
+        // check target state
+        // if target state == current state, continue
+        // if target state != current state, change state
+        bool targetCacheState = data.data.memAvailable < 1024 * 1024; // 1G, to be adjusted according to product hardware
+        if (targetCacheState != isCacheOn) {
+            if (targetCacheState) {
+                // open cache
+                isCacheOn = true;
+                // cache on
+            } else {
+                cacheOffCountdown--;
+                if (cacheOffCountdown == 0) {
+                    isCacheOn = false;
+                    // cache off 
+                }
+            }
+        } else {
+            cacheOffCountdown = 2;
         }
-        // update db for 5s.
     }
 }
 } // namespace HiviewDFX

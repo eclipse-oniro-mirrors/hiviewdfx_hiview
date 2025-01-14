@@ -43,6 +43,7 @@
 #include "param_event_manager.h"
 #endif
 
+#include "plugin_bundle_config.h"
 #include "plugin_config.h"
 #include "plugin_factory.h"
 #include "string_util.h"
@@ -335,15 +336,14 @@ void HiviewPlatform::LoadPluginBundle(const std::string& bundleName, const std::
 
 void HiviewPlatform::LoadPluginBundles()
 {
-    std::vector<std::string> configFiles;
-    FileUtil::GetDirFiles(defaultConfigDir_, configFiles);
-    sort(configFiles.begin(), configFiles.end()); // guarantee DFT plugins config parse first
-    for (const auto& filePath : configFiles) {
-        auto bundleName = SplitBundleNameFromPath(filePath);
-        if (bundleName.empty()) {
-            continue;
-        }
-        LoadPluginBundle(bundleName, filePath);
+    std::string bundlePath = defaultConfigDir_ + "bundle/plugin_bundle.json";
+    std::string extBundlePath = defaultConfigDir_ + "bundle/plugin_bundle_ext.json";
+    std::string realBundlepath = FileUtil::FileExists(extBundlePath) ? extBundlePath : bundlePath;
+    PluginBundleConfig bundleConfig(realBundlepath);
+    std::vector<std::string> bundleNames = bundleConfig.GetBundleNames();
+    for (const auto& bundleName : bundleNames) {
+        std::string configPath = defaultConfigDir_ + bundleName + "_plugin_config";
+        LoadPluginBundle(bundleName, configPath);
     }
 }
 

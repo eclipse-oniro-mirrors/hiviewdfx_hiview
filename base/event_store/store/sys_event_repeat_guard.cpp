@@ -106,6 +106,7 @@ bool SysEventRepeatGuard::IsEventRepeat(SysEvent& event)
     auto happentime = SysEventRepeatDb::GetInstance().QueryHappentime(sysEventHashRecord);
     int64_t minValidTime = GetMinValidTime();
     if (happentime > minValidTime) {    // event repeat
+        SysEventRepeatDb::GetInstance().Release();
         return true;
     }
 

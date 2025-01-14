@@ -324,6 +324,7 @@ bool Vendor::Init()
     LogStoreEx::LogFileComparator comparator = [this](const LogFile &lhs, const LogFile &rhs) {
         return rhs < lhs;
     };
+    logStore_->SetLogFileComparator(comparator);
     logStore_->Init();
     return true;
 }

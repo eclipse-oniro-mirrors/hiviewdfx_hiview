@@ -336,5 +336,37 @@ CollectResultParcelable<int32_t> HiviewServiceAbilityProxy::GetGraphicUsage()
     };
     return SendTraceRequest<int32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_GET_GRAPHIC_USAGE, parcelHandler);
 }
+
+CollectResultParcelable<int32_t> HiviewServiceAbilityProxy::SetSplitMemoryValue(
+    std::vector<UCollectClient::MemoryCaller>& memList)
+{
+    auto parcelHandler = [&memList](MessageParcel& data) {
+        if (!data.WriteInt32(static_cast<int32_t>(memList.size()))) {
+            HIVIEW_LOGE("SetSplitMemoryValue failed. write list size failed");
+            return false;
+        }
+        for (auto memoryCaller : memList) {
+            if (!data.WriteInt32(memoryCaller.pid)) {
+                HIVIEW_LOGE("SetSplitMemoryValue failed. write pid failed");
+                return false;
+            }
+            if (!data.WriteString(memoryCaller.resourceType)) {
+                HIVIEW_LOGE("SetSplitMemoryValue failed. write type failed");
+                return false;
+            }
+            if (!data.WriteInt32(memoryCaller.limitValue)) {
+                HIVIEW_LOGE("SetSplitMemoryValue failed. write value failed");
+                return false;
+            }
+            if (!data.WriteBool(memoryCaller.enabledDebugLog)) {
+                HIVIEW_LOGE("SetSplitMemoryValue failed. write enabledDebugLog failed");
+                return false;
+            }
+        }
+        return true;
+    };
+return SendTraceRequest<int32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_SET_SPLIT_MEMORY_VALUE,
+    parcelHandler);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

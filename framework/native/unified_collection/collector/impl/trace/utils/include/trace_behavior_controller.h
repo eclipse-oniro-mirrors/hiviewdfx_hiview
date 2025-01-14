@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
+#define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
+
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "rdb_store.h"
+
+namespace OHOS {
+namespace HiviewDFX {
+
+enum BEHAVOIR_ID {
+    CACHE_LOW_MEM = 0,
+};
+
+struct BehaviorRecord {
+    int32_t behaviorId = 0;
+    int32_t dateNum = 0;
+    int32_t usedQuota = 0;
+};
+
+class TraceBehaviorController {
+public:
+    TraceBehaviorController();
+    ~TraceBehaviorController() = default;
+
+public:
+    bool InitBehaviorDb();
+    bool GetBehaviorRecord(BehaviorRecord &behaviorRecord);
+    bool InsertBehaviorRecord(BehaviorRecord &behaviorRecord);
+    bool UpdateBehaviorRecord(BehaviorRecord &behaviorRecord);
+    void RemoveBehaviorRecord(BehaviorRecord &behaviorRecord);
+private:
+    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+};
+} // namespace HiviewDFX
+} // namespace OHOS
+#endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H

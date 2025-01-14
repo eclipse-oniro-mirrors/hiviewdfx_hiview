@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+#ifdef BINDER_CATCHER_ENABLE
 namespace {
     static constexpr uint8_t ARR_SIZE = 7;
     static constexpr uint8_t DECIMAL = 10;
@@ -98,7 +99,7 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
         FileUtil::SaveStringToFd(fd, content);
     }
 #ifdef HAS_HIPERF
-    ForkToDumpHiperf(syncPids);
+    DumpHiperf(syncPids);
 #endif
     std::string pidStr = "";
     for (auto pidTemp : syncPids) {
@@ -365,7 +366,7 @@ void PeerBinderCatcher::CatcherStacktrace(int fd, int pid, bool sync)
 #ifdef HAS_HIPERF
 void PeerBinderCatcher::DoExecHiperf(const std::string& fileName, const std::set<int>& pids)
 {
-    std::shared_ptr<PerfCollector> perfCollector = PerfCollector::Create();
+    std::shared_ptr<PerfCollector> perfCollector = PerfCollector::Create(PerfCaller::EVENTLOGGER);
     perfCollector->SetOutputFilename(fileName);
     constexpr int collectTime = 1;
     perfCollector->SetTimeStopSec(collectTime);
@@ -391,7 +392,7 @@ void PeerBinderCatcher::DoExecHiperf(const std::string& fileName, const std::set
     }
 }
 
-void PeerBinderCatcher::ForkToDumpHiperf(const std::set<int>& pids)
+void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids)
 {
 #if defined(__aarch64__)
     if (perfCmd_.empty()) {
@@ -422,23 +423,10 @@ void PeerBinderCatcher::ForkToDumpHiperf(const std::set<int>& pids)
             FileUtil::RemoveFile(fullPath);
         }
     }
-
-    pid_t child = fork();
-    if (child < 0) {
-        // failed to fork child
-        return;
-    } else if (child == 0) {
-        pid_t grandChild = fork();
-        if (grandChild == 0) {
-            DoExecHiperf(fileName, pids);
-        }
-        _exit(0);
-    } else {
-        // do not left a zombie
-        waitpid(child, nullptr, 0);
-    }
+    DoExecHiperf(fileName, pids);
 #endif
 }
 #endif
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -32,6 +32,7 @@ namespace HiviewDFX {
 static const int CHECK_TIME = 75; // match proceesdump report and kernel snapshot check interval(60s)
 static const int CRASH_DUMP_LOCAL_REPORT = 206;
 constexpr int MAX_CRASH_EVENT_SIZE = 100;
+constexpr int MIN_APP_UID = 20000;
 
 REGISTER(CrashValidator);
 DEFINE_LOG_LABEL(0xD002D11, "HiView-CrashValidator");
@@ -154,22 +155,26 @@ void CrashValidator::AddEventToMap(int32_t pid, std::shared_ptr<SysEvent> sysEve
     int64_t happendTime = sysEvent->GetEventIntValue("time_");
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (processExitEvents_.size() > MAX_CRASH_EVENT_SIZE ||
-        cppCrashEvents_.size() > MAX_CRASH_EVENT_SIZE ||
-        cppCrashExceptionEvents_.size() > MAX_CRASH_EVENT_SIZE) {
-        HIVIEW_LOGE("crash execption events size is too large, current don't add %{public}d %{public}s event to map",
-            pid, sysEvent->eventName_.c_str());
-        return;
-    }
-
     if ((sysEvent->eventName_ == "PROCESS_EXIT")) {
+        if (processExitEvents_.size() > MAX_CRASH_EVENT_SIZE) {
+            HIVIEW_LOGE("failed to add %{public}d to processExitEvents_", pid);
+            return;
+        }
         processExitEvents_.try_emplace(pid, sysEvent);
     } else if (sysEvent->eventName_ == "CPP_CRASH") {
+        if (cppCrashEvents_.size() > MAX_CRASH_EVENT_SIZE) {
+            HIVIEW_LOGE("failed to add %{public}d to cppCrashEvents_", pid);
+            return;
+        }
         if ((cppCrashEvents_.find(pid) == cppCrashEvents_.end()) ||
             (cppCrashEvents_[pid]->GetEventIntValue("time_") - happendTime > 0)) {
             cppCrashEvents_[pid] = sysEvent;
         }
     } else {
+        if (cppCrashExceptionEvents_.size() > MAX_CRASH_EVENT_SIZE) {
+            HIVIEW_LOGE("failed to add %{public}d to cppCrashExceptionEvents_", pid);
+            return;
+        }
         if ((cppCrashExceptionEvents_.find(pid) == cppCrashExceptionEvents_.end()) ||
             (cppCrashExceptionEvents_[pid]->GetEventIntValue("time_") - happendTime > 0)) {
             cppCrashExceptionEvents_[pid] = sysEvent;
@@ -228,6 +233,9 @@ bool CrashValidator::OnEvent(std::shared_ptr<Event>& event)
         AddFaultLog(info);
         return true;  // report local crash to hiview through it, do not validate CRASH_DUMP_LOCAL_REPORT
     }
+    if (sysEvent->GetEventIntValue("UID") < MIN_APP_UID) {
+        return true;
+    };
     AddEventToMap(pid, sysEvent);
     if (sysEvent->eventName_ == "PROCESS_EXIT") {
         workLoop_->AddTimerEvent(nullptr, nullptr, [this, pid] {

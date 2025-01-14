@@ -97,9 +97,6 @@ public:
         bool innerQuery = true);
     static void LogQueryTooFrequently(const std::string& sql, const std::string& processName = std::string(""),
         bool innerQuery = true);
-
-private:
-    static void Logging(const std::string& detail);
 };
 
 class SysEventQueryWrapper : public SysEventQuery {

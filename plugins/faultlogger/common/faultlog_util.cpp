@@ -32,6 +32,8 @@ namespace {
 constexpr int DEFAULT_BUFFER_SIZE = 64;
 constexpr uint64_t TIME_RATIO = 1000;
 constexpr const char* const DEFAULT_FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
+constexpr const char* const DEFAULT_FAULTLOG_FOLDER = "/data/log/faultlog/";
+constexpr const char* const DEFAULT_FAULTLOG_TEST = "/data/test/";
 } // namespace
 
 std::string GetFormatedTime(uint64_t target)
@@ -267,6 +269,22 @@ std::string GetThreadStack(const std::string& path, int32_t threadId)
     }
 
     return stack;
+}
+
+bool IsValidPath(const std::string& path)
+{
+    if (path.size() == 0) {
+        return true;
+    }
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        return false;
+    }
+    if (strncmp(realPath, DEFAULT_FAULTLOG_FOLDER, strlen(DEFAULT_FAULTLOG_FOLDER)) == 0 ||
+        strncmp(realPath, DEFAULT_FAULTLOG_TEST, strlen(DEFAULT_FAULTLOG_TEST)) == 0) {
+        return true;
+    }
+    return false;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -32,21 +32,6 @@ DEFINE_LOG_TAG("HiView-EventScanHandler");
 namespace {
 constexpr uint64_t DAY_TO_SECONDS = 24 * 60 * 60;
 
-uint64_t GetFileLastModifiedTime(const std::string& file)
-{
-    struct stat fileInfo {0};
-    if (stat(file.c_str(), &fileInfo) != ERR_OK) {
-        HIVIEW_LOGW("failed to get file info %{public}s", StringUtil::HideDeviceIdInfo(file).c_str());
-        return 0;
-    }
-    return fileInfo.st_mtime;
-}
-
-uint64_t GetDuration(uint64_t from, uint64_t to)
-{
-    return ((from >= to) ? (from - to) : (to - from));
-}
-
 void GetExpiredFileNames(std::vector<std::string>& dest, const std::string& scanDir, uint8_t storedDayCnt)
 {
     std::vector<std::string> scannedFiles;
@@ -62,11 +47,11 @@ void GetExpiredFileNames(std::vector<std::string>& dest, const std::string& scan
         if (!std::regex_match(scannedFile, match, reg)) {
             continue;
         }
-        auto fileModifyTime = GetFileLastModifiedTime(scannedFile);
-        auto currentTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+        auto fileModifyTime = FileUtil::GetLastModifiedTimeStamp(scannedFile);
+        auto currentTime = static_cast<int64_t>(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC);
         HIVIEW_LOGD("current time: %{public}" PRIu64 ", file last modified time: %{public}" PRIu64 "", currentTime,
             fileModifyTime);
-        if (GetDuration(currentTime, fileModifyTime) > storedDayCnt * DAY_TO_SECONDS) {
+        if (std::abs(fileModifyTime - currentTime) > storedDayCnt * DAY_TO_SECONDS) {
             dest.emplace_back(scannedFile);
         }
     }

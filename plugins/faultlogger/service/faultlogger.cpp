@@ -273,6 +273,17 @@ void ProcessKernelSnapshot(FaultLogInfo& info)
 }
 } // namespace
 
+class Faultlogger::FaultloggerListener : public EventListener {
+public:
+    explicit FaultloggerListener(Faultlogger& faultlogger);
+    ~FaultloggerListener() {}
+    void OnUnorderedEvent(const Event &msg) override;
+    std::string GetListenerName() override;
+
+private:
+    Faultlogger& faultlogger_;
+};
+
 void Faultlogger::AddPublicInfo(FaultLogInfo &info)
 {
     info.sectionMap["DEVICE_INFO"] = Parameter::GetString("const.product.name", "Unknown");
@@ -572,6 +583,10 @@ FaultLogInfo Faultlogger::FillFaultLogInfo(SysEvent &sysEvent) const
     } else {
         info.sectionMap["TIMESTAMP"] = std::string(strBuff);
     }
+    HIVIEW_LOGI("eventName:%{public}s, time %{public}" PRId64 ", uid %{public}d, pid %{public}d, "
+                "module: %{public}s, reason: %{public}s",
+                sysEvent.eventName_.c_str(), info.time, info.id, info.pid,
+                info.module.c_str(), info.reason.c_str());
     return info;
 }
 
@@ -624,7 +639,6 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
         return false;
     }
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
-    HIVIEW_LOGI("Receive %{public}s Event:%{public}s.", event->eventName_.c_str(), sysEvent->AsJsonStr().c_str());
     FaultLogInfo info = FillFaultLogInfo(*sysEvent);
     AddFaultLog(info);
     UpdateSysEvent(*sysEvent, info);
@@ -753,20 +767,20 @@ bool Faultlogger::ReadyToLoad()
 
 void Faultlogger::OnLoad()
 {
-    mgr_ = std::make_unique<FaultLogManager>(GetHiviewContext()->GetSharedWorkLoop());
+    auto context = GetHiviewContext();
+    if (context == nullptr) {
+        HIVIEW_LOGE("GetHiviewContext failed.");
+        return;
+    }
+    mgr_ = std::make_unique<FaultLogManager>(context->GetSharedWorkLoop());
     mgr_->Init();
     hasInit_ = true;
-    workLoop_ = GetHiviewContext()->GetSharedWorkLoop();
+    workLoop_ = context->GetSharedWorkLoop();
 #ifndef UNITTEST
     FaultloggerAdapter::StartService(this);
 
-    // some crash happened before hiview start, ensure every crash event is added into eventdb
-    if (workLoop_ != nullptr) {
-        auto task = [this] {
-            StartBootScan();
-        };
-        workLoop_->AddTimerEvent(nullptr, nullptr, task, 10, false); // delay 10 seconds
-    }
+    eventListener_ = std::make_shared<FaultloggerListener>(*this);
+    context->RegisterUnorderedEventListener(eventListener_);
 #endif
 }
 
@@ -781,18 +795,12 @@ void Faultlogger::AddFaultLog(FaultLogInfo& info)
         return;
     }
 
-    AddFaultLogIfNeed(info, nullptr);
-}
-
-std::unique_ptr<FaultLogInfo> Faultlogger::GetFaultLogInfo(const std::string &logPath)
-{
-    if (!hasInit_) {
-        return nullptr;
+    if (info.reason.find("CppCrashKernelSnapshot") != std::string::npos) {
+        HIVIEW_LOGI("Skip cpp crash kernel snapshot fault %{public}d", info.pid);
+        return;
     }
 
-    auto info = std::make_unique<FaultLogInfo>(FaultLogger::ParseFaultLogInfoFromFile(logPath));
-    info->logPath = logPath;
-    return info;
+    AddFaultLogIfNeed(info, nullptr);
 }
 
 std::unique_ptr<FaultLogQueryResultInner> Faultlogger::QuerySelfFaultLog(int32_t id,
@@ -855,6 +863,10 @@ void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) c
 
 void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> event)
 {
+    if (!IsValidPath(info.logPath)) {
+        HIVIEW_LOGE("The log path is incorrect, and the current log path is: %{public}s.", info.logPath.c_str());
+        return;
+    }
     HIVIEW_LOGI("Start saving Faultlog of Process:%{public}d, Name:%{public}s, Reason:%{public}s.",
         info.pid, info.module.c_str(), info.reason.c_str());
     info.sectionMap["PROCESS_NAME"] = info.module; // save process name
@@ -903,15 +915,6 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
         IsFaultLogLimit()) {
         FaultlogLimit(info.logPath, info.faultLogType);
     }
-}
-
-void Faultlogger::OnUnorderedEvent(const Event &msg)
-{
-}
-
-std::string Faultlogger::GetListenerName()
-{
-    return "FaultLogger";
 }
 
 void Faultlogger::StartBootScan()
@@ -1274,6 +1277,41 @@ void Faultlogger::CheckFaultLogAsync(const FaultLogInfo& info)
         };
         workLoop_->AddTimerEvent(nullptr, nullptr, task, 0, false);
     }
+}
+
+void Faultlogger::AddBootScanEvent()
+{
+    if (workLoop_ == nullptr) {
+        HIVIEW_LOGE("workLoop_ is nullptr.");
+        return;
+    }
+    // some crash happened before hiview start, ensure every crash event is added into eventdb
+    auto task = [this] {
+        StartBootScan();
+    };
+    workLoop_->AddTimerEvent(nullptr, nullptr, task, 10, false); // delay 10 seconds
+}
+
+Faultlogger::FaultloggerListener::FaultloggerListener(Faultlogger& faultlogger) : faultlogger_(faultlogger)
+{
+    AddListenerInfo(Event::MessageType::PLUGIN_MAINTENANCE);
+}
+
+void Faultlogger::FaultloggerListener::OnUnorderedEvent(const Event &msg)
+{
+#ifndef UNITTEST
+    if (msg.messageType_ != Event::MessageType::PLUGIN_MAINTENANCE ||
+        msg.eventId_ != Event::EventId::PLUGIN_LOADED) {
+        HIVIEW_LOGE("messageType_(%{public}u), eventId_(%{public}u).", msg.messageType_, msg.eventId_);
+        return;
+    }
+    faultlogger_.AddBootScanEvent();
+#endif
+}
+
+std::string Faultlogger::FaultloggerListener::GetListenerName()
+{
+    return "Faultlogger";
 }
 } // namespace HiviewDFX
 } // namespace OHOS

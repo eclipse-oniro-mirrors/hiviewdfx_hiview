@@ -83,11 +83,14 @@ private:
     int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
     ffrt::mutex terminalBindeMutex_;
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
     std::unique_ptr<ActiveKeyEvent> activeKeyEvent_;
+#endif
     std::string cmdlinePath_ = "/proc/cmdline";
     std::string cmdlineContent_ = "";
     std::string lastEventName_ = "";
     std::vector<std::string> rebootReasons_;
+    std::unique_ptr<ffrt::queue> queue_ = nullptr;
 
 #ifdef WINDOW_MANAGER_ENABLE
     void ReportUserPanicWarning(std::shared_ptr<SysEvent> event, long pid);
@@ -134,6 +137,7 @@ private:
     int GetNumFromString(const std::string &mem);
     void CheckString(int fd, const std::string &mem, std::string &data, const std::string key, const std::string path);
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
+    void LogStoreSetting();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -37,8 +37,8 @@ ohos_unittest("RunningStatusLoggerTest") {
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_base/running_status_logger:running_status_logger_source",
     "$hiview_core:hiview_core",
-    "//base/hiviewdfx/hiview/base/running_status_logger:running_status_logger_source",
   ]
 
   external_deps = [
@@ -47,5 +47,6 @@ ohos_unittest("RunningStatusLoggerTest") {
     "hilog:libhilog",
   ]
 
-  resource_config_file = "//base/hiviewdfx/hiview/base/running_status_logger/test/resource/ohos_test.xml"
+  resource_config_file =
+      "$hiview_base/running_status_logger/test/resource/ohos_test.xml"
 }

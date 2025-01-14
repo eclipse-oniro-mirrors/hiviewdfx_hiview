@@ -14,9 +14,10 @@
  */
 #ifndef HIVIEW_EVENT_LOG_ACTIVE_KEY_EVENT_H
 #define HIVIEW_EVENT_LOG_ACTIVE_KEY_EVENT_H
-
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
 #include <memory>
 #include <string>
+#include <list>
 
 #include "log_store_ex.h"
 #include "input_manager.h"
@@ -30,7 +31,6 @@ public:
     ~ActiveKeyEvent();
     ActiveKeyEvent& operator=(const ActiveKeyEvent&) = delete;
     ActiveKeyEvent(const ActiveKeyEvent&) = delete;
-
     void Init(std::shared_ptr<LogStoreEx> logStore);
     static int64_t SystemTimeMillisecond();
 
@@ -38,7 +38,10 @@ private:
     void InitSubscribe(std::set<int32_t> preKeys, int32_t finalKey, int32_t count, int32_t holdTime);
     void CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEvent);
     void CombinationKeyCallback(std::shared_ptr<MMI::KeyEvent> keyEvent);
+
+#ifdef HITRACE_CATCHER_ENABLE
     void HitraceCapture();
+#endif // HITRACE_CATCHER_ENABLE
     void SysMemCapture(int fd);
     void DumpCapture(int fd);
 
@@ -52,4 +55,5 @@ private:
 };
 } // namespace HiviewDFX
 } // namespace OHOS
+#endif // MULTIMODALINPUT_INPUT_ENABLE
 #endif // HIVIEW_EVENT_LOG_ACTIVE_KEY_EVENT_H

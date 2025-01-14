@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifdef MULTIMODALINPUT_INPUT_ENABLE
 #include "active_key_event_test.h"
-
 #include <ctime>
 #include <memory>
 #include <vector>
@@ -151,9 +151,12 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_006, TestSize.Level3)
 {
     std::shared_ptr<ActiveKeyEvent> activeKeyEvent = std::make_shared<ActiveKeyEvent>();
     activeKeyEvent->triggeringTime_ = 0;
+    EXPECT_TRUE(activeKeyEvent->triggeringTime_ == 0);
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyCallback(keyEvent);
     sleep(1);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
+#endif // MULTIMODALINPUT_INPUT_ENABLE
+

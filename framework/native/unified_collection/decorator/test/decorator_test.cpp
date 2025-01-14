@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -133,8 +133,13 @@ void CallCollectorFuncs()
     constexpr int TEST_DURATION = 10;
     constexpr int TEST_INTERVAL = 1;
     auto memProfilerCollector = MemProfilerCollector::Create();
-    memProfilerCollector->Start(NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
-        0, TEST_DURATION, TEST_INTERVAL);
+    MemoryProfilerConfig memoryProfilerConfig = {
+        .type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
+        .pid = 0,
+        .duration = TEST_DURATION,
+        .sampleInterval = TEST_INTERVAL,
+    };
+    memProfilerCollector->Start(memoryProfilerConfig);
 #endif
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE

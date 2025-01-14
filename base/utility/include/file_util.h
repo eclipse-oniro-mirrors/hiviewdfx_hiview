@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,6 +103,7 @@ std::string GetParentDir(const std::string &path);
 bool IsLegalPath(const std::string& path);
 bool RenameFile(const std::string& src, const std::string& dest);
 bool GetDirXattr(const std::string& dir, const std::string& name, std::string& value);
+int64_t GetLastModifiedTimeStamp(const std::string& filePath);
 } // namespace FileUtil
 } // namespace HiviewDFX
 } // namespace OHOS

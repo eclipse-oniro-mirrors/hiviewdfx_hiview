@@ -18,7 +18,6 @@
 #include <string>
 
 #include "faultlog_info.h"
-#include "faultlogger_plugin.h"
 #include "file_util.h"
 
 namespace OHOS {

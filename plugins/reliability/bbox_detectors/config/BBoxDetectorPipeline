@@ -4,7 +4,7 @@
               "HARDWARE_FAULT", "MODEMCRASH", "AUDIO_CODEC_CRASH", "TRUSTZONECRASH",
               "ISPCRASH", "IVPCRASH", "PRESS10S", "GENERAL_SEE_CRASH", "DSSCRASH",
               "UNKNOWN", "GPUEXCEPTION", "NPUEXCEPTION", "MODEM_REBOOTSYS", "FDULCRASH", "PRESS6S",
-              "FFTSEXCEPTION", "HTSEXCEPTION"],
+              "FFTSEXCEPTION", "HTSEXCEPTION", "DPACRASH"],
     "domains": [
         {
             "domain": "KERNEL_VENDOR",
@@ -13,7 +13,7 @@
                         "HARDWARE_FAULT", "MODEMCRASH", "AUDIO_CODEC_CRASH", "TRUSTZONECRASH",
                         "ISPCRASH", "IVPCRASH", "PRESS10S", "GENERAL_SEE_CRASH", "DSSCRASH",
                         "UNKNOWN", "GPUEXCEPTION", "NPUEXCEPTION", "MODEM_REBOOTSYS", "FDULCRASH", "PRESS6S",
-                        "FFTSEXCEPTION", "HTSEXCEPTION"]
+                        "FFTSEXCEPTION", "HTSEXCEPTION", "DPACRASH"]
         }
     ]
 }
