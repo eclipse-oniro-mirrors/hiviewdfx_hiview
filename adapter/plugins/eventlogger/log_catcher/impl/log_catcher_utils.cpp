@@ -83,7 +83,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
     std::string logPath = "/data/log/eventlog/";
     std::vector<std::string> files;
     FileUtil::GetDirFiles(logPath, files, false);
-    std::string filterName = "-KernelStack-" + std::to_string(originFd);
+    std::string filterName = "-KernelStack-" + std::to_string(originFd) + ".log";
     std::string targetPath = "";
     for (auto& fileName : files) {
         if (fileName.find(filterName) != std::string::npos) {
@@ -103,8 +103,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
         StringUtil::FormatProcessName(procName);
         auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
         std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
-        std::string logName = procName + "-" + std::to_string(pid) +
-            "-" + formatTime + filterName + ".log";
+        std::string logName = procName + "-" + formatTime + filterName;
         realPath = logPath + logName;
         fd = open(realPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_LOG_FILE_MODE);
     }
