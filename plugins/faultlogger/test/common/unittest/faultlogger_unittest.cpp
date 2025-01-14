@@ -651,7 +651,7 @@ HWTEST_F(FaultloggerUnittest, genjserrorLogTest002, testing::ext::TestSize.Level
     bool result = testPlugin->OnEvent(event);
     ASSERT_EQ(result, true);
     auto ret = remove("/data/test_jsError_info");
-    if (ret == 0) {
+    if (ret < 0) {
         GTEST_LOG_(INFO) << "remove /data/test_jsError_info failed";
     }
 }
