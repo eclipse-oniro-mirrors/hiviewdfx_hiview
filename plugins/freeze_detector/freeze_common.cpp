@@ -154,7 +154,7 @@ void FreezeCommon::WriteEndInfoToFd(int fd, const std::string& msg)
     std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y/%m/%d-%H:%M:%S");
     std::string description = msg + formatTime + "\n";
     FileUtil::SaveStringToFd(fd, description);
-    FileUtil::SaveStringToFd(fd, "-----------------------------------------------------\n");
+    FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
