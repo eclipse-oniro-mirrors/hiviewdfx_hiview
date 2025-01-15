@@ -51,7 +51,7 @@
         </event>
       </links>
     </rule>
-    <rule id="6" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+      <rule id="6" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
           <result code="1" scope="sys" samePackage="true" ffrt="true"/>
@@ -218,8 +218,8 @@
     </rule>
     <rule id="8" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
       <links type="watchpoint">
-        <event window="0" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNIING -->
-          <result code="2" scope="sysWarning" samePackage="true"/>
+        <event window="0" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
+          <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
