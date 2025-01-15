@@ -608,7 +608,7 @@ static void UpdateSysEvent(SysEvent &sysEvent, FaultLogInfo &info)
     if (AnalysisFaultlog(info, eventInfos)) {
         auto pName = sysEvent.GetEventValue("PNAME");
         if (pName.empty()) {
-            sysEvent.SetEventValue("PNAME", "/");
+            sysEvent.SetEventValue("PNAME", std::string("/"));
         }
         sysEvent.SetEventValue("FIRST_FRAME", eventInfos["FIRST_FRAME"].empty() ? "/" :
                                 StringUtil::EscapeJsonStringValue(eventInfos["FIRST_FRAME"]));
