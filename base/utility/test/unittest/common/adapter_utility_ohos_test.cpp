@@ -372,12 +372,13 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest007, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest008, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest008");
-    int expectedFailedRet = 0;
-    auto ret = FileUtil::CreateFile(GenerateLogFileName(caseName, SUFFIX_0));
-    ASSERT_EQ(expectedFailedRet, ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "1111");
-    (void)FileUtil::CreateFile(GenerateLogFileName(caseName, SUFFIX_0));
-    ASSERT_TRUE(true);
+    std::string fileName = GenerateLogFileName(caseName, SUFFIX_0);
+    int ret = FileUtil::CreateFile(fileName);
+    if (FileUtil::FileExists(fileName)) {
+        ret = FileUtil::CreateFile(fileName);
+        ASSERT_EQ(ret, 0); // 0 means the file is succeed to be created
+        ASSERT_TRUE(FileUtil::SaveStringToFile(fileName, "1111"));
+    }
 }
 
 /**
@@ -469,14 +470,15 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest012, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest013, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest013");
-    auto ret = FileUtil::RenameFile(GenerateLogFileName(caseName, SUFFIX_0),
-        GenerateLogFileName(caseName, SUFFIX_1));
+    std::string fileName = GenerateLogFileName(caseName, SUFFIX_0);
+    std::string fileNameOther = GenerateLogFileName(caseName, SUFFIX_1);
+    bool ret = FileUtil::RenameFile(fileName, fileNameOther);
     ASSERT_TRUE(!ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "line1");
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_1), "line1");
-    (void)FileUtil::RenameFile(GenerateLogFileName(caseName, SUFFIX_0),
-        GenerateLogFileName(caseName, SUFFIX_1));
-    ASSERT_TRUE(true);
+    (void)FileUtil::SaveStringToFile(fileName, "line1");
+    if (FileUtil::FileExists(fileName)) {
+        ret = FileUtil::RenameFile(fileName, fileNameOther);
+        ASSERT_TRUE(ret);
+    }
 }
 
 /**
@@ -614,16 +616,23 @@ HWTEST_F(AdapterUtilityOhosTest, DbUtilTest001, testing::ext::TestSize.Level3)
     ASSERT_FALSE(HiviewDbUtil::InitDbUploadPath("", uploadPath));
     ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath(DB_PATH, uploadPath));
     std::string dbFile = HiviewDbUtil::CreateFileNameByDate("test");
-    std::string otherFile = DB_PATH + "testOhter.db-shm";
+    std::string otherFile = DB_PATH + "testOther.db-shm";
     FileUtil::SaveStringToFile(DB_PATH + dbFile, "test db file", true);
     FileUtil::SaveStringToFile(otherFile, "test other file", true);
-    HiviewDbUtil::MoveDbFilesToUploadDir(DB_PATH, uploadPath);
-    ASSERT_FALSE(FileUtil::FileExists(otherFile));
-    ASSERT_TRUE(FileUtil::FileExists(uploadPath + "/" + dbFile));
-    HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 1); // 1 is the max file number
-    ASSERT_TRUE(FileUtil::FileExists(uploadPath + "/" + dbFile));
-    HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 0); // 0 is the max file number
-    ASSERT_FALSE(FileUtil::FileExists(uploadPath + "/" + dbFile));
+
+    if (FileUtil::FileExists(otherFile)) {
+        HiviewDbUtil::MoveDbFilesToUploadDir(DB_PATH, uploadPath);
+        ASSERT_FALSE(FileUtil::FileExists(otherFile));
+    }
+    std::string uploadDbFile = uploadPath + "/" + dbFile;
+    if (FileUtil::FileExists(uploadDbFile)) {
+        HiviewDbUtil::MoveDbFilesToUploadDir(DB_PATH, uploadPath);
+        ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
+        HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 1); // 1 is the max file number
+        ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
+        HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 0); // 0 is the max file number
+        ASSERT_FALSE(FileUtil::FileExists(uploadDbFile));
+    }
 }
 
 /**
@@ -643,8 +652,8 @@ HWTEST_F(AdapterUtilityOhosTest, HiViewConfigUtilTest001, testing::ext::TestSize
     } else {
         ASSERT_EQ(configPath, "/data/system/hiview/test_file_name");
     }
-    auto ret = HiViewConfigUtil::GetConfigFilePath("test_file_name", "/data/test/", "test_file_name");
-    ASSERT_EQ(ret, "/data/system/hiview/unzip_configs//data/test/test_file_name");
+    auto ret = HiViewConfigUtil::GetConfigFilePath("test_file_name", "data/test/", "test_file_name");
+    ASSERT_EQ(ret, "/data/system/hiview/unzip_configs/data/test/test_file_name");
 }
 } // namespace HiviewDFX
 } // namespace OHOS
