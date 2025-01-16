@@ -33,6 +33,7 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-EventLogCatcher");
 namespace {
     constexpr char SED_EXEC_PATH[] = "/system/bin/sed";
+    constexpr size_t BLOCK_COUNT = 1;
 }
 
 std::string EventLogCatcher::GetName() const
@@ -69,8 +70,6 @@ void EventLogCatcher::Stop()
 
 int EventLogCatcher::AppendFile(int fd, const std::string &fileName) const
 {
-    char buf[BUF_SIZE_4096] = {0};
-
     if (fd < 0) {
         HIVIEW_LOGW("parameter err, fd:%{public}d, filename:%{public}s.", fd, fileName.c_str());
         return 0;
@@ -90,27 +89,31 @@ int EventLogCatcher::AppendFile(int fd, const std::string &fileName) const
         return 0;
     }
 
-    int srcFd = open(path, O_RDONLY);
-    if (srcFd < 0) {
+    FILE* srcFp = fopen(path, "r");
+    if (srcFp == nullptr) {
         HIVIEW_LOGW("open %{public}s failed. errno is %{public}d", fileName.c_str(), errno);
         return 0;
     }
 
     int wn = 0;
+    char buf[BUF_SIZE_4096] = { 0 };
     while (true) {
-        int rn = read(srcFd, buf, sizeof(buf));
-        if (rn == -1) {
+        int readNum = fread(buf, 1, sizeof(buf), srcFp);
+        if (readNum == -1) {
             if (errno == EAGAIN) {
                 continue;
             } else {
                 break;
             }
-        } else if (rn == 0) {
+        } else if (readNum == 0) {
             break;
         }
-        wn += write(fd, buf, rn);
+        wn += fwrite(buf, BLOCK_COUNT, readNum, srcFp);
     }
-    close(srcFd);
+    if (fclose(srcFp)) {
+        HIVIEW_LOGE("fclose is failed");
+    }
+    srcFp = nullptr;
     return wn;
 }
 
