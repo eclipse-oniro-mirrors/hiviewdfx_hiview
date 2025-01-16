@@ -120,7 +120,7 @@ void LogFileWriter::ResetLogFileStreamByFileIndex(size_t fileIndex)
     std::string logFilePath = BuildLogFilePath(logStrategy_.fileNamePrefix, curFileIndex_);
     logFileStream_.open(logFilePath, std::ios::app);
     if (logFileStream_.is_open()) {
-        curFileSize_ = static_cast<int64_t>(FileUtil::GetFileSize(logFilePath));
+        curFileSize_ = FileUtil::GetFileSize(logFilePath);
     }
 }
 
@@ -158,8 +158,8 @@ void LogFileWriter::Write(const std::string& content)
     logContent.append(" ").append(content);
 
     std::lock_guard<std::mutex> lock(writeMutex_);
-    int64_t logContentSize = static_cast<int64_t>(logContent.size());
-    if (curFileSize_ + logContentSize > static_cast<int64_t>(logStrategy_.singleFileMaxSize)) {
+    uint64_t logContentSize = logContent.size();
+    if (curFileSize_ + logContentSize > logStrategy_.singleFileMaxSize) {
         // exceed single file size limit
         ResetLogFileStreamByFileIndex(curFileIndex_ + 1); // index from n to n + 1
         DeleteOutNumberLogFiles();
