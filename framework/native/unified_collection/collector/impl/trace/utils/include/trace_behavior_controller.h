@@ -41,11 +41,11 @@ public:
     ~TraceBehaviorController() = default;
 
 public:
-    bool InitBehaviorDb();
-    bool GetBehaviorRecord(BehaviorRecord &behaviorRecord);
-    bool InsertBehaviorRecord(BehaviorRecord &behaviorRecord);
-    bool UpdateBehaviorRecord(BehaviorRecord &behaviorRecord);
-    void RemoveBehaviorRecord(BehaviorRecord &behaviorRecord);
+    bool InitDb();
+    bool GetRecord(BehaviorRecord &behaviorRecord);
+    bool InsertRecord(BehaviorRecord &behaviorRecord);
+    bool UpdateRecord(BehaviorRecord &behaviorRecord);
+    void RemoveRecord(BehaviorRecord &behaviorRecord);
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 };

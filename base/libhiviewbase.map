@@ -291,11 +291,6 @@
         "OHOS::HiviewDFX::TraceFlowController::CleanAppTrace()";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
         "OHOS::HiviewDFX::TraceFlowController::TraceFlowController()";
-        "OHOS::HiviewDFX::TraceBehaviorController::TraceBehaviorController()";
-        "OHOS::HiviewDFX::TraceBehaviorController::GetBehaviorRecord(OHOS::HiviewDFX::BehaviorRecord&)";
-        "OHOS::HiviewDFX::TraceBehaviorController::InsertBehaviorRecord(OHOS::HiviewDFX::BehaviorRecord&)";
-        "OHOS::HiviewDFX::TraceBehaviorController::UpdateBehaviorRecord(OHOS::HiviewDFX::BehaviorRecord&)";
-        "OHOS::HiviewDFX::TraceBehaviorController::RemoveBehaviorRecord(OHOS::HiviewDFX::BehaviorRecord&)";
         "OHOS::HiviewDFX::SysEvent::GetSysVersion()";
         "OHOS::HiviewDFX::SysEvent::GetPatchVersion()";
         "OHOS::HiviewDFX::SysEvent::SysEvent(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::PipelineEventProducer*, std::__h::shared_ptr<OHOS::HiviewDFX::EventRaw::RawData>, long long, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

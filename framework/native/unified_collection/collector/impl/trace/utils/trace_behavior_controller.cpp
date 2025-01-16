@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("TraceCacheController");
+DEFINE_LOG_TAG("TraceBehaviorController");
 namespace {
 const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
 const std::string DB_NAME = "trace_behavior"; // or trace_flow_control
@@ -140,7 +140,7 @@ TraceBehaviorController::TraceBehaviorController()
     }
 }
 
-bool TraceBehaviorController::InitBehaviorDb()
+bool TraceBehaviorController::InitDb()
 {
     if (!InnerCreateTraceBehaviorTable(dbStore_)) {
         return false;
@@ -148,8 +148,9 @@ bool TraceBehaviorController::InitBehaviorDb()
     return true;
 }
 
-bool TraceBehaviorController::GetBehaviorRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
 {
+    HIVIEW_LOGE("GetDbRecord");
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
@@ -166,14 +167,18 @@ bool TraceBehaviorController::GetBehaviorRecord(BehaviorRecord &behaviorRecord)
     if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         resultSet->GetInt(0, behaviorRecord.usedQuota); // 0 means used_quota field
     } else {
+        HIVIEW_LOGE("Fail to get record for date %{public}d, set usedQuota to 0", behaviorRecord.dateNum);
         behaviorRecord.usedQuota = 0;
+        return false;
     }
     resultSet->Close();
+    HIVIEW_LOGE("GetDbRecord success");
     return true;
 }
 
-bool TraceBehaviorController::InsertBehaviorRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorController::InsertRecord(BehaviorRecord &behaviorRecord)
 {
+    HIVIEW_LOGE("InsertDbRecord");
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
@@ -187,11 +192,13 @@ bool TraceBehaviorController::InsertBehaviorRecord(BehaviorRecord &behaviorRecor
         HIVIEW_LOGW("failed to insert table");
         return false;
     }
+    HIVIEW_LOGE("InsertDbRecord success");
     return true;
 }
 
-bool TraceBehaviorController::UpdateBehaviorRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorController::UpdateRecord(BehaviorRecord &behaviorRecord)
 {
+    HIVIEW_LOGE("UpdateDbRecord");
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
@@ -205,10 +212,11 @@ bool TraceBehaviorController::UpdateBehaviorRecord(BehaviorRecord &behaviorRecor
         HIVIEW_LOGW("failed to update table");
         return false;
     }
+    HIVIEW_LOGE("UpdateDbRecord success, changed rows = %{public}d", changedRows);
     return true;
 }
 
-void TraceBehaviorController::RemoveBehaviorRecord(BehaviorRecord &behaviorRecord)
+void TraceBehaviorController::RemoveRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
