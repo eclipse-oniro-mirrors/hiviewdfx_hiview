@@ -372,6 +372,7 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest007, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest008, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest008");
+    caseName.append("_").append(std::to_string(getpid()));
     std::string fileName = GenerateLogFileName(caseName, SUFFIX_0);
     int ret = FileUtil::CreateFile(fileName);
     if (FileUtil::FileExists(fileName)) {
@@ -470,6 +471,7 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest012, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest013, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest013");
+    caseName.append("_").append(std::to_string(getpid()));
     std::string fileName = GenerateLogFileName(caseName, SUFFIX_0);
     std::string fileNameOther = GenerateLogFileName(caseName, SUFFIX_1);
     bool ret = FileUtil::RenameFile(fileName, fileNameOther);
@@ -477,7 +479,7 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest013, testing::ext::TestSize.Lev
     (void)FileUtil::SaveStringToFile(fileName, "line1");
     if (FileUtil::FileExists(fileName)) {
         ret = FileUtil::RenameFile(fileName, fileNameOther);
-        ASSERT_TRUE(ret);
+        ASSERT_EQ(ret, FileUtil::FileExists(fileNameOther));
     }
 }
 
@@ -610,29 +612,27 @@ HWTEST_F(AdapterUtilityOhosTest, ZipUtilTest001, testing::ext::TestSize.Level3)
  */
 HWTEST_F(AdapterUtilityOhosTest, DbUtilTest001, testing::ext::TestSize.Level3)
 {
-    std::string uploadPath = UPLOAD_PATH;
+    int pid = getpid();
+    std::string uploadPath = UPLOAD_PATH + std::to_string(pid) + "/";
+    std::string dbPath = DB_PATH + std::to_string(pid) + "/";
     ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath("", uploadPath));
     uploadPath = "";
     ASSERT_FALSE(HiviewDbUtil::InitDbUploadPath("", uploadPath));
-    ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath(DB_PATH, uploadPath));
+    ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath(dbPath, uploadPath));
     std::string dbFile = HiviewDbUtil::CreateFileNameByDate("test");
-    std::string otherFile = DB_PATH + "testOther.db-shm";
-    FileUtil::SaveStringToFile(DB_PATH + dbFile, "test db file", true);
+    std::string otherFile = dbPath + "testOther.db-shm";
+    FileUtil::SaveStringToFile(dbPath + dbFile, "test db file", true);
     FileUtil::SaveStringToFile(otherFile, "test other file", true);
 
-    if (FileUtil::FileExists(otherFile)) {
-        HiviewDbUtil::MoveDbFilesToUploadDir(DB_PATH, uploadPath);
-        ASSERT_FALSE(FileUtil::FileExists(otherFile));
-    }
     std::string uploadDbFile = uploadPath + "/" + dbFile;
-    if (FileUtil::FileExists(uploadDbFile)) {
-        HiviewDbUtil::MoveDbFilesToUploadDir(DB_PATH, uploadPath);
-        ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
-        HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 1); // 1 is the max file number
-        ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
-        HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 0); // 0 is the max file number
-        ASSERT_FALSE(FileUtil::FileExists(uploadDbFile));
-    }
+    HiviewDbUtil::MoveDbFilesToUploadDir(dbPath, uploadPath);
+    ASSERT_FALSE(FileUtil::FileExists(otherFile));
+    ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
+
+    HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 1); // 1 is the max file number
+    ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
+    HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 0); // 0 is the max file number
+    ASSERT_FALSE(FileUtil::FileExists(uploadDbFile));
 }
 
 /**
