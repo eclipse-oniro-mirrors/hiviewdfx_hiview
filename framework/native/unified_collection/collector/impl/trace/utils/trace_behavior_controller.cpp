@@ -90,31 +90,31 @@ int TraceBehaviorDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int o
     return OnCreate(rdbStore);
 }
 
-bool InnerCreateTraceBehaviorTable(std::shared_ptr<NativeRdb::RdbStore> dbStore)
-{
-    /**
-     * table: trace_behavior_controller
-     *
-     * describe: store trace behavior quota
-     * |-----|-------------|-----------|------------|
-     * | id  | behavior_id | task_date | used_quota |
-     * |-----|-------------|-----------|------------|
-     * | INT |    INT32    |   INT32   |   INT32    |
-     * |-----|-------------|-----------|------------|
-     */
-    const std::vector<std::pair<std::string, std::string>> fields = {
-        {COLUMN_BEHAVIOR_ID, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_DATE, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_USED_QUOTA, SqlUtil::COLUMN_TYPE_INT},
-    };
-    HIVIEW_LOGI("create trace behavior table =%{public}s", TABLE_NAME_BEHAVIOR.c_str());
-    std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME_BEHAVIOR, fields);
-    if (dbStore->ExecuteSql(sql) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create trace behavior table, sql=%{public}s", sql.c_str());
-        return false;
-    }
-    return true;
-}
+// bool InnerCreateTraceBehaviorTable(std::shared_ptr<NativeRdb::RdbStore> dbStore)
+// {
+//     /**
+//      * table: trace_behavior_controller
+//      *
+//      * describe: store trace behavior quota
+//      * |-----|-------------|-----------|------------|
+//      * | id  | behavior_id | task_date | used_quota |
+//      * |-----|-------------|-----------|------------|
+//      * | INT |    INT32    |   INT32   |   INT32    |
+//      * |-----|-------------|-----------|------------|
+//      */
+//     const std::vector<std::pair<std::string, std::string>> fields = {
+//         {COLUMN_BEHAVIOR_ID, SqlUtil::COLUMN_TYPE_INT},
+//         {COLUMN_DATE, SqlUtil::COLUMN_TYPE_INT},
+//         {COLUMN_USED_QUOTA, SqlUtil::COLUMN_TYPE_INT},
+//     };
+//     HIVIEW_LOGI("create trace behavior table =%{public}s", TABLE_NAME_BEHAVIOR.c_str());
+//     std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME_BEHAVIOR, fields);
+//     if (dbStore->ExecuteSql(sql) != NativeRdb::E_OK) {
+//         HIVIEW_LOGE("failed to create trace behavior table, sql=%{public}s", sql.c_str());
+//         return false;
+//     }
+//     return true;
+// }
 
 NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 {
@@ -140,13 +140,13 @@ TraceBehaviorController::TraceBehaviorController()
     }
 }
 
-bool TraceBehaviorController::InitDb()
-{
-    if (!InnerCreateTraceBehaviorTable(dbStore_)) {
-        return false;
-    }
-    return true;
-}
+// bool TraceBehaviorController::InitDb()
+// {
+//     if (!InnerCreateTraceBehaviorTable(dbStore_)) {
+//         return false;
+//     }
+//     return true;
+// }
 
 bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
 {
@@ -220,6 +220,7 @@ void TraceBehaviorController::RemoveRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
+        return;
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
     predicates.EqualTo(COLUMN_BEHAVIOR_ID, behaviorRecord.behaviorId);
@@ -229,6 +230,5 @@ void TraceBehaviorController::RemoveRecord(BehaviorRecord &behaviorRecord)
         HIVIEW_LOGW("failed to delete table");
     }
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -72,6 +72,7 @@ constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 constexpr int HIVEW_PERF_MONITOR_INTERVAL = 5;
 constexpr int HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60;
 constexpr int HITRACE_CACHE_DURATION_LIMIT_PER_EVENT = 2 * 60;
+constexpr uint64_t S_TO_NS = 1000000000;
 
 const int8_t STATE_COUNT = 2;
 const int8_t COML_STATE = 0;
@@ -239,70 +240,49 @@ void OnFreezeDetectorParamChanged(const char* key, const char* value, void* cont
 int GetCurrentDateAsInt() {
     std::time_t now = std::time(nullptr);
     std::tm* localTime = std::localtime(&now);
-
     int year = 1900 + localTime->tm_year;  // tm_year is years since 1900
     int month = 1 + localTime->tm_mon;    // tm_mon is months since January (0-11)
     int day = localTime->tm_mday;
-
     return year * 10000 + month * 100 + day;
 }
 
 std::chrono::system_clock::time_point GetNextDay() {
-    // Get the current time
     auto now = std::chrono::system_clock::now();
-
-    // Convert to time_t for easier manipulation
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
-
-    // Convert to a tm structure
     std::tm now_tm = *std::localtime(&now_time_t);
-
-    // Adjust to midnight of the next day
     now_tm.tm_sec = 0;
     now_tm.tm_min = 0;
     now_tm.tm_hour = 0;
     now_tm.tm_mday += 1;
-
-    // Convert back to time_t
     std::time_t next_day_time_t = std::mktime(&now_tm);
-
-    // Convert back to time_point
     return std::chrono::system_clock::from_time_t(next_day_time_t);
 }
 
 std::string TimePointToString(const std::chrono::system_clock::time_point& timePoint) {
-    // Convert time_point to time_t
     std::time_t timeT = std::chrono::system_clock::to_time_t(timePoint);
-
-    // Convert to tm structure for formatting
     std::tm* tmPtr = std::localtime(&timeT);
-
-    // Format as string (e.g., "YYYY-MM-DD HH:MM:SS")
     std::ostringstream oss;
     oss << std::put_time(tmPtr, "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
 
-// check whether the cache duration exceeds the limit, if so, return false. otherwise, update database for 5 seconds
-bool UpdateCacheLimit(std::shared_ptr<TraceBehaviorController> &traceBehaviorController,
-    int detectInterval)
+bool UseCacheTimeQuota(std::shared_ptr<TraceBehaviorController> &traceBehaviorController,
+    int32_t usedQuota)
 {
     BehaviorRecord record;
     record.behaviorId = CACHE_LOW_MEM;
-    // store current time in format YYYYMMDD in dateNum
     record.dateNum = GetCurrentDateAsInt();
-    // check whether this entry exists in db, if not, insert it
-    HIVIEW_LOGE("Get record for date : %{public}d", record.dateNum);
+    HIVIEW_LOGE("Get record for date : %{public}d", record.dateNum); // TD : delete
     if (!traceBehaviorController->GetRecord(record) && !traceBehaviorController->InsertRecord(record)) {
+        HIVIEW_LOGE("Failed to get and insert record");
         return false;
     }
-    HIVIEW_LOGE("usedQuota : %{public}d", record.usedQuota);
+    HIVIEW_LOGE("usedQuota : %{public}d", record.usedQuota); // TD : delete
     if (record.usedQuota >= HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL) {
-        HIVIEW_LOGE("usedQuota exceeds limit");
+        HIVIEW_LOGE("UsedQuota exceeds daily limit.");
         return false;
     }
-    record.usedQuota += detectInterval;
-    // update db   
+    record.usedQuota += usedQuota;
     traceBehaviorController->UpdateRecord(record);
     return true;
 }
@@ -403,7 +383,6 @@ void UnifiedCollector::Dump(int fd, const std::vector<std::string>& cmds)
 
 void UnifiedCollector::Init()
 {
-    HIVIEW_LOGE("UnifiedCollector init");
     if (GetHiviewContext() == nullptr) {
         HIVIEW_LOGE("hiview context is null");
         return;
@@ -414,7 +393,7 @@ void UnifiedCollector::Init()
     InitWorkLoop();
     InitWorkPath();
     bool isAllowCollect = Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn();
-    RunHiviewMonitorTask();
+    RunHiviewMonitorTask(); // TD: move to into AllowCollect
     if (isAllowCollect) {
         RunIoCollectionTask();
         RunUCollectionStatTask();
@@ -600,12 +579,11 @@ void UnifiedCollector::RunHiviewMonitorTask()
         HIVIEW_LOGE("Hiview Monitor Task prerequisites are not met.");
         return;
     }
-    HIVIEW_LOGE("Hiview Monitor running.");
+    HIVIEW_LOGE("Hiview Monitor running."); // TD : rm
     isHiviewPerfMonitorRunning_.store(true);
     auto task = [this] { this->HiviewPerfMonitorFfrtTask(); };
     ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_hiviewMonitor").qos(ffrt::qos_default));
 }
-
 
 void UnifiedCollector::HiviewPerfMonitorFfrtTask()
 {
@@ -618,25 +596,18 @@ void UnifiedCollector::HiviewPerfMonitorFfrtTask()
     int cacheOffCountdown = 2;
     bool isCacheOn = false;
     int cacheDuration = 0;
-    // check db for availability, wait for next day if overflow
-    while (!UpdateCacheLimit(traceBehaviorController, HIVEW_PERF_MONITOR_INTERVAL)) {
+    while (!UseCacheTimeQuota(traceBehaviorController, HIVEW_PERF_MONITOR_INTERVAL)) {
         auto nextDay = GetNextDay();
-        HIVIEW_LOGI("sleep until next day, %{public}s", TimePointToString(nextDay).c_str());
+        HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
         ffrt::this_task::sleep_until(nextDay);
     }
-
     while (true) {
-        // check memory value
         CollectResult<SysMemory> data = collector->CollectSysMemory();
-
-        // check target state
-        // if target state == current state, continue
-        // if target state != current state, change state
         bool targetCacheState = data.data.memAvailable < CACHE_LOW_MEM_THRESHOLD;
-        HIVIEW_LOGI("target cache state: %{public}d, current cache state: %{public}d", targetCacheState, isCacheOn);
+        HIVIEW_LOGI("target cache state: %{public}d, current cache state: %{public}d", targetCacheState, isCacheOn); // TD : rm
         if (targetCacheState != isCacheOn) {
             if (targetCacheState) {
-                TraceErrorCode ret = CacheTraceOn(800, 10);
+                TraceErrorCode ret = OHOS::HiviewDFX::Hitrace::CacheTraceOn(100, 10);
                 isCacheOn = (ret == TraceErrorCode::SUCCESS);
                 cacheDuration = 0;
             } else {
@@ -644,35 +615,32 @@ void UnifiedCollector::HiviewPerfMonitorFfrtTask()
                 if (cacheOffCountdown == 0) {
                     isCacheOn = false;
                     // cache off 
-                    CacheTraceOff();
+                    OHOS::HiviewDFX::Hitrace::CacheTraceOff();
                 }
             }
         }
-        // calculate time diff before and after sleep
-        int64_t startTime = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+        struct timespec bts = {0, 0};
+        clock_gettime(CLOCK_BOOTTIME, &bts);
+        uint64_t startTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
         ffrt::this_task::sleep_for(5s); // 5s: monitoring interval
-        int64_t endTime = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-        int64_t timeDiff = endTime - startTime;
-        // check current cache state and overall duration, if overlimit, close cache, wait until next day
+        clock_gettime(CLOCK_BOOTTIME, &bts);
+        uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
+        int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
         if (isCacheOn) {
-            if (!UpdateCacheLimit(traceBehaviorController, timeDiff)) {
+            if (!UseCacheTimeQuota(traceBehaviorController, timeDiff)) {
                 // cache off, 
                 isCacheOn = false;
-                CacheTraceOff();
+                OHOS::HiviewDFX::Hitrace::CacheTraceOff();
                 // wait for next day
                 auto nextDay = GetNextDay();
-                HIVIEW_LOGI("sleep until next day, %{public}s", TimePointToString(nextDay).c_str());
+                HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
                 ffrt::this_task::sleep_until(nextDay);
             } else {
                 cacheDuration += timeDiff;
                 if (cacheDuration >= HITRACE_CACHE_DURATION_LIMIT_PER_EVENT) {
-                    // cache off, 
                     isCacheOn = false;
-                    CacheTraceOff();
-                    // wait until return to normal
-                    HIVIEW_LOGI("reach cache duration limit, wait until return to normal");
+                    OHOS::HiviewDFX::Hitrace::CacheTraceOff();
+                    HIVIEW_LOGI("Reach cache duration limit, wait until returning to normal state");
                     do {
                         ffrt::this_task::sleep_for(30s); // 30s: wait for normal interval
                         data = collector->CollectSysMemory();

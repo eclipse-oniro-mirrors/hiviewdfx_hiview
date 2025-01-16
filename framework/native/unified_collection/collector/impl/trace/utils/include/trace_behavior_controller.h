@@ -16,15 +16,14 @@
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
 
-#include <cstdint>
-#include <memory>
-#include <string>
+// #include <cstdint>
+// #include <memory>
+// #include <string>
 
 #include "rdb_store.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-
 enum BEHAVOIR_ID {
     CACHE_LOW_MEM = 0,
 };
