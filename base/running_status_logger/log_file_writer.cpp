@@ -120,7 +120,7 @@ void LogFileWriter::ResetLogFileStreamByFileIndex(size_t fileIndex)
     std::string logFilePath = BuildLogFilePath(logStrategy_.fileNamePrefix, curFileIndex_);
     logFileStream_.open(logFilePath, std::ios::app);
     if (logFileStream_.is_open()) {
-        curFileSize_ = FileUtil::GetFileSize(logFilePath);
+        curFileSize_ = static_cast<int64_t>(FileUtil::GetFileSize(logFilePath));
     }
 }
 
@@ -158,8 +158,8 @@ void LogFileWriter::Write(const std::string& content)
     logContent.append(" ").append(content);
 
     std::lock_guard<std::mutex> lock(writeMutex_);
-    if (curFileSize_ + static_cast<int64_t>(logContent.size()) >
-        static_cast<int64_t>(logStrategy_.singleFileMaxSize)) {
+    int64_t logContentSize = static_cast<int64_t>(logContent.size());
+    if (curFileSize_ + logContentSize > static_cast<int64_t>(logStrategy_.singleFileMaxSize)) {
         // exceed single file size limit
         ResetLogFileStreamByFileIndex(curFileIndex_ + 1); // index from n to n + 1
         DeleteOutNumberLogFiles();
@@ -170,7 +170,7 @@ void LogFileWriter::Write(const std::string& content)
         return;
     }
     logFileStream_ << logContent << std::endl;
-    curFileSize_ += logContent.size();
+    curFileSize_ += logContentSize;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
