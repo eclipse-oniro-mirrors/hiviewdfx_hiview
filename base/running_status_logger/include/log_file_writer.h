@@ -52,7 +52,7 @@ private:
     LogStrategy logStrategy_;
     std::ofstream logFileStream_;
     size_t curFileIndex_ = 0;
-    int64_t curFileSize_ = 0;
+    uint64_t curFileSize_ = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
