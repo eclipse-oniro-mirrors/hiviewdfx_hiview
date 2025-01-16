@@ -152,11 +152,12 @@ MemoryClass MapTypeToClass(MemoryItemType type)
 
 bool IsNameLine(const std::string& line, std::string &name, uint64_t &iNode)
 {
-    uint32_t len = 0;
-    if (sscanf_s(line.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", &iNode, &len) != 1) {
+    int currentReadBytes = 0;
+    if (sscanf_s(line.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", &iNode, &currentReadBytes) != 1) {
         return false;
     }
 
+    uint32_t len = static_cast<uint32_t>(currentReadBytes);
     while (len < line.size() && line[len] == ' ') {
         len++;
     }

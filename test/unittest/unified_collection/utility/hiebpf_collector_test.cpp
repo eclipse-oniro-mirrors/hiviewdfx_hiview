@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,8 +32,8 @@ public:
 
 #ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
 /**
- * @tc.name: PerfCollectorTest001
- * @tc.desc: used to test PerfCollector.StartPerf
+ * @tc.name: HiebpfCollectorTest001
+ * @tc.desc: used to test HiebpfCollectorTest.StartHiebpf
  * @tc.type: FUNC
 */
 HWTEST_F(HiebpfCollectorTest, HiebpfCollectorTest001, TestSize.Level1)
@@ -43,11 +43,12 @@ HWTEST_F(HiebpfCollectorTest, HiebpfCollectorTest001, TestSize.Level1)
     std::cout << "collect hiebpf data result = " << data.retCode << std::endl;
     data = hiebpfCollector->StopHiebpf();
     std::cout << "collect hiebpf data result = " << data.retCode << std::endl;
+    ASSERT_EQ(data.retCode, UcError::SUCCESS);
 }
 #else
 /**
- * @tc.name: PerfCollectorTest001
- * @tc.desc: used to test empty PerfCollector
+ * @tc.name: HiebpfCollectorTest001
+ * @tc.desc: used to test empty HiebpfCollector
  * @tc.type: FUNC
 */
 HWTEST_F(HiebpfCollectorTest, HiebpfCollectorTest001, TestSize.Level1)

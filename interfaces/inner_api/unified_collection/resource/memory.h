@@ -169,7 +169,7 @@ struct  MemoryDetail {
 };
 
 struct ProcessMemoryDetail {
-    uint64_t pid = 0;
+    int32_t pid = 0;
     std::string name;
     uint64_t totalRss = 0;
     uint64_t totalPss = 0;
