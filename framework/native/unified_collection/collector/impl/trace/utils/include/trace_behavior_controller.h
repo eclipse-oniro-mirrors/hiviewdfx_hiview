@@ -44,7 +44,7 @@ public:
     bool GetRecord(BehaviorRecord &behaviorRecord);
     bool InsertRecord(BehaviorRecord &behaviorRecord);
     bool UpdateRecord(BehaviorRecord &behaviorRecord);
-    void RemoveRecord(BehaviorRecord &behaviorRecord);
+    // void RemoveRecord(BehaviorRecord &behaviorRecord);
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 };

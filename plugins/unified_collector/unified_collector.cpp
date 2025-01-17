@@ -38,7 +38,7 @@
 #include "uc_observer_mgr.h"
 #include "unified_collection_stat.h"
 
-#define LOW_MEM_THRESHOLD 2024000
+// #define LOW_MEM_THRESHOLD 2024000
 
 #if defined(LOW_MEM_THRESHOLD) && (LOW_MEM_THRESHOLD != 0)
 constexpr int CACHE_LOW_MEM_THRESHOLD = LOW_MEM_THRESHOLD;
@@ -258,13 +258,13 @@ std::chrono::system_clock::time_point GetNextDay() {
     return std::chrono::system_clock::from_time_t(next_day_time_t);
 }
 
-std::string TimePointToString(const std::chrono::system_clock::time_point& timePoint) {
-    std::time_t timeT = std::chrono::system_clock::to_time_t(timePoint);
-    std::tm* tmPtr = std::localtime(&timeT);
-    std::ostringstream oss;
-    oss << std::put_time(tmPtr, "%Y-%m-%d %H:%M:%S");
-    return oss.str();
-}
+// std::string TimePointToString(const std::chrono::system_clock::time_point& timePoint) {
+//     std::time_t timeT = std::chrono::system_clock::to_time_t(timePoint);
+//     std::tm* tmPtr = std::localtime(&timeT);
+//     std::ostringstream oss;
+//     oss << std::put_time(tmPtr, "%Y-%m-%d %H:%M:%S");
+//     return oss.str();
+// }
 
 bool UseCacheTimeQuota(std::shared_ptr<TraceBehaviorController> &traceBehaviorController,
     int32_t usedQuota)
@@ -598,7 +598,7 @@ void UnifiedCollector::HiviewPerfMonitorFfrtTask()
     int cacheDuration = 0;
     while (!UseCacheTimeQuota(traceBehaviorController, HIVEW_PERF_MONITOR_INTERVAL)) {
         auto nextDay = GetNextDay();
-        HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
+        // HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
         ffrt::this_task::sleep_until(nextDay);
     }
     while (true) {
@@ -633,7 +633,7 @@ void UnifiedCollector::HiviewPerfMonitorFfrtTask()
                 OHOS::HiviewDFX::Hitrace::CacheTraceOff();
                 // wait for next day
                 auto nextDay = GetNextDay();
-                HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
+                // HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
                 ffrt::this_task::sleep_until(nextDay);
             } else {
                 cacheDuration += timeDiff;
