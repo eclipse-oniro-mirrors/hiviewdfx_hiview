@@ -53,7 +53,8 @@
             "hiview_unified_collector_hilog_enable",
             "hiview_unified_collector_wm_enable",
             "hiview_unified_collector_process_enable",
-            "hiview_unified_collector_trace_enable"
+            "hiview_unified_collector_trace_enable",
+            "hiview_unified_collector_low_mem_threshold"
         ],
         "rom": "",
         "ram": "",

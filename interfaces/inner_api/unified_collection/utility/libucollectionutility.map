@@ -20,7 +20,6 @@
       "OHOS::HiviewDFX::TraceBehaviorController::GetRecord(OHOS::HiviewDFX::BehaviorRecord&)";
       "OHOS::HiviewDFX::TraceBehaviorController::InsertRecord(OHOS::HiviewDFX::BehaviorRecord&)";
       "OHOS::HiviewDFX::TraceBehaviorController::UpdateRecord(OHOS::HiviewDFX::BehaviorRecord&)";
-      "OHOS::HiviewDFX::TraceBehaviorController::RemoveRecord(OHOS::HiviewDFX::BehaviorRecord&)";
       "OHOS::HiviewDFX::TraceFlowController::AddNewFinishTask(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
       "OHOS::HiviewDFX::TraceFlowController::CleanAppTrace()";
       "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";

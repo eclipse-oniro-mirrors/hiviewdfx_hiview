@@ -38,12 +38,10 @@
 #include "uc_observer_mgr.h"
 #include "unified_collection_stat.h"
 
-// #define LOW_MEM_THRESHOLD 2024000
-
-#if defined(LOW_MEM_THRESHOLD) && (LOW_MEM_THRESHOLD != 0)
-constexpr int CACHE_LOW_MEM_THRESHOLD = LOW_MEM_THRESHOLD;
+#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
+constexpr int HIVIEW_CACHE_LOW_MEM_THRESHOLD = HIVIEW_LOW_MEM_THRESHOLD;
 #else
-constexpr int CACHE_LOW_MEM_THRESHOLD = 0;
+constexpr int HIVIEW_CACHE_LOW_MEM_THRESHOLD = 0;
 #endif
 
 namespace OHOS {
@@ -72,7 +70,12 @@ constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 constexpr int HIVEW_PERF_MONITOR_INTERVAL = 5;
 constexpr int HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60;
 constexpr int HITRACE_CACHE_DURATION_LIMIT_PER_EVENT = 2 * 60;
+constexpr int HITRACE_CACHE_FILE_SIZE_LIMIT = 800;
+constexpr int HITRACE_CACHE_FILE_SLICE_SPAN = 10;
 constexpr uint64_t S_TO_NS = 1000000000;
+constexpr int YEAR_OFFSET = 10000;
+constexpr int MONTH_OFFSET = 100;
+constexpr int CACHE_OFF_CONDITION_COUNTDOWN = 2;
 
 const int8_t STATE_COUNT = 2;
 const int8_t COML_STATE = 0;
@@ -237,34 +240,28 @@ void OnFreezeDetectorParamChanged(const char* key, const char* value, void* cont
     }
 }
 
-int GetCurrentDateAsInt() {
+int GetCurrentDateAsInt()
+{
     std::time_t now = std::time(nullptr);
     std::tm* localTime = std::localtime(&now);
-    int year = 1900 + localTime->tm_year;  // tm_year is years since 1900
-    int month = 1 + localTime->tm_mon;    // tm_mon is months since January (0-11)
+    int year = 1900 + localTime->tm_year; // tm_year is years since 1900
+    int month = 1 + localTime->tm_mon; // tm_mon is months since January (0-11)
     int day = localTime->tm_mday;
-    return year * 10000 + month * 100 + day;
+    return year * YEAR_OFFSET + month * MONTH_OFFSET + day;
 }
 
-std::chrono::system_clock::time_point GetNextDay() {
+std::chrono::system_clock::time_point GetNextDay()
+{
     auto now = std::chrono::system_clock::now();
-    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
-    std::tm now_tm = *std::localtime(&now_time_t);
-    now_tm.tm_sec = 0;
-    now_tm.tm_min = 0;
-    now_tm.tm_hour = 0;
-    now_tm.tm_mday += 1;
-    std::time_t next_day_time_t = std::mktime(&now_tm);
-    return std::chrono::system_clock::from_time_t(next_day_time_t);
+    std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
+    std::tm nowTm = *std::localtime(&nowTime);
+    nowTm.tm_sec = 0;
+    nowTm.tm_min = 0;
+    nowTm.tm_hour = 0;
+    nowTm.tm_mday += 1;
+    std::time_t nextDayTime = std::mktime(&nowTm);
+    return std::chrono::system_clock::from_time_t(nextDayTime);
 }
-
-// std::string TimePointToString(const std::chrono::system_clock::time_point& timePoint) {
-//     std::time_t timeT = std::chrono::system_clock::to_time_t(timePoint);
-//     std::tm* tmPtr = std::localtime(&timeT);
-//     std::ostringstream oss;
-//     oss << std::put_time(tmPtr, "%Y-%m-%d %H:%M:%S");
-//     return oss.str();
-// }
 
 bool UseCacheTimeQuota(std::shared_ptr<TraceBehaviorController> &traceBehaviorController,
     int32_t usedQuota)
@@ -272,12 +269,10 @@ bool UseCacheTimeQuota(std::shared_ptr<TraceBehaviorController> &traceBehaviorCo
     BehaviorRecord record;
     record.behaviorId = CACHE_LOW_MEM;
     record.dateNum = GetCurrentDateAsInt();
-    HIVIEW_LOGE("Get record for date : %{public}d", record.dateNum); // TD : delete
     if (!traceBehaviorController->GetRecord(record) && !traceBehaviorController->InsertRecord(record)) {
         HIVIEW_LOGE("Failed to get and insert record");
         return false;
     }
-    HIVIEW_LOGE("usedQuota : %{public}d", record.usedQuota); // TD : delete
     if (record.usedQuota >= HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL) {
         HIVIEW_LOGE("UsedQuota exceeds daily limit.");
         return false;
@@ -285,6 +280,59 @@ bool UseCacheTimeQuota(std::shared_ptr<TraceBehaviorController> &traceBehaviorCo
     record.usedQuota += usedQuota;
     traceBehaviorController->UpdateRecord(record);
     return true;
+}
+
+void SetTraceCacheState(bool &isCacheOn, bool targetCacheState, int &cacheDuration, int &cacheOffCountdown)
+{
+    if (targetCacheState) {
+        TraceErrorCode ret = OHOS::HiviewDFX::Hitrace::CacheTraceOn(HITRACE_CACHE_FILE_SIZE_LIMIT,
+            HITRACE_CACHE_FILE_SLICE_SPAN);
+        isCacheOn = (ret == TraceErrorCode::SUCCESS);
+        cacheDuration = 0;
+    } else {
+        cacheOffCountdown--;
+        if (cacheOffCountdown == 0) {
+            isCacheOn = false;
+            OHOS::HiviewDFX::Hitrace::CacheTraceOff();
+        }
+    }
+}
+
+void SleepAndUpdateCacheStatus(bool &isCacheOn, int &cacheDuration,
+    std::shared_ptr<TraceBehaviorController> &traceBehaviorController)
+{
+    if (!isCacheOn) {
+        ffrt::this_task::sleep_for(5s); // 5s: monitoring interval
+        return;
+    }
+
+    struct timespec bts = {0, 0};
+    clock_gettime(CLOCK_BOOTTIME, &bts);
+    uint64_t startTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
+    ffrt::this_task::sleep_for(5s); // 5s: monitoring interval
+    clock_gettime(CLOCK_BOOTTIME, &bts);
+    uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
+    int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
+    if (!UseCacheTimeQuota(traceBehaviorController, timeDiff)) {
+        isCacheOn = false;
+        OHOS::HiviewDFX::Hitrace::CacheTraceOff();
+        auto nextDay = GetNextDay();
+        ffrt::this_task::sleep_until(nextDay);
+    } else {
+        cacheDuration += timeDiff;
+        if (cacheDuration >= HITRACE_CACHE_DURATION_LIMIT_PER_EVENT) {
+            isCacheOn = false;
+            OHOS::HiviewDFX::Hitrace::CacheTraceOff();
+            HIVIEW_LOGI("Reach cache duration limit, wait until returning to normal state");
+            std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
+            CollectResult<SysMemory> data = collector->CollectSysMemory();
+            while (data.data.memAvailable < HIVIEW_CACHE_LOW_MEM_THRESHOLD) {
+                ffrt::this_task::sleep_for(10s); // 10s: wait for normal interval
+                data = collector->CollectSysMemory();
+            }
+            ffrt::this_task::sleep_for(5s); // 5s: monitoring interval
+        }
+    }
 }
 }
 
@@ -393,11 +441,11 @@ void UnifiedCollector::Init()
     InitWorkLoop();
     InitWorkPath();
     bool isAllowCollect = Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn();
-    RunHiviewMonitorTask(); // TD: move to into AllowCollect
     if (isAllowCollect) {
         RunIoCollectionTask();
         RunUCollectionStatTask();
         LoadHitraceService();
+        RunHiviewMonitorTask();
     }
     if (isAllowCollect || Parameter::IsDeveloperMode()) {
         RunCpuCollectionTask();
@@ -453,6 +501,7 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         unifiedCollectorPtr->RunCpuCollectionTask();
         unifiedCollectorPtr->RunIoCollectionTask();
         unifiedCollectorPtr->RunUCollectionStatTask();
+        unifiedCollectorPtr->RunHiviewMonitorTask();
         LoadHitraceService();
     } else {
         isUCollectionSwitchOn = false;
@@ -575,11 +624,10 @@ void UnifiedCollector::RunRecordTraceTask()
 
 void UnifiedCollector::RunHiviewMonitorTask()
 {
-    if (workPath_.empty() || isHiviewPerfMonitorRunning_.load() || CACHE_LOW_MEM_THRESHOLD == 0) {
+    if (workPath_.empty() || isHiviewPerfMonitorRunning_.load() || HIVIEW_CACHE_LOW_MEM_THRESHOLD == 0) {
         HIVIEW_LOGE("Hiview Monitor Task prerequisites are not met.");
         return;
     }
-    HIVIEW_LOGE("Hiview Monitor running."); // TD : rm
     isHiviewPerfMonitorRunning_.store(true);
     auto task = [this] { this->HiviewPerfMonitorFfrtTask(); };
     ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_hiviewMonitor").qos(ffrt::qos_default));
@@ -598,60 +646,19 @@ void UnifiedCollector::HiviewPerfMonitorFfrtTask()
     int cacheDuration = 0;
     while (!UseCacheTimeQuota(traceBehaviorController, HIVEW_PERF_MONITOR_INTERVAL)) {
         auto nextDay = GetNextDay();
-        // HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
         ffrt::this_task::sleep_until(nextDay);
     }
-    while (true) {
+    while (isHiviewPerfMonitorRunning_.load()) {
         CollectResult<SysMemory> data = collector->CollectSysMemory();
-        bool targetCacheState = data.data.memAvailable < CACHE_LOW_MEM_THRESHOLD;
-        HIVIEW_LOGI("target cache state: %{public}d, current cache state: %{public}d", targetCacheState, isCacheOn); // TD : rm
+        bool targetCacheState = data.data.memAvailable < HIVIEW_CACHE_LOW_MEM_THRESHOLD;
         if (targetCacheState != isCacheOn) {
-            if (targetCacheState) {
-                TraceErrorCode ret = OHOS::HiviewDFX::Hitrace::CacheTraceOn(100, 10);
-                isCacheOn = (ret == TraceErrorCode::SUCCESS);
-                cacheDuration = 0;
-            } else {
-                cacheOffCountdown--;
-                if (cacheOffCountdown == 0) {
-                    isCacheOn = false;
-                    // cache off 
-                    OHOS::HiviewDFX::Hitrace::CacheTraceOff();
-                }
-            }
+            SetTraceCacheState(isCacheOn, targetCacheState, cacheDuration, cacheOffCountdown);
+        } else {
+            cacheOffCountdown = CACHE_OFF_CONDITION_COUNTDOWN;
         }
-        struct timespec bts = {0, 0};
-        clock_gettime(CLOCK_BOOTTIME, &bts);
-        uint64_t startTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
-        ffrt::this_task::sleep_for(5s); // 5s: monitoring interval
-        clock_gettime(CLOCK_BOOTTIME, &bts);
-        uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
-        int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
-        if (isCacheOn) {
-            if (!UseCacheTimeQuota(traceBehaviorController, timeDiff)) {
-                // cache off, 
-                isCacheOn = false;
-                OHOS::HiviewDFX::Hitrace::CacheTraceOff();
-                // wait for next day
-                auto nextDay = GetNextDay();
-                // HIVIEW_LOGI("Monitor thread sleeps until next day, %{public}s", TimePointToString(nextDay).c_str());
-                ffrt::this_task::sleep_until(nextDay);
-            } else {
-                cacheDuration += timeDiff;
-                if (cacheDuration >= HITRACE_CACHE_DURATION_LIMIT_PER_EVENT) {
-                    isCacheOn = false;
-                    OHOS::HiviewDFX::Hitrace::CacheTraceOff();
-                    HIVIEW_LOGI("Reach cache duration limit, wait until returning to normal state");
-                    do {
-                        ffrt::this_task::sleep_for(30s); // 30s: wait for normal interval
-                        data = collector->CollectSysMemory();
-                    } while (data.data.memAvailable < CACHE_LOW_MEM_THRESHOLD);
-                    ffrt::this_task::sleep_for(5s);
-                } else {
-                    cacheOffCountdown = 2;
-                }
-            }
-        }
+        SleepAndUpdateCacheStatus(isCacheOn, cacheDuration, traceBehaviorController);
     }
+    HIVIEW_LOGE("exit hiview monitor task");
 }
 } // namespace HiviewDFX
 } // namespace OHOS

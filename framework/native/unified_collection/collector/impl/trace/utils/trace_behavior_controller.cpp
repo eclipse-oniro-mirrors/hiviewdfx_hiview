@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -108,16 +108,15 @@ TraceBehaviorController::TraceBehaviorController()
     auto ret = NativeRdb::E_OK;
     dbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
     if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to init db store, db store path=%{public}s", dbStorePath.c_str());
+        HIVIEW_LOGW("failed to init db store, db store path=%{public}s", dbStorePath.c_str());
         dbStore_ = nullptr;
     }
 }
 
 bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
 {
-    HIVIEW_LOGE("GetDbRecord");
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGW("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
@@ -125,27 +124,25 @@ bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
     predicates.EqualTo(COLUMN_DATE, behaviorRecord.dateNum);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_USED_QUOTA});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME_BEHAVIOR.c_str());
+        HIVIEW_LOGW("failed to query from table %{public}s, db is null", TABLE_NAME_BEHAVIOR.c_str());
         return false;
     }
 
     if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         resultSet->GetInt(0, behaviorRecord.usedQuota); // 0 means used_quota field
     } else {
-        HIVIEW_LOGE("Fail to get record for date %{public}d, set usedQuota to 0", behaviorRecord.dateNum);
+        HIVIEW_LOGW("Fail to get record for date %{public}d, set usedQuota to 0", behaviorRecord.dateNum);
         behaviorRecord.usedQuota = 0;
         return false;
     }
     resultSet->Close();
-    HIVIEW_LOGE("GetDbRecord success");
     return true;
 }
 
 bool TraceBehaviorController::InsertRecord(BehaviorRecord &behaviorRecord)
 {
-    HIVIEW_LOGE("InsertDbRecord");
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGW("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
     }
     NativeRdb::ValuesBucket bucket;
@@ -157,13 +154,11 @@ bool TraceBehaviorController::InsertRecord(BehaviorRecord &behaviorRecord)
         HIVIEW_LOGW("failed to insert table");
         return false;
     }
-    HIVIEW_LOGE("InsertDbRecord success");
     return true;
 }
 
 bool TraceBehaviorController::UpdateRecord(BehaviorRecord &behaviorRecord)
 {
-    HIVIEW_LOGE("UpdateDbRecord");
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
@@ -177,23 +172,7 @@ bool TraceBehaviorController::UpdateRecord(BehaviorRecord &behaviorRecord)
         HIVIEW_LOGW("failed to update table");
         return false;
     }
-    HIVIEW_LOGE("UpdateDbRecord success, changed rows = %{public}d", changedRows);
     return true;
 }
-
-// void TraceBehaviorController::RemoveRecord(BehaviorRecord &behaviorRecord)
-// {
-//     if (dbStore_ == nullptr) {
-//         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
-//         return;
-//     }
-//     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
-//     predicates.EqualTo(COLUMN_BEHAVIOR_ID, behaviorRecord.behaviorId);
-//     predicates.EqualTo(COLUMN_DATE, behaviorRecord.dateNum);
-//     int32_t deleteRows = 0;
-//     if (dbStore_->Delete(deleteRows, predicates) != NativeRdb::E_OK) {
-//         HIVIEW_LOGW("failed to delete table");
-//     }
-// }
 } // namespace HiviewDFX
 } // namespace OHOS

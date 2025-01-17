@@ -70,13 +70,21 @@ ohos_source_set("unified_collector") {
     "samgr:samgr_proxy",
   ]
 
+  defines = []
+
   if (power_manager_enable) {
     external_deps += [
       "common_event_service:cesfwk_innerkits",
       "power_manager:powermgr_client",
     ]
     sources += [ "power/power_status_manager.cpp" ]
-    defines = [ "POWER_MANAGER_ENABLE" ]
+    defines += [ "POWER_MANAGER_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_low_mem_threshold != 0) {
+    defines += [
+      "HIVIEW_LOW_MEM_THRESHOLD=${hiview_unified_collector_low_mem_threshold}",
+    ]
   }
 
   part_name = "hiview"
