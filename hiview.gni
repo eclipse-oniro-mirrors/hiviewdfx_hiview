@@ -131,4 +131,5 @@ declare_args() {
   hiview_unified_collector_wm_enable = true
   hiview_unified_collector_process_enable = true
   hiview_unified_collector_trace_enable = true
+  hiview_unified_collector_low_mem_threshold = 0
 }

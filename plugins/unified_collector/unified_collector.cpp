@@ -14,6 +14,7 @@
  */
 #include "unified_collector.h"
 
+#include <ctime>
 #include <memory>
 
 #include "app_caller_event.h"
@@ -25,15 +26,24 @@
 #include "hitrace_dump.h"
 #include "hiview_logger.h"
 #include "io_collector.h"
+#include "memory_collector.h"
 #include "parameter_ex.h"
 #include "plugin_factory.h"
 #include "process_status.h"
 #include "sys_event.h"
 #include "time_util.h"
+#include "trace_behavior_controller.h"
+#include "trace_cache_monitor.h"
 #include "trace_flow_controller.h"
 #include "trace_manager.h"
 #include "uc_observer_mgr.h"
 #include "unified_collection_stat.h"
+
+#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
+constexpr int32_t HIVIEW_CACHE_LOW_MEM_THRESHOLD = HIVIEW_LOW_MEM_THRESHOLD;
+#else
+constexpr int32_t HIVIEW_CACHE_LOW_MEM_THRESHOLD = 0;
+#endif
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -58,6 +68,7 @@ const std::string DEVELOP_TRACE_RECORDER_TRUE = "true";
 const std::string DEVELOP_TRACE_RECORDER_FALSE = "false";
 const std::string HIVIEW_UCOLLECTION_TEST_APP_TRACE_STATE_TRUE = "true";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
+constexpr int32_t HIVEW_PERF_MONITOR_INTERVAL = 5;
 
 const int8_t STATE_COUNT = 2;
 const int8_t COML_STATE = 0;
@@ -332,6 +343,9 @@ void UnifiedCollector::Init()
         RunIoCollectionTask();
         RunUCollectionStatTask();
         LoadHitraceService();
+#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
+        RunHiviewMonitorTask();
+#endif
     }
     if (isAllowCollect || Parameter::IsDeveloperMode()) {
         RunCpuCollectionTask();
@@ -387,6 +401,9 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         unifiedCollectorPtr->RunCpuCollectionTask();
         unifiedCollectorPtr->RunIoCollectionTask();
         unifiedCollectorPtr->RunUCollectionStatTask();
+#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
+        unifiedCollectorPtr->RunHiviewMonitorTask();
+#endif
         LoadHitraceService();
     } else {
         isUCollectionSwitchOn = false;
@@ -397,6 +414,9 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
             unifiedCollectorPtr->workLoop_->RemoveEvent(it);
         }
         unifiedCollectorPtr->taskList_.clear();
+#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
+        unifiedCollectorPtr->ExitHiviewMonitorTask();
+#endif
         ExitHitraceService();
         unifiedCollectorPtr->CleanDataFiles();
     }
@@ -506,5 +526,35 @@ void UnifiedCollector::RunRecordTraceTask()
     int ret = Parameter::WatchParamChange(DEVELOP_HIVIEW_TRACE_RECORDER, OnSwitchRecordTraceStateChanged, this);
     HIVIEW_LOGI("add ucollection trace switch param watcher ret: %{public}d", ret);
 }
+
+#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
+void UnifiedCollector::RunHiviewMonitorTask()
+{
+    if (workPath_.empty() || !isHiviewPerfMonitorExit_.load() || HIVIEW_CACHE_LOW_MEM_THRESHOLD == 0) {
+        HIVIEW_LOGW("Hiview Monitor Task prerequisites are not met.");
+        return;
+    }
+    isHiviewPerfMonitorRunning_.store(true);
+    auto task = [this] { this->HiviewPerfMonitorFfrtTask(); };
+    isHiviewPerfMonitorExit_.store(false);
+    ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_Monitor"));
+}
+
+void UnifiedCollector::ExitHiviewMonitorTask()
+{
+    isHiviewPerfMonitorRunning_.store(false);
+}
+
+void UnifiedCollector::HiviewPerfMonitorFfrtTask()
+{
+    std::shared_ptr<TraceCacheMonitor> traceCacheMonitor =
+        std::make_shared<TraceCacheMonitor>(HIVIEW_CACHE_LOW_MEM_THRESHOLD);
+    while (isHiviewPerfMonitorRunning_.load()) {
+        traceCacheMonitor->RunMonitorCycle(HIVEW_PERF_MONITOR_INTERVAL);
+    }
+    isHiviewPerfMonitorExit_.store(true);
+    HIVIEW_LOGW("exit hiview monitor task");
+}
+#endif // HIVIEW_LOW_MEM_THRESHOLD
 } // namespace HiviewDFX
 } // namespace OHOS

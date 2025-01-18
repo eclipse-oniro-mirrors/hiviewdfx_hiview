@@ -15,6 +15,7 @@
 #ifndef HIVIEW_PLUGINS_UNIFIED_COLLECTOR_INCLUDE_UNIFIED_COLLECTOR_H
 #define HIVIEW_PLUGINS_UNIFIED_COLLECTOR_INCLUDE_UNIFIED_COLLECTOR_H
 
+#include <atomic>
 #include <memory>
 
 #include "app_caller_event.h"
@@ -47,6 +48,9 @@ private:
     void RunUCollectionStatTask();
     void IoCollectionTask();
     void UCollectionStatTask();
+    void RunHiviewMonitorTask();
+    void ExitHiviewMonitorTask();
+    void HiviewPerfMonitorFfrtTask();
     void CleanDataFiles();
     void OnMainThreadJank(SysEvent& sysEvent);
     bool OnStartAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
@@ -60,6 +64,8 @@ private:
     std::shared_ptr<CpuCollectionTask> cpuCollectionTask_;
     std::list<uint64_t> taskList_;
     volatile bool isCpuTaskRunning_;
+    std::atomic<bool> isHiviewPerfMonitorRunning_ = false;
+    std::atomic<bool> isHiviewPerfMonitorExit_ = true;
     static bool isEnableRecordTrace_;
     std::shared_ptr<AppTraceContext> appTraceContext_;
 }; // UnifiedCollector

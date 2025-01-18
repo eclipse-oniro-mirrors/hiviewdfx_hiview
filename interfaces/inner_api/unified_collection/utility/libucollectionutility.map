@@ -16,10 +16,18 @@
       "OHOS::HiviewDFX::UCollectUtil::ProcessCollector::Create()";
       "OHOS::HiviewDFX::UCollectUtil::ThreadCpuCollector::Create(int, bool)";
       "OHOS::HiviewDFX::UCollectUtil::GraphicMemoryCollector::Create()";
+      "OHOS::HiviewDFX::TraceBehaviorController::TraceBehaviorController()";
+      "OHOS::HiviewDFX::TraceBehaviorController::GetRecord(OHOS::HiviewDFX::BehaviorRecord&)";
+      "OHOS::HiviewDFX::TraceBehaviorController::InsertRecord(OHOS::HiviewDFX::BehaviorRecord&)";
+      "OHOS::HiviewDFX::TraceBehaviorController::UpdateRecord(OHOS::HiviewDFX::BehaviorRecord&)";
       "OHOS::HiviewDFX::TraceFlowController::AddNewFinishTask(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
       "OHOS::HiviewDFX::TraceFlowController::CleanAppTrace()";
       "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
       "OHOS::HiviewDFX::TraceFlowController::TraceFlowController()";
+      "OHOS::HiviewDFX::TraceCacheMonitor::TraceCacheMonitor(int)";
+      "OHOS::HiviewDFX::TraceCacheMonitor::~TraceCacheMonitor()";
+      "OHOS::HiviewDFX::TraceCacheMonitor::RunMonitorCycle(int)";
+      "OHOS::HiviewDFX::TraceCacheMonitor::UseCacheTimeQuota(int)";
       "OHOS::HiviewDFX::TraceWorker::GetInstance()";
       "OHOS::HiviewDFX::TraceWorker::HandleUcollectionTask(std::__h::function<void ()>)";
       "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::GetProcessLastForegroundTime(int)";
