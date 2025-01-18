@@ -386,6 +386,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     std::vector<std::string> binderPids;
     WriteFreezeJsonInfo(fd, jsonFd, event, binderPids, threadStack);
     std::for_each(binderPids.begin(), binderPids.end(), [fd] (const std::string& binderPid) {
+        FileUtil::SaveStringToFd(fd, "PeerBinder catcher ffrt stacktrace for pid : " + binderPid + "\r\n");
         LogCatcherUtils::DumpStackFfrt(fd, binderPid);
     });
 
@@ -414,7 +415,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     if (ret != EventLogTask::TASK_SUCCESS) {
         HIVIEW_LOGE("capture fail %{public}d", ret);
     }
-    SetEventTerminalBinder(event, threadStack, std::move(logTask));
+    SetEventTerminalBinder(event, threadStack, logTask->terminalThreadStack_);
     CollectMemInfo(fd, event);
     FreezeCommon::WriteStartInfoToFd(fd, "start collect ctabilityGetTempFreqInfo: ");
     FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
@@ -424,7 +425,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
 }
 
 void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
-    std::unique_ptr<EventLogTask>&& logTask)
+    const std::string& terminalThreadStack)
 {
     std::string pbEventKey = "";
     long pid = event->GetEventIntValue("PID") ? event->GetEventIntValue("PID") : event->GetPid();
@@ -449,7 +450,7 @@ void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const 
             terminalBinder_.happenTime = happenTime;
             terminalBinder_.processName = processName;
             terminalBinder_.pid = pid;
-            terminalBinder_.threadStack = logTask->terminalThreadStack_;
+            terminalBinder_.threadStack = (eventName == "THREAD_BLOCK_3S") ? threadStack : terminalThreadStack;
         } else if (terminalBinder_.pid == pid && terminalBinder_.processName == processName &&
             terminalBinder_.eventName == pbEventConfig[0] &&
             happenTime - terminalBinder_.happenTime <= std::stoull(pbEventConfig[1])) {
@@ -457,7 +458,7 @@ void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const 
         }
         terminalBindeMutex_.unlock();
     } else {
-        event->SetEventValue("TERMINAL_THREAD_STACK", logTask->terminalThreadStack_);
+        event->SetEventValue("TERMINAL_THREAD_STACK", terminalThreadStack);
     }
 }
 

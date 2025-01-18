@@ -14,6 +14,7 @@
  */
 #include "dmesg_catcher.h"
 
+#include <cstdio>
 #include <string>
 #include <sys/klog.h>
 #include <unistd.h>
