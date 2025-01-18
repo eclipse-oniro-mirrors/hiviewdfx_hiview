@@ -101,7 +101,7 @@ private:
     std::string StabilityGetTempFreqInfo();
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
     void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
-        std::unique_ptr<EventLogTask>&& logTask);
+        const std::string& terminalThreadStack);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
