@@ -51,7 +51,7 @@ void GetExpiredFileNames(std::vector<std::string>& dest, const std::string& scan
         auto currentTime = static_cast<int64_t>(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC);
         HIVIEW_LOGD("current time: %{public}" PRIu64 ", file last modified time: %{public}" PRIu64 "", currentTime,
             fileModifyTime);
-        if (std::abs(fileModifyTime - currentTime) > storedDayCnt * DAY_TO_SECONDS) {
+        if (static_cast<uint64_t>(std::abs(fileModifyTime - currentTime)) > storedDayCnt * DAY_TO_SECONDS) {
             dest.emplace_back(scannedFile);
         }
     }
