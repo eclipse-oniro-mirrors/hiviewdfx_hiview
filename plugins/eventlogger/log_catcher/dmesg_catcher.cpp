@@ -14,6 +14,7 @@
  */
 #include "dmesg_catcher.h"
 
+#include <cstdio>
 #include <string>
 #include <sys/klog.h>
 #include <unistd.h>
@@ -126,13 +127,18 @@ std::string DmesgCatcher::DmesgSaveTofile()
         return fullPath;
     }
 
-    auto fd = open(fullPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_LOG_FILE_MODE);
-    if (fd < 0) {
-        HIVIEW_LOGI("Fail to create %s.", fullPath.c_str());
+    FILE* fp = fopen(fullPath.c_str(), "w");
+    chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
+    if (fp == nullptr) {
+        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fullPath.c_str(), errno);
         return "";
     }
+    auto fd = fileno(fp);
     bool dumpRet = DumpDmesgLog(fd);
-    close(fd);
+    if (fclose(fp)) {
+        HIVIEW_LOGE("fclose is failed");
+    }
+    fp = nullptr;
 
     if (!dumpRet) {
         return "";

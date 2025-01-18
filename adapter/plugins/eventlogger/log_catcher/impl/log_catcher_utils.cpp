@@ -14,6 +14,7 @@
  */
 #include "log_catcher_utils.h"
 
+#include <cstdio>
 #include <fcntl.h>
 #include <map>
 #include <memory>
@@ -91,10 +92,10 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
             break;
         }
     }
-    int fd = -1;
+    FILE* fp = nullptr;
     std::string realPath = "";
     if (FileUtil::PathToRealPath(targetPath, realPath)) {
-        fd = open(realPath.c_str(), O_WRONLY | O_APPEND);
+        fp = fopen(realPath.c_str(), "a");
     } else {
         std::string procName = CommonUtils::GetProcFullNameByPid(pid);
         if (procName.empty()) {
@@ -105,11 +106,13 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
         std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
         std::string logName = procName + "-" + formatTime + filterName;
         realPath = logPath + logName;
-        fd = open(realPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_LOG_FILE_MODE);
+        fp = fopen(realPath.c_str(), "w+");
+        chmod(realPath.c_str(), DEFAULT_LOG_FILE_MODE);
     }
-    if (fd >= 0) {
-        FileUtil::SaveStringToFd(fd, msg);
-        close(fd);
+    if (fp != nullptr) {
+        FileUtil::SaveStringToFile(realPath, msg);
+        (void)fclose(fp);
+        fp = nullptr;
         return 0;
     }
     return -1;
