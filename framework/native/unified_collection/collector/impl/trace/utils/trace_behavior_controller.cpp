@@ -52,12 +52,12 @@ int32_t CreateTraceBehaviorControlTable(NativeRdb::RdbStore& rdbStore)
      * |-----|-------------|-----------|------------|
      * | id  | behavior_id | task_date | used_quota |
      * |-----|-------------|-----------|------------|
-     * | INT |    INT32    |   INT32   |   INT32    |
+     * | INT |    INT32    |   TEXT    |   INT32    |
      * |-----|-------------|-----------|------------|
      */
     const std::vector<std::pair<std::string, std::string>> fields = {
         {COLUMN_BEHAVIOR_ID, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_DATE, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_DATE, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_USED_QUOTA, SqlUtil::COLUMN_TYPE_INT},
     };
     std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME_BEHAVIOR, fields);
@@ -93,7 +93,7 @@ NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 {
     NativeRdb::ValuesBucket bucket;
     bucket.PutInt(COLUMN_BEHAVIOR_ID, behaviorRecord.behaviorId);
-    bucket.PutInt(COLUMN_DATE, behaviorRecord.dateNum);
+    bucket.PutString(COLUMN_DATE, behaviorRecord.dateNum);
     bucket.PutInt(COLUMN_USED_QUOTA, behaviorRecord.usedQuota);
     return bucket;
 }
@@ -131,7 +131,7 @@ bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
     if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         resultSet->GetInt(0, behaviorRecord.usedQuota); // 0 means used_quota field
     } else {
-        HIVIEW_LOGW("Fail to get record for date %{public}d, set usedQuota to 0", behaviorRecord.dateNum);
+        HIVIEW_LOGW("Fail to get record for date %{public}s, set usedQuota to 0", behaviorRecord.dateNum.c_str());
         behaviorRecord.usedQuota = 0;
         return false;
     }
@@ -147,7 +147,7 @@ bool TraceBehaviorController::InsertRecord(BehaviorRecord &behaviorRecord)
     }
     NativeRdb::ValuesBucket bucket;
     bucket.PutInt(COLUMN_BEHAVIOR_ID, behaviorRecord.behaviorId);
-    bucket.PutInt(COLUMN_DATE, behaviorRecord.dateNum);
+    bucket.PutString(COLUMN_DATE, behaviorRecord.dateNum);
     bucket.PutInt(COLUMN_USED_QUOTA, behaviorRecord.usedQuota);
     int64_t seq = 0;
     if (dbStore_->Insert(seq, TABLE_NAME_BEHAVIOR, bucket) != NativeRdb::E_OK) {

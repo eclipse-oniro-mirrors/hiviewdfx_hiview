@@ -49,6 +49,7 @@ private:
     void IoCollectionTask();
     void UCollectionStatTask();
     void RunHiviewMonitorTask();
+    void ExitHiviewMonitorTask();
     void HiviewPerfMonitorFfrtTask();
     void CleanDataFiles();
     void OnMainThreadJank(SysEvent& sysEvent);
@@ -64,6 +65,7 @@ private:
     std::list<uint64_t> taskList_;
     volatile bool isCpuTaskRunning_;
     std::atomic<bool> isHiviewPerfMonitorRunning_;
+    std::atomic<bool> isHiviewPerfMonitorExit_;
     static bool isEnableRecordTrace_;
     std::shared_ptr<AppTraceContext> appTraceContext_;
 }; // UnifiedCollector

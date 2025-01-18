@@ -26,7 +26,7 @@ enum BEHAVOIR_ID {
 
 struct BehaviorRecord {
     int32_t behaviorId = 0;
-    int32_t dateNum = 0;
+    std::string dateNum;
     int32_t usedQuota = 0;
 };
 
@@ -36,7 +36,6 @@ public:
     ~TraceBehaviorController() = default;
 
 public:
-    bool InitDb();
     bool GetRecord(BehaviorRecord &behaviorRecord);
     bool InsertRecord(BehaviorRecord &behaviorRecord);
     bool UpdateRecord(BehaviorRecord &behaviorRecord);

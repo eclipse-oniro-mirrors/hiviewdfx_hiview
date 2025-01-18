@@ -24,6 +24,10 @@
       "OHOS::HiviewDFX::TraceFlowController::CleanAppTrace()";
       "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
       "OHOS::HiviewDFX::TraceFlowController::TraceFlowController()";
+      "OHOS::HiviewDFX::TraceCacheMonitor::TraceCacheMonitor(int)";
+      "OHOS::HiviewDFX::TraceCacheMonitor::~TraceCacheMonitor()";
+      "OHOS::HiviewDFX::TraceCacheMonitor::RunMonitorCircle(int)";
+      "OHOS::HiviewDFX::TraceCacheMonitor::UseCacheTimeQuota(int)";
       "OHOS::HiviewDFX::TraceWorker::GetInstance()";
       "OHOS::HiviewDFX::TraceWorker::HandleUcollectionTask(std::__h::function<void ()>)";
       "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::GetProcessLastForegroundTime(int)";
