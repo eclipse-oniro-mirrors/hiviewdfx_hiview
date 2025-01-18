@@ -382,7 +382,11 @@ void EventLogTask::SysrqCapture(bool isWriteNewFile)
     auto capture = std::make_shared<DmesgCatcher>();
     capture->Initialize("", isWriteNewFile, 1);
     capture->Init(event_);
-    tasks_.push_back(capture);
+    if (isWriteNewFile) {
+        capture->WriteNewSysrq();
+    } else {
+        tasks_.push_back(capture);
+    }
 }
 #endif // DMESG_CATCHER_ENABLE
 
@@ -451,7 +455,12 @@ void EventLogTask::MemoryUsageCapture()
 {
     auto capture = std::make_shared<MemoryCatcher>();
     capture->Initialize("", 0, 0);
-    tasks_.push_back(capture);
+    if (!memoryCatched) {
+        tasks_.push_back(capture);
+        memoryCatched = true;
+    } else {
+        capture->CollectMemInfo();
+    }
 }
 
 void EventLogTask::CpuUsageCapture()

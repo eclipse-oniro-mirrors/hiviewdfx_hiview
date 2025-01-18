@@ -46,10 +46,10 @@ DmesgCatcher::DmesgCatcher() : EventLogCatcher()
 }
 
 bool DmesgCatcher::Initialize(const std::string& packageNam  __UNUSED,
-    int isWriteNewFile  __UNUSED, int intParam)
+    int isWriteNewFile __UNUSED, int needWriteSysrq)
 {
     isWriteNewFile_ = isWriteNewFile;
-    needWriteSysrq_ = intParam;
+    needWriteSysrq_ = needWriteSysrq;
     return true;
 }
 
@@ -116,31 +116,32 @@ bool DmesgCatcher::WriteSysrq()
     return true;
 }
 
-std::string DmesgCatcher::DmesgSaveTofile()
+void DmesgCatcher::DmesgSaveTofile()
 {
     auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
     std::string sysrqTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
     std::string fullPath = std::string(FULL_DIR) + "sysrq-" + sysrqTime + ".log";
     if (FileUtil::FileExists(fullPath)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fullPath.c_str());
-        return fullPath;
+        return;
     }
 
-    auto fd = open(fullPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_LOG_FILE_MODE);
-    if (fd < 0) {
-        HIVIEW_LOGI("Fail to create %s.", fullPath.c_str());
-        return "";
+    FILE* fp = fopen(fullPath.c_str(), "w");
+    chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
+    if (fp == nullptr) {
+        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fullPath.c_str(), errno);
+        return;
     }
+    auto fd = fileno(fp);
     bool dumpRet = DumpDmesgLog(fd);
-    close(fd);
-
-    if (!dumpRet) {
-        return "";
+    if (fclose(fp)) {
+        HIVIEW_LOGE("fclose is failed");
     }
-    if (event_ != nullptr) {
+    fp = nullptr;
+
+    if (dumpRet && event_ != nullptr) {
         event_->SetEventValue("SYSRQ_TIME", sysrqTime);
     }
-    return fullPath;
 }
 
 int DmesgCatcher::Catch(int fd, int jsonFd)
@@ -148,24 +149,19 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
     if (needWriteSysrq_ && !WriteSysrq()) {
         return 0;
     }
-
-    description_ = needWriteSysrq_ ? "\nSysrqCatcher -- " : "DmesgCatcher -- ";
-
+    description_ = needWriteSysrq_ ? "\nSysrqCatcher -- \n" : "DmesgCatcher -- \n";
     auto originSize = GetFdSize(fd);
-    if (isWriteNewFile_) {
-        std::string fullPath = DmesgSaveTofile();
-        if (fullPath.empty()) {
-            return 0;
-        }
-        description_ += "fullPath:" + fullPath + "\n";
-        FileUtil::SaveStringToFd(fd, description_);
-    } else {
-        description_ += "\n";
-        FileUtil::SaveStringToFd(fd, description_);
-        DumpDmesgLog(fd);
-    }
+    FileUtil::SaveStringToFd(fd, description_);
+    DumpDmesgLog(fd);
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
+}
+
+void DmesgCatcher::WriteNewSysrq()
+{
+    if (!needWriteSysrq_ || WriteSysrq()) {
+        DmesgSaveTofile();
+    }
 }
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX

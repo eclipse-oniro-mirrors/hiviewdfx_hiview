@@ -100,6 +100,7 @@ private:
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
+    bool memoryCatched = false;
     void MemoryUsageCapture();
     void CpuUsageCapture();
     void WMSUsageCapture();
