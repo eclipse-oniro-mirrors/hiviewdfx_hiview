@@ -162,7 +162,6 @@ long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
 bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
 {
     if (onEvent == nullptr) {
-        HIVIEW_LOGE("event == nullptr");
         return false;
     }
 #ifdef WINDOW_MANAGER_ENABLE
@@ -197,14 +196,16 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     }
 
     sysEvent->OnPending();
-    auto task = [this, sysEvent]() {
+    auto task = [this, sysEvent, eventName] {
         HIVIEW_LOGI("time:%{public}" PRIu64 " jsonExtraInfo is %{public}s", TimeUtil::GetMilliseconds(),
             sysEvent->AsJsonStr().c_str());
         if (!JudgmentRateLimiting(sysEvent)) {
             return;
         }
 #ifdef WINDOW_MANAGER_ENABLE
-        this->StartFfrtDump(sysEvent);
+        if (eventName == "GET_DISPLAY_SNAPSHOT" || eventName == "CREATE_VIRTUAL_SCREEN") {
+            queue_->submit([this, sysEvent] { this->StartFfrtDump(sysEvent); }, ffrt::task_attr().name("ffrt_dump"));
+        }
 #endif
         this->StartLogCollect(sysEvent);
     };
@@ -240,10 +241,6 @@ int EventLogger::GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, 
 #ifdef WINDOW_MANAGER_ENABLE
 void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 {
-    if (event->eventName_ != "GET_DISPLAY_SNAPSHOT" && event->eventName_ != "CREATE_VIRTUAL_SCREEN") {
-        return;
-    }
-
     std::vector<Rosen::MainWindowInfo> windowInfos;
     Rosen::WindowManagerLite::GetInstance().GetMainWindowInfos(TOP_WINDOW_NUM, windowInfos);
     if (windowInfos.size() == 0) {
@@ -404,7 +401,14 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
         logTask->AddLog("S");
     }
     for (const std::string& cmd : cmdList) {
+        if (cmd == "tr" || cmd == "k:SysRqFile") {
+            queue_->submit([this, &logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
+            continue;
+        }
         logTask->AddLog(cmd);
+        if (cmd == "cmd:m") {
+            queue_->submit([this, &logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
+        }
     }
 
     auto ret = logTask->StartCompose();
@@ -763,9 +767,6 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
 void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int originFd,
     const std::string& kernelStack)
 {
-    if (kernelStack.empty()) {
-        return;
-    }
     uint64_t logTime = event->happenTime_ / TimeUtil::SEC_TO_MILLISEC;
     std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
     int32_t pid = static_cast<int32_t>(event->GetEventIntValue("PID"));
@@ -829,7 +830,6 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
         WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
-        WriteKernelStackToFile(event, fd, kernelStack);
     } else if (FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
     } else {
@@ -839,12 +839,14 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             stack = GetAppFreezeFile(stack);
             std::string tempStack = "";
             GetNoJsonStack(tempStack, stack, kernelStack, false);
-            WriteKernelStackToFile(event, fd, kernelStack);
             stack = tempStack;
         }
         GetFailedDumpStackMsg(stack, event);
     }
-
+    if (!kernelStack.empty()) {
+        queue_->submit([this, event, fd, kernelStack] { this->WriteKernelStackToFile(event, fd, kernelStack); },
+            ffrt::task_attr().name("write_kernel_stack"));
+    }
     std::ostringstream oss;
     oss << "MSG = " << msg << std::endl;
     if (!stack.empty()) {
@@ -1117,7 +1119,7 @@ void EventLogger::OnLoad()
     SetName("EventLogger");
     SetVersion("1.0");
     LogStoreSetting();
-    this->queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
+    queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
         "EventLogger_queue",
         ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_TASK_MAX_CONCURRENCY_NUM));
     threadLoop_ = GetWorkLoop();

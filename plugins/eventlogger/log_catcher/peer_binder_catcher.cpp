@@ -99,7 +99,10 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
         FileUtil::SaveStringToFd(fd, content);
     }
 #ifdef HAS_HIPERF
-    DumpHiperf(syncPids);
+    if (Parameter::IsBetaVersion()) {
+        ffrt::submit([this, syncPids] { this->DumpHiperf(syncPids); }, {}, {},
+            ffrt::task_attr().name("dump_hiperf").qos(ffrt::qos_default));
+    }
 #endif
     std::string pidStr = "";
     for (auto pidTemp : syncPids) {
@@ -397,11 +400,6 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids)
 #if defined(__aarch64__)
     if (perfCmd_.empty()) {
         HIVIEW_LOGI("BinderPeer perf is not configured.");
-        return;
-    }
-
-    if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGI("BinderPeer perf is only enabled in beta version.");
         return;
     }
 
