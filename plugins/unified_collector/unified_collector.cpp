@@ -39,8 +39,6 @@
 #include "uc_observer_mgr.h"
 #include "unified_collection_stat.h"
 
-#define HIVIEW_LOW_MEM_THRESHOLD 2024000
-
 #if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
 constexpr int32_t HIVIEW_CACHE_LOW_MEM_THRESHOLD = HIVIEW_LOW_MEM_THRESHOLD;
 #else
@@ -539,7 +537,7 @@ void UnifiedCollector::RunHiviewMonitorTask()
     isHiviewPerfMonitorRunning_.store(true);
     auto task = [this] { this->HiviewPerfMonitorFfrtTask(); };
     isHiviewPerfMonitorExit_.store(false);
-    ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_hiviewMonitor"));
+    ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_Monitor"));
 }
 
 void UnifiedCollector::ExitHiviewMonitorTask()
@@ -549,9 +547,10 @@ void UnifiedCollector::ExitHiviewMonitorTask()
 
 void UnifiedCollector::HiviewPerfMonitorFfrtTask()
 {
-    std::shared_ptr<TraceCacheMonitor> traceCacheMonitor = std::make_shared<TraceCacheMonitor>(HIVIEW_CACHE_LOW_MEM_THRESHOLD);
+    std::shared_ptr<TraceCacheMonitor> traceCacheMonitor =
+        std::make_shared<TraceCacheMonitor>(HIVIEW_CACHE_LOW_MEM_THRESHOLD);
     while (isHiviewPerfMonitorRunning_.load()) {
-        traceCacheMonitor->RunMonitorCircle(HIVEW_PERF_MONITOR_INTERVAL);
+        traceCacheMonitor->RunMonitorCycle(HIVEW_PERF_MONITOR_INTERVAL);
     }
     isHiviewPerfMonitorExit_.store(true);
     HIVIEW_LOGW("exit hiview monitor task");

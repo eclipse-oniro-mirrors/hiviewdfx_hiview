@@ -29,7 +29,7 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("TraceBehaviorController");
 namespace {
 const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
-const std::string DB_NAME = "trace_behavior";
+const std::string DB_NAME = "trace_flow_control";
 constexpr int32_t DB_VERSION = 1;
 const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_controller";
 const std::string COLUMN_ID = "id";
@@ -133,6 +133,7 @@ bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
     } else {
         HIVIEW_LOGW("Fail to get record for date %{public}s, set usedQuota to 0", behaviorRecord.dateNum.c_str());
         behaviorRecord.usedQuota = 0;
+        resultSet->Close();
         return false;
     }
     resultSet->Close();

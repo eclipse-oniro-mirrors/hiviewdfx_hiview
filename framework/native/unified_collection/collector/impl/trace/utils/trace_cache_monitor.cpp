@@ -15,7 +15,7 @@
 
 #include "trace_cache_monitor.h"
 
-#include <time.h>
+#include <ctime>
 
 #include "ffrt.h"
 #include "hitrace_dump.h"
@@ -51,13 +51,6 @@ std::chrono::system_clock::time_point GetNextDay()
     return std::chrono::system_clock::from_time_t(nextDayTime);
 }
 }  // namespace
-
-// TraceCacheMonitor::TraceCacheMonitor()
-// {
-//     collector_ = UCollectUtil::MemoryCollector::Create();
-//     CollectResult<SysMemory> data = collector_->CollectSysMemory();
-//     lowMemThreshold_ = data.data.memTotal / 100; // default 1%
-// }
 
 TraceCacheMonitor::TraceCacheMonitor(int32_t lowMemThreshold)
 {
@@ -101,11 +94,6 @@ void TraceCacheMonitor::CountDownCacheOff()
     }
 }
 
-bool TraceCacheMonitor::IsCacheOn()
-{
-    return isCacheOn_;
-}
-
 bool TraceCacheMonitor::IsLowMemState()
 {
     CollectResult<SysMemory> data = collector_->CollectSysMemory();
@@ -130,7 +118,7 @@ bool TraceCacheMonitor::UseCacheTimeQuota(int32_t interval)
     return true;
 }
 
-void TraceCacheMonitor::RunMonitorCircle(int32_t interval)
+void TraceCacheMonitor::RunMonitorCycle(int32_t interval)
 {
     bool isTargetCacheOn = IsLowMemState();
     if (isWaitingForNormal_) {

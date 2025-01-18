@@ -64,8 +64,8 @@ private:
     std::shared_ptr<CpuCollectionTask> cpuCollectionTask_;
     std::list<uint64_t> taskList_;
     volatile bool isCpuTaskRunning_;
-    std::atomic<bool> isHiviewPerfMonitorRunning_;
-    std::atomic<bool> isHiviewPerfMonitorExit_;
+    std::atomic<bool> isHiviewPerfMonitorRunning_ = false;
+    std::atomic<bool> isHiviewPerfMonitorExit_ = true;
     static bool isEnableRecordTrace_;
     std::shared_ptr<AppTraceContext> appTraceContext_;
 }; // UnifiedCollector

@@ -26,13 +26,12 @@ class TraceCacheMonitor {
 public:
     TraceCacheMonitor(int32_t lowMemThreshold);
     ~TraceCacheMonitor();
-    void RunMonitorCircle(int32_t interval);
+    void RunMonitorCycle(int32_t interval);
     bool UseCacheTimeQuota(int32_t usedQuota);
 private:
     void SetCacheOn();
     void SetCacheOff();
     void CountDownCacheOff();
-    bool IsCacheOn();
     bool IsLowMemState();
     void SleepandUpdateCacheStatus(int32_t interval);
 
@@ -44,7 +43,7 @@ private:
     bool isWaitingForNormal_ = false;
     int32_t cacheDuration_ = 0;
     int32_t cacheOffCountdown_ = 0;
-}; 
+};
 
 } // namespace HiviewDFX
 } // namespace OHOS
