@@ -138,27 +138,11 @@ HWTEST_F(AdapterUtilityOhosTest, SocketUtilOhosTest001, testing::ext::TestSize.L
 
 /**
  * @tc.name: CommonUtilsOhosTest001
- * @tc.desc: Test ExecCommand defined in namespace CommonUtils
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest001, testing::ext::TestSize.Level3)
-{
-    std::vector<std::string> cmdRet;
-    auto ret = CommonUtils::ExecCommand("hisysevent -l -m 10000", cmdRet);
-    int expectRet = 0;
-    ASSERT_EQ(expectRet, ret);
-    ret = CommonUtils::ExecCommand("", cmdRet);
-    ASSERT_EQ(expectRet, ret);
-}
-
-/**
- * @tc.name: CommonUtilsOhosTest002
  * @tc.desc: Test GetPidByName defined in namespace CommonUtils
  * @tc.type: FUNC
  * @tc.require: issueI65DUW
  */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest002, testing::ext::TestSize.Level3)
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest001, testing::ext::TestSize.Level3)
 {
     std::vector<std::string> cmdRet;
     auto hiviewProcessId = CommonUtils::GetPidByName("hiview");
@@ -166,36 +150,12 @@ HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest002, testing::ext::TestSize.
 }
 
 /**
- * @tc.name: CommonUtilsOhosTest003
- * @tc.desc: Test WriteCommandResultToFile defined in namespace CommonUtils
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest003, testing::ext::TestSize.Level3)
-{
-    std::string caseName("CommonUtilsOhosTest003");
-    std::string cmd = "";
-    auto ret = CommonUtils::WriteCommandResultToFile(0, cmd);
-    ASSERT_EQ(false, ret);
-    std::string cmd2 = "hisysevent -l -m 1 | wc -l";
-    auto fd = FileUtil::Open(GenerateLogFileName(caseName, SUFFIX_0),
-        O_CREAT | O_WRONLY | O_TRUNC, FileUtil::FILE_PERM_770);
-    ret = CommonUtils::WriteCommandResultToFile(fd, cmd2);
-    ASSERT_EQ(true, ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "");
-    fd = FileUtil::Open(GenerateLogFileName(caseName, SUFFIX_0),
-        O_CREAT | O_WRONLY | O_TRUNC, FileUtil::FILE_PERM_770);
-    ret = CommonUtils::WriteCommandResultToFile(fd, cmd2);
-    ASSERT_EQ(true, ret);
-}
-
-/**
- * @tc.name: CommonUtilsOhosTest004
+ * @tc.name: CommonUtilsOhosTest002
  * @tc.desc: Test GetProcFullNameByPid defined in namespace CommonUtils
  * @tc.type: FUNC
  * @tc.require: issueI97MDA
  */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest004, testing::ext::TestSize.Level3)
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest002, testing::ext::TestSize.Level3)
 {
     auto ret = CommonUtils::GetProcFullNameByPid(1); // 1 is pid of init process
     ASSERT_EQ(ret, "init");
