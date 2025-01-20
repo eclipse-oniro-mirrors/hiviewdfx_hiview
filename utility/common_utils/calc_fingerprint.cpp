@@ -109,6 +109,8 @@ int CalcFingerprint::CalcFileShaOriginal(const string& filePath, unsigned char *
     unique_ptr<void, DlCloseDeleter> handle(dlopen(LIB_NAME, RTLD_LAZY));
     if (!handle) {
         HIVIEW_LOGE("dlopen %{public}s failed, %{public}s.", LIB_NAME, dlerror());
+        fclose(fp);
+        fp = nullptr;
         return EINVAL;
     }
     auto sha256Init = reinterpret_cast<int (*)(SHA256_CTX *c)>(dlsym(handle.get(), SHA256_INIT_FUNC_NAME));
@@ -118,6 +120,8 @@ int CalcFingerprint::CalcFileShaOriginal(const string& filePath, unsigned char *
         SHA256_FINAL_FUNC_NAME));
     if (!sha256Init || !sha256Update || !sha256Final) {
         HIVIEW_LOGE("dlsym failed, %{public}s.", dlerror());
+        fclose(fp);
+        fp = nullptr;
         return EINVAL;
     }
 
