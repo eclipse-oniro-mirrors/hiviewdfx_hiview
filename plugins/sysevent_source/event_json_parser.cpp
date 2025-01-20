@@ -245,5 +245,12 @@ void EventJsonParser::ReadDefFile(const std::string& defFilePath)
     ParseSysEventDef(hiSysEventDef, tmpMap);
     sysEventDefMap_ = tmpMap;
 }
+
+void EventJsonParser::OnConfigUpdate(const std::string& defFilePath)
+{
+    // update privacy at first, because event define file depends on privacy config
+    PrivacyManager::OnConfigUpdate();
+    ReadDefFile(defFilePath);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

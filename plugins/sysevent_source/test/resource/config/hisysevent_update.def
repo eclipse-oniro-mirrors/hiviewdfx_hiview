@@ -1,0 +1,47 @@
+{
+    "FIRST_TEST_DOMAIN": {
+        "FIRST_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "tag": "FIRST_TEST_CASE",
+                "desc": "test",
+                "privacy": 2,
+                "preserve": false
+            },
+            "FIRST_TEST_PARAM": {
+                "type": "INT32",
+                "desc": "param1"
+            }
+        }
+    },
+    "SECOND_TEST_DOMAIN": {
+        "SECOND_TEST_NAME": {
+            "__BASE": {
+                "type": "FAULT",
+                "level": "CRITICAL",
+                "tag": "SECOND_TEST_CASE",
+                "desc": "test"
+            },
+            "SECOND_TEST_PARAM": {
+                "type": "INT32",
+                "desc": "second_param"
+            }
+        }
+    },
+    "THIRD_TEST_DOMAIN": {
+        "THIRD_TEST_NAME": {
+            "__BASE": {
+                "type": "FAULT",
+                "level": "CRITICAL",
+                "tag": "SECOND_TEST_CASE",
+                "privacy": 1,
+                "desc": "test"
+            },
+            "SECOND_TEST_PARAM": {
+                "type": "INT32",
+                "desc": "second_param"
+            }
+        }
+    }
+}
