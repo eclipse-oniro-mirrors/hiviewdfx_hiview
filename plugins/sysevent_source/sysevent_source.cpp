@@ -228,7 +228,7 @@ bool SysEventSource::CheckEvent(std::shared_ptr<Event> event)
     if (isConfigUpdated_) {
         auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
         HIVIEW_LOGI("update json parser with %{public}s", defFilePath.c_str());
-        sysEventParser_->ReadDefFile(defFilePath);
+        sysEventParser_->OnConfigUpdate(defFilePath);
         isConfigUpdated_.store(false);
     }
     std::shared_ptr<SysEvent> sysEvent = Convert2SysEvent(event);

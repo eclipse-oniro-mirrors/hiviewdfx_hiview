@@ -55,6 +55,7 @@ public:
     int GetTypeByDomainAndName(const std::string& domain, const std::string& name) const;
     bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name) const;
     void ReadDefFile(const std::string& defFilePath);
+    void OnConfigUpdate(const std::string& defFilePath);
     BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name) const;
 
 private:

@@ -25,9 +25,9 @@ public:
     IPrivacyController() = default;
     virtual ~IPrivacyController() = default;
     virtual bool IsAllowed(
-        const std::string& domain, uint8_t type, const std::string& level, uint8_t privacy) const = 0;
-    virtual bool IsAllowed(uint8_t level, uint8_t privacy) const = 0;
-    virtual bool IsPrivacyAllowed(uint8_t privacy) const = 0;
+        const std::string& domain, uint8_t type, const std::string& level, uint8_t privacy) = 0;
+    virtual bool IsAllowed(uint8_t level, uint8_t privacy) = 0;
+    virtual bool IsPrivacyAllowed(uint8_t privacy) = 0;
     virtual void OnConfigUpdate();
 };
 } // namespace HiviewDFX
