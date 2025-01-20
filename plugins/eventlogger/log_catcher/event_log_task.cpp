@@ -455,9 +455,9 @@ void EventLogTask::MemoryUsageCapture()
 {
     auto capture = std::make_shared<MemoryCatcher>();
     capture->Initialize("", 0, 0);
-    if (!memoryCatched) {
+    if (!memoryCatched_) {
         tasks_.push_back(capture);
-        memoryCatched = true;
+        memoryCatched_ = true;
     } else {
         capture->CollectMemInfo();
     }
