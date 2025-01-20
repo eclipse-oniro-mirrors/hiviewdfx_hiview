@@ -17,6 +17,7 @@
 #include "collect_result.h"
 #include "file_util.h"
 #include "hiview_logger.h"
+#include "memory_collector.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -33,14 +34,14 @@ bool MemoryCatcher::Initialize(const std::string& strParam1, int intParam1, int 
 {
     // this catcher do not need parameters, just return true
     description_ = "MemoryCatcher --\n";
-    collector_ = MemoryCollector::Create();
     return true;
 };
 
 int MemoryCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
-    CollectResult<SysMemory> result = collector_->CollectSysMemory();
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    CollectResult<SysMemory> result = collector->CollectSysMemory();
     if (result.retCode == UcError::SUCCESS) {
         std::string pressMemInfo = "";
         FileUtil::LoadStringFromFile("/proc/pressure/memory", pressMemInfo);
@@ -62,9 +63,10 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
 void MemoryCatcher::CollectMemInfo()
 {
     HIVIEW_LOGI("Collect rawMemInfo and export memView start");
-    collector_->CollectRawMemInfo();
-    collector_->ExportMemView();
-    HIVIEW_LOGI("Collect MemInfo end");
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    collector->CollectRawMemInfo();
+    collector->ExportMemView();
+    HIVIEW_LOGI("Collect rawMemInfo and export memView end");
 }
 #endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX

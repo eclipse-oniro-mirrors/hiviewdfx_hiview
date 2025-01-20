@@ -404,8 +404,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     EXPECT_EQ(ret, true);
     ret = dmesgCatcher->WriteSysrq();
     EXPECT_EQ(ret, true);
-    std::string res = dmesgCatcher->DmesgSaveTofile();
-    printf("DmesgSaveTofile size: %zu\n", res.size());
+    dmesgCatcher->DmesgSaveTofile();
     close(fd);
 }
 #endif // DMESG_CATCHER_ENABLE

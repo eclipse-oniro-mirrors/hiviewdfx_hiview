@@ -16,7 +16,6 @@
 #define EVENT_LOGGER_MEMORY_CATCHER
 
 #include <string>
-#include "memory_collector.h"
 
 #include "event_log_catcher.h"
 namespace OHOS {
@@ -29,8 +28,6 @@ public:
     bool Initialize(const std::string& strParam1, int intParam1, int intParam2) override;
     int Catch(int fd, int jsonFd) override;
     void CollectMemInfo();
-private:
-    std::shared_ptr<UCollectUtil::MemoryCollector> collector_ = nullptr;
 };
 #endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX
