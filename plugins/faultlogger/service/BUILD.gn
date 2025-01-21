@@ -36,9 +36,9 @@ ohos_source_set("faultlogger_service_ability") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -68,9 +68,9 @@ ohos_source_set("faultlogger_service_ability_with_cfi") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -107,6 +107,7 @@ ohos_source_set("faultlogger_service") {
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "faultloggerd:crash_exception",
     "ffrt:libffrt",
@@ -156,6 +157,7 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "faultloggerd:crash_exception",
     "ffrt:libffrt",
@@ -202,6 +204,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "faultloggerd:crash_exception",
     "ffrt:libffrt",

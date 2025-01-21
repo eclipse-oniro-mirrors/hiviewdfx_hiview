@@ -20,8 +20,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "cJSON.h"
 #include "event.h"
-#include "json/json.h"
 #include "plugin.h"
 #include "sys_event.h"
 
@@ -88,7 +88,7 @@ private:
     void ReportEventToAppEvent(const FaultLogInfo& info);
     bool CheckFaultLog(FaultLogInfo info);
     void CheckFaultLogAsync(const FaultLogInfo& info);
-    void FillHilog(const std::string &hilogStr, Json::Value &hilog) const;
+    void FillHilog(const std::string &hilogStr, cJSON* hilog) const;
     void FaultlogLimit(const std::string &logPath, int32_t faultType) const;
     FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent) const;
     void AddBootScanEvent();

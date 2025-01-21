@@ -35,7 +35,6 @@
 #include "event_publish.h"
 #include "hilog/log.h"
 #include "hisysevent.h"
-#include "json/json.h"
 #include "securec.h"
 #include "string_ex.h"
 #include "parameters.h"

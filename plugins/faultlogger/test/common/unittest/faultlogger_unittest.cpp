@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "bundle_mgr_client.h"
+#include "cJSON.h"
 #include "event.h"
 #include "faultlog_util.h"
 #include "faultlog_database.h"
@@ -44,7 +45,6 @@
 #include "hiview_logger.h"
 #include "hiview_platform.h"
 #include "ipc_skeleton.h"
-#include "json/json.h"
 #include "log_analyzer.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
@@ -114,26 +114,45 @@ public:
     };
     void TearDown() {};
 
+    static bool isStringEmptyOrNone(cJSON* jsonItem)
+    {
+        if (jsonItem == nullptr || (jsonItem->type != cJSON_String)) {
+            return true;
+        }
+        const char* value = jsonItem->valuestring;
+        return (value == nullptr || strcmp(value, "") == 0 || strcmp(value, "none") == 0);
+    }
+
     static void CheckSumarryParseResult(std::string& info, int& matchCount)
     {
-        Json::Reader reader;
-        Json::Value appEvent;
-        if (!(reader.parse(info, appEvent))) {
+        cJSON* appEvent  = cJSON_Parse(info.c_str());
+        if (appEvent == nullptr) {
             matchCount--;
         }
-        auto exception = appEvent["exception"];
-        GTEST_LOG_(INFO) << "========name:" << exception["name"];
-        if (exception["name"] == "" || exception["name"] == "none") {
+        cJSON* exception = cJSON_GetObjectItem(appEvent, "exception");
+        if (exception == nullptr) {
+            GTEST_LOG_(INFO) << "get exception failed.";
+            return;
+        }
+
+        cJSON* nameItem = cJSON_GetObjectItem(exception, "name");
+        GTEST_LOG_(INFO) << "========name:" << (nameItem ? nameItem->valuestring : "null");
+        if (isStringEmptyOrNone(nameItem)) {
             matchCount--;
         }
-        GTEST_LOG_(INFO) << "========message:" << exception["message"];
-        if (exception["message"] == "" || exception["message"] == "none") {
+
+        cJSON* messageItem = cJSON_GetObjectItem(exception, "message");
+        GTEST_LOG_(INFO) << "========message:" << (messageItem ? messageItem->valuestring : "null");
+        if (isStringEmptyOrNone(messageItem)) {
             matchCount--;
         }
-        GTEST_LOG_(INFO) << "========stack:" << exception["stack"];
-        if (exception["stack"] == "" || exception["stack"] == "none") {
+
+        cJSON* stackItem = cJSON_GetObjectItem(exception, "stack");
+        GTEST_LOG_(INFO) << "========stack:" << (stackItem ? stackItem->valuestring : "null");
+        if (isStringEmptyOrNone(stackItem)) {
             matchCount--;
         }
+        cJSON_Delete(appEvent);
     }
 
     static int CheckKeyWordsInFile(const std::string& filePath, std::string *keywords, int length, bool isJsError)

@@ -42,9 +42,11 @@
 
 #include "accesstoken_kit.h"
 #include "bundle_mgr_client.h"
+#include "cJSON.h"
 #include "common_utils.h"
 #include "constants.h"
 #include "crash_exception.h"
+#include "dfx_bundle_util.h"
 #include "event.h"
 #include "event_publish.h"
 #include "faultlog_formatter.h"
@@ -54,12 +56,13 @@
 #include "faultlogger_adapter.h"
 #include "ffrt.h"
 #include "file_util.h"
+#include "freeze_json_generator.h"
+#include "freeze_json_util.h"
 #include "hisysevent.h"
 #include "hiview_global.h"
-#include "ipc_skeleton.h"
-#include "json/json.h"
-#include "log_analyzer.h"
 #include "hiview_logger.h"
+#include "ipc_skeleton.h"
+#include "log_analyzer.h"
 #include "parameter_ex.h"
 #include "plugin_factory.h"
 #include "process_status.h"
@@ -67,9 +70,6 @@
 #include "string_util.h"
 #include "sys_event_dao.h"
 #include "time_util.h"
-#include "dfx_bundle_util.h"
-#include "freeze_json_generator.h"
-#include "freeze_json_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -226,9 +226,9 @@ void ParseJsErrorSummary(std::string& summary, std::string& name, std::string& m
     message = leftStr;
 }
 
-void FillJsErrorParams(std::string summary, Json::Value &params)
+void FillJsErrorParams(std::string& summary, cJSON* params)
 {
-    Json::Value exception;
+    cJSON* exception = cJSON_CreateObject();
     std::string name = "";
     std::string message = "";
     std::string stack = "";
@@ -247,10 +247,10 @@ void FillJsErrorParams(std::string summary, Json::Value &params)
             }
         }
     } while (false);
-    exception["name"] = name;
-    exception["message"] = message;
-    exception["stack"] = stack;
-    params["exception"] = exception;
+    cJSON_AddStringToObject(exception, "name", name.c_str());
+    cJSON_AddStringToObject(exception, "message", message.c_str());
+    cJSON_AddStringToObject(exception, "stack", stack.c_str());
+    cJSON_AddItemToObject(params, "exception", exception);
 }
 
 static bool IsSystemProcess(const std::string &processName, int32_t uid)
@@ -271,6 +271,26 @@ void ProcessKernelSnapshot(FaultLogInfo& info)
     info.dumpLogToFautlogger = false;
     info.reportToAppEvent = false;
     info.logPath = GetCppCrashTempLogName(info);
+}
+
+void ReportJsOrCjErrorEvent(const std::shared_ptr<SysEvent>& sysEvent, const std::string& paramsStr,
+                            FaultLogType faultType)
+{
+    HIVIEW_LOGD("ReportAppEvent: uid:%{public}d, json:%{public}s.", sysEvent->GetUid(), paramsStr.c_str());
+
+#ifdef UNITTEST
+    std::string outputFilePath = (faultType == FaultLogType::JS_CRASH) ?
+        "/data/test_jsError_info" : "/data/test_cjError_info";
+    if (!FileUtil::FileExists(outputFilePath)) {
+        int fd = TEMP_FAILURE_RETRY(open(outputFilePath.c_str(), O_CREAT | O_RDWR | O_APPEND, DEFAULT_LOG_FILE_MODE));
+        if (fd != -1) {
+            close(fd);
+        }
+    }
+    FileUtil::SaveStringToFile(outputFilePath, paramsStr, false);
+#else
+    EventPublish::GetInstance().PushEvent(sysEvent->GetUid(), APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, paramsStr);
+#endif
 }
 } // namespace
 
@@ -674,7 +694,7 @@ bool Faultlogger::CanProcessEvent(std::shared_ptr<Event> event)
     return true;
 }
 
-void Faultlogger::FillHilog(const std::string &hilogStr, Json::Value &hilog) const
+void Faultlogger::FillHilog(const std::string &hilogStr, cJSON* hilog) const
 {
     if (hilogStr.empty()) {
         HIVIEW_LOGE("Get hilog is empty");
@@ -683,58 +703,56 @@ void Faultlogger::FillHilog(const std::string &hilogStr, Json::Value &hilog) con
     std::stringstream logStream(hilogStr);
     std::string oneLine;
     for (int count = 0; count < REPORT_HILOG_LINE && getline(logStream, oneLine); count++) {
-        hilog.append(oneLine);
+        cJSON* oneLineItem = cJSON_CreateString(oneLine.c_str());
+        if (oneLineItem == nullptr) {
+            HIVIEW_LOGW("create cJSON by oneLine failed.");
+            continue;
+        }
+        cJSON_AddItemToArray(hilog, oneLineItem);
     }
 }
 
 void Faultlogger::ReportJsOrCjErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent, FaultLogType faultType) const
 {
+    std::string paramsStr;
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("SUMMARY"));
     HIVIEW_LOGD("ReportAppEvent:summary:%{public}s.", summary.c_str());
-
-    Json::Value params;
-    params["time"] = sysEvent->happenTime_;
+    cJSON* params = cJSON_CreateObject();
+    cJSON_AddNumberToObject(params, "time", sysEvent->happenTime_);
     if (faultType == FaultLogType::JS_CRASH) {
-        params["crash_type"] = "JsError";
+        cJSON_AddStringToObject(params, "crash_type", "JsError");
     } else {
-        params["crash_type"] = "CjError";
+        cJSON_AddStringToObject(params, "crash_type", "CjError");
     }
+
     std::string foreground = sysEvent->GetEventValue("FOREGROUND");
-    params["foreground"] = (foreground == "Yes") ? true : false;
-    Json::Value externalLog(Json::arrayValue);
+    cJSON_AddBoolToObject(params, "foreground", (foreground == "Yes") ? true : false);
+
+    cJSON* externalLog = cJSON_CreateArray();
     std::string logPath = sysEvent->GetEventValue("LOG_PATH");
     if (!logPath.empty()) {
-        externalLog.append(logPath);
+        cJSON* logPathItem = cJSON_CreateString(logPath.c_str());
+        cJSON_AddItemToArray(externalLog, logPathItem);
     }
-    params["external_log"] = externalLog;
-    params["bundle_version"] = sysEvent->GetEventValue("VERSION");
-    params["bundle_name"] = sysEvent->GetEventValue("PACKAGE_NAME");
-    params["pid"] = sysEvent->GetPid();
-    params["uid"] = sysEvent->GetUid();
-    params["uuid"] = sysEvent->GetEventValue("FINGERPRINT");
-    params["app_running_unique_id"] = sysEvent->GetEventValue("APP_RUNNING_UNIQUE_ID");
+    cJSON_AddItemToObject(params, "external_log", externalLog);
+    cJSON_AddStringToObject(params, "bundle_version", sysEvent->GetEventValue("VERSION").c_str());
+    cJSON_AddStringToObject(params, "bundle_name", sysEvent->GetEventValue("PACKAGE_NAME").c_str());
+    cJSON_AddNumberToObject(params, "pid", sysEvent->GetPid());
+    cJSON_AddNumberToObject(params, "uid", sysEvent->GetUid());
+    cJSON_AddStringToObject(params, "uuid", sysEvent->GetEventValue("FINGERPRINT").c_str());
+    cJSON_AddStringToObject(params, "app_running_unique_id", sysEvent->GetEventValue("APP_RUNNING_UNIQUE_ID").c_str());
     FillJsErrorParams(summary, params);
     std::string log;
-    Json::Value hilog(Json::arrayValue);
+    cJSON* hilog  = cJSON_CreateArray();
     GetHilog(sysEvent->GetPid(), log);
     FillHilog(log, hilog);
-    params["hilog"] = hilog;
-    std::string paramsStr = Json::FastWriter().write(params);
-    HIVIEW_LOGD("ReportAppEvent: uid:%{public}d, json:%{public}s.",
-        sysEvent->GetUid(), paramsStr.c_str());
-#ifdef UNITTEST
-    std::string outputFilePath = (faultType == FaultLogType::JS_CRASH) ?
-        "/data/test_jsError_info" : "/data/test_cjError_info";
-    if (!FileUtil::FileExists(outputFilePath)) {
-        int fd = TEMP_FAILURE_RETRY(open(outputFilePath.c_str(), O_CREAT | O_RDWR | O_APPEND, DEFAULT_LOG_FILE_MODE));
-        if (fd != -1) {
-            close(fd);
-        }
-    }
-    FileUtil::SaveStringToFile(outputFilePath, paramsStr, false);
-#else
-    EventPublish::GetInstance().PushEvent(sysEvent->GetUid(), APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, paramsStr);
-#endif
+    cJSON_AddItemToObject(params, "hilog", hilog);
+    char* paramsChar = cJSON_Print(params);
+    paramsStr = paramsChar;
+    free(paramsChar);
+    paramsChar = nullptr;
+    cJSON_Delete(params);
+    ReportJsOrCjErrorEvent(sysEvent, paramsStr, faultType);
 }
 
 void Faultlogger::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) const
@@ -742,22 +760,27 @@ void Faultlogger::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) 
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("SUMMARY"));
     HIVIEW_LOGD("ReportSanitizerAppEvent:summary:%{public}s.", summary.c_str());
 
-    Json::Value params;
-    params["time"] = sysEvent->happenTime_;
-    params["type"] = sysEvent->GetEventValue("REASON");
-    Json::Value externalLog(Json::arrayValue);
+    cJSON* params = cJSON_CreateObject();
+    cJSON_AddNumberToObject(params, "time", sysEvent->happenTime_);
+    cJSON_AddStringToObject(params, "type", sysEvent->GetEventValue("REASON").c_str());
+    cJSON* externalLog = cJSON_CreateArray();
     std::string logPath = sysEvent->GetEventValue("LOG_PATH");
     if (!logPath.empty()) {
-        externalLog.append(logPath);
+        cJSON* logPathItem = cJSON_CreateString(logPath.c_str());
+        cJSON_AddItemToArray(externalLog, logPathItem);
     }
-    params["external_log"] = externalLog;
-    params["bundle_version"] = sysEvent->GetEventValue("VERSION");
-    params["bundle_name"] = sysEvent->GetEventValue("MODULE");
-    params["pid"] = sysEvent->GetPid();
-    params["uid"] = sysEvent->GetUid();
-    std::string paramsStr = Json::FastWriter().write(params);
+    cJSON_AddItemToObject(params, "external_log", externalLog);
+    cJSON_AddStringToObject(params, "bundle_version", sysEvent->GetEventValue("VERSION").c_str());
+    cJSON_AddStringToObject(params, "bundle_name", sysEvent->GetEventValue("MODULE").c_str());
+    cJSON_AddNumberToObject(params, "pid", sysEvent->GetPid());
+    cJSON_AddNumberToObject(params, "uid", sysEvent->GetUid());
+    char* paramsChar = cJSON_Print(params);
     HIVIEW_LOGD("ReportSanitizerAppEvent: uid:%{public}d, json:%{public}s.",
-        sysEvent->GetUid(), paramsStr.c_str());
+        sysEvent->GetUid(), paramsChar);
+    std::string paramsStr = paramsChar;
+    free(paramsChar);
+    paramsChar = nullptr;
+    cJSON_Delete(params);
     EventPublish::GetInstance().PushEvent(sysEvent->GetUid(), "ADDRESS_SANITIZER",
         HiSysEvent::EventType::FAULT, paramsStr);
 }
@@ -991,32 +1014,37 @@ void Faultlogger::GetStackInfo(const FaultLogInfo& info, std::string& stackInfo)
     }
     std::string stackInfoOriginal(buffer, nread);
     delete []buffer;
-    Json::Reader reader;
-    Json::Value stackInfoObj;
-    if (!reader.parse(stackInfoOriginal, stackInfoObj)) {
+    cJSON* stackInfoObj  = cJSON_Parse(stackInfoOriginal.c_str());
+    if (stackInfoObj == nullptr) {
         HIVIEW_LOGE("parse stackInfo failed");
         return;
     }
-    stackInfoObj["bundle_name"] = info.module;
-    Json::Value externalLog;
-    externalLog.append(info.logPath);
-    stackInfoObj["external_log"] = externalLog;
+    cJSON_AddStringToObject(stackInfoObj, "bundle_name", info.module.c_str());
+    cJSON* externalLog  = cJSON_CreateArray();
+    cJSON* logPathItem = cJSON_CreateString(info.logPath.c_str());
+    cJSON_AddItemToArray(externalLog, logPathItem);
+    cJSON_AddItemToObject(stackInfoObj, "external_log", externalLog);
     if (info.sectionMap.count("VERSION") == 1) {
-        stackInfoObj["bundle_version"] = info.sectionMap.at("VERSION");
+        cJSON_AddStringToObject(stackInfoObj, "bundle_version", info.sectionMap.at("VERSION").c_str());
     }
     if (info.sectionMap.count("FOREGROUND") == 1) {
-        stackInfoObj["foreground"] = (info.sectionMap.at("FOREGROUND") == "Yes") ? true : false;
+        cJSON_AddBoolToObject(stackInfoObj, "foreground", (info.sectionMap.at("FOREGROUND") == "Yes") ? true : false);
     }
     if (info.sectionMap.count("FINGERPRINT") == 1) {
-        stackInfoObj["uuid"] = info.sectionMap.at("FINGERPRINT");
+        cJSON_AddStringToObject(stackInfoObj, "uuid", info.sectionMap.at("FINGERPRINT").c_str());
     }
+
     if (info.sectionMap.count("HILOG") == 1) {
-        Json::Value hilog(Json::arrayValue);
+        cJSON* hilog  = cJSON_CreateArray();
         auto hilogStr = info.sectionMap.at("HILOG");
         FillHilog(hilogStr, hilog);
-        stackInfoObj["hilog"] = hilog;
+        cJSON_AddItemToObject(stackInfoObj, "hilog", hilog);
     }
-    stackInfo.append(Json::FastWriter().write(stackInfoObj));
+    char* stackChar = cJSON_Print(stackInfoObj);
+    stackInfo = stackChar;
+    free(stackChar);
+    stackChar = nullptr;
+    cJSON_Delete(stackInfoObj);
 }
 
 int Faultlogger::DoGetHilogProcess(int32_t pid, int writeFd)
@@ -1108,7 +1136,6 @@ bool Faultlogger::GetHilog(int32_t pid, std::string& log) const
         HIVIEW_LOGI("read hilog start");
         ReadHilog(fds[0], log);
         syscall(SYS_close, fds[0]);
-
         if (TEMP_FAILURE_RETRY(waitpid(childPid, nullptr, 0)) != childPid) {
             HIVIEW_LOGE("waitpid fail, pid: %{public}d, errno: %{public}d", childPid, errno);
             return false;
