@@ -23,6 +23,7 @@
 #include "cpu_collection_task.h"
 #include "plugin.h"
 #include "sys_event.h"
+#include "trace_cache_monitor.h"
 #include "unified_collection_stat.h"
 
 namespace OHOS {
@@ -48,9 +49,8 @@ private:
     void RunUCollectionStatTask();
     void IoCollectionTask();
     void UCollectionStatTask();
-    void RunHiviewMonitorTask();
-    void ExitHiviewMonitorTask();
-    void HiviewPerfMonitorFfrtTask();
+    void RunCacheMonitorLoop();
+    void ExitCacheMonitorLoop();
     void CleanDataFiles();
     void OnMainThreadJank(SysEvent& sysEvent);
     bool OnStartAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
@@ -62,10 +62,9 @@ private:
 private:
     std::string workPath_;
     std::shared_ptr<CpuCollectionTask> cpuCollectionTask_;
+    std::shared_ptr<TraceCacheMonitor> traceCacheMonitor_;
     std::list<uint64_t> taskList_;
     volatile bool isCpuTaskRunning_;
-    std::atomic<bool> isHiviewPerfMonitorRunning_ = false;
-    std::atomic<bool> isHiviewPerfMonitorExit_ = true;
     static bool isEnableRecordTrace_;
     std::shared_ptr<AppTraceContext> appTraceContext_;
 }; // UnifiedCollector

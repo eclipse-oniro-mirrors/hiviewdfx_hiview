@@ -17,18 +17,30 @@
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_CACHE_MONITOR_H
 
 #include "memory_collector.h"
-#include "trace_behavior_controller.h"
+#include "trace_behavior_recorder.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
+namespace {
+enum TraceCacheMonitorState {
+    EXIT = 0,
+    RUNNING = 1,
+    INTERRUPT = 2,
+};
+}
+
 class TraceCacheMonitor {
 public:
-    TraceCacheMonitor(int32_t lowMemThreshold);
+    TraceCacheMonitor();
     ~TraceCacheMonitor();
+    void SetLowMemThreshold(int32_t threshold);
+    void RunMonitorLoop();
+    void ExitMonitorLoop();
+private:
+    void MonitorFfrtTask();
     void RunMonitorCycle(int32_t interval);
     bool UseCacheTimeQuota(int32_t usedQuota);
-private:
     void SetCacheOn();
     void SetCacheOff();
     void CountDownCacheOff();
@@ -36,11 +48,14 @@ private:
     void SleepandUpdateCacheStatus(int32_t interval);
 
 private:
-    TraceBehaviorController behaviorController_;
+    // TraceBehaviorRecorder behaviorRecorder;
+    std::mutex stateMutex_;
+    std::atomic<TraceCacheMonitorState> monitorState_ = EXIT;
     std::shared_ptr<UCollectUtil::MemoryCollector> collector_;
-    int32_t lowMemThreshold_ = 0;
     bool isCacheOn_ = false;
-    bool isWaitingForNormal_ = false;
+    bool isWaitingForRecovery_ = false;
+    int32_t cycleInterval_ = 0;
+    int32_t lowMemThreshold_ = 0;
     int32_t cacheDuration_ = 0;
     int32_t cacheOffCountdown_ = 0;
 };

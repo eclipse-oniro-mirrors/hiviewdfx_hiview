@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
-#define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
+#ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_RECORDER_H
+#define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_RECORDER_H
 
 #include "rdb_store.h"
 
@@ -30,10 +30,10 @@ struct BehaviorRecord {
     int32_t usedQuota = 0;
 };
 
-class TraceBehaviorController {
+class TraceBehaviorRecorder {
 public:
-    TraceBehaviorController();
-    ~TraceBehaviorController() = default;
+    TraceBehaviorRecorder();
+    ~TraceBehaviorRecorder() = default;
 
 public:
     bool GetRecord(BehaviorRecord &behaviorRecord);
@@ -44,4 +44,4 @@ private:
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_CONTROLLER_H
+#endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_RECORDER_H

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "trace_behavior_controller.h"
+#include "trace_behavior_recorder.h"
 
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -26,12 +26,12 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("TraceBehaviorController");
+DEFINE_LOG_TAG("TraceBehaviorRecorder");
 namespace {
 const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
-const std::string DB_NAME = "trace_flow_control";
+const std::string DB_NAME = "trace_flow_control"; // trace_behavior or trace_flow_control
 constexpr int32_t DB_VERSION = 1;
-const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_controller";
+const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_recorder";
 const std::string COLUMN_ID = "id";
 const std::string COLUMN_BEHAVIOR_ID = "behavior_id ";
 const std::string COLUMN_DATE = "task_date";
@@ -39,14 +39,14 @@ const std::string COLUMN_USED_QUOTA = "used_quota";
 
 class TraceBehaviorDbStoreCallback : public NativeRdb::RdbOpenCallback {
 public:
-    int OnCreate(NativeRdb::RdbStore &rdbStore) override;
-    int OnUpgrade(NativeRdb::RdbStore &rdbStore, int oldVersion, int newVersion) override;
+    int32_t OnCreate(NativeRdb::RdbStore &rdbStore) override;
+    int32_t OnUpgrade(NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override;
 };
 
 int32_t CreateTraceBehaviorControlTable(NativeRdb::RdbStore& rdbStore)
 {
     /**
-     * table: trace_behavior_controller
+     * table: trace_behavior_recorder
      *
      * describe: store trace behavior quota
      * |-----|-------------|-----------|------------|
@@ -68,21 +68,21 @@ int32_t CreateTraceBehaviorControlTable(NativeRdb::RdbStore& rdbStore)
     return 0;
 }
 
-int TraceBehaviorDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
+int32_t TraceBehaviorDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
 {
     HIVIEW_LOGD("create dbStore");
     if (auto ret = CreateTraceBehaviorControlTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table trace_flow_control");
+        HIVIEW_LOGE("failed to create table trace_behavior_recorder");
         return ret;
     }
     return NativeRdb::E_OK;
 }
 
-int TraceBehaviorDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
+int32_t TraceBehaviorDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int32_t oldVersion, int32_t newVersion)
 {
     HIVIEW_LOGD("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
     std::string sql = SqlUtil::GenerateDropSql(TABLE_NAME_BEHAVIOR);
-    if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
+    if (int32_t ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_BEHAVIOR.c_str(), ret);
         return -1;
     }
@@ -99,7 +99,7 @@ NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 }
 }
 
-TraceBehaviorController::TraceBehaviorController()
+TraceBehaviorRecorder::TraceBehaviorRecorder()
 {
     std::string dbStorePath = DB_PATH + DB_NAME + ".db";
     NativeRdb::RdbStoreConfig config(dbStorePath);
@@ -108,12 +108,16 @@ TraceBehaviorController::TraceBehaviorController()
     auto ret = NativeRdb::E_OK;
     dbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
     if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGW("failed to init db store, db store path=%{public}s", dbStorePath.c_str());
+        HIVIEW_LOGE("failed to init db store, db store path=%{public}s", dbStorePath.c_str());
         dbStore_ = nullptr;
+    }
+    ret = CreateTraceBehaviorControlTable(*dbStore_);
+    if (ret == NativeRdb::E_OK) {
+        HIVIEW_LOGI("create table %{public}s success", TABLE_NAME_BEHAVIOR.c_str());
     }
 }
 
-bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorRecorder::GetRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGW("db store is null, path=%{public}s", DB_PATH.c_str());
@@ -140,7 +144,7 @@ bool TraceBehaviorController::GetRecord(BehaviorRecord &behaviorRecord)
     return true;
 }
 
-bool TraceBehaviorController::InsertRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorRecorder::InsertRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGW("db store is null, path=%{public}s", DB_PATH.c_str());
@@ -158,7 +162,7 @@ bool TraceBehaviorController::InsertRecord(BehaviorRecord &behaviorRecord)
     return true;
 }
 
-bool TraceBehaviorController::UpdateRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorRecorder::UpdateRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
@@ -168,7 +172,7 @@ bool TraceBehaviorController::UpdateRecord(BehaviorRecord &behaviorRecord)
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
     predicates.EqualTo(COLUMN_BEHAVIOR_ID, behaviorRecord.behaviorId);
     predicates.EqualTo(COLUMN_DATE, behaviorRecord.dateNum);
-    int changedRows = 0;
+    int32_t changedRows = 0;
     if (dbStore_->Update(changedRows, bucket, predicates) != NativeRdb::E_OK) {
         HIVIEW_LOGW("failed to update table");
         return false;
