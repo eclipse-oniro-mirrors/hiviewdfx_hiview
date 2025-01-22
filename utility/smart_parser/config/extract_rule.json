@@ -73,8 +73,8 @@
             {"namespace":"NocTrace", "depend":"BasicParam.v_noc", "matchKey":"adjusted ADDR", "v_address":"adjusted.* = (.*)"},
             {"namespace":"NocTrace", "depend":"BasicParam.v_noc", "matchKey":"USER_SIGNAL =", "v_user_signal":"USER_SIGNAL = 0x[0-9a-z]+ (.*)", "v_cpu":"\\(MID: AP_CPU(\\d+)"},
             {"namespace":"NocTrace", "depend":"BasicParam.v_noc", "matchKey":"sec_val =", "v_security":"(sec_val = 0x[0-9a-f]+)"},
-            {"namespace":"MainCallTrace", "matchKey":"KERNEL CALL STACK", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"},
-            {"namespace":"MainCallTrace", "matchKey":"Stack backtrace:", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"},
+            {"namespace":"MainCallTrace", "matchKey":"[ED_00]Stack backtrace", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"},
+            {"namespace":"MainCallTrace", "matchKey":"bootfail: func: process_panic_event line", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"},
             {"namespace":"MainCallTrace", "depend":"BasicParam", "matchKey":"Call trace:", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"}
         ],
         "segmentRule":[
@@ -169,9 +169,9 @@
         "Subcatalog":"\\d{14}-\\d{8}/ap_log/dmesg-ramoops-0",
         "featureId":"04_PANIC_00",
         "rules":[
-            {"namespace":"BasicParam", "matchKey":"qtp_rsp", "v_cause":"dfx_qic\\]:(.*)", "v_last":"(qtp_rsp.*)"},
+            {"namespace":"BasicParam", "matchKey":"@R@qtp_rsp|master_id|DoRebootPanic", "v_cause":"dfx_qic\\]:(.*)", "v_last":"qtp_rsp.*|master_id\\s*\\|.*|(SceneBoard exits 4times)|(service crashed \\w+ \\d+)$"},
             {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"MID(Master id)", "v_first":"(MID\\(Master id\\).*)"},
-            {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"qic_addr", "v_second":"(qic_addr.*)"}
+            {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"@R@qic_addr|err_addr", "v_second":"(qic_addr.*|err_addr.*)"}
         ]
     },
     "Rule16":{
