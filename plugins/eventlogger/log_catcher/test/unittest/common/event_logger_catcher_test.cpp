@@ -392,7 +392,12 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_002, TestSize.Level1)
  */
 HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
 {
+    auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("DmesgCatcherTest_003",
+        nullptr, jsonStr);
+    event->SetEventValue("SYSRQ_TIME", "20250124");
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
+    dmesgCatcher->Init(event);
     bool ret = dmesgCatcher->DumpDmesgLog(-1);
     EXPECT_EQ(ret, false);
     auto fd = open("/data/test/dmesgCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
@@ -494,7 +499,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level1)
 #ifdef HAS_HIPERF
     std::set<int> pids;
     pids.insert(pid);
-    peerBinderCatcher->DoExecHiperf("peerBinderCatcher", pids);
+    peerBinderCatcher->DoExecHiperf("peerBinderCatcher", pids, pid, "r");
 #endif
     peerBinderCatcher->Initialize("", 0, pid);
     peerBinderCatcher->Initialize("foundation", 0, pid);
@@ -572,8 +577,10 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
 #ifdef HAS_HIPERF
     pids.insert(3);
     pids.insert(4);
-    peerBinderCatcher->DoExecHiperf("peerBinderCatcher", pids);
-    peerBinderCatcher->DumpHiperf(pids);
+    int proPid = getpid();
+    std::string perfCmd = "r";
+    peerBinderCatcher->DoExecHiperf("peerBinderCatcher", pids, proPid, perfCmd);
+    peerBinderCatcher->DumpHiperf(pids, proPid, perfCmd);
 #endif
 }
 
