@@ -336,7 +336,6 @@ void UnifiedCollector::Init()
         LoadHitraceService();
         RunCacheMonitorLoop();
     }
-    RunCacheMonitorLoop(); // TD : rm
     if (isAllowCollect || Parameter::IsDeveloperMode()) {
         RunCpuCollectionTask();
     }
@@ -402,9 +401,7 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
             unifiedCollectorPtr->workLoop_->RemoveEvent(it);
         }
         unifiedCollectorPtr->taskList_.clear();
-#if defined(HIVIEW_LOW_MEM_THRESHOLD) && (HIVIEW_LOW_MEM_THRESHOLD > 0)
         unifiedCollectorPtr->ExitCacheMonitorLoop();
-#endif
         ExitHitraceService();
         unifiedCollectorPtr->CleanDataFiles();
     }
@@ -517,7 +514,6 @@ void UnifiedCollector::RunRecordTraceTask()
 
 void UnifiedCollector::RunCacheMonitorLoop()
 {
-    HIVIEW_LOGI("start to run cache monitor loop"); // TD : rm
     if (traceCacheMonitor_ == nullptr) {
         traceCacheMonitor_ = std::make_shared<TraceCacheMonitor>();
     }
@@ -526,7 +522,6 @@ void UnifiedCollector::RunCacheMonitorLoop()
 
 void UnifiedCollector::ExitCacheMonitorLoop()
 {
-    HIVIEW_LOGI("exit cache monitor loop"); // TD : rm
     if (traceCacheMonitor_ != nullptr) {
         traceCacheMonitor_->ExitMonitorLoop();
     }

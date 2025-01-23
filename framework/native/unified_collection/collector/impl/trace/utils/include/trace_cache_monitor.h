@@ -17,7 +17,7 @@
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_CACHE_MONITOR_H
 
 #include "memory_collector.h"
-#include "trace_behavior_recorder.h"
+#include "trace_behavior_db_helper.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -40,21 +40,18 @@ public:
 private:
     void MonitorFfrtTask();
     void RunMonitorCycle(int32_t interval);
-    bool UseCacheTimeQuota(int32_t usedQuota);
+    bool IsLowMemState();
     void SetCacheOn();
     void SetCacheOff();
     void CountDownCacheOff();
-    bool IsLowMemState();
-    void SleepandUpdateCacheStatus(int32_t interval);
+    bool UseCacheTimeQuota(int32_t usedQuota);
 
 private:
-    // TraceBehaviorRecorder behaviorRecorder;
     std::mutex stateMutex_;
-    std::atomic<TraceCacheMonitorState> monitorState_ = EXIT;
+    TraceCacheMonitorState monitorState_ = EXIT;
     std::shared_ptr<UCollectUtil::MemoryCollector> collector_;
     bool isCacheOn_ = false;
     bool isWaitingForRecovery_ = false;
-    int32_t cycleInterval_ = 0;
     int32_t lowMemThreshold_ = 0;
     int32_t cacheDuration_ = 0;
     int32_t cacheOffCountdown_ = 0;

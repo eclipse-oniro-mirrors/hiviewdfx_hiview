@@ -22,7 +22,6 @@
       "OHOS::HiviewDFX::TraceFlowController::TraceFlowController()";
       "OHOS::HiviewDFX::TraceCacheMonitor::TraceCacheMonitor()";
       "OHOS::HiviewDFX::TraceCacheMonitor::~TraceCacheMonitor()";
-      "OHOS::HiviewDFX::TraceCacheMonitor::SetLowMemThreshold(int)";
       "OHOS::HiviewDFX::TraceCacheMonitor::RunMonitorLoop()";
       "OHOS::HiviewDFX::TraceCacheMonitor::ExitMonitorLoop()";
       "OHOS::HiviewDFX::TraceWorker::GetInstance()";

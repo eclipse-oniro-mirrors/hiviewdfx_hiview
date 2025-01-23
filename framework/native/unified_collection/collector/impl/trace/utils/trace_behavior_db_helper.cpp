@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "trace_behavior_recorder.h"
+#include "trace_behavior_db_helper.h"
 
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -26,12 +26,12 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("TraceBehaviorRecorder");
+DEFINE_LOG_TAG("TraceBehaviorDbHelper");
 namespace {
 const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
-const std::string DB_NAME = "trace_flow_control"; // trace_behavior or trace_flow_control
+const std::string DB_NAME = "trace_flow_control";
 constexpr int32_t DB_VERSION = 1;
-const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_recorder";
+const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_db_helper";
 const std::string COLUMN_ID = "id";
 const std::string COLUMN_BEHAVIOR_ID = "behavior_id ";
 const std::string COLUMN_DATE = "task_date";
@@ -43,10 +43,10 @@ public:
     int32_t OnUpgrade(NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override;
 };
 
-int32_t CreateTraceBehaviorControlTable(NativeRdb::RdbStore& rdbStore)
+int32_t CreateTraceBehaviorDbHelperTable(NativeRdb::RdbStore& rdbStore)
 {
     /**
-     * table: trace_behavior_recorder
+     * table: trace_behavior_db_helper
      *
      * describe: store trace behavior quota
      * |-----|-------------|-----------|------------|
@@ -71,8 +71,8 @@ int32_t CreateTraceBehaviorControlTable(NativeRdb::RdbStore& rdbStore)
 int32_t TraceBehaviorDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
 {
     HIVIEW_LOGD("create dbStore");
-    if (auto ret = CreateTraceBehaviorControlTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table trace_behavior_recorder");
+    if (auto ret = CreateTraceBehaviorDbHelperTable(rdbStore); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table %{public}s", TABLE_NAME_BEHAVIOR.c_str());
         return ret;
     }
     return NativeRdb::E_OK;
@@ -99,7 +99,7 @@ NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 }
 }
 
-TraceBehaviorRecorder::TraceBehaviorRecorder()
+TraceBehaviorDbHelper::TraceBehaviorDbHelper()
 {
     std::string dbStorePath = DB_PATH + DB_NAME + ".db";
     NativeRdb::RdbStoreConfig config(dbStorePath);
@@ -111,16 +111,16 @@ TraceBehaviorRecorder::TraceBehaviorRecorder()
         HIVIEW_LOGE("failed to init db store, db store path=%{public}s", dbStorePath.c_str());
         dbStore_ = nullptr;
     }
-    ret = CreateTraceBehaviorControlTable(*dbStore_);
-    if (ret == NativeRdb::E_OK) {
-        HIVIEW_LOGI("create table %{public}s success", TABLE_NAME_BEHAVIOR.c_str());
+    ret = CreateTraceBehaviorDbHelperTable(*dbStore_);
+    if (ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("create table %{public}s failed", TABLE_NAME_BEHAVIOR.c_str());
     }
 }
 
-bool TraceBehaviorRecorder::GetRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorDbHelper::GetRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGW("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
@@ -128,14 +128,14 @@ bool TraceBehaviorRecorder::GetRecord(BehaviorRecord &behaviorRecord)
     predicates.EqualTo(COLUMN_DATE, behaviorRecord.dateNum);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_USED_QUOTA});
     if (resultSet == nullptr) {
-        HIVIEW_LOGW("failed to query from table %{public}s, db is null", TABLE_NAME_BEHAVIOR.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_NAME_BEHAVIOR.c_str());
         return false;
     }
 
     if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         resultSet->GetInt(0, behaviorRecord.usedQuota); // 0 means used_quota field
     } else {
-        HIVIEW_LOGW("Fail to get record for date %{public}s, set usedQuota to 0", behaviorRecord.dateNum.c_str());
+        HIVIEW_LOGW("fail to get record for date %{public}s, set usedQuota to 0", behaviorRecord.dateNum.c_str());
         behaviorRecord.usedQuota = 0;
         resultSet->Close();
         return false;
@@ -144,10 +144,10 @@ bool TraceBehaviorRecorder::GetRecord(BehaviorRecord &behaviorRecord)
     return true;
 }
 
-bool TraceBehaviorRecorder::InsertRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorDbHelper::InsertRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGW("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
         return false;
     }
     NativeRdb::ValuesBucket bucket;
@@ -162,7 +162,7 @@ bool TraceBehaviorRecorder::InsertRecord(BehaviorRecord &behaviorRecord)
     return true;
 }
 
-bool TraceBehaviorRecorder::UpdateRecord(BehaviorRecord &behaviorRecord)
+bool TraceBehaviorDbHelper::UpdateRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
