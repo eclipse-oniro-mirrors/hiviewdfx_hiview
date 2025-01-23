@@ -52,9 +52,9 @@ private:
     void StartSendingThread();
     void SendEventToSandBox();
     void StartOverLimitThread(int32_t uid, const std::string& eventName,
-                              const std::string& bundleName, Json::Value& eventJson);
+                              const std::string& pathHolder, Json::Value& eventJson);
     void SendOverLimitEventToSandBox(int32_t uid, const std::string& eventName,
-                                     const std::string& bundleName, Json::Value eventJson);
+                                     const std::string& pathHolder, Json::Value eventJson);
 
 private:
     std::mutex mutex_;
