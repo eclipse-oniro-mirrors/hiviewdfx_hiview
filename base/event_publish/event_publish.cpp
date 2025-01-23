@@ -17,7 +17,9 @@
 
 #ifdef APPEVENT_PUBLISH_ENABLE
 #include "bundle_mgr_client.h"
+#include "bundle_mgr_proxy.h"
 #include "file_util.h"
+#include "iservice_registry.h"
 #include "json/json.h"
 #include "hiview_logger.h"
 #include "storage_acl.h"
@@ -29,6 +31,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("HiView-EventPublish");
+constexpr int BUNDLE_MGR_SERVICE_SYS_ABILITY_ID = 401;
 constexpr int VALUE_MOD = 200000;
 constexpr int DELAY_TIME = 30;
 constexpr const char* const PATH_DIR = "/data/log/hiview/system_event_db/events/temp";
@@ -104,42 +107,98 @@ std::string GetBundleNameById(int32_t uid)
     return bundleName;
 }
 
+sptr<AppExecFwk::IBundleMgr> GetBundleManager()
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!systemAbilityManager) {
+        HIVIEW_LOGE("fail to get system ability manager.");
+        return nullptr;
+    }
+    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (!remoteObject) {
+        HIVIEW_LOGE("fail to get bundle manager proxy.");
+        return nullptr;
+    }
+
+    sptr<AppExecFwk::IBundleMgr> bundleManager = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (bundleManager == nullptr) {
+        HIVIEW_LOGW("iface_cast bundleMgr is nullptr, let's try new proxy way.");
+        bundleManager = new (std::nothrow) AppExecFwk::BundleMgrProxy(remoteObject);
+        if (bundleManager == nullptr) {
+            HIVIEW_LOGE("fail to new bundle manager proxy.");
+            return nullptr;
+        }
+    }
+    return bundleManager;
+}
+
+std::string GetPathPlaceHolder(int32_t uid, const std::string& bundleName)
+{
+    sptr<AppExecFwk::IBundleMgr> bundleMgr = GetBundleManager();
+    if (bundleMgr == nullptr) {
+        return bundleName;
+    }
+    std::string curBundleName = "";
+    int32_t curAppIndex = -1;
+    uint64_t beginTime = TimeUtil::GetMilliseconds();
+    ErrCode getAppIndexResult = bundleMgr->GetNameAndIndexForUid(uid, curBundleName, curAppIndex);
+    uint64_t getAppIndexTime = TimeUtil::GetMilliseconds();
+    HIVIEW_LOGI(
+        "bundleMgr->GetNameAndIndexForUid cost %{public}s ms", std::to_string(getAppIndexTime - beginTime).c_str());
+    if (getAppIndexResult != ERR_OK) {
+        HIVIEW_LOGE("GetNameAndIndexForUid failed, ret:%{public}d", getAppIndexResult);
+        return bundleName;
+    }
+    std::string placeHolder;
+    if (curAppIndex == 0) {
+        // the bundleName is mainApp.
+        int userId = uid / VALUE_MOD;
+        AppExecFwk::BundleMgrClient client;
+        AppExecFwk::BundleInfo bundleInfo;
+        bool getInfoResult = client.GetBundleInfo(
+            curBundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+        uint64_t getInfoTime = TimeUtil::GetMilliseconds();
+        HIVIEW_LOGI("client.GetBundleInfo cost %{public}s ms", std::to_string(getInfoTime - getAppIndexTime).c_str());
+        if (!getInfoResult) {
+            HIVIEW_LOGE("fail to get bundleInfo from bms, curBundleName=%{public}s.", curBundleName.c_str());
+            return curBundleName;
+        }
+        if (bundleInfo.entryInstallationFree) {
+            // the bundleName is atomicService.
+            ErrCode getDirResult = client.GetDirByBundleNameAndAppIndex(curBundleName, curAppIndex, placeHolder);
+            HIVIEW_LOGI("client.GetDirByBundleNameAndAppIndex cost %{public}s ms",
+                std::to_string(TimeUtil::GetMilliseconds() - getInfoTime).c_str());
+            if (getDirResult != ERR_OK) {
+                HIVIEW_LOGE("GetDirByBundleNameAndAppIndex failed, ret:%{public}d", getDirResult);
+                return "";
+            }
+            return placeHolder;
+        }
+        return curBundleName;
+    }
+    // the bundleName is cloneApp.
+    return "+clone-" + std::to_string(curAppIndex) + "+" + curBundleName;
+}
+
 std::string GetSandBoxBasePath(int32_t uid, const std::string& bundleName)
 {
     int userId = uid / VALUE_MOD;
-    std::string path = "/data/app/el2/" + std::to_string(userId) + "/base/" + bundleName + "/cache/hiappevent";
-
-    AppExecFwk::BundleMgrClient client;
-    AppExecFwk::BundleInfo bundleInfo;
-    bool getInfoResult = client.GetBundleInfo(
-        bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-    if (!getInfoResult) {
-        HIVIEW_LOGE("Failed to get bundleInfo from bms, bundleName=%{public}s.", bundleName.c_str());
-        return path;
+    std::string placeHolder = GetPathPlaceHolder(uid, bundleName);
+    if (placeHolder.empty()) {
+        return "";
     }
-    if (bundleInfo.entryInstallationFree) {
-        // the bundleName is atomicService.
-        std::string atomicServiceName;
-        ErrCode getDirResult = client.GetDirByBundleNameAndAppIndex(bundleName, bundleInfo.appIndex, atomicServiceName);
-        if (getDirResult != ERR_OK) {
-            HIVIEW_LOGE("GetDirByBundleNameAndAppIndex failed, ret:%{public}d", getDirResult);
-            return "";
-        }
-        path = "/data/app/el2/" + std::to_string(userId) + "/base/" + atomicServiceName + "/cache/hiappevent";
-    }
-    return path;
+    return "/data/app/el2/" + std::to_string(userId) + "/base/" + placeHolder + "/cache/hiappevent";
 }
 
 std::string GetSandBoxLogPath(int32_t uid, const std::string& bundleName, const ExternalLogInfo &externalLogInfo)
 {
     int userId = uid / VALUE_MOD;
-    std::string path;
-    path.append("/data/app/el2/")
-        .append(std::to_string(userId))
-        .append("/log/")
-        .append(bundleName);
-    path.append("/").append(externalLogInfo.subPath_);
-    return path;
+    std::string placeHolder = GetPathPlaceHolder(uid, bundleName);
+    if (placeHolder.empty()) {
+        return "";
+    }
+    return "/data/app/el2/" + std::to_string(userId) + "/log/" + placeHolder + "/" + externalLogInfo.subPath_;
 }
 
 bool CopyExternalLog(int32_t uid, const std::string& externalLog, const std::string& destPath)
