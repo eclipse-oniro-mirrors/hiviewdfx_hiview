@@ -169,7 +169,7 @@
         "Subcatalog":"\\d{14}-\\d{8}/ap_log/dmesg-ramoops-0",
         "featureId":"04_PANIC_00",
         "rules":[
-            {"namespace":"BasicParam", "matchKey":"@R@qtp_rsp|master_id|DoRebootPanic", "v_cause":"dfx_qic\\]:(.*)", "v_last":"(qtp_rsp.*|master_id\\s+\\|.*|SceneBoard exits 4times|service crashed \\w+ \\d+)$"},
+            {"namespace":"BasicParam", "matchKey":"@R@qtp_rsp|master_id|ServiceReap error", "v_cause":"dfx_qic\\]:(.*)", "v_last":"(qtp_rsp.*|master_id\\s+\\|.*|service crashed \\w+ \\d+)$"},
             {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"MID(Master id)", "v_first":"(MID\\(Master id\\).*)"},
             {"namespace":"BasicParam", "depend":"BasicParam.v_cause","matchKey":"@R@qic_addr|err_addr", "v_second":"(qic_addr.*|err_addr.*)"}
         ]
@@ -244,7 +244,7 @@
         "Subcatalog":"hisi_diaginfo.log",
         "featureId":"03_GPU_S_EXCEPTION_00",
         "rules":[
-            {"namespace":"BasicParam", "v_first":"@L@(source_id:0x\\d+|fault:\\d 0x\\d+)", "v_second":"@L@(stream_id:0x\\d+)", "v_last":"@L@(task:.*)\\]"}
+            {"namespace":"BasicParam", "matchKey":"@R@DMD_HIGPU_PAGE_FAULT|DMD_HIGPU_JOB_FAIL", "v_first":"@L@(source_id:0x\\d+|fault:\\d 0x\\d+)", "v_second":"@L@(stream_id:0x\\d+)", "v_last":"@L@(task:.*)\\]"}
         ]
     }
 }
