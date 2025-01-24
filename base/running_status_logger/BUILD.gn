@@ -43,6 +43,7 @@ ohos_source_set("running_status_logger_source") {
 
   sources = [
     "log_file_writer.cpp",
+    "period_file_operator.cpp",
     "running_status_logger.cpp",
   ]
 

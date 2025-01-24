@@ -57,6 +57,17 @@ struct EventParamInfo {
         : allowListFile(allowListFile), throwType(throwType) {}
 };
 
+struct EventPeriodSeqInfo {
+    // formatted time stamp: YYYYMMDDHH
+    std::string timeStamp;
+
+    // tag for event export:
+    bool isNeedExport = false;
+
+    // the sequence of event in current time range
+    uint64_t periodSeq = 0;
+};
+
 // param info of one event, like <paramName, EventParamInfo>
 using PARAM_INFO_MAP_PTR = std::shared_ptr<std::map<std::string, std::shared_ptr<EventParamInfo>>>;
 
@@ -114,6 +125,8 @@ public:
     uint8_t* AsRawData();
     std::string GetSysVersion();
     std::string GetPatchVersion();
+    void SetEventPeriodSeqInfo(const EventPeriodSeqInfo& info);
+    EventPeriodSeqInfo GetEventPeriodSeqInfo();
 
 public:
     template<typename T>
@@ -140,6 +153,7 @@ public:
     int32_t eventType_;
     bool preserve_;
     uint8_t log_;
+    bool collect_ = false;
 
 public:
     static std::atomic<uint32_t> totalCount_;

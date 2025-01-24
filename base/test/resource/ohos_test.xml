@@ -13,12 +13,14 @@
      limitations under the License.
 -->
 <configuration ver="2.0">
-    <target name="DailyControllerTest">
+    <target name="EventJsonParserTest">
         <preparer>
-            <option name="push" value="config/event_threshold.json -> /data/test/hiview/daily_control" src="res"/>
+            <option name="push" value="config/hisysevent.def -> /data/test/hiview/sys_def_parser" src="res"/>
+            <option name="push" value="config/hisysevent_update.def -> /data/test/hiview/sys_def_parser" src="res"/>
+            <option name="push" value="config/hisysevent_with_collect.def -> /data/test/hiview/sys_def_parser" src="res"/>
         </preparer>
         <cleaner>
-            <option name="shell" value="rm -rf /data/test/hiview/daily_control"/>
+            <option name="shell" value="rm -rf /data/test/hiview/sys_def_parser"/>
         </cleaner>
     </target>
 </configuration>

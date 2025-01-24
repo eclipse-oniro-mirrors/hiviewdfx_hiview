@@ -450,6 +450,18 @@
         "OHOS::HiviewDFX::RunningStatusLogger::LogRunningStatusInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::RunningStatusLogger::LogEventCountStatisticInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::RunningStatusLogger::LogEventRunningLogInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::FileUtil::ParseFileStepByLine(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::function<bool (std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)>)";
+        "OHOS::HiviewDFX::SysEvent::GetEventPeriodSeqInfo()";
+        "OHOS::HiviewDFX::SysEvent::SetEventPeriodSeqInfo(OHOS::HiviewDFX::EventPeriodSeqInfo const&)";
+        "OHOS::HiviewDFX::EventJsonParser::EventJsonParser(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::EventJsonParser::OnConfigUpdate(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::EventJsonParser::GetDefinedBaseInfoByDomainName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
+        "OHOS::HiviewDFX::EventJsonParser::GetTypeByDomainAndName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
+        "OHOS::HiviewDFX::EventJsonParser::GetTagByDomainAndName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
+        "OHOS::HiviewDFX::EventJsonParser::GetAllCollectEvents(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>>>>&)";
+        "OHOS::HiviewDFX::PeriodInfoFileOperator::ReadPeriodInfoFromFile(unsigned int, std::__h::function<void (std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)>)";
+        "OHOS::HiviewDFX::PeriodInfoFileOperator::ReadPeriodInfoFromFile(unsigned long, std::__h::function<void (std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)>)";
+        "OHOS::HiviewDFX::PeriodInfoFileOperator::WritePeriodInfoToFile(std::__h::function<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> ()>)";
     };
   local:
     *;

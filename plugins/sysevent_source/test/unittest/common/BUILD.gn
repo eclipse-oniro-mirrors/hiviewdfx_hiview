@@ -95,25 +95,3 @@ ohos_unittest("DailyControllerTest") {
   resource_config_file =
       "$hiview_plugin/sysevent_source/test/resource/ohos_test.xml"
 }
-
-ohos_unittest("EventJsonParserTest") {
-  module_out_path = module_output_path
-  configs = [ ":unittest_config" ]
-
-  sources = [ "event_json_parser_test.cpp" ]
-
-  deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_plugin/sysevent_source:sysevent_source",
-  ]
-
-  external_deps = [
-    "ffrt:libffrt",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "jsoncpp:jsoncpp",
-  ]
-
-  resource_config_file =
-      "$hiview_plugin/sysevent_source/test/resource/ohos_test.xml"
-}

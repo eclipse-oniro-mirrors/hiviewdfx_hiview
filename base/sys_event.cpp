@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,6 +50,8 @@ constexpr int64_t DEFAULT_INT_VALUE = 0;
 constexpr uint64_t DEFAULT_UINT_VALUE = 0;
 constexpr double DEFAULT_DOUBLE_VALUE = 0.0;
 constexpr size_t BLOCK_SIZE_OFFSET = sizeof(int32_t);
+constexpr char PERIOD_SEQ_KEY[] = "period_seq_";
+constexpr size_t PERIOD_SEQ_INFO_ITEM_CNT = 3;
 
 template<typename T>
 void AppendJsonValue(std::string& eventJson, const std::string& key, T val)
@@ -592,6 +594,35 @@ std::string SysEvent::GetSysVersion()
 std::string SysEvent::GetPatchVersion()
 {
     return patchVersion_;
+}
+
+void SysEvent::SetEventPeriodSeqInfo(const EventPeriodSeqInfo& info)
+{
+    std::string periodSeqStr = info.timeStamp;
+    // append export tag
+    periodSeqStr.append(" ").append(std::to_string(info.isNeedExport ? 1 : 0));
+    // append period sequence
+    periodSeqStr.append(" ").append(std::to_string(info.periodSeq));
+    SetEventValue(PERIOD_SEQ_KEY, periodSeqStr);
+}
+
+EventPeriodSeqInfo SysEvent::GetEventPeriodSeqInfo()
+{
+    std::string periodSeqStr = GetEventValue(PERIOD_SEQ_KEY);
+    std::vector<std::string> allInfo;
+    StringUtil::SplitStr(periodSeqStr, " ", allInfo);
+    EventPeriodSeqInfo eventPeriodSeqInfo;
+    if (allInfo.size() != PERIOD_SEQ_INFO_ITEM_CNT) {
+        return eventPeriodSeqInfo;
+    }
+    eventPeriodSeqInfo.timeStamp = allInfo[0]; // 0 is the index of time stamp
+    int isNeedExported = 0;
+    StringUtil::ConvertStringTo(allInfo[1], isNeedExported); // 1 is the index of tag whether to export
+    eventPeriodSeqInfo.isNeedExport = static_cast<bool>(isNeedExported);
+    uint64_t periodSeq = 0;
+    StringUtil::ConvertStringTo(allInfo[2], periodSeq); // 2 is the index of period sequence
+    eventPeriodSeqInfo.periodSeq = periodSeq;
+    return eventPeriodSeqInfo;
 }
 
 SysEventCreator::SysEventCreator(const std::string& domain, const std::string& eventName,

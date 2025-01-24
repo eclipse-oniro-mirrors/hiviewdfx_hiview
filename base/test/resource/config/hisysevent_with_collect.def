@@ -1,0 +1,82 @@
+{
+    "FIRST_TEST_DOMAIN": {
+        "FIRST_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": false,
+                "collect": true,
+            }
+        },
+        "SECOND_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": true,
+                "collect": true,
+            }
+        },
+        "THIRD_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "collect": true,
+            }
+        },
+        "FORTH_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": true
+            }
+        }
+    },
+    "SECOND_TEST_DOMAIN": {
+        "FIRST_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": true,
+                "collect": true,
+            }
+        },
+        "SECOND_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": true,
+                "collect": true,
+            }
+        },
+        "THIRD_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "collect": true,
+            }
+        },
+        "FORTH_TEST_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": true
+            }
+        }
+    }
+}
