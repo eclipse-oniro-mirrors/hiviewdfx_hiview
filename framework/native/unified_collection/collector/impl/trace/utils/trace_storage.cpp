@@ -24,7 +24,6 @@
 #include "sql_util.h"
 #include "string_util.h"
 #include "trace_storage.h"
-#include "trace_behavior_controller.h"
 
 using namespace OHOS::HiviewDFX::UCollectUtil;
 
