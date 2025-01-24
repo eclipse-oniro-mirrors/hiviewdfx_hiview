@@ -72,8 +72,8 @@ private:
     void CatcherStacktrace(int fd, int pid, bool sync = true);
     void AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const;
 #ifdef HAS_HIPERF
-    void DumpHiperf(const std::set<int>& pids);
-    void DoExecHiperf(const std::string& fileName, const std::set<int>& pids);
+    void DumpHiperf(const std::set<int>& pids, int proPid, const std::string& perfCmd);
+    void DoExecHiperf(const std::string& fileName, const std::set<int>& pids, int proPid, const std::string& perfCmd);
 #endif
 };
 #endif // BINDER_CATCHER_ENABLE

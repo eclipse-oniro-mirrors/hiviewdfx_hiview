@@ -390,7 +390,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
         LogCatcherUtils::DumpStackFfrt(fd, binderPid);
     });
 
-    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, jsonFd, event);
+    std::shared_ptr<EventLogTask> logTask = std::make_shared<EventLogTask>(fd, jsonFd, event);
     if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN") {
         logTask->SetFocusWindowId(DumpWindowInfo(fd));
     }
@@ -402,12 +402,20 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     for (const std::string& cmd : cmdList) {
         if (cmd == "tr" || cmd == "k:SysRqFile") {
-            queue_->submit([this, &logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
+            if (cmd == "k:SysRqFile") {
+                auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+                std::string sysrqTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+                event->SetEventValue("SYSRQ_TIME", sysrqTime);
+                std::string sysRqFileInfo = "\nSysrqCatcher -- fullPath:" + std::string(LOGGER_EVENT_LOG_PATH) +
+                    "/sysrq-" + sysrqTime + ".log\n";
+                FileUtil::SaveStringToFd(fd, sysRqFileInfo);
+            }
+            queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
             continue;
         }
         logTask->AddLog(cmd);
         if (cmd == "cmd:m") {
-            queue_->submit([this, &logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
+            queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
         }
     }
 

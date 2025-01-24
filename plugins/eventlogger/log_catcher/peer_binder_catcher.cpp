@@ -100,7 +100,9 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
     }
 #ifdef HAS_HIPERF
     if (Parameter::IsBetaVersion()) {
-        ffrt::submit([this, syncPids] { this->DumpHiperf(syncPids); }, {}, {},
+        int proPid = pid_;
+        std::string perfCmd = perfCmd_;
+        ffrt::submit([this, syncPids, proPid, perfCmd] { this->DumpHiperf(syncPids, proPid, perfCmd); }, {}, {},
             ffrt::task_attr().name("dump_hiperf").qos(ffrt::qos_default));
     }
 #endif
@@ -367,15 +369,16 @@ void PeerBinderCatcher::CatcherStacktrace(int fd, int pid, bool sync)
 }
 
 #ifdef HAS_HIPERF
-void PeerBinderCatcher::DoExecHiperf(const std::string& fileName, const std::set<int>& pids)
+void PeerBinderCatcher::DoExecHiperf(const std::string& fileName, const std::set<int>& pids, int proPid,
+    const std::string& perfCmd)
 {
     std::shared_ptr<PerfCollector> perfCollector = PerfCollector::Create(PerfCaller::EVENTLOGGER);
     perfCollector->SetOutputFilename(fileName);
     constexpr int collectTime = 1;
     perfCollector->SetTimeStopSec(collectTime);
-    if (perfCmd_.find("a") == std::string::npos) {
+    if (perfCmd.find("a") == std::string::npos) {
         std::vector<pid_t> selectPids;
-        selectPids.push_back(pid_);
+        selectPids.push_back(proPid);
         for (const auto& pid : pids) {
             if (pid > 0) {
                 selectPids.push_back(pid);
@@ -395,7 +398,7 @@ void PeerBinderCatcher::DoExecHiperf(const std::string& fileName, const std::set
     }
 }
 
-void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids)
+void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids, int proPid, const std::string& perfCmd)
 {
 #if defined(__aarch64__)
     if (perfCmd_.empty()) {
@@ -405,7 +408,7 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids)
 
     static ffrt::mutex lock;
     std::unique_lock<ffrt::mutex> mlock(lock);
-    std::string fileName = "hiperf-" + std::to_string(pid_) + ".data";
+    std::string fileName = "hiperf-" + std::to_string(proPid) + ".data";
     std::string fullPath = std::string(EVENT_LOG_PATH) + "/" + fileName;
     constexpr int perfLogExPireTime = 60;
     if (access(fullPath.c_str(), F_OK) == 0) {
@@ -421,7 +424,7 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids)
             FileUtil::RemoveFile(fullPath);
         }
     }
-    DoExecHiperf(fileName, pids);
+    DoExecHiperf(fileName, pids, proPid, perfCmd);
 #endif
 }
 #endif

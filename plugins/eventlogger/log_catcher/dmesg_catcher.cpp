@@ -119,8 +119,7 @@ bool DmesgCatcher::WriteSysrq()
 
 void DmesgCatcher::DmesgSaveTofile()
 {
-    auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
-    std::string sysrqTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+    std::string sysrqTime = event_->GetEventValue("SYSRQ_TIME");
     std::string fullPath = std::string(FULL_DIR) + "sysrq-" + sysrqTime + ".log";
     if (FileUtil::FileExists(fullPath)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fullPath.c_str());
@@ -134,15 +133,11 @@ void DmesgCatcher::DmesgSaveTofile()
         return;
     }
     auto fd = fileno(fp);
-    bool dumpRet = DumpDmesgLog(fd);
+    DumpDmesgLog(fd);
     if (fclose(fp)) {
         HIVIEW_LOGE("fclose is failed");
     }
     fp = nullptr;
-
-    if (dumpRet && event_ != nullptr) {
-        event_->SetEventValue("SYSRQ_TIME", sysrqTime);
-    }
 }
 
 int DmesgCatcher::Catch(int fd, int jsonFd)
