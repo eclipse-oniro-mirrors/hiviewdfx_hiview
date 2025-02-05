@@ -181,6 +181,7 @@ ohos_unittest("EventJsonParserTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "jsoncpp:jsoncpp",

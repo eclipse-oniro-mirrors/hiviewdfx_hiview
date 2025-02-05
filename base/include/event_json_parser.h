@@ -24,7 +24,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ffrt.h"
 #include "json/json.h"
+#include "singleton.h"
 #include "sys_event.h"
 
 namespace OHOS {
@@ -57,20 +59,16 @@ using DOMAIN_INFO_MAP = std::unordered_map<std::string, NAME_INFO_MAP>;
 using JSON_VALUE_LOOP_HANDLER = std::function<void(const std::string&, const Json::Value&)>;
 using ExportEventList = std::map<std::string, std::vector<std::string>>; // <domain, names>
 
-class EventJsonParser {
-public:
-    EventJsonParser(const std::string& defFilePath);
-    ~EventJsonParser() {};
+class EventJsonParser : public DelayedSingleton<EventJsonParser> {
+DECLARE_DELAYED_SINGLETON(EventJsonParser);
 
 public:
-    std::string GetTagByDomainAndName(const std::string& domain, const std::string& name) const;
-    int GetTypeByDomainAndName(const std::string& domain, const std::string& name) const;
-    bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name) const;
+    std::string GetTagByDomainAndName(const std::string& domain, const std::string& name);
+    int GetTypeByDomainAndName(const std::string& domain, const std::string& name);
+    bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name);
     void ReadDefFile(const std::string& defFilePath);
-    void OnConfigUpdate(const std::string& defFilePath);
-    BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name) const;
-    uint8_t GetPrivacyByDomainAndName(const std::string& domain, const std::string& name) const;
-    bool GetCollectByDomainAndName(const std::string& domain, const std::string& name) const;
+    void OnConfigUpdate();
+    BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name);
     void GetAllCollectEvents(ExportEventList& list);
 
 private:
@@ -85,6 +83,7 @@ private:
     void WatchTestTypeParameter();
 
 private:
+    mutable ffrt::mutex defMtx_;
     std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap_ = nullptr;
 }; // EventJsonParser
 } // namespace HiviewDFX

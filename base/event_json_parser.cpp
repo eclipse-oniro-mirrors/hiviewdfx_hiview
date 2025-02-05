@@ -20,6 +20,7 @@
 #include <fstream>
 #include <map>
 
+#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "privacy_manager.h"
@@ -39,6 +40,9 @@ constexpr char COLLECT[] = "collect";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
+constexpr char DEF_FILE_NAME[] = "hisysevent.def";
+constexpr char DEF_ZIP_NAME[] = "hisysevent.zip";
+constexpr char DEF_CFG_DIR[] = "sys_event_def";
 
 bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
 {
@@ -68,30 +72,36 @@ void AddEventToExportList(ExportEventList& list, const std::string& domain, cons
 }
 }
 
-EventJsonParser::EventJsonParser(const std::string& defFilePath)
+EventJsonParser::EventJsonParser()
 {
+    auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
+    HIVIEW_LOGI("init json parser with %{public}s", defFilePath.c_str());
     // read json file
     ReadDefFile(defFilePath);
 }
 
-std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, const std::string& name) const
+EventJsonParser::~EventJsonParser()
+{
+}
+
+std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, const std::string& name)
 {
     return GetDefinedBaseInfoByDomainName(domain, name).tag;
 }
 
-int EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name) const
+int EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name)
 {
     return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.type;
 }
 
-bool EventJsonParser::GetPreserveByDomainAndName(const std::string& domain, const std::string& name) const
+bool EventJsonParser::GetPreserveByDomainAndName(const std::string& domain, const std::string& name)
 {
     return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.preserve;
 }
 
-BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain,
-    const std::string& name) const
+BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name)
 {
+    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
     if (sysEventDefMap_ == nullptr) {
         HIVIEW_LOGD("sys def map is null");
         return BaseInfo();
@@ -260,20 +270,27 @@ void EventJsonParser::ReadDefFile(const std::string& defFilePath)
         HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
         return;
     }
-    auto tmpMap = std::make_shared<DOMAIN_INFO_MAP>();
-    ParseSysEventDef(hiSysEventDef, tmpMap);
-    sysEventDefMap_ = tmpMap;
+
+    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
+    if (sysEventDefMap_ == nullptr) {
+        sysEventDefMap_ = std::make_shared<DOMAIN_INFO_MAP>();
+    }
+    sysEventDefMap_->clear();
+    ParseSysEventDef(hiSysEventDef, sysEventDefMap_);
 }
 
-void EventJsonParser::OnConfigUpdate(const std::string& defFilePath)
+void EventJsonParser::OnConfigUpdate()
 {
     // update privacy at first, because event define file depends on privacy config
     PrivacyManager::OnConfigUpdate();
+    auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
+    HIVIEW_LOGI("update json parser with %{public}s", defFilePath.c_str());
     ReadDefFile(defFilePath);
 }
 
 void EventJsonParser::GetAllCollectEvents(ExportEventList& list)
 {
+    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
     for (auto iter = sysEventDefMap_->cbegin(); iter != sysEventDefMap_->cend(); ++iter) {
         for (const auto& eventDef : iter->second) {
             AddEventToExportList(list, iter->first, eventDef.first, eventDef.second);

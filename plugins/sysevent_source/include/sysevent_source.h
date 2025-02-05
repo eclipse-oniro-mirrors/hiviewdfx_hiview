@@ -63,9 +63,6 @@ struct SourcePeriodInfo {
 
 class SysEventSource : public EventSource, public SysEventServiceBase {
 public:
-    SysEventSource();
-    ~SysEventSource() {}
-
     void OnLoad() override;
     void OnUnload() override;
     void StartEventSource() override;
@@ -92,7 +89,6 @@ private:
     EventServer eventServer_;
     PlatformMonitor platformMonitor_;
     std::unique_ptr<SysEventStat> sysEventStat_ = nullptr;
-    std::shared_ptr<EventJsonParser> sysEventParser_ = nullptr;
     std::shared_ptr<IController> controller_;
     std::atomic<bool> isConfigUpdated_ { false };
     std::string testType_;

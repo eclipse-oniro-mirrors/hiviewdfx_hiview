@@ -61,7 +61,6 @@ void LogStorePeriodInfo(std::shared_ptr<StorePeriodInfo> info)
 SysEventStore::SysEventStore() : hasLoaded_(false)
 {
     sysEventDbMgr_ = std::make_unique<SysEventDbMgr>();
-    periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_store_period_count");
 }
 
 void SysEventStore::OnLoad()
@@ -73,6 +72,7 @@ void SysEventStore::OnLoad()
     EventExportEngine::GetInstance().Start();
     hasLoaded_ = true;
 
+    periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_store_period_count");
     periodFileOpt_->ReadPeriodInfoFromFile(STORE_PERIOD_INFO_ITEM_CNT,
         [this] (const std::vector<std::string>& infoDetails) {
             uint64_t storeCnt = 0;

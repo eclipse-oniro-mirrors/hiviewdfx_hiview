@@ -15,14 +15,11 @@
 #include "event_json_parser_test.h"
 
 #include "event_json_parser.h"
+#include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-constexpr char TEST_DEF_FILE_PATH[] = "/data/test/hiview/sys_def_parser/hisysevent.def";
-constexpr char INVALID_TEST_DEF_FILE_PATH[] = "/data/test/hiview/sys_def_parser/hisysevent_.def";
-constexpr char UPDATED_DEF_FILE_PATH[] = "/data/test/hiview/sys_def_parser/hisysevent_update.def";
-constexpr char TEST_DEF_FILE_WITH_COLLECT_PATH[] = "/data/test/hiview/sys_def_parser/hisysevent_with_collect.def";
 constexpr char FIRST_TEST_DOMAIN[] = "FIRST_TEST_DOMAIN";
 constexpr char FIRST_TEST_NAME[] = "FIRST_TEST_NAME";
 constexpr int FIRST_TEST_EVENT_TYPE = 4;
@@ -33,6 +30,12 @@ constexpr int PRIVACY_LEVEL_SECRET = 1;
 constexpr int PRIVACY_LEVEL_SENSITIVE = 2;
 constexpr char THIRD_TEST_NAME[] = "THIRD_TEST_NAME";
 constexpr char FORTH_TEST_NAME[] = "FORTH_TEST_NAME";
+
+void RenameDefFile(const std::string& srcFileName, const std::string& destFileName)
+{
+    std::string dir = "/data/system/hiview/unzip_configs/sys_event_def/";
+    FileUtil::RenameFile(dir + srcFileName, dir + destFileName);
+}
 
 bool IsVectorContain(const std::vector<std::string>& list,
     const std::string& content)
@@ -46,39 +49,32 @@ void EventJsonParserTest::SetUpTestCase() {}
 
 void EventJsonParserTest::TearDownTestCase() {}
 
-void EventJsonParserTest::SetUp() {}
+void EventJsonParserTest::SetUp()
+{
+    RenameDefFile("hisysevent.def", "hisysevent_backup.def");
+}
 
-void EventJsonParserTest::TearDown() {}
+void EventJsonParserTest::TearDown()
+{
+    RenameDefFile("hisysevent_backup.def", "hisysevent.def");
+}
 
 /**
  * @tc.name: EventJsonParserTest001
- * @tc.desc: parse a event and check Json info
+ * @tc.desc: parse a event and check a invalid def json info
  * @tc.type: FUNC
  * @tc.require: issueIAKF5E
  */
 HWTEST_F(EventJsonParserTest, EventJsonParserTest001, testing::ext::TestSize.Level0)
 {
-    EventJsonParser jsonParser(INVALID_TEST_DEF_FILE_PATH);
-    ASSERT_EQ(jsonParser.GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), "");
-    ASSERT_EQ(jsonParser.GetTypeByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), INVALID_EVENT_TYPE);
-    ASSERT_EQ(jsonParser.GetPreserveByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), true);
-    auto configBaseInfo = jsonParser.GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME);
+    RenameDefFile("hisysevent_invalid.def", "hisysevent.def");
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), "");
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTypeByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME),
+        INVALID_EVENT_TYPE);
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetPreserveByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), true);
+    auto configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+        FIRST_TEST_NAME);
     ASSERT_TRUE(configBaseInfo.keyConfig.preserve);
-
-    jsonParser.ReadDefFile(TEST_DEF_FILE_PATH);
-    ASSERT_EQ(jsonParser.GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), "FIRST_TEST_CASE");
-    ASSERT_EQ(jsonParser.GetTypeByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), FIRST_TEST_EVENT_TYPE);
-    ASSERT_EQ(jsonParser.GetPreserveByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), false);
-    configBaseInfo = jsonParser.GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME);
-    ASSERT_FALSE(configBaseInfo.keyConfig.preserve);
-    ASSERT_EQ(configBaseInfo.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
-
-    ASSERT_EQ(jsonParser.GetTagByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME), "SECOND_TEST_CASE");
-    ASSERT_EQ(jsonParser.GetTypeByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME), SECOND_TEST_EVENT_TYPE);
-    ASSERT_EQ(jsonParser.GetPreserveByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME), true);
-    configBaseInfo = jsonParser.GetDefinedBaseInfoByDomainName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME);
-    ASSERT_TRUE(configBaseInfo.keyConfig.preserve);
-    ASSERT_EQ(configBaseInfo.keyConfig.privacy, DEFAULT_PRIVACY);
 }
 
 /**
@@ -89,14 +85,38 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest001, testing::ext::TestSize.Lev
  */
 HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Level0)
 {
-    EventJsonParser jsonParser(TEST_DEF_FILE_PATH);
-    BaseInfo configBaseInfo = jsonParser.GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME);
+    RenameDefFile("hisysevent_normal.def", "hisysevent.def");
+    BaseInfo configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+        FIRST_TEST_NAME);
     ASSERT_EQ(configBaseInfo.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
 
-    jsonParser.OnConfigUpdate(UPDATED_DEF_FILE_PATH);
-    BaseInfo firstEventUpdated = jsonParser.GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME);
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME),
+        "FIRST_TEST_CASE");
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTypeByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME),
+        FIRST_TEST_EVENT_TYPE);
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetPreserveByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), false);
+    configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+        FIRST_TEST_NAME);
+    ASSERT_FALSE(configBaseInfo.keyConfig.preserve);
+    ASSERT_EQ(configBaseInfo.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
+
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME),
+        "SECOND_TEST_CASE");
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTypeByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME),
+        SECOND_TEST_EVENT_TYPE);
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetPreserveByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME), true);
+    configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(SECOND_TEST_DOMAIN,
+        SECOND_TEST_NAME);
+    ASSERT_TRUE(configBaseInfo.keyConfig.preserve);
+    ASSERT_EQ(configBaseInfo.keyConfig.privacy, DEFAULT_PRIVACY);
+
+    RenameDefFile("hisysevent_update.def", "hisysevent.def");
+    EventJsonParser::GetInstance()->OnConfigUpdate();
+    BaseInfo firstEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+        FIRST_TEST_NAME);
     ASSERT_EQ(firstEventUpdated.keyConfig.privacy, PRIVACY_LEVEL_SENSITIVE);
-    BaseInfo thirdEventUpdated = jsonParser.GetDefinedBaseInfoByDomainName("THIRD_TEST_DOMAIN", "THIRD_TEST_NAME");
+    BaseInfo thirdEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName("THIRD_TEST_DOMAIN",
+        "THIRD_TEST_NAME");
     ASSERT_EQ(thirdEventUpdated.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
 }
 
@@ -108,9 +128,9 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
  */
 HWTEST_F(EventJsonParserTest, EventJsonParserTest003, testing::ext::TestSize.Level0)
 {
-    EventJsonParser jsonParser(TEST_DEF_FILE_WITH_COLLECT_PATH);
+    RenameDefFile("hisysevent_with_collect.def", "hisysevent.def");
     ExportEventList list;
-    jsonParser.GetAllCollectEvents(list);
+    EventJsonParser::GetInstance()->GetAllCollectEvents(list);
     ASSERT_EQ(list.size(), 2); // 2 is the expected length
 
     auto firstDomainDef = list.find(FIRST_TEST_DOMAIN);

@@ -30,7 +30,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-LogFileWriter");
+DEFINE_LOG_TAG("HiView-PeriodInfoFileOperator");
 namespace {
 constexpr size_t PERIOD_FILE_WROTE_STEP = 100;
 }

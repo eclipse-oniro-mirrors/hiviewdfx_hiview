@@ -15,8 +15,8 @@
 
 #include "event_export_task.h"
 
+#include "event_json_parser.h"
 #include "file_util.h"
-#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
@@ -107,9 +107,7 @@ bool EventExportTask::ParseExportEventList(ExportEventList& list) const
 {
     if (config_->eventsConfigFiles.empty()) {
         // if export event list file isn't configured, use export info configured in hisysevent.def
-        auto defFilePath = HiViewConfigUtil::GetConfigFilePath("hisysevent.zip", "sys_event_def", "hisysevent.def");
-        auto eventJsonParser = std::make_shared<EventJsonParser>(defFilePath);
-        eventJsonParser->GetAllCollectEvents(list);
+        EventJsonParser::GetInstance()->GetAllCollectEvents(list);
         return true;
     }
     ExportEventListParsers parsers;

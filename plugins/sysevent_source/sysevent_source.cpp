@@ -21,30 +21,26 @@
 #include "daily_controller.h"
 #include "decoded/decoded_event.h"
 #include "defines.h"
-#include "raw_data_base_def.h"
 #include "file_util.h"
 #include "focused_event_util.h"
-#include "hiview_config_util.h"
 #include "hiview_logger.h"
-#include "plugin_factory.h"
-#include "time_util.h"
-#include "string_util.h"
-#include "sys_event.h"
 #include "hiview_platform.h"
 #include "param_const_common.h"
 #include "parameter.h"
+#include "plugin_factory.h"
+#include "raw_data_base_def.h"
 #include "running_status_logger.h"
+#include "string_util.h"
+#include "sys_event.h"
 #include "sys_event_dao.h"
 #include "sys_event_service_adapter.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 REGISTER(SysEventSource);
 namespace {
 DEFINE_LOG_TAG("HiView-SysEventSource");
-constexpr char DEF_FILE_NAME[] = "hisysevent.def";
-constexpr char DEF_ZIP_NAME[] = "hisysevent.zip";
-constexpr char DEF_CFG_DIR[] = "sys_event_def";
 constexpr char TEST_TYPE_PARAM_KEY[] = "hiviewdfx.hiview.testtype";
 constexpr char TEST_TYPE_KEY[] = "test_type_";
 constexpr char SOURCE_PERIOD_CNT_ITEM_CONCATE[] = " ";
@@ -145,11 +141,6 @@ void LogSourcePeriodInfo(std::shared_ptr<SourcePeriodInfo> info)
 }
 }
 
-SysEventSource::SysEventSource()
-{
-    periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_source_period_count");
-}
-
 void SysEventReceiver::HandlerEvent(std::shared_ptr<EventRaw::RawData> rawData)
 {
     if (rawData == nullptr || rawData->GetData() == nullptr) {
@@ -184,11 +175,12 @@ void SysEventSource::OnLoad()
         HIVIEW_LOGW("failed to watch the change of parameter %{public}s", TEST_TYPE_PARAM_KEY);
     }
 
+    periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_source_period_count");
     periodFileOpt_->ReadPeriodInfoFromFile(SOURCE_PERIOD_INFO_ITEM_CNT,
         [this] (const std::vector<std::string>& infoDetails) {
             uint64_t preserveCnt = 0;
             StringUtil::ConvertStringTo(infoDetails[1], preserveCnt); // 1 is the index of preserve count
-            uint64_t exportCnt = 1;
+            uint64_t exportCnt = 0;
             StringUtil::ConvertStringTo(infoDetails[2], exportCnt); // 2 is the index of export count
             periodInfoList_.emplace_back(std::make_shared<SourcePeriodInfo>(infoDetails[0], preserveCnt,
                 exportCnt));
@@ -197,17 +189,13 @@ void SysEventSource::OnLoad()
 
 void SysEventSource::ParseEventDefineFile()
 {
-    auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
-    HIVIEW_LOGI("init json parser with %{public}s", defFilePath.c_str());
-    sysEventParser_ = std::make_shared<EventJsonParser>(defFilePath);
-
     SysEventServiceAdapter::BindGetTagFunc(
-        [this] (const std::string& domain, const std::string& name) {
-            return this->sysEventParser_->GetTagByDomainAndName(domain, name);
+        [] (const std::string& domain, const std::string& name) {
+            return EventJsonParser::GetInstance()->GetTagByDomainAndName(domain, name);
         });
     SysEventServiceAdapter::BindGetTypeFunc(
-        [this] (const std::string& domain, const std::string& name) {
-            return this->sysEventParser_->GetTypeByDomainAndName(domain, name);
+        [] (const std::string& domain, const std::string& name) {
+            return EventJsonParser::GetInstance()->GetTypeByDomainAndName(domain, name);
         });
 }
 
@@ -280,9 +268,7 @@ bool SysEventSource::PublishPipelineEvent(std::shared_ptr<PipelineEvent> event)
 bool SysEventSource::CheckEvent(std::shared_ptr<Event> event)
 {
     if (isConfigUpdated_) {
-        auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
-        HIVIEW_LOGI("update json parser with %{public}s", defFilePath.c_str());
-        sysEventParser_->OnConfigUpdate(defFilePath);
+        EventJsonParser::GetInstance()->OnConfigUpdate();
         isConfigUpdated_.store(false);
     }
     std::shared_ptr<SysEvent> sysEvent = Convert2SysEvent(event);
@@ -367,7 +353,7 @@ bool SysEventSource::IsValidSysEvent(const std::shared_ptr<SysEvent> event)
             event->domain_.c_str(), event->eventName_.c_str());
         return false;
     }
-    auto baseInfo = sysEventParser_->GetDefinedBaseInfoByDomainName(event->domain_, event->eventName_);
+    auto baseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(event->domain_, event->eventName_);
     if (baseInfo.keyConfig.type == INVALID_EVENT_TYPE) {
         HIVIEW_LOGW("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] invalid, or privacy dismatch.",
             event->domain_.c_str(), event->eventName_.c_str(), event->happenTime_);
@@ -475,8 +461,8 @@ void SysEventSource::StatisticSourcePeriodInfo(const std::shared_ptr<SysEvent> e
     eventPeriodSeqInfo.isNeedExport = event->collect_;
     eventPeriodSeqInfo.periodSeq = periodSeq_;
     event->SetEventPeriodSeqInfo(eventPeriodSeqInfo);
-    recentPeriodInfo = std::make_shared<SourcePeriodInfo>(curTimeStamp, static_cast<uint64_t>(event->collect_),
-        static_cast<uint64_t>(event->preserve_));
+    recentPeriodInfo = std::make_shared<SourcePeriodInfo>(curTimeStamp, static_cast<uint64_t>(event->preserve_),
+        static_cast<uint64_t>(event->collect_));
     periodInfoList_.emplace_back(recentPeriodInfo);
     RecordSourcePeriodInfo();
 }

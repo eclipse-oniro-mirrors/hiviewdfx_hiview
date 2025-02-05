@@ -15,12 +15,13 @@
 <configuration ver="2.0">
     <target name="EventJsonParserTest">
         <preparer>
-            <option name="push" value="config/hisysevent.def -> /data/test/hiview/sys_def_parser" src="res"/>
-            <option name="push" value="config/hisysevent_update.def -> /data/test/hiview/sys_def_parser" src="res"/>
-            <option name="push" value="config/hisysevent_with_collect.def -> /data/test/hiview/sys_def_parser" src="res"/>
+            <option name="push" value="config/hisysevent_invalid.def -> /data/system/hiview/unzip_configs/sys_event_def" src="res"/>
+            <option name="push" value="config/hisysevent_normal.def -> /data/system/hiview/unzip_configs/sys_event_def" src="res"/>
+            <option name="push" value="config/hisysevent_update.def -> /data/system/hiview/unzip_configs/sys_event_def" src="res"/>
+            <option name="push" value="config/hisysevent_with_collect.def -> /data/system/hiview/unzip_configs/sys_event_def" src="res"/>
         </preparer>
         <cleaner>
-            <option name="shell" value="rm -rf /data/test/hiview/sys_def_parser"/>
+            <option name="shell" value="rm -rf /data/system/hiview/unzip_configs/sys_event_def"/>
         </cleaner>
     </target>
 </configuration>

@@ -50,7 +50,7 @@ void MergeExportPeriodInfo(std::unordered_map<std::string, ExportPeriodInfo>& de
     for (const auto& periodInfo : srcPeriodInfos) {
         auto findRet = destPeriodInfos.find(periodInfo.first);
         if (findRet == destPeriodInfos.end()) {
-            destPeriodInfos.emplace(findRet->second.timeStamp, periodInfo.second);
+            destPeriodInfos.emplace(periodInfo.first, periodInfo.second);
             continue;
         }
         findRet->second.exportedCnt += periodInfo.second.exportedCnt;
