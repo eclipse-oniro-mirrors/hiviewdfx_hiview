@@ -33,6 +33,7 @@ namespace {
 DEFINE_LOG_TAG("HiViewSA-HiViewServiceAbilityStub");
 const std::string ASH_MEM_NAME = "HiviewLogLibrary SharedMemory";
 constexpr uint32_t ASH_MEM_SIZE = 107 * 5000; // 535k
+constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
 
 const std::map<uint32_t, std::string> ALL_PERMISSION_MAP = {
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_LIST),
@@ -569,7 +570,7 @@ int32_t HiviewServiceAbilityStub::HandleSetSplitMemoryValueRequest(MessageParcel
     MessageOption& option)
 {
     int32_t size = 0;
-    if (!data.ReadInt32(size) || size <= 0) {
+    if (!data.ReadInt32(size) || size <= 0 || size > MAX_SPLIT_MEMORY_SIZE) {
         HIVIEW_LOGW("HandleSetSplitMemoryValueRequest failed to read list size from parcel");
         return TraceErrCode::ERR_READ_MSG_PARCEL;
     }
