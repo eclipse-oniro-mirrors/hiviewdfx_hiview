@@ -90,6 +90,7 @@ private:
     bool CheckFaultLog(FaultLogInfo info);
     void CheckFaultLogAsync(const FaultLogInfo& info);
     void FillHilog(const std::string &hilogStr, Json::Value &hilog) const;
+    void DeleteHilogInFreezeFile(std::string &readContent, bool &modified) const;
     void FaultlogLimit(const std::string &logPath, int32_t faultType) const;
     FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent) const;
     void AddBootScanEvent();

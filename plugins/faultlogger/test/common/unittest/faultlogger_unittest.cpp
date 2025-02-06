@@ -1340,6 +1340,56 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest004, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: FaultloggerTest004
+ * @tc.desc: Test calling Faultlogger.DeleteHilogInFreezeFile Func, for full appfreeze and LIFECYCLE_TIMEOUT log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultloggerTest005, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    bool modified = false;
+    std::string content = std::string("deletehilog test start\n") +
+        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "catcher cmd: hilog -z 1000 -P end time:xxx\n" +
+        "deletehilog testend\n";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, true);
+
+    modified = false;
+    content = std::string("deletehilog test start\n") +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "catcher cmd: hilog -z 1000 -P end time:xxx\n" +
+        "deletehilog testend\n";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, false);
+
+    modified = false;
+    content = std::string("deletehilog test start\n") +
+        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "deletehilog testend\n";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, false);
+
+    modified = false;
+    content = std::string("deletehilog test start\n") +
+        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "catcher cmd: hilog -z 1000 -P end time:xxx";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, false);
+}
+
+/**
  * @tc.name: ReportJsErrorToAppEventTest001
  * @tc.desc: create JS ERROR event and send it to hiappevent
  * @tc.type: FUNC

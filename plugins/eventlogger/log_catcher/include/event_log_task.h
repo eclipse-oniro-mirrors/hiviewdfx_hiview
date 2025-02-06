@@ -66,6 +66,7 @@ private:
     std::set<int> catchedPids_;
     std::string focusWindowId_ = "";
 
+    void AddCapture();
     bool ShouldStopLogTask(int fd, uint32_t curTaskIndex, int curLogSize, std::shared_ptr<EventLogCatcher> catcher);
     void AddStopReason(int fd, std::shared_ptr<EventLogCatcher> catcher, const std::string& reason);
     void AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher) const;
@@ -91,6 +92,7 @@ private:
 
 #ifdef HILOG_CATCHER_ENABLE
     void HilogCapture();
+    void HilogTagCapture();
     void LightHilogCapture();
     void InputHilogCapture();
 #endif // HILOG_CATCHER_ENABLE

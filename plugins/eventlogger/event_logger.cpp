@@ -312,7 +312,7 @@ void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
     if (!content.empty()) {
         std::vector<std::string> vec;
         OHOS::SplitStr(content, "\\n", vec);
-        FreezeCommon::WriteStartInfoToFd(fd, "start collect meminfo: ");
+        FreezeCommon::WriteStartInfoToFd(fd, "collect meminfo start time: ");
         FileUtil::SaveStringToFd(fd, "\nMemoryCatcher --\n");
         for (const std::string& mem : vec) {
             FileUtil::SaveStringToFd(fd, mem + "\n");
@@ -320,12 +320,12 @@ void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
             CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
             CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
         }
-        FreezeCommon::WriteEndInfoToFd(fd, "\nend collect meminfo: ");
+        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect meminfo end time: ");
     }
     if (!data.empty()) {
-        FreezeCommon::WriteStartInfoToFd(fd, "start collect ashmem dmaheap gpumem： ");
+        FreezeCommon::WriteStartInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
         FileUtil::SaveStringToFd(fd, data);
-        FreezeCommon::WriteEndInfoToFd(fd, "\n end collect ashmem dmaheap gpumem： ");
+        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
     } else {
         FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
     }
@@ -425,10 +425,10 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     SetEventTerminalBinder(event, threadStack, logTask->terminalThreadStack_);
     CollectMemInfo(fd, event);
-    FreezeCommon::WriteStartInfoToFd(fd, "start collect ctabilityGetTempFreqInfo: ");
+    FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
     FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
     auto end = TimeUtil::GetMilliseconds();
-    FreezeCommon::WriteEndInfoToFd(fd, "\nend collect ctabilityGetTempFreqInfo: ");
+    FreezeCommon::WriteEndInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ");
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
