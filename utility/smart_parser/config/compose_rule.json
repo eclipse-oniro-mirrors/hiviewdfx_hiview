@@ -108,5 +108,12 @@
             "SECOND_FRAME": "BasicParam.v_second",
             "LAST_FRAME": "BasicParam.v_last"
         }
+    },
+    "GPUEXCEPTION": {
+        "03_GPU_S_EXCEPTION_00":{
+            "FIRST_FRAME": "BasicParam.v_first",
+            "SECOND_FRAME": "BasicParam.v_second",
+            "LAST_FRAME": "BasicParam.v_last"
+        }
     }
 }
