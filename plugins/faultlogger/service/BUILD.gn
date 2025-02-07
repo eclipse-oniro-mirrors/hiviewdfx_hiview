@@ -178,6 +178,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "$hiview_framework/native/unified_collection/process/include",
   ]
   defines = [ "UNIT_TEST" ]
+  defines += [ "UNITTEST" ]
 
   sources = [
     "dfx_bundle_util.cpp",
