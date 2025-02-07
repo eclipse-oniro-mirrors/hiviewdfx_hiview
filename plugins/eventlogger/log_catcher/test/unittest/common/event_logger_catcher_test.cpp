@@ -577,10 +577,10 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
 #ifdef HAS_HIPERF
     pids.insert(3);
     pids.insert(4);
-    int proPid = getpid();
+    int processId = getpid();
     std::string perfCmd = "r";
-    peerBinderCatcher->DoExecHiperf("peerBinderCatcher", pids, proPid, perfCmd);
-    peerBinderCatcher->DumpHiperf(pids, proPid, perfCmd);
+    peerBinderCatcher->DoExecHiperf("peerBinderCatcher", pids, processId, perfCmd);
+    peerBinderCatcher->DumpHiperf(pids, processId, perfCmd);
 #endif
 }
 

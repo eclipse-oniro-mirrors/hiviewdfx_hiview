@@ -435,17 +435,15 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
 void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
     const std::string& terminalThreadStack)
 {
-    std::string pbEventKey = "";
     long pid = event->GetEventIntValue("PID") ? event->GetEventIntValue("PID") : event->GetPid();
     std::string eventName = event->eventName_;
     std::vector<std::string> pbEventConfig;
     if (eventName == "APP_INPUT_BLOCK") {
         event->SetEventValue("TERMINAL_THREAD_STACK", threadStack);
     } else if (std::any_of(PB_EVENT_CONFIGS.begin(), PB_EVENT_CONFIGS.end(),
-        [&pbEventKey, &pbEventConfig, &eventName] (const auto& it) {
+        [&pbEventConfig, &eventName] (const auto& it) {
         bool result = eventName.find(it.first) != std::string::npos;
         if (result) {
-            pbEventKey = it.first;
             pbEventConfig = it.second;
         }
         return result;
