@@ -33,6 +33,7 @@ ohos_source_set("hiview_event_publish") {
   ]
 
   sources = [
+    "app_event_elapsed_time.cpp",
     "app_event_handler.cpp",
     "app_event_publisher_factory.cpp",
     "event_publish.cpp",
