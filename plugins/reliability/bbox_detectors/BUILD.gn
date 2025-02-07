@@ -29,9 +29,13 @@ ohos_source_set("bbox_detector") {
   sources = [
     "bbox_detector_plugin.cpp",
     "hisysevent_util.cpp",
-    "panic_error_info_handle.cpp",
     "panic_report_recovery.cpp",
   ]
+
+  if (hiview_feature_bbox_userspace) {
+    sources += [ "panic_error_info_handle.cpp" ]
+    cflags = [ "-DBBOX_USERSPACE" ]
+  }
 
   configs = [ ":bbox_detector_config" ]
 
@@ -62,9 +66,13 @@ ohos_source_set("bbox_detector_with_cfi") {
   sources = [
     "bbox_detector_plugin.cpp",
     "hisysevent_util.cpp",
-    "panic_error_info_handle.cpp",
     "panic_report_recovery.cpp",
   ]
+
+  if (hiview_feature_bbox_userspace) {
+    sources += [ "panic_error_info_handle.cpp" ]
+    cflags = [ "-DBBOX_USERSPACE" ]
+  }
 
   configs = [ ":bbox_detector_config" ]
 

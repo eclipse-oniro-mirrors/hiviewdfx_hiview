@@ -69,10 +69,7 @@ ohos_source_set("hiview_reliability_common_utils_with_cfi") {
     "openssl:libcrypto_shared",
   ]
 
-  deps = [
-    "$hiview_base:hiviewbase",
-    "$hiview_base/utility:hiview_utility",
-  ]
+  deps = [ "$hiview_base:hiviewbase" ]
 }
 
 group("unittest") {

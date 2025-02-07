@@ -14,8 +14,8 @@
  */
 
 #include "panic_error_info_handle.h"
+#include <sys/stat.h>
 #include "securec.h"
-#include "file_util.h"
 #include "hiview_logger.h"
 #include "parameters.h"
 #include "string_util.h"
@@ -28,38 +28,55 @@ DEFINE_LOG_LABEL(0xD002D11, "PanicErrorInfoHandle");
 
 using namespace std;
 
-constexpr const char* HISTORY_LOG_PATH = "/data/log/bbox/history.log";
-constexpr const char* SYS_FS_PSTORE_PATH = "/sys/fs/pstore/blackbox-ramoops-0";
+namespace {
+constexpr int EVENT_MAX_LEN = 32;
+constexpr int CATEGORY_MAX_LEN = 32;
+constexpr int MODULE_MAX_LEN = 32;
+constexpr int TIMESTAMP_MAX_LEN = 24;
+constexpr int ERROR_DESC_MAX_LEN = 512;
+
+constexpr const char* const HISTORY_LOG_PATH = "/data/log/bbox/history.log";
+constexpr const char* const SYS_FS_PSTORE_PATH = "/sys/fs/pstore/blackbox-ramoops-0";
 
 /* fault category type */
-constexpr const char* CATEGORY_SYSTEM_REBOOT = "SYSREBOOT";
-constexpr const char* CATEGORY_SYSTEM_POWEROFF = "POWEROFF";
-constexpr const char* CATEGORY_SYSTEM_PANIC = "PANIC";
-constexpr const char* CATEGORY_SYSTEM_OOPS = "OOPS";
-constexpr const char* CATEGORY_SYSTEM_CUSTOM = "CUSTOM";
-constexpr const char* CATEGORY_SYSTEM_WATCHDOG = "HWWATCHDOG";
-constexpr const char* CATEGORY_SYSTEM_HUNGTASK = "HUNGTASK";
-constexpr const char* CATEGORY_SUBSYSTEM_CUSTOM = "CUSTOM";
+constexpr const char* const CATEGORY_SYSTEM_REBOOT = "SYSREBOOT";
+constexpr const char* const CATEGORY_SYSTEM_POWEROFF = "POWEROFF";
+constexpr const char* const CATEGORY_SYSTEM_PANIC = "PANIC";
+constexpr const char* const CATEGORY_SYSTEM_OOPS = "OOPS";
+constexpr const char* const CATEGORY_SYSTEM_CUSTOM = "CUSTOM";
+constexpr const char* const CATEGORY_SYSTEM_WATCHDOG = "HWWATCHDOG";
+constexpr const char* const CATEGORY_SYSTEM_HUNGTASK = "HUNGTASK";
+constexpr const char* const CATEGORY_SUBSYSTEM_CUSTOM = "CUSTOM";
 
 /* top category type */
-constexpr const char* TOP_CATEGORY_SYSTEM_RESET = "System Reset";
-constexpr const char* TOP_CATEGORY_FREEZE = "System Freeze";
-constexpr const char* TOP_CATEGORY_SYSTEM_POWEROFF = "POWEROFF";
-constexpr const char* TOP_CATEGORY_SUBSYSTEM_CRASH = "Subsystem Crash";
+constexpr const char* const TOP_CATEGORY_SYSTEM_RESET = "System Reset";
+constexpr const char* const TOP_CATEGORY_FREEZE = "System Freeze";
+constexpr const char* const TOP_CATEGORY_SYSTEM_POWEROFF = "POWEROFF";
+constexpr const char* const TOP_CATEGORY_SUBSYSTEM_CRASH = "Subsystem Crash";
 
 /* module type */
-constexpr const char* MODULE_SYSTEM = "SYSTEM";
+constexpr const char* const MODULE_SYSTEM = "SYSTEM";
 
 /* fault event type */
-constexpr const char* EVENT_SYSREBOOT = "SYSREBOOT";
-constexpr const char* EVENT_LONGPRESS = "LONGPRESS";
-constexpr const char* EVENT_COMBINATIONKEY = "COMBINATIONKEY";
-constexpr const char* EVENT_SUBSYSREBOOT = "SUBSYSREBOOT";
-constexpr const char* EVENT_POWEROFF = "POWEROFF";
-constexpr const char* EVENT_PANIC = "PANIC";
-constexpr const char* EVENT_OOPS = "OOPS";
-constexpr const char* EVENT_SYS_WATCHDOG = "SYSWATCHDOG";
-constexpr const char* EVENT_HUNGTASK = "HUNGTASK";
+constexpr const char* const EVENT_SYSREBOOT = "SYSREBOOT";
+constexpr const char* const EVENT_LONGPRESS = "LONGPRESS";
+constexpr const char* const EVENT_COMBINATIONKEY = "COMBINATIONKEY";
+constexpr const char* const EVENT_SUBSYSREBOOT = "SUBSYSREBOOT";
+constexpr const char* const EVENT_POWEROFF = "POWEROFF";
+constexpr const char* const EVENT_PANIC = "PANIC";
+constexpr const char* const EVENT_OOPS = "OOPS";
+constexpr const char* const EVENT_SYS_WATCHDOG = "SYSWATCHDOG";
+constexpr const char* const EVENT_HUNGTASK = "HUNGTASK";
+}
+
+struct ErrorInfo {
+    char event[EVENT_MAX_LEN];
+    char category[CATEGORY_MAX_LEN];
+    char module[MODULE_MAX_LEN];
+    char errorTime[TIMESTAMP_MAX_LEN];
+    char errorDesc[ERROR_DESC_MAX_LEN];
+};
+
 
 struct ErrorInfoToCategory {
     const char *module;
@@ -109,28 +126,48 @@ struct ErrorInfoToCategory g_errorInfoCategories[] = {
     },
 };
 
-void RKTransData(std::string bboxTime, std::string bboxSysreset)
+static const char *GetTopCategory(const char *module, const char *event)
 {
-    string deviceInfo = system::GetParameter("const.product.devicetype", "");
-    if (deviceInfo != "default") {
-        return;
+    int i;
+    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
+    if ((!module || !event)) {
+        HIVIEW_LOGE("module: %{public}p, event: %{public}p\n", module, event);
+        return TOP_CATEGORY_SUBSYSTEM_CRASH;
     }
-    ifstream fin(SYS_FS_PSTORE_PATH);
-    if (!fin.is_open()) {
-        HIVIEW_LOGE("Failed to open file: %{public}s, error=%{public}d", SYS_FS_PSTORE_PATH, errno);
-        return;
+    for (i = 0; i < count; i++) {
+        if (!strcmp(g_errorInfoCategories[i].module, module) &&
+            !strcmp(g_errorInfoCategories[i].map.event, event)) {
+                return g_errorInfoCategories[i].map.topCategory;
+            }
     }
-    ErrorInfo info = {};
-    fin.read(reinterpret_cast<char* >(&info), sizeof(ErrorInfo));
-    if (!fin) {
-        HIVIEW_LOGE("Read error_info failed");
-        return;
+    if (!strcmp(module, MODULE_SYSTEM)) {
+        return TOP_CATEGORY_SYSTEM_RESET;
     }
-    SaveHistoryLog(bboxTime, bboxSysreset, &info);
-    CopyPstoreFileToHistoryLog(fin);
+    return TOP_CATEGORY_SUBSYSTEM_CRASH;
 }
 
-void SaveHistoryLog(string bboxTime, string bboxSysreset, ErrorInfo* info)
+static const char *GetCategory(const char *module, const char *event)
+{
+    int i;
+    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
+
+    if ((!module || !event)) {
+        HIVIEW_LOGE("module: %{public}p, event: %{public}p\n", module, event);
+        return CATEGORY_SUBSYSTEM_CUSTOM;
+    }
+    for (i = 0; i < count; i++) {
+        if (!strcmp(g_errorInfoCategories[i].module, module) &&
+            !strcmp(g_errorInfoCategories[i].map.event, event)) {
+                return g_errorInfoCategories[i].map.category;
+            }
+    }
+    if (!strcmp(module, MODULE_SYSTEM)) {
+        return CATEGORY_SYSTEM_CUSTOM;
+    }
+    return CATEGORY_SUBSYSTEM_CUSTOM;
+}
+
+static void SaveHistoryLog(string bboxTime, string bboxSysreset, ErrorInfo* info)
 {
     ofstream fout;
     fout.open(HISTORY_LOG_PATH, ios::out | ios::app);
@@ -155,15 +192,36 @@ void SaveHistoryLog(string bboxTime, string bboxSysreset, ErrorInfo* info)
         bboxTime.c_str(), bboxSysreset.c_str(), info->errorDesc);
 }
 
-void CopyPstoreFileToHistoryLog(ifstream &fin)
+static bool TryCreateDir(const string &dir)
+{
+    struct stat info;
+
+    if (stat(dir.c_str(), &info) != 0) {
+        constexpr mode_t defaultLogDirMode = 0770;
+        if (mkdir(dir.c_str(), defaultLogDirMode) != 0) {
+            HIVIEW_LOGE("dir: %{public}s create failed", dir.c_str());
+            return false;
+        }
+        HIVIEW_LOGI("dir: %{public}s create success", dir.c_str());
+        return true;
+    }
+
+    if (info.st_mode & S_IFDIR) {
+        HIVIEW_LOGI("dir:%{public}s already existed", dir.c_str());
+        return true;
+    }
+    HIVIEW_LOGE("path: %{public}s is file not dir", dir.c_str());
+    return false;
+}
+
+static void CopyPstoreFileToHistoryLog(ifstream &fin)
 {
     uint64_t startTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
     string dirPath = "/data/log/bbox/" +
         TimeUtil::TimestampFormatToDate(startTime, "%Y%m%d-%H%M%S") + "/";
-    constexpr mode_t defaultLogDirMode = 0770;
-    if (!FileUtil::FileExists(dirPath)) {
-        FileUtil::ForceCreateDirectory(dirPath);
-        FileUtil::ChangeModeDirectory(dirPath, defaultLogDirMode);
+    if (!TryCreateDir(dirPath)) {
+        HIVIEW_LOGE("TryCreateDir failed. path: %{public}s", dirPath.c_str());
+        return;
     }
     string targetPath = dirPath + "last_kmsg";
     ofstream fout;
@@ -176,45 +234,25 @@ void CopyPstoreFileToHistoryLog(ifstream &fin)
     fout << endl;
 }
 
-const char *GetTopCategory(const char *module, const char *event)
+void RKTransData(std::string bboxTime, std::string bboxSysreset)
 {
-    int i;
-    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
-    if ((!module || !event)) {
-        HIVIEW_LOGE("module: %{public}p, event: %{public}p\n", module, event);
-        return TOP_CATEGORY_SUBSYSTEM_CRASH;
+    string deviceInfo = system::GetParameter("const.product.devicetype", "");
+    if (deviceInfo != "default") {
+        return;
     }
-    for (i = 0; i < count; i++) {
-        if (!strcmp(g_errorInfoCategories[i].module, module) &&
-            !strcmp(g_errorInfoCategories[i].map.event, event)) {
-                return g_errorInfoCategories[i].map.topCategory;
-            }
+    ifstream fin(SYS_FS_PSTORE_PATH);
+    if (!fin.is_open()) {
+        HIVIEW_LOGE("Failed to open file: %{public}s, error=%{public}d", SYS_FS_PSTORE_PATH, errno);
+        return;
     }
-    if (!strcmp(module, MODULE_SYSTEM)) {
-        return TOP_CATEGORY_SYSTEM_RESET;
+    ErrorInfo info = {};
+    fin.read(reinterpret_cast<char* >(&info), sizeof(ErrorInfo));
+    if (!fin) {
+        HIVIEW_LOGE("Read error_info failed");
+        return;
     }
-    return TOP_CATEGORY_SUBSYSTEM_CRASH;
-}
-
-const char *GetCategory(const char *module, const char *event)
-{
-    int i;
-    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
-
-    if ((!module || !event)) {
-        HIVIEW_LOGE("module: %{public}p, event: %{public}p\n", module, event);
-        return CATEGORY_SUBSYSTEM_CUSTOM;
-    }
-    for (i = 0; i < count; i++) {
-        if (!strcmp(g_errorInfoCategories[i].module, module) &&
-            !strcmp(g_errorInfoCategories[i].map.event, event)) {
-                return g_errorInfoCategories[i].map.category;
-            }
-    }
-    if (!strcmp(module, MODULE_SYSTEM)) {
-        return CATEGORY_SYSTEM_CUSTOM;
-    }
-    return CATEGORY_SUBSYSTEM_CUSTOM;
+    SaveHistoryLog(bboxTime, bboxSysreset, &info);
+    CopyPstoreFileToHistoryLog(fin);
 }
 }
 }
