@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "accesstoken_kit.h"
 #include "compliant_event_checker.h"
 #include "data_publisher.h"
+#include "event_json_parser.h"
 #include "event_query_wrapper_builder.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
@@ -46,7 +47,6 @@ constexpr pid_t HID_ROOT = 0;
 constexpr pid_t HID_SHELL = 2000;
 constexpr pid_t HID_OHOS = 1000;
 const std::vector<int> EVENT_TYPES = {1, 2, 3, 4}; // FAULT = 1, STATISTIC = 2 SECURITY = 3, BEHAVIOR = 4
-constexpr uint32_t INVALID_EVENT_TYPE = 0;
 const string READ_DFX_SYSEVENT_PERMISSION = "ohos.permission.READ_DFX_SYSEVENT";
 const string DFX_DUMP_PERMISSION = "ohos.permission.DUMP";
 constexpr size_t REGEX_LEN_LIMIT = 32; // max(domainLen, nameLen, tagLen)
@@ -163,22 +163,6 @@ void SysEventServiceOhos::StartService(SysEventServiceBase *service,
     }
 }
 
-string SysEventServiceOhos::GetTagByDomainAndName(const string& eventDomain, const string& eventName)
-{
-    if (getTagFunc_ == nullptr) {
-        return "";
-    }
-    return getTagFunc_(eventDomain, eventName);
-}
-
-uint32_t SysEventServiceOhos::GetTypeByDomainAndName(const string& eventDomain, const string& eventName)
-{
-    if (getTypeFunc_ == nullptr) {
-        return INVALID_EVENT_TYPE;
-    }
-    return getTypeFunc_(eventDomain, eventName);
-}
-
 void SysEventServiceOhos::OnSysEvent(std::shared_ptr<SysEvent>& event)
 {
     {
@@ -238,16 +222,6 @@ void SysEventServiceOhos::OnRemoteDied(const wptr<IRemoteObject>& remote)
         HIVIEW_LOGE("pid %{public}d has died and remove listener.", listener->second.pid);
         registeredListeners_.erase(listener);
     }
-}
-
-void SysEventServiceOhos::BindGetTagFunc(const GetTagByDomainNameFunc& getTagFunc)
-{
-    getTagFunc_ = getTagFunc;
-}
-
-void SysEventServiceOhos::BindGetTypeFunc(const GetTypeByDomainNameFunc& getTypeFunc)
-{
-    getTypeFunc_ = getTypeFunc;
 }
 
 SysEventServiceBase* SysEventServiceOhos::GetSysEventService(SysEventServiceBase* service)
@@ -371,7 +345,7 @@ bool SysEventServiceOhos::BuildEventQuery(std::shared_ptr<EventQueryWrapperBuild
                     callingUid != HID_OHOS) {
                     return true;
                 }
-                auto eventType = this->GetTypeByDomainAndName(rule.domain, eventName);
+                auto eventType = EventJsonParser::GetInstance()->GetTypeByDomainAndName(rule.domain, eventName);
                 HIVIEW_LOGD("event type configured with domain[%{public}s] and name[%{public}s] "
                     " is %{public}u, and event type in query rule is %{public}u.",
                     rule.domain.c_str(), eventName.c_str(), eventType, rule.eventType);

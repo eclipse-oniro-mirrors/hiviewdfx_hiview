@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@ void RunningStatusLogger::LogEventCountStatisticInfo(const std::string& logInfo)
 void RunningStatusLogger::LogEventRunningLogInfo(const std::string& logInfo)
 {
     if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGD("Do not write files on the commercial version.");
+        HIVIEW_LOGD("no need to log.");
         return;
     }
     LogStrategy strategy { "event_running_log", EVENT_LOG_FILE_MAX_CNT, EVENT_LOG_FILE_SIZE_LIMIT };
@@ -51,7 +51,7 @@ void RunningStatusLogger::LogEventRunningLogInfo(const std::string& logInfo)
 void RunningStatusLogger::LogRunningStatusInfo(const std::string& logInfo)
 {
     if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGD("Do not write files on the commercial version.");
+        HIVIEW_LOGD("no need to log.");
         return;
     }
     LogStrategy strategy { "runningstatus", RUNNING_STATUS_FILE_MAX_CNT, RUNNING_STATUS_FILE_SIZE_LIMIT };

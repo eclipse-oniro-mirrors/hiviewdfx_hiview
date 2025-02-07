@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,8 +39,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 using NotifySysEvent = std::function<void (std::shared_ptr<Event>)>;
-using GetTagByDomainNameFunc = std::function<std::string(const std::string&, const std::string&)>;
-using GetTypeByDomainNameFunc = std::function<int(const std::string&, const std::string&)>;
 
 class SysEventServiceBase {
 };
@@ -71,8 +69,6 @@ public:
         const OHOS::sptr<IQuerySysEventCallback>& callback) override;
     int32_t SetDebugMode(const OHOS::sptr<ISysEventCallback>& callback, bool mode) override;
     void OnRemoteDied(const wptr<IRemoteObject>& remote);
-    void BindGetTagFunc(const GetTagByDomainNameFunc& getTagFunc);
-    void BindGetTypeFunc(const GetTypeByDomainNameFunc& getTypeFunc);
     int32_t Dump(int32_t fd, const std::vector<std::u16string>& args) override;
     int64_t AddSubscriber(const std::vector<SysEventQueryRule>& rules) override;
     int32_t RemoveSubscriber() override;
@@ -90,8 +86,6 @@ private:
     bool HasAccessPermission() const;
     bool BuildEventQuery(std::shared_ptr<EventQueryWrapperBuilder> builder,
         const std::vector<SysEventQueryRule>& rules);
-    std::string GetTagByDomainAndName(const std::string& eventDomain, const std::string& eventName);
-    uint32_t GetTypeByDomainAndName(const std::string& eventDomain, const std::string& eventName);
     void MergeEventList(const std::vector<SysEventQueryRule>& rules, std::vector<std::string>& events) const;
 
 private:
@@ -100,8 +94,6 @@ private:
     std::map<OHOS::sptr<OHOS::IRemoteObject>, ListenerInfo> registeredListeners_;
     bool isDebugMode_;
     OHOS::sptr<ISysEventCallback> debugModeCallback_;
-    GetTagByDomainNameFunc getTagFunc_;
-    GetTypeByDomainNameFunc getTypeFunc_;
     static OHOS::HiviewDFX::NotifySysEvent gISysEventNotify_;
     std::mutex publisherMutex_;
     std::shared_ptr<DataPublisher> dataPublisher_;

@@ -462,6 +462,7 @@
         "OHOS::HiviewDFX::PeriodInfoFileOperator::ReadPeriodInfoFromFile(unsigned int, std::__h::function<void (std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)>)";
         "OHOS::HiviewDFX::PeriodInfoFileOperator::ReadPeriodInfoFromFile(unsigned long, std::__h::function<void (std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)>)";
         "OHOS::HiviewDFX::PeriodInfoFileOperator::WritePeriodInfoToFile(std::__h::function<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> ()>)";
+        "OHOS::DelayedSingleton<OHOS::HiviewDFX::EventJsonParser>::instance_";
     };
   local:
     *;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,10 @@ constexpr size_t PERIOD_FILE_WROTE_STEP = 100;
 
 void PeriodInfoFileOperator::ReadPeriodInfoFromFile(size_t splitItemCnt, SplitPeriodInfoHandler periodInfoHandler)
 {
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGD("no need to read.");
+        return;
+    }
     if (periodInfoHandler == nullptr) {
         HIVIEW_LOGE("period info handler is null");
         return;
@@ -60,6 +64,10 @@ void PeriodInfoFileOperator::ReadPeriodInfoFromFile(size_t splitItemCnt, SplitPe
 
 void PeriodInfoFileOperator::WritePeriodInfoToFile(PeriodContentBuilder contentBuilder)
 {
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGD("no need to write.");
+        return;
+    }
     ++optCnt_;
     if (optCnt_ % PERIOD_FILE_WROTE_STEP != 0) {
         return;

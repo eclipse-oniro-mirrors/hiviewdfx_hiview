@@ -33,8 +33,13 @@ constexpr char FORTH_TEST_NAME[] = "FORTH_TEST_NAME";
 
 void RenameDefFile(const std::string& srcFileName, const std::string& destFileName)
 {
-    std::string dir = "/data/system/hiview/unzip_configs/sys_event_def/";
+    std::string dir = "/data/system/hiview/";
     FileUtil::RenameFile(dir + srcFileName, dir + destFileName);
+}
+
+void RemoveConfigVerFile()
+{
+    FileUtil::RemoveFile("/data/system/hiview/unzip_configs/sys_event_def/hiview_config_version");
 }
 
 bool IsVectorContain(const std::vector<std::string>& list,
@@ -49,25 +54,22 @@ void EventJsonParserTest::SetUpTestCase() {}
 
 void EventJsonParserTest::TearDownTestCase() {}
 
-void EventJsonParserTest::SetUp()
-{
-    RenameDefFile("hisysevent.def", "hisysevent_backup.def");
-}
+void EventJsonParserTest::SetUp() {}
 
-void EventJsonParserTest::TearDown()
-{
-    RenameDefFile("hisysevent_backup.def", "hisysevent.def");
-}
+void EventJsonParserTest::TearDown() {}
 
 /**
  * @tc.name: EventJsonParserTest001
- * @tc.desc: parse a event and check a invalid def json info
+ * @tc.desc: use default value if event is not configured in hisysevent def file
  * @tc.type: FUNC
  * @tc.require: issueIAKF5E
  */
 HWTEST_F(EventJsonParserTest, EventJsonParserTest001, testing::ext::TestSize.Level0)
 {
     RenameDefFile("hisysevent_invalid.def", "hisysevent.def");
+    RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->OnConfigUpdate();
+
     ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), "");
     ASSERT_EQ(EventJsonParser::GetInstance()->GetTypeByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME),
         INVALID_EVENT_TYPE);
@@ -86,6 +88,9 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest001, testing::ext::TestSize.Lev
 HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Level0)
 {
     RenameDefFile("hisysevent_normal.def", "hisysevent.def");
+    RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->OnConfigUpdate();
+
     BaseInfo configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
     ASSERT_EQ(configBaseInfo.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
@@ -111,7 +116,9 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
     ASSERT_EQ(configBaseInfo.keyConfig.privacy, DEFAULT_PRIVACY);
 
     RenameDefFile("hisysevent_update.def", "hisysevent.def");
+    RemoveConfigVerFile();
     EventJsonParser::GetInstance()->OnConfigUpdate();
+
     BaseInfo firstEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
     ASSERT_EQ(firstEventUpdated.keyConfig.privacy, PRIVACY_LEVEL_SENSITIVE);
@@ -122,13 +129,16 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
 
 /**
  * @tc.name: EventJsonParserTest003
- * @tc.desc: get all export events from def from by calling GetAllCollectEvents
+ * @tc.desc: get all export events which is configured to export from def from by calling GetAllCollectEvents
  * @tc.type: FUNC
  * @tc.require: IBIY90
  */
 HWTEST_F(EventJsonParserTest, EventJsonParserTest003, testing::ext::TestSize.Level0)
 {
     RenameDefFile("hisysevent_with_collect.def", "hisysevent.def");
+    RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->OnConfigUpdate();
+
     ExportEventList list;
     EventJsonParser::GetInstance()->GetAllCollectEvents(list);
     ASSERT_EQ(list.size(), 2); // 2 is the expected length
@@ -137,14 +147,14 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest003, testing::ext::TestSize.Lev
     ASSERT_NE(firstDomainDef, list.end());
     ASSERT_FALSE(IsVectorContain(firstDomainDef->second, FIRST_TEST_NAME));
     ASSERT_TRUE(IsVectorContain(firstDomainDef->second, SECOND_TEST_NAME));
-    ASSERT_FALSE(IsVectorContain(firstDomainDef->second, THIRD_TEST_NAME));
+    ASSERT_TRUE(IsVectorContain(firstDomainDef->second, THIRD_TEST_NAME));
     ASSERT_FALSE(IsVectorContain(firstDomainDef->second, FORTH_TEST_NAME));
 
     auto secondDomainDef = list.find(SECOND_TEST_DOMAIN);
     ASSERT_NE(secondDomainDef, list.end());
     ASSERT_TRUE(IsVectorContain(secondDomainDef->second, FIRST_TEST_NAME));
     ASSERT_TRUE(IsVectorContain(secondDomainDef->second, SECOND_TEST_NAME));
-    ASSERT_FALSE(IsVectorContain(secondDomainDef->second, THIRD_TEST_NAME));
+    ASSERT_TRUE(IsVectorContain(secondDomainDef->second, THIRD_TEST_NAME));
     ASSERT_FALSE(IsVectorContain(secondDomainDef->second, FORTH_TEST_NAME));
 }
 } // namespace HiviewDFX

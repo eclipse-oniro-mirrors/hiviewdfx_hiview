@@ -80,7 +80,6 @@ private:
     std::shared_ptr<SysEvent> Convert2SysEvent(std::shared_ptr<Event>& event);
     void DecorateSysEvent(const std::shared_ptr<SysEvent> event, const BaseInfo& info, uint64_t id);
     bool IsDuplicateEvent(const uint64_t eventId);
-    void ParseEventDefineFile();
     std::string GetEventExportConfigFilePath();
     void StatisticSourcePeriodInfo(const std::shared_ptr<SysEvent> event);
     void RecordSourcePeriodInfo();

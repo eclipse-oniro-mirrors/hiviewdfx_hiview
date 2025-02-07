@@ -40,9 +40,6 @@ constexpr char COLLECT[] = "collect";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
-constexpr char DEF_FILE_NAME[] = "hisysevent.def";
-constexpr char DEF_ZIP_NAME[] = "hisysevent.zip";
-constexpr char DEF_CFG_DIR[] = "sys_event_def";
 
 bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
 {
@@ -74,10 +71,8 @@ void AddEventToExportList(ExportEventList& list, const std::string& domain, cons
 
 EventJsonParser::EventJsonParser()
 {
-    auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
-    HIVIEW_LOGI("init json parser with %{public}s", defFilePath.c_str());
     // read json file
-    ReadDefFile(defFilePath);
+    ReadDefFile();
 }
 
 EventJsonParser::~EventJsonParser()
@@ -263,8 +258,10 @@ PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& event
     return paramMaps;
 }
 
-void EventJsonParser::ReadDefFile(const std::string& defFilePath)
+void EventJsonParser::ReadDefFile()
 {
+    auto defFilePath = HiViewConfigUtil::GetConfigFilePath("hisysevent.zip", "sys_event_def", "hisysevent.def");
+    HIVIEW_LOGI("read event def file path: %{public}s", defFilePath.c_str());
     Json::Value hiSysEventDef;
     if (!ReadSysEventDefFromFile(defFilePath, hiSysEventDef)) {
         HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
@@ -274,8 +271,9 @@ void EventJsonParser::ReadDefFile(const std::string& defFilePath)
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
     if (sysEventDefMap_ == nullptr) {
         sysEventDefMap_ = std::make_shared<DOMAIN_INFO_MAP>();
+    } else {
+        sysEventDefMap_->clear();
     }
-    sysEventDefMap_->clear();
     ParseSysEventDef(hiSysEventDef, sysEventDefMap_);
 }
 
@@ -283,14 +281,15 @@ void EventJsonParser::OnConfigUpdate()
 {
     // update privacy at first, because event define file depends on privacy config
     PrivacyManager::OnConfigUpdate();
-    auto defFilePath = HiViewConfigUtil::GetConfigFilePath(DEF_ZIP_NAME, DEF_CFG_DIR, DEF_FILE_NAME);
-    HIVIEW_LOGI("update json parser with %{public}s", defFilePath.c_str());
-    ReadDefFile(defFilePath);
+    ReadDefFile();
 }
 
 void EventJsonParser::GetAllCollectEvents(ExportEventList& list)
 {
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
+    if (sysEventDefMap_ == nullptr) {
+        return;
+    }
     for (auto iter = sysEventDefMap_->cbegin(); iter != sysEventDefMap_->cend(); ++iter) {
         for (const auto& eventDef : iter->second) {
             AddEventToExportList(list, iter->first, eventDef.first, eventDef.second);

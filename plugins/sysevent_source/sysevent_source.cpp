@@ -27,6 +27,7 @@
 #include "hiview_platform.h"
 #include "param_const_common.h"
 #include "parameter.h"
+#include "parameter_ex.h"
 #include "plugin_factory.h"
 #include "raw_data_base_def.h"
 #include "running_status_logger.h"
@@ -187,18 +188,6 @@ void SysEventSource::OnLoad()
         });
 }
 
-void SysEventSource::ParseEventDefineFile()
-{
-    SysEventServiceAdapter::BindGetTagFunc(
-        [] (const std::string& domain, const std::string& name) {
-            return EventJsonParser::GetInstance()->GetTagByDomainAndName(domain, name);
-        });
-    SysEventServiceAdapter::BindGetTypeFunc(
-        [] (const std::string& domain, const std::string& name) {
-            return EventJsonParser::GetInstance()->GetTypeByDomainAndName(domain, name);
-        });
-}
-
 void SysEventSource::InitController()
 {
     auto context = GetHiviewContext();
@@ -222,7 +211,6 @@ void SysEventSource::OnUnload()
 void SysEventSource::StartEventSource()
 {
     HIVIEW_LOGI("SysEventSource start");
-    ParseEventDefineFile();
     std::shared_ptr<EventReceiver> sysEventReceiver = std::make_shared<SysEventReceiver>(*this);
     eventServer_.AddReceiver(sysEventReceiver);
     eventServer_.Start();
@@ -427,6 +415,10 @@ std::string SysEventSource::GetEventExportConfigFilePath()
 
 void SysEventSource::StatisticSourcePeriodInfo(const std::shared_ptr<SysEvent> event)
 {
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGD("no need to statistic period info.");
+        return;
+    }
     auto curTimeStamp = TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d%H");
     HIVIEW_LOGD("current formatted hour is %{public}s", curTimeStamp.c_str());
     std::shared_ptr<SourcePeriodInfo> recentPeriodInfo = nullptr;

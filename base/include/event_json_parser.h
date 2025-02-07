@@ -66,7 +66,6 @@ public:
     std::string GetTagByDomainAndName(const std::string& domain, const std::string& name);
     int GetTypeByDomainAndName(const std::string& domain, const std::string& name);
     bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name);
-    void ReadDefFile(const std::string& defFilePath);
     void OnConfigUpdate();
     BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name);
     void GetAllCollectEvents(ExportEventList& list);
@@ -76,6 +75,7 @@ private:
     bool HasStringMember(const Json::Value& jsonObj, const std::string& name) const;
     bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;
     void InitEventInfoMapRef(const Json::Value& jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
+    void ReadDefFile();
     BaseInfo ParseBaseConfig(const Json::Value& eventNameJson) const;
     void ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap);
     NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const;
