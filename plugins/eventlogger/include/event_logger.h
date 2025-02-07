@@ -82,7 +82,7 @@ private:
     std::shared_ptr<EventLoop> threadLoop_ = nullptr;
     int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
-    ffrt::mutex terminalBindeMutex_;
+    ffrt::mutex terminalBinderMutex_;
 #ifdef MULTIMODALINPUT_INPUT_ENABLE
     std::unique_ptr<ActiveKeyEvent> activeKeyEvent_;
 #endif
