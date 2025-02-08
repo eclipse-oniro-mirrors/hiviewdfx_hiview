@@ -33,9 +33,6 @@ constexpr size_t DEFAULT_EXPORT_INFO_CNT = 1;
 
 void LogExportPeriodInfo(const std::unordered_map<std::string, ExportPeriodInfo>& periodInfos)
 {
-    if (periodInfos.empty()) {
-        return;
-    }
     for (const auto& periodInfo : periodInfos) {
         std::string logInfo;
         logInfo.append("period=[").append(periodInfo.second.timeStamp).append("]; ");

@@ -211,6 +211,7 @@ void SysEventSource::OnUnload()
 void SysEventSource::StartEventSource()
 {
     HIVIEW_LOGI("SysEventSource start");
+    EventJsonParser::GetInstance()->ReadDefFile();
     std::shared_ptr<EventReceiver> sysEventReceiver = std::make_shared<SysEventReceiver>(*this);
     eventServer_.AddReceiver(sysEventReceiver);
     eventServer_.Start();
@@ -416,11 +417,9 @@ std::string SysEventSource::GetEventExportConfigFilePath()
 void SysEventSource::StatisticSourcePeriodInfo(const std::shared_ptr<SysEvent> event)
 {
     if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGD("no need to statistic period info.");
         return;
     }
     auto curTimeStamp = TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d%H");
-    HIVIEW_LOGD("current formatted hour is %{public}s", curTimeStamp.c_str());
     std::shared_ptr<SourcePeriodInfo> recentPeriodInfo = nullptr;
     if (!periodInfoList_.empty()) {
         recentPeriodInfo = periodInfoList_.back();

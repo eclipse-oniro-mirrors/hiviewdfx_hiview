@@ -68,6 +68,8 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest001, testing::ext::TestSize.Lev
 {
     RenameDefFile("hisysevent_invalid.def", "hisysevent.def");
     RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->ReadDefFile(); // init to read def file
+
     EventJsonParser::GetInstance()->OnConfigUpdate();
 
     ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), "");
@@ -89,6 +91,8 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
 {
     RenameDefFile("hisysevent_normal.def", "hisysevent.def");
     RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->ReadDefFile(); // init to read def file
+
     EventJsonParser::GetInstance()->OnConfigUpdate();
 
     BaseInfo configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
@@ -137,6 +141,8 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest003, testing::ext::TestSize.Lev
 {
     RenameDefFile("hisysevent_with_collect.def", "hisysevent.def");
     RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->ReadDefFile(); // init to read def file
+
     EventJsonParser::GetInstance()->OnConfigUpdate();
 
     ExportEventList list;

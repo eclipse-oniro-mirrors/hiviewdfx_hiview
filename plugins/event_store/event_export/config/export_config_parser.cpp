@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,7 +60,6 @@ std::shared_ptr<ExportConfig> ExportConfigParser::Parse()
     }
     // read event export config files
     CJsonUtil::GetStringArray(jsonRoot_, EXPORT_EVENT_LIST_CONFIG_PATHS, exportConfig->eventsConfigFiles);
-    
     // parse export switch setting parameter
     if (!ParseSettingDbParam(exportConfig->exportSwitchParam, EXPORT_SWITCH_PARAM_KEY)) {
         HIVIEW_LOGE("failed to parse export switch parameter.");

@@ -71,8 +71,6 @@ void AddEventToExportList(ExportEventList& list, const std::string& domain, cons
 
 EventJsonParser::EventJsonParser()
 {
-    // read json file
-    ReadDefFile();
 }
 
 EventJsonParser::~EventJsonParser()

@@ -26,8 +26,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class PeriodInfoFileOperator {
 public:
-    PeriodInfoFileOperator(HiviewContext* context, const std::string& fileName)
-        : context_(context), fileName_(fileName) {}
+    PeriodInfoFileOperator(HiviewContext* context, const std::string& fileName);
     ~PeriodInfoFileOperator() = default;
 
 public:
@@ -37,11 +36,10 @@ public:
     void WritePeriodInfoToFile(PeriodContentBuilder contentBuilder);
 
 private:
-    std::string GetPeriodInfoFilePath();
+    std::string GetPeriodInfoFilePath(HiviewContext* context, const std::string& fileName);
 
 private:
-    HiviewContext* context_;
-    std::string fileName_;
+    std::string filePath_;
     uint64_t optCnt_ = 0;
 };
 } // namespace HiviewDFX

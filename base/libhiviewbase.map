@@ -455,6 +455,7 @@
         "OHOS::HiviewDFX::SysEvent::SetEventPeriodSeqInfo(OHOS::HiviewDFX::EventPeriodSeqInfo const&)";
         "OHOS::HiviewDFX::EventJsonParser::EventJsonParser()";
         "OHOS::HiviewDFX::EventJsonParser::OnConfigUpdate()";
+        "OHOS::HiviewDFX::EventJsonParser::ReadDefFile()";
         "OHOS::HiviewDFX::EventJsonParser::GetDefinedBaseInfoByDomainName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::EventJsonParser::GetTypeByDomainAndName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::EventJsonParser::GetTagByDomainAndName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -462,6 +463,7 @@
         "OHOS::HiviewDFX::PeriodInfoFileOperator::ReadPeriodInfoFromFile(unsigned int, std::__h::function<void (std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)>)";
         "OHOS::HiviewDFX::PeriodInfoFileOperator::ReadPeriodInfoFromFile(unsigned long, std::__h::function<void (std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)>)";
         "OHOS::HiviewDFX::PeriodInfoFileOperator::WritePeriodInfoToFile(std::__h::function<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> ()>)";
+        "OHOS::HiviewDFX::PeriodInfoFileOperator::PeriodInfoFileOperator(OHOS::HiviewDFX::HiviewContext*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::DelayedSingleton<OHOS::HiviewDFX::EventJsonParser>::instance_";
     };
   local:

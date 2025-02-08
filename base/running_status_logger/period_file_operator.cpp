@@ -35,6 +35,11 @@ namespace {
 constexpr size_t PERIOD_FILE_WROTE_STEP = 100;
 }
 
+PeriodInfoFileOperator::PeriodInfoFileOperator(HiviewContext* context, const std::string& fileName)
+{
+    filePath_ = GetPeriodInfoFilePath(context, fileName);
+}
+
 void PeriodInfoFileOperator::ReadPeriodInfoFromFile(size_t splitItemCnt, SplitPeriodInfoHandler periodInfoHandler)
 {
     if (!Parameter::IsBetaVersion()) {
@@ -47,8 +52,8 @@ void PeriodInfoFileOperator::ReadPeriodInfoFromFile(size_t splitItemCnt, SplitPe
     }
 
     std::vector<std::string> allLineContent;
-    if (!FileUtil::LoadLinesFromFile(GetPeriodInfoFilePath(), allLineContent)) {
-        HIVIEW_LOGE("failed to read some lines from %{public}s", GetPeriodInfoFilePath().c_str());
+    if (!FileUtil::LoadLinesFromFile(filePath_, allLineContent)) {
+        HIVIEW_LOGE("failed to read some lines from %{public}s", filePath_.c_str());
         return;
     }
     for (const auto& lineContent : allLineContent) {
@@ -64,43 +69,39 @@ void PeriodInfoFileOperator::ReadPeriodInfoFromFile(size_t splitItemCnt, SplitPe
 
 void PeriodInfoFileOperator::WritePeriodInfoToFile(PeriodContentBuilder contentBuilder)
 {
-    if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGD("no need to write.");
-        return;
-    }
     ++optCnt_;
     if (optCnt_ % PERIOD_FILE_WROTE_STEP != 0) {
         return;
     }
 
-    if (contentBuilder == nullptr || contentBuilder().empty()) {
+    if (contentBuilder == nullptr) {
         HIVIEW_LOGW("content builder is null or content is empty");
         return;
     }
 
     std::ofstream periodFileStream;
-    periodFileStream.open(GetPeriodInfoFilePath(), std::ios::trunc);
+    periodFileStream.open(filePath_, std::ios::trunc);
     if (!periodFileStream.is_open()) {
-        HIVIEW_LOGW("failed to open %{public}s", GetPeriodInfoFilePath().c_str());
+        HIVIEW_LOGW("failed to open %{public}s", filePath_.c_str());
         return;
     }
     periodFileStream << contentBuilder() << std::endl;
 }
 
-std::string PeriodInfoFileOperator::GetPeriodInfoFilePath()
+std::string PeriodInfoFileOperator::GetPeriodInfoFilePath(HiviewContext* context, const std::string& fileName)
 {
-    if (context_ == nullptr) {
+    if (context == nullptr) {
         HIVIEW_LOGW("context is null");
         return "";
     }
 
-    std::string periodFilePath = context_->GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY);
+    std::string periodFilePath = context->GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY);
     periodFilePath = FileUtil::IncludeTrailingPathDelimiter(periodFilePath.append("sys_event_db/count_statistic/"));
     if (!FileUtil::IsDirectory(periodFilePath) && !FileUtil::ForceCreateDirectory(periodFilePath)) {
         HIVIEW_LOGE("failed to init directory %{public}s.", periodFilePath.c_str());
         return "";
     }
-    periodFilePath.append(fileName_);
+    periodFilePath.append(fileName);
     return periodFilePath;
 }
 

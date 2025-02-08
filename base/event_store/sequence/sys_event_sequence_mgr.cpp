@@ -126,7 +126,7 @@ void SysEventSequenceManager::ReadSeqFromFile(int64_t& seq)
     ReadEventSeqFromFile(seq, GetSequenceFile());
     int64_t seqBackup = 0;
     ReadEventSeqFromFile(seqBackup, GetSequenceBackupFile());
-    if (seq == seqBackup && ((isSeqFileExist && seq != 0) || !isSeqFileExist)) {
+    if (seq == seqBackup && (!isSeqFileExist || seq != 0)) {
         HIVIEW_LOGI("succeed to read event sequence, value is %{public}" PRId64 ".", seq);
         return;
     }

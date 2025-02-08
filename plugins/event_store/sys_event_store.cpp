@@ -154,7 +154,6 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
 void SysEventStore::StatisticStorePeriodInfo(const std::shared_ptr<SysEvent> event)
 {
     if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGD("no need to statistic period info.");
         return;
     }
     auto eventPeriodTimeStamp = event->GetEventPeriodSeqInfo().timeStamp;
