@@ -241,11 +241,12 @@
             {"namespace":"BasicParam", "matchKey":"brief:", "v_first":"^brief:(.*)"},
             {"namespace":"BasicParam", "matchKey":"task_name:", "v_second":"^task_name:(.*)"},
             {"namespace":"BasicParam", "matchKey":"modid:", "v_last":"^modid:(.*)"}
-        ],
+        ]
+    },
     "Rule22":{
         "DirOrFile":"/data/hisi_logs/",
         "Subcatalog":"hisi_diaginfo.log",
-        "featureId":"03_GPU_S_EXCEPTION_00",
+        "featureId":"03_GPUEXCEPTION_00",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"DMD_HIGPU_PAGE_FAULT", "v_first":"@L@(source_id:0x\\d+|fault:\\d 0x\\d+)", "v_second":"@L@(stream_id:0x\\d+)", "v_last":"@L@(task:.*)\\]"},
             {"namespace":"BasicParam", "matchKey":"DMD_HIGPU_JOB_FAIL", "v_first":"@L@(source_id:0x\\d+|fault:\\d 0x\\d+)", "v_second":"@L@(stream_id:0x\\d+)", "v_last":"@L@(task:.*)\\]"}
