@@ -443,19 +443,25 @@ void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const 
     })) {
         std::string processName = event->GetEventValue("PROCESS_NAME");
         uint64_t happenTime = event->happenTime_;
-        terminalBindeMutex_.lock();
         if (eventName == pbEventConfig[0]) {
+            terminalBinderMutex_.lock();
             terminalBinder_.eventName = eventName;
             terminalBinder_.happenTime = happenTime;
             terminalBinder_.processName = processName;
             terminalBinder_.pid = pid;
             terminalBinder_.threadStack = (eventName == "THREAD_BLOCK_3S") ? threadStack : terminalThreadStack;
-        } else if (terminalBinder_.pid == pid && terminalBinder_.processName == processName &&
-            terminalBinder_.eventName == pbEventConfig[0] &&
-            happenTime - terminalBinder_.happenTime <= std::stoull(pbEventConfig[1])) {
-            event->SetEventValue("TERMINAL_THREAD_STACK", terminalBinder_.threadStack);
+            terminalBinderMutex_.unlock();
+            return;
         }
-        terminalBindeMutex_.unlock();
+        auto setTerminalStackTask = [this, pid, processName, pbEventConfig, happenTime, event] {
+            if (terminalBinder_.pid == pid && terminalBinder_.processName == processName &&
+                terminalBinder_.eventName == pbEventConfig[0] &&
+                happenTime - terminalBinder_.happenTime <= std::stoull(pbEventConfig[1])) {
+                event->SetEventValue("TERMINAL_THREAD_STACK", terminalBinder_.threadStack);
+            }
+        };
+        uint64_t delayTime = 800 * 1000;
+        queue_->submit(setTerminalStackTask, ffrt::task_attr().name("set_terminal_stack").delay(delayTime));
     } else {
         event->SetEventValue("TERMINAL_THREAD_STACK", terminalThreadStack);
     }
