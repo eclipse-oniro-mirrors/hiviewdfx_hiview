@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "event_export_task.h"
 
+#include "event_json_parser.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "setting_observer_manager.h"
@@ -104,6 +105,11 @@ void EventExportTask::OnTaskRun()
 
 bool EventExportTask::ParseExportEventList(ExportEventList& list) const
 {
+    if (config_->eventsConfigFiles.empty()) {
+        // if export event list file isn't configured, use export info configured in hisysevent.def
+        EventJsonParser::GetInstance()->GetAllCollectEvents(list);
+        return true;
+    }
     ExportEventListParsers parsers;
     auto iter = std::max_element(config_->eventsConfigFiles.begin(), config_->eventsConfigFiles.end(),
         [&parsers] (const std::string& path1, const std::string& path2) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@
 #include "plugin_bundle_config.h"
 #include "plugin_config.h"
 #include "plugin_factory.h"
+#include "running_status_logger.h"
 #include "string_util.h"
 #include "time_util.h"
 #include "xcollie/xcollie.h"
@@ -67,6 +68,14 @@ static const char DEFAULT_COMMERCIAL_WORK_DIR[] = "/log/LogService/";
 static const char DEFAULT_PERSIST_DIR[] = "/log/hiview/";
 static const char LIB_SEARCH_DIR[] = "/system/lib/";
 static const char LIB64_SEARCH_DIR[] = "/system/lib64/";
+
+void LogHiviewBootInfo(bool isStart)
+{
+    std::string info = "hiview ";
+    info.append(isStart ? "begin" : "end").append("; time=[");
+    info.append(std::to_string(TimeUtil::GetMilliseconds())).append("] ");
+    RunningStatusLogger::GetInstance().LogEventRunningLogInfo(info);
+}
 }
 DEFINE_LOG_TAG("HiView-HiviewPlatform");
 HiviewPlatform::HiviewPlatform()
@@ -107,6 +116,7 @@ void HiviewPlatform::SetCheckProxyIdlePeriod(time_t period)
 
 bool HiviewPlatform::InitEnvironment(const std::string& platformConfigDir)
 {
+    LogHiviewBootInfo(true);
     // wait util the samgr is ready
     if (auto res = Parameter::WaitParamSync("bootevent.samgr.ready", "true", 5); res != 0) { // timeout is 5s
         HIVIEW_LOGE("Fail to wait the samgr, err=%{public}d", res);
@@ -158,6 +168,8 @@ bool HiviewPlatform::InitEnvironment(const std::string& platformConfigDir)
     if (Parameter::IsBetaVersion()) {
         AddWatchDog();
     }
+    LogHiviewBootInfo(false);
+
     return true;
 }
 

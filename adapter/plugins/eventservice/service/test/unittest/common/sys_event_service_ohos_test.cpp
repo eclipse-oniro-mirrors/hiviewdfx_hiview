@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -176,10 +176,6 @@ HWTEST_F(SysEventServiceOhosTest, SysEventServiceAdapterTest, testing::ext::Test
     sysEventCreator.SetKeyValue("KEY", values);
     sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     OHOS::HiviewDFX::SysEventServiceAdapter::OnSysEvent(sysEvent);
-    ASSERT_TRUE(true);
-    OHOS::HiviewDFX::SysEventServiceAdapter::BindGetTagFunc(nullptr);
-    ASSERT_TRUE(true);
-    OHOS::HiviewDFX::SysEventServiceAdapter::BindGetTypeFunc(nullptr);
     ASSERT_TRUE(true);
 }
 

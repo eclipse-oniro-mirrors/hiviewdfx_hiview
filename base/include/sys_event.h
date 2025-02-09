@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,17 @@ struct EventParamInfo {
     uint8_t throwType = 0;
     EventParamInfo(const std::string& allowListFile, uint8_t throwType)
         : allowListFile(allowListFile), throwType(throwType) {}
+};
+
+struct EventPeriodSeqInfo {
+    // formatted time stamp: YYYYMMDDHH
+    std::string timeStamp;
+
+    // tag for event export:
+    bool isNeedExport = false;
+
+    // the sequence of event in current time range
+    uint64_t periodSeq = 0;
 };
 
 // param info of one event, like <paramName, EventParamInfo>
@@ -114,6 +125,8 @@ public:
     uint8_t* AsRawData();
     std::string GetSysVersion();
     std::string GetPatchVersion();
+    void SetEventPeriodSeqInfo(const EventPeriodSeqInfo& info);
+    EventPeriodSeqInfo GetEventPeriodSeqInfo();
 
 public:
     template<typename T>
@@ -140,6 +153,7 @@ public:
     int32_t eventType_;
     bool preserve_;
     uint8_t log_;
+    bool collect_ = false;
 
 public:
     static std::atomic<uint32_t> totalCount_;

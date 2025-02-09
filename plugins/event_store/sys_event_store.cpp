@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,8 +25,10 @@
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "hiview_platform.h"
+#include "running_status_logger.h"
 #include "parameter_ex.h"
 #include "plugin_factory.h"
+#include "string_util.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
 #include "sys_event_db_mgr.h"
@@ -39,14 +41,27 @@ namespace {
 REGISTER(SysEventStore);
 DEFINE_LOG_TAG("HiView-SysEventStore");
 const std::string PROP_LAST_BACKUP = "persist.hiviewdfx.priv.sysevent.backup_time";
+constexpr int TWO_HOURS_OFFSET = -2;
+constexpr size_t EVENT_STORE_INFO_DEFAULT_CNT = 1;
+constexpr char STORE_PERIOD_CNT_ITEM_CONCATE[] = " ";
+constexpr size_t STORE_PERIOD_INFO_ITEM_CNT = 2;
+constexpr size_t PERIOD_FILE_WROTE_STEP = 100;
+
+void LogStorePeriodInfo(std::shared_ptr<StorePeriodInfo> info)
+{
+    std::string logInfo;
+    // append period
+    logInfo.append("period=[").append(info->timeStamp).append("]; ");
+    // append num of the event which has been stored;
+    logInfo.append("stored_event_num=[").append(std::to_string(info->storedCnt)).append("]");
+    RunningStatusLogger::GetInstance().LogEventCountStatisticInfo(logInfo);
+}
 }
 
 SysEventStore::SysEventStore() : hasLoaded_(false)
 {
     sysEventDbMgr_ = std::make_unique<SysEventDbMgr>();
 }
-
-SysEventStore::~SysEventStore() {}
 
 void SysEventStore::OnLoad()
 {
@@ -56,6 +71,14 @@ void SysEventStore::OnLoad()
     lastBackupTime_ = Parameter::GetString(PROP_LAST_BACKUP, "");
     EventExportEngine::GetInstance().Start();
     hasLoaded_ = true;
+
+    periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_store_period_count");
+    periodFileOpt_->ReadPeriodInfoFromFile(STORE_PERIOD_INFO_ITEM_CNT,
+        [this] (const std::vector<std::string>& infoDetails) {
+            uint64_t storeCnt = 0;
+            StringUtil::ConvertStringTo(infoDetails[1], storeCnt); // 1 is the index of store count
+            periodInfoList_.emplace_back(std::make_shared<StorePeriodInfo>(infoDetails[0], storeCnt));
+        });
 }
 
 void SysEventStore::OnUnload()
@@ -123,8 +146,64 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
                 Parameter::SetProperty(PROP_LAST_BACKUP, dateStr);
             }
         }
+        StatisticStorePeriodInfo(sysEvent);
     }
     return true;
+}
+
+void SysEventStore::StatisticStorePeriodInfo(const std::shared_ptr<SysEvent> event)
+{
+    if (!Parameter::IsBetaVersion()) {
+        return;
+    }
+    auto eventPeriodTimeStamp = event->GetEventPeriodSeqInfo().timeStamp;
+    HIVIEW_LOGD("current formatted hour is %{public}s", eventPeriodTimeStamp.c_str());
+    if (eventPeriodTimeStamp.empty()) {
+        HIVIEW_LOGW("time stamp of current event period sequence is empty");
+        return;
+    }
+    std::shared_ptr<StorePeriodInfo> recentPeriodInfo = nullptr;
+    for (auto iter = periodInfoList_.crbegin(); iter != periodInfoList_.crend(); ++iter) {
+        auto storeInfoItem = *iter;
+        if (storeInfoItem->timeStamp == eventPeriodTimeStamp) {
+            recentPeriodInfo = storeInfoItem;
+            break;
+        }
+    }
+    if (recentPeriodInfo != nullptr) {
+        ++(recentPeriodInfo->storedCnt);
+        RecordStorePeriodInfo();
+        return;
+    }
+
+    time_t baseTimeStamp = TimeUtil::StrToTimeStamp(eventPeriodTimeStamp, "%Y%m%d%H");
+    auto twoHourAgoTs = TimeUtil::TimestampFormatToDate(baseTimeStamp + TWO_HOURS_OFFSET * TimeUtil::SECONDS_PER_HOUR,
+        "%Y%m%d%H");
+    // clear and log historical info
+    while (!periodInfoList_.empty()) {
+        auto infoItem = periodInfoList_.front();
+        if (infoItem->timeStamp <= twoHourAgoTs || infoItem->timeStamp > eventPeriodTimeStamp) {
+            LogStorePeriodInfo(infoItem);
+            periodInfoList_.pop_front();
+        } else {
+            break;
+        }
+    }
+    recentPeriodInfo = std::make_shared<StorePeriodInfo>(eventPeriodTimeStamp, EVENT_STORE_INFO_DEFAULT_CNT);
+    periodInfoList_.emplace_back(recentPeriodInfo);
+    RecordStorePeriodInfo();
+}
+
+void SysEventStore::RecordStorePeriodInfo()
+{
+    periodFileOpt_->WritePeriodInfoToFile([this] () {
+        std::string periodInfoContent;
+        for (const auto& periodInfo : periodInfoList_) {
+            periodInfoContent.append(periodInfo->timeStamp).append(STORE_PERIOD_CNT_ITEM_CONCATE);
+            periodInfoContent.append(std::to_string(periodInfo->storedCnt)).append("\n");
+        }
+        return periodInfoContent;
+    });
 }
 } // namespace HiviewDFX
 } // namespace OHOS

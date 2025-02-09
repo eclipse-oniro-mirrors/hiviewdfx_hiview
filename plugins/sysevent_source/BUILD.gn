@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -53,7 +53,6 @@ ohos_source_set("sysevent_source") {
     "control/config/daily_config.cpp",
     "control/daily_controller.cpp",
     "control/db/daily_db_helper.cpp",
-    "event_json_parser.cpp",
     "event_server.cpp",
     "monitor_config.cpp",
     "platform_monitor.cpp",
@@ -90,7 +89,6 @@ group("unittest") {
   testonly = true
   deps = [
     "test/unittest/common:DailyControllerTest",
-    "test/unittest/common:EventJsonParserTest",
     "test/unittest/common:EventServerTest",
     "test/unittest/common:SysEventStatTest",
   ]

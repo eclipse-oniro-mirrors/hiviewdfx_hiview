@@ -21,13 +21,4 @@
             <option name="shell" value="rm -rf /data/test/hiview/daily_control"/>
         </cleaner>
     </target>
-    <target name="EventJsonParserTest">
-        <preparer>
-            <option name="push" value="config/hisysevent.def -> /data/test/hiview/sys_def_parser" src="res"/>
-            <option name="push" value="config/hisysevent_update.def -> /data/test/hiview/sys_def_parser" src="res"/>
-        </preparer>
-        <cleaner>
-            <option name="shell" value="rm -rf /data/test/hiview/sys_def_parser"/>
-        </cleaner>
-    </target>
 </configuration>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,9 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "running_status_logger.h"
 #include "sys_event_dao.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -67,6 +69,15 @@ void ReadEventSeqFromFile(int64_t& seq, const std::string& file)
     }
     seq = static_cast<int64_t>(strtoll(content.c_str(), nullptr, 0));
 }
+
+void LogEventSeqReadException(int64_t seq, int64_t backupSeq)
+{
+    std::string info { "read seq failed; time=[" };
+    info.append(std::to_string(TimeUtil::GetMilliseconds())).append("]; ");
+    info.append("seq=[").append(std::to_string(seq)).append("]; ");
+    info.append("backup_seq=[").append(std::to_string(backupSeq)).append("]");
+    RunningStatusLogger::GetInstance().LogEventRunningLogInfo(info);
+}
 }
 
 SysEventSequenceManager& SysEventSequenceManager::GetInstance()
@@ -111,13 +122,15 @@ void SysEventSequenceManager::WriteSeqToFile(int64_t seq)
 
 void SysEventSequenceManager::ReadSeqFromFile(int64_t& seq)
 {
+    bool isSeqFileExist = FileUtil::FileExists(GetSequenceFile());
     ReadEventSeqFromFile(seq, GetSequenceFile());
     int64_t seqBackup = 0;
     ReadEventSeqFromFile(seqBackup, GetSequenceBackupFile());
-    if (seq == seqBackup) {
+    if (seq == seqBackup && (!isSeqFileExist || seq != 0)) {
         HIVIEW_LOGI("succeed to read event sequence, value is %{public}" PRId64 ".", seq);
         return;
     }
+    LogEventSeqReadException(seq, seqBackup);
     HIVIEW_LOGW("seq[%{public}" PRId64 "] is different with backup seq[%{public}" PRId64 "].", seq, seqBackup);
     if (seq > seqBackup) {
         WriteEventSeqToFile(seq, GetSequenceBackupFile());

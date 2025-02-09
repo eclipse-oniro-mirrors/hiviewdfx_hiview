@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "file_util.h"
 #include "focused_event_util.h"
 #include "hiview_logger.h"
+#include "running_status_logger.h"
 #include "sys_event_dao.h"
 
 namespace OHOS {
@@ -28,6 +29,42 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventReadHandler");
 namespace {
 constexpr int QUERY_LIMIT = 1000;
+constexpr size_t DEFAULT_EXPORT_INFO_CNT = 1;
+
+void LogExportPeriodInfo(const std::unordered_map<std::string, ExportPeriodInfo>& periodInfos)
+{
+    for (const auto& periodInfo : periodInfos) {
+        std::string logInfo;
+        logInfo.append("period=[").append(periodInfo.second.timeStamp).append("]; ");
+        logInfo.append("exported_event_num=[").append(std::to_string(periodInfo.second.exportedCnt)).append("]");
+        RunningStatusLogger::GetInstance().LogEventCountStatisticInfo(logInfo);
+    }
+}
+
+void MergeExportPeriodInfo(std::unordered_map<std::string, ExportPeriodInfo>& destPeriodInfos,
+    const std::unordered_map<std::string, ExportPeriodInfo>& srcPeriodInfos)
+{
+    for (const auto& periodInfo : srcPeriodInfos) {
+        auto findRet = destPeriodInfos.find(periodInfo.first);
+        if (findRet == destPeriodInfos.end()) {
+            destPeriodInfos.emplace(periodInfo.first, periodInfo.second);
+            continue;
+        }
+        findRet->second.exportedCnt += periodInfo.second.exportedCnt;
+    }
+}
+
+void UpdatePeriodInfoMap(std::unordered_map<std::string, ExportPeriodInfo>& periodInfos,
+    const EventPeriodSeqInfo& eventPeriodInfo)
+{
+    auto findRet = periodInfos.find(eventPeriodInfo.timeStamp);
+    if (findRet == periodInfos.end()) {
+        periodInfos.emplace(eventPeriodInfo.timeStamp,
+            ExportPeriodInfo(eventPeriodInfo.timeStamp, DEFAULT_EXPORT_INFO_CNT));
+        return;
+    }
+    findRet->second.exportedCnt++;
+}
 }
 
 bool EventReadHandler::HandleRequest(RequestPtr req)
@@ -43,6 +80,7 @@ bool EventReadHandler::HandleRequest(RequestPtr req)
     };
     // query by range in order
     queryRanges.emplace(exportBeginSeq, exportEndSeq);
+    auto readRet = true;
     for (const auto& queryRange : queryRanges) {
         if (!QuerySysEventInRange(queryRange, readReq->eventList,
             [this, &readReq] (bool isQueryCompleted) {
@@ -52,10 +90,16 @@ bool EventReadHandler::HandleRequest(RequestPtr req)
                 cachedSysEvents_.clear();
                 return ret;
             })) {
-            return false;
+            readRet = false;
+            break;
         }
+        if (allPeriodInfoInOneQueryRange_.empty()) {
+            continue;
+        }
+        MergeExportPeriodInfo(allPeriodInfo_, allPeriodInfoInOneQueryRange_);
     }
-    return true;
+    LogExportPeriodInfo(allPeriodInfo_);
+    return readRet;
 }
 
 bool EventReadHandler::QuerySysEventInRange(const std::pair<int64_t, int64_t>& queryRange,
@@ -68,6 +112,7 @@ bool EventReadHandler::QuerySysEventInRange(const std::pair<int64_t, int64_t>& q
             break;
         }
         cachedSysEvents_.clear();
+        allPeriodInfoInOneQueryRange_.clear();
         retryCnt--;
         if (retryCnt == 0) {
             HIVIEW_LOGE("failed to export events in range[%{public}" PRId64 ",%{public}" PRId64 ")",
@@ -86,6 +131,7 @@ bool EventReadHandler::QuerySysEventInRange(const std::pair<int64_t, int64_t>& q
 bool EventReadHandler::QuerySysEvent(const int64_t beginSeq, const int64_t endSeq, const ExportEventList& eventList,
     QueryCallback queryCallback)
 {
+    allPeriodInfoInOneQueryRange_.clear();
     int64_t queryCnt = endSeq - beginSeq;
     EventStore::Cond whereCond;
     whereCond.And(EventStore::EventCol::SEQ, EventStore::Op::GE, beginSeq)
@@ -137,6 +183,7 @@ bool EventReadHandler::HandleQueryResult(EventStore::ResultSet& resultSet, Query
             .systemVersion = iter->GetSysVersion(),
             .patchVersion = iter->GetPatchVersion()
         };
+        UpdatePeriodInfoMap(allPeriodInfoInOneQueryRange_, iter->GetEventPeriodSeqInfo());
         auto item = std::make_shared<CachedEvent>(eventVersion, iter->domain_, iter->eventName_,
             currentEventStr);
         if (FocusedEventUtil::IsFocusedEvent(iter->domain_, iter->eventName_)) {

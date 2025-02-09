@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,6 +48,17 @@ struct EventReadRequest : public BaseRequest {
     std::string exportDir;
 };
 
+struct ExportPeriodInfo {
+    // format: YYYYMMDDHH
+    std::string timeStamp;
+
+    // count of event which has been exported in 1 hour
+    size_t exportedCnt = 0;
+
+    ExportPeriodInfo(const std::string& timeStamp, size_t exportedCnt)
+        : timeStamp(timeStamp), exportedCnt(exportedCnt) {}
+};
+
 class EventReadHandler : public ExportBaseHandler {
 public:
     using EventExportedListener = std::function<void(int64_t, int64_t)>;
@@ -67,6 +78,8 @@ private:
 private:
     EventExportedListener eventExportedListener_;
     std::list<std::shared_ptr<CachedEvent>> cachedSysEvents_;
+    std::unordered_map<std::string, ExportPeriodInfo> allPeriodInfo_;
+    std::unordered_map<std::string, ExportPeriodInfo> allPeriodInfoInOneQueryRange_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

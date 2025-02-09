@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <fstream>
 #include <map>
 
+#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "privacy_manager.h"
@@ -35,6 +36,7 @@ constexpr char TAG[] = "tag";
 constexpr char TYPE[] = "type";
 constexpr char PRIVACY[] = "privacy";
 constexpr char PRESERVE[] = "preserve";
+constexpr char COLLECT[] = "collect";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
@@ -51,32 +53,48 @@ bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef
     JSONCPP_STRING errs;
     return parseFromStream(jsonRBuilder, fin, &hiSysEventDef, &errs);
 }
-}
 
-EventJsonParser::EventJsonParser(const std::string& defFilePath)
+void AddEventToExportList(ExportEventList& list, const std::string& domain, const std::string& name,
+    const BaseInfo& baseInfo)
 {
-    // read json file
-    ReadDefFile(defFilePath);
+    if (baseInfo.keyConfig.preserve != DEFAULT_PERSERVE_VAL || baseInfo.keyConfig.collect == DEFAULT_COLLECT_VAL) {
+        return;
+    }
+    auto foundRet = list.find(domain);
+    if (foundRet == list.end()) {
+        list.emplace(domain, std::vector<std::string> { name });
+        return;
+    }
+    foundRet->second.emplace_back(name);
+}
 }
 
-std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, const std::string& name) const
+EventJsonParser::EventJsonParser()
+{
+}
+
+EventJsonParser::~EventJsonParser()
+{
+}
+
+std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, const std::string& name)
 {
     return GetDefinedBaseInfoByDomainName(domain, name).tag;
 }
 
-int EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name) const
+int EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name)
 {
-    return GetDefinedBaseInfoByDomainName(domain, name).type;
+    return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.type;
 }
 
-bool EventJsonParser::GetPreserveByDomainAndName(const std::string& domain, const std::string& name) const
+bool EventJsonParser::GetPreserveByDomainAndName(const std::string& domain, const std::string& name)
 {
-    return GetDefinedBaseInfoByDomainName(domain, name).preserve;
+    return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.preserve;
 }
 
-BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain,
-    const std::string& name) const
+BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name)
 {
+    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
     if (sysEventDefMap_ == nullptr) {
         HIVIEW_LOGD("sys def map is null");
         return BaseInfo();
@@ -147,7 +165,7 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
             typeDes.c_str());
         return baseInfo;
     }
-    baseInfo.type = EVENT_TYPE_MAP.at(typeDes);
+    baseInfo.keyConfig.type = EVENT_TYPE_MAP.at(typeDes);
 
     if (!HasStringMember(baseJsonInfo, LEVEL)) {
         HIVIEW_LOGD("level is not defined in __BASE.");
@@ -160,11 +178,15 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
     }
 
     if (HasUIntMember(baseJsonInfo, PRIVACY)) {
-        baseInfo.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
+        baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
     if (HasBoolMember(baseJsonInfo, PRESERVE)) {
-        baseInfo.preserve = baseJsonInfo[PRESERVE].asBool();
+        baseInfo.keyConfig.preserve = baseJsonInfo[PRESERVE].asBool() ? 1 : 0;
+    }
+
+    if (HasBoolMember(baseJsonInfo, COLLECT)) {
+        baseInfo.keyConfig.collect = baseJsonInfo[COLLECT].asBool() ? 1 : 0;
     }
 
     return baseInfo;
@@ -183,7 +205,7 @@ NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, c
     InitEventInfoMapRef(domainJson,
         [this, &domain, &allNames] (const std::string& eventName, const Json::Value& eventContent) {
         BaseInfo baseInfo = ParseBaseConfig(eventContent);
-        if (PrivacyManager::IsAllowed(domain, baseInfo.type, baseInfo.level, baseInfo.privacy)) {
+        if (PrivacyManager::IsAllowed(domain, baseInfo.keyConfig.type, baseInfo.level, baseInfo.keyConfig.privacy)) {
             baseInfo.disallowParams = ParseEventParamInfo(eventContent);
             allNames[eventName] = baseInfo;
         } else {
@@ -234,23 +256,43 @@ PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& event
     return paramMaps;
 }
 
-void EventJsonParser::ReadDefFile(const std::string& defFilePath)
+void EventJsonParser::ReadDefFile()
 {
+    auto defFilePath = HiViewConfigUtil::GetConfigFilePath("hisysevent.zip", "sys_event_def", "hisysevent.def");
+    HIVIEW_LOGI("read event def file path: %{public}s", defFilePath.c_str());
     Json::Value hiSysEventDef;
     if (!ReadSysEventDefFromFile(defFilePath, hiSysEventDef)) {
         HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
         return;
     }
-    auto tmpMap = std::make_shared<DOMAIN_INFO_MAP>();
-    ParseSysEventDef(hiSysEventDef, tmpMap);
-    sysEventDefMap_ = tmpMap;
+
+    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
+    if (sysEventDefMap_ == nullptr) {
+        sysEventDefMap_ = std::make_shared<DOMAIN_INFO_MAP>();
+    } else {
+        sysEventDefMap_->clear();
+    }
+    ParseSysEventDef(hiSysEventDef, sysEventDefMap_);
 }
 
-void EventJsonParser::OnConfigUpdate(const std::string& defFilePath)
+void EventJsonParser::OnConfigUpdate()
 {
     // update privacy at first, because event define file depends on privacy config
     PrivacyManager::OnConfigUpdate();
-    ReadDefFile(defFilePath);
+    ReadDefFile();
+}
+
+void EventJsonParser::GetAllCollectEvents(ExportEventList& list)
+{
+    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
+    if (sysEventDefMap_ == nullptr) {
+        return;
+    }
+    for (auto iter = sysEventDefMap_->cbegin(); iter != sysEventDefMap_->cend(); ++iter) {
+        for (const auto& eventDef : iter->second) {
+            AddEventToExportList(list, iter->first, eventDef.first, eventDef.second);
+        }
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS
