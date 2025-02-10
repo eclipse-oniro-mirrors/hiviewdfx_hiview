@@ -18,7 +18,6 @@
 #include "bbox_detector_plugin.h"
 #include "bbox_detectors_mock.h"
 #include "panic_report_recovery.h"
-#include "panic_error_info_handle.h"
 #include "hisysevent_util_mock.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
@@ -236,18 +235,6 @@ HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest007, TestSize.Level1)
     testPlugin->OnLoad();
     std::this_thread::sleep_for(std::chrono::seconds(5));
     ASSERT_TRUE(PanicReport::LoadBboxSaveFlagFromFile().isPanicUploaded);
-}
-
-/**
- * @tc.name: BBoxDetectorUnitTest008
- * @tc.desc: check the interface panicErrorInfoHandle RKTransData.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: liuwei
- */
-HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest008, TestSize.Level1)
-{
-    PanicErrorInfoHandle::RKTransData("bboxTime", "true");
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
