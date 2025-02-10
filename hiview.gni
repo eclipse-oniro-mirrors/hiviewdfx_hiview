@@ -91,13 +91,13 @@ declare_args() {
     multimodalinput_input_enable = false
   }
 
-  hiview_enable_leak_detector = false
-
   hiview_enable_performance_monitor = false
 
   hiview_enable_crash_validator = true
 
   # hiview dfr feature
+  hiview_feature_bbox_userspace = false
+  hiview_enable_leak_detector = false
   hiview_freeze_collect_enable = true
   hiview_eventlogger_window_manager_enable = true
   hiview_eventlogger_stacktrace_catcher_enable = true
