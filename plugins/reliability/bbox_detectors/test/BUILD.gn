@@ -37,10 +37,6 @@ bbox_detector_test_source = [
   "mock/hisysevent_util_mock.cpp",
 ]
 
-if (hiview_feature_bbox_userspace) {
-  bbox_detector_test_source += [ "../panic_error_info_handle.cpp" ]
-}
-
 ohos_unittest("BBoxDetectorUnitTest") {
   sources = [ "unittest/bbox_detector_unit_test.cpp" ]
 
@@ -59,9 +55,6 @@ ohos_unittest("BBoxDetectorUnitTest") {
   ]
 
   cflags = [ "-DUNITTEST" ]
-  if (hiview_feature_bbox_userspace) {
-    cflags += [ "-DBBOX_USERSPACE" ]
-  }
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
@@ -81,9 +74,6 @@ ohos_moduletest("BBoxDetectorModuleTest") {
   configs = [ ":bbox_detector_test_config" ]
 
   cflags = [ "-DUNITTEST" ]
-  if (hiview_feature_bbox_userspace) {
-    cflags += [ "-DBBOX_USERSPACE" ]
-  }
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
