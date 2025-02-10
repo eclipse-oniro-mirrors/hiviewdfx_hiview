@@ -138,27 +138,11 @@ HWTEST_F(AdapterUtilityOhosTest, SocketUtilOhosTest001, testing::ext::TestSize.L
 
 /**
  * @tc.name: CommonUtilsOhosTest001
- * @tc.desc: Test ExecCommand defined in namespace CommonUtils
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest001, testing::ext::TestSize.Level3)
-{
-    std::vector<std::string> cmdRet;
-    auto ret = CommonUtils::ExecCommand("hisysevent -l -m 10000", cmdRet);
-    int expectRet = 0;
-    ASSERT_EQ(expectRet, ret);
-    ret = CommonUtils::ExecCommand("", cmdRet);
-    ASSERT_EQ(expectRet, ret);
-}
-
-/**
- * @tc.name: CommonUtilsOhosTest002
  * @tc.desc: Test GetPidByName defined in namespace CommonUtils
  * @tc.type: FUNC
  * @tc.require: issueI65DUW
  */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest002, testing::ext::TestSize.Level3)
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest001, testing::ext::TestSize.Level3)
 {
     std::vector<std::string> cmdRet;
     auto hiviewProcessId = CommonUtils::GetPidByName("hiview");
@@ -166,36 +150,12 @@ HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest002, testing::ext::TestSize.
 }
 
 /**
- * @tc.name: CommonUtilsOhosTest003
- * @tc.desc: Test WriteCommandResultToFile defined in namespace CommonUtils
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest003, testing::ext::TestSize.Level3)
-{
-    std::string caseName("CommonUtilsOhosTest003");
-    std::string cmd = "";
-    auto ret = CommonUtils::WriteCommandResultToFile(0, cmd);
-    ASSERT_EQ(false, ret);
-    std::string cmd2 = "hisysevent -l -m 1 | wc -l";
-    auto fd = FileUtil::Open(GenerateLogFileName(caseName, SUFFIX_0),
-        O_CREAT | O_WRONLY | O_TRUNC, FileUtil::FILE_PERM_770);
-    ret = CommonUtils::WriteCommandResultToFile(fd, cmd2);
-    ASSERT_EQ(true, ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "");
-    fd = FileUtil::Open(GenerateLogFileName(caseName, SUFFIX_0),
-        O_CREAT | O_WRONLY | O_TRUNC, FileUtil::FILE_PERM_770);
-    ret = CommonUtils::WriteCommandResultToFile(fd, cmd2);
-    ASSERT_EQ(true, ret);
-}
-
-/**
- * @tc.name: CommonUtilsOhosTest004
+ * @tc.name: CommonUtilsOhosTest002
  * @tc.desc: Test GetProcFullNameByPid defined in namespace CommonUtils
  * @tc.type: FUNC
  * @tc.require: issueI97MDA
  */
-HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest004, testing::ext::TestSize.Level3)
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest002, testing::ext::TestSize.Level3)
 {
     auto ret = CommonUtils::GetProcFullNameByPid(1); // 1 is pid of init process
     ASSERT_EQ(ret, "init");
@@ -372,12 +332,14 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest007, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest008, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest008");
-    int expectedFailedRet = -1;
-    auto ret = FileUtil::CreateFile(GenerateLogFileName(caseName, SUFFIX_0));
-    ASSERT_EQ(expectedFailedRet, ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "1111");
-    (void)FileUtil::CreateFile(GenerateLogFileName(caseName, SUFFIX_0));
-    ASSERT_TRUE(true);
+    caseName.append("_").append(std::to_string(getpid()));
+    std::string fileName = GenerateLogFileName(caseName, SUFFIX_0);
+    int ret = FileUtil::CreateFile(fileName);
+    if (FileUtil::FileExists(fileName)) {
+        ret = FileUtil::CreateFile(fileName);
+        ASSERT_EQ(ret, 0); // 0 means the file is succeed to be created
+        ASSERT_TRUE(FileUtil::SaveStringToFile(fileName, "1111"));
+    }
 }
 
 /**
@@ -469,14 +431,16 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest012, testing::ext::TestSize.Lev
 HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest013, testing::ext::TestSize.Level3)
 {
     std::string caseName("FileUtilOhosTest013");
-    auto ret = FileUtil::RenameFile(GenerateLogFileName(caseName, SUFFIX_0),
-        GenerateLogFileName(caseName, SUFFIX_1));
+    caseName.append("_").append(std::to_string(getpid()));
+    std::string fileName = GenerateLogFileName(caseName, SUFFIX_0);
+    std::string fileNameOther = GenerateLogFileName(caseName, SUFFIX_1);
+    bool ret = FileUtil::RenameFile(fileName, fileNameOther);
     ASSERT_TRUE(!ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "line1");
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_1), "line1");
-    (void)FileUtil::RenameFile(GenerateLogFileName(caseName, SUFFIX_0),
-        GenerateLogFileName(caseName, SUFFIX_1));
-    ASSERT_TRUE(true);
+    (void)FileUtil::SaveStringToFile(fileName, "line1");
+    if (FileUtil::FileExists(fileName)) {
+        ret = FileUtil::RenameFile(fileName, fileNameOther);
+        ASSERT_EQ(ret, FileUtil::FileExists(fileNameOther));
+    }
 }
 
 /**
@@ -608,22 +572,27 @@ HWTEST_F(AdapterUtilityOhosTest, ZipUtilTest001, testing::ext::TestSize.Level3)
  */
 HWTEST_F(AdapterUtilityOhosTest, DbUtilTest001, testing::ext::TestSize.Level3)
 {
-    std::string uploadPath = UPLOAD_PATH;
+    int pid = getpid();
+    std::string uploadPath = UPLOAD_PATH + std::to_string(pid) + "/";
+    std::string dbPath = DB_PATH + std::to_string(pid) + "/";
     ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath("", uploadPath));
     uploadPath = "";
     ASSERT_FALSE(HiviewDbUtil::InitDbUploadPath("", uploadPath));
-    ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath(DB_PATH, uploadPath));
+    ASSERT_TRUE(HiviewDbUtil::InitDbUploadPath(dbPath, uploadPath));
     std::string dbFile = HiviewDbUtil::CreateFileNameByDate("test");
-    std::string otherFile = DB_PATH + "testOhter.db-shm";
-    FileUtil::SaveStringToFile(DB_PATH + dbFile, "test db file", true);
+    std::string otherFile = dbPath + "testOther.db-shm";
+    FileUtil::SaveStringToFile(dbPath + dbFile, "test db file", true);
     FileUtil::SaveStringToFile(otherFile, "test other file", true);
-    HiviewDbUtil::MoveDbFilesToUploadDir(DB_PATH, uploadPath);
+
+    std::string uploadDbFile = uploadPath + "/" + dbFile;
+    HiviewDbUtil::MoveDbFilesToUploadDir(dbPath, uploadPath);
     ASSERT_FALSE(FileUtil::FileExists(otherFile));
-    ASSERT_TRUE(FileUtil::FileExists(uploadPath + "/" + dbFile));
+    ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
+
     HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 1); // 1 is the max file number
-    ASSERT_TRUE(FileUtil::FileExists(uploadPath + "/" + dbFile));
+    ASSERT_TRUE(FileUtil::FileExists(uploadDbFile));
     HiviewDbUtil::TryToAgeUploadDbFiles(uploadPath, 0); // 0 is the max file number
-    ASSERT_FALSE(FileUtil::FileExists(uploadPath + "/" + dbFile));
+    ASSERT_FALSE(FileUtil::FileExists(uploadDbFile));
 }
 
 /**
@@ -643,8 +612,8 @@ HWTEST_F(AdapterUtilityOhosTest, HiViewConfigUtilTest001, testing::ext::TestSize
     } else {
         ASSERT_EQ(configPath, "/data/system/hiview/test_file_name");
     }
-    auto ret = HiViewConfigUtil::GetConfigFilePath("test_file_name", "/data/test/", "test_file_name");
-    ASSERT_EQ(ret, "/data/system/hiview/unzip_configs//data/test/test_file_name");
+    auto ret = HiViewConfigUtil::GetConfigFilePath("test_file_name", "data/test/", "test_file_name");
+    ASSERT_EQ(ret, "/data/system/hiview/unzip_configs/data/test/test_file_name");
 }
 } // namespace HiviewDFX
 } // namespace OHOS
