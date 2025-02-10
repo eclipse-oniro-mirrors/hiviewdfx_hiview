@@ -60,4 +60,38 @@ ohos_unittest("EventloggerCatcherTest") {
   if (has_hiperf) {
     cflags = [ "-DHAS_HIPERF" ]
   }
+
+  defines = []
+
+  if (hiview_eventlogger_stacktrace_catcher_enable) {
+    defines += [ "STACKTRACE_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_binder_catcher_enable) {
+    defines += [ "BINDER_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_dmesg_catcher_enable) {
+    defines += [ "DMESG_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_hilog_catcher_enable) {
+    defines += [ "HILOG_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_hitrace_catcher_enable) {
+    defines += [ "HITRACE_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_usage_catcher_enable) {
+    defines += [ "USAGE_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_scb_catcher_enable) {
+    defines += [ "SCB_CATCHER_ENABLE" ]
+  }
+
+  if (hiview_eventlogger_other_catcher_enable) {
+    defines += [ "OTHER_CATCHER_ENABLE" ]
+  }
 }

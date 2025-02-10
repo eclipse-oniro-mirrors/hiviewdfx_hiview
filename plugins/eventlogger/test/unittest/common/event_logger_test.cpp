@@ -65,7 +65,7 @@ void EventLoggerTest::TearDownTestCase()
 
 /**
  * @tc.name: EventLoggerTest_OnEvent_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_001, TestSize.Level3)
@@ -77,7 +77,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_OnEvent_002
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_002, TestSize.Level3)
@@ -102,7 +102,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_002, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_OnEvent_003
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_003, TestSize.Level3)
@@ -131,7 +131,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_003, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_OnEvent_004
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
@@ -167,7 +167,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_IsInterestedPipelineEvent_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_IsInterestedPipelineEvent_001, TestSize.Level3)
@@ -191,7 +191,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_IsInterestedPipelineEvent_001, TestSiz
 
 /**
  * @tc.name: EventLoggerTest_CheckProcessRepeatFreeze_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_CheckProcessRepeatFreeze_001, TestSize.Level3)
@@ -205,7 +205,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckProcessRepeatFreeze_001, TestSize
 
 /**
  * @tc.name: EventLoggerTest_WriteCommonHead_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteCommonHead_001, TestSize.Level3)
@@ -230,7 +230,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteCommonHead_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_CheckEventOnContinue_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_CheckEventOnContinue_001, TestSize.Level3)
@@ -246,7 +246,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckEventOnContinue_001, TestSize.Lev
 
 /**
  * @tc.name: EventLoggerTest_GetAppFreezeFile_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeFile_001, TestSize.Level3)
@@ -261,7 +261,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeFile_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_WriteFreezeJsonInfo_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_001, TestSize.Level3)
@@ -296,7 +296,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_001, TestSize.Leve
 
 /**
  * @tc.name: EventLoggerTest_WriteFreezeJsonInfo_002
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_002, TestSize.Level3)
@@ -321,7 +321,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_002, TestSize.Leve
 
 /**
  * @tc.name: EventLoggerTest_WriteFreezeJsonInfo_003
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_003, TestSize.Level3)
@@ -340,7 +340,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_003, TestSize.Leve
 
 /**
  * @tc.name: EventLoggerTest_JudgmentRateLimiting_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_001, TestSize.Level3)
@@ -360,11 +360,16 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_001, TestSize.Lev
     eventLogger->eventTagTime_[testName] = 100;
     ret = eventLogger->JudgmentRateLimiting(sysEvent);
     EXPECT_EQ(ret, true);
+    sysEvent->SetValue("eventLog_interval", 0);
+    ret = eventLogger->JudgmentRateLimiting(sysEvent);
+    EXPECT_EQ(ret, true);
+    int32_t interval = sysEvent->GetIntValue("eventLog_interval");
+    EXPECT_EQ(interval, 0);
 }
 
 /**
  * @tc.name: EventLoggerTest_StartLogCollect_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_StartLogCollect_001, TestSize.Level3)
@@ -385,7 +390,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartLogCollect_001, TestSize.Level3)
     eventLogger->BindWorkLoop(loop);
     eventLogger->threadLoop_ = loop;
     eventLogger->StartLogCollect(sysEvent);
-    sysEvent->eventName_ = "THREAD_BLOCK_6S";
+    sysEvent->eventName_ = "THREAD_BLOCK_3S";
     eventLogger->StartLogCollect(sysEvent);
     EXPECT_TRUE(sysEvent != nullptr);
     sysEvent->SetEventValue("MSG", "Test\nnotifyAppFault exception\n");
@@ -395,7 +400,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartLogCollect_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_UpdateDB_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateDB_001, TestSize.Level3)
@@ -413,7 +418,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateDB_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_GetCmdlineContent_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetCmdlineContent_001, TestSize.Level3)
@@ -427,7 +432,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetCmdlineContent_001, TestSize.Level3
 
 /**
  * @tc.name: EventLoggerTest_ProcessRebootEvent_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_ProcessRebootEvent_001, TestSize.Level3)
@@ -447,7 +452,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ProcessRebootEvent_001, TestSize.Level
 
 /**
  * @tc.name: EventLoggerTest_GetListenerName_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetListenerName_001, TestSize.Level3)
@@ -458,7 +463,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetListenerName_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_GetConfig_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetConfig_001, TestSize.Level3)
@@ -471,7 +476,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetConfig_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_OnUnorderedEvent_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnUnorderedEvent_001, TestSize.Level3)
@@ -532,7 +537,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_GetFile_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetFile_001, TestSize.Level3)
@@ -567,7 +572,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetFile_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_CollectMemInfo_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_CollectMemInfo_001, TestSize.Level3)
@@ -584,7 +589,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CollectMemInfo_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_ReportUserPanicWarning_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_001, TestSize.Level3)
@@ -624,7 +629,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_001, TestSize.L
 
 /**
  * @tc.name: EventLoggerTest_ReportUserPanicWarning_002
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_002, TestSize.Level3)
@@ -651,7 +656,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_002, TestSize.L
 
 /**
  * @tc.name: EventLoggerTest_ReportUserPanicWarning_003
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_003, TestSize.Level3)
@@ -682,7 +687,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_003, TestSize.L
 
 /**
  * @tc.name: EventLoggerTest_ReportUserPanicWarning_004
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_004, TestSize.Level3)
@@ -711,7 +716,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_004, TestSize.L
 
 /**
  * @tc.name: EventLoggerTest_WriteCallStack_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteCallStack_001, TestSize.Level3)
@@ -734,7 +739,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteCallStack_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_RegisterFocusListener_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Level3)
@@ -752,7 +757,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
 
 /**
  * @tc.name: EventLoggerTest_IsHandleAppfreeze_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_IsHandleAppfreeze_001, TestSize.Level3)
@@ -770,7 +775,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_IsHandleAppfreeze_001, TestSize.Level3
 
 /**
  * @tc.name: EventLoggerTest_IsKernelStack_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_IsKernelStack_001, TestSize.Level3)
@@ -786,7 +791,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_IsKernelStack_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_GetAppFreezeStack_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeStack_001, TestSize.Level3)
@@ -829,7 +834,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeStack_001, TestSize.Level3
 
 /**
  * @tc.name: EventLoggerTest_WriteKernelStackToFile_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteKernelStackToFile_001, TestSize.Level3)
@@ -853,7 +858,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteKernelStackToFile_001, TestSize.L
 
 /**
  * @tc.name: EventLoggerTest_ParsePeerStack_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_ParsePeerStack_001, TestSize.Level3)
@@ -878,13 +883,104 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ParsePeerStack_001, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_StabilityGetTempFreqInfo_001
- * @tc.desc: add testcase coverage
+ * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_StabilityGetTempFreqInfo_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     EXPECT_TRUE(!eventLogger->StabilityGetTempFreqInfo().empty());
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetEventPid_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetEventPid_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string testName = "EventLoggerTest_GetEventPid_001";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    event->SetEventValue("PID", 1);
+    event->SetEventValue("PACKAGE_NAME", testName);
+    event->eventName_ = testName;
+    EXPECT_TRUE(eventLogger->GetEventPid(event) > 0);
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetStringFromFile_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetStringFromFile_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    EXPECT_EQ(eventLogger->GetStringFromFile("/data/log/test"), "");
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetNumFromString_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetNumFromString_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    int ret = eventLogger->GetNumFromString("abc");
+    EXPECT_EQ(ret, 0);
+    ret = eventLogger->GetNumFromString("100");
+    EXPECT_EQ(ret, 100);
+}
+
+/**
+ * @tc.name: EventLoggerTest_CheckString_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_CheckString_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string data;
+    eventLogger->CheckString(0, "abc: 100", data, "abc", "/data/log/test");
+    EXPECT_TRUE(data.empty());
+}
+
+/**
+ * @tc.name: EventLoggerTest_SetEventTerminalBinder_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_SetEventTerminalBinder_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string threadStack = "EventLoggerTest";
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string testName = "APP_INPUT_BLOCK";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event->eventName_ = testName;
+    event->SetEventValue("PID", 0);
+    std::string terminalThreadStack = "Test";
+    eventLogger->SetEventTerminalBinder(event, threadStack, terminalThreadStack);
+    EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), threadStack);
+}
+
+/**
+ * @tc.name: EventLoggerTest_CheckScreenOnRepeat_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_CheckScreenOnRepeat_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string testName = "APP_INPUT_BLOCK";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event->eventName_ = testName;
+    eventLogger->CheckScreenOnRepeat(event);
+    EXPECT_TRUE(event->eventName_ != "SCREEN_ON");
 }
 } // namespace HiviewDFX
 } // namespace OHOS
