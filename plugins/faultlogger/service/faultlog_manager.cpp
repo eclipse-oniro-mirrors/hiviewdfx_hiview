@@ -112,6 +112,9 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo &info) const
     }
     auto fd = store_->CreateLogFile(fileName);
     if (fd < 0) {
+        if (access(DEFAULT_FAULTLOG_FOLDER, F_OK) != 0) {
+            HIVIEW_LOGE("%{public}s does not exist!!!", DEFAULT_FAULTLOG_FOLDER);
+        }
         return "";
     }
 
