@@ -352,6 +352,15 @@ CollectResultParcelable<int32_t> HiviewServiceAbility::SetAppResourceLimit(UColl
     return TraceCalling<int32_t>(handler);
 }
 
+CollectResultParcelable<int32_t> HiviewServiceAbility::SetSplitMemoryValue(
+    std::vector<UCollectClient::MemoryCaller>& memList)
+{
+    auto handler = [&memList] (HiviewService* service) {
+        return service->SetSplitMemoryValue(memList);
+    };
+    return TraceCalling<int32_t>(handler);
+}
+
 CollectResultParcelable<int32_t> HiviewServiceAbility::GetGraphicUsage(int32_t pid)
 {
     auto handler = [pid] (HiviewService* service) {

@@ -55,6 +55,7 @@ private:
     int32_t HandleGetSysCpuUsageRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleSetAppResourceLimitRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleGetGraphicUsageRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
+    int32_t HandleSetSplitMemoryValueRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
     bool IsPermissionGranted(uint32_t code);
     RequestHandler GetRequestHandler(uint32_t code);
