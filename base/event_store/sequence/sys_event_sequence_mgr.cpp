@@ -18,6 +18,7 @@
 #include <fstream>
 
 #include "file_util.h"
+#include "hisysevent.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "running_status_logger.h"
@@ -30,6 +31,7 @@ namespace EventStore {
 namespace {
 DEFINE_LOG_TAG("HiView-SysEventSeqMgr");
 constexpr int64_t SEQ_INCREMENT = 100; // increment of seq each time it is read from the file
+static constexpr char READ_UNEXPECTED_SEQ[] = "READ_UNEXPECTED_SEQ";
 
 bool SaveStringToFile(const std::string& filePath, const std::string& content)
 {
@@ -48,7 +50,7 @@ bool SaveStringToFile(const std::string& filePath, const std::string& content)
     return ret;
 }
 
-std::string GetSequenceBackupFile()
+inline std::string GetSequenceBackupFile()
 {
     return EventStore::SysEventDao::GetDatabaseDir() + SEQ_PERSISTS_BACKUP_FILE_NAME;
 }
@@ -61,7 +63,7 @@ void WriteEventSeqToFile(int64_t seq, const std::string& file)
     }
 }
 
-void ReadEventSeqFromFile(int64_t& seq, const std::string& file)
+inline void ReadEventSeqFromFile(int64_t& seq, const std::string& file)
 {
     std::string content;
     if (!FileUtil::LoadStringFromFile(file, content)) {
@@ -77,6 +79,26 @@ void LogEventSeqReadException(int64_t seq, int64_t backupSeq)
     info.append("seq=[").append(std::to_string(seq)).append("]; ");
     info.append("backup_seq=[").append(std::to_string(backupSeq)).append("]");
     RunningStatusLogger::GetInstance().LogEventRunningLogInfo(info);
+}
+
+void WriteSeqReadExcpetionEvent(bool isSeqFileExist, int64_t seq, bool isSeqBackupFileExist, int64_t seqBackup)
+{
+    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, READ_UNEXPECTED_SEQ, HiSysEvent::EventType::FAULT,
+        "IS_SEQ_FILE_EXIST", isSeqFileExist, "SEQ", seq,
+        "IS_SEQ_BACKUP_FILE_EXIST", isSeqBackupFileExist, "SEQ_BACKUP", seqBackup);
+    if (ret < 0) {
+        HIVIEW_LOGI("failed to write seq read event, ret is %{public}d", ret);
+    }
+}
+
+void CheckFileExistThenReadSeq(const std::string& filePath, bool& isFileExist, int64_t& seq)
+{
+    isFileExist = FileUtil::FileExists(filePath);
+    if (!isFileExist) {
+        HIVIEW_LOGI("%{public}s is not exist", filePath.c_str());
+        return;
+    }
+    ReadEventSeqFromFile(seq, filePath);
 }
 }
 
@@ -122,21 +144,25 @@ void SysEventSequenceManager::WriteSeqToFile(int64_t seq)
 
 void SysEventSequenceManager::ReadSeqFromFile(int64_t& seq)
 {
-    bool isSeqFileExist = FileUtil::FileExists(GetSequenceFile());
-    ReadEventSeqFromFile(seq, GetSequenceFile());
+    std::string seqFilePath = GetSequenceFile();
+    bool isSeqFileExist = false;
+    CheckFileExistThenReadSeq(seqFilePath, isSeqFileExist, seq);
+    std::string seqBackupFilePath = GetSequenceBackupFile();
+    bool isSeqBackupFileExist = false;
     int64_t seqBackup = 0;
-    ReadEventSeqFromFile(seqBackup, GetSequenceBackupFile());
+    CheckFileExistThenReadSeq(seqBackupFilePath, isSeqBackupFileExist, seqBackup);
     if (seq == seqBackup && (!isSeqFileExist || seq != 0)) {
         HIVIEW_LOGI("succeed to read event sequence, value is %{public}" PRId64 ".", seq);
         return;
     }
+    WriteSeqReadExcpetionEvent(isSeqFileExist, seq, isSeqBackupFileExist, seqBackup);
     LogEventSeqReadException(seq, seqBackup);
     HIVIEW_LOGW("seq[%{public}" PRId64 "] is different with backup seq[%{public}" PRId64 "].", seq, seqBackup);
     if (seq > seqBackup) {
-        WriteEventSeqToFile(seq, GetSequenceBackupFile());
+        WriteEventSeqToFile(seq, seqBackupFilePath);
     } else {
         seq = seqBackup;
-        WriteEventSeqToFile(seq, GetSequenceFile());
+        WriteEventSeqToFile(seq, seqFilePath);
     }
 }
 

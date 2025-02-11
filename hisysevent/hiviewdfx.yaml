@@ -125,3 +125,10 @@ DEL_EXPORTED_EVENTS:
   BEGIN_SEQS: {type: INT64, arrsize: 100, desc: list consists of sysevent begin sequence stored in all of the deleted event files}
   END_SEQS: {type: INT64, arrsize: 100, desc: list consists of sysevent end sequence stored in all of the deleted event files}
   EVENT_NAMES: {type: STRING, arrsize: 100, desc: list consists of sysevent name stored in all of the deleted event files}
+
+READ_UNEXPECTED_SEQ:
+  __BASE: {type: FAULT, level: CRITICAL, desc: event for reading unexpected sequence from file , preserve: true}
+  SEQ: {type: INT64, desc: sequence read from event sequence file}
+  SEQ_BACKUP: {type: INT64, desc: sequence read from event sequence backup file}
+  IS_SEQ_FILE_EXIST: {type: BOOL, desc: tag for whether event sequence file is exist}
+  IS_SEQ_BACKUP_FILE_EXIST: {type: BOOL, desc: tag for whether event sequence backup file is exist}
