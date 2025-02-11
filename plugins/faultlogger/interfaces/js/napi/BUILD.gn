@@ -30,10 +30,7 @@ ohos_shared_library("faultlogger_napi") {
     "napi_util.cpp",
   ]
 
-  deps = [
-    "$hiview_base/utility:hiview_utility",
-    "$hiview_plugin/faultlogger/interfaces/cpp/innerkits:faultlogger_client_impl_with_cfi",
-  ]
+  deps = [ "$hiview_plugin/faultlogger/interfaces/cpp/innerkits:faultlogger_client_impl_with_cfi" ]
   external_deps = [
     "hilog:libhilog",
     "napi:ace_napi",

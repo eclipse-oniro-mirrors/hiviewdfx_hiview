@@ -21,7 +21,6 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
-#include "common_utils.h"
 #include "hiview_logger.h"
 
 #include "faultlog_query_result.h"
@@ -36,6 +35,8 @@ namespace {
     constexpr size_t TWO_PARAMETER = 2;
     constexpr size_t THREE_PARAMETER = 3;
     constexpr size_t FOUR_PARAMETER = 4;
+    constexpr uint32_t BUF_SIZE_64 = 64;
+    constexpr uint32_t BUF_SIZE_512 = 512;
     std::mutex g_mutex;
 }
 static FaultLogNapiInfo ConversionInform(std::unique_ptr<FaultLogInfo> faultLogInfo)
