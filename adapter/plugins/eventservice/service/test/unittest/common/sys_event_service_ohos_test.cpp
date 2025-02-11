@@ -75,38 +75,38 @@ public:
     TestSysEventServiceStub() {}
     virtual ~TestSysEventServiceStub() {}
 
-    int32_t AddListener(const std::vector<SysEventRule>& rules, const sptr<ISysEventCallback>& callback)
+    ErrCode AddListener(const std::vector<SysEventRule>& rules, const sptr<ISysEventCallback>& callback)
     {
         return 0;
     }
 
-    int32_t RemoveListener(const sptr<ISysEventCallback>& callback)
+    ErrCode RemoveListener(const sptr<ISysEventCallback>& callback)
     {
         return 0;
     }
 
-    int32_t Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
+    ErrCode Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
         const sptr<IQuerySysEventCallback>& callback)
     {
         return 0;
     }
 
-    int32_t SetDebugMode(const sptr<ISysEventCallback>& callback, bool mode)
+    ErrCode SetDebugMode(const sptr<ISysEventCallback>& callback, bool mode)
     {
         return 0;
     }
 
-    int64_t AddSubscriber(const std::vector<SysEventQueryRule> &rules)
+    ErrCode AddSubscriber(const std::vector<SysEventQueryRule> &rules, int64_t& funcResult)
     {
         return TimeUtil::GetMilliseconds();
     }
 
-    int32_t RemoveSubscriber()
+    ErrCode RemoveSubscriber()
     {
         return 0;
     }
 
-    int64_t Export(const QueryArgument &queryArgument, const std::vector<SysEventQueryRule> &rules)
+    ErrCode Export(const QueryArgument &queryArgument, const std::vector<SysEventQueryRule> &rules, int64_t& funcResult)
     {
         return TimeUtil::GetMilliseconds();
     }

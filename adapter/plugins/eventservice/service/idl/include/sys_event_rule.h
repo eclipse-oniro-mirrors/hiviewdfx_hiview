@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #define OHOS_HIVIEWDFX_SYS_EVENT_RULE_H
 
 #include "parcel.h"
-#include "rule_type.h"
+#include "base_types.h"
 
 namespace OHOS {
 namespace HiviewDFX {

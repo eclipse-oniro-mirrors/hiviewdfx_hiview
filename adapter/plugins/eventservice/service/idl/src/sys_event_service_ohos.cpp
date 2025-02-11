@@ -187,8 +187,8 @@ void SysEventServiceOhos::OnSysEvent(std::shared_ptr<SysEvent>& event)
             event->GetTag(), event->eventType_);
         HIVIEW_LOGD("pid %{public}d rules match %{public}s.", listener->second.pid, isMatched ? "success" : "fail");
         if (isMatched) {
-            callback->Handle(Str8ToStr16(event->domain_), Str8ToStr16(event->eventName_),
-                static_cast<uint32_t>(event->eventType_), Str8ToStr16(event->AsJsonStr()));
+            callback->Handle(event->domain_, event->eventName_,
+                static_cast<uint32_t>(event->eventType_), event->AsJsonStr());
         }
     }
 }
@@ -233,7 +233,7 @@ SysEventServiceBase* SysEventServiceOhos::GetSysEventService(SysEventServiceBase
     return ref;
 }
 
-int32_t SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
+ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     const sptr<ISysEventCallback>& callback)
 {
     if (!HasAccessPermission()) {
@@ -281,7 +281,7 @@ int32_t SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     return IPC_CALL_SUCCEED;
 }
 
-int32_t SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>& callback)
+ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>& callback)
 {
     if (!HasAccessPermission()) {
         return ERR_NO_PERMISSION;
@@ -361,7 +361,7 @@ bool SysEventServiceOhos::BuildEventQuery(std::shared_ptr<EventQueryWrapperBuild
     });
 }
 
-int32_t SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
+ErrCode SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
     const OHOS::sptr<IQuerySysEventCallback>& callback)
 {
     if (callback == nullptr) {
@@ -416,7 +416,7 @@ bool SysEventServiceOhos::HasAccessPermission() const
     return false;
 }
 
-int32_t SysEventServiceOhos::SetDebugMode(const OHOS::sptr<ISysEventCallback>& callback, bool mode)
+ErrCode SysEventServiceOhos::SetDebugMode(const OHOS::sptr<ISysEventCallback>& callback, bool mode)
 {
     if (!HasAccessPermission()) {
         return ERR_NO_PERMISSION;
@@ -456,7 +456,7 @@ void CallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
     service->OnRemoteDied(remote);
 }
 
-int64_t SysEventServiceOhos::AddSubscriber(const std::vector<SysEventQueryRule>& rules)
+ErrCode SysEventServiceOhos::AddSubscriber(const std::vector<SysEventQueryRule>& rules, int64_t& funcResult)
 {
     if (!HasAccessPermission()) {
         return ERR_NO_PERMISSION;
@@ -469,11 +469,11 @@ int64_t SysEventServiceOhos::AddSubscriber(const std::vector<SysEventQueryRule>&
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
     lock_guard<mutex> lock(publisherMutex_);
-    auto ret = dataPublisher_->AddSubscriber(uid, events);
-    if (ret != IPC_CALL_SUCCEED) {
+    if (auto ret = dataPublisher_->AddSubscriber(uid, events); ret != IPC_CALL_SUCCEED) {
         return ret;
     }
-    return TimeUtil::GetMilliseconds();
+    funcResult = TimeUtil::GetMilliseconds();
+    return IPC_CALL_SUCCEED;
 }
 
 void SysEventServiceOhos::MergeEventList(const std::vector<SysEventQueryRule>& rules,
@@ -487,7 +487,7 @@ void SysEventServiceOhos::MergeEventList(const std::vector<SysEventQueryRule>& r
     });
 }
 
-int32_t SysEventServiceOhos::RemoveSubscriber()
+ErrCode SysEventServiceOhos::RemoveSubscriber()
 {
     if (!HasAccessPermission()) {
         return ERR_NO_PERMISSION;
@@ -501,7 +501,8 @@ int32_t SysEventServiceOhos::RemoveSubscriber()
     return IPC_CALL_SUCCEED;
 }
 
-int64_t SysEventServiceOhos::Export(const QueryArgument &queryArgument, const std::vector<SysEventQueryRule>& rules)
+ErrCode SysEventServiceOhos::Export(const QueryArgument &queryArgument,
+    const std::vector<SysEventQueryRule>& rules, int64_t& funcResult)
 {
     if (!HasAccessPermission()) {
         return ERR_NO_PERMISSION;
@@ -527,7 +528,8 @@ int64_t SysEventServiceOhos::Export(const QueryArgument &queryArgument, const st
     }
     if (queryArgument.maxEvents == 0) {
         HIVIEW_LOGW("export count is 0, export complete directly.");
-        return currentTime;
+        funcResult = currentTime;
+        return IPC_CALL_SUCCEED;
     }
     auto queryWrapper = queryWrapperBuilder->Build();
     if (queryWrapper == nullptr) {
@@ -536,7 +538,8 @@ int64_t SysEventServiceOhos::Export(const QueryArgument &queryArgument, const st
     }
     queryWrapper->SetMaxSequence(EventStore::SysEventSequenceManager::GetInstance().GetSequence());
     dataPublisher_->AddExportTask(queryWrapper, currentTime, uid);
-    return currentTime;
+    funcResult = currentTime;
+    return IPC_CALL_SUCCEED;
 }
 
 void SysEventServiceOhos::SetWorkLoop(std::shared_ptr<EventLoop> looper)

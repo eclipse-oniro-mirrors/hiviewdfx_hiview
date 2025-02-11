@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,11 +18,16 @@
 
 #include "iquery_base_callback.h"
 #include "iremote_broker.h"
-#include "sys_event_service_ipc_interface_code.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 class IQuerySysEventCallback : public IQueryBaseCallback, public IRemoteBroker {
+public:
+    enum {
+        ON_QUERY = 0,
+        ON_COMPLETE,
+    };
+
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.hiviewdfx.IQuerySysEventCallback");
 };
