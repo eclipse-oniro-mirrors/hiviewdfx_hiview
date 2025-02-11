@@ -54,6 +54,7 @@ public:
     CollectResult<double> GetSysCpuUsage();
     CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
     CollectResult<int32_t> GetGraphicUsage(int32_t pid);
+    CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
 
 private:
     void DumpDetailedInfo(int fd);

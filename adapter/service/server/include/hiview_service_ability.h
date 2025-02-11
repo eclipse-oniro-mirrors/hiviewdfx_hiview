@@ -59,6 +59,7 @@ public:
     CollectResultParcelable<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller) override;
     CollectResultParcelable<double> GetSysCpuUsage() override;
     CollectResultParcelable<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;
+    CollectResultParcelable<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList) override;
 
 protected:
     void OnDump() override;

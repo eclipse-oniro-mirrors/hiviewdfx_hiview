@@ -506,6 +506,39 @@ CollectResult<int32_t> HiviewService::SetAppResourceLimit(UCollectClient::Memory
     return result;
 }
 
+CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList)
+{
+    CollectResult<int32_t> result;
+    result.data = 0;
+    result.retCode = UCollect::UcError::SUCCESS;
+
+    std::shared_ptr<Plugin> plugin = HiviewPlatform::GetInstance().GetPluginByName("XPower");
+    if (plugin == nullptr) {
+        HIVIEW_LOGE("XPower plugin does not exists.");
+        result.retCode = UCollect::UcError::SYSTEM_ERROR;
+        return result;
+    }
+    std::vector<int32_t> pidList;
+    std::vector<int32_t> resourceList;
+    for (auto it : memList) {
+        pidList.push_back(it.pid);
+        resourceList.push_back(it.limitValue);
+    }
+    std::string eventName = "AVCODEC_SPLITMEMORY";
+    SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("PID_LIST", pidList);
+    sysEventCreator.SetKeyValue("RESOURCE_LIST", resourceList);
+
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    if (!plugin->OnEvent(event)) {
+        HIVIEW_LOGE("%{public}s failed", eventName.c_str());
+        result.retCode = UCollect::UcError::SYSTEM_ERROR;
+        return result;
+    }
+    return result;
+}
+
 CollectResult<int32_t> HiviewService::GetGraphicUsage(int32_t pid)
 {
     return graphicMemoryCollector_->GetGraphicUsage(pid);
