@@ -195,6 +195,10 @@ void AppTraceContext::PublishStackEvent(SysEvent& sysEvent)
             UCollectUtil::SYS_EVENT_PARAM_BEGIN_TIME);
         eventJson[UCollectUtil::APP_EVENT_PARAM_END_TIME] = sysEvent.GetEventIntValue(
             UCollectUtil::SYS_EVENT_PARAM_END_TIME);
+        eventJson[UCollectUtil::APP_EVENT_PARAM_APP_START_JIFFIES_TIME] = sysEvent.GetEventIntValue(
+            UCollectUtil::SYS_EVENT_PARAM_APP_START_JIFFIES_TIME);
+        eventJson[UCollectUtil::APP_EVENT_PARAM_HEAVIEST_STACK] = sysEvent.GetEventValue(
+            UCollectUtil::SYS_EVENT_PARAM_HEAVIEST_STACK);
         Json::Value externalLog;
         externalLog.append(sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG));
         eventJson[UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG] = externalLog;
