@@ -46,6 +46,7 @@ private:
     void HandleExportSwitchOff(const std::string& moduleName);
     bool RegistSettingObserver(std::shared_ptr<ExportConfig> config);
     void InitAndRunTask(std::shared_ptr<ExportConfig> config);
+    void InitPackId();
 
 private:
     bool isTaskRunning_ = false;
