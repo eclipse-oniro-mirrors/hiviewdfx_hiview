@@ -9,7 +9,7 @@
       "OHOS::HiviewDFX::UCollectUtil::MemoryCollector::Create()";
       "OHOS::HiviewDFX::UCollectUtil::MemProfilerCollector::Create()";
       "OHOS::HiviewDFX::UCollectUtil::NetworkCollector::Create()";
-      "OHOS::HiviewDFX::UCollectUtil::PerfCollector::Create()";
+      "OHOS::HiviewDFX::UCollectUtil::PerfCollector::Create(OHOS::HiviewDFX::UCollectUtil::PerfCaller)";
       "OHOS::HiviewDFX::UCollectUtil::TraceCollector::Create()";
       "OHOS::HiviewDFX::UCollectUtil::WmCollector::Create()";
       "OHOS::HiviewDFX::UCollectUtil::ProcessCollector::Create()";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
+enum class PerfCaller {
+    EVENTLOGGER,
+    XPOWER,
+    UNIFIED_COLLECTOR,
+    PERFORMANCE_FACTORY,
+};
+
 class PerfCollector {
 public:
     PerfCollector() = default;
@@ -44,7 +51,7 @@ public:
     virtual CollectResult<bool> Pause() = 0;
     virtual CollectResult<bool> Resume() = 0;
     virtual CollectResult<bool> Stop() = 0;
-    static std::shared_ptr<PerfCollector> Create();
+    static std::shared_ptr<PerfCollector> Create(PerfCaller perfCaller);
 };
 } // UCollectUtil
 } // HivewDFX

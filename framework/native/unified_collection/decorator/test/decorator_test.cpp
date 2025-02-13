@@ -93,7 +93,7 @@ void CallCollectorFuncs()
     auto networkCollector = NetworkCollector::Create();
     (void)networkCollector->CollectRate();
 #ifdef HAS_HIPERF
-    auto perfCollector = PerfCollector::Create();
+    auto perfCollector = PerfCollector::Create(PerfCaller::UNIFIED_COLLECTOR);
     (void)perfCollector->StartPerf("/data/local/tmp/");
 #endif
     auto traceCollector = TraceCollector::Create();
