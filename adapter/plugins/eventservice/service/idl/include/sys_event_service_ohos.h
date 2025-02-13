@@ -20,7 +20,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "base_types.h"
+#include "../type/base_types.h"
 #include "data_publisher.h"
 #include "event_query_wrapper_builder.h"
 #include "iquery_base_callback.h"

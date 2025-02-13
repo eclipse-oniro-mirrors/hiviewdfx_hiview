@@ -29,8 +29,6 @@ idl_gen_interface("sys_event_service_interface") {
     "ISysEventService.idl",
   ]
 
-  sub_include = [ "include" ]
-
   log_domainid = "0xD002D10"
   log_tag = "HIVIEW"
 
