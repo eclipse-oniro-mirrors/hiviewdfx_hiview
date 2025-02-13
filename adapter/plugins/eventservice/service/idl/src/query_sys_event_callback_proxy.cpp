@@ -47,8 +47,7 @@ void QuerySysEventCallbackProxy::OnQuery(const std::vector<std::u16string>& sysE
     }
     MessageParcel reply;
     MessageOption option = {MessageOption::TF_ASYNC};
-    int32_t res = remote->SendRequest(
-        static_cast<uint32_t>(QuerySysEventCallbackInterfaceCode::ON_QUERY), data, reply, option);
+    int32_t res = remote->SendRequest(static_cast<uint32_t>(ON_QUERY), data, reply, option);
     if (res != ERR_OK) {
         HIVIEW_LOGE("send request failed, error is %{public}d.", res);
     }
@@ -78,8 +77,7 @@ void QuerySysEventCallbackProxy::OnComplete(int32_t reason, int32_t total, int64
     }
     MessageParcel reply;
     MessageOption option = {MessageOption::TF_ASYNC};
-    int32_t res = remote->SendRequest(
-        static_cast<uint32_t>(QuerySysEventCallbackInterfaceCode::ON_COMPLETE), data, reply, option);
+    int32_t res = remote->SendRequest(static_cast<uint32_t>(ON_COMPLETE), data, reply, option);
     if (res != ERR_OK) {
         HIVIEW_LOGE("send request failed, error is %{public}d.", res);
     }

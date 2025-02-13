@@ -17,12 +17,11 @@
 #define OHOS_HIVIEWDFX_SYS_EVENT_SERVICE_OHOS_H
 
 #include <atomic>
-#include <functional>
 #include <vector>
 #include <unordered_map>
 
+#include "base_types.h"
 #include "data_publisher.h"
-#include "event.h"
 #include "event_query_wrapper_builder.h"
 #include "iquery_base_callback.h"
 #include "iquery_sys_event_callback.h"
@@ -38,11 +37,6 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-using NotifySysEvent = std::function<void (std::shared_ptr<Event>)>;
-
-class SysEventServiceBase {
-};
-
 class CallbackDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     CallbackDeathRecipient() = default;
@@ -62,17 +56,34 @@ public:
     static sptr<SysEventServiceOhos> GetInstance();
     static void StartService(SysEventServiceBase* service, const NotifySysEvent notify);
     static SysEventServiceBase* GetSysEventService(SysEventServiceBase* service = nullptr);
-    void OnSysEvent(std::shared_ptr<SysEvent>& sysEvent);
-    int32_t AddListener(const std::vector<SysEventRule>& rules, const OHOS::sptr<ISysEventCallback>& callback) override;
-    int32_t RemoveListener(const OHOS::sptr<ISysEventCallback>& callback) override;
-    int32_t Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
+
+    /* IPC interface */
+    ErrCode AddListener(
+        const std::vector<SysEventRule>& rules,
+        const OHOS::sptr<ISysEventCallback>& callback) override;
+    ErrCode RemoveListener(
+        const OHOS::sptr<ISysEventCallback>& callback) override;
+    ErrCode Query(
+        const QueryArgument& queryArgument,
+        const std::vector<SysEventQueryRule>& rules,
         const OHOS::sptr<IQuerySysEventCallback>& callback) override;
-    int32_t SetDebugMode(const OHOS::sptr<ISysEventCallback>& callback, bool mode) override;
-    void OnRemoteDied(const wptr<IRemoteObject>& remote);
+    ErrCode SetDebugMode(
+        const OHOS::sptr<ISysEventCallback>& callback,
+        bool mode) override;
+    ErrCode AddSubscriber(
+        const std::vector<SysEventQueryRule>& rules,
+        int64_t& funcResult) override;
+    ErrCode RemoveSubscriber() override;
+    ErrCode Export(
+        const QueryArgument& queryArgument,
+        const std::vector<SysEventQueryRule>& rules,
+        int64_t& funcResult) override;
+
+    /* SA interface */
     int32_t Dump(int32_t fd, const std::vector<std::u16string>& args) override;
-    int64_t AddSubscriber(const std::vector<SysEventQueryRule>& rules) override;
-    int32_t RemoveSubscriber() override;
-    int64_t Export(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules) override;
+
+    void OnSysEvent(std::shared_ptr<SysEvent>& sysEvent);
+    void OnRemoteDied(const wptr<IRemoteObject>& remote);
     void SetWorkLoop(std::shared_ptr<EventLoop> looper);
 
 private:

@@ -12,14 +12,30 @@
 # limitations under the License.
 
 import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 
-config("sys_event_service_ohos_private_config") {
-  include_dirs = [ "." ]
+config("sys_event_service_ohos_public_config") {
+  include_dirs = [
+    "include",
+    "type",
+    "${target_gen_dir}",
+  ]
 }
 
-config("sys_event_service_ohos_public_config") {
-  include_dirs = [ "include" ]
+idl_gen_interface("sys_event_service_interface") {
+  sources = [
+    "ISysEventCallback.idl",
+    "ISysEventService.idl",
+  ]
+
+  sub_include = [ "include" ]
+
+  log_domainid = "0xD002D10"
+  log_tag = "HIVIEW"
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }
 
 ohos_source_set("sys_event_service_ohos") {
@@ -30,7 +46,7 @@ ohos_source_set("sys_event_service_ohos") {
     cfi_vcall_icall_only = true
     debug = false
   }
-  part_name = "hiview"
+
   include_dirs = [
     "$hiview_plugin/eventservice/include",
     "$hiview_base/event_store/include",
@@ -50,18 +66,24 @@ ohos_source_set("sys_event_service_ohos") {
     "src/query_argument.cpp",
     "src/query_sys_event_callback_proxy.cpp",
     "src/running_status_log_util.cpp",
-    "src/sys_event_callback_proxy.cpp",
     "src/sys_event_query_rule.cpp",
     "src/sys_event_rule.cpp",
     "src/sys_event_service_ohos.cpp",
-    "src/sys_event_service_stub.cpp",
   ]
-
-  configs = [ ":sys_event_service_ohos_private_config" ]
 
   public_configs = [ ":sys_event_service_ohos_public_config" ]
 
-  deps = [ "$hiview_base:hiviewbase" ]
+  output_values = get_target_outputs(":sys_event_service_interface")
+  sources += filter_include(output_values,
+                            [
+                              "${target_gen_dir}/sys_event_callback_proxy.cpp",
+                              "${target_gen_dir}/sys_event_service_stub.cpp",
+                            ])
+
+  deps = [
+    ":sys_event_service_interface",
+    "$hiview_base:hiviewbase",
+  ]
 
   external_deps = [
     "ability_base:base",
@@ -79,4 +101,7 @@ ohos_source_set("sys_event_service_ohos") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }

@@ -19,7 +19,7 @@ config("sys_event_service_adapter_config") {
 
   include_dirs = [
     ".",
-    "$hiview_adapter/plugins/eventservice/service/idl/include",
+    "idl/type",
   ]
 }
 
@@ -32,15 +32,14 @@ ohos_shared_library("sys_event_service_adapter") {
     debug = false
   }
   part_name = "hiview"
-  include_dirs = [ "$hiview_adapter/plugins/eventservice/service/idl/include" ]
 
   public_configs = [ ":sys_event_service_adapter_config" ]
 
   sources = [ "sys_event_service_adapter.cpp" ]
 
   deps = [
-    "$hiview_adapter/plugins/eventservice/service/idl:sys_event_service_ohos",
     "$hiview_base:hiviewbase",
+    "idl:sys_event_service_ohos",
   ]
 
   external_deps = [

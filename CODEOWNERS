@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,6 +17,3 @@ plugins/faultlogger/service/idl/include/hiviewfaultlogger_ipc_interface_code.h @
 
 # any changes to adapter/service/idl/include/hiview_service_ipc_interface_code.h needs to be reviewed by @leonchan5
 adapter/service/idl/include/hiview_service_ipc_interface_code.h @leonchan5
-
-# any changes to adapter/plugins/eventservice/service/idl/include/sys_event_service_ipc_interface_code.h needs to be reviewed by @leonchan5
-adapter/plugins/eventservice/service/idl/include/sys_event_service_ipc_interface_code.h @leonchan5
