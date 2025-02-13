@@ -18,10 +18,12 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <regex>
 
 #include <fcntl.h>
 #include <sys/prctl.h>
 #include <unistd.h>
+#include <string>
 
 #include "securec.h"
 #include "common_utils.h"
@@ -668,6 +670,18 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     EXPECT_TRUE(pids.empty());
     fin.close();
 }
+
+/**
+ * @tc.name: PeerBinderCatcherTest_007
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_007, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    bool ret = peerBinderCatcher->IsAncoProc(getpid());
+    EXPECT_TRUE(!ret);
+}
 #endif // BINDER_CATCHER_ENABLE
 
 /**
@@ -802,6 +816,7 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level1)
     int ret = LogCatcherUtils::DumpStacktrace(-1, pid, threadStack);
     EXPECT_EQ(ret, -1);
     LogCatcherUtils::DumpStacktrace(1, pid, threadStack);
+    EXPECT_TRUE(threadStack.empty());
     LogCatcherUtils::DumpStacktrace(2, pid, threadStack);
     ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test\n", getprocpid());
     EXPECT_EQ(ret, 0);
@@ -813,6 +828,58 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level1)
     EXPECT_EQ(ret, 0);
     ret = LogCatcherUtils::WriteKernelStackToFd(3, "Test", -1);
     EXPECT_EQ(ret, -1);
+}
+
+/**
+ * @tc.name: LogCatcherUtilsTest_002
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_002, TestSize.Level1)
+{
+    std::string processStack = "LogCatcherUtilsTest_002";
+    std::string stack = "";
+    LogCatcherUtils::GetThreadStack(processStack, stack, 0);
+    EXPECT_TRUE(stack.empty());
+    int tid = gettid();
+    processStack = "Tid:1234, Name: TestThread\n#00 pc 0017888c /system/lib/libark_jsruntime.so\n"
+        "#01 pc 00025779 /system/lib/platformsdk/libipc_core.z.so";
+    LogCatcherUtils::GetThreadStack(processStack, stack, tid);
+}
+
+/**
+ * @tc.name: LogCatcherUtilsTest_003
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_003, TestSize.Level1)
+{
+    auto fd = open("/data/test/logCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create logCatcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    int ret = LogCatcherUtils::DumpStackFfrt(fd, "");
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: LogCatcherUtilsTest_004
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_004, TestSize.Level1)
+{
+    auto fd = open("/data/test/logCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create logCatcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    std::string serviceName = "ApplicationManagerService";
+    std::string cmd = "Test";
+    int count = 0;
+    LogCatcherUtils::ReadShellToFile(fd, serviceName, cmd, count);
+    EXPECT_EQ(count, 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -609,6 +609,20 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_005, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeDetectorPlugin_006
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_006, TestSize.Level3)
+{
+    auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
+    int uid = 10005;
+    unsigned long long eventTime = 1234567890;
+    std::string foreGround;
+    freezeDetectorPlugin->CheckForeGround(uid, getpid(), eventTime, foreGround);
+    ASSERT_EQ(foreGround, "No");
+}
+
+/**
  * @tc.name: FreezeCommon_001
  * @tc.desc: FreezeDetector
  */
@@ -835,6 +849,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_001, TestSize.Level3)
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
     DBHelper::WatchParams params = {watchPoint.GetPid(), watchPoint.GetPackageName()};
     db->SelectEventFromDB(start, end, list, params, result);
+    std::vector<std::string> eventNames;
+    eventNames.push_back("UI_BLOCK_3S");
+    eventNames.push_back("UI_BLOCK_6S");
+    db->SelectRecords(start, end, "ACE", eventNames);
 }
 
 /**
