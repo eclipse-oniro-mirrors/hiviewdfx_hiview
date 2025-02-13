@@ -38,6 +38,7 @@
 #include <future>
 #include <thread>
 #include <unistd.h>
+#include <sys/select.h>
 
 #include "accesstoken_kit.h"
 #include "bundle_mgr_client.h"
@@ -1017,7 +1018,7 @@ void Faultlogger::GetStackInfo(const FaultLogInfo& info, std::string& stackInfo)
     stackInfo.append(Json::FastWriter().write(stackInfoObj));
 }
 
-int Faultlogger::DoGetHilogProcess(int32_t pid, int writeFd) const
+int Faultlogger::DoGetHilogProcess(int32_t pid, int writeFd)
 {
     HIVIEW_LOGD("Start do get hilog process, pid:%{public}d", pid);
     if (writeFd < 0 || dup2(writeFd, STDOUT_FILENO) == -1 ||
@@ -1033,6 +1034,51 @@ int Faultlogger::DoGetHilogProcess(int32_t pid, int writeFd) const
         return ret;
     }
     return 0;
+}
+
+bool Faultlogger::ReadHilog(int fd, std::string& log)
+{
+    fd_set readFds;
+    constexpr int readTimeout = 5;
+    struct timeval timeout = {0};
+    time_t startTime = time(nullptr);
+    bool isReadDone = false;
+    while (!isReadDone) {
+        time_t now = time(nullptr);
+        if (now >= startTime + readTimeout) {
+            HIVIEW_LOGI("read hilog timeout.");
+            isReadDone = true;
+            return false;
+        }
+        timeout.tv_sec = startTime + readTimeout - now;
+        timeout.tv_usec = 0;
+
+        FD_ZERO(&readFds);
+        FD_SET(fd, &readFds);
+        int ret = select(fd + 1, &readFds, nullptr, nullptr, &timeout);
+        if (ret <= 0) {
+            HIVIEW_LOGE("select failed: %{public}d, errno: %{public}d", ret, errno);
+            if (errno == EINTR) {
+                continue;
+            }
+            isReadDone = true;
+            return false;
+        }
+
+        char buffer[READ_HILOG_BUFFER_SIZE] = {0};
+        ssize_t nread = TEMP_FAILURE_RETRY(read(fd, buffer, sizeof(buffer) - 1));
+        if (nread == 0) {
+            HIVIEW_LOGI("read hilog finished");
+            isReadDone = true;
+            break;
+        } else if (nread < 0) {
+            HIVIEW_LOGI("read failed. errno: %{public}d", errno);
+            isReadDone = true;
+            break;
+        }
+        log.append(buffer);
+    }
+    return true;
 }
 
 bool Faultlogger::GetHilog(int32_t pid, std::string& log) const
@@ -1058,15 +1104,8 @@ bool Faultlogger::GetHilog(int32_t pid, std::string& log) const
     } else {
         syscall(SYS_close, fds[1]);
         // read log from fds[0]
-        while (true) {
-            char buffer[READ_HILOG_BUFFER_SIZE] = {0};
-            ssize_t nread = TEMP_FAILURE_RETRY(read(fds[0], buffer, sizeof(buffer) - 1));
-            if (nread <= 0) {
-                HIVIEW_LOGI("read hilog finished");
-                break;
-            }
-            log.append(buffer);
-        }
+        HIVIEW_LOGI("read hilog start");
+        ReadHilog(fds[0], log);
         syscall(SYS_close, fds[0]);
 
         if (TEMP_FAILURE_RETRY(waitpid(childPid, nullptr, 0)) != childPid) {

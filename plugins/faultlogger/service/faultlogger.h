@@ -78,7 +78,7 @@ private:
     static void HandleNotify(int32_t type, const std::string& fname);
     void ReportCppCrashToAppEvent(const FaultLogInfo& info) const;
     bool GetHilog(int32_t pid, std::string& log) const;
-    int DoGetHilogProcess(int32_t pid, int writeFd) const;
+    static int DoGetHilogProcess(int32_t pid, int writeFd);
     void GetStackInfo(const FaultLogInfo& info, std::string& stackInfo) const;
     void ReportJsErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent) const;
     void ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) const;
@@ -93,6 +93,7 @@ private:
     void FaultlogLimit(const std::string &logPath, int32_t faultType) const;
     FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent) const;
     void AddBootScanEvent();
+    static bool ReadHilog(int fd, std::string& log);
 
     std::unique_ptr<FaultLogManager> mgr_;
     volatile bool hasInit_;

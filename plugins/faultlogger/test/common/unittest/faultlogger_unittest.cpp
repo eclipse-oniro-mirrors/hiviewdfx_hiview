@@ -21,6 +21,7 @@
 #include <regex>
 #include "sys_event.h"
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
@@ -40,6 +41,7 @@
 #include "file_util.h"
 #include "hisysevent_manager.h"
 #include "hiview_global.h"
+#include "hiview_logger.h"
 #include "hiview_platform.h"
 #include "ipc_skeleton.h"
 #include "json/json.h"
@@ -52,6 +54,7 @@ using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace HiviewDFX {
+DEFINE_LOG_LABEL(0xD002D11, "FaultloggerUT");
 static std::shared_ptr<FaultEventListener> faultEventListener = nullptr;
 static std::map<int, std::string> fileNames_ = {};
 
@@ -1740,6 +1743,132 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosUnittest001, testing::ext::T
     sptr<IRemoteObject> res = faultloggerServiceOhos.QuerySelfFaultLog(1, 10);
     ASSERT_EQ(res, nullptr);
     faultloggerServiceOhos.Destroy();
+}
+
+/**
+ * @tc.name: ReadHilogUnittest001
+ * @tc.desc: Faultlogger::ReadHilog
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ReadHilogUnittest001, testing::ext::TestSize.Level3)
+{
+    /**
+     * @tc.steps: step1. write log to hilog.
+     */
+    HIVIEW_LOGI("write log to hilog");
+
+    /**
+     * @tc.steps: step2. Create a pipe.
+     */
+    int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
+    int ret = pipe(fds);
+    ASSERT_EQ(ret, 0) << "Failed to create pipe for get log.";
+
+    /**
+     * @tc.steps: step3. ReadHilog.
+     */
+    int32_t pid = getpid();
+    int childPid = fork();
+    ASSERT_GE(childPid, 0);
+    if (childPid == 0) {
+        syscall(SYS_close, fds[0]);
+        int rc = Faultlogger::DoGetHilogProcess(pid, fds[1]);
+        syscall(SYS_close, fds[1]);
+        _exit(rc);
+    } else {
+        syscall(SYS_close, fds[1]);
+        // read log from fds[0]
+        HIVIEW_LOGI("read hilog start");
+        std::string log;
+        Faultlogger::ReadHilog(fds[0], log);
+        syscall(SYS_close, fds[0]);
+        ASSERT_TRUE(!log.empty());
+    }
+    waitpid(childPid, nullptr, 0);
+}
+
+/**
+ * @tc.name: ReadHilogUnittest002
+ * @tc.desc: Faultlogger::ReadHilog
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ReadHilogUnittest002, testing::ext::TestSize.Level3)
+{
+    /**
+     * @tc.steps: step1. write log to hilog.
+     */
+    HIVIEW_LOGI("write log to hilog");
+
+    /**
+     * @tc.steps: step2. Create a pipe.
+     */
+    int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
+    int ret = pipe(fds);
+    ASSERT_EQ(ret, 0) << "Failed to create pipe for get log.";
+
+    /**
+     * @tc.steps: step3. ReadHilog.
+     */
+    int32_t pid = getpid();
+    int childPid = fork();
+    ASSERT_GE(childPid, 0);
+    if (childPid == 0) {
+        syscall(SYS_close, fds[0]);
+        sleep(7); // Delay for 7 seconds, causing the read end to timeout and exit
+        int rc = Faultlogger::DoGetHilogProcess(pid, fds[1]);
+        syscall(SYS_close, fds[1]);
+        _exit(rc);
+    } else {
+        syscall(SYS_close, fds[1]);
+        // read log from fds[0]
+        HIVIEW_LOGI("read hilog start");
+        std::string log;
+        Faultlogger::ReadHilog(fds[0], log);
+        syscall(SYS_close, fds[0]);
+        ASSERT_TRUE(log.empty());
+    }
+    waitpid(childPid, nullptr, 0);
+}
+
+/**
+ * @tc.name: ReadHilogUnittest003
+ * @tc.desc: Faultlogger::ReadHilog
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ReadHilogUnittest003, testing::ext::TestSize.Level3)
+{
+    /**
+     * @tc.steps: step1. write log to hilog.
+     */
+    HIVIEW_LOGI("write log to hilog");
+
+    /**
+     * @tc.steps: step2. Create a pipe.
+     */
+    int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
+    int ret = pipe(fds);
+    ASSERT_EQ(ret, 0) << "Failed to create pipe for get log.";
+
+    /**
+     * @tc.steps: step3. ReadHilog.
+     */
+    int32_t pid = getpid();
+    int childPid = fork();
+    ASSERT_GE(childPid, 0);
+    if (childPid == 0) {
+        syscall(SYS_close, fds[0]);
+        syscall(SYS_close, fds[1]);
+        _exit(0);
+    } else {
+        syscall(SYS_close, fds[1]);
+        // read log from fds[0]
+        HIVIEW_LOGI("read hilog start");
+        std::string log;
+        Faultlogger::ReadHilog(fds[0], log);
+        syscall(SYS_close, fds[0]);
+        ASSERT_TRUE(log.empty());
+    }
+    waitpid(childPid, nullptr, 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
