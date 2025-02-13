@@ -88,6 +88,10 @@ ExportDbStorage::ExportDbStorage(const std::string& dbStoreDir)
 
 void ExportDbStorage::InsertExportDetailRecord(ExportDetailRecord& record)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("dbStore_ is null");
+        return;
+    }
     NativeRdb::ValuesBucket bucket;
     bucket.PutString(COLUMN_MODULE_NAME, record.moduleName);
     bucket.PutLong(COLUMN_EXPORT_ENABLED_SEQ, record.exportEnabledSeq);
@@ -110,6 +114,10 @@ void ExportDbStorage::UpdateExportedMaxSeq(ExportDetailRecord& record)
 
 void ExportDbStorage::QueryExportDetailRecord(const std::string& moduleName, ExportDetailRecord& record)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("dbStore_ is null");
+        return;
+    }
     if (moduleName.empty()) {
         HIVIEW_LOGW("query record with an empty module name");
         return;
@@ -168,6 +176,10 @@ void ExportDbStorage::InitDbStore(const std::string& dbStoreDir)
 void ExportDbStorage::UpdateExportDetailRecordSeq(ExportDetailRecord& record, const std::string& seqName,
     int64_t seqValue)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("dbStore_ is null");
+        return;
+    }
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(seqName, seqValue);
     int changeRow = 0;
