@@ -14,5 +14,5 @@
  */
 
 [callback] interface OHOS.HiviewDFX.ISysEventCallback {
-    void Handle([in] String domain, [in] String eventName, [in] unsigned int eventType, [in] String eventDetail);
+    [oneway] void Handle([in] String domain, [in] String eventName, [in] unsigned int eventType, [in] String eventDetail);
 }
