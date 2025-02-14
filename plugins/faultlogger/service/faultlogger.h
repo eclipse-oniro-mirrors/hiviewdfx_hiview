@@ -80,7 +80,7 @@ private:
     bool GetHilog(int32_t pid, std::string& log) const;
     int DoGetHilogProcess(int32_t pid, int writeFd) const;
     void GetStackInfo(const FaultLogInfo& info, std::string& stackInfo) const;
-    void ReportJsErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent) const;
+    void ReportJsOrCjErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent, FaultLogType faultType) const;
     void ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) const;
     std::string GetSanitizerReason(const int32_t faultLogType, const std::string &reason) const;
     std::string GetMemoryStrByPid(long pid) const;

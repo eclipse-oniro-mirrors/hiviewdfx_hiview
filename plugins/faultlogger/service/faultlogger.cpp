@@ -536,6 +536,7 @@ bool Faultlogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
 
     if (event->eventName_ != "PROCESS_EXIT" &&
         event->eventName_ != "JS_ERROR" &&
+        event->eventName_ != "CJ_ERROR" &&
         event->eventName_ != "RUST_PANIC"  &&
         event->eventName_ != "ADDR_SANITIZER") {
         return false;
@@ -557,13 +558,18 @@ FaultLogInfo Faultlogger::FillFaultLogInfo(SysEvent &sysEvent) const
     info.pid = sysEvent.GetPid();
     if (sysEvent.eventName_ == "JS_ERROR") {
         info.faultLogType = FaultLogType::JS_CRASH;
+    } else if (sysEvent.eventName_ == "CJ_ERROR") {
+        info.faultLogType = FaultLogType::CJ_ERROR;
     } else if (sysEvent.eventName_ == "RUST_PANIC") {
         info.faultLogType = FaultLogType::RUST_PANIC;
     } else {
         info.faultLogType = FaultLogType::ADDR_SANITIZER;
     }
-    info.module = info.faultLogType == FaultLogType::JS_CRASH ?
-        sysEvent.GetEventValue("PACKAGE_NAME") : sysEvent.GetEventValue("MODULE");
+    if (info.faultLogType == FaultLogType::JS_CRASH || info.faultLogType == FaultLogType::CJ_ERROR) {
+        info.module = sysEvent.GetEventValue("PACKAGE_NAME");
+    } else {
+        info.module = sysEvent.GetEventValue("MODULE");
+    }
     info.reason = sysEvent.GetEventValue("REASON");
     if (IsDebugSignal(info)) {
         info.pid = sysEvent.GetEventIntValue("PID");
@@ -631,7 +637,7 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
     if (!hasInit_ || event == nullptr) {
         return false;
     }
-    if (event->eventName_ != "JS_ERROR" && event->eventName_ != "RUST_PANIC"
+    if (event->eventName_ != "JS_ERROR" && event->eventName_ != "CJ_ERROR" && event->eventName_ != "RUST_PANIC"
         && event->eventName_ != "ADDR_SANITIZER") {
         return true;
     }
@@ -645,8 +651,8 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
     if (!info.reportToAppEvent) {
         return true;
     }
-    if (info.faultLogType == FaultLogType::JS_CRASH) {
-        ReportJsErrorToAppEvent(sysEvent);
+    if (info.faultLogType == FaultLogType::JS_CRASH || info.faultLogType == FaultLogType::CJ_ERROR) {
+        ReportJsOrCjErrorToAppEvent(sysEvent, static_cast<FaultLogType>(info.faultLogType));
     }
     // DEBUG FD is used for debugging and is not reported to the application.
     // The kernel writes a special reason field to prevent reporting.
@@ -674,20 +680,20 @@ void Faultlogger::FillHilog(const std::string &hilogStr, Json::Value &hilog) con
     }
 }
 
-void Faultlogger::ReportJsErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent) const
+void Faultlogger::ReportJsOrCjErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent, FaultLogType faultType) const
 {
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("SUMMARY"));
     HIVIEW_LOGD("ReportAppEvent:summary:%{public}s.", summary.c_str());
 
     Json::Value params;
     params["time"] = sysEvent->happenTime_;
-    params["crash_type"] = "JsError";
-    std::string foreground = sysEvent->GetEventValue("FOREGROUND");
-    if (foreground == "Yes") {
-        params["foreground"] = true;
+    if (faultType == FaultLogType::JS_CRASH) {
+        params["crash_type"] = "JsError";
     } else {
-        params["foreground"] = false;
+        params["crash_type"] = "CjError";
     }
+    std::string foreground = sysEvent->GetEventValue("FOREGROUND");
+    params["foreground"] = (foreground == "Yes") ? true : false;
     Json::Value externalLog(Json::arrayValue);
     std::string logPath = sysEvent->GetEventValue("LOG_PATH");
     if (!logPath.empty()) {
@@ -710,7 +716,8 @@ void Faultlogger::ReportJsErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent) co
     HIVIEW_LOGD("ReportAppEvent: uid:%{public}d, json:%{public}s.",
         sysEvent->GetUid(), paramsStr.c_str());
 #ifdef UNITTEST
-    std::string outputFilePath = "/data/test_jsError_info";
+    std::string outputFilePath = (faultType == FaultLogType::JS_CRASH) ?
+        "/data/test_jsError_info" : "/data/test_cjError_info";
     if (!FileUtil::FileExists(outputFilePath)) {
         int fd = TEMP_FAILURE_RETRY(open(outputFilePath.c_str(), O_CREAT | O_RDWR | O_APPEND, DEFAULT_LOG_FILE_MODE));
         if (fd != -1) {
@@ -790,7 +797,7 @@ void Faultlogger::AddFaultLog(FaultLogInfo& info)
         return;
     }
 
-    if ((info.faultLogType <= FaultLogType::ALL) || (info.faultLogType > FaultLogType::ADDR_SANITIZER)) {
+    if ((info.faultLogType <= FaultLogType::ALL) || (info.faultLogType > FaultLogType::CJ_ERROR)) {
         HIVIEW_LOGW("Unsupported fault type");
         return;
     }
@@ -897,8 +904,8 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
     if (info.dumpLogToFautlogger) {
         mgr_->SaveFaultLogToFile(info);
     }
-    if (info.faultLogType != FaultLogType::JS_CRASH && info.faultLogType != FaultLogType::RUST_PANIC
-        && info.faultLogType != FaultLogType::ADDR_SANITIZER) {
+    if (info.faultLogType != FaultLogType::JS_CRASH && info.faultLogType != FaultLogType::CJ_ERROR
+        && info.faultLogType != FaultLogType::RUST_PANIC && info.faultLogType != FaultLogType::ADDR_SANITIZER) {
         mgr_->SaveFaultInfoToRawDb(info);
     }
     HIVIEW_LOGI("\nSave Faultlog of Process:%{public}d\n"

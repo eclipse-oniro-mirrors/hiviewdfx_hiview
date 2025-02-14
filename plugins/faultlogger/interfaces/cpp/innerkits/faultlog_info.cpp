@@ -117,6 +117,8 @@ std::string FaultLogInfo::GetStringFaultType() const
             return "CppCrash";
         case JS_CRASH:
             return "JsCrash";
+        case CJ_ERROR:
+            return "CjError";
         case APP_FREEZE:
             return "AppFreeze";
         case SYS_FREEZE:

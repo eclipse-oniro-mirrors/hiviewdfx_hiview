@@ -63,6 +63,8 @@ enum FaultLogType {
     SYS_WARNING,
     /** rust crash at runtime */
     RUST_PANIC,
+    /** cj error at runtime */
+    CJ_ERROR = 9,
 };
 
 /**
