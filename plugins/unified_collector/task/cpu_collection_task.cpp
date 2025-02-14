@@ -127,9 +127,11 @@ void CpuCollectionTask::CollectCpuData()
     // collect the system cpu usage periodically for hidumper
     cpuCollector_->CollectSysCpuUsage(true);
 
+#ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
     if (Parameter::IsBetaVersion()) {
         CheckAndDumpTraceData();
     }
+#endif
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

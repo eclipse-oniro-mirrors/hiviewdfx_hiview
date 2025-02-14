@@ -87,6 +87,10 @@ ohos_source_set("unified_collector") {
     ]
   }
 
+  if (hiview_unified_collector_trace_for_cpu_high_load) {
+    defines += [ "CATCH_TRACE_FOR_CPU_HIGH_LOAD" ]
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 }
