@@ -49,7 +49,7 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
     bool needDelete = false;
     std::string logPath = info.logPath;
     auto eventType = GetFaultNameByType(info.faultLogType, false);
-    if ((eventType == "JS_ERROR" || eventType == "CPP_CRASH") && !info.summary.empty()) {
+    if ((eventType == "JS_ERROR" || eventType == "CJ_ERROR" || eventType == "CPP_CRASH") && !info.summary.empty()) {
         logPath = std::string(FaultLogger::FAULTLOG_BASE_FOLDER) + eventType + std::to_string(info.time);
         FileUtil::SaveStringToFile(logPath, info.summary);
         needDelete = true;

@@ -15,6 +15,10 @@
         {
             "domain": "STARTUP",
             "include": ["PROCESS_EXIT"]
+        },
+        {
+            "domain": "CJ_RUNTIME",
+            "include": ["CJ_ERROR"]
         }
     ]
 }

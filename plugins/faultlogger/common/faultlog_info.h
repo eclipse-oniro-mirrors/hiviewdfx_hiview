@@ -50,6 +50,7 @@ enum FaultLogType {
     SYS_WARNING,
     RUST_PANIC,
     ADDR_SANITIZER,
+    CJ_ERROR,
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS
