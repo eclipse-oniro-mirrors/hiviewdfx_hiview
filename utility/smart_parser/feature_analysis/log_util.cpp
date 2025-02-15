@@ -74,11 +74,15 @@ void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, stri
         smatch matches;
         if (regex_search(line, matches, regex(reg))) {
             skipNum = 0;
-        } else {
-            skipNum++;
+            result += matches.str(0) + LogUtil::SPLIT_PATTERN;
             continue;
         }
-        result += matches.str(0) + LogUtil::SPLIT_PATTERN;
+
+        if (regex_match(line, matches, regex("^Tid:\\d+, Name:.*$"))) {
+            break; // match new thread break
+        }
+
+        skipNum++;
     }
 }
 
