@@ -82,7 +82,7 @@ std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, co
     return GetDefinedBaseInfoByDomainName(domain, name).tag;
 }
 
-int EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name)
+uint8_t EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name)
 {
     return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.type;
 }
