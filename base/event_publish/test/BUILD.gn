@@ -45,6 +45,7 @@ ohos_unittest("EventPublishTest") {
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "jsoncpp:jsoncpp",
   ]
 }

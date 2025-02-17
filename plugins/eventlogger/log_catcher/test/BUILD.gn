@@ -54,6 +54,7 @@ ohos_unittest("EventloggerCatcherTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "input:libmmi-client",
     "window_manager:libwm",
   ]

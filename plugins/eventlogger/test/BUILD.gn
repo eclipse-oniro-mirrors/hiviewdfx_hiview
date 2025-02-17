@@ -116,6 +116,7 @@ ohos_unittest("EventLoggerTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "jsoncpp:jsoncpp",
   ]
