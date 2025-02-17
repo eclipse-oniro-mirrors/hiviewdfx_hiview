@@ -64,7 +64,7 @@ DECLARE_DELAYED_SINGLETON(EventJsonParser);
 
 public:
     std::string GetTagByDomainAndName(const std::string& domain, const std::string& name);
-    int GetTypeByDomainAndName(const std::string& domain, const std::string& name);
+    uint8_t GetTypeByDomainAndName(const std::string& domain, const std::string& name);
     bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name);
     void OnConfigUpdate();
     BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name);
