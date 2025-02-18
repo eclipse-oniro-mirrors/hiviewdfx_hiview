@@ -65,6 +65,7 @@ private:
     int pid_;
     std::set<int> catchedPids_;
     std::string focusWindowId_ = "";
+    bool memoryCatched_ = false;
 
     bool ShouldStopLogTask(int fd, uint32_t curTaskIndex, int curLogSize, std::shared_ptr<EventLogCatcher> catcher);
     void AddStopReason(int fd, std::shared_ptr<EventLogCatcher> catcher, const std::string& reason);
@@ -100,7 +101,6 @@ private:
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
-    bool memoryCatched_ = false;
     void MemoryUsageCapture();
     void CpuUsageCapture();
     void WMSUsageCapture();
