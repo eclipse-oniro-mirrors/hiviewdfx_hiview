@@ -269,6 +269,12 @@ ohos_source_set("ucollection_source") {
         [ "collector/empty_impl/process/process_collector_empty_impl.cpp" ]
   }
 
+  if (hiview_unified_collector_low_mem_threshold != 0) {
+    defines += [
+      "HIVIEW_LOW_MEM_THRESHOLD=${hiview_unified_collector_low_mem_threshold}",
+    ]
+  }
+
   # for plugin unified_collector
   sources += [
     "collector/impl/trace/utils/app_event_task_storage.cpp",
