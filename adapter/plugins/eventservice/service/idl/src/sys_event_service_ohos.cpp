@@ -35,6 +35,7 @@
 #include "system_ability_definition.h"
 #include "sys_event_sequence_mgr.h"
 #include "time_util.h"
+#include "tokenid_kit.h"
 
 using namespace std;
 using namespace OHOS::HiviewDFX::EventStore;
@@ -132,6 +133,20 @@ int32_t CheckEventQueryingValidity(const std::vector<SysEventQueryRule>& rules, 
         return ERR_TOO_MANY_QUERY_RULES;
     }
     return IPC_CALL_SUCCEED;
+}
+
+bool IsSystemAppCaller()
+{
+    uint64_t tokenId = IPCSkeleton::GetCallingFullTokenID();
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
+}
+
+bool IsNativeCaller()
+{
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
+    return tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE
+        || Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL;
 }
 }
 
@@ -236,7 +251,7 @@ SysEventServiceBase* SysEventServiceOhos::GetSysEventService(SysEventServiceBase
 ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     const sptr<ISysEventCallback>& callback)
 {
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
         return ERR_NO_PERMISSION;
     }
     size_t watchRuleCntLimit = 20; // count of listener rule for each watcher is limited to 20.
@@ -283,7 +298,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
 
 ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>& callback)
 {
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
         return ERR_NO_PERMISSION;
     }
     auto service = GetSysEventService();
@@ -367,7 +382,7 @@ ErrCode SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std
     if (callback == nullptr) {
         return ERR_LISTENER_NOT_EXIST;
     }
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
         callback->OnComplete(ERR_NO_PERMISSION, 0, EventStore::SysEventSequenceManager::GetInstance().GetSequence());
         return ERR_NO_PERMISSION;
     }
@@ -418,7 +433,7 @@ bool SysEventServiceOhos::HasAccessPermission() const
 
 ErrCode SysEventServiceOhos::SetDebugMode(const OHOS::sptr<ISysEventCallback>& callback, bool mode)
 {
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !IsNativeCaller()) {
         return ERR_NO_PERMISSION;
     }
     if (mode == isDebugMode_) {
@@ -458,7 +473,7 @@ void CallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 
 ErrCode SysEventServiceOhos::AddSubscriber(const std::vector<SysEventQueryRule>& rules, int64_t& funcResult)
 {
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !IsSystemAppCaller()) {
         return ERR_NO_PERMISSION;
     }
     std::vector<std::string> events;
@@ -489,7 +504,7 @@ void SysEventServiceOhos::MergeEventList(const std::vector<SysEventQueryRule>& r
 
 ErrCode SysEventServiceOhos::RemoveSubscriber()
 {
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !IsSystemAppCaller()) {
         return ERR_NO_PERMISSION;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
@@ -504,7 +519,7 @@ ErrCode SysEventServiceOhos::RemoveSubscriber()
 ErrCode SysEventServiceOhos::Export(const QueryArgument &queryArgument,
     const std::vector<SysEventQueryRule>& rules, int64_t& funcResult)
 {
-    if (!HasAccessPermission()) {
+    if (!HasAccessPermission() || !IsSystemAppCaller()) {
         return ERR_NO_PERMISSION;
     }
     auto checkRet = CheckEventQueryingValidity(rules, 10); // count of query rule limits to 10 in export.
