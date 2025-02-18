@@ -53,5 +53,6 @@ ohos_unittest("EventReportUnitTest") {
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
 }
