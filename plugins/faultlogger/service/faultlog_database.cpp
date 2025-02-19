@@ -112,8 +112,12 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
             "STACK", info.sectionMap["STACK"].empty() ? "" : info.sectionMap["STACK"]
         );
     };
-    constexpr int delayTime = 2;
-    eventLoop_->AddTimerEvent(nullptr, nullptr, task, delayTime, false);
+    if (info.faultLogType == FaultLogType::CPP_CRASH) {
+        constexpr int delayTime = 2; // Delay for 2 seconds to wait for ffrt log generation
+        eventLoop_->AddTimerEvent(nullptr, nullptr, task, delayTime, false);
+    } else {
+        task();
+    }
 }
 
 std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateQueries(
