@@ -18,12 +18,12 @@
 #include <atomic>
 #include <memory>
 
-#include "app_caller_event.h"
-#include "app_trace_context.h"
 #include "cpu_collection_task.h"
 #include "plugin.h"
 #include "sys_event.h"
+#ifdef HIVIEW_LOW_MEM_THRESHOLD
 #include "trace_cache_monitor.h"
+#endif
 #include "unified_collection_stat.h"
 
 namespace OHOS {
@@ -32,11 +32,11 @@ class UnifiedCollector : public Plugin {
 public:
     void OnLoad() override;
     void OnUnload() override;
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     bool OnEvent(std::shared_ptr<Event>& event) override;
     void OnEventListeningCallback(const Event& event) override;
     void Dump(int fd, const std::vector<std::string>& cmds) override;
-    static bool IsEnableRecordTrace() { return isEnableRecordTrace_; }
-    static void SetRecordTraceStatus(bool isEnable) { isEnableRecordTrace_ = isEnable; }
+#endif
 
 private:
     void Init();
@@ -44,29 +44,32 @@ private:
     void InitWorkPath();
     void RunCpuCollectionTask();
     void CpuCollectionFfrtTask();
-    void RegisterWorker();
     void RunIoCollectionTask();
     void RunUCollectionStatTask();
     void IoCollectionTask();
     void UCollectionStatTask();
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+    void LoadTraceSwitch();
+    static void OnFreezeDetectorParamChanged(const char* key, const char* value, void* context);
+    static void OnSwitchRecordTraceStateChanged(const char* key, const char* value, void* context);
+    void OnMainThreadJank(SysEvent& sysEvent);
+#endif
+#ifdef HIVIEW_LOW_MEM_THRESHOLD
     void RunCacheMonitorLoop();
     void ExitCacheMonitorLoop();
+#endif
     void CleanDataFiles();
-    void OnMainThreadJank(SysEvent& sysEvent);
-    bool OnStartAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
-    bool OnStopAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
-    bool OnDumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
-    void RunRecordTraceTask();
+
     static void OnSwitchStateChanged(const char* key, const char* value, void* context);
 
 private:
     std::string workPath_;
     std::shared_ptr<CpuCollectionTask> cpuCollectionTask_;
+#ifdef HIVIEW_LOW_MEM_THRESHOLD
     std::shared_ptr<TraceCacheMonitor> traceCacheMonitor_;
+#endif
     std::list<uint64_t> taskList_;
     volatile bool isCpuTaskRunning_;
-    static bool isEnableRecordTrace_;
-    std::shared_ptr<AppTraceContext> appTraceContext_;
 }; // UnifiedCollector
 } // namespace HiviewDFX
 } // namespace OHOS

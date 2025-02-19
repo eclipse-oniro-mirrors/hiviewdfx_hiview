@@ -95,10 +95,6 @@ const std::vector<std::regex> REGEXS = {
     std::regex("^0.142800$")
 };
 
-#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-TraceManager g_traceManager;
-#endif
-
 std::unordered_set<std::string> g_collector_names;
 
 void CallCollectorFuncs()
@@ -161,10 +157,7 @@ void CallCollectorFuncs()
     auto traceCollector = TraceCollector::Create();
     UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
     const std::vector<std::string> tagGroups = {"scene_performance"};
-    (void)g_traceManager.OpenSnapshotTrace(tagGroups);
     CollectResult<std::vector<std::string>> resultDumpTrace = traceCollector->DumpTrace(caller);
-    (void)g_traceManager.CloseTrace();
-    (void)traceCollector->TraceOff();
 #endif
 
 #ifdef UNIFIED_COLLECTOR_WM_ENABLE

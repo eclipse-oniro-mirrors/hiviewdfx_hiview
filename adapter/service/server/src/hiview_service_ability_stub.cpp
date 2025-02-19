@@ -44,36 +44,22 @@ const std::map<uint32_t, std::string> ALL_PERMISSION_MAP = {
         "ohos.permission.WRITE_HIVIEW_SYSTEM"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_REMOVE),
         "ohos.permission.WRITE_HIVIEW_SYSTEM"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_OPEN_SNAPSHOT_TRACE),
-        "ohos.permission.WRITE_HIVIEW_SYSTEM"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_DUMP_SNAPSHOT_TRACE),
         "ohos.permission.READ_HIVIEW_SYSTEM"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_OPEN_RECORDING_TRACE),
-        "ohos.permission.WRITE_HIVIEW_SYSTEM"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECORDING_TRACE_ON),
-        "ohos.permission.READ_HIVIEW_SYSTEM"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECORDING_TRACE_OFF),
-        "ohos.permission.READ_HIVIEW_SYSTEM"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_CLOSE_TRACE),
-        "ohos.permission.WRITE_HIVIEW_SYSTEM"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECOVER_TRACE),
-        "ohos.permission.WRITE_HIVIEW_SYSTEM"}
 };
 
 const std::map<uint32_t, std::string> TRACE_PERMISSION_MAP = {
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_OPEN_SNAPSHOT_TRACE),
         "ohos.permission.DUMP"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_DUMP_SNAPSHOT_TRACE),
-        "ohos.permission.DUMP"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_OPEN_RECORDING_TRACE),
+        "ohos.permission.DUMP"},
+    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_DUMP_SNAPSHOT_TRACE),
         "ohos.permission.DUMP"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECORDING_TRACE_ON),
         "ohos.permission.DUMP"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECORDING_TRACE_OFF),
         "ohos.permission.DUMP"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_CLOSE_TRACE),
-        "ohos.permission.DUMP"},
-    {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECOVER_TRACE),
         "ohos.permission.DUMP"},
     {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_GET_APP_TRACE), ""},
 };
@@ -201,11 +187,6 @@ std::map<uint32_t, RequestHandler> HiviewServiceAbilityStub::GetTraceRequestHand
         {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_CLOSE_TRACE),
             [this] (MessageParcel& data, MessageParcel& reply, MessageOption& option) {
                 return this->HandleCloseTraceRequest(data, reply, option);
-            }
-        },
-        {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECOVER_TRACE),
-            [this] (MessageParcel& data, MessageParcel& reply, MessageOption& option) {
-                return this->HandleRecoverTraceRequest(data, reply, option);
             }
         },
         {static_cast<uint32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_GET_APP_TRACE),
@@ -377,12 +358,12 @@ int32_t HiviewServiceAbilityStub::HandleOpenSnapshotTraceRequest(MessageParcel& 
 int32_t HiviewServiceAbilityStub::HandleDumpSnapshotTraceRequest(MessageParcel& data, MessageParcel& reply,
     MessageOption& option)
 {
-    int32_t caller = UCollect::TraceCaller::OTHER;
-    if (!data.ReadInt32(caller)) {
+    int32_t client = UCollect::TraceClient::COMMON_DEV;
+    if (!data.ReadInt32(client)) {
         HIVIEW_LOGW("failed to read trace caller from parcel");
         return TraceErrCode::ERR_READ_MSG_PARCEL;
     }
-    auto ret = DumpSnapshotTrace(caller);
+    auto ret = DumpSnapshotTrace(client);
     return WritePracelableToMessage(reply, ret);
 }
 
@@ -416,13 +397,6 @@ int32_t HiviewServiceAbilityStub::HandleCloseTraceRequest(MessageParcel& data, M
     MessageOption& option)
 {
     auto ret = CloseTrace();
-    return WritePracelableToMessage(reply, ret);
-}
-
-int32_t HiviewServiceAbilityStub::HandleRecoverTraceRequest(MessageParcel& data, MessageParcel& reply,
-    MessageOption& option)
-{
-    auto ret = RecoverTrace();
     return WritePracelableToMessage(reply, ret);
 }
 

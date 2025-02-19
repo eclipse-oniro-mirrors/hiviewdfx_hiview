@@ -70,14 +70,6 @@ CollectResult<int32_t> HiViewServiceTraceDelegate::Close()
     return TraceCalling<int32_t>(proxyHandler);
 }
 
-CollectResult<int32_t> HiViewServiceTraceDelegate::Recover()
-{
-    auto proxyHandler = [] (HiviewServiceAbilityProxy& proxy) {
-        return proxy.RecoverTrace();
-    };
-    return TraceCalling<int32_t>(proxyHandler);
-}
-
 CollectResult<int32_t> HiViewServiceTraceDelegate::CaptureDurationTrace(UCollectClient::AppCaller &appCaller)
 {
     auto proxyHandler = [&appCaller] (HiviewServiceAbilityProxy& proxy) {

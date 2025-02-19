@@ -120,39 +120,6 @@ static bool WriteAIProcessMemToFile(std::string& filePath, const std::vector<AIP
     return true;
 }
 
-static bool GetSmapsFromProcPath(const std::string& procPath, ProcessMemory& procMem)
-{
-    std::string content;
-    if (!FileUtil::FileExists(procPath)) {
-        HIVIEW_LOGI("%{public}s is not exist, process exit.", procPath.c_str());
-        return false;
-    }
-    if (!FileUtil::LoadStringFromFile(procPath, content)) {
-        HIVIEW_LOGE("load string from %{public}s failed.", procPath.c_str());
-        return false;
-    }
-    std::stringstream ss(content);
-    std::string line;
-    unsigned rss = 0;
-    unsigned pss = 0;
-    unsigned swapPss = 0;
-
-    while (std::getline(ss, line)) {
-        unsigned temp;
-        if (sscanf_s(line.c_str(), "Rss: %u kB", &temp) == 1) {
-            rss += temp;
-        } else if (sscanf_s(line.c_str(), "Pss: %u kB", &temp) == 1) {
-            pss += temp;
-        } else if (sscanf_s(line.c_str(), "SwapPss: %u kB", &temp) == 1) {
-            swapPss += temp;
-        }
-    }
-    procMem.rss = static_cast<int32_t>(rss);
-    procMem.pss = static_cast<int32_t>(pss);
-    procMem.swapPss = static_cast<int32_t>(swapPss);
-    return true;
-}
-
 static bool ReadMemFromAILib(AIProcessMem memInfos[], int len, int& realSize)
 {
     std::string libName = "libai_mnt_client.so";

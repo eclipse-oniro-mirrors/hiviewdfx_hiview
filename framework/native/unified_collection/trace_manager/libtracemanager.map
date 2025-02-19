@@ -1,0 +1,28 @@
+{
+  global:
+    extern "C++" {
+        "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
+        "OHOS::HiviewDFX::TraceStateMachine::DumpTrace(OHOS::HiviewDFX::TraceScenario, int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
+        "OHOS::HiviewDFX::TraceStateMachine::TraceStateMachine()";
+        "OHOS::HiviewDFX::TraceFlowController::NeedDump()";
+        "OHOS::HiviewDFX::TraceFlowController::NeedUpload(long long)";
+        "OHOS::HiviewDFX::TraceFlowController::StoreDb()";
+        "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long long)";
+        "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
+        "OHOS::HiviewDFX::TraceStateMachine::CloseTrace(OHOS::HiviewDFX::TraceScenario)";
+        "OHOS::HiviewDFX::TraceFlowController::CleanOldAppTrace(int)";
+        "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::DynamicState::GetTaskBeginTime()";
+        "OHOS::HiviewDFX::TraceStateMachine::InitOrUpdateState()";
+        "OHOS::HiviewDFX::TraceStateMachine::OpenTrace(OHOS::HiviewDFX::TraceScenario, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
+        "OHOS::HiviewDFX::TraceStateMachine::OpenTrace(OHOS::HiviewDFX::TraceScenario, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::TraceStateMachine::TraceDropOn(OHOS::HiviewDFX::TraceScenario)";
+        "OHOS::HiviewDFX::TraceStateMachine::TraceDropOff(OHOS::HiviewDFX::TraceScenario, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
+        "OHOS::HiviewDFX::TraceStateMachine::OpenDynamicTrace(int)";
+        "OHOS::HiviewDFX::TraceStateMachine::TraceCacheOff()";
+        "OHOS::HiviewDFX::TraceStateMachine::TraceCacheOn(unsigned long long, unsigned long long)";
+        "OHOS::HiviewDFX::TraceFlowController::UseCacheTimeQuota(int)";
+    };
+  local:
+    *;
+};

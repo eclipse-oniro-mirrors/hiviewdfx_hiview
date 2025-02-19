@@ -52,7 +52,6 @@ private:
     int32_t HandleRecordingTraceOnRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleRecordingTraceOffRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleCloseTraceRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
-    int32_t HandleRecoverTraceRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleCaptureDurationTraceRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleGetSysCpuUsageRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t HandleSetAppResourceLimitRequest(MessageParcel& data, MessageParcel& reply, MessageOption& option);

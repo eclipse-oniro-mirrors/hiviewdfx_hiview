@@ -37,7 +37,6 @@ const std::map<UCollect::TraceCaller, std::string> CallerMap {
     {UCollect::XPERF, "XPERF"},
     {UCollect::XPOWER, "XPOWER"},
     {UCollect::BETACLUB, "BETACLUB"},
-    {UCollect::DEVELOP, "DEVELOP"},
     {UCollect::OTHER, "OTHER"}
 };
 
@@ -111,8 +110,6 @@ public:
     virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller &caller) override;
     virtual CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller &caller,
         uint32_t timeLimit, uint64_t happenTime = 0) override;
-    virtual CollectResult<int32_t> TraceOn() override;
-    virtual CollectResult<std::vector<std::string>> TraceOff() override;
     static void SaveStatSpecialInfo();
     static void SaveStatCommonInfo();
     static void ResetStatInfo();

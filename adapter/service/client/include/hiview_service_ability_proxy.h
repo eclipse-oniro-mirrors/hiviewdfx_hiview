@@ -37,12 +37,11 @@ public:
     int32_t Remove(const std::string& logType, const std::string& logName) override;
 
     CollectResultParcelable<int32_t> OpenSnapshotTrace(const std::vector<std::string>& tagGroups) override;
-    CollectResultParcelable<std::vector<std::string>> DumpSnapshotTrace(int32_t caller) override;
+    CollectResultParcelable<std::vector<std::string>> DumpSnapshotTrace(int32_t client) override;
     CollectResultParcelable<int32_t> OpenRecordingTrace(const std::string& tags) override;
     CollectResultParcelable<int32_t> RecordingTraceOn() override;
     CollectResultParcelable<std::vector<std::string>> RecordingTraceOff() override;
     CollectResultParcelable<int32_t> CloseTrace() override;
-    CollectResultParcelable<int32_t> RecoverTrace() override;
     CollectResultParcelable<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller) override;
     CollectResultParcelable<double> GetSysCpuUsage() override;
     CollectResultParcelable<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;

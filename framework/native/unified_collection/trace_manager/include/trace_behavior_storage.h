@@ -18,8 +18,7 @@
 
 #include "rdb_store.h"
 
-namespace OHOS {
-namespace HiviewDFX {
+namespace OHOS::HiviewDFX {
 enum BEHAVOIR_ID {
     CACHE_LOW_MEM = 0,
 };
@@ -30,10 +29,10 @@ struct BehaviorRecord {
     int32_t usedQuota = 0;
 };
 
-class TraceBehaviorDbHelper {
+class TraceBehaviorStorage {
 public:
-    TraceBehaviorDbHelper();
-    ~TraceBehaviorDbHelper() = default;
+    explicit TraceBehaviorStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
+    ~TraceBehaviorStorage() = default;
 
 public:
     bool GetRecord(BehaviorRecord &behaviorRecord);
@@ -42,6 +41,6 @@ public:
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 };
-} // namespace HiviewDFX
-} // namespace OHOS
+} // namespace OHOS::HiviewDFX
+
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_DB_HELPER_H

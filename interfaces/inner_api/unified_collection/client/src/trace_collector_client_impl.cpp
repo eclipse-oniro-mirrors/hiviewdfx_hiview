@@ -28,12 +28,11 @@ public:
 
 public:
     virtual CollectResult<int32_t> OpenSnapshot(const std::vector<std::string>& tagGroups) override;
-    virtual CollectResult<std::vector<std::string>> DumpSnapshot(TraceCaller caller) override;
+    virtual CollectResult<std::vector<std::string>> DumpSnapshot(TraceClient client) override;
     virtual CollectResult<int32_t> OpenRecording(const std::string& tags) override;
     virtual CollectResult<int32_t> RecordingOn() override;
     virtual CollectResult<std::vector<std::string>> RecordingOff() override;
     virtual CollectResult<int32_t> Close() override;
-    virtual CollectResult<int32_t> Recover() override;
     virtual CollectResult<int32_t> CaptureDurationTrace(AppCaller &appCaller) override;
 };
 
@@ -47,9 +46,9 @@ CollectResult<int32_t> TraceCollectorImpl::OpenSnapshot(const std::vector<std::s
     return HiViewServiceTraceDelegate::OpenSnapshot(tagGroups);
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpSnapshot(TraceCaller caller)
+CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpSnapshot(TraceClient client)
 {
-    return HiViewServiceTraceDelegate::DumpSnapshot(caller);
+    return HiViewServiceTraceDelegate::DumpSnapshot(client);
 }
 
 CollectResult<int32_t> TraceCollectorImpl::OpenRecording(const std::string& tags)
@@ -70,11 +69,6 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::RecordingOff()
 CollectResult<int32_t> TraceCollectorImpl::Close()
 {
     return HiViewServiceTraceDelegate::Close();
-}
-
-CollectResult<int32_t> TraceCollectorImpl::Recover()
-{
-    return HiViewServiceTraceDelegate::Recover();
 }
 
 CollectResult<int32_t> TraceCollectorImpl::CaptureDurationTrace(AppCaller &appCaller)

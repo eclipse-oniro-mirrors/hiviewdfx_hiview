@@ -21,7 +21,6 @@
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 
-#include "app_caller_event.h"
 #include "bundle_mgr_client.h"
 #include "collect_event.h"
 #include "file_util.h"
@@ -31,10 +30,13 @@
 #include "sys_event.h"
 #include "string_util.h"
 #include "time_util.h"
-#include "trace_manager.h"
-
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+#include "trace_state_machine.h"
+#include "trace_strategy.h"
+#endif
 namespace OHOS {
 namespace HiviewDFX {
+using namespace UCollect;
 DEFINE_LOG_TAG("HiView-Service");
 namespace {
 constexpr int MIN_SUPPORT_CMD_SIZE = 1;
@@ -304,87 +306,76 @@ int32_t HiviewService::Remove(const std::string& filePath)
 
 CollectResult<int32_t> HiviewService::OpenSnapshotTrace(const std::vector<std::string>& tagGroups)
 {
-    TraceManager manager;
-    int32_t openRet = manager.OpenSnapshotTrace(tagGroups);
-    if (openRet != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("failed to open trace in snapshort mode.");
-    }
-    CollectResult<int32_t> ret;
-    ret.retCode = UCollect::UcError(openRet);
-    return ret;
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
+    TraceRet openRet = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, tagGroups);
+    return {GetUcError(openRet)};
+#endif
 }
 
-CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(UCollect::TraceCaller caller)
+CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(UCollect::TraceClient client)
 {
-    HIVIEW_LOGI("caller[%{public}d] dump trace in snapshot mode.", static_cast<int32_t>(caller));
-    CollectResult<std::vector<std::string>> dumpRet = traceCollector_->DumpTrace(caller);
-    if (dumpRet.retCode != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGE("failed to dump the trace in snapshort mode.");
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
+    HIVIEW_LOGI("client:[%{public}d] dump trace in snapshot mode.", static_cast<int32_t>(client));
+    CollectResult<std::vector<std::string>> result;
+    auto traceStrategy = TraceFactory::CreateTraceStrategy(client, 0, static_cast<uint64_t>(0));
+    if (traceStrategy == nullptr) {
+        HIVIEW_LOGE("Create traceStrategy error client:%{public}d", static_cast<int32_t>(client));
+        return {UcError::UNSUPPORT};
     }
-    return dumpRet;
+    TraceRet dumpRet = traceStrategy->DoDump(result.data);
+    result.retCode = GetUcError(dumpRet);
+    return result;
+#endif
 }
 
 CollectResult<int32_t> HiviewService::OpenRecordingTrace(const std::string& tags)
 {
-    TraceManager manager;
-    int32_t openRet = manager.OpenRecordingTrace(tags);
-    if (openRet != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("failed to open trace in recording mode.");
-    }
-    CollectResult<int32_t> ret;
-    ret.retCode = UCollect::UcError(openRet);
-    return ret;
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
+    TraceRet openRet = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, tags);
+    return {GetUcError(openRet)};
+#endif
 }
 
 CollectResult<int32_t> HiviewService::RecordingTraceOn()
 {
-    CollectResult<int32_t> traceOnRet = traceCollector_->TraceOn();
-    if (traceOnRet.retCode != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGE("failed to turn on the trace in recording mode.");
-    }
-    return traceOnRet;
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
+    TraceRet ret = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    return {GetUcError(ret)};
+#endif
 }
 
 CollectResult<std::vector<std::string>> HiviewService::RecordingTraceOff()
 {
-    CollectResult<std::vector<std::string>> traceOffRet = traceCollector_->TraceOff();
-    if (traceOffRet.retCode != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGE("failed to turn off the trace in recording mode.");
-        return traceOffRet;
-    }
-    TraceManager manager;
-    auto recoverRet = manager.RecoverTrace();
-    if (recoverRet != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGE("failed to recover the trace after trace off in recording mode.");
-        traceOffRet.retCode = UCollect::UcError::UNSUPPORT;
-    }
-    return traceOffRet;
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
+    TraceRetInfo traceRetInfo;
+    TraceRet ret = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, traceRetInfo);
+    CollectResult<std::vector<std::string>> result(GetUcError(ret));
+    result.data = traceRetInfo.outputFiles;
+    return result;
+#endif
 }
 
 CollectResult<int32_t> HiviewService::CloseTrace()
 {
-    TraceManager manager;
-    int32_t closeRet = manager.CloseTrace();
-    if (closeRet != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("failed to close the trace. errorCode=%{public}d", closeRet);
-    }
-    CollectResult<int32_t> ret;
-    ret.retCode = UCollect::UcError(closeRet);
-    return ret;
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
+    TraceRet ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    return {GetUcError(ret)};
+#endif
 }
 
-CollectResult<int32_t> HiviewService::RecoverTrace()
-{
-    TraceManager manager;
-    int32_t recoverRet = manager.RecoverTrace();
-    if (recoverRet != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("failed to recover the trace.");
-    }
-    CollectResult<int32_t> ret;
-    ret.retCode = UCollect::UcError(recoverRet);
-    return ret;
-}
-
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 static std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(UCollectClient::AppCaller &appCaller,
     const std::string &eventName)
 {
@@ -407,52 +398,44 @@ static std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(UCollectClient:
     return appCallerEvent;
 }
 
-static CollectResult<int32_t> InnerResponseAppTrace(UCollectClient::AppCaller &appCaller, const std::string &eventName)
+bool HiviewService::InnerHasCallAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
 {
-    CollectResult<int32_t> result;
-    result.data = 0;
-    result.retCode = UCollect::UcError::SUCCESS;
+    return TraceFlowController(ClientName::APP).HasCallOnceToday(appCallerEvent->uid_, appCallerEvent->happenTime_);
+}
 
-    std::shared_ptr<Plugin> plugin = HiviewPlatform::GetInstance().GetPluginByName(UCollectUtil::UCOLLECTOR_PLUGIN);
-    if (plugin == nullptr) {
-        HIVIEW_LOGE("UnifiedCollector plugin does not exists, uid=%{public}d, pid=%{public}d",
-            appCaller.uid, appCaller.pid);
-        result.retCode = UCollect::UcError::SYSTEM_ERROR;
-        return result;
+CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller)
+{
+    auto appCallerEvent = InnerCreateAppCallerEvent(appCaller, UCollectUtil::START_APP_TRACE);
+    if (InnerHasCallAppTrace(appCallerEvent)) {
+        HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d",
+                    appCallerEvent->uid_, appCallerEvent->pid_);
+        return {UCollect::UcError::HAD_CAPTURED_TRACE};
     }
-
-    std::shared_ptr<AppCallerEvent> appCallerEvent = InnerCreateAppCallerEvent(appCaller, eventName);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(appCallerEvent);
-    if (!plugin->OnEvent(event)) {
-        HIVIEW_LOGE("%{public}s failed for uid=%{public}d pid=%{public}d error code=%{public}d",
-            eventName.c_str(), appCaller.uid, appCaller.pid, appCallerEvent->resultCode_);
-        result.retCode = UCollect::UcError(appCallerEvent->resultCode_);
-        return result;
+    TraceRet ret = TraceStateMachine::GetInstance().OpenDynamicTrace(appCallerEvent->pid_);
+    if (!ret.IsSuccess()) {
+        return {GetUcError(ret)};
     }
-    return result;
+    if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, UCollectUtil::UCOLLECTOR_PLUGIN,
+        appCallerEvent)) {
+        HIVIEW_LOGE("post event failed");
+        return {UCollect::UcError::SYSTEM_ERROR};
+    }
+    return {UCollect::UcError::SUCCESS};
 }
 
-static CollectResult<int32_t> InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller)
+CollectResult<int32_t> HiviewService::InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller)
 {
-    return InnerResponseAppTrace(appCaller, UCollectUtil::START_APP_TRACE);
+    CollectResult<std::vector<std::string>> result;
+    auto strategy = TraceFactory::CreateAppStrategy(InnerCreateAppCallerEvent(appCaller, UCollectUtil::DUMP_APP_TRACE));
+    return {GetUcError(strategy->DoDump(result.data))};
 }
-
-static CollectResult<int32_t> InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller)
-{
-    return InnerResponseAppTrace(appCaller, UCollectUtil::DUMP_APP_TRACE);
-}
+#endif
 
 CollectResult<int32_t> HiviewService::CaptureDurationTrace(UCollectClient::AppCaller &appCaller)
 {
-    CollectResult<int32_t> result;
-    result.data = 0;
-    if (!AppCallerEvent::enableDynamicTrace_) {
-        HIVIEW_LOGE("disable dynamic trace, can not capture trace for uid=%{public}d, pid=%{public}d",
-            appCaller.uid, appCaller.pid);
-        result.retCode = UCollect::UcError::UNSUPPORT;
-        return result;
-    }
-
+#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
+    return {UcError::FEATURE_CLOSED};
+#else
     if (appCaller.actionId == UCollectClient::ACTION_ID_START_TRACE) {
         return InnerResponseStartAppTrace(appCaller);
     } else if (appCaller.actionId == UCollectClient::ACTION_ID_DUMP_TRACE) {
@@ -460,13 +443,11 @@ CollectResult<int32_t> HiviewService::CaptureDurationTrace(UCollectClient::AppCa
     } else {
         HIVIEW_LOGE("invalid param %{public}d, can not capture trace for uid=%{public}d, pid=%{public}d",
             appCaller.actionId, appCaller.uid, appCaller.pid);
-        result.retCode = UCollect::UcError::INVALID_ACTION_ID;
-        return result;
+        return {UCollect::UcError::INVALID_ACTION_ID};
     }
-
-    result.retCode = UCollect::UcError::SUCCESS;
-    return result;
+#endif
 }
+
 
 CollectResult<double> HiviewService::GetSysCpuUsage()
 {
@@ -479,45 +460,23 @@ CollectResult<double> HiviewService::GetSysCpuUsage()
 
 CollectResult<int32_t> HiviewService::SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller)
 {
-    CollectResult<int32_t> result;
-    result.data = 0;
-    result.retCode = UCollect::UcError::SUCCESS;
-
-    std::shared_ptr<Plugin> plugin = HiviewPlatform::GetInstance().GetPluginByName("XPower");
-    if (plugin == nullptr) {
-        HIVIEW_LOGE("XPower plugin does not exists. pid=%{public}d", memoryCaller.pid);
-        result.retCode = UCollect::UcError::SYSTEM_ERROR;
-        return result;
-    }
-
     std::string eventName = "APP_RESOURCE_LIMIT";
     SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
     sysEventCreator.SetKeyValue("PID", memoryCaller.pid);
     sysEventCreator.SetKeyValue("RESOURCE_TYPE", memoryCaller.resourceType);
     sysEventCreator.SetKeyValue("RESOURCE_LIMIT", memoryCaller.limitValue);
     sysEventCreator.SetKeyValue("RESOURCE_DEBUG_ENABLE", memoryCaller.enabledDebugLog ? "true" : "false");
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-    if (!plugin->OnEvent(event)) {
+    if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, "XPower", event)) {
         HIVIEW_LOGE("%{public}s failed for pid=%{public}d error", eventName.c_str(), memoryCaller.pid);
-        result.retCode = UCollect::UcError::SYSTEM_ERROR;
-        return result;
+        return {UCollect::UcError::SYSTEM_ERROR};
     }
-    return result;
+    return {UCollect::UcError::SUCCESS};
 }
 
 CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList)
 {
-    CollectResult<int32_t> result;
-    result.data = 0;
-    result.retCode = UCollect::UcError::SUCCESS;
-
-    std::shared_ptr<Plugin> plugin = HiviewPlatform::GetInstance().GetPluginByName("XPower");
-    if (plugin == nullptr) {
-        HIVIEW_LOGE("XPower plugin does not exists.");
-        result.retCode = UCollect::UcError::SYSTEM_ERROR;
-        return result;
-    }
     std::vector<int32_t> pidList;
     std::vector<int32_t> resourceList;
     for (auto it : memList) {
@@ -529,14 +488,13 @@ CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectCl
     sysEventCreator.SetKeyValue("PID_LIST", pidList);
     sysEventCreator.SetKeyValue("RESOURCE_LIST", resourceList);
 
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-    if (!plugin->OnEvent(event)) {
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, "XPower", event)) {
         HIVIEW_LOGE("%{public}s failed", eventName.c_str());
-        result.retCode = UCollect::UcError::SYSTEM_ERROR;
-        return result;
+        return {UCollect::UcError::SYSTEM_ERROR};
     }
-    return result;
+    return {UCollect::UcError::SUCCESS};
 }
 
 CollectResult<int32_t> HiviewService::GetGraphicUsage(int32_t pid)

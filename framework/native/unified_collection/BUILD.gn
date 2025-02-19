@@ -115,9 +115,11 @@ config("ucollection_source_config") {
     include_dirs += [ "collector/empty_impl/process" ]
   }
 
-  include_dirs += [ "collector/impl/trace/utils/include" ]
   if (hiview_unified_collector_trace_enable) {
-    include_dirs += [ "collector/impl/trace" ]
+    include_dirs += [
+      "collector/impl/trace/include",
+      "collector/impl/trace/utils/include",
+    ]
   } else {
     include_dirs += [ "collector/empty_impl/trace" ]
   }
@@ -269,35 +271,20 @@ ohos_source_set("ucollection_source") {
         [ "collector/empty_impl/process/process_collector_empty_impl.cpp" ]
   }
 
-  if (hiview_unified_collector_low_mem_threshold != 0) {
-    defines += [
-      "HIVIEW_LOW_MEM_THRESHOLD=${hiview_unified_collector_low_mem_threshold}",
-    ]
-  }
-
-  # for plugin unified_collector
-  sources += [
-    "collector/impl/trace/utils/app_event_task_storage.cpp",
-    "collector/impl/trace/utils/trace_behavior_db_helper.cpp",
-    "collector/impl/trace/utils/trace_cache_monitor.cpp",
-    "collector/impl/trace/utils/trace_flow_controller.cpp",
-    "collector/impl/trace/utils/trace_manager.cpp",
-    "collector/impl/trace/utils/trace_storage.cpp",
-    "collector/impl/trace/utils/trace_utils.cpp",
-    "collector/impl/trace/utils/trace_worker.cpp",
-  ]
-  external_deps += [
-    "ffrt:libffrt",
-    "hitrace:hitrace_dump",
-    "relational_store:native_rdb",
-    "zlib:libz",
-  ]
   if (hiview_unified_collector_trace_enable) {
     sources += [
       "collector/impl/trace/trace_collector_impl.cpp",
+      "collector/impl/trace/trace_strategy.cpp",
+      "collector/impl/trace/utils/trace_utils.cpp",
+      "collector/impl/trace/utils/trace_worker.cpp",
       "decorator/trace_decorator.cpp",
     ]
     defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+    deps += [ "trace_manager:libtrace_manager" ]
+    external_deps += [
+      "jsoncpp:jsoncpp",
+      "zlib:libz",
+    ]
   } else {
     sources += [ "collector/empty_impl/trace/trace_collector_empty_impl.cpp" ]
   }
@@ -350,7 +337,7 @@ group("unittest") {
   deps = [ "decorator/test:DecoratorUnitTest" ]
 
   if (hiview_unified_collector_trace_enable) {
-    deps += [ "collector/impl/trace/utils/test:TraceStorageUnitTest" ]
+    deps += [ "trace_manager/test:TraceManagerTest" ]
   }
 
   if (hiview_unified_collector_graphic_enable) {

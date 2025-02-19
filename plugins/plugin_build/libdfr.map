@@ -8,15 +8,7 @@
         "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::UCollectUtil::ProcessStatus>::instance_";
         "OHOS::HiviewDFX::UCollectUtil::TraceCollector::RecoverTmpTrace()";
         "OHOS::HiviewDFX::UCollectUtil::UnifiedCollectionStat::Report()";
-        "OHOS::HiviewDFX::TraceManager::OpenSnapshotTrace(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
-        "OHOS::HiviewDFX::TraceManager::OpenRecordingTrace(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::TraceManager::RecoverTrace()";
-        "OHOS::HiviewDFX::TraceManager::CloseTrace()";
         "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::NotifyProcessState(int, OHOS::HiviewDFX::UCollectUtil::ProcessState, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::TraceFlowController::TraceFlowController()";
-        "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
-        "OHOS::HiviewDFX::TraceFlowController::AddNewFinishTask(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
-        "OHOS::HiviewDFX::TraceFlowController::CleanAppTrace()";
     };
   local:
     *;

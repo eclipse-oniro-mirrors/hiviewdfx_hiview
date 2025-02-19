@@ -18,18 +18,17 @@
 #include <ctime>
 
 #include "ffrt.h"
-#include "hitrace_dump.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "string_util.h"
 #include "time_util.h"
+#include "trace_state_machine.h"
+#include "trace_flow_controller.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("TraceCacheMonitor");
-#if defined(HIVIEW_LOW_MEM_THRESHOLD)
 namespace {
-constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_PER_EVENT = 2 * 60; // 2 minutes
 constexpr int32_t HITRACE_CACHE_FILE_SIZE_LIMIT = 800; // 800MB
 constexpr int32_t HITRACE_CACHE_FILE_SLICE_SPAN = 10; // 10 seconds
@@ -38,6 +37,7 @@ constexpr int32_t CACHE_OFF_CONDITION_COUNTDOWN = 2;
 constexpr int32_t MONITOR_INTERVAL = 5;
 constexpr char PARAM_KEY_CACHE_LOW_MEM_THRESHOLD[] = "hiviewdfx.ucollection.memthreshold";
 constexpr int32_t HIVIEW_CACHE_LOW_MEM_THRESHOLD = HIVIEW_LOW_MEM_THRESHOLD;
+const std::string BEHAVIOR = "behavior";
 
 std::chrono::system_clock::time_point GetNextDay()
 {
@@ -82,6 +82,7 @@ TraceCacheMonitor::TraceCacheMonitor()
 {
     collector_ = UCollectUtil::MemoryCollector::Create();
     lowMemThreshold_ = HIVIEW_CACHE_LOW_MEM_THRESHOLD;
+    flowController_ = std::make_shared<TraceFlowController>(BEHAVIOR);
     int32_t ret = Parameter::WatchParamChange(PARAM_KEY_CACHE_LOW_MEM_THRESHOLD, OnLowMemThresholdChange, this);
     HIVIEW_LOGI("watchParamChange ret: %{public}d", ret);
 }
@@ -175,7 +176,7 @@ void TraceCacheMonitor::RunMonitorCycle(int32_t interval)
     clock_gettime(CLOCK_BOOTTIME, &bts);
     uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
     int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
-    if (!UseCacheTimeQuota(timeDiff)) {
+    if (!flowController_->UseCacheTimeQuota(timeDiff)) {
         SetCacheOff();
         HIVIEW_LOGW("quota exceeded, sleep until the next day");
         ffrt::this_task::sleep_until(GetNextDay());
@@ -197,9 +198,13 @@ bool TraceCacheMonitor::IsLowMemState()
 
 void TraceCacheMonitor::SetCacheOn()
 {
-    OHOS::HiviewDFX::Hitrace::TraceErrorCode ret = OHOS::HiviewDFX::Hitrace::CacheTraceOn(
-        HITRACE_CACHE_FILE_SIZE_LIMIT, HITRACE_CACHE_FILE_SLICE_SPAN);
-    isCacheOn_ = (ret == OHOS::HiviewDFX::Hitrace::TraceErrorCode::SUCCESS);
+    TraceRet ret = TraceStateMachine::GetInstance().TraceCacheOn(HITRACE_CACHE_FILE_SIZE_LIMIT,
+        HITRACE_CACHE_FILE_SLICE_SPAN);
+    isCacheOn_ = ret.IsSuccess();
+    if (!isCacheOn_) {
+        HIVIEW_LOGE("fail state:%{public}d error:%{public}d ", static_cast<int>(ret.GetStateError()),
+            ret.codeError_);
+    }
     cacheDuration_ = 0;
     cacheOffCountdown_ = CACHE_OFF_CONDITION_COUNTDOWN;
 }
@@ -207,7 +212,11 @@ void TraceCacheMonitor::SetCacheOn()
 void TraceCacheMonitor::SetCacheOff()
 {
     isCacheOn_ = false;
-    OHOS::HiviewDFX::Hitrace::CacheTraceOff();
+    TraceRet ret = TraceStateMachine::GetInstance().TraceCacheOff();
+    if (!ret.IsSuccess()) {
+        HIVIEW_LOGE("fail state:%{public}d error:%{public}d ", static_cast<int>(ret.GetStateError()),
+            ret.codeError_);
+    }
 }
 
 void TraceCacheMonitor::CountDownCacheOff()
@@ -215,48 +224,12 @@ void TraceCacheMonitor::CountDownCacheOff()
     cacheOffCountdown_--;
     if (cacheOffCountdown_ <= 0) { // two cycles above threshold to turn off cache
         isCacheOn_ = false;
-        OHOS::HiviewDFX::Hitrace::CacheTraceOff();
+        TraceRet ret = TraceStateMachine::GetInstance().TraceCacheOff();
+        if (!ret.IsSuccess()) {
+            HIVIEW_LOGE("fail state:%{public}d error:%{public}d ", static_cast<int>(ret.GetStateError()),
+                ret.codeError_);
+        }
     }
 }
-
-bool TraceCacheMonitor::UseCacheTimeQuota(int32_t interval)
-{
-    auto behaviorDbHelper = std::make_shared<TraceBehaviorDbHelper>();
-    BehaviorRecord record;
-    record.behaviorId = CACHE_LOW_MEM;
-    record.dateNum = TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d");
-    if (!behaviorDbHelper->GetRecord(record) && !behaviorDbHelper->InsertRecord(record)) {
-        HIVIEW_LOGE("failed to get and insert record, close task");
-        ExitMonitorLoop();
-        return false;
-    }
-    if (record.usedQuota >= HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL) {
-        HIVIEW_LOGW("usedQuota exceeds daily limit.");
-        return false;
-    }
-    record.usedQuota += interval;
-    behaviorDbHelper->UpdateRecord(record);
-    return true;
-}
-#else
-TraceCacheMonitor::TraceCacheMonitor()
-{
-}
-
-TraceCacheMonitor::~TraceCacheMonitor()
-{
-}
-
-void TraceCacheMonitor::RunMonitorLoop()
-{
-    HIVIEW_LOGW("monitor feature Not Enabled.");
-}
-
-void TraceCacheMonitor::ExitMonitorLoop()
-{
-    HIVIEW_LOGW("monitor feature Not Enabled.");
-}
-#endif // HIVIEW_LOW_MEM_THRESHOLD
-
 }  // namespace HiviewDFX
 }  // namespace OHOS
