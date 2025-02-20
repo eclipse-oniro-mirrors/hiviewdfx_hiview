@@ -44,7 +44,6 @@ private:
     bool HasExceptionList(const std::string& line) const;
     std::vector<std::string> GetValidStack(size_t num, std::stack<std::string>& inStack) const;
     std::list<std::vector<std::string>> StackToMultipart(std::stack<std::string>& inStack, size_t num) const;
-    bool GetValidStack(int num, std::stack<std::string>& inStack, std::stack<std::string>& outStack) const;
     void MatchIgnoreLibrary(std::stack<std::string> inStack, std::stack<std::string>& outStack, size_t num) const;
     std::string GetValidBlock(std::stack<std::string> inStack, std::vector<std::string>& lastPart) const;
 

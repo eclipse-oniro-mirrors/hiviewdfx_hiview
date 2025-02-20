@@ -30,8 +30,6 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("Tbox");
 
 const string Tbox::ARRAY_STR = "ARRAY :";
-const string Tbox::CAUSEDBY_HEADER = "Caused by:";
-const string Tbox::SUPPRESSED_HEADER = "Suppressed:";
 
 Tbox::Tbox()
 {
@@ -89,15 +87,6 @@ bool Tbox::IsCallStack(const string& line)
         regex_search(line, regex("[0-9a-zA-Z_]+\\+0x[0-9a-f]+/0x[0-9a-f]+")) ||
         regex_search(line, regex("#\\d+")) ||
         regex_search(line, regex("\\.*"))) {
-        return true;
-    }
-    return false;
-}
-
-bool Tbox::HasCausedBy(const string& line)
-{
-    if ((line.find(CAUSEDBY_HEADER) != string::npos) ||
-        (line.find(SUPPRESSED_HEADER) != string::npos)) {
         return true;
     }
     return false;

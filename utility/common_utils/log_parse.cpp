@@ -86,29 +86,6 @@ bool LogParse::IsIgnoreLibrary(const string& val) const
     return false;
 }
 
-/*
- * Remove ignored backtrace
- * inStack : inverted sequence with fault log
- * outStack : filter stack
- */
-bool LogParse::GetValidStack(int num, stack<string>& inStack, stack<string>& outStack) const
-{
-    vector<string> validStack;
-    size_t count = static_cast<size_t>(num);
-    // count < 1: indicate stack is empty
-    if (count < 1 || inStack.empty()) {
-        return false;
-    }
-
-    // Automatically checks if it is a stack
-    bool iStack = Tbox::IsCallStack(inStack.top());
-    if (iStack) {
-        validStack = GetValidStack(count, inStack);
-    }
-    outStack = GetStackTop(validStack, count);
-    return true;
-}
-
 stack<string> LogParse::GetStackTop(const vector<string>& validStack, const size_t num) const
 {
     size_t len = validStack.size();
@@ -124,28 +101,15 @@ stack<string> LogParse::GetStackTop(const vector<string>& validStack, const size
 list<vector<string>> LogParse::StackToMultipart(stack<string>& inStack, size_t num) const
 {
     stack<string> partStack;
-    vector<string> validPart;
-    list<vector<string>> multiPart;
     while (!inStack.empty()) {
         string topStr = inStack.top();
         StringUtil::EraseString(topStr, "\t");
-        if (Tbox::HasCausedBy(topStr)) {
-            topStr = MatchExceptionLibrary(topStr);
-            if (!partStack.empty()) {
-                validPart = GetValidStack(num, partStack);
-            }
-            validPart.insert(validPart.begin(), topStr);
-            multiPart.push_back(validPart);
-            partStack = stack<string>();
-            validPart.clear();
-            inStack.pop();
-            continue;
-        }
         partStack.push(topStr);
         inStack.pop();
     }
+    list<vector<string>> multiPart;
     if (!partStack.empty()) {
-        validPart = GetValidStack(num, partStack);
+        vector<string> validPart = GetValidStack(num, partStack);
         multiPart.push_back(validPart);
     }
     return multiPart;

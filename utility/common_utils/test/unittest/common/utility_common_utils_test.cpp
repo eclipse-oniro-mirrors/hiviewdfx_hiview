@@ -160,12 +160,6 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest001, testing::ext::TestSize.Level3)
     std::string stackName2 = "123";
     auto ret3 = Tbox::IsCallStack(stackName2);
     ASSERT_TRUE(ret3);
-    auto ret4 = Tbox::HasCausedBy("Caused by:Invalid description");
-    ASSERT_TRUE(ret4);
-    auto ret5 = Tbox::HasCausedBy("Suppressed:Invalid description");
-    ASSERT_TRUE(ret5);
-    auto ret6 = Tbox::HasCausedBy("Invalid description");
-    ASSERT_TRUE(!ret6);
 }
 
 /* @tc.name: TboxTest002
@@ -327,6 +321,83 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest008, testing::ext::TestSize.Level3)
     } else {
         ASSERT_TRUE(happenTime);
     }
+}
+
+/* @tc.name: TboxTest009
+ * @tc.desc: Test FilterTrace method of class Tbox
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilityCommonUtilsTest, TboxTest009, testing::ext::TestSize.Level3)
+{
+    std::string stack = R"(#00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
+        #01 pc 00000000000bb328 /system/lib/libart.so (__epoll_pwait+8)
+        #02 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144)
+        #03 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+        #04 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable)
+        #05 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)";
+
+    std::map<std::string, std::string> eventInfos;
+    eventInfos.insert(std::pair("END_STACK", stack));
+    eventInfos.insert(std::pair("PNAME", "foundation"));
+    Tbox::FilterTrace(eventInfos);
+
+    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "/system/lib/libart.so (__epoll_pwait+8");
+    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(),
+                 "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
+    EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(), "/system/lib64/libc.so(__libc_init+112");
+}
+
+/* @tc.name: TboxTest010
+ * @tc.desc: Test FilterTrace method of class Tbox
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilityCommonUtilsTest, TboxTest010, testing::ext::TestSize.Level3)
+{
+    std::string stack = R"(#00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
+        #01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144))";
+
+    std::map<std::string, std::string> eventInfos;
+    eventInfos.insert(std::pair("END_STACK", stack));
+    eventInfos.insert(std::pair("PNAME", "foundation"));
+    Tbox::FilterTrace(eventInfos);
+
+    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "/system/lib64/libc.so(syscall+32");
+    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(),
+                 "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
+}
+
+/* @tc.name: TboxTest011
+ * @tc.desc: Test FilterTrace method of class Tbox
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilityCommonUtilsTest, TboxTest011, testing::ext::TestSize.Level3)
+{
+    std::string stack = R"(#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+        #01 pc 000000000051b55c /system/lib64/libGLES_mali.so
+        #02 pc 000000000001b674 /system/lib64/libace_napi.z.so(NativeEngineInterface::UVThreadRunner(void*)+148))";
+    stack += "\n";
+    stack += "#03 pc 000000000000d370 /system/lib64/libeventhandler.z.so" \
+        "(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)\n";
+    stack += "#04 pc 0000000000011db4 /system/lib64/libeventhandler.z.so" \
+        "(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock," \
+        " std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, " \
+        "std::__1::unique_lock<std::__1::mutex>&)+96)\n";
+    stack += "#05 pc 0000000000011cf8 /system/lib64/libeventhandler.z.so" \
+        "(OHOS::AppExecFwk::EventQueue::GetEvent()+112)\n";
+    stack += R"(#06 pc 0000000000017728 /system/lib64/libeventhandler.z.so
+        #07 pc 0000000000015c30 /system/lib64/libeventhandler.z.so
+        #08 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so)";
+
+    std::map<std::string, std::string> eventInfos;
+    eventInfos.insert(std::pair("END_STACK", stack));
+    eventInfos.insert(std::pair("PNAME", "foundation"));
+    Tbox::FilterTrace(eventInfos, "JS_ERROR");
+
+    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "(NativeEngineInterface::UVThreadRunner(void*)+148)");
+    std::string secondFrame = "/system/lib64/libeventhandler.z.so" \
+        "(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192";
+    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(), secondFrame.c_str());
+    EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(), "/system/lib64/libeventhandler.z.so");
 }
 }
 }
