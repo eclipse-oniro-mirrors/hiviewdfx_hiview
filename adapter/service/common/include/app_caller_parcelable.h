@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_FILE_INFO_H
-#define HIVIEW_FILE_INFO_H
+#ifndef HIVIEW_APP_CALLER_PARCELABLE_H
+#define HIVIEW_APP_CALLER_PARCELABLE_H
 
+#include "client/trace_collector_client.h"
 #include "parcel.h"
 
-namespace OHOS {
-namespace HiviewDFX {
-struct HiviewFileInfo : public Parcelable {
-    HiviewFileInfo(std::string name, time_t mtime, uint64_t size)
-        : name(name), mtime(mtime), size(size) {};
+namespace OHOS::HiviewDFX {
+class AppCallerParcelable : public Parcelable {
+public:
+    AppCallerParcelable(const UCollectClient::AppCaller& appCaller) : appCaller_(appCaller) {}
+    UCollectClient::AppCaller GetAppCaller() const;
 
     bool Marshalling(Parcel& outParcel) const override;
-    static HiviewFileInfo* Unmarshalling(Parcel& inParcel);
+    static AppCallerParcelable* Unmarshalling(Parcel& inParcel);
 
-    std::string name;
-    time_t mtime;
-    uint64_t size;
+private:
+    UCollectClient::AppCaller appCaller_;
 };
-} // namespace HiviewDFX
-} // namespace OHOS
-#endif
+} // namespace OHOS::HiviewDFX
+#endif // HIVIEW_APP_CALLER_PARCELABLE_H

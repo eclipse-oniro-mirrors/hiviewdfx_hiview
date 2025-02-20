@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -34,13 +34,13 @@ ohos_source_set("hiview_service_impl_for_unified_collection") {
   ]
 
   sources = [
-    "../common/src/hiview_file_info.cpp",
     "src/hiview_remote_service.cpp",
-    "src/hiview_service_ability_proxy.cpp",
     "src/hiview_service_cpu_delegate.cpp",
     "src/hiview_service_memory_delegate.cpp",
     "src/hiview_service_trace_delegate.cpp",
   ]
+
+  deps = [ "$hiview_adapter/service/server:hiview_service_proxy" ]
 
   external_deps = [
     "c_utils:utils",
@@ -48,32 +48,6 @@ ohos_source_set("hiview_service_impl_for_unified_collection") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "storage_service:storage_manager_acl",
-  ]
-
-  part_name = "hiview"
-
-  subsystem_name = "hiviewdfx"
-}
-
-ohos_source_set("hiview_service_impl_for_js") {
-  public_configs = [ ":hiview_service_ability_config" ]
-
-  include_dirs = [
-    "$hiview_base/include",
-    "$hiview_interfaces/inner_api/unified_collection",
-  ]
-
-  sources = [
-    "../common/src/hiview_file_info.cpp",
-    "src/hiview_service_ability_proxy.cpp",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 
   part_name = "hiview"

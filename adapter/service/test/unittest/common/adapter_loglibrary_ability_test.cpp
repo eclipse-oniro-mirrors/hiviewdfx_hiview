@@ -68,7 +68,7 @@ HWTEST_F(AdapterLoglibraryAbilityTest, LoglibraryAbilityListTest001, testing::ex
     FileUtil::SaveStringToFile(SOURCE_PATH + fileName, "AbilityListtestcontent", true);
     std::vector<HiviewFileInfo> fileInfos;
     HiviewServiceAbility ability;
-    int32_t result = ability.List(LOG_TYPE, fileInfos);
+    int32_t result = ability.ListFiles(LOG_TYPE, fileInfos);
     ASSERT_EQ(result, 0);
 }
 
@@ -81,7 +81,7 @@ HWTEST_F(AdapterLoglibraryAbilityTest, LoglibraryAbilityListTest002, testing::ex
 {
     std::vector<HiviewFileInfo> fileInfos;
     HiviewServiceAbility ability;
-    int32_t result = ability.List(NON_LOG_TYPE, fileInfos);
+    int32_t result = ability.ListFiles(NON_LOG_TYPE, fileInfos);
     ASSERT_EQ(result, HiviewNapiErrCode::ERR_INNER_INVALID_LOGTYPE);
 }
 

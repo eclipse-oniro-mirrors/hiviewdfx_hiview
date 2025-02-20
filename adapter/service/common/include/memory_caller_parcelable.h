@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_FILE_INFO_H
-#define HIVIEW_FILE_INFO_H
+#ifndef HIVIEW_MEMORY_CALLER_PARCELABLE_H
+#define HIVIEW_MEMORY_CALLER_PARCELABLE_H
 
+#include "client/memory_collector_client.h"
 #include "parcel.h"
 
-namespace OHOS {
-namespace HiviewDFX {
-struct HiviewFileInfo : public Parcelable {
-    HiviewFileInfo(std::string name, time_t mtime, uint64_t size)
-        : name(name), mtime(mtime), size(size) {};
+namespace OHOS::HiviewDFX {
+class MemoryCallerParcelable : public Parcelable {
+public:
+    MemoryCallerParcelable(const UCollectClient::MemoryCaller& memoryCaller) : memoryCaller_(memoryCaller) {}
+    UCollectClient::MemoryCaller GetMemoryCaller() const;
 
     bool Marshalling(Parcel& outParcel) const override;
-    static HiviewFileInfo* Unmarshalling(Parcel& inParcel);
+    static MemoryCallerParcelable* Unmarshalling(Parcel &inParcel);
 
-    std::string name;
-    time_t mtime;
-    uint64_t size;
+private:
+    UCollectClient::MemoryCaller memoryCaller_;
 };
-} // namespace HiviewDFX
-} // namespace OHOS
-#endif
+} // namespace OHOS::HiviewDFX
+#endif // HIVIEW_MEMORY_CALLER_PARCELABLE_H

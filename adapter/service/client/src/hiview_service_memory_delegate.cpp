@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,46 +14,61 @@
  */
 
 #include "hiview_service_memory_delegate.h"
-#include "hiview_service_ability_proxy.h"
+
 #include "hiview_remote_service.h"
+#include "hiview_service_ability_proxy.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 CollectResult<int32_t> HiViewServiceMemoryDelegate::SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller)
 {
+    CollectResult<int32_t> ret;
     auto service = RemoteService::GetHiViewRemoteService();
     if (!service) {
-        CollectResult<int32_t> ret;
         ret.retCode = UCollect::SYSTEM_ERROR;
         return ret;
     }
-    HiviewServiceAbilityProxy proxy(service);
-    return proxy.SetAppResourceLimit(memoryCaller).result_;
+    int32_t errNo = 0;
+    if (HiviewServiceAbilityProxy(service).SetAppResourceLimit(
+        MemoryCallerParcelable(memoryCaller), errNo, ret.data) == 0) {
+        ret.retCode = static_cast<UCollect::UcError>(errNo);
+    }
+    return ret;
 }
 
 CollectResult<int32_t> HiViewServiceMemoryDelegate::GetGraphicUsage()
 {
+    CollectResult<int32_t> ret;
     auto service = RemoteService::GetHiViewRemoteService();
     if (!service) {
-        CollectResult<int32_t> ret;
         ret.retCode = UCollect::SYSTEM_ERROR;
         return ret;
     }
-    HiviewServiceAbilityProxy proxy(service);
-    return proxy.GetGraphicUsage().result_;
+    int32_t errNo = 0;
+    if (HiviewServiceAbilityProxy(service).GetGraphicUsage(errNo, ret.data) == 0) {
+        ret.retCode = static_cast<UCollect::UcError>(errNo);
+    }
+    return ret;
 }
 
 CollectResult<int32_t> HiViewServiceMemoryDelegate::SetSplitMemoryValue(
     std::vector<UCollectClient::MemoryCaller>& memList)
 {
+    CollectResult<int32_t> ret;
     auto service = RemoteService::GetHiViewRemoteService();
     if (!service) {
-        CollectResult<int32_t> ret;
         ret.retCode = UCollect::SYSTEM_ERROR;
         return ret;
     }
-    HiviewServiceAbilityProxy proxy(service);
-    return proxy.SetSplitMemoryValue(memList).result_;
+    std::vector<MemoryCallerParcelable> memCallerParcelableList;
+    for (const auto& item : memList) {
+        memCallerParcelableList.emplace_back(MemoryCallerParcelable(item));
+    }
+    int32_t errNo = 0;
+    if (HiviewServiceAbilityProxy(service).SetSplitMemoryValue(memCallerParcelableList, errNo, ret.data) == 0) {
+        ret.retCode = static_cast<UCollect::UcError>(errNo);
+    }
+    return ret;
 }
 }
 }

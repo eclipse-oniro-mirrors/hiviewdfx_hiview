@@ -18,9 +18,9 @@
 #include "application_context.h"
 #include "file_util.h"
 #include "hiview_err_code.h"
+#include "hiview_logger.h"
 #include "hiview_service_ability_proxy.h"
 #include "iservice_registry.h"
-#include "hiview_logger.h"
 #include "storage_acl.h"
 #include "string_util.h"
 #include "system_ability_definition.h"
@@ -45,7 +45,7 @@ int32_t HiviewServiceAgent::List(const std::string& logType, std::vector<HiviewF
         return HiviewNapiErrCode::ERR_DEFAULT;
     }
     HiviewServiceAbilityProxy proxy(service);
-    return proxy.List(logType, fileInfos);
+    return proxy.ListFiles(logType, fileInfos);
 }
 
 int32_t HiviewServiceAgent::Copy(const std::string& logType, const std::string& logName, const std::string& dest)

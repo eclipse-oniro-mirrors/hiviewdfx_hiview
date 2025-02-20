@@ -39,7 +39,7 @@ ohos_source_set("hiview_service_adapter") {
 
   deps = [
     "$hiview_base:hiviewbase",
-    "server:hiview_service_impl",
+    "server:hiview_service_stub",
   ]
 
   external_deps = [
