@@ -16,7 +16,10 @@ import("//build/ohos.gni")
 ohos_shared_library("libasan_logger") {
   sources = [ "gwpasan_collector.cpp" ]
 
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "//base/hiviewdfx/hiview/plugins/faultlogger/service",
+  ]
 
   innerapi_tags = [ "platformsdk_indirect" ]
 
@@ -28,6 +31,7 @@ ohos_shared_library("libasan_logger") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "faultloggerd:libfaultloggerd",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
@@ -43,6 +47,7 @@ ohos_shared_library("libasan_logger") {
     "$hiview_base/event_raw:hiview_event_raw_decode",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
+    "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
   ]
 
   install_enable = true

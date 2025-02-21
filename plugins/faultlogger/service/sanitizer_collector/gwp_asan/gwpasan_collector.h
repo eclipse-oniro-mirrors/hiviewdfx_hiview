@@ -26,12 +26,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void WriteGwpAsanLog(char* buf, size_t sz);
+void WriteSanitizerLog(char* buf, size_t sz, char* path);
 #ifdef __cplusplus
 }
 #endif
 
 struct GwpAsanCurrInfo {
+    /** type of sanitizer */
+    std::string faultType;
     /** the time of happening fault */
     uint64_t happenTime;
     /** the id of current user when fault happened  */
@@ -39,25 +41,31 @@ struct GwpAsanCurrInfo {
     /** the id of process which fault happened*/
     int32_t pid;
     /** type of fault */
-    std::string procName;
+    std::string moduleName;
     /** name of module which fault occurred */
     std::string logPath;
     /** logPath of module which fault occurred */
     std::string appVersion;
     /** the reason why fault occurred */
     std::string errType;
-    /** the summary of fault information */
+    /** the detail of fault information */
     std::string description;
+    /** the summary of fault information */
+    std::string summary;
     /** information about faultlog using <key,value> */
     std::map<std::string, std::string> sectionMaps;
+    /** hash value used for clustering */
+    std::string hash;
+    /** top stack */
+    std::string topStack;
 };
 
-void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& errType);
+void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath);
 std::string GetNameByPid(int32_t pid);
 std::string CalcCollectedLogName(const GwpAsanCurrInfo &currInfo);
-std::string GetErrorTypeFromHwAsanLog(const std::string& hwAsanBuffer);
-std::string GetErrorTypeFromAsanLog(const std::string& asanBuffer);
-std::string GetErrorTypeFromLog(const std::string& logBuffer, const std::regex& recordRe,
-    int errTypeField, const std::string& defaultType);
-
+std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType);
+std::string GetTopStackWithoutCommonLib(const std::string& description);
+void WriteCollectedData(const GwpAsanCurrInfo& currInfo);
+int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo);
+bool WriteNewFile(const int32_t fd, const GwpAsanCurrInfo& currInfo);
 #endif // GWPASAN_COLLECTOR_H

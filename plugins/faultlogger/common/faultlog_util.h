@@ -35,6 +35,7 @@ std::string RegulateModuleNameIfNeed(const std::string& name);
 time_t GetFileLastAccessTimeStamp(const std::string& fileName);
 std::string GetCppCrashTempLogName(const FaultLogInfo& info);
 std::string GetDebugSignalTempLogName(const FaultLogInfo& info);
+std::string GetSanitizerTempLogName(int32_t pid, int64_t happenTime);
 std::string GetThreadStack(const std::string& path, int32_t threadId);
 bool IsValidPath(const std::string& path);
 }  // namespace HiviewDFX

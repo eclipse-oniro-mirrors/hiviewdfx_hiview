@@ -34,6 +34,10 @@
 #include "hilog/log.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "faultlog_formatter.h"
+#include "faultloggerd_client.h"
+#include "tbox.h"
+#include "common_defines.h"
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD002D12
@@ -43,13 +47,14 @@
 
 namespace {
 constexpr unsigned ASAN_LOG_SIZE = 350 * 1024;
+constexpr unsigned SUMMARY_LOG_SIZE = 3 * 1024;
 constexpr unsigned BUF_SIZE = 128;
-constexpr unsigned HWASAN_ERRTYPE_FIELD = 1;
+constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
 constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
 static std::stringstream g_asanlog;
 }
 
-void WriteGwpAsanLog(char* buf, size_t sz)
+void WriteSanitizerLog(char* buf, size_t sz, char* path)
 {
     if (buf == nullptr || sz == 0) {
         return;
@@ -68,130 +73,175 @@ void WriteGwpAsanLog(char* buf, size_t sz)
     char *asanOutput = strstr(buf, "End Asan report");
     if (gwpOutput) {
         std::string gwpasanlog = g_asanlog.str();
-        std::string errType = "GWP-ASAN";
-        ReadGwpAsanRecord(gwpasanlog, errType);
+        ReadGwpAsanRecord(gwpasanlog, "GWP-ASAN", path);
         // clear buffer
         g_asanlog.str("");
     } else if (tsanOutput) {
         std::string tsanlog = g_asanlog.str();
-        std::string errType = "TSAN";
-        ReadGwpAsanRecord(tsanlog, errType);
+        ReadGwpAsanRecord(tsanlog, "TSAN", path);
         // clear buffer
         g_asanlog.str("");
     } else if (cfiOutput || ubsanOutput) {
         std::string ubsanlog = g_asanlog.str();
-        std::string errType = "UBSAN";
-        ReadGwpAsanRecord(ubsanlog, errType);
+        ReadGwpAsanRecord(ubsanlog, "UBSAN", path);
         // clear buffer
         g_asanlog.str("");
     } else if (hwasanOutput) {
         std::string hwasanlog = g_asanlog.str();
-        std::string errType = "HWASAN_" + GetErrorTypeFromHwAsanLog(hwasanlog);
-        ReadGwpAsanRecord(hwasanlog, errType);
+        ReadGwpAsanRecord(hwasanlog, "HWASAN", path);
         // clear buffer
         g_asanlog.str("");
     } else if (asanOutput) {
         std::string asanlog = g_asanlog.str();
-        std::string errType = "ASAN_" + GetErrorTypeFromAsanLog(asanlog);
-        ReadGwpAsanRecord(asanlog, errType);
+        ReadGwpAsanRecord(asanlog, "ASAN", path);
         // clear buffer
         g_asanlog.str("");
     }
 }
 
-std::string GetErrorTypeFromHwAsanLog(const std::string& hwAsanBuffer)
-{
-    constexpr const char* const hwAsanRecordRegex = "Cause: ([\\w -]+)";
-    static const std::regex hwAsanRecordRe(hwAsanRecordRegex);
-    return GetErrorTypeFromLog(hwAsanBuffer, hwAsanRecordRe, HWASAN_ERRTYPE_FIELD, "HWASAN");
-}
-
-std::string GetErrorTypeFromAsanLog(const std::string& asanBuffer)
-{
-    constexpr const char* const asanRecordRegex =
-        "SUMMARY: (AddressSanitizer|LeakSanitizer): (\\S+)";
-    static const std::regex asanRecordRe(asanRecordRegex);
-    return GetErrorTypeFromLog(asanBuffer, asanRecordRe, ASAN_ERRTYPE_FIELD, "ASAN");
-}
-
-std::string GetErrorTypeFromLog(const std::string& logBuffer, const std::regex& recordRe,
-    int errTypeField, const std::string& defaultType)
-{
-    std::smatch captured;
-    if (!std::regex_search(logBuffer, captured, recordRe)) {
-        HILOG_INFO(LOG_CORE, "%{public}s Regex not match, set default type.", defaultType.c_str());
-        return defaultType;
-    }
-    std::string errType = captured[errTypeField].str();
-    HILOG_INFO(LOG_CORE, "%{public}s errType is %{public}s", defaultType.c_str(), errType.c_str());
-    return errType;
-}
-
-void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& errType)
+void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath)
 {
     GwpAsanCurrInfo currInfo;
     currInfo.description = ((gwpAsanBuffer.size() > ASAN_LOG_SIZE) ? (gwpAsanBuffer.substr(0, ASAN_LOG_SIZE) +
                                                                      "\nEnd Asan report") : gwpAsanBuffer);
+    currInfo.summary = ((gwpAsanBuffer.size() > SUMMARY_LOG_SIZE) ? (gwpAsanBuffer.substr(0, SUMMARY_LOG_SIZE) +
+                                                                     "\nEnd Summary report") : gwpAsanBuffer);
+    if (logPath == nullptr) {
+        currInfo.logPath = "faultlogger";
+        HILOG_INFO(LOG_CORE, "Logpath is null, set as default path: faultlogger");
+    } else {
+        currInfo.logPath = std::string(logPath);
+    }
     currInfo.pid = getpid();
     currInfo.uid = getuid();
-    currInfo.errType = errType;
-    currInfo.procName = GetNameByPid(currInfo.pid);
+    currInfo.faultType = faultType;
+    currInfo.errType = GetErrorTypeFromBuffer(gwpAsanBuffer, faultType);
+    currInfo.moduleName = GetNameByPid(currInfo.pid);
     currInfo.appVersion = "";
     time_t timeNow = time(nullptr);
     uint64_t timeTmp = timeNow;
     std::string timeStr = OHOS::HiviewDFX::GetFormatedTime(timeTmp);
     currInfo.happenTime = std::stoll(timeStr);
-    std::string fullName = CalcCollectedLogName(currInfo);
-    currInfo.logPath = fullName;
+    currInfo.topStack = GetTopStackWithoutCommonLib(currInfo.description);
+    currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
+        currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
     HILOG_INFO(LOG_CORE, "ReportSanitizerAppEvent: uid:%{public}d, logPath:%{public}s.",
         currInfo.uid, currInfo.logPath.c_str());
 
     // Do upload when data ready
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY, "ADDR_SANITIZER",
-                    OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
-                    "MODULE", currInfo.procName,
-                    "VERSION", currInfo.appVersion,
-                    "REASON", currInfo.errType,
-                    "PID", currInfo.pid,
-                    "UID", currInfo.uid,
-                    "SUMMARY", currInfo.description,
-                    "HAPPEN_TIME", currInfo.happenTime,
-                    "LOG_PATH", currInfo.logPath);
+    WriteCollectedData(currInfo);
+    if (currInfo.logPath == "faultlogger") {
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY, "ADDR_SANITIZER",
+                        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+                        "MODULE", currInfo.moduleName,
+                        "VERSION", currInfo.appVersion,
+                        "FAULT_TYPE", currInfo.faultType,
+                        "REASON", currInfo.errType,
+                        "PID", currInfo.pid,
+                        "UID", currInfo.uid,
+                        "SUMMARY", currInfo.summary,
+                        "HAPPEN_TIME", currInfo.happenTime,
+                        "FINGERPRINT", currInfo.hash,
+                        "FIRST_FRAME", currInfo.errType,
+                        "SECOND_FRAME", currInfo.topStack);
+    }
 }
 
-std::string CalcCollectedLogName(const GwpAsanCurrInfo &currInfo)
+std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType)
 {
-    std::string filePath = "/data/log/faultlog/faultlogger/";
-    std::string prefix = "";
-    if (currInfo.errType.compare("GWP-ASAN") == 0) {
-        prefix = "gwpasan";
-    } else if (currInfo.errType.compare("TSAN") == 0) {
-        prefix = "tsan";
-    } else if (currInfo.errType.compare("UBSAN") == 0) {
-        prefix = "ubsan";
-    } else if (currInfo.errType.find("HWASAN") != std::string::npos) {
-        prefix = "hwasan";
-    } else if (currInfo.errType.find("ASAN") != std::string::npos) {
-        prefix = "asan";
+    const std::regex asanRegex("SUMMARY: (AddressSanitizer|LeakSanitizer): (\\S+)");
+    const std::regex hwasanRegex("(Potential Cause|Cause): ([\\w -]+)");
+
+    std::smatch match;
+    if (std::regex_search(buffer, match, asanRegex)) {
+        return match[ASAN_ERRTYPE_FIELD].str();
+    }
+    if (std::regex_search(buffer, match, hwasanRegex)) {
+        return match[HWASAN_ERRTYPE_FIELD].str();
+    }
+    HILOG_INFO(LOG_CORE, "%{public}s Regex not match, set default type.", faultType.c_str());
+    return faultType;
+}
+
+void WriteCollectedData(const GwpAsanCurrInfo& currInfo)
+{
+    if (currInfo.logPath.size() == 0) {
+        return;
+    }
+    int32_t fd = GetSanitizerFd(currInfo);
+    if (fd < 0) {
+        HILOG_ERROR(LOG_CORE, "Fail to create %{public}s, err: %{public}s.",
+            currInfo.logPath.c_str(), strerror(errno));
+        return;
+    }
+    WriteNewFile(fd, currInfo);
+    close(fd);
+}
+
+int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
+{
+    int32_t fd = -1;
+    if (currInfo.logPath == "faultlogger") {
+        struct FaultLoggerdRequest request;
+        (void)memset_s(&request, sizeof(request), 0, sizeof(request));
+        request.type = FaultLoggerType::ADDR_SANITIZER;
+        request.pid = currInfo.pid;
+        request.time = currInfo.happenTime;
+        fd = RequestFileDescriptorEx(&request);
     } else {
-        prefix = "sanitizer";
+        const std::string sandboxBase = "/data/storage/el2";
+        if (currInfo.logPath.compare(0, sandboxBase.length(), sandboxBase) != 0) {
+            HILOG_ERROR(LOG_CORE, "Invalid log path %{public}s, must in sandbox or set as faultlogger.",
+                currInfo.logPath.c_str());
+            return -1;
+        }
+        fd = open(currInfo.logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, OHOS::HiviewDFX::FileUtil::DEFAULT_FILE_MODE);
     }
-    std::string name = currInfo.procName;
-    if (name.find("/") != std::string::npos) {
-        name = currInfo.procName.substr(currInfo.procName.find_last_of("/") + 1);
+    return fd;
+}
+
+bool WriteNewFile(const int32_t fd, const GwpAsanCurrInfo& currInfo)
+{
+    std::ostringstream content;
+    if (currInfo.logPath == "faultlogger") {
+        content << currInfo.description;
+    } else {
+        content << "Generated by HiviewDFX @OpenHarmony\n"
+                << "===============================================================\n"
+                << "Device info:" <<
+                OHOS::HiviewDFX::Parameter::GetString("const.product.name", "Unknown") << "\n"
+                << "Build info:" <<
+                OHOS::HiviewDFX::Parameter::GetString("const.product.software.version", "Unknown") << "\n"
+                << "Timestamp:" << currInfo.happenTime << "\n"
+                << "Module name:" << currInfo.moduleName << "\n"
+                << "Pid:" << std::to_string(currInfo.pid) << "\n"
+                << "Uid:" << std::to_string(currInfo.uid) << "\n"
+                << "Reason:" << currInfo.errType << "\n"
+                << currInfo.description;
+    }
+    OHOS::HiviewDFX::FileUtil::SaveStringToFd(fd, content.str());
+    return true;
+}
+
+std::string GetTopStackWithoutCommonLib(const std::string& description)
+{
+    std::string topstack;
+    std::string record = description;
+    std::smatch stackCaptured;
+    std::string stackRecord =
+    "  #[\\d+] " + std::string("0[xX][0-9a-fA-F]+") +
+    "[\\s\\?(]+" +
+    "[^\\+ ]+/([a-zA-Z0-9_.]+)(\\.z)?(\\.so)?\\+" + std::string("0[xX][0-9a-fA-F]+");
+    static const std::regex STACK_RE(stackRecord);
+
+    while (std::regex_search(record, stackCaptured, STACK_RE)) {
+        if (topstack.size() == 0) {
+            topstack = stackCaptured[1].str();
+        }
+        record = stackCaptured.suffix().str();
     }
 
-    std::string fileName = "";
-    fileName.append(prefix);
-    fileName.append("-");
-    fileName.append(name);
-    fileName.append("-");
-    fileName.append(std::to_string(currInfo.uid));
-    fileName.append("-");
-    fileName.append(std::to_string(currInfo.happenTime));
-
-    std::string fullName = filePath + fileName;
-    return fullName;
+    return topstack;
 }
 
 std::string GetNameByPid(int32_t pid)

@@ -37,23 +37,24 @@ public:
 
 /**
  * @tc.name: AsanTest001
- * @tc.desc: Test calling WriteGwpAsanLog Func
+ * @tc.desc: Test calling WriteSanitizerLog Func
  * @tc.type: FUNC
  */
-HWTEST_F(AsanUnittest, WriteGwpAsanLogTest001, testing::ext::TestSize.Level1)
+HWTEST_F(AsanUnittest, WriteSanitizerLogTest001, testing::ext::TestSize.Level1)
 {
+    char path[] = "faultlogger";
     char gwpAsanBuf[] = "Test GWP-ASAN, End GWP-ASan report";
-    WriteGwpAsanLog(gwpAsanBuf, strlen(gwpAsanBuf));
+    WriteSanitizerLog(gwpAsanBuf, strlen(gwpAsanBuf), path);
     char cfiBuf[] = "Test CFI, End CFI report";
-    WriteGwpAsanLog(cfiBuf, strlen(cfiBuf));
+    WriteSanitizerLog(cfiBuf, strlen(cfiBuf), path);
     char ubsanBuf[] = "Test UBSAN, End Ubsan report";
-    WriteGwpAsanLog(ubsanBuf, strlen(ubsanBuf));
+    WriteSanitizerLog(ubsanBuf, strlen(ubsanBuf), path);
     char tsanBuf[] = "Test TSAN, End Tsan report";
-    WriteGwpAsanLog(tsanBuf, strlen(tsanBuf));
+    WriteSanitizerLog(tsanBuf, strlen(tsanBuf), path);
     char hwasanBuf[] = "Test HWASAN, End Hwasan report";
-    WriteGwpAsanLog(hwasanBuf, strlen(hwasanBuf));
+    WriteSanitizerLog(hwasanBuf, strlen(hwasanBuf), path);
     char asanBuf[] = "Test ASAN, End Asan report";
-    WriteGwpAsanLog(asanBuf, strlen(asanBuf));
+    WriteSanitizerLog(asanBuf, strlen(asanBuf), path);
     ASSERT_TRUE(true);
 }
 } // namespace HiviewDFX
