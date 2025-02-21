@@ -447,6 +447,7 @@ void EventLogTask::HitraceCapture()
         HIVIEW_LOGE("get hitrace fail! error code : %{public}d", result.retCode);
         return;
     }
+    HIVIEW_LOGI("get hitrace end, faultTime: %{public}" PRIu64, faultTime);
 }
 #endif // HITRACE_CATCHER_ENABLE
 

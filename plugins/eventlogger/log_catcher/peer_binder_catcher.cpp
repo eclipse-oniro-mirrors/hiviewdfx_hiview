@@ -406,6 +406,7 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids, int processId, con
         return;
     }
 
+    HIVIEW_LOGI("dump hiperf start, pid:%{public}d", processId);
     static ffrt::mutex lock;
     std::unique_lock<ffrt::mutex> mlock(lock);
     std::string fileName = "hiperf-" + std::to_string(processId) + ".data";
@@ -425,6 +426,7 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids, int processId, con
         }
     }
     DoExecHiperf(fileName, pids, processId, perfCmd);
+    HIVIEW_LOGI("dump hiperf end, pid:%{public}d", processId);
 #endif
 }
 #endif
