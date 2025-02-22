@@ -47,6 +47,9 @@ namespace {
     static constexpr const char* const FORE_GROUND = "FOREGROUND";
     static constexpr const char* const SCB_PROCESS = "SCBPROCESS";
     static constexpr const char* const SCB_PRO_PREFIX = "ohos.sceneboard:";
+    static constexpr const char* const KEY_PROCESS[] = {
+        "foundation", "com.ohos.sceneboard", "render_service"
+    };
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -221,6 +224,12 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
         (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
     pubLogPathName = type + std::string(HYPHEN) + processName + std::string(HYPHEN) + std::to_string(uid) +
         std::string(HYPHEN) + timestamp;
+    
+    if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) != std::end(KEY_PROCESS)) {
+        if (stringId == "SERVICE_WARNING" || stringId == "THREAD_BLOCK_3S") {
+            type = SYSWARNING;
+        }
+    }
 }
 
 void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
