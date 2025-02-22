@@ -34,6 +34,7 @@ struct FaultLogInfo {
     std::string logPath;
     std::string registers;
     std::string otherThreadInfo;
+    std::string sanitizerType;
     std::map<std::string, std::string> sectionMap;
     std::list<std::string> additionalLogs;
     std::map<std::string, std::string> parsedLogInfo;

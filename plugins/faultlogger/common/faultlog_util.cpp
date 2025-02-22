@@ -100,15 +100,15 @@ std::string GetFaultLogName(const FaultLogInfo& info)
 
     std::string ret = "";
     if (info.faultLogType == FaultLogType::ADDR_SANITIZER) {
-        if (info.reason.compare("TSAN") == 0) {
+        if (info.sanitizerType.compare("TSAN") == 0) {
             ret.append("tsan");
-        } else if (info.reason.compare("UBSAN") == 0) {
+        } else if (info.sanitizerType.compare("UBSAN") == 0) {
             ret.append("ubsan");
-        } else if (info.reason.compare("GWP-ASAN") == 0) {
+        } else if (info.sanitizerType.compare("GWP-ASAN") == 0) {
             ret.append("gwpasan");
-        } else if (info.reason.find("HWASAN") != std::string::npos) {
+        } else if (info.sanitizerType.compare("HWASAN") == 0) {
             ret.append("hwasan");
-        } else if (info.reason.find("ASAN") != std::string::npos) {
+        } else if (info.sanitizerType.compare("ASAN") == 0) {
             ret.append("asan");
         } else {
             ret.append("sanitizer");
@@ -230,6 +230,15 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
         std::to_string(info.pid) +
         "-" +
         std::to_string(info.time);
+}
+
+std::string GetSanitizerTempLogName(int32_t pid, int64_t happenTime)
+{
+    return std::string(DEFAULT_FAULTLOG_TEMP_FOLDER) +
+        "sanitizer-" +
+        std::to_string(pid) +
+        "-" +
+        std::to_string(happenTime);
 }
 
 std::string GetThreadStack(const std::string& path, int32_t threadId)

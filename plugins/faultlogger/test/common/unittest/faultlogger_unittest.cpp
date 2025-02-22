@@ -1705,19 +1705,19 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest001, testing::ext::TestSize.Le
     FaultLogInfo info;
     info.module = "test/test";
     info.faultLogType = FaultLogType::ADDR_SANITIZER;
-    info.reason = "TSAN";
+    info.sanitizerType = "TSAN";
     std::string str = GetFaultLogName(info);
     ASSERT_EQ(str, "tsan-test-0-19700101080000000.log");
-    info.reason = "UBSAN";
+    info.sanitizerType = "UBSAN";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "ubsan-test-0-19700101080000000.log");
-    info.reason = "GWP-ASAN";
+    info.sanitizerType = "GWP-ASAN";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "gwpasan-test-0-19700101080000000.log");
-    info.reason = "GWP-ASANS";
+    info.sanitizerType = "GWP-ASANS";
     str = GetFaultLogName(info);
-    ASSERT_EQ(str, "asan-test-0-19700101080000000.log");
-    info.reason = "TSANs";
+    ASSERT_EQ(str, "sanitizer-test-0-19700101080000000.log");
+    info.sanitizerType = "TSANs";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "sanitizer-test-0-19700101080000000.log");
 
