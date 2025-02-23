@@ -19,6 +19,7 @@
 #include "collect_event.h"
 #include "event_publish.h"
 #include "file_util.h"
+#include "hiview_global.h"
 #include "hiview_logger.h"
 #include "hisysevent.h"
 #include "time_util.h"
@@ -33,12 +34,16 @@ constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
+const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
 const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
+const std::string TELEMETRY_STRATEGY = "TelemetryStrategy";
 constexpr int32_t FULL_TRACE_DURATION = -1;
 const uint32_t UNIFIED_SHARE_COUNTS = 25;
+const uint32_t UNIFIED_TELEMETRY_COUNTS = 20;
 const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
 const uint32_t UNIFIED_SPECIAL_COUNTS = 3;
 const uint32_t UNIFIED_SPECIAL_OTHER = 5;
+const uint32_t MS_UNIT = 1000;
 }
 
 TraceStrategy::TraceStrategy(int32_t maxDuration, uint64_t happenTime, const std::string &caller,
@@ -47,6 +52,7 @@ TraceStrategy::TraceStrategy(int32_t maxDuration, uint64_t happenTime, const std
 {
     CreateTracePath(UNIFIED_SHARE_PATH);
     CreateTracePath(UNIFIED_SPECIAL_PATH);
+    CreateTracePath(UNIFIED_TELEMETRY_PATH);
 }
 
 TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
@@ -54,7 +60,7 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
     TraceRet ret;
     dumpEvent.reqDuration = maxDuration_;
     dumpEvent.reqTime = happenTime_;
-    dumpEvent.execTime = TimeUtil::GenerateTimestamp() / 1000; // convert execTime into ms unit
+    dumpEvent.execTime = TimeUtil::GenerateTimestamp() / MS_UNIT; // convert execTime into ms unit
     auto start = std::chrono::steady_clock::now();
     if (maxDuration_ == FULL_TRACE_DURATION) {
         ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, 0, happenTime_, traceRetInfo);
@@ -73,7 +79,7 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
     return ret;
 }
 
-void TraceStrategy::DoClean(const std::string& tracePath, uint32_t threshold, bool hasPrefix)
+void TraceStrategy::DoClean(const std::string &tracePath, uint32_t threshold, bool hasPrefix)
 {
     // Load all files under the path
     std::vector<std::string> files;
@@ -164,7 +170,7 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
         HIVIEW_LOGI("trace is over flow, can not upload.");
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
-    outputFile = GetUnifiedShareFiles(traceRetInfo.outputFiles);
+    outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
     DoClean(UNIFIED_SHARE_PATH, UNIFIED_SHARE_COUNTS, false);
     WriteDumpTraceHisysevent(dumpEvent, UcError::SUCCESS);
     flowController_->StoreDb();
@@ -201,7 +207,7 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
             HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
             return {};
         }
-        outputFile = GetUnifiedShareFiles(traceRetInfo.outputFiles);
+        outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
         DoClean(UNIFIED_SHARE_PATH, UNIFIED_SHARE_COUNTS, false);
     } else {
         HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
@@ -215,6 +221,40 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
 bool TraceMixedStrategy::IsMine(const std::string &fileName)
 {
     return fileName.find(caller_) != std::string::npos;
+}
+
+TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
+{
+    TraceRetInfo traceRetInfo;
+    auto ret = TraceStateMachine::GetInstance().DumpTraceWithFilter(pidList_, maxDuration_, happenTime_, traceRetInfo);
+    if (!ret.IsSuccess()) {
+        HIVIEW_LOGE("fail stateError:%{public}d codeError:%{public}d", static_cast<int>(ret.GetStateError()),
+            static_cast<int>(ret.GetCodeError()));
+        return ret;
+    }
+    int64_t traceSize = GetTraceSize(traceRetInfo);
+    auto event = std::make_shared<Event>(TELEMETRY_STRATEGY);
+    event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
+    switch (flowController_->NeedTelemetryDump(caller_, traceSize)) {
+        case TelemetryFlow::EXIT:
+            if (HiviewGlobal::GetInstance() != nullptr &&
+                HiviewGlobal::GetInstance()->PostSyncEventToTarget(UCollectUtil::UCOLLECTOR_PLUGIN, event)) {
+                HIVIEW_LOGD("PostSyncEventToTarget exit message to UnifiedCollector");
+            }
+            return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
+        case TelemetryFlow::OVER_FLOW:
+            HIVIEW_LOGI("trace is over flow, can not dump.");
+            return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
+        default:
+            break;
+    }
+    if (traceRetInfo.outputFiles.empty()) {
+        HIVIEW_LOGW("TraceFlowControlStrategy outputFiles empty.");
+        return TraceRet(traceRetInfo.errorCode);
+    }
+    outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_TELEMETRY_PATH);
+    DoClean(UNIFIED_TELEMETRY_PATH, UNIFIED_TELEMETRY_COUNTS, false);
+    return {};
 }
 
 TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFile)

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <contrib/minizip/zip.h>
 #include <unistd.h>
 #include <vector>
 
@@ -76,6 +77,18 @@ UcError TransFlowToUcError(TraceFlowCode ret)
         return UcError::UNSUPPORT;
     } else {
         return TRACE_FLOW_MAP.at(ret);
+    }
+}
+
+const std::string ModuleToString(UCollect::TeleModule &module)
+{
+    switch (module) {
+        case UCollect::TeleModule::XPERF:
+            return CallerName::XPERF;
+        case UCollect::TeleModule::XPOWER:
+            return CallerName::XPOWER;
+        default:
+            return "";
     }
 }
 
@@ -203,7 +216,7 @@ void CopyFile(const std::string &src, const std::string &dst)
  *     /data/log/hiview/unified_collection/trace/share/
  *     trace_20230906111617@8290-81765922_{device}_{version}.zip
 */
-std::vector<std::string> GetUnifiedShareFiles(const std::vector<std::string> outputFiles)
+std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outputFiles, const std::string &destDir)
 {
     if (!FileUtil::FileExists(UNIFIED_SHARE_TEMP_PATH)) {
         if (!CreateMultiDirectory(UNIFIED_SHARE_TEMP_PATH)) {
@@ -215,7 +228,7 @@ std::vector<std::string> GetUnifiedShareFiles(const std::vector<std::string> out
     std::vector<std::string> files;
     for (const auto &tracePath : outputFiles) {
         std::string traceFile = FileUtil::ExtractFileName(tracePath);
-        const std::string destZipPath = UNIFIED_SHARE_PATH + StringUtil::ReplaceStr(traceFile, ".sys", ".zip");
+        const std::string destZipPath = destDir + StringUtil::ReplaceStr(traceFile, ".sys", ".zip");
         const std::string tempDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
         const std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
         // for zip if the file has not been compressed
@@ -248,7 +261,7 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
     }
 
     std::vector<std::string> files;
-    for (const auto &trace :outputFiles) {
+    for (const auto &trace : outputFiles) {
         std::string traceFile = FileUtil::ExtractFileName(trace);
         const std::string dst = UNIFIED_SPECIAL_PATH + prefix + "_" + traceFile;
         // for copy if the file has not been copied

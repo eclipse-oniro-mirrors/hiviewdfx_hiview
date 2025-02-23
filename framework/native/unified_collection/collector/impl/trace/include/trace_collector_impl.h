@@ -31,6 +31,8 @@ public:
     CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller &caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
         UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime) override;
+    CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule &module,
+        const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags) override;
 
 private:
     CollectResult<std::vector<std::string>> StartDumpTrace(UCollect::TraceCaller &caller,

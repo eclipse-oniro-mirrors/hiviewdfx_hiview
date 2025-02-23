@@ -36,6 +36,7 @@ ohos_source_set("trace_manager_source") {
   public_configs = [ ":trace_manager_config" ]
   sources = [
     "src/app_event_task_storage.cpp",
+    "src/telemetry_storage.cpp",
     "src/trace_behavior_storage.cpp",
     "src/trace_db_callback.cpp",
     "src/trace_flow_controller.cpp",
@@ -71,6 +72,7 @@ ohos_shared_library("libtrace_manager") {
 
   public_external_deps = [
     "ffrt:libffrt",
+    "hilog:libhilog",
     "hitrace:hitrace_dump",
     "relational_store:native_rdb",
   ]

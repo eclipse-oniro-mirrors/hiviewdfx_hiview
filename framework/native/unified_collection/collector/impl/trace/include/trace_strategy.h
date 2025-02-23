@@ -40,7 +40,7 @@ protected:
     std::string caller_;
     TraceScenario scenario_;
 
-    virtual void DoClean(const std::string& tracePath, uint32_t threshold, bool hasPrefix);
+    virtual void DoClean(const std::string &tracePath, uint32_t threshold, bool hasPrefix);
     virtual bool IsMine(const std::string &fileName) = 0;
     TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const;
 };
@@ -92,6 +92,28 @@ protected:
     bool IsMine(const std::string &fileName) override;
 
 private:
+    std::shared_ptr<TraceFlowController> flowController_ = nullptr;
+};
+
+// Only telemetry to dump trace
+class TelemetryStrategy : public TraceStrategy  {
+public:
+    TelemetryStrategy(const std::vector<int32_t > &pidList, int32_t maxDuration, uint64_t happenTime,
+        const std::string &module)
+        : TraceStrategy(maxDuration, happenTime, module, TraceScenario::TRACE_TELEMETRY), pidList_(pidList)
+    {
+        flowController_ = std::make_shared<TraceFlowController>(BusinessName::TELEMETRY);
+    }
+    TraceRet DoDump(std::vector<std::string> &outputFile) override;
+
+protected:
+    bool IsMine(const std::string &fileName) override
+    {
+        return true;
+    }
+
+private:
+    std::vector<int32_t > pidList_;
     std::shared_ptr<TraceFlowController> flowController_ = nullptr;
 };
 

@@ -26,12 +26,18 @@ std::shared_ptr<TraceCollector> TraceCollector::Create()
 CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithDuration(
     UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime)
 {
-    return CollectResult<std::vector<std::string>>(UCollect::UcError::FEATURE_CLOSED);
+    return {UCollect::UcError::FEATURE_CLOSED};
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceCaller &caller)
 {
-    return CollectResult<std::vector<std::string>>(UCollect::UcError::FEATURE_CLOSED);
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
+CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithFilter(TeleModule &module,
+    const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
 }
 } // UCollectUtil
 } // HiViewDFX

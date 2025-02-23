@@ -42,10 +42,16 @@ const std::string COMMON_DEV = "Other";
 const std::string APP = "APP";
 };
 
+namespace BusinessName {
+const std::string BEHAVIOR = "behavior";
+const std::string TELEMETRY = "Telemetry";
+}
+
 enum class TraceScenario : uint8_t {
     TRACE_COMMAND,
     TRACE_COMMON,
     TRACE_DYNAMIC,
+    TRACE_TELEMETRY,
 };
 
 enum class TraceStateCode : uint8_t {

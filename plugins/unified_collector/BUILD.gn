@@ -58,6 +58,7 @@ ohos_source_set("unified_collector") {
   defines = [ "PC_APP_STATE_COLLECT_ENABLE = $hiview_unified_collector_PC_app_state_collect_enable" ]
 
   if (hiview_unified_collector_trace_enable) {
+    sources += [ "observer/uc_telemertry_listerner.cpp" ]
     deps += [ "$hiview_framework/native/unified_collection/trace_manager:libtrace_manager" ]
     defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
     if (hiview_unified_collector_low_mem_threshold != 0) {

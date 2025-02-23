@@ -65,6 +65,9 @@ private:
 private:
     std::string workPath_;
     std::shared_ptr<CpuCollectionTask> cpuCollectionTask_;
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+    std::shared_ptr<EventListener> telemetryListener_;
+#endif
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
     std::shared_ptr<TraceCacheMonitor> traceCacheMonitor_;
 #endif

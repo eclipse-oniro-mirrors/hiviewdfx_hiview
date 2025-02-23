@@ -47,6 +47,12 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UC
     return Invoke(task, traceStatWrapper_, caller);
 }
 
+CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithFilter(UCollect::TeleModule &module,
+    const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags)
+{
+    return traceCollector_->DumpTraceWithFilter(module, pidList, timeLimit, happenTime);
+}
+
 void TraceDecorator::SaveStatSpecialInfo()
 {
     WriteLinesToFile({""}, false); // a blank line after common stat info

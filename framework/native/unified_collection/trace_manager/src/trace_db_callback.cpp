@@ -22,14 +22,14 @@ namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceDbStoreCallback");
 
-//Table trace_flow_control column name
+// Table trace_flow_control column name
 const std::string FLOW_TABLE_NAME = "trace_flow_control";
 const std::string TABLE_NAME = "trace_flow_control";
 const std::string COLUMN_SYSTEM_TIME = "system_time";
 const std::string COLUMN_CALLER_NAME = "caller_name";
 const std::string COLUMN_USED_SIZE = "used_size";
 
-//Table unified_collection_task column name
+// Table unified_collection_task column name
 const std::string TABLE_NAME_TASK = "unified_collection_task";
 const std::string COLUMN_ID = "id";
 const std::string COLUMN_TASK_DATE = "task_date";
@@ -45,11 +45,17 @@ const std::string COLUMN_RESOURCE_SIZE = "resource_size";
 const std::string COLUMN_COST_CPU = "cost_cpu";
 const std::string COLUMN_STATE = "state";
 
-//Table trace_behavior_db_helper column name
+// Table trace_behavior_db_helper column name
 const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_db_helper";
 const std::string COLUMN_BEHAVIOR_ID = "behavior_id ";
 const std::string COLUMN_DATE = "task_date";
 const std::string COLUMN_USED_QUOTA = "used_quota";
+
+// Table telemetry_flow_control column name
+const std::string TABLE_TELEMETRY_FLOW_CONTROL = "telemetry_flow_control";
+const std::string COLUMN_MODULE_NAME = "module";
+const std::string COLUMN_QUOTA = "quota";
+const std::string COLUMN_THRESHOLD = "threshold";
 }
 
 int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
@@ -65,6 +71,10 @@ int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
     }
     if (auto ret = CreateTraceBehaviorDbHelperTable(rdbStore); ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table trace_behavior_db_helper");
+        return ret;
+    }
+    if (auto ret = CreateTelemetryFlowControlTable(rdbStore); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table telemetry_flow_control");
         return ret;
     }
     return NativeRdb::E_OK;
@@ -177,6 +187,32 @@ int32_t TraceDbStoreCallback::CreateTraceBehaviorDbHelperTable(NativeRdb::RdbSto
     };
     HIVIEW_LOGI("create table trace_behavior_db_helper table");
     std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME_BEHAVIOR, fields);
+    if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table, sql=%{public}s", sql.c_str());
+        return -1;
+    }
+    return 0;
+}
+
+int32_t TraceDbStoreCallback::CreateTelemetryFlowControlTable(NativeRdb::RdbStore &rdbStore)
+{
+    /**
+     * table: telemetry_flow_control
+     *
+     * describe: store trace behavior quota
+     * |-----|------- -|-----------|------------|------------|
+     * | id  |  module | used_size |   quota    |  threshold |
+     * |-----|-- ------|-----------|------------|------------|
+     * | INT | VARCHAR |   INT32   |   INT32    |   INT32    |
+     * |-----|----- ---|-----------|------------|------------|
+    */
+    const std::vector<std::pair<std::string, std::string>> fields = {
+        {COLUMN_MODULE_NAME, SqlUtil::COLUMN_TYPE_STR},
+        {COLUMN_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_QUOTA, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_THRESHOLD, SqlUtil::COLUMN_TYPE_INT},
+    };
+    std::string sql = SqlUtil::GenerateCreateSql(TABLE_TELEMETRY_FLOW_CONTROL, fields);
     if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table, sql=%{public}s", sql.c_str());
         return -1;

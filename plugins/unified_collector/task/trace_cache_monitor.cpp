@@ -30,8 +30,6 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("TraceCacheMonitor");
 namespace {
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_PER_EVENT = 2 * 60; // 2 minutes
-constexpr int32_t HITRACE_CACHE_FILE_SIZE_LIMIT = 800; // 800MB
-constexpr int32_t HITRACE_CACHE_FILE_SLICE_SPAN = 10; // 10 seconds
 constexpr uint64_t S_TO_NS = 1000000000;
 constexpr int32_t CACHE_OFF_CONDITION_COUNTDOWN = 2;
 constexpr int32_t MONITOR_INTERVAL = 5;
@@ -153,7 +151,6 @@ void TraceCacheMonitor::RunMonitorCycle(int32_t interval)
             isWaitingForRecovery_ = false;
         }
     }
-
     if (isTargetCacheOn != isCacheOn_) {
         if (isTargetCacheOn) {
             SetCacheOn();
@@ -163,12 +160,15 @@ void TraceCacheMonitor::RunMonitorCycle(int32_t interval)
     } else {
         cacheOffCountdown_ = CACHE_OFF_CONDITION_COUNTDOWN;
     }
-
     if (!isCacheOn_) {
         ffrt::this_task::sleep_for(std::chrono::seconds(interval));
         return;
     }
+    SetCacheStatus(interval);
+}
 
+void TraceCacheMonitor::SetCacheStatus(int32_t interval)
+{
     struct timespec bts = {0, 0};
     clock_gettime(CLOCK_BOOTTIME, &bts);
     uint64_t startTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
@@ -176,17 +176,26 @@ void TraceCacheMonitor::RunMonitorCycle(int32_t interval)
     clock_gettime(CLOCK_BOOTTIME, &bts);
     uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
     int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
-    if (!flowController_->UseCacheTimeQuota(timeDiff)) {
-        SetCacheOff();
-        HIVIEW_LOGW("quota exceeded, sleep until the next day");
-        ffrt::this_task::sleep_until(GetNextDay());
-    } else {
-        cacheDuration_ += timeDiff;
-        if (cacheDuration_ >= HITRACE_CACHE_DURATION_LIMIT_PER_EVENT) {
+    switch (flowController_->UseCacheTimeQuota(timeDiff)) {
+        case CacheFlow::EXIT:
+            HIVIEW_LOGE("failed to get and insert record, close task");
+            ExitMonitorLoop();
+            break;
+        case CacheFlow::OVER_FLOW:
             SetCacheOff();
-            HIVIEW_LOGW("reach cache duration limit, wait for system to recover from low mem state");
-            isWaitingForRecovery_ = true;
-        }
+            HIVIEW_LOGW("quota exceeded, sleep until the next day");
+            ffrt::this_task::sleep_until(GetNextDay());
+            break;
+        case CacheFlow::SUCCESS:
+            cacheDuration_ += timeDiff;
+            if (cacheDuration_ >= HITRACE_CACHE_DURATION_LIMIT_PER_EVENT) {
+                SetCacheOff();
+                HIVIEW_LOGW("reach cache duration limit, wait for system to recover from low mem state");
+                isWaitingForRecovery_ = true;
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -198,8 +207,7 @@ bool TraceCacheMonitor::IsLowMemState()
 
 void TraceCacheMonitor::SetCacheOn()
 {
-    TraceRet ret = TraceStateMachine::GetInstance().TraceCacheOn(HITRACE_CACHE_FILE_SIZE_LIMIT,
-        HITRACE_CACHE_FILE_SLICE_SPAN);
+    TraceRet ret = TraceStateMachine::GetInstance().TraceCacheOn();
     isCacheOn_ = ret.IsSuccess();
     if (!isCacheOn_) {
         HIVIEW_LOGE("fail state:%{public}d error:%{public}d ", static_cast<int>(ret.GetStateError()),
