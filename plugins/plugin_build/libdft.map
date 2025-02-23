@@ -4,6 +4,7 @@
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::UCollectUtil::ProcessStatus>::instance_";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::HiviewEventCacher>::instance_";
       "OHOS::DelayedSingleton<OHOS::HiviewDFX::EventJsonParser>::instance_";
+      "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
     };
   local:
     *;

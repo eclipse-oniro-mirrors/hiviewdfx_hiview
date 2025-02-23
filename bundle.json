@@ -122,7 +122,8 @@
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/client:libucollection_client",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
-                "//base/hiviewdfx/hiview/framework/native/unified_collection/graphic_memory:libgraphic_memory"
+                "//base/hiviewdfx/hiview/framework/native/unified_collection/graphic_memory:libgraphic_memory",
+                "//base/hiviewdfx/hiview/framework/native/unified_collection/trace_manager:libtrace_manager"
             ],
             "inner_kits": [
                 {

@@ -20,12 +20,12 @@
 #include <contrib/minizip/zip.h>
 
 #include "hisysevent.h"
-#include "hitrace_dump.h"
 #include "trace_collector.h"
+#include "trace_state_machine.h"
+#include "trace_flow_controller.h"
 
 using OHOS::HiviewDFX::UCollectUtil::TraceCollector;
 using OHOS::HiviewDFX::Hitrace::TraceErrorCode;
-using OHOS::HiviewDFX::Hitrace::TraceRetInfo;
 using OHOS::HiviewDFX::UCollect::UcError;
 
 namespace OHOS {
@@ -44,6 +44,19 @@ const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::EPOLL_WAIT_ERROR, UcError::TRACE_EPOLL_WAIT_ERROR},
     {TraceErrorCode::PIPE_CREATE_ERROR, UcError::TRACE_PIPE_CREATE_ERROR},
     {TraceErrorCode::SYSINFO_READ_FAILURE, UcError::TRACE_SYSINFO_READ_FAILURE},
+};
+
+const std::map<TraceStateCode, UcError> TRACE_STATE_MAP = {
+    {TraceStateCode::SUCCESS, UcError::SUCCESS},
+    {TraceStateCode::FAIL,    UcError::TRACE_STATE_ERROR},
+    {TraceStateCode::DENY,    UcError::TRACE_OPEN_ERROR},
+};
+
+const std::map<TraceFlowCode, UcError> TRACE_FLOW_MAP = {
+    {TraceFlowCode::TRACE_ALLOW, UcError::SUCCESS},
+    {TraceFlowCode::TRACE_DUMP_DENY,    UcError::TRACE_DUMP_OVER_FLOW},
+    {TraceFlowCode::TRACE_UPLOAD_DENY,    UcError::TRACE_OVER_FLOW},
+    {TraceFlowCode::TRACE_HAS_CAPTURED_TRACE, UcError::HAD_CAPTURED_TRACE}
 };
 }
 
@@ -66,21 +79,23 @@ struct DumpEvent {
 };
 
 UcError TransCodeToUcError(TraceErrorCode ret);
-void FileRemove(UCollect::TraceCaller &caller);
-void CheckAndCreateDirectory(const std::string &tmpDirPath);
-bool CreateMultiDirectory(const std::string &dirPath);
+UcError TransStateToUcError(TraceStateCode ret);
+UcError TransFlowToUcError(TraceFlowCode ret);
 const std::string EnumToString(UCollect::TraceCaller &caller);
-std::vector<std::string> GetUnifiedFiles(Hitrace::TraceRetInfo ret, UCollect::TraceCaller &caller);
+const std::string ClientToString(UCollect::TraceClient &client);
 void CopyFile(const std::string &src, const std::string &dst);
-std::vector<std::string> GetUnifiedShareFiles(Hitrace::TraceRetInfo ret, UCollect::TraceCaller &caller);
-std::vector<std::string> GetUnifiedSpecialFiles(Hitrace::TraceRetInfo ret,
-    UCollect::TraceCaller &caller);
+std::vector<std::string> GetUnifiedShareFiles(const std::vector<std::string> outputFiles);
+std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix);
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);
 void CheckCurrentCpuLoad();
-void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
+void WriteDumpTraceHisysevent(DumpEvent &dumpEvent, int32_t retCode);
 void LoadMemoryInfo(DumpEvent &dumpEvent);
+void CheckAndCreateDirectory(const std::string &tmpDirPath);
+bool CreateMultiDirectory(const std::string &dirPath);
+void CreateTracePath(const std::string &filePath);
 int64_t GetTraceSize(TraceRetInfo &ret);
+UcError GetUcError(TraceRet ret);
 } // HiViewDFX
 } // OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_FILE_UTILS_H

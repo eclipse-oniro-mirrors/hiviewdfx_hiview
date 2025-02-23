@@ -42,6 +42,10 @@
       "OHOS::HiviewDFX::TraceManager::GetTraceMode()";
       "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(OHOS::HiviewDFX::UCollect::TraceCaller)";
       "OHOS::HiviewDFX::TraceManager::RecoverTmpTrace()";
+      "OHOS::HiviewDFX::GetUcError(OHOS::HiviewDFX::TraceRet)";
+      "OHOS::HiviewDFX::TraceFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, int, unsigned long long)";
+      "OHOS::HiviewDFX::TraceFactory::CreateAppStrategy(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
+      "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
     };
   local:
     *;

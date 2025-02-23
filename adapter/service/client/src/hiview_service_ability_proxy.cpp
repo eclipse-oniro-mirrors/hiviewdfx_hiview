@@ -151,10 +151,10 @@ CollectResultParcelable<int32_t> HiviewServiceAbilityProxy::OpenSnapshotTrace(
         parcelHandler);
 }
 
-CollectResultParcelable<std::vector<std::string>> HiviewServiceAbilityProxy::DumpSnapshotTrace(int32_t caller)
+CollectResultParcelable<std::vector<std::string>> HiviewServiceAbilityProxy::DumpSnapshotTrace(int32_t client)
 {
-    auto parcelHandler = [caller] (MessageParcel& data) {
-        return data.WriteInt32(caller);
+    auto parcelHandler = [client] (MessageParcel& data) {
+        return data.WriteInt32(client);
     };
     return SendTraceRequest<std::vector<std::string>>(
         HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_DUMP_SNAPSHOT_TRACE, parcelHandler);
@@ -193,15 +193,6 @@ CollectResultParcelable<int32_t> HiviewServiceAbilityProxy::CloseTrace()
         return true;
     };
     return SendTraceRequest<int32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_CLOSE_TRACE,
-        parcelHandler);
-}
-
-CollectResultParcelable<int32_t> HiviewServiceAbilityProxy::RecoverTrace()
-{
-    auto parcelHandler = [] (MessageParcel& data) {
-        return true;
-    };
-    return SendTraceRequest<int32_t>(HiviewServiceInterfaceCode::HIVIEW_SERVICE_ID_RECOVER_TRACE,
         parcelHandler);
 }
 

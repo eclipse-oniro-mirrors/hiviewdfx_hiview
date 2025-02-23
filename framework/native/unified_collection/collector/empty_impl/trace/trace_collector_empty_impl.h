@@ -26,8 +26,6 @@ public:
     virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller &caller) override;
     virtual CollectResult<std::vector<std::string>> DumpTraceWithDuration(
         UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime = 0) override;
-    virtual CollectResult<int32_t> TraceOn() override;
-    virtual CollectResult<std::vector<std::string>> TraceOff() override;
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX

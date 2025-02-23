@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "trace_utils.h"
+
 #include <algorithm>
 #include <chrono>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
 
@@ -27,8 +28,9 @@
 #include "parameter_ex.h"
 #include "securec.h"
 #include "string_util.h"
-#include "trace_utils.h"
+#include "trace_common.h"
 #include "trace_worker.h"
+#include "time_util.h"
 
 using namespace std::chrono_literals;
 using OHOS::HiviewDFX::TraceWorker;
@@ -40,30 +42,12 @@ DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
-const std::string RELIABILITY = "Reliability";
-const std::string XPERF = "Xperf";
-const std::string XPOWER = "Xpower";
-const std::string BETACLUB = "BetaClub";
-const std::string APP = "APP";
-const std::string HIVIEW = "Hiview";
-const std::string FOUNDATION = "Foundation";
-const std::string OTHER = "Other";
-const uint32_t UNIFIED_SHARE_COUNTS = 25;
-const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
-const uint32_t UNIFIED_SPECIAL_XPERF = 3;
-const uint32_t UNIFIED_SPECIAL_RELIABILITY = 3;
-const uint32_t UNIFIED_SPECIAL_OTHER = 5;
 constexpr uint32_t READ_MORE_LENGTH = 100 * 1024;
 const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
 constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
 }
-
-enum {
-    SHARE = 0,
-    SPECIAL = 1,
-};
 
 UcError TransCodeToUcError(TraceErrorCode ret)
 {
@@ -75,295 +59,60 @@ UcError TransCodeToUcError(TraceErrorCode ret)
     }
 }
 
-class CleanPolicy {
-public:
-    explicit CleanPolicy(int type) : type_(type) {}
-    virtual ~CleanPolicy() {}
-    void DoClean();
-
-protected:
-    virtual bool IsMine(const std::string &fileName) = 0;
-    virtual uint32_t MyThreshold() = 0;
-
-private:
-    void LoadAllFiles(std::vector<std::string> &files);
-    int type_;
-};
-
-void CleanPolicy::LoadAllFiles(std::vector<std::string> &files)
+UcError TransStateToUcError(TraceStateCode ret)
 {
-    // set path
-    std::string path;
-    if (type_ == SHARE) {
-        path = UNIFIED_SHARE_PATH;
+    if (TRACE_STATE_MAP.find(ret) == TRACE_STATE_MAP.end()) {
+        HIVIEW_LOGE("ErrorCode is not exists.");
+        return UcError::UNSUPPORT;
     } else {
-        path = UNIFIED_SPECIAL_PATH;
-    }
-    // Load all files under the path
-    FileUtil::GetDirFiles(path, files);
-}
-
-void CleanPolicy::DoClean()
-{
-    // Load all files under the path
-    std::vector<std::string> files;
-    LoadAllFiles(files);
-
-    // Filter files that belong to me
-    std::map<uint64_t, std::vector<std::string>> myFiles;
-    for (const auto &file : files) {
-        if (IsMine(file)) {
-            struct stat fileInfo;
-            stat(file.c_str(), &fileInfo);
-            std::vector<std::string> fileLists;
-            if (myFiles.find(fileInfo.st_mtime) != myFiles.end()) {
-                fileLists = myFiles[fileInfo.st_mtime];
-                fileLists.push_back(file);
-                myFiles[fileInfo.st_mtime] = fileLists;
-            } else {
-                fileLists.push_back(file);
-                myFiles.insert(std::pair<uint64_t, std::vector<std::string>>(fileInfo.st_mtime, fileLists));
-            }
-        }
-    }
-
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", myFiles.size(), MyThreshold());
-
-    // Clean up old files
-    while (myFiles.size() > MyThreshold()) {
-        for (const auto &file : myFiles.begin()->second) {
-            FileUtil::RemoveFile(file);
-            HIVIEW_LOGI("remove file : %{public}s is deleted.", file.c_str());
-        }
-        myFiles.erase(myFiles.begin());
+        return TRACE_STATE_MAP.at(ret);
     }
 }
 
-class ShareCleanPolicy : public CleanPolicy {
-public:
-    explicit ShareCleanPolicy(int type) : CleanPolicy(type) {}
-    ~ShareCleanPolicy() override {}
-
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        return true;
-    }
-
-    uint32_t MyThreshold() override
-    {
-        return UNIFIED_SHARE_COUNTS;
-    }
-};
-
-class AppShareCleanPolicy : public CleanPolicy {
-public:
-    explicit AppShareCleanPolicy(int type) : CleanPolicy(type) {}
-    ~AppShareCleanPolicy() override {}
-
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        if (fileName.find("/"+APP) != std::string::npos) {
-            return true;
-        }
-        return false;
-    }
-
-    uint32_t MyThreshold() override
-    {
-        return UNIFIED_APP_SHARE_COUNTS;
-    }
-};
-
-class AppSpecialCleanPolicy : public CleanPolicy {
-public:
-    explicit AppSpecialCleanPolicy(int type) : CleanPolicy(type) {}
-    ~AppSpecialCleanPolicy() override {}
-
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        if (fileName.find("/"+APP) != std::string::npos) {
-            return true;
-        }
-        return false;
-    }
-
-    uint32_t MyThreshold() override
-    {
-        return 0;
-    }
-};
-
-class SpecialXperfCleanPolicy : public CleanPolicy {
-public:
-    explicit SpecialXperfCleanPolicy(int type) : CleanPolicy(type) {}
-    ~SpecialXperfCleanPolicy() override {}
-
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        // check xperf trace
-        size_t posXperf = fileName.find(XPERF);
-        return posXperf != std::string::npos;
-    }
-
-    uint32_t MyThreshold() override
-    {
-        return UNIFIED_SPECIAL_XPERF;
-    }
-};
-
-class SpecialReliabilityCleanPolicy : public CleanPolicy {
-public:
-    explicit SpecialReliabilityCleanPolicy(int type) : CleanPolicy(type) {}
-    ~SpecialReliabilityCleanPolicy() override {}
-
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        // check Reliability trace
-        size_t posReliability = fileName.find(RELIABILITY);
-        return posReliability != std::string::npos;
-    }
-
-    uint32_t MyThreshold() override
-    {
-        return UNIFIED_SPECIAL_RELIABILITY;
-    }
-};
-
-class SpecialOtherCleanPolicy : public CleanPolicy {
-public:
-    explicit SpecialOtherCleanPolicy(int type) : CleanPolicy(type) {}
-    ~SpecialOtherCleanPolicy() override {}
-
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        // check Betaclub and other trace
-        size_t posBeta = fileName.find(BETACLUB);
-        size_t posOther = fileName.find(OTHER);
-        return posBeta != std::string::npos || posOther != std::string::npos;
-    }
-
-    uint32_t MyThreshold() override
-    {
-        return UNIFIED_SPECIAL_OTHER;
-    }
-};
-
-std::shared_ptr<CleanPolicy> GetCleanPolicy(int type, UCollect::TraceCaller &caller)
+UcError TransFlowToUcError(TraceFlowCode ret)
 {
-    if (type == SHARE) {
-        if (caller == UCollect::TraceCaller::APP) {
-            return std::make_shared<AppShareCleanPolicy>(type);
-        }
-
-        return std::make_shared<ShareCleanPolicy>(type);
+    if (TRACE_FLOW_MAP.find(ret) == TRACE_FLOW_MAP.end()) {
+        HIVIEW_LOGE("ErrorCode is not exists.");
+        return UcError::UNSUPPORT;
+    } else {
+        return TRACE_FLOW_MAP.at(ret);
     }
-
-    if (caller == UCollect::TraceCaller::XPERF) {
-        return std::make_shared<SpecialXperfCleanPolicy>(type);
-    }
-
-    if (caller == UCollect::TraceCaller::RELIABILITY) {
-        return std::make_shared<SpecialReliabilityCleanPolicy>(type);
-    }
-
-    if (caller == UCollect::TraceCaller::APP) {
-        return std::make_shared<AppSpecialCleanPolicy>(type);
-    }
-    return std::make_shared<SpecialOtherCleanPolicy>(type);
-}
-
-void FileRemove(UCollect::TraceCaller &caller)
-{
-    std::shared_ptr<CleanPolicy> shareCleaner = GetCleanPolicy(SHARE, caller);
-    std::shared_ptr<CleanPolicy> specialCleaner = GetCleanPolicy(SPECIAL, caller);
-    switch (caller) {
-        case UCollect::TraceCaller::XPOWER:
-        case UCollect::TraceCaller::HIVIEW:
-            shareCleaner->DoClean();
-            break;
-        case UCollect::TraceCaller::RELIABILITY:
-        case UCollect::TraceCaller::XPERF:
-            shareCleaner->DoClean();
-            specialCleaner->DoClean();
-            break;
-        case UCollect::TraceCaller::APP:
-            shareCleaner->DoClean();
-            specialCleaner->DoClean();
-            break;
-        default:
-            specialCleaner->DoClean();
-            break;
-    }
-}
-
-void CheckAndCreateDirectory(const std::string &tmpDirPath)
-{
-    if (!FileUtil::FileExists(tmpDirPath)) {
-        if (FileUtil::ForceCreateDirectory(tmpDirPath, FileUtil::FILE_PERM_775)) {
-            HIVIEW_LOGD("create listener log directory %{public}s succeed.", tmpDirPath.c_str());
-        } else {
-            HIVIEW_LOGE("create listener log directory %{public}s failed.", tmpDirPath.c_str());
-        }
-    }
-}
-
-bool CreateMultiDirectory(const std::string &dirPath)
-{
-    uint32_t dirPathLen = dirPath.length();
-    if (dirPathLen > PATH_MAX) {
-        return false;
-    }
-    char tmpDirPath[PATH_MAX] = { 0 };
-    for (uint32_t i = 0; i < dirPathLen; ++i) {
-        tmpDirPath[i] = dirPath[i];
-        if (tmpDirPath[i] == '/') {
-            CheckAndCreateDirectory(tmpDirPath);
-        }
-    }
-    return true;
 }
 
 const std::string EnumToString(UCollect::TraceCaller &caller)
 {
     switch (caller) {
         case UCollect::TraceCaller::RELIABILITY:
-            return RELIABILITY;
+            return CallerName::RELIABILITY;
         case UCollect::TraceCaller::XPERF:
-            return XPERF;
+            return CallerName::XPERF;
         case UCollect::TraceCaller::XPOWER:
-            return XPOWER;
-        case UCollect::TraceCaller::BETACLUB:
-            return BETACLUB;
-        case UCollect::TraceCaller::APP:
-            return APP;
+            return CallerName::XPOWER;
         case UCollect::TraceCaller::HIVIEW:
-            return HIVIEW;
+            return CallerName::HIVIEW;
         case UCollect::TraceCaller::FOUNDATION:
-            return FOUNDATION;
-        case UCollect::TraceCaller::DEVELOP:
-            return "Develop";
+            return CallerName::FOUNDATION;
+        case UCollect::TraceCaller::OTHER:
+            return CallerName::OTHER;
+        case UCollect::TraceCaller::BETACLUB:
+            return CallerName::BETACLUB;
         default:
-            return OTHER;
+            return "";
     }
 }
 
-std::vector<std::string> GetUnifiedFiles(TraceRetInfo ret, UCollect::TraceCaller &caller)
+const std::string ClientToString(UCollect::TraceClient &client)
 {
-    if (caller == UCollect::TraceCaller::OTHER || caller == UCollect::TraceCaller::BETACLUB) {
-        return GetUnifiedSpecialFiles(ret, caller);
+    switch (client) {
+        case UCollect::TraceClient::COMMAND:
+            return ClientName::COMMAND;
+        case UCollect::TraceClient::COMMON_DEV:
+            return ClientName::COMMON_DEV;
+        case UCollect::TraceClient::APP:
+            return ClientName::APP;
+        default:
+            return "";
     }
-    if (caller == UCollect::TraceCaller::XPOWER || caller == UCollect::TraceCaller::HIVIEW ||
-        caller == UCollect::TraceCaller::FOUNDATION) {
-        return GetUnifiedShareFiles(ret, caller);
-    }
-    GetUnifiedSpecialFiles(ret, caller);
-    return GetUnifiedShareFiles(ret, caller);
 }
 
 void CheckCurrentCpuLoad()
@@ -454,13 +203,8 @@ void CopyFile(const std::string &src, const std::string &dst)
  *     /data/log/hiview/unified_collection/trace/share/
  *     trace_20230906111617@8290-81765922_{device}_{version}.zip
 */
-std::vector<std::string> GetUnifiedShareFiles(TraceRetInfo ret, UCollect::TraceCaller &caller)
+std::vector<std::string> GetUnifiedShareFiles(const std::vector<std::string> outputFiles)
 {
-    if (ret.errorCode != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("DumpTrace: failed to dump trace, error code (%{public}d).", ret.errorCode);
-        return {};
-    }
-
     if (!FileUtil::FileExists(UNIFIED_SHARE_TEMP_PATH)) {
         if (!CreateMultiDirectory(UNIFIED_SHARE_TEMP_PATH)) {
             HIVIEW_LOGE("failed to create multidirectory.");
@@ -469,7 +213,7 @@ std::vector<std::string> GetUnifiedShareFiles(TraceRetInfo ret, UCollect::TraceC
     }
 
     std::vector<std::string> files;
-    for (const auto &tracePath : ret.outputFiles) {
+    for (const auto &tracePath : outputFiles) {
         std::string traceFile = FileUtil::ExtractFileName(tracePath);
         const std::string destZipPath = UNIFIED_SHARE_PATH + StringUtil::ReplaceStr(traceFile, ".sys", ".zip");
         const std::string tempDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
@@ -486,10 +230,6 @@ std::vector<std::string> GetUnifiedShareFiles(TraceRetInfo ret, UCollect::TraceC
         files.push_back(destZipPathWithVersion);
         HIVIEW_LOGI("trace file : %{public}s.", destZipPathWithVersion.c_str());
     }
-
-    // file delete
-    FileRemove(caller);
-
     return files;
 }
 
@@ -498,24 +238,19 @@ std::vector<std::string> GetUnifiedShareFiles(TraceRetInfo ret, UCollect::TraceC
  * trace path eg.:
  * /data/log/hiview/unified_collection/trace/special/BetaClub_trace_20230906111633@8306-299900816.sys
 */
-std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo ret, UCollect::TraceCaller &caller)
+std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix)
 {
-    if (ret.errorCode != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("Failed to dump trace, error code (%{public}d).", ret.errorCode);
-        return {};
-    }
-
     if (!FileUtil::FileExists(UNIFIED_SPECIAL_PATH)) {
         if (!CreateMultiDirectory(UNIFIED_SPECIAL_PATH)) {
-            HIVIEW_LOGE("Failed to dump trace, error code (%{public}d).", ret.errorCode);
+            HIVIEW_LOGE("create dir %{public}s fail", UNIFIED_SPECIAL_PATH.c_str());
             return {};
         }
     }
 
     std::vector<std::string> files;
-    for (const auto &trace : ret.outputFiles) {
+    for (const auto &trace :outputFiles) {
         std::string traceFile = FileUtil::ExtractFileName(trace);
-        const std::string dst = UNIFIED_SPECIAL_PATH + EnumToString(caller) + "_" + traceFile;
+        const std::string dst = UNIFIED_SPECIAL_PATH + prefix + "_" + traceFile;
         // for copy if the file has not been copied
         if (!FileUtil::FileExists(dst)) {
             UcollectionTask traceTask = [=]() {
@@ -526,9 +261,6 @@ std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo ret, UCollect::Trac
         files.push_back(dst);
         HIVIEW_LOGI("trace file : %{public}s.", dst.c_str());
     }
-
-    // file delete
-    FileRemove(caller);
     return files;
 }
 
@@ -547,8 +279,10 @@ int64_t GetTraceSize(TraceRetInfo &ret)
     return traceSize;
 }
 
-void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
+void WriteDumpTraceHisysevent(DumpEvent &dumpEvent, int32_t retCode)
 {
+    LoadMemoryInfo(dumpEvent);
+    dumpEvent.errorCode = retCode;
     int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::PROFILER, "DUMP_TRACE",
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
         "CALLER", dumpEvent.caller,
@@ -578,6 +312,57 @@ void LoadMemoryInfo(DumpEvent &dumpEvent)
     dumpEvent.sysMemTotal = data.data.memTotal / MB_TO_KB;
     dumpEvent.sysMemFree = data.data.memFree / MB_TO_KB;
     dumpEvent.sysMemAvail = data.data.memAvailable / MB_TO_KB;
+}
+
+UcError GetUcError(TraceRet ret)
+{
+    if (ret.stateError_ != TraceStateCode::SUCCESS) {
+        return TransStateToUcError(ret.stateError_);
+    } else if (ret.codeError_!= TraceErrorCode::SUCCESS) {
+        return TransCodeToUcError(ret.codeError_);
+    } else if (ret.flowError_ != TraceFlowCode::TRACE_ALLOW) {
+        return TransFlowToUcError(ret.flowError_);
+    } else {
+        return UcError::SUCCESS;
+    }
+}
+
+void CheckAndCreateDirectory(const std::string &tmpDirPath)
+{
+    if (!FileUtil::FileExists(tmpDirPath)) {
+        if (FileUtil::ForceCreateDirectory(tmpDirPath, FileUtil::FILE_PERM_775)) {
+            HIVIEW_LOGD("create listener log directory %{public}s succeed.", tmpDirPath.c_str());
+        } else {
+            HIVIEW_LOGE("create listener log directory %{public}s failed.", tmpDirPath.c_str());
+        }
+    }
+}
+
+bool CreateMultiDirectory(const std::string &dirPath)
+{
+    uint32_t dirPathLen = dirPath.length();
+    if (dirPathLen > PATH_MAX) {
+        return false;
+    }
+    char tmpDirPath[PATH_MAX] = { 0 };
+    for (uint32_t i = 0; i < dirPathLen; ++i) {
+        tmpDirPath[i] = dirPath[i];
+        if (tmpDirPath[i] == '/') {
+            CheckAndCreateDirectory(tmpDirPath);
+        }
+    }
+    return true;
+}
+
+void CreateTracePath(const std::string &filePath)
+{
+    if (FileUtil::FileExists(filePath)) {
+        return;
+    }
+    if (!CreateMultiDirectory(filePath)) {
+        HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
+        return;
+    }
 }
 } // HiViewDFX
 } // OHOS

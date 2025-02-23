@@ -38,16 +38,15 @@ enum UcError {
     TRACE_EPOLL_WAIT_ERROR = 1009,
     TRACE_PIPE_CREATE_ERROR = 1010,
     TRACE_SYSINFO_READ_FAILURE = 1011,
+    TRACE_STATE_ERROR = 1012,
+    TRACE_OPEN_ERROR = 1013,
 
-    // control policy
+    // trace flow control policy
     TRACE_OVER_FLOW = 1100,
+    TRACE_DUMP_OVER_FLOW = 1101,
 
     // app trace all
-    EXISTS_CAPTURE_TASK = 1201,
-    UNEXISTS_CAPTURE_TASK = 1201,
     HAD_CAPTURED_TRACE = 1203,
-    INVALID_TRACE_STATE = 1204,
-    INCONSISTENT_PROCESS = 1205,
     INVALID_ACTION_ID = 1206,
 
     // for perf call

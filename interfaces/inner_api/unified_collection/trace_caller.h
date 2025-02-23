@@ -18,17 +18,23 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollect {
+
+// Used for utility interface, for hiview inner only
 enum TraceCaller {
     RELIABILITY,
     XPERF,
     XPOWER,
     BETACLUB,
-    DEVELOP,
-    APP,
     OTHER,
     HIVIEW,
-    FOUNDATION,
-    INVALIDITY,
+    FOUNDATION
+};
+
+// Used for ipc client interface, for outside
+enum TraceClient {
+    COMMAND,
+    COMMON_DEV,
+    APP
 };
 }
 } // HiviewDFX

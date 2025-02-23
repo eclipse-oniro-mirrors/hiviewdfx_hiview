@@ -15,11 +15,12 @@
 #include <climits>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <unistd.h>
 
 #include "file_util.h"
 #include "parameter_ex.h"
 #include "trace_collector.h"
-#include "trace_manager.h"
+#include "trace_state_machine.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -28,413 +29,171 @@ using namespace OHOS::HiviewDFX::UCollect;
 
 class TraceCollectorTest : public testing::Test {
 public:
-    void SetUp() {};
-    void TearDown() {};
+    void SetUp() override {};
+    void TearDown() override {};
     static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
-};
+    static void TearDownTestCase()
+    {
+        bool isBetaVersion = Parameter::IsBetaVersion();
+        bool isUCollectionSwitchOn = Parameter::IsUCollectionSwitchOn();
+        bool isTraceCollectionSwitchOn = Parameter::IsTraceCollectionSwitchOn();
+        bool isFrozeSwitchOn = Parameter::GetBoolean("persist.hiview.freeze_detector", false);
+        if (!isBetaVersion && !isFrozeSwitchOn && !isUCollectionSwitchOn && !isTraceCollectionSwitchOn) {
+            return;
+        }
 
-#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-namespace {
-TraceManager g_traceManager;
-constexpr uint32_t TIME_0S = 0;
-constexpr uint32_t TIME_10S = 10;
-constexpr uint32_t TIME_20S = 20;
-constexpr uint32_t TIME_30S = 30;
-}
+        if (isTraceCollectionSwitchOn) {
+            std::cout << "recover to hitrace CommonDropState" << std::endl;
+            TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
+        } else {
+            TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
+            std::cout << "recover to hitrace CommonState" << std::endl;
+        }
+        TraceStateMachine::GetInstance().InitOrUpdateState();
+    }
+};
 
 /**
  * @tc.name: TraceCollectorTest001
- * @tc.desc: used to test TraceCollector for xperf dump
+ * @tc.desc: used to test TraceCollector for xpower dump
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
 {
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::XPERF;
+    UCollect::TraceCaller caller = UCollect::TraceCaller::XPOWER;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
     CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    std::vector<std::string> items = resultDumpTrace.data;
+    ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+    setuid(1201); // hiview uid
+    TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
+    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
+    TraceStateMachine::GetInstance().InitOrUpdateState(); // trans to common state
+    sleep(2);
+    auto resultDumpTrace2 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
+    ASSERT_GE(resultDumpTrace2.data.size(), 0);
+    std::vector<std::string> items = resultDumpTrace2.data;
     std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
     for (auto it = items.begin(); it != items.end(); it++) {
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
+    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
+    TraceStateMachine::GetInstance().InitOrUpdateState();
+    auto resultDumpTrace3 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
 
 /**
  * @tc.name: TraceCollectorTest002
- * @tc.desc: used to test TraceCollector for xpower dump
+ * @tc.desc: used to test TraceCollector for xperf dump
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
 {
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::XPOWER;
+    setuid(1201); // hiview uid
+    UCollect::TraceCaller caller = UCollect::TraceCaller::XPERF;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
+    TraceStateMachine::GetInstance().InitOrUpdateState(); //init to close state
+
+    // open ucollection switch dump success
+    TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
+    auto ret = TraceStateMachine::GetInstance().InitOrUpdateState();
+    ASSERT_TRUE(ret.IsSuccess());
+    sleep(2);
+
+    //trans to common state, assert dump success
+    auto resultDumpTrace = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::SUCCESS);
+    ASSERT_GE(resultDumpTrace.data.size(), 0);
     std::vector<std::string> items = resultDumpTrace.data;
     std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
     for (auto it = items.begin(); it != items.end(); it++) {
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
+    TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
+    auto ret1 = TraceStateMachine::GetInstance().InitOrUpdateState();
+    ASSERT_TRUE(ret1.IsSuccess());
+    sleep(2);
+
+    //trans to common drop state, assert dump fail
+    auto resultDumpTrace2 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
+    auto ret2 = TraceStateMachine::GetInstance().InitOrUpdateState();
+    ASSERT_TRUE(ret2.IsSuccess());
+    sleep(2);
+
+    // trans to common state
+    auto resultDumpTrace3 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::SUCCESS);
+    TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
+    auto ret3 = TraceStateMachine::GetInstance().InitOrUpdateState();
+    ASSERT_TRUE(ret3.IsSuccess());
+    sleep(2);
+
+    // trans to close state
+    auto resultDumpTrace4 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace4.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
 
 /**
  * @tc.name: TraceCollectorTest003
- * @tc.desc: used to test TraceCollector for reliability dump
+ * @tc.desc: used to test TraceCollector for other dump
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
 {
-    const std::vector<std::string> tagGroups = {"scene_performance"};
+    setuid(1201); // hiview uid
+    UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    std::vector<std::string> items = resultDumpTrace.data;
+    TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
+    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
+    TraceStateMachine::GetInstance().InitOrUpdateState(); // trans to common state
+    sleep(2);
+    auto resultDumpTrace2 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
+    ASSERT_GE(resultDumpTrace2.data.size(), 0);
+    string traceName = resultDumpTrace2.data[0];
+    ASSERT_FALSE(traceName.empty());
+    ASSERT_NE(traceName.find(CallerName::OTHER), string::npos);
+    std::vector<std::string> items = resultDumpTrace2.data;
     std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
     for (auto it = items.begin(); it != items.end(); it++) {
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
+    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
+    TraceStateMachine::GetInstance().InitOrUpdateState();
+    auto resultDumpTrace3 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
 
 /**
  * @tc.name: TraceCollectorTest004
- * @tc.desc: used to test TraceCollector for command
+ * @tc.desc: used to test TraceCollector for other dump
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
 {
-    const std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1";
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_TRUE(g_traceManager.OpenRecordingTrace(args) == 0);
-
-    CollectResult<int32_t> resultTraceOn = collector->TraceOn();
-    std::cout << "collect TraceOn result " << resultTraceOn.retCode << std::endl;
-    ASSERT_TRUE(resultTraceOn.retCode == UcError::SUCCESS);
-    sleep(10);
-    CollectResult<std::vector<std::string>> resultTraceOff = collector->TraceOff();
-    std::vector<std::string> items = resultTraceOff.data;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect TraceOff result path : " << it->c_str() << std::endl;
-    }
-    ASSERT_TRUE(resultTraceOff.retCode == UcError::SUCCESS);
-    ASSERT_TRUE(resultTraceOff.data.size() > 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest005
- * @tc.desc: used to test TraceCollector for BetaClub dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
+    setuid(1201); // hiview uid
     UCollect::TraceCaller caller = UCollect::TraceCaller::BETACLUB;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    std::vector<std::string> items = resultDumpTrace.data;
+    TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
+    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
+    TraceStateMachine::GetInstance().InitOrUpdateState(); // trans to common state
+    sleep(2);
+    auto resultDumpTrace2 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
+    ASSERT_GE(resultDumpTrace2.data.size(), 0);
+    string traceName = resultDumpTrace2.data[0];
+    ASSERT_FALSE(traceName.empty());
+    ASSERT_NE(traceName.find(CallerName::BETACLUB), string::npos);
+    std::vector<std::string> items = resultDumpTrace2.data;
     std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
     for (auto it = items.begin(); it != items.end(); it++) {
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
+    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
+    TraceStateMachine::GetInstance().InitOrUpdateState();
+    auto resultDumpTrace3 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
-
-/**
- * @tc.name: TraceCollectorTest006
- * @tc.desc: used to test TraceCollector for Other dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest006, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest007
- * @tc.desc: used to test g_traceManager
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest007, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    const std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1";
-    ASSERT_TRUE(g_traceManager.OpenRecordingTrace(args) == 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest008
- * @tc.desc: used to test g_traceManager
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest008, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest009
- * @tc.desc: used to test g_traceManager
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest009, TestSize.Level1)
-{
-    const std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1";
-    ASSERT_TRUE(g_traceManager.OpenRecordingTrace(args) == 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest010
- * @tc.desc: used to test g_traceManager
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest010, TestSize.Level1)
-{
-    const std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1";
-    ASSERT_TRUE(g_traceManager.OpenRecordingTrace(args) == 0);
-    ASSERT_TRUE(g_traceManager.RecoverTrace() == 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest011
- * @tc.desc: used to test g_traceManager
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest011, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    ASSERT_TRUE(g_traceManager.RecoverTrace() == 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest0012
- * @tc.desc: used to test TraceCollector for Develop dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest012, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::DEVELOP;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest0013
- * @tc.desc: used to test trace file in /share is zipped
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest013, TestSize.Level1)
-{
-    std::vector<std::string> traceFiles;
-    FileUtil::GetDirFiles("/data/log/hiview/unified_collection/trace/share/", traceFiles, false);
-    for (auto &path : traceFiles) {
-        if (path.find("temp") == std::string::npos) {
-            std::cout << "trace in share path: " << path.c_str() << std::endl;
-            ASSERT_TRUE(path.find("zip") != std::string::npos);
-        }
-    }
-}
-
-/**
- * @tc.name: TraceCollectorTest0014
- * @tc.desc: test interface DumpTraceWithDuration for 0 second
- * @tc.type: FUNC
- */
-HWTEST_F(TraceCollectorTest, TraceCollectorTest014, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::DEVELOP;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(TIME_10S);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTraceWithDuration(caller, TIME_0S);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest0015
- * @tc.desc: test interface DumpTraceWithDuration for 20 second
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest015, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::DEVELOP;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(TIME_30S);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTraceWithDuration(caller, TIME_20S);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest0016
- * @tc.desc: test interface DumpTraceWithDuration for UINT32_MAX
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest016, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::DEVELOP;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(TIME_30S);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTraceWithDuration(caller, UINT32_MAX);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest017
- * @tc.desc: used to test TraceCollector for hiview dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest017, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    UCollect::TraceCaller caller = UCollect::TraceCaller::HIVIEW;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), 0);
-    sleep(10);
-    std::cout << "caller : " << caller << std::endl;
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    if (Parameter::IsBetaVersion()) {
-        ASSERT_EQ(resultDumpTrace.retCode, UcError::SUCCESS);
-    }
-    ASSERT_TRUE(resultDumpTrace.data.size() >= 0);
-    ASSERT_TRUE(g_traceManager.CloseTrace() == 0);
-}
-
-/**
- * @tc.name: TraceCollectorTest018
- * @tc.desc: used to test abnormal scene about trace operations
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest018, TestSize.Level1)
-{
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), UcError::SUCCESS);
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), UcError::TRACE_WRONG_MODE);
-    const std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1";
-    ASSERT_EQ(g_traceManager.OpenRecordingTrace(args), UcError::SUCCESS);
-    ASSERT_EQ(g_traceManager.OpenRecordingTrace(args), UcError::TRACE_IS_OCCUPIED);
-    ASSERT_EQ(g_traceManager.OpenSnapshotTrace(tagGroups), UcError::TRACE_IS_OCCUPIED);
-    ASSERT_EQ(g_traceManager.CloseTrace(), UcError::SUCCESS);
-}
-#else
-/**
- * @tc.name: TraceCollectorTest001
- * @tc.desc: used to test empty TraceCollector
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
-{
-    UCollect::TraceCaller caller = UCollect::TraceCaller::XPERF;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    auto ret1 = collector->DumpTrace(caller);
-    ASSERT_EQ(ret1.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret2 = collector->DumpTraceWithDuration(caller, 0);
-    ASSERT_EQ(ret2.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret3 = collector->TraceOn();
-    ASSERT_EQ(ret3.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret4 = collector->TraceOff();
-    ASSERT_EQ(ret4.retCode, UcError::FEATURE_CLOSED);
-}
-#endif

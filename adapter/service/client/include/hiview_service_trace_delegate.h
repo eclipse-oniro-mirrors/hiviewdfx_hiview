@@ -34,7 +34,6 @@ public:
     static CollectResult<int32_t> RecordingOn();
     static CollectResult<std::vector<std::string>> RecordingOff();
     static CollectResult<int32_t> Close();
-    static CollectResult<int32_t> Recover();
     static CollectResult<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller);
 
 private:
