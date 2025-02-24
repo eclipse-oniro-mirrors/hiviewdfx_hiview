@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package OHOS.HiviewDFX;
+
+sequenceable OHOS.HiviewDFX.HiviewFileInfo;
+sequenceable OHOS.HiviewDFX.AppCallerParcelable;
+sequenceable OHOS.HiviewDFX.MemoryCallerParcelable;
+
+interface IHiviewServiceAbility {
+    [ipcoutcapacity 480] void ListFiles([in] String logType, [out] HiviewFileInfo[] fileInfos);
+    void Copy([in] String logType, [in] String logName, [in] String dest);
+    void Move([in] String logType, [in] String logName, [in] String dest);
+    void Remove([in] String logType, [in] String logName);
+    void OpenSnapshotTrace([in] String[] tagGroups, [out] int errNo, [out] int ret);
+    void DumpSnapshotTrace([in] int client, [out] int errNo, [out] String[] files);
+    void OpenRecordingTrace([in] String tags, [out] int errNo, [out] int ret);
+    void RecordingTraceOn([out] int errNo, [out] int ret);
+    void RecordingTraceOff([out] int errNo, [out] String[] files);
+    void CloseTrace([out] int errNo, [out] int ret);
+    void CaptureDurationTrace([in] AppCallerParcelable appCaller, [out] int errNo, [out] int ret);
+    void GetSysCpuUsage([out] int errNo, [out] double ret);
+    void SetAppResourceLimit([in] MemoryCallerParcelable memoryCallerParcelable, [out] int errNo, [out] int ret);
+    void GetGraphicUsage([out] int errNo, [out] int ret);
+    void SetSplitMemoryValue([in] MemoryCallerParcelable[] memCallerParcelableList, [out] int errNo, [out] int ret);
+}

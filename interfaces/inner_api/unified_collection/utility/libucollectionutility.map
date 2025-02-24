@@ -34,7 +34,6 @@
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::UCollectUtil::ProcessStatus>::instance_";
       "OHOS::HiviewDFX::TraceManager::OpenSnapshotTrace(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
       "OHOS::HiviewDFX::TraceManager::OpenRecordingTrace(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-      "OHOS::HiviewDFX::TraceManager::RecoverTrace()";
       "OHOS::HiviewDFX::TraceManager::CloseTrace()";
       "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long long)";
       "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";

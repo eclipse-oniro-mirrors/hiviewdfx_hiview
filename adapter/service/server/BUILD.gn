@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-config("hiview_service_ability_config") {
+config("hiview_service_stub_public_config") {
   visibility = [ "*:*" ]
 
   include_dirs = [
@@ -25,7 +25,7 @@ config("hiview_service_ability_config") {
   ]
 }
 
-ohos_source_set("hiview_service_impl") {
+ohos_source_set("hiview_service_stub") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -34,7 +34,10 @@ ohos_source_set("hiview_service_impl") {
     debug = false
   }
 
-  public_configs = [ ":hiview_service_ability_config" ]
+  public_configs = [
+    ":hiview_service_stub_public_config",
+    "../client:hiview_service_stub_inner_public_config",
+  ]
 
   include_dirs = [
     "$hiview_base/include",
@@ -42,17 +45,19 @@ ohos_source_set("hiview_service_impl") {
   ]
 
   sources = [
+    "../common/src/app_caller_parcelable.cpp",
     "../common/src/hiview_file_info.cpp",
+    "../common/src/memory_caller_parcelable.cpp",
     "src/hiview_log_config_manager.cpp",
     "src/hiview_service_ability.cpp",
-    "src/hiview_service_ability_stub.cpp",
   ]
 
-  deps = [ "$hiview_base:hiviewbase" ]
+  deps = [
+    "$hiview_base:hiviewbase",
+    "../client:hiview_service_stub_inner",
+  ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -64,6 +69,5 @@ ohos_source_set("hiview_service_impl") {
   ]
 
   part_name = "hiview"
-
   subsystem_name = "hiviewdfx"
 }
