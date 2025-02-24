@@ -47,6 +47,8 @@ namespace {
     static constexpr const char* const FORE_GROUND = "FOREGROUND";
     static constexpr const char* const SCB_PROCESS = "SCBPROCESS";
     static constexpr const char* const SCB_PRO_PREFIX = "ohos.sceneboard:";
+    static constexpr const char* const THREAD_STACK_START = "\nThread stack start:\n";
+    static constexpr const char* const THREAD_STACK_END = "Thread stack end\n";
     static constexpr const char* const KEY_PROCESS[] = {
         "foundation", "com.ohos.sceneboard", "render_service"
     };
@@ -233,7 +235,7 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
 }
 
 void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
-    bool& isFileExists) const
+    bool& isFileExists, WatchPoint &watchPoint) const
 {
     HIVIEW_LOGI("merging list size %{public}zu", list.size());
     for (auto node : list) {
@@ -266,13 +268,27 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
         }
 
         body << std::string(HEADER) << std::endl;
-        body << ifs.rdbuf();
+        if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), node.GetStringId()) !=
+            std::end(FreezeCommon::PB_EVENTS)) {
+            std::stringstream ss;
+            ss << ifs.rdbuf();
+            std::string logContent = ss.str();
+            size_t startPos = logContent.find(THREAD_STACK_START);
+            size_t endPos = logContent.find(THREAD_STACK_END, startPos);
+            if (startPos != std::string::npos && endPos != std::string::npos) {
+                size_t startSize = strlen(THREAD_STACK_START);
+                std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
+                watchPoint.SetTerminalThreadStack(threadStack);
+            }
+            body << logContent << std::endl;
+        } else {
+            body << ifs.rdbuf();
+        }
         ifs.close();
     }
 }
 
-std::string Vendor::MergeEventLog(
-    const WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
+std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
     const std::vector<FreezeResult>& result) const
 {
     if (freezeCommon_ == nullptr) {
@@ -298,7 +314,7 @@ std::string Vendor::MergeEventLog(
 
     std::ostringstream body;
     bool isFileExists = true;
-    InitLogBody(list, body, isFileExists);
+    InitLogBody(list, body, isFileExists, watchPoint);
     HIVIEW_LOGI("After Init --body size: %{public}zu.", body.str().size());
 
     if (!isFileExists) {

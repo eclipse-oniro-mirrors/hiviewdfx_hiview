@@ -42,9 +42,8 @@ public:
     void InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::string& pubLogPathName,
         std::string& processName, std::string& isScbPro) const;
     void InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
-        bool& isFileExists) const;
-    std::string MergeEventLog(
-        const WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
+        bool& isFileExists, WatchPoint &watchPoint) const;
+    std::string MergeEventLog(WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
         const std::vector<FreezeResult>& result) const;
     bool ReduceRelevanceEvents(std::list<WatchPoint>& list, const FreezeResult& result) const;
 

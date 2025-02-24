@@ -36,6 +36,9 @@ public:
     static constexpr const char* const HIREACE_TIME = "HITRACE_TIME";
     static constexpr const char* const SYSRQ_TIME = "SYSRQ_TIME";
     static constexpr const char* const TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
+    static constexpr const char* const PB_EVENTS[] = {
+        "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT"
+    };
 
     FreezeCommon();
     ~FreezeCommon();

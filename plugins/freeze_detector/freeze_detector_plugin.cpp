@@ -115,8 +115,8 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     std::string processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
     std::string hiteaceTime = sysEvent.GetEventValue(FreezeCommon::HIREACE_TIME);
     std::string sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
-    std::string info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
     std::string terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
+    std::string info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
     std::string logPath = std::regex_search(info, result, reg) ? result[1].str() : info;
