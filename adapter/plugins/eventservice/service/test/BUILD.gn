@@ -26,7 +26,6 @@ group("unittest") {
 
 config("unittest_config") {
   include_dirs = [
-    "//third_party/bounds_checking_function/include",
     "unittest/common",
     "$hiview_adapter/utility/include",
     "$hiview_plugin/sysevent_source/include",

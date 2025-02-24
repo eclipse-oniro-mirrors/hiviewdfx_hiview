@@ -36,10 +36,7 @@ group("unittest") {
 }
 
 config("unittest_config") {
-  include_dirs = [
-    "//third_party/bounds_checking_function/include",
-    "unittest/common",
-  ]
+  include_dirs = [ "unittest/common" ]
 
   cflags_cc = [ "-D__UNITTEST__" ]
 }
