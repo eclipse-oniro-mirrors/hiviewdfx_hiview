@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "xpower_jsevent_test.h"
-#include "test.h"
 #include "xpower_event_js.h"
 #include "xpower_event_jsvm.h"
 #include "native_engine/impl/ark/ark_native_engine.h"
