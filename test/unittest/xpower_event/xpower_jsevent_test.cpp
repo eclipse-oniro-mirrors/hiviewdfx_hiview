@@ -64,8 +64,11 @@ HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest001, testing::ext::TestSize
 {
     napi_env env = (napi_env)engine_;
     napi_value result = nullptr;
-    ASSERT_CHECK_CALL(napi_get_undefined(env, &result));
-    ASSERT_CHECK_VALUE_TYPE(env, result, napi_undefined);
+    ASSERT_EQ(napi_get_undefined(env, &result), napi_ok);
+    napi_valuetype valueType = napi_undefined;
+    ASSERT_TRUE(result != nullptr);
+    ASSERT_EQ(napi_typeof(env, result, &valueType), napi_ok);
+    ASSERT_EQ(valueType, napi_undefined);
 }
 
 /**
