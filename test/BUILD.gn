@@ -98,14 +98,9 @@ if (!defined(ohos_lite)) {
     module_out_path = module_output_path
     cflags = [ "-g3" ]
     defines = [ "NAPI_TEST" ]
-    include_dirs = [
-      "//foundation/arkui/napi/test/unittest/engine/",
-      "//foundation/arkui/napi/test/unittest/common/",
-    ]
 
     sources = [ "unittest/xpower_event/xpower_jsevent_test.cpp" ]
-    deps =
-        [ "$hiview_root/interfaces/inner_api/xpower_event:libxpower_event_js" ]
+    deps = [ "$hiview_root/interfaces/inner_api/xpower_event:libxpower_event_js" ]
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
