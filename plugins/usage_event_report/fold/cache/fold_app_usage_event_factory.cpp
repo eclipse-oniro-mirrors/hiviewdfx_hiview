@@ -15,8 +15,6 @@
 
 #include "fold_app_usage_event_factory.h"
 
-#include "ability_manager_interface.h"
-#include "ability_manager_proxy.h"
 #include "app_mgr_interface.h"
 #include "fold_app_usage_event.h"
 #include "hiview_logger.h"

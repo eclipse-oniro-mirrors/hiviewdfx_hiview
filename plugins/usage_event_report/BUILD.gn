@@ -88,7 +88,6 @@ if (enable_hiview_usage_event_report_build) {
       ]
 
       external_deps += [
-        "ability_runtime:ability_manager",
         "ability_runtime:app_manager",
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
@@ -139,7 +138,6 @@ if (enable_hiview_usage_event_report_build) {
     ]
 
     external_deps = [
-      "ability_runtime:ability_manager",
       "ability_runtime:app_manager",
       "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
