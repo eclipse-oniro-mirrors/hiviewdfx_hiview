@@ -122,17 +122,16 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest001, testing::ext::TestSize.Level3)
 }
 
 /* @tc.name: LogParseTest002
- * @tc.desc: Test MatchExceptionLibrary interface method of class LogParse
+ * @tc.desc: Test GetValidBlock multiPart size is 0
  * @tc.type: FUNC
- * @tc.require: issueI65DUW
  */
 HWTEST_F(UtilityCommonUtilsTest, LogParseTest002, testing::ext::TestSize.Level3)
 {
     LogParse logParse;
-    auto ret = logParse.MatchExceptionLibrary("IllegalAccessExceptionWrapper");
-    ASSERT_EQ("IllegalAccessException", ret);
-    ret = logParse.MatchExceptionLibrary("NoException");
-    ASSERT_EQ(LogParse::UNMATCHED_EXCEPTION, ret);
+    std::stack<std::string> inStack;
+    std::vector<std::string> lastPart;
+    auto ret = logParse.GetValidBlock(inStack, lastPart);
+    ASSERT_TRUE(ret.empty());
 }
 
 /* @tc.name: TboxTest001
@@ -324,7 +323,7 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest008, testing::ext::TestSize.Level3)
 }
 
 /* @tc.name: TboxTest009
- * @tc.desc: Test FilterTrace method of class Tbox
+ * @tc.desc: Test FilterTrace, all stacks are basic libraries that need to be ignored
  * @tc.type: FUNC
  */
 HWTEST_F(UtilityCommonUtilsTest, TboxTest009, testing::ext::TestSize.Level3)
@@ -341,14 +340,15 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest009, testing::ext::TestSize.Level3)
     eventInfos.insert(std::pair("PNAME", "foundation"));
     Tbox::FilterTrace(eventInfos);
 
-    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "/system/lib/libart.so (__epoll_pwait+8");
-    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(),
-                 "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
-    EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(), "/system/lib64/libc.so(__libc_init+112");
+    EXPECT_EQ(eventInfos["FIRST_FRAME"], "/system/lib/libart.so (__epoll_pwait+8");
+    EXPECT_EQ(eventInfos["SECOND_FRAME"],
+              "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
+    EXPECT_EQ(eventInfos["LAST_FRAME"], "/system/lib64/libc.so(__libc_init+112");
 }
 
 /* @tc.name: TboxTest010
- * @tc.desc: Test FilterTrace method of class Tbox
+ * @tc.desc: Test FilterTrace, all stacks are basic libraries that need to be ignored,
+ *           and the total number is less than 3
  * @tc.type: FUNC
  */
 HWTEST_F(UtilityCommonUtilsTest, TboxTest010, testing::ext::TestSize.Level3)
@@ -361,13 +361,13 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest010, testing::ext::TestSize.Level3)
     eventInfos.insert(std::pair("PNAME", "foundation"));
     Tbox::FilterTrace(eventInfos);
 
-    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "/system/lib64/libc.so(syscall+32");
-    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(),
-                 "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
+    EXPECT_EQ(eventInfos["FIRST_FRAME"], "/system/lib64/libc.so(syscall+32");
+    EXPECT_EQ(eventInfos["SECOND_FRAME"],
+              "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
 }
 
 /* @tc.name: TboxTest011
- * @tc.desc: Test FilterTrace method of class Tbox
+ * @tc.desc: Test FilterTrace, event is JS_ERROR
  * @tc.type: FUNC
  */
 HWTEST_F(UtilityCommonUtilsTest, TboxTest011, testing::ext::TestSize.Level3)
@@ -393,11 +393,34 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest011, testing::ext::TestSize.Level3)
     eventInfos.insert(std::pair("PNAME", "foundation"));
     Tbox::FilterTrace(eventInfos, "JS_ERROR");
 
-    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "(NativeEngineInterface::UVThreadRunner(void*)+148)");
+    EXPECT_EQ(eventInfos["FIRST_FRAME"], "(NativeEngineInterface::UVThreadRunner(void*)+148)");
     std::string secondFrame = "/system/lib64/libeventhandler.z.so" \
         "(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192";
-    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(), secondFrame.c_str());
-    EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(), "/system/lib64/libeventhandler.z.so");
+    EXPECT_EQ(eventInfos["SECOND_FRAME"], secondFrame);
+    EXPECT_EQ(eventInfos["LAST_FRAME"], "/system/lib64/libeventhandler.z.so");
+}
+
+/* @tc.name: TboxTest012
+ * @tc.desc: Test FilterTrace, all stacks are basic libraries that need to be ignored
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilityCommonUtilsTest, TboxTest012, testing::ext::TestSize.Level3)
+{
+    std::string stack = R"(#00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
+        #01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144)
+        #02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
+        #03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable)
+        #04 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)";
+
+    std::map<std::string, std::string> eventInfos;
+    eventInfos.insert(std::pair("END_STACK", stack));
+    eventInfos.insert(std::pair("PNAME", "foundation"));
+    Tbox::FilterTrace(eventInfos);
+
+    EXPECT_EQ(eventInfos["FIRST_FRAME"], "/system/lib64/libc.so(syscall+32");
+    EXPECT_EQ(eventInfos["SECOND_FRAME"],
+                 "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
+    EXPECT_EQ(eventInfos["LAST_FRAME"], "/system/lib64/libc.so(__libc_init+112");
 }
 }
 }
