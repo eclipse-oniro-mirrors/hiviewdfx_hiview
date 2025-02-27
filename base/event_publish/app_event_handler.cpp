@@ -140,7 +140,9 @@ int AppEventHandler::PostEvent(const ScrollJankInfo& event)
     AddValueToJsonString("total_render_frames", event.totalRenderFrames, jsonStr);
     AddValueToJsonString("total_render_missed_frames", event.totalRenderMissedFrames, jsonStr);
     AddValueToJsonString("max_render_frametime", event.maxRenderFrametime, jsonStr);
-    AddValueToJsonString("max_render_seq_frames", event.maxRenderSeqFrames, jsonStr, true);
+    AddValueToJsonString("max_render_seq_frames", event.maxRenderSeqFrames, jsonStr);
+    AddVectorToJsonString("external_log", event.externalLog, jsonStr);
+    AddValueToJsonString("log_over_limit", event.logOverLimit, jsonStr, true);
     jsonStr << std::endl;
     EventPublish::GetInstance().PushEvent(uid, "SCROLL_JANK", HiSysEvent::EventType::FAULT, jsonStr.str());
     return 0;

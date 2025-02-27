@@ -64,6 +64,8 @@ public:
         int32_t totalRenderMissedFrames = 0;
         uint64_t maxRenderFrametime = 0;
         int32_t maxRenderSeqFrames = 0;
+        std::vector<std::string> externalLog;
+        bool logOverLimit = false;
     };
 
     struct TimeInfo {
