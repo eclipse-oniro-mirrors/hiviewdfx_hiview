@@ -41,7 +41,10 @@ ohos_unittest("UtilityCommonUtilsTest") {
 
   sources = [ "//base/hiviewdfx/hiview/utility/common_utils/test/unittest/common/utility_common_utils_test.cpp" ]
 
-  cflags_cc = [ "-DTEST_LOCAL_SRC" ]
+  cflags_cc = [
+    "-DTEST_LOCAL_SRC",
+    "-Dprivate=public",
+  ]
 
   deps = [
     "$hiview_base:logger",

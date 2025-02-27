@@ -165,7 +165,7 @@ std::string GetPathPlaceHolder(int32_t uid)
             bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
         timeCounter.MarkElapsedTime("get bundleInfo");
         if (!getInfoResult) {
-            HIVIEW_LOGE("failed to get bundleInfo from bms, bundleName=%{public}s.", bundleName.c_str());
+            HIVIEW_LOGE("failed to get bundleInfo from bms, uid=%{public}d.", uid);
             return "";
         }
         if (bundleInfo.entryInstallationFree) {

@@ -449,7 +449,7 @@ void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const 
             terminalBinder_.happenTime = happenTime;
             terminalBinder_.processName = processName;
             terminalBinder_.pid = pid;
-            terminalBinder_.threadStack = (eventName == "THREAD_BLOCK_3S") ? threadStack : terminalThreadStack;
+            terminalBinder_.threadStack = terminalThreadStack;
             terminalBinderMutex_.unlock();
             return;
         }
@@ -853,10 +853,17 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             ffrt::task_attr().name("write_kernel_stack"));
     }
     std::ostringstream oss;
+    std::string endTimeStamp = "";
+    size_t endTimeStampIndex = msg.find("Catche stack trace end time: ");
+    if (endTimeStampIndex != std::string::npos) {
+        endTimeStamp = msg.substr(endTimeStampIndex);
+        msg = msg.substr(0, endTimeStampIndex);
+    }
     oss << "MSG = " << msg << std::endl;
     if (!stack.empty()) {
         oss << StringUtil::UnescapeJsonStringValue(stack) << std::endl;
     }
+    oss << endTimeStamp << std::endl;
     if (!binderInfo.empty()) {
         oss << StringUtil::UnescapeJsonStringValue(binderInfo) << std::endl;
     }
@@ -1059,7 +1066,7 @@ bool EventLogger::CheckProcessRepeatFreeze(const std::string& eventName, long pi
         lastPid_ = pid;
         lastEventName_ = eventName;
         if (lastPid == pid) {
-            HIVIEW_LOGI("eventName=%{public}s, pid=%{public}ld has happened", lastEventName.c_str(), pid);
+            HIVIEW_LOGW("eventName=%{public}s, pid=%{public}ld has happened", lastEventName.c_str(), pid);
             return true;
         }
     }
@@ -1092,7 +1099,7 @@ bool EventLogger::CheckScreenOnRepeat(std::shared_ptr<SysEvent> event)
             }
             if (std::find(std::begin(CORE_PORCESSES), std::end(CORE_PORCESSES), processName) !=
                 std::end(CORE_PORCESSES)) {
-                HIVIEW_LOGI("avoid SCREEN_ON repeated report, previous eventName=%{public}s, processName=%{public}s",
+                HIVIEW_LOGW("avoid SCREEN_ON repeated report, previous eventName=%{public}s, processName=%{public}s",
                     record.eventName_.c_str(), processName.c_str());
                 return true;
             }

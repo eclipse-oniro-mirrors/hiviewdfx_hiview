@@ -67,7 +67,7 @@ ohos_unittest("LoglibraryAgentTest") {
   cflags_cc = [ "-DTEST_LOCAL_SRC" ]
 
   deps = [
-    "$hiview_adapter/service/client:hiview_service_impl_for_js",
+    "$hiview_adapter/service/client:hiview_service_proxy",
     "$hiview_base:hiview_base",
   ]
 

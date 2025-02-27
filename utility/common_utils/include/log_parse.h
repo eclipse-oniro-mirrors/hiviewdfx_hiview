@@ -15,7 +15,6 @@
 #ifndef LOG_PARSE_H
 #define LOG_PARSE_H
 
-#include <list>
 #include <map>
 #include <set>
 #include <stack>
@@ -31,7 +30,6 @@ public:
     LogParse(const LogParse&) = delete;
     LogParse& operator=(const LogParse&) = delete;
     bool IsIgnoreLibrary(const std::string& val) const;
-    static std::string MatchExceptionLibrary(const std::string& val);
     void SetFrame(std::stack<std::string>& stack, std::map<std::string, std::string>& eventInfo) const;
     std::string GetFilterTrace(const std::string& info, std::vector<std::string>& trace,
         std::string eventType) const;
@@ -41,16 +39,14 @@ public:
     static const std::string UNMATCHED_EXCEPTION;
 
 private:
-    bool HasExceptionList(const std::string& line) const;
     std::vector<std::string> GetValidStack(size_t num, std::stack<std::string>& inStack) const;
-    std::list<std::vector<std::string>> StackToMultipart(std::stack<std::string>& inStack, size_t num) const;
+    std::vector<std::string> StackToPart(std::stack<std::string>& inStack, size_t num) const;
     void MatchIgnoreLibrary(std::stack<std::string> inStack, std::stack<std::string>& outStack, size_t num) const;
     std::string GetValidBlock(std::stack<std::string> inStack, std::vector<std::string>& lastPart) const;
 
 private:
     static const int STACK_LEN_MAX = 30;
     static const std::map<std::string, std::set<std::string>> ignoreList_;
-    static const std::set<std::string> exceptionList_;
 };
 }
 }

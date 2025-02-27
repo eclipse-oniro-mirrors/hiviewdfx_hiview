@@ -20,16 +20,16 @@
 
 #include "client/trace_collector_client.h"
 #include "collect_result.h"
+#include "hiview_err_code.h"
 #include "hiview_remote_service.h"
-#include "hiview_service_ability_proxy.h"
-#include "parcel.h"
+#include "iremote_proxy.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 class HiViewServiceTraceDelegate {
 public:
     static CollectResult<int32_t> OpenSnapshot(const std::vector<std::string>& tagGroups);
-    static CollectResult<std::vector<std::string>> DumpSnapshot(int32_t caller);
+    static CollectResult<std::vector<std::string>> DumpSnapshot(int32_t client);
     static CollectResult<int32_t> OpenRecording(const std::string& tags);
     static CollectResult<int32_t> RecordingOn();
     static CollectResult<std::vector<std::string>> RecordingOff();
@@ -39,19 +39,23 @@ public:
 private:
     template<typename T>
     static CollectResult<T> TraceCalling(
-        std::function<CollectResultParcelable<T>(HiviewServiceAbilityProxy&)> proxyHandler)
+        std::function<int32_t(const sptr<IRemoteObject>&, CollectResult<T>&, int32_t&)> proxyHandler)
     {
-        CollectResult<T> ret;
-        if (proxyHandler == nullptr) {
-            return ret;
-        }
+        CollectResult<T> collectResult;
         auto service = RemoteService::GetHiViewRemoteService();
         if (service == nullptr) {
-            return ret;
+            return collectResult;
         }
-        HiviewServiceAbilityProxy proxy(service);
-        auto traceRet = proxyHandler(proxy);
-        return traceRet.result_;
+        int32_t errNo = UCollect::UcError::UNSUPPORT;
+        int32_t ret = proxyHandler(service, collectResult, errNo);
+        if (ret == 0) {
+            collectResult.retCode = static_cast<UCollect::UcError>(errNo);
+            return collectResult;
+        }
+        if (ret == TraceErrCode::ERR_PERMISSION_CHECK) {
+            collectResult.retCode = UCollect::UcError::PERMISSION_CHECK_FAILED;
+        }
+        return collectResult;
     }
 };
 } // namespace HiviewDFX

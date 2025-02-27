@@ -50,7 +50,6 @@ ohos_unittest("UsageEventReportTest") {
   ]
 
   external_deps = [
-    "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

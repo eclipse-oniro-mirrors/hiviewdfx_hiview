@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ const std::string UC_HITRACE_API_STAT_ITEM =
 const std::string UC_HITRACE_COMPRESS_RATIO = "Hitrace Traffic Compress Ratio:";
 const std::string UC_HITRACE_TRAFFIC_STAT_TITLE = "Hitrace Traffic statistics:";
 const std::string UC_HITRACE_TRAFFIC_STAT_ITEM =
-    "Caller TraceFile TimeSpent(us) RawSize(b) UsedSize(b) TimeStamp(us)";
+    "Caller TraceFile RawSize(b) UsedSize(b) TimeSpent(us) TimeStamp(us)";
 
 StatInfoWrapper TraceDecorator::statInfoWrapper_;
 TraceStatWrapper TraceDecorator::traceStatWrapper_;
