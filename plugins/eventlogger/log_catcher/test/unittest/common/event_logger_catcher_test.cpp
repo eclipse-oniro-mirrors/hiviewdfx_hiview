@@ -411,7 +411,6 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     EXPECT_EQ(ret, true);
     ret = dmesgCatcher->WriteSysrq();
     EXPECT_EQ(ret, true);
-    dmesgCatcher->DmesgSaveTofile();
     close(fd);
 }
 #endif // DMESG_CATCHER_ENABLE

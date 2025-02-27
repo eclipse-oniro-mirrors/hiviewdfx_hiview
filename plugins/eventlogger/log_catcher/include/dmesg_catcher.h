@@ -39,7 +39,6 @@ private:
     bool needWriteSysrq_ = false;
     std::shared_ptr<SysEvent> event_;
 
-    void DmesgSaveTofile();
     bool DumpDmesgLog(int fd);
     bool WriteSysrq();
     bool DumpSysrqToFile(int fd, char *buffer, int size);
