@@ -19,8 +19,9 @@ ohos_fuzztest("HiviewServiceAbilityStubFuzzTest") {
 
   fuzz_config_file = "../hiviewserviceabilitystub_fuzzer"
 
-  configs =
-      [ "$hiview_adapter/service/client:hiview_service_stub_inner_public_config" ]
+  configs = [
+    "$hiview_adapter/service/client:hiview_service_stub_inner_public_config",
+  ]
 
   include_dirs = [
     "hiview_service_ability_stub_fuzzer.h",
