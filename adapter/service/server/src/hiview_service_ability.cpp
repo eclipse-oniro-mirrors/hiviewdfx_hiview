@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,11 +22,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "accesstoken_kit.h"
 #include "bundle_mgr_client.h"
+#include "client/trace_collector_client.h"
+#include "client/memory_collector_client.h"
 #include "file_util.h"
 #include "hiview_log_config_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "parameter_ex.h"
 #include "string_util.h"
 #include "system_ability_definition.h"
 #include "utility/trace_collector.h"
@@ -34,9 +38,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-DEFINE_LOG_TAG("HiViewSA-HiViewServiceAbility");
+DEFINE_LOG_TAG("HiViewSA-HiviewServiceAbility");
 constexpr int MAXRETRYTIMEOUT = 10;
 constexpr int USER_ID_MOD = 200000;
+constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
+const std::string READ_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.READ_HIVIEW_SYSTEM";
+const std::string WRITE_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.WRITE_HIVIEW_SYSTEM";
+const std::string DUMP_PERMISSION = "ohos.permission.DUMP";
 
 static std::string GetApplicationNameById(int32_t uid)
 {
@@ -72,6 +80,18 @@ static std::string ComposeFilePath(const std::string& rootDir, const std::string
         filePath.append("/").append(destDir).append("/").append(fileName);
     }
     return filePath;
+}
+
+static bool HasAccessPermission(const std::string& permission)
+{
+    using namespace Security::AccessToken;
+    AccessTokenID callerToken = IPCSkeleton::GetCallingTokenID();
+    int verifyResult = AccessTokenKit::VerifyAccessToken(callerToken, permission);
+    if (verifyResult == PERMISSION_GRANTED) {
+        return true;
+    }
+    HIVIEW_LOGW("%{public}s not granted.", permission.c_str());
+    return false;
 }
 }
 
@@ -156,8 +176,11 @@ HiviewService *HiviewServiceAbility::GetOrSetHiviewService(HiviewService *servic
     return ref;
 }
 
-int32_t HiviewServiceAbility::List(const std::string& logType, std::vector<HiviewFileInfo>& fileInfos)
+ErrCode HiviewServiceAbility::ListFiles(const std::string& logType, std::vector<HiviewFileInfo>& fileInfos)
 {
+    if (!HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto configInfoPtr = HiviewLogConfigManager::GetInstance().GetConfigInfoByType(logType);
     if (configInfoPtr == nullptr) {
         HIVIEW_LOGI("invalid logtype: %{public}s", logType.c_str());
@@ -189,17 +212,23 @@ void HiviewServiceAbility::GetFileInfoUnderDir(const std::string& dirPath, std::
     closedir(dir);
 }
 
-int32_t HiviewServiceAbility::Copy(const std::string& logType, const std::string& logName, const std::string& dest)
+ErrCode HiviewServiceAbility::Copy(const std::string& logType, const std::string& logName, const std::string& dest)
 {
+    if (!HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     return CopyOrMoveFile(logType, logName, dest, false);
 }
 
-int32_t HiviewServiceAbility::Move(const std::string& logType, const std::string& logName, const std::string& dest)
+ErrCode HiviewServiceAbility::Move(const std::string& logType, const std::string& logName, const std::string& dest)
 {
+    if (!HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     return CopyOrMoveFile(logType, logName, dest, true);
 }
 
-int32_t HiviewServiceAbility::CopyOrMoveFile(
+ErrCode HiviewServiceAbility::CopyOrMoveFile(
     const std::string& logType, const std::string& logName, const std::string& dest, bool isMove)
 {
     auto service = GetOrSetHiviewService();
@@ -231,8 +260,11 @@ int32_t HiviewServiceAbility::CopyOrMoveFile(
     return isMove ? service->Move(sourceFile, fullPath) : service->Copy(sourceFile, fullPath);
 }
 
-int32_t HiviewServiceAbility::Remove(const std::string& logType, const std::string& logName)
+ErrCode HiviewServiceAbility::Remove(const std::string& logType, const std::string& logName)
 {
+    if (!HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto service = GetOrSetHiviewService();
     if (service == nullptr) {
         return HiviewNapiErrCode::ERR_DEFAULT;
@@ -270,103 +302,147 @@ void HiviewServiceAbility::OnStop()
     HIVIEW_LOGI("called");
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& tagGroups)
+ErrCode HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& tagGroups, int32_t& errNo, int32_t& ret)
 {
+    if (!HasAccessPermission(DUMP_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto traceRetHandler = [&tagGroups] (HiviewService* service) {
         return service->OpenSnapshotTrace(tagGroups);
     };
-    return TraceCalling<int32_t>(traceRetHandler);
+    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<std::vector<std::string>> HiviewServiceAbility::DumpSnapshotTrace(int32_t caller)
+ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, std::vector<std::string>& files)
 {
-    auto traceRetHandler = [caller] (HiviewService* service) {
-        return service->DumpSnapshotTrace(static_cast<UCollect::TraceCaller>(caller));
+    if (!HasAccessPermission(DUMP_PERMISSION) && !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
+    auto traceRetHandler = [client] (HiviewService* service) {
+        return service->DumpSnapshotTrace(static_cast<UCollect::TraceClient>(client));
     };
-    return TraceCalling<std::vector<std::string>>(traceRetHandler);
+    TraceCalling<std::vector<std::string>>(traceRetHandler, errNo, files);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::OpenRecordingTrace(const std::string& tags)
+ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_t& errNo, int32_t& ret)
 {
+    if (!HasAccessPermission(DUMP_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto traceRetHandler = [&tags] (HiviewService* service) {
         return service->OpenRecordingTrace(tags);
     };
-    return TraceCalling<int32_t>(traceRetHandler);
+    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::RecordingTraceOn()
+ErrCode HiviewServiceAbility::RecordingTraceOn(int32_t& errNo, int32_t& ret)
 {
+    if (!HasAccessPermission(DUMP_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto traceRetHandler = [] (HiviewService* service) {
         return service->RecordingTraceOn();
     };
-    return TraceCalling<int32_t>(traceRetHandler);
+    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<std::vector<std::string>> HiviewServiceAbility::RecordingTraceOff()
+ErrCode HiviewServiceAbility::RecordingTraceOff(int32_t& errNo, std::vector<std::string>& files)
 {
+    if (!HasAccessPermission(DUMP_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto traceRetHandler = [] (HiviewService* service) {
         return service->RecordingTraceOff();
     };
-    return TraceCalling<std::vector<std::string>>(traceRetHandler);
+    TraceCalling<std::vector<std::string>>(traceRetHandler, errNo, files);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::CloseTrace()
+ErrCode HiviewServiceAbility::CloseTrace(int32_t& errNo, int32_t& ret)
 {
+    if (!HasAccessPermission(DUMP_PERMISSION)) {
+        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
+    }
     auto traceRetHandler = [] (HiviewService* service) {
         return service->CloseTrace();
     };
-    return TraceCalling<int32_t>(traceRetHandler);
+    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::RecoverTrace()
+ErrCode HiviewServiceAbility::CaptureDurationTrace(
+    const AppCallerParcelable& appCallerParcelable, int32_t& errNo, int32_t& ret)
 {
-    auto traceRetHandler = [] (HiviewService* service) {
-        return service->RecoverTrace();
+    auto caller = appCallerParcelable.GetAppCaller();
+    caller.uid = IPCSkeleton::GetCallingUid();
+    caller.pid = IPCSkeleton::GetCallingPid();
+    auto traceRetHandler = [=, &caller] (HiviewService* service) {
+        return service->CaptureDurationTrace(caller);
     };
-    return TraceCalling<int32_t>(traceRetHandler);
+    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::CaptureDurationTrace(UCollectClient::AppCaller &appCaller)
+ErrCode HiviewServiceAbility::GetSysCpuUsage(int32_t& errNo, double& ret)
 {
-    appCaller.uid = IPCSkeleton::GetCallingUid();
-    appCaller.pid = IPCSkeleton::GetCallingPid();
-
-    auto traceRetHandler = [=, &appCaller] (HiviewService* service) {
-        return service->CaptureDurationTrace(appCaller);
-    };
-    return TraceCalling<int32_t>(traceRetHandler);
-}
-
-CollectResultParcelable<double> HiviewServiceAbility::GetSysCpuUsage()
-{
-    return TraceCalling<double>([] (HiviewService* service) {
+    TraceCalling<double>([] (HiviewService* service) {
         return service->GetSysCpuUsage();
-    });
+        }, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller)
+ErrCode HiviewServiceAbility::SetAppResourceLimit(
+    const MemoryCallerParcelable& memoryCallerParcelable, int32_t& errNo, int32_t& ret)
 {
-    auto handler = [&memoryCaller] (HiviewService* service) {
-        return service->SetAppResourceLimit(memoryCaller);
+    if (!Parameter::IsBetaVersion() && !Parameter::IsLeakStateMode()) {
+        HIVIEW_LOGE("Called SetAppResourceLimitRequest service failed.");
+        return TraceErrCode::ERR_READ_MSG_PARCEL;
+    }
+    auto caller = memoryCallerParcelable.GetMemoryCaller();
+    caller.pid = IPCObjectStub::GetCallingPid();
+    if (caller.pid < 0) {
+        return TraceErrCode::ERR_SEND_REQUEST;
+    }
+    auto handler = [&caller] (HiviewService* service) {
+        return service->SetAppResourceLimit(caller);
     };
-    return TraceCalling<int32_t>(handler);
+    TraceCalling<int32_t>(handler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::SetSplitMemoryValue(
-    std::vector<UCollectClient::MemoryCaller>& memList)
+ErrCode HiviewServiceAbility::SetSplitMemoryValue(
+    const std::vector<MemoryCallerParcelable>& memCallerParcelableList, int32_t& errNo, int32_t& ret)
 {
+    if (memCallerParcelableList.empty() || memCallerParcelableList.size() > MAX_SPLIT_MEMORY_SIZE) {
+        HIVIEW_LOGW("mem list size is invalid.");
+        return TraceErrCode::ERR_READ_MSG_PARCEL;
+    }
+    std::vector<UCollectClient::MemoryCaller> memList(memCallerParcelableList.size());
+    for (const auto& item : memCallerParcelableList) {
+        memList.emplace_back(item.GetMemoryCaller());
+    }
     auto handler = [&memList] (HiviewService* service) {
         return service->SetSplitMemoryValue(memList);
     };
-    return TraceCalling<int32_t>(handler);
+    TraceCalling<int32_t>(handler, errNo, ret);
+    return 0;
 }
 
-CollectResultParcelable<int32_t> HiviewServiceAbility::GetGraphicUsage(int32_t pid)
+ErrCode HiviewServiceAbility::GetGraphicUsage(int32_t& errNo, int32_t& ret)
 {
+    int32_t pid = IPCObjectStub::GetCallingPid();
+    if (pid < 0) {
+        return TraceErrCode::ERR_SEND_REQUEST;
+    }
     auto handler = [pid] (HiviewService* service) {
         return service->GetGraphicUsage(pid);
     };
-    return TraceCalling<int32_t>(handler);
+    TraceCalling<int32_t>(handler, errNo, ret);
+    return 0;
 }
 
 HiviewServiceAbilityDeathRecipient::HiviewServiceAbilityDeathRecipient()

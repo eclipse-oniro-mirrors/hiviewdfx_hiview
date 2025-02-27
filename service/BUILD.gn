@@ -18,6 +18,7 @@ config("hiview_service_config") {
 
   include_dirs = [
     ".",
+    "$hiview_framework/native/unified_collection/collector/impl/trace/include",
     "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_interfaces/inner_api/unified_collection",
@@ -60,13 +61,19 @@ ohos_source_set("hiview_service") {
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
   ]
 
+  if (hiview_unified_collector_trace_enable) {
+    deps += [ "$hiview_framework/native/unified_collection/trace_manager:libtrace_manager" ]
+    defines = [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+  }
+
   external_deps = [
     "ability_base:base",
     "ability_base:want",
     "bundle_framework:appexecfwk_core",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hitrace:hitrace_dump",
+    "jsoncpp:jsoncpp",
+    "zlib:libz",
   ]
 }
 

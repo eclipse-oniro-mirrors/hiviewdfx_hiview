@@ -117,29 +117,6 @@ bool DmesgCatcher::WriteSysrq()
     return true;
 }
 
-void DmesgCatcher::DmesgSaveTofile()
-{
-    std::string sysrqTime = event_->GetEventValue("SYSRQ_TIME");
-    std::string fullPath = std::string(FULL_DIR) + "sysrq-" + sysrqTime + ".log";
-    if (FileUtil::FileExists(fullPath)) {
-        HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fullPath.c_str());
-        return;
-    }
-
-    FILE* fp = fopen(fullPath.c_str(), "w");
-    chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
-    if (fp == nullptr) {
-        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fullPath.c_str(), errno);
-        return;
-    }
-    auto fd = fileno(fp);
-    DumpDmesgLog(fd);
-    if (fclose(fp)) {
-        HIVIEW_LOGE("fclose is failed");
-    }
-    fp = nullptr;
-}
-
 int DmesgCatcher::Catch(int fd, int jsonFd)
 {
     if (needWriteSysrq_ && !WriteSysrq()) {
@@ -155,9 +132,29 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
 
 void DmesgCatcher::WriteNewSysrq()
 {
-    if (!needWriteSysrq_ || WriteSysrq()) {
-        DmesgSaveTofile();
+    if (needWriteSysrq_ && !WriteSysrq()) {
+        return;
     }
+    std::string sysrqTime = event_->GetEventValue("SYSRQ_TIME");
+    std::string fullPath = std::string(FULL_DIR) + "sysrq-" + sysrqTime + ".log";
+    HIVIEW_LOGI("write new sysrq start, fullPath : %{public}s", fullPath.c_str());
+    if (FileUtil::FileExists(fullPath)) {
+        HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fullPath.c_str());
+        return;
+    }
+    FILE* fp = fopen(fullPath.c_str(), "w");
+    chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
+    if (fp == nullptr) {
+        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fullPath.c_str(), errno);
+        return;
+    }
+    auto fd = fileno(fp);
+    DumpDmesgLog(fd);
+    if (fclose(fp)) {
+        HIVIEW_LOGE("fclose is failed");
+    }
+    fp = nullptr;
+    HIVIEW_LOGI("write new sysrq end, fullPath : %{public}s", fullPath.c_str());
 }
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX

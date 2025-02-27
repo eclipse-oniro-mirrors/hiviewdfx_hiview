@@ -108,10 +108,7 @@ ohos_unittest("EventExportMgrTest") {
 
   external_deps = [
     "ability_base:zuri",
-    "ability_runtime:ability_manager",
-    "ability_runtime:dataobs_manager",
     "cJSON:cjson",
-    "data_share:datashare_common",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
     "googletest:gmock",

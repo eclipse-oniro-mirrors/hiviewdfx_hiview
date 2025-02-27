@@ -33,16 +33,6 @@ CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UColl
 {
     return CollectResult<std::vector<std::string>>(UCollect::UcError::FEATURE_CLOSED);
 }
-
-CollectResult<int32_t> TraceCollectorEmptyImpl::TraceOn()
-{
-    return CollectResult<int32_t>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::TraceOff()
-{
-    return CollectResult<std::vector<std::string>>(UCollect::UcError::FEATURE_CLOSED);
-}
 } // UCollectUtil
 } // HiViewDFX
 } // OHOS

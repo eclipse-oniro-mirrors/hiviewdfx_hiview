@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "app_caller_event.h"
 #include "audit_log_parser.h"
 #include "client/memory_collector_client.h"
 #include "client/trace_collector_client.h"
@@ -44,12 +45,11 @@ public:
 
     // Trace interfaces
     CollectResult<int32_t> OpenSnapshotTrace(const std::vector<std::string>& tagGroups);
-    CollectResult<std::vector<std::string>> DumpSnapshotTrace(UCollect::TraceCaller caller);
+    CollectResult<std::vector<std::string>> DumpSnapshotTrace(UCollect::TraceClient client);
     CollectResult<int32_t> OpenRecordingTrace(const std::string& tags);
     CollectResult<int32_t> RecordingTraceOn();
     CollectResult<std::vector<std::string>> RecordingTraceOff();
     CollectResult<int32_t> CloseTrace();
-    CollectResult<int32_t> RecoverTrace();
     CollectResult<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller);
     CollectResult<double> GetSysCpuUsage();
     CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
@@ -68,6 +68,10 @@ private:
 
     void DumpPipelineUsageInfo(int fd) const;
     void DumpPipelineUsageInfo(int fd, const std::string& pipelineName) const;
+
+    bool InnerHasCallAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
+    CollectResult<int32_t> InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller);
+    CollectResult<int32_t> InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller);
 
     int CopyFile(const std::string& srcFilePath, const std::string& destFilePath);
 

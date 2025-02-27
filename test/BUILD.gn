@@ -98,10 +98,6 @@ if (!defined(ohos_lite)) {
     module_out_path = module_output_path
     cflags = [ "-g3" ]
     defines = [ "NAPI_TEST" ]
-    include_dirs = [
-      "//foundation/arkui/napi/test/unittest/engine/",
-      "//foundation/arkui/napi/test/unittest/common/",
-    ]
 
     sources = [ "unittest/xpower_event/xpower_jsevent_test.cpp" ]
     deps =
@@ -128,4 +124,8 @@ group("unittest") {
     "unittest/unified_collection/client:UCollectionClientUnitTest",
     "unittest/unified_collection/utility:UCollectionUtilityUnitTest",
   ]
+
+  if (hiview_unified_collector_trace_enable) {
+    deps += [ "unittest/unified_collection/utility:UCollectionTraceUnitTest" ]
+  }
 }

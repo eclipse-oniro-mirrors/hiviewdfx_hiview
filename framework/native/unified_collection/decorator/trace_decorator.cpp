@@ -47,18 +47,6 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UC
     return Invoke(task, traceStatWrapper_, caller);
 }
 
-CollectResult<int32_t> TraceDecorator::TraceOn()
-{
-    auto task = [this] { return traceCollector_->TraceOn(); };
-    return UCDecorator::Invoke(task, statInfoWrapper_, TRACE_COLLECTOR_NAME + UC_SEPARATOR + __func__);
-}
-
-CollectResult<std::vector<std::string>> TraceDecorator::TraceOff()
-{
-    auto task = [this] { return traceCollector_->TraceOff(); };
-    return UCDecorator::Invoke(task, statInfoWrapper_, TRACE_COLLECTOR_NAME + UC_SEPARATOR + __func__);
-}
-
 void TraceDecorator::SaveStatSpecialInfo()
 {
     WriteLinesToFile({""}, false); // a blank line after common stat info

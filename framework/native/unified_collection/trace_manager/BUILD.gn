@@ -1,0 +1,105 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+
+config("trace_manager_config") {
+  visibility = [ "*:*" ]
+  include_dirs = [
+    "include",
+    "$hiview_base/include",
+    "$hiview_base/utility/include",
+    "$hiview_base/event_raw/include",
+  ]
+}
+
+ohos_source_set("trace_manager_source") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":trace_manager_config" ]
+  sources = [
+    "src/app_event_task_storage.cpp",
+    "src/trace_behavior_storage.cpp",
+    "src/trace_db_callback.cpp",
+    "src/trace_flow_controller.cpp",
+    "src/trace_state_machine.cpp",
+    "src/trace_storage.cpp",
+  ]
+
+  deps = [ "$hiview_base:hiviewbase" ]
+
+  external_deps = [
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_shared_library("libtrace_manager") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":trace_manager_config" ]
+
+  deps = [ ":trace_manager_source" ]
+
+  public_external_deps = [
+    "ffrt:libffrt",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
+  ]
+
+  version_script = "libtracemanager.map"
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_static_library("trace_manager_for_tdd") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":trace_manager_config" ]
+
+  deps = [ ":trace_manager_source" ]
+
+  public_external_deps = [
+    "ffrt:libffrt",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

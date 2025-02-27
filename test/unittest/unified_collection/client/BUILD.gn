@@ -30,7 +30,6 @@ ohos_unittest("UCollectionClientUnitTest") {
   sources = [
     "cpu_collector_client_test.cpp",
     "memory_collector_client_test.cpp",
-    "trace_collector_client_test.cpp",
   ]
 
   defines = []
@@ -47,7 +46,7 @@ ohos_unittest("UCollectionClientUnitTest") {
   }
 
   if (hiview_unified_collector_trace_enable) {
-    defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+    sources += [ "trace_collector_client_test.cpp" ]
   }
 
   deps = [

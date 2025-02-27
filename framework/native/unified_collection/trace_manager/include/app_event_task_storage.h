@@ -49,10 +49,10 @@ public:
     ~AppEventTaskStorage() = default;
 
 public:
-    bool InitAppTask();
     bool GetAppEventTask(int32_t uid, int32_t eventDate, AppEventTask &appEventTask);
     bool InsertAppEventTask(AppEventTask &appEventTask);
     void RemoveAppEventTask(int32_t eventDate);
+
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 };

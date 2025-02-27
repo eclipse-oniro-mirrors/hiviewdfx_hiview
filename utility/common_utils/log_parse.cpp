@@ -46,34 +46,6 @@ const std::map<std::string, std::set<std::string>> LogParse::ignoreList_ = {
     }
 };
 
-// it is key word in app crash log, it can replace complexed info which may have safe and privacy info
-const std::set<std::string> LogParse::exceptionList_ = {
-    "ArithmeticException",
-    "ArrayIndexOutOfBoundsException",
-    "ArrayStoreException",
-    "ClassCastException",
-    "ClassNotFoundException",
-    "CloneNotSupportedException",
-    "EnumConstantNotPresentException",
-    "IllegalAccessException",
-    "IllegalArgumentException",
-    "IllegalMonitorStateException",
-    "IllegalStateException",
-    "IllegalThreadStateException",
-    "IndexOutOfBoundsException",
-    "InstantiationException",
-    "InterruptedException",
-    "NegativeArraySizeException",
-    "NoSuchFieldException",
-    "NoSuchMethodException",
-    "NullPointerException",
-    "NumberFormatException",
-    "ReflectiveOperationException",
-    "RuntimeException",
-    "SecurityException",
-    "StringIndexOutOfBoundsException"
-};
-
 bool LogParse::IsIgnoreLibrary(const string& val) const
 {
     for (auto list : ignoreList_) {
@@ -98,7 +70,7 @@ stack<string> LogParse::GetStackTop(const vector<string>& validStack, const size
     return stackTop;
 }
 
-list<vector<string>> LogParse::StackToMultipart(stack<string>& inStack, size_t num) const
+vector<string> LogParse::StackToPart(stack<string>& inStack, size_t num) const
 {
     stack<string> partStack;
     while (!inStack.empty()) {
@@ -107,64 +79,31 @@ list<vector<string>> LogParse::StackToMultipart(stack<string>& inStack, size_t n
         partStack.push(topStr);
         inStack.pop();
     }
-    list<vector<string>> multiPart;
+    vector<string> validPart;
     if (!partStack.empty()) {
-        vector<string> validPart = GetValidStack(num, partStack);
-        multiPart.push_back(validPart);
+        validPart = GetValidStack(num, partStack);
     }
-    return multiPart;
+    return validPart;
 }
 
 string LogParse::GetValidBlock(stack<string> inStack, vector<string>& lastPart) const
 {
     vector<string> validStack;
 
-    list<vector<string>> multiPart = StackToMultipart(inStack, 3); // 3 : first/second/last frame
-    size_t size = multiPart.size();
-    if (size == 0) {
+    lastPart = StackToPart(inStack, 3); // 3 : first/second/last frame
+    if (lastPart.empty()) {
         return "";
-    }
-    if (size == 1) {
-        // only one part
-        validStack = multiPart.front();
-        if (validStack.size() > STACK_LEN_MAX) {
-            // keep the begin 28 lines and the end 2 lines
-            validStack.erase(validStack.begin() + (STACK_LEN_MAX - 2), validStack.end() - 2); // 2 : end 2 lines
-        }
-    } else if (size >= 2) { // at least 2 parts
-        for (auto part : multiPart) {
-            if (validStack.size() >= STACK_LEN_MAX) {
-                break;
-            }
-            validStack.insert(validStack.begin(), part.begin(), part.end());
-        }
-        if (multiPart.front().size() > STACK_LEN_MAX) {
-            // keep the begin 28 lines and the end 2 lines
-            validStack.erase(validStack.begin() + (STACK_LEN_MAX - 2), validStack.end() - 2); // 2 : end 2 lines
-        } else if (validStack.size() > STACK_LEN_MAX) {
-            // keep the begin 2 lines and the end 28 lines
-            validStack.erase(validStack.begin() + 2, validStack.end() - (STACK_LEN_MAX - 2)); // 2 : begin 2 lines
-        }
+    } else if (lastPart.size() > STACK_LEN_MAX) {
+        // keep the begin 28 lines and the end 2 lines
+        lastPart.erase(lastPart.begin() + (STACK_LEN_MAX - 2), lastPart.end() - 2); // 2 : end 2 lines
     }
 
-    for (auto part : multiPart) {
-        // multiPart has at least 2 parts
-        if (size > 1 && !part.empty() && HasExceptionList(part.front())) {
-            part.erase(part.begin());
-        }
-        // lastPart should has at least 3 lines
-        if (!part.empty()) {
-            reverse(part.begin(), part.end());
-            lastPart = part;
-            break;
-        }
-    }
+    reverse(lastPart.begin(), lastPart.end());
 
-    vector<string> validStackName;
-    for (const auto& it : validStack) {
-        validStackName.push_back(Tbox::GetStackName(it));
+    for (auto& it : lastPart) {
+        it = Tbox::GetStackName(it);
     }
-    return Tbox::ARRAY_STR + StringUtil::VectorToString(validStackName, false);
+    return Tbox::ARRAY_STR + StringUtil::VectorToString(lastPart, false);
 }
 
 vector<string> LogParse::GetValidStack(size_t num, stack<string>& inStack) const
@@ -189,16 +128,6 @@ vector<string> LogParse::GetValidStack(size_t num, stack<string>& inStack) const
         }
     }
     return validStack;
-}
-
-string LogParse::MatchExceptionLibrary(const string& val)
-{
-    for (auto& str : LogParse::exceptionList_) {
-        if (val.find(str, 0) != string::npos) {
-            return str;
-        }
-    }
-    return UNMATCHED_EXCEPTION;
 }
 
 void LogParse::MatchIgnoreLibrary(stack<string> inStack, stack<string>& outStack, size_t num) const
@@ -258,19 +187,10 @@ void LogParse::SetFrame(std::stack<std::string>& stack, std::map<std::string, st
     size_t len = stack.size();
     for (size_t i = 0; i < len; i++) {
         if (eventInfo.find(name[i]) == eventInfo.end()) {
-            eventInfo[name[i]] = Tbox::GetStackName(stack.top());
+            eventInfo[name[i]] = stack.top();
         }
         stack.pop();
     }
-}
-
-bool LogParse::HasExceptionList(const string& line) const
-{
-    auto iter = exceptionList_.find(line);
-    if (line == UNMATCHED_EXCEPTION || iter != exceptionList_.end()) {
-        return true;
-    }
-    return false;
 }
 }
 }

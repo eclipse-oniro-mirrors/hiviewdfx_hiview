@@ -16,7 +16,6 @@ import("//build/ohos.gni")
 config("unified_collector_config") {
   visibility = [ "*:*" ]
   include_dirs = [
-    "app_trace/include",
     "include",
     "observer/include",
     "storage/include",
@@ -27,7 +26,6 @@ config("unified_collector_config") {
     "$hiview_framework/native/unified_collection/process/include",
     "$hiview_framework/native/unified_collection/decorator/include",
   ]
-  defines = [ "PC_APP_STATE_COLLECT_ENABLE = $hiview_unified_collector_PC_app_state_collect_enable" ]
 }
 
 ohos_source_set("unified_collector") {
@@ -41,7 +39,6 @@ ohos_source_set("unified_collector") {
   configs = [ ":unified_collector_config" ]
 
   sources = [
-    "app_trace/app_trace_context.cpp",
     "observer/uc_app_state_observer.cpp",
     "observer/uc_observer_mgr.cpp",
     "observer/uc_render_state_observer.cpp",
@@ -58,19 +55,27 @@ ohos_source_set("unified_collector") {
     "config:UnifiedCollector_event",
   ]
 
+  defines = [ "PC_APP_STATE_COLLECT_ENABLE = $hiview_unified_collector_PC_app_state_collect_enable" ]
+
+  if (hiview_unified_collector_trace_enable) {
+    deps += [ "$hiview_framework/native/unified_collection/trace_manager:libtrace_manager" ]
+    defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+    if (hiview_unified_collector_low_mem_threshold != 0) {
+      sources += [ "task/trace_cache_monitor.cpp" ]
+      defines += [ "HIVIEW_LOW_MEM_THRESHOLD=${hiview_unified_collector_low_mem_threshold}" ]
+    }
+  }
+
   external_deps = [
     "ability_runtime:app_manager",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "hitrace:hitrace_dump",
     "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-
-  defines = []
 
   if (power_manager_enable) {
     external_deps += [
@@ -93,7 +98,6 @@ group("unittest") {
   testonly = true
   deps = [
     "test/unittest/common:CpuStorageTest",
-    "test/unittest/common:TraceStateChangeTest",
     "test/unittest/common:UCStateObserverTest",
   ]
 }

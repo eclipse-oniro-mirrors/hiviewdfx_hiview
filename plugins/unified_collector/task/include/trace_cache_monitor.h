@@ -17,7 +17,8 @@
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_CACHE_MONITOR_H
 
 #include "memory_collector.h"
-#include "trace_behavior_db_helper.h"
+#include "trace_behavior_storage.h"
+#include "trace_flow_controller.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -44,12 +45,12 @@ private:
     void SetCacheOn();
     void SetCacheOff();
     void CountDownCacheOff();
-    bool UseCacheTimeQuota(int32_t usedQuota);
 
 private:
     std::mutex stateMutex_;
     TraceCacheMonitorState monitorState_ = EXIT;
     std::shared_ptr<UCollectUtil::MemoryCollector> collector_;
+    std::shared_ptr<TraceFlowController> flowController_;
     bool isCacheOn_ = false;
     bool isWaitingForRecovery_ = false;
     int32_t lowMemThreshold_ = 0;

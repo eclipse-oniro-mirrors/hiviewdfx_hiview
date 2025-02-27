@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,28 +13,31 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-config("trace_storage_test_config") {
+config("trace_manager_test_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
     ".",
     "$hiview_base/utility/include",
-    "$hiview_framework/native/unified_collection/collector/inner_include",
+    "$hiview_framework/native/unified_collection/trace_manager/include",
   ]
 
-  cflags = [ "-D__UNITTEST__" ]
+  cflags = [
+    "-D__UNITTEST__",
+    "-frtti",
+  ]
 }
 
-ohos_unittest("TraceStorageUnitTest") {
+ohos_unittest("TraceManagerTest") {
   module_out_path = "hiviewdfx/hiview"
 
-  configs = [ ":trace_storage_test_config" ]
+  configs = [ ":trace_manager_test_config" ]
 
-  sources = [ "trace_storage_test.cpp" ]
+  sources = [ "trace_manager_test.cpp" ]
 
   deps = [
     "$hiview_base/utility:hiview_utility",
-    "$hiview_framework/native/unified_collection:ucollection_source",
+    "$hiview_framework/native/unified_collection/trace_manager:trace_manager_for_tdd",
   ]
 
   external_deps = [

@@ -50,12 +50,11 @@ public:
 public:
     virtual CollectResult<int32_t> OpenSnapshot(const std::vector<std::string>& tagGroups) = 0;
     virtual CollectResult<std::vector<std::string>> DumpSnapshot(
-        UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER) = 0;
+        UCollect::TraceClient client = UCollect::TraceClient::COMMON_DEV) = 0;
     virtual CollectResult<int32_t> OpenRecording(const std::string& tags) = 0;
     virtual CollectResult<int32_t> RecordingOn() = 0;
     virtual CollectResult<std::vector<std::string>> RecordingOff() = 0;
     virtual CollectResult<int32_t> Close() = 0;
-    virtual CollectResult<int32_t> Recover() = 0;
     // use for hap main looper
     virtual CollectResult<int32_t> CaptureDurationTrace(AppCaller &appCaller) = 0;
 

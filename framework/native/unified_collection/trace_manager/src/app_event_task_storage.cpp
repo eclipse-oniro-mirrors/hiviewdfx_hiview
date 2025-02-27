@@ -37,47 +37,6 @@ const std::string COLUMN_RESOURCE_SIZE = "resource_size";
 const std::string COLUMN_COST_CPU = "cost_cpu";
 const std::string COLUMN_STATE = "state";
 
-bool InnerCreateAppTaskTable(std::shared_ptr<NativeRdb::RdbStore> dbStore)
-{
-    /**
-     * table: unified_collection_task
-     *
-     * describe: store data that app task
-     * |-----|-----------|-----------|-------|-------|-------------|----------------|------------|-------------|
-     * |  id | task_date | task_type | uid   | pid   | bundle_name | bundle_version | start_time | finish_time |
-     * |-----|-----------|-----------|-------|-------|-------------|----------------|------------|-------------|
-     * | INT |   INT64   |    INT8   | INT32 | INT32 |      TEXT   | TEXT           |  INT64     | INT64       |
-     * |-----|-----------|-----------|-------|-------|-------------|----------------|------------|-------------|
-     *
-     * |---------------|---------------|----------|-------|
-     * | resource_path | resource_size | cost_cpu | state |
-     * |---------------|---------------|----------|-------|
-     * | TEXT          | INT32         | REAL     | INT32 |
-     * |---------------|---------------|----------|-------|
-     */
-    const std::vector<std::pair<std::string, std::string>> fields = {
-        {COLUMN_TASK_DATE, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_TASK_TYPE, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_UID, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_PID, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_BUNDLE_NAME, SqlUtil::COLUMN_TYPE_STR},
-        {COLUMN_BUNDLE_VERSION, SqlUtil::COLUMN_TYPE_STR},
-        {COLUMN_START_TIME, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_FINISH_TIME, SqlUtil::COLUMN_TYPE_STR},
-        {COLUMN_RESOURCE_PATH, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_RESOURCE_SIZE, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_COST_CPU, SqlUtil::COLUMN_TYPE_DOU},
-        {COLUMN_STATE, SqlUtil::COLUMN_TYPE_INT},
-    };
-    HIVIEW_LOGI("create table app task=%{public}s", TABLE_NAME_TASK.c_str());
-    std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME_TASK, fields);
-    if (dbStore->ExecuteSql(sql) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create app task table, sql=%{public}s", sql.c_str());
-        return false;
-    }
-    return true;
-}
-
 void InnerGetAppTaskCondition(int32_t uid, int32_t eventDate, NativeRdb::AbsRdbPredicates &predicates)
 {
     predicates.EqualTo(COLUMN_UID, uid);
@@ -90,6 +49,7 @@ bool InnerGetAppTask(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet, A
         if (resultSet->GetLong(0, appEventTask.id_) != NativeRdb::E_OK) {
             HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_ID.c_str());
         }
+        HIVIEW_LOGD("resultSet get task_id:%{public}lld", appEventTask.id_);
         if (resultSet->GetLong(1, appEventTask.taskDate_) != NativeRdb::E_OK) { // 1: task date
             HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_TASK_DATE.c_str());
         }
@@ -131,7 +91,7 @@ bool InnerGetAppTask(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet, A
     return true;
 }
 
-bool InnerQeuryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::AbsRdbPredicates &predicates,
+bool InnerQueryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::AbsRdbPredicates &predicates,
     AppEventTask &appEventTask)
 {
     appEventTask.id_ = 0;
@@ -149,26 +109,25 @@ bool InnerQeuryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::
 }
 }
 
-AppEventTaskStorage::AppEventTaskStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore):dbStore_(dbStore)
-{}
-
-bool AppEventTaskStorage::InitAppTask()
-{
-    if (!InnerCreateAppTaskTable(dbStore_)) {
-        return false;
-    }
-    return true;
-}
+AppEventTaskStorage::AppEventTaskStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore):dbStore_(dbStore) {}
 
 bool AppEventTaskStorage::GetAppEventTask(int32_t uid, int32_t eventDate, AppEventTask &appEventTask)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("db store is null,");
+        return false;
+    }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_TASK);
     InnerGetAppTaskCondition(uid, eventDate, predicates);
-    return InnerQeuryAppTask(dbStore_, predicates, appEventTask);
+    return InnerQueryAppTask(dbStore_, predicates, appEventTask);
 }
 
 bool AppEventTaskStorage::InsertAppEventTask(AppEventTask &appEventTask)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("db store is null,");
+        return false;
+    }
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(COLUMN_TASK_DATE, appEventTask.taskDate_);
     bucket.PutInt(COLUMN_TASK_TYPE, appEventTask.taskType_);
@@ -192,6 +151,10 @@ bool AppEventTaskStorage::InsertAppEventTask(AppEventTask &appEventTask)
 
 void AppEventTaskStorage::RemoveAppEventTask(int32_t eventDate)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("db store is null,");
+        return;
+    }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_TASK);
     predicates.LessThan(COLUMN_TASK_DATE, eventDate);
     int32_t deleteRows = 0;
