@@ -29,7 +29,7 @@ ohos_shared_library("loglibrary_napi") {
   ]
 
   deps = [
-    "$hiview_adapter/service/client:hiview_service_impl_for_js",
+    "$hiview_adapter/service/client:hiview_service_proxy",
     "$hiview_base/utility:hiview_utility",
   ]
 
