@@ -241,6 +241,29 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     close(fd);
 }
 
+#ifdef STACKTRACE_CATCHER_ENABLE
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventlogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_004, TestSize.Level3)
+{
+    auto fd = open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create testFile. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->GetSpecificProcessStack();
+    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "EventloggerCatcherTest");
+    logTask->GetSpecificProcessStack();
+    EXPECT_TRUE(logTask != nullptr);
+}
+#endif // STACKTRACE_CATCHER_ENABLE
+
 #ifdef BINDER_CATCHER_ENABLE
 /**
  * @tc.name: BinderCatcherTest_001
