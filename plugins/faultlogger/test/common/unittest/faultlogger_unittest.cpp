@@ -222,6 +222,51 @@ public:
         }
     }
 
+    static void ConstructCjErrorAppEvent(std::string summmay, std::shared_ptr<Faultlogger> plugin)
+    {
+        SysEventCreator sysEventCreator("CJ_RUNTIME", "CJERROR", SysEventCreator::FAULT);
+        sysEventCreator.SetKeyValue("SUMMARY", summmay);
+        sysEventCreator.SetKeyValue("name_", "CJ_ERROR");
+        sysEventCreator.SetKeyValue("happenTime_", 1670248360359); // 1670248360359 : Simulate happenTime_ value
+        sysEventCreator.SetKeyValue("REASON", "std.core:Exception");
+        sysEventCreator.SetKeyValue("tz_", "+0800");
+        sysEventCreator.SetKeyValue("pid_", 2413); // 2413 : Simulate pid_ value
+        sysEventCreator.SetKeyValue("tid_", 2413); // 2413 : Simulate tid_ value
+        sysEventCreator.SetKeyValue("what_", 3); // 3 : Simulate what_ value
+        sysEventCreator.SetKeyValue("PACKAGE_NAME", "com.ohos.systemui");
+        sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+        sysEventCreator.SetKeyValue("TYPE", 3); // 3 : Simulate TYPE value
+        sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+
+        auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+        std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+        bool result = plugin->OnEvent(event);
+        ASSERT_EQ(result, true);
+    }
+
+    static void CheckKeyWordsInCjErrorAppEventFile(std::string name)
+    {
+        std::string keywords[] = {
+            "\"bundle_name\":", "\"bundle_version\":", "\"crash_type\":", "\"exception\":",
+            "\"foreground\":", "\"hilog\":", "\"pid\":", "\"time\":", "\"uid\":", "\"uuid\":",
+            "\"name\":", "\"message\":", "\"stack\":"
+        };
+        int length = sizeof(keywords) / sizeof(keywords[0]);
+        std::cout << "length:" << length << std::endl;
+        std::string oldFileName = "/data/test_cjError_info";
+        int count = CheckKeyWordsInFile(oldFileName, keywords, length, false);
+        std::cout << "count:" << count << std::endl;
+        ASSERT_EQ(count, length) << "ReportCjErrorToAppEventTest001-" + name + " check keywords failed";
+        if (FileUtil::FileExists(oldFileName)) {
+            std::string newFileName = oldFileName + "_" + name;
+            rename(oldFileName.c_str(), newFileName.c_str());
+        }
+        auto ret = remove("/data/test_cjError_info");
+        if (ret == 0) {
+            GTEST_LOG_(INFO) << "remove /data/test_cjError_info failed";
+        }
+    }
+
     static void CheckDeleteStackErrorMessage(std::string name)
     {
         std::string keywords[] = {"\"Cannot get SourceMap info, dump raw stack:"};
@@ -1526,6 +1571,27 @@ HWTEST_F(FaultloggerUnittest, ReportJsErrorToAppEventTest009, testing::ext::Test
     if (ret == 0) {
         GTEST_LOG_(INFO) << "remove /data/test_jsError_info failed";
     }
+}
+
+/**
+ * @tc.name: ReportCjErrorToAppEventTest001
+ * @tc.desc: create CJ ERROR event and send it to hiappevent
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ReportCjErrorToAppEventTest001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    // has Error name、Error message、Error code、SourceCode、Stacktrace
+    std::string summary = R"~(Uncaught exception was found.
+Exception info: throwing foo exception
+Stacktrace:
+    at anonymous(entry/src/main/ets/pages/index.cj:20)
+    at anonymous2(entry/src/main/ets/pages/index.cj:33)
+    at anonymous3(entry/src/main/ets/pages/index.cj:77)
+)~";
+    GTEST_LOG_(INFO) << "========CangjieError========";
+    ConstructCjErrorAppEvent(summary, plugin);
+    CheckKeyWordsInCjErrorAppEventFile("summary");
 }
 
 bool SendSysEvent(SysEventCreator sysEventCreator)
