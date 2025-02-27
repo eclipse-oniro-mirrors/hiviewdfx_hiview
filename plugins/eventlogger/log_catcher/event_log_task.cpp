@@ -143,6 +143,8 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
         [this] { this->RemoteStackCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("GpuStack",
         [this] { this->GetGPUProcessStack(); }));
+    captureList_.insert(std::pair<std::string, capture>("specificStack",
+        [this] { this->GetSpecificProcessStack(); }));
 #endif // STACKTRACE_CATCHER_ENABLE
 }
 
@@ -324,16 +326,29 @@ void EventLogTask::RemoteStackCapture()
     tasks_.push_back(capture);
 }
 
-void EventLogTask::GetGPUProcessStack()
+void EventLogTask::GetProcessStack(const std::string& processName)
 {
     auto capture = std::make_shared<OpenStacktraceCatcher>();
-    std::string bundleName = event_->GetEventValue("PACKAGE_NAME");
-    bundleName += ":gpu";
-    int pid = CommonUtils::GetPidByName(bundleName);
-    HIVIEW_LOGI("get pid of gpu: %{public}d.", pid);
+    int pid = CommonUtils::GetPidByName(processName);
+    HIVIEW_LOGI("get pid of %{public}s: %{public}d.", processName.c_str(), pid);
     if (pid != -1) {
-        capture->Initialize(event_->GetEventValue("PACKAGE_NAME"), pid, 0);
+        capture->Initialize(processName, pid, 0);
         tasks_.push_back(capture);
+    }
+}
+
+void EventLogTask::GetGPUProcessStack()
+{
+    std::string processName = event_->GetEventValue("PACKAGE_NAME");
+    processName += ":gpu";
+    GetProcessStack(processName);
+}
+
+void EventLogTask::GetSpecificProcessStack()
+{
+    std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
+    if (!processName.empty()) {
+        GetProcessStack(processName);
     }
 }
 #endif // STACKTRACE_CATCHER_ENABLE

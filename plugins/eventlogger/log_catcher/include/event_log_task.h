@@ -77,7 +77,9 @@ private:
     void AppStackCapture();
     void SystemStackCapture();
     void RemoteStackCapture();
+    void GetProcessStack(const std::string& processName);
     void GetGPUProcessStack();
+    void GetSpecificProcessStack();
 #endif // STACKTRACE_CATCHER_ENABLE
 
 #ifdef BINDER_CATCHER_ENABLE
