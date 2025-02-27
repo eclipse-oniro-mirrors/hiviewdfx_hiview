@@ -17,7 +17,6 @@
 
 #include <map>
 #include <string>
-#include <contrib/minizip/zip.h>
 
 #include "hisysevent.h"
 #include "trace_collector.h"
@@ -78,13 +77,19 @@ struct DumpEvent {
     int32_t sysCpu = 0;
 };
 
+namespace TelemetryEvent {
+const std::string TELEMETRY_START = "telemetryStart";
+const std::string TELEMETRY_STOP = "telemetryStop";
+}
+
 UcError TransCodeToUcError(TraceErrorCode ret);
 UcError TransStateToUcError(TraceStateCode ret);
 UcError TransFlowToUcError(TraceFlowCode ret);
 const std::string EnumToString(UCollect::TraceCaller &caller);
 const std::string ClientToString(UCollect::TraceClient &client);
+const std::string ModuleToString(UCollect::TeleModule &module);
 void CopyFile(const std::string &src, const std::string &dst);
-std::vector<std::string> GetUnifiedShareFiles(const std::vector<std::string> outputFiles);
+std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outputFiles, const std::string &destDir);
 std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix);
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);

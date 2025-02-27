@@ -164,6 +164,7 @@ public:
     void SetKeyValuePairs(std::map<std::string, std::string> keyValuePairs);
     const std::string GetValue(const std::string &name) const;
     int32_t GetIntValue(const std::string &name) const;
+    int64_t GetInt64Value(const std::string &name) const;
     std::map<std::string, std::string> GetKeyValuePairs() const;
     void ResetTimestamp();
     void ResetPendingStatus()

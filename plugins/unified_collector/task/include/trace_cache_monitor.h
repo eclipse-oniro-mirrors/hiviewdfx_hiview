@@ -45,6 +45,7 @@ private:
     void SetCacheOn();
     void SetCacheOff();
     void CountDownCacheOff();
+    void SetCacheStatus(int32_t interval);
 
 private:
     std::mutex stateMutex_;

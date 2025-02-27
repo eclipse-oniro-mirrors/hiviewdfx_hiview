@@ -181,8 +181,6 @@ bool TraceStorage::NeedDump()
         return false;
     }
     auto quota = TRACE_QUOTA.at(caller_).second;
-    HIVIEW_LOGD("callerName:%{public}s, usedSize:%{public}llu, quota:%{public}llu", traceFlowRecord_.callerName.c_str(),
-        traceFlowRecord_.usedSize, quota);
     return traceFlowRecord_.usedSize < quota;
 }
 

@@ -36,6 +36,12 @@ enum TraceClient {
     COMMON_DEV,
     APP
 };
+
+// Used for telemetry interface param
+enum class TeleModule {
+    XPOWER,
+    XPERF,
+};
 }
 } // HiviewDFX
 } // OHOS

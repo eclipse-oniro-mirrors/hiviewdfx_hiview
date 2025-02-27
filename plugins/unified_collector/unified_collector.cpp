@@ -33,8 +33,10 @@
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "app_caller_event.h"
 #include "event_publish.h"
+#include "trace_utils.h"
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
+#include "uc_telemetry_listener.h"
 #endif
 
 namespace OHOS {
@@ -55,6 +57,8 @@ constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 const std::string OTHER = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
+const std::string KEY_TELEMETRY_TRACE_TAG = "traceArgs";
+const std::string KEY_DURATION = "traceDuration";
 #endif
 }
 
@@ -90,7 +94,7 @@ void UnifiedCollector::OnFreezeDetectorParamChanged(const char* key, const char*
     TraceStateMachine::GetInstance().InitOrUpdateState();
 }
 
-    void UnifiedCollector::OnSwitchRecordTraceStateChanged(const char* key, const char* value, void* context)
+void UnifiedCollector::OnSwitchRecordTraceStateChanged(const char* key, const char* value, void* context)
 {
     if (key == nullptr || value == nullptr) {
         HIVIEW_LOGE("record trace switch input ptr null");
@@ -181,6 +185,30 @@ bool UnifiedCollector::OnEvent(std::shared_ptr<Event>& event)
         if (!ret.IsSuccess()) {
             HIVIEW_LOGW("CloseTrace app trace fail");
         }
+        return true;
+    }
+    if (event->eventName_ == TelemetryEvent::TELEMETRY_START) {
+        std::string tag = event->GetValue(KEY_TELEMETRY_TRACE_TAG);
+        int32_t traceDuration = event->GetIntValue(KEY_DURATION);
+        if (traceDuration <= 0) {
+            HIVIEW_LOGE("system error traceDuration:%{public}d", traceDuration);
+            return true;
+        }
+        auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag);
+        if (!ret.IsSuccess()) {
+            HIVIEW_LOGE("open telemetry trace state fail");
+            return true;
+        }
+        event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
+        DelayProcessEvent(event, traceDuration);
+        return true;
+    }
+    if (event->eventName_ == TelemetryEvent::TELEMETRY_STOP) {
+        auto ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+        TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
+        if (!ret.IsSuccess()) {
+            HIVIEW_LOGW("CloseTrace app trace fail");
+        }
     }
     return true;
 }
@@ -237,6 +265,9 @@ void UnifiedCollector::Init()
     InitWorkPath();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     LoadTraceSwitch();
+    telemetryListener_ = std::make_shared<TelemetryListener>(shared_from_this());
+    GetHiviewContext()->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
+    GetHiviewContext()->RegisterUnorderedEventListener(telemetryListener_);
 #endif
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn()) {
         RunIoCollectionTask();
@@ -290,12 +321,12 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         unifiedCollectorPtr->RunCpuCollectionTask();
         unifiedCollectorPtr->RunIoCollectionTask();
         unifiedCollectorPtr->RunUCollectionStatTask();
-
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
         TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
-#endif
+        TraceStateMachine::GetInstance().InitOrUpdateState();
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
         unifiedCollectorPtr->RunCacheMonitorLoop();
+#endif
 #endif
     } else {
         if (!Parameter::IsDeveloperMode()) {
@@ -307,15 +338,13 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         unifiedCollectorPtr->taskList_.clear();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
         TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
-#endif
+        TraceStateMachine::GetInstance().InitOrUpdateState();
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
         unifiedCollectorPtr->ExitCacheMonitorLoop();
 #endif
+#endif
         unifiedCollectorPtr->CleanDataFiles();
     }
-#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-    TraceStateMachine::GetInstance().InitOrUpdateState();
-#endif
 }
 
 void UnifiedCollector::InitWorkLoop()

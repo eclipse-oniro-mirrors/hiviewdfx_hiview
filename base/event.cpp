@@ -15,6 +15,8 @@
 
 #include "event.h"
 
+#include <charconv>
+
 #include "audit.h"
 #include "hiview_global.h"
 #include "time_util.h"
@@ -56,6 +58,19 @@ int32_t Event::GetIntValue(const std::string &name) const
         return (errno == ERANGE) ? -1 : ret;
     }
     return -1;
+}
+
+int64_t Event::GetInt64Value(const std::string &name) const
+{
+    int64_t dateNum = -1;
+    if (auto it = bundle_.find(name); it != bundle_.end()) {
+        auto valueStr = it->second;
+        auto result = std::from_chars(valueStr.c_str(), valueStr.c_str() + valueStr.size(), dateNum);
+        if (result.ec != std::errc()) {
+            return -1;
+        }
+    }
+    return dateNum;
 }
 
 void Event::ResetTimestamp()

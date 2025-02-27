@@ -35,7 +35,6 @@ constexpr int32_t DB_VERSION = 3;
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string DB_NAME = "trace_flow_control.db";
-const std::string BEHAVIOR = "behavior";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
 const std::set<std::string> DB_CALLER {
     CallerName::XPERF, CallerName::XPOWER, CallerName::RELIABILITY, CallerName::HIVIEW, CallerName::FOUNDATION
@@ -69,8 +68,11 @@ void TraceFlowController::InitTraceStorage(const std::string& caller)
     if (caller == ClientName::APP) {
         appTaskStore_ = std::make_shared<AppEventTaskStorage>(dbStore_);
     }
-    if (caller == BEHAVIOR) {
+    if (caller == BusinessName::BEHAVIOR) {
         behaviorTaskStore_ = std::make_shared<TraceBehaviorStorage>(dbStore_);
+    }
+    if (caller == BusinessName::TELEMETRY) {
+        teleMetryStorage_ = std::make_shared<TeleMetryStorage>(dbStore_);
     }
 }
 
@@ -161,26 +163,53 @@ void TraceFlowController::CleanOldAppTrace(int32_t dateNum)
     appTaskStore_->RemoveAppEventTask(dateNum);
 }
 
-bool TraceFlowController::UseCacheTimeQuota(int32_t interval)
+CacheFlow TraceFlowController::UseCacheTimeQuota(int32_t interval)
 {
     if (behaviorTaskStore_ == nullptr) {
-        return false;
+        return CacheFlow::EXIT;
     }
     BehaviorRecord record;
     record.behaviorId = CACHE_LOW_MEM;
     record.dateNum = TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d");
     if (!behaviorTaskStore_->GetRecord(record) && !behaviorTaskStore_->InsertRecord(record)) {
         HIVIEW_LOGE("failed to get and insert record, close task");
-        return false;
+        return CacheFlow::EXIT;
     }
     HIVIEW_LOGD("get used quota:%{public}d", record.usedQuota);
     if (record.usedQuota >= HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL) {
         HIVIEW_LOGW("usedQuota exceeds daily limit. usedQuota:%{public}d", record.usedQuota);
-        return false;
+        return CacheFlow::OVER_FLOW;
     }
     record.usedQuota += interval;
     behaviorTaskStore_->UpdateRecord(record);
-    return true;
+    return CacheFlow::SUCCESS;
+}
+
+TelemetryFlow TraceFlowController::InitTelemetryData(const std::map<std::string, int64_t>& flowControlQuotas)
+{
+    if (teleMetryStorage_ == nullptr) {
+        HIVIEW_LOGE("failed to init teleMetryStorage");
+        return TelemetryFlow::EXIT;
+    }
+    return teleMetryStorage_->InitTelemetryData(flowControlQuotas);
+}
+
+TelemetryFlow TraceFlowController::NeedTelemetryDump(const std::string &module, int64_t traceSize)
+{
+    if (teleMetryStorage_ == nullptr) {
+        HIVIEW_LOGE("failed to init teleMetryStorage, close task");
+        return TelemetryFlow::EXIT;
+    }
+    return teleMetryStorage_->NeedTelemetryDump(module, traceSize);
+}
+
+void TraceFlowController::ClearTelemetryData()
+{
+    if (teleMetryStorage_ == nullptr) {
+        HIVIEW_LOGE("failed to init teleMetryStorage, return");
+        return;
+    }
+    return teleMetryStorage_->ClearTelemetryData();
 }
 } // HiViewDFX
 } // OHOS

@@ -18,8 +18,7 @@
 #include "hiview_logger.h"
 #include "sql_util.h"
 
-namespace OHOS {
-namespace HiviewDFX {
+namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("AppEventTaskStorage");
 namespace {
 const std::string TABLE_NAME_TASK = "unified_collection_task";
@@ -49,7 +48,6 @@ bool InnerGetAppTask(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet, A
         if (resultSet->GetLong(0, appEventTask.id_) != NativeRdb::E_OK) {
             HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_ID.c_str());
         }
-        HIVIEW_LOGD("resultSet get task_id:%{public}lld", appEventTask.id_);
         if (resultSet->GetLong(1, appEventTask.taskDate_) != NativeRdb::E_OK) { // 1: task date
             HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_TASK_DATE.c_str());
         }
@@ -109,7 +107,7 @@ bool InnerQueryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::
 }
 }
 
-AppEventTaskStorage::AppEventTaskStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore):dbStore_(dbStore) {}
+AppEventTaskStorage::AppEventTaskStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
 
 bool AppEventTaskStorage::GetAppEventTask(int32_t uid, int32_t eventDate, AppEventTask &appEventTask)
 {
@@ -163,5 +161,4 @@ void AppEventTaskStorage::RemoveAppEventTask(int32_t eventDate)
         HIVIEW_LOGE("failed to insert app event task, ret=%{public}d", ret);
     }
 }
-} // namespace HiviewDFX
 } // namespace OHOS

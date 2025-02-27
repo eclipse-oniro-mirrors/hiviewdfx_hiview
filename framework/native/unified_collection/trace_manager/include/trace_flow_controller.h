@@ -18,9 +18,10 @@
 #include <memory>
 #include <string>
 
+#include "app_caller_event.h"
 #include "hitrace_dump.h"
 #include "trace_storage.h"
-#include "app_caller_event.h"
+#include "telemetry_storage.h"
 #include "trace_behavior_storage.h"
 
 using OHOS::HiviewDFX::Hitrace::TraceErrorCode;
@@ -31,6 +32,12 @@ namespace HiviewDFX {
 namespace {
 const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
 }
+
+enum class CacheFlow {
+    SUCCESS,
+    OVER_FLOW,
+    EXIT
+};
 
 class TraceFlowController {
 public:
@@ -63,7 +70,13 @@ public:
      */
     void CleanOldAppTrace(int32_t dateNum);
 
-    bool UseCacheTimeQuota(int32_t interval);
+    CacheFlow UseCacheTimeQuota(int32_t interval);
+
+    TelemetryFlow InitTelemetryData(const std::map<std::string, int64_t> &flowControlQuotas);
+
+    void ClearTelemetryData();
+
+    TelemetryFlow NeedTelemetryDump(const std::string& module, int64_t traceSize);
 
 private:
     void InitTraceDb(const std::string& dbPath);
@@ -74,6 +87,7 @@ private:
     std::shared_ptr<TraceStorage> traceStorage_;
     std::shared_ptr<AppEventTaskStorage> appTaskStore_;
     std::shared_ptr<TraceBehaviorStorage> behaviorTaskStore_;
+    std::shared_ptr<TeleMetryStorage> teleMetryStorage_;
 };
 } // HiViewDFX
 } // OHOS
