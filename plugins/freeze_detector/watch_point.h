@@ -83,6 +83,7 @@ public:
     std::string GetHitraceTime() const;
     std::string GetSysrqTime() const;
     void SetLogPath(const std::string& logPath);
+    void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
     bool operator<(const WatchPoint& node) const;
     bool operator==(const WatchPoint& node) const;

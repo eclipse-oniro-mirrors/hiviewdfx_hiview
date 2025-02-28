@@ -129,7 +129,8 @@ int FreezeResolver::ProcessEvent(const WatchPoint &watchPoint) const
         return -1;
     }
 
-    vendor_->MergeEventLog(watchPoint, list, result);
+    WatchPoint watchPointCopy = watchPoint;
+    vendor_->MergeEventLog(watchPointCopy, list, result);
     return 0;
 }
 

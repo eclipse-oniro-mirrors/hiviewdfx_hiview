@@ -226,6 +226,11 @@ void WatchPoint::SetLogPath(const std::string& logPath)
     logPath_ = logPath;
 }
 
+void WatchPoint::SetTerminalThreadStack(const std::string& terminalThreadStack)
+{
+    terminalThreadStack_ = terminalThreadStack;
+}
+
 void WatchPoint::SetSeq(long seq)
 {
     seq_ = seq;

@@ -956,15 +956,17 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckString_001, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_SetEventTerminalBinder_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
-    std::string threadStack = "EventLoggerTest";
+    std::string threadStack = "thread stack";
+    std::string threadStackFromLogTask = "thread stack from log task";
     auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
-    std::string testName = "APP_INPUT_BLOCK";
-    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
-    event->eventName_ = testName;
-    event->SetEventValue("PID", 0);
-    std::string terminalThreadStack = "Test";
-    eventLogger->SetEventTerminalBinder(event, threadStack, terminalThreadStack);
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("testSender", nullptr, jsonStr);
+    int fd = 2025;
+    event->eventName_ = "APP_INPUT_BLOCK";
+    eventLogger->SetEventTerminalBinder(event, threadStack, threadStackFromLogTask, fd);
     EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), threadStack);
+    event->eventName_ = "IPC_FULL";
+    eventLogger->SetEventTerminalBinder(event, threadStack, threadStackFromLogTask, fd);
+    EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), threadStackFromLogTask);
 }
 
 /**

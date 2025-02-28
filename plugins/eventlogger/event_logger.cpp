@@ -88,12 +88,6 @@ namespace {
     static constexpr const char* const CORE_PORCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
-    const static std::map<std::string, std::vector<std::string>> PB_EVENT_CONFIGS = {
-        {"UI_BLOCK", {"UI_BLOCK_3S", "6000"}},
-        {"THREAD_BLOCK", {"THREAD_BLOCK_3S", "14000"}},
-        {"BUSSNESS_THREAD_BLOCK", {"BUSSNESS_THREAD_BLOCK_3S", "14000"}},
-        {"LIFECYCLE", {"LIFECYCLE_HALF_TIMEOUT", "30000"}}
-    };
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -416,7 +410,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     if (ret != EventLogTask::TASK_SUCCESS) {
         HIVIEW_LOGE("capture fail %{public}d", ret);
     }
-    SetEventTerminalBinder(event, threadStack, logTask->terminalThreadStack_);
+    SetEventTerminalBinder(event, threadStack, logTask->terminalThreadStack_, fd);
     CollectMemInfo(fd, event);
     FreezeCommon::WriteStartInfoToFd(fd, "start collect ctabilityGetTempFreqInfo: ");
     FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
@@ -426,44 +420,18 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
 }
 
 void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
-    const std::string& terminalThreadStack)
+    const std::string& threadStackFromLogTask, int fd)
 {
-    long pid = event->GetEventIntValue("PID") ? event->GetEventIntValue("PID") : event->GetPid();
     std::string eventName = event->eventName_;
-    std::vector<std::string> pbEventConfig;
-    if (eventName == "APP_INPUT_BLOCK") {
+    if (eventName == "APP_INPUT_BLOCK" && !threadStack.empty()) {
         event->SetEventValue("TERMINAL_THREAD_STACK", threadStack);
-    } else if (std::any_of(PB_EVENT_CONFIGS.begin(), PB_EVENT_CONFIGS.end(),
-        [&pbEventConfig, &eventName] (const auto& it) {
-        bool result = eventName.find(it.first) != std::string::npos;
-        if (result) {
-            pbEventConfig = it.second;
+    } else if (!threadStackFromLogTask.empty()) {
+        if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), eventName) !=
+            std::end(CORE_PORCESSES)) {
+            FileUtil::SaveStringToFd(fd, "\nThread stack start:\n" + threadStackFromLogTask + "Thread stack end\n");
+        } else {
+            event->SetEventValue("TERMINAL_THREAD_STACK", threadStackFromLogTask);
         }
-        return result;
-    })) {
-        std::string processName = event->GetEventValue("PROCESS_NAME");
-        uint64_t happenTime = event->happenTime_;
-        if (eventName == pbEventConfig[0]) {
-            terminalBinderMutex_.lock();
-            terminalBinder_.eventName = eventName;
-            terminalBinder_.happenTime = happenTime;
-            terminalBinder_.processName = processName;
-            terminalBinder_.pid = pid;
-            terminalBinder_.threadStack = terminalThreadStack;
-            terminalBinderMutex_.unlock();
-            return;
-        }
-        auto setTerminalStackTask = [this, pid, processName, pbEventConfig, happenTime, event] {
-            if (terminalBinder_.pid == pid && terminalBinder_.processName == processName &&
-                terminalBinder_.eventName == pbEventConfig[0] &&
-                happenTime - terminalBinder_.happenTime <= std::stoull(pbEventConfig[1])) {
-                event->SetEventValue("TERMINAL_THREAD_STACK", terminalBinder_.threadStack);
-            }
-        };
-        uint64_t delayTime = 800 * 1000;
-        queue_->submit(setTerminalStackTask, ffrt::task_attr().name("set_terminal_stack").delay(delayTime));
-    } else {
-        event->SetEventValue("TERMINAL_THREAD_STACK", terminalThreadStack);
     }
 }
 
