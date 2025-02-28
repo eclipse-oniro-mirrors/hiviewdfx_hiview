@@ -51,6 +51,7 @@ constexpr unsigned SUMMARY_LOG_SIZE = 3 * 1024;
 constexpr unsigned BUF_SIZE = 128;
 constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
 constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
+constexpr unsigned DEFUALT_SANITIZER_LOG_MODE = 0644;
 static std::stringstream g_asanlog;
 }
 
@@ -101,12 +102,14 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
 
 void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath)
 {
+    const std::unordered_set<std::string> setAsanOptionTypeList = {"ASAN", "HWASAN"};
     GwpAsanCurrInfo currInfo;
     currInfo.description = ((gwpAsanBuffer.size() > ASAN_LOG_SIZE) ? (gwpAsanBuffer.substr(0, ASAN_LOG_SIZE) +
                                                                      "\nEnd Asan report") : gwpAsanBuffer);
     currInfo.summary = ((gwpAsanBuffer.size() > SUMMARY_LOG_SIZE) ? (gwpAsanBuffer.substr(0, SUMMARY_LOG_SIZE) +
                                                                      "\nEnd Summary report") : gwpAsanBuffer);
-    if (logPath == nullptr) {
+    if (logPath == nullptr || logPath[0] == '\0'||
+        setAsanOptionTypeList.find(faultType) == setAsanOptionTypeList.end()) {
         currInfo.logPath = "faultlogger";
         HILOG_INFO(LOG_CORE, "Logpath is null, set as default path: faultlogger");
     } else {
@@ -190,12 +193,13 @@ int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
         fd = RequestFileDescriptorEx(&request);
     } else {
         const std::string sandboxBase = "/data/storage/el2";
-        if (currInfo.logPath.compare(0, sandboxBase.length(), sandboxBase) != 0) {
+        if (!OHOS::HiviewDFX::IsValidPath(currInfo.logPath) ||
+            currInfo.logPath.compare(0, sandboxBase.length(), sandboxBase) != 0) {
             HILOG_ERROR(LOG_CORE, "Invalid log path %{public}s, must in sandbox or set as faultlogger.",
                 currInfo.logPath.c_str());
             return -1;
         }
-        fd = open(currInfo.logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, OHOS::HiviewDFX::FileUtil::DEFAULT_FILE_MODE);
+        fd = open(currInfo.logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFUALT_SANITIZER_LOG_MODE);
     }
     return fd;
 }
