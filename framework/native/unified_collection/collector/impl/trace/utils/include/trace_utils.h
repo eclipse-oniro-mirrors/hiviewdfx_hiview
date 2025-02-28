@@ -98,7 +98,7 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent, int32_t retCode);
 void LoadMemoryInfo(DumpEvent &dumpEvent);
 void CheckAndCreateDirectory(const std::string &tmpDirPath);
 bool CreateMultiDirectory(const std::string &dirPath);
-void CreateTracePath(const std::string &filePath);
+void CreateTracePath();
 int64_t GetTraceSize(TraceRetInfo &ret);
 UcError GetUcError(TraceRet ret);
 } // HiViewDFX

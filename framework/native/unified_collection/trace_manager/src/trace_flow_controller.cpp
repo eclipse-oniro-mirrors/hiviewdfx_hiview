@@ -185,13 +185,14 @@ CacheFlow TraceFlowController::UseCacheTimeQuota(int32_t interval)
     return CacheFlow::SUCCESS;
 }
 
-TelemetryFlow TraceFlowController::InitTelemetryData(const std::map<std::string, int64_t>& flowControlQuotas)
+TelemetryFlow TraceFlowController::InitTelemetryData(const std::map<std::string, int64_t>& flowControlQuotas,
+    int64_t &beginTime, int64_t &endTime)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage");
         return TelemetryFlow::EXIT;
     }
-    return teleMetryStorage_->InitTelemetryData(flowControlQuotas);
+    return teleMetryStorage_->InitTelemetryData(flowControlQuotas, beginTime, endTime);
 }
 
 TelemetryFlow TraceFlowController::NeedTelemetryDump(const std::string &module, int64_t traceSize)

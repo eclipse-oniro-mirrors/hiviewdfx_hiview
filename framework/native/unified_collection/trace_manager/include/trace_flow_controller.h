@@ -72,7 +72,8 @@ public:
 
     CacheFlow UseCacheTimeQuota(int32_t interval);
 
-    TelemetryFlow InitTelemetryData(const std::map<std::string, int64_t> &flowControlQuotas);
+    TelemetryFlow InitTelemetryData(const std::map<std::string, int64_t> &flowControlQuotas, int64_t &beginTime,
+        int64_t &endTime);
 
     void ClearTelemetryData();
 

@@ -33,6 +33,7 @@
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "app_caller_event.h"
 #include "event_publish.h"
+#include "hisysevent.h"
 #include "trace_utils.h"
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
@@ -58,7 +59,10 @@ const std::string OTHER = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
 const std::string KEY_TELEMETRY_TRACE_TAG = "traceArgs";
-const std::string KEY_DURATION = "traceDuration";
+const std::string KEY_REMAIN_TIME = "remainTimeToStop";
+const std::string KEY_ID = "telemetryId";
+const std::string KEY_BUNDLE_NAME = "bundleName";
+constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 #endif
 }
 
@@ -91,7 +95,6 @@ void UnifiedCollector::OnFreezeDetectorParamChanged(const char* key, const char*
     } else {
         TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
     }
-    TraceStateMachine::GetInstance().InitOrUpdateState();
 }
 
 void UnifiedCollector::OnSwitchRecordTraceStateChanged(const char* key, const char* value, void* context)
@@ -109,7 +112,6 @@ void UnifiedCollector::OnSwitchRecordTraceStateChanged(const char* key, const ch
     } else {
         TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
     }
-    TraceStateMachine::GetInstance().InitOrUpdateState();
 }
 
 void UnifiedCollector::LoadTraceSwitch()
@@ -134,7 +136,6 @@ void UnifiedCollector::LoadTraceSwitch()
         int ret = Parameter::WatchParamChange(DEVELOP_HIVIEW_TRACE_RECORDER, OnSwitchRecordTraceStateChanged, this);
         HIVIEW_LOGI("add ucollection trace switch param watcher ret: %{public}d", ret);
     }
-    TraceStateMachine::GetInstance().InitOrUpdateState();
 }
 
 void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
@@ -188,29 +189,54 @@ bool UnifiedCollector::OnEvent(std::shared_ptr<Event>& event)
         return true;
     }
     if (event->eventName_ == TelemetryEvent::TELEMETRY_START) {
-        std::string tag = event->GetValue(KEY_TELEMETRY_TRACE_TAG);
-        int32_t traceDuration = event->GetIntValue(KEY_DURATION);
-        if (traceDuration <= 0) {
-            HIVIEW_LOGE("system error traceDuration:%{public}d", traceDuration);
-            return true;
-        }
-        auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag);
-        if (!ret.IsSuccess()) {
-            HIVIEW_LOGE("open telemetry trace state fail");
-            return true;
-        }
-        event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
-        DelayProcessEvent(event, traceDuration);
+        HandleTeleMetryStart(event);
         return true;
     }
     if (event->eventName_ == TelemetryEvent::TELEMETRY_STOP) {
-        auto ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-        TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-        if (!ret.IsSuccess()) {
-            HIVIEW_LOGW("CloseTrace app trace fail");
-        }
+        HandleTeleMetryStop(event);
     }
     return true;
+}
+
+void UnifiedCollector::HandleTeleMetryStart(std::shared_ptr<Event> &event)
+{
+    std::string tag = event->GetValue(KEY_TELEMETRY_TRACE_TAG);
+    int32_t remainTime = event->GetIntValue(KEY_REMAIN_TIME);
+    std::string telemetryId = event->GetValue(KEY_ID);
+    std::string bundleName = event->GetValue(KEY_BUNDLE_NAME);
+    if (remainTime <= 0) {
+        HIVIEW_LOGE("system error traceDuration:%{public}d", remainTime);
+        return;
+    }
+    auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag, telemetryId);
+    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+        "ID", telemetryId,
+        "STAGE", "TRACE_BEGIN",
+        "ERROR", std::to_string(GetUcError(ret)),
+        "BUNDLE_NAME", bundleName);
+    if (!ret.IsSuccess()) {
+        HIVIEW_LOGE("open telemetry trace state fail");
+        return;
+    }
+    event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
+    DelayProcessEvent(event, remainTime);
+}
+
+void UnifiedCollector::HandleTeleMetryStop(std::shared_ptr<Event> &event)
+{
+    if (!CheckStopValid(event)) {
+        HIVIEW_LOGW("perhaps another telemetry begin, invalid stop event");
+        return;
+    }
+    auto ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+        "ID", event->GetValue(KEY_ID),
+        "STAGE", "TRACE_END",
+        "ERROR", std::to_string(GetUcError(ret)));
+    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
+    if (!ret.IsSuccess()) {
+        HIVIEW_LOGW("CloseTrace telemetry trace fail");
+    }
 }
 
 void UnifiedCollector::OnEventListeningCallback(const Event& event)
@@ -236,7 +262,13 @@ void UnifiedCollector::Dump(int fd, const std::vector<std::string>& cmds)
 
     dprintf(fd, "develop state is %s.\n", Parameter::IsDeveloperMode() ? "true" : "false");
 }
-#endif
+
+bool UnifiedCollector::CheckStopValid(std::shared_ptr<Event>& event)
+{
+    std::string idStr = event->GetValue(KEY_ID);
+    return idStr == TraceStateMachine::GetInstance().GetTelemetryId();
+}
+
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
 void UnifiedCollector::RunCacheMonitorLoop()
 {
@@ -253,21 +285,23 @@ void UnifiedCollector::ExitCacheMonitorLoop()
     }
 }
 #endif
+#endif
 
 void UnifiedCollector::Init()
 {
-    if (GetHiviewContext() == nullptr) {
+    auto context = GetHiviewContext();
+    if (context == nullptr) {
         HIVIEW_LOGE("hiview context is null");
         return;
     }
-
     InitWorkLoop();
     InitWorkPath();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+    CreateTracePath();
     LoadTraceSwitch();
     telemetryListener_ = std::make_shared<TelemetryListener>(shared_from_this());
-    GetHiviewContext()->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
-    GetHiviewContext()->RegisterUnorderedEventListener(telemetryListener_);
+    context->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
+    context->RegisterUnorderedEventListener(telemetryListener_);
 #endif
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn()) {
         RunIoCollectionTask();
@@ -323,7 +357,6 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         unifiedCollectorPtr->RunUCollectionStatTask();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
         TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
-        TraceStateMachine::GetInstance().InitOrUpdateState();
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
         unifiedCollectorPtr->RunCacheMonitorLoop();
 #endif
@@ -338,7 +371,6 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         unifiedCollectorPtr->taskList_.clear();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
         TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
-        TraceStateMachine::GetInstance().InitOrUpdateState();
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
         unifiedCollectorPtr->ExitCacheMonitorLoop();
 #endif

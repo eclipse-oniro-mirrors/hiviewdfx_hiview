@@ -153,8 +153,8 @@ int32_t TraceDbStoreCallback::CreateAppTaskTable(NativeRdb::RdbStore& rdbStore)
         {COLUMN_BUNDLE_NAME, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_BUNDLE_VERSION, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_START_TIME, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_FINISH_TIME, SqlUtil::COLUMN_TYPE_STR},
-        {COLUMN_RESOURCE_PATH, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_FINISH_TIME, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_RESOURCE_PATH, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_RESOURCE_SIZE, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_COST_CPU, SqlUtil::COLUMN_TYPE_DOU},
         {COLUMN_STATE, SqlUtil::COLUMN_TYPE_INT},
@@ -200,17 +200,19 @@ int32_t TraceDbStoreCallback::CreateTelemetryFlowControlTable(NativeRdb::RdbStor
      * table: telemetry_flow_control
      *
      * describe: store trace behavior quota
-     * |-----|------- -|-----------|------------|------------|
-     * | id  |  module | used_size |   quota    |  threshold |
-     * |-----|-- ------|-----------|------------|------------|
-     * | INT | VARCHAR |   INT32   |   INT32    |   INT32    |
-     * |-----|----- ---|-----------|------------|------------|
+     * |-----|------- -|-----------|------------|------------|--------------|--------------|
+     * | id  |  module | used_size |   quota    |  threshold |  start_time  |  finish_time |
+     * |-----|-- ------|-----------|------------|------------|--------------|--------------|
+     * | INT | VARCHAR |   INT32   |   INT32    |   INT32    |     INT64    |     INT64    |
+     * |-----|----- ---|-----------|------------|------------|--------------|--------------|
     */
     const std::vector<std::pair<std::string, std::string>> fields = {
         {COLUMN_MODULE_NAME, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_QUOTA, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_THRESHOLD, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_START_TIME, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_FINISH_TIME, SqlUtil::COLUMN_TYPE_INT},
     };
     std::string sql = SqlUtil::GenerateCreateSql(TABLE_TELEMETRY_FLOW_CONTROL, fields);
     if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {

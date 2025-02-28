@@ -23,6 +23,13 @@
 #include "trace_state_machine.h"
 
 namespace OHOS::HiviewDFX {
+struct StartMsg {
+    int64_t beginTime;
+    int64_t endTime;
+    std::string telemetryId;
+    std::string bundleName;
+};
+
 class TelemetryListener : public EventListener {
 public:
     explicit TelemetryListener(std::shared_ptr<Plugin> myPlugin) : myPlugin_(myPlugin) {}
@@ -34,14 +41,13 @@ public:
     }
 
 private:
-    std::weak_ptr<Plugin> myPlugin_;
-    uint64_t openTime_ = 0;
-    int32_t traceDuration_ = 3600; // seconds
-    std::string traceTags_;
+    std::string GetValidParam(const Event &msg, bool &isCloseMsg, int64_t &beginTime, std::string &telemetryId);
+    TelemetryFlow InitTelemetryDb(const Event &msg, int64_t &beginTime, int64_t &endTime);
+    bool SendStartEvent(const StartMsg &startMsg, const Event &msg, std::string &errorMsg);
+    void SendStopEvent(const Event &msg);
 
-    TelemetryFlow InitFlowControlQuotas(const Event &msg);
-    void SendStartEvent();
-    void SendStopEvent();
+private:
+    std::weak_ptr<Plugin> myPlugin_;
 };
 
 }

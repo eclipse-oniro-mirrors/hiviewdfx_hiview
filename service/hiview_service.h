@@ -79,7 +79,6 @@ private:
 
 private:
     std::unique_ptr<AuditLogParser> parser_ = nullptr;
-    std::shared_ptr<UCollectUtil::TraceCollector> traceCollector_;
     std::shared_ptr<UCollectUtil::CpuCollector> cpuCollector_;
     std::shared_ptr<UCollectUtil::GraphicMemoryCollector> graphicMemoryCollector_;
 };
