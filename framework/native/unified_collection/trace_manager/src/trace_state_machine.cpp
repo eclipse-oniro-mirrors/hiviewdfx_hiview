@@ -98,12 +98,6 @@ TraceRet TraceStateMachine::CloseTrace(TraceScenario scenario)
 TraceRet TraceStateMachine::InitOrUpdateState()
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
-    if (Hitrace::GetTraceMode() != Hitrace::TraceMode::CLOSE) {
-        if (auto ret = Hitrace::CloseTrace(); ret != TraceErrorCode::SUCCESS) {
-            HIVIEW_LOGE("Hitrace close error:%{public}d", ret);
-            return TraceRet(ret);
-        }
-    }
     return RecoverState();
 }
 
@@ -191,6 +185,13 @@ TraceRet TraceStateMachine::TraceCacheOff()
 
 TraceRet TraceStateMachine::RecoverState()
 {
+    if (Hitrace::GetTraceMode() != Hitrace::TraceMode::CLOSE) {
+        if (auto ret = Hitrace::CloseTrace(); ret != TraceErrorCode::SUCCESS) {
+            HIVIEW_LOGE("Hitrace close error:%{public}d", ret);
+            return TraceRet(ret);
+        }
+    }
+    
     // All switch is closed
     if (traceSwitchState_ == 0) {
         HIVIEW_LOGI("commercial version and all switch is closed, trans to CloseState");
