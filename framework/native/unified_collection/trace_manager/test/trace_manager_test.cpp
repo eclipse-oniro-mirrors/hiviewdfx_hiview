@@ -401,10 +401,10 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
     ASSERT_TRUE(ret25.IsSuccess());
 
     // trans to command state
-    TraceStateMachine::GetInstance().SetTraceVersionBeta();
+    TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
     TraceRet ret21 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
     ASSERT_TRUE(ret21.IsSuccess());
-    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
     ASSERT_TRUE(ret22.IsSuccess());
 
     // trans to common state
@@ -461,6 +461,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
     TraceRet ret36 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
     ASSERT_TRUE(ret36.IsSuccess());
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
+    TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
 }
 
 /**
@@ -556,7 +557,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
     TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
     TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
-    ASSERT_TRUE(ret4.IsSuccess());
+    ASSERT_EQ(ret4.GetStateError(), TraceStateCode::SUCCESS);
     TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);

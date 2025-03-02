@@ -260,10 +260,8 @@ public:
 
     void CloseVersionBeta()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t beta = 1 << 3;
         traceSwitchState_ = traceSwitchState_ & (~beta);
-        RecoverState();
     }
 
     void SetTraceSwitchUcOn()
