@@ -191,7 +191,7 @@ TraceRet TraceStateMachine::RecoverState()
             return TraceRet(ret);
         }
     }
-    
+
     // All switch is closed
     if (traceSwitchState_ == 0) {
         HIVIEW_LOGI("commercial version and all switch is closed, trans to CloseState");
