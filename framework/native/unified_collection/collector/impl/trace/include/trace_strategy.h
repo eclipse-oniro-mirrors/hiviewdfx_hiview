@@ -25,12 +25,12 @@
 #include "trace_state_machine.h"
 #include "trace_utils.h"
 
-namespace OHOS {
-namespace HiviewDFX {
+namespace OHOS::HiviewDFX {
 
 class TraceStrategy {
 public:
-    TraceStrategy(int32_t maxDuration, uint64_t happenTime, const std::string &caller, TraceScenario scenario);
+    TraceStrategy(int32_t maxDuration, uint64_t happenTime, const std::string &caller, TraceScenario scenario)
+        : maxDuration_(maxDuration), happenTime_(happenTime), caller_(caller), scenario_(scenario) {}
     virtual ~TraceStrategy() = default;
     virtual TraceRet DoDump(std::vector<std::string> &outputFile) = 0;
 
@@ -151,6 +151,4 @@ public:
     static std::shared_ptr<TraceAppStrategy> CreateAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent);
 };
 }
-}
-
 #endif // HIVIEWDFX_HIVIEW_TRACE_STRATEGY_H

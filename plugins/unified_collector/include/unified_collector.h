@@ -49,7 +49,10 @@ private:
     void IoCollectionTask();
     void UCollectionStatTask();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+    void HandleTeleMetryStart(std::shared_ptr<Event>& event);
+    void HandleTeleMetryStop(std::shared_ptr<Event>& event);
     void LoadTraceSwitch();
+    bool CheckStopValid(std::shared_ptr<Event>& event);
     static void OnFreezeDetectorParamChanged(const char* key, const char* value, void* context);
     static void OnSwitchRecordTraceStateChanged(const char* key, const char* value, void* context);
     void OnMainThreadJank(SysEvent& sysEvent);

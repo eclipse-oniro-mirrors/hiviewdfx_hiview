@@ -31,7 +31,7 @@ public:
     virtual ~TraceBaseState() = default;
     virtual TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups);
     virtual TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
-    virtual TraceRet OpenTelemetryTrace(const std::string &args);
+    virtual TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId);
     virtual TraceRet OpenAppTrace(int32_t appPid);
     virtual TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
     virtual TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
@@ -42,6 +42,11 @@ public:
     virtual TraceRet SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration);
     virtual TraceRet TraceCacheOff();
     virtual TraceRet CloseTrace(TraceScenario scenario);
+
+    virtual std::string GetTelemetryId()
+    {
+        return "invalid";
+    }
 
     virtual uint64_t GetTaskBeginTime()
     {
@@ -125,16 +130,26 @@ protected:
 
 class TelemetryState : public TraceBaseState {
 public:
+    explicit TelemetryState(const std::string &telemetryId) : telemetryId_(telemetryId) {}
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
         TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
+
+    std::string GetTelemetryId() override
+    {
+        return telemetryId_;
+    }
+
 protected:
     std::string GetTag() override
     {
         return "TelemetryState";
     }
+
+private:
+    std::string telemetryId_;
 };
 
 class DynamicState : public TraceBaseState {
@@ -147,7 +162,7 @@ public:
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet OpenAppTrace(int32_t appPid) override;
-    TraceRet OpenTelemetryTrace(const std::string &args) override;
+    TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId) override;
     TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
 
@@ -174,7 +189,7 @@ private:
 
 class CloseState : public TraceBaseState {
 public:
-    TraceRet OpenTelemetryTrace(const std::string &args) override;
+    TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId) override;
 
     TraceRet OpenAppTrace(int32_t appPid) override;
 
@@ -192,7 +207,7 @@ public:
     TraceStateMachine();
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups);
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
-    TraceRet OpenTelemetryTrace(const std::string &args);
+    TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId);
     TraceRet OpenDynamicTrace(int32_t appid);
     TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
     TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
@@ -205,13 +220,12 @@ public:
     TraceRet InitOrUpdateState();
     TraceRet InitCommonDropState();
     TraceRet InitCommonState();
-    TraceRet RecoverState();
 
     void TransToCommonState();
     void TransToCommandState();
     void TransToCommandDropState();
     void TransToCommonDropState();
-    void TransToTeleMetryState();
+    void TransToTeleMetryState(const std::string &telemetryId);
     void TransToDynamicState(int32_t appid);
     void TransToCloseState();
 
@@ -226,6 +240,11 @@ public:
         return currentState_->GetAppPid();
     }
 
+    std::string GetTelemetryId()
+    {
+        return currentState_->GetTelemetryId();
+    }
+
     uint64_t GetTaskBeginTime()
     {
         return currentState_->GetTaskBeginTime();
@@ -233,50 +252,66 @@ public:
 
     void SetTraceVersionBeta()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t beta = 1 << 3;
         traceSwitchState_ = traceSwitchState_ | beta;
+        RecoverState();
     }
 
     void CloseVersionBeta()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t beta = 1 << 3;
         traceSwitchState_ = traceSwitchState_ & (~beta);
+        RecoverState();
     }
 
     void SetTraceSwitchUcOn()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t ucollection = 1 << 2;
         traceSwitchState_ = traceSwitchState_ | ucollection;
+        RecoverState();
     }
 
     void SetTraceSwitchUcOff()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t ucollection = 1 << 2;
         traceSwitchState_ = traceSwitchState_ & (~ucollection);
+        RecoverState();
     }
 
     void SetTraceSwitchFreezeOn()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t freeze = 1 << 1;
         traceSwitchState_ = traceSwitchState_ | freeze;
+        RecoverState();
     }
 
     void SetTraceSwitchFreezeOff()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t freeze = 1 << 1;
         traceSwitchState_ = traceSwitchState_ & (~freeze);
+        RecoverState();
     }
 
     void SetTraceSwitchDevOn()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t dev = 1;
         traceSwitchState_ = traceSwitchState_ | dev;
+        RecoverState();
     }
 
     void SetTraceSwitchDevOff()
     {
+        std::lock_guard<std::mutex> lock(traceMutex_);
         uint8_t dev = 1;
         traceSwitchState_ = traceSwitchState_ & (~dev);
+        RecoverState();
     }
 
     void SetCommandState(bool isCommandState)
@@ -288,6 +323,9 @@ public:
     {
         return isCommandState_;
     }
+
+private:
+    TraceRet RecoverState();
 
 private:
     std::shared_ptr<TraceBaseState> currentState_;

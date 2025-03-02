@@ -42,6 +42,7 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
+const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
 const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
 constexpr uint32_t READ_MORE_LENGTH = 100 * 1024;
 const double CPU_LOAD_THRESHOLD = 0.03;
@@ -367,7 +368,7 @@ bool CreateMultiDirectory(const std::string &dirPath)
     return true;
 }
 
-void CreateTracePath(const std::string &filePath)
+void CreateTracePathInner(const std::string &filePath)
 {
     if (FileUtil::FileExists(filePath)) {
         return;
@@ -376,6 +377,13 @@ void CreateTracePath(const std::string &filePath)
         HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
         return;
     }
+}
+
+void CreateTracePath()
+{
+    CreateTracePathInner(UNIFIED_SHARE_PATH);
+    CreateTracePathInner(UNIFIED_SPECIAL_PATH);
+    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
 }
 } // HiViewDFX
 } // OHOS

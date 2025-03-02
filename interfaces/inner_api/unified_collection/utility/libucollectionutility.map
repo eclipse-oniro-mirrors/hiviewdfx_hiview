@@ -41,6 +41,7 @@
       "OHOS::HiviewDFX::TraceFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, int, unsigned long)";
       "OHOS::HiviewDFX::TraceFactory::CreateAppStrategy(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
+      "OHOS::HiviewDFX::CreateTracePath()";
     };
   local:
     *;

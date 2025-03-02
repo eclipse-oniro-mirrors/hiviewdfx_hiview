@@ -45,7 +45,6 @@ constexpr int32_t ERR_DEFAULT = -1;
 
 HiviewService::HiviewService()
 {
-    traceCollector_ = UCollectUtil::TraceCollector::Create();
     cpuCollector_ = UCollectUtil::CpuCollector::Create();
     graphicMemoryCollector_ = UCollectUtil::GraphicMemoryCollector::Create();
 }

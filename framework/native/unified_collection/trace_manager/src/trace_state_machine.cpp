@@ -17,8 +17,7 @@
 #include "hiview_logger.h"
 #include "unistd.h"
 
-namespace OHOS {
-namespace HiviewDFX {
+namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
 const std::vector<std::string> TAG_GROUPS = {"scene_performance"};
@@ -36,10 +35,10 @@ TraceRet TraceStateMachine::OpenDynamicTrace(int32_t appid)
     return currentState_->OpenAppTrace(appid);
 }
 
-TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args)
+TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
-    return currentState_->OpenTelemetryTrace(args);
+    return currentState_->OpenTelemetryTrace(args, telemetryId);
 }
 
 TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
@@ -127,10 +126,10 @@ void TraceStateMachine::TransToCommonDropState()
 }
 
 
-void TraceStateMachine::TransToTeleMetryState()
+void TraceStateMachine::TransToTeleMetryState(const std::string &telemetryId)
 {
     HIVIEW_LOGI("to telemetry state");
-    currentState_ = std::make_shared<TelemetryState>();
+    currentState_ = std::make_shared<TelemetryState>(telemetryId);
 }
 
 void TraceStateMachine::TransToCloseState()
@@ -276,7 +275,7 @@ TraceRet TraceBaseState::SetCacheParams(int32_t totalFileSize, int32_t sliceMaxD
     return TraceRet(TraceStateCode::FAIL);
 }
 
-TraceRet TraceBaseState::OpenTelemetryTrace(const std::string &args)
+TraceRet TraceBaseState::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
 {
     HIVIEW_LOGW(":%{public}s, invoke state deny", GetTag().c_str());
     return TraceRet(TraceStateCode::DENY);
@@ -626,7 +625,7 @@ TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::string &args
     return TraceBaseState::OpenTrace(scenario, args);
 }
 
-TraceRet DynamicState::OpenTelemetryTrace(const std::string &args)
+TraceRet DynamicState::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
 {
     if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
         HIVIEW_LOGE("%{public}s:  CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
@@ -637,7 +636,7 @@ TraceRet DynamicState::OpenTelemetryTrace(const std::string &args)
     if (ret != TraceErrorCode::SUCCESS) {
         return TraceRet(ret);
     }
-    TraceStateMachine::GetInstance().TransToTeleMetryState();
+    TraceStateMachine::GetInstance().TransToTeleMetryState(telemetryId);
     return {};
 }
 
@@ -647,14 +646,14 @@ TraceRet DynamicState::OpenAppTrace(int32_t appPid)
     return TraceRet(TraceStateCode::DENY);
 }
 
-TraceRet CloseState::OpenTelemetryTrace(const std::string &args)
+TraceRet CloseState::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
 {
     auto ret = args.empty() ? Hitrace::OpenTrace(TELEMETRY_TAG_GROUPS_DEFAULT) : Hitrace::OpenTrace(args);
     HIVIEW_LOGI("%{public}s: args:%{public}s: result:%{public}d", GetTag().c_str(), args.c_str(), ret);
     if (ret != TraceErrorCode::SUCCESS) {
         return TraceRet(ret);
     }
-    TraceStateMachine::GetInstance().TransToTeleMetryState();
+    TraceStateMachine::GetInstance().TransToTeleMetryState(telemetryId);
     return {};
 }
 
@@ -673,6 +672,5 @@ TraceRet CloseState::OpenAppTrace(int32_t appPid)
 TraceRet CloseState::CloseTrace(TraceScenario scenario)
 {
     return {};
-}
 }
 }
