@@ -62,7 +62,6 @@ struct GwpAsanCurrInfo {
 
 void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath);
 std::string GetNameByPid(int32_t pid);
-std::string CalcCollectedLogName(const GwpAsanCurrInfo &currInfo);
 std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType);
 std::string GetTopStackWithoutCommonLib(const std::string& description);
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo);
