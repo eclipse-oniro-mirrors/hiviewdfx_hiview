@@ -121,6 +121,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
     TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
+        dumpEvent.errorCode = GetUcError(ret);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
@@ -161,6 +162,7 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
     TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
+        dumpEvent.errorCode = GetUcError(ret);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
