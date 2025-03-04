@@ -93,8 +93,9 @@ struct TraceRet {
 
     bool IsSuccess()
     {
-        return stateError_ == TraceStateCode::SUCCESS && codeError_ == TraceErrorCode::SUCCESS
-            && flowError_ == TraceFlowCode::TRACE_ALLOW;
+        return stateError_ == TraceStateCode::SUCCESS &&
+            (codeError_ == TraceErrorCode::SUCCESS || codeError_ == TraceErrorCode::SUCCESS_WITH_CACHE) &&
+            flowError_ == TraceFlowCode::TRACE_ALLOW;
     }
 
     TraceStateCode stateError_ = TraceStateCode::SUCCESS;
