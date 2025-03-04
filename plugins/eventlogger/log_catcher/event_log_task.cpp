@@ -108,6 +108,7 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 #endif // OTHER_CATCHER_ENABLE
 #ifdef HILOG_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("T", [this] { this->HilogCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("T:power", [this] { this->HilogTagCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("t", [this] { this->LightHilogCapture(); }));
 #endif // HILOG_CATCHER_ENABLE
 #ifdef DMESG_CATCHER_ENABLE
@@ -120,6 +121,10 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 #ifdef HITRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("tr", [this] { this->HitraceCapture(); }));
 #endif // HITRACE_CATCHER_ENABLE
+    AddCapture();
+}
+void EventLogTask::AddCapture()
+{
 #ifdef SCB_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:scbCS",
         [this] { this->SCBSessionCapture(); }));
@@ -386,6 +391,10 @@ bool EventLogTask::PeerBinderCapture(const std::string &cmd)
 #ifdef DMESG_CATCHER_ENABLE
 void EventLogTask::DmesgCapture()
 {
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGI("the version is not a beta version");
+        return;
+    }
     auto capture = std::make_shared<DmesgCatcher>();
     capture->Initialize("", 0, 0);
     capture->Init(event_);
@@ -408,12 +417,23 @@ void EventLogTask::SysrqCapture(bool isWriteNewFile)
 #ifdef HILOG_CATCHER_ENABLE
 void EventLogTask::HilogCapture()
 {
-    auto capture = std::make_shared<ShellCatcher>();
-    if (event_->eventName_ == "SCREEN_ON") {
-        capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
-    } else {
-        capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGI("the version is not a beta version");
+        return;
     }
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hilog -x", ShellCatcher::CATCHER_HILOG, 0);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::HilogTagCapture()
+{
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGI("the version is not a beta version");
+        return;
+    }
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
     tasks_.push_back(capture);
 }
 
@@ -516,6 +536,10 @@ void EventLogTask::DPMSUsageCapture()
 
 void EventLogTask::RSUsageCapture()
 {
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGI("the version is not a beta version");
+        return;
+    }
     auto capture = std::make_shared<ShellCatcher>();
     capture->Initialize("hidumper -s RenderService -a allInfo", ShellCatcher::CATCHER_RS, pid_);
     tasks_.push_back(capture);
@@ -632,10 +656,10 @@ void EventLogTask::Screenshot()
 
 void EventLogTask::GetThermalInfo(int fd)
 {
-    FreezeCommon::WriteStartInfoToFd(fd, "start collect hotInfo: ");
+    FreezeCommon::WriteStartInfoToFd(fd, "collect ThermalLevel start time: ");
     PowerMgr::ThermalLevel temp = PowerMgr::ThermalMgrClient::GetInstance().GetThermalLevel();
     int tempNum = static_cast<int>(temp);
-    FileUtil::SaveStringToFd(fd, "\n ThermalMgrClient info: " + std::to_string(tempNum) + "\n");
+    FileUtil::SaveStringToFd(fd, "\ncollect ThermalLevel end time: " + std::to_string(tempNum) + "\n");
     FreezeCommon::WriteEndInfoToFd(fd, "\nend collect hotInfo: ");
 }
 } // namespace HiviewDFX
