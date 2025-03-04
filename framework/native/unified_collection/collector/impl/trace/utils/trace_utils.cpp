@@ -208,6 +208,7 @@ void CopyFile(const std::string &src, const std::string &dst)
     if (ret != 0) {
         HIVIEW_LOGE("copy file failed, file is %{public}s.", src.c_str());
     }
+    HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
 }
 
 /*
@@ -272,7 +273,6 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
             TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
         }
         files.push_back(dst);
-        HIVIEW_LOGI("trace file : %{public}s.", dst.c_str());
     }
     return files;
 }
