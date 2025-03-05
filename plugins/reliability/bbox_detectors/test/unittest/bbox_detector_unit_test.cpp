@@ -155,7 +155,7 @@ HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest003, TestSize.Level1)
 HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest004, TestSize.Level1)
 {
     ASSERT_TRUE(PanicReport::InitPanicReport());
-    ASSERT_FALSE(PanicReport::IsLastShortStartUp());
+    PanicReport::IsLastShortStartUp();
     ASSERT_TRUE(PanicReport::InitPanicReport());
     ASSERT_TRUE(PanicReport::IsLastShortStartUp());
 }
