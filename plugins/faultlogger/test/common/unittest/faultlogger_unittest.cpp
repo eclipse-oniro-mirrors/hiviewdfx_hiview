@@ -772,6 +772,19 @@ HWTEST_F(FaultloggerUnittest, FaultlogManager001, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: FaultLogManager::FaultlogManager
+ * @tc.desc: Test calling FaultlogManager Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultlogManager002, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    std::list<std::string> infoVec = {"1", "2", "3", "4", "5"};
+    faultLogManager->ReduceLogFileListSize(infoVec, 1);
+    ASSERT_EQ(infoVec.size(), 1);
+}
+
+/**
  * @tc.name: FaultLogManager::GetFaultLogFileList
  * @tc.desc: Test calling GetFaultLogFileList Func
  * @tc.type: FUNC
@@ -782,6 +795,38 @@ HWTEST_F(FaultloggerUnittest, GetFaultLogFileList001, testing::ext::TestSize.Lev
     faultLogManager->Init();
     std::list<std::string> fileList = faultLogManager->GetFaultLogFileList("FaultloggerUnittest", 1607161344, 0, 2, 1);
     ASSERT_EQ(fileList.size(), 1);
+}
+
+/**
+ * @tc.name: FaultLogManager::WriteFaultLogToFile
+ * @tc.desc: Test calling WriteFaultLogToFile Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, WriteFaultLogToFile001, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    FaultLogInfo info {
+        .time = 1607161345,
+        .id = 0,
+        .faultLogType = 2,
+        .module = ""
+    };
+    info.faultLogType = FaultLogType::JS_CRASH;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::SYS_FREEZE;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::SYS_WARNING;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::RUST_PANIC;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::ADDR_SANITIZER;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::ADDR_SANITIZER;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::ALL;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    ASSERT_EQ(info.pid, 0);
 }
 
 /**
@@ -803,6 +848,56 @@ HWTEST_F(FaultloggerUnittest, GetFaultLogContent001, testing::ext::TestSize.Leve
     std::string content;
     ASSERT_TRUE(faultLogManager->GetFaultLogContent(fileName, content));
     ASSERT_EQ(content, "testContent");
+}
+
+/**
+ * @tc.name: FaultLogManager::GetFaultLogName
+ * @tc.desc: Test calling GetFaultLogName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFaultLogContent002, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    FaultLogInfo info {
+        .time = 1607161345,
+        .id = 0,
+        .faultLogType = FaultLogType::ADDR_SANITIZER,
+        .module = "FaultloggerUnittest"
+    };
+    info.sanitizerType = "ASAN";
+    std::string fileName = GetFaultLogName(info);
+    ASSERT_EQ(fileName, "asan-FaultloggerUnittest-0-20201205174225345.log");
+    info.sanitizerType = "HWASAN";
+    fileName = GetFaultLogName(info);
+    ASSERT_EQ(fileName, "hwasan-FaultloggerUnittest-0-20201205174225345.log");
+    string type = "sanitizer";
+    ASSERT_EQ(GetLogTypeByName(type), FaultLogType::ADDR_SANITIZER);
+    type = "cjerror";
+    ASSERT_EQ(GetLogTypeByName(type), FaultLogType::CJ_ERROR);
+}
+
+/**
+ * @tc.name: FaultLogManager::GetDebugSignalTempLogName
+ * @tc.desc: Test calling GetDebugSignalTempLogName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetDebugSignalTempLogName001, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    FaultLogInfo info {
+        .time = 1607161345,
+        .id = 0,
+        .faultLogType = FaultLogType::ADDR_SANITIZER,
+        .module = "FaultloggerUnittest"
+    };
+    string fileName = GetDebugSignalTempLogName(info);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-0-1607161345");
+    fileName = GetSanitizerTempLogName(info.pid, info.time);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/sanitizer-0-1607161345");
+    string str;
+    ASSERT_EQ(GetThreadStack(str, 0), "");
 }
 
 /**
@@ -974,6 +1069,18 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest002, testing::ext::TestSize.Level3
     ASSERT_EQ(info6.pid, 10006); // 10006 : test uid
 }
 
+/**
+ * @tc.name: FaultLogUtilTest003
+ * @tc.desc: check ExtractInfoFromFileName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest003, testing::ext::TestSize.Level3)
+{
+    std::string filename = "appfreeze";
+    auto info = ExtractInfoFromFileName(filename);
+    ASSERT_EQ(info.pid, 0);
+    ASSERT_EQ(info.time, 0);
+}
 /**
  * @tc.name: FaultloggerAdapter.StartService
  * @tc.desc: Test calling FaultloggerAdapter.StartService Func
@@ -1773,6 +1880,21 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest001, testing::ext::TestSize.Le
 
     str = RegulateModuleNameIfNeed("");
     ASSERT_EQ(str, "");
+}
+
+/**
+ * @tc.name: FaultlogUtilUnittest002
+ * @tc.desc: test GetFaultNameByType
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest002, testing::ext::TestSize.Level3)
+{
+    std::string result = GetFaultNameByType(FaultLogType::SYS_FREEZE, false);
+    ASSERT_EQ(result, "SYS_FREEZE");
+    result = GetFaultNameByType(FaultLogType::SYS_WARNING, false);
+    ASSERT_EQ(result, "SYS_WARNING");
+    result = GetFaultNameByType(FaultLogType::CJ_ERROR, false);
+    ASSERT_EQ(result, "CJ_ERROR");
 }
 
 /**
