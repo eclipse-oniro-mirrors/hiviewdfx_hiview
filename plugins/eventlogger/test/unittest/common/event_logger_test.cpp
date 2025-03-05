@@ -956,17 +956,24 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckString_001, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_SetEventTerminalBinder_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
-    std::string threadStack = "thread stack";
-    std::string threadStackFromLogTask = "thread stack from log task";
+    eventLogger->OnLoad();
     auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("testSender", nullptr, jsonStr);
-    int fd = 2025;
-    event->eventName_ = "APP_INPUT_BLOCK";
-    eventLogger->SetEventTerminalBinder(event, threadStack, threadStackFromLogTask, fd);
-    EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), threadStack);
+    event->eventName_ = "THREAD_BLOCK_3S";
+    std::string threadStack = "";
+    eventLogger->SetEventTerminalBinder(event, threadStack, 0);
+    EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "");
+    threadStack = "thread_block_3s thread stack";
+    int fd = eventLogger->logStore_->CreateLogFile("test_thread_stack_file");
+    if (fd > 0) {
+        eventLogger->SetEventTerminalBinder(event, threadStack, fd);
+        EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "thread_block_3s thread stack");
+        close(fd);
+    }
+    threadStack = "ipc_full thread stack";
     event->eventName_ = "IPC_FULL";
-    eventLogger->SetEventTerminalBinder(event, threadStack, threadStackFromLogTask, fd);
-    EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), threadStackFromLogTask);
+    eventLogger->SetEventTerminalBinder(event, threadStack, 0);
+    EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "ipc_full thread stack");
 }
 
 /**
