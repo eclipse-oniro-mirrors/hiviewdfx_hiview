@@ -252,11 +252,11 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
         } else if (strList.size() >= ARR_SIZE) { // 7: valid array size
             BinderInfo info = {0};
             OutputBinderInfo outputInfo;
-            // 2: binder peer id,
+            // 2: peer id,
             std::string server = strSplit(strList[2], 0);
-            // 0: binder local id,
+            // 0: local id,
             std::string client = strSplit(strList[0], 0);
-            // 5: binder wait time, s
+            // 5: wait time, s
             std::string wait = strSplit(strList[5], 1);
             if (server == "" || client == "" || wait == "") {
                 HIVIEW_LOGI("server:%{public}s, client:%{public}s, wait:%{public}s",

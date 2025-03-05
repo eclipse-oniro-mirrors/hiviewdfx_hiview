@@ -612,6 +612,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPluginTest006, TestSize.Level3)
     auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
     auto event = std::make_shared<Event>("sender", "event");
     freezeDetectorPlugin->OnEventListeningCallback(*(event.get()));
+    ASSERT_TRUE(freezeDetectorPlugin != nullptr);
 }
 
 /**

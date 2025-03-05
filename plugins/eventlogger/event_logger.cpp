@@ -445,7 +445,7 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
         if (strList.size() < 7) { // less than 7: valid array size
             continue;
         }
-        // 2: binder peer id
+        // 2: peer id
         std::string pidStr = strList[2].substr(0, strList[2].find(":"));
         if (pidStr == "") {
             continue;
