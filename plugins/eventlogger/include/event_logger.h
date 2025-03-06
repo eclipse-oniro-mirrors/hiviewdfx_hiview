@@ -44,14 +44,6 @@ struct BinderInfo {
     unsigned long wait;
 };
 
-struct TerminalBinder {
-    long pid;
-    uint64_t happenTime;
-    std::string eventName;
-    std::string processName;
-    std::string threadStack;
-};
-
 class EventLogger : public EventListener, public Plugin {
 public:
     EventLogger() : logStore_(std::make_shared<LogStoreEx>(LOGGER_EVENT_LOG_PATH, true)),
@@ -70,7 +62,6 @@ private:
 #ifdef WINDOW_MANAGER_ENABLE
     std::vector<uint64_t> backTimes_;
 #endif
-    TerminalBinder terminalBinder_ = {0, 0, "", "", ""};
     std::unique_ptr<DBHelper> dbHelper_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::shared_ptr<LogStoreEx> logStore_;
@@ -82,7 +73,6 @@ private:
     std::shared_ptr<EventLoop> threadLoop_ = nullptr;
     int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
-    ffrt::mutex terminalBinderMutex_;
 #ifdef MULTIMODALINPUT_INPUT_ENABLE
     std::unique_ptr<ActiveKeyEvent> activeKeyEvent_;
 #endif
@@ -100,8 +90,7 @@ private:
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
     std::string StabilityGetTempFreqInfo();
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
-    void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
-        const std::string& threadStackFromLogTask, int fd);
+    void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);

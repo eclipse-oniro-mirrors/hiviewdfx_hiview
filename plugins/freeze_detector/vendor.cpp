@@ -275,10 +275,11 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
             std::string logContent = ss.str();
             size_t startPos = logContent.find(THREAD_STACK_START);
             size_t endPos = logContent.find(THREAD_STACK_END, startPos);
-            if (startPos != std::string::npos && endPos != std::string::npos) {
+            if (startPos != std::string::npos && endPos != std::string::npos && endPos > startPos) {
                 size_t startSize = strlen(THREAD_STACK_START);
                 std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
                 watchPoint.SetTerminalThreadStack(threadStack);
+                logContent.erase(startPos, endPos - startPos + strlen(THREAD_STACK_END));
             }
             body << logContent << std::endl;
         } else {
