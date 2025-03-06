@@ -170,11 +170,12 @@ bool RawData::Update(uint8_t* data, size_t len, size_t pos)
     auto ret = EOK;
     if ((pos + len) > capacity_) {
         size_t expandedSize = (len > EXPAND_BUF_SIZE) ? len : EXPAND_BUF_SIZE;
-        uint8_t* resizedData = new(std::nothrow) uint8_t[capacity_ + expandedSize];
+        size_t expandedCapacity = capacity_ + expandedSize;
+        uint8_t* resizedData = new(std::nothrow) uint8_t[expandedCapacity];
         if (resizedData == nullptr) {
             return false;
         }
-        ret = memcpy_s(resizedData, len_, data_, len_);
+        ret = memcpy_s(resizedData, expandedCapacity, data_, len_);
         if (ret != EOK) {
             HIVIEW_LOGE("Failed to expand capacity of raw data, ret is %{public}d.", ret);
             delete[] resizedData;
@@ -185,7 +186,7 @@ bool RawData::Update(uint8_t* data, size_t len, size_t pos)
         data_ = resizedData;
     }
     // append new data
-    ret = memcpy_s(data_ + pos, len, data, len);
+    ret = memcpy_s(data_ + pos, capacity_ - pos, data, len);
     if (ret != EOK) {
         HIVIEW_LOGE("Failed to append new data, ret is %{public}d.", ret);
         return false;
