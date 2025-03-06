@@ -165,10 +165,7 @@ void SysEventSource::OnLoad()
     InitController();
 
     // start sys event service
-    auto notifyFunc = [&] (std::shared_ptr<Event> event) -> void {
-        this->GetHiviewContext()->PostUnorderedEvent(shared_from_this(), event);
-    };
-    SysEventServiceAdapter::StartService(this, notifyFunc);
+    SysEventServiceAdapter::StartService(this);
     SysEventServiceAdapter::SetWorkLoop(looper);
 
     // watch parameter

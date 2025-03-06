@@ -150,7 +150,6 @@ bool IsNativeCaller()
 }
 }
 
-NotifySysEvent SysEventServiceOhos::gISysEventNotify_;
 sptr<SysEventServiceOhos> SysEventServiceOhos::instance(new SysEventServiceOhos);
 
 sptr<SysEventServiceOhos> SysEventServiceOhos::GetInstance()
@@ -158,10 +157,8 @@ sptr<SysEventServiceOhos> SysEventServiceOhos::GetInstance()
     return instance;
 }
 
-void SysEventServiceOhos::StartService(SysEventServiceBase *service,
-    const NotifySysEvent notify)
+void SysEventServiceOhos::StartService(SysEventServiceBase *service)
 {
-    gISysEventNotify_ = notify;
     GetSysEventService(service);
     sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
@@ -218,17 +215,6 @@ void SysEventServiceOhos::OnRemoteDied(const wptr<IRemoteObject>& remote)
     if (remoteObject == nullptr) {
         HIVIEW_LOGE("object in remote is null.");
         return;
-    }
-    if (debugModeCallback_ != nullptr) {
-        OHOS::sptr<OHOS::IRemoteObject> callbackObject = debugModeCallback_->AsObject();
-        if (callbackObject == remoteObject && isDebugMode_) {
-            HIVIEW_LOGE("quit debugmode.");
-            auto event = std::make_shared<Event>("SysEventSource");
-            event->messageType_ = Event::ENGINE_SYSEVENT_DEBUG_MODE;
-            event->SetValue("DEBUGMODE", "false");
-            gISysEventNotify_(event);
-            isDebugMode_ = false;
-        }
     }
     lock_guard<mutex> lock(listenersMutex_);
     auto listener = registeredListeners_.find(remoteObject);
@@ -429,26 +415,6 @@ bool SysEventServiceOhos::HasAccessPermission() const
         return true;
     }
     return false;
-}
-
-ErrCode SysEventServiceOhos::SetDebugMode(const OHOS::sptr<ISysEventCallback>& callback, bool mode)
-{
-    if (!HasAccessPermission() || !IsNativeCaller()) {
-        return ERR_NO_PERMISSION;
-    }
-    if (mode == isDebugMode_) {
-        HIVIEW_LOGE("same config, no need set");
-        return ERR_DEBUG_MODE_SET_REPEAT;
-    }
-    auto event = std::make_shared<Event>("SysEventSource");
-    event->messageType_ = Event::ENGINE_SYSEVENT_DEBUG_MODE;
-    event->SetValue("DEBUGMODE", mode ? "true" : "false");
-    gISysEventNotify_(event);
-
-    HIVIEW_LOGD("set debug mode %{public}s", mode ? "true" : "false");
-    debugModeCallback_ = callback;
-    isDebugMode_ = mode;
-    return IPC_CALL_SUCCEED;
 }
 
 int SysEventServiceOhos::Dump(int32_t fd, const std::vector<std::u16string> &args)
