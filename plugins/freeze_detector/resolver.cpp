@@ -31,6 +31,7 @@ namespace {
     static const int MINUTES_IN_HOUR = 60;
     static const int MIN_MATCH_NUM = 2;
     static const int DEFAULT_HOURS = 10;
+    static const int SYS_MATCH_NUM = 1;
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -100,6 +101,11 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
         return res.GetAction() == "or";
     })) {
         return list.size() >= MIN_MATCH_NUM;
+    }
+
+    if ((watchPoint.GetStringId() == "SERVICE_WARNING" || watchPoint.GetStringId() ==
+        "THREAD_BLOCK_3S") && (list.size() == result.size() - SYS_MATCH_NUM)) {
+        return true;
     }
 
     if (list.size() == result.size()) {
