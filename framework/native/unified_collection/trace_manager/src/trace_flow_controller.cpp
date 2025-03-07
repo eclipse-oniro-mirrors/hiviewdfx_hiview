@@ -185,21 +185,29 @@ CacheFlow TraceFlowController::UseCacheTimeQuota(int32_t interval)
     return CacheFlow::SUCCESS;
 }
 
-TelemetryFlow TraceFlowController::InitTelemetryData(const std::map<std::string, int64_t>& flowControlQuotas,
-    int64_t &beginTime, int64_t &endTime)
+TelemetryRet TraceFlowController::InitTelemetryTime(const std::string &telemetryId, int64_t &bTime, int64_t &eTime)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage");
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
-    return teleMetryStorage_->InitTelemetryData(flowControlQuotas, beginTime, endTime);
+    return teleMetryStorage_->InitTelemetryTime(telemetryId, bTime, eTime);
 }
 
-TelemetryFlow TraceFlowController::NeedTelemetryDump(const std::string &module, int64_t traceSize)
+TelemetryRet TraceFlowController::InitTelemetryFlow(const std::map<std::string, int64_t>& flowControlQuotas)
+{
+    if (teleMetryStorage_ == nullptr) {
+        HIVIEW_LOGE("failed to init teleMetryStorage");
+        return TelemetryRet::EXIT;
+    }
+    return teleMetryStorage_->InitTelemetryFlow(flowControlQuotas);
+}
+
+TelemetryRet TraceFlowController::NeedTelemetryDump(const std::string &module, int64_t traceSize)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage, close task");
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
     return teleMetryStorage_->NeedTelemetryDump(module, traceSize);
 }
@@ -211,6 +219,15 @@ void TraceFlowController::ClearTelemetryData()
         return;
     }
     return teleMetryStorage_->ClearTelemetryData();
+}
+
+void TraceFlowController::ClearTelemetryFlow()
+{
+    if (teleMetryStorage_ == nullptr) {
+        HIVIEW_LOGE("failed to init teleMetryStorage, return");
+        return;
+    }
+    return teleMetryStorage_->ClearTelemetryFlow();
 }
 } // HiViewDFX
 } // OHOS

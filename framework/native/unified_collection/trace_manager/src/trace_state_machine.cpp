@@ -123,7 +123,7 @@ void TraceStateMachine::TransToCommonDropState()
 void TraceStateMachine::TransToTeleMetryState(const std::string &telemetryId)
 {
     HIVIEW_LOGI("to telemetry state");
-    currentState_ = std::make_shared<TelemetryState>(telemetryId);
+    currentState_ = std::make_shared<TelemetryState>();
 }
 
 void TraceStateMachine::TransToCloseState()
@@ -206,6 +206,12 @@ TraceRet TraceStateMachine::RecoverState()
 
     // trace froze or UCollection switch is open or isBetaVersion
     return InitCommonState();
+}
+
+bool TraceStateMachine::RegisterTelemetryCallback(std::function<void()> func)
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->RegisterTelemetryCallback(std::move(func));
 }
 
 TraceRet TraceBaseState::CloseTrace(TraceScenario scenario)

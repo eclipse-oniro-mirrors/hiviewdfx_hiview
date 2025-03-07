@@ -80,6 +80,7 @@ struct DumpEvent {
 namespace TelemetryEvent {
 const std::string TELEMETRY_START = "telemetryStart";
 const std::string TELEMETRY_STOP = "telemetryStop";
+const std::string TELEMETRY_TIMEOUT = "telemetryTimeout";
 }
 
 UcError TransCodeToUcError(TraceErrorCode ret);

@@ -30,6 +30,7 @@ private:
     int32_t CreateAppTaskTable(NativeRdb::RdbStore& rdbStore);
     int32_t CreateTraceBehaviorDbHelperTable(NativeRdb::RdbStore& rdbStore);
     int32_t CreateTelemetryFlowControlTable(NativeRdb::RdbStore& rdbStore);
+    int32_t CreateTelemetryTimeTable(NativeRdb::RdbStore &rdbStore);
 };
 }
 }

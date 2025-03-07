@@ -20,12 +20,14 @@ namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("TeleMetryStorage");
 namespace {
 const std::string TABLE_TELEMETRY_FLOW_CONTROL = "telemetry_flow_control";
+const std::string TABLE_TELEMETRY_TIME_CONTROL = "telemetry_time_control";
 const std::string COLUMN_MODULE_NAME = "module";
 const std::string COLUMN_START_TIME = "start_time";
 const std::string COLUMN_FINISH_TIME = "finish_time";
 const std::string COLUMN_USED_SIZE = "used_size";
 const std::string COLUMN_QUOTA = "quota";
 const std::string COLUMN_THRESHOLD = "threshold";
+const std::string COLUMN_TELEMTRY_ID = "telemetry_id";
 const std::string TOATL = "Total";
 }
 
@@ -60,33 +62,72 @@ void TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
     }
 }
 
-TelemetryFlow TeleMetryStorage::InitTelemetryData(const std::map<std::string, int64_t> &flowControlQuotas,
-    int64_t &beginTime, int64_t &endTime)
+TelemetryRet TeleMetryStorage::InitTelemetryTime(const std::string &telemetryId, int64_t &beginTime, int64_t &endTime)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("Open db failed");
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
     auto [errcode, transaction] = dbStore_->CreateTransaction(NativeRdb::Transaction::DEFERRED);
     if (errcode != NativeRdb::E_OK || transaction == nullptr) {
         HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_FLOW_CONTROL);
-    predicates.EqualTo(COLUMN_MODULE_NAME, TOATL);
+    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_TIME_CONTROL);
+    predicates.EqualTo(COLUMN_TELEMTRY_ID, telemetryId);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_START_TIME, COLUMN_FINISH_TIME});
     if (resultSet == nullptr) {
         HIVIEW_LOGW("resultSet == nullptr");
         transaction->Commit();
-        return TelemetryFlow::SUCCESS;
+        return TelemetryRet::EXIT;
     }
     if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
-        HIVIEW_LOGW("reboot scenario, data already init, update begin end time");
+        HIVIEW_LOGI("restart telemetry, update input begin/end time");
         resultSet->GetLong(0, beginTime); // 0 means used_size field
         resultSet->GetLong(1, endTime); // 1 means quota field
         resultSet->Close();
         transaction->Commit();
-        return TelemetryFlow::SUCCESS;
+        return TelemetryRet::SUCCESS;
+    }
+    resultSet->Close();
+    HIVIEW_LOGI("new telemetry start, insert begin end time");
+    NativeRdb::ValuesBucket bucket;
+    bucket.PutString(COLUMN_TELEMTRY_ID, telemetryId);
+    bucket.PutLong(COLUMN_START_TIME, beginTime);
+    bucket.PutLong(COLUMN_FINISH_TIME, endTime);
+    int64_t seq = 0;
+    if (dbStore_->Insert(seq, TABLE_TELEMETRY_TIME_CONTROL, bucket) != NativeRdb::E_OK) {
+        HIVIEW_LOGW("failed to insert time table");
+        transaction->Commit();
+        return TelemetryRet::EXIT;
+    }
+    transaction->Commit();
+    return TelemetryRet::SUCCESS;
+}
+
+TelemetryRet TeleMetryStorage::InitTelemetryFlow(const std::map<std::string, int64_t> &flowControlQuotas)
+{
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("Open db failed");
+        return TelemetryRet::EXIT;
+    }
+    auto [errcode, transaction] = dbStore_->CreateTransaction(NativeRdb::Transaction::DEFERRED);
+    if (errcode != NativeRdb::E_OK || transaction == nullptr) {
+        HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
+        return TelemetryRet::EXIT;
+    }
+    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_TIME_CONTROL);
+    predicates.EqualTo(COLUMN_MODULE_NAME, TOATL);
+    auto resultSet = dbStore_->Query(predicates, {COLUMN_QUOTA});
+    if (resultSet == nullptr) {
+        HIVIEW_LOGW("resultSet == nullptr");
+        transaction->Commit();
+        return TelemetryRet::EXIT;
+    }
+    if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
+        HIVIEW_LOGW("flow control data aleady init");
+        transaction->Commit();
+        return TelemetryRet::SUCCESS;
     }
     std::vector<NativeRdb::ValuesBucket> valuesBuckets;
     for (const auto& quotaPair: flowControlQuotas) {
@@ -94,32 +135,29 @@ TelemetryFlow TeleMetryStorage::InitTelemetryData(const std::map<std::string, in
         bucket.PutString(COLUMN_MODULE_NAME, quotaPair.first);
         bucket.PutLong(COLUMN_USED_SIZE, 0);
         bucket.PutLong(COLUMN_QUOTA, quotaPair.second);
-        if (quotaPair.first == TOATL) {
-            bucket.PutLong(COLUMN_START_TIME, beginTime);
-            bucket.PutLong(COLUMN_FINISH_TIME, endTime);
-        }
         valuesBuckets.push_back(bucket);
     }
     int64_t outInsertNum;
     int result = dbStore_->BatchInsert(outInsertNum, TABLE_TELEMETRY_FLOW_CONTROL, valuesBuckets);
     if (result != NativeRdb::E_OK) {
         HIVIEW_LOGE("Insert batch operation failed, result: %{public}d.", result);
+        transaction->Commit();
+        return TelemetryRet::EXIT;
     }
-    resultSet->Close();
     transaction->Commit();
-    return TelemetryFlow::SUCCESS;
+    return TelemetryRet::SUCCESS;
 }
 
-TelemetryFlow TeleMetryStorage::NeedTelemetryDump(const std::string &module, int64_t traceSize)
+TelemetryRet TeleMetryStorage::NeedTelemetryDump(const std::string &module, int64_t traceSize)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("Open db failed");
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
     auto [errcode, transaction] = dbStore_->CreateTransaction(NativeRdb::Transaction::DEFERRED);
     if (errcode != NativeRdb::E_OK || transaction == nullptr) {
         HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
     int64_t usedSize = 0;
     int64_t quotaSize = 0;
@@ -128,7 +166,7 @@ TelemetryFlow TeleMetryStorage::NeedTelemetryDump(const std::string &module, int
     if (!QueryTable(module, usedSize, quotaSize) || !QueryTable(TOATL, totalUsedSize, totalQuotaSize)) {
         transaction->Commit();
         HIVIEW_LOGE("db data init failed");
-        return TelemetryFlow::EXIT;
+        return TelemetryRet::EXIT;
     }
     usedSize += traceSize;
     totalUsedSize += traceSize;
@@ -136,12 +174,12 @@ TelemetryFlow TeleMetryStorage::NeedTelemetryDump(const std::string &module, int
         transaction->Commit();
         HIVIEW_LOGI("%{public}s over flow usedSize:%{public}lu totalUsedSize:%{public}lu", module.c_str(),
             static_cast<long>(usedSize), static_cast<long>(totalUsedSize));
-        return TelemetryFlow::OVER_FLOW;
+        return TelemetryRet::OVER_FLOW;
     }
     UpdateTable(module, usedSize);
     UpdateTable(TOATL, totalUsedSize);
     transaction->Commit();
-    return TelemetryFlow::SUCCESS;
+    return TelemetryRet::SUCCESS;
 }
 
 void TeleMetryStorage::ClearTelemetryData()
@@ -150,11 +188,25 @@ void TeleMetryStorage::ClearTelemetryData()
         HIVIEW_LOGE("clear db failed");
         return ;
     }
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_FLOW_CONTROL);
+    NativeRdb::AbsRdbPredicates predicates({TABLE_TELEMETRY_TIME_CONTROL});
     int32_t deleteRows = 0;
     int ret = dbStore_->Delete(deleteRows, predicates);
     if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to insert app event task, ret=%{public}d", ret);
+        HIVIEW_LOGE("failed to delete telemetry data, ret=%{public}d", ret);
+    }
+}
+
+void TeleMetryStorage::ClearTelemetryFlow()
+{
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("clear db failed");
+        return ;
+    }
+    NativeRdb::AbsRdbPredicates predicates({TABLE_TELEMETRY_FLOW_CONTROL});
+    int32_t deleteRows = 0;
+    int ret = dbStore_->Delete(deleteRows, predicates);
+    if (ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to delete telemetry flow, ret=%{public}d", ret);
     }
 }
 }

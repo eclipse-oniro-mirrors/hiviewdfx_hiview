@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "singleton.h"
@@ -43,9 +44,9 @@ public:
     virtual TraceRet TraceCacheOff();
     virtual TraceRet CloseTrace(TraceScenario scenario);
 
-    virtual std::string GetTelemetryId()
+    virtual bool RegisterTelemetryCallback(std::function<void()> func)
     {
-        return "invalid";
+        return false;
     }
 
     virtual uint64_t GetTaskBeginTime()
@@ -130,17 +131,24 @@ protected:
 
 class TelemetryState : public TraceBaseState {
 public:
-    explicit TelemetryState(const std::string &telemetryId) : telemetryId_(telemetryId) {}
+    ~TelemetryState() override
+    {
+        if (func_) {
+            func_();
+        }
+    }
+
+    bool RegisterTelemetryCallback(std::function<void()> func) override
+    {
+        func_ = std::move(func);
+        return true;
+    }
+
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
         TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
-
-    std::string GetTelemetryId() override
-    {
-        return telemetryId_;
-    }
 
 protected:
     std::string GetTag() override
@@ -149,7 +157,7 @@ protected:
     }
 
 private:
-    std::string telemetryId_;
+    std::function<void()> func_;
 };
 
 class DynamicState : public TraceBaseState {
@@ -205,29 +213,51 @@ protected:
 class TraceStateMachine : public OHOS::DelayedRefSingleton<TraceStateMachine> {
 public:
     TraceStateMachine();
+
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups);
+
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
+
     TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId);
+
     TraceRet OpenDynamicTrace(int32_t appid);
+
     TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
+
     TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
         TraceRetInfo &info);
+
     TraceRet TraceDropOn(TraceScenario scenario);
+
     TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info);
+
     TraceRet CloseTrace(TraceScenario scenario);
+
     TraceRet TraceCacheOn();
+
     TraceRet TraceCacheOff();
+
     TraceRet InitOrUpdateState();
+
     TraceRet InitCommonDropState();
+
     TraceRet InitCommonState();
 
     void TransToCommonState();
+
     void TransToCommandState();
+
     void TransToCommandDropState();
+
     void TransToCommonDropState();
+
     void TransToTeleMetryState(const std::string &telemetryId);
+
     void TransToDynamicState(int32_t appid);
+
     void TransToCloseState();
+
+    bool RegisterTelemetryCallback(std::function<void()> func);
 
     void SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration)
     {
@@ -238,11 +268,6 @@ public:
     int32_t GetCurrentAppPid()
     {
         return currentState_->GetAppPid();
-    }
-
-    std::string GetTelemetryId()
-    {
-        return currentState_->GetTelemetryId();
     }
 
     uint64_t GetTaskBeginTime()

@@ -18,24 +18,12 @@
 #include "time_util.h"
 #include "trace_utils.h"
 #include "hisysevent.h"
+#include "unified_common.h"
 
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("HiView-UnifiedCollector");
 namespace {
-const std::string KEY_ID = "telemetryId";
-const std::string KEY_SWITCH_STATUS = "telemetryStatus";
-const std::string SWITCH_ON = "on";
-const std::string SWITCH_OFF = "off";
-const std::string KEY_BUNDLE_NAME = "bundleName";
-const std::string KEY_TOTAL_QUOTA = "traceQuota";
-const std::string KEY_OPEN_TIME = "traceOpenTime";
-const std::string KEY_DURATION = "traceDuration";
-const std::string KEY_REMAIN_TIME = "remainTimeToStop";
-const std::string KEY_XPERF_QUOTA = "xperfTraceQuota";
-const std::string KEY_XPOWER_QUOTA = "xpowerTraceQuota";
-const std::string TOATL = "Total";
-const std::string KEY_FLOW_RATE = "traceCompressRatio";
-const std::string KEY_TRACE_TAG = "traceArgs";
+
 const int32_t DURATION_DEFAULT = 3600; // Seconds
 const uint32_t DEFAULT_RATIO = 7;
 const uint32_t BT_M_UNIT = 1024 * 1024;
@@ -50,42 +38,29 @@ const int64_t DEFAULT_TOTAL_SIZE = 350 * 1024 * 1024;
 void TelemetryListener::OnUnorderedEvent(const Event &msg)
 {
     bool isCloseMsg = false;
-    int64_t beginTime;
-    std::string telemetryId;
-    std::string errorMsg = GetValidParam(msg, isCloseMsg, beginTime, telemetryId);
-    std::string bundleName = msg.GetValue(KEY_BUNDLE_NAME);
-    if (errorMsg.empty()) { // no error in getting necessary params
-        if (isCloseMsg) {
-            SendStopEvent(msg);
-            return;
-        }
-
-        // Get telemetry trace duration time
-        int64_t traceDuration = msg.GetInt64Value(KEY_DURATION);
-        if (traceDuration <= 0) {
-            traceDuration = DURATION_DEFAULT;
-        }
-
-        // calculate telemetry trace end time
-        int64_t endTime = beginTime + traceDuration;
-
-        // In reboot scene, beginTime endTime will update to first start record
-        auto ret = InitTelemetryDb(msg, beginTime, endTime);
-        if (ret == TelemetryFlow::EXIT) {
-            errorMsg.append("InitTelemetryDb failed;");
-        } else {
-            StartMsg startMsg {beginTime, endTime, telemetryId, bundleName};
-            bool result = SendStartEvent(startMsg, msg, errorMsg);
-            HIVIEW_LOGI("beginTime:%{public}d, endTime:%{public}d, result:%{public}d",
-                static_cast<int>(beginTime), static_cast<int>(endTime), result);
-        }
-    }
+    std::string errorMsg = GetValidParam(msg, isCloseMsg, beginTime_, telemetryId_);
+    bundleName_ = msg.GetValue(Telemetry::KEY_BUNDLE_NAME);
     if (!errorMsg.empty()) {
-        HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-            "ID", telemetryId,
-            "STAGE", "TRACE_BEGIN",
-            "ERROR", errorMsg.c_str(),
-            "BUNDLE_NAME", bundleName);
+        return WriteErrorEvent(errorMsg);
+    }
+    if (isCloseMsg) {
+        SendStopEvent();
+        return;
+    }
+    if (auto timeRet = InitAndCorrectTimes(msg); timeRet == TelemetryRet::EXIT) {
+        return WriteErrorEvent("init telemetry time table fail");
+    }
+    if (auto flowRet = InitTelemetryFlow(msg); flowRet == TelemetryRet::EXIT) {
+        return WriteErrorEvent("init telemetry flow control table fail");
+    }
+
+    auto timeNow = TimeUtil::GetSeconds();
+    if (timeNow >= endTime_) {
+        return WriteErrorEvent("telemetry trace already time out");
+    } else if (timeNow > beginTime_ && timeNow < endTime_) {
+        SendStartEvent(msg,  endTime_ - timeNow);
+    } else {
+        SendStartEvent(msg, endTime_ - beginTime_, beginTime_ - timeNow);
     }
 }
 
@@ -93,33 +68,29 @@ std::string TelemetryListener::GetValidParam(const Event &msg, bool &isCloseMsg,
     std::string &telemetryId)
 {
     std::string errorMsg;
-    auto switchStatus = msg.GetValue(KEY_SWITCH_STATUS);
+    auto switchStatus = msg.GetValue(Telemetry::KEY_SWITCH_STATUS);
     if (switchStatus.empty()) {
-        HIVIEW_LOGE("switch status msg is null");
-        errorMsg.append("switchStatus empty;");
+        errorMsg.append("switchStatus get empty");
         return errorMsg;
     }
-    if (switchStatus == SWITCH_OFF) {
+    if (switchStatus == Telemetry::SWITCH_OFF) {
         isCloseMsg = true;
         return errorMsg;
     }
-    if (switchStatus != SWITCH_ON) {
-        HIVIEW_LOGE("switch status msg error %{public}s", switchStatus.c_str());
-        errorMsg.append("switchStatus param error;");
+    if (switchStatus != Telemetry::SWITCH_ON) {
+        errorMsg.append("switchStatus param get error");
         return errorMsg;
     }
-    telemetryId = msg.GetValue(KEY_ID);
+    telemetryId = msg.GetValue(Telemetry::KEY_ID);
     if (telemetryId.empty()) {
-        HIVIEW_LOGE("init msg error, start return");
-        errorMsg.append("telemetryId empty;");
+        errorMsg.append("telemetryId get empty");
         return errorMsg;
     }
 
     // Get begin time of telemetry trace
-    beginTime = msg.GetInt64Value(KEY_OPEN_TIME);
+    beginTime = msg.GetInt64Value(Telemetry::KEY_OPEN_TIME);
     if (beginTime < 0) {
-        HIVIEW_LOGE("get open time param fail, return fail");
-        errorMsg.append("begin time get failed;");
+        errorMsg.append("begin time get failed");
         return errorMsg;
     } else if (beginTime == 0) {
         beginTime = TimeUtil::GetSeconds();
@@ -127,36 +98,48 @@ std::string TelemetryListener::GetValidParam(const Event &msg, bool &isCloseMsg,
     return errorMsg;
 }
 
-TelemetryFlow TelemetryListener::InitTelemetryDb(const Event &msg, int64_t &beginTime, int64_t &endTime)
+TelemetryRet TelemetryListener::InitAndCorrectTimes(const Event &msg)
 {
+    int64_t traceDuration = msg.GetInt64Value(Telemetry::KEY_DURATION);
+    if (traceDuration <= 0) {
+        traceDuration = DURATION_DEFAULT;
+    }
+    endTime_ = beginTime_ + traceDuration;
+
+    // In reboot scene, beginTime endTime will update to first start record
+    return TraceFlowController(BusinessName::TELEMETRY).InitTelemetryTime(telemetryId_, beginTime_, endTime_);
+}
+
+TelemetryRet TelemetryListener::InitTelemetryFlow(const Event &msg)
+{
+    std::string errorMsg;
     std::map<std::string, int64_t> flowControlQuotas {
         {CallerName::XPERF, DEFAULT_XPERF_SIZE },
         {CallerName::XPOWER, DEFAULT_XPOWER_SIZE},
-        {TOATL, DEFAULT_TOTAL_SIZE}
+        {Telemetry::TOATL, DEFAULT_TOTAL_SIZE}
     };
-    int32_t traceCompressRatio = msg.GetIntValue(KEY_FLOW_RATE);
+    int32_t traceCompressRatio = msg.GetIntValue(Telemetry::KEY_FLOW_RATE);
     if (traceCompressRatio <= 0) {
         traceCompressRatio = DEFAULT_RATIO;
     }
-    auto xperfTraceQuota = msg.GetInt64Value(KEY_XPERF_QUOTA);
+    auto xperfTraceQuota = msg.GetInt64Value(Telemetry::KEY_XPERF_QUOTA);
     if (xperfTraceQuota > 0) {
         flowControlQuotas[CallerName::XPERF] = xperfTraceQuota * traceCompressRatio * BT_M_UNIT;
     }
-    auto xpowerTraceQuota = msg.GetInt64Value(KEY_XPOWER_QUOTA);
+    auto xpowerTraceQuota = msg.GetInt64Value(Telemetry::KEY_XPOWER_QUOTA);
     if (xpowerTraceQuota > 0) {
         flowControlQuotas[CallerName::XPOWER] = xpowerTraceQuota * traceCompressRatio * BT_M_UNIT;
     }
-    auto totalTraceQuota = msg.GetInt64Value(KEY_TOTAL_QUOTA);
+    auto totalTraceQuota = msg.GetInt64Value(Telemetry::KEY_TOTAL_QUOTA);
     if (totalTraceQuota > 0) {
-        flowControlQuotas[TOATL] = totalTraceQuota * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[Telemetry::TOATL] = totalTraceQuota * traceCompressRatio * BT_M_UNIT;
     }
-    HIVIEW_LOGI("Ratio:%{public}d, xperfQuota:%{public}d, xpowerQuota:%{public}d, totalQuota:%{public}d",
-        static_cast<int>(traceCompressRatio), static_cast<int>(xperfTraceQuota), static_cast<int>(xpowerTraceQuota),
-            static_cast<int>(totalTraceQuota));
-    return TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData(flowControlQuotas, beginTime, endTime);
+    HIVIEW_LOGI("Ratio:%{public}d, xperfQuota:%{public}" PRId64 ", xpowerQuota:%{public}" PRId64 ","
+        " totalQuota:%{public}" PRId64 "", traceCompressRatio, xperfTraceQuota, xpowerTraceQuota, totalTraceQuota);
+    return TraceFlowController(BusinessName::TELEMETRY).InitTelemetryFlow(flowControlQuotas);
 }
 
-bool TelemetryListener::SendStartEvent(const StartMsg &startMsg, const Event &msg, std::string &errorMsg)
+bool TelemetryListener::SendStartEvent(const Event &msg, int64_t traceDuration, int64_t delayTime)
 {
     auto event = std::make_shared<Event>(GetListenerName());
     auto ucPlugin = myPlugin_.lock();
@@ -164,36 +147,24 @@ bool TelemetryListener::SendStartEvent(const StartMsg &startMsg, const Event &ms
         HIVIEW_LOGE("ucPlugin is null");
         return false;
     }
-    std::string traceTags = msg.GetValue(KEY_TRACE_TAG);
+    std::string traceTags = msg.GetValue(Telemetry::KEY_TRACE_TAG);
     event->eventName_ = TelemetryEvent::TELEMETRY_START;
-    event->SetValue(KEY_TRACE_TAG, traceTags);
-    event->SetValue(KEY_ID, startMsg.telemetryId);
-    event->SetValue(KEY_BUNDLE_NAME, startMsg.bundleName);
-    auto timeNow = TimeUtil::GetSeconds();
-    if (timeNow >= startMsg.endTime) {
-        HIVIEW_LOGE("telemetry already end, return");
-        errorMsg.append("telemetry already time end;");
-        return false;
+    event->SetValue(Telemetry::KEY_TRACE_TAG, traceTags);
+    event->SetValue(Telemetry::KEY_ID, telemetryId_);
+    event->SetValue(Telemetry::KEY_BUNDLE_NAME, bundleName_);
+    event->SetValue(Telemetry::KEY_REMAIN_TIME, static_cast<int32_t>(traceDuration));
+    if (delayTime > 0) {
+        event->SetValue(Telemetry::KEY_DELAY_TIME, static_cast<int32_t>(delayTime));
     }
-    if (timeNow >= startMsg.beginTime && timeNow < startMsg.endTime) {
-        HIVIEW_LOGI("immediately start now");
-        int64_t duration = startMsg.endTime - timeNow;
-        event->SetValue(KEY_REMAIN_TIME, static_cast<int32_t>(duration));
-        ucPlugin->GetWorkLoop()->AddEvent(ucPlugin, event);
-        return true;
-    }
-    auto timeInterval = startMsg.beginTime - timeNow;
-    event->SetValue(KEY_REMAIN_TIME, static_cast<int32_t>(startMsg.endTime - startMsg.beginTime));
-    HIVIEW_LOGI("send delay message timeInterval:%{public}d", static_cast<int>(timeInterval));
-    myPlugin_.lock()->DelayProcessEvent(event, timeInterval);
+    ucPlugin->GetWorkLoop()->AddEvent(ucPlugin, event);
     return true;
 }
 
-void TelemetryListener::SendStopEvent(const Event &msg)
+void TelemetryListener::SendStopEvent()
 {
     auto event = std::make_shared<Event>(GetListenerName());
     event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
-    event->SetValue(KEY_ID, msg.GetValue(KEY_ID));
+    event->SetValue(Telemetry::KEY_ID, telemetryId_);
     HIVIEW_LOGI("send stop now");
     auto ucPlugin = myPlugin_.lock();
     if (ucPlugin == nullptr) {
@@ -202,4 +173,15 @@ void TelemetryListener::SendStopEvent(const Event &msg)
     }
     ucPlugin->GetWorkLoop()->AddEvent(ucPlugin, event);
 }
+
+void TelemetryListener::WriteErrorEvent(const std::string &error)
+{
+    HIVIEW_LOGE("%{public}s", error.c_str());
+    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+        "ID", telemetryId_,
+        "STAGE", "TRACE_BEGIN",
+        "ERROR", error,
+        "BUNDLE_NAME", bundleName_);
+}
+
 }

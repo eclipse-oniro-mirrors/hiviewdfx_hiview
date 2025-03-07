@@ -42,12 +42,18 @@ public:
 
 private:
     std::string GetValidParam(const Event &msg, bool &isCloseMsg, int64_t &beginTime, std::string &telemetryId);
-    TelemetryFlow InitTelemetryDb(const Event &msg, int64_t &beginTime, int64_t &endTime);
-    bool SendStartEvent(const StartMsg &startMsg, const Event &msg, std::string &errorMsg);
-    void SendStopEvent(const Event &msg);
+    TelemetryRet InitTelemetryFlow(const Event &msg);
+    TelemetryRet InitAndCorrectTimes(const Event &msg);
+    bool SendStartEvent(const Event &msg, int64_t traceDuration, int64_t delayTime = 0);
+    void SendStopEvent();
+    void WriteErrorEvent(const std::string &error);
 
 private:
     std::weak_ptr<Plugin> myPlugin_;
+    std::string telemetryId_;
+    std::string bundleName_;
+    int64_t beginTime_;
+    int64_t endTime_;
 };
 
 }
