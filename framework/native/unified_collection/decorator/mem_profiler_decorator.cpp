@@ -70,8 +70,21 @@ int MemProfilerDecorator::Start(int fd, bool startup, const MemoryProfilerConfig
     auto task = [this, &fd, &startup, &memoryProfilerConfig] {
         return memProfilerCollector_->Start(fd, startup, memoryProfilerConfig);
     };
-    // has same func name, rename it with num "-2"
+    // has same func name, rename it with num "-3"
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-3");
+}
+
+int MemProfilerDecorator::Start(int fd, pid_t pid, const SimplifiedMemConfig& config)
+{
+    auto task = [this, &fd, &pid, &config] { return memProfilerCollector_->Start(fd, pid, config); };
+    // has same func name, rename it with num "-4"
+    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-4");
+}
+
+int MemProfilerDecorator::StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats)
+{
+    auto task = [this, &pid, &memStats] { return memProfilerCollector_->StartPrintSimplifiedNmd(pid, memStats); };
+    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 
 void MemProfilerDecorator::SaveStatCommonInfo()
