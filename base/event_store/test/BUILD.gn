@@ -110,6 +110,7 @@ config("sys_event_store_utility_test_config_test") {
     "$hiview_base/utility/include",
     "$hiview_base/include",
     "$hiview_root/include",
+    "$hiview_base/event_store/utility/base/include",
     "$hiview_base/event_store/utility/reader/include",
     "$hiview_base/event_store/utility/writer/include",
   ]

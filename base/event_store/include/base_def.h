@@ -41,12 +41,6 @@ namespace EventStore {
 
 #define MAX_NEW_SIZE (386 * 1024)
 
-#define EVENT_NAME_INDEX 0
-#define EVENT_TYPE_INDEX 1
-#define EVENT_LEVEL_INDEX 2
-#define EVENT_SEQ_INDEX 3
-#define FILE_NAME_SPLIT_SIZE 4
-
 #define INVALID_VALUE_INT (-1)
 
 #define DOC_STORE_SUCCESS 0

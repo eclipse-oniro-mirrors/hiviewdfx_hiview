@@ -23,6 +23,7 @@
 #include "content_reader_version_1.h"
 #include "content_reader_version_2.h"
 #include "content_reader_version_3.h"
+#include "event_db_file_util.h"
 #include "hiview_logger.h"
 #include "sys_event_doc_reader.h"
 
@@ -283,6 +284,76 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest004, testing::ext::Te
 
         TestEventsOfDocReader(dbPath);
     }
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest005
+ * @tc.desc: Test ReadMaxEventSequence API of SysEventDocReader
+ * @tc.type: FUNC
+ * @tc.require: issueIBM04F
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest005, testing::ext::TestSize.Level3)
+{
+    SysEventDocReader reader(TEST_DB_VERSION1_FILE);
+    int64_t seqRead = 0;
+    reader.ReadMaxEventSequence(seqRead);
+    ASSERT_EQ(seqRead, 544); // 544 is expected event sequence value
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest006
+ * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIBM04F
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest006, testing::ext::TestSize.Level3)
+{
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbDir("*/ABCDEFGHIJKLMNOPQRST"));
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbDir("*/ABC22-------"));
+    ASSERT_TRUE(EventDbFileUtil::IsValidDbDir("*/HIVIEWDFX"));
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest007
+ * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIBM04F
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest007, testing::ext::TestSize.Level3)
+{
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbFilePath("*/HIVIEWDFX-2-CRITICAL.db"));
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbFilePath("*/HIVIEWDFX&&&-2-CRITICAL-100.db"));
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbFilePath("*/HIVIE_WDFX-WW-CRITICAL-100.db"));
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbFilePath("*/HIVIEWDFX-2-CRITICALS-100.db"));
+    ASSERT_FALSE(EventDbFileUtil::IsValidDbFilePath("*/HIVIEWDFX-2-CRITICALS-0.db"));
+    ASSERT_TRUE(EventDbFileUtil::IsValidDbFilePath("*/HIVIEWDFX-2-CRITICAL-100.db"));
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest008
+ * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIBM04F
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest008, testing::ext::TestSize.Level3)
+{
+    EventDbInfo testInfo;
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEWDFX-2-CRITICAL-100.db", NAME_ONLY, testInfo));
+    ASSERT_EQ(testInfo.name, "HIVIEWDFX");
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEWDFX-2-CRITICAL-100.db", TYPE_ONLY, testInfo));
+    ASSERT_EQ(testInfo.type, 2); // 2 is expected type
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEWDFX-2-CRITICAL-100.db", LEVEL_ONLY, testInfo));
+    ASSERT_EQ(testInfo.level, "CRITICAL");
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEWDFX-2-CRITICAL-100.db", SEQ_ONLY, testInfo));
+    ASSERT_EQ(testInfo.seq, 100);  // 100 is expected sequence
+
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-3-MINOR-101.db", ALL_INFO, testInfo));
+    ASSERT_EQ(testInfo.name, "HIVIEW");
+    ASSERT_EQ(testInfo.type, 3); // 3 is expected type
+    ASSERT_EQ(testInfo.level, "MINOR");
+    ASSERT_EQ(testInfo.seq, 101); // 101 is expected sequence
+
+    ASSERT_FALSE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-5-MINOR.db", ALL_INFO, testInfo));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

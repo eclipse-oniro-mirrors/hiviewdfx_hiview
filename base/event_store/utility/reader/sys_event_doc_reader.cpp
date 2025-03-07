@@ -16,6 +16,7 @@
 
 #include <cinttypes>
 
+#include "event_db_file_util.h"
 #include "hiview_logger.h"
 #include "securec.h"
 #include "string_util.h"
@@ -88,22 +89,20 @@ void SysEventDocReader::InitEventInfo(const std::string& path)
         return;
     }
     std::string file = dirNames.back();
-    std::vector<std::string> fileNames;
-    StringUtil::SplitStr(file, "-", fileNames);
-    if (fileNames.size() != FILE_NAME_SPLIT_SIZE) {
-        HIVIEW_LOGW("invalid size=%{public}zu of file names", fileNames.size());
+    EventDbInfo eventDbInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(file, NAME_ONLY | LEVEL_ONLY, eventDbInfo)) {
+        HIVIEW_LOGW("failed to parse event info from %{public}s", file.c_str());
         return;
     }
 
     // init name
-    const std::string nameStr = fileNames[EVENT_NAME_INDEX];
-    if (memcpy_s(info_.name, MAX_EVENT_NAME_LEN, nameStr.c_str(), nameStr.length()) != EOK) {
+    if (memcpy_s(info_.name, MAX_EVENT_NAME_LEN, eventDbInfo.name.c_str(), eventDbInfo.name.length()) != EOK) {
         HIVIEW_LOGE("failed to copy name to EventInfo");
         return;
     }
 
     // init level
-    info_.level = fileNames[EVENT_LEVEL_INDEX];
+    info_.level = eventDbInfo.level;
 }
 
 int SysEventDocReader::Read(const DocQuery& query, EntryQueue& entries, int& num)
@@ -345,6 +344,22 @@ bool SysEventDocReader::CheckEventInfo(uint8_t* content)
     info_.timestamp = timestamp;
 
     return true;
+}
+
+int SysEventDocReader::ReadMaxEventSequence(int64_t& maxSeq)
+{
+    auto callback = [&maxSeq] (uint8_t* content, uint32_t& contentSize) {
+        if (content == nullptr || contentSize < HIVIEW_BLOCK_SIZE + sizeof(int64_t)) {
+            HIVIEW_LOGE("invalid event, content size is %{public}" PRIu32 "", contentSize);
+            return false;
+        }
+        int64_t seq = *(reinterpret_cast<int64_t*>(content + HIVIEW_BLOCK_SIZE));
+        if (maxSeq < seq) {
+            maxSeq = seq;
+        }
+        return true;
+    };
+    return Read(callback);
 }
 } // EventStore
 } // HiviewDFX

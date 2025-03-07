@@ -17,12 +17,14 @@
 
 #include <fstream>
 
+#include "event_db_file_util.h"
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "running_status_logger.h"
 #include "sys_event_dao.h"
+#include "sys_event_doc_reader.h"
 #include "time_util.h"
 
 namespace OHOS {
@@ -59,7 +61,7 @@ void WriteEventSeqToFile(int64_t seq, const std::string& file)
 {
     std::string content(std::to_string(seq));
     if (!SaveStringToFile(file, content)) {
-        HIVIEW_LOGE("failed to write sequence %{public}s to %{public}s.", content.c_str(), file.c_str());
+        HIVIEW_LOGE("failed to write sequence %{public}s to %{public}s", content.c_str(), file.c_str());
     }
 }
 
@@ -67,7 +69,7 @@ inline void ReadEventSeqFromFile(int64_t& seq, const std::string& file)
 {
     std::string content;
     if (!FileUtil::LoadStringFromFile(file, content)) {
-        HIVIEW_LOGE("failed to read sequence value from %{public}s.", file.c_str());
+        HIVIEW_LOGE("failed to read sequence value from %{public}s", file.c_str());
     }
     seq = static_cast<int64_t>(strtoll(content.c_str(), nullptr, 0));
 }
@@ -99,6 +101,83 @@ void CheckFileExistThenReadSeq(const std::string& filePath, bool& isFileExist, i
         return;
     }
     ReadEventSeqFromFile(seq, filePath);
+}
+
+void UpdateDbFileInfos(std::map<std::string, std::pair<int64_t, std::string>>& dbFileInfos,
+    const std::string& eventFile, const std::string& eventName, int64_t eventSeq)
+{
+    auto findRet = dbFileInfos.find(eventName);
+    if (findRet == dbFileInfos.end()) {
+        dbFileInfos.emplace(eventName, std::make_pair(eventSeq, eventFile));
+        return;
+    }
+    auto& seqInfo = findRet->second;
+    if (seqInfo.first > eventSeq) {
+        return;
+    }
+    seqInfo.first = eventSeq;
+    seqInfo.second = eventFile;
+}
+
+void GetAllEventMaxSeqFile(const std::string& domainDir, std::vector<std::string>& eventDbFiles)
+{
+    std::vector<std::string> eventFiles;
+    FileUtil::GetDirFiles(domainDir, eventFiles);
+    if (eventFiles.empty()) {
+        HIVIEW_LOGW("no event db file has been found in %{public}s", domainDir.c_str());
+        return;
+    }
+    std::map<std::string, std::pair<int64_t, std::string>> dbFileInfos;
+    for (const auto& eventFile : eventFiles) {
+        if (!EventDbFileUtil::IsValidDbFilePath(eventFile)) {
+            HIVIEW_LOGW("not valid event db file, path=%{public}s", eventFile.c_str());
+            continue;
+        }
+        EventDbInfo eventDbInfo;
+        std::string fileName = FileUtil::ExtractFileName(eventFile);
+        if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, NAME_ONLY | SEQ_ONLY, eventDbInfo)) {
+            HIVIEW_LOGW("failed to parse event info from: %{public}s", eventFile.c_str());
+            continue;
+        }
+        UpdateDbFileInfos(dbFileInfos, eventFile, eventDbInfo.name, eventDbInfo.seq);
+    }
+    // merge result
+    for (const auto& dbFileInfo : dbFileInfos) {
+        eventDbFiles.emplace_back(dbFileInfo.second.second);
+    }
+}
+
+void GetEventMaxSeqFileList(std::vector<std::string>& eventDbFiles)
+{
+    std::vector<std::string> domainDirs;
+    FileUtil::GetDirDirs(EventStore::SysEventDao::GetDatabaseDir(), domainDirs);
+    if (domainDirs.empty()) {
+        HIVIEW_LOGW("no domain directiry has been found");
+        return;
+    }
+    for (const auto& domainDir : domainDirs) {
+        if (!EventDbFileUtil::IsValidDbDir(domainDir)) {
+            HIVIEW_LOGW("not valid domain directory, path=%{public}s", domainDir.c_str());
+            continue;
+        }
+        GetAllEventMaxSeqFile(domainDir, eventDbFiles);
+    }
+}
+
+int64_t GetAdjustedEventMaxSeq()
+{
+    int64_t seq = 0;
+    std::vector<std::string> eventDbFiles;
+    GetEventMaxSeqFileList(eventDbFiles);
+    for (const auto& eventDbFile : eventDbFiles) {
+        int64_t curSeq = 0;
+        SysEventDocReader reader(eventDbFile);
+        reader.ReadMaxEventSequence(curSeq);
+        if (seq < curSeq) {
+            seq = curSeq;
+        }
+    }
+    return seq;
 }
 }
 
@@ -152,12 +231,16 @@ void SysEventSequenceManager::ReadSeqFromFile(int64_t& seq)
     int64_t seqBackup = 0;
     CheckFileExistThenReadSeq(seqBackupFilePath, isSeqBackupFileExist, seqBackup);
     if (seq == seqBackup && (!isSeqFileExist || seq != 0)) {
-        HIVIEW_LOGI("succeed to read event sequence, value is %{public}" PRId64 ".", seq);
+        HIVIEW_LOGI("succeed to read event sequence, value is %{public}" PRId64 "", seq);
         return;
     }
     WriteSeqReadExcpetionEvent(isSeqFileExist, seq, isSeqBackupFileExist, seqBackup);
     LogEventSeqReadException(seq, seqBackup);
-    HIVIEW_LOGW("seq[%{public}" PRId64 "] is different with backup seq[%{public}" PRId64 "].", seq, seqBackup);
+    HIVIEW_LOGW("seq[%{public}" PRId64 "] is different with backup seq[%{public}" PRId64 "]", seq, seqBackup);
+    if (seq == 0) {
+        seq = GetAdjustedEventMaxSeq();
+        HIVIEW_LOGI("adjust seq to %{public}" PRId64 "", seq);
+    }
     if (seq > seqBackup) {
         WriteEventSeqToFile(seq, seqBackupFilePath);
     } else {
