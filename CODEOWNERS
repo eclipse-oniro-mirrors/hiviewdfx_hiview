@@ -14,6 +14,3 @@
 # any changes to plugins/faultlogger/service/idl/include/hiviewfaultlogger_ipc_interface_code.h
 # needs to be reviewed by @leonchan5
 plugins/faultlogger/service/idl/include/hiviewfaultlogger_ipc_interface_code.h @leonchan5
-
-# any changes to adapter/service/idl/include/hiview_service_ipc_interface_code.h needs to be reviewed by @leonchan5
-adapter/service/idl/include/hiview_service_ipc_interface_code.h @leonchan5

@@ -231,6 +231,10 @@ ErrCode HiviewServiceAbility::Move(const std::string& logType, const std::string
 ErrCode HiviewServiceAbility::CopyOrMoveFile(
     const std::string& logType, const std::string& logName, const std::string& dest, bool isMove)
 {
+    if (dest.find("..") != std::string::npos) {
+        HIVIEW_LOGW("invalid dest dir.");
+        return HiviewNapiErrCode::ERR_DEFAULT;
+    }
     auto service = GetOrSetHiviewService();
     if (service == nullptr) {
         return HiviewNapiErrCode::ERR_DEFAULT;
