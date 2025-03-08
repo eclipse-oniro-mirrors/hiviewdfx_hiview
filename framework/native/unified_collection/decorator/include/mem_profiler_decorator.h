@@ -33,6 +33,8 @@ public:
     int StartPrintNmd(int fd, int pid, int type) override;
     int Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig) override;
     int Prepare() override;
+    int Start(int fd, pid_t pid, const SimplifiedMemConfig& config) override;
+    int StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats) override;
     
     void GenerateStatInfo(uint64_t startTime, const std::string& funcName, int result);
     static void SaveStatCommonInfo();

@@ -32,6 +32,7 @@ constexpr int FINAL_TIME = 1000;
 constexpr int EXIT_TIME = 21000;
 constexpr int DURATION = 10;
 constexpr int INTERVAL = 1;
+constexpr int MEM_SIZE = 1024;
 
 class MemProfilerCollectorTest : public testing::Test {
 public:
@@ -179,5 +180,54 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest004, TestSize.Level1)
         time += WAIT_EXIT_MILLS;
     }
     ASSERT_FALSE(time < FINAL_TIME);
+    std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
+}
+
+/**
+ * @tc.name: MemProfilerCollectorTest005
+ * @tc.desc: used to test MemProfilerCollector.Start
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest005, TestSize.Level1)
+{
+    std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
+    collector->Prepare();
+    UCollectUtil::SimplifiedMemConfig simplifiedMemConfig = {
+        .largestSize = MEM_SIZE,
+        .secondLargestSize = MEM_SIZE,
+        .maxGrowthSize = MEM_SIZE,
+        .sampleSize = MEM_SIZE,
+    };
+    collector->Start(0, 1, simplifiedMemConfig);
+    std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
+    collector->Stop(0);
+    int time = 0;
+    while (!COMMON::IsProcessExist(NATIVE_DAEMON_NAME, g_nativeDaemonPid) && time < FINAL_TIME) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_EXIT_MILLS));
+        time += WAIT_EXIT_MILLS;
+    }
+    ASSERT_TRUE(time < FINAL_TIME);
+    std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
+}
+
+/**
+ * @tc.name: MemProfilerCollectorTest006
+ * @tc.desc: used to test MemProfilerCollector.StartPrintSimplifiedNmd
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest006, TestSize.Level1)
+{
+    std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
+    collector->Prepare();
+    std::vector<UCollectUtil::SimplifiedMemStats> simplifiedMemStats;
+    collector->StartPrintSimplifiedNmd(1, simplifiedMemStats);
+    std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
+    collector->Stop(0);
+    int time = 0;
+    while (!COMMON::IsProcessExist(NATIVE_DAEMON_NAME, g_nativeDaemonPid) && time < FINAL_TIME) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_EXIT_MILLS));
+        time += WAIT_EXIT_MILLS;
+    }
+    ASSERT_TRUE(time < FINAL_TIME);
     std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
 }

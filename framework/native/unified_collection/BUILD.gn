@@ -147,6 +147,7 @@ ohos_source_set("ucollection_source") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:app_manager",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",

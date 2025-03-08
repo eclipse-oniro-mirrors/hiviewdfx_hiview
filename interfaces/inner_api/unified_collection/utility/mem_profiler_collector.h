@@ -15,6 +15,7 @@
 #ifndef INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_MEM_PROFILER_COLLECTOR_H
 #define INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_MEM_PROFILER_COLLECTOR_H
 #include <memory>
+
 #include "collect_result.h"
 #include "native_memory_profiler_sa_client_manager.h"
 
@@ -31,6 +32,20 @@ struct MemoryProfilerConfig {
     std::string processName;
 };
 
+struct SimplifiedMemStats {
+    size_t size = 0;
+    size_t allocated = 0;
+    size_t nmalloc = 0;
+    size_t ndalloc = 0;
+};
+
+struct SimplifiedMemConfig {
+    size_t largestSize = 0;
+    size_t secondLargestSize = 0;
+    size_t maxGrowthSize = 0;
+    size_t sampleSize = 0;
+};
+
 class MemProfilerCollector {
 public:
     MemProfilerCollector() = default;
@@ -44,6 +59,8 @@ public:
     virtual int Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig) = 0;
     virtual int Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig) = 0;
     virtual int Prepare() = 0;
+    virtual int Start(int fd, pid_t pid, const SimplifiedMemConfig& config) = 0;
+    virtual int StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats) = 0;
     static std::shared_ptr<MemProfilerCollector> Create();
 }; // MemProfilerCollector
 } // UCollectUtil
