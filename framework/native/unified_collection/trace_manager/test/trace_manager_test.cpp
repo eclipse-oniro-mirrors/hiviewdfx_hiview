@@ -179,11 +179,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest004, TestSize.Level1)
 }
 
 /**
- * @tc.name: TraceManagerTest010
+ * @tc.name: TraceManagerTest005
  * @tc.desc: used to test TraceFlowControl api: Telemetry interface
  * @tc.type: FUNC
 */
-HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
+HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
 {
     std::map<std::string, int64_t> flowControlQuotas {
         {CallerName::XPERF, 10000 },
@@ -192,67 +192,94 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     };
 
     std::map<std::string, int64_t> flowControlQuota2 {
-            {CallerName::XPERF, 100 },
-            {CallerName::XPOWER, 120},
-            {"Total", 180}
+        {CallerName::XPERF, 100 },
+        {CallerName::XPOWER, 120},
+        {"Total", 180}
     };
 
     TraceFlowController flowController(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t begin1 = 100;
-    int64_t end1 = 200;
-    ASSERT_EQ(flowController.InitTelemetryData(flowControlQuotas, begin1, end1), TelemetryFlow::SUCCESS);
+    ASSERT_EQ(flowController.InitTelemetryFlow(flowControlQuotas), TelemetryRet::SUCCESS);
     sleep(1);
-    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPERF, 9000), TelemetryFlow::SUCCESS);
+    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPERF, 9000), TelemetryRet::SUCCESS);
     sleep(1);
-    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPERF, 2000), TelemetryFlow::OVER_FLOW);
+    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPERF, 2000), TelemetryRet::OVER_FLOW);
     sleep(1);
-    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 7000), TelemetryFlow::SUCCESS);
+    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 7000), TelemetryRet::SUCCESS);
     sleep(1);
-    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 6000), TelemetryFlow::OVER_FLOW);
+    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 6000), TelemetryRet::OVER_FLOW);
     sleep(1);
-    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 1000), TelemetryFlow::SUCCESS);
+    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 1000), TelemetryRet::SUCCESS);
     sleep(1);
 
     // Total over flow
-    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 2000), TelemetryFlow::OVER_FLOW);
-    flowController.ClearTelemetryData();
+    ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPOWER, 2000), TelemetryRet::OVER_FLOW);
+    flowController.ClearTelemetryFlow();
 
+    // data is cleared
     TraceFlowController flowController2(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t begin2 = 1000;
-    int64_t end2 = 2000;
-    ASSERT_EQ(flowController2.InitTelemetryData(flowControlQuotas, begin2, end2), TelemetryFlow::SUCCESS);
-    ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER, 5000), TelemetryFlow::SUCCESS);
+    ASSERT_EQ(flowController2.InitTelemetryFlow(flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER, 5000), TelemetryRet::SUCCESS);
 
     // do not clear db
     TraceFlowController flowController3(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t begin3 = 3000;
-    int64_t end3 = 4000;
 
-    // Already init, just update begin/end time
-    ASSERT_EQ(flowController2.InitTelemetryData(flowControlQuota2, begin3, end3), TelemetryFlow::SUCCESS);
-    ASSERT_EQ(begin3, 1000); // begin3 change to begin2
-    ASSERT_EQ(end3, 2000); // begin3 change to end2
+    // Already init, old data still take effect
+    ASSERT_EQ(flowController2.InitTelemetryFlow(flowControlQuota2), TelemetryRet::SUCCESS);
 
     // flowControlQuota2 do not take effect
-    ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER, 5000), TelemetryFlow::SUCCESS);
-    flowController.ClearTelemetryData();
+    ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER, 500), TelemetryRet::SUCCESS);
+    flowController.ClearTelemetryFlow();
 
-    // flowControlQuota2 do not take effect
+    // flowControlQuota2 take effect
     TraceFlowController flowController4(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t begin4 = 3000;
-    int64_t end4 = 4000;
-    ASSERT_EQ(flowController2.InitTelemetryData(flowControlQuota2, begin3, end3), TelemetryFlow::SUCCESS);
-    ASSERT_EQ(begin4, 3000);
-    ASSERT_EQ(end4, 4000);
-    ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER, 5000), TelemetryFlow::OVER_FLOW);
+    ASSERT_EQ(flowController2.InitTelemetryFlow(flowControlQuota2), TelemetryRet::SUCCESS);
+    ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER, 500), TelemetryRet::OVER_FLOW);
 }
 
 /**
  * @tc.name: TraceManagerTest005
+ * @tc.desc: used to test TraceFlowControl api: Telemetry interface
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
+{
+    TraceFlowController flowController(BusinessName::TELEMETRY, TEST_DB_PATH);
+    int64_t btime1 = 100;
+    int64_t etime1 = 200;
+    ASSERT_EQ(flowController.InitTelemetryTime("id1", btime1, etime1), TelemetryRet::SUCCESS);
+    ASSERT_EQ(btime1, 100);
+    ASSERT_EQ(etime1, 200);
+
+    // if data init, correct btime2 etime2 value
+    TraceFlowController flowController2(BusinessName::TELEMETRY, TEST_DB_PATH);
+    int64_t btime2 = 300;
+    int64_t etime2 = 400;
+    ASSERT_EQ(flowController2.InitTelemetryTime("id1", btime2, etime2), TelemetryRet::SUCCESS);
+    ASSERT_EQ(btime2, 100);
+    ASSERT_EQ(etime2, 200);
+
+    // Id is different, insert btime21 etime22 and value is not change
+    int64_t btime21 = 300;
+    int64_t etime22 = 400;
+    flowController2.InitTelemetryTime("id2", btime2, etime2);
+    ASSERT_EQ(btime21, 300);
+    ASSERT_EQ(etime22, 400);
+    flowController2.ClearTelemetryData();
+
+    TraceFlowController flowController3(BusinessName::TELEMETRY, TEST_DB_PATH);
+    int64_t btime3 = 500;
+    int64_t etime4 = 600;
+    ASSERT_EQ(flowController2.InitTelemetryTime("id1", btime3, etime4), TelemetryRet::SUCCESS);
+    ASSERT_EQ(btime3, 500);
+    ASSERT_EQ(etime4, 600);
+}
+
+/**
+ * @tc.name: TraceManagerTest007
  * @tc.desc: used to test TraceStateMachine command state
  * @tc.type: FUNC
 */
-HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
+HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
 {
     // TraceStateMachine init close state
     TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
@@ -341,11 +368,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
 }
 
 /**
- * @tc.name: TraceManagerTest006
+ * @tc.name: TraceManagerTest008
  * @tc.desc: used to test TraceStateMachine common state
  * @tc.type: FUNC
 */
-HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
+HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
 {
     // TraceStateMachine init close state
     TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
@@ -536,11 +563,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
 }
 
 /**
- * @tc.name: TraceManagerTest007
+ * @tc.name: TraceManagerTest010
  * @tc.desc: used to test TraceStateMachine app state
  * @tc.type: FUNC
 */
-HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
+HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
 {
     // TraceStateMachine init close state
     TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
@@ -600,11 +627,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
 }
 
 /**
- * @tc.name: TraceManagerTest008
+ * @tc.name: TraceManagerTest011
  * @tc.desc: used to test TraceStateMachine close state
  * @tc.type: FUNC
 */
-HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
+HWTEST_F(TraceManagerTest, TraceManagerTest011, TestSize.Level1)
 {
     // TraceStateMachine init close state
     TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();

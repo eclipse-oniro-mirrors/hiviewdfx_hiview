@@ -38,6 +38,7 @@
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
 #include "uc_telemetry_listener.h"
+#include "unified_common.h"
 #endif
 
 namespace OHOS {
@@ -58,11 +59,6 @@ constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 const std::string OTHER = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
-const std::string KEY_TELEMETRY_TRACE_TAG = "traceArgs";
-const std::string KEY_REMAIN_TIME = "remainTimeToStop";
-const std::string KEY_ID = "telemetryId";
-const std::string KEY_BUNDLE_NAME = "bundleName";
-constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 #endif
 }
 
@@ -193,50 +189,72 @@ bool UnifiedCollector::OnEvent(std::shared_ptr<Event>& event)
         return true;
     }
     if (event->eventName_ == TelemetryEvent::TELEMETRY_STOP) {
-        HandleTeleMetryStop(event);
+        HandleTeleMetryStop();
+        return true;
+    }
+    if (event->eventName_ == TelemetryEvent::TELEMETRY_TIMEOUT) {
+        HandleTeleMetryTimeout();
+        return true;
     }
     return true;
 }
 
 void UnifiedCollector::HandleTeleMetryStart(std::shared_ptr<Event> &event)
 {
-    std::string tag = event->GetValue(KEY_TELEMETRY_TRACE_TAG);
-    int32_t remainTime = event->GetIntValue(KEY_REMAIN_TIME);
-    std::string telemetryId = event->GetValue(KEY_ID);
-    std::string bundleName = event->GetValue(KEY_BUNDLE_NAME);
-    if (remainTime <= 0) {
-        HIVIEW_LOGE("system error traceDuration:%{public}d", remainTime);
+    int32_t delay = event->GetIntValue(Telemetry::KEY_DELAY_TIME);
+    if (delay > 0) {
+        HIVIEW_LOGI("delay:%{public}d", delay);
+        event->SetValue(Telemetry::KEY_DELAY_TIME, 0);
+        auto seqId = workLoop_->AddTimerEvent(shared_from_this(), event, nullptr, static_cast<uint64_t>(delay), false);
+        telemetryList_.push_back(seqId);
+        return;
+    }
+    std::string tag = event->GetValue(Telemetry::KEY_TELEMETRY_TRACE_TAG);
+    int32_t traceDuration = event->GetIntValue(Telemetry::KEY_REMAIN_TIME);
+    std::string telemetryId = event->GetValue(Telemetry::KEY_ID);
+    std::string bundleName = event->GetValue(Telemetry::KEY_BUNDLE_NAME);
+    if (traceDuration <= 0) {
+        HIVIEW_LOGE("system error traceDuration:%{public}d", traceDuration);
         return;
     }
     auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag, telemetryId);
-    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+    HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
         "ID", telemetryId,
         "STAGE", "TRACE_BEGIN",
         "ERROR", std::to_string(GetUcError(ret)),
         "BUNDLE_NAME", bundleName);
-    if (!ret.IsSuccess()) {
-        HIVIEW_LOGE("open telemetry trace state fail");
-        return;
+    event->eventName_ = TelemetryEvent::TELEMETRY_TIMEOUT;
+    if (ret.IsSuccess()) {
+        bool isSuccess = TraceStateMachine::GetInstance().RegisterTelemetryCallback([telemetryId, bundleName]() {
+            HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+                "ID", telemetryId,
+                "STAGE", "TRACE_END",
+                "ERROR", 0,
+                "BUNDLE_NAME", bundleName);
+        });
+        HIVIEW_LOGE("RegisterTelemetryCallback:%{public}d", isSuccess);
     }
-    event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
-    DelayProcessEvent(event, remainTime);
+    auto seqId = workLoop_->AddTimerEvent(shared_from_this(), event, nullptr, static_cast<uint64_t>(traceDuration),
+        false);
+    telemetryList_.push_back(seqId);
 }
 
-void UnifiedCollector::HandleTeleMetryStop(std::shared_ptr<Event> &event)
+void UnifiedCollector::HandleTeleMetryStop()
 {
-    if (!CheckStopValid(event)) {
-        HIVIEW_LOGW("perhaps another telemetry begin, invalid stop event");
-        return;
+    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceFlowController controller(BusinessName::TELEMETRY);
+    controller.ClearTelemetryData();
+    controller.ClearTelemetryFlow();
+    for (auto it : telemetryList_) {
+        workLoop_->RemoveEvent(it);
     }
-    auto ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-        "ID", event->GetValue(KEY_ID),
-        "STAGE", "TRACE_END",
-        "ERROR", std::to_string(GetUcError(ret)));
-    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-    if (!ret.IsSuccess()) {
-        HIVIEW_LOGW("CloseTrace telemetry trace fail");
-    }
+    telemetryList_.clear();
+}
+
+void UnifiedCollector::HandleTeleMetryTimeout()
+{
+    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryFlow();
 }
 
 void UnifiedCollector::OnEventListeningCallback(const Event& event)
@@ -261,12 +279,6 @@ void UnifiedCollector::Dump(int fd, const std::vector<std::string>& cmds)
     dprintf(fd, "trace recorder state is %s.\n", traceRecorderState.c_str());
 
     dprintf(fd, "develop state is %s.\n", Parameter::IsDeveloperMode() ? "true" : "false");
-}
-
-bool UnifiedCollector::CheckStopValid(std::shared_ptr<Event>& event)
-{
-    std::string idStr = event->GetValue(KEY_ID);
-    return idStr == TraceStateMachine::GetInstance().GetTelemetryId();
 }
 
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
