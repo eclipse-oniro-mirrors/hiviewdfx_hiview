@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,9 @@
 
 #include "fold_event_cacher.h"
 
-#include "bundle_mgr_client.h"
+#include "app_mgr_client.h"
 #include "display_manager.h"
 #include "hiview_logger.h"
-#include "iremote_object.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
 #include "time_util.h"
 #include "usage_event_common.h"
 
@@ -28,50 +25,23 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("FoldEventCacher");
 namespace {
-constexpr int MAX_FOREGROUND_APPS_SIZE = 10;
 constexpr int UNKNOWN_FOLD_STATUS = -1;
-constexpr int ONE_HOUR_INTERVAL = 3600;
 constexpr int MILLISEC_TO_MICROSEC = 1000;
+constexpr int SYSTEM_WINDOW_BASE = 2000;
 
-sptr<AppExecFwk::IAppMgr> GetAppManagerService()
+std::string GetFocusedApp()
 {
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        HIVIEW_LOGI("failed to get samgr");
-        return nullptr;
+    std::vector<AppExecFwk::RunningProcessInfo> allAppProcessInfos;
+    std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient = std::make_unique<AppExecFwk::AppMgrClient>();
+    appMgrClient->GetAllRunningProcesses(allAppProcessInfos);
+    std::string packageName;
+    for (const auto &process : allAppProcessInfos) {
+        if (process.isFocused) {
+            packageName = process.processName_;
+            break;
+        }
     }
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(APP_MGR_SERVICE_ID);
-    if (remoteObject == nullptr) {
-        HIVIEW_LOGI("failed to get app manager service");
-        return nullptr;
-    }
-    return iface_cast<AppExecFwk::IAppMgr>(remoteObject);
-}
-
-std::vector<AppExecFwk::AppStateData> GetForegroundApplications()
-{
-    sptr<AppExecFwk::IAppMgr> appManager = GetAppManagerService();
-    std::vector<AppExecFwk::AppStateData> fgList;
-    if (appManager == nullptr) {
-        HIVIEW_LOGI("appManager iface_cast is nullptr");
-        return fgList;
-    }
-    int32_t errcode = appManager->GetForegroundApplications(fgList);
-    size_t fgListSize = fgList.size();
-    HIVIEW_LOGI("errcode=%{public}d,fgListSize=%{public}zu", errcode, fgListSize);
-    return fgList;
-}
-
-std::string GetAppVersion(const std::string& bundleName)
-{
-    AppExecFwk::BundleInfo info;
-    AppExecFwk::BundleMgrClient client;
-    if (!client.GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, info,
-        AppExecFwk::Constants::ALL_USERID)) {
-        HIVIEW_LOGE("Failed to get the version of the bundle");
-        return "";
-    }
-    return info.versionName;
+    return packageName;
 }
 
 int GetCombineScreenStatus(int foldStatus, int vhMode)
@@ -107,45 +77,10 @@ FoldEventCacher::FoldEventCacher(const std::string& workPath)
             vhMode_ = 1; // 1-landscape
         }
     }
-    HIVIEW_LOGI("foldStatus=%{public}d,vhMode=%{public}d", foldStatus_, vhMode_);
-    auto fgList = GetForegroundApplications();
-    for (const auto& appData : fgList) {
-        if (FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME == appData.bundleName) {
-            continue;
-        }
-        foregroundApps_[appData.bundleName] = GetAppVersion(appData.bundleName);
-    }
-}
-
-void FoldEventCacher::TimeOut()
-{
-    uint64_t bootTime = TimeUtil::GetBootTimeMs();
-    uint64_t timeInterval = bootTime - timelyStart_;
-    if (timeInterval < static_cast<uint64_t>(ONE_HOUR_INTERVAL * TimeUtil::SEC_TO_MILLISEC)) {
-        return;
-    }
-    auto fgList = GetForegroundApplications();
-    for (const auto& appData : fgList) {
-        if (FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME == appData.bundleName) {
-            continue;
-        }
-        auto it = foregroundApps_.find(appData.bundleName);
-        if (it == foregroundApps_.end()) {
-            AppEventRecord appEventRecord;
-            appEventRecord.rawid = FoldEventId::EVENT_APP_START;
-            appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
-            appEventRecord.bundleName = appData.bundleName;
-            int combineScreenStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
-            appEventRecord.preFoldStatus = combineScreenStatus;
-            appEventRecord.foldStatus = combineScreenStatus;
-            appEventRecord.versionName = GetAppVersion(appData.bundleName);
-            appEventRecord.happenTime = static_cast<int64_t>(TimeUtil::GenerateTimestamp()) / MILLISEC_TO_MICROSEC;
-            if (combineScreenStatus != UNKNOWN_FOLD_STATUS) {
-                dbHelper_->AddAppEvent(appEventRecord);
-            }
-        }
-    }
-    timelyStart_ = bootTime;
+    auto focusedAppName = GetFocusedApp();
+    focusedAppPair_ = std::make_pair(focusedAppName, false);
+    HIVIEW_LOGI("focusedApp=%{public}s, foldStatus=%{public}d, vhMode=%{public}d",
+        focusedAppName.c_str(), foldStatus_, vhMode_);
 }
 
 void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
@@ -154,62 +89,58 @@ void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
         HIVIEW_LOGI("dbHelper is nulptr");
         return;
     }
-    std::string bundleName = event->GetEventValue(AppEventSpace::KEY_OF_BUNDLE_NAME);
-    if (FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME == bundleName) {
-        return;
-    }
-    AppEventRecord appEventRecord;
     std::string eventName = event->eventName_;
-    if (eventName == AppEventSpace::FOREGROUND_EVENT_NAME) {
-        ProcessForegroundEvent(event, appEventRecord);
-    } else if (eventName == AppEventSpace::BACKGROUND_EVENT_NAME) {
-        ProcessBackgroundEvent(event, appEventRecord);
-        CountLifeCycleDuration(appEventRecord);
-    } else if (eventName == FoldStateChangeEventSpace::EVENT_NAME || eventName == VhModeChangeEventSpace::EVENT_NAME) {
+    if (eventName == AppEventSpace::FOCUS_WINDOW) {
+        ProcessFocusWindowEvent(event);
+    }
+    if ((eventName == FoldStateChangeEventSpace::EVENT_NAME) || (eventName == VhModeChangeEventSpace::EVENT_NAME)) {
         ProcessSceenStatusChangedEvent(event);
-    } else {
-        HIVIEW_LOGI("event can not process");
-        return;
     }
 }
 
-void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event, AppEventRecord& appEventRecord)
+void FoldEventCacher::ProcessFocusWindowEvent(std::shared_ptr<SysEvent> event)
 {
+    if (focusedAppPair_.second) {
+        ProcessBackgroundEvent(event);
+    }
+    bool shouldCount = (event->GetEventIntValue(AppEventSpace::KEY_OF_WINDOW_TYPE) < SYSTEM_WINDOW_BASE);
+    if (shouldCount) {
+        ProcessForegroundEvent(event);
+    }
+    std::string bundleName = event->GetEventValue(AppEventSpace::KEY_OF_BUNDLE_NAME);
+    focusedAppPair_ = std::make_pair(bundleName, shouldCount);
+}
+
+void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event)
+{
+    AppEventRecord appEventRecord;
     appEventRecord.rawid = FoldEventId::EVENT_APP_START;
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = event->GetEventValue(AppEventSpace::KEY_OF_BUNDLE_NAME);
     int combineScreenStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = combineScreenStatus;
-    appEventRecord.versionName = event->GetEventValue(AppEventSpace::KEY_OF_VERSION_NAME);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 
     if (combineScreenStatus != UNKNOWN_FOLD_STATUS) {
         dbHelper_->AddAppEvent(appEventRecord);
     }
-    if (foregroundApps_.size() >= MAX_FOREGROUND_APPS_SIZE) {
-        foregroundApps_.clear();
-    }
-    foregroundApps_[appEventRecord.bundleName] = appEventRecord.versionName;
 }
 
-void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event, AppEventRecord& appEventRecord)
+void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event)
 {
+    AppEventRecord appEventRecord;
     appEventRecord.rawid = FoldEventId::EVENT_APP_EXIT;
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
-    appEventRecord.bundleName = event->GetEventValue(AppEventSpace::KEY_OF_BUNDLE_NAME);
+    appEventRecord.bundleName = focusedAppPair_.first;
     int combineScreenStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = combineScreenStatus;
-    appEventRecord.versionName = event->GetEventValue(AppEventSpace::KEY_OF_VERSION_NAME);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 
     if (combineScreenStatus != UNKNOWN_FOLD_STATUS) {
         dbHelper_->AddAppEvent(appEventRecord);
-    }
-    auto it = foregroundApps_.find(appEventRecord.bundleName);
-    if (it != foregroundApps_.end()) {
-        foregroundApps_.erase(it);
+        CountLifeCycleDuration(appEventRecord);
     }
 }
 
@@ -218,25 +149,23 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     int preFoldStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
     std::string eventName = event->eventName_;
     if (eventName == FoldStateChangeEventSpace::EVENT_NAME) {
-        int nextFoldStatus = event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS);
-        UpdateFoldStatus(nextFoldStatus);
+        UpdateFoldStatus(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
     } else {
-        int nextMode = event->GetEventIntValue(VhModeChangeEventSpace::KEY_OF_MODE);
-        UpdateVhMode(nextMode);
+        UpdateVhMode(event->GetEventIntValue(VhModeChangeEventSpace::KEY_OF_MODE));
     }
-    for (auto it = foregroundApps_.begin(); it != foregroundApps_.end(); it++) {
-        AppEventRecord appEventRecord;
-        appEventRecord.rawid = FoldEventId::EVENT_SCREEN_STATUS_CHANGED;
-        appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
-        appEventRecord.bundleName = it->first;
-        appEventRecord.preFoldStatus = preFoldStatus;
-        appEventRecord.foldStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
-        appEventRecord.versionName = it->second;
-        appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
-        if ((appEventRecord.foldStatus != UNKNOWN_FOLD_STATUS)
-            && appEventRecord.preFoldStatus != appEventRecord.foldStatus) {
-            dbHelper_->AddAppEvent(appEventRecord);
-        }
+    if (!focusedAppPair_.second) {
+        return;
+    }
+    AppEventRecord appEventRecord;
+    appEventRecord.rawid = FoldEventId::EVENT_SCREEN_STATUS_CHANGED;
+    appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
+    appEventRecord.bundleName = focusedAppPair_.first;
+    appEventRecord.preFoldStatus = preFoldStatus;
+    appEventRecord.foldStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
+    appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
+    if ((appEventRecord.foldStatus != UNKNOWN_FOLD_STATUS)
+        && appEventRecord.preFoldStatus != appEventRecord.foldStatus) {
+        dbHelper_->AddAppEvent(appEventRecord);
     }
 }
 
@@ -257,7 +186,6 @@ void FoldEventCacher::ProcessCountDurationEvent(AppEventRecord& appEventRecord, 
     newRecord.bundleName = appEventRecord.bundleName;
     newRecord.preFoldStatus = appEventRecord.preFoldStatus;
     newRecord.foldStatus = appEventRecord.foldStatus;
-    newRecord.versionName = appEventRecord.versionName;
     newRecord.happenTime = static_cast<int64_t>(TimeUtil::GenerateTimestamp()) / MILLISEC_TO_MICROSEC;
     newRecord.foldPortraitTime = GetFoldStatusDuration(ScreenFoldStatus::FOLD_PORTRAIT_STATUS, durations);
     newRecord.foldLandscapeTime = GetFoldStatusDuration(ScreenFoldStatus::FOLD_LANDSCAPE_STATUS, durations);

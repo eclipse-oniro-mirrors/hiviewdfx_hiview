@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -183,7 +183,6 @@ void UsageEventReport::TimeOut()
     HIVIEW_LOGD("start checking whether events need to be reported");
     ReportTimeOutEvent();
     ReportDailyEvent();
-    foldEventReport_.TimeOut();
 
 #ifdef POWER_MANAGER_ENABLE
     // init shutdown callback if necessary
