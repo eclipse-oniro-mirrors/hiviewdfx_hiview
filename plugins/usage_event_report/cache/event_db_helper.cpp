@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -243,7 +243,7 @@ int EventDbHelper::InsertSysUsageTable(const std::string& table, const std::stri
         return -1;
     }
 
-    HIVIEW_LOGD("insert db=%{public}s with %{public}s", dbPath_.c_str(), eventStr.c_str());
+    HIVIEW_LOGI("insert table=%{public}s with %{public}s", table.c_str(), eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
     bucket.PutString(DB_COLUMIN_EVNET, eventStr);
     int64_t seq = 0;
@@ -271,7 +271,7 @@ int EventDbHelper::UpdatePluginStatsTable(const std::string& pluginName, const s
 
 int EventDbHelper::UpdateSysUsageTable(const std::string& table, const std::string& eventStr)
 {
-    HIVIEW_LOGD("update db table %{public}s with %{public}s", table.c_str(), eventStr.c_str());
+    HIVIEW_LOGI("update db table %{public}s with %{public}s", table.c_str(), eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
     bucket.PutString(DB_COLUMIN_EVNET, eventStr);
     NativeRdb::AbsRdbPredicates predicates(table);

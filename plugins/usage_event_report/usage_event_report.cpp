@@ -106,7 +106,7 @@ void UsageEventReport::Init()
 
         // get last report time from db if any
         if (auto event = cacher.GetSysUsageEvent(LAST_SYS_USAGE_TABLE); event != nullptr) {
-            HIVIEW_LOGI("get cache sys usage event=%{public}s", event->ToJsonString().c_str());
+            HIVIEW_LOGI("get last sys usage event=%{public}s", event->ToJsonString().c_str());
             lastReportTime_ = event->GetValue(KEY_OF_START).GetUint64();
         } else {
             lastReportTime_ = nowTime;
@@ -114,7 +114,7 @@ void UsageEventReport::Init()
 
         // get last sys report time from db if any
         if (auto event = cacher.GetSysUsageEvent(); event != nullptr) {
-            HIVIEW_LOGI("get last sys usage event=%{public}s", event->ToJsonString().c_str());
+            HIVIEW_LOGI("get cache sys usage event=%{public}s", event->ToJsonString().c_str());
             lastSysReportTime_ = event->GetValue(KEY_OF_START).GetUint64();
         } else {
             lastSysReportTime_ = nowTime;
@@ -132,7 +132,7 @@ void UsageEventReport::Init()
 
     // more than one hours since the shutdown time
     if (nowTime >= (lastSysReportTime_ + 3600000)) { // 3600000ms: 1h
-        HIVIEW_LOGI("lastSysReportTime=%{public}" PRIu64 ", need to report sys usage event now", lastReportTime_);
+        HIVIEW_LOGI("lastSysReportTime=%{public}" PRIu64 ", need to report sys usage event now", lastSysReportTime_);
         ReportSysUsageEvent();
     }
 }

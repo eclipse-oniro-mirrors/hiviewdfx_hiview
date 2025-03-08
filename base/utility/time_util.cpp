@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -149,6 +149,15 @@ uint64_t GetBootTimeMs()
 {
     struct timespec ts;
     if (clock_gettime(CLOCK_BOOTTIME, &ts) == 0) {
+        return static_cast<uint64_t>(ts.tv_sec * SEC_TO_MILLISEC + ts.tv_nsec / MILLISEC_TO_NANOSEC);
+    }
+    return 0;
+}
+
+uint64_t GetMonotonicTimeMs()
+{
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
         return static_cast<uint64_t>(ts.tv_sec * SEC_TO_MILLISEC + ts.tv_nsec / MILLISEC_TO_NANOSEC);
     }
     return 0;

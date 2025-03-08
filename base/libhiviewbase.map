@@ -302,6 +302,7 @@
         "OHOS::HiviewDFX::FileUtil::CreateFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
         "OHOS::HiviewDFX::TimeUtil::Sleep(unsigned int)";
         "OHOS::HiviewDFX::TimeUtil::GetBootTimeMs()";
+        "OHOS::HiviewDFX::TimeUtil::GetMonotonicTimeMs()";
         "OHOS::HiviewDFX::CommonUtils::IsPidExist(int)";
         "OHOS::HiviewDFX::Parameter::IsUCollectionSwitchOn()";
         "OHOS::HiviewDFX::SqlUtil::GenerateExistSql(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
