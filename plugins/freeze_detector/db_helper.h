@@ -30,13 +30,15 @@ class DBHelper {
 public:
     struct WatchParams {
         long pid;
+        long tid;
+        unsigned long long timestamp;
         std::string packageName;
     };
 
     explicit DBHelper(std::shared_ptr<FreezeCommon> fc) : freezeCommon_(fc) {};
     ~DBHelper() {};
-    void GetResultMap(const struct WatchParams& watchParams, const FreezeResult& result,
-        EventStore::ResultSet& set, std::map<std::string, WatchPoint>& resultMap);
+    void GetResultWatchPoint(const struct WatchParams& watchParams, const FreezeResult& result,
+        EventStore::ResultSet& set, WatchPoint& resultWatchPoint);
     void SelectEventFromDB(unsigned long long start, unsigned long long end, std::vector<WatchPoint>& list,
         const struct WatchParams& watchParams, const FreezeResult& result);
     std::vector<SysEvent> SelectRecords(unsigned long long start, unsigned long long end, const std::string& domain,

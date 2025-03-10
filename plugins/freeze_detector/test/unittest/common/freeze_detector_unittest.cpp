@@ -847,7 +847,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_001, TestSize.Level3)
     unsigned long long start = TimeUtil::GetMilliseconds() - 5L;
     unsigned long long end = TimeUtil::GetMilliseconds();
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
-    DBHelper::WatchParams params = {watchPoint.GetPid(), watchPoint.GetPackageName()};
+    DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName()};
     db->SelectEventFromDB(start, end, list, params, result);
     std::vector<std::string> eventNames;
     eventNames.push_back("UI_BLOCK_3S");
@@ -885,7 +885,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_002, TestSize.Level3)
     unsigned long long start = TimeUtil::GetMilliseconds() + 1000L;
     unsigned long long end = TimeUtil::GetMilliseconds();
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
-    DBHelper::WatchParams params = {watchPoint.GetPid(), watchPoint.GetPackageName()};
+    DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName()};
     db->SelectEventFromDB(start, end, list, params, result);
 }
 }

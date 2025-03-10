@@ -175,13 +175,13 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     }
 
     std::string domain = sysEvent->domain_;
-    HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld", domain.c_str(), eventName.c_str(), pid);
+    HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld, happenTime=%{public}llu",
+        domain.c_str(), eventName.c_str(), pid, sysEvent->happenTime_);
 
     if (CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
         return true;
     }
     if (sysEvent->GetValue("eventLog_action").empty()) {
-        HIVIEW_LOGI("eventName=%{public}s, pid=%{public}ld, eventLog_action is empty.", eventName.c_str(), pid);
         UpdateDB(sysEvent, "nolog");
         return true;
     }
@@ -879,7 +879,7 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
         std::vector<WatchPoint> list;
         FreezeResult freezeResult(0, "FRAMEWORK", "PROCESS_KILL");
         freezeResult.SetSamePackage("true");
-        DBHelper::WatchParams params = {pid, packageName};
+        DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName};
         dbHelper_->SelectEventFromDB(event->happenTime_ - QUERY_PROCESS_KILL_INTERVAL, event->happenTime_, list,
             params, freezeResult);
         std::string appendStack = "";
