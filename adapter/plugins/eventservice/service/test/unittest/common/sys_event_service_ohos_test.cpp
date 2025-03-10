@@ -91,11 +91,6 @@ public:
         return 0;
     }
 
-    ErrCode SetDebugMode(const sptr<ISysEventCallback>& callback, bool mode)
-    {
-        return 0;
-    }
-
     ErrCode AddSubscriber(const std::vector<SysEventQueryRule> &rules, int64_t& funcResult)
     {
         return TimeUtil::GetMilliseconds();
@@ -168,7 +163,7 @@ static vector<SysEventRule> GetTestRules(int type, const string &domain, const s
  */
 HWTEST_F(SysEventServiceOhosTest, SysEventServiceAdapterTest, testing::ext::TestSize.Level3)
 {
-    OHOS::HiviewDFX::SysEventServiceAdapter::StartService(nullptr, nullptr);
+    OHOS::HiviewDFX::SysEventServiceAdapter::StartService(nullptr);
     std::shared_ptr<SysEvent> sysEvent = nullptr;
     OHOS::HiviewDFX::SysEventServiceAdapter::OnSysEvent(sysEvent);
     SysEventCreator sysEventCreator("DEMO", "EVENT_NAME", SysEventCreator::FAULT);

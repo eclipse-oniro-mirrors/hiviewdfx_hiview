@@ -50,11 +50,11 @@ class SysEventServiceOhos : public SystemAbility,
 public:
     DISALLOW_COPY_AND_MOVE(SysEventServiceOhos);
     SysEventServiceOhos()
-        : deathRecipient_(new CallbackDeathRecipient()), isDebugMode_(false), dataPublisher_(new DataPublisher()){};
+        : deathRecipient_(new CallbackDeathRecipient()), dataPublisher_(new DataPublisher()){};
     virtual ~SysEventServiceOhos() = default;
 
     static sptr<SysEventServiceOhos> GetInstance();
-    static void StartService(SysEventServiceBase* service, const NotifySysEvent notify);
+    static void StartService(SysEventServiceBase* service);
     static SysEventServiceBase* GetSysEventService(SysEventServiceBase* service = nullptr);
 
     /* IPC interface */
@@ -67,9 +67,6 @@ public:
         const QueryArgument& queryArgument,
         const std::vector<SysEventQueryRule>& rules,
         const OHOS::sptr<IQuerySysEventCallback>& callback) override;
-    ErrCode SetDebugMode(
-        const OHOS::sptr<ISysEventCallback>& callback,
-        bool mode) override;
     ErrCode AddSubscriber(
         const std::vector<SysEventQueryRule>& rules,
         int64_t& funcResult) override;
@@ -103,9 +100,6 @@ private:
     sptr<CallbackDeathRecipient> deathRecipient_;
     std::mutex listenersMutex_;
     std::map<OHOS::sptr<OHOS::IRemoteObject>, ListenerInfo> registeredListeners_;
-    bool isDebugMode_;
-    OHOS::sptr<ISysEventCallback> debugModeCallback_;
-    static OHOS::HiviewDFX::NotifySysEvent gISysEventNotify_;
     std::mutex publisherMutex_;
     std::shared_ptr<DataPublisher> dataPublisher_;
 

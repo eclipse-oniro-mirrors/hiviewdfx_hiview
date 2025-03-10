@@ -28,8 +28,6 @@ enum RuleType {
     REGULAR,
 };
 
-using NotifySysEvent = std::function<void (std::shared_ptr<Event>)>;
-
 class SysEventServiceBase {
 };
 } // namespace HiviewDFX
