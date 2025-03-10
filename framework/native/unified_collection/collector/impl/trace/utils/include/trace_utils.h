@@ -46,11 +46,6 @@ const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::SYSINFO_READ_FAILURE, UcError::TRACE_SYSINFO_READ_FAILURE},
 };
 
-const std::vector<TraceErrorCode> SUCCESS_LIST = {
-    TraceErrorCode::SUCCESS,
-    TraceErrorCode::SUCCESS_WITH_CACHE,
-};
-
 const std::map<TraceStateCode, UcError> TRACE_STATE_MAP = {
     {TraceStateCode::SUCCESS, UcError::SUCCESS},
     {TraceStateCode::FAIL,    UcError::TRACE_STATE_ERROR},
