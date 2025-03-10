@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,6 +57,7 @@ std::string GetTimeZone();
 int64_t Get0ClockStampMs();
 uint64_t GetSteadyClockTimeMs();
 uint64_t GetBootTimeMs();
+uint64_t GetMonotonicTimeMs();
 std::string FormatTime(const int64_t timestamp, const std::string &format);
 
 // time format as YYYYmmddHHMMSSxxx
