@@ -70,12 +70,12 @@ bool CompareFileGreaterFunc(const std::string& fileA, const std::string& fileB)
 
 uint8_t GetEventTypeFromFileName(const std::string& fileName)
 {
-    EventDbInfo eventDbInfo;
-    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, TYPE_ONLY, eventDbInfo)) {
+    SplitedEventInfo eventInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, TYPE_ONLY)) {
         HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
         return 0;
     }
-    return eventDbInfo.type;
+    return eventInfo.type;
 }
 }
 
@@ -274,14 +274,14 @@ void SysEventDatabase::UpdateClearMap()
         std::string file = files.top();
         files.pop();
         std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for skipping '/'
-        EventDbInfo eventDbInfo;
-        if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, NAME_ONLY | TYPE_ONLY, eventDbInfo)) {
+        SplitedEventInfo eventInfo;
+        if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY)) {
             HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
             continue;
         }
 
-        std::string domainNameStr = GetFileDomain(file) + eventDbInfo.name;
-        uint64_t type = eventDbInfo.type;
+        std::string domainNameStr = GetFileDomain(file) + eventInfo.name;
+        uint64_t type = eventInfo.type;
         nameLimitMap[domainNameStr]++;
         uint64_t fileSize = FileUtil::GetFileSize(file);
         if (clearMap_.find(type) == clearMap_.end()) {
@@ -358,28 +358,28 @@ bool SysEventDatabase::IsContainQueryArg(const std::string& file, const SysEvent
         return true;
     }
     std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for next char
-    EventDbInfo eventDbInfo;
-    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, NAME_ONLY | TYPE_ONLY | SEQ_ONLY, eventDbInfo)) {
+    SplitedEventInfo eventInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY | SEQ_ONLY)) {
         HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
         return false;
     }
 
-    std::string eventName = eventDbInfo.name;
-    auto iter = nameSeqMap.find(eventDbInfo.name);
+    std::string eventName = eventInfo.name;
+    auto iter = nameSeqMap.find(eventInfo.name);
     if (iter != nameSeqMap.end() && iter->second <= queryArg.fromSeq) {
         return false;
     }
-    nameSeqMap[eventName] = eventDbInfo.seq;
+    nameSeqMap[eventName] = eventInfo.seq;
     if (!queryArg.names.empty() && !std::any_of(queryArg.names.begin(), queryArg.names.end(),
         [&eventName] (auto& item) {
             return item == eventName;
         })) {
         return false;
     }
-    if (queryArg.type != 0 && eventDbInfo.type != queryArg.type) {
+    if (queryArg.type != 0 && eventInfo.type != queryArg.type) {
         return false;
     }
-    if (queryArg.toSeq != INVALID_VALUE_INT && eventDbInfo.seq >= queryArg.toSeq) {
+    if (queryArg.toSeq != INVALID_VALUE_INT && eventInfo.seq >= queryArg.toSeq) {
         return false;
     }
     return true;

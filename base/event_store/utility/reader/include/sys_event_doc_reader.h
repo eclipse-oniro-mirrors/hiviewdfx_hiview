@@ -36,7 +36,7 @@ public:
     int ReadPageSize(uint32_t& pageSize);
     int ReadHeader(DocHeader& header);
     int ReadHeader(DocHeader& header, HeadExtraInfo& headExtra);
-    int ReadMaxEventSequence(int64_t& maxSeq);
+    int64_t ReadMaxEventSequence();
 
 private:
     void Init(const std::string& path);

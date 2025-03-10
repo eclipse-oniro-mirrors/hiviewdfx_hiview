@@ -65,11 +65,12 @@ bool EventDbFileUtil::IsValidDbFilePath(const std::string& filePath)
 {
     std::string fileName = FileUtil::ExtractFileName(filePath);
 
-    EventDbInfo dbEventInfo;
-    return ParseEventInfoFromDbFileName(fileName, ALL_INFO, dbEventInfo);
+    SplitedEventInfo eventInfo;
+    return ParseEventInfoFromDbFileName(fileName, eventInfo, ALL_INFO);
 }
 
-bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, ParseType parseType, EventDbInfo& info)
+bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, SplitedEventInfo& info,
+    ParseType parseType)
 {
     std::vector<std::string> eventInfoList;
     StringUtil::SplitStr(fileName, DB_NAME_CONCATE, eventInfoList);

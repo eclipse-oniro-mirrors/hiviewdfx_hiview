@@ -28,7 +28,7 @@ constexpr ParseType TYPE_ONLY = 0x02;
 constexpr ParseType LEVEL_ONLY = 0x04;
 constexpr ParseType SEQ_ONLY = 0x08;
 
-struct EventDbInfo {
+struct SplitedEventInfo {
     std::string name;
     uint8_t type = 0;
     std::string level;
@@ -39,7 +39,8 @@ class EventDbFileUtil {
 public:
     static bool IsValidDbDir(const std::string& dir);
     static bool IsValidDbFilePath(const std::string& filePath);
-    static bool ParseEventInfoFromDbFileName(const std::string& fileName, ParseType tag, EventDbInfo& info);
+    static bool ParseEventInfoFromDbFileName(const std::string& fileName, SplitedEventInfo& info,
+        ParseType tag = ALL_INFO);
 };
 }
 }

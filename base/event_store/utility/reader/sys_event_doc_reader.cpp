@@ -89,20 +89,20 @@ void SysEventDocReader::InitEventInfo(const std::string& path)
         return;
     }
     std::string file = dirNames.back();
-    EventDbInfo eventDbInfo;
-    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(file, NAME_ONLY | LEVEL_ONLY, eventDbInfo)) {
+    SplitedEventInfo eventInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(file, eventInfo, NAME_ONLY | LEVEL_ONLY)) {
         HIVIEW_LOGW("failed to parse event info from %{public}s", file.c_str());
         return;
     }
 
     // init name
-    if (memcpy_s(info_.name, MAX_EVENT_NAME_LEN, eventDbInfo.name.c_str(), eventDbInfo.name.length()) != EOK) {
+    if (memcpy_s(info_.name, MAX_EVENT_NAME_LEN, eventInfo.name.c_str(), eventInfo.name.length()) != EOK) {
         HIVIEW_LOGE("failed to copy name to EventInfo");
         return;
     }
 
     // init level
-    info_.level = eventDbInfo.level;
+    info_.level = eventInfo.level;
 }
 
 int SysEventDocReader::Read(const DocQuery& query, EntryQueue& entries, int& num)
@@ -346,8 +346,9 @@ bool SysEventDocReader::CheckEventInfo(uint8_t* content)
     return true;
 }
 
-int SysEventDocReader::ReadMaxEventSequence(int64_t& maxSeq)
+int64_t SysEventDocReader::ReadMaxEventSequence()
 {
+    int64_t maxSeq = 0;
     auto callback = [&maxSeq] (uint8_t* content, uint32_t& contentSize) {
         if (content == nullptr || contentSize < HIVIEW_BLOCK_SIZE + sizeof(int64_t)) {
             HIVIEW_LOGE("invalid event, content size is %{public}" PRIu32 "", contentSize);
@@ -359,7 +360,8 @@ int SysEventDocReader::ReadMaxEventSequence(int64_t& maxSeq)
         }
         return true;
     };
-    return Read(callback);
+    (void)Read(callback);
+    return maxSeq;
 }
 } // EventStore
 } // HiviewDFX
