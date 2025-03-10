@@ -145,8 +145,8 @@ bool IsNativeCaller()
 {
     auto callerToken = IPCSkeleton::GetCallingTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
-    return tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE
-        || Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL;
+    return (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE)
+        || (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL);
 }
 }
 
