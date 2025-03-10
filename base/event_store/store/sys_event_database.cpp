@@ -17,6 +17,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "event_db_file_util.h"
 #include "event_store_config.h"
 #include "file_util.h"
 #include "hisysevent.h"
@@ -67,15 +68,14 @@ bool CompareFileGreaterFunc(const std::string& fileA, const std::string& fileB)
     return GetFileSeq(fileA) > GetFileSeq(fileB);
 }
 
-std::string GetEventTypeFromFileName(const std::string& fileName)
+uint8_t GetEventTypeFromFileName(const std::string& fileName)
 {
-    std::vector<std::string> splitStrs;
-    StringUtil::SplitStr(fileName, FILE_NAME_DELIMIT_STR, splitStrs);
-    if (splitStrs.size() < FILE_NAME_SPLIT_SIZE) {
-        HIVIEW_LOGW("invalid file name, file=%{public}s", fileName.c_str());
-        return "";
+    SplitedEventInfo eventInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, TYPE_ONLY)) {
+        HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
+        return 0;
     }
-    return splitStrs[EVENT_TYPE_INDEX];
+    return eventInfo.type;
 }
 }
 
@@ -162,7 +162,7 @@ bool SysEventDatabase::Backup(const std::string& zipFilePath)
         return false;
     }
 
-    const std::string faultType(std::to_string(HiSysEvent::EventType::FAULT));
+    const uint8_t faultType = static_cast<uint8_t>(HiSysEvent::EventType::FAULT);
     for (const auto& domainDir : domainDirs) {
         std::vector<std::string> eventFiles;
         FileUtil::GetDirFiles(domainDir, eventFiles, false);
@@ -274,17 +274,15 @@ void SysEventDatabase::UpdateClearMap()
         std::string file = files.top();
         files.pop();
         std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for skipping '/'
-        std::vector<std::string> splitNames;
-        StringUtil::SplitStr(fileName, "-", splitNames);
-        if (splitNames.size() != FILE_NAME_SPLIT_SIZE) {
-            HIVIEW_LOGI("invalid clear file=%{public}s", file.c_str());
+        SplitedEventInfo eventInfo;
+        if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY)) {
+            HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
             continue;
         }
 
-        std::string name = splitNames[EVENT_NAME_INDEX];
-        std::string domainNameStr = GetFileDomain(file) + name;
+        std::string domainNameStr = GetFileDomain(file) + eventInfo.name;
+        uint64_t type = eventInfo.type;
         nameLimitMap[domainNameStr]++;
-        int type = std::strtol(splitNames[EVENT_TYPE_INDEX].c_str(), nullptr, 0);
         uint64_t fileSize = FileUtil::GetFileSize(file);
         if (clearMap_.find(type) == clearMap_.end()) {
             FileQueue fileQueue(CompareFileGreaterFunc);
@@ -360,30 +358,28 @@ bool SysEventDatabase::IsContainQueryArg(const std::string& file, const SysEvent
         return true;
     }
     std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for next char
-    std::vector<std::string> splitStrs;
-    StringUtil::SplitStr(fileName, FILE_NAME_DELIMIT_STR, splitStrs);
-    if (splitStrs.size() < FILE_NAME_SPLIT_SIZE) {
-        HIVIEW_LOGE("invalid file name, file=%{public}s", fileName.c_str());
+    SplitedEventInfo eventInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY | SEQ_ONLY)) {
+        HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
         return false;
     }
-    std::string eventName = splitStrs[EVENT_NAME_INDEX];
-    std::string eventType = splitStrs[EVENT_TYPE_INDEX];
-    long long eventSeq = std::strtoll(splitStrs[EVENT_SEQ_INDEX].c_str(), nullptr, 0);
-    auto iter = nameSeqMap.find(eventName);
+
+    std::string eventName = eventInfo.name;
+    auto iter = nameSeqMap.find(eventInfo.name);
     if (iter != nameSeqMap.end() && iter->second <= queryArg.fromSeq) {
         return false;
     }
-    nameSeqMap[eventName] = eventSeq;
+    nameSeqMap[eventName] = eventInfo.seq;
     if (!queryArg.names.empty() && !std::any_of(queryArg.names.begin(), queryArg.names.end(),
         [&eventName] (auto& item) {
             return item == eventName;
         })) {
         return false;
     }
-    if (queryArg.type != 0 && eventType != StringUtil::ToString(queryArg.type)) {
+    if (queryArg.type != 0 && eventInfo.type != queryArg.type) {
         return false;
     }
-    if (queryArg.toSeq != INVALID_VALUE_INT && eventSeq >= queryArg.toSeq) {
+    if (queryArg.toSeq != INVALID_VALUE_INT && eventInfo.seq >= queryArg.toSeq) {
         return false;
     }
     return true;
