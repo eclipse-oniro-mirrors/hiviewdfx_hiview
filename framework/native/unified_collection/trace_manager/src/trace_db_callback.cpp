@@ -71,7 +71,7 @@ int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
     }
     if (auto ret = CreateAppTaskTable(rdbStore); ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table unified_collection_task");
-        return false;
+        return ret;
     }
     if (auto ret = CreateTraceBehaviorDbHelperTable(rdbStore); ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table trace_behavior_db_helper");

@@ -31,7 +31,7 @@ namespace Telemetry {
     const std::string KEY_DELAY_TIME = "delayTime";
     const std::string KEY_XPERF_QUOTA = "xperfTraceQuota";
     const std::string KEY_XPOWER_QUOTA = "xpowerTraceQuota";
-    const std::string TOATL = "Total";
+    const std::string TOTAL = "Total";
     const std::string KEY_FLOW_RATE = "traceCompressRatio";
     const std::string KEY_TRACE_TAG = "traceArgs";
     constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
