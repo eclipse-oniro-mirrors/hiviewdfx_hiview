@@ -116,7 +116,7 @@ TelemetryRet TelemetryListener::InitTelemetryFlow(const Event &msg)
     std::map<std::string, int64_t> flowControlQuotas {
         {CallerName::XPERF, DEFAULT_XPERF_SIZE },
         {CallerName::XPOWER, DEFAULT_XPOWER_SIZE},
-        {Telemetry::TOATL, DEFAULT_TOTAL_SIZE}
+        {Telemetry::TOTAL, DEFAULT_TOTAL_SIZE}
     };
     int32_t traceCompressRatio = msg.GetIntValue(Telemetry::KEY_FLOW_RATE);
     if (traceCompressRatio <= 0) {
@@ -132,7 +132,7 @@ TelemetryRet TelemetryListener::InitTelemetryFlow(const Event &msg)
     }
     auto totalTraceQuota = msg.GetInt64Value(Telemetry::KEY_TOTAL_QUOTA);
     if (totalTraceQuota > 0) {
-        flowControlQuotas[Telemetry::TOATL] = totalTraceQuota * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[Telemetry::TOTAL] = totalTraceQuota * traceCompressRatio * BT_M_UNIT;
     }
     HIVIEW_LOGI("Ratio:%{public}d, xperfQuota:%{public}" PRId64 ", xpowerQuota:%{public}" PRId64 ","
         " totalQuota:%{public}" PRId64 "", traceCompressRatio, xperfTraceQuota, xpowerTraceQuota, totalTraceQuota);
