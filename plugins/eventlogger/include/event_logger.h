@@ -86,7 +86,6 @@ private:
     void ReportUserPanicWarning(std::shared_ptr<SysEvent> event, long pid);
     void StartFfrtDump(std::shared_ptr<SysEvent> event);
 #endif
-    void CollectMemInfo(int fd, std::shared_ptr<SysEvent> event);
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
     std::string StabilityGetTempFreqInfo();
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
@@ -122,9 +121,6 @@ private:
     void GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysEvent> event);
     bool GetMatchString(const std::string& src, std::string& dst, const std::string& pattern) const;
     void WriteCallStack(std::shared_ptr<SysEvent> event, int fd);
-    std::string GetStringFromFile(const std::string path);
-    int GetNumFromString(const std::string &mem);
-    void CheckString(int fd, const std::string &mem, std::string &data, const std::string key, const std::string path);
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
 };

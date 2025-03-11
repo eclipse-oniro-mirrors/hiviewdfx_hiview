@@ -571,23 +571,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetFile_001, TestSize.Level3)
 }
 
 /**
- * @tc.name: EventLoggerTest_CollectMemInfo_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_CollectMemInfo_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
-    std::string testName = "EventLoggerTest_CollectMemInfo_001";
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
-        nullptr, jsonStr);
-    sysEvent->SetEventValue("FREEZE_MEMORY", "test\\ntest");
-    eventLogger->CollectMemInfo(0, sysEvent);
-    EXPECT_TRUE(!sysEvent->GetEventValue("FREEZE_MEMORY").empty());
-}
-
-/**
  * @tc.name: EventLoggerTest_ReportUserPanicWarning_001
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
@@ -908,44 +891,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetEventPid_001, TestSize.Level3)
     event->SetEventValue("PACKAGE_NAME", testName);
     event->eventName_ = testName;
     EXPECT_TRUE(eventLogger->GetEventPid(event) > 0);
-}
-
-/**
- * @tc.name: EventLoggerTest_GetStringFromFile_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_GetStringFromFile_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    EXPECT_EQ(eventLogger->GetStringFromFile("/data/log/test"), "");
-}
-
-/**
- * @tc.name: EventLoggerTest_GetNumFromString_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_GetNumFromString_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    int ret = eventLogger->GetNumFromString("abc");
-    EXPECT_EQ(ret, 0);
-    ret = eventLogger->GetNumFromString("100");
-    EXPECT_EQ(ret, 100);
-}
-
-/**
- * @tc.name: EventLoggerTest_CheckString_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_CheckString_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    std::string data;
-    eventLogger->CheckString(0, "abc: 100", data, "abc", "/data/log/test");
-    EXPECT_TRUE(data.empty());
 }
 
 /**

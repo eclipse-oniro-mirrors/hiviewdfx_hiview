@@ -490,6 +490,7 @@ void EventLogTask::HitraceCapture()
 void EventLogTask::MemoryUsageCapture()
 {
     auto capture = std::make_shared<MemoryCatcher>();
+    capture->SetEvent(event_);
     capture->Initialize("", 0, 0);
     if (!memoryCatched_) {
         tasks_.push_back(capture);
