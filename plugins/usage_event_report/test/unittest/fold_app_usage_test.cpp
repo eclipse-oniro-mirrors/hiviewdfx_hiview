@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -184,17 +184,15 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
     FoldEventCacher cacher("/data/test/");
     cacher.ProcessEvent(sysEvent);
 
-    SysEventCreator sysEventCreator1("AAFWK", "APP_FOREGROUND", SysEventCreator::BEHAVIOR);
+    SysEventCreator sysEventCreator1("WINDOWMANAGER", "FOCUS_WINDOW", SysEventCreator::BEHAVIOR);
+    sysEventCreator1.SetKeyValue("PID", 1111);
+    sysEventCreator1.SetKeyValue("UID", 20020019);
     sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_bundle");
-    sysEventCreator1.SetKeyValue("VERSION_NAME", "1");
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 1);
     sysEventCreator1.SetKeyValue("time_", 123);
 
     auto sysEvent1 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
     cacher.ProcessEvent(sysEvent1);
-
-    sysEventCreator1.SetKeyValue("BUNDLE_NAME", FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME);
-    auto sysEvent2 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
-    cacher.ProcessEvent(sysEvent2);
 
     FoldAppUsageDbHelper dbHelper("/data/test/");
     int index1 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_APP_START);
@@ -204,20 +202,24 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
     sysEventCreator2.SetKeyValue("CURRENT_FOLD_STATUS", 1);
     sysEventCreator2.SetKeyValue("NEXT_FOLD_STATUS", 2);
     sysEventCreator2.SetKeyValue("time_", 333);
-    auto sysEvent3 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator2);
-    cacher.ProcessEvent(sysEvent3);
+    auto sysEvent2 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator2);
+    cacher.ProcessEvent(sysEvent2);
     int index2 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_SCREEN_STATUS_CHANGED);
     ASSERT_TRUE(index2 != 0);
 
     SysEventCreator sysEventCreator3("WINDOWMANAGER", "VH_MODE", SysEventCreator::BEHAVIOR);
     sysEventCreator3.SetKeyValue("MODE", 1);
     sysEventCreator3.SetKeyValue("time_", 444);
-    auto sysEvent4 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator3);
-    cacher.ProcessEvent(sysEvent4);
+    auto sysEvent3 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator3);
+    cacher.ProcessEvent(sysEvent3);
     int index3 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_SCREEN_STATUS_CHANGED);
     ASSERT_TRUE(index3 != 0);
-
     ASSERT_TRUE(index3 != index2);
+
+    sysEventCreator1.SetKeyValue("BUNDLE_NAME", FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME);
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 2001);
+    auto sysEvent4 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
+    cacher.ProcessEvent(sysEvent4);
 }
 
 /**
@@ -236,15 +238,18 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest005, TestSize.Level1)
     FoldEventCacher cacher("/data/test/");
     cacher.ProcessEvent(sysEvent);
 
-    SysEventCreator sysEventCreator1("AAFWK", "APP_BACKGROUND", SysEventCreator::BEHAVIOR);
-    sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_bundle");
-    sysEventCreator1.SetKeyValue("VERSION_NAME", "1");
+    SysEventCreator sysEventCreator1("WINDOWMANAGER", "FOCUS_WINDOW", SysEventCreator::BEHAVIOR);
+    sysEventCreator1.SetKeyValue("PID", 2222);
+    sysEventCreator1.SetKeyValue("UID", 20020019);
+    sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_bundle1");
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 1);
     sysEventCreator1.SetKeyValue("time_", 456);
 
     auto sysEvent1 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
     cacher.ProcessEvent(sysEvent1);
 
     sysEventCreator1.SetKeyValue("BUNDLE_NAME", FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME);
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 2001);
     auto sysEvent2 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
     cacher.ProcessEvent(sysEvent2);
 
