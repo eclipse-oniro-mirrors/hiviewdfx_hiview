@@ -26,6 +26,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+    static const int SYS_MATCH_NUM = 1;
+}
+
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
 bool FreezeResolver::Init()
 {
@@ -93,6 +97,11 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
         return res.GetAction() == "or";
     })) {
         return list.size() >= minMatchNum;
+    }
+
+    if ((watchPoint.GetStringId() == "SERVICE_WARNING" || watchPoint.GetStringId() ==
+        "THREAD_BLOCK_3S") && (list.size() == result.size() - SYS_MATCH_NUM)) {
+        return true;
     }
 
     if (list.size() == result.size()) {
