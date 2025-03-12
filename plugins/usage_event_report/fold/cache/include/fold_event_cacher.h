@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,10 +32,10 @@ public:
     ~FoldEventCacher() {}
 
     void ProcessEvent(std::shared_ptr<SysEvent> event);
-    void TimeOut();
 private:
-    void ProcessForegroundEvent(std::shared_ptr<SysEvent> event, AppEventRecord& appEventRecord);
-    void ProcessBackgroundEvent(std::shared_ptr<SysEvent> event, AppEventRecord& appEventRecord);
+    void ProcessFocusWindowEvent(std::shared_ptr<SysEvent> event);
+    void ProcessForegroundEvent(std::shared_ptr<SysEvent> event);
+    void ProcessBackgroundEvent(std::shared_ptr<SysEvent> event);
     void ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> event);
     void CountLifeCycleDuration(AppEventRecord& appEventRecord);
     void UpdateFoldStatus(int status);
@@ -50,7 +50,7 @@ private:
 
 private:
     std::unique_ptr<FoldAppUsageDbHelper> dbHelper_;
-    std::map<std::string, std::string> foregroundApps_;
+    std::pair<std::string, bool> focusedAppPair_;
     int foldStatus_ = 0;
     int vhMode_ = 0;
     uint64_t timelyStart_ = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -106,7 +106,7 @@ void UsageEventReport::Init()
 
         // get last report time from db if any
         if (auto event = cacher.GetSysUsageEvent(LAST_SYS_USAGE_TABLE); event != nullptr) {
-            HIVIEW_LOGI("get cache sys usage event=%{public}s", event->ToJsonString().c_str());
+            HIVIEW_LOGI("get last sys usage event=%{public}s", event->ToJsonString().c_str());
             lastReportTime_ = event->GetValue(KEY_OF_START).GetUint64();
         } else {
             lastReportTime_ = nowTime;
@@ -114,7 +114,7 @@ void UsageEventReport::Init()
 
         // get last sys report time from db if any
         if (auto event = cacher.GetSysUsageEvent(); event != nullptr) {
-            HIVIEW_LOGI("get last sys usage event=%{public}s", event->ToJsonString().c_str());
+            HIVIEW_LOGI("get cache sys usage event=%{public}s", event->ToJsonString().c_str());
             lastSysReportTime_ = event->GetValue(KEY_OF_START).GetUint64();
         } else {
             lastSysReportTime_ = nowTime;
@@ -132,7 +132,7 @@ void UsageEventReport::Init()
 
     // more than one hours since the shutdown time
     if (nowTime >= (lastSysReportTime_ + 3600000)) { // 3600000ms: 1h
-        HIVIEW_LOGI("lastSysReportTime=%{public}" PRIu64 ", need to report sys usage event now", lastReportTime_);
+        HIVIEW_LOGI("lastSysReportTime=%{public}" PRIu64 ", need to report sys usage event now", lastSysReportTime_);
         ReportSysUsageEvent();
     }
 }
@@ -183,7 +183,6 @@ void UsageEventReport::TimeOut()
     HIVIEW_LOGD("start checking whether events need to be reported");
     ReportTimeOutEvent();
     ReportDailyEvent();
-    foldEventReport_.TimeOut();
 
 #ifdef POWER_MANAGER_ENABLE
     // init shutdown callback if necessary

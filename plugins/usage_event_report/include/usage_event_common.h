@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,10 +69,9 @@ namespace FoldEventId {
 }
 
 namespace AppEventSpace {
-    const std::string FOREGROUND_EVENT_NAME = "APP_FOREGROUND";
-    const std::string BACKGROUND_EVENT_NAME = "APP_BACKGROUND";
-    const std::string KEY_OF_VERSION_NAME = "VERSION_NAME";
+    const std::string FOCUS_WINDOW = "FOCUS_WINDOW";
     const std::string KEY_OF_BUNDLE_NAME = "BUNDLE_NAME";
+    const std::string KEY_OF_WINDOW_TYPE = "WINDOW_TYPE";
 }
 
 namespace FoldStateChangeEventSpace {

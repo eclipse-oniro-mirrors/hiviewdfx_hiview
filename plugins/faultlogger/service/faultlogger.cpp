@@ -94,6 +94,7 @@ constexpr int READ_HILOG_BUFFER_SIZE = 1024;
 constexpr char APP_CRASH_TYPE[] = "APP_CRASH";
 constexpr char APP_FREEZE_TYPE[] = "APP_FREEZE";
 constexpr char APP_HICOLLIE_TYPE[] = "APP_HICOLLIE";
+constexpr char LIFECYCLE_TIMEOUT[] = "LIFECYCLE_TIMEOUT";
 constexpr int REPORT_HILOG_LINE = 100;
 constexpr const char STACK_ERROR_MESSAGE[] = "Cannot get SourceMap info, dump raw stack:";
 DumpRequest InitDumpRequest()
@@ -832,6 +833,33 @@ std::unique_ptr<FaultLogQueryResultInner> Faultlogger::QuerySelfFaultLog(int32_t
     return std::make_unique<FaultLogQueryResultInner>(mgr_->GetFaultInfoList(name, id, faultType, maxNum));
 }
 
+void Faultlogger::DeleteHilogInFreezeFile(std::string &readContent, bool &modified) const
+{
+    const int blockMaxTime = 2;
+    const char *const hilogStart = "catcher cmd: hilog -z 1000 -P start time";
+    const char *const hilogEnd = "catcher cmd: hilog -z 1000 -P end time";
+    for (int i = 0; i < blockMaxTime; i++) {
+        auto posStart = readContent.find(hilogStart);
+        if (posStart == std::string::npos) {
+            HIVIEW_LOGW("No Hilog posStart Found In Crash Log");
+            break;
+        }
+
+        auto posEnd = readContent.find(hilogEnd, posStart);
+        if (posEnd == std::string::npos) {
+            HIVIEW_LOGW("No Hilog posEnd Found In Crash Log");
+            break;
+        }
+        auto endLinePos = readContent.find('\n', posEnd);
+        if (endLinePos == std::string::npos) {
+            HIVIEW_LOGW("No Hilog endLinePos Found In Crash Log");
+            break;
+        }
+        modified = true;
+        readContent.erase(posStart, endLinePos - posStart);
+    }
+}
+
 void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) const
 {
     std::ifstream logReadFile(logPath);
@@ -854,8 +882,10 @@ void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) c
                 ", which exceeesd the limit of " + std::to_string(maxLogSize) + " and is truncated.\n";
             modified = true;
         }
+    } else if (readContent.find(LIFECYCLE_TIMEOUT) != std::string::npos ||
+        faultType == FaultLogType::APP_FREEZE) {
+        DeleteHilogInFreezeFile(readContent, modified);
     }
-
     if (modified) {
         std::ofstream logWriteFile(logPath);
         logWriteFile << readContent;
@@ -911,10 +941,10 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
     if (!isSystemProcess && info.reportToAppEvent) {
         ReportEventToAppEvent(info);
     }
-
-    if (info.dumpLogToFautlogger &&
-        ((info.faultLogType == FaultLogType::CPP_CRASH) || (info.faultLogType == FaultLogType::APP_FREEZE)) &&
-        IsFaultLogLimit()) {
+    bool isNeedLimitFreezeFile = (info.dumpLogToFautlogger && ((info.faultLogType == FaultLogType::CPP_CRASH) ||
+        (info.faultLogType == FaultLogType::APP_FREEZE) ||
+        (info.reason == LIFECYCLE_TIMEOUT)) && IsFaultLogLimit());
+    if (isNeedLimitFreezeFile) {
         FaultlogLimit(info.logPath, info.faultLogType);
     }
 }

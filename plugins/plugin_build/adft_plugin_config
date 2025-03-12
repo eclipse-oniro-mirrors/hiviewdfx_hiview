@@ -7,6 +7,6 @@ UsageEventReport[]:0 static
 PrivacyController[]:0 static
 pipelines:2
 SysEventPipeline:PrivacyController SysEventDispatcher SysEventStore
-usageEventPipeline:UsageEventReport SysEventDispatcher SysEventStore
+usageEventPipeline:PrivacyController UsageEventReport SysEventDispatcher SysEventStore
 pipelinegroups:1
 SysEventSource:SysEventPipeline usageEventPipeline

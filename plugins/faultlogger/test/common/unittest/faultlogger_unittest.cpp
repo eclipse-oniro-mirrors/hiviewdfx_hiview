@@ -222,6 +222,51 @@ public:
         }
     }
 
+    static void ConstructCjErrorAppEvent(std::string summmay, std::shared_ptr<Faultlogger> plugin)
+    {
+        SysEventCreator sysEventCreator("CJ_RUNTIME", "CJERROR", SysEventCreator::FAULT);
+        sysEventCreator.SetKeyValue("SUMMARY", summmay);
+        sysEventCreator.SetKeyValue("name_", "CJ_ERROR");
+        sysEventCreator.SetKeyValue("happenTime_", 1670248360359); // 1670248360359 : Simulate happenTime_ value
+        sysEventCreator.SetKeyValue("REASON", "std.core:Exception");
+        sysEventCreator.SetKeyValue("tz_", "+0800");
+        sysEventCreator.SetKeyValue("pid_", 2413); // 2413 : Simulate pid_ value
+        sysEventCreator.SetKeyValue("tid_", 2413); // 2413 : Simulate tid_ value
+        sysEventCreator.SetKeyValue("what_", 3); // 3 : Simulate what_ value
+        sysEventCreator.SetKeyValue("PACKAGE_NAME", "com.ohos.systemui");
+        sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+        sysEventCreator.SetKeyValue("TYPE", 3); // 3 : Simulate TYPE value
+        sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+
+        auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+        std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+        bool result = plugin->OnEvent(event);
+        ASSERT_EQ(result, true);
+    }
+
+    static void CheckKeyWordsInCjErrorAppEventFile(std::string name)
+    {
+        std::string keywords[] = {
+            "\"bundle_name\":", "\"bundle_version\":", "\"crash_type\":", "\"exception\":",
+            "\"foreground\":", "\"hilog\":", "\"pid\":", "\"time\":", "\"uid\":", "\"uuid\":",
+            "\"name\":", "\"message\":", "\"stack\":"
+        };
+        int length = sizeof(keywords) / sizeof(keywords[0]);
+        std::cout << "length:" << length << std::endl;
+        std::string oldFileName = "/data/test_cjError_info";
+        int count = CheckKeyWordsInFile(oldFileName, keywords, length, false);
+        std::cout << "count:" << count << std::endl;
+        ASSERT_EQ(count, length) << "ReportCjErrorToAppEventTest001-" + name + " check keywords failed";
+        if (FileUtil::FileExists(oldFileName)) {
+            std::string newFileName = oldFileName + "_" + name;
+            rename(oldFileName.c_str(), newFileName.c_str());
+        }
+        auto ret = remove("/data/test_cjError_info");
+        if (ret == 0) {
+            GTEST_LOG_(INFO) << "remove /data/test_cjError_info failed";
+        }
+    }
+
     static void CheckDeleteStackErrorMessage(std::string name)
     {
         std::string keywords[] = {"\"Cannot get SourceMap info, dump raw stack:"};
@@ -772,6 +817,19 @@ HWTEST_F(FaultloggerUnittest, FaultlogManager001, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: FaultLogManager::FaultlogManager
+ * @tc.desc: Test calling FaultlogManager Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultlogManager002, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    std::list<std::string> infoVec = {"1", "2", "3", "4", "5"};
+    faultLogManager->ReduceLogFileListSize(infoVec, 1);
+    ASSERT_EQ(infoVec.size(), 1);
+}
+
+/**
  * @tc.name: FaultLogManager::GetFaultLogFileList
  * @tc.desc: Test calling GetFaultLogFileList Func
  * @tc.type: FUNC
@@ -782,6 +840,38 @@ HWTEST_F(FaultloggerUnittest, GetFaultLogFileList001, testing::ext::TestSize.Lev
     faultLogManager->Init();
     std::list<std::string> fileList = faultLogManager->GetFaultLogFileList("FaultloggerUnittest", 1607161344, 0, 2, 1);
     ASSERT_EQ(fileList.size(), 1);
+}
+
+/**
+ * @tc.name: FaultLogManager::WriteFaultLogToFile
+ * @tc.desc: Test calling WriteFaultLogToFile Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, WriteFaultLogToFile001, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    FaultLogInfo info {
+        .time = 1607161345,
+        .id = 0,
+        .faultLogType = 2,
+        .module = ""
+    };
+    info.faultLogType = FaultLogType::JS_CRASH;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::SYS_FREEZE;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::SYS_WARNING;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::RUST_PANIC;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::ADDR_SANITIZER;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::ADDR_SANITIZER;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::ALL;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    ASSERT_EQ(info.pid, 0);
 }
 
 /**
@@ -803,6 +893,56 @@ HWTEST_F(FaultloggerUnittest, GetFaultLogContent001, testing::ext::TestSize.Leve
     std::string content;
     ASSERT_TRUE(faultLogManager->GetFaultLogContent(fileName, content));
     ASSERT_EQ(content, "testContent");
+}
+
+/**
+ * @tc.name: FaultLogManager::GetFaultLogName
+ * @tc.desc: Test calling GetFaultLogName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFaultLogContent002, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    FaultLogInfo info {
+        .time = 1607161345,
+        .id = 0,
+        .faultLogType = FaultLogType::ADDR_SANITIZER,
+        .module = "FaultloggerUnittest"
+    };
+    info.sanitizerType = "ASAN";
+    std::string fileName = GetFaultLogName(info);
+    ASSERT_EQ(fileName, "asan-FaultloggerUnittest-0-20201205174225345.log");
+    info.sanitizerType = "HWASAN";
+    fileName = GetFaultLogName(info);
+    ASSERT_EQ(fileName, "hwasan-FaultloggerUnittest-0-20201205174225345.log");
+    string type = "sanitizer";
+    ASSERT_EQ(GetLogTypeByName(type), FaultLogType::ADDR_SANITIZER);
+    type = "cjerror";
+    ASSERT_EQ(GetLogTypeByName(type), FaultLogType::CJ_ERROR);
+}
+
+/**
+ * @tc.name: FaultLogManager::GetDebugSignalTempLogName
+ * @tc.desc: Test calling GetDebugSignalTempLogName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetDebugSignalTempLogName001, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    FaultLogInfo info {
+        .time = 1607161345,
+        .id = 0,
+        .faultLogType = FaultLogType::ADDR_SANITIZER,
+        .module = "FaultloggerUnittest"
+    };
+    string fileName = GetDebugSignalTempLogName(info);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-0-1607161345");
+    fileName = GetSanitizerTempLogName(info.pid, info.time);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/sanitizer-0-1607161345");
+    string str;
+    ASSERT_EQ(GetThreadStack(str, 0), "");
 }
 
 /**
@@ -974,6 +1114,18 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest002, testing::ext::TestSize.Level3
     ASSERT_EQ(info6.pid, 10006); // 10006 : test uid
 }
 
+/**
+ * @tc.name: FaultLogUtilTest003
+ * @tc.desc: check ExtractInfoFromFileName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest003, testing::ext::TestSize.Level3)
+{
+    std::string filename = "appfreeze";
+    auto info = ExtractInfoFromFileName(filename);
+    ASSERT_EQ(info.pid, 0);
+    ASSERT_EQ(info.time, 0);
+}
 /**
  * @tc.name: FaultloggerAdapter.StartService
  * @tc.desc: Test calling FaultloggerAdapter.StartService Func
@@ -1343,6 +1495,56 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest004, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: FaultloggerTest004
+ * @tc.desc: Test calling Faultlogger.DeleteHilogInFreezeFile Func, for full appfreeze and LIFECYCLE_TIMEOUT log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultloggerTest005, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    bool modified = false;
+    std::string content = std::string("deletehilog test start\n") +
+        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "catcher cmd: hilog -z 1000 -P end time:xxx\n" +
+        "deletehilog testend\n";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, true);
+
+    modified = false;
+    content = std::string("deletehilog test start\n") +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "catcher cmd: hilog -z 1000 -P end time:xxx\n" +
+        "deletehilog testend\n";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, false);
+
+    modified = false;
+    content = std::string("deletehilog test start\n") +
+        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "deletehilog testend\n";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, false);
+
+    modified = false;
+    content = std::string("deletehilog test start\n") +
+        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "xxx\n" +
+        "catcher cmd: hilog -z 1000 -P end time:xxx";
+    plugin->DeleteHilogInFreezeFile(content, modified);
+    ASSERT_EQ(modified, false);
+}
+
+/**
  * @tc.name: ReportJsErrorToAppEventTest001
  * @tc.desc: create JS ERROR event and send it to hiappevent
  * @tc.type: FUNC
@@ -1526,6 +1728,27 @@ HWTEST_F(FaultloggerUnittest, ReportJsErrorToAppEventTest009, testing::ext::Test
     if (ret == 0) {
         GTEST_LOG_(INFO) << "remove /data/test_jsError_info failed";
     }
+}
+
+/**
+ * @tc.name: ReportCjErrorToAppEventTest001
+ * @tc.desc: create CJ ERROR event and send it to hiappevent
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ReportCjErrorToAppEventTest001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    // has Error name、Error message、Error code、SourceCode、Stacktrace
+    std::string summary = R"~(Uncaught exception was found.
+Exception info: throwing foo exception
+Stacktrace:
+    at anonymous(entry/src/main/ets/pages/index.cj:20)
+    at anonymous2(entry/src/main/ets/pages/index.cj:33)
+    at anonymous3(entry/src/main/ets/pages/index.cj:77)
+)~";
+    GTEST_LOG_(INFO) << "========CangjieError========";
+    ConstructCjErrorAppEvent(summary, plugin);
+    CheckKeyWordsInCjErrorAppEventFile("summary");
 }
 
 bool SendSysEvent(SysEventCreator sysEventCreator)
@@ -1723,6 +1946,21 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest001, testing::ext::TestSize.Le
 
     str = RegulateModuleNameIfNeed("");
     ASSERT_EQ(str, "");
+}
+
+/**
+ * @tc.name: FaultlogUtilUnittest002
+ * @tc.desc: test GetFaultNameByType
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest002, testing::ext::TestSize.Level3)
+{
+    std::string result = GetFaultNameByType(FaultLogType::SYS_FREEZE, false);
+    ASSERT_EQ(result, "SYS_FREEZE");
+    result = GetFaultNameByType(FaultLogType::SYS_WARNING, false);
+    ASSERT_EQ(result, "SYS_WARNING");
+    result = GetFaultNameByType(FaultLogType::CJ_ERROR, false);
+    ASSERT_EQ(result, "CJ_ERROR");
 }
 
 /**

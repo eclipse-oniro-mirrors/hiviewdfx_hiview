@@ -85,7 +85,7 @@ namespace {
     static constexpr const char* const MONITOR_STACK_FLIE_NAME[] = {
         "jsstack",
     };
-    static constexpr const char* const CORE_PORCESSES[] = {
+    static constexpr const char* const CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
 #ifdef WINDOW_MANAGER_ENABLE
@@ -303,7 +303,7 @@ void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
     if (!content.empty()) {
         std::vector<std::string> vec;
         OHOS::SplitStr(content, "\\n", vec);
-        FreezeCommon::WriteStartInfoToFd(fd, "start collect meminfo: ");
+        FreezeCommon::WriteStartInfoToFd(fd, "collect meminfo start time: ");
         FileUtil::SaveStringToFd(fd, "\nMemoryCatcher --\n");
         for (const std::string& mem : vec) {
             FileUtil::SaveStringToFd(fd, mem + "\n");
@@ -311,12 +311,12 @@ void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
             CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
             CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
         }
-        FreezeCommon::WriteEndInfoToFd(fd, "\nend collect meminfo: ");
+        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect meminfo end time: ");
     }
     if (!data.empty()) {
-        FreezeCommon::WriteStartInfoToFd(fd, "start collect ashmem dmaheap gpumem： ");
+        FreezeCommon::WriteStartInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
         FileUtil::SaveStringToFd(fd, data);
-        FreezeCommon::WriteEndInfoToFd(fd, "\n end collect ashmem dmaheap gpumem： ");
+        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
     } else {
         FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
     }
@@ -381,9 +381,8 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN") {
         logTask->SetFocusWindowId(DumpWindowInfo(fd));
     }
-    std::string cmdStr = event->GetValue("eventLog_action");
     std::vector<std::string> cmdList;
-    StringUtil::SplitStr(cmdStr, ",", cmdList);
+    StringUtil::SplitStr(event->GetValue("eventLog_action"), ",", cmdList);
     if (event->GetEventValue("MSG").find(EXPECTION_FLAG) != std::string::npos) {
         logTask->AddLog("S");
     }
@@ -410,28 +409,25 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     if (ret != EventLogTask::TASK_SUCCESS) {
         HIVIEW_LOGE("capture fail %{public}d", ret);
     }
-    SetEventTerminalBinder(event, threadStack, logTask->terminalThreadStack_, fd);
+    threadStack = threadStack.empty() ? logTask->terminalThreadStack_ : threadStack;
+    SetEventTerminalBinder(event, threadStack, fd);
     CollectMemInfo(fd, event);
-    FreezeCommon::WriteStartInfoToFd(fd, "start collect ctabilityGetTempFreqInfo: ");
+    FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
     FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
     auto end = TimeUtil::GetMilliseconds();
-    FreezeCommon::WriteEndInfoToFd(fd, "\nend collect ctabilityGetTempFreqInfo: ");
+    FreezeCommon::WriteEndInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ");
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
-void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack,
-    const std::string& threadStackFromLogTask, int fd)
+void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd)
 {
-    std::string eventName = event->eventName_;
-    if (eventName == "APP_INPUT_BLOCK" && !threadStack.empty()) {
-        event->SetEventValue("TERMINAL_THREAD_STACK", threadStack);
-    } else if (!threadStackFromLogTask.empty()) {
-        if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), eventName) !=
-            std::end(CORE_PORCESSES)) {
-            FileUtil::SaveStringToFd(fd, "\nThread stack start:\n" + threadStackFromLogTask + "Thread stack end\n");
-        } else {
-            event->SetEventValue("TERMINAL_THREAD_STACK", threadStackFromLogTask);
-        }
+    if (threadStack.empty()) {
+        return;
+    }
+    event->SetEventValue("TERMINAL_THREAD_STACK", threadStack);
+    if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), event->eventName_) !=
+        std::end(FreezeCommon::PB_EVENTS)) {
+        FileUtil::SaveStringToFd(fd, "\nThread stack start:\n" + threadStack + "Thread stack end\n");
     }
 }
 
@@ -1065,8 +1061,8 @@ bool EventLogger::CheckScreenOnRepeat(std::shared_ptr<SysEvent> event)
             if (pair.first == "AAFWK" && processName != "com.ohos.sceneboard") {
                 continue;
             }
-            if (std::find(std::begin(CORE_PORCESSES), std::end(CORE_PORCESSES), processName) !=
-                std::end(CORE_PORCESSES)) {
+            if (std::find(std::begin(CORE_PROCESSES), std::end(CORE_PROCESSES), processName) !=
+                std::end(CORE_PROCESSES)) {
                 HIVIEW_LOGW("avoid SCREEN_ON repeated report, previous eventName=%{public}s, processName=%{public}s",
                     record.eventName_.c_str(), processName.c_str());
                 return true;

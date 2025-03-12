@@ -78,11 +78,12 @@ DecodedEvent::~DecodedEvent()
 
 void DecodedEvent::AppendBaseInfo(std::stringstream& ss)
 {
-    char* domain = new(std::nothrow) char[MAX_DOMAIN_LENGTH + 1];
+    size_t domainArraySize = MAX_DOMAIN_LENGTH + 1;
+    char* domain = new(std::nothrow) char[domainArraySize];
     if (domain == nullptr) {
         return;
     }
-    if (memcpy_s(domain, MAX_DOMAIN_LENGTH, header_.domain, MAX_DOMAIN_LENGTH) != EOK) {
+    if (memcpy_s(domain, domainArraySize, header_.domain, MAX_DOMAIN_LENGTH) != EOK) {
         delete[] domain;
         return;
     }
@@ -90,11 +91,12 @@ void DecodedEvent::AppendBaseInfo(std::stringstream& ss)
     auto eventDomain = std::string(domain);
     AppendValue(ss, BASE_INFO_KEY_DOMAIN, eventDomain);
     delete[] domain;
-    char* name = new(std::nothrow) char[MAX_EVENT_NAME_LENGTH + 1];
+    size_t nameArraySize = MAX_EVENT_NAME_LENGTH + 1;
+    char* name = new(std::nothrow) char[nameArraySize];
     if (name == nullptr) {
         return;
     }
-    if (memcpy_s(name, MAX_EVENT_NAME_LENGTH, header_.name, MAX_EVENT_NAME_LENGTH) != EOK) {
+    if (memcpy_s(name, nameArraySize, header_.name, MAX_EVENT_NAME_LENGTH) != EOK) {
         delete[] name;
         return;
     }

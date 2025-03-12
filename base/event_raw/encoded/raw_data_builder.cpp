@@ -118,7 +118,7 @@ bool RawDataBuilder::IsBaseInfo(const std::string& key)
 
 RawDataBuilder& RawDataBuilder::AppendDomain(const std::string& domain)
 {
-    auto ret = memcpy_s(header_.domain, MAX_DOMAIN_LENGTH, domain.c_str(), domain.length());
+    auto ret = memcpy_s(header_.domain, MAX_DOMAIN_LENGTH + 1, domain.c_str(), domain.length());
     if (ret != EOK) {
         HIVIEW_LOGE("Failed to copy event domain, ret is %{public}d.", ret);
     }
@@ -129,7 +129,7 @@ RawDataBuilder& RawDataBuilder::AppendDomain(const std::string& domain)
 
 RawDataBuilder& RawDataBuilder::AppendName(const std::string& name)
 {
-    auto ret = memcpy_s(header_.name, MAX_EVENT_NAME_LENGTH, name.c_str(), name.length());
+    auto ret = memcpy_s(header_.name, MAX_EVENT_NAME_LENGTH + 1, name.c_str(), name.length());
     if (ret != EOK) {
         HIVIEW_LOGE("Failed to copy event name, ret is %{public}d.", ret);
     }

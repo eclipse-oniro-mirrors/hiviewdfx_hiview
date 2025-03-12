@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+    static const int SYS_MATCH_NUM = 1;
     static const int MILLISECOND = 1000;
     static const int TIME_STRING_LEN = 16;
     static const int MIN_KEEP_FILE_NUM = 5;
@@ -226,12 +227,6 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
         (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
     pubLogPathName = type + std::string(HYPHEN) + processName + std::string(HYPHEN) + std::to_string(uid) +
         std::string(HYPHEN) + timestamp;
-    
-    if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) != std::end(KEY_PROCESS)) {
-        if (stringId == "SERVICE_WARNING" || stringId == "THREAD_BLOCK_3S") {
-            type = SYSWARNING;
-        }
-    }
 }
 
 void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
@@ -275,10 +270,11 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
             std::string logContent = ss.str();
             size_t startPos = logContent.find(THREAD_STACK_START);
             size_t endPos = logContent.find(THREAD_STACK_END, startPos);
-            if (startPos != std::string::npos && endPos != std::string::npos) {
+            if (startPos != std::string::npos && endPos != std::string::npos && endPos > startPos) {
                 size_t startSize = strlen(THREAD_STACK_START);
                 std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
                 watchPoint.SetTerminalThreadStack(threadStack);
+                logContent.erase(startPos, endPos - startPos + strlen(THREAD_STACK_END));
             }
             body << logContent << std::endl;
         } else {
@@ -286,6 +282,23 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
         }
         ifs.close();
     }
+}
+
+bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
+    const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
+{
+    if (stringId == "SERVICE_WARNING" || stringId == "THREAD_BLOCK_3S") {
+        if (list.size() != (result.size() - SYS_MATCH_NUM)) {
+            HIVIEW_LOGW("Not meeting the requirements for syswarning reporting.");
+            return false;
+        }
+        if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) != std::end(KEY_PROCESS)) {
+            type = SYSWARNING;
+        } else {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
@@ -300,6 +313,9 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     std::string processName;
     std::string isScbPro;
     InitLogInfo(watchPoint, type, pubLogPathName, processName, isScbPro);
+    if (!JudgeSysWarningEvent(watchPoint.GetStringId(), type, processName, list, result)) {
+        return "";
+    }
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
     std::string tmpLogPath = std::string(FREEZE_DETECTOR_PATH) + tmpLogName;

@@ -16,7 +16,6 @@
         "OHOS::HiviewDFX::TraceFlowController::CleanOldAppTrace(int)";
         "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TraceStateMachine::GetTaskBeginTime()";
-        "OHOS::HiviewDFX::TraceStateMachine::GetTelemetryId()";
         "OHOS::HiviewDFX::TraceStateMachine::InitOrUpdateState()";
         "OHOS::HiviewDFX::TraceStateMachine::OpenTrace(OHOS::HiviewDFX::TraceScenario, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
         "OHOS::HiviewDFX::TraceStateMachine::OpenTrace(OHOS::HiviewDFX::TraceScenario, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -32,9 +31,13 @@
         "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(std::__h::vector<int, std::__h::allocator<int>> const&, int, unsigned long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
         "OHOS::HiviewDFX::TraceStateMachine::OpenTelemetryTrace(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TraceFlowController::ClearTelemetryData()";
-        "OHOS::HiviewDFX::TraceFlowController::InitTelemetryData(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, long long, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, long long>>> const&, long long&, long long&)";
-        "OHOS::HiviewDFX::TraceFlowController::InitTelemetryData(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, long, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, long>>> const&, long&, long&)";
         "OHOS::HiviewDFX::TraceStateMachine::RecoverState()";
+        "OHOS::HiviewDFX::TraceFlowController::ClearTelemetryFlow()";
+        "OHOS::HiviewDFX::TraceFlowController::InitTelemetryTime(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long&, long long&)";
+        "OHOS::HiviewDFX::TraceFlowController::InitTelemetryTime(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long&, long&)";
+        "OHOS::HiviewDFX::TraceFlowController::InitTelemetryFlow(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, long long, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, long long>>> const&)";
+        "OHOS::HiviewDFX::TraceFlowController::InitTelemetryFlow(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, long, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, long>>> const&)";
+        "OHOS::HiviewDFX::TraceStateMachine::RegisterTelemetryCallback(std::__h::function<void ()>)";
     };
   local:
     *;

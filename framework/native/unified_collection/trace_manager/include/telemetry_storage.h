@@ -28,7 +28,7 @@ struct TeleMetryRecord {
     uint32_t threshold = 0;
 };
 
-enum class TelemetryFlow {
+enum class TelemetryRet {
     SUCCESS,
     OVER_FLOW,
     EXIT
@@ -38,10 +38,11 @@ class TeleMetryStorage {
 public:
     explicit TeleMetryStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
     ~TeleMetryStorage() = default;
-    TelemetryFlow InitTelemetryData(const std::map<std::string, int64_t> &flowControlQuotas, int64_t &beginTime,
-        int64_t &endTime);
-    TelemetryFlow NeedTelemetryDump(const std::string& module, int64_t traceSize);
+    TelemetryRet InitTelemetryTime(const std::string &telemetryId, int64_t &beginTime, int64_t &endTime);
+    TelemetryRet InitTelemetryFlow(const std::map<std::string, int64_t> &flowControlQuotas);
+    TelemetryRet NeedTelemetryDump(const std::string& module, int64_t traceSize);
     void ClearTelemetryData();
+    void ClearTelemetryFlow();
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;

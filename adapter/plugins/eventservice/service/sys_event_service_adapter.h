@@ -24,7 +24,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class SysEventServiceAdapter {
 public:
-    static void StartService(SysEventServiceBase* service, OHOS::HiviewDFX::NotifySysEvent notify);
+    static void StartService(SysEventServiceBase* service);
     static void OnSysEvent(std::shared_ptr<SysEvent>& event);
     static void SetWorkLoop(std::shared_ptr<EventLoop> looper);
 };

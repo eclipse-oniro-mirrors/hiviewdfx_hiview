@@ -72,12 +72,15 @@ public:
 
     CacheFlow UseCacheTimeQuota(int32_t interval);
 
-    TelemetryFlow InitTelemetryData(const std::map<std::string, int64_t> &flowControlQuotas, int64_t &beginTime,
-        int64_t &endTime);
+    TelemetryRet InitTelemetryTime(const std::string &telemetryId, int64_t &beginTime, int64_t &endTime);
+
+    TelemetryRet InitTelemetryFlow(const std::map<std::string, int64_t> &flowControlQuotas);
+
+    TelemetryRet NeedTelemetryDump(const std::string& module, int64_t traceSize);
+
+    void ClearTelemetryFlow();
 
     void ClearTelemetryData();
-
-    TelemetryFlow NeedTelemetryDump(const std::string& module, int64_t traceSize);
 
 private:
     void InitTraceDb(const std::string& dbPath);

@@ -252,7 +252,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest005, TestSize.Level1)
     int index = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_APP_EXIT);
     ASSERT_TRUE(index != 0);
 
-    cacher.TimeOut();
     index = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_COUNT_DURATION);
     ASSERT_TRUE(index != 0);
 }

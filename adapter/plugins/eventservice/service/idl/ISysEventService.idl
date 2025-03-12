@@ -24,7 +24,6 @@ interface OHOS.HiviewDFX.ISysEventService {
     void AddListener([in] SysEventRule[] rules, [in] ISysEventCallback cb);
     void RemoveListener([in] ISysEventCallback cb);
     void Query([in] QueryArgument queryArgument, [in] SysEventQueryRule[] rules, [in] IQuerySysEventCallback cb);
-    void SetDebugMode([in] ISysEventCallback cb, [in] boolean mode);
     long AddSubscriber([in] SysEventQueryRule[] rules);
     void RemoveSubscriber();
     long Export([in] QueryArgument queryArgument, [in] SysEventQueryRule[] rules);

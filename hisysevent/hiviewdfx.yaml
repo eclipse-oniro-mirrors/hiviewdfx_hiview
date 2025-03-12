@@ -130,5 +130,6 @@ READ_UNEXPECTED_SEQ:
   __BASE: {type: FAULT, level: CRITICAL, desc: event for reading unexpected sequence from file , preserve: true}
   SEQ: {type: INT64, desc: sequence read from event sequence file}
   SEQ_BACKUP: {type: INT64, desc: sequence read from event sequence backup file}
+  MAX_SEQ_FROM_DB_FILE: {type: INT64, desc: maximum sequence read from local db file}
   IS_SEQ_FILE_EXIST: {type: BOOL, desc: tag for whether event sequence file is exist}
   IS_SEQ_BACKUP_FILE_EXIST: {type: BOOL, desc: tag for whether event sequence backup file is exist}

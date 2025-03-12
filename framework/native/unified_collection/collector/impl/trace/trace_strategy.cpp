@@ -45,17 +45,6 @@ const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
 const uint32_t UNIFIED_SPECIAL_COUNTS = 3;
 const uint32_t UNIFIED_SPECIAL_OTHER = 5;
 const uint32_t MS_UNIT = 1000;
-
-void SendExitMessage()
-{
-    auto event = std::make_shared<Event>(TELEMETRY_STRATEGY);
-    event->eventName_ = TelemetryEvent::TELEMETRY_STOP;
-    event->SetValue(KEY_ID, TraceStateMachine::GetInstance().GetTelemetryId());
-    if (HiviewGlobal::GetInstance() != nullptr &&
-        HiviewGlobal::GetInstance()->PostSyncEventToTarget(UCollectUtil::UCOLLECTOR_PLUGIN, event)) {
-        HIVIEW_LOGD("PostSyncEventToTarget exit message to UnifiedCollector");
-    }
-}
 }
 
 TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
@@ -245,15 +234,9 @@ TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
         return ret;
     }
     int64_t traceSize = GetTraceSize(traceRetInfo);
-    switch (flowController_->NeedTelemetryDump(caller_, traceSize)) {
-        case TelemetryFlow::EXIT:
-            SendExitMessage();
-            return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
-        case TelemetryFlow::OVER_FLOW:
-            HIVIEW_LOGI("trace is over flow, can not dump.");
-            return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
-        default:
-            break;
+    if (auto fet = flowController_->NeedTelemetryDump(caller_, traceSize); fet != TelemetryRet::SUCCESS) {
+        HIVIEW_LOGI("trace is over flow, can not dump.");
+        return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     if (traceRetInfo.outputFiles.empty()) {
         HIVIEW_LOGW("TraceFlowControlStrategy outputFiles empty.");
