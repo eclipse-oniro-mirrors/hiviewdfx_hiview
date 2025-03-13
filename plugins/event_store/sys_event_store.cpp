@@ -69,7 +69,8 @@ void SysEventStore::OnLoad()
     sysEventDbMgr_->StartCheckStoreTask(this->workLoop_);
 
     lastBackupTime_ = Parameter::GetString(PROP_LAST_BACKUP, "");
-    EventExportEngine::GetInstance().Start();
+    // pack id must be initialized as soon as event store plugin has been loaded
+    EventExportEngine::InitPackId();
     hasLoaded_ = true;
 
     periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_store_period_count");
@@ -125,6 +126,10 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
         HIVIEW_LOGE("SysEventService not ready");
         return false;
     }
+    // start event export engine only once time
+    std::call_once(exportEngineStartFlag_, [] () {
+        EventExportEngine::GetInstance().Start();
+    });
 
     std::shared_ptr<SysEvent> sysEvent = Convert2SysEvent(event);
     if (sysEvent != nullptr && sysEvent->preserve_) {
