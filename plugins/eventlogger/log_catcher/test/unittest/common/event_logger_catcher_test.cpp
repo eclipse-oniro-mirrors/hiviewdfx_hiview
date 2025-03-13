@@ -40,6 +40,9 @@
 #ifdef BINDER_CATCHER_ENABLE
 #include "peer_binder_catcher.h"
 #endif // BINDER_CATCHER_ENABLE
+#ifdef USAGE_CATCHER_ENABLE
+#include "memory_catcher.h"
+#endif // USAGE_CATCHER_ENABLE
 #undef private
 #ifdef BINDER_CATCHER_ENABLE
 #include "binder_catcher.h"
@@ -47,9 +50,6 @@
 #ifdef OTHER_CATCHER_ENABLE
 #include "ffrt_catcher.h"
 #endif // OTHER_CATCHER_ENABLE
-#ifdef USAGE_CATCHER_ENABLE
-#include "memory_catcher.h"
-#endif // USAGE_CATCHER_ENABLE
 #include "event_logger.h"
 #include "event_log_catcher.h"
 #include "sys_event.h"
@@ -308,6 +308,76 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_001, TestSize.Level1)
     EXPECT_EQ(res, 0);
     printf("memoryCatcher result: %d\n", res);
     close(fd);
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_002
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_002, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    EXPECT_EQ(memoryCatcher->GetStringFromFile("/data/log/test"), "");
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_003
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_003, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    int ret = memoryCatcher->GetNumFromString("abc");
+    EXPECT_EQ(ret, 0);
+    ret = memoryCatcher->GetNumFromString("100");
+    EXPECT_EQ(ret, 100);
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_004
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    std::string data;
+    memoryCatcher->CheckString(0, "abc: 100", data, "abc", "/data/log/test");
+    EXPECT_TRUE(data.empty());
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_004
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_005, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    std::string memInfo = memoryCatcher->CollectFreezeSysMemory();
+    EXPECT_TRUE(!memInfo.empty());
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_006
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_006, TestSize.Level3)
+{
+    auto fd = open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create testFile. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("FREEZE_MEMORY", "test\\ntest");
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->MemoryUsageCapture();
+    EXPECT_TRUE(logTask != nullptr);
 }
 #endif // USAGE_CATCHER_ENABLE
 

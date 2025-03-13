@@ -58,6 +58,7 @@ private:
     std::string lastBackupTime_;
     std::list<std::shared_ptr<StorePeriodInfo>> periodInfoList_;
     std::unique_ptr<PeriodInfoFileOperator> periodFileOpt_;
+    std::once_flag exportEngineStartFlag_;
 }; // SysEventService
 } // namespace HiviewDFX
 } // namespace OHOS

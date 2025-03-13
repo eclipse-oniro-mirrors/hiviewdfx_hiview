@@ -308,7 +308,7 @@ void HiviewServiceAbility::OnStop()
 
 ErrCode HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& tagGroups, int32_t& errNo, int32_t& ret)
 {
-    if (!HasAccessPermission(DUMP_PERMISSION)) {
+    if (!HasAccessPermission(DUMP_PERMISSION) && !HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
     auto traceRetHandler = [&tagGroups] (HiviewService* service) {
@@ -332,7 +332,7 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, 
 
 ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_t& errNo, int32_t& ret)
 {
-    if (!HasAccessPermission(DUMP_PERMISSION)) {
+    if (!HasAccessPermission(DUMP_PERMISSION) && !HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
     auto traceRetHandler = [&tags] (HiviewService* service) {
@@ -344,7 +344,7 @@ ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_
 
 ErrCode HiviewServiceAbility::RecordingTraceOn(int32_t& errNo, int32_t& ret)
 {
-    if (!HasAccessPermission(DUMP_PERMISSION)) {
+    if (!HasAccessPermission(DUMP_PERMISSION) && !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
     auto traceRetHandler = [] (HiviewService* service) {
@@ -356,7 +356,7 @@ ErrCode HiviewServiceAbility::RecordingTraceOn(int32_t& errNo, int32_t& ret)
 
 ErrCode HiviewServiceAbility::RecordingTraceOff(int32_t& errNo, std::vector<std::string>& files)
 {
-    if (!HasAccessPermission(DUMP_PERMISSION)) {
+    if (!HasAccessPermission(DUMP_PERMISSION) && !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
     auto traceRetHandler = [] (HiviewService* service) {
@@ -368,7 +368,7 @@ ErrCode HiviewServiceAbility::RecordingTraceOff(int32_t& errNo, std::vector<std:
 
 ErrCode HiviewServiceAbility::CloseTrace(int32_t& errNo, int32_t& ret)
 {
-    if (!HasAccessPermission(DUMP_PERMISSION)) {
+    if (!HasAccessPermission(DUMP_PERMISSION) && !HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
     auto traceRetHandler = [] (HiviewService* service) {

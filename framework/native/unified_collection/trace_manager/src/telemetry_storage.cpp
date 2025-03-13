@@ -28,7 +28,7 @@ const std::string COLUMN_USED_SIZE = "used_size";
 const std::string COLUMN_QUOTA = "quota";
 const std::string COLUMN_THRESHOLD = "threshold";
 const std::string COLUMN_TELEMTRY_ID = "telemetry_id";
-const std::string TOATL = "Total";
+const std::string TOTAL = "Total";
 }
 
 bool TeleMetryStorage::QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize)
@@ -117,7 +117,7 @@ TelemetryRet TeleMetryStorage::InitTelemetryFlow(const std::map<std::string, int
         return TelemetryRet::EXIT;
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_TIME_CONTROL);
-    predicates.EqualTo(COLUMN_MODULE_NAME, TOATL);
+    predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_QUOTA});
     if (resultSet == nullptr) {
         HIVIEW_LOGW("resultSet == nullptr");
@@ -163,7 +163,7 @@ TelemetryRet TeleMetryStorage::NeedTelemetryDump(const std::string &module, int6
     int64_t quotaSize = 0;
     int64_t totalUsedSize = 0;
     int64_t totalQuotaSize = 0;
-    if (!QueryTable(module, usedSize, quotaSize) || !QueryTable(TOATL, totalUsedSize, totalQuotaSize)) {
+    if (!QueryTable(module, usedSize, quotaSize) || !QueryTable(TOTAL, totalUsedSize, totalQuotaSize)) {
         transaction->Commit();
         HIVIEW_LOGE("db data init failed");
         return TelemetryRet::EXIT;
@@ -177,7 +177,7 @@ TelemetryRet TeleMetryStorage::NeedTelemetryDump(const std::string &module, int6
         return TelemetryRet::OVER_FLOW;
     }
     UpdateTable(module, usedSize);
-    UpdateTable(TOATL, totalUsedSize);
+    UpdateTable(TOTAL, totalUsedSize);
     transaction->Commit();
     return TelemetryRet::SUCCESS;
 }

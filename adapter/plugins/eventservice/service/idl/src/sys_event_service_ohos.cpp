@@ -145,8 +145,8 @@ bool IsNativeCaller()
 {
     auto callerToken = IPCSkeleton::GetCallingTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
-    return tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE
-        || Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL;
+    return (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE)
+        || (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL);
 }
 }
 
@@ -453,7 +453,7 @@ ErrCode SysEventServiceOhos::AddSubscriber(const std::vector<SysEventQueryRule>&
     if (auto ret = dataPublisher_->AddSubscriber(uid, events); ret != IPC_CALL_SUCCEED) {
         return ret;
     }
-    funcResult = TimeUtil::GetMilliseconds();
+    funcResult = static_cast<int64_t>(TimeUtil::GetMilliseconds());
     return IPC_CALL_SUCCEED;
 }
 

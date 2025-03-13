@@ -264,64 +264,6 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 }
 #endif
 
-std::string EventLogger::GetStringFromFile(const std::string path)
-{
-    std::string content;
-    FileUtil::LoadStringFromFile(path, content);
-    return content;
-}
-
-int EventLogger::GetNumFromString(const std::string &mem)
-{
-    int num = 0;
-    for (const char &c : mem) {
-        if (isdigit(c)) {
-            num += num * DECIMEL + (c - '0');
-        }
-        if (num > INT_MAX) {
-            return INT_MAX;
-        }
-    }
-    return num;
-}
-
-void EventLogger::CheckString(
-    int fd, const std::string &mem, std::string &data, const std::string key, const std::string path)
-{
-    if (mem.find(key) != std::string::npos) {
-        int memsize = GetNumFromString(mem);
-        if (memsize > OVER_MEM_SIZE) {
-            data += GetStringFromFile(path);
-        }
-    }
-}
-
-void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
-{
-    std::string content = event->GetEventValue("FREEZE_MEMORY");
-    std::string data = "";
-    if (!content.empty()) {
-        std::vector<std::string> vec;
-        OHOS::SplitStr(content, "\\n", vec);
-        FreezeCommon::WriteStartInfoToFd(fd, "collect meminfo start time: ");
-        FileUtil::SaveStringToFd(fd, "\nMemoryCatcher --\n");
-        for (const std::string& mem : vec) {
-            FileUtil::SaveStringToFd(fd, mem + "\n");
-            CheckString(fd, mem, data, ASHMEM, ASHMEM_PATH);
-            CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
-            CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
-        }
-        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect meminfo end time: ");
-    }
-    if (!data.empty()) {
-        FreezeCommon::WriteStartInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
-        FileUtil::SaveStringToFd(fd, data);
-        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
-    } else {
-        FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
-    }
-}
-
 void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
 {
     std::string historyFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "history.log";
@@ -411,7 +353,6 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     threadStack = threadStack.empty() ? logTask->terminalThreadStack_ : threadStack;
     SetEventTerminalBinder(event, threadStack, fd);
-    CollectMemInfo(fd, event);
     FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
     FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
     auto end = TimeUtil::GetMilliseconds();

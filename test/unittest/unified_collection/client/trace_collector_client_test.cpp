@@ -58,7 +58,7 @@ void EnablePermissionAccess()
     const char* perms[] = {
         "ohos.permission.WRITE_HIVIEW_SYSTEM",
         "ohos.permission.READ_HIVIEW_SYSTEM",
-        "ohos.permission.DUMP"
+        "ohos.permission.DUMP",
     };
     NativeTokenGet(perms, 3); // 3 is the size of the array which consists of required permissions.
 }
@@ -107,7 +107,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
     EnablePermissionAccess();
-    traceCollector->Close();
     auto openRet = traceCollector->OpenSnapshot(TAG_GROUPS);
     ASSERT_EQ(openRet.retCode, UcError::SUCCESS);
     Sleep();
@@ -132,7 +131,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
     EnablePermissionAccess();
-    traceCollector->Close();
     std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1 output:/data/log/test.sys";
     auto openRet = traceCollector->OpenRecording(args);
     if (openRet.retCode == UcError::SUCCESS) {

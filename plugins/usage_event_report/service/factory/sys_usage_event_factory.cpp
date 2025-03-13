@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,13 +18,12 @@
 
 #include "hiview_logger.h"
 #include "sys_usage_event.h"
-#include "time_service_client.h"
 #include "time_util.h"
 #include "usage_event_common.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-SysUsageEventFactory");
+DEFINE_LOG_TAG("SysUsageEventFactory");
 namespace {
 constexpr uint64_t TIME_ERROR = 10;
 }
@@ -38,37 +37,15 @@ std::unique_ptr<LoggerEvent> SysUsageEventFactory::Create()
     event->Update(KEY_OF_END, TimeUtil::GetMilliseconds());
 
     // correct the time error caused by interface call
-    auto monotonicTime = GetMonotonicTime();
-    auto bootTime = GetBootTime();
+    auto monotonicTime = TimeUtil::GetMonotonicTimeMs();
+    auto bootTime = TimeUtil::GetBootTimeMs();
     if (bootTime < (monotonicTime + TIME_ERROR)) {
         bootTime = monotonicTime;
     }
-
+    HIVIEW_LOGI("get monotonicTime=%{public}" PRIu64 ", bootTime=%{public}" PRIu64, monotonicTime, bootTime);
     event->Update(KEY_OF_POWER, bootTime);
     event->Update(KEY_OF_RUNNING, monotonicTime);
     return event;
-}
-
-uint64_t SysUsageEventFactory::GetBootTime()
-{
-    auto powerTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
-    HIVIEW_LOGI("get boot time=%{public}" PRId64, powerTime);
-    if (powerTime < 0) {
-        HIVIEW_LOGE("failed to get boot time");
-        return DEFAULT_UINT64;
-    }
-    return static_cast<uint64_t>(powerTime);
-}
-
-uint64_t SysUsageEventFactory::GetMonotonicTime()
-{
-    auto runningTime = MiscServices::TimeServiceClient::GetInstance()->GetMonotonicTimeMs();
-    HIVIEW_LOGI("get runningTime=%{public}" PRId64, runningTime);
-    if (runningTime < 0) {
-        HIVIEW_LOGE("failed to get Monotonic time");
-        return DEFAULT_UINT64;
-    }
-    return static_cast<uint64_t>(runningTime);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
