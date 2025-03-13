@@ -26,9 +26,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+    static const int SYS_MATCH_NUM = 1;
     static constexpr const char* const SYSWARNING = "syswarning";
     static constexpr const char* const SCB_PROCESS = "SCBPROCESS";
     static constexpr const char* const SCB_PRO_PREFIX = "ohos.sceneboard:";
+    static constexpr const char* const KEY_PROCESS[] = {
+        "foundation", "com.ohos.sceneboard", "render_service"
+    };
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -262,6 +266,23 @@ void Vendor::InitLogFfrt(const WatchPoint &watchPoint, std::ostringstream& ffrt)
     FreezeJsonUtil::DelFile(realPath);
 }
 
+bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
+    const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
+{
+    if (stringId == "SERVICE_WARNING" || stringId == "THREAD_BLOCK_3S") {
+        if (list.size() != (result.size() - SYS_MATCH_NUM)) {
+            HIVIEW_LOGW("Not meeting the requirements for syswarning reporting.");
+            return false;
+        }
+        if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) != std::end(KEY_PROCESS)) {
+            type = SYSWARNING;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string Vendor::MergeEventLog(
     const WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
     const std::vector<FreezeResult>& result) const
@@ -275,6 +296,9 @@ std::string Vendor::MergeEventLog(
     std::string processName;
     std::string isScbPro;
     InitLogInfo(watchPoint, type, pubLogPathName, processName, isScbPro);
+    if (!JudgeSysWarningEvent(watchPoint.GetStringId(), type, processName, list, result)) {
+        return "";
+    }
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
     std::string tmpLogPath = std::string(FREEZE_DETECTOR_PATH) + tmpLogName;
