@@ -31,7 +31,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceFlowController");
-constexpr int32_t DB_VERSION = 3;
+constexpr int32_t DB_VERSION = 4;
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string DB_NAME = "trace_flow_control.db";
@@ -185,22 +185,14 @@ CacheFlow TraceFlowController::UseCacheTimeQuota(int32_t interval)
     return CacheFlow::SUCCESS;
 }
 
-TelemetryRet TraceFlowController::InitTelemetryTime(const std::string &telemetryId, int64_t &bTime, int64_t &eTime)
+TelemetryRet TraceFlowController::InitTelemetryData(const std::string &telemetryId, int64_t &beginTime,
+    const std::map<std::string, int64_t>& flowControlQuotas)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage");
         return TelemetryRet::EXIT;
     }
-    return teleMetryStorage_->InitTelemetryTime(telemetryId, bTime, eTime);
-}
-
-TelemetryRet TraceFlowController::InitTelemetryFlow(const std::map<std::string, int64_t>& flowControlQuotas)
-{
-    if (teleMetryStorage_ == nullptr) {
-        HIVIEW_LOGE("failed to init teleMetryStorage");
-        return TelemetryRet::EXIT;
-    }
-    return teleMetryStorage_->InitTelemetryFlow(flowControlQuotas);
+    return teleMetryStorage_->InitTelemetryControl(telemetryId, beginTime, flowControlQuotas);
 }
 
 TelemetryRet TraceFlowController::NeedTelemetryDump(const std::string &module, int64_t traceSize)
@@ -219,15 +211,6 @@ void TraceFlowController::ClearTelemetryData()
         return;
     }
     return teleMetryStorage_->ClearTelemetryData();
-}
-
-void TraceFlowController::ClearTelemetryFlow()
-{
-    if (teleMetryStorage_ == nullptr) {
-        HIVIEW_LOGE("failed to init teleMetryStorage, return");
-        return;
-    }
-    return teleMetryStorage_->ClearTelemetryFlow();
 }
 } // HiViewDFX
 } // OHOS
