@@ -18,9 +18,6 @@
 #include <sys/wait.h>
 #include "hiview_logger.h"
 #include "common_utils.h"
-#ifdef USAGE_CATCHER_ENABLE
-#include "cpu_collector.h"
-#endif // USAGE_CATCHER_ENABLE
 #include "log_catcher_utils.h"
 #include "securec.h"
 #include "time_util.h"
@@ -122,7 +119,6 @@ int ShellCatcher::DoUsageCatcher(int writeFd)
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a", "-a", nullptr);
             break;
         case CATCHER_CPU:
-            GetCpuCoreFreqInfo(writeFd);
             ret = execl("/system/bin/hidumper", "hidumper", "--cpuusage", nullptr);
             break;
         case CATCHER_PMS:
@@ -141,40 +137,6 @@ int ShellCatcher::DoUsageCatcher(int writeFd)
             break;
     }
     return ret;
-}
-
-void ShellCatcher::GetCpuCoreFreqInfo(int fd) const
-{
-    std::shared_ptr<UCollectUtil::CpuCollector> collector =
-        UCollectUtil::CpuCollector::Create();
-    CollectResult<SysCpuUsage> resultInfo = collector->CollectSysCpuUsage(true);
-    if (resultInfo.retCode != UCollect::UcError::SUCCESS) {
-        FileUtil::SaveStringToFd(fd, "\n Get each cpu info failed.\n");
-        return;
-    }
-
-    const SysCpuUsage& sysCpuUsage = resultInfo.data;
-    std::string temp = "";
-    for (size_t i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
-        temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
-            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) + "\n";
-        FileUtil::SaveStringToFd(fd, temp);
-        temp = "";
-    }
-    CollectResult<std::vector<CpuFreq>> resultCpuFreq = collector->CollectCpuFrequency();
-    if (resultCpuFreq.retCode != UCollect::UcError::SUCCESS) {
-        FileUtil::SaveStringToFd(fd, "\n Get each cpu freq failed.\n");
-        return;
-    }
-
-    const std::vector<CpuFreq>& cpuFreqs = resultCpuFreq.data;
-    for (size_t i = 0; i < cpuFreqs.size(); i++) {
-        temp = "\ncpu" + std::to_string(cpuFreqs[i].cpuId) + ", cpuFreq=" + std::to_string(cpuFreqs[i].curFreq) +
-               ", minFreq=" + std::to_string(cpuFreqs[i].minFreq) + ", maxFreq=" + std::to_string(cpuFreqs[i].maxFreq) +
-               "\n";
-        FileUtil::SaveStringToFd(fd, temp);
-        temp = "";
-    }
 }
 #endif // USAGE_CATCHER_ENABLE
 

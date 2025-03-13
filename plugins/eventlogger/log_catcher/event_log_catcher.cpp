@@ -68,55 +68,6 @@ void EventLogCatcher::Stop()
     needStop_ = true;
 }
 
-int EventLogCatcher::AppendFile(int fd, const std::string &fileName) const
-{
-    if (fd < 0) {
-        HIVIEW_LOGW("parameter err, fd:%{public}d, filename:%{public}s.", fd, fileName.c_str());
-        return 0;
-    }
-
-    char path[PATH_MAX] = {0};
-    if (realpath(fileName.c_str(), path) == nullptr) {
-        std::string errStr = "canonicalize failed, file name is " + fileName +
-            ", errno is " + std::to_string(errno) + "\r\n";
-        HIVIEW_LOGW("%{public}s", errStr.c_str());
-        FileUtil::SaveStringToFd(fd, errStr);
-        return 0;
-    }
-
-    if (fileName != std::string(path)) {
-        HIVIEW_LOGW("fail to check consistency.");
-        return 0;
-    }
-
-    FILE* srcFp = fopen(path, "r");
-    if (srcFp == nullptr) {
-        HIVIEW_LOGW("open %{public}s failed. errno is %{public}d", fileName.c_str(), errno);
-        return 0;
-    }
-
-    int wn = 0;
-    char buf[BUF_SIZE_4096] = { 0 };
-    while (true) {
-        int readNum = fread(buf, 1, sizeof(buf), srcFp);
-        if (readNum == -1) {
-            if (errno == EAGAIN) {
-                continue;
-            } else {
-                break;
-            }
-        } else if (readNum == 0) {
-            break;
-        }
-        wn += fwrite(buf, BLOCK_COUNT, readNum, srcFp);
-    }
-    if (fclose(srcFp)) {
-        HIVIEW_LOGE("fclose is failed");
-    }
-    srcFp = nullptr;
-    return wn;
-}
-
 std::string EventLogCatcher::GetDescription() const
 {
     return description_;
