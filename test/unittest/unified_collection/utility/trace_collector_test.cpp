@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "file_util.h"
+#include "memory_collector.h"
 #include "parameter_ex.h"
 #include "trace_collector.h"
 #include "trace_state_machine.h"
@@ -50,6 +51,26 @@ public:
             std::cout << "recover to hitrace CommonState" << std::endl;
         }
         TraceStateMachine::GetInstance().InitOrUpdateState();
+        RunCmd("param set persist.hiview.freeze_detector false");
+    }
+
+    static std::string RunCmd(const std::string& cmdstr)
+    {
+        constexpr int CMD_OUTPUT_BUF = 2048;
+        if (cmdstr.empty()) {
+            return "";
+        }
+        FILE *fp = popen(cmdstr.c_str(), "r");
+        if (fp == nullptr) {
+            return "";
+        }
+        std::string result;
+        char res[CMD_OUTPUT_BUF] = { '\0' };
+        while (fgets(res, sizeof(res), fp) != nullptr) {
+            result += res;
+        }
+        pclose(fp);
+        return result;
     }
 };
 
@@ -197,3 +218,87 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     auto resultDumpTrace3 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
+
+#ifdef HIVIEW_LOW_MEM_THRESHOLD
+/**
+ * @tc.name: TraceCollectorCacheTest001
+ * @tc.desc: used to test cache trace functionality
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorCacheTest001, TestSize.Level1)
+{
+    std::shared_ptr<UCollectUtil::MemoryCollector> mCollector = UCollectUtil::MemoryCollector::Create();
+    CollectResult<SysMemory> mData = mCollector->CollectSysMemory();
+    int32_t enableLowMemThreshold = (mData.data.memTotal + mData.data.memAvailable) / 2;
+    std::cout << RunCmd("hitrace --stop_bgsrv") << std::endl;
+    std::cout << RunCmd("param set persist.hiview.freeze_detector true") << std::endl;
+    sleep(1);
+    std::string output = RunCmd("hitrace --dump_bgsrv");
+    sleep(1);
+    std::string event = RunCmd("hisysevent -l -n DUMP_TRACE | tail -n 1");
+    std::cout << "output: " << output << "\nevent : " << event << std::endl;
+    ASSERT_NE(output.find("/data/log/hitrace/trace_"), std::string::npos);
+    ASSERT_NE(event.find("\"ERROR_CODE\":0,"), std::string::npos);
+
+    RunCmd("param set hiviewdfx.ucollection.memthreshold " + std::to_string(enableLowMemThreshold));
+    sleep(15); // after 15 seconds, cache should have started
+    output = RunCmd("hitrace --dump_bgsrv");
+    sleep(1);
+    event = RunCmd("hisysevent -l -n DUMP_TRACE | tail -n 1");
+    std::cout << "output: " << output << "\nevent : " << event << std::endl;
+    ASSERT_NE(output.find("/data/log/hitrace/trace_"), std::string::npos);
+    ASSERT_NE(event.find("\"ERROR_CODE\":1099,"), std::string::npos);
+
+    RunCmd("param set hiviewdfx.ucollection.memthreshold 0");
+    sleep(15); // after 15 seconds, cache should have stopped
+    output = RunCmd("hitrace --dump_bgsrv");
+    sleep(1);
+    event = RunCmd("hisysevent -l -n DUMP_TRACE | tail -n 1");
+    std::cout << "output: " << output << "\nevent : " << event << std::endl;
+    ASSERT_NE(output.find("/data/log/hitrace/trace_"), std::string::npos);
+    ASSERT_NE(event.find("\"ERROR_CODE\":0,"), std::string::npos);
+
+    RunCmd("param set persist.hiview.freeze_detector false");
+}
+
+/**
+ * @tc.name: TraceCollectorCacheTest002
+ * @tc.desc: used to test cache trace functionality
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorCacheTest002, TestSize.Level1)
+{
+    std::shared_ptr<UCollectUtil::MemoryCollector> mCollector = UCollectUtil::MemoryCollector::Create();
+    CollectResult<SysMemory> mData = mCollector->CollectSysMemory();
+    int32_t enableLowMemThreshold = (mData.data.memTotal + mData.data.memAvailable) / 2;
+    RunCmd("hitrace --stop_bgsrv");
+    RunCmd("param set persist.hiview.freeze_detector true");
+    sleep(1);
+    std::string output = RunCmd("hitrace --dump_bgsrv");
+    sleep(1);
+    std::string event = RunCmd("hisysevent -l -n DUMP_TRACE | tail -n 1");
+    std::cout << "output: " << output << "\nevent : " << event << std::endl;
+    ASSERT_NE(output.find("/data/log/hitrace/trace_"), std::string::npos);
+    ASSERT_NE(event.find("\"ERROR_CODE\":0,"), std::string::npos);
+
+    RunCmd("param set hiviewdfx.ucollection.memthreshold " + std::to_string(enableLowMemThreshold));
+    sleep(90); // cache for 90 seconds, should be still caching
+    output = RunCmd("hitrace --dump_bgsrv");
+    sleep(1);
+    event = RunCmd("hisysevent -l -n DUMP_TRACE | tail -n 1");
+    std::cout << "output: " << output << "\nevent : " << event << std::endl;
+    ASSERT_NE(output.find("/data/log/hitrace/trace_"), std::string::npos);
+    ASSERT_NE(event.find("\"ERROR_CODE\":1099,"), std::string::npos);
+
+    sleep(40); // cache for another 40 seconds, should close cache
+    output = RunCmd("hitrace --dump_bgsrv");
+    sleep(1);
+    event = RunCmd("hisysevent -l -n DUMP_TRACE | tail -n 1");
+    std::cout << "output: " << output << "\nevent : " << event << std::endl;
+    ASSERT_NE(output.find("/data/log/hitrace/trace_"), std::string::npos);
+    ASSERT_NE(event.find("\"ERROR_CODE\":0,"), std::string::npos);
+
+    RunCmd("param set hiviewdfx.ucollection.memthreshold " + std::to_string(0));
+    RunCmd("param set persist.hiview.freeze_detector false");
+}
+#endif

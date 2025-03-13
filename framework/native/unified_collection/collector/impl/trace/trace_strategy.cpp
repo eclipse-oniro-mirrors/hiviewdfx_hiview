@@ -69,9 +69,6 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
     dumpEvent.coverRatio = traceRetInfo.coverRatio;
     dumpEvent.tags = std::move(traceRetInfo.tags);
     dumpEvent.errorCode = TransCodeToUcError(traceRetInfo.errorCode);
-    if (traceRetInfo.errorCode == TraceErrorCode::SUCCESS_WITH_CACHE) {
-        traceRetInfo.errorCode = TraceErrorCode::SUCCESS;
-    }
     return ret;
 }
 

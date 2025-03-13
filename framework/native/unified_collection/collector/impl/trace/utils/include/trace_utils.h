@@ -43,7 +43,7 @@ const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::FORK_ERROR, UcError::TRACE_FORK_ERROR},
     {TraceErrorCode::EPOLL_WAIT_ERROR, UcError::TRACE_EPOLL_WAIT_ERROR},
     {TraceErrorCode::PIPE_CREATE_ERROR, UcError::TRACE_PIPE_CREATE_ERROR},
-    {TraceErrorCode::SYSINFO_READ_FAILURE, UcError::TRACE_SYSINFO_READ_FAILURE},
+    {TraceErrorCode::INVALID_MAX_DURATION, UcError::TRACE_INVALID_MAX_DURATION},
 };
 
 const std::map<TraceStateCode, UcError> TRACE_STATE_MAP = {

@@ -169,4 +169,8 @@ ohos_unittest("UCollectionTraceUnitTest") {
   ]
 
   defines = [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+
+  if (hiview_unified_collector_low_mem_threshold != 0) {
+    defines += [ "HIVIEW_LOW_MEM_THRESHOLD=${hiview_unified_collector_low_mem_threshold}" ]
+  }
 }
