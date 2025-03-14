@@ -57,9 +57,10 @@ bool FreezeResolver::ResolveEvent(const WatchPoint& watchPoint,
     }
     unsigned long long timestamp = watchPoint.GetTimestamp();
     long pid = watchPoint.GetPid();
+    long tid = watchPoint.GetTid();
     std::string packageName = watchPoint.GetPackageName().empty() ?
         watchPoint.GetProcessName() : watchPoint.GetPackageName();
-    DBHelper::WatchParams params = {pid, packageName};
+    DBHelper::WatchParams params = {pid, tid, timestamp, packageName};
     for (auto& i : result) {
         long window = i.GetWindow();
         if (window == 0) {
@@ -68,6 +69,8 @@ bool FreezeResolver::ResolveEvent(const WatchPoint& watchPoint,
             unsigned long long timeInterval = static_cast<unsigned long long>(std::abs(window) * MILLISECOND);
             unsigned long long start = window > 0 ? timestamp : timestamp - timeInterval;
             unsigned long long end = window > 0 ? timestamp + timeInterval : timestamp;
+            unsigned long long delay =  static_cast<unsigned long long>(std::max(i.GetDelay(), 0L) * MILLISECOND);
+            end += delay;
             dBHelper_->SelectEventFromDB(start, end, list, params, i);
         }
     }

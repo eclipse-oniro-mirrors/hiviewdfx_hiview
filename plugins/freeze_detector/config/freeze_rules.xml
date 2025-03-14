@@ -56,7 +56,7 @@
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
-        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
+        <event window="-30" domain="AAFWK" delay="10" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
       </links>
@@ -73,7 +73,7 @@
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
-        <event window="-70" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
+        <event window="-70" delay="5" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
       </links>
@@ -137,7 +137,7 @@
           <result code="0" scope="app" samePackage="true"/>
         </event>
         <event window="-14" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
-          <result code="0" scope="app" samePackage="true"/>
+          <result code="0" delay="3" scope="app" samePackage="true"/>
         </event>
       </links>
     </rule>
@@ -226,24 +226,24 @@
     <rule id="9" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
-          <result code="2" scope="sysWarning"/>
+          <result code="2"/>
         </event>
       </links>
       <links type="watchpoint">
         <event window="70" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
-          <result code="2" scope="sysWarning"/>
+          <result code="2" samePackage="true"/>
         </event>
       </links>
     </rule>
     <rule id="10" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
-          <result code="2" scope="sysWarning"/>
+          <result code="2"/>
         </event>
       </links>
       <links type="watchpoint">
         <event window="14" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
-          <result code="2" scope="sysWarning"/>
+          <result code="2" samePackage="true"/>
         </event>
       </links>
     </rule>
