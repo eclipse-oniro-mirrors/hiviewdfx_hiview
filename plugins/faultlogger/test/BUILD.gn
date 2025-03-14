@@ -116,6 +116,7 @@ ohos_unittest("AsanUnittest") {
   sources = [ "common/unittest/asan_unittest.cpp" ]
 
   deps = [
+    "$hiview_base/utility:hiview_utility",
     "$hiview_faultlogger:libfaultlogger",
     "$hiview_faultlogger/service/sanitizer_collector/gwp_asan:libasan_logger",
   ]

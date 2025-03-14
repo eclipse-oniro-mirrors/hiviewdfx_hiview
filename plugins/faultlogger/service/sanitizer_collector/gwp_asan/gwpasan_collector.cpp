@@ -46,12 +46,11 @@
 #define LOG_TAG "Sanitizer"
 
 namespace {
-constexpr unsigned ASAN_LOG_SIZE = 350 * 1024;
-constexpr unsigned SUMMARY_LOG_SIZE = 3 * 1024;
+constexpr unsigned SUMMARY_LOG_SIZE = 350 * 1024;
 constexpr unsigned BUF_SIZE = 128;
 constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
 constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
-constexpr unsigned DEFUALT_SANITIZER_LOG_MODE = 0644;
+constexpr unsigned DEFAULT_SANITIZER_LOG_MODE = 0644;
 static std::stringstream g_asanlog;
 }
 
@@ -104,8 +103,7 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
 {
     const std::unordered_set<std::string> setAsanOptionTypeList = {"ASAN", "HWASAN"};
     GwpAsanCurrInfo currInfo;
-    currInfo.description = ((gwpAsanBuffer.size() > ASAN_LOG_SIZE) ? (gwpAsanBuffer.substr(0, ASAN_LOG_SIZE) +
-                                                                     "\nEnd Asan report") : gwpAsanBuffer);
+    currInfo.description = gwpAsanBuffer;
     currInfo.summary = ((gwpAsanBuffer.size() > SUMMARY_LOG_SIZE) ? (gwpAsanBuffer.substr(0, SUMMARY_LOG_SIZE) +
                                                                      "\nEnd Summary report") : gwpAsanBuffer);
     if (logPath == nullptr || logPath[0] == '\0'||
@@ -193,13 +191,12 @@ int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
         fd = RequestFileDescriptorEx(&request);
     } else {
         const std::string sandboxBase = "/data/storage/el2";
-        if (!OHOS::HiviewDFX::IsValidPath(currInfo.logPath) ||
-            currInfo.logPath.compare(0, sandboxBase.length(), sandboxBase) != 0) {
+        if (currInfo.logPath.compare(0, sandboxBase.length(), sandboxBase) != 0) {
             HILOG_ERROR(LOG_CORE, "Invalid log path %{public}s, must in sandbox or set as faultlogger.",
                 currInfo.logPath.c_str());
             return -1;
         }
-        fd = open(currInfo.logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFUALT_SANITIZER_LOG_MODE);
+        fd = open(currInfo.logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
     }
     return fd;
 }

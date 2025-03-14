@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 #include <unistd.h>
 
+#include "file_util.h"
 #include "gwpasan_collector.h"
 
 using namespace testing::ext;
@@ -26,6 +27,7 @@ public:
     {
         chmod("/data/log/faultlog/", 0777); // 0777: add other user write permission
         chmod("/data/log/faultlog/faultlogger/", 0777); // 0777: add other user write permission
+        ClearAllLogs("/data/log/faultlog/faultlogger/");
         sleep(1);
     };
     void TearDown()
@@ -33,6 +35,29 @@ public:
         chmod("/data/log/faultlog/", 0770); // 0770: restore permission
         chmod("/data/log/faultlog/faultlogger/", 0770); // 0770: restore permission
     };
+
+    static void ClearAllLogs(const std::string& path) {
+        DIR* dir = opendir(path.c_str());
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            std::string full_path = path + "/" + entry->d_name;
+            remove(full_path.c_str());
+        }
+        closedir(dir);
+    }
+
+    static bool hasSanitizerLogs(std::string path, std::string type) {
+        std::vector<std::string> files;
+        FileUtil::GetDirFiles(path, files, false);
+        bool hasLogs = false;
+        for (const auto& file : files) {
+            if (file.find(type) != std::string::npos) {
+                hasLogs = true;
+                break;
+            }
+        }
+        return hasLogs;
+    }
 };
 
 /**
@@ -56,6 +81,35 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest001, testing::ext::TestSize.Level1)
     char asanBuf[] = "Test ASAN, End Asan report";
     WriteSanitizerLog(asanBuf, strlen(asanBuf), path);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: AsanTest002
+ * @tc.desc: Test calling WriteSanitizerLog Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(AsanUnittest, WriteSanitizerLogTest002, testing::ext::TestSize.Level1)
+{
+    char* buf = nullptr;
+    size_t sz = 10;
+    char path[] = "faultlogger";
+    WriteSanitizerLog(buf, sz, path);
+    bool result = hasSanitizerLogs("/data/log/faultlog/faultlogger/", "asan");
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: AsanTest003
+ * @tc.desc: Test calling WriteSanitizerLog Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(AsanUnittest, WriteSanitizerLogTest003, testing::ext::TestSize.Level1)
+{
+    char path[] = "/data/sanitizer.log";
+    char hwasanBuf[] = "Test HWASAN, End Hwasan report";
+    WriteSanitizerLog(hwasanBuf, strlen(hwasanBuf), path);
+    bool result = hasSanitizerLogs("/data/log/faultlog/faultlogger/", "hwasan");
+    ASSERT_FALSE(result);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

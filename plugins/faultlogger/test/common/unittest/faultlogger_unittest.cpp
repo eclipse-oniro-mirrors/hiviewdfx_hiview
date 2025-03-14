@@ -1937,10 +1937,13 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest001, testing::ext::TestSize.Le
     info.sanitizerType = "GWP-ASAN";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "gwpasan-test-0-19700101080000000.log");
-    info.sanitizerType = "GWP-ASANS";
+    info.sanitizerType = "HWASAN";
     str = GetFaultLogName(info);
-    ASSERT_EQ(str, "sanitizer-test-0-19700101080000000.log");
-    info.sanitizerType = "TSANs";
+    ASSERT_EQ(str, "hwasan-test-0-19700101080000000.log");
+    info.sanitizerType = "ASAN";
+    str = GetFaultLogName(info);
+    ASSERT_EQ(str, "asan-test-0-19700101080000000.log");
+    info.sanitizerType = "GWP-ASANS";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "sanitizer-test-0-19700101080000000.log");
 
