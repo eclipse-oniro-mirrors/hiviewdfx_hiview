@@ -253,7 +253,7 @@ TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFile)
         return TraceRet(TraceFlowCode::TRACE_HAS_CAPTURED_TRACE);
     }
     TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, 0, 0, traceRetInfo);
-    appCallerEvent_->taskBeginTime_ = TraceStateMachine::GetInstance().GetTaskBeginTime();
+    appCallerEvent_->taskBeginTime_ = static_cast<int64_t>(TraceStateMachine::GetInstance().GetTaskBeginTime());
     appCallerEvent_->taskEndTime_ = static_cast<int64_t>(TimeUtil::GetMilliseconds());
     if (ret.IsSuccess()) {
         outputFile = traceRetInfo.outputFiles;

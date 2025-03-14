@@ -52,8 +52,8 @@ private:
     std::weak_ptr<Plugin> myPlugin_;
     std::string telemetryId_;
     std::string bundleName_;
-    int64_t beginTime_;
-    int64_t endTime_;
+    int64_t beginTime_ = -1;
+    int64_t endTime_ = -1;
 };
 
 }
