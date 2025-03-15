@@ -37,4 +37,12 @@
             <option name="push" value="event_store/hiview_platform_config -> /data/test/test_data/" src="res"/>
         </preparer>
     </target>
+    <target name="SysEventSequenceMgrTest">
+        <preparer>
+            <option name="push" value="event_store/TEST_VERSION1-1-CRITICAL-1.db -> /data/test/SysEventSequenceMgrDir/sys_event_db/TEST_DOMAIN/" src="res"/>
+            <option name="push" value="event_store/TEST_VERSION2-1-CRITICAL-1.db -> /data/test/SysEventSequenceMgrDir/sys_event_db/TEST_DOMAIN/" src="res"/>
+            <option name="push" value="event_store/TEST_VERSION3-1-CRITICAL-1.db -> /data/test/SysEventSequenceMgrDir/sys_event_db/TEST_DOMAIN/" src="res"/>
+            <option name="push" value="event_store/hiview_platform_config -> /data/test/SysEventSequenceMgrDir/" src="res"/>
+        </preparer>
+    </target>
 </configuration>
