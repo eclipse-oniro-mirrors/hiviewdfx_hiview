@@ -196,7 +196,7 @@ int MemProfilerCollectorImpl::Start(int fd, bool startup, const MemoryProfilerCo
     return NativeMemoryProfilerSaClientManager::DumpData(fd, config);
 }
 
-int MemProfilerCollectorImpl::Start(int fd, pid_t pid, const SimplifiedMemConfig& config)
+int MemProfilerCollectorImpl::Start(int fd, pid_t pid, uint32_t duration, const SimplifiedMemConfig& config)
 {
     if (int res = StartNativeDaemon(); res != RET_SUCC) {
         return res;
@@ -207,7 +207,7 @@ int MemProfilerCollectorImpl::Start(int fd, pid_t pid, const SimplifiedMemConfig
         .maxGrowthSize = config.maxGrowthSize,
         .sampleSize = config.sampleSize,
     };
-    return NativeMemoryProfilerSaClientManager::Start(fd, pid, nativeDaemonConfig);
+    return NativeMemoryProfilerSaClientManager::Start(fd, pid, duration, nativeDaemonConfig);
 }
 
 int MemProfilerCollectorImpl::StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats)

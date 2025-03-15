@@ -34,7 +34,7 @@ public:
     int Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig) override;
     int Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig) override;
     int Prepare() override;
-    int Start(int fd, pid_t pid, const SimplifiedMemConfig& config) override;
+    int Start(int fd, pid_t pid, uint32_t duration, const SimplifiedMemConfig& config) override;
     int StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats) override;
     enum ErrorType {
         RET_FAIL = -1,

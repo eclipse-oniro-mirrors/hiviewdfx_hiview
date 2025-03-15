@@ -59,7 +59,7 @@ public:
     virtual int Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig) = 0;
     virtual int Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig) = 0;
     virtual int Prepare() = 0;
-    virtual int Start(int fd, pid_t pid, const SimplifiedMemConfig& config) = 0;
+    virtual int Start(int fd, pid_t pid, uint32_t duration, const SimplifiedMemConfig& config) = 0;
     virtual int StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats) = 0;
     static std::shared_ptr<MemProfilerCollector> Create();
 }; // MemProfilerCollector
