@@ -17,6 +17,8 @@
 
 #include <gmock/gmock.h>
 
+#include "file_util.h"
+#include "hiview_global.h"
 #include "hiview_logger.h"
 #include "sys_event_sequence_mgr.h"
 
@@ -25,6 +27,7 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("SysEventSequenceMgrTest");
 using namespace  OHOS::HiviewDFX::EventStore;
 namespace {
+constexpr char TEST_LOG_DIR[] = "/data/test/SysEventSequenceMgrDir";
 }
 
 void SysEventSequenceMgrTest::SetUpTestCase()
@@ -43,14 +46,55 @@ void SysEventSequenceMgrTest::TearDown()
 {
 }
 
+class HiviewTestContext : public HiviewContext {
+public:
+    std::string GetHiViewDirectory(DirectoryType type __UNUSED)
+    {
+        return TEST_LOG_DIR;
+    }
+};
+    
+std::string GetLogDir()
+{
+    std::string workPath = HiviewGlobal::GetInstance()->GetHiViewDirectory(
+        HiviewContext::DirectoryType::CONFIG_DIRECTORY);
+    if (workPath.back() != '/') {
+        workPath = workPath + "/";
+    }
+    if (!FileUtil::FileExists(workPath)) {
+        FileUtil::ForceCreateDirectory(workPath, FileUtil::FILE_PERM_770);
+    }
+    return workPath;
+}
+
 /**
  * @tc.name: SysEventSequenceMgrTest001
  * @tc.desc: test apis of class SysEventSequenceManager
  * @tc.type: FUNC
- * @tc.require: issueI9U6IV
+ * @tc.require: issueIBT9BB
  */
 HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest001, testing::ext::TestSize.Level3)
 {
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    std::string eventSeqFilePath = GetLogDir() + "sys_event_db/event_sequence";
+    ASSERT_EQ(eventSeqFilePath, "/data/test/SysEventSequenceMgrDir/sys_event_db/event_sequence");
+    FileUtil::SaveStringToFile(eventSeqFilePath, "0");
+    std::string eventSeqBackupFilePath = GetLogDir() + "sys_event_db/event_sequence_backup";
+    FileUtil::SaveStringToFile(eventSeqFilePath, "1000");
+    ASSERT_EQ(EventStore::SysEventSequenceManager::GetInstance().GetSequence(), 1100); // 1100 is expected seq value
+}
+
+/**
+ * @tc.name: SysEventSequenceMgrTest002
+ * @tc.desc: test apis of class SysEventSequenceManager
+ * @tc.type: FUNC
+ * @tc.require: issueI9U6IV
+ */
+HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest002, testing::ext::TestSize.Level3)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
     auto eventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
     EventStore::SysEventSequenceManager::GetInstance().SetSequence(eventSeq + 1000); // 1000 is a test offset
     auto eventSeqNew = EventStore::SysEventSequenceManager::GetInstance().GetSequence();

@@ -179,6 +179,7 @@ HWTEST_F(SysEventRepeatTest, CheckEventRepeatTest_04, testing::ext::TestSize.Lev
     ASSERT_EQ(SysEventRepeatDb::GetInstance().QueryHappentime(sysEventHashRecord), sysEventHashRecord.happentime);
     SysEventRepeatDb::GetInstance().CheckAndClearDb(now);
     ASSERT_EQ(SysEventRepeatDb::GetInstance().QueryHappentime(sysEventHashRecord), 0);
+    SysEventRepeatDb::GetInstance().Clear(now);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/base/event_raw"
+module_output_path = "hiview/event_raw"
 
 group("unittest") {
   testonly = true

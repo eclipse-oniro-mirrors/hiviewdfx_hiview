@@ -47,11 +47,11 @@ void SysEventDatabaseTest::TearDown()
 }
 
 /**
- * @tc.name: EventDatabaseTest_01
+ * @tc.name: EventDatabaseTest001
  * @tc.desc: test the class of SysEventDatabase.
  * @tc.type: FUNC
  */
-HWTEST_F(SysEventDatabaseTest, EventDatabaseTest_01, testing::ext::TestSize.Level0)
+HWTEST_F(SysEventDatabaseTest, EventDatabaseTest001, testing::ext::TestSize.Level0)
 {
     SysEventCreator sysEventCreator("WINDOWMANAGER", "NO_FOCUS_WINDOW", SysEventCreator::STATISTIC);
     std::vector<int> values = {1, 2, 3};
