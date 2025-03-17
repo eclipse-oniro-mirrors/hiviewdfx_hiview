@@ -42,8 +42,6 @@ public:
 private:
     void InitDbStorePath();
     void InitDbStore();
-    void StoreProcessData(const ProcessCpuStatInfo& cpuCollection, const std::unordered_set<int32_t>& memcgProcs);
-    void StoreThreadData(const ThreadCpuStatInfo& cpuCollection);
     bool NeedReport();
     void PrepareOldDbFilesBeforeReport();
     void ResetDbStore();
