@@ -38,7 +38,7 @@ constexpr int64_t DUMP_HIPERF_DELAY_TIME = 2 * 60 * 1000; //ms
 
 CpuPerfDump::CpuPerfDump()
 {
-    perfCollector_ = UCollectUtil::PerfCollector::Create(PerfCaller::UNIFIED_COLLECTOR);
+    perfCollector_ = UCollectUtil::PerfCollector::Create(UCollectUtil::PerfCaller::UNIFIED_COLLECTOR);
     if (!FileUtil::FileExists(HIPERF_LOG_PATH)) {
         FileUtil::ForceCreateDirectory(HIPERF_LOG_PATH, FileUtil::FILE_PERM_770);
     }
