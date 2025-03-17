@@ -295,10 +295,25 @@ void CpuStorage::StoreProcessDatas(const std::vector<ProcessCpuStatInfo>& cpuCol
     }
     auto processCollector = UCollectUtil::ProcessCollector::Create();
     auto result = processCollector->GetMemCgProcesses();
+    std::vector<NativeRdb::ValuesBucket> valuesBuckets;
     for (auto& cpuCollectionInfo : cpuCollectionInfos) {
-        if (NeedStoreInDb(cpuCollectionInfo)) {
-            StoreProcessData(cpuCollectionInfo, result.data);
+        if (!NeedStoreInDb(cpuCollectionInfo)) {
+            continue;
         }
+        NativeRdb::ValuesBucket bucket;
+        bucket.PutLong(COLUMN_START_TIME, static_cast<int64_t>(cpuCollectionInfo.startTime));
+        bucket.PutLong(COLUMN_END_TIME, static_cast<int64_t>(cpuCollectionInfo.endTime));
+        bucket.PutInt(COLUMN_PID, cpuCollectionInfo.pid);
+        bucket.PutInt(COLUMN_PROC_STATE, GetPowerProcessStateInCollectionPeriod(cpuCollectionInfo, result.data));
+        bucket.PutString(COLUMN_PROC_NAME, cpuCollectionInfo.procName);
+        bucket.PutDouble(COLUMN_CPU_LOAD, TruncateDecimalWithNBitPrecision(cpuCollectionInfo.cpuLoad));
+        bucket.PutDouble(COLUMN_CPU_USAGE, TruncateDecimalWithNBitPrecision(cpuCollectionInfo.cpuUsage));
+        bucket.PutInt(COLUMN_THREAD_CNT, cpuCollectionInfo.threadCount);
+        valuesBuckets.push_back(bucket);
+    }
+    int64_t outInsertNum = 0;
+    if (dbStore_->BatchInsert(outInsertNum, CPU_COLLECTION_TABLE_NAME, valuesBuckets) != NativeRdb::E_OK) {
+        HIVIEW_LOGE("Insert process data to unified_collection_cpu failed");
     }
 }
 
@@ -308,42 +323,20 @@ void CpuStorage::StoreThreadDatas(const std::vector<ThreadCpuStatInfo>& cpuColle
         HIVIEW_LOGW("db store is null, path=%{public}s", dbStorePath_.c_str());
         return;
     }
-    for (auto& cpuCollectionInfo : cpuCollections) {
-        StoreThreadData(cpuCollectionInfo);
+    std::vector<NativeRdb::ValuesBucket> valuesBuckets;
+    for (auto& cpuCollection : cpuCollections) {
+        NativeRdb::ValuesBucket bucket;
+        bucket.PutLong(COLUMN_START_TIME, static_cast<int64_t>(cpuCollection.startTime));
+        bucket.PutLong(COLUMN_END_TIME, static_cast<int64_t>(cpuCollection.endTime));
+        bucket.PutInt(COLUMN_TID, cpuCollection.tid);
+        bucket.PutString(COLUMN_THREAD_NAME, "");
+        bucket.PutDouble(COLUMN_CPU_LOAD, TruncateDecimalWithNBitPrecision(cpuCollection.cpuLoad));
+        bucket.PutDouble(COLUMN_CPU_USAGE, TruncateDecimalWithNBitPrecision(cpuCollection.cpuUsage));
+        valuesBuckets.push_back(bucket);
     }
-}
-
-void CpuStorage::StoreProcessData(const ProcessCpuStatInfo& cpuCollectionInfo,
-    const std::unordered_set<int32_t>& memCgProcs)
-{
-    NativeRdb::ValuesBucket bucket;
-    bucket.PutLong(COLUMN_START_TIME, static_cast<int64_t>(cpuCollectionInfo.startTime));
-    bucket.PutLong(COLUMN_END_TIME, static_cast<int64_t>(cpuCollectionInfo.endTime));
-    bucket.PutInt(COLUMN_PID, cpuCollectionInfo.pid);
-    bucket.PutInt(COLUMN_PROC_STATE, GetPowerProcessStateInCollectionPeriod(cpuCollectionInfo, memCgProcs));
-    bucket.PutString(COLUMN_PROC_NAME, cpuCollectionInfo.procName);
-    bucket.PutDouble(COLUMN_CPU_LOAD, TruncateDecimalWithNBitPrecision(cpuCollectionInfo.cpuLoad));
-    bucket.PutDouble(COLUMN_CPU_USAGE, TruncateDecimalWithNBitPrecision(cpuCollectionInfo.cpuUsage));
-    bucket.PutInt(COLUMN_THREAD_CNT, cpuCollectionInfo.threadCount);
-    int64_t seq = 0;
-    if (dbStore_->Insert(seq, CPU_COLLECTION_TABLE_NAME, bucket) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to insert cpu data to db store, pid=%{public}d, proc_name=%{public}s",
-            cpuCollectionInfo.pid, cpuCollectionInfo.procName.c_str());
-    }
-}
-
-void CpuStorage::StoreThreadData(const ThreadCpuStatInfo& cpuCollection)
-{
-    NativeRdb::ValuesBucket bucket;
-    bucket.PutLong(COLUMN_START_TIME, static_cast<int64_t>(cpuCollection.startTime));
-    bucket.PutLong(COLUMN_END_TIME, static_cast<int64_t>(cpuCollection.endTime));
-    bucket.PutInt(COLUMN_TID, cpuCollection.tid);
-    bucket.PutString(COLUMN_THREAD_NAME, "");
-    bucket.PutDouble(COLUMN_CPU_LOAD, TruncateDecimalWithNBitPrecision(cpuCollection.cpuLoad));
-    bucket.PutDouble(COLUMN_CPU_USAGE, TruncateDecimalWithNBitPrecision(cpuCollection.cpuUsage));
-    int64_t seq = 0;
-    if (dbStore_->Insert(seq, THREAD_CPU_COLLECTION_TABLE_NAME, bucket) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to insert cpu data to db store, tid=%{public}d", cpuCollection.tid);
+    int64_t outInsertNum = 0;
+    if (dbStore_->BatchInsert(outInsertNum, THREAD_CPU_COLLECTION_TABLE_NAME, valuesBuckets) != NativeRdb::E_OK) {
+        HIVIEW_LOGE("Insert thread data to unified_collection_cpu failed");
     }
 }
 
