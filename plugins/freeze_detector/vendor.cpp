@@ -15,13 +15,14 @@
 
 #include "vendor.h"
 
+#include <regex>
+
 #include "faultlogger_client.h"
 #include "file_util.h"
 #include "freeze_json_util.h"
 #include "hiview_logger.h"
 #include "string_util.h"
 #include "time_util.h"
-#include <regex>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -264,7 +265,7 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
 
         body << std::string(HEADER) << std::endl;
         if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), node.GetStringId()) !=
-            std::end(FreezeCommon::PB_EVENTS)) {
+            std::end(FreezeCommon::PB_EVENTS) && watchPoint.GetTerminalThreadStack().empty()) {
             std::stringstream ss;
             ss << ifs.rdbuf();
             std::string logContent = ss.str();
@@ -287,17 +288,19 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
 bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
     const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
 {
-    if (stringId == "SERVICE_WARNING" || stringId == "THREAD_BLOCK_3S") {
-        if (list.size() != (result.size() - SYS_MATCH_NUM)) {
-            HIVIEW_LOGW("Not meeting the requirements for syswarning reporting.");
-            return false;
-        }
-        if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) != std::end(KEY_PROCESS)) {
-            type = SYSWARNING;
-        } else {
-            return false;
-        }
+    if  (stringId != "SERVICE_WARNING" && stringId != "THREAD_BLOCK_3S") {
+        return true;
     }
+
+    if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) == std::end(KEY_PROCESS)) {
+        return false;
+    }
+
+    if (list.size() != SYS_MATCH_NUM) {
+        HIVIEW_LOGW("Not meeting the requirements for syswarning reporting.");
+        return false;
+    }
+    type = SYSWARNING;
     return true;
 }
 
@@ -331,7 +334,8 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     std::ostringstream body;
     bool isFileExists = true;
     InitLogBody(list, body, isFileExists, watchPoint);
-    HIVIEW_LOGI("After Init --body size: %{public}zu.", body.str().size());
+    HIVIEW_LOGI("After Init --body size: %{public}zu, pid: %{public}ld, processName: %{public}s ",
+        body.str().size(), watchPoint.GetPid(), processName.c_str());
 
     if (!isFileExists) {
         HIVIEW_LOGE("Failed to open the body file.");

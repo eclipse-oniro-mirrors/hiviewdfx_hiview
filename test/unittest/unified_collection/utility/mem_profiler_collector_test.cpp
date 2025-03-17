@@ -198,7 +198,7 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest005, TestSize.Level1)
         .maxGrowthSize = MEM_SIZE,
         .sampleSize = MEM_SIZE,
     };
-    collector->Start(0, 1, simplifiedMemConfig);
+    collector->Start(0, 1, DURATION, simplifiedMemConfig);
     std::this_thread::sleep_for(std::chrono::milliseconds(FINAL_TIME));
     collector->Stop(0);
     int time = 0;

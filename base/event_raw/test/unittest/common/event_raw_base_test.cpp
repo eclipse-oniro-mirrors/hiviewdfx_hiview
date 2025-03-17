@@ -24,6 +24,7 @@ namespace HiviewDFX {
 using namespace EventRaw;
 namespace {
 constexpr size_t CAP = 10;
+constexpr size_t CAP2 = 20;
 }
 
 void EventRawBaseTest::SetUpTestCase()
@@ -147,6 +148,37 @@ HWTEST_F(EventRawBaseTest, RawDataTest002, testing::ext::TestSize.Level1)
     ASSERT_TRUE(!data3.IsEmpty());
     ASSERT_EQ(data3.GetDataLength(), CAP);
     delete[] tmpData;
+}
+
+/**
+ * @tc.name: RawDataTest003
+ * @tc.desc: Test assign apis of RawData class
+ * @tc.type: FUNC
+ * @tc.require: issueIBT9BB
+ */
+HWTEST_F(EventRawBaseTest, RawDataTest003, testing::ext::TestSize.Level1)
+{
+    uint8_t* tmpData = nullptr;
+    RawData srcData(tmpData, 0);
+    ASSERT_EQ(srcData.GetDataLength(), 0);
+    RawData destData(srcData);
+    ASSERT_EQ(destData.GetDataLength(), 0);
+    RawData normalData;
+    uint8_t* tmpData1 = new(std::nothrow) uint8_t[CAP];
+    normalData.Append(tmpData1, CAP);
+    ASSERT_EQ(normalData.GetDataLength(), CAP);
+    destData = const_cast<const RawData&>(normalData);
+    ASSERT_EQ(destData.GetDataLength(), CAP);
+    destData = const_cast<const RawData&>(srcData);
+    ASSERT_EQ(destData.GetDataLength(), CAP);
+
+    uint8_t* tmpData2 = new(std::nothrow) uint8_t[CAP2];
+    RawData normalData2;
+    normalData2.Append(tmpData2, CAP);
+    normalData = const_cast<const RawData&>(normalData2);
+    ASSERT_EQ(destData.GetDataLength(), normalData2.GetDataLength());
+    srcData = const_cast<const RawData&>(normalData2);
+    ASSERT_EQ(srcData.GetDataLength(), normalData2.GetDataLength());
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -86,7 +86,6 @@ EventExportEngine::~EventExportEngine()
 void EventExportEngine::Start()
 {
     std::lock_guard<std::mutex> lock(mgrMutex_);
-    InitPackId();
     if (isTaskRunning_) {
         HIVIEW_LOGW("tasks have been started.");
         return;

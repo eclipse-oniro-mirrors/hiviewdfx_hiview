@@ -24,49 +24,50 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-namespace {
-    static constexpr const char* const EVENT_MSG = "MSG";
-}
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
-void DBHelper::GetResultMap(const struct WatchParams& watchParams, const FreezeResult& result,
-    EventStore::ResultSet& set, std::map<std::string, WatchPoint>& resultMap)
+void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const FreezeResult& result,
+    EventStore::ResultSet& set, WatchPoint& resultWatchPoint)
 {
+    unsigned long long timestamp = watchParams.timestamp;
+    unsigned long long frontInterval = UINT64_MAX;
+    unsigned long long rearInterval = UINT64_MAX;
     while (set.HasNext()) {
         auto record = set.Next();
-        std::string key = record->domain_ + "-" + record->eventName_;
-
         std::string packageName = record->GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
         packageName = packageName.empty() ?
             record->GetEventValue(FreezeCommon::EVENT_PROCESS_NAME) : packageName;
         long pid = record->GetEventIntValue(FreezeCommon::EVENT_PID);
         pid = pid ? pid : record->GetPid();
-        if (result.GetSamePackage() == "true" && (watchParams.packageName != packageName || watchParams.pid != pid)) {
-            HIVIEW_LOGE("failed to match the same package: %{public}s and %{public}s, the same pid: %{public}lu and "
-                "%{public}lu", watchParams.packageName.c_str(), packageName.c_str(), watchParams.pid, pid);
+        long tid = std::strtol(record->GetEventValue(EventStore::EventCol::TID).c_str(), nullptr, 0);
+        if (result.GetSamePackage() == "true" && (watchParams.packageName != packageName || watchParams.pid != pid ||
+            (watchParams.tid > 0 && tid > 0 && watchParams.tid != tid))) {
+            HIVIEW_LOGE("failed to match query result, watchPoint = [%{public}s, %{public}ld, %{public}ld], "
+                "record = [%{public}s, %{public}ld, %{public}ld]",
+                watchParams.packageName.c_str(), watchParams.pid, watchParams.tid, packageName.c_str(), pid, tid);
             continue;
+        }
+
+        if (record->happenTime_ < timestamp && timestamp - record->happenTime_ < frontInterval) {
+            frontInterval = timestamp - record->happenTime_;
+        } else if (frontInterval == UINT64_MAX) {
+            if (record->happenTime_ - timestamp >= rearInterval) {
+                continue;
+            }
+            rearInterval = record->happenTime_ - timestamp;
         }
 
         long uid = record->GetEventIntValue(FreezeCommon::EVENT_UID);
         uid = uid ? uid : record->GetUid();
-        long tid = std::strtol(record->GetEventValue(EventStore::EventCol::TID).c_str(), nullptr, 0);
-
-        WatchPoint watchPoint = WatchPoint::Builder()
+        resultWatchPoint = WatchPoint::Builder()
             .InitSeq(record->GetSeq()).InitDomain(result.GetDomain()).InitStringId(result.GetStringId())
             .InitTimestamp(record->happenTime_).InitPid(pid).InitUid(uid).InitTid(tid).InitPackageName(packageName)
             .InitProcessName(record->GetEventValue(FreezeCommon::EVENT_PROCESS_NAME))
-            .InitMsg(StringUtil::ReplaceStr(record->GetEventValue(EVENT_MSG), "\\n", "\n")).Build();
-
+            .InitMsg(StringUtil::ReplaceStr(record->GetEventValue(FreezeCommon::EVENT_MSG), "\\n", "\n")).Build();
         std::string info = record->GetEventValue(EventStore::EventCol::INFO);
         std::regex reg("logPath:([^,]+)");
         std::smatch smatchResult;
         if (std::regex_search(info, smatchResult, reg)) {
-            watchPoint.SetLogPath(smatchResult[1].str());
-        }
-
-        if (resultMap.find(key) != resultMap.end() && watchPoint.GetTimestamp() > resultMap[key].GetTimestamp()) {
-            resultMap[key] = watchPoint;
-        } else {
-            resultMap.insert(std::pair<std::string, WatchPoint>(key, watchPoint));
+            resultWatchPoint.SetLogPath(smatchResult[1].str());
         }
     }
 }
@@ -97,17 +98,12 @@ void DBHelper::SelectEventFromDB(unsigned long long start, unsigned long long en
         return;
     }
 
-    std::map<std::string, WatchPoint> resultMap;
-    GetResultMap(watchParams, result, set, resultMap);
-
-    std::map<std::string, WatchPoint>::iterator it;
-    for (it = resultMap.begin(); it != resultMap.end(); ++it) {
-        list.push_back(it->second);
+    WatchPoint resultWatchPoint;
+    GetResultWatchPoint(watchParams, result, set, resultWatchPoint);
+    if (resultWatchPoint.GetDomain().empty()) {
+        return;
     }
-    sort(list.begin(), list.end(), [] (const WatchPoint& frontWatchPoint, const WatchPoint& rearWatchPoint) {
-        return frontWatchPoint.GetTimestamp() < rearWatchPoint.GetTimestamp();
-    });
-
+    list.push_back(resultWatchPoint);
     HIVIEW_LOGI("select event from db, size =%{public}zu.", list.size());
 }
 

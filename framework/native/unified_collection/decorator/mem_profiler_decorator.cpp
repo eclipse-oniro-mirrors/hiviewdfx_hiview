@@ -74,9 +74,11 @@ int MemProfilerDecorator::Start(int fd, bool startup, const MemoryProfilerConfig
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-3");
 }
 
-int MemProfilerDecorator::Start(int fd, pid_t pid, const SimplifiedMemConfig& config)
+int MemProfilerDecorator::Start(int fd, pid_t pid, uint32_t duration, const SimplifiedMemConfig& config)
 {
-    auto task = [this, &fd, &pid, &config] { return memProfilerCollector_->Start(fd, pid, config); };
+    auto task = [this, &fd, &pid, &duration, &config] {
+        return memProfilerCollector_->Start(fd, pid, duration, config);
+    };
     // has same func name, rename it with num "-4"
     return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-4");
 }

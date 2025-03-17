@@ -33,6 +33,7 @@ public:
     static constexpr const char* const EVENT_UID = "UID";
     static constexpr const char* const EVENT_PACKAGE_NAME = "PACKAGE_NAME";
     static constexpr const char* const EVENT_PROCESS_NAME = "PROCESS_NAME";
+    static constexpr const char* const EVENT_MSG = "MSG";
     static constexpr const char* const HIREACE_TIME = "HITRACE_TIME";
     static constexpr const char* const SYSRQ_TIME = "SYSRQ_TIME";
     static constexpr const char* const TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";

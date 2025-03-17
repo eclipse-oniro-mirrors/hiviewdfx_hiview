@@ -13,14 +13,16 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/base/event_store"
+module_output_path = "hiview/event_store"
 
 group("unittest") {
   testonly = true
   deps = [
+    ":EventStoreConfigTest",
     ":SysEventBackupTest",
     ":SysEventDaoTest",
     ":SysEventDatabaseTest",
+    ":SysEventDocLruCacheTest",
     ":SysEventDocTest",
     ":SysEventRepeatTest",
     ":SysEventSequenceMgrTest",
@@ -37,6 +39,37 @@ config("sys_event_dao_config_test") {
   ]
 
   cflags = []
+}
+
+ohos_unittest("EventStoreConfigTest") {
+  module_out_path = module_output_path
+  configs = [ ":sys_event_dao_config_test" ]
+
+  sources = [ "unittest/common/event_store_config_test.cpp" ]
+
+  deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
+
+  external_deps = [
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hisysevent:libhisysevent",
+  ]
+}
+
+ohos_unittest("SysEventDocLruCacheTest") {
+  module_out_path = module_output_path
+  configs = [ ":sys_event_dao_config_test" ]
+
+  sources = [ "unittest/common/event_store_config_test.cpp" ]
+
+  deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
+
+  external_deps = [
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+  ]
 }
 
 ohos_unittest("SysEventDaoTest") {
