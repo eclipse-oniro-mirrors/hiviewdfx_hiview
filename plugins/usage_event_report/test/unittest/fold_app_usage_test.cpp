@@ -220,6 +220,9 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
     sysEventCreator1.SetKeyValue("WINDOW_TYPE", 2001);
     auto sysEvent4 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
     cacher.ProcessEvent(sysEvent4);
+    int index4 = dbHelper.QueryRawEventIndex(FoldAppUsageEventSpace::SCENEBOARD_BUNDLE_NAME,
+        FoldEventId::EVENT_APP_START);
+    ASSERT_TRUE(index4 == 0);
 }
 
 /**
