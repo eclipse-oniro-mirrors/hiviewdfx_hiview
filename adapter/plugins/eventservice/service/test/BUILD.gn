@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/sys_event_service_adapter"
+module_output_path = hiview_module + "/sys_event_service_adapter"
 
 group("unittest") {
   testonly = true

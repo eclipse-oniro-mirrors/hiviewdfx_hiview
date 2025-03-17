@@ -13,7 +13,9 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
-module_output_path = "hiviewdfx/hiview"
+
+module_output_path = hiview_module
+
 group("moduletest") {
   testonly = true
 }
