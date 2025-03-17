@@ -119,11 +119,11 @@ extern "C" {
         if (faultInfos.size == 0) {
             return faultInfos;
         }
-        CFaultLogInfo *retValue = static_cast<CFaultLogInfo *>(malloc(sizeof(CFaultLogInfo) * faultInfos.size));
-        if (retValue == nullptr) {
-            return faultInfos;
-        }
         if (faultLogInfoContext->resolved) {
+            CFaultLogInfo *retValue = static_cast<CFaultLogInfo *>(malloc(sizeof(CFaultLogInfo) * faultInfos.size));
+            if (retValue == nullptr) {
+                return faultInfos;
+            }
             int i = 0;
             for (auto& infoItem : faultLogInfoContext->infoVector) {
                 retValue[i].pid = infoItem.pid;
