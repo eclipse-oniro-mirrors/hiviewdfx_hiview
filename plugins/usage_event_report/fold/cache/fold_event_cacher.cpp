@@ -15,8 +15,8 @@
 
 #include "fold_event_cacher.h"
 
-#include "app_mgr_client.h"
 #include "display_manager.h"
+#include "fold_common_utils.h"
 #include "hiview_logger.h"
 #include "time_util.h"
 #include "usage_event_common.h"
@@ -27,22 +27,6 @@ DEFINE_LOG_TAG("FoldEventCacher");
 namespace {
 constexpr int UNKNOWN_FOLD_STATUS = -1;
 constexpr int MILLISEC_TO_MICROSEC = 1000;
-constexpr int SYSTEM_WINDOW_BASE = 2000;
-
-std::string GetFocusedApp()
-{
-    std::vector<AppExecFwk::RunningProcessInfo> allAppProcessInfos;
-    std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient = std::make_unique<AppExecFwk::AppMgrClient>();
-    appMgrClient->GetAllRunningProcesses(allAppProcessInfos);
-    std::string packageName;
-    for (const auto &process : allAppProcessInfos) {
-        if (process.isFocused) {
-            packageName = process.processName_;
-            break;
-        }
-    }
-    return packageName;
-}
 
 int GetCombineScreenStatus(int foldStatus, int vhMode)
 {
@@ -77,10 +61,11 @@ FoldEventCacher::FoldEventCacher(const std::string& workPath)
             vhMode_ = 1; // 1-landscape
         }
     }
-    auto focusedAppName = GetFocusedApp();
-    focusedAppPair_ = std::make_pair(focusedAppName, false);
+    auto focusedAppAndType = FoldCommonUtils::GetFocusedAppAndType();
+    focusedAppPair_ = std::make_pair(focusedAppAndType.first,
+        (focusedAppAndType.second < FoldCommonUtils::SYSTEM_WINDOW_BASE));
     HIVIEW_LOGI("focusedApp=%{public}s, foldStatus=%{public}d, vhMode=%{public}d",
-        focusedAppName.c_str(), foldStatus_, vhMode_);
+        focusedAppAndType.first.c_str(), foldStatus_, vhMode_);
 }
 
 void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
@@ -103,7 +88,8 @@ void FoldEventCacher::ProcessFocusWindowEvent(std::shared_ptr<SysEvent> event)
     if (focusedAppPair_.second) {
         ProcessBackgroundEvent(event);
     }
-    bool shouldCount = (event->GetEventIntValue(AppEventSpace::KEY_OF_WINDOW_TYPE) < SYSTEM_WINDOW_BASE);
+    bool shouldCount = (event->GetEventIntValue(AppEventSpace::KEY_OF_WINDOW_TYPE)
+        < FoldCommonUtils::SYSTEM_WINDOW_BASE);
     if (shouldCount) {
         ProcessForegroundEvent(event);
     }
