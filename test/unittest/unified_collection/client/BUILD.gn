@@ -23,7 +23,7 @@ config("ucollection_client_test_config") {
 }
 
 ohos_unittest("UCollectionClientUnitTest") {
-  module_out_path = "hiviewdfx/hiview"
+  module_out_path = hiview_module
 
   configs = [ ":ucollection_client_test_config" ]
 

@@ -26,7 +26,7 @@ config("ucollection_utility_test_config") {
 }
 
 ohos_unittest("UCollectionUtilityUnitTest") {
-  module_out_path = "hiviewdfx/hiview"
+  module_out_path = hiview_module
 
   configs = [ ":ucollection_utility_test_config" ]
 
@@ -143,7 +143,7 @@ config("ucollection_trace_test_config") {
 }
 
 ohos_unittest("UCollectionTraceUnitTest") {
-  module_out_path = "hiviewdfx/hiview"
+  module_out_path = hiview_module
 
   configs = [ ":ucollection_trace_test_config" ]
 

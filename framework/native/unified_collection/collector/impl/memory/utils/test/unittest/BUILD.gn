@@ -26,7 +26,7 @@ config("memory_utils_test_config") {
 }
 
 ohos_unittest("MemoryUtilsUnitTest") {
-  module_out_path = "hiviewdfx/hiview/ucollection"
+  module_out_path = hiview_module + "/ucollection"
 
   configs = [ ":memory_utils_test_config" ]
 

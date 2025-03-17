@@ -12,7 +12,9 @@
 # limitations under the License.
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
-module_output_path = "hiview/base"
+
+module_output_path = hiview_module + "/base"
+
 group("unittest") {
   testonly = true
   deps = [

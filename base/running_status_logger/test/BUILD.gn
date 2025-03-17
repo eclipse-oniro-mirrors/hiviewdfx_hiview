@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/base/running_status_logger"
+module_output_path = hiview_module + "/running_status_logger"
 
 group("unittest") {
   testonly = true
