@@ -69,6 +69,7 @@ ohos_unittest("SysEventDocLruCacheTest") {
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
+    "hisysevent:libhisysevent",
   ]
 }
 
