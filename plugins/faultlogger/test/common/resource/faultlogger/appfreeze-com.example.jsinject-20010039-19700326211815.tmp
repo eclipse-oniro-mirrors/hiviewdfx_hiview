@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 Device info:MatePad Pro
 Build info:OpenHarmony 3.2.3.5
 Module name:com.example.jsinject
@@ -34,7 +34,7 @@ PROCESS_NAME:
 MSG:Blocked thread id = 3454
 JSVM instance id = 0
  Page: pages/index/index.js
-SourceCode: 
+SourceCode:
     console.log(\"Begin Trigger JS Freeze\");
 ^
 Stacktrace:
@@ -536,112 +536,112 @@ PeerBinderCatcher -- pid==3443 layer_ == 0
 BinderCatcher --
 
 
-pid	context		request	started	max	ready	free_async_space
-3443	binder	0	2	16	3	520192
-3355	binder	0	2	16	3	520192
-705	binder	0	0	15	0	520192
-3222	binder	0	3	16	4	520192
-682	binder	0	0	15	0	520192
-2685	binder	0	0	15	0	520192
-2968	binder	0	2	16	3	520192
-679	binder	0	0	15	0	520192
-705	hwbinder	0	0	0	0	520192
-2620	binder	0	0	15	0	520192
-2584	binder	0	0	15	0	520192
-2685	binder	0	3	16	4	520192
-2676	binder	0	3	16	4	520192
-2665	binder	0	3	16	4	520192
-2658	binder	0	2	16	3	520192
-706	binder	0	0	15	0	520192
-2643	binder	0	2	16	3	520192
-2620	binder	0	3	16	4	520192
-2584	binder	0	3	16	4	520192
-687	binder	0	1	16	3	520192
-697	binder	0	1	16	3	520192
-707	binder	0	1	16	3	520192
-484	binder	0	1	16	3	520192
-602	binder	0	0	15	0	520192
-689	binder	0	2	16	4	520192
-722	binder	0	1	16	3	520192
-690	binder	0	2	16	4	520192
-602	hwbinder	0	1	15	2	520192
-688	binder	0	2	16	4	520192
-702	binder	0	2	16	4	520192
-713	binder	0	3	16	5	520192
-524	binder	0	2	16	4	520192
-704	binder	0	2	16	3	520192
-507	binder	0	2	16	4	520192
-497	binder	0	3	16	4	520192
-509	binder	0	1	16	3	520192
-664	binder	0	1	16	3	520192
-678	binder	0	0	15	0	520192
-510	binder	0	1	16	3	520192
-663	binder	0	1	16	3	520192
-1427	binder	0	2	16	4	520192
-529	binder	0	2	16	4	520192
-1425	binder	0	2	16	4	520192
-678	hwbinder	0	1	2	3	520192
-1426	binder	0	2	16	4	520192
-1334	binder	0	3	16	5	520192
-597	binder	0	1	16	3	520192
-712	binder	0	1	16	3	520192
-598	binder	0	1	16	3	520192
-715	binder	0	1	16	3	520192
-705	binder	0	4	16	5	520192
-724	binder	0	2	16	4	520192
-501	hwbinder	0	1	8	2	520192
-667	binder	0	2	16	4	520192
-682	hwbinder	0	0	2	2	520192
-680	hwbinder	0	0	0	1	520192
-513	binder	0	1	16	3	520192
-695	binder	0	3	16	5	520192
-706	binder	0	7	16	9	520192
-693	binder	0	1	16	3	520192
-686	binder	0	2	16	4	520192
-526	binder	0	1	16	3	520192
-703	binder	0	1	16	3	520192
-692	binder	0	1	16	3	520192
-714	binder	0	1	16	3	520192
-710	binder	0	1	16	3	520192
-678	binder	0	4	16	5	520192
-671	binder	0	1	16	2	520192
-691	binder	0	1	16	3	520192
-668	binder	0	1	16	2	520192
-711	binder	0	1	16	3	520192
-677	binder	0	2	16	3	520192
-679	hwbinder	0	2	2	4	520192
-681	binder	0	1	16	2	520192
-528	binder	0	1	16	3	520192
-516	binder	0	2	16	4	520192
-709	binder	0	1	16	3	520192
-508	binder	0	2	16	4	520192
-674	binder	0	1	16	2	520192
-672	binder	0	1	16	2	520192
-680	binder	0	1	16	2	520192
-723	binder	0	1	16	3	520192
-676	binder	0	2	16	3	520192
-669	binder	0	2	16	3	520192
-682	binder	0	4	16	5	520192
-673	binder	0	1	16	2	520192
-679	binder	0	1	16	2	520192
-683	binder	0	3	16	4	520192
-725	binder	0	4	16	6	520192
-512	binder	0	1	16	3	520192
-670	binder	0	1	16	2	520192
-696	binder	0	0	16	2	520192
-675	binder	0	1	16	2	520192
-514	binder	0	1	16	3	520192
-515	binder	0	2	16	4	520192
-511	binder	0	4	16	5	520192
-527	binder	0	1	16	3	520192
-525	binder	0	1	16	3	520192
-498	binder	0	1	16	3	520192
-480	binder	0	1	16	3	520192
-485	binder	0	5	16	7	520192
-486	binder	0	2	16	4	520192
-477	hwbinder	0	0	0	0	520192
-481	binder	0	1	1	2	520192
-478	vndbinder	0	0	0	1	65536
+pid     context         request started max     ready   free_async_space
+3443    binder  0       2       16      3       520192
+3355    binder  0       2       16      3       520192
+705     binder  0       0       15      0       520192
+3222    binder  0       3       16      4       520192
+682     binder  0       0       15      0       520192
+2685    binder  0       0       15      0       520192
+2968    binder  0       2       16      3       520192
+679     binder  0       0       15      0       520192
+705     hwbinder        0       0       0       0       520192
+2620    binder  0       0       15      0       520192
+2584    binder  0       0       15      0       520192
+2685    binder  0       3       16      4       520192
+2676    binder  0       3       16      4       520192
+2665    binder  0       3       16      4       520192
+2658    binder  0       2       16      3       520192
+706     binder  0       0       15      0       520192
+2643    binder  0       2       16      3       520192
+2620    binder  0       3       16      4       520192
+2584    binder  0       3       16      4       520192
+687     binder  0       1       16      3       520192
+697     binder  0       1       16      3       520192
+707     binder  0       1       16      3       520192
+484     binder  0       1       16      3       520192
+602     binder  0       0       15      0       520192
+689     binder  0       2       16      4       520192
+722     binder  0       1       16      3       520192
+690     binder  0       2       16      4       520192
+602     hwbinder        0       1       15      2       520192
+688     binder  0       2       16      4       520192
+702     binder  0       2       16      4       520192
+713     binder  0       3       16      5       520192
+524     binder  0       2       16      4       520192
+704     binder  0       2       16      3       520192
+507     binder  0       2       16      4       520192
+497     binder  0       3       16      4       520192
+509     binder  0       1       16      3       520192
+664     binder  0       1       16      3       520192
+678     binder  0       0       15      0       520192
+510     binder  0       1       16      3       520192
+663     binder  0       1       16      3       520192
+1427    binder  0       2       16      4       520192
+529     binder  0       2       16      4       520192
+1425    binder  0       2       16      4       520192
+678     hwbinder        0       1       2       3       520192
+1426    binder  0       2       16      4       520192
+1334    binder  0       3       16      5       520192
+597     binder  0       1       16      3       520192
+712     binder  0       1       16      3       520192
+598     binder  0       1       16      3       520192
+715     binder  0       1       16      3       520192
+705     binder  0       4       16      5       520192
+724     binder  0       2       16      4       520192
+501     hwbinder        0       1       8       2       520192
+667     binder  0       2       16      4       520192
+682     hwbinder        0       0       2       2       520192
+680     hwbinder        0       0       0       1       520192
+513     binder  0       1       16      3       520192
+695     binder  0       3       16      5       520192
+706     binder  0       7       16      9       520192
+693     binder  0       1       16      3       520192
+686     binder  0       2       16      4       520192
+526     binder  0       1       16      3       520192
+703     binder  0       1       16      3       520192
+692     binder  0       1       16      3       520192
+714     binder  0       1       16      3       520192
+710     binder  0       1       16      3       520192
+678     binder  0       4       16      5       520192
+671     binder  0       1       16      2       520192
+691     binder  0       1       16      3       520192
+668     binder  0       1       16      2       520192
+711     binder  0       1       16      3       520192
+677     binder  0       2       16      3       520192
+679     hwbinder        0       2       2       4       520192
+681     binder  0       1       16      2       520192
+528     binder  0       1       16      3       520192
+516     binder  0       2       16      4       520192
+709     binder  0       1       16      3       520192
+508     binder  0       2       16      4       520192
+674     binder  0       1       16      2       520192
+672     binder  0       1       16      2       520192
+680     binder  0       1       16      2       520192
+723     binder  0       1       16      3       520192
+676     binder  0       2       16      3       520192
+669     binder  0       2       16      3       520192
+682     binder  0       4       16      5       520192
+673     binder  0       1       16      2       520192
+679     binder  0       1       16      2       520192
+683     binder  0       3       16      4       520192
+725     binder  0       4       16      6       520192
+512     binder  0       1       16      3       520192
+670     binder  0       1       16      2       520192
+696     binder  0       0       16      2       520192
+675     binder  0       1       16      2       520192
+514     binder  0       1       16      3       520192
+515     binder  0       2       16      4       520192
+511     binder  0       4       16      5       520192
+527     binder  0       1       16      3       520192
+525     binder  0       1       16      3       520192
+498     binder  0       1       16      3       520192
+480     binder  0       1       16      3       520192
+485     binder  0       5       16      7       520192
+486     binder  0       2       16      4       520192
+477     hwbinder        0       0       0       0       520192
+481     binder  0       1       1       2       520192
+478     vndbinder       0       0       0       1       65536
 
 
 PeerBinder Stacktrace --
@@ -658,7 +658,7 @@ UID = 20010039
 MSG = Blocked thread id = 3454
 JSVM instance id = 0
  Page: pages/index/index.js
-SourceCode: 
+SourceCode:
     console.log(\"Begin Trigger JS Freeze\");
 ^
 Stacktrace:
@@ -677,7 +677,7 @@ Load average: 27.68 / 9.28 / 3.30; the cpu load average in 1 min, 5 min and 15 m
 CPU usage from 1970-03-26 21:18:15 to 1970-03-26 21:18:15
 Total: 18%; User Space: 12%; Kernel Space: 6%; iowait: 0%; irq: 1%; idle: 79%
 Details of Processes:
-    PID   Total Usage	   User Space    Kernel Space    Page Fault Minor    Page Fault Major    Name
+    PID   Total Usage      User Space    Kernel Space    Page Fault Minor    Page Fault Major    Name
     3443      15%              11%             4%              644800                  17        com.example.jsi
 
 -------------------------------[memory]-------------------------------
