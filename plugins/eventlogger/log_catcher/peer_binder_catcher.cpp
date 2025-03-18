@@ -339,8 +339,8 @@ void PeerBinderCatcher::CatcherFfrtStack(int fd, int pid) const
 
 void PeerBinderCatcher::CatcherStacktrace(int fd, int pid, bool sync) const
 {
-    std::string content = sync ? "PeerBinder" : "AsyncBinder";
-    content += "catcher stacktrace for pid : " + std::to_string(pid) + "\r\n";
+    std::string type = sync ? "peer" : "async";
+    std::string content = "Binder catcher stacktrace, type is " + type + ", pid : " + std::to_string(pid) + "\r\n";
     FileUtil::SaveStringToFd(fd, content);
 
     LogCatcherUtils::DumpStacktrace(fd, pid);

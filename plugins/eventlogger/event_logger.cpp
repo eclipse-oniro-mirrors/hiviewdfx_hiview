@@ -630,7 +630,7 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     if (binderInfo.empty() || !IsKernelStack(binderInfo)) {
         return;
     }
-    std::string tags = "PeerBinder catcher stacktrace for pid ";
+    std::string tags = "Binder catcher stacktrace, ";
     auto index = binderInfo.find(tags);
     if (index == std::string::npos) {
         return;
@@ -644,10 +644,15 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     std::string kernelStack;
     for (auto lineIt = lines.begin(); lineIt != lines.end(); lineIt++) {
         std::string line = tags + *lineIt;
+        size_t firstLineIndex = line.find("\n");
+        std::string firstLine = (firstLineIndex != std::string::npos) ? line.substr(0, firstLineIndex) : tags;
         stack = "";
         kernelStack = "";
         GetNoJsonStack(stack, line, kernelStack, false);
         binderPeerStack += kernelStack;
+        if (line != "[]") {
+            stack = firstLine + "\n" + stack;
+        }
         oss << stack << std::endl;
     }
     binderInfo = oss.str();
