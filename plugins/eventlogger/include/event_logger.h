@@ -88,6 +88,7 @@ private:
 #endif
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
+    void SaveRsVulKanError(std::shared_ptr<SysEvent> event, int fd);
     void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
