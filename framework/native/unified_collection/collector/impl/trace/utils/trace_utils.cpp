@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -151,8 +151,33 @@ std::string AddVersionInfoToZipName(const std::string &srcZipPath)
     return StringUtil::ReplaceStr(srcZipPath, ".zip", "@" + versionStr + ".zip");
 }
 
+int WriteFileToZip(FILE *srcFp, zipFile file)
+{
+    if (srcFp == nullptr) {
+        return -1;
+    }
+    char buf[READ_MORE_LENGTH] = {0};
+    while (!feof(srcFp)) {
+        size_t numBytes = fread(buf, 1, sizeof(buf), srcFp);
+        if (numBytes <= 0) {
+            HIVIEW_LOGE("zip file failed, size is zero");
+            return -1;
+        }
+        zipWriteInFileInZip(zipFile, buf, static_cast<unsigned int>(numBytes));
+        if (ferror(srcFp)) {
+            HIVIEW_LOGE("zip file failed: %{public}s, errno: %{public}d.", srcSysPath.c_str(), errno);
+            return -1;
+        }
+    }
+    return 0;
+}
+
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
 {
+    if (FileUtil::FileExists(AddVersionInfoToZipName(destZipPath))) {
+        HIVIEW_LOGI("dst: %{public}s already exist", destZipPath.c_str());
+        return;
+    }
     HIVIEW_LOGI("start ZipTraceFile src: %{public}s, dst: %{public}s", srcSysPath.c_str(), destZipPath.c_str());
     FILE *srcFp = fopen(srcSysPath.c_str(), "rb");
     if (srcFp == nullptr) {
@@ -176,22 +201,7 @@ void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
     std::string sysFileName = FileUtil::ExtractFileName(srcSysPath);
     zipOpenNewFileInZip(
         zipFile, sysFileName.c_str(), &zipInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-    int errcode = 0;
-    char buf[READ_MORE_LENGTH] = {0};
-    while (!feof(srcFp)) {
-        size_t numBytes = fread(buf, 1, sizeof(buf), srcFp);
-        if (numBytes <= 0) {
-            HIVIEW_LOGE("zip file failed, size is zero");
-            errcode = -1;
-            break;
-        }
-        zipWriteInFileInZip(zipFile, buf, static_cast<unsigned int>(numBytes));
-        if (ferror(srcFp)) {
-            HIVIEW_LOGE("zip file failed: %{public}s, errno: %{public}d.", srcSysPath.c_str(), errno);
-            errcode = -1;
-            break;
-        }
-    }
+    int errcode = WriteFileToZip(srcFp, zipFile);
     (void)fclose(srcFp);
     zipCloseFileInZip(zipFile);
     zipClose(zipFile, nullptr);
@@ -205,9 +215,14 @@ void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
 
 void CopyFile(const std::string &src, const std::string &dst)
 {
-    int ret = FileUtil::CopyFile(src, dst);
+    if (FileUtil::FileExists(dst)) {
+        HIVIEW_LOGI("copy already, trace file : %{public}s.", dst.c_str());
+        return;
+    }
+    HIVIEW_LOGI("copy start, trace file : %{public}s.", dst.c_str());
+    int ret = FileUtil::CopyFileFast(src, dst);
     if (ret != 0) {
-        HIVIEW_LOGE("copy file failed, file is %{public}s.", src.c_str());
+        HIVIEW_LOGE("copy failed, trace file : %{public}s, errno : %{public}d", src.c_str(), errno);
     }
     HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
 }
