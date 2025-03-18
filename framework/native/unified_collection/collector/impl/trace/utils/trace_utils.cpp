@@ -25,6 +25,7 @@
 #include "ffrt.h"
 #include "hiview_logger.h"
 #include "hiview_event_report.h"
+#include "hiview_zip_util.h"
 #include "memory_collector.h"
 #include "parameter_ex.h"
 #include "securec.h"
@@ -151,65 +152,23 @@ std::string AddVersionInfoToZipName(const std::string &srcZipPath)
     return StringUtil::ReplaceStr(srcZipPath, ".zip", "@" + versionStr + ".zip");
 }
 
-int WriteFileToZip(FILE *srcFp, zipFile file)
-{
-    if (srcFp == nullptr) {
-        return -1;
-    }
-    char buf[READ_MORE_LENGTH] = {0};
-    while (!feof(srcFp)) {
-        size_t numBytes = fread(buf, 1, sizeof(buf), srcFp);
-        if (numBytes <= 0) {
-            HIVIEW_LOGE("zip file failed, size is zero");
-            return -1;
-        }
-        zipWriteInFileInZip(zipFile, buf, static_cast<unsigned int>(numBytes));
-        if (ferror(srcFp)) {
-            HIVIEW_LOGE("zip file failed: %{public}s, errno: %{public}d.", srcSysPath.c_str(), errno);
-            return -1;
-        }
-    }
-    return 0;
-}
-
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
 {
-    if (FileUtil::FileExists(AddVersionInfoToZipName(destZipPath))) {
-        HIVIEW_LOGI("dst: %{public}s already exist", destZipPath.c_str());
-        return;
-    }
-    HIVIEW_LOGI("start ZipTraceFile src: %{public}s, dst: %{public}s", srcSysPath.c_str(), destZipPath.c_str());
-    FILE *srcFp = fopen(srcSysPath.c_str(), "rb");
-    if (srcFp == nullptr) {
-        return;
-    }
-    zip_fileinfo zipInfo;
-    errno_t result = memset_s(&zipInfo, sizeof(zipInfo), 0, sizeof(zipInfo));
-    if (result != EOK) {
-        (void)fclose(srcFp);
-        return;
-    }
-    std::string zipFileName = FileUtil::ExtractFileName(destZipPath);
-    zipFile zipFile = zipOpen((UNIFIED_SHARE_TEMP_PATH + zipFileName).c_str(), APPEND_STATUS_CREATE);
-    if (zipFile == nullptr) {
-        HIVIEW_LOGE("zipOpen failed");
-        (void)fclose(srcFp);
+    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
+    if (FileUtil::FileExists(destZipPathWithVersion)) {
+        HIVIEW_LOGI("dst: %{public}s already exist", destZipPathWithVersion.c_str());
         return;
     }
     CheckCurrentCpuLoad();
     HiviewEventReport::ReportCpuScene("5");
-    std::string sysFileName = FileUtil::ExtractFileName(srcSysPath);
-    zipOpenNewFileInZip(
-        zipFile, sysFileName.c_str(), &zipInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-    int errcode = WriteFileToZip(srcFp, zipFile);
-    (void)fclose(srcFp);
-    zipCloseFileInZip(zipFile);
-    zipClose(zipFile, nullptr);
-    if (errcode != 0) {
+    std::string tmpDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
+    HIVIEW_LOGI("start ZipTraceFile src: %{public}s, dst: %{public}s", srcSysPath.c_str(), destZipPath.c_str());
+    HiviewZipUnit zipUnit(tmpDestZipPath);
+    if (int32_t ret = zipUnit.AddFileInZip(srcSysPath, ZipFileLevel::KEEP_NONE_PARENT_PATH); ret != 0) {
+        HIVIEW_LOGW("zip trace failed, ret: %{public}d.", ret);
         return;
     }
-    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
-    FileUtil::RenameFile(UNIFIED_SHARE_TEMP_PATH + zipFileName, destZipPathWithVersion);
+    FileUtil::RenameFile(tmpDestZipPath, destZipPathWithVersion);
     HIVIEW_LOGI("finish rename file %{public}s", destZipPathWithVersion.c_str());
 }
 
@@ -223,8 +182,9 @@ void CopyFile(const std::string &src, const std::string &dst)
     int ret = FileUtil::CopyFileFast(src, dst);
     if (ret != 0) {
         HIVIEW_LOGE("copy failed, trace file : %{public}s, errno : %{public}d", src.c_str(), errno);
+    } else {
+        HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
     }
-    HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
 }
 
 /*
