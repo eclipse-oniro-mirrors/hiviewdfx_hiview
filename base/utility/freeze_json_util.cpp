@@ -127,9 +127,9 @@ void FormatCollect(std::map<std::string, std::list<std::string>>& collectMap, Fr
     }
 
     if (!collectMap["event_handler"].empty()) {
-        // use the latest peer_binder
+        // use the latest event_handler
         jsonCollector.event_handler = *(collectMap["event_handler"].rbegin());
-        if (collectMap["event_handler"].size() != 1) {
+        if (collectMap["event_handler"].size() > 1 && jsonCollector.stringId == "THREAD_BLOCK_6S") {
             std::string flag = "Event {";
             jsonCollector.event_handler_3s_size =
                 std::to_string(CountSubStr(*(collectMap["event_handler"].begin()), flag));
@@ -139,7 +139,7 @@ void FormatCollect(std::map<std::string, std::list<std::string>>& collectMap, Fr
     }
 
     if (!collectMap["stack"].empty()) {
-        // use the earliest peer_binder
+        // use the earliest stack
         jsonCollector.stack = collectMap["stack"].front();
     }
 

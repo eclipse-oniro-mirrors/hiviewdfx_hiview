@@ -372,8 +372,8 @@ bool ParseMsgForMessageAndEventHandler(const std::string& msg, std::string& mess
     std::string messageEndFlag = "mainHandler dump is:";
     std::string eventFlag = "Event {";
     bool isGetEvent = false;
-    std::regex eventStartFlag(".*((Immediate)|(High)|(Low)) priority event queue information:.*");
-    std::regex eventEndFlag(".*Total size of ((Immediate)|(High)|(Low)) events :.*");
+    std::regex eventStartFlag(".*((VIP)|(Immediate)|(High)|(Low)|(Idle)) priority event queue information:.*");
+    std::regex eventEndFlag(".*Total size of ((VIP)|(Immediate)|(High)|(Low)|(Idle)) events :.*");
     std::list<std::string> eventHandlerList;
     for (auto line = lines.begin(); line != lines.end(); line++) {
         if ((*line).find(messageStartFlag) != std::string::npos) {
