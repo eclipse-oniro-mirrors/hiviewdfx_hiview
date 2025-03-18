@@ -31,7 +31,6 @@ public:
 
     EventLogCatcher() {};
     int GetLogSize() const;
-    int AppendFile(int fd, const std::string &fileName) const;
     void SetLogSize(int size);
     void Stop();
     virtual ~EventLogCatcher() {};

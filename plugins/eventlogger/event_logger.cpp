@@ -53,26 +53,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static constexpr const char* const TWELVE_BIG_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
-    static constexpr const char* const TWELVE_BIG_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
-    static constexpr const char* const TWELVE_MID_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
-    static constexpr const char* const TWELVE_MID_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq";
-    static constexpr const char* const SUSTAINABLE_POWER =
-        "/sys/class/thermal/thermal_zone1/sustainable_power";
-    static constexpr const char* const ASHMEM_PATH = "/proc/ashmem_process_info";
-    static constexpr const char* const DMAHEAP_PATH = "/proc/dmaheap_process_info";
-    static constexpr const char* const GPUMEM_PATH = "/proc/gpumem_process_info";
-    static constexpr const char* const ASHMEM = "AshmemUsed";
-    static constexpr const char* const DMAHEAP = "DmaHeapTotalUsed";
-    static constexpr const char* const GPUMEM = "GpuTotalUsed";
     static constexpr const char* const LONG_PRESS = "LONG_PRESS";
     static constexpr const char* const AP_S_PRESS6S = "AP_S_PRESS6S";
     static constexpr const char* const REBOOT_REASON = "reboot_reason";
@@ -290,23 +270,6 @@ void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
     FileUtil::SaveStringToFile(historyFile, str, truncated);
 }
 
-std::string EventLogger::StabilityGetTempFreqInfo()
-{
-    std::string tempInfo = "";
-    std::string bigCpuCurFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
-    std::string bigCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_MAX_FREQ);
-    std::string midCpuCurFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_CUR_FREQ);
-    std::string midCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_MAX_FREQ);
-    std::string litCpuCurFreq = FileUtil::GetFirstLine(TWELVE_LIT_CPU_CUR_FREQ);
-    std::string litCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_LIT_CPU_MAX_FREQ);
-    std::string ipaValue = FileUtil::GetFirstLine(SUSTAINABLE_POWER);
-    tempInfo = "\nFreq: bigCur: " + bigCpuCurFreq + ", bigMax: " +
-        bigCpuMaxFreq + ", midCur: " + midCpuCurFreq + ", midMax: " + midCpuMaxFreq +
-        ", litCur: " + litCpuCurFreq + ", litMax: " + litCpuMaxFreq + "\n" + "IPA: " +
-        ipaValue;
-    return tempInfo;
-}
-
 void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
 {
     auto start = TimeUtil::GetMilliseconds();
@@ -353,10 +316,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     threadStack = threadStack.empty() ? logTask->terminalThreadStack_ : threadStack;
     SetEventTerminalBinder(event, threadStack, fd);
-    FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
-    FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
     auto end = TimeUtil::GetMilliseconds();
-    FreezeCommon::WriteEndInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ");
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
