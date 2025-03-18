@@ -41,6 +41,9 @@
         }, {
            "domain":"RELIABILITY",
            "include":["APP_FREEZE_BETACLUB"]
+        }, {
+            "domain":"GRAPHIC",
+            "include":["RS_VULKAN_ERROR"]
         }
     ]
 }

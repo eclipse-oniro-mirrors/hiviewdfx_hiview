@@ -247,5 +247,12 @@
         </event>
       </links>
     </rule>
+    <rule id="11" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
+      <links type="watchpoint">
+        <event window="0" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
   </rules>
 </freeze>
