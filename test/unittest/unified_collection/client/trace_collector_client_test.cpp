@@ -163,3 +163,53 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
     }
     DisablePermissionAccess();
 }
+
+static uint64_t GetMilliseconds()
+{
+    auto now = std::chrono::system_clock::now();
+    auto millisecs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+    return millisecs.count();
+}
+
+/**
+ * @tc.name: TraceCollectorTest003
+ * @tc.desc: start app trace.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
+{
+    auto traceCollector = TraceCollector::Create();
+    ASSERT_TRUE(traceCollector != nullptr);
+    EnablePermissionAccess();
+    AppCaller appCaller;
+    appCaller.actionId = ACTION_ID_START_TRACE;
+    appCaller.bundleName = "com.example.helloworld";
+    appCaller.bundleVersion = "2.0.1";
+    appCaller.foreground = 1;
+    appCaller.threadName = "mainThread";
+    appCaller.uid = 20020143; // 20020143: user uid
+    appCaller.pid = 100; // 100: pid
+    appCaller.happenTime = GetMilliseconds();
+    appCaller.beginTime = appCaller.happenTime - 100; // 100: ms
+    appCaller.endTime = appCaller.happenTime + 100; // 100: ms
+    auto result = traceCollector->CaptureDurationTrace(appCaller);
+    std::cout << "retCode=" << result.retCode << ", data=" << result.data << std::endl;
+    ASSERT_TRUE(result.data == 0);
+
+    AppCaller appCaller2;
+    appCaller2.actionId = ACTION_ID_DUMP_TRACE;
+    appCaller2.bundleName = "com.example.helloworld";
+    appCaller2.bundleVersion = "2.0.1";
+    appCaller2.foreground = 1;
+    appCaller2.threadName = "mainThread";
+    appCaller2.uid = 20020143; // 20020143: user id
+    appCaller2.pid = 100; // 100: pid
+    appCaller2.happenTime = GetMilliseconds();
+    appCaller2.beginTime = appCaller.happenTime - 100; // 100: ms
+    appCaller2.endTime = appCaller.happenTime + 100; // 100: ms
+    auto result2 = traceCollector->CaptureDurationTrace(appCaller2);
+    std::cout << "retCode=" << result2.retCode << ", data=" << result2.data << std::endl;
+    ASSERT_NE(result2.retCode, UcError::TRACE_STATE_ERROR);
+    DisablePermissionAccess();
+    Sleep();
+}

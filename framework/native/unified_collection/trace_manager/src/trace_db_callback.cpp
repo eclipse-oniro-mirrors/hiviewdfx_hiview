@@ -53,13 +53,13 @@ const std::string COLUMN_USED_QUOTA = "used_quota";
 
 // Table telemetry_flow_control column name
 const std::string TABLE_TELEMETRY_FLOW_CONTROL = "telemetry_flow_control";
+const std::string TABLE_TELEMETRY_TIME_CONTROL = "telemetry_time_control";
+const std::string TABLE_TELEMETRY_CONTROL = "telemetry_control";
 const std::string COLUMN_MODULE_NAME = "module";
 const std::string COLUMN_QUOTA = "quota";
 const std::string COLUMN_THRESHOLD = "threshold";
-
-// Table telemetry_flow_control column name
-const std::string TABLE_TELEMETRY_TIME_CONTROL = "telemetry_time_control";
 const std::string COLUMN_TELEMTRY_ID = "telemetry_id";
+const std::string COLUMN_BEGIN_TIME = "begin_time";
 }
 
 int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
@@ -77,12 +77,8 @@ int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
         HIVIEW_LOGE("failed to create table trace_behavior_db_helper");
         return ret;
     }
-    if (auto ret = CreateTelemetryFlowControlTable(rdbStore); ret != NativeRdb::E_OK) {
+    if (auto ret = CreateTelemetryControlTable(rdbStore); ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table telemetry_flow_control");
-        return ret;
-    }
-    if (auto ret = CreateTelemetryTimeTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table telemetry_time_control");
         return ret;
     }
     return NativeRdb::E_OK;
@@ -212,50 +208,27 @@ int32_t TraceDbStoreCallback::CreateTraceBehaviorDbHelperTable(NativeRdb::RdbSto
     return 0;
 }
 
-int32_t TraceDbStoreCallback::CreateTelemetryFlowControlTable(NativeRdb::RdbStore &rdbStore)
+int32_t TraceDbStoreCallback::CreateTelemetryControlTable(NativeRdb::RdbStore &rdbStore)
 {
     /**
      * table: telemetry_flow_control
      *
      * describe: store trace behavior quota
-     * |-----|------- -|-----------|------------|------------|
-     * | id  |  module | used_size |   quota    |  threshold |
-     * |-----|-- ------|-----------|------------|------------|
-     * | INT | VARCHAR |   INT32   |   INT32    |   INT32    |
-     * |-----|----- ---|-----------|------------|------------|
+     * |--------------|------- -|-----------|------------|------------|--------------|
+     * | telemetry_id |  module | used_size |   quota    |  threshold |  begin_time  |
+     * |--------------|-- ------|-----------|------------|------------|--------------|
+     * |    VARCHAR   | VARCHAR |   INT32   |   INT32    |   INT32    |     INT64    |
+     * |--------------|----- ---|-----------|------------|------------|--------------|
     */
     const std::vector<std::pair<std::string, std::string>> fields = {
+        {COLUMN_TELEMTRY_ID, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_MODULE_NAME, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_QUOTA, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_THRESHOLD, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_BEGIN_TIME, SqlUtil::COLUMN_TYPE_INT},
     };
-    std::string sql = SqlUtil::GenerateCreateSql(TABLE_TELEMETRY_FLOW_CONTROL, fields);
-    if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table, sql=%{public}s", sql.c_str());
-        return -1;
-    }
-    return 0;
-}
-
-int32_t TraceDbStoreCallback::CreateTelemetryTimeTable(NativeRdb::RdbStore &rdbStore)
-{
-    /**
-     * table: telemetry_time_control
-     *
-     * describe: store trace behavior quota
-     * |--------------|--------------|--------------|
-     * | telemetry_id |  start_time  |  finish_time |
-     * |--------------|--------------|--------------|
-     * |    VARCHAR   |     INT64    |     INT64    |
-     * |--------------|--------------|--------------|
-    */
-    const std::vector<std::pair<std::string, std::string>> fields = {
-        {COLUMN_TELEMTRY_ID, SqlUtil::COLUMN_TYPE_STR},
-        {COLUMN_START_TIME, SqlUtil::COLUMN_TYPE_INT},
-        {COLUMN_FINISH_TIME, SqlUtil::COLUMN_TYPE_INT},
-    };
-    std::string sql = SqlUtil::GenerateCreateSql(TABLE_TELEMETRY_TIME_CONTROL, fields);
+    std::string sql = SqlUtil::GenerateCreateSql(TABLE_TELEMETRY_CONTROL, fields);
     if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table, sql=%{public}s", sql.c_str());
         return -1;

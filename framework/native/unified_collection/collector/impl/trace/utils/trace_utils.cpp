@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <chrono>
 #include <contrib/minizip/zip.h>
+#include <fcntl.h>
+#include <sys/file.h>
 #include <unistd.h>
 #include <vector>
 
@@ -343,22 +345,39 @@ bool CreateMultiDirectory(const std::string &dirPath)
     return true;
 }
 
-void CreateTracePathInner(const std::string &filePath)
+void RecoverTmpTrace()
 {
-    if (FileUtil::FileExists(filePath)) {
-        return;
+    std::vector<std::string> traceFiles;
+    FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
+    HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
+    for (auto &filePath : traceFiles) {
+        std::string fileName = FileUtil::ExtractFileName(filePath);
+        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
+        std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
+        if (!FileUtil::FileExists(originTraceFile)) {
+            HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
+            FileUtil::RemoveFile(UNIFIED_SHARE_TEMP_PATH + fileName);
+            continue;
+        }
+        int fd = open(originTraceFile.c_str(), O_RDONLY | O_NONBLOCK);
+        if (fd == -1) {
+            HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
+            continue;
+        }
+        // add lock before zip trace file, in case hitrace delete origin trace file.
+        if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+            HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
+            close(fd);
+            continue;
+        }
+        HIVIEW_LOGI("originTraceFile path: %{public}s", originTraceFile.c_str());
+        UcollectionTask traceTask = [=]() {
+            ZipTraceFile(originTraceFile, UNIFIED_SHARE_PATH + fileName);
+            flock(fd, LOCK_UN);
+            close(fd);
+        };
+        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
-    if (!CreateMultiDirectory(filePath)) {
-        HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
-        return;
-    }
-}
-
-void CreateTracePath()
-{
-    CreateTracePathInner(UNIFIED_SHARE_PATH);
-    CreateTracePathInner(UNIFIED_SPECIAL_PATH);
-    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
 }
 } // HiViewDFX
 } // OHOS

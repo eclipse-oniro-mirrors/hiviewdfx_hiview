@@ -40,7 +40,6 @@ public:
 
 private:
     void Init();
-    void InitWorkLoop();
     void InitWorkPath();
     void RunCpuCollectionTask();
     void CpuCollectionFfrtTask();
