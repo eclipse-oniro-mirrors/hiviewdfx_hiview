@@ -44,6 +44,9 @@
         }, {
             "domain":"GRAPHIC",
             "include":["RS_VULKAN_ERROR"]
-        }
+        }, {
+            "domain":"GRAPHICS_GAME",
+            "include":["GAME_FREEZE_DUMPSTACK"]
+         }
     ]
 }
