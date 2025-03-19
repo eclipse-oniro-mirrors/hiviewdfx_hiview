@@ -73,6 +73,7 @@ private:
     void AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher) const;
     void RecordCatchedPids(const std::string& packageName);
     void GetThermalInfoCapture();
+    void SaveRsVulKanError();
 
 #ifdef STACKTRACE_CATCHER_ENABLE
     void AppStackCapture();

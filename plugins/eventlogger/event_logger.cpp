@@ -316,29 +316,8 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     threadStack = threadStack.empty() ? logTask->terminalThreadStack_ : threadStack;
     SetEventTerminalBinder(event, threadStack, fd);
-    SaveRsVulKanError(event, fd);
     auto end = TimeUtil::GetMilliseconds();
     FileUtil::SaveStringToFd(fd, "\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
-}
-
-void EventLogger::SaveRsVulKanError(std::shared_ptr<SysEvent> event, int fd)
-{
-    if (event->eventName_ != "RS_VULKAN_ERROR") {
-        return;
-    }
-    long pid = event->GetEventIntValue("PID") ? event->GetEventIntValue("PID") : event->GetPid();
-    std::string processName = CommonUtils::GetProcFullNameByPid(pid);
-    StringUtil::FormatProcessName(processName);
-    long appNodeId = event->GetEventIntValue("APPNODEID");
-    std::string appNodeName = event->GetEventValue("APPNODENAME");
-    long leashWindowId = event->GetEventIntValue("LEASHWINDOWID");
-    std::string leashWindowName = event->GetEventValue("LEASHWINDOWNAME");
-    std::string extInfo = event->GetEventValue("EXT_INFO");
-
-    std::string saveContent = "PID=" + std::to_string(pid) + "\nPROCESS_NAME=" + processName + "\nAPPNODEID=" +
-        std::to_string(appNodeId) + "\nAPPNODENAME" + appNodeName + "\nLEASHWINDOWID" + std::to_string(leashWindowId)
-        + "\nLEASHWINDOWNAME=" + leashWindowName + "\nEXT_INFO=" + extInfo + "\n";
-    FileUtil::SaveStringToFd(fd, saveContent);
 }
 
 void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd)
