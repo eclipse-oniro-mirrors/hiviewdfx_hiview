@@ -33,14 +33,14 @@
             "domain":"FORM_MANAGER",
             "include":["FORM_BLOCK_CALLSTACK"]
         },{
-           "domain":"SYSTEM_NAV_UE",
-           "include":["GESTURE_NAVIGATION_BACK"]
+            "domain":"SYSTEM_NAV_UE",
+            "include":["GESTURE_NAVIGATION_BACK"]
         }, {
-           "domain":"HMOS_SVC_BROKER",
-           "include":["RETRY_EXCEPTION"]
+            "domain":"HMOS_SVC_BROKER",
+            "include":["RETRY_EXCEPTION"]
         }, {
-           "domain":"RELIABILITY",
-           "include":["APP_FREEZE_BETACLUB"]
+            "domain":"RELIABILITY",
+            "include":["APP_FREEZE_BETACLUB"]
         }, {
             "domain":"GRAPHIC",
             "include":["RS_VULKAN_ERROR"]

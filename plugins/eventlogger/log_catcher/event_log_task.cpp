@@ -155,6 +155,8 @@ void EventLogTask::AddCapture()
 #endif // STACKTRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("hot",
         [this] { this->GetThermalInfoCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("rve",
+        [this] { this->SaveRsVulKanError(); }));
 }
 
 void EventLogTask::AddLog(const std::string &cmd)
@@ -670,6 +672,27 @@ void EventLogTask::GetThermalInfoCapture()
     auto capture = std::make_shared<ThermalInfoCatcher>();
     capture->Initialize("", 0, pid_);
     tasks_.push_back(capture);
+}
+
+void EventLogTask::SaveRsVulKanError()
+{
+    if (event_->eventName_ != "RS_VULKAN_ERROR") {
+        return;
+    }
+    long pid = event_->GetEventIntValue("PID") ? event_->GetEventIntValue("PID") : event_->GetPid();
+    std::string processName = CommonUtils::GetProcFullNameByPid(pid);
+    StringUtil::FormatProcessName(processName);
+    event_->SetEventValue("PROCESS_NAME", processName);
+    long appNodeId = event_->GetEventIntValue("APPNODEID");
+    std::string appNodeName = event_->GetEventValue("APPNODENAME");
+    long leashWindowId = event_->GetEventIntValue("LEASHWINDOWID");
+    std::string leashWindowName = event_->GetEventValue("LEASHWINDOWNAME");
+    std::string extInfo = event_->GetEventValue("EXT_INFO");
+
+    std::string saveContent = "PID=" + std::to_string(pid) + "\nPROCESS_NAME=" + processName + "\nAPPNODEID=" +
+        std::to_string(appNodeId) + "\nAPPNODENAME" + appNodeName + "\nLEASHWINDOWID" + std::to_string(leashWindowId)
+        + "\nLEASHWINDOWNAME=" + leashWindowName + "\nEXT_INFO=" + extInfo + "\n";
+    FileUtil::SaveStringToFd(targetFd_, saveContent);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
