@@ -16,11 +16,28 @@
 
 #include "collect_result.h"
 #include "file_util.h"
+#include "freeze_common.h"
 #include "hiview_logger.h"
 #include "memory_collector.h"
+#include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+    static constexpr const char* const ASHMEM_PATH = "/proc/ashmem_process_info";
+    static constexpr const char* const DMAHEAP_PATH = "/proc/dmaheap_process_info";
+    static constexpr const char* const GPUMEM_PATH = "/proc/gpumem_process_info";
+    static constexpr const char* const ASHMEM = "AshmemUsed";
+    static constexpr const char* const DMAHEAP = "DmaHeapTotalUsed";
+    static constexpr const char* const GPUMEM = "GpuTotalUsed";
+    static constexpr const char* const LONG_PRESS = "LONG_PRESS";
+    static constexpr const char* const AP_S_PRESS6S = "AP_S_PRESS6S";
+    static constexpr const char* const PROC_PRESSUER_MEMORY = "/proc/pressure/memory";
+    static constexpr const char* const PROC_MEMORYVIEW = "/proc/memview";
+    static constexpr const char* const PROC_MEMORYINFO = "/proc/meminfo";
+    static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
+    static constexpr int DECIMEL = 10;
+}
 #ifdef USAGE_CATCHER_ENABLE
 using namespace UCollect;
 using namespace UCollectUtil;
@@ -40,19 +57,27 @@ bool MemoryCatcher::Initialize(const std::string& strParam1, int intParam1, int 
 int MemoryCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<SysMemory> result = collector->CollectSysMemory();
-    if (result.retCode == UcError::SUCCESS) {
-        std::string pressMemInfo = "";
-        FileUtil::LoadStringFromFile("/proc/pressure/memory", pressMemInfo);
-        FileUtil::SaveStringToFd(fd, pressMemInfo);
-        FileUtil::SaveStringToFd(fd, "memTotal " + std::to_string(result.data.memTotal) + "\n");
-        FileUtil::SaveStringToFd(fd, "memFree " + std::to_string(result.data.memFree) + "\n");
-        FileUtil::SaveStringToFd(fd, "memAvailable " + std::to_string(result.data.memAvailable) + "\n");
-        FileUtil::SaveStringToFd(fd, "zramUsed " + std::to_string(result.data.zramUsed) + "\n");
-        FileUtil::SaveStringToFd(fd, "swapCached " + std::to_string(result.data.swapCached) + "\n");
-        FileUtil::SaveStringToFd(fd, "cached " + std::to_string(result.data.cached) + "\n");
+    std::string freezeMemory = event_ != nullptr ? event_->GetEventValue("FREEZE_MEMORY") : "";
+    std::string content = freezeMemory.empty() ? CollectFreezeSysMemory() : freezeMemory;
+    std::string data = "";
+    if (!content.empty()) {
+        std::vector<std::string> vec;
+        StringUtil::SplitStr(content, "\\n", vec);
+        for (const std::string& mem : vec) {
+            FileUtil::SaveStringToFd(fd, mem + "\n");
+            CheckString(fd, mem, data, ASHMEM, ASHMEM_PATH);
+            CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
+            CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
+        }
     }
+    if (!data.empty()) {
+        FreezeCommon::WriteStartInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
+        FileUtil::SaveStringToFd(fd, data);
+        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
+    } else {
+        FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
+    }
+
     logSize_ = GetFdSize(fd) - originSize;
     if (logSize_ <= 0) {
         FileUtil::SaveStringToFd(fd, "sysMemory content is empty!");
@@ -67,6 +92,55 @@ void MemoryCatcher::CollectMemInfo()
     collector->CollectRawMemInfo();
     collector->ExportMemView();
     HIVIEW_LOGI("Collect rawMemInfo and export memView end");
+}
+
+void MemoryCatcher::SetEvent(std::shared_ptr<SysEvent> event)
+{
+    event_ = event;
+}
+
+std::string MemoryCatcher::GetStringFromFile(const std::string path)
+{
+    std::string content;
+    FileUtil::LoadStringFromFile(path, content);
+    return content;
+}
+
+int MemoryCatcher::GetNumFromString(const std::string &mem)
+{
+    int num = 0;
+    for (const char &c : mem) {
+        if (isdigit(c)) {
+            num = num * DECIMEL + (c - '0');
+        }
+        if (num > INT_MAX) {
+            return INT_MAX;
+        }
+    }
+    return num;
+}
+
+void MemoryCatcher::CheckString(
+    int fd, const std::string &mem, std::string &data, const std::string key, const std::string path)
+{
+    if (mem.find(key) != std::string::npos) {
+        int memsize = GetNumFromString(mem);
+        if (memsize > OVER_MEM_SIZE) {
+            data += GetStringFromFile(path);
+        }
+    }
+}
+
+std::string MemoryCatcher::CollectFreezeSysMemory()
+{
+    std::string content = "";
+    content += GetStringFromFile(PROC_PRESSUER_MEMORY) + "\n";
+    std::string memInfoPath = PROC_MEMORYVIEW;
+    if (!FileUtil::FileExists(memInfoPath)) {
+        memInfoPath = PROC_MEMORYINFO;
+    }
+    content += GetStringFromFile(memInfoPath);
+    return content;
 }
 #endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX

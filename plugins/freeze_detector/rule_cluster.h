@@ -28,12 +28,14 @@ namespace OHOS {
 namespace HiviewDFX {
 class FreezeResult {
 public:
-    FreezeResult() : window_(0), code_(0), scope_(""), samePackage_(""), domain_(""), stringId_(""), action_("and") {};
+    FreezeResult() : window_(0), delay_(0), code_(0), scope_(""), samePackage_(""), domain_(""), stringId_(""),
+        action_("and") {};
     FreezeResult(long window, const std::string& domain, const std::string& stringId)
-        : window_(window), code_(0), scope_(""), samePackage_(""), domain_(domain), stringId_(stringId),
+        : window_(window), delay_(0), code_(0), scope_(""), samePackage_(""), domain_(domain), stringId_(stringId),
         action_("and") {};
     FreezeResult(unsigned long code, const std::string& scope)
-        : window_(0), code_(code), scope_(scope), samePackage_(""), domain_(""), stringId_(""), action_("and") {};
+        : window_(0), delay_(0), code_(code), scope_(scope), samePackage_(""), domain_(""), stringId_(""),
+        action_("and") {};
     ~FreezeResult() {};
     std::string GetDomain() const;
     std::string GetStringId() const;
@@ -42,6 +44,8 @@ public:
     std::string GetScope() const;
     void SetScope(const std::string& scope);
     long GetWindow() const;
+    long GetDelay() const;
+    void SetDelay(long delay);
     std::string GetSamePackage() const;
     void SetSamePackage(const std::string& samePackage);
     std::string GetAction() const;
@@ -49,6 +53,7 @@ public:
 
 private:
     long window_;
+    long delay_;
     unsigned long code_;
     std::string scope_;
     std::string samePackage_;

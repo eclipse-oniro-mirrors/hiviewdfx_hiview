@@ -32,7 +32,7 @@ public:
     virtual ~TraceBaseState() = default;
     virtual TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups);
     virtual TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
-    virtual TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId);
+    virtual TraceRet OpenTelemetryTrace(const std::string &args);
     virtual TraceRet OpenAppTrace(int32_t appPid);
     virtual TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
     virtual TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
@@ -133,14 +133,14 @@ class TelemetryState : public TraceBaseState {
 public:
     ~TelemetryState() override
     {
-        if (func_) {
-            func_();
+        if (stateStopCallback_) {
+            stateStopCallback_();
         }
     }
 
     bool RegisterTelemetryCallback(std::function<void()> func) override
     {
-        func_ = std::move(func);
+        stateStopCallback_ = std::move(func);
         return true;
     }
 
@@ -157,7 +157,7 @@ protected:
     }
 
 private:
-    std::function<void()> func_;
+    std::function<void()> stateStopCallback_;
 };
 
 class DynamicState : public TraceBaseState {
@@ -170,7 +170,7 @@ public:
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet OpenAppTrace(int32_t appPid) override;
-    TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId) override;
+    TraceRet OpenTelemetryTrace(const std::string &args) override;
     TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
 
@@ -197,7 +197,7 @@ private:
 
 class CloseState : public TraceBaseState {
 public:
-    TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId) override;
+    TraceRet OpenTelemetryTrace(const std::string &args) override;
 
     TraceRet OpenAppTrace(int32_t appPid) override;
 
@@ -218,7 +218,7 @@ public:
 
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
 
-    TraceRet OpenTelemetryTrace(const std::string &args, const std::string &telemetryId);
+    TraceRet OpenTelemetryTrace(const std::string &args);
 
     TraceRet OpenDynamicTrace(int32_t appid);
 
@@ -251,7 +251,7 @@ public:
 
     void TransToCommonDropState();
 
-    void TransToTeleMetryState(const std::string &telemetryId);
+    void TransToTeleMetryState();
 
     void TransToDynamicState(int32_t appid);
 

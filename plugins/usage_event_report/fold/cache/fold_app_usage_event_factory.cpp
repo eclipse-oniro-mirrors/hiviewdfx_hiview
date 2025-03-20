@@ -15,7 +15,7 @@
 
 #include "fold_app_usage_event_factory.h"
 
-#include "app_mgr_interface.h"
+#include "fold_common_utils.h"
 #include "fold_app_usage_event.h"
 #include "hiview_logger.h"
 #include "if_system_ability_manager.h"
@@ -76,11 +76,14 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
     std::unordered_map<std::string, FoldAppUsageInfo> statisticInfos;
     dbHelper_->QueryStatisticEventsInPeriod(startTime_, endTime_, statisticInfos);
     std::vector<std::string> appNames;
-    GetForegroundAppNames(appNames);
+    auto focusedAppAndType = FoldCommonUtils::GetFocusedAppAndType();
+    if (focusedAppAndType.second < FoldCommonUtils::SYSTEM_WINDOW_BASE) {
+        appNames.emplace_back(focusedAppAndType.first);
+    }
     GetForegroundAppsAtEndTime(appNames);
     std::unordered_map<std::string, FoldAppUsageInfo> forgroundInfos;
     for (const auto &app : appNames) {
-        if (app == SCENEBOARD_BUNDLE_NAME) {
+        if (app.empty()) {
             continue;
         }
         FoldAppUsageInfo usageInfo;
@@ -101,32 +104,6 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
     }
     for (const auto &statisticInfo : statisticInfos) {
         infos.emplace_back(statisticInfo.second);
-    }
-}
-
-void FoldAppUsageEventFactory::GetForegroundAppNames(std::vector<std::string> &appNames)
-{
-    sptr<ISystemAbilityManager> abilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityMgr == nullptr) {
-        HIVIEW_LOGE("failed to get ISystemAbilityManager");
-        return;
-    }
-
-    sptr<IRemoteObject> remoteObject = abilityMgr->GetSystemAbility(APP_MGR_SERVICE_ID);
-    if (remoteObject == nullptr) {
-        HIVIEW_LOGE("failed to get app Manager service");
-        return;
-    }
-    sptr<AppExecFwk::IAppMgr> appMgrProxy = iface_cast<AppExecFwk::IAppMgr>(remoteObject);
-    if (appMgrProxy == nullptr || !appMgrProxy->AsObject()) {
-        HIVIEW_LOGE("failed to get app mgr proxy");
-        return;
-    }
-    std::vector<AppExecFwk::AppStateData> appList;
-    int ret = appMgrProxy->GetForegroundApplications(appList);
-    HIVIEW_LOGI("GetForegroundApplications ret: %{public}d", ret);
-    for (const auto &appData : appList) {
-        appNames.emplace_back(appData.bundleName);
     }
 }
 

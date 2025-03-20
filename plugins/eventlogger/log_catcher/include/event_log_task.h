@@ -72,7 +72,8 @@ private:
     void AddStopReason(int fd, std::shared_ptr<EventLogCatcher> catcher, const std::string& reason);
     void AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher) const;
     void RecordCatchedPids(const std::string& packageName);
-    void GetThermalInfo(int fd);
+    void GetThermalInfoCapture();
+    void SaveRsVulKanError();
 
 #ifdef STACKTRACE_CATCHER_ENABLE
     void AppStackCapture();
@@ -113,6 +114,7 @@ private:
     void DPMSUsageCapture();
     void RSUsageCapture();
     void DumpAppMapCapture();
+    void CpuCoreInfoCapture();
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef SCB_CATCHER_ENABLE

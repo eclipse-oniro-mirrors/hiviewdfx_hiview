@@ -122,15 +122,12 @@ public:
             matchCount--;
         }
         auto exception = appEvent["exception"];
-        GTEST_LOG_(INFO) << "========name:" << exception["name"];
         if (exception["name"] == "" || exception["name"] == "none") {
             matchCount--;
         }
-        GTEST_LOG_(INFO) << "========message:" << exception["message"];
         if (exception["message"] == "" || exception["message"] == "none") {
             matchCount--;
         }
-        GTEST_LOG_(INFO) << "========stack:" << exception["stack"];
         if (exception["stack"] == "" || exception["stack"] == "none") {
             matchCount--;
         }
@@ -207,10 +204,8 @@ public:
             "\"name\":", "\"message\":", "\"stack\":"
         };
         int length = sizeof(keywords) / sizeof(keywords[0]);
-        std::cout << "length:" << length << std::endl;
         std::string oldFileName = "/data/test_jsError_info";
         int count = CheckKeyWordsInFile(oldFileName, keywords, length, true);
-        std::cout << "count:" << count << std::endl;
         ASSERT_EQ(count, length) << "ReportJsErrorToAppEventTest001-" + name + " check keywords failed";
         if (FileUtil::FileExists(oldFileName)) {
             std::string newFileName = oldFileName + "_" + name;
@@ -271,10 +266,8 @@ public:
     {
         std::string keywords[] = {"\"Cannot get SourceMap info, dump raw stack:"};
         int length = sizeof(keywords) / sizeof(keywords[0]);
-        std::cout << "========length:" << length << std::endl;
         std::string oldFileName = "/data/test_jsError_info";
         int count = CheckKeyWordsInFile(oldFileName, keywords, length, true);
-        std::cout << "========count:" << count << std::endl;
         ASSERT_NE(count, length) << "check delete stack error message failed";
     }
 };
@@ -524,8 +517,8 @@ HWTEST_F(FaultloggerUnittest, GenCppCrashLogTest001, testing::ext::TestSize.Leve
     int length = sizeof(keywords) / sizeof(keywords[0]);
     ASSERT_EQ(CheckKeyWordsInFile("/data/test_cppcrash_info_7496", keywords, length, false), length);
     auto ret = remove("/data/test_cppcrash_info_7496");
-    if (ret == 0) {
-        GTEST_LOG_(INFO) << "remove /data/test_jsError_info failed";
+    if (ret != 0) {
+        GTEST_LOG_(INFO) << "remove /data/test_jsError_info failed. errno " << errno;
     }
 }
 
@@ -1126,6 +1119,92 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest003, testing::ext::TestSize.Level3
     ASSERT_EQ(info.pid, 0);
     ASSERT_EQ(info.time, 0);
 }
+
+/**
+ * @tc.name: FaultLogUtilTest004
+ * @tc.desc: test GetThreadStack
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest004, testing::ext::TestSize.Level3)
+{
+    std::string path;
+    auto stack = GetThreadStack(path, 0);
+    ASSERT_TRUE(stack.empty());
+
+    path = "/data/log/faultlog/faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
+    const int pid = 3443;
+    stack = GetThreadStack(path, pid);
+    ASSERT_FALSE(stack.empty());
+}
+
+/**
+ * @tc.name: FaultLogUtilTest005
+ * @tc.desc: test GetFaultNameByType
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest005, testing::ext::TestSize.Level3)
+{
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::JS_CRASH, true), "jscrash");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::JS_CRASH, false), "JS_ERROR");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::CPP_CRASH, true), "cppcrash");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::CPP_CRASH, false), "CPP_CRASH");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::APP_FREEZE, true), "appfreeze");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::APP_FREEZE, false), "APP_FREEZE");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::SYS_FREEZE, true), "sysfreeze");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::SYS_FREEZE, false), "SYS_FREEZE");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::SYS_WARNING, true), "syswarning");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::SYS_WARNING, false), "SYS_WARNING");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::RUST_PANIC, true), "rustpanic");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::RUST_PANIC, false), "RUST_PANIC");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::ADDR_SANITIZER, true), "sanitizer");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::ADDR_SANITIZER, false), "ADDR_SANITIZER");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::CJ_ERROR, true), "cjerror");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::CJ_ERROR, false), "CJ_ERROR");
+
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::ALL, true), "Unknown");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::ALL, false), "Unknown");
+}
+
+/**
+ * @tc.name: FaultLogUtilTest006
+ * @tc.desc: test GetLogTypeByName
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest006, testing::ext::TestSize.Level3)
+{
+    ASSERT_EQ(GetLogTypeByName("jscrash"), FaultLogType::JS_CRASH);
+    ASSERT_EQ(GetLogTypeByName("cppcrash"), FaultLogType::CPP_CRASH);
+    ASSERT_EQ(GetLogTypeByName("appfreeze"), FaultLogType::APP_FREEZE);
+    ASSERT_EQ(GetLogTypeByName("sysfreeze"), FaultLogType::SYS_FREEZE);
+    ASSERT_EQ(GetLogTypeByName("syswarning"), FaultLogType::SYS_WARNING);
+    ASSERT_EQ(GetLogTypeByName("sanitizer"), FaultLogType::ADDR_SANITIZER);
+    ASSERT_EQ(GetLogTypeByName("cjerror"), FaultLogType::CJ_ERROR);
+    ASSERT_EQ(GetLogTypeByName("all"), FaultLogType::ALL);
+    ASSERT_EQ(GetLogTypeByName("ALL"), FaultLogType::ALL);
+    ASSERT_EQ(GetLogTypeByName("Unknown"), -1);
+}
+
+/**
+ * @tc.name: FaultLogUtilTest007
+ * @tc.desc: test GetDebugSignalTempLogName
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest007, testing::ext::TestSize.Level3)
+{
+    FaultLogInfo info;
+    info.pid = 123;
+    info.time = 123456789;
+    auto fileName = GetDebugSignalTempLogName(info);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-123-123456789");
+}
+
 /**
  * @tc.name: FaultloggerAdapter.StartService
  * @tc.desc: Test calling FaultloggerAdapter.StartService Func
@@ -1135,6 +1214,25 @@ HWTEST_F(FaultloggerUnittest, FaultloggerAdapterTest001, testing::ext::TestSize.
 {
     FaultloggerAdapter::StartService(nullptr);
     ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), nullptr);
+
+    FaultloggerServiceOhos servicOhos;
+    std::vector<std::u16string> args;
+    args.emplace_back(u"-c _test.c");
+    auto ret = servicOhos.Dump(0, args);
+    ASSERT_EQ(ret, -1);
+
+    args.emplace_back(u",");
+    servicOhos.Dump(0, args);
+    ASSERT_EQ(ret, -1);
+
+    FaultLogInfoOhos info;
+    // Cover GetOrSetFaultlogger return nullptr
+    servicOhos.AddFaultLog(info);
+
+    const int32_t faultType = 2;
+    const int32_t maxNum = 10;
+    ASSERT_EQ(servicOhos.QuerySelfFaultLog(faultType, maxNum), nullptr);
+    servicOhos.Destroy();
 
     Faultlogger faultlogger;
     FaultloggerAdapter::StartService(&faultlogger);
@@ -1157,15 +1255,20 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest001, testing::ext::TestS
     info.pid = getpid();
     info.uid = 0;
     info.faultLogType = 2;
+    int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
+    ASSERT_EQ(pipe(fds), 0) << "create pipe failed";
+    info.pipeFd = fds[0];
     info.module = "FaultloggerUnittest333";
     info.reason = "unittest for SaveFaultLogInfo";
     serviceOhos.AddFaultLog(info);
+    close(fds[1]);
     auto list = serviceOhos.QuerySelfFaultLog(2, 10);
     ASSERT_NE(list, nullptr);
     info.time = std::time(nullptr);
     info.pid = getpid();
     info.uid = 10;
     info.faultLogType = 2;
+    info.pipeFd = 0;
     info.module = "FaultloggerUnittest333";
     info.reason = "unittest for SaveFaultLogInfo";
     serviceOhos.AddFaultLog(info);
@@ -1482,7 +1585,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest004, testing::ext::TestSize.Level3)
     plugin->StartBootScan();
     // check faultlog file content
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-BootScanUnittest-0-" + timeStr + ".log";
-    GTEST_LOG_(INFO) << "========fileName:" << fileName;
     ASSERT_TRUE(FileUtil::FileExists(fileName));
     ASSERT_GT(FileUtil::GetFileSize(fileName), 0ul);
     if (FaultLogger::IsFaultLogLimit()) {
@@ -1562,7 +1664,6 @@ Stacktrace:
     at anonymous2(entry/src/main/ets/pages/index.ets:76:10)
     at anonymous3(entry/src/main/ets/pages/index.ets:76:10)
 )~";
-    GTEST_LOG_(INFO) << "========summaryHasAll========";
     ConstructJsErrorAppEvent(summaryHasAll, plugin);
     CheckKeyWordsInJsErrorAppEventFile("summaryHasAll");
 }
@@ -1585,7 +1686,6 @@ Cannot get SourceMap info, dump raw stack:
   at anonymous2(entry/src/main/ets/pages/index.ets:76:10)
   at anonymous3(entry/src/main/ets/pages/index.ets:76:10)
 )~";
-    GTEST_LOG_(INFO) << "========summaryNotFindSourcemap========";
     ConstructJsErrorAppEvent(summaryNotFindSourcemap, plugin);
     CheckDeleteStackErrorMessage("summaryNotFindSourcemap");
     CheckKeyWordsInJsErrorAppEventFile("summaryNotFindSourcemap");
@@ -1608,7 +1708,6 @@ Stacktrace:
     at anonymous2(entry/src/main/ets/pages/index.ets:76:10)
     at anonymous3(entry/src/main/ets/pages/index.ets:76:10)
 )~";
-    GTEST_LOG_(INFO) << "========summaryHasNoErrorCode========";
     ConstructJsErrorAppEvent(summaryHasNoErrorCode, plugin);
     CheckKeyWordsInJsErrorAppEventFile("summaryHasNoErrorCode");
 }
@@ -1630,7 +1729,6 @@ Stacktrace:
     at anonymous2(entry/src/main/ets/pages/index.ets:76:10)
     at anonymous3(entry/src/main/ets/pages/index.ets:76:10)
 )~";
-    GTEST_LOG_(INFO) << "========summaryHasNoSourceCode========";
     ConstructJsErrorAppEvent(summaryHasNoSourceCode, plugin);
     CheckKeyWordsInJsErrorAppEventFile("summaryHasNoSourceCode");
 }
@@ -1651,7 +1749,6 @@ Stacktrace:
     at anonymous2(entry/src/main/ets/pages/index.ets:76:10)
     at anonymous3(entry/src/main/ets/pages/index.ets:76:10)
 )~";
-    GTEST_LOG_(INFO) << "========summaryHasNoErrorCodeAndSourceCode========";
     ConstructJsErrorAppEvent(summaryHasNoErrorCodeAndSourceCode, plugin);
     CheckKeyWordsInJsErrorAppEventFile("summaryHasNoErrorCodeAndSourceCode");
 }
@@ -1671,7 +1768,6 @@ Error code:get BLO
 SourceCode:CKSSvalue() {new Error("TestError");}
 Stacktrace:
 )~";
-    GTEST_LOG_(INFO) << "========summaryHasNoStacktrace========";
     ConstructJsErrorAppEvent(summaryHasNoStacktrace, plugin);
     CheckKeyWordsInJsErrorAppEventFile("summaryHasNoStacktrace");
 }
@@ -1689,7 +1785,6 @@ HWTEST_F(FaultloggerUnittest, ReportJsErrorToAppEventTest007, testing::ext::Test
 Error message:Obj is not a Valid object
 Stacktrace:
 )~";
-    GTEST_LOG_(INFO) << "========summaryHasErrorNameAndErrorMessage========";
     ConstructJsErrorAppEvent(summaryHasErrorNameAndErrorMessage, plugin);
     CheckKeyWordsInJsErrorAppEventFile("summaryHasErrorNameAndErrorMessage");
 }
@@ -1707,7 +1802,6 @@ HWTEST_F(FaultloggerUnittest, ReportJsErrorToAppEventTest008, testing::ext::Test
 Error message:Obj is not a Valid object
 Stacktrace:
 )~";
-    GTEST_LOG_(INFO) << "========noKeyValue========";
     ConstructJsErrorAppEventWithNoValue(noKeyValue, plugin);
     CheckKeyWordsInJsErrorAppEventFile("noKeyValue");
 }
@@ -1720,12 +1814,11 @@ Stacktrace:
 HWTEST_F(FaultloggerUnittest, ReportJsErrorToAppEventTest009, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
-    GTEST_LOG_(INFO) << "========noKeyValue========";
     ConstructJsErrorAppEventWithNoValue("", plugin);
     std::string oldFileName = "/data/test_jsError_info";
     ASSERT_TRUE(FileUtil::FileExists(oldFileName));
     auto ret = remove("/data/test_jsError_info");
-    if (ret == 0) {
+    if (ret != 0) {
         GTEST_LOG_(INFO) << "remove /data/test_jsError_info failed";
     }
 }
@@ -1746,7 +1839,6 @@ Stacktrace:
     at anonymous2(entry/src/main/ets/pages/index.cj:33)
     at anonymous3(entry/src/main/ets/pages/index.cj:77)
 )~";
-    GTEST_LOG_(INFO) << "========CangjieError========";
     ConstructCjErrorAppEvent(summary, plugin);
     CheckKeyWordsInCjErrorAppEventFile("summary");
 }
@@ -1871,10 +1963,35 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest003, testing::ext::TestSize.L
 
 /**
  * @tc.name: FaultloggerUnittest001
- * @tc.desc: test QuerySelfFaultLog and GetMemoryStrByPid
+ * @tc.desc: test IsValidPath
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerUnittest001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    ASSERT_NE(plugin, nullptr);
+    plugin->hasInit_ = true;
+    FaultLogInfo info;
+    info.time = 1607161163;
+    info.id = 20010039;
+    info.pid = 7497;
+    info.faultLogType = FaultLogType::APP_FREEZE;
+    info.module = "com.example.jsinject";
+    info.logPath = "/proc/self/status";
+    plugin->AddFaultLog(info);
+    ASSERT_TRUE(info.sectionMap.empty());
+
+    info.logPath = "/proc/self/test";
+    plugin->AddFaultLog(info);
+    ASSERT_TRUE(info.sectionMap.empty());
+}
+
+/**
+ * @tc.name: FaultloggerUnittest002
+ * @tc.desc: test QuerySelfFaultLog and GetMemoryStrByPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultloggerUnittest002, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
     plugin->hasInit_ = false;
@@ -1937,10 +2054,13 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest001, testing::ext::TestSize.Le
     info.sanitizerType = "GWP-ASAN";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "gwpasan-test-0-19700101080000000.log");
-    info.sanitizerType = "GWP-ASANS";
+    info.sanitizerType = "HWASAN";
     str = GetFaultLogName(info);
-    ASSERT_EQ(str, "sanitizer-test-0-19700101080000000.log");
-    info.sanitizerType = "TSANs";
+    ASSERT_EQ(str, "hwasan-test-0-19700101080000000.log");
+    info.sanitizerType = "ASAN";
+    str = GetFaultLogName(info);
+    ASSERT_EQ(str, "asan-test-0-19700101080000000.log");
+    info.sanitizerType = "GWP-ASANS";
     str = GetFaultLogName(info);
     ASSERT_EQ(str, "sanitizer-test-0-19700101080000000.log");
 

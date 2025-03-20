@@ -26,6 +26,7 @@
 #include "event_db_file_util.h"
 #include "hiview_logger.h"
 #include "sys_event_doc_reader.h"
+#include "sys_event_doc_writer.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -352,6 +353,25 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest008, testing::ext::Te
     ASSERT_EQ(testInfo.seq, 101); // 101 is expected sequence
 
     ASSERT_FALSE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-5-MINOR.db", testInfo, ALL_INFO));
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest009
+ * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIBT9BB
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest009, testing::ext::TestSize.Level3)
+{
+    SysEventDocWriter writer("/data/test/TEST_DOMAIN/TEST_VERSION1-1-CRITICAL-1.db");
+    ASSERT_EQ(DOC_STORE_ERROR_NULL, writer.Write(nullptr));
+    auto sysEvent = std::make_shared<SysEvent>("", nullptr, nullptr, 6); // 6 is a test event sequence
+    ASSERT_EQ(DOC_STORE_ERROR_NULL, writer.Write(sysEvent));
+    std::string testEventContent = R"({"domain_":"TEST_DOMAIN","name_":"TEST_VERSION1","type_":1,)";
+    testEventContent.append(R"("time_":1742021943126,"tz_":"+0800","pid_":92,"tid_":92,"uid_":0,"log_":0,)");
+    testEventContent.append(R"("id_":"12254568215815823881","MSG":"none","level_":"CRITICAL","seq_":1})");
+    sysEvent = std::make_shared<SysEvent>("", nullptr, testEventContent);
+    ASSERT_EQ(DOC_STORE_NEW_FILE, writer.Write(sysEvent));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

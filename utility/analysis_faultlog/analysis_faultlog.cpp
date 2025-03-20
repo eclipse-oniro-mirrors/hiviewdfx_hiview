@@ -65,8 +65,28 @@ static void Tbox(std::map<std::string, std::string>& eventInfo, std::string& eve
     PrintEventInfo(eventInfo, "Tbox::FilterTrace result:");
 }
 
+static bool SetCpuAffinity(uint16_t mask)
+{
+    cpu_set_t cpuset;
+    pthread_t thread = pthread_self();
+
+    CPU_ZERO(&cpuset);
+    const int maxCores = 12;
+    for (int j = 0; j < maxCores; j++) {
+        if (mask & (1U << j)) {
+            CPU_SET(j, &cpuset);
+        }
+    }
+
+    int ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+    return ret == 0;
+}
+
 int main(int argc, char *argv[])
 {
+    static uint16_t cpuMask = 0x0f;
+    SetCpuAffinity(cpuMask);
+
     std::string eventType;
     std::string logPath;
     for (int i = 1; i < argc; i++) {
@@ -83,7 +103,7 @@ int main(int argc, char *argv[])
 
     if (eventType.empty() || logPath.empty()) {
         std::cout << "Usage:" << std::endl;
-        std::cout << "\t" << argv[0] << "-t eventType -f filePath" << std::endl;
+        std::cout << "\t" << argv[0] << " -t eventType -f filePath" << std::endl;
         std::cout << "\teventType\t" <<
             "The event name must match the event name configured in the configuration file." << std::endl;
         std::cout << "\tfilePath\t" <<

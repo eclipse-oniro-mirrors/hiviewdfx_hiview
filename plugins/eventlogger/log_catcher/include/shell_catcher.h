@@ -84,7 +84,6 @@ private:
 
 #ifdef OTHER_CATCHER_ENABLE
     int DoOtherCatcher(int writeFd);
-    void GetCpuCoreFreqInfo(int fd) const;
 #endif // OTHER_CATCHER_ENABLE
 };
 } // namespace HiviewDFX

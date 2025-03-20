@@ -35,7 +35,6 @@
 #include "query_sys_event_callback_proxy.h"
 #include "plugin.h"
 #include "ret_code.h"
-#include "running_status_log_util.h"
 #include "string_ex.h"
 #include "sys_event.h"
 #include "sys_event_rule.h"
@@ -53,22 +52,8 @@ using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-constexpr char ASH_MEM_NAME[] = "TestSharedMemory";
-constexpr int32_t ASH_MEM_SIZE = 1024 * 2; // 2K
 constexpr char TEST_LOG_DIR[] = "/data/log/hiview/sys_event_test";
 const std::vector<int> EVENT_TYPES = {1, 2, 3, 4}; // FAULT = 1, STATISTIC = 2 SECURITY = 3, BEHAVIOR = 4
-
-sptr<Ashmem> GetAshmem()
-{
-    auto ashmem = Ashmem::CreateAshmem(ASH_MEM_NAME, ASH_MEM_SIZE);
-    if (ashmem == nullptr) {
-        return nullptr;
-    }
-    if (!ashmem->MapReadAndWriteAshmem()) {
-        return ashmem;
-    }
-    return ashmem;
-}
 
 class TestSysEventServiceStub : public SysEventServiceStub {
 public:
@@ -139,22 +124,6 @@ void SysEventServiceOhosTest::TearDown()
     (void)FileUtil::ForceRemoveDirectory(TEST_LOG_DIR);
 }
 
-static SysEventRule GetTestRule(int type, const string &domain, const string &eventName)
-{
-    SysEventRule rule;
-    rule.ruleType = type;
-    rule.domain = domain;
-    rule.eventName = eventName;
-    return rule;
-}
-
-static vector<SysEventRule> GetTestRules(int type, const string &domain, const string &eventName)
-{
-    vector<SysEventRule> rules;
-    rules.push_back(GetTestRule(type, domain, eventName));
-    return rules;
-}
-
 /**
  * @tc.name: SysEventServiceAdapterTest
  * @tc.desc: test apis of SysEventServiceAdapter
@@ -171,32 +140,6 @@ HWTEST_F(SysEventServiceOhosTest, SysEventServiceAdapterTest, testing::ext::Test
     sysEventCreator.SetKeyValue("KEY", values);
     sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     OHOS::HiviewDFX::SysEventServiceAdapter::OnSysEvent(sysEvent);
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: TestAshMemory
- * @tc.desc: Ashmemory test
- * @tc.type: FUNC
- * @tc.require: issueI62WJT
- */
-HWTEST_F(SysEventServiceOhosTest, TestAshMemory, testing::ext::TestSize.Level1)
-{
-    MessageParcel msgParcel;
-    std::vector<std::u16string> from = {
-        Str8ToStr16(std::string("11")),
-        Str8ToStr16(std::string("22")),
-    };
-    auto result = AshMemUtils::WriteBulkData(msgParcel, from);
-    ASSERT_TRUE(result != nullptr);
-    std::vector<std::u16string> to;
-    auto result1 = AshMemUtils::ReadBulkData(msgParcel, to);
-    ASSERT_TRUE(result1);
-    ASSERT_TRUE(from.size() == to.size());
-    ASSERT_TRUE(Str16ToStr8(to[0]) == "11" && Str16ToStr8(to[1]) == "22");
-    AshMemUtils::CloseAshmem(nullptr);
-    ASSERT_TRUE(true);
-    AshMemUtils::CloseAshmem(GetAshmem());
     ASSERT_TRUE(true);
 }
 
@@ -275,33 +218,6 @@ HWTEST_F(SysEventServiceOhosTest, MarshallingTAndUnmarshallingTest, testing::ext
     OHOS::HiviewDFX::SysEventQueryRule* eventQueryRulePtr = eventQueryRule.Unmarshalling(parcel3);
     ASSERT_TRUE(eventQueryRulePtr != nullptr && eventQueryRulePtr->domain == "DOMAIN" &&
         eventQueryRulePtr->eventList.size() == 2 && eventQueryRulePtr->eventList[0] == "EVENT_NAME1");
-}
-
-/**
- * @tc.name: RunningStatusLogUtilTest
- * @tc.desc: Test apis of RunningStatusLogUtil
- * @tc.type: FUNC
- * @tc.require: issueI62WJT
- */
-HWTEST_F(SysEventServiceOhosTest, RunningStatusLogUtilTest, testing::ext::TestSize.Level1)
-{
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::vector<OHOS::HiviewDFX::SysEventQueryRule> queryRules;
-    std::vector<std::string> eventNames { "EVENT_NAME1", "EVENT_NAME2" };
-    OHOS::HiviewDFX::SysEventQueryRule queryRule("DOMAIN", eventNames);
-    RunningStatusLogUtil::LogTooManyQueryRules(queryRules);
-    ASSERT_TRUE(true);
-    queryRules.emplace_back(queryRule);
-    RunningStatusLogUtil::LogTooManyQueryRules(queryRules);
-    ASSERT_TRUE(true);
-    vector<SysEventRule> sysEventRules1;
-    RunningStatusLogUtil::LogTooManyWatchRules(sysEventRules1);
-    ASSERT_TRUE(true);
-    vector<SysEventRule> sysEventRules2 = GetTestRules(1, "", "");
-    RunningStatusLogUtil::LogTooManyWatchRules(sysEventRules2);
-    ASSERT_TRUE(true);
-    RunningStatusLogUtil::LogTooManyWatchers(30);
 }
 
 /**
@@ -424,6 +340,20 @@ HWTEST_F(SysEventServiceOhosTest, QueryWrapperTest02, testing::ext::TestSize.Lev
         {"and":[{"param":"NAME", "op":"=", "value":"SysEventService"}]}})~");
     auto queryWrapper = queryWrapperBuilder->Build();
     ASSERT_TRUE(queryWrapper != nullptr);
+}
+
+/**
+ * @tc.name: SysEventServiceAdapterTest001
+ * @tc.desc: Test apis of SysEventServiceAdapterTest001
+ * @tc.type: FUNC
+ * @tc.require: issueIBT9BB
+ */
+HWTEST_F(SysEventServiceOhosTest, SysEventServiceAdapterTest001, testing::ext::TestSize.Level1)
+{
+    SysEventServiceAdapter::StartService(nullptr);
+    std::shared_ptr<SysEvent> event = nullptr;
+    SysEventServiceAdapter::OnSysEvent(event);
+    ASSERT_NE(OHOS::HiviewDFX::SysEventServiceOhos::GetInstance(), nullptr);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

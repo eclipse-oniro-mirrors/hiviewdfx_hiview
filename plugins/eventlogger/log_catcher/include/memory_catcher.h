@@ -18,6 +18,8 @@
 #include <string>
 
 #include "event_log_catcher.h"
+#include "sys_event.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 #ifdef USAGE_CATCHER_ENABLE
@@ -28,6 +30,16 @@ public:
     bool Initialize(const std::string& strParam1, int intParam1, int intParam2) override;
     int Catch(int fd, int jsonFd) override;
     void CollectMemInfo();
+    void SetEvent(std::shared_ptr<SysEvent> event);
+
+private:
+    std::string CollectFreezeSysMemory();
+    void CheckString(int fd, const std::string &mem, std::string &data,
+        const std::string key, const std::string path);
+    int GetNumFromString(const std::string &mem);
+    std::string GetStringFromFile(const std::string path);
+
+    std::shared_ptr<SysEvent> event_ = nullptr;
 };
 #endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX

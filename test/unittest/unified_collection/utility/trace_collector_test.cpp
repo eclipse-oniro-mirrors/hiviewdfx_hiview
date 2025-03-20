@@ -21,6 +21,7 @@
 #include "memory_collector.h"
 #include "parameter_ex.h"
 #include "trace_collector.h"
+#include "trace_flow_controller.h"
 #include "trace_state_machine.h"
 
 using namespace testing::ext;
@@ -85,6 +86,10 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
     CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+
+    UCollect::TeleModule module = UCollect::TeleModule::XPOWER;
+    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
     setuid(1201); // hiview uid
     TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
@@ -216,6 +221,41 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
     TraceStateMachine::GetInstance().InitOrUpdateState();
     auto resultDumpTrace3 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+}
+
+/**
+ * @tc.name: TraceCollectorTest005
+ * @tc.desc: used to test TraceCollector for other dump
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
+    setuid(1201); // hiview uid
+    UCollect::TeleModule module = UCollect::TeleModule::XPOWER;
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
+    TraceStateMachine::GetInstance().OpenTelemetryTrace("");
+    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::TRACE_DUMP_OVER_FLOW);
+
+    int64_t beginTime = 100;
+    std::map<std::string, int64_t> flowControlQuotas {
+            {CallerName::XPERF, 100000000 },
+            {CallerName::XPOWER, 120000000},
+            {"Total", 180000000}
+    };
+    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData("id", beginTime,
+        flowControlQuotas);
+    ASSERT_EQ(ret, TelemetryRet::SUCCESS);
+    sleep(1);
+
+    CollectResult<std::vector<std::string>> resultDumpTrace2 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
+    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
+    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+
+    sleep(1);
+    CollectResult<std::vector<std::string>> resultDumpTrace3 = collector->DumpTraceWithFilter(module, {}, 0, 0);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
 

@@ -40,6 +40,10 @@
 #ifdef BINDER_CATCHER_ENABLE
 #include "peer_binder_catcher.h"
 #endif // BINDER_CATCHER_ENABLE
+#ifdef USAGE_CATCHER_ENABLE
+#include "cpu_core_info_catcher.h"
+#include "memory_catcher.h"
+#endif // USAGE_CATCHER_ENABLE
 #undef private
 #ifdef BINDER_CATCHER_ENABLE
 #include "binder_catcher.h"
@@ -47,15 +51,14 @@
 #ifdef OTHER_CATCHER_ENABLE
 #include "ffrt_catcher.h"
 #endif // OTHER_CATCHER_ENABLE
-#ifdef USAGE_CATCHER_ENABLE
-#include "memory_catcher.h"
-#endif // USAGE_CATCHER_ENABLE
 #include "event_logger.h"
 #include "event_log_catcher.h"
 #include "sys_event.h"
 #include "hisysevent.h"
 #include "eventlogger_util_test.h"
 #include "log_catcher_utils.h"
+#include "thermal_info_catcher.h"
+
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 
@@ -90,7 +93,6 @@ HWTEST_F(EventloggerCatcherTest, EventLogCatcherTest_001, TestSize.Level3)
     EXPECT_TRUE(eventLogCatcher->GetLogSize() == -1);
     eventLogCatcher->SetLogSize(1);
     EXPECT_TRUE(eventLogCatcher->GetLogSize() == 1);
-    EXPECT_TRUE(eventLogCatcher->AppendFile(-1, "") == 0);
     auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
         printf("Fail to create catcherFile. errno: %d\n", errno);
@@ -98,9 +100,6 @@ HWTEST_F(EventloggerCatcherTest, EventLogCatcherTest_001, TestSize.Level3)
     }
     int res = eventLogCatcher->Catch(fd, 1);
     EXPECT_TRUE(res == 0);
-    std::string fileName = "/data/test/catcherFile";
-    eventLogCatcher->AppendFile(fd, fileName);
-    EXPECT_TRUE(eventLogCatcher->AppendFile(fd, "") == 0);
     close(fd);
 }
 
@@ -155,7 +154,6 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_002, TestSize.Level3)
     ret = logTask->StartCompose();
     EXPECT_EQ(ret, 1);
     EXPECT_EQ(logTask->GetLogSize(), 0);
-    logTask->GetThermalInfo(fd);
     close(fd);
 }
 
@@ -211,6 +209,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     logTask->RSUsageCapture();
     logTask->MemoryUsageCapture();
     logTask->CpuUsageCapture();
+    logTask->CpuCoreInfoCapture();
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef DMESG_CATCHER_ENABLE
@@ -231,7 +230,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
 #ifdef HITRACE_CATCHER_ENABLE
     logTask->HitraceCapture();
 #endif // HITRACE_CATCHER_ENABLE
-
+    logTask->GetThermalInfoCapture();
     logTask->AddLog("Test");
     logTask->AddLog("cmd:w");
     logTask->status_ = EventLogTask::Status::TASK_RUNNING;
@@ -263,6 +262,53 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_004, TestSize.Level3)
     EXPECT_TRUE(logTask != nullptr);
 }
 #endif // STACKTRACE_CATCHER_ENABLE
+
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventlogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_005, TestSize.Level3)
+{
+    auto fd = open("/data/test/vreFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create vreFile. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("PID", getpid());
+    sysEvent->SetEventValue("APPNODEID", 2025);
+    sysEvent->SetEventValue("APPNODENAME", "test appNodeName");
+    sysEvent->SetEventValue("LEASHWINDOWID", 319);
+    sysEvent->SetEventValue("LEASHWINDOWNAME", "test leashWindowName");
+    sysEvent->SetEventValue("EXT_INFO", "test ext_info");
+
+    sysEvent->domain_ = "AAFWK";
+    sysEvent->eventName_ = "APP_INPUT_BLOCK";
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->SaveRsVulKanError();
+    sysEvent->domain_ = "GRAPHIC";
+    sysEvent->eventName_ = "RS_VULKAN_ERROR";
+    logTask->SaveRsVulKanError();
+    close(fd);
+
+    std::string line;
+    std::ifstream ifs("/data/test/vreFile", std::ios::in);
+    if (ifs.is_open()) {
+        while (std::getline(ifs, line)) {
+            if (line.find("APPNODEID") != std::string::npos) {
+                printf("%s", line.c_str());
+                EXPECT_EQ(line, "APPNODEID=2025");
+            }
+            if (line.find("EXT_INFO") != std::string::npos) {
+                printf("%s", line.c_str());
+                EXPECT_EQ(line, "EXT_INFO=test ext_info");
+            }
+        }
+    }
+    EXPECT_EQ(sysEvent->GetEventValue("PROCESS_NAME"), "EventloggerCatcherTest");
+}
 
 #ifdef BINDER_CATCHER_ENABLE
 /**
@@ -307,6 +353,126 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_001, TestSize.Level1)
     res = memoryCatcher->Catch(0, 1);
     EXPECT_EQ(res, 0);
     printf("memoryCatcher result: %d\n", res);
+    close(fd);
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_002
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_002, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    EXPECT_EQ(memoryCatcher->GetStringFromFile("/data/log/test"), "");
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_003
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_003, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    int ret = memoryCatcher->GetNumFromString("abc");
+    EXPECT_EQ(ret, 0);
+    ret = memoryCatcher->GetNumFromString("100");
+    EXPECT_EQ(ret, 100);
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_004
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    std::string data;
+    memoryCatcher->CheckString(0, "abc: 100", data, "abc", "/data/log/test");
+    EXPECT_TRUE(data.empty());
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_004
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_005, TestSize.Level3)
+{
+    auto memoryCatcher = std::make_shared<MemoryCatcher>();
+    std::string memInfo = memoryCatcher->CollectFreezeSysMemory();
+    EXPECT_TRUE(!memInfo.empty());
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_006
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_006, TestSize.Level3)
+{
+    auto fd = open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create testFile. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("FREEZE_MEMORY", "test\\ntest");
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->MemoryUsageCapture();
+    EXPECT_TRUE(logTask != nullptr);
+    close(fd);
+}
+
+/**
+ * @tc.name: MemoryCatcherTest_007
+ * @tc.desc: EventloggerCatcherTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_007, TestSize.Level3)
+{
+    auto fd = open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create testFile. errno: %d\n", errno);
+        FAIL();
+    }
+
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("FREEZE_MEMORY", "AshmemUsed  3200000 kB\\n"
+        "DMAHEAP  3200000 kB");
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->MemoryUsageCapture();
+    EXPECT_TRUE(logTask != nullptr);
+    close(fd);
+}
+
+/**
+ * @tc.name: CpuCoreInfoCatcherTest_001
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, CpuCoreInfoCatcherTest_001, TestSize.Level1)
+{
+    auto cpuCoreInfoCatcher = std::make_shared<CpuCoreInfoCatcher>();
+    bool ret = cpuCoreInfoCatcher->Initialize("test", 1, 2);
+    EXPECT_EQ(ret, true);
+    auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create catcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    auto eventLogCatcher = std::make_shared<EventLogCatcher>();
+    int originSize = eventLogCatcher->GetFdSize(fd);
+    printf("Get testFile originSize: %d\n", originSize);
+
+    int res = cpuCoreInfoCatcher->Catch(fd, 1);
+    EXPECT_TRUE(res > 0);
+    int currentSize = eventLogCatcher->GetFdSize(fd) - originSize;
+    printf("Get testFile size: %d\n", currentSize);
     close(fd);
 }
 #endif // USAGE_CATCHER_ENABLE
@@ -624,6 +790,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_004, TestSize.Level1)
     std::set<int> asyncPids;
     std::set<int> pids = peerBinderCatcher->GetBinderPeerPids(fd, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
+    close(fd);
 }
 
 /**
@@ -691,6 +858,8 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     pids = peerBinderCatcher->GetBinderPeerPids(-1, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
     fin.close();
+    close(fd);
+    close(fd1);
 }
 
 /**
@@ -883,6 +1052,7 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_003, TestSize.Level1)
     }
     int ret = LogCatcherUtils::DumpStackFfrt(fd, "");
     EXPECT_EQ(ret, 0);
+    close(fd);
 }
 
 /**
@@ -902,6 +1072,26 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_004, TestSize.Level1)
     int count = 0;
     LogCatcherUtils::ReadShellToFile(fd, serviceName, cmd, count);
     EXPECT_EQ(count, 0);
+    close(fd);
+}
+
+/**
+ * @tc.name: ThermalInfoCatcherTest_001
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ThermalInfoCatcherTest_001, TestSize.Level1)
+{
+    auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create catcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    
+    auto thermalInfoCatcher = std::make_shared<ThermalInfoCatcher>();
+    bool ret = thermalInfoCatcher->Catch(fd, 1);
+    EXPECT_TRUE(ret > 0);
+    close(fd);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

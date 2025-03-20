@@ -29,7 +29,7 @@ config("trace_manager_test_config") {
 }
 
 ohos_unittest("TraceManagerTest") {
-  module_out_path = "hiviewdfx/hiview"
+  module_out_path = hiview_module + "/ucollection"
 
   configs = [ ":trace_manager_test_config" ]
 

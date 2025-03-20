@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,14 +13,16 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/base/event_store"
+module_output_path = hiview_module + "/event_store"
 
 group("unittest") {
   testonly = true
   deps = [
+    ":EventStoreConfigTest",
     ":SysEventBackupTest",
     ":SysEventDaoTest",
     ":SysEventDatabaseTest",
+    ":SysEventDocLruCacheTest",
     ":SysEventDocTest",
     ":SysEventRepeatTest",
     ":SysEventSequenceMgrTest",
@@ -37,6 +39,38 @@ config("sys_event_dao_config_test") {
   ]
 
   cflags = []
+}
+
+ohos_unittest("EventStoreConfigTest") {
+  module_out_path = module_output_path
+  configs = [ ":sys_event_dao_config_test" ]
+
+  sources = [ "unittest/common/event_store_config_test.cpp" ]
+
+  deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
+
+  external_deps = [
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hisysevent:libhisysevent",
+  ]
+}
+
+ohos_unittest("SysEventDocLruCacheTest") {
+  module_out_path = module_output_path
+  configs = [ ":sys_event_dao_config_test" ]
+
+  sources = [ "unittest/common/event_store_config_test.cpp" ]
+
+  deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
+
+  external_deps = [
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hisysevent:libhisysevent",
+  ]
 }
 
 ohos_unittest("SysEventDaoTest") {

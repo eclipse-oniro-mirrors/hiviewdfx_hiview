@@ -35,6 +35,7 @@ namespace {
     static constexpr const char* const TAG_RELEVANCE = "relevance";
     static constexpr const char* const ATTRIBUTE_ID = "id";
     static constexpr const char* const ATTRIBUTE_WINDOW = "window";
+    static constexpr const char* const ATTRIBUTE_DELAY = "delay";
     static constexpr const char* const ATTRIBUTE_DOMAIN = "domain";
     static constexpr const char* const ATTRIBUTE_STRINGID = "stringid";
     static constexpr const char* const ATTRIBUTE_TYPE = "type";
@@ -203,7 +204,7 @@ void FreezeRuleCluster::ParseTagLinks(xmlNode* tag, FreezeRule& rule)
                 applicationPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
             } else if (result.GetScope() == "sys") {
                 systemPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
-            } else {
+            } else if (result.GetScope() == "sysWarning") {
                 sysWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
             }
         }
@@ -222,11 +223,13 @@ void FreezeRuleCluster::ParseTagEvent(xmlNode* tag, FreezeResult& result)
 
 void FreezeRuleCluster::ParseTagResult(xmlNode* tag, FreezeResult& result)
 {
+    long delay = GetAttributeValue<long>(tag, ATTRIBUTE_DELAY);
     unsigned long code = GetAttributeValue<unsigned long>(tag, ATTRIBUTE_CODE);
     std::string scope = GetAttributeValue<std::string>(tag, ATTRIBUTE_SCOPE);
     std::string samePackage = GetAttributeValue<std::string>(tag, ATTRIBUTE_SAME_PACKAGE);
     std::string action = GetAttributeValue<std::string>(tag, ATTRIBUTE_ACTION);
 
+    result.SetDelay(delay);
     result.SetId(code);
     result.SetScope(scope);
     result.SetSamePackage(samePackage);
@@ -263,6 +266,10 @@ bool FreezeRuleCluster::GetResult(const WatchPoint& watchPoint, std::vector<Free
     if (list.empty()) {
         return false;
     }
+
+    sort(list.begin(), list.end(), [] (const FreezeResult& frontResult, const FreezeResult& rearResult) {
+        return frontResult.GetWindow() < rearResult.GetWindow();
+    });
     return true;
 }
 
@@ -314,6 +321,16 @@ void FreezeResult::SetScope(const std::string& scope)
 long FreezeResult::GetWindow() const
 {
     return window_;
+}
+
+long FreezeResult::GetDelay() const
+{
+    return delay_;
+}
+
+void FreezeResult::SetDelay(long delay)
+{
+    delay_ = delay;
 }
 
 std::string FreezeResult::GetSamePackage() const

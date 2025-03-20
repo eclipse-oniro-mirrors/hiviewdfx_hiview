@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <chrono>
 #include <contrib/minizip/zip.h>
+#include <fcntl.h>
+#include <sys/file.h>
 #include <unistd.h>
 #include <vector>
 
@@ -25,6 +27,7 @@
 #include "ffrt.h"
 #include "hiview_logger.h"
 #include "hiview_event_report.h"
+#include "hiview_zip_util.h"
 #include "memory_collector.h"
 #include "parameter_ex.h"
 #include "securec.h"
@@ -153,63 +156,37 @@ std::string AddVersionInfoToZipName(const std::string &srcZipPath)
 
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
 {
-    HIVIEW_LOGI("start ZipTraceFile src: %{public}s, dst: %{public}s", srcSysPath.c_str(), destZipPath.c_str());
-    FILE *srcFp = fopen(srcSysPath.c_str(), "rb");
-    if (srcFp == nullptr) {
-        return;
-    }
-    zip_fileinfo zipInfo;
-    errno_t result = memset_s(&zipInfo, sizeof(zipInfo), 0, sizeof(zipInfo));
-    if (result != EOK) {
-        (void)fclose(srcFp);
-        return;
-    }
-    std::string zipFileName = FileUtil::ExtractFileName(destZipPath);
-    zipFile zipFile = zipOpen((UNIFIED_SHARE_TEMP_PATH + zipFileName).c_str(), APPEND_STATUS_CREATE);
-    if (zipFile == nullptr) {
-        HIVIEW_LOGE("zipOpen failed");
-        (void)fclose(srcFp);
+    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
+    if (FileUtil::FileExists(destZipPathWithVersion)) {
+        HIVIEW_LOGI("dst: %{public}s already exist", destZipPathWithVersion.c_str());
         return;
     }
     CheckCurrentCpuLoad();
     HiviewEventReport::ReportCpuScene("5");
-    std::string sysFileName = FileUtil::ExtractFileName(srcSysPath);
-    zipOpenNewFileInZip(
-        zipFile, sysFileName.c_str(), &zipInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-    int errcode = 0;
-    char buf[READ_MORE_LENGTH] = {0};
-    while (!feof(srcFp)) {
-        size_t numBytes = fread(buf, 1, sizeof(buf), srcFp);
-        if (numBytes <= 0) {
-            HIVIEW_LOGE("zip file failed, size is zero");
-            errcode = -1;
-            break;
-        }
-        zipWriteInFileInZip(zipFile, buf, static_cast<unsigned int>(numBytes));
-        if (ferror(srcFp)) {
-            HIVIEW_LOGE("zip file failed: %{public}s, errno: %{public}d.", srcSysPath.c_str(), errno);
-            errcode = -1;
-            break;
-        }
-    }
-    (void)fclose(srcFp);
-    zipCloseFileInZip(zipFile);
-    zipClose(zipFile, nullptr);
-    if (errcode != 0) {
+    std::string tmpDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
+    HIVIEW_LOGI("start ZipTraceFile src: %{public}s, dst: %{public}s", srcSysPath.c_str(), destZipPath.c_str());
+    HiviewZipUnit zipUnit(tmpDestZipPath);
+    if (int32_t ret = zipUnit.AddFileInZip(srcSysPath, ZipFileLevel::KEEP_NONE_PARENT_PATH); ret != 0) {
+        HIVIEW_LOGW("zip trace failed, ret: %{public}d.", ret);
         return;
     }
-    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
-    FileUtil::RenameFile(UNIFIED_SHARE_TEMP_PATH + zipFileName, destZipPathWithVersion);
+    FileUtil::RenameFile(tmpDestZipPath, destZipPathWithVersion);
     HIVIEW_LOGI("finish rename file %{public}s", destZipPathWithVersion.c_str());
 }
 
 void CopyFile(const std::string &src, const std::string &dst)
 {
-    int ret = FileUtil::CopyFile(src, dst);
-    if (ret != 0) {
-        HIVIEW_LOGE("copy file failed, file is %{public}s.", src.c_str());
+    if (FileUtil::FileExists(dst)) {
+        HIVIEW_LOGI("copy already, trace file : %{public}s.", dst.c_str());
+        return;
     }
-    HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
+    HIVIEW_LOGI("copy start, trace file : %{public}s.", dst.c_str());
+    int ret = FileUtil::CopyFileFast(src, dst);
+    if (ret != 0) {
+        HIVIEW_LOGE("copy failed, trace file : %{public}s, errno : %{public}d", src.c_str(), errno);
+    } else {
+        HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
+    }
 }
 
 /*
@@ -367,22 +344,39 @@ bool CreateMultiDirectory(const std::string &dirPath)
     return true;
 }
 
-void CreateTracePathInner(const std::string &filePath)
+void RecoverTmpTrace()
 {
-    if (FileUtil::FileExists(filePath)) {
-        return;
+    std::vector<std::string> traceFiles;
+    FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
+    HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
+    for (auto &filePath : traceFiles) {
+        std::string fileName = FileUtil::ExtractFileName(filePath);
+        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
+        std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
+        if (!FileUtil::FileExists(originTraceFile)) {
+            HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
+            FileUtil::RemoveFile(UNIFIED_SHARE_TEMP_PATH + fileName);
+            continue;
+        }
+        int fd = open(originTraceFile.c_str(), O_RDONLY | O_NONBLOCK);
+        if (fd == -1) {
+            HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
+            continue;
+        }
+        // add lock before zip trace file, in case hitrace delete origin trace file.
+        if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+            HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
+            close(fd);
+            continue;
+        }
+        HIVIEW_LOGI("originTraceFile path: %{public}s", originTraceFile.c_str());
+        UcollectionTask traceTask = [=]() {
+            ZipTraceFile(originTraceFile, UNIFIED_SHARE_PATH + fileName);
+            flock(fd, LOCK_UN);
+            close(fd);
+        };
+        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
-    if (!CreateMultiDirectory(filePath)) {
-        HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
-        return;
-    }
-}
-
-void CreateTracePath()
-{
-    CreateTracePathInner(UNIFIED_SHARE_PATH);
-    CreateTracePathInner(UNIFIED_SPECIAL_PATH);
-    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
 }
 } // HiViewDFX
 } // OHOS

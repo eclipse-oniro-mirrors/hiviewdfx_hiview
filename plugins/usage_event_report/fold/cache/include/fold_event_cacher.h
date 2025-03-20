@@ -20,7 +20,6 @@
 #include <map>
 #include <vector>
 
-#include "app_mgr_interface.h"
 #include "fold_app_usage_db_helper.h"
 #include "sys_event.h"
 

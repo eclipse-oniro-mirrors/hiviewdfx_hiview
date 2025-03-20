@@ -53,12 +53,33 @@ const std::string COLLECTION_IO_PATH = "/data/log/hiview/unified_collection/io/"
 const std::string HIVIEW_UCOLLECTION_STATE_TRUE = "true";
 const std::string HIVIEW_UCOLLECTION_STATE_FALSE = "false";
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
+const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
+const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
 const std::string DEVELOP_TRACE_RECORDER_FALSE = "false";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 const std::string OTHER = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
+
+void CreateTracePathInner(const std::string &filePath)
+{
+    if (FileUtil::FileExists(filePath)) {
+        return;
+    }
+    if (!CreateMultiDirectory(filePath)) {
+        HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
+        return;
+    }
+}
+
+void CreateTracePath()
+{
+    CreateTracePathInner(UNIFIED_SHARE_PATH);
+    CreateTracePathInner(UNIFIED_SPECIAL_PATH);
+    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
+}
 #endif
 }
 
@@ -168,7 +189,7 @@ void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
 
 bool UnifiedCollector::OnEvent(std::shared_ptr<Event>& event)
 {
-    if (event == nullptr) {
+    if (event == nullptr || workLoop_ == nullptr) {
         return true;
     }
     HIVIEW_LOGI("Receive Event %{public}s", event->GetEventName().c_str());
@@ -217,7 +238,7 @@ void UnifiedCollector::HandleTeleMetryStart(std::shared_ptr<Event> &event)
         HIVIEW_LOGE("system error traceDuration:%{public}d", traceDuration);
         return;
     }
-    auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag, telemetryId);
+    auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag);
     HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
         "ID", telemetryId,
         "STAGE", "TRACE_BEGIN",
@@ -244,7 +265,6 @@ void UnifiedCollector::HandleTeleMetryStop()
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
     TraceFlowController controller(BusinessName::TELEMETRY);
     controller.ClearTelemetryData();
-    controller.ClearTelemetryFlow();
     for (auto it : telemetryList_) {
         workLoop_->RemoveEvent(it);
     }
@@ -254,7 +274,6 @@ void UnifiedCollector::HandleTeleMetryStop()
 void UnifiedCollector::HandleTeleMetryTimeout()
 {
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryFlow();
 }
 
 void UnifiedCollector::OnEventListeningCallback(const Event& event)
@@ -306,7 +325,11 @@ void UnifiedCollector::Init()
         HIVIEW_LOGE("hiview context is null");
         return;
     }
-    InitWorkLoop();
+    workLoop_ = context->GetSharedWorkLoop();
+    if (workLoop_ == nullptr) {
+        HIVIEW_LOGE("workLoop is null");
+        return;
+    }
     InitWorkPath();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     CreateTracePath();
@@ -314,6 +337,7 @@ void UnifiedCollector::Init()
     telemetryListener_ = std::make_shared<TelemetryListener>(shared_from_this());
     context->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
     context->RegisterUnorderedEventListener(telemetryListener_);
+    RecoverTmpTrace();
 #endif
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn()) {
         RunIoCollectionTask();
@@ -389,11 +413,6 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
 #endif
         unifiedCollectorPtr->CleanDataFiles();
     }
-}
-
-void UnifiedCollector::InitWorkLoop()
-{
-    workLoop_ = GetHiviewContext()->GetSharedWorkLoop();
 }
 
 void UnifiedCollector::InitWorkPath()

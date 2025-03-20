@@ -328,6 +328,7 @@ int FoldAppUsageDbHelper::QueryFinalScreenStatus(uint64_t endTime)
     } else {
         HIVIEW_LOGE("get handle seq and screen stat failed");
     }
+    resultSet->Close();
     return status;
 }
 
@@ -371,6 +372,7 @@ void FoldAppUsageDbHelper::QueryStatisticEventsInPeriod(uint64_t startTime, uint
             HIVIEW_LOGE("fail to get appusage info!");
         }
     }
+    resultSet->Close();
 }
 
 void FoldAppUsageDbHelper::QueryForegroundAppsInfo(uint64_t startTime, uint64_t endTime, int screenStatus,
@@ -405,10 +407,12 @@ void FoldAppUsageDbHelper::QueryForegroundAppsInfo(uint64_t startTime, uint64_t 
             !GetIntFromResultSet(resultSet, FoldEventTable::FIELD_PRE_FOLD_STATUS, event.screenStatusBefore) ||
             !GetLongFromResultSet(resultSet, FoldEventTable::FIELD_TS, event.ts)) {
             HIVIEW_LOGE("fail to get db event!");
+            resultSet->Close();
             return;
         }
         if (event.rawId != FoldEventId::EVENT_APP_START && event.rawId != FoldEventId::EVENT_SCREEN_STATUS_CHANGED) {
             HIVIEW_LOGE("can not find foreground event, latest raw id: %{public}d", event.rawId);
+            resultSet->Close();
             return;
         }
         events.emplace_back(event);
@@ -417,6 +421,7 @@ void FoldAppUsageDbHelper::QueryForegroundAppsInfo(uint64_t startTime, uint64_t 
         }
     }
     info = CaculateForegroundAppUsage(events, startTime, endTime, info.package, screenStatus);
+    resultSet->Close();
 }
 
 int FoldAppUsageDbHelper::DeleteEventsByTime(uint64_t clearDataTime)
@@ -490,6 +495,7 @@ std::vector<std::pair<int, std::string>> FoldAppUsageDbHelper::QueryEventAfterEn
         }
         retEvents.emplace_back(appSwitchEvent);
     }
+    resultSet->Close();
     return retEvents;
 }
 } // namespace HiviewDFX

@@ -38,8 +38,7 @@ const int64_t DEFAULT_TOTAL_SIZE = 350 * 1024 * 1024;
 void TelemetryListener::OnUnorderedEvent(const Event &msg)
 {
     bool isCloseMsg = false;
-    std::string errorMsg = GetValidParam(msg, isCloseMsg, beginTime_, telemetryId_);
-    bundleName_ = msg.GetValue(Telemetry::KEY_BUNDLE_NAME);
+    std::string errorMsg = GetValidParam(msg, isCloseMsg);
     if (!errorMsg.empty()) {
         return WriteErrorEvent(errorMsg);
     }
@@ -47,13 +46,9 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
         SendStopEvent();
         return;
     }
-    if (auto timeRet = InitAndCorrectTimes(msg); timeRet == TelemetryRet::EXIT) {
+    if (!InitAndCorrectTimes(msg)) {
         return WriteErrorEvent("init telemetry time table fail");
     }
-    if (auto flowRet = InitTelemetryFlow(msg); flowRet == TelemetryRet::EXIT) {
-        return WriteErrorEvent("init telemetry flow control table fail");
-    }
-
     auto timeNow = TimeUtil::GetSeconds();
     if (timeNow >= endTime_) {
         return WriteErrorEvent("telemetry trace already time out");
@@ -64,8 +59,7 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
     }
 }
 
-std::string TelemetryListener::GetValidParam(const Event &msg, bool &isCloseMsg, int64_t &beginTime,
-    std::string &telemetryId)
+std::string TelemetryListener::GetValidParam(const Event &msg, bool &isCloseMsg)
 {
     std::string errorMsg;
     auto switchStatus = msg.GetValue(Telemetry::KEY_SWITCH_STATUS);
@@ -81,38 +75,28 @@ std::string TelemetryListener::GetValidParam(const Event &msg, bool &isCloseMsg,
         errorMsg.append("switchStatus param get error");
         return errorMsg;
     }
-    telemetryId = msg.GetValue(Telemetry::KEY_ID);
+    std::string telemetryId = msg.GetValue(Telemetry::KEY_ID);
     if (telemetryId.empty()) {
         errorMsg.append("telemetryId get empty");
         return errorMsg;
     }
 
     // Get begin time of telemetry trace
-    beginTime = msg.GetInt64Value(Telemetry::KEY_OPEN_TIME);
+    int64_t beginTime = msg.GetInt64Value(Telemetry::KEY_OPEN_TIME);
     if (beginTime < 0) {
         errorMsg.append("begin time get failed");
         return errorMsg;
     } else if (beginTime == 0) {
         beginTime = TimeUtil::GetSeconds();
     }
+    beginTime_ = beginTime;
+    telemetryId_ = telemetryId;
+    bundleName_ = msg.GetValue(Telemetry::KEY_BUNDLE_NAME);
     return errorMsg;
 }
 
-TelemetryRet TelemetryListener::InitAndCorrectTimes(const Event &msg)
+bool TelemetryListener::InitAndCorrectTimes(const Event &msg)
 {
-    int64_t traceDuration = msg.GetInt64Value(Telemetry::KEY_DURATION);
-    if (traceDuration <= 0) {
-        traceDuration = DURATION_DEFAULT;
-    }
-    endTime_ = beginTime_ + traceDuration;
-
-    // In reboot scene, beginTime endTime will update to first start record
-    return TraceFlowController(BusinessName::TELEMETRY).InitTelemetryTime(telemetryId_, beginTime_, endTime_);
-}
-
-TelemetryRet TelemetryListener::InitTelemetryFlow(const Event &msg)
-{
-    std::string errorMsg;
     std::map<std::string, int64_t> flowControlQuotas {
         {CallerName::XPERF, DEFAULT_XPERF_SIZE },
         {CallerName::XPOWER, DEFAULT_XPOWER_SIZE},
@@ -134,9 +118,19 @@ TelemetryRet TelemetryListener::InitTelemetryFlow(const Event &msg)
     if (totalTraceQuota > 0) {
         flowControlQuotas[Telemetry::TOTAL] = totalTraceQuota * traceCompressRatio * BT_M_UNIT;
     }
-    HIVIEW_LOGI("Ratio:%{public}d, xperfQuota:%{public}" PRId64 ", xpowerQuota:%{public}" PRId64 ","
-        " totalQuota:%{public}" PRId64 "", traceCompressRatio, xperfTraceQuota, xpowerTraceQuota, totalTraceQuota);
-    return TraceFlowController(BusinessName::TELEMETRY).InitTelemetryFlow(flowControlQuotas);
+
+    // In reboot scene, beginTime endTime will update to first start record
+    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData(telemetryId_, beginTime_,
+        flowControlQuotas);
+    if (ret == TelemetryRet::EXIT) {
+        return false;
+    }
+    int64_t traceDuration = msg.GetInt64Value(Telemetry::KEY_DURATION);
+    if (traceDuration <= 0) {
+        traceDuration = DURATION_DEFAULT;
+    }
+    endTime_ = beginTime_ + traceDuration;
+    return true;
 }
 
 bool TelemetryListener::SendStartEvent(const Event &msg, int64_t traceDuration, int64_t delayTime)

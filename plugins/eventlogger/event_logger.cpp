@@ -53,26 +53,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static constexpr const char* const TWELVE_BIG_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
-    static constexpr const char* const TWELVE_BIG_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
-    static constexpr const char* const TWELVE_MID_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
-    static constexpr const char* const TWELVE_MID_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq";
-    static constexpr const char* const SUSTAINABLE_POWER =
-        "/sys/class/thermal/thermal_zone1/sustainable_power";
-    static constexpr const char* const ASHMEM_PATH = "/proc/ashmem_process_info";
-    static constexpr const char* const DMAHEAP_PATH = "/proc/dmaheap_process_info";
-    static constexpr const char* const GPUMEM_PATH = "/proc/gpumem_process_info";
-    static constexpr const char* const ASHMEM = "AshmemUsed";
-    static constexpr const char* const DMAHEAP = "DmaHeapTotalUsed";
-    static constexpr const char* const GPUMEM = "GpuTotalUsed";
     static constexpr const char* const LONG_PRESS = "LONG_PRESS";
     static constexpr const char* const AP_S_PRESS6S = "AP_S_PRESS6S";
     static constexpr const char* const REBOOT_REASON = "reboot_reason";
@@ -175,13 +155,13 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     }
 
     std::string domain = sysEvent->domain_;
-    HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld", domain.c_str(), eventName.c_str(), pid);
+    HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld, happenTime=%{public}llu",
+        domain.c_str(), eventName.c_str(), pid, sysEvent->happenTime_);
 
     if (CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
         return true;
     }
     if (sysEvent->GetValue("eventLog_action").empty()) {
-        HIVIEW_LOGI("eventName=%{public}s, pid=%{public}ld, eventLog_action is empty.", eventName.c_str(), pid);
         UpdateDB(sysEvent, "nolog");
         return true;
     }
@@ -264,64 +244,6 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 }
 #endif
 
-std::string EventLogger::GetStringFromFile(const std::string path)
-{
-    std::string content;
-    FileUtil::LoadStringFromFile(path, content);
-    return content;
-}
-
-int EventLogger::GetNumFromString(const std::string &mem)
-{
-    int num = 0;
-    for (const char &c : mem) {
-        if (isdigit(c)) {
-            num += num * DECIMEL + (c - '0');
-        }
-        if (num > INT_MAX) {
-            return INT_MAX;
-        }
-    }
-    return num;
-}
-
-void EventLogger::CheckString(
-    int fd, const std::string &mem, std::string &data, const std::string key, const std::string path)
-{
-    if (mem.find(key) != std::string::npos) {
-        int memsize = GetNumFromString(mem);
-        if (memsize > OVER_MEM_SIZE) {
-            data += GetStringFromFile(path);
-        }
-    }
-}
-
-void EventLogger::CollectMemInfo(int fd, std::shared_ptr<SysEvent> event)
-{
-    std::string content = event->GetEventValue("FREEZE_MEMORY");
-    std::string data = "";
-    if (!content.empty()) {
-        std::vector<std::string> vec;
-        OHOS::SplitStr(content, "\\n", vec);
-        FreezeCommon::WriteStartInfoToFd(fd, "collect meminfo start time: ");
-        FileUtil::SaveStringToFd(fd, "\nMemoryCatcher --\n");
-        for (const std::string& mem : vec) {
-            FileUtil::SaveStringToFd(fd, mem + "\n");
-            CheckString(fd, mem, data, ASHMEM, ASHMEM_PATH);
-            CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
-            CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
-        }
-        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect meminfo end time: ");
-    }
-    if (!data.empty()) {
-        FreezeCommon::WriteStartInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
-        FileUtil::SaveStringToFd(fd, data);
-        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
-    } else {
-        FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
-    }
-}
-
 void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
 {
     std::string historyFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "history.log";
@@ -346,23 +268,6 @@ void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
     std::string str = "time[" + time + "], domain[" + event->domain_ + "], wpName[" +
         event->eventName_ + "], pid: " + std::to_string(pid) + ", uid: " + std::to_string(uid) + "\n";
     FileUtil::SaveStringToFile(historyFile, str, truncated);
-}
-
-std::string EventLogger::StabilityGetTempFreqInfo()
-{
-    std::string tempInfo = "";
-    std::string bigCpuCurFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
-    std::string bigCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_MAX_FREQ);
-    std::string midCpuCurFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_CUR_FREQ);
-    std::string midCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_MAX_FREQ);
-    std::string litCpuCurFreq = FileUtil::GetFirstLine(TWELVE_LIT_CPU_CUR_FREQ);
-    std::string litCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_LIT_CPU_MAX_FREQ);
-    std::string ipaValue = FileUtil::GetFirstLine(SUSTAINABLE_POWER);
-    tempInfo = "\nFreq: bigCur: " + bigCpuCurFreq + ", bigMax: " +
-        bigCpuMaxFreq + ", midCur: " + midCpuCurFreq + ", midMax: " + midCpuMaxFreq +
-        ", litCur: " + litCpuCurFreq + ", litMax: " + litCpuMaxFreq + "\n" + "IPA: " +
-        ipaValue;
-    return tempInfo;
 }
 
 void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
@@ -411,12 +316,8 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     threadStack = threadStack.empty() ? logTask->terminalThreadStack_ : threadStack;
     SetEventTerminalBinder(event, threadStack, fd);
-    CollectMemInfo(fd, event);
-    FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
-    FileUtil::SaveStringToFd(fd, StabilityGetTempFreqInfo());
     auto end = TimeUtil::GetMilliseconds();
-    FreezeCommon::WriteEndInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ");
-    FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
+    FileUtil::SaveStringToFd(fd, "\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
 void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd)
@@ -471,8 +372,8 @@ bool ParseMsgForMessageAndEventHandler(const std::string& msg, std::string& mess
     std::string messageEndFlag = "mainHandler dump is:";
     std::string eventFlag = "Event {";
     bool isGetEvent = false;
-    std::regex eventStartFlag(".*((Immediate)|(High)|(Low)) priority event queue information:.*");
-    std::regex eventEndFlag(".*Total size of ((Immediate)|(High)|(Low)) events :.*");
+    std::regex eventStartFlag(".*((VIP)|(Immediate)|(High)|(Low)|(Idle)) priority event queue information:.*");
+    std::regex eventEndFlag(".*Total size of ((VIP)|(Immediate)|(High)|(Low)|(Idle)) events :.*");
     std::list<std::string> eventHandlerList;
     for (auto line = lines.begin(); line != lines.end(); line++) {
         if ((*line).find(messageStartFlag) != std::string::npos) {
@@ -879,7 +780,7 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
         std::vector<WatchPoint> list;
         FreezeResult freezeResult(0, "FRAMEWORK", "PROCESS_KILL");
         freezeResult.SetSamePackage("true");
-        DBHelper::WatchParams params = {pid, packageName};
+        DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName};
         dbHelper_->SelectEventFromDB(event->happenTime_ - QUERY_PROCESS_KILL_INTERVAL, event->happenTime_, list,
             params, freezeResult);
         std::string appendStack = "";
