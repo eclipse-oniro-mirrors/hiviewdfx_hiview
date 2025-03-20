@@ -461,6 +461,46 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_010
+ * @tc.desc: FreezeDetector
+ */
+ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
+ {
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret = freezeCommon->Init();
+    EXPECT_EQ(ret, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    EXPECT_EQ(vendor->Init(), true);
+
+    std::string processName = "render_service";
+    std::string isScbPro;
+    vendor->CheckScbProcessName(processName, isScbPro);
+    printf("%s %s\n", processName.c_str(), isScbPro.c_str());
+    EXPECT_EQ(processName, "render_service");
+    EXPECT_EQ(isScbPro, "No");
+    processName = "com.ohos.scenebaord";
+    vendor->CheckScbProcessName(processName, isScbPro);
+    printf("%s %s\n", processName.c_str(), isScbPro.c_str());
+    EXPECT_EQ(processName, "com.ohos.scenebaord");
+    EXPECT_EQ(isScbPro, "No");
+    processName = "com.ohos.scenebaord:";
+    vendor->CheckScbProcessName(processName, isScbPro);
+    printf("%s %s\n", processName.c_str(), isScbPro.c_str());
+    EXPECT_EQ(processName, "com.ohos.scenebaord");
+    EXPECT_EQ(isScbPro, "Yes");
+    processName = "com.ohos.scenebaord:Enability:2025";
+    vendor->CheckScbProcessName(processName, isScbPro);
+    printf("%s %s\n", processName.c_str(), isScbPro.c_str());
+    EXPECT_EQ(processName, "Enability");
+    EXPECT_EQ(isScbPro, "Yes");
+    processName = "com.ohos.scenebaord:   ?!sys/comm/test:123 321";
+    vendor->CheckScbProcessName(processName, isScbPro);
+    printf("%s %s\n", processName.c_str(), isScbPro.c_str());
+    EXPECT_EQ(processName, "sys_comn_test");
+    EXPECT_EQ(isScbPro, "Yes");
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
