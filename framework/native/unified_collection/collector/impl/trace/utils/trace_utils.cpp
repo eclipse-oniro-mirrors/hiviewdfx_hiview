@@ -243,12 +243,16 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
     for (const auto &trace : outputFiles) {
         std::string traceFile = FileUtil::ExtractFileName(trace);
         const std::string dst = UNIFIED_SPECIAL_PATH + prefix + "_" + traceFile;
-        // for copy if the file has not been copied
-        if (!FileUtil::FileExists(dst)) {
-            UcollectionTask traceTask = [=]() {
-                CopyFile(trace, dst);
-            };
-            TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+        if (prefix == CallerName::OTHER) { // betaclub and screen recording copy trace immediately
+            CopyFile(trace, dst);
+        } else {
+            // for copy if the file has not been copied
+            if (!FileUtil::FileExists(dst)) {
+                UcollectionTask traceTask = [=]() {
+                    CopyFile(trace, dst);
+                };
+                TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+            }
         }
         files.push_back(dst);
     }
