@@ -50,5 +50,6 @@ ohos_fuzztest("HiviewServiceAbilityStubFuzzTest") {
     "access_token:libtoken_setproc",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "safwk:system_ability_fwk",
   ]
 }
