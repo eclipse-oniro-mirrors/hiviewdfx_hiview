@@ -25,8 +25,6 @@ config("hiview_event_publish_config_test") {
   visibility = [ "*:*" ]
 
   include_dirs = [ "unittest/common" ]
-
-  cflags = []
 }
 
 ohos_unittest("EventPublishTest") {
@@ -37,9 +35,14 @@ ohos_unittest("EventPublishTest") {
   sources = [
     "unittest/common/app_event_handler_test.cpp",
     "unittest/common/event_publish_test.cpp",
+    "unittest/common/event_publish_test_util.cpp",
   ]
 
-  deps = [ "$hiview_base/event_publish:hiview_event_publish" ]
+  deps = [
+    "$hiview_base:logger",
+    "$hiview_base/event_publish:hiview_event_publish",
+    "$hiview_base/event_publish/test/resource:EventPublishJsTest",
+  ]
 
   external_deps = [
     "googletest:gmock",
@@ -48,4 +51,6 @@ ohos_unittest("EventPublishTest") {
     "hisysevent:libhisysevent",
     "jsoncpp:jsoncpp",
   ]
+
+  resource_config_file = "resource/ohos_test.xml"
 }
