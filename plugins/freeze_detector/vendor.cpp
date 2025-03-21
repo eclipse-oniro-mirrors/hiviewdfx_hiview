@@ -48,7 +48,7 @@ namespace {
     static constexpr const char* const DISPLAY_POWER_INFO = "DisplayPowerInfo:";
     static constexpr const char* const FORE_GROUND = "FOREGROUND";
     static constexpr const char* const SCB_PROCESS = "SCBPROCESS";
-    static constexpr const char* const SCB_PRO_PREFIX = "ohos.sceneboard:";
+    static constexpr const char* const SCB_PRO_FLAG = "com.ohos.sceneboard";
     static constexpr const char* const THREAD_STACK_START = "\nThread stack start:\n";
     static constexpr const char* const THREAD_STACK_END = "Thread stack end\n";
     static constexpr const char* const KEY_PROCESS[] = {
@@ -221,8 +221,7 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
     if (stringId == "SCREEN_ON") {
         processName = stringId;
     } else {
-        isScbPro = IsScbProName(processName);
-        StringUtil::FormatProcessName(processName);
+        CheckScbProcessName(processName, isScbPro);
     }
     type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
         (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
@@ -409,24 +408,30 @@ std::string Vendor::GetPowerStateString(OHOS::PowerMgr::PowerState state)
     return std::string("UNKNOWN");
 }
 
-std::string Vendor::IsScbProName(std::string& processName)
+void Vendor::CheckScbProcessName(std::string& processName, std::string& isScbPro)
 {
-    std::string isScb = "No";
-    size_t scbIndex = processName.find(SCB_PRO_PREFIX);
-    if (scbIndex != std::string::npos) {
-        isScb = "Yes";
-        processName = processName.substr(scbIndex + std::strlen(SCB_PRO_PREFIX));
-        size_t colonIndex = processName.rfind(":");
-        if (colonIndex != std::string::npos) {
-            std::string pNameEndStr = processName.substr(colonIndex + std::strlen(":"));
-            if (std::all_of(pNameEndStr.begin(), pNameEndStr.end(), [] (const char& c) {
-                return isdigit(c);
-            })) {
-                processName = processName.substr(0, colonIndex);
-            }
+    isScbPro = "No";
+    size_t scbIndex = processName.find(SCB_PRO_FLAG);
+    size_t scbSize = std::strlen(SCB_PRO_FLAG);
+    if (scbIndex != std::string::npos && (scbIndex + scbSize + 1) <= processName.size()) {
+        processName = processName.substr(scbIndex + scbSize);
+
+        size_t firstAlphaIndex = 0;
+        size_t lastAlphaIndex = processName.size() - 1;
+        while (firstAlphaIndex < processName.size() && !std::isalpha(processName[firstAlphaIndex])) {
+            firstAlphaIndex++;
         }
+        while (lastAlphaIndex > firstAlphaIndex && !std::isalpha(processName[lastAlphaIndex])) {
+            lastAlphaIndex--;
+        }
+        processName = processName.substr(firstAlphaIndex, lastAlphaIndex - firstAlphaIndex + 1);
+        std::replace(processName.begin(), processName.end(), '/', '_');
+        StringUtil::FormatProcessName(processName);
+        if (processName.empty()) {
+            processName = SCB_PRO_FLAG;
+        }
+        isScbPro = "Yes";
     }
-    return isScb;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
