@@ -68,6 +68,7 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
     dumpEvent.coverDuration = traceRetInfo.coverDuration;
     dumpEvent.coverRatio = traceRetInfo.coverRatio;
     dumpEvent.tags = std::move(traceRetInfo.tags);
+    dumpEvent.errorCode = TransCodeToUcError(traceRetInfo.errorCode);
     return ret;
 }
 
@@ -106,7 +107,8 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
     TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
-        WriteDumpTraceHisysevent(dumpEvent, GetUcError(ret));
+        dumpEvent.errorCode = GetUcError(ret);
+        WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
     if (traceRetInfo.outputFiles.empty()) {
@@ -117,7 +119,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
     if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
-    WriteDumpTraceHisysevent(dumpEvent, UcError::SUCCESS);
+    WriteDumpTraceHisysevent(dumpEvent);
     if (scenario_== TraceScenario::TRACE_COMMAND) {
         outputFile = traceRetInfo.outputFiles;
     } else {
@@ -146,7 +148,8 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
     TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
-        WriteDumpTraceHisysevent(dumpEvent, GetUcError(ret));
+        dumpEvent.errorCode = GetUcError(ret);
+        WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
     if (traceRetInfo.outputFiles.empty()) {
@@ -158,13 +161,14 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
     if (!flowController_->NeedUpload(traceSize)) {
-        WriteDumpTraceHisysevent(dumpEvent, TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY));
+        dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
+        WriteDumpTraceHisysevent(dumpEvent);
         HIVIEW_LOGI("trace is over flow, can not upload.");
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
     outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
     DoClean(UNIFIED_SHARE_PATH, UNIFIED_SHARE_COUNTS, false);
-    WriteDumpTraceHisysevent(dumpEvent, UcError::SUCCESS);
+    WriteDumpTraceHisysevent(dumpEvent);
     flowController_->StoreDb();
     return {};
 }
@@ -183,7 +187,8 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
     // first dump trace in special dir then check flow to decide whether put trace in share dir
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
-        WriteDumpTraceHisysevent(dumpEvent, GetUcError(ret));
+        dumpEvent.errorCode = GetUcError(ret);
+        WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
     if (traceRetInfo.outputFiles.empty()) {
@@ -195,7 +200,8 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
     DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_COUNTS, true);
     if (flowController_->NeedDump()) {
         if (!flowController_->NeedUpload(traceSize)) {
-            WriteDumpTraceHisysevent(dumpEvent, TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY));
+            dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
+            WriteDumpTraceHisysevent(dumpEvent);
             HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
             return {};
         }
@@ -205,7 +211,7 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
         HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
         return {};
     }
-    WriteDumpTraceHisysevent(dumpEvent, UcError::SUCCESS);
+    WriteDumpTraceHisysevent(dumpEvent);
     flowController_->StoreDb();
     return {};
 }

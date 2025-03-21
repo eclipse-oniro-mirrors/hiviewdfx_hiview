@@ -270,10 +270,9 @@ int64_t GetTraceSize(TraceRetInfo &ret)
     return traceSize;
 }
 
-void WriteDumpTraceHisysevent(DumpEvent &dumpEvent, int32_t retCode)
+void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 {
     LoadMemoryInfo(dumpEvent);
-    dumpEvent.errorCode = retCode;
     int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::PROFILER, "DUMP_TRACE",
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
         "CALLER", dumpEvent.caller,
@@ -309,7 +308,7 @@ UcError GetUcError(TraceRet ret)
 {
     if (ret.stateError_ != TraceStateCode::SUCCESS) {
         return TransStateToUcError(ret.stateError_);
-    } else if (ret.codeError_!= TraceErrorCode::SUCCESS) {
+    } else if (ret.codeError_!= TraceErrorCode::SUCCESS && ret.codeError_ != TraceErrorCode::SUCCESS_WITH_CACHE) {
         return TransCodeToUcError(ret.codeError_);
     } else if (ret.flowError_ != TraceFlowCode::TRACE_ALLOW) {
         return TransFlowToUcError(ret.flowError_);

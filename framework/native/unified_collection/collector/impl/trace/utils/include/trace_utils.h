@@ -32,6 +32,7 @@ namespace HiviewDFX {
 namespace {
 const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::SUCCESS, UcError::SUCCESS},
+    {TraceErrorCode::SUCCESS_WITH_CACHE, UcError::TRACE_SUCCESS_WITH_CACHE},
     {TraceErrorCode::TRACE_NOT_SUPPORTED, UcError::UNSUPPORT},
     {TraceErrorCode::TRACE_IS_OCCUPIED, UcError::TRACE_IS_OCCUPIED},
     {TraceErrorCode::TAG_ERROR, UcError::TRACE_TAG_ERROR},
@@ -42,7 +43,7 @@ const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::FORK_ERROR, UcError::TRACE_FORK_ERROR},
     {TraceErrorCode::EPOLL_WAIT_ERROR, UcError::TRACE_EPOLL_WAIT_ERROR},
     {TraceErrorCode::PIPE_CREATE_ERROR, UcError::TRACE_PIPE_CREATE_ERROR},
-    {TraceErrorCode::SYSINFO_READ_FAILURE, UcError::TRACE_SYSINFO_READ_FAILURE},
+    {TraceErrorCode::INVALID_MAX_DURATION, UcError::TRACE_INVALID_MAX_DURATION},
 };
 
 const std::map<TraceStateCode, UcError> TRACE_STATE_MAP = {
@@ -95,7 +96,7 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);
 void CheckCurrentCpuLoad();
-void WriteDumpTraceHisysevent(DumpEvent &dumpEvent, int32_t retCode);
+void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
 void LoadMemoryInfo(DumpEvent &dumpEvent);
 void CheckAndCreateDirectory(const std::string &tmpDirPath);
 bool CreateMultiDirectory(const std::string &dirPath);
