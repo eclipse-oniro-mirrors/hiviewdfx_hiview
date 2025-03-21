@@ -42,6 +42,7 @@ DEFINE_LOG_TAG("HiViewSA-HiviewServiceAbility");
 constexpr int MAXRETRYTIMEOUT = 10;
 constexpr int USER_ID_MOD = 200000;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
+constexpr int32_t MEDIA_UID = 1013;
 const std::string READ_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.READ_HIVIEW_SYSTEM";
 const std::string WRITE_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.WRITE_HIVIEW_SYSTEM";
 const std::string DUMP_PERMISSION = "ohos.permission.DUMP";
@@ -421,6 +422,11 @@ ErrCode HiviewServiceAbility::SetAppResourceLimit(
 ErrCode HiviewServiceAbility::SetSplitMemoryValue(
     const std::vector<MemoryCallerParcelable>& memCallerParcelableList, int32_t& errNo, int32_t& ret)
 {
+    int uid = IPCObjectStub::GetCallingUid();
+    if (uid != MEDIA_UID) {
+        HIVIEW_LOGE("calling uid is not media, uid: %{public}d", uid);
+        return TraceErrCode::ERR_SEND_REQUEST;
+    }
     if (memCallerParcelableList.empty() || memCallerParcelableList.size() > MAX_SPLIT_MEMORY_SIZE) {
         HIVIEW_LOGW("mem list size is invalid.");
         return TraceErrCode::ERR_READ_MSG_PARCEL;
