@@ -128,12 +128,12 @@ struct ErrorInfoToCategory g_errorInfoCategories[] = {
 
 static const char *GetTopCategory(const char *module, const char *event)
 {
-    int i;
-    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
     if ((!module || !event)) {
-        HIVIEW_LOGE("module: %{public}p, event: %{public}p\n", module, event);
+        HIVIEW_LOGE("module: %{public}s, event: %{public}s\n", module ? module : "NULL", event ? event : "NULL");
         return TOP_CATEGORY_SUBSYSTEM_CRASH;
     }
+    int i;
+    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
     for (i = 0; i < count; i++) {
         if (!strcmp(g_errorInfoCategories[i].module, module) &&
             !strcmp(g_errorInfoCategories[i].map.event, event)) {
@@ -148,13 +148,12 @@ static const char *GetTopCategory(const char *module, const char *event)
 
 static const char *GetCategory(const char *module, const char *event)
 {
-    int i;
-    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
-
     if ((!module || !event)) {
-        HIVIEW_LOGE("module: %{public}p, event: %{public}p\n", module, event);
+        HIVIEW_LOGE("module: %{public}s, event: %{public}s\n", module ? module : "NULL", event ? event : "NULL");
         return CATEGORY_SUBSYSTEM_CUSTOM;
     }
+    int i;
+    int count = sizeof(g_errorInfoCategories) / sizeof(ErrorInfoToCategory);
     for (i = 0; i < count; i++) {
         if (!strcmp(g_errorInfoCategories[i].module, module) &&
             !strcmp(g_errorInfoCategories[i].map.event, event)) {
