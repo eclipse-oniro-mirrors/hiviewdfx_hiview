@@ -196,7 +196,10 @@ int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
                 currInfo.logPath.c_str());
             return -1;
         }
-        fd = open(currInfo.logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
+        std::string logPath = currInfo.logPath + "." +
+            std::to_string(currInfo.pid) + "." +
+            std::to_string(currInfo.happenTime);
+        fd = open(logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
     }
     return fd;
 }
