@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,64 +12,284 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gtest/gtest.h>
 #include <iostream>
 #include <string>
 
+#include "app_event_elapsed_time.h"
 #include "event_publish.h"
-
-#include <gtest/gtest.h>
+#include "event_publish_test_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
+namespace {
+constexpr int DELAY_TIME_FOR_WRITE = 1;  // Used to wait for events to be written to appevent db
+constexpr int DELAY_TIME_FOR_REPORT = 32;  // sleep 30s and 2s for report
+const std::string TEST_ABILITY_NAME = "com.example.myapplication.MainAbility";
+const std::string TEST_BUNDLE_NAME = "com.example.myapplication";
+const std::string TEST_HAP_PATH = "/data/EventPublishJsTest.hap";
+const std::string TEST_SANDBOX_BASE_PATH = "/data/app/el2/100/base/" + TEST_BUNDLE_NAME;
+const std::string APPEVENT_DB_WAL_PATH = "/files/hiappevent/databases/appevent.db-wal";
+const std::string PATH_DIR = "/data/log/hiview/system_event_db/events/temp";
 
 class EventPublishTest : public testing::Test {
 public:
     void SetUp() {};
     void TearDown() {};
-    static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
+    static void SetUpTestCase();
+    static void TearDownTestCase();
 };
+
+void EventPublishTest::SetUpTestCase()
+{
+    InstallTestHap(TEST_HAP_PATH);
+    (void)LaunchTestHap(TEST_ABILITY_NAME, TEST_BUNDLE_NAME);
+}
+
+void EventPublishTest::TearDownTestCase()
+{
+    StopTestHap(TEST_BUNDLE_NAME);
+    UninstallTestHap(TEST_BUNDLE_NAME);
+}
+}
 
 /**
  * @tc.name: EventPublishTest001
- * @tc.desc: used to test PushEvent
+ * @tc.desc: used to test PushEvent with invalid param
  * @tc.type: FUNC
 */
 HWTEST_F(EventPublishTest, EventPublishTest001, TestSize.Level1)
 {
-    EventPublish::GetInstance().PushEvent(100, "APP_CRASH", HiSysEvent::EventType::BEHAVIOR, "{\"time\":123}");
-    ASSERT_TRUE(true);
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    EventPublish::GetInstance().PushEvent(-1, "APP_CRASH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    EventPublish::GetInstance().PushEvent(testUid, "", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, "");
+    EventPublish::GetInstance().PushEvent(100, "APP_CRASH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    EventPublish::GetInstance().PushEvent(testUid, "testEventName", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+
+    std::string endMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_EQ(beginMd5Sum, endMd5Sum);
+    EXPECT_GT(beginMd5Sum.size(), 0);
 }
 
 /**
  * @tc.name: EventPublishTest002
- * @tc.desc: used to test PushEvent
+ * @tc.desc: used to test PushEvent with unlistened os event
  * @tc.type: FUNC
 */
 HWTEST_F(EventPublishTest, EventPublishTest002, TestSize.Level1)
 {
-    EventPublish::GetInstance().PushEvent(100, "APP_FREEZE", HiSysEvent::EventType::FAULT, "{\"time\":123}");
-    ASSERT_TRUE(true);
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    // the demo has not listened the APP_START event
+    EventPublish::GetInstance().PushEvent(testUid, "APP_START", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string tempPath = PATH_DIR + "/hiappevent_" + std::to_string(testUid) + ".evt";
+    std::string curLine;
+    if (LoadlastLineFromFile(tempPath, curLine)) {
+        EXPECT_EQ(curLine.find("APP_START"), std::string::npos);
+    }
+    std::string endMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_EQ(beginMd5Sum, endMd5Sum);
 }
 
 /**
  * @tc.name: EventPublishTest003
- * @tc.desc: used to test PushEvent
+ * @tc.desc: used to test PushEvent when the event is immediate os event
  * @tc.type: FUNC
 */
 HWTEST_F(EventPublishTest, EventPublishTest003, TestSize.Level1)
 {
-    EventPublish::GetInstance().PushEvent(100, "ADDRESS_SANITIZER", HiSysEvent::EventType::FAULT, "{\"time\":123}");
-    ASSERT_TRUE(true);
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string crashMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crashMd5Sum, beginMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "APP_FREEZE", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string freezeMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(freezeMd5Sum, crashMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "ADDRESS_SANITIZER", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string addressMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(addressMd5Sum, freezeMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "APP_LAUNCH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string launchMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(launchMd5Sum, addressMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "CPU_USAGE_HIGH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string cpuMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(cpuMd5Sum, launchMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "MAIN_THREAD_JANK", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string jankMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(jankMd5Sum, cpuMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "APP_HICOLLIE", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string hicollieMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(hicollieMd5Sum, jankMd5Sum);
 }
 
 /**
  * @tc.name: EventPublishTest004
- * @tc.desc: used to test PushEvent
+ * @tc.desc: used to test PushEvent when the event is the same as before
  * @tc.type: FUNC
 */
 HWTEST_F(EventPublishTest, EventPublishTest004, TestSize.Level1)
 {
-    EventPublish::GetInstance().PushEvent(100, "APP_START", HiSysEvent::EventType::BEHAVIOR, "{\"time\":123}");
-    ASSERT_TRUE(true);
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string crash1Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash1Md5Sum, beginMd5Sum);
+
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string crash2Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash2Md5Sum, crash1Md5Sum);
+}
+
+/**
+ * @tc.name: EventPublishTest005
+ * @tc.desc: used to test PushEvent when the event is RESOURCE_OVERLIMIT
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest005, TestSize.Level1)
+{
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    EventPublish::GetInstance().PushEvent(testUid, "RESOURCE_OVERLIMIT", HiSysEvent::EventType::FAULT, "{\"time\":12}");
+    std::string resourceMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(resourceMd5Sum, beginMd5Sum);
+}
+
+/**
+ * @tc.name: EventPublishTest006
+ * @tc.desc: used to test PushEvent when the event has log
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest006, TestSize.Level1)
+{
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    std::string noLogParamJson = "{\"time\":123}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, noLogParamJson);
+    std::string crash1Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash1Md5Sum, beginMd5Sum);
+
+    std::string errLogTypeParamJson = "{\"time\":123,\"external_log\":123}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, errLogTypeParamJson);
+    std::string crash2Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash2Md5Sum, crash1Md5Sum);
+
+    std::string nullLogParamJson = "{\"time\":123,\"external_log\":[]}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, nullLogParamJson);
+    std::string crash3Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash3Md5Sum, crash2Md5Sum);
+
+    std::string logErrTypeParamJson = "{\"time\":123,\"external_log\":[123]}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, logErrTypeParamJson);
+    std::string crash4Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash4Md5Sum, crash3Md5Sum);
+
+    std::string hasLogParamJson1 = "{\"time\":123,\"external_log\":[\"testPath\"]}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, hasLogParamJson1);
+    std::string crash5Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash5Md5Sum, crash4Md5Sum);
+
+    std::string hasLogParamJson2 = "{\"time\":123,\"external_log\":[\"\"]}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, hasLogParamJson2);
+    std::string crash6Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash6Md5Sum, crash5Md5Sum);
+
+    std::string hasLogParamJson3 = "{\"time\":123,\"external_log\":[\"/data/storage/el2/log/test.txt\"]}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, hasLogParamJson3);
+    std::string crash7Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(crash7Md5Sum, crash6Md5Sum);
+}
+
+/**
+ * @tc.name: EventPublishTest007
+ * @tc.desc: used to test PushEvent in WriteEventJson
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest007, TestSize.Level1)
+{
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    std::string hasbusinessjank = "{\"time\":12,\"is_business_jank\":12}";
+    EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, hasbusinessjank);
+    std::string curMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(curMd5Sum, beginMd5Sum);
+}
+
+/**
+ * @tc.name: EventPublishTest008
+ * @tc.desc: used to test PushEvent when the event is not immediate os event
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest008, TestSize.Level1)
+{
+    uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+    EXPECT_GT(testUid, 0);
+    std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+    bool existRes = FileExists(testDatabaseWALPath);
+    EXPECT_TRUE(existRes);
+    std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+    EventPublish::GetInstance().PushEvent(testUid, "SCROLL_JANK", HiSysEvent::EventType::FAULT, "{\"time\":123}");
+    std::string tempPath = PATH_DIR + "/hiappevent_" + std::to_string(testUid) + ".evt";
+    std::string curLine;
+    std::string endMd5Sum;
+    if (LoadlastLineFromFile(tempPath, curLine)) {  // has not reported
+        EXPECT_NE(curLine.find("SCROLL_JANK"), std::string::npos);
+        std::cout << "sleep " << DELAY_TIME_FOR_REPORT << "s for testing non-real-time event delay report" << std::endl;
+        std::cout << "please keep the test demo in the foreground, otherwise it may cause failure" << std::endl;
+        sleep(DELAY_TIME_FOR_REPORT);
+        endMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+    }
+    endMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+    EXPECT_NE(endMd5Sum, beginMd5Sum);
 }
