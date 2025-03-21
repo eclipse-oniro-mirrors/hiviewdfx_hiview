@@ -50,7 +50,6 @@ constexpr int64_t DEFAULT_INT_VALUE = 0;
 constexpr uint64_t DEFAULT_UINT_VALUE = 0;
 constexpr double DEFAULT_DOUBLE_VALUE = 0.0;
 constexpr size_t BLOCK_SIZE_OFFSET = sizeof(int32_t);
-constexpr char PERIOD_SEQ_KEY[] = "period_seq_";
 constexpr size_t PERIOD_SEQ_INFO_ITEM_CNT = 3;
 
 template<typename T>
@@ -603,12 +602,15 @@ void SysEvent::SetEventPeriodSeqInfo(const EventPeriodSeqInfo& info)
     periodSeqStr.append(" ").append(std::to_string(info.isNeedExport ? 1 : 0));
     // append period sequence
     periodSeqStr.append(" ").append(std::to_string(info.periodSeq));
-    SetEventValue(PERIOD_SEQ_KEY, periodSeqStr);
+    SetValue("period_seq_", periodSeqStr);
 }
 
 EventPeriodSeqInfo SysEvent::GetEventPeriodSeqInfo()
 {
-    std::string periodSeqStr = GetEventValue(PERIOD_SEQ_KEY);
+    std::string periodSeqStr = GetValue("period_seq_");
+    if (periodSeqStr.empty()) {
+        periodSeqStr = GetEventValue("period_seq_");
+    }
     std::vector<std::string> allInfo;
     StringUtil::SplitStr(periodSeqStr, " ", allInfo);
     EventPeriodSeqInfo eventPeriodSeqInfo;
