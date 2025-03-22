@@ -86,7 +86,7 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(UColl
     }
     TraceRet ret = strategy->DoDump(result.data);
     result.retCode = GetUcError(ret);
-    HIVIEW_LOGI("caller%{public}s, retCode = %{public}d, data.size = %{public}zu.", EnumToString(caller).c_str(),
+    HIVIEW_LOGI("caller:%{public}s, retCode = %{public}d, data.size = %{public}zu.", EnumToString(caller).c_str(),
         result.retCode, result.data.size());
     return result;
 }
