@@ -165,6 +165,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
     sysEvent2->happenTime_ = TimeUtil::GetMilliseconds();
     std::shared_ptr<OHOS::HiviewDFX::Event> event2 = std::static_pointer_cast<Event>(sysEvent2);
     EXPECT_EQ(eventLogger->OnEvent(event2), true);
+    eventLogger->OnUnload();
 }
 
 /**
@@ -610,6 +611,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_001, TestSize.L
     eventLogger->ReportUserPanicWarning(sysEvent3, pid);
 #endif
     EXPECT_TRUE(true);
+    eventLogger->OnUnload();
 }
 
 /**
@@ -738,6 +740,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
     eventLogger->OnUnload();
     EXPECT_EQ(EventFocusListener::registerState_, EventFocusListener::UNREGISTERED);
 #endif
+    eventLogger->OnUnload();
 }
 
 /**
@@ -929,6 +932,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_SetEventTerminalBinder_001, TestSize.L
     event->eventName_ = "IPC_FULL";
     eventLogger->SetEventTerminalBinder(event, threadStack, 0);
     EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "ipc_full thread stack");
+    eventLogger->OnUnload();
 }
 
 /**
