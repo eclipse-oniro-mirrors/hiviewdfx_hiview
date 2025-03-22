@@ -15,7 +15,7 @@
 <configuration ver="2.0">
     <target name="EventPublishTest">
         <preparer>
-            <option name="push" value="tests/unittest/hiview/base/event_publish/EventPublishJsTest.hap -> /data/" src="out"/>
+            <option name="push" value="tests/unittest/hiview/hiview/event_publish/EventPublishJsTest.hap -> /data/" src="out"/>
         </preparer>
         <cleaner>
             <option name="shell" value="rm -rf /data/EventPublishJsTest.hap"/>
