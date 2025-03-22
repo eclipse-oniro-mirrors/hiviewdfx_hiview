@@ -29,7 +29,7 @@ using namespace OHOS::HiviewDFX::Hitrace;
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-DEFINE_LOG_TAG("TraceStrategy");
+DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
 const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
