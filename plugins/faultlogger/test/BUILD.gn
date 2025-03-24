@@ -51,8 +51,12 @@ ohos_unittest("FaultloggerUnittest") {
     "common/unittest/dfx_bundle_util_unittest.cpp",
     "common/unittest/faultlog_formatter_unittest.cpp",
     "common/unittest/faultlogger_unittest.cpp",
-    "common/unittest/rom_baseline.cpp",
   ]
+
+  if (!use_clang_coverage) {
+    sources += [ "common/unittest/rom_baseline.cpp" ]
+  }
+
   cflags_cc = [
     "-Dprivate=public",
     "-Dprotected=public",
