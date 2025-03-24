@@ -53,6 +53,7 @@ ohos_fuzztest("FaultloggerServiceFuzzTest") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
+    "safwk:system_ability_fwk",
   ]
   resource_config_file =
       "$hiview_faultlogger/test/common/resource/ohos_test.xml"
