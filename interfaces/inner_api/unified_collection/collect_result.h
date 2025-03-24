@@ -40,7 +40,6 @@ enum UcError {
     TRACE_INVALID_MAX_DURATION = 1011,
     TRACE_STATE_ERROR = 1012,
     TRACE_OPEN_ERROR = 1013,
-    TRACE_SUCCESS_WITH_CACHE = 1099,
 
     // trace flow control policy
     TRACE_OVER_FLOW = 1100,

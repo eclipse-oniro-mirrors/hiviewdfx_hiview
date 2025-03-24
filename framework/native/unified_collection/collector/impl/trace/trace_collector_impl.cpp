@@ -60,7 +60,7 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(
     auto strategy = std::make_shared<TelemetryStrategy>(pidList, timeLimit, happenTime, ModuleToString(module));
     TraceRet ret = strategy->DoDump(result.data);
     result.retCode = GetUcError(ret);
-    HIVIEW_LOGI("caller%{public}s: retCode = %{public}d, file number = %{public}zu.", ModuleToString(module).c_str(),
+    HIVIEW_LOGI("caller:%{public}s retCode = %{public}d, file number = %{public}zu.", ModuleToString(module).c_str(),
         result.retCode, result.data.size());
     return result;
 }

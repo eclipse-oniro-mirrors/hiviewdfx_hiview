@@ -121,6 +121,13 @@ HWTEST_F(EventBaseTest, EventTest001, testing::ext::TestSize.Level0)
     ASSERT_EQ(ret, -1); // unknown value
     ret = event.GetIntValue("I32_KEY");
     ASSERT_EQ(ret, i32v);
+
+    int64_t i64v = 189;
+    event.SetValue("I64_KEY", static_cast<int32_t>(i64v));
+    int64_t ret2 = event.GetInt64Value("UNKNOWN_KEY");
+    ASSERT_EQ(ret2, -1); // unknown value
+    ret2 = event.GetInt64Value("I64_KEY");
+    ASSERT_EQ(ret2, i64v);
 }
 
 /**

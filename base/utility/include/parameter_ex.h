@@ -22,7 +22,6 @@ constexpr char KEY_BUILD_CHARACTER[] = "ro.build.characteristics";
 constexpr char KEY_HIVIEW_VERSION_TYPE[] = "const.logsystem.versiontype";
 constexpr char KEY_DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
-constexpr char HIVIEW_UCOLLECTION_TEST_APP_TRACE_STATE[] = "hiviewdfx.ucollection.testapptrace";
 constexpr char DEVELOP_HIVIEW_TRACE_RECORDER[] = "persist.hiview.trace_recorder";
 constexpr char KEY_LABORATORY_MODE_STATE[] = "persist.sys.hiview.testtype";
 constexpr char KEY_LEAKDECTOR_MODE_STATE[] = "persist.hiview.leak_detector";

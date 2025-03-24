@@ -32,7 +32,6 @@ namespace HiviewDFX {
 namespace {
 const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::SUCCESS, UcError::SUCCESS},
-    {TraceErrorCode::SUCCESS_WITH_CACHE, UcError::TRACE_SUCCESS_WITH_CACHE},
     {TraceErrorCode::TRACE_NOT_SUPPORTED, UcError::UNSUPPORT},
     {TraceErrorCode::TRACE_IS_OCCUPIED, UcError::TRACE_IS_OCCUPIED},
     {TraceErrorCode::TAG_ERROR, UcError::TRACE_TAG_ERROR},
@@ -76,6 +75,7 @@ struct DumpEvent {
     int32_t sysMemFree = 0;
     int32_t sysMemAvail = 0;
     int32_t sysCpu = 0;
+    uint8_t traceMode = 0;
 };
 
 namespace TelemetryEvent {

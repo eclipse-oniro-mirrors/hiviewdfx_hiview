@@ -244,21 +244,18 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
         std::string traceFile = FileUtil::ExtractFileName(trace);
         const std::string dst = UNIFIED_SPECIAL_PATH + prefix + "_" + traceFile;
         files.push_back(dst);
-        if (FileUtil::FileExists(dst)) {
-            HIVIEW_LOGI("the file:%{public}s has been copied", dst.c_str());
-            continue;
-        }
         // copy trace immediately for betaclub and screen recording
         if (prefix == CallerName::OTHER) {
             CopyFile(trace, dst);
             continue;
         }
-
-        // copy trace in ffrt asynchronously
-        UcollectionTask traceTask = [=]() {
-            CopyFile(trace, dst);
-        };
-        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+        if (!FileUtil::FileExists(dst)) {
+            // copy trace in ffrt asynchronously
+            UcollectionTask traceTask = [=]() {
+                CopyFile(trace, dst);
+            };
+            TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+        }
     }
     return files;
 }
@@ -297,7 +294,8 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
         "SYS_MEM_TOTAL", dumpEvent.sysMemTotal,
         "SYS_MEM_FREE", dumpEvent.sysMemFree,
         "SYS_MEM_AVAIL", dumpEvent.sysMemAvail,
-        "SYS_CPU", dumpEvent.sysCpu);
+        "SYS_CPU", dumpEvent.sysCpu,
+        "TRACE_MODE", dumpEvent.traceMode);
     if (ret != 0) {
         HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
     }
@@ -316,7 +314,7 @@ UcError GetUcError(TraceRet ret)
 {
     if (ret.stateError_ != TraceStateCode::SUCCESS) {
         return TransStateToUcError(ret.stateError_);
-    } else if (ret.codeError_!= TraceErrorCode::SUCCESS && ret.codeError_ != TraceErrorCode::SUCCESS_WITH_CACHE) {
+    } else if (ret.codeError_!= TraceErrorCode::SUCCESS) {
         return TransCodeToUcError(ret.codeError_);
     } else if (ret.flowError_ != TraceFlowCode::TRACE_ALLOW) {
         return TransFlowToUcError(ret.flowError_);

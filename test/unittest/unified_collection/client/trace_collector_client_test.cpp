@@ -194,7 +194,11 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     appCaller.endTime = appCaller.happenTime + 100; // 100: ms
     auto result = traceCollector->CaptureDurationTrace(appCaller);
     std::cout << "retCode=" << result.retCode << ", data=" << result.data << std::endl;
-    ASSERT_TRUE(result.data == 0);
+    if (IsCommonState()) {
+        ASSERT_EQ(result.retCode, UcError::TRACE_OPEN_ERROR);
+    } else {
+        ASSERT_EQ(result.retCode, UcError::SUCCESS);
+    }
 
     AppCaller appCaller2;
     appCaller2.actionId = ACTION_ID_DUMP_TRACE;
@@ -209,7 +213,10 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     appCaller2.endTime = appCaller.happenTime + 100; // 100: ms
     auto result2 = traceCollector->CaptureDurationTrace(appCaller2);
     std::cout << "retCode=" << result2.retCode << ", data=" << result2.data << std::endl;
-    ASSERT_NE(result2.retCode, UcError::TRACE_STATE_ERROR);
+    if (IsCommonState()) {
+        ASSERT_EQ(result2.retCode, UcError::TRACE_STATE_ERROR);
+    } else {
+        ASSERT_NE(result2.retCode, UcError::TRACE_STATE_ERROR);
+    }
     DisablePermissionAccess();
-    Sleep();
 }
