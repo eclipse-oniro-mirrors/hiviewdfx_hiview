@@ -81,23 +81,23 @@ public:
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 {
-    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::FOUNDATION, TEST_DB_PATH);
-    int64_t traceSize1 = 149 * 1024 * 1024; // foundation trace Threshold is 150M
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH);
+    int64_t traceSize1 = 699 * 1024 * 1024; // xpower trace Threshold is 150M
     ASSERT_TRUE(flowController1->NeedDump());
     ASSERT_TRUE(flowController1->NeedUpload(traceSize1));
     flowController1->StoreDb();
 
     sleep(1);
-    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::FOUNDATION, TEST_DB_PATH);
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH);
     ASSERT_TRUE(flowController2->NeedDump());
 
     // NeedUpload allow 10% over limits
-    int64_t traceSize2 = 15 * 1024 * 1024;
+    int64_t traceSize2 = 70 * 1024 * 1024;
     ASSERT_TRUE(flowController2->NeedUpload(traceSize2));
     flowController2->StoreDb();
 
     sleep(1);
-    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::FOUNDATION, TEST_DB_PATH);
+    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH);
     ASSERT_FALSE(flowController3->NeedDump());
 }
 

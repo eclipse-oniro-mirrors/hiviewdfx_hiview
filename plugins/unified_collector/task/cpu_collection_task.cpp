@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +17,12 @@
 #include <unistd.h>
 
 #include "common_utils.h"
+#ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
+#include "dump_trace_controller.h"
+#endif
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "time_util.h"
 #include "trace_collector.h"
 
 using namespace OHOS::HiviewDFX::UCollectUtil;
@@ -26,12 +30,6 @@ using namespace OHOS::HiviewDFX::UCollectUtil;
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("Hiview-CpuCollectionTask");
-struct CpuThresholdItem {
-    std::string processName;
-    UCollect::TraceCaller caller;
-    double cpuLoadThreshold = 0.0;
-    bool hasOverThreshold = false;
-};
 
 CpuCollectionTask::CpuCollectionTask(const std::string& workPath) : workPath_(workPath)
 {
@@ -41,6 +39,10 @@ CpuCollectionTask::CpuCollectionTask(const std::string& workPath) : workPath_(wo
     }
 #ifdef HAS_HIPERF
     InitCpuPerfDump();
+#endif
+
+#ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
+    InitDumpTraceController();
 #endif
 }
 
@@ -75,36 +77,19 @@ void CpuCollectionTask::ReportCpuCollectionEvent()
     cpuStorage_->Report();
 }
 
-void CpuCollectionTask::CheckAndDumpTraceData()
+#ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
+void CpuCollectionTask::InitDumpTraceController()
 {
-    static std::vector<CpuThresholdItem> checkItems = {
-        {"hiview", UCollect::TraceCaller::HIVIEW, 0.07, false}, // 0.07 : 7% cpu load
-        {"foundation", UCollect::TraceCaller::FOUNDATION, 0.2, false}, // 0.2 : 20% cpu load
+    CpuThresholdItem hiviewCpuThresholdItem = {
+        .caller = UCollect::TraceCaller::HIVIEW,
+        .dumpTraceInterval = 120, // 120 : two minutes
+        .cpuLoadThreshold = 0.07, // 0.07 : 7% cpu load
+        .processName = "hiview"
     };
-
-    for (auto &item : checkItems) {
-        int32_t pid = CommonUtils::GetPidByName(item.processName);
-        if (pid <= 0) {
-            HIVIEW_LOGW("get pid failed, process:%{public}s", item.processName.c_str());
-            continue;
-        }
-        auto processCpuStatInfo = cpuCollector_->CollectProcessCpuStatInfo(pid);
-        double cpuLoad = processCpuStatInfo.data.cpuLoad;
-        if (!item.hasOverThreshold && cpuLoad >= item.cpuLoadThreshold) {
-            HIVIEW_LOGI("over threshold, current cpu load:%{public}f", cpuLoad);
-            item.hasOverThreshold = true;
-            return;
-        }
-
-        // when cpu load restore to normal, start capture history trace
-        if (item.hasOverThreshold && cpuLoad < item.cpuLoadThreshold) {
-            HIVIEW_LOGI("capture history trace");
-            auto traceCollector = TraceCollector::Create();
-            traceCollector->DumpTrace(item.caller);
-            item.hasOverThreshold = false;
-        }
-    }
+    std::vector<CpuThresholdItem> items = {hiviewCpuThresholdItem};
+    dumpTraceController_ = std::make_shared<DumpTraceController>(items);
 }
+#endif
 
 void CpuCollectionTask::CollectCpuData()
 {
@@ -129,7 +114,7 @@ void CpuCollectionTask::CollectCpuData()
 
 #ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
     if (Parameter::IsBetaVersion()) {
-        CheckAndDumpTraceData();
+        dumpTraceController_->CheckAndDumpTrace();
     }
 #endif
 }

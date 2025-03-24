@@ -24,6 +24,13 @@ config("trace_manager_config") {
   ]
 }
 
+ohos_prebuilt_etc("trace_quota_config.json") {
+  source = "config/trace_quota_config.json"
+  relative_install_dir = "hiview"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
 ohos_source_set("trace_manager_source") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -40,13 +47,18 @@ ohos_source_set("trace_manager_source") {
     "src/trace_behavior_storage.cpp",
     "src/trace_db_callback.cpp",
     "src/trace_flow_controller.cpp",
+    "src/trace_quota_config.cpp",
     "src/trace_state_machine.cpp",
     "src/trace_storage.cpp",
   ]
 
-  deps = [ "$hiview_base:hiviewbase" ]
+  deps = [
+    ":trace_quota_config.json",
+    "$hiview_base:hiviewbase",
+  ]
 
   external_deps = [
+    "cJSON:cjson",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hitrace:hitrace_dump",

@@ -24,7 +24,6 @@ constexpr char KEY_DEVELOPER_MODE_STATE[] = "const.security.developermode.state"
 constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
 constexpr char HIVIEW_UCOLLECTION_TEST_APP_TRACE_STATE[] = "hiviewdfx.ucollection.testapptrace";
 constexpr char DEVELOP_HIVIEW_TRACE_RECORDER[] = "persist.hiview.trace_recorder";
-constexpr char KEY_LABORATORY_MODE_STATE[] = "persist.sys.hiview.testtype";
 constexpr char KEY_LEAKDECTOR_MODE_STATE[] = "persist.hiview.leak_detector";
 namespace Parameter {
 enum UserType: uint8_t {
@@ -48,7 +47,6 @@ bool IsOversea();
 UserType GetUserType();
 bool IsUCollectionSwitchOn();
 bool IsTraceCollectionSwitchOn();
-bool IsLaboratoryMode();
 bool IsTestAppTraceOn();
 bool IsLeakStateMode();
 std::string GetDeviceTypeStr();

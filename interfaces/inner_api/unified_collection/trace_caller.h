@@ -26,8 +26,7 @@ enum TraceCaller {
     XPOWER,
     BETACLUB,
     OTHER,
-    HIVIEW,
-    FOUNDATION
+    HIVIEW
 };
 
 // Used for ipc client interface, for outside

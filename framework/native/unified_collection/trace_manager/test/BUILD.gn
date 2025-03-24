@@ -33,7 +33,10 @@ ohos_unittest("TraceManagerTest") {
 
   configs = [ ":trace_manager_test_config" ]
 
-  sources = [ "trace_manager_test.cpp" ]
+  sources = [
+    "trace_manager_test.cpp",
+    "trace_quota_config_test.cpp",
+  ]
 
   deps = [
     "$hiview_base/utility:hiview_utility",

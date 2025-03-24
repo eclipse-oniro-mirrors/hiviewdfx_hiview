@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "parameter_ex.h"
 #include "time_util.h"
 #include "trace_common.h"
+#include "trace_quota_config.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -30,11 +31,6 @@ const std::string TABLE_NAME = "trace_flow_control";
 const std::string COLUMN_SYSTEM_TIME = "system_time";
 const std::string COLUMN_CALLER_NAME = "caller_name";
 const std::string COLUMN_USED_SIZE = "used_size";
-const int64_t XPERF_SIZE = 1800 * 1024 * 1024;
-const int64_t XPOWER_SIZE = 700 * 1024 * 1024;
-const int64_t HIVIEW_SIZE = 350 * 1024 * 1024;
-const int64_t RELIABILITY_SIZE = 750 * 1024 * 1024;
-const int64_t FOUNDATION_SIZE = 150 * 1024 * 1024;
 const float TEN_PERCENT_LIMIT = 0.1;
 
 NativeRdb::ValuesBucket GetBucket(const TraceFlowRecord& traceFlowRecord)
@@ -46,17 +42,11 @@ NativeRdb::ValuesBucket GetBucket(const TraceFlowRecord& traceFlowRecord)
     return bucket;
 }
 
-int64_t GetActualReliabilitySize()
-{
-    return Parameter::IsLaboratoryMode() ? RELIABILITY_SIZE * 5 : RELIABILITY_SIZE; // 5 : laboratory largen 5 times
-}
-
 const std::map<std::string, int64_t> TRACE_QUOTA = {
-    {CallerName::XPERF, XPERF_SIZE},
-    {CallerName::XPOWER, XPOWER_SIZE},
-    {CallerName::RELIABILITY, GetActualReliabilitySize()},
-    {CallerName::HIVIEW, HIVIEW_SIZE},
-    {CallerName::FOUNDATION, FOUNDATION_SIZE},
+    {CallerName::XPERF, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::XPERF)},
+    {CallerName::XPOWER, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::XPOWER)},
+    {CallerName::RELIABILITY, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::RELIABILITY)},
+    {CallerName::HIVIEW, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::HIVIEW)},
 };
 }
 
