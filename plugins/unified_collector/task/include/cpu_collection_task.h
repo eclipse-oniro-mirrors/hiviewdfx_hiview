@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include "cpu_collector.h"
 #include "cpu_storage.h"
 #include "cpu_perf_dump.h"
+#include "dump_trace_controller.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -38,7 +39,10 @@ private:
 #endif
     void ReportCpuCollectionEvent();
     void CollectCpuData();
-    void CheckAndDumpTraceData();
+#ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
+    void InitDumpTraceController();
+    std::shared_ptr<DumpTraceController> dumpTraceController_;
+#endif
 
 private:
     std::string workPath_;

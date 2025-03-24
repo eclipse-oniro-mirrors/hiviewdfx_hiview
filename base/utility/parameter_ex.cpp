@@ -118,12 +118,6 @@ bool IsTraceCollectionSwitchOn()
     return traceCollectionState == "true";
 }
 
-bool IsLaboratoryMode()
-{
-    std::string laboratoryState = GetString(KEY_LABORATORY_MODE_STATE, "");
-    return laboratoryState == "reliability";
-}
-
 std::string GetDeviceTypeStr()
 {
     static std::string deviceType = OHOS::system::GetDeviceType();

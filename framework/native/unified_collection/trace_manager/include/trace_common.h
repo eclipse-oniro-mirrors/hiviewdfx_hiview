@@ -31,7 +31,6 @@ const std::string XPERF = "Xperf";
 const std::string XPOWER = "Xpower";
 const std::string RELIABILITY = "Reliability";
 const std::string HIVIEW = "Hiview";
-const std::string FOUNDATION = "Foundation";
 const std::string BETACLUB = "BetaClub";
 const std::string OTHER = "Other";
 };

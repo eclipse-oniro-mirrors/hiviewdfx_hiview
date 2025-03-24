@@ -381,7 +381,6 @@
         "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::NotifyProcessState(int, OHOS::HiviewDFX::UCollectUtil::ProcessState, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::UnloadModule(void*)";
         "OHOS::HiviewDFX::SysEvent::SetLog(unsigned char)";
-        "OHOS::HiviewDFX::Parameter::IsLaboratoryMode()";
         "OHOS::HiviewDFX::EventRaw::RawData::RawData(unsigned char*, unsigned int)";
         "OHOS::HiviewDFX::EventStore::SysEventDao::Backup()";
         "OHOS::HiviewDFX::EventStore::SysEventDao::GetDatabaseDir()";
