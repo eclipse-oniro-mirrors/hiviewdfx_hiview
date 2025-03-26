@@ -54,21 +54,18 @@ public:
 */
 HWTEST_F(PerfCollectorTest, PerfCollectorTest001, TestSize.Level1)
 {
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType != "wearable") {
-        auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::EVENTLOGGER);
-        vector<pid_t> selectPids = {getpid()};
-        std::string filename = "hiperf-";
-        filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
-        "%Y%m%d%H%M%S");
-        filename += ".data";
-        perfCollector->SetOutputFilename(filename);
-        perfCollector->SetSelectPids(selectPids);
-        perfCollector->SetTimeStopSec(3);
-        CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
-        std::cout << "collect perf data result" << data.retCode << std::endl;
-        ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-    }
+    auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::EVENTLOGGER);
+    vector<pid_t> selectPids = {getpid()};
+    std::string filename = "hiperf-";
+    filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+    "%Y%m%d%H%M%S");
+    filename += ".data";
+    perfCollector->SetOutputFilename(filename);
+    perfCollector->SetSelectPids(selectPids);
+    perfCollector->SetTimeStopSec(3);
+    CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
+    std::cout << "collect perf data result" << data.retCode << std::endl;
+    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
 }
 
 /**
@@ -78,22 +75,19 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest001, TestSize.Level1)
 */
 HWTEST_F(PerfCollectorTest, PerfCollectorTest002, TestSize.Level1)
 {
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType != "wearable") {
-        auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::XPOWER);
-        vector<pid_t> selectPids = {getpid()};
-        std::string filename = "hiperf-";
-        filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
-        "%Y%m%d%H%M%S");
-        filename += ".data";
-        std::string filepath = PERF_TEST_DIR + filename;
-        perfCollector->SetOutputFilename(filename);
-        perfCollector->SetSelectPids(selectPids);
-        perfCollector->SetTimeStopSec(3);
-        CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
-        std::cout << "collect perf data result" << data.retCode << std::endl;
-        ASSERT_EQ(FileUtil::FileExists(filepath), true);
-    }
+    auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::XPOWER);
+    vector<pid_t> selectPids = {getpid()};
+    std::string filename = "hiperf-";
+    filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+    "%Y%m%d%H%M%S");
+    filename += ".data";
+    std::string filepath = PERF_TEST_DIR + filename;
+    perfCollector->SetOutputFilename(filename);
+    perfCollector->SetSelectPids(selectPids);
+    perfCollector->SetTimeStopSec(3);
+    CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
+    std::cout << "collect perf data result" << data.retCode << std::endl;
+    ASSERT_EQ(FileUtil::FileExists(filepath), true);
 }
 
 /**
@@ -103,31 +97,28 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest002, TestSize.Level1)
 */
 HWTEST_F(PerfCollectorTest, PerfCollectorTest003, TestSize.Level1)
 {
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType != "wearable") {
-        auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::UNIFIED_COLLECTOR);
-        vector<pid_t> selectPids = {getpid()};
-        std::string filename = "hiperf-";
-        filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
-        "%Y%m%d%H%M%S");
-        filename += ".data";
-        std::string filepath = PERF_TEST_DIR + filename;
-        perfCollector->SetOutputFilename(filename);
-        perfCollector->SetTargetSystemWide(true);
-        perfCollector->SetCallGraph("fp");
-        std::vector<std::string> selectEvents = {"hw-cpu-cycles", "hw-instructions"};
-        perfCollector->SetSelectEvents(selectEvents);
-        CollectResult<bool> data = perfCollector->Prepare(PERF_TEST_DIR);
-        ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-        TimeUtil::Sleep(1);
-        data = perfCollector->StartRun();
-        ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-        TimeUtil::Sleep(1);
-        data = perfCollector->Stop();
-        ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-        std::cout << "collect perf data result" << data.retCode << std::endl;
-        ASSERT_EQ(FileUtil::FileExists(filepath), true);
-    }
+    auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::UNIFIED_COLLECTOR);
+    vector<pid_t> selectPids = {getpid()};
+    std::string filename = "hiperf-";
+    filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+    "%Y%m%d%H%M%S");
+    filename += ".data";
+    std::string filepath = PERF_TEST_DIR + filename;
+    perfCollector->SetOutputFilename(filename);
+    perfCollector->SetTargetSystemWide(true);
+    perfCollector->SetCallGraph("fp");
+    std::vector<std::string> selectEvents = {"hw-cpu-cycles", "hw-instructions"};
+    perfCollector->SetSelectEvents(selectEvents);
+    CollectResult<bool> data = perfCollector->Prepare(PERF_TEST_DIR);
+    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
+    TimeUtil::Sleep(1);
+    data = perfCollector->StartRun();
+    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
+    TimeUtil::Sleep(1);
+    data = perfCollector->Stop();
+    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
+    std::cout << "collect perf data result" << data.retCode << std::endl;
+    ASSERT_EQ(FileUtil::FileExists(filepath), true);
 }
 
 /**
@@ -137,24 +128,21 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest003, TestSize.Level1)
 */
 HWTEST_F(PerfCollectorTest, PerfCollectorTest004, TestSize.Level1)
 {
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType != "wearable") {
-        auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::PERFORMANCE_FACTORY);
-        vector<pid_t> selectPids = {getpid()};
-        std::string filename = "hiperf-";
-        filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
-        "%Y%m%d%H%M%S");
-        filename += ".data";
-        std::string filepath = PERF_TEST_DIR + filename;
-        perfCollector->SetOutputFilename(filename);
-        perfCollector->SetSelectPids(selectPids);
-        perfCollector->SetFrequency(100);
-        perfCollector->SetTimeStopSec(2);
-        perfCollector->SetCpuPercent(100);
-        CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
-        std::cout << "collect perf data result" << data.retCode << std::endl;
-        ASSERT_EQ(FileUtil::FileExists(filepath), true);
-    }
+    auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::PERFORMANCE_FACTORY);
+    vector<pid_t> selectPids = {getpid()};
+    std::string filename = "hiperf-";
+    filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+    "%Y%m%d%H%M%S");
+    filename += ".data";
+    std::string filepath = PERF_TEST_DIR + filename;
+    perfCollector->SetOutputFilename(filename);
+    perfCollector->SetSelectPids(selectPids);
+    perfCollector->SetFrequency(100);
+    perfCollector->SetTimeStopSec(2);
+    perfCollector->SetCpuPercent(100);
+    CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
+    std::cout << "collect perf data result" << data.retCode << std::endl;
+    ASSERT_EQ(FileUtil::FileExists(filepath), true);
 }
 
 /**
@@ -164,23 +152,20 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest004, TestSize.Level1)
 */
 HWTEST_F(PerfCollectorTest, PerfCollectorTest005, TestSize.Level1)
 {
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType != "wearable") {
-        auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::PERFORMANCE_FACTORY);
-        vector<pid_t> selectPids = {getpid()};
-        std::string filename = "hiperf-";
-        filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
-        "%Y%m%d%H%M%S");
-        filename += ".data";
-        std::string filepath = PERF_TEST_DIR + filename;
-        perfCollector->SetOutputFilename(filename);
-        perfCollector->SetSelectPids(selectPids);
-        perfCollector->SetTimeStopSec(3);
-        perfCollector->SetReport(true);
-        CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
-        std::cout << "collect perf data result" << data.retCode << std::endl;
-        ASSERT_EQ(FileUtil::FileExists(filepath), true);
-    }
+    auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::PERFORMANCE_FACTORY);
+    vector<pid_t> selectPids = {getpid()};
+    std::string filename = "hiperf-";
+    filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+    "%Y%m%d%H%M%S");
+    filename += ".data";
+    std::string filepath = PERF_TEST_DIR + filename;
+    perfCollector->SetOutputFilename(filename);
+    perfCollector->SetSelectPids(selectPids);
+    perfCollector->SetTimeStopSec(3);
+    perfCollector->SetReport(true);
+    CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
+    std::cout << "collect perf data result" << data.retCode << std::endl;
+    ASSERT_EQ(FileUtil::FileExists(filepath), true);
 }
 
 /**
@@ -190,31 +175,28 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest005, TestSize.Level1)
 */
 HWTEST_F(PerfCollectorTest, PerfCollectorTest006, TestSize.Level1)
 {
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType != "wearable") {
-        vector<pid_t> selectPids = {getpid()};
-        std::string fileDir = PERF_TEST_DIR;
-        for (int index = 0; index < 5; ++index) { // 5 : start 5 threads to collect perf data
-            std::string fileName = "concurrency-hiperf-" + std::to_string(index) + ".data";
-            std::thread([fileDir, fileName, selectPids]() {
-                auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::EVENTLOGGER);
-                perfCollector->SetOutputFilename(fileName);
-                perfCollector->SetSelectPids(selectPids);
-                perfCollector->SetTimeStopSec(3); // 3 : perf collection will stop after this time
-                CollectResult<bool> data = perfCollector->StartPerf(fileDir);
-            }).detach();
-        }
-        sleep(5); // 5 : wati 5 seconds to ensure perf collection is completed
-        std::vector<std::string> files;
-        FileUtil::GetDirFiles(PERF_TEST_DIR, files, false);
-        int perfDataCount = 0;
-        for (const auto& file : files) {
-            if (StringUtil::StartWith(FileUtil::ExtractFileName(file), "concurrency")) {
-                ++perfDataCount;
-            }
-        }
-        ASSERT_EQ(perfDataCount, 2); // 2 : max perf count for eventlogger simultaneously
+    vector<pid_t> selectPids = {getpid()};
+    std::string fileDir = PERF_TEST_DIR;
+    for (int index = 0; index < 5; ++index) { // 5 : start 5 threads to collect perf data
+        std::string fileName = "concurrency-hiperf-" + std::to_string(index) + ".data";
+        std::thread([fileDir, fileName, selectPids]() {
+            auto perfCollector = UCollectUtil::PerfCollector::Create(PerfCaller::EVENTLOGGER);
+            perfCollector->SetOutputFilename(fileName);
+            perfCollector->SetSelectPids(selectPids);
+            perfCollector->SetTimeStopSec(3); // 3 : perf collection will stop after this time
+            CollectResult<bool> data = perfCollector->StartPerf(fileDir);
+        }).detach();
     }
+    sleep(5); // 5 : wati 5 seconds to ensure perf collection is completed
+    std::vector<std::string> files;
+    FileUtil::GetDirFiles(PERF_TEST_DIR, files, false);
+    int perfDataCount = 0;
+    for (const auto& file : files) {
+        if (StringUtil::StartWith(FileUtil::ExtractFileName(file), "concurrency")) {
+            ++perfDataCount;
+        }
+    }
+    ASSERT_EQ(perfDataCount, 2); // 2 : max perf count for eventlogger simultaneously
 }
 #else
 /**

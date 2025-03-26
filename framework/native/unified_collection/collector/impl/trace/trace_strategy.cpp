@@ -131,10 +131,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
 
 bool TraceDevStrategy::IsMine(const std::string &fileName)
 {
-    bool result = fileName.find(caller_) != std::string::npos;
-    HIVIEW_LOGI("TraceDevStrategy caller_:%{public}s fileName:%{public}s result:%{public}d", caller_.c_str(),
-        fileName.c_str(), result);
-    return result;
+    return fileName.find(caller_) != std::string::npos;
 }
 
 TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
@@ -293,10 +290,7 @@ void TraceAppStrategy::InnerReportMainThreadJankForTrace(std::shared_ptr<AppCall
 
 bool TraceAppStrategy::IsMine(const std::string &fileName)
 {
-    if (fileName.find("/" + ClientName::APP) != std::string::npos) {
-        return true;
-    }
-    return false;
+    return fileName.find("/" + ClientName::APP) != std::string::npos;
 }
 
 void TraceAppStrategy::CleanOldAppTrace()
