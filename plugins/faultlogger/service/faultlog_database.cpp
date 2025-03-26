@@ -50,7 +50,8 @@ bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, Fault
     auto sysEvent = std::make_unique<SysEvent>("FaultLogDatabase", nullptr, rawData);
     constexpr string::size_type first200Bytes = 200;
     constexpr int64_t defaultIntValue = 0;
-    info.time = static_cast<int64_t>(std::atoll(sysEvent->GetEventValue("HAPPEN_TIME").c_str()));
+    constexpr int decimalBase = 10;
+    info.time = static_cast<int64_t>(strtoll(sysEvent->GetEventValue("HAPPEN_TIME").c_str(), nullptr, decimalBase));
     if (info.time == defaultIntValue) {
         info.time = sysEvent->GetEventIntValue("HAPPEN_TIME") != defaultIntValue ?
                     sysEvent->GetEventIntValue("HAPPEN_TIME") : sysEvent->GetEventIntValue("time_");
@@ -60,7 +61,8 @@ bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, Fault
 
     info.id = sysEvent->GetEventIntValue("UID") != defaultIntValue ?
               sysEvent->GetEventIntValue("UID") : sysEvent->GetEventIntValue("uid_");
-    info.faultLogType = static_cast<int32_t>(std::stoi(sysEvent->GetEventValue("FAULT_TYPE").c_str()));
+    info.faultLogType = static_cast<int32_t>(
+        strtoul(sysEvent->GetEventValue("FAULT_TYPE").c_str(), nullptr, decimalBase));
     info.module = sysEvent->GetEventValue("MODULE");
     info.reason = sysEvent->GetEventValue("REASON");
     info.summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("SUMMARY"));
