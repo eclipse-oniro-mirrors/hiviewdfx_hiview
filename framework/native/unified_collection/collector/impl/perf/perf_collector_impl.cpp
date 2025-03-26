@@ -141,15 +141,7 @@ CollectResult<bool> PerfCollectorImpl::CheckUseCount()
 
 CollectResult<bool> PerfCollectorImpl::StartPerf(const std::string &logDir)
 {
-    CollectResult<bool> result;
-    std::string deviceType = Parameter::GetDeviceTypeStr();
-    if (deviceType == "wearable") {
-        HIVIEW_LOGI("device not support");
-        result.data = false;
-        result.retCode = UcError::PERF_COLLECT_UNSUPPORT;
-        return result;
-    }
-    result = CheckUseCount();
+    CollectResult<bool> result = CheckUseCount();
     if (result.retCode != UCollect::UcError::SUCCESS) {
         return result;
     }
