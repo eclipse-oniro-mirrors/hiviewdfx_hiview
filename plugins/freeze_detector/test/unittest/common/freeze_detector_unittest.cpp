@@ -32,6 +32,7 @@
 #include "freeze_detector_plugin.h"
 #undef private
 #include "sys_event.h"
+#include "sys_event_dao.h"
 #include "watch_point.h"
 
 using namespace testing::ext;
@@ -501,6 +502,77 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_011
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_011, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+    std::list<WatchPoint> list;
+    FreezeResult result;
+    result.SetId(2);
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    list.push_back(watchPoint1);
+    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    list.push_back(watchPoint2);
+    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), true);
+}
+
+/**
+ * @tc.name: FreezeVender_012
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_012, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("foundation")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+
+    std::vector<FreezeResult> result;
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+    vendor->MergeEventLog(watchPoint, list, result).empty();
+
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("FRAMEWORK")
+        .InitStringId("SERVICE_WARNING")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("foundation")
+        .Build();
+    list.push_back(watchPoint1);
+    ASSERT_TRUE(vendor->MergeEventLog(watchPoint1, list, result).empty());
+
+    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("FRAMEWORK")
+        .InitStringId("SERVICE_WARNING")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("FreezeVender_012")
+        .Build();
+    list.push_back(watchPoint2);
+    ASSERT_TRUE(vendor->MergeEventLog(watchPoint2, list, result).empty());
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
@@ -927,6 +999,66 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_002, TestSize.Level3)
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
     DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName()};
     db->SelectEventFromDB(start, end, list, params, result);
+}
+
+/**
+ * @tc.name: FreezeDBHelper_003
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_003, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"THREAD_BLOCK_3S", "type_":1, "time_":1501973701070, "tz_":
+    "+0800", "pid_":12000, "tid_":12000, "uid_":0, "FAULT_TYPE":"4", "PID":12000, "UID":0,
+    "MODULE":"FreezeDetectorUnittest", "REASON":"unittest for FreezeDetectorUnittest",
+    "SUMMARY":"summary for FreezeDBHelper", "LOG_PATH":"/data/log/test", "VERSION":"",
+    "HAPPEN_TIME":"1501973701", "PNAME":"/", "FIRST_FRAME":"/", "SECOND_FRAME":"/", "LAST_FRAME":"/", "FINGERPRINT":
+    "04c0d6f03c73da531f00eb112479a8a2f19f59fafba6a474dcbe455a13288f4d", "level_":"CRITICAL", "tag_":"STABILITY", "id_":
+    "17165544771317691984", "info_":""})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, jsonStr);
+    sysEvent->SetLevel("MINOR");
+    sysEvent->SetEventSeq(447); // 447: test seq
+    EventStore::SysEventDao::Insert(sysEvent);
+
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto db = std::make_unique<DBHelper>(freezeCommon);
+    ASSERT_NE(db, nullptr);
+    std::vector <WatchPoint> list;
+    unsigned long long start = 1501973701070;
+    unsigned long long end = 1501973701170;
+    DBHelper::WatchParams params = {12000, 0, start, "FreezeDetectorUnittest"};
+    auto result = FreezeResult(-14, "AAFWK", "THREAD_BLOCK_3S");
+    db->SelectEventFromDB(start, end, list, params, result);
+    auto result1 = FreezeResult(-6, "ACE", "UI_BLOCK_3S");
+    db->SelectEventFromDB(start, end, list, params, result1);
+    params = {10000, 10000, start, "FreezeDetectorUnittest"};
+    auto result2 = FreezeResult(-10, "AAFWK", "THREAD_BLOCK_3S");
+    result2.SetSamePackage("true");
+    db->SelectEventFromDB(start, end, list, params, result2);
+    ASSERT_TRUE(list.size() > 0);
+}
+
+/**
+ * @tc.name: FreezeDBHelper_004
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_004, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto db = std::make_unique<DBHelper>(freezeCommon);
+    ASSERT_NE(db, nullptr);
+    unsigned long long start = 1501973701070;
+    unsigned long long end = 1501973701170;
+    std::string domain = "AAFWK";
+    std::vector<std::string> eventNames;
+    eventNames.push_back("UI_BLOCK_3S");
+    eventNames.push_back("THREAD_BLOCK_3S");
+    eventNames.push_back("THREAD_BLOCK_6S");
+    std::vector<SysEvent> result = db->SelectRecords(start, end, domain, eventNames);
+    ASSERT_TRUE(result.size() > 0);
 }
 }
 }
