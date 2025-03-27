@@ -712,6 +712,9 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             stack = tempStack;
         }
         GetFailedDumpStackMsg(stack, event);
+        if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT") {
+            WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
+        }
     }
     if (!kernelStack.empty()) {
         queue_->submit([this, event, fd, kernelStack] { this->WriteKernelStackToFile(event, fd, kernelStack); },
