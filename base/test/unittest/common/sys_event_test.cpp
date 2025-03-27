@@ -667,5 +667,28 @@ HWTEST_F(SysEventTest, TestSetIdAndSetLog001, testing::ext::TestSize.Level3)
     std::string matchedLogContent = std::string("\"log_\":") + std::to_string(log);
     ASSERT_NE(eventStr.find(matchedLogContent), std::string::npos);
 }
+
+/**
+ * @tc.name: TestEventPeriodSeqInfo001
+ * @tc.desc: Test SetEventPeriodSeqInfo & GetEventPeriodSeqInfo & UpdatePeriodSeqInfoToRawData apis of SysEvent
+ * @tc.type: FUNC
+ * @tc.require: issueIBUPS7
+ */
+HWTEST_F(SysEventTest, TestEventPeriodSeqInfo001, testing::ext::TestSize.Level3)
+{
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, GetOriginTestString());
+    ASSERT_NE(sysEvent, nullptr);
+    auto eventPeriodSeqInfo = sysEvent->GetEventPeriodSeqInfo();
+    ASSERT_TRUE(eventPeriodSeqInfo.timeStamp.empty());
+    EventPeriodSeqInfo periodSeqInfo {"3025010101", true, 0};
+    sysEvent->SetEventPeriodSeqInfo(periodSeqInfo);
+    eventPeriodSeqInfo = sysEvent->GetEventPeriodSeqInfo();
+    ASSERT_EQ(periodSeqInfo.timeStamp, "3025010101");
+    ASSERT_TRUE(periodSeqInfo.isNeedExport);
+    ASSERT_EQ(periodSeqInfo.periodSeq, 0);
+    ASSERT_TRUE(sysEvent->GetEventValue("period_seq_").empty());
+    sysEvent->SetEventValue("period_seq_", sysEvent->GetValue("period_seq_"));
+    ASSERT_EQ(sysEvent->GetEventValue("period_seq_"), "3025010101 1 0");
+}
 } // HiviewDFX
 } // OHOS

@@ -136,6 +136,7 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
         // add seq to sys event and save it to local file
         int64_t eventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
         sysEvent->SetEventSeq(eventSeq);
+        sysEvent->SetEventValue("period_seq_", sysEvent->GetValue("period_seq_"));
         if (FocusedEventUtil::IsFocusedEvent(sysEvent->domain_, sysEvent->eventName_)) {
             HIVIEW_LOGI("event[%{public}s|%{public}s|%{public}" PRId64 "] is valid.",
                 sysEvent->domain_.c_str(), sysEvent->eventName_.c_str(), eventSeq);
