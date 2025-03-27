@@ -1002,22 +1002,37 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_003, TestSize.Level1)
  */
 HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level1)
 {
+    auto fd = open("/data/test/dumpstacktrace_file", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create dumpstacktrace_file. errno: %d\n", errno);
+        FAIL();
+    }
     int pid = getpid();
     std::string threadStack;
     int ret = LogCatcherUtils::DumpStacktrace(-1, pid, threadStack);
     EXPECT_EQ(ret, -1);
-    LogCatcherUtils::DumpStacktrace(1, pid, threadStack);
+    std::thread thread1([pid]{
+        auto fd1 = open("/data/test/dumpstacktrace_file1", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+        if (fd1 < 0) {
+            printf("Fail to create dumpstacktrace_file1. errno: %d\n", errno);
+            FAIL();
+        }
+        std::string threadStack1;
+        LogCatcherUtils::DumpStacktrace(fd1, pid, threadStack1);
+        close(fd1);
+    });
+    if (thread1.joinable()) {
+        thread1.detach();
+    }
+    ret = LogCatcherUtils::DumpStacktrace(fd, pid, threadStack);
+    close(fd);
     EXPECT_TRUE(threadStack.empty());
-    LogCatcherUtils::DumpStacktrace(2, pid, threadStack);
-    ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test\n", getprocpid());
     EXPECT_EQ(ret, 0);
-    ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test\n", getprocpid());
+    ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test 01\n", getprocpid());
+    EXPECT_EQ(ret, 0);
+    ret = LogCatcherUtils::WriteKernelStackToFd(200, "Test 02\n", getprocpid());
     EXPECT_EQ(ret, 0);
     ret = LogCatcherUtils::WriteKernelStackToFd(2, "Test", -1);
-    EXPECT_EQ(ret, -1);
-    ret = LogCatcherUtils::WriteKernelStackToFd(300, "Test\n", getprocpid());
-    EXPECT_EQ(ret, 0);
-    ret = LogCatcherUtils::WriteKernelStackToFd(3, "Test", -1);
     EXPECT_EQ(ret, -1);
 }
 
