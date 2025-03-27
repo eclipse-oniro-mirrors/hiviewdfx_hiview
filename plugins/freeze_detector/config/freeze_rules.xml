@@ -160,7 +160,7 @@
         <event window="0" domain="AAFWK" stringid="BUSSINESS_THREAD_BLOCK_6S">	<!-- BUSSINESS_THREAD_BLOCK_6S -->
           <result code="0" scope="app" samePackage="true"/>
         </event>
-        <event window="-14" domain="AAFWK" stringid="BUSSINESS_THREAD_BLOCK_3S">	<!-- BUSSINESS_THREAD_BLOCK_3S -->
+        <event window="-18" domain="AAFWK" stringid="BUSSINESS_THREAD_BLOCK_3S">	<!-- BUSSINESS_THREAD_BLOCK_3S -->
           <result code="0" scope="app" samePackage="true"/>
         </event>
       </links>
