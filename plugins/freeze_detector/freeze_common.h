@@ -30,6 +30,7 @@ const std::string FREEZE_DETECTOR_PLUGIN_VERSION = "1.0";
 class FreezeCommon {
 public:
     static constexpr const char* const EVENT_PID = "PID";
+    static constexpr const char* const EVENT_TID = "TID";
     static constexpr const char* const EVENT_UID = "UID";
     static constexpr const char* const EVENT_PACKAGE_NAME = "PACKAGE_NAME";
     static constexpr const char* const EVENT_PROCESS_NAME = "PROCESS_NAME";

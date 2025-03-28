@@ -745,7 +745,7 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
 {
     size_t indexOne = binderInfo.find(",");
     size_t indexTwo = binderInfo.rfind(",");
-    if (indexOne != std::string::npos && indexTwo != std::string::npos && indexTwo > indexOne && jsonFd >= 0) {
+    if (indexOne != std::string::npos && indexTwo != std::string::npos && indexTwo > indexOne) {
         HIVIEW_LOGI("Current binderInfo is? binderInfo:%{public}s", binderInfo.c_str());
         StringUtil::SplitStr(binderInfo.substr(indexOne + 1, indexTwo - indexOne - 1), " ", binderPids);
         int terminalBinderTid = std::atoi(binderInfo.substr(indexTwo + 1).c_str());
@@ -753,9 +753,11 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
         if (FileUtil::FileExists(binderPath)) {
             binderInfo = GetAppFreezeFile(binderPath);
         }
-        std::string binderInfoJsonStr;
-        ParsePeerBinder(binderInfo, binderInfoJsonStr);
-        FreezeJsonUtil::WriteKeyValue(jsonFd, "peer_binder", binderInfoJsonStr);
+        if (jsonFd >= 0) {
+            std::string binderInfoJsonStr;
+            ParsePeerBinder(binderInfo, binderInfoJsonStr);
+            FreezeJsonUtil::WriteKeyValue(jsonFd, "peer_binder", binderInfoJsonStr);
+        }
         ParsePeerStack(binderInfo, kernelStack);
         std::string terminalBinderTag = "Binder catcher stacktrace, terminal binder tag\n";
         size_t tagSize = terminalBinderTag.size();

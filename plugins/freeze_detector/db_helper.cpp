@@ -38,7 +38,7 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
             record->GetEventValue(FreezeCommon::EVENT_PROCESS_NAME) : packageName;
         long pid = record->GetEventIntValue(FreezeCommon::EVENT_PID);
         pid = pid ? pid : record->GetPid();
-        long tid = std::strtol(record->GetEventValue(EventStore::EventCol::TID).c_str(), nullptr, 0);
+        long tid = record->GetEventIntValue(FreezeCommon::EVENT_TID);
         if (result.GetSamePackage() == "true" && (watchParams.packageName != packageName || watchParams.pid != pid ||
             (watchParams.tid > 0 && tid > 0 && watchParams.tid != tid))) {
             HIVIEW_LOGE("failed to match query result, watchPoint = [%{public}s, %{public}ld, %{public}ld], "

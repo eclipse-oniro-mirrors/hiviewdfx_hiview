@@ -108,9 +108,9 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     SysEvent& sysEvent = static_cast<SysEvent&>(eventRef);
 
     long seq = sysEvent.GetSeq();
-    long tid = sysEvent.GetTid();
     long pid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_PID);
     pid = pid ? pid : sysEvent.GetPid();
+    long tid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_TID);
     long uid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_UID);
     uid = uid ? uid : sysEvent.GetUid();
     std::string packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
