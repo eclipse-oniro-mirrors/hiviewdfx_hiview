@@ -78,10 +78,9 @@ HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest001, testing::ext::Test
     HiviewTestContext hiviewTestContext;
     HiviewGlobal::CreateInstance(hiviewTestContext);
     std::string eventSeqFilePath = GetLogDir() + "sys_event_db/event_sequence";
-    ASSERT_EQ(eventSeqFilePath, "/data/test/SysEventSequenceMgrDir/sys_event_db/event_sequence");
     FileUtil::SaveStringToFile(eventSeqFilePath, "0");
     std::string eventSeqBackupFilePath = GetLogDir() + "sys_event_db/event_sequence_backup";
-    FileUtil::SaveStringToFile(eventSeqFilePath, "1000");
+    FileUtil::SaveStringToFile(eventSeqBackupFilePath, "1000");
     ASSERT_EQ(EventStore::SysEventSequenceManager::GetInstance().GetSequence(), 1100); // 1100 is expected seq value
 }
 

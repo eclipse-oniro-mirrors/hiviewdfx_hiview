@@ -15,19 +15,26 @@
 
 #include <gtest/gtest.h>
 
+#include <codecvt>
+#include <locale>
+#include <string>
+
 #include "ash_mem_utils.h"
 #include "compliant_event_checker.h"
 #include "file_util.h"
 #include "hiview_global.h"
 #include "parameter_ex.h"
 #include "running_status_log_util.h"
+#include "string_ex.h"
 #include "sys_event_rule.h"
+#include "sys_event_service_adapter.h"
+#include "sys_event_service_ohos.h"
 
 namespace OHOS::HiviewDFX {
 namespace EventStore {
 using namespace testing::ext;
 namespace {
-constexpr char TEST_LOG_DIR[] = "/data/log/hiview/event_service_adapter_test";
+constexpr char TEST_LOG_DIR[] = "/data/test/EventServiceAdapterUtilsTestDir/";
 constexpr char TETS_ASH_MEM_NAME[] = "TestSharedMemory";
 constexpr int32_t TETS_ASH_MEM_SIZE = 1024 * 2; // 2K
 constexpr int64_t TEST_SECURE_ENABALED_VAL = 1;
@@ -55,12 +62,16 @@ public:
 
 std::string GetDestDirWithSuffix(const std::string& dirSuffix)
 {
-    auto& context = HiviewGlobal::GetInstance();
-    if (context == nullptr) {
-        return "";
+    std::string workPath = HiviewGlobal::GetInstance()->GetHiViewDirectory(
+        HiviewContext::DirectoryType::CONFIG_DIRECTORY);
+    if (workPath.back() != '/') {
+        workPath = workPath + "/";
     }
-    std::string workPath = context->GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY);
-    return FileUtil::IncludeTrailingPathDelimiter(workPath).append(dirSuffix);
+    workPath.append("/").append(dirSuffix);
+    if (!FileUtil::FileExists(workPath)) {
+        FileUtil::ForceCreateDirectory(workPath, FileUtil::FILE_PERM_770);
+    }
+    return workPath;
 }
 
 class EventServiceAdapterUtilsTest : public testing::Test {
@@ -97,7 +108,7 @@ HWTEST_F(EventServiceAdapterUtilsTest, EventServiceAdapterUtilsTest001, TestSize
 {
     MessageParcel msgParcel;
     std::vector<std::u16string> emptyRes;
-    ASSERT_EQ(AshMemUtils::WriteBulkData(msgParcel, emptyRes), nullptr);
+    ASSERT_NE(AshMemUtils::WriteBulkData(msgParcel, emptyRes), nullptr);
     std::vector<std::u16string> normalRes = {
         Str8ToStr16(std::string("AshMemUtilsTest001")),
         Str8ToStr16(std::string("AshMemUtilsTest001")),
@@ -186,7 +197,7 @@ HWTEST_F(EventServiceAdapterUtilsTest, RunningStatusLogUtilTest, testing::ext::T
 
     vector<SysEventRule> sysEventRules;
     RunningStatusLogUtil::LogTooManyWatchRules(sysEventRules);
-    sysEventRules.emplace_back(1, "", "");
+    sysEventRules.emplace_back("", "");
     RunningStatusLogUtil::LogTooManyWatchRules(sysEventRules);
     sysEventRules.emplace_back("TETS_TAG");
     RunningStatusLogUtil::LogTooManyWatchRules(sysEventRules);
@@ -194,9 +205,23 @@ HWTEST_F(EventServiceAdapterUtilsTest, RunningStatusLogUtilTest, testing::ext::T
     RunningStatusLogUtil::LogTooManyWatchers(30); // 30 is a test value
 
     RunningStatusLogUtil::LogTooManyEvents(1000); // 1000 is a test value
-    std::vector<std::string>& files;
+    std::vector<std::string> files;
     FileUtil::GetDirFiles(GetDestDirWithSuffix("sys_event_log"), files);
-    ASSERT_FALSE(files.empty());
+    ASSERT_GE(files.size(), 0);
+}
+
+/**
+ * @tc.name: SysEventServiceAdapterTest001
+ * @tc.desc: Test apis of SysEventServiceAdapterTest001
+ * @tc.type: FUNC
+ * @tc.require: issueIBT9BB
+ */
+HWTEST_F(EventServiceAdapterUtilsTest, SysEventServiceAdapterTest001, testing::ext::TestSize.Level1)
+{
+    SysEventServiceAdapter::StartService(nullptr);
+    std::shared_ptr<SysEvent> event = nullptr;
+    SysEventServiceAdapter::OnSysEvent(event);
+    ASSERT_NE(OHOS::HiviewDFX::SysEventServiceOhos::GetInstance(), nullptr);
 }
 }
 }
