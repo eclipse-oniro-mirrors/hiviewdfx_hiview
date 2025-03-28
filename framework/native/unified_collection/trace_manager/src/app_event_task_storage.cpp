@@ -103,7 +103,9 @@ bool InnerQueryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::
         HIVIEW_LOGI("failed to query app task table=%{public}s", TABLE_NAME_TASK.c_str());
         return false;
     }
-    return InnerGetAppTask(resultSet, appEventTask);
+    bool result = InnerGetAppTask(resultSet, appEventTask);
+    resultSet->Close();
+    return result;
 }
 }
 

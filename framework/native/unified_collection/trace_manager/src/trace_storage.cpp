@@ -51,12 +51,12 @@ int64_t GetActualReliabilitySize()
     return Parameter::IsLaboratoryMode() ? RELIABILITY_SIZE * 5 : RELIABILITY_SIZE; // 5 : laboratory largen 5 times
 }
 
-const std::map<std::string, std::pair<std::string, int64_t>> TRACE_QUOTA = {
-    {CallerName::XPERF, {"xperf", XPERF_SIZE}},
-    {CallerName::XPOWER, {"xpower", XPOWER_SIZE}},
-    {CallerName::RELIABILITY, {"reliability", GetActualReliabilitySize()}},
-    {CallerName::HIVIEW, {"hiview", HIVIEW_SIZE}},
-    {CallerName::FOUNDATION, {"foundation", FOUNDATION_SIZE}},
+const std::map<std::string, int64_t> TRACE_QUOTA = {
+    {CallerName::XPERF, XPERF_SIZE},
+    {CallerName::XPOWER, XPOWER_SIZE},
+    {CallerName::RELIABILITY, GetActualReliabilitySize()},
+    {CallerName::HIVIEW, HIVIEW_SIZE},
+    {CallerName::FOUNDATION, FOUNDATION_SIZE},
 };
 }
 
@@ -72,7 +72,7 @@ void TraceStorage::InitTableRecord()
         HIVIEW_LOGE("caller_ is invalid");
         return;
     }
-    traceFlowRecord_.callerName = TRACE_QUOTA.at(caller_).first;
+    traceFlowRecord_.callerName = caller_;
     Query(traceFlowRecord_);
     HIVIEW_LOGI("systemTime:%{public}s, callerName:%{public}s, usedSize:%{public}" PRId64,
     traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(),
@@ -180,7 +180,7 @@ bool TraceStorage::NeedDump()
         HIVIEW_LOGE("Failed to find caller's quota");
         return false;
     }
-    auto quota = TRACE_QUOTA.at(caller_).second;
+    auto quota = TRACE_QUOTA.at(caller_);
     return traceFlowRecord_.usedSize < quota;
 }
 
@@ -191,7 +191,7 @@ bool TraceStorage::NeedUpload(int64_t traceSize)
         HIVIEW_LOGE("Failed to find caller's quota");
         return false;
     }
-    if (IsLowerLimit(traceFlowRecord_.usedSize, traceSize, TRACE_QUOTA.at(caller_).second)) {
+    if (IsLowerLimit(traceFlowRecord_.usedSize, traceSize, TRACE_QUOTA.at(caller_))) {
         traceFlowRecord_.usedSize += traceSize;
         return true;
     }
