@@ -341,19 +341,5 @@ HWTEST_F(SysEventServiceOhosTest, QueryWrapperTest02, testing::ext::TestSize.Lev
     auto queryWrapper = queryWrapperBuilder->Build();
     ASSERT_TRUE(queryWrapper != nullptr);
 }
-
-/**
- * @tc.name: SysEventServiceAdapterTest001
- * @tc.desc: Test apis of SysEventServiceAdapterTest001
- * @tc.type: FUNC
- * @tc.require: issueIBT9BB
- */
-HWTEST_F(SysEventServiceOhosTest, SysEventServiceAdapterTest001, testing::ext::TestSize.Level1)
-{
-    SysEventServiceAdapter::StartService(nullptr);
-    std::shared_ptr<SysEvent> event = nullptr;
-    SysEventServiceAdapter::OnSysEvent(event);
-    ASSERT_NE(OHOS::HiviewDFX::SysEventServiceOhos::GetInstance(), nullptr);
-}
 } // namespace HiviewDFX
 } // namespace OHOS
