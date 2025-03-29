@@ -41,9 +41,8 @@ public:
     }
 
 private:
-    std::string GetValidParam(const Event &msg, bool &isCloseMsg, int64_t &beginTime, std::string &telemetryId);
-    TelemetryRet InitTelemetryFlow(const Event &msg);
-    TelemetryRet InitAndCorrectTimes(const Event &msg);
+    std::string GetValidParam(const Event &msg, bool &isCloseMsg);
+    bool InitAndCorrectTimes(const Event &msg);
     bool SendStartEvent(const Event &msg, int64_t traceDuration, int64_t delayTime = 0);
     void SendStopEvent();
     void WriteErrorEvent(const std::string &error);

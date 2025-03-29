@@ -35,17 +35,18 @@ TraceRet TraceStateMachine::OpenDynamicTrace(int32_t appid)
     return currentState_->OpenAppTrace(appid);
 }
 
-TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
+TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
-    return currentState_->OpenTelemetryTrace(args, telemetryId);
+    return currentState_->OpenTelemetryTrace(args);
 }
 
 TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
     auto ret = currentState_->DumpTrace(scenario, maxDuration, happenTime, info);
-    if (ret.GetCodeError() == TraceErrorCode::TRACE_IS_OCCUPIED) {
+    if (ret.GetCodeError() == TraceErrorCode::TRACE_IS_OCCUPIED ||
+        ret.GetCodeError() == TraceErrorCode::WRONG_TRACE_MODE) {
         RecoverState();
     }
     return ret;
@@ -120,7 +121,7 @@ void TraceStateMachine::TransToCommonDropState()
 }
 
 
-void TraceStateMachine::TransToTeleMetryState(const std::string &telemetryId)
+void TraceStateMachine::TransToTeleMetryState()
 {
     HIVIEW_LOGI("to telemetry state");
     currentState_ = std::make_shared<TelemetryState>();
@@ -282,7 +283,7 @@ TraceRet TraceBaseState::SetCacheParams(int32_t totalFileSize, int32_t sliceMaxD
     return TraceRet(TraceStateCode::FAIL);
 }
 
-TraceRet TraceBaseState::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
+TraceRet TraceBaseState::OpenTelemetryTrace(const std::string &args)
 {
     HIVIEW_LOGW(":%{public}s, invoke state deny", GetTag().c_str());
     return TraceRet(TraceStateCode::DENY);
@@ -632,7 +633,7 @@ TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::string &args
     return TraceBaseState::OpenTrace(scenario, args);
 }
 
-TraceRet DynamicState::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
+TraceRet DynamicState::OpenTelemetryTrace(const std::string &args)
 {
     if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
         HIVIEW_LOGE("%{public}s:  CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
@@ -643,7 +644,7 @@ TraceRet DynamicState::OpenTelemetryTrace(const std::string &args, const std::st
     if (ret != TraceErrorCode::SUCCESS) {
         return TraceRet(ret);
     }
-    TraceStateMachine::GetInstance().TransToTeleMetryState(telemetryId);
+    TraceStateMachine::GetInstance().TransToTeleMetryState();
     return {};
 }
 
@@ -653,14 +654,14 @@ TraceRet DynamicState::OpenAppTrace(int32_t appPid)
     return TraceRet(TraceStateCode::DENY);
 }
 
-TraceRet CloseState::OpenTelemetryTrace(const std::string &args, const std::string &telemetryId)
+TraceRet CloseState::OpenTelemetryTrace(const std::string &args)
 {
     auto ret = args.empty() ? Hitrace::OpenTrace(TELEMETRY_TAG_GROUPS_DEFAULT) : Hitrace::OpenTrace(args);
     HIVIEW_LOGI("%{public}s: args:%{public}s: result:%{public}d", GetTag().c_str(), args.c_str(), ret);
     if (ret != TraceErrorCode::SUCCESS) {
         return TraceRet(ret);
     }
-    TraceStateMachine::GetInstance().TransToTeleMetryState(telemetryId);
+    TraceStateMachine::GetInstance().TransToTeleMetryState();
     return {};
 }
 
