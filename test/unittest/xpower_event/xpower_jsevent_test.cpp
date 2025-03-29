@@ -29,8 +29,8 @@ void NapiXPowerEventTest::SetUp()
     RuntimeOption option;
     option.SetGcType(RuntimeOption::GC_TYPE::GEN_GC);
     const int64_t poolSize = 0x1000000;  // 16M
-    option.SetGcPoolSize(poolSize);
     option.SetLogLevel(RuntimeOption::LOG_LEVEL::ERROR);
+    option.SetGcPoolSize(poolSize);
     option.SetDebuggerLibraryPath("");
     EcmaVM *vm = panda::JSNApi::CreateJSVM(option);
     if (vm == nullptr) {
