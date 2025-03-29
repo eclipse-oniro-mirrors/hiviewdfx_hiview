@@ -405,7 +405,7 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids)
             FileUtil::RemoveFile(fullPath);
         }
     }
-    DoExecHiperf(fileName, pids, processId, perfCmd);
+    DoExecHiperf(fileName, pids);
 #endif
 }
 #endif
