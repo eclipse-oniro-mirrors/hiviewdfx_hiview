@@ -106,12 +106,6 @@ bool IsUCollectionSwitchOn()
     return ucollectionState == "true";
 }
 
-bool IsTestAppTraceOn()
-{
-    std::string appTraceState = GetString(HIVIEW_UCOLLECTION_TEST_APP_TRACE_STATE, "false");
-    return appTraceState == "true";
-}
-
 bool IsTraceCollectionSwitchOn()
 {
     std::string traceCollectionState = GetString(DEVELOP_HIVIEW_TRACE_RECORDER, "false");

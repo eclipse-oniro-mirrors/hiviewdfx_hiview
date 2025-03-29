@@ -36,8 +36,6 @@ const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trac
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
 const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
-const std::string TELEMETRY_STRATEGY = "TelemetryStrategy";
-const std::string KEY_ID = "telemetryId";
 constexpr int32_t FULL_TRACE_DURATION = -1;
 const uint32_t UNIFIED_SHARE_COUNTS = 25;
 const uint32_t UNIFIED_TELEMETRY_COUNTS = 20;
@@ -63,12 +61,13 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
         HIVIEW_LOGW("scenario_:%{public}d, stateError:%{public}d, codeError:%{public}d", static_cast<int>(scenario_),
             static_cast<int>(ret.stateError_), ret.codeError_);
     }
+    dumpEvent.errorCode = GetUcError(ret);
     auto end = std::chrono::steady_clock::now();
     dumpEvent.execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     dumpEvent.coverDuration = traceRetInfo.coverDuration;
     dumpEvent.coverRatio = traceRetInfo.coverRatio;
+    dumpEvent.traceMode = traceRetInfo.mode;
     dumpEvent.tags = std::move(traceRetInfo.tags);
-    dumpEvent.errorCode = TransCodeToUcError(traceRetInfo.errorCode);
     return ret;
 }
 
@@ -107,7 +106,6 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
     TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
-        dumpEvent.errorCode = GetUcError(ret);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
@@ -145,7 +143,6 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
     TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
-        dumpEvent.errorCode = GetUcError(ret);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
@@ -184,7 +181,6 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
     // first dump trace in special dir then check flow to decide whether put trace in share dir
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
-        dumpEvent.errorCode = GetUcError(ret);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
