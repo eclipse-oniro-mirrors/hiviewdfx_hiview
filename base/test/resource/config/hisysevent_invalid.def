@@ -1,1 +1,47 @@
-{}
+{
+    "": {},
+    "INVALID_DOMAIN1": "invalid object",
+    "INVALID_DOMAIN2": {
+        "": {}
+    },
+    "INVALID_DOMAIN3": {
+        "INVALID_NAME": {}
+    },
+    "INVALID_DOMAIN4": {
+        "INVALID_NAME": {
+            "__BASE": "invalid object"
+        }
+    },
+    "INVALID_DOMAIN5": {
+        "INVALID_NAME": {
+            "__BASE": {}
+        }
+    },
+    "INVALID_DOMAIN6": {
+        "INVALID_NAME": {
+            "__BASE": {
+                "type": "INVALID TYPE"
+            }
+        }
+    },
+    "INVALID_DOMAIN7": {
+        "INVALID_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR"
+            }
+        }
+    },
+    "INVALID_DOMAIN8": {
+        "INVALID_NAME": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "tag": "FIRST_TEST_CASE",
+                "desc": "test",
+                "privacy": 1,
+                "preserve": false
+            },
+            "FIRST_TEST_PARAM": {}
+        }
+    }
+}

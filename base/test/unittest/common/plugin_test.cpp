@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -102,6 +102,47 @@ HWTEST_F(PluginTest, PluginTest001, testing::ext::TestSize.Level0)
 
     plugin.OnUnload();
     printf("PluginTest001 end\n");
+}
+
+/**
+ * @tc.name: PluginTest002
+ * @tc.desc: Test the api of Plugin.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginTest, PluginTest002, testing::ext::TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. create Plugin object.
+     * @tc.steps: step2. invoke the function of the plugin object.
+     */
+    printf("PluginTest002 start\n");
+    auto plugin = std::make_shared<Plugin>();
+    plugin->OnLoad();
+
+    // OnEventProxy
+    ASSERT_FALSE(plugin->OnEventProxy(nullptr));
+    auto event = plugin->GetEvent(Event::SYS_EVENT);
+    ASSERT_TRUE(plugin->OnEventProxy(event));
+
+    // DelayProcessEvent
+    plugin->DelayProcessEvent(nullptr, 0);
+    plugin->DelayProcessEvent(event, 0);
+    auto workLoop = std::make_shared<EventLoop>("testLoop");
+    plugin->BindWorkLoop(workLoop);
+    auto pipelineEvent = std::make_shared<PipelineEvent>(*(event.get()));
+    plugin->DelayProcessEvent(nullptr, 0);
+    plugin->DelayProcessEvent(event, 0);
+    ASSERT_NE(plugin->GetLastActiveTime(), 0);
+
+    // AddDispatchInfo
+    plugin->AddDispatchInfo({});
+    HiviewContext context;
+    plugin->SetHiviewContext(&context);
+    ASSERT_NE(plugin->GetHiviewContext(), nullptr);
+    plugin->AddDispatchInfo({});
+
+    plugin->OnUnload();
+    printf("PluginTest002 end\n");
 }
 
 /**
