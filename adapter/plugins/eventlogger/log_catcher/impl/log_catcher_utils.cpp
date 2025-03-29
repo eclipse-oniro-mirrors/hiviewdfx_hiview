@@ -127,13 +127,13 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int termin
     if (!GetDump(pid, msg)) {
         DfxDumpCatcher dumplog;
         std::string ret;
-        auto dumpResult = dumplog.DumpCatchProcess(pid, ret);
-        if (dumpResult == DUMP_STACK_FAILED) {
-            msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + ret;
-        } else if (dumpResult == DUMP_KERNEL_STACK_SUCCESS) {
-            if (!DfxJsonFormatter::FormatKernelStack(ret, msg, false)) {
-                msg = "Failed to format kernel stack for " + std::to_string(pid) + "\n";
-            }
+        std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, ret);
+        if (dumpResult.first == DUMP_STACK_FAILED) {
+            msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + "\n" + ret;
+        } else if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
+            std::string failInfo = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second;
+            msg = failInfo + (DfxJsonFormatter::FormatKernelStack(ret, msg, false) ? ("Kernel stack is:\n" + msg) :
+                "Failed to format kernel stack for " + std::to_string(pid) + "\n");
             WriteKernelStackToFd(fd, ret, pid);
         } else {
             msg = ret;
