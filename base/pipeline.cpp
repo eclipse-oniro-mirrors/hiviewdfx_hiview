@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "pipeline.h"
-#include "audit.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "thread_util.h"
@@ -38,14 +37,6 @@ bool PipelineEvent::OnContinue()
         return OnFinish();
     }
 
-    // once the event start delivering
-    // the call OnContinue means one has done the processing of the event
-    // this may be called by upstream event processor or the framework
-    if (Audit::IsEnabled() && startDeliver_) {
-        Audit::WriteAuditEvent(Audit::StatsEvent::PIPELINE_EVENT_HANDLE_OUT,
-            createTime_, std::to_string(Thread::GetTid()));
-    }
-
     // the framework will call OnContinue when the event is assigned to a pipeline
     if (!startDeliver_) {
         startDeliver_ = true;
@@ -58,11 +49,6 @@ bool PipelineEvent::OnContinue()
             if (handler_ != nullptr) {
                 handler_->PauseDispatch(plugin);
             }
-        }
-
-        if (Audit::IsEnabled()) {
-            Audit::WriteAuditEvent(Audit::StatsEvent::PIPELINE_EVENT_HANDLE_IN, createTime_,
-                                   pluginPtr->GetHandlerInfo());
         }
 
         if (!pluginPtr->IsInterestedPipelineEvent(shared_from_this())) {
@@ -94,11 +80,6 @@ bool PipelineEvent::OnFinish()
     }
 
     hasFinish_ = true;
-    if (Audit::IsEnabled()) {
-        Audit::WriteAuditEvent(Audit::StatsEvent::PIPELINE_EVENT_HANDLE_OUT,
-            createTime_, std::to_string(Thread::GetTid()));
-        Audit::WriteAuditEvent(Audit::StatsEvent::PIPELINE_EVENT_DONE, createTime_, pipelineName_);
-    }
     return true;
 }
 

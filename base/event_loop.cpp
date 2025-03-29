@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,6 @@
 #include <windows.h>
 #endif
 
-#include "audit.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "memory_util.h"
@@ -165,12 +164,6 @@ uint64_t EventLoop::AddEvent(std::shared_ptr<EventHandler> handler, std::shared_
     }
 
     uint64_t now = NanoSecondSinceSystemStart();
-    if (Audit::IsEnabled() && (event != nullptr) && (handler != nullptr) && (!(event->isPipeline_))) {
-        auto digest = event->sender_ + Audit::DOMAIN_DELIMITER + handler->GetHandlerInfo() + Audit::DOMAIN_DELIMITER +
-                      GetName() + Audit::DOMAIN_DELIMITER + event->GetEventInfo();
-        Audit::WriteAuditEvent(Audit::StatsEvent::QUEUE_EVENT_IN, event->createTime_, digest);
-    }
-
     LoopEvent loopEvent = LoopEvent::CreateLoopEvent(now);
     loopEvent.event = std::move(event);
     loopEvent.handler = handler;
@@ -189,12 +182,6 @@ std::future<bool> EventLoop::AddEventForResult(std::shared_ptr<EventHandler> han
 
     if (handler == nullptr || event == nullptr) {
         return GetFalseFuture();
-    }
-
-    if (Audit::IsEnabled() && (event != nullptr) && (handler != nullptr) && (!(event->isPipeline_))) {
-        auto digest = event->sender_ + Audit::DOMAIN_DELIMITER + handler->GetHandlerInfo() + Audit::DOMAIN_DELIMITER +
-                      GetName() + Audit::DOMAIN_DELIMITER + event->GetEventInfo();
-        Audit::WriteAuditEvent(Audit::StatsEvent::QUEUE_EVENT_IN, event->createTime_, digest);
     }
 
     auto bind = std::bind(&EventHandler::OnEventProxy, handler.get(), event);
@@ -224,12 +211,6 @@ uint64_t EventLoop::AddTimerEvent(std::shared_ptr<EventHandler> handler, std::sh
     if (now + intervalMicro < now) {
         HIVIEW_LOGW("Add Timer Event fail. The interval is too large. please check.");
         return -1;
-    }
-
-    if (Audit::IsEnabled() && (event != nullptr) && (handler != nullptr) && (!(event->isPipeline_))) {
-        auto digest = event->sender_ + Audit::DOMAIN_DELIMITER + handler->GetHandlerInfo() + Audit::DOMAIN_DELIMITER +
-                      GetName() + Audit::DOMAIN_DELIMITER + event->GetEventInfo();
-        Audit::WriteAuditEvent(Audit::StatsEvent::QUEUE_EVENT_IN, event->createTime_, digest);
     }
 
     LoopEvent loopEvent = LoopEvent::CreateLoopEvent(now);
@@ -529,14 +510,6 @@ void EventLoop::ReInsertPeriodicEvent(uint64_t now, LoopEvent &event)
 
     event.enqueueTime = now;
     event.targetTime = now + event.interval;
-
-    if (Audit::IsEnabled() && (event.event != nullptr) && (event.handler != nullptr)) {
-        event.event->ResetTimestamp();
-        auto digest = event.event->sender_ + Audit::DOMAIN_DELIMITER + event.handler->GetHandlerInfo() +
-                      Audit::DOMAIN_DELIMITER + GetName() + Audit::DOMAIN_DELIMITER + event.event->GetEventInfo();
-        Audit::WriteAuditEvent(Audit::StatsEvent::QUEUE_EVENT_IN, event.event->createTime_, digest);
-    }
-
     pendingEvents_.push(std::move(event));
     ResetTimerIfNeedLocked();
 }

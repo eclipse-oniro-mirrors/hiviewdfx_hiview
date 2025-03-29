@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "app_caller_event.h"
-#include "audit_log_parser.h"
 #include "client/memory_collector_client.h"
 #include "client/trace_collector_client.h"
 #include "utility/cpu_collector.h"
@@ -57,17 +56,8 @@ public:
     CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
 
 private:
-    void DumpDetailedInfo(int fd);
     void DumpPluginInfo(int fd, const std::vector<std::string>& cmds) const;
     void DumpLoadedPluginInfo(int fd) const;
-    void DumpPluginUsageInfo(int fd);
-    void DumpPluginUsageInfo(int fd, const std::string& pluginName) const;
-
-    void DumpThreadUsageInfo(int fd) const;
-    void DumpThreadUsageInfo(int fd, const std::string& threadName) const;
-
-    void DumpPipelineUsageInfo(int fd) const;
-    void DumpPipelineUsageInfo(int fd, const std::string& pipelineName) const;
 
     bool InnerHasCallAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
     CollectResult<int32_t> InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller);
@@ -78,7 +68,6 @@ private:
     void PrintUsage(int fd) const;
 
 private:
-    std::unique_ptr<AuditLogParser> parser_ = nullptr;
     std::shared_ptr<UCollectUtil::CpuCollector> cpuCollector_;
     std::shared_ptr<UCollectUtil::GraphicMemoryCollector> graphicMemoryCollector_;
 };

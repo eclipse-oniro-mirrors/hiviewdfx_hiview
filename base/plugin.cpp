@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 #include "plugin.h"
-#include <functional>
-#include "audit.h"
+
 #include "defines.h"
 #include "file_util.h"
 #include "hiview_event_report.h"
 #include "thread_util.h"
 #include "time_util.h"
+
+#include <functional>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -70,16 +71,14 @@ bool Plugin::OnEventProxy(std::shared_ptr<Event> event)
     event->realtime_ +=  *timePtr;
 
     if (!dupEvent->IsPipelineEvent()) {
-        if (Audit::IsEnabled()) {
-            Audit::WriteAuditEvent(Audit::StatsEvent::QUEUE_EVENT_OUT, dupEvent->createTime_,
-                std::to_string(Thread::GetTid()));
-        }
-    } else {
-        if ((!dupEvent->HasFinish() && !dupEvent->HasPending()) &&
-            (processorSize == dupEvent->GetPendingProcessorSize())) {
-            dupEvent->OnContinue();
-        }
+        return ret;
     }
+
+    if ((!dupEvent->HasFinish() && !dupEvent->HasPending()) &&
+        (processorSize == dupEvent->GetPendingProcessorSize())) {
+        dupEvent->OnContinue();
+    }
+
     return ret;
 }
 

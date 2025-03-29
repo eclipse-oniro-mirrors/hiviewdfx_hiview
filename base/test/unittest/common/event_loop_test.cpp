@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "audit.h"
 #include "event_loop.h"
 #include "pipeline.h"
 
@@ -451,63 +450,6 @@ HWTEST_F(EventLoopTest, EventLoopWrongInputParamsTest001, TestSize.Level3)
     auto event = std::make_shared<Event>("testevent");
     auto result2 = currentLooper_->AddEventForResult(eventhandler, event);
     ASSERT_EQ(result2.get(), true);
-}
-
-/**
- * @tc.name: EventLoopEventAuditTest001
- * @tc.desc: Test audit function.
- * @tc.type: FUNC
- * @tc.require: issueI642OH
- */
-HWTEST_F(EventLoopTest, EventLoopEventAuditTest001, TestSize.Level3)
-{
-    /**
-     * @tc.steps: step1. open the audit function.
-     * @tc.steps: step2. create pipeline event.
-     * @tc.steps: step3. add event to the handler.
-     */
-    Audit::GetInstance().Init(true);
-    EXPECT_TRUE(Audit::GetInstance().IsEnabled());
-    Event event("test");
-    auto pipelineEvent = std::make_shared<PipelineEvent>(event);
-    EXPECT_TRUE(pipelineEvent->isPipeline_);
-    auto eventhandler = std::make_shared<RealEventHandler>();
-    auto res1 = currentLooper_->AddEvent(eventhandler, pipelineEvent, nullptr);
-    sleep(2);
-    EXPECT_NE(0, res1);
-    EXPECT_EQ(1, eventhandler->processedEventCount_);
-
-    auto res2 = currentLooper_->AddEventForResult(eventhandler, pipelineEvent);
-    sleep(2);
-    ASSERT_EQ(res2.get(), true);
-    EXPECT_EQ(2, eventhandler->processedEventCount_);
-
-    res1 = currentLooper_->AddTimerEvent(eventhandler, pipelineEvent, nullptr, 1, false);
-    sleep(3);
-    EXPECT_NE(0, res1);
-    EXPECT_EQ(3, eventhandler->processedEventCount_);
-
-    currentLooper_->StopLoop();
-    res1 = currentLooper_->AddEvent(eventhandler, pipelineEvent, nullptr);
-    EXPECT_EQ(0, res1);
-    res2 = currentLooper_->AddEventForResult(eventhandler, nullptr);
-    ASSERT_EQ(res2.get(), false);
-    res1 = currentLooper_->AddTimerEvent(eventhandler, pipelineEvent, nullptr, 2, false);
-    sleep(3);
-    EXPECT_EQ(0, res1);
-
-    const std::string loopName = "restart_loop";
-    currentLooper_ = std::make_shared<EventLoop>(loopName);
-    EXPECT_TRUE(currentLooper_ != nullptr);
-    EXPECT_EQ(currentLooper_->GetName(), loopName);
-    currentLooper_->StartLoop();
-    res1 = currentLooper_->AddEvent(eventhandler, pipelineEvent, nullptr);
-    sleep(2);
-    EXPECT_NE(0, res1);
-    EXPECT_EQ(4, eventhandler->processedEventCount_);
-
-    EXPECT_NE(currentLooper_->GetName(), loopName); // name: loopName@xxx
-    EXPECT_EQ(currentLooper_->GetRawName(), loopName);
 }
 }
 }

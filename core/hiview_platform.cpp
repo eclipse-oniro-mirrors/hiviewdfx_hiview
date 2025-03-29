@@ -26,7 +26,6 @@
 
 #include "app_event_publisher.h"
 #include "app_event_publisher_factory.h"
-#include "audit.h"
 #include "backtrace_local.h"
 #include "common_utils.h"
 #include "defines.h"

@@ -59,8 +59,6 @@ ohos_source_set("hiview_base") {
   public_configs = [ ":hiview_base_config" ]
   sources = [
     "app_caller_event.cpp",
-    "audit.cpp",
-    "audit_log_parser.cpp",
     "dispatch_rule_parser.cpp",
     "event.cpp",
     "event_dispatch_queue.cpp",

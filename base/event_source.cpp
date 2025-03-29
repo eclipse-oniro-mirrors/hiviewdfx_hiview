@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "event_source.h"
-#include "audit.h"
 #include "hiview_logger.h"
 namespace OHOS {
 namespace HiviewDFX {
@@ -23,11 +22,6 @@ bool EventSource::PublishPipelineEvent(std::shared_ptr<PipelineEvent> event)
     HIVIEW_LOGD("EventSource PublishPipelineEvent");
     if (event == nullptr) {
         return false;
-    }
-
-    if (Audit::IsEnabled()) {
-        auto digest = GetPluginInfo() + Audit::DOMAIN_DELIMITER + event->GetEventInfo();
-        Audit::WriteAuditEvent(Audit::StatsEvent::PIPELINE_EVENT_CREATE, event->createTime_, digest);
     }
 
     for (auto& pipeline : listeners_) {
