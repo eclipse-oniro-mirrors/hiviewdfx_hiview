@@ -11,7 +11,8 @@
             },
             "FIRST_TEST_PARAM": {
                 "type": "INT32",
-                "desc": "param1"
+                "desc": "param1",
+                "privacy": 1
             }
         }
     },

@@ -107,6 +107,31 @@ void PipelineTest::DoTest(const std::string& name, bool stopBeforeEnd, bool with
 }
 
 /**
+ * @tc.name: PluginPipelineApiTest001
+ * @tc.desc: api function test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PipelineTest, PluginPipelineApiTest001, TestSize.Level3)
+{
+    const std::string testPipeline = "testPipeline";
+    auto producer = std::make_shared<PipelineEventProducerTest>();
+    auto event = std::make_shared<PipelineEvent>("event", producer.get());
+    PipelineEvent::FillPipelineInfo(nullptr, testPipeline, event, true);
+
+    auto plugin = PluginFactory::GetPlugin("EventProcessorExample1");
+    plugin->SetName("EventProcessorExample1");
+    PipelineEvent::FillPipelineInfo(plugin, testPipeline, nullptr, true);
+    PipelineEvent::FillPipelineInfo(plugin, testPipeline, event, false);
+    PipelineEvent::FillPipelineInfo(plugin, testPipeline, event, true);
+    ASSERT_TRUE(event->GetPipelineInfo().empty());
+
+    HiviewContext context;
+    plugin->SetHiviewContext(&context);
+    PipelineEvent::FillPipelineInfo(plugin, testPipeline, event, true);
+    ASSERT_EQ(event->GetPipelineInfo(), testPipeline);
+}
+
+/**
  * @tc.name: PluginPipelineCreateTest001
  * @tc.desc: create pipeline with multiple plugins
  * @tc.type: FUNC
@@ -219,3 +244,4 @@ HWTEST_F(PipelineTest, PluginPipelineCreateTest005, TestSize.Level3)
     res = pipeline->CanProcessEvent(event);
     ASSERT_FALSE(res);
 }
+

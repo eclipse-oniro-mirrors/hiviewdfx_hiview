@@ -59,6 +59,23 @@ void EventJsonParserTest::SetUp() {}
 void EventJsonParserTest::TearDown() {}
 
 /**
+ * @tc.name: EventJsonParserInitTest001
+ * @tc.desc: def file is not initialized
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventJsonParserTest, EventJsonParserInitTest001, testing::ext::TestSize.Level0)
+{
+    // must be the first test case.
+    auto baseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+        FIRST_TEST_NAME);
+    ASSERT_TRUE(baseInfo.level.empty());
+
+    ExportEventList list;
+    EventJsonParser::GetInstance()->GetAllCollectEvents(list);
+    ASSERT_EQ(list.size(), 0);
+}
+
+/**
  * @tc.name: EventJsonParserTest001
  * @tc.desc: use default value if event is not configured in hisysevent def file
  * @tc.type: FUNC
@@ -118,6 +135,10 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
         SECOND_TEST_NAME);
     ASSERT_TRUE(configBaseInfo.keyConfig.preserve);
     ASSERT_EQ(configBaseInfo.keyConfig.privacy, DEFAULT_PRIVACY);
+
+    // valid domain, invalid name
+    configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN, "INVALID_NAME");
+    ASSERT_TRUE(configBaseInfo.level.empty());
 
     RenameDefFile("hisysevent_update.def", "hisysevent.def");
     RemoveConfigVerFile();
