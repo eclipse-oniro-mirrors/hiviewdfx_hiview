@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 #include "event_loop.h"
 #include "event_publish.h"
 #include "sys_event.h"
-#include "audit.h"
 #include "event.h"
 #include "hiview_event_report.h"
 #include "base/raw_data_base_def.h"
@@ -41,21 +40,6 @@ int ParseTimeZone(const std::string& tzStr)
 
 void HiviewEventReport::UpdatePluginStats(const std::string &name, const std::string &procName, uint32_t procTime)
 {
-}
-
-bool Audit::IsEnabled()
-{
-    return true;
-}
-
-Audit::~Audit()
-{
-    enabled_ = false;
-}
-
-bool Audit::WriteAuditEvent(StatsEvent eventType, uint64_t eventId, const std::string& digest)
-{
-    return true;
 }
 
 uint64_t EventLoop::AddTimerEvent(std::shared_ptr<EventHandler> handler, std::shared_ptr<Event> event,

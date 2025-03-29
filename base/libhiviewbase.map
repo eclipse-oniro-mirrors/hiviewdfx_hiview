@@ -6,7 +6,6 @@
         "OHOS::HiviewDFX::HiviewGlobal::ReleaseInstance()";
         "OHOS::HiviewDFX::EventDispatchQueue::~EventDispatchQueue()";
         "OHOS::HiviewDFX::HiviewGlobal::CreateInstance(OHOS::HiviewDFX::HiviewContext&)";
-        "OHOS::HiviewDFX::Audit::Init(bool)";
         "OHOS::HiviewDFX::EventDispatchQueue::EventDispatchQueue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::Event::ManageType, OHOS::HiviewDFX::HiviewContext*)";
         "OHOS::HiviewDFX::EventDispatchQueue::Start()";
         "OHOS::HiviewDFX::EventLoop::StartLoop(bool)";
@@ -29,7 +28,6 @@
         "OHOS::HiviewDFX::PluginFactory::UnregisterPlugin(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::Event::GetIntValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
         "OHOS::HiviewDFX::PluginProxy::DestroyInstanceIfNeed(long long)";
-        "OHOS::HiviewDFX::Audit::~Audit()";
         "OHOS::HiviewDFX::Event::ResetTimestamp()";
         "OHOS::HiviewDFX::Plugin::GetVersion()";
         "OHOS::HiviewDFX::AuditLogParser::StartParse()";
@@ -167,7 +165,6 @@
         "OHOS::HiviewDFX::Plugin::AddDispatchInfo(std::__h::unordered_set<unsigned char, std::__h::hash<unsigned char>, std::__h::equal_to<unsigned char>, std::__h::allocator<unsigned char>> const&, std::__h::unordered_set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::unordered_set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::unordered_map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, OHOS::HiviewDFX::DomainRule, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, OHOS::HiviewDFX::DomainRule>>> const&)";
         "OHOS::HiviewDFX::EventListener::AddListenerInfo(unsigned int)";
         vtable?for?OHOS::HiviewDFX::PluginProxy;
-        vtable?for?OHOS::HiviewDFX::Audit;
         vtable?for?OHOS::HiviewDFX::EventSource;
         vtable?for?OHOS::HiviewDFX::SysEvent;
         vtable?for?OHOS::HiviewDFX::PipelineEvent;

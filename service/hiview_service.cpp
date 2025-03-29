@@ -67,12 +67,6 @@ void HiviewService::DumpRequestDispatcher(int fd, const std::vector<std::string>
         return;
     }
 
-    // hidumper hiviewdfx -d
-    if ((cmds.size() == MIN_SUPPORT_CMD_SIZE) && (cmds[0] == "-d")) {
-        DumpDetailedInfo(fd);
-        return;
-    }
-
     // hidumper hiviewdfx -p
     if ((cmds.size() >= MIN_SUPPORT_CMD_SIZE) && (cmds[0] == "-p")) {
         DumpPluginInfo(fd, cmds);
@@ -114,22 +108,6 @@ void HiviewService::DumpPluginInfo(int fd, const std::vector<std::string> &cmds)
     }
 }
 
-void HiviewService::DumpDetailedInfo(int fd)
-{
-    if (parser_ != nullptr) {
-        parser_.reset();
-    }
-    DumpLoadedPluginInfo(fd);
-    parser_ = std::make_unique<AuditLogParser>();
-    parser_->StartParse();
-    std::string timeScope = parser_->GetAuditLogTimeScope();
-    dprintf(fd, "%s\n", timeScope.c_str());
-    DumpPluginUsageInfo(fd);
-    DumpThreadUsageInfo(fd);
-    DumpPipelineUsageInfo(fd);
-    parser_.reset();
-}
-
 void HiviewService::DumpLoadedPluginInfo(int fd) const
 {
     auto &platform = HiviewPlatform::GetInstance();
@@ -150,86 +128,10 @@ void HiviewService::DumpLoadedPluginInfo(int fd) const
     dprintf(fd, "Dump Plugin Loaded Info Done.\n\n");
 }
 
-void HiviewService::DumpPluginUsageInfo(int fd)
-{
-    auto &platform = HiviewPlatform::GetInstance();
-    auto const &curPluginMap = platform.GetPluginMap();
-    for (auto const &entry : curPluginMap) {
-        auto pluginName = entry.first;
-        if (entry.second != nullptr) {
-            DumpPluginUsageInfo(fd, pluginName);
-        }
-    }
-}
-
-void HiviewService::DumpPluginUsageInfo(int fd, const std::string &pluginName) const
-{
-    if (parser_ == nullptr) {
-        return;
-    }
-    auto logList = parser_->GetPluginSummary(pluginName);
-    dprintf(fd, "Following events processed By Plugin %s:\n", pluginName.c_str());
-    for (auto &log : logList) {
-        dprintf(fd, " %s.\n", log.c_str());
-    }
-    dprintf(fd, "Dump Plugin Usage Done.\n\n");
-}
-
-void HiviewService::DumpThreadUsageInfo(int fd) const
-{
-    auto &platform = HiviewPlatform::GetInstance();
-    auto const &curThreadMap = platform.GetWorkLoopMap();
-    dprintf(fd, "Start Dump ThreadInfo:\n");
-    for (auto const &entry : curThreadMap) {
-        if (entry.second != nullptr) {
-            std::string name = entry.second->GetName();
-            DumpThreadUsageInfo(fd, name);
-        }
-    }
-    dprintf(fd, "Dump ThreadInfo Done.\n\n");
-}
-
-void HiviewService::DumpThreadUsageInfo(int fd, const std::string &threadName) const
-{
-    if (parser_ == nullptr) {
-        return;
-    }
-    auto logList = parser_->GetThreadSummary(threadName);
-    dprintf(fd, "Following events processed on Thread %s:\n", threadName.c_str());
-    for (auto &log : logList) {
-        dprintf(fd, " %s.\n", log.c_str());
-    }
-}
-
-void HiviewService::DumpPipelineUsageInfo(int fd) const
-{
-    auto &platform = HiviewPlatform::GetInstance();
-    auto const &curPipelineMap = platform.GetPipelineMap();
-    dprintf(fd, "Start Dump Pipeline Info:\n");
-    for (auto const &entry : curPipelineMap) {
-        auto pipeline = entry.first;
-        DumpPipelineUsageInfo(fd, pipeline);
-    }
-}
-
-void HiviewService::DumpPipelineUsageInfo(int fd, const std::string &pipelineName) const
-{
-    if (parser_ == nullptr) {
-        return;
-    }
-    auto logList = parser_->GetPipelineSummary(pipelineName);
-    dprintf(fd, "Following events processed on Pipeline %s:\n", pipelineName.c_str());
-    for (auto &log : logList) {
-        dprintf(fd, " %s.\n", log.c_str());
-    }
-    dprintf(fd, "Dump Pipeline Usage Info Done.\n\n");
-}
-
 void HiviewService::PrintUsage(int fd) const
 {
     dprintf(fd, "Hiview Plugin Platform dump options:\n");
-    dprintf(fd, "hidumper hiviewdfx [-d(etail)]\n");
-    dprintf(fd, "    [-p(lugin) pluginName]\n");
+    dprintf(fd, "hidumper hiviewdfx [-p(lugin) pluginName]\n");
 }
 
 int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::string& destFilePath)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "audit.h"
 #include "event_loop.h"
 #include "event_source.h"
 #include "event_source_example.h"
@@ -219,24 +218,4 @@ HWTEST_F(PipelineTest, PluginPipelineCreateTest005, TestSize.Level3)
     pipeline->RemoveProcessor(plugin2);
     res = pipeline->CanProcessEvent(event);
     ASSERT_FALSE(res);
-}
-
-/**
- * @tc.name: PluginPipelineCreateTest006
- * @tc.desc: create pipeline with multiple plugins
- * @tc.type: FUNC
- * @tc.require: issueI642OH
- */
-HWTEST_F(PipelineTest, PluginPipelineCreateTest006, TestSize.Level3)
-{
-    /**
-     * @tc.steps: step1. open audit function
-     * @tc.steps: step2. create pipeline
-     * @tc.steps: step3. create pipeline event
-     * @tc.steps: step4. process pipeline event
-     * @tc.steps: step5. check whether event has been processed
-     */
-    Audit::GetInstance().Init(true);
-    EXPECT_TRUE(Audit::GetInstance().IsEnabled());
-    DoTest("event1", true, true);
 }
