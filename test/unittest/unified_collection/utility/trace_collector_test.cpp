@@ -22,17 +22,45 @@
 #include "trace_collector.h"
 #include "trace_flow_controller.h"
 #include "trace_state_machine.h"
+#include "trace_utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
+namespace {
+const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
+const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
+const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
+}
+
+void CreateTracePathInner(const std::string &filePath)
+{
+    if (FileUtil::FileExists(filePath)) {
+        return;
+    }
+    if (!CreateMultiDirectory(filePath)) {
+        return;
+    }
+}
+
+void CreateTracePath()
+{
+    CreateTracePathInner(UNIFIED_SHARE_PATH);
+    CreateTracePathInner(UNIFIED_SPECIAL_PATH);
+    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
+}
 
 class TraceCollectorTest : public testing::Test {
 public:
     void SetUp() override {};
     void TearDown() override {};
-    static void SetUpTestCase() {};
+
+    static void SetUpTestCase()
+    {
+        void CreateTracePath();
+    }
+
     static void TearDownTestCase()
     {
         bool isBetaVersion = Parameter::IsBetaVersion();
@@ -50,7 +78,6 @@ public:
             TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
             std::cout << "recover to hitrace CommonState" << std::endl;
         }
-        TraceStateMachine::GetInstance().InitOrUpdateState();
     }
 };
 
@@ -70,9 +97,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
     CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, {}, 0, 0);
     ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
     setuid(1201); // hiview uid
-    TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    TraceStateMachine::GetInstance().InitOrUpdateState(); // trans to common state
     sleep(2);
     auto resultDumpTrace2 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
@@ -83,7 +108,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
-    TraceStateMachine::GetInstance().InitOrUpdateState();
     auto resultDumpTrace3 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
@@ -98,13 +122,10 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
     setuid(1201); // hiview uid
     UCollect::TraceCaller caller = UCollect::TraceCaller::XPERF;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceStateMachine::GetInstance().InitOrUpdateState(); //init to close state
 
     // open ucollection switch dump success
     TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
-    auto ret = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret.IsSuccess());
-    sleep(2);
+    sleep(1);
 
     //trans to common state, assert dump success
     auto resultDumpTrace = collector->DumpTrace(caller);
@@ -116,25 +137,19 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
     TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
-    auto ret1 = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret1.IsSuccess());
-    sleep(2);
+    sleep(1);
 
     //trans to common drop state, assert dump fail
     auto resultDumpTrace2 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::TRACE_STATE_ERROR);
     TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
-    auto ret2 = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret2.IsSuccess());
-    sleep(2);
+    sleep(1);
 
     // trans to common state
     auto resultDumpTrace3 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::SUCCESS);
     TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
-    auto ret3 = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret3.IsSuccess());
-    sleep(2);
+    sleep(1);
 
     // trans to close state
     auto resultDumpTrace4 = collector->DumpTrace(caller);
@@ -151,10 +166,8 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
     setuid(1201); // hiview uid
     UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    TraceStateMachine::GetInstance().InitOrUpdateState(); // trans to common state
-    sleep(2);
+    sleep(1);
     auto resultDumpTrace2 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
     ASSERT_GE(resultDumpTrace2.data.size(), 0);
@@ -167,7 +180,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
-    TraceStateMachine::GetInstance().InitOrUpdateState();
     auto resultDumpTrace3 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
@@ -182,10 +194,8 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     setuid(1201); // hiview uid
     UCollect::TraceCaller caller = UCollect::TraceCaller::BETACLUB;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceStateMachine::GetInstance().InitOrUpdateState(); // init to close state
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    TraceStateMachine::GetInstance().InitOrUpdateState(); // trans to common state
-    sleep(2);
+    sleep(1);
     auto resultDumpTrace2 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
     ASSERT_GE(resultDumpTrace2.data.size(), 0);
@@ -198,7 +208,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
         std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
     }
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
-    TraceStateMachine::GetInstance().InitOrUpdateState();
     auto resultDumpTrace3 = collector->DumpTrace(caller);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }

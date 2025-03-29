@@ -338,7 +338,10 @@ group("unittest") {
   deps = [ "decorator/test:DecoratorUnitTest" ]
 
   if (hiview_unified_collector_trace_enable) {
-    deps += [ "trace_manager/test:TraceManagerTest" ]
+    deps += [
+      "collector/impl/trace/test:TraceUtilsTest",
+      "trace_manager/test:TraceManagerTest",
+    ]
   }
 
   if (hiview_unified_collector_graphic_enable) {

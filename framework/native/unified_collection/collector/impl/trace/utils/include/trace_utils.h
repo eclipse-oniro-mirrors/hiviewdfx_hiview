@@ -18,7 +18,6 @@
 #include <map>
 #include <string>
 
-#include "hisysevent.h"
 #include "trace_collector.h"
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
@@ -87,20 +86,16 @@ const std::string TELEMETRY_TIMEOUT = "telemetryTimeout";
 UcError TransCodeToUcError(TraceErrorCode ret);
 UcError TransStateToUcError(TraceStateCode ret);
 UcError TransFlowToUcError(TraceFlowCode ret);
-const std::string EnumToString(UCollect::TraceCaller &caller);
-const std::string ClientToString(UCollect::TraceClient &client);
-const std::string ModuleToString(UCollect::TeleModule &module);
+const std::string EnumToString(UCollect::TraceCaller caller);
+const std::string ClientToString(UCollect::TraceClient client);
+const std::string ModuleToString(UCollect::TeleModule module);
 void CopyFile(const std::string &src, const std::string &dst);
 std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outputFiles, const std::string &destDir);
 std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix);
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);
-void CheckCurrentCpuLoad();
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
-void LoadMemoryInfo(DumpEvent &dumpEvent);
-void CheckAndCreateDirectory(const std::string &tmpDirPath);
 bool CreateMultiDirectory(const std::string &dirPath);
-void RecoverTmpTrace();
 int64_t GetTraceSize(TraceRetInfo &ret);
 UcError GetUcError(TraceRet ret);
 } // HiViewDFX
