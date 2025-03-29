@@ -51,7 +51,7 @@ public:
     DISALLOW_COPY_AND_MOVE(SysEventServiceOhos);
     SysEventServiceOhos()
         : deathRecipient_(new CallbackDeathRecipient()), dataPublisher_(new DataPublisher()){};
-    virtual ~SysEventServiceOhos() = default;
+    virtual ~SysEventServiceOhos();
 
     static sptr<SysEventServiceOhos> GetInstance();
     static void StartService(SysEventServiceBase* service);
@@ -104,7 +104,7 @@ private:
     std::shared_ptr<DataPublisher> dataPublisher_;
 
 private:
-    static sptr<SysEventServiceOhos> instance;
+    static sptr<SysEventServiceOhos> instance_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

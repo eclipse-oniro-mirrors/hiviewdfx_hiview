@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -148,7 +148,13 @@ HWTEST_F(DataShareTest, DataShareUtilTest001, testing::ext::TestSize.Level3)
     ASSERT_EQ(expectedSuccessRet, ret);
     int32_t uid = 20010039;
     std::string sandbox = DataShareUtil::GetSandBoxPathByUid(uid);
-    ASSERT_TRUE(true);
+    ASSERT_FALSE(sandbox.empty());
+    auto bundleName = DataShareUtil::GetBundleNameById(uid);
+    ASSERT_FALSE(bundleName.empty());
+    auto bundleNameParsed = DataShareUtil::GetBundleNameById(uid);
+    ASSERT_EQ(bundleName, bundleNameParsed);
+	bundleNameParsed = DataShareUtil::GetBundleNameById(-1);
+	ASSERT_TRUE(bundleNameParsed.empty());
 }
 
 /**

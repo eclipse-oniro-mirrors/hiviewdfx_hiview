@@ -150,11 +150,16 @@ bool IsNativeCaller()
 }
 }
 
-sptr<SysEventServiceOhos> SysEventServiceOhos::instance(new SysEventServiceOhos);
+sptr<SysEventServiceOhos> SysEventServiceOhos::instance_(new SysEventServiceOhos);
 
 sptr<SysEventServiceOhos> SysEventServiceOhos::GetInstance()
 {
-    return instance;
+    return instance_;
+}
+
+SysEventServiceOhos::~SysEventServiceOhos()
+{
+    instance_ = nullptr;
 }
 
 void SysEventServiceOhos::StartService(SysEventServiceBase *service)
@@ -165,11 +170,11 @@ void SysEventServiceOhos::StartService(SysEventServiceBase *service)
         HIVIEW_LOGE("failed to find SystemAbilityManager.");
         return;
     }
-    if (instance == nullptr) {
+    if (instance_ == nullptr) {
         HIVIEW_LOGE("SysEventServiceOhos service is null.");
         return;
     }
-    int ret = samgr->AddSystemAbility(DFX_SYS_EVENT_SERVICE_ABILITY_ID, instance);
+    int ret = samgr->AddSystemAbility(DFX_SYS_EVENT_SERVICE_ABILITY_ID, instance_);
     if (ret != 0) {
         HIVIEW_LOGE("failed to add sys event service ability.");
     }

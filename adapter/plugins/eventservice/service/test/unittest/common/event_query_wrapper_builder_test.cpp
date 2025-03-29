@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "event_query_wrapper_builder_test.h"
 
 #include "event_query_wrapper_builder.h"
+#include "ret_code.h"
 #include "sys_event_dao.h"
 #include "sys_event_query.h"
 
@@ -157,6 +158,46 @@ HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest008, testing:
         "\"value1\":1000},{\"param\":\"PACKAGE_NAME\",\"op\":\"=\",\"value1\":\"com.ohos.testHiSysEvent2\"}]}}";
     auto ret = parser.ParseCondition(condListeral, condition);
     ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: EventQueryWrapperBuilderTest009
+ * @tc.desc: Test query events by TimeStampEventQueryWrapper
+ * @tc.type: FUNC
+ * @tc.require: issueIBX8TW
+ */
+HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest009, testing::ext::TestSize.Level3)
+{
+    auto now = std::chrono::system_clock::now();
+    auto millisecs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+    QueryArgument queryArgument(0, millisecs.count(), 10); // 10 is a test value
+    auto builder = std::make_shared<EventQueryWrapperBuilder>(queryArgument);
+    builder->Append("HIVIEWDFX", "PLUGIN_UNLOAD", 4, "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op\":\">\","
+        "\"value\":0}]}}");
+    builder->Append("HIVIEWDFX", "PLUGIN_LOAD", 4, "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op\":\">\","
+        "\"value\":0}]}}");
+    ASSERT_TRUE(builder->IsValid());
+    auto queryWrapper = builder->Build();
+    ASSERT_NE(queryWrapper, nullptr);
+}
+
+/**
+ * @tc.name: EventQueryWrapperBuilderTest010
+ * @tc.desc: Test query events by SeqEventQueryWrapper
+ * @tc.type: FUNC
+ * @tc.require: issueIBX8TW
+ */
+HWTEST_F(EventQueryWrapperBuilderTest, EventQueryWrapperBuilderTest010, testing::ext::TestSize.Level3)
+{
+    QueryArgument queryArgument(0, 0, 10, 1000, 2000); // 10 is a test query count, 1000-2000 is test query range
+    auto builder = std::make_shared<EventQueryWrapperBuilder>(queryArgument);
+    builder->Append("HIVIEWDFX", "PLUGIN_LOAD", 4, "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op\":\">\","
+        "\"value\":0}]}}");
+    builder->Append("HIVIEWDFX", "PLUGIN_UNLOAD", 4, "{\"version\":\"V1\",\"condition\":{\"and\":[{\"param\":\"PID\",\"op\":\">\","
+        "\"value\":0}]}}");
+    ASSERT_TRUE(builder->IsValid());
+    auto queryWrapper = builder->Build();
+    ASSERT_NE(queryWrapper, nullptr);
 }
 }
 }
