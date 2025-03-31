@@ -17,12 +17,11 @@
 #include <algorithm>
 #include <chrono>
 #include <contrib/minizip/zip.h>
-#include <fcntl.h>
-#include <sys/file.h>
 #include <unistd.h>
 #include <vector>
 
 #include "cpu_collector.h"
+#include "hisysevent.h"
 #include "file_util.h"
 #include "ffrt.h"
 #include "hiview_logger.h"
@@ -84,7 +83,7 @@ UcError TransFlowToUcError(TraceFlowCode ret)
     }
 }
 
-const std::string ModuleToString(UCollect::TeleModule &module)
+const std::string ModuleToString(UCollect::TeleModule module)
 {
     switch (module) {
         case UCollect::TeleModule::XPERF:
@@ -96,7 +95,7 @@ const std::string ModuleToString(UCollect::TeleModule &module)
     }
 }
 
-const std::string EnumToString(UCollect::TraceCaller &caller)
+const std::string EnumToString(UCollect::TraceCaller caller)
 {
     switch (caller) {
         case UCollect::TraceCaller::RELIABILITY:
@@ -116,7 +115,7 @@ const std::string EnumToString(UCollect::TraceCaller &caller)
     }
 }
 
-const std::string ClientToString(UCollect::TraceClient &client)
+const std::string ClientToString(UCollect::TraceClient client)
 {
     switch (client) {
         case UCollect::TraceClient::COMMAND:
@@ -275,6 +274,15 @@ int64_t GetTraceSize(TraceRetInfo &ret)
     return traceSize;
 }
 
+void LoadMemoryInfo(DumpEvent &dumpEvent)
+{
+    std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
+    CollectResult<SysMemory> data = collector->CollectSysMemory();
+    dumpEvent.sysMemTotal = data.data.memTotal / MB_TO_KB;
+    dumpEvent.sysMemFree = data.data.memFree / MB_TO_KB;
+    dumpEvent.sysMemAvail = data.data.memAvailable / MB_TO_KB;
+}
+
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 {
     LoadMemoryInfo(dumpEvent);
@@ -299,15 +307,6 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
     if (ret != 0) {
         HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
     }
-}
-
-void LoadMemoryInfo(DumpEvent &dumpEvent)
-{
-    std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
-    CollectResult<SysMemory> data = collector->CollectSysMemory();
-    dumpEvent.sysMemTotal = data.data.memTotal / MB_TO_KB;
-    dumpEvent.sysMemFree = data.data.memFree / MB_TO_KB;
-    dumpEvent.sysMemAvail = data.data.memAvailable / MB_TO_KB;
 }
 
 UcError GetUcError(TraceRet ret)
@@ -348,41 +347,6 @@ bool CreateMultiDirectory(const std::string &dirPath)
         }
     }
     return true;
-}
-
-void RecoverTmpTrace()
-{
-    std::vector<std::string> traceFiles;
-    FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
-    HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
-    for (auto &filePath : traceFiles) {
-        std::string fileName = FileUtil::ExtractFileName(filePath);
-        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
-        std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
-        if (!FileUtil::FileExists(originTraceFile)) {
-            HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
-            FileUtil::RemoveFile(UNIFIED_SHARE_TEMP_PATH + fileName);
-            continue;
-        }
-        int fd = open(originTraceFile.c_str(), O_RDONLY | O_NONBLOCK);
-        if (fd == -1) {
-            HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
-            continue;
-        }
-        // add lock before zip trace file, in case hitrace delete origin trace file.
-        if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
-            HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
-            close(fd);
-            continue;
-        }
-        HIVIEW_LOGI("originTraceFile path: %{public}s", originTraceFile.c_str());
-        UcollectionTask traceTask = [=]() {
-            ZipTraceFile(originTraceFile, UNIFIED_SHARE_PATH + fileName);
-            flock(fd, LOCK_UN);
-            close(fd);
-        };
-        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
-    }
 }
 } // HiViewDFX
 } // OHOS

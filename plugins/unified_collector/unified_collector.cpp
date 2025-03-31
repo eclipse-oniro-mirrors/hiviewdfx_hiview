@@ -16,6 +16,8 @@
 
 #include <ctime>
 #include <memory>
+#include <fcntl.h>
+#include <sys/file.h>
 
 #include "collect_event.h"
 #include "ffrt.h"
@@ -27,6 +29,7 @@
 #include "plugin_factory.h"
 #include "process_status.h"
 #include "sys_event.h"
+#include "string_util.h"
 #include "time_util.h"
 #include "uc_observer_mgr.h"
 #include "unified_collection_stat.h"
@@ -34,6 +37,7 @@
 #include "app_caller_event.h"
 #include "event_publish.h"
 #include "hisysevent.h"
+#include "trace_worker.h"
 #include "trace_utils.h"
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
@@ -79,6 +83,41 @@ void CreateTracePath()
     CreateTracePathInner(UNIFIED_SHARE_PATH);
     CreateTracePathInner(UNIFIED_SPECIAL_PATH);
     CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
+}
+
+void RecoverTmpTrace()
+{
+    std::vector<std::string> traceFiles;
+    FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
+    HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
+    for (auto &filePath : traceFiles) {
+        std::string fileName = FileUtil::ExtractFileName(filePath);
+        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
+        std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
+        if (!FileUtil::FileExists(originTraceFile)) {
+            HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
+            FileUtil::RemoveFile(UNIFIED_SHARE_TEMP_PATH + fileName);
+            continue;
+        }
+        int fd = open(originTraceFile.c_str(), O_RDONLY | O_NONBLOCK);
+        if (fd == -1) {
+            HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
+            continue;
+        }
+        // add lock before zip trace file, in case hitrace delete origin trace file.
+        if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+            HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
+            close(fd);
+            continue;
+        }
+        HIVIEW_LOGI("originTraceFile path: %{public}s", originTraceFile.c_str());
+        UcollectionTask traceTask = [=]() {
+            ZipTraceFile(originTraceFile, UNIFIED_SHARE_PATH + fileName);
+            flock(fd, LOCK_UN);
+            close(fd);
+        };
+        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+    }
 }
 #endif
 }
