@@ -198,9 +198,7 @@ private:
 class CloseState : public TraceBaseState {
 public:
     TraceRet OpenTelemetryTrace(const std::string &args) override;
-
     TraceRet OpenAppTrace(int32_t appPid) override;
-
     TraceRet CloseTrace(TraceScenario scenario) override;
 
 protected:
@@ -213,50 +211,25 @@ protected:
 class TraceStateMachine : public OHOS::DelayedRefSingleton<TraceStateMachine> {
 public:
     TraceStateMachine();
-
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups);
-
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
-
     TraceRet OpenTelemetryTrace(const std::string &args);
-
     TraceRet OpenDynamicTrace(int32_t appid);
-
     TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
-
     TraceRet DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
         TraceRetInfo &info);
-
     TraceRet TraceDropOn(TraceScenario scenario);
-
     TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info);
-
     TraceRet CloseTrace(TraceScenario scenario);
-
     TraceRet TraceCacheOn();
-
     TraceRet TraceCacheOff();
-
-    TraceRet InitOrUpdateState();
-
-    TraceRet InitCommonDropState();
-
-    TraceRet InitCommonState();
-
     void TransToCommonState();
-
     void TransToCommandState();
-
     void TransToCommandDropState();
-
     void TransToCommonDropState();
-
     void TransToTeleMetryState();
-
     void TransToDynamicState(int32_t appid);
-
     void TransToCloseState();
-
     bool RegisterTelemetryCallback(std::function<void()> func);
 
     void SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration)
@@ -349,6 +322,8 @@ public:
 
 private:
     TraceRet RecoverState();
+    TraceRet InitCommonDropState();
+    TraceRet InitCommonState();
 
 private:
     std::shared_ptr<TraceBaseState> currentState_;
