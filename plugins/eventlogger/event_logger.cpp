@@ -584,18 +584,27 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
     if (!IsKernelStack(contentStack)) {
         stack = contentStack;
         contentStack = "[]";
-    } else if (DfxJsonFormatter::FormatKernelStack(contentStack, stack, isFormat)) {
-        kernelStack = contentStack;
+        return;
+    }
+    std::string kernelStackTag = "Kernel stack is:\n";
+    std::string kernelStackStart = "";
+    size_t kernelStackIndex = contentStack.find(kernelStackTag);
+    if (kernelStackIndex != std::string::npos) {
+        kernelStackStart = contentStack.substr(0, kernelStackIndex);
+        contentStack = contentStack.substr(kernelStackIndex + kernelStackTag.size());
+    }
+    kernelStack = contentStack;
+    if (DfxJsonFormatter::FormatKernelStack(contentStack, stack, isFormat)) {
         contentStack = stack;
-        stack = "";
-        if (!isFormat || !DfxJsonFormatter::FormatJsonStack(contentStack, stack)) {
-            stack = contentStack;
+        if (isFormat) {
+            stack = "";
+            stack = DfxJsonFormatter::FormatJsonStack(contentStack, stack) ? stack : contentStack;
         }
     } else {
-        kernelStack = contentStack;
         stack = "Failed to format kernel stack\n";
         contentStack = "[]";
     }
+    stack = kernelStackStart + stack;
 }
 
 void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
@@ -676,15 +685,10 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     std::string kernelStack;
     for (auto lineIt = lines.begin(); lineIt != lines.end(); lineIt++) {
         std::string line = tags + *lineIt;
-        size_t firstLineIndex = line.find("\n");
-        std::string firstLine = (firstLineIndex != std::string::npos) ? line.substr(0, firstLineIndex) : tags;
         stack = "";
         kernelStack = "";
         GetNoJsonStack(stack, line, kernelStack, false);
         binderPeerStack += kernelStack;
-        if (line != "[]") {
-            stack = firstLine + "\n" + stack;
-        }
         oss << stack << std::endl;
     }
     binderInfo = oss.str();
