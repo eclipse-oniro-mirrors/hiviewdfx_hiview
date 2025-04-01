@@ -97,4 +97,9 @@ ohos_source_set("log_catcher") {
     sources += [ "ffrt_catcher.cpp" ]
     defines += [ "OTHER_CATCHER_ENABLE" ]
   }
+
+  if (hiview_eventlogger_kernel_catcher_enable) {
+    defines += [ "KERNELSTACK_CATCHER_ENABLE" ]
+    external_deps += [ "faultloggerd:libbacktrace_local" ]
+  }
 }

@@ -256,9 +256,9 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_004, TestSize.Level3)
     SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
     std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
-    logTask->GetSpecificProcessStack();
-    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "EventloggerCatcherTest");
-    logTask->GetSpecificProcessStack();
+    logTask->GetStackByProcessName();
+    sysEvent->SetEventValue("PROCESS_NAME", "EventloggerCatcherTest");
+    logTask->GetStackByProcessName();
     EXPECT_TRUE(logTask != nullptr);
 }
 #endif // STACKTRACE_CATCHER_ENABLE
@@ -309,6 +309,29 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_005, TestSize.Level3)
     }
     EXPECT_EQ(sysEvent->GetEventValue("PROCESS_NAME"), "EventloggerCatcherTest");
 }
+
+#if defined(KERNELSTACK_CATCHER_ENABLE) && defined(DMESG_CATCHER_ENABLE)
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventlogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_006, TestSize.Level3)
+{
+    auto fd = open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create testFile. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->SysrqCapture(true);
+    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "foundation");
+    logTask->SysrqCapture(true);
+    EXPECT_TRUE(logTask != nullptr);
+}
+#endif
 
 #ifdef BINDER_CATCHER_ENABLE
 /**
@@ -602,6 +625,45 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     EXPECT_EQ(ret, true);
     close(fd);
 }
+
+#ifdef KERNELSTACK_CATCHER_ENABLE
+/**
+ * @tc.name: DmesgCatcherTest_004
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_004, TestSize.Level1)
+{
+    int pid = getpid();
+    auto dmesgCatcher = std::make_shared<DmesgCatcher>();
+    int ret = dmesgCatcher->DumpKernelStacktrace(-1, pid);
+    EXPECT_EQ(ret, -1);
+    auto fd = open("/data/test/logCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create logCatcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    ret = dmesgCatcher->DumpKernelStacktrace(fd, pid);
+    EXPECT_EQ(ret, 0);
+    close(fd);
+}
+
+/**
+ * @tc.name: DmesgCatcherTest_005
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_005, TestSize.Level1)
+{
+    std::vector<pid_t> tids;
+    auto dmesgCatcher = std::make_shared<DmesgCatcher>();
+    dmesgCatcher->GetTidsByPid(-1, tids);
+    EXPECT_TRUE(tids.size() == 0);
+    dmesgCatcher->GetTidsByPid(getpid(), tids);
+    EXPECT_TRUE(tids.size() > 0);
+}
+#endif // KERNELSTACK_CATCHER_ENABLE
+
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef STACKTRACE_CATCHER_ENABLE
