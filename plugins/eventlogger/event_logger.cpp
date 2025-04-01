@@ -600,7 +600,6 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
             stack = "";
             stack = DfxJsonFormatter::FormatJsonStack(contentStack, stack) ? stack : contentStack;
         }
-        stack = kernelStackTag + stack;
     } else {
         stack = "Failed to format kernel stack\n";
         contentStack = "[]";
