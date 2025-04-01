@@ -96,12 +96,6 @@ TraceRet TraceStateMachine::CloseTrace(TraceScenario scenario)
     return RecoverState();
 }
 
-TraceRet TraceStateMachine::InitOrUpdateState()
-{
-    std::lock_guard<std::mutex> lock(traceMutex_);
-    return RecoverState();
-}
-
 void TraceStateMachine::TransToDynamicState(int32_t appPid)
 {
     HIVIEW_LOGI("to app state");

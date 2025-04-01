@@ -15,6 +15,7 @@
 
 #include <charconv>
 #include <gtest/gtest.h>
+#include <functional>
 
 #include "app_caller_event.h"
 #include "file_util.h"
@@ -24,11 +25,14 @@
 #include "time_util.h"
 
 using namespace testing::ext;
-namespace OHOS {
-namespace HiviewDFX {
+using namespace OHOS::HiviewDFX;
 namespace {
 const std::string TEST_DB_PATH = "/data/test/trace_storage_test/";
 const std::vector<std::string> TAG_GROUPS = {"scene_performance"};
+const std::string DEVELOPER_MODE_TRACE_ARGS = "tags:sched, freq, disk, sync, binder, mmc, membus, load, pagecache, \
+    workq, ipa, hdf, virse, net, dsched, graphic, multimodalinput, dinput, ark, ace, window, zaudio, daudio, zmedia, \
+    dcamera, zcamera, dhfwk, app, gresource, ability, power, samgr, ffrt clockType:boot1 bufferSize:32768 overwrite:0 \
+    fileLimit:20 fileSize:102400";
 
 std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(int32_t uid, uint64_t happendTime)
 {
@@ -279,9 +283,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
 {
-    // TraceStateMachine init close state
-    TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret.IsSuccess());
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, TAG_GROUPS);
     ASSERT_TRUE(ret1.IsSuccess());
 
@@ -372,9 +373,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
 {
-    // TraceStateMachine init close state
-    TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret.IsSuccess());
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, TAG_GROUPS);
     ASSERT_TRUE(ret1.IsSuccess());
 
@@ -476,7 +474,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
 
     // close version beta and trans to close state
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    TraceStateMachine::GetInstance().InitOrUpdateState();
 
     // trans to common state
     TraceRet ret35 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
@@ -489,6 +486,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
     TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
 }
 
+void TestFunction()
+{}
+
 /**
  * @tc.name: TraceManagerTest009
  * @tc.desc: used to test TraceStateMachine telemetry state
@@ -496,13 +496,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
 {
-    // TraceStateMachine init close state
-    TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret.IsSuccess());
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("");
     ASSERT_TRUE(ret1.IsSuccess());
 
     // Trans to telemetry state
+    ASSERT_TRUE(TraceStateMachine::GetInstance().RegisterTelemetryCallback(TestFunction));
     TraceRetInfo info;
     TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
@@ -534,6 +532,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
     ASSERT_TRUE(ret51.IsSuccess());
 
     // Trans to close state
+    ASSERT_FALSE(TraceStateMachine::GetInstance().RegisterTelemetryCallback(TestFunction));
     TraceRet ret15 = TraceStateMachine::GetInstance().OpenDynamicTrace(101);
     ASSERT_TRUE(ret15.IsSuccess());
 
@@ -558,6 +557,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
     // Command state to telemetry deny
     TraceRet ret21 = TraceStateMachine::GetInstance().OpenTelemetryTrace("");
     ASSERT_EQ(ret21.GetStateError(), TraceStateCode::DENY);
+
+    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    ASSERT_TRUE(ret22.IsSuccess());
 }
 
 /**
@@ -567,9 +569,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
 {
-    // TraceStateMachine init close state
-    TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret.IsSuccess());
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenDynamicTrace(100);
     ASSERT_TRUE(ret1.IsSuccess());
 
@@ -631,9 +630,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest011, TestSize.Level1)
 {
-    // TraceStateMachine init close state
-    TraceRet ret = TraceStateMachine::GetInstance().InitOrUpdateState();
-    ASSERT_TRUE(ret.IsSuccess());
     TraceRetInfo info;
     TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
@@ -659,5 +655,64 @@ HWTEST_F(TraceManagerTest, TraceManagerTest011, TestSize.Level1)
     ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON).IsSuccess());
     ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC).IsSuccess());
 }
-}
+
+/**
+ * @tc.name: TraceManagerTest011
+ * @tc.desc: used to test TraceStateMachine close state
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest012, TestSize.Level1)
+{
+    // TraceStateMachine init close state
+    TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
+    auto ret = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_TRUE(ret.IsSuccess());
+
+    // TranToCommandState
+    auto ret1 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_EQ(ret1.stateError_, TraceStateCode::DENY);
+    auto ret2 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    ASSERT_TRUE(ret2.IsSuccess());
+
+    // TranToCommandDropState
+    auto ret6 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_EQ(ret6.stateError_, TraceStateCode::DENY);
+
+    auto ret3 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::DENY);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    ASSERT_TRUE(ret4.IsSuccess());
+
+    // TransToCLoseState
+    TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
+    auto ret5 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_TRUE(ret5.IsSuccess());
+    auto ret7 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMON);
+    ASSERT_TRUE(ret7.IsSuccess());
+
+    // TransToCommonDropStats
+    auto ret8 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_EQ(ret8.stateError_, TraceStateCode::DENY);
+    TraceRetInfo info;
+    auto ret9 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    ASSERT_TRUE(ret9.IsSuccess());
+    auto ret10 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    ASSERT_TRUE(ret10.IsSuccess());
+
+    // TransToDynamicState
+    auto ret11 = TraceStateMachine::GetInstance().OpenDynamicTrace(101);
+    ASSERT_TRUE(ret11.IsSuccess());
+    auto ret12 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    ASSERT_TRUE(ret12.IsSuccess());
+    auto ret15 = TraceStateMachine::GetInstance().OpenDynamicTrace(102);
+    ASSERT_TRUE(ret15.IsSuccess());
+    auto ret16 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_TRUE(ret16.IsSuccess());
+    auto ret17 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    ASSERT_TRUE(ret17.IsSuccess());
+
+    auto ret13 = TraceStateMachine::GetInstance().OpenTelemetryTrace("id");
+    ASSERT_TRUE(ret13.IsSuccess());
+    auto ret14 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, DEVELOPER_MODE_TRACE_ARGS);
+    ASSERT_TRUE(ret14.IsSuccess());
 }
