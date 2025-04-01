@@ -75,7 +75,7 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
         FileUtil::SaveStringToFd(fd, data);
         FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
     } else {
-        FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem");
+        FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem\n");
     }
 
     logSize_ = GetFdSize(fd) - originSize;
