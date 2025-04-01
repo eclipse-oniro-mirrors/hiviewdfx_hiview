@@ -318,6 +318,7 @@ int EventDbHelper::QueryDb(std::vector<std::string>& eventStrs, const std::strin
         }
         eventStrs.emplace_back(event);
     }
+    resultSet->Close();
     return 0;
 }
 
