@@ -192,7 +192,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
 HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
 {
     setuid(1201); // hiview uid
-    UCollect::TraceCaller caller = UCollect::TraceCaller::BETACLUB;
+    UCollect::TraceCaller caller = UCollect::TraceCaller::SCREEN;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
     sleep(1);
@@ -201,7 +201,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     ASSERT_GE(resultDumpTrace2.data.size(), 0);
     string traceName = resultDumpTrace2.data[0];
     ASSERT_FALSE(traceName.empty());
-    ASSERT_NE(traceName.find(CallerName::BETACLUB), string::npos);
+    ASSERT_NE(traceName.find(CallerName::SCREEN), string::npos);
     std::vector<std::string> items = resultDumpTrace2.data;
     std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
     for (auto it = items.begin(); it != items.end(); it++) {

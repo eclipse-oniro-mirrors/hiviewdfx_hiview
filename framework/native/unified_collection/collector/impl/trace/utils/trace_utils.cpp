@@ -108,8 +108,8 @@ const std::string EnumToString(UCollect::TraceCaller caller)
             return CallerName::HIVIEW;
         case UCollect::TraceCaller::OTHER:
             return CallerName::OTHER;
-        case UCollect::TraceCaller::BETACLUB:
-            return CallerName::BETACLUB;
+        case UCollect::TraceCaller::SCREEN:
+            return CallerName::SCREEN;
         default:
             return "";
     }
@@ -122,8 +122,8 @@ const std::string ClientToString(UCollect::TraceClient client)
             return ClientName::COMMAND;
         case UCollect::TraceClient::COMMON_DEV:
             return ClientName::COMMON_DEV;
-        case UCollect::TraceClient::APP:
-            return ClientName::APP;
+        case UCollect::TraceClient::BETACLUB:
+            return ClientName::BETACLUB;
         default:
             return "";
     }
@@ -244,7 +244,7 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
         const std::string dst = UNIFIED_SPECIAL_PATH + prefix + "_" + traceFile;
         files.push_back(dst);
         // copy trace immediately for betaclub and screen recording
-        if (prefix == CallerName::OTHER) {
+        if (prefix == CallerName::SCREEN || prefix == ClientName::BETACLUB) {
             CopyFile(trace, dst);
             continue;
         }
