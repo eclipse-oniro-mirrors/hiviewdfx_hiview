@@ -17,6 +17,7 @@
 
 #include "bundle_mgr_client.h"
 #include "file_util.h"
+#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "plugin_factory.h"
 #include "privacy_manager.h"
@@ -43,9 +44,9 @@ bool IsPreInstallApp(const std::string& bundleName)
 void GetAllowBundleNamesFromFile(const std::string& allowListFile, std::unordered_set<std::string>& bundleNames)
 {
     std::string realPath;
-    const std::string configDir = "/system/etc/hiview/allow_list/";
-    if (!FileUtil::PathToRealPath(configDir + allowListFile, realPath)) {
-        HIVIEW_LOGW("allow list path is invalid: %{public}s", allowListFile.c_str());
+    const std::string configFilePath = HiViewConfigUtil::GetConfigFilePath("allow_list/" + allowListFile);
+    if (!FileUtil::PathToRealPath(configFilePath, realPath)) {
+        HIVIEW_LOGW("allow list path is invalid: %{public}s", configFilePath.c_str());
         return;
     }
     std::vector<std::string> lines;
@@ -62,6 +63,7 @@ bool PrivacyController::IsBundleNameAllow(const std::string& bundleName, const s
     if (bundleName.empty()) {
         return true;
     }
+    std::lock_guard<std::mutex> lock(bundleMapMutex_);
     auto iter = allowBundleNameMap_.find(allowListFile);
     if (iter == allowBundleNameMap_.end()) {
         std::unordered_set<std::string> bundleNames;
@@ -69,9 +71,7 @@ bool PrivacyController::IsBundleNameAllow(const std::string& bundleName, const s
         allowBundleNameMap_.insert(std::make_pair(allowListFile, bundleNames));
         iter = allowBundleNameMap_.find(allowListFile);
     }
-    if (iter != allowBundleNameMap_.end() &&
-        (iter->second.empty() || iter->second.find(bundleName) != iter->second.end())) {
-        // allow list is empty or bundle name in allow list
+    if (iter != allowBundleNameMap_.end() && iter->second.find(bundleName) != iter->second.end()) {
         return true;
     }
     // name of pre-installed bundle is always allowed
@@ -106,9 +106,6 @@ void PrivacyController::OnLoad()
 
 bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
 {
-    if (event == nullptr) {
-        return false;
-    }
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
     if (sysEvent == nullptr) {
         return false;
@@ -144,6 +141,13 @@ bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
         sysEvent->SetEventValue("DroppedParam", droppedParam);
     }
     return true;
+}
+
+void PrivacyController::OnConfigUpdate(const std::string& localCfgPath, const std::string& cloudCfgPath)
+{
+    std::lock_guard<std::mutex> lock(bundleMapMutex_);
+    HIVIEW_LOGI("update bundle config");
+    allowBundleNameMap_.clear();
 }
 } // namespace HiviewDFX
 } // namespace OHOS
