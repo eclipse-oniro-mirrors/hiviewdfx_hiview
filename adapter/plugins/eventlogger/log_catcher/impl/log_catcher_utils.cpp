@@ -132,7 +132,7 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int termin
             msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + "\n" + ret;
         } else if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
             std::string failInfo = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second;
-            msg = failInfo + (DfxJsonFormatter::FormatKernelStack(ret, msg, false) ? ("Kernel stack is:\n" + msg) :
+            msg = failInfo + (DfxJsonFormatter::FormatKernelStack(ret, msg, false) ? msg :
                 "Failed to format kernel stack for " + std::to_string(pid) + "\n");
             WriteKernelStackToFd(fd, ret, pid);
         } else {
