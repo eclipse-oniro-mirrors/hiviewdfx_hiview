@@ -94,7 +94,7 @@ void TraceStrategy::DoClean(const std::string &tracePath, uint32_t threshold, bo
     HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filesWithTimes.size(), threshold);
 
     // Clean up old files, new copied file is still working in sub thread now, only can clean old files here
-    while (filesWithTimes.size() >= threshold) {
+    while (filesWithTimes.size() > threshold) {
         FileUtil::RemoveFile(filesWithTimes.front().second);
         HIVIEW_LOGI("remove file : %{public}s is deleted.", filesWithTimes.front().second.c_str());
         filesWithTimes.pop_front();

@@ -50,7 +50,7 @@ HWTEST_F(TraceUtilsTest, TraceUtilsTest001, TestSize.Level1)
     ASSERT_EQ(EnumToString(UCollect::TraceCaller::XPERF), "Xperf");
     ASSERT_EQ(EnumToString(UCollect::TraceCaller::XPOWER), "Xpower");
     ASSERT_EQ(EnumToString(UCollect::TraceCaller::HIVIEW), "Hiview");
-    ASSERT_EQ(EnumToString(UCollect::TraceCaller::BETACLUB), "BetaClub");
+    ASSERT_EQ(EnumToString(UCollect::TraceCaller::SCREEN), "Screen");
     ASSERT_EQ(EnumToString(UCollect::TraceCaller::OTHER), "Other");
     ASSERT_EQ(EnumToString(static_cast<UCollect::TraceCaller>(10)), "");
 
@@ -60,6 +60,5 @@ HWTEST_F(TraceUtilsTest, TraceUtilsTest001, TestSize.Level1)
 
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMAND), "Command");
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMON_DEV), "Other");
-    ASSERT_EQ(ClientToString(UCollect::TraceClient::APP), "APP");
     ASSERT_EQ(ClientToString(static_cast<UCollect::TraceClient>(10)), "");
 }
