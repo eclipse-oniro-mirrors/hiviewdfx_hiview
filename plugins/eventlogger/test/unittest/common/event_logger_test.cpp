@@ -34,6 +34,7 @@
 #include "parameters.h"
 #include "db_helper.h"
 #include "freeze_common.h"
+#include "event_logger_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -949,6 +950,66 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckScreenOnRepeat_001, TestSize.Leve
     event->eventName_ = testName;
     eventLogger->CheckScreenOnRepeat(event);
     EXPECT_TRUE(event->eventName_ != "SCREEN_ON");
+}
+
+/**
+ * @tc.name: EventLoggerTest_AddBootScanEvent_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_AddBootScanEvent_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    eventLogger->AddBootScanEvent();
+    EXPECT_TRUE(eventLogger != nullptr);
+}
+
+/**
+ * @tc.name: EventLoggerTest_StartBootScan_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_001, TestSize.Level3)
+{
+    std::string path = "/data/log/faultlog/freeze/appfreeze-com.test.demo-20020191-20250320154130";
+    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create File. errno: %d\n", errno);
+        FAIL();
+    }
+    FileUtil::SaveStringToFd(fd, "\ntesttest\nPID:12345\nSTRINGID:THREAD_BLOCK_6S\nTest\n");
+    StartBootScan();
+    close(fd);
+}
+
+/**
+ * @tc.name: EventLoggerTest_StartBootScan_002
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_002, TestSize.Level3)
+{
+    std::string path = "/data/log/faultlog/freeze/crash-com.test.demo-20020191-20250320154130";
+    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create File. errno: %d\n", errno);
+        FAIL();
+    }
+    FileUtil::SaveStringToFd(fd, "\ntesttest\nPID:12345\nSTRINGID:THREAD_BLOCK_6S\nTest\n");
+    StartBootScan();
+    close(fd);
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetFileLastAccessTimeStamp_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetFileLastAccessTimeStamp_001, TestSize.Level3)
+{
+    time_t ret = GetFileLastAccessTimeStamp("EventLoggerTest");
+    EXPECT_TRUE(ret == 0);
+    GetFileLastAccessTimeStamp("/data/test/log/test.txt");
 }
 } // namespace HiviewDFX
 } // namespace OHOS

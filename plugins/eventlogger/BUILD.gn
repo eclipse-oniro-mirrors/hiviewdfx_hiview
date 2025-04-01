@@ -25,11 +25,15 @@ ohos_source_set("eventlogger") {
   part_name = "hiview"
   public_configs = [ ":event_logger_config" ]
 
-  sources = [ "event_logger.cpp" ]
+  sources = [
+    "event_logger.cpp",
+    "event_logger_util.cpp",
+  ]
 
   deps = [
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
+    "$hiview_plugin/faultlogger:libfaultlogger",
     "$hiview_plugin/freeze_detector:freeze_detector",
     "config:eventlogger_config",
     "log_catcher:log_catcher",
