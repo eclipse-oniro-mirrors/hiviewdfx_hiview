@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@ struct FoldAppUsageInfo {
     int32_t expdHor = 0; // usage duration when screen in expand-horizon status
     int32_t startNum = 1;
     std::string date;
+    int32_t usage = 0;
 };
 
 struct FoldAppUsageRawEvent {

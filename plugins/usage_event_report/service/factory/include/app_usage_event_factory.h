@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,12 +27,13 @@ struct AppUsageInfo {
         const std::string& date, uint32_t startNum)
         : package_(package), version_(version), usage_(usage), date_(date), startNum_(startNum)
     {}
+    AppUsageInfo() {}
 
     std::string package_;
     std::string version_;
-    uint64_t usage_;
+    uint64_t usage_ = 0;
     std::string date_;
-    uint32_t startNum_;
+    uint32_t startNum_ = 0;
 };
 
 class AppUsageEventFactory : public LoggerEventFactory {

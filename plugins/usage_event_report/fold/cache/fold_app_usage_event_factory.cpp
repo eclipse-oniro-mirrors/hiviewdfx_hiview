@@ -15,6 +15,9 @@
 
 #include "fold_app_usage_event_factory.h"
 
+#include <algorithm>
+
+#include "bundle_mgr_client.h"
 #include "fold_common_utils.h"
 #include "fold_app_usage_event.h"
 #include "hiview_logger.h"
@@ -30,6 +33,18 @@ namespace {
 constexpr int APP_MGR_SERVICE_ID = 501;
 constexpr uint32_t DATA_KEEP_DAY = 3;
 const std::string DATE_FORMAT = "%Y-%m-%d";
+
+std::string GetAppVersion(const std::string& bundleName)
+{
+    AppExecFwk::BundleInfo info;
+    AppExecFwk::BundleMgrClient client;
+    if (!client.GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, info,
+        AppExecFwk::Constants::ALL_USERID)) {
+        HIVIEW_LOGE("Failed to get the version of the bundle=%{public}s", bundleName.c_str());
+        return "";
+    }
+    return info.versionName;
+}
 }
 
 using namespace FoldAppUsageEventSpace;
@@ -65,7 +80,7 @@ void FoldAppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>> 
         event->Update(KEY_OF_EXPD_HOR_USAGE, static_cast<uint32_t>(info.expdHor));
         event->Update(KEY_OF_DATE, dateStr);
         event->Update(KEY_OF_START_NUM, static_cast<uint32_t>(info.startNum));
-        event->Update(KEY_OF_USAGE, static_cast<uint32_t>(info.foldVer + info.foldHor + info.expdVer + info.expdHor));
+        event->Update(KEY_OF_USAGE, static_cast<uint32_t>(info.usage));
         events.emplace_back(std::move(event));
     }
     dbHelper_->DeleteEventsByTime(clearDataTime_);
@@ -102,8 +117,17 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
         statisticInfos[forgroundInfo.first].expdHor += forgroundInfo.second.expdHor;
         statisticInfos[forgroundInfo.first].startNum += forgroundInfo.second.startNum;
     }
-    for (const auto &statisticInfo : statisticInfos) {
-        infos.emplace_back(statisticInfo.second);
+    for (auto& [key, value] : statisticInfos) {
+        value.usage = value.foldVer + value.foldHor + value.expdVer + value.expdHor;
+        value.version = GetAppVersion(value.package);
+        infos.emplace_back(value);
+    }
+    std::sort(infos.begin(), infos.end(), [](const FoldAppUsageInfo &infoA, const FoldAppUsageInfo &infoB) {
+        return infoA.usage > infoB.usage;
+    });
+    if (infos.size() > MAX_APP_USAGE_SIZE) {
+        HIVIEW_LOGI("FoldAppUsageInfo size=%{public}zu, resize=%{public}zu", infos.size(), MAX_APP_USAGE_SIZE);
+        infos.resize(MAX_APP_USAGE_SIZE);
     }
 }
 
