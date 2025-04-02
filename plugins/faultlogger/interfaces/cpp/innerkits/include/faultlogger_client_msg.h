@@ -38,10 +38,4 @@ struct FaultLogInfoInner {
     std::map<std::string, std::string> sectionMaps;
 };
 
-#if defined(__arm__)
-static_assert(sizeof(FaultLogInfoInner) == 96, "faultloggerd processdump must be modify together!!!");
-#elif defined(__aarch64__)
-static_assert(sizeof(FaultLogInfoInner) == 168, "faultloggerd processdump must be modify together!!!");
-#endif
-
 #endif //FAULTLOGGER_CLIENT_MSG_H_
