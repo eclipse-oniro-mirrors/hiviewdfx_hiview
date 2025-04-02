@@ -380,11 +380,14 @@ CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectCl
 {
     std::vector<int32_t> pidList;
     std::vector<int32_t> resourceList;
+    if (memList.size() < 1) {
+        return {UCollect::UcError::SYSTEM_ERROR};
+    }
     for (auto it : memList) {
         pidList.push_back(it.pid);
         resourceList.push_back(it.limitValue);
     }
-    std::string eventName = "AVCODEC_SPLITMEMORY";
+    std::string eventName = memList[0].resourceType;
     SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
     sysEventCreator.SetKeyValue("PID_LIST", pidList);
     sysEventCreator.SetKeyValue("RESOURCE_LIST", resourceList);
@@ -392,7 +395,7 @@ CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectCl
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     auto event = std::dynamic_pointer_cast<Event>(sysEvent);
     if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, "XPower", event)) {
-        HIVIEW_LOGE("%{public}s failed", eventName.c_str());
+        HIVIEW_LOGE("%{public}s failed for post event", eventName.c_str());
         return {UCollect::UcError::SYSTEM_ERROR};
     }
     return {UCollect::UcError::SUCCESS};

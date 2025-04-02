@@ -431,7 +431,7 @@ ErrCode HiviewServiceAbility::SetSplitMemoryValue(
         HIVIEW_LOGW("mem list size is invalid.");
         return TraceErrCode::ERR_READ_MSG_PARCEL;
     }
-    std::vector<UCollectClient::MemoryCaller> memList(memCallerParcelableList.size());
+    std::vector<UCollectClient::MemoryCaller> memList;
     for (const auto& item : memCallerParcelableList) {
         memList.emplace_back(item.GetMemoryCaller());
     }
