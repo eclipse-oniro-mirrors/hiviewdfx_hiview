@@ -50,7 +50,8 @@ constexpr unsigned SUMMARY_LOG_SIZE = 350 * 1024;
 constexpr unsigned BUF_SIZE = 128;
 constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
 constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
-constexpr unsigned DEFAULT_SANITIZER_LOG_MODE = 0644;
+constexpr mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
+constexpr char ADDR_SANITIZER_EVENT[] = "ADDR_SANITIZER";
 static std::stringstream g_asanlog;
 }
 
@@ -133,19 +134,45 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     // Do upload when data ready
     WriteCollectedData(currInfo);
     if (currInfo.logPath == "faultlogger") {
-        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY, "ADDR_SANITIZER",
-                        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
-                        "MODULE", currInfo.moduleName,
-                        "VERSION", currInfo.appVersion,
-                        "FAULT_TYPE", currInfo.faultType,
-                        "REASON", currInfo.errType,
-                        "PID", currInfo.pid,
-                        "UID", currInfo.uid,
-                        "SUMMARY", currInfo.summary,
-                        "HAPPEN_TIME", currInfo.happenTime,
-                        "FINGERPRINT", currInfo.hash,
-                        "FIRST_FRAME", currInfo.errType,
-                        "SECOND_FRAME", currInfo.topStack);
+        SendSanitizerHisysevent(currInfo);
+    }
+}
+
+void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
+{
+    HiSysEventParam params[] = {
+        { .name = "MODULE", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.moduleName.c_str()) }, .arraySize = 0 },
+        { .name = "VERSION", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.appVersion.c_str()) }, .arraySize = 0 },
+        { .name = "FAULT_TYPE", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.faultType.c_str()) }, .arraySize = 0 },
+        { .name = "REASON", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.errType.c_str()) }, .arraySize = 0 },
+        { .name = "PID", .t = HISYSEVENT_INT32,
+            .v = { .i32 = currInfo.pid }, .arraySize = 0 },
+        { .name = "UID", .t = HISYSEVENT_INT32,
+            .v = { .i32 = currInfo.uid }, .arraySize = 0 },
+        { .name = "SUMMARY", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.summary.c_str()) }, .arraySize = 0 },
+        { .name = "HAPPEN_TIME", .t = HISYSEVENT_UINT64,
+            .v = { .ui64 = currInfo.happenTime }, .arraySize = 0 },
+        { .name = "FINGERPRINT", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.hash.c_str()) }, .arraySize = 0 },
+        { .name = "FIRST_FRAME", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.errType.c_str()) }, .arraySize = 0 },
+        { .name = "SECOND_FRAME", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.topStack.c_str()) }, .arraySize = 0 }
+    };
+    int ret = OH_HiSysEvent_Write(
+        OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY,
+        ADDR_SANITIZER_EVENT,
+        HISYSEVENT_FAULT,
+        params,
+        sizeof(params) / sizeof(params[0])
+    );
+    if (ret < 0) {
+        HILOG_ERROR(LOG_CORE, "Sanitizer send hisysevent failed, ret = %{public}d", ret);
     }
 }
 
