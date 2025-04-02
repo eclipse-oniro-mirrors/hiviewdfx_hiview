@@ -96,6 +96,8 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filename" name="TEST_VERSION1-1-CRITICAL-1.db" desc="the binary file for test, the file is self-developed"/>
                 <filteritem type="filename" name="TEST_VERSION2-1-CRITICAL-1.db" desc="the binary file for test, the file is self-developed"/>
                 <filteritem type="filename" name="TEST_VERSION3-1-CRITICAL-1.db" desc="the binary file for test, the file is self-developed"/>
+                <filteritem type="filename" name="TEST_VERSION2-1-CRITICAL-500.db" desc="the binary file for test, the file is self-developed"/>
+                <filteritem type="filename" name="TEST_VERSION1-5-CRITICAL-200.db" desc="the binary file for test, the file is self-developed"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
