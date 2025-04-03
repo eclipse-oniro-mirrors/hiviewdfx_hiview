@@ -99,6 +99,7 @@ private:
     void InputHilogCapture();
     void RemoteStackCapture();
     void GetThermalInfo(int fd);
+    void SaveRsVulKanError();
 };
 } // namespace HiviewDFX
 } // namespace OHOS
