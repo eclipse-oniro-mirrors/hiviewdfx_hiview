@@ -223,8 +223,8 @@ uint64_t EventLoop::AddTimerEvent(std::shared_ptr<EventHandler> handler, std::sh
     loopEvent.task = task;
     std::lock_guard<std::mutex> lock(queueMutex_);
     pendingEvents_.push(std::move(loopEvent));
-    HIVIEW_LOGI("task[%{public}" PRIu64 "|%{public}d] has been pushed into task queue.", interval,
-        static_cast<int>(repeat));
+    HIVIEW_LOGI("add task interval=%{public}" PRIu64 ", repeat=%{public}d, seq=%{public}" PRIu64,
+        interval, static_cast<int>(repeat), loopEvent.seq);
     ResetTimerIfNeedLocked();
     return now;
 }
@@ -238,6 +238,7 @@ bool EventLoop::RemoveEvent(uint64_t seq)
         HIVIEW_LOGI("removing the current processing event.");
         return false;
     }
+    HIVIEW_LOGI("remove task seq=%{public}" PRIu64, seq);
     return pendingEvents_.remove(seq);
 }
 
