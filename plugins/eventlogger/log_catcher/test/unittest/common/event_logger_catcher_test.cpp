@@ -198,6 +198,53 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
 }
 
 /**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventlogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_004, TestSize.Level3)
+{
+    auto fd = open("/data/test/vreFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create vreFile. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("PID", getpid());
+    sysEvent->SetEventValue("APPNODEID", 2025);
+    sysEvent->SetEventValue("APPNODENAME", "test appNodeName");
+    sysEvent->SetEventValue("LEASHWINDOWID", 319);
+    sysEvent->SetEventValue("LEASHWINDOWNAME", "test leashWindowName");
+    sysEvent->SetEventValue("EXT_INFO", "test ext_info");
+
+    sysEvent->domain_ = "AAFWK";
+    sysEvent->eventName_ = "APP_INPUT_BLOCK";
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->SaveRsVulKanError();
+    sysEvent->domain_ = "GRAPHIC";
+    sysEvent->eventName_ = "RS_VULKAN_ERROR";
+    logTask->SaveRsVulKanError();
+    close(fd);
+
+    std::string line;
+    std::ifstream ifs("/data/test/vreFile", std::ios::in);
+    if (ifs.is_open()) {
+        while (std::getline(ifs, line)) {
+            if (line.find("APPNODEID") != std::string::npos) {
+                printf("%s", line.c_str());
+                EXPECT_EQ(line, "APPNODEID=2025");
+            }
+            if (line.find("EXT_INFO") != std::string::npos) {
+                printf("%s", line.c_str());
+                EXPECT_EQ(line, "EXT_INFO=test ext_info");
+            }
+        }
+    }
+    EXPECT_EQ(sysEvent->GetEventValue("PROCESS_NAME"), "EventloggerCatcherTest");
+}
+
+/**
  * @tc.name: BinderCatcherTest_001
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
