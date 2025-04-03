@@ -89,6 +89,8 @@ if (enable_hiview_usage_event_report_build) {
       ]
 
       external_deps += [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
         "window_manager:libdm",
         "window_manager:libwm",
       ]
@@ -138,6 +140,8 @@ if (enable_hiview_usage_event_report_build) {
 
     external_deps = [
       "bounds_checking_function:libsec_shared",
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
       "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",

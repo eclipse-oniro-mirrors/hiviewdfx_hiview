@@ -22,6 +22,8 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+constexpr size_t MAX_APP_USAGE_SIZE = 100;
+
 namespace AppUsageEventSpace {
 const std::string EVENT_NAME = "APP_USAGE";
 const std::string KEY_OF_PACKAGE = "PACKAGE";

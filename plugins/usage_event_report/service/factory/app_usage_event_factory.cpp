@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 #include "app_usage_event_factory.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <vector>
 
@@ -63,6 +64,17 @@ void AppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>>& eve
     std::vector<AppUsageInfo> appUsageInfos;
     for (auto userId : userIds) {
         GetAppUsageInfosByUserId(appUsageInfos, userId);
+    }
+
+    // sort and get top
+    std::sort(appUsageInfos.begin(), appUsageInfos.end(),
+        [](const AppUsageInfo &infoA, const AppUsageInfo &infoB) {
+            return infoA.usage_ > infoB.usage_;
+        }
+    );
+    if (appUsageInfos.size() > MAX_APP_USAGE_SIZE) {
+        HIVIEW_LOGI("AppUsageInfo size=%{public}zu, resize=%{public}zu", appUsageInfos.size(), MAX_APP_USAGE_SIZE);
+        appUsageInfos.resize(MAX_APP_USAGE_SIZE);
     }
 
     // create events
