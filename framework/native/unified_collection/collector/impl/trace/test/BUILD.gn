@@ -50,6 +50,7 @@ ohos_unittest("TraceUtilsTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "hiview:libucollection_utility",
     "jsoncpp:jsoncpp",
     "zlib:libz",
   ]
