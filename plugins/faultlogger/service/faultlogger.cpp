@@ -833,33 +833,6 @@ std::unique_ptr<FaultLogQueryResultInner> Faultlogger::QuerySelfFaultLog(int32_t
     return std::make_unique<FaultLogQueryResultInner>(mgr_->GetFaultInfoList(name, id, faultType, maxNum));
 }
 
-void Faultlogger::DeleteHilogInFreezeFile(std::string &readContent, bool &modified) const
-{
-    const int blockMaxTime = 2;
-    const char *const hilogStart = "catcher cmd: hilog -z 1000 -P start time";
-    const char *const hilogEnd = "catcher cmd: hilog -z 1000 -P end time";
-    for (int i = 0; i < blockMaxTime; i++) {
-        auto posStart = readContent.find(hilogStart);
-        if (posStart == std::string::npos) {
-            HIVIEW_LOGW("No Hilog posStart Found In Crash Log");
-            break;
-        }
-
-        auto posEnd = readContent.find(hilogEnd, posStart);
-        if (posEnd == std::string::npos) {
-            HIVIEW_LOGW("No Hilog posEnd Found In Crash Log");
-            break;
-        }
-        auto endLinePos = readContent.find('\n', posEnd);
-        if (endLinePos == std::string::npos) {
-            HIVIEW_LOGW("No Hilog endLinePos Found In Crash Log");
-            break;
-        }
-        modified = true;
-        readContent.erase(posStart, endLinePos - posStart);
-    }
-}
-
 void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) const
 {
     std::ifstream logReadFile(logPath);
@@ -882,10 +855,8 @@ void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) c
                 ", which exceeesd the limit of " + std::to_string(maxLogSize) + " and is truncated.\n";
             modified = true;
         }
-    } else if (readContent.find(LIFECYCLE_TIMEOUT) != std::string::npos ||
-        faultType == FaultLogType::APP_FREEZE) {
-        DeleteHilogInFreezeFile(readContent, modified);
     }
+
     if (modified) {
         std::ofstream logWriteFile(logPath);
         logWriteFile << readContent;
@@ -941,10 +912,10 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
     if (!isSystemProcess && info.reportToAppEvent) {
         ReportEventToAppEvent(info);
     }
-    bool isNeedLimitFreezeFile = (info.dumpLogToFautlogger && ((info.faultLogType == FaultLogType::CPP_CRASH) ||
-        (info.faultLogType == FaultLogType::APP_FREEZE) ||
-        (info.reason == LIFECYCLE_TIMEOUT)) && IsFaultLogLimit());
-    if (isNeedLimitFreezeFile) {
+
+    if (info.dumpLogToFautlogger &&
+        ((info.faultLogType == FaultLogType::CPP_CRASH) || (info.faultLogType == FaultLogType::APP_FREEZE)) &&
+        IsFaultLogLimit()) {
         FaultlogLimit(info.logPath, info.faultLogType);
     }
 }
