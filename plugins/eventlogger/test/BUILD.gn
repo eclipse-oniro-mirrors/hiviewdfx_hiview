@@ -109,6 +109,7 @@ ohos_unittest("EventLoggerTest") {
     "$hiview_core:hiview_core",
     "$hiview_eventlogger:eventlogger",
     "$hiview_eventlogger/config:eventlogger_config",
+    "$hiview_plugin/faultlogger:libfaultlogger",
     "$hiview_plugin/sysevent_source:sysevent_source",
   ]
 

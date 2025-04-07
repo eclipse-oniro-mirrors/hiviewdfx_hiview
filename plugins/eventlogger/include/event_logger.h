@@ -122,6 +122,7 @@ private:
     void WriteCallStack(std::shared_ptr<SysEvent> event, int fd);
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
+    void AddBootScanEvent();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

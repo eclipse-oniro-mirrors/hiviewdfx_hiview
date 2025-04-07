@@ -49,6 +49,7 @@
 
 #include "event_log_task.h"
 #include "event_logger_config.h"
+#include "event_logger_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -86,6 +87,7 @@ namespace {
     static constexpr int DECIMEL = 10;
     static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
+    static constexpr int BOOT_SCAN_SECONDS = 60;
 }
 
 REGISTER(EventLogger);
@@ -1070,6 +1072,20 @@ void EventLogger::OnUnorderedEvent(const Event& msg)
         auto task = [this] { this->ProcessRebootEvent(); };
         threadLoop_->AddEvent(nullptr, nullptr, task);
     }
+    AddBootScanEvent();
+}
+
+void EventLogger::AddBootScanEvent()
+{
+    if (workLoop_ == nullptr) {
+        HIVIEW_LOGW("workLoop_ is null.");
+        return;
+    }
+
+    auto task = [this]() {
+        StartBootScan();
+    };
+    workLoop_->AddTimerEvent(nullptr, nullptr, task, BOOT_SCAN_SECONDS, false); // delay 60s
 }
 
 bool EventLogger::CanProcessRebootEvent(const Event& event)
