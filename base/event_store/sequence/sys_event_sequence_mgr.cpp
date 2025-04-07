@@ -195,10 +195,10 @@ SysEventSequenceManager::SysEventSequenceManager()
     }
     int64_t seq = 0;
     ReadSeqFromFile(seq);
-    int64_t startSeq = seq + SEQ_INCREMENT;
-    HIVIEW_LOGI("start seq=%{public}" PRId64, startSeq);
-    WriteSeqToFile(startSeq);
-    curSeq_.store(startSeq, std::memory_order_release);
+    startSeq_ = seq + SEQ_INCREMENT;
+    HIVIEW_LOGI("start seq=%{public}" PRId64, startSeq_);
+    WriteSeqToFile(startSeq_);
+    curSeq_.store(startSeq_, std::memory_order_release);
 }
 
 void SysEventSequenceManager::SetSequence(int64_t seq)
@@ -214,6 +214,11 @@ void SysEventSequenceManager::SetSequence(int64_t seq)
 int64_t SysEventSequenceManager::GetSequence()
 {
     return curSeq_.load(std::memory_order_acquire);
+}
+
+int64_t SysEventSequenceManager::GetStartSequence()
+{
+    return startSeq_;
 }
 
 void SysEventSequenceManager::WriteSeqToFile(int64_t seq)
