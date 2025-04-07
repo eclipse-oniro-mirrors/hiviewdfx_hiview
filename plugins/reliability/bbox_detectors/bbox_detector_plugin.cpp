@@ -145,7 +145,9 @@ void BBoxDetectorPlugin::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent)
     sysEvent->SetEventValue("FINGERPRINT", Tbox::CalcFingerPrint(event + module + eventInfos["FIRST_FRAME"] +
         eventInfos["SECOND_FRAME"] + eventInfos["LAST_FRAME"], 0, FP_BUFFER));
     sysEvent->SetEventValue("LOG_PATH", dynamicPaths);
-    HIVIEW_LOGI("HandleBBoxEvent event: %{public}s is success ", name.c_str());
+    HIVIEW_LOGI("HandleBBoxEvent event: %{public}s is success. F1: %{public}s, F2: %{public}s, F3: %{public}s",
+                name.c_str(), eventInfos["FIRST_FRAME"].c_str(), eventInfos["SECOND_FRAME"].c_str(),
+                eventInfos["LAST_FRAME"].c_str());
 }
 
 void BBoxDetectorPlugin::StartBootScan()
