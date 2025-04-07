@@ -81,7 +81,7 @@ private:
     void RemoteStackCapture();
     void GetProcessStack(const std::string& processName);
     void GetGPUProcessStack();
-    void GetSpecificProcessStack();
+    void GetStackByProcessName();
 #endif // STACKTRACE_CATCHER_ENABLE
 
 #ifdef BINDER_CATCHER_ENABLE

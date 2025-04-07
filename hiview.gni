@@ -108,6 +108,7 @@ declare_args() {
   hiview_eventlogger_usage_catcher_enable = true
   hiview_eventlogger_scb_catcher_enable = true
   hiview_eventlogger_other_catcher_enable = true
+  hiview_eventlogger_kernel_catcher_enable = false
 
   # hiview dft feature
   hiview_unified_collector_PC_app_state_collect_enable = false

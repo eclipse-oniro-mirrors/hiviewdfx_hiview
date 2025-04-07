@@ -32,7 +32,7 @@ public:
     bool Initialize(const std::string& packageNam, int isWriteNewFile, int needWriteSysrq) override;
     int Catch(int fd, int jsonFd) override;
     bool Init(std::shared_ptr<SysEvent> event);
-    void WriteNewSysrq();
+    void WriteNewSysrq(int pid);
 
 private:
     bool isWriteNewFile_ = false;
@@ -42,6 +42,10 @@ private:
     bool DumpDmesgLog(int fd);
     bool WriteSysrq();
     bool DumpSysrqToFile(int fd, char *buffer, int size);
+#ifdef KERNELSTACK_CATCHER_ENABLE
+    void GetTidsByPid(int pid, std::vector<pid_t>& tids);
+    int DumpKernelStacktrace(int fd, int pid);
+#endif
 };
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX

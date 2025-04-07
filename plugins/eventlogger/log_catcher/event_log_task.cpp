@@ -151,7 +151,7 @@ void EventLogTask::AddCapture()
     captureList_.insert(std::pair<std::string, capture>("GpuStack",
         [this] { this->GetGPUProcessStack(); }));
     captureList_.insert(std::pair<std::string, capture>("specificStack",
-        [this] { this->GetSpecificProcessStack(); }));
+        [this] { this->GetStackByProcessName(); }));
 #endif // STACKTRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("hot",
         [this] { this->GetThermalInfoCapture(); }));
@@ -354,9 +354,9 @@ void EventLogTask::GetGPUProcessStack()
     GetProcessStack(processName);
 }
 
-void EventLogTask::GetSpecificProcessStack()
+void EventLogTask::GetStackByProcessName()
 {
-    std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
+    std::string processName = event_->GetEventValue("PROCESS_NAME");
     if (!processName.empty()) {
         GetProcessStack(processName);
     }
@@ -412,7 +412,15 @@ void EventLogTask::SysrqCapture(bool isWriteNewFile)
     capture->Initialize("", isWriteNewFile, 1);
     capture->Init(event_);
     if (isWriteNewFile) {
-        capture->WriteNewSysrq();
+        int pid = -1;
+#ifdef KERNELSTACK_CATCHER_ENABLE
+        std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
+        if (!processName.empty()) {
+            pid = CommonUtils::GetPidByName(processName);
+            HIVIEW_LOGI("processName:%{public}s, pid:%{public}d.", processName.c_str(), pid);
+        }
+#endif //KERNELSTACK_CATCHER_ENABLE
+        capture->WriteNewSysrq(pid);
     } else {
         tasks_.push_back(capture);
     }

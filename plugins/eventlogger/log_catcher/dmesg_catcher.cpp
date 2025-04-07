@@ -24,12 +24,17 @@
 #include <sstream>
 #include <iostream>
 
+#ifdef KERNELSTACK_CATCHER_ENABLE
+#include "dfx_kernel_stack.h"
+#endif
+
 #include "hiview_logger.h"
 #include "log_catcher_utils.h"
 #include "common_utils.h"
 #include "file_util.h"
 #include "time_util.h"
 #include "securec.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 #ifdef DMESG_CATCHER_ENABLE
@@ -39,6 +44,8 @@ namespace {
     constexpr int SYSLOG_ACTION_SIZE_BUFFER = 10;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     static constexpr const char* const FULL_DIR = "/data/log/eventlog/";
+    static constexpr int DECIMEL = 10;
+    static constexpr int DIR_BUFFER = 256;
 }
 DmesgCatcher::DmesgCatcher() : EventLogCatcher()
 {
@@ -129,8 +136,55 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
 }
+#ifdef KERNELSTACK_CATCHER_ENABLE
+void DmesgCatcher::GetTidsByPid(int pid, std::vector<pid_t>& tids)
+{
+    char taskDir[DIR_BUFFER];
+    if (pid < 0 || sprintf_s(taskDir, sizeof(taskDir), "/proc/%d/task", pid) < 0) {
+        HIVIEW_LOGW("get tids failed, pid: %{public}d", pid);
+        return;
+    }
 
-void DmesgCatcher::WriteNewSysrq()
+    DIR* dir = opendir(taskDir);
+    if (dir != nullptr) {
+        struct dirent* dent;
+        while ((dent = readdir(dir)) != nullptr) {
+            char* endptr;
+            unsigned long tid = strtoul(dent->d_name, &endptr, DECIMEL);
+            if (tid == ULONG_MAX || *endptr) {
+                continue;
+            }
+            tids.push_back(tid);
+        }
+        closedir(dir);
+    }
+}
+
+int DmesgCatcher::DumpKernelStacktrace(int fd, int pid)
+{
+    if (fd < 0 || pid < 0) {
+        return -1;
+    }
+    std::string msg = "";
+    std::vector<pid_t> tids;
+    GetTidsByPid(pid, tids);
+    for (auto tid : tids) {
+        std::string temp = "";
+        if (DfxGetKernelStack(tid, temp) != 0) {
+            msg = "Failed to format kernel stack for " + std::to_string(tid) + temp + "\n";
+            continue;
+        }
+        msg += temp + "\n";
+    }
+    if (msg == "") {
+        msg = "dumpCatch return empty stack!!!!";
+    }
+    FileUtil::SaveStringToFd(fd, msg);
+    return 0;
+}
+#endif
+
+void DmesgCatcher::WriteNewSysrq(int pid)
 {
     if (needWriteSysrq_ && !WriteSysrq()) {
         return;
@@ -150,6 +204,9 @@ void DmesgCatcher::WriteNewSysrq()
     }
     auto fd = fileno(fp);
     DumpDmesgLog(fd);
+#ifdef KERNELSTACK_CATCHER_ENABLE
+    DumpKernelStacktrace(fd, pid);
+#endif // KERNELSTACK_CATCHER_ENABLE
     if (fclose(fp)) {
         HIVIEW_LOGE("fclose is failed");
     }
