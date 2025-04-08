@@ -17,8 +17,8 @@
                         "BUSSINESS_THREAD_BLOCK_6S", "BUSSINESS_THREAD_BLOCK_3S"]
         },{
             "domain": "FRAMEWORK",
-            "include": ["SERVICE_BLOCK", "SERVICE_WARNING", "SERVICE_TIMEOUT", "SERVICE_TIMEOUT_WARNING", "IPC_FULL",
-                        "HIT_EMPTY_WARNING", "APP_HICOLLIE", "FREQUENT_CLICK_WARNING", "USER_PANIC_WARNING"]
+            "include": ["SERVICE_BLOCK", "SERVICE_WARNING", "SERVICE_TIMEOUT", "SERVICE_TIMEOUT_WARNING", "IPC_FULL_WARNING",
+                        "IPC_FULL", "HIT_EMPTY_WARNING", "APP_HICOLLIE", "FREQUENT_CLICK_WARNING", "USER_PANIC_WARNING"]
         },{
             "domain": "KERNEL_VENDOR",
             "include": ["SCREEN_ON", "HUNGTASK", "COM_LONG_PRESS", "DMD_TP_I2C", "DMD_TP_HP", "DMD_LCD_DDR",
@@ -35,18 +35,18 @@
         },{
             "domain":"SYSTEM_NAV_UE",
             "include":["GESTURE_NAVIGATION_BACK"]
-        }, {
+        },{
             "domain":"HMOS_SVC_BROKER",
             "include":["RETRY_EXCEPTION"]
-        }, {
+        },{
             "domain":"RELIABILITY",
             "include":["APP_FREEZE_BETACLUB"]
-        }, {
+        },{
             "domain":"GRAPHIC",
             "include":["RS_VULKAN_ERROR"]
-        }, {
+        },{
             "domain":"GRAPHICS_GAME",
             "include":["GAME_FREEZE_DUMPSTACK"]
-         }
+        }
     ]
 }
