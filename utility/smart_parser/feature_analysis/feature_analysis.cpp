@@ -58,6 +58,9 @@ bool FeatureAnalysis::AnalysisLog()
 void FeatureAnalysis::Extract()
 {
     stringstream buffer("");
+    auto fileSize = FileUtil::GetFileSize(featureSet_.fullPath);
+    HIVIEW_LOGI("<%{public}d> file is %{public}s(%{public}" PRIu64 ")",
+        taskId_, featureSet_.fullPath.c_str(), fileSize);
     if (!LogUtil::ReadFileBuff(featureSet_.fullPath, buffer) || !buffer.good() || buffer.eof()) {
         errorCode_ = BUFFER_ERROR;
         HIVIEW_LOGE("<%{public}d> file is invalid", taskId_);
