@@ -22,8 +22,11 @@ config("unittest_config") {
   include_dirs = [
     ".",
     "$hiview_plugin/unified_collector/storage/include",
-    "$hiview_plugin/unified_collector/power/include",
   ]
+
+  if (power_manager_enable) {
+    include_dirs += [ "$hiview_plugin/unified_collector/power/include" ]
+  }
 
   cflags = [ "-D__UNITTEST__" ]
 }
@@ -36,38 +39,6 @@ config("state_observer_config") {
     "$hiview_framework/native/unified_collection/process/include",
     "$hiview_plugin/unified_collector/observer/include",
   ]
-
-  cflags = [ "-D__UNITTEST__" ]
-}
-
-config("statetest_config") {
-  visibility = [ ":*" ]
-
-  include_dirs = [
-    ".",
-    "mock/include",
-    "$hiview_base/utility/include",
-    "$hiview_plugin/unified_collector/app_trace/include",
-    "$hiview_plugin/unified_collector/include",
-    "$hiview_plugin/unified_collector/observer/include",
-    "$hiview_plugin/unified_collector/storage/include",
-    "$hiview_plugin/unified_collector/task/include",
-    "$hiview_plugin/unified_collector/power/include",
-    "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
-    "$hiview_framework/native/unified_collection/collector/inner_include",
-    "$hiview_framework/native/unified_collection/process/include",
-    "$hiview_framework/native/unified_collection/decorator/include",
-    "$hiview_base/event_report/include/",
-    "$hiview_plugin/usage_event_report/include/",
-    "$hiview_core/include/",
-    "$hiview_core/param_update/include",
-    "$hiview_root/include",
-    "$hiview_base/include/",
-  ]
-
-  if (power_manager_enable) {
-    include_dirs += [ "idl/include" ]
-  }
 
   cflags = [ "-D__UNITTEST__" ]
 }
@@ -96,6 +67,7 @@ ohos_unittest("CpuStorageTest") {
 
   if (power_manager_enable) {
     external_deps += [
+      "ability_base:want",
       "common_event_service:cesfwk_innerkits",
       "power_manager:powermgr_client",
     ]

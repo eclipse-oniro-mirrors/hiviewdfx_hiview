@@ -22,7 +22,9 @@
 #include "file_util.h"
 #include "rdb_predicates.h"
 #include "time_util.h"
+#ifdef POWER_MANAGER_ENABLE
 #include "power_status_manager.h"
+#endif
 #include "gmock/gmock-matchers.h"
 
 using namespace testing::ext;
