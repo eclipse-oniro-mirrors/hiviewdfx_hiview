@@ -60,7 +60,9 @@ int CpuCoreInfoCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
     GetCpuCoreFreqInfo(fd);
+    FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
     StabilityGetTempFreqInfo(fd);
+    FreezeCommon::WriteEndInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ");
     logSize_ = GetFdSize(fd) - originSize;
     if (logSize_ <= 0) {
         FileUtil::SaveStringToFd(fd, "cpu info is empty!");

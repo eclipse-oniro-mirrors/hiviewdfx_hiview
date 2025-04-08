@@ -205,15 +205,16 @@ EventLogTask::Status EventLogTask::StartCompose()
             AddStopReason(targetFd_, catcher, "Fail to dup file descriptor, exit!");
             return TASK_FAIL;
         }
-
-        FreezeCommon::WriteStartInfoToFd(dupedFd, catcher->GetDescription() + "start time: ");
+        std::string description = catcher->GetDescription();
+        description.erase(description.find_last_not_of(" \n\r\t") + 1);
+        FreezeCommon::WriteStartInfoToFd(dupedFd, description + " start time: ");
+        AddSeparator(dupedFd, catcher);
         int curLogSize = catcher->Catch(dupedFd, dupedJsonFd);
         if (catcher->name_ == "PeerBinderCatcher") {
             terminalThreadStack_ = catcher->terminalBinder_.threadStack;
         }
-        HIVIEW_LOGI("finish catcher: %{public}s, curLogSize: %{public}d", catcher->GetDescription().c_str(),
-            curLogSize);
-        FreezeCommon::WriteEndInfoToFd(dupedFd, catcher->GetDescription() + "end time: ");
+        HIVIEW_LOGI("finish catcher: %{public}s, curLogSize: %{public}d", description.c_str(), curLogSize);
+        FreezeCommon::WriteEndInfoToFd(dupedFd, description + " end time: ");
         if (ShouldStopLogTask(dupedFd, catcherIndex, curLogSize, catcher)) {
             break;
         }
@@ -433,10 +434,6 @@ void EventLogTask::HilogCapture()
 
 void EventLogTask::HilogTagCapture()
 {
-    if (!Parameter::IsBetaVersion()) {
-        HIVIEW_LOGI("the version is not a beta version");
-        return;
-    }
     auto capture = std::make_shared<ShellCatcher>();
     capture->Initialize("hilog -x", ShellCatcher::CATCHER_TAGHILOG, 0);
     tasks_.push_back(capture);
