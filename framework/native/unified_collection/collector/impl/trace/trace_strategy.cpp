@@ -197,6 +197,9 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
         return ret;
     }
     int64_t traceSize = GetTraceSize(traceRetInfo);
+    if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
+        dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
+    }
     outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
     DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_COUNTS, true);
     if (flowController_->NeedDump()) {
