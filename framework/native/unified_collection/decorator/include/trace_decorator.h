@@ -37,7 +37,8 @@ const std::map<UCollect::TraceCaller, std::string> CallerMap {
     {UCollect::XPERF, "XPERF"},
     {UCollect::XPOWER, "XPOWER"},
     {UCollect::OTHER, "OTHER"},
-    {UCollect::HIVIEW, "HIVIEW"}
+    {UCollect::HIVIEW, "HIVIEW"},
+    {UCollect::SCREEN, "SCREEN"}
 };
 
 struct TraceStatInfo {
