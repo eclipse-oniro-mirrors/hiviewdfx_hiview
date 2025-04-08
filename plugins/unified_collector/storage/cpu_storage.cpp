@@ -22,7 +22,9 @@
 #include "hiview_db_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#ifdef POWER_MANAGER_ENABLE
 #include "power_status_manager.h"
+#endif
 #include "process_collector.h"
 #include "process_status.h"
 #include "rdb_predicates.h"

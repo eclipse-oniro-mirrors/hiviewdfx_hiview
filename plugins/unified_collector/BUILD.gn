@@ -20,12 +20,15 @@ config("unified_collector_config") {
     "observer/include",
     "storage/include",
     "task/include",
-    "power/include",
     "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_framework/native/unified_collection/process/include",
     "$hiview_framework/native/unified_collection/decorator/include",
   ]
+
+  if (power_manager_enable) {
+    include_dirs += [ "power/include" ]
+  }
 }
 
 ohos_source_set("unified_collector") {
@@ -84,6 +87,7 @@ ohos_source_set("unified_collector") {
 
   if (power_manager_enable) {
     external_deps += [
+      "ability_base:want",
       "common_event_service:cesfwk_innerkits",
       "power_manager:powermgr_client",
     ]
