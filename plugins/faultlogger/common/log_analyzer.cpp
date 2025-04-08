@@ -84,8 +84,8 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
                 eventInfos["LAST_FRAME"] += ("(Tracer Process Name:" + CommonUtils::GetProcNameByPid(pid) + ")");
             }
         }
-        if (!eventInfos["DUMPCATCH_RESULT"].empty()) {
-            eventInfos["LAST_FRAME"] += ("(" + eventInfos["DUMPCATCH_RESULT"] + ")");
+        if (!eventInfos["NORMAL_STACK_REASON"].empty()) {
+            eventInfos["LAST_FRAME"] += ("(" + eventInfos["NORMAL_STACK_REASON"] + ")");
         }
     }
     return true;

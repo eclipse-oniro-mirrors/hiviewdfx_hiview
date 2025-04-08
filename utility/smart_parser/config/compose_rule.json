@@ -7,7 +7,7 @@
                 "END_STACK":"MainCallTrace.v_trace",
                 "LAST_FRAME":"BasicParam.v_state",
                 "TRACER_PID":"BasicParam.v_tracer",
-                "DUMPCATCH_RESULT":"BasicParam.v_dumpcatch_result"
+                "NORMAL_STACK_REASON":"BasicParam.v_normal_stack_reason"
             }
     },
     "SYS_FREEZE": {
@@ -16,7 +16,7 @@
                 "QUEUE_NAME": "BasicParam.v_queue_name",
                 "TIME_OUT": "BasicParam.v_timeout",
                 "END_STACK":"MainCallTrace.v_trace",
-                "DUMPCATCH_RESULT":"BasicParam.v_dumpcatch_result"
+                "NORMAL_STACK_REASON":"BasicParam.v_normal_stack_reason"
             },
             "63_SYS_FREEZE_02": {
                 "PNAME": "BasicParam.v_process",

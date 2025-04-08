@@ -39,7 +39,7 @@
             {"namespace":"BasicParam", "matchKey":"TracerPid:", "v_tracer":"TracerPid:(.*)"},
             {"namespace":"BasicParam", "matchKey":"hidumper: No such process", "v_exit":"hidumper: (.*):"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
-            {"namespace":"BasicParam", "matchKey":"Result: pid", "v_dumpcatch_result":"Result: pid\\(\\d+\\) (process .*)\\."},
+            {"namespace":"BasicParam", "matchKey":"normal stack:", "v_normal_stack_reason":"normal stack:(.*)"},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)|at (.*)"}
         ]
     },
@@ -53,7 +53,7 @@
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"FfrtCallback: task(SERIAL_TASK_TIMEOUT:", "v_queue_name":"FfrtCallback: task\\(SERIAL_TASK_TIMEOUT:.*queue name \\[(sq_\\w+)_\\d+\\]"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
-            {"namespace":"BasicParam", "matchKey":"Result: pid", "v_dumpcatch_result":"Result: pid\\(\\d+\\) (process .*)\\."},
+            {"namespace":"BasicParam", "matchKey":"normal stack:", "v_normal_stack_reason":"normal stack:(.*)"},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
@@ -142,7 +142,7 @@
             {"namespace":"BasicParam", "matchKey":"TracerPid:", "v_tracer":"TracerPid:(.*)"},
             {"namespace":"BasicParam", "matchKey":"hidumper: No such process", "v_exit":"hidumper:(.*):"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
-            {"namespace":"BasicParam", "matchKey":"Result: pid", "v_dumpcatch_result":"Result: pid\\(\\d+\\) (process .*)\\."},
+            {"namespace":"BasicParam", "matchKey":"normal stack:", "v_normal_stack_reason":"normal stack:(.*)"},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)|at (.*)"}
         ]
     },
@@ -218,7 +218,7 @@
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"FfrtCallback: task(SERIAL_TASK_TIMEOUT:", "v_queue_name":"FfrtCallback: task\\(SERIAL_TASK_TIMEOUT:.*queue name \\[(sq_\\w+)_\\d+\\]"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
-            {"namespace":"BasicParam", "matchKey":"Result: pid", "v_dumpcatch_result":"Result: pid\\(\\d+\\) (process .*)\\."},
+            {"namespace":"BasicParam", "matchKey":"normal stack:", "v_normal_stack_reason":"normal stack:(.*)"},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
