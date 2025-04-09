@@ -54,6 +54,8 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
                 continue;
             }
             rearInterval = record->happenTime_ - timestamp;
+        } else {
+            continue;
         }
 
         long uid = record->GetEventIntValue(FreezeCommon::EVENT_UID);
