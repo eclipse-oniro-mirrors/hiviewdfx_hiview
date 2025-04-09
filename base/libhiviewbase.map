@@ -390,6 +390,7 @@
         "OHOS::HiviewDFX::EventStore::SysEventSequenceManager::GetSequence()";
         "OHOS::HiviewDFX::EventStore::SysEventSequenceManager::SetSequence(long long)";
         "OHOS::HiviewDFX::EventStore::SysEventSequenceManager::SetSequence(long)";
+        "OHOS::HiviewDFX::EventStore::SysEventSequenceManager::GetStartSequence()";
         "OHOS::HiviewDFX::EventLoop::GetRawName() const";
         "OHOS::HiviewDFX::TimeUtil::GetSeconds()";
         "OHOS::HiviewDFX::CJsonUtil::ParseJsonRoot(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
