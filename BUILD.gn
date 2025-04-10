@@ -163,6 +163,7 @@ group("hiview_test_package") {
     "test:unittest",
     "utility/common_utils:unittest",
     "utility/smart_parser:moduletest",
+    "utility/test:unittest",
   ]
 
   deps += plugin_ut_deps
