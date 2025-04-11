@@ -121,8 +121,9 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     currInfo.appVersion = "";
     time_t timeNow = time(nullptr);
     uint64_t timeTmp = timeNow;
+    constexpr int decimalBase = 10;
     std::string timeStr = OHOS::HiviewDFX::GetFormatedTime(timeTmp);
-    currInfo.happenTime = std::stoll(timeStr);
+    currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, decimalBase));
     currInfo.topStack = GetTopStackWithoutCommonLib(currInfo.description);
     currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
         currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
