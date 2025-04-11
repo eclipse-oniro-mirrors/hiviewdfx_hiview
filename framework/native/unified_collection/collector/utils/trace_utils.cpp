@@ -45,7 +45,6 @@ const std::string XPOWER = "Xpower";
 const std::string BETACLUB = "BetaClub";
 const std::string APP = "APP";
 const std::string HIVIEW = "Hiview";
-const std::string FOUNDATION = "Foundation";
 const std::string OTHER = "Other";
 const uint32_t UNIFIED_SHARE_COUNTS = 25;
 const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
@@ -341,8 +340,6 @@ const std::string EnumToString(UCollect::TraceCaller &caller)
             return APP;
         case UCollect::TraceCaller::HIVIEW:
             return HIVIEW;
-        case UCollect::TraceCaller::FOUNDATION:
-            return FOUNDATION;
         default:
             return OTHER;
     }
@@ -353,8 +350,7 @@ std::vector<std::string> GetUnifiedFiles(TraceRetInfo ret, UCollect::TraceCaller
     if (caller == UCollect::TraceCaller::OTHER || caller == UCollect::TraceCaller::BETACLUB) {
         return GetUnifiedSpecialFiles(ret, caller);
     }
-    if (caller == UCollect::TraceCaller::XPOWER || caller == UCollect::TraceCaller::HIVIEW ||
-        caller == UCollect::TraceCaller::FOUNDATION) {
+    if (caller == UCollect::TraceCaller::XPOWER || caller == UCollect::TraceCaller::HIVIEW) {
         return GetUnifiedShareFiles(ret, caller);
     }
     GetUnifiedSpecialFiles(ret, caller);

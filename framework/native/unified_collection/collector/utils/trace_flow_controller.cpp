@@ -43,7 +43,6 @@ const int64_t XPERF_SIZE = 1750 * 1024 * 1024;
 const int64_t XPOWER_SIZE = 700 * 1024 * 1024;
 const int64_t RELIABILITY_SIZE = 750 * 1024 * 1024;
 const int64_t HIVIEW_SIZE = 350 * 1024 * 1024;
-const int64_t FOUNDATION_SIZE = 150 * 1024 * 1024;
 const float TEN_PERCENT_LIMIT = 0.1;
 
 int64_t GetActualReliabilitySize()
@@ -55,8 +54,7 @@ const std::unordered_map<UCollect::TraceCaller, std::pair<std::string, int64_t>>
     {UCollect::TraceCaller::XPERF, {"xperf", XPERF_SIZE}},
     {UCollect::TraceCaller::XPOWER, {"xpower", XPOWER_SIZE}},
     {UCollect::TraceCaller::RELIABILITY, {"reliability", GetActualReliabilitySize()}},
-    {UCollect::TraceCaller::HIVIEW, {"hiview", HIVIEW_SIZE}},
-    {UCollect::TraceCaller::FOUNDATION, {"foundation", FOUNDATION_SIZE}},
+    {UCollect::TraceCaller::HIVIEW, {"hiview", HIVIEW_SIZE}}
 };
 }
 
