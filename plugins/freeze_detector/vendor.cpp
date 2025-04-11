@@ -226,7 +226,7 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
     type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
         (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
     pubLogPathName = type + std::string(HYPHEN) + processName + std::string(HYPHEN) + std::to_string(uid) +
-        std::string(HYPHEN) + timestamp;
+        std::string(HYPHEN) + timestamp + std::string(HYPHEN) + std::to_string(watchPoint.GetTimestamp());
 }
 
 void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
