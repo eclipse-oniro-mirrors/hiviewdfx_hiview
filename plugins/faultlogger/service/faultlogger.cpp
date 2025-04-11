@@ -1172,13 +1172,14 @@ std::string Faultlogger::GetMemoryStrByPid(long pid) const
 
     std::ifstream meminfoStream("/proc/meminfo");
     if (meminfoStream) {
+        constexpr int decimalBase = 10;
         std::string meminfoLine;
         std::getline(meminfoStream, meminfoLine);
-        sysTotalMem = std::stoull(GetDightStrArr(meminfoLine).front());
+        sysTotalMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
         std::getline(meminfoStream, meminfoLine);
-        sysFreeMem = std::stoull(GetDightStrArr(meminfoLine).front());
+        sysFreeMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
         std::getline(meminfoStream, meminfoLine);
-        sysAvailMem = std::stoull(GetDightStrArr(meminfoLine).front());
+        sysAvailMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
         meminfoStream.close();
         HIVIEW_LOGI("GET FreezeJson sysFreeMem=%{public}llu, sysAvailMem=%{public}llu, sysTotalMem=%{public}llu.",
             sysFreeMem, sysAvailMem, sysTotalMem);
