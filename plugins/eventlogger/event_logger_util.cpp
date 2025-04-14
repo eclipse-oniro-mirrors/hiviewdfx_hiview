@@ -31,6 +31,7 @@ namespace {
     static constexpr const char* const SYSWARNING = "syswarning";
     static constexpr const char* const EVENT_PID = "PID";
     static constexpr const char* const EVENT_REASON = "STRINGID";
+    static constexpr const char* const EVENT_TIMESTAMP = "TIMESTAMP";
     static constexpr const char* const FREEZE_PREFIX[] = {
         APPFREEZE, SYSFREEZE, SYSWARNING
     };
@@ -61,16 +62,18 @@ FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName)
     int32_t idxOfMoudle = 1;
     int32_t idxOfUid = 2;
     int32_t idxOfTime = 3;
-    uint32_t expectedVecSize = 4;
+    uint32_t idxOfTimeStamp = 4;
+    uint32_t vectorSize = 5;
     StringUtil::SplitStr(fileName, "-", splitStr);
-    if (splitStr.size() == expectedVecSize) {
+    if (splitStr.size() == vectorSize) {
         std::string type = splitStr[idxOfType];
         info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : ((type == SYSFREEZE) ?
             FaultLogType::SYS_FREEZE : FaultLogType::SYS_WARNING);
         info.summary = splitStr[idxOfType] + ": ";
         info.module = splitStr[idxOfMoudle];
         StringUtil::ConvertStringTo<uint32_t>(splitStr[idxOfUid], info.id);
-        std::string timeStamp = splitStr[idxOfTime].substr(0, splitStr[idxOfTime].find(".log"));
+        info.sectionMaps[EVENT_TIMESTAMP] = splitStr[idxOfTime];
+        std::string timeStamp = splitStr[idxOfTimeStamp].substr(0, splitStr[idxOfTimeStamp].find(".log"));
         StringUtil::ConvertStringTo<uint64_t>(timeStamp, info.time);
     }
     return info;
@@ -102,7 +105,7 @@ FaultLogInfoInner ParseFaultLogInfoFromFile(const std::string &path, const std::
     int32_t pid = 0;
     StringUtil::ConvertStringTo<int32_t>(info.sectionMaps[EVENT_PID], pid);
     info.pid = static_cast<uint32_t>(pid);
-    info.summary += info.module + " " + info.reason + " at " + std::to_string(info.time);
+    info.summary += info.module + " " + info.reason + " at " + info.sectionMaps[EVENT_TIMESTAMP];
     info.time = TimeUtil::StrToTimeStamp(std::to_string(info.time), "%Y%m%d%H%M%S");
     HIVIEW_LOGI("log info, pid:%{public}u, id:%{public}u, module:%{public}s, time:%{public}" PRIu64
         ", summary:%{public}s", info.pid, info.id, info.module.c_str(), info.time, info.summary.c_str());
