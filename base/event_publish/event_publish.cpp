@@ -22,7 +22,9 @@
 #include "file_util.h"
 #include "iservice_registry.h"
 #include "json/json.h"
+#include "hisysevent_c.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 #include "storage_acl.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -45,6 +47,9 @@ constexpr const char* const EVENT_TYPE_PROPERTY = "eventType";
 constexpr const char* const PARAM_PROPERTY = "params";
 constexpr const char* const LOG_OVER_LIMIT = "log_over_limit";
 constexpr const char* const EXTERNAL_LOG = "external_log";
+constexpr const char* const BUNDLE_NAME = "bundle_name";
+constexpr const char* const BUNDLE_VERSION = "bundle_version";
+constexpr const char* const CRASH_TYPE = "crash_type";
 constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
@@ -309,6 +314,49 @@ void RemoveEventInternalField(Json::Value& eventJson)
     return;
 }
 
+std::string ParseString(const Json::Value& root, const std::string& key)
+{
+    return (root.isObject() && root.isMember(key) && root[key].isString()) ? root[key].asString() : "";
+}
+
+void ReportAppEventSend(Json::Value& eventJson)
+{
+    if (!Parameter::IsBetaVersion()) {
+        HIVIEW_LOGD("no need to report APP_EVENT_SEND event");
+        return;
+    }
+    std::string eventName = ParseString(eventJson, NAME_PROPERTY);
+    if (eventName != "APP_FREEZE" && eventName != "APP_CRASH") {
+        HIVIEW_LOGD("only report APP_EVENT_SEND event for APP_FREEZE and APP_CRASH");
+        return;
+    }
+    if (!eventJson.isMember(PARAM_PROPERTY) || !eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) ||
+        !eventJson[PARAM_PROPERTY][EXTERNAL_LOG].isArray()) {
+        HIVIEW_LOGW("no external log need to copy");
+        return;
+    }
+    std::string bundleName = ParseString(eventJson[PARAM_PROPERTY], BUNDLE_NAME);
+    std::string bundleVersion = ParseString(eventJson[PARAM_PROPERTY], BUNDLE_VERSION);
+    std::string crashType = ParseString(eventJson[PARAM_PROPERTY], CRASH_TYPE);
+    HiSysEventParam params[] = {
+        { .name = "BUNDLENAME",       .t = HISYSEVENT_STRING,
+          .v = { .s = const_cast<char *>(bundleName.c_str()) },                .arraySize = 0, },
+        { .name = "BUNDLEVERSION",    .t = HISYSEVENT_STRING,
+          .v = { .s = const_cast<char *>(bundleVersion.c_str()) },             .arraySize = 0, },
+        { .name = "EVENTTYPE",        .t = HISYSEVENT_UINT8,
+          .v = { .ui8 = eventName == "APP_CRASH" ? 0 : 1 },                    .arraySize = 0, },
+        { .name = "CRASH_TYPE",       .t = HISYSEVENT_STRING,
+          .v = { .s = const_cast<char *>(crashType.c_str()) },                 .arraySize = 0, },
+        { .name = "EXTERNALLOG",      .t = HISYSEVENT_BOOL,
+          .v = { .b = eventJson[PARAM_PROPERTY][EXTERNAL_LOG].size() > 0 },    .arraySize = 0, }
+    };
+    int ret = OH_HiSysEvent_Write("HIVIEWDFX", "APP_EVENT_SEND", HISYSEVENT_STATISTIC, params,
+                                  sizeof(params) / sizeof(params[0]));
+    if (ret != 0) {
+        HIVIEW_LOGW("fail to report APP_EVENT_SEND event, ret =%{public}d", ret);
+    }
+}
+
 void WriteEventJson(Json::Value& eventJson, const std::string& filePath)
 {
     RemoveEventInternalField(eventJson);
@@ -318,6 +366,7 @@ void WriteEventJson(Json::Value& eventJson, const std::string& filePath)
         return;
     }
     HIVIEW_LOGI("save event finish, eventName=%{public}s", eventJson[NAME_PROPERTY].asString().c_str());
+    ReportAppEventSend(eventJson);
 }
 
 void SaveEventAndLogToSandBox(int32_t uid, const std::string& eventName, const std::string& pathHolder,
