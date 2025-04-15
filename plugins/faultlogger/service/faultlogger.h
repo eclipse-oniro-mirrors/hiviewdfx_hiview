@@ -71,6 +71,7 @@ private:
     static void AddForegroundInfo(FaultLogInfo& info);
     static void UpdateTerminalThreadStack(FaultLogInfo& info);
     void AddCppCrashInfo(FaultLogInfo& info);
+    void AddHilog(FaultLogInfo& info);
     void AddDebugSignalInfo(FaultLogInfo& info) const;
     void Dump(int fd, const DumpRequest& request) const;
     void StartBootScan();
