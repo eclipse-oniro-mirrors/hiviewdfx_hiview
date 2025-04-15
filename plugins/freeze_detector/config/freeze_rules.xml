@@ -84,6 +84,11 @@
           <result code="1" scope="sys"/>
         </event>
       </links>
+      <links type="watchpoint">
+        <event window="-45" domain="FRAMEWORK" stringid="IPC_FULL_WARNING">	<!-- IPC_FULL_WARNING -->
+          <result code="1" scope="sys" samePackage="true"/>
+        </event>
+      </links>
     </rule>
     <rule id="10" domain="KERNEL_VENDOR" stringid="COM_LONG_PRESS">	<!-- COM_LONG_PRESS -->
       <links type="watchpoint">
@@ -257,7 +262,7 @@
     <rule id="12" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
-          <result code="2" scope="sysWarning" samePackage="true"/>
+          <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
