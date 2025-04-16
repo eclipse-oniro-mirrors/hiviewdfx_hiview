@@ -224,7 +224,7 @@
     },
     "Rule20":{
         "DirOrFile":"/data/log/faultlog/freeze/",
-        "Subcatalog":"sysfreeze-HUNGTASK-\\d+-\\d+\\.tmp",
+        "Subcatalog":"sysfreeze-HUNGTASK-\\d+-\\d+-\\d+\\.tmp",
         "featureId":"63_SYS_FREEZE_02",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
