@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,7 +79,6 @@ void CpuCollectionTask::CheckAndDumpTraceData()
 {
     static std::vector<CpuThresholdItem> checkItems = {
         {"hiview", UCollect::TraceCaller::HIVIEW, 0.07, false}, // 0.07 : 7% cpu load
-        {"foundation", UCollect::TraceCaller::FOUNDATION, 0.2, false}, // 0.2 : 20% cpu load
     };
 
     for (auto &item : checkItems) {

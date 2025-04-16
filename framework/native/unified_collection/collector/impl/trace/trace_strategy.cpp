@@ -361,7 +361,6 @@ std::shared_ptr<TraceStrategy> TraceFactory::CreateTraceStrategy(UCollect::Trace
             return std::make_shared<TraceMixedStrategy>(maxDuration, happenTime, EnumToString(caller));
         case UCollect::TraceCaller::XPOWER:
         case UCollect::TraceCaller::HIVIEW:
-        case UCollect::TraceCaller::FOUNDATION:
             return std::make_shared<TraceFlowControlStrategy>(maxDuration, happenTime, EnumToString(caller));
         case UCollect::TraceCaller::OTHER:
         case UCollect::TraceCaller::BETACLUB:

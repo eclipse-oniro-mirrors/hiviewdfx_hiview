@@ -34,7 +34,6 @@ const int64_t XPERF_SIZE = 1800 * 1024 * 1024;
 const int64_t XPOWER_SIZE = 700 * 1024 * 1024;
 const int64_t HIVIEW_SIZE = 350 * 1024 * 1024;
 const int64_t RELIABILITY_SIZE = 750 * 1024 * 1024;
-const int64_t FOUNDATION_SIZE = 150 * 1024 * 1024;
 const float TEN_PERCENT_LIMIT = 0.1;
 
 NativeRdb::ValuesBucket GetBucket(const TraceFlowRecord& traceFlowRecord)
@@ -55,8 +54,7 @@ const std::map<std::string, int64_t> TRACE_QUOTA = {
     {CallerName::XPERF, XPERF_SIZE},
     {CallerName::XPOWER, XPOWER_SIZE},
     {CallerName::RELIABILITY, GetActualReliabilitySize()},
-    {CallerName::HIVIEW, HIVIEW_SIZE},
-    {CallerName::FOUNDATION, FOUNDATION_SIZE},
+    {CallerName::HIVIEW, HIVIEW_SIZE}
 };
 }
 
