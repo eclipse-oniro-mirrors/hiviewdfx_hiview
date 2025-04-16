@@ -43,7 +43,7 @@
             "include":["APP_FREEZE_BETACLUB"]
         },{
             "domain":"GRAPHIC",
-            "include":["RS_VULKAN_ERROR"]
+            "include":["RS_VULKAN_ERROR", "RS_RENDER_EXCEPTION"]
         },{
             "domain":"GRAPHICS_GAME",
             "include":["GAME_FREEZE_DUMPSTACK"]
