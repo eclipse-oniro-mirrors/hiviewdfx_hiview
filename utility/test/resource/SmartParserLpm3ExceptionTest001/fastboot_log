@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+<12>[   66.133068] [pid=1][Init][WARNING][init_signal_handler.c:56]Service warning ueventd, SIGCHLD received, pid:237 uid:1004 status:0.
+<14>[   66.133139] [pid=1][Init][INFO][init_common_service.c:749]Service info ueventd reap pid 237.
+<14>[   66.133714] [pid=1][Init][INFO][init_service_socket.c:202]Watcher socket fd 12 for service ueventd
+<3>[   66.563503] [AUTH_CTRL] no auth data for this pid = 255
+<3>[   66.563503] , tgid
+<3>[   66.563618] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<5>[   71.622901] audit: type=1400 audit(1501923674.486:494): avc:  denied  { ioctl } for  pid=1520 comm="sh" path="/dev/tty" dev="tmpfs" ino=40 ioctlcmd=0x5403 scontext=u:r:su:s0 tcontext=u:object_r:tty_device:s0 tclass=chr_file permissive=1
+<5>[   71.623336] audit: type=1400 audit(1501923674.486:495): avc:  denied  { search } for  pid=1520 comm="sh" name="bin" dev="mmcblk0p7" ino=129 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=dir permissive=1
+<5>[   71.623886] audit: type=1400 audit(1501923674.486:496): avc:  denied  { read } for  pid=1520 comm="sh" name="ls" dev="mmcblk0p7" ino=282 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=lnk_file permissive=1
+<5>[   71.623951] audit: type=1400 audit(1501923674.486:497): avc:  denied  { getattr } for  pid=1520 comm="sh" path="/system/bin/toybox" dev="mmcblk0p7" ino=420 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=file permissive=1
+<5>[   71.623995] audit: type=1400 audit(1501923674.486:498): avc:  denied  { execute } for  pid=1520 comm="sh" name="toybox" dev="mmcblk0p7" ino=420 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=file permissive=1
+<5>[   71.626988] audit: type=1400 audit(1501923674.490:499): avc:  denied  { read open } for  pid=1529 comm="sh" path="/system/bin/toybox" dev="mmcblk0p7" ino=420 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=file permissive=1
+<5>[   71.627067] audit: type=1400 audit(1501923674.490:500): avc:  denied  { execute_no_trans } for  pid=1529 comm="sh" path="/system/bin/toybox" dev="mmcblk0p7" ino=420 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=file permissive=1
+<5>[   71.628755] audit: type=1400 audit(1501923674.490:501): avc:  denied  { map } for  pid=1529 comm="ls" path="/system/bin/toybox" dev="mmcblk0p7" ino=420 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=file permissive=1
+<5>[   71.635198] audit: type=1400 audit(1501923674.496:502): avc:  denied  { read } for  pid=1529 comm="ls" name="u:object_r:debug_param:s0" dev="tmpfs" ino=73 scontext=u:r:su:s0 tcontext=u:object_r:debug_param:s0 tclass=file permissive=1
+<5>[   71.635275] audit: type=1400 audit(1501923674.496:503): avc:  denied  { open } for  pid=1529 comm="ls" path="/dev/__parameters__/u:object_r:debug_param:s0" dev="tmpfs" ino=73 scontext=u:r:su:s0 tcontext=u:object_r:debug_param:s0 tclass=file permissive=1
+<3>[   71.892738] [AUTH_CTRL] no auth data for this pid = 256
+<3>[   71.892738] , tgid
+<3>[   71.892766] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<3>[   72.544897] [AUTH_CTRL] no auth data for this pid = 593
+<3>[   72.544897] , tgid
+<3>[   72.544926] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<3>[   74.374102] [AUTH_CTRL] no auth data for this pid = 424
+<3>[   74.374102] , tgid
+<3>[   74.374131] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<3>[   75.031532] [AUTH_CTRL] no auth data for this pid = 593
+<3>[   75.031532] , tgid
+<3>[   75.031562] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<3>[   75.037236] [AUTH_CTRL] no auth data for this pid = 593
+<3>[   75.037236] , tgid
+<3>[   75.037262] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<3>[   75.038771] [AUTH_CTRL] no auth data for this pid = 593
+<3>[   75.038771] , tgid
+<3>[   75.038794] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<3>[   75.038794] [rebootReason][RebootReasonGetExcType]get pmu reg is 0xFF
+<3>[   75.038794] [rebootReason][RebootReasonGetSubtype]get pmu reg is 0x0
+<3>[   75.038794]
+<3>[   75.038794] [rebootReason]RebootReasonGetSrPos:sr position:[17]lpmcu sys resume io
+<4>[   78.218895] kauditd_printk_skb: 1 callbacks suppressed
+<5>[   78.218915] audit: type=1400 audit(1501923681.080:505): avc:  denied  { read } for  pid=1520 comm="sh" name="ls" dev="mmcblk0p7" ino=282 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=lnk_file permissive=1
+<5>[   78.254710] audit: type=1400 audit(1501923681.116:506): avc:  denied  { read } for  pid=1536 comm="ls" name="/" dev="mmcblk0p7" ino=2 scontext=u:r:su:s0 tcontext=u:object_r:rootfs:s0 tclass=dir permissive=1
+<5>[   78.254822] audit: type=1400 audit(1501923681.116:507): avc:  denied  { open } for  pid=1536 comm="ls" path="/" dev="mmcblk0p7" ino=2 scontext=u:r:su:s0 tcontext=u:object_r:rootfs:s0 tclass=dir permissive=1
+<5>[   78.255131] audit: type=1400 audit(1501923681.116:508): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/eng_chipset" dev="mmcblk0p7" ino=19 scontext=u:r:su:s0 tcontext=u:object_r:vendor_file:s0 tclass=dir permissive=1
+<5>[   78.255256] audit: type=1400 audit(1501923681.116:509): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/etc" dev="mmcblk0p7" ino=21 scontext=u:r:su:s0 tcontext=u:object_r:etc_file:s0 tclass=lnk_file permissive=1
+<5>[   78.255890] audit: type=1400 audit(1501923681.116:510): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/lib" dev="mmcblk0p7" ino=23 scontext=u:r:su:s0 tcontext=u:object_r:lib_file:s0 tclass=lnk_file permissive=1
+<5>[   78.255935] audit: type=1400 audit(1501923681.120:511): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/dev" dev="tmpfs" ino=1 scontext=u:r:su:s0 tcontext=u:object_r:dev_file:s0 tclass=dir permissive=1
+<5>[   78.256464] audit: type=1400 audit(1501923681.120:512): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/chip_ckm" dev="mmcblk0p14" ino=2 scontext=u:r:su:s0 tcontext=u:object_r:chip_ckm_file:s0 tclass=dir permissive=1
+<5>[   78.256707] audit: type=1400 audit(1501923681.120:513): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/updater" dev="mmcblk0p7" ino=3518 scontext=u:r:su:s0 tcontext=u:object_r:updater_file:s0 tclass=dir permissive=1
+<5>[   78.256987] audit: type=1400 audit(1501923681.120:514): avc:  denied  { getattr } for  pid=1536 comm="ls" path="/system" dev="mmcblk0p7" ino=30 scontext=u:r:su:s0 tcontext=u:object_r:system_file:s0 tclass=dir permissive=1
+<3>[   81.949297] [AUTH_CTRL] no auth data for this pid = 256
+<3>[   81.949297] , tgid
+<3>[   81.949325] [QOS_CTRL] do_qos_ctrl_ioctl: pid not authorized
+<5>[   86.882125] audit: type=1400 audit(1501923689.743:515): avc:  denied  { read } for  pid=1520 comm="sh" name="bin" dev="mmcblk0p7" ino=129 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=dir permissive=1
+<5>[   86.882266] audit: type=1400 audit(1501923689.743:516): avc:  denied  { open } for  pid=1520 comm="sh" path="/system/bin" dev="mmcblk0p7" ino=129 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=dir permissive=1
+<5>[   86.883332] audit: type=1400 audit(1501923689.746:517): avc:  denied  { getattr } for  pid=1520 comm="sh" path="/system/bin/dmesg" dev="mmcblk0p7" ino=190 scontext=u:r:su:s0 tcontext=u:object_r:system_bin_file:s0 tclass=lnk_file permissive=1
+<5>[   87.467987] audit: type=1400 audit(1501923690.330:518): avc:  denied  { read } for  pid=1538 comm="dmesg" name="kmsg" dev="tmpfs" ino=41 scontext=u:r:su:s0 tcontext=u:object_r:dev_kmsg_file:s0 tclass=chr_file permissive=1
+<5>[   87.468603] audit: type=1400 audit(1501923690.330:519): avc:  denied  { open } for  pid=1538 comm="dmesg" path="/dev/kmsg" dev="tmpfs" ino=41 scontext=u:r:su:s0 tcontext=u:object_r:dev_kmsg_file:s0 tclass=chr_file permissive=1
+<5>[   87.469282] audit: type=1400 audit(1501923690.330:520): avc:  denied  { syslog } for  pid=1538 comm="dmesg" capability=34  scontext=u:r:su:s0 tcontext=u:r:su:s0 tclass=capability2 permissive=1
+<5>[   87.469325] audit: type=1400 audit(1501923690.330:521): avc:  denied  { syslog_read } for  pid=1538 comm="dmesg" scontext=u:r:su:s0 tcontext=u:r:kernel:s0 tclass=system permissive=1
+<3>[   92.017160] [ERROR][check_is_blocked] hguard-worker thread is abnormal, now=411, last=319
+<3>[   92.017160] [AUTH_CTRL] no auth data for this pid = 256
+<3>[   92.017160] , tgid

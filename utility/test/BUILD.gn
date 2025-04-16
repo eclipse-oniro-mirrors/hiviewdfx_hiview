@@ -24,12 +24,15 @@ ohos_unittest("SmartParserUnitTest") {
   cflags = [ "-Dprivate=public" ]
   sources = [
     "unittest/cpp_crash_unittest.cpp",
+    "unittest/hw_watchdog_unittest.cpp",
+    "unittest/lpm3_exception_unittest.cpp",
+    "unittest/panic_unittest.cpp",
   ]
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_root/utility/smart_parser:smart_parser",
     "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
+    "$hiview_root/utility/smart_parser:smart_parser",
   ]
 
   external_deps = [
@@ -37,7 +40,8 @@ ohos_unittest("SmartParserUnitTest") {
     "hilog:libhilog",
   ]
 
-  resource_config_file = "//base/hiviewdfx/hiview/utility/test/resource/ohos_test.xml"
+  resource_config_file =
+      "//base/hiviewdfx/hiview/utility/test/resource/ohos_test.xml"
 }
 
 group("unittest") {
