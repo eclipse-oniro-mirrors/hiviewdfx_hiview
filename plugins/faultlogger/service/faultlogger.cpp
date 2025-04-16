@@ -573,19 +573,10 @@ FaultLogInfo Faultlogger::FillFaultLogInfo(SysEvent &sysEvent) const
         info.module = sysEvent.GetEventValue("MODULE");
     }
     info.reason = sysEvent.GetEventValue("REASON");
-    auto summary = sysEvent.GetEventValue("SUMMARY");
+    info.summary = StringUtil::UnescapeJsonStringValue(sysEvent.GetEventValue("SUMMARY"));
     if (info.faultLogType == FaultLogType::ADDR_SANITIZER) {
-        if (info.reason.find("DEBUG SIGNAL") != std::string::npos) {
-            info.pid = sysEvent.GetEventIntValue("PID");
-            info.time = sysEvent.GetEventIntValue("HAPPEN_TIME");
-            AddDebugSignalInfo(info);
-        } else {
-            info.sanitizerType = sysEvent.GetEventValue("FAULT_TYPE");
-            info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventIntValue("HAPPEN_TIME"));
-            summary = "";
-        }
+        AddrSanitizerTypeProcess(info, sysEvent);
     }
-    info.summary = StringUtil::UnescapeJsonStringValue(summary);
     info.sectionMap = sysEvent.GetKeyValuePairs();
     uint64_t secTime = sysEvent.happenTime_ / TimeUtil::SEC_TO_MILLISEC;
     char strBuff[MAX_TIMESTR_LEN] = {0};
@@ -602,6 +593,26 @@ FaultLogInfo Faultlogger::FillFaultLogInfo(SysEvent &sysEvent) const
                 sysEvent.eventName_.c_str(), info.time, info.id, info.pid,
                 info.module.c_str(), info.reason.c_str());
     return info;
+}
+
+void Faultlogger::AddrSanitizerTypeProcess(FaultLogInfo &info, SysEvent &sysEvent) const
+{
+    if (info.reason.find("FDSAN") != std::string::npos) {
+        info.pid = sysEvent.GetEventIntValue("PID");
+        info.time = sysEvent.GetEventIntValue("HAPPEN_TIME");
+        info.reportToAppEvent = true;
+        info.dumpLogToFautlogger = true;
+        info.logPath = GetDebugSignalTempLogName(info);
+        info.summary = "";
+    } else if (info.reason.find("DEBUG SIGNAL") != std::string::npos) {
+        info.pid = sysEvent.GetEventIntValue("PID");
+        info.time = sysEvent.GetEventIntValue("HAPPEN_TIME");
+        AddDebugSignalInfo(info);
+    } else {
+        info.sanitizerType = sysEvent.GetEventValue("FAULT_TYPE");
+        info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventIntValue("HAPPEN_TIME"));
+        info.summary = "";
+    }
 }
 
 static void UpdateSysEvent(SysEvent &sysEvent, FaultLogInfo &info)
@@ -745,7 +756,12 @@ void Faultlogger::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) 
 
     Json::Value params;
     params["time"] = sysEvent->happenTime_;
-    params["type"] = sysEvent->GetEventValue("REASON");
+    std::string reason = sysEvent->GetEventValue("REASON");
+    params["type"] = reason;
+    if (reason.find("FDSAN") != std::string::npos) {
+        params["type"] = "FDSAN";
+        HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason FDSAN", reason.c_str());
+    }
     Json::Value externalLog(Json::arrayValue);
     std::string logPath = sysEvent->GetEventValue("LOG_PATH");
     if (!logPath.empty()) {
@@ -893,6 +909,18 @@ void Faultlogger::FaultlogLimit(const std::string &logPath, int32_t faultType) c
     }
 }
 
+void Faultlogger::HandleFaultLogType(FaultLogInfo &info)
+{
+    if (info.faultLogType == FaultLogType::CPP_CRASH) {
+        AddCppCrashInfo(info);
+    } else if (info.faultLogType == FaultLogType::APP_FREEZE) {
+        info.sectionMap["STACK"] = GetThreadStack(info.logPath, info.pid);
+    } else if (info.faultLogType == FaultLogType::ADDR_SANITIZER && info.reason.find("FDSAN") != std::string::npos) {
+        info.sectionMap["APPEND_ORIGIN_LOG"] = info.logPath;
+        info.logPath = "";
+    }
+}
+
 void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> event)
 {
     if (!IsValidPath(info.logPath)) {
@@ -919,12 +947,7 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
     AddPublicInfo(info);
     // Internal reserved fields, avoid illegal privilege escalation to access files
     info.sectionMap.erase("APPEND_ORIGIN_LOG");
-    if (info.faultLogType == FaultLogType::CPP_CRASH) {
-        AddCppCrashInfo(info);
-    } else if (info.faultLogType == FaultLogType::APP_FREEZE) {
-        info.sectionMap["STACK"] = GetThreadStack(info.logPath, info.pid);
-    }
-
+    HandleFaultLogType(info);
     ProcessKernelSnapshot(info);
     if (info.dumpLogToFautlogger) {
         mgr_->SaveFaultLogToFile(info);
