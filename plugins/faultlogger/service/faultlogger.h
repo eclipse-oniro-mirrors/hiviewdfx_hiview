@@ -92,8 +92,10 @@ private:
     void DeleteHilogInFreezeFile(std::string &readContent, bool &modified) const;
     void FaultlogLimit(const std::string &logPath, int32_t faultType) const;
     FaultLogInfo FillFaultLogInfo(SysEvent &sysEvent) const;
+    void AddrSanitizerTypeProcess(FaultLogInfo &info, SysEvent &sysEvent) const;
     void AddBootScanEvent();
     static bool ReadHilog(int fd, std::string& log);
+    void HandleFaultLogType(FaultLogInfo &info);
 
     std::unique_ptr<FaultLogManager> mgr_;
     volatile bool hasInit_;
