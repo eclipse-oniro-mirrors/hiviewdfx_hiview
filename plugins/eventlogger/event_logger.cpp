@@ -175,7 +175,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     }
 
     std::string domain = sysEvent->domain_;
-    HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld, happenTime=%{public}llu",
+    HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld, happenTime=%{public}" PRIu64,
         domain.c_str(), eventName.c_str(), pid, sysEvent->happenTime_);
 
     if (CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
