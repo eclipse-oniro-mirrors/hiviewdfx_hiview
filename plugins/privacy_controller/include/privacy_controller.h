@@ -17,6 +17,7 @@
 #define HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
 
 #include <map>
+#include <mutex>
 #include <string>
 #include <unordered_set>
 
@@ -29,6 +30,7 @@ class PrivacyController : public Plugin {
 public:
     bool OnEvent(std::shared_ptr<Event>& event) override;
     void OnLoad() override;
+    void OnConfigUpdate(const std::string& localCfgPath, const std::string& cloudCfgPath) override;
 
 private:
     bool IsBundleNameAllow(const std::string& bundleName, const std::string& allowListFile);
@@ -38,6 +40,7 @@ private:
 private:
     // allow list content, <allowListFile, set<BundleName>>
     std::map<std::string, std::unordered_set<std::string>> allowBundleNameMap_;
+    std::mutex bundleMapMutex_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

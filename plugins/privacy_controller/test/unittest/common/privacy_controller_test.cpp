@@ -52,8 +52,19 @@ HWTEST_F(PrivacyControllerTest, PrivacyControllerTest001, TestSize.Level0)
 {
     PrivacyController plugin;
     std::shared_ptr<Event> event = nullptr;
+    plugin.OnConfigUpdate("", "");
     ASSERT_FALSE(plugin.OnEvent(event));
 
     auto event1 = CreateEvent(CRITICAL_LEVEL, PUBLIC_PRIVACY, SysEventCreator::FAULT);
+    ASSERT_TRUE(plugin.OnEvent(event1));
+
+    auto invalidParams = std::make_shared<std::map<std::string, std::shared_ptr<EventParamInfo>>>();
+    auto sysEvent1 = std::static_pointer_cast<SysEvent>(event1);
+    ASSERT_FALSE(sysEvent1 == nullptr);
+    sysEvent1->SetInvalidParams(invalidParams);
+    ASSERT_TRUE(plugin.OnEvent(event1));
+
+    auto paramInfo = std::make_shared<EventParamInfo>("safe_bundle_name_list", 0);
+    invalidParams->insert(std::make_pair("BUNDLE_NAME", paramInfo));
     ASSERT_TRUE(plugin.OnEvent(event1));
 }
