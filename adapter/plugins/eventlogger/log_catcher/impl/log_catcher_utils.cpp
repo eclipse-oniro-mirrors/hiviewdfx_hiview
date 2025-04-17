@@ -106,11 +106,12 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
         std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
         std::string logName = procName + "-" + formatTime + filterName;
         realPath = logPath + logName;
-        fp = fopen(realPath.c_str(), "w+");
         chmod(realPath.c_str(), DEFAULT_LOG_FILE_MODE);
+        fp = fopen(realPath.c_str(), "w+");
     }
     if (fp != nullptr) {
-        FileUtil::SaveStringToFile(realPath, msg);
+        int fd = fileno(fp);
+        FileUtil::SaveStringToFd(fd, msg);
         (void)fclose(fp);
         fp = nullptr;
         return 0;
