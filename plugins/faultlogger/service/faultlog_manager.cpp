@@ -120,7 +120,7 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo &info) const
 
     FaultLogger::WriteDfxLogToFile(fd);
     FaultLogger::WriteFaultLogToFile(fd, info.faultLogType, info.sectionMap);
-    FaultLogger::WriteLogToFile(fd, info.logPath);
+    FaultLogger::WriteLogToFile(fd, info.logPath, info.sectionMap);
     if (info.sectionMap.count("HILOG") == 1) {
         FileUtil::SaveStringToFd(fd, "\nHiLog:\n");
         FileUtil::SaveStringToFd(fd, info.sectionMap["HILOG"]);
