@@ -28,6 +28,13 @@ ExportDetailRecord GetExportDetailRecord(std::shared_ptr<ExportDbStorage> storag
     return record;
 }
 }
+
+std::string ExportDbManager::GetEventInheritFlagPath()
+{
+    // create event inherit flag file in same level with db file
+    return dbStoreDir_ + "event_inherit_flag";
+}
+
 int64_t ExportDbManager::GetExportEnabledSeq(const std::string& moduleName)
 {
     std::unique_lock<ffrt::mutex> lock(dbMutex_);

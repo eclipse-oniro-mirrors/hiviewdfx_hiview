@@ -46,7 +46,8 @@ bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<Exp
     if (isSwitchOff) {
         HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
         int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
-        if (enabledSeq != INVALID_SEQ_VAL && enabledSeq != 0) { // handle setting parameter listening error
+        // handle setting parameter listening error
+        if (enabledSeq != INVALID_SEQ_VAL && !FileUtil::FileExists(dbMgr->GetEventInheritFlagPath())) {
             dbMgr->HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
         }
         return true;
