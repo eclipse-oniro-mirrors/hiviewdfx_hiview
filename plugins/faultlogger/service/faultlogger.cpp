@@ -298,6 +298,7 @@ void Faultlogger::AddPublicInfo(FaultLogInfo &info)
     info.sectionMap["MODULE"] = info.module;
     AddBundleInfo(info);
     AddForegroundInfo(info);
+    AddHilog(info);
 
     if (info.reason.empty()) {
         info.reason = info.sectionMap["REASON"];
@@ -369,10 +370,18 @@ void Faultlogger::AddCppCrashInfo(FaultLogInfo& info)
     }
 
     info.sectionMap["APPEND_ORIGIN_LOG"] = GetCppCrashTempLogName(info);
+}
 
-    std::string log;
-    GetHilog(info.pid, log);
-    info.sectionMap["HILOG"] = log;
+void Faultlogger::AddHilog(FaultLogInfo& info)
+{
+    if (info.faultLogType == FaultLogType::CPP_CRASH ||
+        info.faultLogType == FaultLogType::JS_CRASH ||
+        info.faultLogType == FaultLogType::RUST_PANIC ||
+        info.faultLogType == FaultLogType::CJ_ERROR) {
+        std::string log;
+        GetHilog(info.pid, log);
+        info.sectionMap["HILOG"] = log;
+    }
 }
 
 void Faultlogger::AddDebugSignalInfo(FaultLogInfo& info) const
