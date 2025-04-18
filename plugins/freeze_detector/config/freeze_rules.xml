@@ -121,6 +121,13 @@
         </event>
       </links>
     </rule>
+    <rule id="11" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+          <result code="2" scope="sys"/>
+        </event>
+      </links>
+    </rule>
   </rules>
   <rules resolver="AppResolver">
     <rule id="1" domain="ACE" stringid="UI_BLOCK_6S">	<!-- UI_BLOCK_6S -->
@@ -186,49 +193,42 @@
         </event>
       </links>
     </rule>
-    <rule id="3" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
-      <links type="watchpoint">
-        <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
-          <result code="2" scope="sysWarning"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="4" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
+    <rule id="3" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
       <links type="watchpoint">
         <event window="0" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="5" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
+    <rule id="4" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
       <links type="watchpoint">
         <event window="0" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="6" domain="ACE" stringid="UIEXTENSION_TRANSPARENT_DETECTED">	<!-- UIEXTENSION_TRANSPARENT_DETECTED -->
+    <rule id="5" domain="ACE" stringid="UIEXTENSION_TRANSPARENT_DETECTED">	<!-- UIEXTENSION_TRANSPARENT_DETECTED -->
       <links type="watchpoint">
         <event window="0" domain="ACE" stringid="UIEXTENSION_TRANSPARENT_DETECTED">	<!-- UIEXTENSION_TRANSPARENT_DETECTED -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="7" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
+    <rule id="6" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
           <result code="2" scope="sysWarning" samePackage="true"/>
         </event>
       </links>
     </rule>
-    <rule id="8" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
+    <rule id="7" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="9" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
+    <rule id="8" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
           <result code="2"/>
@@ -240,7 +240,7 @@
         </event>
       </links>
     </rule>
-    <rule id="10" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
+    <rule id="9" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
           <result code="2"/>
@@ -252,21 +252,21 @@
         </event>
       </links>
     </rule>
-    <rule id="11" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
+    <rule id="10" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="12" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
+    <rule id="11" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="13" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
+    <rule id="12" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
           <result code="2" scope="sysWarning"/>
