@@ -38,8 +38,9 @@ bool EventDeleteHandler::Delete(std::vector<std::string>& files, const std::stri
 {
     for (const auto& file : files) {
         // delete expired event file
-        HIVIEW_LOGI("%{public}s has been deleted", StringUtil::HideDeviceIdInfo(file).c_str());
-        FileUtil::RemoveFile(file);
+        bool delRet = FileUtil::RemoveFile(file);
+        HIVIEW_LOGI("try to delete file: %{public}s, ret is %{public}d", StringUtil::HideDeviceIdInfo(file).c_str(),
+            delRet);
     }
     return true;
 }
