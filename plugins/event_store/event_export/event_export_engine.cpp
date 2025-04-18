@@ -199,8 +199,7 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
 void EventExportEngine::HandleExportSwitchOn(const std::string& moduleName)
 {
     if (FileUtil::FileExists(dbMgr_->GetEventInheritFlagPath())) {
-        // if inherit flag file exists, no need to update export enabled seq, only once
-        FileUtil::RemoveFile(dbMgr_->GetEventInheritFlagPath());
+        // if inherit flag file exists, no need to update export enabled seq
         return;
     }
     auto curEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
