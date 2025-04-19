@@ -65,6 +65,8 @@ constexpr const char* const PRE_INSTALL[] = {"PRE_INSTALL", "PreInstalled:"};
 constexpr const char* const VERSION_CODE[] = {"VERSION_CODE", "VersionCode:"};
 constexpr const char* const FINGERPRINT[] = {"FINGERPRINT", "Fingerprint:"};
 constexpr const char* const APPEND_ORIGIN_LOG[] = {"APPEND_ORIGIN_LOG", ""};
+constexpr const char* const PROCESS_RSS_MEMINFO[] = {"PROCESS_RSS_MEMINFO", ""};
+constexpr const char* const DEVICE_MEMINFO[] = {"DEVICE_MEMINFO", ""};
 
 auto CPP_CRASH_LOG_SEQUENCE = {
     DEVICE_INFO, BUILD_INFO, FINGERPRINT, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
@@ -76,7 +78,7 @@ auto CPP_CRASH_LOG_SEQUENCE = {
 auto JAVASCRIPT_CRASH_LOG_SEQUENCE = {
     DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
     PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, SYSVMTYPE, APPVMTYPE,
-    LIFETIME, REASON, TRACE_ID, SUMMARY
+    LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON, TRACE_ID, SUMMARY
 };
 
 auto CANGJIE_ERROR_LOG_SEQUENCE = {
@@ -240,7 +242,7 @@ void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std:
         if (!value.empty()) {
             std::string keyStr = item[LOG_MAP_KEY];
             if (keyStr.find(APPEND_ORIGIN_LOG[LOG_MAP_KEY]) != std::string::npos) {
-                if (WriteLogToFile(fd, value)) {
+                if (WriteLogToFile(fd, value, sections)) {
                     break;
                 }
             }
@@ -328,7 +330,7 @@ FaultLogInfo ParseFaultLogInfoFromFile(const std::string &path, bool isTempFile)
     return info;
 }
 
-bool WriteLogToFile(int32_t fd, const std::string& path)
+bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string> &sections)
 {
     if ((fd < 0) || path.empty()) {
         return false;
@@ -337,6 +339,7 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
     std::string line;
     std::ifstream logFile(path);
     bool hasFindFirstLine = false;
+    bool hasFindRssInfo = false;
     while (std::getline(logFile, line)) {
         if (logFile.eof()) {
             break;
@@ -350,6 +353,12 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
         hasFindFirstLine = true;
         FileUtil::SaveStringToFd(fd, line);
         FileUtil::SaveStringToFd(fd, "\n");
+        if (!hasFindRssInfo && line.find("Process Memory(kB):") != std::string::npos &&
+            !sections.at("DEVICE_MEMINFO").empty()) {
+            FileUtil::SaveStringToFd(fd, sections.at("DEVICE_MEMINFO"));
+            FileUtil::SaveStringToFd(fd, "\n");
+            hasFindRssInfo = true;
+        }
     }
     return true;
 }

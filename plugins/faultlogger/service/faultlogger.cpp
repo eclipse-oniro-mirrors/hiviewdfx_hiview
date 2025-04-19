@@ -286,6 +286,35 @@ private:
     Faultlogger& faultlogger_;
 };
 
+std::list<std::string> GetDightStrArr(const std::string& target);
+
+void GetProcMemInfo(FaultLogInfo& info)
+{
+    if (!info.sectionMap["START_BOOT_SCAN"].empty()) {
+        return;
+    }
+
+    std::ifstream meminfoStream("/proc/meminfo");
+    if (meminfoStream) {
+        constexpr int decimalBase = 10;
+        unsigned long long totalMem = 0; // row 1
+        unsigned long long freeMem = 0; // row 2
+        unsigned long long availMem = 0; // row 3
+        std::string meminfoLine;
+        std::getline(meminfoStream, meminfoLine);
+        totalMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        std::getline(meminfoStream, meminfoLine);
+        freeMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        std::getline(meminfoStream, meminfoLine);
+        availMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        meminfoStream.close();
+        info.sectionMap["DEVICE_MEMINFO"] = "Device Memory(kB): Total " + std::to_string(totalMem) +
+            ", Free " + std::to_string(freeMem) + ", Available " + std::to_string(availMem);
+    } else {
+        HIVIEW_LOGE("Fail to open /proc/meminfo");
+    }
+}
+
 void Faultlogger::AddPublicInfo(FaultLogInfo &info)
 {
     info.sectionMap["DEVICE_INFO"] = Parameter::GetString("const.product.name", "Unknown");
@@ -370,6 +399,7 @@ void Faultlogger::AddCppCrashInfo(FaultLogInfo& info)
     }
 
     info.sectionMap["APPEND_ORIGIN_LOG"] = GetCppCrashTempLogName(info);
+    GetProcMemInfo(info);
 }
 
 void Faultlogger::AddHilog(FaultLogInfo& info)
@@ -663,6 +693,11 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
     }
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
     FaultLogInfo info = FillFaultLogInfo(*sysEvent);
+    if (info.faultLogType == FaultLogType::JS_CRASH) {
+        std::string rssStr = sysEvent->GetEventValue("PROCESS_RSS_MEMINFO");
+        info.sectionMap["PROCESS_RSS_MEMINFO"] = "Process Memory(kB): " + rssStr + "(Rss)";
+        GetProcMemInfo(info);
+    }
     AddFaultLog(info);
     UpdateSysEvent(*sysEvent, info);
     if (!info.reportToAppEvent) {
@@ -992,6 +1027,7 @@ void Faultlogger::StartBootScan()
             HIVIEW_LOGI("Skip processed fault.(%{public}d:%{public}d) ", info.pid, info.id);
             continue;
         }
+        info.sectionMap["START_BOOT_SCAN"] = "true";
         AddFaultLog(info);
     }
 }
