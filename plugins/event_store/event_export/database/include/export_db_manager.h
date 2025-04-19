@@ -36,12 +36,14 @@ public:
     void HandleExportSwitchChanged(const std::string& moduleName, int64_t curSeq);
     void HandleExportTaskFinished(const std::string& moduleName, int64_t eventSeq);
     bool IsUnrecordedModule(const std::string& moduleName);
+    std::string GetEventInheritFlagPath();
 
 private:
     ExportDetailRecord GetExportDetailRecord(const std::string& moduleName);
 
 private:
     std::shared_ptr<ExportDbStorage> storage_;
+    std::string dbStoreDir_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

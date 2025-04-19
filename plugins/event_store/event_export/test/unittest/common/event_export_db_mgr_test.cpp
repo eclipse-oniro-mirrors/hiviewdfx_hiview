@@ -55,7 +55,8 @@ void EventExportDbMgrTest::TearDown()
  */
 HWTEST_F(EventExportDbMgrTest, EventExportDbMgrTest001, testing::ext::TestSize.Level3)
 {
-    ExportDbManager manager("/data/test/test_data/db_dir1");
+    ExportDbManager manager("/data/test/test_data/db_dir1/");
+    ASSERT_EQ(manager.GetEventInheritFlagPath(), "/data/test/test_data/db_dir1/event_inherit_flag");
     ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME), INVALID_SEQ_VAL);
     // export switch on at 10
     manager.HandleExportSwitchChanged(TEST_MODULE_NAME, FIRST_ENABLED_SEQ);

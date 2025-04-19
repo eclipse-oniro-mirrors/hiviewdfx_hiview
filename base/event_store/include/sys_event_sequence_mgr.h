@@ -26,6 +26,7 @@ public:
     static SysEventSequenceManager& GetInstance();
     void SetSequence(int64_t seq);
     int64_t GetSequence();
+    int64_t GetStartSequence();
 
 private:
    SysEventSequenceManager();
@@ -38,6 +39,7 @@ private:
 
 private:
     std::atomic<int64_t> curSeq_ = 0;
+    int64_t startSeq_ = 0; // keep the initial sequence when hiview started, for event restore use
 };
 } // namespace EventStore
 } // namespace HiviewDFX
