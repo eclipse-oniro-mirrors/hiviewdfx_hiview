@@ -693,7 +693,7 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event> &event)
     }
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
     FaultLogInfo info = FillFaultLogInfo(*sysEvent);
-    if (info.faultLogType == FaultLogType::JS_CRASH) {
+    if (info.faultLogType == FaultLogType::JS_CRASH || info.faultLogType == FaultLogType::CJ_ERROR) {
         std::string rssStr = sysEvent->GetEventValue("PROCESS_RSS_MEMINFO");
         info.sectionMap["PROCESS_RSS_MEMINFO"] = "Process Memory(kB): " + rssStr + "(Rss)";
         GetProcMemInfo(info);
