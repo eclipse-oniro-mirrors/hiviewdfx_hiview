@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,39 +13,17 @@
  * limitations under the License.
  */
 
-#include "dfx_bundle_util.h"
+#include "faultlog_bundle_util.h"
 
-#include <algorithm>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <fcntl.h>
-#include <file_util.h>
 #include <regex>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time_util.h>
-#include <unistd.h>
-
 #include "bundle_mgr_client.h"
-#include "climits"
-#include "event_publish.h"
-#include "hilog/log.h"
-#include "hisysevent.h"
-#include "json/json.h"
-#include "securec.h"
-#include "string_ex.h"
-#include "parameters.h"
-#include "parameter_ex.h"
+#include "hiview_logger.h"
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD002D11
 
 #undef LOG_TAG
-#define LOG_TAG "DfxBundleUtil"
+#define LOG_TAG "FaultlogBundleUtil"
 
 namespace OHOS {
 namespace HiviewDFX {

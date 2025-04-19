@@ -38,7 +38,7 @@ struct FaultLogInfo {
     std::map<std::string, std::string> sectionMap;
     std::list<std::string> additionalLogs;
     std::map<std::string, std::string> parsedLogInfo;
-    bool dumpLogToFautlogger {true};
+    bool dumpLogToFaultlogger {true};
     bool reportToAppEvent {true};
 };
 

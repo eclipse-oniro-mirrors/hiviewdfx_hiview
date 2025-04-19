@@ -19,6 +19,7 @@ ohos_shared_library("libasan_logger") {
   include_dirs = [
     "include",
     "//base/hiviewdfx/hiview/plugins/faultlogger/service",
+    "//base/hiviewdfx/hiview/plugins/faultlogger/service/fault_file",
   ]
 
   innerapi_tags = [ "platformsdk_indirect" ]

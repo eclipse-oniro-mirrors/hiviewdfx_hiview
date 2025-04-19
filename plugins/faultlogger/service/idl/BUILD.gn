@@ -82,7 +82,10 @@ ohos_source_set("faultlogger_service_ohos_common_with_cfi") {
 
 ohos_source_set("faultlogger_service_impl") {
   part_name = "hiview"
-  include_dirs = [ "$hiview_plugin/faultlogger/service" ]
+  include_dirs = [
+    "$hiview_plugin/faultlogger/service",
+    "$hiview_plugin/faultlogger/service/fault_file",
+  ]
 
   sources = [
     "faultlog_query_result_ohos.cpp",
@@ -116,7 +119,10 @@ ohos_source_set("faultlogger_service_impl_with_cfi") {
     debug = false
   }
   part_name = "hiview"
-  include_dirs = [ "$hiview_plugin/faultlogger/service" ]
+  include_dirs = [
+    "$hiview_plugin/faultlogger/service",
+    "$hiview_plugin/faultlogger/service/fault_file",
+  ]
 
   sources = [
     "faultlog_query_result_ohos.cpp",

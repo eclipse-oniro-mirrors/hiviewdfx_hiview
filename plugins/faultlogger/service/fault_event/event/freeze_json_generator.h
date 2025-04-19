@@ -30,7 +30,7 @@ public:
         Builder& InitName(const std::string& name);
         Builder& InitMessage(const std::string& message);
         FreezeJsonException Build() const;
-    
+
     private:
         std::string name_ = "";
         std::string message_ = "";
@@ -55,21 +55,21 @@ public:
     public:
         Builder() {};
         ~Builder() {};
-        Builder& InitRss(unsigned long long rss);
-        Builder& InitVss(unsigned long long vss);
-        Builder& InitPss(unsigned long long pss);
-        Builder& InitSysFreeMem(unsigned long long sysFreeMem);
-        Builder& InitSysAvailMem(unsigned long long sysAvailMem);
-        Builder& InitSysTotalMem(unsigned long long sysTotalMem);
+        Builder& InitRss(uint64_t rss);
+        Builder& InitVss(uint64_t vss);
+        Builder& InitPss(uint64_t pss);
+        Builder& InitSysFreeMem(uint64_t sysFreeMem);
+        Builder& InitSysAvailMem(uint64_t sysAvailMem);
+        Builder& InitSysTotalMem(uint64_t sysTotalMem);
         FreezeJsonMemory Build() const;
-    
+
     private:
-        unsigned long long rss_ = 0;
-        unsigned long long vss_ = 0;
-        unsigned long long pss_ = 0;
-        unsigned long long sysFreeMem_ = 0;
-        unsigned long long sysAvailMem_ = 0;
-        unsigned long long sysTotalMem_ = 0;
+        uint64_t rss_ = 0;
+        uint64_t vss_ = 0;
+        uint64_t pss_ = 0;
+        uint64_t sysFreeMem_ = 0;
+        uint64_t sysAvailMem_ = 0;
+        uint64_t sysTotalMem_ = 0;
         friend class FreezeJsonMemory;
     };
 
@@ -84,12 +84,12 @@ private:
     static constexpr const char* const jsonMemorySysFreeMem = "sys_free_mem";
     static constexpr const char* const jsonMemorySysAvailMem = "sys_avail_mem";
     static constexpr const char* const jsonMemorySysTotalMem = "sys_total_mem";
-    unsigned long long rss_;
-    unsigned long long vss_;
-    unsigned long long pss_;
-    unsigned long long sysFreeMem_;
-    unsigned long long sysAvailMem_;
-    unsigned long long sysTotalMem_;
+    uint64_t rss_;
+    uint64_t vss_;
+    uint64_t pss_;
+    uint64_t sysFreeMem_;
+    uint64_t sysAvailMem_;
+    uint64_t sysTotalMem_;
 };
 
 class FreezeJsonParams {
@@ -118,7 +118,7 @@ public:
         Builder& InitThreads(const std::string& threads);
         Builder& InitMemory(const std::string& memory);
         FreezeJsonParams Build() const;
-    
+
     private:
         unsigned long long time_ = 0;
         std::string uuid_ = "";
@@ -166,7 +166,7 @@ private:
     static constexpr const char* const jsonParamsPeerBinder = "peer_binder";
     static constexpr const char* const jsonParamsThreads = "threads";
     static constexpr const char* const jsonParamsMemory = "memory";
-    
+
     unsigned long long time_;
     std::string uuid_;
     std::string freezeType_;
@@ -187,7 +187,6 @@ private:
     std::string threads_;
     std::string memory_;
 };
-
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif

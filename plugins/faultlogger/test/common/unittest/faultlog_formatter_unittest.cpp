@@ -24,28 +24,6 @@ namespace HiviewDFX {
 class FaultlogFormatterUnittest : public testing::Test {};
 
 /**
- * @tc.name: GetSummaryByTypeTest001
- * @tc.desc: Test GetSummaryByType
- * @tc.type: FUNC
- */
-HWTEST_F(FaultlogFormatterUnittest, GetSummaryByTypeTest001, testing::ext::TestSize.Level1)
-{
-    std::map<std::string, std::string> sections = {
-        {"TRUSTSTACK", "Selected stacktrace:"},
-        {"KEY_THREAD_INFO", "Fault thread info:"}
-    };
-    int32_t logType = FaultLogType::APP_FREEZE;
-    auto summary = FaultLogger::GetSummaryByType(logType, sections);
-    ASSERT_EQ(summary, "Selected stacktrace:");
-    logType = FaultLogType::CPP_CRASH;
-    summary = FaultLogger::GetSummaryByType(logType, sections);
-    ASSERT_EQ(summary, "Fault thread info:");
-    logType = FaultLogType::ADDR_SANITIZER;
-    summary = FaultLogger::GetSummaryByType(logType, sections);
-    ASSERT_EQ(summary, "Could not figure out summary for this fault.");
-}
-
-/**
  * @tc.name: WriteStackTraceFromLogTest001
  * @tc.desc: Test WriteStackTraceFromLog
  * @tc.type: FUNC
@@ -60,6 +38,17 @@ HWTEST_F(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext:
     path = "/data/test/test_faultlogger_data/plugin_config_test";
     FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
     ASSERT_EQ(fd, -1);
+}
+
+/**
+ * @tc.name: ParseCppCrashFromFileTest001
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultlogFormatterUnittest, ParseCppCrashFromFileTest001, testing::ext::TestSize.Level1)
+{
+    auto list = FaultLogger::GetLogParseList(FaultLogType::APP_FREEZE);
+    ASSERT_GT(list.size(), 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

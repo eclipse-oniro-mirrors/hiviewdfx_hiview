@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef DFX_BUNDLE_UTIL_H
-#define DFX_BUNDLE_UTIL_H
+#ifndef FAULTLOG_BUNDLE_UTIL_H
+#define FAULTLOG_BUNDLE_UTIL_H
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -28,17 +28,16 @@ constexpr int AID_SYSTEM = 1000;
 constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
 constexpr mode_t DEFAULT_LOG_DIR_MODE = 0775;
 
-typedef struct DfxBundleInfo {
+struct DfxBundleInfo {
     bool isPreInstalled;
     uint32_t versionCode;
     std::string versionName;
-} DfxBundleInfo;
+};
 
 bool IsModuleNameValid(const std::string& name);
 std::string GetApplicationNameById(int32_t uid);
 bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo);
+bool IsNameValid(const std::string& name, const std::string& sep, bool canEmpty);
 } // namespace HiviewDFX
 } // namespace OHOS
-
-#endif // DFX_BUNDLE_UTIL_H
-
+#endif
