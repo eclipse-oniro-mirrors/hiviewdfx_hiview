@@ -221,7 +221,7 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
     if (stringId == "SCREEN_ON") {
         processName = stringId;
     } else {
-        CheckScbProcessName(processName, isScbPro);
+        CheckProcessName(processName, isScbPro);
     }
     type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
         (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
@@ -408,30 +408,26 @@ std::string Vendor::GetPowerStateString(OHOS::PowerMgr::PowerState state)
     return std::string("UNKNOWN");
 }
 
-void Vendor::CheckScbProcessName(std::string& processName, std::string& isScbPro)
+void Vendor::CheckProcessName(std::string& processName, std::string& isScbPro)
 {
     isScbPro = "No";
     size_t scbIndex = processName.find(SCB_PRO_FLAG);
     size_t scbSize = std::strlen(SCB_PRO_FLAG);
     if (scbIndex != std::string::npos && (scbIndex + scbSize + 1) <= processName.size()) {
         processName = processName.substr(scbIndex + scbSize);
-
-        size_t firstAlphaIndex = 0;
-        size_t lastAlphaIndex = processName.size() - 1;
-        while (firstAlphaIndex < processName.size() && !std::isalpha(processName[firstAlphaIndex])) {
-            firstAlphaIndex++;
-        }
-        while (lastAlphaIndex > firstAlphaIndex && !std::isalpha(processName[lastAlphaIndex])) {
-            lastAlphaIndex--;
-        }
-        processName = processName.substr(firstAlphaIndex, lastAlphaIndex - firstAlphaIndex + 1);
         std::replace(processName.begin(), processName.end(), '/', '_');
-        StringUtil::FormatProcessName(processName);
-        if (processName.empty()) {
-            processName = SCB_PRO_FLAG;
-        }
         isScbPro = "Yes";
     }
+    size_t firstAlphaIndex = 0;
+    size_t lastAlphaIndex = processName.size() - 1;
+    while (firstAlphaIndex < processName.size() && !std::isalpha(processName[firstAlphaIndex])) {
+        firstAlphaIndex++;
+    }
+    while (lastAlphaIndex > firstAlphaIndex && !std::isalpha(processName[lastAlphaIndex])) {
+        lastAlphaIndex--;
+    }
+    processName = processName.substr(firstAlphaIndex, lastAlphaIndex - firstAlphaIndex + 1);
+    StringUtil::FormatProcessName(processName);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

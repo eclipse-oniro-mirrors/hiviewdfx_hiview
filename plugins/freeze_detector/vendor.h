@@ -55,7 +55,7 @@ private:
     void MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const;
     static std::string GetDisPlayPowerInfo();
     static std::string GetPowerStateString(OHOS::PowerMgr::PowerState state);
-    static void CheckScbProcessName(std::string& processName, std::string& isScbPro);
+    static void CheckProcessName(std::string& processName, std::string& isScbPro);
 
     std::unique_ptr<LogStoreEx> logStore_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
