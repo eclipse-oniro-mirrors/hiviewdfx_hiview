@@ -16,6 +16,13 @@
     <target name="SmartParserUnitTest">
         <preparer>
             <option name="push" value="SmartParserCppCrashTest001/cppcrash-com.ohos.launcher-20010025-19700324235211000.log -> /data/test/test_data/SmartParser/SmartParserCppCrashTest001" src="res"/>
+            <option name="push" value="SmartParserPanicTest001/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest001/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserPanicTest002/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest002/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserPanicTest003/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest003/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserHwWatchdogTest001/fastboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest001/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserHwWatchdogTest002/fastboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest002/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserLpm3ExceptionTest001/fastboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest001/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserLpm3ExceptionTest002/fastboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest002/19700101000000-00000007/ap_log" src="res"/>
         </preparer>
     </target>
 </configuration>
