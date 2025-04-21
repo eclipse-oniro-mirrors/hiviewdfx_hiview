@@ -37,7 +37,7 @@ const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/tr
 const std::string DB_NAME = "trace_flow_control.db";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
 const std::set<std::string> DB_CALLER {
-    CallerName::XPERF, CallerName::XPOWER, CallerName::RELIABILITY, CallerName::HIVIEW, CallerName::FOUNDATION
+    CallerName::XPERF, CallerName::XPOWER, CallerName::RELIABILITY, CallerName::HIVIEW
 };
 }
 

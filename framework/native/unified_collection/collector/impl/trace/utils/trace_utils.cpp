@@ -106,8 +106,6 @@ const std::string EnumToString(UCollect::TraceCaller &caller)
             return CallerName::XPOWER;
         case UCollect::TraceCaller::HIVIEW:
             return CallerName::HIVIEW;
-        case UCollect::TraceCaller::FOUNDATION:
-            return CallerName::FOUNDATION;
         case UCollect::TraceCaller::OTHER:
             return CallerName::OTHER;
         case UCollect::TraceCaller::BETACLUB:

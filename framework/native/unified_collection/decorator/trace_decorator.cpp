@@ -16,6 +16,7 @@
 #include "trace_decorator.h"
 
 #include "file_util.h"
+#include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,6 +32,23 @@ const std::string UC_HITRACE_TRAFFIC_STAT_ITEM =
 
 StatInfoWrapper TraceDecorator::statInfoWrapper_;
 TraceStatWrapper TraceDecorator::traceStatWrapper_;
+
+uint64_t GetRawTraceSize(const std::string &file)
+{
+    std::string originTracePath;
+    if (StringUtil::EndWith(file, ".zip")) {
+        std::string fileNameWithoutVersion = StringUtil::GetRleftSubstr(FileUtil::ExtractFileName(file), "@");
+        originTracePath = "/data/log/hitrace/" + fileNameWithoutVersion + ".sys";
+    } else {
+        std::string fileNameWithoutPrefix = StringUtil::GetRightSubstr(FileUtil::ExtractFileName(file), "_");
+        originTracePath = "/data/log/hitrace/" + fileNameWithoutPrefix;
+    }
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(originTracePath, realPath)) {
+        return 0;
+    }
+    return FileUtil::GetFileSize(realPath);
+}
 
 CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(UCollect::TraceCaller &caller)
 {
@@ -151,7 +169,10 @@ void TraceStatWrapper::UpdateTrafficInfo(const std::string& caller, uint64_t lat
     uint64_t timeStamp = TimeUtil::GenerateTimestamp();
     uint64_t avgLatency = latency / traceFiles.size();
     for (const auto& file : traceFiles) {
-        uint64_t fileSize = FileUtil::GetFileSize(file);
+        uint64_t fileSize = GetRawTraceSize(file);
+        if (fileSize == 0) {
+            continue;
+        }
         TraceTrafficInfo statInfo;
         statInfo.caller = caller;
         statInfo.traceFile = file;
