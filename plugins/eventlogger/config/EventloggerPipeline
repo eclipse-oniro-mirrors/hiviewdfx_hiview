@@ -47,6 +47,9 @@
         },{
             "domain":"GRAPHICS_GAME",
             "include":["GAME_FREEZE_DUMPSTACK"]
+        },{
+            "domain":"THP",
+            "include":["DMDW_THP_DAE_PROCESS_TIMEOUT"]
         }
     ]
 }
