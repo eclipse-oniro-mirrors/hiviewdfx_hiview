@@ -273,5 +273,12 @@
         </event>
       </links>
     </rule>
+    <rule id="13" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
   </rules>
 </freeze>
