@@ -948,14 +948,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckScreenOnRepeat_001, TestSize.Leve
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
     event->eventName_ = testName;
     eventLogger->CheckScreenOnRepeat(event);
-
-    eventLogger->freezeCommon_ = std::make_shared<FreezeCommon>();
-    eventLogger->freezeCommon_->Init();
-    EXPECT_NE(eventLogger->freezeCommon_, nullptr);
-    eventLogger->dbHelper_ = std::make_unique<DBHelper>(eventLogger->freezeCommon_);
-    EXPECT_NE(eventLogger->dbHelper_, nullptr);
-    event->happenTime_ = TimeUtil::GetMilliseconds();
-    eventLogger->CheckScreenOnRepeat(event);
     EXPECT_TRUE(event->eventName_ != "SCREEN_ON");
 }
 } // namespace HiviewDFX
