@@ -54,10 +54,10 @@ DmesgCatcher::DmesgCatcher() : EventLogCatcher()
 }
 
 bool DmesgCatcher::Initialize(const std::string& packageNam  __UNUSED,
-    int isWriteNewFile __UNUSED, int needWriteSysrq)
+    int writeNewFile __UNUSED, int writeType)
 {
-    isWriteNewFile_ = isWriteNewFile;
-    needWriteSysrq_ = needWriteSysrq;
+    writeNewFile_ = writeNewFile;
+    writeType_ = writeType;
     return true;
 }
 
@@ -67,17 +67,32 @@ bool DmesgCatcher::Init(std::shared_ptr<SysEvent> event)
     return true;
 }
 
-bool DmesgCatcher::DumpSysrqToFile(int fd, char *data, int size)
+bool DmesgCatcher::DumpToFile(int fd, char *data, int size)
 {
     std::string dataStr = std::string(data, size);
-    std::stringstream ss(dataStr);
-    std::string line;
     bool res = false;
- 
-    while (std::getline(ss, line)) {
-        if (line.find("hguard-worker") != std::string::npos) {
-            line += "\n";
-            res = FileUtil::SaveStringToFd(fd, line);
+    if (writeType_ == SYS_RQ) {
+        size_t sysRqStart = dataStr.find("sysrq start:");
+        if (sysRqStart == std::string::npos) {
+            return false;
+        }
+        size_t sysRqEnd = dataStr.find("sysrq end:", sysRqStart);
+        if (sysRqEnd == std::string::npos) {
+            return false;
+        }
+        size_t lineStart = dataStr.rfind('\n', sysRqStart);
+        lineStart = (lineStart == std::string::npos) ? 0 : lineStart;
+        size_t lineEnd = dataStr.find('\n', sysRqEnd);
+        lineEnd = (lineEnd == std::string::npos) ? dataStr.length() : lineEnd;
+        res =  FileUtil::SaveStringToFd(fd, dataStr.substr(lineStart, lineEnd - lineStart));
+    } else if (writeType_ == HUNG_TASK) {
+        std::stringstream ss(dataStr);
+        std::string line;
+        while (std::getline(ss, line)) {
+            if (line.find("hguard-worker") != std::string::npos ||
+                line.find("sys-lmk-debug-t") != std::string::npos) {
+                res = FileUtil::SaveStringToFd(fd, line + "\n");
+            }
         }
     }
     return res;
@@ -103,33 +118,45 @@ bool DmesgCatcher::DumpDmesgLog(int fd)
         free(data);
         return false;
     }
-    bool res = needWriteSysrq_ ? DumpSysrqToFile(fd, data, size) : FileUtil::SaveStringToFd(fd, data);
+    bool res = (writeType_ == DMESG) ? FileUtil::SaveStringToFd(fd, data) : DumpToFile(fd, data, size);
     free(data);
     return res;
 }
 
-bool DmesgCatcher::WriteSysrq()
+bool DmesgCatcher::WriteSysrqTrigger()
 {
     FILE* file = fopen("/proc/sysrq-trigger", "w");
     if (file == nullptr) {
         HIVIEW_LOGE("Can't read sysrq,errno: %{public}d", errno);
         return false;
     }
+
+    static std::atomic<bool> isWriting(false);
+    bool expected = false;
+    if (!isWriting.compare_exchange_strong(expected, true)) {
+        HIVIEW_LOGE("other is writing sysrq trigger!");
+        fclose(file);
+        sleep(1);
+        return true;
+    }
+
     fwrite("w", 1, 1, file);
     fflush(file);
 
     fwrite("l", 1, 1, file);
     sleep(1);
     fclose(file);
+    isWriting.store(false);
     return true;
 }
 
 int DmesgCatcher::Catch(int fd, int jsonFd)
 {
-    if (needWriteSysrq_ && !WriteSysrq()) {
+    if (writeType_ && !WriteSysrqTrigger()) {
         return 0;
     }
-    description_ = needWriteSysrq_ ? "\nSysrqCatcher -- \n" : "DmesgCatcher -- \n";
+    description_ = (writeType_ == SYS_RQ) ? "\nSysrqCatcher -- \n" :
+        (writeType_ == HUNG_TASK) ? "\nHungTaskCatcher -- \n" : "\nDmesgCatcher -- \n";
     auto originSize = GetFdSize(fd);
     FileUtil::SaveStringToFd(fd, description_);
     DumpDmesgLog(fd);
@@ -184,14 +211,15 @@ int DmesgCatcher::DumpKernelStacktrace(int fd, int pid)
 }
 #endif
 
-void DmesgCatcher::WriteNewSysrq(int pid)
+void DmesgCatcher::WriteNewFile(int pid)
 {
-    if (needWriteSysrq_ && !WriteSysrq()) {
+    if (writeType_ && !WriteSysrqTrigger()) {
         return;
     }
-    std::string sysrqTime = event_->GetEventValue("SYSRQ_TIME");
-    std::string fullPath = std::string(FULL_DIR) + "sysrq-" + sysrqTime + ".log";
-    HIVIEW_LOGI("write new sysrq start, fullPath : %{public}s", fullPath.c_str());
+    std::string fileType = (writeType_ == SYS_RQ) ? "sysrq" : "hungtask";
+    std::string fileTime = event_->GetEventValue(fileType + "_time");
+    std::string fullPath = std::string(FULL_DIR) + fileType + "-" + fileTime + ".log";
+    HIVIEW_LOGI("write new %{public}s start, fullPath : %{public}s", fileType.c_str(), fullPath.c_str());
     if (FileUtil::FileExists(fullPath)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fullPath.c_str());
         return;
@@ -211,7 +239,7 @@ void DmesgCatcher::WriteNewSysrq(int pid)
         HIVIEW_LOGE("fclose is failed");
     }
     fp = nullptr;
-    HIVIEW_LOGI("write new sysrq end, fullPath : %{public}s", fullPath.c_str());
+    HIVIEW_LOGI("write new %{public}s end, fullPath : %{public}s", fileType.c_str(), fullPath.c_str());
 }
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX

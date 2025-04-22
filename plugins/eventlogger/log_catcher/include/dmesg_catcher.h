@@ -29,19 +29,24 @@ class DmesgCatcher : public EventLogCatcher {
 public:
     explicit DmesgCatcher();
     ~DmesgCatcher() override {};
-    bool Initialize(const std::string& packageNam, int isWriteNewFile, int needWriteSysrq) override;
+    bool Initialize(const std::string& packageNam, int writeNewFile, int writeType) override;
     int Catch(int fd, int jsonFd) override;
     bool Init(std::shared_ptr<SysEvent> event);
-    void WriteNewSysrq(int pid);
+    void WriteNewFile(int pid);
 
+    enum WRITE_TYPE {
+        DMESG,
+        SYS_RQ,
+        HUNG_TASK
+    };
 private:
-    bool isWriteNewFile_ = false;
-    bool needWriteSysrq_ = false;
+    int writeNewFile_ = false;
+    int writeType_ = false;
     std::shared_ptr<SysEvent> event_;
 
     bool DumpDmesgLog(int fd);
-    bool WriteSysrq();
-    bool DumpSysrqToFile(int fd, char *buffer, int size);
+    bool WriteSysrqTrigger();
+    bool DumpToFile(int fd, char *buffer, int size);
 #ifdef KERNELSTACK_CATCHER_ENABLE
     void GetTidsByPid(int pid, std::vector<pid_t>& tids);
     int DumpKernelStacktrace(int fd, int pid);

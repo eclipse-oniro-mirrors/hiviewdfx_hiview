@@ -91,7 +91,8 @@ private:
 
 #ifdef DMESG_CATCHER_ENABLE
     void DmesgCapture();
-    void SysrqCapture(bool isWriteNewFile);
+    void SysrqCapture(bool writeNewFile);
+    void HungTaskCapture(bool writeNewFile);
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef HILOG_CATCHER_ENABLE

@@ -294,14 +294,16 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
         logTask->AddLog("S");
     }
     for (const std::string& cmd : cmdList) {
-        if (cmd == "tr" || cmd == "k:SysRqFile") {
-            if (cmd == "k:SysRqFile") {
+        if (cmd == "tr" || cmd == "k:SysRqFile" || cmd == "k:HungTaskFile") {
+            if (cmd == "k:SysRqFile" || cmd == "k:HungTaskFile") {
                 auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
-                std::string sysrqTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
-                event->SetEventValue("SYSRQ_TIME", sysrqTime);
-                std::string sysRqFileInfo = "\nSysrqCatcher -- fullPath:" + std::string(LOGGER_EVENT_LOG_PATH) +
-                    "/sysrq-" + sysrqTime + ".log\n";
-                FileUtil::SaveStringToFd(fd, sysRqFileInfo);
+                std::string fileTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+                std::string fileType = (cmd == "k:SysRqFile") ? "sysrq" : "hungtask";
+                event->SetEventValue(fileType + "_time", fileTime);
+                std::string catcher = (fileType == "sysrq") ? "\nSysrqCatcher" : "\nHungTaskCatcher";
+                std::string fileInfo = catcher + " -- fullPath:" + std::string(LOGGER_EVENT_LOG_PATH) + "/" +
+                    fileType + "-" + fileTime + ".log\n";
+                FileUtil::SaveStringToFd(fd, fileInfo);
             }
             queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
             continue;
