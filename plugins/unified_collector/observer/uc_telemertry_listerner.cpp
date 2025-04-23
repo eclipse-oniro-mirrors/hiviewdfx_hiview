@@ -141,9 +141,13 @@ bool TelemetryListener::SendStartEvent(const Event &msg, int64_t traceDuration, 
         HIVIEW_LOGE("ucPlugin is null");
         return false;
     }
-    std::string traceTags = msg.GetValue(Telemetry::KEY_TRACE_TAG);
+    std::string traceArgs = msg.GetValue(Telemetry::KEY_TRACE_TAG);
+    if (!traceArgs.empty() && !ParseAndFilterTraceArgs(Telemetry::TRACE_TAG_FILTER_LIST, traceArgs)) {
+        HIVIEW_LOGE("traceTag error");
+        return false;
+    }
     event->eventName_ = TelemetryEvent::TELEMETRY_START;
-    event->SetValue(Telemetry::KEY_TRACE_TAG, traceTags);
+    event->SetValue(Telemetry::KEY_TRACE_TAG, traceArgs);
     event->SetValue(Telemetry::KEY_ID, telemetryId_);
     event->SetValue(Telemetry::KEY_BUNDLE_NAME, bundleName_);
     event->SetValue(Telemetry::KEY_REMAIN_TIME, static_cast<int32_t>(traceDuration));

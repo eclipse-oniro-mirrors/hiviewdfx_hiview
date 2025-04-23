@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "cpu_collector.h"
+#include "cjson_util.h"
 #include "file_util.h"
 #include "ffrt.h"
 #include "hiview_logger.h"
@@ -52,6 +53,8 @@ const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
 constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
+const std::string TAGS = "tags";
+const std::string BUFFER_SIZE = "bufferSize";
 }
 
 UcError TransCodeToUcError(TraceErrorCode ret)
@@ -385,6 +388,45 @@ void RecoverTmpTrace()
         };
         TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
+}
+
+bool ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList, std::string &jsonArgs)
+{
+    cJSON* root = cJSON_Parse(jsonArgs.c_str());
+    if (root == nullptr || !cJSON_IsObject(root)) {
+        HIVIEW_LOGE("trace jsonArgs parse error");
+        return false;
+    }
+    std::vector<std::string> traceTags;
+    CJsonUtil::GetStringArray(root, TAGS, traceTags);
+    if (traceTags.empty()) {
+        HIVIEW_LOGE("jsonArgs parse trace tags error");
+        return false;
+    }
+    auto bufferSize = CJsonUtil::GetIntValue(root, BUFFER_SIZE);
+    if (bufferSize <= 0) {
+        HIVIEW_LOGE("jsonArgs parse trace bufferSize error");
+        return false;
+    }
+    std::string result("tags:");
+    bool isFirst = true;
+    for (const auto& tag : traceTags) {
+        if (filterList.find(tag) != filterList.end()) {
+            if (!isFirst) {
+                result.append(", ").append(tag);
+                continue;
+            }
+            result.append(tag);
+            isFirst = false;
+        }
+    }
+    if (result == "tags:") {
+        HIVIEW_LOGE("no match tag find in whitelist");
+        return false;
+    }
+    result.append(" bufferSize:").append(std::to_string(bufferSize));
+    jsonArgs = std::move(result);
+    return true;
 }
 } // HiViewDFX
 } // OHOS
