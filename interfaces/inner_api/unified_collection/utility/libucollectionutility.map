@@ -42,6 +42,7 @@
       "OHOS::HiviewDFX::TraceFactory::CreateAppStrategy(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
       "OHOS::HiviewDFX::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+      "OHOS::HiviewDFX::ParseAndFilterTraceArgs(std::__h::unordered_set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)"
     };
   local:
     *;
