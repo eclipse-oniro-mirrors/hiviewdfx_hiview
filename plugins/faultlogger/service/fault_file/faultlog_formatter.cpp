@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,11 +17,13 @@
 #include <cstdint>
 #include <fstream>
 #include <list>
-#include "parameters.h"
-#include <sstream>
 #include <string>
+#include <sstream>
 #include <unistd.h>
 
+#include "parameters.h"
+
+#include "constants.h"
 #include "faultlog_info.h"
 #include "faultlog_util.h"
 #include "file_util.h"
@@ -33,87 +35,89 @@ namespace FaultLogger {
 namespace {
 constexpr int LOG_MAP_KEY = 0;
 constexpr int LOG_MAP_VALUE = 1;
-constexpr const char* const DEVICE_INFO[] = {"DEVICE_INFO", "Device info:"};
-constexpr const char* const BUILD_INFO[] = {"BUILD_INFO", "Build info:"};
-constexpr const char* const MODULE_NAME[] = {"MODULE", "Module name:"};
-constexpr const char* const PROCESS_NAME[] = {"PNAME", "Process name:"};
-constexpr const char* const MODULE_PID[] = {"PID", "Pid:"};
-constexpr const char* const MODULE_UID[] = {"UID", "Uid:"};
-constexpr const char* const MODULE_VERSION[] = {"VERSION", "Version:"};
-constexpr const char* const FAULT_TYPE[] = {"FAULT_TYPE", "Fault type:"};
-constexpr const char* const SYSVMTYPE[] = {"SYSVMTYPE", "SYSVMTYPE:"};
-constexpr const char* const APPVMTYPE[] = {"APPVMTYPE", "APPVMTYPE:"};
-constexpr const char* const FOREGROUND[] = {"FOREGROUND", "Foreground:"};
-constexpr const char* const LIFETIME[] = {"LIFETIME", "Up time:"};
-constexpr const char* const REASON[] = {"REASON", "Reason:"};
-constexpr const char* const FAULT_MESSAGE[] = {"FAULT_MESSAGE", "Fault message:"};
-constexpr const char* const STACKTRACE[] = {"TRUSTSTACK", "Selected stacktrace:\n"};
-constexpr const char* const ROOT_CAUSE[] = {"BINDERMAX", "Blocked chain:\n"};
-constexpr const char* const MSG_QUEUE_INFO[] = {"MSG_QUEUE_INFO", "Message queue info:\n"};
-constexpr const char* const BINDER_TRANSACTION_INFO[] = {"BINDER_TRANSACTION_INFO", "Binder transaction info:\n"};
-constexpr const char* const PROCESS_STACKTRACE[] = {"PROCESS_STACKTRACE", "Process stacktrace:\n"};
-constexpr const char* const OTHER_THREAD_INFO[] = {"OTHER_THREAD_INFO", "Other thread info:\n"};
-constexpr const char* const KEY_THREAD_INFO[] = {"KEY_THREAD_INFO", "Fault thread info:\n"};
-constexpr const char* const KEY_THREAD_REGISTERS[] = {"KEY_THREAD_REGISTERS", "Registers:\n"};
-constexpr const char* const MEMORY_USAGE[] = {"MEM_USAGE", "Memory Usage:\n"};
-constexpr const char* const CPU_USAGE[] = {"FAULTCPU", "CPU Usage:"};
-constexpr const char* const TRACE_ID[] = {"TRACEID", "Trace-Id:"};
-constexpr const char* const SUMMARY[] = {"SUMMARY", "Summary:\n"};
-constexpr const char* const TIMESTAMP[] = {"TIMESTAMP", "Timestamp:"};
-constexpr const char* const MEMORY_NEAR_REGISTERS[] = {"MEMORY_NEAR_REGISTERS", "Memory near registers:\n"};
-constexpr const char* const PRE_INSTALL[] = {"PRE_INSTALL", "PreInstalled:"};
-constexpr const char* const VERSION_CODE[] = {"VERSION_CODE", "VersionCode:"};
-constexpr const char* const FINGERPRINT[] = {"FINGERPRINT", "Fingerprint:"};
-constexpr const char* const APPEND_ORIGIN_LOG[] = {"APPEND_ORIGIN_LOG", ""};
+constexpr const char* const DEVICE_INFO_KV[] = {FaultKey::DEVICE_INFO, "Device info:"};
+constexpr const char* const BUILD_INFO_KV[] = {FaultKey::BUILD_INFO, "Build info:"};
+constexpr const char* const MODULE_NAME_KV[] = {FaultKey::MODULE_NAME, "Module name:"};
+constexpr const char* const PROCESS_NAME_KV[] = {FaultKey::PROCESS_NAME, "Process name:"};
+constexpr const char* const MODULE_PID_KV[] = {FaultKey::MODULE_PID, "Pid:"};
+constexpr const char* const MODULE_UID_KV[] = {FaultKey::MODULE_UID, "Uid:"};
+constexpr const char* const MODULE_VERSION_KV[] = {FaultKey::MODULE_VERSION, "Version:"};
+constexpr const char* const FAULT_TYPE_KV[] = {FaultKey::FAULT_TYPE, "Fault type:"};
+constexpr const char* const SYS_VM_TYPE_KV[] = {FaultKey::SYS_VM_TYPE, "SYSVMTYPE:"};
+constexpr const char* const APP_VM_TYPE_KV[] = {FaultKey::APP_VM_TYPE, "APPVMTYPE:"};
+constexpr const char* const FOREGROUND_KV[] = {FaultKey::FOREGROUND, "Foreground:"};
+constexpr const char* const LIFETIME_KV[] = {FaultKey::LIFETIME, "Up time:"};
+constexpr const char* const REASON_KV[] = {FaultKey::REASON, "Reason:"};
+constexpr const char* const FAULT_MESSAGE_KV[] = {FaultKey::FAULT_MESSAGE, "Fault message:"};
+constexpr const char* const STACKTRACE_KV[] = {FaultKey::STACKTRACE, "Selected stacktrace:\n"};
+constexpr const char* const ROOT_CAUSE_KV[] = {FaultKey::ROOT_CAUSE, "Blocked chain:\n"};
+constexpr const char* const MSG_QUEUE_INFO_KV[] = {FaultKey::MSG_QUEUE_INFO, "Message queue info:\n"};
+constexpr const char* const BINDER_TRANSACTION_INFO_KV[] = {
+    FaultKey::BINDER_TRANSACTION_INFO, "Binder transaction info:\n"};
+constexpr const char* const PROCESS_STACKTRACE_KV[] = {FaultKey::PROCESS_STACKTRACE, "Process stacktrace:\n"};
+constexpr const char* const OTHER_THREAD_INFO_KV[] = {FaultKey::OTHER_THREAD_INFO, "Other thread info:\n"};
+constexpr const char* const KEY_THREAD_INFO_KV[] = {FaultKey::KEY_THREAD_INFO, "Fault thread info:\n"};
+constexpr const char* const KEY_THREAD_REGISTERS_KV[] = {FaultKey::KEY_THREAD_REGISTERS, "Registers:\n"};
+constexpr const char* const MEMORY_USAGE_KV[] = {FaultKey::MEMORY_USAGE, "Memory Usage:\n"};
+constexpr const char* const CPU_USAGE_KV[] = {FaultKey::CPU_USAGE, "CPU Usage:"};
+constexpr const char* const TRACE_ID_KV[] = {FaultKey::TRACE_ID, "Trace-Id:"};
+constexpr const char* const SUMMARY_KV[] = {FaultKey::SUMMARY, "Summary:\n"};
+constexpr const char* const TIMESTAMP_KV[] = {FaultKey::TIMESTAMP, "Timestamp:"};
+constexpr const char* const MEMORY_NEAR_REGISTERS_KV[] = {FaultKey::MEMORY_NEAR_REGISTERS, "Memory near registers:\n"};
+constexpr const char* const PRE_INSTALL_KV[] = {FaultKey::PRE_INSTALL, "PreInstalled:"};
+constexpr const char* const VERSION_CODE_KV[] = {FaultKey::VERSION_CODE, "VersionCode:"};
+constexpr const char* const FINGERPRINT_KV[] = {FaultKey::FINGERPRINT, "Fingerprint:"};
+constexpr const char* const APPEND_ORIGIN_LOG_KV[] = {FaultKey::APPEND_ORIGIN_LOG, ""};
 
 auto CPP_CRASH_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
-    PRE_INSTALL, FOREGROUND, APPEND_ORIGIN_LOG, MODULE_PID, MODULE_UID, FAULT_TYPE,
-    SYSVMTYPE, APPVMTYPE, REASON, FAULT_MESSAGE, TRACE_ID, PROCESS_NAME, KEY_THREAD_INFO,
-    SUMMARY, KEY_THREAD_REGISTERS, OTHER_THREAD_INFO, MEMORY_NEAR_REGISTERS
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
+    PRE_INSTALL_KV, FOREGROUND_KV, APPEND_ORIGIN_LOG_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV,
+    SYS_VM_TYPE_KV, APP_VM_TYPE_KV, REASON_KV, FAULT_MESSAGE_KV, TRACE_ID_KV, PROCESS_NAME_KV, KEY_THREAD_INFO_KV,
+    SUMMARY_KV, KEY_THREAD_REGISTERS_KV, OTHER_THREAD_INFO_KV, MEMORY_NEAR_REGISTERS_KV
 };
 
 auto JAVASCRIPT_CRASH_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
-    PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, SYSVMTYPE, APPVMTYPE,
-    LIFETIME, REASON, TRACE_ID, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
+    PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, SYS_VM_TYPE_KV,
+    APP_VM_TYPE_KV, LIFETIME_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
 };
 
 auto CANGJIE_ERROR_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
-    PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, SYSVMTYPE, APPVMTYPE,
-    LIFETIME, REASON, TRACE_ID, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
+    PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, SYS_VM_TYPE_KV,
+    APP_VM_TYPE_KV, LIFETIME_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
 };
 
 auto APP_FREEZE_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
-    PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, SYSVMTYPE,
-    APPVMTYPE, REASON, TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
-    MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
+    PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, SYS_VM_TYPE_KV,
+    APP_VM_TYPE_KV, REASON_KV, TRACE_ID_KV, CPU_USAGE_KV, MEMORY_USAGE_KV, ROOT_CAUSE_KV, STACKTRACE_KV,
+    MSG_QUEUE_INFO_KV, BINDER_TRANSACTION_INFO_KV, PROCESS_STACKTRACE_KV, SUMMARY_KV
 };
 
 auto SYS_FREEZE_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
-    MODULE_PID, MODULE_UID, FAULT_TYPE, SYSVMTYPE, APPVMTYPE, REASON,
-    TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
-    MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, FOREGROUND_KV,
+    MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, SYS_VM_TYPE_KV, APP_VM_TYPE_KV, REASON_KV,
+    TRACE_ID_KV, CPU_USAGE_KV, MEMORY_USAGE_KV, ROOT_CAUSE_KV, STACKTRACE_KV,
+    MSG_QUEUE_INFO_KV, BINDER_TRANSACTION_INFO_KV, PROCESS_STACKTRACE_KV, SUMMARY_KV
 };
 
 auto SYS_WARNING_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
-    MODULE_PID, MODULE_UID, FAULT_TYPE, SYSVMTYPE, APPVMTYPE, REASON,
-    TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
-    MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, FOREGROUND_KV,
+    MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, SYS_VM_TYPE_KV, APP_VM_TYPE_KV, REASON_KV,
+    TRACE_ID_KV, CPU_USAGE_KV, MEMORY_USAGE_KV, ROOT_CAUSE_KV, STACKTRACE_KV,
+    MSG_QUEUE_INFO_KV, BINDER_TRANSACTION_INFO_KV, PROCESS_STACKTRACE_KV, SUMMARY_KV
 };
 
 auto RUST_PANIC_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, MODULE_PID,
-    MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, APPVMTYPE, REASON, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, MODULE_PID_KV,
+    MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, APP_VM_TYPE_KV, REASON_KV, SUMMARY_KV
 };
 
 auto ADDR_SANITIZER_LOG_SEQUENCE = {
-    DEVICE_INFO, BUILD_INFO, FINGERPRINT, APPEND_ORIGIN_LOG, TIMESTAMP, MODULE_NAME, MODULE_VERSION, MODULE_PID,
-    MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, APPVMTYPE, REASON, SUMMARY
+    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, APPEND_ORIGIN_LOG_KV, TIMESTAMP_KV, MODULE_NAME_KV,
+    MODULE_VERSION_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, APP_VM_TYPE_KV, REASON_KV,
+    SUMMARY_KV
 };
 }
 std::list<const char* const*> GetLogParseList(int32_t logType)
@@ -138,28 +142,6 @@ std::list<const char* const*> GetLogParseList(int32_t logType)
         default:
             return {};
     }
-}
-
-std::string GetSummaryByType(int32_t logType, std::map<std::string, std::string> sections)
-{
-    std::string summary = "";
-    switch (logType) {
-        case FaultLogType::JS_CRASH:
-        case FaultLogType::APP_FREEZE:
-        case FaultLogType::SYS_FREEZE:
-        case FaultLogType::SYS_WARNING:
-            summary = sections[STACKTRACE[LOG_MAP_KEY]];
-            break;
-        case FaultLogType::CPP_CRASH:
-            summary = sections[KEY_THREAD_INFO[LOG_MAP_KEY]];
-            break;
-        case FaultLogType::ADDR_SANITIZER:
-        default:
-            summary = "Could not figure out summary for this fault.";
-            break;
-    }
-
-    return summary;
 }
 
 bool ParseFaultLogLine(const std::list<const char* const*>& parseList, const std::string& line,
@@ -239,14 +221,14 @@ void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std:
         auto value = sections[item[LOG_MAP_KEY]];
         if (!value.empty()) {
             std::string keyStr = item[LOG_MAP_KEY];
-            if (keyStr.find(APPEND_ORIGIN_LOG[LOG_MAP_KEY]) != std::string::npos) {
+            if (keyStr.find(APPEND_ORIGIN_LOG_KV[LOG_MAP_KEY]) != std::string::npos) {
                 if (WriteLogToFile(fd, value)) {
                     break;
                 }
             }
 
             // Does not require adding an identifier header for Summary section
-            if (keyStr.find(SUMMARY[LOG_MAP_KEY]) == std::string::npos) {
+            if (keyStr.find(SUMMARY_KV[LOG_MAP_KEY]) == std::string::npos) {
                 FileUtil::SaveStringToFd(fd, item[LOG_MAP_VALUE]);
             }
 
@@ -259,7 +241,7 @@ void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std:
 
     if (!sections["KEYLOGFILE"].empty()) {
         FileUtil::SaveStringToFd(fd, "Additional Logs:\n");
-        WriteStackTraceFromLog(fd, sections["PID"], sections["KEYLOGFILE"]);
+        WriteStackTraceFromLog(fd, sections[FaultKey::MODULE_PID], sections["KEYLOGFILE"]);
     }
 }
 
@@ -269,12 +251,12 @@ static void UpdateFaultLogInfoFromTempFile(FaultLogInfo& info)
         return;
     }
 
-    StringUtil::ConvertStringTo<int32_t>(info.sectionMap[MODULE_UID[LOG_MAP_KEY]], info.id);
-    info.module = info.sectionMap[PROCESS_NAME[LOG_MAP_KEY]];
-    info.reason = info.sectionMap[REASON[LOG_MAP_KEY]];
-    info.summary = info.sectionMap[KEY_THREAD_INFO[LOG_MAP_KEY]];
-    info.registers = info.sectionMap[KEY_THREAD_REGISTERS[LOG_MAP_KEY]];
-    info.otherThreadInfo = info.sectionMap[OTHER_THREAD_INFO[LOG_MAP_KEY]];
+    StringUtil::ConvertStringTo<int32_t>(info.sectionMap[MODULE_UID_KV[LOG_MAP_KEY]], info.id);
+    info.module = info.sectionMap[PROCESS_NAME_KV[LOG_MAP_KEY]];
+    info.reason = info.sectionMap[REASON_KV[LOG_MAP_KEY]];
+    info.summary = info.sectionMap[KEY_THREAD_INFO_KV[LOG_MAP_KEY]];
+    info.registers = info.sectionMap[KEY_THREAD_REGISTERS_KV[LOG_MAP_KEY]];
+    info.otherThreadInfo = info.sectionMap[OTHER_THREAD_INFO_KV[LOG_MAP_KEY]];
     size_t removeStartPos = info.summary.find("Tid:");
     size_t removeEndPos = info.summary.find("Name:");
     if (removeStartPos != std::string::npos && removeEndPos != std::string::npos) {
@@ -290,16 +272,10 @@ static void UpdateFaultLogInfoFromTempFile(FaultLogInfo& info)
     }
 }
 
-FaultLogInfo ParseFaultLogInfoFromFile(const std::string &path, bool isTempFile)
+FaultLogInfo ParseCppCrashFromFile(const std::string& path)
 {
     auto fileName = FileUtil::ExtractFileName(path);
-    FaultLogInfo info;
-    if (!isTempFile) {
-        info = ExtractInfoFromFileName(fileName);
-    } else {
-        info = ExtractInfoFromTempFile(fileName);
-    }
-
+    FaultLogInfo info = ExtractInfoFromTempFile(fileName);
     auto parseList = GetLogParseList(info.faultLogType);
     std::ifstream logFile(path);
     std::string line;
@@ -328,6 +304,17 @@ FaultLogInfo ParseFaultLogInfoFromFile(const std::string &path, bool isTempFile)
     return info;
 }
 
+void JumpBuildInfo(std::ifstream& logFile)
+{
+    std::string line;
+    while (std::getline(logFile, line)) {
+        if (line.find("Build info:") != std::string::npos) {
+            continue;
+        }
+        break;
+    }
+}
+
 bool WriteLogToFile(int32_t fd, const std::string& path)
 {
     if ((fd < 0) || path.empty()) {
@@ -336,7 +323,8 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
 
     std::string line;
     std::ifstream logFile(path);
-    bool hasFindFirstLine = false;
+    JumpBuildInfo(logFile);
+
     while (std::getline(logFile, line)) {
         if (logFile.eof()) {
             break;
@@ -344,10 +332,6 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
         if (!logFile.good()) {
             return false;
         }
-        if (!hasFindFirstLine && line.find("Build info:") != std::string::npos) {
-            continue;
-        }
-        hasFindFirstLine = true;
         FileUtil::SaveStringToFd(fd, line);
         FileUtil::SaveStringToFd(fd, "\n");
     }

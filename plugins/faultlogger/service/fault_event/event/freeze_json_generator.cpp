@@ -65,37 +65,37 @@ FreezeJsonMemory::FreezeJsonMemory(const FreezeJsonMemory::Builder& builder)
 {
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitRss(unsigned long long rss)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitRss(uint64_t rss)
 {
     rss_ = rss;
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitVss(unsigned long long vss)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitVss(uint64_t vss)
 {
     vss_ = vss;
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitPss(unsigned long long pss)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitPss(uint64_t pss)
 {
     pss_ = pss;
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysFreeMem(unsigned long long sysFreeMem)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysFreeMem(uint64_t sysFreeMem)
 {
     sysFreeMem_ = sysFreeMem;
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysAvailMem(unsigned long long sysAvailMem)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysAvailMem(uint64_t sysAvailMem)
 {
     sysAvailMem_ = sysAvailMem;
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysTotalMem(unsigned long long sysTotalMem)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysTotalMem(uint64_t sysTotalMem)
 {
     sysTotalMem_ = sysTotalMem;
     return *this;
@@ -109,7 +109,7 @@ FreezeJsonMemory FreezeJsonMemory::Builder::Build() const
 
 std::string FreezeJsonMemory::JsonStr() const
 {
-    std::map<std::string, unsigned long long> memoryMap;
+    std::map<std::string, uint64_t> memoryMap;
     memoryMap[jsonMemoryRss] = rss_;
     memoryMap[jsonMemoryVss] = vss_;
     memoryMap[jsonMemoryPss] = pss_;

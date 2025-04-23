@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,10 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef HIVIEW_FAULT_LOG_FORMATTER_H
-#define HIVIEW_FAULT_LOG_FORMATTER_H
-#include <cstdint>
-#include <map>
+#ifndef FAULTLOG_FORMATTER_H
+#define FAULTLOG_FORMATTER_H
 #include <string>
 #include "faultlog_info.h"
 namespace OHOS {
@@ -23,13 +21,15 @@ namespace HiviewDFX {
 namespace FaultLogger {
 void WriteDfxLogToFile(int32_t fd);
 void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std::string> sections);
-FaultLogInfo ParseFaultLogInfoFromFile(const std::string& path, bool isTempFile = false);
+FaultLogInfo ParseCppCrashFromFile(const std::string& path);
 void WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
-std::string GetSummaryByType(int32_t logType, std::map<std::string, std::string> sections);
 bool WriteLogToFile(int32_t fd, const std::string& path);
 bool IsFaultLogLimit();
 void LimitCppCrashLog(int32_t fd, int32_t logType);
+
+void JumpBuildInfo(std::ifstream& logFile);
+std::list<const char* const*> GetLogParseList(int32_t logType);
 }  // namespace FaultLogger
 }  // namespace HiviewDFX
 }  // namespace OHOS
-#endif  // HIVIEW_FAULT_LOG_FORMATTER_H
+#endif

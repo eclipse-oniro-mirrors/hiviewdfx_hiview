@@ -31,16 +31,16 @@ static void GetFingerRawString(std::string& fingerRawString, const FaultLogInfo&
 {
     if ((info.reason.compare("APP_HICOLLIE") == 0 || info.reason.compare("SERVICE_TIMEOUT_WARNING") == 0 ||
         info.reason.compare("SERVICE_TIMEOUT") == 0) && !eventInfos["TIME_OUT"].empty()) {
-        eventInfos["LAST_FRAME"] = eventInfos["TIME_OUT"];
+        eventInfos[FaultKey::LAST_FRAME] = eventInfos["TIME_OUT"];
     }
 
     if (info.reason.compare("SERVICE_BLOCK") == 0 && !eventInfos["QUEUE_NAME"].empty()) {
-        eventInfos["LAST_FRAME"] = eventInfos["QUEUE_NAME"];
+        eventInfos[FaultKey::LAST_FRAME] = eventInfos["QUEUE_NAME"];
     }
 
     auto eventType = GetFaultNameByType(info.faultLogType, false);
     fingerRawString = info.module + StringUtil::GetLeftSubstr(info.reason, "@") +
-        eventInfos["FIRST_FRAME"] + eventInfos["SECOND_FRAME"] + eventInfos["LAST_FRAME"] +
+        eventInfos[FaultKey::FIRST_FRAME] + eventInfos[FaultKey::SECOND_FRAME] + eventInfos[FaultKey::LAST_FRAME] +
         ((eventType == "JS_ERROR") ? eventInfos["SUBREASON"] : "");
 }
 
@@ -64,7 +64,7 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
         FileUtil::RemoveFile(logPath);
     }
     if (eventInfos.empty()) {
-        eventInfos.insert(std::make_pair("FINGERPRINT", Tbox::CalcFingerPrint(info.module + info.reason +
+        eventInfos.insert(std::make_pair(FaultKey::FINGERPRINT, Tbox::CalcFingerPrint(info.module + info.reason +
             info.summary, 0, FP_BUFFER)));
         return false;
     }
@@ -75,17 +75,18 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
     Tbox::FilterTrace(eventInfos, eventType);
     std::string fingerRawString;
     GetFingerRawString(fingerRawString, info, eventInfos);
-    eventInfos["FINGERPRINT"] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
+    eventInfos[FaultKey::FINGERPRINT] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
 
-    if ((eventType == "APP_FREEZE" || eventType == "SYS_FREEZE") && eventInfos["FIRST_FRAME"].empty()) {
+    if ((eventType == "APP_FREEZE" || eventType == "SYS_FREEZE") && eventInfos[FaultKey::FIRST_FRAME].empty()) {
         if (!eventInfos["TRACER_PID"].empty()) {
             int32_t pid = 0;
             if (sscanf_s(eventInfos["TRACER_PID"].c_str(), "%d", &pid) == 1 && pid > 0) {
-                eventInfos["LAST_FRAME"] += ("(Tracer Process Name:" + CommonUtils::GetProcNameByPid(pid) + ")");
+                eventInfos[FaultKey::LAST_FRAME] +=
+                    ("(Tracer Process Name:" + CommonUtils::GetProcNameByPid(pid) + ")");
             }
         }
         if (!eventInfos["NORMAL_STACK_REASON"].empty()) {
-            eventInfos["LAST_FRAME"] += ("(" + eventInfos["NORMAL_STACK_REASON"] + ")");
+            eventInfos[FaultKey::LAST_FRAME] += ("(" + eventInfos["NORMAL_STACK_REASON"] + ")");
         }
     }
     return true;

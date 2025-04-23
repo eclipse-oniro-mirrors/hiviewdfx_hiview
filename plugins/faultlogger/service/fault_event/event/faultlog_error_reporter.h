@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,24 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "faultlogger_adapter.h"
+#ifndef FAULTLOG_ERROR_REPORTER_H
+#define FAULTLOG_ERROR_REPORTER_H
 
-#include "faultlogger.h"
-#include "faultlogger_service_ohos.h"
-
-#include "hiview_logger.h"
+#include "sys_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_LABEL(0xD002D11, "FaultloggerAdapter");
-void FaultloggerAdapter::StartService(Faultlogger* faultlogger)
-{
-    if (faultlogger == nullptr) {
-        HIVIEW_LOGW("failed to start service.");
-        return;
-    }
-
-    FaultloggerServiceOhos::StartService(faultlogger);
-}
-}  // namespace HiviewDFX
-}  // namespace OHOS
+class FaultLogErrorReporter {
+public:
+    void ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent, const std::string& type,
+        const std::string& outputFilePath) const;
+};
+} // namespace HiviewDFX
+} // namespace OHOS
+#endif

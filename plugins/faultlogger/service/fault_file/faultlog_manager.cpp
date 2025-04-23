@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,33 +14,22 @@
  */
 #include "faultlog_manager.h"
 
-#include <cstdint>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <vector>
-
-#include <fcntl.h>
 #include <filesystem>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
+#include "constants.h"
 #include "defines.h"
 #include "file_util.h"
 #include "log_store_ex.h"
 #include "hiview_logger.h"
-#include "time_util.h"
 
 #include "faultlog_database.h"
 #include "faultlog_formatter.h"
-#include "faultlog_info.h"
 #include "faultlog_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+using namespace FaultLogger;
 namespace {
-constexpr char DEFAULT_FAULTLOG_FOLDER[] = "/data/log/faultlog/faultlogger/";
 constexpr int32_t MAX_FAULT_LOG_PER_HAP = 10;
 }
 
@@ -69,14 +58,6 @@ LogStoreEx::LogFileFilter CreateLogFileFilter(time_t time, int32_t id, int32_t f
     return filter;
 }
 
-FaultLogManager::~FaultLogManager()
-{
-    if (faultLogDb_ != nullptr) {
-        delete faultLogDb_;
-        faultLogDb_ = nullptr;
-    }
-}
-
 int32_t FaultLogManager::CreateTempFaultLogFile(time_t time, int32_t id, int32_t faultType,
     const std::string &module) const
 {
@@ -91,7 +72,7 @@ int32_t FaultLogManager::CreateTempFaultLogFile(time_t time, int32_t id, int32_t
 
 void FaultLogManager::Init()
 {
-    store_ = std::make_unique<LogStoreEx>(DEFAULT_FAULTLOG_FOLDER, true);
+    store_ = std::make_unique<LogStoreEx>(FAULTLOG_FAULT_LOGGER_FOLDER, true);
     LogStoreEx::LogFileComparator comparator = [](const LogFile &lhs, const LogFile &rhs) {
         FaultLogInfo lhsInfo = ExtractInfoFromFileName(lhs.name_);
         FaultLogInfo rhsInfo = ExtractInfoFromFileName(rhs.name_);
@@ -99,21 +80,21 @@ void FaultLogManager::Init()
     };
     store_->SetLogFileComparator(comparator);
     store_->Init();
-    faultLogDb_ = new FaultLogDatabase(looper_);
+    faultLogDb_ = std::make_unique<FaultLogDatabase>(looper_);
 }
 
-std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo &info) const
+std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
 {
     auto fileName = GetFaultLogName(info);
-    std::string filePath = std::string(DEFAULT_FAULTLOG_FOLDER) + fileName;
+    std::string filePath = std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
     if (FileUtil::FileExists(filePath)) {
         HIVIEW_LOGI("logfile %{public}s already exist.", filePath.c_str());
         return "";
     }
     auto fd = store_->CreateLogFile(fileName);
     if (fd < 0) {
-        if (access(DEFAULT_FAULTLOG_FOLDER, F_OK) != 0) {
-            HIVIEW_LOGE("%{public}s does not exist!!!", DEFAULT_FAULTLOG_FOLDER);
+        if (access(FAULTLOG_FAULT_LOGGER_FOLDER, F_OK) != 0) {
+            HIVIEW_LOGE("%{public}s does not exist!!!", FAULTLOG_FAULT_LOGGER_FOLDER);
         }
         return "";
     }
@@ -121,13 +102,21 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo &info) const
     FaultLogger::WriteDfxLogToFile(fd);
     FaultLogger::WriteFaultLogToFile(fd, info.faultLogType, info.sectionMap);
     FaultLogger::WriteLogToFile(fd, info.logPath);
-    if (info.sectionMap.count("HILOG") == 1) {
+    if (info.sectionMap.count(FaultKey::HILOG) == 1) {
         FileUtil::SaveStringToFd(fd, "\nHiLog:\n");
-        FileUtil::SaveStringToFd(fd, info.sectionMap["HILOG"]);
+        FileUtil::SaveStringToFd(fd, info.sectionMap[FaultKey::HILOG]);
     }
     FaultLogger::LimitCppCrashLog(fd, info.faultLogType);
     close(fd);
 
+    RemoveOldFile(info);
+    info.logPath = std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
+    HIVIEW_LOGI("create log %{public}s", fileName.c_str());
+    return fileName;
+}
+
+void FaultLogManager::RemoveOldFile(FaultLogInfo& info) const
+{
     std::string logFile = info.logPath;
     if (logFile != "" && FileUtil::FileExists(logFile)) {
         if (!FileUtil::RemoveFile(logFile)) {
@@ -138,9 +127,6 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo &info) const
     }
     store_->ClearSameLogFilesIfNeeded(CreateLogFileFilter(0, info.id, info.faultLogType, info.module),
         MAX_FAULT_LOG_PER_HAP);
-    info.logPath = std::string(DEFAULT_FAULTLOG_FOLDER) + fileName;
-    HIVIEW_LOGI("create log %{public}s", fileName.c_str());
-    return fileName;
 }
 
 std::list<FaultLogInfo> FaultLogManager::GetFaultInfoList(const std::string& module,
@@ -162,7 +148,7 @@ void FaultLogManager::SaveFaultInfoToRawDb(FaultLogInfo& info) const
     }
 }
 
-void FaultLogManager::ReduceLogFileListSize(std::list<std::string> &infoVec, int32_t maxNum) const
+void FaultLogManager::ReduceLogFileListSize(std::list<std::string>& infoVec, int32_t maxNum) const
 {
     if ((maxNum < 0) || (infoVec.size() <= static_cast<uint32_t>(maxNum))) {
         return;
@@ -173,7 +159,7 @@ void FaultLogManager::ReduceLogFileListSize(std::list<std::string> &infoVec, int
     infoVec.erase(begin, infoVec.end());
 }
 
-std::list<std::string> FaultLogManager::GetFaultLogFileList(const std::string &module, time_t time, int32_t id,
+std::list<std::string> FaultLogManager::GetFaultLogFileList(const std::string& module, time_t time, int32_t id,
                                                             int32_t faultType, int32_t maxNum) const
 {
     LogStoreEx::LogFileFilter filter = CreateLogFileFilter(time, id, faultType, module);
@@ -184,9 +170,9 @@ std::list<std::string> FaultLogManager::GetFaultLogFileList(const std::string &m
     return ret;
 }
 
-bool FaultLogManager::GetFaultLogContent(const std::string &name, std::string &content) const
+bool FaultLogManager::GetFaultLogContent(const std::string& name, std::string& content) const
 {
-    auto path = std::string(DEFAULT_FAULTLOG_FOLDER);
+    auto path = std::string(FAULTLOG_FAULT_LOGGER_FOLDER);
     std::string matchName;
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
         std::filesystem::path filePath = entry.path();

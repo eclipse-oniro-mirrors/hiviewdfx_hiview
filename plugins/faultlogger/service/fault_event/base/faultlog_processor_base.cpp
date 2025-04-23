@@ -1,0 +1,270 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "faultlog_processor_base.h"
+
+#include "constants.h"
+#include "dfx_define.h"
+#include "faultlog_bundle_util.h"
+#include "faultlog_hilog_helper.h"
+#include "faultlog_formatter.h"
+#include "faultlog_util.h"
+#include "hiview_logger.h"
+#include "hisysevent.h"
+#include "log_analyzer.h"
+#include "parameter_ex.h"
+#include "process_status.h"
+#include "string_util.h"
+
+namespace OHOS {
+namespace HiviewDFX {
+using namespace FaultLogger;
+DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
+using namespace FaultlogHilogHelper;
+
+namespace {
+std::string GetSummaryFromSectionMap(int32_t type, const std::map<std::string, std::string>& maps)
+{
+    std::string key = "";
+    switch (type) {
+        case CPP_CRASH:
+            key = FaultKey::KEY_THREAD_INFO;
+            break;
+        default:
+            break;
+    }
+
+    if (key.empty()) {
+        return "";
+    }
+
+    auto value = maps.find(key);
+    if (value == maps.end()) {
+        return "";
+    }
+    return value->second;
+}
+
+bool IsFaultTypeSupport(const FaultLogInfo& info)
+{
+    if ((info.faultLogType <= FaultLogType::ALL) || (info.faultLogType > FaultLogType::CJ_ERROR)) {
+        HIVIEW_LOGW("Unsupported fault type");
+        return false;
+    }
+    return true;
+}
+
+bool IsSnapshot(const FaultLogInfo& info)
+{
+    if (info.reason.find("CppCrashKernelSnapshot") != std::string::npos) {
+        HIVIEW_LOGI("Skip cpp crash kernel snapshot fault %{public}d", info.pid);
+        return true;
+    }
+    return false;
+}
+
+bool IsFaultByIpc(const FaultLogInfo& info)
+{
+    return info.faultLogType == FaultLogType::CPP_CRASH ||
+        info.faultLogType == FaultLogType::SYS_FREEZE ||
+        info.faultLogType == FaultLogType::SYS_WARNING ||
+        info.faultLogType == FaultLogType::APP_FREEZE;
+}
+} // namespace
+
+void FaultLogProcessorBase::AddFaultLog(FaultLogInfo& info, const std::shared_ptr<EventLoop>& workLoop,
+    const std::shared_ptr<FaultLogManager>& faultLogManager)
+{
+    workLoop_ = workLoop;
+    faultLogManager_ = faultLogManager;
+    if (!IsFaultTypeSupport(info) || IsSnapshot(info)) {
+        return;
+    }
+
+    ProcessFaultLog(info);
+
+    if (!IsFaultByIpc(info)) {
+        return;
+    }
+    SaveFaultInfoToRawDb(info);
+    ReportEventToAppEvent(info);
+    DoFaultLogLimit(info);
+}
+
+bool FaultLogProcessorBase::VerifyModule(FaultLogInfo& info)
+{
+    if (!IsValidPath(info.logPath)) {
+        HIVIEW_LOGE("The log path is incorrect, and the current log path is: %{public}s.", info.logPath.c_str());
+        return false;
+    }
+    HIVIEW_LOGI("Start saving Faultlog of Process:%{public}d, Name:%{public}s, Reason:%{public}s.",
+        info.pid, info.module.c_str(), info.reason.c_str());
+    info.sectionMap["PROCESS_NAME"] = info.module; // save process name
+    // Non system processes use UID to pass events to applications
+    if (!IsSystemProcess(info.module, info.id) && info.sectionMap["SCBPROCESS"] != "Yes") {
+        std::string appName = GetApplicationNameById(info.id);
+        if (!appName.empty()) {
+            info.module = appName; // if bundle name is not empty, replace module name by it.
+        }
+    }
+
+    HIVIEW_LOGD("nameProc %{public}s", info.module.c_str());
+    if ((info.module.empty()) || (!IsModuleNameValid(info.module))) {
+        HIVIEW_LOGW("Invalid module name %{public}s", info.module.c_str());
+        return false;
+    }
+    return true;
+}
+
+void FaultLogProcessorBase::ProcessFaultLog(FaultLogInfo& info)
+{
+    if (!VerifyModule(info)) {
+        return;
+    }
+    // step1: add common info: uid module name, pid, reason, summary etc
+    AddCommonInfo(info);
+    // step2: add specific info: need implement in derived class
+    AddSpecificInfo(info);
+    // step3: generate fault log file
+    SaveFaultLogToFile(info);
+    PrintFaultLogInfo(info);
+}
+
+void FaultLogProcessorBase::SaveFaultLogToFile(FaultLogInfo& info)
+{
+    if (info.dumpLogToFaultlogger && faultLogManager_) {
+        faultLogManager_->SaveFaultLogToFile(info);
+    }
+}
+
+void FaultLogProcessorBase::DoFaultLogLimit(const FaultLogInfo& info)
+{
+    bool isNeedLimitFile = (info.dumpLogToFaultlogger && ((info.faultLogType == FaultLogType::CPP_CRASH) ||
+        (info.faultLogType == FaultLogType::APP_FREEZE)) && IsFaultLogLimit());
+    if (isNeedLimitFile) {
+        DoFaultLogLimit(info.logPath, info.faultLogType);
+    }
+}
+
+void FaultLogProcessorBase::SaveFaultInfoToRawDb(FaultLogInfo& info)
+{
+    if (faultLogManager_) {
+        faultLogManager_->SaveFaultInfoToRawDb(info);
+    }
+}
+
+void FaultLogProcessorBase::AddCommonInfo(FaultLogInfo& info)
+{
+    info.sectionMap[FaultKey::DEVICE_INFO] = Parameter::GetString("const.product.name", "Unknown");
+    if (info.sectionMap.find(FaultKey::BUILD_INFO) == info.sectionMap.end()) {
+        info.sectionMap[FaultKey::BUILD_INFO] = Parameter::GetString("const.product.software.version", "Unknown");
+    }
+    info.sectionMap[FaultKey::MODULE_UID] = std::to_string(info.id);
+    info.sectionMap[FaultKey::MODULE_PID] = std::to_string(info.pid);
+    info.module = RegulateModuleNameIfNeed(info.module);
+    info.sectionMap[FaultKey::MODULE_NAME] = info.module;
+    AddBundleInfo(info);
+    AddForegroundInfo(info);
+
+    if (info.reason.empty()) {
+        info.reason = info.sectionMap[FaultKey::REASON];
+    } else {
+        info.sectionMap[FaultKey::REASON] = info.reason;
+    }
+
+    if (info.summary.empty()) {
+        info.summary = GetSummaryFromSectionMap(info.faultLogType, info.sectionMap);
+    } else {
+        info.sectionMap[FaultKey::SUMMARY] = info.summary;
+    }
+
+    UpdateTerminalThreadStack(info);
+
+    // parse fingerprint by summary or temp log for native crash
+    AnalysisFaultlog(info, info.parsedLogInfo);
+    info.sectionMap.insert(info.parsedLogInfo.begin(), info.parsedLogInfo.end());
+    info.parsedLogInfo.clear();
+    // Internal reserved fields, avoid illegal privilege escalation to access files
+    info.sectionMap.erase(FaultKey::APPEND_ORIGIN_LOG);
+}
+
+void FaultLogProcessorBase::AddBundleInfo(FaultLogInfo& info)
+{
+    DfxBundleInfo bundleInfo;
+    if (info.id < MIN_APP_USERID || !GetDfxBundleInfo(info.module, bundleInfo)) {
+        return;
+    }
+
+    if (!bundleInfo.versionName.empty()) {
+        info.sectionMap[FaultKey::MODULE_VERSION] = bundleInfo.versionName;
+        info.sectionMap[FaultKey::VERSION_CODE] = std::to_string(bundleInfo.versionCode);
+    }
+
+    info.sectionMap[FaultKey::PRE_INSTALL] = bundleInfo.isPreInstalled ? "Yes" : "No";
+}
+
+void FaultLogProcessorBase::AddForegroundInfo(FaultLogInfo& info)
+{
+    if (!info.sectionMap[FaultKey::FOREGROUND].empty() || info.id < MIN_APP_USERID) {
+        return;
+    }
+
+    if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) == UCollectUtil::FOREGROUND) {
+        info.sectionMap[FaultKey::FOREGROUND] = "Yes";
+    } else if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) == UCollectUtil::BACKGROUND) {
+        int64_t lastFgTime = static_cast<int64_t>(UCollectUtil::ProcessStatus::GetInstance()
+                                                  .GetProcessLastForegroundTime(info.pid));
+        info.sectionMap[FaultKey::FOREGROUND] = lastFgTime > info.time ? "Yes" : "No";
+    }
+}
+
+void FaultLogProcessorBase::UpdateTerminalThreadStack(FaultLogInfo& info)
+{
+    auto threadStack = GetStrValFromMap(info.sectionMap, "TERMINAL_THREAD_STACK");
+    if (threadStack.empty()) {
+        return;
+    }
+    // Replace the '\n' in the string with a line break character
+    info.parsedLogInfo["TERMINAL_THREAD_STACK"] = StringUtil::ReplaceStr(threadStack, "\\n", "\n");
+}
+
+void FaultLogProcessorBase::PrintFaultLogInfo(const FaultLogInfo& info)
+{
+    HIVIEW_LOGI("\nSave Faultlog of Process:%{public}d\n"
+        "ModuleName:%{public}s\n"
+        "Reason:%{public}s\n",
+        info.pid, info.module.c_str(), info.reason.c_str());
+}
+
+std::string FaultLogProcessorBase::ReadLogFile(const std::string& logPath) const
+{
+    std::ifstream logReadFile(logPath);
+    return std::string(std::istreambuf_iterator<char>(logReadFile), std::istreambuf_iterator<char>());
+}
+
+void FaultLogProcessorBase::WriteLogFile(const std::string& logPath, const std::string& content) const
+{
+    std::ofstream logWriteFile(logPath, std::ios::out | std::ios::trunc);
+    if (!logWriteFile.is_open()) {
+        HIVIEW_LOGE("Failed to open log file: %{public}s", logPath.c_str());
+        return;
+    }
+    logWriteFile << content;
+    if (!logWriteFile.good()) {
+        HIVIEW_LOGE("Failed to write content to log file: %{public}s", logPath.c_str());
+    }
+    logWriteFile.close();
+}
+} // namespace HiviewDFX
+} // namespace OHOS
