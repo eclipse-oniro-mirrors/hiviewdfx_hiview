@@ -116,10 +116,10 @@ CollectResult<uint32_t> MemoryDecorator::CollectDdrFreq()
     return Invoke(task, statInfoWrapper_, MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }
 
-CollectResult<ProcessMemoryDetail> MemoryDecorator::CollectProcessMemoryDetail(int32_t pid, bool isLowLatencyMode)
+CollectResult<ProcessMemoryDetail> MemoryDecorator::CollectProcessMemoryDetail(int32_t pid, GraphicMemOption option)
 {
-    auto task = [this, pid, isLowLatencyMode] {
-        return memoryCollector_->CollectProcessMemoryDetail(pid, isLowLatencyMode);
+    auto task = [this, pid, option] {
+        return memoryCollector_->CollectProcessMemoryDetail(pid, option);
     };
     return Invoke(task, statInfoWrapper_, MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
 }

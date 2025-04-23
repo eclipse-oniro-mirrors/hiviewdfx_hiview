@@ -55,6 +55,12 @@ enum class GraphicType {
     GRAPH,
 };
 
+enum class GraphicMemOption {
+    NONE,
+    LOW_LATENCY,
+    LOW_MEMORY,
+};
+
 enum class MemoryClass {
     MEMORY_CLASS_GRAPH,
     MEMORY_CLASS_ARK_TS_HEAP,
@@ -136,6 +142,10 @@ struct MemoryItem {
     uint64_t sharedClean = 0;
     uint64_t privateClean = 0;
     uint64_t iNode = 0;
+    uint64_t size = 0;
+    std::string startAddr;
+    std::string endAddr;
+    std::string permission;
 
     void ResetValue()
     {
@@ -150,6 +160,11 @@ struct MemoryItem {
         sharedClean = 0;
         privateClean = 0;
         iNode = 0;
+        size = 0;
+        startAddr.clear();
+        endAddr.clear();
+        permission.clear();
+        name.clear();
     }
 };
 

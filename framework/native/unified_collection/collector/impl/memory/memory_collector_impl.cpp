@@ -638,11 +638,12 @@ CollectResult<uint32_t> MemoryCollectorImpl::CollectDdrFreq()
     return result;
 }
 
-CollectResult<ProcessMemoryDetail> MemoryCollectorImpl::CollectProcessMemoryDetail(int32_t pid, bool isLowLatencyMode)
+CollectResult<ProcessMemoryDetail> MemoryCollectorImpl::CollectProcessMemoryDetail(int32_t pid,
+    GraphicMemOption option)
 {
     CollectResult<ProcessMemoryDetail> result;
     std::string smapsPath = "/proc/" + std::to_string(pid) + "/smaps";
-    if (ParseSmaps(pid, smapsPath, result.data, isLowLatencyMode)) {
+    if (ParseSmaps(pid, smapsPath, result.data, option)) {
         result.retCode = UcError::SUCCESS;
     } else {
         result.retCode = UcError::READ_FAILED;

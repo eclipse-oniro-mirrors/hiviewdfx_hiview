@@ -369,14 +369,14 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest017, TestSize.Level1)
 {
     std::cout << "MemoryCollector test" << std::endl;
     std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    auto data = collector->CollectProcessMemoryDetail(1, false);
+    auto data = collector->CollectProcessMemoryDetail(1, GraphicMemOption::LOW_MEMORY);
     std::cout << "collect processMemoryDetail result" << data.retCode << std::endl;
     ASSERT_EQ(data.data.name, "init");
     ASSERT_GT(data.data.totalPss, 0);
     ASSERT_GT(data.data.details.size(), 0);
-    auto data2 = collector->CollectProcessMemoryDetail(1, true);
+    auto data2 = collector->CollectProcessMemoryDetail(1, GraphicMemOption::LOW_MEMORY);
     ASSERT_EQ(data2.retCode, UcError::SUCCESS);
-    auto data3 = collector->CollectProcessMemoryDetail(1, true);
+    auto data3 = collector->CollectProcessMemoryDetail(1, GraphicMemOption::LOW_MEMORY);
     ASSERT_EQ(data3.retCode, UcError::SUCCESS);
 }
 #else
@@ -436,7 +436,7 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest001, TestSize.Level1)
     auto ret16 = collector->CollectDdrFreq();
     ASSERT_EQ(ret16.retCode, UcError::FEATURE_CLOSED);
 
-    auto ret17 = collector->CollectProcessMemoryDetail(0);
+    auto ret17 = collector->CollectProcessMemoryDetail(0, GraphicMemOption::NONE);
     ASSERT_EQ(ret17.retCode, UcError::FEATURE_CLOSED);
 }
 #endif
