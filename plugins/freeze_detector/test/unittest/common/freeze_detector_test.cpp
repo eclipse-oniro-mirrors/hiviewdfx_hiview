@@ -67,37 +67,36 @@ std::shared_ptr<SysEvent> makeEvent(const std::string& name,
     return sysEvent;
 }
 
-bool GetFreezeDectorTestFile(const std::string& eventName,
-                             const std::string& packageName,
-                             uint64_t time)
+bool GetFreezeDectorTestFile(const std::string& domain, const std::string& eventName, const std::string& packageName,
+    uint64_t time)
 {
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    if (!freezeCommon->Init()) {
+        printf("failed to parse rule file.");
+        return false;
+    }
+    std::string type = freezeCommon->IsApplicationEvent(domain, eventName) ? "appfreeze" :
+        (freezeCommon->IsSystemEvent(domain, eventName) ? "sysfreeze" : "syswarning");
+
     int count = 0;
     std::string decLogPath = "";
     while (count < 10) { // 10: 最大等待10s
         sleep(1);
         std::vector<std::string> files;
-        FileUtil::GetDirFiles("/data/log/faultlog/", files);
+        FileUtil::GetDirFiles("/data/log/faultlog/freeze/", files);
         ++count;
         for (auto& i : files) {
-            if (i.find(packageName) == std::string::npos) {
+            if (i.find(packageName) == std::string::npos || i.find(type) == std::string::npos) {
+                printf("File name not match, packageName: %s, type: %s\n", packageName.c_str(), type.c_str());
                 continue;
             }
+
             std::string content;
             FileUtil::LoadStringFromFile(i, content);
-            if (content.find(std::to_string(time)) == std::string::npos) {
-                printf("time is not match.\n");
-                FileUtil::RemoveFile(i);
-                continue;
-            }
-
-            if (content.find(eventName) == std::string::npos) {
-                printf("Not %s.\n", eventName.c_str());
-                FileUtil::RemoveFile(i);
-                continue;
-            }
-
-            if (content.find(packageName) == std::string::npos) {
-                printf("Not %s.\n", packageName.c_str());
+            if (content.find(packageName) == std::string::npos || content.find(eventName) == std::string::npos ||
+                content.find(domain) == std::string::npos || content.find(std::to_string(time)) == std::string::npos) {
+                printf("File content not match, packageName: %s, eventName: %s, domain: %s, time: %s\n",
+                    packageName.c_str(), eventName.c_str(), domain.c_str(), std::to_string(time).c_str());
                 FileUtil::RemoveFile(i);
                 continue;
             }
@@ -217,6 +216,7 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest001, TestSize.Level3)
         printf("Get FreezeDetectorPlugin, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(plugin != nullptr);
 
     /*
         {"domain_":"MULTIMODALINPUT","name_":"APPLICATION_BLOCK_INPUT","type_":1,"time_":1504016751820,
@@ -228,29 +228,32 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest001, TestSize.Level3)
     */
     std::string logPath = "/data/test/test_data/LOG001.log";
     FileUtil::CreateFile(logPath);
-    if (!FileUtil::FileExists(logPath)) {
+    bool fileExist = FileUtil::FileExists(logPath);
+    if (!fileExist) {
         printf("CreateFile file, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(fileExist);
 
-    auto sysEvent = makeEvent("FreezeDectorTest001", "AAFWK", "APP_INPUT_BLOCK",
-                              "FreezeDectorTest001", logPath);
+    auto sysEvent = makeEvent("FreezeDectorTest001", "AAFWK", "APP_INPUT_BLOCK", "FreezeDectorTest", logPath);
     if (sysEvent == nullptr) {
         printf("GetFreezeDectorTest001File, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(sysEvent != nullptr);
+
     uint64_t time = sysEvent->GetEventIntValue("time_");
     std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
     event->eventName_ = sysEvent->GetEventValue("name_");
     plugin->OnEventListeningCallback(*(event.get()));
 
     sleep(10);
-    if (!GetFreezeDectorTestFile("APP_INPUT_BLOCK",
-                                 "FreezeDectorTest001",
-                                 time)) {
+    bool getFreezeTestFile = GetFreezeDectorTestFile("AAFWK", "APP_INPUT_BLOCK", "FreezeDectorTest", time);
+    if (!getFreezeTestFile) {
         printf("GetFreezeDectorTest001File, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(getFreezeTestFile);
 }
 
 /**
@@ -267,6 +270,7 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest002, TestSize.Level3)
         printf("Get FreezeDetectorPlugin, failed");
         FAIL();
     }
+    ASSERT_TRUE(plugin != nullptr);
 
     /*
         {"domain_":"AAFWK","name_":"LIFECYCLE_TIMEOUT","type_":1,"time_":1504095513772,"tz_":"+0000",
@@ -279,28 +283,32 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest002, TestSize.Level3)
     */
     std::string logPath = "/data/test/test_data/LOG002.log";
     FileUtil::CreateFile(logPath);
-    if (!FileUtil::FileExists(logPath)) {
+    bool fileExist = FileUtil::FileExists(logPath);
+    if (!fileExist) {
         printf("CreateFile file, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(fileExist);
 
-    auto sysEvent = makeEvent("FreezeDectorTest002", "GRAPHIC", "NO_DRAW",
-                              "FreezeDectorTest002", logPath);
+    auto sysEvent = makeEvent("FreezeDectorTest002", "GRAPHIC", "NO_DRAW", "FreezeDectorTest", logPath);
     if (sysEvent == nullptr) {
         printf("GetFreezeDectorTest002File, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(sysEvent != nullptr);
+
     uint64_t time = sysEvent->GetEventIntValue("time_");
     std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
     event->eventName_ = sysEvent->GetEventValue("name_");
     plugin->OnEventListeningCallback(*(event.get()));
 
     sleep(10);
-    if (!GetFreezeDectorTestFile("NO_DRAW",
-                                 "FreezeDectorTest002",
-                                 time)) {
+    bool getFreezeTestFile = GetFreezeDectorTestFile("GRAPHIC", "NO_DRAW", "FreezeDectorTest", time);
+    if (!getFreezeTestFile) {
         printf("GetFreezeDectorTest002File, failed\n");
+        FAIL();
     }
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -317,16 +325,18 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest003, TestSize.Level3)
         printf("Get FreezeDetectorPlugin, failed");
         FAIL();
     }
+    ASSERT_TRUE(plugin != nullptr);
 
     std::string logPath = "/data/test/test_data/LOG003_1.log";
     FileUtil::CreateFile(logPath);
-    if (!FileUtil::FileExists(logPath)) {
+    bool fileExist = FileUtil::FileExists(logPath);
+    if (!fileExist) {
         printf("CreateFile file, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(fileExist);
 
-    auto sysEvent = makeEvent("FreezeDectorTest003", "ACE", "UI_BLOCK_6S",
-                              "FreezeDectorTest003", logPath);
+    auto sysEvent = makeEvent("FreezeDectorTest003", "ACE", "UI_BLOCK_6S", "FreezeDectorTest", logPath);
     std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
     plugin->OnEventListeningCallback(*(event.get()));
     sleep(10);
@@ -347,6 +357,7 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest004, TestSize.Level3)
         printf("Get FreezeDetectorPlugin, failed");
         FAIL();
     }
+    ASSERT_TRUE(plugin != nullptr);
 
     /*
         {"domain_":"AAFWK","name_":"LIFECYCLE_TIMEOUT","type_":1,"time_":1504095513772,"tz_":"+0000",
@@ -359,13 +370,14 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest004, TestSize.Level3)
     */
     std::string logPath = "/data/test/test_data/LOG004.log";
     FileUtil::CreateFile(logPath);
-    if (!FileUtil::FileExists(logPath)) {
+    bool fileExist = FileUtil::FileExists(logPath);
+    if (!fileExist) {
         printf("CreateFile file, failed\n");
         FAIL();
     }
+    ASSERT_TRUE(fileExist);
 
-    auto sysEvent = makeEvent("FreezeDectorTest004", "AAFWK", "UI_BLOCK_3S",
-                              "FreezeDectorTest004", logPath);
+    auto sysEvent = makeEvent("FreezeDectorTest004", "AAFWK", "UI_BLOCK_3S", "FreezeDectorTest", logPath);
     std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
     plugin->OnEventListeningCallback(*(event.get()));
 
@@ -382,25 +394,22 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest004, TestSize.Level3)
 HWTEST_F(FreezeDetectorTest, FreezeRuleTest001, TestSize.Level3)
 {
     auto freezeRuleCluster = std::make_shared<FreezeRuleCluster>();
-
     bool freezeRuleFlag = freezeRuleCluster->ParseRuleFile("/data/test/test_data/freeze_rules.xml");
     ASSERT_TRUE(freezeRuleFlag);
 
-    std::map<std::string, std::pair<std::string, bool>> appPairs =
-        freezeRuleCluster->GetApplicationPairs();
-
+    std::map<std::string, std::pair<std::string, bool>> appPairs = freezeRuleCluster->GetApplicationPairs();
     if (appPairs.find("THREAD_BLOCK_6S") != appPairs.end()) {
         auto tmp = appPairs["THREAD_BLOCK_6S"];
-        
         if (tmp.first != "AAFWK") {
             printf("THREAD_BLOCK_6S tmp.first != AAFWK.");
             FAIL();
         }
-
+        ASSERT_EQ(tmp.first, "AAFWK");
         if (!tmp.second) {
             printf("THREAD_BLOCK_6S tmp.second == false.");
             FAIL();
         }
+        ASSERT_TRUE(tmp.second);
     } else {
         printf("THREAD_BLOCK_6S not find.");
         FAIL();
@@ -408,16 +417,16 @@ HWTEST_F(FreezeDetectorTest, FreezeRuleTest001, TestSize.Level3)
 
     if (appPairs.find("UI_BLOCK_3S") != appPairs.end()) {
         auto tmp = appPairs["UI_BLOCK_3S"];
-        
         if (tmp.first != "ACE") {
             printf("UI_BLOCK_3S tmp.first != AAFWK.");
             FAIL();
         }
-
+        ASSERT_EQ(tmp.first, "ACE");
         if (tmp.second) {
-            printf("UI_BLOCK_3S tmp.second == false.");
+            printf("UI_BLOCK_3S tmp.second == true.");
             FAIL();
         }
+        ASSERT_TRUE(!tmp.second);
     } else {
         printf("UI_BLOCK_3S not find.");
         FAIL();
@@ -433,26 +442,22 @@ HWTEST_F(FreezeDetectorTest, FreezeRuleTest001, TestSize.Level3)
 HWTEST_F(FreezeDetectorTest, FreezeRuleTest002, TestSize.Level3)
 {
     auto freezeRuleCluster = std::make_shared<FreezeRuleCluster>();
-
     bool freezeRuleFlag = freezeRuleCluster->ParseRuleFile("/data/test/test_data/freeze_rules.xml");
     ASSERT_TRUE(freezeRuleFlag);
 
-    std::map<std::string, std::pair<std::string, bool>> systemPairs =
-        freezeRuleCluster->GetSystemPairs();
-    
-
+    std::map<std::string, std::pair<std::string, bool>> systemPairs = freezeRuleCluster->GetSystemPairs();
     if (systemPairs.find("SCREEN_ON") != systemPairs.end()) {
         auto tmp = systemPairs["SCREEN_ON"];
-        
         if (tmp.first != "KERNEL_VENDOR") {
             printf("SCREEN_ON tmp.first != AAFWK.");
             FAIL();
         }
-
+        ASSERT_EQ(tmp.first, "KERNEL_VENDOR");
         if (!tmp.second) {
             printf("SCREEN_ON tmp.second == false.");
             FAIL();
         }
+        ASSERT_TRUE(tmp.second);
     } else {
         printf("SCREEN_ON not find.");
         FAIL();
@@ -460,16 +465,16 @@ HWTEST_F(FreezeDetectorTest, FreezeRuleTest002, TestSize.Level3)
 
     if (systemPairs.find("HUNGTASK") != systemPairs.end()) {
         auto tmp = systemPairs["HUNGTASK"];
-        
         if (tmp.first != "KERNEL_VENDOR") {
             printf("HUNGTASK tmp.first != AAFWK.");
             FAIL();
         }
-
-        if (tmp.second) {
+        ASSERT_EQ(tmp.first, "KERNEL_VENDOR");
+        if (!tmp.second) {
             printf("HUNGTASK tmp.second == false.");
             FAIL();
         }
+        ASSERT_TRUE(tmp.second);
     } else {
         printf("HUNGTASK not find.");
         FAIL();
@@ -485,45 +490,60 @@ HWTEST_F(FreezeDetectorTest, FreezeRuleTest002, TestSize.Level3)
 HWTEST_F(FreezeDetectorTest, FreezeCommonTest001, TestSize.Level3)
 {
     auto freezeCommon = std::make_shared<FreezeCommon>();
-    if (!freezeCommon->Init()) {
+    bool initResult = freezeCommon->Init();
+    if (!initResult) {
         printf("failed to parse rule file.");
-        FAIL();
+        ASSERT_TRUE(initResult);
     }
 
-    if (!freezeCommon->IsFreezeEvent("AAFWK", "LIFECYCLE_TIMEOUT")) {
+    bool isFreezeEvent = freezeCommon->IsFreezeEvent("AAFWK", "LIFECYCLE_TIMEOUT");
+    if (!isFreezeEvent) {
         printf("IsFreezeEvent \"AAFWK\", \"LIFECYCLE_TIMEOUT\" not find.");
         FAIL();
     }
+    ASSERT_TRUE(isFreezeEvent);
 
-    if (!freezeCommon->IsFreezeEvent("KERNEL_VENDOR", "SCREEN_ON")) {
+    isFreezeEvent = freezeCommon->IsFreezeEvent("KERNEL_VENDOR", "SCREEN_ON");
+    if (!isFreezeEvent) {
         printf("IsFreezeEvent \"KERNEL_VENDOR\", \"SCREEN_ON\" not find.");
         FAIL();
     }
+    ASSERT_TRUE(isFreezeEvent);
 
-    if (freezeCommon->IsFreezeEvent("MULTIMODALINPUT", "NO_DRAW")) {
+    isFreezeEvent = freezeCommon->IsFreezeEvent("MULTIMODALINPUT", "NO_DRAW");
+    if (isFreezeEvent) {
         printf("IsFreezeEvent, \"NO_DRAW\" is error.");
         FAIL();
     }
+    ASSERT_TRUE(!isFreezeEvent);
 
-    if (!freezeCommon->IsApplicationEvent("AAFWK", "THREAD_BLOCK_3S")) {
+    bool isApplicationEvent = freezeCommon->IsApplicationEvent("AAFWK", "THREAD_BLOCK_3S");
+    if (!isApplicationEvent) {
         printf("\"AAFWK\", \"THREAD_BLOCK_3S\" not ApplicationEvent.");
         FAIL();
     }
+    ASSERT_TRUE(isApplicationEvent);
 
-    if (freezeCommon->IsApplicationEvent("KERNEL_VENDOR", "HUNGTASK")) {
+    isApplicationEvent = freezeCommon->IsApplicationEvent("KERNEL_VENDOR", "HUNGTASK");
+    if (isApplicationEvent) {
         printf("\"KERNEL_VENDOR\", \"HUNGTASK\" is error.");
         FAIL();
     }
+    ASSERT_TRUE(!isApplicationEvent);
 
-    if (freezeCommon->IsSystemEvent("AAFWK", "THREAD_BLOCK_3S")) {
+    bool isSystemEvent = freezeCommon->IsSystemEvent("AAFWK", "THREAD_BLOCK_3S");
+    if (isSystemEvent) {
         printf("\"AAFWK\", \"THREAD_BLOCK_3S\" is error.");
         FAIL();
     }
+    ASSERT_TRUE(!isSystemEvent);
 
-    if (!freezeCommon->IsSystemEvent("KERNEL_VENDOR", "HUNGTASK")) {
+    isSystemEvent = freezeCommon->IsSystemEvent("KERNEL_VENDOR", "HUNGTASK");
+    if (!isSystemEvent) {
         printf("\"KERNEL_VENDOR\", \"HUNGTASK\" not SystemEvent.");
         FAIL();
     }
+    ASSERT_TRUE(isSystemEvent);
 }
 }
 }
