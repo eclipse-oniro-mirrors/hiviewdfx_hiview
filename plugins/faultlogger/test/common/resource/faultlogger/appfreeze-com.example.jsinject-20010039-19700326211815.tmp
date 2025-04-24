@@ -82,6 +82,7 @@ Tid:3443, Name:com.example.jsi
 #17 pc 000000000001053c /system/bin/appspawn
 #18 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)
 Tid:3444, Name:com.example.jsi
+ThreadInfo:state=SLEEP, utime=1, stime=2, cutime=0, schedstat={254042, 0, 3}
 #00 pc 000000000006ca40 /system/lib64/libc.so(syscall+32)
 #01 pc 0000000000078904 /system/lib64/libc.so(ioctl+136)
 #02 pc 000000000004a964 /system/lib64/libipc_core.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+44)
