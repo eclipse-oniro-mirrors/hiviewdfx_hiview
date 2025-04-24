@@ -27,7 +27,7 @@ bool WriteLogToFile(int32_t fd, const std::string& path);
 bool IsFaultLogLimit();
 void LimitCppCrashLog(int32_t fd, int32_t logType);
 
-void JumpBuildInfo(std::ifstream& logFile);
+void JumpBuildInfo(int32_t fd, std::ifstream& logFile);
 std::list<const char* const*> GetLogParseList(int32_t logType);
 }  // namespace FaultLogger
 }  // namespace HiviewDFX
