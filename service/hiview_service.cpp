@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -316,11 +316,7 @@ CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient:
     if (!ret.IsSuccess()) {
         return {GetUcError(ret)};
     }
-    if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, UCollectUtil::UCOLLECTOR_PLUGIN,
-        appCallerEvent)) {
-        HIVIEW_LOGE("post event failed");
-        return {UCollect::UcError::SYSTEM_ERROR};
-    }
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, UCollectUtil::UCOLLECTOR_PLUGIN, appCallerEvent);
     return {UCollect::UcError::SUCCESS};
 }
 
