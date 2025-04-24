@@ -119,6 +119,10 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
         [this] { this->SysrqCapture(false); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysRqFile",
         [this] { this->SysrqCapture(true); }));
+    captureList_.insert(std::pair<std::string, capture>("k:HungTask",
+        [this] { this->HungTaskCapture(false); }));
+    captureList_.insert(std::pair<std::string, capture>("k:HungTaskFile",
+        [this] { this->HungTaskCapture(true); }));
 #endif // DMESG_CATCHER_ENABLE
 #ifdef HITRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("tr", [this] { this->HitraceCapture(); }));
@@ -402,17 +406,17 @@ void EventLogTask::DmesgCapture()
         return;
     }
     auto capture = std::make_shared<DmesgCatcher>();
-    capture->Initialize("", 0, 0);
+    capture->Initialize("", 0, DmesgCatcher::DMESG);
     capture->Init(event_);
     tasks_.push_back(capture);
 }
 
-void EventLogTask::SysrqCapture(bool isWriteNewFile)
+void EventLogTask::SysrqCapture(bool writeNewFile)
 {
     auto capture = std::make_shared<DmesgCatcher>();
-    capture->Initialize("", isWriteNewFile, 1);
+    capture->Initialize("", writeNewFile, DmesgCatcher::SYS_RQ);
     capture->Init(event_);
-    if (isWriteNewFile) {
+    if (writeNewFile) {
         int pid = -1;
 #ifdef KERNELSTACK_CATCHER_ENABLE
         std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
@@ -421,7 +425,32 @@ void EventLogTask::SysrqCapture(bool isWriteNewFile)
             HIVIEW_LOGI("processName:%{public}s, pid:%{public}d.", processName.c_str(), pid);
         }
 #endif //KERNELSTACK_CATCHER_ENABLE
-        capture->WriteNewSysrq(pid);
+        capture->WriteNewFile(pid);
+    } else {
+        tasks_.push_back(capture);
+    }
+}
+
+void EventLogTask::HungTaskCapture(bool writeNewFile)
+{
+    std::string processName = event_->GetEventValue("PROCESS_NAME");
+    if (event_->eventName_ == "THREAD_BLOCK_6S" && processName != "com.ohos.sceneboard") {
+        return;
+    }
+
+    auto capture = std::make_shared<DmesgCatcher>();
+    capture->Initialize("", writeNewFile, DmesgCatcher::HUNG_TASK);
+    capture->Init(event_);
+    if (writeNewFile) {
+        int pid = -1;
+#ifdef KERNELSTACK_CATCHER_ENABLE
+        std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
+        if (!processName.empty()) {
+            pid = CommonUtils::GetPidByName(processName);
+            HIVIEW_LOGI("processName:%{public}s, pid:%{public}d.", processName.c_str(), pid);
+        }
+#endif //KERNELSTACK_CATCHER_ENABLE
+        capture->WriteNewFile(pid);
     } else {
         tasks_.push_back(capture);
     }

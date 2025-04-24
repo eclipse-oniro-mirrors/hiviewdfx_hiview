@@ -1,7 +1,7 @@
 version="1.0"
 event id="" name="UI_BLOCK_6S" action="s,t,cmd:c,cmd:cci,cmd:m,tr,k:SysRqFile,hot" interval="10"
 event id="" name="UI_BLOCK_3S" action="s,ffrt,pb:1:r,t,cmd:m,hot" interval="10"
-event id="" name="THREAD_BLOCK_6S" action="t,cmd:c,cmd:cci,cmd:m,cmd:dam,tr,k:SysRqFile,hot" interval="10"
+event id="" name="THREAD_BLOCK_6S" action="t,cmd:c,cmd:cci,cmd:m,cmd:dam,tr,k:SysRqFile,k:HungTaskFile,hot" interval="10"
 event id="" name="THREAD_BLOCK_3S" action="ffrt,t,GpuStack,cmd:m,hot" interval="10"
 event id="" name="BUSSINESS_THREAD_BLOCK_6S" action="t,cmd:c,cmd:cci,cmd:m,cmd:dam,tr,k:SysRqFile,hot" interval="10"
 event id="" name="BUSSINESS_THREAD_BLOCK_3S" action="ffrt,pb:1:r,t,cmd:m,hot" interval="10"

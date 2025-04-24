@@ -215,6 +215,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
 #ifdef DMESG_CATCHER_ENABLE
     logTask->DmesgCapture();
     logTask->SysrqCapture(true);
+    logTask->HungTaskCapture(true);
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef OTHER_CATCHER_ENABLE
@@ -609,7 +610,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("DmesgCatcherTest_003",
         nullptr, jsonStr);
-    event->SetEventValue("SYSRQ_TIME", "20250124");
+    event->SetEventValue("sysrq_time", "20250124");
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
     dmesgCatcher->Init(event);
     bool ret = dmesgCatcher->DumpDmesgLog(-1);
@@ -621,7 +622,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     }
     ret = dmesgCatcher->DumpDmesgLog(fd);
     EXPECT_EQ(ret, true);
-    ret = dmesgCatcher->WriteSysrq();
+    ret = dmesgCatcher->WriteSysrqTrigger();
     EXPECT_EQ(ret, true);
     close(fd);
 }
