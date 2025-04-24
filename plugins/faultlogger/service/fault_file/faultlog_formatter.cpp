@@ -304,15 +304,15 @@ FaultLogInfo ParseCppCrashFromFile(const std::string& path)
     return info;
 }
 
-void JumpBuildInfo(std::ifstream& logFile)
+void JumpBuildInfo(int32_t fd, std::ifstream& logFile)
 {
     std::string line;
-    while (std::getline(logFile, line)) {
+    if (std::getline(logFile, line)) {
         if (line.find("Build info:") != std::string::npos) {
-            continue;
+            return;
         }
-        break;
     }
+    FileUtil::SaveStringToFd(fd, line + "\n");
 }
 
 bool WriteLogToFile(int32_t fd, const std::string& path)
@@ -323,7 +323,7 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
 
     std::string line;
     std::ifstream logFile(path);
-    JumpBuildInfo(logFile);
+    JumpBuildInfo(fd, logFile);
 
     while (std::getline(logFile, line)) {
         if (logFile.eof()) {
