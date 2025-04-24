@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include <gtest/gtest.h>
 #include "trace_utils.h"
 
@@ -62,3 +63,4 @@ HWTEST_F(TraceUtilsTest, TraceUtilsTest001, TestSize.Level1)
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMON_DEV), "Other");
     ASSERT_EQ(ClientToString(static_cast<UCollect::TraceClient>(10)), "");
 }
+#endif
