@@ -1157,8 +1157,12 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest004, testing::ext::TestSize.Level3
     ASSERT_TRUE(stack.empty());
 
     path = "/data/log/faultlog/faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
-    const int pid = 3443;
-    stack = GetThreadStack(path, pid);
+    const int thread1 = 3443;
+    stack = GetThreadStack(path, thread1);
+    ASSERT_FALSE(stack.empty());
+
+    const int thread2 = 3444;
+    stack = GetThreadStack(path, thread2);
     ASSERT_FALSE(stack.empty());
 }
 
