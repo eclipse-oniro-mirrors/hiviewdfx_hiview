@@ -32,7 +32,7 @@ RawDataBuilder::RawDataBuilder(std::shared_ptr<EventRaw::RawData> rawData)
     if (rawData == nullptr) {
         return;
     }
-    EventRaw::DecodedEvent event(rawData->GetData());
+    EventRaw::DecodedEvent event(rawData->GetData(), rawData->GetDataLength());
     auto header = event.GetHeader();
     auto traceInfo = event.GetTraceInfo();
     AppendDomain(header.domain).AppendName(header.name).AppendType(static_cast<int>(header.type) + 1).

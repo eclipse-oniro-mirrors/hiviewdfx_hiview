@@ -27,7 +27,7 @@ class DocQuery {
 public:
     std::pair<std::string, bool> GetOrderField();
     void And(const Cond& cond);
-    bool IsContainExtraConds(uint8_t* content) const;
+    bool IsContainExtraConds(uint8_t* content, size_t len) const;
     bool IsContainInnerConds(uint8_t* content) const;
     std::string ToString() const;
 

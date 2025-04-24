@@ -809,7 +809,7 @@ HWTEST_F(EventRawEncodedTest, DecodedParamTest008, testing::ext::TestSize.Level1
  */
 HWTEST_F(EventRawEncodedTest, DecodedEventTest001, testing::ext::TestSize.Level1)
 {
-    DecodedEvent event1(nullptr);
+    DecodedEvent event1(nullptr, 0);
     ASSERT_TRUE(!event1.IsValid());
 
     std::string rawSysEventStr = R"~({"domain_":"DEMO","name_":"EVENT_NAME_A","type_":4,
@@ -821,7 +821,7 @@ HWTEST_F(EventRawEncodedTest, DecodedEventTest001, testing::ext::TestSize.Level1
     ASSERT_TRUE(builder != nullptr);
     auto rawData = builder->Build();
     ASSERT_TRUE(rawData != nullptr);
-    DecodedEvent event2(rawData->GetData());
+    DecodedEvent event2(rawData->GetData(), rawData->GetDataLength());
     ASSERT_TRUE(event2.IsValid());
 }
 
@@ -842,7 +842,7 @@ HWTEST_F(EventRawEncodedTest, DecodedEventTest002, testing::ext::TestSize.Level1
     ASSERT_TRUE(builder != nullptr);
     auto rawData = builder->Build();
     ASSERT_TRUE(rawData != nullptr);
-    DecodedEvent event(rawData->GetData());
+    DecodedEvent event(rawData->GetData(), rawData->GetDataLength());
     ASSERT_TRUE(event.IsValid());
     ASSERT_TRUE(event.GetRawData() != nullptr);
     std::string formattedStr = R"~({"domain_":"DEMO","name_":"EVENT_NAME_A","type_":4,)~";

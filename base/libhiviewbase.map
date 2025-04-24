@@ -330,7 +330,8 @@
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendTraceFlag(unsigned char)";
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendTimeStamp(unsigned long)";
         "OHOS::HiviewDFX::EventRaw::RawData::GetData() const";
-        "OHOS::HiviewDFX::EventRaw::DecodedEvent::DecodedEvent(unsigned char*)";
+        "OHOS::HiviewDFX::EventRaw::DecodedEvent::DecodedEvent(unsigned char*, unsigned int)";
+        "OHOS::HiviewDFX::EventRaw::DecodedEvent::DecodedEvent(unsigned char*, unsigned long)";
         "OHOS::HiviewDFX::EventRaw::DecodedEvent::IsValid()";
         "OHOS::HiviewDFX::EventRaw::DecodedEvent::AsJsonStr()";
         "OHOS::HiviewDFX::EventRaw::DecodedEvent::~DecodedEvent()";
@@ -353,10 +354,7 @@
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendId(unsigned long long)";
         "OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendTimeStamp(unsigned long long)";
         "OHOS::HiviewDFX::AshMemoryUtils::GetAshmem(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
-        "OHOS::HiviewDFX::EventRaw::DecodedEvent::AsJsonStr()";
-        "OHOS::HiviewDFX::EventRaw::DecodedEvent::DecodedEvent(unsigned char*)";
         "OHOS::HiviewDFX::EventRaw::DecodedEvent::GetRawData()";
-        "OHOS::HiviewDFX::EventRaw::DecodedEvent::~DecodedEvent()";
         "OHOS::HiviewDFX::EventRaw::GetValidDataMinimumByteCount()";
         "OHOS::HiviewDFX::EventRaw::RawData::GetData() const";
         "OHOS::HiviewDFX::EventRaw::RawData::GetDataLength() const";

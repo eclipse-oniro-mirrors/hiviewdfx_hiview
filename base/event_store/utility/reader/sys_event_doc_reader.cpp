@@ -313,7 +313,7 @@ void SysEventDocReader::TryToAddEntry(uint8_t* content, uint32_t contentSize, co
         return;
     }
     // check extra condition
-    if (!query.IsContainExtraConds(rawData->GetData())) {
+    if (!query.IsContainExtraConds(rawData->GetData(), rawData->GetDataLength())) {
         return;
     }
     // add to entry queue

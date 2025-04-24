@@ -552,7 +552,7 @@ std::string SysEvent::AsJsonStr()
 
     std::string jsonStr;
     {
-        EventRaw::DecodedEvent event(rawData_->GetData());
+        EventRaw::DecodedEvent event(rawData_->GetData(), rawData_->GetDataLength());
         jsonStr = event.AsJsonStr();
     }
     if (!tag_.empty()) {

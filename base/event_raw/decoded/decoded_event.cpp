@@ -45,13 +45,14 @@ std::string TransUInt64ToFixedLengthStr(uint64_t src)
 }
 }
 
-DecodedEvent::DecodedEvent(uint8_t* src)
+DecodedEvent::DecodedEvent(uint8_t* data, size_t len)
 {
-    if (src == nullptr) {
+    if (data == nullptr || len < sizeof(int32_t)) {
+        HIVIEW_LOGE("raw data is is invalid.");
         return;
     }
-    size_t blockSize = static_cast<size_t>(*(reinterpret_cast<int32_t*>(src)));
-    if (blockSize < GetValidDataMinimumByteCount() || blockSize > MAX_BLOCK_SIZE) {
+    size_t blockSize = static_cast<size_t>(*(reinterpret_cast<int32_t*>(data)));
+    if (blockSize != len || blockSize < GetValidDataMinimumByteCount() || blockSize > MAX_BLOCK_SIZE) {
         HIVIEW_LOGE("size of raw data is %{public}zu, which is invalid.", blockSize);
         return;
     }
@@ -59,7 +60,7 @@ DecodedEvent::DecodedEvent(uint8_t* src)
     if (rawData_ == nullptr) {
         return;
     }
-    auto ret = memcpy_s(rawData_, blockSize, src, blockSize);
+    auto ret = memcpy_s(rawData_, blockSize, data, blockSize);
     if (ret != EOK) {
         HIVIEW_LOGE("Decode memory copy failed, ret is %{public}d.", ret);
         delete[] rawData_;
