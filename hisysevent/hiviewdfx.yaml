@@ -13,6 +13,28 @@
 
 domain: HIVIEWDFX
 
+APP_EVENT_RECEIVE:
+  __BASE: {type: STATISTIC, level: MINOR, desc: Number of times that an application successfully subscribes to APP_CRASH or APP_FREEZE through hiappevent, preserve: true}
+  BUNDLENAME: {type: STRING, desc: bundle name}
+  BUNDLEVERSION: {type: STRING, desc: bundle version}
+  CALLBACK: {type: STRING, desc: callback}
+  EVENTTYPE: {type: UINT8, desc: event type}
+  CRASHTYPE: {type: STRING, desc: crash type}
+  WATCHERNAME: {type: STRING, desc: watcher name}
+  EXTERNALLOG: {type: BOOL, desc: Whether there are log files}
+  FAULTCNT: {type: UINT8, desc: Number of successful callbacks}
+  RUNNINGID: {type: STRING, desc: running ID}
+
+APP_EVENT_SEND:
+  __BASE: {type: STATISTIC, level: MINOR, desc: Number of times that the HiView successfully shares the APP_CRASH or APP_FREEZE event to an application, preserve: true}
+  BUNDLENAME: {type: STRING, desc: bundle name}
+  BUNDLEVERSION: {type: STRING, desc: bundle version}
+  EVENTTYPE: {type: UINT8, desc: event type}
+  EXTERNALLOG: {type: BOOL, desc: Whether there are log files}
+  FAULTCNT: {type: UINT8, desc: Number of APP_CRASH or APP_FREEZE events that are successfully shared by the HiView to applications}
+  RUNNINGID: {type: STRING, desc: running ID}
+  CRASH_TYPE: {type: STRING, desc: crash type}
+
 PLUGIN_LOAD:
   __BASE: {type: BEHAVIOR, level: CRITICAL, tag: hiviewPlugin, desc: load hiview plugin}
   NAME: {type: STRING, desc: plugin name}
