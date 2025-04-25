@@ -59,7 +59,9 @@ SysEventSequenceManager::SysEventSequenceManager()
     }
     int64_t seq = 0;
     ReadSeqFromFile(seq);
-    curSeq_.store(seq, std::memory_order_release);
+    startSeq_ = seq + 1; // if sysevent restored, the start sequence must plus one for export
+    HIVIEW_LOGI("start seq=%{public}" PRId64, startSeq_);
+    curSeq_.store(startSeq_, std::memory_order_release);
 }
 
 void SysEventSequenceManager::SetSequence(int64_t seq)
@@ -71,6 +73,11 @@ void SysEventSequenceManager::SetSequence(int64_t seq)
 int64_t SysEventSequenceManager::GetSequence()
 {
     return curSeq_.load(std::memory_order_acquire);
+}
+
+int64_t SysEventSequenceManager::GetStartSequence()
+{
+    return startSeq_;
 }
 
 void SysEventSequenceManager::WriteSeqToFile(int64_t seq)

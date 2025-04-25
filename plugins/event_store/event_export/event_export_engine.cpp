@@ -146,8 +146,11 @@ bool EventExportEngine::RegistSettingObserver(std::shared_ptr<ExportConfig> conf
         auto upgradeParam = config->sysUpgradeParam;
         if (!upgradeParam.name.empty() &&
             SettingObserverManager::GetInstance()->GetStringValue(upgradeParam.name) == upgradeParam.enabledVal) {
-            HIVIEW_LOGI("reset enabled sequence to 0 for moudle %{public}s", config->moduleName.c_str());
-            dbMgr_->HandleExportSwitchChanged(config->moduleName, 0);
+            int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
+            HIVIEW_LOGI("reset enabled sequence to %{public}" PRId64 " for moudle %{public}s",
+                startSeq, config->moduleName.c_str());
+            dbMgr_->HandleExportSwitchChanged(config->moduleName, startSeq);
+            FileUtil::CreateFile(dbMgr_->GetEventInheritFlagPath()); // create inherit flag file
         }
     }
     HIVIEW_LOGI("succeed to regist setting db observer for module %{public}s", config->moduleName.c_str());
@@ -174,9 +177,8 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
 
 void EventExportEngine::HandleExportSwitchOn(const std::string& moduleName)
 {
-    int64_t enabledSeq = dbMgr_->GetExportEnabledSeq(moduleName);
-    if (enabledSeq == 0) {
-        // expport enabled sequence has been reset to 0, no need to update
+    if (FileUtil::FileExists(dbMgr_->GetEventInheritFlagPath())) {
+        // if inherit flag file exists, no need to update export enabled seq
         return;
     }
     auto curEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
@@ -187,6 +189,7 @@ void EventExportEngine::HandleExportSwitchOn(const std::string& moduleName)
 void EventExportEngine::HandleExportSwitchOff(const std::string& moduleName)
 {
     dbMgr_->HandleExportSwitchChanged(moduleName, INVALID_SEQ_VAL);
+    FileUtil::RemoveFile(dbMgr_->GetEventInheritFlagPath()); // remove inherit flag file if switch changes
 }
 } // HiviewDFX
 } // OHOS

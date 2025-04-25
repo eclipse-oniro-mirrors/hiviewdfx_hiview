@@ -23,10 +23,16 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-ExportDbManager");
-ExportDbManager::ExportDbManager(const std::string& dbStoreDir)
+ExportDbManager::ExportDbManager(const std::string& dbStoreDir) : dbStoreDir_(dbStoreDir)
 {
     HIVIEW_LOGD("db store directory is %{public}s.", dbStoreDir.c_str());
     storage_ = std::make_shared<ExportDbStorage>(dbStoreDir);
+}
+
+std::string ExportDbManager::GetEventInheritFlagPath()
+{
+    // create event inherit flag file in same level with db file
+    return dbStoreDir_ + "event_inherit_flag";
 }
 
 int64_t ExportDbManager::GetExportEnabledSeq(const std::string& moduleName)
