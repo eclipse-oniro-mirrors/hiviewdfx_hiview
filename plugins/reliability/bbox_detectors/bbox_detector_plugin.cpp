@@ -68,7 +68,6 @@ void BBoxDetectorPlugin::OnLoad()
         HIVIEW_LOGE("GetHiviewContext failed.");
         return;
     }
-    workLoop_ = context->GetSharedWorkLoop();
     InitPanicReporter();
 
     eventListener_ = std::make_shared<BBoxListener>(*this);
