@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,16 @@
 
 #include "export_config_manager.h"
 
-#include <regex>
-
 #include "file_util.h"
 #include "hiview_logger.h"
+#include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-ExportConfigManager");
+namespace {
+constexpr char EXPORT_CFG_FILE_NAME_SUFFIX[] = "_event_export_config.json";
+}
 void ExportConfigManager::GetModuleNames(std::vector<std::string>& moduleNames) const
 {
     if (exportConfigs_.empty()) {
@@ -78,13 +80,12 @@ void ExportConfigManager::ParseConfigFile(const std::string& configFile)
 {
     // module name consists of only lowercase letter and underline.
     // eg. module name parsed from 'hiview_event_export_config.json' is 'hiview'
-    std::regex reg { ".*/([a-z_]+)_event_export_config.json$" };
-    std::smatch match;
-    if (!std::regex_match(configFile, match, reg)) {
-        HIVIEW_LOGW("config file name is invalid, file=%{public}s.", configFile.c_str());
+    std::string cfgFileName = FileUtil::ExtractFileName(configFile);
+    if (!StringUtil::EndWith(cfgFileName, EXPORT_CFG_FILE_NAME_SUFFIX)) {
+        HIVIEW_LOGW("config file name is invalid, file=%{public}s.", cfgFileName.c_str());
         return;
     }
-    std::string moduleName = match[1].str();
+    std::string moduleName = StringUtil::EraseString(cfgFileName, EXPORT_CFG_FILE_NAME_SUFFIX);
     auto config = GetExportConfig(moduleName);
     if (config != nullptr) {
         HIVIEW_LOGW("this config file of %{public}s module has been parsed", moduleName.c_str());
