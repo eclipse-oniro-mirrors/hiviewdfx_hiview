@@ -39,7 +39,8 @@ const std::unordered_map<UCollect::TraceCaller, std::string> CallerMap {
     {UCollect::BETACLUB, "BETACLUB"},
     {UCollect::DEVELOP, "DEVELOP"},
     {UCollect::OTHER, "OTHER"},
-    {UCollect::HIVIEW, "HIVIEW"}
+    {UCollect::HIVIEW, "HIVIEW"},
+    {UCollect::SCREEN, "SCREEN"}
 };
 
 struct TraceStatInfo {

@@ -28,6 +28,7 @@ enum TraceCaller {
     OTHER,
     HIVIEW,
     INVALIDITY,
+    SCREEN
 };
 }
 } // HiviewDFX
