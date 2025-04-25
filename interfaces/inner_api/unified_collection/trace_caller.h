@@ -24,16 +24,16 @@ enum TraceCaller {
     RELIABILITY,
     XPERF,
     XPOWER,
-    BETACLUB,
     OTHER,
-    HIVIEW
+    HIVIEW,
+    SCREEN
 };
 
 // Used for ipc client interface, for outside
 enum TraceClient {
     COMMAND,
     COMMON_DEV,
-    APP
+    BETACLUB
 };
 
 // Used for telemetry interface param

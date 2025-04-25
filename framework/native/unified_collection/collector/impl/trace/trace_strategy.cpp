@@ -44,6 +44,8 @@ const uint32_t UNIFIED_TELEMETRY_COUNTS = 20;
 const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
 const uint32_t UNIFIED_SPECIAL_COUNTS = 3;
 const uint32_t UNIFIED_SPECIAL_OTHER = 5;
+const uint32_t UNIFIED_SPECIAL_SCREEN = 1;
+const uint32_t UNIFIED_SPECIAL_BETACLUB = 2;
 const uint32_t MS_UNIT = 1000;
 }
 
@@ -92,7 +94,7 @@ void TraceStrategy::DoClean(const std::string &tracePath, uint32_t threshold, bo
     HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filesWithTimes.size(), threshold);
 
     // Clean up old files, new copied file is still working in sub thread now, only can clean old files here
-    while (filesWithTimes.size() >= threshold) {
+    while (filesWithTimes.size() > threshold) {
         FileUtil::RemoveFile(filesWithTimes.front().second);
         HIVIEW_LOGI("remove file : %{public}s is deleted.", filesWithTimes.front().second.c_str());
         filesWithTimes.pop_front();
@@ -120,8 +122,14 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
     WriteDumpTraceHisysevent(dumpEvent, UcError::SUCCESS);
     if (scenario_== TraceScenario::TRACE_COMMAND) {
         outputFile = traceRetInfo.outputFiles;
+        return ret;
+    }
+    outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
+    if (caller_ == CallerName::SCREEN) {
+        DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_SCREEN, true);
+    } else if (caller_ == ClientName::BETACLUB) {
+        DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_BETACLUB, true);
     } else {
-        outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
         DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_OTHER, true);
     }
     return ret;
@@ -363,7 +371,7 @@ std::shared_ptr<TraceStrategy> TraceFactory::CreateTraceStrategy(UCollect::Trace
         case UCollect::TraceCaller::HIVIEW:
             return std::make_shared<TraceFlowControlStrategy>(maxDuration, happenTime, EnumToString(caller));
         case UCollect::TraceCaller::OTHER:
-        case UCollect::TraceCaller::BETACLUB:
+        case UCollect::TraceCaller::SCREEN:
             return std::make_shared<TraceDevStrategy>(maxDuration, happenTime, EnumToString(caller),
                 TraceScenario::TRACE_COMMON);
         default:
@@ -379,6 +387,7 @@ std::shared_ptr<TraceStrategy> TraceFactory::CreateTraceStrategy(UCollect::Trace
             return std::make_shared<TraceDevStrategy>(maxDuration, happenTime, ClientToString(client),
                 TraceScenario::TRACE_COMMAND);
         case UCollect::TraceClient::COMMON_DEV:
+        case UCollect::TraceClient::BETACLUB:
             return std::make_shared<TraceDevStrategy>(maxDuration, happenTime, ClientToString(client),
                 TraceScenario::TRACE_COMMON);
         default:
