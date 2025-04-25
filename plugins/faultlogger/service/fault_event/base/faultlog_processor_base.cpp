@@ -266,5 +266,53 @@ void FaultLogProcessorBase::WriteLogFile(const std::string& logPath, const std::
     }
     logWriteFile.close();
 }
+
+void FaultLogProcessorBase::GetProcMemInfo(FaultLogInfo& info)
+{
+    if (!info.sectionMap["START_BOOT_SCAN"].empty()) {
+        return;
+    }
+
+    std::ifstream meminfoStream("/proc/meminfo");
+    if (meminfoStream) {
+        constexpr int decimalBase = 10;
+        unsigned long long totalMem = 0; // row 1
+        unsigned long long freeMem = 0; // row 2
+        unsigned long long availMem = 0; // row 3
+        std::string meminfoLine;
+        std::getline(meminfoStream, meminfoLine);
+        totalMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        std::getline(meminfoStream, meminfoLine);
+        freeMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        std::getline(meminfoStream, meminfoLine);
+        availMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        meminfoStream.close();
+        info.sectionMap["DEVICE_MEMINFO"] = "Device Memory(kB): Total " + std::to_string(totalMem) +
+            ", Free " + std::to_string(freeMem) + ", Available " + std::to_string(availMem);
+    } else {
+        HIVIEW_LOGE("Fail to open /proc/meminfo");
+    }
+}
+
+std::list<std::string> FaultLogProcessorBase::GetDigtStrArr(const std::string &target)
+{
+    std::list<std::string> ret;
+    std::string temp = "";
+    for (size_t i = 0, len = target.size(); i < len; i++) {
+        if (target[i] >= '0' && target[i] <= '9') {
+            temp += target[i];
+            continue;
+        }
+        if (temp.size() != 0) {
+            ret.push_back(temp);
+            temp = "";
+        }
+    }
+    if (temp.size() != 0) {
+        ret.push_back(temp);
+    }
+    ret.push_back("0");
+    return ret;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

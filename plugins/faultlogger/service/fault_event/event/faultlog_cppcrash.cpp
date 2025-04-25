@@ -105,6 +105,7 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
         info.sectionMap[FaultKey::KEY_THREAD_REGISTERS] = info.registers;
     }
 
+    FaultLogProcessorBase::GetProcMemInfo(info);
     info.sectionMap[FaultKey::APPEND_ORIGIN_LOG] = GetCppCrashTempLogName(info);
     info.sectionMap[FaultKey::HILOG] = GetHilogByPid(info.pid);
 }

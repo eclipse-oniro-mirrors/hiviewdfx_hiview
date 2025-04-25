@@ -26,6 +26,7 @@ public:
 private:
     bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent, const FaultLogInfo& info) const override;
     std::string GetFaultModule(SysEvent& sysEvent) const override;
+    void FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo& info) const override;
     FaultLogErrorReporter errorReporter_;
 };
 } // namespace HiviewDFX

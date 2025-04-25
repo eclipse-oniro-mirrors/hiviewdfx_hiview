@@ -26,6 +26,8 @@ using namespace FaultlogHilogHelper;
 class FaultLogProcessorBase : public FaultLogProcessorInterface {
 public:
     ~FaultLogProcessorBase() override = default;
+    static void GetProcMemInfo(FaultLogInfo& info);
+    static std::list<std::string> GetDigtStrArr(const std::string &target);
     void AddFaultLog(FaultLogInfo& info, const std::shared_ptr<EventLoop>& workLoop,
         const std::shared_ptr<FaultLogManager>& faultLogManager) override;
 protected:

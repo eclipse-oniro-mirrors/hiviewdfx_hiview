@@ -98,6 +98,7 @@ void FaultLogBootScan::StartBootScan()
         if (processor) {
             processor->AddFaultLog(info, workLoop_, faultLogManager_);
         }
+        info.sectionMap["START_BOOT_SCAN"] = "true";
     }
 }
 

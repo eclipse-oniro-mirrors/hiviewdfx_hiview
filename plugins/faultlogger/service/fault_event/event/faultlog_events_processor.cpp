@@ -25,6 +25,11 @@ void FaultLogEventsProcessor::AddSpecificInfo(FaultLogInfo& info)
     if (info.faultLogType == FaultLogType::ADDR_SANITIZER && info.reason.find("FDSAN") != std::string::npos) {
         info.sectionMap["APPEND_ORIGIN_LOG"] = info.logPath;
         info.logPath = "";
+        return;
+    }
+
+    if (info.faultLogType == FaultLogType::JS_CRASH || info.faultLogType == FaultLogType::CJ_ERROR) {
+        FaultLogProcessorBase::GetProcMemInfo(info);
     }
 }
 } // namespace HiviewDFX
