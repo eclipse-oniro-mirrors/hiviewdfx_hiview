@@ -86,6 +86,56 @@ static void HiviewServiceAbilityStubFuzzTest(const uint8_t* rawData, size_t size
     hiviewServiceAbility->OnRemoteRequest(code, data, reply, option);
 }
 
+static void HiviewServiceAbilityListFilesFuzzTest(const uint8_t* rawData, size_t size)
+{
+    HiviewPlatform platform;
+    (void)platform.IsReady();
+    EnablePermissionAccess();
+    
+    hiviewServiceAbility->GetOrSetHiviewService(&g_hiviewService);
+    std::vector<HiviewFileInfo> fileInfos;
+    std::string logType((const char*)rawData, size);
+    hiviewServiceAbility->ListFiles(logType, fileInfos);
+}
+
+static void HiviewServiceAbilityMoveFuzzTest(const uint8_t* rawData, size_t size)
+{
+    HiviewPlatform platform;
+    (void)platform.IsReady();
+    EnablePermissionAccess();
+    
+    hiviewServiceAbility->GetOrSetHiviewService(&g_hiviewService);
+    std::string logType((const char*)rawData, size);
+    std::string logName((const char*)rawData, size);
+    std::string dest((const char*)rawData, size);
+    hiviewServiceAbility->Move(logType, logName, dest);
+}
+
+static void HiviewServiceAbilityCopyFuzzTest(const uint8_t* rawData, size_t size)
+{
+    HiviewPlatform platform;
+    (void)platform.IsReady();
+    EnablePermissionAccess();
+    
+    hiviewServiceAbility->GetOrSetHiviewService(&g_hiviewService);
+    std::string logType((const char*)rawData, size);
+    std::string logName((const char*)rawData, size);
+    std::string dest((const char*)rawData, size);
+    hiviewServiceAbility->Copy(logType, logName, dest);
+}
+
+static void HiviewServiceAbilityRemoveFuzzTest(const uint8_t* rawData, size_t size)
+{
+    HiviewPlatform platform;
+    (void)platform.IsReady();
+    EnablePermissionAccess();
+    
+    hiviewServiceAbility->GetOrSetHiviewService(&g_hiviewService);
+    std::string logType((const char*)rawData, size);
+    std::string logName((const char*)rawData, size);
+    hiviewServiceAbility->Remove(logType, logName);
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS
 
@@ -94,6 +144,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::HiviewDFX::HiviewServiceAbilityStubFuzzTest(data, size);
+    OHOS::HiviewDFX::HiviewServiceAbilityListFilesFuzzTest(data, size);
+    OHOS::HiviewDFX::HiviewServiceAbilityMoveFuzzTest(data, size);
+    OHOS::HiviewDFX::HiviewServiceAbilityCopyFuzzTest(data, size);
+    OHOS::HiviewDFX::HiviewServiceAbilityRemoveFuzzTest(data, size);
     return 0;
 }
 
