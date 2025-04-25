@@ -31,14 +31,15 @@ const std::string XPERF = "Xperf";
 const std::string XPOWER = "Xpower";
 const std::string RELIABILITY = "Reliability";
 const std::string HIVIEW = "Hiview";
-const std::string BETACLUB = "BetaClub";
 const std::string OTHER = "Other";
+const std::string SCREEN = "Screen";
 };
 
 namespace ClientName {
 const std::string COMMAND = "Command";
 const std::string COMMON_DEV = "Other";
 const std::string APP = "APP";
+const std::string BETACLUB = "BetaClub";
 };
 
 namespace BusinessName {

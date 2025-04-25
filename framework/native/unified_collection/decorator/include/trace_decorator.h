@@ -36,7 +36,6 @@ const std::map<UCollect::TraceCaller, std::string> CallerMap {
     {UCollect::RELIABILITY, "RELIABILITY"},
     {UCollect::XPERF, "XPERF"},
     {UCollect::XPOWER, "XPOWER"},
-    {UCollect::BETACLUB, "BETACLUB"},
     {UCollect::OTHER, "OTHER"},
     {UCollect::HIVIEW, "HIVIEW"}
 };
