@@ -103,12 +103,12 @@ bool DocQuery::IsContainInnerConds(uint8_t* content) const
     });
 }
 
-bool DocQuery::IsContainExtraConds(uint8_t* content) const
+bool DocQuery::IsContainExtraConds(uint8_t* content, size_t len) const
 {
     if (extraConds_.empty()) {
         return true;
     }
-    EventRaw::DecodedEvent decodedEvent(content);
+    EventRaw::DecodedEvent decodedEvent(content, len);
     return std::all_of(extraConds_.begin(), extraConds_.end(), [this, &decodedEvent] (auto& cond) {
         const auto& extraParams = decodedEvent.GetAllCustomizedValues();
         for (auto& param : extraParams) {

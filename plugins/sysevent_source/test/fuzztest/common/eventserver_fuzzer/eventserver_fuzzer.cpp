@@ -43,7 +43,7 @@ static void SysEventServerFuzzTest(const uint8_t* data, size_t size)
         delete[] buffer;
         return;
     }
-    EventRaw::DecodedEvent event(reinterpret_cast<uint8_t*>(buffer));
+    EventRaw::DecodedEvent event(reinterpret_cast<uint8_t*>(buffer), BUFFER_SIZE);
     (void)event.AsJsonStr();
     delete[] buffer;
 }

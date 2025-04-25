@@ -171,7 +171,7 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
         HIVIEW_LOGE("raw data of event is null.");
         return;
     }
-    EventRaw::DecodedEvent decodedEvent(event.rawData_->GetData());
+    EventRaw::DecodedEvent decodedEvent(event.rawData_->GetData(), event.rawData_->GetDataLength());
     if (!decodedEvent.IsValid()) {
         HIVIEW_LOGE("failed to decode the raw data of event.");
         return;

@@ -31,7 +31,7 @@ namespace HiviewDFX {
 namespace EventRaw {
 class DecodedEvent {
 public:
-    DecodedEvent(uint8_t* rawData);
+    DecodedEvent(uint8_t* data, size_t len);
     ~DecodedEvent();
 
 public:
