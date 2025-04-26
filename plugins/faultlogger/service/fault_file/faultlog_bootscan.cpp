@@ -22,6 +22,7 @@
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
+#include "sanitizer_telemetry.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -118,10 +119,15 @@ FaultLogBootScan::FaultLogBootScan(std::shared_ptr<EventLoop> workLoop,
     std::shared_ptr<FaultLogManager> faultLogManager) : workLoop_(workLoop),  faultLogManager_(faultLogManager)
 {
     AddListenerInfo(Event::MessageType::PLUGIN_MAINTENANCE);
+    AddListenerInfo(Event::TELEMETRY_EVENT);
 }
 
 void FaultLogBootScan::OnUnorderedEvent(const Event& msg)
 {
+    if (msg.messageType_ == Event::TELEMETRY_EVENT) {
+        SanitizerTelemetry sanitizerTelemetry;
+        sanitizerTelemetry.OnUnorderedEvent(msg);
+    }
 #ifndef UNITTEST
     if (msg.messageType_ != Event::MessageType::PLUGIN_MAINTENANCE ||
         msg.eventId_ != Event::EventId::PLUGIN_LOADED) {
