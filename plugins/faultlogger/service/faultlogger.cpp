@@ -70,6 +70,7 @@
 #include "dfx_bundle_util.h"
 #include "freeze_json_generator.h"
 #include "freeze_json_util.h"
+#include "sanitizer_telemetry.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -1410,10 +1411,15 @@ void Faultlogger::AddBootScanEvent()
 Faultlogger::FaultloggerListener::FaultloggerListener(Faultlogger& faultlogger) : faultlogger_(faultlogger)
 {
     AddListenerInfo(Event::MessageType::PLUGIN_MAINTENANCE);
+    AddListenerInfo(Event::TELEMETRY_EVENT);
 }
 
 void Faultlogger::FaultloggerListener::OnUnorderedEvent(const Event &msg)
 {
+    if (msg.messageType_ == Event::TELEMETRY_EVENT) {
+        SanitizerTelemetry sanitizerTelemetry;
+        sanitizerTelemetry.OnUnorderedEvent(msg);
+    }
 #ifndef UNITTEST
     if (msg.messageType_ != Event::MessageType::PLUGIN_MAINTENANCE ||
         msg.eventId_ != Event::EventId::PLUGIN_LOADED) {

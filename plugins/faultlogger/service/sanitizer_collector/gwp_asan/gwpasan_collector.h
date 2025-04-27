@@ -58,6 +58,8 @@ struct GwpAsanCurrInfo {
     std::string hash;
     /** top stack */
     std::string topStack;
+    /** telemetryId for gwpasan */
+    std::string telemetryId;
 };
 
 void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath);
@@ -67,4 +69,5 @@ std::string GetTopStackWithoutCommonLib(const std::string& description);
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo);
 int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo);
 bool WriteNewFile(const int32_t fd, const GwpAsanCurrInfo& currInfo);
+void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo);
 #endif // GWPASAN_COLLECTOR_H

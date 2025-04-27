@@ -47,6 +47,7 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_faultlogger/service/faultlog_manager.cpp",
     "$hiview_faultlogger/service/faultlogger.cpp",
     "$hiview_faultlogger/service/freeze_json_generator.cpp",
+    "$hiview_faultlogger/service/sanitizer_collector/sanitizer_telemetry.cpp",
     "common/faultevent_listener.cpp",
     "common/unittest/dfx_bundle_util_unittest.cpp",
     "common/unittest/faultlog_formatter_unittest.cpp",
