@@ -114,7 +114,7 @@ void ActiveKeyEvent::Init(std::shared_ptr<LogStoreEx> logStore)
 void ActiveKeyEvent::HitraceCapture()
 {
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
-    UCollect::TraceCaller caller = UCollect::TraceCaller::BETACLUB;
+    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
     auto result = collector->DumpTrace(caller);
     if (result.retCode != 0) {
         HIVIEW_LOGE("get hitrace fail! error code: %{public}d", result.retCode);

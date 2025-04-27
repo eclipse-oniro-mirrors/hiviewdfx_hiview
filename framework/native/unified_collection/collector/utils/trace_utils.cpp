@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,12 +45,15 @@ const std::string XPOWER = "Xpower";
 const std::string BETACLUB = "BetaClub";
 const std::string APP = "APP";
 const std::string HIVIEW = "Hiview";
+const std::string SCREEN = "Screen";
 const std::string OTHER = "Other";
 const uint32_t UNIFIED_SHARE_COUNTS = 25;
 const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
 const uint32_t UNIFIED_SPECIAL_XPERF = 3;
 const uint32_t UNIFIED_SPECIAL_RELIABILITY = 3;
 const uint32_t UNIFIED_SPECIAL_OTHER = 5;
+const uint32_t UNIFIED_SPECIAL_BETACLUB = 2;
+const uint32_t UNIFIED_SPECIAL_SCREEN = 1;
 constexpr uint32_t READ_MORE_LENGTH = 100 * 1024;
 const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
@@ -238,10 +241,8 @@ public:
 protected:
     bool IsMine(const std::string &fileName) override
     {
-        // check Betaclub and other trace
-        size_t posBeta = fileName.find(BETACLUB);
-        size_t posOther = fileName.find(OTHER);
-        return posBeta != std::string::npos || posOther != std::string::npos;
+        // check Other trace
+        return fileName.find(OTHER) != std::string::npos;
     }
 
     uint32_t MyThreshold() override
@@ -249,6 +250,42 @@ protected:
         return UNIFIED_SPECIAL_OTHER;
     }
 };
+
+class SpecialBetaClubCleanPolicy : public CleanPolicy {
+    public:
+        explicit SpecialBetaClubCleanPolicy(int type) : CleanPolicy(type) {}
+        ~SpecialBetaClubCleanPolicy() override {}
+
+    protected:
+        bool IsMine(const std::string &fileName) override
+        {
+            // check BetaClub trace
+            return fileName.find(BETACLUB) != std::string::npos;
+        }
+
+        uint32_t MyThreshold() override
+        {
+            return UNIFIED_SPECIAL_BETACLUB;
+        }
+    };
+
+class SpecialScreenCleanPolicy : public CleanPolicy {
+    public:
+        explicit SpecialScreenCleanPolicy(int type) : CleanPolicy(type) {}
+        ~SpecialScreenCleanPolicy() override {}
+
+    protected:
+        bool IsMine(const std::string &fileName) override
+        {
+            // check Screen trace
+            return fileName.find(SCREEN) != std::string::npos;
+        }
+
+        uint32_t MyThreshold() override
+        {
+            return UNIFIED_SPECIAL_SCREEN;
+        }
+    };
 
 std::shared_ptr<CleanPolicy> GetCleanPolicy(int type, UCollect::TraceCaller &caller)
 {
@@ -270,6 +307,14 @@ std::shared_ptr<CleanPolicy> GetCleanPolicy(int type, UCollect::TraceCaller &cal
 
     if (caller == UCollect::TraceCaller::APP) {
         return std::make_shared<AppSpecialCleanPolicy>(type);
+    }
+
+    if (caller == UCollect::TraceCaller::BETACLUB) {
+        return std::make_shared<SpecialBetaClubCleanPolicy>(type);
+    }
+
+    if (caller == UCollect::TraceCaller::SCREEN) {
+        return std::make_shared<SpecialScreenCleanPolicy>(type);
     }
     return std::make_shared<SpecialOtherCleanPolicy>(type);
 }
@@ -340,6 +385,8 @@ const std::string EnumToString(UCollect::TraceCaller &caller)
             return APP;
         case UCollect::TraceCaller::HIVIEW:
             return HIVIEW;
+        case UCollect::TraceCaller::SCREEN:
+            return SCREEN;
         default:
             return OTHER;
     }
@@ -347,7 +394,8 @@ const std::string EnumToString(UCollect::TraceCaller &caller)
 
 std::vector<std::string> GetUnifiedFiles(TraceRetInfo ret, UCollect::TraceCaller &caller)
 {
-    if (caller == UCollect::TraceCaller::OTHER || caller == UCollect::TraceCaller::BETACLUB) {
+    if (caller == UCollect::TraceCaller::OTHER || caller == UCollect::TraceCaller::BETACLUB ||
+        caller == UCollect::TraceCaller::SCREEN) {
         return GetUnifiedSpecialFiles(ret, caller);
     }
     if (caller == UCollect::TraceCaller::XPOWER || caller == UCollect::TraceCaller::HIVIEW) {
