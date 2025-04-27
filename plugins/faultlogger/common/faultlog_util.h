@@ -18,6 +18,8 @@
 #include <cstdint>
 #include <ctime>
 #include <string>
+#include <string_view>
+#include <map>
 
 #include "faultlog_info.h"
 
@@ -38,6 +40,8 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info);
 std::string GetSanitizerTempLogName(int32_t pid, int64_t happenTime);
 std::string GetThreadStack(const std::string& path, int32_t threadId);
 bool IsValidPath(const std::string& path);
+bool IsSystemProcess(std::string_view processName, int32_t uid);
+std::string GetStrValFromMap(const std::map<std::string, std::string>& map, const std::string& key);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEWDFX_HIVIEW_FAULTLOGGER_UTIL_H

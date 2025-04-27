@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,29 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <unistd.h>
+#ifndef FAULTLOG_SANITIZER_H
+#define FAULTLOG_SANITIZER_H
 
-#include "dfx_bundle_util.h"
+#include "faultlog_event_base.h"
+#include "sys_event.h"
 
-using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
-class DfxBundleUtilUnittest : public testing::Test {};
-
-/**
- * @tc.name: IsModuleNameValidTest001
- * @tc.desc: Test IsModuleNameValid error branch
- * @tc.type: FUNC
- */
-HWTEST_F(DfxBundleUtilUnittest, IsModuleNameValidTest001, testing::ext::TestSize.Level1)
-{
-    std::string name;
-    auto result = IsModuleNameValid(name);
-    ASSERT_EQ(result, false);
-    name = "@data/test";
-    result = IsModuleNameValid(name);
-    ASSERT_EQ(result, true);
-}
+class FaultLogSanitizer : public FaultLogEventBase {
+public:
+    FaultLogSanitizer();
+private:
+    bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent, const FaultLogInfo& info) const override;
+    std::string GetFaultModule(SysEvent& sysEvent) const override;
+    void FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo& info) const override;
+    void ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) const;
+};
 } // namespace HiviewDFX
 } // namespace OHOS
+#endif

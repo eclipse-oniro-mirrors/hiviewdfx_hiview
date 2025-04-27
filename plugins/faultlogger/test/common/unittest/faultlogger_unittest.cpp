@@ -26,6 +26,9 @@
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <iostream>
+#include <cctype>
+#include <cstring>
 
 #include "bundle_mgr_client.h"
 #include "event.h"
@@ -36,7 +39,6 @@
 #include "faultlog_formatter.h"
 #include "faultlog_info_ohos.h"
 #include "faultlog_query_result_ohos.h"
-#include "faultlogger_adapter.h"
 #include "faultlogger_service_ohos.h"
 #include "file_util.h"
 #include "hisysevent_manager.h"
@@ -48,10 +50,23 @@
 #include "log_analyzer.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
-#include "dfx_bundle_util.h"
+#include "faultlog_bundle_util.h"
+#include "faultlog_sanitizer.h"
+#include "faultlog_freeze.h"
+#include "faultlog_processor_base.h"
+#include "faultlog_events_processor.h"
+#include "faultlog_processor_factory.h"
+#include "faultlog_bootscan.h"
+#include "faultlog_manager_service.h"
+#include "faultlog_hilog_helper.h"
+#include "faultlog_event_factory.h"
+#include "faultlog_cppcrash.h"
+#include "faultlog_jserror.h"
+#include "faultlog_cjerror.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
+using namespace OHOS::HiviewDFX::FaultlogHilogHelper;
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultloggerUT");
@@ -286,6 +301,7 @@ HWTEST_F(FaultloggerUnittest, dumpFileListTest001, testing::ext::TestSize.Level3
      * @tc.expected: check the content size of the dump function
      */
     auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultlogManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
     int fd = TEMP_FAILURE_RETRY(open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, 770));
     bool isSuccess = fd >= 0;
     if (!isSuccess) {
@@ -294,23 +310,23 @@ HWTEST_F(FaultloggerUnittest, dumpFileListTest001, testing::ext::TestSize.Level3
         return;
     }
     std::vector<std::string> cmds;
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("Faultlogger");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("-l");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("-f");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("cppcrash-ModuleName-10-20201209103823");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("-d");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("-t");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("20201209103823");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("-m");
-    plugin->Dump(fd, cmds);
+    faultlogManagerService.Dump(fd, cmds);
     cmds.push_back("FAULTLOGGER");
     close(fd);
     fd = -1;
@@ -376,6 +392,7 @@ HWTEST_F(FaultloggerUnittest, DumpTest003, testing::ext::TestSize.Level3)
      * @tc.expected: check the content size of the dump function
      */
     auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultlogManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
     int fd = TEMP_FAILURE_RETRY(open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, 770));
     bool isSuccess = fd >= 0;
     if (!isSuccess) {
@@ -391,7 +408,7 @@ HWTEST_F(FaultloggerUnittest, DumpTest003, testing::ext::TestSize.Level3)
     };
 
     for (auto& cmd : cmds) {
-        plugin->Dump(fd, cmd);
+        faultlogManagerService.Dump(fd, cmd);
     }
 
     close(fd);
@@ -424,7 +441,8 @@ HWTEST_F(FaultloggerUnittest, DumpTest004, testing::ext::TestSize.Level3)
     info.pid = 7496; // 7496 : analog value of pid
     info.faultLogType = 2; // 2 : CPP_CRASH
     info.module = "com.example.myapplication";
-    plugin->AddFaultLog(info);
+    FaultLogManagerService faultlogManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultlogManagerService.AddFaultLog(info);
     std::string timeStr = GetFormatedTimeWithMillsec(info.time);
     std::string appName = GetApplicationNameById(info.id);
     if (appName.size() == 0) {
@@ -447,7 +465,7 @@ HWTEST_F(FaultloggerUnittest, DumpTest004, testing::ext::TestSize.Level3)
     };
 
     for (auto& cmd : cmds) {
-        plugin->Dump(fd, cmd);
+        faultlogManagerService.Dump(fd, cmd);
     }
 
     close(fd);
@@ -490,7 +508,8 @@ static void GenCppCrashLogTestCommon(int32_t uid, bool ifFileExist)
         "time":1701863741296, "uid":20010043, "uuid":""})~";
     TEMP_FAILURE_RETRY(write(pipeFd[1], jsonInfo.c_str(), jsonInfo.size()));
     close(pipeFd[1]);
-    plugin->AddFaultLog(info);
+    FaultLogManagerService faultlogManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultlogManagerService.AddFaultLog(info);
     std::string timeStr = GetFormatedTimeWithMillsec(info.time);
     std::string appName = GetApplicationNameById(info.id);
     if (appName.size() == 0) {
@@ -542,23 +561,25 @@ HWTEST_F(FaultloggerUnittest, GenCppCrashLogTest002, testing::ext::TestSize.Leve
 HWTEST_F(FaultloggerUnittest, AddFaultLogTest001, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultlogManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
+
     FaultLogInfo info;
     plugin->hasInit_ = false;
-    plugin->AddFaultLog(info);
+    faultlogManagerService.AddFaultLog(info);
 
     plugin->hasInit_ = true;
     info.faultLogType = -1;
-    plugin->AddFaultLog(info);
+    faultlogManagerService.AddFaultLog(info);
 
     info.faultLogType = 8; // 8 : 8 is bigger than FaultLogType::ADDR_SANITIZER
-    plugin->AddFaultLog(info);
+    faultlogManagerService.AddFaultLog(info);
 
     info.faultLogType = FaultLogType::CPP_CRASH;
     info.id = 1;
     info.module = "com.example.myapplication";
     info.time = 1607161163;
     info.pid = 7496;
-    plugin->AddFaultLog(info);
+    faultlogManagerService.AddFaultLog(info);
     std::string timeStr = GetFormatedTimeWithMillsec(info.time);
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-com.example.myapplication-0-" + timeStr + ".log";
     ASSERT_EQ(FileUtil::FileExists(fileName), true);
@@ -572,7 +593,6 @@ HWTEST_F(FaultloggerUnittest, AddFaultLogTest001, testing::ext::TestSize.Level3)
  */
 HWTEST_F(FaultloggerUnittest, AddPublicInfoTest001, testing::ext::TestSize.Level3)
 {
-    auto plugin = GetFaultloggerInstance();
     FaultLogInfo info;
     info.time = 1607161163;
     info.id = 0;
@@ -585,7 +605,8 @@ HWTEST_F(FaultloggerUnittest, AddPublicInfoTest001, testing::ext::TestSize.Level
     info.sectionMap["KEY_THREAD_INFO"] = "Test Thread Info";
     info.sectionMap["REASON"] = "TestReason";
     info.sectionMap["STACKTRACE"] = "#01 xxxxxx\n#02 xxxxxx\n";
-    plugin->AddPublicInfo(info);
+    FaultLogEventsProcessor faultAddFault;
+    faultAddFault.AddCommonInfo(info);
     std::string timeStr = GetFormatedTimeWithMillsec(info.time);
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-com.example.myapplication-0-" + timeStr + ".log";
     ASSERT_EQ(FileUtil::FileExists(fileName), true);
@@ -598,7 +619,6 @@ HWTEST_F(FaultloggerUnittest, AddPublicInfoTest001, testing::ext::TestSize.Level
  */
 HWTEST_F(FaultloggerUnittest, GetFreezeJsonCollectorTest001, testing::ext::TestSize.Level3)
 {
-    auto plugin = GetFaultloggerInstance();
     FaultLogInfo info;
     info.time = 20170805172159;
     info.id = 10006;
@@ -611,7 +631,8 @@ HWTEST_F(FaultloggerUnittest, GetFreezeJsonCollectorTest001, testing::ext::TestS
     info.sectionMap["KEY_THREAD_INFO"] = "Test Thread Info";
     info.sectionMap["REASON"] = "TestReason";
     info.sectionMap["STACKTRACE"] = "#01 xxxxxx\n#02 xxxxxx\n";
-    FreezeJsonUtil::FreezeJsonCollector collector = plugin->GetFreezeJsonCollector(info);
+    FaultLogFreeze faultLogAppFreeze;
+    FreezeJsonUtil::FreezeJsonCollector collector = faultLogAppFreeze.GetFreezeJsonCollector(info);
     ASSERT_EQ(collector.exception, "{}");
 }
 
@@ -791,6 +812,10 @@ HWTEST_F(FaultloggerUnittest, GetFaultInfoListTest001, testing::ext::TestSize.Le
     FaultLogDatabase *faultLogDb = new FaultLogDatabase(GetHiviewContext().GetSharedWorkLoop());
     std::list<FaultLogInfo> infoList = faultLogDb->GetFaultInfoList("FaultloggerUnittest", 0, 2, 10);
     ASSERT_GT(infoList.size(), 0);
+
+    FaultLogInfo info;
+    bool ret = faultLogDb->ParseFaultLogInfoFromJson(nullptr, info);
+    ASSERT_EQ(ret, false);
 }
 
 /**
@@ -1132,12 +1157,8 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest004, testing::ext::TestSize.Level3
     ASSERT_TRUE(stack.empty());
 
     path = "/data/log/faultlog/faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
-    const int thread1 = 3443;
-    stack = GetThreadStack(path, thread1);
-    ASSERT_FALSE(stack.empty());
-
-    const int thread2 = 3444;
-    stack = GetThreadStack(path, thread2);
+    const int pid = 3443;
+    stack = GetThreadStack(path, pid);
     ASSERT_FALSE(stack.empty());
 }
 
@@ -1216,9 +1237,6 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest007, testing::ext::TestSize.Level3
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerAdapterTest001, testing::ext::TestSize.Level3)
 {
-    FaultloggerAdapter::StartService(nullptr);
-    ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), nullptr);
-
     FaultloggerServiceOhos servicOhos;
     std::vector<std::u16string> args;
     args.emplace_back(u"-c _test.c");
@@ -1237,10 +1255,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerAdapterTest001, testing::ext::TestSize.
     const int32_t maxNum = 10;
     ASSERT_EQ(servicOhos.QuerySelfFaultLog(faultType, maxNum), nullptr);
     servicOhos.Destroy();
-
-    Faultlogger faultlogger;
-    FaultloggerAdapter::StartService(&faultlogger);
-    ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), &faultlogger);
 }
 
 /**
@@ -1250,10 +1264,12 @@ HWTEST_F(FaultloggerUnittest, FaultloggerAdapterTest001, testing::ext::TestSize.
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest001, testing::ext::TestSize.Level3)
 {
-    auto service = GetFaultloggerInstance();
+    auto plugin = GetFaultloggerInstance();
+    auto faultManagerService = std::make_shared<FaultLogManagerService>(plugin->GetWorkLoop(),
+        plugin->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(service.get());
-    ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), service.get());
+    FaultloggerServiceOhos::StartService(faultManagerService);
+    ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), faultManagerService);
     FaultLogInfoOhos info;
     info.time = std::time(nullptr);
     info.pid = getpid();
@@ -1298,10 +1314,12 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest001, testing::ext::TestS
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest002, testing::ext::TestSize.Level3)
 {
-    auto service = GetFaultloggerInstance();
+    auto plugin = GetFaultloggerInstance();
+    auto faultManagerService = std::make_shared<FaultLogManagerService>(plugin->GetWorkLoop(),
+        plugin->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(service.get());
-    ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), service.get());
+    FaultloggerServiceOhos::StartService(faultManagerService);
+    ASSERT_EQ(FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr), faultManagerService);
     auto fd = TEMP_FAILURE_RETRY(open("/data/test/testFile2", O_CREAT | O_WRONLY | O_TRUNC, 770));
     bool isSuccess = fd >= 0;
     if (!isSuccess) {
@@ -1333,10 +1351,12 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest002, testing::ext::TestS
  */
 HWTEST_F(FaultloggerUnittest, FaultLogQueryResultOhosTest001, testing::ext::TestSize.Level3)
 {
-    auto service = GetFaultloggerInstance();
+    auto plugin = GetFaultloggerInstance();
+    auto faultManagerService = std::make_shared<FaultLogManagerService>(plugin->GetWorkLoop(),
+        plugin->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(service.get());
-    bool isSuccess = FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) == service.get();
+    FaultloggerServiceOhos::StartService(faultManagerService);
+    bool isSuccess = FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) == faultManagerService;
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("FaultloggerServiceOhos start service error.\n");
@@ -1482,8 +1502,10 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest001, testing::ext::TestSize.Level3)
         "Fault thread info:\nTid:101, Name:BootScanUnittest\n#00 xxxxxxx\n#01 xxxxxxx\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile("/data/log/faultlog/temp/cppcrash-101-" + std::to_string(now), content));
     auto plugin = GetFaultloggerInstance();
-    plugin->StartBootScan();
-    //check faultlog file content
+    FaultLogBootScan faultloggerListener(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultloggerListener.StartBootScan();
+
+    // check faultlog file content
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-BootScanUnittest-0-" + timeStr + ".log";
     ASSERT_TRUE(FileUtil::FileExists(fileName));
     ASSERT_GT(FileUtil::GetFileSize(fileName), 0ul);
@@ -1508,7 +1530,8 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest002, testing::ext::TestSize.Level3)
     std::string fileName = "/data/log/faultlog/temp/cppcrash-102-" + std::to_string(now);
     ASSERT_TRUE(FileUtil::SaveStringToFile(fileName, content));
     auto plugin = GetFaultloggerInstance();
-    plugin->StartBootScan();
+    FaultLogBootScan faultloggerListener(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultloggerListener.StartBootScan();
     ASSERT_FALSE(FileUtil::FileExists(fileName));
 
     // check event database
@@ -1539,9 +1562,10 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest003, testing::ext::TestSize.Level3)
         "Maps:\n96e000-978000 r--p 00000000 /data/xxxxx\n978000-9a6000 r-xp 00009000 /data/xxxx\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile("/data/log/faultlog/temp/cppcrash-111-" + std::to_string(now), content));
     auto plugin = GetFaultloggerInstance();
-    plugin->StartBootScan();
+    FaultLogBootScan faultloggerListener(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultloggerListener.StartBootScan();
 
-    //check faultlog file content
+    // check faultlog file content
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-BootScanUnittest-0-" + timeStr + ".log";
     ASSERT_TRUE(FileUtil::FileExists(fileName));
     ASSERT_GT(FileUtil::GetFileSize(fileName), 0ul);
@@ -1586,7 +1610,8 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest004, testing::ext::TestSize.Level3)
 
     ASSERT_TRUE(FileUtil::SaveStringToFile("/data/log/faultlog/temp/cppcrash-114-" + std::to_string(now), content));
     auto plugin = GetFaultloggerInstance();
-    plugin->StartBootScan();
+    FaultLogBootScan faultloggerListener(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultloggerListener.StartBootScan();
     // check faultlog file content
     std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-BootScanUnittest-0-" + timeStr + ".log";
     ASSERT_TRUE(FileUtil::FileExists(fileName));
@@ -1598,56 +1623,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerTest004, testing::ext::TestSize.Level3)
     }
     // check event database
     ASSERT_TRUE(faultEventListener->CheckKeyWords());
-}
-
-/**
- * @tc.name: FaultloggerTest004
- * @tc.desc: Test calling Faultlogger.DeleteHilogInFreezeFile Func, for full appfreeze and LIFECYCLE_TIMEOUT log limit
- * @tc.type: FUNC
- */
-HWTEST_F(FaultloggerUnittest, FaultloggerTest005, testing::ext::TestSize.Level3)
-{
-    auto plugin = GetFaultloggerInstance();
-    bool modified = false;
-    std::string content = std::string("deletehilog test start\n") +
-        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "catcher cmd: hilog -z 1000 -P end time:xxx\n" +
-        "deletehilog testend\n";
-    plugin->DeleteHilogInFreezeFile(content, modified);
-    ASSERT_EQ(modified, true);
-
-    modified = false;
-    content = std::string("deletehilog test start\n") +
-        "xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "catcher cmd: hilog -z 1000 -P end time:xxx\n" +
-        "deletehilog testend\n";
-    plugin->DeleteHilogInFreezeFile(content, modified);
-    ASSERT_EQ(modified, false);
-
-    modified = false;
-    content = std::string("deletehilog test start\n") +
-        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "deletehilog testend\n";
-    plugin->DeleteHilogInFreezeFile(content, modified);
-    ASSERT_EQ(modified, false);
-
-    modified = false;
-    content = std::string("deletehilog test start\n") +
-        "catcher cmd: hilog -z 1000 -P start time:xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "xxx\n" +
-        "catcher cmd: hilog -z 1000 -P end time:xxx";
-    plugin->DeleteHilogInFreezeFile(content, modified);
-    ASSERT_EQ(modified, false);
 }
 
 /**
@@ -1884,6 +1859,7 @@ HWTEST_F(FaultloggerUnittest, OnEventTest001, testing::ext::TestSize.Level3)
 HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest001, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
     FaultLogInfo info;
     info.time = 1607161163;
     info.id = 20010039;
@@ -1892,7 +1868,7 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest001, testing::ext::TestSize.L
     info.module = "com.example.jsinject";
     info.logPath = APPFREEZE_FAULT_FILE + "AppFreezeCrashLogTest001/" +
         "appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
-    plugin->AddFaultLog(info);
+    faultManagerService.AddFaultLog(info);
 
     const std::string firstFrame = "/system/lib64/libeventhandler.z.so"
         "(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204";
@@ -1913,6 +1889,7 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest001, testing::ext::TestSize.L
 HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest002, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
     FaultLogInfo info;
     info.time = 1607161163;
     info.id = 20010039;
@@ -1929,7 +1906,7 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest002, testing::ext::TestSize.L
         "#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)\n"
         "#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)";
     info.sectionMap["TERMINAL_THREAD_STACK"] = binderSatck;
-    plugin->AddFaultLog(info);
+    faultManagerService.AddFaultLog(info);
     ASSERT_EQ(info.sectionMap["FIRST_FRAME"], "/system/lib64/libGLES_mali.so");
     ASSERT_TRUE(info.sectionMap["SECOND_FRAME"].empty());
     ASSERT_TRUE(info.sectionMap["LAST_FRAME"].empty());
@@ -1943,6 +1920,7 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest002, testing::ext::TestSize.L
 HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest003, testing::ext::TestSize.Level3)
 {
     auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
     FaultLogInfo info;
     info.time = 1607161163;
     info.id = 20010039;
@@ -1959,7 +1937,7 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest003, testing::ext::TestSize.L
         "#04 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)\\n"
         "#05 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)";
     info.sectionMap["TERMINAL_THREAD_STACK"] = binderSatck;
-    plugin->AddFaultLog(info);
+    faultManagerService.AddFaultLog(info);
     ASSERT_EQ(info.sectionMap["FIRST_FRAME"], "/system/lib64/libGLES_mali.so");
     ASSERT_TRUE(info.sectionMap["SECOND_FRAME"].empty());
     ASSERT_TRUE(info.sectionMap["LAST_FRAME"].empty());
@@ -1982,11 +1960,12 @@ HWTEST_F(FaultloggerUnittest, FaultloggerUnittest001, testing::ext::TestSize.Lev
     info.faultLogType = FaultLogType::APP_FREEZE;
     info.module = "com.example.jsinject";
     info.logPath = "/proc/self/status";
-    plugin->AddFaultLog(info);
+    FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultManagerService.AddFaultLog(info);
     ASSERT_TRUE(info.sectionMap.empty());
 
     info.logPath = "/proc/self/test";
-    plugin->AddFaultLog(info);
+    faultManagerService.AddFaultLog(info);
     ASSERT_TRUE(info.sectionMap.empty());
 }
 
@@ -1997,14 +1976,10 @@ HWTEST_F(FaultloggerUnittest, FaultloggerUnittest001, testing::ext::TestSize.Lev
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerUnittest002, testing::ext::TestSize.Level3)
 {
-    auto plugin = GetFaultloggerInstance();
-    plugin->hasInit_ = false;
-    std::unique_ptr<FaultLogQueryResultInner> obj = plugin->QuerySelfFaultLog(1, 1, 1, 1);
-    ASSERT_EQ(obj, nullptr);
-
-    std::string str = plugin->GetMemoryStrByPid(-1);
+    FaultLogFreeze faultAppFreeze;
+    std::string str = faultAppFreeze.GetMemoryStrByPid(-1);
     ASSERT_EQ(str, "");
-    str = plugin->GetMemoryStrByPid(1);
+    str = faultAppFreeze.GetMemoryStrByPid(1);
     ASSERT_NE(str, "");
 }
 
@@ -2099,11 +2074,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosUnittest001, testing::ext::T
     args.push_back(u"*m");
     int32_t result = faultloggerServiceOhos.Dump(1, args);
     ASSERT_EQ(result, -1);
-
-    FaultLogInfoOhos info;
-    faultloggerServiceOhos.AddFaultLog(info);
-    sptr<IRemoteObject> res = faultloggerServiceOhos.QuerySelfFaultLog(1, 10);
-    ASSERT_EQ(res, nullptr);
     faultloggerServiceOhos.Destroy();
 }
 
@@ -2134,15 +2104,16 @@ HWTEST_F(FaultloggerUnittest, ReadHilogUnittest001, testing::ext::TestSize.Level
     ASSERT_GE(childPid, 0);
     if (childPid == 0) {
         syscall(SYS_close, fds[0]);
-        int rc = Faultlogger::DoGetHilogProcess(pid, fds[1]);
+
+
+        int rc = DoGetHilogProcess(pid, fds[1]);
         syscall(SYS_close, fds[1]);
         _exit(rc);
     } else {
         syscall(SYS_close, fds[1]);
         // read log from fds[0]
         HIVIEW_LOGI("read hilog start");
-        std::string log;
-        Faultlogger::ReadHilog(fds[0], log);
+        std::string log = ReadHilogTimeout(fds[0]);
         syscall(SYS_close, fds[0]);
         ASSERT_TRUE(!log.empty());
     }
@@ -2177,15 +2148,15 @@ HWTEST_F(FaultloggerUnittest, ReadHilogUnittest002, testing::ext::TestSize.Level
     if (childPid == 0) {
         syscall(SYS_close, fds[0]);
         sleep(7); // Delay for 7 seconds, causing the read end to timeout and exit
-        int rc = Faultlogger::DoGetHilogProcess(pid, fds[1]);
+
+        int rc = DoGetHilogProcess(pid, fds[1]);
         syscall(SYS_close, fds[1]);
         _exit(rc);
     } else {
         syscall(SYS_close, fds[1]);
         // read log from fds[0]
         HIVIEW_LOGI("read hilog start");
-        std::string log;
-        Faultlogger::ReadHilog(fds[0], log);
+        std::string log = ReadHilogTimeout(fds[0]);
         syscall(SYS_close, fds[0]);
         ASSERT_TRUE(log.empty());
     }
@@ -2225,12 +2196,279 @@ HWTEST_F(FaultloggerUnittest, ReadHilogUnittest003, testing::ext::TestSize.Level
         syscall(SYS_close, fds[1]);
         // read log from fds[0]
         HIVIEW_LOGI("read hilog start");
-        std::string log;
-        Faultlogger::ReadHilog(fds[0], log);
+        std::string log = ReadHilogTimeout(fds[0]);
         syscall(SYS_close, fds[0]);
         ASSERT_TRUE(log.empty());
     }
     waitpid(childPid, nullptr, 0);
+}
+
+/**
+ * @tc.name: FaultlogLimit001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultlogLimit001, testing::ext::TestSize.Level3)
+{
+    time_t now = time(nullptr);
+    std::vector<std::string> keyWords = { std::to_string(now) };
+    std::string timeStr = GetFormatedTimeWithMillsec(now);
+    std::string fillMapsContent = "96e000-978000 r--p 00000000 /data/xxxxx\n978000-9a6000 r-xp 00009000 /data/xxxx\n";
+    std::string regs = "r0:00000019 r1:0097cd3c\nr4:f787fd2c\nfp:f787fd18 ip:7fffffff pc:0097c982\n";
+    std::string otherThreadInfo =
+        "Tid:1336, Name:BootScanUnittes\n#00 xxxxxx\nTid:1337, Name:BootScanUnittes\n#00 xx\n";
+    std::string content = std::string("Pid:111\nUid:0\nProcess name:BootScanUnittest\n") +
+        "Reason:unittest for StartBootScan\n" +
+        "Fault thread info:\nTid:111, Name:BootScanUnittest\n#00 xxxxxxx\n#01 xxxxxxx\n" +
+        "Registers:\n" + regs +
+        "Other thread info:\n" + otherThreadInfo +
+        "Memory near registers:\nr1(/data/xxxxx):\n    0097cd34 47886849\n    0097cd38 96059d05\n\n" +
+        "Maps:\n96e000-978000 r--p 00000000 /data/xxxxx\n978000-9a6000 r-xp 00009000 /data/xxxx\n";
+    for (int i = 0; i < 100000; i++) {
+        content += fillMapsContent;
+    }
+    content += "HiLog:\n";
+    for (int i = 0; i < 10000; i++) {
+        content += fillMapsContent;
+    }
+
+    std::string filePath = "/data/log/faultlog/temp/cppcrash-114-" + std::to_string(now);
+    ASSERT_TRUE(FileUtil::SaveStringToFile(filePath, content));
+    FaultLogCppCrash faultCppCrash;
+    faultCppCrash.DoFaultLogLimit(filePath, 1);
+
+    filePath = "/data/log/faultlog/temp/cppcrash-115-" + std::to_string(now);
+    content = "hello";
+    ASSERT_TRUE(FileUtil::SaveStringToFile(filePath, content));
+    faultCppCrash.DoFaultLogLimit(filePath, 1);
+
+    FaultLogInfo info;
+    std::string stack = "adad";
+    faultCppCrash.FillStackInfo(info, stack);
+
+    std::string tempCont = "adbc";
+    faultCppCrash.RemoveHiLogSection(tempCont);
+    faultCppCrash.TruncateLogIfExceedsLimit(tempCont);
+}
+
+/**
+ * @tc.name: FaultLogManagerService001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogManagerService001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    faultManagerService.QuerySelfFaultLog(100001, 0, 10, 101);
+    faultManagerService.QuerySelfFaultLog(100001, 0, 4, 101);
+    auto ret = faultManagerService.QuerySelfFaultLog(100001, 0, -1, 101);
+    ASSERT_TRUE(ret == nullptr);
+}
+
+/**
+ * @tc.name: FaultloggerListener001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultloggerListener001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    FaultLogBootScan faultloggerListener(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    std::string fileName = "/data/log/faultlog/temp/freeze-114-";
+
+    bool ret = faultloggerListener.IsCrashType(fileName);
+    ASSERT_EQ(ret, false);
+
+    time_t now = time(nullptr);
+    faultloggerListener.IsInValidTime(fileName, now);
+
+    FaultLogBootScan faultloggerListenerEmpty(nullptr, plugin->faultLogManager_);
+    faultloggerListenerEmpty.AddBootScanEvent();
+
+    Event msg("hello");
+    faultloggerListenerEmpty.OnUnorderedEvent(msg);
+}
+
+/**
+ * @tc.name: FaultLogCjError001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogCjError001, testing::ext::TestSize.Level3)
+{
+    FaultLogCjError cjError;
+    FaultLogInfo info;
+    info.reportToAppEvent = false;
+    bool ret = cjError.ReportToAppEvent(nullptr, info);
+    EXPECT_EQ(ret, false);
+}
+
+bool CheckProcessName(const std::string &dirName, const std::string &procName)
+{
+    std::string path = "/proc/" + dirName + "/comm";
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        return false;
+    }
+
+    std::string comm;
+    std::getline(file, comm);
+    file.close();
+
+    return comm == procName;
+}
+
+pid_t GetPidByProcessName(const std::string &procName)
+{
+    DIR *procDir = opendir("/proc");
+    if (procDir == nullptr) {
+        perror("opendir /proc");
+        return -1;
+    }
+
+    pid_t pid = -1;
+    struct dirent *entry;
+    while ((entry = readdir(procDir)) != nullptr) {
+        if (entry->d_type != DT_DIR) {
+            continue;
+        }
+
+        std::string dirName(entry->d_name);
+        if (!std::all_of(dirName.begin(), dirName.end(), ::isdigit)) {
+            continue;
+        }
+
+        if (CheckProcessName(dirName, procName)) {
+            pid = std::stoi(dirName);
+            break;
+        }
+    }
+
+    closedir(procDir);
+    return pid;
+}
+
+/**
+ * @tc.name: FaultLogAppFreeze001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze001, testing::ext::TestSize.Level3)
+{
+    FaultLogFreeze faultAppFreeze;
+    faultAppFreeze.GetFreezeHilogByPid(1);
+    std::string processName = "faultloggerd";
+    auto pid = GetPidByProcessName(processName);
+    auto hilog = faultAppFreeze.GetFreezeHilogByPid(pid);
+    ASSERT_TRUE(!hilog.empty());
+}
+/**
+ * @tc.name: FaultLogAppFreeze002
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze002, testing::ext::TestSize.Level3)
+{
+    FaultLogFreeze faultAppFreeze;
+    FaultLogInfo info;
+    info.reportToAppEvent = false;
+    faultAppFreeze.ReportEventToAppEvent(info);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: FaultLogAppFreeze003
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze003, testing::ext::TestSize.Level3)
+{
+    FaultLogFreeze faultAppFreeze;
+    std::string logPath = "1111.txt";
+    faultAppFreeze.DoFaultLogLimit(logPath, 2);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: FaultLogJsError001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogJsError001, testing::ext::TestSize.Level3)
+{
+    FaultLogJsError jserror;
+
+    FaultLogInfo info;
+    info.reportToAppEvent = false;
+    bool ret = jserror.ReportToAppEvent(nullptr, info);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: FaultLogSanitizer001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogSanitizer001, testing::ext::TestSize.Level3)
+{
+    std::string summmay = "adaf";
+    SysEventCreator sysEventCreator("CJ_RUNTIME", "CJERROR", SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("SUMMARY", summmay);
+    sysEventCreator.SetKeyValue("name_", "CJ_ERROR");
+    sysEventCreator.SetKeyValue("happenTime_", 1670248360359); // 1670248360359 : Simulate happenTime_ value
+    sysEventCreator.SetKeyValue("REASON", "std.core:Exception");
+    sysEventCreator.SetKeyValue("tz_", "+0800");
+    sysEventCreator.SetKeyValue("pid_", 2413); // 2413 : Simulate pid_ value
+    sysEventCreator.SetKeyValue("tid_", 2413); // 2413 : Simulate tid_ value
+    sysEventCreator.SetKeyValue("what_", 3); // 3 : Simulate what_ value
+    sysEventCreator.SetKeyValue("PACKAGE_NAME", "com.ohos.systemui");
+    sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+    sysEventCreator.SetKeyValue("TYPE", 3); // 3 : Simulate TYPE value
+    sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    FaultLogSanitizer san;
+    FaultLogInfo info;
+    info.reportToAppEvent = false;
+    bool ret = san.ReportToAppEvent(sysEvent, info);
+    EXPECT_EQ(ret, false);
+
+    sysEventCreator.SetKeyValue("LOG_PATH", "1.0.0");
+    sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    info.reportToAppEvent = true;
+    ret = san.ReportToAppEvent(sysEvent, info);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: EventHandlerStrategyFactory001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, EventHandlerStrategyFactory001, testing::ext::TestSize.Level3)
+{
+    FaultLogEventFactory factory;
+    std::string eventName = "ADDR_SANITIZER";
+    auto fault = factory.CreateFaultLogEvent(eventName);
+    ASSERT_NE(fault, nullptr);
+    fault  = factory.CreateFaultLogEvent("abcd");
+    ASSERT_EQ(fault, nullptr);
+}
+
+/**
+ * @tc.name: GetFaultloggerInstance001
+ * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFaultloggerInstance001, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    std::shared_ptr<Event> event = nullptr;
+    bool ret = plugin->OnEvent(event);
+    ASSERT_EQ(ret, false);
+    ret = plugin->IsInterestedPipelineEvent(event);
+    ASSERT_EQ(ret, false);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
