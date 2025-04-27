@@ -47,6 +47,7 @@ ohos_source_set("faultlogger_service") {
     "fault_file/faultlog_manager.cpp",
     "faultlog_manager_service.cpp",
     "faultlogger.cpp",
+    "sanitizer_collector/sanitizer_telemetry.cpp",
   ]
 
   deps = [
@@ -115,6 +116,7 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "fault_file/faultlog_manager.cpp",
     "faultlog_manager_service.cpp",
     "faultlogger.cpp",
+    "sanitizer_collector/sanitizer_telemetry.cpp",
   ]
 
   deps = [
@@ -179,6 +181,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "fault_file/faultlog_manager.cpp",
     "faultlog_manager_service.cpp",
     "faultlogger.cpp",
+    "sanitizer_collector/sanitizer_telemetry.cpp",
   ]
 
   deps = [

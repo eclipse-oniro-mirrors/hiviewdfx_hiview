@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <time_util.h>
 #include <unistd.h>
+#include <parameters.h>
 
 #include "bundle_mgr_client.h"
 #include "event_publish.h"
@@ -128,9 +129,9 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     currInfo.topStack = GetTopStackWithoutCommonLib(currInfo.description);
     currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
         currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
-    HILOG_INFO(LOG_CORE, "ReportSanitizerAppEvent: uid:%{public}d, logPath:%{public}s.",
-        currInfo.uid, currInfo.logPath.c_str());
-
+    currInfo.telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
+    HILOG_INFO(LOG_CORE, "ReportSanitizerAppEvent: uid: %{public}d, logPath: %{public}s, telemetryId: %{public}s",
+        currInfo.uid, currInfo.logPath.c_str(), currInfo.telemetryId.c_str());
     // Do upload when data ready
     WriteCollectedData(currInfo);
     if (currInfo.logPath == "faultlogger") {
@@ -140,7 +141,7 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
 
 void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
 {
-    HiSysEventParam params[] = {
+    std::vector<HiSysEventParam> params = {
         { .name = "MODULE", .t = HISYSEVENT_STRING,
             .v = { .s = const_cast<char*>(currInfo.moduleName.c_str()) }, .arraySize = 0 },
         { .name = "VERSION", .t = HISYSEVENT_STRING,
@@ -164,12 +165,18 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
         { .name = "SECOND_FRAME", .t = HISYSEVENT_STRING,
             .v = { .s = const_cast<char*>(currInfo.topStack.c_str()) }, .arraySize = 0 }
     };
+    if (!currInfo.telemetryId.empty()) {
+        params.push_back({
+            .name = "TELEMETRY_ID", .t = HISYSEVENT_STRING,
+            .v = { .s = const_cast<char*>(currInfo.telemetryId.c_str()) }, .arraySize = 0 }
+        );
+    }
     int ret = OH_HiSysEvent_Write(
         OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY,
         ADDR_SANITIZER_EVENT,
         HISYSEVENT_FAULT,
-        params,
-        sizeof(params) / sizeof(params[0])
+        params.data(),
+        params.size()
     );
     if (ret < 0) {
         HILOG_ERROR(LOG_CORE, "Sanitizer send hisysevent failed, ret = %{public}d", ret);
