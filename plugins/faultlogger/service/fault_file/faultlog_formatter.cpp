@@ -337,7 +337,7 @@ bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::str
         FileUtil::SaveStringToFd(fd, line);
         FileUtil::SaveStringToFd(fd, "\n");
         if (!hasFindRssInfo && line.find("Process Memory(kB):") != std::string::npos &&
-            !sections.at("DEVICE_MEMINFO").empty()) {
+            sections.find("DEVICE_MEMINFO") != sections.end()) {
             FileUtil::SaveStringToFd(fd, sections.at("DEVICE_MEMINFO"));
             FileUtil::SaveStringToFd(fd, "\n");
             hasFindRssInfo = true;
