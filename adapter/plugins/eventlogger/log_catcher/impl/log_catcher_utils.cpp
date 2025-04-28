@@ -163,7 +163,6 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
     std::string regTidString = "^Tid:" + std::to_string(tid) + ", Name:(.{0,32})$";
     std::regex regTid(regTidString);
     std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
-    std::regex regSkip(R"(^ThreadInfo:.*$)");
     std::string line;
     while (std::getline(issStack, line)) {
         if (!issStack.good()) {
@@ -174,12 +173,7 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
             continue;
         }
 
-        while (std::getline(issStack, line)) {
-            if (std::regex_match(line, regSkip)) {
-                continue;
-            } else if (!std::regex_match(line, regStack)) {
-                break;
-            }
+        while (std::getline(issStack, line) && std::regex_match(line, regStack)) {
             stack.append(line + "\n");
             if (!issStack.good()) {
                 break;

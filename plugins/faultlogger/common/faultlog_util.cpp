@@ -261,7 +261,7 @@ std::string GetThreadStack(const std::string& path, int32_t threadId)
     }
     std::string regTidString = "^Tid:" + std::to_string(threadId) + ", Name:(.{0,32})$";
     std::regex regTid(regTidString);
-    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$|^ThreadInfo:.*$)");
+    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
     std::string line;
     while (std::getline(logFile, line)) {
         if (!logFile.good()) {
