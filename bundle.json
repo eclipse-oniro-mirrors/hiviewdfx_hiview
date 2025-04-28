@@ -109,7 +109,8 @@
                 "wifi",
                 "window_manager",
                 "zlib",
-                "thermal_manager"
+                "thermal_manager",
+                "runtime_core"
             ]
         },
         "build": {
@@ -122,7 +123,8 @@
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
                 "//base/hiviewdfx/hiview/framework/native/unified_collection/graphic_memory:libgraphic_memory",
-                "//base/hiviewdfx/hiview/framework/native/unified_collection/trace_manager:libtrace_manager"
+                "//base/hiviewdfx/hiview/framework/native/unified_collection/trace_manager:libtrace_manager",
+                "//base/hiviewdfx/hiview/interfaces/ets/ani:ani_loglibrary_package"
             ],
             "inner_kits": [
                 {
