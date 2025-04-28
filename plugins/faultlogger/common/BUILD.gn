@@ -77,6 +77,8 @@ ohos_source_set("log_analyzer_with_cfi") {
 ohos_source_set("faultlogger_common") {
   public_configs = [ ":faultlogger_common_config" ]
   sources = [
+    "faultlog_bundle_util.cpp",
+    "faultlog_hilog_helper.cpp",
     "faultlog_query_result_inner.cpp",
     "faultlog_util.cpp",
   ]
@@ -88,7 +90,10 @@ ohos_source_set("faultlogger_common") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 
   part_name = "hiview"
@@ -104,6 +109,8 @@ ohos_source_set("faultlogger_common_with_cfi") {
   }
   public_configs = [ ":faultlogger_common_config" ]
   sources = [
+    "faultlog_bundle_util.cpp",
+    "faultlog_hilog_helper.cpp",
     "faultlog_query_result_inner.cpp",
     "faultlog_util.cpp",
   ]
@@ -112,7 +119,10 @@ ohos_source_set("faultlogger_common_with_cfi") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 
   part_name = "hiview"

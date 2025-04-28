@@ -28,12 +28,12 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+using namespace FaultLogger;
 namespace {
 constexpr int DEFAULT_BUFFER_SIZE = 64;
 constexpr uint64_t TIME_RATIO = 1000;
-constexpr const char* const DEFAULT_FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
-constexpr const char* const DEFAULT_FAULTLOG_FOLDER = "/data/log/faultlog/";
-constexpr const char* const DEFAULT_FAULTLOG_TEST = "/data/test/";
+const char * const DEFAULT_FAULTLOG_TEST = "/data/test/";
+constexpr int MIN_APP_USERID = 10000;
 } // namespace
 
 std::string GetFormatedTime(uint64_t target)
@@ -216,7 +216,7 @@ time_t GetFileLastAccessTimeStamp(const std::string& fileName)
 
 std::string GetCppCrashTempLogName(const FaultLogInfo& info)
 {
-    return std::string(DEFAULT_FAULTLOG_TEMP_FOLDER) +
+    return std::string(FAULTLOG_TEMP_FOLDER) +
         "cppcrash-" +
         std::to_string(info.pid) +
         "-" +
@@ -225,7 +225,7 @@ std::string GetCppCrashTempLogName(const FaultLogInfo& info)
 
 std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
 {
-    return std::string(DEFAULT_FAULTLOG_TEMP_FOLDER) +
+    return std::string(FAULTLOG_TEMP_FOLDER) +
         "stacktrace-" +
         std::to_string(info.pid) +
         "-" +
@@ -234,7 +234,7 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
 
 std::string GetSanitizerTempLogName(int32_t pid, int64_t happenTime)
 {
-    return std::string(DEFAULT_FAULTLOG_TEMP_FOLDER) +
+    return std::string(FAULTLOG_TEMP_FOLDER) +
         "sanitizer-" +
         std::to_string(pid) +
         "-" +
@@ -251,7 +251,7 @@ std::string GetThreadStack(const std::string& path, int32_t threadId)
     if (realpath(path.c_str(), realPath) == nullptr) {
         return stack;
     }
-    if (strncmp(realPath, FaultLogger::FAULTLOG_BASE_FOLDER, strlen(FaultLogger::FAULTLOG_BASE_FOLDER)) != 0) {
+    if (strncmp(realPath, FAULTLOG_BASE_FOLDER, strlen(FAULTLOG_BASE_FOLDER)) != 0) {
         return stack;
     }
 
@@ -293,11 +293,29 @@ bool IsValidPath(const std::string& path)
     if (realpath(path.c_str(), realPath) == nullptr) {
         return false;
     }
-    if (strncmp(realPath, DEFAULT_FAULTLOG_FOLDER, strlen(DEFAULT_FAULTLOG_FOLDER)) == 0 ||
+    if (strncmp(realPath, FAULTLOG_BASE_FOLDER, strlen(FAULTLOG_BASE_FOLDER)) == 0 ||
         strncmp(realPath, DEFAULT_FAULTLOG_TEST, strlen(DEFAULT_FAULTLOG_TEST)) == 0) {
         return true;
     }
     return false;
+}
+
+bool IsSystemProcess(std::string_view processName, int32_t uid)
+{
+    constexpr std::string_view sysBin = "/system/bin";
+    constexpr std::string_view venBin = "/vendor/bin";
+    return (uid < MIN_APP_USERID ||
+            (processName.substr(0, sysBin.size()) == sysBin) ||
+            (processName.substr(0, venBin.size()) == venBin));
+}
+
+std::string GetStrValFromMap(const std::map<std::string, std::string>& map, const std::string& key)
+{
+    auto it = map.find(key);
+    if (it != map.end()) {
+        return it->second;
+    }
+    return "";
 }
 } // namespace HiviewDFX
 } // namespace OHOS

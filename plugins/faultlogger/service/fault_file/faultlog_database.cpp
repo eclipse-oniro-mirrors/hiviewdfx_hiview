@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,8 @@
 #include <mutex>
 #include <string>
 
+#include "constants.h"
+#include "decoded/decoded_event.h"
 #include "faultlog_info.h"
 #include "faultlog_util.h"
 #include "hisysevent.h"
@@ -30,18 +32,19 @@
 #include "sys_event_dao.h"
 #include "time_util.h"
 
-#include "decoded/decoded_event.h"
-
 using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultLogDatabase");
+using namespace FaultLogger;
 namespace {
 static const std::vector<std::string> QUERY_ITEMS = {
-    "time_", "name_", "uid_", "pid_", "MODULE", "REASON", "SUMMARY", "LOG_PATH", "FAULT_TYPE"
+    "time_", "name_", "uid_", "pid_", FaultKey::MODULE_NAME, FaultKey::REASON, FaultKey::SUMMARY, FaultKey::LOG_PATH,
+    FaultKey::FAULT_TYPE
 };
-static const std::string LOG_PATH_BASE = "/data/log/faultlog/faultlogger/";
-bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info)
+}
+
+bool FaultLogDatabase::ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info)
 {
     if (rawData == nullptr) {
         HIVIEW_LOGE("raw data of sys event is null.");
@@ -50,27 +53,28 @@ bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, Fault
     auto sysEvent = std::make_unique<SysEvent>("FaultLogDatabase", nullptr, rawData);
     constexpr string::size_type first200Bytes = 200;
     constexpr int64_t defaultIntValue = 0;
-    info.time = static_cast<int64_t>(std::atoll(sysEvent->GetEventValue("HAPPEN_TIME").c_str()));
+    info.time = static_cast<int64_t>
+        (strtoll(sysEvent->GetEventValue(FaultKey::HAPPEN_TIME).c_str(), nullptr, DECIMAL_BASE));
     if (info.time == defaultIntValue) {
-        info.time = sysEvent->GetEventIntValue("HAPPEN_TIME") != defaultIntValue ?
-                    sysEvent->GetEventIntValue("HAPPEN_TIME") : sysEvent->GetEventIntValue("time_");
+        info.time = sysEvent->GetEventIntValue(FaultKey::HAPPEN_TIME) != defaultIntValue ?
+                    sysEvent->GetEventIntValue(FaultKey::HAPPEN_TIME) : sysEvent->GetEventIntValue("time_");
     }
-    info.pid = sysEvent->GetEventIntValue("PID") != defaultIntValue ?
-               sysEvent->GetEventIntValue("PID") : sysEvent->GetEventIntValue("pid_");
+    info.pid = sysEvent->GetEventIntValue(FaultKey::MODULE_PID) != defaultIntValue ?
+               sysEvent->GetEventIntValue(FaultKey::MODULE_PID) : sysEvent->GetEventIntValue("pid_");
 
-    info.id = sysEvent->GetEventIntValue("UID") != defaultIntValue ?
-              sysEvent->GetEventIntValue("UID") : sysEvent->GetEventIntValue("uid_");
-    info.faultLogType = static_cast<int32_t>(std::stoi(sysEvent->GetEventValue("FAULT_TYPE").c_str()));
-    info.module = sysEvent->GetEventValue("MODULE");
-    info.reason = sysEvent->GetEventValue("REASON");
-    info.summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("SUMMARY"));
-    info.logPath = LOG_PATH_BASE + GetFaultLogName(info);
+    info.id = sysEvent->GetEventIntValue(FaultKey::MODULE_UID) != defaultIntValue ?
+              sysEvent->GetEventIntValue(FaultKey::MODULE_UID) : sysEvent->GetEventIntValue("uid_");
+    info.faultLogType = static_cast<int32_t>(
+        strtoul(sysEvent->GetEventValue(FaultKey::FAULT_TYPE).c_str(), nullptr, DECIMAL_BASE));
+    info.module = sysEvent->GetEventValue(FaultKey::MODULE_NAME);
+    info.reason = sysEvent->GetEventValue(FaultKey::REASON);
+    info.summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue(FaultKey::SUMMARY));
+    info.logPath = FAULTLOG_FAULT_LOGGER_FOLDER + GetFaultLogName(info);
     HIVIEW_LOGI("eventName:%{public}s, time %{public}" PRId64 ", uid %{public}d, pid %{public}d, "
                 "module: %{public}s, reason: %{public}s",
                 sysEvent->eventName_.c_str(), info.time, info.id, info.pid,
                 info.module.c_str(), info.reason.c_str());
     return true;
-}
 }
 
 FaultLogDatabase::FaultLogDatabase(const std::shared_ptr<EventLoop>& eventLoop) : eventLoop_(eventLoop) {}
@@ -87,29 +91,34 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
             HiSysEvent::Domain::RELIABILITY,
             GetFaultNameByType(info.faultLogType, false),
             HiSysEvent::EventType::FAULT,
-            "FAULT_TYPE", std::to_string(info.faultLogType),
-            "PID", info.pid,
-            "UID", info.id,
-            "MODULE", info.module,
-            "REASON", info.reason,
-            "SUMMARY", info.summary,
-            "LOG_PATH", info.logPath,
-            "VERSION", info.sectionMap.find("VERSION") != info.sectionMap.end() ? info.sectionMap.at("VERSION") : "",
-            "VERSION_CODE", info.sectionMap.find("VERSION_CODE") != info.sectionMap.end() ?
-                            info.sectionMap.at("VERSION_CODE") : "",
-            "PRE_INSTALL", info.sectionMap["PRE_INSTALL"],
-            "FOREGROUND", info.sectionMap["FOREGROUND"],
-            "HAPPEN_TIME", info.time,
+            FaultKey::FAULT_TYPE, std::to_string(info.faultLogType),
+            FaultKey::MODULE_PID, info.pid,
+            FaultKey::MODULE_UID, info.id,
+            FaultKey::MODULE_NAME, info.module,
+            FaultKey::REASON, info.reason,
+            FaultKey::SUMMARY, info.summary,
+            FaultKey::LOG_PATH, info.logPath,
+            FaultKey::MODULE_VERSION, info.sectionMap.find(FaultKey::MODULE_VERSION) != info.sectionMap.end() ?
+                info.sectionMap.at(FaultKey::MODULE_VERSION) : "",
+            FaultKey::VERSION_CODE, info.sectionMap.find(FaultKey::VERSION_CODE) != info.sectionMap.end() ?
+                            info.sectionMap.at(FaultKey::VERSION_CODE) : "",
+            FaultKey::PRE_INSTALL, info.sectionMap[FaultKey::PRE_INSTALL],
+            FaultKey::FOREGROUND, info.sectionMap[FaultKey::FOREGROUND],
+            FaultKey::HAPPEN_TIME, info.time,
             "HITRACE_TIME", info.sectionMap.find("HITRACE_TIME") != info.sectionMap.end() ?
                             info.sectionMap.at("HITRACE_TIME") : "",
             "SYSRQ_TIME", info.sectionMap.find("SYSRQ_TIME") != info.sectionMap.end() ?
                           info.sectionMap.at("SYSRQ_TIME") : "",
-            "PNAME", info.sectionMap["PROCESS_NAME"].empty() ? "/" : info.sectionMap["PROCESS_NAME"],
-            "FIRST_FRAME", info.sectionMap["FIRST_FRAME"].empty() ? "/" : info.sectionMap["FIRST_FRAME"],
-            "SECOND_FRAME", info.sectionMap["SECOND_FRAME"].empty() ? "/" : info.sectionMap["SECOND_FRAME"],
-            "LAST_FRAME", info.sectionMap["LAST_FRAME"].empty() ? "/" : info.sectionMap["LAST_FRAME"],
-            "FINGERPRINT", info.sectionMap["FINGERPRINT"].empty() ? "/" : info.sectionMap["FINGERPRINT"],
-            "STACK", info.sectionMap["STACK"].empty() ? "" : info.sectionMap["STACK"]
+            FaultKey::PROCESS_NAME, info.sectionMap["PROCESS_NAME"].empty() ? "/" : info.sectionMap["PROCESS_NAME"],
+            FaultKey::FIRST_FRAME, info.sectionMap[FaultKey::FIRST_FRAME].empty() ?
+                "/" : info.sectionMap[FaultKey::FIRST_FRAME],
+            FaultKey::SECOND_FRAME, info.sectionMap[FaultKey::SECOND_FRAME].empty() ?
+                "/" : info.sectionMap[FaultKey::SECOND_FRAME],
+            FaultKey::LAST_FRAME, info.sectionMap[FaultKey::LAST_FRAME].empty() ?
+                "/" : info.sectionMap[FaultKey::LAST_FRAME],
+            FaultKey::FINGERPRINT, info.sectionMap[FaultKey::FINGERPRINT].empty() ?
+                "/" : info.sectionMap[FaultKey::FINGERPRINT],
+            FaultKey::STACK, info.sectionMap[FaultKey::STACK].empty() ? "" : info.sectionMap[FaultKey::STACK]
         );
     };
     if (info.faultLogType == FaultLogType::CPP_CRASH) {
@@ -120,8 +129,9 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
     }
 }
 
-std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateQueries(
-    int32_t faultType, EventStore::Cond upperCaseCond, EventStore::Cond lowerCaseCond)
+
+std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateJsQueries(int32_t faultType, EventStore::Cond upperCaseCond,
+    EventStore::Cond lowerCaseCond)
 {
     std::list<std::shared_ptr<EventStore::SysEventQuery>> queries;
     if (faultType == FaultLogType::JS_CRASH || faultType == FaultLogType::ALL) {
@@ -137,6 +147,13 @@ std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateQueries(
             queries.push_back(query);
         }
     }
+    return queries;
+}
+
+std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateQueries(
+    int32_t faultType, EventStore::Cond upperCaseCond, EventStore::Cond lowerCaseCond)
+{
+    auto queries = CreateJsQueries(faultType, upperCaseCond, lowerCaseCond);
     if (faultType != FaultLogType::JS_CRASH) {
         std::string faultName = GetFaultNameByType(faultType, false);
         std::vector<std::vector<std::string>> faultNames = { {faultName} };
@@ -166,12 +183,12 @@ std::list<FaultLogInfo> FaultLogDatabase::GetFaultInfoList(const std::string& mo
         return queryResult;
     }
     EventStore::Cond hiviewUidCond("uid_", EventStore::Op::EQ, static_cast<int64_t>(getuid()));
-    EventStore::Cond uidUpperCond = hiviewUidCond.And("UID", EventStore::Op::EQ, id);
+    EventStore::Cond uidUpperCond = hiviewUidCond.And(FaultKey::MODULE_UID, EventStore::Op::EQ, id);
     EventStore::Cond uidLowerCond("uid_", EventStore::Op::EQ, id);
     auto queries = CreateQueries(faultType, uidUpperCond, uidLowerCond);
     for (auto query : queries) {
         if (id != 0) {
-            query->And("MODULE", EventStore::Op::EQ, module);
+            query->And(FaultKey::MODULE_NAME, EventStore::Op::EQ, module);
         }
         EventStore::ResultSet resultSet = query->Execute(maxNum);
         while (resultSet.HasNext()) {
@@ -205,8 +222,8 @@ bool FaultLogDatabase::IsFaultExist(int32_t pid, int32_t uid, int32_t faultType)
         return false;
     }
     EventStore::Cond hiviewUidCond("uid_", EventStore::Op::EQ, static_cast<int64_t>(getuid()));
-    EventStore::Cond pidUpperCond = hiviewUidCond.And("PID", EventStore::Op::EQ, pid).
-        And("UID", EventStore::Op::EQ, uid);
+    EventStore::Cond pidUpperCond = hiviewUidCond.And(FaultKey::MODULE_PID, EventStore::Op::EQ, pid).
+        And(FaultKey::MODULE_UID, EventStore::Op::EQ, uid);
     EventStore::Cond pidLowerCond("pid_", EventStore::Op::EQ, pid);
     pidLowerCond = pidLowerCond.And("uid_", EventStore::Op::EQ, uid);
     auto queries = CreateQueries(faultType, pidUpperCond, pidLowerCond);

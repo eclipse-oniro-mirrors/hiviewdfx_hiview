@@ -24,11 +24,14 @@ ohos_fuzztest("FaultloggerServiceFuzzTest") {
     "../common/include",
     "$hiview_core",
     "$hiview_faultlogger/service/",
+    "$hiview_faultlogger/service/fault_file/",
     "$hiview_faultlogger/service/sanitizer_collector/",
     "$hiview_faultlogger/service/idl/include/",
   ]
 
   sources = [ "faultlogger_service_fuzzer.cpp" ]
+
+  cflags = [ "-Dprivate=public" ]
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
@@ -37,7 +40,6 @@ ohos_fuzztest("FaultloggerServiceFuzzTest") {
     "$hiview_framework/native/unified_collection:ucollection_source",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
-    "$hiview_plugin/faultlogger/service:faultlogger_service_ability",
     "$hiview_plugin/faultlogger/service:faultlogger_service_fuzz_src",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_ohos_common",
   ]

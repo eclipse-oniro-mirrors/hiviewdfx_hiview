@@ -70,7 +70,7 @@ int32_t FaultloggerServiceOhos::Dump(int32_t fd, const std::vector<std::u16strin
     });
 
     auto service = GetOrSetFaultlogger();
-    if (service == nullptr) {
+    if (!service) {
         dprintf(fd, "Service is not ready.\n");
         return -1;
     }
@@ -79,7 +79,7 @@ int32_t FaultloggerServiceOhos::Dump(int32_t fd, const std::vector<std::u16strin
     return 0;
 }
 
-void FaultloggerServiceOhos::StartService(OHOS::HiviewDFX::Faultlogger *service)
+void FaultloggerServiceOhos::StartService(std::shared_ptr<IFaultLogManagerService> service)
 {
     GetOrSetFaultlogger(service);
     sptr<ISystemAbilityManager> serviceManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -93,10 +93,10 @@ void FaultloggerServiceOhos::StartService(OHOS::HiviewDFX::Faultlogger *service)
     HIVIEW_LOGI("FaultLogger Service started.");
 }
 
-OHOS::HiviewDFX::Faultlogger *FaultloggerServiceOhos::GetOrSetFaultlogger(
-    OHOS::HiviewDFX::Faultlogger *service)
+std::shared_ptr<IFaultLogManagerService> FaultloggerServiceOhos::GetOrSetFaultlogger(
+    std::shared_ptr<IFaultLogManagerService> service)
 {
-    static OHOS::HiviewDFX::Faultlogger *ref = nullptr;
+    static std::shared_ptr<IFaultLogManagerService> ref;
     if (service != nullptr) {
         ref = service;
     }
@@ -106,7 +106,7 @@ OHOS::HiviewDFX::Faultlogger *FaultloggerServiceOhos::GetOrSetFaultlogger(
 void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
 {
     auto service = GetOrSetFaultlogger();
-    if (service == nullptr) {
+    if (!service) {
         return;
     }
 
@@ -144,7 +144,7 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
 sptr<IRemoteObject> FaultloggerServiceOhos::QuerySelfFaultLog(int32_t faultType, int32_t maxNum)
 {
     auto service = GetOrSetFaultlogger();
-    if (service == nullptr) {
+    if (!service) {
         return nullptr;
     }
 
@@ -175,7 +175,7 @@ sptr<IRemoteObject> FaultloggerServiceOhos::QuerySelfFaultLog(int32_t faultType,
 void FaultloggerServiceOhos::Destroy()
 {
     auto service = GetOrSetFaultlogger();
-    if (service == nullptr) {
+    if (!service) {
         return;
     }
 
