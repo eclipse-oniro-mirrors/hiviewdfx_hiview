@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 
 #include <cmath>
 
+#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "time_util.h"
 
@@ -150,8 +151,8 @@ void DailyController::UpdateCacheAndDb(const CacheKey& cachekey, int32_t thresho
     int64_t exceedTime = 0;
     if (count == (threshold + 1)) {
         exceedTime = TimeUtil::GetSeconds();
-        HIVIEW_LOGI("event first exceeds threshold, domain=%{public}s, name=%{public}s",
-            cachekey.first.c_str(), cachekey.second.c_str());
+        HIVIEW_LOGI("event first exceeds threshold=%{public}d, domain=%{public}s, name=%{public}s",
+            threshold, cachekey.first.c_str(), cachekey.second.c_str());
     }
 
     UpdateCache(cachekey, threshold, count, exceedTime);
@@ -190,6 +191,12 @@ void DailyController::UpdateDb(const CacheKey& cachekey, int32_t count, int64_t 
                 eventInfo.domain.c_str(), eventInfo.name.c_str());
         }
     }
+}
+
+void DailyController::OnConfigUpdate(const std::string& configPath)
+{
+    UpdateCacheToDb();
+    config_ = std::make_unique<DailyConfig>(configPath);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
