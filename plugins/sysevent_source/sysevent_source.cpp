@@ -23,6 +23,7 @@
 #include "defines.h"
 #include "file_util.h"
 #include "focused_event_util.h"
+#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "hiview_platform.h"
 #include "param_const_common.h"
@@ -45,6 +46,7 @@ DEFINE_LOG_TAG("HiView-SysEventSource");
 constexpr char TEST_TYPE_PARAM_KEY[] = "hiviewdfx.hiview.testtype";
 constexpr char TEST_TYPE_KEY[] = "test_type_";
 constexpr char SOURCE_PERIOD_CNT_ITEM_CONCATE[] = " ";
+constexpr char THRESHOLD_CONFIG_FILE_NAME[] = "event_threshold.json";
 constexpr size_t SOURCE_PERIOD_INFO_ITEM_CNT = 3;
 constexpr size_t PERIOD_FILE_WROTE_STEP = 100;
 
@@ -194,9 +196,8 @@ void SysEventSource::InitController()
     }
 
     std::string workPath = context->GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY);
-    std::string configPath = context->GetHiViewDirectory(HiviewContext::DirectoryType::CONFIG_DIRECTORY);
-    const std::string configFileName = "event_threshold.json";
-    controller_ = std::make_unique<DailyController>(workPath, configPath.append(configFileName));
+    controller_ = std::make_unique<DailyController>(workPath,
+        HiViewConfigUtil::GetConfigFilePath(THRESHOLD_CONFIG_FILE_NAME));
 }
 
 void SysEventSource::OnUnload()
@@ -254,6 +255,9 @@ bool SysEventSource::PublishPipelineEvent(std::shared_ptr<PipelineEvent> event)
 bool SysEventSource::CheckEvent(std::shared_ptr<Event> event)
 {
     if (isConfigUpdated_) {
+        if (controller_ != nullptr) {
+            controller_->OnConfigUpdate(HiViewConfigUtil::GetConfigFilePath(THRESHOLD_CONFIG_FILE_NAME));
+        }
         EventJsonParser::GetInstance()->OnConfigUpdate();
         isConfigUpdated_.store(false);
     }

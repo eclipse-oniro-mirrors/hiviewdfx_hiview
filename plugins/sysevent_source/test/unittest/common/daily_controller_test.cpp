@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@ private:
 namespace {
 const std::string WORK_PATH = "/data/test/hiview/daily_control/";
 const std::string CONFIG_PATH = "/data/test/hiview/daily_control/event_threshold.json";
+const std::string CONFIG_PATH2 = "/data/test/hiview/daily_control/event_threshold2.json";
 const std::string TEST_DOMAIN = "DEFAULT_DOMAIN";
 const std::string TEST_NAME = "DEFAULT_NAME";
 
@@ -258,4 +259,26 @@ HWTEST_F(DailyControllerTest, DailyControllerTest012, TestSize.Level0)
     auto event = CreateEvent(TEST_DOMAIN, TEST_NAME, SysEventCreator::BEHAVIOR);
     constexpr uint32_t threshold = 10000;
     EventWithoutThresholdTest(controller, event, threshold);
+}
+
+/**
+ * @tc.name: DailyControllerTest013
+ * @tc.desc: test OnConfigUpdate.
+ * @tc.type: FUNC
+ * @tc.require: issuesIC4YXE
+ */
+HWTEST_F(DailyControllerTest, DailyControllerTest013, TestSize.Level1)
+{
+    DailyController controller(WORK_PATH, CONFIG_PATH);
+    auto event = CreateEvent(TEST_DOMAIN, "UPDATE_NAME", SysEventCreator::FAULT);
+    uint32_t thresholdOnBeta = 100; // 100: from event_threshold.json
+    uint32_t thresholdOnCommercial = 20; // 100: from event_threshold.json
+    uint32_t threshold = Parameter::IsBetaVersion() ? thresholdOnBeta : thresholdOnCommercial;
+    EventThresholdTest(controller, event, threshold);
+
+    controller.OnConfigUpdate(CONFIG_PATH2);
+    thresholdOnBeta = 99; // 99: from event_threshold2.json, 200 - 100 - 1
+    thresholdOnCommercial = 19; // 19: from event_threshold2.json, 40 - 20 - 1
+    threshold = Parameter::IsBetaVersion() ? thresholdOnBeta : thresholdOnCommercial;
+    EventThresholdTest(controller, event, threshold);
 }
