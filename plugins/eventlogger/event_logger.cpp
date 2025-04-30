@@ -29,6 +29,10 @@
 
 #include "parameter.h"
 
+#ifdef SOC_PERF_ENABLE
+#include "socperf_client.h"
+#endif
+
 #include "common_utils.h"
 #include "dfx_json_formatter.h"
 #include "event_source.h"
@@ -66,9 +70,28 @@ namespace {
     static constexpr const char* const MONITOR_STACK_FLIE_NAME[] = {
         "jsstack",
     };
+    static constexpr const char* const TWELVE_BIG_CPU_CUR_FREQ =
+        "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
+    static constexpr const char* const TWELVE_BIG_CPU_MAX_FREQ =
+        "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
+    static constexpr const char* const TWELVE_MID_CPU_CUR_FREQ =
+        "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
+    static constexpr const char* const TWELVE_MID_CPU_MAX_FREQ =
+        "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
+    static constexpr const char* const TWELVE_LIT_CPU_CUR_FREQ =
+        "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq";
+    static constexpr const char* const TWELVE_LIT_CPU_MAX_FREQ =
+        "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq";
     static constexpr const char* const CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
+    const static std::set<std::string> HALF_EVENT_CONFIGS = {
+        "UI_BLOCK_3S",
+        "THREAD_BLOCK_3S",
+        "BUSSNESS_THREAD_BLOCK_3S",
+        "LIFECYCLE_HALF_TIMEOUT"
+    };
+
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -88,6 +111,8 @@ namespace {
     static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
     static constexpr int BOOT_SCAN_SECONDS = 60;
+    static constexpr int PERF_TIME = 60;
+    static constexpr int PERF_NUM = 10202;
 }
 
 REGISTER(EventLogger);
@@ -365,6 +390,38 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
     auto CheckFinishFun = [this, event] { this->CheckEventOnContinue(event); };
     threadLoop_->AddTimerEvent(nullptr, nullptr, CheckFinishFun, waitTime, false);
     HIVIEW_LOGI("Collect on finish, name: %{public}s", logFile.c_str());
+}
+
+void EventLogger::PerfStart(std::string eventName)
+{
+    const int buffSize = 128;
+    char paramOutBuff[buffSize] = {0};
+    GetParameter("const.dfx.sub_health_recovery.enable", "", paramOutBuff, buffSize - 1);
+    std::string str(paramOutBuff);
+    if (str!= "true") {
+        return;
+    }
+    auto it = HALF_EVENT_CONFIGS.find(eventName);
+    if (it == HALF_EVENT_CONFIGS.end()) {
+        return;
+    }
+    auto curTime = TimeUtil::GetSeconds();
+    if (curTime - perfTime < PERF_TIME) {
+        HIVIEW_LOGI("perf time is less than 60s");
+        return;
+    }
+    std::string bigCpuCurFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
+    std::string bigCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_MAX_FREQ);
+    std::string midCpuCurFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_CUR_FREQ);
+    std::string midCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_MAX_FREQ);
+    if (bigCpuCurFreq == bigCpuMaxFreq || midCpuCurFreq == midCpuMaxFreq) {
+        perfTime = curTime;
+        HIVIEW_LOGI("perf start");
+        #ifdef SOC_PERF_ENABLE
+        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_NUM, "");
+        #endif
+        HIVIEW_LOGI("perf end");
+    }
 }
 
 bool ParseMsgForMessageAndEventHandler(const std::string& msg, std::string& message, std::string& eventHandlerStr)
@@ -862,6 +919,7 @@ bool EventLogger::UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile)
 
 bool EventLogger::IsHandleAppfreeze(std::shared_ptr<SysEvent> event)
 {
+    this->PerfStart(event->eventName_);
     std::string bundleName = event->GetEventValue("PACKAGE_NAME");
     if (bundleName.empty()) {
         bundleName = event->GetEventValue("MODULE_NAME");
