@@ -13,7 +13,7 @@
             "include": ["JS_ERROR"]
         },
         {
-            "domain": "APPSPAWN",
+            "domain": "STARTUP",
             "include": ["PROCESS_EXIT"]
         },
         {
