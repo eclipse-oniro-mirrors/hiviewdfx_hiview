@@ -22,6 +22,7 @@
 #include "faultlog_bundle_util.h"
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
+#include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
 
@@ -106,7 +107,14 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
     }
 
     info.sectionMap[FaultKey::APPEND_ORIGIN_LOG] = GetCppCrashTempLogName(info);
-    info.sectionMap[FaultKey::HILOG] = GetHilogByPid(info.pid);
+    std::string path = FAULTLOG_FAULT_HILOG_FOLDER + std::to_string(info.pid) +
+        "-" + std::to_string(info.id) + "-" + std::to_string(info.time);
+    std::string snapShotHilog;
+    if (FileUtil::LoadStringFromFile(path, snapShotHilog)) {
+        info.sectionMap[FaultKey::HILOG] = snapShotHilog;
+    } else {
+        info.sectionMap[FaultKey::HILOG] = GetHilogByPid(info.pid);
+    }
 }
 
 void FaultLogCppCrash::CheckFaultLogAsync(const FaultLogInfo& info)
