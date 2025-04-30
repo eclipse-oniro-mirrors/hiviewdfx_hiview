@@ -28,6 +28,7 @@ constexpr int DECIMAL_BASE = 10;
 const char * const FAULTLOG_BASE_FOLDER = "/data/log/faultlog/";
 const char * const FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
 const char * const FAULTLOG_FAULT_LOGGER_FOLDER = "/data/log/faultlog/faultlogger/";
+const char * const FAULTLOG_FAULT_HILOG_FOLDER = "/data/log/faultlog/hilog/";
 }
 
 namespace FaultKey {
