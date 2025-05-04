@@ -33,6 +33,7 @@ public:
     // the fd from service will be closed in the application class
     // be careful about it
     int32_t fd {-1};
+    uint32_t logFileCutoffSizeBytes {0};
     std::string module;
     std::string reason;
     std::string summary;

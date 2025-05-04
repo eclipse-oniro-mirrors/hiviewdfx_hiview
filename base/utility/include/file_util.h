@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -96,6 +96,7 @@ void FormatPath2UnixStyle(std::string &path);
 void CreateDirWithDefaultPerm(const std::string& path, uid_t aidRoot, uid_t aid_system);
 int CopyFile(const std::string &src, const std::string &des);
 int CopyFileFast(const std::string &src, const std::string &des);
+int CopyFileFastWithLimitSize(const std::string &src, const std::string &des, uint64_t truncatedFileSize = 0);
 bool IsDirectory(const std::string &path);
 bool GetLastLine(std::istream &fin, std::string &line, uint32_t maxLen = 10240); // 10240 : max line len
 std::string GetFirstLine(const std::string& path);

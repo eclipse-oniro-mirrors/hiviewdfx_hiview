@@ -96,7 +96,8 @@ void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info) const
     std::string outputFilePath = "/data/test_cppcrash_info_" + std::to_string(info.pid);
     WriteLogFile(outputFilePath, stackInfo + "\n");
 #endif
-    EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo);
+    EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo,
+        info.logFileCutoffSizeBytes);
 }
 
 void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
