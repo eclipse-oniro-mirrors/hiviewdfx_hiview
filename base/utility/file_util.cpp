@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -303,7 +303,7 @@ int CopyFile(const std::string &src, const std::string &des)
     return 0;
 }
 
-int CopyFileFast(const std::string &src, const std::string &des)
+int CopyFileFast(const std::string &src, const std::string &des, uint32_t truncatedFileSize)
 {
     int fdIn = open(src.c_str(), O_RDONLY);
     if (fdIn < 0) {
@@ -316,6 +316,11 @@ int CopyFileFast(const std::string &src, const std::string &des)
     }
     struct stat st;
     uint64_t totalLen = stat(src.c_str(), &st) ? 0 : static_cast<uint64_t>(st.st_size);
+    std::string truncateMsg = "";
+    if (truncatedFileSize != 0 && totalLen > truncatedFileSize) {
+        totalLen = truncatedFileSize;
+        truncateMsg = "\n[truncated]";
+    }
     uint64_t copyTotalLen = 0;
     while (copyTotalLen < totalLen) {
         ssize_t copyLen = sendfile(fdOut, fdIn, nullptr, totalLen - copyTotalLen);
@@ -324,10 +329,12 @@ int CopyFileFast(const std::string &src, const std::string &des)
         }
         copyTotalLen += static_cast<uint64_t>(copyLen);
     }
+    if (!truncateMsg.empty()) {
+        SaveStringToFd(fdOut, truncateMsg);
+    }
     close(fdIn);
     close(fdOut);
-    int ret = copyTotalLen == totalLen ? 0 : -1;
-    return ret;
+    return copyTotalLen == totalLen ? 0 : -1;
 }
 
 bool IsDirectory(const std::string &path)

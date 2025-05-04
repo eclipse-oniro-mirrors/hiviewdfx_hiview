@@ -25,7 +25,6 @@ FaultLogInfo ParseCppCrashFromFile(const std::string& path);
 void WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
 bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string> &sections);
 bool IsFaultLogLimit();
-void LimitCppCrashLog(int32_t fd, int32_t logType);
 
 void JumpBuildInfo(int32_t fd, std::ifstream& logFile);
 std::list<const char* const*> GetLogParseList(int32_t logType);

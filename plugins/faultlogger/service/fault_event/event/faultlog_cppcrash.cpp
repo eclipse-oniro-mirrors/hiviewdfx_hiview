@@ -160,7 +160,8 @@ void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info) const
     std::string outputFilePath = "/data/test_cppcrash_info_" + std::to_string(info.pid);
     WriteLogFile(outputFilePath, stackInfo + "\n");
 #endif
-    EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo);
+    EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo,
+        info.logFileCutoffSizeBytes);
 }
 
 void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
@@ -255,8 +256,7 @@ bool FaultLogCppCrash::TruncateLogIfExceedsLimit(std::string& readContent) const
     }
 
     readContent.resize(maxLogSize);
-    readContent += "\nThe cpp crash log length is " + std::to_string(fileLen) +
-        ", which exceeds the limit of " + std::to_string(maxLogSize) + " and is truncated.\n";
+    readContent += "\n[truncated]";
     return true;
 }
 } // namespace HiviewDFX

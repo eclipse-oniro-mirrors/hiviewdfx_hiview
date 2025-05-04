@@ -130,6 +130,7 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
     outInfo.pipeFd.reset(new int32_t(info.pipeFd), fdDeleter);
     outInfo.faultLogType = info.faultLogType;
     outInfo.fd = (info.fd > 0) ? dup(info.fd) : -1;
+    outInfo.logFileCutoffSizeBytes = info.logFileCutoffSizeBytes;
     outInfo.module = info.module;
     outInfo.reason = info.reason;
     outInfo.summary = info.summary;
