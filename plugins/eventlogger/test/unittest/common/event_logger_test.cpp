@@ -740,8 +740,9 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
     EventFocusListener::registerState_ = EventFocusListener::REGISTERED;
     eventLogger->OnUnload();
     EXPECT_EQ(EventFocusListener::registerState_, EventFocusListener::UNREGISTERED);
-#endif
+#else
     eventLogger->OnUnload();
+#endif
 }
 
 /**
