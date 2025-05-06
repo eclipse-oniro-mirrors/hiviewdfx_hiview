@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@ class IController {
 public:
     virtual ~IController() = default;
     virtual bool CheckThreshold(std::shared_ptr<SysEvent> event) = 0;
+    virtual void OnConfigUpdate(const std::string& configPath) = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
