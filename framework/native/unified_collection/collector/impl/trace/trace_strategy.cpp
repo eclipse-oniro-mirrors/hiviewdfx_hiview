@@ -80,24 +80,22 @@ void TraceStrategy::DoClean(const std::string &tracePath, uint32_t threshold, bo
     FileUtil::GetDirFiles(tracePath, files);
 
     // Filter files that belong to me
-    std::deque<std::pair<uint64_t, std::string>> filesWithTimes;
+    std::deque<std::string> filteredFiles;
     for (const auto &file : files) {
         if (!hasPrefix || IsMine(file)) {
-            struct stat fileInfo;
-            stat(file.c_str(), &fileInfo);
-            filesWithTimes.emplace_back(fileInfo.st_mtime, file);
+            filteredFiles.emplace_back(file);
         }
     }
-    std::sort(filesWithTimes.begin(), filesWithTimes.end(), [](const auto& a, const auto& b) {
-        return a.first < b.first;
+    std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
+        return a < b;
     });
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filesWithTimes.size(), threshold);
+    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), threshold);
 
     // Clean up old files, new copied file is still working in sub thread now, only can clean old files here
-    while (filesWithTimes.size() > threshold) {
-        FileUtil::RemoveFile(filesWithTimes.front().second);
-        HIVIEW_LOGI("remove file : %{public}s is deleted.", filesWithTimes.front().second.c_str());
-        filesWithTimes.pop_front();
+    while (filteredFiles.size() > threshold) {
+        FileUtil::RemoveFile(filteredFiles.front());
+        HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
+        filteredFiles.pop_front();
     }
 }
 
