@@ -36,13 +36,11 @@ ohos_unittest("TraceUtilsTest") {
 
   configs = [ ":trace_utils_test_config" ]
 
-  sources = [
-    "$hiview_framework/native/unified_collection/collector/impl/trace/utils/trace_utils.cpp",
-    "trace_utils_test.cpp",
-  ]
+  sources = [ "trace_utils_test.cpp" ]
 
   deps = [
     "$hiview_base/utility:hiview_utility",
+    "$hiview_framework/native/unified_collection:ucollection_source",
     "$hiview_framework/native/unified_collection/trace_manager:trace_manager_for_tdd",
   ]
 
@@ -50,8 +48,11 @@ ohos_unittest("TraceUtilsTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "hiview:libucollection_utility",
     "jsoncpp:jsoncpp",
     "zlib:libz",
   ]
+
+  if (hiview_unified_collector_trace_enable) {
+    defines = [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+  }
 }

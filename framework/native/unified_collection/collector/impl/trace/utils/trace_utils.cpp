@@ -32,6 +32,7 @@
 #include "securec.h"
 #include "string_util.h"
 #include "trace_common.h"
+#include "trace_decorator.h"
 #include "trace_worker.h"
 #include "time_util.h"
 
@@ -169,6 +170,7 @@ void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
         return;
     }
     FileUtil::RenameFile(tmpDestZipPath, destZipPathWithVersion);
+    UCollectUtil::TraceDecorator::UpdateTrafficInfoAfterZip(destZipPathWithVersion);
     HIVIEW_LOGI("finish rename file %{public}s", dstZipName.c_str());
 }
 
