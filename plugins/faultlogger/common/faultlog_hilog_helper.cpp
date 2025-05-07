@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 
+#include <poll.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 
@@ -29,50 +30,66 @@ DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 using namespace FaultLogger;
 namespace {
 constexpr int READ_HILOG_BUFFER_SIZE = 1024;
+constexpr int NUMBER_ONE_THOUSAND = 1000;
+constexpr int NUMBER_ONE_MILLION = 1000 * 1000;
+constexpr uint64_t MAX_HILOG_TIMEOUT = 15 * 1000;
+
+uint64_t GetTimeMilliseconds(void)
+{
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_REALTIME, &ts);
+    return (static_cast<uint64_t>(ts.tv_sec) * NUMBER_ONE_THOUSAND) +
+        (static_cast<uint64_t>(ts.tv_nsec) / NUMBER_ONE_MILLION);
+}
 }
 
-std::string FaultlogHilogHelper::ReadHilogTimeout(int fd)
+std::string FaultlogHilogHelper::ReadHilogTimeout(int fd, uint64_t timeout)
 {
-    fd_set readFds;
-    constexpr int readTimeout = 5;
-    struct timeval timeout = {0};
-    time_t startTime = time(nullptr);
-    bool isReadDone = false;
-    std::string log;
-    while (!isReadDone) {
-        time_t now = time(nullptr);
-        if (now >= startTime + readTimeout) {
-            HIVIEW_LOGI("read hilog timeout.");
-            isReadDone = true;
-            return log;
-        }
-        timeout.tv_sec = startTime + readTimeout - now;
-        timeout.tv_usec = 0;
+    if (fd < 0 || timeout > MAX_HILOG_TIMEOUT) {
+        HIVIEW_LOGE("Invalid fd or timeout");
+        return "";
+    }
+    uint64_t startTime = GetTimeMilliseconds();
+    uint64_t endTime = startTime + timeout;
 
-        FD_ZERO(&readFds);
-        FD_SET(fd, &readFds);
-        int ret = select(fd + 1, &readFds, nullptr, nullptr, &timeout);
-        if (ret <= 0) {
-            HIVIEW_LOGE("select failed: %{public}d, errno: %{public}d", ret, errno);
+    struct pollfd pfds[1];
+    pfds[0].fd = fd;
+    pfds[0].events = POLLIN;
+
+    std::string log;
+    int pollRet = -1;
+    bool isReadDone = false;
+    while (!isReadDone) {
+        uint64_t now = GetTimeMilliseconds();
+        if (now >= endTime || now < startTime) {
+            HIVIEW_LOGI("read hilog timeout.");
+            return log;
+        } else {
+            timeout = endTime - now;
+        }
+
+        pollRet = poll(pfds, 1, timeout);
+        if (pollRet < 0) {
             if (errno == EINTR) {
                 continue;
             }
-            isReadDone = true;
             return log;
         }
 
-        char buffer[READ_HILOG_BUFFER_SIZE] = {0};
-        ssize_t nread = TEMP_FAILURE_RETRY(read(fd, buffer, sizeof(buffer) - 1));
-        if (nread == 0) {
-            HIVIEW_LOGI("read hilog finished");
-            isReadDone = true;
-            break;
-        } else if (nread < 0) {
-            HIVIEW_LOGI("read failed. errno: %{public}d", errno);
-            isReadDone = true;
-            break;
+        if ((pollRet > 0) && (pfds[0].revents & POLLIN)) {
+            char buffer[READ_HILOG_BUFFER_SIZE] = {0};
+            ssize_t nread = TEMP_FAILURE_RETRY(read(fd, buffer, sizeof(buffer) - 1));
+            if (nread < 0) {
+                HIVIEW_LOGI("read failed. errno: %{public}d", errno);
+                return log;
+            }
+            if (nread == 0) {
+                isReadDone = true;
+                HIVIEW_LOGI("read hilog finished");
+                return log;
+            }
+            log.append(buffer, nread);
         }
-        log.append(buffer, nread);
     }
     return log;
 }
