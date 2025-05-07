@@ -58,7 +58,7 @@ void EnablePermissionAccess()
     const char* perms[] = {
         "ohos.permission.WRITE_HIVIEW_SYSTEM",
         "ohos.permission.READ_HIVIEW_SYSTEM",
-        "ohos.permission.DUMP",
+        "ohos.permission.HIVIEW_TRACE_MANAGE",
     };
     NativeTokenGet(perms, 3); // 3 is the size of the array which consists of required permissions.
 }

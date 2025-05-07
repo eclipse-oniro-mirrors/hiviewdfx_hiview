@@ -40,7 +40,7 @@ void DumpTraceController::CheckAndDumpTrace()
 
 bool DumpTraceController::IsTimeOver(const CpuThresholdItem& item)
 {
-    uint64_t currentTime = TimeUtil::GetSeconds();
+    uint64_t currentTime = static_cast<uint64_t>(TimeUtil::GetSeconds());
     return (currentTime - item.lastDumpTraceTime > item.dumpTraceInterval ||
         currentTime - item.lastDumpTraceTime < 0);
 }
@@ -71,7 +71,7 @@ void DumpTraceController::DumpTrace(CpuThresholdItem& item)
     auto traceCollector = UCollectUtil::TraceCollector::Create();
     traceCollector->DumpTrace(item.caller);
     item.hasOverThreshold = false;
-    item.lastDumpTraceTime = TimeUtil::GetSeconds();
+    item.lastDumpTraceTime = static_cast<uint64_t>(TimeUtil::GetSeconds());
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
