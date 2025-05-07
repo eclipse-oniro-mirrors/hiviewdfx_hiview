@@ -24,6 +24,7 @@
 #include "graphic_memory_collector.h"
 #include "hiview_logger.h"
 #include "memory.h"
+#include "parameter_ex.h"
 #include "string_util.h"
 
 namespace OHOS {
@@ -150,7 +151,7 @@ MemoryClass MapTypeToClass(MemoryItemType type)
     return TYPE_TO_CLASS_MAP.at(type);
 }
 
-bool IsNameLine(const std::string& line, std::string &name, uint64_t &iNode)
+bool IsNameLine(const std::string& line, std::string& name, uint64_t& iNode)
 {
     int currentReadBytes = 0;
     if (sscanf_s(line.c_str(), "%*llx-%*llx %*s %*llx %*s %llu%n", &iNode, &currentReadBytes) != 1) {
@@ -190,6 +191,7 @@ void UpdateMemoryItem(MemoryItem& item, const std::string& type, uint64_t value)
         {"Private_Dirty", [] (MemoryItem& item, uint64_t value) {item.privateDirty = value;} },
         {"SwapPss", [] (MemoryItem& item, uint64_t value) {item.swapPss = value;} },
         {"Swap", [] (MemoryItem& item, uint64_t value) {item.swap = value;} },
+        {"Size", [] (MemoryItem& item, uint64_t value) {item.size = value;} },
     };
     if (updateHandlers.find(type)!= updateHandlers.end()) {
         updateHandlers[type](item, value);
@@ -220,28 +222,41 @@ void ParseMemoryItem(const std::string& line, MemoryItem& item, std::vector<Memo
         if (GetTypeAndValue(line, type, value)) {
             UpdateMemoryItem(item, type, value);
         }
-    } else {
-        std::string name;
-        uint64_t iNode;
-        /* judge whether is name line of one memory segment like below
-         * f6988000-f6998000 rw-p 00000000 00:00 0                                  [anon:native_heap:brk]
-         */
-        if (IsNameLine(line, name, iNode)) {
-            if (isNameParsed) {
-                // when parse a new memory segment, the item of previous memory segment add to vector
-                AddItemToVec(item, items);
-                item.ResetValue();
-            }
-            isNameParsed = true;
-            item.name = name;
-            item.iNode = iNode;
+        return;
+    }
+    std::string name;
+    uint64_t iNode = 0;
+    /* judge whether is name line of one memory segment like below
+     * f6988000-f6998000 rw-p 00000000 00:00 0                                  [anon:native_heap:brk]
+     */
+    if (!IsNameLine(line, name, iNode)) {
+        return;
+    }
+    if (isNameParsed) {
+        // when parse a new memory segment, the item of previous memory segment add to vector
+        AddItemToVec(item, items);
+        item.ResetValue();
+    }
+    if (!Parameter::IsUserMode()) {
+        std::vector<std::string> elements;
+        StringUtil::SplitStr(line, " ", elements);
+        if (elements.size() > 1) {
+            std::string address = elements[0];
+            auto pos = address.find("-");
+            item.startAddr = address.substr(0, pos);
+            item.endAddr = address.substr(pos + 1);
+            item.permission = elements[1];
         }
     }
+    isNameParsed = true;
+    item.name = name;
+    item.iNode = iNode;
 }
 
-void GetGraphMemoryItems(int32_t pid, std::vector<MemoryItem>& items, bool isLowLatencyMode)
+void GetGraphMemoryItems(int32_t pid, std::vector<MemoryItem>& items, GraphicMemOption option)
 {
     auto collector = UCollectUtil::GraphicMemoryCollector::Create();
+    bool isLowLatencyMode = (option == GraphicMemOption::LOW_LATENCY);
     auto glResult = collector->GetGraphicUsage(pid, GraphicType::GL, isLowLatencyMode);
     auto glValue = (glResult.retCode == UCollect::UcError::SUCCESS) ? static_cast<uint64_t>(glResult.data) : 0;
     auto graphResult = collector->GetGraphicUsage(pid, GraphicType::GRAPH, isLowLatencyMode);
@@ -314,7 +329,7 @@ void AssembleMemoryDetails(ProcessMemoryDetail& processMemoryDetail, const std::
 }
 
 bool ParseSmaps(int32_t pid, const std::string& smapsPath, ProcessMemoryDetail& processMemoryDetail,
-    bool isLowLatencyMode)
+    GraphicMemOption option)
 {
     std::ifstream file(smapsPath.c_str());
     if (!file.is_open()) {
@@ -334,7 +349,9 @@ bool ParseSmaps(int32_t pid, const std::string& smapsPath, ProcessMemoryDetail& 
     if (isNameParsed) {
         AddItemToVec(item, items);
     }
-    GetGraphMemoryItems(pid, items, isLowLatencyMode);
+    if (option != GraphicMemOption::NONE) {
+        GetGraphMemoryItems(pid, items, option);
+    }
     processMemoryDetail.pid = pid;
     processMemoryDetail.name = CommonUtils::GetProcFullNameByPid(pid);
     AssembleMemoryDetails(processMemoryDetail, items);

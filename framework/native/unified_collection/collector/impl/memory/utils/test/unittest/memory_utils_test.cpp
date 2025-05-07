@@ -90,7 +90,7 @@ public:
 HWTEST_F(MemoryUtilsTest, MemoryUtilsTest001, TestSize.Level1)
 {
     ProcessMemoryDetail processMemoryDetail;
-    ASSERT_TRUE(ParseSmaps(1, TEST_SMAPS_PATH, processMemoryDetail, true));
+    ASSERT_TRUE(ParseSmaps(1, TEST_SMAPS_PATH, processMemoryDetail, GraphicMemOption::LOW_LATENCY));
     ASSERT_EQ(processMemoryDetail.totalRss, SUM_1_TO_43);
     ASSERT_EQ(processMemoryDetail.totalPss, SUM_1_TO_43);
     ASSERT_EQ(processMemoryDetail.totalSharedDirty, SUM_1_TO_43);

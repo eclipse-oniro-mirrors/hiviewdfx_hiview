@@ -24,6 +24,7 @@ constexpr char KEY_DEVELOPER_MODE_STATE[] = "const.security.developermode.state"
 constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
 constexpr char DEVELOP_HIVIEW_TRACE_RECORDER[] = "persist.hiview.trace_recorder";
 constexpr char KEY_LEAKDECTOR_MODE_STATE[] = "persist.hiview.leak_detector";
+constexpr char KEY_IS_DEBUGGABLE[] = "const.debuggable";
 namespace Parameter {
 enum UserType: uint8_t {
     USER_TYPE_CHINA_COMMERCIAL = 1,
@@ -48,6 +49,7 @@ bool IsUCollectionSwitchOn();
 bool IsTraceCollectionSwitchOn();
 bool IsTestAppTraceOn();
 bool IsLeakStateMode();
+bool IsUserMode();
 std::string GetDeviceTypeStr();
 std::string GetDisplayVersionStr();
 std::string GetBrandStr();

@@ -104,7 +104,7 @@ CollectResult<uint32_t> MemoryCollectorEmptyImpl::CollectDdrFreq()
 }
 
 CollectResult<ProcessMemoryDetail> MemoryCollectorEmptyImpl::CollectProcessMemoryDetail(int32_t pid,
-    bool isLowLatencyMode)
+    GraphicMemOption option)
 {
     return CollectResult<ProcessMemoryDetail>(UCollect::UcError::FEATURE_CLOSED);
 }

@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 bool ParseSmaps(int32_t pid, const std::string& smapsPath, ProcessMemoryDetail& processMemoryDetail,
-    bool isLowLatencyMode);
+    GraphicMemOption option);
 } // HiViewDFX
 } // OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_MEMORY_UTILS_H

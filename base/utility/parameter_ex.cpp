@@ -100,6 +100,11 @@ bool IsLeakStateMode()
     return (leakState.find("enable") != std::string::npos);
 }
 
+bool IsUserMode()
+{
+    return OHOS::system::GetParameter(KEY_IS_DEBUGGABLE, "0") == "0";
+}
+
 bool IsUCollectionSwitchOn()
 {
     std::string ucollectionState = GetString(HIVIEW_UCOLLECTION_STATE, "false");
