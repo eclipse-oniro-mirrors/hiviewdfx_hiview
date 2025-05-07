@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,15 +51,16 @@ public:
 */
 HWTEST_F(MemoryCollectorClientTest, MemoryCollectorClientTest001, TestSize.Level1)
 {
-    if (!IsXpowerPluginExist()) {
-        std::cout << "Xpower plugin not exist" << std::endl;
-        return;
-    }
     std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
     MemoryCaller caller = {.pid = 100, .resourceType = "pss_memory", .limitValue = 100, .enabledDebugLog = false};
     auto collectResult = collector->SetAppResourceLimit(caller);
-    ASSERT_EQ(collectResult.retCode, UcError::SUCCESS);
-    ASSERT_EQ(collectResult.data, 0);
+    if (!IsXpowerPluginExist()) {
+        std::cout << "Xpower plugin not exist" << std::endl;
+        ASSERT_NE(collectResult.retCode, UcError::SUCCESS);
+    } else {
+        ASSERT_EQ(collectResult.retCode, UcError::SUCCESS);
+        ASSERT_EQ(collectResult.data, 0);
+    }
 }
 
 /**

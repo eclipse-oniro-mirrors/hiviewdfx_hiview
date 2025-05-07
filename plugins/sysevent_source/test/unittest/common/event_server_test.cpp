@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,14 +43,6 @@ void EventServerTest::TearDown()
  */
 HWTEST_F(EventServerTest, EventServerTest001, TestSize.Level3)
 {
-    /**
-     * @tc.steps: step1. check whether the node file exists.
-     * @tc.steps: step2. check whether the node file is valid.
-     */
-    if (!FileUtil::FileExists("/dev/bbox")) {
-        printf("The device does not support bbox node\n");
-        return;
-    }
     BBoxDevice bbox;
     ASSERT_TRUE(bbox.GetEvents() > 0);
     ASSERT_NE(bbox.GetName(), "");
