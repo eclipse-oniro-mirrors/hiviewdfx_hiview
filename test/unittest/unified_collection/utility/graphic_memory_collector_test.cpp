@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,10 +47,7 @@ HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Lev
     auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     const std::string procName = systemuiPid > 0 ? systemuiProcName : sceneBoardProcName;
-    if (pid <= 0) {
-        std::cout << "Get pid failed" << std::endl;
-        return;
-    }
+    ASSERT_GT(pid, 0);
     std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
     CollectResult<int32_t> data = collector->GetGraphicUsage(pid, GraphicType::TOTAL, false);
     ASSERT_EQ(data.retCode, UcError::SUCCESS);
