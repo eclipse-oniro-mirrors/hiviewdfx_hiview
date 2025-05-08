@@ -66,8 +66,8 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
 std::string GetNameByPid(int32_t pid);
 std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType);
 std::string GetTopStackWithoutCommonLib(const std::string& description);
-void WriteCollectedData(const GwpAsanCurrInfo& currInfo);
-int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo);
-bool WriteNewFile(const int32_t fd, const GwpAsanCurrInfo& currInfo);
+void WriteCollectedData(const GwpAsanCurrInfo& currInfo, bool& isSendHisysevent);
+void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo);
+bool WriteToSandbox(const GwpAsanCurrInfo& currInfo);
 void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo);
 #endif // GWPASAN_COLLECTOR_H
