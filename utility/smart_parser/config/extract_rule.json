@@ -73,8 +73,10 @@
             {"namespace":"NocTrace", "depend":"BasicParam.v_noc", "matchKey":"adjusted ADDR", "v_address":"adjusted.* = (.*)"},
             {"namespace":"NocTrace", "depend":"BasicParam.v_noc", "matchKey":"USER_SIGNAL =", "v_user_signal":"USER_SIGNAL = 0x[0-9a-z]+ (.*)", "v_cpu":"\\(MID: AP_CPU(\\d+)"},
             {"namespace":"NocTrace", "depend":"BasicParam.v_noc", "matchKey":"sec_val =", "v_security":"(sec_val = 0x[0-9a-f]+)"},
-            {"namespace":"MainCallTrace", "matchKey":"KERNEL CALL STACK", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"},
-            {"namespace":"MainCallTrace", "matchKey":"Stack backtrace:", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"},
+            {"namespace":"MainCallTrace", "matchKey":"[PANIC][ED_00]Stack backtrace", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+>)"},
+            {"namespace":"MainCallTrace", "matchKey":"[PANIC][ED_01]Stack backtrace", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+>)"},
+            {"namespace":"MainCallTrace", "matchKey":"[PANIC][BT_00]Stack backtrace", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+>)"},
+            {"namespace":"MainCallTrace", "matchKey":"hguard-worker thread is abnormal", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+>)"},
             {"namespace":"MainCallTrace", "depend":"BasicParam", "matchKey":"Call trace:", "v_trace":"@T@[0-9a-zA-Z_.]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"}
         ],
         "segmentRule":[
@@ -83,12 +85,15 @@
     },
     "Rule7":{
         "DirOrFile":"/data/hisi_logs/",
-        "Subcatalog":"\\d{14}-\\d{8}/ap_log/last_kmsg",
+        "Subcatalog":"\\d{14}-\\d{8}/ap_log/fastboot_log",
         "featureId":"04_HWWATCHDOG_00",
         "rules":[
-            {"namespace":"BasicParam", "matchKey":"fiq triggered by: Watchdog", "v_fiq":"(.*)"},
-            {"namespace":"BasicParam", "depend":"BasicParam.v_fiq","matchKey":"Comm:", "v_pname":"Comm:(.*) Tainted"},
-            {"namespace":"MainCallTrace", "depend":"BasicParam.v_fiq", "matchKey":"Call trace:", "v_trace":"@T@[0-9a-zA-Z_]+\\+0x[0-9a-f]+/0x[0-9a-f]+(.*)"}
+            {"namespace":"BasicParam", "matchKey":"RebootReasonGetExcType", "v_first":"get pmu reg is (0x[0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"RebootReasonGetSubtype", "v_second":"get pmu reg is (0x[0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"RebootReasonGetSrPos", "v_last":"(sr position:.*)"},
+            {"namespace":"BasicParam", "matchKey":"get_record_exce_type", "v_first":"get pmu reg is ([0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"get_record_subtype", "v_second":"get pmu reg is ([0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"no_module", "v_last":"(sr position:.*)"}
         ]
     },
     "Rule8":{
@@ -184,6 +189,19 @@
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
             {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+        ]
+    },
+    "Rule23":{
+        "DirOrFile":"/data/hisi_logs/",
+        "Subcatalog":"\\d{14}-\\d{8}/ap_log/fastboot_log",
+        "featureId":"04_LPM3EXCEPTION_00",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"RebootReasonGetExcType", "v_first":"get pmu reg is (0x[0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"RebootReasonGetSubtype", "v_second":"get pmu reg is (0x[0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"RebootReasonGetSrPos", "v_last":"(sr position:.*)"},
+            {"namespace":"BasicParam", "matchKey":"get_record_exce_type", "v_first":"get pmu reg is ([0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"get_record_subtype", "v_second":"get pmu reg is ([0-9a-fA-F]+)"},
+            {"namespace":"BasicParam", "matchKey":"no_module", "v_last":"(sr position:.*)"}
         ]
     }
 }

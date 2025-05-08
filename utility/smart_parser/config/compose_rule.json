@@ -56,8 +56,9 @@
     },
     "HWWATCHDOG": {
         "04_HWWATCHDOG_00":{
-            "PNAME": "BasicParam.v_pname",
-            "END_STACK": "MainCallTrace.v_trace"
+            "FIRST_FRAME": "BasicParam.v_first",
+            "SECOND_FRAME": "BasicParam.v_second",
+            "LAST_FRAME": "BasicParam.v_last"
         }
     },
     "RUST_PANIC": {
@@ -87,6 +88,13 @@
     },
     "MODEM_REBOOTSYS": {
         "03_MODEM_REBOOTSYS_00":{
+            "FIRST_FRAME": "BasicParam.v_first",
+            "SECOND_FRAME": "BasicParam.v_second",
+            "LAST_FRAME": "BasicParam.v_last"
+        }
+    },
+    "LPM3EXCEPTION": {
+        "04_LPM3EXCEPTION_00":{
             "FIRST_FRAME": "BasicParam.v_first",
             "SECOND_FRAME": "BasicParam.v_second",
             "LAST_FRAME": "BasicParam.v_last"
