@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,29 +15,24 @@
 
 #include "event_write_handler.h"
 
-#include "file_util.h"
+#include "event_write_strategy_factory.h"
 #include "hiview_logger.h"
-#include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-EventWriteHandler");
-namespace {
-std::string TransEventVersionToStr(const EventVersion& eventVersion)
-{
-    std::string concactedContent;
-    concactedContent.append(eventVersion.systemVersion).append("_");
-    concactedContent.append(eventVersion.patchVersion);
-    return concactedContent;
-}
-}
-
+DEFINE_LOG_TAG("HiView-EventExportFlow");
 bool EventWriteHandler::HandleRequest(RequestPtr req)
 {
     auto writeReq = BaseRequest::DownCastTo<EventWriteRequest>(req);
-    for (const auto& sysEvent : writeReq->sysEvents) {
-        auto writer = GetEventWriter(sysEvent->version, writeReq);
-        if (!writer->AppendEvent(sysEvent->domain, sysEvent->name, sysEvent->eventStr)) {
+    for (const auto& cachedEvent : writeReq->cachedEvents) {
+        if (cachedEvent == nullptr) {
+            HIVIEW_LOGE("invalid event");
+            Rollback();
+            return false;
+        }
+        auto packager = GetCachedEventPackager(cachedEvent, writeReq);
+        if (packager == nullptr ||
+            !packager->AppendCachedEvent(cachedEvent->domain, cachedEvent->name, cachedEvent->eventStr)) {
             HIVIEW_LOGE("failed to append event to event writer");
             Rollback();
             return false;
@@ -46,68 +41,59 @@ bool EventWriteHandler::HandleRequest(RequestPtr req)
     if (!writeReq->isQueryCompleted) {
         return true;
     }
-    for (const auto& writer : allJsonFileWriters_) {
-        if (writer.second == nullptr) {
+    for (const auto& packagerItem : cachedEventPackagerMap_) {
+        if (packagerItem.second == nullptr) {
             continue;
         }
-        if (!writer.second->Write()) {
+        if (!packagerItem.second->Package()) {
             HIVIEW_LOGE("failed to write export event");
             Rollback();
             return false;
         }
     }
-    CopyTmpZipFilesToDest();
+    Finish();
     return true;
 }
 
-std::shared_ptr<ExportJsonFileWriter> EventWriteHandler::GetEventWriter(const EventVersion& eventVersion,
-    std::shared_ptr<EventWriteRequest> writeReq)
+std::shared_ptr<CachedEventPackager> EventWriteHandler::GetCachedEventPackager(
+    const std::shared_ptr<CachedEvent> cachedEvent, std::shared_ptr<EventWriteRequest> writeReq)
 {
-    auto writerKey = std::make_pair(writeReq->moduleName, TransEventVersionToStr(eventVersion));
-    auto iter = allJsonFileWriters_.find(writerKey);
-    if (iter == allJsonFileWriters_.end()) {
+    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_FILE);
+    std::string packagerKey = strategy->GetPackagerKey(cachedEvent);
+    if (packagerKey.empty()) {
+        HIVIEW_LOGW("pacakger key is empty");
+        return nullptr;
+    }
+    auto iter = cachedEventPackagerMap_.find(packagerKey);
+    if (iter == cachedEventPackagerMap_.end()) {
         HIVIEW_LOGI("create json file writer with system version[%{public}s] and patch version[%{public}s]",
-            eventVersion.systemVersion.c_str(), eventVersion.patchVersion.c_str());
-        auto jsonFileWriter = std::make_shared<ExportJsonFileWriter>(writeReq->moduleName, eventVersion,
-            writeReq->exportDir, writeReq->maxSingleFileSize);
-        jsonFileWriter->SetExportJsonFileZippedListener([this] (const std::string& srcPath,
-            const std::string& destPath) {
-            zippedExportFileMap_[srcPath] = destPath;
-        });
-        allJsonFileWriters_.emplace(writerKey, jsonFileWriter);
-        return jsonFileWriter;
+            cachedEvent->version.systemVersion.c_str(), cachedEvent->version.patchVersion.c_str());
+        auto cachedEventPackager = std::make_shared<CachedEventPackager>(writeReq->moduleName, writeReq->exportDir,
+            cachedEvent->version, cachedEvent->uid, writeReq->maxSingleFileSize);
+        cachedEventPackagerMap_.emplace(packagerKey, cachedEventPackager);
+        return cachedEventPackager;
     }
     return iter->second;
 }
 
-void EventWriteHandler::CopyTmpZipFilesToDest()
+void EventWriteHandler::Finish()
 {
-    // move all tmp zipped event export file to dest dir
-    std::for_each(zippedExportFileMap_.begin(), zippedExportFileMap_.end(), [] (const auto& item) {
-        if (!FileUtil::RenameFile(item.first, item.second)) {
-            HIVIEW_LOGE("failed to move %{public}s to %{public}s", StringUtil::HideDeviceIdInfo(item.first).c_str(),
-                StringUtil::HideDeviceIdInfo(item.second).c_str());
+    for (const auto& packagerItem : cachedEventPackagerMap_) {
+        if (packagerItem.second == nullptr) {
+            continue;
         }
-        HIVIEW_LOGI("zip file to export: %{public}s", StringUtil::HideDeviceIdInfo(item.second).c_str());
-    });
-    zippedExportFileMap_.clear();
+        packagerItem.second->HandlePackagedFileCache();
+    }
 }
 
 void EventWriteHandler::Rollback()
 {
-    for (const auto& writer : allJsonFileWriters_) {
-        if (writer.second == nullptr) {
+    for (const auto& packagerItem : cachedEventPackagerMap_) {
+        if (packagerItem.second == nullptr) {
             continue;
         }
-        writer.second->ClearEventCache();
+        packagerItem.second->ClearPackagedFileCache();
     }
-    // delete all tmp zipped export file
-    std::for_each(zippedExportFileMap_.begin(), zippedExportFileMap_.end(), [] (const auto& item) {
-        if (!FileUtil::RemoveFile(item.first)) {
-            HIVIEW_LOGE("failed to delete %{public}s", StringUtil::HideDeviceIdInfo(item.first).c_str());
-        }
-    });
-    zippedExportFileMap_.clear();
 }
 } // HiviewDFX
 } // OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,43 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_EVENT_EXPORT_EXPORTED_EVENT_WRITE_HANDLER_H
-#define HIVIEW_BASE_EVENT_EXPORT_EXPORTED_EVENT_WRITE_HANDLER_H
+#ifndef HIVIEW_BASE_EVENT_EXPORT_EVENT_WRITE_HANDLER_H
+#define HIVIEW_BASE_EVENT_EXPORT_EVENT_WRITE_HANDLER_H
 
-#include <functional>
 #include <list>
-#include <tuple>
-#include <unordered_map>
 
+#include "cached_event.h"
 #include "export_base_handler.h"
 #include "export_db_storage.h"
-#include "export_json_file_writer.h"
+#include "cached_event_packager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-struct CachedEvent {
-    // event version
-    EventVersion version;
-
-    // event domain
-    std::string domain;
-
-    // event name
-    std::string name;
-
-    // event json string
-    std::string eventStr;
-
-    CachedEvent(EventVersion& version, std::string& domain, std::string& name, std::string& eventStr)
-        : version(version), domain(domain), name(name), eventStr(eventStr) {}
-};
-
 struct EventWriteRequest : public BaseRequest {
     // name of export module
     std::string moduleName;
 
     // item: <system version, domain, sequecen, sysevent content>
-    std::list<std::shared_ptr<CachedEvent>> sysEvents;
+    std::list<std::shared_ptr<CachedEvent>> cachedEvents;
 
     // directory configured for export event file to store
     std::string exportDir;
@@ -60,10 +41,10 @@ struct EventWriteRequest : public BaseRequest {
     // max size of a single event file
     int64_t maxSingleFileSize = 0;
 
-    EventWriteRequest(std::string& moduleName, std::list<std::shared_ptr<CachedEvent>>& sysEvents,
+    EventWriteRequest(std::string& moduleName, std::list<std::shared_ptr<CachedEvent>>& cachedEvents,
         std::string& exportDir, bool isQueryCompleted, int64_t maxSingleFileSize)
-        : moduleName(moduleName), sysEvents(sysEvents), exportDir(exportDir), isQueryCompleted(isQueryCompleted),
-        maxSingleFileSize(maxSingleFileSize) {}
+        : moduleName(moduleName), cachedEvents(cachedEvents), exportDir(exportDir),
+        isQueryCompleted(isQueryCompleted), maxSingleFileSize(maxSingleFileSize) {}
 };
 
 class EventWriteHandler : public ExportBaseHandler {
@@ -71,18 +52,15 @@ public:
     bool HandleRequest(RequestPtr req) override;
 
 private:
-    std::shared_ptr<ExportJsonFileWriter> GetEventWriter(const EventVersion& eventVersion,
+    std::shared_ptr<CachedEventPackager> GetCachedEventPackager(const std::shared_ptr<CachedEvent> cachedEvent,
         std::shared_ptr<EventWriteRequest> writeReq);
-    void CopyTmpZipFilesToDest();
+    void Finish();
     void Rollback();
 
 private:
-    // <key: <module name, event version>, value: writer>
-    std::map<std::pair<std::string, std::string>, std::shared_ptr<ExportJsonFileWriter>> allJsonFileWriters_;
-    // <tmpZipFilePath, destZipFilePath>
-    std::unordered_map<std::string, std::string> zippedExportFileMap_;
+    std::map<std::string, std::shared_ptr<CachedEventPackager>> cachedEventPackagerMap_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_EVENT_EXPORT_EXPORTED_EVENT_WRITE_HANDLER_H
+#endif // HIVIEW_BASE_EVENT_EXPORT_EVENT_WRITE_HANDLER_H
