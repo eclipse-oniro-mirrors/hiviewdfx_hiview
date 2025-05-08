@@ -38,6 +38,7 @@ private:
     Json::Value FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal) const;
     bool TruncateLogIfExceedsLimit(std::string& readContent) const;
     bool RemoveHiLogSection(std::string& readContent) const;
+    void CheckHilogTime(FaultLogInfo& info);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
