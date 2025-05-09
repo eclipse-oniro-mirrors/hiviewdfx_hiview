@@ -24,15 +24,15 @@ DEFINE_LOG_TAG("HiView-EventExportFlow");
 bool EventWriteHandler::HandleRequest(RequestPtr req)
 {
     auto writeReq = BaseRequest::DownCastTo<EventWriteRequest>(req);
-    for (const auto& cachedEvent : writeReq->cachedEvents) {
-        if (cachedEvent == nullptr) {
+    for (const auto& event : writeReq->events) {
+        if (event == nullptr) {
             HIVIEW_LOGE("invalid event");
             Rollback();
             return false;
         }
-        auto packager = GetCachedEventPackager(cachedEvent, writeReq);
+        auto packager = GetEventPackager(event, writeReq);
         if (packager == nullptr ||
-            !packager->AppendCachedEvent(cachedEvent->domain, cachedEvent->name, cachedEvent->eventStr)) {
+            !packager->AppendEvent(event->domain, event->name, event->eventStr)) {
             HIVIEW_LOGE("failed to append event to event writer");
             Rollback();
             return false;
@@ -41,11 +41,11 @@ bool EventWriteHandler::HandleRequest(RequestPtr req)
     if (!writeReq->isQueryCompleted) {
         return true;
     }
-    for (const auto& packagerItem : cachedEventPackagerMap_) {
-        if (packagerItem.second == nullptr) {
+    for (const auto& packager : packagers_) {
+        if (packager.second == nullptr) {
             continue;
         }
-        if (!packagerItem.second->Package()) {
+        if (!packager.second->Package()) {
             HIVIEW_LOGE("failed to write export event");
             Rollback();
             return false;
@@ -55,44 +55,44 @@ bool EventWriteHandler::HandleRequest(RequestPtr req)
     return true;
 }
 
-std::shared_ptr<CachedEventPackager> EventWriteHandler::GetCachedEventPackager(
-    const std::shared_ptr<CachedEvent> cachedEvent, std::shared_ptr<EventWriteRequest> writeReq)
+std::shared_ptr<ExportEventPackager> EventWriteHandler::GetEventPackager(
+    const std::shared_ptr<CachedEvent> event, std::shared_ptr<EventWriteRequest> writeReq)
 {
-    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_FILE);
-    std::string packagerKey = strategy->GetPackagerKey(cachedEvent);
+    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_JSON_FILE);
+    std::string packagerKey = strategy->GetPackagerKey(event);
     if (packagerKey.empty()) {
         HIVIEW_LOGW("pacakger key is empty");
         return nullptr;
     }
-    auto iter = cachedEventPackagerMap_.find(packagerKey);
-    if (iter == cachedEventPackagerMap_.end()) {
-        HIVIEW_LOGI("create json file writer with system version[%{public}s] and patch version[%{public}s]",
-            cachedEvent->version.systemVersion.c_str(), cachedEvent->version.patchVersion.c_str());
-        auto cachedEventPackager = std::make_shared<CachedEventPackager>(writeReq->moduleName, writeReq->exportDir,
-            cachedEvent->version, cachedEvent->uid, writeReq->maxSingleFileSize);
-        cachedEventPackagerMap_.emplace(packagerKey, cachedEventPackager);
-        return cachedEventPackager;
+    auto iter = packagers_.find(packagerKey);
+    if (iter == packagers_.end()) {
+        HIVIEW_LOGI("create packager: [%{public}s][%{public}s][%{public}" PRId32 "]",
+            event->version.systemVersion.c_str(), event->version.patchVersion.c_str(), event->uid);
+        auto packager = std::make_shared<ExportEventPackager>(writeReq->moduleName, writeReq->exportDir,
+            event->version, event->uid, writeReq->maxSingleFileSize);
+            packagers_.emplace(packagerKey, packager);
+        return packager;
     }
     return iter->second;
 }
 
 void EventWriteHandler::Finish()
 {
-    for (const auto& packagerItem : cachedEventPackagerMap_) {
-        if (packagerItem.second == nullptr) {
+    for (const auto& packager : packagers_) {
+        if (packager.second == nullptr) {
             continue;
         }
-        packagerItem.second->HandlePackagedFileCache();
+        packager.second->HandlePackagedFiles();
     }
 }
 
 void EventWriteHandler::Rollback()
 {
-    for (const auto& packagerItem : cachedEventPackagerMap_) {
-        if (packagerItem.second == nullptr) {
+    for (const auto& packager : packagers_) {
+        if (packager.second == nullptr) {
             continue;
         }
-        packagerItem.second->ClearPackagedFileCache();
+        packager.second->ClearPackagedFiles();
     }
 }
 } // HiviewDFX

@@ -177,6 +177,7 @@ bool PersistJsonStr(cJSON* root, std::string& ret)
         return false;
     }
     ret = std::string(parsedJsonStr);
+    cJSON_free(parsedJsonStr);
     return true;
 }
 }
@@ -199,7 +200,9 @@ bool ExportJsonFileBuilder::Build(const CachedEventMap& eventMap, std::string& b
         cJSON_Delete(root);
         return false;
     }
-    return PersistJsonStr(root, buildStr);
+    bool peristRet = PersistJsonStr(root, buildStr);
+    cJSON_Delete(root);
+    return peristRet;
 }
 
 bool ExportJsonFileBuilder::BuildHeader(cJSON* root)

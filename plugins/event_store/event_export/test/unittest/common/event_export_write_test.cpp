@@ -17,9 +17,9 @@
 
 #include <memory>
 
-#include "cached_event_packager.h"
 #include "event_export_util.h"
 #include "event_write_strategy_factory.h"
+#include "export_event_packager.h"
 #include "export_file_writer.h"
 #include "export_json_file_builder.h"
 #include "file_util.h"
@@ -106,19 +106,19 @@ void EventExportWriteTest::TearDown()
 
 /**
  * @tc.name: EventExportWriteTest001
- * @tc.desc: Test apis of CachedEventPackager
+ * @tc.desc: Test apis of ExportEventPackager
  * @tc.type: FUNC
  * @tc.require: issueIC607P
  */
 HWTEST_F(EventExportWriteTest, EventExportWriteTest001, testing::ext::TestSize.Level3)
 {
-    CachedEventPackager packager(MODULE_NAME, EXPORT_DIR, EVENT_VER, UID, MAX_FILE_SIZE);
+    ExportEventPackager packager(MODULE_NAME, EXPORT_DIR, EVENT_VER, UID, MAX_FILE_SIZE);
     std::string eventStr = BuildEventStr();
-    ASSERT_TRUE(packager.AppendCachedEvent(TEST_DOMAIN, TEST_EVENT_NAME, eventStr));
-    packager.ClearPackagedFileCache();
-    ASSERT_TRUE(packager.AppendCachedEvent(TEST_DOMAIN, TEST_EVENT_NAME, eventStr));
+    ASSERT_TRUE(packager.AppendEvent(TEST_DOMAIN, TEST_EVENT_NAME, eventStr));
+    packager.ClearPackagedFiles();
+    ASSERT_TRUE(packager.AppendEvent(TEST_DOMAIN, TEST_EVENT_NAME, eventStr));
     ASSERT_TRUE(packager.Package());
-    packager.HandlePackagedFileCache();
+    packager.HandlePackagedFiles();
     ASSERT_TRUE(packager.Package());
 }
 
@@ -130,12 +130,13 @@ HWTEST_F(EventExportWriteTest, EventExportWriteTest001, testing::ext::TestSize.L
  */
 HWTEST_F(EventExportWriteTest, EventExportWriteTest002, testing::ext::TestSize.Level3)
 {
-    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_FILE);
+    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_JSON_FILE);
     ASSERT_NE(strategy, nullptr);
     ASSERT_EQ(strategy->GetPackagerKey(BuildCacheEvent()), "SV0.0.1_PV0.0.2_100");
     auto strategyParam = BuildWriteStrategyParam();
+    strategy->SetWriteStrategyParam(strategyParam);
     auto eventStr = BuildEventStr();
-    ASSERT_TRUE(strategy->HandleWroteResult(strategyParam, eventStr, [this] (const std::string& srcPath,
+    ASSERT_TRUE(strategy->Write(eventStr, [this] (const std::string& srcPath,
         const std::string& destPath) {
         AssertWroteFiles(srcPath, destPath);
     }));
@@ -151,10 +152,10 @@ HWTEST_F(EventExportWriteTest, EventExportWriteTest003, testing::ext::TestSize.L
 {
     std::shared_ptr<ExportFileBaseBuilder> builder = std::make_shared<ExportJsonFileBuilder>(EVENT_VER);
     ASSERT_NE(builder, nullptr);
-    CachedEventMap cachedEventMap;
-    BuildCachedEventMap(cachedEventMap);
+    CachedEventMap events;
+    BuildCachedEventMap(events);
     std::string buildStr;
-    ASSERT_TRUE(builder->Build(cachedEventMap, buildStr));
+    ASSERT_TRUE(builder->Build(events, buildStr));
     ASSERT_GT(buildStr.size(), 0);
 }
 
@@ -172,11 +173,11 @@ HWTEST_F(EventExportWriteTest, EventExportWriteTest004, testing::ext::TestSize.L
         const std::string& destPath) {
         AssertWroteFiles(srcPath, destPath);
     });
-    CachedEventMap cachedEventMap;
-    BuildCachedEventMap(cachedEventMap);
+    CachedEventMap events;
+    BuildCachedEventMap(events);
     auto strategyParam = BuildWriteStrategyParam();
-    ASSERT_FALSE(fileWriter.Write(nullptr, cachedEventMap, strategyParam));
-    ASSERT_TRUE(fileWriter.Write(std::make_shared<ExportJsonFileBuilder>(EVENT_VER), cachedEventMap,
+    ASSERT_FALSE(fileWriter.Write(nullptr, events, strategyParam));
+    ASSERT_TRUE(fileWriter.Write(std::make_shared<ExportJsonFileBuilder>(EVENT_VER), events,
         strategyParam));
 }
 

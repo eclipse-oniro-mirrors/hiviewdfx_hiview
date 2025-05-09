@@ -27,11 +27,27 @@ DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
 using StrategyBuilderFunc = std::function<std::shared_ptr<EventWriteBaseStrategy>()>;
 }
+
+void EventWriteBaseStrategy::SetWriteStrategyParam(WriteStrategyParam& param)
+{
+    param_ = param;
+}
+
+std::string EventWriteBaseStrategy::GetPackagerKey(std::shared_ptr<CachedEvent> cachedEvent)
+{
+    return "";
+}
+
+bool EventWriteBaseStrategy::Write(std::string& exportContent, WroteCallback callback)
+{
+    return false;
+}
+
 std::shared_ptr<EventWriteBaseStrategy> EventWriteStrategyFactory::GetWriteStrategy(StrategyType type)
 {
     static std::unordered_map<StrategyType, StrategyBuilderFunc> strategyBuilderMap = {
         {
-            StrategyType::ZIP_FILE, [] () {
+            StrategyType::ZIP_JSON_FILE, [] () {
                 return std::make_shared<WriteZipFileStrategy>();
             }
         }

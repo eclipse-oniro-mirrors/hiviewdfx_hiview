@@ -26,23 +26,27 @@ namespace HiviewDFX {
 struct WriteStrategyParam {
     std::string moduleName;
     std::string exportDir;
-    EventVersion eventVersion;
-    int32_t uid;
+    EventVersion version;
+    int32_t uid = 0;
 };
 
-using EventWroteCallback = std::function<void(const std::string&, const std::string&)>;
+using WroteCallback = std::function<void(const std::string&, const std::string&)>;
 class EventWriteBaseStrategy {
 public:
     EventWriteBaseStrategy() = default;
     virtual ~EventWriteBaseStrategy() = default;
 
-    virtual std::string GetPackagerKey(std::shared_ptr<CachedEvent> cachedEvent) = 0;
-    virtual bool HandleWroteResult(WriteStrategyParam& param, std::string& exportContent,
-        EventWroteCallback callback) = 0;
+    virtual void SetWriteStrategyParam(WriteStrategyParam& param);
+
+    virtual std::string GetPackagerKey(std::shared_ptr<CachedEvent> cachedEvent);
+    virtual bool Write(std::string& exportContent, WroteCallback callback);
+
+protected:
+    WriteStrategyParam param_;
 };
 
 enum StrategyType {
-    ZIP_FILE,
+    ZIP_JSON_FILE,
 };
 
 class EventWriteStrategyFactory {

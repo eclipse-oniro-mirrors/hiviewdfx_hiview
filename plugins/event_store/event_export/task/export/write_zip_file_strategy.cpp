@@ -127,33 +127,31 @@ void WriteContentToFile(std::string& content, const std::string& localFile)
 }
 }
 
-std::string WriteZipFileStrategy::GetPackagerKey(std::shared_ptr<CachedEvent> cachedEvent)
+std::string WriteZipFileStrategy::GetPackagerKey(std::shared_ptr<CachedEvent> event)
 {
-    if (cachedEvent == nullptr) {
+    if (event == nullptr) {
         return "";
     }
     std::string packagerKey;
-    packagerKey.append(cachedEvent->version.systemVersion).append("_");
-    packagerKey.append(cachedEvent->version.patchVersion).append("_");
-    packagerKey.append(std::to_string(cachedEvent->uid));
+    packagerKey.append(event->version.systemVersion).append("_");
+    packagerKey.append(event->version.patchVersion).append("_");
+    packagerKey.append(std::to_string(event->uid));
     return packagerKey;
 }
 
-bool WriteZipFileStrategy::HandleWroteResult(WriteStrategyParam& param, std::string& exportContent,
-    EventWroteCallback callback)
+bool WriteZipFileStrategy::Write(std::string& exportContent, WroteCallback callback)
 {
-    auto wroteFileName = GetWroteTempDir(param.moduleName, param.eventVersion).append(EXPORT_JSON_FILE_NAME);
-    HIVIEW_LOGD("packagedFile: %{public}s", wroteFileName.c_str());
+    auto wroteFileName = GetWroteTempDir(param_.moduleName, param_.version).append(EXPORT_JSON_FILE_NAME);
     WriteContentToFile(exportContent, wroteFileName);
     // zip json file into a temporary zip file
-    auto tmpZipFile = GetTmpZipFile(param.exportDir, param.moduleName, param.eventVersion, param.uid);
+    auto tmpZipFile = GetTmpZipFile(param_.exportDir, param_.moduleName, param_.version, param_.uid);
     if (!ZipExportFile(wroteFileName, tmpZipFile)) {
         HIVIEW_LOGE("failed to zip %{public}s to %{public}s", wroteFileName.c_str(),
             StringUtil::HideDeviceIdInfo(tmpZipFile).c_str());
         return false;
     }
-    auto zipFile = GetZipFile(param.exportDir, param.uid);
-    HIVIEW_LOGD("zipFile: %{public}s", StringUtil::HideDeviceIdInfo(zipFile).c_str());
+    auto zipFile = GetZipFile(param_.exportDir, param_.uid);
+    HIVIEW_LOGD("dest file: %{public}s", StringUtil::HideDeviceIdInfo(zipFile).c_str());
     if (callback != nullptr) {
         callback(tmpZipFile, zipFile);
     }

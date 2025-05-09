@@ -25,8 +25,7 @@ namespace HiviewDFX {
 class WriteZipFileStrategy : public EventWriteBaseStrategy {
 public:
     std::string GetPackagerKey(std::shared_ptr<CachedEvent> cachedEvent) override;
-    bool HandleWroteResult(WriteStrategyParam& param, std::string& exportContent,
-        EventWroteCallback callback) override;
+    bool Write(std::string& exportContent, WroteCallback callback) override;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

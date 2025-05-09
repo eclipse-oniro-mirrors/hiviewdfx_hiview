@@ -21,7 +21,7 @@
 #include "cached_event.h"
 #include "export_base_handler.h"
 #include "export_db_storage.h"
-#include "cached_event_packager.h"
+#include "export_event_packager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -30,7 +30,7 @@ struct EventWriteRequest : public BaseRequest {
     std::string moduleName;
 
     // item: <system version, domain, sequecen, sysevent content>
-    std::list<std::shared_ptr<CachedEvent>> cachedEvents;
+    std::list<std::shared_ptr<CachedEvent>> events;
 
     // directory configured for export event file to store
     std::string exportDir;
@@ -41,9 +41,9 @@ struct EventWriteRequest : public BaseRequest {
     // max size of a single event file
     int64_t maxSingleFileSize = 0;
 
-    EventWriteRequest(std::string& moduleName, std::list<std::shared_ptr<CachedEvent>>& cachedEvents,
+    EventWriteRequest(std::string& moduleName, std::list<std::shared_ptr<CachedEvent>>& events,
         std::string& exportDir, bool isQueryCompleted, int64_t maxSingleFileSize)
-        : moduleName(moduleName), cachedEvents(cachedEvents), exportDir(exportDir),
+        : moduleName(moduleName), events(events), exportDir(exportDir),
         isQueryCompleted(isQueryCompleted), maxSingleFileSize(maxSingleFileSize) {}
 };
 
@@ -52,13 +52,13 @@ public:
     bool HandleRequest(RequestPtr req) override;
 
 private:
-    std::shared_ptr<CachedEventPackager> GetCachedEventPackager(const std::shared_ptr<CachedEvent> cachedEvent,
+    std::shared_ptr<ExportEventPackager> GetEventPackager(const std::shared_ptr<CachedEvent> event,
         std::shared_ptr<EventWriteRequest> writeReq);
     void Finish();
     void Rollback();
 
 private:
-    std::map<std::string, std::shared_ptr<CachedEventPackager>> cachedEventPackagerMap_;
+    std::map<std::string, std::shared_ptr<ExportEventPackager>> packagers_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

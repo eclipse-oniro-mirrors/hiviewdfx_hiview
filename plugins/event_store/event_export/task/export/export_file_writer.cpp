@@ -20,19 +20,20 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventExportFlow");
-bool ExportFileWriter::Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder, CachedEventMap cachedEventMap,
+bool ExportFileWriter::Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder, CachedEventMap events,
     WriteStrategyParam& param)
 {
     if (fileBuilder == nullptr) {
         HIVIEW_LOGE("invalid export file builder");
         return false;
     }
-    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_FILE);
     std::string buildStr;
-    if (!fileBuilder->Build(cachedEventMap, buildStr)) {
+    if (!fileBuilder->Build(events, buildStr)) {
         return false;
     }
-    return strategy->HandleWroteResult(param, buildStr,
+    auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_JSON_FILE);
+    strategy->SetWriteStrategyParam(param);
+    return strategy->Write(buildStr,
         [this] (const std::string& srcPath, const std::string& destPath) {
             if (exportFileWroteListener_ == nullptr) {
                 return;

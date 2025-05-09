@@ -42,7 +42,7 @@ struct CachedEvent {
     std::string eventStr;
 
     // transformed uid
-    int32_t uid;
+    int32_t uid = 0;
 
     CachedEvent(const EventVersion& version, const std::string& domain, const std::string& name,
         const std::string& eventStr, int32_t uid) : version(version), domain(domain), name(name),

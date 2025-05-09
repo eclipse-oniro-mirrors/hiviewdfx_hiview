@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_EVENT_EXPORT_CACHED_EVENT_PACAKGER_H
-#define HIVIEW_BASE_EVENT_EXPORT_CACHED_EVENT_PACAKGER_H
+#ifndef HIVIEW_BASE_EVENT_EXPORT_EVENT_PACAKGER_H
+#define HIVIEW_BASE_EVENT_EXPORT_EVENT_PACAKGER_H
 
 #include <functional>
 #include <string>
@@ -25,32 +25,32 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-class CachedEventPackager {
+class ExportEventPackager {
 public:
-    CachedEventPackager(const std::string& moduleName, const std::string& exportDir, const EventVersion& eventVersion,
+    ExportEventPackager(const std::string& moduleName, const std::string& exportDir, const EventVersion& eventVersion,
         int32_t uid, int64_t maxFileSize);
 
-    bool AppendCachedEvent(const std::string& domain, const std::string& name, const std::string& eventStr);
+    bool AppendEvent(const std::string& domain, const std::string& name, const std::string& eventStr);
     bool Package();
-    void ClearPackagedFileCache();
-    void HandlePackagedFileCache();
+    void ClearPackagedFiles();
+    void HandlePackagedFiles();
 
 private:
-    void ClearEventCache();
+    void ClearPackagedEvents();
 
 private:
     std::string moduleName_;
     std::string exportDir_;
     EventVersion eventVersion_;
-    int64_t maxFileSize_ = 0;
-    int64_t totalJsonStrSize_ = 0;
+    uint64_t maxFileSize_ = 0;
+    uint64_t totalJsonStrSize_ = 0;
     int32_t uid_ = 0;
     // <domain, <name, eventContentString>>
-    CachedEventMap eventCache_;
+    CachedEventMap packagedEvents_;
     // <tmpZipFilePath, destZipFilePath>
-    std::unordered_map<std::string, std::string> packagedFileCache_;
+    std::unordered_map<std::string, std::string> packagedFiles_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_EVENT_EXPORT_CACHED_EVENT_PACAKGER_H
+#endif // HIVIEW_BASE_EVENT_EXPORT_EVENT_PACAKGER_H

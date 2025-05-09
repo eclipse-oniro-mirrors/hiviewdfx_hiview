@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "cached_event_packager.h"
+#include "export_event_packager.h"
 
 #include "event_write_strategy_factory.h"
 #include "export_file_writer.h"
@@ -29,27 +29,27 @@ namespace {
 constexpr int64_t MB_TO_BYTE = 1024 * 1024;
 }
 
-CachedEventPackager::CachedEventPackager(const std::string& moduleName, const std::string& exportDir,
+ExportEventPackager::ExportEventPackager(const std::string& moduleName, const std::string& exportDir,
     const EventVersion& eventVersion, int32_t uid, int64_t maxFileSize)
 {
     moduleName_ = moduleName;
     exportDir_ = exportDir;
     eventVersion_ = eventVersion;
     uid_ = uid;
-    maxFileSize_ = maxFileSize * MB_TO_BYTE;
+    maxFileSize_ = static_cast<uint64_t>(maxFileSize * MB_TO_BYTE);
 }
 
-bool CachedEventPackager::AppendCachedEvent(const std::string& domain, const std::string& name,
+bool ExportEventPackager::AppendEvent(const std::string& domain, const std::string& name,
     const std::string& eventStr)
 {
-    int64_t eventSize = static_cast<int64_t>(eventStr.size());
+    uint64_t eventSize = eventStr.size();
     if (totalJsonStrSize_ + eventSize > maxFileSize_ && !Package()) {
         HIVIEW_LOGE("failed to package events");
         return false;
     }
-    auto iter = eventCache_.find(domain);
-    if (iter == eventCache_.end()) {
-        eventCache_.emplace(domain, std::vector<std::pair<std::string, std::string>> {
+    auto iter = packagedEvents_.find(domain);
+    if (iter == packagedEvents_.end()) {
+        packagedEvents_.emplace(domain, std::vector<std::pair<std::string, std::string>> {
             std::make_pair(name, eventStr),
         });
         totalJsonStrSize_ += eventSize;
@@ -60,22 +60,22 @@ bool CachedEventPackager::AppendCachedEvent(const std::string& domain, const std
     return true;
 }
 
-void CachedEventPackager::ClearEventCache()
+void ExportEventPackager::ClearPackagedEvents()
 {
-    eventCache_.clear();
+    packagedEvents_.clear();
     totalJsonStrSize_ = 0;
 }
 
-bool CachedEventPackager::Package()
+bool ExportEventPackager::Package()
 {
-    if (eventCache_.empty()) {
+    if (packagedEvents_.empty()) {
         HIVIEW_LOGW("no need to package empty cache");
         return true;
     }
     ExportFileWriter fileWriter;
     fileWriter.SetExportFileWroteListener([this] (const std::string& srcPath,
         const std::string& destPath) {
-        packagedFileCache_[srcPath] = destPath;
+        packagedFiles_[srcPath] = destPath;
     });
     WriteStrategyParam param {
         moduleName_,
@@ -83,37 +83,37 @@ bool CachedEventPackager::Package()
         eventVersion_,
         uid_,
     };
-    bool ret = fileWriter.Write(std::make_shared<ExportJsonFileBuilder>(eventVersion_), eventCache_, param);
+    bool ret = fileWriter.Write(std::make_shared<ExportJsonFileBuilder>(eventVersion_), packagedEvents_, param);
     if (!ret) {
         HIVIEW_LOGE("failed to package cached events");
     }
     // after package, the event cache must be cleared
-    ClearEventCache();
+    ClearPackagedEvents();
     return ret;
 }
 
-void CachedEventPackager::ClearPackagedFileCache()
+void ExportEventPackager::ClearPackagedFiles()
 {
     // delete all temporary pacakaged files
-    std::for_each(packagedFileCache_.begin(), packagedFileCache_.end(), [] (const auto& item) {
+    std::for_each(packagedFiles_.begin(), packagedFiles_.end(), [] (const auto& item) {
         if (!FileUtil::RemoveFile(item.first)) {
             HIVIEW_LOGE("failed to delete %{public}s", StringUtil::HideDeviceIdInfo(item.first).c_str());
         }
     });
-    packagedFileCache_.clear();
+    packagedFiles_.clear();
 }
 
-void CachedEventPackager::HandlePackagedFileCache()
+void ExportEventPackager::HandlePackagedFiles()
 {
     // move all temporary packaged file to dest directory
-    std::for_each(packagedFileCache_.begin(), packagedFileCache_.end(), [] (const auto& item) {
+    std::for_each(packagedFiles_.begin(), packagedFiles_.end(), [] (const auto& item) {
         if (!FileUtil::RenameFile(item.first, item.second)) {
             HIVIEW_LOGE("failed to move %{public}s to %{public}s", StringUtil::HideDeviceIdInfo(item.first).c_str(),
                 StringUtil::HideDeviceIdInfo(item.second).c_str());
         }
         HIVIEW_LOGI("renamed file: %{public}s", StringUtil::HideDeviceIdInfo(item.second).c_str());
     });
-    packagedFileCache_.clear();
+    packagedFiles_.clear();
 }
 } // HiviewDFX
 } // OHOS
