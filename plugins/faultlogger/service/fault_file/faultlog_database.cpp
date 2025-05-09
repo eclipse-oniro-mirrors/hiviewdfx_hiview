@@ -109,6 +109,8 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
                             info.sectionMap.at("HITRACE_TIME") : "",
             "SYSRQ_TIME", info.sectionMap.find("SYSRQ_TIME") != info.sectionMap.end() ?
                           info.sectionMap.at("SYSRQ_TIME") : "",
+            "FG", info.sectionMap.find("INVAILED_HILOG_TIME") != info.sectionMap.end() ?
+                            (info.sectionMap.at("INVAILED_HILOG_TIME") == "true" ? 1 : -1) : 0,
             FaultKey::PROCESS_NAME, info.sectionMap["PROCESS_NAME"].empty() ? "/" : info.sectionMap["PROCESS_NAME"],
             FaultKey::FIRST_FRAME, info.sectionMap[FaultKey::FIRST_FRAME].empty() ?
                 "/" : info.sectionMap[FaultKey::FIRST_FRAME],

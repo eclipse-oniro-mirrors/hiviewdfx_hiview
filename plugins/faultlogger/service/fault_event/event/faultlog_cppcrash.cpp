@@ -14,6 +14,8 @@
  */
 #include "faultlog_cppcrash.h"
 
+#include <chrono>
+#include <ctime>
 #include <fstream>
 
 #include "crash_exception.h"
@@ -25,11 +27,72 @@
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 using namespace FaultLogger;
+
+namespace {
+    const int DFX_HILOG_TIMESTAMP_LEN = 18;
+    const int DFX_HILOG_TIMESTAMP_START_YEAR = 1900;
+    const int DFX_HILOG_TIMESTAMP_MILLISEC_NUM = 3;
+    const int DFX_HILOG_TIMESTAMP_DECIMAL = 10;
+    const int64_t DFX_HILOG_TIMESTAMP_THOUSAND = 1000;
+}
+
+void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
+{
+    if (!Parameter::IsBetaVersion()) {
+        return;
+    }
+    // drop last line tail '\n'
+    size_t hilogLen = info.sectionMap[FaultKey::HILOG].length();
+    if (hilogLen > 0 && info.sectionMap[FaultKey::HILOG][hilogLen - 1] == '\n') {
+        hilogLen--;
+    }
+    size_t pos = info.sectionMap[FaultKey::HILOG].rfind('\n', hilogLen - 1);
+    if (pos == std::string::npos) {
+        HIVIEW_LOGE("CheckHilogTime get last line hilog fail");
+        return;
+    }
+    // add hilog time year
+    std::string lastLineHilog = info.sectionMap[FaultKey::HILOG].substr(pos + 1);
+    if (lastLineHilog.length() < DFX_HILOG_TIMESTAMP_LEN) {
+        HIVIEW_LOGE("CheckHilogTime invalid length last line");
+        return;        
+    }
+    std::string lastLineHilogTimeStr = lastLineHilog.substr(0, DFX_HILOG_TIMESTAMP_LEN);
+    auto now = std::chrono::system_clock::now();
+    std::time_t nowTt = std::chrono::system_clock::to_time_t(now);
+    std::tm* nowTm = std::localtime(&nowTt);
+    lastLineHilogTimeStr = std::to_string(nowTm->tm_year + DFX_HILOG_TIMESTAMP_START_YEAR) +
+                            "-" + lastLineHilogTimeStr;
+    // format last line hilog time
+    std::tm lastLineHilogTm = {0};
+    std::istringstream ss(lastLineHilogTimeStr);
+    ss >> std::get_time(&lastLineHilogTm, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+        HIVIEW_LOGE("CheckHilogTime get time fail");
+        return;
+    }
+    std::time_t lastLineHilogTt = std::mktime(&lastLineHilogTm);
+    int64_t lastLineHilogTime = static_cast<int64_t>(lastLineHilogTt);
+    // format time from second to milliseconds
+    size_t dotPos = lastLineHilogTimeStr.find_last_of('.');
+    long milliseconds = 0;
+    if (dotPos != std::string::npos && dotPos + DFX_HILOG_TIMESTAMP_MILLISEC_NUM < lastLineHilogTimeStr.size()) {
+        std::string millisecStr = lastLineHilogTimeStr.substr(dotPos + 1, DFX_HILOG_TIMESTAMP_MILLISEC_NUM);
+        milliseconds = strtol(millisecStr.c_str(), nullptr, DFX_HILOG_TIMESTAMP_DECIMAL);
+    }
+    lastLineHilogTime = lastLineHilogTime * DFX_HILOG_TIMESTAMP_THOUSAND + static_cast<int64_t>(milliseconds);
+    // check time invalid
+    if (lastLineHilogTime < info.time) {
+        info.sectionMap["INVAILED_HILOG_TIME"] = "true";
+        HIVIEW_LOGW("Hilog Time: %{public}" PRId64 ", Crash Time %{public}" PRId64 ".", lastLineHilogTime, info.time);
+    }
+}
 
 std::string FaultLogCppCrash::ReadStackFromPipe(const FaultLogInfo& info) const
 {
@@ -109,11 +172,20 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
     info.sectionMap[FaultKey::APPEND_ORIGIN_LOG] = GetCppCrashTempLogName(info);
     std::string path = FAULTLOG_FAULT_HILOG_FOLDER + std::to_string(info.pid) +
         "-" + std::to_string(info.id) + "-" + std::to_string(info.time);
-    std::string snapShotHilog;
-    if (FileUtil::LoadStringFromFile(path, snapShotHilog)) {
-        info.sectionMap[FaultKey::HILOG] = snapShotHilog;
+    std::string hilogSnapShot;
+    if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
+        info.sectionMap[FaultKey::HILOG] = hilogSnapShot;
+        return;
+    }
+
+    std::string hilogGetByCmd;
+    hilogGetByCmd = GetHilogByPid(info.pid);
+    if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
+        info.sectionMap[FaultKey::HILOG] = hilogSnapShot;
     } else {
-        info.sectionMap[FaultKey::HILOG] = GetHilogByPid(info.pid);
+        info.sectionMap[FaultKey::HILOG] = hilogGetByCmd;
+        info.sectionMap["INVAILED_HILOG_TIME"] = "false";
+        CheckHilogTime(info);
     }
 }
 
