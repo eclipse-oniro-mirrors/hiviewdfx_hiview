@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -108,14 +108,8 @@ HWTEST_F(PluginPlatformTest, PluginPlatformDynamicPluginUnloadTest001, TestSize.
      */
     printf("PluginPlatformTest2.\n");
     OHOS::HiviewDFX::HiviewPlatform platform;
-    if (!platform.InitEnvironment("/data/test/test_data/hiview_platform_config")) {
-        printf("Fail to init environment. \n");
-    }
-
-    if (access("/system/lib64/libdynamicloadpluginexample.z.so", F_OK) != 0) {
-        printf("dynamic plugin has not been installed.\n");
-        return;
-    }
+    ASSERT_TRUE(platform.InitEnvironment("/data/test/test_data/hiview_platform_config"));
+    ASSERT_EQ(access("/system/lib64/libdynamicloadpluginexample.z.so", F_OK), 0);
 
     sleep(1);
     ASSERT_EQ(true, platform.IsReady());
