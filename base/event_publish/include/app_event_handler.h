@@ -51,14 +51,6 @@ public:
         uint64_t iconInputTime = 0;
         uint64_t animationFinishTime = 0;
         uint64_t extendTime = 0;
-        uint64_t responseLatency = 0;
-        uint64_t launToStartAbilityDur = 0;
-        uint64_t startAbilityProcessStartDur = 0;
-        uint64_t processStartToAppAttachDur = 0;
-        uint64_t appAttachToAppForegroundDur = 0;
-        uint64_t startAbilityAppForegroundDur = 0;
-        uint64_t appForegrAbilityOnForegrDur = 0;
-        uint64_t abilityOnForegStartWindowDur = 0;
     };
 
     struct ScrollJankInfo : public BundleInfo, public ProcessInfo, public AbilityInfo {
