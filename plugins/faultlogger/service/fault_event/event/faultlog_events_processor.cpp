@@ -14,6 +14,7 @@
  */
 #include "faultlog_events_processor.h"
 
+#include "constants.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -25,6 +26,11 @@ void FaultLogEventsProcessor::AddSpecificInfo(FaultLogInfo& info)
     if (info.faultLogType == FaultLogType::ADDR_SANITIZER && info.reason.find("FDSAN") != std::string::npos) {
         info.sectionMap["APPEND_ORIGIN_LOG"] = info.logPath;
         info.logPath = "";
+    }
+    if (info.faultLogType == FaultLogType::JS_CRASH ||
+        info.faultLogType == FaultLogType::RUST_PANIC ||
+        info.faultLogType == FaultLogType::CJ_ERROR) {
+        info.sectionMap[FaultKey::HILOG] = GetHilogByPid(info.pid);
     }
 }
 } // namespace HiviewDFX
