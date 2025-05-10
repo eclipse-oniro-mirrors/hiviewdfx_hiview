@@ -469,6 +469,8 @@
         "OHOS::HiviewDFX::Event::GetInt64Value(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
         "OHOS::HiviewDFX::FileUtil::CopyFileFast(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::CopyFileFastWithLimitSize(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long long)";
+        "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(int)";
+        "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(long)";
     };
   local:
     *;
