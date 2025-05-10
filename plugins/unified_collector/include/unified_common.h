@@ -15,6 +15,7 @@
 #ifndef HIVIEWDFX_HIVIEW_UNIFIED_COMMON_H
 #define HIVIEWDFX_HIVIEW_UNIFIED_COMMON_H
 #include <string>
+#include <unordered_set>
 
 namespace OHOS::HiviewDFX {
 namespace Telemetry {
@@ -35,6 +36,12 @@ namespace Telemetry {
     const std::string KEY_FLOW_RATE = "traceCompressRatio";
     const std::string KEY_TRACE_TAG = "traceArgs";
     constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
+
+    const std::unordered_set<std::string> TRACE_TAG_FILTER_LIST {
+        "sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "pagecache", "workq", "net", "dsched",
+        "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio", "zmedia", "dcamera",
+        "zcamera", "dhfwk", "app", "ability", "power", "samgr", "nweb"
+    };
 }
 }
 #endif //HIVIEWDFX_HIVIEW_UNIFIED_COMMON_H

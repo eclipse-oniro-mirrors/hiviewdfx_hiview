@@ -98,6 +98,7 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
 bool CreateMultiDirectory(const std::string &dirPath);
 int64_t GetTraceSize(TraceRetInfo &ret);
 UcError GetUcError(TraceRet ret);
+bool ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList, std::string &jsonArgs);
 } // HiViewDFX
 } // OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_FILE_UTILS_H

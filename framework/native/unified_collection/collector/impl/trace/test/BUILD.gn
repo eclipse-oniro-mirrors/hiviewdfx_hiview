@@ -45,10 +45,11 @@ ohos_unittest("TraceUtilsTest") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "jsoncpp:jsoncpp",
+    "hiview:libucollection_utility",
     "zlib:libz",
   ]
 

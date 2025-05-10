@@ -16,6 +16,7 @@
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include <gtest/gtest.h>
 #include "trace_utils.h"
+#include "cjson_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -62,5 +63,29 @@ HWTEST_F(TraceUtilsTest, TraceUtilsTest001, TestSize.Level1)
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMAND), "Command");
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMON_DEV), "Other");
     ASSERT_EQ(ClientToString(static_cast<UCollect::TraceClient>(10)), "");
+}
+
+
+/**
+ * @tc.name: TraceUtilsTest002
+ * @tc.desc: used to test ParseAndFilterTraceArgs
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceUtilsTest, TraceUtilsTest002, TestSize.Level1)
+{
+const std::unordered_set<std::string> TEST_WHITE_LIST {
+    "tag2", "tag3", "tag5", "tag9"
+};
+std::string traceArags = R"~({"tags":["tag1","tag2","tag3","tag4","tag5","tag6","tag7"],"bufferSize":1000})~";
+ParseAndFilterTraceArgs(TEST_WHITE_LIST, traceArags);
+std::string result1 = "tags:tag2, tag3, tag5 bufferSize:1000";
+ASSERT_EQ(traceArags, result1);
+
+std::string traceArags2 = R"~({"tags":["tag4"],"bufferSize":1000})~";
+ASSERT_FALSE(ParseAndFilterTraceArgs(TEST_WHITE_LIST, traceArags2));
+
+// Json format error
+std::string traceArags3 = R"~({"tags":["tag1","tag2","tag3",,,,"tag4"],"bufferSize":1000})~";
+ASSERT_FALSE(ParseAndFilterTraceArgs(TEST_WHITE_LIST, traceArags3));
 }
 #endif
