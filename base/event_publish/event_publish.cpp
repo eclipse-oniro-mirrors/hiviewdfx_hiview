@@ -322,6 +322,18 @@ void WriteEventJson(Json::Value& eventJson, const std::string& filePath)
     HIVIEW_LOGI("save event finish, eventName=%{public}s", eventJson[NAME_PROPERTY].asString().c_str());
 }
 
+void CreateSandBox(const std::string& dirPath)
+{
+    if (!FileUtil::FileExists(dirPath) && !FileUtil::ForceCreateDirectory(dirPath)) {
+        HILOG_ERROR(LOG_CORE, "failed to create dir=%{public}s", dirPath.c_str());
+        return;
+    }
+    if (OHOS::StorageDaemon::AclSetAccess(dirPath, "u:1201:rwx") != 0) {
+        HILOG_ERROR(LOG_CORE, "failed to set acl access dir=%{public}s", dirPath.c_str());
+        return;
+    }
+}
+
 void SaveEventAndLogToSandBox(AppEventParams& eventParams)
 {
     ExternalLogInfo externalLogInfo;
@@ -384,6 +396,7 @@ void EventPublish::SendOverLimitEventToSandBox(AppEventParams eventParams)
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventParams.eventName, externalLogInfo);
     std::string sandBoxLogPath = GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder, externalLogInfo);
+    CreateSandBox(sandBoxLogPath);
     SendLogToSandBox(eventParams, sandBoxLogPath, externalLogInfo);
     std::string desPath = GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
