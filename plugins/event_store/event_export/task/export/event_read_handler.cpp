@@ -15,6 +15,7 @@
 
 #include "event_read_handler.h"
 
+#include "common_utils.h"
 #include "event_write_handler.h"
 #include "export_db_storage.h"
 #include "ffrt.h"
@@ -26,7 +27,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-EventReadHandler");
+DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
 constexpr int QUERY_LIMIT = 1000;
 constexpr size_t DEFAULT_EXPORT_INFO_CNT = 1;
@@ -185,7 +186,7 @@ bool EventReadHandler::HandleQueryResult(EventStore::ResultSet& resultSet, Query
         };
         UpdatePeriodInfoMap(allPeriodInfoInOneQueryRange_, iter->GetEventPeriodSeqInfo());
         auto item = std::make_shared<CachedEvent>(eventVersion, iter->domain_, iter->eventName_,
-            currentEventStr);
+            currentEventStr, CommonUtils::GetTransformedUid(iter->GetUid()));
         if (FocusedEventUtil::IsFocusedEvent(iter->domain_, iter->eventName_)) {
             HIVIEW_LOGI("queried event: [%{public}s|%{public}s|%{public}" PRIu64 "]", iter->domain_.c_str(),
                 iter->eventName_.c_str(), iter->happenTime_);

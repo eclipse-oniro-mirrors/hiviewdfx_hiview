@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,18 +13,20 @@
  * limitations under the License.
  */
 
-#include "export_base_task.h"
+#ifndef HIVIEW_BASE_EVENT_EXPORT_WRITE_UNITTEST
+#define HIVIEW_BASE_EVENT_EXPORT_WRITE_UNITTEST
+
+#include <gtest/gtest.h>
 
 namespace OHOS {
 namespace HiviewDFX {
-void ExportBaseTask::Run()
-{
-    OnTaskRun();
-}
-
-std::chrono::seconds ExportBaseTask::GetExecutingCycle()
-{
-    return std::chrono::seconds(config_->taskCycle);
-}
-} // HiviewDFX
-} // OHOS
+class EventExportWriteTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp();
+    void TearDown();
+};
+}  // namespace HiviewDFX
+}  // namespace OHOS
+#endif  // HIVIEW_BASE_EVENT_EXPORT_WRITE_UNITTEST

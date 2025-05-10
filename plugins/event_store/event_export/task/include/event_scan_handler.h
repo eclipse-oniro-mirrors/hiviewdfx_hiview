@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,10 @@
 #ifndef HIVIEW_BASE_EVENT_EXPORT_EVENT_SCAN_HANDLER_H
 #define HIVIEW_BASE_EVENT_EXPORT_EVENT_SCAN_HANDLER_H
 
+#include <string>
+
 #include "export_base_handler.h"
 #include "export_config_parser.h"
-
-#include <string>
 
 namespace OHOS {
 namespace HiviewDFX {

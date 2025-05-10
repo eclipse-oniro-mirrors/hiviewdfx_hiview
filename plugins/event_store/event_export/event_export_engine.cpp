@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-EventExportEngine");
+DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
 constexpr char SYS_EVENT_EXPORT_DIR_NAME[] = "sys_event_export";
 constexpr int REGISTER_RETRY_CNT = 100;
