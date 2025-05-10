@@ -248,7 +248,7 @@
         "OHOS::HiviewDFX::FileUtil::CopyFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::ExtractFileName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::LoadStringFromFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
-        "OHOS::HiviewDFX::EventPublish::PushEvent(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::HiSysEvent::EventType, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::EventPublish::PushEvent(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::HiSysEvent::EventType, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
         "OHOS::HiviewDFX::FileUtil::SaveStringToFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
         "OHOS::HiviewDFX::SqlUtil::GenerateDropSql(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::EventStore::Cond::And(OHOS::HiviewDFX::EventStore::Cond const&)";
@@ -468,6 +468,7 @@
         "OHOS::DelayedSingleton<OHOS::HiviewDFX::EventJsonParser>::instance_";
         "OHOS::HiviewDFX::Event::GetInt64Value(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
         "OHOS::HiviewDFX::FileUtil::CopyFileFast(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::FileUtil::CopyFileFastWithLimitSize(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long long)";
         "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(int)";
         "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(long)";
     };
