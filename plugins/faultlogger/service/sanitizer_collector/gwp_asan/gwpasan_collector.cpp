@@ -212,6 +212,7 @@ void WriteCollectedData(const GwpAsanCurrInfo& currInfo)
     }
     WriteNewFile(fd, currInfo);
     close(fd);
+    fdsan_close_with_tag(fd, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
 }
 
 int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
@@ -224,6 +225,9 @@ int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
         request.pid = currInfo.pid;
         request.time = currInfo.happenTime;
         fd = RequestFileDescriptorEx(&request);
+        if (fd >= 0) {
+            fdsan_exchange_owner_tag(fd, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
+        }
     } else {
         const std::string sandboxBase = "/data/storage/el2";
         if (currInfo.logPath.compare(0, sandboxBase.length(), sandboxBase) != 0) {
@@ -235,6 +239,9 @@ int32_t GetSanitizerFd(const GwpAsanCurrInfo& currInfo)
             std::to_string(currInfo.pid) + "." +
             std::to_string(currInfo.happenTime);
         fd = open(logPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
+        if (fd >= 0) {
+            fdsan_exchange_owner_tag(fd, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
+        }
     }
     return fd;
 }

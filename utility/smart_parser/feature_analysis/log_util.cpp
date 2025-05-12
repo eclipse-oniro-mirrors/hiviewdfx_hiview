@@ -98,10 +98,12 @@ bool LogUtil::ReadFileBuff(const string& file, stringstream& buffer)
     if (!FileUtil::LoadStringFromFd(fd, content)) {
         HIVIEW_LOGE("read file: %s failed, fd is %d\n", file.c_str(), fd);
         close(fd);
+        fdsan_close_with_tag(fd, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
         return false;
     }
     buffer.str(content);
     close(fd);
+    fdsan_close_with_tag(fd, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
     return true;
 }
 
@@ -117,7 +119,11 @@ int LogUtil::GetFileFd(const string& file)
         HIVIEW_LOGE("the system file (%{public}s) is not found.", realFileName.c_str());
         return -1;
     }
-    return open(realFileName.c_str(), O_RDONLY);
+    int fd = open(realFileName.c_str(), O_RDONLY);
+    if (fd >= 0) {
+        fdsan_exchange_owner_tag(fd, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
+    }
+    return fd;
 }
 
 bool LogUtil::FileExist(const string& file)

@@ -98,6 +98,7 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         }
         return "";
     }
+    fdsan_exchange_owner_tag(fd, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
 
     FaultLogger::WriteDfxLogToFile(fd);
     FaultLogger::WriteFaultLogToFile(fd, info.faultLogType, info.sectionMap);
@@ -108,6 +109,7 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
     }
     FaultLogger::LimitCppCrashLog(fd, info.faultLogType);
     close(fd);
+    fdsan_close_with_tag(fd, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
 
     RemoveOldFile(info);
     info.logPath = std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;

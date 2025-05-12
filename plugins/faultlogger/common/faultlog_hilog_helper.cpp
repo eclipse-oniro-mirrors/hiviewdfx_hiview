@@ -88,20 +88,27 @@ std::string FaultlogHilogHelper::GetHilogByPid(int32_t pid)
         HIVIEW_LOGE("Failed to create pipe for get log.");
         return "";
     }
+    fdsan_exchange_owner_tag(fds[0], 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
+    fdsan_exchange_owner_tag(fds[1], 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
+
     int childPid = fork();
     if (childPid < 0) {
         HIVIEW_LOGE("fork fail");
         return "";
     } else if (childPid == 0) {
-        syscall(SYS_close, fds[0]);
+        close(fds[0]);
+        fdsan_close_with_tag(fds[0], fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
         int rc = DoGetHilogProcess(pid, fds[1]);
-        syscall(SYS_close, fds[1]);
+        close(fds[1]);
+        fdsan_close_with_tag(fds[0], fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
         _exit(rc);
     } else {
-        syscall(SYS_close, fds[1]);
+        close(fds[1]);
+        fdsan_close_with_tag(fds[0], fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
         HIVIEW_LOGI("read hilog start");
         std::string log = ReadHilogTimeout(fds[0]);
-        syscall(SYS_close, fds[0]);
+        close(fds[0]);
+        fdsan_close_with_tag(fds[0], fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN));
 
         if (TEMP_FAILURE_RETRY(waitpid(childPid, nullptr, 0)) != childPid) {
             HIVIEW_LOGE("waitpid fail, pid: %{public}d, errno: %{public}d", childPid, errno);

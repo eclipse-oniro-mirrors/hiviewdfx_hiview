@@ -22,6 +22,12 @@
 #include <utility>
 #include <vector>
 
+// defile Domain ID
+#ifndef LOG_DOMAIN
+#undef LOG_DOMAIN
+#endif
+#define LOG_DOMAIN 0xC02D11
+
 namespace OHOS {
 namespace HiviewDFX {
 struct IpcItem {
