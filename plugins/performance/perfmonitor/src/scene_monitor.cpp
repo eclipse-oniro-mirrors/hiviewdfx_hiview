@@ -19,6 +19,7 @@
 #include "perf_trace.h"
 #include "perf_utils.h"
 
+#include "event_handler.h"
 #include "render_service_client/core/transaction/rs_interfaces.h"
 
 namespace OHOS {
@@ -85,15 +86,15 @@ std::string SceneMonitor::GetPageName()
 
 void SceneMonitor::SetAppForeground(bool isShow)
 {
-    JankFrameMonitor::GetInstance().SetIsBackgroundApp(!isShow);
-    JankFrameMonitor::GetInstance().SetVsyncLazyMode();
+    SetIsBackgroundApp(!isShow);
+    SetVsyncLazyMode();
 }
 
 void SceneMonitor::SetAppStartStatus()
 {
-    JankFrameMonitor::GetInstance().SetIsStartAppFrame(true);
-    JankFrameMonitor::GetInstance().SetVsyncLazyMode();
-    JankFrameMonitor::GetInstance().SetStartAppTime(GetCurrentRealTimeNs());
+    SetIsStartAppFrame(true);
+    SetVsyncLazyMode();
+    SetStartAppTime(GetCurrentRealTimeNs());
 }
 
 bool SceneMonitor::GetIsStats()
@@ -221,8 +222,8 @@ bool SceneMonitor::IsScrollJank(const std::string& sceneId)
 void SceneMonitor::CheckTimeOutOfExceptAnimatorStatus(const std::string& sceneId)
 {
     if (IsSceneIdInSceneWhiteList(sceneId)) {
-        JankFrameMonitor::GetInstance().SetIsExceptAnimator(false);
-        JankFrameMonitor::GetInstance().SetVsyncLazyMode();
+        SetIsExceptAnimator(false);
+        SetVsyncLazyMode();
     }
 }
 
@@ -235,6 +236,130 @@ void SceneMonitor::SetJankFrameRecord(OHOS::Rosen::AppInfo &appInfo, int64_t sta
     appInfo.processName = baseInfo.processName;
     appInfo.startTime = startTime;
     appInfo.endTime = endTime;
+}
+
+bool SceneMonitor::IsExceptResponseTime(int64_t time, const std::string& sceneId)
+{
+    int64_t currentRealTimeNs = GetCurrentRealTimeNs();
+    static std::set<std::string> exceptSceneSet = {
+        PerfConstants::APP_LIST_FLING, PerfConstants::SCREEN_ROTATION_ANI,
+        PerfConstants::SHOW_INPUT_METHOD_ANIMATION, PerfConstants::HIDE_INPUT_METHOD_ANIMATION,
+        PerfConstants::APP_TRANSITION_FROM_OTHER_APP, PerfConstants::APP_TRANSITION_TO_OTHER_APP,
+        PerfConstants::VOLUME_BAR_SHOW, PerfConstants::PC_APP_CENTER_GESTURE_OPERATION,
+        PerfConstants::PC_GESTURE_TO_RECENT, PerfConstants::PC_SHORTCUT_SHOW_DESKTOP,
+        PerfConstants::PC_ALT_TAB_TO_RECENT, PerfConstants::PC_SHOW_DESKTOP_GESTURE_OPERATION,
+        PerfConstants::PC_SHORTCUT_RESTORE_DESKTOP, PerfConstants::PC_SHORTCUT_TO_RECENT,
+        PerfConstants::PC_EXIT_RECENT, PerfConstants::PC_SHORTCUT_TO_APP_CENTER_ON_RECENT,
+        PerfConstants::PC_SHORTCUT_TO_APP_CENTER, PerfConstants::PC_SHORTCUT_EXIT_APP_CENTER,
+        PerfConstants::WINDOW_TITLE_BAR_MINIMIZED, PerfConstants::WINDOW_RECT_MOVE,
+        PerfConstants::APP_EXIT_FROM_WINDOW_TITLE_BAR_CLOSED, PerfConstants::WINDOW_TITLE_BAR_RECOVER,
+        PerfConstants::LAUNCHER_APP_LAUNCH_FROM_OTHER, PerfConstants::WINDOW_RECT_RESIZE,
+        PerfConstants::WINDOW_TITLE_BAR_MAXIMIZED, PerfConstants::LAUNCHER_APP_LAUNCH_FROM_TRANSITION
+    };
+    if (exceptSceneSet.find(sceneId) != exceptSceneSet.end()) {
+        return true;
+    }
+    if ((sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH && currentRealTimeNs - time > RESPONSE_TIMEOUT)
+        || (sceneId == PerfConstants::CLOSE_FOLDER_ANI && currentRealTimeNs - time > RESPONSE_TIMEOUT)) {
+        return true;
+    }
+    return false;
+}
+
+int32_t SceneMonitor::GetFilterType() const
+{
+    int32_t filterType = (isBackgroundApp << 4) | (isResponseExclusion << 3) | (isStartAppFrame << 2)
+        | (isExclusionWindow << 1) | isExceptAnimator;
+    return filterType;
+}
+
+bool SceneMonitor::IsExclusionFrame()
+{
+    XPERF_TRACE_SCOPED("IsExclusionFrame: isResponse(%d) isStartApp(%d) isBg(%d) isExcluWindow(%d) isExcAni(%d)",
+        isResponseExclusion, isStartAppFrame, isBackgroundApp, isExclusionWindow, isExceptAnimator);
+    return isResponseExclusion || isStartAppFrame || isBackgroundApp || isExclusionWindow || isExceptAnimator;
+}
+
+void SceneMonitor::SetVsyncLazyMode()
+{
+    static bool lastExcusion = false;
+    bool needExcusion = isResponseExclusion || isStartAppFrame || isBackgroundApp ||
+                        isExclusionWindow || isExceptAnimator;
+    if (lastExcusion == needExcusion) {
+        return;
+    }
+    
+    lastExcusion = needExcusion;
+    XPERF_TRACE_SCOPED("SetVsyncLazyMode: isResponse(%d) isStartApp(%d) isBg(%d) isExcluWindow(%d) "
+        "isExcAni(%d)",
+        isResponseExclusion, isStartAppFrame, isBackgroundApp, isExclusionWindow, isExceptAnimator);
+    OHOS::AppExecFwk::EventHandler::SetVsyncLazyMode(needExcusion);
+}
+
+void SceneMonitor::CheckInStartAppStatus()
+{
+    if (isStartAppFrame) {
+        int64_t curTime = GetCurrentRealTimeNs();
+        if (curTime - startAppTime >= STARTAPP_FRAME_TIMEOUT) {
+            isStartAppFrame = false;
+            startAppTime = curTime;
+            SetVsyncLazyMode();
+        }
+    }
+}
+
+void SceneMonitor::CheckExclusionWindow(const std::string& windowName)
+{
+    isExclusionWindow = false;
+    if (windowName == "softKeyboard1" ||
+        windowName == "SCBWallpaper1" ||
+        windowName == "SCBStatusBar15") {
+        isExclusionWindow = true;
+    }
+    SetVsyncLazyMode();
+}
+
+void SceneMonitor::CheckResponseStatus()
+{
+    if (isResponseExclusion) {
+        isResponseExclusion = false;
+        SetVsyncLazyMode();
+    }
+}
+
+void SceneMonitor::SetIsBackgroundApp(bool val)
+{
+    isBackgroundApp = val;
+    return;
+}
+
+bool SceneMonitor::GetIsBackgroundApp()
+{
+    return isBackgroundApp;
+}
+
+void SceneMonitor::SetIsStartAppFrame(bool val)
+{
+    isStartAppFrame = val;
+    return;
+}
+
+void SceneMonitor::SetStartAppTime(int64_t val)
+{
+    startAppTime = val;
+    return;
+}
+
+void SceneMonitor::SetIsExceptAnimator(bool val)
+{
+    isExceptAnimator = val;
+    return;
+}
+
+void SceneMonitor::SetIsResponseExclusion(bool val)
+{
+    isResponseExclusion = val;
+    return;
 }
 
 }

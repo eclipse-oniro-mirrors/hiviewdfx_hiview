@@ -36,8 +36,8 @@ void AnimatorMonitor::Start(const std::string& sceneId, PerfActionType type, con
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     SceneRecord* record = GetRecord(sceneId);
     if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-        JankFrameMonitor::GetInstance().SetIsExceptAnimator(true);
-        JankFrameMonitor::GetInstance().SetVsyncLazyMode();
+        SceneMonitor::GetInstance().SetIsExceptAnimator(true);
+        SceneMonitor::GetInstance().SetVsyncLazyMode();
     }
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
     if (record == nullptr) {
@@ -57,7 +57,7 @@ void AnimatorMonitor::StartCommercial(const std::string& sceneId, PerfActionType
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     SceneRecord* record = GetRecord(sceneId);
     if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-        JankFrameMonitor::GetInstance().SetIsExceptAnimator(true);
+        SceneMonitor::GetInstance().SetIsExceptAnimator(true);
     }
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
     if (record == nullptr) {
@@ -79,8 +79,8 @@ void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
     if (record != nullptr) {
         if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-            JankFrameMonitor::GetInstance().SetIsExceptAnimator(false);
-            JankFrameMonitor::GetInstance().SetVsyncLazyMode();
+            SceneMonitor::GetInstance().SetIsExceptAnimator(false);
+            SceneMonitor::GetInstance().SetVsyncLazyMode();
         }
         SceneMonitor::GetInstance().RecordBaseInfo(record);
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
@@ -98,7 +98,7 @@ void AnimatorMonitor::EndCommercial(const std::string& sceneId, bool isRsRender)
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
     if (record != nullptr) {
         if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-            JankFrameMonitor::GetInstance().SetIsExceptAnimator(false);
+            SceneMonitor::GetInstance().SetIsExceptAnimator(false);
         }
         SceneMonitor::GetInstance().RecordBaseInfo(record);
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();

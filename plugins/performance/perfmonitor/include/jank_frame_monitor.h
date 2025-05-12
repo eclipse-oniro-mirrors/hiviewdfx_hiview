@@ -28,15 +28,8 @@ class JankFrameMonitor {
 public:
     static JankFrameMonitor& GetInstance();
     void ProcessJank(double jank, const std::string& windowName);
-    bool IsExceptResponseTime(int64_t time, const std::string& sceneId);
-    int32_t GetFilterType() const;
     void ClearJankFrameRecord();
     void JankFrameStatsRecord(double jank);
-    bool IsExclusionFrame();
-    void SetVsyncLazyMode();
-    void CheckInStartAppStatus();
-    void CheckExclusionWindow(const std::string& windowName);
-    void CheckResponseStatus();
 
     void SetJankFrameRecordBeginTime(int64_t val);
     int64_t GetJankFrameRecordBeginTime();
@@ -45,22 +38,9 @@ public:
     bool JankFrameRecordIsEmpty();
     void InitJankFrameRecord();
 
-    void SetIsBackgroundApp(bool val);
-    bool GetIsBackgroundApp();
-    void SetIsStartAppFrame(bool val);
-    void SetStartAppTime(int64_t val);
-    void SetIsExceptAnimator(bool val);
-    void SetIsResponseExclusion(bool val);
-
 private:
     uint32_t GetJankLimit(double jank);
 private:
-    bool isResponseExclusion {false};
-    bool isStartAppFrame {false};
-    bool isBackgroundApp {false};
-    bool isExclusionWindow {false};
-    bool isExceptAnimator {false};
-    int64_t startAppTime {0};
     std::vector<uint16_t> jankFrameRecord;
     int64_t jankFrameRecordBeginTime;
     int32_t jankFrameTotalCount {0};

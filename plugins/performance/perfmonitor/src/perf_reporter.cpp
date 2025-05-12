@@ -78,7 +78,7 @@ PerfReporter& PerfReporter::GetInstance()
 
 void PerfReporter::ReportJankFrameApp(double jank, int32_t jankThreshold)
 {
-    if (jank >= static_cast<double>(jankThreshold) && !JankFrameMonitor::GetInstance().GetIsBackgroundApp()) {
+    if (jank >= static_cast<double>(jankThreshold) && !SceneMonitor::GetInstance().GetIsBackgroundApp()) {
         JankInfo jankInfo;
         jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
         SceneMonitor::GetInstance().RecordBaseInfo(nullptr);
@@ -236,7 +236,7 @@ void PerfReporter::ReportJankFrame(double jank, const std::string& windowName)
         jankInfo.windowName = windowName;
         SceneMonitor::GetInstance().RecordBaseInfo(nullptr);
         jankInfo.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
-        jankInfo.filterType = JankFrameMonitor::GetInstance().GetFilterType();
+        jankInfo.filterType = SceneMonitor::GetInstance().GetFilterType();
         if (!AnimatorMonitor::GetInstance().RecordsIsEmpty()) {
             jankInfo.sceneId = SceneMonitor::GetInstance().GetCurrentSceneId();
         } else {
@@ -244,7 +244,7 @@ void PerfReporter::ReportJankFrame(double jank, const std::string& windowName)
         }
         jankInfo.realSkippedFrameTime = jankInfo.filterType == 0 ? jankInfo.skippedFrameTime : 0;
         EventReporter::ReportJankFrameUnFiltered(jankInfo);
-        if (!JankFrameMonitor::GetInstance().IsExclusionFrame()) {
+        if (!SceneMonitor::GetInstance().IsExclusionFrame()) {
             EventReporter::ReportJankFrameFiltered(jankInfo);
         }
     }

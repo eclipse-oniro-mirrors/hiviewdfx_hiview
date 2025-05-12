@@ -17,6 +17,7 @@
 #include "jank_frame_monitor.h"
 #include "perf_trace.h"
 #include "perf_utils.h"
+#include "scene_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -45,8 +46,8 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
             {
                 XPERF_TRACE_SCOPED("RecordInputEvent: last_up=%lld(ns)", static_cast<long long>(time));
                 mInputTime[LAST_UP] = time;
-                JankFrameMonitor::GetInstance().SetIsResponseExclusion(true);
-                JankFrameMonitor::GetInstance().SetVsyncLazyMode();
+                SceneMonitor::GetInstance().SetIsResponseExclusion(true);
+                SceneMonitor::GetInstance().SetVsyncLazyMode();
                 break;
             }
         case FIRST_MOVE:
@@ -76,7 +77,7 @@ int64_t InputMonitor::GetInputTime(const std::string& sceneId, PerfActionType ty
         default:
             break;
     }
-    if (inputTime <= 0 || JankFrameMonitor::GetInstance().IsExceptResponseTime(inputTime, sceneId)) {
+    if (inputTime <= 0 || SceneMonitor::GetInstance().IsExceptResponseTime(inputTime, sceneId)) {
         XPERF_TRACE_SCOPED("GetInputTime: now time");
         inputTime = GetCurrentRealTimeNs();
     }

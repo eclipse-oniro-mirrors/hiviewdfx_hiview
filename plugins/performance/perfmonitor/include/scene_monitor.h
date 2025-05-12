@@ -51,6 +51,21 @@ public:
     bool IsSceneIdInSceneWhiteList(const std::string& sceneId);
     void CheckTimeOutOfExceptAnimatorStatus(const std::string& sceneId);
     void SetJankFrameRecord(OHOS::Rosen::AppInfo& appInfo, int64_t startTime, int64_t endTime);
+
+    bool IsExceptResponseTime(int64_t time, const std::string& sceneId);
+    int32_t GetFilterType() const;
+    bool IsExclusionFrame();
+    void SetVsyncLazyMode();
+    void CheckInStartAppStatus();
+    void CheckExclusionWindow(const std::string& windowName);
+    void CheckResponseStatus();
+
+    void SetIsBackgroundApp(bool val);
+    bool GetIsBackgroundApp();
+    void SetIsStartAppFrame(bool val);
+    void SetStartAppTime(int64_t val);
+    void SetIsExceptAnimator(bool val);
+    void SetIsResponseExclusion(bool val);
 private:
     void NotifyRsJankStatsBegin();
     void NotifyRsJankStatsEnd(int64_t endTime);
@@ -59,6 +74,12 @@ private:
     BaseInfo baseInfo;
     std::string currentSceneId {""};
     bool isStats = {false};
+    bool isResponseExclusion {false};
+    bool isStartAppFrame {false};
+    bool isBackgroundApp {false};
+    bool isExclusionWindow {false};
+    bool isExceptAnimator {false};
+    int64_t startAppTime {0};
 };
 
 }
