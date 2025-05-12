@@ -169,6 +169,7 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
         info.sectionMap[FaultKey::KEY_THREAD_REGISTERS] = info.registers;
     }
 
+    FaultLogProcessorBase::GetProcMemInfo(info);
     info.sectionMap[FaultKey::APPEND_ORIGIN_LOG] = GetCppCrashTempLogName(info);
     std::string path = FAULTLOG_FAULT_HILOG_FOLDER + std::to_string(info.pid) +
         "-" + std::to_string(info.id) + "-" + std::to_string(info.time);

@@ -38,5 +38,11 @@ std::string FaultLogCjError::GetFaultModule(SysEvent& sysEvent) const
 {
     return sysEvent.GetEventValue(FaultKey::PACKAGE_NAME);
 }
+
+void FaultLogCjError::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo& info) const
+{
+    std::string rssStr = sysEvent.GetEventValue("PROCESS_RSS_MEMINFO");
+    info.sectionMap["PROCESS_RSS_MEMINFO"] = "Process Memory(kB): " + rssStr + "(Rss)";
+}
 } // namespace HiviewDFX
 } // namespace OHOS

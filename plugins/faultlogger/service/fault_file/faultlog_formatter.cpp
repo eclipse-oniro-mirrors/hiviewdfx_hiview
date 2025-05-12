@@ -68,6 +68,8 @@ constexpr const char* const PRE_INSTALL_KV[] = {FaultKey::PRE_INSTALL, "PreInsta
 constexpr const char* const VERSION_CODE_KV[] = {FaultKey::VERSION_CODE, "VersionCode:"};
 constexpr const char* const FINGERPRINT_KV[] = {FaultKey::FINGERPRINT, "Fingerprint:"};
 constexpr const char* const APPEND_ORIGIN_LOG_KV[] = {FaultKey::APPEND_ORIGIN_LOG, ""};
+constexpr const char* const PROCESS_RSS_MEMINFO_KV[] = {FaultKey::PROCESS_RSS_MEMINFO, ""};
+constexpr const char* const DEVICE_MEMINFO_KV[] = {FaultKey::DEVICE_MEMINFO, ""};
 
 auto CPP_CRASH_LOG_SEQUENCE = {
     DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
@@ -79,13 +81,13 @@ auto CPP_CRASH_LOG_SEQUENCE = {
 auto JAVASCRIPT_CRASH_LOG_SEQUENCE = {
     DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
     PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, SYS_VM_TYPE_KV,
-    APP_VM_TYPE_KV, LIFETIME_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
+    APP_VM_TYPE_KV, LIFETIME_KV, PROCESS_RSS_MEMINFO_KV, DEVICE_MEMINFO_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
 };
 
 auto CANGJIE_ERROR_LOG_SEQUENCE = {
     DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
     PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, SYS_VM_TYPE_KV,
-    APP_VM_TYPE_KV, LIFETIME_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
+    APP_VM_TYPE_KV, LIFETIME_KV, PROCESS_RSS_MEMINFO_KV, DEVICE_MEMINFO_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
 };
 
 auto APP_FREEZE_LOG_SEQUENCE = {
@@ -222,7 +224,7 @@ void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std:
         if (!value.empty()) {
             std::string keyStr = item[LOG_MAP_KEY];
             if (keyStr.find(APPEND_ORIGIN_LOG_KV[LOG_MAP_KEY]) != std::string::npos) {
-                if (WriteLogToFile(fd, value)) {
+                if (WriteLogToFile(fd, value, sections)) {
                     break;
                 }
             }
@@ -315,7 +317,7 @@ void JumpBuildInfo(int32_t fd, std::ifstream& logFile)
     FileUtil::SaveStringToFd(fd, line + "\n");
 }
 
-bool WriteLogToFile(int32_t fd, const std::string& path)
+bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string> &sections)
 {
     if ((fd < 0) || path.empty()) {
         return false;
@@ -325,6 +327,7 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
     std::ifstream logFile(path);
     JumpBuildInfo(fd, logFile);
 
+    bool hasFindRssInfo = false;
     while (std::getline(logFile, line)) {
         if (logFile.eof()) {
             break;
@@ -334,6 +337,12 @@ bool WriteLogToFile(int32_t fd, const std::string& path)
         }
         FileUtil::SaveStringToFd(fd, line);
         FileUtil::SaveStringToFd(fd, "\n");
+        if (!hasFindRssInfo && line.find("Process Memory(kB):") != std::string::npos &&
+            sections.find("DEVICE_MEMINFO") != sections.end()) {
+            FileUtil::SaveStringToFd(fd, sections.at("DEVICE_MEMINFO"));
+            FileUtil::SaveStringToFd(fd, "\n");
+            hasFindRssInfo = true;
+        }
     }
     return true;
 }
