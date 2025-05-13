@@ -1113,7 +1113,39 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_002, TestSize.Level1)
     int tid = gettid();
     processStack = "Tid:1234, Name: TestThread\n#00 pc 0017888c /system/lib/libark_jsruntime.so\n"
         "#01 pc 00025779 /system/lib/platformsdk/libipc_core.z.so";
+    stack.clear();
     LogCatcherUtils::GetThreadStack(processStack, stack, tid);
+    EXPECT_TRUE(stack.empty());
+
+    constexpr int testTid = 1234;
+    stack.clear();
+    processStack = "Tid:1234, Name: TestThread\n"
+        "#00 pc 0017888c /system/lib/libark_jsruntime.so\n"
+        "#01 pc 00025779 /system/lib/platformsdk/libipc_core.z.so";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_FALSE(stack.empty());
+
+    stack.clear();
+    processStack = "Tid:1234, Name: TestThread\n"
+        "ThreadInfo:state=SLEEP, utime=1, stime=2, cutime=0, schedstat={254042, 0, 3}\n"
+        "#00 pc 0017888c /system/lib/libark_jsruntime.so\n"
+        "#01 pc 00025779 /system/lib/platformsdk/libipc_core.z.so";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    const string result = "#00 pc 0017888c /system/lib/libark_jsruntime.so\n"
+        "#01 pc 00025779 /system/lib/platformsdk/libipc_core.z.so\n";
+    EXPECT_EQ(stack, result);
+
+    stack.clear();
+    processStack = "Tid:1234, Name: TestThread\n"
+        "ThreadInfo:state=SLEEP, utime=1, stime=2, cutime=0, schedstat={254042, 0, 3}\n"
+        "#00 pc 0017888c /system/lib/libark_jsruntime.so\n"
+        "#01 pc 00025779 /system/lib/platformsdk/libipc_core.z.so\n"
+        "Tid:1235, Name: TestThread\n"
+        "ThreadInfo:state=SLEEP, utime=1, stime=2, cutime=0, schedstat={254042, 0, 3}\n"
+        "#00 pc 0028888c /system/lib/libark_jsruntime.so\n"
+        "#01 pc 00036881 /system/lib/platformsdk/libipc_core.z.so";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_EQ(stack, result);
 }
 
 /**
