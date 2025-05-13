@@ -34,14 +34,6 @@ void FormatTraceName(char *name, size_t size, const char *fmt, ...) __attribute_
 
 void XperfAsyncTraceBegin(int32_t taskId, const char* name, bool isAnimationTrace = false);
 void XperfAsyncTraceEnd(int32_t taskId, const char* name, bool isAnimationTrace = false);
-
-#define CHECK_NULL_VOID(ptr) \
-    do {                     \
-        if (!(ptr)) {        \
-            return;          \
-        }                    \
-    } while (0)
-
 }
 }
 #endif

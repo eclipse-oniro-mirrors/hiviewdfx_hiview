@@ -291,7 +291,8 @@ void EventReporter::ReportJankFrameApp(JankInfo& info)
         EVENT_KEY_VERSION_NAME, versionName,
         EVENT_KEY_PAGE_NAME, pageName,
         EVENT_KEY_SKIPPED_FRAME_TIME, static_cast<uint64_t>(skippedFrameTime));
-    XPERF_TRACE_SCOPED("JANK_FRAME_APP: skipppedFrameTime=%lld(ms)", static_cast<long long>(skippedFrameTime / NS_TO_MS));
+    XPERF_TRACE_SCOPED("JANK_FRAME_APP: skipppedFrameTime=%lld(ms)",
+        static_cast<long long>(skippedFrameTime / NS_TO_MS));
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     ReportAppFrameDropToRss(false, bundleName);
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE

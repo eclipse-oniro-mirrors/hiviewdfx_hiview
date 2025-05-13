@@ -121,7 +121,8 @@ void PerfMonitorAdapter::ReportJankFrameApp(double jank, int32_t jankThreshold)
     PerfReporter::GetInstance().ReportJankFrameApp(jank, jankThreshold);
 }
 
-void PerfMonitorAdapter::ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName, const std::string& pageName)
+void PerfMonitorAdapter::ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,
+    const std::string& pageName)
 {
     PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, pageName);
 }

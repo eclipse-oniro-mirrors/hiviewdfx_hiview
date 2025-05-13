@@ -28,7 +28,7 @@ void XperfStartTrace(const char *fmt, ...)
     int ret = vsnprintf_s(traceName, sizeof(traceName), sizeof(traceName) - 1, fmt, args);
     va_end(args);
     if (ret == -1) {
-        strcpy_s(traceName, TRACE_BUF_LEN, "DefaultTraceName");
+        strcpy_s(traceName, sizeof(traceName), "DefaultTraceName");
     }
     StartTrace(HITRACE_TAG_APP, std::string(traceName));
 }
@@ -53,7 +53,9 @@ void FormatTraceName(char *name, size_t size, const char *fmt, ...)
 
 void XperfAsyncTraceBegin(int32_t taskId, const char* name, bool isAnimationTrace)
 {
-    CHECK_NULL_VOID(name);
+    if (name == nullptr) {
+        return;
+    }
     std::string nameStr(name);
     if (isAnimationTrace) {
         StartAsyncTrace(HITRACE_TAG_ANIMATION, nameStr, taskId);
@@ -64,7 +66,9 @@ void XperfAsyncTraceBegin(int32_t taskId, const char* name, bool isAnimationTrac
 
 void XperfAsyncTraceEnd(int32_t taskId, const char* name, bool isAnimationTrace)
 {
-    CHECK_NULL_VOID(name);
+    if (name == nullptr) {
+        return;
+    }
     std::string nameStr(name);
     if (isAnimationTrace) {
         FinishAsyncTrace(HITRACE_TAG_ANIMATION, nameStr, taskId);
@@ -72,8 +76,5 @@ void XperfAsyncTraceEnd(int32_t taskId, const char* name, bool isAnimationTrace)
         FinishAsyncTrace(HITRACE_TAG_ACE, nameStr, taskId);
     }
 }
-
-
-
 }
 }

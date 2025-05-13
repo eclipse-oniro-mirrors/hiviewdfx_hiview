@@ -47,11 +47,9 @@ public:
     void SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
 
     void ReportJankFrameApp(double jank, int32_t jankThreshold);
-    void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName, const std::string& pageName);
-
+    void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,
+        const std::string& pageName);
 };
-
 }
 }
-
 #endif  // PERF_MONITOR_ADAPTER_H
