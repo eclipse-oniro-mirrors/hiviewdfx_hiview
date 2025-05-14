@@ -21,6 +21,7 @@
 
 using namespace OHOS::HiviewDFX;
 DEFINE_LOG_LABEL(0xD002D03, "LogLibraryAniUtil");
+static constexpr int32_t SUCCESS = 0;
 
 std::string LogLibraryAniUtil::ParseStringValue(ani_env *env, ani_string aniStrRef)
 {
@@ -164,6 +165,7 @@ std::pair<int32_t, std::string> LogLibraryAniUtil::GetErrorDetailByRet(const int
 {
     HIVIEW_LOGI("origin result code is %{public}d.", retCode);
     const std::map<int32_t, std::pair<int32_t, std::string>> errMap = {
+        {SUCCESS, {SUCCESS, "Success."}},
         {HiviewNapiErrCode::ERR_PERMISSION_CHECK, {HiviewNapiErrCode::ERR_PERMISSION_CHECK,
             "Permission denied. The app does not have the necessary permissions."}},
         {HiviewNapiErrCode::ERR_NON_SYS_APP_PERMISSION, {HiviewNapiErrCode::ERR_NON_SYS_APP_PERMISSION,
