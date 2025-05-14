@@ -25,7 +25,7 @@ class FaultLogProcessorInterface {
 public:
     virtual void AddFaultLog(FaultLogInfo& info, const std::shared_ptr<EventLoop>& workLoop,
         const std::shared_ptr<FaultLogManager>& faultLogManager) = 0;
-    virtual void ReportEventToAppEvent(const FaultLogInfo& info) = 0;
+    virtual bool ReportEventToAppEvent(const FaultLogInfo& info) = 0;
     virtual ~FaultLogProcessorInterface() = default;
 };
 } // namespace HiviewDFX

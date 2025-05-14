@@ -26,7 +26,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class FaultLogCppCrash : public FaultLogProcessorBase {
 private:
-    void ReportEventToAppEvent(const FaultLogInfo& info) override;
+    bool ReportEventToAppEvent(const FaultLogInfo& info) override;
     void AddSpecificInfo(FaultLogInfo& info) override;
     void DoFaultLogLimit(const std::string& logPath, int32_t faultType) const override;
     void ReportCppCrashToAppEvent(const FaultLogInfo& info) const;

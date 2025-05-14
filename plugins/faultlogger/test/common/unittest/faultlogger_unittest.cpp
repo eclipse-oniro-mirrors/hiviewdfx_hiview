@@ -2209,7 +2209,7 @@ HWTEST_F(FaultloggerUnittest, ReadHilogUnittest003, testing::ext::TestSize.Level
 
 /**
  * @tc.name: FaultlogLimit001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test calling DoFaultLogLimit Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultlogLimit001, testing::ext::TestSize.Level3)
@@ -2257,7 +2257,7 @@ HWTEST_F(FaultloggerUnittest, FaultlogLimit001, testing::ext::TestSize.Level3)
 
 /**
  * @tc.name: FaultLogManagerService001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test calling querySelfFaultLog Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultLogManagerService001, testing::ext::TestSize.Level3)
@@ -2272,7 +2272,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerService001, testing::ext::TestSize.
 
 /**
  * @tc.name: FaultloggerListener001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test calling FaultloggerListener Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultloggerListener001, testing::ext::TestSize.Level3)
@@ -2296,7 +2296,7 @@ HWTEST_F(FaultloggerUnittest, FaultloggerListener001, testing::ext::TestSize.Lev
 
 /**
  * @tc.name: FaultLogCjError001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test cj reportToAppEvent Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultLogCjError001, testing::ext::TestSize.Level3)
@@ -2355,7 +2355,7 @@ pid_t GetPidByProcessName(const std::string &procName)
 
 /**
  * @tc.name: FaultLogAppFreeze001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test faultAppFreeze GetFreezeHilogByPid Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze001, testing::ext::TestSize.Level3)
@@ -2369,7 +2369,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze001, testing::ext::TestSize.Level
 }
 /**
  * @tc.name: FaultLogAppFreeze002
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test faultAppFreeze ReportEventToAppEvent Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze002, testing::ext::TestSize.Level3)
@@ -2377,26 +2377,17 @@ HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze002, testing::ext::TestSize.Level
     FaultLogFreeze faultAppFreeze;
     FaultLogInfo info;
     info.reportToAppEvent = false;
-    faultAppFreeze.ReportEventToAppEvent(info);
-    ASSERT_TRUE(true);
-}
+    bool ret = faultAppFreeze.ReportEventToAppEvent(info);
 
-/**
- * @tc.name: FaultLogAppFreeze003
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
- * @tc.type: FUNC
- */
-HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze003, testing::ext::TestSize.Level3)
-{
-    FaultLogFreeze faultAppFreeze;
     std::string logPath = "1111.txt";
     faultAppFreeze.DoFaultLogLimit(logPath, 2);
-    ASSERT_TRUE(true);
+
+    ASSERT_FALSE(ret);
 }
 
 /**
  * @tc.name: FaultLogJsError001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test jsError ReportToAppEvent Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultLogJsError001, testing::ext::TestSize.Level3)
@@ -2411,7 +2402,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogJsError001, testing::ext::TestSize.Level3)
 
 /**
  * @tc.name: FaultLogSanitizer001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test cjError ReportToAppEvent Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, FaultLogSanitizer001, testing::ext::TestSize.Level3)
@@ -2447,7 +2438,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogSanitizer001, testing::ext::TestSize.Level
 
 /**
  * @tc.name: EventHandlerStrategyFactory001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test CreateFaultLogEvent Func
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, EventHandlerStrategyFactory001, testing::ext::TestSize.Level3)
@@ -2462,7 +2453,7 @@ HWTEST_F(FaultloggerUnittest, EventHandlerStrategyFactory001, testing::ext::Test
 
 /**
  * @tc.name: GetFaultloggerInstance001
- * @tc.desc: Test calling Faultlogger.StartBootScan Func, for full cpp crash log limit
+ * @tc.desc: Test onEvent and IsInterestedPipelineEvent
  * @tc.type: FUNC
  */
 HWTEST_F(FaultloggerUnittest, GetFaultloggerInstance001, testing::ext::TestSize.Level3)

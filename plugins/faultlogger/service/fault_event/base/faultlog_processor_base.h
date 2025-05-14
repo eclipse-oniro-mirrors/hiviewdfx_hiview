@@ -36,7 +36,7 @@ protected:
 private:
     virtual void AddSpecificInfo(FaultLogInfo& info) = 0;
     virtual void DoFaultLogLimit(const std::string& logPath, int32_t faultType) const {}
-    void ReportEventToAppEvent(const FaultLogInfo& info) override {}
+    bool ReportEventToAppEvent(const FaultLogInfo& info) override { return false; }
     void ProcessFaultLog(FaultLogInfo& info);
     void AddCommonInfo(FaultLogInfo& info);
     void DoFaultLogLimit(const FaultLogInfo& info);

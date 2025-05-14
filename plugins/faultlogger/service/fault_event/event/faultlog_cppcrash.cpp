@@ -61,7 +61,7 @@ void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
     std::string lastLineHilog = info.sectionMap[FaultKey::HILOG].substr(pos + 1);
     if (lastLineHilog.length() < DFX_HILOG_TIMESTAMP_LEN) {
         HIVIEW_LOGE("CheckHilogTime invalid length last line");
-        return;        
+        return;
     }
     std::string lastLineHilogTimeStr = lastLineHilog.substr(0, DFX_HILOG_TIMESTAMP_LEN);
     auto now = std::chrono::system_clock::now();
@@ -216,13 +216,14 @@ void FaultLogCppCrash::AddSpecificInfo(FaultLogInfo& info)
     AddCppCrashInfo(info);
 }
 
-void FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
+bool FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
 {
     if (IsSystemProcess(info.module, info.id) || !info.reportToAppEvent) {
-        return;
+        return false;
     }
     CheckFaultLogAsync(info);
     ReportCppCrashToAppEvent(info);
+    return true;
 }
 
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath, int32_t faultType) const
