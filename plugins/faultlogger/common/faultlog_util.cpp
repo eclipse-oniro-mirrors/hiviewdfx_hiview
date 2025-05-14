@@ -311,8 +311,7 @@ bool IsSystemProcess(std::string_view processName, int32_t uid)
 
 std::string GetStrValFromMap(const std::map<std::string, std::string>& map, const std::string& key)
 {
-    auto it = map.find(key);
-    if (it != map.end()) {
+    if (auto it = map.find(key); it != map.end()) {
         return it->second;
     }
     return "";
