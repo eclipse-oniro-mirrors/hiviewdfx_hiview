@@ -159,15 +159,15 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest003, TestSize.Level1)
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("read logFile: %s failed", traceFile.c_str());
-        return;
-    }
-    std::stringstream buff(content);
-    std::vector<std::string> trace;
-    StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
-    std::string line;
-    size_t num = 0;
-    while (getline(buff, line) && num < trace.size()) {
-        EXPECT_STREQ(trace[num++].c_str(), line.c_str());
+    } else {
+        std::stringstream buff(content);
+        std::vector<std::string> trace;
+        StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
+        std::string line;
+        size_t num = 0;
+        while (getline(buff, line) && num < trace.size()) {
+            EXPECT_STREQ(trace[num++].c_str(), line.c_str());
+        }
     }
 }
 
