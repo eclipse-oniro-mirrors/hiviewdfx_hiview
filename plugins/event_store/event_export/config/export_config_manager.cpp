@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-ExportConfigManager");
+DEFINE_LOG_TAG("HiView-EventExportConfig");
 namespace {
 constexpr char EXPORT_CFG_FILE_NAME_SUFFIX[] = "_event_export_config.json";
 }
