@@ -183,8 +183,7 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
         return;
     }
 
-    std::string hilogGetByCmd;
-    hilogGetByCmd = GetHilogByPid(info.pid);
+    std::string hilogGetByCmd = GetHilogByPid(info.pid);
     if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
         info.sectionMap[FaultKey::HILOG] = hilogSnapShot;
     } else {
