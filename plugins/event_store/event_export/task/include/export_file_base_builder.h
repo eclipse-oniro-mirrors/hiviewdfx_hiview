@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_EVENT_EXPORT_EVENT_EXPIRE_TASK_H
-#define HIVIEW_BASE_EVENT_EXPORT_EVENT_EXPIRE_TASK_H
+#ifndef HIVIEW_BASE_EVENT_EXPORT_EXPORT_FILE_BASE_BUILDER_H
+#define HIVIEW_BASE_EVENT_EXPORT_EXPORT_FILE_BASE_BUILDER_H
 
-#include <memory>
+#include <string>
+#include <vector>
+#include <unordered_map>
 
-#include "event_delete_handler.h"
-#include "event_scan_handler.h"
-#include "export_base_task.h"
+#include "cached_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class EventExpireTask : public ExportBaseTask {
+// <domain, <name, list if eventJsonStr>>
+using CachedEventMap = std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>>;
+class ExportFileBaseBuilder {
 public:
-    EventExpireTask(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
-        : ExportBaseTask(config, dbMgr) {}
-
-protected:
-    void OnTaskRun() override;
+    ExportFileBaseBuilder() = default;
+    virtual ~ExportFileBaseBuilder() = default;
+    virtual bool Build(const CachedEventMap& eventMap, std::string& buildStr) = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_EVENT_EXPORT_EVENT_EXPIRE_TASK_H
+#endif // HIVIEW_BASE_EVENT_EXPORT_EXPORT_FILE_BASE_BUILDER_H

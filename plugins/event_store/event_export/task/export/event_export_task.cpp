@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-EventExportTask");
+DEFINE_LOG_TAG("HiView-EventExportFlow");
 using  ExportEventListParsers = std::map<std::string, std::shared_ptr<ExportEventListParser>>;
 namespace {
 constexpr int64_t BYTE_TO_MB = 1024 * 1024;

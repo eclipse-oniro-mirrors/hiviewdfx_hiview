@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-ExportDbStorage");
+DEFINE_LOG_TAG("HiView-EventExportDb");
 namespace {
 constexpr int32_t DB_VERSION = 1;
 constexpr char EXPORT_DB_NAME[] = "event_export_mgr.db";
