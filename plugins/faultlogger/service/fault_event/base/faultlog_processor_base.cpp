@@ -250,6 +250,9 @@ void FaultLogProcessorBase::PrintFaultLogInfo(const FaultLogInfo& info)
 std::string FaultLogProcessorBase::ReadLogFile(const std::string& logPath) const
 {
     std::ifstream logReadFile(logPath);
+    if (!logReadFile.is_open()) {
+        return "";
+    }
     return std::string(std::istreambuf_iterator<char>(logReadFile), std::istreambuf_iterator<char>());
 }
 

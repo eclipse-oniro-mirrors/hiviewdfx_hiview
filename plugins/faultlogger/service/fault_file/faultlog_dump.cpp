@@ -209,7 +209,7 @@ ParseCmdResult FaultLogDump::HandleCommandOption(const std::string& cmd, int32_t
 
     if (!cmd.empty() && cmd.at(0) == '-') {
         dprintf(fd_, "Unknown command.\n");
-        return ParseCmdResult::UN_KNOWN;
+        return ParseCmdResult::UNKNOWN;
     }
     return ParseCmdResult::MAX;
 }
@@ -220,7 +220,7 @@ bool FaultLogDump::ParseDumpCommands(const std::vector<std::string>& cmds, DumpR
         auto result = HandleCommandOption(cmd, status, request);
         if (result == ParseCmdResult::SUCCESS) {
             continue;
-        } else if (result == ParseCmdResult::UN_KNOWN) {
+        } else if (result == ParseCmdResult::UNKNOWN) {
             return false;
         }
         if (!FillDumpRequest(request, status, cmd)) {
