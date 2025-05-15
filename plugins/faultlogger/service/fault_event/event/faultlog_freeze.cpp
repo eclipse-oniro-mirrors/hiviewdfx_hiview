@@ -201,9 +201,12 @@ void FaultLogFreeze::ReportEventToAppEvent(const FaultLogInfo& info)
     if (IsSystemProcess(info.module, info.id) || !info.reportToAppEvent) {
         return;
     }
-    if (FreezeJsonUtil::IsAppHicollie(info.reason) ||
-        info.faultLogType == FaultLogType::APP_FREEZE) {
+    if (FreezeJsonUtil::IsAppHicollie(info.reason)) {
         ReportAppFreezeToAppEvent(info, true);
+        return;
+    }
+    if (info.faultLogType == FaultLogType::APP_FREEZE) {
+        ReportAppFreezeToAppEvent(info);
     }
 }
 
