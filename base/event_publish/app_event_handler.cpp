@@ -112,7 +112,15 @@ int AppEventHandler::PostEvent(const AppLaunchInfo& event)
     AddValueToJsonString("start_type", event.startType, jsonStr);
     AddValueToJsonString("icon_input_time", event.iconInputTime, jsonStr);
     AddValueToJsonString("animation_finish_time", event.animationFinishTime, jsonStr);
-    AddValueToJsonString("extend_time", event.extendTime, jsonStr, true);
+    AddValueToJsonString("extend_time", event.extendTime, jsonStr);
+    AddValueToJsonString("response_latency", event.responseLatency, jsonStr);
+    AddValueToJsonString("laun_to_start_ability_dur", event.launToStartAbilityDur, jsonStr);
+    AddValueToJsonString("startability_processstart_dur", event.startAbilityProcessStartDur, jsonStr);
+    AddValueToJsonString("processstart_to_appattach_dur", event.processStartToAppAttachDur, jsonStr);
+    AddValueToJsonString("appattach_to_appforeground_dur", event.appAttachToAppForegroundDur, jsonStr);
+    AddValueToJsonString("startability_appforeground_dur", event.startAbilityAppForegroundDur, jsonStr);
+    AddValueToJsonString("appforegr_abilityonforegr_dur", event.appForegrAbilityOnForegrDur, jsonStr);
+    AddValueToJsonString("abilityonforeg_startwindow_dur", event.abilityOnForegStartWindowDur, jsonStr, true);
     jsonStr << std::endl;
     EventPublish::GetInstance().PushEvent(uid, "APP_LAUNCH", HiSysEvent::EventType::BEHAVIOR, jsonStr.str());
     return 0;
