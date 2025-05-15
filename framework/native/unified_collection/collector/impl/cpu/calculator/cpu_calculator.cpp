@@ -111,7 +111,7 @@ uint64_t CpuCalculator::GetMaxStCpuLoadWithSMT()
 double CpuCalculator::CalculateCpuLoad(uint64_t currCpuLoad, uint64_t lastCpuLoad, uint64_t statPeriod)
 {
     if (lastCpuLoad > currCpuLoad || statPeriod == 0) {
-        HIVIEW_LOGW("invalid params, currCpuLoad=%{public}" PRIu64 ", lastCpuLoad=%{public}" PRIu64
+        HIVIEW_LOGD("invalid params, currCpuLoad=%{public}" PRIu64 ", lastCpuLoad=%{public}" PRIu64
             ", statPeriod=%{public}" PRIu64, currCpuLoad, lastCpuLoad, statPeriod);
         return 0;
     }
@@ -127,7 +127,7 @@ double CpuCalculator::CalculateCpuLoad(uint64_t currCpuLoad, uint64_t lastCpuLoa
 double CpuCalculator::CalculateCpuUsage(uint64_t currCpuUsage, uint64_t lastCpuUsage, uint64_t statPeriod)
 {
     if (lastCpuUsage > currCpuUsage || statPeriod == 0) {
-        HIVIEW_LOGW("invalid params, currCpuUsage=%{public}" PRIu64 ", lastCpuUsage=%{public}" PRIu64
+        HIVIEW_LOGD("invalid params, currCpuUsage=%{public}" PRIu64 ", lastCpuUsage=%{public}" PRIu64
             ", statPeriod=%{public}" PRIu64, currCpuUsage, lastCpuUsage, statPeriod);
         return 0;
     }

@@ -64,7 +64,7 @@ void ThreadStateInfoCollector::InitDeviceClient()
 
 void ThreadStateInfoCollector::InitLastThreadCpuTimeInfos()
 {
-    HIVIEW_LOGI("init thread info");
+    HIVIEW_LOGD("init thread info");
     auto threadCpuData = FetchThreadCpuData();
     if (threadCpuData == nullptr) {
         return;
