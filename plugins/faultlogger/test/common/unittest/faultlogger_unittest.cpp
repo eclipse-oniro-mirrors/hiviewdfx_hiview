@@ -307,35 +307,35 @@ HWTEST_F(FaultloggerUnittest, dumpFileListTest001, testing::ext::TestSize.Level3
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("Fail to create test result file.\n");
-        return;
-    }
-    std::vector<std::string> cmds;
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("Faultlogger");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("-l");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("-f");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("cppcrash-ModuleName-10-20201209103823");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("-d");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("-t");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("20201209103823");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("-m");
-    faultlogManagerService.Dump(fd, cmds);
-    cmds.push_back("FAULTLOGGER");
-    close(fd);
-    fd = -1;
-
-    std::string result;
-    if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
-        ASSERT_GT(result.length(), 0uL);
     } else {
-        FAIL();
+        std::vector<std::string> cmds;
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("Faultlogger");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("-l");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("-f");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("cppcrash-ModuleName-10-20201209103823");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("-d");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("-t");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("20201209103823");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("-m");
+        faultlogManagerService.Dump(fd, cmds);
+        cmds.push_back("FAULTLOGGER");
+        close(fd);
+        fd = -1;
+    
+        std::string result;
+        if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
+            ASSERT_GT(result.length(), 0uL);
+        } else {
+            FAIL();
+        }
     }
 }
 
@@ -356,27 +356,27 @@ HWTEST_F(FaultloggerUnittest, DumpTest002, testing::ext::TestSize.Level3)
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("Fail to create test result file.\n");
-        return;
-    }
-    std::vector<std::vector<std::string>> cmds = {
-        {"-f", "1cppcrash-10-20201209103823"},
-        {"-f", "1cppcrash-ModuleName-10-20201209103823"},
-        {"-f", "cppcrash--10-20201209103823"},
-        {"-f", "cppcrash-ModuleName-a10-20201209103823"}
-    };
-
-    for (auto& cmd : cmds) {
-        plugin->Dump(fd, cmd);
-    }
-
-    close(fd);
-    fd = -1;
-
-    std::string result;
-    if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
-        ASSERT_GT(result.length(), 0uL);
     } else {
-        FAIL();
+        std::vector<std::vector<std::string>> cmds = {
+            {"-f", "1cppcrash-10-20201209103823"},
+            {"-f", "1cppcrash-ModuleName-10-20201209103823"},
+            {"-f", "cppcrash--10-20201209103823"},
+            {"-f", "cppcrash-ModuleName-a10-20201209103823"}
+        };
+    
+        for (auto& cmd : cmds) {
+            plugin->Dump(fd, cmd);
+        }
+    
+        close(fd);
+        fd = -1;
+    
+        std::string result;
+        if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
+            ASSERT_GT(result.length(), 0uL);
+        } else {
+            FAIL();
+        }
     }
 }
 
@@ -398,27 +398,27 @@ HWTEST_F(FaultloggerUnittest, DumpTest003, testing::ext::TestSize.Level3)
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("Fail to create test result file.\n");
-        return;
-    }
-    std::vector<std::vector<std::string>> cmds = {
-        {"-t", "cppcrash--10-20201209103823"},
-        {"-m", ""},
-        {"-l", ""},
-        {"-xx"}
-    };
-
-    for (auto& cmd : cmds) {
-        faultlogManagerService.Dump(fd, cmd);
-    }
-
-    close(fd);
-    fd = -1;
-
-    std::string result;
-    if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
-        ASSERT_GT(result.length(), 0uL);
     } else {
-        FAIL();
+        std::vector<std::vector<std::string>> cmds = {
+            {"-t", "cppcrash--10-20201209103823"},
+            {"-m", ""},
+            {"-l", ""},
+            {"-xx"}
+        };
+    
+        for (auto& cmd : cmds) {
+            faultlogManagerService.Dump(fd, cmd);
+        }
+    
+        close(fd);
+        fd = -1;
+    
+        std::string result;
+        if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
+            ASSERT_GT(result.length(), 0uL);
+        } else {
+            FAIL();
+        }
     }
 }
 
@@ -457,22 +457,22 @@ HWTEST_F(FaultloggerUnittest, DumpTest004, testing::ext::TestSize.Level3)
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("Fail to create test result file.\n");
-        return;
+    } else {
+        std::vector<std::vector<std::string>> cmds = {
+            {"-LogSuffixWithMs", ""},
+            {"-f", fileName}
+        };
+    
+        for (auto& cmd : cmds) {
+            faultlogManagerService.Dump(fd, cmd);
+        }
+    
+        close(fd);
+        fd = -1;
+        std::string keywords[] = { "Device info", "Build info", "Fingerprint", "Module name" };
+        int length = sizeof(keywords) / sizeof(keywords[0]);
+        ASSERT_EQ(CheckKeyWordsInFile("/data/test/testFile", keywords, length, false), length);
     }
-    std::vector<std::vector<std::string>> cmds = {
-        {"-LogSuffixWithMs", ""},
-        {"-f", fileName}
-    };
-
-    for (auto& cmd : cmds) {
-        faultlogManagerService.Dump(fd, cmd);
-    }
-
-    close(fd);
-    fd = -1;
-    std::string keywords[] = { "Device info", "Build info", "Fingerprint", "Module name" };
-    int length = sizeof(keywords) / sizeof(keywords[0]);
-    ASSERT_EQ(CheckKeyWordsInFile("/data/test/testFile", keywords, length, false), length);
 }
 
 static void GenCppCrashLogTestCommon(int32_t uid, bool ifFileExist)
@@ -1329,23 +1329,23 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest002, testing::ext::TestS
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("Fail to create test result file.\n");
-        return;
-    }
-    std::vector<std::u16string>args;
-    args.push_back(u"Faultlogger");
-    args.push_back(u"-l");
-    serviceOhos.Dump(fd, args);
-    args.push_back(u"&@#");
-    ASSERT_EQ(serviceOhos.Dump(fd, args), -1);
-    close(fd);
-    fd = -1;
-    std::string result;
-    if (FileUtil::LoadStringFromFile("/data/test/testFile2", result)) {
-        ASSERT_GT(result.length(), 0uL);
     } else {
-        FAIL();
+        std::vector<std::u16string>args;
+        args.push_back(u"Faultlogger");
+        args.push_back(u"-l");
+        serviceOhos.Dump(fd, args);
+        args.push_back(u"&@#");
+        ASSERT_EQ(serviceOhos.Dump(fd, args), -1);
+        close(fd);
+        fd = -1;
+        std::string result;
+        if (FileUtil::LoadStringFromFile("/data/test/testFile2", result)) {
+            ASSERT_GT(result.length(), 0uL);
+        } else {
+            FAIL();
+        }
+        serviceOhos.Destroy();
     }
-    serviceOhos.Destroy();
 }
 
 /**
@@ -1364,24 +1364,24 @@ HWTEST_F(FaultloggerUnittest, FaultLogQueryResultOhosTest001, testing::ext::Test
     if (!isSuccess) {
         ASSERT_FALSE(isSuccess);
         printf("FaultloggerServiceOhos start service error.\n");
-        return;
-    }
-    auto remoteObject = serviceOhos.QuerySelfFaultLog(FaultLogType::CPP_CRASH, 10); // 10 : maxNum
-    auto result = iface_cast<FaultLogQueryResultOhos>(remoteObject);
-    ASSERT_NE(result, nullptr);
-    if (result != nullptr) {
-        while (result->HasNext()) {
-            result->GetNext();
+    } else {
+        auto remoteObject = serviceOhos.QuerySelfFaultLog(FaultLogType::CPP_CRASH, 10); // 10 : maxNum
+        auto result = iface_cast<FaultLogQueryResultOhos>(remoteObject);
+        ASSERT_NE(result, nullptr);
+        if (result != nullptr) {
+            while (result->HasNext()) {
+                result->GetNext();
+            }
         }
+        auto getNextRes = result->GetNext();
+        ASSERT_NE(result, nullptr);
+    
+        result->result_ = nullptr;
+        bool hasNext = result->HasNext();
+        ASSERT_FALSE(hasNext);
+        getNextRes = result->GetNext();
+        ASSERT_NE(result, nullptr);
     }
-    auto getNextRes = result->GetNext();
-    ASSERT_NE(result, nullptr);
-
-    result->result_ = nullptr;
-    bool hasNext = result->HasNext();
-    ASSERT_FALSE(hasNext);
-    getNextRes = result->GetNext();
-    ASSERT_NE(result, nullptr);
 }
 
 class TestFaultLogQueryResultStub : public FaultLogQueryResultStub {
