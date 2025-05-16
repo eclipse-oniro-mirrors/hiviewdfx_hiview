@@ -29,6 +29,10 @@ public:
     virtual void AddFaultLog(FaultLogInfo& info) = 0;
     virtual std::unique_ptr<FaultLogQueryResultInner> QuerySelfFaultLog(int32_t uid,
         int32_t pid, int32_t faultType, int32_t maxNum) = 0;
+    virtual bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration, int32_t pid) = 0;
+    virtual void DisableGwpAsanGrayscale(int32_t pid) = 0;
+    virtual uint32_t GetGwpAsanGrayscaleState(int32_t pid) = 0;
 
     virtual ~IFaultLogManagerService() = default;
 };

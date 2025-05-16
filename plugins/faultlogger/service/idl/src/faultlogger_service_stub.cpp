@@ -26,6 +26,45 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultLoggerServiceStub");
+int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    int ret = ERR_FLATTEN_OBJECT;
+    switch (code) {
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_GRAYSALE): {
+            bool alwaysEnabled = data.ReadBool();
+            double sampleRate = data.ReadDouble();
+            double maxSimutaneousAllocations = data.ReadDouble();
+            int32_t duration = data.ReadInt32();
+            auto result = EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
+                maxSimutaneousAllocations, duration);
+            if (reply.WriteBool(result)) {
+                ret = ERR_OK;
+            } else {
+                HIVIEW_LOGE("failed to enable gwp asan grayscale.");
+            }
+            break;
+        }
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DISABLE_GWP_ASAN_GRAYSALE): {
+            DisableGwpAsanGrayscale();
+            ret = ERR_OK;
+            break;
+        }
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::GET_GWP_ASAN_GRAYSALE): {
+            auto result = GetGwpAsanGrayscaleState();
+            if (reply.WriteUint32(result)) {
+                ret = ERR_OK;
+            } else {
+                HIVIEW_LOGE("failed to get gwp asan grayscale state.");
+            }
+            break;
+        }
+        default:
+            ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+    return ret;
+}
+
 int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -71,7 +110,7 @@ int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         }
 
         default:
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+            return HandleOtherRemoteRequest(code, data, reply, option);
     }
 }
 } // namespace HiviewDFX

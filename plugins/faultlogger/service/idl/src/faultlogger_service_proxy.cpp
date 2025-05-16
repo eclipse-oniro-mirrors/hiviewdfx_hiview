@@ -93,6 +93,85 @@ sptr<IRemoteObject> FaultLoggerServiceProxy::QuerySelfFaultLog(int32_t faultType
     return remoteObject;
 }
 
+bool FaultLoggerServiceProxy::EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration)
+{
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        return false;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
+        return false;
+    }
+
+    if (!data.WriteBool(alwaysEnabled)) {
+        return false;
+    }
+
+    if (!data.WriteDouble(sampleRate)) {
+        return false;
+    }
+
+    if (!data.WriteDouble(maxSimutaneousAllocations)) {
+        return false;
+    }
+
+    if (!data.WriteInt32(duration)) {
+        return false;
+    }
+
+    if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_GRAYSALE),
+        data, reply, option) != ERR_OK) {
+        return false;
+    }
+    return reply.ReadBool();
+}
+
+void FaultLoggerServiceProxy::DisableGwpAsanGrayscale()
+{
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
+        return;
+    }
+
+    if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DISABLE_GWP_ASAN_GRAYSALE),
+        data, reply, option) != ERR_OK) {
+        return;
+    }
+}
+
+uint32_t FaultLoggerServiceProxy::GetGwpAsanGrayscaleState()
+{
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        return 0;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
+        return 0;
+    }
+
+    if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::GET_GWP_ASAN_GRAYSALE),
+        data, reply, option) != ERR_OK) {
+        return 0;
+    }
+    return reply.ReadUint32();
+}
+
 void FaultLoggerServiceProxy::Destroy()
 {
     sptr<IRemoteObject> remote = Remote();

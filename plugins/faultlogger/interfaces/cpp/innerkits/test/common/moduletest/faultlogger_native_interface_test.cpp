@@ -295,5 +295,21 @@ HWTEST_F(FaultloggerNativeInterfaceTest, FaultlogInfoTest001, testing::ext::Test
     ret &= info->GetFaultSummary() == summary;
     ASSERT_TRUE(ret);
 }
+
+/**
+ * @tc.name: GwpAsanGrayscaleFaultLogTest001
+ * @tc.desc: GwpAsanGrayscaleFaultLogTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerNativeInterfaceTest, GwpAsanGrayscaleFaultLogTest001, testing::ext::TestSize.Level3)
+{
+    auto result = EnableGwpAsanGrayscale(1, 1000, 2000, 5);
+    ASSERT_FALSE(result);
+    result = EnableGwpAsanGrayscale(false, 1000, 2000, 5);
+    ASSERT_TRUE(result);
+    DisableGwpAsanGrayscale();
+    auto result2 = GetGwpAsanGrayscaleState();
+    ASSERT_TRUE(result2 >= 0);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

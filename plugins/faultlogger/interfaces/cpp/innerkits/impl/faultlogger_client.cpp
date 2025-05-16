@@ -140,6 +140,45 @@ std::unique_ptr<FaultLogQueryResult> QuerySelfFaultLog(FaultLogType faultType, i
     return std::make_unique<FaultLogQueryResult>(new FaultLogQueryResultImpl(proxy));
 }
 
+bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration)
+{
+    auto service = GetFaultloggerService();
+    if (service == nullptr) {
+        HIVIEW_LOGE("Fail to enbale gwpAsanGrayscale, get service failed.");
+        return false;
+    }
+
+    auto result = service->EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
+        maxSimutaneousAllocations, duration);
+    if (!result) {
+        HIVIEW_LOGE("Fail to enable the GWP-ASAN grayscale of your application.");
+    }
+    return result;
+}
+
+void DisableGwpAsanGrayscale()
+{
+    auto service = GetFaultloggerService();
+    if (service == nullptr) {
+        HIVIEW_LOGE("Fail to disable gwpAsanGrayscale, get service failed.");
+        return;
+    }
+
+    service->DisableGwpAsanGrayscale();
+}
+
+uint32_t GetGwpAsanGrayscaleState()
+{
+    auto service = GetFaultloggerService();
+    if (service == nullptr) {
+        HIVIEW_LOGE("Fail to get gwpAsanGrayscale state, get service failed.");
+        return 0;
+    }
+
+    return service->GetGwpAsanGrayscaleState();
+}
+
 void ReportCppCrashEvent(const FaultLogInfoInner &info)
 {
     HiSysEventWrite(HiSysEvent::Domain::RELIABILITY,
