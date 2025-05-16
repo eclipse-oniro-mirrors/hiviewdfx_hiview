@@ -114,7 +114,7 @@ bool FaultLogProcessorBase::VerifyModule(FaultLogInfo& info)
     // Non system processes use UID to pass events to applications
     if (!IsSystemProcess(info.module, info.id) && info.sectionMap["SCBPROCESS"] != "Yes") {
         std::string appName = GetApplicationNameById(info.id);
-        if (!appName.empty()) {
+        if (!appName.empty() && !ExtractSubMoudleName(info.module)) {
             info.module = appName; // if bundle name is not empty, replace module name by it.
         }
     }

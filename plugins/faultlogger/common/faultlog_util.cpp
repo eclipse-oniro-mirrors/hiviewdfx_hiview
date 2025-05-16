@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <cstdint>
 #include <ctime>
+#include <ctype.h>
 #include <mutex>
 #include <securec.h>
 #include <string>
@@ -295,6 +297,24 @@ bool IsValidPath(const std::string& path)
     }
     if (strncmp(realPath, FAULTLOG_BASE_FOLDER, strlen(FAULTLOG_BASE_FOLDER)) == 0 ||
         strncmp(realPath, DEFAULT_FAULTLOG_TEST, strlen(DEFAULT_FAULTLOG_TEST)) == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool ExtractSubMoudleName(std::string &module)
+{
+    const std::string sceneboard = "com.ohos.sceneboard:";
+    if (module.compare(0, sceneboard.size(), sceneboard) == 0) {
+        module = module.substr(sceneboard.size());
+        std::replace(module.begin(), module.end(), '/', '_');
+        auto start = std::find_if(module.begin(), module.end(), isalpha);
+        auto end = std::find_if(module.rbegin(), module.rend(), isalpha);
+        if (start == module.end() || end == module.rend()) {
+            return false;
+        }
+        auto size = module.rend() - end;
+        module = std::string(start, module.begin() + size);
         return true;
     }
     return false;
