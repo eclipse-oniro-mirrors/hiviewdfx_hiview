@@ -2465,5 +2465,46 @@ HWTEST_F(FaultloggerUnittest, GetFaultloggerInstance001, testing::ext::TestSize.
     ret = plugin->IsInterestedPipelineEvent(event);
     ASSERT_EQ(ret, false);
 }
+
+/**
+ * @tc.name: ExtractSubMoudleName001
+ * @tc.desc: Test ExtractSubMoudleName func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName001, testing::ext::TestSize.Level3)
+{
+    std::string moduleName = "com.ohos.sceneboard:";
+    ASSERT_FALSE(ExtractSubMoudleName(moduleName));
+    std::string endName = "";
+    ASSERT_EQ(endName, moduleName);
+}
+
+/**
+ * @tc.name: ExtractSubMoudleName002
+ * @tc.desc: Test ExtractSubMoudleName func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName002, testing::ext::TestSize.Level3)
+{
+    std::string moduleName = "com.ohos.sceneboard:123ExtractSubMoudleName/123ExtractSubMoudleName_321";
+    ASSERT_TRUE(ExtractSubMoudleName(moduleName));
+    std::string endName = "ExtractSubMoudleName_123ExtractSubMoudleName";
+    ASSERT_EQ(endName, moduleName);
+}
+
+/**
+ * @tc.name: ExtractSubMoudleName003
+ * @tc.desc: Test ExtractSubMoudleName func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName003, testing::ext::TestSize.Level3)
+{
+    std::string moduleName = "com.ohos.test";
+    ASSERT_FALSE(ExtractSubMoudleName(moduleName));
+    std::string moduleName2 = "com.ohos.sceneboard:test:1";
+    ASSERT_TRUE(ExtractSubMoudleName(moduleName2));
+    std::string endName = "test";
+    ASSERT_EQ(endName, moduleName2);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
