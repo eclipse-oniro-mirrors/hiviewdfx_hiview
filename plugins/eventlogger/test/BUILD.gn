@@ -14,7 +14,7 @@ import("//base/hiviewdfx/hiview/build/hiview_var.gni")
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/hiview/eventlogger"
+module_output_path = "hiview/hiview_freeze_plugin/eventlogger"
 
 config("unittest_config") {
   include_dirs = [
@@ -120,6 +120,7 @@ ohos_unittest("EventLoggerTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "jsoncpp:jsoncpp",
+    "libxml2:libxml2",
   ]
 
   defines = []

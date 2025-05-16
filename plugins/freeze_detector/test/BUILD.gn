@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/hiview/freezedetector"
+module_output_path = "hiview/hiview_freeze_plugin/freezedetector"
 
 config("unittest_config") {
   include_dirs = [

@@ -208,7 +208,7 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorProxyTest001, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require: AR000H3T5D
  */
-HWTEST_F(FreezeDetectorTest, FreezeDetectorTest001, TestSize.Level3)
+HWTEST_F(FreezeDetectorTest, FreezeDetectorTest001, TestSize.Level0)
 {
     HiviewPlatform &platform = HiviewPlatform::GetInstance();
     std::shared_ptr<Plugin> plugin = platform.GetPluginByName("FreezeDetectorPlugin");
@@ -391,7 +391,7 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest004, TestSize.Level3)
  * @tc.type: FUNC
  * @tc.require: AR000H3T5D
  */
-HWTEST_F(FreezeDetectorTest, FreezeRuleTest001, TestSize.Level3)
+HWTEST_F(FreezeDetectorTest, FreezeRuleTest001, TestSize.Level0)
 {
     auto freezeRuleCluster = std::make_shared<FreezeRuleCluster>();
     bool freezeRuleFlag = freezeRuleCluster->ParseRuleFile("/data/test/test_data/freeze_rules.xml");

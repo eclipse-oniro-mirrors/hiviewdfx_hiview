@@ -80,7 +80,7 @@ std::shared_ptr<FreezeDetectorPlugin> FreezeDetectorPluginModuleTest::GetFreezeD
  * @tc.type: FUNC
  * @tc.require: AR000CPN26
  */
-HWTEST_F(FreezeDetectorPluginModuleTest, OnEventTest001, TestSize.Level3)
+HWTEST_F(FreezeDetectorPluginModuleTest, OnEventTest001, TestSize.Level0)
 {
     /**
      * @tc.steps: step1. create UI_BLOCK_6S watchpoint
