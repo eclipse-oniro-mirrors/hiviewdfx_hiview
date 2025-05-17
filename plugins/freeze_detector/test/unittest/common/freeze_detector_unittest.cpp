@@ -73,7 +73,7 @@ void FreezeDetectorUnittest::TearDown()
  * @tc.name: FreezeResolver_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeResolver_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_001, TestSize.Level0)
 {
     FreezeResolver freezeResolver(nullptr);
     ASSERT_EQ(freezeResolver.Init(), false);
@@ -218,7 +218,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeResolver_008, TestSize.Level3)
  * @tc.name: FreezeVender_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_001, TestSize.Level0)
 {
     auto vendor = std::make_unique<Vendor>(nullptr);
     ASSERT_EQ(vendor->Init(), false);
@@ -571,7 +571,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_012, TestSize.Level3)
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeRuleCluster_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeRuleCluster_001, TestSize.Level0)
 {
     auto freezeRuleCluster = std::make_unique<FreezeRuleCluster>();
     ASSERT_EQ(freezeRuleCluster->Init(), true);
@@ -630,7 +630,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeRuleCluster_004, TestSize.Level3)
  * @tc.name: FreezeRule_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeRule_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeRule_001, TestSize.Level0)
 {
     auto freezeRule = std::make_unique<FreezeRule>();
     FreezeResult result;
@@ -657,7 +657,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeRule_002, TestSize.Level3)
  * @tc.name: FreezeDetectorPlugin_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_001, TestSize.Level0)
 {
     auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
     ASSERT_EQ(freezeDetectorPlugin->ReadyToLoad(), true);
@@ -733,7 +733,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_006, TestSize.Level3)
  * @tc.name: FreezeCommon_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeCommon_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeCommon_001, TestSize.Level0)
 {
     auto freezeCommon = std::make_unique<FreezeCommon>();
     ASSERT_EQ(freezeCommon->Init(), true);
@@ -835,7 +835,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_008, TestSize.Level3)
  * @tc.name: FreezeWatchPoint_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_001, TestSize.Level0)
 {
     WatchPoint point = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitDomain("KERNEL_VENDOR")
@@ -930,7 +930,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
  * @tc.name: FreezeDBHelper_001
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_001, TestSize.Level0)
 {
     auto freezeCommon = nullptr;
     auto db = std::make_unique<DBHelper>(freezeCommon);
