@@ -68,4 +68,5 @@ ohos_source_set("hiview_utility") {
   ]
 
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }

@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 
 ohos_source_set("faultlogger_service") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [
     ".",
     "$hiview_plugin/faultlogger/common",
@@ -84,6 +85,7 @@ ohos_source_set("faultlogger_service_with_cfi") {
     debug = false
   }
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [
     ".",
     "$hiview_plugin/faultlogger/common",
@@ -147,6 +149,7 @@ ohos_source_set("faultlogger_service_with_cfi") {
 
 ohos_source_set("faultlogger_service_fuzz_src") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [
     ".",
     "$hiview_plugin/faultlogger/common",
@@ -205,6 +208,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
+    "safwk:system_ability_fwk",
     "zlib:libz",
   ]
 }

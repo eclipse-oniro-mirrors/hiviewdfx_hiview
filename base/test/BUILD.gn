@@ -51,6 +51,7 @@ ohos_unittest("EventLoopTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -68,6 +69,7 @@ ohos_unittest("PluginFactoryTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -93,6 +95,7 @@ ohos_unittest("PluginPipelineTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -107,6 +110,7 @@ ohos_unittest("SysEventTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -121,6 +125,7 @@ ohos_unittest("PluginTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -135,6 +140,7 @@ ohos_unittest("EventBaseTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -165,6 +171,7 @@ ohos_unittest("EventJsonParserTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",

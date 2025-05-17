@@ -41,6 +41,7 @@ ohos_prebuilt_etc("eventloggerso_plugin_config") {
 
 ohos_source_set("eventlogger_config") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   public_configs = [ ":eventlogger_config_config" ]
 
   sources = [ "event_logger_config.cpp" ]

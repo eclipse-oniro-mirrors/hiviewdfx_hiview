@@ -110,7 +110,8 @@
                 "wifi",
                 "window_manager",
                 "zlib",
-                "thermal_manager"
+                "thermal_manager",
+                "selinux_adapter"
             ]
         },
         "build": {

@@ -51,6 +51,8 @@ ohos_unittest("EventloggerCatcherTest") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",

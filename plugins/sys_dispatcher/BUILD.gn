@@ -38,6 +38,7 @@ ohos_source_set("sys_dispatcher") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",
