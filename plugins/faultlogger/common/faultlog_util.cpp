@@ -112,6 +112,8 @@ std::string GetFaultLogName(const FaultLogInfo& info)
             ret.append("hwasan");
         } else if (info.sanitizerType.compare("ASAN") == 0) {
             ret.append("asan");
+        } else if (info.sanitizerType.compare("FDSAN") == 0) {
+            ret.append("fdsan");
         } else {
             ret.append("sanitizer");
         }
