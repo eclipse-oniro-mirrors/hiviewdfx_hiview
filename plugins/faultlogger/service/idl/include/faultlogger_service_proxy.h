@@ -31,6 +31,10 @@ public:
 
     virtual void AddFaultLog(const FaultLogInfoOhos& info) override;
     virtual sptr<IRemoteObject> QuerySelfFaultLog(int32_t faultType, int32_t maxNum) override;
+    virtual bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration) override;
+    virtual void DisableGwpAsanGrayscale() override;
+    virtual uint32_t GetGwpAsanGrayscaleState() override;
     virtual void Destroy() override;
 
 private:

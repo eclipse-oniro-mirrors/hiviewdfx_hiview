@@ -1307,7 +1307,9 @@ HWTEST_F(FaultloggerUnittest, FaultloggerServiceOhosTest001, testing::ext::TestS
     serviceOhos.AddFaultLog(info);
     list = serviceOhos.QuerySelfFaultLog(8, 10);
     ASSERT_EQ(list, nullptr);
-
+    serviceOhos.EnableGwpAsanGrayscale(false, 1000, 2000, 5);
+    serviceOhos.DisableGwpAsanGrayscale();
+    ASSERT_TRUE(serviceOhos.GetGwpAsanGrayscaleState() >= 0);
     serviceOhos.Destroy();
 }
 
@@ -1443,6 +1445,21 @@ public:
     sptr<IRemoteObject> QuerySelfFaultLog(int32_t faultType, int32_t maxNum)
     {
         return nullptr;
+    }
+
+    bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration)
+    {
+        return false;
+    }
+
+    void DisableGwpAsanGrayscale()
+    {
+    }
+
+    uint32_t GetGwpAsanGrayscaleState()
+    {
+        return 0;
     }
 
     void Destroy()
@@ -2268,6 +2285,22 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerService001, testing::ext::TestSize.
     faultManagerService.QuerySelfFaultLog(100001, 0, 4, 101);
     auto ret = faultManagerService.QuerySelfFaultLog(100001, 0, -1, 101);
     ASSERT_TRUE(ret == nullptr);
+}
+
+/**
+ * @tc.name: FaultLogManagerService002
+ * @tc.desc: Test calling GwpAsanGrayscal Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogManagerService002, testing::ext::TestSize.Level3)
+{
+    auto plugin = GetFaultloggerInstance();
+    FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
+    int32_t pid = getpid();
+    faultManagerService.EnableGwpAsanGrayscale(false, 1000, 2000, 5, pid);
+    faultManagerService.EnableGwpAsanGrayscale(true, 2523, 2000, 5, pid);
+    faultManagerService.DisableGwpAsanGrayscale(pid);
+    ASSERT_TRUE(faultManagerService.GetGwpAsanGrayscaleState(pid) >= 0);
 }
 
 /**

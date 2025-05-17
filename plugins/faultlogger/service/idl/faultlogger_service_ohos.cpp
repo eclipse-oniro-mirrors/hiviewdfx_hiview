@@ -172,6 +172,61 @@ sptr<IRemoteObject> FaultloggerServiceOhos::QuerySelfFaultLog(int32_t faultType,
     return resultRef->AsObject();
 }
 
+bool FaultloggerServiceOhos::EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration)
+{
+    auto service = GetOrSetFaultlogger();
+    if (!service) {
+        return false;
+    }
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t currentUid = static_cast<int32_t>(getuid());
+    if (uid != currentUid) {
+        HIVIEW_LOGW("Fail to enable gwpAsanGrayscale, uid:%{public}d(%{public}d)", uid, currentUid);
+        return false;
+    }
+
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    bool result = service->EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
+        maxSimutaneousAllocations, duration, pid);
+    return result;
+}
+
+void FaultloggerServiceOhos::DisableGwpAsanGrayscale()
+{
+    auto service = GetOrSetFaultlogger();
+    if (!service) {
+        return;
+    }
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t currentUid = static_cast<int32_t>(getuid());
+    if (uid != currentUid) {
+        HIVIEW_LOGW("Fail to enable gwpAsanGrayscale, uid:%{public}d(%{public}d)", uid, currentUid);
+        return;
+    }
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    service->DisableGwpAsanGrayscale(pid);
+}
+
+uint32_t FaultloggerServiceOhos::GetGwpAsanGrayscaleState()
+{
+    auto service = GetOrSetFaultlogger();
+    if (!service) {
+        return 0;
+    }
+
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t currentUid = static_cast<int32_t>(getuid());
+    if (uid != currentUid) {
+        HIVIEW_LOGW("Fail to enable gwpAsanGrayscale, uid:%{public}d(%{public}d)", uid, currentUid);
+        return 0;
+    }
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    return service->GetGwpAsanGrayscaleState(pid);
+}
+
 void FaultloggerServiceOhos::Destroy()
 {
     auto service = GetOrSetFaultlogger();

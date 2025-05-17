@@ -30,6 +30,10 @@ class IFaultLoggerService : public IRemoteBroker {
 public:
     virtual void AddFaultLog(const FaultLogInfoOhos& info) = 0;
     virtual sptr<IRemoteObject> QuerySelfFaultLog(int32_t faultType, int32_t maxNum) = 0;
+    virtual bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration) = 0;
+    virtual void DisableGwpAsanGrayscale() = 0;
+    virtual uint32_t GetGwpAsanGrayscaleState() = 0;
     virtual void Destroy()  = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.hiviewdfx.IFaultLoggerService");
