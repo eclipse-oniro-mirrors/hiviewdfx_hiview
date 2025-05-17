@@ -1,0 +1,30 @@
+{
+    "Beta": {
+        "Common": {
+            "FAULT": 200,
+            "STATISTIC": 100,
+            "SECURITY": 100,
+            "BEHAVIOR": 2000
+        },
+        "Custom": {
+            "TEST_DOMAIN1": {
+                "FAULT_EVENT": 200,
+                "STATISTIC_EVENT": 200
+            }
+        }
+    },
+    "Commercial": {
+        "Common": {
+            "FAULT": 40,
+            "STATISTIC": 20,
+            "SECURITY": 20,
+            "BEHAVIOR": 100
+        },
+        "Custom": {
+            "TEST_DOMAIN1": {
+                "FAULT_EVENT": 40,
+                "STATISTIC_EVENT": 40
+            }
+        }
+    }
+}
