@@ -19,7 +19,7 @@ config("sys_event_service_adapter_config") {
 
   include_dirs = [
     ".",
-    "idl/type",
+    "idl/include/type",
   ]
 }
 

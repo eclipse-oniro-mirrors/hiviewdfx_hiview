@@ -20,7 +20,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../type/base_types.h"
 #include "data_publisher.h"
 #include "event_query_wrapper_builder.h"
 #include "iquery_base_callback.h"
@@ -34,6 +33,7 @@
 #include "sys_event_rule.h"
 #include "sys_event_service_stub.h"
 #include "system_ability.h"
+#include "type/base_types.h"
 
 namespace OHOS {
 namespace HiviewDFX {

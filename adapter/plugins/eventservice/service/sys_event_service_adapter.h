@@ -16,7 +16,7 @@
 #ifndef HIVIEWDFX_SYS_EVENT_SERVICE_ADAPTER_H
 #define HIVIEWDFX_SYS_EVENT_SERVICE_ADAPTER_H
 
-#include "idl/type/base_types.h"
+#include "idl/include/type/base_types.h"
 #include "event_loop.h"
 #include "sys_event.h"
 
