@@ -468,6 +468,7 @@
         "OHOS::HiviewDFX::PeriodInfoFileOperator::PeriodInfoFileOperator(OHOS::HiviewDFX::HiviewContext*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::DelayedSingleton<OHOS::HiviewDFX::EventJsonParser>::instance_";
         "OHOS::HiviewDFX::Event::GetInt64Value(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
+        "OHOS::HiviewDFX::FileUtil::CopyFileFast(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

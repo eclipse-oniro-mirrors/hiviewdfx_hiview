@@ -89,8 +89,9 @@ public:
     void UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, UCollect::TraceCaller& caller,
         const CollectResult<std::vector<std::string>>& result);
     std::map<std::string, TraceStatInfo> GetTraceStatInfo();
-    std::map<std::string, std::vector<std::string>> GetTrafficStatInfo();
+    std::map<std::string, std::vector<TraceTrafficInfo>> GetTrafficStatInfo();
     void ResetStatInfo();
+    void UpdateTrafficInfoAfterZip(const std::string& traceZipFile);
 
 private:
     void UpdateAPIStatInfo(const TraceStatItem& item);
@@ -100,7 +101,7 @@ private:
 private:
     std::mutex traceMutex_;
     std::map<std::string, TraceStatInfo> traceStatInfos_;
-    std::map<std::string, std::vector<std::string>> trafficStatInfos_;
+    std::map<std::string, std::vector<TraceTrafficInfo>> trafficStatInfos_;
 };
 
 class TraceDecorator : public TraceCollector, public UCDecorator {
@@ -115,14 +116,15 @@ public:
     static void SaveStatSpecialInfo();
     static void SaveStatCommonInfo();
     static void ResetStatInfo();
+    static void UpdateTrafficInfoAfterZip(const std::string& traceZipFile);
 
 private:
-    template <typename T> auto Invoke(T task, TraceStatWrapper& traceStatWrapper, UCollect::TraceCaller& caller)
+    template <typename T> auto Invoke(T task, UCollect::TraceCaller& caller)
     {
         uint64_t startTime = TimeUtil::GenerateTimestamp();
         auto result = task();
         uint64_t endTime = TimeUtil::GenerateTimestamp();
-        traceStatWrapper.UpdateTraceStatInfo(startTime, endTime, caller, result);
+        traceStatWrapper_.UpdateTraceStatInfo(startTime, endTime, caller, result);
         return result;
     }
 
