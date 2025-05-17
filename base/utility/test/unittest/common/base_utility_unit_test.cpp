@@ -21,6 +21,7 @@
 #include <string>
 
 #include "string_util.h"
+#include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -368,6 +369,62 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest016, testing::ext::TestSize.Lev
 HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest017, testing::ext::TestSize.Level3)
 {
     ASSERT_TRUE(!StringUtil::IsValidRegex("[a-z]+("));
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest018
+ * @tc.desc: Test GetUserId defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIC8IZD
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest018, testing::ext::TestSize.Level3)
+{
+    int userId = FileUtil::GetUserId(20020193);
+    ASSERT_EQ(userId, 100);
+    userId = FileUtil::GetUserId(1201);
+    ASSERT_EQ(userId, 0);
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest019
+ * @tc.desc: Test GetSandBoxLogPath defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIC8IZD
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest019, testing::ext::TestSize.Level3)
+{
+    std::string sandBox = FileUtil::GetSandBoxLogPath(20020193, "com.ohos.xxx", "resourcelimit");
+    ASSERT_EQ(sandBox, "/data/app/el2/100/log/com.ohos.xxx/resourcelimit");
+    sandBox = FileUtil::GetSandBoxLogPath(20020193, "com.ohos.xxx", "watchdog");
+    ASSERT_EQ(sandBox, "/data/app/el2/100/log/com.ohos.xxx/watchdog");
+    sandBox = FileUtil::GetSandBoxLogPath(20020193, "com.ohos.xxx", "hiappevent");
+    ASSERT_EQ(sandBox, "/data/app/el2/100/log/com.ohos.xxx/hiappevent");
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest020
+ * @tc.desc: Test GetSandBoxBasePath defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIC8IZD
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest020, testing::ext::TestSize.Level3)
+{
+    std::string sandBox = FileUtil::GetSandBoxBasePath(20020193, "com.ohos.xxx");
+    ASSERT_EQ(sandBox, "/data/app/el2/100/base/com.ohos.xxx/cache/hiappevent");
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest021
+ * @tc.desc: Test GetDeviceValidSize defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueIC8IZD
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest021, testing::ext::TestSize.Level3)
+{
+    double size = FileUtil::GetDeviceValidSize("/data");
+    ASSERT_TRUE(size > 0);
+    size = FileUtil::GetDeviceValidSize("/test");
+    ASSERT_EQ(size, 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

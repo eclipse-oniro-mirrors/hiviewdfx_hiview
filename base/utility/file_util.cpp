@@ -24,6 +24,7 @@
 #include <istream>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
+#include <sys/statfs.h>
 #include <sys/xattr.h>
 #include <unistd.h>
 #include <vector>
@@ -36,6 +37,10 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace FileUtil {
 using namespace std;
+namespace {
+    constexpr int VALUE_MOD = 200000;
+}
+
 bool LoadStringFromFile(const std::string& filePath, std::string& content)
 {
     return OHOS::LoadStringFromFile(filePath, content);
@@ -196,6 +201,16 @@ bool RemoveFile(const std::string& fileName)
 uint64_t GetFolderSize(const std::string& path)
 {
     return OHOS::GetFolderSize(path);
+}
+
+double GetDeviceValidSize(const std::string& partitionName)
+{
+    struct statfs stat;
+    int err = statfs(partitionName.c_str(), &stat);
+    if (err != 0) {
+        return 0;
+    }
+    return static_cast<double>(stat.f_bfree) * static_cast<double>(stat.f_bsize);
 }
 
 // inner function, and param is legitimate
@@ -429,6 +444,29 @@ int64_t GetLastModifiedTimeStamp(const std::string& filePath)
         return 0;
     }
     return fileInfo.st_mtime;
+}
+
+int GetUserId(int32_t uid)
+{
+    return uid / VALUE_MOD;
+}
+
+std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const std::string& subPath)
+{
+    int userId = GetUserId(uid);
+    if (pathHolder.empty()) {
+        return "";
+    }
+    return "/data/app/el2/" + std::to_string(userId) + "/log/" + pathHolder + "/" + subPath;
+}
+
+std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder)
+{
+    int userId = GetUserId(uid);
+    if (pathHolder.empty()) {
+        return "";
+    }
+    return "/data/app/el2/" + std::to_string(userId) + "/base/" + pathHolder + "/cache/hiappevent";
 }
 } // namespace FileUtil
 } // namespace HiviewDFX
