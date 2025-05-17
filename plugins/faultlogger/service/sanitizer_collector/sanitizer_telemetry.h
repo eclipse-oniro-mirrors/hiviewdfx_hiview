@@ -39,8 +39,13 @@ private:
     void HandleTelemetryStart(const Event& msg);
     void SetTelemetryParam(const GwpTelemetryEvent& gwpTelemetryEvent);
     void ClearTelemetryParam(const std::string& bundleName);
+    void ClearThirdPartyTelemetryParam(const std::string& bundleName);
     void SetIfTelemetryExist(const std::string& key, const std::string& value);
     void ClearIfParameterSet(const std::string& key);
+    bool IsOverTelemetryAppNum(const std::string& bundleName);
+    uint64_t GetThirdPartyDurationDay(const std::string& bundleName);
+    uint64_t GetThirdPartyBeginTime(const std::string& bundleName);
+    uint64_t GetTelemetryAppNum();
     bool SafeStoll(const std::string& str, long long& value);
 };
 }  // namespace HiviewDFX
