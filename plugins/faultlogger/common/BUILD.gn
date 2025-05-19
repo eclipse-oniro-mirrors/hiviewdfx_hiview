@@ -36,10 +36,12 @@ ohos_source_set("log_analyzer") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "hilog:libhilog",
   ]
 
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }
 
 ohos_source_set("log_analyzer_with_cfi") {
@@ -68,10 +70,12 @@ ohos_source_set("log_analyzer_with_cfi") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "hilog:libhilog",
   ]
 
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }
 
 ohos_source_set("faultlogger_common") {
@@ -97,6 +101,7 @@ ohos_source_set("faultlogger_common") {
   ]
 
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }
 
 ohos_source_set("faultlogger_common_with_cfi") {
@@ -126,4 +131,5 @@ ohos_source_set("faultlogger_common_with_cfi") {
   ]
 
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }

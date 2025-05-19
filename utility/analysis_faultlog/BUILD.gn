@@ -34,7 +34,10 @@ ohos_executable("analysis_faultlog") {
     "$hiview_root/utility/smart_parser:smart_parser",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"

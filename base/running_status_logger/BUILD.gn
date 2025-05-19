@@ -36,6 +36,7 @@ config("running_status_logger_private_config") {
 
 ohos_source_set("running_status_logger_source") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 
   public_configs = [ ":running_status_logger_config" ]
 
@@ -53,6 +54,7 @@ ohos_source_set("running_status_logger_source") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "jsoncpp:jsoncpp",
   ]

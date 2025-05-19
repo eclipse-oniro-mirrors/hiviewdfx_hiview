@@ -23,6 +23,7 @@ config("log_store_config") {
 
 ohos_source_set("log_store") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   public_configs = [ ":log_store_config" ]
 
   sources = [

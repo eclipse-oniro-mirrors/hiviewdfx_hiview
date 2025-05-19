@@ -21,6 +21,7 @@ config("faultlogger_innerkits_config") {
 
 ohos_source_set("faultlogger_client_impl") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [ "." ]
 
   public_configs = [ ":faultlogger_innerkits_config" ]
@@ -54,6 +55,7 @@ ohos_source_set("faultlogger_client_impl_with_cfi") {
     debug = false
   }
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [ "." ]
 
   public_configs = [ ":faultlogger_innerkits_config" ]

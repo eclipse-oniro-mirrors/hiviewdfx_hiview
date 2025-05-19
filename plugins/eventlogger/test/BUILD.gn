@@ -81,6 +81,7 @@ ohos_unittest("ActiveKeyEventTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -114,11 +115,13 @@ ohos_unittest("EventLoggerTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "jsoncpp:jsoncpp",
     "libxml2:libxml2",
   ]

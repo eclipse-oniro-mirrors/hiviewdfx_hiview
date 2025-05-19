@@ -46,6 +46,7 @@ ohos_unittest("LogStoreUnitTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",

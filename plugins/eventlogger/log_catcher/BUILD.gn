@@ -26,6 +26,7 @@ config("log_catcher_config") {
 
 ohos_source_set("log_catcher") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   public_configs = [ ":log_catcher_config" ]
 
   sources = [
@@ -43,6 +44,7 @@ ohos_source_set("log_catcher") {
 
   external_deps = [
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",

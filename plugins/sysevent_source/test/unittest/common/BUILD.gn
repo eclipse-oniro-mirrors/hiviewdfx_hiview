@@ -43,6 +43,7 @@ ohos_unittest("SysEventStatTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -64,6 +65,7 @@ ohos_unittest("EventServerTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -86,6 +88,7 @@ ohos_unittest("DailyControllerTest") {
 
   external_deps = [
     "cJSON:cjson",
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
