@@ -20,8 +20,10 @@
 #include "tokenid_kit.h"
 
 using namespace OHOS::HiviewDFX;
+namespace {
 DEFINE_LOG_LABEL(0xD002D03, "LogLibraryAniUtil");
 static constexpr int32_t SUCCESS = 0;
+}
 
 std::string LogLibraryAniUtil::ParseStringValue(ani_env *env, ani_string aniStrRef)
 {

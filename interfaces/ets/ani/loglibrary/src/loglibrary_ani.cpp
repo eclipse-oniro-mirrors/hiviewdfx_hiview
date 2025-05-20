@@ -18,7 +18,9 @@
 #include "hiview_service_agent.h"
 
 using namespace OHOS::HiviewDFX;
+namespace {
 DEFINE_LOG_LABEL(0xD002D03, "LogLibraryAni");
+}
 
 ani_ref LogLibraryAni::List(ani_env *env, ani_string logType)
 {
