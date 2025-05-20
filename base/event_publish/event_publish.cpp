@@ -190,24 +190,6 @@ std::string GetPathPlaceHolder(int32_t uid)
     return "+clone-" + std::to_string(appIndex) + "+" + bundleName;
 }
 
-std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder)
-{
-    int userId = uid / VALUE_MOD;
-    if (pathHolder.empty()) {
-        return "";
-    }
-    return "/data/app/el2/" + std::to_string(userId) + "/base/" + pathHolder + "/cache/hiappevent";
-}
-
-std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const ExternalLogInfo &externalLogInfo)
-{
-    int userId = uid / VALUE_MOD;
-    if (pathHolder.empty()) {
-        return "";
-    }
-    return "/data/app/el2/" + std::to_string(userId) + "/log/" + pathHolder + "/" + externalLogInfo.subPath_;
-}
-
 bool CopyExternalLog(int32_t uid, const std::string& externalLog, const std::string& destPath, uint32_t maxFileSizeByte)
 {
     if (FileUtil::CopyFileFast(externalLog, destPath, maxFileSizeByte) == 0) {
@@ -453,7 +435,7 @@ void EventPublish::SendOverLimitEventToSandBox(AppEventParams eventParams)
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventParams.eventJson, desPath);
-    UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder);
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(eventParams.uid, eventParams.pathHolder);
     sendingOverlimitThread_.reset();
 }
 
