@@ -161,8 +161,9 @@ void SocketDevice::InitSocket(int &socketId)
     }
     InitRecvBuffer(socketId_);
     unlink(serverAddr.sun_path);
+    fdsan_exchange_owner_tag(socketId, 0, logLabelDomain);
     if (TEMP_FAILURE_RETRY(bind(socketId, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr))) < 0) {
-        close(socketId);
+        fdsan_close_with_tag(socketId, logLabelDomain);
         socketId = -1;
         HIVIEW_LOGE("bind hisysevent socket failed, error=%{public}d, msg=%{public}s", errno, strerror(errno));
         return;
@@ -190,7 +191,7 @@ int SocketDevice::Open()
 int SocketDevice::Close()
 {
     if (socketId_ > 0) {
-        close(socketId_);
+        fdsan_close_with_tag(socketId_, logLabelDomain);
         socketId_ = -1;
     }
     return 0;
@@ -264,7 +265,7 @@ int SocketDevice::ReceiveMsg(std::vector<std::shared_ptr<EventReceiver>> &receiv
 int BBoxDevice::Close()
 {
     if (fd_ > 0) {
-        close(fd_);
+        fdsan_close_with_tag(fd_, logLabelDomain);
         fd_ = -1;
     }
     return 0;
@@ -283,6 +284,7 @@ int BBoxDevice::Open()
         HIVIEW_LOGE("open bbox failed, error=%{public}d, msg=%{public}s", errno, strerror(errno));
         return -1;
     }
+    fdsan_exchange_owner_tag(fd_, 0, logLabelDomain);
     return fd_;
 }
 

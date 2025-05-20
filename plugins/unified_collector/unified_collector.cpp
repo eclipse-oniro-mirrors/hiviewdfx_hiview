@@ -104,17 +104,18 @@ void RecoverTmpTrace()
             HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
             continue;
         }
+        fdsan_exchange_owner_tag(fd, 0, logLabelDomain);
         // add lock before zip trace file, in case hitrace delete origin trace file.
         if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
             HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
-            close(fd);
+            fdsan_close_with_tag(fd, logLabelDomain);
             continue;
         }
         HIVIEW_LOGI("originTraceFile path: %{public}s", originTraceFile.c_str());
         UcollectionTask traceTask = [=]() {
             ZipTraceFile(originTraceFile, UNIFIED_SHARE_PATH + fileName);
             flock(fd, LOCK_UN);
-            close(fd);
+            fdsan_close_with_tag(fd, logLabelDomain);
         };
         TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }

@@ -42,8 +42,8 @@ CollectDeviceClient::CollectDeviceClient(): fd_(-1)
 
 CollectDeviceClient::~CollectDeviceClient()
 {
-    if (fd_ > 0) {
-        close(fd_);
+    if (fd_ >= 0) {
+        fdsan_close_with_tag(fd_, logLabelDomain);
     }
 }
 
@@ -67,7 +67,11 @@ int CollectDeviceClient::GetDeviceFd(bool readOnly)
 int CollectDeviceClient::Open()
 {
     fd_ = GetDeviceFd(true);
-    return (fd_ > 0) ? 0 : -1;
+    if (fd_ < 0) {
+        return -1;
+    }
+    fdsan_exchange_owner_tag(fd_, 0, logLabelDomain);
+    return fd_;
 }
 
 unsigned int CollectDeviceClient::GetProcessCount()

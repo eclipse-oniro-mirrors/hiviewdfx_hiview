@@ -141,18 +141,20 @@ int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::strin
         HIVIEW_LOGE("failed to open source file, src=%{public}s", StringUtil::HideSnInfo(srcFilePath).c_str());
         return ERR_DEFAULT;
     }
+    fdsan_exchange_owner_tag(srcFd, 0, logLabelDomain);
     struct stat st{};
     if (fstat(srcFd, &st) == -1) {
         HIVIEW_LOGE("failed to stat file.");
-        close(srcFd);
+        fdsan_close_with_tag(srcFd, logLabelDomain);
         return ERR_DEFAULT;
     }
     int destFd = open(destFilePath.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IROTH);
     if (destFd == -1) {
         HIVIEW_LOGE("failed to open destination file, des=%{public}s", StringUtil::HideSnInfo(destFilePath).c_str());
-        close(srcFd);
+        fdsan_close_with_tag(srcFd, logLabelDomain);
         return ERR_DEFAULT;
     }
+    fdsan_exchange_owner_tag(destFd, 0, logLabelDomain);
     off_t offset = 0;
     int cycleNum = 0;
     while (offset < st.st_size) {
@@ -166,13 +168,13 @@ int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::strin
         if (ret < 0 || offset > st.st_size) {
             HIVIEW_LOGE("sendfile fail, ret:%{public}zd, offset:%{public}lld, size:%{public}lld",
                 ret, static_cast<long long>(offset), static_cast<long long>(st.st_size));
-            close(srcFd);
-            close(destFd);
+            fdsan_close_with_tag(srcFd, logLabelDomain);
+            fdsan_close_with_tag(destFd, logLabelDomain);
             return ERR_DEFAULT;
         }
     }
-    close(srcFd);
-    close(destFd);
+    fdsan_close_with_tag(srcFd, logLabelDomain);
+    fdsan_close_with_tag(destFd, logLabelDomain);
     return 0;
 }
 
