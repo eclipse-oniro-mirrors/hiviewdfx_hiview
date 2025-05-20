@@ -93,6 +93,7 @@ void AddFaultLog(const FaultLogInfoInner &info)
     infoOhos.pid = info.pid;
     infoOhos.pipeFd = info.pipeFd;
     infoOhos.faultLogType = info.faultLogType;
+    infoOhos.logFileCutoffSizeBytes = info.logFileCutoffSizeBytes;
     infoOhos.module = GetPrintableStr(info.module);
     infoOhos.reason = info.reason;
     infoOhos.summary = info.summary;
