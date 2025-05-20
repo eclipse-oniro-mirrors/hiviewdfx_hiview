@@ -28,6 +28,10 @@ public:
     void AddFaultLog(FaultLogInfo& info) override;
     std::unique_ptr<FaultLogQueryResultInner> QuerySelfFaultLog(int32_t uid,
         int32_t pid, int32_t faultType, int32_t maxNum) override;
+    bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration, int32_t pid) override;
+    void DisableGwpAsanGrayscale(int32_t pid) override;
+    uint32_t GetGwpAsanGrayscaleState(int32_t pid) override;
 private:
         std::shared_ptr<EventLoop> workLoop_;
         std::shared_ptr<FaultLogManager> faultLogManager_;

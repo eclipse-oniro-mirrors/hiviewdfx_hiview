@@ -58,7 +58,7 @@ void ActiveKeyEventTest::TearDownTestCase()
  * @tc.desc: ActiveKeyEventTest CombinationKeyHandle
  * @tc.type: FUNC
  */
-HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_001, TestSize.Level3)
+HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_001, TestSize.Level0)
 {
     std::string logStorePath = "/data/test/";
     std::shared_ptr<LogStoreEx> logStoreEx = std::make_shared<LogStoreEx>(logStorePath, true);

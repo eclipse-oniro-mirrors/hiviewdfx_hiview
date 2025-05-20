@@ -20,6 +20,7 @@ config("adapter_log_catcher_config") {
 
 ohos_source_set("eventlogger_adapter_logcatcher") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   public_configs = [ ":adapter_log_catcher_config" ]
 
   sources = [ "impl/log_catcher_utils.cpp" ]

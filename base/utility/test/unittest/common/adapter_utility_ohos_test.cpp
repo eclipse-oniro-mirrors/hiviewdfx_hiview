@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -614,6 +614,30 @@ HWTEST_F(AdapterUtilityOhosTest, HiViewConfigUtilTest001, testing::ext::TestSize
     }
     auto ret = HiViewConfigUtil::GetConfigFilePath("test_file_name", "data/test/", "test_file_name");
     ASSERT_EQ(ret, "/data/system/hiview/unzip_configs/data/test/test_file_name");
+}
+
+/**
+ * @tc.name: CommonUtilsOhosTest003
+ * @tc.desc: Test GetTransformedUid defined in namespace CommonUtils
+ * @tc.type: FUNC
+ * @tc.require: issueIC607P
+ */
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest003, testing::ext::TestSize.Level3)
+{
+    auto ret = CommonUtils::GetTransformedUid(0); // 1 is a test uid value
+    ASSERT_EQ(ret, 0); // 0 is expected transformed ret
+    ret = CommonUtils::GetTransformedUid(1001); // 1001 is a test uid value
+    ASSERT_EQ(ret, 0); // 0 is expected transformed ret
+    ret = CommonUtils::GetTransformedUid(199999); // 19999 is a test uid value
+    ASSERT_EQ(ret, 0); // 0 is expected transformed ret
+    ret = CommonUtils::GetTransformedUid(200000); // 20000 is a test uid value
+    ASSERT_EQ(ret, 1); // 1 is expected transformed ret
+    ret = CommonUtils::GetTransformedUid(200001); // 20001 is a test uid value
+    ASSERT_EQ(ret, 1); // 1 is expected transformed ret
+    ret = CommonUtils::GetTransformedUid(1000000); // 100000 is a test uid value
+    ASSERT_EQ(ret, 5); // 5 is expected transformed ret
+    ret = CommonUtils::GetTransformedUid(1000001); // 20001 is a test uid value
+    ASSERT_EQ(ret, 5); // 5 is expected transformed ret
 }
 } // namespace HiviewDFX
 } // namespace OHOS

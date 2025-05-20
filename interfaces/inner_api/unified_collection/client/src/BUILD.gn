@@ -40,5 +40,9 @@ ohos_source_set("ucollection_client_source") {
     "$hiview_adapter/service/client:hiview_service_impl_for_unified_collection",
   ]
 
-  external_deps = []
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
 }

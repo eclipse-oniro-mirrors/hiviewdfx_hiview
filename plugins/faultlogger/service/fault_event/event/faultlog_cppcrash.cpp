@@ -49,6 +49,10 @@ void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
     }
     // drop last line tail '\n'
     size_t hilogLen = info.sectionMap[FaultKey::HILOG].length();
+    if (hilogLen <= 1) {
+        HIVIEW_LOGE("Hilog length does not meet expectations, hilogLen: %{public}zu", hilogLen);
+        return;
+    }
     if (hilogLen > 0 && info.sectionMap[FaultKey::HILOG][hilogLen - 1] == '\n') {
         hilogLen--;
     }
@@ -180,8 +184,7 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
         return;
     }
 
-    std::string hilogGetByCmd;
-    hilogGetByCmd = GetHilogByPid(info.pid);
+    std::string hilogGetByCmd = GetHilogByPid(info.pid);
     if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
         info.sectionMap[FaultKey::HILOG] = hilogSnapShot;
     } else {

@@ -17,7 +17,7 @@
 #define OHOS_HIVIEWDFX_SYS_EVENT_RULE_H
 
 #include "parcel.h"
-#include "../type/base_types.h"
+#include "type/base_types.h"
 
 namespace OHOS {
 namespace HiviewDFX {

@@ -41,6 +41,7 @@ ohos_source_set("bbox_detector") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
@@ -78,6 +79,7 @@ ohos_source_set("bbox_detector_with_cfi") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",

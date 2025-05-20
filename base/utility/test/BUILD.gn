@@ -85,6 +85,7 @@ ohos_unittest("AdapterUtilityOhosTest") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "cJSON:cjson",
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbeget_proxy",

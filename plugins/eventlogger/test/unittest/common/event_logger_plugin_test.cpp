@@ -61,7 +61,7 @@ void EventloggerPluginTest::TearDownTestCase()
  * @tc.type: FUNC
  * @tc.require: AR000FT62O
  */
-HWTEST_F(EventloggerPluginTest, EventloggerPluginTest001, TestSize.Level3)
+HWTEST_F(EventloggerPluginTest, EventloggerPluginTest001, TestSize.Level0)
 {
     EventLogger eventLogger;
     std::shared_ptr<EventLoop> loop = std::make_shared<EventLoop>("eventLoop");

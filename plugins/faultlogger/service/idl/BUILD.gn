@@ -23,6 +23,7 @@ config("faultlogger_service_impl_config") {
 
 ohos_source_set("faultlogger_service_ohos_common") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   sources = [
     "src/faultlog_info_ohos.cpp",
     "src/faultlog_query_result_proxy.cpp",
@@ -56,6 +57,7 @@ ohos_source_set("faultlogger_service_ohos_common_with_cfi") {
     debug = false
   }
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   sources = [
     "src/faultlog_info_ohos.cpp",
     "src/faultlog_query_result_proxy.cpp",
@@ -82,6 +84,7 @@ ohos_source_set("faultlogger_service_ohos_common_with_cfi") {
 
 ohos_source_set("faultlogger_service_impl") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [
     "$hiview_plugin/faultlogger/service",
     "$hiview_plugin/faultlogger/service/fault_file",
@@ -119,6 +122,7 @@ ohos_source_set("faultlogger_service_impl_with_cfi") {
     debug = false
   }
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs = [
     "$hiview_plugin/faultlogger/service",
     "$hiview_plugin/faultlogger/service/fault_file",
