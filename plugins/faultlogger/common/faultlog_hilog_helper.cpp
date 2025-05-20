@@ -14,9 +14,10 @@
  */
 #include "faultlog_hilog_helper.h"
 
+#include <fcntl.h>
+#include <poll.h>
 #include <unistd.h>
 
-#include <poll.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 
@@ -47,7 +48,19 @@ uint64_t GetTimeMilliseconds(void)
     return (static_cast<uint64_t>(ts.tv_sec) * NUMBER_ONE_THOUSAND) +
         (static_cast<uint64_t>(ts.tv_nsec) / NUMBER_ONE_MILLION);
 }
+
+void ReadDataFromPipe(int fd, std::string &log)
+{
+    char buffer[READ_HILOG_BUFFER_SIZE];
+    ssize_t nread {0};
+    do {
+        nread = TEMP_FAILURE_RETRY(read(fd, buffer, sizeof(buffer) - 1));
+        if (nread > 0) {
+            log.append(buffer, nread);
+        }
+    } while (nread > 0);
 }
+} // namespace
 
 std::string FaultlogHilogHelper::ReadHilogTimeout(int fd, uint64_t timeout)
 {
@@ -60,43 +73,36 @@ std::string FaultlogHilogHelper::ReadHilogTimeout(int fd, uint64_t timeout)
 
     struct pollfd pfds[1];
     pfds[0].fd = fd;
-    pfds[0].events = POLLIN;
+    pfds[0].events = POLLIN | POLLHUP;
 
     std::string log;
     int pollRet = -1;
-    bool isReadDone = false;
-    while (!isReadDone) {
+    do {
         uint64_t now = GetTimeMilliseconds();
         if (now >= endTime || now < startTime) {
             HIVIEW_LOGI("read hilog timeout.");
-            return log;
+            break;
         } else {
             timeout = endTime - now;
         }
 
         pollRet = poll(pfds, 1, timeout);
         if (pollRet < 0) {
-            if (errno == EINTR) {
-                continue;
+            continue;
+        } else if (pollRet == 0) {
+            HIVIEW_LOGI("poll timeout");
+            break;
+        } else {
+            if (pfds[0].revents & POLLHUP) {
+                ReadDataFromPipe(fd, log);
+                break;
             }
-            return log;
-        }
 
-        if ((pollRet > 0) && (pfds[0].revents & POLLIN)) {
-            char buffer[READ_HILOG_BUFFER_SIZE] = {0};
-            ssize_t nread = TEMP_FAILURE_RETRY(read(fd, buffer, sizeof(buffer) - 1));
-            if (nread < 0) {
-                HIVIEW_LOGI("read failed. errno: %{public}d", errno);
-                return log;
+            if ((pfds[0].revents & POLLIN)) {
+                ReadDataFromPipe(fd, log);
             }
-            if (nread == 0) {
-                isReadDone = true;
-                HIVIEW_LOGI("read hilog finished");
-                return log;
-            }
-            log.append(buffer, nread);
         }
-    }
+    } while (pollRet > 0 || errno == EINTR);
     return log;
 }
 
@@ -107,7 +113,7 @@ std::string FaultlogHilogHelper::GetHilogByPid(int32_t pid)
         return "";
     }
     int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
-    if (pipe(fds) != 0) {
+    if (pipe2(fds, O_NONBLOCK) != 0) {
         HIVIEW_LOGE("Failed to create pipe for get log.");
         return "";
     }

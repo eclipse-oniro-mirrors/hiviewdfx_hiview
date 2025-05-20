@@ -33,7 +33,7 @@ struct DumpRequest {
 
 enum class ParseCmdResult {
     SUCCESS,
-    UN_KNOWN,
+    UNKNOWN,
     MAX
 };
 

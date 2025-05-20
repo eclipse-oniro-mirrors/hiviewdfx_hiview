@@ -108,10 +108,7 @@ HWTEST_F(HiviewSATest, CommonTest003, testing::ext::TestSize.Level3)
     auto systemuiPid = CommonUtils::GetPidByName("com.ohos.systemui");
     auto launcherPid = CommonUtils::GetPidByName("com.ohos.sceneboard");
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
-    if (pid <= 0) {
-        std::cout << "Get pid failed" << std::endl;
-        return;
-    }
+    ASSERT_GT(pid, 0);
     int32_t errNo = UCollect::UcError::UNSUPPORT;
     int32_t value = 0;
     int32_t ret = hiviewSAProxy->GetGraphicUsage(errNo, value);

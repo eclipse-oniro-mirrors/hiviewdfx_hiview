@@ -28,6 +28,7 @@ struct FaultLogInfo {
     std::shared_ptr<int32_t> pipeFd;
     int32_t faultLogType {0};
     int32_t fd = {-1};
+    uint32_t logFileCutoffSizeBytes {0};
     std::string module;
     std::string reason;
     std::string summary;

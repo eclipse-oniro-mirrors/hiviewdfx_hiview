@@ -30,6 +30,7 @@ config("hiview_service_adapter_internal_config") {
 
 ohos_source_set("hiview_service_adapter") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 
   public_configs = [ ":hiview_service_adapter_config" ]
 

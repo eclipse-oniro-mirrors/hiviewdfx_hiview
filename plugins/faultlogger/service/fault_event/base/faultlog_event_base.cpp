@@ -54,9 +54,9 @@ void FaultLogEventBase::UpdateSysEvent(SysEvent& sysEvent, FaultLogInfo& info)
 
     std::map<std::string, std::string> eventInfos;
     if (AnalysisFaultlog(info, eventInfos)) {
-        auto pName = sysEvent.GetEventValue(FaultKey::PROCESS_NAME);
+        auto pName = sysEvent.GetEventValue(FaultKey::P_NAME);
         if (pName.empty()) {
-            sysEvent.SetEventValue(FaultKey::PROCESS_NAME, std::string("/"));
+            sysEvent.SetEventValue(FaultKey::P_NAME, std::string("/"));
         }
         sysEvent.SetEventValue(FaultKey::FIRST_FRAME, eventInfos[FaultKey::FIRST_FRAME].empty() ? "/" :
                                 StringUtil::EscapeJsonStringValue(eventInfos[FaultKey::FIRST_FRAME]));

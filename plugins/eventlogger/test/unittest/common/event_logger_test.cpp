@@ -71,7 +71,7 @@ void EventLoggerTest::TearDownTestCase()
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_001, TestSize.Level0)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     std::shared_ptr<Event> event = nullptr;
@@ -268,7 +268,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeFile_001, TestSize.Level3)
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_001, TestSize.Level0)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
@@ -579,7 +579,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetFile_001, TestSize.Level3)
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_ReportUserPanicWarning_001, TestSize.Level0)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     eventLogger->OnLoad();
@@ -876,7 +876,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ParsePeerStack_001, TestSize.Level3)
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_GetEventPid_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetEventPid_001, TestSize.Level0)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
@@ -970,7 +970,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_AddBootScanEvent_001, TestSize.Level3)
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_001, TestSize.Level0)
 {
     std::string path = "/data/log/faultlog/freeze/appfreeze-com.test.demo-20020191-20250320154130";
     auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);

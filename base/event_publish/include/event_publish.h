@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,19 +40,34 @@ constexpr const char* const EVENT_ADDRESS_SANITIZER = "ADDRESS_SANITIZER";
 constexpr const char* const EVENT_MAIN_THREAD_JANK = "MAIN_THREAD_JANK";
 constexpr const char* const EVENT_APP_START = "APP_START";
 constexpr const char* const EVENT_APP_HICOLLIE = "APP_HICOLLIE";
+
+struct AppEventParams {
+    int32_t uid = 0;
+    std::string eventName;
+    std::string pathHolder;
+    Json::Value eventJson = Json::Value();
+    uint32_t maxFileSizeBytes = 0;
+
+    AppEventParams(int32_t uid, std::string eventName, std::string pathHolder, Json::Value eventJson,
+        uint32_t maxFileSizeBytes)
+        : uid(uid),
+        eventName(eventName),
+        pathHolder(pathHolder),
+        eventJson(eventJson),
+        maxFileSizeBytes(maxFileSizeBytes)
+    {}
+};
 }
 class EventPublish : public OHOS::DelayedRefSingleton<EventPublish> {
 public:
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
-        const std::string& paramJson);
+        const std::string& paramJson, uint32_t maxFileSizeBytes = 0);
 
 private:
     void StartSendingThread();
     void SendEventToSandBox();
-    void StartOverLimitThread(int32_t uid, const std::string& eventName,
-                              const std::string& pathHolder, Json::Value& eventJson);
-    void SendOverLimitEventToSandBox(int32_t uid, const std::string& eventName,
-                                     const std::string& pathHolder, Json::Value eventJson);
+    void StartOverLimitThread(HiAppEvent::AppEventParams& eventParams);
+    void SendOverLimitEventToSandBox(HiAppEvent::AppEventParams eventParams);
 
 private:
     std::mutex mutex_;

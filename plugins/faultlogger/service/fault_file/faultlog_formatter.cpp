@@ -38,7 +38,7 @@ constexpr int LOG_MAP_VALUE = 1;
 constexpr const char* const DEVICE_INFO_KV[] = {FaultKey::DEVICE_INFO, "Device info:"};
 constexpr const char* const BUILD_INFO_KV[] = {FaultKey::BUILD_INFO, "Build info:"};
 constexpr const char* const MODULE_NAME_KV[] = {FaultKey::MODULE_NAME, "Module name:"};
-constexpr const char* const PROCESS_NAME_KV[] = {FaultKey::PROCESS_NAME, "Process name:"};
+constexpr const char* const PROCESS_NAME_KV[] = {FaultKey::P_NAME, "Process name:"};
 constexpr const char* const MODULE_PID_KV[] = {FaultKey::MODULE_PID, "Pid:"};
 constexpr const char* const MODULE_UID_KV[] = {FaultKey::MODULE_UID, "Uid:"};
 constexpr const char* const MODULE_VERSION_KV[] = {FaultKey::MODULE_VERSION, "Version:"};
@@ -355,27 +355,6 @@ bool IsFaultLogLimit()
         return false;
     }
     return true;
-}
-
-void LimitCppCrashLog(int32_t fd, int32_t logType)
-{
-    if ((fd < 0) || (logType != FaultLogType::CPP_CRASH) || !IsFaultLogLimit()) {
-        return;
-    }
-    // The CppCrash file size is limited to 4 MB before reporting CppCrash to AppEvent
-    constexpr int maxLogSize = 4 * 1024 * 1024;
-    off_t endPos = lseek(fd, 0, SEEK_END);
-    if ((endPos == -1) || (endPos <= maxLogSize)) {
-        return;
-    }
-
-    if (ftruncate(fd, maxLogSize) < 0) {
-        return;
-    }
-    endPos = lseek(fd, maxLogSize, SEEK_SET);
-    if (endPos != -1) {
-        FileUtil::SaveStringToFd(fd, "\ncpp crash log is limit output.\n");
-    }
 }
 } // namespace FaultLogger
 } // namespace HiviewDFX

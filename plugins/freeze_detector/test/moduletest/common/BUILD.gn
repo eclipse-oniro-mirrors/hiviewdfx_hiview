@@ -13,7 +13,7 @@
 
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
-module_output_path = "hiview/hiview/plugins/reliability"
+module_output_path = "hiview/hiview_freeze_plugin/plugins/reliability"
 ohos_moduletest("FreezeDetectorPluginModuleTest") {
   module_out_path = module_output_path
 

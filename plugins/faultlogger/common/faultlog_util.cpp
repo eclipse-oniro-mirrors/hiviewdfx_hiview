@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <cstdint>
 #include <ctime>
+#include <ctype.h>
 #include <mutex>
 #include <securec.h>
 #include <string>
@@ -110,6 +112,8 @@ std::string GetFaultLogName(const FaultLogInfo& info)
             ret.append("hwasan");
         } else if (info.sanitizerType.compare("ASAN") == 0) {
             ret.append("asan");
+        } else if (info.sanitizerType.compare("FDSAN") == 0) {
+            ret.append("fdsan");
         } else {
             ret.append("sanitizer");
         }
@@ -261,7 +265,7 @@ std::string GetThreadStack(const std::string& path, int32_t threadId)
     }
     std::string regTidString = "^Tid:" + std::to_string(threadId) + ", Name:(.{0,32})$";
     std::regex regTid(regTidString);
-    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
+    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$|^ThreadInfo:.*$)");
     std::string line;
     while (std::getline(logFile, line)) {
         if (!logFile.good()) {
@@ -300,6 +304,24 @@ bool IsValidPath(const std::string& path)
     return false;
 }
 
+bool ExtractSubMoudleName(std::string &module)
+{
+    const std::string sceneboard = "com.ohos.sceneboard:";
+    if (module.compare(0, sceneboard.size(), sceneboard) == 0) {
+        module = module.substr(sceneboard.size());
+        std::replace(module.begin(), module.end(), '/', '_');
+        auto start = std::find_if(module.begin(), module.end(), isalpha);
+        auto end = std::find_if(module.rbegin(), module.rend(), isalpha);
+        if (start == module.end() || end == module.rend()) {
+            return false;
+        }
+        auto size = module.rend() - end;
+        module = std::string(start, module.begin() + size);
+        return true;
+    }
+    return false;
+}
+
 bool IsSystemProcess(std::string_view processName, int32_t uid)
 {
     constexpr std::string_view sysBin = "/system/bin";
@@ -311,8 +333,7 @@ bool IsSystemProcess(std::string_view processName, int32_t uid)
 
 std::string GetStrValFromMap(const std::map<std::string, std::string>& map, const std::string& key)
 {
-    auto it = map.find(key);
-    if (it != map.end()) {
+    if (auto it = map.find(key); it != map.end()) {
         return it->second;
     }
     return "";

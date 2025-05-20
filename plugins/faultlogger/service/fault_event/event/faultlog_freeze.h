@@ -22,7 +22,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class FaultLogFreeze : public FaultLogProcessorBase {
 private:
-    void ReportEventToAppEvent(const FaultLogInfo& info) override;
+    bool ReportEventToAppEvent(const FaultLogInfo& info) override;
     void AddSpecificInfo(FaultLogInfo& info) override;
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
     std::string GetMemoryStrByPid(long pid) const;

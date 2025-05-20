@@ -114,7 +114,7 @@ bool FaultLogProcessorBase::VerifyModule(FaultLogInfo& info)
     // Non system processes use UID to pass events to applications
     if (!IsSystemProcess(info.module, info.id) && info.sectionMap["SCBPROCESS"] != "Yes") {
         std::string appName = GetApplicationNameById(info.id);
-        if (!appName.empty()) {
+        if (!appName.empty() && !ExtractSubMoudleName(info.module)) {
             info.module = appName; // if bundle name is not empty, replace module name by it.
         }
     }
@@ -250,6 +250,9 @@ void FaultLogProcessorBase::PrintFaultLogInfo(const FaultLogInfo& info)
 std::string FaultLogProcessorBase::ReadLogFile(const std::string& logPath) const
 {
     std::ifstream logReadFile(logPath);
+    if (!logReadFile.is_open()) {
+        return "";
+    }
     return std::string(std::istreambuf_iterator<char>(logReadFile), std::istreambuf_iterator<char>());
 }
 

@@ -49,6 +49,10 @@ void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
     }
     // drop last line tail '\n'
     size_t hilogLen = info.sectionMap[FaultKey::HILOG].length();
+    if (hilogLen <= 1) {
+        HIVIEW_LOGE("Hilog length does not meet expectations, hilogLen: %{public}zu", hilogLen);
+        return;
+    }
     if (hilogLen > 0 && info.sectionMap[FaultKey::HILOG][hilogLen - 1] == '\n') {
         hilogLen--;
     }
@@ -61,7 +65,7 @@ void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
     std::string lastLineHilog = info.sectionMap[FaultKey::HILOG].substr(pos + 1);
     if (lastLineHilog.length() < DFX_HILOG_TIMESTAMP_LEN) {
         HIVIEW_LOGE("CheckHilogTime invalid length last line");
-        return;        
+        return;
     }
     std::string lastLineHilogTimeStr = lastLineHilog.substr(0, DFX_HILOG_TIMESTAMP_LEN);
     auto now = std::chrono::system_clock::now();
@@ -160,7 +164,8 @@ void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info) const
     std::string outputFilePath = "/data/test_cppcrash_info_" + std::to_string(info.pid);
     WriteLogFile(outputFilePath, stackInfo + "\n");
 #endif
-    EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo);
+    EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo,
+        info.logFileCutoffSizeBytes);
 }
 
 void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
@@ -179,8 +184,7 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
         return;
     }
 
-    std::string hilogGetByCmd;
-    hilogGetByCmd = GetHilogByPid(info.pid);
+    std::string hilogGetByCmd = GetHilogByPid(info.pid);
     if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
         info.sectionMap[FaultKey::HILOG] = hilogSnapShot;
     } else {
@@ -216,13 +220,14 @@ void FaultLogCppCrash::AddSpecificInfo(FaultLogInfo& info)
     AddCppCrashInfo(info);
 }
 
-void FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
+bool FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
 {
     if (IsSystemProcess(info.module, info.id) || !info.reportToAppEvent) {
-        return;
+        return false;
     }
     CheckFaultLogAsync(info);
     ReportCppCrashToAppEvent(info);
+    return true;
 }
 
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath, int32_t faultType) const
@@ -254,8 +259,7 @@ bool FaultLogCppCrash::TruncateLogIfExceedsLimit(std::string& readContent) const
     }
 
     readContent.resize(maxLogSize);
-    readContent += "\nThe cpp crash log length is " + std::to_string(fileLen) +
-        ", which exceeds the limit of " + std::to_string(maxLogSize) + " and is truncated.\n";
+    readContent += "\n[truncated]";
     return true;
 }
 } // namespace HiviewDFX

@@ -38,6 +38,7 @@ ohos_fuzztest("HiviewServiceFuzzTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
   ]

@@ -55,7 +55,6 @@ ohos_source_set("logger") {
 }
 
 ohos_source_set("hiview_base") {
-  part_name = "hiview"
   public_configs = [ ":hiview_base_config" ]
   sources = [
     "app_caller_event.cpp",
@@ -88,11 +87,15 @@ ohos_source_set("hiview_base") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "jsoncpp:jsoncpp",
   ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }
 
 ohos_shared_library("hiviewbase") {

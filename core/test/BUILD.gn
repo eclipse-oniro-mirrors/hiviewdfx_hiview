@@ -50,6 +50,7 @@ ohos_unittest("PlatformConfigTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -82,6 +83,7 @@ ohos_unittest("PluginPlatformTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -105,6 +107,7 @@ ohos_unittest("PluginBundleTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -125,6 +128,7 @@ ohos_unittest("EventDispatchQueueTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -146,6 +150,7 @@ ohos_unittest("HiviewPlatformConfigTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -166,6 +171,7 @@ ohos_unittest("ParamUpdateTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",

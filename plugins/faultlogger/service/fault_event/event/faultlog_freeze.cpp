@@ -196,18 +196,18 @@ std::string FaultLogFreeze::GetMemoryStrByPid(long pid) const
     return freezeJsonMemory.JsonStr();
 }
 
-void FaultLogFreeze::ReportEventToAppEvent(const FaultLogInfo& info)
+bool FaultLogFreeze::ReportEventToAppEvent(const FaultLogInfo& info)
 {
     if (IsSystemProcess(info.module, info.id) || !info.reportToAppEvent) {
-        return;
+        return false;
     }
     if (FreezeJsonUtil::IsAppHicollie(info.reason)) {
         ReportAppFreezeToAppEvent(info, true);
-        return;
     }
     if (info.faultLogType == FaultLogType::APP_FREEZE) {
         ReportAppFreezeToAppEvent(info);
     }
+    return true;
 }
 
 void FaultLogFreeze::AddSpecificInfo(FaultLogInfo& info)

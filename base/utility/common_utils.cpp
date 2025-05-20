@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace CommonUtils {
 namespace {
+constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;
 std::string GetProcessNameFromProcCmdline(int32_t pid)
 {
     std::string procCmdlinePath = "/proc/" + std::to_string(pid) + "/cmdline";
@@ -236,6 +237,11 @@ int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<s
     }
 
     return -1;
+}
+
+int32_t GetTransformedUid(int32_t uid)
+{
+    return uid / UID_TRANSFORM_DIVISOR;
 }
 }
 } // namespace HiviewDFX

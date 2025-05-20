@@ -83,6 +83,7 @@ void FaultLogSanitizer::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInf
         info.dumpLogToFaultlogger = true;
         info.logPath = GetDebugSignalTempLogName(info);
         info.summary = "";
+        info.sanitizerType = "FDSAN";
     } else if (info.reason.find("DEBUG SIGNAL") != std::string::npos) {
         info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
         info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);

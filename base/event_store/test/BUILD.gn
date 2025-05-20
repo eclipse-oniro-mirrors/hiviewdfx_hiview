@@ -50,6 +50,7 @@ ohos_unittest("EventStoreConfigTest") {
   deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
@@ -66,6 +67,7 @@ ohos_unittest("SysEventDocLruCacheTest") {
   deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
@@ -85,6 +87,7 @@ ohos_unittest("SysEventDaoTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
@@ -107,6 +110,7 @@ ohos_unittest("SysEventRepeatTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -127,6 +131,7 @@ ohos_unittest("SysEventDatabaseTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -164,6 +169,7 @@ ohos_unittest("SysEventStoreUtilityTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
@@ -187,6 +193,7 @@ ohos_unittest("SysEventDocTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -205,6 +212,7 @@ ohos_unittest("SysEventSequenceMgrTest") {
   deps = [ "$hiview_base:hiviewbase_static_lib_for_tdd" ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
@@ -234,6 +242,7 @@ ohos_unittest("SysEventBackupTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",

@@ -32,10 +32,12 @@ ohos_shared_library("faultlogger_test_napi") {
   testonly = true
   sources = [ "./faultlogger_test_napi.cpp" ]
 
-  include_dirs = [ "//third_party/node/src" ]
   configs = [ ":config" ]
 
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "napi:ace_napi",
+    "node:node_header_notice",
+  ]
 
   output_extension = "so"
   part_name = "hiview"

@@ -23,7 +23,7 @@ DEFINE_LOG_LABEL(0xD002D11, "FaultLogInfoOhos");
 bool FaultLogInfoOhos::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteInt64(time) || !parcel.WriteInt32(uid) ||
-        !parcel.WriteInt32(pid) || !parcel.WriteInt32(faultLogType)) {
+        !parcel.WriteInt32(pid) || !parcel.WriteInt32(faultLogType) || !parcel.WriteUint32(logFileCutoffSizeBytes)) {
         HIVIEW_LOGE("Parcel failed to write int number.");
         return false;
     }
@@ -78,7 +78,8 @@ sptr<FaultLogInfoOhos> FaultLogInfoOhos::Unmarshalling(Parcel& parcel)
     sptr<FaultLogInfoOhos> FaultLogInfo = new FaultLogInfoOhos();
 
     if (!parcel.ReadInt64(FaultLogInfo->time) || !parcel.ReadInt32(FaultLogInfo->uid) ||
-        !parcel.ReadInt32(FaultLogInfo->pid) || !parcel.ReadInt32(FaultLogInfo->faultLogType)) {
+        !parcel.ReadInt32(FaultLogInfo->pid) || !parcel.ReadInt32(FaultLogInfo->faultLogType) ||
+        !parcel.ReadUint32(FaultLogInfo->logFileCutoffSizeBytes)) {
         HIVIEW_LOGE("Parcel failed to read int number.");
         return nullptr;
     }

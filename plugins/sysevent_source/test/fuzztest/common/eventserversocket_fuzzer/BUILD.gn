@@ -44,6 +44,7 @@ ohos_fuzztest("EventServerSocketFuzzTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",

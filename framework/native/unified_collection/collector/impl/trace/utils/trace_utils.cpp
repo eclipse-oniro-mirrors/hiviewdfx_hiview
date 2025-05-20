@@ -357,17 +357,24 @@ bool CreateMultiDirectory(const std::string &dirPath)
 bool ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList, std::string &jsonArgs)
 {
     cJSON* root = cJSON_Parse(jsonArgs.c_str());
-    if (root == nullptr || !cJSON_IsObject(root)) {
+    if (root == nullptr) {
+        HIVIEW_LOGE("trace jsonArgs parse error");
+        return false;
+    }
+    if (!cJSON_IsObject(root)) {
+        cJSON_Delete(root);
         HIVIEW_LOGE("trace jsonArgs parse error");
         return false;
     }
     std::vector<std::string> traceTags;
     CJsonUtil::GetStringArray(root, TAGS, traceTags);
     if (traceTags.empty()) {
+        cJSON_Delete(root);
         HIVIEW_LOGE("jsonArgs parse trace tags error");
         return false;
     }
     auto bufferSize = CJsonUtil::GetIntValue(root, BUFFER_SIZE);
+    cJSON_Delete(root);
     if (bufferSize <= 0) {
         HIVIEW_LOGE("jsonArgs parse trace bufferSize error");
         return false;

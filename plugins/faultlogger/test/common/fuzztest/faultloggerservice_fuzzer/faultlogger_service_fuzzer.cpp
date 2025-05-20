@@ -234,6 +234,40 @@ void FuzzServiceInterfaceOnEvent(const uint8_t* data, size_t size)
     service->OnEvent(event);
 }
 
+void FuzzServiceInterfaceGwpAsanGrayscale(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+
+    auto service = CreateFaultloggerInstance();
+    auto faultlogManagerService = std::make_shared<FaultLogManagerService>(service->GetWorkLoop(),
+        service->faultLogManager_);
+    FaultloggerServiceOhos serviceOhos;
+    FaultloggerServiceOhos::StartService(faultlogManagerService);
+    if (FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) != faultlogManagerService) {
+        printf("FaultloggerServiceOhos start service error.\n");
+        return;
+    }
+    bool alwaysEnabled;
+    double sampleRate;
+    double maxSimutaneousAllocations;
+    int32_t duration;
+    auto offsetTotalLength = sizeof(alwaysEnabled) + sizeof(sampleRate) +
+        sizeof(maxSimutaneousAllocations) + sizeof(duration);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, alwaysEnabled);
+    STREAM_TO_VALUEINFO(data, sampleRate);
+    STREAM_TO_VALUEINFO(data, maxSimutaneousAllocations);
+    STREAM_TO_VALUEINFO(data, duration);
+
+    serviceOhos.EnableGwpAsanGrayscale(1, 1000, 2000, 5);
+    serviceOhos.DisableGwpAsanGrayscale();
+    serviceOhos.GetGwpAsanGrayscaleState();
+}
+
 void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
 {
     FuzzServiceInterfaceDump(data, size);
@@ -241,6 +275,7 @@ void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
     FuzzServiceInterfaceCreateTempFaultLogFile(data, size);
     FuzzServiceInterfaceAddFaultLog(data, size);
     FuzzServiceInterfaceOnEvent(data, size);
+    FuzzServiceInterfaceGwpAsanGrayscale(data, size);
     usleep(10000); // 10000 : pause for 10000 microseconds to avoid resource depletion
 }
 }

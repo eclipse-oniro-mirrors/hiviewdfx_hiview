@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "parcel.h"
-#include "../type/base_types.h"
+#include "type/base_types.h"
 
 namespace OHOS {
 namespace HiviewDFX {

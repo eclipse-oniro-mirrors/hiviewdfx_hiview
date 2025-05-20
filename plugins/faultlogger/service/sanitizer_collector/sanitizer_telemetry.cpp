@@ -40,8 +40,14 @@ namespace {
     constexpr const char* const PARAM_GWP_ASAN_SAMPLE = "gwp_asan.sample.app.";
     constexpr const char* const PARAM_GWP_ASAN_MIN_SIZE = "gwp_asan.app.min_size.";
     constexpr const char* const PARAM_GWP_ASAN_LIBRARY = "gwp_asan.app.library.";
+    constexpr const char* const PARAM_GWP_ASAN_APP_BEGIN_TIME = "gwp_asan.gray_begin.app.";
+    constexpr const char* const PARAM_GWP_ASAN_APP_DAYS = "gwp_asan.gray_days.app.";
+    constexpr const char* const PARAM_GWP_ASAN_APP_NUM = "gwp_asan.app_num";
     constexpr uint32_t TELEMETRY_SANITIZER_TYPE = 0x100;
     constexpr int DECIMAL_BASE = 10;
+    constexpr int MAX_APP_NUM = 20;
+    constexpr uint64_t DAY_TO_SEC = 24 * 60 * 60;
+    constexpr uint64_t DEFAULT_DURATION_DAY = 7;
 }
 
 namespace OHOS {
@@ -53,9 +59,22 @@ void SanitizerTelemetry::OnUnorderedEvent(const Event& msg)
         HILOG_INFO(LOG_CORE, "only accept TELEMETRY_EVENT, current type: %{public}d", msg.messageType_);
         return;
     }
+
+    std::string bundleName = msg.GetValue(TELEMETRY_KEY_BUNDLE_NAME);
+    uint64_t beginTime = GetThirdPartyBeginTime(bundleName);
+    if (beginTime > 0) {
+        uint64_t now = static_cast<uint64_t>(std::time(nullptr));
+        uint64_t durationDay = GetThirdPartyDurationDay(bundleName) * DAY_TO_SEC;
+        if (now < beginTime + durationDay) {
+            HILOG_INFO(LOG_CORE, "in third-party telemetry");
+            return;
+        }
+        HILOG_INFO(LOG_CORE, "third-party telemetry expired, clear for: %{public}s", bundleName.c_str());
+        ClearThirdPartyTelemetryParam(bundleName);
+    }
+
     std::string telemetryStatus = msg.GetValue(TELEMETRY_KEY_STATUS);
     if (telemetryStatus == TELEMETRY_OFF) {
-        std::string bundleName = msg.GetValue(TELEMETRY_KEY_BUNDLE_NAME);
         ClearTelemetryParam(bundleName);
     } else if (telemetryStatus == TELEMETRY_ON) {
         HandleTelemetryStart(msg);
@@ -90,9 +109,12 @@ void SanitizerTelemetry::HandleTelemetryStart(const Event& msg)
         HILOG_ERROR(LOG_CORE, "no bundleName");
         return;
     }
+    gwpTelemetryEvent.bundleName = valuePairs[TELEMETRY_KEY_BUNDLE_NAME];
+    if (IsOverTelemetryAppNum(gwpTelemetryEvent.bundleName)) {
+        return;
+    }
 
     gwpTelemetryEvent.telemetryId = valuePairs[TELEMETRY_KEY_ID];
-    gwpTelemetryEvent.bundleName = valuePairs[TELEMETRY_KEY_BUNDLE_NAME];
     if (valuePairs.count(TELEMETRY_KEY_GWP_ENABLE) != 0) {
         gwpTelemetryEvent.gwpEnable = valuePairs[TELEMETRY_KEY_GWP_ENABLE];
     }
@@ -109,6 +131,52 @@ void SanitizerTelemetry::HandleTelemetryStart(const Event& msg)
         gwpTelemetryEvent.stackParam = valuePairs[TELEMETRY_KEY_STACK_PARAM];
     }
     SetTelemetryParam(gwpTelemetryEvent);
+}
+
+bool SanitizerTelemetry::IsOverTelemetryAppNum(const std::string& bundleName)
+{
+    uint64_t currentAppNum = GetTelemetryAppNum();
+    std::string enable = OHOS::system::GetParameter(PARAM_GWP_ASAN_ENABLE + bundleName, "");
+    if (enable.empty() && currentAppNum >= MAX_APP_NUM) {
+        HILOG_ERROR(LOG_CORE, "the num of telemetry app exceeds max limit %{public}d", MAX_APP_NUM);
+        return true;
+    }
+    OHOS::system::SetParameter(PARAM_GWP_ASAN_APP_NUM, std::to_string(currentAppNum + 1));
+    return false;
+}
+
+uint64_t SanitizerTelemetry::GetThirdPartyDurationDay(const std::string& bundleName)
+{
+    std::string durationTimeStr = OHOS::system::GetParameter(PARAM_GWP_ASAN_APP_DAYS + bundleName,
+        std::to_string(DEFAULT_DURATION_DAY));
+    long long tmp;
+    if (!SafeStoll(durationTimeStr, tmp)) {
+        HILOG_ERROR(LOG_CORE, "failed to SafeStoll durationTimeStr: %{public}s", durationTimeStr.c_str());
+        return 0;
+    }
+    return static_cast<uint64_t>(tmp);
+}
+
+uint64_t SanitizerTelemetry::GetThirdPartyBeginTime(const std::string& bundleName)
+{
+    std::string beginTimeStr = OHOS::system::GetParameter(PARAM_GWP_ASAN_APP_BEGIN_TIME + bundleName, "0");
+    long long tmp;
+    if (!SafeStoll(beginTimeStr, tmp)) {
+        HILOG_ERROR(LOG_CORE, "failed to SafeStoll beginTimeStr: %{public}s", beginTimeStr.c_str());
+        return 0;
+    }
+    return static_cast<uint64_t>(tmp);
+}
+
+uint64_t SanitizerTelemetry::GetTelemetryAppNum()
+{
+    std::string appNumStr = OHOS::system::GetParameter(PARAM_GWP_ASAN_APP_NUM, "0");
+    long long tmp;
+    if (!SafeStoll(appNumStr, tmp)) {
+        HILOG_ERROR(LOG_CORE, "failed to SafeStoll appNumStr: %{public}s", appNumStr.c_str());
+        return 0;
+    }
+    return static_cast<uint64_t>(tmp);
 }
 
 void SanitizerTelemetry::SetTelemetryParam(const GwpTelemetryEvent& gwpTelemetryEvent)
@@ -133,6 +201,13 @@ void SanitizerTelemetry::ClearTelemetryParam(const std::string& bundleName)
     ClearIfParameterSet(PARAM_GWP_ASAN_SAMPLE + bundleName);
     ClearIfParameterSet(PARAM_GWP_ASAN_MIN_SIZE + bundleName);
     ClearIfParameterSet(PARAM_GWP_ASAN_LIBRARY + bundleName);
+}
+
+void SanitizerTelemetry::ClearThirdPartyTelemetryParam(const std::string& bundleName)
+{
+    ClearTelemetryParam(bundleName);
+    ClearIfParameterSet(PARAM_GWP_ASAN_APP_BEGIN_TIME + bundleName);
+    ClearIfParameterSet(PARAM_GWP_ASAN_APP_DAYS + bundleName);
 }
 
 void SanitizerTelemetry::SetIfTelemetryExist(const std::string& key, const std::string& value)

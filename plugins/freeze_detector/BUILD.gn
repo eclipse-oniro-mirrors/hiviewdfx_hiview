@@ -27,6 +27,7 @@ config("freeze_detector_config") {
 
 ohos_source_set("freeze_detector") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   include_dirs =
       [ "$hiview_framework/native/unified_collection/process/include" ]
 
