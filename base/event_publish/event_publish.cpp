@@ -387,7 +387,8 @@ void SaveEventAndLogToSandBox(AppEventParams& eventParams)
 {
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventParams.eventName, externalLogInfo);
-    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder, externalLogInfo.subPath_);
+    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder,
+        externalLogInfo.subPath_);
     SendLogToSandBox(eventParams, sandBoxLogPath, externalLogInfo);
     std::string desPath = FileUtil::GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
@@ -444,7 +445,8 @@ void EventPublish::SendOverLimitEventToSandBox(AppEventParams eventParams)
 {
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventParams.eventName, externalLogInfo);
-    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder, externalLogInfo.subPath_);
+    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder,
+        externalLogInfo.subPath_);
     CreateSandBox(sandBoxLogPath);
     SendLogToSandBox(eventParams, sandBoxLogPath, externalLogInfo);
     std::string desPath = FileUtil::GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
