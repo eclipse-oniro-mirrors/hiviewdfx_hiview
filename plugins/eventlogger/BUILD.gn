@@ -23,6 +23,7 @@ config("event_logger_config") {
 
 ohos_source_set("eventlogger") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   public_configs = [ ":event_logger_config" ]
 
   sources = [
@@ -40,6 +41,7 @@ ohos_source_set("eventlogger") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "faultloggerd:libjson_stack_formatter",
     "ffrt:libffrt",
     "hilog:libhilog",
@@ -76,6 +78,7 @@ ohos_shared_library("eventloggerso") {
     debug = false
   }
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 
   deps = [ ":eventlogger" ]
 

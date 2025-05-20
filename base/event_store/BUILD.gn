@@ -34,6 +34,7 @@ config("event_store_private_config") {
 
 ohos_source_set("event_store_source") {
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
   public_configs = [ ":event_store_config" ]
 
   configs = [ ":event_store_private_config" ]
@@ -66,6 +67,7 @@ ohos_source_set("event_store_source") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ipc:ipc_single",
     "jsoncpp:jsoncpp",
     "openssl:libcrypto_shared",
     "relational_store:native_rdb",

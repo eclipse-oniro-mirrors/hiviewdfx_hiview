@@ -21,6 +21,9 @@
       OHOS::HiviewDFX::FaultLogInfo::~FaultLogInfo*;
       OHOS::HiviewDFX::FaultLogQueryResult::~FaultLogQueryResult*;
       OHOS::HiviewDFX::FaultLogInfo::Set*;
+      OHOS::HiviewDFX::EnableGwpAsanGrayscale*;
+      OHOS::HiviewDFX::DisableGwpAsanGrayscale*;
+      OHOS::HiviewDFX::GetGwpAsanGrayscaleState*;
     };
   local:
     *;

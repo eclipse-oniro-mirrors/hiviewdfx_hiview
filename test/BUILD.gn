@@ -70,6 +70,7 @@ ohos_unittest("HolisticPlatformTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",

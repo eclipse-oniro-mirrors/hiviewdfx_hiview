@@ -14,7 +14,7 @@ import("//base/hiviewdfx/hiview/build/hiview_var.gni")
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/hiview/eventlogger/logCatcher"
+module_output_path = "hiview/hiview_freeze_plugin/eventlogger/logCatcher"
 
 config("unittest_config") {
   include_dirs = [
@@ -51,11 +51,14 @@ ohos_unittest("EventloggerCatcherTest") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "input:libmmi-client",
+    "libxml2:libxml2",
     "window_manager:libwm",
   ]
   if (has_hiperf) {

@@ -55,6 +55,7 @@ ohos_unittest("UsageEventReportTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ipc:ipc_single",
     "relational_store:native_rdb",
   ]
 

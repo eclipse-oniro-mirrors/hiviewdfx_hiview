@@ -58,6 +58,9 @@ ohos_unittest("UCollectionClientUnitTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bounds_checking_function:libsec_shared",
+    "cJSON:cjson",
     "googletest:gtest_main",
+    "selinux_adapter:librestorecon",
   ]
 }

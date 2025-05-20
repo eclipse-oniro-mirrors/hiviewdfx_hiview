@@ -108,7 +108,7 @@ HWTEST_F(EventloggerCatcherTest, EventLogCatcherTest_001, TestSize.Level3)
  * @tc.desc: test EventLogTask
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, EventlogTask_001, TestSize.Level3)
+HWTEST_F(EventloggerCatcherTest, EventlogTask_001, TestSize.Level0)
 {
     auto fd = open("/data/test/testFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -362,7 +362,7 @@ HWTEST_F(EventloggerCatcherTest, BinderCatcherTest_001, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_001, TestSize.Level0)
 {
     auto memoryCatcher = std::make_shared<MemoryCatcher>();
     bool ret = memoryCatcher->Initialize("test", 1, 2);
@@ -507,7 +507,7 @@ HWTEST_F(EventloggerCatcherTest, CpuCoreInfoCatcherTest_001, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, FfrtCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, FfrtCatcherTest_001, TestSize.Level0)
 {
     auto fd = open("/data/test/FfrtCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -558,7 +558,7 @@ HWTEST_F(EventloggerCatcherTest, FfrtCatcherTest_002, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_001, TestSize.Level0)
 {
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
     auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
@@ -673,7 +673,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_005, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_001, TestSize.Level0)
 {
     auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -726,7 +726,7 @@ HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_002, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level0)
 {
     auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -943,7 +943,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_007, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level0)
 {
     auto fd = open("/data/test/shellCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -1063,7 +1063,7 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_003, TestSize.Level1)
  * @tc.desc: add test
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level0)
 {
     auto fd = open("/data/test/dumpstacktrace_file", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {

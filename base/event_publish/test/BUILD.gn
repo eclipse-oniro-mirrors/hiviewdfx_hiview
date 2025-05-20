@@ -45,6 +45,7 @@ ohos_unittest("EventPublishTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",

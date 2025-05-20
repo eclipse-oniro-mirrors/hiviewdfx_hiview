@@ -51,6 +51,7 @@ ohos_shared_library("libcrashvalidator") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_single",

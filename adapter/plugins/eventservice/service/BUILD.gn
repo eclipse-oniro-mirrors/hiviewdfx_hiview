@@ -32,6 +32,7 @@ ohos_shared_library("sys_event_service_adapter") {
     debug = false
   }
   part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 
   public_configs = [ ":sys_event_service_adapter_config" ]
 

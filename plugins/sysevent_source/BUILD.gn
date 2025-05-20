@@ -71,6 +71,7 @@ ohos_source_set("sysevent_source") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "cJSON:cjson",
+    "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

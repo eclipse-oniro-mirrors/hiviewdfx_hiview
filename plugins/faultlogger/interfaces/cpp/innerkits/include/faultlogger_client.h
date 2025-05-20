@@ -113,6 +113,31 @@ void AddFaultLog(int64_t time, int32_t logType, const std::string &module, const
  * @return when success query return unique_ptr of FaultLogQueryResult, otherwise return nullptr
 */
 std::unique_ptr<FaultLogQueryResult> QuerySelfFaultLog(FaultLogType faultType, int32_t maxNum);
+
+/**
+ * @brief enable the GWP-ASAN grayscale of your application.
+ *
+ * @param alwaysEnabled - Control whether to enable GWP-ASan every time.
+ * @param sampleRate - sample rate of GWP-ASAN.
+ * @param maxSimutaneousAllocations - the max simutaneous allocations of GWP-ASAN.
+ * @param duration - The duration days of GWP-ASAN grayscale.
+ * @return true - enable success, false - enable falied
+*/
+bool EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration);
+
+/**
+ * @brief disable the GWP-ASAN grayscale of your application.
+ *
+*/
+void DisableGwpAsanGrayscale();
+
+/**
+ * @brief obtain the remaining days of GWP-ASan grayscale for your application.
+ *
+ * @returns the remaining days of GWP-ASan grayscale.
+*/
+uint32_t GetGwpAsanGrayscaleState();
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEW_FAULTLOGGER_CLIENT_INTERFACE_H

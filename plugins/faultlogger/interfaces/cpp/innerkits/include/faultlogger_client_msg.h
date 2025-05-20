@@ -30,6 +30,7 @@ struct FaultLogInfoInner {
     int32_t pid{-1};
     int32_t pipeFd{-1};
     int32_t faultLogType{0};
+    uint32_t logFileCutoffSizeBytes{0};
     std::string module;
     std::string reason;
     std::string summary;
@@ -39,9 +40,9 @@ struct FaultLogInfoInner {
 };
 
 #if defined(__arm__)
-static_assert(sizeof(FaultLogInfoInner) == 96, "faultloggerd processdump must be modify together!!!");
+static_assert(sizeof(FaultLogInfoInner) == 104, "faultloggerd processdump must be modify together!!!");
 #elif defined(__aarch64__)
-static_assert(sizeof(FaultLogInfoInner) == 168, "faultloggerd processdump must be modify together!!!");
+static_assert(sizeof(FaultLogInfoInner) == 176, "faultloggerd processdump must be modify together!!!");
 #endif
 
 #endif //FAULTLOGGER_CLIENT_MSG_H_
