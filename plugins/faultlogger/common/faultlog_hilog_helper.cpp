@@ -83,7 +83,7 @@ std::string FaultlogHilogHelper::ReadHilogTimeout(int fd, uint64_t timeout)
         pollRet = poll(pfds, 1, timeout);
         if (pollRet < 0) {
             continue;
-        } if (pollRet == 0) {
+        } else if (pollRet == 0) {
             HIVIEW_LOGI("poll timeout");
             break;
         } else {
