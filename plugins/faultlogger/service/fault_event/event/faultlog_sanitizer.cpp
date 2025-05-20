@@ -14,6 +14,7 @@
  */
 #include "faultlog_sanitizer.h"
 
+#include "cJSON.h"
 #include "constants.h"
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -29,26 +30,38 @@ void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysE
 {
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue(FaultKey::SUMMARY));
     HIVIEW_LOGD("ReportSanitizerAppEvent:summary:%{public}s.", summary.c_str());
-
-    Json::Value params;
-    params["time"] = sysEvent->happenTime_;
+    cJSON *params = cJSON_CreateObject();
+    if (params == nullptr) {
+        HIVIEW_LOGE("parse params failed");
+        return;
+    }
+    cJSON_AddNumberToObject(params, "time", static_cast<double>(sysEvent->happenTime_));
     auto reason = sysEvent->GetEventValue(FaultKey::REASON);
-    params["type"] = reason;
+    cJSON_AddStringToObject(params, "type", reason.c_str());
     if (reason.find("FDSAN") != std::string::npos) {
-        params["type"] = "FDSAN";
+        cJSON_AddStringToObject(params, "type", "FDSAN");
         HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason FDSAN", reason.c_str());
     }
-    Json::Value externalLog(Json::arrayValue);
-    std::string logPath = sysEvent->GetEventValue(FaultKey::LOG_PATH);
-    if (!logPath.empty()) {
-        externalLog.append(logPath);
+    cJSON *externalLog = cJSON_CreateArray();
+    if (externalLog == nullptr) {
+        HIVIEW_LOGI("parse externalLog failed");
     }
-    params["external_log"] = externalLog;
-    params["bundle_version"] = sysEvent->GetEventValue(FaultKey::MODULE_VERSION);
-    params["bundle_name"] = sysEvent->GetEventValue(FaultKey::MODULE_NAME);
-    params["pid"] = sysEvent->GetPid();
-    params["uid"] = sysEvent->GetUid();
-    std::string paramsStr = Json::FastWriter().write(params);
+    std::string logPath = sysEvent->GetEventValue(FaultKey::LOG_PATH);
+    if (!logPath.empty() && externalLog != nullptr) {
+        (void)cJSON_AddItemToArray(externalLog, cJSON_CreateString(logPath.c_str()));
+    }
+    (void)cJSON_AddItemToObject(params, "external_log", externalLog);
+    cJSON_AddStringToObject(params, "bundle_version", sysEvent->GetEventValue(FaultKey::MODULE_VERSION).c_str());
+    cJSON_AddStringToObject(params, "bundle_name", sysEvent->GetEventValue(FaultKey::MODULE_NAME).c_str());
+    cJSON_AddNumberToObject(params, "pid", static_cast<double>(sysEvent->GetPid()));
+    cJSON_AddNumberToObject(params, "uid", static_cast<double>(sysEvent->GetUid()));
+    char *paramsChar = cJSON_PrintUnformatted(params);
+    std::string paramsStr = "";
+    if (paramsChar != nullptr) {
+        paramsStr = paramsChar;
+        cJSON_free(paramsChar);
+    }
+    cJSON_Delete(params);
     HIVIEW_LOGD("ReportSanitizerAppEvent: uid:%{public}d, json:%{public}s.",
         sysEvent->GetUid(), paramsStr.c_str());
     EventPublish::GetInstance().PushEvent(sysEvent->GetUid(), "ADDRESS_SANITIZER",

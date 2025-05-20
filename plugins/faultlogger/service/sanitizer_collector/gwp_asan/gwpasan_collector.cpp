@@ -31,7 +31,6 @@
 #include "faultlog_util.h"
 #include "file_util.h"
 #include "hisysevent.h"
-#include "json/json.h"
 #include "hilog/log.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"

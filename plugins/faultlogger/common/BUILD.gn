@@ -96,8 +96,8 @@ ohos_source_set("faultlogger_common") {
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
   ]
 
   part_name = "hiview"
@@ -126,8 +126,8 @@ ohos_source_set("faultlogger_common_with_cfi") {
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
   ]
 
   part_name = "hiview"

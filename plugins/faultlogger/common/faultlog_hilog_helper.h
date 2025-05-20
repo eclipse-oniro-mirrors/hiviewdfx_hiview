@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "json/json.h"
+#include "cJSON.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -25,7 +25,7 @@ namespace FaultlogHilogHelper {
 std::string GetHilogByPid(int32_t pid);
 int DoGetHilogProcess(int32_t pid, int writeFd);
 std::string ReadHilogTimeout(int fd, uint64_t timeout = 5000); // 5000 : 5s
-Json::Value ParseHilogToJson(const std::string &hilogStr);
+cJSON *ParseHilogToJson(const std::string& hilogStr);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
