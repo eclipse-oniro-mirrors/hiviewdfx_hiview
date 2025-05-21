@@ -58,7 +58,6 @@ int64_t Get0ClockStampMs();
 uint64_t GetSteadyClockTimeMs();
 uint64_t GetBootTimeMs();
 uint64_t GetMonotonicTimeMs();
-std::string FormatTime(const int64_t timestamp, const std::string &format);
 
 // time format as YYYYmmddHHMMSSxxx
 // eg. 202404222319765
