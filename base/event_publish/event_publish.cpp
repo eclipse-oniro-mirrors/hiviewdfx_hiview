@@ -16,6 +16,7 @@
 #include "event_publish.h"
 
 #ifdef APPEVENT_PUBLISH_ENABLE
+#include "user_data_size_reporter.h"
 #include "app_event_elapsed_time.h"
 #include "bundle_mgr_client.h"
 #include "bundle_mgr_proxy.h"
@@ -35,7 +36,6 @@ namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("HiView-EventPublish");
 constexpr int BUNDLE_MGR_SERVICE_SYS_ABILITY_ID = 401;
-constexpr int VALUE_MOD = 200000;
 constexpr int DELAY_TIME = 30;
 constexpr const char* const PATH_DIR = "/data/log/hiview/system_event_db/events/temp";
 constexpr const char* const SANDBOX_DIR = "/data/storage/el2/log";
@@ -163,7 +163,7 @@ std::string GetPathPlaceHolder(int32_t uid)
     }
     if (appIndex == 0) {
         // the bundleName is mainApp.
-        int userId = uid / VALUE_MOD;
+        int userId = FileUtil::GetUserId(uid);
         AppExecFwk::BundleMgrClient client;
         AppExecFwk::BundleInfo bundleInfo;
         bool getInfoResult = client.GetBundleInfo(
@@ -188,24 +188,6 @@ std::string GetPathPlaceHolder(int32_t uid)
     }
     // the bundleName is cloneApp.
     return "+clone-" + std::to_string(appIndex) + "+" + bundleName;
-}
-
-std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder)
-{
-    int userId = uid / VALUE_MOD;
-    if (pathHolder.empty()) {
-        return "";
-    }
-    return "/data/app/el2/" + std::to_string(userId) + "/base/" + pathHolder + "/cache/hiappevent";
-}
-
-std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const ExternalLogInfo &externalLogInfo)
-{
-    int userId = uid / VALUE_MOD;
-    if (pathHolder.empty()) {
-        return "";
-    }
-    return "/data/app/el2/" + std::to_string(userId) + "/log/" + pathHolder + "/" + externalLogInfo.subPath_;
 }
 
 bool CopyExternalLog(int32_t uid, const std::string& externalLog, const std::string& destPath, uint32_t maxFileSizeByte)
@@ -342,13 +324,13 @@ void ReportAppEventSend(Json::Value& eventJson)
     std::string crashType = ParseString(eventJson[PARAM_PROPERTY], CRASH_TYPE);
     HiSysEventParam params[] = {
         { .name = "BUNDLENAME",       .t = HISYSEVENT_STRING,
-          .v = { .s = const_cast<char *>(bundleName.c_str()) },                .arraySize = 0, },
+          .v = { .s = const_cast<char*>(bundleName.c_str()) },                .arraySize = 0, },
         { .name = "BUNDLEVERSION",    .t = HISYSEVENT_STRING,
-          .v = { .s = const_cast<char *>(bundleVersion.c_str()) },             .arraySize = 0, },
+          .v = { .s = const_cast<char*>(bundleVersion.c_str()) },             .arraySize = 0, },
         { .name = "EVENTTYPE",        .t = HISYSEVENT_UINT8,
           .v = { .ui8 = eventName == "APP_CRASH" ? 0 : 1 },                    .arraySize = 0, },
         { .name = "CRASH_TYPE",       .t = HISYSEVENT_STRING,
-          .v = { .s = const_cast<char *>(crashType.c_str()) },                 .arraySize = 0, },
+          .v = { .s = const_cast<char*>(crashType.c_str()) },                 .arraySize = 0, },
         { .name = "EXTERNALLOG",      .t = HISYSEVENT_BOOL,
           .v = { .b = eventJson[PARAM_PROPERTY][EXTERNAL_LOG].size() > 0 },    .arraySize = 0, }
     };
@@ -387,9 +369,10 @@ void SaveEventAndLogToSandBox(AppEventParams& eventParams)
 {
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventParams.eventName, externalLogInfo);
-    std::string sandBoxLogPath = GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder, externalLogInfo);
+    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder,
+        externalLogInfo.subPath_);
     SendLogToSandBox(eventParams, sandBoxLogPath, externalLogInfo);
-    std::string desPath = GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
+    std::string desPath = FileUtil::GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventParams.eventJson, desPath);
@@ -444,13 +427,15 @@ void EventPublish::SendOverLimitEventToSandBox(AppEventParams eventParams)
 {
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventParams.eventName, externalLogInfo);
-    std::string sandBoxLogPath = GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder, externalLogInfo);
+    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(eventParams.uid, eventParams.pathHolder,
+        externalLogInfo.subPath_);
     CreateSandBox(sandBoxLogPath);
     SendLogToSandBox(eventParams, sandBoxLogPath, externalLogInfo);
-    std::string desPath = GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
+    std::string desPath = FileUtil::GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventParams.eventJson, desPath);
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(eventParams.uid, eventParams.pathHolder);
     sendingOverlimitThread_.reset();
 }
 
@@ -483,7 +468,7 @@ void EventPublish::SendEventToSandBox()
             continue;
         }
         std::string pathHolder = GetPathPlaceHolder(uid);
-        std::string desPath = GetSandBoxBasePath(uid, pathHolder);
+        std::string desPath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
         if (!FileUtil::FileExists(desPath)) {
             HIVIEW_LOGE("SendEventToSandBox not exit.");
             (void)FileUtil::RemoveFile(srcPath);
@@ -519,7 +504,7 @@ void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEve
     }
     std::string srcPath = GetTempFilePath(uid);
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string desPath = GetSandBoxBasePath(uid, pathHolder);
+    std::string desPath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
     if (!FileUtil::FileExists(desPath)) {
         HIVIEW_LOGE("desPath not exit.");
         (void)FileUtil::RemoveFile(srcPath);
@@ -545,6 +530,7 @@ void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEve
         EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK, EVENT_APP_HICOLLIE};
     if (immediateEvents.find(eventName) != immediateEvents.end()) {
         SaveEventAndLogToSandBox(eventParams);
+        UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder);
     } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
         StartOverLimitThread(eventParams);
     } else {

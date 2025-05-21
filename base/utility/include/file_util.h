@@ -86,6 +86,7 @@ bool ForceRemoveDirectory(const std::string& path, bool isNeedDeleteGivenDirSelf
 bool RemoveFile(const std::string& fileName);
 uint64_t GetFolderSize(const std::string& path);
 uint64_t GetFileSize(const std::string& path);
+double GetDeviceValidSize(const std::string& partitionName);
 bool ChangeMode(const std::string& fileName, const mode_t& mode);
 bool ChangeModeFile(const std::string& fileName, const mode_t& mode);
 bool ChangeModeDirectory(const std::string& path, const mode_t& mode);
@@ -104,6 +105,11 @@ bool IsLegalPath(const std::string& path);
 bool RenameFile(const std::string& src, const std::string& dest);
 bool GetDirXattr(const std::string& dir, const std::string& name, std::string& value);
 int64_t GetLastModifiedTimeStamp(const std::string& filePath);
+
+// for report
+int GetUserId(int32_t uid);
+std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder);
+std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const std::string& subPath);
 } // namespace FileUtil
 } // namespace HiviewDFX
 } // namespace OHOS

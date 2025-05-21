@@ -42,6 +42,8 @@ ohos_source_set("hiview_event_publish") {
   deps = [ "$hiview_base:logger" ]
 
   if (hiview_appevent_publish_enable) {
+    sources += [ "user_data_size_reporter.cpp" ]
+
     external_deps += [
       "ability_base:want",
       "bundle_framework:appexecfwk_base",
