@@ -53,7 +53,7 @@ uint64_t GetRawTraceSize(const std::string &file)
 CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(UCollect::TraceCaller &caller)
 {
     auto task = [this, &caller] { return traceCollector_->DumpTrace(caller); };
-    return Invoke(task, traceStatWrapper_, caller);
+    return Invoke(task, caller);
 }
 
 CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UCollect::TraceCaller &caller,
@@ -62,7 +62,7 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UC
     auto task = [this, &caller, &timeLimit, &happenTime] {
         return traceCollector_->DumpTraceWithDuration(caller, timeLimit, happenTime);
     };
-    return Invoke(task, traceStatWrapper_, caller);
+    return Invoke(task, caller);
 }
 
 CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithFilter(UCollect::TeleModule &module,
@@ -84,10 +84,11 @@ void TraceDecorator::SaveStatSpecialInfo()
     std::list<std::string> compressRatio = {UC_HITRACE_COMPRESS_RATIO, std::to_string(TRACE_COMPRESS_RATIO)};
     WriteLinesToFile(compressRatio, true);
     
-    std::map<std::string, std::vector<std::string>> traceTrafficInfo = traceStatWrapper_.GetTrafficStatInfo();
+    std::map<std::string, std::vector<TraceTrafficInfo>> traceTrafficInfo = traceStatWrapper_.GetTrafficStatInfo();
     std::list<std::string> trafficFormattedInfo = {UC_HITRACE_TRAFFIC_STAT_TITLE, UC_HITRACE_TRAFFIC_STAT_ITEM};
     for (const auto& record : traceTrafficInfo) {
-        trafficFormattedInfo.insert(trafficFormattedInfo.end(), record.second.begin(), record.second.end());
+        std::transform(record.second.begin(), record.second.end(), std::back_inserter(trafficFormattedInfo),
+            [] (const TraceTrafficInfo& info) { return info.ToString(); });
     }
     WriteLinesToFile(trafficFormattedInfo, false);
 }
@@ -106,6 +107,11 @@ void TraceDecorator::ResetStatInfo()
 {
     statInfoWrapper_.ResetStatInfo();
     traceStatWrapper_.ResetStatInfo();
+}
+
+void TraceDecorator::UpdateTrafficInfoAfterZip(const std::string& traceZipFile)
+{
+    traceStatWrapper_.UpdateTrafficInfoAfterZip(traceZipFile);
 }
 
 void TraceStatWrapper::UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, UCollect::TraceCaller& caller,
@@ -178,14 +184,13 @@ void TraceStatWrapper::UpdateTrafficInfo(const std::string& caller, uint64_t lat
         statInfo.traceFile = file;
         statInfo.timeSpent = avgLatency;
         statInfo.rawSize = fileSize;
-        statInfo.usedSize = fileSize * TRACE_COMPRESS_RATIO;
         statInfo.timeStamp = timeStamp;
-        
+
         if (trafficStatInfos_.find(caller) == trafficStatInfos_.end()) {
-            trafficStatInfos_[caller] = {statInfo.ToString()};
+            trafficStatInfos_[caller] = {statInfo};
         } else {
-            std::vector<std::string>& tmp = trafficStatInfos_[caller];
-            tmp.push_back(statInfo.ToString());
+            std::vector<TraceTrafficInfo>& tmp = trafficStatInfos_[caller];
+            tmp.push_back(statInfo);
         }
     }
 }
@@ -196,10 +201,23 @@ std::map<std::string, TraceStatInfo> TraceStatWrapper::GetTraceStatInfo()
     return traceStatInfos_;
 }
 
-std::map<std::string, std::vector<std::string>> TraceStatWrapper::GetTrafficStatInfo()
+std::map<std::string, std::vector<TraceTrafficInfo>> TraceStatWrapper::GetTrafficStatInfo()
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
     return trafficStatInfos_;
+}
+
+void TraceStatWrapper::UpdateTrafficInfoAfterZip(const std::string& traceZipFile)
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    for (auto& statInfo : trafficStatInfos_) {
+        auto it = std::find_if(statInfo.second.begin(), statInfo.second.end(), [traceZipFile] (auto& info) {
+            return info.traceFile == traceZipFile;
+        });
+        if (it != statInfo.second.end()) {
+            it->usedSize = FileUtil::GetFileSize(traceZipFile);
+        }
+    }
 }
 
 void TraceStatWrapper::ResetStatInfo()

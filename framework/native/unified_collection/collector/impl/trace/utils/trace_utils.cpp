@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,11 +27,13 @@
 #include "ffrt.h"
 #include "hiview_logger.h"
 #include "hiview_event_report.h"
+#include "hiview_zip_util.h"
 #include "memory_collector.h"
 #include "parameter_ex.h"
 #include "securec.h"
 #include "string_util.h"
 #include "trace_common.h"
+#include "trace_decorator.h"
 #include "trace_worker.h"
 #include "time_util.h"
 
@@ -153,63 +155,40 @@ std::string AddVersionInfoToZipName(const std::string &srcZipPath)
 
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
 {
-    HIVIEW_LOGI("start ZipTraceFile src: %{public}s, dst: %{public}s", srcSysPath.c_str(), destZipPath.c_str());
-    FILE *srcFp = fopen(srcSysPath.c_str(), "rb");
-    if (srcFp == nullptr) {
-        return;
-    }
-    zip_fileinfo zipInfo;
-    errno_t result = memset_s(&zipInfo, sizeof(zipInfo), 0, sizeof(zipInfo));
-    if (result != EOK) {
-        (void)fclose(srcFp);
-        return;
-    }
-    std::string zipFileName = FileUtil::ExtractFileName(destZipPath);
-    zipFile zipFile = zipOpen((UNIFIED_SHARE_TEMP_PATH + zipFileName).c_str(), APPEND_STATUS_CREATE);
-    if (zipFile == nullptr) {
-        HIVIEW_LOGE("zipOpen failed");
-        (void)fclose(srcFp);
+    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
+    std::string dstZipName = FileUtil::ExtractFileName(destZipPathWithVersion);
+    if (FileUtil::FileExists(destZipPathWithVersion)) {
+        HIVIEW_LOGI("dst: %{public}s already exist", dstZipName.c_str());
         return;
     }
     CheckCurrentCpuLoad();
     HiviewEventReport::ReportCpuScene("5");
-    std::string sysFileName = FileUtil::ExtractFileName(srcSysPath);
-    zipOpenNewFileInZip(
-        zipFile, sysFileName.c_str(), &zipInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, Z_DEFAULT_COMPRESSION);
-    int errcode = 0;
-    char buf[READ_MORE_LENGTH] = {0};
-    while (!feof(srcFp)) {
-        size_t numBytes = fread(buf, 1, sizeof(buf), srcFp);
-        if (numBytes <= 0) {
-            HIVIEW_LOGE("zip file failed, size is zero");
-            errcode = -1;
-            break;
-        }
-        zipWriteInFileInZip(zipFile, buf, static_cast<unsigned int>(numBytes));
-        if (ferror(srcFp)) {
-            HIVIEW_LOGE("zip file failed: %{public}s, errno: %{public}d.", srcSysPath.c_str(), errno);
-            errcode = -1;
-            break;
-        }
-    }
-    (void)fclose(srcFp);
-    zipCloseFileInZip(zipFile);
-    zipClose(zipFile, nullptr);
-    if (errcode != 0) {
+    std::string tmpDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
+    HIVIEW_LOGI("start ZipTraceFile, dst: %{public}s", FileUtil::ExtractFileName(destZipPath).c_str());
+    HiviewZipUnit zipUnit(tmpDestZipPath);
+    if (int32_t ret = zipUnit.AddFileInZip(srcSysPath, ZipFileLevel::KEEP_NONE_PARENT_PATH); ret != 0) {
+        HIVIEW_LOGW("zip trace failed, ret: %{public}d.", ret);
         return;
     }
-    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
-    FileUtil::RenameFile(UNIFIED_SHARE_TEMP_PATH + zipFileName, destZipPathWithVersion);
-    HIVIEW_LOGI("finish rename file %{public}s", destZipPathWithVersion.c_str());
+    FileUtil::RenameFile(tmpDestZipPath, destZipPathWithVersion);
+    UCollectUtil::TraceDecorator::UpdateTrafficInfoAfterZip(destZipPathWithVersion);
+    HIVIEW_LOGI("finish rename file %{public}s", dstZipName.c_str());
 }
 
 void CopyFile(const std::string &src, const std::string &dst)
 {
-    int ret = FileUtil::CopyFile(src, dst);
-    if (ret != 0) {
-        HIVIEW_LOGE("copy file failed, file is %{public}s.", src.c_str());
+    std::string dstFileName = FileUtil::ExtractFileName(dst);
+    if (FileUtil::FileExists(dst)) {
+        HIVIEW_LOGI("copy already, file : %{public}s.", dstFileName.c_str());
+        return;
     }
-    HIVIEW_LOGI("copy end, trace file : %{public}s.", dst.c_str());
+    HIVIEW_LOGI("copy start, file : %{public}s.", dstFileName.c_str());
+    int ret = FileUtil::CopyFileFast(src, dst);
+    if (ret != 0) {
+        HIVIEW_LOGE("copy failed, file : %{public}s, errno : %{public}d", src.c_str(), errno);
+    } else {
+        HIVIEW_LOGI("copy end, file : %{public}s.", dstFileName.c_str());
+    }
 }
 
 /*
@@ -243,7 +222,7 @@ std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outpu
             TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
         }
         files.push_back(destZipPathWithVersion);
-        HIVIEW_LOGI("trace file : %{public}s.", destZipPathWithVersion.c_str());
+        HIVIEW_LOGI("trace file : %{public}s.", FileUtil::ExtractFileName(destZipPathWithVersion).c_str());
     }
     return files;
 }
