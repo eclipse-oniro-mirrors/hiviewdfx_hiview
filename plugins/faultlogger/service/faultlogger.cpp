@@ -314,10 +314,21 @@ void Faultlogger::AddCppCrashInfo(FaultLogInfo& info)
     }
 
     info.sectionMap["APPEND_ORIGIN_LOG"] = GetCppCrashTempLogName(info);
-
+    std::string path = FAULTLOG_FAULT_HILOG_FOLDER + std::to_string(info.pid) +
+        "-" + std::to_string(info.id) + "-" + std::to_string(info.time);
+    std::string hilogSnapShot;
+    if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
+        info.sectionMap["HILOG"] = hilogSnapShot;
+        return;
+    }
     std::string log;
     GetHilog(info.pid, log);
+    if (FileUtil::LoadStringFromFile(path, hilogSnapShot)) {
+        info.sectionMap["HILOG"] = hilogSnapShot;
+        return;
+    }
     info.sectionMap["HILOG"] = log;
+    info.sectionMap["INVAILED_HILOG_TIME"] = "false";
 }
 
 bool Faultlogger::VerifiedDumpPermission()
