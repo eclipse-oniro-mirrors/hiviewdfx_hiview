@@ -52,6 +52,7 @@ private:
     void IncreaseUseCount();
     void DecreaseUseCount();
     CollectResult<bool> CheckUseCount();
+    CollectResult<bool> CheckAvailableMemory();
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX

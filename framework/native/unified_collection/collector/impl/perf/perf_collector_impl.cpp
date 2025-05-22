@@ -17,11 +17,12 @@
 #include <atomic>
 #include <ctime>
 #include <fstream>
-#include <map>
 
 #include "hiperf_client.h"
 #include "hiview_logger.h"
+#include "memory_collector.h"
 #include "parameter_ex.h"
+#include "perf_collect_config.h"
 #include "perf_decorator.h"
 
 using namespace OHOS::HiviewDFX::UCollect;
@@ -33,13 +34,10 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-PerfCollectorImpl");
 constexpr int DEFAULT_PERF_RECORD_FREQUENCY = 100;
 const std::string DEFAULT_PERF_RECORD_CALLGRAPH = "fp";
-const std::map<PerfCaller, uint8_t> PERF_MAX_COUNT_FOR_CALLER = {
-    // key : caller, value : max hiperf processes count can be started simultaneously
-    {PerfCaller::EVENTLOGGER, 2},
-    {PerfCaller::XPOWER, 2},
-    {PerfCaller::UNIFIED_COLLECTOR, 2},
-    {PerfCaller::PERFORMANCE_FACTORY, 8},
-};
+constexpr uint32_t MB_TO_KB = 1024;
+const int64_t ALLOW_COLLECT_MEMORY = PerfCollectConfig::GetAllowMemory(PerfCollectConfig::GetConfigPath());
+const std::map<PerfCaller, uint8_t> PERF_CONCURRENCY_COUNT =
+    PerfCollectConfig::GetPerfCount(PerfCollectConfig::GetConfigPath());
 }
 
 std::atomic<uint8_t> PerfCollectorImpl::inUseCount_(0);
@@ -119,7 +117,7 @@ std::shared_ptr<PerfCollector> PerfCollector::Create(PerfCaller perfCaller)
 CollectResult<bool> PerfCollectorImpl::CheckUseCount()
 {
     CollectResult<bool> result;
-    if (PERF_MAX_COUNT_FOR_CALLER.find(perfCaller_) == PERF_MAX_COUNT_FOR_CALLER.end()) {
+    if (PERF_CONCURRENCY_COUNT.find(perfCaller_) == PERF_CONCURRENCY_COUNT.end()) {
         HIVIEW_LOGI("not find perf caller");
         result.data = false;
         result.retCode = UcError::PERF_CALLER_NOT_FIND;
@@ -127,7 +125,7 @@ CollectResult<bool> PerfCollectorImpl::CheckUseCount()
     }
     HIVIEW_LOGI("current used count : %{public}d", inUseCount_.load());
     IncreaseUseCount();
-    if (inUseCount_.load() > PERF_MAX_COUNT_FOR_CALLER.at(perfCaller_)) {
+    if (inUseCount_.load() > PERF_CONCURRENCY_COUNT.at(perfCaller_)) {
         HIVIEW_LOGI("current used count over limit.");
         result.data = false;
         result.retCode = UcError::USAGE_EXCEED_LIMIT;
@@ -139,9 +137,30 @@ CollectResult<bool> PerfCollectorImpl::CheckUseCount()
     return result;
 }
 
+CollectResult<bool> PerfCollectorImpl::CheckAvailableMemory()
+{
+    auto collector = UCollectUtil::MemoryCollector::Create();
+    CollectResult<SysMemory> data = collector->CollectSysMemory();
+    CollectResult<bool> result;
+    // -1 : means not limit by memory
+    if (ALLOW_COLLECT_MEMORY != -1 && (data.data.memAvailable / MB_TO_KB) < ALLOW_COLLECT_MEMORY) {
+        result.data = false;
+        result.retCode = UcError::PERF_MEMORY_NOT_ALLOW;
+        return result;
+    }
+    result.data = true;
+    result.retCode = UcError::SUCCESS;
+    return result;
+}
+
 CollectResult<bool> PerfCollectorImpl::StartPerf(const std::string &logDir)
 {
-    CollectResult<bool> result = CheckUseCount();
+    CollectResult<bool> result = CheckAvailableMemory();
+    if (result.retCode != UCollect::UcError::SUCCESS) {
+        return result;
+    }
+
+    result = CheckUseCount();
     if (result.retCode != UCollect::UcError::SUCCESS) {
         return result;
     }

@@ -1,0 +1,11 @@
+{
+    "Perf" : {
+        "ConcurrencyStrategy" : {
+            "EVENTLOGGER" : 1,
+            "XPOWER" : 1,
+            "UNIFIED_COLLECTOR" : 1,
+            "PERFORMANCE_FACTORY" : 1
+        },
+        "AllowMemory" : 1000
+    }
+}
