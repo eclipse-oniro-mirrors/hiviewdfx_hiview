@@ -39,7 +39,10 @@ config("ucollection_source_config") {
   }
 
   if (has_hiperf && hiview_unified_collector_perf_enable) {
-    include_dirs += [ "collector/impl/perf" ]
+    include_dirs += [
+      "collector/impl/perf",
+      "collector/config"
+    ]
   } else {
     include_dirs += [ "collector/empty_impl/perf" ]
   }
@@ -307,10 +310,15 @@ ohos_source_set("ucollection_source") {
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     sources += [
       "collector/impl/perf/perf_collector_impl.cpp",
+      "collector/config/perf_collect_config.cpp",
       "decorator/perf_decorator.cpp",
     ]
     cflags += [ "-DHAS_HIPERF" ]
-    external_deps += [ "hiperf:hiperf_client" ]
+    external_deps += [
+      "cJSON:cjson",
+      "config_policy:configpolicy_util",
+      "hiperf:hiperf_client",
+    ]
   } else {
     sources += [ "collector/empty_impl/perf/perf_collector_empty_impl.cpp" ]
   }
@@ -347,5 +355,9 @@ group("unittest") {
 
   if (hiview_unified_collector_graphic_enable) {
     deps += [ "collector/impl/memory/utils/test/unittest:MemoryUtilsUnitTest" ]
+  }
+
+  if (has_hiperf && hiview_unified_collector_perf_enable) {
+    deps += [ "collector/config/test/unittest:PerfCollectConfigUnitTest" ]
   }
 }

@@ -26,6 +26,9 @@
 #include "io_collector.h"
 #include "memory_collector.h"
 #include "parameter_ex.h"
+#ifdef HAS_HIPERF
+#include "perf_collect_config.h"
+#endif
 #include "plugin_factory.h"
 #include "process_status.h"
 #include "sys_event.h"
@@ -337,6 +340,16 @@ void UnifiedCollector::Dump(int fd, const std::vector<std::string>& cmds)
     dprintf(fd, "trace recorder state is %s.\n", traceRecorderState.c_str());
 
     dprintf(fd, "develop state is %s.\n", Parameter::IsDeveloperMode() ? "true" : "false");
+
+#ifdef HAS_HIPERF
+    std::string configPath = PerfCollectConfig::GetConfigPath();
+    for (const auto& item : PerfCollectConfig::GetPerfCount(configPath)) {
+        dprintf(fd, "perf caller : %s, concurrent counts : %d.\n",
+            PerfCollectConfig::MapPerfCallerToString(item.first).c_str(), item.second);
+    }
+    dprintf(fd, "minimum memory allowed for perf collect : %d.\n",
+        PerfCollectConfig::GetAllowMemory(configPath));
+#endif
 }
 
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
