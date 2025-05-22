@@ -140,6 +140,8 @@ void EventLogTask::AddCapture()
         [this] { this->SCBWMSCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:scbWMSEVT",
         [this] { this->SCBWMSEVTCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("cmd:scbWMSV",
+        [this] { this->SCBWMSVCapture(); }));
 #endif // SCB_CATCHER_ENABLE
 #ifdef USAGE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:dam",
@@ -642,6 +644,14 @@ void EventLogTask::SCBWMSEVTCapture()
     std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -event";
     capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMSEVT, pid_);
     capture->SetFocusWindowId(focusWindowId_);
+    tasks_.push_back(capture);
+}
+
+void EventLogTask::SCBWMSVCapture()
+{
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hidumper -s WindowManagerService -a '-v all -simplify'",
+        ShellCatcher::CATCHER_SCBWMSV, pid_);
     tasks_.push_back(capture);
 }
 #endif // SCB_CATCHER_ENABLE

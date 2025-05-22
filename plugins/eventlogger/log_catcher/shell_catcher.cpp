@@ -162,6 +162,12 @@ int ShellCatcher::DoScbCatcher(int writeFd)
                 ret = execl("/system/bin/hidumper", "hidumper", "-s", "4606", "-a", cmd.c_str(), nullptr);
             }
             break;
+        case CATCHER_SCBWMSV:
+            {
+                std::string cmd = "-v all -simplify";
+                ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a",
+                    cmd.c_str(), nullptr);
+            }
         default:
             break;
     }
