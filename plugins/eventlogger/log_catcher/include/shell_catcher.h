@@ -57,6 +57,7 @@ public:
         CATCHER_DAM,
         CATCHER_INPUT_EVENT_HILOG,
         CATCHER_INPUT_HILOG,
+        CATCHER_SCBWMSV,
     };
 private:
     static const inline int32_t DEFAULT_WINDOW_ID = 14;
