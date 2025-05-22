@@ -40,7 +40,12 @@ constexpr uint8_t SLEEP_TEN_SECONDS = 10;
 void PlatformMonitor::AccumulateTimeInterval(uint64_t costTime, std::map<int8_t, uint32_t> &stat)
 {
     std::lock_guard<std::mutex> lock(statMutex_);
-    auto it = std::lower_bound(intervals_, intervals_ + sizeof(intervals_) / sizeof(intervals_[0]), costTime);
+    auto lastPos = std::end(intervals_);
+    auto it = std::lower_bound(intervals_, lastPos, costTime);
+    if (it == lastPos) {
+        HIVIEW_LOGW("lower bound base on %{public}" PRIu64 " not found", costTime);
+        return;
+    }
     int index = it - intervals_;
     stat[index] += 1;
 }
