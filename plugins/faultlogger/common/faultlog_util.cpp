@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <ctime>
-#include <ctype.h>
+#include <cctype>
 #include <mutex>
 #include <securec.h>
 #include <string>
