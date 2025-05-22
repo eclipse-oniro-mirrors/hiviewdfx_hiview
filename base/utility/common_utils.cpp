@@ -81,45 +81,6 @@ std::string GetProcessNameFromProcStat(int32_t pid)
 }
 }
 
-int ExecCommand(const std::string &cmd, const std::vector<std::string> &args)
-{
-    pid_t pid = fork();
-    if (pid < 0) {
-        return -1;
-    } else if (pid == 0) {
-        // Redirect the stdout to /dev/null
-        int fd = open("/dev/null", O_WRONLY);
-        // follow standard, although dup2 may handle the case of invalid oldfd
-        if (fd >= 0) {
-            dup2(fd, STDOUT_FILENO);
-            close(fd);
-        }
-
-        std::vector<char *> argv;
-        argv.push_back(const_cast<char *>(cmd.c_str()));
-        for (const auto &arg : args) {
-            argv.push_back(const_cast<char *>(arg.c_str()));
-        }
-        argv.push_back(0);
-        execv(argv[0], &argv[0]);
-    }
-    constexpr uint64_t maxWaitingTime = 60; // 60 seconds
-    uint64_t remainedTime = maxWaitingTime * NS_PER_SECOND;
-    while (remainedTime > 0) {
-        uint64_t startTime = TimeUtil::GetNanoTime();
-        int status = 0;
-        waitpid(pid, &status, WNOHANG);
-        if (WIFEXITED(status)) {
-            return 0;
-        }
-        sleep(1);
-        uint64_t duration = TimeUtil::GetNanoTime() - startTime;
-        remainedTime = (remainedTime > duration) ? (remainedTime - duration) : 0;
-    }
-
-    return -1;
-}
-
 std::string GetProcNameByPid(pid_t pid)
 {
     std::string result;

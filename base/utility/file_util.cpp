@@ -33,6 +33,8 @@
 #include "directory_ex.h"
 #include "file_ex.h"
 
+#define FDSAN_FILEUTIL_TAG 0xD002D10 // hiview domainid
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace FileUtil {
@@ -324,11 +326,13 @@ int CopyFileFast(const std::string &src, const std::string &des, uint32_t trunca
     if (fdIn < 0) {
         return -1;
     }
+    fdsan_exchange_owner_tag(fdIn, 0, FDSAN_FILEUTIL_TAG);
     int fdOut = open(des.c_str(), O_CREAT | O_RDWR, 0664);
     if (fdOut < 0) {
-        close(fdIn);
+        fdsan_close_with_tag(fdIn, FDSAN_FILEUTIL_TAG);
         return -1;
     }
+    fdsan_exchange_owner_tag(fdOut, 0, FDSAN_FILEUTIL_TAG);
     struct stat st;
     uint64_t totalLen = stat(src.c_str(), &st) ? 0 : static_cast<uint64_t>(st.st_size);
     std::string truncateMsg = "";
@@ -347,8 +351,8 @@ int CopyFileFast(const std::string &src, const std::string &des, uint32_t trunca
     if (!truncateMsg.empty()) {
         SaveStringToFd(fdOut, truncateMsg);
     }
-    close(fdIn);
-    close(fdOut);
+    fdsan_close_with_tag(fdIn, FDSAN_FILEUTIL_TAG);
+    fdsan_close_with_tag(fdOut, FDSAN_FILEUTIL_TAG);
     return copyTotalLen == totalLen ? 0 : -1;
 }
 

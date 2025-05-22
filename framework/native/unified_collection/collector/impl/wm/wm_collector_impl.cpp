@@ -69,12 +69,13 @@ CollectResult<std::string> WmCollectorImpl::ExportWindowsInfo()
         HIVIEW_LOGE("create fileName=%{public}s failed.", fileName.c_str());
         return result;
     }
+    fdsan_exchange_owner_tag(fd, 0, logLabelDomain);
     if (CommonUtils::WriteCommandResultToFile(fd, "/system/bin/hidumper", args) == -1) {
         HIVIEW_LOGE("write cmd to file=%{public}s failed.", fileName.c_str());
-        close(fd);
+        fdsan_close_with_tag(fd, logLabelDomain);
         return result;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, logLabelDomain);
     result.retCode = UcError::SUCCESS;
     result.data = fileName;
     return result;
@@ -99,12 +100,13 @@ CollectResult<std::string> WmCollectorImpl::ExportWindowsMemory()
         HIVIEW_LOGE("create fileName=%{public}s failed.", fileName.c_str());
         return result;
     }
+    fdsan_exchange_owner_tag(fd, 0, logLabelDomain);
     if (CommonUtils::WriteCommandResultToFile(fd, "/system/bin/hidumper", args) == -1) {
         HIVIEW_LOGE("write cmd to file=%{public}s failed.", fileName.c_str());
-        close(fd);
+        fdsan_close_with_tag(fd, logLabelDomain);
         return result;
     }
-    close(fd);
+    fdsan_close_with_tag(fd, logLabelDomain);
     result.retCode = UcError::SUCCESS;
     result.data = fileName;
     return result;
