@@ -123,7 +123,7 @@ private:
     void SCBViewParamCapture();
     void SCBWMSCapture();
     void SCBWMSEVTCapture();
-    void SCBWMSVCapture()
+    void SCBWMSVCapture();
 #endif // SCB_CATCHER_ENABLE
 
 #ifdef OTHER_CATCHER_ENABLE

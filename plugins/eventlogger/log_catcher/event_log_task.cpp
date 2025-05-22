@@ -650,7 +650,7 @@ void EventLogTask::SCBWMSEVTCapture()
 void EventLogTask::SCBWMSVCapture()
 {
     auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hidumper -s WindowManagerService -a '-v all'",
+    capture->Initialize("hidumper -s WindowManagerService -a '-v all -simplify'",
         ShellCatcher::CATCHER_SCBWMSV, pid_);
     tasks_.push_back(capture);
 }
