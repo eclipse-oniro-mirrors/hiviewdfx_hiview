@@ -71,7 +71,7 @@ int CollectDeviceClient::Open()
         return -1;
     }
     fdsan_exchange_owner_tag(fd_, 0, logLabelDomain);
-    return fd_;
+    return 0;
 }
 
 unsigned int CollectDeviceClient::GetProcessCount()
