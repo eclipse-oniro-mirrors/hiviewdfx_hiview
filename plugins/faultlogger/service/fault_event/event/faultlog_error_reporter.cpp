@@ -117,7 +117,9 @@ void FaultLogErrorReporter::ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysE
     if (!FileUtil::FileExists(outputFilePath)) {
         int fd = TEMP_FAILURE_RETRY(open(outputFilePath.c_str(), O_CREAT | O_RDWR | O_APPEND, DEFAULT_LOG_FILE_MODE));
         if (fd != -1) {
-            close(fd);
+            uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, LOG_DOMAIN);
+            fdsan_exchange_owner_tag(fd, 0, ownerTag);
+            fdsan_close_with_tag(fd, ownerTag);
         }
     }
     FileUtil::SaveStringToFile(outputFilePath, paramsStr, false);

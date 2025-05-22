@@ -26,6 +26,12 @@
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
 
+// define Fdsan Domain
+#ifndef FDSAN_DOMAIN
+#undef FDSAN_DOMAIN
+#endif
+#define FDSAN_DOMAIN 0xD002D11
+
 namespace OHOS {
 namespace HiviewDFX {
 using namespace FaultLogger;
@@ -98,6 +104,8 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         }
         return "";
     }
+    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
+    fdsan_exchange_owner_tag(fd, 0, ownerTag);
 
     FaultLogger::WriteDfxLogToFile(fd);
     FaultLogger::WriteFaultLogToFile(fd, info.faultLogType, info.sectionMap);
@@ -106,7 +114,7 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         FileUtil::SaveStringToFd(fd, "\nHiLog:\n");
         FileUtil::SaveStringToFd(fd, info.sectionMap[FaultKey::HILOG]);
     }
-    close(fd);
+    fdsan_close_with_tag(fd, ownerTag);
 
     RemoveOldFile(info);
     info.logPath = std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;

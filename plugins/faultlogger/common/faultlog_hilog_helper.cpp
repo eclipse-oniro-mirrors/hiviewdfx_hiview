@@ -25,6 +25,12 @@
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 
+// define Fdsan Domain
+#ifndef FDSAN_DOMAIN
+#undef FDSAN_DOMAIN
+#endif
+#define FDSAN_DOMAIN 0xD002D11
+
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
@@ -111,6 +117,10 @@ std::string FaultlogHilogHelper::GetHilogByPid(int32_t pid)
         HIVIEW_LOGE("Failed to create pipe for get log.");
         return "";
     }
+    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
+    fdsan_exchange_owner_tag(fds[0], 0, ownerTag);
+    fdsan_exchange_owner_tag(fds[1], 0, ownerTag);
+
     int childPid = fork();
     if (childPid < 0) {
         HIVIEW_LOGE("fork fail");
@@ -118,13 +128,13 @@ std::string FaultlogHilogHelper::GetHilogByPid(int32_t pid)
     } else if (childPid == 0) {
         syscall(SYS_close, fds[0]);
         int rc = DoGetHilogProcess(pid, fds[1]);
-        syscall(SYS_close, fds[1]);
+        fdsan_close_with_tag(fds[1], ownerTag);
         _exit(rc);
     } else {
-        syscall(SYS_close, fds[1]);
+        fdsan_close_with_tag(fds[1], ownerTag);
         HIVIEW_LOGI("read hilog start");
         std::string log = ReadHilogTimeout(fds[0]);
-        syscall(SYS_close, fds[0]);
+        fdsan_close_with_tag(fds[0], ownerTag);
 
         if (TEMP_FAILURE_RETRY(waitpid(childPid, nullptr, 0)) != childPid) {
             HIVIEW_LOGE("waitpid fail, pid: %{public}d, errno: %{public}d", childPid, errno);
