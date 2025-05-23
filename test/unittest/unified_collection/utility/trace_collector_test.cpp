@@ -222,7 +222,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
     UCollect::TeleModule module = UCollect::TeleModule::XPOWER;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
     TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-    TraceStateMachine::GetInstance().OpenTelemetryTrace("");
+    TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::DEFAULT);
     CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, {}, 0, 0);
     ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::TRACE_DUMP_OVER_FLOW);
 

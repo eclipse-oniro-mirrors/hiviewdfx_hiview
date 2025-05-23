@@ -34,8 +34,18 @@ CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UColl
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithFilter(TeleModule &module,
+CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithFilter(UCollect::TeleModule &module,
     const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
+CollectResult<int32_t> TraceCollectorEmptyImpl::FilterTraceOn(UCollect::TeleModule module, uint64_t postTime)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
+CollectResult<int32_t> TraceCollectorEmptyImpl::FilterTraceOff(UCollect::TeleModule module)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
 }

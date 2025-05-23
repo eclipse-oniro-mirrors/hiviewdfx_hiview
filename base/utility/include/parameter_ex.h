@@ -41,6 +41,7 @@ bool SetProperty(const std::string& key, const std::string& defaultValue);
 int WaitParamSync(const char *key, const char *value, int timeout);
 typedef void (*ParameterChgPtr)(const char *key, const char *value, void *context);
 int WatchParamChange(const char *keyPrefix, ParameterChgPtr callback, void *context);
+int RemoveParameterWatcherEx(const char *keyPrefix, ParameterChgPtr callback, void *context);
 bool IsBetaVersion();
 bool IsDeveloperMode();
 bool IsOversea();

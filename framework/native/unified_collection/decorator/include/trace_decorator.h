@@ -114,6 +114,8 @@ public:
         uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule &module,
         const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags) override;
+    CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
+    CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
     static void SaveStatSpecialInfo();
     static void SaveStatCommonInfo();
     static void ResetStatInfo();

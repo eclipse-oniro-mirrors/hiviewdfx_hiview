@@ -42,11 +42,11 @@
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
       "OHOS::HiviewDFX::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::ZipTraceFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-      "OHOS::HiviewDFX::ParseAndFilterTraceArgs(std::__h::unordered_set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetConfigPath()";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetPerfCount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::MapPerfCallerToString(OHOS::HiviewDFX::UCollectUtil::PerfCaller)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetAllowMemory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+      "OHOS::HiviewDFX::ParseAndFilterTraceArgs(std::__h::unordered_set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, cJSON*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

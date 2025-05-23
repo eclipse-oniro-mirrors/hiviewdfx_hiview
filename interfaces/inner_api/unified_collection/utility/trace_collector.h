@@ -36,6 +36,10 @@ public:
         uint32_t timeLimit, uint64_t happenTime = 0) = 0;
     virtual CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule &module,
         const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags = 0) = 0;
+
+    //postTime unit: milliseconds
+    virtual CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime = 0) = 0;
+    virtual CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) = 0;
     static std::shared_ptr<TraceCollector> Create();
 }; // TraceCollector
 } // UCollectUtil

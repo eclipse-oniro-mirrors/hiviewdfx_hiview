@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 
+#include "cjson_util.h"
 #include "trace_collector.h"
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
@@ -48,6 +49,9 @@ const std::map<TraceStateCode, UcError> TRACE_STATE_MAP = {
     {TraceStateCode::SUCCESS, UcError::SUCCESS},
     {TraceStateCode::FAIL,    UcError::TRACE_STATE_ERROR},
     {TraceStateCode::DENY,    UcError::TRACE_OPEN_ERROR},
+    {TraceStateCode::POLICY_ERROR,    UcError::TRACE_POLICY_ERROR},
+    {TraceStateCode::UPDATE_TIME,    UcError::SUCCESS},
+    {TraceStateCode::NO_TRIGGER,    UcError::TRACE_TELEMERTY_NO_TRIGER},
 };
 
 const std::map<TraceFlowCode, UcError> TRACE_FLOW_MAP = {
@@ -98,7 +102,8 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
 bool CreateMultiDirectory(const std::string &dirPath);
 int64_t GetTraceSize(TraceRetInfo &ret);
 UcError GetUcError(TraceRet ret);
-bool ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList, std::string &jsonArgs);
+std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
+    cJSON* root, const std::string &key);
 } // HiViewDFX
 } // OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_FILE_UTILS_H

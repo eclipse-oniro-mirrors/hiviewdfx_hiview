@@ -26,7 +26,7 @@ DEFINE_LOG_TAG("UCollectUtil-PowerState");
 void PowerStateSubscriber::OnReceiveEvent(const CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
-    HIVIEW_LOGD("OnReceiveEvent action%{public}s", action.c_str());
+    HIVIEW_LOGI("OnReceiveEvent action%{public}s", action.c_str());
     if (action == CommonEventSupport::COMMON_EVENT_SCREEN_ON) {
         PowerStatusManager::GetInstance().SetPowerState(SCREEN_ON);
     } else if (action == CommonEventSupport::COMMON_EVENT_SCREEN_OFF) {
@@ -58,12 +58,37 @@ void PowerStatusManager::SetPowerState(PowerState powerState)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     powerState_ = powerState;
+    HIVIEW_LOGI("listeners size:%{public}zu", listeners_.size());
+    for (const auto& it : listeners_) {
+        if (powerState == SCREEN_ON) {
+            it.second->OnScreenOn();
+        } else {
+            it.second->OnScreenOff();
+        }
+    }
 }
 
 int32_t PowerStatusManager::GetPowerState()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     return powerState_;
+}
+
+void PowerStatusManager::AddPowerListener(const std::string &name, std::shared_ptr<PowerListener> listener)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (listeners_.find(name) == listeners_.end()) {
+        listeners_[name] = listener;
+    }
+}
+
+void PowerStatusManager::RemovePowerListener(const std::string &name)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto it = listeners_.find(name);
+    if (it != listeners_.end()) {
+        listeners_.erase(it);
+    }
 }
 }
 }

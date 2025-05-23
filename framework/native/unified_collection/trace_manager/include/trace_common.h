@@ -57,7 +57,10 @@ enum class TraceScenario : uint8_t {
 enum class TraceStateCode : uint8_t {
     SUCCESS,
     DENY, // Change state deny
-    FAIL // Invoke dump or drop interface in wrong state
+    FAIL, // Invoke dump or drop interface in wrong state
+    POLICY_ERROR,
+    UPDATE_TIME,
+    NO_TRIGGER
 };
 
 enum class TraceFlowCode : uint8_t {
@@ -65,6 +68,12 @@ enum class TraceFlowCode : uint8_t {
     TRACE_DUMP_DENY,
     TRACE_UPLOAD_DENY,
     TRACE_HAS_CAPTURED_TRACE
+};
+
+enum class TelemetryPolicy {
+    DEFAULT,
+    POWER,
+    MANUAL
 };
 
 struct TraceRet {
@@ -93,13 +102,23 @@ struct TraceRet {
 
     bool IsSuccess()
     {
-        return stateError_ == TraceStateCode::SUCCESS && codeError_ == TraceErrorCode::SUCCESS &&
-            flowError_ == TraceFlowCode::TRACE_ALLOW;
+        bool isStateSuccess = stateError_ == TraceStateCode::SUCCESS || stateError_ == TraceStateCode::NO_TRIGGER ||
+            stateError_ == TraceStateCode::UPDATE_TIME;
+        return isStateSuccess && codeError_ == TraceErrorCode::SUCCESS && flowError_ == TraceFlowCode::TRACE_ALLOW;
     }
 
     TraceStateCode stateError_ = TraceStateCode::SUCCESS;
     TraceErrorCode codeError_ = TraceErrorCode::SUCCESS;
     TraceFlowCode flowError_ = TraceFlowCode::TRACE_ALLOW;
+};
+
+class TelemetryCallback {
+public:
+    virtual ~TelemetryCallback() = default;
+    virtual void OnTelemetryStart() = 0;
+    virtual void OnTelemetryFinish() = 0;
+    virtual void OnTelemetryTraceOn() = 0;
+    virtual void OnTelemetryTraceOff() = 0;
 };
 }
 }

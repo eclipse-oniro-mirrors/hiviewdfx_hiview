@@ -18,13 +18,12 @@
 
 #include "trace_collector.h"
 #include "trace_utils.h"
+#include "ffrt.h"
 
-namespace OHOS {
-namespace HiviewDFX {
-namespace UCollectUtil {
+namespace OHOS::HiviewDFX::UCollectUtil {
+using namespace UCollect;
 class TraceCollectorImpl : public TraceCollector {
 public:
-    TraceCollectorImpl() = default;
     ~TraceCollectorImpl() override = default;
 
 public:
@@ -33,12 +32,18 @@ public:
         UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule &module,
         const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags) override;
+    CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
+    CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
 
 private:
     CollectResult<std::vector<std::string>> StartDumpTrace(UCollect::TraceCaller &caller,
         int32_t timeLimit, uint64_t happenTime = 0);
+
+    std::unique_ptr<ffrt::queue> ffrtQueue_;
+    ffrt::task_handle handle_;
+    std::mutex postMutex_;
 };
-} // namespace UCollectUtil
-} // namespace HiviewDFX
-} // namespace OHOS
+} // namespace OHOS::HiviewDFX::UCollectUtil
+
+
 #endif // HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_TRACE_COLLECTOR_IMPL_H

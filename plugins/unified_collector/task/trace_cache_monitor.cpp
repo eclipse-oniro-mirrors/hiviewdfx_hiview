@@ -80,7 +80,6 @@ TraceCacheMonitor::TraceCacheMonitor()
 {
     collector_ = UCollectUtil::MemoryCollector::Create();
     lowMemThreshold_ = HIVIEW_CACHE_LOW_MEM_THRESHOLD;
-    flowController_ = std::make_shared<TraceFlowController>(BEHAVIOR);
     int32_t ret = Parameter::WatchParamChange(PARAM_KEY_CACHE_LOW_MEM_THRESHOLD, OnLowMemThresholdChange, this);
     HIVIEW_LOGI("watchParamChange ret: %{public}d", ret);
 }
@@ -176,7 +175,7 @@ void TraceCacheMonitor::SetCacheStatus(int32_t interval)
     clock_gettime(CLOCK_BOOTTIME, &bts);
     uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
     int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
-    switch (flowController_->UseCacheTimeQuota(timeDiff)) {
+    switch (TraceFlowController(BEHAVIOR).UseCacheTimeQuota(timeDiff)) {
         case CacheFlow::EXIT:
             HIVIEW_LOGE("failed to get and insert record, close task");
             ExitMonitorLoop();
