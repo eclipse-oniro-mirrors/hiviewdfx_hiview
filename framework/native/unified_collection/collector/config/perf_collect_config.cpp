@@ -24,6 +24,8 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("PerfCollectConfig");
+const uint8_t HIPERF_PROCESS_COUNTS_FOR_NORMAL = 2;
+const uint8_t HIPERF_PROCESS_COUNTS_FOR_FACTORY = 8;
 }
 
 std::string PerfCollectConfig::MapPerfCallerToString(PerfCaller caller)
@@ -45,7 +47,7 @@ std::string PerfCollectConfig::MapPerfCallerToString(PerfCaller caller)
 std::string PerfCollectConfig::GetConfigPath()
 {
     const std::string collectorConfigPath = "etc/hiview/unified_collection/collector.json";
-    char buf[MAX_PATH_LEN];
+    char buf[MAX_PATH_LEN] = {0};
     char* path = GetOneCfgFile(collectorConfigPath.c_str(), buf, MAX_PATH_LEN);
     if (path == nullptr || *path == '\0') {
         return "";
@@ -58,10 +60,10 @@ std::map<PerfCaller, uint8_t> PerfCollectConfig::GetPerfCount(const std::string&
     // default config for perf collect concurrency
     std::map<PerfCaller, uint8_t> perfMaxCountForCaller = {
         // key : caller, value : max hiperf processes count can be started at same time
-        {PerfCaller::EVENTLOGGER, 2},
-        {PerfCaller::XPOWER, 2},
-        {PerfCaller::UNIFIED_COLLECTOR, 2},
-        {PerfCaller::PERFORMANCE_FACTORY, 8},
+        {PerfCaller::EVENTLOGGER, HIPERF_PROCESS_COUNTS_FOR_NORMAL},
+        {PerfCaller::XPOWER, HIPERF_PROCESS_COUNTS_FOR_NORMAL},
+        {PerfCaller::UNIFIED_COLLECTOR, HIPERF_PROCESS_COUNTS_FOR_NORMAL},
+        {PerfCaller::PERFORMANCE_FACTORY, HIPERF_PROCESS_COUNTS_FOR_FACTORY},
     };
     if (configPath.empty()) {
         return perfMaxCountForCaller;
