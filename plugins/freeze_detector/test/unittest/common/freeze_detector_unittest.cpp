@@ -359,6 +359,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_007, TestSize.Level3)
         .InitPackageName("com.package.name")
         .InitHitraceTime("20230627")
         .InitSysrqTime("20230627")
+        .InitHitraceIdInfo("hitraceId: 123")
         .Build();
 
     std::vector<WatchPoint> list;
@@ -921,6 +922,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitPackageName("com.package.name")
         .InitHitraceTime("20230627")
         .InitSysrqTime("20230627")
+        .InitHitraceIdInfo("hitraceId: 123")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);

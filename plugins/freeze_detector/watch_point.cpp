@@ -39,12 +39,14 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     foreGround_(builder.foreGround_),
     logPath_(builder.logPath_),
     hitraceTime_(builder.hitraceTime_),
-    sysrqTime_(builder.sysrqTime_)
+    sysrqTime_(builder.sysrqTime_),
+    hitraceIdInfo_(builder.hitraceIdInfo_)
 {
 }
 
 WatchPoint::Builder::Builder()
-    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), domain_(""), stringId_(""), msg_("")
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), domain_(""), stringId_(""), msg_(""),
+    hitraceIdInfo_("")
 {
 }
 
@@ -140,6 +142,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitSysrqTime(const std::string& sysrq
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitHitraceIdInfo(const std::string& hitraceIdInfo)
+{
+    hitraceIdInfo_ = hitraceIdInfo;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -219,6 +227,11 @@ std::string WatchPoint::GetHitraceTime() const
 std::string WatchPoint::GetSysrqTime() const
 {
     return sysrqTime_;
+}
+
+std::string WatchPoint::GetHitraceIdInfo() const
+{
+    return hitraceIdInfo_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)
