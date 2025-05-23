@@ -15,9 +15,12 @@
 #ifndef HIVIEWDFX_HIVIEW_POWER_STATUS_MANAGER_H
 #define HIVIEWDFX_HIVIEW_POWER_STATUS_MANAGER_H
 
+#include <map>
+
 #include "common_event_data.h"
 #include "common_event_subscriber.h"
 #include "singleton.h"
+#include "unified_common.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -41,9 +44,13 @@ public:
     ~PowerStatusManager();
     void SetPowerState(PowerState powerState);
     int32_t GetPowerState();
+    void AddPowerListener(const std::string &name, std::shared_ptr<PowerListener> listener);
+    void RemovePowerListener(const std::string &name);
+
 private:
     std::mutex mutex_;
     int32_t powerState_;
+    std::map<std::string, std::shared_ptr<PowerListener>> listeners_;
     std::shared_ptr<EventFwk::CommonEventSubscriber> powerStateSubscriber_ = nullptr;
 };
 }

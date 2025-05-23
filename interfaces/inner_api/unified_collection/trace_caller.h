@@ -40,6 +40,7 @@ enum TraceClient {
 enum class TeleModule {
     XPOWER,
     XPERF,
+    RELIABILITY
 };
 }
 } // HiviewDFX

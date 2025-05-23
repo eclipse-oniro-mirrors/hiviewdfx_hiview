@@ -51,7 +51,6 @@ private:
     std::mutex stateMutex_;
     TraceCacheMonitorState monitorState_ = EXIT;
     std::shared_ptr<UCollectUtil::MemoryCollector> collector_;
-    std::shared_ptr<TraceFlowController> flowController_;
     bool isCacheOn_ = false;
     bool isWaitingForRecovery_ = false;
     int32_t lowMemThreshold_ = 0;

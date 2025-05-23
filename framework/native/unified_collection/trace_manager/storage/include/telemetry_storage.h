@@ -38,17 +38,19 @@ class TeleMetryStorage {
 public:
     explicit TeleMetryStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
     ~TeleMetryStorage() = default;
-    TelemetryRet InitTelemetryControl(const std::string &telemetryId, int64_t &beginTime,
+    TelemetryRet InitTelemetryControl(const std::string &telemetryId, int64_t &runningTime,
         const std::map<std::string, int64_t> &flowControlQuotas);
     TelemetryRet NeedTelemetryDump(const std::string& module, int64_t traceSize);
     void ClearTelemetryData();
+    bool QueryRunningTime(int64_t &runningTime);
+    bool UpdateRunningTime(int64_t runningTime);
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 
-    void InsertNewData(const std::string &telemetryId, int64_t beginTime,
-        const std::map<std::string, int64_t> &flowControlQuotas);
+    void InsertNewData(const std::string &telemetryId, const std::map<std::string, int64_t> &flowControlQuotas);
     bool QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize);
+
     void UpdateTable(const std::string &module, int64_t newSize);
 };
 

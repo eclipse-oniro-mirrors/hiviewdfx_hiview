@@ -21,11 +21,14 @@ config("unittest_config") {
 
   include_dirs = [
     ".",
+    "$hiview_plugin/unified_collector/include",
     "$hiview_plugin/unified_collector/storage/include",
   ]
 
   if (power_manager_enable) {
-    include_dirs += [ "$hiview_plugin/unified_collector/power/include" ]
+    include_dirs += [
+      "$hiview_plugin/unified_collector/power/include",
+    ]
   }
 
   cflags = [ "-D__UNITTEST__" ]

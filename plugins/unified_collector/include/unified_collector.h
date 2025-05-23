@@ -48,9 +48,6 @@ private:
     void IoCollectionTask();
     void UCollectionStatTask();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-    void HandleTeleMetryStart(std::shared_ptr<Event>& event);
-    void HandleTeleMetryStop();
-    void HandleTeleMetryTimeout();
     void LoadTraceSwitch();
     static void OnFreezeDetectorParamChanged(const char* key, const char* value, void* context);
     static void OnSwitchRecordTraceStateChanged(const char* key, const char* value, void* context);
@@ -69,7 +66,6 @@ private:
     std::shared_ptr<CpuCollectionTask> cpuCollectionTask_;
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     std::shared_ptr<EventListener> telemetryListener_;
-    std::vector<uint64_t> telemetryList_;
 #endif
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
     std::shared_ptr<TraceCacheMonitor> traceCacheMonitor_;

@@ -14,6 +14,10 @@
  */
 #include "trace_state_machine.h"
 
+#include "trace_command_state.h"
+#include "trace_common_state.h"
+#include "trace_telemetry_state.h"
+#include "trace_dynamic_state.h"
 #include "hiview_logger.h"
 #include "unistd.h"
 
@@ -21,7 +25,6 @@ namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
 const std::vector<std::string> TAG_GROUPS = {"scene_performance"};
-const std::vector<std::string> TELEMETRY_TAG_GROUPS_DEFAULT = {"telemetry"};
 }
 
 TraceStateMachine::TraceStateMachine()
@@ -35,10 +38,10 @@ TraceRet TraceStateMachine::OpenDynamicTrace(int32_t appid)
     return currentState_->OpenAppTrace(appid);
 }
 
-TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args)
+TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
-    return currentState_->OpenTelemetryTrace(args);
+    return currentState_->OpenTelemetryTrace(args, policy);
 }
 
 TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
@@ -85,6 +88,18 @@ TraceRet TraceStateMachine::TraceDropOff(TraceScenario scenario, TraceRetInfo &i
     return currentState_->TraceDropOff(scenario, info);
 }
 
+TraceRet TraceStateMachine::TraceTelemetryOn()
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->TraceTelemetryOn();
+}
+
+TraceRet TraceStateMachine::TraceTelemetryOff()
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->TraceTelemetryOff();
+}
+
 TraceRet TraceStateMachine::CloseTrace(TraceScenario scenario)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
@@ -115,10 +130,10 @@ void TraceStateMachine::TransToCommonDropState()
 }
 
 
-void TraceStateMachine::TransToTeleMetryState()
+void TraceStateMachine::TransToTeleMetryState(TelemetryPolicy policy)
 {
     HIVIEW_LOGI("to telemetry state");
-    currentState_ = std::make_shared<TelemetryState>();
+    currentState_ = std::make_shared<TelemetryState>(policy);
 }
 
 void TraceStateMachine::TransToCloseState()
@@ -178,6 +193,28 @@ TraceRet TraceStateMachine::TraceCacheOff()
     return currentState_->TraceCacheOff();
 }
 
+int32_t TraceStateMachine::SetAppFilterInfo(const std::string &bundleName)
+{
+    return currentState_->SetAppFilterInfo(bundleName);
+}
+
+int32_t TraceStateMachine::SetFilterPidInfo(pid_t pid)
+{
+    return currentState_->SetFilterPidInfo(pid);
+}
+
+TraceRet TraceStateMachine::PowerTelemetryOn()
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->PowerTelemetryOn();
+}
+
+TraceRet TraceStateMachine::PowerTelemetryOff()
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->PowerTelemetryOff();
+}
+
 TraceRet TraceStateMachine::RecoverState()
 {
     if (Hitrace::GetTraceMode() != Hitrace::TraceMode::CLOSE) {
@@ -203,476 +240,27 @@ TraceRet TraceStateMachine::RecoverState()
     return InitCommonState();
 }
 
-bool TraceStateMachine::RegisterTelemetryCallback(std::function<void()> func)
+bool TraceStateMachine::RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback> stateCallback)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
-    return currentState_->RegisterTelemetryCallback(std::move(func));
+    return currentState_->RegisterTelemetryCallback(stateCallback);
 }
 
-TraceRet TraceBaseState::CloseTrace(TraceScenario scenario)
+TraceRet TraceStateMachine::PostTelemetryOn(uint64_t time)
 {
-    if (TraceErrorCode ret = Hitrace::CloseTrace(); ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace error:%{public}d", GetTag().c_str(), ret);
-        return TraceRet(ret);
-    }
-    return {};
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->PostTelemetryOn(time);
 }
 
-TraceRet TraceBaseState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
+TraceRet TraceStateMachine::PostTelemetryTimeOut()
 {
-    if (auto ret = Hitrace::OpenTrace(tagGroups); ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, scenario:%{public}d error:%{public}d", GetTag().c_str(), static_cast<int>(scenario),
-            ret);
-        return TraceRet(ret);
-    }
-    HIVIEW_LOGI(":%{public}s, OpenTrace success scenario:%{public}d", GetTag().c_str(), static_cast<int>(scenario));
-    switch (scenario) {
-        case TraceScenario::TRACE_COMMAND:
-            TraceStateMachine::GetInstance().TransToCommandState();
-            break;
-        case TraceScenario::TRACE_COMMON:
-            TraceStateMachine::GetInstance().TransToCommonState();
-            break;
-        default:
-            break;
-    }
-    return {};
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    return currentState_->PostTelemetryTimeOut();
 }
 
-TraceRet TraceBaseState::OpenTrace(TraceScenario scenario, const std::string &args)
+void TraceStateMachine::InitTelemetryStatus(bool isStatusOn)
 {
-    if (TraceErrorCode ret = Hitrace::OpenTrace(args); ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, scenario:%{public}d error:%{public}d", GetTag().c_str(), static_cast<int>(scenario),
-            ret);
-        return TraceRet(ret);
-    }
-    HIVIEW_LOGI(":%{public}s,OpenTrace success with scenario:%{public}d", GetTag().c_str(), static_cast<int>(scenario));
-    switch (scenario) {
-        case TraceScenario::TRACE_COMMAND:
-            TraceStateMachine::GetInstance().TransToCommandState();
-            break;
-        case TraceScenario::TRACE_COMMON:
-            TraceStateMachine::GetInstance().TransToCommonState();
-            break;
-        default:
-            break;
-    }
-    return {};
-}
-
-TraceRet TraceBaseState::TraceCacheOn()
-{
-    HIVIEW_LOGW(":%{public}s,  invoke state fail", GetTag().c_str());
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet TraceBaseState::TraceCacheOff()
-{
-    HIVIEW_LOGW(":%{public}s, invoke state fail", GetTag().c_str());
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet TraceBaseState::SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration)
-{
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet TraceBaseState::OpenTelemetryTrace(const std::string &args)
-{
-    HIVIEW_LOGW(":%{public}s, invoke state deny", GetTag().c_str());
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet TraceBaseState::OpenAppTrace(int32_t appPid)
-{
-    HIVIEW_LOGW(":%{public}s, invoke state deny", GetTag().c_str());
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet TraceBaseState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet TraceBaseState::TraceDropOn(TraceScenario scenario)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet TraceBaseState::TraceDropOff(TraceScenario scenario, TraceRetInfo &info)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet TraceBaseState::DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
-    TraceRetInfo &info)
-{
-    HIVIEW_LOGW("%{public}s is fail", GetTag().c_str());
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet CommandState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CommandState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CommandState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
-    HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
-    return TraceRet(info.errorCode);
-}
-
-TraceRet CommandState::TraceDropOn(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    if (TraceErrorCode ret = Hitrace::RecordTraceOn(); ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, TraceDropOn error:%{public}d", GetTag().c_str(), ret);
-        return TraceRet(ret);
-    }
-    TraceStateMachine::GetInstance().TransToCommandDropState();
-    return {};
-}
-
-TraceRet CommandState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    auto ret = TraceBaseState::CloseTrace(scenario);
-    if (ret.IsSuccess()) {
-        TraceStateMachine::GetInstance().SetCommandState(false);
-    }
-    return ret;
-}
-
-TraceRet CommandDropState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CommandDropState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CommandDropState::TraceDropOff(TraceScenario scenario, TraceRetInfo &info)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    if (info = Hitrace::RecordTraceOff(); info.errorCode != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, TraceDropOff error:%{public}d", GetTag().c_str(), info.errorCode);
-        return TraceRet(info.errorCode);
-    }
-    TraceStateMachine::GetInstance().TransToCommandState();
-    return {};
-}
-
-TraceRet CommandDropState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario == TraceScenario::TRACE_COMMAND) {
-        return TraceBaseState::CloseTrace(TraceScenario::TRACE_COMMAND);
-    }
-    HIVIEW_LOGW(":%{public}s, invoke state fail", GetTag().c_str());
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-CommonState::CommonState(bool isCachOn, int32_t totalFileSize, int32_t sliceMaxDuration)
-    : totalFileSize_(totalFileSize), sliceMaxDuration_(sliceMaxDuration)
-{
-    if (isCachOn) {
-        Hitrace::CacheTraceOn(totalFileSize_, sliceMaxDuration_);
-    }
-}
-
-TraceRet CommonState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, invoke state deny", GetTag().c_str());
-        return TraceRet(TraceStateCode::DENY);
-    }
-
-    // If is command open, first close common state trace
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace error:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-
-    // Second open command state trace
-    return TraceBaseState::OpenTrace(TraceScenario::TRACE_COMMAND, tagGroups);
-}
-
-TraceRet CommonState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, invoke state deny", GetTag().c_str());
-        return TraceRet(TraceStateCode::DENY);
-    }
-
-    // Is command open, first close common state trace
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace error:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-
-    // Second open command state trace
-    return TraceBaseState::OpenTrace(TraceScenario::TRACE_COMMAND, args);
-}
-
-TraceRet CommonState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
-{
-    if (scenario == TraceScenario::TRACE_COMMON || scenario == TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
-        info = Hitrace::DumpTrace(maxDuration, happenTime);
-        return TraceRet(info.errorCode);
-    }
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet CommonState::TraceDropOn(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_COMMON) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    if (auto ret = Hitrace::RecordTraceOn(); ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, TraceDropOn error:%{public}d", GetTag().c_str(), ret);
-        return TraceRet(ret);
-    }
-    TraceStateMachine::GetInstance().TransToCommonDropState();
-    return {};
-}
-
-TraceRet CommonState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario == TraceScenario::TRACE_COMMON) {
-        return TraceBaseState::CloseTrace(scenario);
-    }
-
-    // beta version can close trace by trace command
-    if (scenario == TraceScenario::TRACE_COMMAND && !TraceStateMachine::GetInstance().GetCommandState()) {
-        // Prevent traceStateMachine recovery to beta common state after close
-        TraceStateMachine::GetInstance().CloseVersionBeta();
-        return TraceBaseState::CloseTrace(scenario);
-    }
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet CommonState::TraceCacheOn()
-{
-    return TraceRet(Hitrace::CacheTraceOn(totalFileSize_, sliceMaxDuration_));
-}
-
-TraceRet CommonState::TraceCacheOff()
-{
-    return TraceRet(Hitrace::CacheTraceOff());
-}
-
-TraceRet CommonState::SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration)
-{
-    totalFileSize_ = totalFileSize;
-    sliceMaxDuration_ = sliceMaxDuration;
-    return {};
-}
-
-TraceRet CommonDropState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::DENY);
-    }
-    if (auto dropRet = Hitrace::RecordTraceOff(); dropRet.errorCode != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, DumpTraceOff error:%{public}d", GetTag().c_str(), dropRet.errorCode);
-        return TraceRet(dropRet.errorCode);
-    }
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace error:%{public}d", GetTag().c_str(), closeRet);
-        TraceStateMachine::GetInstance().TransToCommonState();
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(TraceScenario::TRACE_COMMAND, tagGroups);
-}
-
-TraceRet CommonDropState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::DENY);
-    }
-    if (auto dropRet = Hitrace::RecordTraceOff(); dropRet.errorCode != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, DumpTraceOff error:%{public}d", GetTag().c_str(), dropRet.errorCode);
-        return TraceRet(dropRet.errorCode);
-    }
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace error:%{public}d", GetTag().c_str(), closeRet);
-        TraceStateMachine::GetInstance().TransToCommonState();
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(TraceScenario::TRACE_COMMAND, args);
-}
-
-TraceRet CommonDropState::TraceDropOff(TraceScenario scenario, TraceRetInfo &info)
-{
-    if (scenario != TraceScenario::TRACE_COMMON) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    if (info = Hitrace::RecordTraceOff(); info.errorCode != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, TraceDropOff error:%{public}d", GetTag().c_str(), info.errorCode);
-        return TraceRet(info.errorCode);
-    }
-    TraceStateMachine::GetInstance().TransToCommonState();
-    return {};
-}
-
-TraceRet CommonDropState::CloseTrace(TraceScenario scenario)
-{
-    return TraceRet(TraceStateCode::FAIL);
-}
-
-TraceRet DynamicState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
-{
-    if (scenario != TraceScenario::TRACE_DYNAMIC) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
-    HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
-    return TraceRet(info.errorCode);
-}
-
-TraceRet DynamicState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_DYNAMIC) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    return TraceBaseState::CloseTrace(scenario);
-}
-
-TraceRet TelemetryState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, tagGroups);
-}
-
-TraceRet TelemetryState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, args);
-}
-
-TraceRet TelemetryState::DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
-    TraceRetInfo &info)
-{
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
-    HIVIEW_LOGI(":%{public}s, result:%{public}d", GetTag().c_str(), info.errorCode);
-    return TraceRet(info.errorCode);
-}
-
-TraceRet TelemetryState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_TELEMETRY) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    return TraceBaseState::CloseTrace(scenario);
-}
-
-TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s:  CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, tagGroups);
-}
-
-TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s: CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, args);
-}
-
-TraceRet DynamicState::OpenTelemetryTrace(const std::string &args)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s:  CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    auto ret = args.empty() ? Hitrace::OpenTrace(TELEMETRY_TAG_GROUPS_DEFAULT) : Hitrace::OpenTrace(args);
-    HIVIEW_LOGI("%{public}s: args:%{public}s: result:%{public}d", GetTag().c_str(), args.c_str(), ret);
-    if (ret != TraceErrorCode::SUCCESS) {
-        return TraceRet(ret);
-    }
-    TraceStateMachine::GetInstance().TransToTeleMetryState();
-    return {};
-}
-
-TraceRet DynamicState::OpenAppTrace(int32_t appPid)
-{
-    HIVIEW_LOGW("DynamicState already open, occupied by appid:%{public}d", appPid);
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CloseState::OpenTelemetryTrace(const std::string &args)
-{
-    auto ret = args.empty() ? Hitrace::OpenTrace(TELEMETRY_TAG_GROUPS_DEFAULT) : Hitrace::OpenTrace(args);
-    HIVIEW_LOGI("%{public}s: args:%{public}s: result:%{public}d", GetTag().c_str(), args.c_str(), ret);
-    if (ret != TraceErrorCode::SUCCESS) {
-        return TraceRet(ret);
-    }
-    TraceStateMachine::GetInstance().TransToTeleMetryState();
-    return {};
-}
-
-TraceRet CloseState::OpenAppTrace(int32_t appPid)
-{
-    std::string appArgs = "tags:graphic,ace,app clockType:boot bufferSize:10240 overwrite:1 fileLimit:20 ";
-    appArgs.append("appPid:").append(std::to_string(appPid));
-    if (auto ret = Hitrace::OpenTrace(appArgs); ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s: args:%{public}s, result:%{public}d", GetTag().c_str(), appArgs.c_str(), ret);
-        return TraceRet(ret);
-    }
-    TraceStateMachine::GetInstance().TransToDynamicState(appPid);
-    return {};
-}
-
-TraceRet CloseState::CloseTrace(TraceScenario scenario)
-{
-    return {};
+    HIVIEW_LOGI("isStatusOn %{public}d", isStatusOn);
+    currentState_->InitTelemetryStatus(isStatusOn);
 }
 }

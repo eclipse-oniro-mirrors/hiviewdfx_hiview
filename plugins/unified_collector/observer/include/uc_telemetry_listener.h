@@ -21,18 +21,27 @@
 #include "plugin.h"
 #include "trace_flow_controller.h"
 #include "trace_state_machine.h"
+#include "unified_common.h"
+#include "ffrt.h"
 
 namespace OHOS::HiviewDFX {
-struct StartMsg {
-    int64_t beginTime;
-    int64_t endTime;
+namespace {
+    const int64_t SECONDS_TO_MS = 1000;
+    const int64_t MS_TO_US = 1000;
+}
+
+struct TelemetryParams {
+    int64_t traceDuration = 3600 * SECONDS_TO_MS; //ms
+    int64_t beginTime = -1;
     std::string telemetryId;
-    std::string bundleName;
+    std::string appFilterName;
+    std::string traceTag;
+    std::vector<std::string> saParams;
+    TelemetryPolicy tracePolicy;
 };
 
 class TelemetryListener : public EventListener {
 public:
-    explicit TelemetryListener(std::shared_ptr<Plugin> myPlugin) : myPlugin_(myPlugin) {}
     void OnUnorderedEvent(const Event &msg) override;
 
     std::string GetListenerName() override
@@ -41,18 +50,22 @@ public:
     }
 
 private:
-    std::string GetValidParam(const Event &msg, bool &isCloseMsg);
-    bool InitAndCorrectTimes(const Event &msg);
-    bool SendStartEvent(const Event &msg, int64_t traceDuration, int64_t delayTime = 0);
-    void SendStopEvent();
-    void WriteErrorEvent(const std::string &error);
+    std::string CheckValidParam(const Event &msg, TelemetryParams &params, bool &isCloseMsg);
+    void HandleStart(const TelemetryParams &params);
+    void HandleStop();
+    void WriteErrorEvent(const std::string &error, const TelemetryParams &params);
+    bool ProcessTraceTag(std::string &traceTag);
+    bool CheckTelemetryId(const Event &msg, TelemetryParams &params, std::string &errorMsg);
+    bool CheckTraceTags(const Event &msg, TelemetryParams &params, std::string &errorMsg);
+    bool CheckTracePolicy(const Event &msg, TelemetryParams &params, std::string &errorMsg);
+    bool CheckSwitchValid(const Event &msg, bool &isCloseMsg, std::string &errorMsg);
+    bool CheckBeginTime(const Event &msg, TelemetryParams &params, std::string &errorMsg);
+    bool InitTelemetryDbData(const Event &msg, bool &isTimeOut, const TelemetryParams &params);
+    void GetSaNames(const Event &msg, TelemetryParams &params);
 
 private:
-    std::weak_ptr<Plugin> myPlugin_;
-    std::string telemetryId_;
-    std::string bundleName_;
-    int64_t beginTime_ = -1;
-    int64_t endTime_ = -1;
+    std::unique_ptr<ffrt::queue> taskQueue_ = nullptr;
+    ffrt::task_handle startTaskHandle_;
 };
 
 }

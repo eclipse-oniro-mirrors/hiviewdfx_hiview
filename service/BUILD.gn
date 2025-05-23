@@ -71,6 +71,7 @@ ohos_source_set("hiview_service") {
     "ability_base:base",
     "ability_base:want",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

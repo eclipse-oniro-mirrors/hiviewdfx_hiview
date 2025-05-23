@@ -165,6 +165,7 @@ ohos_unittest("UCollectionTraceUnitTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "cJSON:cjson",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",

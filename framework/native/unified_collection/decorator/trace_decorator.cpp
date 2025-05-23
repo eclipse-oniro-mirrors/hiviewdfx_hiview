@@ -71,6 +71,16 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithFilter(UCol
     return traceCollector_->DumpTraceWithFilter(module, pidList, timeLimit, happenTime);
 }
 
+CollectResult<int32_t> TraceDecorator::FilterTraceOn(UCollect::TeleModule module, uint64_t postTime)
+{
+    return traceCollector_->FilterTraceOn(module, postTime);
+}
+
+CollectResult<int32_t> TraceDecorator::FilterTraceOff(UCollect::TeleModule module)
+{
+    return traceCollector_->FilterTraceOff(module);
+}
+
 void TraceDecorator::SaveStatSpecialInfo()
 {
     WriteLinesToFile({""}, false); // a blank line after common stat info

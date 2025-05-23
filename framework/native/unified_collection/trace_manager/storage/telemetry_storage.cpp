@@ -21,10 +21,9 @@ DEFINE_LOG_TAG("TeleMetryStorage");
 namespace {
 const std::string TABLE_TELEMETRY_CONTROL = "telemetry_control";
 const std::string COLUMN_MODULE_NAME = "module";
-const std::string COLUMN_BEGIN_TIME = "begin_time";
+const std::string COLUMN_RUNNING_TIME = "running_time";
 const std::string COLUMN_USED_SIZE = "used_size";
 const std::string COLUMN_QUOTA = "quota";
-const std::string COLUMN_THRESHOLD = "threshold";
 const std::string COLUMN_TELEMTRY_ID = "telemetry_id";
 const std::string TOTAL = "Total";
 }
@@ -60,7 +59,7 @@ void TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
     }
 }
 
-void TeleMetryStorage::InsertNewData(const std::string &telemetryId, int64_t beginTime,
+void TeleMetryStorage::InsertNewData(const std::string &telemetryId,
     const std::map<std::string, int64_t> &flowControlQuotas)
 {
     if (dbStore_ == nullptr) {
@@ -70,11 +69,13 @@ void TeleMetryStorage::InsertNewData(const std::string &telemetryId, int64_t beg
     std::vector<NativeRdb::ValuesBucket> valuesBuckets;
     for (const auto& quotaPair: flowControlQuotas) {
         NativeRdb::ValuesBucket bucket;
-        bucket.PutString(COLUMN_TELEMTRY_ID, telemetryId);
+        if (quotaPair.first == TOTAL) {
+            bucket.PutString(COLUMN_TELEMTRY_ID, telemetryId);
+            bucket.PutLong(COLUMN_RUNNING_TIME, 0);
+        }
         bucket.PutString(COLUMN_MODULE_NAME, quotaPair.first);
         bucket.PutLong(COLUMN_USED_SIZE, 0);
         bucket.PutLong(COLUMN_QUOTA, quotaPair.second);
-        bucket.PutLong(COLUMN_BEGIN_TIME, beginTime);
         valuesBuckets.push_back(bucket);
     }
     int64_t outInsertNum = 0;
@@ -84,7 +85,7 @@ void TeleMetryStorage::InsertNewData(const std::string &telemetryId, int64_t beg
     }
 }
 
-TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetryId, int64_t &beginTime,
+TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetryId, int64_t &runningTime,
     const std::map<std::string, int64_t> &flowControlQuotas)
 {
     if (dbStore_ == nullptr) {
@@ -98,7 +99,7 @@ TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetry
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
-    auto resultSet = dbStore_->Query(predicates, {COLUMN_TELEMTRY_ID, COLUMN_BEGIN_TIME});
+    auto resultSet = dbStore_->Query(predicates, {COLUMN_TELEMTRY_ID, COLUMN_RUNNING_TIME});
     if (resultSet == nullptr) {
         HIVIEW_LOGW("resultSet == nullptr");
         transaction->Commit();
@@ -107,7 +108,7 @@ TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetry
     if (resultSet->GoToNextRow() != NativeRdb::E_OK) {
         HIVIEW_LOGW("empty data do init");
         resultSet->Close();
-        InsertNewData(telemetryId, beginTime, flowControlQuotas);
+        InsertNewData(telemetryId, flowControlQuotas);
         transaction->Commit();
         return TelemetryRet::SUCCESS;
     }
@@ -117,12 +118,12 @@ TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetry
         HIVIEW_LOGW("left over data, clear and do init");
         resultSet->Close();
         ClearTelemetryData();
-        InsertNewData(telemetryId, beginTime, flowControlQuotas);
+        InsertNewData(telemetryId, flowControlQuotas);
         transaction->Commit();
         return TelemetryRet::SUCCESS;
     }
-    HIVIEW_LOGW("reboot scenario, update begin time");
-    resultSet->GetLong(1, beginTime);
+    HIVIEW_LOGW("reboot scenario, get running time");
+    resultSet->GetLong(1, runningTime);
     resultSet->Close();
     transaction->Commit();
     return TelemetryRet::SUCCESS;
@@ -174,5 +175,40 @@ void TeleMetryStorage::ClearTelemetryData()
     if (ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to delete telemetry data, ret=%{public}d", ret);
     }
+}
+
+bool TeleMetryStorage::QueryRunningTime(int64_t &runningTime)
+{
+    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
+    auto resultSet = dbStore_->Query(predicates, {COLUMN_RUNNING_TIME});
+    if (resultSet == nullptr) {
+        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_TELEMETRY_CONTROL.c_str());
+        return false;
+    }
+    if (resultSet->GoToNextRow() != NativeRdb::E_OK) {
+        HIVIEW_LOGW("query empty");
+        resultSet->Close();
+        return true;
+    }
+    resultSet->GetLong(0, runningTime);
+    HIVIEW_LOGI("query traceOntime:%{public} " PRId64 "", runningTime);
+    resultSet->Close();
+    return true;
+}
+
+bool TeleMetryStorage::UpdateRunningTime(int64_t runningTime)
+{
+    NativeRdb::ValuesBucket bucket;
+    bucket.PutLong(COLUMN_RUNNING_TIME, runningTime);
+    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
+    int changeRows = 0;
+    if (dbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK) {
+        HIVIEW_LOGW("failed to update table");
+        return false;
+    }
+    HIVIEW_LOGI("Update new traceOntime:%{public} " PRId64 "", runningTime);
+    return true;
 }
 }

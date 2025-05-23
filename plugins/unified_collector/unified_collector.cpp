@@ -248,76 +248,9 @@ bool UnifiedCollector::OnEvent(std::shared_ptr<Event>& event)
         }
         return true;
     }
-    if (event->eventName_ == TelemetryEvent::TELEMETRY_START) {
-        HandleTeleMetryStart(event);
-        return true;
-    }
-    if (event->eventName_ == TelemetryEvent::TELEMETRY_STOP) {
-        HandleTeleMetryStop();
-        return true;
-    }
-    if (event->eventName_ == TelemetryEvent::TELEMETRY_TIMEOUT) {
-        HandleTeleMetryTimeout();
-        return true;
-    }
     return true;
 }
 
-void UnifiedCollector::HandleTeleMetryStart(std::shared_ptr<Event> &event)
-{
-    int32_t delay = event->GetIntValue(Telemetry::KEY_DELAY_TIME);
-    if (delay > 0) {
-        HIVIEW_LOGI("delay:%{public}d", delay);
-        event->SetValue(Telemetry::KEY_DELAY_TIME, 0);
-        auto seqId = workLoop_->AddTimerEvent(shared_from_this(), event, nullptr, static_cast<uint64_t>(delay), false);
-        telemetryList_.push_back(seqId);
-        return;
-    }
-    std::string tag = event->GetValue(Telemetry::KEY_TELEMETRY_TRACE_TAG);
-    int32_t traceDuration = event->GetIntValue(Telemetry::KEY_REMAIN_TIME);
-    std::string telemetryId = event->GetValue(Telemetry::KEY_ID);
-    std::string bundleName = event->GetValue(Telemetry::KEY_BUNDLE_NAME);
-    if (traceDuration <= 0) {
-        HIVIEW_LOGE("system error traceDuration:%{public}d", traceDuration);
-        return;
-    }
-    auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(tag);
-    HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-        "ID", telemetryId,
-        "STAGE", "TRACE_BEGIN",
-        "ERROR", std::to_string(GetUcError(ret)),
-        "BUNDLE_NAME", bundleName);
-    event->eventName_ = TelemetryEvent::TELEMETRY_TIMEOUT;
-    if (ret.IsSuccess()) {
-        bool isSuccess = TraceStateMachine::GetInstance().RegisterTelemetryCallback([telemetryId, bundleName]() {
-            HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-                "ID", telemetryId,
-                "STAGE", "TRACE_END",
-                "ERROR", 0,
-                "BUNDLE_NAME", bundleName);
-        });
-        HIVIEW_LOGE("RegisterTelemetryCallback:%{public}d", isSuccess);
-    }
-    auto seqId = workLoop_->AddTimerEvent(shared_from_this(), event, nullptr, static_cast<uint64_t>(traceDuration),
-        false);
-    telemetryList_.push_back(seqId);
-}
-
-void UnifiedCollector::HandleTeleMetryStop()
-{
-    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-    TraceFlowController controller(BusinessName::TELEMETRY);
-    controller.ClearTelemetryData();
-    for (auto it : telemetryList_) {
-        workLoop_->RemoveEvent(it);
-    }
-    telemetryList_.clear();
-}
-
-void UnifiedCollector::HandleTeleMetryTimeout()
-{
-    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-}
 
 void UnifiedCollector::OnEventListeningCallback(const Event& event)
 {
@@ -387,7 +320,7 @@ void UnifiedCollector::Init()
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     CreateTracePath();
     LoadTraceSwitch();
-    telemetryListener_ = std::make_shared<TelemetryListener>(shared_from_this());
+    telemetryListener_ = std::make_shared<TelemetryListener>();
     context->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
     context->RegisterUnorderedEventListener(telemetryListener_);
     RecoverTmpTrace();

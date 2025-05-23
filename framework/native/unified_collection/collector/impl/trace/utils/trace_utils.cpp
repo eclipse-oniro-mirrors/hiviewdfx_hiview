@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "cpu_collector.h"
-#include "cjson_util.h"
 #include "hisysevent.h"
 #include "file_util.h"
 #include "ffrt.h"
@@ -53,8 +52,6 @@ const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
 constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
-const std::string TAGS = "tags";
-const std::string BUFFER_SIZE = "bufferSize";
 }
 
 UcError TransCodeToUcError(TraceErrorCode ret)
@@ -94,6 +91,8 @@ const std::string ModuleToString(UCollect::TeleModule module)
             return CallerName::XPERF;
         case UCollect::TeleModule::XPOWER:
             return CallerName::XPOWER;
+        case UCollect::TeleModule::RELIABILITY:
+            return CallerName::RELIABILITY;
         default:
             return "";
     }
@@ -316,7 +315,7 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 
 UcError GetUcError(TraceRet ret)
 {
-    if (ret.stateError_ != TraceStateCode::SUCCESS) {
+    if (ret.stateError_ != TraceStateCode::SUCCESS && ret.stateError_ != TraceStateCode::UPDATE_TIME) {
         return TransStateToUcError(ret.stateError_);
     } else if (ret.codeError_!= TraceErrorCode::SUCCESS) {
         return TransCodeToUcError(ret.codeError_);
@@ -354,50 +353,20 @@ bool CreateMultiDirectory(const std::string &dirPath)
     return true;
 }
 
-bool ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList, std::string &jsonArgs)
+std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
+    cJSON* root, const std::string &key)
 {
-    cJSON* root = cJSON_Parse(jsonArgs.c_str());
-    if (root == nullptr) {
-        HIVIEW_LOGE("trace jsonArgs parse error");
-        return false;
-    }
     if (!cJSON_IsObject(root)) {
-        cJSON_Delete(root);
         HIVIEW_LOGE("trace jsonArgs parse error");
-        return false;
+        return {};
     }
-    std::vector<std::string> traceTags;
-    CJsonUtil::GetStringArray(root, TAGS, traceTags);
-    if (traceTags.empty()) {
-        cJSON_Delete(root);
-        HIVIEW_LOGE("jsonArgs parse trace tags error");
-        return false;
-    }
-    auto bufferSize = CJsonUtil::GetIntValue(root, BUFFER_SIZE);
-    cJSON_Delete(root);
-    if (bufferSize <= 0) {
-        HIVIEW_LOGE("jsonArgs parse trace bufferSize error");
-        return false;
-    }
-    std::string result("tags:");
-    bool isFirst = true;
-    for (const auto& tag : traceTags) {
-        if (filterList.find(tag) != filterList.end()) {
-            if (!isFirst) {
-                result.append(", ").append(tag);
-                continue;
-            }
-            result.append(tag);
-            isFirst = false;
-        }
-    }
-    if (result == "tags:") {
-        HIVIEW_LOGE("no match tag find in whitelist");
-        return false;
-    }
-    result.append(" bufferSize:").append(std::to_string(bufferSize));
-    jsonArgs = std::move(result);
-    return true;
+    std::vector<std::string> traceArgs;
+    CJsonUtil::GetStringArray(root, key, traceArgs);
+    auto new_end = std::remove_if(traceArgs.begin(), traceArgs.end(), [&filterList](const std::string& tag) {
+        return filterList.find(tag) == filterList.end();
+    });
+    traceArgs.erase(new_end, traceArgs.end());
+    return traceArgs;
 }
 } // HiViewDFX
 } // OHOS
