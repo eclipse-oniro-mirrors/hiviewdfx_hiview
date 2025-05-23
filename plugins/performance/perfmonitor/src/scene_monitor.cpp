@@ -84,6 +84,11 @@ std::string SceneMonitor::GetPageName()
     return baseInfo.pageName;
 }
 
+int32_t SceneMonitor::GetPid()
+{
+    return appInfo.pid;
+}
+
 void SceneMonitor::SetAppForeground(bool isShow)
 {
     SetIsBackgroundApp(!isShow);
