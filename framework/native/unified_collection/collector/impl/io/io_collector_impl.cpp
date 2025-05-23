@@ -330,8 +330,8 @@ CollectResult<std::string> IoCollectorImpl::ExportDiskStats(DiskStatsFilter filt
         HIVIEW_LOGE("create fileName=%{public}s failed.", fileName.c_str());
         return result;
     }
-    fprintf(filePtr, "%-13s\t%20s\t%20s\t%20s\t%20s\t%12s\t%12s\t%12s\n", "device", "sectorReadRate/s", "sectorWriteRate/s",
-        "operReadRate/s", "operWriteRate/s", "readTime", "writeTime", "ioWait");
+    fprintf(filePtr, "%-13s\t%20s\t%20s\t%20s\t%20s\t%12s\t%12s\t%12s\n", "device", "sectorReadRate/s",
+        "sectorWriteRate/s", "operReadRate/s", "operWriteRate/s", "readTime", "writeTime", "ioWait");
     for (auto &stats : diskStats) {
         fprintf(filePtr, "%-13s\t%12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.4f\t%12.4f\t%12" PRIu64 "\n",
             stats.deviceName.c_str(), stats.sectorReadRate, stats.sectorWriteRate, stats.operReadRate,
