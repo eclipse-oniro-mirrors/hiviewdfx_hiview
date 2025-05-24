@@ -2296,11 +2296,10 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerService002, testing::ext::TestSize.
 {
     auto plugin = GetFaultloggerInstance();
     FaultLogManagerService faultManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
-    int32_t pid = getpid();
-    faultManagerService.EnableGwpAsanGrayscale(false, 1000, 2000, 5, pid);
-    faultManagerService.EnableGwpAsanGrayscale(true, 2523, 2000, 5, pid);
-    faultManagerService.DisableGwpAsanGrayscale(pid);
-    ASSERT_TRUE(faultManagerService.GetGwpAsanGrayscaleState(pid) >= 0);
+    faultManagerService.EnableGwpAsanGrayscale(false, 1000, 2000, 5, static_cast<int64_t>(getuid()));
+    faultManagerService.EnableGwpAsanGrayscale(true, 2523, 2000, 5, static_cast<int64_t>(getuid()));
+    faultManagerService.DisableGwpAsanGrayscale(static_cast<int64_t>(getuid()));
+    ASSERT_TRUE(faultManagerService.GetGwpAsanGrayscaleState(static_cast<int64_t>(getuid())) >= 0);
 }
 
 /**
