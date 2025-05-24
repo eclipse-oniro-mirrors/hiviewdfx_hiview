@@ -71,7 +71,7 @@ void SysEventServerSocketFuzzTest(const uint8_t* data, size_t size)
     source.SetHiviewContext(&platform);
     source.OnLoad();
     std::shared_ptr<SysEventReceiver> receiver = std::make_shared<SysEventReceiver>(source);
-    SocketDevice device;
+    SocketDevice device("hisysevent", 0);
     if (!device.IsValidMsg(buffer, size)) {
         delete[] buffer;
         return;

@@ -39,7 +39,6 @@ ohos_source_set("hiview_utility") {
     "memory_util.cpp",
     "parameter_ex.cpp",
     "setting_observer_manager.cpp",
-    "socket_util.cpp",
     "sql_util.cpp",
     "string_util.cpp",
     "thread_util.cpp",
