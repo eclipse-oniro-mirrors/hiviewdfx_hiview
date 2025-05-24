@@ -49,7 +49,7 @@ const std::string COLLECTION_IO_PATH = "/data/log/hiview/unified_collection/io/"
 const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string DEVELOPER_MODE_TRACE_ARGS = "tags:sched, freq, disk, sync, binder, mmc, membus, load, pagecache, \
     workq, ipa, hdf, virse, net, dsched, graphic, multimodalinput, dinput, ark, ace, window, zaudio, daudio, zmedia, \
-    dcamera, zcamera, dhfwk, app, gresource, ability, power, samgr, ffrt clockType:boot1 bufferSize:1024 overwrite:0 \
+    dcamera, zcamera, dhfwk, app, gresource, ability, power, samgr, ffrt clockType:boot1 bufferSize:32768 overwrite:0 \
     fileLimit:20 fileSize:102400";
 const std::string OTHER = "Other";
 const std::string HIVIEW_UCOLLECTION_STATE_TRUE = "true";
