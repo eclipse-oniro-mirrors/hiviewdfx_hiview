@@ -32,6 +32,7 @@ ohos_shared_library("adft") {
   deps = [
     ":adft_plugin_config",
     "$hiview_base:hiviewbase",
+    "$hiview_plugin/event_validator:event_validator",
     "$hiview_plugin/sys_dispatcher:sys_dispatcher",
     "$hiview_plugin/sysevent_source:sysevent_source",
     "$hiview_plugin/unified_collector:unified_collector",

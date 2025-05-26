@@ -41,6 +41,6 @@ std::pair<std::string, int> GetFocusedAppAndType()
     }
     return std::pair<std::string, int>("", SYSTEM_WINDOW_BASE);
 }
-} // namespace FocusedEventUtil
+} // namespace FoldCommonUtils
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,29 +13,17 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-config("sysevent_source_config") {
+config("event_validator_config") {
   include_dirs = [
-    "$hiview_core/param_update/include",
+    "control/config/include",
+    "control/db/include",
+    "control/include",
     "include",
   ]
   cflags_cc = [ "-D__HIVIEW_OHOS__" ]
 }
 
-ohos_prebuilt_etc("hiview.para.dac") {
-  source = "config/hiview.para.dac"
-  relative_install_dir = "param"
-  part_name = "hiview"
-  subsystem_name = "hiviewdfx"
-}
-
-ohos_prebuilt_etc("monitor_config") {
-  source = "config/monitor.cfg"
-  relative_install_dir = "hiview"
-  part_name = "hiview"
-  subsystem_name = "hiviewdfx"
-}
-
-ohos_source_set("sysevent_source") {
+ohos_source_set("event_validator") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -44,19 +32,20 @@ ohos_source_set("sysevent_source") {
     debug = false
   }
 
-  configs = [ ":sysevent_source_config" ]
+  configs = [ ":event_validator_config" ]
 
   sources = [
-    "event_server.cpp",
-    "monitor_config.cpp",
-    "platform_monitor.cpp",
-    "sysevent_source.cpp",
+    "control/config/daily_config.cpp",
+    "control/daily_controller.cpp",
+    "control/db/daily_db_helper.cpp",
+    "event_delayed_util.cpp",
+    "event_param_watcher.cpp",
+    "event_period_info_util.cpp",
+    "event_validator.cpp",
+    "event_verify_util.cpp",
   ]
 
   deps = [
-    ":hiview.para.dac",
-    ":monitor_config",
-    "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
   ]
@@ -71,7 +60,6 @@ ohos_source_set("sysevent_source") {
     "init:libbegetutil",
     "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
-    "safwk:system_ability_fwk",
     "zlib:shared_libz",
   ]
 
@@ -81,7 +69,10 @@ ohos_source_set("sysevent_source") {
 
 group("unittest") {
   testonly = true
-  deps = [ "test/unittest/common:EventServerTest" ]
+  deps = [
+    "test/unittest/common:DailyControllerTest",
+    "test/unittest/common:EventValidatorTest",
+  ]
 }
 
 group("moduletest") {
@@ -91,9 +82,5 @@ group("moduletest") {
 
 group("fuzztest") {
   testonly = true
-  deps = [
-    "test/fuzztest/common/eventserver_fuzzer:EventServerFuzzTest",
-    "test/fuzztest/common/eventserversocket_fuzzer:EventServerSocketFuzzTest",
-    "test/fuzztest/common/eventsource_fuzzer:EventSourceFuzzTest",
-  ]
+  deps = []
 }

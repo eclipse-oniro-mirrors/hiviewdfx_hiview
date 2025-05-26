@@ -20,35 +20,10 @@ config("unittest_config") {
 
   include_dirs = [
     ".",
-    "$hiview_plugin/sysevent_source/control/config/include",
-    "$hiview_plugin/sysevent_source/control/db/include",
-    "$hiview_plugin/sysevent_source/control/include",
     "$hiview_plugin/sysevent_source/include",
   ]
 
   cflags = [ "-D__UNITTEST__" ]
-}
-
-ohos_unittest("SysEventStatTest") {
-  module_out_path = module_output_path
-
-  configs = [ ":unittest_config" ]
-
-  sources = [ "sys_event_stat_test.cpp" ]
-
-  deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_core:hiview_core",
-    "$hiview_plugin/sysevent_source:sysevent_source",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "jsoncpp:jsoncpp",
-  ]
 }
 
 ohos_unittest("EventServerTest") {
@@ -71,30 +46,4 @@ ohos_unittest("EventServerTest") {
     "hilog:libhilog",
     "jsoncpp:jsoncpp",
   ]
-}
-
-ohos_unittest("DailyControllerTest") {
-  module_out_path = module_output_path
-  configs = [ ":unittest_config" ]
-
-  sources = [ "daily_controller_test.cpp" ]
-
-  deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_base/utility:hiview_utility",
-    "$hiview_core:hiview_core",
-    "$hiview_plugin/sysevent_source:sysevent_source",
-  ]
-
-  external_deps = [
-    "cJSON:cjson",
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "relational_store:native_rdb",
-  ]
-
-  resource_config_file =
-      "$hiview_plugin/sysevent_source/test/resource/ohos_test.xml"
 }

@@ -45,7 +45,6 @@ constexpr int TWO_HOURS_OFFSET = -2;
 constexpr size_t EVENT_STORE_INFO_DEFAULT_CNT = 1;
 constexpr char STORE_PERIOD_CNT_ITEM_CONCATE[] = " ";
 constexpr size_t STORE_PERIOD_INFO_ITEM_CNT = 2;
-constexpr size_t PERIOD_FILE_WROTE_STEP = 100;
 
 void LogStorePeriodInfo(std::shared_ptr<StorePeriodInfo> info)
 {

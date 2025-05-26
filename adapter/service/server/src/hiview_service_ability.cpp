@@ -165,7 +165,6 @@ void HiviewServiceAbility::StartService(HiviewService *service)
 {
     GetOrSetHiviewService(service);
     StartServiceAbility(0);
-    IPCSkeleton::JoinWorkThread();
 }
 
 HiviewService *HiviewServiceAbility::GetOrSetHiviewService(HiviewService *service)
