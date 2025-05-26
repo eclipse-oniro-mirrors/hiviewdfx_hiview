@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,8 +46,12 @@ CollectResult<bool> HiebpfCollectorImpl::StartHiebpf(int duration,
         return result;
     } else if (childPid == 0) {
         std::string timestr = std::to_string(duration);
-        execl("/system/bin/hmpsf", "hmpsf", "--events", "thread", "--duration", timestr.c_str(),
+        int ret = execl("/system/bin/hmpsf", "hmpsf", "--events", "thread", "--duration", timestr.c_str(),
             "--target_proc_name", processName.c_str(), "--start", "true", "--outprase_file", outFile.c_str(), NULL);
+        if (ret < 0) {
+            HIVIEW_LOGE("execl ret %{public}d, errno = %{public}d", ret, errno);
+            _exit(-1);
+        }
     } else {
         result.retCode = UCollect::UcError::SUCCESS;
         if (waitpid(childPid, nullptr, 0) != childPid) {
@@ -68,7 +72,11 @@ CollectResult<bool> HiebpfCollectorImpl::StopHiebpf()
         result.retCode = UCollect::UcError::UNSUPPORT;
         return result;
     } else if (childPid == 0) {
-        execl("/system/bin/hmpsf", "hmpsf", "--stop", "true", NULL);
+        int ret = execl("/system/bin/hmpsf", "hmpsf", "--stop", "true", NULL);
+        if (ret < 0) {
+            HIVIEW_LOGE("execl ret %{public}d, errno = %{public}d", ret, errno);
+            _exit(-1);
+        }
     } else {
         result.retCode = UCollect::UcError::SUCCESS;
         if (waitpid(childPid, nullptr, 0) != childPid) {
