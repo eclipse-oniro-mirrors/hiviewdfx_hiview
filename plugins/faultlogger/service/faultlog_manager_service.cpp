@@ -81,9 +81,9 @@ std::unique_ptr<FaultLogQueryResultInner> FaultLogManagerService::QuerySelfFault
 }
 
 bool FaultLogManagerService::EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
-    double maxSimutaneousAllocations, int32_t duration, int32_t pid)
+    double maxSimutaneousAllocations, int32_t duration, int32_t uid)
 {
-    std::string bundleName = CommonUtils::GetProcFullNameByPid(pid);
+    std::string bundleName = GetApplicationNameById(uid);
     if (bundleName.empty()) {
         HIVIEW_LOGE("Enable gwpAsanGrayscale failed, the bundleName is not exist");
         return false;
@@ -118,9 +118,9 @@ bool FaultLogManagerService::EnableGwpAsanGrayscale(bool alwaysEnabled, double s
     return true;
 }
 
-void FaultLogManagerService::DisableGwpAsanGrayscale(int32_t pid)
+void FaultLogManagerService::DisableGwpAsanGrayscale(int32_t uid)
 {
-    std::string bundleName = CommonUtils::GetProcFullNameByPid(pid);
+    std::string bundleName = GetApplicationNameById(uid);
     if (bundleName.empty()) {
         HIVIEW_LOGE("Disable gwpAsanGrayscale failed, the bundleName is not exist");
         return;
@@ -131,9 +131,9 @@ void FaultLogManagerService::DisableGwpAsanGrayscale(int32_t pid)
     system::SetParameter("gwp_asan.sample.app." + bundleName, "");
 }
 
-uint32_t FaultLogManagerService::GetGwpAsanGrayscaleState(int32_t pid)
+uint32_t FaultLogManagerService::GetGwpAsanGrayscaleState(int32_t uid)
 {
-    std::string bundleName = CommonUtils::GetProcFullNameByPid(pid);
+    std::string bundleName = GetApplicationNameById(uid);
     if (bundleName.empty()) {
         HIVIEW_LOGE("Get gwpAsanGrayscale state failed, the bundleName is not exist");
         return 0;

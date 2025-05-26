@@ -180,17 +180,15 @@ bool FaultloggerServiceOhos::EnableGwpAsanGrayscale(bool alwaysEnabled, double s
     if (!service) {
         return false;
     }
-
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    int32_t currentUid = static_cast<int32_t>(getuid());
-    if (uid != currentUid) {
-        HIVIEW_LOGW("Fail to enable gwpAsanGrayscale, uid:%{public}d(%{public}d)", uid, currentUid);
+    if (sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
+        HIVIEW_LOGE("failed to enable gwp asan grayscale, sampleRate: %{public}f"
+            ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
+            sampleRate, maxSimutaneousAllocations, duration);
         return false;
     }
-
-    int32_t pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
     bool result = service->EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
-        maxSimutaneousAllocations, duration, pid);
+        maxSimutaneousAllocations, duration, uid);
     return result;
 }
 
@@ -202,13 +200,7 @@ void FaultloggerServiceOhos::DisableGwpAsanGrayscale()
     }
 
     int32_t uid = IPCSkeleton::GetCallingUid();
-    int32_t currentUid = static_cast<int32_t>(getuid());
-    if (uid != currentUid) {
-        HIVIEW_LOGW("Fail to enable gwpAsanGrayscale, uid:%{public}d(%{public}d)", uid, currentUid);
-        return;
-    }
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    service->DisableGwpAsanGrayscale(pid);
+    service->DisableGwpAsanGrayscale(uid);
 }
 
 uint32_t FaultloggerServiceOhos::GetGwpAsanGrayscaleState()
@@ -219,13 +211,7 @@ uint32_t FaultloggerServiceOhos::GetGwpAsanGrayscaleState()
     }
 
     int32_t uid = IPCSkeleton::GetCallingUid();
-    int32_t currentUid = static_cast<int32_t>(getuid());
-    if (uid != currentUid) {
-        HIVIEW_LOGW("Fail to enable gwpAsanGrayscale, uid:%{public}d(%{public}d)", uid, currentUid);
-        return 0;
-    }
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    return service->GetGwpAsanGrayscaleState(pid);
+    return service->GetGwpAsanGrayscaleState(uid);
 }
 
 void FaultloggerServiceOhos::Destroy()

@@ -36,6 +36,12 @@ int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParce
             double sampleRate = data.ReadDouble();
             double maxSimutaneousAllocations = data.ReadDouble();
             int32_t duration = data.ReadInt32();
+            if (sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
+                HIVIEW_LOGE("failed to enable gwp asan grayscale, sampleRate: %{public}f"
+                    ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
+                    sampleRate, maxSimutaneousAllocations, duration);
+                break;
+            }
             auto result = EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
                 maxSimutaneousAllocations, duration);
             if (reply.WriteBool(result)) {
