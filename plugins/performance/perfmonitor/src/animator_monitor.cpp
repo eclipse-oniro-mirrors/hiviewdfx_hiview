@@ -19,9 +19,11 @@
 #include "perf_reporter.h"
 #include "perf_trace.h"
 #include "scene_monitor.h"
+#include "res_sched_client.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+static constexpr uint32_t SENSITVE_SCENE_RESTYPE = 72;
 
 AnimatorMonitor& AnimatorMonitor::GetInstance()
 {
@@ -29,9 +31,18 @@ AnimatorMonitor& AnimatorMonitor::GetInstance()
     return instance;
 }
 
+void AnimatorMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
+{
+    std::unordered_map<std::string, std::string> payload;
+    payload["extType"] = "10000";
+    payload["srcPid"] = std::to_string(SceneMonitor::GetInstance().GetPid());
+    ResourceSchedule::ResSchedClient::GetInstance().ReportData(SENSITVE_SCENE_RESTYPE, value, payload);
+}
+
 void AnimatorMonitor::Start(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    SetAppGCStatus(sceneId, 0);
     SceneMonitor::GetInstance().NotifySdbJankStatsEnd(sceneId);
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     SceneRecord* record = GetRecord(sceneId);
@@ -54,6 +65,7 @@ void AnimatorMonitor::Start(const std::string& sceneId, PerfActionType type, con
 void AnimatorMonitor::StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    SetAppGCStatus(sceneId, 0);
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     SceneRecord* record = GetRecord(sceneId);
     if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
@@ -74,6 +86,7 @@ void AnimatorMonitor::StartCommercial(const std::string& sceneId, PerfActionType
 void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    SetAppGCStatus(sceneId, 1);
     SceneMonitor::GetInstance().NotifySbdJankStatsBegin(sceneId);
     SceneRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
@@ -94,6 +107,7 @@ void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
 void AnimatorMonitor::EndCommercial(const std::string& sceneId, bool isRsRender)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    SetAppGCStatus(sceneId, 1);
     SceneRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
     if (record != nullptr) {
