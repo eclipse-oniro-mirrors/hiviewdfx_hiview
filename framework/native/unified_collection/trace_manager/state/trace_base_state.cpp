@@ -123,8 +123,7 @@ TraceRet TraceBaseState::TraceDropOff(TraceScenario scenario, TraceRetInfo &info
     return TraceRet(TraceStateCode::FAIL);
 }
 
-TraceRet TraceBaseState::DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
-                                             TraceRetInfo &info)
+TraceRet TraceBaseState::DumpTraceWithFilter(int32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     HIVIEW_LOGW("%{public}s is fail", GetTag().c_str());
     return TraceRet(TraceStateCode::FAIL);

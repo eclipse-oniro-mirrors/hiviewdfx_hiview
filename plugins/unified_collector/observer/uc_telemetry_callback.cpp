@@ -52,8 +52,7 @@ void OnSaParamChanged(const char *key, const char *value, void *context)
 void HandTimeout()
 {
     // Avoid died lock
-    ffrt::submit([]
-    {
+    ffrt::submit([] {
         TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
     });
 }

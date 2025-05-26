@@ -24,18 +24,18 @@ std::shared_ptr<TraceCollector> TraceCollector::Create()
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithDuration(
-    UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime)
+    UCollect::TraceCaller caller, uint32_t timeLimit, uint64_t happenTime)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceCaller &caller)
+CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceCaller caller)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithFilter(UCollect::TeleModule &module,
-    const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags)
+CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithFilter(UCollect::TeleModule module,
+    uint32_t timeLimit, uint64_t happenTime)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
 }

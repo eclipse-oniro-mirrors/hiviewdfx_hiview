@@ -31,11 +31,11 @@ public:
     virtual ~TraceCollector() = default;
 
 public:
-    virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller &caller) = 0;
-    virtual CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller &caller,
+    virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) = 0;
+    virtual CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller caller,
         uint32_t timeLimit, uint64_t happenTime = 0) = 0;
-    virtual CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule &module,
-        const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags = 0) = 0;
+    virtual CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule module,
+        uint32_t timeLimit, uint64_t happenTime) = 0;
 
     //postTime unit: milliseconds
     virtual CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime = 0) = 0;

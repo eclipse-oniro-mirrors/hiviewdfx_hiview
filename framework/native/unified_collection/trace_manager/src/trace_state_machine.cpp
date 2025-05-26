@@ -55,11 +55,10 @@ TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, int maxDuration, u
     return ret;
 }
 
-TraceRet TraceStateMachine::DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration,
-    uint64_t happenTime, TraceRetInfo &info)
+TraceRet TraceStateMachine::DumpTraceWithFilter(int maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
-    return currentState_->DumpTraceWithFilter(pidList, maxDuration, happenTime, info);
+    return currentState_->DumpTraceWithFilter(maxDuration, happenTime, info);
 }
 
 TraceRet TraceStateMachine::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
