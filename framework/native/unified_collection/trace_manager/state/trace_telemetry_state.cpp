@@ -55,8 +55,7 @@ TraceRet TelemetryState::OpenTrace(TraceScenario scenario, const std::string &ar
     return TraceBaseState::OpenTrace(scenario, args);
 }
 
-TraceRet TelemetryState::DumpTraceWithFilter(const std::vector<int32_t> &pidList, int maxDuration, uint64_t happenTime,
-                                             TraceRetInfo &info)
+TraceRet TelemetryState::DumpTraceWithFilter(int maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (policy_ != TelemetryPolicy::DEFAULT) {
         if (innerStateMachine_ != nullptr && !innerStateMachine_->IsTraceOn()) {

@@ -292,7 +292,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
     ASSERT_TRUE(ret2.IsSuccess());
     TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
-    TraceRet ret40 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret40 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret40.stateError_,  TraceStateCode::FAIL);
     TraceRet ret4 = TraceStateMachine::GetInstance().TraceCacheOn();
     ASSERT_EQ(ret4.stateError_, TraceStateCode::FAIL);
@@ -316,7 +316,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
     ASSERT_EQ(ret9.stateError_, TraceStateCode::FAIL);
     TraceRet ret10 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
-    TraceRet ret41 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret41 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret41.stateError_,  TraceStateCode::FAIL);
     TraceRet ret20 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
     ASSERT_EQ(ret20.stateError_, TraceStateCode::FAIL);
@@ -384,7 +384,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
     ASSERT_TRUE(ret3.IsSuccess());
     TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.stateError_, TraceStateCode::FAIL);
-    TraceRet ret41 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret41 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret41.stateError_,  TraceStateCode::FAIL);
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceCacheOn();
     ASSERT_TRUE(ret5.IsSuccess());
@@ -406,7 +406,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
     TraceRet ret11 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret11.stateError_, TraceStateCode::FAIL);
-    TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
     TraceRet ret12 = TraceStateMachine::GetInstance().TraceCacheOn();
     ASSERT_EQ(ret12.stateError_, TraceStateCode::FAIL);
@@ -508,7 +508,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
     TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.stateError_,  TraceStateCode::FAIL);
-    TraceRet ret11 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret11 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_TRUE(ret11.IsSuccess());
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
@@ -582,7 +582,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
     TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.GetStateError(), TraceStateCode::SUCCESS);
-    TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
@@ -637,7 +637,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest011, TestSize.Level1)
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
     TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.stateError_, TraceStateCode::FAIL);
-    TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter({}, 0, 0, info);
+    TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);

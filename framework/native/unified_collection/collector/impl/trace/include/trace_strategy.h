@@ -98,9 +98,9 @@ private:
 // Only telemetry to dump trace
 class TelemetryStrategy : public TraceStrategy  {
 public:
-    TelemetryStrategy(const std::vector<int32_t > &pidList, int32_t maxDuration, uint64_t happenTime,
+    TelemetryStrategy(int32_t maxDuration, uint64_t happenTime,
         const std::string &module)
-        : TraceStrategy(maxDuration, happenTime, module, TraceScenario::TRACE_TELEMETRY), pidList_(pidList)
+        : TraceStrategy(maxDuration, happenTime, module, TraceScenario::TRACE_TELEMETRY)
     {
         flowController_ = std::make_shared<TraceFlowController>(BusinessName::TELEMETRY);
     }
@@ -113,7 +113,6 @@ protected:
     }
 
 private:
-    std::vector<int32_t > pidList_;
     std::shared_ptr<TraceFlowController> flowController_ = nullptr;
 };
 

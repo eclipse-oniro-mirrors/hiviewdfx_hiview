@@ -28,8 +28,8 @@
         "OHOS::HiviewDFX::TraceFlowController::UseCacheTimeQuota(int)";
         "OHOS::HiviewDFX::TraceFlowController::NeedTelemetryDump(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::TraceFlowController::NeedTelemetryDump(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
-        "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(std::__h::vector<int, std::__h::allocator<int>> const&, int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
-        "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(std::__h::vector<int, std::__h::allocator<int>> const&, int, unsigned long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
+        "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(int, unsigned long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
+        "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
         "OHOS::HiviewDFX::TraceStateMachine::OpenTelemetryTrace(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::TelemetryPolicy)";
         "OHOS::HiviewDFX::TraceFlowController::ClearTelemetryData()";
         "OHOS::HiviewDFX::TraceStateMachine::RecoverState()";

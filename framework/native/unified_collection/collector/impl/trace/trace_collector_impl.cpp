@@ -44,7 +44,7 @@ std::shared_ptr<TraceCollector> TraceCollector::Create()
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithDuration(
-    UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime)
+    UCollect::TraceCaller caller, uint32_t timeLimit, uint64_t happenTime)
 {
     if (timeLimit > INT32_MAX) {
         return StartDumpTrace(caller, INT32_MAX, happenTime);
@@ -52,15 +52,15 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithDuratio
     return StartDumpTrace(caller, static_cast<int32_t>(timeLimit), happenTime);
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(TeleModule &module,
-    const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags)
+CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(TeleModule module,
+    uint32_t timeLimit, uint64_t happenTime)
 {
     if (auto uid = getuid(); uid != HIVIEW_UID) {
         HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
         return {UcError::PERMISSION_CHECK_FAILED};
     }
     CollectResult<std::vector<std::string>> result;
-    auto strategy = std::make_shared<TelemetryStrategy>(pidList, timeLimit, happenTime, ModuleToString(module));
+    auto strategy = std::make_shared<TelemetryStrategy>(timeLimit, happenTime, ModuleToString(module));
     TraceRet ret = strategy->DoDump(result.data);
     result.retCode = GetUcError(ret);
     HIVIEW_LOGI("caller:%{public}s retCode = %{public}d, file number = %{public}zu.", ModuleToString(module).c_str(),
@@ -108,7 +108,7 @@ CollectResult<int32_t> TraceCollectorImpl::FilterTraceOff(TeleModule module)
     return GetUcError(TraceStateMachine::GetInstance().TraceTelemetryOff());
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(UCollect::TraceCaller &caller)
+CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(UCollect::TraceCaller caller)
 {
     return StartDumpTrace(caller, 0, static_cast<uint64_t>(0));
 }

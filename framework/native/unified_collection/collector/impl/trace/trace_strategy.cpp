@@ -226,7 +226,7 @@ bool TraceMixedStrategy::IsMine(const std::string &fileName)
 TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
 {
     TraceRetInfo traceRetInfo;
-    auto ret = TraceStateMachine::GetInstance().DumpTraceWithFilter(pidList_, maxDuration_, happenTime_, traceRetInfo);
+    auto ret = TraceStateMachine::GetInstance().DumpTraceWithFilter(maxDuration_, happenTime_, traceRetInfo);
     if (!ret.IsSuccess()) {
         HIVIEW_LOGE("fail stateError:%{public}d codeError:%{public}d", static_cast<int>(ret.GetStateError()),
             static_cast<int>(ret.GetCodeError()));

@@ -23,11 +23,11 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 class TraceCollectorEmptyImpl : public TraceCollector {
 public:
-    CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller &caller) override;
+    CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
-            UCollect::TraceCaller &caller, uint32_t timeLimit, uint64_t happenTime) override;
-    CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule &module,
-        const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags) override;
+            UCollect::TraceCaller caller, uint32_t timeLimit, uint64_t happenTime) override;
+    CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule module,
+        uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
 };

@@ -94,7 +94,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
     ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 
     UCollect::TeleModule module = UCollect::TeleModule::XPOWER;
-    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, 0, 0);
     ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
     setuid(1201); // hiview uid
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
@@ -223,7 +223,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
     TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
     TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::DEFAULT);
-    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, 0, 0);
     ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::TRACE_DUMP_OVER_FLOW);
 
     int64_t beginTime = 100;
@@ -237,12 +237,12 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
     ASSERT_EQ(ret, TelemetryRet::SUCCESS);
     sleep(1);
 
-    CollectResult<std::vector<std::string>> resultDumpTrace2 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    CollectResult<std::vector<std::string>> resultDumpTrace2 = collector->DumpTraceWithFilter(module, 0, 0);
     ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
     TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
 
     sleep(1);
-    CollectResult<std::vector<std::string>> resultDumpTrace3 = collector->DumpTraceWithFilter(module, {}, 0, 0);
+    CollectResult<std::vector<std::string>> resultDumpTrace3 = collector->DumpTraceWithFilter(module, 0, 0);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }

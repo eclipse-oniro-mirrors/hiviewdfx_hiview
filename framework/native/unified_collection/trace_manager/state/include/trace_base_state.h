@@ -27,8 +27,7 @@ public:
     virtual TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy);
     virtual TraceRet OpenAppTrace(int32_t appPid);
     virtual TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
-    virtual TraceRet DumpTraceWithFilter(const std::vector <int32_t> &pidList, int maxDuration, uint64_t happenTime,
-                                         TraceRetInfo &info);
+    virtual TraceRet DumpTraceWithFilter(int32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
     virtual TraceRet TraceDropOn(TraceScenario scenario);
     virtual TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info);
     virtual TraceRet TraceCacheOn();

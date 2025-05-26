@@ -50,13 +50,13 @@ uint64_t GetRawTraceSize(const std::string &file)
     return FileUtil::GetFileSize(realPath);
 }
 
-CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(UCollect::TraceCaller &caller)
+CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(UCollect::TraceCaller caller)
 {
     auto task = [this, &caller] { return traceCollector_->DumpTrace(caller); };
     return Invoke(task, caller);
 }
 
-CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UCollect::TraceCaller &caller,
+CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UCollect::TraceCaller caller,
     uint32_t timeLimit, uint64_t happenTime)
 {
     auto task = [this, &caller, &timeLimit, &happenTime] {
@@ -65,10 +65,10 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UC
     return Invoke(task, caller);
 }
 
-CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithFilter(UCollect::TeleModule &module,
-    const std::vector<int32_t> &pidList, uint32_t timeLimit, uint64_t happenTime, uint8_t flags)
+CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithFilter(UCollect::TeleModule module,
+    uint32_t timeLimit, uint64_t happenTime)
 {
-    return traceCollector_->DumpTraceWithFilter(module, pidList, timeLimit, happenTime);
+    return traceCollector_->DumpTraceWithFilter(module, timeLimit, happenTime);
 }
 
 CollectResult<int32_t> TraceDecorator::FilterTraceOn(UCollect::TeleModule module, uint64_t postTime)
