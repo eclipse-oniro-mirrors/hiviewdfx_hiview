@@ -18,8 +18,10 @@
 #include "hiview_service_agent.h"
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
+#include <ani_signature_builder.h>
 
 using namespace OHOS::HiviewDFX;
+using namespace arkts::ani_signature;
 namespace {
 DEFINE_LOG_LABEL(0xD002D10, "LogLibraryAniUtil");
 static constexpr int32_t SUCCESS = 0;
@@ -236,7 +238,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
     }
 
     ani_method codeSetter {};
-    if (ANI_OK != env->Class_FindMethod(cls, "<set>code", nullptr, &codeSetter)) {
+    if (ANI_OK != env->Class_FindMethod(cls, Builder::BuildSetterName("code").c_str(), nullptr, &codeSetter)) {
         HILOG_ERROR(LOG_CORE, "get method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
@@ -247,7 +249,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
     }
 
     ani_method messageSetter {};
-    if (ANI_OK != env->Class_FindMethod(cls, "<set>message", nullptr, &messageSetter)) {
+    if (ANI_OK != env->Class_FindMethod(cls, Builder::BuildSetterName("message").c_str(), nullptr, &messageSetter)) {
         HILOG_ERROR(LOG_CORE, "find method messageSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }

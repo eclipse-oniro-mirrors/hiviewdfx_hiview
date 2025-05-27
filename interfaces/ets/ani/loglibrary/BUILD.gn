@@ -47,6 +47,7 @@ ohos_shared_library("loglibrary_ani") {
     "access_token:libtokenid_sdk",
     "hilog:libhilog",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
     "storage_service:storage_manager_acl",
   ]
 
