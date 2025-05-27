@@ -104,7 +104,7 @@ FaultLogInfoInner ParseFaultLogInfoFromFile(const std::string &path, const std::
     info.reason = info.sectionMaps[EVENT_REASON];
     int32_t pid = 0;
     StringUtil::ConvertStringTo<int32_t>(info.sectionMaps[EVENT_PID], pid);
-    info.pid = static_cast<uint32_t>(pid);
+    info.pid = pid;
     info.summary += info.module + " " + info.reason + " at " + info.sectionMaps[EVENT_TIMESTAMP];
     info.time = TimeUtil::StrToTimeStamp(std::to_string(info.time), "%Y%m%d%H%M%S");
     HIVIEW_LOGI("log info, pid:%{public}u, id:%{public}u, module:%{public}s, time:%{public}" PRIu64
