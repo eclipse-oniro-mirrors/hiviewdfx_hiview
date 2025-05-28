@@ -101,6 +101,7 @@ ohos_unittest("FaultloggerUnittest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
     "init:libbegetutil",

@@ -25,6 +25,7 @@
 #include "faultlog_info.h"
 #include "faultlog_util.h"
 #include "hisysevent.h"
+#include "hitrace/hitracechainc.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "log_analyzer.h"
@@ -86,7 +87,12 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
         HIVIEW_LOGE("eventLoop_ is not inited.");
         return;
     }
-    auto task = [info] () mutable {
+
+    // Get hitrace id which from processdump
+    HiTraceIdStruct hitraceId = HiTraceChainGetId();
+    auto task = [info, hitraceId] () mutable {
+        // Need set hitrace again in async task
+        HiTraceChainSetId(&hitraceId);
         HiSysEventWrite(
             HiSysEvent::Domain::RELIABILITY,
             GetFaultNameByType(info.faultLogType, false),
@@ -122,6 +128,7 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
                 "/" : info.sectionMap[FaultKey::FINGERPRINT],
             FaultKey::STACK, info.sectionMap[FaultKey::STACK].empty() ? "" : info.sectionMap[FaultKey::STACK]
         );
+        HiTraceChainClearId();
     };
     if (info.faultLogType == FaultLogType::CPP_CRASH) {
         constexpr int delayTime = 2; // Delay for 2 seconds to wait for ffrt log generation
