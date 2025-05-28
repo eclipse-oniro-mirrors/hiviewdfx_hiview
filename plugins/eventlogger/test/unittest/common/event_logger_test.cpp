@@ -1012,5 +1012,34 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetFileLastAccessTimeStamp_001, TestSi
     EXPECT_TRUE(ret == 0);
     GetFileLastAccessTimeStamp("/data/test/log/test.txt");
 }
+
+/**
+ * @tc.name: EventLoggerTest_SaveFreezeInfoToFile_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_SaveFreezeInfoToFile_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string testName = "EventLoggerTest_SaveFreezeInfoToFile_001";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    eventLogger->SaveFreezeInfoToFile(event);
+    std::string path = "/data/test/log/test.txt";
+    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create File. errno: %d\n", errno);
+        FAIL();
+    }
+    event->SetEventValue("FREEZE_INFO_PATH", path);
+    eventLogger->SaveFreezeInfoToFile(event);
+    FileUtil::SaveStringToFd(fd, "\123456\n");
+    close(fd);
+    event->SetEventValue("UID", getuid());
+    event->SetEventValue("PACKAGE_NAME", "EventLoggerTest");
+    eventLogger->SaveFreezeInfoToFile(event);
+    EXPECT_TRUE(FileUtil::FileExists(path));
+}
 } // namespace HiviewDFX
 } // namespace OHOS
