@@ -150,6 +150,11 @@ void ActiveKeyEvent::DumpCapture(int fd)
     int noNeedJsonFd = -1;
     std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, noNeedJsonFd, sysEvent);
     for (const std::string& cmd : CMD_LIST) {
+        if (cmd == "k:SysRqFile") {
+            auto sysRqTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+            std::string formatSysRqTime = TimeUtil::TimestampFormatToDate(sysRqTime, "%Y%m%d%H%M%S");
+            sysEvent->SetEventValue("SYSRQ_TIME", formatSysRqTime);
+        }
         logTask->AddLog(cmd);
     }
 

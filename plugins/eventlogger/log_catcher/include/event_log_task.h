@@ -90,9 +90,7 @@ private:
 #endif // BINDER_CATCHER_ENABLE
 
 #ifdef DMESG_CATCHER_ENABLE
-    void DmesgCapture();
-    void SysrqCapture(bool writeNewFile);
-    void HungTaskCapture(bool writeNewFile);
+    void DmesgCapture(bool writeNewFile, int type);
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef HILOG_CATCHER_ENABLE

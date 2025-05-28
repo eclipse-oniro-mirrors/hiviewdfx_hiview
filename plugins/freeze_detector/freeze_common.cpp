@@ -162,13 +162,13 @@ void FreezeCommon::WriteStartInfoToFd(int fd, const std::string& msg)
 
 void FreezeCommon::WriteEndInfoToFd(int fd, const std::string& msg)
 {
-    auto start = TimeUtil::GetMilliseconds();
-    uint64_t startTime = start / TimeUtil::SEC_TO_MILLISEC;
-    std::ostringstream startTimeStr;
-    startTimeStr << msg << TimeUtil::TimestampFormatToDate(startTime, "%Y/%m/%d-%H:%M:%S");
-    startTimeStr << ":" << std::setw(PLACEHOLDER) << std::setfill('0') <<
-        std::to_string(start % TimeUtil::SEC_TO_MILLISEC) << std::endl;
-    FileUtil::SaveStringToFd(fd, startTimeStr.str());
+    auto end = TimeUtil::GetMilliseconds();
+    uint64_t endTime = end / TimeUtil::SEC_TO_MILLISEC;
+    std::ostringstream endTimeStr;
+    endTimeStr << msg << TimeUtil::TimestampFormatToDate(endTime, "%Y/%m/%d-%H:%M:%S");
+    endTimeStr << ":" << std::setw(PLACEHOLDER) << std::setfill('0') <<
+        std::to_string(end % TimeUtil::SEC_TO_MILLISEC) << std::endl;
+    FileUtil::SaveStringToFd(fd, endTimeStr.str());
     FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");
 }
 }  // namespace HiviewDFX
