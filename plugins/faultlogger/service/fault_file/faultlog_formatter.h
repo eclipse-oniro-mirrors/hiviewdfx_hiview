@@ -20,14 +20,13 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace FaultLogger {
 void WriteDfxLogToFile(int32_t fd);
-void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std::string> sections);
+void WriteFaultLogToFile(int32_t fd, int32_t logType, const std::map<std::string, std::string>& sections);
 FaultLogInfo ParseCppCrashFromFile(const std::string& path);
 void WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
-bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string> &sections);
+bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string>& sections);
 bool IsFaultLogLimit();
 
 void JumpBuildInfo(int32_t fd, std::ifstream& logFile);
-std::list<const char* const*> GetLogParseList(int32_t logType);
 }  // namespace FaultLogger
 }  // namespace HiviewDFX
 }  // namespace OHOS

@@ -21,14 +21,13 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
-class FaultlogFormatterUnittest : public testing::Test {};
 
 /**
  * @tc.name: WriteStackTraceFromLogTest001
  * @tc.desc: Test WriteStackTraceFromLog
  * @tc.type: FUNC
  */
-HWTEST_F(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext::TestSize.Level1)
+HWTEST(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext::TestSize.Level1)
 {
     std::string pidStr;
     int32_t fd = -1;
@@ -40,15 +39,75 @@ HWTEST_F(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext:
     ASSERT_EQ(fd, -1);
 }
 
+static std::string GetPipeData(int pipeRead)
+{
+    constexpr int maxPipeBuffSize = 1024 * 1024;
+    std::vector<uint8_t> buf(maxPipeBuffSize, 0);
+    ssize_t nread = TEMP_FAILURE_RETRY(read(pipeRead, buf.data(), buf.size()));
+    if (nread > 0) {
+        return std::string(buf.begin(), buf.begin() + nread);
+    }
+    return {};
+}
+
 /**
- * @tc.name: ParseCppCrashFromFileTest001
- * @tc.desc: Test
+ * @tc.name: WriteFaultLogToFileTest001
+ * @tc.desc: Test WriteFaultLogToFile
  * @tc.type: FUNC
  */
-HWTEST_F(FaultlogFormatterUnittest, ParseCppCrashFromFileTest001, testing::ext::TestSize.Level1)
+HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest001, testing::ext::TestSize.Level1)
 {
-    auto list = FaultLogger::GetLogParseList(FaultLogType::APP_FREEZE);
-    ASSERT_GT(list.size(), 0);
+    std::map<std::string, std::string> sections = {
+        {"KEYLOGFILE", "hello"},
+        {"PID", "1234"}
+    };
+    int pipe[2] = {-1, -1};
+    if (pipe2(pipe, O_CLOEXEC | O_NONBLOCK)) {
+        FaultLogger::WriteFaultLogToFile(pipe[1], 0, sections);
+        auto result = GetPipeData(pipe[0]);
+        ASSERT_TRUE(result.find("Additional Logs:") != std::string::npos);
+        close(pipe[0]);
+        close(pipe[1]);
+    }
 }
+
+/**
+ * @tc.name: WriteFaultLogToFileTest002
+ * @tc.desc: Test WriteFaultLogToFile
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest002, testing::ext::TestSize.Level1)
+{
+    std::map<std::string, std::string> sections = {
+        {"KEYLOGFILE", "hello"},
+    };
+    int pipe[2] = {-1, -1};
+    if (pipe2(pipe, O_CLOEXEC | O_NONBLOCK)) {
+        FaultLogger::WriteFaultLogToFile(pipe[1], 0, sections);
+        auto result = GetPipeData(pipe[0]);
+        ASSERT_TRUE(result.find("Additional Logs:") == std::string::npos);
+        close(pipe[0]);
+        close(pipe[1]);
+    }
+}
+
+/**
+ * @tc.name: WriteFaultLogToFileTest002
+ * @tc.desc: Test WriteFaultLogToFile
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest003, testing::ext::TestSize.Level1)
+{
+    std::map<std::string, std::string> sections;
+    int pipe[2] = {-1, -1};
+    if (pipe2(pipe, O_CLOEXEC | O_NONBLOCK)) {
+        FaultLogger::WriteFaultLogToFile(pipe[1], 0, sections);
+        auto result = GetPipeData(pipe[0]);
+        ASSERT_TRUE(result.find("Additional Logs:") == std::string::npos);
+        close(pipe[0]);
+        close(pipe[1]);
+    }
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS
