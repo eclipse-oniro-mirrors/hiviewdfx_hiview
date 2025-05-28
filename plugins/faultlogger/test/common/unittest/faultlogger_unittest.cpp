@@ -31,6 +31,7 @@
 #include <cstring>
 
 #include "bundle_mgr_client.h"
+#include "cJSON.h"
 #include "event.h"
 #include "faultlog_util.h"
 #include "faultlog_database.h"
@@ -46,7 +47,6 @@
 #include "hiview_logger.h"
 #include "hiview_platform.h"
 #include "ipc_skeleton.h"
-#include "json/json.h"
 #include "log_analyzer.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
@@ -131,21 +131,27 @@ public:
 
     static void CheckSumarryParseResult(std::string& info, int& matchCount)
     {
-        Json::Reader reader;
-        Json::Value appEvent;
-        if (!(reader.parse(info, appEvent))) {
+        cJSON* appEvent = cJSON_Parse(info.c_str());
+        if (appEvent == nullptr) {
             matchCount--;
         }
-        auto exception = appEvent["exception"];
-        if (exception["name"] == "" || exception["name"] == "none") {
+        cJSON* exception = cJSON_GetObjectItemCaseSensitive(appEvent, "exception");
+
+        char *nameChar = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(exception, "name"));
+        if (strcmp(nameChar, "") == 0 || strcmp(nameChar, "none") == 0) {
             matchCount--;
         }
-        if (exception["message"] == "" || exception["message"] == "none") {
+
+        char *messageChar = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(exception, "message"));
+        if (strcmp(messageChar, "") == 0 || strcmp(messageChar, "none") == 0) {
             matchCount--;
         }
-        if (exception["stack"] == "" || exception["stack"] == "none") {
+
+        char *stackChar = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(exception, "stack"));
+        if (strcmp(stackChar, "") == 0 || strcmp(stackChar, "none") == 0) {
             matchCount--;
         }
+        cJSON_Delete(appEvent);
     }
 
     static int CheckKeyWordsInFile(const std::string& filePath, std::string *keywords, int length, bool isJsError)

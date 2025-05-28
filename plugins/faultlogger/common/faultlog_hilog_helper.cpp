@@ -18,6 +18,7 @@
 #include <poll.h>
 #include <unistd.h>
 
+#include <sstream>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 
@@ -164,17 +165,17 @@ int FaultlogHilogHelper::DoGetHilogProcess(int32_t pid, int writeFd)
     return 0;
 }
 
-Json::Value FaultlogHilogHelper::ParseHilogToJson(const std::string &hilogStr)
+cJSON *FaultlogHilogHelper::ParseHilogToJson(const std::string& hilogStr)
 {
-    Json::Value hilog(Json::arrayValue);
-    if (hilogStr.empty()) {
+    cJSON *hilog = cJSON_CreateArray();
+    if (hilog == nullptr || hilogStr.empty()) {
         HIVIEW_LOGE("Get hilog is empty");
         return hilog;
     }
     std::stringstream logStream(hilogStr);
     std::string oneLine;
     for (int count = 0; count < REPORT_HILOG_LINE && getline(logStream, oneLine); count++) {
-        hilog.append(oneLine);
+        (void)cJSON_AddItemToArray(hilog, cJSON_CreateString(oneLine.c_str()));
     }
     return hilog;
 }
