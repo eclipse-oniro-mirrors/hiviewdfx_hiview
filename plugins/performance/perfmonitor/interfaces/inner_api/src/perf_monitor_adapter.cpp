@@ -127,5 +127,13 @@ void PerfMonitorAdapter::ReportPageShowMsg(const std::string& pageUrl, const std
     PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, pageName);
 }
 
+void PerfMonitorAdapter::StartRecordImageLoadStat(int64_t id, const std::string& imageType, int width, int height)
+{
+}
+ 
+void PerfMonitorAdapter::EndRecordImageLoadStat(int64_t id, int state)
+{
+}
+
 }
 }
