@@ -16,9 +16,11 @@
 
 #include <cstdint>
 #include <fstream>
-#include <list>
+#include <functional>
 #include <string>
 #include <sstream>
+#include <unordered_map>
+#include <vector>
 #include <unistd.h>
 
 #include "parameters.h"
@@ -33,138 +35,170 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace FaultLogger {
 namespace {
-constexpr int LOG_MAP_KEY = 0;
-constexpr int LOG_MAP_VALUE = 1;
-constexpr const char* const DEVICE_INFO_KV[] = {FaultKey::DEVICE_INFO, "Device info:"};
-constexpr const char* const BUILD_INFO_KV[] = {FaultKey::BUILD_INFO, "Build info:"};
-constexpr const char* const MODULE_NAME_KV[] = {FaultKey::MODULE_NAME, "Module name:"};
-constexpr const char* const PROCESS_NAME_KV[] = {FaultKey::P_NAME, "Process name:"};
-constexpr const char* const MODULE_PID_KV[] = {FaultKey::MODULE_PID, "Pid:"};
-constexpr const char* const MODULE_UID_KV[] = {FaultKey::MODULE_UID, "Uid:"};
-constexpr const char* const MODULE_VERSION_KV[] = {FaultKey::MODULE_VERSION, "Version:"};
-constexpr const char* const FAULT_TYPE_KV[] = {FaultKey::FAULT_TYPE, "Fault type:"};
-constexpr const char* const SYS_VM_TYPE_KV[] = {FaultKey::SYS_VM_TYPE, "SYSVMTYPE:"};
-constexpr const char* const APP_VM_TYPE_KV[] = {FaultKey::APP_VM_TYPE, "APPVMTYPE:"};
-constexpr const char* const FOREGROUND_KV[] = {FaultKey::FOREGROUND, "Foreground:"};
-constexpr const char* const LIFETIME_KV[] = {FaultKey::LIFETIME, "Up time:"};
-constexpr const char* const REASON_KV[] = {FaultKey::REASON, "Reason:"};
-constexpr const char* const FAULT_MESSAGE_KV[] = {FaultKey::FAULT_MESSAGE, "Fault message:"};
-constexpr const char* const STACKTRACE_KV[] = {FaultKey::STACKTRACE, "Selected stacktrace:\n"};
-constexpr const char* const ROOT_CAUSE_KV[] = {FaultKey::ROOT_CAUSE, "Blocked chain:\n"};
-constexpr const char* const MSG_QUEUE_INFO_KV[] = {FaultKey::MSG_QUEUE_INFO, "Message queue info:\n"};
-constexpr const char* const BINDER_TRANSACTION_INFO_KV[] = {
-    FaultKey::BINDER_TRANSACTION_INFO, "Binder transaction info:\n"};
-constexpr const char* const PROCESS_STACKTRACE_KV[] = {FaultKey::PROCESS_STACKTRACE, "Process stacktrace:\n"};
-constexpr const char* const OTHER_THREAD_INFO_KV[] = {FaultKey::OTHER_THREAD_INFO, "Other thread info:\n"};
-constexpr const char* const KEY_THREAD_INFO_KV[] = {FaultKey::KEY_THREAD_INFO, "Fault thread info:\n"};
-constexpr const char* const KEY_THREAD_REGISTERS_KV[] = {FaultKey::KEY_THREAD_REGISTERS, "Registers:\n"};
-constexpr const char* const MEMORY_USAGE_KV[] = {FaultKey::MEMORY_USAGE, "Memory Usage:\n"};
-constexpr const char* const CPU_USAGE_KV[] = {FaultKey::CPU_USAGE, "CPU Usage:"};
-constexpr const char* const TRACE_ID_KV[] = {FaultKey::TRACE_ID, "Trace-Id:"};
-constexpr const char* const SUMMARY_KV[] = {FaultKey::SUMMARY, "Summary:\n"};
-constexpr const char* const TIMESTAMP_KV[] = {FaultKey::TIMESTAMP, "Timestamp:"};
-constexpr const char* const MEMORY_NEAR_REGISTERS_KV[] = {FaultKey::MEMORY_NEAR_REGISTERS, "Memory near registers:\n"};
-constexpr const char* const PRE_INSTALL_KV[] = {FaultKey::PRE_INSTALL, "PreInstalled:"};
-constexpr const char* const VERSION_CODE_KV[] = {FaultKey::VERSION_CODE, "VersionCode:"};
-constexpr const char* const FINGERPRINT_KV[] = {FaultKey::FINGERPRINT, "Fingerprint:"};
-constexpr const char* const APPEND_ORIGIN_LOG_KV[] = {FaultKey::APPEND_ORIGIN_LOG, ""};
-constexpr const char* const PROCESS_RSS_MEMINFO_KV[] = {FaultKey::PROCESS_RSS_MEMINFO, ""};
-constexpr const char* const DEVICE_MEMINFO_KV[] = {FaultKey::DEVICE_MEMINFO, ""};
 
-auto CPP_CRASH_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
-    PRE_INSTALL_KV, FOREGROUND_KV, APPEND_ORIGIN_LOG_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV,
-    SYS_VM_TYPE_KV, APP_VM_TYPE_KV, REASON_KV, FAULT_MESSAGE_KV, TRACE_ID_KV, PROCESS_NAME_KV, KEY_THREAD_INFO_KV,
-    SUMMARY_KV, KEY_THREAD_REGISTERS_KV, OTHER_THREAD_INFO_KV, MEMORY_NEAR_REGISTERS_KV
+struct SectionLog {
+    const char* sectionName;
+    const char* logName;
 };
 
-auto JAVASCRIPT_CRASH_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
-    PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, SYS_VM_TYPE_KV,
-    APP_VM_TYPE_KV, LIFETIME_KV, PROCESS_RSS_MEMINFO_KV, DEVICE_MEMINFO_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
+const SectionLog DEVICE_INFO = {FaultKey::DEVICE_INFO, "Device info:"};
+const SectionLog BUILD_INFO = {FaultKey::BUILD_INFO, "Build info:"};
+const SectionLog MODULE_NAME = {FaultKey::MODULE_NAME, "Module name:"};
+const SectionLog PROCESS_NAME = {FaultKey::P_NAME, "Process name:"};
+const SectionLog MODULE_PID = {FaultKey::MODULE_PID, "Pid:"};
+const SectionLog MODULE_UID = {FaultKey::MODULE_UID, "Uid:"};
+const SectionLog MODULE_VERSION = {FaultKey::MODULE_VERSION, "Version:"};
+const SectionLog FAULT_TYPE = {FaultKey::FAULT_TYPE, "Fault type:"};
+const SectionLog SYS_VM_TYPE = {FaultKey::SYS_VM_TYPE, "SYSVMTYPE:"};
+const SectionLog APP_VM_TYPE = {FaultKey::APP_VM_TYPE, "APPVMTYPE:"};
+const SectionLog FOREGROUND = {FaultKey::FOREGROUND, "Foreground:"};
+const SectionLog LIFETIME = {FaultKey::LIFETIME, "Up time:"};
+const SectionLog REASON = {FaultKey::REASON, "Reason:"};
+const SectionLog FAULT_MESSAGE = {FaultKey::FAULT_MESSAGE, "Fault message:"};
+const SectionLog STACKTRACE = {FaultKey::STACKTRACE, "Selected stacktrace:\n"};
+const SectionLog ROOT_CAUSE = {FaultKey::ROOT_CAUSE, "Blocked chain:\n"};
+const SectionLog MSG_QUEUE_INFO = {FaultKey::MSG_QUEUE_INFO, "Message queue info:\n"};
+const SectionLog BINDER_TRANSACTION_INFO = {
+    FaultKey::BINDER_TRANSACTION_INFO, "Binder transaction info:\n"
 };
+const SectionLog PROCESS_STACKTRACE = {FaultKey::PROCESS_STACKTRACE, "Process stacktrace:\n"};
+const SectionLog OTHER_THREAD_INFO = {FaultKey::OTHER_THREAD_INFO, "Other thread info:\n"};
+const SectionLog KEY_THREAD_INFO = {FaultKey::KEY_THREAD_INFO, "Fault thread info:\n"};
+const SectionLog KEY_THREAD_REGISTERS = {FaultKey::KEY_THREAD_REGISTERS, "Registers:\n"};
+const SectionLog MEMORY_USAGE = {FaultKey::MEMORY_USAGE, "Memory Usage:\n"};
+const SectionLog CPU_USAGE = {FaultKey::CPU_USAGE, "CPU Usage:"};
+const SectionLog TRACE_ID = {FaultKey::TRACE_ID, "Trace-Id:"};
+const SectionLog SUMMARY = {FaultKey::SUMMARY, "Summary:\n"};
+const SectionLog TIMESTAMP = {FaultKey::TIMESTAMP, "Timestamp:"};
+const SectionLog MEMORY_NEAR_REGISTERS = {FaultKey::MEMORY_NEAR_REGISTERS, "Memory near registers:\n"};
+const SectionLog PRE_INSTALL = {FaultKey::PRE_INSTALL, "PreInstalled:"};
+const SectionLog VERSION_CODE = {FaultKey::VERSION_CODE, "VersionCode:"};
+const SectionLog FINGERPRINT = {FaultKey::FINGERPRINT, "Fingerprint:"};
+const SectionLog APPEND_ORIGIN_LOG = {FaultKey::APPEND_ORIGIN_LOG, ""};
+const SectionLog PROCESS_RSS_MEMINFO = {FaultKey::PROCESS_RSS_MEMINFO, ""};
+const SectionLog DEVICE_MEMINFO = {FaultKey::DEVICE_MEMINFO, ""};
 
-auto CANGJIE_ERROR_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
-    PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, SYS_VM_TYPE_KV,
-    APP_VM_TYPE_KV, LIFETIME_KV, PROCESS_RSS_MEMINFO_KV, DEVICE_MEMINFO_KV, REASON_KV, TRACE_ID_KV, SUMMARY_KV
-};
-
-auto APP_FREEZE_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, VERSION_CODE_KV,
-    PRE_INSTALL_KV, FOREGROUND_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, SYS_VM_TYPE_KV,
-    APP_VM_TYPE_KV, REASON_KV, TRACE_ID_KV, CPU_USAGE_KV, MEMORY_USAGE_KV, ROOT_CAUSE_KV, STACKTRACE_KV,
-    MSG_QUEUE_INFO_KV, BINDER_TRANSACTION_INFO_KV, PROCESS_STACKTRACE_KV, SUMMARY_KV
-};
-
-auto SYS_FREEZE_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, FOREGROUND_KV,
-    MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, SYS_VM_TYPE_KV, APP_VM_TYPE_KV, REASON_KV,
-    TRACE_ID_KV, CPU_USAGE_KV, MEMORY_USAGE_KV, ROOT_CAUSE_KV, STACKTRACE_KV,
-    MSG_QUEUE_INFO_KV, BINDER_TRANSACTION_INFO_KV, PROCESS_STACKTRACE_KV, SUMMARY_KV
-};
-
-auto SYS_WARNING_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, FOREGROUND_KV,
-    MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, SYS_VM_TYPE_KV, APP_VM_TYPE_KV, REASON_KV,
-    TRACE_ID_KV, CPU_USAGE_KV, MEMORY_USAGE_KV, ROOT_CAUSE_KV, STACKTRACE_KV,
-    MSG_QUEUE_INFO_KV, BINDER_TRANSACTION_INFO_KV, PROCESS_STACKTRACE_KV, SUMMARY_KV
-};
-
-auto RUST_PANIC_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, TIMESTAMP_KV, MODULE_NAME_KV, MODULE_VERSION_KV, MODULE_PID_KV,
-    MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, APP_VM_TYPE_KV, REASON_KV, SUMMARY_KV
-};
-
-auto ADDR_SANITIZER_LOG_SEQUENCE = {
-    DEVICE_INFO_KV, BUILD_INFO_KV, FINGERPRINT_KV, APPEND_ORIGIN_LOG_KV, TIMESTAMP_KV, MODULE_NAME_KV,
-    MODULE_VERSION_KV, MODULE_PID_KV, MODULE_UID_KV, FAULT_TYPE_KV, FAULT_MESSAGE_KV, APP_VM_TYPE_KV, REASON_KV,
-    SUMMARY_KV
-};
-}
-std::list<const char* const*> GetLogParseList(int32_t logType)
+std::vector<SectionLog> GetCppCrashSectionLogs()
 {
-    switch (logType) {
-        case FaultLogType::CPP_CRASH:
-            return CPP_CRASH_LOG_SEQUENCE;
-        case FaultLogType::JS_CRASH:
-            return JAVASCRIPT_CRASH_LOG_SEQUENCE;
-        case FaultLogType::CJ_ERROR:
-            return CANGJIE_ERROR_LOG_SEQUENCE;
-        case FaultLogType::APP_FREEZE:
-            return APP_FREEZE_LOG_SEQUENCE;
-        case FaultLogType::SYS_FREEZE:
-            return SYS_FREEZE_LOG_SEQUENCE;
-        case FaultLogType::SYS_WARNING:
-            return SYS_WARNING_LOG_SEQUENCE;
-        case FaultLogType::RUST_PANIC:
-            return RUST_PANIC_LOG_SEQUENCE;
-        case FaultLogType::ADDR_SANITIZER:
-            return ADDR_SANITIZER_LOG_SEQUENCE;
-        default:
-            return {};
-    }
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
+        PRE_INSTALL, FOREGROUND, APPEND_ORIGIN_LOG, MODULE_PID, MODULE_UID, FAULT_TYPE,
+        SYS_VM_TYPE, APP_VM_TYPE, REASON, FAULT_MESSAGE, TRACE_ID, PROCESS_NAME, KEY_THREAD_INFO,
+        SUMMARY, KEY_THREAD_REGISTERS, OTHER_THREAD_INFO, MEMORY_NEAR_REGISTERS
+    };
+    return info;
 }
 
-bool ParseFaultLogLine(const std::list<const char* const*>& parseList, const std::string& line,
+std::vector<SectionLog> GetJsCrashSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
+        PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, SYS_VM_TYPE,
+        APP_VM_TYPE, LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON, TRACE_ID, SUMMARY
+    };
+    return info;
+}
+
+std::vector<SectionLog> GetCjCrashSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
+        PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, SYS_VM_TYPE,
+        APP_VM_TYPE, LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON, TRACE_ID, SUMMARY
+    };
+    return info;
+}
+
+std::vector<SectionLog> GetAppFreezeSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
+        PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE,
+        APP_VM_TYPE, REASON, TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
+        MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
+    };
+    return info;
+}
+
+std::vector<SectionLog> GetSysFreezeSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
+        MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, REASON,
+        TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
+        MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
+    };
+    return info;
+}
+
+std::vector<SectionLog> GetSysWarningSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
+        MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, REASON,
+        TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
+        MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
+    };
+    return info;
+}
+
+std::vector<SectionLog> GetRustPanicSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, MODULE_PID,
+        MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, APP_VM_TYPE, REASON, SUMMARY
+    };
+    return info;
+}
+
+std::vector<SectionLog> GetAddrSanitizerSectionLogs()
+{
+    std::vector<SectionLog> info = {
+        DEVICE_INFO, BUILD_INFO, FINGERPRINT, APPEND_ORIGIN_LOG, TIMESTAMP, MODULE_NAME,
+        MODULE_VERSION, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, APP_VM_TYPE, REASON,
+        SUMMARY
+    };
+    return info;
+}
+}
+
+std::vector<SectionLog> GetLogParseSections(int32_t logType)
+{
+    std::unordered_map<int32_t, std::function<decltype(GetCppCrashSectionLogs)>> table = {
+        {FaultLogType::CPP_CRASH, GetCppCrashSectionLogs},
+        {FaultLogType::JS_CRASH, GetJsCrashSectionLogs},
+        {FaultLogType::CJ_ERROR, GetCjCrashSectionLogs},
+        {FaultLogType::APP_FREEZE, GetAppFreezeSectionLogs},
+        {FaultLogType::SYS_FREEZE, GetSysFreezeSectionLogs},
+        {FaultLogType::SYS_WARNING, GetSysWarningSectionLogs},
+        {FaultLogType::RUST_PANIC, GetRustPanicSectionLogs},
+        {FaultLogType::ADDR_SANITIZER, GetAddrSanitizerSectionLogs},
+    };
+    if (auto iter = table.find(logType); iter != table.end()) {
+        return iter->second();
+    }
+    return {};
+}
+
+bool ParseFaultLogLine(const std::vector<SectionLog>& parseList, const std::string& line,
     const std::string& multline, std::string& multlineName, FaultLogInfo& info)
 {
-    for (auto &item : parseList) {
-        if (strlen(item[LOG_MAP_VALUE]) <= 1) {
+    for (const auto &item : parseList) {
+        if (strlen(item.logName) <= 1) {
             continue;
         }
-        std::string sectionHead = item[LOG_MAP_VALUE];
+        std::string sectionHead = item.logName;
         sectionHead = sectionHead.back() == '\n' ? sectionHead.substr(0, sectionHead.size() - 1) : sectionHead;
         if (line.find(sectionHead) == std::string::npos) {
             continue;
         }
         if (!line.empty() && line.at(line.size() - 1) == ':') {
-            if ((item[LOG_MAP_KEY] != multlineName) && (!multline.empty())) {
+            if ((item.sectionName != multlineName) && (!multline.empty())) {
                 info.sectionMap[multlineName] = multline;
             }
-            multlineName = item[LOG_MAP_KEY];
+            multlineName = item.sectionName;
         } else {
-            info.sectionMap[item[LOG_MAP_KEY]] = line.substr(line.find_first_of(":") + 1);
+            info.sectionMap[item.sectionName] = line.substr(line.find_first_of(":") + 1);
         }
         return false;
     }
@@ -216,34 +250,36 @@ void WriteDfxLogToFile(int32_t fd)
     FileUtil::SaveStringToFd(fd, sepStr);
 }
 
-void WriteFaultLogToFile(int32_t fd, int32_t logType, std::map<std::string, std::string> sections)
+void WriteFaultLogToFile(int32_t fd, int32_t logType, const std::map<std::string, std::string>& sections)
 {
-    auto seq = GetLogParseList(logType);
-    for (auto &item : seq) {
-        auto value = sections[item[LOG_MAP_KEY]];
-        if (!value.empty()) {
-            std::string keyStr = item[LOG_MAP_KEY];
-            if (keyStr.find(APPEND_ORIGIN_LOG_KV[LOG_MAP_KEY]) != std::string::npos) {
-                if (WriteLogToFile(fd, value, sections)) {
-                    break;
-                }
-            }
-
-            // Does not require adding an identifier header for Summary section
-            if (keyStr.find(SUMMARY_KV[LOG_MAP_KEY]) == std::string::npos) {
-                FileUtil::SaveStringToFd(fd, item[LOG_MAP_VALUE]);
-            }
-
-            if (value.back() != '\n') {
-                value.append("\n");
-            }
-            FileUtil::SaveStringToFd(fd, value);
+    auto seq = GetLogParseSections(logType);
+    for (const auto &item : seq) {
+        auto iter = sections.find(item.sectionName);
+        if (iter == sections.end() || iter->second.empty()) {
+            continue;
         }
+        auto value = iter->second;
+        std::string keyStr = item.sectionName;
+        if (keyStr.find(APPEND_ORIGIN_LOG.sectionName) != std::string::npos && WriteLogToFile(fd, value, sections)) {
+            break;
+        }
+
+        // Does not require adding an identifier header for Summary section
+        if (keyStr.find(SUMMARY.sectionName) == std::string::npos) {
+            FileUtil::SaveStringToFd(fd, item.logName);
+        }
+
+        if (value.back() != '\n') {
+            value.append("\n");
+        }
+        FileUtil::SaveStringToFd(fd, value);
     }
 
-    if (!sections["KEYLOGFILE"].empty()) {
-        FileUtil::SaveStringToFd(fd, "Additional Logs:\n");
-        WriteStackTraceFromLog(fd, sections[FaultKey::MODULE_PID], sections["KEYLOGFILE"]);
+    if (auto logIter = sections.find("KEYLOGFILE"); logIter != sections.end() && !logIter->second.empty()) {
+        if (auto pidIter = sections.find(FaultKey::MODULE_PID); pidIter != sections.end()) {
+            FileUtil::SaveStringToFd(fd, "Additional Logs:\n");
+            WriteStackTraceFromLog(fd, pidIter->second, logIter->second);
+        }
     }
 }
 
@@ -253,12 +289,12 @@ static void UpdateFaultLogInfoFromTempFile(FaultLogInfo& info)
         return;
     }
 
-    StringUtil::ConvertStringTo<int32_t>(info.sectionMap[MODULE_UID_KV[LOG_MAP_KEY]], info.id);
-    info.module = info.sectionMap[PROCESS_NAME_KV[LOG_MAP_KEY]];
-    info.reason = info.sectionMap[REASON_KV[LOG_MAP_KEY]];
-    info.summary = info.sectionMap[KEY_THREAD_INFO_KV[LOG_MAP_KEY]];
-    info.registers = info.sectionMap[KEY_THREAD_REGISTERS_KV[LOG_MAP_KEY]];
-    info.otherThreadInfo = info.sectionMap[OTHER_THREAD_INFO_KV[LOG_MAP_KEY]];
+    StringUtil::ConvertStringTo<int32_t>(info.sectionMap[MODULE_UID.sectionName], info.id);
+    info.module = info.sectionMap[PROCESS_NAME.sectionName];
+    info.reason = info.sectionMap[REASON.sectionName];
+    info.summary = info.sectionMap[KEY_THREAD_INFO.sectionName];
+    info.registers = info.sectionMap[KEY_THREAD_REGISTERS.sectionName];
+    info.otherThreadInfo = info.sectionMap[OTHER_THREAD_INFO.sectionName];
     size_t removeStartPos = info.summary.find("Tid:");
     size_t removeEndPos = info.summary.find("Name:");
     if (removeStartPos != std::string::npos && removeEndPos != std::string::npos) {
@@ -278,7 +314,7 @@ FaultLogInfo ParseCppCrashFromFile(const std::string& path)
 {
     auto fileName = FileUtil::ExtractFileName(path);
     FaultLogInfo info = ExtractInfoFromTempFile(fileName);
-    auto parseList = GetLogParseList(info.faultLogType);
+    auto parseList = GetLogParseSections(info.faultLogType);
     std::ifstream logFile(path);
     std::string line;
     std::string multline;
@@ -317,7 +353,7 @@ void JumpBuildInfo(int32_t fd, std::ifstream& logFile)
     FileUtil::SaveStringToFd(fd, line + "\n");
 }
 
-bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string> &sections)
+bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string>& sections)
 {
     if ((fd < 0) || path.empty()) {
         return false;
