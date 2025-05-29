@@ -31,6 +31,7 @@
 #define private public
 #ifdef DMESG_CATCHER_ENABLE
 #include "dmesg_catcher.h"
+#include "time_util.h"
 #endif // DMESG_CATCHER_ENABLE
 #include "event_log_task.h"
 #ifdef STACKTRACE_CATCHER_ENABLE
@@ -213,9 +214,11 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef DMESG_CATCHER_ENABLE
-    logTask->DmesgCapture();
-    logTask->SysrqCapture(true);
-    logTask->HungTaskCapture(true);
+    logTask->DmesgCapture(0, 0);
+    logTask->DmesgCapture(0, 1);
+    logTask->DmesgCapture(1, 1);
+    logTask->DmesgCapture(0, 2);
+    logTask->DmesgCapture(1, 2);
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef OTHER_CATCHER_ENABLE
@@ -584,6 +587,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_002, TestSize.Level1)
         printf("Fail to create dmesgCatcherFile. errno: %d\n", errno);
         FAIL();
     }
+
     dmesgCatcher->Initialize("", 0, 0);
     int jsonFd = 1;
     EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) > 0);
@@ -591,10 +595,13 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_002, TestSize.Level1)
     dmesgCatcher->Initialize("", 0, 1);
     EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) > 0);
 
-    dmesgCatcher->Initialize("", 1, 0);
+    dmesgCatcher->Initialize("", 1, 1);
     printf("dmesgCatcher result: %d\n", dmesgCatcher->Catch(fd, jsonFd));
 
-    dmesgCatcher->Initialize("", 1, 1);
+    dmesgCatcher->Initialize("", 0, 2);
+    printf("dmesgCatcher result: %d\n", dmesgCatcher->Catch(fd, jsonFd));
+
+    dmesgCatcher->Initialize("", 1, 2);
     printf("dmesgCatcher result: %d\n", dmesgCatcher->Catch(fd, jsonFd));
 
     close(fd);
@@ -610,21 +617,34 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("DmesgCatcherTest_003",
         nullptr, jsonStr);
-    event->SetEventValue("sysrq_time", "20250124");
+    event->SetEventValue("SYSRQ_TIME", "20250124");
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
     dmesgCatcher->Init(event);
+
     bool ret = dmesgCatcher->DumpDmesgLog(-1);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, false);    
+    ret = dmesgCatcher->WriteSysrqTrigger();
+    EXPECT_EQ(ret, true);
+    
     auto fd = open("/data/test/dmesgCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
         printf("Fail to create dmesgCatcherFile. errno: %d\n", errno);
         FAIL();
     }
+    dmesgCatcher->Initialize("", true, 1);
     ret = dmesgCatcher->DumpDmesgLog(fd);
-    EXPECT_EQ(ret, true);
-    ret = dmesgCatcher->WriteSysrqTrigger();
-    EXPECT_EQ(ret, true);
     close(fd);
+    EXPECT_EQ(ret, true);
+
+    auto fd1 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd1 < 0) {
+        printf("Fail to create dmesgCatcherFile2. errno: %d\n", errno);
+        FAIL();
+    }
+    dmesgCatcher->Initialize("", true, 2);
+    ret = dmesgCatcher->DumpDmesgLog(fd1);
+    close(fd1);
+    EXPECT_EQ(ret, true);
 }
 
 #ifdef KERNELSTACK_CATCHER_ENABLE

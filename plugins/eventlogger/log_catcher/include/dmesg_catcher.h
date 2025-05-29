@@ -40,13 +40,13 @@ public:
         HUNG_TASK
     };
 private:
-    int writeNewFile_ = false;
-    int writeType_ = false;
+    int writeNewFile_ = 0;
+    int writeType_ = 0;
     std::shared_ptr<SysEvent> event_;
 
     bool DumpDmesgLog(int fd);
     bool WriteSysrqTrigger();
-    bool DumpToFile(int fd, char *buffer, int size);
+    bool DumpToFile(int fd, const std::string& dataStr);
 #ifdef KERNELSTACK_CATCHER_ENABLE
     void GetTidsByPid(int pid, std::vector<pid_t>& tids);
     int DumpKernelStacktrace(int fd, int pid);
