@@ -32,6 +32,10 @@ bool ExportFileWriter::Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder,
         return false;
     }
     auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_JSON_FILE);
+    if (strategy == nullptr) {
+        HIVIEW_LOGE("write strategy is null");
+        return false;
+    }
     strategy->SetWriteStrategyParam(param);
     return strategy->Write(buildStr,
         [this] (const std::string& srcPath, const std::string& destPath) {
