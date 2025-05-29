@@ -59,6 +59,10 @@ std::shared_ptr<ExportEventPackager> EventWriteHandler::GetEventPackager(
     const std::shared_ptr<CachedEvent> event, std::shared_ptr<EventWriteRequest> writeReq)
 {
     auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_JSON_FILE);
+    if (strategy == nullptr) {
+        HIVIEW_LOGW("write strategy is null");
+        return nullptr;
+    }
     std::string packagerKey = strategy->GetPackagerKey(event);
     if (packagerKey.empty()) {
         HIVIEW_LOGW("pacakger key is empty");
