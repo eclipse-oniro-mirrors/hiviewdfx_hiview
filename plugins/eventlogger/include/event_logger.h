@@ -88,6 +88,7 @@ private:
     void StartFfrtDump(std::shared_ptr<SysEvent> event);
 #endif
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
+    void SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event);
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
     void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd);
     void StartLogCollect(std::shared_ptr<SysEvent> event);

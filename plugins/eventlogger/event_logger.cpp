@@ -113,6 +113,7 @@ namespace {
     static constexpr int BOOT_SCAN_SECONDS = 60;
     static constexpr int PERF_TIME = 60;
     static constexpr int PERF_NUM = 10202;
+    constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
 }
 
 REGISTER(EventLogger);
@@ -274,8 +275,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
 {
     std::string historyFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "history.log";
-    mode_t mode = 0644;
-    if (FileUtil::CreateFile(historyFile, mode) != 0 && !FileUtil::FileExists(historyFile)) {
+    if (FileUtil::CreateFile(historyFile, DEFAULT_LOG_FILE_MODE) != 0 && !FileUtil::FileExists(historyFile)) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", historyFile.c_str(), errno);
         return;
     }
@@ -295,6 +295,32 @@ void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
     std::string str = "time[" + time + "], domain[" + event->domain_ + "], wpName[" +
         event->eventName_ + "], pid: " + std::to_string(pid) + ", uid: " + std::to_string(uid) + "\n";
     FileUtil::SaveStringToFile(historyFile, str, truncated);
+}
+
+void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
+{
+    if (event->eventName_ != "THREAD_BLOCK_6S") {
+        return;
+    }
+    std::string tmp = event->GetEventValue("FREEZE_INFO_PATH");
+    if (tmp.empty()) {
+        return;
+    }
+    std::string stackInfo = GetAppFreezeFile(tmp);
+    if (stackInfo.empty()) {
+        HIVIEW_LOGW("failed to save freezeInfo to file, stack content is empty.");
+        return;
+    }
+    std::string bundleName = event->GetEventValue("PACKAGE_NAME").empty() ?
+        event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
+    long uid = event->GetEventIntValue("UID") ? event->GetEventIntValue("UID") : event->GetUid();
+    std::string freezeFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "freeze-cpuinfo-ext-" +
+        bundleName + "-" + std::to_string(uid) + "-" + TimeUtil::GetFormattedTimestampEndWithMilli();
+    if (FileUtil::CreateFile(freezeFile, DEFAULT_LOG_FILE_MODE) != 0 && !FileUtil::FileExists(freezeFile)) {
+        HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
+        return;
+    }
+    FileUtil::SaveStringToFile(freezeFile, stackInfo);
 }
 
 void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
@@ -385,6 +411,7 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
     }
     UpdateDB(event, logFile);
     SaveDbToFile(event);
+    SaveFreezeInfoToFile(event);
 
     constexpr int waitTime = 1;
     auto CheckFinishFun = [this, event] { this->CheckEventOnContinue(event); };
