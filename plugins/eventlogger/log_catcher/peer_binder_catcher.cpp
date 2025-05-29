@@ -309,38 +309,40 @@ std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd, std::set<
         return pids;
     }
 
+    int tid = event_->GetEventIntValue("TID");
+    tid  = (tid > 0) ? tid : pid_;
     if (layer_ == LOGGER_BINDER_STACK_ONE) {
+        bool getTerminal = true;
         for (auto each : manager[pid_]) {
-            if (!firstLayerInit_) {
+            if (getTerminal && (each.clientPid == pid_ && each.clientTid == tid)) {
                 terminalBinder_.pid = each.serverPid;
                 terminalBinder_.tid = each.serverTid;
-                firstLayerInit_ = true;
+                getTerminal = false;
             }
             pids.insert(each.serverPid);
         }
     } else if (layer_ == LOGGER_BINDER_STACK_ALL) {
-        ParseBinderCallChain(manager, pids, pid_);
+        PeerBinderCatcher::ParseBinderParam params = {pid_, tid};
+        ParseBinderCallChain(manager, pids, pid_, params, true);
     }
     return pids;
 }
 
 void PeerBinderCatcher::ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-    std::set<int>& pids, int pid)
+    std::set<int>& pids, int pid, const PeerBinderCatcher::ParseBinderParam& params, bool getTerminal)
 {
-    bool isGetLayerBinder = false;
     for (auto& each : manager[pid]) {
         if (pids.find(each.serverPid) != pids.end()) {
             continue;
         }
         pids.insert(each.serverPid);
-        if (!firstLayerInit_ || (!isGetLayerBinder && terminalBinder_.pid == each.clientPid &&
-            terminalBinder_.tid == each.clientTid)) {
+        if (getTerminal && ((each.clientPid == params.eventPid && each.clientTid == params.eventTid) ||
+            (each.clientPid = terminalBinder_.pid && each.clientTid == terminalBinder_.tid))) {
             terminalBinder_.pid = each.serverPid;
             terminalBinder_.tid = each.serverTid;
-            firstLayerInit_ = true;
-            isGetLayerBinder = true;
+            ParseBinderCallChain(manager, pids, each.serverPid, params, true);
         }
-        ParseBinderCallChain(manager, pids, each.serverPid);
+        ParseBinderCallChain(manager, pids, each.serverPid, params, false);
     }
 }
 
