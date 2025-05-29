@@ -22,6 +22,7 @@
 
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -380,7 +381,7 @@ int EventServer::AddToMonitor(int pollFd, struct epoll_event pollEvents[])
 
 void EventServer::Start()
 {
-    HIVIEW_LOGD("start event server");
+    HIVIEW_LOGI("start event server");
     if (OpenDevs() < 0) {
         return;
     }
@@ -394,6 +395,10 @@ void EventServer::Start()
     struct epoll_event pollEvents[devs_.size()];
     if (AddToMonitor(pollFd, pollEvents) < 0) {
         return;
+    }
+
+    if (setpriority(PRIO_PROCESS, 0, -20) != 0) { // nice:-20
+        HIVIEW_LOGW("failed to setpriority -20");
     }
 
     HIVIEW_LOGI("go into event loop");

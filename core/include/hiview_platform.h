@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,7 @@ public:
     void RequestUnloadPlugin(std::shared_ptr<Plugin> caller) override;
     std::list<std::weak_ptr<Plugin>> GetPipelineSequenceByName(const std::string& name) override;
     std::shared_ptr<EventLoop> GetSharedWorkLoop() override;
+    std::shared_ptr<EventLoop> GetMainWorkLoop() override;
     std::string GetHiViewDirectory(DirectoryType type) override;
     std::string GetHiviewProperty(const std::string& key, const std::string& defaultValue) override;
     bool SetHiviewProperty(const std::string& key, const std::string& value, bool forceUpdate) override;
@@ -188,6 +189,7 @@ private:
     std::vector<std::string> dynamicLibSearchDir_;
     std::shared_ptr<EventDispatchQueue> unorderQueue_;
     std::shared_ptr<EventLoop> sharedWorkLoop_;
+    std::shared_ptr<EventLoop> mainWorkLoop_;
     std::map<std::string, std::shared_ptr<Plugin>> pluginMap_;
     std::map<std::string, std::shared_ptr<Pipeline>> pipelines_;
     std::map<std::string, std::shared_ptr<EventLoop>> privateWorkLoopMap_;

@@ -2,6 +2,6 @@ plugins:2
 EventLogger[thread:event_logger]:0 static
 FreezeDetectorPlugin[]:0 static
 pipelines:1
-EventloggerPipeline:PrivacyController EventLogger SysEventDispatcher SysEventStore
+EventloggerPipeline:EventValidator PrivacyController EventLogger SysEventDispatcher SysEventStore
 pipelinegroups:1
 SysEventSource:EventloggerPipeline

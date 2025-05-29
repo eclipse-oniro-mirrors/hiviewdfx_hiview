@@ -578,7 +578,9 @@ void HiviewPlatform::ScheduleCreateAndInitPlugin(const PluginConfig::PluginInfo&
 
 void HiviewPlatform::StartLoop()
 {
-    // empty implementation
+    if (mainWorkLoop_ != nullptr) {
+        mainWorkLoop_->StartLoop(false);
+    }
 }
 
 void HiviewPlatform::StartPlatformDispatchQueue()
@@ -591,6 +593,10 @@ void HiviewPlatform::StartPlatformDispatchQueue()
     if (sharedWorkLoop_ == nullptr) {
         sharedWorkLoop_ = std::make_shared<EventLoop>("plat_shared");
         sharedWorkLoop_->StartLoop();
+    }
+
+    if (mainWorkLoop_ == nullptr) {
+        mainWorkLoop_ = std::make_shared<EventLoop>("hiview");
     }
 }
 
@@ -697,6 +703,11 @@ void HiviewPlatform::PostAsyncEventToTarget(std::shared_ptr<Plugin> caller, cons
 std::shared_ptr<EventLoop> HiviewPlatform::GetSharedWorkLoop()
 {
     return sharedWorkLoop_;
+}
+
+std::shared_ptr<EventLoop> HiviewPlatform::GetMainWorkLoop()
+{
+    return mainWorkLoop_;
 }
 
 bool HiviewPlatform::IsReady()
