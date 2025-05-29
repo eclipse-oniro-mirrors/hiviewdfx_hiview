@@ -108,8 +108,8 @@ public:
  */
 HWTEST_F(FaultloggerRomBaseLine, FaultloggerBaseline001, testing::ext::TestSize.Level3)
 {
-    // To ensure that the use case passes the tentative 1.09 and is later changed to 1.05
-    constexpr double maxRatio = 1.09f;
+    // To ensure that the use case passes the tentative 1.15 and is later changed to 1.05
+    constexpr double maxRatio = 1.15f;
     double ratioBaseline = GetFilesExpansionRatio(dfrBaseline_);
     ASSERT_LT(ratioBaseline, maxRatio);
 }

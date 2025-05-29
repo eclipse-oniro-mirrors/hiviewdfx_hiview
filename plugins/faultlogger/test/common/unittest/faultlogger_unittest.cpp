@@ -1477,6 +1477,9 @@ public:
         DEFAULT = -1,
         ADD_FAULTLOG = 0,
         QUERY_SELF_FAULTLOG,
+        ENABLE_GWP_ASAN_GRAYSALE,
+        DISABLE_GWP_ASAN_GRAYSALE,
+        GET_GWP_ASAN_GRAYSALE,
         DESTROY,
     };
 };
