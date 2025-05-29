@@ -23,6 +23,7 @@
             <option name="push" value="SmartParserHwWatchdogTest002/fastboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest002/19700101000000-00000007/ap_log" src="res"/>
             <option name="push" value="SmartParserLpm3ExceptionTest001/fastboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest001/19700101000000-00000007/ap_log" src="res"/>
             <option name="push" value="SmartParserLpm3ExceptionTest002/fastboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest002/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserIOM3ExceptionTest001/history.log -> /data/test/test_data/SmartParser/SmartParserIOM3ExceptionTest001" src="res"/>
         </preparer>
     </target>
 </configuration>
