@@ -77,7 +77,6 @@ ohos_shared_library("libperfmonitor") {
       "graphic_2d:librender_service_client",
       "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
-      "resource_schedule_service:ressched_client",
     ]
 
     if (defined(global_parts_info) &&
