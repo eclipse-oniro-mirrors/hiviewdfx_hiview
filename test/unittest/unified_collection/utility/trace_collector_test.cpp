@@ -28,11 +28,6 @@ using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
-namespace {
-const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
-const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
-const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
-}
 
 void CreateTracePathInner(const std::string &filePath)
 {

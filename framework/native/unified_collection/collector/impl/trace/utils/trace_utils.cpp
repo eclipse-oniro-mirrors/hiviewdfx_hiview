@@ -43,15 +43,33 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
-const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
-const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
-const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
-const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
 constexpr uint32_t READ_MORE_LENGTH = 100 * 1024;
 const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
 constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
+const uint32_t UNIFIED_SHARE_COUNTS = 25;
+const uint32_t UNIFIED_TELEMETRY_COUNTS = 20;
+const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
+const std::map<std::string, uint32_t> TRACE_COUNT_THRESHOLD_FOR_CALLER = {
+    {CallerName::XPERF, 3}, {CallerName::RELIABILITY, 3},
+    {CallerName::OTHER, 5}, {CallerName::SCREEN, 1}, {ClientName::BETACLUB, 2}
+};
+
+uint32_t GetTraceThreshold(const std::string &tracePath, const std::string &prefix)
+{
+    if (tracePath == UNIFIED_SHARE_PATH) {
+        return prefix == ClientName::APP ? UNIFIED_APP_SHARE_COUNTS : UNIFIED_SHARE_COUNTS;
+    } else if (tracePath == UNIFIED_TELEMETRY_PATH) {
+        return UNIFIED_TELEMETRY_COUNTS;
+    } else if (tracePath == UNIFIED_SPECIAL_PATH &&
+        TRACE_COUNT_THRESHOLD_FOR_CALLER.find(prefix) != TRACE_COUNT_THRESHOLD_FOR_CALLER.end()) {
+        return TRACE_COUNT_THRESHOLD_FOR_CALLER.at(prefix);
+    } else {
+        HIVIEW_LOGW("lack count config : %{public}s", prefix.c_str());
+        return 0;
+    }
+}
 }
 
 UcError TransCodeToUcError(TraceErrorCode ret)
@@ -192,6 +210,33 @@ void CopyFile(const std::string &src, const std::string &dst)
     }
 }
 
+void DoClean(const std::string &tracePath, const std::string &prefix)
+{
+    // Load all files under the path
+    std::vector<std::string> files;
+    FileUtil::GetDirFiles(tracePath, files);
+
+    // Filter files that belong to me
+    std::deque<std::string> filteredFiles;
+    for (const auto &file : files) {
+        if (prefix.empty() || file.find(prefix) != std::string::npos) {
+            filteredFiles.emplace_back(file);
+        }
+    }
+    std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
+        return a < b;
+    });
+    auto threshold = GetTraceThreshold(tracePath, prefix);
+    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), threshold);
+
+    // Clean up old files, new copied file is still working in sub thread now, only can clean old files here
+    while (filteredFiles.size() > threshold) {
+        FileUtil::RemoveFile(filteredFiles.front());
+        HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
+        filteredFiles.pop_front();
+    }
+}
+
 /*
  * apply to xperf, xpower and reliability
  * trace path eg.:
@@ -219,6 +264,7 @@ std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outpu
             FileUtil::SaveStringToFile(tempDestZipPath, " ", true);
             UcollectionTask traceTask = [=]() {
                 ZipTraceFile(tracePath, destZipPath);
+                DoClean(destDir, "");
             };
             TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
         }
@@ -250,12 +296,14 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
         // copy trace immediately for betaclub and screen recording
         if (prefix == CallerName::SCREEN || prefix == ClientName::BETACLUB) {
             CopyFile(trace, dst);
+            DoClean(UNIFIED_SPECIAL_PATH, prefix);
             continue;
         }
         if (!FileUtil::FileExists(dst)) {
             // copy trace in ffrt asynchronously
             UcollectionTask traceTask = [=]() {
                 CopyFile(trace, dst);
+                DoClean(UNIFIED_SPECIAL_PATH, prefix);
             };
             TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
         }

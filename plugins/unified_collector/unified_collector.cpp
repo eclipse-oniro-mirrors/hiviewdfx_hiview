@@ -60,10 +60,6 @@ const std::string COLLECTION_IO_PATH = "/data/log/hiview/unified_collection/io/"
 const std::string HIVIEW_UCOLLECTION_STATE_TRUE = "true";
 const std::string HIVIEW_UCOLLECTION_STATE_FALSE = "false";
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
-const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
-const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
-const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
 const std::string DEVELOP_TRACE_RECORDER_FALSE = "false";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 const std::string OTHER = "Other";

@@ -32,18 +32,7 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
-const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
-const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
-const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
-const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
 constexpr int32_t FULL_TRACE_DURATION = -1;
-const uint32_t UNIFIED_SHARE_COUNTS = 25;
-const uint32_t UNIFIED_TELEMETRY_COUNTS = 20;
-const uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
-const uint32_t UNIFIED_SPECIAL_COUNTS = 3;
-const uint32_t UNIFIED_SPECIAL_OTHER = 5;
-const uint32_t UNIFIED_SPECIAL_SCREEN = 1;
-const uint32_t UNIFIED_SPECIAL_BETACLUB = 2;
 const uint32_t MS_UNIT = 1000;
 }
 
@@ -73,32 +62,6 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
     return ret;
 }
 
-void TraceStrategy::DoClean(const std::string &tracePath, uint32_t threshold, bool hasPrefix)
-{
-    // Load all files under the path
-    std::vector<std::string> files;
-    FileUtil::GetDirFiles(tracePath, files);
-
-    // Filter files that belong to me
-    std::deque<std::string> filteredFiles;
-    for (const auto &file : files) {
-        if (!hasPrefix || IsMine(file)) {
-            filteredFiles.emplace_back(file);
-        }
-    }
-    std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
-        return a < b;
-    });
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), threshold);
-
-    // Clean up old files, new copied file is still working in sub thread now, only can clean old files here
-    while (filteredFiles.size() > threshold) {
-        FileUtil::RemoveFile(filteredFiles.front());
-        HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
-        filteredFiles.pop_front();
-    }
-}
-
 TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
 {
     DumpEvent dumpEvent;
@@ -123,19 +86,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
         return ret;
     }
     outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
-    if (caller_ == CallerName::SCREEN) {
-        DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_SCREEN, true);
-    } else if (caller_ == ClientName::BETACLUB) {
-        DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_BETACLUB, true);
-    } else {
-        DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_OTHER, true);
-    }
     return ret;
-}
-
-bool TraceDevStrategy::IsMine(const std::string &fileName)
-{
-    return fileName.find(caller_) != std::string::npos;
 }
 
 TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
@@ -167,15 +118,9 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
     outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
-    DoClean(UNIFIED_SHARE_PATH, UNIFIED_SHARE_COUNTS, false);
     WriteDumpTraceHisysevent(dumpEvent);
     flowController_->StoreDb();
     return {};
-}
-
-bool TraceFlowControlStrategy::IsMine(const std::string &fileName)
-{
-    return true;
 }
 
 TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
@@ -199,7 +144,6 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
     outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
-    DoClean(UNIFIED_SPECIAL_PATH, UNIFIED_SPECIAL_COUNTS, true);
     if (flowController_->NeedDump()) {
         if (!flowController_->NeedUpload(traceSize)) {
             dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
@@ -208,7 +152,6 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
             return {};
         }
         outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
-        DoClean(UNIFIED_SHARE_PATH, UNIFIED_SHARE_COUNTS, false);
     } else {
         HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
         return {};
@@ -216,11 +159,6 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
     WriteDumpTraceHisysevent(dumpEvent);
     flowController_->StoreDb();
     return {};
-}
-
-bool TraceMixedStrategy::IsMine(const std::string &fileName)
-{
-    return fileName.find(caller_) != std::string::npos;
 }
 
 TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
@@ -242,7 +180,6 @@ TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
         return TraceRet(traceRetInfo.errorCode);
     }
     outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_TELEMETRY_PATH);
-    DoClean(UNIFIED_TELEMETRY_PATH, UNIFIED_TELEMETRY_COUNTS, false);
     return {};
 }
 
@@ -293,14 +230,9 @@ void TraceAppStrategy::InnerReportMainThreadJankForTrace(std::shared_ptr<AppCall
         UCollectUtil::SYS_EVENT_PARAM_JANK_LEVEL, 1); // 1: over 450ms
 }
 
-bool TraceAppStrategy::IsMine(const std::string &fileName)
-{
-    return fileName.find("/" + ClientName::APP) != std::string::npos;
-}
-
 void TraceAppStrategy::CleanOldAppTrace()
 {
-    DoClean(UNIFIED_SHARE_PATH, UNIFIED_APP_SHARE_COUNTS, true);
+    DoClean(UNIFIED_SHARE_PATH, ClientName::APP);
     uint64_t timeNow = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
     uint32_t secondsOfThreeDays = 3 * TimeUtil::SECONDS_PER_DAY; // 3 : clean data three days ago
     if (timeNow < secondsOfThreeDays) {
