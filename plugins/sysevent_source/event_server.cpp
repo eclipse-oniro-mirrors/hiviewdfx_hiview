@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/un.h>
 #include <unistd.h>
 
 #include <securec.h>
@@ -36,9 +35,6 @@
 #include "device_node.h"
 #include "init_socket.h"
 #include "hiview_logger.h"
-#include "socket_util.h"
-
-#define SOCKET_FILE_DIR "/dev/unix/socket/hisysevent"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -145,46 +141,12 @@ pid_t ReadPidFromMsgh(struct msghdr& msgh)
 }
 }
 
-void SocketDevice::InitSocket(int &socketId)
-{
-    struct sockaddr_un serverAddr;
-    serverAddr.sun_family = AF_UNIX;
-    if (strcpy_s(serverAddr.sun_path, sizeof(serverAddr.sun_path), SOCKET_FILE_DIR) != EOK) {
-        socketId = -1;
-        HIVIEW_LOGE("copy hisysevent dev path failed, error=%{public}d, msg=%{public}s", errno, strerror(errno));
-        return;
-    }
-    serverAddr.sun_path[sizeof(serverAddr.sun_path) - 1] = '\0';
-    socketId = TEMP_FAILURE_RETRY(socket(AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0));
-    if (socketId < 0) {
-        HIVIEW_LOGE("create hisysevent socket failed, error=%{public}d, msg=%{public}s", errno, strerror(errno));
-        return;
-    }
-    InitRecvBuffer(socketId_);
-    unlink(serverAddr.sun_path);
-    fdsan_exchange_owner_tag(socketId, 0, logLabelDomain);
-    if (TEMP_FAILURE_RETRY(bind(socketId, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr))) < 0) {
-        fdsan_close_with_tag(socketId, logLabelDomain);
-        socketId = -1;
-        HIVIEW_LOGE("bind hisysevent socket failed, error=%{public}d, msg=%{public}s", errno, strerror(errno));
-        return;
-    }
-}
-
 int SocketDevice::Open()
 {
-    socketId_ = GetControlSocket("hisysevent");
-    if (socketId_ < 0) {
-        HIVIEW_LOGI("create hisysevent socket");
-        InitSocket(socketId_);
-    } else {
+    socketId_ = GetControlSocket(socketName_.c_str());
+    if (socketId_ >= 0) {
+        fdsan_exchange_owner_tag(socketId_, 0, logLabelDomain);
         InitRecvBuffer(socketId_);
-        HIVIEW_LOGI("use hisysevent exist socket");
-    }
-
-    if (socketId_ < 0) {
-        HIVIEW_LOGE("hisysevent create socket failed");
-        return -1;
     }
     return socketId_;
 }
@@ -200,12 +162,12 @@ int SocketDevice::Close()
 
 uint32_t SocketDevice::GetEvents()
 {
-    return EPOLLIN | EPOLLET;
+    return EPOLLIN;
 }
 
 std::string SocketDevice::GetName()
 {
-    return "SysEventSocket";
+    return socketName_;
 }
 
 bool SocketDevice::IsValidMsg(char* msg, int32_t len)
@@ -244,6 +206,7 @@ int SocketDevice::ReceiveMsg(std::vector<std::shared_ptr<EventReceiver>> &receiv
         .iov_len = 0
     };
     InitMsgh(buffer, BUFFER_SIZE, control, msgh, iov);
+    uint8_t eventCount = 0;
     while (true) {
         int ret = recvmsg(socketId_, &msgh, 0);
         if (ret <= 0) {
@@ -257,6 +220,11 @@ int SocketDevice::ReceiveMsg(std::vector<std::shared_ptr<EventReceiver>> &receiv
         }
         for (auto receiver = receivers.begin(); receiver != receivers.end(); receiver++) {
             (*receiver)->HandlerEvent(ConverRawData(buffer));
+        }
+        ++eventCount;
+        if (eventCountPerCycle_ != 0 && eventCount >= eventCountPerCycle_) {
+            HIVIEW_LOGD("reach cycle count: %{public}u, socket: %{public}s", eventCount, socketName_.c_str());
+            break;
         }
     }
     delete[] buffer;
@@ -333,7 +301,7 @@ void EventServer::AddDev(std::shared_ptr<DeviceNode> dev)
 {
     int fd = dev->Open();
     if (fd < 0) {
-        HIVIEW_LOGI("open device %{public}s failed", dev->GetName().c_str());
+        HIVIEW_LOGE("open device %{public}s failed", dev->GetName().c_str());
         return;
     }
     devs_[fd] = dev;
@@ -341,7 +309,9 @@ void EventServer::AddDev(std::shared_ptr<DeviceNode> dev)
 
 int EventServer::OpenDevs()
 {
-    AddDev(std::make_shared<SocketDevice>());
+    constexpr uint8_t eventCountPerCycle = 20; // read 20 events at more, then let cpu time for fast event
+    AddDev(std::make_shared<SocketDevice>("hisysevent", eventCountPerCycle));
+    AddDev(std::make_shared<SocketDevice>("hisysevent_fast", 0));
     AddDev(std::make_shared<BBoxDevice>());
     if (devs_.empty()) {
         HIVIEW_LOGE("can not open any device");

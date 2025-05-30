@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,8 @@ namespace HiviewDFX {
 constexpr int UN_INIT_INT_TYPE_VAL = -1;
 class SocketDevice : public DeviceNode {
 public:
-    SocketDevice() {};
+    SocketDevice(const std::string& socketName, uint8_t eventCountPerCycle)
+        : socketName_(socketName), eventCountPerCycle_(eventCountPerCycle) {};
     virtual ~SocketDevice() {};
     int Close() override;
     int Open() override;
@@ -45,6 +46,8 @@ private:
 private:
     int socketId_ = UN_INIT_INT_TYPE_VAL;
     pid_t uCredPid_ = UN_INIT_INT_TYPE_VAL;
+    std::string socketName_;
+    uint8_t eventCountPerCycle_;
 };
 
 class BBoxDevice : public DeviceNode {

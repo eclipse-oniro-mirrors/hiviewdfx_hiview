@@ -30,7 +30,6 @@
 #include "hiview_db_util.h"
 #include "hiview_zip_util.h"
 #include "securec.h"
-#include "socket_util.h"
 #include "time_util.h"
 
 using namespace std;
@@ -120,20 +119,6 @@ void AdapterUtilityOhosTest::SetUp() {}
 void AdapterUtilityOhosTest::TearDown()
 {
     (void)FileUtil::ForceRemoveDirectory(LOG_FILE_PATH);
-}
-
-/**
- * @tc.name: SocketUtilOhosTest001
- * @tc.desc: Test GetExistingSocketServer defined in namespace SocketUtil
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, SocketUtilOhosTest001, testing::ext::TestSize.Level3)
-{
-    int socketFdIndex = 0;
-    auto ret = SocketUtil::GetExistingSocketServer("/dev/socket/unix/hisysevent", socketFdIndex);
-    int expectedRet = -1;
-    ASSERT_EQ(expectedRet, ret);
 }
 
 /**
