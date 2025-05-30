@@ -32,7 +32,6 @@ public:
     void StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note);
     void EndCommercial(const std::string& sceneId, bool isRsRender);
     void SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
-    void SetAppGCStatus(const std::string& sceneId, int64_t value);
 
     bool RecordsIsEmpty();
 private:

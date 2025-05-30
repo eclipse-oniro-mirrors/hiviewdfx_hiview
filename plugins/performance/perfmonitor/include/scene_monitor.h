@@ -35,7 +35,6 @@ public:
     std::string GetPageUrl();
     void SetPageName(const std::string& pageName);
     std::string GetPageName();
-    int32_t GetPid();
     void SetAppForeground(bool isShow);
     void SetAppStartStatus();
     bool IsScrollJank(const std::string& sceneId);

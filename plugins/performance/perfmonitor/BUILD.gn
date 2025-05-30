@@ -82,6 +82,7 @@ ohos_shared_library("libperfmonitor") {
 
     if (defined(global_parts_info) &&
         defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+      external_deps += [ "resource_schedule_service:ressched_client" ]
       defines += [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
     }
   }
