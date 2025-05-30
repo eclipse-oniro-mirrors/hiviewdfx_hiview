@@ -87,6 +87,11 @@ const std::string TELEMETRY_STOP = "telemetryStop";
 const std::string TELEMETRY_TIMEOUT = "telemetryTimeout";
 }
 
+const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
+const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
+const std::string UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
+const std::string UNIFIED_SHARE_TEMP_PATH = UNIFIED_SHARE_PATH + "temp/";
+
 UcError TransCodeToUcError(TraceErrorCode ret);
 UcError TransStateToUcError(TraceStateCode ret);
 UcError TransFlowToUcError(TraceFlowCode ret);
@@ -94,6 +99,7 @@ const std::string EnumToString(UCollect::TraceCaller caller);
 const std::string ClientToString(UCollect::TraceClient client);
 const std::string ModuleToString(UCollect::TeleModule module);
 void CopyFile(const std::string &src, const std::string &dst);
+void DoClean(const std::string &tracePath, const std::string &prefix);
 std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outputFiles, const std::string &destDir);
 std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix);
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);

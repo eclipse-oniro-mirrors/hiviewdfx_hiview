@@ -23,6 +23,7 @@
 #include "trace_decorator.h"
 #include "trace_strategy.h"
 #include "trace_state_machine.h"
+#include "trace_utils.h"
 
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;

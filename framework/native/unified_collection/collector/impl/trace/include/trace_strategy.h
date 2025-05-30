@@ -40,8 +40,6 @@ protected:
     std::string caller_;
     TraceScenario scenario_;
 
-    virtual void DoClean(const std::string &tracePath, uint32_t threshold, bool hasPrefix);
-    virtual bool IsMine(const std::string &fileName) = 0;
     TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const;
 };
 
@@ -51,9 +49,6 @@ public:
     TraceDevStrategy(int32_t maxDuration, uint64_t happenTime, const std::string &caller, TraceScenario scenario)
         : TraceStrategy(maxDuration, happenTime, caller, scenario) {}
     TraceRet DoDump(std::vector<std::string> &outputFile) override;
-
-protected:
-    bool IsMine(const std::string &fileName) override;
 };
 
 // flow control strategy: flow control db caller, trace put in /data/log/hiview/unified_collection/trace/share dir
@@ -65,9 +60,6 @@ public:
         flowController_ = std::make_shared<TraceFlowController>(caller);
     }
     TraceRet DoDump(std::vector<std::string> &outputFile) override;
-
-protected:
-    bool IsMine(const std::string &fileName) override;
 
 private:
     std::shared_ptr<TraceFlowController> flowController_ = nullptr;
@@ -88,9 +80,6 @@ public:
     }
     TraceRet DoDump(std::vector<std::string> &outputFile) override;
 
-protected:
-    bool IsMine(const std::string &fileName) override;
-
 private:
     std::shared_ptr<TraceFlowController> flowController_ = nullptr;
 };
@@ -106,12 +95,6 @@ public:
     }
     TraceRet DoDump(std::vector<std::string> &outputFile) override;
 
-protected:
-    bool IsMine(const std::string &fileName) override
-    {
-        return true;
-    }
-
 private:
     std::shared_ptr<TraceFlowController> flowController_ = nullptr;
 };
@@ -126,9 +109,6 @@ public:
         flowController_ = std::make_shared<TraceFlowController>(ClientName::APP);
     }
     TraceRet DoDump(std::vector<std::string> &outputFile) override;
-
-protected:
-    bool IsMine(const std::string &fileName) override;
 
 private:
     void InnerShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent);
