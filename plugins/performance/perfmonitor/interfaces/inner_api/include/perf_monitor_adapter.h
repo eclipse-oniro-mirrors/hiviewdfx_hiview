@@ -49,6 +49,9 @@ public:
     void ReportJankFrameApp(double jank, int32_t jankThreshold);
     void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,
         const std::string& pageName);
+
+    void StartRecordImageLoadStat(int64_t id, const std::string& imageType, int width, int height);
+    void EndRecordImageLoadStat(int64_t id, int state);
 };
 }
 }
