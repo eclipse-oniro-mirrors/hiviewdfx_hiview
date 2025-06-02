@@ -120,5 +120,25 @@ bool SysEventBackup::CheckBackupFile()
     }
     return true;
 }
+
+std::string SysEventBackup::ClearDirtyEventFiles(const std::string& eventDbDir)
+{
+    // clear events produced in factory mode
+    std::string result;
+    if (FileUtil::FileExists(backupDir_) && !FileUtil::ForceRemoveDirectory(backupDir_)) {
+        HIVIEW_LOGW("failed to delete backup dir");
+        result.append("BACKUP_DIR;");
+    }
+    std::vector<std::string> domainDirs;
+    FileUtil::GetDirDirs(eventDbDir, domainDirs);
+    for (const auto& domainDir : domainDirs) {
+        if (!FileUtil::ForceRemoveDirectory(domainDir)) {
+            std::string domainName(FileUtil::ExtractFileName(domainDir));
+            HIVIEW_LOGW("delete domain failed: %{public}s", domainName.c_str());
+            result.append(domainName).append(";");
+        }
+    }
+    return result;
+}
 } // EventStore
 } // OHOS::HiviewDFX

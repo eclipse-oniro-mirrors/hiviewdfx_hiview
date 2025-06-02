@@ -27,6 +27,7 @@ public:
 
     bool Backup();
     bool Restore(const std::string& restoreDir);
+    std::string ClearDirtyEventFiles(const std::string& eventDbDir);
 
 private:
     bool CheckBackupFile();
