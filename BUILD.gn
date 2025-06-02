@@ -20,9 +20,6 @@ gen_plugin_script =
 copy_plugin_script =
     rebase_path("//base/hiviewdfx/hiview/build/copy_plugin_config.py")
 
-input_build_file =
-    rebase_path("//base/hiviewdfx/hiview/build/plugin_build.json")
-
 out_plugin_config_file = "${target_gen_dir}/plugin_config"
 out_plugin_build_file = "${target_gen_dir}/plugin_build.gni"
 out_plugin_config_file_tmp = "${target_gen_dir}/plugin_config_tmp"
@@ -31,33 +28,35 @@ if (build_with_config) {
   input_build_file = rebase_path(config_path)
 }
 
-arguments = [
-  "--input-file",
-  input_build_file,
-  "--plugin-config-file",
-  rebase_path(out_plugin_config_file_tmp),
-  "--plugin-build-file",
-  rebase_path(out_plugin_build_file),
-  "--target_os",
-  target_os,
-  "--double_framework",
-  "$is_double_framework",
-  "--target_platform",
-  target_platform,
-  "--target_cpu",
-  target_cpu,
-  "--plugin_so",
-  "$plugin_so",
-  "--plugin_target_platform",
-  plugin_target_platform,
-  "--plugin_target_ram",
-  plugin_target_ram,
-  "--plugin_target_rom",
-  plugin_target_rom,
-]
+action("gen_plugin_config") {
+  script = gen_plugin_script
+  outputs = [ out_plugin_config_file_tmp ]
+  args = [
+    "--input-file",
+    input_build_file,
+    "--plugin-config-file",
+    rebase_path(out_plugin_config_file_tmp),
+    "--plugin-build-file",
+    rebase_path(out_plugin_build_file),
+    "--target_os",
+    target_os,
+    "--double_framework",
+    "$is_double_framework",
+    "--target_platform",
+    target_platform,
+    "--target_cpu",
+    target_cpu,
+    "--plugin_so",
+    "$plugin_so",
+    "--plugin_target_platform",
+    plugin_target_platform,
+    "--plugin_target_ram",
+    plugin_target_ram,
+    "--plugin_target_rom",
+    plugin_target_rom,
+  ]
+}
 
-result_ = exec_script(gen_plugin_script, arguments, "string")
-print(result_)
 action("copy_plugin_config") {
   script = copy_plugin_script
   outputs = [ out_plugin_config_file ]
@@ -67,9 +66,9 @@ action("copy_plugin_config") {
     "--dst-file",
     rebase_path(out_plugin_config_file),
   ]
+  deps = [ ":gen_plugin_config" ]
 }
 
-import(out_plugin_build_file)
 ohos_prebuilt_etc("plugin_config") {
   source = out_plugin_config_file
   deps = [ ":copy_plugin_config" ]
@@ -77,11 +76,6 @@ ohos_prebuilt_etc("plugin_config") {
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   relative_install_dir = "hiview"
-}
-
-config("hiview_plus_config") {
-  visibility = [ ":*" ]
-  include_dirs = [ "include" ]
 }
 
 ohos_executable("hiview") {
@@ -140,8 +134,6 @@ group("hiview_package") {
   if (hiview_freeze_collect_enable) {
     deps += [ "$hiview_plugin/eventlogger:eventloggerso" ]
   }
-
-  deps += plugin_dynamic_deps
 }
 
 group("hiview_test_package") {
