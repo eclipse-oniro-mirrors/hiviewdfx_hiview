@@ -26,6 +26,7 @@ constexpr char PSS_MEMORY[] = "pss_memory";
 constexpr char JS_HEAP[] = "js_heap";
 constexpr char FD[] = "fd";
 constexpr char THREAD[] = "thread";
+constexpr int32_t UID_FOR_TEST = 20022002;
 }
 #endif
 
@@ -115,6 +116,27 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest005, TestSize.Level1)
     appLaunchInfo.bundleName = BUNDLE_NAME_FOR_TEST;
     ASSERT_EQ(handler->PostEvent(appLaunchInfo), 0);
 }
+
+/**
+ * @tc.name: AppEventHandlerTest006
+ * @tc.desc: used to test PostEvent
+ * @tc.type: FUNC
+*/
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest006, TestSize.Level1)
+{
+    AppEventHandler::AppKilledInfo appKilledInfo;
+    auto handler = std::make_shared<AppEventHandler>();
+    ASSERT_EQ(handler->PostEvent(appKilledInfo), -1);
+    appKilledInfo.bundleName = BUNDLE_NAME_FOR_TEST;
+    appKilledInfo.uid = 0;
+    ASSERT_EQ(handler->PostEvent(appKilledInfo), 0);
+    appKilledInfo.bundleName = "";
+    appKilledInfo.uid = UID_FOR_TEST;
+    ASSERT_EQ(handler->PostEvent(appKilledInfo), 0);
+    appKilledInfo.bundleName = BUNDLE_NAME_FOR_TEST;
+    appKilledInfo.uid = UID_FOR_TEST;
+    ASSERT_EQ(handler->PostEvent(appKilledInfo), 0);
+}
 #else
 /**
  * @tc.name: AppEventHandlerTest001
@@ -138,5 +160,8 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level1)
 
     AppEventHandler::AppLaunchInfo appLaunchInfo;
     ASSERT_EQ(handler->PostEvent(appLaunchInfo), -1);
+
+    AppEventHandler::AppKilledInfo appKilledInfo;
+    ASSERT_EQ(handler->PostEvent(appKilledInfo), -1);
 }
 #endif

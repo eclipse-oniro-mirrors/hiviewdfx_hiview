@@ -33,7 +33,8 @@ describe("EventPublishJsTest", function () {
                         "RESOURCE_OVERLIMIT",
                         "ADDRESS_SANITIZER",
                         "MAIN_THREAD_JANK",
-                        "APP_HICOLLIE"
+                        "APP_HICOLLIE",
+                        "APP_KILLED"
                     ]
                 }
             ]
