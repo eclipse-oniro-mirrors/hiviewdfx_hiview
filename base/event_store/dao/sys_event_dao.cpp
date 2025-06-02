@@ -16,6 +16,7 @@
 
 #include <cinttypes>
 
+#include "file_util.h"
 #include "hiview_logger.h"
 #include "sys_event_backup.h"
 #include "sys_event_database.h"
@@ -65,6 +66,12 @@ void SysEventDao::Restore()
 {
     SysEventBackup backup(BACKUP_DIR);
     backup.Restore(GetDatabaseDir());
+}
+
+std::string SysEventDao::ClearDirtyEventFiles()
+{
+    SysEventBackup backup(BACKUP_DIR);
+    return backup.ClearDirtyEventFiles(GetDatabaseDir());
 }
 
 void SysEventDao::Clear()
