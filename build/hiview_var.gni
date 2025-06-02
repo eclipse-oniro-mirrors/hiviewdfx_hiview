@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#declare build args
+# declare build args
 declare_args() {
   plugin_so = false
   plugin_target_platform = "hisi"
@@ -21,4 +21,32 @@ declare_args() {
   # enable for build with external config
   build_with_config = false
   config_path = ""
+}
+
+input_build_file =
+  rebase_path("//base/hiviewdfx/hiview/build/plugin_build.json")
+
+plugin_static_deps = []
+plugin_ut_deps = []
+plugin_mst_deps = []
+plugin_config_json = read_file(input_build_file, "json")
+# must be the same as in plugin_build.json
+plugin_keys = []
+
+foreach(plugin_key, plugin_keys) {
+  plugins_info = plugin_config_json.plugins
+  plugin_info = plugins_info[plugin_key]
+  plugin_name = plugin_info.name
+  plugin_path = plugin_info.path
+
+  plugin_source = "$plugin_path:$plugin_name"
+  plugin_ut_source = "$plugin_path:unittest"
+  plugin_mst_source = "$plugin_path:moduletest"
+
+  plugin_static_deps += [ plugin_source ]
+  plugin_ut_deps += [ plugin_ut_source ]
+  plugin_mst_deps += [ plugin_mst_source ]
+
+  plugins_info = {}
+  plugin_info = {}
 }
