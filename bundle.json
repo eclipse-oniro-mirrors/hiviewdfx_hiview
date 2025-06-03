@@ -112,7 +112,9 @@
                 "window_manager",
                 "zlib",
                 "thermal_manager",
-                "selinux_adapter"
+                "selinux_adapter",
+                "resource_schedule_service",
+                "eventhandler"
             ]
         },
         "build": {
@@ -208,6 +210,17 @@
                         "header_base": "//base/hiviewdfx/hiview/plugins/faultlogger/service/sanitizer_collector/gwp_asan",
                         "header_files": [
                             "gwpasan_collector.h"
+                        ]
+                    }
+                },
+                {
+                    "name": "//base/hiviewdfx/hiview/plugins/performance/perfmonitor:libperfmonitor",
+                    "header": {
+                        "header_base": "//base/hiviewdfx/hiview/plugins/performance/perfmonitor/interfaces/inner_api/include",
+                        "header_files": [
+                            "perf_monitor_adapter.h",
+                            "perf_model.h",
+                            "perf_constants.h"
                         ]
                     }
                 }

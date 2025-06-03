@@ -92,6 +92,7 @@ declare_args() {
   }
 
   hiview_enable_performance_monitor = false
+  hiview_enable_xperf_perfmonitor = true
 
   hiview_enable_crash_validator = true
 
