@@ -451,5 +451,21 @@ HWTEST_F(EventLoopTest, EventLoopWrongInputParamsTest001, TestSize.Level3)
     auto result2 = currentLooper_->AddEventForResult(eventhandler, event);
     ASSERT_EQ(result2.get(), true);
 }
+
+/**
+ * @tc.name: InterfaceTest001
+ * @tc.desc: simple interface test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoopTest, InterfaceTest001, TestSize.Level3)
+{
+    EventLoop eventLoop("test");
+    ASSERT_EQ("test", eventLoop.GetName());
+    ASSERT_EQ("test", eventLoop.GetRawName());
+
+    EventLoop eventLoop2("test@dd");
+    ASSERT_EQ("test@dd", eventLoop2.GetName());
+    ASSERT_EQ("test", eventLoop2.GetRawName());
+}
 }
 }
