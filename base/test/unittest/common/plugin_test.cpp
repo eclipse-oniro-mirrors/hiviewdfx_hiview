@@ -146,6 +146,19 @@ HWTEST_F(PluginTest, PluginTest002, testing::ext::TestSize.Level0)
 }
 
 /**
+ * @tc.name: PluginTest003
+ * @tc.desc: Test the api of Plugin.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginTest, PluginTest003, testing::ext::TestSize.Level3)
+{
+    auto plugin = std::make_shared<Plugin>();
+    plugin->SetName("test_plugin");
+    ASSERT_EQ("test_plugin", plugin->GetName());
+    ASSERT_EQ("test_plugin", plugin->GetHandlerInfo());
+}
+
+/**
  * @tc.name: HiviewContextTest001
  * @tc.desc: Test the api of HiviewContext.
  * @tc.type: FUNC
