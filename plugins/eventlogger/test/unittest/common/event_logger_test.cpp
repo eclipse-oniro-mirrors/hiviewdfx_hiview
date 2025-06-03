@@ -511,7 +511,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
         "MODULE", "foundation", "MSG", "test remove");
     sleep(3);
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
-        "MODULE", "foundation", "MSG", "test remove");
+        "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34");
     sleep(3);
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT,
         "MODULE", "foundation", "MSG", "test remove");

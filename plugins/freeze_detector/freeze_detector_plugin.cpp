@@ -102,6 +102,19 @@ std::string FreezeDetectorPlugin::RemoveRedundantNewline(const std::string& cont
     return outContent;
 }
 
+std::string GetHitraceIdInfo(SysEvent sysEvent)
+{
+    std::string hitraceId = sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_ID);
+    if (hitraceId.empty()) {
+        return "";
+    }
+    std::string outContent = "hitrace_id: " + hitraceId +
+        ", span_id: " + sysEvent.GetEventValue(FreezeCommon::EVENT_SPAN_ID) +
+        ", parent_span_id: " + sysEvent.GetEventValue(FreezeCommon::EVENT_PARENT_SPAN_ID) +
+        ", trace_flag: " + sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_FLAG) + "\n";
+    return outContent;
+}
+
 WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
 {
     Event& eventRef = const_cast<Event&>(event);
@@ -115,10 +128,11 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     uid = uid ? uid : sysEvent.GetUid();
     std::string packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     std::string processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
-    std::string hiteaceTime = sysEvent.GetEventValue(FreezeCommon::HIREACE_TIME);
+    std::string hitraceTime = sysEvent.GetEventValue(FreezeCommon::HIREACE_TIME);
     std::string sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     std::string terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
     std::string info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
+    std::string hitraceIdInfo = GetHitraceIdInfo(sysEvent);
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
     std::string logPath = std::regex_search(info, result, reg) ? result[1].str() : info;
@@ -138,12 +152,14 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitForeGround(foreGround)
         .InitMsg("")
         .InitLogPath(logPath)
-        .InitHitraceTime(hiteaceTime)
+        .InitHitraceTime(hitraceTime)
         .InitSysrqTime(sysrqTime)
+        .InitHitraceIdInfo(hitraceIdInfo)
         .Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
-        " packageName=%{public}s, processName=%{public}s, logPath=%{public}s.", event.domain_.c_str(),
-        event.eventName_.c_str(), pid, uid, seq, packageName.c_str(), processName.c_str(), logPath.c_str());
+        " packageName=%{public}s, processName=%{public}s, logPath=%{public}s, hitraceIdInfo=%{public}s.",
+        event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq, packageName.c_str(), processName.c_str(),
+        logPath.c_str(), hitraceIdInfo.c_str());
 
     return watchPoint;
 }

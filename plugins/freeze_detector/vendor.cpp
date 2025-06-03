@@ -54,6 +54,7 @@ namespace {
     static constexpr const char* const KEY_PROCESS[] = {
         "foundation", "com.ohos.sceneboard", "render_service"
     };
+    static constexpr const char* const HITRACE_ID_INFO = "HitraceIdInfo: ";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -142,6 +143,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.summary = type + ": " + processName + " " + stringId +
         " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
     info.summary += std::string(DISPLAY_POWER_INFO) + disPlayPowerInfo;
+    info.summary += std::string(HITRACE_ID_INFO) + watchPoint.GetHitraceIdInfo();
     info.logPath = logPath;
     info.sectionMaps[FreezeCommon::HIREACE_TIME] = watchPoint.GetHitraceTime();
     info.sectionMaps[FreezeCommon::SYSRQ_TIME] = watchPoint.GetSysrqTime();

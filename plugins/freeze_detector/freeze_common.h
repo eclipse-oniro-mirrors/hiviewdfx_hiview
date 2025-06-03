@@ -41,6 +41,10 @@ public:
     static constexpr const char* const PB_EVENTS[] = {
         "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT"
     };
+    static constexpr const char* const EVENT_TRACE_ID = "HITRACE_ID";
+    static constexpr const char* const EVENT_SPAN_ID = "SPAN_ID";
+    static constexpr const char* const EVENT_PARENT_SPAN_ID = "PARENT_SPAN_ID";
+    static constexpr const char* const EVENT_TRACE_FLAG = "TRACE_FLAG";
 
     FreezeCommon();
     ~FreezeCommon();
