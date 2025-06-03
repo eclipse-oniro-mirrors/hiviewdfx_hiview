@@ -112,6 +112,7 @@
         "OHOS::HiviewDFX::LogStoreEx::SetLogFileComparator(std::__h::function<bool (OHOS::HiviewDFX::LogFile const&, OHOS::HiviewDFX::LogFile const&)>)";
         "OHOS::HiviewDFX::LogStoreEx::ClearSameLogFilesIfNeeded(std::__h::function<bool (OHOS::HiviewDFX::LogFile const&)>, unsigned int)";
         "OHOS::HiviewDFX::LogStoreEx::GetLogFiles(std::__h::function<bool (OHOS::HiviewDFX::LogFile const&)>)";
+        "OHOS::HiviewDFX::LogStoreEx::ClearOldestFilesIfNeeded()";
         "OHOS::HiviewDFX::Event::GetKeyValuePairs()";
         "OHOS::HiviewDFX::Event::GetKeyValuePairs() const";
         "OHOS::HiviewDFX::Logger::GetInstance()";
