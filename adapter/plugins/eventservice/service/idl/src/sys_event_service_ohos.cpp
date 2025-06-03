@@ -277,7 +277,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
             listenerInfo.uid, listenerInfo.pid);
         return IPC_CALL_SUCCEED;
     }
-    if (!callbackObject->AddDeathRecipient(deathRecipient_)) {
+    if (callbackObject->IsProxyObject() && !callbackObject->AddDeathRecipient(deathRecipient_)) {
         HIVIEW_LOGE("subscribe fail, can not add death recipient.");
         return ERR_ADD_DEATH_RECIPIENT;
     }
@@ -315,7 +315,7 @@ ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>&
     }
     auto registeredListener = registeredListeners_.find(callbackObject);
     if (registeredListener != registeredListeners_.end()) {
-        if (!callbackObject->RemoveDeathRecipient(deathRecipient_)) {
+        if (callbackObject->IsProxyObject() && !callbackObject->RemoveDeathRecipient(deathRecipient_)) {
             HIVIEW_LOGE("uid %{public}d pid %{public}d listener can not remove death recipient.", uid, pid);
             return ERR_ADD_DEATH_RECIPIENT;
         }
@@ -411,10 +411,7 @@ ErrCode SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std
 bool SysEventServiceOhos::HasAccessPermission() const
 {
     using namespace Security::AccessToken;
-    auto tokenId = IPCSkeleton::GetFirstTokenID();
-    if (tokenId == 0) {
-        tokenId = IPCSkeleton::GetCallingTokenID();
-    }
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
     if ((AccessTokenKit::VerifyAccessToken(tokenId, READ_DFX_SYSEVENT_PERMISSION) == RET_SUCCESS) ||
         (AccessTokenKit::VerifyAccessToken(tokenId, DFX_DUMP_PERMISSION) == RET_SUCCESS)) {
         return true;
