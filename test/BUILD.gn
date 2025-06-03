@@ -80,7 +80,7 @@ ohos_unittest("HolisticPlatformTest") {
 }
 
 ohos_unittest("ReportXPowerEventTest") {
-  module_out_path = module_output_path
+  module_out_path = "hiview/OH-Xpower"
   configs = []
 
   sources = [ "unittest/xpower_event/xpower_event_test.cpp" ]
@@ -98,7 +98,7 @@ if (!defined(ohos_lite)) {
   import("//build/test.gni")
 
   ohos_unittest("ReportXPowerJsEventTest") {
-    module_out_path = module_output_path
+    module_out_path = "hiview/OH-Xpower"
     cflags = [ "-g3" ]
     defines = [ "NAPI_TEST" ]
 

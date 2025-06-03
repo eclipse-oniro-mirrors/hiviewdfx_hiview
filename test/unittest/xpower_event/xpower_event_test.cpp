@@ -49,7 +49,7 @@ void ReportXPowerEventTest::TearDown()
  * @tc.desc: used to test ReportXPowerStackSysEvent
  * @tc.type: FUNC
  */
-HWTEST_F(ReportXPowerEventTest, ReportXPowerEventTest001, TestSize.Level1)
+HWTEST_F(ReportXPowerEventTest, ReportXPowerEventTest001, TestSize.Level0)
 {
     printf("disable parameter and test.\n");
     bool succ = OHOS::system::SetParameter(PROP_XPOWER_OPTIMIZE_ENABLE, "0");

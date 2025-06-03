@@ -60,7 +60,7 @@ void NapiXPowerEventTest::TearDown()
  * @tc.desc: Test undefined type.
  * @tc.type: FUNC
  */
-HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest001, testing::ext::TestSize.Level1)
+HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest001, testing::ext::TestSize.Level0)
 {
     napi_env env = (napi_env)engine_;
     napi_value result = nullptr;
@@ -76,7 +76,7 @@ HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest001, testing::ext::TestSize
  * @tc.desc: used to test ReportXPowerJsEventTest
  * @tc.type: FUNC
  */
-HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest002, testing::ext::TestSize.Level1)
+HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest002, testing::ext::TestSize.Level0)
 {
     printf("ReportXPowerJsEventTest002.\n");
     napi_env env = (napi_env)engine_;
@@ -110,7 +110,7 @@ HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest002, testing::ext::TestSize
  * @tc.desc: used to test ReportXPowerJsEventTest
  * @tc.type: FUNC
  */
-HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest003, testing::ext::TestSize.Level1)
+HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest003, testing::ext::TestSize.Level0)
 {
     printf("ReportXPowerJsEventTest003 nullptr.\n");
     NativeEngine *engine = nullptr;
@@ -150,7 +150,7 @@ HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest003, testing::ext::TestSize
  * @tc.desc: used to test ReportXPowerJsEventTest
  * @tc.type: FUNC
  */
-HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest004, testing::ext::TestSize.Level1)
+HWTEST_F(NapiXPowerEventTest, ReportXPowerJsEventTest004, testing::ext::TestSize.Level0)
 {
     ArkNativeEngine* arkEngine = reinterpret_cast<ArkNativeEngine*>(engine_);
     EcmaVM* vm = const_cast<EcmaVM*>(arkEngine->GetEcmaVm());
