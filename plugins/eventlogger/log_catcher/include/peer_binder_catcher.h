@@ -45,6 +45,10 @@ private:
         std::string info = "";
         int pid = 0;
     };
+    struct ParseBinderParam {
+        int eventPid;
+        int eventTid;
+    };
 
     bool firstLayerInit_ = false;
     int pid_ = 0;
@@ -65,7 +69,7 @@ private:
         std::vector<std::pair<uint32_t, uint64_t>>& freezeAsyncSpacePairs) const;
     std::vector<std::string> GetFileToList(std::string line) const;
     void ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
-        std::set<int>& pids, int pid);
+        std::set<int>& pids, int pid, const PeerBinderCatcher::ParseBinderParam& params, bool getTerminal);
     std::set<int> GetBinderPeerPids(int fd, int jsonFd, std::set<int>& asyncPids);
     bool IsAncoProc(int pid) const;
     void CatcherFfrtStack(int fd, int pid) const;

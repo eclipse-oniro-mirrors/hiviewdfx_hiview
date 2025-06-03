@@ -823,30 +823,32 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_002, TestSize.Level1)
  */
 HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
 {
-    std::set<int> pids;
-    pids.insert(0);
-    pids.insert(2);
-    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
-    PeerBinderCatcher::BinderInfo info = {
-        .clientPid = 1,
-        .clientTid = 0,
-        .serverPid = 1,
-        .serverTid = 0,
-        .wait = 1
-    };
     std::map<int, std::list<OHOS::HiviewDFX::PeerBinderCatcher::BinderInfo>> manager;
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::set<int> pids;
+    int eventPid = 1;
+    int eventTid = 3;
+    PeerBinderCatcher::ParseBinderParam params = {eventPid, eventTid};
+
+    PeerBinderCatcher::BinderInfo info = {2, 0, 4, 0, 1};
     manager[info.clientPid].push_back(info);
-    peerBinderCatcher->ParseBinderCallChain(manager, pids, 0);
-    PeerBinderCatcher::BinderInfo info1 = {
-        .clientPid = 2,
-        .clientTid = 0,
-        .serverPid = 2,
-        .serverTid = 0,
-        .wait = 0
-    };
+    peerBinderCatcher->ParseBinderCallChain(manager, pids, eventPid, params, true);
+    EXPECT_TRUE(pids.empty());
+
+    PeerBinderCatcher::BinderInfo info1 = {1, 3, 5, 7, 3};
     manager[info1.clientPid].push_back(info1);
-    peerBinderCatcher->ParseBinderCallChain(manager, pids, 1);
-    EXPECT_TRUE(!pids.empty());
+    PeerBinderCatcher::BinderInfo info2 = {5, 7, 9, 13, 3};
+    manager[info2.clientPid].push_back(info2);
+    PeerBinderCatcher::BinderInfo info3 = {5, 6, 10, 120, 3};
+    manager[info3.clientPid].push_back(info3);
+    PeerBinderCatcher::BinderInfo info4 = {9, 10, 11, 120, 3};
+    manager[info4.clientPid].push_back(info4);
+    PeerBinderCatcher::BinderInfo info5 = {9, 13, 19, 12666, 3};
+    manager[info5.clientPid].push_back(info5);
+    peerBinderCatcher->ParseBinderCallChain(manager, pids, eventPid, params, true);
+    EXPECT_EQ(pids.size(), 5);
+    EXPECT_EQ(peerBinderCatcher->terminalBinder_.pid, info5.serverPid);
+    EXPECT_EQ(peerBinderCatcher->terminalBinder_.tid, info5.serverTid);
 #ifdef HAS_HIPERF
     pids.insert(3);
     pids.insert(4);
