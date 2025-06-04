@@ -141,21 +141,20 @@ TraceRet TelemetryState::PostTelemetryTimeOut()
 
 void TelemetryState::InitTelemetryStatus(bool isStatusOn)
 {
-    if (stateCallback_== nullptr) {
-        HIVIEW_LOGW(":%{public}s, stateCallback_== nullptr", GetTag().c_str());
-        return;
-    }
     HIVIEW_LOGI(":%{public}s, isStatusOn:%{public}d", GetTag().c_str(), isStatusOn);
     innerStateMachine_ = std::make_shared<TeleMetryStateMachine>();
     auto initState = std::make_shared<InitState>(innerStateMachine_);
     innerStateMachine_->SetInitState(initState);
     auto traceOnState = std::make_shared<TraceOnState>(innerStateMachine_);
     innerStateMachine_->SetTraceOnState(traceOnState);
-
-    innerStateMachine_->RegisterTelemetryCallback(stateCallback_);
+    if (stateCallback_ != nullptr) {
+        innerStateMachine_->RegisterTelemetryCallback(stateCallback_);
+    }
     if (isStatusOn) {
         innerStateMachine_->TransToTraceOnState(1, 0);
-        stateCallback_->OnTelemetryTraceOn();
+        if (stateCallback_ != nullptr) {
+            stateCallback_->OnTelemetryTraceOn();
+        }
     } else {
         innerStateMachine_->TransToInitState();
     }
