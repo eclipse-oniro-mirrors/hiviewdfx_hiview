@@ -24,6 +24,8 @@
 
 #include "hisysevent.h"
 #include "render_service_client/core/transaction/rs_interfaces.h"
+#include "hiview_logger.h"
+
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -31,6 +33,8 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+
+DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 
 namespace {
     constexpr char EVENT_KEY_PROCESS_NAME[] = "PROCESS_NAME";
@@ -66,6 +70,13 @@ namespace {
     constexpr char EVENT_KEY_FILTER_TYPE[] = "FILTER_TYPE";
     constexpr char EVENT_KEY_STARTTIME[] = "STARTTIME";
     constexpr char STATISTIC_DURATION[] = "DURATION";
+    constexpr char KEY_SCROLL_START_TIME[] = "SCROLL_START_TIME";
+    constexpr char KEY_SCROLL_END_TIME[] = "SCROLL_END_TIME";
+    constexpr char KEY_TOTAL_NUM[] = "TOTAL_NUM";
+    constexpr char KEY_FAILED_NUM[] = "FAILED_NUM";
+    constexpr char KEY_TOTAL_SIZE[] = "TOTAL_SIZE";
+    constexpr char KEY_FAILED_SIZE[] = "FAILED_SIZE";
+    constexpr char KEY_TYPE_DETAILS[] = "TYPE_DETAILS";
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     constexpr int32_t MAX_JANK_FRAME_TIME = 32;
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -270,6 +281,56 @@ void PerfReporter::ConvertToRsData(OHOS::Rosen::DataBaseRs &dataRs, DataBase& da
     dataRs.sourceType = GetSourceTypeName(data.sourceType);
     dataRs.note = data.baseInfo.note;
     dataRs.isDisplayAnimator = data.isDisplayAnimator;
+}
+
+void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
+                                        const std::map<int64_t, ImageLoadInfo*>& mRecords)
+{
+    if (mRecords.size() == 0) {
+        HIVIEW_LOGD("no data to report");
+        return;
+    }
+    std::string imageLoadStat;
+    int totalNum = 0; //总个数
+    int failedNum = 0; //失败个数
+    int64_t totalSize = 0; //总大小
+    int64_t failedSize = 0; //失败总大小
+    std::map<std::string, std::pair<int, int>> typeDetails;
+    int64_t size = 0;
+    for (const auto& pair : mRecords) {
+        ImageLoadInfo* record = pair.second;
+        if (record == nullptr) {
+            continue;
+        }
+        if (record->loadEndTime == 0) {
+            continue;
+        }
+        size = (record->width * record->height);
+        totalNum++;
+        totalSize += size;
+        if (record->loadState == 0) {
+            failedNum ++;
+            failedSize += size;
+        }
+ 
+        auto it = typeDetails.find(record->imageType);
+        if (it != typeDetails.end()) {
+            (it->second).first++;
+            if (record->loadState == 0) {
+                (it->second).second++;
+            }
+        } else {
+            typeDetails.emplace(record->imageType, std::make_pair(1, ((record->loadState == 0) ? 1 : 0)));
+        }
+    }
+    for (const auto& typeDetail : typeDetails) {
+        std::string str = ("type=" + typeDetail.first + ",total=" + std::to_string(typeDetail.second.first) +
+                ",failed=" + std::to_string(typeDetail.second.second) + ";");
+        imageLoadStat += str;
+    }
+ 
+    ImageLoadStat stat = {scrollStartTime, scrollEndTime, totalNum, failedNum, totalSize, failedSize, imageLoadStat};
+    EventReporter::ReportImageLoadStat(stat);
 }
 
 void EventReporter::ReportJankFrameApp(JankInfo& info)
@@ -520,6 +581,23 @@ void EventReporter::ReportAppFrameDropToRss(const bool isInteractionJank, const 
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(eventType, subType, payload);
 }
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
+
+void EventReporter::ReportImageLoadStat(const ImageLoadStat& stat)
+{
+    XperfEventBuilder builder;
+    XperfEvent event = builder.EventName("SCROLL_IMAGE_STAT")
+            .EventType(HISYSEVENT_BEHAVIOR)
+            .Param(KEY_SCROLL_START_TIME, stat.startTime)
+            .Param(KEY_SCROLL_END_TIME, stat.endTime)
+            .Param(KEY_TOTAL_NUM, stat.totalNum)
+            .Param(KEY_FAILED_NUM, stat.failedNum)
+            .Param(KEY_TOTAL_SIZE, stat.totalSize)
+            .Param(KEY_FAILED_SIZE, stat.failedSize)
+            .Param(KEY_TYPE_DETAILS, stat.typeDetails)
+            .Build();
+    XperfEventReporter reporter;
+    reporter.Report(PERFORMANCE_DOMAIN, event);
+}
 
 }
 }

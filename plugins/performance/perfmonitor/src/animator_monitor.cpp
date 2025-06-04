@@ -19,6 +19,7 @@
 #include "perf_reporter.h"
 #include "perf_trace.h"
 #include "scene_monitor.h"
+#include "white_block_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -54,6 +55,9 @@ void AnimatorMonitor::Start(const std::string& sceneId, PerfActionType type, con
 void AnimatorMonitor::StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    if (SceneMonitor::GetInstance().IsScrollJank(sceneId)) {
+        WhiteBlockMonitor::GetInstance().StartScroll();
+    }
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     SceneRecord* record = GetRecord(sceneId);
     if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
@@ -94,6 +98,9 @@ void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
 void AnimatorMonitor::EndCommercial(const std::string& sceneId, bool isRsRender)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    if (SceneMonitor::GetInstance().IsScrollJank(sceneId)) {
+        WhiteBlockMonitor::GetInstance().EndScroll();
+    }
     SceneRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
     if (record != nullptr) {

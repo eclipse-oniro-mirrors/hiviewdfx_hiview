@@ -94,6 +94,26 @@ struct JankInfo {
     BaseInfo baseInfo;
 };
 
+struct ImageLoadInfo {
+    int64_t id {0}; //无障碍id
+    std::string imageType;
+    int width {0};
+    int height {0};
+    uint64_t loadStartTime{0};
+    uint64_t loadEndTime{0};
+    int loadState {0}; //图片load状态 0-失败/1-成功
+};
+ 
+struct ImageLoadStat {
+    uint64_t startTime{0};
+    uint64_t endTime{0};
+    int totalNum {0};
+    int failedNum {0};
+    int64_t totalSize {0};
+    int64_t failedSize {0};
+    std::string typeDetails;
+};
+
 class SceneRecord {
 public:
     void InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType, const std::string& nt,
