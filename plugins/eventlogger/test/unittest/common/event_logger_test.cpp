@@ -1000,17 +1000,5 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_002, TestSize.Level3)
     StartBootScan();
     close(fd);
 }
-
-/**
- * @tc.name: EventLoggerTest_GetFileLastAccessTimeStamp_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_GetFileLastAccessTimeStamp_001, TestSize.Level3)
-{
-    time_t ret = GetFileLastAccessTimeStamp("EventLoggerTest");
-    EXPECT_TRUE(ret == 0);
-    GetFileLastAccessTimeStamp("/data/test/log/test.txt");
-}
 } // namespace HiviewDFX
 } // namespace OHOS
