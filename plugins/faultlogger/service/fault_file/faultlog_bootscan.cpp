@@ -97,9 +97,9 @@ void FaultLogBootScan::StartBootScan()
         FaultLogProcessorFactory factory;
         auto processor = factory.CreateFaultLogProcessor(static_cast<FaultLogType>(info.faultLogType));
         if (processor) {
+            info.sectionMap["START_BOOT_SCAN"] = "true";
             processor->AddFaultLog(info, workLoop_, faultLogManager_);
         }
-        info.sectionMap["START_BOOT_SCAN"] = "true";
     }
 }
 
