@@ -21,6 +21,7 @@
 #include "perf_reporter.h"
 #include "perf_utils.h"
 #include "scene_monitor.h"
+#include "white_block_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -125,6 +126,17 @@ void PerfMonitorAdapter::ReportPageShowMsg(const std::string& pageUrl, const std
     const std::string& pageName)
 {
     PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, pageName);
+}
+
+void PerfMonitorAdapter::StartRecordImageLoadStat(int64_t id)
+{
+    WhiteBlockMonitor::GetInstance().StartRecordImageLoadStat(id);
+}
+ 
+void PerfMonitorAdapter::EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type,
+                                                int state)
+{
+    WhiteBlockMonitor::GetInstance().EndRecordImageLoadStat(id, size, type, state);
 }
 
 }

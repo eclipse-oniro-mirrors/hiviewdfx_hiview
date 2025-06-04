@@ -22,6 +22,7 @@ namespace OHOS {
 namespace HiviewDFX {
 
 constexpr char ACE_DOMAIN[] = "ACE";
+constexpr char PERFORMANCE_DOMAIN[] = "PERFORMANCE";
 
 class XperfEventReporter {
 public:

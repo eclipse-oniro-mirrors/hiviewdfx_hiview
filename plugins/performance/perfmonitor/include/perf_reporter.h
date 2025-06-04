@@ -33,6 +33,8 @@ public:
     void ReportAnimateEnd(const std::string& sceneId, SceneRecord* record);
     void ReportJankStatsApp(int64_t duration);
     void ReportJankFrame(double jank, const std::string& windowName);
+    void ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
+                              const std::map<int64_t, ImageLoadInfo*>& mRecords);
 
 private:
     void ReportPerfEvent(PerfEventType type, DataBase& data);
@@ -57,6 +59,8 @@ public:
     static void ReportAppFrameDropToRss(const bool isInteractionJank, const std::string &bundleName,
         const int64_t maxFrameTime = 0);
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
+
+    static void ReportImageLoadStat(const ImageLoadStat& stat);
 };
 
 }
