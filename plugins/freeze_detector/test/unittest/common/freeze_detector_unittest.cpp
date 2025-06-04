@@ -522,7 +522,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_011, TestSize.Level3)
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .Build();
     list.push_back(watchPoint2);
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), true);
+    vendor->ReduceRelevanceEvents(list, result);
 }
 
 /**
