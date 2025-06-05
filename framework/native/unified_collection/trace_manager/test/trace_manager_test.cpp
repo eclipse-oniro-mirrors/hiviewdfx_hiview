@@ -54,7 +54,15 @@ std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(int32_t uid, uint64_t 
     appCallerEvent->threadName_ = "mainThread";
     return appCallerEvent;
 }
-}
+
+class TestTelemetryCallback : public TelemetryCallback {
+    void OnTelemetryStart() override {}
+    void OnTelemetryFinish() override {}
+    void OnTelemetryTraceOn() override {}
+    void OnTelemetryTraceOff() override {}
+};
+};
+
 class TraceManagerTest : public testing::Test {
 public:
     void SetUp() {};
@@ -254,26 +262,18 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
         {"Total", 18000}
     };
     TraceFlowController flowController(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t btime1 = 100;
-    ASSERT_EQ(flowController.InitTelemetryData("id1", btime1, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(btime1, 100);
+    int64_t runningTime1 = 0;
+    ASSERT_EQ(flowController.InitTelemetryData("id1", runningTime1, flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(runningTime1, 0);
 
     // if data init, correct btime2 etime2 value
     TraceFlowController flowController2(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t btime2 = 300;
-    ASSERT_EQ(flowController2.InitTelemetryData("id1", btime2, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(btime2, 100);
-
-    // Id is different, insert btime21 etime22 and value is not change
-    int64_t btime21 = 300;
-    flowController2.InitTelemetryData("id2", btime2, flowControlQuotas);
-    ASSERT_EQ(btime21, 300);
-    flowController2.ClearTelemetryData();
-
-    TraceFlowController flowController3(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t btime3 = 500;
-    ASSERT_EQ(flowController2.InitTelemetryData("id1", btime3, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(btime3, 500);
+    int64_t runningTime2 = 100;
+    ASSERT_EQ(flowController2.InitTelemetryData("id1", runningTime2, flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(runningTime2, 0);
+    flowController2.UpdateRunningTime(400);
+    flowController2.QueryRunningTime(runningTime2);
+    ASSERT_EQ(runningTime2, 400);
 }
 
 /**
@@ -715,4 +715,295 @@ HWTEST_F(TraceManagerTest, TraceManagerTest012, TestSize.Level1)
     ASSERT_TRUE(ret13.IsSuccess());
     auto ret14 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, DEVELOPER_MODE_TRACE_ARGS);
     ASSERT_TRUE(ret14.IsSuccess());
+    auto ret18 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    ASSERT_TRUE(ret18.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest013
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest013, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::POWER);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
+    ASSERT_TRUE(ret2.IsSuccess());
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_TRUE(ret3.IsSuccess());
+    TraceRet ret4 =TraceStateMachine::GetInstance().PowerTelemetryOff();
+    ASSERT_TRUE(ret4.IsSuccess());
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest014
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest014, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::DEFAULT);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest015
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest015, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::POWER);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest016
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest016, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::POWER);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest017
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest017, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
+    TraceRet ret3 = TraceStateMachine::GetInstance().PowerTelemetryOff();
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::POLICY_ERROR);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest018
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest018, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::POWER);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(true);
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_TRUE(ret3.IsSuccess());
+    TraceRet ret4 =TraceStateMachine::GetInstance().PowerTelemetryOff();
+    ASSERT_TRUE(ret4.IsSuccess());
+    TraceRet ret5 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
+    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret6.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest019
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest019, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().TraceTelemetryOn();
+    ASSERT_TRUE(ret2.IsSuccess());
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_TRUE(ret3.IsSuccess());
+    TraceRet ret4 =TraceStateMachine::GetInstance().TraceTelemetryOff();
+    ASSERT_TRUE(ret4.IsSuccess());
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest020
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest020, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest021
+ * @tc.desc: used to test power trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest021, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::POWER);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().TraceTelemetryOn();
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
+    TraceRet ret3 = TraceStateMachine::GetInstance().TraceTelemetryOff();
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::POLICY_ERROR);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest022
+ * @tc.desc: used to test manual trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest022, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().TraceTelemetryOn();
+    ASSERT_TRUE(ret2.IsSuccess());
+    TraceRet ret21 = TraceStateMachine::GetInstance().TraceTelemetryOn();
+    ASSERT_TRUE(ret21.IsSuccess());
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_TRUE(ret3.IsSuccess());
+    TraceRet ret4 = TraceStateMachine::GetInstance().TraceTelemetryOff();
+    ASSERT_EQ(ret4.stateError_, TraceStateCode::NO_TRIGGER);
+    TraceRet ret5 = TraceStateMachine::GetInstance().TraceTelemetryOff();
+    ASSERT_TRUE(ret5.IsSuccess());
+    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret6.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest023
+ * @tc.desc: used to test manual trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest023, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().PostTelemetryOn(2);
+    ASSERT_TRUE(ret2.IsSuccess());
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_TRUE(ret3.IsSuccess());
+    sleep(2);
+    TraceRet ret4 = TraceStateMachine::GetInstance().PostTelemetryTimeOut();
+    ASSERT_TRUE(ret4.IsSuccess());
+    TraceRet ret5 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
+    ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
+    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret6.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest024
+ * @tc.desc: used to test manual trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest024, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().PostTelemetryOn(5);
+    ASSERT_TRUE(ret2.IsSuccess());
+    sleep(1);
+    TraceRet ret3 = TraceStateMachine::GetInstance().PostTelemetryOn(10);
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::UPDATE_TIME);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret4.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest025
+ * @tc.desc: used to test manual trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest025, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().TraceTelemetryOn();
+    TraceStateMachine::GetInstance().PostTelemetryOn(5);
+    ASSERT_TRUE(ret2.IsSuccess());
+    TraceRet ret3 = TraceStateMachine::GetInstance().TraceTelemetryOff();
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::NO_TRIGGER);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret4.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest026
+ * @tc.desc: used to test manual trace on/off
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest026, TestSize.Level1)
+{
+    TraceRetInfo info;
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    TraceRet ret2 = TraceStateMachine::GetInstance().TraceTelemetryOn();
+    TraceStateMachine::GetInstance().PostTelemetryOn(5);
+    ASSERT_TRUE(ret2.IsSuccess());
+    TraceRet ret3 = TraceStateMachine::GetInstance().PostTelemetryTimeOut();
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::NO_TRIGGER);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    ASSERT_TRUE(ret4.IsSuccess());
 }

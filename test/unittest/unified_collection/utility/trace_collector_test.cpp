@@ -77,6 +77,24 @@ public:
 };
 
 /**
+ * @tc.name: TraceCollectorTest006
+ * @tc.desc: used to test TraceCollector for xpower dump
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest006, TestSize.Level1) {
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    auto result1 = collector->FilterTraceOn(TeleModule::XPOWER);
+    ASSERT_EQ(result1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+    auto result2 = collector->FilterTraceOn(TeleModule::XPOWER, 1000);
+    ASSERT_EQ(result2.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+    auto result3 = collector->FilterTraceOn(TeleModule::XPOWER);
+    ASSERT_EQ(result3.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+
+    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
+    TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::DEFAULT);
+}
+
+/**
  * @tc.name: TraceCollectorTest001
  * @tc.desc: used to test TraceCollector for xpower dump
  * @tc.type: FUNC
@@ -221,13 +239,13 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
     CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, 0, 0);
     ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::TRACE_DUMP_OVER_FLOW);
 
-    int64_t beginTime = 100;
+    int64_t runningTime = 0;
     std::map<std::string, int64_t> flowControlQuotas {
             {CallerName::XPERF, 100000000 },
             {CallerName::XPOWER, 120000000},
             {"Total", 180000000}
     };
-    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData("id", beginTime,
+    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData("id", runningTime,
         flowControlQuotas);
     ASSERT_EQ(ret, TelemetryRet::SUCCESS);
     sleep(1);
@@ -240,4 +258,35 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
     sleep(1);
     CollectResult<std::vector<std::string>> resultDumpTrace3 = collector->DumpTraceWithFilter(module, 0, 0);
     ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+}
+
+/**
+ * @tc.name: TraceCollectorTest007
+ * @tc.desc: used to test TraceCollector for xpower dump
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest007, TestSize.Level1) {
+    setuid(1201); // hiview uid
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
+    TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
+    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
+    int64_t runningTime = 0;
+    std::map<std::string, int64_t> flowControlQuotas {
+                {CallerName::XPERF, 100000000 },
+                {CallerName::XPOWER, 120000000},
+                {"Total", 180000000}
+    };
+    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData("id", runningTime,
+        flowControlQuotas);
+    ASSERT_EQ(ret, TelemetryRet::SUCCESS);
+    auto result1 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
+    ASSERT_EQ(result1.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    collector->FilterTraceOn(TeleModule::XPERF);
+    auto result2 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
+    ASSERT_EQ(result2.retCode, UCollect::UcError::SUCCESS);
+    collector->FilterTraceOff(TeleModule::XPERF);
+    auto result3 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
+    ASSERT_EQ(result3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
 }
