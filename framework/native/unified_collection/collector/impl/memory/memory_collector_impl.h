@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
+struct IHiaiInfra {
+    int32_t (*QueryAllUserAllocatedMemInfo)(struct IHiaiInfra* self, struct AIProcessMem* memInfos,
+        uint32_t* memInfosLen, int32_t* realSize);
+
+    int32_t (*GetVersion)(struct IHiaiInfra* self, uint32_t* majorVer, uint32_t* minorVer);
+};
+
 class MemoryCollectorImpl : public MemoryCollector {
 public:
     MemoryCollectorImpl() = default;
