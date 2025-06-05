@@ -38,6 +38,7 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info);
 std::string GetSanitizerTempLogName(int32_t pid, int64_t happenTime);
 std::string GetThreadStack(const std::string& path, int32_t threadId);
 bool IsValidPath(const std::string& path);
+bool ExtractSubMoudleName(std::string &module, std::string &appName);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEWDFX_HIVIEW_FAULTLOGGER_UTIL_H

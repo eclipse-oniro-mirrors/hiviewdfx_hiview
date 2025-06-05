@@ -1939,5 +1939,49 @@ HWTEST_F(FaultloggerUnittest, ReadHilogUnittest003, testing::ext::TestSize.Level
     }
     waitpid(childPid, nullptr, 0);
 }
+
+/**
+ * @tc.name: ExtractSubMoudleName001
+ * @tc.desc: Test ExtractSubMoudleName func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName001, testing::ext::TestSize.Level3)
+{
+    std::string moduleName = "com.ohos.sceneboard:";
+    std::string appName = "testApp";
+    ASSERT_FALSE(ExtractSubMoudleName(moduleName, appName));
+    std::string endName = "";
+    ASSERT_EQ(endName, moduleName);
+}
+
+/**
+ * @tc.name: ExtractSubMoudleName002
+ * @tc.desc: Test ExtractSubMoudleName func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName002, testing::ext::TestSize.Level3)
+{
+    std::string moduleName = "com.ohos.sceneboard:123ExtractSubMoudleName/123ExtractSubMoudleName_321";
+    std::string appName = "testApp";
+    ASSERT_TRUE(ExtractSubMoudleName(moduleName, appName));
+    std::string endName = "ExtractSubMoudleName_123ExtractSubMoudleName";
+    ASSERT_EQ(endName, moduleName);
+}
+
+/**
+ * @tc.name: ExtractSubMoudleName003
+ * @tc.desc: Test ExtractSubMoudleName func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName003, testing::ext::TestSize.Level3)
+{
+    std::string moduleName = "com.ohos.test";
+    std::string appName = "testApp";
+    ASSERT_FALSE(ExtractSubMoudleName(moduleName, appName));
+    std::string moduleName2 = "com.ohos.sceneboard:test:1";
+    ASSERT_TRUE(ExtractSubMoudleName(moduleName2, appName));
+    std::string endName = "test";
+    ASSERT_EQ(endName, moduleName2);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
