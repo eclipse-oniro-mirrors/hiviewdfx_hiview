@@ -337,7 +337,7 @@ void PeerBinderCatcher::ParseBinderCallChain(std::map<int, std::list<PeerBinderC
         }
         pids.insert(each.serverPid);
         if (getTerminal && ((each.clientPid == params.eventPid && each.clientTid == params.eventTid) ||
-            (each.clientPid = terminalBinder_.pid && each.clientTid == terminalBinder_.tid))) {
+            (each.clientPid == terminalBinder_.pid && each.clientTid == terminalBinder_.tid))) {
             terminalBinder_.pid = each.serverPid;
             terminalBinder_.tid = each.serverTid;
             ParseBinderCallChain(manager, pids, each.serverPid, params, true);
