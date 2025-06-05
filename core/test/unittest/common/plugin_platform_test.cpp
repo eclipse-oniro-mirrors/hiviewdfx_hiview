@@ -94,6 +94,25 @@ HWTEST_F(PluginPlatformTest, PluginPlatformServiceStartTest001, TestSize.Level3)
     ASSERT_EQ(true, platform.IsReady());
 }
 
+/**
+ * @tc.name: PluginPlatformApiTest001
+ * @tc.desc: test GetMainWorkLoop
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginPlatformTest, PluginPlatformApiTest001, TestSize.Level3)
+{
+    /**
+     * @tc.steps: step1. init plugin platform
+     */
+    OHOS::HiviewDFX::HiviewPlatform platform;
+    if (!platform.InitEnvironment("/data/test/test_data/hiview_platform_config")) {
+        printf("Fail to init environment. \n");
+        ASSERT_TRUE(platform.GetMainWorkLoop() == nullptr);
+    } else {
+        ASSERT_TRUE(platform.GetMainWorkLoop() != nullptr);
+    }
+}
+
 #ifndef TEST_LOCAL_SRC
 /**
  * @tc.name: PluginPlatformDynamicPluginUnloadTest001
