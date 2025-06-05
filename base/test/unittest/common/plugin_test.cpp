@@ -224,5 +224,20 @@ HWTEST_F(PluginTest, HiviewContextTest001, testing::ext::TestSize.Level0)
 
     printf("HiviewContextTest001 end\n");
 }
+
+/**
+ * @tc.name: HiviewContextTest002
+ * @tc.desc: Test the GetMainWorkLoop of HiviewContext.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginTest, HiviewContextTest002, testing::ext::TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. create HiviewContext object.
+     * @tc.steps: step2. invoke the function of the HiviewContext object.
+     */
+    HiviewContext context;
+    ASSERT_TRUE(context.GetMainWorkLoop() == nullptr);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
