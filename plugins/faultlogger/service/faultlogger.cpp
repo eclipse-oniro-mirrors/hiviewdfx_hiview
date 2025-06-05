@@ -877,7 +877,7 @@ void Faultlogger::AddFaultLogIfNeed(FaultLogInfo& info, std::shared_ptr<Event> e
     bool isSystemProcess = IsSystemProcess(info.module, info.id);
     if (!isSystemProcess && info.sectionMap["SCBPROCESS"] != "Yes") {
         std::string appName = GetApplicationNameById(info.id);
-        if (!appName.empty()) {
+        if (!ExtractSubMoudleName(info.module, appName)) {
             info.module = appName; // if bundle name is not empty, replace module name by it.
         }
     }
