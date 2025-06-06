@@ -69,6 +69,9 @@ ohos_source_set("eventlogger") {
     external_deps += [ "soc_perf:socperf_client" ]
     defines += [ "SOC_PERF_ENABLE" ]
   }
+  if (hiview_eventlogger_hitrace_catcher_enable) {
+    defines += [ "HITRACE_CATCHER_ENABLE" ]
+  }
 }
 
 ohos_shared_library("eventloggerso") {

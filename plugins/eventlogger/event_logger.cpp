@@ -163,13 +163,17 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     if (onEvent == nullptr) {
         return false;
     }
+std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
+#ifdef HITRACE_CATCHER_ENABLE
+    FreezeFilterTraceOn(sysEvent, Parameter::IsBetaVersion());
+#endif
+
 #ifdef WINDOW_MANAGER_ENABLE
     EventFocusListener::RegisterFocusListener();
 #endif
-    std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
-
     long pid = GetEventPid(sysEvent);
     std::string eventName = sysEvent->eventName_;
+
     if (eventName == "GESTURE_NAVIGATION_BACK" || eventName == "FREQUENT_CLICK_WARNING") {
 #ifdef WINDOW_MANAGER_ENABLE
         if (EventFocusListener::registerState_ == EventFocusListener::REGISTERED) {
@@ -178,15 +182,11 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
 #endif
         return true;
     }
-    if (!IsHandleAppfreeze(sysEvent)) {
-        return true;
-    }
 
-    std::string domain = sysEvent->domain_;
     HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld, happenTime=%{public}" PRIu64,
-        domain.c_str(), eventName.c_str(), pid, sysEvent->happenTime_);
+        sysEvent->domain_.c_str(), eventName.c_str(), pid, sysEvent->happenTime_);
 
-    if (CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
+    if (!IsHandleAppfreeze(sysEvent) || CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
         return true;
     }
     if (sysEvent->GetValue("eventLog_action").empty()) {
@@ -419,6 +419,21 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
     threadLoop_->AddTimerEvent(nullptr, nullptr, CheckFinishFun, waitTime, false);
     HIVIEW_LOGI("Collect on finish, name: %{public}s", logFile.c_str());
 }
+
+#ifdef HITRACE_CATCHER_ENABLE
+void EventLogger::FreezeFilterTraceOn(std::shared_ptr<SysEvent> event, bool isBetaVersion)
+{
+    if (isBetaVersion || event->eventName_ != "THREAD_BLOCK_3S") {
+        return;
+    }
+
+    std::string bundleName = event->GetEventValue("PACKAGE_NAME");
+    if (bundleName.empty()) {
+        bundleName = event->GetEventValue("PROCESS_NAME");
+    }
+    LogCatcherUtils::FreezeFilterTraceOn(bundleName);
+}
+#endif
 
 void EventLogger::PerfStart(std::string eventName)
 {
@@ -1131,7 +1146,11 @@ void EventLogger::OnLoad()
         context->RegisterUnorderedEventListener(ptr);
         AddListenerInfo(Event::MessageType::PLUGIN_MAINTENANCE);
     }
-
+#ifdef HITRACE_CATCHER_ENABLE
+    if (!Parameter::IsBetaVersion()) {
+        AddListenerInfo(Event::MessageType::TELEMETRY_EVENT);
+    }
+#endif
     GetCmdlineContent();
     GetRebootReasonConfig();
 
@@ -1156,6 +1175,14 @@ std::string EventLogger::GetListenerName()
 
 void EventLogger::OnUnorderedEvent(const Event& msg)
 {
+#ifdef HITRACE_CATCHER_ENABLE
+    if (msg.messageType_ == Event::MessageType::TELEMETRY_EVENT) {
+        std::map<std::string, std::string> valuePairs = msg.GetKeyValuePairs();
+        LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+        return;
+    }
+#endif
+
     if (CanProcessRebootEvent(msg)) {
         auto task = [this] { this->ProcessRebootEvent(); };
         threadLoop_->AddEvent(nullptr, nullptr, task);

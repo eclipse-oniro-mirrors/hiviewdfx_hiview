@@ -30,6 +30,11 @@
 #include "string_util.h"
 #include "time_util.h"
 
+#ifdef HITRACE_CATCHER_ENABLE
+#include <shared_mutex>
+#include "trace_collector.h"
+#endif
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace LogCatcherUtils {
@@ -41,6 +46,16 @@ static constexpr int DUMP_STACK_FAILED = -1;
 static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000;
 static constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+
+#ifdef HITRACE_CATCHER_ENABLE
+static constexpr uint32_t MAX_DUMP_TRACE_LIMIT = 15;
+static constexpr const char* const FAULT_FREEZE_TYPE = "32";
+static std::shared_mutex grayscaleMutex_;
+static std::string telemetryId_;
+static std::string traceAppFilter_;
+#endif
+
+DEFINE_LOG_LABEL(0xD002D01, "EventLogger-LogCatcherUtils");
 
 bool GetDump(int pid, std::string& msg)
 {
@@ -239,6 +254,101 @@ void ReadShellToFile(int fd, const std::string& serviceName, const std::string& 
         }
     }
 }
+
+#ifdef HITRACE_CATCHER_ENABLE
+void HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs)
+{
+    std::string telemetryId = valuePairs["telemetryId"];
+    if (telemetryId.empty()) {
+        HIVIEW_LOGE("freeze grayscale trace, telemetryId is empty");
+        return;
+    }
+
+    std::string fault = valuePairs["fault"];
+    if (fault != FAULT_FREEZE_TYPE) {
+        HIVIEW_LOGE("freeze grayscale trace, fault type is not freeze");
+        return;
+    }
+    std::string telemetryStatus = valuePairs["telemetryStatus"];
+    std::string traceAppFilter = valuePairs["traceAppFilter"];
+
+    std::unique_lock<std::shared_mutex> lock(grayscaleMutex_);
+    if (telemetryStatus == "off") {
+        telemetryId_ = "";
+        traceAppFilter_ = "";
+    } else if (telemetryStatus == "on") {
+        telemetryId_  = telemetryId;
+        traceAppFilter_ = traceAppFilter;
+    }
+
+    HIVIEW_LOGW("telemetryId_:%{public}s, traceAppFilter_:%{public}s, after received telemetryStatus:%{public}s",
+        telemetryId_.c_str(), traceAppFilter_.c_str(), telemetryStatus.c_str());
+}
+
+void FreezeFilterTraceOn(const std::string& bundleName)
+{
+    std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
+    if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
+        return;
+    }
+    lock.unlock();
+
+    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
+    UCollect::TeleModule caller = UCollect::TeleModule::RELIABILITY;
+    long postTime = 20 * 1000;
+    auto result = collector->FilterTraceOn(caller, postTime);
+    if (result.retCode != UCollect::UcError::SUCCESS) {
+        HIVIEW_LOGE("FreezeFilterTraceOn failed, telemetryId_:%{public}s, traceAppFilter_:%{public}s, code:%{public}d",
+            telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
+    }
+    HIVIEW_LOGW("FreezeFilterTraceOn success, telemetryId_:%{public}s, traceAppFilter_:%{public}s, code:%{public}d",
+        telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
+}
+
+std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t faultTime, bool grayscale,
+    const std::string& bundleName)
+{
+    std::pair<std::string, std::vector<std::string>> result;
+    if (grayscale) {
+        std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
+        if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
+            return result;
+        }
+        result.first = telemetryId_;
+    }
+
+    CollectResult<std::vector<std::string>> collectResult;
+    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
+    if (grayscale) {
+        UCollect::TeleModule teleModule = UCollect::TeleModule::RELIABILITY;
+        HIVIEW_LOGW("get hitrace start with grayscale, faultTime:%{public}" PRIu64, faultTime);
+        collectResult = collector->DumpTraceWithFilter(teleModule, MAX_DUMP_TRACE_LIMIT, faultTime);
+    } else {
+        UCollect::TraceCaller traceCaller = UCollect::TraceCaller::RELIABILITY;
+        HIVIEW_LOGI("get hitrace start in beta version, faultTime:%{public}" PRIu64, faultTime);
+        collectResult = collector->DumpTraceWithDuration(traceCaller, MAX_DUMP_TRACE_LIMIT, faultTime);
+    }
+
+    if (collectResult.retCode == UCollect::UcError::SUCCESS) {
+        HIVIEW_LOGW("get hitrace end, faultTime:%{public}" PRIu64, faultTime);
+        if (grayscale) {
+            result.second = collectResult.data;
+        }
+    } else {
+        result.first = "";
+        HIVIEW_LOGE("get hitrace failed, error code:%{public}d, faultTime:%{public}" PRIu64,
+            collectResult.retCode, faultTime);
+    }
+    return result;
+}
+
+std::pair<std::string, std::string> GetTelemetryInfo()
+{
+    std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
+    std::pair<std::string, std::string> info = {telemetryId_, traceAppFilter_};
+    return info;
+}
+#endif
 }
 } // namespace HiviewDFX
 } // namespace OHOS

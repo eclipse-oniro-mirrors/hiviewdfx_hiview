@@ -498,6 +498,23 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnUnorderedEvent_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: EventLoggerTest_OnUnorderedEvent_002
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_OnUnorderedEvent_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto event = std::make_shared<Event>("sender", "event");
+    event->messageType_ = Event::MessageType::TELEMETRY_EVENT;
+#ifdef HILOG_CATCHER_ENABLE
+    eventLogger->OnUnorderedEvent(*(event.get()));
+#endif
+    bool ret = eventLogger->CanProcessRebootEvent(*(event.get()));
+    EXPECT_EQ(ret, false);
+}
+
+/**
  * @tc.name: EventLoggerTest_ClearOldFile_001
  * @tc.desc: Loging aging test
  * @tc.type: FUNC
@@ -743,6 +760,29 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
 #else
     eventLogger->OnUnload();
 #endif
+}
+
+/**
+ * @tc.name: EventLoggerTest_FreezeFilterTraceOn_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_FreezeFilterTraceOn_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+#ifdef HITRACE_CATCHER_ENABLE
+    std::string testName = "EventLoggerTest_FreezeFilterTraceOn_001";
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    event->SetEventValue("PROCESS_NAME", "EventLoggerTest");
+    event->eventName_ = "APP_INPUT_BLOCK";
+    eventLogger->FreezeFilterTraceOn(event, true);
+    eventLogger->FreezeFilterTraceOn(event, false);
+    event->eventName_ = "THREAD_BLOCK_3S";
+    eventLogger->FreezeFilterTraceOn(event, false);
+#endif
+    EXPECT_EQ(event->GetEventValue("PACKAGE_NAME"), "");
 }
 
 /**

@@ -40,7 +40,7 @@
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef HITRACE_CATCHER_ENABLE
-#include "trace_collector.h"
+#include "log_catcher_utils.h"
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
@@ -125,13 +125,14 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
     captureList_.insert(std::pair<std::string, capture>("k:HungTaskFile",
         [this] { this->DmesgCapture(true, DmesgCatcher::HUNG_TASK); }));
 #endif // DMESG_CATCHER_ENABLE
-#ifdef HITRACE_CATCHER_ENABLE
-    captureList_.insert(std::pair<std::string, capture>("tr", [this] { this->HitraceCapture(); }));
-#endif // HITRACE_CATCHER_ENABLE
     AddCapture();
 }
 void EventLogTask::AddCapture()
 {
+#ifdef HITRACE_CATCHER_ENABLE
+    captureList_.insert(std::pair<std::string, capture>("tr",
+        [this] { this->HitraceCapture(Parameter::IsBetaVersion()); }));
+#endif // HITRACE_CATCHER_ENABLE
 #ifdef SCB_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:scbCS",
         [this] { this->SCBSessionCapture(); }));
@@ -470,10 +471,22 @@ void EventLogTask::InputHilogCapture()
 #endif // HILOG_CATCHER_ENABLE
 
 #ifdef HITRACE_CATCHER_ENABLE
-void EventLogTask::HitraceCapture()
+void EventLogTask::HitraceCapture(bool isBetaVersion)
 {
-    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
-    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
+    bool grayscale = false;
+    std::string bundleName = "";
+    if (!isBetaVersion) {
+        if (event_->eventName_ != "THREAD_BLOCK_6S") {
+            return;
+        }
+        grayscale = true;
+        bundleName = event_->GetEventValue("PACKAGE_NAME");
+        if (bundleName.empty()) {
+            bundleName = event_->GetEventValue("PROCESS_NAME");
+        }
+        event_->SetEventValue("TRACE_NAME", "dump grayscale trace failed!");
+    }
+
     std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
     std::string timeStamp = event_->GetEventValue("MSG");
     std::smatch match;
@@ -485,13 +498,13 @@ void EventLogTask::HitraceCapture()
     if (currentTime >= (TRACE_OUT_OF_TIME + faultTime)) {
         faultTime = currentTime - DELAY_OUT_OF_TIME;
     }
-    HIVIEW_LOGI("get hitrace start, faultTime: %{public}" PRIu64, faultTime);
-    auto result = collector->DumpTraceWithDuration(caller, MAX_DUMP_TRACE_LIMIT, faultTime);
-    if (result.retCode != 0) {
-        HIVIEW_LOGE("get hitrace fail! error code : %{public}d", result.retCode);
-        return;
+
+    std::pair<std::string, std::vector<std::string>> result =
+        LogCatcherUtils::FreezeDumpTrace(faultTime, grayscale, bundleName);
+    if (grayscale && !result.first.empty() && !result.second.empty()) {
+        event_->SetEventValue("TELEMETRY_ID", result.first);
+        event_->SetEventValue("TRACE_NAME", result.second[0]);
     }
-    HIVIEW_LOGI("get hitrace end, faultTime: %{public}" PRIu64, faultTime);
 }
 #endif // HITRACE_CATCHER_ENABLE
 

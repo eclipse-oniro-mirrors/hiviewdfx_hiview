@@ -135,4 +135,7 @@ ohos_unittest("EventLoggerTest") {
     external_deps += [ "input:libmmi-client" ]
     defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
   }
+  if (hiview_eventlogger_hitrace_catcher_enable) {
+    defines += [ "HITRACE_CATCHER_ENABLE" ]
+  }
 }
