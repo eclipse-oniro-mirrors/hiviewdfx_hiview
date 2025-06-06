@@ -17,7 +17,9 @@
 #include <cinttypes>
 
 #include "file_util.h"
+#include "hisysevent.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 #include "sys_event_backup.h"
 #include "sys_event_database.h"
 #include "sys_event_query_wrapper.h"
@@ -27,6 +29,9 @@ namespace HiviewDFX {
 namespace EventStore {
 DEFINE_LOG_TAG("HiView-SysEventDao");
 const std::string BACKUP_DIR = "/log/hiview/backup/";
+const std::string LOG_HIVIEW_DIR = "/log/hiview/";
+const std::string DIRTY_EVENT_CLEAR_FLAG_PATH = "/log/hiview/dirty_event_clear_flag";
+const std::string DIRTY_EVENT_CLEARED_PROP = "sys.hiview.diag.dirty_event_cleared";
 
 std::shared_ptr<SysEventQuery> SysEventDao::BuildQuery(const std::string& domain,
     const std::vector<std::string>& names)
@@ -68,10 +73,26 @@ void SysEventDao::Restore()
     backup.Restore(GetDatabaseDir());
 }
 
-std::string SysEventDao::ClearDirtyEventFiles()
+void SysEventDao::ClearDirtyEventFiles()
 {
+    if (!FileUtil::FileExists(LOG_HIVIEW_DIR)) {
+        int writeEventRet = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
+            HiSysEvent::EventType::STATISTIC, "CLEAR_RESULT", "no hiview dir");
+        HIVIEW_LOGW("no hiview dir in log partition, writeEventRet: %{public}d.", writeEventRet);
+        return;
+    }
+    if (FileUtil::FileExists(DIRTY_EVENT_CLEAR_FLAG_PATH)) {
+        HIVIEW_LOGI("already cleared.");
+        Parameter::SetProperty(DIRTY_EVENT_CLEARED_PROP, "true");
+        return;
+    }
     SysEventBackup backup(BACKUP_DIR);
-    return backup.ClearDirtyEventFiles(GetDatabaseDir());
+    std::string clearResult = backup.ClearDirtyEventFiles(GetDatabaseDir());
+    int createFlagRet = FileUtil::CreateFile(DIRTY_EVENT_CLEAR_FLAG_PATH);
+    Parameter::SetProperty(DIRTY_EVENT_CLEARED_PROP, "true");
+    int writeEventRet = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
+        HiSysEvent::EventType::STATISTIC, "CLEAR_RESULT", clearResult, "FLAG_CREATE_RESULT", createFlagRet);
+    HIVIEW_LOGI("clear event, createFlagRet: %{public}d, writeEventRet: %{public}d", createFlagRet, writeEventRet);
 }
 
 void SysEventDao::Clear()

@@ -34,7 +34,6 @@ namespace {
 DEFINE_LOG_TAG("HiView-SysEventSeqMgr");
 constexpr int64_t SEQ_INCREMENT = 100; // increment of seq each time it is read from the file
 static constexpr char READ_UNEXPECTED_SEQ[] = "READ_UNEXPECTED_SEQ";
-const std::string DIRTY_EVENT_CLEAR_FLAG_PATH = "/log/hiview/dirty_event_clear_flag";
 
 bool SaveStringToFile(const std::string& filePath, const std::string& content)
 {
@@ -191,13 +190,9 @@ SysEventSequenceManager& SysEventSequenceManager::GetInstance()
 
 SysEventSequenceManager::SysEventSequenceManager()
 {
-    if (!FileUtil::FileExists(DIRTY_EVENT_CLEAR_FLAG_PATH)) {
-        std::string clearResult = EventStore::SysEventDao::ClearDirtyEventFiles();
-        int createFlagRet = FileUtil::CreateFile(DIRTY_EVENT_CLEAR_FLAG_PATH);
-        int writeEventRet = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
-            HiSysEvent::EventType::STATISTIC, "CLEAR_RESULT", clearResult, "FLAG_CREATE_RESULT", createFlagRet);
-        HIVIEW_LOGI("clear event, createFlagRet: %{public}d, writeEventRet: %{public}d", createFlagRet, writeEventRet);
-    }
+#ifdef ENABLE_DIRTY_EVENT_CLEAR
+    EventStore::SysEventDao::ClearDirtyEventFiles(); // must clear before restore and deal new events
+#endif
     if (!Parameter::IsOversea() && !FileUtil::FileExists(GetSequenceFile())) {
         EventStore::SysEventDao::Restore();
     }
