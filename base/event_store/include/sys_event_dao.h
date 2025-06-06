@@ -41,7 +41,7 @@ public:
     static void Restore();
     static std::string GetDatabaseDir();
     static void Clear();
-    static std::string ClearDirtyEventFiles();
+    static void ClearDirtyEventFiles();
 }; // SysEventDao
 } // EventStore
 } // namespace HiviewDFX
