@@ -262,6 +262,30 @@ int AppEventHandler::PostEvent(const BatteryUsageInfo& event)
     EventPublish::GetInstance().PushEvent(uid, "BATTERY_USAGE", HiSysEvent::EventType::STATISTIC, jsonStr.str());
     return 0;
 }
+
+int AppEventHandler::PostEvent(const AppKilledInfo& event)
+{
+    if (event.bundleName.empty() && event.uid == 0) {
+        HIVIEW_LOGE("invalid bundleName and uid");
+        return -1;
+    }
+    int32_t uid;
+    if (event.uid != 0) {
+        uid = event.uid;
+    } else {
+        uid = GetUidByBundleName(event.bundleName);
+        HIVIEW_LOGI("get uid: %{public}d by bundleName: %{public}s", uid, event.bundleName.c_str());
+    }
+
+    std::stringstream jsonStr;
+    jsonStr << "{";
+    AddTimeToJsonString(jsonStr);
+    AddValueToJsonString("reason", event.reason, jsonStr);
+    AddValueToJsonString("foreground", event.isForeground, jsonStr, true);
+    jsonStr << std::endl;
+    EventPublish::GetInstance().PushEvent(uid, "APP_KILLED", HiSysEvent::EventType::STATISTIC, jsonStr.str());
+    return 0;
+}
 } // namespace HiviewDFX
 } // namespace OHOS
 
@@ -287,6 +311,11 @@ int OHOS::HiviewDFX::AppEventHandler::PostEvent(const CpuUsageHighInfo& event)
 }
 
 int OHOS::HiviewDFX::AppEventHandler::PostEvent(const BatteryUsageInfo& event)
+{
+    return -1;
+}
+
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AppKilledInfo& event)
 {
     return -1;
 }

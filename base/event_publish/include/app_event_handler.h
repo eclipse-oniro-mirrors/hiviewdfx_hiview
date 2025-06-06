@@ -145,13 +145,19 @@ public:
         std::vector<std::string> logPath;
     };
 
+    struct AppKilledInfo : public BundleInfo, public TimeInfo {
+        std::string reason;
+        int32_t uid = 0;
+        bool isForeground = false;
+    };
+
     int PostEvent(const AppLaunchInfo& event);
     int PostEvent(const ScrollJankInfo& event);
     int PostEvent(const ResourceOverLimitInfo& event);
     int PostEvent(const CpuUsageHighInfo& event);
     int PostEvent(const BatteryUsageInfo& event);
+    int PostEvent(const AppKilledInfo& event);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-
 #endif // HIVIEW_BASE_APP_EVENT_HANDLER_H
