@@ -43,7 +43,7 @@ namespace {
     constexpr const char* const PARAM_GWP_ASAN_APP_BEGIN_TIME = "gwp_asan.gray_begin.app.";
     constexpr const char* const PARAM_GWP_ASAN_APP_DAYS = "gwp_asan.gray_days.app.";
     constexpr const char* const PARAM_GWP_ASAN_APP_NUM = "gwp_asan.app_num";
-    constexpr uint32_t TELEMETRY_SANITIZER_TYPE = 0x100;
+    constexpr uint32_t TELEMETRY_SANITIZER_TYPE = 0x800;
     constexpr int DECIMAL_BASE = 10;
     constexpr int MAX_APP_NUM = 20;
     constexpr uint64_t DAY_TO_SEC = 24 * 60 * 60;
