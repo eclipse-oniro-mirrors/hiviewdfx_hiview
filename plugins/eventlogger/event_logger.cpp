@@ -299,17 +299,26 @@ void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
 
 void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
 {
-    if (event->eventName_ != "THREAD_BLOCK_6S") {
-        return;
-    }
     std::string tmp = event->GetEventValue("FREEZE_INFO_PATH");
     if (tmp.empty()) {
         return;
     }
-    std::string stackInfo = GetAppFreezeFile(tmp);
-    if (stackInfo.empty()) {
-        HIVIEW_LOGW("failed to save freezeInfo to file, stack content is empty.");
+    std::vector<std::string> tokens;
+    StringUtil::SplitStr(tmp, ",", tokens);
+    if (tokens.size() <= 0) {
         return;
+    }
+    std::string cpuInfo = GetAppFreezeFile(tokens[0]);
+    if (cpuInfo.empty()) {
+        HIVIEW_LOGW("failed to save freezeInfo to file, cpu content is empty.");
+        return;
+    }
+    std::string stackInfo;
+    if (tokens.size() > 1) {
+        stackInfo = GetAppFreezeFile(tokens[1]);
+    }
+    if (stackInfo.empty()) {
+        HIVIEW_LOGW("stack content is empty.");
     }
     std::string bundleName = event->GetEventValue("PACKAGE_NAME").empty() ?
         event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
@@ -320,7 +329,7 @@ void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return;
     }
-    FileUtil::SaveStringToFile(freezeFile, stackInfo);
+    FileUtil::SaveStringToFile(freezeFile, cpuInfo + "\n" + stackInfo);
 }
 
 void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
