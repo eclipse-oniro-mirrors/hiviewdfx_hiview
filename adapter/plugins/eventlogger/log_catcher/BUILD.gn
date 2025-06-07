@@ -34,4 +34,10 @@ ohos_source_set("eventlogger_adapter_logcatcher") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
+
+  defines = []
+  if (hiview_eventlogger_hitrace_catcher_enable) {
+    defines += [ "HITRACE_CATCHER_ENABLE" ]
+    deps += [ "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility" ]
+  }
 }

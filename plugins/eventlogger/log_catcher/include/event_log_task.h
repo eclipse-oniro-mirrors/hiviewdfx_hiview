@@ -101,7 +101,7 @@ private:
 #endif // HILOG_CATCHER_ENABLE
 
 #ifdef HITRACE_CATCHER_ENABLE
-    void HitraceCapture();
+    void HitraceCapture(bool isBetaVersion);
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE

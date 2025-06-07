@@ -150,6 +150,8 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.sectionMaps[FORE_GROUND] = watchPoint.GetForeGround();
     info.sectionMaps[SCB_PROCESS] = isScbPro;
     info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK] = watchPoint.GetTerminalThreadStack();
+    info.sectionMaps[FreezeCommon::TELEMETRY_ID] = watchPoint.GetTelemetryId();
+    info.sectionMaps[FreezeCommon::TRACE_NAME] = watchPoint.GetTraceName();
     AddFaultLog(info);
     return logPath;
 }

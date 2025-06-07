@@ -93,24 +93,16 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
     auto task = [info, hitraceId] () mutable {
         // Need set hitrace again in async task
         HiTraceChainSetId(&hitraceId);
-        HiSysEventWrite(
-            HiSysEvent::Domain::RELIABILITY,
-            GetFaultNameByType(info.faultLogType, false),
-            HiSysEvent::EventType::FAULT,
-            FaultKey::FAULT_TYPE, std::to_string(info.faultLogType),
-            FaultKey::MODULE_PID, info.pid,
-            FaultKey::MODULE_UID, info.id,
-            FaultKey::MODULE_NAME, info.module,
-            FaultKey::REASON, info.reason,
-            FaultKey::SUMMARY, info.summary,
-            FaultKey::LOG_PATH, info.logPath,
+        HiSysEventWrite(HiSysEvent::Domain::RELIABILITY, GetFaultNameByType(info.faultLogType, false),
+            HiSysEvent::EventType::FAULT, FaultKey::FAULT_TYPE, std::to_string(info.faultLogType),
+            FaultKey::MODULE_PID, info.pid, FaultKey::MODULE_UID, info.id, FaultKey::MODULE_NAME, info.module,
+            FaultKey::REASON, info.reason, FaultKey::SUMMARY, info.summary, FaultKey::LOG_PATH, info.logPath,
             FaultKey::MODULE_VERSION, info.sectionMap.find(FaultKey::MODULE_VERSION) != info.sectionMap.end() ?
                 info.sectionMap.at(FaultKey::MODULE_VERSION) : "",
             FaultKey::VERSION_CODE, info.sectionMap.find(FaultKey::VERSION_CODE) != info.sectionMap.end() ?
                             info.sectionMap.at(FaultKey::VERSION_CODE) : "",
             FaultKey::PRE_INSTALL, info.sectionMap[FaultKey::PRE_INSTALL],
-            FaultKey::FOREGROUND, info.sectionMap[FaultKey::FOREGROUND],
-            FaultKey::HAPPEN_TIME, info.time,
+            FaultKey::FOREGROUND, info.sectionMap[FaultKey::FOREGROUND], FaultKey::HAPPEN_TIME, info.time,
             "HITRACE_TIME", info.sectionMap.find("HITRACE_TIME") != info.sectionMap.end() ?
                             info.sectionMap.at("HITRACE_TIME") : "",
             "SYSRQ_TIME", info.sectionMap.find("SYSRQ_TIME") != info.sectionMap.end() ?
@@ -126,8 +118,11 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
                 "/" : info.sectionMap[FaultKey::LAST_FRAME],
             FaultKey::FINGERPRINT, info.sectionMap[FaultKey::FINGERPRINT].empty() ?
                 "/" : info.sectionMap[FaultKey::FINGERPRINT],
-            FaultKey::STACK, info.sectionMap[FaultKey::STACK].empty() ? "" : info.sectionMap[FaultKey::STACK]
-        );
+            FaultKey::STACK, info.sectionMap[FaultKey::STACK].empty() ? "" : info.sectionMap[FaultKey::STACK],
+            FaultKey::TELEMETRY_ID, info.sectionMap[FaultKey::TELEMETRY_ID].empty() ?
+                "" : info.sectionMap[FaultKey::TELEMETRY_ID],
+            FaultKey::TRACE_NAME, info.sectionMap[FaultKey::TRACE_NAME].empty() ?
+                "" : info.sectionMap[FaultKey::TRACE_NAME]);
         HiTraceChainClearId();
     };
     if (info.faultLogType == FaultLogType::CPP_CRASH) {
@@ -137,7 +132,6 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
         task();
     }
 }
-
 
 std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateJsQueries(int32_t faultType, EventStore::Cond upperCaseCond,
     EventStore::Cond lowerCaseCond)

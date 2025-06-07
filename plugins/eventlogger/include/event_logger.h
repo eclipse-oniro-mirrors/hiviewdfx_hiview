@@ -92,6 +92,9 @@ private:
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
     void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
+#ifdef HITRACE_CATCHER_ENABLE
+    void FreezeFilterTraceOn(std::shared_ptr<SysEvent> event, bool isBetaVersion);
+#endif
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
     bool WriteStartTime(int fd, uint64_t start);

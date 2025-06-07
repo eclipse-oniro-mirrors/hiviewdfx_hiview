@@ -16,6 +16,11 @@
 #define EVENTLOGGER_LOG_CATCHER_UTILS_H
 #include <string>
 
+#ifdef HITRACE_CATCHER_ENABLE
+#include <map>
+#include <vector>
+#endif
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace LogCatcherUtils {
@@ -27,6 +32,13 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
 int DumpStackFfrt(int fd, const std::string& pid);
 int WriteKernelStackToFd(int originFd, const std::string& msg, int pid);
 void ReadShellToFile(int fd, const std::string& serviceName, const std::string& cmd, int& count);
+#ifdef HITRACE_CATCHER_ENABLE
+void HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs);
+void FreezeFilterTraceOn(const std::string& bundleName);
+std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t faultTime, bool grayscale,
+    const std::string& bundleName);
+std::pair<std::string, std::string> GetTelemetryInfo();
+#endif
 }
 } // namespace HiviewDFX
 } // namespace OHOS

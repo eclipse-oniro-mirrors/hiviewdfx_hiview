@@ -131,6 +131,8 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     std::string hitraceTime = sysEvent.GetEventValue(FreezeCommon::HIREACE_TIME);
     std::string sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     std::string terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
+    std::string telemetryId = sysEvent.GetEventValue(FreezeCommon::TELEMETRY_ID);
+    std::string traceName = sysEvent.GetEventValue(FreezeCommon::TRACE_NAME);
     std::string info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
     std::string hitraceIdInfo = GetHitraceIdInfo(sysEvent);
     std::regex reg("logPath:([^,]+)");
@@ -147,6 +149,8 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitTid(tid)
         .InitUid(uid)
         .InitTerminalThreadStack(terminalThreadStack)
+        .InitTelemetryId(telemetryId)
+        .InitTraceName(traceName)
         .InitPackageName(packageName)
         .InitProcessName(processName)
         .InitForeGround(foreGround)

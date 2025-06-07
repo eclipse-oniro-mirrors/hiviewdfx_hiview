@@ -20,7 +20,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
-    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), domain_(""), stringId_(""), msg_("")
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_("")
 {
 }
 
@@ -31,6 +32,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     tid_(builder.tid_),
     uid_(builder.uid_),
     terminalThreadStack_(builder.terminalThreadStack_),
+    telemetryId_(builder.telemetryId_),
+    traceName_(builder.traceName_),
     domain_(builder.domain_),
     stringId_(builder.stringId_),
     msg_(builder.msg_),
@@ -45,8 +48,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
 }
 
 WatchPoint::Builder::Builder()
-    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), domain_(""), stringId_(""), msg_(""),
-    hitraceIdInfo_("")
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_("")
 {
 }
 
@@ -85,6 +88,18 @@ WatchPoint::Builder& WatchPoint::Builder::InitUid(long uid)
 WatchPoint::Builder& WatchPoint::Builder::InitTerminalThreadStack(const std::string& terminalThreadStack)
 {
     terminalThreadStack_ = terminalThreadStack;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitTelemetryId(const std::string& telemetryId)
+{
+    telemetryId_ = telemetryId;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitTraceName(const std::string& traceName)
+{
+    traceName_ = traceName;
     return *this;
 }
 
@@ -182,6 +197,16 @@ long WatchPoint::GetUid() const
 std::string WatchPoint::GetTerminalThreadStack() const
 {
     return terminalThreadStack_;
+}
+
+std::string WatchPoint::GetTelemetryId() const
+{
+    return telemetryId_;
+}
+
+std::string WatchPoint::GetTraceName() const
+{
+    return traceName_;
 }
 
 std::string WatchPoint::GetDomain() const

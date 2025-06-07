@@ -232,7 +232,10 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
 #endif // OTHER_CATCHER_ENABLE
 
 #ifdef HITRACE_CATCHER_ENABLE
-    logTask->HitraceCapture();
+    logTask->HitraceCapture(false);
+    sysEvent->eventName_ = "THREAD_BLOCK_6S";
+    sysEvent->SetValue("PROCESS_NAME", "EventloggerCatcherTest");
+    logTask->HitraceCapture(true);
 #endif // HITRACE_CATCHER_ENABLE
     logTask->GetThermalInfoCapture();
     logTask->AddLog("Test");
@@ -1206,6 +1209,55 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_004, TestSize.Level1)
     EXPECT_EQ(count, 0);
     close(fd);
 }
+
+#ifdef HITRACE_CATCHER_ENABLE
+/**
+ * @tc.name: LogCatcherUtilsTest_005
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_005, TestSize.Level1)
+{
+    std::map<std::string, std::string> valuePairs;
+    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+    std::pair<std::string, std::string> telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
+
+    EXPECT_EQ(telemetryInfo.first, "");
+    EXPECT_EQ(telemetryInfo.second, "");
+
+    valuePairs["telemetryId"] = "testId2025";
+    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.first, "");
+    EXPECT_EQ(telemetryInfo.second, "");
+
+    valuePairs["fault"] = "1";
+    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.first, "");
+    EXPECT_EQ(telemetryInfo.second, "");
+
+    valuePairs["fault"] = "32";
+    valuePairs["telemetryStatus"] = "on";
+    valuePairs["traceAppFilter"] = "testPackageName2025";
+    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.first, "testId2025");
+    EXPECT_EQ(telemetryInfo.second, "testPackageName2025");
+
+    LogCatcherUtils::FreezeFilterTraceOn("testPackageName2025");
+    uint64_t faultTime = TimeUtil::GetMilliseconds() / 1000;
+    auto dumpResult = LogCatcherUtils::FreezeDumpTrace(faultTime, true, "testPackageName2025");
+    EXPECT_TRUE(dumpResult.first.empty());
+    EXPECT_TRUE(dumpResult.second.empty());
+
+    valuePairs["telemetryStatus"] = "off";;
+    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.first, "");
+    EXPECT_EQ(telemetryInfo.second, "");
+}
+#endif
 
 /**
  * @tc.name: ThermalInfoCatcherTest_001

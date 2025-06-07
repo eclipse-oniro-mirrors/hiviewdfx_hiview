@@ -923,9 +923,15 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitHitraceTime("20230627")
         .InitSysrqTime("20230627")
         .InitHitraceIdInfo("hitraceId: 123")
+        .InitTerminalThreadStack("threadStaskTest")
+        .InitTelemetryId("telemetryIdTest")
+        .InitTraceName("traceNameTest")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
+    ASSERT_EQ(wp1->GetTerminalThreadStack(), "threadStaskTest");
+    ASSERT_EQ(wp1->GetTelemetryId(), "telemetryIdTest");
+    ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
 }
 
 /**
