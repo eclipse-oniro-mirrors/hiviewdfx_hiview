@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,9 +36,8 @@ public:
     TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller);
     ~TraceStorage() = default;
 
-    bool NeedDump();
-    bool NeedUpload(int64_t traceSize);
-    void StoreDb();
+    int64_t GetRemainingTraceSize();
+    void StoreDb(int64_t traceSize);
 
 private:
     void InitTableRecord();
@@ -48,7 +47,6 @@ private:
     void QueryTable(TraceFlowRecord& traceFlowRecord);
     void UpdateTable(const TraceFlowRecord& traceFlowRecord);
     std::string GetDate();
-    bool IsLowerLimit(int64_t nowSize, int64_t traceSize, int64_t limitSize);
 
 private:
     TraceFlowRecord traceFlowRecord_;

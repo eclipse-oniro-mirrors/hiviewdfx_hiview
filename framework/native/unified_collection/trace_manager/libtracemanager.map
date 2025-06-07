@@ -4,11 +4,12 @@
         "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
         "OHOS::HiviewDFX::TraceStateMachine::DumpTrace(OHOS::HiviewDFX::TraceScenario, int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
         "OHOS::HiviewDFX::TraceStateMachine::DumpTrace(OHOS::HiviewDFX::TraceScenario, int, unsigned long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
+        "OHOS::HiviewDFX::TraceStateMachine::DumpTraceAsync(OHOS::HiviewDFX::DumpTraceArgs const&, long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&, std::__h::function<void (OHOS::HiviewDFX::Hitrace::TraceRetInfo)>)";
+        "OHOS::HiviewDFX::TraceStateMachine::DumpTraceAsync(OHOS::HiviewDFX::DumpTraceArgs const&, long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&, std::__h::function<void (OHOS::HiviewDFX::Hitrace::TraceRetInfo)>)";
         "OHOS::HiviewDFX::TraceStateMachine::TraceStateMachine()";
-        "OHOS::HiviewDFX::TraceFlowController::NeedDump()";
-        "OHOS::HiviewDFX::TraceFlowController::NeedUpload(long long)";
-        "OHOS::HiviewDFX::TraceFlowController::NeedUpload(long)";
-        "OHOS::HiviewDFX::TraceFlowController::StoreDb()";
+        "OHOS::HiviewDFX::TraceFlowController::GetRemainingTraceSize()";
+        "OHOS::HiviewDFX::TraceFlowController::StoreDb(long)";
+        "OHOS::HiviewDFX::TraceFlowController::StoreDb(long long)";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long long)";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
         "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";

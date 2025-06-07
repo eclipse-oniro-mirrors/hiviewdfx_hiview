@@ -15,8 +15,8 @@
 
 #include "trace_common_state.h"
 
-#include "trace_state_machine.h"
 #include "hiview_logger.h"
+#include "trace_state_machine.h"
 
 namespace OHOS::HiviewDFX {
 namespace {
@@ -67,12 +67,24 @@ TraceRet CommonState::OpenTrace(TraceScenario scenario, const std::string &args)
 TraceRet CommonState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (scenario == TraceScenario::TRACE_COMMON || scenario == TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
         info = Hitrace::DumpTrace(maxDuration, happenTime);
+        HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
         return TraceRet(info.errorCode);
     }
     HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
     return TraceRet(TraceStateCode::FAIL);
+}
+
+TraceRet CommonState::DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
+    TraceRetInfo &info, DumpTraceCallback callback)
+{
+    if (args.scenario != TraceScenario::TRACE_COMMON) {
+        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(args.scenario));
+        return TraceRet(TraceStateCode::FAIL);
+    }
+    info = Hitrace::DumpTraceAsync(args.maxDuration, args.happenTime, fileSizeLimit, callback);
+    HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
+    return TraceRet(info.errorCode);
 }
 
 TraceRet CommonState::TraceDropOn(TraceScenario scenario)

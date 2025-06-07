@@ -136,27 +136,13 @@ std::string TraceStorage::GetDate()
     return dateStr;
 }
 
-bool TraceStorage::IsLowerLimit(int64_t nowSize, int64_t traceSize, int64_t limitSize)
+// remaining trace size contains 10% fluctuation of the quota when quota not completely used up
+int64_t TraceStorage::GetRemainingTraceSize()
 {
-    if (limitSize == 0) {
-        HIVIEW_LOGE("error, limit size is zero.");
-        return false;
+    if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
+        return 0;
     }
-
-    int64_t totalSize = nowSize + traceSize;
-    if (totalSize < limitSize) {
-        return true;
-    }
-
-    float limit = static_cast<float>(totalSize - limitSize) / limitSize;
-    if (limit > TEN_PERCENT_LIMIT) {
-        return false;
-    }
-    return true;
-}
-
-bool TraceStorage::NeedDump()
-{
+    auto quota = TRACE_QUOTA.at(caller_);
     std::string nowDays = GetDate();
     HIVIEW_LOGI("start to dump, nowDays = %{public}s, systemTime = %{public}s.",
                 nowDays.c_str(), traceFlowRecord_.systemTime.c_str());
@@ -164,36 +150,21 @@ bool TraceStorage::NeedDump()
         HIVIEW_LOGD("date changes");
         traceFlowRecord_.systemTime = nowDays;
         traceFlowRecord_.usedSize = 0;
-        return true;
+        return quota + quota * TEN_PERCENT_LIMIT;
     }
-    if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
-        HIVIEW_LOGE("Failed to find caller's quota");
-        return false;
+    if (quota <= traceFlowRecord_.usedSize) {
+        return 0;
     }
-    auto quota = TRACE_QUOTA.at(caller_);
-    return traceFlowRecord_.usedSize < quota;
+    return (quota - traceFlowRecord_.usedSize) + quota * TEN_PERCENT_LIMIT;
 }
 
-bool TraceStorage::NeedUpload(int64_t traceSize)
-{
-    HIVIEW_LOGI("start to upload , traceSize = %{public}" PRId64 ".", traceSize);
-    if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
-        HIVIEW_LOGE("Failed to find caller's quota");
-        return false;
-    }
-    if (IsLowerLimit(traceFlowRecord_.usedSize, traceSize, TRACE_QUOTA.at(caller_))) {
-        traceFlowRecord_.usedSize += traceSize;
-        return true;
-    }
-    return false;
-}
-
-void TraceStorage::StoreDb()
+void TraceStorage::StoreDb(int64_t traceSize)
 {
     if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
         HIVIEW_LOGI("caller %{public}s not need store", caller_.c_str());
         return;
     }
+    traceFlowRecord_.usedSize += traceSize;
     HIVIEW_LOGI("systemTime:%{public}s, callerName:%{public}s, usedSize:%{public}" PRId64,
                 traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(),
                 traceFlowRecord_.usedSize);

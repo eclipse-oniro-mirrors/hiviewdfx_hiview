@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,11 +19,12 @@
 #include <string>
 
 #include "cjson_util.h"
-#include "trace_collector.h"
+#include "collect_result.h"
+#include "trace_caller.h"
+#include "trace_common.h"
 #include "trace_state_machine.h"
 #include "trace_flow_controller.h"
 
-using OHOS::HiviewDFX::UCollectUtil::TraceCollector;
 using OHOS::HiviewDFX::Hitrace::TraceErrorCode;
 using OHOS::HiviewDFX::UCollect::UcError;
 
@@ -100,9 +101,13 @@ const std::string ClientToString(UCollect::TraceClient client);
 const std::string ModuleToString(UCollect::TeleModule module);
 void CopyFile(const std::string &src, const std::string &dst);
 void DoClean(const std::string &tracePath, const std::string &prefix);
-std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outputFiles, const std::string &destDir);
-std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix);
-void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath);
+std::string GetTraceZipTmpPath(const std::string &tracePath);
+std::string GetTraceZipFinalPath(const std::string &tracePath, const std::string &destDir);
+std::string GetTraceSpecialPath(const std::string &tracePath, const std::string &prefix);
+std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const std::string &destDir);
+std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo &traceRetInfo, const std::string& prefix);
+DumpTraceCallback CreateDumpTraceCallback(const std::string &caller);
+void ZipTraceFile(const std::string &srcSysPath, const std::string &destDir);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent);
 bool CreateMultiDirectory(const std::string &dirPath);

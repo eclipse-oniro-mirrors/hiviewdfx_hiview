@@ -84,6 +84,23 @@ private:
     std::shared_ptr<TraceFlowController> flowController_ = nullptr;
 };
 
+/*
+ * TraceAsyncStrategy: dump trace asynchronously, no need to wait dump result of hitrace
+ * only Reliability adopts this strategy currently
+*/
+class TraceAsyncStrategy : public TraceStrategy {
+public:
+    TraceAsyncStrategy(int32_t maxDuration, uint64_t happenTime, const std::string &caller)
+        : TraceStrategy(maxDuration, happenTime, caller, TraceScenario::TRACE_COMMON)
+    {
+        flowController_ = std::make_shared<TraceFlowController>(caller);
+    }
+    TraceRet DoDump(std::vector<std::string> &outputFile) override;
+
+private:
+    std::shared_ptr<TraceFlowController> flowController_ = nullptr;
+};
+
 // Only telemetry to dump trace
 class TelemetryStrategy : public TraceStrategy  {
 public:

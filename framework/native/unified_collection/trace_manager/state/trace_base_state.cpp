@@ -111,6 +111,13 @@ TraceRet TraceBaseState::DumpTrace(TraceScenario scenario, int maxDuration, uint
     return TraceRet(TraceStateCode::FAIL);
 }
 
+TraceRet TraceBaseState::DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
+    TraceRetInfo &info, DumpTraceCallback callback)
+{
+    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(args.scenario));
+    return TraceRet(TraceStateCode::FAIL);
+}
+
 TraceRet TraceBaseState::TraceDropOn(TraceScenario scenario)
 {
     HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
