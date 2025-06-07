@@ -72,4 +72,13 @@ private:
 } // namespace UCollectUtil
 } // namespace HiviewDFX
 } // namespace OHOS
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+__attribute__ ((__unused__)) double GetThreadCpuload(int32_t pid);
+#ifdef __cplusplus
+}
+#endif
+
 #endif //HIVIEW_THREAD_CPU_STATE_INFO_COLLECTOR_H

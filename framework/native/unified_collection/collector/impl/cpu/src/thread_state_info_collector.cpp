@@ -214,3 +214,25 @@ std::optional<ThreadCpuStatInfo> ThreadStateInfoCollector::CalculateThreadCpuSta
 } // UCollectUtil
 } // HiViewDFX
 } // OHOS
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+__attribute__((visibility ("default"))) double GetThreadCpuload(int32_t pid)
+{
+    OHOS::HiviewDFX::CollectResult<std::vector<OHOS::HiviewDFX::ThreadCpuStatInfo>> threadCollectResult;
+    threadCollectResult = OHOS::HiviewDFX::UCollectUtil::ThreadCpuCollector::Create(pid)->CollectThreadStatInfos();
+    if (threadCollectResult.retCode != OHOS::HiviewDFX::UCollect::UcError::SUCCESS) {
+        return -1;
+    }
+    std::vector<OHOS::HiviewDFX::ThreadCpuStatInfo> threadCpuStatInfo = threadCollectResult.data;
+    for (const auto& info : threadCpuStatInfo) {
+        if (info.tid == pid) {
+            return info.cpuLoad;
+        }
+    }
+    return -1;
+}
+#ifdef __cplusplus
+}
+#endif
