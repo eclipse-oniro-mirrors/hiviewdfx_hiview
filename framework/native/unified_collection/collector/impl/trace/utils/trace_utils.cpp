@@ -31,7 +31,6 @@
 #include "parameter_ex.h"
 #include "securec.h"
 #include "string_util.h"
-#include "trace_common.h"
 #include "trace_decorator.h"
 #include "trace_worker.h"
 #include "time_util.h"
@@ -172,9 +171,25 @@ std::string AddVersionInfoToZipName(const std::string &srcZipPath)
     return StringUtil::ReplaceStr(srcZipPath, ".zip", "@" + versionStr + ".zip");
 }
 
-void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
+std::string GetTraceZipTmpPath(const std::string &tracePath)
 {
-    std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
+    return UNIFIED_SHARE_TEMP_PATH + StringUtil::ReplaceStr(FileUtil::ExtractFileName(tracePath), ".sys", ".zip");
+}
+
+std::string GetTraceZipFinalPath(const std::string &tracePath, const std::string &destDir)
+{
+    auto destZipName = destDir + StringUtil::ReplaceStr(FileUtil::ExtractFileName(tracePath), ".sys", ".zip");
+    return AddVersionInfoToZipName(destZipName);
+}
+
+std::string GetTraceSpecialPath(const std::string &tracePath, const std::string &prefix)
+{
+    return UNIFIED_SPECIAL_PATH + prefix + "_" + FileUtil::ExtractFileName(tracePath);
+}
+
+void ZipTraceFile(const std::string &srcSysPath, const std::string &destDir)
+{
+    std::string destZipPathWithVersion = GetTraceZipFinalPath(srcSysPath, destDir);
     std::string dstZipName = FileUtil::ExtractFileName(destZipPathWithVersion);
     if (FileUtil::FileExists(destZipPathWithVersion)) {
         HIVIEW_LOGI("dst: %{public}s already exist", dstZipName.c_str());
@@ -182,8 +197,8 @@ void ZipTraceFile(const std::string &srcSysPath, const std::string &destZipPath)
     }
     CheckCurrentCpuLoad();
     HiviewEventReport::ReportCpuScene("5");
-    std::string tmpDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
-    HIVIEW_LOGI("start ZipTraceFile, dst: %{public}s", FileUtil::ExtractFileName(destZipPath).c_str());
+    std::string tmpDestZipPath = GetTraceZipTmpPath(srcSysPath);
+    HIVIEW_LOGI("start ZipTraceFile, dst: %{public}s", FileUtil::ExtractFileName(tmpDestZipPath).c_str());
     HiviewZipUnit zipUnit(tmpDestZipPath);
     if (int32_t ret = zipUnit.AddFileInZip(srcSysPath, ZipFileLevel::KEEP_NONE_PARENT_PATH); ret != 0) {
         HIVIEW_LOGW("zip trace failed, ret: %{public}d.", ret);
@@ -243,7 +258,7 @@ void DoClean(const std::string &tracePath, const std::string &prefix)
  *     /data/log/hiview/unified_collection/trace/share/
  *     trace_20230906111617@8290-81765922_{device}_{version}.zip
 */
-std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outputFiles, const std::string &destDir)
+std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const std::string &destDir)
 {
     if (!FileUtil::FileExists(UNIFIED_SHARE_TEMP_PATH)) {
         if (!CreateMultiDirectory(UNIFIED_SHARE_TEMP_PATH)) {
@@ -253,17 +268,15 @@ std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outpu
     }
 
     std::vector<std::string> files;
-    for (const auto &tracePath : outputFiles) {
-        std::string traceFile = FileUtil::ExtractFileName(tracePath);
-        const std::string destZipPath = destDir + StringUtil::ReplaceStr(traceFile, ".sys", ".zip");
-        const std::string tempDestZipPath = UNIFIED_SHARE_TEMP_PATH + FileUtil::ExtractFileName(destZipPath);
-        const std::string destZipPathWithVersion = AddVersionInfoToZipName(destZipPath);
+    for (const auto &tracePath : traceRetInfo.outputFiles) {
+        const std::string tempDestZipPath = GetTraceZipTmpPath(tracePath);
+        const std::string destZipPathWithVersion = GetTraceZipFinalPath(tracePath, destDir);
         // for zip if the file has not been compressed
         if (!FileUtil::FileExists(destZipPathWithVersion) && !FileUtil::FileExists(tempDestZipPath)) {
             // new empty file is used to restore tasks in queue
             FileUtil::SaveStringToFile(tempDestZipPath, " ", true);
             UcollectionTask traceTask = [=]() {
-                ZipTraceFile(tracePath, destZipPath);
+                ZipTraceFile(tracePath, destDir);
                 DoClean(destDir, "");
             };
             TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
@@ -279,7 +292,7 @@ std::vector<std::string> GetUnifiedZipFiles(const std::vector<std::string> outpu
  * trace path eg.:
  * /data/log/hiview/unified_collection/trace/special/BetaClub_trace_20230906111633@8306-299900816.sys
 */
-std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& outputFiles, const std::string& prefix)
+std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo &traceRetInfo, const std::string& prefix)
 {
     if (!FileUtil::FileExists(UNIFIED_SPECIAL_PATH)) {
         if (!CreateMultiDirectory(UNIFIED_SPECIAL_PATH)) {
@@ -289,9 +302,8 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
     }
 
     std::vector<std::string> files;
-    for (const auto &trace : outputFiles) {
-        std::string traceFile = FileUtil::ExtractFileName(trace);
-        const std::string dst = UNIFIED_SPECIAL_PATH + prefix + "_" + traceFile;
+    for (const auto &trace : traceRetInfo.outputFiles) {
+        std::string dst = GetTraceSpecialPath(trace, prefix);
         files.push_back(dst);
         // copy trace immediately for betaclub and screen recording
         if (prefix == CallerName::SCREEN || prefix == ClientName::BETACLUB) {
@@ -309,6 +321,24 @@ std::vector<std::string> GetUnifiedSpecialFiles(const std::vector<std::string>& 
         }
     }
     return files;
+}
+
+DumpTraceCallback CreateDumpTraceCallback(const std::string &caller)
+{
+    if (caller == CallerName::RELIABILITY) {
+        return [caller] (TraceRetInfo traceRetInfo) {
+            if (traceRetInfo.errorCode == TraceErrorCode::SUCCESS) {
+                GetUnifiedSpecialFiles(traceRetInfo, caller);
+                GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH);
+            } else if (traceRetInfo.errorCode == TraceErrorCode::SIZE_EXCEED_LIMIT) {
+                GetUnifiedSpecialFiles(traceRetInfo, caller);
+            }
+        };
+    } else {
+        return [caller] (TraceRetInfo traceRetInfo) {
+            HIVIEW_LOGW("caller %{public}s callback not implement", caller.c_str());
+        };
+    }
 }
 
 int64_t GetTraceSize(TraceRetInfo &ret)

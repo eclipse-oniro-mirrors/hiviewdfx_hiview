@@ -55,6 +55,18 @@ TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, int maxDuration, u
     return ret;
 }
 
+TraceRet TraceStateMachine::DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
+    TraceRetInfo &info, DumpTraceCallback callback)
+{
+    std::lock_guard<std::mutex> lock(traceMutex_);
+    auto ret = currentState_->DumpTraceAsync(args, fileSizeLimit, info, callback);
+    if (ret.GetCodeError() == TraceErrorCode::TRACE_IS_OCCUPIED ||
+        ret.GetCodeError() == TraceErrorCode::WRONG_TRACE_MODE) {
+        RecoverState();
+    }
+    return ret;
+}
+
 TraceRet TraceStateMachine::DumpTraceWithFilter(int maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);

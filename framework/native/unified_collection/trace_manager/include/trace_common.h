@@ -54,6 +54,14 @@ enum class TraceScenario : uint8_t {
     TRACE_TELEMETRY,
 };
 
+struct DumpTraceArgs {
+    TraceScenario scenario;
+    int maxDuration = 0;
+    uint64_t happenTime = 0;
+};
+
+using DumpTraceCallback = std::function<void(TraceRetInfo)>;
+
 enum class TraceStateCode : uint8_t {
     SUCCESS,
     DENY, // Change state deny

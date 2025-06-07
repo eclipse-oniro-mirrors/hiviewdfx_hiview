@@ -43,9 +43,8 @@ class TraceFlowController {
 public:
     explicit TraceFlowController(const std::string &caller, const std::string& dbPath = DB_PATH);
     ~TraceFlowController() = default;
-    bool NeedDump();
-    bool NeedUpload(int64_t traceSize);
-    void StoreDb();
+    int64_t GetRemainingTraceSize();
+    void StoreDb(int64_t traceSize);
 
     /**
      * @brief app whether report jank event trace today

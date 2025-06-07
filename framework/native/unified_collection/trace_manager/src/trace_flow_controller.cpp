@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,28 +82,20 @@ TraceFlowController::TraceFlowController(const std::string& caller, const std::s
     InitTraceStorage(caller);
 }
 
-bool TraceFlowController::NeedDump()
+int64_t TraceFlowController::GetRemainingTraceSize()
 {
     if (traceStorage_ == nullptr) {
-        return false;
+        return 0;
     }
-    return traceStorage_->NeedDump();
+    return traceStorage_->GetRemainingTraceSize();
 }
 
-bool TraceFlowController::NeedUpload(int64_t traceSize)
-{
-    if (traceStorage_ == nullptr) {
-        return false;
-    }
-    return traceStorage_->NeedUpload(traceSize);
-}
-
-void TraceFlowController::StoreDb()
+void TraceFlowController::StoreDb(int64_t traceSize)
 {
     if (traceStorage_ == nullptr) {
         return;
     }
-    traceStorage_->StoreDb();
+    traceStorage_->StoreDb(traceSize);
 }
 
 bool TraceFlowController::HasCallOnceToday(int32_t uid, uint64_t happenTime)

@@ -34,31 +34,39 @@ constexpr uint32_t MB_TO_KB = 1024;
 constexpr uint32_t KB_TO_BYTE = 1024;
 constexpr int32_t FULL_TRACE_DURATION = -1;
 const uint32_t MS_UNIT = 1000;
+
+void InitDumpEvent(DumpEvent &dumpEvent, const std::string &caller, int maxDuration, uint64_t happenTime)
+{
+    dumpEvent.caller = caller;
+    dumpEvent.reqDuration = maxDuration;
+    dumpEvent.reqTime = happenTime;
+    dumpEvent.execTime = TimeUtil::GenerateTimestamp() / MS_UNIT; // convert execTime into ms unit
+}
+
+void UpdateDumpEvent(DumpEvent &dumpEvent, const TraceRet &ret, uint64_t execDuration, const TraceRetInfo &retInfo)
+{
+    dumpEvent.errorCode = GetUcError(ret);
+    dumpEvent.execDuration = execDuration;
+    dumpEvent.coverDuration = retInfo.coverDuration;
+    dumpEvent.coverRatio = retInfo.coverRatio;
+    dumpEvent.traceMode = retInfo.mode;
+    dumpEvent.tags = std::move(retInfo.tags);
+}
 }
 
 TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
 {
-    TraceRet ret;
-    dumpEvent.reqDuration = maxDuration_;
-    dumpEvent.reqTime = happenTime_;
-    dumpEvent.execTime = TimeUtil::GenerateTimestamp() / MS_UNIT; // convert execTime into ms unit
+    InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
     auto start = std::chrono::steady_clock::now();
-    if (maxDuration_ == FULL_TRACE_DURATION) {
-        ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, 0, happenTime_, traceRetInfo);
-    } else {
-        ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, maxDuration_, happenTime_, traceRetInfo);
-    }
+    int maxDuration = (maxDuration_ == FULL_TRACE_DURATION) ? 0 : maxDuration_;
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, maxDuration, happenTime_, traceRetInfo);
     if (!ret.IsSuccess()) {
         HIVIEW_LOGW("scenario_:%{public}d, stateError:%{public}d, codeError:%{public}d", static_cast<int>(scenario_),
             static_cast<int>(ret.stateError_), ret.codeError_);
     }
-    dumpEvent.errorCode = GetUcError(ret);
     auto end = std::chrono::steady_clock::now();
-    dumpEvent.execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    dumpEvent.coverDuration = traceRetInfo.coverDuration;
-    dumpEvent.coverRatio = traceRetInfo.coverRatio;
-    dumpEvent.traceMode = traceRetInfo.mode;
-    dumpEvent.tags = std::move(traceRetInfo.tags);
+    auto execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    UpdateDumpEvent(dumpEvent, ret, execDuration, traceRetInfo);
     return ret;
 }
 
@@ -85,13 +93,14 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFile)
         outputFile = traceRetInfo.outputFiles;
         return ret;
     }
-    outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
+    outputFile = GetUnifiedSpecialFiles(traceRetInfo, caller_);
     return ret;
 }
 
 TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
 {
-    if (!flowController_->NeedDump()) {
+    int64_t traceRemainingSize = flowController_->GetRemainingTraceSize();
+    if (traceRemainingSize <= 0) {
         HIVIEW_LOGI("trace is over flow, can not dump.");
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
@@ -111,15 +120,15 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
     if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
-    if (!flowController_->NeedUpload(traceSize)) {
+    if (traceSize > traceRemainingSize) {
         dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
         WriteDumpTraceHisysevent(dumpEvent);
         HIVIEW_LOGI("trace is over flow, can not upload.");
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
-    outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
+    outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH);
     WriteDumpTraceHisysevent(dumpEvent);
-    flowController_->StoreDb();
+    flowController_->StoreDb(traceSize);
     return {};
 }
 
@@ -143,21 +152,56 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
     if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
-    outputFile = GetUnifiedSpecialFiles(traceRetInfo.outputFiles, caller_);
-    if (flowController_->NeedDump()) {
-        if (!flowController_->NeedUpload(traceSize)) {
+    outputFile = GetUnifiedSpecialFiles(traceRetInfo, caller_);
+    int64_t traceRemainingSize = flowController_->GetRemainingTraceSize();
+    if (traceRemainingSize > 0) {
+        if (traceRemainingSize < traceSize) {
             dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
             WriteDumpTraceHisysevent(dumpEvent);
             HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
             return {};
         }
-        outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_SHARE_PATH);
+        outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH);
     } else {
         HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
         return {};
     }
     WriteDumpTraceHisysevent(dumpEvent);
-    flowController_->StoreDb();
+    flowController_->StoreDb(traceSize);
+    return {};
+}
+
+TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFile)
+{
+    DumpEvent dumpEvent;
+    InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
+    auto start = std::chrono::steady_clock::now();
+    DumpTraceArgs args = {
+        .scenario = scenario_,
+        .maxDuration = maxDuration_,
+        .happenTime = happenTime_,
+    };
+    TraceRetInfo traceRetInfo;
+    int64_t traceRemainingSize = flowController_->GetRemainingTraceSize();
+    DumpTraceCallback callback = CreateDumpTraceCallback(caller_);
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTraceAsync(args, traceRemainingSize, traceRetInfo, callback);
+    auto end = std::chrono::steady_clock::now();
+    auto execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    UpdateDumpEvent(dumpEvent, ret, execDuration, traceRetInfo);
+    if (!ret.IsSuccess()) {
+        WriteDumpTraceHisysevent(dumpEvent);
+        for (const auto &file : traceRetInfo.outputFiles) {
+            outputFile.emplace_back(GetTraceSpecialPath(file, caller_));
+        }
+        return ret;
+    }
+    if (traceRemainingSize >= traceRetInfo.fileSize) {
+        flowController_->StoreDb(traceRetInfo.fileSize);
+    }
+    WriteDumpTraceHisysevent(dumpEvent);
+    for (const auto &file : traceRetInfo.outputFiles) {
+        outputFile.emplace_back(GetTraceZipFinalPath(file, UNIFIED_SHARE_PATH));
+    }
     return {};
 }
 
@@ -179,7 +223,7 @@ TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
         HIVIEW_LOGW("TraceFlowControlStrategy outputFiles empty.");
         return TraceRet(traceRetInfo.errorCode);
     }
-    outputFile = GetUnifiedZipFiles(traceRetInfo.outputFiles, UNIFIED_TELEMETRY_PATH);
+    outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_TELEMETRY_PATH);
     return {};
 }
 
@@ -294,8 +338,9 @@ std::shared_ptr<TraceStrategy> TraceFactory::CreateTraceStrategy(UCollect::Trace
 {
     switch (caller) {
         case UCollect::TraceCaller::XPERF:
-        case UCollect::TraceCaller::RELIABILITY:
             return std::make_shared<TraceMixedStrategy>(maxDuration, happenTime, EnumToString(caller));
+        case UCollect::TraceCaller::RELIABILITY:
+            return std::make_shared<TraceAsyncStrategy>(maxDuration, happenTime, EnumToString(caller));
         case UCollect::TraceCaller::XPOWER:
         case UCollect::TraceCaller::HIVIEW:
             return std::make_shared<TraceFlowControlStrategy>(maxDuration, happenTime, EnumToString(caller));

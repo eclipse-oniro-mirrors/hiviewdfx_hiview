@@ -80,50 +80,54 @@ public:
 
 /**
  * @tc.name: TraceManagerTest001
- * @tc.desc: used to test TraceFlowControl api: NeedUpload NeedDump
+ * @tc.desc: used to test TraceFlowControl api: GetRemainingTraceSize
  * @tc.type: FUNC
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH);
     int64_t traceSize1 = 699 * 1024 * 1024; // xpower trace Threshold is 150M
-    ASSERT_TRUE(flowController1->NeedDump());
-    ASSERT_TRUE(flowController1->NeedUpload(traceSize1));
-    flowController1->StoreDb();
+    int64_t remainingSize = flowController1->GetRemainingTraceSize();
+    ASSERT_GT(remainingSize, 0);
+    ASSERT_GT(remainingSize, traceSize1);
+    flowController1->StoreDb(traceSize1);
 
     sleep(1);
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH);
-    ASSERT_TRUE(flowController2->NeedDump());
+    remainingSize = flowController2->GetRemainingTraceSize();
+    ASSERT_GT(remainingSize, 0);
 
     // NeedUpload allow 10% over limits
     int64_t traceSize2 = 70 * 1024 * 1024;
-    ASSERT_TRUE(flowController2->NeedUpload(traceSize2));
-    flowController2->StoreDb();
+    ASSERT_GT(remainingSize, traceSize2);
+    flowController2->StoreDb(traceSize2);
 
     sleep(1);
     auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH);
-    ASSERT_FALSE(flowController3->NeedDump());
+    remainingSize = flowController3->GetRemainingTraceSize();
+    ASSERT_LE(remainingSize, 0);
 }
 
 /**
  * @tc.name: TraceManagerTest002
- * @tc.desc: used to test TraceFlowControl api: NeedUpload NeedDump
+ * @tc.desc: used to test TraceFlowControl api: GetRemainingTraceSize
  * @tc.type: FUNC
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::HIVIEW, TEST_DB_PATH);
     int64_t traceSize1 = 349 * 1024 * 1024; // HIVIEW trace Threshold is 350M
-    ASSERT_TRUE(flowController1->NeedDump());
-    ASSERT_TRUE(flowController1->NeedUpload(traceSize1));
-    flowController1->StoreDb();
+    int64_t remainingSize = flowController1->GetRemainingTraceSize();
+    ASSERT_GT(remainingSize, 0);
+    ASSERT_GT(remainingSize, traceSize1);
+    flowController1->StoreDb(traceSize1);
     sleep(1);
 
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::HIVIEW, TEST_DB_PATH);
-    ASSERT_TRUE(flowController2->NeedDump());
+    remainingSize = flowController2->GetRemainingTraceSize();
+    ASSERT_GT(remainingSize, 0);
     int64_t traceSize2 = 100 * 1024 * 1024;
-    ASSERT_FALSE(flowController2->NeedUpload(traceSize2));
-    flowController2->StoreDb();
+    ASSERT_LE(remainingSize, traceSize2);
 }
 
 /**
