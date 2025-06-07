@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ FoldAppUsageEvent::FoldAppUsageEvent(const std::string &name, HiSysEvent::EventT
         {KEY_OF_PACKAGE, DEFAULT_STRING}, {KEY_OF_VERSION, DEFAULT_STRING},
         {KEY_OF_FOLD_VER_USAGE, DEFAULT_UINT32}, {KEY_OF_FOLD_HOR_USAGE, DEFAULT_UINT32},
         {KEY_OF_EXPD_VER_USAGE, DEFAULT_UINT32}, {KEY_OF_EXPD_HOR_USAGE, DEFAULT_UINT32},
+        {KEY_OF_G_VER_FULL_USAGE, DEFAULT_UINT32}, {KEY_OF_G_HOR_FULL_USAGE, DEFAULT_UINT32},
         {KEY_OF_USAGE, DEFAULT_UINT32}, {KEY_OF_DATE, DEFAULT_STRING},
         {KEY_OF_START_NUM, DEFAULT_UINT32}
     };
@@ -43,7 +44,9 @@ void FoldAppUsageEvent::Report()
         KEY_OF_EXPD_HOR_USAGE, this->paramMap_[KEY_OF_EXPD_HOR_USAGE].GetUint32(),
         KEY_OF_USAGE, this->paramMap_[KEY_OF_USAGE].GetUint32(),
         KEY_OF_DATE, this->paramMap_[KEY_OF_DATE].GetString(),
-        KEY_OF_START_NUM, this->paramMap_[KEY_OF_START_NUM].GetUint32());
+        KEY_OF_START_NUM, this->paramMap_[KEY_OF_START_NUM].GetUint32(),
+        KEY_OF_G_VER_FULL_USAGE, this->paramMap_[KEY_OF_G_VER_FULL_USAGE].GetUint32(),
+        KEY_OF_G_HOR_FULL_USAGE, this->paramMap_[KEY_OF_G_HOR_FULL_USAGE].GetUint32());
 }
 } // namespace HiviewDFX
 } // namespace OHOS

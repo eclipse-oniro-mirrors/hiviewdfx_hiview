@@ -37,8 +37,8 @@ private:
     void ProcessBackgroundEvent(std::shared_ptr<SysEvent> event);
     void ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> event);
     void CountLifeCycleDuration(AppEventRecord& appEventRecord);
-    void UpdateFoldStatus(int status);
-    void UpdateVhMode(int mode);
+    void UpdateFoldStatus(int32_t status);
+    void UpdateVhMode(int32_t mode);
     int GetStartIndex(const std::string& bundleName);
     void CalCulateDuration(uint64_t dayStartTime, std::vector<AppEventRecord>& events,
         std::map<int, uint64_t>& durations);
@@ -50,8 +50,8 @@ private:
 private:
     std::unique_ptr<FoldAppUsageDbHelper> dbHelper_;
     std::pair<std::string, bool> focusedAppPair_;
-    int foldStatus_ = 0;
-    int vhMode_ = 0;
+    int32_t foldStatus_ = 0;
+    int32_t vhMode_ = 0;
     uint64_t timelyStart_ = 0;
 };
 } // namespace HiviewDFX

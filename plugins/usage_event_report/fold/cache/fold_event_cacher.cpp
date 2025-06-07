@@ -21,28 +21,61 @@
 #include "time_util.h"
 #include "usage_event_common.h"
 
+using namespace OHOS::HiviewDFX::FoldState;
+
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("FoldEventCacher");
 namespace {
-constexpr int UNKNOWN_FOLD_STATUS = -1;
-constexpr int MILLISEC_TO_MICROSEC = 1000;
+constexpr int8_t UNKNOWN_STATUS = -1;
+constexpr uint32_t MILLISEC_TO_MICROSEC = 1000;
+constexpr int8_t EXPAND = 1;
+constexpr int8_t FOLD = 2;
+constexpr int8_t G = 3;
+constexpr int8_t LANDSCAPE = 1;
+constexpr int8_t PORTRAIT = 2;
+constexpr int8_t THE_TENS_DIGIT = 10;
 
-int GetCombineScreenStatus(int foldStatus, int vhMode)
+int8_t ConvertFoldStatus(int32_t foldStatus)
 {
-    if (foldStatus == 1 && vhMode == 1) { // foldStatus: 1-expand status
-        return ScreenFoldStatus::EXPAND_LANDSCAPE_STATUS;
+    switch (foldStatus) {
+        case FOLD_STATE_EXPAND:
+        case FOLD_STATE_HALF_FOLDED:
+            return EXPAND;
+        case FOLD_STATE_FOLDED:
+        case FOLD_STATE_FOLDED_WITH_SECOND_HALF_FOLDED:
+            return FOLD;
+        case FOLD_STATE_EXPAND_WITH_SECOND_EXPAND:
+        case FOLD_STATE_EXPAND_WITH_SECOND_HALF_FOLDED:
+        case FOLD_STATE_HALF_FOLDED_WITH_SECOND_EXPAND:
+        case FOLD_STATE_HALF_FOLDED_WITH_SECOND_HALF_FOLDED:
+            return G;
+        default:
+            return UNKNOWN_STATUS;
     }
-    if (foldStatus == 1 && vhMode == 0) {
-        return ScreenFoldStatus::EXPAND_PORTRAIT_STATUS;
+}
+
+int8_t ConvertVhMode(int32_t vhMode)
+{
+    switch (vhMode) {
+        case 0: // 0-Portrait
+            return PORTRAIT;
+        case 1: // 1-landscape
+            return LANDSCAPE;
+        default:
+            return UNKNOWN_STATUS;
     }
-    if ((foldStatus == 2 || foldStatus == 3) && vhMode == 1) { // foldStatus: 2-fold status 3- half fold status
-        return ScreenFoldStatus::FOLD_LANDSCAPE_STATUS;
+}
+
+int GetScreenFoldStatus(int32_t foldStatus, int32_t vhMode)
+{
+    int8_t combineFoldStatus = ConvertFoldStatus(foldStatus);
+    int8_t combineVhMode = ConvertVhMode(vhMode);
+    if (combineFoldStatus == UNKNOWN_STATUS || combineVhMode == UNKNOWN_STATUS) {
+        return UNKNOWN_STATUS;
     }
-    if ((foldStatus == 2 || foldStatus == 3) && vhMode == 0) { // foldStatus: 2-fold status 3- half fold status
-        return ScreenFoldStatus::FOLD_PORTRAIT_STATUS;
-    }
-    return UNKNOWN_FOLD_STATUS;
+    // for example ScreenFoldStatus = 110 means foldStatus = 1, vhMode = 1 and windowMode = 0
+    return ((combineFoldStatus * THE_TENS_DIGIT) + combineVhMode) * THE_TENS_DIGIT;
 }
 } // namespace
 
@@ -51,7 +84,7 @@ FoldEventCacher::FoldEventCacher(const std::string& workPath)
     timelyStart_ = TimeUtil::GetBootTimeMs();
     dbHelper_ = std::make_unique<FoldAppUsageDbHelper>(workPath);
 
-    foldStatus_ = static_cast<int>(OHOS::Rosen::DisplayManager::GetInstance().GetFoldStatus());
+    foldStatus_ = static_cast<int32_t>(OHOS::Rosen::DisplayManager::GetInstance().GetFoldStatus());
     auto display = OHOS::Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (display != nullptr) {
         int orientation = static_cast<int>(display->GetRotation());
@@ -103,12 +136,12 @@ void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.rawid = FoldEventId::EVENT_APP_START;
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = event->GetEventValue(AppEventSpace::KEY_OF_BUNDLE_NAME);
-    int combineScreenStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
+    int combineScreenStatus = GetScreenFoldStatus(foldStatus_, vhMode_);
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = combineScreenStatus;
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 
-    if (combineScreenStatus != UNKNOWN_FOLD_STATUS) {
+    if (combineScreenStatus != UNKNOWN_STATUS) {
         dbHelper_->AddAppEvent(appEventRecord);
     }
 }
@@ -119,12 +152,12 @@ void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.rawid = FoldEventId::EVENT_APP_EXIT;
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = focusedAppPair_.first;
-    int combineScreenStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
+    int combineScreenStatus = GetScreenFoldStatus(foldStatus_, vhMode_);
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = combineScreenStatus;
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 
-    if (combineScreenStatus != UNKNOWN_FOLD_STATUS) {
+    if (combineScreenStatus != UNKNOWN_STATUS) {
         dbHelper_->AddAppEvent(appEventRecord);
         CountLifeCycleDuration(appEventRecord);
     }
@@ -132,12 +165,12 @@ void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event)
 
 void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> event)
 {
-    int preFoldStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
+    int preFoldStatus = GetScreenFoldStatus(foldStatus_, vhMode_);
     std::string eventName = event->eventName_;
     if (eventName == FoldStateChangeEventSpace::EVENT_NAME) {
-        UpdateFoldStatus(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
+        UpdateFoldStatus(static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS)));
     } else {
-        UpdateVhMode(event->GetEventIntValue(VhModeChangeEventSpace::KEY_OF_MODE));
+        UpdateVhMode(static_cast<int32_t>(event->GetEventIntValue(VhModeChangeEventSpace::KEY_OF_MODE)));
     }
     if (!focusedAppPair_.second) {
         return;
@@ -147,9 +180,9 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = focusedAppPair_.first;
     appEventRecord.preFoldStatus = preFoldStatus;
-    appEventRecord.foldStatus = GetCombineScreenStatus(foldStatus_, vhMode_);
+    appEventRecord.foldStatus = GetScreenFoldStatus(foldStatus_, vhMode_);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
-    if ((appEventRecord.foldStatus != UNKNOWN_FOLD_STATUS)
+    if ((appEventRecord.foldStatus != UNKNOWN_STATUS)
         && appEventRecord.preFoldStatus != appEventRecord.foldStatus) {
         dbHelper_->AddAppEvent(appEventRecord);
     }
@@ -177,6 +210,8 @@ void FoldEventCacher::ProcessCountDurationEvent(AppEventRecord& appEventRecord, 
     newRecord.foldLandscapeTime = GetFoldStatusDuration(ScreenFoldStatus::FOLD_LANDSCAPE_STATUS, durations);
     newRecord.expandPortraitTime = GetFoldStatusDuration(ScreenFoldStatus::EXPAND_PORTRAIT_STATUS, durations);
     newRecord.expandLandscapeTime = GetFoldStatusDuration(ScreenFoldStatus::EXPAND_LANDSCAPE_STATUS, durations);
+    newRecord.gPortraitFullTime = GetFoldStatusDuration(ScreenFoldStatus::G_PORTRAIT_STATUS, durations);
+    newRecord.gLandscapeFullTime = GetFoldStatusDuration(ScreenFoldStatus::G_LANDSCAPE_STATUS, durations);
     dbHelper_->AddAppEvent(newRecord);
 }
 
@@ -247,12 +282,12 @@ int FoldEventCacher::GetStartIndex(const std::string& bundleName)
     return dbHelper_->QueryRawEventIndex(bundleName, FoldEventId::EVENT_APP_START);
 }
 
-void FoldEventCacher::UpdateFoldStatus(int status)
+void FoldEventCacher::UpdateFoldStatus(int32_t status)
 {
     foldStatus_ = status;
 }
 
-void FoldEventCacher::UpdateVhMode(int mode)
+void FoldEventCacher::UpdateVhMode(int32_t mode)
 {
     vhMode_ = mode;
 }

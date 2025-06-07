@@ -110,4 +110,6 @@ ohos_unittest("FoldAppUsageTest") {
     "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
   ]
+
+  resource_config_file = "$hiview_plugin/usage_event_report/test/resource/ohos_test.xml"
 }

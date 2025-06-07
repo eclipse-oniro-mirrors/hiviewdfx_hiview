@@ -34,17 +34,19 @@ const std::string KEY_OF_START_NUM = "TOTAL_START_NUM";
 }
 
 namespace FoldAppUsageEventSpace {
-const std::string EVENT_NAME = "FOLD_APP_USAGE";
-const std::string KEY_OF_PACKAGE = "PACKAGE";
-const std::string KEY_OF_VERSION = "VERSION";
-const std::string KEY_OF_USAGE = "USAGE";
-const std::string KEY_OF_FOLD_VER_USAGE = "FOLD_V";
-const std::string KEY_OF_FOLD_HOR_USAGE = "FOLD_H";
-const std::string KEY_OF_EXPD_VER_USAGE = "EXPD_V";
-const std::string KEY_OF_EXPD_HOR_USAGE = "EXPD_H";
-const std::string KEY_OF_DATE = "DATE";
-const std::string KEY_OF_START_NUM = "TOTAL_START_NUM";
-const std::string SCENEBOARD_BUNDLE_NAME = "com.ohos.sceneboard"; // NOT include sceneboard
+constexpr char EVENT_NAME[] = "FOLD_APP_USAGE";
+constexpr char KEY_OF_PACKAGE[] = "PACKAGE";
+constexpr char KEY_OF_VERSION[] = "VERSION";
+constexpr char KEY_OF_USAGE[] = "USAGE";
+constexpr char KEY_OF_FOLD_VER_USAGE[] = "FOLD_V";
+constexpr char KEY_OF_FOLD_HOR_USAGE[] = "FOLD_H";
+constexpr char KEY_OF_EXPD_VER_USAGE[] = "EXPD_V";
+constexpr char KEY_OF_EXPD_HOR_USAGE[] = "EXPD_H";
+constexpr char KEY_OF_G_VER_FULL_USAGE[] = "G_V_FULL";
+constexpr char KEY_OF_G_HOR_FULL_USAGE[] = "G_H_FULL";
+constexpr char KEY_OF_DATE[] = "DATE";
+constexpr char KEY_OF_START_NUM[] = "TOTAL_START_NUM";
+constexpr char SCENEBOARD_BUNDLE_NAME[] = "com.ohos.sceneboard"; // NOT include sceneboard
 }
 
 namespace SysUsageEventSpace {
@@ -81,32 +83,66 @@ namespace FoldStateChangeEventSpace {
     const std::string KEY_OF_NEXT_STATUS = "NEXT_FOLD_STATUS";
 }
 
+namespace FoldState {
+constexpr int32_t FOLD_STATE_EXPAND = 1;
+constexpr int32_t FOLD_STATE_FOLDED = 2;
+constexpr int32_t FOLD_STATE_HALF_FOLDED = 3;
+constexpr int32_t FOLD_STATE_EXPAND_WITH_SECOND_EXPAND = 11;
+constexpr int32_t FOLD_STATE_EXPAND_WITH_SECOND_HALF_FOLDED = 21;
+constexpr int32_t FOLD_STATE_FOLDED_WITH_SECOND_EXPAND = 12;
+constexpr int32_t FOLD_STATE_FOLDED_WITH_SECOND_HALF_FOLDED = 22;
+constexpr int32_t FOLD_STATE_HALF_FOLDED_WITH_SECOND_EXPAND = 13;
+constexpr int32_t FOLD_STATE_HALF_FOLDED_WITH_SECOND_HALF_FOLDED = 23;
+}
+
 namespace VhModeChangeEventSpace {
     const std::string EVENT_NAME = "VH_MODE";
     const std::string KEY_OF_MODE = "MODE";
 }
 
 namespace ScreenFoldStatus {
-    constexpr int EXPAND_LANDSCAPE_STATUS = 11;
-    constexpr int EXPAND_PORTRAIT_STATUS = 12;
-    constexpr int FOLD_LANDSCAPE_STATUS = 21;
-    constexpr int FOLD_PORTRAIT_STATUS = 22;
+constexpr int EXPAND_LANDSCAPE_STATUS = 110;
+constexpr int EXPAND_PORTRAIT_STATUS = 120;
+constexpr int FOLD_LANDSCAPE_STATUS = 210;
+constexpr int FOLD_PORTRAIT_STATUS = 220;
+constexpr int G_LANDSCAPE_STATUS = 310;
+constexpr int G_PORTRAIT_STATUS = 320;
 }
 
 namespace FoldEventTable {
-    const std::string FIELD_ID = "id";
-    const std::string FIELD_UID = "uid";
-    const std::string FIELD_EVENT_ID = "rawid";
-    const std::string FIELD_TS = "ts";
-    const std::string FIELD_FOLD_STATUS = "fold_status";
-    const std::string FIELD_PRE_FOLD_STATUS = "pre_fold_status";
-    const std::string FIELD_VERSION_NAME = "version_name";
-    const std::string FIELD_HAPPEN_TIME = "happen_time";
-    const std::string FIELD_FOLD_PORTRAIT_DURATION = "fold_portrait_duration";
-    const std::string FIELD_FOLD_LANDSCAPE_DURATION = "fold_landscape_duration";
-    const std::string FIELD_EXPAND_PORTRAIT_DURATION = "expand_portrait_duration";
-    const std::string FIELD_EXPAND_LANDSCAPE_DURATION = "expand_landscape_duration";
-    const std::string FIELD_BUNDLE_NAME = "bundle_name";
+constexpr char FIELD_ID[] = "id";
+constexpr char FIELD_UID[] = "uid";
+constexpr char FIELD_EVENT_ID[] = "rawid";
+constexpr char FIELD_TS[] = "ts";
+constexpr char FIELD_FOLD_STATUS[] = "fold_status";
+constexpr char FIELD_PRE_FOLD_STATUS[] = "pre_fold_status";
+constexpr char FIELD_VERSION_NAME[] = "version_name";
+constexpr char FIELD_HAPPEN_TIME[] = "happen_time";
+constexpr char FIELD_FOLD_PORTRAIT_DURATION[] = "fold_portrait_duration";
+constexpr char FIELD_FOLD_PORTRAIT_SPLIT_DURATION[] = "fold_portrait_split_duration";
+constexpr char FIELD_FOLD_PORTRAIT_FLOATING_DURATION[] = "fold_portrait_floating_duration";
+constexpr char FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION[] = "fold_portrait_midscene_duration";
+constexpr char FIELD_FOLD_LANDSCAPE_DURATION[] = "fold_landscape_duration";
+constexpr char FIELD_FOLD_LANDSCAPE_SPLIT_DURATION[] = "fold_landscape_split_duration";
+constexpr char FIELD_FOLD_LANDSCAPE_FLOATING_DURATION[] = "fold_landscape_floating_duration";
+constexpr char FIELD_FOLD_LANDSCAPE_MIDSCENE_DURATION[] = "fold_landscape_midscene_duration";
+constexpr char FIELD_EXPAND_PORTRAIT_DURATION[] = "expand_portrait_duration";
+constexpr char FIELD_EXPAND_PORTRAIT_SPLIT_DURATION[] = "expand_portrait_split_duration";
+constexpr char FIELD_EXPAND_PORTRAIT_FLOATING_DURATION[] = "expand_portrait_floating_duration";
+constexpr char FIELD_EXPAND_PORTRAIT_MIDSCENE_DURATION[] = "expand_portrait_midscene_duration";
+constexpr char FIELD_EXPAND_LANDSCAPE_DURATION[] = "expand_landscape_duration";
+constexpr char FIELD_EXPAND_LANDSCAPE_SPLIT_DURATION[] = "expand_landscape_split_duration";
+constexpr char FIELD_EXPAND_LANDSCAPE_FLOATING_DURATION[] = "expand_landscape_floating_duration";
+constexpr char FIELD_EXPAND_LANDSCAPE_MIDSCENE_DURATION[] = "expand_landscape_midscene_duration";
+constexpr char FIELD_G_PORTRAIT_FULL_DURATION[] = "g_portrait_full_duration";
+constexpr char FIELD_G_PORTRAIT_SPLIT_DURATION[] = "g_portrait_split_duration";
+constexpr char FIELD_G_PORTRAIT_FLOATING_DURATION[] = "g_portrait_floating_duration";
+constexpr char FIELD_G_PORTRAIT_MIDSCENE_DURATION[] = "g_portrait_midscene_duration";
+constexpr char FIELD_G_LANDSCAPE_FULL_DURATION[] = "g_landscape_full_duration";
+constexpr char FIELD_G_LANDSCAPE_SPLIT_DURATION[] = "g_landscape_split_duration";
+constexpr char FIELD_G_LANDSCAPE_FLOATING_DURATION[] = "g_landscape_floating_duration";
+constexpr char FIELD_G_LANDSCAPE_MIDSCENE_DURATION[] = "g_landscape_midscene_duration";
+constexpr char FIELD_BUNDLE_NAME[] = "bundle_name";
 }
 } // namespace HiviewDFX
 } // namespace OHOS
