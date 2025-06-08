@@ -20,6 +20,7 @@
 #include "hisysevent_c.h"
 #include "hiview_logger.h"
 #include "time_util.h"
+#include "event_publish.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -37,13 +38,16 @@ void MayPushBackPath(std::vector<std::string>& paths, const std::string& path)
     }
 }
 
-std::vector<std::string> GetReportPath(int32_t uid, const std::string& pathHolder)
+std::vector<std::string> GetReportPath(int32_t uid, const std::string& pathHolder, const std::string& eventName)
 {
     std::vector<std::string> rtn;
-    MayPushBackPath(rtn, FileUtil::GetSandBoxBasePath(uid, pathHolder));
-    MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "resourcelimit"));
-    MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "watchdog"));
     MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "hiappevent"));
+    if (eventName == HiAppEvent::EVENT_MAIN_THREAD_JANK) {
+        MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "watchdog"));
+    }
+    if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {
+        MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "resourcelimit"));
+    }
 
     return rtn;
 }
@@ -58,12 +62,12 @@ std::vector<uint64_t> GetFoldersSize(const std::vector<std::string>& dirs)
     return rtn;
 }
 
-void DoReport(int32_t uid, const std::string& pathHolder)
+void DoReport(int32_t uid, const std::string& pathHolder, const std::string& eventName)
 {
     std::string componentName = "hiappevent";
     std::string partitionName = "/data";
     uint64_t partitionSize = static_cast<uint64_t>(FileUtil::GetDeviceValidSize(partitionName));
-    std::vector<std::string> dirs = GetReportPath(uid, pathHolder);
+    std::vector<std::string> dirs = GetReportPath(uid, pathHolder, eventName);
     std::vector<uint64_t> dirSizes = GetFoldersSize(dirs);
     uint32_t count = static_cast<uint32_t>(dirs.size());
     char* fileArr[count];
@@ -116,24 +120,26 @@ void UserDataSizeReporter::ClearOverTimeRecord()
     reportLimitRecords_.erase(reportLimitRecords_.begin(), reportLimitRecords_.begin() + index);
 }
 
-bool UserDataSizeReporter::ShouldReport(const std::string& pathHolder)
+bool UserDataSizeReporter::ShouldReport(const std::string& pathLimmitKey)
 {
     auto it = std::find_if(reportLimitRecords_.begin(), reportLimitRecords_.end(),
-                           [&](const auto& p) { return p.first == pathHolder; });
+                           [&](const auto& p) { return p.first == pathLimmitKey; });
     return it == reportLimitRecords_.end();
 }
 
-void UserDataSizeReporter::ReportUserDataSize(int32_t uid, const std::string& pathHolder)
+void UserDataSizeReporter::ReportUserDataSize(int32_t uid, const std::string& pathHolder, const std::string& eventName)
 {
     std::lock_guard<std::mutex> lock(recordMutex_);
+    std::string pathLimmitKey = pathHolder + "_" + eventName;
     ClearOverTimeRecord();
-    if (!ShouldReport(pathHolder)) {
-        HIVIEW_LOGI("should not report, pathHolder: %{public}s", pathHolder.c_str());
+    if (!ShouldReport(pathLimmitKey)) {
+        HIVIEW_LOGI("should not report, pathLimmitKey: %{public}s", pathLimmitKey.c_str());
         return;
     }
-    DoReport(uid, pathHolder);
+    HIVIEW_LOGI("should report, pathLimmitKey: %{public}s", pathLimmitKey.c_str());
+    DoReport(uid, pathHolder, eventName);
     if (reportLimitRecords_.size() < RECORD_MAX_CNT) {
-        reportLimitRecords_.push_back({pathHolder, TimeUtil::GetMilliseconds()});
+        reportLimitRecords_.push_back({pathLimmitKey, TimeUtil::GetMilliseconds()});
     }
 }
 } // namespace HiviewDFX

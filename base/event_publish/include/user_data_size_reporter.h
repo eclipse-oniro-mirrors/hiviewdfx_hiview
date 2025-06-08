@@ -26,17 +26,17 @@ namespace HiviewDFX {
 class UserDataSizeReporter : public OHOS::DelayedRefSingleton<UserDataSizeReporter> {
 #ifdef APPEVENT_PUBLISH_ENABLE
 public:
-    void ReportUserDataSize(int32_t uid, const std::string& pathHolder);
+    void ReportUserDataSize(int32_t uid, const std::string& pathHolder, const std::string& eventName);
 
 private:
     bool ShouldReport(const std::string& pathHolder);
     void ClearOverTimeRecord();
 
     std::mutex recordMutex_;
-    std::vector<std::pair<std::string, uint64_t>> reportLimitRecords_; // pathHolder, stamp
+    std::vector<std::pair<std::string, uint64_t>> reportLimitRecords_; // pathHolder_eventName, stamp
 #else
 public:
-    void ReportUserDataSize(int32_t uid, const std::string& pathHolder) {}
+    void ReportUserDataSize(int32_t uid, const std::string& pathHolder, const std::string& eventName) {}
 #endif
 };
 } // namespace HiviewDFX

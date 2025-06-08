@@ -436,7 +436,8 @@ void EventPublish::SendOverLimitEventToSandBox(AppEventParams eventParams)
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventParams.eventJson, desPath);
-    UserDataSizeReporter::GetInstance().ReportUserDataSize(eventParams.uid, eventParams.pathHolder);
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(eventParams.uid, eventParams.pathHolder,
+                                                           EVENT_RESOURCE_OVERLIMIT);
     sendingOverlimitThread_.reset();
 }
 
@@ -531,7 +532,7 @@ void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEve
         EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK, EVENT_APP_HICOLLIE, EVENT_APP_KILLED};
     if (immediateEvents.find(eventName) != immediateEvents.end()) {
         SaveEventAndLogToSandBox(eventParams);
-        UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder);
+        UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, eventName);
     } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
         StartOverLimitThread(eventParams);
     } else {
