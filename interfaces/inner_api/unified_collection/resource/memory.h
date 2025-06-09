@@ -200,7 +200,7 @@ struct ProcessMemoryDetail {
 };
 
 extern "C" {
-const int HIAI_MAX_QUERIED_USER_MEMINFO_LIMIT = 256;
+const uint32_t HIAI_MAX_QUERIED_USER_MEMINFO_LIMIT = 256;
 
 using AIProcessMem = struct AIProcessMem {
     int pid = 0;                 // process id

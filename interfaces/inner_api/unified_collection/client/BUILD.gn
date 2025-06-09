@@ -37,7 +37,7 @@ ohos_shared_library("libucollection_client") {
   version_script = "libucollectionclient.map"
 
   innerapi_tags = [
-    "chipsetsdk_indirect",
+    "chipsetsdk_sp_indirect",
     "platformsdk",
   ]
 

@@ -53,6 +53,8 @@ DEFINE_LOG_TAG("UCollectUtil");
 std::mutex g_memMutex;
 const int NON_PC_APP_STATE = -1;
 const std::string DDR_CUR_FREQ = "/sys/class/devfreq/ddrfreq/cur_freq";
+using IHiaiInfraGetFunc = struct IHiaiInfra*(*)(bool);
+using IHiaiInfraReleaseFunc = void(*)(struct IHiaiInfra*, bool);
 
 static std::string GetCurrTimestamp()
 {
@@ -120,27 +122,32 @@ static bool WriteAIProcessMemToFile(std::string& filePath, const std::vector<AIP
     return true;
 }
 
-static bool ReadMemFromAILib(AIProcessMem memInfos[], int len, int& realSize)
+static bool ReadMemFromAILib(AIProcessMem memInfos[], uint32_t len, int& realSize)
 {
-    std::string libName = "libai_mnt_client.so";
-    std::string interface = "HIAI_Memory_QueryAllUserAllocatedMemInfo";
-    void* handle = dlopen(libName.c_str(), RTLD_LAZY);
+    void* handle = dlopen("libhiai_infra_proxy_1.0.z.so", RTLD_LAZY);
     if (!handle) {
-        HIVIEW_LOGE("dlopen %{public}s failed, %{public}s.", libName.c_str(), dlerror());
+        HIVIEW_LOGE("dlopen fail, error : %{public}s", dlerror());
         return false;
     }
-    using AIFunc = int (*)(AIProcessMem[], int, int*);
-    AIFunc aiFunc = reinterpret_cast<AIFunc>(dlsym(handle, interface.c_str()));
-    if (!aiFunc) {
-        HIVIEW_LOGE("dlsym %{public}s failed, %{public}s.", libName.c_str(), dlerror());
+    IHiaiInfraGetFunc aiInfraGet = reinterpret_cast<IHiaiInfraGetFunc>(dlsym(handle, "IHiaiInfraGet"));
+    if (!aiInfraGet) {
+        HIVIEW_LOGE("dlsym fail, error : %{public}s", dlerror());
         dlclose(handle);
         return false;
     }
-    int memInfoSize = len;
-    int ret = aiFunc(memInfos, memInfoSize, &realSize);
-    HIVIEW_LOGI("exec %{public}s, ret=%{public}d.", interface.c_str(), ret);
+    struct IHiaiInfra* aiInfra = aiInfraGet(true);
+    if (!aiInfra) {
+        HIVIEW_LOGE("aiInfraGet fail");
+        dlclose(handle);
+        return false;
+    }
+    int ret = aiInfra->QueryAllUserAllocatedMemInfo(aiInfra, memInfos, &len, &realSize);
+    IHiaiInfraReleaseFunc aiInfraRelease = reinterpret_cast<IHiaiInfraReleaseFunc>(dlsym(handle, "IHiaiInfraRelease"));
+    if (!aiInfraRelease) {
+        aiInfraRelease(aiInfra, true);
+    }
     dlclose(handle);
-    return (realSize >= 0) && (ret == 0);
+    return (ret == 0) && (realSize >= 0);
 }
 
 static void DoClearFiles(const std::string& filePrefix)
