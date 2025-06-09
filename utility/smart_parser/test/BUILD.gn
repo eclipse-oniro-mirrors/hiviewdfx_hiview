@@ -45,7 +45,7 @@ ohos_moduletest("SmartParserModuleTest") {
   external_deps = [
     "googletest:gtest_main",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
+    "cJSON:cjson",
   ]
 
   module_out_path = module_output_path

@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include <json/json.h>
+#include "cJSON.h"
 
 #include "syntax_rules.h"
 namespace OHOS {
@@ -36,17 +36,17 @@ public:
 private:
     static constexpr int JSON_ARRAY_THRESHOLD = 50;
     
-    void ParseSegStatusCfg(const Json::Value& json);
-    void ParseRule(const std::string& eventType, const Json::Value& json, const std::string& fullPath);
+    void ParseSegStatusCfg(const cJSON *json);
+    void ParseRule(const std::string& eventType, const cJSON *json, const std::string& fullPath);
     bool IsMatchId(const std::string& eventType, const std::string& featureId) const;
     bool IsMatchPath(const std::string& sourceFile, const std::string& name, const std::string& pattern,
         std::string& desPath) const;
-    std::vector<std::string> SplitFeatureId(const Json::Value& oject) const;
-    void ParseRule(const Json::Value& oject, std::list<FeatureRule>& features) const;
-    void ParseRuleParam(const Json::Value& oject, std::list<FeatureRule>& features, const std::string& type) const;
-    void GetExtractParam(const Json::Value& rules,
+    std::vector<std::string> SplitFeatureId(const cJSON *oject) const;
+    void ParseRule(const cJSON *oject, std::list<FeatureRule>& features) const;
+    void ParseRuleParam(const cJSON *oject, std::list<FeatureRule>& features, const std::string& type) const;
+    void GetExtractParam(const cJSON *rules,
         std::map<std::string, std::string>& param, const std::string& preKey) const;
-    std::vector<std::string> GetJsonArray(const Json::Value& json, const std::string& param);
+    std::vector<std::string> GetJsonArray(const cJSON *json, const std::string& param);
 
 private:
     std::map<std::string, FeatureSet> featureSets_;
