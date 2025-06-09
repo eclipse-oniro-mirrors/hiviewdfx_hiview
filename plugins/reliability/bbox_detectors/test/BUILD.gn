@@ -14,7 +14,7 @@ import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/hiview//bbox_detector"
+module_output_path = "hiview/bbox_detector"
 
 config("bbox_detector_test_config") {
   visibility = [ ":*" ]
