@@ -214,7 +214,7 @@ void UnifiedCollectionStat::ResetAllStatInfo()
     NetworkDecorator::ResetStatInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
+#ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
     ProcessDecorator::ResetStatInfo();
 #endif
 
