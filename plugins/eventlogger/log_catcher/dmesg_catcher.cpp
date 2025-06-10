@@ -137,19 +137,18 @@ bool DmesgCatcher::DumpDmesgLog(int fd)
 
 bool DmesgCatcher::WriteSysrqTrigger()
 {
-    FILE* file = fopen("/proc/sysrq-trigger", "w");
-    if (file == nullptr) {
-        HIVIEW_LOGE("Can't read sysrq,errno: %{public}d", errno);
-        return false;
-    }
-
     static std::atomic<bool> isWriting(false);
     bool expected = false;
     if (!isWriting.compare_exchange_strong(expected, true)) {
         HIVIEW_LOGE("other is writing sysrq trigger!");
-        fclose(file);
         ffrt::this_task::sleep_for(1s);
         return true;
+    }
+
+    FILE* file = fopen("/proc/sysrq-trigger", "w");
+    if (file == nullptr) {
+        HIVIEW_LOGE("Can't read sysrq,errno: %{public}d", errno);
+        return false;
     }
 
     fwrite("w", 1, 1, file);
