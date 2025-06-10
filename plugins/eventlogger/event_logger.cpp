@@ -829,7 +829,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             stack = tempStack;
         }
         GetFailedDumpStackMsg(stack, event);
-        if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT") {
+        if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT" || event->eventName_ == "LIFECYCLE_HALF_TIMEOUT_WARNING") {
             WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
         }
     }
