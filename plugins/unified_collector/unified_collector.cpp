@@ -40,6 +40,7 @@
 #include "app_caller_event.h"
 #include "event_publish.h"
 #include "hisysevent.h"
+#include "json/json.h"
 #include "trace_worker.h"
 #include "trace_utils.h"
 #include "trace_state_machine.h"

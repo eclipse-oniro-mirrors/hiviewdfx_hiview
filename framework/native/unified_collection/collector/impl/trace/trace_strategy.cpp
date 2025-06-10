@@ -19,6 +19,7 @@
 #include "collect_event.h"
 #include "event_publish.h"
 #include "file_util.h"
+#include "json/json.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "hisysevent.h"
