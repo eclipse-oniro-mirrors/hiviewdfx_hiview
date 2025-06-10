@@ -23,12 +23,14 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-class EventValidator : public Plugin {
+class EventValidator : public Plugin, public EventListener {
 public:
     bool OnEvent(std::shared_ptr<Event>& event) override;
     void OnLoad() override;
     void OnUnload() override;
     void OnConfigUpdate(const std::string& localCfgPath, const std::string& cloudCfgPath) override;
+    void OnUnorderedEvent(const Event& msg) override;
+    std::string GetListenerName() override;
 
 private:
     void Init();
