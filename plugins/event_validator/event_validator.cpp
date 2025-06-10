@@ -45,6 +45,8 @@ void EventValidator::Init()
     InitWorkLoop(context);
     InitEventVerifyUtil(context);
     InitController(context);
+    AddListenerInfo(Event::MessageType::ENGINE_UPDATE_PRIVACY_CFG_MSG);
+    context->RegisterUnorderedEventListener(std::static_pointer_cast<EventValidator>(shared_from_this()));
 }
 
 void EventValidator::InitWorkLoop(HiviewContext* context)
@@ -106,6 +108,18 @@ void EventValidator::UpdateConfig()
 
     // update flag
     isConfigUpdated_.store(false);
+}
+
+void EventValidator::OnUnorderedEvent(const Event& msg)
+{
+    if (msg.messageType_ == Event::MessageType::ENGINE_UPDATE_PRIVACY_CFG_MSG) {
+        isConfigUpdated_.store(true);
+    }
+}
+
+std::string EventValidator::GetListenerName()
+{
+    return "EventValidator";
 }
 
 bool EventValidator::CheckEvent(std::shared_ptr<Event> event)
