@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 #include <iostream>
+#include <unistd.h>
 
 #include <gtest/gtest.h>
 
+#include "event_json_parser.h"
 #include "event_validator.h"
 #include "hiview_global.h"
 #include "sys_event.h"
@@ -61,6 +63,7 @@ public:
     void SetUp()
     {
         HiviewGlobal::CreateInstance(g_context);
+        EventJsonParser::GetInstance()->ReadDefFile();
     }
 
     void TearDown()
@@ -192,6 +195,7 @@ HWTEST_F(EventValidatorTest, EventValidatorTest008, TestSize.Level1)
     ASSERT_TRUE(plugin.OnEvent(event1));
 
     // third event, not delayed
+    usleep(10000); // 10000: sleep for 10ms to prevent repetition
     std::shared_ptr<Event> event2 = CreateSysEvent();
     event2->happenTime_ = HAPPEN_TIME_ONE_SECOND;
     event2->createTime_ = CREATE_TIME_ONE_SECOND;
