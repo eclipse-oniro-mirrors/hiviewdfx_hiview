@@ -254,26 +254,18 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
         {"Total", 18000}
     };
     TraceFlowController flowController(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t btime1 = 100;
-    ASSERT_EQ(flowController.InitTelemetryData("id1", btime1, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(btime1, 100);
+    int64_t runningTime1 = 0;
+    ASSERT_EQ(flowController.InitTelemetryData("id1", runningTime1, flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(runningTime1, 0);
 
     // if data init, correct btime2 etime2 value
     TraceFlowController flowController2(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t btime2 = 300;
-    ASSERT_EQ(flowController2.InitTelemetryData("id1", btime2, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(btime2, 100);
-
-    // Id is different, insert btime21 etime22 and value is not change
-    int64_t btime21 = 300;
-    flowController2.InitTelemetryData("id2", btime2, flowControlQuotas);
-    ASSERT_EQ(btime21, 300);
-    flowController2.ClearTelemetryData();
-
-    TraceFlowController flowController3(BusinessName::TELEMETRY, TEST_DB_PATH);
-    int64_t btime3 = 500;
-    ASSERT_EQ(flowController2.InitTelemetryData("id1", btime3, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(btime3, 500);
+    int64_t runningTime2 = 100;
+    ASSERT_EQ(flowController2.InitTelemetryData("id1", runningTime2, flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(runningTime2, 0);
+    flowController2.UpdateRunningTime(400);
+    flowController2.QueryRunningTime(runningTime2);
+    ASSERT_EQ(runningTime2, 400);
 }
 
 /**
