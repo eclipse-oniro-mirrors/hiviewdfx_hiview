@@ -73,15 +73,12 @@ void FoldAppUsageTest::TearDown(void) {}
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    AppEventRecord record1{1104, 1000, "app1", 11, 11, "55", g_today0Time - 5 * g_dayGapTime, 1, 2, 3, 4};
+    AppEventRecord record1{1104, 1000, "app1", 110, 110, "55", g_today0Time - 5 * g_dayGapTime, 1, 2, 3, 4, 5, 6};
+    AppEventRecord record2{1104, 1000, "app1", 110, 110, "55", g_startTime - 5 * g_hourGapTime, 1, 2, 3, 4, 5, 6};
+    AppEventRecord record3{1104, 1000, "app1", 110, 110, "55", g_startTime + 7 * g_hourGapTime, 1, 2, 3, 4, 5, 6};
 
-    AppEventRecord record2{1104, 1000, "app1", 11, 11, "55", g_startTime - 5 * g_hourGapTime, 1, 2, 3, 4};
-
-    AppEventRecord record3{1104, 1000, "app1", 11, 11, "55", g_startTime + 7 * g_hourGapTime, 1, 2, 3, 4};
-
-    AppEventRecord record4{1104, 1000, "app2", 11, 11, "55", g_startTime + 8 * g_hourGapTime, 2, 2, 2, 2};
-
-    AppEventRecord record5{1104, 1000, "app2", 11, 11, "55", g_startTime + 9 * g_hourGapTime, 3, 3, 3, 3};
+    AppEventRecord record4{1104, 1000, "app2", 110, 110, "55", g_startTime + 8 * g_hourGapTime, 2, 2, 2, 2, 2, 2};
+    AppEventRecord record5{1104, 1000, "app2", 110, 110, "55", g_startTime + 9 * g_hourGapTime, 3, 3, 3, 3, 3, 3};
 
     EXPECT_EQ(dbHelper.AddAppEvent(record1), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record2), 0);
@@ -98,12 +95,16 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
     EXPECT_EQ(all1104Infos["app155"].foldHor, 2);
     EXPECT_EQ(all1104Infos["app155"].expdVer, 3);
     EXPECT_EQ(all1104Infos["app155"].expdHor, 4);
+    EXPECT_EQ(all1104Infos["app155"].gVer, 5);
+    EXPECT_EQ(all1104Infos["app155"].gHor, 6);
     EXPECT_EQ(all1104Infos["app255"].package, "app2");
     EXPECT_EQ(all1104Infos["app255"].version, "55");
     EXPECT_EQ(all1104Infos["app255"].foldVer, 5);
     EXPECT_EQ(all1104Infos["app255"].foldHor, 5);
     EXPECT_EQ(all1104Infos["app255"].expdVer, 5);
     EXPECT_EQ(all1104Infos["app255"].expdHor, 5);
+    EXPECT_EQ(all1104Infos["app255"].gVer, 5);
+    EXPECT_EQ(all1104Infos["app255"].gHor, 5);
 }
 
 /**
@@ -114,21 +115,21 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    AppEventRecord record6{1101, 4000, "app3", 11, 12, "55", g_startTime + 10 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record6{1101, 4000, "app3", 110, 120, "55", g_startTime + 10 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record7{1103, 5000, "app3", 120, 220, "55", g_startTime + 11 * g_hourGapTime, 1, 2, 3, 4};
+    AppEventRecord record8{1103, 6000, "app3", 220, 210, "55", g_startTime + 12 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record12{1103, 7000, "app3", 210, 310, "55", g_startTime + 13 * g_hourGapTime};
+    AppEventRecord record13{1103, 8000, "app3", 310, 320, "55", g_startTime + 14 * g_hourGapTime};
 
-    AppEventRecord record7{1103, 5000, "app3", 12, 22, "55", g_startTime + 11 * g_hourGapTime, 1, 2, 3, 4};
-
-    AppEventRecord record8{1103, 6000, "app3", 22, 21, "55", g_startTime + 12 * g_hourGapTime, 0, 0, 0, 0};
-
-    AppEventRecord record9{1103, 7000, "app4", 11, 21, "55", g_startTime + 15 * g_hourGapTime, 0, 0, 0, 0};
-
-    AppEventRecord record10{1103, 8000, "app4", 21, 22, "55", g_startTime + 16 * g_hourGapTime, 0, 0, 0, 0};
-
-    AppEventRecord record11{1102, 9000, "app4", 22, 12, "55", g_today0Time + 2 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record9{1103, 7000, "app4", 110, 210, "55", g_startTime + 15 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record10{1103, 8000, "app4", 210, 220, "55", g_startTime + 16 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record11{1102, 9000, "app4", 220, 120, "55", g_today0Time + 2 * g_hourGapTime, 0, 0, 0, 0};
 
     EXPECT_EQ(dbHelper.AddAppEvent(record6), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record7), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record8), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record12), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record13), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record9), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record10), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record11), 0);
@@ -137,18 +138,20 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
     app3Info.package = "app3";
     dbHelper.QueryForegroundAppsInfo(g_startTime, g_endTime, g_screenStat, app3Info);
     EXPECT_EQ(app3Info.version, "");
-    EXPECT_EQ(app3Info.foldVer, 43199999); // from 12:00:00 to 23:59:59
-    EXPECT_EQ(app3Info.foldHor, 1000);     // from ts, 5000 to 6000
-    EXPECT_EQ(app3Info.expdVer, 0);
-    EXPECT_EQ(app3Info.expdHor, 1000);     // from ts, 4000 to 5000
+    EXPECT_EQ(app3Info.foldHor, 1000);  // from ts 6000 to 7000
+    EXPECT_EQ(app3Info.foldVer, 1000);  // from ts, 5000 to 6000
+    EXPECT_EQ(app3Info.expdHor, 0);
+    EXPECT_EQ(app3Info.expdVer, 1000);  // from ts, 4000 to 5000
+    EXPECT_EQ(app3Info.gHor, 1000);     // from ts 7000 to 8000
+    EXPECT_EQ(app3Info.gVer, 35999999); // from 14:00:00 to 23:59:59
     FoldAppUsageInfo app4Info;
     app4Info.package = "app4";
     dbHelper.QueryForegroundAppsInfo(g_startTime, g_endTime, g_screenStat, app4Info);
     EXPECT_EQ(app4Info.version, "");
-    EXPECT_EQ(app4Info.foldVer, 1000);     // from ts, 7000 to 8000
-    EXPECT_EQ(app4Info.foldHor, 28799999); // from 16:00:00 to 23:59:59
-    EXPECT_EQ(app4Info.expdVer, 54000000); // from 00:00:00 to 15:00:00
-    EXPECT_EQ(app4Info.expdHor, 0);
+    EXPECT_EQ(app4Info.foldHor, 1000);     // from ts, 7000 to 8000
+    EXPECT_EQ(app4Info.foldVer, 28799999); // from 16:00:00 to 23:59:59
+    EXPECT_EQ(app4Info.expdHor, 54000000); // from 00:00:00 to 15:00:00
+    EXPECT_EQ(app4Info.expdVer, 0);
 }
 
 /**
@@ -160,7 +163,7 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest003, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
     g_screenStat = dbHelper.QueryFinalScreenStatus(g_endTime);
-    EXPECT_EQ(g_screenStat, 22);
+    EXPECT_EQ(g_screenStat, 220);
 
     int deleteEventNum = dbHelper.DeleteEventsByTime(g_startTime - 2 * g_dayGapTime);
     EXPECT_EQ(deleteEventNum, 1);
@@ -271,7 +274,7 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest005, TestSize.Level1)
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest006, TestSize.Level1)
 {
-    AppEventRecord record{1104, 1000, "test_bundle", 11, 11, "1", g_endTime, 1, 2, 3, 4};
+    AppEventRecord record{1104, 1000, "test_bundle", 110, 110, "1", g_endTime, 1, 2, 3, 4};
     FoldAppUsageDbHelper dbHelper("/data/test/");
     ASSERT_TRUE(dbHelper.AddAppEvent(record) == 0);
 
@@ -322,6 +325,25 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest008, TestSize.Level1)
     std::shared_ptr<LoggerEvent> event = nullptr;
     ASSERT_FALSE(JsonParser::ParsePluginStatsEvent(event, jsonStr));
     ASSERT_FALSE(JsonParser::ParseSysUsageEvent(event, jsonStr));
+}
+
+/**
+ * @tc.name: FoldAppUsageTest009
+ * @tc.desc: upgrade db version from 1 to 2.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest009, TestSize.Level1)
+{
+    ASSERT_TRUE(FileUtil::FileExists("/data/test/hiview/usage_event_report/db_version1/sys_event_logger/"));
+    FoldAppUsageDbHelper dbHelper("/data/test/hiview/usage_event_report/db_version1/");
+    std::vector<AppEventRecord> records;
+    dbHelper.QueryAppEventRecords(1, -1, "app_test", records);
+    EXPECT_EQ(records.size(), 1);
+    EXPECT_EQ(records[0].preFoldStatus, 110);
+    EXPECT_EQ(records[0].foldStatus, 120);
+
+    AppEventRecord record{1104, 1000, "app_test", 310, 320, "55", g_startTime + 10 * g_hourGapTime, 1, 2, 3, 4, 5, 6};
+    EXPECT_EQ(dbHelper.AddAppEvent(record), 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

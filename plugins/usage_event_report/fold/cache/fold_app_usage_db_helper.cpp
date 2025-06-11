@@ -30,9 +30,12 @@ namespace {
 const std::string LOG_DB_PATH = "sys_event_logger/";
 const std::string LOG_DB_NAME = "log.db";
 const std::string LOG_DB_TABLE_NAME = "app_events";
-constexpr int DB_VERSION = 1;
+constexpr char LOG_DB_APP_EVENTS_TMP[] = "app_events_tmp";
+constexpr int DB_VERSION_1 = 1;
+constexpr int DB_VERSION_2 = 2;
 
 const std::string SQL_TYPE_INTEGER_NOT_NULL = "INTEGER NOT NULL";
+constexpr char SQL_TYPE_INTEGER_DEFAULT_0[] = "INTEGER DEFAULT 0";
 const std::string SQL_TYPE_INTEGER = "INTEGER";
 const std::string SQL_TYPE_REAL = "REAL";
 const std::string SQL_TYPE_TEXT_NOT_NULL = "TEXT NOT NULL";
@@ -45,16 +48,22 @@ void UpdateScreenStatInfo(FoldAppUsageInfo &info, uint32_t time, int screenStatu
 {
     switch (screenStatus) {
         case ScreenFoldStatus::EXPAND_PORTRAIT_STATUS:
-            info.expdHor += static_cast<int32_t>(time);
-            break;
-        case ScreenFoldStatus::EXPAND_LANDSCAPE_STATUS:
             info.expdVer += static_cast<int32_t>(time);
             break;
+        case ScreenFoldStatus::EXPAND_LANDSCAPE_STATUS:
+            info.expdHor += static_cast<int32_t>(time);
+            break;
         case ScreenFoldStatus::FOLD_PORTRAIT_STATUS:
-            info.foldHor += static_cast<int32_t>(time);
+            info.foldVer += static_cast<int32_t>(time);
             break;
         case ScreenFoldStatus::FOLD_LANDSCAPE_STATUS:
-            info.foldVer += static_cast<int32_t>(time);
+            info.foldHor += static_cast<int32_t>(time);
+            break;
+        case ScreenFoldStatus::G_PORTRAIT_STATUS:
+            info.gVer += static_cast<int32_t>(time);
+            break;
+        case ScreenFoldStatus::G_LANDSCAPE_STATUS:
+            info.gHor += static_cast<int32_t>(time);
             break;
         default:
             return;
@@ -105,6 +114,109 @@ bool GetLongFromResultSet(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultS
     }
     return true;
 }
+
+std::string GenerateRenameTableSql(const std::string& oldTable, const std::string& newTable)
+{
+    std::string sql = "ALTER TABLE " + oldTable + " RENAME TO " + newTable;
+    return sql;
+}
+
+std::string GenerateCreateAppEventsSql()
+{
+    std::vector<std::pair<std::string, std::string>> fields = {
+        {FoldEventTable::FIELD_UID, SQL_TYPE_INTEGER_NOT_NULL},
+        {FoldEventTable::FIELD_EVENT_ID, SQL_TYPE_INTEGER_NOT_NULL},
+        {FoldEventTable::FIELD_TS, SQL_TYPE_INTEGER_NOT_NULL},
+        {FoldEventTable::FIELD_FOLD_STATUS, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_PRE_FOLD_STATUS, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_VERSION_NAME, SQL_TYPE_TEXT},
+        {FoldEventTable::FIELD_HAPPEN_TIME, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION, SQL_TYPE_INTEGER},
+        {FoldEventTable::FIELD_BUNDLE_NAME, SQL_TYPE_TEXT_NOT_NULL},
+        {FoldEventTable::FIELD_FOLD_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_FOLD_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_FOLD_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_FOLD_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_FOLD_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_EXPAND_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_EXPAND_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_EXPAND_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_EXPAND_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_EXPAND_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_EXPAND_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
+        {FoldEventTable::FIELD_G_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0}
+    };
+    return SqlUtil::GenerateCreateSql(LOG_DB_TABLE_NAME, fields);
+}
+
+std::string GenerateInsertSql(const std::string& newTable, const std::string& oldTable)
+{
+    std::vector<std::string> fields = {
+        FoldEventTable::FIELD_ID, FoldEventTable::FIELD_UID, FoldEventTable::FIELD_EVENT_ID,
+        FoldEventTable::FIELD_TS, FoldEventTable::FIELD_FOLD_STATUS, FoldEventTable::FIELD_PRE_FOLD_STATUS,
+        FoldEventTable::FIELD_VERSION_NAME, FoldEventTable::FIELD_HAPPEN_TIME,
+        FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION, FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION,
+        FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION, FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION,
+        FoldEventTable::FIELD_BUNDLE_NAME
+    };
+    size_t fieldsSize = fields.size();
+    std::string insertSql = "INSERT INTO ";
+    insertSql.append(newTable).append("(");
+    std::string values = "";
+    for (size_t i = 0; i < fieldsSize; ++i) {
+        insertSql.append(fields[i]);
+        values.append(fields[i]);
+        if (fields[i] == FoldEventTable::FIELD_FOLD_STATUS || fields[i] == FoldEventTable::FIELD_PRE_FOLD_STATUS) {
+            // ScreenFoldStatus: change the historical status value from two digits to three digits
+            values.append(" * 10 AS ").append(fields[i]);
+        }
+        if (i != (fieldsSize - 1)) { // -1 for last field
+            insertSql.append(", ");
+            values.append(", ");
+        }
+    }
+    insertSql.append(") SELECT ").append(values).append(" FROM ").append(oldTable);
+    return insertSql;
+}
+
+/*
+ * step1. rename app_events to app_events_tmp
+ * step2. create new table app_events
+ * step3. insert into app_events from app_events_tmp
+ * step4. drop table app_events_tmp
+ */
+int UpgradeDbFromV1ToV2(NativeRdb::RdbStore& rdbStore)
+{
+    std::vector<std::string> sqls = {
+        GenerateRenameTableSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
+        GenerateCreateAppEventsSql(),
+        GenerateInsertSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
+        SqlUtil::GenerateDropSql(LOG_DB_APP_EVENTS_TMP)
+    };
+    if (int ret = rdbStore.BeginTransaction(); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to begin transaction, ret=%{public}d", ret);
+        return ret;
+    }
+    for (const auto& sql : sqls) {
+        if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to upgrade db version from 1 to 2, ret=%{public}d", ret);
+            rdbStore.RollBack();
+            return ret;
+        }
+    }
+    return rdbStore.Commit();
+}
 }
 
 class FoldDbStoreCallback : public NativeRdb::RdbOpenCallback {
@@ -121,7 +233,10 @@ int FoldDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
 
 int FoldDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
 {
-    HIVIEW_LOGD("oldVersion = %{public}d, newVersion = %{public}d", oldVersion, newVersion);
+    HIVIEW_LOGI("oldVersion = %{public}d, newVersion = %{public}d", oldVersion, newVersion);
+    if (oldVersion == DB_VERSION_1 && newVersion == DB_VERSION_2) {
+        return UpgradeDbFromV1ToV2(rdbStore);
+    }
     return NativeRdb::E_OK;
 }
 
@@ -152,7 +267,7 @@ void FoldAppUsageDbHelper::CreateDbStore(const std::string& dbPath, const std::s
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     FoldDbStoreCallback callback;
     int ret = NativeRdb::E_OK;
-    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
+    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_2, callback, ret);
     if (ret != NativeRdb::E_OK || rdbStore_ == nullptr) {
         HIVIEW_LOGI("failed to create db store, dbFile = %{public}s, ret = %{public}d", dbFile.c_str(), ret);
     }
@@ -165,22 +280,7 @@ int FoldAppUsageDbHelper::CreateAppEventsTable(const std::string& table)
         HIVIEW_LOGI("dbstore is nullptr");
         return DB_FAILED;
     }
-    std::vector<std::pair<std::string, std::string>> fields = {
-        {FoldEventTable::FIELD_UID, SQL_TYPE_INTEGER_NOT_NULL},
-        {FoldEventTable::FIELD_EVENT_ID, SQL_TYPE_INTEGER_NOT_NULL},
-        {FoldEventTable::FIELD_TS, SQL_TYPE_INTEGER_NOT_NULL},
-        {FoldEventTable::FIELD_FOLD_STATUS, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_PRE_FOLD_STATUS, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_VERSION_NAME, SQL_TYPE_TEXT},
-        {FoldEventTable::FIELD_HAPPEN_TIME, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION, SQL_TYPE_INTEGER},
-        {FoldEventTable::FIELD_BUNDLE_NAME, SQL_TYPE_TEXT_NOT_NULL}
-    };
-    std::string sql = SqlUtil::GenerateCreateSql(table, fields);
-    if (rdbStore_->ExecuteSql(sql) != NativeRdb::E_OK) {
+    if (rdbStore_->ExecuteSql(GenerateCreateAppEventsSql()) != NativeRdb::E_OK) {
         return DB_FAILED;
     }
     return DB_SUCC;
@@ -206,6 +306,8 @@ int FoldAppUsageDbHelper::AddAppEvent(const AppEventRecord& appEventRecord)
     valuesBucket.PutLong(FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION, appEventRecord.expandPortraitTime);
     valuesBucket.PutLong(FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION, appEventRecord.expandLandscapeTime);
     valuesBucket.PutString(FoldEventTable::FIELD_BUNDLE_NAME, appEventRecord.bundleName);
+    valuesBucket.PutLong(FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION, appEventRecord.gPortraitFullTime);
+    valuesBucket.PutLong(FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION, appEventRecord.gLandscapeFullTime);
     int64_t seq = 0;
     if (int ret = rdbStore_->Insert(seq, LOG_DB_TABLE_NAME, valuesBucket); ret != NativeRdb::E_OK) {
         HIVIEW_LOGI("failed to add app event");
@@ -265,6 +367,8 @@ void FoldAppUsageDbHelper::QueryAppEventRecords(int startIndex, int64_t dayStart
     columns.emplace_back(FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION);
     columns.emplace_back(FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION);
     columns.emplace_back(FoldEventTable::FIELD_BUNDLE_NAME);
+    columns.emplace_back(FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION);
+    columns.emplace_back(FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION);
     auto resultSet = rdbStore_->Query(predicates, columns);
     if (resultSet == nullptr) {
         HIVIEW_LOGI("failed to query event event");
@@ -301,6 +405,8 @@ void FoldAppUsageDbHelper::ParseEntity(NativeRdb::RowEntity& entity, AppEventRec
     entity.Get(FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION).GetLong(record.expandPortraitTime);
     entity.Get(FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION).GetLong(record.expandLandscapeTime);
     entity.Get(FoldEventTable::FIELD_BUNDLE_NAME).GetString(record.bundleName);
+    entity.Get(FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION).GetLong(record.gPortraitFullTime);
+    entity.Get(FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION).GetLong(record.gLandscapeFullTime);
 }
 
 int FoldAppUsageDbHelper::QueryFinalScreenStatus(uint64_t endTime)
@@ -340,19 +446,27 @@ void FoldAppUsageDbHelper::QueryStatisticEventsInPeriod(uint64_t startTime, uint
         HIVIEW_LOGE("db is nullptr");
         return;
     }
-    std::string sqlCmd = "SELECT " + FoldEventTable::FIELD_BUNDLE_NAME + ", " + FoldEventTable::FIELD_VERSION_NAME +
-        ", SUM(" + FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION + ") AS " +
-        FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION +
-        ", SUM(" + FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION + ") AS " +
-        FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION +
-        ", SUM(" + FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION + ") AS " +
-        FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION +
-        ", SUM(" + FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION + ") AS " +
-        FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION +
-        ", COUNT(*) AS start_num FROM " + LOG_DB_TABLE_NAME + " WHERE " + FoldEventTable::FIELD_EVENT_ID + "=" +
-        std::to_string(FoldEventId::EVENT_COUNT_DURATION) + " AND " + FoldEventTable::FIELD_HAPPEN_TIME + " BETWEEN " +
-        std::to_string(startTime) + " AND " + std::to_string(endTime) +
-        " GROUP BY " + FoldEventTable::FIELD_BUNDLE_NAME + ", " + FoldEventTable::FIELD_VERSION_NAME;
+    std::string sqlCmd = "SELECT ";
+    sqlCmd.append(FoldEventTable::FIELD_BUNDLE_NAME).append(", ").append(FoldEventTable::FIELD_VERSION_NAME);
+    sqlCmd.append(", SUM(").append(FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION).append(") AS ");
+    sqlCmd.append(FoldEventTable::FIELD_FOLD_PORTRAIT_DURATION);
+    sqlCmd.append(", SUM(").append(FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION).append(") AS ");
+    sqlCmd.append(FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION);
+    sqlCmd.append(", SUM(").append(FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION).append(") AS ");
+    sqlCmd.append(FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION);
+    sqlCmd.append(", SUM(").append(FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION).append(") AS ");
+    sqlCmd.append(FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION);
+    sqlCmd.append(", SUM(").append(FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION).append(") AS ");
+    sqlCmd.append(FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION);
+    sqlCmd.append(", SUM(").append(FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION).append(") AS ");
+    sqlCmd.append(FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION);
+    sqlCmd.append(", COUNT(*) AS start_num FROM ").append(LOG_DB_TABLE_NAME);
+    sqlCmd.append(" WHERE ").append(FoldEventTable::FIELD_EVENT_ID).append("=");
+    sqlCmd.append(std::to_string(FoldEventId::EVENT_COUNT_DURATION));
+    sqlCmd.append(" AND ").append(FoldEventTable::FIELD_HAPPEN_TIME).append(" BETWEEN ");
+    sqlCmd.append(std::to_string(startTime)).append(" AND ").append(std::to_string(endTime));
+    sqlCmd.append(" GROUP BY ").append(FoldEventTable::FIELD_BUNDLE_NAME).append(", ");
+    sqlCmd.append(FoldEventTable::FIELD_VERSION_NAME);
     auto resultSet = rdbStore_->QuerySql(sqlCmd);
     if (resultSet == nullptr) {
         HIVIEW_LOGE("resultSet is nullptr");
@@ -366,6 +480,8 @@ void FoldAppUsageDbHelper::QueryStatisticEventsInPeriod(uint64_t startTime, uint
             GetIntFromResultSet(resultSet, FoldEventTable::FIELD_FOLD_LANDSCAPE_DURATION, usageInfo.foldHor) &&
             GetIntFromResultSet(resultSet, FoldEventTable::FIELD_EXPAND_PORTRAIT_DURATION, usageInfo.expdVer) &&
             GetIntFromResultSet(resultSet, FoldEventTable::FIELD_EXPAND_LANDSCAPE_DURATION, usageInfo.expdHor) &&
+            GetIntFromResultSet(resultSet, FoldEventTable::FIELD_G_PORTRAIT_FULL_DURATION, usageInfo.gVer) &&
+            GetIntFromResultSet(resultSet, FoldEventTable::FIELD_G_LANDSCAPE_FULL_DURATION, usageInfo.gHor) &&
             GetIntFromResultSet(resultSet, "start_num", usageInfo.startNum)) {
             infos[usageInfo.package + usageInfo.version] = usageInfo;
         } else {

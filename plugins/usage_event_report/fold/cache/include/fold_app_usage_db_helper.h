@@ -29,6 +29,8 @@ struct FoldAppUsageInfo {
     int32_t foldHor = 0; // usage duration when screen in fold-horizon status
     int32_t expdVer = 0; // usage duration when screen in expand-vertiacal status
     int32_t expdHor = 0; // usage duration when screen in expand-horizon status
+    int32_t gVer = 0; // usage duration when screen in g-vertiacal status
+    int32_t gHor = 0; // usage duration when screen in g-horizon status
     int32_t startNum = 1;
     std::string date;
     int32_t usage = 0;
@@ -57,6 +59,8 @@ struct AppEventRecord {
     int64_t foldLandscapeTime = 0;
     int64_t expandPortraitTime = 0;
     int64_t expandLandscapeTime = 0;
+    int64_t gPortraitFullTime = 0;
+    int64_t gLandscapeFullTime = 0;
 };
 
 namespace OHOS {

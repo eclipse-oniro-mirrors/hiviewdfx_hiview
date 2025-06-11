@@ -78,6 +78,8 @@ void FoldAppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>> 
         event->Update(KEY_OF_FOLD_HOR_USAGE, static_cast<uint32_t>(info.foldHor));
         event->Update(KEY_OF_EXPD_VER_USAGE, static_cast<uint32_t>(info.expdVer));
         event->Update(KEY_OF_EXPD_HOR_USAGE, static_cast<uint32_t>(info.expdHor));
+        event->Update(KEY_OF_G_VER_FULL_USAGE, static_cast<uint32_t>(info.gVer));
+        event->Update(KEY_OF_G_HOR_FULL_USAGE, static_cast<uint32_t>(info.gHor));
         event->Update(KEY_OF_DATE, dateStr);
         event->Update(KEY_OF_START_NUM, static_cast<uint32_t>(info.startNum));
         event->Update(KEY_OF_USAGE, static_cast<uint32_t>(info.usage));
@@ -115,10 +117,12 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
         statisticInfos[forgroundInfo.first].foldHor += forgroundInfo.second.foldHor;
         statisticInfos[forgroundInfo.first].expdVer += forgroundInfo.second.expdVer;
         statisticInfos[forgroundInfo.first].expdHor += forgroundInfo.second.expdHor;
+        statisticInfos[forgroundInfo.first].gVer += forgroundInfo.second.gVer;
+        statisticInfos[forgroundInfo.first].gHor += forgroundInfo.second.gHor;
         statisticInfos[forgroundInfo.first].startNum += forgroundInfo.second.startNum;
     }
     for (auto& [key, value] : statisticInfos) {
-        value.usage = value.foldVer + value.foldHor + value.expdVer + value.expdHor;
+        value.usage = value.foldVer + value.foldHor + value.expdVer + value.expdHor + value.gVer + value.gHor;
         value.version = GetAppVersion(value.package);
         infos.emplace_back(value);
     }
