@@ -101,8 +101,8 @@ namespace {
 #endif
     static constexpr int DUMP_TIME_RATIO = 2;
     static constexpr int EVENT_MAX_ID = 1000000;
-    static constexpr int MIN_KEEP_FILE_NUM = 500;
-    static constexpr int MAX_FOLDER_SIZE = 500 * 1024 * 1024;
+    static constexpr int MIN_KEEP_FILE_NUM = 100;
+    static constexpr int MAX_FOLDER_SIZE = 100 * 1024 * 1024;
     static constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
     static constexpr int HISTORY_EVENT_LIMIT = 500;
     static constexpr uint8_t LONGPRESS_PRIVACY = 1;
