@@ -564,7 +564,7 @@ HWTEST_F(FaultloggerUnittest, GenCppCrashLogTest002, testing::ext::TestSize.Leve
  *           check info which send to appevent
  * @tc.type: FUNC
  */
-HWTEST_F(FaultloggerUnittest, AddFaultLogTest001, testing::ext::TestSize.Level3)
+HWTEST_F(FaultloggerUnittest, AddFaultLogTest001, testing::ext::TestSize.Level0)
 {
     auto plugin = GetFaultloggerInstance();
     FaultLogManagerService faultlogManagerService(plugin->GetWorkLoop(), plugin->faultLogManager_);
@@ -974,7 +974,7 @@ HWTEST_F(FaultloggerUnittest, GetDebugSignalTempLogName001, testing::ext::TestSi
  * @tc.desc: Test calling SaveFaultInfoToRawDb Func
  * @tc.type: FUNC
  */
-HWTEST_F(FaultloggerUnittest, FaultLogManagerTest001, testing::ext::TestSize.Level3)
+HWTEST_F(FaultloggerUnittest, FaultLogManagerTest001, testing::ext::TestSize.Level0)
 {
     StartHisyseventListen("RELIABILITY", "CPP_CRASH");
     time_t now = std::time(nullptr);

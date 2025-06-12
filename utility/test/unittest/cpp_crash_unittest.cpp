@@ -30,7 +30,7 @@ namespace HiviewDFX {
  * @tc.desc: Smart paerser cpp crash log.
  * @tc.type: FUNC
  */
-HWTEST(SmartParserCppCrashTest, SmartParserCppCrashTest001, testing::ext::TestSize.Level3)
+HWTEST(SmartParserCppCrashTest, SmartParserCppCrashTest001, testing::ext::TestSize.Level0)
 {
     /**
      * @tc.steps: step1. parser log
