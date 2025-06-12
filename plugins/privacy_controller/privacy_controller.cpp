@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,6 @@
 #include "privacy_controller.h"
 
 #include "bundle_mgr_client.h"
-#include "file_util.h"
-#include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "plugin_factory.h"
 #include "privacy_manager.h"
@@ -40,22 +38,6 @@ bool IsPreInstallApp(const std::string& bundleName)
     }
     return info.isPreInstallApp;
 }
-
-void GetAllowBundleNamesFromFile(const std::string& allowListFile, std::unordered_set<std::string>& bundleNames)
-{
-    std::string realPath;
-    const std::string configFilePath = HiViewConfigUtil::GetConfigFilePath("allow_list/" + allowListFile);
-    if (!FileUtil::PathToRealPath(configFilePath, realPath)) {
-        HIVIEW_LOGW("allow list path is invalid: %{public}s", configFilePath.c_str());
-        return;
-    }
-    std::vector<std::string> lines;
-    FileUtil::LoadLinesFromFile(realPath, lines);
-    std::for_each(lines.begin(), lines.end(), [&bundleNames](const std::string& line) {
-        bundleNames.insert(StringUtil::TrimStr(line)); // empty line is included as allowed
-    });
-    HIVIEW_LOGI("load allow list: %{public}s, bundles: %{public}zu", allowListFile.c_str(), bundleNames.size());
-}
 }
 
 bool PrivacyController::IsBundleNameAllow(const std::string& bundleName, const std::string& allowListFile)
@@ -63,15 +45,7 @@ bool PrivacyController::IsBundleNameAllow(const std::string& bundleName, const s
     if (bundleName.empty()) {
         return true;
     }
-    std::lock_guard<std::mutex> lock(bundleMapMutex_);
-    auto iter = allowBundleNameMap_.find(allowListFile);
-    if (iter == allowBundleNameMap_.end()) {
-        std::unordered_set<std::string> bundleNames;
-        GetAllowBundleNamesFromFile(allowListFile, bundleNames);
-        allowBundleNameMap_.insert(std::make_pair(allowListFile, bundleNames));
-        iter = allowBundleNameMap_.find(allowListFile);
-    }
-    if (iter != allowBundleNameMap_.end() && iter->second.find(bundleName) != iter->second.end()) {
+    if (PrivacyManager::IsBundleNameInList(bundleName, allowListFile)) {
         return true;
     }
     // name of pre-installed bundle is always allowed
@@ -125,8 +99,8 @@ bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
                 continue;
             }
             if (iter.second->throwType == THROW_TYPE_EVENT) {
-                HIVIEW_LOGI("event[%{public}s|%{public}s] is not allowed",
-                    sysEvent->domain_.c_str(), sysEvent->eventName_.c_str());
+                HIVIEW_LOGI("event[%{public}s|%{public}s|%{public}s] is not allowed",
+                    sysEvent->domain_.c_str(), sysEvent->eventName_.c_str(), iter.first.c_str());
                 return sysEvent->OnFinish();
             }
         }
@@ -141,13 +115,6 @@ bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
         sysEvent->SetEventValue("DroppedParam", droppedParam);
     }
     return true;
-}
-
-void PrivacyController::OnConfigUpdate(const std::string& localCfgPath, const std::string& cloudCfgPath)
-{
-    std::lock_guard<std::mutex> lock(bundleMapMutex_);
-    HIVIEW_LOGI("update bundle config");
-    allowBundleNameMap_.clear();
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,7 @@
 #ifndef HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
 #define HIVIEW_PLUGINS_PRIVACY_CONTROLLER_INCLUDE_PRIVACY_CONTROLLER_H
 
-#include <map>
-#include <mutex>
 #include <string>
-#include <unordered_set>
 
 #include "plugin.h"
 #include "sys_event.h"
@@ -30,17 +27,11 @@ class PrivacyController : public Plugin {
 public:
     bool OnEvent(std::shared_ptr<Event>& event) override;
     void OnLoad() override;
-    void OnConfigUpdate(const std::string& localCfgPath, const std::string& cloudCfgPath) override;
 
 private:
     bool IsBundleNameAllow(const std::string& bundleName, const std::string& allowListFile);
     bool IsValidParam(std::shared_ptr<SysEvent>& sysEvent,
         const std::string& paramName, const std::string& allowListFile);
-
-private:
-    // allow list content, <allowListFile, set<BundleName>>
-    std::map<std::string, std::unordered_set<std::string>> allowBundleNameMap_;
-    std::mutex bundleMapMutex_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

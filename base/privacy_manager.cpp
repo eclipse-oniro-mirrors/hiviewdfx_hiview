@@ -41,6 +41,11 @@ bool PrivacyManager::IsPrivacyAllowed(uint8_t privacy)
     return g_privacyController == nullptr ? true : g_privacyController->IsPrivacyAllowed(privacy);
 }
 
+bool PrivacyManager::IsBundleNameInList(const std::string& bundleName, const std::string& allowListFile)
+{
+    return g_privacyController == nullptr ? false : g_privacyController->IsBundleNameInList(bundleName, allowListFile);
+}
+
 void PrivacyManager::OnConfigUpdate()
 {
     if (g_privacyController != nullptr) {

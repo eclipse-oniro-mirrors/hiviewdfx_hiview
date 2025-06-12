@@ -440,6 +440,7 @@
         "OHOS::HiviewDFX::PrivacyManager::OnConfigUpdate()";
         "OHOS::HiviewDFX::PrivacyManager::IsPrivacyAllowed(unsigned char)";
         "OHOS::HiviewDFX::PrivacyManager::IsAllowed(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned char)";
+        "OHOS::HiviewDFX::PrivacyManager::IsBundleNameInList(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::SysEvent::RemoveParam(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::SysEvent::SetInvalidParams(std::__h::shared_ptr<std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::shared_ptr<OHOS::HiviewDFX::EventParamInfo>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::shared_ptr<OHOS::HiviewDFX::EventParamInfo>>>>>)";
         "OHOS::HiviewDFX::SysEvent::GetInvalidParams()";
