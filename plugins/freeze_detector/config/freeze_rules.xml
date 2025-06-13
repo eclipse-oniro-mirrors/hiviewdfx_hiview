@@ -177,6 +177,13 @@
         </event>
       </links>
     </rule>
+    <rule id="6" domain="FFRT" stringid="TASK_TIMEOUT">	<!-- TASK_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="FFRT" stringid="TASK_TIMEOUT">	<!-- TASK_TIMEOUT -->
+          <result code="0" scope="app" samePackage="true"/>
+        </event>
+      </links>
+    </rule>
   </rules>
   <rules resolver="SysWarningResolver">
     <rule id="1" domain="FRAMEWORK" stringid="SERVICE_TIMEOUT_WARNING">	<!-- SERVICE_TIMEOUT_WARNING -->
