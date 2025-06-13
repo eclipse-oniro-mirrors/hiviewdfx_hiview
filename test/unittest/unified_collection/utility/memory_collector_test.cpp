@@ -48,7 +48,7 @@ const std::regex ALL_PROC_MEM2("^\\d{1,}\\s{1,}\\w{1,}( \\w{1,}){1,}(\\s{1,}\\d{
 // eg: ab.cd    12  34  567  890  123   ef   gh   ijk
 //     Total dmabuf size of ab.cd: 12345 bytes
 const std::string RAW_DMA1_STR1("^[\\w\\.\\[\\]():/>-]{1,}(\\s{1,}\\d{1,}){5}(\\s{1,}\\w{1,}){3}");
-const std::string RAW_DMA1_STR2("(\\s{1,}\\d{1,}){0,2}(\\s{1,}\\w{1,}\\s{1,})?$");
+const std::string RAW_DMA1_STR2("(\\s{1,}\\d{1,}){0,2}(\\s{1,}\\w{1,}\\s{1,}){0,2}$");
 const std::regex RAW_DMA1(RAW_DMA1_STR1 + RAW_DMA1_STR2);
 const std::regex RAW_DMA2("^(Total dmabuf size of )[\\w\\.\\[\\]():/>-]{1,}(: )\\d{1,}( bytes)$");
 // eg: ab(cd):      12345 kB
@@ -65,6 +65,7 @@ const std::string RAW_PAGE_TYPE_STR1("^(Node)\\s{1,}\\d{1,}(, zone)\\s{1,}\\w{1,
 const std::string RAW_PAGE_TYPE_STR2("(\\s{1,}\\d{1,}){5,} $");
 const std::regex RAW_PAGE_TYPE_INFO1(RAW_PAGE_TYPE_STR1 + RAW_PAGE_TYPE_STR2);
 const std::regex RAW_PAGE_TYPE_INFO2("^(\\w{1,}\\s{1,}){5,}$");
+const std::regex RAW_PAGE_TYPE_INFO3("^(Node)\\s{1,}\\d{1,}(, zone)\\s{1,}\\w{1,}(\\s{1,}\\d{1,}){4} $");
 // eg: abc   12    34    5  678    9 : tunables    1    2    3 : slabdata      4      5      6
 //     abc - version: 1.2
 //     #name       <ab> <cd> <ef> <hi> <jk> : tunables <lmn> <opq> <rst> : slabdata <uv> <wx> <yz>
@@ -218,7 +219,8 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest007, TestSize.Level1)
     CollectResult<std::string> data = collector->CollectRawPageTypeInfo();
     std::cout << "collect raw pagetype info result" << data.retCode << std::endl;
     ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-    bool flag = CheckFormat(data.data, {RAW_PAGE_TYPE_INFO1, RAW_PAGE_TYPE_INFO2}, 4); // 4: skip the first four lines
+    const int skipLines = 4; // 4 : lines that contains title or other irregular info
+    bool flag = CheckFormat(data.data, {RAW_PAGE_TYPE_INFO1, RAW_PAGE_TYPE_INFO2, RAW_PAGE_TYPE_INFO3}, skipLines);
     ASSERT_TRUE(flag);
 }
 
