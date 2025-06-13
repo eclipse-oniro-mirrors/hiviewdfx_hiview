@@ -91,6 +91,14 @@ namespace {
         "BUSSNESS_THREAD_BLOCK_3S",
         "LIFECYCLE_HALF_TIMEOUT"
     };
+    static constexpr const char* const FFRT_PTOCESSES[] = {
+        "com.ohos.sceneboard", "foundation", "hiview"
+    };
+    static constexpr const char* const FFRT_REPORT_EVENT_TYPE[] = {
+        "Trigger_Escape", "Serial_Queue_Timeout", "Task_Sch_Timeout"
+    };
+    static constexpr const char* const TASK_TIMEOUT = "TASK_TIMEOUT";
+    static constexpr const char* const SENARIO = "SENARIO";
 
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
@@ -158,12 +166,19 @@ long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
     return pid;
 }
 
-bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
+bool EventLogger::CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent)
 {
-    if (onEvent == nullptr) {
-        return false;
+    if (sysEvent->eventName_ != TASK_TIMEOUT) {
+        return true;
     }
-std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
+    return (std::find(std::begin(FFRT_REPORT_EVENT_TYPE), std::end(FFRT_REPORT_EVENT_TYPE),
+        sysEvent->GetEventValue(SENARIO)) != std::end(FFRT_REPORT_EVENT_TYPE)) &&
+        (std::find(std::begin(FFRT_PTOCESSES), std::end(FFRT_PTOCESSES),
+            sysEvent->GetEventValue("PROCESS_NAME")) != std::end(FFRT_PTOCESSES));
+}
+
+bool EventLogger::CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName)
+{
 #ifdef HITRACE_CATCHER_ENABLE
     FreezeFilterTraceOn(sysEvent, Parameter::IsBetaVersion());
 #endif
@@ -171,8 +186,6 @@ std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
 #ifdef WINDOW_MANAGER_ENABLE
     EventFocusListener::RegisterFocusListener();
 #endif
-    long pid = GetEventPid(sysEvent);
-    std::string eventName = sysEvent->eventName_;
 
     if (eventName == "GESTURE_NAVIGATION_BACK" || eventName == "FREQUENT_CLICK_WARNING") {
 #ifdef WINDOW_MANAGER_ENABLE
@@ -180,13 +193,28 @@ std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
             ReportUserPanicWarning(sysEvent, pid);
         }
 #endif
-        return true;
+        return false;
     }
-
     HIVIEW_LOGI("domain=%{public}s, eventName=%{public}s, pid=%{public}ld, happenTime=%{public}" PRIu64,
         sysEvent->domain_.c_str(), eventName.c_str(), pid, sysEvent->happenTime_);
+    return true;
+}
 
-    if (!IsHandleAppfreeze(sysEvent) || CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
+bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
+{
+    if (onEvent == nullptr) {
+        return false;
+    }
+    std::shared_ptr<SysEvent> sysEvent = Event::DownCastTo<SysEvent>(onEvent);
+    if (sysEvent == nullptr) {
+        return false;
+    }
+
+    long pid = GetEventPid(sysEvent);
+    std::string eventName = sysEvent->eventName_;
+
+    if (!CheckContinueReport(sysEvent, pid, eventName) || !CheckFfrtEvent(sysEvent) || !IsHandleAppfreeze(sysEvent) ||
+        CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
         return true;
     }
     if (sysEvent->GetValue("eventLog_action").empty()) {
