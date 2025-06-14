@@ -290,7 +290,7 @@
     <rule id="14" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT_WARNING">	<!-- LIFECYCLE_TIMEOUT_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT_WARNING">	<!-- LIFECYCLE_TIMEOUT_WARNING -->
-          <result code="2" scope="sysWarning/>
+          <result code="2" scope="sysWarning"/>
         </event>
         <event window="-30" domain="AAFWK" delay="15" stringid="LIFECYCLE_HALF_TIMEOUT_WARNING">	<!-- LIFECYCLE_HALF_TIMEOUT_WARNING -->
           <result code="2" scope="sysWarning"/>
