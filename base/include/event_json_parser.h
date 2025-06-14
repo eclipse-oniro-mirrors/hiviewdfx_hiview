@@ -24,8 +24,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "cjson_util.h"
 #include "ffrt.h"
-#include "json/json.h"
 #include "singleton.h"
 #include "sys_event.h"
 
@@ -56,7 +56,7 @@ struct BaseInfo {
 
 using NAME_INFO_MAP = std::unordered_map<std::string, BaseInfo>;
 using DOMAIN_INFO_MAP = std::unordered_map<std::string, NAME_INFO_MAP>;
-using JSON_VALUE_LOOP_HANDLER = std::function<void(const std::string&, const Json::Value&)>;
+using JSON_VALUE_LOOP_HANDLER = std::function<void(const std::string&, const cJSON*)>;
 using ExportEventList = std::map<std::string, std::vector<std::string>>; // <domain, names>
 
 class EventJsonParser : public DelayedSingleton<EventJsonParser> {
@@ -72,14 +72,11 @@ public:
     void ReadDefFile();
 
 private:
-    bool HasUIntMember(const Json::Value& jsonObj, const std::string& name) const;
-    bool HasStringMember(const Json::Value& jsonObj, const std::string& name) const;
-    bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;
-    void InitEventInfoMapRef(const Json::Value& jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
-    BaseInfo ParseBaseConfig(const Json::Value& eventNameJson) const;
-    void ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap);
-    NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const;
-    PARAM_INFO_MAP_PTR ParseEventParamInfo(const Json::Value& eventContent) const;
+    void InitEventInfoMapRef(const cJSON* jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
+    BaseInfo ParseBaseConfig(const cJSON* eventNameJson) const;
+    void ParseSysEventDef(const cJSON* hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap);
+    NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const cJSON* domainJson) const;
+    PARAM_INFO_MAP_PTR ParseEventParamInfo(const cJSON* eventContent) const;
     void WatchTestTypeParameter();
 
 private:

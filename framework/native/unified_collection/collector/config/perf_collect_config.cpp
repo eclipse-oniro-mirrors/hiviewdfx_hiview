@@ -73,13 +73,13 @@ std::map<PerfCaller, uint8_t> PerfCollectConfig::GetPerfCount(const std::string&
         HIVIEW_LOGW("parse config failed");
         return perfMaxCountForCaller;
     }
-    auto perfConfig = CJsonUtil::GetObjectValue(root, "Perf");
+    auto perfConfig = CJsonUtil::GetObjectMember(root, "Perf");
     if (perfConfig == nullptr) {
         HIVIEW_LOGW("parse perf config failed");
         cJSON_Delete(root);
         return perfMaxCountForCaller;
     }
-    auto concurrencyConfig = CJsonUtil::GetObjectValue(perfConfig, "ConcurrencyStrategy");
+    auto concurrencyConfig = CJsonUtil::GetObjectMember(perfConfig, "ConcurrencyStrategy");
     if (concurrencyConfig == nullptr) {
         HIVIEW_LOGW("parse config failed of ConcurrencyStrategy");
         cJSON_Delete(root);
@@ -87,7 +87,7 @@ std::map<PerfCaller, uint8_t> PerfCollectConfig::GetPerfCount(const std::string&
     }
     for (auto& item : perfMaxCountForCaller) {
         std::string callerStr = MapPerfCallerToString(item.first);
-        int64_t quota = CJsonUtil::GetIntValue(concurrencyConfig, callerStr, -1);
+        int64_t quota = CJsonUtil::GetInt64MemberValue(concurrencyConfig, callerStr, -1);
         if (quota >= 0) {
             item.second =static_cast<uint8_t>(quota);
         }
@@ -107,13 +107,13 @@ int64_t PerfCollectConfig::GetAllowMemory(const std::string& configPath)
         HIVIEW_LOGW("parse config failed");
         return allowMemory;
     }
-    auto perfConfig = CJsonUtil::GetObjectValue(root, "Perf");
+    auto perfConfig = CJsonUtil::GetObjectMember(root, "Perf");
     if (perfConfig == nullptr) {
         HIVIEW_LOGW("parse perf config failed");
         cJSON_Delete(root);
         return allowMemory;
     }
-    auto res = CJsonUtil::GetIntValue(perfConfig, "AllowMemory", allowMemory);
+    auto res = CJsonUtil::GetInt64MemberValue(perfConfig, "AllowMemory", allowMemory);
     cJSON_Delete(root);
     return res;
 }

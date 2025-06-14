@@ -30,18 +30,9 @@ DEFINE_LOG_TAG("DispatchRuleParser");
 
 DispatchRuleParser::DispatchRuleParser(const std::string& filePath)
 {
-    Json::Value root;
-    std::ifstream fin(filePath, std::ifstream::binary);
-    if (!fin.is_open()) {
-        HIVIEW_LOGW("failed to open file, path: %{public}s.", filePath.c_str());
-        return;
-    }
-    Json::CharReaderBuilder jsonRBuilder;
-    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
-    JSONCPP_STRING errs;
-    if (!parseFromStream(jsonRBuilder, fin, &root, &errs)) {
-        HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s",
-            filePath.c_str());
+    cJSON* root = CJsonUtil::ParseJsonRoot(filePath);
+    if (root == nullptr) {
+        HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", filePath.c_str());
         return;
     }
     dispatchRule_ = std::make_shared<DispatchRule>();
@@ -49,6 +40,7 @@ DispatchRuleParser::DispatchRuleParser(const std::string& filePath)
     ParseEvents(root);
     ParseTagEvents(root);
     ParseDomainRule(root);
+    cJSON_Delete(root);
 }
 
 std::shared_ptr<DispatchRule> DispatchRuleParser::GetRule()
@@ -56,109 +48,108 @@ std::shared_ptr<DispatchRule> DispatchRuleParser::GetRule()
     return dispatchRule_;
 }
 
-void DispatchRuleParser::ParseEventTypes(const Json::Value& root)
+void DispatchRuleParser::ParseEventTypes(const cJSON* root)
 {
     if (dispatchRule_ == nullptr) {
         return;
     }
-    if (root.isNull() || !root.isMember("types") || !root["types"].isArray()) {
+    cJSON* jsonTypeArray = CJsonUtil::GetItemMember(root, "types");
+    if (!cJSON_IsArray(jsonTypeArray)) {
         HIVIEW_LOGD("failed to parse the types");
         return;
     }
-    auto jsonTypeArray = root["types"];
-    int jsonSize = static_cast<int>(jsonTypeArray.size());
-    for (int i = 0; i < jsonSize; ++i) {
-        if (!jsonTypeArray[i].isString()) {
+    cJSON* jsonType = nullptr;
+    cJSON_ArrayForEach(jsonType, jsonTypeArray) {
+        if (!cJSON_IsString(jsonType)) {
             continue;
         }
-        std::string key = jsonTypeArray[i].asString();
+        std::string key = jsonType->valuestring;
         if (EVENT_TYPE_MAP.find(key) != EVENT_TYPE_MAP.end()) {
             dispatchRule_->typeList.insert(EVENT_TYPE_MAP.at(key));
         }
     }
 }
 
-void DispatchRuleParser::ParseTagEvents(const Json::Value& root)
+void DispatchRuleParser::ParseTagEvents(const cJSON* root)
 {
     if (dispatchRule_ == nullptr) {
         return;
     }
-    if (root.isNull() || !root.isMember("tags") || !root["tags"].isArray()) {
+    cJSON* jsonTagArray = CJsonUtil::GetItemMember(root, "tags");
+    if (!cJSON_IsArray(jsonTagArray)) {
         HIVIEW_LOGD("failed to parse the tags");
         return;
     }
-    auto jsonTagArray = root["tags"];
-    int jsonSize = static_cast<int>(jsonTagArray.size());
-    for (int i = 0; i < jsonSize; i++) {
-        if (!jsonTagArray[i].isString()) {
+    cJSON* jsonTag = nullptr;
+    cJSON_ArrayForEach(jsonTag, jsonTagArray) {
+        if (!cJSON_IsString(jsonTag)) {
             continue;
         }
-        dispatchRule_->tagList.insert(jsonTagArray[i].asString());
+        dispatchRule_->tagList.insert(jsonTag->valuestring);
     }
 }
 
-void DispatchRuleParser::ParseEvents(const Json::Value& root)
+void DispatchRuleParser::ParseEvents(const cJSON* root)
 {
     if (dispatchRule_ == nullptr) {
         return;
     }
-    if (root.isNull() || !root.isMember("events") || !root["events"].isArray()) {
+    cJSON* jsonEventArray = CJsonUtil::GetItemMember(root, "events");
+    if (!cJSON_IsArray(jsonEventArray)) {
         HIVIEW_LOGD("failed to parse the events");
         return;
     }
-    auto jsonEventArray = root["events"];
-    int jsonSize = static_cast<int>(jsonEventArray.size());
-    for (int i = 0; i < jsonSize; i++) {
-        if (!jsonEventArray[i].isString()) {
+    cJSON* jsonEvent = nullptr;
+    cJSON_ArrayForEach(jsonEvent, jsonEventArray) {
+        if (!cJSON_IsString(jsonEvent)) {
             continue;
         }
-        dispatchRule_->eventList.insert(jsonEventArray[i].asString());
+        dispatchRule_->eventList.insert(jsonEvent->valuestring);
     }
 }
 
-void DispatchRuleParser::ParseDomainRule(const Json::Value& root)
+void DispatchRuleParser::ParseDomainRule(const cJSON* root)
 {
     if (dispatchRule_ == nullptr) {
         return;
     }
-    if (root.isNull() || !root.isMember("domains") || !root["domains"].isArray()) {
+    cJSON* jsonDomainArray = CJsonUtil::GetItemMember(root, "domains");
+    if (!cJSON_IsArray(jsonDomainArray)) {
         HIVIEW_LOGD("failed to parse the domains");
         return;
     }
-    auto jsonDomainArray = root["domains"];
-    int jsonSize = static_cast<int>(jsonDomainArray.size());
-    for (int i = 0; i < jsonSize; i++) {
-        if (jsonDomainArray[i].isNull() || !jsonDomainArray[i].isMember("domain")) {
-            continue;
-        }
-        if (!jsonDomainArray[i]["domain"].isString()) {
+    cJSON* jsonDomainObject = nullptr;
+    cJSON_ArrayForEach(jsonDomainObject, jsonDomainArray) {
+        auto jsonDomain = CJsonUtil::GetItemMember(jsonDomainObject, "domain");
+        if (!cJSON_IsString(jsonDomain)) {
             continue;
         }
         DomainRule domainRule;
-        std::string domainName = jsonDomainArray[i]["domain"].asString();
-        ParseDomains(jsonDomainArray[i], domainRule);
+        std::string domainName = jsonDomain->valuestring;
+        ParseDomains(jsonDomainObject, domainRule);
         dispatchRule_->domainRuleMap[domainName] = domainRule;
     }
 }
 
-void DispatchRuleParser::ParseDomains(const Json::Value& json, DomainRule& domainRule)
+void DispatchRuleParser::ParseDomains(const cJSON* root, DomainRule& domainRule)
 {
-    Json::Value jsonArray;
-    if (json.isMember("include") && json["include"].isArray()) {
+    cJSON* jsonArray = CJsonUtil::GetItemMember(root, "include");
+    if (cJSON_IsArray(jsonArray)) {
         domainRule.filterType = DomainRule::INCLUDE;
-        jsonArray = json["include"];
-    } else if (json.isMember("exclude") && json["exclude"].isArray()) {
-        domainRule.filterType = DomainRule::EXCLUDE;
-        jsonArray = json["exclude"];
     } else {
-        return;
+        jsonArray = CJsonUtil::GetItemMember(root, "exclude");
+        if (cJSON_IsArray(jsonArray)) {
+            domainRule.filterType = DomainRule::EXCLUDE;
+        } else {
+            return;
+        }
     }
-    int jsonSize = static_cast<int>(jsonArray.size());
-    for (int i = 0; i < jsonSize; i++) {
-        if (!jsonArray[i].isString()) {
+    cJSON* json = nullptr;
+    cJSON_ArrayForEach(json, jsonArray) {
+        if (!cJSON_IsString(json)) {
             continue;
         }
-        domainRule.eventlist.insert(jsonArray[i].asString());
+        domainRule.eventlist.insert(json->valuestring);
     }
 }
 

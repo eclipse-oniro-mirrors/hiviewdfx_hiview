@@ -58,6 +58,7 @@ ohos_unittest("SysEventServiceOhosUnitTest") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",

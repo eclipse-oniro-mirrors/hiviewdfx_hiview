@@ -59,15 +59,6 @@ bool ConditionParser::ParseCondition(const std::string& condStr, EventStore::Con
     return false;
 }
 
-bool ConditionParser::ParseJsonString(const Json::Value& root, const std::string& key, std::string& value)
-{
-    if (!root.isObject() || !root.isMember(key.c_str()) || !root[key.c_str()].isString()) {
-        return false;
-    }
-    value = root[key].asString();
-    return true;
-}
-
 EventStore::Op ConditionParser::GetOpEnum(const std::string& op)
 {
     const std::map<std::string, EventStore::Op> opMap = {
@@ -88,34 +79,33 @@ void ConditionParser::SpliceConditionByLogic(EventStore::Cond& condition, const 
     }
 }
 
-bool ConditionParser::ParseLogicCondition(const Json::Value& root, const std::string& logic,
-    EventStore::Cond& condition)
+bool ConditionParser::ParseLogicCondition(const cJSON* root, const std::string& logic, EventStore::Cond& condition)
 {
-    if (!root.isMember(logic) || !root[logic].isArray()) {
+    cJSON* logicArr = CJsonUtil::GetItemMember(root, logic);
+    if (!cJSON_IsArray(logicArr)) {
         HIVIEW_LOGE("ParseLogicCondition err1.");
         return false;
     }
 
+    cJSON* cond = nullptr;
     EventStore::Cond subCondition;
-    for (size_t i = 0; i < root[logic].size(); ++i) {
-        auto cond = root[logic][static_cast<int>(i)];
-        std::string param;
-        if (!ParseJsonString(cond, "param", param) || param.empty()) {
+    cJSON_ArrayForEach(cond, logicArr) {
+        std::string param = CJsonUtil::GetStringMemberValue(cond, "param");
+        if (param.empty()) {
             return false;
         }
-        std::string op;
-        if (!ParseJsonString(cond, "op", op) || GetOpEnum(op) == EventStore::Op::NONE) {
+        std::string op = CJsonUtil::GetStringMemberValue(cond, "op");
+        if (GetOpEnum(op) == EventStore::Op::NONE) {
             return false;
         }
         const char valueKey[] = "value";
-        if (!cond.isMember(valueKey)) {
-            return false;
-        }
-        if (cond[valueKey].isString()) {
-            std::string value = cond[valueKey].asString();
+        cJSON* condValue = CJsonUtil::GetItemMember(cond, valueKey);
+        if (cJSON_IsString(condValue)) {
+            std::string value = condValue->valuestring;
             SpliceConditionByLogic(subCondition, EventStore::Cond(param, GetOpEnum(op), value), logic);
-        } else if (cond[valueKey].isInt64()) {
-            int64_t value = cond[valueKey].asInt64();
+        } else if (CJsonUtil::IsInt64(condValue)) {
+            int64_t value = 0;
+            CJsonUtil::GetInt64Value(condValue, value);
             SpliceConditionByLogic(subCondition, EventStore::Cond(param, GetOpEnum(op), value), logic);
         } else {
             return false;
@@ -125,19 +115,20 @@ bool ConditionParser::ParseLogicCondition(const Json::Value& root, const std::st
     return true;
 }
 
-bool ConditionParser::ParseAndCondition(const Json::Value& root, EventStore::Cond& condition)
+bool ConditionParser::ParseAndCondition(const cJSON* root, EventStore::Cond& condition)
 {
     return ParseLogicCondition(root, LOGIC_AND_COND, condition);
 }
 
-bool ConditionParser::ParseQueryConditionJson(const Json::Value& root, EventStore::Cond& condition)
+bool ConditionParser::ParseQueryConditionJson(const cJSON* root, EventStore::Cond& condition)
 {
     const char condKey[] = "condition";
-    if (!root.isMember(condKey) || !root[condKey].isObject()) {
+    cJSON* condJson = CJsonUtil::GetItemMember(root, condKey);
+    if (condJson == nullptr) {
         return false;
     }
     bool res = false;
-    if (ParseAndCondition(root[condKey], condition)) {
+    if (ParseAndCondition(condJson, condition)) {
         res = true;
     }
     return res;
@@ -148,29 +139,29 @@ bool ConditionParser::ParseQueryCondition(const std::string& condStr, EventStore
     if (condStr.empty()) {
         return false;
     }
-    Json::Value root;
-    Json::CharReaderBuilder jsonRBuilder;
-    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
-    std::unique_ptr<Json::CharReader> const reader(jsonRBuilder.newCharReader());
-    JSONCPP_STRING errs;
-    if (!reader->parse(condStr.data(), condStr.data() + condStr.size(), &root, &errs)) {
+    cJSON* root = cJSON_Parse(condStr.c_str());
+    if (root == nullptr) {
         HIVIEW_LOGE("failed to parse condition string: %{public}s.", condStr.c_str());
         return false;
     }
-    std::string version;
-    if (!ParseJsonString(root, "version", version)) {
+    std::string version = CJsonUtil::GetStringMemberValue(root, "version");
+    if (version.empty()) {
         HIVIEW_LOGE("failed to parser version.");
+        cJSON_Delete(root);
         return false;
     }
     const std::set<std::string> versionSet = { "V1" }; // set is used for future expansion
     if (versionSet.find(version) == versionSet.end()) {
         HIVIEW_LOGE("version is invalid.");
+        cJSON_Delete(root);
         return false;
     }
     if (!ParseQueryConditionJson(root, condition)) {
         HIVIEW_LOGE("condition is invalid.");
+        cJSON_Delete(root);
         return false;
     }
+    cJSON_Delete(root);
     return true;
 }
 

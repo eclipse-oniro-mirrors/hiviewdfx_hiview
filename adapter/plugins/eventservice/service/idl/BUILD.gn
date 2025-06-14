@@ -89,6 +89,7 @@ ohos_source_set("sys_event_service_ohos") {
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "cJSON:cjson",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
