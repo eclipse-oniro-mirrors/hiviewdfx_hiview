@@ -83,15 +83,15 @@ struct AppEventParams {
     int32_t uid = 0;
     std::string eventName;
     std::string pathHolder;
-    cJSON *eventJson = nullptr;
+    std::shared_ptr<cJSON> eventJson;
     uint32_t maxFileSizeBytes = 0;
 
-    AppEventParams(int32_t uid, std::string eventName, std::string pathHolder, cJSON& eventJson,
+    AppEventParams(int32_t uid, std::string eventName, std::string pathHolder, const std::shared_ptr<cJSON>& eventJson,
         uint32_t maxFileSizeBytes)
         : uid(uid),
         eventName(std::move(eventName)),
         pathHolder(std::move(pathHolder)),
-        eventJson(&eventJson),
+        eventJson(eventJson),
         maxFileSizeBytes(maxFileSizeBytes)
     {}
 };
@@ -265,7 +265,7 @@ std::string GetDesFileName(cJSON& params, const std::string& eventName,
 
 void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, const ExternalLogInfo &externalLogInfo)
 {
-    cJSON *paramItem = cJSON_GetObjectItemCaseSensitive(eventParams.eventJson, PARAM_PROPERTY);
+    cJSON *paramItem = cJSON_GetObjectItemCaseSensitive(eventParams.eventJson.get(), PARAM_PROPERTY);
     cJSON *externalLogItem = cJSON_GetObjectItemCaseSensitive(paramItem, EXTERNAL_LOG);
     if (!cJSON_IsArray(externalLogItem) || cJSON_GetArraySize(externalLogItem) == 0) {
         HIVIEW_LOGE("no external log need to copy.");
@@ -309,7 +309,7 @@ void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, 
             break;
         }
     }
-    cJSON_SetBoolValue(cJSON_GetObjectItemCaseSensitive(eventParams.eventJson, LOG_OVER_LIMIT), logOverLimit);
+    cJSON_SetBoolValue(cJSON_GetObjectItemCaseSensitive(eventParams.eventJson.get(), LOG_OVER_LIMIT), logOverLimit);
     (void)cJSON_AddItemToObject(paramItem, EXTERNAL_LOG, externalLogJson);
 }
 
@@ -575,7 +575,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         return;
     }
 
-    std::unique_ptr<cJSON, void (*)(cJSON *)> eventJson(cJSON_CreateObject(), [](cJSON *object) {
+    std::shared_ptr<cJSON> eventJson(cJSON_CreateObject(), [](cJSON *object) {
         if (object != nullptr) {
             cJSON_Delete(object);
         }
@@ -591,7 +591,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         return;
     }
     (void)cJSON_AddItemToObject(eventJson.get(), PARAM_PROPERTY, params);
-    AppEventParams eventParams(uid, eventName, pathHolder, *eventJson, maxFileSizeBytes);
+    AppEventParams eventParams(uid, eventName, pathHolder, eventJson, maxFileSizeBytes);
     const std::set<std::string> immediateEvents = {EVENT_APP_CRASH, EVENT_APP_FREEZE, EVENT_ADDRESS_SANITIZER,
         EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK, EVENT_APP_HICOLLIE, EVENT_APP_KILLED};
     if (immediateEvents.find(eventName) != immediateEvents.end()) {
