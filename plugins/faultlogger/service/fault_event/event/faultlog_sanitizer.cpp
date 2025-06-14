@@ -37,10 +37,11 @@ void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysE
     }
     cJSON_AddNumberToObject(params, "time", static_cast<double>(sysEvent->happenTime_));
     auto reason = sysEvent->GetEventValue(FaultKey::REASON);
-    cJSON_AddStringToObject(params, "type", reason.c_str());
     if (reason.find("FDSAN") != std::string::npos) {
         cJSON_AddStringToObject(params, "type", "FDSAN");
         HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason FDSAN", reason.c_str());
+    } else {
+        cJSON_AddStringToObject(params, "type", reason.c_str());
     }
     cJSON *externalLog = cJSON_CreateArray();
     if (externalLog == nullptr) {

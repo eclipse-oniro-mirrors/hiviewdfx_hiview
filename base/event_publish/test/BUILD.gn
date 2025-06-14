@@ -45,12 +45,12 @@ ohos_unittest("EventPublishTest") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "jsoncpp:jsoncpp",
   ]
 
   resource_config_file = "resource/ohos_test.xml"

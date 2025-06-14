@@ -28,8 +28,8 @@ ohos_source_set("hiview_event_publish") {
   public_configs = [ ":hiview_event_publish_config" ]
 
   external_deps = [
+    "cJSON:cjson",
     "hisysevent:libhisysevent",
-    "jsoncpp:jsoncpp",
   ]
 
   sources = [

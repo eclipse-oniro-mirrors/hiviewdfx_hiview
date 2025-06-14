@@ -20,8 +20,6 @@
 #include <string>
 #include <thread>
 
-#include "json/json.h"
-
 #include "hisysevent.h"
 #include "singleton.h"
 
@@ -41,39 +39,18 @@ constexpr const char* const EVENT_MAIN_THREAD_JANK = "MAIN_THREAD_JANK";
 constexpr const char* const EVENT_APP_START = "APP_START";
 constexpr const char* const EVENT_APP_HICOLLIE = "APP_HICOLLIE";
 constexpr const char* const EVENT_APP_KILLED = "APP_KILLED";
-
-struct AppEventParams {
-    int32_t uid = 0;
-    std::string eventName;
-    std::string pathHolder;
-    Json::Value eventJson = Json::Value();
-    uint32_t maxFileSizeBytes = 0;
-
-    AppEventParams(int32_t uid, std::string eventName, std::string pathHolder, Json::Value eventJson,
-        uint32_t maxFileSizeBytes)
-        : uid(uid),
-        eventName(eventName),
-        pathHolder(pathHolder),
-        eventJson(eventJson),
-        maxFileSizeBytes(maxFileSizeBytes)
-    {}
-};
 }
-class EventPublish : public OHOS::DelayedRefSingleton<EventPublish> {
+class EventPublish {
 public:
+    static EventPublish& GetInstance();
+    ~EventPublish();
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
         const std::string& paramJson, uint32_t maxFileSizeBytes = 0);
 
 private:
-    void StartSendingThread();
-    void SendEventToSandBox();
-    void StartOverLimitThread(HiAppEvent::AppEventParams& eventParams);
-    void SendOverLimitEventToSandBox(HiAppEvent::AppEventParams eventParams);
-
-private:
-    std::mutex mutex_;
-    std::unique_ptr<std::thread> sendingThread_ = nullptr;
-    std::unique_ptr<std::thread> sendingOverlimitThread_ = nullptr;
+    EventPublish();
+    class Impl;
+    std::unique_ptr<Impl> impl_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

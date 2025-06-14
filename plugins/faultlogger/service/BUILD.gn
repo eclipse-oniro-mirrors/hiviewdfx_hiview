@@ -73,7 +73,6 @@ ohos_source_set("faultlogger_service") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -145,7 +144,6 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -213,7 +211,6 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "zlib:libz",
   ]

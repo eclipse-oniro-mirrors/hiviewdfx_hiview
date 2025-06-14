@@ -107,7 +107,6 @@ ohos_unittest("FaultloggerUnittest") {
     "hisysevent:libhisyseventmanager",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
   ]
 

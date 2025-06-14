@@ -37,7 +37,6 @@ ohos_shared_library("libasan_logger") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "openssl:libcrypto_shared",
     "zlib:libz",
   ]
