@@ -44,6 +44,7 @@ ohos_shared_library("sys_event_service_adapter") {
   ]
 
   external_deps = [
+    "cJSON:cjson",
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",

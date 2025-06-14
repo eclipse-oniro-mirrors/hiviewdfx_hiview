@@ -49,7 +49,7 @@ void PluginBundleConfig::Parse(const std::string& configPath)
         return;
     }
     std::string version = Parameter::GetVersionTypeStr();
-    auto config = CJsonUtil::GetArrayValue(root, version);
+    auto config = CJsonUtil::GetArrayMember(root, version);
     if (config == nullptr) {
         HIVIEW_LOGW("failed to parse config, file=%{public}s, version=%{public}s",
             configPath.c_str(), version.c_str());

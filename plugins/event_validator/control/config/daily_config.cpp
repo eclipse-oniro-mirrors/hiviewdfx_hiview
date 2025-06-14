@@ -41,7 +41,7 @@ bool DailyConfig::Parse(const std::string& configPath)
         return false;
     }
     std::string version = Parameter::GetVersionTypeStr();
-    auto config = CJsonUtil::GetObjectValue(root, version);
+    auto config = CJsonUtil::GetObjectMember(root, version);
     if (config == nullptr) {
         HIVIEW_LOGW("failed to parse config file=%{public}s, version=%{public}s",
             configPath.c_str(), version.c_str());
@@ -56,7 +56,7 @@ bool DailyConfig::Parse(const std::string& configPath)
 bool DailyConfig::ParseCommonThreshold(const cJSON* config)
 {
     const std::string comKey = "Common";
-    auto comConfig = CJsonUtil::GetObjectValue(config, comKey);
+    auto comConfig = CJsonUtil::GetObjectMember(config, comKey);
     if (comConfig == nullptr) {
         HIVIEW_LOGW("failed to parse common config");
         return false;
@@ -67,7 +67,7 @@ bool DailyConfig::ParseCommonThreshold(const cJSON* config)
         {"SECURITY", TYPE_SECURITY}, {"BEHAVIOR", TYPE_BEHAVIOR}
     };
     for (const auto& [key, value] : configMap) {
-        int32_t configValue = CJsonUtil::GetIntValue(comConfig, key, INVALID_INT);
+        int32_t configValue = CJsonUtil::GetInt64MemberValue(comConfig, key, INVALID_INT);
         if (configValue < 0) {
             HIVIEW_LOGW("failed to parse common config, key=%{public}s", key.c_str());
             return false;
@@ -81,7 +81,7 @@ bool DailyConfig::ParseCommonThreshold(const cJSON* config)
 bool DailyConfig::ParseCustomThreshold(const cJSON* config)
 {
     const std::string customKey = "Custom";
-    auto customConfig = CJsonUtil::GetObjectValue(config, customKey);
+    auto customConfig = CJsonUtil::GetObjectMember(config, customKey);
     if (customConfig == nullptr) {
         HIVIEW_LOGW("failed to parse custom config");
         return false;

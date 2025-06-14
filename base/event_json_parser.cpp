@@ -41,19 +41,6 @@ const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
 
-bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
-{
-    std::ifstream fin(path, std::ifstream::binary);
-    if (!fin.is_open()) {
-        HIVIEW_LOGW("failed to open file, path: %{public}s.", path.c_str());
-        return false;
-    }
-    Json::CharReaderBuilder jsonRBuilder;
-    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
-    JSONCPP_STRING errs;
-    return parseFromStream(jsonRBuilder, fin, &hiSysEventDef, &errs);
-}
-
 void AddEventToExportList(ExportEventList& list, const std::string& domain, const std::string& name,
     const BaseInfo& baseInfo)
 {
@@ -114,52 +101,36 @@ BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& doma
     return nameIter->second;
 }
 
-bool EventJsonParser::HasUIntMember(const Json::Value& jsonObj, const std::string& name) const
+void EventJsonParser::InitEventInfoMapRef(const cJSON* eventJson, JSON_VALUE_LOOP_HANDLER handler) const
 {
-    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isUInt();
-}
-
-bool EventJsonParser::HasStringMember(const Json::Value& jsonObj, const std::string& name) const
-{
-    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isString();
-}
-
-bool EventJsonParser::HasBoolMember(const Json::Value& jsonObj, const std::string& name) const
-{
-    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isBool();
-}
-
-void EventJsonParser::InitEventInfoMapRef(const Json::Value& eventJson, JSON_VALUE_LOOP_HANDLER handler) const
-{
-    if (!eventJson.isObject()) {
+    if (!cJSON_IsObject(eventJson)) {
         return;
     }
-    auto attrList = eventJson.getMemberNames();
+    auto attrList = CJsonUtil::GetMemberNames(eventJson);
     for (auto it = attrList.cbegin(); it != attrList.cend(); it++) {
         std::string key = *it;
         if (key.empty()) {
             continue;
         }
         if (handler != nullptr) {
-            handler(key, eventJson[key]);
+            handler(key, CJsonUtil::GetItemMember(eventJson, key));
         }
     }
 }
 
-BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) const
+BaseInfo EventJsonParser::ParseBaseConfig(const cJSON* eventNameJson) const
 {
     BaseInfo baseInfo;
-    if (!eventNameJson.isObject() || !eventNameJson[BASE].isObject()) {
+    cJSON* baseJsonInfo = CJsonUtil::GetItemMember(eventNameJson, BASE);
+    if (!cJSON_IsObject(baseJsonInfo)) {
         HIVIEW_LOGD("__BASE definition is invalid.");
         return baseInfo;
     }
-
-    Json::Value baseJsonInfo = eventNameJson[BASE];
-    if (!baseJsonInfo.isObject() || !HasStringMember(baseJsonInfo, TYPE)) {
+    std::string typeDes = CJsonUtil::GetStringMemberValue(baseJsonInfo, TYPE);
+    if (typeDes.empty()) {
         HIVIEW_LOGD("type is not defined in __BASE.");
         return baseInfo;
     }
-    std::string typeDes = baseJsonInfo[TYPE].asString();
     if (EVENT_TYPE_MAP.find(typeDes) == EVENT_TYPE_MAP.end()) {
         HIVIEW_LOGD("type is defined as %{public}s, but a valid type must be FAULT, STATISTIC, SECURITY, or BEHAVIOR",
             typeDes.c_str());
@@ -167,43 +138,42 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
     }
     baseInfo.keyConfig.type = EVENT_TYPE_MAP.at(typeDes);
 
-    if (!HasStringMember(baseJsonInfo, LEVEL)) {
+    cJSON* jsonLevel = CJsonUtil::GetItemMember(baseJsonInfo, LEVEL);
+    if (!cJSON_IsString(jsonLevel)) {
         HIVIEW_LOGD("level is not defined in __BASE.");
         return baseInfo;
     }
-    baseInfo.level = baseJsonInfo[LEVEL].asString();
+    baseInfo.level = jsonLevel->valuestring;
+    
+    baseInfo.tag = CJsonUtil::GetStringMemberValue(baseJsonInfo, TAG);
 
-    if (HasStringMember(baseJsonInfo, TAG)) {
-        baseInfo.tag = baseJsonInfo[TAG].asString();
+    uint32_t privacy = 0;
+    if (CJsonUtil::GetUintMemberValue(baseJsonInfo, PRIVACY, privacy)) {
+        baseInfo.keyConfig.privacy = static_cast<uint8_t>(privacy);
     }
-
-    if (HasUIntMember(baseJsonInfo, PRIVACY)) {
-        baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
+    cJSON* preserveJson = CJsonUtil::GetItemMember(baseJsonInfo, PRESERVE);
+    if (cJSON_IsBool(preserveJson)) {
+        baseInfo.keyConfig.preserve = cJSON_IsTrue(preserveJson) ? 1 : 0;
     }
-
-    if (HasBoolMember(baseJsonInfo, PRESERVE)) {
-        baseInfo.keyConfig.preserve = baseJsonInfo[PRESERVE].asBool() ? 1 : 0;
+    cJSON* collectJson = CJsonUtil::GetItemMember(baseJsonInfo, COLLECT);
+    if (cJSON_IsBool(collectJson)) {
+        baseInfo.keyConfig.collect = cJSON_IsTrue(collectJson)  ? 1 : 0;
     }
-
-    if (HasBoolMember(baseJsonInfo, COLLECT)) {
-        baseInfo.keyConfig.collect = baseJsonInfo[COLLECT].asBool() ? 1 : 0;
-    }
-
     return baseInfo;
 }
 
-void EventJsonParser::ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap)
+void EventJsonParser::ParseSysEventDef(const cJSON* hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap)
 {
-    InitEventInfoMapRef(hiSysEventDef, [this, sysDefMap] (const std::string& domain, const Json::Value& value) {
-       sysDefMap->insert(std::make_pair(domain, this->ParseEventNameConfig(domain, value)));
+    InitEventInfoMapRef(hiSysEventDef, [this, sysDefMap] (const std::string& domain, const cJSON* value) {
+        sysDefMap->insert(std::make_pair(domain, this->ParseEventNameConfig(domain, value)));
     });
 }
 
-NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const
+NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, const cJSON* domainJson) const
 {
     NAME_INFO_MAP allNames;
     InitEventInfoMapRef(domainJson,
-        [this, &domain, &allNames] (const std::string& eventName, const Json::Value& eventContent) {
+        [this, &domain, &allNames] (const std::string& eventName, const cJSON* eventContent) {
         BaseInfo baseInfo = ParseBaseConfig(eventContent);
         if (PrivacyManager::IsAllowed(domain, baseInfo.keyConfig.type, baseInfo.level, baseInfo.keyConfig.privacy)) {
             baseInfo.disallowParams = ParseEventParamInfo(eventContent);
@@ -215,10 +185,10 @@ NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, c
     return allNames;
 }
 
-PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& eventContent) const
+PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const cJSON* eventContent) const
 {
     PARAM_INFO_MAP_PTR paramMaps = nullptr;
-    auto attrList = eventContent.getMemberNames();
+    auto attrList = CJsonUtil::GetMemberNames(eventContent);
     if (attrList.empty()) {
         return paramMaps;
     }
@@ -227,15 +197,16 @@ PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& event
             // skip the definition of event, only care about the params
             continue;
         }
-        Json::Value paramContent = eventContent[paramName];
-        if (!paramContent.isObject()) {
+        cJSON* paramContent = CJsonUtil::GetItemMember(eventContent, paramName);
+        if (!cJSON_IsObject(paramContent)) {
             continue;
         }
-        if (!HasUIntMember(paramContent, PRIVACY)) {
+        uint32_t privacyValue = 0;
+        if (!CJsonUtil::GetUintMemberValue(paramContent, PRIVACY, privacyValue)) {
             // no privacy configured for this param, follow the event
             continue;
         }
-        uint8_t privacy = static_cast<uint8_t>(paramContent[PRIVACY].asUInt());
+        uint8_t privacy = static_cast<uint8_t>(privacyValue);
         if (PrivacyManager::IsPrivacyAllowed(privacy)) {
             // the privacy level of param is ok, no need to be recorded
             continue;
@@ -245,11 +216,12 @@ PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& event
             paramMaps = std::make_shared<std::map<std::string, std::shared_ptr<EventParamInfo>>>();
         }
         std::shared_ptr<EventParamInfo> paramInfo = nullptr;
-        if (Parameter::IsOversea() &&
-            HasStringMember(paramContent, "allowlist") && HasUIntMember(paramContent, "throwtype")) {
-            std::string allowListFile = paramContent["allowlist"].asString();
-            uint8_t throwType = static_cast<uint8_t>(paramContent["throwtype"].asUInt());
-            paramInfo = std::make_shared<EventParamInfo>(allowListFile, throwType);
+        if (Parameter::IsOversea()) {
+            uint32_t throwValue = 0;
+            cJSON* allowJson = CJsonUtil::GetItemMember(paramContent, "allowlist");
+            if (CJsonUtil::GetUintMemberValue(paramContent, "throwtype", throwValue) && cJSON_IsString(allowJson)) {
+                paramInfo = std::make_shared<EventParamInfo>(allowJson->valuestring, static_cast<uint8_t>(throwValue));
+            }
         }
         paramMaps->insert(std::make_pair(paramName, paramInfo));
     }
@@ -260,8 +232,8 @@ void EventJsonParser::ReadDefFile()
 {
     auto defFilePath = HiViewConfigUtil::GetConfigFilePath("hisysevent.zip", "sys_event_def", "hisysevent.def");
     HIVIEW_LOGI("read event def file path: %{public}s", defFilePath.c_str());
-    Json::Value hiSysEventDef;
-    if (!ReadSysEventDefFromFile(defFilePath, hiSysEventDef)) {
+    cJSON* hiSysEventDef = CJsonUtil::ParseJsonRoot(defFilePath);
+    if (hiSysEventDef == nullptr) {
         HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
         return;
     }
@@ -273,6 +245,7 @@ void EventJsonParser::ReadDefFile()
         sysEventDefMap_->clear();
     }
     ParseSysEventDef(hiSysEventDef, sysEventDefMap_);
+    cJSON_Delete(hiSysEventDef);
 }
 
 void EventJsonParser::OnConfigUpdate()
