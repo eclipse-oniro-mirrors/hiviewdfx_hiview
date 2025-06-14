@@ -241,7 +241,7 @@ bool FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath, int32_t faultType) const
 {
     std::string readContent = ReadLogFile(logPath);
-    if (!RemoveHiLogSection(readContent) && !TruncateLogIfExceedsLimit(readContent)) {
+    if (!TruncateLogIfExceedsLimit(readContent)) {
         return;
     }
     WriteLogFile(logPath, readContent);
