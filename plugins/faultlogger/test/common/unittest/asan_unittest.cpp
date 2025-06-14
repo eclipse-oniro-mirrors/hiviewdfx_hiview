@@ -66,7 +66,7 @@ public:
  * @tc.desc: Test calling WriteSanitizerLog Func
  * @tc.type: FUNC
  */
-HWTEST_F(AsanUnittest, WriteSanitizerLogTest001, testing::ext::TestSize.Level1)
+HWTEST_F(AsanUnittest, WriteSanitizerLogTest001, testing::ext::TestSize.Level0)
 {
     ClearAllLogs("/data/log/faultlog/faultlogger/");
     char path[] = "faultlogger";

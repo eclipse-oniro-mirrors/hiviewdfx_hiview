@@ -13,7 +13,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/faultlogger"
+module_output_path = "hiview/faultlogger/faultlogger"
 
 config("hiview_faultlogger_test_config") {
   visibility = [ ":*" ]

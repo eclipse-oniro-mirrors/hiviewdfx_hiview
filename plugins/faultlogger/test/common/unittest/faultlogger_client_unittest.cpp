@@ -74,7 +74,7 @@ HWTEST_F(FaultloggerClientUnittest, CheckFaultloggerStatusTest001, testing::ext:
  * @tc.type: FUNC
  * @tc.require: AR000F83AK
  */
-HWTEST_F(FaultloggerClientUnittest, AddFaultLogTest001, testing::ext::TestSize.Level3)
+HWTEST_F(FaultloggerClientUnittest, AddFaultLogTest001, testing::ext::TestSize.Level0)
 {
     /**
      * @tc.steps: step1. add faultlog with simplified parameters
