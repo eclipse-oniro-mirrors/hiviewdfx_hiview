@@ -75,7 +75,6 @@ ohos_source_set("hiview_service") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "jsoncpp:jsoncpp",
     "zlib:libz",
   ]
 }

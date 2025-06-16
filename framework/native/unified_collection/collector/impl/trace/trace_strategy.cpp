@@ -16,10 +16,10 @@
 
 #include <charconv>
 
+#include "cjson_util.h"
 #include "collect_event.h"
 #include "event_publish.h"
 #include "file_util.h"
-#include "json/json.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "hisysevent.h"
@@ -298,20 +298,29 @@ void TraceAppStrategy::CleanOldAppTrace()
 
 void TraceAppStrategy::InnerShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent)
 {
-    Json::Value eventJson;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_UID] = appCallerEvent->uid_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_PID] = appCallerEvent->pid_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_TIME] = appCallerEvent->happenTime_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_NAME] = appCallerEvent->bundleName_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_VERSION] = appCallerEvent->bundleVersion_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_BEGIN_TIME] = appCallerEvent->beginTime_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_END_TIME] = appCallerEvent->endTime_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_ISBUSINESSJANK] = appCallerEvent->isBusinessJank_;
-    Json::Value externalLog;
-    externalLog.append(appCallerEvent->externalLog_);
-    eventJson[UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG] = externalLog;
-    std::string param = Json::FastWriter().write(eventJson);
-
+    cJSON* eventJson = cJSON_CreateObject();
+    if (eventJson == nullptr) {
+        return;
+    }
+    cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_UID, appCallerEvent->uid_);
+    cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_PID, appCallerEvent->pid_);
+    cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_TIME, appCallerEvent->happenTime_);
+    cJSON_AddStringToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_BUNDLE_NAME,
+        appCallerEvent->bundleName_.c_str());
+    cJSON_AddStringToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_BUNDLE_VERSION,
+        appCallerEvent->bundleVersion_.c_str());
+    cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_BEGIN_TIME, appCallerEvent->beginTime_);
+    cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_END_TIME, appCallerEvent->endTime_);
+    cJSON_AddBoolToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_ISBUSINESSJANK, appCallerEvent->isBusinessJank_);
+    cJSON* externalLog = cJSON_CreateArray();
+    cJSON* subLog = cJSON_CreateString(appCallerEvent->externalLog_.c_str());
+    if (!cJSON_AddItemToArray(externalLog, subLog)) {
+        cJSON_Delete(subLog);
+    }
+    cJSON_AddItemToObjectCS(eventJson, UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG, externalLog);
+    std::string param;
+    CJsonUtil::BuildJsonString(eventJson, param);
+    cJSON_Delete(eventJson);
     HIVIEW_LOGI("send for uid=%{public}d pid=%{public}d", appCallerEvent->uid_, appCallerEvent->pid_);
     EventPublish::GetInstance().PushEvent(appCallerEvent->uid_, UCollectUtil::MAIN_THREAD_JANK,
                                           HiSysEvent::EventType::FAULT, param);

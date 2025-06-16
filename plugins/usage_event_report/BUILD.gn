@@ -64,11 +64,11 @@ if (enable_hiview_usage_event_report_build) {
 
     external_deps = [
       "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
       "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "ipc:ipc_single",
-      "jsoncpp:jsoncpp",
       "relational_store:native_rdb",
     ]
 
@@ -142,11 +142,11 @@ if (enable_hiview_usage_event_report_build) {
       "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
+      "cJSON:cjson",
       "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
       "ipc:ipc_single",
-      "jsoncpp:jsoncpp",
       "relational_store:native_rdb",
       "window_manager:libdm",
       "window_manager:libwm",

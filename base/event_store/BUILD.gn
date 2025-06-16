@@ -68,7 +68,6 @@ ohos_source_set("event_store_source") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "openssl:libcrypto_shared",
     "relational_store:native_rdb",
     "zlib:shared_libz",

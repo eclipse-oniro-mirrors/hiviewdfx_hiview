@@ -57,6 +57,30 @@ int64_t GetInt64MemberValue(const cJSON* json, const std::string& key, int64_t d
     return static_cast<int64_t>(intJson->valuedouble);
 }
 
+uint64_t GetUint64MemberValueWithDefault(const cJSON* json, const std::string& key, uint64_t defaultValue)
+{
+    if (!cJSON_IsObject(json)) {
+        return defaultValue;
+    }
+    cJSON* intJson = cJSON_GetObjectItem(json, key.c_str());
+    if (!IsUint64(intJson)) {
+        return defaultValue;
+    }
+    return static_cast<uint64_t>(intJson->valuedouble);
+}
+
+uint32_t GetUintMemberValueWithDefault(const cJSON* json, const std::string& key, uint32_t defaultValue)
+{
+    if (!cJSON_IsObject(json)) {
+        return defaultValue;
+    }
+    cJSON* intJson = cJSON_GetObjectItem(json, key.c_str());
+    if (!IsUint(intJson)) {
+        return defaultValue;
+    }
+    return static_cast<uint32_t>(intJson->valuedouble);
+}
+
 double GetDoubleMemberValue(cJSON* json, const std::string& key, double defaultValue)
 {
     if (!cJSON_IsObject(json)) {
@@ -145,7 +169,7 @@ bool IsInt(const cJSON* json)
     if (json == nullptr || !cJSON_IsNumber(json)) {
         return false;
     }
-    if (json->valuedouble < static_cast<double>(INT32_MAX) && json->valuedouble > static_cast<double>(INT32_MIN)) {
+    if (json->valuedouble <= static_cast<double>(INT32_MAX) && json->valuedouble >= static_cast<double>(INT32_MIN)) {
         return true;
     }
     return false;
@@ -156,7 +180,7 @@ bool IsUint(const cJSON* json)
     if (json == nullptr || !cJSON_IsNumber(json)) {
         return false;
     }
-    if (json->valuedouble < static_cast<double>(UINT32_MAX) && json->valueint >= 0) {
+    if (json->valuedouble <= static_cast<double>(UINT32_MAX) && json->valueint >= 0) {
         return true;
     }
     return false;
@@ -168,7 +192,7 @@ bool IsInt64(const cJSON* json)
     if (json == nullptr || !cJSON_IsNumber(json)) {
         return false;
     }
-    if (json->valuedouble < static_cast<double>(INT64_MAX) && json->valuedouble > static_cast<double>(INT64_MIN)) {
+    if (json->valuedouble <= static_cast<double>(INT64_MAX) && json->valuedouble >= static_cast<double>(INT64_MIN)) {
         return true;
     }
     return false;
@@ -179,7 +203,7 @@ bool IsUint64(const cJSON* json)
     if (json == nullptr || !cJSON_IsNumber(json)) {
         return false;
     }
-    if (json->valuedouble < static_cast<double>(UINT64_MAX) && json->valueint >= 0) {
+    if (json->valuedouble <= static_cast<double>(UINT64_MAX) && json->valueint >= 0) {
         return true;
     }
     return false;
@@ -202,7 +226,7 @@ bool GetUintValue(const cJSON* json, uint32_t& value)
     return false;
 }
 
-bool GetUint64Value(const cJSON* json, int64_t& value)
+bool GetUint64Value(const cJSON* json, uint64_t& value)
 {
     if (IsUint64(json)) {
         value = static_cast<uint64_t>(json->valuedouble);
@@ -220,7 +244,7 @@ bool GetInt64Value(const cJSON* json, int64_t& value)
     return false;
 }
 
-bool GetUint64MemberValue(const cJSON* json, const std::string& key, int64_t& value)
+bool GetUint64MemberValue(const cJSON* json, const std::string& key, uint64_t& value)
 {
     if (!cJSON_HasObjectItem(json, key.c_str())) {
         return false;

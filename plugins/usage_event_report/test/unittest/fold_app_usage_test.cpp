@@ -313,9 +313,9 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest007, TestSize.Level1)
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest008, TestSize.Level1)
 {
-    Json::Value object;
     std::string jsonStr = R"~({"param":"str1"})~";
-    JsonParser::ParseJsonString(object, jsonStr);
+    cJSON* object = JsonParser::ParseJsonString(jsonStr);
+    ASSERT_NE(object, nullptr);
     std::vector<std::string> fields;
     fields.emplace_back("key");
     ASSERT_FALSE(JsonParser::CheckJsonValue(object, fields));

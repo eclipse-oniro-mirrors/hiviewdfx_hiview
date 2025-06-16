@@ -50,6 +50,7 @@ ohos_unittest("EventStoreConfigTest") {
   deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
 
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
@@ -67,6 +68,7 @@ ohos_unittest("SysEventDocLruCacheTest") {
   deps = [ "$hiview_base/event_store/config:event_store_config_source" ]
 
   external_deps = [
+    "cJSON:cjson",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",

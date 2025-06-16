@@ -30,6 +30,10 @@ void BuildJsonString(const cJSON* json, std::string& str);
 
 int64_t GetInt64MemberValue(const cJSON* json, const std::string& key, int64_t defaultValue = 0);
 
+uint64_t GetUint64MemberValueWithDefault(const cJSON* json, const std::string& key, uint64_t defaultValue = 0);
+
+uint32_t GetUintMemberValueWithDefault(const cJSON* json, const std::string& key, uint32_t defaultValue = 0);
+
 double GetDoubleMemberValue(cJSON* json, const std::string& key, double defaultValue = 0.0);
 
 std::string GetStringMemberValue(const cJSON* json, const std::string& key);
@@ -52,13 +56,13 @@ bool IsInt64(const cJSON* json);
 
 bool GetUintMemberValue(const cJSON* json, const std::string& key, uint32_t& value);
 
-bool GetUint64Value(const cJSON* json, int64_t& value);
+bool GetUint64Value(const cJSON* json, uint64_t& value);
 
 bool GetInt64Value(const cJSON* json, int64_t& value);
 
 bool GetUintValue(const cJSON* json, uint32_t& value);
 
-bool GetUint64MemberValue(const cJSON* json, const std::string& key, int64_t& value);
+bool GetUint64MemberValue(const cJSON* json, const std::string& key, uint64_t& value);
 
 cJSON* GetItemMember(const cJSON* json, const std::string& key);
 

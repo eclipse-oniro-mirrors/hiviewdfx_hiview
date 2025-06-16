@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <sys/file.h>
 
+#include "cjson_util.h"
 #include "collect_event.h"
 #include "ffrt.h"
 #include "file_util.h"
@@ -40,7 +41,6 @@
 #include "app_caller_event.h"
 #include "event_publish.h"
 #include "hisysevent.h"
-#include "json/json.h"
 #include "trace_worker.h"
 #include "trace_utils.h"
 #include "trace_state_machine.h"
@@ -200,26 +200,34 @@ void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
     if (sysEvent.GetEventIntValue(UCollectUtil::SYS_EVENT_PARAM_JANK_LEVEL) <
         UCollectUtil::SYS_EVENT_JANK_LEVEL_VALUE_TRACE) {
         // hicollie capture stack in application process, only need to share app event to application by hiview
-        Json::Value eventJson;
-        eventJson[UCollectUtil::APP_EVENT_PARAM_UID] = sysEvent.GetUid();
-        eventJson[UCollectUtil::APP_EVENT_PARAM_PID] = sysEvent.GetPid();
-        eventJson[UCollectUtil::APP_EVENT_PARAM_TIME] = sysEvent.happenTime_;
-        eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_NAME] = sysEvent.GetEventValue(
-            UCollectUtil::SYS_EVENT_PARAM_BUNDLE_NAME);
-        eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_VERSION] = sysEvent.GetEventValue(
-            UCollectUtil::SYS_EVENT_PARAM_BUNDLE_VERSION);
-        eventJson[UCollectUtil::APP_EVENT_PARAM_BEGIN_TIME] = sysEvent.GetEventIntValue(
-            UCollectUtil::SYS_EVENT_PARAM_BEGIN_TIME);
-        eventJson[UCollectUtil::APP_EVENT_PARAM_END_TIME] = sysEvent.GetEventIntValue(
-            UCollectUtil::SYS_EVENT_PARAM_END_TIME);
-        eventJson[UCollectUtil::APP_EVENT_PARAM_APP_START_JIFFIES_TIME] = sysEvent.GetEventIntValue(
-            UCollectUtil::SYS_EVENT_PARAM_APP_START_JIFFIES_TIME);
-        eventJson[UCollectUtil::APP_EVENT_PARAM_HEAVIEST_STACK] = sysEvent.GetEventValue(
-            UCollectUtil::SYS_EVENT_PARAM_HEAVIEST_STACK);
-        Json::Value externalLog;
-        externalLog.append(sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG));
-        eventJson[UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG] = externalLog;
-        std::string param = Json::FastWriter().write(eventJson);
+        cJSON* eventJson = cJSON_CreateObject();
+        if (eventJson == nullptr) {
+            return;
+        }
+        cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_UID, sysEvent.GetUid());
+        cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_PID, sysEvent.GetPid());
+        cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_TIME, sysEvent.happenTime_);
+        cJSON_AddStringToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_BUNDLE_NAME,
+            sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_BUNDLE_NAME).c_str());
+        cJSON_AddStringToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_BUNDLE_VERSION,
+            sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_BUNDLE_VERSION).c_str());
+        cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_BEGIN_TIME,
+            sysEvent.GetEventIntValue(UCollectUtil::SYS_EVENT_PARAM_BEGIN_TIME));
+        cJSON_AddNumberToObject(eventJson, UCollectUtil::SYS_EVENT_PARAM_END_TIME,
+            sysEvent.GetEventIntValue(UCollectUtil::SYS_EVENT_PARAM_END_TIME));
+        cJSON_AddNumberToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_APP_START_JIFFIES_TIME,
+            sysEvent.GetEventIntValue(UCollectUtil::APP_EVENT_PARAM_APP_START_JIFFIES_TIME));
+        cJSON_AddStringToObject(eventJson, UCollectUtil::APP_EVENT_PARAM_HEAVIEST_STACK,
+            sysEvent.GetEventValue(UCollectUtil::APP_EVENT_PARAM_HEAVIEST_STACK).c_str());
+        cJSON* externalLog = cJSON_CreateArray();
+        cJSON* subLog = cJSON_CreateString(sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG).c_str());
+        if (!cJSON_AddItemToArray(externalLog, subLog)) {
+            cJSON_Delete(subLog);
+        }
+        cJSON_AddItemToObjectCS(eventJson, UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG, externalLog);
+        std::string param = "";
+        CJsonUtil::BuildJsonString(eventJson, param);
+        cJSON_Delete(eventJson);
 
         HIVIEW_LOGI("send as stack trigger for uid=%{public}d pid=%{public}d", sysEvent.GetUid(), sysEvent.GetPid());
         EventPublish::GetInstance().PushEvent(sysEvent.GetUid(), UCollectUtil::MAIN_THREAD_JANK,

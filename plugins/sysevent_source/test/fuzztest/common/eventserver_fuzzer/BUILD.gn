@@ -43,6 +43,5 @@ ohos_fuzztest("EventServerFuzzTest") {
     "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
     "init:libbegetutil",
-    "jsoncpp:jsoncpp",
   ]
 }

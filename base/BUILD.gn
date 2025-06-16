@@ -92,7 +92,6 @@ ohos_source_set("hiview_base") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "jsoncpp:jsoncpp",
   ]
 
   part_name = "hiview"
