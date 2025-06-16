@@ -26,57 +26,76 @@ using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("ExtractRule");
+static std::string GetStringValueFromItem(const cJSON *json)
+{
+    if (!json) {
+        return "";
+    }
+    std::string ret{};
+    if (cJSON_IsString(json)) {
+        ret = json->valuestring;
+    } else if (cJSON_IsNumber(json)) {
+        ret = std::to_string(json->valuedouble);
+    } else if (cJSON_IsBool(json)) {
+        ret = cJSON_IsTrue(json) ? "true" : "false";
+    } else {
+        ret = "";
+    }
+    return ret;
+}
+
+std::string GetStringValue(const cJSON *json, const std::string& key)
+{
+    if (!cJSON_IsObject(json)) {
+        return "";
+    }
+    cJSON *item = cJSON_GetObjectItemCaseSensitive(json, key.c_str());
+    return GetStringValueFromItem(item);
+}
+
 void ExtractRule::ParseExtractRule(const string& eventType, const string& config, const string& path)
 {
-    std::ifstream fin(config, std::ifstream::binary);
-    if (!fin.is_open()) {
+    std::string content;
+    if (!FileUtil::LoadStringFromFile(config, content)) {
         HIVIEW_LOGW("Failed to open file, path: %{public}s.", config.c_str());
         return;
     }
-#ifdef JSONCPP_VERSION_STRING
-    Json::CharReaderBuilder builder;
-    Json::CharReaderBuilder::strictMode(&builder.settings_);
-    JSONCPP_STRING errs;
-#else
-    Json::Reader reader(Json::Features::strictMode());
-#endif
-
-    Json::Value root;
-#ifdef JSONCPP_VERSION_STRING
-    bool ret = parseFromStream(builder, fin, &root, &errs);
-    if (!ret || !errs.empty()) {
-        HIVIEW_LOGE("Json parse fail, err is %{public}s in %{public}s.", errs.c_str(), config.c_str());
-        return;
-    }
-#else
-    if (!reader.parse(fin, root)) {
+    cJSON *root = cJSON_Parse(content.c_str());
+    if (!root) {
         HIVIEW_LOGE("Json parse fail in %{public}s.", config.c_str());
         return;
     }
-#endif
+
     ParseSegStatusCfg(root);
     ParseRule(eventType, root, path);
+    cJSON_Delete(root);
     return;
 }
 
-void ExtractRule::ParseSegStatusCfg(const Json::Value& json)
+void ExtractRule::ParseSegStatusCfg(const cJSON *json)
 {
-    if (!json.isMember(L1_SEG_STATUS)) {
+    cJSON *arrayObj = cJSON_GetObjectItem(json, L1_SEG_STATUS.c_str());
+    if (!arrayObj) {
         HIVIEW_LOGE("failed to get json number %{public}s.", L1_SEG_STATUS.c_str());
         return;
     }
 
-    Json::Value arrayObj = json[L1_SEG_STATUS];
-    int arrayObjSize = static_cast<int>(arrayObj.size());
+    int arrayObjSize = cJSON_GetArraySize(arrayObj);
     if (arrayObjSize > JSON_ARRAY_THRESHOLD) {
         arrayObjSize = JSON_ARRAY_THRESHOLD;
         HIVIEW_LOGI("json array has been resized to threshold value.");
     }
     for (int i = 0; i < arrayObjSize; i++) {
-        string name = arrayObj[i]["namespace"].asString();
+        cJSON *obj = cJSON_GetArrayItem(arrayObj, i);
+        if (!obj) {
+            HIVIEW_LOGE("get arrayItem from json fail.");
+            continue;
+        }
+
+        string name = GetStringValue(obj, "namespace");
         vector<string> cfg;
-        cfg.emplace_back(arrayObj[i]["matchKey"].asString());
-        cfg.emplace_back(arrayObj[i]["desc"].asString());
+        cfg.emplace_back(GetStringValue(obj, "matchKey"));
+        cfg.emplace_back(GetStringValue(obj, "desc"));
         if (!name.empty() && !cfg[0].empty()) {
             segStatusCfgMap_.emplace(make_pair(name, cfg));
         }
@@ -86,31 +105,32 @@ void ExtractRule::ParseSegStatusCfg(const Json::Value& json)
 /*
  * parse and store into feature set
  */
-void ExtractRule::ParseRule(const string& eventType, const Json::Value& json, const string& path)
+void ExtractRule::ParseRule(const string& eventType, const cJSON *json, const string& path)
 {
-    for (auto iter = json.begin(); iter != json.end(); iter++) {
-        auto key = iter.key().asString();
+    cJSON *item = nullptr;
+    cJSON_ArrayForEach(item, json) {
+        std::string key = item->string;
         if (key.find("Rule") == std::string::npos) {
             continue;
         }
-        auto value = (*iter);
-        string dirOrFile = value[L2_DIR_OR_FILE].asString();
+        string dirOrFile = GetStringValue(item, L2_DIR_OR_FILE);
         if (dirOrFile.empty()) {
             continue;
         }
-        string subcatalog = value[L2_SUBCATELOG].asString();
-        vector<string> featureIds = SplitFeatureId(value);
+        string subcatalog = GetStringValue(item, L2_SUBCATELOG);
+        vector<string> featureIds = SplitFeatureId(item);
         FeatureSet fsets{};
         for (const auto& featureId : featureIds) {
             if (!IsMatchId(eventType, featureId) || !IsMatchPath(path, dirOrFile, subcatalog, fsets.fullPath)) {
                 continue;
             }
-            fsets.skipStep = value[L2_SKIP].asInt();
-            fsets.segmentType = value[L2_SEGMENT_TYPE].asString();
-            fsets.startSegVec = GetJsonArray(value, L2_SEGMENT_START);
-            fsets.segStackVec = GetJsonArray(value, L2_SEGMENT_STACK);
+            cJSON *skipItem = cJSON_GetObjectItemCaseSensitive(item, L2_SKIP.c_str());
+            fsets.skipStep = cJSON_IsNumber(skipItem) ? static_cast<int>(cJSON_GetNumberValue(skipItem)) : 0;
+            fsets.segmentType = GetStringValue(item, L2_SEGMENT_TYPE);
+            fsets.startSegVec = GetJsonArray(item, L2_SEGMENT_START);
+            fsets.segStackVec = GetJsonArray(item, L2_SEGMENT_STACK);
             // 1st: parse feature
-            ParseRule(value, fsets.rules);
+            ParseRule(item, fsets.rules);
             featureSets_.emplace(pair<string, FeatureSet>(featureId, fsets));
             featureIds_.emplace_back(featureId);
             HIVIEW_LOGI("ParseFile eventId %{public}s, FeatureId %{public}s.", eventType.c_str(), featureId.c_str());
@@ -134,21 +154,23 @@ bool ExtractRule::IsMatchId(const string& eventType, const string& featureId) co
     return false;
 }
 
-std::vector<std::string> ExtractRule::GetJsonArray(const Json::Value& json, const string& param)
+std::vector<std::string> ExtractRule::GetJsonArray(const cJSON *json, const string& param)
 {
-    if (json.isNull() || !json.isMember(param) || !json[param].isArray()) {
+    cJSON* paramItem = cJSON_GetObjectItem(json, param.c_str());
+    if (!json || !paramItem || paramItem->type != cJSON_Array) {
         HIVIEW_LOGE("failed to get json array number %{public}s.\n", param.c_str());
         return {};
     }
 
-    int jsonSize = static_cast<int>(json[param].size());
+    int jsonSize = cJSON_GetArraySize(paramItem);
     if (jsonSize > JSON_ARRAY_THRESHOLD) {
         jsonSize = JSON_ARRAY_THRESHOLD;
         HIVIEW_LOGI("json array has been resized to threshold value.");
     }
     std::vector<std::string> result;
     for (int i = 0; i < jsonSize; i++) {
-        result.push_back(json[param][i].asString());
+        cJSON *item = cJSON_GetArrayItem(paramItem, i);
+        result.push_back(GetStringValueFromItem(item));
     }
     return result;
 }
@@ -198,46 +220,51 @@ bool ExtractRule::IsMatchPath(const string& sourceFile, const string& name, cons
     return false;
 }
 
-vector<string> ExtractRule::SplitFeatureId(const Json::Value& object) const
+vector<string> ExtractRule::SplitFeatureId(const cJSON *object) const
 {
-    if (!object.isMember(L2_FEATUREID)) {
+    cJSON *item = cJSON_GetObjectItem(object, L2_FEATUREID.c_str());
+    if (!item) {
         HIVIEW_LOGE("failed to get json number %{public}s.", L1_SEG_STATUS.c_str());
         return {};
     }
 
     vector<string> result;
-    StringUtil::SplitStr(object[L2_FEATUREID].asString(), ",", result, false, false);
+    StringUtil::SplitStr(GetStringValueFromItem(item), ",", result, false, false);
     return result;
 }
 
-void ExtractRule::ParseRule(const Json::Value& object, list<FeatureRule>& features) const
+void ExtractRule::ParseRule(const cJSON *object, list<FeatureRule>& features) const
 {
-    if (!object.isMember(L2_RULES)) {
+    cJSON *l2Rule = cJSON_GetObjectItem(object, L2_RULES.c_str());
+    if (!l2Rule) {
         return;
     }
-    ParseRuleParam(object[L2_RULES], features, L2_RULES);
+    ParseRuleParam(l2Rule, features, L2_RULES);
 
-    if (!object.isMember(L2_SEGMENT_RULE)) {
+    cJSON *l2SegRule = cJSON_GetObjectItem(object, L2_SEGMENT_RULE.c_str());
+    if (!l2SegRule) {
         return;
     }
-    ParseRuleParam(object[L2_SEGMENT_RULE], features, L2_SEGMENT_RULE);
+    ParseRuleParam(l2SegRule, features, L2_SEGMENT_RULE);
 }
 
-void ExtractRule::ParseRuleParam(const Json::Value& object, list<FeatureRule>& features, const string& type) const
+void ExtractRule::ParseRuleParam(const cJSON *object, list<FeatureRule>& features, const string& type) const
 {
-    int objectSize = static_cast<int>(object.size());
+    int objectSize = cJSON_GetArraySize(object);
     if (objectSize > JSON_ARRAY_THRESHOLD) {
         objectSize = JSON_ARRAY_THRESHOLD;
         HIVIEW_LOGI("json array has been resized to threshold value.");
     }
     for (int i = 0; i < objectSize; i++) {
+        cJSON *item = cJSON_GetArrayItem(object, i);
         FeatureRule command{};
         command.cmdType = type;
-        command.name = object[i][L3_NAMESPACE].asString();
-        command.source = object[i][L3_MATCH_KEY].asString();
-        command.depend = object[i][L3_DEPEND].asString();
-        GetExtractParam(object[i], command.param, L3_PARAM);
-        command.num = object[i][L3_NUM].asInt();
+        command.name = GetStringValue(item, L3_NAMESPACE);
+        command.source = GetStringValue(item, L3_MATCH_KEY);
+        command.depend = GetStringValue(item, L3_DEPEND);
+        GetExtractParam(item, command.param, L3_PARAM);
+        cJSON *num = cJSON_GetObjectItem(item, L3_NUM.c_str());
+        command.num = cJSON_IsNumber(num) ? static_cast<int>(cJSON_GetNumberValue(num)) : 0;
         if (command.num > 0 && type == L2_RULES) {
             HIVIEW_LOGE("rule command can't have num.\n");
             continue;
@@ -246,13 +273,15 @@ void ExtractRule::ParseRuleParam(const Json::Value& object, list<FeatureRule>& f
     }
 }
 
-void ExtractRule::GetExtractParam(const Json::Value& rules,
+void ExtractRule::GetExtractParam(const cJSON *rules,
     std::map<std::string, std::string>& param, const std::string& preKey) const
 {
-    for (auto iter = rules.begin(); iter != rules.end(); iter++) {
-        auto pos = iter.key().asString().find(preKey);
+    cJSON *item = nullptr;
+    cJSON_ArrayForEach(item, rules) {
+        std::string key = item->string;
+        auto pos = key.find(preKey);
         if (pos == 0) {
-            param.emplace(iter.key().asString(), (*iter).asString());
+            param.emplace(key, GetStringValueFromItem(item));
         }
     }
 }
