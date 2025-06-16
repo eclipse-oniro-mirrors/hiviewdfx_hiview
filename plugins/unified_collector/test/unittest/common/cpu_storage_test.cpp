@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 
 #include <memory>
 
-#include "cpu_collector.h"
 #include "cpu_storage.h"
 #include "file_util.h"
 #include "rdb_predicates.h"
@@ -55,6 +54,7 @@ void CpuStorageTest::SetUpTestCase()
 
 void CpuStorageTest::TearDownTestCase()
 {
+    FileUtil::ForceRemoveDirectory(DB_PATH);
 }
 
 void CpuStorageTest::SetUp()
@@ -93,12 +93,12 @@ HWTEST_F(CpuStorageTest, CpuStorageTest002, TestSize.Level3)
 {
     FileUtil::RemoveFile(DB_PATH);
     CpuStorage cpuStorage(DB_PATH);
-    auto cpuCollector = UCollectUtil::CpuCollector::Create();
-    sleep(1);
-    auto cpuCollectionsResult = cpuCollector->CollectProcessCpuStatInfos(true);
-    if (cpuCollectionsResult.retCode == UCollect::UcError::SUCCESS) {
-        cpuStorage.StoreProcessDatas(cpuCollectionsResult.data);
-    }
+    ProcessCpuStatInfo processCpuStatInfo = {
+        .pid = 1,
+        .procName = "init",
+        .cpuLoad = 0.0004  // 0.0004 : not meet store condition
+    };
+    cpuStorage.StoreProcessDatas({processCpuStatInfo});
     cpuStorage.Report();
     RdbPredicates predicates(CPU_COLLECTION_TABLE_NAME);
     std::vector<std::string> columns;
@@ -111,6 +111,11 @@ HWTEST_F(CpuStorageTest, CpuStorageTest002, TestSize.Level3)
     CpuStorageDbCallback callback;
     auto dbStore = RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
     std::shared_ptr<ResultSet> allVersions = dbStore->Query(predicates, columns);
+    ASSERT_NE(allVersions, nullptr);
+    ASSERT_NE(allVersions->GoToFirstRow(), E_OK);
+    processCpuStatInfo.cpuLoad = 1;
+    cpuStorage.StoreProcessDatas({processCpuStatInfo});
+    allVersions = dbStore->Query(predicates, columns);
     ASSERT_NE(allVersions, nullptr);
     ASSERT_EQ(allVersions->GoToFirstRow(), E_OK);
 }
