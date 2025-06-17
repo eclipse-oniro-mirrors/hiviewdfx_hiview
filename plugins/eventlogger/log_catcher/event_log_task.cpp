@@ -473,20 +473,6 @@ void EventLogTask::InputHilogCapture()
 #ifdef HITRACE_CATCHER_ENABLE
 void EventLogTask::HitraceCapture(bool isBetaVersion)
 {
-    bool grayscale = false;
-    std::string bundleName = "";
-    if (!isBetaVersion) {
-        if (event_->eventName_ != "THREAD_BLOCK_6S") {
-            return;
-        }
-        grayscale = true;
-        bundleName = event_->GetEventValue("PACKAGE_NAME");
-        if (bundleName.empty()) {
-            bundleName = event_->GetEventValue("PROCESS_NAME");
-        }
-        event_->SetEventValue("TRACE_NAME", "dump grayscale trace failed!");
-    }
-
     std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
     std::string timeStamp = event_->GetEventValue("MSG");
     std::smatch match;
@@ -499,11 +485,26 @@ void EventLogTask::HitraceCapture(bool isBetaVersion)
         faultTime = currentTime - DELAY_OUT_OF_TIME;
     }
 
+    bool grayscale = false;
+    std::string bundleName = "";
+    if (!isBetaVersion) {
+        if (event_->eventName_ == "THREAD_BLOCK_6S") {
+            grayscale = true;
+            bundleName = event_->GetEventValue("PACKAGE_NAME");
+            if (bundleName.empty()) {
+                bundleName = event_->GetEventValue("PROCESS_NAME");
+            }
+        }
+    }
     std::pair<std::string, std::vector<std::string>> result =
         LogCatcherUtils::FreezeDumpTrace(faultTime, grayscale, bundleName);
-    if (grayscale && !result.first.empty() && !result.second.empty()) {
-        event_->SetEventValue("TELEMETRY_ID", result.first);
+    event_->SetEventValue("TELEMETRY_ID", result.first);
+    if (!result.second.empty()) {
         event_->SetEventValue("TRACE_NAME", result.second[0]);
+    } else if (isBetaVersion) {
+        event_->SetEventValue("TRACE_NAME", "dump trace failed in beta!");
+    } else if (!result.first.empty()) {
+        event_->SetEventValue("TRACE_NAME", "dump trace failed with grayscale!");
     }
 }
 #endif // HITRACE_CATCHER_ENABLE
