@@ -401,9 +401,9 @@ void EventReporter::ReportEventComplete(DataBase& data)
     const auto& animationEndLantency = (data.endVsyncTime - data.beginVsyncTime) / NS_TO_MS;
     const auto& e2eLatency = animationStartLantency + animationEndLantency;
     const auto& note = data.baseInfo.note;
-    const auto& extend = info.baseInfo.subHealthInfo.info;
-    const auto& reason = info.baseInfo.subHealthInfo.subHealthReason;
-    const auto& subHealthTime = info.baseInfo.subHealthInfo.subHealthTime;
+    const auto& extend = data.baseInfo.subHealthInfo.info;
+    const auto& reason = data.baseInfo.subHealthInfo.subHealthReason;
+    const auto& subHealthTime = data.baseInfo.subHealthInfo.subHealthTime;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
