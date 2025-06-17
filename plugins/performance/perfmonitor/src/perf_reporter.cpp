@@ -424,7 +424,7 @@ void EventReporter::ReportEventComplete(DataBase& data)
         .Param(EVENT_KEY_NOTE, note)
         .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
         .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
-        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<uint64_t>(subHealthTime))
+        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(subHealthTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
@@ -566,7 +566,7 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Param(EVENT_KEY_SKIPPED_FRAME_TIME, static_cast<uint64_t>(skippedFrameTime))
         .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
         .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
-        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<uint64_t>(subHealthTime))
+        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(subHealthTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
