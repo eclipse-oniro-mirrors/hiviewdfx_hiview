@@ -66,10 +66,13 @@ public:
     void SetStartAppTime(int64_t val);
     void SetIsExceptAnimator(bool val);
     void SetIsResponseExclusion(bool val);
+
+    void SetSubHealthInfo(const SubHealthInfo& info);
+    void FlushSubHealthInfo();
 private:
     void NotifyRsJankStatsBegin();
     void NotifyRsJankStatsEnd(int64_t endTime);
-private:
+
     AceAppInfo appInfo;
     BaseInfo baseInfo;
     std::string currentSceneId {""};
@@ -80,6 +83,9 @@ private:
     bool isExclusionWindow {false};
     bool isExceptAnimator {false};
     int64_t startAppTime {0};
+
+    SubHealthInfo subHealthInfo;
+    bool isSubHealthScene = false;
 };
 
 }

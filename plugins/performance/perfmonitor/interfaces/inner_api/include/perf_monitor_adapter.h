@@ -45,6 +45,7 @@ public:
     void StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note);
     void EndCommercial(const std::string& sceneId, bool isRsRender);
     void SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
+    void SetSubHealthInfo(const std::string& info, const std::string& reason, const int32_t duration);
 
     void ReportJankFrameApp(double jank, int32_t jankThreshold);
     void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,

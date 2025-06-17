@@ -18,6 +18,7 @@
 #include "jank_frame_monitor.h"
 #include "perf_reporter.h"
 #include "perf_trace.h"
+#include "perf_utils.h"
 #include "scene_monitor.h"
 #include "white_block_monitor.h"
 
@@ -86,6 +87,7 @@ void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
             SceneMonitor::GetInstance().SetIsExceptAnimator(false);
             SceneMonitor::GetInstance().SetVsyncLazyMode();
         }
+        SceneMonitor::GetInstance().FlushSubHealthInfo();
         SceneMonitor::GetInstance().RecordBaseInfo(record);
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
         record->Report(sceneId, mVsyncTime, isRsRender);
@@ -107,6 +109,7 @@ void AnimatorMonitor::EndCommercial(const std::string& sceneId, bool isRsRender)
         if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
             SceneMonitor::GetInstance().SetIsExceptAnimator(false);
         }
+        SceneMonitor::GetInstance().FlushSubHealthInfo();
         SceneMonitor::GetInstance().RecordBaseInfo(record);
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
         record->Report(sceneId, mVsyncTime, isRsRender);
@@ -136,6 +139,9 @@ void AnimatorMonitor::SetFrameTime(int64_t vsyncTime, int64_t duration, double j
         }
         it++;
     }
+    if (IsSubHealthScene()) {
+        SceneMonitor::GetInstance().FlushSubHealthInfo();
+    }
     JankFrameMonitor::GetInstance().ProcessJank(jank, windowName);
     JankFrameMonitor::GetInstance().JankFrameStatsRecord(jank);
 }
@@ -147,6 +153,17 @@ SceneRecord* AnimatorMonitor::GetRecord(const std::string& sceneId)
         return iter->second;
     }
     return nullptr;
+}
+
+void AnimatorMonitor::SetSubHealthInfo(const SubHealthInfo& info)
+{
+    subHealthRecordTime = GetCurrentSystimeMs();
+    SceneMonitor::GetInstance().SetSubHealthInfo(info);
+}
+
+bool AnimatorMonitor::IsSubHealthScene()
+{
+    return (GetCurrentSystimeMs() - subHealthRecordTime < VAILD_JANK_SUB_HEALTH_INTERVAL);
 }
 
 void AnimatorMonitor::RemoveRecord(const std::string& sceneId)

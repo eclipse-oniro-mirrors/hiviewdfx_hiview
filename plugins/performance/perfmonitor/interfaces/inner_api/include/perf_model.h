@@ -53,6 +53,12 @@ struct AceAppInfo {
     std::string abilityName {""};
 };
 
+struct SubHealthInfo {
+    std::string info {""};
+    std::string subHealthReason {""};
+    int32_t subHealthTime {0};
+};
+
 struct BaseInfo {
     int32_t pid {-1};
     int32_t versionCode {0};
@@ -63,6 +69,7 @@ struct BaseInfo {
     std::string pageUrl {""};
     std::string pageName {""};
     std::string note {""};
+    SubHealthInfo subHealthInfo;
 };
 
 struct DataBase {

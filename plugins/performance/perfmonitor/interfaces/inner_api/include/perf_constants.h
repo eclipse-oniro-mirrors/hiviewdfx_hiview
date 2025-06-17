@@ -49,6 +49,8 @@ constexpr uint32_t JANK_FRAME_120_LIMIT = 6;
 constexpr uint32_t JANK_FRAME_180_LIMIT = 7;
 constexpr uint32_t JANK_STATS_SIZE = 8;
 
+constexpr int32_t VAILD_JANK_SUB_HEALTH_INTERVAL = 100;
+
 class PerfConstants {
 public:
     // start app from launcher icon sceneid
