@@ -69,6 +69,9 @@ namespace {
     constexpr char EVENT_KEY_REAL_SKIPPED_FRAME_TIME[] = "REAL_SKIPPED_FRAME_TIME";
     constexpr char EVENT_KEY_FILTER_TYPE[] = "FILTER_TYPE";
     constexpr char EVENT_KEY_STARTTIME[] = "STARTTIME";
+    constexpr char EVENT_KEY_SUBHEALTH_INFO[] = "SUB_HEALTH_INFO";
+    constexpr char EVENT_KEY_SUBHEALTH_REASON[] = "SUB_HEALTH_REASON";
+    constexpr char EVENT_KEY_SUBHEALTH_TIME[] = "SUB_HEALTH_TIME";
     constexpr char STATISTIC_DURATION[] = "DURATION";
     constexpr char KEY_SCROLL_START_TIME[] = "SCROLL_START_TIME";
     constexpr char KEY_SCROLL_END_TIME[] = "SCROLL_END_TIME";
@@ -398,6 +401,9 @@ void EventReporter::ReportEventComplete(DataBase& data)
     const auto& animationEndLantency = (data.endVsyncTime - data.beginVsyncTime) / NS_TO_MS;
     const auto& e2eLatency = animationStartLantency + animationEndLantency;
     const auto& note = data.baseInfo.note;
+    const auto& extend = info.baseInfo.subHealthInfo.info;
+    const auto& reason = info.baseInfo.subHealthInfo.subHealthReason;
+    const auto& subHealthTime = info.baseInfo.subHealthInfo.subHealthTime;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
@@ -416,6 +422,9 @@ void EventReporter::ReportEventComplete(DataBase& data)
         .Param(EVENT_KEY_ANIMATION_END_LATENCY, static_cast<uint64_t>(animationEndLantency))
         .Param(EVENT_KEY_E2E_LATENCY, static_cast<uint64_t>(e2eLatency))
         .Param(EVENT_KEY_NOTE, note)
+        .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
+        .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
+        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<uint64_t>(subHealthTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
@@ -428,49 +437,41 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
 {
     std::string eventName = "INTERACTION_APP_JANK";
     const auto& uniqueId = data.beginVsyncTime / NS_TO_MS;
-    const auto& sceneId = data.sceneId;
-    const auto& bundleName = data.baseInfo.bundleName;
-    const auto& processName = data.baseInfo.processName;
-    const auto& abilityName = data.baseInfo.abilityName;
     auto startTime = data.beginVsyncTime;
     ConvertRealtimeToSystime(data.beginVsyncTime, startTime);
     const auto& durition = (data.endVsyncTime - data.beginVsyncTime) / NS_TO_MS;
-    const auto& totalFrames = data.totalFrames;
-    const auto& totalMissedFrames = data.totalMissed;
     const auto& maxFrameTime = data.maxFrameTime / NS_TO_MS;
-    const auto& maxFrameTimeSinceStart = data.maxFrameTimeSinceStart;
-    const auto& maxHitchTime = data.maxHitchTime;
-    const auto& maxHitchTimeSinceStart = data.maxHitchTimeSinceStart;
-    const auto& maxSeqMissedFrames = data.maxSuccessiveFrames;
-    const auto& note = data.baseInfo.note;
-    const auto& isDisplayAnimator = data.isDisplayAnimator;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
-        .Param(EVENT_KEY_UNIQUE_ID, static_cast<int32_t>(uniqueId)).Param(EVENT_KEY_SCENE_ID, sceneId)
-        .Param(EVENT_KEY_PROCESS_NAME, processName).Param(EVENT_KEY_MODULE_NAME, bundleName)
-        .Param(EVENT_KEY_ABILITY_NAME, abilityName).Param(EVENT_KEY_PAGE_URL, data.baseInfo.pageUrl)
+        .Param(EVENT_KEY_UNIQUE_ID, static_cast<int32_t>(uniqueId)).Param(EVENT_KEY_SCENE_ID, data.sceneId)
+        .Param(EVENT_KEY_PROCESS_NAME, data.baseInfo.processName)
+        .Param(EVENT_KEY_MODULE_NAME, data.baseInfo.bundleName)
+        .Param(EVENT_KEY_ABILITY_NAME, data.baseInfo.abilityName).Param(EVENT_KEY_PAGE_URL, data.baseInfo.pageUrl)
         .Param(EVENT_KEY_VERSION_CODE, data.baseInfo.versionCode)
         .Param(EVENT_KEY_VERSION_NAME, data.baseInfo.versionName)
         .Param(EVENT_KEY_PAGE_NAME, data.baseInfo.pageName)
         .Param(EVENT_KEY_STARTTIME, static_cast<uint64_t>(startTime))
         .Param(EVENT_KEY_DURITION, static_cast<uint64_t>(durition))
-        .Param(EVENT_KEY_TOTAL_FRAMES, totalFrames).Param(EVENT_KEY_TOTAL_MISSED_FRAMES, totalMissedFrames)
+        .Param(EVENT_KEY_TOTAL_FRAMES, data.totalFrames).Param(EVENT_KEY_TOTAL_MISSED_FRAMES, data.totalMissed)
         .Param(EVENT_KEY_MAX_FRAMETIME, static_cast<uint64_t>(maxFrameTime))
-        .Param(EVENT_KEY_MAX_FRAMETIME_SINCE_START, static_cast<uint64_t>(maxFrameTimeSinceStart))
-        .Param(EVENT_KEY_MAX_HITCH_TIME, static_cast<uint64_t>(maxHitchTime))
-        .Param(EVENT_KEY_MAX_HITCH_TIME_SINCE_START, static_cast<uint64_t>(maxHitchTimeSinceStart))
-        .Param(EVENT_KEY_MAX_SEQ_MISSED_FRAMES, maxSeqMissedFrames)
-        .Param(EVENT_KEY_NOTE, note).Param(EVENT_KEY_DISPLAY_ANIMATOR, isDisplayAnimator)
+        .Param(EVENT_KEY_MAX_FRAMETIME_SINCE_START, static_cast<uint64_t>(data.maxFrameTimeSinceStart))
+        .Param(EVENT_KEY_MAX_HITCH_TIME, static_cast<uint64_t>(data.maxHitchTime))
+        .Param(EVENT_KEY_MAX_HITCH_TIME_SINCE_START, static_cast<uint64_t>(data.maxHitchTimeSinceStart))
+        .Param(EVENT_KEY_MAX_SEQ_MISSED_FRAMES, data.maxSuccessiveFrames)
+        .Param(EVENT_KEY_NOTE, data.baseInfo.note).Param(EVENT_KEY_DISPLAY_ANIMATOR, data.isDisplayAnimator)
+        .Param(EVENT_KEY_SUBHEALTH_INFO, data.baseInfo.subHealthInfo.info)
+        .Param(EVENT_KEY_SUBHEALTH_REASON, data.baseInfo.subHealthInfo.subHealthReason)
+        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(data.baseInfo.subHealthInfo.subHealthTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
     XPERF_TRACE_SCOPED("INTERACTION_APP_JANK: sceneId =%s, startTime=%lld(ms),"
-        "maxFrameTime=%lld(ms), pageName=%s", sceneId.c_str(), static_cast<long long>(startTime),
+        "maxFrameTime=%lld(ms), pageName=%s", data.sceneId.c_str(), static_cast<long long>(startTime),
         static_cast<long long>(maxFrameTime), data.baseInfo.pageName.c_str());
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
-    if (isDisplayAnimator && maxFrameTime > MAX_JANK_FRAME_TIME) {
-        ReportAppFrameDropToRss(true, bundleName, maxFrameTime);
+    if (data.isDisplayAnimator && maxFrameTime > MAX_JANK_FRAME_TIME) {
+        ReportAppFrameDropToRss(true, data.baseInfo.bundleName, maxFrameTime);
     }
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
 }
@@ -546,6 +547,9 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
     const auto& windowName = info.windowName;
     const auto& filterType = info.filterType;
     const auto& sceneId = info.sceneId;
+    const auto& extend = info.baseInfo.subHealthInfo.info;
+    const auto& reason = info.baseInfo.subHealthInfo.subHealthReason;
+    const auto& subHealthTime = info.baseInfo.subHealthInfo.subHealthTime;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
@@ -560,6 +564,9 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Param(EVENT_KEY_SCENE_ID, sceneId)
         .Param(EVENT_KEY_REAL_SKIPPED_FRAME_TIME, static_cast<uint64_t>(realSkippedFrameTime))
         .Param(EVENT_KEY_SKIPPED_FRAME_TIME, static_cast<uint64_t>(skippedFrameTime))
+        .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
+        .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
+        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<uint64_t>(subHealthTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);

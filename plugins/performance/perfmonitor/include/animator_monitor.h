@@ -32,15 +32,18 @@ public:
     void StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note);
     void EndCommercial(const std::string& sceneId, bool isRsRender);
     void SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
+    void SetSubHealthInfo(const SubHealthInfo& info);
 
     bool RecordsIsEmpty();
+
 private:
     SceneRecord* GetRecord(const std::string& sceneId);
     void RemoveRecord(const std::string& sceneId);
+    bool IsSubHealthScene();
 
-private:
     mutable std::mutex mMutex;
     std::map<std::string, SceneRecord*> mRecords;
+    int64_t subHealthRecordTime = 0;
 };
 
 }

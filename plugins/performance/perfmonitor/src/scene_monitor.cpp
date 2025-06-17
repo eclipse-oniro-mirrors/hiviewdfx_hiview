@@ -362,5 +362,19 @@ void SceneMonitor::SetIsResponseExclusion(bool val)
     return;
 }
 
+void SceneMonitor::SetSubHealthInfo(const SubHealthInfo& info)
+{
+    subHealthInfo = info;
+    isSubHealthScene = true;
+}
+
+void SceneMonitor::FlushSubHealthInfo()
+{
+    if (isSubHealthScene) {
+        baseInfo.subHealthInfo = subHealthInfo;
+        isSubHealthScene = false;
+    }
+}
+
 }
 }
