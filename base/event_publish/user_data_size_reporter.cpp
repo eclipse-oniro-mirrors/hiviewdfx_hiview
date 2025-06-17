@@ -42,7 +42,7 @@ std::vector<std::string> GetReportPath(int32_t uid, const std::string& pathHolde
 {
     std::vector<std::string> rtn;
     MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "hiappevent"));
-    if (eventName == HiAppEvent::EVENT_MAIN_THREAD_JANK) {
+    if (eventName == HiAppEvent::EVENT_MAIN_THREAD_JANK || eventName == HiAppEvent::EVENT_APP_FREEZE) {
         MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "watchdog"));
     }
     if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {

@@ -100,6 +100,8 @@ namespace {
     static constexpr const char* const TASK_TIMEOUT = "TASK_TIMEOUT";
     static constexpr const char* const SENARIO = "SENARIO";
 
+    static constexpr const char *const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
+    static constexpr const char *const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -342,14 +344,15 @@ void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
         return;
     }
     std::string stackInfo;
-    if (tokens.size() > 1) {
-        stackInfo = GetAppFreezeFile(tokens[1]);
-    }
-    if (stackInfo.empty()) {
-        HIVIEW_LOGW("stack content is empty.");
-    }
     std::string bundleName = event->GetEventValue("PACKAGE_NAME").empty() ?
         event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
+    if (tokens.size() > 1) {
+        std::string filePath = APPFREEZE_LOG_PREFIX + bundleName + APPFREEZE_LOG_SUFFIX + tokens[1];
+        stackInfo = GetAppFreezeFile(filePath);
+        if (stackInfo.empty()) {
+            HIVIEW_LOGW("stack content is empty.");
+        }
+    }
     long uid = event->GetEventIntValue("UID") ? event->GetEventIntValue("UID") : event->GetUid();
     std::string freezeFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "freeze-cpuinfo-ext-" +
         bundleName + "-" + std::to_string(uid) + "-" + TimeUtil::GetFormattedTimestampEndWithMilli();
