@@ -287,7 +287,6 @@ ohos_source_set("ucollection_source") {
     deps += [ "trace_manager:libtrace_manager" ]
     external_deps += [
       "cJSON:cjson",
-      "jsoncpp:jsoncpp",
       "zlib:libz",
     ]
   } else {

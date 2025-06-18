@@ -58,7 +58,6 @@ ohos_source_set("event_validator") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
-    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
     "zlib:shared_libz",
   ]

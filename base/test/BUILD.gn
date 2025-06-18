@@ -158,7 +158,6 @@ ohos_unittest("DispatchRuleParserTest") {
     "cJSON:cjson",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
   ]
 }
 
@@ -177,7 +176,6 @@ ohos_unittest("EventJsonParserTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
   ]
 
   resource_config_file = "$hiview_base/test/resource/ohos_test.xml"

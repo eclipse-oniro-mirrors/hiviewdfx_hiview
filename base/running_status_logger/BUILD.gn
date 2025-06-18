@@ -56,6 +56,5 @@ ohos_source_set("running_status_logger_source") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
   ]
 }

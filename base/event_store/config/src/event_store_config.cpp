@@ -15,8 +15,9 @@
 #include "event_store_config.h"
 
 #include <fstream>
+#include <map>
 
-#include "json/json.h"
+#include "cjson_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,10 +33,6 @@ const std::map<std::string, int> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
 
-uint32_t ParseUint32(const Json::Value& root, const std::string& key)
-{
-    return (root.isMember(key) && root[key].isUInt()) ? root[key].asUInt() : 0;
-}
 }
 EventStoreConfig::EventStoreConfig()
 {
@@ -44,34 +41,24 @@ EventStoreConfig::EventStoreConfig()
 
 void EventStoreConfig::Init()
 {
-    Json::Value root;
-    std::ifstream fin(CONFIG_FILE_PATH, std::ifstream::binary);
-    if (!fin.is_open()) {
-        return;
-    }
-    Json::CharReaderBuilder jsonRBuilder;
-    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
-    JSONCPP_STRING errs;
-    if (!parseFromStream(jsonRBuilder, fin, &root, &errs)) {
+    cJSON* root = CJsonUtil::ParseJsonRoot(CONFIG_FILE_PATH);
+    if (!cJSON_IsObject(root)) {
         return;
     }
 
-    std::vector<std::string> members = root.getMemberNames();
-    for (auto iter = members.begin(); iter != members.end(); ++iter) {
-        if (EVENT_TYPE_MAP.find(*iter) == EVENT_TYPE_MAP.end()) {
-            continue;
-        }
-        if (auto node = root[*iter]; node.type() == Json::objectValue) {
-            StoreConfig config = {
-                .storeDay = ParseUint32(node, KEY_STORE_DAY),
-                .pageSize = ParseUint32(node, KEY_PAGE_SIZE),
-                .maxFileSize = ParseUint32(node, KEY_MAX_FILE_SIZE),
-                .maxFileNum = ParseUint32(node, KEY_MAX_FILE_NUM),
-                .maxSize = ParseUint32(node, KEY_MAX_SIZE),
-            };
-            configMap_.emplace(EVENT_TYPE_MAP.at(*iter), config);
+    cJSON* subJson = nullptr;
+    cJSON_ArrayForEach(subJson, root) {
+        if (cJSON_IsObject(subJson) && EVENT_TYPE_MAP.find(subJson->string) != EVENT_TYPE_MAP.end()) {
+            StoreConfig config;
+            CJsonUtil::GetUintMemberValue(subJson, KEY_STORE_DAY, config.storeDay);
+            CJsonUtil::GetUintMemberValue(subJson, KEY_PAGE_SIZE, config.pageSize);
+            CJsonUtil::GetUintMemberValue(subJson, KEY_MAX_FILE_SIZE, config.maxFileSize);
+            CJsonUtil::GetUintMemberValue(subJson, KEY_MAX_FILE_NUM, config.maxFileNum);
+            CJsonUtil::GetUintMemberValue(subJson, KEY_MAX_SIZE, config.maxSize);
+            configMap_.emplace(EVENT_TYPE_MAP.at(subJson->string), config);
         }
     }
+    cJSON_Delete(root);
 }
 
 bool EventStoreConfig::Contain(int eventType)

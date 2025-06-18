@@ -74,7 +74,6 @@ ohos_source_set("hiview_core") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
   ]
 }
 
@@ -107,7 +106,6 @@ ohos_source_set("hiview_core_for_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
   ]
 }
 

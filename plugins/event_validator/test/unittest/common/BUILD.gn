@@ -74,7 +74,6 @@ ohos_unittest("EventValidatorTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
   ]
 }
