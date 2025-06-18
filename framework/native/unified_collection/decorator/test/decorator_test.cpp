@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,7 +59,7 @@ const std::vector<std::regex> REGEXS = {
     // eg: OTHER 0 0 1 127609 127609 127609
     std::regex("\\w{1,}\\s\\d+\\s\\d+\\s\\d+\\s\\d+\\s\\d+\\s\\d+"),
     std::regex("Hitrace Traffic statistics:"),
-    std::regex("Caller TraceFile TimeSpent\\(us\\) RawSize\\(b\\) UsedSize\\(b\\) TimeStamp\\(us\\)"),
+    std::regex("Caller TraceFile RawSize\\(b\\) UsedSize\\(b\\) TimeSpent\\(us\\) TimeStamp\\(us\\)"),
     // eg: OTHER /data/Other_trace_2024051200504@14036-90732232.sys 176129 25151 127609 1715446244066654
     std::regex("\\w{1,}\\s.{1,}\\.(sys|zip)\\s\\d+\\s\\d+\\s\\d+\\s\\d{16}"),
     std::regex("Hitrace Traffic Compress Ratio:"),
