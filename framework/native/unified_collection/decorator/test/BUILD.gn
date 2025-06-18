@@ -46,9 +46,49 @@ ohos_unittest("DecoratorUnitTest") {
     "samgr:samgr_proxy",
   ]
 
-  cflags = []
+  defines = []
+  if (hiview_unified_collector_cpu_enable) {
+    defines += [ "UNIFIED_COLLECTOR_CPU_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_gpu_enable) {
+    defines += [ "UNIFIED_COLLECTOR_GPU_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_ebpf_enable) {
+    defines += [ "UNIFIED_COLLECTOR_EBPF_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_hilog_enable) {
+    defines += [ "UNIFIED_COLLECTOR_HILOG_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_io_enable) {
+    defines += [ "UNIFIED_COLLECTOR_IO_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_memory_enable) {
+    defines += [ "UNIFIED_COLLECTOR_MEMORY_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_network_enable) {
+    defines += [ "UNIFIED_COLLECTOR_NETWORK_ENABLE" ]
+  }
+
+  if (has_hiperf && hiview_unified_collector_perf_enable) {
+    defines += [ "HAS_HIPERF" ]
+  }
+
+  if (hiview_unified_collector_trace_enable) {
+    defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
+  }
+
+  if (hiview_unified_collector_wm_enable) {
+    defines += [ "UNIFIED_COLLECTOR_WM_ENABLE" ]
+  }
+
   if (has_hiprofiler && hiview_unified_collector_mem_profiler_enable) {
-    cflags += [ "-DHAS_HIPROFILER" ]
+    defines += [ "HAS_HIPROFILER" ]
     external_deps += [ "hiprofiler:libnative_daemon_client" ]
   }
 }
