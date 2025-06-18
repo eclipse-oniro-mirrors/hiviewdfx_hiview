@@ -143,7 +143,7 @@ static bool ReadMemFromAILib(AIProcessMem memInfos[], uint32_t len, int& realSiz
     }
     int ret = aiInfra->QueryAllUserAllocatedMemInfo(aiInfra, memInfos, &len, &realSize);
     IHiaiInfraReleaseFunc aiInfraRelease = reinterpret_cast<IHiaiInfraReleaseFunc>(dlsym(handle, "IHiaiInfraRelease"));
-    if (!aiInfraRelease) {
+    if (aiInfraRelease) {
         aiInfraRelease(aiInfra, true);
     }
     dlclose(handle);
