@@ -177,6 +177,9 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
     }
 
     std::istringstream issStack(processStack);
+    if (issStack.fail()) {
+        return;
+    }
     std::string regTidString = "^Tid:" + std::to_string(tid) + ", Name:(.{0,32})$";
     std::regex regTid(regTidString);
     std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
@@ -208,8 +211,13 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
 
 int DumpStackFfrt(int fd, const std::string& pid)
 {
-    std::list<SystemProcessInfo> systemProcessInfos;
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (sam == nullptr) {
+        HIVIEW_LOGE("dump stack ffrt , get system ability manager failed!");
+        return 0;
+    }
+
+    std::list<SystemProcessInfo> systemProcessInfos;
     sam->GetRunningSystemProcess(systemProcessInfos);
     std::string serviceName = std::any_of(systemProcessInfos.begin(), systemProcessInfos.end(),
         [pid](auto& systemProcessInfo) { return pid == std::to_string(systemProcessInfo.pid); }) ?
@@ -287,29 +295,51 @@ void HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs)
 
 void FreezeFilterTraceOn(const std::string& bundleName)
 {
-    std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
-    if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
-        return;
+    {
+        std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
+        if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
+            return;
+        }
     }
-    lock.unlock();
 
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
     UCollect::TeleModule caller = UCollect::TeleModule::RELIABILITY;
     long postTime = 20 * 1000;
     auto result = collector->FilterTraceOn(caller, postTime);
     if (result.retCode != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGE("FreezeFilterTraceOn failed, telemetryId_:%{public}s, traceAppFilter_:%{public}s, code:%{public}d",
-            telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
+        HIVIEW_LOGE("FreezeFilterTraceOn failed, telemetryId_:%{public}s, traceAppFilter_:%{public}s, "
+            "code:%{public}d", telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
+    } else {
+        HIVIEW_LOGW("FreezeFilterTraceOn success, telemetryId_:%{public}s, traceAppFilter_:%{public}s, "
+            "code:%{public}d", telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
     }
-    HIVIEW_LOGW("FreezeFilterTraceOn success, telemetryId_:%{public}s, traceAppFilter_:%{public}s, code:%{public}d",
-        telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
 }
 
 std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t faultTime, bool grayscale,
     const std::string& bundleName)
 {
     std::pair<std::string, std::vector<std::string>> result;
-    if (grayscale) {
+    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
+    if (collector == nullptr) {
+        HIVIEW_LOGE("get hitrace failed, create trace collector failed!");
+        return result;
+    }
+
+    UCollect::TraceCaller traceCaller = UCollect::TraceCaller::RELIABILITY;
+    HIVIEW_LOGW("get hitrace start with duration, faultTime:%{public}" PRIu64, faultTime);
+    CollectResult<std::vector<std::string>> collectResult =
+        collector->DumpTraceWithDuration(traceCaller, MAX_DUMP_TRACE_LIMIT, faultTime);
+    if (collectResult.retCode == UCollect::UcError::SUCCESS) {
+        HIVIEW_LOGW("get hitrace end with duration, faultTime:%{public}" PRIu64, faultTime);
+        result.second = collectResult.data;
+        return result;
+    }
+    HIVIEW_LOGE("get hitrace failed with duration, faultTime:%{public}" PRIu64 ", error code:%{public}d",
+        faultTime, collectResult.retCode);
+
+    if (!grayscale) {
+        return result;
+    } else {
         std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
         if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
             return result;
@@ -317,27 +347,15 @@ std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t faultT
         result.first = telemetryId_;
     }
 
-    CollectResult<std::vector<std::string>> collectResult;
-    std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
-    if (grayscale) {
-        UCollect::TeleModule teleModule = UCollect::TeleModule::RELIABILITY;
-        HIVIEW_LOGW("get hitrace start with grayscale, faultTime:%{public}" PRIu64, faultTime);
-        collectResult = collector->DumpTraceWithFilter(teleModule, MAX_DUMP_TRACE_LIMIT, faultTime);
-    } else {
-        UCollect::TraceCaller traceCaller = UCollect::TraceCaller::RELIABILITY;
-        HIVIEW_LOGI("get hitrace start in beta version, faultTime:%{public}" PRIu64, faultTime);
-        collectResult = collector->DumpTraceWithDuration(traceCaller, MAX_DUMP_TRACE_LIMIT, faultTime);
-    }
-
+    UCollect::TeleModule teleModule = UCollect::TeleModule::RELIABILITY;
+    HIVIEW_LOGW("get hitrace start with filter, faultTime:%{public}" PRIu64, faultTime);
+    collectResult = collector->DumpTraceWithFilter(teleModule, MAX_DUMP_TRACE_LIMIT, faultTime);
     if (collectResult.retCode == UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("get hitrace end, faultTime:%{public}" PRIu64, faultTime);
-        if (grayscale) {
-            result.second = collectResult.data;
-        }
+        HIVIEW_LOGW("get hitrace end with filter, faultTime:%{public}" PRIu64, faultTime);
+        result.second = collectResult.data;
     } else {
-        result.first = "";
-        HIVIEW_LOGE("get hitrace failed, error code:%{public}d, faultTime:%{public}" PRIu64,
-            collectResult.retCode, faultTime);
+        HIVIEW_LOGE("get hitrace failed with filter, faultTime:%{public}" PRIu64 ", error code:%{public}d",
+            faultTime, collectResult.retCode);
     }
     return result;
 }
