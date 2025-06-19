@@ -28,6 +28,7 @@ ohos_source_set("bbox_detector") {
   subsystem_name = "hiviewdfx"
   sources = [
     "bbox_detector_plugin.cpp",
+    "bbox_event_recorder.cpp",
     "hisysevent_util.cpp",
     "panic_report_recovery.cpp",
   ]
@@ -66,6 +67,7 @@ ohos_source_set("bbox_detector_with_cfi") {
   subsystem_name = "hiviewdfx"
   sources = [
     "bbox_detector_plugin.cpp",
+    "bbox_event_recorder.cpp",
     "hisysevent_util.cpp",
     "panic_report_recovery.cpp",
   ]

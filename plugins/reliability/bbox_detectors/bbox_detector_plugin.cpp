@@ -72,6 +72,7 @@ void BBoxDetectorPlugin::OnLoad()
 
     eventListener_ = std::make_shared<BBoxListener>(*this);
     context->RegisterUnorderedEventListener(eventListener_);
+    eventRecorder_ = std::make_shared<BboxEventRecorder>();
 }
 
 void BBoxDetectorPlugin::OnUnload()
@@ -144,7 +145,10 @@ void BBoxDetectorPlugin::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent)
     sysEvent->SetEventValue("FINGERPRINT", Tbox::CalcFingerPrint(event + module + eventInfos["FIRST_FRAME"] +
         eventInfos["SECOND_FRAME"] + eventInfos["LAST_FRAME"], 0, FP_BUFFER));
     sysEvent->SetEventValue("LOG_PATH", dynamicPaths);
-    HIVIEW_LOGI("HandleBBoxEvent event: %{public}s is success ", name.c_str());
+    if (eventRecorder_ != nullptr) {
+        eventRecorder_->AddEventToMaps(name, happenTime, dynamicPaths);
+    }
+    HIVIEW_LOGI("HandleBBoxEvent event: %{public}s is success. happenTime %{public}" PRIu64, name.c_str(), happenTime);
 }
 
 void BBoxDetectorPlugin::StartBootScan()
@@ -168,21 +172,20 @@ void BBoxDetectorPlugin::StartBootScan()
             if (name.find(":") != std::string::npos) {
                 name = StringUtil::GetRleftSubstr(name, ":");
             }
-            auto time_now = static_cast<int64_t>(TimeUtil::GetMilliseconds());
-            auto time_event = hisiHistoryPath_ ?
-                static_cast<int64_t>(TimeUtil::StrToTimeStamp(StringUtil::GetMidSubstr(line, "time [", "-"),
-                "%Y%m%d%H%M%S")) * MILLSECONDS :
-                static_cast<int64_t>(TimeUtil::StrToTimeStamp(StringUtil::GetMidSubstr(line, "time[", "-"),
-                "%Y%m%d%H%M%S")) * MILLSECONDS;
-            if (abs(time_now - abs(time_event)) > ONE_DAY  ||
-                HisysEventUtil::IsEventProcessed(name, "LOG_PATH", historyMap["dynamicPaths"])) {
+            auto timeNow = TimeUtil::GetSeconds();
+            auto happenTime = GetHappenTime(line);
+            if (abs(timeNow - static_cast<int64_t>(happenTime)) > ONE_DAY  ||
+                HisysEventUtil::IsEventProcessed(name, "LOG_PATH", historyMap["dynamicPaths"]) ||
+                (eventRecorder_ != nullptr &&
+                 eventRecorder_->IsExistEvent(name, happenTime, historyMap["dynamicPaths"]))) {
+                HIVIEW_LOGI("Skip (%{public}s:%{public}" PRIu64 ")", name.c_str(), happenTime);
                 continue;
             }
-            auto happenTime = GetHappenTime(line);
             int res = CheckAndHiSysEventWrite(name, historyMap, happenTime);
             HIVIEW_LOGI("BBox write history line is %{public}s write result =  %{public}d", line.c_str(), res);
         }
     }
+    eventRecorder_.reset();
 }
 
 uint64_t BBoxDetectorPlugin::GetHappenTime(std::string& line)
