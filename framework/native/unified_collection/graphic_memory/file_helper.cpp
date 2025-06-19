@@ -19,7 +19,7 @@
 #include "hilog/log.h"
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD002D12
+#define LOG_DOMAIN 0xD002699
 
 #undef LOG_TAG
 #define LOG_TAG "file_helper"
