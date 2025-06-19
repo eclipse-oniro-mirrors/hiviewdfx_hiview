@@ -66,10 +66,12 @@ std::string GetProcessNameFromProcStat(int32_t pid)
         return "";
     }
     // for the format '40 (hiview) I ...'
-    auto procNameStartPos = procStatFileContent.find('(') + 1; // 1: for '(' next char
+    auto procNameStartPos = procStatFileContent.find('(');
     if (procNameStartPos == std::string::npos) {
         return "";
     }
+    procNameStartPos += 1; // 1: for '(' next char
+    
     auto procNameEndPos = procStatFileContent.find(')');
     if (procNameEndPos == std::string::npos) {
         return "";
@@ -184,8 +186,8 @@ int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<s
     }
 
     constexpr uint64_t maxWaitingTime = 120; // 120 seconds
-    uint64_t endTime = TimeUtil::GetMilliseconds() + maxWaitingTime * TimeUtil::SEC_TO_MILLISEC;
-    while (endTime > TimeUtil::GetMilliseconds()) {
+    uint64_t endTime = TimeUtil::GetSteadyClockTimeMs() + maxWaitingTime * TimeUtil::SEC_TO_MILLISEC;
+    while (endTime > TimeUtil::GetSteadyClockTimeMs()) {
         int status = 0;
         pid_t p = waitpid(pid, &status, WNOHANG);
         if (p < 0) {
