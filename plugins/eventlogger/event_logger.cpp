@@ -100,6 +100,9 @@ namespace {
     static constexpr const char* const TASK_TIMEOUT = "TASK_TIMEOUT";
     static constexpr const char* const SENARIO = "SENARIO";
 
+    static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
+    static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
+    static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -122,6 +125,8 @@ namespace {
     static constexpr int PERF_TIME = 60;
     static constexpr int PERF_NUM = 10202;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+    constexpr size_t FREEZE_SAMPLE_STACK_INDEX = 1;
+    constexpr int32_t MAX_FREEZE_PER_HAP = 10;
 }
 
 REGISTER(EventLogger);
@@ -331,33 +336,42 @@ void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
     if (tmp.empty()) {
         return;
     }
+
     std::vector<std::string> tokens;
     StringUtil::SplitStr(tmp, ",", tokens);
     if (tokens.size() <= 0) {
         return;
     }
+
     std::string cpuInfo = GetAppFreezeFile(tokens[0]);
     if (cpuInfo.empty()) {
         HIVIEW_LOGW("failed to save freezeInfo to file, cpu content is empty.");
         return;
     }
-    std::string stackInfo;
-    if (tokens.size() > 1) {
-        stackInfo = GetAppFreezeFile(tokens[1]);
-    }
-    if (stackInfo.empty()) {
-        HIVIEW_LOGW("stack content is empty.");
-    }
+
     std::string bundleName = event->GetEventValue("PACKAGE_NAME").empty() ?
         event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
+    std::string stackInfo;
+    if (tokens.size() > FREEZE_SAMPLE_STACK_INDEX) {
+        std::string filePath = APPFREEZE_LOG_PREFIX + bundleName + APPFREEZE_LOG_SUFFIX + tokens[1];
+        stackInfo = GetAppFreezeFile(filePath);
+        if (stackInfo.empty()) {
+            HIVIEW_LOGW("freeze sapmle stack content is empty.");
+        }
+    }
+
     long uid = event->GetEventIntValue("UID") ? event->GetEventIntValue("UID") : event->GetUid();
-    std::string freezeFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "freeze-cpuinfo-ext-" +
+    std::string freezeFile = FREEZE_CPUINFO_PREFIX +
         bundleName + "-" + std::to_string(uid) + "-" + TimeUtil::GetFormattedTimestampEndWithMilli();
-    if (FileUtil::CreateFile(freezeFile, DEFAULT_LOG_FILE_MODE) != 0 && !FileUtil::FileExists(freezeFile)) {
+    int fd = logStore_->CreateLogFile(freezeFile);
+    if (fd < 0) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return;
     }
-    FileUtil::SaveStringToFile(freezeFile, cpuInfo + "\n" + stackInfo);
+    FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo);
+    close(fd);
+
+    logStore_->ClearSameLogFilesIfNeeded(CreateLogFileFilter(uid, FREEZE_CPUINFO_PREFIX), MAX_FREEZE_PER_HAP);
 }
 
 void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
