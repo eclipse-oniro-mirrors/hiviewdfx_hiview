@@ -37,6 +37,8 @@ namespace HiviewDFX {
 using namespace FaultLogger;
 namespace {
 constexpr int32_t MAX_FAULT_LOG_PER_HAP = 10;
+constexpr uint32_t WARNING_LOG_MAX_SIZE = 3 * 1024 * 1024;
+constexpr uint32_t WARNING_LOG_MIN_KEEP_NUM = 15;
 }
 
 DEFINE_LOG_LABEL(0xD002D11, "FaultLogManager");
@@ -87,19 +89,36 @@ void FaultLogManager::Init()
     store_->SetLogFileComparator(comparator);
     store_->Init();
     faultLogDb_ = std::make_unique<FaultLogDatabase>(looper_);
+    InitWarningLogStore();
+}
+
+void FaultLogManager::InitWarningLogStore()
+{
+    warningLogStore_ = std::make_unique<LogStoreEx>(FAULTLOG_WARNING_LOG_FOLDER, true);
+    warningLogStore_->SetMaxSize(WARNING_LOG_MAX_SIZE);
+    warningLogStore_->SetMinKeepingFileNumber(WARNING_LOG_MIN_KEEP_NUM);
+    LogStoreEx::LogFileComparator warningLogComparator = [](const LogFile &lhs, const LogFile &rhs) {
+        return (rhs < lhs);
+    };
+    warningLogStore_->SetLogFileComparator(warningLogComparator);
+    warningLogStore_->Init();
 }
 
 std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
 {
-    auto fileName = GetFaultLogName(info);
-    std::string filePath = std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
+    std::string fileName = GetFaultLogName(info);
+    std::string filePath = GetFaultLogFilePath(info.faultLogType, fileName);
     if (FileUtil::FileExists(filePath)) {
         HIVIEW_LOGI("logfile %{public}s already exist.", filePath.c_str());
         return "";
     }
-    auto fd = store_->CreateLogFile(fileName);
+    int fd = GetFaultLogFileFd(info.faultLogType, fileName);
     if (fd < 0) {
-        if (access(FAULTLOG_FAULT_LOGGER_FOLDER, F_OK) != 0) {
+        if (info.faultLogType == FaultLogType::SYS_WARNING) {
+            if (access(FAULTLOG_WARNING_LOG_FOLDER, F_OK) != 0) {
+                HIVIEW_LOGE("%{public}s does not exist!!!", FAULTLOG_WARNING_LOG_FOLDER);
+            }
+        } else if (access(FAULTLOG_FAULT_LOGGER_FOLDER, F_OK) != 0) {
             HIVIEW_LOGE("%{public}s does not exist!!!", FAULTLOG_FAULT_LOGGER_FOLDER);
         }
         return "";
@@ -117,9 +136,21 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
     fdsan_close_with_tag(fd, ownerTag);
 
     RemoveOldFile(info);
-    info.logPath = std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
+    info.logPath = filePath;
     HIVIEW_LOGI("create log %{public}s", fileName.c_str());
     return fileName;
+}
+
+std::string FaultLogManager::GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName) const
+{
+    return (faultLogType == FaultLogType::SYS_WARNING) ?
+        std::string(FAULTLOG_WARNING_LOG_FOLDER) + fileName : std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
+}
+
+int FaultLogManager::GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName) const
+{
+    return (faultLogType == FaultLogType::SYS_WARNING) ?
+        warningLogStore_->CreateLogFile(fileName): store_->CreateLogFile(fileName);
 }
 
 void FaultLogManager::RemoveOldFile(FaultLogInfo& info) const

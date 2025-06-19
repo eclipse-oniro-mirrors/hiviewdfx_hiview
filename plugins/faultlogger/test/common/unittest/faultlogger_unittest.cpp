@@ -1091,6 +1091,45 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerTest002, testing::ext::TestSize.Lev
 }
 
 /**
+ * @tc.name: FaultLogManager::GetFaultLogFilePathTest001
+ * @tc.desc: Test calling GetFaultLogFilePath Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFaultLogFilePathTest001, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    faultLogManager->Init();
+    std::string fileName = "com.freeze.test001-202506023.log";
+
+    std::string faultLogFilePath = faultLogManager->GetFaultLogFilePath(FaultLogType::APP_FREEZE, fileName);
+    ASSERT_EQ(faultLogFilePath, "/data/log/faultlog/faultlogger/com.freeze.test001-202506023.log");
+
+    faultLogFilePath = faultLogManager->GetFaultLogFilePath(FaultLogType::SYS_WARNING, fileName);
+    ASSERT_EQ(faultLogFilePath, "/data/log/warninglog/com.freeze.test001-202506023.log");
+}
+
+/**
+ * @tc.name: FaultLogManager::GetFaultLogFileFdTest001
+ * @tc.desc: Test calling GetFaultLogFileFd Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFaultLogFileFdTest001, testing::ext::TestSize.Level3)
+{
+    std::unique_ptr<FaultLogManager> faultLogManager = std::make_unique<FaultLogManager>(nullptr);
+    int faultLogFileFd = -1;
+    faultLogManager->Init();
+    std::string fileName = "com.freeze.test001-202506023.log";
+
+    faultLogFileFd = faultLogManager->GetFaultLogFileFd(FaultLogType::APP_FREEZE, fileName);
+    ASSERT_TRUE(faultLogFileFd > 0);
+    close(faultLogFileFd);
+
+    faultLogFileFd = faultLogManager->GetFaultLogFileFd(FaultLogType::SYS_WARNING, fileName);
+    ASSERT_TRUE(faultLogFileFd > 0);
+    close(faultLogFileFd);
+}
+
+/**
  * @tc.name: FaultLogUtilTest001
  * @tc.desc: check ExtractInfoFromFileName Func
  * @tc.type: FUNC
