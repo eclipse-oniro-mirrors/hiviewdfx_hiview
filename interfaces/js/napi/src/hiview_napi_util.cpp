@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_LABEL(0xD002D03, "HiviewNapiUtil");
+DEFINE_LOG_LABEL(0xD002D10, "HiviewNapiUtil");
 namespace {
 constexpr char FILE_NAME_KEY[] = "name";
 constexpr char FILE_TIME_KEY[] = "mtime";
