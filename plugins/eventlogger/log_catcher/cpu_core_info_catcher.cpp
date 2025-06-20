@@ -19,6 +19,7 @@
 #include "freeze_common.h"
 #include "hiview_logger.h"
 #include "collect_result.h"
+#include "parameter_ex.h"
 
 #ifdef USAGE_CATCHER_ENABLE
 #include "cpu_collector.h"
@@ -73,6 +74,10 @@ int CpuCoreInfoCatcher::Catch(int fd, int jsonFd)
 
 void CpuCoreInfoCatcher::GetCpuCoreFreqInfo(int fd)
 {
+    if (Parameter::IsOversea()) {
+        FileUtil::SaveStringToFd(fd, "CpuCoreInfoCatcher is not supported in oversea version.\n");
+        return;
+    }
     std::shared_ptr<UCollectUtil::CpuCollector> collector =
         UCollectUtil::CpuCollector::Create();
     CollectResult<SysCpuUsage> resultInfo = collector->CollectSysCpuUsage(true);
