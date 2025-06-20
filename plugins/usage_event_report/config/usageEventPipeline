@@ -3,6 +3,10 @@
         {
             "domain": "WINDOWMANAGER",
             "include": ["NOTIFY_FOLD_STATE_CHANGE", "VH_MODE", "FOCUS_WINDOW"]
+        },
+        {
+            "domain": "MULTIWINDOW_UE",
+            "include": ["MULTI_WINDOW_NUMBER"]
         }
     ]
 }

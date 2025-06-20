@@ -25,12 +25,12 @@ namespace HiviewDFX {
 constexpr size_t MAX_APP_USAGE_SIZE = 100;
 
 namespace AppUsageEventSpace {
-const std::string EVENT_NAME = "APP_USAGE";
-const std::string KEY_OF_PACKAGE = "PACKAGE";
-const std::string KEY_OF_VERSION = "VERSION";
-const std::string KEY_OF_USAGE = "USAGE";
-const std::string KEY_OF_DATE = "DATE";
-const std::string KEY_OF_START_NUM = "TOTAL_START_NUM";
+constexpr char EVENT_NAME[] = "APP_USAGE";
+constexpr char KEY_OF_PACKAGE[] = "PACKAGE";
+constexpr char KEY_OF_VERSION[] = "VERSION";
+constexpr char KEY_OF_USAGE[] = "USAGE";
+constexpr char KEY_OF_DATE[] = "DATE";
+constexpr char KEY_OF_START_NUM[] = "TOTAL_START_NUM";
 }
 
 namespace FoldAppUsageEventSpace {
@@ -39,48 +39,66 @@ constexpr char KEY_OF_PACKAGE[] = "PACKAGE";
 constexpr char KEY_OF_VERSION[] = "VERSION";
 constexpr char KEY_OF_USAGE[] = "USAGE";
 constexpr char KEY_OF_FOLD_VER_USAGE[] = "FOLD_V";
+constexpr char KEY_OF_FOLD_VER_SPLIT_USAGE[] = "FOLD_V_SPLIT";
+constexpr char KEY_OF_FOLD_VER_FLOATING_USAGE[] = "FOLD_V_FLOATING";
+constexpr char KEY_OF_FOLD_VER_MIDSCENE_USAGE[] = "FOLD_V_MIDSCENE";
 constexpr char KEY_OF_FOLD_HOR_USAGE[] = "FOLD_H";
+constexpr char KEY_OF_FOLD_HOR_SPLIT_USAGE[] = "FOLD_H_SPLIT";
+constexpr char KEY_OF_FOLD_HOR_FLOATING_USAGE[] = "FOLD_H_FLOATING";
+constexpr char KEY_OF_FOLD_HOR_MIDSCENE_USAGE[] = "FOLD_H_MIDSCENE";
 constexpr char KEY_OF_EXPD_VER_USAGE[] = "EXPD_V";
+constexpr char KEY_OF_EXPD_VER_SPLIT_USAGE[] = "EXPD_V_SPLIT";
+constexpr char KEY_OF_EXPD_VER_FLOATING_USAGE[] = "EXPD_V_FLOATING";
+constexpr char KEY_OF_EXPD_VER_MIDSCENE_USAGE[] = "EXPD_V_MIDSCENE";
 constexpr char KEY_OF_EXPD_HOR_USAGE[] = "EXPD_H";
+constexpr char KEY_OF_EXPD_HOR_SPLIT_USAGE[] = "EXPD_H_SPLIT";
+constexpr char KEY_OF_EXPD_HOR_FLOATING_USAGE[] = "EXPD_H_FLOATING";
+constexpr char KEY_OF_EXPD_HOR_MIDSCENE_USAGE[] = "EXPD_H_MIDSCENE";
 constexpr char KEY_OF_G_VER_FULL_USAGE[] = "G_V_FULL";
+constexpr char KEY_OF_G_VER_SPLIT_USAGE[] = "G_V_SPLIT";
+constexpr char KEY_OF_G_VER_FLOATING_USAGE[] = "G_V_FLOATING";
+constexpr char KEY_OF_G_VER_MIDSCENE_USAGE[] = "G_V_MIDSCENE";
 constexpr char KEY_OF_G_HOR_FULL_USAGE[] = "G_H_FULL";
+constexpr char KEY_OF_G_HOR_SPLIT_USAGE[] = "G_H_SPLIT";
+constexpr char KEY_OF_G_HOR_FLOATING_USAGE[] = "G_H_FLOATING";
+constexpr char KEY_OF_G_HOR_MIDSCENE_USAGE[] = "G_H_MIDSCENE";
 constexpr char KEY_OF_DATE[] = "DATE";
 constexpr char KEY_OF_START_NUM[] = "TOTAL_START_NUM";
 constexpr char SCENEBOARD_BUNDLE_NAME[] = "com.ohos.sceneboard"; // NOT include sceneboard
 }
 
 namespace SysUsageEventSpace {
-const std::string EVENT_NAME = "SYS_USAGE";
-const std::string KEY_OF_START = "START";
-const std::string KEY_OF_END = "END";
-const std::string KEY_OF_POWER = "POWER";
-const std::string KEY_OF_RUNNING = "RUNNING";
+constexpr char EVENT_NAME[] = "SYS_USAGE";
+constexpr char KEY_OF_START[] = "START";
+constexpr char KEY_OF_END[] = "END";
+constexpr char KEY_OF_POWER[] = "POWER";
+constexpr char KEY_OF_RUNNING[] = "RUNNING";
 }
 
 namespace SysUsageDbSpace {
-const std::string SYS_USAGE_TABLE = "sys_usage";
-const std::string LAST_SYS_USAGE_TABLE = "last_sys_usage";
+constexpr char SYS_USAGE_TABLE[] = "sys_usage";
+constexpr char LAST_SYS_USAGE_TABLE[] = "last_sys_usage";
 }
 namespace DomainSpace {
 constexpr char HIVIEWDFX_UE_DOMAIN[] = "HIVIEWDFX_UE";
 }
 
 namespace FoldEventId {
-    constexpr int EVENT_APP_START = 1101;
-    constexpr int EVENT_APP_EXIT = 1102;
-    constexpr int EVENT_SCREEN_STATUS_CHANGED = 1103;
-    constexpr int EVENT_COUNT_DURATION = 1104;
+constexpr int EVENT_APP_START = 1101;
+constexpr int EVENT_APP_EXIT = 1102;
+constexpr int EVENT_SCREEN_STATUS_CHANGED = 1103;
+constexpr int EVENT_COUNT_DURATION = 1104;
 }
 
 namespace AppEventSpace {
-    const std::string FOCUS_WINDOW = "FOCUS_WINDOW";
-    const std::string KEY_OF_BUNDLE_NAME = "BUNDLE_NAME";
-    const std::string KEY_OF_WINDOW_TYPE = "WINDOW_TYPE";
+constexpr char FOCUS_WINDOW[] = "FOCUS_WINDOW";
+constexpr char KEY_OF_BUNDLE_NAME[] = "BUNDLE_NAME";
+constexpr char KEY_OF_WINDOW_TYPE[] = "WINDOW_TYPE";
 }
 
 namespace FoldStateChangeEventSpace {
-    const std::string EVENT_NAME = "NOTIFY_FOLD_STATE_CHANGE";
-    const std::string KEY_OF_NEXT_STATUS = "NEXT_FOLD_STATUS";
+constexpr char EVENT_NAME[] = "NOTIFY_FOLD_STATE_CHANGE";
+constexpr char KEY_OF_NEXT_STATUS[] = "NEXT_FOLD_STATUS";
 }
 
 namespace FoldState {
@@ -96,17 +114,49 @@ constexpr int32_t FOLD_STATE_HALF_FOLDED_WITH_SECOND_HALF_FOLDED = 23;
 }
 
 namespace VhModeChangeEventSpace {
-    const std::string EVENT_NAME = "VH_MODE";
-    const std::string KEY_OF_MODE = "MODE";
+constexpr char EVENT_NAME[] = "VH_MODE";
+constexpr char KEY_OF_MODE[] = "MODE";
+}
+
+namespace MultiWindowChangeEventSpace {
+constexpr char EVENT_NAME[] = "MULTI_WINDOW_NUMBER";
+constexpr char KEY_OF_MULTI_NUM[] = "MULTI_NUM";
+constexpr char KEY_OF_MULTI_WINDOW[] = "MULTI_WINDOW";
+}
+
+namespace MultiWindowMode {
+constexpr int32_t WINDOW_MODE_FULL = 0;
+constexpr int32_t WINDOW_MODE_FLOATING = 1;
+constexpr int32_t WINDOW_MODE_SPLIT_PRIMARY = 2;
+constexpr int32_t WINDOW_MODE_SPLIT_SECONDARY = 3;
+constexpr int32_t WINDOW_MODE_MIDSCENE = 4;
 }
 
 namespace ScreenFoldStatus {
-constexpr int EXPAND_LANDSCAPE_STATUS = 110;
-constexpr int EXPAND_PORTRAIT_STATUS = 120;
-constexpr int FOLD_LANDSCAPE_STATUS = 210;
-constexpr int FOLD_PORTRAIT_STATUS = 220;
-constexpr int G_LANDSCAPE_STATUS = 310;
-constexpr int G_PORTRAIT_STATUS = 320;
+constexpr int EXPAND_LANDSCAPE_FULL_STATUS = 110;
+constexpr int EXPAND_LANDSCAPE_SPLIT_STATUS = 111;
+constexpr int EXPAND_LANDSCAPE_FLOATING_STATUS = 112;
+constexpr int EXPAND_LANDSCAPE_MIDSCENE_STATUS = 113;
+constexpr int EXPAND_PORTRAIT_FULL_STATUS = 120;
+constexpr int EXPAND_PORTRAIT_SPLIT_STATUS = 121;
+constexpr int EXPAND_PORTRAIT_FLOATING_STATUS = 122;
+constexpr int EXPAND_PORTRAIT_MIDSCENE_STATUS = 123;
+constexpr int FOLD_LANDSCAPE_FULL_STATUS = 210;
+constexpr int FOLD_LANDSCAPE_SPLIT_STATUS = 211;
+constexpr int FOLD_LANDSCAPE_FLOATING_STATUS = 212;
+constexpr int FOLD_LANDSCAPE_MIDSCENE_STATUS = 213;
+constexpr int FOLD_PORTRAIT_FULL_STATUS = 220;
+constexpr int FOLD_PORTRAIT_SPLIT_STATUS = 221;
+constexpr int FOLD_PORTRAIT_FLOATING_STATUS = 222;
+constexpr int FOLD_PORTRAIT_MIDSCENE_STATUS = 223;
+constexpr int G_LANDSCAPE_FULL_STATUS = 310;
+constexpr int G_LANDSCAPE_SPLIT_STATUS = 311;
+constexpr int G_LANDSCAPE_FLOATING_STATUS = 312;
+constexpr int G_LANDSCAPE_MIDSCENE_STATUS = 313;
+constexpr int G_PORTRAIT_FULL_STATUS = 320;
+constexpr int G_PORTRAIT_SPLIT_STATUS = 321;
+constexpr int G_PORTRAIT_FLOATING_STATUS = 322;
+constexpr int G_PORTRAIT_MIDSCENE_STATUS = 323;
 }
 
 namespace FoldEventTable {
