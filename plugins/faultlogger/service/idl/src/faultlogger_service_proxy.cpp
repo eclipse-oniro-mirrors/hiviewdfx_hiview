@@ -46,7 +46,6 @@ void FaultLoggerServiceProxy::AddFaultLog(const FaultLogInfoOhos& info)
         if (!data.WriteFileDescriptor(info.pipeFd)) {
             HIVIEW_LOGE("failed to write file descriptor.");
         }
-        close(info.pipeFd);
     }
 
     MessageParcel reply;
