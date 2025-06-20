@@ -17,9 +17,9 @@
 
 #include "cpu_perf_dump.h"
 #include "file_util.h"
-#include "time_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -132,39 +132,6 @@ bool CpuPerfDump::NeedCleanPerfFiles(size_t size)
     return size > MAX_NUM_OF_PERF_FILES;
 }
 
-std::string CpuPerfDump::GetTimestamp(const std::string& fileName)
-{
-    auto startPos = fileName.find_last_of('-');
-    if (startPos == std::string::npos) {
-        return "";
-    }
-    auto endPos = fileName.find_last_of('.');
-    if (endPos == std::string::npos) {
-        return "";
-    }
-    if (endPos <= startPos + 1) {
-        return "";
-    }
-    return fileName.substr(startPos + 1, endPos - startPos - 1);
-}
-
-bool CpuPerfDump::CompareFilenames(const std::string &name1, const std::string &name2)
-{
-    std::string timestamp1 = GetTimestamp(name1);
-    std::string timestamp2 = GetTimestamp(name2);
-    uint64_t time1 = 0;
-    uint64_t time2 = 0;
-    auto result1 = std::from_chars(timestamp1.c_str(), timestamp1.c_str() + timestamp1.size(), time1);
-    if (result1.ec != std::errc()) {
-        HIVIEW_LOGW("convert error, timestamp1: %{public}s", timestamp1.c_str());
-    }
-    auto result2 = std::from_chars(timestamp2.c_str(), timestamp2.c_str() + timestamp2.size(), time2);
-    if (result2.ec != std::errc()) {
-        HIVIEW_LOGW("convert error, timestamp2: %{public}s", timestamp2.c_str());
-    }
-    return time1 < time2;
-}
-
 void CpuPerfDump::TryToAgePerfFiles()
 {
     std::vector<std::string> perfFiles;
@@ -172,7 +139,9 @@ void CpuPerfDump::TryToAgePerfFiles()
     if (!NeedCleanPerfFiles(perfFiles.size())) {
         return;
     }
-    std::sort(perfFiles.begin(), perfFiles.end(), CompareFilenames);
+    std::sort(perfFiles.begin(), perfFiles.end(), [](const auto& file1, const auto& file2) {
+        return file1 < file2;
+    });
     uint32_t numOfCleanFiles = perfFiles.size() - MAX_NUM_OF_PERF_FILES;
     for (size_t i = 0; i < numOfCleanFiles; i++) {
         if (!FileUtil::RemoveFile(perfFiles[i])) {

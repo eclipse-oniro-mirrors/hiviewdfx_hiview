@@ -31,10 +31,8 @@ private:
     bool CheckRecordInterval();
     void TryToAgePerfFiles();
     bool NeedCleanPerfFiles(size_t size);
-    static bool CompareFilenames(const std::string &name1, const std::string &name2);
     static bool CompareCpuLoad(const ProcessCpuStatInfo &info1, const ProcessCpuStatInfo &info2);
     static bool CompareCpuUsage(const ProcessCpuStatInfo &info1, const ProcessCpuStatInfo &info2);
-    static std::string GetTimestamp(const std::string& fileName);
 private:
     std::shared_ptr<UCollectUtil::PerfCollector> perfCollector_;
     std::vector<pid_t> topNProcs_;
