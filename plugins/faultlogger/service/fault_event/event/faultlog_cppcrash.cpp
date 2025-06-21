@@ -133,6 +133,7 @@ cJSON *FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::string& st
         cJSON_AddBoolToObject(stackInfoObj, "foreground", info.sectionMap.at(FaultKey::FOREGROUND) == "Yes");
     }
     if (info.sectionMap.count(FaultKey::FINGERPRINT) == 1) {
+        cJSON_DeleteItemFromObjectCaseSensitive(stackInfoObj, "uuid");
         cJSON_AddStringToObject(stackInfoObj, "uuid", info.sectionMap.at(FaultKey::FINGERPRINT).c_str());
     }
     if (info.sectionMap.count(FaultKey::HILOG) == 1) {
