@@ -52,9 +52,12 @@ void AddStringValue(cJSON* root, const std::string& name, const ParamValue& valu
 
 void AddUint32VecValue(cJSON* root, const std::string& name, const ParamValue& value)
 {
-    auto vec = value.GetUint32Vec();
     cJSON* nameJson = CJsonUtil::GetItemMember(root, name);
+    if (nameJson == nullptr) {
+        nameJson = cJSON_AddArrayToObject(root, name.c_str());
+    }
     if (cJSON_IsArray(nameJson)) {
+        auto vec = value.GetUint32Vec();
         for (auto num : vec) {
             cJSON_AddItemToArray(nameJson, cJSON_CreateNumber(num));
         }
@@ -63,9 +66,12 @@ void AddUint32VecValue(cJSON* root, const std::string& name, const ParamValue& v
 
 void AddStringVecValue(cJSON* root, const std::string& name, const ParamValue& value)
 {
-    auto vec = value.GetStringVec();
     cJSON* nameJson = CJsonUtil::GetItemMember(root, name);
+    if (nameJson == nullptr) {
+        nameJson = cJSON_AddArrayToObject(root, name.c_str());
+    }
     if (cJSON_IsArray(nameJson)) {
+        auto vec = value.GetStringVec();
         for (auto str : vec) {
             cJSON_AddItemToArray(nameJson, cJSON_CreateString(str.c_str()));
         }
