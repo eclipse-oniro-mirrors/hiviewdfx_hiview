@@ -42,6 +42,7 @@ ohos_source_set("eventlogger") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "faultloggerd:libjson_stack_formatter",
     "ffrt:libffrt",
     "hilog:libhilog",

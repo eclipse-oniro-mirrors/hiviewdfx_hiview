@@ -70,6 +70,7 @@ if (enable_hiview_usage_event_report_build) {
       "hisysevent:libhisysevent",
       "ipc:ipc_single",
       "relational_store:native_rdb",
+      "samgr:samgr_proxy",
     ]
 
     defines = []
@@ -148,6 +149,7 @@ if (enable_hiview_usage_event_report_build) {
       "hisysevent:libhisysevent",
       "ipc:ipc_single",
       "relational_store:native_rdb",
+      "samgr:samgr_proxy",
       "window_manager:libdm",
       "window_manager:libwm",
     ]
