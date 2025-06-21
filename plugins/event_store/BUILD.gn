@@ -47,6 +47,7 @@ ohos_source_set("sys_event_store") {
 
   external_deps = [
     "cJSON:cjson",
+    "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",

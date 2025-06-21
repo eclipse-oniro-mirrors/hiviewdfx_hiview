@@ -29,6 +29,7 @@ ohos_source_set("hiview_event_publish") {
 
   external_deps = [
     "cJSON:cjson",
+    "c_utils:utils",
     "hisysevent:libhisysevent",
   ]
 

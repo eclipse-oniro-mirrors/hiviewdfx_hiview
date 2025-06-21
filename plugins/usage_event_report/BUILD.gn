@@ -65,6 +65,7 @@ if (enable_hiview_usage_event_report_build) {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "cJSON:cjson",
+      "c_utils:utils",
       "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
@@ -144,6 +145,7 @@ if (enable_hiview_usage_event_report_build) {
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "cJSON:cjson",
+      "c_utils:utils",
       "ffrt:libffrt",
       "hilog:libhilog",
       "hisysevent:libhisysevent",
