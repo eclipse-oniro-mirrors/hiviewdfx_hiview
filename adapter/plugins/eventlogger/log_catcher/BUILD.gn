@@ -28,6 +28,7 @@ ohos_source_set("eventlogger_adapter_logcatcher") {
   deps = [ "$hiview_base:hiviewbase" ]
 
   external_deps = [
+    "c_utils:utils",
     "faultloggerd:libdfx_dumpcatcher",
     "faultloggerd:libjson_stack_formatter",
     "hilog:libhilog",

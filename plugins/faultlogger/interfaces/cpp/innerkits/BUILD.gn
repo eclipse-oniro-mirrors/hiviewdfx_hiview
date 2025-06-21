@@ -39,6 +39,7 @@ ohos_source_set("faultlogger_client_impl") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_single",
@@ -73,6 +74,7 @@ ohos_source_set("faultlogger_client_impl_with_cfi") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_single",

@@ -97,6 +97,7 @@ ohos_source_set("faultlogger_common") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
+    "c_utils:utils",
     "hilog:libhilog",
   ]
 
@@ -127,6 +128,7 @@ ohos_source_set("faultlogger_common_with_cfi") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
+    "c_utils:utils",
     "hilog:libhilog",
   ]
 
