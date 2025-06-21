@@ -309,7 +309,7 @@ void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, 
             break;
         }
     }
-    cJSON_SetBoolValue(cJSON_GetObjectItemCaseSensitive(eventParams.eventJson.get(), LOG_OVER_LIMIT), logOverLimit);
+    (void)cJSON_AddItemToObject(paramItem, LOG_OVER_LIMIT, cJSON_CreateBool(logOverLimit));
     (void)cJSON_AddItemToObject(paramItem, EXTERNAL_LOG, externalLogJson);
 }
 
