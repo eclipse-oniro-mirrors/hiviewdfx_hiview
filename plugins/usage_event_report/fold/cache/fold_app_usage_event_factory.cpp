@@ -26,6 +26,8 @@
 #include "time_util.h"
 #include "usage_event_common.h"
 
+using namespace OHOS::HiviewDFX::FoldAppUsageEventSpace;
+
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("FoldAppUsageFactory");
@@ -45,9 +47,41 @@ std::string GetAppVersion(const std::string& bundleName)
     }
     return info.versionName;
 }
-}
 
-using namespace FoldAppUsageEventSpace;
+void UpdateEventFromFoldAppUsageInfo(const FoldAppUsageInfo& info, const std::string& dateStr,
+    std::unique_ptr<LoggerEvent>& event)
+{
+    event->Update(KEY_OF_PACKAGE, info.package);
+    event->Update(KEY_OF_VERSION, info.version);
+    event->Update(KEY_OF_FOLD_VER_USAGE, info.foldVer);
+    event->Update(KEY_OF_FOLD_VER_SPLIT_USAGE, info.foldVerSplit);
+    event->Update(KEY_OF_FOLD_VER_FLOATING_USAGE, info.foldVerFloating);
+    event->Update(KEY_OF_FOLD_VER_MIDSCENE_USAGE, info.foldVerMidscene);
+    event->Update(KEY_OF_FOLD_HOR_USAGE, info.foldHor);
+    event->Update(KEY_OF_FOLD_HOR_SPLIT_USAGE, info.foldHorSplit);
+    event->Update(KEY_OF_FOLD_HOR_FLOATING_USAGE, info.foldHorFloating);
+    event->Update(KEY_OF_FOLD_HOR_MIDSCENE_USAGE, info.foldHorMidscene);
+    event->Update(KEY_OF_EXPD_VER_USAGE, info.expdVer);
+    event->Update(KEY_OF_EXPD_VER_SPLIT_USAGE, info.expdVerSplit);
+    event->Update(KEY_OF_EXPD_VER_FLOATING_USAGE, info.expdVerFloating);
+    event->Update(KEY_OF_EXPD_VER_MIDSCENE_USAGE, info.expdVerMidscene);
+    event->Update(KEY_OF_EXPD_HOR_USAGE, info.expdHor);
+    event->Update(KEY_OF_EXPD_HOR_SPLIT_USAGE, info.expdHorSplit);
+    event->Update(KEY_OF_EXPD_HOR_FLOATING_USAGE, info.expdHorFloating);
+    event->Update(KEY_OF_EXPD_HOR_MIDSCENE_USAGE, info.expdHorMidscene);
+    event->Update(KEY_OF_G_VER_FULL_USAGE, info.gVer);
+    event->Update(KEY_OF_G_VER_SPLIT_USAGE, info.gVerSplit);
+    event->Update(KEY_OF_G_VER_FLOATING_USAGE, info.gVerFloating);
+    event->Update(KEY_OF_G_VER_MIDSCENE_USAGE, info.gVerMidscene);
+    event->Update(KEY_OF_G_HOR_FULL_USAGE, info.gHor);
+    event->Update(KEY_OF_G_HOR_SPLIT_USAGE, info.gHorSplit);
+    event->Update(KEY_OF_G_HOR_FLOATING_USAGE, info.gHorFloating);
+    event->Update(KEY_OF_G_HOR_MIDSCENE_USAGE, info.gHorMidscene);
+    event->Update(KEY_OF_DATE, dateStr);
+    event->Update(KEY_OF_START_NUM, info.startNum);
+    event->Update(KEY_OF_USAGE, info.usage);
+}
+}
 
 FoldAppUsageEventFactory::FoldAppUsageEventFactory(const std::string& workPath)
 {
@@ -72,17 +106,7 @@ void FoldAppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>> 
     GetAppUsageInfo(foldAppUsageInfos);
     for (const auto &info : foldAppUsageInfos) {
         std::unique_ptr<LoggerEvent> event = Create();
-        event->Update(KEY_OF_PACKAGE, info.package);
-        event->Update(KEY_OF_VERSION, info.version);
-        event->Update(KEY_OF_FOLD_VER_USAGE, static_cast<uint32_t>(info.foldVer));
-        event->Update(KEY_OF_FOLD_HOR_USAGE, static_cast<uint32_t>(info.foldHor));
-        event->Update(KEY_OF_EXPD_VER_USAGE, static_cast<uint32_t>(info.expdVer));
-        event->Update(KEY_OF_EXPD_HOR_USAGE, static_cast<uint32_t>(info.expdHor));
-        event->Update(KEY_OF_G_VER_FULL_USAGE, static_cast<uint32_t>(info.gVer));
-        event->Update(KEY_OF_G_HOR_FULL_USAGE, static_cast<uint32_t>(info.gHor));
-        event->Update(KEY_OF_DATE, dateStr);
-        event->Update(KEY_OF_START_NUM, static_cast<uint32_t>(info.startNum));
-        event->Update(KEY_OF_USAGE, static_cast<uint32_t>(info.usage));
+        UpdateEventFromFoldAppUsageInfo(info, dateStr, event);
         events.emplace_back(std::move(event));
     }
     dbHelper_->DeleteEventsByTime(clearDataTime_);
@@ -93,9 +117,11 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
     std::unordered_map<std::string, FoldAppUsageInfo> statisticInfos;
     dbHelper_->QueryStatisticEventsInPeriod(startTime_, endTime_, statisticInfos);
     std::vector<std::string> appNames;
-    auto focusedAppAndType = FoldCommonUtils::GetFocusedAppAndType();
-    if (focusedAppAndType.second < FoldCommonUtils::SYSTEM_WINDOW_BASE) {
-        appNames.emplace_back(focusedAppAndType.first);
+    std::pair<std::string, bool> focusedAppPair;
+    std::unordered_map<std::string, int32_t> multiWindowInfos;
+    FoldCommonUtils::GetFocusedAppAndWindowInfos(focusedAppPair, multiWindowInfos);
+    if (focusedAppPair.second) {
+        appNames.emplace_back(focusedAppPair.first);
     }
     GetForegroundAppsAtEndTime(appNames);
     std::unordered_map<std::string, FoldAppUsageInfo> forgroundInfos;
@@ -113,16 +139,10 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
             statisticInfos[forgroundInfo.first] = forgroundInfo.second;
             continue;
         }
-        statisticInfos[forgroundInfo.first].foldVer += forgroundInfo.second.foldVer;
-        statisticInfos[forgroundInfo.first].foldHor += forgroundInfo.second.foldHor;
-        statisticInfos[forgroundInfo.first].expdVer += forgroundInfo.second.expdVer;
-        statisticInfos[forgroundInfo.first].expdHor += forgroundInfo.second.expdHor;
-        statisticInfos[forgroundInfo.first].gVer += forgroundInfo.second.gVer;
-        statisticInfos[forgroundInfo.first].gHor += forgroundInfo.second.gHor;
-        statisticInfos[forgroundInfo.first].startNum += forgroundInfo.second.startNum;
+        statisticInfos[forgroundInfo.first] += forgroundInfo.second;
     }
     for (auto& [key, value] : statisticInfos) {
-        value.usage = value.foldVer + value.foldHor + value.expdVer + value.expdHor + value.gVer + value.gHor;
+        value.usage = value.GetAppUsage();
         value.version = GetAppVersion(value.package);
         infos.emplace_back(value);
     }

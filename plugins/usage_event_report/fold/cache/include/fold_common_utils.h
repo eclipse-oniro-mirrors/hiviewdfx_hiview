@@ -23,7 +23,8 @@ namespace HiviewDFX {
 namespace FoldCommonUtils {
 constexpr int SYSTEM_WINDOW_BASE = 2000;
 
-std::pair<std::string, int> GetFocusedAppAndType();
+void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
+    std::unordered_map<std::string, int32_t>& multiWindowInfos);
 } // namespace FoldCommonUtils
 } // namespace HiviewDFX
 } // namespace OHOS

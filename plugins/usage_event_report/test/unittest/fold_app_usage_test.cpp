@@ -31,6 +31,7 @@
 
 using namespace std;
 using namespace testing::ext;
+using namespace OHOS::HiviewDFX::ScreenFoldStatus;
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -73,18 +74,28 @@ void FoldAppUsageTest::TearDown(void) {}
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    AppEventRecord record1{1104, 1000, "app1", 110, 110, "55", g_today0Time - 5 * g_dayGapTime, 1, 2, 3, 4, 5, 6};
-    AppEventRecord record2{1104, 1000, "app1", 110, 110, "55", g_startTime - 5 * g_hourGapTime, 1, 2, 3, 4, 5, 6};
-    AppEventRecord record3{1104, 1000, "app1", 110, 110, "55", g_startTime + 7 * g_hourGapTime, 1, 2, 3, 4, 5, 6};
+    AppEventRecord record1{1104, 1000, "app1", 110, 110, "55", g_today0Time - 5 * g_dayGapTime};
+    AppEventRecord record2{1104, 1000, "app1", 110, 110, "55", g_startTime - 5 * g_hourGapTime};
+    AppEventRecord record3{1104, 1000, "app1", 110, 110, "55", g_startTime + 7 * g_hourGapTime};
 
-    AppEventRecord record4{1104, 1000, "app2", 110, 110, "55", g_startTime + 8 * g_hourGapTime, 2, 2, 2, 2, 2, 2};
-    AppEventRecord record5{1104, 1000, "app2", 110, 110, "55", g_startTime + 9 * g_hourGapTime, 3, 3, 3, 3, 3, 3};
+    AppEventRecord record4{1104, 1000, "app2", 110, 110, "55", g_startTime + 8 * g_hourGapTime};
+    AppEventRecord record5{1104, 1000, "app2", 110, 110, "55", g_startTime + 9 * g_hourGapTime};
 
-    EXPECT_EQ(dbHelper.AddAppEvent(record1), 0);
-    EXPECT_EQ(dbHelper.AddAppEvent(record2), 0);
-    EXPECT_EQ(dbHelper.AddAppEvent(record3), 0);
-    EXPECT_EQ(dbHelper.AddAppEvent(record4), 0);
-    EXPECT_EQ(dbHelper.AddAppEvent(record5), 0);
+    std::map<int, uint64_t> durations1 = {{FOLD_PORTRAIT_FULL_STATUS, 1}, {FOLD_LANDSCAPE_FULL_STATUS, 2},
+        {EXPAND_PORTRAIT_FULL_STATUS, 3}, {EXPAND_LANDSCAPE_FULL_STATUS, 4}, {G_PORTRAIT_FULL_STATUS, 5},
+        {G_LANDSCAPE_FULL_STATUS, 6}};
+    std::map<int, uint64_t> durations2 = {{FOLD_PORTRAIT_FULL_STATUS, 2}, {FOLD_LANDSCAPE_FULL_STATUS, 2},
+        {EXPAND_PORTRAIT_FULL_STATUS, 2}, {EXPAND_LANDSCAPE_FULL_STATUS, 2}, {G_PORTRAIT_FULL_STATUS, 2},
+        {G_LANDSCAPE_FULL_STATUS, 2}};
+    std::map<int, uint64_t> durations3 = {{FOLD_PORTRAIT_FULL_STATUS, 3}, {FOLD_LANDSCAPE_FULL_STATUS, 3},
+        {EXPAND_PORTRAIT_FULL_STATUS, 3}, {EXPAND_LANDSCAPE_FULL_STATUS, 3}, {G_PORTRAIT_FULL_STATUS, 3},
+        {G_LANDSCAPE_FULL_STATUS, 3}};
+
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record4, durations2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record5, durations3), 0);
 
     std::unordered_map<std::string, FoldAppUsageInfo> all1104Infos;
     dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, all1104Infos);
@@ -115,15 +126,15 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    AppEventRecord record6{1101, 4000, "app3", 110, 120, "55", g_startTime + 10 * g_hourGapTime, 0, 0, 0, 0};
-    AppEventRecord record7{1103, 5000, "app3", 120, 220, "55", g_startTime + 11 * g_hourGapTime, 1, 2, 3, 4};
-    AppEventRecord record8{1103, 6000, "app3", 220, 210, "55", g_startTime + 12 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record6{1101, 4000, "app3", 110, 120, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record7{1103, 5000, "app3", 120, 220, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record8{1103, 6000, "app3", 220, 210, "55", g_startTime + 12 * g_hourGapTime};
     AppEventRecord record12{1103, 7000, "app3", 210, 310, "55", g_startTime + 13 * g_hourGapTime};
     AppEventRecord record13{1103, 8000, "app3", 310, 320, "55", g_startTime + 14 * g_hourGapTime};
 
-    AppEventRecord record9{1103, 7000, "app4", 110, 210, "55", g_startTime + 15 * g_hourGapTime, 0, 0, 0, 0};
-    AppEventRecord record10{1103, 8000, "app4", 210, 220, "55", g_startTime + 16 * g_hourGapTime, 0, 0, 0, 0};
-    AppEventRecord record11{1102, 9000, "app4", 220, 120, "55", g_today0Time + 2 * g_hourGapTime, 0, 0, 0, 0};
+    AppEventRecord record9{1103, 7000, "app4", 110, 210, "55", g_startTime + 15 * g_hourGapTime};
+    AppEventRecord record10{1103, 8000, "app4", 210, 220, "55", g_startTime + 16 * g_hourGapTime};
+    AppEventRecord record11{1102, 9000, "app4", 220, 120, "55", g_today0Time + 2 * g_hourGapTime};
 
     EXPECT_EQ(dbHelper.AddAppEvent(record6), 0);
     EXPECT_EQ(dbHelper.AddAppEvent(record7), 0);
@@ -274,9 +285,11 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest005, TestSize.Level1)
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest006, TestSize.Level1)
 {
-    AppEventRecord record{1104, 1000, "test_bundle", 110, 110, "1", g_endTime, 1, 2, 3, 4};
+    AppEventRecord record1{1104, 1000, "test_bundle", 110, 110, "1", g_endTime - g_hourGapTime};
+    AppEventRecord record2{1101, 2000, "test_bundle", 110, 110, "1", g_endTime};
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    ASSERT_TRUE(dbHelper.AddAppEvent(record) == 0);
+    ASSERT_TRUE(dbHelper.AddAppEvent(record1) == 0);
+    ASSERT_TRUE(dbHelper.AddAppEvent(record2) == 0);
 
     std::vector<std::unique_ptr<LoggerEvent>> foldAppUsageEvents;
     FoldAppUsageEventFactory factory("/data/test/");
@@ -342,8 +355,48 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest009, TestSize.Level1)
     EXPECT_EQ(records[0].preFoldStatus, 110);
     EXPECT_EQ(records[0].foldStatus, 120);
 
-    AppEventRecord record{1104, 1000, "app_test", 310, 320, "55", g_startTime + 10 * g_hourGapTime, 1, 2, 3, 4, 5, 6};
+    AppEventRecord record{1104, 1000, "app_test", 310, 320, "55", g_startTime + 10 * g_hourGapTime};
     EXPECT_EQ(dbHelper.AddAppEvent(record), 0);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest010
+ * @tc.desc: add app start and multi window change events to db.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest010, TestSize.Level1)
+{
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "NOTIFY_FOLD_STATE_CHANGE", SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("CURRENT_FOLD_STATUS", 0);
+    sysEventCreator.SetKeyValue("NEXT_FOLD_STATUS", 1);
+    sysEventCreator.SetKeyValue("time_", 111);
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    FoldEventCacher cacher("/data/test/");
+    cacher.ProcessEvent(sysEvent);
+
+    SysEventCreator sysEventCreator1("WINDOWMANAGER", "FOCUS_WINDOW", SysEventCreator::BEHAVIOR);
+    sysEventCreator1.SetKeyValue("PID", 1111);
+    sysEventCreator1.SetKeyValue("UID", 20020019);
+    sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_bundle");
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 1);
+    sysEventCreator1.SetKeyValue("time_", 123);
+    auto sysEvent1 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
+    cacher.ProcessEvent(sysEvent1);
+
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    int index1 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_APP_START);
+    ASSERT_TRUE(index1 != 0);
+
+    SysEventCreator sysEventCreator2("MULTIWINDOW_UE", "MULTI_WINDOW_NUMBER", SysEventCreator::BEHAVIOR);
+    sysEventCreator2.SetKeyValue("MULTI_NUM", 2);
+    sysEventCreator2.SetKeyValue("MULTI_WINDOW", "PKG: test_bundle, MODE: 1; PKG: test_bundle1, MODE: 2");
+    auto sysEvent2 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator2);
+    cacher.ProcessEvent(sysEvent2);
+    int index2 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_SCREEN_STATUS_CHANGED);
+    ASSERT_TRUE(index2 != 0);
+
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+    ASSERT_TRUE(!FileUtil::FileExists("/data/test/sys_event_logger/"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

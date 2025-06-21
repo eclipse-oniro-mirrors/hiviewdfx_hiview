@@ -22,18 +22,41 @@
 
 #include "rdb_store.h"
 
+namespace OHOS {
+namespace HiviewDFX {
 struct FoldAppUsageInfo {
     std::string package;
     std::string version;
-    int32_t foldVer = 0; // usage duration when screen in fold-vertiacal status
-    int32_t foldHor = 0; // usage duration when screen in fold-horizon status
-    int32_t expdVer = 0; // usage duration when screen in expand-vertiacal status
-    int32_t expdHor = 0; // usage duration when screen in expand-horizon status
-    int32_t gVer = 0; // usage duration when screen in g-vertiacal status
-    int32_t gHor = 0; // usage duration when screen in g-horizon status
-    int32_t startNum = 1;
+    uint32_t foldVer = 0; // usage duration when screen in fold-vertiacal status
+    uint32_t foldVerSplit = 0; // usage duration when screen in fold-vertiacal status and split-screen window
+    uint32_t foldVerFloating = 0; // usage duration when screen in fold-vertiacal status and floating window
+    uint32_t foldVerMidscene = 0; // usage duration when screen in fold-vertiacal status and midscene window
+    uint32_t foldHor = 0; // usage duration when screen in fold-horizon status
+    uint32_t foldHorSplit = 0; // usage duration when screen in fold-horizon status and split-screen window
+    uint32_t foldHorFloating = 0; // usage duration when screen in fold-horizon status and floating window
+    uint32_t foldHorMidscene = 0; // usage duration when screen in fold-horizon status and midscene window
+    uint32_t expdVer = 0; // usage duration when screen in expand-vertiacal status
+    uint32_t expdVerSplit = 0; // usage duration when screen in expand-vertiacal status and split-screen window
+    uint32_t expdVerFloating = 0; // usage duration when screen in expand-vertiacal status and floating window
+    uint32_t expdVerMidscene = 0; // usage duration when screen in expand-vertiacal status and midscene window
+    uint32_t expdHor = 0; // usage duration when screen in expand-horizon status
+    uint32_t expdHorSplit = 0; // usage duration when screen in expand-horizon status and split-screen window
+    uint32_t expdHorFloating = 0; // usage duration when screen in expand-horizon status and floating window
+    uint32_t expdHorMidscene = 0; // usage duration when screen in expand-horizon status and midscene window
+    uint32_t gVer = 0; // usage duration when screen in g-vertiacal status
+    uint32_t gVerSplit = 0; // usage duration when screen in g-vertiacal status and split-screen window
+    uint32_t gVerFloating = 0; // usage duration when screen in g-vertiacal status and floating window
+    uint32_t gVerMidscene = 0; // usage duration when screen in g-vertiacal status and midscene window
+    uint32_t gHor = 0; // usage duration when screen in g-horizon status
+    uint32_t gHorSplit = 0; // usage duration when screen in g-horizon status and split-screen window
+    uint32_t gHorFloating = 0; // usage duration when screen in g-horizon status and floating window
+    uint32_t gHorMidscene = 0; // usage duration when screen in g-horizon status and midscene window
+    uint32_t startNum = 1;
     std::string date;
-    int32_t usage = 0;
+    uint32_t usage = 0;
+
+    FoldAppUsageInfo& operator+=(const FoldAppUsageInfo& info);
+    uint32_t GetAppUsage() const;
 };
 
 struct FoldAppUsageRawEvent {
@@ -55,16 +78,8 @@ struct AppEventRecord {
     int foldStatus = 0;
     std::string versionName = "";
     int64_t happenTime = 0;
-    int64_t foldPortraitTime = 0;
-    int64_t foldLandscapeTime = 0;
-    int64_t expandPortraitTime = 0;
-    int64_t expandLandscapeTime = 0;
-    int64_t gPortraitFullTime = 0;
-    int64_t gLandscapeFullTime = 0;
 };
 
-namespace OHOS {
-namespace HiviewDFX {
 class FoldAppUsageDbHelper {
 public:
     FoldAppUsageDbHelper(const std::string& workPath);
@@ -76,7 +91,7 @@ public:
     void QueryForegroundAppsInfo(uint64_t startTime, uint64_t endTime, int screenStatus, FoldAppUsageInfo &info);
     int DeleteEventsByTime(uint64_t clearDataTime);
     int QueryFinalScreenStatus(uint64_t endTime);
-    int AddAppEvent(const AppEventRecord& appEventRecord);
+    int AddAppEvent(const AppEventRecord& appEventRecord, const std::map<int, uint64_t>& durations = {});
     int QueryRawEventIndex(const std::string& bundleName, int rawId);
     void QueryAppEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
         std::vector<AppEventRecord>& records);
@@ -85,9 +100,6 @@ public:
 private:
     void CreateDbStore(const std::string& dbPath, const std::string& dbName);
     int CreateAppEventsTable(const std::string& table);
-    FoldAppUsageInfo CaculateForegroundAppUsage(const std::vector<FoldAppUsageRawEvent> &events, uint64_t startTime,
-        uint64_t endTime, const std::string &appName, int screenStatus);
-    void ParseEntity(NativeRdb::RowEntity& entity, AppEventRecord& record);
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
