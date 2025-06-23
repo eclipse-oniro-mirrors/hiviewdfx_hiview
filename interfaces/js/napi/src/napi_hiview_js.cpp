@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_LABEL(0xD002D03, "NAPI_HIVIEW_JS");
+DEFINE_LOG_LABEL(0xD002D10, "NAPI_HIVIEW_JS");
 namespace {
 constexpr size_t LOG_TYPE_INDEX = 0;
 constexpr size_t LOG_NAME_INDEX = 1;
