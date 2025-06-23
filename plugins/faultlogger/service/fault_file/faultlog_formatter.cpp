@@ -205,12 +205,12 @@ bool ParseFaultLogLine(const std::vector<SectionLog>& parseList, const std::stri
     return true;
 }
 
-void WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path)
+bool WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path)
 {
     std::string realPath;
     if (!FileUtil::PathToRealPath(path, realPath)) {
         FileUtil::SaveStringToFd(fd, "Log file not exist.\n");
-        return;
+        return false;
     }
 
     std::ifstream logFile(realPath);
@@ -240,6 +240,7 @@ void WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::st
             FileUtil::SaveStringToFd(fd, line + "\n");
         }
     }
+    return true;
 }
 
 void WriteDfxLogToFile(int32_t fd)
