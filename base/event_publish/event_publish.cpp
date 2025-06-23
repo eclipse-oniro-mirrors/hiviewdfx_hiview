@@ -310,6 +310,7 @@ void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, 
         }
     }
     (void)cJSON_AddItemToObject(paramItem, LOG_OVER_LIMIT, cJSON_CreateBool(logOverLimit));
+    cJSON_DeleteItemFromObjectCaseSensitive(paramItem, EXTERNAL_LOG);
     (void)cJSON_AddItemToObject(paramItem, EXTERNAL_LOG, externalLogJson);
 }
 
