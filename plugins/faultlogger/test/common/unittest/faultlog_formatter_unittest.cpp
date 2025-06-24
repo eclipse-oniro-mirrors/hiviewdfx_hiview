@@ -32,11 +32,11 @@ HWTEST(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext::T
     std::string pidStr;
     int32_t fd = -1;
     std::string path = "/testError";
-    FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
-    ASSERT_EQ(fd, -1);
+    bool ret = FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
+    ASSERT_FALSE(ret);
     path = "/data/test/test_faultlogger_data/plugin_config_test";
-    FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
-    ASSERT_EQ(fd, -1);
+    ret = FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
+    ASSERT_TRUE(ret);
 }
 
 static std::string GetPipeData(int pipeRead)

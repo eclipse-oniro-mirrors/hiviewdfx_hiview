@@ -22,7 +22,7 @@ namespace FaultLogger {
 void WriteDfxLogToFile(int32_t fd);
 void WriteFaultLogToFile(int32_t fd, int32_t logType, const std::map<std::string, std::string>& sections);
 FaultLogInfo ParseCppCrashFromFile(const std::string& path);
-void WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
+bool WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
 bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string>& sections);
 bool IsFaultLogLimit();
 
