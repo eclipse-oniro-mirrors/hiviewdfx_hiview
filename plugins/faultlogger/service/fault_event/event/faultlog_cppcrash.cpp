@@ -113,31 +113,29 @@ std::string FaultLogCppCrash::ReadStackFromPipe(const FaultLogInfo& info) const
     return std::string(buffer.data(), nread);
 }
 
-cJSON *FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal) const
+Json::Value FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal) const
 {
-    cJSON *stackInfoObj = cJSON_Parse(stackInfoOriginal.c_str());
-    if (stackInfoObj == nullptr) {
+    Json::Reader reader;
+    Json::Value stackInfoObj;
+    if (!reader.parse(stackInfoOriginal, stackInfoObj)) {
         HIVIEW_LOGE("parse stackInfo failed");
         return stackInfoObj;
     }
-    cJSON_AddStringToObject(stackInfoObj, "bundle_name", info.module.c_str());
-    cJSON *externalLog = cJSON_CreateArray();
-    if (!info.logPath.empty() && externalLog != nullptr) {
-        (void)cJSON_AddItemToArray(externalLog, cJSON_CreateString(info.logPath.c_str()));
-    }
-    (void)cJSON_AddItemToObject(stackInfoObj, "external_log", externalLog);
+    stackInfoObj["bundle_name"] = info.module;
+    Json::Value externalLog;
+    externalLog.append(info.logPath);
+    stackInfoObj["external_log"] = externalLog;
     if (info.sectionMap.count(FaultKey::MODULE_VERSION) == 1) {
-        cJSON_AddStringToObject(stackInfoObj, "bundle_version", info.sectionMap.at(FaultKey::MODULE_VERSION).c_str());
+        stackInfoObj["bundle_version"] = info.sectionMap.at(FaultKey::MODULE_VERSION);
     }
     if (info.sectionMap.count(FaultKey::FOREGROUND) == 1) {
-        cJSON_AddBoolToObject(stackInfoObj, "foreground", info.sectionMap.at(FaultKey::FOREGROUND) == "Yes");
+        stackInfoObj["foreground"] = info.sectionMap.at(FaultKey::FOREGROUND) == "Yes";
     }
     if (info.sectionMap.count(FaultKey::FINGERPRINT) == 1) {
-        cJSON_DeleteItemFromObjectCaseSensitive(stackInfoObj, "uuid");
-        cJSON_AddStringToObject(stackInfoObj, "uuid", info.sectionMap.at(FaultKey::FINGERPRINT).c_str());
+        stackInfoObj["uuid"] = info.sectionMap.at(FaultKey::FINGERPRINT);
     }
     if (info.sectionMap.count(FaultKey::HILOG) == 1) {
-        (void)cJSON_AddItemToObject(stackInfoObj, "hilog", ParseHilogToJson(info.sectionMap.at(FaultKey::HILOG)));
+        stackInfoObj["hilog"] = ParseHilogToJson(info.sectionMap.at(FaultKey::HILOG));
     }
     return stackInfoObj;
 }
@@ -151,14 +149,7 @@ std::string FaultLogCppCrash::GetStackInfo(const FaultLogInfo& info) const
     }
 
     auto stackInfoObj = FillStackInfo(info, stackInfoOriginal);
-    char *stackInfoChar = cJSON_PrintUnformatted(stackInfoObj);
-    std::string stackInfoStr = "";
-    if (stackInfoChar != nullptr) {
-        stackInfoStr = stackInfoChar;
-        cJSON_free(stackInfoChar);
-    }
-    cJSON_Delete(stackInfoObj);
-    return stackInfoStr;
+    return Json::FastWriter().write(stackInfoObj);
 }
 
 void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info) const

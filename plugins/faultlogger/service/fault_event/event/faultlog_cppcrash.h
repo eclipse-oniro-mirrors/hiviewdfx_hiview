@@ -17,10 +17,10 @@
 
 #include <string>
 
-#include "cJSON.h"
 #include "faultlog_info.h"
 #include "faultlog_manager.h"
 #include "faultlog_processor_base.h"
+#include "json/json.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -35,7 +35,7 @@ private:
     void CheckFaultLogAsync(const FaultLogInfo& info);
     static bool CheckFaultLog(const FaultLogInfo& info);
     std::string ReadStackFromPipe(const FaultLogInfo& info) const;
-    cJSON *FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal) const;
+    Json::Value FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal) const;
     bool TruncateLogIfExceedsLimit(std::string& readContent) const;
     bool RemoveHiLogSection(std::string& readContent) const;
     void CheckHilogTime(FaultLogInfo& info);
