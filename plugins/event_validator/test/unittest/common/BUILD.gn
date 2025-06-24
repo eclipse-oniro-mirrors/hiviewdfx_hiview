@@ -56,14 +56,22 @@ ohos_unittest("DailyControllerTest") {
 }
 
 ohos_unittest("EventValidatorTest") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   configs = [ ":unittest_config" ]
 
   sources = [ "event_validator_test.cpp" ]
 
   deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_base/utility:hiview_utility",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
     "$hiview_plugin/event_validator:event_validator",
   ]

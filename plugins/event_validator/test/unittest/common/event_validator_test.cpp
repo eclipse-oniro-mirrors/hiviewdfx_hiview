@@ -41,11 +41,11 @@ constexpr uint64_t CREATE_TIME_ONE_SECOND = 1000 * 1000; // us
 constexpr uint64_t CREATE_TIME_SIX_SECOND = 6 * 1000 * 1000; // us
 TestHiviewContext g_context;
 
-void InitPlugin(EventValidator& plugin)
+void InitPlugin(std::shared_ptr<EventValidator> plugin)
 {
     TestHiviewContext context;
-    plugin.SetHiviewContext(&context);
-    plugin.OnLoad();
+    plugin->SetHiviewContext(&context);
+    plugin->OnLoad();
 }
 
 std::shared_ptr<SysEvent> CreateSysEvent(
@@ -80,10 +80,10 @@ public:
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest001, TestSize.Level1)
 {
-    EventValidator plugin;
-    plugin.OnLoad();
-    ASSERT_TRUE(plugin.GetHiviewContext() == nullptr);
-    plugin.OnUnload();
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
+    plugin->OnLoad();
+    ASSERT_TRUE(plugin->GetHiviewContext() == nullptr);
+    plugin->OnUnload();
 }
 
 /**
@@ -94,10 +94,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest001, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest002, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
-    ASSERT_TRUE(plugin.GetHiviewContext() != nullptr);
-    plugin.OnUnload();
+    ASSERT_TRUE(plugin->GetHiviewContext() != nullptr);
+    plugin->OnUnload();
 }
 
 /**
@@ -108,10 +108,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest002, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest003, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = nullptr;
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -122,10 +122,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest003, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest004, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = std::make_shared<Event>("");
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -136,11 +136,11 @@ HWTEST_F(EventValidatorTest, EventValidatorTest004, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest005, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = std::make_shared<Event>("");
     event->messageType_ = Event::MessageType::SYS_EVENT;
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -151,10 +151,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest005, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest006, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = CreateSysEvent();
-    ASSERT_TRUE(plugin.OnEvent(event));
+    ASSERT_TRUE(plugin->OnEvent(event));
 }
 
 /**
@@ -165,13 +165,13 @@ HWTEST_F(EventValidatorTest, EventValidatorTest006, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest007, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
 
     std::shared_ptr<Event> event = CreateSysEvent();
     event->happenTime_ = 1000; // 1000ms
     event->createTime_ = 0; // for time jump scene
-    ASSERT_TRUE(plugin.OnEvent(event));
+    ASSERT_TRUE(plugin->OnEvent(event));
 }
 
 /**
@@ -182,27 +182,27 @@ HWTEST_F(EventValidatorTest, EventValidatorTest007, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest008, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
 
     // first event, delayed 5s
     std::shared_ptr<Event> event1 = CreateSysEvent();
     event1->happenTime_ = HAPPEN_TIME_ONE_SECOND;
     event1->createTime_ = CREATE_TIME_SIX_SECOND;
-    ASSERT_TRUE(plugin.OnEvent(event1));
+    ASSERT_TRUE(plugin->OnEvent(event1));
 
     // second event, delayed 5s
-    ASSERT_TRUE(plugin.OnEvent(event1));
+    ASSERT_TRUE(plugin->OnEvent(event1));
 
     // third event, not delayed
     usleep(10000); // 10000: sleep for 10ms to prevent repetition
     std::shared_ptr<Event> event2 = CreateSysEvent();
     event2->happenTime_ = HAPPEN_TIME_ONE_SECOND;
     event2->createTime_ = CREATE_TIME_ONE_SECOND;
-    ASSERT_TRUE(plugin.OnEvent(event2));
+    ASSERT_TRUE(plugin->OnEvent(event2));
 
     // fourth event, not delayed
-    ASSERT_TRUE(plugin.OnEvent(event2));
+    ASSERT_TRUE(plugin->OnEvent(event2));
 }
 
 /**
@@ -213,10 +213,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest008, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest009, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = CreateSysEvent("");
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -227,10 +227,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest009, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest010, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = CreateSysEvent(TEST_DOMAIN, "");
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -241,10 +241,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest010, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest011, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = CreateSysEvent("N_EXIST_DOMAIN", "N_EXIST_NAME");
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -255,10 +255,10 @@ HWTEST_F(EventValidatorTest, EventValidatorTest011, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest012, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
     std::shared_ptr<Event> event = CreateSysEvent(TEST_DOMAIN, TEST_NAME, SysEventCreator::FAULT);
-    ASSERT_FALSE(plugin.OnEvent(event));
+    ASSERT_FALSE(plugin->OnEvent(event));
 }
 
 /**
@@ -269,15 +269,15 @@ HWTEST_F(EventValidatorTest, EventValidatorTest012, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest013, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
 
     // create same events
     SysEventCreator sysEventCreator(TEST_DOMAIN, TEST_NAME, SysEventCreator::BEHAVIOR);
     std::shared_ptr<Event> event1 = std::make_shared<SysEvent>("", nullptr, sysEventCreator);
-    ASSERT_TRUE(plugin.OnEvent(event1));
+    ASSERT_TRUE(plugin->OnEvent(event1));
     std::shared_ptr<Event> event2 = std::make_shared<SysEvent>("", nullptr, sysEventCreator);
-    ASSERT_FALSE(plugin.OnEvent(event2));
+    ASSERT_FALSE(plugin->OnEvent(event2));
 }
 
 /**
@@ -288,9 +288,9 @@ HWTEST_F(EventValidatorTest, EventValidatorTest013, TestSize.Level1)
  */
 HWTEST_F(EventValidatorTest, EventValidatorTest014, TestSize.Level1)
 {
-    EventValidator plugin;
+    std::shared_ptr<EventValidator> plugin = std::make_shared<EventValidator>();
     InitPlugin(plugin);
-    plugin.OnConfigUpdate("", "");
+    plugin->OnConfigUpdate("", "");
     std::shared_ptr<Event> event = CreateSysEvent();
-    ASSERT_TRUE(plugin.OnEvent(event));
+    ASSERT_TRUE(plugin->OnEvent(event));
 }
