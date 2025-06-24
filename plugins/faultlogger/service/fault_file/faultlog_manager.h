@@ -34,7 +34,6 @@ public:
     // use rawdb manage fault log infos
     explicit FaultLogManager(const std::shared_ptr<EventLoop>& looper) : looper_(looper) {};
     void Init();
-
     bool GetFaultLogContent(const std::string& name, std::string& content) const;
     int32_t CreateTempFaultLogFile(time_t time, int32_t id, int32_t faultType, const std::string& module) const;
     std::list<std::string> GetFaultLogFileList(const std::string& module, time_t time, int32_t id, int32_t faultType,
@@ -46,9 +45,13 @@ public:
         const std::string& module, int32_t id, int32_t faultType, int32_t maxNum) const;
     bool IsProcessedFault(int32_t pid, int32_t uid, int32_t faultType);
 private:
+    void InitWarningLogStore();
+    std::string GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName) const;
+    int GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName) const;
     void ReduceLogFileListSize(std::list<std::string>& infoVec, int32_t maxNum) const;
     std::shared_ptr<EventLoop> looper_;
     std::unique_ptr<LogStoreEx> store_;
+    std::unique_ptr<LogStoreEx> warningLogStore_;
     std::unique_ptr<IFaultLogDatabase> faultLogDb_;
 };
 }  // namespace HiviewDFX
