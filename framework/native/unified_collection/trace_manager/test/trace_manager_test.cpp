@@ -791,7 +791,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest016, TestSize.Level1)
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().InitTelemetryStatus(false);
     TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
-    ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
+    ASSERT_TRUE(ret2.IsSuccess());
     auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
