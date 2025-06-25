@@ -44,5 +44,6 @@ ohos_unittest("EventServerTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 }

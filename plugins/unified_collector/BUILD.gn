@@ -81,6 +81,7 @@ ohos_source_set("unified_collector") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

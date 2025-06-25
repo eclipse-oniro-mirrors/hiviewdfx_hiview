@@ -50,17 +50,17 @@ void AddDomainNames(const std::string& domain, const std::vector<std::string>& n
 
 void ParseExportEventList(cJSON* eventItem, ExportEventList& eventList)
 {
-    auto domain = CJsonUtil::GetStringMemberValue(eventItem, DOMAIN);
+    auto domain = CJsonUtil::GetStringValue(eventItem, DOMAIN);
     if (domain.empty()) {
         return;
     }
     std::vector<std::string> allEventNames;
-    CJsonUtil::GetStringMemberArray(eventItem, NAMES, allEventNames);
+    CJsonUtil::GetStringArray(eventItem, NAMES, allEventNames);
     if (allEventNames.size() > 0) {
         AddDomainNames(domain, allEventNames, eventList);
         return;   // names configured in events has a higher priority than name to parse
     }
-    auto eventName = CJsonUtil::GetStringMemberValue(eventItem, NAME);
+    auto eventName = CJsonUtil::GetStringValue(eventItem, NAME);
     if (eventName.empty()) {
         return;
     }
@@ -122,7 +122,7 @@ void ExportEventListParser::ParseConfiguration()
         HIVIEW_LOGW("configurationInfo configured is invalid.");
         return;
     }
-    configurationVersion_ = CJsonUtil::GetInt64MemberValue(jsonObj, CONFIGURATION_VERSION, INVALID_INT_VAL);
+    configurationVersion_ = CJsonUtil::GetIntValue(jsonObj, CONFIGURATION_VERSION, INVALID_INT_VAL);
     if (configurationVersion_ == INVALID_INT_VAL) {
         HIVIEW_LOGW("failed to parse integer value of configurationVersion.");
         return;

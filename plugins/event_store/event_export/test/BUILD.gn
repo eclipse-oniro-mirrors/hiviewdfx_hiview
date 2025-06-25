@@ -53,6 +53,7 @@ ohos_unittest("EventExportConfigTest") {
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 
   resource_config_file = "resource/ohos_test.xml"

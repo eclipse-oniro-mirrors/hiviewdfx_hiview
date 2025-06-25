@@ -16,65 +16,53 @@
 
 #include <memory>
 
-#include "cjson_util.h"
 #include "hiview_event_common.h"
+#include "json/json.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
 using namespace BaseEventSpace;
-using ParamValueAdder = void (*)(cJSON* root, const std::string& name, const ParamValue& value);
+using ParamValueAdder = void (*)(Json::Value &root, const std::string &name, const ParamValue& value);
 
-void AddUint8Value(cJSON* root, const std::string& name, const ParamValue& value)
+void AddUint8Value(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON_AddNumberToObject(root, name.c_str(), value.GetUint8());
+    root[name] = value.GetUint8();
 }
 
-void AddUint16Value(cJSON* root, const std::string& name, const ParamValue& value)
+void AddUint16Value(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON_AddNumberToObject(root, name.c_str(), value.GetUint16());
+    root[name] = value.GetUint16();
 }
 
-void AddUint32Value(cJSON* root, const std::string& name, const ParamValue& value)
+void AddUint32Value(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON_AddNumberToObject(root, name.c_str(), value.GetUint32());
+    root[name] = value.GetUint32();
 }
 
-void AddUint64Value(cJSON* root, const std::string& name, const ParamValue& value)
+void AddUint64Value(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON_AddNumberToObject(root, name.c_str(), value.GetUint64());
+    root[name] = value.GetUint64();
 }
 
-void AddStringValue(cJSON* root, const std::string& name, const ParamValue& value)
+void AddStringValue(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON_AddStringToObject(root, name.c_str(), value.GetString().c_str());
+    root[name] = value.GetString();
 }
 
-void AddUint32VecValue(cJSON* root, const std::string& name, const ParamValue& value)
+void AddUint32VecValue(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON* nameJson = CJsonUtil::GetItemMember(root, name);
-    if (nameJson == nullptr) {
-        nameJson = cJSON_AddArrayToObject(root, name.c_str());
-    }
-    if (cJSON_IsArray(nameJson)) {
-        auto vec = value.GetUint32Vec();
-        for (auto num : vec) {
-            cJSON_AddItemToArray(nameJson, cJSON_CreateNumber(num));
-        }
+    auto vec = value.GetUint32Vec();
+    for (auto num : vec) {
+        root[name].append(num);
     }
 }
 
-void AddStringVecValue(cJSON* root, const std::string& name, const ParamValue& value)
+void AddStringVecValue(Json::Value &root, const std::string &name, const ParamValue& value)
 {
-    cJSON* nameJson = CJsonUtil::GetItemMember(root, name);
-    if (nameJson == nullptr) {
-        nameJson = cJSON_AddArrayToObject(root, name.c_str());
-    }
-    if (cJSON_IsArray(nameJson)) {
-        auto vec = value.GetStringVec();
-        for (auto str : vec) {
-            cJSON_AddItemToArray(nameJson, cJSON_CreateString(str.c_str()));
-        }
+    auto vec = value.GetStringVec();
+    for (auto str : vec) {
+        root[name].append(str);
     }
 }
 
@@ -96,25 +84,24 @@ ParamValue LoggerEvent::GetValue(const std::string& name)
 
 std::string LoggerEvent::ToJsonString()
 {
-    cJSON* root = cJSON_CreateObject();
-    if (root == nullptr) {
-        return "";
-    }
-    cJSON_AddStringToObject(root, KEY_OF_DOMAIN.c_str(), HiSysEvent::Domain::HIVIEWDFX);
-    cJSON_AddStringToObject(root, KEY_OF_NAME.c_str(), this->eventName_.c_str());
-    cJSON_AddNumberToObject(root, KEY_OF_TYPE.c_str(), (int)this->eventType_);
+    Json::Value root;
+    root[KEY_OF_DOMAIN] = HiSysEvent::Domain::HIVIEWDFX;
+    root[KEY_OF_NAME] = this->eventName_;
+    root[KEY_OF_TYPE] = (int)this->eventType_;
 
-    for (auto& param : paramMap_) {
+    for (auto &param : paramMap_) {
         size_t typeIndex = param.second.GetType();
         if (typeIndex < (sizeof(ADDER_FUNCS) / sizeof(ADDER_FUNCS[0]))) {
             ADDER_FUNCS[typeIndex](root, param.first, param.second);
         }
     }
 
-    std::string jsonStr;
-    CJsonUtil::BuildJsonString(root, jsonStr);
-    cJSON_Delete(root);
-    return jsonStr;
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    std::unique_ptr<Json::StreamWriter> jsonWriter(builder.newStreamWriter());
+    std::ostringstream os;
+    jsonWriter->write(root, &os);
+    return os.str();
 }
 
 void LoggerEvent::InnerUpdate(const std::string &name, const ParamValue& value)

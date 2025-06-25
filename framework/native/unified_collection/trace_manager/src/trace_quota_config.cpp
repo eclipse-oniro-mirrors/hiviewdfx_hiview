@@ -32,7 +32,7 @@ int64_t TraceQuotaConfig::GetTraceQuotaByCaller(const std::string& caller)
         HIVIEW_LOGW("failed to parse config");
         return -1;
     }
-    int64_t traceQuota = CJsonUtil::GetInt64MemberValue(root, caller, -1);
+    int64_t traceQuota = CJsonUtil::GetIntValue(root, caller, -1);
     if (traceQuota < 0) {
         HIVIEW_LOGW("failed to get quota for caller=%{public}s", caller.c_str());
     }

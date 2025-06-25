@@ -58,13 +58,13 @@ ohos_unittest("SysEventServiceOhosUnitTest") {
   ]
 
   external_deps = [
-    "cJSON:cjson",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -91,6 +91,7 @@ ohos_unittest("EventCheckerUnitTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -118,6 +119,7 @@ ohos_unittest("EventServiceAdapterUtilsTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

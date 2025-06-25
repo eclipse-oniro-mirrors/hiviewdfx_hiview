@@ -59,7 +59,7 @@ std::shared_ptr<ExportConfig> ExportConfigParser::Parse()
         return nullptr;
     }
     // read event export config files
-    CJsonUtil::GetStringMemberArray(jsonRoot_, EXPORT_EVENT_LIST_CONFIG_PATHS, exportConfig->eventsConfigFiles);
+    CJsonUtil::GetStringArray(jsonRoot_, EXPORT_EVENT_LIST_CONFIG_PATHS, exportConfig->eventsConfigFiles);
     // parse export switch setting parameter
     if (!ParseSettingDbParam(exportConfig->exportSwitchParam, EXPORT_SWITCH_PARAM_KEY)) {
         HIVIEW_LOGE("failed to parse export switch parameter.");
@@ -84,12 +84,12 @@ bool ExportConfigParser::ParseSettingDbParam(SettingDbParam& settingDbParam, con
         HIVIEW_LOGW("settingDbParam configured is invalid.");
         return false;
     }
-    settingDbParam.name = CJsonUtil::GetStringMemberValue(settingDbParamJson, SETTING_PARAM_NAME_KEY);
+    settingDbParam.name = CJsonUtil::GetStringValue(settingDbParamJson, SETTING_PARAM_NAME_KEY);
     if (settingDbParam.name.empty()) {
         HIVIEW_LOGW("name of setting db parameter configured is invalid.");
         return false;
     }
-    settingDbParam.enabledVal = CJsonUtil::GetStringMemberValue(settingDbParamJson, SETTING_PARAM_ENABLED_KEY);
+    settingDbParam.enabledVal = CJsonUtil::GetStringValue(settingDbParamJson, SETTING_PARAM_ENABLED_KEY);
     if (settingDbParam.enabledVal.empty()) {
         HIVIEW_LOGW("enabled value of setting db parameter configured is invalid.");
         return false;
@@ -100,31 +100,31 @@ bool ExportConfigParser::ParseSettingDbParam(SettingDbParam& settingDbParam, con
 bool ExportConfigParser::ParseResidualContent(std::shared_ptr<ExportConfig> config)
 {
     // read export diectory
-    config->exportDir = CJsonUtil::GetStringMemberValue(jsonRoot_, EXPORT_DIR);
+    config->exportDir = CJsonUtil::GetStringValue(jsonRoot_, EXPORT_DIR);
     if (config->exportDir.empty()) {
         HIVIEW_LOGW("exportDirectory configured is invalid.");
         return false;
     }
     // read maximum capacity of the export diectory
-    config->maxCapcity = CJsonUtil::GetInt64MemberValue(jsonRoot_, EXPORT_DIR_MAX_CAPACITY, INVALID_INT_VAL);
+    config->maxCapcity = CJsonUtil::GetIntValue(jsonRoot_, EXPORT_DIR_MAX_CAPACITY, INVALID_INT_VAL);
     if (config->maxCapcity == INVALID_INT_VAL) {
         HIVIEW_LOGW("exportDirMaxCapacity configured is invalid.");
         return false;
     }
     // read maximum size of the export single event file
-    config->maxSize = CJsonUtil::GetInt64MemberValue(jsonRoot_, EXPORT_SINGLE_FILE_MAX_SIZE, INVALID_INT_VAL);
+    config->maxSize = CJsonUtil::GetIntValue(jsonRoot_, EXPORT_SINGLE_FILE_MAX_SIZE, INVALID_INT_VAL);
     if (config->maxSize == INVALID_INT_VAL) {
         HIVIEW_LOGW("exportSingleFileMaxSize configured is invalid.");
         return false;
     }
     // read task executing cycle
-    config->taskCycle = CJsonUtil::GetInt64MemberValue(jsonRoot_, TASK_EXECUTING_CYCLE, INVALID_DOUBLE_VAL);
+    config->taskCycle = CJsonUtil::GetIntValue(jsonRoot_, TASK_EXECUTING_CYCLE, INVALID_DOUBLE_VAL);
     if (config->taskCycle == INVALID_INT_VAL) {
         HIVIEW_LOGW("taskExecutingCycle configured is invalid.");
         return false;
     }
     // read day count for event file to store
-    config->dayCnt = CJsonUtil::GetInt64MemberValue(jsonRoot_, FILE_STORED_MAX_DAY_CNT, INVALID_DOUBLE_VAL);
+    config->dayCnt = CJsonUtil::GetIntValue(jsonRoot_, FILE_STORED_MAX_DAY_CNT, INVALID_DOUBLE_VAL);
     if (config->dayCnt == INVALID_INT_VAL) {
         HIVIEW_LOGW("fileStoredMaxDayCnt configured is invalid.");
         return false;

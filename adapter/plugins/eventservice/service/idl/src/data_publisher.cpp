@@ -26,7 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include "cjson_util.h"
 #include "data_publisher_sys_event_callback.h"
 #include "data_share_common.h"
 #include "data_share_dao.h"
@@ -37,6 +36,7 @@
 #include "hisysevent.h"
 #include "hiview_event_common.h"
 #include "iquery_base_callback.h"
+#include "json/json.h"
 #include "hiview_logger.h"
 #include "ret_code.h"
 #include "string_util.h"
@@ -53,13 +53,15 @@ namespace {
 std::string GetBundleNameFromJsonStr(const std::string& jsonInfo)
 {
     std::string bundleName = "";
-    cJSON* root = cJSON_Parse(jsonInfo.c_str());
-    if (root == nullptr) {
+    Json::Value root;
+    Json::Reader reader;
+    if (!reader.parse(jsonInfo, root)) {
         HIVIEW_LOGE("failed to parse jsonInfo.");
         return bundleName;
     }
-    bundleName = CJsonUtil::GetStringMemberValue(root, BUNDLE_NAME);
-    cJSON_Delete(root);
+    if (root[BUNDLE_NAME].isString()) {
+        bundleName = root[BUNDLE_NAME].asString();
+    }
     return bundleName;
 }
 }  // namespace

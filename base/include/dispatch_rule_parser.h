@@ -17,8 +17,8 @@
 
 #include <string>
 
-#include "cjson_util.h"
 #include "defines.h"
+#include "json/json.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -29,11 +29,11 @@ public:
 
 private:
     std::shared_ptr<DispatchRule> dispatchRule_ = nullptr;
-    void ParseEventTypes(const cJSON* root);
-    void ParseTagEvents(const cJSON* root);
-    void ParseEvents(const cJSON* root);
-    void ParseDomainRule(const cJSON* root);
-    void ParseDomains(const cJSON* json, DomainRule &domainRule);
+    void ParseEventTypes(const Json::Value& root);
+    void ParseTagEvents(const Json::Value& root);
+    void ParseEvents(const Json::Value& root);
+    void ParseDomainRule(const Json::Value& root);
+    void ParseDomains(const Json::Value& json, DomainRule &domainRule);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

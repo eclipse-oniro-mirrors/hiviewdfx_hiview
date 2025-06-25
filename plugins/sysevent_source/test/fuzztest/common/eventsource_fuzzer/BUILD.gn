@@ -45,5 +45,6 @@ ohos_fuzztest("EventSourceFuzzTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 }

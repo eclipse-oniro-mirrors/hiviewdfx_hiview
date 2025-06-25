@@ -36,11 +36,11 @@ public:
 
 private:
     struct StoreConfig {
-        uint32_t storeDay = 0;
-        uint32_t pageSize = 0;
-        uint32_t maxFileSize = 0;
-        uint32_t maxFileNum = 0;
-        uint32_t maxSize = 0;
+        uint32_t storeDay;
+        uint32_t pageSize;
+        uint32_t maxFileSize;
+        uint32_t maxFileNum;
+        uint32_t maxSize;
     };
     void Init();
     bool Contain(int eventType);
