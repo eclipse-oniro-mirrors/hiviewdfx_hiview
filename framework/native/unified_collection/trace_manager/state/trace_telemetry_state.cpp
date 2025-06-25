@@ -150,13 +150,14 @@ void TelemetryState::InitTelemetryStatus(bool isStatusOn)
     if (stateCallback_ != nullptr) {
         innerStateMachine_->RegisterTelemetryCallback(stateCallback_);
     }
-    if (isStatusOn) {
-        innerStateMachine_->TransToTraceOnState(1, 0);
-        if (stateCallback_ != nullptr) {
-            stateCallback_->OnTelemetryTraceOn();
+    if (!isStatusOn) {
+        if (auto ret = innerStateMachine_->TransToInitState(); !ret.IsSuccess()) {
+            HIVIEW_LOGE("int trace off fail");
         }
-    } else {
-        innerStateMachine_->TransToInitState();
+        return;
+    }
+    if (auto ret = innerStateMachine_->TransToTraceOnState(0, 0); ret.IsSuccess() && stateCallback_ != nullptr) {
+        stateCallback_->OnTelemetryTraceOn();
     }
 }
 }

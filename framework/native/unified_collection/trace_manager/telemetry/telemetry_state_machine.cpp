@@ -34,12 +34,10 @@ TraceRet InitState::TraceOn()
         HIVIEW_LOGE(":%{public}s, stateMachine_ null", GetTag().c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    auto ret = Hitrace::SetTraceStatus(true);
-    if (ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, result:%{public}d", GetTag().c_str(), ret);
-        return TraceRet{ret};
+    if (auto ret = ptr->TransToTraceOnState(1, 0); !ret.IsSuccess()) {
+        HIVIEW_LOGI("set traceOn fail");
+        return ret;
     }
-    ptr->TransToTraceOnState(1, 0);
     if (ptr->stateCallback_ != nullptr) {
         ptr->stateCallback_->OnTelemetryTraceOn();
     }
@@ -59,13 +57,11 @@ TraceRet InitState::PostOn(uint64_t time)
         HIVIEW_LOGE(":%{public}s, stateMachine_ null", GetTag().c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    auto ret = Hitrace::SetTraceStatus(true);
-    if (ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, result:%{public}d", GetTag().c_str(), ret);
-        return TraceRet{ret};
-    }
     auto postEndTime = TimeUtil::GetBootTimeMs() + time;
-    ptr->TransToTraceOnState(0, postEndTime);
+    if (auto ret = ptr->TransToTraceOnState(0, postEndTime); !ret.IsSuccess()) {
+        HIVIEW_LOGI("set traceOn fail");
+        return ret;
+    }
     if (ptr->stateCallback_ != nullptr) {
         ptr->stateCallback_->OnTelemetryTraceOn();
     }
@@ -103,21 +99,18 @@ TraceRet TraceOnState::TraceOff()
         HIVIEW_LOGE(":%{public}s, stateMachine_ null", GetTag().c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    if (traceOnCount_ == 0) {
+    if (postEndTime_ > 0 || traceOnCount_ > 1) {
+        if (traceOnCount_ > 1) {
+            traceOnCount_--;
+        }
         HIVIEW_LOGE(":%{public}s, post on running, still trace on", GetTag().c_str());
         return TraceRet(TraceStateCode::NO_TRIGGER);
     }
-    traceOnCount_--;
-    if (traceOnCount_ > 0 || postEndTime_ > 0) {
-        HIVIEW_LOGW(":%{public}s, traceOnCount_:%{public}d still trace on", GetTag().c_str(), traceOnCount_);
-        return TraceRet(TraceStateCode::NO_TRIGGER);
+    if (auto ret = ptr->TransToInitState(); !ret.IsSuccess()) {
+        HIVIEW_LOGE("set traceOff fail");
+        return ret;
     }
-    auto ret = Hitrace::SetTraceStatus(false);
-    if (ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, result:%{public}d", GetTag().c_str(), ret);
-        return TraceRet{ret};
-    }
-    ptr->TransToInitState();
+    HIVIEW_LOGI(":%{public}s, close trace", GetTag().c_str());
     if (stateMachine_.lock()->stateCallback_ != nullptr) {
         stateMachine_.lock()->stateCallback_->OnTelemetryTraceOff();
     }
@@ -153,16 +146,13 @@ TraceRet TraceOnState::TimeOut()
         HIVIEW_LOGW(":%{public}s trace on running count:%{public}d still trace on", GetTag().c_str(), traceOnCount_);
         return TraceRet(TraceStateCode::NO_TRIGGER);
     }
-    auto ret = Hitrace::SetTraceStatus(false);
-    if (ret != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, result:%{public}d", GetTag().c_str(), ret);
-        return TraceRet{ret};
+    if (auto ret = ptr->TransToInitState(); !ret.IsSuccess()) {
+        HIVIEW_LOGI("set traceOff fail");
+        return ret;
     }
-    ptr->TransToInitState();
     if (stateMachine_.lock()->stateCallback_ != nullptr) {
         stateMachine_.lock()->stateCallback_->OnTelemetryTraceOff();
     }
-    HIVIEW_LOGI(":%{public}s, result:%{public}d", GetTag().c_str(), ret);
     return {};
 }
 
@@ -171,17 +161,29 @@ std::string TraceOnState::GetTag()
     return "TraceOnState";
 }
 
-void TeleMetryStateMachine::TransToInitState()
+TraceRet TeleMetryStateMachine::TransToInitState()
 {
-    HIVIEW_LOGI("init");
+    auto ret = SetTraceStatus(false);
+    if (ret != TraceErrorCode::SUCCESS) {
+        HIVIEW_LOGE("SetTraceStatus true, result:%{public}d", ret);
+        return TraceRet(ret);
+    }
+    HIVIEW_LOGI("init success");
     currentState_ = initStateState_;
+    return {};
 }
 
-void TeleMetryStateMachine::TransToTraceOnState(uint32_t traceOnCount, uint64_t postEndTime)
+TraceRet TeleMetryStateMachine::TransToTraceOnState(uint32_t traceOnCount, uint64_t postEndTime)
 {
+    auto ret = Hitrace::SetTraceStatus(true);
+    if (ret != TraceErrorCode::SUCCESS) {
+        HIVIEW_LOGE("SetTraceStatus true, result:%{public}d", ret);
+        return TraceRet(ret);
+    }
     HIVIEW_LOGI("traceOnCount:%{public}d", traceOnCount);
     traceOnState_->SetTraceOnCount(traceOnCount);
     traceOnState_->SetPostEndTime(postEndTime);
     currentState_ = traceOnState_;
+    return {};
 }
 }

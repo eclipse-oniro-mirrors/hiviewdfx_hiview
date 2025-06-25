@@ -15,7 +15,6 @@
 #ifndef HIVIEWDFX_HIVIEW_TELEMETRY_STATE_MACHINE_H
 #define HIVIEWDFX_HIVIEW_TELEMETRY_STATE_MACHINE_H
 #include <memory>
-#include <utility>
 
 #include "trace_common.h"
 
@@ -124,8 +123,8 @@ public:
         traceOnState_ = traceOnState;
     }
 
-    void TransToInitState();
-    void TransToTraceOnState(uint32_t traceOnCount, uint64_t postEndTime);
+    TraceRet TransToInitState();
+    TraceRet TransToTraceOnState(uint32_t traceOnCount, uint64_t postEndTime);
 
 private:
     std::shared_ptr<BaseState> currentState_;
