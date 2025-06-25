@@ -60,16 +60,12 @@ auto ParseErrorSummary(const std::string& summary)
     return std::make_tuple(name, leftStr, stack);
 }
 
-void FillErrorParams(const std::string& summary, cJSON* params)
+void FillErrorParams(const std::string& summary, Json::Value& params)
 {
-    if (params == nullptr) {
-        return;
-    }
-    cJSON *exception = cJSON_CreateObject();
-    if (exception == nullptr) {
-        HIVIEW_LOGE("parse exception failed");
-        return;
-    }
+    Json::Value exception;
+    exception["name"] = "";
+    exception["message"] = "";
+    exception["stack"] = "";
     if (!summary.empty()) {
         auto [name, message, stack] = ParseErrorSummary(summary);
         name.erase(name.find_last_not_of("\n") + 1);
@@ -81,15 +77,11 @@ void FillErrorParams(const std::string& summary, cJSON* params)
                 stack.erase(0, strlen(STACK_ERROR_MESSAGE) + 1);
             }
         }
-        cJSON_AddStringToObject(exception, "name", name.c_str());
-        cJSON_AddStringToObject(exception, "message", message.c_str());
-        cJSON_AddStringToObject(exception, "stack", stack.c_str());
-    } else {
-        cJSON_AddStringToObject(exception, "name", "");
-        cJSON_AddStringToObject(exception, "message", "");
-        cJSON_AddStringToObject(exception, "stack", "");
+        exception["name"] = name;
+        exception["message"] = message;
+        exception["stack"] = stack;
     }
-    (void)cJSON_AddItemToObject(params, "exception", exception);
+    params["exception"] = exception;
 }
 } // namespace
 
@@ -99,36 +91,26 @@ void FaultLogErrorReporter::ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysE
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue(FaultKey::SUMMARY));
     HIVIEW_LOGD("ReportAppEvent:summary:%{public}s.", summary.c_str());
 
-    cJSON *params = cJSON_CreateObject();
-    if (params == nullptr) {
-        HIVIEW_LOGE("parse params failed");
-        return;
-    }
-    cJSON_AddNumberToObject(params, "time", static_cast<double>(sysEvent->happenTime_));
-    cJSON_AddStringToObject(params, "crash_type", type.c_str());
-    cJSON_AddBoolToObject(params, "foreground", sysEvent->GetEventValue(FaultKey::FOREGROUND) == "Yes");
-    cJSON *externalLog = cJSON_CreateArray();
+    Json::Value params;
+    params["time"] = sysEvent->happenTime_;
+    params["crash_type"] = type;
+    params["foreground"] = sysEvent->GetEventValue(FaultKey::FOREGROUND) == "Yes";
+    Json::Value externalLog(Json::arrayValue);
     std::string logPath = sysEvent->GetEventValue(FaultKey::LOG_PATH);
-    if (!logPath.empty() && externalLog != nullptr) {
-        (void)cJSON_AddItemToArray(externalLog, cJSON_CreateString(logPath.c_str()));
+    if (!logPath.empty()) {
+        externalLog.append(logPath);
     }
-    (void)cJSON_AddItemToObject(params, "external_log", externalLog);
-    cJSON_AddStringToObject(params, "bundle_version", sysEvent->GetEventValue(FaultKey::MODULE_VERSION).c_str());
-    cJSON_AddStringToObject(params, "bundle_name", sysEvent->GetEventValue(FaultKey::PACKAGE_NAME).c_str());
-    cJSON_AddNumberToObject(params, "pid", static_cast<double>(sysEvent->GetPid()));
-    cJSON_AddNumberToObject(params, "uid", static_cast<double>(sysEvent->GetUid()));
-    cJSON_AddStringToObject(params, "uuid", sysEvent->GetEventValue(FaultKey::FINGERPRINT).c_str());
-    cJSON_AddStringToObject(params, "app_running_unique_id", sysEvent->GetEventValue("APP_RUNNING_UNIQUE_ID").c_str());
+    params["external_log"] = externalLog;
+    params["bundle_version"] = sysEvent->GetEventValue(FaultKey::MODULE_VERSION);
+    params["bundle_name"] = sysEvent->GetEventValue(FaultKey::PACKAGE_NAME);
+    params["pid"] = sysEvent->GetPid();
+    params["uid"] = sysEvent->GetUid();
+    params["uuid"] = sysEvent->GetEventValue(FaultKey::FINGERPRINT);
+    params["app_running_unique_id"] = sysEvent->GetEventValue("APP_RUNNING_UNIQUE_ID");
     FillErrorParams(summary, params);
     std::string log = GetHilogByPid(sysEvent->GetPid());
-    (void)cJSON_AddItemToObject(params, "hilog", ParseHilogToJson(log));
-    char *paramsChar = cJSON_PrintUnformatted(params);
-    std::string paramsStr = "";
-    if (paramsChar != nullptr) {
-        paramsStr = paramsChar;
-        cJSON_free(paramsChar);
-    }
-    cJSON_Delete(params);
+    params["hilog"] = ParseHilogToJson(log);
+    std::string paramsStr = Json::FastWriter().write(params);
     HIVIEW_LOGD("ReportAppEvent: uid:%{public}d, json:%{public}s.",
         sysEvent->GetUid(), paramsStr.c_str());
 #ifdef UNITTEST

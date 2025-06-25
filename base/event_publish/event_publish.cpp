@@ -16,19 +16,19 @@
 #include "event_publish.h"
 
 #ifdef APPEVENT_PUBLISH_ENABLE
+#include "user_data_size_reporter.h"
 #include "app_event_elapsed_time.h"
 #include "bundle_mgr_client.h"
 #include "bundle_mgr_proxy.h"
-#include "cJSON.h"
 #include "file_util.h"
 #include "iservice_registry.h"
+#include "json/json.h"
 #include "hisysevent_c.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "storage_acl.h"
 #include "string_util.h"
 #include "time_util.h"
-#include "user_data_size_reporter.h"
 
 using namespace OHOS::HiviewDFX::HiAppEvent;
 namespace OHOS {
@@ -77,23 +77,6 @@ struct ExternalLogInfo {
     std::string extensionType_;
     std::string subPath_;
     uint64_t maxFileSize_;
-};
-
-struct AppEventParams {
-    int32_t uid = 0;
-    std::string eventName;
-    std::string pathHolder;
-    std::shared_ptr<cJSON> eventJson;
-    uint32_t maxFileSizeBytes = 0;
-
-    AppEventParams(int32_t uid, std::string eventName, std::string pathHolder, const std::shared_ptr<cJSON>& eventJson,
-        uint32_t maxFileSizeBytes)
-        : uid(uid),
-        eventName(std::move(eventName)),
-        pathHolder(std::move(pathHolder)),
-        eventJson(eventJson),
-        maxFileSizeBytes(maxFileSizeBytes)
-    {}
 };
 
 void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalLogInfo)
@@ -224,13 +207,13 @@ bool CopyExternalLog(int32_t uid, const std::string& externalLog, const std::str
 }
 
 bool CheckInSandBoxLog(const std::string& externalLog, const std::string& sandBoxLogPath,
-    cJSON& externalLogJson, bool& logOverLimit)
+    Json::Value& externalLogJson, bool& logOverLimit)
 {
     if (externalLog.find(SANDBOX_DIR) == 0) {
         HIVIEW_LOGI("File in sandbox path not copy.");
         std::string fileName = FileUtil::ExtractFileName(externalLog);
         if (FileUtil::FileExists(sandBoxLogPath + "/" + fileName)) {
-            (void)cJSON_AddItemToArray(&externalLogJson, cJSON_CreateString(externalLog.c_str()));
+            externalLogJson.append(externalLog);
         } else {
             HIVIEW_LOGE("sand box log does not exist");
             logOverLimit = true;
@@ -240,20 +223,19 @@ bool CheckInSandBoxLog(const std::string& externalLog, const std::string& sandBo
     return false;
 }
 
-std::string GetDesFileName(cJSON& params, const std::string& eventName,
+std::string GetDesFileName(Json::Value& params, const std::string& eventName,
     const ExternalLogInfo& externalLogInfo)
 {
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     int pid = 0;
-    cJSON *tmpItem = cJSON_GetObjectItemCaseSensitive(&params, PID);
-    if (cJSON_IsNumber(tmpItem) && cJSON_GetNumberValue(tmpItem) == static_cast<int>(cJSON_GetNumberValue(tmpItem))) {
-        pid = static_cast<int>(cJSON_GetNumberValue(tmpItem));
+    if (params.isMember(PID) && params[PID].isInt()) {
+        pid = params[PID].asInt();
     }
 
     std::string desFileName;
     const std::string BUSINESS_JANK_PREFIX = "BUSINESS_THREAD_JANK";
-    tmpItem = cJSON_GetObjectItemCaseSensitive(&params, (BUSINESS_JANK_PREFIX).c_str());
-    if (cJSON_IsTrue(tmpItem)) {
+    if (params.isMember(IS_BUSINESS_JANK) && params[IS_BUSINESS_JANK].isBool() &&
+        params[IS_BUSINESS_JANK].asBool()) {
         desFileName = BUSINESS_JANK_PREFIX + "_" + timeStr + "_" + std::to_string(pid)
         + externalLogInfo.extensionType_;
     } else {
@@ -265,26 +247,22 @@ std::string GetDesFileName(cJSON& params, const std::string& eventName,
 
 void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, const ExternalLogInfo &externalLogInfo)
 {
-    cJSON *paramItem = cJSON_GetObjectItemCaseSensitive(eventParams.eventJson.get(), PARAM_PROPERTY);
-    cJSON *externalLogItem = cJSON_GetObjectItemCaseSensitive(paramItem, EXTERNAL_LOG);
-    if (!cJSON_IsArray(externalLogItem) || cJSON_GetArraySize(externalLogItem) == 0) {
+    if (!eventParams.eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) ||
+        !eventParams.eventJson[PARAM_PROPERTY][EXTERNAL_LOG].isArray() ||
+        eventParams.eventJson[PARAM_PROPERTY][EXTERNAL_LOG].empty()) {
         HIVIEW_LOGE("no external log need to copy.");
         return;
     }
 
     bool logOverLimit = false;
-    cJSON *externalLogJson = cJSON_CreateArray();
-    if (externalLogJson == nullptr) {
-        return;
-    }
+    Json::Value externalLogJson(Json::arrayValue);
     uint64_t dirSize = FileUtil::GetFolderSize(sandBoxLogPath);
-    int externalLogArraySize = cJSON_GetArraySize(externalLogItem);
-    for (int i = 0; i < externalLogArraySize; ++i) {
+    for (Json::ArrayIndex i = 0; i < eventParams.eventJson[PARAM_PROPERTY][EXTERNAL_LOG].size(); ++i) {
         std::string externalLog = "";
-        if (cJSON_IsString(cJSON_GetArrayItem(externalLogItem, i))) {
-            externalLog = cJSON_GetStringValue(cJSON_GetArrayItem(externalLogItem, i));
+        if (eventParams.eventJson[PARAM_PROPERTY][EXTERNAL_LOG][i].isString()) {
+            externalLog = eventParams.eventJson[PARAM_PROPERTY][EXTERNAL_LOG][i].asString();
         }
-        if (CheckInSandBoxLog(externalLog, sandBoxLogPath, *externalLogJson, logOverLimit)) {
+        if (CheckInSandBoxLog(externalLog, sandBoxLogPath, externalLogJson, logOverLimit)) {
             continue;
         }
         if (externalLog.empty() || !FileUtil::FileExists(externalLog)) {
@@ -293,13 +271,13 @@ void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, 
         }
         uint64_t fileSize = FileUtil::GetFileSize(externalLog);
         if (dirSize + fileSize <= externalLogInfo.maxFileSize_) {
-            std::string desFileName = GetDesFileName(*paramItem, eventParams.eventName, externalLogInfo);
+            std::string desFileName = GetDesFileName(eventParams.eventJson[PARAM_PROPERTY],
+                eventParams.eventName, externalLogInfo);
             std::string destPath;
             destPath.append(sandBoxLogPath).append("/").append(desFileName);
             if (CopyExternalLog(eventParams.uid, externalLog, destPath, eventParams.maxFileSizeBytes)) {
                 dirSize += fileSize;
-                (void)cJSON_AddItemToArray(externalLogJson, cJSON_CreateString(("/data/storage/el2/log/" +
-                    externalLogInfo.subPath_ + "/" + desFileName).c_str()));
+                externalLogJson.append("/data/storage/el2/log/" + externalLogInfo.subPath_ + "/" + desFileName);
                 HIVIEW_LOGI("move log file to sandBoxLogPath.");
             }
         } else {
@@ -309,27 +287,24 @@ void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, 
             break;
         }
     }
-    (void)cJSON_AddItemToObject(paramItem, LOG_OVER_LIMIT, cJSON_CreateBool(logOverLimit));
-    cJSON_DeleteItemFromObjectCaseSensitive(paramItem, EXTERNAL_LOG);
-    (void)cJSON_AddItemToObject(paramItem, EXTERNAL_LOG, externalLogJson);
+    eventParams.eventJson[PARAM_PROPERTY][LOG_OVER_LIMIT] = logOverLimit;
+    eventParams.eventJson[PARAM_PROPERTY][EXTERNAL_LOG] = externalLogJson;
 }
 
-void RemoveEventInternalField(cJSON& eventJson)
+void RemoveEventInternalField(Json::Value& eventJson)
 {
-    cJSON *paramItem = cJSON_GetObjectItemCaseSensitive(&eventJson, PARAM_PROPERTY);
-    cJSON_DeleteItemFromObjectCaseSensitive(paramItem, IS_BUSINESS_JANK);
+    if (eventJson[PARAM_PROPERTY].isMember(IS_BUSINESS_JANK)) {
+        eventJson[PARAM_PROPERTY].removeMember(IS_BUSINESS_JANK);
+    }
     return;
 }
 
-std::string ParseString(const cJSON& root, const std::string& key)
+std::string ParseString(const Json::Value& root, const std::string& key)
 {
-    std::string retStr = (cJSON_IsObject(&root) &&
-        cJSON_IsString(cJSON_GetObjectItemCaseSensitive(&root, key.c_str()))) ?
-        cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(&root, key.c_str())) : "";
-    return retStr;
+    return (root.isObject() && root.isMember(key) && root[key].isString()) ? root[key].asString() : "";
 }
 
-void ReportAppEventSend(cJSON& eventJson)
+void ReportAppEventSend(Json::Value& eventJson)
 {
     if (!Parameter::IsBetaVersion()) {
         HIVIEW_LOGD("no need to report APP_EVENT_SEND event");
@@ -340,15 +315,14 @@ void ReportAppEventSend(cJSON& eventJson)
         HIVIEW_LOGD("only report APP_EVENT_SEND event for APP_FREEZE and APP_CRASH");
         return;
     }
-    cJSON *paramItem = cJSON_GetObjectItemCaseSensitive(&eventJson, PARAM_PROPERTY);
-    cJSON *externalLogItem = cJSON_GetObjectItemCaseSensitive(paramItem, EXTERNAL_LOG);
-    if (paramItem == nullptr || externalLogItem == nullptr || !cJSON_IsArray(externalLogItem)) {
+    if (!eventJson.isMember(PARAM_PROPERTY) || !eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) ||
+        !eventJson[PARAM_PROPERTY][EXTERNAL_LOG].isArray()) {
         HIVIEW_LOGW("no external log need to copy");
         return;
     }
-    std::string bundleName = ParseString(*paramItem, BUNDLE_NAME);
-    std::string bundleVersion = ParseString(*paramItem, BUNDLE_VERSION);
-    std::string crashType = ParseString(*paramItem, CRASH_TYPE);
+    std::string bundleName = ParseString(eventJson[PARAM_PROPERTY], BUNDLE_NAME);
+    std::string bundleVersion = ParseString(eventJson[PARAM_PROPERTY], BUNDLE_VERSION);
+    std::string crashType = ParseString(eventJson[PARAM_PROPERTY], CRASH_TYPE);
     HiSysEventParam params[] = {
         { .name = "BUNDLENAME",       .t = HISYSEVENT_STRING,
           .v = { .s = const_cast<char*>(bundleName.c_str()) },                .arraySize = 0, },
@@ -359,7 +333,7 @@ void ReportAppEventSend(cJSON& eventJson)
         { .name = "CRASH_TYPE",       .t = HISYSEVENT_STRING,
           .v = { .s = const_cast<char*>(crashType.c_str()) },                 .arraySize = 0, },
         { .name = "EXTERNALLOG",      .t = HISYSEVENT_BOOL,
-          .v = { .b = cJSON_GetArraySize(externalLogItem) > 0 },    .arraySize = 0, }
+          .v = { .b = eventJson[PARAM_PROPERTY][EXTERNAL_LOG].size() > 0 },    .arraySize = 0, }
     };
     int ret = OH_HiSysEvent_Write("HIVIEWDFX", "APP_EVENT_SEND", HISYSEVENT_STATISTIC, params,
                                   sizeof(params) / sizeof(params[0]));
@@ -368,21 +342,15 @@ void ReportAppEventSend(cJSON& eventJson)
     }
 }
 
-void WriteEventJson(cJSON& eventJson, const std::string& filePath)
+void WriteEventJson(Json::Value& eventJson, const std::string& filePath)
 {
     RemoveEventInternalField(eventJson);
-    char *eventChar = cJSON_PrintUnformatted(&eventJson);
-    std::string eventStr = "";
-    if (eventChar != nullptr) {
-        eventStr = eventChar;
-        cJSON_free(eventChar);
-    }
-    char *nameProperty = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(&eventJson, NAME_PROPERTY));
+    std::string eventStr = Json::FastWriter().write(eventJson);
     if (!FileUtil::SaveStringToFile(filePath, eventStr, false)) {
-        HIVIEW_LOGE("failed to save event, eventName=%{public}s", nameProperty);
+        HIVIEW_LOGE("failed to save event, eventName=%{public}s", eventJson[NAME_PROPERTY].asString().c_str());
         return;
     }
-    HIVIEW_LOGI("save event finish, eventName=%{public}s", nameProperty);
+    HIVIEW_LOGI("save event finish, eventName=%{public}s", eventJson[NAME_PROPERTY].asString().c_str());
     ReportAppEventSend(eventJson);
 }
 
@@ -408,10 +376,10 @@ void SaveEventAndLogToSandBox(AppEventParams& eventParams)
     std::string desPath = FileUtil::GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
-    WriteEventJson(*(eventParams.eventJson), desPath);
+    WriteEventJson(eventParams.eventJson, desPath);
 }
 
-void SaveEventToTempFile(int32_t uid, cJSON& eventJson)
+void SaveEventToTempFile(int32_t uid, Json::Value& eventJson)
 {
     std::string tempPath = GetTempFilePath(uid);
     WriteEventJson(eventJson, tempPath);
@@ -444,40 +412,7 @@ bool CheckAppListenedEvents(const std::string& path, const std::string& eventNam
 }
 }
 
-class EventPublish::Impl {
-public:
-    void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
-        const std::string& paramJson, uint32_t maxFileSizeBytes = 0);
-private:
-    void StartSendingThread();
-    void SendEventToSandBox();
-    void StartOverLimitThread(AppEventParams& eventParams);
-    void SendOverLimitEventToSandBox(AppEventParams eventParams);
-private:
-    std::mutex mutex_;
-    std::unique_ptr<std::thread> sendingThread_ = nullptr;
-    std::unique_ptr<std::thread> sendingOverlimitThread_ = nullptr;
-};
-
-EventPublish& EventPublish::GetInstance()
-{
-    static EventPublish publish;
-    return publish;
-}
-
-EventPublish::EventPublish()
-    : impl_(std::make_unique<Impl>())
-{}
-
-EventPublish::~EventPublish() = default;
-
-void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
-    const std::string& paramJson, uint32_t maxFileSizeBytes)
-{
-    return impl_->PushEvent(uid, eventName, eventType, paramJson, maxFileSizeBytes);
-}
-
-void EventPublish::Impl::StartOverLimitThread(AppEventParams& eventParams)
+void EventPublish::StartOverLimitThread(AppEventParams& eventParams)
 {
     if (sendingOverlimitThread_) {
         return;
@@ -489,7 +424,7 @@ void EventPublish::Impl::StartOverLimitThread(AppEventParams& eventParams)
     sendingOverlimitThread_->detach();
 }
 
-void EventPublish::Impl::SendOverLimitEventToSandBox(AppEventParams eventParams)
+void EventPublish::SendOverLimitEventToSandBox(AppEventParams eventParams)
 {
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventParams.eventName, externalLogInfo);
@@ -500,13 +435,13 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(AppEventParams eventParams)
     std::string desPath = FileUtil::GetSandBoxBasePath(eventParams.uid, eventParams.pathHolder);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
-    WriteEventJson(*(eventParams.eventJson), desPath);
+    WriteEventJson(eventParams.eventJson, desPath);
     UserDataSizeReporter::GetInstance().ReportUserDataSize(eventParams.uid, eventParams.pathHolder,
                                                            EVENT_RESOURCE_OVERLIMIT);
     sendingOverlimitThread_.reset();
 }
 
-void EventPublish::Impl::StartSendingThread()
+void EventPublish::StartSendingThread()
 {
     if (sendingThread_ == nullptr) {
         HIVIEW_LOGI("start send thread.");
@@ -515,7 +450,7 @@ void EventPublish::Impl::StartSendingThread()
     }
 }
 
-void EventPublish::Impl::SendEventToSandBox()
+void EventPublish::SendEventToSandBox()
 {
     std::this_thread::sleep_for(std::chrono::seconds(DELAY_TIME));
     std::lock_guard<std::mutex> lock(mutex_);
@@ -552,11 +487,16 @@ void EventPublish::Impl::SendEventToSandBox()
     sendingThread_.reset();
 }
 
-void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
+void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
     const std::string& paramJson, uint32_t maxFileSizeBytes)
 {
+    if (eventName.empty() || paramJson.empty() || uid < 0) {
+        HIVIEW_LOGW("empty param.");
+        return;
+    }
     std::string bundleName = GetBundleNameById(uid);
-    if (eventName.empty() || paramJson.empty() || uid < 0 || bundleName.empty()) {
+    if (bundleName.empty()) {
+        HIVIEW_LOGW("empty bundleName uid=%{public}d.", uid);
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
@@ -576,22 +516,17 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         return;
     }
 
-    std::shared_ptr<cJSON> eventJson(cJSON_CreateObject(), [](cJSON *object) {
-        if (object != nullptr) {
-            cJSON_Delete(object);
-        }
-    });
-    if (eventJson == nullptr) {
+    Json::Value eventJson;
+    eventJson[DOMAIN_PROPERTY] = DOMAIN_OS;
+    eventJson[NAME_PROPERTY] = eventName;
+    eventJson[EVENT_TYPE_PROPERTY] = eventType;
+    Json::Value params;
+    Json::Reader reader;
+    if (!reader.parse(paramJson, params)) {
+        HIVIEW_LOGE("failed to parse paramJson bundleName, eventName=%{public}s.", eventName.c_str());
         return;
     }
-    (void)cJSON_AddStringToObject(eventJson.get(), DOMAIN_PROPERTY, DOMAIN_OS);
-    (void)cJSON_AddStringToObject(eventJson.get(), NAME_PROPERTY, eventName.c_str());
-    (void)cJSON_AddNumberToObject(eventJson.get(), EVENT_TYPE_PROPERTY, static_cast<double>(eventType));
-    cJSON *params = cJSON_Parse(paramJson.c_str());
-    if (params == nullptr) {
-        return;
-    }
-    (void)cJSON_AddItemToObject(eventJson.get(), PARAM_PROPERTY, params);
+    eventJson[PARAM_PROPERTY] = params;
     AppEventParams eventParams(uid, eventName, pathHolder, eventJson, maxFileSizeBytes);
     const std::set<std::string> immediateEvents = {EVENT_APP_CRASH, EVENT_APP_FREEZE, EVENT_ADDRESS_SANITIZER,
         EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK, EVENT_APP_HICOLLIE, EVENT_APP_KILLED};
@@ -601,7 +536,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
         StartOverLimitThread(eventParams);
     } else {
-        SaveEventToTempFile(uid, *(eventParams.eventJson));
+        SaveEventToTempFile(uid, eventParams.eventJson);
         StartSendingThread();
     }
 }

@@ -97,7 +97,6 @@ ohos_unittest("FaultloggerUnittest") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "cJSON:cjson",
     "faultloggerd:crash_exception",
     "ffrt:libffrt",
     "googletest:gtest_main",
