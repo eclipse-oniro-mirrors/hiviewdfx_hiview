@@ -75,6 +75,7 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     char *asanOutput = strstr(buf, "End Asan report");
     if (gwpOutput) {
         std::string gwpasanlog = g_asanlog.str();
+        HILOG_INFO(LOG_CORE, "[gwp_asan] %{public}s", gwpasanlog.c_str());
         ReadGwpAsanRecord(gwpasanlog, "GWP-ASAN", path);
         // clear buffer
         g_asanlog.str("");
@@ -115,7 +116,7 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     } else {
         currInfo.logPath = std::string(logPath);
     }
-    currInfo.pid = getpid();
+    currInfo.pid = getprocpid();
     currInfo.uid = getuid();
     currInfo.faultType = faultType;
     currInfo.errType = GetErrorTypeFromBuffer(gwpAsanBuffer, faultType);
