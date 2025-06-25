@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "cJSON.h"
+#include <json/json.h>
 namespace OHOS {
 namespace HiviewDFX {
 class ComposeRule {
@@ -31,9 +31,9 @@ public:
     std::list<std::pair<std::string, std::map<std::string, std::string>>> GetComposeRule() const;
 
 private:
-    void ParseRule(const cJSON *jsonRoot, const std::string& type, std::vector<std::string>& featureIds);
+    void ParseRule(const Json::Value& jsonRoot, const std::string& type, std::vector<std::string>& featureIds);
     static bool ComparePrio(const std::string& featureIdOne, const std::string& featureIdTwo);
-    std::map<std::string, std::string> GetMapFromJson(const cJSON *json, const std::string& featureId);
+    std::map<std::string, std::string> GetMapFromJson(const Json::Value& json, const std::string& featureId);
 
 private:
     std::list<std::pair<std::string, std::map<std::string, std::string>>> composeRules_;

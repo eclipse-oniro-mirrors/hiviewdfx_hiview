@@ -43,7 +43,7 @@ ohos_source_set("smart_parser") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "cJSON:cjson",
+    "jsoncpp:jsoncpp",
   ]
 
   deps = [
@@ -75,7 +75,7 @@ ohos_source_set("smart_parser_with_cfi") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "cJSON:cjson",
+    "jsoncpp:jsoncpp",
   ]
 
   deps = [
