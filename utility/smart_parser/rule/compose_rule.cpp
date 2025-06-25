@@ -29,26 +29,36 @@ DEFINE_LOG_TAG("ComposeRule");
 
 void ComposeRule::ParseComposeRule(const string& config, const string& type, vector<string> featureIds)
 {
-    std::string content;
-    if (!FileUtil::LoadStringFromFile(config, content)) {
+    std::ifstream fin(config, std::ifstream::binary);
+    if (!fin.is_open()) {
         HIVIEW_LOGW("Failed to open file, path: %{public}s.", config.c_str());
         return;
     }
-    cJSON *root = cJSON_Parse(content.c_str());
-    if (!root) {
-        HIVIEW_LOGE("cJson parse fail in %{public}s.", config.c_str());
-        return;
-    }
-    cJSON *rootType = cJSON_GetObjectItem(root, type.c_str());
-    if (!rootType) {
-        HIVIEW_LOGE("cJson parse fail, %{public}s don't exist in %{public}s.", type.c_str(), config.c_str());
-        cJSON_Delete(root);
-        return;
-    }
+#ifdef JSONCPP_VERSION_STRING
+    Json::CharReaderBuilder builder;
+    Json::CharReaderBuilder::strictMode(&builder.settings_);
+    JSONCPP_STRING errs;
+#else
+    Json::Reader reader(Json::Features::strictMode());
+#endif
 
-    ParseRule(rootType, type, featureIds);
+    Json::Value root;
+#ifdef JSONCPP_VERSION_STRING
+    bool ret = parseFromStream(builder, fin, &root, &errs);
+    if (!ret || !errs.empty() || !root.isMember(type)) {
+        HIVIEW_LOGE("Json parse fail, err is %{public}s or %{public}s don't exist in %{public}s.",
+            errs.c_str(), type.c_str(), config.c_str());
+        return;
+    }
+#else
+    if (!reader.parse(fin, root) || !root.isMember(type)) {
+        HIVIEW_LOGE("Json parse fail in %{public}s.", config.c_str());
+        return;
+    }
+#endif
+
+    ParseRule(root[type], type, featureIds);
     HIVIEW_LOGI("ComposeRule ParseFile end.");
-    cJSON_Delete(root);
     return;
 }
 
@@ -57,7 +67,7 @@ std::list<std::pair<std::string, std::map<std::string, std::string>>> ComposeRul
     return composeRules_;
 }
 
-void ComposeRule::ParseRule(const cJSON *json, const string& type, vector<string>& featureIds)
+void ComposeRule::ParseRule(const Json::Value& json, const string& type, vector<string>& featureIds)
 {
     sort(featureIds.begin(), featureIds.end(), ComparePrio);
     for (const auto& featureId : featureIds) {
@@ -71,36 +81,16 @@ bool ComposeRule::ComparePrio(const string& featureIdOne, const string& featureI
     return StringUtil::GetRightSubstr(featureIdOne, "_") < StringUtil::GetRightSubstr(featureIdTwo, "_");
 }
 
-static std::string GetStringValueFromItem(const cJSON *json)
+std::map<std::string, std::string> ComposeRule::GetMapFromJson(const Json::Value& json, const string& featureId)
 {
-    if (!json) {
-        return "";
-    }
-    std::string ret{};
-    if (cJSON_IsString(json)) {
-        ret = json->valuestring;
-    } else if (cJSON_IsNumber(json)) {
-        ret = std::to_string(json->valuedouble);
-    } else if (cJSON_IsBool(json)) {
-        ret = cJSON_IsTrue(json) ? "true" : "false";
-    } else {
-        ret = "";
-    }
-    return ret;
-}
-
-std::map<std::string, std::string> ComposeRule::GetMapFromJson(const cJSON *json, const string& featureId)
-{
-    cJSON* jsonFeatureId = cJSON_GetObjectItem(json, featureId.c_str());
-    if (!jsonFeatureId) {
+    if (!json.isMember(featureId)) {
         HIVIEW_LOGE("ComposeRule don't have %{public}s featureId.", featureId.c_str());
         return {};
     }
     std::map<std::string, std::string> result;
-    cJSON *item;
-    cJSON_ArrayForEach(item, jsonFeatureId) {
-        std::string key = item->string;
-        result.emplace(pair<std::string, std::string>(key, GetStringValueFromItem(item)));
+    auto value = json[featureId];
+    for (auto iter = value.begin(); iter != value.end(); iter++) {
+        result.emplace(pair<std::string, std::string>(iter.key().asString(), (*iter).asString()));
     }
     return result;
 }
