@@ -15,10 +15,8 @@
 
 #include "cjson_util.h"
 
-#include <climits>
 #include <fstream>
 #include <string>
-#include <vector>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -35,19 +33,9 @@ cJSON* ParseJsonRoot(const std::string& configFile)
     return root;
 }
 
-void BuildJsonString(const cJSON* json, std::string& str)
+int64_t GetIntValue(const cJSON* json, const std::string& key, int64_t defaultValue)
 {
-    char* strValue = cJSON_PrintUnformatted(json);
-    if (strValue == nullptr) {
-        return;
-    }
-    str = strValue;
-    cJSON_free(strValue);
-}
-
-int64_t GetInt64MemberValue(const cJSON* json, const std::string& key, int64_t defaultValue)
-{
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return defaultValue;
     }
     cJSON* intJson = cJSON_GetObjectItem(json, key.c_str());
@@ -57,33 +45,9 @@ int64_t GetInt64MemberValue(const cJSON* json, const std::string& key, int64_t d
     return static_cast<int64_t>(intJson->valuedouble);
 }
 
-uint64_t GetUint64MemberValueWithDefault(const cJSON* json, const std::string& key, uint64_t defaultValue)
+double GetDoubleValue(cJSON* json, const std::string& key, double defaultValue)
 {
-    if (!cJSON_IsObject(json)) {
-        return defaultValue;
-    }
-    cJSON* intJson = cJSON_GetObjectItem(json, key.c_str());
-    if (!IsUint64(intJson)) {
-        return defaultValue;
-    }
-    return static_cast<uint64_t>(intJson->valuedouble);
-}
-
-uint32_t GetUintMemberValueWithDefault(const cJSON* json, const std::string& key, uint32_t defaultValue)
-{
-    if (!cJSON_IsObject(json)) {
-        return defaultValue;
-    }
-    cJSON* intJson = cJSON_GetObjectItem(json, key.c_str());
-    if (!IsUint(intJson)) {
-        return defaultValue;
-    }
-    return static_cast<uint32_t>(intJson->valuedouble);
-}
-
-double GetDoubleMemberValue(cJSON* json, const std::string& key, double defaultValue)
-{
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return defaultValue;
     }
     cJSON* doubleJson = cJSON_GetObjectItem(json, key.c_str());
@@ -93,9 +57,9 @@ double GetDoubleMemberValue(cJSON* json, const std::string& key, double defaultV
     return doubleJson->valuedouble;
 }
 
-std::string GetStringMemberValue(const cJSON* json, const std::string& key)
+std::string GetStringValue(cJSON* json, const std::string& key)
 {
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return "";
     }
     cJSON* str = cJSON_GetObjectItem(json, key.c_str());
@@ -105,9 +69,9 @@ std::string GetStringMemberValue(const cJSON* json, const std::string& key)
     return str->valuestring;
 }
 
-void GetStringMemberArray(const cJSON* json, const std::string& key, std::vector<std::string>& dest)
+void GetStringArray(cJSON* json, const std::string& key, std::vector<std::string>& dest)
 {
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return;
     }
     cJSON* strArray = cJSON_GetObjectItem(json, key.c_str());
@@ -127,21 +91,21 @@ void GetStringMemberArray(const cJSON* json, const std::string& key, std::vector
     }
 }
 
-cJSON* GetObjectMember(const cJSON* json, const std::string& key)
+cJSON* GetObjectValue(const cJSON* json, const std::string& key)
 {
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return nullptr;
     }
     cJSON* obj = cJSON_GetObjectItem(json, key.c_str());
-    if (!cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return nullptr;
     }
     return obj;
 }
 
-cJSON* GetArrayMember(const cJSON* json, const std::string& key)
+cJSON* GetArrayValue(const cJSON* json, const std::string& key)
 {
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return nullptr;
     }
     cJSON* value = cJSON_GetObjectItem(json, key.c_str());
@@ -151,130 +115,18 @@ cJSON* GetArrayMember(const cJSON* json, const std::string& key)
     return value;
 }
 
-bool GetBoolMemberValue(const cJSON* json, const std::string& key, bool& value)
+bool GetBoolValue(const cJSON* json, const std::string& key, bool& value)
 {
-    if (!cJSON_IsObject(json)) {
+    if (json == nullptr || !cJSON_IsObject(json)) {
         return false;
     }
     cJSON* boolJson = cJSON_GetObjectItem(json, key.c_str());
-    if (!cJSON_IsBool(boolJson)) {
+    if (boolJson == nullptr || !cJSON_IsBool(boolJson)) {
         return false;
     }
     value = cJSON_IsTrue(boolJson);
     return true;
 }
-
-bool IsInt(const cJSON* json)
-{
-    if (json == nullptr || !cJSON_IsNumber(json)) {
-        return false;
-    }
-    if (json->valuedouble <= static_cast<double>(INT32_MAX) && json->valuedouble >= static_cast<double>(INT32_MIN)) {
-        return true;
-    }
-    return false;
-}
-
-bool IsUint(const cJSON* json)
-{
-    if (json == nullptr || !cJSON_IsNumber(json)) {
-        return false;
-    }
-    if (json->valuedouble <= static_cast<double>(UINT32_MAX) && json->valueint >= 0) {
-        return true;
-    }
-    return false;
-}
-
-
-bool IsInt64(const cJSON* json)
-{
-    if (json == nullptr || !cJSON_IsNumber(json)) {
-        return false;
-    }
-    if (json->valuedouble <= static_cast<double>(INT64_MAX) && json->valuedouble >= static_cast<double>(INT64_MIN)) {
-        return true;
-    }
-    return false;
-}
-
-bool IsUint64(const cJSON* json)
-{
-    if (json == nullptr || !cJSON_IsNumber(json)) {
-        return false;
-    }
-    if (json->valuedouble <= static_cast<double>(UINT64_MAX) && json->valueint >= 0) {
-        return true;
-    }
-    return false;
-}
-
-bool GetUintMemberValue(const cJSON* json, const std::string& key, uint32_t& value)
-{
-    if (!cJSON_HasObjectItem(json, key.c_str())) {
-        return false;
-    }
-    return GetUintValue(GetItemMember(json, key), value);
-}
-
-bool GetUintValue(const cJSON* json, uint32_t& value)
-{
-    if (IsUint(json)) {
-        value = static_cast<uint32_t>(json->valuedouble);
-        return true;
-    }
-    return false;
-}
-
-bool GetUint64Value(const cJSON* json, uint64_t& value)
-{
-    if (IsUint64(json)) {
-        value = static_cast<uint64_t>(json->valuedouble);
-        return true;
-    }
-    return false;
-}
-
-bool GetInt64Value(const cJSON* json, int64_t& value)
-{
-    if (IsInt64(json)) {
-        value = static_cast<int64_t>(json->valuedouble);
-        return true;
-    }
-    return false;
-}
-
-bool GetUint64MemberValue(const cJSON* json, const std::string& key, uint64_t& value)
-{
-    if (!cJSON_HasObjectItem(json, key.c_str())) {
-        return false;
-    }
-    return GetUint64Value(GetItemMember(json, key), value);
-}
-
-cJSON* GetItemMember(const cJSON* json, const std::string& key)
-{
-    if (!cJSON_IsObject(json)) {
-        return nullptr;
-    }
-    cJSON* obj = cJSON_GetObjectItem(json, key.c_str());
-    return obj;
-}
-
-std::vector<std::string> GetMemberNames(const cJSON* json)
-{
-    if (cJSON_IsObject(json)) {
-        cJSON* current = json->child;
-        std::vector<std::string> memberNames;
-        while (current != nullptr) {
-            memberNames.push_back(current->string);
-            current = current->next;
-        }
-        return memberNames;
-    }
-    return {};
-}
-
 } // namespace CJsonUtil
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -36,93 +36,95 @@ const std::vector<std::string> SYS_USAGE_FIELDS = {
     SysUsageEventSpace::KEY_OF_RUNNING
 };
 }
-cJSON* JsonParser::ParseJsonString(const std::string& jsonStr)
+bool JsonParser::ParseJsonString(Json::Value& eventJson, const std::string& jsonStr)
 {
-    cJSON* root = cJSON_Parse(jsonStr.c_str());
-    return root;
+    Json::CharReaderBuilder jsonRBuilder;
+    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
+    std::unique_ptr<Json::CharReader> const reader(jsonRBuilder.newCharReader());
+    JSONCPP_STRING err;
+    return reader->parse(jsonStr.data(), jsonStr.data() + jsonStr.size(), &eventJson, &err);
 }
 
-bool JsonParser::CheckJsonValue(const cJSON* eventJson, const std::vector<std::string>& fields)
+bool JsonParser::CheckJsonValue(const Json::Value& eventJson, const std::vector<std::string>& fields)
 {
     for (auto field : fields) {
-        if (!cJSON_HasObjectItem(eventJson, field.c_str())) {
+        if (!eventJson.isMember(field)) {
             return false;
         }
     }
     return true;
 }
 
-void JsonParser::ParseUInt32Vec(const cJSON* value, std::vector<uint32_t>& vec)
+uint32_t JsonParser::ParseUInt32(const Json::Value& value)
 {
-    if (!cJSON_IsArray(value)) {
+    return value.isUInt() ? value.asUInt() : 0;
+}
+
+uint64_t JsonParser::ParseUInt64(const Json::Value& value)
+{
+    return value.isUInt64() ? value.asUInt64() : 0;
+}
+
+std::string JsonParser::ParseString(const Json::Value& value)
+{
+    return value.isString() ? value.asString() : "";
+}
+
+void JsonParser::ParseUInt32Vec(const Json::Value& root, std::vector<uint32_t>& vec)
+{
+    if (!root.isArray()) {
         return;
     }
-    cJSON* item = nullptr;
-    cJSON_ArrayForEach(item, value) {
-        uint32_t itemValue = 0;
-        CJsonUtil::GetUintValue(item, itemValue);
-        vec.push_back(itemValue);
+    for (size_t i = 0; i < root.size(); ++i) {
+        vec.push_back(ParseUInt32(root[static_cast<int>(i)]));
     }
 }
 
-void JsonParser::ParseStringVec(const cJSON* value, std::vector<std::string>& vec)
+void JsonParser::ParseStringVec(const Json::Value& root, std::vector<std::string>& vec)
 {
-    if (!cJSON_IsArray(value)) {
+    if (!root.isArray()) {
         return;
     }
-    cJSON* item = nullptr;
-    cJSON_ArrayForEach(item, value) {
-        if (cJSON_IsString(item)) {
-            vec.push_back(item->valuestring);
-        } else {
-            vec.push_back("");
-        }
+    for (size_t i = 0; i < root.size(); ++i) {
+        vec.push_back(ParseString(root[static_cast<int>(i)]));
     }
 }
 
 bool JsonParser::ParsePluginStatsEvent(std::shared_ptr<LoggerEvent>& event, const std::string& jsonStr)
 {
     using namespace PluginStatsEventSpace;
-    cJSON* root = ParseJsonString(jsonStr);
-    if (root == nullptr) {
-        return false;
-    }
-    if (!CheckJsonValue(root, PLUGIN_STATS_FIELDS)) {
+    Json::Value root;
+    if (!ParseJsonString(root, jsonStr) || !CheckJsonValue(root, PLUGIN_STATS_FIELDS)) {
         return false;
     }
 
     std::vector<uint32_t> topKTimes;
-    ParseUInt32Vec(CJsonUtil::GetItemMember(root, KEY_OF_TOP_K_TIME), topKTimes);
+    ParseUInt32Vec(root[KEY_OF_TOP_K_TIME], topKTimes);
     event->Update(KEY_OF_TOP_K_TIME, topKTimes);
 
     std::vector<std::string> topKEvents;
-    ParseStringVec(CJsonUtil::GetItemMember(root, KEY_OF_TOP_K_EVENT), topKEvents);
+    ParseStringVec(root[KEY_OF_TOP_K_EVENT], topKEvents);
     event->Update(KEY_OF_TOP_K_EVENT, topKEvents);
 
-    event->Update(KEY_OF_PLUGIN_NAME, CJsonUtil::GetStringMemberValue(root, KEY_OF_PLUGIN_NAME));
-    event->Update(KEY_OF_TOTAL, CJsonUtil::GetUintMemberValueWithDefault(root, KEY_OF_TOTAL, 0));
-    event->Update(KEY_OF_PROC_NAME, CJsonUtil::GetStringMemberValue(root, KEY_OF_PROC_NAME));
-    event->Update(KEY_OF_PROC_TIME, CJsonUtil::GetUintMemberValueWithDefault(root, KEY_OF_PROC_TIME, 0));
-    event->Update(KEY_OF_TOTAL_TIME, CJsonUtil::GetUint64MemberValueWithDefault(root, KEY_OF_TOTAL_TIME, 0));
-    cJSON_Delete(root);
+    event->Update(KEY_OF_PLUGIN_NAME, ParseString(root[KEY_OF_PLUGIN_NAME]));
+    event->Update(KEY_OF_TOTAL, ParseUInt32(root[KEY_OF_TOTAL]));
+    event->Update(KEY_OF_PROC_NAME, ParseString(root[KEY_OF_PROC_NAME]));
+    event->Update(KEY_OF_PROC_TIME, ParseUInt32(root[KEY_OF_PROC_TIME]));
+    event->Update(KEY_OF_TOTAL_TIME, ParseUInt64(root[KEY_OF_TOTAL_TIME]));
     return true;
 }
 
 bool JsonParser::ParseSysUsageEvent(std::shared_ptr<LoggerEvent>& event, const std::string& jsonStr)
 {
     using namespace SysUsageEventSpace;
-    cJSON* root = ParseJsonString(jsonStr);
-    if (root == nullptr) {
+    Json::Value root;
+    if (!ParseJsonString(root, jsonStr) || !CheckJsonValue(root, SYS_USAGE_FIELDS)) {
         return false;
     }
-    if (root == nullptr || !CheckJsonValue(root, SYS_USAGE_FIELDS)) {
-        return false;
-    }
-    event->Update(KEY_OF_START, CJsonUtil::GetUint64MemberValueWithDefault(root, KEY_OF_START, 0));
-    event->Update(KEY_OF_END, CJsonUtil::GetUint64MemberValueWithDefault(root, KEY_OF_END, 0));
-    event->Update(KEY_OF_POWER, CJsonUtil::GetUint64MemberValueWithDefault(root, KEY_OF_POWER, 0));
-    event->Update(KEY_OF_RUNNING, CJsonUtil::GetUint64MemberValueWithDefault(root, KEY_OF_RUNNING, 0));
-    cJSON_Delete(root);
+    event->Update(KEY_OF_START, ParseUInt64(root[KEY_OF_START]));
+    event->Update(KEY_OF_END, ParseUInt64(root[KEY_OF_END]));
+    event->Update(KEY_OF_POWER, ParseUInt64(root[KEY_OF_POWER]));
+    event->Update(KEY_OF_RUNNING, ParseUInt64(root[KEY_OF_RUNNING]));
     return true;
 }
 } // namespace HiviewDFX

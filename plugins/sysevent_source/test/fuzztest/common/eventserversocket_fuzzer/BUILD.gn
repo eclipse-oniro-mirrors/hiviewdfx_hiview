@@ -48,5 +48,6 @@ ohos_fuzztest("EventServerSocketFuzzTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",
+    "jsoncpp:jsoncpp",
   ]
 }

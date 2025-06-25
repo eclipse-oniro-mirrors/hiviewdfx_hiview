@@ -60,10 +60,10 @@ ohos_source_set("hiview_service_stub") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
-    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

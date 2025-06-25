@@ -24,50 +24,72 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace CJsonUtil {
+/**
+ * @brief Get the json root from a json format file
+ * @param configFile path of the json format file.
+ * @return the parsed json root value
+ */
 cJSON* ParseJsonRoot(const std::string& configFile);
 
-void BuildJsonString(const cJSON* json, std::string& str);
+/**
+ * @brief try to parse an integer value from json string.
+ * @param json json string.
+ * @param key key defined for the integer value.
+ * @param defaultValue default value when the integer value was parsed failed
+ * @return the parsed integer value.
+ */
+int64_t GetIntValue(const cJSON* json, const std::string& key, int64_t defaultValue = 0);
 
-int64_t GetInt64MemberValue(const cJSON* json, const std::string& key, int64_t defaultValue = 0);
+/**
+ * @brief try to parse a double value from json string.
+ * @param json json string.
+ * @param key key defined for the double value.
+ * @param defaultValue default value when the double value was parsed failed
+ * @return the parsed double value.
+ */
+double GetDoubleValue(cJSON* json, const std::string& key, double defaultValue = 0.0);
 
-uint64_t GetUint64MemberValueWithDefault(const cJSON* json, const std::string& key, uint64_t defaultValue = 0);
+/**
+ * @brief try to parse a string value from json string.
+ * @param json json string.
+ * @param key key defined for the string value.
+ * @return the parsed string value.
+ */
+std::string GetStringValue(cJSON* json, const std::string& key);
 
-uint32_t GetUintMemberValueWithDefault(const cJSON* json, const std::string& key, uint32_t defaultValue = 0);
+/**
+ * @brief try to parse a string array value from json string.
+ * @param json json string.
+ * @param key key defined for the string array value.
+ * @param dest the parsed string array value.
+ */
+void GetStringArray(cJSON* json, const std::string& key, std::vector<std::string>& dest);
 
-double GetDoubleMemberValue(cJSON* json, const std::string& key, double defaultValue = 0.0);
+/**
+ * @brief try to parse an object value from json object.
+ * @param json json object.
+ * @param key key defined for the object value.
+ * @return the parsed object value.
+ */
+cJSON* GetObjectValue(const cJSON* json, const std::string& key);
 
-std::string GetStringMemberValue(const cJSON* json, const std::string& key);
+/**
+ * @brief try to parse an object value from json object.
+ * @param json json object.
+ * @param key key defined for the object value.
+ * @return the parsed object value.
+ */
+cJSON* GetArrayValue(const cJSON* json, const std::string& key);
 
-void GetStringMemberArray(const cJSON* json, const std::string& key, std::vector<std::string>& dest);
-
-cJSON* GetObjectMember(const cJSON* json, const std::string& key);
-
-cJSON* GetArrayMember(const cJSON* json, const std::string& key);
-
-bool GetBoolMemberValue(const cJSON* json, const std::string& key, bool& value);
-
-bool IsUint(const cJSON* json);
-
-bool IsInt(const cJSON* json);
-
-bool IsUint64(const cJSON* json);
-
-bool IsInt64(const cJSON* json);
-
-bool GetUintMemberValue(const cJSON* json, const std::string& key, uint32_t& value);
-
-bool GetUint64Value(const cJSON* json, uint64_t& value);
-
-bool GetInt64Value(const cJSON* json, int64_t& value);
-
-bool GetUintValue(const cJSON* json, uint32_t& value);
-
-bool GetUint64MemberValue(const cJSON* json, const std::string& key, uint64_t& value);
-
-cJSON* GetItemMember(const cJSON* json, const std::string& key);
-
-std::vector<std::string> GetMemberNames(const cJSON* json);
-}
+/**
+ * @brief try to parse an object value from json object.
+ * @param json json object.
+ * @param key key defined for the object value.
+ * @param value parsed value.
+ * @return parsed result.
+ */
+bool GetBoolValue(const cJSON* json, const std::string& key, bool& value);
+};
 } // HiviewDFX
 } // OHOS
 

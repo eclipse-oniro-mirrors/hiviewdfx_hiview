@@ -439,7 +439,7 @@ std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::s
         return {};
     }
     std::vector<std::string> traceArgs;
-    CJsonUtil::GetStringMemberArray(root, key, traceArgs);
+    CJsonUtil::GetStringArray(root, key, traceArgs);
     auto new_end = std::remove_if(traceArgs.begin(), traceArgs.end(), [&filterList](const std::string& tag) {
         return filterList.find(tag) == filterList.end();
     });

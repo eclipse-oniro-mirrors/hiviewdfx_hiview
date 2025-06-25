@@ -18,9 +18,9 @@
 
 #include <unordered_map>
 
-#include "cjson_util.h"
 #include "data_share_common.h"
 #include "iquery_base_callback.h"
+#include "json/json.h"
 #include "query_argument.h"
 #include "sys_event_dao.h"
 #include "sys_event_query.h"
@@ -38,9 +38,10 @@ public:
 private:
     void SpliceConditionByLogic(EventStore::Cond& condition, const EventStore::Cond& subCond,
         const std::string& logic);
-    bool ParseLogicCondition(const cJSON* root, const std::string& logic, EventStore::Cond& condition);
-    bool ParseAndCondition(const cJSON* root, EventStore::Cond& condition);
-    bool ParseQueryConditionJson(const cJSON* root, EventStore::Cond& condition);
+    bool ParseJsonString(const Json::Value& root, const std::string& key, std::string& value);
+    bool ParseLogicCondition(const Json::Value& root, const std::string& logic, EventStore::Cond& condition);
+    bool ParseAndCondition(const Json::Value& root, EventStore::Cond& condition);
+    bool ParseQueryConditionJson(const Json::Value& root, EventStore::Cond& condition);
     bool ParseQueryCondition(const std::string& condStr, EventStore::Cond& condition);
     EventStore::Op GetOpEnum(const std::string& op);
 

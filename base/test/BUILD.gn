@@ -155,9 +155,9 @@ ohos_unittest("DispatchRuleParserTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
-    "cJSON:cjson",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 }
 
@@ -171,11 +171,11 @@ ohos_unittest("EventJsonParserTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
-    "cJSON:cjson",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "jsoncpp:jsoncpp",
   ]
 
   resource_config_file = "$hiview_base/test/resource/ohos_test.xml"

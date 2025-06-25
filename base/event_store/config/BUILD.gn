@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
 config("event_store_config_config") {
@@ -31,14 +30,11 @@ ohos_source_set("event_store_config_source") {
 
   sources = [ "src/event_store_config.cpp" ]
 
-  deps = [
-    ":event_store_config.cfg",
-    "$hiview_base/utility:hiview_utility",
-  ]
+  deps = [ ":event_store_config.cfg" ]
 
   external_deps = [
-    "cJSON:cjson",
     "c_utils:utils",
+    "jsoncpp:jsoncpp",
   ]
 
   part_name = "hiview"

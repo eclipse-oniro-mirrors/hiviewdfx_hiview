@@ -203,7 +203,7 @@ bool TelemetryListener::ProcessTraceTag(std::string &traceTag)
         cJSON_Delete(root);
         return false;
     }
-    auto bufferSize = CJsonUtil::GetInt64MemberValue(root, BUFFER_SIZE);
+    auto bufferSize = CJsonUtil::GetIntValue(root, BUFFER_SIZE);
     cJSON_Delete(root);
     if (bufferSize <= 0) {
         HIVIEW_LOGE("jsonArgs parse trace bufferSize error");

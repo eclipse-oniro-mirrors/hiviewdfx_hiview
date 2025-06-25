@@ -95,6 +95,7 @@
                 "init",
                 "input",
                 "ipc",
+                "jsoncpp",
                 "libxml2",
                 "openssl",
                 "os_account",
