@@ -65,7 +65,7 @@ namespace {
     };
     static constexpr int TRACE_OUT_OF_TIME = 30; // 30s
     static constexpr int DELAY_OUT_OF_TIME = 15; // 15s
-    static constexpr int DEFAULT_LOG_SIZE = 1024 * 1024; // 1M
+    static constexpr int DEFAULT_LOG_SIZE = 3 * 1024 * 1024; // 3M
     static constexpr uint64_t MILLISEC_TO_SEC = 1000;
     static constexpr uint64_t DELAY_TIME = 2;
 }
