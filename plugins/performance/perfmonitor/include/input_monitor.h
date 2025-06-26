@@ -31,8 +31,7 @@ public:
     int64_t GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note);
     PerfSourceType GetSourceType();
     int64_t GetVsyncTime();
-
-    void SetmVsyncTime(int64_t val);
+    void SetVsyncTime(int64_t val);
 private:
     mutable std::mutex mMutex;
     std::map<PerfActionType, int64_t> mInputTime;

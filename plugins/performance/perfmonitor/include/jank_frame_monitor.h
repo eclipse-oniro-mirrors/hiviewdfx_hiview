@@ -24,23 +24,36 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class JankFrameMonitor {
+class JankFrameMonitor : public IFrameCallback {
 public:
     static JankFrameMonitor& GetInstance();
+    JankFrameMonitor();
+    ~JankFrameMonitor();
+
+    // outer interface for app frame observer
+    void RegisterFrameCallback(IFrameCallback* cb);
+    void UnregisterFrameCallback(IFrameCallback* cb);
+    void OnFrameEnd(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
+    void OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
+
+    // inner interface for app frame observer
     void ProcessJank(double jank, const std::string& windowName);
-    void ClearJankFrameRecord();
     void JankFrameStatsRecord(double jank);
 
+    // stats app jank frame
+    void InitJankFrameRecord();
+    void ClearJankFrameRecord();
     void SetJankFrameRecordBeginTime(int64_t val);
     int64_t GetJankFrameRecordBeginTime();
     int32_t GetJankFrameTotalCount();
     const std::vector<uint16_t>& GetJankFrameRecord();
     bool JankFrameRecordIsEmpty();
-    void InitJankFrameRecord();
 
 private:
     uint32_t GetJankLimit(double jank);
 private:
+    mutable std::mutex mMutex;
+    std::vector<IFrameCallback*> frameCallbacks;
     std::vector<uint16_t> jankFrameRecord;
     int64_t jankFrameRecordBeginTime;
     int32_t jankFrameTotalCount {0};

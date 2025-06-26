@@ -19,11 +19,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-
 constexpr int64_t SCENE_TIMEOUT = 10000000000;
 
-void SceneRecord::InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType, const std::string& nt,
-    int64_t time)
+void AnimatorRecord::InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType,
+    const std::string& nt, int64_t time)
 {
     sceneId = sId;
     actionType = aType;
@@ -34,7 +33,7 @@ void SceneRecord::InitRecord(const std::string& sId, PerfActionType aType, PerfS
     isDisplayAnimator = IsDisplayAnimator(sceneId);
 }
 
-bool SceneRecord::IsTimeOut(int64_t nowTime)
+bool AnimatorRecord::IsTimeOut(int64_t nowTime)
 {
     if (nowTime - beginVsyncTime > SCENE_TIMEOUT) {
         return true;
@@ -42,7 +41,7 @@ bool SceneRecord::IsTimeOut(int64_t nowTime)
     return false;
 }
 
-void SceneRecord::RecordFrame(int64_t vsyncTime, int64_t duration, int32_t skippedFrames)
+void AnimatorRecord::RecordFrame(int64_t vsyncTime, int64_t duration, int32_t skippedFrames)
 {
     int64_t currentTimeNs = GetCurrentRealTimeNs();
     if (totalFrames == 0) {
@@ -74,7 +73,7 @@ void SceneRecord::RecordFrame(int64_t vsyncTime, int64_t duration, int32_t skipp
     totalFrames++;
 }
 
-void SceneRecord::Report(const std::string& sceneId, int64_t vsyncTime, bool isRsRender)
+void AnimatorRecord::Report(const std::string& sceneId, int64_t vsyncTime, bool isRsRender)
 {
     if (isRsRender || vsyncTime <= beginVsyncTime) {
         endVsyncTime = GetCurrentRealTimeNs();
@@ -84,12 +83,12 @@ void SceneRecord::Report(const std::string& sceneId, int64_t vsyncTime, bool isR
     needReportRs = !isRsRender;
 }
 
-bool SceneRecord::IsFirstFrame()
+bool AnimatorRecord::IsFirstFrame()
 {
     return isFirstFrame;
 }
 
-bool SceneRecord::IsDisplayAnimator(const std::string& sceneId)
+bool AnimatorRecord::IsDisplayAnimator(const std::string& sceneId)
 {
     if (sceneId == PerfConstants::APP_LIST_FLING || sceneId == PerfConstants::APP_SWIPER_SCROLL
         || sceneId == PerfConstants::SNAP_RECENT_ANI
@@ -104,7 +103,7 @@ bool SceneRecord::IsDisplayAnimator(const std::string& sceneId)
     return false;
 }
 
-void SceneRecord::Reset()
+void AnimatorRecord::Reset()
 {
     beginVsyncTime = 0;
     endVsyncTime = 0;
@@ -122,6 +121,119 @@ void SceneRecord::Reset()
     actionType = UNKNOWN_ACTION;
     sourceType = UNKNOWN_SOURCE;
     note = "";
+}
+
+void SceneRecord::StartRecord(const SceneType& sType)
+{
+   type = sType;
+   status = true;
+}
+
+void SceneRecord::StopRecord(const SceneType& sType)
+{
+    if (type != sType) {
+        return;
+    }
+   status = false;
+}
+
+void SceneRecord::StartRecord(const SceneType& sType, const std::string& sId)
+{
+    StartRecord(sType);
+    sceneId = sId;
+}
+
+void SceneRecord::StopRecord(const SceneType& sType, const std::string& sId)
+{
+    if (type != sType || sceneId != sId) {
+        return;
+    }
+    status = false;
+}
+
+void NonExperienceAnimator::StartRecord(const SceneType& sType, const std::string& sId)
+{
+   type = sType;
+   sceneId = sId;
+   status = IsNonExperienceWhiteList(sId);
+}
+
+void NonExperienceAnimator::StopRecord(const SceneType& sType, const std::string& sId)
+{
+    if (type != sType || sceneId != sId) {
+        return;
+    }
+    if (IsNonExperienceWhiteList(sId)) {
+        status = false;
+    }
+}
+
+bool NonExperienceAnimator::IsNonExperienceWhiteList(const std::string& sceneId)
+{
+    if (sceneId == PerfConstants::LAUNCHER_APP_LAUNCH_FROM_ICON ||
+        sceneId == PerfConstants::LAUNCHER_APP_LAUNCH_FROM_DOCK ||
+        sceneId == PerfConstants::LAUNCHER_APP_LAUNCH_FROM_MISSON ||
+        sceneId == PerfConstants::LAUNCHER_APP_SWIPE_TO_HOME ||
+        sceneId == PerfConstants::LAUNCHER_APP_BACK_TO_HOME ||
+        sceneId == PerfConstants::EXIT_RECENT_2_HOME_ANI ||
+        sceneId == PerfConstants::APP_SWIPER_FLING ||
+        sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH ||
+        sceneId == PerfConstants::SCREENLOCK_SCREEN_OFF_ANIM) {
+        return true;
+    }
+    return false;
+}
+
+void NonExperienceWindow::StartRecord(const SceneType& sType, const std::string& sId)
+{
+   type = sType;
+   sceneId = sId;
+   status = IsNonExperienceWhiteList(sId);
+}
+
+void NonExperienceWindow::StopRecord(const SceneType& sType, const std::string& sId)
+{
+    if (type != sType || sceneId != sId) {
+        return;
+    }
+    status = false;
+}
+
+bool NonExperienceWindow::IsNonExperienceWhiteList(const std::string& windowName)
+{
+    if (windowName == "softKeyboard1" ||
+        windowName == "SCBWallpaper1" ||
+        windowName == "SCBStatusBar15") {
+        return true;
+    }
+    return false;
+}
+
+void NonExperienceAppStart::StartRecord(const SceneType& sType)
+{
+   type = sType;
+   status = true;
+   startTime = GetCurrentRealTimeNs();
+   duration = 0;
+}
+
+void NonExperienceAppStart::StopRecord(const SceneType& sType)
+{
+    if (type != sType) {
+        return;
+    }
+    status = IsInStartAppStatus();
+}
+
+bool NonExperienceAppStart::IsInStartAppStatus()
+{
+    int64_t curTime = GetCurrentRealTimeNs();
+    duration = curTime - startTime;
+    if (duration >= STARTAPP_FRAME_TIMEOUT) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 }

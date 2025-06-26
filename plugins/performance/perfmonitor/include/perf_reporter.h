@@ -29,17 +29,16 @@ public:
     static PerfReporter& GetInstance();
     void ReportJankFrameApp(double jank, int32_t jankThreshold);
     void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName, const std::string& pageName);
-    void ReportAnimateStart(const std::string& sceneId, SceneRecord* record);
-    void ReportAnimateEnd(const std::string& sceneId, SceneRecord* record);
-    void ReportJankStatsApp(int64_t duration);
-    void ReportJankFrame(double jank, const std::string& windowName);
+    void ReportAnimatorEvent(PerfEventType type, DataBase& data);
+    void ReportSingleJankFrame(JankInfo& jankInfo);
+    void ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration, 
+        const std::vector<uint16_t>& jankFrameRecord, int32_t jankFrameTotalCount, const BaseInfo& baseInfo);
     void ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
                               const std::map<int64_t, ImageLoadInfo*>& mRecords);
 
 private:
-    void ReportPerfEvent(PerfEventType type, DataBase& data);
     void ConvertToRsData(OHOS::Rosen::DataBaseRs &dataRs, DataBase& data);
-    void FlushDataBase(SceneRecord* record, DataBase& data);
+    void FlushDataBase(AnimatorRecord* record, DataBase& data);
     void ReportPerfEventToRS(DataBase& data);
     void ReportPerfEventToUI(DataBase data);
 };
@@ -51,10 +50,10 @@ public:
         const std::string& pageName);
     static void ReportEventComplete(DataBase& data);
     static void ReportEventJankFrame(DataBase& data);
-    static void JankFrameReport(int64_t startTime, int64_t duration, const std::vector<uint16_t>& jank,
-        const std::string& pageUrl, uint32_t jankStatusVersion = 1);
     static void ReportJankFrameFiltered(JankInfo& info);
     static void ReportJankFrameUnFiltered(JankInfo& info);
+    static void ReportStatsJankFrame(int64_t startTime, int64_t duration, const std::vector<uint16_t>& jank,
+        const BaseInfo& baseInfo, uint32_t jankStatusVersion = 1);
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     static void ReportAppFrameDropToRss(const bool isInteractionJank, const std::string &bundleName,
         const int64_t maxFrameTime = 0);
@@ -62,7 +61,6 @@ public:
 
     static void ReportImageLoadStat(const ImageLoadStat& stat);
 };
-
 }
 }
 

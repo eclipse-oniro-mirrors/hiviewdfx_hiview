@@ -18,32 +18,44 @@
 
 #include <map>
 #include <mutex>
+#include "animator_monitor.h"
 #include "perf_constants.h"
 #include "perf_model.h"
+#include "scene_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-class AnimatorMonitor {
+class AnimatorMonitor : public IAnimatorCallback , public IFrameCallback {
 public:
     static AnimatorMonitor& GetInstance();
+    AnimatorMonitor();
+    ~AnimatorMonitor();
+    // outer interface for animator
+    void RegisterAnimatorCallback(IAnimatorCallback* cb);
+    void UnregisterAnimatorCallback(IAnimatorCallback* cb);
     void Start(const std::string& sceneId, PerfActionType type, const std::string& note);
     void End(const std::string& sceneId, bool isRsRender);
-    void StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note);
-    void EndCommercial(const std::string& sceneId, bool isRsRender);
-    void SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
     void SetSubHealthInfo(const SubHealthInfo& info);
+    bool IsSubHealthScene();
 
+    // inner interface for animator
+    void OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note) override;
+    void OnAnimatorStop(const std::string& sceneId, bool isRsRender) override;
+    void OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName) override;
     bool RecordsIsEmpty();
 
 private:
-    SceneRecord* GetRecord(const std::string& sceneId);
+    void FlushDataBase(AnimatorRecord* record, DataBase& data);
+    void ReportAnimateStart(const std::string& sceneId, AnimatorRecord* record);
+    void ReportAnimateEnd(const std::string& sceneId, AnimatorRecord* record);
+    AnimatorRecord* GetRecord(const std::string& sceneId);
     void RemoveRecord(const std::string& sceneId);
-    bool IsSubHealthScene();
 
     mutable std::mutex mMutex;
-    std::map<std::string, SceneRecord*> mRecords;
     int64_t subHealthRecordTime = 0;
+    std::vector<IAnimatorCallback*> animatorCallbacks;
+    std::map<std::string, AnimatorRecord*> mRecords;
 };
 
 }
