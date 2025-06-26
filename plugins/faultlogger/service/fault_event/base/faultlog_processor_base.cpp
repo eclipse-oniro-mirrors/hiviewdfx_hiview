@@ -120,7 +120,8 @@ bool FaultLogProcessorBase::VerifyModule(FaultLogInfo& info)
     }
 
     HIVIEW_LOGD("nameProc %{public}s", info.module.c_str());
-    if ((info.module.empty()) || (!IsModuleNameValid(info.module))) {
+    if ((info.module.empty()) ||
+        (info.faultLogType != FaultLogType::ADDR_SANITIZER && !IsModuleNameValid(info.module))) {
         HIVIEW_LOGW("Invalid module name %{public}s", info.module.c_str());
         return false;
     }
