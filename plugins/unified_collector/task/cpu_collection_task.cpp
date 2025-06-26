@@ -83,7 +83,7 @@ void CpuCollectionTask::InitDumpTraceController()
     CpuThresholdItem hiviewCpuThresholdItem = {
         .caller = UCollect::TraceCaller::HIVIEW,
         .dumpTraceInterval = 120, // 120 : two minutes
-        .cpuLoadThreshold = 0.07, // 0.07 : 7% cpu load
+        .cpuLoadThreshold = 0.1, // 0.1 : 10% cpu load
         .processName = "hiview"
     };
     std::vector<CpuThresholdItem> items = {hiviewCpuThresholdItem};
