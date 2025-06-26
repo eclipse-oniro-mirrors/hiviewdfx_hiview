@@ -30,13 +30,13 @@ JankFrameMonitor& JankFrameMonitor::GetInstance()
     return instance;
 }
 
-JankFrameMonitor::JankFrameMonitor() 
+JankFrameMonitor::JankFrameMonitor()
 {
     InitJankFrameRecord();
     RegisterFrameCallback(this);
 }
 
-JankFrameMonitor::~JankFrameMonitor() 
+JankFrameMonitor::~JankFrameMonitor()
 {
     UnregisterFrameCallback(this);
 }
@@ -64,7 +64,6 @@ void JankFrameMonitor::OnFrameEnd(int64_t vsyncTime, int64_t duration, double ja
     for (auto* cb: frameCallbacks) {
         cb->OnVsyncEvent(vsyncTime, duration, jank, windowName);
     }
-    
 }
 
 void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)

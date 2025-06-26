@@ -206,7 +206,7 @@ void PerfReporter::ReportSingleJankFrame(JankInfo& jankInfo)
     }
 }
 
-void PerfReporter::ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration, 
+void PerfReporter::ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration,
     const std::vector<uint16_t>& jankFrameRecord, int32_t jankFrameTotalCount, const BaseInfo& baseInfo)
 {
     XPERF_TRACE_SCOPED("ReportJankStatsApp count=%" PRId32 ";duration=%" PRId64 ";beginTime=%" PRId64 ";",
@@ -501,7 +501,7 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
-    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%lu",
+    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%llu",
         static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(), sceneTag);
 }
 

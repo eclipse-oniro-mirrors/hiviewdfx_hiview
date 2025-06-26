@@ -135,7 +135,7 @@ void PerfMonitorAdapter::End(const std::string& sceneId, bool isRsRender)
 
 void PerfMonitorAdapter::StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
-   AnimatorMonitor::GetInstance().Start(sceneId, type, note);
+    AnimatorMonitor::GetInstance().Start(sceneId, type, note);
 }
 
 void PerfMonitorAdapter::EndCommercial(const std::string& sceneId, bool isRsRender)

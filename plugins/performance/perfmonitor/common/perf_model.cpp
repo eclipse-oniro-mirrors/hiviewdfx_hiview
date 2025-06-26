@@ -125,8 +125,8 @@ void AnimatorRecord::Reset()
 
 void SceneRecord::StartRecord(const SceneType& sType)
 {
-   type = sType;
-   status = true;
+    type = sType;
+    status = true;
 }
 
 void SceneRecord::StopRecord(const SceneType& sType)
@@ -134,7 +134,7 @@ void SceneRecord::StopRecord(const SceneType& sType)
     if (type != sType) {
         return;
     }
-   status = false;
+    status = false;
 }
 
 void SceneRecord::StartRecord(const SceneType& sType, const std::string& sId)
@@ -153,9 +153,9 @@ void SceneRecord::StopRecord(const SceneType& sType, const std::string& sId)
 
 void NonExperienceAnimator::StartRecord(const SceneType& sType, const std::string& sId)
 {
-   type = sType;
-   sceneId = sId;
-   status = IsNonExperienceWhiteList(sId);
+    type = sType;
+    sceneId = sId;
+    status = IsNonExperienceWhiteList(sId);
 }
 
 void NonExperienceAnimator::StopRecord(const SceneType& sType, const std::string& sId)
@@ -187,9 +187,9 @@ bool NonExperienceAnimator::IsNonExperienceWhiteList(const std::string& sceneId)
 
 void NonExperienceWindow::StartRecord(const SceneType& sType, const std::string& sId)
 {
-   type = sType;
-   sceneId = sId;
-   status = IsNonExperienceWhiteList(sId);
+    type = sType;
+    sceneId = sId;
+    status = IsNonExperienceWhiteList(sId);
 }
 
 void NonExperienceWindow::StopRecord(const SceneType& sType, const std::string& sId)
@@ -212,10 +212,10 @@ bool NonExperienceWindow::IsNonExperienceWhiteList(const std::string& windowName
 
 void NonExperienceAppStart::StartRecord(const SceneType& sType)
 {
-   type = sType;
-   status = true;
-   startTime = GetCurrentRealTimeNs();
-   duration = 0;
+    type = sType;
+    status = true;
+    startTime = GetCurrentRealTimeNs();
+    duration = 0;
 }
 
 void NonExperienceAppStart::StopRecord(const SceneType& sType)

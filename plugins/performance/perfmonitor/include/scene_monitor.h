@@ -43,7 +43,7 @@ private:
     std::map<SceneType, SceneRecord*> sceneBoard;
 };
 
-class SceneMonitor : public IAnimatorCallback , public ISceneCallback {
+class SceneMonitor : public IAnimatorCallback, public ISceneCallback {
 public:
     static SceneMonitor& GetInstance();
     SceneMonitor();
@@ -67,7 +67,7 @@ public:
     void SetAppForeground(bool isShow);
     void SetAppStartStatus();
 
-    // inner interface when scene-change 
+    // inner interface when scene-change
     void SetAppGCStatus(const std::string& sceneId, int64_t value);
 
     // inner interface get scene-info

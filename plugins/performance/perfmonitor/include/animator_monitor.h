@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class AnimatorMonitor : public IAnimatorCallback , public IFrameCallback {
+class AnimatorMonitor : public IAnimatorCallback, public IFrameCallback {
 public:
     static AnimatorMonitor& GetInstance();
     AnimatorMonitor();

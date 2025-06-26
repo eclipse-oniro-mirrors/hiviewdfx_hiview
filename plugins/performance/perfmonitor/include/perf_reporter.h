@@ -31,7 +31,7 @@ public:
     void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName, const std::string& pageName);
     void ReportAnimatorEvent(PerfEventType type, DataBase& data);
     void ReportSingleJankFrame(JankInfo& jankInfo);
-    void ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration, 
+    void ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration,
         const std::vector<uint16_t>& jankFrameRecord, int32_t jankFrameTotalCount, const BaseInfo& baseInfo);
     void ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
                               const std::map<int64_t, ImageLoadInfo*>& mRecords);
