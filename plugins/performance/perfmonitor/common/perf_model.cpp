@@ -178,6 +178,7 @@ bool NonExperienceAnimator::IsNonExperienceWhiteList(const std::string& sceneId)
         sceneId == PerfConstants::EXIT_RECENT_2_HOME_ANI ||
         sceneId == PerfConstants::APP_SWIPER_FLING ||
         sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH ||
+        sceneId == PerfConstants::SCREENLOCK_SCREEN_INTO_PIN ||
         sceneId == PerfConstants::SCREENLOCK_SCREEN_OFF_ANIM) {
         return true;
     }
