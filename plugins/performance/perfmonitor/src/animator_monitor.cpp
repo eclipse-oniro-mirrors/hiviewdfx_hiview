@@ -19,8 +19,9 @@
 #include "perf_reporter.h"
 #include "perf_trace.h"
 #include "perf_utils.h"
-#include "scene_monitor.h"
+#include "res_sched_client.h"
 #include "white_block_monitor.h"
+#include "hiview_logger.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,122 +32,107 @@ AnimatorMonitor& AnimatorMonitor::GetInstance()
     return instance;
 }
 
-void AnimatorMonitor::Start(const std::string& sceneId, PerfActionType type, const std::string& note)
+AnimatorMonitor::AnimatorMonitor()
+{
+    RegisterAnimatorCallback(this);
+}
+
+AnimatorMonitor::~AnimatorMonitor()
+{
+    UnregisterAnimatorCallback(this);
+}
+
+void AnimatorMonitor::RegisterAnimatorCallback(IAnimatorCallback* cb)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
-    SceneMonitor::GetInstance().NotifySdbJankStatsEnd(sceneId);
-    int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
-    SceneRecord* record = GetRecord(sceneId);
-    if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-        SceneMonitor::GetInstance().SetIsExceptAnimator(true);
-        SceneMonitor::GetInstance().SetVsyncLazyMode();
-    }
-    XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
-    if (record == nullptr) {
-        SceneMonitor::GetInstance().SetCurrentSceneId(sceneId);
-        record = new SceneRecord();
-        PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
-        record->InitRecord(sceneId, type, sourceType, note, inputTime);
-        mRecords.insert(std::pair<std::string, SceneRecord*> (sceneId, record));
-        SceneMonitor::GetInstance().RecordBaseInfo(record);
-        XperfAsyncTraceBegin(0, sceneId.c_str());
+    if (std::find(animatorCallbacks.begin(), animatorCallbacks.end(), cb) == animatorCallbacks.end()) {
+        animatorCallbacks.push_back(cb);
     }
 }
 
-void AnimatorMonitor::StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note)
+void AnimatorMonitor::UnregisterAnimatorCallback(IAnimatorCallback* cb)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
-    if (SceneMonitor::GetInstance().IsScrollJank(sceneId)) {
-        WhiteBlockMonitor::GetInstance().StartScroll();
+    auto it = std::find(animatorCallbacks.begin(), animatorCallbacks.end(), cb);
+    if (it != animatorCallbacks.end()) {
+        animatorCallbacks.erase(it);
     }
-    int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
-    SceneRecord* record = GetRecord(sceneId);
-    if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-        SceneMonitor::GetInstance().SetIsExceptAnimator(true);
-    }
-    XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
-    if (record == nullptr) {
-        SceneMonitor::GetInstance().SetCurrentSceneId(sceneId);
-        record = new SceneRecord();
-        PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
-        record->InitRecord(sceneId, type, sourceType, note, inputTime);
-        mRecords.insert(std::pair<std::string, SceneRecord*> (sceneId, record));
-        SceneMonitor::GetInstance().RecordBaseInfo(record);
-        XperfAsyncTraceBegin(0, sceneId.c_str());
+}
+
+void AnimatorMonitor::Start(const std::string& sceneId, PerfActionType type, const std::string& note)
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    for (auto* cb: animatorCallbacks) {
+        cb->OnAnimatorStart(sceneId, type, note);
     }
 }
 
 void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
-    SceneMonitor::GetInstance().NotifySbdJankStatsBegin(sceneId);
-    SceneRecord* record = GetRecord(sceneId);
+    for (auto* cb: animatorCallbacks) {
+        cb->OnAnimatorStop(sceneId, isRsRender);
+    }
+}
+
+void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note)
+{
+    int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
+    AnimatorRecord* record = GetRecord(sceneId);
+    XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
+    if (record == nullptr) {
+        record = new AnimatorRecord();
+        PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
+        record->InitRecord(sceneId, type, sourceType, note, inputTime);
+        mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
+        XperfAsyncTraceBegin(0, sceneId.c_str());
+    }
+}
+
+void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender)
+{
+    AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
     if (record != nullptr) {
-        if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-            SceneMonitor::GetInstance().SetIsExceptAnimator(false);
-            SceneMonitor::GetInstance().SetVsyncLazyMode();
-        }
         SceneMonitor::GetInstance().FlushSubHealthInfo();
-        SceneMonitor::GetInstance().RecordBaseInfo(record);
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
         record->Report(sceneId, mVsyncTime, isRsRender);
-        PerfReporter::GetInstance().ReportAnimateEnd(sceneId, record);
+        ReportAnimateEnd(sceneId, record);
         RemoveRecord(sceneId);
         XperfAsyncTraceEnd(0, sceneId.c_str());
     }
 }
 
-void AnimatorMonitor::EndCommercial(const std::string& sceneId, bool isRsRender)
+void AnimatorMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
-    if (SceneMonitor::GetInstance().IsScrollJank(sceneId)) {
-        WhiteBlockMonitor::GetInstance().EndScroll();
-    }
-    SceneRecord* record = GetRecord(sceneId);
-    XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
-    if (record != nullptr) {
-        if (SceneMonitor::GetInstance().IsSceneIdInSceneWhiteList(sceneId)) {
-            SceneMonitor::GetInstance().SetIsExceptAnimator(false);
-        }
-        SceneMonitor::GetInstance().FlushSubHealthInfo();
-        SceneMonitor::GetInstance().RecordBaseInfo(record);
-        int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
-        record->Report(sceneId, mVsyncTime, isRsRender);
-        PerfReporter::GetInstance().ReportAnimateEnd(sceneId, record);
-        RemoveRecord(sceneId);
-        XperfAsyncTraceEnd(0, sceneId.c_str());
-    }
-}
-
-void AnimatorMonitor::SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)
-{
-    std::lock_guard<std::mutex> Lock(mMutex);
-    InputMonitor::GetInstance().SetmVsyncTime(vsyncTime);
+    InputMonitor::GetInstance().SetVsyncTime(vsyncTime);
     int32_t skippedFrames = static_cast<int32_t> (jank);
     for (auto it = mRecords.begin(); it != mRecords.end();) {
         if (it->second != nullptr) {
             (it->second)->RecordFrame(vsyncTime, duration, skippedFrames);
             if ((it->second)->IsTimeOut(vsyncTime + duration)) {
-                SceneMonitor::GetInstance().CheckTimeOutOfExceptAnimatorStatus(it->second->sceneId);
+                SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_ANIMATOR,
+                    false, it->second->sceneId);
                 delete it->second;
                 it = mRecords.erase(it);
                 continue;
             }
             if ((it->second)->IsFirstFrame()) {
-                PerfReporter::GetInstance().ReportAnimateStart(it->first, it->second);
+                ReportAnimateStart(it->first, it->second);
             }
         }
         it++;
     }
-    if (IsSubHealthScene()) {
-        SceneMonitor::GetInstance().FlushSubHealthInfo();
-    }
-    JankFrameMonitor::GetInstance().ProcessJank(jank, windowName);
-    JankFrameMonitor::GetInstance().JankFrameStatsRecord(jank);
 }
 
-SceneRecord* AnimatorMonitor::GetRecord(const std::string& sceneId)
+bool AnimatorMonitor::RecordsIsEmpty()
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    return mRecords.empty();
+}
+
+AnimatorRecord* AnimatorMonitor::GetRecord(const std::string& sceneId)
 {
     auto iter = mRecords.find(sceneId);
     if (iter != mRecords.end()) {
@@ -168,7 +154,7 @@ bool AnimatorMonitor::IsSubHealthScene()
 
 void AnimatorMonitor::RemoveRecord(const std::string& sceneId)
 {
-    std::map <std::string, SceneRecord*>::iterator iter = mRecords.find(sceneId);
+    std::map <std::string, AnimatorRecord*>::iterator iter = mRecords.find(sceneId);
     if (iter != mRecords.end()) {
         if (iter->second != nullptr) {
             delete iter->second;
@@ -177,9 +163,55 @@ void AnimatorMonitor::RemoveRecord(const std::string& sceneId)
     }
 }
 
-bool AnimatorMonitor::RecordsIsEmpty()
+void AnimatorMonitor::FlushDataBase(AnimatorRecord* record, DataBase& data)
 {
-    return mRecords.empty();
+    if (record == nullptr) {
+        return;
+    }
+    data.sceneId = record->sceneId;
+    data.inputTime = record->inputTime;
+    data.beginVsyncTime = record->beginVsyncTime;
+    if (data.beginVsyncTime < data.inputTime) {
+        data.inputTime = data.beginVsyncTime;
+    }
+    data.endVsyncTime = record->endVsyncTime;
+    if (data.beginVsyncTime > data.endVsyncTime) {
+        data.endVsyncTime = data.beginVsyncTime;
+    }
+    data.maxFrameTime = record->maxFrameTime;
+    data.maxFrameTimeSinceStart = record->maxFrameTimeSinceStart;
+    data.maxHitchTime = record->maxHitchTime;
+    data.maxHitchTimeSinceStart = record->maxHitchTimeSinceStart;
+    data.maxSuccessiveFrames = record->maxSuccessiveFrames;
+    data.totalMissed = record->totalMissed;
+    data.totalFrames = record->totalFrames;
+    data.needReportRs = record->needReportRs;
+    data.isDisplayAnimator = record->isDisplayAnimator;
+    data.sourceType = record->sourceType;
+    data.actionType = record->actionType;
+    data.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
+    data.baseInfo.note = record->note;
+}
+
+void AnimatorMonitor::ReportAnimateStart(const std::string& sceneId, AnimatorRecord* record)
+{
+    if (record == nullptr) {
+        return;
+    }
+    DataBase data;
+    FlushDataBase(record, data);
+    PerfReporter::GetInstance().ReportAnimatorEvent(EVENT_RESPONSE, data);
+}
+
+void AnimatorMonitor::ReportAnimateEnd(const std::string& sceneId, AnimatorRecord* record)
+{
+    if (record == nullptr) {
+        return;
+    }
+    DataBase data;
+    FlushDataBase(record, data);
+    PerfReporter::GetInstance().ReportAnimatorEvent(EVENT_JANK_FRAME, data);
+    PerfReporter::GetInstance().ReportAnimatorEvent(EVENT_COMPLETE, data);
 }
 
 }

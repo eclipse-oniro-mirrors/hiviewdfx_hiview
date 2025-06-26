@@ -46,8 +46,7 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
             {
                 XPERF_TRACE_SCOPED("RecordInputEvent: last_up=%lld(ns)", static_cast<long long>(time));
                 mInputTime[LAST_UP] = time;
-                SceneMonitor::GetInstance().SetIsResponseExclusion(true);
-                SceneMonitor::GetInstance().SetVsyncLazyMode();
+                SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, true);
                 break;
             }
         case FIRST_MOVE:
@@ -63,6 +62,7 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
 
 int64_t InputMonitor::GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
+    std::lock_guard<std::mutex> Lock(mMutex);
     int64_t inputTime = 0;
     switch (type) {
         case LAST_DOWN:
@@ -84,19 +84,22 @@ int64_t InputMonitor::GetInputTime(const std::string& sceneId, PerfActionType ty
     return inputTime;
 }
 
-void InputMonitor::SetmVsyncTime(int64_t val)
+void InputMonitor::SetVsyncTime(int64_t val)
 {
+    std::lock_guard<std::mutex> Lock(mMutex);
     mVsyncTime = val;
     return;
 }
 
 PerfSourceType InputMonitor::GetSourceType()
 {
+    std::lock_guard<std::mutex> Lock(mMutex);
     return mSourceType;
 }
 
 int64_t InputMonitor::GetVsyncTime()
 {
+    std::lock_guard<std::mutex> Lock(mMutex);
     return mVsyncTime;
 }
 

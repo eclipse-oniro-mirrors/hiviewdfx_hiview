@@ -30,28 +30,119 @@ JankFrameMonitor& JankFrameMonitor::GetInstance()
     return instance;
 }
 
+JankFrameMonitor::JankFrameMonitor()
+{
+    InitJankFrameRecord();
+    RegisterFrameCallback(this);
+}
+
+JankFrameMonitor::~JankFrameMonitor()
+{
+    UnregisterFrameCallback(this);
+}
+
+void JankFrameMonitor::RegisterFrameCallback(IFrameCallback* cb)
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    if (std::find(frameCallbacks.begin(), frameCallbacks.end(), cb) == frameCallbacks.end()) {
+        frameCallbacks.push_back(cb);
+    }
+}
+
+void JankFrameMonitor::UnregisterFrameCallback(IFrameCallback* cb)
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    auto it = std::find(frameCallbacks.begin(), frameCallbacks.end(), cb);
+    if (it != frameCallbacks.end()) {
+        frameCallbacks.erase(it);
+    }
+}
+
+void JankFrameMonitor::OnFrameEnd(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)
+{
+    AnimatorMonitor::GetInstance().OnVsyncEvent(vsyncTime, duration, jank, windowName);
+    for (auto* cb: frameCallbacks) {
+        cb->OnVsyncEvent(vsyncTime, duration, jank, windowName);
+    }
+}
+
+void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)
+{
+    SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_WINDOW, true, windowName);
+    if (AnimatorMonitor::GetInstance().IsSubHealthScene()) {
+        SceneMonitor::GetInstance().FlushSubHealthInfo();
+    }
+    ProcessJank(jank, windowName);
+    JankFrameStatsRecord(jank);
+    SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_WINDOW, false, windowName);
+    SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_START, false);
+    SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, false);
+}
+
 void JankFrameMonitor::ProcessJank(double jank, const std::string& windowName)
 {
     // single frame behavior report
-    SceneMonitor::GetInstance().CheckExclusionWindow(windowName);
-    PerfReporter::GetInstance().ReportJankFrame(jank, windowName);
-    SceneMonitor::GetInstance().CheckInStartAppStatus();
-    SceneMonitor::GetInstance().CheckResponseStatus();
+    if (jank >= static_cast<double>(DEFAULT_JANK_REPORT_THRESHOLD)) {
+        JankInfo jankInfo;
+        jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
+        jankInfo.windowName = windowName;
+        jankInfo.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
+        jankInfo.sceneTag = SceneMonitor::GetInstance().GetNonexpFilterTag();
+        if (!AnimatorMonitor::GetInstance().RecordsIsEmpty()) {
+            jankInfo.sceneId = SceneMonitor::GetInstance().GetCurrentSceneId();
+        } else {
+            jankInfo.sceneId = DEFAULT_SCENE_ID;
+        }
+        jankInfo.realSkippedFrameTime = jankInfo.sceneTag == 0 ? jankInfo.skippedFrameTime : 0;
+        PerfReporter::GetInstance().ReportSingleJankFrame(jankInfo);
+    }
+}
+
+void JankFrameMonitor::JankFrameStatsRecord(double jank)
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    if (SceneMonitor::GetInstance().GetIsStats() && jank > 1.0f && !jankFrameRecord.empty()) {
+        jankFrameRecord[GetJankLimit(jank)]++;
+        jankFrameTotalCount++;
+    }
+}
+
+void JankFrameMonitor::InitJankFrameRecord()
+{
+    jankFrameRecord = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
 }
 
 void JankFrameMonitor::ClearJankFrameRecord()
 {
+    std::lock_guard<std::mutex> Lock(mMutex);
     std::fill(jankFrameRecord.begin(), jankFrameRecord.end(), 0);
     jankFrameTotalCount = 0;
     jankFrameRecordBeginTime = 0;
 }
 
-void JankFrameMonitor::JankFrameStatsRecord(double jank)
+void JankFrameMonitor::SetJankFrameRecordBeginTime(int64_t val)
 {
-    if (SceneMonitor::GetInstance().GetIsStats() == true && jank > 1.0f && !jankFrameRecord.empty()) {
-        jankFrameRecord[GetJankLimit(jank)]++;
-        jankFrameTotalCount++;
-    }
+    std::lock_guard<std::mutex> Lock(mMutex);
+    jankFrameRecordBeginTime = val;
+    return;
+}
+
+int64_t JankFrameMonitor::GetJankFrameRecordBeginTime()
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    return jankFrameRecordBeginTime;
+}
+
+int32_t JankFrameMonitor::GetJankFrameTotalCount()
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    return jankFrameTotalCount;
+}
+
+const std::vector<uint16_t>& JankFrameMonitor::GetJankFrameRecord()
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    return jankFrameRecord;
 }
 
 uint32_t JankFrameMonitor::GetJankLimit(double jank)
@@ -79,38 +170,5 @@ uint32_t JankFrameMonitor::GetJankLimit(double jank)
     }
     return JANK_FRAME_180_LIMIT;
 }
-
-void JankFrameMonitor::SetJankFrameRecordBeginTime(int64_t val)
-{
-    jankFrameRecordBeginTime = val;
-    return;
-}
-
-int64_t JankFrameMonitor::GetJankFrameRecordBeginTime()
-{
-    return jankFrameRecordBeginTime;
-}
-
-int32_t JankFrameMonitor::GetJankFrameTotalCount()
-{
-    return jankFrameTotalCount;
-}
-
-const std::vector<uint16_t>& JankFrameMonitor::GetJankFrameRecord()
-{
-    return jankFrameRecord;
-}
-
-bool JankFrameMonitor::JankFrameRecordIsEmpty()
-{
-    return jankFrameRecord.empty();
-}
-
-void JankFrameMonitor::InitJankFrameRecord()
-{
-    jankFrameRecord = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
-    return;
-}
-
 }
 }

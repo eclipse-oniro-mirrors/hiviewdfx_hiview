@@ -209,6 +209,9 @@ public:
 
     // navigation interactive animation
     static constexpr char ABILITY_OR_PAGE_SWITCH_INTERACTIVE[] = "ABILITY_OR_PAGE_SWITCH_INTERACTIVE";
+
+    //screenlock into pin
+    static constexpr char SCREENLOCK_SCREEN_INTO_PIN[] = "SCREENLOCK_SCREEN_INTO_PIN";
 };
 } // namespace OHOS
 } // namespace HiviewDFX

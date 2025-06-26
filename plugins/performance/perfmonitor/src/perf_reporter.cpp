@@ -94,10 +94,9 @@ PerfReporter& PerfReporter::GetInstance()
 
 void PerfReporter::ReportJankFrameApp(double jank, int32_t jankThreshold)
 {
-    if (jank >= static_cast<double>(jankThreshold) && !SceneMonitor::GetInstance().GetIsBackgroundApp()) {
+    if (jank >= static_cast<double>(jankThreshold)) {
         JankInfo jankInfo;
         jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
-        SceneMonitor::GetInstance().RecordBaseInfo(nullptr);
         jankInfo.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
         EventReporter::ReportJankFrameApp(jankInfo);
     }
@@ -109,57 +108,7 @@ void PerfReporter::ReportPageShowMsg(const std::string& pageUrl, const std::stri
     EventReporter::ReportPageShowMsg(pageUrl, bundleName, pageName);
 }
 
-void PerfReporter::ReportAnimateStart(const std::string& sceneId, SceneRecord* record)
-{
-    if (record == nullptr) {
-        return;
-    }
-    DataBase data;
-    FlushDataBase(record, data);
-    ReportPerfEvent(EVENT_RESPONSE, data);
-}
-
-void PerfReporter::ReportAnimateEnd(const std::string& sceneId, SceneRecord* record)
-{
-    if (record == nullptr) {
-        return;
-    }
-    DataBase data;
-    FlushDataBase(record, data);
-    ReportPerfEvent(EVENT_JANK_FRAME, data);
-    ReportPerfEvent(EVENT_COMPLETE, data);
-}
-
-void PerfReporter::FlushDataBase(SceneRecord* record, DataBase& data)
-{
-    if (record == nullptr) {
-        return;
-    }
-    data.sceneId = record->sceneId;
-    data.inputTime = record->inputTime;
-    data.beginVsyncTime = record->beginVsyncTime;
-    if (data.beginVsyncTime < data.inputTime) {
-        data.inputTime = data.beginVsyncTime;
-    }
-    data.endVsyncTime = record->endVsyncTime;
-    if (data.beginVsyncTime > data.endVsyncTime) {
-        data.endVsyncTime = data.beginVsyncTime;
-    }
-    data.maxFrameTime = record->maxFrameTime;
-    data.maxFrameTimeSinceStart = record->maxFrameTimeSinceStart;
-    data.maxHitchTime = record->maxHitchTime;
-    data.maxHitchTimeSinceStart = record->maxHitchTimeSinceStart;
-    data.maxSuccessiveFrames = record->maxSuccessiveFrames;
-    data.totalMissed = record->totalMissed;
-    data.totalFrames = record->totalFrames;
-    data.needReportRs = record->needReportRs;
-    data.isDisplayAnimator = record->isDisplayAnimator;
-    data.sourceType = record->sourceType;
-    data.actionType = record->actionType;
-    data.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
-}
-
-void PerfReporter::ReportPerfEvent(PerfEventType type, DataBase& data)
+void PerfReporter::ReportAnimatorEvent(PerfEventType type, DataBase& data)
 {
     switch (type) {
         case EVENT_RESPONSE:
@@ -229,43 +178,6 @@ void PerfReporter::ReportPerfEventToUI(DataBase data)
     }
 }
 
-void PerfReporter::ReportJankStatsApp(int64_t duration)
-{
-    int32_t jankFrameTotalCount = JankFrameMonitor::GetInstance().GetJankFrameTotalCount();
-    int64_t jankFrameRecordBeginTime = JankFrameMonitor::GetInstance().GetJankFrameRecordBeginTime();
-    const auto& baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
-    const auto& jankFrameRecord = JankFrameMonitor::GetInstance().GetJankFrameRecord();
-    XPERF_TRACE_SCOPED("ReportJankStatsApp count=%" PRId32 ";duration=%" PRId64 ";beginTime=%" PRId64 ";",
-        jankFrameTotalCount, duration, jankFrameRecordBeginTime);
-    if (duration > DEFAULT_VSYNC && jankFrameTotalCount > 0 && jankFrameRecordBeginTime > 0) {
-        EventReporter::JankFrameReport(jankFrameRecordBeginTime, duration, jankFrameRecord,
-            baseInfo.pageUrl, JANK_STATS_VERSION);
-    }
-    JankFrameMonitor::GetInstance().ClearJankFrameRecord();
-}
-
-void PerfReporter::ReportJankFrame(double jank, const std::string& windowName)
-{
-    if (jank >= static_cast<double>(DEFAULT_JANK_REPORT_THRESHOLD)) {
-        JankInfo jankInfo;
-        jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
-        jankInfo.windowName = windowName;
-        SceneMonitor::GetInstance().RecordBaseInfo(nullptr);
-        jankInfo.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
-        jankInfo.filterType = SceneMonitor::GetInstance().GetFilterType();
-        if (!AnimatorMonitor::GetInstance().RecordsIsEmpty()) {
-            jankInfo.sceneId = SceneMonitor::GetInstance().GetCurrentSceneId();
-        } else {
-            jankInfo.sceneId = DEFAULT_SCENE_ID;
-        }
-        jankInfo.realSkippedFrameTime = jankInfo.filterType == 0 ? jankInfo.skippedFrameTime : 0;
-        EventReporter::ReportJankFrameUnFiltered(jankInfo);
-        if (!SceneMonitor::GetInstance().IsExclusionFrame()) {
-            EventReporter::ReportJankFrameFiltered(jankInfo);
-        }
-    }
-}
-
 void PerfReporter::ConvertToRsData(OHOS::Rosen::DataBaseRs &dataRs, DataBase& data)
 {
     dataRs.eventType = static_cast<int32_t>(data.eventType);
@@ -284,6 +196,25 @@ void PerfReporter::ConvertToRsData(OHOS::Rosen::DataBaseRs &dataRs, DataBase& da
     dataRs.sourceType = GetSourceTypeName(data.sourceType);
     dataRs.note = data.baseInfo.note;
     dataRs.isDisplayAnimator = data.isDisplayAnimator;
+}
+
+void PerfReporter::ReportSingleJankFrame(JankInfo& jankInfo)
+{
+    EventReporter::ReportJankFrameUnFiltered(jankInfo);
+    if (!jankInfo.sceneTag) {
+        EventReporter::ReportJankFrameFiltered(jankInfo);
+    }
+}
+
+void PerfReporter::ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration,
+    const std::vector<uint16_t>& jankFrameRecord, int32_t jankFrameTotalCount, const BaseInfo& baseInfo)
+{
+    XPERF_TRACE_SCOPED("ReportJankStatsApp count=%" PRId32 ";duration=%" PRId64 ";beginTime=%" PRId64 ";",
+        jankFrameTotalCount, duration, jankFrameRecordBeginTime);
+    if (duration > DEFAULT_VSYNC && jankFrameTotalCount > 0 && jankFrameRecordBeginTime > 0) {
+        EventReporter::ReportStatsJankFrame(jankFrameRecordBeginTime, duration, jankFrameRecord,
+            baseInfo, JANK_STATS_VERSION);
+    }
 }
 
 void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
@@ -476,15 +407,15 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
 }
 
-void EventReporter::JankFrameReport(int64_t startTime, int64_t duration, const std::vector<uint16_t>& jank,
-    const std::string& pageUrl, uint32_t jankStatusVersion)
+void EventReporter::ReportStatsJankFrame(int64_t startTime, int64_t duration, const std::vector<uint16_t>& jank,
+    const BaseInfo& baseInfo, uint32_t jankStatusVersion)
 {
     std::string eventName = "JANK_STATS_APP";
-    auto baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
     auto app_version_code = baseInfo.versionCode;
     auto app_version_name = baseInfo.versionName;
     auto packageName = baseInfo.bundleName;
     auto abilityName = baseInfo.abilityName;
+    auto pageUrl = baseInfo.pageUrl;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_STATISTIC)
@@ -545,11 +476,11 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
     const auto& skippedFrameTime = info.skippedFrameTime;
     const auto& realSkippedFrameTime = info.realSkippedFrameTime;
     const auto& windowName = info.windowName;
-    const auto& filterType = info.filterType;
     const auto& sceneId = info.sceneId;
     const auto& extend = info.baseInfo.subHealthInfo.info;
     const auto& reason = info.baseInfo.subHealthInfo.subHealthReason;
     const auto& subHealthTime = info.baseInfo.subHealthInfo.subHealthTime;
+    const auto& sceneTag = info.sceneTag;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
@@ -560,7 +491,7 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Param(EVENT_KEY_VERSION_CODE, versionCode)
         .Param(EVENT_KEY_VERSION_NAME, versionName)
         .Param(EVENT_KEY_PAGE_NAME, pageName)
-        .Param(EVENT_KEY_FILTER_TYPE, filterType)
+        .Param(EVENT_KEY_FILTER_TYPE, sceneTag)
         .Param(EVENT_KEY_SCENE_ID, sceneId)
         .Param(EVENT_KEY_REAL_SKIPPED_FRAME_TIME, static_cast<uint64_t>(realSkippedFrameTime))
         .Param(EVENT_KEY_SKIPPED_FRAME_TIME, static_cast<uint64_t>(skippedFrameTime))
@@ -570,8 +501,8 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
-    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%d",
-        static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(), filterType);
+    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%llu",
+        static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(), sceneTag);
 }
 
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -593,7 +524,7 @@ void EventReporter::ReportImageLoadStat(const ImageLoadStat& stat)
 {
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName("SCROLL_IMAGE_STAT")
-            .EventType(HISYSEVENT_BEHAVIOR)
+            .EventType(HISYSEVENT_STATISTIC)
             .Param(KEY_SCROLL_START_TIME, stat.startTime)
             .Param(KEY_SCROLL_END_TIME, stat.endTime)
             .Param(KEY_TOTAL_NUM, stat.totalNum)

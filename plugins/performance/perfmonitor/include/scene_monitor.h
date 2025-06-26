@@ -18,71 +18,98 @@
 
 #include <map>
 #include <mutex>
+#include <vector>
+#include "animator_monitor.h"
 #include "perf_constants.h"
 #include "perf_model.h"
+#include "iremote_broker.h"
 
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-class SceneMonitor {
+class SceneManager {
+public:
+    void OnSceneStart(const SceneType& type);
+    void OnSceneStop(const SceneType& type);
+    void OnSceneStart(const SceneType& type, const std::string& sceneId);
+    void OnSceneStop(const SceneType& type, const std::string& sceneId);
+    SceneRecord* GetRecordByType(const SceneType& type);
+    uint64_t GetSceneTag();
+    uint64_t GetSceneTagByType(const SceneType& type);
+private:
+    mutable std::mutex mMutex;
+    std::map<SceneType, SceneRecord*> sceneBoard;
+};
+
+class SceneMonitor : public IAnimatorCallback, public ISceneCallback {
 public:
     static SceneMonitor& GetInstance();
-    void NotifyAppJankStatsBegin();
-    void NotifyAppJankStatsEnd();
+    SceneMonitor();
+    ~SceneMonitor();
+    void RegisterSceneCallback(ISceneCallback* cb);
+    void UnregisterSceneCallback(ISceneCallback* cb);
+    void OnSceneEvent(const SceneType& type, bool status) override;
+    void OnSceneEvent(const SceneType& type, bool status, const std::string& sceneId) override;
+    void OnSceneChanged(const SceneType& type, bool status);
+    void OnSceneChanged(const SceneType& type, bool status, const std::string& sceneId);
+    void OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note) override;
+    void OnAnimatorStop(const std::string& sceneId, bool isRsRender) override;
+
+    // outer interface for scene-info
+    void SetAppInfo(AceAppInfo& aceAppInfo);
     void SetPageUrl(const std::string& pageUrl);
-    std::string GetPageUrl();
     void SetPageName(const std::string& pageName);
-    std::string GetPageName();
+    void SetCurrentSceneId(const std::string& sceneId);
+
+    // outer interface when scene-change
     void SetAppForeground(bool isShow);
     void SetAppStartStatus();
+
+    // inner interface when scene-change
+    void SetAppGCStatus(const std::string& sceneId, int64_t value);
+
+    // inner interface get scene-info
+    BaseInfo GetBaseInfo();
+    std::string GetPageUrl();
+    std::string GetPageName();
+    int32_t GetPid();
+    std::string GetCurrentSceneId();
+
+    // innner interface when scene-change
     bool IsScrollJank(const std::string& sceneId);
-    bool GetIsStats();
-    const BaseInfo& GetBaseInfo();
-
-    void SetCurrentSceneId(const std::string& sceneId);
-    const std::string& GetCurrentSceneId();
-    void SetAppInfo(AceAppInfo& aceAppInfo);
-
-    void RecordBaseInfo(SceneRecord* record);
-    void NotifySbdJankStatsBegin(const std::string& sceneId);
-    void NotifySdbJankStatsEnd(const std::string& sceneId);
-    bool IsSceneIdInSceneWhiteList(const std::string& sceneId);
-    void CheckTimeOutOfExceptAnimatorStatus(const std::string& sceneId);
+    uint64_t GetNonexpFilterTag();
+    
+    // stats jank frame for app
+    void NotifyAppJankStatsBegin();
+    void NotifyAppJankStatsEnd();
+    void NotifyAppJankStatsReport(int64_t duration);
+    void NotifyScbJankStatsBegin(const std::string& sceneId);
+    void NotifyScbJankStatsEnd(const std::string& sceneId);
     void SetJankFrameRecord(OHOS::Rosen::AppInfo& appInfo, int64_t startTime, int64_t endTime);
-
+    bool GetIsStats();
+    void SetStats(bool status);
+    
+    // inner interface for response time out
     bool IsExceptResponseTime(int64_t time, const std::string& sceneId);
-    int32_t GetFilterType() const;
-    bool IsExclusionFrame();
-    void SetVsyncLazyMode();
-    void CheckInStartAppStatus();
-    void CheckExclusionWindow(const std::string& windowName);
-    void CheckResponseStatus();
-
-    void SetIsBackgroundApp(bool val);
-    bool GetIsBackgroundApp();
-    void SetIsStartAppFrame(bool val);
-    void SetStartAppTime(int64_t val);
-    void SetIsExceptAnimator(bool val);
-    void SetIsResponseExclusion(bool val);
+    
+    // inner interface when non-experience scene
+    void SetVsyncLazyMode(uint64_t sceneTag);
 
     void SetSubHealthInfo(const SubHealthInfo& info);
     void FlushSubHealthInfo();
+
 private:
     void NotifyRsJankStatsBegin();
     void NotifyRsJankStatsEnd(int64_t endTime);
-
-    AceAppInfo appInfo;
+private:
     BaseInfo baseInfo;
     std::string currentSceneId {""};
-    bool isStats = {false};
-    bool isResponseExclusion {false};
-    bool isStartAppFrame {false};
-    bool isBackgroundApp {false};
-    bool isExclusionWindow {false};
-    bool isExceptAnimator {false};
-    int64_t startAppTime {0};
+    bool isStats {false};
+    mutable std::mutex mMutex;
+    SceneManager mNonexpManager;
+    std::vector<ISceneCallback*> sceneCallbacks;
 
     SubHealthInfo subHealthInfo;
     bool isSubHealthScene = false;

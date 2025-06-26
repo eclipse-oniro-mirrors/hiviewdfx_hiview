@@ -80,6 +80,7 @@ ohos_shared_library("libperfmonitor") {
       "hisysevent:libhisysevent",
       "hitrace:hitrace_meter",
       "hilog:libhilog",
+      "ipc:ipc_single",
       "samgr:samgr_proxy"
     ]
 

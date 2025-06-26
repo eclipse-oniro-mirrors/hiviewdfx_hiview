@@ -16,8 +16,10 @@
 #ifndef XPERF_MODEL_H
 #define XPERF_MODEL_H
 
+#include <map>
 #include <string>
 #include "perf_constants.h"
+#include "iremote_broker.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -96,7 +98,7 @@ struct JankInfo {
     int64_t skippedFrameTime {0};
     std::string windowName {""};
     std::string sceneId {""};
-    int32_t filterType {0};
+    uint64_t sceneTag {0};
     int64_t realSkippedFrameTime {0};
     BaseInfo baseInfo;
 };
@@ -121,7 +123,7 @@ struct ImageLoadStat {
     std::string typeDetails;
 };
 
-class SceneRecord {
+class AnimatorRecord {
 public:
     void InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType, const std::string& nt,
         int64_t time);
@@ -135,7 +137,7 @@ public:
     int64_t inputTime {0};
     int64_t beginVsyncTime {0};
     int64_t endVsyncTime {0};
-    int64_t  maxFrameTime {0};
+    int64_t maxFrameTime {0};
     int64_t maxFrameTimeSinceStart {0};
     int64_t maxHitchTime {0};
     int64_t maxHitchTimeSinceStart {0};
@@ -153,6 +155,80 @@ public:
     std::string note {""};
 };
 
+enum SceneType {
+    APP_FOREGROUND = 0,
+    NON_EXPERIENCE_ANIMATOR,
+    NON_EXPERIENCE_WINDOW,
+    APP_START,
+    APP_RESPONSE,
+    APP_BACKGROUND,
+    PAGE_LOADING,
+    POWER_OFF,
+    ACCESSIBLE_FEATURE,
+    VIDEO_PLAYING
+};
+
+class SceneRecord {
+public:
+    virtual void StartRecord(const SceneType& sType);
+    virtual void StopRecord(const SceneType& sType);
+    virtual void StartRecord(const SceneType& sType, const std::string& sId);
+    virtual void StopRecord(const SceneType& sType, const std::string& sId);
+public:
+    SceneType type{APP_FOREGROUND};
+    std::string sceneId;
+    bool status{false};
+    int64_t startTime{0};
+    int64_t duration{0};
+};
+
+class NonExperienceAnimator : public SceneRecord {
+public:
+    void StartRecord(const SceneType& sType, const std::string& sId) override;
+    void StopRecord(const SceneType& sType, const std::string& sId) override;
+public:
+    bool IsNonExperienceWhiteList(const std::string& sceneId);
+};
+
+class NonExperienceWindow : public NonExperienceAnimator {
+public:
+    void StartRecord(const SceneType& sType, const std::string& sId);
+    void StopRecord(const SceneType& sType, const std::string& sId);
+    bool IsNonExperienceWhiteList(const std::string& windowName);
+};
+
+class NonExperienceAppStart : public SceneRecord {
+public:
+    void StartRecord(const SceneType& sType) override;
+    void StopRecord(const SceneType& sType) override;
+    bool IsInStartAppStatus();
+};
+
+class IFrameCallback : public IRemoteBroker {
+public:
+    virtual void OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName) = 0;
+    virtual sptr<IRemoteObject> AsObject() { return nullptr;}
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.HiviewDFX.IFrameCallback");
+};
+
+class IAnimatorCallback : public IRemoteBroker {
+public:
+    virtual void OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note) = 0;
+    virtual void OnAnimatorStop(const std::string& sceneId, bool isRsRender) = 0;
+    virtual sptr<IRemoteObject> AsObject() { return nullptr;}
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.HiviewDFX.IAnimatorCallback");
+};
+
+class ISceneCallback : public IRemoteBroker {
+public:
+    virtual void OnSceneEvent(const SceneType& type, const bool status) = 0;
+    virtual void OnSceneEvent(const SceneType& type, const bool status, const std::string& sceneId) = 0;
+    virtual sptr<IRemoteObject> AsObject() { return nullptr; }
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.HiviewDFX.ISceneCallback");
+};
 } // namespace OHOS
 } // namespace HiviewDFX
 #endif // XPERF_MODEL_H

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,36 @@ PerfMonitorAdapter& PerfMonitorAdapter::GetInstance()
 {
     static PerfMonitorAdapter instance;
     return instance;
+}
+
+void PerfMonitorAdapter::RegisterFrameCallback(IFrameCallback * cb)
+{
+    JankFrameMonitor::GetInstance().RegisterFrameCallback(cb);
+}
+
+void PerfMonitorAdapter::UnregisterFrameCallback(IFrameCallback * cb)
+{
+    JankFrameMonitor::GetInstance().UnregisterFrameCallback(cb);
+}
+
+void PerfMonitorAdapter::RegisterAnimatorCallback(IAnimatorCallback * cb)
+{
+    AnimatorMonitor::GetInstance().RegisterAnimatorCallback(cb);
+}
+
+void PerfMonitorAdapter::UnregisterAnimatorCallback(IAnimatorCallback * cb)
+{
+    AnimatorMonitor::GetInstance().UnregisterAnimatorCallback(cb);
+}
+
+void PerfMonitorAdapter::RegisterSceneCallback(ISceneCallback* cb)
+{
+    SceneMonitor::GetInstance().RegisterSceneCallback(cb);
+}
+
+void PerfMonitorAdapter::UnregisterSceneCallback(ISceneCallback* cb)
+{
+    SceneMonitor::GetInstance().UnregisterSceneCallback(cb);
 }
 
 void PerfMonitorAdapter::RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time)
@@ -104,17 +135,17 @@ void PerfMonitorAdapter::End(const std::string& sceneId, bool isRsRender)
 
 void PerfMonitorAdapter::StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
-    AnimatorMonitor::GetInstance().StartCommercial(sceneId, type, note);
+    AnimatorMonitor::GetInstance().Start(sceneId, type, note);
 }
 
 void PerfMonitorAdapter::EndCommercial(const std::string& sceneId, bool isRsRender)
 {
-    AnimatorMonitor::GetInstance().EndCommercial(sceneId, isRsRender);
+    AnimatorMonitor::GetInstance().End(sceneId, isRsRender);
 }
 
 void PerfMonitorAdapter::SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)
 {
-    AnimatorMonitor::GetInstance().SetFrameTime(vsyncTime, duration, jank, windowName);
+    JankFrameMonitor::GetInstance().OnFrameEnd(vsyncTime, duration, jank, windowName);
 }
 
 void PerfMonitorAdapter::SetSubHealthInfo(const std::string& info, const std::string& reason, const int32_t duration)
@@ -146,6 +177,11 @@ void PerfMonitorAdapter::EndRecordImageLoadStat(int64_t id, std::pair<int, int> 
                                                 int state)
 {
     WhiteBlockMonitor::GetInstance().EndRecordImageLoadStat(id, size, type, state);
+}
+
+void PerfMonitorAdapter::OnSceneChanged(const SceneType& type, bool status)
+{
+    SceneMonitor::GetInstance().OnSceneChanged(type, status);
 }
 
 }
