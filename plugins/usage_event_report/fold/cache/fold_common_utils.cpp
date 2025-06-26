@@ -45,7 +45,7 @@ void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
     focusedAppPair = std::pair<std::string, bool>("", false);
     multiWindowInfos.clear();
     Rosen::WindowInfoOption windowInfoOption;
-    windowInfoOption.windowInfoFilterOption = Rosen::WindowInfoFilterOption::VISIBLE;
+    windowInfoOption.windowInfoFilterOption = Rosen::WindowInfoFilterOption::FOREGROUND;
     std::vector<sptr<Rosen::WindowInfo>> winInfos;
     Rosen::WMError ret = Rosen::WindowManager::GetInstance().ListWindowInfo(windowInfoOption, winInfos);
     if (ret != Rosen::WMError::WM_OK) {
