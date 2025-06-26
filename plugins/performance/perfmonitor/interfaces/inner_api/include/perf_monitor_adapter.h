@@ -25,6 +25,14 @@ namespace HiviewDFX {
 class __attribute__((visibility("default"))) PerfMonitorAdapter {
 public:
     static PerfMonitorAdapter& GetInstance();
+    PerfMonitorAdapter() = default;
+    ~PerfMonitorAdapter() = default;
+    void RegisterFrameCallback(IFrameCallback* cb);
+    void UnregisterFrameCallback(IFrameCallback* cb);
+    void RegisterAnimatorCallback(IAnimatorCallback* cb);
+    void UnregisterAnimatorCallback(IAnimatorCallback* cb);
+    void RegisterSceneCallback(ISceneCallback* cb);
+    void UnregisterSceneCallback(ISceneCallback* cb);
 
     void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time);
     int64_t GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note);
@@ -38,6 +46,7 @@ public:
     void SetAppForeground(bool isShow);
     void SetAppStartStatus();
     void SetAppInfo(AceAppInfo& appInfo);
+    void SetSubHealthInfo(const std::string& info, const std::string& reason, const int32_t duration);
     bool IsScrollJank(const std::string& sceneId);
 
     void Start(const std::string& sceneId, PerfActionType type, const std::string& note);
@@ -45,7 +54,7 @@ public:
     void StartCommercial(const std::string& sceneId, PerfActionType type, const std::string& note);
     void EndCommercial(const std::string& sceneId, bool isRsRender);
     void SetFrameTime(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
-    void SetSubHealthInfo(const std::string& info, const std::string& reason, const int32_t duration);
+    void OnFrameEnd(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
 
     void ReportJankFrameApp(double jank, int32_t jankThreshold);
     void ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,
@@ -53,6 +62,7 @@ public:
 
     void StartRecordImageLoadStat(int64_t id);
     void EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type, int state);
+    void OnSceneChanged(const SceneType& type, bool status);
 };
 }
 }
