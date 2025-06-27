@@ -51,6 +51,7 @@ constexpr uint64_t DEFAULT_UINT_VALUE = 0;
 constexpr double DEFAULT_DOUBLE_VALUE = 0.0;
 constexpr size_t BLOCK_SIZE_OFFSET = sizeof(int32_t);
 constexpr size_t PERIOD_SEQ_INFO_ITEM_CNT = 3;
+constexpr char REPORT_INTERVAL_KEY[] = "reportInterval_";
 
 template<typename T>
 void AppendJsonValue(std::string& eventJson, const std::string& key, T val)
@@ -564,6 +565,9 @@ std::string SysEvent::AsJsonStr()
     if (eventSeq_ >= 0) {
         AppendJsonValue(jsonStr, EventStore::EventCol::SEQ, eventSeq_);
     }
+    if (reportInterval_ != UNINIT_REPORT_INTERVAL) {
+        AppendJsonValue(jsonStr, REPORT_INTERVAL_KEY, reportInterval_);
+    }
     return jsonStr;
 }
 
@@ -625,6 +629,23 @@ EventPeriodSeqInfo SysEvent::GetEventPeriodSeqInfo()
     StringUtil::ConvertStringTo(allInfo[2], periodSeq); // 2 is the index of period sequence
     eventPeriodSeqInfo.periodSeq = periodSeq;
     return eventPeriodSeqInfo;
+}
+
+void SysEvent::SetReportInterval(int32_t reportInterval)
+{
+    if (reportInterval_ == reportInterval) {
+        return;
+    }
+    reportInterval_ = reportInterval;
+    SetEventValue(REPORT_INTERVAL_KEY, reportInterval_);
+}
+
+int32_t SysEvent::GetReportInterval()
+{
+    if (reportInterval_ == UNINIT_REPORT_INTERVAL) {
+        reportInterval_ = static_cast<int32_t>(GetEventIntValue(REPORT_INTERVAL_KEY));
+    }
+    return reportInterval_;
 }
 
 SysEventCreator::SysEventCreator(const std::string& domain, const std::string& eventName,

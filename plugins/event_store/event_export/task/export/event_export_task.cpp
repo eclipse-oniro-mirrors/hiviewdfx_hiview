@@ -15,6 +15,7 @@
 
 #include "event_export_task.h"
 
+#include "event_export_util.h"
 #include "event_json_parser.h"
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -47,7 +48,8 @@ bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<Exp
         HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
         int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
         // handle setting parameter listening error
-        if (enabledSeq != INVALID_SEQ_VAL && !FileUtil::FileExists(dbMgr->GetEventInheritFlagPath())) {
+        if (enabledSeq != INVALID_SEQ_VAL &&
+            !FileUtil::FileExists(dbMgr->GetEventInheritFlagPath(config->moduleName))) {
             dbMgr->HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
         }
         return true;
@@ -55,7 +57,7 @@ bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<Exp
     HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
     int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
     if (enabledSeq == INVALID_SEQ_VAL) { // handle setting parameter listening error
-        enabledSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+        enabledSeq = EventExportUtil::GetModuleExportStartSeq(dbMgr, config);
         dbMgr->HandleExportSwitchChanged(config->moduleName, enabledSeq);
     }
     return false;
@@ -151,6 +153,7 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
     readReq->moduleName = config_->moduleName;
     readReq->maxSize = config_->maxSize;
     readReq->exportDir = config_->exportDir;
+    readReq->taskType = config_->taskType;
     return true;
 }
 } // HiviewDFX

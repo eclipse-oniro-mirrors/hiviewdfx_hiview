@@ -23,6 +23,7 @@
 
 #include "event_write_handler.h"
 #include "export_base_handler.h"
+#include "export_config_parser.h"
 #include "export_event_list_parser.h"
 #include "sys_event_query.h"
 
@@ -46,6 +47,9 @@ struct EventReadRequest : public BaseRequest {
 
     // directory configured for export event file to store
     std::string exportDir;
+
+    // task type
+    int64_t taskType;
 };
 
 struct ExportPeriodInfo {
@@ -80,6 +84,7 @@ private:
     std::list<std::shared_ptr<CachedEvent>> cachedSysEvents_;
     std::unordered_map<std::string, ExportPeriodInfo> allPeriodInfo_;
     std::unordered_map<std::string, ExportPeriodInfo> allPeriodInfoInOneQueryRange_;
+    std::shared_ptr<EventReadRequest> req_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

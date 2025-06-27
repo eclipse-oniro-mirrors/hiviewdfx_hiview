@@ -1,0 +1,36 @@
+{
+    "exportSwitchParam": {
+        "name": "test_param_key",
+        "enabledValue": "1"
+    },
+    "sysUpgradeParam": {
+        "name": "test_param_key",
+        "enabledValue": "1"
+    },
+    "exportDir": "/data/test/test_data",
+    "exportDirMaxCapacity": 100,
+    "exportSingleFileMaxSize": 2,
+    "inheritedModule": "inherited_test_module",
+    "exportTaskType": {
+        "domestic": {
+            "beta": -1,
+            "commercial": 2000
+        },
+        "oversea": {
+            "beta": -1,
+            "commercial": 2000
+        }
+    },
+    "taskExecutingCycle": {
+        "domestic": {
+            "beta": {},
+            "commercial": 2000
+        },
+        "oversea": {
+            "beta": 1800,
+            "commercial": 2000
+        }
+    },
+    "exportEventListConfigPaths": [],
+    "fileStoredMaxDayCnt": 7
+}

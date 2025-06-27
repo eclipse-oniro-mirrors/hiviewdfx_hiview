@@ -70,9 +70,9 @@ void UpdatePeriodInfoMap(std::unordered_map<std::string, ExportPeriodInfo>& peri
 
 bool EventReadHandler::HandleRequest(RequestPtr req)
 {
-    auto readReq = BaseRequest::DownCastTo<EventReadRequest>(req);
-    int64_t exportBeginSeq = readReq->beginSeq;
-    int64_t exportEndSeq = readReq->endSeq;
+    req_ = BaseRequest::DownCastTo<EventReadRequest>(req);
+    int64_t exportBeginSeq = req_->beginSeq;
+    int64_t exportEndSeq = req_->endSeq;
     // split range
     std::map<int64_t, int64_t> queryRanges;
     while (exportBeginSeq + QUERY_LIMIT < exportEndSeq) {
@@ -83,10 +83,10 @@ bool EventReadHandler::HandleRequest(RequestPtr req)
     queryRanges.emplace(exportBeginSeq, exportEndSeq);
     auto readRet = true;
     for (const auto& queryRange : queryRanges) {
-        if (!QuerySysEventInRange(queryRange, readReq->eventList,
-            [this, &readReq] (bool isQueryCompleted) {
-                auto writeReq = std::make_shared<EventWriteRequest>(readReq->moduleName, cachedSysEvents_,
-                    readReq->exportDir, isQueryCompleted, readReq->maxSize);
+        if (!QuerySysEventInRange(queryRange, req_->eventList,
+            [this] (bool isQueryCompleted) {
+                auto writeReq = std::make_shared<EventWriteRequest>(req_->moduleName, cachedSysEvents_,
+                    req_->exportDir, isQueryCompleted, req_->maxSize);
                 auto ret = nextHandler_->HandleRequest(writeReq);
                 cachedSysEvents_.clear();
                 return ret;
@@ -184,6 +184,9 @@ bool EventReadHandler::HandleQueryResult(EventStore::ResultSet& resultSet, Query
             .systemVersion = iter->GetSysVersion(),
             .patchVersion = iter->GetPatchVersion()
         };
+        if ((req_->taskType != ALL_EVENT_TASK_TYPE) && (req_->taskType != iter->GetReportInterval())) {
+            continue;
+        }
         UpdatePeriodInfoMap(allPeriodInfoInOneQueryRange_, iter->GetEventPeriodSeqInfo());
         auto item = std::make_shared<CachedEvent>(eventVersion, iter->domain_, iter->eventName_,
             currentEventStr, CommonUtils::GetTransformedUid(iter->GetUid()));

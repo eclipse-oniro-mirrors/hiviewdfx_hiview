@@ -124,7 +124,8 @@ public:
         EXTERNAL_EVENT,
         EXTERNAL_REMOTE_EVENT,
         CROSS_PLATFORM,
-        PRIVATE_MESSAGE_TYPE // Expand macro from defines.h
+        PRIVATE_MESSAGE_TYPE, // Expand macro from defines.h
+        EVENT_EXPORT_TYPE
     };
 
     enum ManageType {

@@ -31,10 +31,11 @@ public:
 public:
     int64_t GetExportEnabledSeq(const std::string& moduleName);
     int64_t GetExportBeginSeq(const std::string& moduleName);
+    int64_t GetExportEndSeq(const std::string& moduleName);
     void HandleExportSwitchChanged(const std::string& moduleName, int64_t curSeq);
     void HandleExportTaskFinished(const std::string& moduleName, int64_t eventSeq);
     bool IsUnrecordedModule(const std::string& moduleName);
-    std::string GetEventInheritFlagPath();
+    std::string GetEventInheritFlagPath(const std::string& moduleName);
 
 private:
     ffrt::mutex dbMutex_;

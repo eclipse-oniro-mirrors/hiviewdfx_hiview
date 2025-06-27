@@ -68,10 +68,10 @@ std::string GetWroteTempDir(const std::string& moduleName, const EventVersion& v
     return tmpDir;
 }
 
-std::string GetTmpZipFile(const std::string& baseDir, const std::string& moduleName,
+std::string GetTmpZipFile(const std::string& exportDir, const std::string& moduleName,
     const EventVersion& version, int32_t uid)
 {
-    std::string dir = FileUtil::IncludeTrailingPathDelimiter(baseDir);
+    std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(SYSEVENT_EXPORT_TMP_DIR));
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(moduleName));
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(version.systemVersion));
@@ -83,10 +83,9 @@ std::string GetTmpZipFile(const std::string& baseDir, const std::string& moduleN
     return dir;
 }
 
-std::string GetZipFile(const std::string& baseDir, int32_t uid)
+std::string GetZipFile(const std::string& exportDir, int32_t uid)
 {
-    std::string dir = FileUtil::IncludeTrailingPathDelimiter(baseDir);
-    dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(SYSEVENT_EXPORT_DIR));
+    std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
     if (!FileUtil::IsDirectory(dir) && !FileUtil::ForceCreateDirectory(dir)) {
         HIVIEW_LOGE("failed to init directory %{public}s.", dir.c_str());
         return "";

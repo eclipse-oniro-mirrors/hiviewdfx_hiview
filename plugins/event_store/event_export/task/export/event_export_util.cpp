@@ -15,12 +15,17 @@
 
 #include "event_export_util.h"
 
+#include "export_db_storage.h"
+#include "sys_event_sequence_mgr.h"
+#include "hiview_logger.h"
 #include "parameter.h"
 #include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+DEFINE_LOG_TAG("HiView-EventExportUtil");
+
 std::string GenerateDeviceId()
 {
     constexpr int32_t deviceIdLength = 65;
@@ -37,6 +42,21 @@ std::string EventExportUtil::GetDeviceId()
     static std::string deviceId = Parameter::GetUserType() == Parameter::USER_TYPE_OVERSEA_COMMERCIAL ?
         Parameter::GetString("persist.hiviewdfx.priv.packid", "") : GenerateDeviceId();
     return deviceId;
+}
+
+int64_t EventExportUtil::GetModuleExportStartSeq(std::shared_ptr<ExportDbManager> mgr,
+    std::shared_ptr<ExportConfig> cfg)
+{
+    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
+    HIVIEW_LOGI("start sequence is %{public}" PRId64 "", startSeq);
+    if (mgr == nullptr || cfg == nullptr || !mgr->IsUnrecordedModule(cfg->moduleName) ||
+        cfg->inheritedModule.empty()) {
+        HIVIEW_LOGI("no need to get sequence from inherited module");
+        return startSeq;
+    }
+    int64_t endSeq = mgr->GetExportEndSeq(cfg->inheritedModule);
+    HIVIEW_LOGI("end sequence is %{public}" PRId64 "", endSeq);
+    return (endSeq == INVALID_SEQ_VAL) ? startSeq : endSeq;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

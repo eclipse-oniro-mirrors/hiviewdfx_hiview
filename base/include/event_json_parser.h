@@ -35,6 +35,7 @@ constexpr uint8_t INVALID_EVENT_TYPE = 0;
 constexpr uint8_t DEFAULT_PRIVACY = 4;
 constexpr uint8_t DEFAULT_PERSERVE_VAL = 1;
 constexpr uint8_t DEFAULT_COLLECT_VAL = 0;
+constexpr int32_t DEFAULT_REPORT_INTERVAL = 0;
 
 struct KeyConfig {
     uint8_t type : 3;
@@ -52,6 +53,7 @@ struct BaseInfo {
     std::string level;
     std::string tag;
     PARAM_INFO_MAP_PTR disallowParams;
+    int32_t reportInterval = DEFAULT_REPORT_INTERVAL;
 };
 
 using NAME_INFO_MAP = std::unordered_map<std::string, BaseInfo>;
@@ -72,6 +74,7 @@ public:
     void ReadDefFile();
 
 private:
+    bool HasIntMember(const Json::Value& jsonObj, const std::string& name) const;
     bool HasUIntMember(const Json::Value& jsonObj, const std::string& name) const;
     bool HasStringMember(const Json::Value& jsonObj, const std::string& name) const;
     bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;

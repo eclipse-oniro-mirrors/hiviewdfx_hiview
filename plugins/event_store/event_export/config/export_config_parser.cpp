@@ -18,7 +18,9 @@
 #include <fstream>
 
 #include "cjson_util.h"
+#include "file_util.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -34,12 +36,15 @@ constexpr char EXPORT_SINGLE_FILE_MAX_SIZE[] = "exportSingleFileMaxSize";
 constexpr char TASK_EXECUTING_CYCLE[] = "taskExecutingCycle";
 constexpr char EXPORT_EVENT_LIST_CONFIG_PATHS[] = "exportEventListConfigPaths";
 constexpr char FILE_STORED_MAX_DAY_CNT[] = "fileStoredMaxDayCnt";
+constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
+constexpr char INHERITED_MODULE[] = "inheritedModule";
+constexpr char SYS_EXPORT_DIR[] = "sys_event_export";
 constexpr int32_t INVALID_INT_VAL = -1;
-constexpr double INVALID_DOUBLE_VAL = -1.0;
 }
 
 ExportConfigParser::ExportConfigParser(const std::string& configFile)
 {
+    HIVIEW_LOGI("cfg file is %{public}s", configFile.c_str());
     jsonRoot_ = CJsonUtil::ParseJsonRoot(configFile);
 }
 
@@ -53,11 +58,11 @@ ExportConfigParser::~ExportConfigParser()
 
 std::shared_ptr<ExportConfig> ExportConfigParser::Parse()
 {
-    auto exportConfig = std::make_shared<ExportConfig>();
     if (jsonRoot_ == nullptr || !cJSON_IsObject(jsonRoot_)) {
         HIVIEW_LOGE("the file format of export config file is not json.");
         return nullptr;
     }
+    auto exportConfig = std::make_shared<ExportConfig>();
     // read event export config files
     CJsonUtil::GetStringArray(jsonRoot_, EXPORT_EVENT_LIST_CONFIG_PATHS, exportConfig->eventsConfigFiles);
     // parse export switch setting parameter
@@ -117,19 +122,86 @@ bool ExportConfigParser::ParseResidualContent(std::shared_ptr<ExportConfig> conf
         HIVIEW_LOGW("exportSingleFileMaxSize configured is invalid.");
         return false;
     }
-    // read task executing cycle
-    config->taskCycle = CJsonUtil::GetIntValue(jsonRoot_, TASK_EXECUTING_CYCLE, INVALID_DOUBLE_VAL);
-    if (config->taskCycle == INVALID_INT_VAL) {
-        HIVIEW_LOGW("taskExecutingCycle configured is invalid.");
-        return false;
-    }
-    // read day count for event file to store
-    config->dayCnt = CJsonUtil::GetIntValue(jsonRoot_, FILE_STORED_MAX_DAY_CNT, INVALID_DOUBLE_VAL);
+    config->dayCnt = CJsonUtil::GetIntValue(jsonRoot_, FILE_STORED_MAX_DAY_CNT, INVALID_INT_VAL);
     if (config->dayCnt == INVALID_INT_VAL) {
         HIVIEW_LOGW("fileStoredMaxDayCnt configured is invalid.");
         return false;
     }
+    config->inheritedModule = CJsonUtil::GetStringValue(jsonRoot_, INHERITED_MODULE);
+    if (!ParseTaskType(config) || !ParseTaskExecutingCycle(config)) {
+        return false;
+    }
+    RebuildExportDir(config);
     return true;
+}
+
+bool ExportConfigParser::ParseTaskType(std::shared_ptr<ExportConfig> config)
+{
+    auto taskTypeJson = cJSON_GetObjectItem(jsonRoot_, EXPORT_TASK_TYPE);
+    if (taskTypeJson == nullptr) {
+        // old cfg file
+        HIVIEW_LOGI("task type isn't configured for module: %{public}s", config->moduleName.c_str());
+        config->taskType = ALL_EVENT_TASK_TYPE;
+        return true;
+    }
+    if (!cJSON_IsObject(taskTypeJson)) {
+        return false;
+    }
+    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
+    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    if (!CJsonUtil::Parse2DepthSubNumNodeValue(taskTypeJson, areaTag, versionTag, config->taskType)) {
+        HIVIEW_LOGE("failed to parse task type");
+        config->taskType = INVALID_TASK_TYPE;
+        return false;
+    }
+    HIVIEW_LOGI("task type is configured as object for module: %{public}s, value is %{public}" PRId64 "",
+        config->moduleName.c_str(), config->taskType);
+    config->needPostEvent = true;
+    return true;
+}
+
+bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> config)
+{
+    auto taskCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_EXECUTING_CYCLE);
+    if (taskCycleJson == nullptr) {
+        config->taskCycle = 0;
+        return false;
+    }
+    if (cJSON_IsNumber(taskCycleJson)) {
+        config->taskCycle = CJsonUtil::GetIntValue(jsonRoot_, TASK_EXECUTING_CYCLE);
+        HIVIEW_LOGI("task cycle is configured as number for module: %{public}s, value is %{public}" PRId64 "",
+            config->moduleName.c_str(), config->taskCycle);
+        return true;
+    }
+    if (!cJSON_IsObject(taskCycleJson)) {
+        return false;
+    }
+    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
+    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    if (!CJsonUtil::Parse2DepthSubNumNodeValue(taskCycleJson, areaTag, versionTag, config->taskCycle)) {
+        HIVIEW_LOGE("failed to parse task type");
+        config->taskCycle = 0;
+        return false;
+    }
+    HIVIEW_LOGI("task cycle is configured as object for module: %{public}s, value is %{public}" PRId64 "",
+        config->moduleName.c_str(), config->taskCycle);
+    return true;
+}
+
+void ExportConfigParser::RebuildExportDir(std::shared_ptr<ExportConfig> config)
+{
+    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir);
+    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(SYS_EXPORT_DIR));
+    if (config->taskType < ALL_EVENT_TASK_TYPE) {
+        HIVIEW_LOGI("no need to rebuild export dir with task type: %{public}" PRId64 "", config->taskType);
+        return;
+    }
+    std::string dirSuffix("0");
+    if (config->taskType != ALL_EVENT_TASK_TYPE) {
+        dirSuffix = std::to_string(config->taskType);
+    }
+    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(dirSuffix));
+    HIVIEW_LOGI("rebuild export dir as %{public}s", config->exportDir.c_str());
 }
 } // HiviewDFX
 } // OHOS
