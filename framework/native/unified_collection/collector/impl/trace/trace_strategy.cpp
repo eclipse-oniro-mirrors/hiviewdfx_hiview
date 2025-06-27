@@ -44,7 +44,7 @@ void InitDumpEvent(DumpEvent &dumpEvent, const std::string &caller, int maxDurat
     dumpEvent.execTime = TimeUtil::GenerateTimestamp() / MS_UNIT; // convert execTime into ms unit
 }
 
-void UpdateDumpEvent(DumpEvent &dumpEvent, const TraceRet &ret, uint64_t execDuration, const TraceRetInfo &retInfo)
+void UpdateDumpEvent(DumpEvent &dumpEvent, const TraceRet &ret, int64_t execDuration, const TraceRetInfo &retInfo)
 {
     dumpEvent.errorCode = GetUcError(ret);
     dumpEvent.execDuration = execDuration;
