@@ -59,7 +59,7 @@ void EventPublishTest::TearDownTestCase()
  * @tc.desc: used to test PushEvent with invalid param
  * @tc.type: FUNC
 */
-HWTEST_F(EventPublishTest, EventPublishTest001, TestSize.Level1)
+HWTEST_F(EventPublishTest, EventPublishTest001, TestSize.Level0)
 {
     bool isSuccess = g_testPid != -1;
     if (!isSuccess) {
