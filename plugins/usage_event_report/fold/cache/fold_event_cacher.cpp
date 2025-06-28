@@ -15,6 +15,7 @@
 
 #include "fold_event_cacher.h"
 
+#include "display_info.h"
 #include "display_manager.h"
 #include "fold_common_utils.h"
 #include "hiview_logger.h"
@@ -111,11 +112,15 @@ FoldEventCacher::FoldEventCacher(const std::string& workPath)
     foldStatus_ = static_cast<int32_t>(OHOS::Rosen::DisplayManager::GetInstance().GetFoldStatus());
     auto display = OHOS::Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (display != nullptr) {
-        int orientation = static_cast<int>(display->GetRotation());
-        if (orientation == 0 || orientation == 2) { // 0-Portrait 2-portrait_inverted
-            vhMode_ = 0; // 0-Portrait
-        } else {
-            vhMode_ = 1; // 1-landscape
+        auto displayInfo = display->GetDisplayInfo();
+        if (displayInfo != nullptr) {
+            auto orientation = displayInfo->GetDisplayOrientation();
+            if (orientation == OHOS::Rosen::DisplayOrientation::PORTRAIT ||
+                orientation == OHOS::Rosen::DisplayOrientation::PORTRAIT_INVERTED) {
+                vhMode_ = 0; // 0-Portrait
+            } else {
+                vhMode_ = 1; // 1-landscape
+            }
         }
     }
     FoldCommonUtils::GetFocusedAppAndWindowInfos(focusedAppPair_, multiWindowInfos_);
