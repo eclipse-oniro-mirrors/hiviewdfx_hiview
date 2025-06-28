@@ -24,6 +24,8 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+constexpr int16_t INVALID_TASK_TYPE = -2;
+constexpr int16_t ALL_EVENT_TASK_TYPE = -1;
 struct SettingDbParam {
     // name of the congifured setting db parameter
     std::string name;
@@ -59,6 +61,13 @@ struct ExportConfig {
 
     // the maximum count of day for event files to store. unit: day
     int64_t dayCnt = 0;
+
+    int16_t taskType = INVALID_TASK_TYPE;
+
+    std::string inheritedModule;
+
+    // true: a event would be posted after event export finished
+    bool needPostEvent = false;
 };
 
 class ExportConfigParser {
@@ -72,6 +81,9 @@ public:
 private:
     bool ParseSettingDbParam(SettingDbParam& settingDbParam, const std::string& paramKey);
     bool ParseResidualContent(std::shared_ptr<ExportConfig> config);
+    bool ParseTaskType(std::shared_ptr<ExportConfig> config);
+    bool ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> config);
+    void RebuildExportDir(std::shared_ptr<ExportConfig> config);
 
 private:
     cJSON* jsonRoot_ = nullptr;

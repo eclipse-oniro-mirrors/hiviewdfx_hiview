@@ -15,12 +15,17 @@
 
 #include "event_export_util.h"
 
+#include "export_db_storage.h"
+#include "sys_event_sequence_mgr.h"
+#include "hiview_logger.h"
 #include "parameter.h"
 #include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+DEFINE_LOG_TAG("HiView-EventExportUtil");
+
 std::string GenerateDeviceId()
 {
     constexpr int32_t deviceIdLength = 65;

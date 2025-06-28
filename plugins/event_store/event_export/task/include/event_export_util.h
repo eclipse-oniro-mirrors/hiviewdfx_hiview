@@ -16,7 +16,11 @@
 #ifndef HIVIEW_BASE_EVENT_EXPORT_UTIL_H
 #define HIVIEW_BASE_EVENT_EXPORT_UTIL_H
 
+#include <memory>
 #include <string>
+
+#include "export_config_parser.h"
+#include "export_db_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {

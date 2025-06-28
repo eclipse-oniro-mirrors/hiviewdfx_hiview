@@ -29,10 +29,12 @@ ExportDetailRecord GetExportDetailRecord(std::shared_ptr<ExportDbStorage> storag
 }
 }
 
-std::string ExportDbManager::GetEventInheritFlagPath()
+std::string ExportDbManager::GetEventInheritFlagPath(const std::string& moduleName)
 {
     // create event inherit flag file in same level with db file
-    return dbStoreDir_ + "event_inherit_flag";
+    std::string tagName("event_inherit_flag");
+    tagName.append("_").append(moduleName);
+    return dbStoreDir_ + tagName;
 }
 
 int64_t ExportDbManager::GetExportEnabledSeq(const std::string& moduleName)
@@ -55,10 +57,21 @@ int64_t ExportDbManager::GetExportBeginSeq(const std::string& moduleName)
     auto storage = std::make_shared<ExportDbStorage>(dbStoreDir_);
     ExportDetailRecord record = GetExportDetailRecord(storage, moduleName);
     if (record.exportEnabledSeq == INVALID_SEQ_VAL) {
-        HIVIEW_LOGI("export switch of %{public}s is off, no need to export event", moduleName.c_str());
+        HIVIEW_LOGI("export end sequence is invalid for module: %{public}s", moduleName.c_str());
         return INVALID_SEQ_VAL;
     }
     return std::max(record.exportEnabledSeq, record.exportedMaxSeq);
+}
+
+int64_t ExportDbManager::GetExportEndSeq(const std::string& moduleName)
+{
+    std::unique_lock<ffrt::mutex> lock(dbMutex_);
+    auto storage = std::make_shared<ExportDbStorage>(dbStoreDir_);
+    ExportDetailRecord record = GetExportDetailRecord(storage, moduleName);
+    if (record.exportedMaxSeq == INVALID_SEQ_VAL) {
+        HIVIEW_LOGI("export switch of %{public}s is off, no need to export event", moduleName.c_str());
+    }
+    return record.exportedMaxSeq;
 }
 
 void ExportDbManager::HandleExportSwitchChanged(const std::string& moduleName, int64_t curSeq)

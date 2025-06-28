@@ -469,6 +469,9 @@
         "OHOS::HiviewDFX::FileUtil::CopyFileFast(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
         "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(int)";
         "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(long)";
+        "OHOS::HiviewDFX::SysEvent::SetReportInterval(int)";
+        "OHOS::HiviewDFX::SysEvent::SetReportInterval(short)";
+        "OHOS::HiviewDFX::SysEvent::GetReportInterval()";
     };
   local:
     *;

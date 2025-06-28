@@ -134,7 +134,7 @@ void ExportDbStorage::QueryExportDetailRecord(const std::string& moduleName, Exp
         return;
     }
     if (records->GoToFirstRow() != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to query record from %{public}s table.", MODULE_EXPORT_DETAILS_TABLE_NAME);
+        HIVIEW_LOGW("no record with name %{public}s found.", moduleName.c_str());
         records->Close();
         return;
     }

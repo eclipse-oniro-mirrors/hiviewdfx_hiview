@@ -37,6 +37,7 @@ constexpr char TYPE[] = "type";
 constexpr char PRIVACY[] = "privacy";
 constexpr char PRESERVE[] = "preserve";
 constexpr char COLLECT[] = "collect";
+constexpr char REPORT_INTERVAL[] = "reportInterval";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
@@ -114,6 +115,11 @@ BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& doma
     return nameIter->second;
 }
 
+bool EventJsonParser::HasIntMember(const Json::Value& jsonObj, const std::string& name) const
+{
+    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isInt();
+}
+
 bool EventJsonParser::HasUIntMember(const Json::Value& jsonObj, const std::string& name) const
 {
     return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isUInt();
@@ -175,6 +181,9 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
 
     if (HasStringMember(baseJsonInfo, TAG)) {
         baseInfo.tag = baseJsonInfo[TAG].asString();
+    }
+    if (HasIntMember(baseJsonInfo, REPORT_INTERVAL)) {
+        baseInfo.reportInterval = static_cast<int16_t>(baseJsonInfo[REPORT_INTERVAL].asInt());
     }
 
     if (HasUIntMember(baseJsonInfo, PRIVACY)) {

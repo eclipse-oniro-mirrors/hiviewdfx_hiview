@@ -123,6 +123,7 @@ void EventVerifyUtil::DecorateSysEvent(const std::shared_ptr<SysEvent> event, co
     event->collect_ = baseInfo.keyConfig.collect;
     event->SetId(id); // add hashcode id
     event->SetInvalidParams(baseInfo.disallowParams);
+    event->SetReportInterval(baseInfo.reportInterval);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

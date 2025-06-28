@@ -15,6 +15,7 @@
 
 #include "event_export_task.h"
 
+#include "event_export_util.h"
 #include "event_json_parser.h"
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -39,6 +40,17 @@ std::shared_ptr<ExportEventListParser> GetParser(ExportEventListParsers& parsers
     return iter->second;
 }
 
+int64_t GetModuleExportStartSeq(std::shared_ptr<ExportDbManager> mgr, std::shared_ptr<ExportConfig> cfg)
+{
+    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
+    HIVIEW_LOGI("start sequence is %{public}" PRId64 "", startSeq);
+    if (mgr == nullptr || cfg == nullptr || !mgr->IsUnrecordedModule(cfg->moduleName) ||
+        cfg->inheritedModule.empty() || mgr->IsUnrecordedModule(cfg->inheritedModule)) {
+        return startSeq;
+    }
+    return mgr->GetExportEndSeq(cfg->inheritedModule);
+}
+
 bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
 {
     bool isSwitchOff = (SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name) !=
@@ -46,16 +58,16 @@ bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<Exp
     if (isSwitchOff) {
         HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
         int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
-        // handle setting parameter listening error
-        if (enabledSeq != INVALID_SEQ_VAL && !FileUtil::FileExists(dbMgr->GetEventInheritFlagPath())) {
+        if (enabledSeq != INVALID_SEQ_VAL &&
+            !FileUtil::FileExists(dbMgr->GetEventInheritFlagPath(config->moduleName))) {
             dbMgr->HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
         }
         return true;
     }
     HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
     int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
-    if (enabledSeq == INVALID_SEQ_VAL) { // handle setting parameter listening error
-        enabledSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    if (enabledSeq == INVALID_SEQ_VAL) {
+        enabledSeq = GetModuleExportStartSeq(dbMgr, config);
         dbMgr->HandleExportSwitchChanged(config->moduleName, enabledSeq);
     }
     return false;
@@ -151,6 +163,7 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
     readReq->moduleName = config_->moduleName;
     readReq->maxSize = config_->maxSize;
     readReq->exportDir = config_->exportDir;
+    readReq->taskType = config_->taskType;
     return true;
 }
 } // HiviewDFX

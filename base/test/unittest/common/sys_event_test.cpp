@@ -690,5 +690,20 @@ HWTEST_F(SysEventTest, TestEventPeriodSeqInfo001, testing::ext::TestSize.Level3)
     sysEvent->SetEventValue("period_seq_", sysEvent->GetValue("period_seq_"));
     ASSERT_EQ(sysEvent->GetEventValue("period_seq_"), "3025010101 1 0");
 }
+
+/**
+ * @tc.name: TestEventReportInterval001
+ * @tc.desc: Test SetReportInterval & GetReportInterval apis of SysEvent
+ * @tc.type: FUNC
+ * @tc.require: issueICI4CO
+ */
+HWTEST_F(SysEventTest, TestEventReportInterval001, testing::ext::TestSize.Level3)
+{
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, GetOriginTestString());
+    ASSERT_EQ(sysEvent->GetReportInterval(), UNINIT_REPORT_INTERVAL);
+    int reportIntervalVal = 1000; //1000 is a test value
+    sysEvent->SetReportInterval(reportIntervalVal);
+    ASSERT_EQ(sysEvent->GetReportInterval(), reportIntervalVal);
+}
 } // HiviewDFX
 } // OHOS
