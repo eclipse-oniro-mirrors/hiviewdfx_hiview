@@ -24,8 +24,8 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-constexpr int64_t INVALID_TASK_TYPE = -2;
-constexpr int64_t ALL_EVENT_TASK_TYPE = -1;
+constexpr int16_t INVALID_TASK_TYPE = -2;
+constexpr int16_t ALL_EVENT_TASK_TYPE = -1;
 struct SettingDbParam {
     // name of the congifured setting db parameter
     std::string name;
@@ -62,7 +62,7 @@ struct ExportConfig {
     // the maximum count of day for event files to store. unit: day
     int64_t dayCnt = 0;
 
-    int64_t taskType = INVALID_TASK_TYPE;
+    int16_t taskType = INVALID_TASK_TYPE;
 
     std::string inheritedModule;
 

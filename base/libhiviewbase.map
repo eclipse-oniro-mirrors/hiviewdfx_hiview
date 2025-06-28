@@ -470,7 +470,7 @@
         "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(int)";
         "OHOS::HiviewDFX::CommonUtils::GetTransformedUid(long)";
         "OHOS::HiviewDFX::SysEvent::SetReportInterval(int)";
-        "OHOS::HiviewDFX::SysEvent::SetReportInterval(long)";
+        "OHOS::HiviewDFX::SysEvent::SetReportInterval(short)";
         "OHOS::HiviewDFX::SysEvent::GetReportInterval()";
     };
   local:

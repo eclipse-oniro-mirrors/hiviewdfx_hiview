@@ -183,7 +183,7 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.tag = baseJsonInfo[TAG].asString();
     }
     if (HasIntMember(baseJsonInfo, REPORT_INTERVAL)) {
-        baseInfo.reportInterval = static_cast<int32_t>(baseJsonInfo[REPORT_INTERVAL].asInt());
+        baseInfo.reportInterval = static_cast<int16_t>(baseJsonInfo[REPORT_INTERVAL].asInt());
     }
 
     if (HasUIntMember(baseJsonInfo, PRIVACY)) {

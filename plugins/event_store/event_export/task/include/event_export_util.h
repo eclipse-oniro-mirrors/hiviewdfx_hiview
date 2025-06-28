@@ -27,7 +27,6 @@ namespace HiviewDFX {
 class EventExportUtil {
 public:
     static std::string GetDeviceId();
-    static int64_t GetModuleExportStartSeq(std::shared_ptr<ExportDbManager> mgr, std::shared_ptr<ExportConfig> cfg);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

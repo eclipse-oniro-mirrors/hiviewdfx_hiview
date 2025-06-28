@@ -24,11 +24,11 @@
     "taskExecutingCycle": {
         "domestic": {
             "beta": {},
-            "commercial": 2000
+            "commercial": {}
         },
         "oversea": {
-            "beta": 1800,
-            "commercial": 2000
+            "beta": {},
+            "commercial": {}
         }
     },
     "exportEventListConfigPaths": [],

@@ -66,25 +66,23 @@ std::string GenerateUuid()
     return uuid;
 }
 
-void PostUnorderedEvent(std::shared_ptr<ExportConfig> config)
+bool IsExportDirEmpty(const std::string& exportDir)
 {
-    if (config == nullptr) {
-        HIVIEW_LOGW("export cfg file is invalid.");
-        return;
-    }
-    if (!config->needPostEvent) {
-        HIVIEW_LOGW("no need to post event");
-        return;
-    }
-    auto event = std::make_shared<Event>("event_export_or_reupload");
+    std::vector<std::string> eventZipFiles;
+    FileUtil::GetDirFiles(exportDir, eventZipFiles);
+    return eventZipFiles.empty();
+}
+
+void PostExportEvent(const std::string& moduleName, int16_t taskType)
+{
+    auto event = std::make_shared<Event>("post_export_type_event");
     event->messageType_ = Event::MessageType::EVENT_EXPORT_TYPE;
-    event->SetValue("reportModule", config->moduleName);
-    if (config->taskType == ALL_EVENT_TASK_TYPE) {
+    event->SetValue("reportModule", moduleName);
+    if (taskType == ALL_EVENT_TASK_TYPE) {
         event->SetValue("reportInterval", "0");
     } else {
-        event->SetValue("reportInterval", std::to_string(config->taskType));
+        event->SetValue("reportInterval", std::to_string(taskType));
     }
-    event->SetValue("exportDir", config->exportDir);
 
     auto& context = HiviewGlobal::GetInstance();
     if (context == nullptr) {
@@ -92,6 +90,23 @@ void PostUnorderedEvent(std::shared_ptr<ExportConfig> config)
         return;
     }
     context->PostUnorderedEvent(event);
+}
+
+bool CheckAndPostEvent(std::shared_ptr<ExportConfig> config)
+{
+    if (config == nullptr) {
+        HIVIEW_LOGW("export cfg file is invalid.");
+        return false;
+    }
+    if (!config->needPostEvent) {
+        HIVIEW_LOGW("no need to post event");
+        return false;
+    }
+    if (IsExportDirEmpty(config->exportDir)) {
+        HIVIEW_LOGW("no event zip file found");
+        return false;
+    }
+    return true;
 }
 }
 
@@ -199,7 +214,7 @@ bool EventExportEngine::RegistSettingObserver(std::shared_ptr<ExportConfig> conf
         auto upgradeParam = config->sysUpgradeParam;
         if (!upgradeParam.name.empty() &&
             SettingObserverManager::GetInstance()->GetStringValue(upgradeParam.name) == upgradeParam.enabledVal) {
-            int64_t startSeq = EventExportUtil::GetModuleExportStartSeq(dbMgr_, config);
+            int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
             HIVIEW_LOGI("reset enabled sequence to %{public}" PRId64 " for moudle %{public}s",
                 startSeq, config->moduleName.c_str());
             dbMgr_->HandleExportSwitchChanged(config->moduleName, startSeq);
@@ -217,18 +232,16 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
     if (!regRet) {
         return;
     }
-    bool isFirstTimeToRun = true;
+    ffrt::this_task::sleep_for(std::chrono::seconds(TASK_FIRST_RUN_DELAY_SEC));
     // init tasks of current config then run them
     auto expireTask = std::make_shared<EventExpireTask>(config, dbMgr_);
     auto exportTask = std::make_shared<EventExportTask>(config, dbMgr_);
     while (isTaskRunning_) {
-        if (isFirstTimeToRun) {
-            isFirstTimeToRun = false;
-            ffrt::this_task::sleep_for(std::chrono::seconds(TASK_FIRST_RUN_DELAY_SEC));
-        }
         expireTask->Run();
         exportTask->Run();
-        PostUnorderedEvent(config);
+        if (CheckAndPostEvent(config)) {
+            PostExportEvent(config->moduleName, config->taskType);
+        }
         // sleep for a task cycle
         ffrt::this_task::sleep_for(exportTask->GetExecutingCycle());
     }

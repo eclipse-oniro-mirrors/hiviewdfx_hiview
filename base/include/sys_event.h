@@ -77,7 +77,7 @@ constexpr uint8_t LOG_PACKED = 1;
 constexpr uint8_t LOG_REPEAT = 1;
 constexpr uint8_t LOG_THRESHOLD = 2;
 
-constexpr int32_t UNINIT_REPORT_INTERVAL = -1;
+constexpr int16_t UNINIT_REPORT_INTERVAL = -1;
 
 class SysEventCreator;
 class SysEvent : public PipelineEvent {
@@ -129,8 +129,8 @@ public:
     std::string GetPatchVersion();
     void SetEventPeriodSeqInfo(const EventPeriodSeqInfo& info);
     EventPeriodSeqInfo GetEventPeriodSeqInfo();
-    void SetReportInterval(int32_t reportInterval);
-    int32_t GetReportInterval();
+    void SetReportInterval(int16_t reportInterval);
+    int16_t GetReportInterval();
 
 public:
     template<typename T>
@@ -186,7 +186,7 @@ private:
     std::string sysVersion_;
     std::string patchVersion_;
     PARAM_INFO_MAP_PTR invalidParams_;
-    int32_t reportInterval_ = UNINIT_REPORT_INTERVAL;
+    int16_t reportInterval_ = UNINIT_REPORT_INTERVAL;
 };
 
 class SysEventCreator {

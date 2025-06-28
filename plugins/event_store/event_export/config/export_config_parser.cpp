@@ -40,6 +40,28 @@ constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
 constexpr char INHERITED_MODULE[] = "inheritedModule";
 constexpr char SYS_EXPORT_DIR[] = "sys_event_export";
 constexpr int32_t INVALID_INT_VAL = -1;
+
+bool ParseIntFromCfg(cJSON* json, std::string& areaTag, std::string& versionTag, int64_t& val)
+{
+    if (!cJSON_IsObject(json) || !cJSON_HasObjectItem(json, areaTag.c_str())) {
+        return false;
+    }
+    auto areaJson = cJSON_GetObjectItem(json, areaTag.c_str());
+    if (!cJSON_IsObject(areaJson) || !cJSON_HasObjectItem(areaJson, versionTag.c_str())) {
+        return false;
+    }
+    auto versionJson = cJSON_GetObjectItem(areaJson, versionTag.c_str());
+    if (!cJSON_IsNumber(versionJson)) {
+        return false;
+    }
+    double num = cJSON_GetNumberValue(versionJson);
+    if (num < static_cast<double>(std::numeric_limits<int64_t>::lowest()) ||
+        num > static_cast<double>(std::numeric_limits<int64_t>::max())) {
+        return false;
+    }
+    val = static_cast<int64_t>(num);
+    return true;
+}
 }
 
 ExportConfigParser::ExportConfigParser(const std::string& configFile)
@@ -149,12 +171,14 @@ bool ExportConfigParser::ParseTaskType(std::shared_ptr<ExportConfig> config)
     }
     std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
     std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
-    if (!CJsonUtil::Parse2DepthSubNumNodeValue(taskTypeJson, areaTag, versionTag, config->taskType)) {
+    int64_t taskType = INVALID_TASK_TYPE;
+    if (!ParseIntFromCfg(taskTypeJson, areaTag, versionTag, taskType)) {
         HIVIEW_LOGE("failed to parse task type");
         config->taskType = INVALID_TASK_TYPE;
         return false;
     }
-    HIVIEW_LOGI("task type is configured as object for module: %{public}s, value is %{public}" PRId64 "",
+    config->taskType = taskType;
+    HIVIEW_LOGI("task type is configured as object for module: %{public}s, value is %{public}" PRId16 "",
         config->moduleName.c_str(), config->taskType);
     config->needPostEvent = true;
     return true;
@@ -178,7 +202,7 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
     }
     std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
     std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
-    if (!CJsonUtil::Parse2DepthSubNumNodeValue(taskCycleJson, areaTag, versionTag, config->taskCycle)) {
+    if (!ParseIntFromCfg(taskCycleJson, areaTag, versionTag, config->taskCycle)) {
         HIVIEW_LOGE("failed to parse task type");
         config->taskCycle = 0;
         return false;
@@ -192,12 +216,8 @@ void ExportConfigParser::RebuildExportDir(std::shared_ptr<ExportConfig> config)
 {
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir);
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(SYS_EXPORT_DIR));
-    if (config->taskType < ALL_EVENT_TASK_TYPE) {
-        HIVIEW_LOGI("no need to rebuild export dir with task type: %{public}" PRId64 "", config->taskType);
-        return;
-    }
     std::string dirSuffix("0");
-    if (config->taskType != ALL_EVENT_TASK_TYPE) {
+    if (config->taskType > ALL_EVENT_TASK_TYPE) {
         dirSuffix = std::to_string(config->taskType);
     }
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(dirSuffix));

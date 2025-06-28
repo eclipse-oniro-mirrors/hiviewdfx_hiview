@@ -89,29 +89,6 @@ cJSON* GetArrayValue(const cJSON* json, const std::string& key);
  * @return parsed result.
  */
 bool GetBoolValue(const cJSON* json, const std::string& key, bool& value);
-
-template<typename T>
-bool Parse2DepthSubNumNodeValue(cJSON* json, std::string& subNodeKey, std::string& subNodeMemKey, T& val)
-{
-    if (!cJSON_IsObject(json) || !cJSON_HasObjectItem(json, subNodeKey.c_str())) {
-        return false;
-    }
-    auto subNodeJson = cJSON_GetObjectItem(json, subNodeKey.c_str());
-    if (!cJSON_IsObject(subNodeJson) || !cJSON_HasObjectItem(subNodeJson, subNodeMemKey.c_str())) {
-        return false;
-    }
-    auto subNodeMemJson = cJSON_GetObjectItem(subNodeJson, subNodeMemKey.c_str());
-    if (!cJSON_IsNumber(subNodeMemJson)) {
-        return false;
-    }
-    double numVal = cJSON_GetNumberValue(subNodeMemJson);
-    if (numVal < static_cast<double>(std::numeric_limits<T>::lowest()) ||
-        numVal > static_cast<double>(std::numeric_limits<T>::max())) {
-        return false;
-    }
-    val = static_cast<T>(numVal);
-    return true;
-}
 };
 } // HiviewDFX
 } // OHOS

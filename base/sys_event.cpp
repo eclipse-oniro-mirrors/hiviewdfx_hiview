@@ -631,7 +631,7 @@ EventPeriodSeqInfo SysEvent::GetEventPeriodSeqInfo()
     return eventPeriodSeqInfo;
 }
 
-void SysEvent::SetReportInterval(int32_t reportInterval)
+void SysEvent::SetReportInterval(int16_t reportInterval)
 {
     if (reportInterval_ == reportInterval) {
         return;
@@ -640,10 +640,10 @@ void SysEvent::SetReportInterval(int32_t reportInterval)
     SetEventValue(REPORT_INTERVAL_KEY, reportInterval_);
 }
 
-int32_t SysEvent::GetReportInterval()
+int16_t SysEvent::GetReportInterval()
 {
     if (reportInterval_ == UNINIT_REPORT_INTERVAL) {
-        reportInterval_ = static_cast<int32_t>(GetEventIntValue(REPORT_INTERVAL_KEY));
+        reportInterval_ = static_cast<int16_t>(GetEventIntValue(REPORT_INTERVAL_KEY));
     }
     return reportInterval_;
 }

@@ -30,7 +30,7 @@ constexpr char TEST_CONFIG_FILE[] = "/data/test/test_data/test_event_export_conf
 constexpr char TEST_MODULE_NAME[] = "test";
 constexpr char TEST_SETTING_DB_PARAM_NAME[] = "test_param_key";
 constexpr char TEST_SETTING_DB_PARAM_ENABLED_VAL[] = "1";
-constexpr size_t TEST_MODULE_CNT = 1;
+constexpr size_t TEST_MODULE_CNT = 2;
 constexpr int64_t TEST_CAPACITY = 100;
 constexpr int64_t TEST_SIZE = 2;
 constexpr int64_t TEST_CYCLE = 3600;
@@ -95,7 +95,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest002, testing::ext
     auto exportConfig = parser.Parse();
     ASSERT_NE(exportConfig, nullptr);
     ASSERT_EQ(exportConfig->moduleName, ""); // parser not set module name to config
-    ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data");
+    ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/0/");
     ASSERT_EQ(exportConfig->maxCapcity, TEST_CAPACITY);
     ASSERT_EQ(exportConfig->maxSize, TEST_SIZE);
     ASSERT_EQ(exportConfig->taskCycle, TEST_CYCLE);
@@ -144,24 +144,23 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest005, testing::ext
     ExportConfigParser parser1(TEST_CONFIG_FILE1);
     auto exportConfig = parser1.Parse();
     ASSERT_NE(exportConfig, nullptr);
-    ASSERT_EQ(exportConfig->moduleName, "test2"); // parser not set module name to config
     if (Parameter::IsOversea()) {
         if (Parameter::IsBetaVersion()) {
-            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/180");
+            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/180/");
             ASSERT_EQ(exportConfig->taskType, 180);    // 180 is expected value
             ASSERT_EQ(exportConfig->taskCycle, 2000);  // 2000 is expected value
         } else {
-            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/3000");
+            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/3000/");
             ASSERT_EQ(exportConfig->taskType, 3000);   // 3000 is expected value
             ASSERT_EQ(exportConfig->taskCycle, 3000);  // 3000 is expected value
         }
     } else {
         if (Parameter::IsBetaVersion()) {
-            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/0");
+            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/0/");
             ASSERT_EQ(exportConfig->taskType, ALL_EVENT_TASK_TYPE);
             ASSERT_EQ(exportConfig->taskCycle, 1000);  // 1000 is expected value
         } else {
-            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/2000");
+            ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/2000/");
             ASSERT_EQ(exportConfig->taskType, 2000);   // 2000 is expected value
             ASSERT_EQ(exportConfig->taskCycle, 2000);  // 2000 is expected value
         }
@@ -171,8 +170,8 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest005, testing::ext
     ASSERT_EQ(exportConfig->dayCnt, TEST_FILE_STORE_DAY_CNT);
     ASSERT_EQ(exportConfig->inheritedModule, "inherited_test_module");
 
-    ExportConfigParser parser(TEST_CONFIG_FILE2);
-    exportConfig = parser1.Parse();
+    ExportConfigParser parser2(TEST_CONFIG_FILE2);
+    exportConfig = parser2.Parse();
     ASSERT_EQ(exportConfig, nullptr);
 }
 
