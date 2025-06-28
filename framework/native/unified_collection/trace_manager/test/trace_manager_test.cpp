@@ -124,7 +124,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::HIVIEW, TEST_DB_PATH);
-    int64_t traceSize1 = 349 * 1024 * 1024; // HIVIEW trace Threshold is 350M
+    int64_t traceSize1 = 149 * 1024 * 1024; // HIVIEW trace Threshold is 150M
     int64_t remainingSize = flowController1->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
     ASSERT_GT(remainingSize, traceSize1);
