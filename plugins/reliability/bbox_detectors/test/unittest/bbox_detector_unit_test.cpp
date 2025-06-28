@@ -16,6 +16,7 @@
 #include "bbox_detector_unit_test.h"
 
 #include "bbox_detector_plugin.h"
+
 #include "bbox_detectors_mock.h"
 #include "bbox_event_recorder.h"
 #include "hisysevent_util_mock.h"
@@ -243,7 +244,7 @@ HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest007, TestSize.Level1)
  * @tc.desc: check BboxEventRecorder.
  * @tc.type: FUNC
  */
-HWTEST_F(BBoxDetectorUnitTest, BboxEventRecorder001, TestSize.Level1)
+HWTEST(BboxEventRecorderTets, BboxEventRecorder001, TestSize.Level1)
 {
     BboxEventRecorder recorder;
     std::string event = "MODEMCRASH";
@@ -256,6 +257,84 @@ HWTEST_F(BBoxDetectorUnitTest, BboxEventRecorder001, TestSize.Level1)
 
     logPath = "/root/testDir2";
     ASSERT_FALSE(recorder.IsExistEvent(event, now, logPath));
+}
+
+std::string LocalTimeFormat()
+{
+    time_t t = time(nullptr);
+    struct tm *tm_info = localtime(&t);
+    const size_t bufferLen = 16;
+    const size_t resultLen = 14;
+    char buffer[bufferLen] = {0};
+    if (strftime(buffer, sizeof(buffer), "%Y%m%d%H%M%S", tm_info) != resultLen) {
+        return "";
+    }
+    return std::string(buffer);
+}
+
+/**
+ * @tc.name: StartBootScan001
+ * @tc.desc: coverage StartBootScan.
+ * @tc.type: FUNC
+ */
+HWTEST(StartBootScanTest, StartBootScan001, TestSize.Level1)
+{
+    BBoxDetectorPlugin plugin;
+    plugin.OnLoad();
+    FileUtil::ForceCreateDirectory("/data/hisi_logs/");
+    FileUtil::ForceCreateDirectory("/data/log/bbox/");
+    /* FileUtil::SaveStringToFile("/data/hisi_logs/history.log", "done", true); */
+    std::string bboxContent = "[system exception],module[AP],category[NORMALBOOT],event[COLDBOOT]," \
+                               "time[19700106031950-00001111],sysreboot[true],errdesc[boot_up_keypoint:46]," \
+                               "logpath[/data/test/hisi_logs/]\n" \
+                               "[system exception],module[AP],category[],event[COLDBOOT]," \
+                               "time[19700106031950-00001111],sysreboot[true],errdesc[boot_up_keypoint:46]," \
+                               "logpath[/data/test/hisi_logs/]\n" \
+                               "[system exception],module[AP],category[TEST:123],event[COLDBOOT]," \
+                               "time[19700106031950-00001111],sysreboot[true],errdesc[boot_up_keypoint:46]," \
+                               "logpath[/data/test/hisi_logs/]";
+    bboxContent += "\n[system exception],module[AP],category[TEST:123],event[COLDBOOT],time[" + LocalTimeFormat() +
+        "-00001111],sysreboot[true],errdesc[boot_up_keypoint:46],logpath[/data/test/hisi_logs/]\n";
+    EXPECT_CALL(MockHisyseventUtil::GetInstance(), IsEventProcessed).WillRepeatedly(Return(false));
+    FileUtil::SaveStringToFile("/data/log/bbox/history.log", bboxContent, true);
+    plugin.StartBootScan();
+    ASSERT_TRUE(plugin.eventRecorder_ == nullptr);
+
+    void SetHiviewContext(HiviewContext* context);
+}
+
+/**
+ * @tc.name: StartBootScan002
+ * @tc.desc: coverage StartBootScan.
+ * @tc.type: FUNC
+ */
+HWTEST(StartBootScanTest, StartBootScan002, TestSize.Level1)
+{
+    BBoxDetectorPlugin plugin;
+    HiviewContext context;
+    plugin.SetHiviewContext(&context);
+    plugin.OnLoad();
+    FileUtil::ForceCreateDirectory("/data/hisi_logs/");
+    FileUtil::ForceCreateDirectory("/data/log/bbox/");
+    std::string hisiContent = "system exception core [CP], reason [CP_S_RILD_EXCEPTION], " \
+                               "time [19700106031950-00001111], sysreboot [false], " \
+                               "bootup_keypoint [250], category [MODEMCRASH]";
+    FileUtil::SaveStringToFile("/data/hisi_logs/history.log", hisiContent, true);
+    std::string bboxContent = "[system exception],module[AP],category[NORMALBOOT],event[COLDBOOT]," \
+                               "time[19700106031950-00001111],sysreboot[true],errdesc[boot_up_keypoint:46]," \
+                               "logpath[/data/test/hisi_logs/]\n" \
+                               "[system exception],module[AP],category[],event[COLDBOOT]," \
+                               "time[19700106031950-00001111],sysreboot[true],errdesc[boot_up_keypoint:46]," \
+                               "logpath[/data/test/hisi_logs/]\n" \
+                               "[system exception],module[AP],category[TEST:123],event[COLDBOOT]," \
+                               "time[19700106031950-00001111],sysreboot[true],errdesc[boot_up_keypoint:46]," \
+                               "logpath[/data/test/hisi_logs/]\n";
+    bboxContent += "[system exception],module[AP],category[TEST:123],event[COLDBOOT],time[" + LocalTimeFormat() +
+        "-00001111],sysreboot[true],errdesc[boot_up_keypoint:46],logpath[/data/test/hisi_logs/]\n";
+    EXPECT_CALL(MockHisyseventUtil::GetInstance(), IsEventProcessed).WillRepeatedly(Return(false));
+    FileUtil::SaveStringToFile("/data/log/bbox/history.log", bboxContent, true);
+    plugin.StartBootScan();
+    ASSERT_TRUE(plugin.eventRecorder_ == nullptr);
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

@@ -56,7 +56,10 @@ ohos_unittest("BBoxDetectorUnitTest") {
     "zlib:shared_libz",
   ]
 
-  cflags = [ "-DUNITTEST" ]
+  cflags = [
+    "-DUNITTEST",
+    "-Dprivate=public",
+  ]
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
@@ -75,7 +78,10 @@ ohos_moduletest("BBoxDetectorModuleTest") {
 
   configs = [ ":bbox_detector_test_config" ]
 
-  cflags = [ "-DUNITTEST" ]
+  cflags = [
+    "-DUNITTEST",
+    "-Dprivate=public",
+  ]
 
   external_deps = [
     "bounds_checking_function:libsec_shared",

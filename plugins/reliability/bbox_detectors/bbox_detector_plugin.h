@@ -36,10 +36,10 @@ private:
     void StartBootScan();
     void WaitForLogs(const std::string& logDir);
     void HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent);
-    uint64_t GetHappenTime(std::string& line);
+    uint64_t GetHappenTime(std::string& line, bool isHisiHistory);
     int CheckAndHiSysEventWrite(std::string& name, std::map<std::string, std::string>& historyMap,
         uint64_t& happenTime);
-    std::map<std::string, std::string> GetValueFromHistory(std::string& line);
+    std::map<std::string, std::string> GetValueFromHistory(std::string& line, bool isHisiHistory);
     void AddDetectBootCompletedTask();
     void RemoveDetectBootCompletedTask();
     void NotifyBootStable();
@@ -51,7 +51,6 @@ private:
     static constexpr int READ_LINE_NUM = 5;
     static constexpr int MILLSECONDS = 1000;
     static constexpr int ONE_DAY = 86400 * MILLSECONDS;
-    bool hisiHistoryPath_ = false;
     uint64_t timeEventId_ = 0;
     std::mutex lock_;
     bool timeEventAdded_ = false;
