@@ -779,6 +779,7 @@ HWTEST_F(FaultloggerUnittest, SaveFaultLogInfoTest001, testing::ext::TestSize.Le
     info.pid = getpid();
     info.id = 0;
     info.faultLogType = 2;
+    info.logPath = "/data/log/faultlog/faultlogger/cppcrash-SaveFaultLogInfoTest001-20020100-20250501090923033.log";
     info.module = "FaultloggerUnittest";
     info.reason = "unittest for SaveFaultLogInfo";
     info.summary = "summary for SaveFaultLogInfo";
@@ -979,6 +980,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogManagerTest001, testing::ext::TestSize.Lev
     info.pid = getpid();
     info.id = 0;
     info.faultLogType = 2;
+    info.logPath = "/data/log/faultlog/faultlogger/cppcrash-FaultLogManagerTest001-20020100-20250501090923033.log";
     info.module = "FaultloggerUnittest1111";
     info.reason = "unittest for SaveFaultLogInfo";
     info.summary = "summary for SaveFaultLogInfo";
