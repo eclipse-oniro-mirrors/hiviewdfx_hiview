@@ -52,6 +52,7 @@
 #include "ffrt_catcher.h"
 #endif // OTHER_CATCHER_ENABLE
 #include "thermal_info_catcher.h"
+#include "summary_log_info_catcher.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -165,6 +166,8 @@ void EventLogTask::AddCapture()
         [this] { this->GetThermalInfoCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("rve",
         [this] { this->SaveRsVulKanError(); }));
+    captureList_.insert(std::pair<std::string, capture>("sli",
+        [this] { this->SaveSummaryLogInfo(); }));
 }
 
 void EventLogTask::AddLog(const std::string &cmd)
@@ -473,16 +476,10 @@ void EventLogTask::InputHilogCapture()
 #ifdef HITRACE_CATCHER_ENABLE
 void EventLogTask::HitraceCapture(bool isBetaVersion)
 {
-    std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
-    std::string timeStamp = event_->GetEventValue("MSG");
-    std::smatch match;
-    timeStamp = std::regex_search(timeStamp, match, reg) ? match[1].str() : "";
-    uint64_t faultTime = timeStamp.empty() ? (event_->happenTime_ / MILLISEC_TO_SEC) :
-        static_cast<uint64_t>(TimeUtil::StrToTimeStamp(timeStamp, "%Y/%m/%d-%H:%M:%S"));
-    faultTime += DELAY_TIME;
+    uint64_t hitraceTime = GetFaultTime() + DELAY_TIME;
     uint64_t currentTime = TimeUtil::GetMilliseconds() / MILLISEC_TO_SEC;
-    if (currentTime >= (TRACE_OUT_OF_TIME + faultTime)) {
-        faultTime = currentTime - DELAY_OUT_OF_TIME;
+    if (hitraceTime + TRACE_OUT_OF_TIME <= currentTime) {
+        hitraceTime = currentTime - DELAY_OUT_OF_TIME;
     }
 
     bool grayscale = false;
@@ -497,7 +494,7 @@ void EventLogTask::HitraceCapture(bool isBetaVersion)
         }
     }
     std::pair<std::string, std::vector<std::string>> result =
-        LogCatcherUtils::FreezeDumpTrace(faultTime, grayscale, bundleName);
+        LogCatcherUtils::FreezeDumpTrace(hitraceTime, grayscale, bundleName);
     event_->SetEventValue("TELEMETRY_ID", result.first);
     if (!result.second.empty()) {
         event_->SetEventValue("TRACE_NAME", result.second[0]);
@@ -719,6 +716,30 @@ void EventLogTask::SaveRsVulKanError()
         std::to_string(appNodeId) + "\nAPPNODENAME" + appNodeName + "\nLEASHWINDOWID" + std::to_string(leashWindowId)
         + "\nLEASHWINDOWNAME=" + leashWindowName + "\nEXT_INFO=" + extInfo + "\n";
     FileUtil::SaveStringToFd(targetFd_, saveContent);
+}
+
+void EventLogTask::SaveSummaryLogInfo()
+{
+    auto capture = std::make_shared<SummaryLogInfoCatcher>();
+    capture->Initialize("", 0, 0);
+    capture->SetFaultTime(static_cast<int64_t>(GetFaultTime()));
+    tasks_.push_back(capture);
+}
+
+uint64_t EventLogTask::GetFaultTime()
+{
+    std::lock_guard<ffrt::mutex> lock(faultTimeMutex_);
+    if (faultTime_ == 0) {
+        std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
+        std::smatch match;
+        std::string msg = event_->GetEventValue("MSG");
+        if (std::regex_search(msg, match, reg)) {
+            faultTime_ = static_cast<uint64_t>(TimeUtil::StrToTimeStamp(match[1].str(), "%Y/%m/%d-%H:%M:%S"));
+        } else {
+            faultTime_ = event_->happenTime_ / MILLISEC_TO_SEC;
+        }
+    }
+    return faultTime_;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
