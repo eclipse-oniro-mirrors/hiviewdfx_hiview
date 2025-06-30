@@ -121,13 +121,6 @@
         </event>
       </links>
     </rule>
-    <rule id="11" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
-      <links type="watchpoint">
-        <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
-          <result code="2" scope="sys"/>
-        </event>
-      </links>
-    </rule>
   </rules>
   <rules resolver="AppResolver">
     <rule id="1" domain="ACE" stringid="UI_BLOCK_6S">	<!-- UI_BLOCK_6S -->
@@ -293,6 +286,13 @@
           <result code="2" scope="sysWarning"/>
         </event>
         <event window="-30" domain="AAFWK" delay="15" stringid="LIFECYCLE_HALF_TIMEOUT_WARNING">	<!-- LIFECYCLE_HALF_TIMEOUT_WARNING -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="15" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
