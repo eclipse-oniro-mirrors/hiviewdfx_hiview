@@ -472,6 +472,8 @@
         "OHOS::HiviewDFX::SysEvent::SetReportInterval(int)";
         "OHOS::HiviewDFX::SysEvent::SetReportInterval(short)";
         "OHOS::HiviewDFX::SysEvent::GetReportInterval()";
+        "OHOS::HiviewDFX::FfrtUtil::Sleep(long long)";
+        "OHOS::HiviewDFX::FfrtUtil::Sleep(long)";
     };
   local:
     *;

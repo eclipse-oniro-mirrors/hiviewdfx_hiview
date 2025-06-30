@@ -21,6 +21,7 @@
 #include "event_export_task.h"
 #include "event_export_util.h"
 #include "ffrt.h"
+#include "ffrt_util.h"
 #include "file_util.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
@@ -243,7 +244,7 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
             PostExportEvent(config->moduleName, config->taskType);
         }
         // sleep for a task cycle
-        ffrt::this_task::sleep_for(exportTask->GetExecutingCycle());
+        FfrtUtil::Sleep(config->taskCycle);
     }
 }
 

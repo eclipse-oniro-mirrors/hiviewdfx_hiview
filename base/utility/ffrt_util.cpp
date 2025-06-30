@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,13 +13,30 @@
  * limitations under the License.
  */
 
-#include "export_base_task.h"
+#include "ffrt_util.h"
+
+#include "ffrt.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-void ExportBaseTask::Run()
+namespace FfrtUtil {
+namespace {
+constexpr int64_t CHECK_CYCLE_SECONDS = 10; // 10 seconds
+
+int64_t GetCurrentSecond()
 {
-    OnTaskRun();
+    return static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs()) / TimeUtil::SEC_TO_MILLISEC;
 }
-} // HiviewDFX
-} // OHOS
+}
+
+void Sleep(int64_t taskCycleSec)
+{
+    int64_t lastTimeSec = GetCurrentSecond();
+    while (std::abs(GetCurrentSecond() - lastTimeSec) < taskCycleSec) {
+        ffrt::this_task::sleep_for(std::chrono::seconds(CHECK_CYCLE_SECONDS));
+    }
+}
+}
+}
+}

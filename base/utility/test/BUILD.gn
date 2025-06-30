@@ -46,6 +46,7 @@ ohos_unittest("BaseUtilityUnitTest") {
   deps = [ "$hiview_base/utility:hiview_utility" ]
 
   external_deps = [
+    "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",

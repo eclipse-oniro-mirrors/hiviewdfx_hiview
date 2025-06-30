@@ -21,7 +21,10 @@
 #include <string>
 
 #include "string_util.h"
+#include "ffrt.h"
+#include "ffrt_util.h"
 #include "file_util.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -425,6 +428,23 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest021, testing::ext::TestSize.Lev
     ASSERT_TRUE(size > 0);
     size = FileUtil::GetDeviceValidSize("/test");
     ASSERT_EQ(size, 0);
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest022
+ * @tc.desc: Test Sleep defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICIL48
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest022, testing::ext::TestSize.Level3)
+{
+    ffrt::submit([] () {
+        auto ts1 = static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs());
+        int64_t WAIT_TIME = 11; // 11 seconds is a test duration to sleep
+        FfrtUtil::Sleep(WAIT_TIME); // sleep 11 seconds
+        auto ts2 = static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs());
+        ASSERT_GE(ts2 - WAIT_TIME * TimeUtil::SEC_TO_MILLISEC, ts1);
+    }, {}, {}, ffrt::task_attr().name("base_util_ut_022").qos(ffrt::qos_default));
 }
 } // namespace HiviewDFX
 } // namespace OHOS
