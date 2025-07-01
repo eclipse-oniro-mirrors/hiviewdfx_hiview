@@ -21,6 +21,7 @@
 #include "event_source.h"
 #include "plugin.h"
 #include "sys_event.h"
+#include "bbox_event_recorder.h"
 namespace OHOS {
 namespace HiviewDFX {
 class BBoxDetectorPlugin : public Plugin {
@@ -56,6 +57,7 @@ private:
     bool timeEventAdded_ = false;
     class BBoxListener;
     std::shared_ptr<BBoxListener> eventListener_;
+    std::shared_ptr<BboxEventRecorder> eventRecorder_;
 };
 }
 }

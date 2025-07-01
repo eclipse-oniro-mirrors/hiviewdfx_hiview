@@ -32,6 +32,7 @@ config("bbox_detector_test_config") {
 
 bbox_detector_test_source = [
   "../bbox_detector_plugin.cpp",
+  "../bbox_event_recorder.cpp",
   "../panic_report_recovery.cpp",
   "mock/bbox_detectors_mock.cpp",
   "mock/hisysevent_util_mock.cpp",
