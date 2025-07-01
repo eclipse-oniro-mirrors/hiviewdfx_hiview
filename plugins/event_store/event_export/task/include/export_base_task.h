@@ -16,7 +16,6 @@
 #ifndef HIVIEW_BASE_EVENT_EXPORT_BASE_TASK_H
 #define HIVIEW_BASE_EVENT_EXPORT_BASE_TASK_H
 
-#include <chrono>
 #include <memory>
 
 #include "export_config_parser.h"
@@ -31,7 +30,6 @@ public:
     virtual ~ExportBaseTask() = default;
 
     void Run();
-    virtual std::chrono::seconds GetExecutingCycle();
 
 protected:
     virtual void OnTaskRun() = 0;
