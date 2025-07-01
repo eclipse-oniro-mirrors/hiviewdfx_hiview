@@ -17,11 +17,12 @@
 
 #include "bbox_detector_plugin.h"
 #include "bbox_detectors_mock.h"
-#include "panic_report_recovery.h"
+#include "bbox_event_recorder.h"
 #include "hisysevent_util_mock.h"
+#include "panic_report_recovery.h"
+#include "smart_parser.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
-#include "smart_parser.h"
 #include "tbox.h"
 using namespace std;
 
@@ -235,6 +236,26 @@ HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest007, TestSize.Level1)
     testPlugin->OnLoad();
     std::this_thread::sleep_for(std::chrono::seconds(5));
     ASSERT_TRUE(PanicReport::LoadBboxSaveFlagFromFile().isPanicUploaded);
+}
+
+/**
+ * @tc.name: BboxEventRecorder001
+ * @tc.desc: check BboxEventRecorder.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BBoxDetectorUnitTest, BboxEventRecorder001, TestSize.Level1)
+{
+    BboxEventRecorder recorder;
+    std::string event = "MODEMCRASH";
+    time_t now = time(nullptr);
+    std::string logPath = "/root/testDir";
+
+    ASSERT_FALSE(recorder.IsExistEvent(event, now, logPath));
+    ASSERT_TRUE(recorder.AddEventToMaps(event, now, logPath));
+    ASSERT_TRUE(recorder.IsExistEvent(event, now, logPath));
+
+    logPath = "/root/testDir2";
+    ASSERT_FALSE(recorder.IsExistEvent(event, now, logPath));
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
