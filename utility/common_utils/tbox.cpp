@@ -29,8 +29,6 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("Tbox");
 
-const string Tbox::ARRAY_STR = "ARRAY :";
-
 Tbox::Tbox()
 {
 }

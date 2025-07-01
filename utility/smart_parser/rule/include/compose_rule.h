@@ -24,11 +24,9 @@ namespace OHOS {
 namespace HiviewDFX {
 class ComposeRule {
 public:
-    ComposeRule() {};
-    ~ComposeRule() {};
     void ParseComposeRule(const std::string& config, const std::string& type,
         std::vector<std::string> featureIds);
-    std::list<std::pair<std::string, std::map<std::string, std::string>>> GetComposeRule() const;
+    const std::list<std::pair<std::string, std::map<std::string, std::string>>>& GetComposeRule() const;
 
 private:
     void ParseRule(const Json::Value& jsonRoot, const std::string& type, std::vector<std::string>& featureIds);

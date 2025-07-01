@@ -89,13 +89,13 @@ private:
     void SetParamRecord(const std::string& key, const LineFeature& value, const int type);
 
 private:
-    int taskId_;
+    int taskId_{0};
     std::string eventType_;
-    int lineCursor_;
-    int errorCode_;
+    int lineCursor_{0};
+    int errorCode_{0};
     const int MAX_SKIP_LINE = 32000; // 32000 max skip line
-    static const std::string COMPOSE_PLUS;
-    static const std::string COMPOSE_COLON;
+    static constexpr const char *COMPOSE_PLUS = "+";
+    static constexpr const char *COMPOSE_COLON = ":";
     std::string line_;
     std::vector<std::string> deletePath_;
     FeatureSet featureSet_;

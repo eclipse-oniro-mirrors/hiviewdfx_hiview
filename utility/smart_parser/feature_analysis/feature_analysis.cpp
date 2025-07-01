@@ -30,10 +30,8 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("FeatureAnalysis");
 
-const string FeatureAnalysis::COMPOSE_PLUS = "+";
-const string FeatureAnalysis::COMPOSE_COLON = ":";
 namespace {
-    const string PARAMETER_REASON = "REASON";
+    constexpr const char *PARAMETER_REASON = "REASON";
 }
 
 FeatureAnalysis::~FeatureAnalysis()
@@ -138,8 +136,8 @@ bool FeatureAnalysis::IsSourceMatch(const string& line, const FeatureRule& rule)
 {
     string cmdSrc = rule.source;
     // if startwith "@R@"
-    if (L3_REGULAR_DESCRIPTOR == cmdSrc.substr(0, L3_REGULAR_DESCRIPTOR.length())) {
-        cmdSrc = cmdSrc.substr(L3_REGULAR_DESCRIPTOR.length());
+    if (L3_REGULAR_DESCRIPTOR == cmdSrc.substr(0, strlen(L3_REGULAR_DESCRIPTOR))) {
+        cmdSrc = cmdSrc.substr(strlen(L3_REGULAR_DESCRIPTOR));
         return regex_search(line, regex(cmdSrc));
     }
 

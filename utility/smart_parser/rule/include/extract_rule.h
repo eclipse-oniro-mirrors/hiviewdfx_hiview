@@ -26,12 +26,10 @@ namespace OHOS {
 namespace HiviewDFX {
 class ExtractRule {
 public:
-    ExtractRule() {};
-    ~ExtractRule() {};
     void ParseExtractRule(const std::string& eventType, const std::string& config, const std::string& fullPath);
-    std::vector<std::string> GetFeatureId();
-    std::map<std::string, FeatureSet> GetExtractRule() { return featureSets_; };
-    std::map<std::string, std::vector<std::string>> GetSegStatusCfg() { return segStatusCfgMap_; };
+    const std::vector<std::string>& GetFeatureId();
+    const std::map<std::string, FeatureSet>& GetExtractRule() { return featureSets_; };
+    const std::map<std::string, std::vector<std::string>>& GetSegStatusCfg() { return segStatusCfgMap_; };
 
 private:
     static constexpr int JSON_ARRAY_THRESHOLD = 50;

@@ -25,14 +25,15 @@ namespace HiviewDFX {
 class Rule {
 public:
     Rule(std::string eventPath, std::string analysisConfig, std::string eventType)
-        : eventPath_(eventPath), analysisConfig_(analysisConfig), eventType_(eventType) {};
-    ~Rule() {};
+        : eventPath_(std::move(eventPath)), analysisConfig_(std::move(analysisConfig)),
+        eventType_(std::move(eventType)) {};
+    ~Rule() = default;
     Rule(const Rule&) = delete;
     Rule& operator=(const Rule&) = delete;
     void ParseRule();
-    std::map<std::string, FeatureSet> GetExtractRule();
-    std::list<std::pair<std::string, std::map<std::string, std::string>>> GetComposeRule();
-    std::map<std::string, std::vector<std::string>> GetSegStatusCfg();
+    const std::map<std::string, FeatureSet>& GetExtractRule();
+    const std::list<std::pair<std::string, std::map<std::string, std::string>>>& GetComposeRule();
+    const std::map<std::string, std::vector<std::string>>& GetSegStatusCfg();
 
 private:
     std::string eventPath_;

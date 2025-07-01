@@ -35,7 +35,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest001, testing::ext::TestSize.Lev
     /**
      * @tc.steps: step1. parser log
      */
-    const std::string logPath = LogUtil::SMART_PARSER_TEST_DIR +
+    const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
         "/SmartParserPanicTest001/19700101000000-00000007/ap_log/dmesg-ramoops-0";
     const std::string eventType = "PANIC";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
@@ -77,7 +77,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest002, testing::ext::TestSize.Lev
     /**
      * @tc.steps: step1. parser log
      */
-    const std::string logPath = LogUtil::SMART_PARSER_TEST_DIR +
+    const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
         "/SmartParserPanicTest002/19700101000000-00000007/ap_log/dmesg-ramoops-0";
     const std::string eventType = "PANIC";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
@@ -119,7 +119,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest003, testing::ext::TestSize.Lev
     /**
      * @tc.steps: step1. parser log
      */
-    const std::string logPath = LogUtil::SMART_PARSER_TEST_DIR +
+    const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
         "/SmartParserPanicTest003/19700101000000-00000007/ap_log/dmesg-ramoops-0";
     const std::string eventType = "PANIC";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);

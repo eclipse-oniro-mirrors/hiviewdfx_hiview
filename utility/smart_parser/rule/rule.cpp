@@ -21,8 +21,8 @@ using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    const std::string COMPOSE_CONFIG = "compose_rule.json";
-    const std::string EXTRACT_CONFIG = "extract_rule.json";
+    constexpr const char *COMPOSE_CONFIG = "compose_rule.json";
+    constexpr const char *EXTRACT_CONFIG = "extract_rule.json";
 }
     std::map<std::string, FeatureSet> extractRule_;
     std::list<std::pair<std::string, std::map<std::string, std::string>>> composeRule_;
@@ -41,17 +41,17 @@ void Rule::ParseRule()
     composeRule_ = composeRule.GetComposeRule();
 }
 
-std::map<std::string, FeatureSet> Rule::GetExtractRule()
+const std::map<std::string, FeatureSet>& Rule::GetExtractRule()
 {
     return extractRule_;
 }
 
-std::list<std::pair<std::string, std::map<std::string, std::string>>> Rule::GetComposeRule()
+const std::list<std::pair<std::string, std::map<std::string, std::string>>>& Rule::GetComposeRule()
 {
     return composeRule_;
 }
 
-std::map<std::string, std::vector<std::string>> Rule::GetSegStatusCfg()
+const std::map<std::string, std::vector<std::string>>& Rule::GetSegStatusCfg()
 {
     return segStatusCfg_;
 }

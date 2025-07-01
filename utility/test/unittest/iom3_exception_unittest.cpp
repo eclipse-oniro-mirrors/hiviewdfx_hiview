@@ -34,7 +34,7 @@ HWTEST(SmartParserIOM3ExceptionTest, SmartParserIOM3ExceptionTest001, testing::e
     /**
      * @tc.steps: step1. parser log
      */
-    const std::string logPath = LogUtil::SMART_PARSER_TEST_DIR +
+    const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
         "/SmartParserIOM3ExceptionTest001/history.log";
     const std::string eventType = "SENSORHUBCRASH";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);

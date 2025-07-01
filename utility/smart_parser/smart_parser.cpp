@@ -37,8 +37,7 @@ std::map<std::string, std::string> SmartParser::Analysis(const std::string& even
     Rule rule(eventPath, config, eventType);
     rule.ParseRule();
     auto featureSets = rule.GetExtractRule();
-    auto composeRules = rule.GetComposeRule();
-    auto segStatusCfg = rule.GetSegStatusCfg();
+    const auto &composeRules = rule.GetComposeRule();
 
     std::map<std::string, std::string> eventInfoMap;
     for (const auto& composeRule : composeRules) {

@@ -62,7 +62,7 @@ void ExtractRule::ParseExtractRule(const string& eventType, const string& config
 void ExtractRule::ParseSegStatusCfg(const Json::Value& json)
 {
     if (!json.isMember(L1_SEG_STATUS)) {
-        HIVIEW_LOGE("failed to get json number %{public}s.", L1_SEG_STATUS.c_str());
+        HIVIEW_LOGE("failed to get json number %{public}s.", L1_SEG_STATUS);
         return;
     }
 
@@ -120,7 +120,7 @@ void ExtractRule::ParseRule(const string& eventType, const Json::Value& json, co
     return;
 }
 
-vector<string> ExtractRule::GetFeatureId()
+const vector<string>& ExtractRule::GetFeatureId()
 {
     return featureIds_;
 }
@@ -201,7 +201,7 @@ bool ExtractRule::IsMatchPath(const string& sourceFile, const string& name, cons
 vector<string> ExtractRule::SplitFeatureId(const Json::Value& object) const
 {
     if (!object.isMember(L2_FEATUREID)) {
-        HIVIEW_LOGE("failed to get json number %{public}s.", L1_SEG_STATUS.c_str());
+        HIVIEW_LOGE("failed to get json number %{public}s.", L1_SEG_STATUS);
         return {};
     }
 
