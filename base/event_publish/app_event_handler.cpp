@@ -169,6 +169,7 @@ int AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
     AddValueToJsonString("pid", event.pid, jsonStr);
     AddValueToJsonString("uid", event.uid, jsonStr);
     AddValueToJsonString("resource_type", event.resourceType, jsonStr);
+    AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
     if (event.resourceType == "pss_memory") {
         AddObjectToJsonString("memory", jsonStr);
         AddValueToJsonString("pss", event.pss, jsonStr);
