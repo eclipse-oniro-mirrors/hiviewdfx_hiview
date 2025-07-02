@@ -35,9 +35,6 @@ public:
         std::string eventType) const;
     std::stack<std::string> GetStackTop(const std::vector<std::string>& validStack, const size_t num) const;
 
-public:
-    static const std::string UNMATCHED_EXCEPTION;
-
 private:
     std::vector<std::string> GetValidStack(size_t num, std::stack<std::string>& inStack) const;
     std::vector<std::string> StackToPart(std::stack<std::string>& inStack, size_t num) const;

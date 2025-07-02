@@ -20,8 +20,6 @@
 using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
-const std::string LogParse::UNMATCHED_EXCEPTION = "UnMatchedException";
-
 // some stack function is invalid, so it should be ignored
 const std::map<std::string, std::set<std::string>> LogParse::ignoreList_ = {
     {"Level1", {
@@ -48,8 +46,8 @@ const std::map<std::string, std::set<std::string>> LogParse::ignoreList_ = {
 
 bool LogParse::IsIgnoreLibrary(const string& val) const
 {
-    for (auto list : ignoreList_) {
-        for (auto str : list.second) {
+    for (const auto &list : ignoreList_) {
+        for (const auto &str : list.second) {
             if (val.find(str, 0) != string::npos) {
                 return true;
             }
@@ -103,7 +101,7 @@ string LogParse::GetValidBlock(stack<string> inStack, vector<string>& lastPart) 
     for (auto& it : lastPart) {
         it = Tbox::GetStackName(it);
     }
-    return Tbox::ARRAY_STR + StringUtil::VectorToString(lastPart, false);
+    return string{Tbox::ARRAY_STR} + StringUtil::VectorToString(lastPart, false);
 }
 
 vector<string> LogParse::GetValidStack(size_t num, stack<string>& inStack) const

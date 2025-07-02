@@ -36,16 +36,9 @@ DEFINE_LOG_TAG("LogUtil");
 #define FDSAN_DOMAIN 0xD002D11
 
 namespace {
-    const string ARROW = "->";
-    const string CODE = "code";
-    const string WAIT = "wait";
     const int BUF_LEN_2048 = 2048;
     const int TOTAL_SKIP_NUM = 4;
 }
-
-const std::string LogUtil::SPLIT_PATTERN = "\n";
-const std::string LogUtil::SMART_PARSER_TEST_DIR = "/data/test/test_data/SmartParser";
-const int LogUtil::TOTAL_LINE_NUM = 200;
 
 /* GetTrace function:
  * buffer : log buffer

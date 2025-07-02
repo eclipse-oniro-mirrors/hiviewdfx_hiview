@@ -21,30 +21,30 @@
 #include <vector>
 namespace OHOS {
 namespace HiviewDFX {
-const std::string L1_SEG_STATUS = "segmentStatus";
-const std::string L1_RULE = "Rule";
-const std::string L2_DIR_OR_FILE = "DirOrFile";
-const std::string L2_SKIP = "skip";
-const std::string L2_SUBCATELOG = "Subcatalog";
-const std::string L2_FEATUREID = "featureId";
-const std::string L2_RULES = "rules";
-const std::string L2_SEGMENT_RULE = "segmentRule";
-const std::string L2_SEGMENT_TYPE = "segmentType";
-const std::string L2_SEGMENT_START = "startSeg";
-const std::string L2_SEGMENT_STACK = "segStack";
+constexpr const char *L1_SEG_STATUS = "segmentStatus";
+constexpr const char *L1_RULE = "Rule";
+constexpr const char *L2_DIR_OR_FILE = "DirOrFile";
+constexpr const char *L2_SKIP = "skip";
+constexpr const char *L2_SUBCATELOG = "Subcatalog";
+constexpr const char *L2_FEATUREID = "featureId";
+constexpr const char *L2_RULES = "rules";
+constexpr const char *L2_SEGMENT_RULE = "segmentRule";
+constexpr const char *L2_SEGMENT_TYPE = "segmentType";
+constexpr const char *L2_SEGMENT_START = "startSeg";
+constexpr const char *L2_SEGMENT_STACK = "segStack";
 
-const std::string L3_NAMESPACE = "namespace";
-const std::string L3_MATCH_KEY = "matchKey";
-const std::string L3_NUM = "num";
-const std::string L3_PARAM = "v_";
-const std::string L3_DEPEND = "depend";
-const std::string L3_DESCRIPTOR_LEFT = "@{";
-const std::string L3_DESCRIPTOR_RIGHT = "}@";
-const std::string L3_VARIABLE_TRACE_BLOCK = "@T@";
-const std::string L3_SEEK_LAST = "@L@";
-const std::string L3_OR_DESCRIPTOR = "@|@";
-const std::string L3_AND_DESCRIPTOR = "@&@";
-const std::string L3_REGULAR_DESCRIPTOR = "@R@";
+constexpr const char *L3_NAMESPACE = "namespace";
+constexpr const char *L3_MATCH_KEY = "matchKey";
+constexpr const char *L3_NUM = "num";
+constexpr const char *L3_PARAM = "v_";
+constexpr const char *L3_DEPEND = "depend";
+constexpr const char *L3_DESCRIPTOR_LEFT = "@{";
+constexpr const char *L3_DESCRIPTOR_RIGHT = "}@";
+constexpr const char *L3_VARIABLE_TRACE_BLOCK = "@T@";
+constexpr const char *L3_SEEK_LAST = "@L@";
+constexpr const char *L3_OR_DESCRIPTOR = "@|@";
+constexpr const char *L3_AND_DESCRIPTOR = "@&@";
+constexpr const char *L3_REGULAR_DESCRIPTOR = "@R@";
 
 struct FeatureRule {
     int num {0};

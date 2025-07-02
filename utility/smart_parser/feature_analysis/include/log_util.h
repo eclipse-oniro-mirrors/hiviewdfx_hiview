@@ -25,13 +25,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 struct IpcItem {
-    std::string pidTid;
+    std::string pidTid{0};
     std::string packageName;
     std::string threadName;
 };
 
 struct IpcTrans {
-    double waitTime;
+    double waitTime{0};
     std::string code;
     std::string line;
     IpcItem cIpcItem;
@@ -40,8 +40,6 @@ struct IpcTrans {
 
 class LogUtil {
 public:
-    LogUtil() {};
-    ~LogUtil() {};
     LogUtil(const LogUtil&) = delete;
     LogUtil& operator=(const LogUtil&) = delete;
     static void GetTrace(std::stringstream& buffer, int cursor, const std::string& reg, std::string& result,
@@ -52,9 +50,9 @@ public:
     static bool FileExist(const std::string& file);
 
 public:
-    static const std::string SPLIT_PATTERN;
-    static const std::string SMART_PARSER_TEST_DIR;
-    static const int TOTAL_LINE_NUM;
+    static constexpr const char *SPLIT_PATTERN = "\n";
+    static constexpr const char *SMART_PARSER_TEST_DIR = "/data/test/test_data/SmartParser";
+    static constexpr int TOTAL_LINE_NUM = 200;
 
 private:
     static int GetFileFd(const std::string& file);

@@ -35,7 +35,7 @@ HWTEST(SmartParserCppCrashTest, SmartParserCppCrashTest001, testing::ext::TestSi
     /**
      * @tc.steps: step1. parser log
      */
-    const std::string logPath = LogUtil::SMART_PARSER_TEST_DIR +
+    const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
         "/SmartParserCppCrashTest001/cppcrash-com.ohos.launcher-20010025-19700324235211000.log";
     const std::string eventType = "CPP_CRASH";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);

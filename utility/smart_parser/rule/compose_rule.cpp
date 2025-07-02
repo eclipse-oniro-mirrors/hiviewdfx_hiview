@@ -62,7 +62,7 @@ void ComposeRule::ParseComposeRule(const string& config, const string& type, vec
     return;
 }
 
-std::list<std::pair<std::string, std::map<std::string, std::string>>> ComposeRule::GetComposeRule() const
+const std::list<std::pair<std::string, std::map<std::string, std::string>>>& ComposeRule::GetComposeRule() const
 {
     return composeRules_;
 }

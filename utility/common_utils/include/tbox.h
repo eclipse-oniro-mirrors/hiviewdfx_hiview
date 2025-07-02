@@ -42,9 +42,7 @@ public:
     static int64_t GetHappenTime(const std::string& src, const std::string& regex);
 
 public:
-    static const std::string ARRAY_STR;
-    static const std::string CAUSEDBY_HEADER;
-    static const std::string SUPPRESSED_HEADER;
+    static constexpr const char *ARRAY_STR = "ARRAY :";
 };
 }
 }
