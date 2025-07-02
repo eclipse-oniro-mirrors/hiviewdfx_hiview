@@ -151,6 +151,8 @@ HWTEST_F(DataShareTest, DataShareUtilTest001, testing::ext::TestSize.Level3)
     ASSERT_FALSE(sandbox.empty());
     ASSERT_GE(DataShareUtil::GetBundleNameById(uid).size(), 0);
     ASSERT_TRUE(DataShareUtil::GetBundleNameById(-1).empty());
+    uid = DataShareUtil::GetUidByBundleName("hiview");
+    ASSERT_GE(uid, -1); // -1 is expected value
 }
 
 /**
@@ -184,6 +186,19 @@ HWTEST_F(DataShareTest, DataPublisherTest001, testing::ext::TestSize.Level3)
     sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     dataPublisher->OnSysEvent(sysEvent);
     ASSERT_TRUE(true);
+    dataPublisher->SetWorkLoop(nullptr);
+}
+
+/**
+ * @tc.name: DataPublisherTest002
+ * @tc.desc: Test method defined in DataPublisher
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(DataShareTest, DataPublisherTest002, testing::ext::TestSize.Level3)
+{
+    auto dataPublisher = std::make_shared<DataPublisher>();
+    ASSERT_GE(dataPublisher->GetTimeStampByUid(0), 0); // 0 is expected value to compare
 }
 
 /**

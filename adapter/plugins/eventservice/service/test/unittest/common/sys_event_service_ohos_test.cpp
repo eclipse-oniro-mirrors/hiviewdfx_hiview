@@ -23,6 +23,7 @@
 #include "ash_mem_utils.h"
 #include "event.h"
 #include "event_query_wrapper_builder.h"
+#include "compliant_event_checker.h"
 #include "file_util.h"
 #include "hiview_global.h"
 #include "if_system_ability_manager.h"
@@ -33,8 +34,10 @@
 #include "isys_event_service.h"
 #include "query_argument.h"
 #include "query_sys_event_callback_proxy.h"
+#include "parameter_ex.h"
 #include "plugin.h"
 #include "ret_code.h"
+#include "running_status_log_util.h"
 #include "string_ex.h"
 #include "sys_event.h"
 #include "sys_event_rule.h"
@@ -52,7 +55,7 @@ using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-constexpr char TEST_LOG_DIR[] = "/data/log/hiview/sys_event_test";
+constexpr char TEST_LOG_DIR[] = "/data/test/sys_event_ohos_test/";
 const std::vector<int> EVENT_TYPES = {1, 2, 3, 4}; // FAULT = 1, STATISTIC = 2 SECURITY = 3, BEHAVIOR = 4
 
 class TestSysEventServiceStub : public SysEventServiceStub {
@@ -111,6 +114,20 @@ public:
         return TEST_LOG_DIR;
     }
 };
+
+std::string GetLogDir()
+{
+    std::string workPath = HiviewGlobal::GetInstance()->GetHiViewDirectory(
+        HiviewContext::DirectoryType::WORK_DIRECTORY);
+    if (workPath.back() != '/') {
+        workPath = workPath + "/";
+    }
+    std::string logDestDir = workPath + "sys_event_log/";
+    if (!FileUtil::FileExists(logDestDir)) {
+        FileUtil::ForceCreateDirectory(logDestDir, FileUtil::FILE_PERM_770);
+    }
+    return logDestDir;
+}
 }
 
 void SysEventServiceOhosTest::SetUpTestCase() {}
@@ -258,6 +275,9 @@ HWTEST_F(SysEventServiceOhosTest, ConditionParserTest01, testing::ext::TestSize.
         {"param":"uid_", "op2":"=", "value":1201}]}})~";
     ret = parser.ParseCondition(condSt6, cond);
     ASSERT_TRUE(!ret);
+
+    ret = parser.ParseCondition("", cond);
+    ASSERT_FALSE(ret);
 }
 
 /**
@@ -340,6 +360,149 @@ HWTEST_F(SysEventServiceOhosTest, QueryWrapperTest02, testing::ext::TestSize.Lev
         {"and":[{"param":"NAME", "op":"=", "value":"SysEventService"}]}})~");
     auto queryWrapper = queryWrapperBuilder->Build();
     ASSERT_TRUE(queryWrapper != nullptr);
+}
+
+/**
+ * @tc.name: RunningStatusLogUtil001
+ * @tc.desc: test apis of RunningStatusLogUtil.
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(SysEventServiceOhosTest, RunningStatusLogUtil001, testing::ext::TestSize.Level1)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+
+    std::vector<SysEventRule> eventRules;
+    OHOS::HiviewDFX::SysEventRule eventRule("DOMAIN1", "EVENT_NAME2", "TAG3", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
+    eventRules.emplace_back(eventRule);
+    RunningStatusLogUtil::LogTooManyWatchRules(eventRules);
+    int limit = 22; // 22 is a test value
+    RunningStatusLogUtil::LogTooManyWatchers(limit);
+
+    std::vector<SysEventQueryRule> eventQueryRules;
+    std::vector<std::string> eventNames { "EVENT_NAME1", "EVENT_NAME2" };
+    OHOS::HiviewDFX::SysEventQueryRule eventQueryRule("DOMAIN", eventNames);
+    eventQueryRules.emplace_back(eventQueryRule);
+    RunningStatusLogUtil::LogTooManyQueryRules(eventQueryRules);
+    RunningStatusLogUtil::LogTooManyEvents(limit);
+
+    std::vector<std::string> allLogFiles;
+    FileUtil::GetDirFiles(GetLogDir(), allLogFiles);
+    ASSERT_GE(allLogFiles.size(), 0);
+}
+
+/**
+ * @tc.name: CompliantEventChecker001
+ * @tc.desc: test apis of CompliantEventChecker.
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(SysEventServiceOhosTest, CompliantEventChecker001, testing::ext::TestSize.Level1)
+{
+    int secureEnabledVal = 1;
+    bool isSecureEnabeled = (Parameter::GetInteger("const.secure", secureEnabledVal) == secureEnabledVal);
+
+    CompliantEventChecker checker;
+    if (!isSecureEnabeled) {
+        ASSERT_TRUE(checker.IsCompliantEvent("NO_CFG_DOMAIN", "NO_CFG_NAME"));
+    } else {
+        ASSERT_FALSE(checker.IsCompliantEvent("NO_CFG_DOMAIN", "NO_CFG_NAME"));
+        ASSERT_FALSE(checker.IsCompliantEvent("AAFWK", "NO_CFG_NAME"));
+        ASSERT_TRUE(checker.IsCompliantEvent("AAFWK", "ABILITY_ONACTIVE"));
+        ASSERT_TRUE(checker.IsCompliantEvent("PERFORMANCE", "NO_CFG_NAME"));
+    }
+}
+
+/**
+ * @tc.name: SysEventServiceOhosInstanceTest001
+ * @tc.desc: test apis of SysEventServiceOhos.
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(SysEventServiceOhosTest, SysEventServiceOhosInstanceTest001, testing::ext::TestSize.Level1)
+{
+    auto service = SysEventServiceOhos::GetInstance();
+    ASSERT_NE(service, nullptr);
+
+    std::vector<SysEventRule> eventRules;
+    OHOS::HiviewDFX::SysEventRule eventRule("DOMAIN1", "EVENT_NAME2", "TAG3", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
+    ASSERT_LT(service->AddListener(eventRules, nullptr), 0);
+    ASSERT_LT(service->RemoveListener(nullptr), 0);
+
+    int64_t defaultTimeStap = -1;
+    int queryCount = 10;
+    OHOS::HiviewDFX::QueryArgument argument(defaultTimeStap, defaultTimeStap, queryCount);
+    std::vector<SysEventQueryRule> eventQueryRules;
+    std::vector<std::string> eventNames { "EVENT_NAME1", "EVENT_NAME2" };
+    OHOS::HiviewDFX::SysEventQueryRule eventQueryRule("DOMAIN", eventNames);
+
+    eventQueryRules.emplace_back(eventQueryRule);
+    ASSERT_LT(service->Query(argument, eventQueryRules, nullptr), 0);
+}
+
+/**
+ * @tc.name: SysEventServiceOhosInstanceTest002
+ * @tc.desc: test apis of SysEventServiceOhos.
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(SysEventServiceOhosTest, SysEventServiceOhosInstanceTest002, testing::ext::TestSize.Level1)
+{
+    auto service = SysEventServiceOhos::GetInstance();
+    ASSERT_NE(service, nullptr);
+
+    std::vector<SysEventQueryRule> eventQueryRules;
+    std::vector<std::string> eventNames { "EVENT_NAME1", "EVENT_NAME2" };
+    OHOS::HiviewDFX::SysEventQueryRule eventQueryRule("DOMAIN", eventNames);
+    eventQueryRules.emplace_back(eventQueryRule);
+
+    int64_t funcResult = 0;
+    ASSERT_LT(service->AddSubscriber(eventQueryRules, funcResult), 0);
+    ASSERT_LT(service->RemoveSubscriber(), 0);
+
+    long long defaultTimeStap = -1;
+    int queryCount = 10;
+    OHOS::HiviewDFX::QueryArgument argument(defaultTimeStap, defaultTimeStap, queryCount);
+    ASSERT_LT(service->Export(argument, eventQueryRules, funcResult), 0);
+}
+
+/**
+ * @tc.name: SysEventServiceOhosInstanceTest003
+ * @tc.desc: test apis of SysEventServiceOhos.
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(SysEventServiceOhosTest, SysEventServiceOhosInstanceTest003, testing::ext::TestSize.Level1)
+{
+    auto service = SysEventServiceOhos::GetInstance();
+    ASSERT_NE(service, nullptr);
+
+    int32_t testFd1 = -3; // -3 is a invalid value
+    std::vector<std::u16string> args;
+    ASSERT_LE(service->Dump(testFd1, args), -1); // -1 is expected value to compare
+    int32_t testFd2 = 10; // 10 is a test value
+    ASSERT_LE(service->Dump(testFd2, args), 0);
+}
+
+/**
+ * @tc.name: SysEventServiceOhosInstanceTest004
+ * @tc.desc: test apis of SysEventServiceOhos.
+ * @tc.type: FUNC
+ * @tc.require: issueICJ952
+ */
+HWTEST_F(SysEventServiceOhosTest, SysEventServiceOhosInstanceTest004, testing::ext::TestSize.Level1)
+{
+    auto service = SysEventServiceOhos::GetInstance();
+    ASSERT_NE(service, nullptr);
+
+    const std::string eventStr = R"~({"domain_":"DEMO","name_":"NAME1","type_":1,"tz_":"+0800","time_":1620271291188,
+        "pid_":6527, "tid_":6527, "traceid_":"f0ed6160bb2df4b", "spanid_":"10", "pspanid_":"20", "trace_flag_":4})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, eventStr);
+    service->OnSysEvent(sysEvent);
+    wptr<IRemoteObject> remote = nullptr;
+    service->OnRemoteDied(remote);
+    service->SetWorkLoop(nullptr);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
