@@ -3,5 +3,6 @@
     "STRING_ARRAY": [ "3.1 release", "4.0 release", 10, true ],
     "INT": 2024,
     "DOUBLE": 2024.0,
-    "BOOL": true
+    "BOOL": true,
+    "OBJECT": {}
 }

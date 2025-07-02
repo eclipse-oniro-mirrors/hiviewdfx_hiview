@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,10 +52,12 @@ HWTEST_F(EventExportMgrTest, EventExportMgrTest001, testing::ext::TestSize.Level
         [] (const std::string& paramKey) {
             // do nothing
         };
-    auto ret = SettingObserverManager::GetInstance()->RegisterObserver(PARAM_NAME, callback);
-    ASSERT_TRUE(ret);
-    ret = SettingObserverManager::GetInstance()->UnregisterObserver(PARAM_NAME);
-    ASSERT_TRUE(ret);
+    ASSERT_TRUE(SettingObserverManager::GetInstance()->RegisterObserver(PARAM_NAME, callback));
+    // observer exit
+    ASSERT_TRUE(SettingObserverManager::GetInstance()->RegisterObserver(PARAM_NAME, callback));
+    ASSERT_TRUE(SettingObserverManager::GetInstance()->UnregisterObserver(PARAM_NAME));
+    // observer not found
+    ASSERT_TRUE(SettingObserverManager::GetInstance()->UnregisterObserver(PARAM_NAME));
     auto value = SettingObserverManager::GetInstance()->GetStringValue(PARAM_NAME, DEFAULT_VAL);
     ASSERT_EQ(value, DEFAULT_VAL);
 }

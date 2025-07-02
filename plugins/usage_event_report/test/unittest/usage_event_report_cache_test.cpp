@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,14 +60,16 @@ HWTEST_F(UsageEventReportCacheTest, UsageEventReportCacheTest001, TestSize.Level
     events.clear();
     cacher.GetPluginStatsEvents(events);
     EXPECT_TRUE(events.empty());
-    
+
+    EXPECT_TRUE(cacher.GetSysUsageEvent() == nullptr);
+    cacher.SaveSysUsageEventToDb(nullptr);
     EXPECT_TRUE(cacher.GetSysUsageEvent() == nullptr);
     auto sysUsageEvent = std::make_shared<SysUsageEvent>("EVENT_NAME", HiSysEvent::EventType::STATISTIC);
     cacher.SaveSysUsageEventToDb(sysUsageEvent);
     EXPECT_TRUE(cacher.GetSysUsageEvent() != nullptr);
     cacher.DeleteSysUsageEventFromDb();
     EXPECT_TRUE(cacher.GetSysUsageEvent() == nullptr);
-    
+
     EXPECT_TRUE(cacher.GetSysUsageEvent(SysUsageDbSpace::LAST_SYS_USAGE_TABLE) == nullptr);
     cacher.SaveSysUsageEventToDb(sysUsageEvent, SysUsageDbSpace::LAST_SYS_USAGE_TABLE);
     EXPECT_TRUE(cacher.GetSysUsageEvent(SysUsageDbSpace::LAST_SYS_USAGE_TABLE) != nullptr);
