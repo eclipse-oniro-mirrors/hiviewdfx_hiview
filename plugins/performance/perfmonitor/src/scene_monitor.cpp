@@ -99,7 +99,7 @@ SceneRecord* SceneManager::GetRecordByType(const SceneType& type)
             return new NonExperienceWindow();
         case APP_START:
             return new NonExperienceAppStart();
-        case PAGE_LOADING: 
+        case PAGE_LOADING:
             return new NonExperiencePageLoading();
         default:
             return new SceneRecord();
