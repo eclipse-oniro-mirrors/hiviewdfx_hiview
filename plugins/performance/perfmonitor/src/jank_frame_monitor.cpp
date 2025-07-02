@@ -20,9 +20,11 @@
 #include "perf_trace.h"
 #include "perf_utils.h"
 #include "scene_monitor.h"
+#include "hiview_logger.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 
 JankFrameMonitor& JankFrameMonitor::GetInstance()
 {
@@ -77,12 +79,14 @@ void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double 
     SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_WINDOW, false, windowName);
     SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_START, false);
     SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, false);
+    SceneMonitor::GetInstance().OnSceneChanged(SceneType::PAGE_LOADING, false);
 }
 
 void JankFrameMonitor::ProcessJank(double jank, const std::string& windowName)
 {
     // single frame behavior report
     if (jank >= static_cast<double>(DEFAULT_JANK_REPORT_THRESHOLD)) {
+        HIVIEW_LOGI("JankFrameMonitor::ProcessJank jank >= threshold");
         JankInfo jankInfo;
         jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
         jankInfo.windowName = windowName;
@@ -104,6 +108,9 @@ void JankFrameMonitor::JankFrameStatsRecord(double jank)
     if (SceneMonitor::GetInstance().GetIsStats() && jank > 1.0f && !jankFrameRecord.empty()) {
         jankFrameRecord[GetJankLimit(jank)]++;
         jankFrameTotalCount++;
+    } else {
+        HIVIEW_LOGW("JankFrameStatsRecord abnormal statistics, jank %{public}d, record size %{public}lu",
+            static_cast<int>(jank), jankFrameRecord.size());
     }
 }
 

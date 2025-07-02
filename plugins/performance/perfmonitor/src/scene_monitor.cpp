@@ -21,11 +21,15 @@
 #include "white_block_monitor.h"
 
 #include "event_handler.h"
+#include "hiview_logger.h"
 #include "res_sched_client.h"
 #include "render_service_client/core/transaction/rs_interfaces.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+
+DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
+
 static constexpr uint32_t SENSITIVE_SCENE_RESTYPE = 72;
 static constexpr const char* const SENSITIVE_SCENE_EXTTYPE = "10000";
 
@@ -40,6 +44,7 @@ void SceneManager::OnSceneStart(const SceneType& type)
     } else {
         sceneBoard[type]->StartRecord(type);
     }
+    HIVIEW_LOGI("SceneManager::OnSceneStart scene type: %{public}d", static_cast<int>(type));
     return;
 }
 
@@ -48,6 +53,9 @@ void SceneManager::OnSceneStop(const SceneType& type)
     std::lock_guard<std::mutex> Lock(mMutex);
     if (sceneBoard.find(type) != sceneBoard.end()) {
         sceneBoard[type]->StopRecord(type);
+        HIVIEW_LOGI("SceneManager::OnSceneStop scene type: %{public}d", static_cast<int>(type));
+    } else {
+        HIVIEW_LOGW("SceneManager::OnSceneStop scene has not started, scene type: %{public}d", static_cast<int>(type));
     }
     return;
 }
@@ -63,6 +71,8 @@ void SceneManager::OnSceneStart(const SceneType& type, const std::string& sceneI
     } else {
         sceneBoard[type]->StartRecord(type, sceneId);
     }
+    HIVIEW_LOGI("SceneManager::OnSceneStart scene type: %{public}d, scene id: %{public}s",
+        static_cast<int>(type), sceneId.c_str());
     return;
 }
 
@@ -71,6 +81,11 @@ void SceneManager::OnSceneStop(const SceneType& type, const std::string& sceneId
     std::lock_guard<std::mutex> Lock(mMutex);
     if (sceneBoard.find(type) != sceneBoard.end()) {
         sceneBoard[type]->StopRecord(type, sceneId);
+        HIVIEW_LOGI("SceneManager::OnSceneStop scene type: %{public}d, scene id: %{public}s",
+            static_cast<int>(type), sceneId.c_str());
+    } else {
+        HIVIEW_LOGW("SceneManager::OnSceneStop scene has not started, scene type: %{public}d, scene id: %{public}s",
+            static_cast<int>(type), sceneId.c_str());
     }
     return;
 }
@@ -78,12 +93,14 @@ void SceneManager::OnSceneStop(const SceneType& type, const std::string& sceneId
 SceneRecord* SceneManager::GetRecordByType(const SceneType& type)
 {
     switch (type) {
-        case NON_EXPERIENCE_ANIMATOR :
+        case NON_EXPERIENCE_ANIMATOR:
             return new NonExperienceAnimator();
-        case NON_EXPERIENCE_WINDOW :
+        case NON_EXPERIENCE_WINDOW:
             return new NonExperienceWindow();
-        case APP_START :
+        case APP_START:
             return new NonExperienceAppStart();
+        case PAGE_LOADING: 
+            return new NonExperiencePageLoading();
         default:
             return new SceneRecord();
     }
@@ -199,6 +216,7 @@ void SceneMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType ty
 void SceneMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender)
 {
     SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_ANIMATOR, false, sceneId);
+    SceneMonitor::GetInstance().OnSceneChanged(SceneType::PAGE_LOADING, true, sceneId);
     if (IsScrollJank(sceneId)) {
         WhiteBlockMonitor::GetInstance().EndScroll();
     }
