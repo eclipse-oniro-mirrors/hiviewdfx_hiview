@@ -23,18 +23,14 @@ namespace HiviewDFX {
 namespace FfrtUtil {
 namespace {
 constexpr int64_t CHECK_CYCLE_SECONDS = 60; // 60 seconds
-
-inline int64_t GetCurrentSecond()
-{
-    return static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs()) / TimeUtil::SEC_TO_MILLISEC;
-}
 }
 
 
 void Sleep(int64_t taskCycleSec)
 {
-    int64_t lastTimeSec = GetCurrentSecond();
-    while (std::abs(GetCurrentSecond() - lastTimeSec) < taskCycleSec) {
+    uint64_t taskCycleMs = static_cast<uint64_t>(taskCycleSec * TimeUtil::SEC_TO_MILLISEC);
+    uint64_t lastTimeMs = TimeUtil::GetBootTimeMs();
+    while (TimeUtil::GetBootTimeMs() - lastTimeMs < taskCycleMs) {
         // avoid too long time to sleep, check whether the time difference
         // is exceed the task cycle is neccessary after each 60 seconds' sleep
         ffrt::this_task::sleep_for(std::chrono::seconds(CHECK_CYCLE_SECONDS));
