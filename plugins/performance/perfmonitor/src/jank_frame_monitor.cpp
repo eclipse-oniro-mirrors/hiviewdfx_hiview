@@ -109,7 +109,7 @@ void JankFrameMonitor::JankFrameStatsRecord(double jank)
         jankFrameRecord[GetJankLimit(jank)]++;
         jankFrameTotalCount++;
     } else {
-        HIVIEW_LOGW("JankFrameStatsRecord abnormal statistics, jank %{public}d, record size %{public}lu",
+        HIVIEW_LOGW("JankFrameStatsRecord abnormal statistics, jank %{public}d, record size %{public}zu",
             static_cast<int>(jank), jankFrameRecord.size());
     }
 }
