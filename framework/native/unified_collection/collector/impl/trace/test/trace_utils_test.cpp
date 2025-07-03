@@ -57,10 +57,12 @@ HWTEST_F(TraceUtilsTest, TraceUtilsTest001, TestSize.Level1)
 
     ASSERT_EQ(ModuleToString(UCollect::TeleModule::XPERF), "Xperf");
     ASSERT_EQ(ModuleToString(UCollect::TeleModule::XPOWER), "Xpower");
+    ASSERT_EQ(ModuleToString(UCollect::TeleModule::RELIABILITY), "Reliability");
     ASSERT_EQ(ModuleToString(static_cast<UCollect::TeleModule>(10)), "");
 
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMAND), "Command");
     ASSERT_EQ(ClientToString(UCollect::TraceClient::COMMON_DEV), "Other");
+    ASSERT_EQ(ClientToString(UCollect::TraceClient::BETACLUB), "BetaClub");
     ASSERT_EQ(ClientToString(static_cast<UCollect::TraceClient>(10)), "");
 }
 

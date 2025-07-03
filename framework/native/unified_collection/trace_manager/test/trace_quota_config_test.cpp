@@ -44,6 +44,7 @@ HWTEST_F(TraceQuotaConfigTest, TraceQuotaConfigTest001, testing::ext::TestSize.L
     ASSERT_GE(TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::XPOWER), 0);
     ASSERT_GE(TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::RELIABILITY), 0);
     ASSERT_GE(TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::HIVIEW), 0);
+    ASSERT_LT(TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::SCREEN), 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

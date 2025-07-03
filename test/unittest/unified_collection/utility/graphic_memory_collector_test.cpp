@@ -64,6 +64,9 @@ HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Lev
     std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] graphic result:" << graphicData.data;
     std::cout << std::endl;
     ASSERT_GE(graphicData.data, 0);
+    const int invalidNum = 10; // 10 : invalid number used to cast to GraphicType
+    graphicData = collector->GetGraphicUsage(pid, static_cast<GraphicType>(invalidNum), false);
+    ASSERT_EQ(graphicData.retCode, UcError::UNSUPPORT);
 }
 #else
 /**
