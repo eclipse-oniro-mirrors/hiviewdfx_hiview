@@ -76,10 +76,7 @@ void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double 
     }
     ProcessJank(jank, windowName);
     JankFrameStatsRecord(jank);
-    SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_WINDOW, false, windowName);
-    SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_START, false);
-    SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, false);
-    SceneMonitor::GetInstance().OnSceneChanged(SceneType::PAGE_LOADING, false);
+    SceneMonitor::GetInstance().SingleFrameSceneStop(windowName);
 }
 
 void JankFrameMonitor::ProcessJank(double jank, const std::string& windowName)

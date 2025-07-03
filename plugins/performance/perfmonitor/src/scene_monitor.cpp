@@ -224,6 +224,14 @@ void SceneMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender)
     NotifyScbJankStatsBegin(sceneId);
 }
 
+void SceneMonitor::SingleFrameSceneStop(const std::string& sceneId)
+{
+    OnSceneChanged(SceneType::NON_EXPERIENCE_WINDOW, false, sceneId);
+    OnSceneChanged(SceneType::APP_START, false);
+    OnSceneChanged(SceneType::APP_RESPONSE, false);
+    OnSceneChanged(SceneType::PAGE_LOADING, false);
+}
+
 void SceneMonitor::NotifyAppJankStatsBegin()
 {
     XPERF_TRACE_SCOPED("NotifyAppJankStatsBegin");
