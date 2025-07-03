@@ -44,7 +44,7 @@ public:
  * @tc.desc: used to test PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level0)
 {
     AppEventHandler::CpuUsageHighInfo cpuUsageHighInfo;
     auto handler = std::make_shared<AppEventHandler>();
@@ -58,7 +58,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level1)
  * @tc.desc: used to test PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest002, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest002, TestSize.Level0)
 {
     AppEventHandler::BatteryUsageInfo batteryUsageInfo;
     auto handler = std::make_shared<AppEventHandler>();
@@ -72,7 +72,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest002, TestSize.Level1)
  * @tc.desc: used to test PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest003, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest003, TestSize.Level0)
 {
     AppEventHandler::ResourceOverLimitInfo resourceOverLimitInfo;
     auto handler = std::make_shared<AppEventHandler>();
@@ -94,7 +94,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest003, TestSize.Level1)
  * @tc.desc: used to test PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest004, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest004, TestSize.Level0)
 {
     AppEventHandler::ScrollJankInfo scrollJankInfo;
     auto handler = std::make_shared<AppEventHandler>();
@@ -108,7 +108,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest004, TestSize.Level1)
  * @tc.desc: used to test PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest005, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest005, TestSize.Level0)
 {
     AppEventHandler::AppLaunchInfo appLaunchInfo;
     auto handler = std::make_shared<AppEventHandler>();
@@ -122,7 +122,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest005, TestSize.Level1)
  * @tc.desc: used to test PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest006, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest006, TestSize.Level0)
 {
     AppEventHandler::AppKilledInfo appKilledInfo;
     auto handler = std::make_shared<AppEventHandler>();
@@ -143,7 +143,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest006, TestSize.Level1)
  * @tc.desc: used to test empty PostEvent
  * @tc.type: FUNC
 */
-HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level1)
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level0)
 {
     auto handler = std::make_shared<AppEventHandler>();
     AppEventHandler::CpuUsageHighInfo cpuUsageHighInfo;
