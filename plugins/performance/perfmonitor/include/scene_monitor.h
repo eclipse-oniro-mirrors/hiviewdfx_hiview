@@ -69,6 +69,7 @@ public:
 
     // inner interface when scene-change
     void SetAppGCStatus(const std::string& sceneId, int64_t value);
+    void SingleFrameSceneStop(const std::string& sceneId);
 
     // inner interface get scene-info
     BaseInfo GetBaseInfo();

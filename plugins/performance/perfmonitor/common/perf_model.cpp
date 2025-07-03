@@ -16,6 +16,7 @@
 #include "perf_constants.h"
 #include "perf_model.h"
 #include "perf_utils.h"
+#include "hiview_logger.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -205,6 +206,31 @@ bool NonExperienceWindow::IsNonExperienceWhiteList(const std::string& windowName
     if (windowName == "softKeyboard1" ||
         windowName == "SCBWallpaper1" ||
         windowName == "SCBStatusBar15") {
+        return true;
+    }
+    return false;
+}
+
+void NonExperiencePageLoading::StartRecord(const SceneType& sType, const std::string& sId)
+{
+    type = sType;
+    sceneId = sId;
+    status = IsNonExperienceWhiteList(sId);
+}
+
+void NonExperiencePageLoading::StopRecord(const SceneType& sType)
+{
+    if (type != sType) {
+        return;
+    }
+    status = false;
+}
+
+bool NonExperiencePageLoading::IsNonExperienceWhiteList(const std::string& sceneId)
+{
+    // 上滑退出和转场动效后第一帧标记为加载帧，实际体验为加载慢，非丢帧卡顿
+    if (sceneId == PerfConstants::LAUNCHER_APP_SWIPE_TO_HOME ||
+        sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
         return true;
     }
     return false;

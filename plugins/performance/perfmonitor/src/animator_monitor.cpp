@@ -26,6 +26,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 
+DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
+
 AnimatorMonitor& AnimatorMonitor::GetInstance()
 {
     static AnimatorMonitor instance;
@@ -80,12 +82,15 @@ void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
+    HIVIEW_LOGI("Animation start and current sceneId: %{public}s", sceneId.c_str());
     if (record == nullptr) {
         record = new AnimatorRecord();
         PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
         record->InitRecord(sceneId, type, sourceType, note, inputTime);
         mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
         XperfAsyncTraceBegin(0, sceneId.c_str());
+    } else {
+        HIVIEW_LOGW("Animation has already started, sceneId: %{public}s", sceneId.c_str());
     }
 }
 
@@ -93,6 +98,7 @@ void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender
 {
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
+    HIVIEW_LOGI("Animation start and current sceneId: %{public}s", sceneId.c_str());
     if (record != nullptr) {
         SceneMonitor::GetInstance().FlushSubHealthInfo();
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
@@ -100,6 +106,8 @@ void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender
         ReportAnimateEnd(sceneId, record);
         RemoveRecord(sceneId);
         XperfAsyncTraceEnd(0, sceneId.c_str());
+    } else {
+        HIVIEW_LOGW("Animation has not started, sceneId: %{public}s", sceneId.c_str());
     }
 }
 
