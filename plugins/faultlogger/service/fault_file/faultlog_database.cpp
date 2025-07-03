@@ -93,7 +93,7 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
     auto task = [info, hitraceId] () mutable {
         // Need set hitrace again in async task
         HiTraceChainSetId(&hitraceId);
-        HiSysEventWrite(HiSysEvent::Domain::RELIABILITY, GetFaultNameByType(info.faultLogType, false),
+        int result = HiSysEventWrite(HiSysEvent::Domain::RELIABILITY, GetFaultNameByType(info.faultLogType, false),
             HiSysEvent::EventType::FAULT, FaultKey::FAULT_TYPE, std::to_string(info.faultLogType),
             FaultKey::MODULE_PID, info.pid, FaultKey::MODULE_UID, info.id, FaultKey::MODULE_NAME, info.module,
             FaultKey::REASON, info.reason, FaultKey::SUMMARY, info.summary, FaultKey::LOG_PATH, info.logPath,
@@ -123,6 +123,8 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
                 "" : info.sectionMap[FaultKey::TELEMETRY_ID],
             FaultKey::TRACE_NAME, info.sectionMap[FaultKey::TRACE_NAME].empty() ?
                 "" : info.sectionMap[FaultKey::TRACE_NAME]);
+        std::string eventName = GetFaultNameByType(info.faultLogType, false);
+        HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
         HiTraceChainClearId();
     };
     if (info.faultLogType == FaultLogType::CPP_CRASH) {
