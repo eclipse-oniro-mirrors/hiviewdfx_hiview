@@ -20,12 +20,14 @@
 #include "app_caller_event.h"
 #include "file_util.h"
 #include "trace_common.h"
+#include "trace_db_callback.h"
 #include "trace_flow_controller.h"
 #include "trace_state_machine.h"
 #include "time_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
+using namespace OHOS::NativeRdb;
 namespace {
 const std::string TEST_DB_PATH = "/data/test/trace_storage_test/";
 const std::vector<std::string> TAG_GROUPS = {"scene_performance"};
@@ -1010,4 +1012,26 @@ HWTEST_F(TraceManagerTest, TraceManagerTest026, TestSize.Level1)
     ASSERT_EQ(ret3.stateError_, TraceStateCode::NO_TRIGGER);
     auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
     ASSERT_TRUE(ret4.IsSuccess());
+}
+
+/**
+ * @tc.name: TraceManagerTest027
+ * @tc.desc: used to test TraceDbStoreCallback
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest027, TestSize.Level1)
+{
+    FileUtil::ForceRemoveDirectory(TEST_DB_PATH);
+    FileUtil::ForceCreateDirectory(TEST_DB_PATH);
+    std::string dbFile = std::string(TEST_DB_PATH) + "trace_flow_control.db";
+    RdbStoreConfig config(dbFile);
+    config.SetSecurityLevel(SecurityLevel::S1);
+    auto ret = E_OK;
+    TraceDbStoreCallback callback;
+    auto dbStore = RdbHelper::GetRdbStore(config, 1, callback, ret);
+    ASSERT_EQ(ret, E_OK);
+    ret = callback.OnCreate(*dbStore);
+    ASSERT_EQ(ret, E_OK);
+    ret = callback.OnUpgrade(*dbStore, 1, 2); // test db upgrade from version 1 to version 2
+    ASSERT_EQ(ret, E_OK);
 }

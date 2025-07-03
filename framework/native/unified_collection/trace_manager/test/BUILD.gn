@@ -44,6 +44,7 @@ ohos_unittest("TraceManagerTest") {
   sources = [
     "trace_manager_test.cpp",
     "trace_quota_config_test.cpp",
+    "trace_state_test.cpp",
   ]
 
   deps = [

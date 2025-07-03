@@ -198,6 +198,33 @@ HWTEST_F(PerfCollectorTest, PerfCollectorTest006, TestSize.Level1)
     }
     ASSERT_EQ(perfDataCount, 2); // 2 : max perf count for eventlogger simultaneously
 }
+
+/**
+ * @tc.name: PerfCollectorTest007
+ * @tc.desc: used to test invalid caller for perf collect
+ * @tc.type: FUNC
+*/
+HWTEST_F(PerfCollectorTest, PerfCollectorTest007, TestSize.Level1)
+{
+    const int invalidNum = 100; // 100 : invalid number used to cast to PerfCaller
+    auto perfCollector = UCollectUtil::PerfCollector::Create(static_cast<PerfCaller>(invalidNum));
+    vector<pid_t> selectPids = {getpid()};
+    std::string filename = "hiperf-";
+    filename += TimeUtil::TimestampFormatToDate(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC,
+    "%Y%m%d%H%M%S");
+    filename += ".data";
+    std::string filepath = PERF_TEST_DIR + filename;
+    perfCollector->SetOutputFilename(filename);
+    perfCollector->SetSelectPids(selectPids);
+    perfCollector->SetTimeStopSec(3);
+    perfCollector->SetReport(true);
+    CollectResult<bool> data = perfCollector->StartPerf(PERF_TEST_DIR);
+    std::cout << "collect perf data result" << data.retCode << std::endl;
+    ASSERT_EQ(data.retCode, UcError::PERF_CALLER_NOT_FIND);
+    data = perfCollector->Prepare(PERF_TEST_DIR);
+    ASSERT_EQ(data.retCode, UcError::PERF_CALLER_NOT_FIND);
+}
+
 #else
 /**
  * @tc.name: PerfCollectorTest001

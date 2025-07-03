@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -289,4 +289,40 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest007, TestSize.Level1) {
     auto result3 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
     ASSERT_EQ(result3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+}
+
+/**
+ * @tc.name: TraceCollectorTest008
+ * @tc.desc: used to test TraceCollector for reliability dump
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest008, TestSize.Level1)
+{
+    setuid(1201); // 1201 : hiview uid
+    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
+    sleep(1);
+    auto resultDumpTrace = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::SUCCESS);
+    ASSERT_GE(resultDumpTrace.data.size(), 0);
+    std::vector<std::string> items = resultDumpTrace.data;
+    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
+    for (auto it = items.begin(); it != items.end(); it++) {
+        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
+    }
+
+    TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
+    sleep(1);
+    auto resultDumpTrace2 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
+    sleep(1);
+    auto resultDumpTrace3 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::SUCCESS);
+
+    TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
+    sleep(1);
+    auto resultDumpTrace4 = collector->DumpTrace(caller);
+    ASSERT_EQ(resultDumpTrace4.retCode, UCollect::UcError::TRACE_STATE_ERROR);
 }
