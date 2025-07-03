@@ -25,6 +25,7 @@
 #include "cjson_util.h"
 #include "common_utils.h"
 #include "file_util.h"
+#include "focused_event_util.h"
 #include "freeze_json_util.h"
 #include "hiview_config_util.h"
 #include "hiview_db_util.h"
@@ -192,6 +193,17 @@ HWTEST_F(AdapterUtilityOhosTest, TimeUtilOhosTest003, testing::ext::TestSize.Lev
 
     auto time2 = TimeUtil::GetBootTimeMs();
     ASSERT_GT(time2, time1);
+}
+
+/**
+ * @tc.name: TimeUtilOhosTest004
+ * @tc.desc: Test GetMonotonicTimeMs defined in namespace TimeUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICJI0P
+ */
+HWTEST_F(AdapterUtilityOhosTest, TimeUtilOhosTest004, testing::ext::TestSize.Level3)
+{
+    ASSERT_GT(TimeUtil::GetMonotonicTimeMs(), 0);
 }
 
 /**
@@ -499,6 +511,22 @@ HWTEST_F(AdapterUtilityOhosTest, CJsonUtilTest001, testing::ext::TestSize.Level3
 }
 
 /**
+ * @tc.name: CJsonUtilTest002
+ * @tc.desc: Test api of CJsonUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICJI0P
+ */
+HWTEST_F(AdapterUtilityOhosTest, CJsonUtilTest002, testing::ext::TestSize.Level3)
+{
+    auto jsonRoot = CJsonUtil::ParseJsonRoot(TEST_JSON_FILE_PATH);
+    ASSERT_NE(jsonRoot, nullptr);
+    ASSERT_EQ(CJsonUtil::GetObjectValue(nullptr, "OBJECT"), nullptr);
+    ASSERT_EQ(CJsonUtil::GetObjectValue(jsonRoot, "OBJECT_NOT_SET"), nullptr);
+    ASSERT_EQ(CJsonUtil::GetObjectValue(jsonRoot, "STRING"), nullptr);
+    ASSERT_NE(CJsonUtil::GetObjectValue(jsonRoot, "OBJECT"), nullptr);
+}
+
+/**
  * @tc.name: FreezeJsonUtilTest001
  * @tc.desc: Test api of FreezeJsonUtil
  * @tc.type: FUNC
@@ -527,7 +555,7 @@ HWTEST_F(AdapterUtilityOhosTest, FreezeJsonUtilTest002, testing::ext::TestSize.L
 
 /**
  * @tc.name: ZipUtilTest001
- * @tc.desc: Test api of ZipUtil
+ * @tc.desc: Test HiviewZipUnit of ZipUtil
  * @tc.type: FUNC
  * @tc.require: issueI9E8HA
  */
@@ -537,11 +565,20 @@ HWTEST_F(AdapterUtilityOhosTest, ZipUtilTest001, testing::ext::TestSize.Level3)
     std::string testSourceFile2 = SOURCE_PATH + "zip_test_file2.txt";
     FileUtil::SaveStringToFile(testSourceFile1, "zip_test_content1", true);
     FileUtil::SaveStringToFile(testSourceFile2, "zip_test_content2", true);
-    {
-        HiviewZipUnit zipUnit(TEST_ZIP_FILE);
-        ASSERT_EQ(zipUnit.AddFileInZip(testSourceFile1, ZipFileLevel::KEEP_NONE_PARENT_PATH), 0);
-        ASSERT_EQ(zipUnit.AddFileInZip(testSourceFile2, ZipFileLevel::KEEP_ONE_PARENT_PATH), 0);
-    }
+    HiviewZipUnit zipUnit(TEST_ZIP_FILE);
+    ASSERT_EQ(zipUnit.AddFileInZip(testSourceFile1, ZipFileLevel::KEEP_NONE_PARENT_PATH), 0);
+    ASSERT_EQ(zipUnit.AddFileInZip("", ZipFileLevel::KEEP_NONE_PARENT_PATH), 1001); // 1101 ERROR_GET_HANDLE
+    ASSERT_EQ(zipUnit.AddFileInZip(testSourceFile2, ZipFileLevel::KEEP_ONE_PARENT_PATH), 0);
+}
+
+/**
+ * @tc.name: ZipUtilTest002
+ * @tc.desc: Test HiviewUnzipUnit of ZipUtil
+ * @tc.type: FUNC
+ * @tc.require: issueI9E8HA
+ */
+HWTEST_F(AdapterUtilityOhosTest, ZipUtilTest002, testing::ext::TestSize.Level3)
+{
     HiviewUnzipUnit unzipUnit(TEST_ZIP_FILE, ZIP_DES_PATH);
     unzipUnit.UnzipFile();
     const int waitUnzip = 2;
@@ -623,6 +660,19 @@ HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest003, testing::ext::TestSize.
     ASSERT_EQ(ret, 5); // 5 is expected transformed ret
     ret = CommonUtils::GetTransformedUid(1000001); // 20001 is a test uid value
     ASSERT_EQ(ret, 5); // 5 is expected transformed ret
+}
+
+/**
+ * @tc.name: FocusedEventUtilTest001
+ * @tc.desc: Test IsFocusedEvent defined in namespace FocusedEventUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICJI0P
+ */
+HWTEST_F(AdapterUtilityOhosTest, FocusedEventUtilTest001, testing::ext::TestSize.Level3)
+{
+    ASSERT_FALSE(FocusedEventUtil::IsFocusedEvent("TEST_DOMAIN", "TEST_EVENT_NAME"));
+    ASSERT_FALSE(FocusedEventUtil::IsFocusedEvent("HMOS_SVC_BROKER", "TEST_EVENT_NAME"));
+    ASSERT_TRUE(FocusedEventUtil::IsFocusedEvent("HMOS_SVC_BROKER", "CONTAINER_LIFECYCLE_EVENT"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

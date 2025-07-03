@@ -122,15 +122,6 @@ pid_t GetPidByName(const std::string& processName)
     return pid;
 }
 
-bool IsTheProcessExist(pid_t pid)
-{
-    int ret = syscall(SYS_tgkill, pid, pid, 0);
-    if (ret != 0 && errno == ESRCH) {
-        return false;
-    }
-    return true;
-}
-
 bool IsPidExist(pid_t pid)
 {
     std::string procDir = "/proc/" + std::to_string(pid);
@@ -140,24 +131,6 @@ bool IsPidExist(pid_t pid)
 bool IsSpecificCmdExist(const std::string& fullPath)
 {
     return access(fullPath.c_str(), X_OK) == 0;
-}
-
-bool WriteCommandResultToFile(int fd, const std::string& cmd)
-{
-    if (cmd.empty()) {
-        return false;
-    }
-
-    FILE* fp = popen(cmd.c_str(), "r");
-    if (fp != nullptr) {
-        char buffer[BUF_SIZE_256] = {0};
-        while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
-            FileUtil::SaveStringToFd(fd, buffer);
-        }
-        pclose(fp);
-        return true;
-    }
-    return false;
 }
 
 int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<std::string> &args)

@@ -23,7 +23,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace Parameter {
 namespace {
-constexpr char DEFAULT_DES[] = "unknown";
 constexpr char PATCH_VERSION[] = "ro.patchversion";
 }
 std::string GetString(const std::string& key, const std::string& defaultValue)
@@ -146,16 +145,6 @@ std::string GetMarketNameStr()
     return marketNameStr;
 }
 
-std::string GetDeviceModelStr()
-{
-    std::string displayedVersionStr = std::string(GetDisplayVersion());
-    auto pos = displayedVersionStr.find(' ');
-    if (pos == displayedVersionStr.npos) {
-        return DEFAULT_DES;
-    }
-    return displayedVersionStr.substr(0, pos);
-}
-
 std::string GetSysVersionStr()
 {
     std::string displayedVersionStr = Parameter::GetDisplayVersionStr();
@@ -164,12 +153,6 @@ std::string GetSysVersionStr()
         return displayedVersionStr;
     }
     return displayedVersionStr.substr(pos + 1, displayedVersionStr.size());
-}
-
-std::string GetDistributionOsVersionStr()
-{
-    static std::string osVersion = std::string(GetDistributionOSVersion());
-    return osVersion;
 }
 
 std::string GetProductModelStr()
