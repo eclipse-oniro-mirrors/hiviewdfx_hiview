@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "event.h"
+#include "ffrt.h"
 #include "singleton.h"
 #include "sys_event.h"
 
@@ -66,6 +67,8 @@ private:
     std::set<int> catchedPids_;
     std::string focusWindowId_ = "";
     bool memoryCatched_ = false;
+    uint64_t faultTime_ = 0;
+    ffrt::mutex faultTimeMutex_;
 
     void AddCapture();
     bool ShouldStopLogTask(int fd, uint32_t curTaskIndex, int curLogSize, std::shared_ptr<EventLogCatcher> catcher);
@@ -74,6 +77,8 @@ private:
     void RecordCatchedPids(const std::string& packageName);
     void GetThermalInfoCapture();
     void SaveRsVulKanError();
+    void SaveSummaryLogInfo();
+    uint64_t GetFaultTime();
 
 #ifdef STACKTRACE_CATCHER_ENABLE
     void AppStackCapture();

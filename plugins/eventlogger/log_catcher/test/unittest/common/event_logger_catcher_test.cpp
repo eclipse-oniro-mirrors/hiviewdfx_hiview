@@ -59,6 +59,7 @@
 #include "eventlogger_util_test.h"
 #include "log_catcher_utils.h"
 #include "thermal_info_catcher.h"
+#include "summary_log_info_catcher.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -1276,6 +1277,34 @@ HWTEST_F(EventloggerCatcherTest, ThermalInfoCatcherTest_001, TestSize.Level1)
     bool ret = thermalInfoCatcher->Catch(fd, 1);
     EXPECT_TRUE(ret > 0);
     close(fd);
+}
+
+/**
+ * @tc.name: SummaryLogInfoCatcherTest_001
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.Level1)
+{
+    auto fd = open("/data/test/summaryLogInfoFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create summaryLogInfoFile. errno: %d\n", errno);
+        FAIL();
+    }
+    uint64_t faultTime = TimeUtil::GetMilliseconds() / 1000;
+    std::string formatTime = TimeUtil::TimestampFormatToDate(faultTime, "%Y/%m/%d-%H:%M:%S");
+
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("MSG", "Fault time:" + formatTime);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(0, 0, sysEvent);
+    logTask->SaveSummaryLogInfo();
+
+    auto summaryLogInfoCatcher = std::make_shared<SummaryLogInfoCatcher>();
+    summaryLogInfoCatcher->SetFaultTime(static_cast<int64_t>(logTask->GetFaultTime()));
+    bool ret = summaryLogInfoCatcher->Catch(fd, 1);
+    close(fd);
+    EXPECT_TRUE(ret > 0);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
