@@ -559,7 +559,7 @@ int FoldAppUsageDbHelper::QueryFinalScreenStatus(uint64_t endTime)
     int status = 0;
     if (resultSet->GoToNextRow() == NativeRdb::E_OK &&
         GetIntFromResultSet(resultSet, FIELD_ID, id) &&
-        GetIntFromResultSet(resultSet, FIELD_FOLD_STATUS, status) == NativeRdb::E_OK) {
+        GetIntFromResultSet(resultSet, FIELD_FOLD_STATUS, status)) {
         HIVIEW_LOGI("get handle seq: %{public}d, screen stat: %{public}d", id, status);
     } else {
         HIVIEW_LOGE("get handle seq and screen stat failed");
