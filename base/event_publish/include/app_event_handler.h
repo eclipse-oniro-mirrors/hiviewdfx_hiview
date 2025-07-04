@@ -142,6 +142,7 @@ public:
         std::string topFdType;
         uint32_t topFdNum = 0;
         uint32_t threadNum = 0;
+        std::string appRunningUniqueId;
         std::vector<std::string> logPath;
     };
 
