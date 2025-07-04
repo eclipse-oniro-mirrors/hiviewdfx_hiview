@@ -226,6 +226,9 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
     sysEventCreator3.SetKeyValue("time_", 444);
     auto sysEvent3 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator3);
     cacher.ProcessEvent(sysEvent3);
+    sysEventCreator3.SetKeyValue("MODE", 0);
+    sysEventCreator3.SetKeyValue("time_", 555);
+    cacher.ProcessEvent(std::make_shared<SysEvent>("test", nullptr, sysEventCreator3));
     int index3 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_SCREEN_STATUS_CHANGED);
     ASSERT_TRUE(index3 != 0);
     ASSERT_TRUE(index3 != index2);
