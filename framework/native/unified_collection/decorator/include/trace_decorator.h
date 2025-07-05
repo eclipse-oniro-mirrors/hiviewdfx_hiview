@@ -24,21 +24,11 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const float TRACE_COMPRESS_RATIO = 0.1428; // 0.1428, an empirical value, ie. 1/7 compress ratio
 struct TraceStatItem {
     std::string caller;
     bool isCallSucc;
     bool isOverCall;
-    uint32_t latency = 0;
-};
-
-const std::map<UCollect::TraceCaller, std::string> CallerMap {
-    {UCollect::RELIABILITY, "RELIABILITY"},
-    {UCollect::XPERF, "XPERF"},
-    {UCollect::XPOWER, "XPOWER"},
-    {UCollect::OTHER, "OTHER"},
-    {UCollect::HIVIEW, "HIVIEW"},
-    {UCollect::SCREEN, "SCREEN"}
+    uint64_t latency = 0;
 };
 
 struct TraceStatInfo {
@@ -68,7 +58,6 @@ struct TraceTrafficInfo {
     std::string caller;
     std::string traceFile;
     uint32_t rawSize = 0;
-    uint32_t usedSize = 0;
     uint64_t timeSpent = 0;
     uint64_t timeStamp = 0;
 
@@ -78,7 +67,6 @@ struct TraceTrafficInfo {
         str.append(caller).append(" ")
         .append(traceFile).append(" ")
         .append(std::to_string(rawSize)).append(" ")
-        .append(std::to_string(usedSize)).append(" ")
         .append(std::to_string(timeSpent)).append(" ")
         .append(std::to_string(timeStamp));
         return str;
@@ -92,7 +80,7 @@ public:
     std::map<std::string, TraceStatInfo> GetTraceStatInfo();
     std::map<std::string, std::vector<TraceTrafficInfo>> GetTrafficStatInfo();
     void ResetStatInfo();
-    void UpdateTrafficInfoAfterZip(const std::string& traceZipFile);
+    void WriteZipTrafficToLogFile(const std::string& trafficInfo);
 
 private:
     void UpdateAPIStatInfo(const TraceStatItem& item);
@@ -100,15 +88,16 @@ private:
         const CollectResult<std::vector<std::string>>& result);
 
 private:
+    std::string date_;
     std::mutex traceMutex_;
     std::map<std::string, TraceStatInfo> traceStatInfos_;
-    std::map<std::string, std::vector<TraceTrafficInfo>> trafficStatInfos_;
+    std::map<std::string,  std::vector<TraceTrafficInfo>> trafficStatInfos_;
 };
 
 class TraceDecorator : public TraceCollector, public UCDecorator {
 public:
-    TraceDecorator(std::shared_ptr<TraceCollector> collector) : traceCollector_(collector) {};
-    virtual ~TraceDecorator() = default;
+    explicit TraceDecorator(std::shared_ptr<TraceCollector> collector) : traceCollector_(collector) {};
+    ~TraceDecorator() = default;
     CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller caller,
         uint32_t timeLimit, uint64_t happenTime) override;
@@ -117,15 +106,17 @@ public:
     CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
     static void SaveStatSpecialInfo();
-    static void SaveStatCommonInfo();
     static void ResetStatInfo();
-    static void UpdateTrafficInfoAfterZip(const std::string& traceZipFile);
+    static void WriteTrafficAfterZip(const std::string& caller, const std::string& traceZipFile);
 
 private:
     template <typename T> auto Invoke(T task, UCollect::TraceCaller& caller)
     {
         uint64_t startTime = TimeUtil::GenerateTimestamp();
         auto result = task();
+        if (!Parameter::IsBetaVersion() && !Parameter::IsUCollectionSwitchOn()) {
+            return result;
+        }
         uint64_t endTime = TimeUtil::GenerateTimestamp();
         traceStatWrapper_.UpdateTraceStatInfo(startTime, endTime, caller, result);
         return result;
@@ -133,7 +124,6 @@ private:
 
 private:
     std::shared_ptr<TraceCollector> traceCollector_;
-    static StatInfoWrapper statInfoWrapper_;
     static TraceStatWrapper traceStatWrapper_;
 };
 } // namespace UCollectUtil

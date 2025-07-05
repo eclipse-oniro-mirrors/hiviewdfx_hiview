@@ -76,9 +76,8 @@ UcError TransCodeToUcError(TraceErrorCode ret)
     if (CODE_MAP.find(ret) == CODE_MAP.end()) {
         HIVIEW_LOGE("ErrorCode is not exists.");
         return UcError::UNSUPPORT;
-    } else {
-        return CODE_MAP.at(ret);
     }
+    return CODE_MAP.at(ret);
 }
 
 UcError TransStateToUcError(TraceStateCode ret)
@@ -86,9 +85,8 @@ UcError TransStateToUcError(TraceStateCode ret)
     if (TRACE_STATE_MAP.find(ret) == TRACE_STATE_MAP.end()) {
         HIVIEW_LOGE("ErrorCode is not exists.");
         return UcError::UNSUPPORT;
-    } else {
-        return TRACE_STATE_MAP.at(ret);
     }
+    return TRACE_STATE_MAP.at(ret);
 }
 
 UcError TransFlowToUcError(TraceFlowCode ret)
@@ -96,9 +94,8 @@ UcError TransFlowToUcError(TraceFlowCode ret)
     if (TRACE_FLOW_MAP.find(ret) == TRACE_FLOW_MAP.end()) {
         HIVIEW_LOGE("ErrorCode is not exists.");
         return UcError::UNSUPPORT;
-    } else {
-        return TRACE_FLOW_MAP.at(ret);
     }
+    return TRACE_FLOW_MAP.at(ret);
 }
 
 const std::string ModuleToString(UCollect::TeleModule module)
@@ -111,7 +108,7 @@ const std::string ModuleToString(UCollect::TeleModule module)
         case UCollect::TeleModule::RELIABILITY:
             return CallerName::RELIABILITY;
         default:
-            return "";
+            return "UNKNOWN";
     }
 }
 
@@ -131,7 +128,7 @@ const std::string EnumToString(UCollect::TraceCaller caller)
         case UCollect::TraceCaller::SCREEN:
             return CallerName::SCREEN;
         default:
-            return "";
+            return "UNKNOWN";
     }
 }
 
@@ -145,7 +142,7 @@ const std::string ClientToString(UCollect::TraceClient client)
         case UCollect::TraceClient::BETACLUB:
             return ClientName::BETACLUB;
         default:
-            return "";
+            return "UNKNOWN";
     }
 }
 
@@ -205,7 +202,6 @@ void ZipTraceFile(const std::string &srcSysPath, const std::string &destDir)
         return;
     }
     FileUtil::RenameFile(tmpDestZipPath, destZipPathWithVersion);
-    UCollectUtil::TraceDecorator::UpdateTrafficInfoAfterZip(destZipPathWithVersion);
     HIVIEW_LOGI("finish rename file %{public}s", dstZipName.c_str());
 }
 
@@ -258,7 +254,8 @@ void DoClean(const std::string &tracePath, const std::string &prefix)
  *     /data/log/hiview/unified_collection/trace/share/
  *     trace_20230906111617@8290-81765922_{device}_{version}.zip
 */
-std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const std::string &destDir)
+std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const std::string &destDir,
+    const std::string &caller)
 {
     if (!FileUtil::FileExists(UNIFIED_SHARE_TEMP_PATH)) {
         if (!CreateMultiDirectory(UNIFIED_SHARE_TEMP_PATH)) {
@@ -277,6 +274,7 @@ std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const st
             FileUtil::SaveStringToFile(tempDestZipPath, " ", true);
             UcollectionTask traceTask = [=]() {
                 ZipTraceFile(tracePath, destDir);
+                UCollectUtil::TraceDecorator::WriteTrafficAfterZip(caller, destZipPathWithVersion);
                 DoClean(destDir, "");
             };
             TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
@@ -329,7 +327,7 @@ DumpTraceCallback CreateDumpTraceCallback(const std::string &caller)
         return [caller] (TraceRetInfo traceRetInfo) {
             if (traceRetInfo.errorCode == TraceErrorCode::SUCCESS) {
                 GetUnifiedSpecialFiles(traceRetInfo, caller);
-                GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH);
+                GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH, caller);
             } else if (traceRetInfo.errorCode == TraceErrorCode::SIZE_EXCEED_LIMIT) {
                 GetUnifiedSpecialFiles(traceRetInfo, caller);
             }

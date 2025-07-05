@@ -14,6 +14,7 @@
  */
 
 #include "hilog_decorator.h"
+#include "decorator_util.h"
 #include <functional>
 
 namespace OHOS::HiviewDFX::UCollectUtil {
@@ -33,7 +34,7 @@ void HilogDecorator::SaveStatCommonInfo()
     for (const auto& record : statInfo) {
         formattedStatInfo.push_back(record.second.ToString());
     }
-    WriteLinesToFile(formattedStatInfo, false);
+    WriteLinesToFile(formattedStatInfo, false, UC_STAT_LOG_PATH);
 }
 
 void HilogDecorator::ResetStatInfo()

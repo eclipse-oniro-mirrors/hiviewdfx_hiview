@@ -18,8 +18,11 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string UC_STAT_LOG_PATH = "/data/log/hiview/unified_collection/ucollection_stat_detail.log";
-const std::string UC_SEPARATOR = "::";
+const auto UC_STAT_LOG_PATH = "/data/log/hiview/unified_collection/ucollection_stat_detail.log";
+const auto UC_SEPARATOR = "::";
+const auto UC_STAT_DATE = "Date:";
+const auto UC_API_STAT_TITLE = "API statistics:";
+const auto UC_API_STAT_ITEM = "API TotalCall FailCall AvgLatency(us) MaxLatency(us) TotalTimeSpent(us)";
 
 void StatInfoWrapper::UpdateStatInfo(uint64_t startTime, uint64_t endTime, const std::string& funcName, bool isCallSucc)
 {
@@ -58,21 +61,6 @@ void StatInfoWrapper::ResetStatInfo()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     statInfos_.clear();
-}
-
-void UCDecorator::WriteLinesToFile(const std::list<std::string>& stats, bool addBlankLine)
-{
-    FILE* fp = fopen(UC_STAT_LOG_PATH.c_str(), "a");
-    if (fp == nullptr) {
-        return;
-    }
-    for (const auto& record : stats) {
-        (void)fprintf(fp, "%s\n", record.c_str());
-    }
-    if (addBlankLine) {
-        (void)fprintf(fp, "\n"); // write a blank line to separate content
-    }
-    (void)fclose(fp);
 }
 } // namespace UCollectUtil
 } // namespace HiviewDFX

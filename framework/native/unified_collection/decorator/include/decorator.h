@@ -16,19 +16,22 @@
 #ifndef HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_DECORATOR_H
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_DECORATOR_H
 
-#include <list>
 #include <map>
 #include <mutex>
 #include <string>
 
 #include "collect_result.h"
 #include "time_util.h"
+#include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-extern const std::string UC_STAT_LOG_PATH;
-extern const std::string UC_SEPARATOR;
+extern const char* const UC_STAT_LOG_PATH;
+extern const char* const UC_SEPARATOR;
+extern const char* const UC_STAT_DATE;
+extern const char* const UC_API_STAT_TITLE;
+extern const char* const UC_API_STAT_ITEM;
 
 struct StatInfo {
     std::string name;
@@ -64,13 +67,16 @@ private:
 
 class UCDecorator {
 public:
-    UCDecorator() {};
+    UCDecorator() = default;
     virtual ~UCDecorator() = default;
     template <typename T> auto Invoke(T task, StatInfoWrapper& statInfoWrapper,
         const std::string& classFuncName)
     {
         uint64_t startTime = TimeUtil::GenerateTimestamp();
         auto result = task();
+        if (!Parameter::IsBetaVersion() && !Parameter::IsUCollectionSwitchOn()) {
+            return result;
+        }
         uint64_t endTime = TimeUtil::GenerateTimestamp();
         bool isCallSucc;
         if constexpr (std::is_same_v<std::decay_t<decltype(result)>, int>) {
@@ -81,9 +87,6 @@ public:
         statInfoWrapper.UpdateStatInfo(startTime, endTime, classFuncName, isCallSucc);
         return result;
     }
-
-public:
-    static void WriteLinesToFile(const std::list<std::string>& stats, bool addBlankLine);
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "thermal_decorator.h"
+#include "decorator_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -39,7 +40,7 @@ void ThermalDecorator::SaveStatCommonInfo()
     for (const auto& record : statInfo) {
         formattedStatInfo.push_back(record.second.ToString());
     }
-    WriteLinesToFile(formattedStatInfo, false);
+    WriteLinesToFile(formattedStatInfo, false, UC_STAT_LOG_PATH);
 }
 
 void ThermalDecorator::ResetStatInfo()

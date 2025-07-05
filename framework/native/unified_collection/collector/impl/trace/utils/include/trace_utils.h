@@ -104,7 +104,8 @@ void DoClean(const std::string &tracePath, const std::string &prefix);
 std::string GetTraceZipTmpPath(const std::string &tracePath);
 std::string GetTraceZipFinalPath(const std::string &tracePath, const std::string &destDir);
 std::string GetTraceSpecialPath(const std::string &tracePath, const std::string &prefix);
-std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const std::string &destDir);
+std::vector<std::string> GetUnifiedZipFiles(TraceRetInfo &traceRetInfo, const std::string &destDir,
+    const std::string &caller);
 std::vector<std::string> GetUnifiedSpecialFiles(TraceRetInfo &traceRetInfo, const std::string& prefix);
 DumpTraceCallback CreateDumpTraceCallback(const std::string &caller);
 void ZipTraceFile(const std::string &srcSysPath, const std::string &destDir);
