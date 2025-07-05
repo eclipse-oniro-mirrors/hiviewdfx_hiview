@@ -699,7 +699,10 @@ HWTEST_F(SysEventTest, TestEventPeriodSeqInfo001, testing::ext::TestSize.Level3)
  */
 HWTEST_F(SysEventTest, TestEventReportInterval001, testing::ext::TestSize.Level3)
 {
-    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, GetOriginTestString());
+    std::string jsonStr = R"~({"domain_":"TEST_DEMO","name_":"TEST_NAME","type_":1,"tz_":"+0800","time_":1620271291188,
+        "pid_":1, "tid_":1, "traceid_":"f0ed6160bb2df3a", "spanid_":"11", "pspanid_":"12", "trace_flag_":1,
+        "reportInterval_":-1})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, jsonStr);
     ASSERT_EQ(sysEvent->GetReportInterval(), UNINIT_REPORT_INTERVAL);
     int reportIntervalVal = 1000; //1000 is a test value
     sysEvent->SetReportInterval(reportIntervalVal);
