@@ -230,6 +230,7 @@ void SceneMonitor::SingleFrameSceneStop(const std::string& sceneId)
     OnSceneChanged(SceneType::APP_START, false);
     OnSceneChanged(SceneType::APP_RESPONSE, false);
     OnSceneChanged(SceneType::PAGE_LOADING, false);
+    OnSceneChanged(SceneType::ACCESSIBLE_FEATURE, false);
 }
 
 void SceneMonitor::NotifyAppJankStatsBegin()

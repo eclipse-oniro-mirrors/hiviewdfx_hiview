@@ -215,7 +215,9 @@ void NonExperiencePageLoading::StartRecord(const SceneType& sType, const std::st
 {
     type = sType;
     sceneId = sId;
-    status = IsNonExperienceWhiteList(sId);
+    if (!status) {
+        status = IsNonExperienceWhiteList(sId);
+    }
 }
 
 void NonExperiencePageLoading::StopRecord(const SceneType& sType)
