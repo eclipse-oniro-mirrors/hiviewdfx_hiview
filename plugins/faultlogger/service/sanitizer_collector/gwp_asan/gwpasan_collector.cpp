@@ -27,7 +27,6 @@
 #include <parameters.h>
 
 #include "bundle_mgr_client.h"
-#include "event_publish.h"
 #include "faultlog_util.h"
 #include "file_util.h"
 #include "hisysevent.h"
