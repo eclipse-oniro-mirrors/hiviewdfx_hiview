@@ -265,5 +265,21 @@ bool NonExperienceAppStart::IsInStartAppStatus()
     }
 }
 
+void NonExperienceResponse::StartRecord(const SceneType& sType, const std::string& sId)
+{
+    type = sType;
+    sceneId = sId;
+    status = !IsNonExperienceWhiteList(sId);
+}
+
+bool NonExperienceResponse::IsNonExperienceWhiteList(const std::string& sceneId)
+{
+    // app list fling response is experience jank
+    if (sceneId == PerfConstants::APP_LIST_FLING) {
+        return true;
+    }
+    return false;
+}
+
 }
 }
