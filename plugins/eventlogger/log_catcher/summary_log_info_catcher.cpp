@@ -81,16 +81,29 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
     std::string lineStr;
     for (const summary_log_line_info &lineInfo: info.line) {
         lineStr = "timestamp=" + std::to_string(lineInfo.sec_timestamp) +
-            ", data=" + std::string(lineInfo.buffer) + "\n";
+            ", data=" + CharArrayStr(lineInfo.buffer, static_cast<size_t>(LINE_BASE_SIZE)) + "\n";
         summaryLogInfoStr += lineStr;
     }
     FileUtil::SaveStringToFd(fd, summaryLogInfoStr);
 
     logSize_ = GetFdSize(fd) - originSize;
     if (logSize_ <= 0) {
-        FileUtil::SaveStringToFd(fd, "save summary log info failed");
+        FileUtil::SaveStringToFd(fd, "summary log info is empty or saving it failed!\n");
     }
     return logSize_;
-};
+}
+
+std::string SummaryLogInfoCatcher::CharArrayStr(const char* chars, size_t maxSize)
+{
+    if (!chars) {
+        return "";
+    }
+
+    size_t length = 0;
+    while (length < maxSize && chars[length] != '\0') {
+        length++;
+    }
+    return std::string(chars, length);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
