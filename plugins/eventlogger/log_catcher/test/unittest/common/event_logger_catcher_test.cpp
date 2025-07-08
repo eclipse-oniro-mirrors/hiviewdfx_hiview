@@ -45,6 +45,7 @@
 #include "cpu_core_info_catcher.h"
 #include "memory_catcher.h"
 #endif // USAGE_CATCHER_ENABLE
+#include "summary_log_info_catcher.h"
 #undef private
 #ifdef BINDER_CATCHER_ENABLE
 #include "binder_catcher.h"
@@ -59,7 +60,6 @@
 #include "eventlogger_util_test.h"
 #include "log_catcher_utils.h"
 #include "thermal_info_catcher.h"
-#include "summary_log_info_catcher.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -1304,7 +1304,11 @@ HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.
     summaryLogInfoCatcher->SetFaultTime(static_cast<int64_t>(logTask->GetFaultTime()));
     bool ret = summaryLogInfoCatcher->Catch(fd, 1);
     close(fd);
-    EXPECT_TRUE(ret > 0);
+    EXPECT_TRUE(!ret);
+
+    EXPECT_EQ(summaryLogInfoCatcher->CharArrayStr(nullptr, 8), "");
+    char chars[8] = {'s', 'u', 'm', 'm', 'a', 'r', 'y', '\0'};
+    EXPECT_EQ(summaryLogInfoCatcher->CharArrayStr(chars, 8), "summary");
 }
 } // namespace HiviewDFX
 } // namespace OHOS

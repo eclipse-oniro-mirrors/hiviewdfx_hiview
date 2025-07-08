@@ -30,6 +30,7 @@ public:
     int Catch(int fd, int jsonFd) override;
 private:
     int64_t faultTime_;
+    std::string CharArrayStr(const char* chars, size_t maxSize);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
