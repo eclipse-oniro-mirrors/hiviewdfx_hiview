@@ -18,7 +18,7 @@
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
-#include "time_util.h"
+#include "decorator_util.h"
 
 #ifdef UNIFIED_COLLECTOR_CPU_ENABLE
 #include "cpu_decorator.h"
@@ -80,17 +80,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
 DEFINE_LOG_TAG("UCollectUtil-UCStat");
-constexpr const char* const UC_STAT_DATE = "Date:";
-constexpr const char* const UC_API_STAT_TITLE = "API statistics:";
-constexpr const char* const UC_API_STAT_ITEM =
-    "API TotalCall FailCall AvgLatency(us) MaxLatency(us) TotalTimeSpent(us)";
-
-namespace {
-std::string GetCurrentDate()
-{
-    return TimeUtil::TimestampFormatToDate(std::time(nullptr), "%Y-%m-%d");
-}
-}
 
 std::string UnifiedCollectionStat::date_ = GetCurrentDate();
 
@@ -107,8 +96,8 @@ void UnifiedCollectionStat::Report()
 
 void UnifiedCollectionStat::SaveAllStatInfo()
 {
-    UCDecorator::WriteLinesToFile({UC_STAT_DATE, date_}, true);
-    UCDecorator::WriteLinesToFile({UC_API_STAT_TITLE, UC_API_STAT_ITEM}, false);
+    WriteLinesToFile({UC_STAT_DATE, date_}, true, UC_STAT_LOG_PATH);
+    WriteLinesToFile({UC_API_STAT_TITLE, UC_API_STAT_ITEM}, false, UC_STAT_LOG_PATH);
 
 #ifdef UNIFIED_COLLECTOR_CPU_ENABLE
     CpuDecorator::SaveStatCommonInfo();
@@ -148,10 +137,6 @@ void UnifiedCollectionStat::SaveAllStatInfo()
 
 #ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
     ThermalDecorator::SaveStatCommonInfo();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-    TraceDecorator::SaveStatCommonInfo();
 #endif
 
 #ifdef HAS_HIPROFILER

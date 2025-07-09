@@ -194,10 +194,6 @@ void CallStatFuncs()
     NetworkDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-    TraceDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef HAS_HIPROFILER
     MemProfilerDecorator::SaveStatCommonInfo();
 #endif

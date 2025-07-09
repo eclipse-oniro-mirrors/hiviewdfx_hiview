@@ -142,6 +142,7 @@ ohos_source_set("ucollection_source") {
   sources = [
     "collector/common_util.cpp",
     "decorator/decorator.cpp",
+    "decorator/decorator_util.cpp",
     "decorator/unified_collection_stat.cpp",
     "process/process_status.cpp",
   ]

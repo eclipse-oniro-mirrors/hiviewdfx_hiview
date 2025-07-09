@@ -127,7 +127,7 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFile)
         HIVIEW_LOGI("trace is over flow, can not upload.");
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
-    outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH);
+    outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH, caller_);
     WriteDumpTraceHisysevent(dumpEvent);
     flowController_->StoreDb(traceSize);
     return {};
@@ -162,7 +162,7 @@ TraceRet TraceMixedStrategy::DoDump(std::vector<std::string> &outputFile)
             HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
             return {};
         }
-        outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH);
+        outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_SHARE_PATH, caller_);
     } else {
         HIVIEW_LOGI("over flow, trace generate in specil dir, can not upload.");
         return {};
@@ -224,7 +224,7 @@ TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFile)
         HIVIEW_LOGW("TraceFlowControlStrategy outputFiles empty.");
         return TraceRet(traceRetInfo.errorCode);
     }
-    outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_TELEMETRY_PATH);
+    outputFile = GetUnifiedZipFiles(traceRetInfo, UNIFIED_TELEMETRY_PATH, caller_);
     return {};
 }
 
