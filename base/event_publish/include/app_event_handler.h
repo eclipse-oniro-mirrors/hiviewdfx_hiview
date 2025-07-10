@@ -112,6 +112,7 @@ public:
         std::vector<ThreadInfo> threads;
         std::vector<LogInfo> externalLog;
         bool logOverLimit = false;
+        int32_t faultType = 0;
     };
 
     struct UsageStatInfo {
@@ -158,6 +159,7 @@ public:
     int PostEvent(const CpuUsageHighInfo& event);
     int PostEvent(const BatteryUsageInfo& event);
     int PostEvent(const AppKilledInfo& event);
+    bool IsAppListenedEvent(int32_t uid, const std::string& eventName);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

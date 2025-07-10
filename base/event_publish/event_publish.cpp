@@ -487,6 +487,16 @@ void EventPublish::SendEventToSandBox()
     sendingThread_.reset();
 }
 
+bool EventPublish::IsAppListenedEvent(int32_t uid, const std::string& eventName)
+{
+    std::string pathHolder = GetPathPlaceHolder(uid);
+    std::string desPath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
+    if (!FileUtil::FileExists(desPath)) {
+        return false;
+    }
+    return CheckAppListenedEvents(desPath, eventName);
+}
+
 void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
     const std::string& paramJson, uint32_t maxFileSizeBytes)
 {

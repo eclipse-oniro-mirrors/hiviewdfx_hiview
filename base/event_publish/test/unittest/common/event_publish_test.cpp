@@ -347,3 +347,25 @@ HWTEST_F(EventPublishTest, EventPublishTest008, TestSize.Level1)
         EXPECT_NE(endMd5Sum, beginMd5Sum);
     }
 }
+
+/**
+@tc.name: EventPublishTest009
+@tc.desc: used to test IsAppListenedEvent
+@tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest009, TestSize.Level1)
+{
+    bool isSuccess = g_testPid != -1;
+    if (!isSuccess) {
+        ASSERT_FALSE(isSuccess);
+        GTEST_LOG_(ERROR) << "Failed to launch target hap.";
+    } else {
+        uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+        EXPECT_GT(testUid, 0);
+        std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+        bool ret = EventPublish::GetInstance().IsAppListenedEvent(testUid, "TEST");
+        EXPECT_FALSE(ret);
+        ret = EventPublish::GetInstance().IsAppListenedEvent(testUid, "CPU_USAGE_HIGH");
+        EXPECT_TRUE(ret);
+    }
+}

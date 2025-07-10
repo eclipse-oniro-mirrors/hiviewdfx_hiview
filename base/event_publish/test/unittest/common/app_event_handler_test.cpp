@@ -137,6 +137,18 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest006, TestSize.Level0)
     appKilledInfo.uid = UID_FOR_TEST;
     ASSERT_EQ(handler->PostEvent(appKilledInfo), 0);
 }
+
+/**
+@tc.name: AppEventHandlerTest007
+@tc.desc: used to test IsAppListenedEvent
+@tc.type: FUNC
+*/
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest007, TestSize.Level1)
+{
+    AppEventHandler::CpuUsageHighInfo cpuUsageHighInfo;
+    auto handler = std::make_shared<AppEventHandler>();
+    ASSERT_FALSE(handler->IsAppListenedEvent(UID_FOR_TEST, "CPU_USAGE_HIGH"));
+}
 #else
 /**
  * @tc.name: AppEventHandlerTest001
@@ -163,5 +175,7 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level0)
 
     AppEventHandler::AppKilledInfo appKilledInfo;
     ASSERT_EQ(handler->PostEvent(appKilledInfo), -1);
+
+    ASSERT_FALSE(handler->IsAppListenedEvent(UID_FOR_TEST, "CPU_USAGE_HIGH"));
 }
 #endif

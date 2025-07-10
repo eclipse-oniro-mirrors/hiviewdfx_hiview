@@ -63,6 +63,7 @@ class EventPublish : public OHOS::DelayedRefSingleton<EventPublish> {
 public:
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
         const std::string& paramJson, uint32_t maxFileSizeBytes = 0);
+    bool IsAppListenedEvent(int32_t uid, const std::string& eventName);
 
 private:
     void StartSendingThread();

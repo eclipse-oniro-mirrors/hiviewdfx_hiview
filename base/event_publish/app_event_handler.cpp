@@ -217,6 +217,7 @@ int AppEventHandler::PostEvent(const CpuUsageHighInfo& event)
     AddValueToJsonString("foreground", event.isForeground, jsonStr);
     AddValueToJsonString("usage", event.usage, jsonStr);
     AddValueToJsonString("begin_time", event.beginTime, jsonStr);
+    AddValueToJsonString("faultType", event.faultType, jsonStr);
     AddValueToJsonString("end_time", event.endTime, jsonStr);
     AddVectorToJsonString("threads", event.threads, jsonStr);
     AddVectorToJsonString("external_log", event.externalLog, jsonStr);
@@ -287,6 +288,12 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     EventPublish::GetInstance().PushEvent(uid, "APP_KILLED", HiSysEvent::EventType::STATISTIC, jsonStr.str());
     return 0;
 }
+
+bool AppEventHandler::IsAppListenedEvent(int32_t uid, const std::string& eventName)
+{
+    return EventPublish::GetInstance().IsAppListenedEvent(uid, eventName);
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS
 
@@ -319,5 +326,10 @@ int OHOS::HiviewDFX::AppEventHandler::PostEvent(const BatteryUsageInfo& event)
 int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AppKilledInfo& event)
 {
     return -1;
+}
+
+bool OHOS::HiviewDFX::AppEventHandler::IsAppListenedEvent(int32_t uid, const std::string& eventName)
+{
+    return false;
 }
 #endif
