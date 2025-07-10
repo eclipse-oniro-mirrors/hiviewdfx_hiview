@@ -36,8 +36,9 @@ constexpr char EXPORT_JSON_FILE_NAME[] = "HiSysEvent.json";
 constexpr char SYSEVENT_EXPORT_TMP_DIR[] = "tmp";
 constexpr char SYSEVENT_EXPORT_DIR[] = "sys_event_export";
 constexpr char ZIP_FILE_DELIM[] = "_";
-constexpr mode_t EVENT_EXPORT_DIR_MODE = S_IRWXU | S_IROTH | S_IWOTH | S_IXOTH; // rwx---rwx
-constexpr mode_t EVENT_EXPORT_FILE_MODE = S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH; // rw----rw-
+constexpr mode_t EVENT_EXPORT_DIR_MODE = S_IRWXU | S_IRWXG; // rwxrwx---
+constexpr mode_t EVENT_EXPORT_FILE_MODE = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP; // rw-rw----
+constexpr uint32_t LOG_GID = 1007;
 
 void AppendZipFile(std::string& dir, int32_t uid)
 {
@@ -83,6 +84,19 @@ std::string GetTmpZipFile(const std::string& exportDir, const std::string& modul
     return dir;
 }
 
+bool ChangeFileModeAndGid(const std::string& file, mode_t mode, uint32_t gid)
+{
+    if (!FileUtil::ChangeModeFile(file, mode)) {
+        HIVIEW_LOGE("failed to change file mode of %{public}s.", StringUtil::HideDeviceIdInfo(file).c_str());
+        return false;
+    }
+    if (chown(file.c_str(), -1, gid) != 0) {
+        HIVIEW_LOGE("failed to change file owner of %{public}s.", StringUtil::HideDeviceIdInfo(file).c_str());
+        return false;
+    }
+    return true;
+}
+
 std::string GetZipFile(const std::string& exportDir, int32_t uid)
 {
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
@@ -90,8 +104,7 @@ std::string GetZipFile(const std::string& exportDir, int32_t uid)
         HIVIEW_LOGE("failed to init directory %{public}s.", dir.c_str());
         return "";
     }
-    if (!FileUtil::ChangeModeFile(dir, EVENT_EXPORT_DIR_MODE)) {
-        HIVIEW_LOGE("failed to change file mode of %{public}s.", dir.c_str());
+    if (!ChangeFileModeAndGid(dir, EVENT_EXPORT_DIR_MODE, LOG_GID)) {
         return "";
     }
     AppendZipFile(dir, uid);
@@ -105,8 +118,7 @@ bool ZipExportFile(const std::string& src, const std::string& dest)
         HIVIEW_LOGW("zip db failed, ret: %{public}d.", ret);
         return false;
     }
-    if (bool ret = FileUtil::ChangeModeFile(dest, EVENT_EXPORT_FILE_MODE); !ret) {
-        HIVIEW_LOGE("failed to chmod file %{public}s.", StringUtil::HideDeviceIdInfo(dest).c_str());
+    if (!ChangeFileModeAndGid(dest, EVENT_EXPORT_FILE_MODE, LOG_GID)) {
         return false;
     }
     // delete json file

@@ -133,9 +133,11 @@ HWTEST_F(EventExportWriteTest, EventExportWriteTest002, testing::ext::TestSize.L
     auto strategy = EventWriteStrategyFactory::GetWriteStrategy(StrategyType::ZIP_JSON_FILE);
     ASSERT_NE(strategy, nullptr);
     ASSERT_EQ(strategy->GetPackagerKey(BuildCacheEvent()), "SV0.0.1_PV0.0.2_100");
+    auto eventStr = BuildEventStr();
+    ASSERT_FALSE(strategy->Write(eventStr, nullptr));
+
     auto strategyParam = BuildWriteStrategyParam();
     strategy->SetWriteStrategyParam(strategyParam);
-    auto eventStr = BuildEventStr();
     ASSERT_TRUE(strategy->Write(eventStr, [this] (const std::string& srcPath,
         const std::string& destPath) {
         AssertWroteFiles(srcPath, destPath);
