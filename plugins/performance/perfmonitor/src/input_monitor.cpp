@@ -46,7 +46,8 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
             {
                 XPERF_TRACE_SCOPED("RecordInputEvent: last_up=%lld(ns)", static_cast<long long>(time));
                 mInputTime[LAST_UP] = time;
-                SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, true);
+                SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, true,
+                    SceneMonitor::GetInstance().GetCurrentSceneId());
                 break;
             }
         case FIRST_MOVE:

@@ -101,6 +101,8 @@ SceneRecord* SceneManager::GetRecordByType(const SceneType& type)
             return new NonExperienceAppStart();
         case PAGE_LOADING:
             return new NonExperiencePageLoading();
+        case APP_RESPONSE:
+            return new NonExperienceResponse();
         default:
             return new SceneRecord();
     }
