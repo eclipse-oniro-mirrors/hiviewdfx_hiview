@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,12 @@ namespace {
 class TestLoggerEvent : public LoggerEvent {
 public:
     TestLoggerEvent(const std::string& name, HiSysEvent::EventType type)
-        : LoggerEvent(name, type) {}
+        : LoggerEvent(name, type)
+    {
+        this->paramMap_ = {
+            {"KEY_STRING", DEFAULT_STRING}, {"KEY_INT", DEFAULT_UINT8}
+        };
+    }
 
 public:
     void Report()
@@ -136,6 +141,24 @@ HWTEST_F(EventReportUnitTest, EventReportUnitTest005, testing::ext::TestSize.Lev
     ASSERT_TRUE(true);
     HiviewEventReport::UpdatePluginStats(name, procName, retCode);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: LoggerEventTest001
+ * @tc.desc: Test apis of LoggerEvent
+ * @tc.type: FUNC
+ * @tc.require: issueICLD08
+ */
+HWTEST_F(EventReportUnitTest, LoggerEventTest001, testing::ext::TestSize.Level3)
+{
+    auto event = std::make_shared<TestLoggerEvent>("EVENT_NAME", HiSysEvent::EventType::STATISTIC);
+    event->Update("KEY_TEST", "test");
+    ASSERT_NE(event->GetValue("KEY_TEST").GetString(), "test");
+    event->Update("KEY_INT", "test");
+    ASSERT_NE(event->GetValue("KEY_INT").GetString(), "test");
+    uint8_t value = 10;
+    event->Update("KEY_INT", value);
+    ASSERT_EQ(event->GetValue("KEY_INT").GetUint8(), value);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

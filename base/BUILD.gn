@@ -42,12 +42,6 @@ config("logger_config") {
 ohos_source_set("logger") {
   public_configs = [ ":logger_config" ]
 
-  sources = [
-    "default_logger.cpp",
-    "hi_logger.cpp",
-    "logger.cpp",
-  ]
-
   external_deps = [ "hilog:libhilog" ]
 
   part_name = "hiview"

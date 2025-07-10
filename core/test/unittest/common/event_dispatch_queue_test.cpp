@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -106,5 +106,31 @@ HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest002, TestSize.Level
     ASSERT_EQ(true, unorderQueue->IsRunning());
 
     unorderQueue->Stop();
+    unorderQueue->Enqueue(nullptr);
+    unorderQueue->Enqueue(event);
     ASSERT_EQ(false, unorderQueue->IsRunning());
+}
+
+/**
+ * @tc.name: EventDispatchQueueCreateTest003
+ * @tc.desc: create and init an event dispatch queue of order
+ * @tc.type: FUNC
+ * @tc.require: issueICLD08
+ */
+HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest003, TestSize.Level3)
+{
+    OHOS::HiviewDFX::HiviewContext context;
+    auto orderQueue = std::make_shared<EventDispatchQueue>(TEST_QUEUE_NAME, Event::ManageType::ORDERED, &context);
+    ASSERT_EQ(false, orderQueue->IsRunning());
+
+    orderQueue->Start();
+    ASSERT_EQ(true, orderQueue->IsRunning());
+
+    auto event = CreateEvent(TEST_EVENT_NAME, 0, TEST_MESSAGE, Event::MessageType::SYS_EVENT);
+    orderQueue->Enqueue(event);
+    sleep(1); // 1s
+    ASSERT_EQ(true, orderQueue->IsRunning());
+
+    orderQueue->Stop();
+    ASSERT_EQ(false, orderQueue->IsRunning());
 }

@@ -15,10 +15,24 @@
 #include "plugin_test.h"
 
 #include "plugin.h"
+#include "plugin_proxy.h"
 #include "pipeline.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+class HiviewTestContext : public HiviewContext {
+public:
+    std::shared_ptr<Plugin> InstancePluginByProxy(std::shared_ptr<Plugin> proxy __UNUSED) override
+    {
+        auto plugin = std::make_shared<Plugin>();
+        plugin->SetName(proxy->GetName());
+        plugin->SetHiviewContext(this);
+        return plugin;
+    }
+};
+}
+
 void PluginTest::SetUpTestCase()
 {
 }
@@ -238,6 +252,54 @@ HWTEST_F(PluginTest, HiviewContextTest002, testing::ext::TestSize.Level0)
      */
     HiviewContext context;
     ASSERT_TRUE(context.GetMainWorkLoop() == nullptr);
+}
+
+/**
+ * @tc.name: PluginProxyTest001
+ * @tc.desc: Test the api of PluginProxy, plugin_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueICLD08
+ */
+HWTEST_F(PluginTest, PluginProxyTest001, testing::ext::TestSize.Level3)
+{
+    auto pluginProxy = std::make_shared<PluginProxy>();
+    auto event = pluginProxy->GetEvent(Event::SYS_EVENT);
+    ASSERT_NE(event, nullptr);
+    ASSERT_FALSE(pluginProxy->OnEvent(event));
+    ASSERT_FALSE(pluginProxy->CanProcessEvent(event));
+    ASSERT_FALSE(pluginProxy->CanProcessMoreEvents());
+    pluginProxy->SetName("test_plugin_proxy");
+    ASSERT_EQ("test_plugin_proxy", pluginProxy->GetHandlerInfo());
+    pluginProxy->Dump(0, {});
+    pluginProxy->OnEventListeningCallback(*(event.get()));
+    pluginProxy->DestroyInstanceIfNeed(1000); // 1s
+    ASSERT_FALSE(pluginProxy->HoldInstance());
+}
+
+/**
+ * @tc.name: PluginProxyTest002
+ * @tc.desc: Test the api of PluginProxy, plugin_ not nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueICLD08
+ */
+HWTEST_F(PluginTest, PluginProxyTest002, testing::ext::TestSize.Level3)
+{
+    auto pluginProxy = std::make_shared<PluginProxy>();
+    pluginProxy->SetName("test_plugin_proxy");
+    auto event = pluginProxy->GetEvent(Event::SYS_EVENT);
+    ASSERT_NE(event, nullptr);
+    HiviewTestContext context;
+    pluginProxy->SetHiviewContext(&context);
+    ASSERT_TRUE(pluginProxy->LoadPluginIfNeed());
+    ASSERT_TRUE(pluginProxy->OnEvent(event));
+    ASSERT_TRUE(pluginProxy->CanProcessEvent(event));
+    ASSERT_TRUE(pluginProxy->CanProcessMoreEvents());
+    ASSERT_EQ("test_plugin_proxy", pluginProxy->GetHandlerInfo());
+    pluginProxy->Dump(0, {});
+    pluginProxy->DestroyInstanceIfNeed(1000); // 1s
+    ASSERT_TRUE(pluginProxy->HoldInstance());
+    pluginProxy->DestroyInstanceIfNeed(0);
+    ASSERT_FALSE(pluginProxy->HoldInstance());
 }
 } // namespace HiviewDFX
 } // namespace OHOS
