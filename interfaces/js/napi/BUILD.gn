@@ -38,6 +38,7 @@ ohos_shared_library("loglibrary_napi") {
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",
     "storage_service:storage_manager_acl",
