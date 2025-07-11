@@ -184,7 +184,7 @@
         ]
     },
     "Rule16":{
-        "DirOrFile":"/data/log/faultlog/faultlogger/",
+        "DirOrFile":"/data/log/warninglog/",
         "Subcatalog":"syswarning-.*-\\d+-\\d+\\.log",
         "featureId":"63_SYS_WARNING_01",
         "rules":[
