@@ -38,7 +38,6 @@ constexpr char EXPORT_EVENT_LIST_CONFIG_PATHS[] = "exportEventListConfigPaths";
 constexpr char FILE_STORED_MAX_DAY_CNT[] = "fileStoredMaxDayCnt";
 constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
 constexpr char INHERITED_MODULE[] = "inheritedModule";
-constexpr char SYS_EXPORT_DIR[] = "sys_event_export";
 constexpr int32_t INVALID_INT_VAL = -1;
 
 bool ParseIntFromCfg(cJSON* json, std::string& areaTag, std::string& versionTag, int64_t& val)
@@ -62,12 +61,29 @@ bool ParseIntFromCfg(cJSON* json, std::string& areaTag, std::string& versionTag,
     val = static_cast<int64_t>(num);
     return true;
 }
+
+void RebuildExportDir(std::shared_ptr<ExportConfig> config, bool appendTaskType)
+{
+    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir);
+    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append("sys_event_export"));
+    if (!appendTaskType) {
+        HIVIEW_LOGI("no need to rebuild export dir: %{public}s", config->exportDir.c_str());
+        return;
+    }
+    std::string dirSuffix("0");
+    if (config->taskType > ALL_EVENT_TASK_TYPE) {
+        dirSuffix = std::to_string(config->taskType);
+    }
+    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(dirSuffix));
+    HIVIEW_LOGI("rebuild export dir to %{public}s", config->exportDir.c_str());
+}
 }
 
-ExportConfigParser::ExportConfigParser(const std::string& configFile)
+ExportConfigParser::ExportConfigParser(const std::string& configFile, const std::string& moduleName)
 {
     HIVIEW_LOGI("cfg file is %{public}s", configFile.c_str());
     jsonRoot_ = CJsonUtil::ParseJsonRoot(configFile);
+    moduleName_ = moduleName;
 }
 
 ExportConfigParser::~ExportConfigParser()
@@ -85,6 +101,7 @@ std::shared_ptr<ExportConfig> ExportConfigParser::Parse()
         return nullptr;
     }
     auto exportConfig = std::make_shared<ExportConfig>();
+    exportConfig->moduleName = moduleName_;
     // read event export config files
     CJsonUtil::GetStringArray(jsonRoot_, EXPORT_EVENT_LIST_CONFIG_PATHS, exportConfig->eventsConfigFiles);
     // parse export switch setting parameter
@@ -153,7 +170,6 @@ bool ExportConfigParser::ParseResidualContent(std::shared_ptr<ExportConfig> conf
     if (!ParseTaskType(config) || !ParseTaskExecutingCycle(config)) {
         return false;
     }
-    RebuildExportDir(config);
     return true;
 }
 
@@ -164,6 +180,7 @@ bool ExportConfigParser::ParseTaskType(std::shared_ptr<ExportConfig> config)
         // old cfg file
         HIVIEW_LOGI("task type isn't configured for module: %{public}s", config->moduleName.c_str());
         config->taskType = ALL_EVENT_TASK_TYPE;
+        RebuildExportDir(config, false);
         return true;
     }
     if (!cJSON_IsObject(taskTypeJson)) {
@@ -181,6 +198,7 @@ bool ExportConfigParser::ParseTaskType(std::shared_ptr<ExportConfig> config)
     HIVIEW_LOGI("task type is configured as object for module: %{public}s, value is %{public}" PRId16 "",
         config->moduleName.c_str(), config->taskType);
     config->needPostEvent = true;
+    RebuildExportDir(config, true);
     return true;
 }
 
@@ -210,18 +228,6 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
     HIVIEW_LOGI("task cycle is configured as object for module: %{public}s, value is %{public}" PRId64 "",
         config->moduleName.c_str(), config->taskCycle);
     return true;
-}
-
-void ExportConfigParser::RebuildExportDir(std::shared_ptr<ExportConfig> config)
-{
-    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir);
-    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(SYS_EXPORT_DIR));
-    std::string dirSuffix("0");
-    if (config->taskType > ALL_EVENT_TASK_TYPE) {
-        dirSuffix = std::to_string(config->taskType);
-    }
-    config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(dirSuffix));
-    HIVIEW_LOGI("rebuild export dir as %{public}s", config->exportDir.c_str());
 }
 } // HiviewDFX
 } // OHOS

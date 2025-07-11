@@ -91,15 +91,20 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest001, testing::ext
  */
 HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest002, testing::ext::TestSize.Level3)
 {
-    ExportConfigParser parser(TEST_CONFIG_FILE);
+    ExportConfigParser parser(TEST_CONFIG_FILE, TEST_MODULE_NAME);
     auto exportConfig = parser.Parse();
     ASSERT_NE(exportConfig, nullptr);
-    ASSERT_EQ(exportConfig->moduleName, ""); // parser not set module name to config
-    ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/0/");
+    ASSERT_EQ(exportConfig->moduleName, TEST_MODULE_NAME);
+    ASSERT_EQ(exportConfig->exportDir, "/data/test/test_data/sys_event_export/");
     ASSERT_EQ(exportConfig->maxCapcity, TEST_CAPACITY);
     ASSERT_EQ(exportConfig->maxSize, TEST_SIZE);
     ASSERT_EQ(exportConfig->taskCycle, TEST_CYCLE);
     ASSERT_EQ(exportConfig->dayCnt, TEST_FILE_STORE_DAY_CNT);
+    ExportConfigParser parser1(TEST_CONFIG_FILE1, TEST_MODULE_NAME);
+    exportConfig = parser1.Parse();
+    ASSERT_NE(exportConfig, nullptr);
+    ASSERT_EQ(exportConfig->moduleName, TEST_MODULE_NAME);
+    ASSERT_NE(exportConfig->exportDir, "/data/test/test_data/sys_event_export/");
 }
 
 /**
@@ -110,7 +115,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest002, testing::ext
  */
 HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest003, testing::ext::TestSize.Level3)
 {
-    ExportConfigParser parser(TEST_CONFIG_FILE);
+    ExportConfigParser parser(TEST_CONFIG_FILE, TEST_MODULE_NAME);
     auto exportConfig = parser.Parse();
     ASSERT_NE(exportConfig, nullptr);
     ASSERT_EQ(exportConfig->eventsConfigFiles.size(), TEST_EXPORT_CFG_FILE_CNT);
@@ -124,7 +129,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest003, testing::ext
  */
 HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest004, testing::ext::TestSize.Level3)
 {
-    ExportConfigParser parser(TEST_CONFIG_FILE);
+    ExportConfigParser parser(TEST_CONFIG_FILE, TEST_MODULE_NAME);
     auto exportConfig = parser.Parse();
     ASSERT_NE(exportConfig, nullptr);
     ASSERT_EQ(exportConfig->exportSwitchParam.name, TEST_SETTING_DB_PARAM_NAME);
@@ -141,7 +146,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest004, testing::ext
  */
 HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest005, testing::ext::TestSize.Level3)
 {
-    ExportConfigParser parser1(TEST_CONFIG_FILE1);
+    ExportConfigParser parser1(TEST_CONFIG_FILE1, TEST_MODULE_NAME);
     auto exportConfig = parser1.Parse();
     ASSERT_NE(exportConfig, nullptr);
     if (Parameter::IsOversea()) {
@@ -170,7 +175,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest005, testing::ext
     ASSERT_EQ(exportConfig->dayCnt, TEST_FILE_STORE_DAY_CNT);
     ASSERT_EQ(exportConfig->inheritedModule, "inherited_test_module");
 
-    ExportConfigParser parser2(TEST_CONFIG_FILE2);
+    ExportConfigParser parser2(TEST_CONFIG_FILE2, TEST_MODULE_NAME);
     exportConfig = parser2.Parse();
     ASSERT_EQ(exportConfig, nullptr);
 }
