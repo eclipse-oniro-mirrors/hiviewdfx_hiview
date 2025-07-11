@@ -71,7 +71,9 @@ bool IsExportDirEmpty(const std::string& exportDir)
 {
     std::vector<std::string> eventZipFiles;
     FileUtil::GetDirFiles(exportDir, eventZipFiles);
-    return eventZipFiles.empty();
+    return !any_of(eventZipFiles.begin(), eventZipFiles.end(), [] (const std::string& file) {
+        return !FileUtil::IsDirectory(file);
+    });
 }
 
 void PostExportEvent(const std::string& moduleName, int16_t taskType)

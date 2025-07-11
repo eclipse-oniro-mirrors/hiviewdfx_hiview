@@ -90,13 +90,12 @@ void ExportConfigManager::ParseConfigFile(const std::string& configFile)
         HIVIEW_LOGW("this config file of %{public}s module has been parsed", moduleName.c_str());
         return;
     }
-    ExportConfigParser parser(configFile);
+    ExportConfigParser parser(configFile, moduleName);
     config = parser.Parse();
     if (config == nullptr) {
         HIVIEW_LOGE("failed to parse config file, file=%{public}s.", configFile.c_str());
         return;
     }
-    config->moduleName = moduleName;
     exportConfigs_.emplace(moduleName, config);
 }
 } // HiviewDFX

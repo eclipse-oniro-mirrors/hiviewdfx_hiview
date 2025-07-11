@@ -72,7 +72,7 @@ struct ExportConfig {
 
 class ExportConfigParser {
 public:
-    ExportConfigParser(const std::string& configFile);
+    ExportConfigParser(const std::string& configFile, const std::string& moduleName);
     virtual ~ExportConfigParser();
 
 public:
@@ -83,10 +83,10 @@ private:
     bool ParseResidualContent(std::shared_ptr<ExportConfig> config);
     bool ParseTaskType(std::shared_ptr<ExportConfig> config);
     bool ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> config);
-    void RebuildExportDir(std::shared_ptr<ExportConfig> config);
 
 private:
     cJSON* jsonRoot_ = nullptr;
+    std::string moduleName_;
 };
 } // HiviewDFX
 } // OHOS
