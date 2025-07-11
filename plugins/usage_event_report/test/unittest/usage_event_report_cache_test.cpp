@@ -65,6 +65,7 @@ HWTEST_F(UsageEventReportCacheTest, UsageEventReportCacheTest001, TestSize.Level
     cacher.SaveSysUsageEventToDb(nullptr);
     EXPECT_TRUE(cacher.GetSysUsageEvent() == nullptr);
     auto sysUsageEvent = std::make_shared<SysUsageEvent>("EVENT_NAME", HiSysEvent::EventType::STATISTIC);
+    sysUsageEvent->Report();
     cacher.SaveSysUsageEventToDb(sysUsageEvent);
     EXPECT_TRUE(cacher.GetSysUsageEvent() != nullptr);
     cacher.DeleteSysUsageEventFromDb();

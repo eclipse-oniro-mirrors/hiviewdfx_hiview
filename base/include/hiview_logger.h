@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,7 @@
 #define HIVIEW_BASE_LOGGER_H
 
 #include <cinttypes>
-#include <cstdarg>
-#include <string>
 #include "hilog/log.h"
-#include "i_logger.h"
 
 #define PUBLIC "{public}"
 // All Log domain in hiview should has the prefix of 0xD002D
@@ -43,17 +40,4 @@
 #define HIVIEW_LOGF(format, ...) \
     HILOG_IMPL(LOG_CORE, LOG_FATAL, logLabelDomain, logLabelTag, "%" PUBLIC "s: " format, __func__, ##__VA_ARGS__)
 
-
-namespace OHOS::HiviewDFX {
-class Logger final {
-public:
-    static Logger& GetInstance();
-    bool SetUserLogger(std::unique_ptr<ILogger> logger);
-    void Print(uint32_t level, uint32_t domain, const char* tag, const char*, ...);
-private:
-    Logger();
-    virtual ~Logger() = default;
-    std::unique_ptr<ILogger> m_logger;
-};
-}
 #endif // HIVIEW_BASE_LOGGER_H

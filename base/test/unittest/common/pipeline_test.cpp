@@ -127,6 +127,7 @@ HWTEST_F(PipelineTest, PluginPipelineApiTest001, TestSize.Level3)
 
     HiviewContext context;
     plugin->SetHiviewContext(&context);
+    PipelineEvent::FillPipelineInfo(plugin, testPipeline, event, false);
     PipelineEvent::FillPipelineInfo(plugin, testPipeline, event, true);
     ASSERT_EQ(event->GetPipelineInfo(), testPipeline);
 }

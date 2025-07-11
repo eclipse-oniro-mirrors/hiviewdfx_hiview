@@ -115,8 +115,6 @@
         "OHOS::HiviewDFX::LogStoreEx::ClearOldestFilesIfNeeded()";
         "OHOS::HiviewDFX::Event::GetKeyValuePairs()";
         "OHOS::HiviewDFX::Event::GetKeyValuePairs() const";
-        "OHOS::HiviewDFX::Logger::GetInstance()";
-        "OHOS::HiviewDFX::Logger::Print(unsigned int, unsigned int, char const*, char const*, ...)";
         "OHOS::HiviewDFX::PluginProxy::DestroyInstanceIfNeed(long)";
         "OHOS::HiviewDFX::EventLoop::AddTimerEvent(std::__h::shared_ptr<OHOS::HiviewDFX::EventHandler>, std::__h::shared_ptr<OHOS::HiviewDFX::Event>, std::__h::function<void ()> const&, unsigned long, bool)";
         "OHOS::HiviewDFX::EventThreadPool::AddTask(std::__h::function<void ()>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long, unsigned char)";
