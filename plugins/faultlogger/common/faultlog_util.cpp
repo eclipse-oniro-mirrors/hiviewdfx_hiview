@@ -236,13 +236,13 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
         std::to_string(info.time);
 }
 
-std::string GetSanitizerTempLogName(int32_t pid, int64_t happenTime)
+std::string GetSanitizerTempLogName(int32_t pid, const std::string& happenTime)
 {
     return std::string(FAULTLOG_TEMP_FOLDER) +
         "sanitizer-" +
         std::to_string(pid) +
         "-" +
-        std::to_string(happenTime);
+        happenTime;
 }
 
 std::string GetThreadStack(const std::string& path, int32_t threadId)

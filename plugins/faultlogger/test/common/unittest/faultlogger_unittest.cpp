@@ -958,7 +958,7 @@ HWTEST_F(FaultloggerUnittest, GetDebugSignalTempLogName001, testing::ext::TestSi
     };
     string fileName = GetDebugSignalTempLogName(info);
     ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-0-1607161345");
-    fileName = GetSanitizerTempLogName(info.pid, info.time);
+    fileName = GetSanitizerTempLogName(info.pid, std::to_string(info.time));
     ASSERT_EQ(fileName, "/data/log/faultlog/temp/sanitizer-0-1607161345");
     string str;
     ASSERT_EQ(GetThreadStack(str, 0), "");
