@@ -329,7 +329,7 @@ HWTEST_F(FaultloggerUnittest, dumpFileListTest001, testing::ext::TestSize.Level3
         cmds.push_back("FAULTLOGGER");
         close(fd);
         fd = -1;
-    
+
         std::string result;
         if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
             ASSERT_GT(result.length(), 0uL);
@@ -363,14 +363,14 @@ HWTEST_F(FaultloggerUnittest, DumpTest002, testing::ext::TestSize.Level3)
             {"-f", "cppcrash--10-20201209103823"},
             {"-f", "cppcrash-ModuleName-a10-20201209103823"}
         };
-    
+
         for (auto& cmd : cmds) {
             plugin->Dump(fd, cmd);
         }
-    
+
         close(fd);
         fd = -1;
-    
+
         std::string result;
         if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
             ASSERT_GT(result.length(), 0uL);
@@ -405,14 +405,14 @@ HWTEST_F(FaultloggerUnittest, DumpTest003, testing::ext::TestSize.Level3)
             {"-l", ""},
             {"-xx"}
         };
-    
+
         for (auto& cmd : cmds) {
             faultlogManagerService.Dump(fd, cmd);
         }
-    
+
         close(fd);
         fd = -1;
-    
+
         std::string result;
         if (FileUtil::LoadStringFromFile("/data/test/testFile", result)) {
             ASSERT_GT(result.length(), 0uL);
@@ -462,11 +462,11 @@ HWTEST_F(FaultloggerUnittest, DumpTest004, testing::ext::TestSize.Level3)
             {"-LogSuffixWithMs", ""},
             {"-f", fileName}
         };
-    
+
         for (auto& cmd : cmds) {
             faultlogManagerService.Dump(fd, cmd);
         }
-    
+
         close(fd);
         fd = -1;
         std::string keywords[] = { "Device info", "Build info", "Fingerprint", "Module name" };
@@ -1418,7 +1418,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogQueryResultOhosTest001, testing::ext::Test
         }
         auto getNextRes = result->GetNext();
         ASSERT_NE(result, nullptr);
-    
+
         result->result_ = nullptr;
         bool hasNext = result->HasNext();
         ASSERT_FALSE(hasNext);
@@ -2581,6 +2581,33 @@ HWTEST_F(FaultloggerUnittest, ExtractSubMoudleName003, testing::ext::TestSize.Le
     ASSERT_TRUE(ExtractSubMoudleName(moduleName2));
     std::string endName = "test";
     ASSERT_EQ(endName, moduleName2);
+}
+
+/**
+ * @tc.name: FaultLogBootScan001
+ * @tc.desc: Test big file
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogBootScan001, testing::ext::TestSize.Level3)
+{
+    std::string path = "/data/test/test_data/FaultLogBootScan001/cppcrash-197-1502809621426";
+    ASSERT_FALSE(FaultLogBootScan::IsCrashTempBigFile(path));
+}
+
+/**
+ * @tc.name: FaultLogBootScan002
+ * @tc.desc: Test big file, file size exceeds limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogBootScan002, testing::ext::TestSize.Level3)
+{
+    std::string path = "/data/test/test_data/FaultLogBootScan002/cppcrash-197-1502809621426";
+    std::ofstream file(path, std::ios::app);
+    ASSERT_TRUE(file.is_open());
+    file << std::setfill('0') << std::setw(1024 * 1024 * 5) << 0;
+    file.close();
+
+    ASSERT_TRUE(FaultLogBootScan::IsCrashTempBigFile(path));
 }
 } // namespace HiviewDFX
 } // namespace OHOS
