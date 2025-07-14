@@ -15,7 +15,6 @@
 #include "event_log_task.h"
 
 #include <unistd.h>
-#include <regex>
 
 #include "common_utils.h"
 #include "hiview_logger.h"
@@ -60,6 +59,13 @@ namespace {
     static constexpr int BP_CMD_PERF_TYPE_INDEX = 2;
     static constexpr int BP_CMD_LAYER_INDEX = 1;
     static constexpr size_t BP_CMD_SZ = 3;
+    static constexpr size_t FAULTTIME_STR_SIZE = 19;
+    static constexpr size_t FAULTTIME_ONE_INDEX = 4;
+    static constexpr size_t FAULTTIME_TWO_INDEX = 7;
+    static constexpr size_t FAULTTIME_THREE_INDEX = 10;
+    static constexpr size_t FAULTTIME_FOUR_INDEX = 13;
+    static constexpr size_t FAULTTIME_FIVE_INDEX = 16;
+
     const char* SYSTEM_STACK[] = {
         "foundation",
         "render_service",
@@ -729,16 +735,23 @@ void EventLogTask::SaveSummaryLogInfo()
 uint64_t EventLogTask::GetFaultTime()
 {
     std::lock_guard<ffrt::mutex> lock(faultTimeMutex_);
-    if (faultTime_ == 0) {
-        std::regex reg("Fault time:(\\d{4}/\\d{2}/\\d{2}-\\d{2}:\\d{2}:\\d{2})");
-        std::smatch match;
-        std::string msg = event_->GetEventValue("MSG");
-        if (std::regex_search(msg, match, reg)) {
-            faultTime_ = static_cast<uint64_t>(TimeUtil::StrToTimeStamp(match[1].str(), "%Y/%m/%d-%H:%M:%S"));
-        } else {
-            faultTime_ = event_->happenTime_ / MILLISEC_TO_SEC;
+    if (faultTime_ != 0) {
+        return faultTime_;
+    }
+
+    std::string msg = event_->GetEventValue("MSG");
+    std::string faultTimeTag = "Fault time:";
+    std::string faultTimeStr;
+    size_t startIndex = msg.find(faultTimeTag);
+    if (startIndex != std::string::npos && msg.size() >= (startIndex + faultTimeTag.size() + FAULTTIME_STR_SIZE)) {
+        faultTimeStr = msg.substr(startIndex + faultTimeTag.size(), FAULTTIME_STR_SIZE);
+        if (faultTimeStr[FAULTTIME_ONE_INDEX] == '/' && faultTimeStr[FAULTTIME_TWO_INDEX] == '/' &&
+            faultTimeStr[FAULTTIME_THREE_INDEX] == '-' && faultTimeStr[FAULTTIME_FOUR_INDEX] == ':' &&
+            faultTimeStr[FAULTTIME_FIVE_INDEX] == ':') {
+            faultTime_ = static_cast<uint64_t>(TimeUtil::StrToTimeStamp(faultTimeStr, "%Y/%m/%d-%H:%M:%S"));
         }
     }
+    faultTime_ = (faultTime_ == 0) ? event_->happenTime_ / MILLISEC_TO_SEC : faultTime_;
     return faultTime_;
 }
 } // namespace HiviewDFX

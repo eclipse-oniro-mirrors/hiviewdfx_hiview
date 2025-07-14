@@ -60,7 +60,6 @@ public:
         CATCHER_SCBWMSV,
     };
 private:
-    static const inline int32_t DEFAULT_WINDOW_ID = 14;
     std::string catcherCmd_ = "";
     std::string focusWindowId_ = "";
     int pid_ = -1;

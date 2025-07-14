@@ -1296,7 +1296,7 @@ HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.
 
     SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
-    sysEvent->SetEventValue("MSG", "Fault time:" + formatTime);
+    sysEvent->SetEventValue("MSG", "Fault time:" + formatTime + "\n");
     std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(0, 0, sysEvent);
     logTask->SaveSummaryLogInfo();
 
@@ -1305,10 +1305,25 @@ HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.
     bool ret = summaryLogInfoCatcher->Catch(fd, 1);
     close(fd);
     EXPECT_TRUE(!ret);
+    EXPECT_EQ(logTask->GetFaultTime(), faultTime);
 
     EXPECT_EQ(summaryLogInfoCatcher->CharArrayStr(nullptr, 8), "");
     char chars[8] = {'s', 'u', 'm', 'm', 'a', 'r', 'y', '\0'};
     EXPECT_EQ(summaryLogInfoCatcher->CharArrayStr(chars, 8), "summary");
+
+    std::shared_ptr<SysEvent> sysEvent1 = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent1->SetEventValue("MSG", "Fault time:xx:");
+    sysEvent1->happenTime_ = TimeUtil::GetMilliseconds();
+    logTask->faultTime_ = 0;
+    logTask = std::make_unique<EventLogTask>(0, 0, sysEvent1);
+    EXPECT_EQ(logTask->GetFaultTime(), sysEvent1->happenTime_ / 1000);
+
+    std::shared_ptr<SysEvent> sysEvent2 = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent2->SetEventValue("MSG", "Fault time:2025/07/14-18:28/59\\n");
+    sysEvent2->happenTime_ = TimeUtil::GetMilliseconds();
+    logTask->faultTime_ = 0;
+    logTask = std::make_unique<EventLogTask>(0, 0, sysEvent2);
+    EXPECT_EQ(logTask->GetFaultTime(), sysEvent2->happenTime_ / 1000);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

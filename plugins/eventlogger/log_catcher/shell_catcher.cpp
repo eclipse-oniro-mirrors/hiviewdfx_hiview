@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "shell_catcher.h"
-#include <regex>
 #include <unistd.h>
 #include <sys/wait.h>
 #include "hiview_logger.h"
