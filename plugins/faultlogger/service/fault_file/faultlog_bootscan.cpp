@@ -53,6 +53,18 @@ bool FaultLogBootScan::IsInValidTime(const std::string& file, const time_t& now)
     return true;
 }
 
+bool FaultLogBootScan::IsCrashTempBigFile(const std::string& file)
+{
+    constexpr uint64_t tempMaxFileSize = 1024 * 1024 * 5;
+    auto fileSize = FileUtil::GetFileSize(file);
+    if (fileSize > tempMaxFileSize) {
+        HIVIEW_LOGI("Skip this file(%{public}s) that file size(%{public}" PRIu64 ") exceeds limit.",
+                    file.c_str(), fileSize);
+        return true;
+    }
+    return false;
+}
+
 bool FaultLogBootScan::IsEmptyStack(const std::string& file, const FaultLogInfo& info)
 {
     if (info.summary.find("#00") == std::string::npos) {
@@ -86,7 +98,7 @@ void FaultLogBootScan::StartBootScan()
     time_t now = time(nullptr);
     FileUtil::GetDirFiles(FAULTLOG_TEMP_FOLDER, files);
     for (const auto& file : files) {
-        if (!IsCrashType(file) || !IsInValidTime(file, now)) {
+        if (!IsCrashType(file) || !IsInValidTime(file, now) || IsCrashTempBigFile(file)) {
             continue;
         }
 

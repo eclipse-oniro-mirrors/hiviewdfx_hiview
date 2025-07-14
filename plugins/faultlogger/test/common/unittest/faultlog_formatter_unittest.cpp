@@ -92,7 +92,7 @@ HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest002, testing::ext::Test
 }
 
 /**
- * @tc.name: WriteFaultLogToFileTest002
+ * @tc.name: WriteFaultLogToFileTest003
  * @tc.desc: Test WriteFaultLogToFile
  * @tc.type: FUNC
  */
@@ -108,6 +108,5 @@ HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest003, testing::ext::Test
         close(pipe[1]);
     }
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS

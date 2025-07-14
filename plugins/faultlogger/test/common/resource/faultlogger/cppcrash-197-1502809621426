@@ -1,0 +1,1939 @@
+Build info:OpenHarmony 6.0.0.40
+Timestamp:2017-08-15 23:07:01.000
+Pid:197
+Uid:1201
+Process name:/system/bin/hiview
+Process life time:39s
+Process Memory(kB): 73793(Rss)
+Reason:Signal:SIGABRT(SI_TKILL)@0x000000c5 from:197:1201
+LastFatalMessage:terminating due to uncaught exception of type std::__h::__fs::filesystem::filesystem_error: filesystem error: in posix_stat: failed to determine attributes for the specified path: Permission denied ["/data/log/hitrace/"]
+Fault thread info:
+Tid:1291, Name:OS_IPC_2_1291
+#00 pc 000e9e30 /system/lib/ld-musl-arm.so.1(raise+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0009bf14 /system/lib/ld-musl-arm.so.1(abort+16)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 00087b94 /system/lib/chipset-sdk-sp/libc++.so(abort_message+144)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 0006e4a0 /system/lib/chipset-sdk-sp/libc++.so(demangling_terminate_handler()+252)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#04 pc 00086e28 /system/lib/chipset-sdk-sp/libc++.so(std::__terminate(void (*)())+8)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#05 pc 00089fa8 /system/lib/chipset-sdk-sp/libc++.so(__cxa_rethrow+236)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#06 pc 0010425c /system/lib/chipset-sdk-sp/libc++.so(std::__h::__fs::filesystem::detail::(anonymous namespace)::ErrorHandler<void>::report(std::__h::error_code const&, char const*, ...) const+636)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#07 pc 00103f9c /system/lib/chipset-sdk-sp/libc++.so(std::__h::__fs::filesystem::detail::(anonymous namespace)::create_file_status(std::__h::error_code&, std::__h::__fs::filesystem::path const&, stat const&, std::__h::error_code*)+208)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#08 pc 001007d4 /system/lib/chipset-sdk-sp/libc++.so(std::__h::__fs::filesystem::__status(std::__h::__fs::filesystem::path const&, std::__h::error_code*)+132)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#09 pc 000144d5 /system/lib/platformsdk/libhitrace_dump.z.so(c538744302cf1fe799ef510dfc628187)
+#10 pc 00011b21 /system/lib/platformsdk/libhitrace_dump.z.so(OHOS::HiviewDFX::Hitrace::FileAgeingUtils::HandleAgeing(std::__h::vector<OHOS::HiviewDFX::Hitrace::TraceFileInfo, std::__h::allocator<OHOS::HiviewDFX::Hitrace::TraceFileInfo>>&, OHOS::HiviewDFX::Hitrace::TRACE_TYPE)+352)(c538744302cf1fe799ef510dfc628187)
+#11 pc 0000c15f /system/lib/platformsdk/libhitrace_dump.z.so(OHOS::HiviewDFX::Hitrace::DumpTrace(int, unsigned long long)+94)(c538744302cf1fe799ef510dfc628187)
+#12 pc 00013bb3 /system/lib/libtrace_manager.z.so(OHOS::HiviewDFX::DynamicState::DumpTrace(OHOS::HiviewDFX::TraceScenario, int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)+46)(ed9992bcc224219b701d5836812da1bf)
+#13 pc 0000ee15 /system/lib/libtrace_manager.z.so(OHOS::HiviewDFX::TraceStateMachine::DumpTrace(OHOS::HiviewDFX::TraceScenario, int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)+76)(ed9992bcc224219b701d5836812da1bf)
+#14 pc 0004fa15 /system/lib/platformsdk/libucollection_utility.z.so(OHOS::HiviewDFX::TraceAppStrategy::DoDump(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)+320)(b349be3b8e55bddb97cf43a10445836b)
+#15 pc 00041141 /system/bin/hiview(OHOS::HiviewDFX::HiviewService::InnerResponseDumpAppTrace(OHOS::HiviewDFX::UCollectClient::AppCaller&)+200)(52f22eca0872d3db560a989ccfae8bb2)
+#16 pc 0004125d /system/bin/hiview(OHOS::HiviewDFX::HiviewService::CaptureDurationTrace(OHOS::HiviewDFX::UCollectClient::AppCaller&)+56)(52f22eca0872d3db560a989ccfae8bb2)
+#17 pc 00053b0f /system/bin/hiview(OHOS::HiviewDFX::HiviewServiceAbility::CaptureDurationTrace(OHOS::HiviewDFX::AppCallerParcelable const&, int&, int&)+106)(52f22eca0872d3db560a989ccfae8bb2)
+#18 pc 000541f3 /system/bin/hiview(non-virtual thunk to OHOS::HiviewDFX::HiviewServiceAbility::CaptureDurationTrace(OHOS::HiviewDFX::AppCallerParcelable const&, int&, int&)+6)(52f22eca0872d3db560a989ccfae8bb2)
+#19 pc 0005621f /system/bin/hiview(OHOS::HiviewDFX::HiviewServiceAbilityStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)+1518)(52f22eca0872d3db560a989ccfae8bb2)
+#20 pc 0002c675 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCObjectStub::SendRequestInner(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)+120)(a6e3267ce8da60fa6952270b0ac269b6)
+#21 pc 00040d81 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::GeneralServiceSendRequest(binder_transaction_data const&, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)+172)(a6e3267ce8da60fa6952270b0ac269b6)
+#22 pc 000410c5 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::Transaction(binder_transaction_data_secctx&)+568)(a6e3267ce8da60fa6952270b0ac269b6)
+#23 pc 000416e5 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::HandleCommandsInner(unsigned int)+380)(a6e3267ce8da60fa6952270b0ac269b6)
+#24 pc 000401f7 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::HandleCommands(unsigned int)+38)(a6e3267ce8da60fa6952270b0ac269b6)
+#25 pc 0004003f /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+138)(a6e3267ce8da60fa6952270b0ac269b6)
+#26 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#27 pc 0003a6c9 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+652)(a6e3267ce8da60fa6952270b0ac269b6)
+#28 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#29 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Registers:
+r0:00000000 r1:f693f15c r2:00000000 r3:00000008
+r4:00000000 r5:fffff000 r6:f693f24c r7:000000af
+r8:00000000 r9:434c4e47 r10:00000000
+fp:f693f1f0 ip:f720fc38 sp:f693f158 lr:f792df18 pc:f797be30
+cpsr:008c0010
+Other thread info:
+Tid:197, Name:hiview
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0002b3fb /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::WaitNextEvent(unsigned long long)+46)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#02 pc 0002a0d5 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+120)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#03 pc 00025003 /system/bin/hiview(main.cfi+150)(52f22eca0872d3db560a989ccfae8bb2)
+#04 pc 00073fe8 /system/lib/ld-musl-arm.so.1(libc_start_main_stage2+72)(a21aa7b9a98257aa75b223cfa3f19f19)
+#05 pc 00019078 /system/bin/hiview(_start_c+84)(52f22eca0872d3db560a989ccfae8bb2)
+#06 pc 0001901c /system/bin/hiview(52f22eca0872d3db560a989ccfae8bb2)
+Tid:245, Name:OS_IPC_0_245
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040007 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+82)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c9 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+652)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:246, Name:OS_IPC_1_246
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040005 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+80)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c9 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+652)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:425, Name:plat_shared
+#00 pc 000b18ec /system/lib/ld-musl-arm.so.1(__libc_malloc_impl+344)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00089748 /system/lib/chipset-sdk-sp/libc++.so(operator new(unsigned int)+24)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#02 pc 00028c7b /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#03 pc 000286c5 /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#04 pc 0006096f /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#05 pc 000607a7 /system/lib/libbdfr.z.so(OHOS::HiviewDFX::Tbox::GetStackName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+574)(06453d444b0109bb8d9ba5b3e9632a35)
+#06 pc 0005f529 /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#07 pc 0005f87f /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#08 pc 00060df3 /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#09 pc 0005c009 /system/lib/libbdfr.z.so(06453d444b0109bb8d9ba5b3e9632a35)
+#10 pc 000350ad /system/lib/libbdfr.z.so(OHOS::HiviewDFX::FaultLogProcessorBase::AddCommonInfo(OHOS::HiviewDFX::FaultLogInfo&)+1932)(06453d444b0109bb8d9ba5b3e9632a35)
+#11 pc 00034511 /system/lib/libbdfr.z.so(OHOS::HiviewDFX::FaultLogProcessorBase::ProcessFaultLog(OHOS::HiviewDFX::FaultLogInfo&)+32)(06453d444b0109bb8d9ba5b3e9632a35)
+#12 pc 000343b1 /system/lib/libbdfr.z.so(OHOS::HiviewDFX::FaultLogProcessorBase::AddFaultLog(OHOS::HiviewDFX::FaultLogInfo&, std::__h::shared_ptr<OHOS::HiviewDFX::EventLoop> const&, std::__h::shared_ptr<OHOS::HiviewDFX::FaultLogManager> const&)+316)(06453d444b0109bb8d9ba5b3e9632a35)
+#13 pc 00033ef7 /system/lib/libbdfr.z.so(OHOS::HiviewDFX::FaultLogEventBase::ProcessFaultLogEvent(std::__h::shared_ptr<OHOS::HiviewDFX::Event>&, std::__h::shared_ptr<OHOS::HiviewDFX::EventLoop> const&, std::__h::shared_ptr<OHOS::HiviewDFX::FaultLogManager> const&)+98)(06453d444b0109bb8d9ba5b3e9632a35)
+#14 pc 000551ed /system/lib/libbdfr.z.so(OHOS::HiviewDFX::Faultlogger::OnEvent(std::__h::shared_ptr<OHOS::HiviewDFX::Event>&)+124)(06453d444b0109bb8d9ba5b3e9632a35)
+#15 pc 0002e673 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::Plugin::OnEventProxy(std::__h::shared_ptr<OHOS::HiviewDFX::Event>)+134)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#16 pc 0002b74f /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::ProcessEvent(OHOS::HiviewDFX::LoopEvent&)+342)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#17 pc 0002b2b5 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::ProcessQueuedEvent()+140)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#18 pc 0002a0b1 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+84)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#19 pc 0002bdfb /system/lib/libhiviewbase.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, void (OHOS::HiviewDFX::EventLoop::*)(), OHOS::HiviewDFX::EventLoop*>>(void*)+50)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#20 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#21 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1019, Name:sysevent_source
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0003e245 /system/lib/libadft.z.so(OHOS::HiviewDFX::EventServer::Start()+324)(9adeb87a2a875b67c89a3405268fba3f)
+#02 pc 00051e85 /system/lib/libadft.z.so(OHOS::HiviewDFX::SysEventSource::StartEventSource()+220)(9adeb87a2a875b67c89a3405268fba3f)
+#03 pc 0002b2b3 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::ProcessQueuedEvent()+138)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#04 pc 0002a0b1 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+84)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#05 pc 0002bdfb /system/lib/libhiviewbase.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, void (OHOS::HiviewDFX::EventLoop::*)(), OHOS::HiviewDFX::EventLoop*>>(void*)+50)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1021, Name:sysevent_store
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0002b3fb /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::WaitNextEvent(unsigned long long)+46)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#02 pc 0002a0d3 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+118)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#03 pc 0002bdfb /system/lib/libhiviewbase.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, void (OHOS::HiviewDFX::EventLoop::*)(), OHOS::HiviewDFX::EventLoop*>>(void*)+50)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#04 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#05 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1026, Name:OS_FFRT_2_0
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e37c /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::wait(std::__h::unique_lock<std::__h::mutex>&)+24)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 00068631 /system/lib/ndk/libffrt.so(ffrt::SExecuteUnit::WorkerIdleAction(ffrt::CPUWorker*)+600)(bb0dfa44f16dc950c89a55942ecbb28b)
+#04 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper(ffrt::CPUWorker*)+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#05 pc 0005b849 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::Dispatch(ffrt::CPUWorker*)+92)(bb0dfa44f16dc950c89a55942ecbb28b)
+#06 pc 0005b65f /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WrapDispatch(void*)+46)(bb0dfa44f16dc950c89a55942ecbb28b)
+#07 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#08 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1028, Name:OS_FFRT_Delay
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00087b95 /system/lib/ndk/libffrt.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, ffrt::DelayedWorker::ThreadInit()::$_0>>(void*)+648)(bb0dfa44f16dc950c89a55942ecbb28b)
+#02 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#03 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1053, Name:bbox_detector
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0002b3fb /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::WaitNextEvent(unsigned long long)+46)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#02 pc 0002a0d3 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+118)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#03 pc 0002bdfb /system/lib/libhiviewbase.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, void (OHOS::HiviewDFX::EventLoop::*)(), OHOS::HiviewDFX::EventLoop*>>(void*)+50)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#04 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#05 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1055, Name:event_logger
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0002b3fb /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::WaitNextEvent(unsigned long long)+46)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#02 pc 0002a0d3 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+118)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#03 pc 0002bdfb /system/lib/libhiviewbase.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, void (OHOS::HiviewDFX::EventLoop::*)(), OHOS::HiviewDFX::EventLoop*>>(void*)+50)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#04 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#05 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1058, Name:OS_FFRT_2_1
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e37c /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::wait(std::__h::unique_lock<std::__h::mutex>&)+24)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 00068631 /system/lib/ndk/libffrt.so(ffrt::SExecuteUnit::WorkerIdleAction(ffrt::CPUWorker*)+600)(bb0dfa44f16dc950c89a55942ecbb28b)
+#04 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper(ffrt::CPUWorker*)+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#05 pc 0005b847 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::Dispatch(ffrt::CPUWorker*)+90)(bb0dfa44f16dc950c89a55942ecbb28b)
+#06 pc 0005b65f /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WrapDispatch(void*)+46)(bb0dfa44f16dc950c89a55942ecbb28b)
+#07 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#08 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1059, Name:OS_FFRT_2_2
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e444 /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::__do_timed_wait(std::__h::unique_lock<std::__h::mutex>&, std::__h::chrono::time_point<std::__h::chrono::system_clock, std::__h::chrono::duration<long long, std::__h::ratio<1ll, 1000000000ll>>>)+148)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 0006977b /system/lib/ndk/libffrt.so(bb0dfa44f16dc950c89a55942ecbb28b)
+#04 pc 00068495 /system/lib/ndk/libffrt.so(ffrt::SExecuteUnit::WorkerIdleAction(ffrt::CPUWorker*)+188)(bb0dfa44f16dc950c89a55942ecbb28b)
+#05 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper(ffrt::CPUWorker*)+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#06 pc 0005b849 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::Dispatch(ffrt::CPUWorker*)+92)(bb0dfa44f16dc950c89a55942ecbb28b)
+#07 pc 0005b65f /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WrapDispatch(void*)+46)(bb0dfa44f16dc950c89a55942ecbb28b)
+#08 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#09 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1060, Name:OS_FFRT_2_3
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e444 /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::__do_timed_wait(std::__h::unique_lock<std::__h::mutex>&, std::__h::chrono::time_point<std::__h::chrono::system_clock, std::__h::chrono::duration<long long, std::__h::ratio<1ll, 1000000000ll>>>)+148)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 0006977b /system/lib/ndk/libffrt.so(bb0dfa44f16dc950c89a55942ecbb28b)
+#04 pc 00068493 /system/lib/ndk/libffrt.so(ffrt::SExecuteUnit::WorkerIdleAction(ffrt::CPUWorker*)+186)(bb0dfa44f16dc950c89a55942ecbb28b)
+#05 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper(ffrt::CPUWorker*)+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#06 pc 0005b849 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::Dispatch(ffrt::CPUWorker*)+92)(bb0dfa44f16dc950c89a55942ecbb28b)
+#07 pc 0005b65f /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WrapDispatch(void*)+46)(bb0dfa44f16dc950c89a55942ecbb28b)
+#08 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#09 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1061, Name:OS_FFRT_2_4
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e444 /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::__do_timed_wait(std::__h::unique_lock<std::__h::mutex>&, std::__h::chrono::time_point<std::__h::chrono::system_clock, std::__h::chrono::duration<long long, std::__h::ratio<1ll, 1000000000ll>>>)+148)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 0006977b /system/lib/ndk/libffrt.so(bb0dfa44f16dc950c89a55942ecbb28b)
+#04 pc 00068493 /system/lib/ndk/libffrt.so(ffrt::SExecuteUnit::WorkerIdleAction(ffrt::CPUWorker*)+186)(bb0dfa44f16dc950c89a55942ecbb28b)
+#05 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper(ffrt::CPUWorker*)+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#06 pc 0005b847 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::Dispatch(ffrt::CPUWorker*)+90)(bb0dfa44f16dc950c89a55942ecbb28b)
+#07 pc 0005b65d /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WrapDispatch(void*)+44)(bb0dfa44f16dc950c89a55942ecbb28b)
+#08 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#09 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1072, Name:XperfPlugin
+#00 pc 000a72d8 /system/lib/ld-musl-arm.so.1(epoll_wait+28)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0002b3fb /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::WaitNextEvent(unsigned long long)+46)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#02 pc 0002a0d3 /system/lib/libhiviewbase.z.so(OHOS::HiviewDFX::EventLoop::Run()+118)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#03 pc 0002bdfb /system/lib/libhiviewbase.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, void (OHOS::HiviewDFX::EventLoop::*)(), OHOS::HiviewDFX::EventLoop*>>(void*)+50)(8b005fd7ed9f146b0d1574a1d71c8a7d)
+#04 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#05 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1073, Name:XperfMainThr
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e37c /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::wait(std::__h::unique_lock<std::__h::mutex>&)+24)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 0001bb27 /system/lib/libxperformance.z.so(OHOS::HiviewDFX::ThrTaskContainer::Entry(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)+94)(9fd5bc53e93036ed24d8a3ea22f68418)
+#04 pc 0001bd67 /system/lib/libxperformance.z.so(9fd5bc53e93036ed24d8a3ea22f68418)
+#05 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#06 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1074, Name:XperfTimerThr
+#00 pc 001051fc /system/lib/ld-musl-arm.so.1(__timedwait_cp+176)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 00106bf4 /system/lib/ld-musl-arm.so.1(__pthread_cond_timedwait_time64+628)(a21aa7b9a98257aa75b223cfa3f19f19)
+#02 pc 0009e444 /system/lib/chipset-sdk-sp/libc++.so(std::__h::condition_variable::__do_timed_wait(std::__h::unique_lock<std::__h::mutex>&, std::__h::chrono::time_point<std::__h::chrono::system_clock, std::__h::chrono::duration<long long, std::__h::ratio<1ll, 1000000000ll>>>)+148)(3985762636c3e9beafb365c67ccc2a8a0746c4bb)
+#03 pc 00036bf5 /system/lib/libxperformance.z.so(OHOS::HiviewDFX::SceneTimerOhImpl::Loop()+252)(9fd5bc53e93036ed24d8a3ea22f68418)
+#04 pc 00036d0d /system/lib/libxperformance.z.so(9fd5bc53e93036ed24d8a3ea22f68418)
+#05 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#06 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1298, Name:OS_IPC_3_1298
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040005 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+80)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c7 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+650)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1619, Name:OS_IPC_4_1619
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040005 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+80)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c7 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+650)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:1951, Name:OS_IPC_5_1951
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040005 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+80)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c7 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+650)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:2083, Name:OS_IPC_6_2083
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040005 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+80)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c7 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+650)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:2242, Name:OS_IPC_7_2242
+#00 pc 000c29f4 /system/lib/ld-musl-arm.so.1(ioctl+76)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder(unsigned long, void*)+78)(3c6af937dc1c10cb01c65c299ef42f5f)
+#02 pc 0003fd41 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::TransactWithDriver(bool)+196)(a6e3267ce8da60fa6952270b0ac269b6)
+#03 pc 00040005 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::StartWorkLoop()+80)(a6e3267ce8da60fa6952270b0ac269b6)
+#04 pc 00041799 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::BinderInvoker::JoinThread(bool)+68)(a6e3267ce8da60fa6952270b0ac269b6)
+#05 pc 0003a6c7 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCWorkThread::ThreadHandler(void*)+650)(a6e3267ce8da60fa6952270b0ac269b6)
+#06 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#07 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Tid:2258, Name:CpuBufferBalanc
+#00 pc 00116b34 /system/lib/ld-musl-arm.so.1(sleep+132)(a21aa7b9a98257aa75b223cfa3f19f19)
+#01 pc 0000e321 /system/lib/platformsdk/libhitrace_dump.z.so(void* std::__h::__thread_proxy[abi:v15004]<std::__h::tuple<std::__h::unique_ptr<std::__h::__thread_struct, std::__h::default_delete<std::__h::__thread_struct>>, OHOS::HiviewDFX::Hitrace::(anonymous namespace)::StartCpuBufferBalanceService()::$_3>>(void*)+292)(c538744302cf1fe799ef510dfc628187)
+#02 pc 001092c0 /system/lib/ld-musl-arm.so.1(start+248)(a21aa7b9a98257aa75b223cfa3f19f19)
+#03 pc 00074348 /system/lib/ld-musl-arm.so.1(a21aa7b9a98257aa75b223cfa3f19f19)
+Memory near registers:
+r1([anon:stack:1291]):
+    f693f154 f693f24c
+    f693f158 00000200
+    f693f15c 00000000
+    f693f160 00000000
+    f693f164 00000000
+    f693f168 f67b4efc
+    f693f16c f67b4efc
+    f693f170 00000000
+    f693f174 f67b4e20
+    f693f178 00000000
+    f693f17c 00000000
+    f693f180 f7991a3c
+    f693f184 00000000
+    f693f188 f67b4e20
+    f693f18c 000000dc
+    f693f190 00000000
+    f693f194 00000000
+    f693f198 00000000
+    f693f19c f693f1c4
+    f693f1a0 f0a3f807
+    f693f1a4 000000e1
+    f693f1a8 00000000
+    f693f1ac f693f220
+    f693f1b0 f78ed3b8
+    f693f1b4 00000000
+    f693f1b8 f6d09000
+    f693f1bc 000000e1
+    f693f1c0 f78b0682
+    f693f1c4 00000000
+    f693f1c8 00000000
+    f693f1cc f693f204
+    f693f1d0 f0a3f807
+r6([anon:stack:1291]):
+    f693f244 f693f270
+    f693f248 f716e4a4
+    f693f24c f714661d
+    f693f250 f6cef4f0
+    f693f254 f6b38560
+    f693f258 432b2b00
+    f693f25c f6b38540
+    f693f260 432b2b00
+    f693f264 f6b384c0
+    f693f268 432b2b00
+    f693f26c 434c4e47
+    f693f270 f693f278
+    f693f274 f7186e2c
+    f693f278 f693f298
+    f693f27c f7189fac
+    f693f280 f6b384e8
+    f693f284 f693f304
+    f693f288 f693f2fc
+    f693f28c 00000000
+    f693f290 f5426671
+    f693f294 f6bdb230
+    f693f298 f693f2f4
+    f693f29c f7204260
+    f693f2a0 f693f2fc
+    f693f2a4 00000041
+    f693f2a8 00000035
+    f693f2ac f6d706b0
+    f693f2b0 00000000
+    f693f2b4 00000000
+    f693f2b8 00000000
+    f693f2bc 00000000
+    f693f2c0 00000000
+fp([anon:stack:1291]):
+    f693f1e8 f693f24c
+    f693f1ec f716e5f0
+    f693f1f0 f693f220
+    f693f1f4 f792df18
+    f693f1f8 f693f220
+    f693f1fc f79a9934
+    f693f200 f78b0682
+    f693f204 f7147348
+    f693f208 f79b8dd0
+    f693f20c f693f24c
+    f693f210 f716e5f0
+    f693f214 00000000
+    f693f218 f7147348
+    f693f21c f716e5f0
+    f693f220 f693f244
+    f693f224 f7187b98
+    f693f228 f693f24c
+    f693f22c f67b4e20
+    f693f230 f693f24c
+    f693f234 f6cef4f0
+    f693f238 f714661d
+    f693f23c f7168378
+    f693f240 00000000
+    f693f244 f693f270
+    f693f248 f716e4a4
+    f693f24c f714661d
+    f693f250 f6cef4f0
+    f693f254 f6b38560
+    f693f258 432b2b00
+    f693f25c f6b38540
+    f693f260 432b2b00
+    f693f264 f6b384c0
+r12(/system/lib/chipset-sdk-sp/libc++.so):
+    f720fc30 f7906058
+    f720fc34 f797fa7c
+    f720fc38 f792df04
+    f720fc3c f5825d6c
+    f720fc40 f5825dec
+    f720fc44 f78fd570
+    f720fc48 f7986124
+    f720fc4c f792dfec
+    f720fc50 f5826768
+    f720fc54 f582640c
+    f720fc58 f58265bc
+    f720fc5c f5827204
+    f720fc60 f5827890
+    f720fc64 f5827cbc
+    f720fc68 f5827e24
+    f720fc6c f5827ecc
+    f720fc70 f5827f34
+    f720fc74 f71899b8
+    f720fc78 f7187a74
+    f720fc7c f7189ad8
+    f720fc80 f7187a8c
+    f720fc84 f7187abc
+    f720fc88 f7187ad4
+    f720fc8c f718782c
+    f720fc90 f718778c
+    f720fc94 f7186a0c
+    f720fc98 f716e5f8
+    f720fc9c f7189964
+    f720fca0 f718a268
+    f720fca4 f7186d80
+    f720fca8 f71899fc
+    f720fcac f78ecc28
+sp([anon:stack:1291]):
+    f693f150 f693f24c
+    f693f154 f693f24c
+    f693f158 00000200
+    f693f15c 00000000
+    f693f160 00000000
+    f693f164 00000000
+    f693f168 f67b4efc
+    f693f16c f67b4efc
+    f693f170 00000000
+    f693f174 f67b4e20
+    f693f178 00000000
+    f693f17c 00000000
+    f693f180 f7991a3c
+    f693f184 00000000
+    f693f188 f67b4e20
+    f693f18c 000000dc
+    f693f190 00000000
+    f693f194 00000000
+    f693f198 00000000
+    f693f19c f693f1c4
+    f693f1a0 f0a3f807
+    f693f1a4 000000e1
+    f693f1a8 00000000
+    f693f1ac f693f220
+    f693f1b0 f78ed3b8
+    f693f1b4 00000000
+    f693f1b8 f6d09000
+    f693f1bc 000000e1
+    f693f1c0 f78b0682
+    f693f1c4 00000000
+    f693f1c8 00000000
+    f693f1cc f693f204
+lr(/system/lib/ld-musl-arm.so.1):
+    f792df10 e3a00006
+    f792df14 eb013799
+    f792df18 e59f10b0
+    f792df1c e3a00000
+    f792df20 e59fc0ac
+    f792df24 e3a070af
+    f792df28 e08f1001
+    f792df2c e3a02000
+    f792df30 e08fc00c
+    f792df34 e3a03008
+    f792df38 ef000000
+    f792df3c e3a04000
+    f792df40 e1a0000c
+    f792df44 eb01a3ae
+    f792df48 e28d1008
+    f792df4c f2c00050
+    f792df50 e3a070ae
+    f792df54 e3a02000
+    f792df58 e1a00001
+    f792df5c e3a03008
+    f792df60 f4400acd
+    f792df64 e5804000
+    f792df68 e3a00006
+    f792df6c ef000000
+    f792df70 e3a070ee
+    f792df74 e3a01006
+    f792df78 ee1d0f70
+    f792df7c e3a02000
+    f792df80 e3a03008
+    f792df84 e51000b0
+    f792df88 ef000000
+    f792df8c e58d4004
+pc(/system/lib/ld-musl-arm.so.1):
+    f797be28 e3a03008
+    f797be2c ef000000
+    f797be30 e51b0014
+    f797be34 e59f1024
+    f797be38 e08f1001
+    f797be3c e5911000
+    f797be40 e5911000
+    f797be44 e1510000
+    f797be48 01a00004
+    f797be4c 024bd010
+    f797be50 08bd88f0
+    f797be54 ebfe287f
+    f797be58 fff6f120
+    f797be5c 0003b4e8
+    f797be60 0003b454
+    f797be64 e92d48f0
+    f797be68 e28db010
+    f797be6c e24dd028
+    f797be70 e1a0c002
+    f797be74 e59f20e4
+    f797be78 e08f2002
+    f797be7c e5922000
+    f797be80 e5922000
+    f797be84 e50b2014
+    f797be88 e5914010
+    f797be8c e5916000
+    f797be90 e5913014
+    f797be94 e2942102
+    f797be98 e5915004
+    f797be9c e2a33000
+    f797bea0 e2962102
+    f797bea4 e2b52000
+FaultStack:
+    f693f0d8 00000000
+    f693f0dc 00000000
+    f693f0e0 00000000
+    f693f0e4 00000000
+    f693f0e8 00000000
+    f693f0ec 00000000
+    f693f0f0 00000000
+    f693f0f4 00000000
+    f693f0f8 00000000
+    f693f0fc 00000000
+    f693f100 00000000
+    f693f104 00000000
+    f693f108 00000000
+    f693f10c 00000000
+    f693f110 00000000
+    f693f114 00000000
+    f693f118 00000000
+    f693f11c 00000000
+    f693f120 f693f148
+    f693f124 f0a3f807
+    f693f128 f693f258
+    f693f12c f7991a3c
+    f693f130 f693f24c
+    f693f134 f67b4e20
+    f693f138 000000dc
+    f693f13c f693f158
+    f693f140 f7147348
+    f693f144 f693f1f4
+    f693f148 f693f220
+    f693f14c f7986e68
+    f693f150 f693f24c
+    f693f154 f693f24c
+sp0:f693f158 00000200
+    f693f15c 00000000
+    f693f160 00000000
+    f693f164 00000000
+    f693f168 f67b4efc
+    f693f16c f67b4efc
+    f693f170 00000000
+    f693f174 f67b4e20
+    f693f178 00000000
+    f693f17c 00000000
+    f693f180 f7991a3c
+    f693f184 00000000
+    f693f188 f67b4e20
+    f693f18c 000000dc
+    f693f190 00000000
+    f693f194 00000000
+    f693f198 00000000
+    f693f19c f693f1c4
+    f693f1a0 f0a3f807
+    f693f1a4 000000e1
+    f693f1a8 00000000
+    f693f1ac f693f220
+    f693f1b0 f78ed3b8
+    f693f1b4 00000000
+    f693f1b8 f6d09000
+    f693f1bc 000000e1
+    f693f1c0 f78b0682
+    f693f1c4 00000000
+    f693f1c8 00000000
+    f693f1cc f693f204
+    f693f1d0 f0a3f807
+    f693f1d4 f67b4e20
+    f693f1d8 000000e1
+    f693f1dc f0a3f807
+    f693f1e0 f7147348
+    f693f1e4 f79b8dd0
+    f693f1e8 f693f24c
+    f693f1ec f716e5f0
+    f693f1f0 f693f220
+    f693f1f4 f792df18
+sp1:f693f1f8 f693f220
+    f693f1fc f79a9934
+    f693f200 f78b0682
+    f693f204 f7147348
+    f693f208 f79b8dd0
+    f693f20c f693f24c
+    f693f210 f716e5f0
+    f693f214 00000000
+    f693f218 f7147348
+    f693f21c f716e5f0
+    f693f220 f693f244
+    f693f224 f7187b98
+sp2:f693f228 f693f24c
+    f693f22c f67b4e20
+    f693f230 f693f24c
+    f693f234 f6cef4f0
+    f693f238 f714661d
+    f693f23c f7168378
+    f693f240 00000000
+    f693f244 f693f270
+    f693f248 f716e4a4
+    f693f24c f714661d
+    f693f250 f6cef4f0
+    f693f254 f6b38560
+sp3:f693f258 432b2b00
+    f693f25c f6b38540
+    f693f260 432b2b00
+    f693f264 f6b384c0
+
+Maps:
+61e000-636000 r--p 00000000 /system/bin/hiview
+637000-677000 r-xp 00018000 /system/bin/hiview
+677000-67b000 r--p 00057000 /system/bin/hiview
+67b000-67c000 rw-p 0005a000 /system/bin/hiview
+24e7000-24e8000 ---p 00000000 [heap]
+24e8000-2506000 rw-p 00000000 [heap]
+ed200000-ed210000 r--p 00000000 /system/lib/libxperformance.z.so
+ed210000-ed239000 r-xp 0000f000 /system/lib/libxperformance.z.so
+ed239000-ed23a000 r--p 00037000 /system/lib/libxperformance.z.so
+ed23a000-ed23b000 rw-p 00037000 /system/lib/libxperformance.z.so
+ed23b000-ed23c000 rw-p 00000000 [anon:libxperformance.z.so.bss]
+ed240000-ed254000 r--p 00000000 /system/lib/libwm_lite.z.so
+ed254000-ed266000 r-xp 00013000 /system/lib/libwm_lite.z.so
+ed266000-ed268000 r--p 00024000 /system/lib/libwm_lite.z.so
+ed268000-ed269000 rw-p 00025000 /system/lib/libwm_lite.z.so
+ed280000-ed292000 r--p 00000000 /system/lib/libeventloggerso.z.so
+ed292000-ed2de000 r-xp 00011000 /system/lib/libeventloggerso.z.so
+ed2de000-ed2e1000 r--p 0005c000 /system/lib/libeventloggerso.z.so
+ed2e1000-ed2e2000 rw-p 0005e000 /system/lib/libeventloggerso.z.so
+ed300000-ed301000 r--p 00000000 /system/lib/platformsdk/libjson_stack_formatter.z.so
+ed301000-ed303000 r-xp 00000000 /system/lib/platformsdk/libjson_stack_formatter.z.so
+ed303000-ed304000 r--p 00001000 /system/lib/platformsdk/libjson_stack_formatter.z.so
+ed304000-ed305000 rw-p 00001000 /system/lib/platformsdk/libjson_stack_formatter.z.so
+ed340000-ed343000 r--p 00000000 /system/lib/chipset-sdk/libsocperf_client.z.so
+ed343000-ed349000 r-xp 00002000 /system/lib/chipset-sdk/libsocperf_client.z.so
+ed349000-ed34a000 r--p 00007000 /system/lib/chipset-sdk/libsocperf_client.z.so
+ed34a000-ed34b000 rw-p 00007000 /system/lib/chipset-sdk/libsocperf_client.z.so
+ed380000-ed383000 r--p 00000000 /system/lib/libcrashvalidator.z.so
+ed383000-ed38a000 r-xp 00002000 /system/lib/libcrashvalidator.z.so
+ed38a000-ed38b000 r--p 00008000 /system/lib/libcrashvalidator.z.so
+ed38b000-ed38c000 rw-p 00008000 /system/lib/libcrashvalidator.z.so
+ed3c0000-ed3c5000 r--p 00000000 /system/lib/chipset-sdk/libfaultlogger.z.so
+ed3c5000-ed3cd000 r-xp 00004000 /system/lib/chipset-sdk/libfaultlogger.z.so
+ed3cd000-ed3cf000 r--p 0000b000 /system/lib/chipset-sdk/libfaultlogger.z.so
+ed3cf000-ed3d0000 rw-p 0000c000 /system/lib/chipset-sdk/libfaultlogger.z.so
+ed400000-ed402000 r--p 00000000 /system/lib/chipset-sdk/libcrash_exception.z.so
+ed402000-ed406000 r-xp 00001000 /system/lib/chipset-sdk/libcrash_exception.z.so
+ed406000-ed407000 r--p 00004000 /system/lib/chipset-sdk/libcrash_exception.z.so
+ed407000-ed408000 rw-p 00004000 /system/lib/chipset-sdk/libcrash_exception.z.so
+ed440000-ed456000 r--p 00000000 /system/lib/libbdfr.z.so
+ed456000-ed4ad000 r-xp 00015000 /system/lib/libbdfr.z.so
+ed4ad000-ed4b1000 r--p 0006b000 /system/lib/libbdfr.z.so
+ed4b1000-ed4b2000 rw-p 0006e000 /system/lib/libbdfr.z.so
+ed4b2000-ed4b3000 rw-p 00000000 [anon:libbdfr.z.so.bss]
+ed4c0000-ed5c0000 rw-p 00000000 
+ed8c0000-ed9c0000 rw-p 00000000 
+edac0000-edcc0000 rw-p 00000000 
+edcc0000-edcd1000 r--p 00000000 /system/lib/platformsdk/libheifparser.z.so
+edcd1000-edceb000 r-xp 00010000 /system/lib/platformsdk/libheifparser.z.so
+edceb000-edcee000 r--p 00029000 /system/lib/platformsdk/libheifparser.z.so
+edcee000-edcef000 rw-p 0002b000 /system/lib/platformsdk/libheifparser.z.so
+edd00000-edd03000 r--p 00000000 /system/lib/platformsdk/libsoftbus_dfx.z.so
+edd03000-edd11000 r-xp 00002000 /system/lib/platformsdk/libsoftbus_dfx.z.so
+edd11000-edd18000 r--p 0000f000 /system/lib/platformsdk/libsoftbus_dfx.z.so
+edd18000-edd19000 rw-p 00015000 /system/lib/platformsdk/libsoftbus_dfx.z.so
+edd40000-edd49000 r--p 00000000 /system/lib/chipset-sdk-sp/libhdf_ipc_adapter.z.so
+edd49000-edd56000 r-xp 00008000 /system/lib/chipset-sdk-sp/libhdf_ipc_adapter.z.so
+edd56000-edd58000 r--p 00014000 /system/lib/chipset-sdk-sp/libhdf_ipc_adapter.z.so
+edd58000-edd59000 rw-p 00015000 /system/lib/chipset-sdk-sp/libhdf_ipc_adapter.z.so
+edd80000-edd85000 r--p 00000000 /system/lib/platformsdk/libopencl_wrapper.so
+edd85000-edd8d000 r-xp 00004000 /system/lib/platformsdk/libopencl_wrapper.so
+edd8d000-edd8e000 r--p 0000b000 /system/lib/platformsdk/libopencl_wrapper.so
+edd8e000-edd8f000 rw-p 0000b000 /system/lib/platformsdk/libopencl_wrapper.so
+eddc0000-eddc3000 r--p 00000000 /system/lib/platformsdk/libabsl_log_severity.z.so
+eddc3000-eddc8000 r-xp 00002000 /system/lib/platformsdk/libabsl_log_severity.z.so
+eddc8000-eddc9000 r--p 00006000 /system/lib/platformsdk/libabsl_log_severity.z.so
+eddc9000-eddca000 rw-p 00006000 /system/lib/platformsdk/libabsl_log_severity.z.so
+eddca000-eddcb000 rw-p 00000000 [anon:libabsl_log_severity.z.so.bss]
+ede00000-ede05000 r--p 00000000 /system/lib/platformsdk/libdlp_permission_common_interface.z.so
+ede05000-ede14000 r-xp 00004000 /system/lib/platformsdk/libdlp_permission_common_interface.z.so
+ede14000-ede15000 r--p 00012000 /system/lib/platformsdk/libdlp_permission_common_interface.z.so
+ede15000-ede16000 rw-p 00012000 /system/lib/platformsdk/libdlp_permission_common_interface.z.so
+ede40000-ede66000 r--p 00000000 /system/lib/platformsdk/libsoftbus_utils.z.so
+ede66000-ede9b000 r-xp 00025000 /system/lib/platformsdk/libsoftbus_utils.z.so
+ede9b000-ede9d000 r--p 00059000 /system/lib/platformsdk/libsoftbus_utils.z.so
+ede9d000-edea0000 rw-p 0005a000 /system/lib/platformsdk/libsoftbus_utils.z.so
+edea0000-edea1000 rw-p 00000000 [anon:libsoftbus_utils.z.so.bss]
+edec0000-edec3000 r--p 00000000 /system/lib/libqos.z.so
+edec3000-edec9000 r-xp 00002000 /system/lib/libqos.z.so
+edec9000-edeca000 r--p 00007000 /system/lib/libqos.z.so
+edeca000-edecb000 rw-p 00007000 /system/lib/libqos.z.so
+edf00000-edf09000 r--p 00000000 /system/lib/platformsdk/libnative_preferences.z.so
+edf09000-edf25000 r-xp 00008000 /system/lib/platformsdk/libnative_preferences.z.so
+edf25000-edf27000 r--p 00023000 /system/lib/platformsdk/libnative_preferences.z.so
+edf27000-edf28000 rw-p 00024000 /system/lib/platformsdk/libnative_preferences.z.so
+edf40000-edfa3000 r--p 00000000 /system/lib/libstd.dylib.so
+edfa3000-ee041000 r-xp 00062000 /system/lib/libstd.dylib.so
+ee041000-ee046000 r--p 000ff000 /system/lib/libstd.dylib.so
+ee046000-ee047000 rw-p 00103000 /system/lib/libstd.dylib.so
+ee047000-ee048000 rw-p 00000000 [anon:libstd.dylib.so.bss]
+ee080000-ee084000 r--p 00000000 /system/lib/platformsdk/libtimer.z.so
+ee084000-ee089000 r-xp 00003000 /system/lib/platformsdk/libtimer.z.so
+ee089000-ee08a000 r--p 00007000 /system/lib/platformsdk/libtimer.z.so
+ee08a000-ee08b000 rw-p 00007000 /system/lib/platformsdk/libtimer.z.so
+ee0c0000-ee0c8000 r--p 00000000 /system/lib/platformsdk/libdevicestatus_util.z.so
+ee0c8000-ee0de000 r-xp 00007000 /system/lib/platformsdk/libdevicestatus_util.z.so
+ee0de000-ee0df000 r--p 0001c000 /system/lib/platformsdk/libdevicestatus_util.z.so
+ee0df000-ee0e0000 rw-p 0001c000 /system/lib/platformsdk/libdevicestatus_util.z.so
+ee0e0000-ee0e1000 rw-p 00000000 [anon:libdevicestatus_util.z.so.bss]
+ee100000-ee101000 r--p 00000000 /system/lib/platformsdk/libabsl_strings_internal.z.so
+ee101000-ee102000 r-xp 00000000 /system/lib/platformsdk/libabsl_strings_internal.z.so
+ee102000-ee103000 r--p 00000000 /system/lib/platformsdk/libabsl_strings_internal.z.so
+ee103000-ee104000 rw-p 00000000 /system/lib/platformsdk/libabsl_strings_internal.z.so
+ee140000-ee152000 r--p 00000000 /system/lib/platformsdk/libnapi_common.z.so
+ee152000-ee166000 r-xp 00011000 /system/lib/platformsdk/libnapi_common.z.so
+ee166000-ee167000 r--p 00024000 /system/lib/platformsdk/libnapi_common.z.so
+ee167000-ee168000 rw-p 00024000 /system/lib/platformsdk/libnapi_common.z.so
+ee168000-ee169000 rw-p 00000000 [anon:libnapi_common.z.so.bss]
+ee180000-ee1c5000 r--p 00000000 /system/lib/platformsdk/libsoftbus_client.z.so
+ee1c5000-ee23a000 r-xp 00044000 /system/lib/platformsdk/libsoftbus_client.z.so
+ee23a000-ee23e000 r--p 000b8000 /system/lib/platformsdk/libsoftbus_client.z.so
+ee23e000-ee23f000 rw-p 000bb000 /system/lib/platformsdk/libsoftbus_client.z.so
+ee240000-ee24c000 r--p 00000000 /system/lib/libapp_util.z.so
+ee24c000-ee260000 r-xp 0000b000 /system/lib/libapp_util.z.so
+ee260000-ee262000 r--p 0001e000 /system/lib/libapp_util.z.so
+ee262000-ee263000 rw-p 0001f000 /system/lib/libapp_util.z.so
+ee280000-ee28c000 r--p 00000000 /system/lib/platformsdk/libapp_context_utils.z.so
+ee28c000-ee2a1000 r-xp 0000b000 /system/lib/platformsdk/libapp_context_utils.z.so
+ee2a1000-ee2a3000 r--p 0001f000 /system/lib/platformsdk/libapp_context_utils.z.so
+ee2a3000-ee2a4000 rw-p 00020000 /system/lib/platformsdk/libapp_context_utils.z.so
+ee2c0000-ee2c3000 r--p 00000000 /system/lib/platformsdk/libdevicestatus_ipc.z.so
+ee2c3000-ee2c8000 r-xp 00002000 /system/lib/platformsdk/libdevicestatus_ipc.z.so
+ee2c8000-ee2c9000 r--p 00006000 /system/lib/platformsdk/libdevicestatus_ipc.z.so
+ee2c9000-ee2ca000 rw-p 00006000 /system/lib/platformsdk/libdevicestatus_ipc.z.so
+ee300000-ee33a000 r--p 00000000 /system/lib/platformsdk/libruntime.z.so
+ee33a000-ee38c000 r-xp 00039000 /system/lib/platformsdk/libruntime.z.so
+ee38c000-ee38e000 r--p 0008a000 /system/lib/platformsdk/libruntime.z.so
+ee38e000-ee38f000 rw-p 0008b000 /system/lib/platformsdk/libruntime.z.so
+ee38f000-ee390000 rw-p 00000000 [anon:libruntime.z.so.bss]
+ee3c0000-ee3c2000 r--p 00000000 /system/lib/platformsdk/libmission_info.z.so
+ee3c2000-ee3c4000 r-xp 00001000 /system/lib/platformsdk/libmission_info.z.so
+ee3c4000-ee3c5000 r--p 00002000 /system/lib/platformsdk/libmission_info.z.so
+ee3c5000-ee3c6000 rw-p 00002000 /system/lib/platformsdk/libmission_info.z.so
+ee400000-ee405000 r--p 00000000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.0.z.so
+ee405000-ee40a000 r-xp 00004000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.0.z.so
+ee40a000-ee40b000 r--p 00008000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.0.z.so
+ee40b000-ee40c000 rw-p 00008000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.0.z.so
+ee440000-ee458000 r--p 00000000 /system/lib/platformsdk/libvsync.z.so
+ee458000-ee475000 r-xp 00017000 /system/lib/platformsdk/libvsync.z.so
+ee475000-ee478000 r--p 00033000 /system/lib/platformsdk/libvsync.z.so
+ee478000-ee479000 rw-p 00035000 /system/lib/platformsdk/libvsync.z.so
+ee480000-ee4a5000 r--p 00000000 /system/lib/platformsdk/libwmutil.z.so
+ee4a5000-ee4d4000 r-xp 00024000 /system/lib/platformsdk/libwmutil.z.so
+ee4d4000-ee4d6000 r--p 00052000 /system/lib/platformsdk/libwmutil.z.so
+ee4d6000-ee4d7000 rw-p 00053000 /system/lib/platformsdk/libwmutil.z.so
+ee500000-ef20a000 r--p 00000000 /system/lib/libskia_canvaskit.z.so
+ef20a000-efa4f000 r-xp 00d09000 /system/lib/libskia_canvaskit.z.so
+efa4f000-efa7d000 r--p 0154d000 /system/lib/libskia_canvaskit.z.so
+efa7d000-efa7f000 rw-p 0157a000 /system/lib/libskia_canvaskit.z.so
+efa7f000-efa86000 rw-p 00000000 [anon:libskia_canvaskit.z.so.bss]
+efac0000-efb8f000 r--p 00000000 /system/lib/chipset-sdk/libohosffmpeg.z.so
+efb8f000-eff1c000 r-xp 000ce000 /system/lib/chipset-sdk/libohosffmpeg.z.so
+eff1c000-eff45000 r--p 0045a000 /system/lib/chipset-sdk/libohosffmpeg.z.so
+eff45000-eff47000 rw-p 00482000 /system/lib/chipset-sdk/libohosffmpeg.z.so
+eff47000-f02f6000 rw-p 00000000 [anon:libohosffmpeg.z.so.bss]
+f0300000-f030f000 r--p 00000000 /system/lib/chipset-sdk-sp/libhdi.z.so
+f030f000-f0320000 r-xp 0000e000 /system/lib/chipset-sdk-sp/libhdi.z.so
+f0320000-f0322000 r--p 0001f000 /system/lib/chipset-sdk-sp/libhdi.z.so
+f0322000-f0323000 rw-p 00020000 /system/lib/chipset-sdk-sp/libhdi.z.so
+f0340000-f0348000 r--p 00000000 /system/lib/platformsdk/libdrawable_descriptor.z.so
+f0348000-f0355000 r-xp 00007000 /system/lib/platformsdk/libdrawable_descriptor.z.so
+f0355000-f0356000 r--p 00013000 /system/lib/platformsdk/libdrawable_descriptor.z.so
+f0356000-f0357000 rw-p 00013000 /system/lib/platformsdk/libdrawable_descriptor.z.so
+f0380000-f0382000 r--p 00000000 /system/lib/platformsdk/libprivacy_communication_adapter_cxx.z.so
+f0382000-f0387000 r-xp 00001000 /system/lib/platformsdk/libprivacy_communication_adapter_cxx.z.so
+f0387000-f0389000 r--p 00005000 /system/lib/platformsdk/libprivacy_communication_adapter_cxx.z.so
+f0389000-f038a000 rw-p 00006000 /system/lib/platformsdk/libprivacy_communication_adapter_cxx.z.so
+f03c0000-f045d000 r--p 00000000 /system/lib/platformsdk/librender_service_client.z.so
+f045d000-f05c4000 r-xp 0009c000 /system/lib/platformsdk/librender_service_client.z.so
+f05c4000-f05ce000 r--p 00202000 /system/lib/platformsdk/librender_service_client.z.so
+f05ce000-f05cf000 rw-p 0020b000 /system/lib/platformsdk/librender_service_client.z.so
+f05cf000-f05d1000 rw-p 00000000 [anon:librender_service_client.z.so.bss]
+f0600000-f0607000 r--p 00000000 /system/lib/libintention_event.z.so
+f0607000-f060f000 r-xp 00006000 /system/lib/libintention_event.z.so
+f060f000-f0610000 r--p 0000d000 /system/lib/libintention_event.z.so
+f0610000-f0611000 rw-p 0000d000 /system/lib/libintention_event.z.so
+f0611000-f0612000 rw-p 00000000 [anon:libintention_event.z.so.bss]
+f0640000-f0641000 r--p 00000000 /system/lib/platformsdk/libnstackx_congestion.open.z.so
+f0641000-f0644000 r-xp 00000000 /system/lib/platformsdk/libnstackx_congestion.open.z.so
+f0644000-f0645000 r--p 00002000 /system/lib/platformsdk/libnstackx_congestion.open.z.so
+f0645000-f0646000 rw-p 00002000 /system/lib/platformsdk/libnstackx_congestion.open.z.so
+f0680000-f0681000 r--p 00000000 /system/lib/platformsdk/libabsl_raw_logging_internal.z.so
+f0681000-f0682000 r-xp 00000000 /system/lib/platformsdk/libabsl_raw_logging_internal.z.so
+f0682000-f0683000 r--p 00000000 /system/lib/platformsdk/libabsl_raw_logging_internal.z.so
+f0683000-f0684000 rw-p 00000000 /system/lib/platformsdk/libabsl_raw_logging_internal.z.so
+f06c0000-f06c2000 r--p 00000000 /system/lib/platformsdk/libability_runtime_error_util.z.so
+f06c2000-f06c5000 r-xp 00001000 /system/lib/platformsdk/libability_runtime_error_util.z.so
+f06c5000-f06c6000 r--p 00003000 /system/lib/platformsdk/libability_runtime_error_util.z.so
+f06c6000-f06c7000 rw-p 00003000 /system/lib/platformsdk/libability_runtime_error_util.z.so
+f0700000-f075e000 r--p 00000000 /system/lib/chipset-sdk/libprotobuf_lite.z.so
+f075e000-f07eb000 r-xp 0005d000 /system/lib/chipset-sdk/libprotobuf_lite.z.so
+f07eb000-f07ee000 r--p 000e9000 /system/lib/chipset-sdk/libprotobuf_lite.z.so
+f07ee000-f07ef000 rw-p 000eb000 /system/lib/chipset-sdk/libprotobuf_lite.z.so
+f07ef000-f07f1000 rw-p 00000000 [anon:libprotobuf_lite.z.so.bss]
+f0800000-f0806000 r--p 00000000 /system/lib/platformsdk/libwantagent_manager.z.so
+f0806000-f080d000 r-xp 00005000 /system/lib/platformsdk/libwantagent_manager.z.so
+f080d000-f0810000 r--p 0000b000 /system/lib/platformsdk/libwantagent_manager.z.so
+f0810000-f0811000 rw-p 0000d000 /system/lib/platformsdk/libwantagent_manager.z.so
+f0840000-f084c000 r--p 00000000 /system/lib/libfileuri_native.z.so
+f084c000-f0862000 r-xp 0000b000 /system/lib/libfileuri_native.z.so
+f0862000-f0863000 r--p 00020000 /system/lib/libfileuri_native.z.so
+f0863000-f0864000 rw-p 00020000 /system/lib/libfileuri_native.z.so
+f0864000-f0865000 rw-p 00000000 [anon:libfileuri_native.z.so.bss]
+f0880000-f096c000 r--p 00000000 /system/lib/platformsdk/libark_jsruntime.so
+f096c000-f0f29000 r-xp 000eb000 /system/lib/platformsdk/libark_jsruntime.so
+f0f29000-f0f38000 r--p 006a7000 /system/lib/platformsdk/libark_jsruntime.so
+f0f38000-f0f3b000 rw-p 006b5000 /system/lib/platformsdk/libark_jsruntime.so
+f0f3b000-f104e000 rw-p 00000000 [anon:libark_jsruntime.so.bss]
+f1080000-f1081000 r--p 00000000 /system/lib/chipset-sdk-sp/libbuffer_handle.z.so
+f1081000-f1083000 r-xp 00000000 /system/lib/chipset-sdk-sp/libbuffer_handle.z.so
+f1083000-f1084000 r--p 00001000 /system/lib/chipset-sdk-sp/libbuffer_handle.z.so
+f1084000-f1085000 rw-p 00001000 /system/lib/chipset-sdk-sp/libbuffer_handle.z.so
+f10c0000-f10c2000 r--p 00000000 /system/lib/platformsdk/libace_uicontent.z.so
+f10c2000-f10c4000 r-xp 00001000 /system/lib/platformsdk/libace_uicontent.z.so
+f10c4000-f10c5000 r--p 00002000 /system/lib/platformsdk/libace_uicontent.z.so
+f10c5000-f10c6000 rw-p 00002000 /system/lib/platformsdk/libace_uicontent.z.so
+f1100000-f1102000 r--p 00000000 /system/lib/platformsdk/libability_deps_wrapper.z.so
+f1102000-f1104000 r-xp 00001000 /system/lib/platformsdk/libability_deps_wrapper.z.so
+f1104000-f1105000 r--p 00002000 /system/lib/platformsdk/libability_deps_wrapper.z.so
+f1105000-f1106000 rw-p 00002000 /system/lib/platformsdk/libability_deps_wrapper.z.so
+f1140000-f1143000 r--p 00000000 /system/lib/platformsdk/libability_start_options.z.so
+f1143000-f1147000 r-xp 00002000 /system/lib/platformsdk/libability_start_options.z.so
+f1147000-f1148000 r--p 00005000 /system/lib/platformsdk/libability_start_options.z.so
+f1148000-f1149000 rw-p 00005000 /system/lib/platformsdk/libability_start_options.z.so
+f1180000-f1192000 r--p 00000000 /system/lib/platformsdk/libsoftbus_adapter.z.so
+f1192000-f11af000 r-xp 00011000 /system/lib/platformsdk/libsoftbus_adapter.z.so
+f11af000-f11b0000 r--p 0002d000 /system/lib/platformsdk/libsoftbus_adapter.z.so
+f11b0000-f11b1000 rw-p 0002d000 /system/lib/platformsdk/libsoftbus_adapter.z.so
+f11b1000-f11b2000 rw-p 00000000 [anon:libsoftbus_adapter.z.so.bss]
+f11c0000-f11c4000 r--p 00000000 /system/lib/platformsdk/libabsl_int128.z.so
+f11c4000-f11cc000 r-xp 00003000 /system/lib/platformsdk/libabsl_int128.z.so
+f11cc000-f11cd000 r--p 0000a000 /system/lib/platformsdk/libabsl_int128.z.so
+f11cd000-f11ce000 rw-p 0000a000 /system/lib/platformsdk/libabsl_int128.z.so
+f1200000-f1232000 r--p 00000000 /system/lib/platformsdk/libdm.z.so
+f1232000-f128b000 r-xp 00031000 /system/lib/platformsdk/libdm.z.so
+f128b000-f1297000 r--p 00089000 /system/lib/platformsdk/libdm.z.so
+f1297000-f1298000 rw-p 00094000 /system/lib/platformsdk/libdm.z.so
+f12c0000-f12c2000 r--p 00000000 /system/lib/platformsdk/libwsutils.z.so
+f12c2000-f12c5000 r-xp 00001000 /system/lib/platformsdk/libwsutils.z.so
+f12c5000-f12c6000 r--p 00003000 /system/lib/platformsdk/libwsutils.z.so
+f12c6000-f12c7000 rw-p 00003000 /system/lib/platformsdk/libwsutils.z.so
+f1300000-f1333000 r--p 00000000 /system/lib/platformsdk/libmedia_foundation.z.so
+f1333000-f1385000 r-xp 00032000 /system/lib/platformsdk/libmedia_foundation.z.so
+f1385000-f1389000 r--p 00083000 /system/lib/platformsdk/libmedia_foundation.z.so
+f1389000-f138b000 rw-p 00086000 /system/lib/platformsdk/libmedia_foundation.z.so
+f13c0000-f13d6000 r--p 00000000 /system/lib/platformsdk/libwindow_scene_common.z.so
+f13d6000-f13ef000 r-xp 00015000 /system/lib/platformsdk/libwindow_scene_common.z.so
+f13ef000-f13f2000 r--p 0002d000 /system/lib/platformsdk/libwindow_scene_common.z.so
+f13f2000-f13f3000 rw-p 0002f000 /system/lib/platformsdk/libwindow_scene_common.z.so
+f1400000-f1414000 r--p 00000000 /system/lib/chipset-sdk/libexif.z.so
+f1414000-f1424000 r-xp 00013000 /system/lib/chipset-sdk/libexif.z.so
+f1424000-f1432000 r--p 00022000 /system/lib/chipset-sdk/libexif.z.so
+f1432000-f1433000 rw-p 0002f000 /system/lib/chipset-sdk/libexif.z.so
+f1440000-f1443000 r--p 00000000 /system/lib/platformsdk/libace_container_scope.z.so
+f1443000-f1449000 r-xp 00002000 /system/lib/platformsdk/libace_container_scope.z.so
+f1449000-f144a000 r--p 00007000 /system/lib/platformsdk/libace_container_scope.z.so
+f144a000-f144b000 rw-p 00007000 /system/lib/platformsdk/libace_container_scope.z.so
+f1480000-f1497000 r--p 00000000 /system/lib/platformsdk/libipc_napi.z.so
+f1497000-f14bc000 r-xp 00016000 /system/lib/platformsdk/libipc_napi.z.so
+f14bc000-f14bf000 r--p 0003a000 /system/lib/platformsdk/libipc_napi.z.so
+f14bf000-f14c0000 rw-p 0003c000 /system/lib/platformsdk/libipc_napi.z.so
+f14c0000-f14c3000 r--p 00000000 /system/lib/platformsdk/libcolor_manager.z.so
+f14c3000-f14c6000 r-xp 00002000 /system/lib/platformsdk/libcolor_manager.z.so
+f14c6000-f14c7000 r--p 00004000 /system/lib/platformsdk/libcolor_manager.z.so
+f14c7000-f14c8000 rw-p 00004000 /system/lib/platformsdk/libcolor_manager.z.so
+f1500000-f1506000 r--p 00000000 /system/lib/platformsdk/libconsole.z.so
+f1506000-f150f000 r-xp 00005000 /system/lib/platformsdk/libconsole.z.so
+f150f000-f1511000 r--p 0000d000 /system/lib/platformsdk/libconsole.z.so
+f1511000-f1512000 rw-p 0000e000 /system/lib/platformsdk/libconsole.z.so
+f1540000-f154b000 r--p 00000000 /system/lib/platformsdk/libuv.so
+f154b000-f1569000 r-xp 0000a000 /system/lib/platformsdk/libuv.so
+f1569000-f156b000 r--p 00027000 /system/lib/platformsdk/libuv.so
+f156b000-f156c000 rw-p 00028000 /system/lib/platformsdk/libuv.so
+f1580000-f15b2000 r--p 00000000 /system/lib/platformsdk/libace_napi.z.so
+f15b2000-f15f5000 r-xp 00031000 /system/lib/platformsdk/libace_napi.z.so
+f15f5000-f15f8000 r--p 00073000 /system/lib/platformsdk/libace_napi.z.so
+f15f8000-f15f9000 rw-p 00075000 /system/lib/platformsdk/libace_napi.z.so
+f15f9000-f15fa000 rw-p 00000000 [anon:libace_napi.z.so.bss]
+f1600000-f160c000 r--p 00000000 /system/lib/chipset-sdk/libturbojpeg.z.so
+f160c000-f1656000 r-xp 0000b000 /system/lib/chipset-sdk/libturbojpeg.z.so
+f1656000-f1657000 r--p 00054000 /system/lib/chipset-sdk/libturbojpeg.z.so
+f1657000-f1658000 rw-p 00054000 /system/lib/chipset-sdk/libturbojpeg.z.so
+f1680000-f16e0000 r--p 00000000 /system/lib/platformsdk/libintl_util.z.so
+f16e0000-f1788000 r-xp 0005f000 /system/lib/platformsdk/libintl_util.z.so
+f1788000-f178b000 r--p 00106000 /system/lib/platformsdk/libintl_util.z.so
+f178b000-f178c000 rw-p 00108000 /system/lib/platformsdk/libintl_util.z.so
+f178c000-f178d000 rw-p 00000000 [anon:libintl_util.z.so.bss]
+f17c0000-f17c3000 r--p 00000000 /system/lib/chipset-sdk-sp/libpub_utils.z.so
+f17c3000-f17c7000 r-xp 00002000 /system/lib/chipset-sdk-sp/libpub_utils.z.so
+f17c7000-f17c8000 r--p 00005000 /system/lib/chipset-sdk-sp/libpub_utils.z.so
+f17c8000-f17c9000 rw-p 00005000 /system/lib/chipset-sdk-sp/libpub_utils.z.so
+f1800000-f180f000 r--p 00000000 /system/lib/platformsdk/libsession_manager_lite.z.so
+f180f000-f1827000 r-xp 0000e000 /system/lib/platformsdk/libsession_manager_lite.z.so
+f1827000-f182a000 r--p 00025000 /system/lib/platformsdk/libsession_manager_lite.z.so
+f182a000-f182b000 rw-p 00027000 /system/lib/platformsdk/libsession_manager_lite.z.so
+f1840000-f1843000 r--p 00000000 /system/lib/platformsdk/libsession_handler.z.so
+f1843000-f1845000 r-xp 00002000 /system/lib/platformsdk/libsession_handler.z.so
+f1845000-f1847000 r--p 00003000 /system/lib/platformsdk/libsession_handler.z.so
+f1847000-f1848000 rw-p 00004000 /system/lib/platformsdk/libsession_handler.z.so
+f1880000-f1889000 r--p 00000000 /system/lib/libimf_hisysevent.z.so
+f1889000-f189a000 r-xp 00008000 /system/lib/libimf_hisysevent.z.so
+f189a000-f189c000 r--p 00018000 /system/lib/libimf_hisysevent.z.so
+f189c000-f189d000 rw-p 00019000 /system/lib/libimf_hisysevent.z.so
+f189d000-f189e000 rw-p 00000000 [anon:libimf_hisysevent.z.so.bss]
+f18c0000-f18cd000 r--p 00000000 /system/lib/platformsdk/libnstackx_ctrl.z.so
+f18cd000-f18e7000 r-xp 0000c000 /system/lib/platformsdk/libnstackx_ctrl.z.so
+f18e7000-f18e8000 r--p 00025000 /system/lib/platformsdk/libnstackx_ctrl.z.so
+f18e8000-f18e9000 rw-p 00025000 /system/lib/platformsdk/libnstackx_ctrl.z.so
+f18e9000-f18ea000 rw-p 00000000 [anon:libnstackx_ctrl.z.so.bss]
+f1900000-f1907000 r--p 00000000 /system/lib/platformsdk/libjs_environment.z.so
+f1907000-f1911000 r-xp 00006000 /system/lib/platformsdk/libjs_environment.z.so
+f1911000-f1913000 r--p 0000f000 /system/lib/platformsdk/libjs_environment.z.so
+f1913000-f1914000 rw-p 00010000 /system/lib/platformsdk/libjs_environment.z.so
+f1940000-f1952000 r--p 00000000 /system/lib/chipset-sdk/libpng.z.so
+f1952000-f1983000 r-xp 00011000 /system/lib/chipset-sdk/libpng.z.so
+f1983000-f1985000 r--p 00041000 /system/lib/chipset-sdk/libpng.z.so
+f1985000-f1986000 rw-p 00042000 /system/lib/chipset-sdk/libpng.z.so
+f19c0000-f19cb000 r--p 00000000 /system/lib/platformsdk/libbundle_napi_common.z.so
+f19cb000-f19de000 r-xp 0000a000 /system/lib/platformsdk/libbundle_napi_common.z.so
+f19de000-f19e0000 r--p 0001c000 /system/lib/platformsdk/libbundle_napi_common.z.so
+f19e0000-f19e1000 rw-p 0001d000 /system/lib/platformsdk/libbundle_napi_common.z.so
+f1a00000-f1a04000 r--p 00000000 /system/lib/platformsdk/libcolor_space_object_convertor.z.so
+f1a04000-f1a09000 r-xp 00003000 /system/lib/platformsdk/libcolor_space_object_convertor.z.so
+f1a09000-f1a0a000 r--p 00007000 /system/lib/platformsdk/libcolor_space_object_convertor.z.so
+f1a0a000-f1a0b000 rw-p 00007000 /system/lib/platformsdk/libcolor_space_object_convertor.z.so
+f1a40000-f1a44000 r--p 00000000 /system/lib/ndk/libsync_fence.z.so
+f1a44000-f1a49000 r-xp 00003000 /system/lib/ndk/libsync_fence.z.so
+f1a49000-f1a4a000 r--p 00007000 /system/lib/ndk/libsync_fence.z.so
+f1a4a000-f1a4b000 rw-p 00007000 /system/lib/ndk/libsync_fence.z.so
+f1a80000-f1a8b000 r--p 00000000 /system/lib/platformsdk/libabsl_strings.z.so
+f1a8b000-f1a96000 r-xp 0000a000 /system/lib/platformsdk/libabsl_strings.z.so
+f1a96000-f1a97000 r--p 00014000 /system/lib/platformsdk/libabsl_strings.z.so
+f1a97000-f1a98000 rw-p 00014000 /system/lib/platformsdk/libabsl_strings.z.so
+f1ac0000-f1ad9000 r--p 00000000 /system/lib/platformsdk/libscreen_session.z.so
+f1ad9000-f1af6000 r-xp 00018000 /system/lib/platformsdk/libscreen_session.z.so
+f1af6000-f1af7000 r--p 00034000 /system/lib/platformsdk/libscreen_session.z.so
+f1af7000-f1af8000 rw-p 00034000 /system/lib/platformsdk/libscreen_session.z.so
+f1af8000-f1af9000 rw-p 00000000 [anon:libscreen_session.z.so.bss]
+f1b00000-f1b03000 r--p 00000000 /system/lib/platformsdk/libability_business_error.z.so
+f1b03000-f1b04000 r-xp 00002000 /system/lib/platformsdk/libability_business_error.z.so
+f1b04000-f1b06000 r--p 00002000 /system/lib/platformsdk/libability_business_error.z.so
+f1b06000-f1b07000 rw-p 00003000 /system/lib/platformsdk/libability_business_error.z.so
+f1b40000-f1baf000 r--p 00000000 /system/lib/lib2d_graphics.z.so
+f1baf000-f1c5c000 r-xp 0006e000 /system/lib/lib2d_graphics.z.so
+f1c5c000-f1c64000 r--p 0011a000 /system/lib/lib2d_graphics.z.so
+f1c64000-f1c65000 rw-p 00121000 /system/lib/lib2d_graphics.z.so
+f1c65000-f1c68000 rw-p 00000000 [anon:lib2d_graphics.z.so.bss]
+f1c80000-f1c9f000 r--p 00000000 /system/lib/platformsdk/libaccessibility_interface.z.so
+f1c9f000-f1cd9000 r-xp 0001e000 /system/lib/platformsdk/libaccessibility_interface.z.so
+f1cd9000-f1ce0000 r--p 00057000 /system/lib/platformsdk/libaccessibility_interface.z.so
+f1ce0000-f1ce1000 rw-p 0005d000 /system/lib/platformsdk/libaccessibility_interface.z.so
+f1d00000-f1d02000 r--p 00000000 /system/lib/platformsdk/libsocketpair.z.so
+f1d02000-f1d04000 r-xp 00001000 /system/lib/platformsdk/libsocketpair.z.so
+f1d04000-f1d05000 r--p 00002000 /system/lib/platformsdk/libsocketpair.z.so
+f1d05000-f1d06000 rw-p 00002000 /system/lib/platformsdk/libsocketpair.z.so
+f1d40000-f1d43000 r--p 00000000 /system/lib/platformsdk/libegl_image.z.so
+f1d43000-f1d47000 r-xp 00002000 /system/lib/platformsdk/libegl_image.z.so
+f1d47000-f1d48000 r--p 00005000 /system/lib/platformsdk/libegl_image.z.so
+f1d48000-f1d49000 rw-p 00005000 /system/lib/platformsdk/libegl_image.z.so
+f1d80000-f1d8e000 r--p 00000000 /system/lib/platformsdk/libastc_encoder_shared.z.so
+f1d8e000-f1daf000 r-xp 0000d000 /system/lib/platformsdk/libastc_encoder_shared.z.so
+f1daf000-f1db0000 r--p 0002d000 /system/lib/platformsdk/libastc_encoder_shared.z.so
+f1db0000-f1db1000 rw-p 0002d000 /system/lib/platformsdk/libastc_encoder_shared.z.so
+f1db1000-f1db5000 rw-p 00000000 [anon:libastc_encoder_shared.z.so.bss]
+f1dc0000-f1de3000 r--p 00000000 /system/lib/platformsdk/libscreen_session_manager_client.z.so
+f1de3000-f1e20000 r-xp 00022000 /system/lib/platformsdk/libscreen_session_manager_client.z.so
+f1e20000-f1e24000 r--p 0005e000 /system/lib/platformsdk/libscreen_session_manager_client.z.so
+f1e24000-f1e25000 rw-p 00061000 /system/lib/platformsdk/libscreen_session_manager_client.z.so
+f1e40000-f1e52000 r--p 00000000 /system/lib/platformsdk/libimage_utils.z.so
+f1e52000-f1e71000 r-xp 00011000 /system/lib/platformsdk/libimage_utils.z.so
+f1e71000-f1e73000 r--p 0002f000 /system/lib/platformsdk/libimage_utils.z.so
+f1e73000-f1e74000 rw-p 00030000 /system/lib/platformsdk/libimage_utils.z.so
+f1e80000-f1e8c000 r--p 00000000 /system/lib/platformsdk/libnstackx_dfile.open.z.so
+f1e8c000-f1ea9000 r-xp 0000b000 /system/lib/platformsdk/libnstackx_dfile.open.z.so
+f1ea9000-f1eab000 r--p 00027000 /system/lib/platformsdk/libnstackx_dfile.open.z.so
+f1eab000-f1eac000 rw-p 00028000 /system/lib/platformsdk/libnstackx_dfile.open.z.so
+f1ec0000-f1ec5000 r--p 00000000 /system/lib/platformsdk/libnstackx_util.open.z.so
+f1ec5000-f1ed0000 r-xp 00004000 /system/lib/platformsdk/libnstackx_util.open.z.so
+f1ed0000-f1ed1000 r--p 0000e000 /system/lib/platformsdk/libnstackx_util.open.z.so
+f1ed1000-f1ed2000 rw-p 0000e000 /system/lib/platformsdk/libnstackx_util.open.z.so
+f1f00000-f1f25000 r--p 00000000 /system/lib/platformsdk/libapp_context.z.so
+f1f25000-f1f55000 r-xp 00024000 /system/lib/platformsdk/libapp_context.z.so
+f1f55000-f1f57000 r--p 00053000 /system/lib/platformsdk/libapp_context.z.so
+f1f57000-f1f58000 rw-p 00054000 /system/lib/platformsdk/libapp_context.z.so
+f1f80000-f1f81000 r--p 00000000 /system/lib/platformsdk/libextractresourcemanager.z.so
+f1f81000-f1f82000 r-xp 00000000 /system/lib/platformsdk/libextractresourcemanager.z.so
+f1f82000-f1f83000 r--p 00000000 /system/lib/platformsdk/libextractresourcemanager.z.so
+f1f83000-f1f84000 rw-p 00000000 /system/lib/platformsdk/libextractresourcemanager.z.so
+f1fc0000-f1fc1000 r--p 00000000 /system/lib/platformsdk/librecord_cost_time_util.z.so
+f1fc1000-f1fc4000 r-xp 00000000 /system/lib/platformsdk/librecord_cost_time_util.z.so
+f1fc4000-f1fc5000 r--p 00002000 /system/lib/platformsdk/librecord_cost_time_util.z.so
+f1fc5000-f1fc6000 rw-p 00002000 /system/lib/platformsdk/librecord_cost_time_util.z.so
+f2000000-f2004000 r--p 00000000 /system/lib/platformsdk/libframe_analyzer.z.so
+f2004000-f2009000 r-xp 00003000 /system/lib/platformsdk/libframe_analyzer.z.so
+f2009000-f200b000 r--p 00007000 /system/lib/platformsdk/libframe_analyzer.z.so
+f200b000-f200c000 rw-p 00008000 /system/lib/platformsdk/libframe_analyzer.z.so
+f200c000-f200e000 rw-p 00000000 [anon:libframe_analyzer.z.so.bss]
+f2040000-f2053000 r--p 00000000 /system/lib/platformsdk/libinputmethod_client.z.so
+f2053000-f2091000 r-xp 00012000 /system/lib/platformsdk/libinputmethod_client.z.so
+f2091000-f2096000 r--p 0004f000 /system/lib/platformsdk/libinputmethod_client.z.so
+f2096000-f2097000 rw-p 00053000 /system/lib/platformsdk/libinputmethod_client.z.so
+f20c0000-f20c4000 r--p 00000000 /system/lib/platformsdk/libdialog_request_callback.z.so
+f20c4000-f20c6000 r-xp 00003000 /system/lib/platformsdk/libdialog_request_callback.z.so
+f20c6000-f20c8000 r--p 00004000 /system/lib/platformsdk/libdialog_request_callback.z.so
+f20c8000-f20c9000 rw-p 00005000 /system/lib/platformsdk/libdialog_request_callback.z.so
+f2100000-f2105000 r--p 00000000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.2.z.so
+f2105000-f2108000 r-xp 00004000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.2.z.so
+f2108000-f210a000 r--p 00006000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.2.z.so
+f210a000-f210b000 rw-p 00007000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.2.z.so
+f2140000-f2144000 r--p 00000000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.1.z.so
+f2144000-f2148000 r-xp 00003000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.1.z.so
+f2148000-f2149000 r--p 00006000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.1.z.so
+f2149000-f214a000 rw-p 00006000 /system/lib/chipset-sdk/libdisplay_buffer_proxy_1.1.z.so
+f2180000-f2182000 r--p 00000000 /system/lib/platformsdk/libwindow_animation_utils.z.so
+f2182000-f2186000 r-xp 00001000 /system/lib/platformsdk/libwindow_animation_utils.z.so
+f2186000-f2187000 r--p 00004000 /system/lib/platformsdk/libwindow_animation_utils.z.so
+f2187000-f2188000 rw-p 00004000 /system/lib/platformsdk/libwindow_animation_utils.z.so
+f21c0000-f21c6000 r--p 00000000 /system/lib/platformsdk/libdisplaymgr.z.so
+f21c6000-f21d1000 r-xp 00005000 /system/lib/platformsdk/libdisplaymgr.z.so
+f21d1000-f21d3000 r--p 0000f000 /system/lib/platformsdk/libdisplaymgr.z.so
+f21d3000-f21d4000 rw-p 00010000 /system/lib/platformsdk/libdisplaymgr.z.so
+f2200000-f2217000 r--p 00000000 /system/lib/libsys_event_service_adapter.z.so
+f2217000-f223d000 r-xp 00016000 /system/lib/libsys_event_service_adapter.z.so
+f223d000-f2240000 r--p 0003b000 /system/lib/libsys_event_service_adapter.z.so
+f2240000-f2241000 rw-p 0003d000 /system/lib/libsys_event_service_adapter.z.so
+f2241000-f2242000 rw-p 00000000 [anon:libsys_event_service_adapter.z.so.bss]
+f2280000-f22db000 r--p 00000000 /system/lib/platformsdk/libphonenumber_standard.z.so
+f22db000-f22fb000 r-xp 0005a000 /system/lib/platformsdk/libphonenumber_standard.z.so
+f22fb000-f22fd000 r--p 00079000 /system/lib/platformsdk/libphonenumber_standard.z.so
+f22fd000-f22fe000 rw-p 0007a000 /system/lib/platformsdk/libphonenumber_standard.z.so
+f2300000-f2320000 r--p 00000000 /system/lib/platformsdk/libmmi-util.z.so
+f2320000-f234c000 r-xp 0001f000 /system/lib/platformsdk/libmmi-util.z.so
+f234c000-f234e000 r--p 0004a000 /system/lib/platformsdk/libmmi-util.z.so
+f234e000-f2350000 rw-p 0004b000 /system/lib/platformsdk/libmmi-util.z.so
+f2380000-f2390000 r--p 00000000 /system/lib/platformsdk/libaccessibility_common.z.so
+f2390000-f2399000 r-xp 0000f000 /system/lib/platformsdk/libaccessibility_common.z.so
+f2399000-f239a000 r--p 00017000 /system/lib/platformsdk/libaccessibility_common.z.so
+f239a000-f239b000 rw-p 00017000 /system/lib/platformsdk/libaccessibility_common.z.so
+f23c0000-f23de000 r--p 00000000 /system/lib/platformsdk/libFillpSo.open.z.so
+f23de000-f242a000 r-xp 0001d000 /system/lib/platformsdk/libFillpSo.open.z.so
+f242a000-f242c000 r--p 00068000 /system/lib/platformsdk/libFillpSo.open.z.so
+f242c000-f242d000 rw-p 00069000 /system/lib/platformsdk/libFillpSo.open.z.so
+f242d000-f242e000 rw-p 00000000 [anon:libFillpSo.open.z.so.bss]
+f2440000-f2443000 r--p 00000000 /system/lib/platformsdk/libabsl_throw_delegate.z.so
+f2443000-f2449000 r-xp 00002000 /system/lib/platformsdk/libabsl_throw_delegate.z.so
+f2449000-f244a000 r--p 00007000 /system/lib/platformsdk/libabsl_throw_delegate.z.so
+f244a000-f244b000 rw-p 00007000 /system/lib/platformsdk/libabsl_throw_delegate.z.so
+f2480000-f2481000 r--p 00000000 /system/lib/platformsdk/libstart_window_option.z.so
+f2481000-f2484000 r-xp 00000000 /system/lib/platformsdk/libstart_window_option.z.so
+f2484000-f2485000 r--p 00002000 /system/lib/platformsdk/libstart_window_option.z.so
+f2485000-f2486000 rw-p 00002000 /system/lib/platformsdk/libstart_window_option.z.so
+f24c0000-f24c3000 r--p 00000000 /system/lib/platformsdk/libframe_trace_intf.z.so
+f24c3000-f24c8000 r-xp 00002000 /system/lib/platformsdk/libframe_trace_intf.z.so
+f24c8000-f24c9000 r--p 00006000 /system/lib/platformsdk/libframe_trace_intf.z.so
+f24c9000-f24ca000 rw-p 00006000 /system/lib/platformsdk/libframe_trace_intf.z.so
+f2500000-f2506000 r--p 00000000 /system/lib/platformsdk/libprivacy_sdk.z.so
+f2506000-f2513000 r-xp 00005000 /system/lib/platformsdk/libprivacy_sdk.z.so
+f2513000-f2516000 r--p 00011000 /system/lib/platformsdk/libprivacy_sdk.z.so
+f2516000-f2517000 rw-p 00013000 /system/lib/platformsdk/libprivacy_sdk.z.so
+f2540000-f2553000 r--p 00000000 /system/lib/platformsdk/libpluginmanager.z.so
+f2553000-f256d000 r-xp 00012000 /system/lib/platformsdk/libpluginmanager.z.so
+f256d000-f256e000 r--p 0002b000 /system/lib/platformsdk/libpluginmanager.z.so
+f256e000-f256f000 rw-p 0002b000 /system/lib/platformsdk/libpluginmanager.z.so
+f256f000-f2570000 rw-p 00000000 [anon:libpluginmanager.z.so.bss]
+f2580000-f2581000 r--p 00000000 /system/lib/platformsdk/libintl_register.z.so
+f2581000-f2582000 r-xp 00000000 /system/lib/platformsdk/libintl_register.z.so
+f2582000-f2583000 r--p 00000000 /system/lib/platformsdk/libintl_register.z.so
+f2583000-f2584000 rw-p 00000000 /system/lib/platformsdk/libintl_register.z.so
+f25c0000-f25c3000 r--p 00000000 /system/lib/platformsdk/libconnect_server_manager.z.so
+f25c3000-f25c8000 r-xp 00002000 /system/lib/platformsdk/libconnect_server_manager.z.so
+f25c8000-f25c9000 r--p 00006000 /system/lib/platformsdk/libconnect_server_manager.z.so
+f25c9000-f25ca000 rw-p 00006000 /system/lib/platformsdk/libconnect_server_manager.z.so
+f2600000-f2608000 r--p 00000000 /system/lib/platformsdk/libpost_proc_gl.z.so
+f2608000-f2612000 r-xp 00007000 /system/lib/platformsdk/libpost_proc_gl.z.so
+f2612000-f2613000 r--p 00010000 /system/lib/platformsdk/libpost_proc_gl.z.so
+f2613000-f2614000 rw-p 00010000 /system/lib/platformsdk/libpost_proc_gl.z.so
+f2640000-f266c000 r--p 00000000 /system/lib/libvideoprocessingengine.z.so
+f266c000-f26c4000 r-xp 0002b000 /system/lib/libvideoprocessingengine.z.so
+f26c4000-f26c9000 r--p 00082000 /system/lib/libvideoprocessingengine.z.so
+f26c9000-f26ca000 rw-p 00086000 /system/lib/libvideoprocessingengine.z.so
+f26ca000-f26ce000 rw-p 00000000 [anon:libvideoprocessingengine.z.so.bss]
+f2700000-f273d000 r--p 00000000 /system/lib/librosen_text.z.so
+f273d000-f27b7000 r-xp 0003c000 /system/lib/librosen_text.z.so
+f27b7000-f27bb000 r--p 000b5000 /system/lib/librosen_text.z.so
+f27bb000-f27bc000 rw-p 000b8000 /system/lib/librosen_text.z.so
+f27c0000-f27da000 r--p 00000000 /system/lib/platformsdk/libability_context_native.z.so
+f27da000-f27f4000 r-xp 00019000 /system/lib/platformsdk/libability_context_native.z.so
+f27f4000-f27f7000 r--p 00032000 /system/lib/platformsdk/libability_context_native.z.so
+f27f7000-f27f8000 rw-p 00034000 /system/lib/platformsdk/libability_context_native.z.so
+f27f8000-f27f9000 rw-p 00000000 [anon:libability_context_native.z.so.bss]
+f2800000-f280f000 r--p 00000000 /system/lib/platformsdk/libaccessibilityconfig.z.so
+f280f000-f2821000 r-xp 0000e000 /system/lib/platformsdk/libaccessibilityconfig.z.so
+f2821000-f2824000 r--p 0001f000 /system/lib/platformsdk/libaccessibilityconfig.z.so
+f2824000-f2825000 rw-p 00021000 /system/lib/platformsdk/libaccessibilityconfig.z.so
+f2840000-f2841000 r--p 00000000 /system/lib/platformsdk/libtoken_callback_sdk.z.so
+f2841000-f2844000 r-xp 00000000 /system/lib/platformsdk/libtoken_callback_sdk.z.so
+f2844000-f2845000 r--p 00002000 /system/lib/platformsdk/libtoken_callback_sdk.z.so
+f2845000-f2846000 rw-p 00002000 /system/lib/platformsdk/libtoken_callback_sdk.z.so
+f2880000-f2882000 r--p 00000000 /system/lib/chipset-sdk/libdisplay_buffer_hdi_impl_v1_2.z.so
+f2882000-f2884000 r-xp 00001000 /system/lib/chipset-sdk/libdisplay_buffer_hdi_impl_v1_2.z.so
+f2884000-f2886000 r--p 00002000 /system/lib/chipset-sdk/libdisplay_buffer_hdi_impl_v1_2.z.so
+f2886000-f2887000 rw-p 00003000 /system/lib/chipset-sdk/libdisplay_buffer_hdi_impl_v1_2.z.so
+f28c0000-f2968000 r--p 00000000 /system/lib/platformsdk/libscene_session_manager.z.so
+f2968000-f2a9c000 r-xp 000a7000 /system/lib/platformsdk/libscene_session_manager.z.so
+f2a9c000-f2aae000 r--p 001da000 /system/lib/platformsdk/libscene_session_manager.z.so
+f2aae000-f2aaf000 rw-p 001eb000 /system/lib/platformsdk/libscene_session_manager.z.so
+f2aaf000-f2ab0000 rw-p 00000000 [anon:libscene_session_manager.z.so.bss]
+f2ac0000-f2ac5000 r--p 00000000 /system/lib/platformsdk/libsession_info.z.so
+f2ac5000-f2ac8000 r-xp 00004000 /system/lib/platformsdk/libsession_info.z.so
+f2ac8000-f2aca000 r--p 00006000 /system/lib/platformsdk/libsession_info.z.so
+f2aca000-f2acb000 rw-p 00007000 /system/lib/platformsdk/libsession_info.z.so
+f2b00000-f2b3b000 r--p 00000000 /system/lib/libgraphics_effect.z.so
+f2b3b000-f2b6a000 r-xp 0003a000 /system/lib/libgraphics_effect.z.so
+f2b6a000-f2b6e000 r--p 00068000 /system/lib/libgraphics_effect.z.so
+f2b6e000-f2b6f000 rw-p 0006b000 /system/lib/libgraphics_effect.z.so
+f2b80000-f2b8b000 r--p 00000000 /system/lib/platformsdk/libwindow_animation.z.so
+f2b8b000-f2b94000 r-xp 0000a000 /system/lib/platformsdk/libwindow_animation.z.so
+f2b94000-f2b96000 r--p 00012000 /system/lib/platformsdk/libwindow_animation.z.so
+f2b96000-f2b97000 rw-p 00013000 /system/lib/platformsdk/libwindow_animation.z.so
+f2b97000-f2b98000 rw-p 00000000 [anon:libwindow_animation.z.so.bss]
+f2bc0000-f2bc4000 r--p 00000000 /system/lib/platformsdk/liblz4_shared.z.so
+f2bc4000-f2bdd000 r-xp 00003000 /system/lib/platformsdk/liblz4_shared.z.so
+f2bdd000-f2bdf000 r--p 0001b000 /system/lib/platformsdk/liblz4_shared.z.so
+f2bdf000-f2be0000 rw-p 0001c000 /system/lib/platformsdk/liblz4_shared.z.so
+f2c00000-f2c04000 r--p 00000000 /system/lib/platformsdk/libace_forward_compatibility.z.so
+f2c04000-f2c0b000 r-xp 00003000 /system/lib/platformsdk/libace_forward_compatibility.z.so
+f2c0b000-f2c0c000 r--p 00009000 /system/lib/platformsdk/libace_forward_compatibility.z.so
+f2c0c000-f2c0d000 rw-p 00009000 /system/lib/platformsdk/libace_forward_compatibility.z.so
+f2c40000-f2c4e000 r--p 00000000 /system/lib/libsecurity_component_sdk.z.so
+f2c4e000-f2c60000 r-xp 0000d000 /system/lib/libsecurity_component_sdk.z.so
+f2c60000-f2c62000 r--p 0001e000 /system/lib/libsecurity_component_sdk.z.so
+f2c62000-f2c63000 rw-p 0001f000 /system/lib/libsecurity_component_sdk.z.so
+f2c63000-f2c64000 rw-p 00000000 [anon:libsecurity_component_sdk.z.so.bss]
+f2c80000-f2c96000 r--p 00000000 /system/lib/libdlpparse.z.so
+f2c96000-f2cbd000 r-xp 00015000 /system/lib/libdlpparse.z.so
+f2cbd000-f2cc0000 r--p 0003b000 /system/lib/libdlpparse.z.so
+f2cc0000-f2cc1000 rw-p 0003d000 /system/lib/libdlpparse.z.so
+f2d00000-f2d1b000 r--p 00000000 /system/lib/platformsdk/libEGL.so
+f2d1b000-f2d39000 r-xp 0001a000 /system/lib/platformsdk/libEGL.so
+f2d39000-f2d3e000 r--p 00037000 /system/lib/platformsdk/libEGL.so
+f2d3e000-f2d3f000 rw-p 0003b000 /system/lib/platformsdk/libEGL.so
+f2d3f000-f2d43000 rw-p 00000000 [anon:libEGL.so.bss]
+f2d80000-f2e2d000 r--p 00000000 /system/lib/platformsdk/libscene_session.z.so
+f2e2d000-f2f67000 r-xp 000ac000 /system/lib/platformsdk/libscene_session.z.so
+f2f67000-f2f82000 r--p 001e5000 /system/lib/platformsdk/libscene_session.z.so
+f2f82000-f2f83000 rw-p 001ff000 /system/lib/platformsdk/libscene_session.z.so
+f2f83000-f2f84000 rw-p 00000000 [anon:libscene_session.z.so.bss]
+f2fc0000-f2fcd000 r--p 00000000 /system/lib/platformsdk/libdevicestatus_client.z.so
+f2fcd000-f2ffc000 r-xp 0000c000 /system/lib/platformsdk/libdevicestatus_client.z.so
+f2ffc000-f2fff000 r--p 0003a000 /system/lib/platformsdk/libdevicestatus_client.z.so
+f2fff000-f3000000 rw-p 0003c000 /system/lib/platformsdk/libdevicestatus_client.z.so
+f3000000-f3001000 rw-p 00000000 [anon:libdevicestatus_client.z.so.bss]
+f3040000-f3045000 r--p 00000000 /system/lib/libconcurrent_task_client.z.so
+f3045000-f3049000 r-xp 00004000 /system/lib/libconcurrent_task_client.z.so
+f3049000-f304a000 r--p 00007000 /system/lib/libconcurrent_task_client.z.so
+f304a000-f304b000 rw-p 00007000 /system/lib/libconcurrent_task_client.z.so
+f3080000-f30c1000 r--p 00000000 /system/lib/platformsdk/libimage_native.z.so
+f30c1000-f3153000 r-xp 00040000 /system/lib/platformsdk/libimage_native.z.so
+f3153000-f3159000 r--p 000d1000 /system/lib/platformsdk/libimage_native.z.so
+f3159000-f315a000 rw-p 000d6000 /system/lib/platformsdk/libimage_native.z.so
+f3180000-f3182000 r--p 00000000 /system/lib/libmmi_rust_key_config.z.so
+f3182000-f3188000 r-xp 00001000 /system/lib/libmmi_rust_key_config.z.so
+f3188000-f3189000 r--p 00006000 /system/lib/libmmi_rust_key_config.z.so
+f3189000-f318a000 rw-p 00006000 /system/lib/libmmi_rust_key_config.z.so
+f31c0000-f31c2000 r--p 00000000 /system/lib/platformsdk/libhichecker.so
+f31c2000-f31c4000 r-xp 00001000 /system/lib/platformsdk/libhichecker.so
+f31c4000-f31c5000 r--p 00002000 /system/lib/platformsdk/libhichecker.so
+f31c5000-f31c6000 rw-p 00002000 /system/lib/platformsdk/libhichecker.so
+f3200000-f323a000 r--p 00000000 /system/lib/platformsdk/libmmi-client.z.so
+f323a000-f32bd000 r-xp 00039000 /system/lib/platformsdk/libmmi-client.z.so
+f32bd000-f32c1000 r--p 000bb000 /system/lib/platformsdk/libmmi-client.z.so
+f32c1000-f32c2000 rw-p 000be000 /system/lib/platformsdk/libmmi-client.z.so
+f32c2000-f32c3000 rw-p 00000000 [anon:libmmi-client.z.so.bss]
+f3300000-f3308000 r--p 00000000 /system/lib/platformsdk/libnative_dataability.z.so
+f3308000-f330f000 r-xp 00007000 /system/lib/platformsdk/libnative_dataability.z.so
+f330f000-f3311000 r--p 0000d000 /system/lib/platformsdk/libnative_dataability.z.so
+f3311000-f3312000 rw-p 0000e000 /system/lib/platformsdk/libnative_dataability.z.so
+f3340000-f3354000 r--p 00000000 /system/lib/platformsdk/libGLESv3.so
+f3354000-f3378000 r-xp 00013000 /system/lib/platformsdk/libGLESv3.so
+f3378000-f3379000 r--p 00036000 /system/lib/platformsdk/libGLESv3.so
+f3379000-f337a000 rw-p 00036000 /system/lib/platformsdk/libGLESv3.so
+f3380000-f338c000 r--p 00000000 /system/lib/platformsdk/libcoap.z.so
+f338c000-f33a2000 r-xp 0000b000 /system/lib/platformsdk/libcoap.z.so
+f33a2000-f33a3000 r--p 00020000 /system/lib/platformsdk/libcoap.z.so
+f33a3000-f33a4000 rw-p 00020000 /system/lib/platformsdk/libcoap.z.so
+f33a4000-f33a5000 rw-p 00000000 [anon:libcoap.z.so.bss]
+f33c0000-f33e9000 r--p 00000000 /system/lib/chipset-sdk-sp/libsurface.z.so
+f33e9000-f3427000 r-xp 00028000 /system/lib/chipset-sdk-sp/libsurface.z.so
+f3427000-f342d000 r--p 00065000 /system/lib/chipset-sdk-sp/libsurface.z.so
+f342d000-f342e000 rw-p 0006a000 /system/lib/chipset-sdk-sp/libsurface.z.so
+f3440000-f3463000 r--p 00000000 /system/lib/libadft.z.so
+f3463000-f34df000 r-xp 00022000 /system/lib/libadft.z.so
+f34df000-f34e6000 r--p 0009d000 /system/lib/libadft.z.so
+f34e6000-f34e7000 rw-p 000a3000 /system/lib/libadft.z.so
+f34e7000-f34e9000 rw-p 00000000 [anon:libadft.z.so.bss]
+f3500000-f3503000 r--p 00000000 /system/lib/platformsdk/libability_start_setting.z.so
+f3503000-f3506000 r-xp 00002000 /system/lib/platformsdk/libability_start_setting.z.so
+f3506000-f3507000 r--p 00004000 /system/lib/platformsdk/libability_start_setting.z.so
+f3507000-f3508000 rw-p 00004000 /system/lib/platformsdk/libability_start_setting.z.so
+f3540000-f3559000 r--p 00000000 /system/lib/platformsdk/libsession_manager.z.so
+f3559000-f357e000 r-xp 00018000 /system/lib/platformsdk/libsession_manager.z.so
+f357e000-f3582000 r--p 0003c000 /system/lib/platformsdk/libsession_manager.z.so
+f3582000-f3583000 rw-p 0003f000 /system/lib/platformsdk/libsession_manager.z.so
+f35c0000-f3674000 r--p 00000000 /system/lib/libwm.z.so
+f3674000-f3787000 r-xp 000b3000 /system/lib/libwm.z.so
+f3787000-f379c000 r--p 001c5000 /system/lib/libwm.z.so
+f379c000-f379d000 rw-p 001d9000 /system/lib/libwm.z.so
+f379d000-f379f000 rw-p 00000000 [anon:libwm.z.so.bss]
+f37c0000-f37ff000 r--p 00000000 /system/lib/platformsdk/libimage_napi.z.so
+f37ff000-f38aa000 r-xp 0003e000 /system/lib/platformsdk/libimage_napi.z.so
+f38aa000-f38af000 r--p 000e8000 /system/lib/platformsdk/libimage_napi.z.so
+f38af000-f38b0000 rw-p 000ec000 /system/lib/platformsdk/libimage_napi.z.so
+f38b0000-f38b1000 rw-p 00000000 [anon:libimage_napi.z.so.bss]
+f38c0000-f38c8000 r--p 00000000 /system/lib/libmemmgrclient.z.so
+f38c8000-f38d5000 r-xp 00007000 /system/lib/libmemmgrclient.z.so
+f38d5000-f38d7000 r--p 00013000 /system/lib/libmemmgrclient.z.so
+f38d7000-f38d8000 rw-p 00014000 /system/lib/libmemmgrclient.z.so
+f3900000-f391a000 r--p 00000000 /system/lib/platformsdk/libpowermgr_client.z.so
+f391a000-f3930000 r-xp 00019000 /system/lib/platformsdk/libpowermgr_client.z.so
+f3930000-f3936000 r--p 0002e000 /system/lib/platformsdk/libpowermgr_client.z.so
+f3936000-f3937000 rw-p 00033000 /system/lib/platformsdk/libpowermgr_client.z.so
+f3940000-f3953000 r--p 00000000 /system/lib/platformsdk/libresmgr_napi_core.z.so
+f3953000-f3972000 r-xp 00012000 /system/lib/platformsdk/libresmgr_napi_core.z.so
+f3972000-f3974000 r--p 00030000 /system/lib/platformsdk/libresmgr_napi_core.z.so
+f3974000-f3976000 rw-p 00031000 /system/lib/platformsdk/libresmgr_napi_core.z.so
+f3980000-f3982000 r--p 00000000 /system/lib/libapplication_context_manager.z.so
+f3982000-f3984000 r-xp 00001000 /system/lib/libapplication_context_manager.z.so
+f3984000-f3985000 r--p 00002000 /system/lib/libapplication_context_manager.z.so
+f3985000-f3986000 rw-p 00002000 /system/lib/libapplication_context_manager.z.so
+f39c0000-f39c7000 r--p 00000000 /system/lib/platformsdk/libwmutil_base.z.so
+f39c7000-f39d3000 r-xp 00006000 /system/lib/platformsdk/libwmutil_base.z.so
+f39d3000-f39d5000 r--p 00011000 /system/lib/platformsdk/libwmutil_base.z.so
+f39d5000-f39d6000 rw-p 00012000 /system/lib/platformsdk/libwmutil_base.z.so
+f3a00000-f3a59000 r--p 00000000 /system/lib/platformsdk/libability_manager.z.so
+f3a59000-f3ac0000 r-xp 00058000 /system/lib/platformsdk/libability_manager.z.so
+f3ac0000-f3aca000 r--p 000be000 /system/lib/platformsdk/libability_manager.z.so
+f3aca000-f3acb000 rw-p 000c7000 /system/lib/platformsdk/libability_manager.z.so
+f3acb000-f3acc000 rw-p 00000000 [anon:libability_manager.z.so.bss]
+f3b00000-f3b02000 r--p 00000000 /system/lib/platformsdk/libprocess_options.z.so
+f3b02000-f3b05000 r-xp 00001000 /system/lib/platformsdk/libprocess_options.z.so
+f3b05000-f3b06000 r--p 00003000 /system/lib/platformsdk/libprocess_options.z.so
+f3b06000-f3b07000 rw-p 00003000 /system/lib/platformsdk/libprocess_options.z.so
+f3b40000-f3b4b000 r--p 00000000 /system/lib/libinputmethod_common.z.so
+f3b4b000-f3b58000 r-xp 0000a000 /system/lib/libinputmethod_common.z.so
+f3b58000-f3b5b000 r--p 00016000 /system/lib/libinputmethod_common.z.so
+f3b5b000-f3b5c000 rw-p 00018000 /system/lib/libinputmethod_common.z.so
+f3b80000-f3b82000 r--p 00000000 /system/lib/platformsdk/libpixelconvertadapter.z.so
+f3b82000-f3b85000 r-xp 00001000 /system/lib/platformsdk/libpixelconvertadapter.z.so
+f3b85000-f3b86000 r--p 00003000 /system/lib/platformsdk/libpixelconvertadapter.z.so
+f3b86000-f3b87000 rw-p 00003000 /system/lib/platformsdk/libpixelconvertadapter.z.so
+f3bc0000-f3e60000 r--p 00000000 /system/lib/platformsdk/librender_service_base.z.so
+f3e60000-f4207000 r-xp 0029f000 /system/lib/platformsdk/librender_service_base.z.so
+f4207000-f4239000 r--p 00645000 /system/lib/platformsdk/librender_service_base.z.so
+f4239000-f423a000 rw-p 00676000 /system/lib/platformsdk/librender_service_base.z.so
+f423a000-f423f000 rw-p 00000000 [anon:librender_service_base.z.so.bss]
+f4340000-f4d40000 r--s 00000000 /dev/__parameters__/u:object_r:default_param:s0
+f4d40000-f4e37000 r--p 00000000 /system/lib/chipset-sdk/libcrypto_openssl.z.so
+f4e37000-f4f94000 r-xp 000f6000 /system/lib/chipset-sdk/libcrypto_openssl.z.so
+f4f94000-f4fc7000 r--p 00252000 /system/lib/chipset-sdk/libcrypto_openssl.z.so
+f4fc7000-f4fc9000 rw-p 00284000 /system/lib/chipset-sdk/libcrypto_openssl.z.so
+f4fc9000-f4fcc000 rw-p 00000000 [anon:libcrypto_openssl.z.so.bss]
+f5000000-f5016000 r--p 00000000 /system/lib/platformsdk/libwifi_utils.z.so
+f5016000-f5039000 r-xp 00015000 /system/lib/platformsdk/libwifi_utils.z.so
+f5039000-f503c000 r--p 00037000 /system/lib/platformsdk/libwifi_utils.z.so
+f503c000-f503d000 rw-p 00039000 /system/lib/platformsdk/libwifi_utils.z.so
+f5040000-f5057000 r--p 00000000 /system/lib/platformsdk/libsqlite.z.so
+f5057000-f513e000 r-xp 00016000 /system/lib/platformsdk/libsqlite.z.so
+f513e000-f5141000 r--p 000fc000 /system/lib/platformsdk/libsqlite.z.so
+f5141000-f5143000 rw-p 000fe000 /system/lib/platformsdk/libsqlite.z.so
+f5180000-f5189000 r--p 00000000 /system/lib/chipset-sdk-sp/libhicollie.z.so
+f5189000-f51a5000 r-xp 00008000 /system/lib/chipset-sdk-sp/libhicollie.z.so
+f51a5000-f51a6000 r--p 00023000 /system/lib/chipset-sdk-sp/libhicollie.z.so
+f51a6000-f51a7000 rw-p 00023000 /system/lib/chipset-sdk-sp/libhicollie.z.so
+f51c0000-f51c2000 r--p 00000000 /system/lib/chipset-sdk-sp/libucollection_client.z.so
+f51c2000-f51c8000 r-xp 00001000 /system/lib/chipset-sdk-sp/libucollection_client.z.so
+f51c8000-f51ca000 r--p 00006000 /system/lib/chipset-sdk-sp/libucollection_client.z.so
+f51ca000-f51cb000 rw-p 00007000 /system/lib/chipset-sdk-sp/libucollection_client.z.so
+f5200000-f5203000 r--p 00000000 /system/lib/chipset-sdk/libdfx_signalhandler.z.so
+f5203000-f5209000 r-xp 00002000 /system/lib/chipset-sdk/libdfx_signalhandler.z.so
+f5209000-f520a000 r--p 00007000 /system/lib/chipset-sdk/libdfx_signalhandler.z.so
+f520a000-f520b000 rw-p 00007000 /system/lib/chipset-sdk/libdfx_signalhandler.z.so
+f520b000-f520e000 rw-p 00000000 [anon:libdfx_signalhandler.z.so.bss]
+f5240000-f5274000 r--p 00000000 /system/lib/platformsdk/libwant.z.so
+f5274000-f52b8000 r-xp 00033000 /system/lib/platformsdk/libwant.z.so
+f52b8000-f52bc000 r--p 00076000 /system/lib/platformsdk/libwant.z.so
+f52bc000-f52bd000 rw-p 00079000 /system/lib/platformsdk/libwant.z.so
+f52c0000-f52d2000 r--p 00000000 /system/lib/platformsdk/libcesfwk_core.z.so
+f52d2000-f52e8000 r-xp 00011000 /system/lib/platformsdk/libcesfwk_core.z.so
+f52e8000-f52ec000 r--p 00026000 /system/lib/platformsdk/libcesfwk_core.z.so
+f52ec000-f52ed000 rw-p 00029000 /system/lib/platformsdk/libcesfwk_core.z.so
+f5300000-f536d000 r--p 00000000 /system/lib/platformsdk/libapp_manager.z.so
+f536d000-f53ea000 r-xp 0006c000 /system/lib/platformsdk/libapp_manager.z.so
+f53ea000-f53f8000 r--p 000e8000 /system/lib/platformsdk/libapp_manager.z.so
+f53f8000-f53f9000 rw-p 000f5000 /system/lib/platformsdk/libapp_manager.z.so
+f5400000-f5408000 r--p 00000000 /system/lib/platformsdk/libhitrace_dump.z.so
+f5408000-f5424000 r-xp 00007000 /system/lib/platformsdk/libhitrace_dump.z.so
+f5424000-f5426000 r--p 00022000 /system/lib/platformsdk/libhitrace_dump.z.so
+f5426000-f5427000 rw-p 00023000 /system/lib/platformsdk/libhitrace_dump.z.so
+f5427000-f5527000 rw-p 00000000 [anon:libhitrace_dump.z.so.bss]
+f5540000-f5547000 r--p 00000000 /system/lib/platformsdk/libzuri.z.so
+f5547000-f5551000 r-xp 00006000 /system/lib/platformsdk/libzuri.z.so
+f5551000-f5553000 r--p 0000f000 /system/lib/platformsdk/libzuri.z.so
+f5553000-f5554000 rw-p 00010000 /system/lib/platformsdk/libzuri.z.so
+f5580000-f5594000 r--p 00000000 /system/lib/platformsdk/libucollection_utility.z.so
+f5594000-f55e9000 r-xp 00013000 /system/lib/platformsdk/libucollection_utility.z.so
+f55e9000-f55ec000 r--p 00067000 /system/lib/platformsdk/libucollection_utility.z.so
+f55ec000-f55ed000 rw-p 00069000 /system/lib/platformsdk/libucollection_utility.z.so
+f55ed000-f55ee000 rw-p 00000000 [anon:libucollection_utility.z.so.bss]
+f5600000-f5608000 r--p 00000000 /system/lib/chipset-sdk-sp/libbegetutil.z.so
+f5608000-f561b000 r-xp 00007000 /system/lib/chipset-sdk-sp/libbegetutil.z.so
+f561b000-f561c000 r--p 00019000 /system/lib/chipset-sdk-sp/libbegetutil.z.so
+f561c000-f561d000 rw-p 00019000 /system/lib/chipset-sdk-sp/libbegetutil.z.so
+f5640000-f5649000 r--p 00000000 /system/lib/chipset-sdk/libstring_utils.z.so
+f5649000-f565b000 r-xp 00008000 /system/lib/chipset-sdk/libstring_utils.z.so
+f565b000-f565d000 r--p 00019000 /system/lib/chipset-sdk/libstring_utils.z.so
+f565d000-f565e000 rw-p 0001a000 /system/lib/chipset-sdk/libstring_utils.z.so
+f5680000-f5683000 r--p 00000000 /system/lib/chipset-sdk-sp/libbacktrace_local.so
+f5683000-f5688000 r-xp 00002000 /system/lib/chipset-sdk-sp/libbacktrace_local.so
+f5688000-f5689000 r--p 00006000 /system/lib/chipset-sdk-sp/libbacktrace_local.so
+f5689000-f568a000 rw-p 00006000 /system/lib/chipset-sdk-sp/libbacktrace_local.so
+f568a000-f568b000 rw-p 00000000 [anon:libbacktrace_local.so.bss]
+f56c0000-f56d8000 r--p 00000000 /system/lib/platformsdk/libdatashare_consumer.z.so
+f56d8000-f571b000 r-xp 00017000 /system/lib/platformsdk/libdatashare_consumer.z.so
+f571b000-f5721000 r--p 00059000 /system/lib/platformsdk/libdatashare_consumer.z.so
+f5721000-f5722000 rw-p 0005e000 /system/lib/platformsdk/libdatashare_consumer.z.so
+f5740000-f5753000 r--p 00000000 /system/lib/platformsdk/libcesfwk_innerkits.z.so
+f5753000-f575e000 r-xp 00012000 /system/lib/platformsdk/libcesfwk_innerkits.z.so
+f575e000-f5760000 r--p 0001c000 /system/lib/platformsdk/libcesfwk_innerkits.z.so
+f5760000-f5761000 rw-p 0001d000 /system/lib/platformsdk/libcesfwk_innerkits.z.so
+f5780000-f5783000 r--p 00000000 /system/lib/chipset-sdk/libaccesstoken_communication_adapter_cxx.z.so
+f5783000-f5789000 r-xp 00002000 /system/lib/chipset-sdk/libaccesstoken_communication_adapter_cxx.z.so
+f5789000-f578b000 r--p 00007000 /system/lib/chipset-sdk/libaccesstoken_communication_adapter_cxx.z.so
+f578b000-f578c000 rw-p 00008000 /system/lib/chipset-sdk/libaccesstoken_communication_adapter_cxx.z.so
+f57c0000-f57d5000 r--p 00000000 /system/lib/chipset-sdk-sp/libutils.z.so
+f57d5000-f57f3000 r-xp 00014000 /system/lib/chipset-sdk-sp/libutils.z.so
+f57f3000-f57f5000 r--p 00031000 /system/lib/chipset-sdk-sp/libutils.z.so
+f57f5000-f57f6000 rw-p 00032000 /system/lib/chipset-sdk-sp/libutils.z.so
+f5800000-f5811000 r--p 00000000 /system/lib/chipset-sdk-sp/libjsoncpp.z.so
+f5811000-f582c000 r-xp 00010000 /system/lib/chipset-sdk-sp/libjsoncpp.z.so
+f582c000-f582e000 r--p 0002a000 /system/lib/chipset-sdk-sp/libjsoncpp.z.so
+f582e000-f582f000 rw-p 0002b000 /system/lib/chipset-sdk-sp/libjsoncpp.z.so
+f5840000-f5855000 r--p 00000000 /system/lib/chipset-sdk/libipc_single.z.so
+f5855000-f5887000 r-xp 00014000 /system/lib/chipset-sdk/libipc_single.z.so
+f5887000-f5889000 r--p 00045000 /system/lib/chipset-sdk/libipc_single.z.so
+f5889000-f588a000 rw-p 00046000 /system/lib/chipset-sdk/libipc_single.z.so
+f58c0000-f58c7000 r--p 00000000 /system/lib/platformsdk/libaccountkits.z.so
+f58c7000-f58d4000 r-xp 00006000 /system/lib/platformsdk/libaccountkits.z.so
+f58d4000-f58d7000 r--p 00012000 /system/lib/platformsdk/libaccountkits.z.so
+f58d7000-f58d8000 rw-p 00014000 /system/lib/platformsdk/libaccountkits.z.so
+f5900000-f5908000 r--p 00000000 /system/lib/chipset-sdk-sp/libunwinder.z.so
+f5908000-f5923000 r-xp 00007000 /system/lib/chipset-sdk-sp/libunwinder.z.so
+f5923000-f5924000 r--p 00021000 /system/lib/chipset-sdk-sp/libunwinder.z.so
+f5924000-f5925000 rw-p 00021000 /system/lib/chipset-sdk-sp/libunwinder.z.so
+f5925000-f5926000 rw-p 00000000 [anon:libunwinder.z.so.bss]
+f5940000-f5a20000 r--p 00000000 /system/lib/platformsdk/libhmicui18n.z.so
+f5a20000-f5b42000 r-xp 000df000 /system/lib/platformsdk/libhmicui18n.z.so
+f5b42000-f5b4e000 r--p 00200000 /system/lib/platformsdk/libhmicui18n.z.so
+f5b4e000-f5b4f000 rw-p 0020b000 /system/lib/platformsdk/libhmicui18n.z.so
+f5b4f000-f5b50000 rw-p 00000000 [anon:libhmicui18n.z.so.bss]
+f5b80000-f5b86000 r--p 00000000 /system/lib/libhidumperservice_cpu_source.z.so
+f5b86000-f5b8d000 r-xp 00005000 /system/lib/libhidumperservice_cpu_source.z.so
+f5b8d000-f5b8f000 r--p 0000b000 /system/lib/libhidumperservice_cpu_source.z.so
+f5b8f000-f5b90000 rw-p 0000c000 /system/lib/libhidumperservice_cpu_source.z.so
+f5bc0000-f5bc1000 r--p 00000000 /system/lib/chipset-sdk-sp/libconfigpolicy_util.z.so
+f5bc1000-f5bc3000 r-xp 00000000 /system/lib/chipset-sdk-sp/libconfigpolicy_util.z.so
+f5bc3000-f5bc4000 r--p 00001000 /system/lib/chipset-sdk-sp/libconfigpolicy_util.z.so
+f5bc4000-f5bc5000 rw-p 00001000 /system/lib/chipset-sdk-sp/libconfigpolicy_util.z.so
+f5c00000-f5c01000 r--p 00000000 /system/lib/platformsdk/libtokenid_sdk.z.so
+f5c01000-f5c04000 r-xp 00000000 /system/lib/platformsdk/libtokenid_sdk.z.so
+f5c04000-f5c05000 r--p 00002000 /system/lib/platformsdk/libtokenid_sdk.z.so
+f5c05000-f5c06000 rw-p 00002000 /system/lib/platformsdk/libtokenid_sdk.z.so
+f5c40000-f5c7a000 r--p 00000000 /system/lib/chipset-sdk/libxml2.z.so
+f5c7a000-f5d10000 r-xp 00039000 /system/lib/chipset-sdk/libxml2.z.so
+f5d10000-f5d15000 r--p 000ce000 /system/lib/chipset-sdk/libxml2.z.so
+f5d15000-f5d16000 rw-p 000d2000 /system/lib/chipset-sdk/libxml2.z.so
+f5d16000-f5d17000 rw-p 00000000 [anon:libxml2.z.so.bss]
+f5d40000-f5d43000 r--p 00000000 /system/lib/platformsdk/libstartup_util.z.so
+f5d43000-f5d4a000 r-xp 00002000 /system/lib/platformsdk/libstartup_util.z.so
+f5d4a000-f5d4b000 r--p 00008000 /system/lib/platformsdk/libstartup_util.z.so
+f5d4b000-f5d4c000 rw-p 00008000 /system/lib/platformsdk/libstartup_util.z.so
+f5d80000-f5d83000 r--p 00000000 /system/lib/chipset-sdk-sp/libdfx_procinfo.z.so
+f5d83000-f5d88000 r-xp 00002000 /system/lib/chipset-sdk-sp/libdfx_procinfo.z.so
+f5d88000-f5d89000 r--p 00006000 /system/lib/chipset-sdk-sp/libdfx_procinfo.z.so
+f5d89000-f5d8a000 rw-p 00006000 /system/lib/chipset-sdk-sp/libdfx_procinfo.z.so
+f5dc0000-f5dd4000 r--p 00000000 /system/lib/platformsdk/libwifi_sdk.z.so
+f5dd4000-f5e0e000 r-xp 00013000 /system/lib/platformsdk/libwifi_sdk.z.so
+f5e0e000-f5e13000 r--p 0004c000 /system/lib/platformsdk/libwifi_sdk.z.so
+f5e13000-f5e14000 rw-p 00050000 /system/lib/platformsdk/libwifi_sdk.z.so
+f5e14000-f5e15000 rw-p 00000000 [anon:libwifi_sdk.z.so.bss]
+f5e40000-f5e51000 r--p 00000000 /system/lib/chipset-sdk-sp/libsamgr_proxy.z.so
+f5e51000-f5e65000 r-xp 00010000 /system/lib/chipset-sdk-sp/libsamgr_proxy.z.so
+f5e65000-f5e69000 r--p 00023000 /system/lib/chipset-sdk-sp/libsamgr_proxy.z.so
+f5e69000-f5e6a000 rw-p 00026000 /system/lib/chipset-sdk-sp/libsamgr_proxy.z.so
+f5e80000-f5e8a000 r--p 00000000 /system/lib/platformsdk/libdistributeddb_client.z.so
+f5e8a000-f5eb5000 r-xp 00009000 /system/lib/platformsdk/libdistributeddb_client.z.so
+f5eb5000-f5eb6000 r--p 00033000 /system/lib/platformsdk/libdistributeddb_client.z.so
+f5eb6000-f5eb7000 rw-p 00033000 /system/lib/platformsdk/libdistributeddb_client.z.so
+f5ec0000-f5eca000 r--p 00000000 /system/lib/platformsdk/libbase.z.so
+f5eca000-f5ecf000 r-xp 00009000 /system/lib/platformsdk/libbase.z.so
+f5ecf000-f5ed1000 r--p 0000d000 /system/lib/platformsdk/libbase.z.so
+f5ed1000-f5ed2000 rw-p 0000e000 /system/lib/platformsdk/libbase.z.so
+f5f00000-f5f14000 r--p 00000000 /system/lib/platformsdk/libaccount_common.z.so
+f5f14000-f5f2d000 r-xp 00013000 /system/lib/platformsdk/libaccount_common.z.so
+f5f2d000-f5f2f000 r--p 0002b000 /system/lib/platformsdk/libaccount_common.z.so
+f5f2f000-f5f30000 rw-p 0002c000 /system/lib/platformsdk/libaccount_common.z.so
+f5f40000-f5f45000 r--p 00000000 /system/lib/chipset-sdk-sp/libbeget_proxy.z.so
+f5f45000-f5f50000 r-xp 00004000 /system/lib/chipset-sdk-sp/libbeget_proxy.z.so
+f5f50000-f5f53000 r--p 0000e000 /system/lib/chipset-sdk-sp/libbeget_proxy.z.so
+f5f53000-f5f54000 rw-p 00010000 /system/lib/chipset-sdk-sp/libbeget_proxy.z.so
+f5f80000-f5f82000 r--p 00000000 /system/lib/platformsdk/libapi_cache_manager.z.so
+f5f82000-f5f87000 r-xp 00001000 /system/lib/platformsdk/libapi_cache_manager.z.so
+f5f87000-f5f88000 r--p 00005000 /system/lib/platformsdk/libapi_cache_manager.z.so
+f5f88000-f5f89000 rw-p 00005000 /system/lib/platformsdk/libapi_cache_manager.z.so
+f5fc0000-f5ffc000 r--p 00000000 /system/lib/platformsdk/libappexecfwk_base.z.so
+f5ffc000-f60d0000 r-xp 0003b000 /system/lib/platformsdk/libappexecfwk_base.z.so
+f60d0000-f60d6000 r--p 0010e000 /system/lib/platformsdk/libappexecfwk_base.z.so
+f60d6000-f60d7000 rw-p 00113000 /system/lib/platformsdk/libappexecfwk_base.z.so
+f6100000-f610d000 r--p 00000000 /system/lib/chipset-sdk-sp/libressched_client.z.so
+f610d000-f612d000 r-xp 0000c000 /system/lib/chipset-sdk-sp/libressched_client.z.so
+f612d000-f6131000 r--p 0002b000 /system/lib/chipset-sdk-sp/libressched_client.z.so
+f6131000-f6132000 rw-p 0002e000 /system/lib/chipset-sdk-sp/libressched_client.z.so
+f6140000-f6141000 r--p 00000000 /system/lib/platformsdk/libhitrace_chain_util.z.so
+f6141000-f6144000 r-xp 00000000 /system/lib/platformsdk/libhitrace_chain_util.z.so
+f6144000-f6145000 r--p 00002000 /system/lib/platformsdk/libhitrace_chain_util.z.so
+f6145000-f6146000 rw-p 00002000 /system/lib/platformsdk/libhitrace_chain_util.z.so
+f6180000-f618a000 r--p 00000000 /system/lib/chipset-sdk/libaccesstoken_sdk.z.so
+f618a000-f61a6000 r-xp 00009000 /system/lib/chipset-sdk/libaccesstoken_sdk.z.so
+f61a6000-f61a8000 r--p 00024000 /system/lib/chipset-sdk/libaccesstoken_sdk.z.so
+f61a8000-f61a9000 rw-p 00025000 /system/lib/chipset-sdk/libaccesstoken_sdk.z.so
+f61c0000-f61c6000 r--p 00000000 /system/lib/platformsdk/libextension_manager.z.so
+f61c6000-f61ca000 r-xp 00005000 /system/lib/platformsdk/libextension_manager.z.so
+f61ca000-f61cc000 r--p 00008000 /system/lib/platformsdk/libextension_manager.z.so
+f61cc000-f61cd000 rw-p 00009000 /system/lib/platformsdk/libextension_manager.z.so
+f6200000-f6203000 r--p 00000000 /system/lib/platformsdk/libnative_appdatafwk.z.so
+f6203000-f6207000 r-xp 00002000 /system/lib/platformsdk/libnative_appdatafwk.z.so
+f6207000-f6208000 r--p 00005000 /system/lib/platformsdk/libnative_appdatafwk.z.so
+f6208000-f6209000 rw-p 00005000 /system/lib/platformsdk/libnative_appdatafwk.z.so
+f6240000-f626d000 r--p 00000000 /system/lib/platformsdk/libnative_rdb.z.so
+f626d000-f6304000 r-xp 0002c000 /system/lib/platformsdk/libnative_rdb.z.so
+f6304000-f630a000 r--p 000c2000 /system/lib/platformsdk/libnative_rdb.z.so
+f630a000-f630b000 rw-p 000c7000 /system/lib/platformsdk/libnative_rdb.z.so
+f6340000-f6345000 r--p 00000000 /system/lib/platformsdk/libability_connect_callback_stub.z.so
+f6345000-f6347000 r-xp 00004000 /system/lib/platformsdk/libability_connect_callback_stub.z.so
+f6347000-f6349000 r--p 00005000 /system/lib/platformsdk/libability_connect_callback_stub.z.so
+f6349000-f634a000 rw-p 00006000 /system/lib/platformsdk/libability_connect_callback_stub.z.so
+f635d000-f635f000 ---p 00000000 [anon:guard:2258]
+f635f000-f6380000 rw-p 00000000 [anon:stack:2258]
+f6380000-f6389000 r--p 00000000 /system/lib/platformsdk/libutd_client.z.so
+f6389000-f63a5000 r-xp 00008000 /system/lib/platformsdk/libutd_client.z.so
+f63a5000-f63a7000 r--p 00023000 /system/lib/platformsdk/libutd_client.z.so
+f63a7000-f63a8000 rw-p 00024000 /system/lib/platformsdk/libutd_client.z.so
+f63c0000-f63eb000 r--p 00000000 /system/lib/platformsdk/libglobal_resmgr.z.so
+f63eb000-f6433000 r-xp 0002a000 /system/lib/platformsdk/libglobal_resmgr.z.so
+f6433000-f6436000 r--p 00071000 /system/lib/platformsdk/libglobal_resmgr.z.so
+f6436000-f6437000 rw-p 00073000 /system/lib/platformsdk/libglobal_resmgr.z.so
+f6440000-f6448000 r--p 00000000 /system/lib/chipset-sdk-sp/libshared_libz.z.so
+f6448000-f645d000 r-xp 00007000 /system/lib/chipset-sdk-sp/libshared_libz.z.so
+f645d000-f645f000 r--p 0001b000 /system/lib/chipset-sdk-sp/libshared_libz.z.so
+f645f000-f6460000 rw-p 0001c000 /system/lib/chipset-sdk-sp/libshared_libz.z.so
+f6480000-f651e000 r--p 00000000 /system/lib/platformsdk/libhmicuuc.z.so
+f651e000-f65d7000 r-xp 0009d000 /system/lib/platformsdk/libhmicuuc.z.so
+f65d7000-f65e4000 r--p 00155000 /system/lib/platformsdk/libhmicuuc.z.so
+f65e4000-f65e5000 rw-p 00161000 /system/lib/platformsdk/libhmicuuc.z.so
+f65e5000-f65e6000 rw-p 00000000 [anon:libhmicuuc.z.so.bss]
+f6600000-f6602000 r--p 00000000 /system/lib/chipset-sdk-sp/libfaultloggerd.z.so
+f6602000-f6605000 r-xp 00001000 /system/lib/chipset-sdk-sp/libfaultloggerd.z.so
+f6605000-f6606000 r--p 00003000 /system/lib/chipset-sdk-sp/libfaultloggerd.z.so
+f6606000-f6607000 rw-p 00003000 /system/lib/chipset-sdk-sp/libfaultloggerd.z.so
+f661d000-f661f000 ---p 00000000 [anon:guard:2242]
+f661f000-f6640000 rw-p 00000000 [anon:stack:2242]
+f6640000-f664b000 r--p 00000000 /system/lib/platformsdk/libsamgr_common.z.so
+f664b000-f6666000 r-xp 0000a000 /system/lib/platformsdk/libsamgr_common.z.so
+f6666000-f6667000 r--p 00024000 /system/lib/platformsdk/libsamgr_common.z.so
+f6667000-f6668000 rw-p 00024000 /system/lib/platformsdk/libsamgr_common.z.so
+f6680000-f668d000 r--p 00000000 /system/lib/chipset-sdk-sp/libeventhandler.z.so
+f668d000-f66ae000 r-xp 0000c000 /system/lib/chipset-sdk-sp/libeventhandler.z.so
+f66ae000-f66b0000 r--p 0002c000 /system/lib/chipset-sdk-sp/libeventhandler.z.so
+f66b0000-f66b1000 rw-p 0002d000 /system/lib/chipset-sdk-sp/libeventhandler.z.so
+f66c0000-f66e2000 r--p 00000000 /system/lib/libhiviewbase.z.so
+f66e2000-f6754000 r-xp 00021000 /system/lib/libhiviewbase.z.so
+f6754000-f6759000 r--p 00092000 /system/lib/libhiviewbase.z.so
+f6759000-f675a000 rw-p 00096000 /system/lib/libhiviewbase.z.so
+f675a000-f675b000 rw-p 00000000 [anon:libhiviewbase.z.so.bss]
+f6768000-f6780000 rw-p 00000000 [anon:native_heap:brk]
+f6780000-f6790000 r--p 00000000 /system/lib/platformsdk/libdomain_account_innerkits.z.so
+f6790000-f67a5000 r-xp 0000f000 /system/lib/platformsdk/libdomain_account_innerkits.z.so
+f67a5000-f67a9000 r--p 00023000 /system/lib/platformsdk/libdomain_account_innerkits.z.so
+f67a9000-f67aa000 rw-p 00026000 /system/lib/platformsdk/libdomain_account_innerkits.z.so
+f67ac000-f67c0000 rw-p 00000000 [anon:native_heap:brk]
+f67c0000-f67c4000 r--p 00000000 /system/lib/chipset-sdk-sp/libdfx_dumpcatcher.z.so
+f67c4000-f67cb000 r-xp 00003000 /system/lib/chipset-sdk-sp/libdfx_dumpcatcher.z.so
+f67cb000-f67cd000 r--p 00009000 /system/lib/chipset-sdk-sp/libdfx_dumpcatcher.z.so
+f67cd000-f67ce000 rw-p 0000a000 /system/lib/chipset-sdk-sp/libdfx_dumpcatcher.z.so
+f67d4000-f67dc000 rw-p 00000000 [anon:native_heap:brk]
+f6800000-f6804000 r--p 00000000 /system/lib/platformsdk/libhiperf_client.z.so
+f6804000-f6808000 r-xp 00003000 /system/lib/platformsdk/libhiperf_client.z.so
+f6808000-f6809000 r--p 00006000 /system/lib/platformsdk/libhiperf_client.z.so
+f6809000-f680a000 rw-p 00006000 /system/lib/platformsdk/libhiperf_client.z.so
+f6814000-f681c000 rw-p 00000000 [anon:native_heap:brk]
+f681d000-f681f000 ---p 00000000 [anon:guard:2083]
+f681f000-f6840000 rw-p 00000000 [anon:stack:2083]
+f6840000-f6844000 r--p 00000000 /system/lib/chipset-sdk/libclang_rt.ubsan_minimal.so
+f6844000-f684a000 r-xp 00003000 /system/lib/chipset-sdk/libclang_rt.ubsan_minimal.so
+f684a000-f684b000 r--p 00008000 /system/lib/chipset-sdk/libclang_rt.ubsan_minimal.so
+f684b000-f684c000 rw-p 00008000 /system/lib/chipset-sdk/libclang_rt.ubsan_minimal.so
+f685d000-f685f000 ---p 00000000 [anon:guard:1951]
+f685f000-f6880000 rw-p 00000000 [anon:stack:1951]
+f6880000-f6881000 r--p 00000000 /system/lib/platformsdk/librestorecon.z.so
+f6881000-f6883000 r-xp 00000000 /system/lib/platformsdk/librestorecon.z.so
+f6883000-f6884000 r--p 00001000 /system/lib/platformsdk/librestorecon.z.so
+f6884000-f6885000 rw-p 00001000 /system/lib/platformsdk/librestorecon.z.so
+f6891000-f689d000 rw-p 00000000 [anon:native_heap:brk]
+f689d000-f689f000 ---p 00000000 [anon:guard:1619]
+f689f000-f68c0000 rw-p 00000000 [anon:stack:1619]
+f68c0000-f68c7000 r--p 00000000 /system/lib/chipset-sdk/libipc_common.z.so
+f68c7000-f68cf000 r-xp 00006000 /system/lib/chipset-sdk/libipc_common.z.so
+f68cf000-f68d0000 r--p 0000d000 /system/lib/chipset-sdk/libipc_common.z.so
+f68d0000-f68d1000 rw-p 0000d000 /system/lib/chipset-sdk/libipc_common.z.so
+f68d1000-f68d2000 rw-p 00000000 [anon:libipc_common.z.so.bss]
+f68d5000-f68dd000 rw-p 00000000 [anon:native_heap:brk]
+f68dd000-f68df000 ---p 00000000 [anon:guard:1298]
+f68df000-f6900000 rw-p 00000000 [anon:stack:1298]
+f6900000-f6901000 r--p 00000000 /system/lib/libdatabase_utils.z.so
+f6901000-f6905000 r-xp 00000000 /system/lib/libdatabase_utils.z.so
+f6905000-f6906000 r--p 00003000 /system/lib/libdatabase_utils.z.so
+f6906000-f6907000 rw-p 00003000 /system/lib/libdatabase_utils.z.so
+f690d000-f691d000 rw-p 00000000 [anon:native_heap:brk]
+f691d000-f691f000 ---p 00000000 [anon:guard:1291]
+f691f000-f6940000 rw-p 00000000 [anon:stack:1291]
+f6940000-f6948000 r--p 00000000 /system/lib/platformsdk/libconfiguration.z.so
+f6948000-f6951000 r-xp 00007000 /system/lib/platformsdk/libconfiguration.z.so
+f6951000-f6953000 r--p 0000f000 /system/lib/platformsdk/libconfiguration.z.so
+f6953000-f6954000 rw-p 00010000 /system/lib/platformsdk/libconfiguration.z.so
+f695f000-f6961000 rw-p 00000000 [anon:native_heap:brk]
+f6968000-f6980000 rw-p 00000000 [anon:native_heap:brk]
+f6980000-f6987000 r--p 00000000 /system/lib/chipset-sdk/libpcre2.z.so
+f6987000-f69a1000 r-xp 00006000 /system/lib/chipset-sdk/libpcre2.z.so
+f69a1000-f69a2000 r--p 0001f000 /system/lib/chipset-sdk/libpcre2.z.so
+f69a2000-f69a3000 rw-p 0001f000 /system/lib/chipset-sdk/libpcre2.z.so
+f69a4000-f69c0000 rw-p 00000000 [anon:native_heap:brk]
+f69c0000-f69c8000 r--p 00000000 /system/lib/platformsdk/libdataobs_manager.z.so
+f69c8000-f69d4000 r-xp 00007000 /system/lib/platformsdk/libdataobs_manager.z.so
+f69d4000-f69d7000 r--p 00012000 /system/lib/platformsdk/libdataobs_manager.z.so
+f69d7000-f69d8000 rw-p 00014000 /system/lib/platformsdk/libdataobs_manager.z.so
+f69dd000-f69df000 ---p 00000000 [anon:guard:1074]
+f69df000-f6a00000 rw-p 00000000 [anon:stack:1074]
+f6a00000-f6a04000 r--p 00000000 /system/lib/chipset-sdk-sp/libhitracechain.so
+f6a04000-f6a0a000 r-xp 00003000 /system/lib/chipset-sdk-sp/libhitracechain.so
+f6a0a000-f6a0b000 r--p 00008000 /system/lib/chipset-sdk-sp/libhitracechain.so
+f6a0b000-f6a0c000 rw-p 00008000 /system/lib/chipset-sdk-sp/libhitracechain.so
+f6a0c000-f6a0d000 rw-p 00000000 [anon:libhitracechain.so.bss]
+f6a14000-f6a1c000 rw-s 00000000 /data/log/hiview/unified_collection/trace/trace_flow_control.db-shm
+f6a1c000-f6a2e000 rw-p 00000000 [anon:native_heap:brk]
+f6a30000-f6a40000 rw-p 00000000 [anon:native_heap:brk]
+f6a40000-f6a44000 r--p 00000000 /system/lib/chipset-sdk-sp/libhisysevent.z.so
+f6a44000-f6a50000 r-xp 00003000 /system/lib/chipset-sdk-sp/libhisysevent.z.so
+f6a50000-f6a52000 r--p 0000e000 /system/lib/chipset-sdk-sp/libhisysevent.z.so
+f6a52000-f6a53000 rw-p 0000f000 /system/lib/chipset-sdk-sp/libhisysevent.z.so
+f6a55000-f6a5d000 rw-p 00000000 [anon:native_heap:brk]
+f6a5d000-f6a5f000 ---p 00000000 [anon:guard:1073]
+f6a5f000-f6a80000 rw-p 00000000 [anon:stack:1073]
+f6a80000-f6a8e000 r--p 00000000 /system/lib/chipset-sdk/libextractortool.z.so
+f6a8e000-f6aa7000 r-xp 0000d000 /system/lib/chipset-sdk/libextractortool.z.so
+f6aa7000-f6aa8000 r--p 00025000 /system/lib/chipset-sdk/libextractortool.z.so
+f6aa8000-f6aa9000 rw-p 00025000 /system/lib/chipset-sdk/libextractortool.z.so
+f6aac000-f6ac0000 rw-p 00000000 [anon:native_heap:brk]
+f6ac0000-f6ace000 r--p 00000000 /system/lib/platformsdk/libdatashare_common.z.so
+f6ace000-f6aee000 r-xp 0000d000 /system/lib/platformsdk/libdatashare_common.z.so
+f6aee000-f6af1000 r--p 0002c000 /system/lib/platformsdk/libdatashare_common.z.so
+f6af1000-f6af2000 rw-p 0002e000 /system/lib/platformsdk/libdatashare_common.z.so
+f6af8000-f6b00000 rw-p 00000000 [anon:native_heap:brk]
+f6b00000-f6b12000 r--p 00000000 /system/lib/chipset-sdk/libaccesstoken_common_cxx.z.so
+f6b12000-f6b16000 r-xp 00011000 /system/lib/chipset-sdk/libaccesstoken_common_cxx.z.so
+f6b16000-f6b1b000 r--p 00014000 /system/lib/chipset-sdk/libaccesstoken_common_cxx.z.so
+f6b1b000-f6b22000 rw-p 00018000 /system/lib/chipset-sdk/libaccesstoken_common_cxx.z.so
+f6b28000-f6b40000 rw-p 00000000 [anon:native_heap:brk]
+f6b40000-f6b50000 r--p 00000000 /system/lib/platformsdk/libnative_daemon_client.z.so
+f6b50000-f6b70000 r-xp 0000f000 /system/lib/platformsdk/libnative_daemon_client.z.so
+f6b70000-f6b72000 r--p 0002e000 /system/lib/platformsdk/libnative_daemon_client.z.so
+f6b72000-f6b73000 rw-p 0002f000 /system/lib/platformsdk/libnative_daemon_client.z.so
+f6b74000-f6b80000 rw-p 00000000 [anon:native_heap:brk]
+f6b80000-f6b83000 r--p 00000000 /system/lib/platformsdk/libhitrace_option.so
+f6b83000-f6b86000 r-xp 00002000 /system/lib/platformsdk/libhitrace_option.so
+f6b86000-f6b87000 r--p 00004000 /system/lib/platformsdk/libhitrace_option.so
+f6b87000-f6b88000 rw-p 00004000 /system/lib/platformsdk/libhitrace_option.so
+f6b8b000-f6b94000 rw-p 00000000 [anon:native_heap:brk]
+f6b95000-f6b9d000 rw-p 00000000 [anon:native_heap:brk]
+f6b9d000-f6b9f000 ---p 00000000 [anon:guard:1072]
+f6b9f000-f6bc0000 rw-p 00000000 [anon:stack:1072]
+f6bc0000-f6bc4000 r--p 00000000 /system/lib/chipset-sdk-sp/libhitrace_meter.so
+f6bc4000-f6bcb000 r-xp 00003000 /system/lib/chipset-sdk-sp/libhitrace_meter.so
+f6bcb000-f6bcd000 r--p 00009000 /system/lib/chipset-sdk-sp/libhitrace_meter.so
+f6bcd000-f6bce000 rw-p 0000a000 /system/lib/chipset-sdk-sp/libhitrace_meter.so
+f6bd0000-f6bd2000 ---p 00000000 
+f6bd2000-f6bd5000 rw-p 00000000 [anon:signal_stack:2258]
+f6bd5000-f6bdd000 rw-p 00000000 [anon:native_heap:brk]
+f6bdd000-f6bdf000 ---p 00000000 [anon:guard:1061]
+f6bdf000-f6c00000 rw-p 00000000 [anon:stack:1061]
+f6c00000-f6c03000 r--p 00000000 /system/lib/chipset-sdk-sp/libsec_shared.z.so
+f6c03000-f6c11000 r-xp 00002000 /system/lib/chipset-sdk-sp/libsec_shared.z.so
+f6c11000-f6c12000 r--p 0000f000 /system/lib/chipset-sdk-sp/libsec_shared.z.so
+f6c12000-f6c13000 rw-p 0000f000 /system/lib/chipset-sdk-sp/libsec_shared.z.so
+f6c13000-f6c15000 rw-p 00000000 [anon:native_heap:brk]
+f6c18000-f6c1a000 ---p 00000000 
+f6c1a000-f6c1d000 rw-p 00000000 [anon:signal_stack:2242]
+f6c1d000-f6c1f000 ---p 00000000 [anon:guard:1060]
+f6c1f000-f6c40000 rw-p 00000000 [anon:stack:1060]
+f6c40000-f6c81000 r--p 00000000 /system/lib/ndk/libffrt.so
+f6c81000-f6ce4000 r-xp 00040000 /system/lib/ndk/libffrt.so
+f6ce4000-f6ce8000 r--p 000a2000 /system/lib/ndk/libffrt.so
+f6ce8000-f6ce9000 rw-p 000a5000 /system/lib/ndk/libffrt.so
+f6ce9000-f6cef000 rw-p 00000000 [anon:libffrt.so.bss]
+f6cef000-f6d00000 rw-p 00000000 [anon:native_heap:brk]
+f6d00000-f6d03000 r--p 00000000 /system/lib/platformsdk/libfreeze_util.z.so
+f6d03000-f6d07000 r-xp 00002000 /system/lib/platformsdk/libfreeze_util.z.so
+f6d07000-f6d08000 r--p 00005000 /system/lib/platformsdk/libfreeze_util.z.so
+f6d08000-f6d09000 rw-p 00005000 /system/lib/platformsdk/libfreeze_util.z.so
+f6d09000-f6d0a000 rw-p 00000000 [anon:fatal message]
+f6d0a000-f6d12000 rw-p 00000000 [anon:native_heap:brk]
+f6d12000-f6d14000 ---p 00000000 
+f6d14000-f6d17000 rw-p 00000000 [anon:signal_stack:1619]
+f6d17000-f6d1d000 rw-p 00000000 [anon:native_heap:brk]
+f6d1d000-f6d1f000 ---p 00000000 [anon:guard:1059]
+f6d1f000-f6d40000 rw-p 00000000 [anon:stack:1059]
+f6d40000-f6d4e000 r--p 00000000 /system/lib/platformsdk/libsystem_ability_fwk.z.so
+f6d4e000-f6d65000 r-xp 0000d000 /system/lib/platformsdk/libsystem_ability_fwk.z.so
+f6d65000-f6d67000 r--p 00023000 /system/lib/platformsdk/libsystem_ability_fwk.z.so
+f6d67000-f6d68000 rw-p 00024000 /system/lib/platformsdk/libsystem_ability_fwk.z.so
+f6d68000-f6d80000 rw-p 00000000 [anon:native_heap:brk]
+f6d80000-f6d94000 r--p 00000000 /system/lib/platformsdk/libos_account_innerkits.z.so
+f6d94000-f6dba000 r-xp 00013000 /system/lib/platformsdk/libos_account_innerkits.z.so
+f6dba000-f6dbe000 r--p 00038000 /system/lib/platformsdk/libos_account_innerkits.z.so
+f6dbe000-f6dbf000 rw-p 0003b000 /system/lib/platformsdk/libos_account_innerkits.z.so
+f6dbf000-f6dc0000 rw-p 00000000 [anon:native_heap:brk]
+f6dc0000-f6dc7000 r--p 00000000 /system/lib/platformsdk/libthermalsrv_client.z.so
+f6dc7000-f6dd0000 r-xp 00006000 /system/lib/platformsdk/libthermalsrv_client.z.so
+f6dd0000-f6dd3000 r--p 0000e000 /system/lib/platformsdk/libthermalsrv_client.z.so
+f6dd3000-f6dd4000 rw-p 00010000 /system/lib/platformsdk/libthermalsrv_client.z.so
+f6dd4000-f6ddd000 rw-p 00000000 [anon:native_heap:brk]
+f6ddd000-f6ddf000 ---p 00000000 [anon:guard:1058]
+f6ddf000-f6e00000 rw-p 00000000 [anon:stack:1058]
+f6e00000-f6e06000 r--p 00000000 /system/lib/chipset-sdk-sp/libstorage_manager_acl.z.so
+f6e06000-f6e10000 r-xp 00005000 /system/lib/chipset-sdk-sp/libstorage_manager_acl.z.so
+f6e10000-f6e11000 r--p 0000e000 /system/lib/chipset-sdk-sp/libstorage_manager_acl.z.so
+f6e11000-f6e12000 rw-p 0000e000 /system/lib/chipset-sdk-sp/libstorage_manager_acl.z.so
+f6e12000-f6e13000 rw-p 00000000 [anon:native_heap:brk]
+f6e13000-f6e15000 ---p 00000000 
+f6e15000-f6e18000 rw-p 00000000 [anon:signal_stack:1072]
+f6e18000-f6e1a000 ---p 00000000 
+f6e1a000-f6e1d000 rw-p 00000000 [anon:signal_stack:1073]
+f6e1d000-f6e1f000 ---p 00000000 [anon:guard:1055]
+f6e1f000-f6e40000 rw-p 00000000 [anon:stack:1055]
+f6e40000-f6e47000 r--p 00000000 /system/lib/chipset-sdk/libhilog.so
+f6e47000-f6e5e000 r-xp 00006000 /system/lib/chipset-sdk/libhilog.so
+f6e5e000-f6e5f000 r--p 0001c000 /system/lib/chipset-sdk/libhilog.so
+f6e5f000-f6e60000 rw-p 0001c000 /system/lib/chipset-sdk/libhilog.so
+f6e60000-f6e62000 rw-p 00000000 [anon:libhilog.so.bss]
+f6e62000-f6e64000 ---p 00000000 
+f6e64000-f6e67000 rw-p 00000000 [anon:signal_stack:1074]
+f6e67000-f6e69000 ---p 00000000 
+f6e69000-f6e6c000 rw-p 00000000 [anon:signal_stack:1061]
+f6e6c000-f6e6e000 ---p 00000000 
+f6e6e000-f6e71000 rw-p 00000000 [anon:signal_stack:1060]
+f6e71000-f6e7b000 rw-p 00000000 [anon:native_heap:brk]
+f6e7b000-f6e7d000 ---p 00000000 
+f6e7d000-f6e80000 rw-p 00000000 [anon:signal_stack:1058]
+f6e80000-f6e87000 r--p 00000000 /system/lib/chipset-sdk-sp/liblzma.z.so
+f6e87000-f6ea7000 r-xp 00006000 /system/lib/chipset-sdk-sp/liblzma.z.so
+f6ea7000-f6ea8000 r--p 00025000 /system/lib/chipset-sdk-sp/liblzma.z.so
+f6ea8000-f6ea9000 rw-p 00025000 /system/lib/chipset-sdk-sp/liblzma.z.so
+f6ea9000-f6eb2000 rw-p 00000000 [anon:liblzma.z.so.bss]
+f6eb2000-f6eb3000 rw-p 00000000 [anon:native_heap:brk]
+f6eb3000-f6eb5000 ---p 00000000 
+f6eb5000-f6eb8000 rw-p 00000000 [anon:signal_stack:1059]
+f6eb8000-f6ec0000 rw-p 00000000 [anon:native_heap:brk]
+f6ec0000-f6f45000 r--p 00000000 /system/lib/platformsdk/libappexecfwk_core.z.so
+f6f45000-f6fff000 r-xp 00084000 /system/lib/platformsdk/libappexecfwk_core.z.so
+f6fff000-f700f000 r--p 0013d000 /system/lib/platformsdk/libappexecfwk_core.z.so
+f700f000-f7010000 rw-p 0014c000 /system/lib/platformsdk/libappexecfwk_core.z.so
+f7010000-f7018000 rw-p 00000000 [anon:native_heap:brk]
+f7018000-f701a000 ---p 00000000 
+f701a000-f701d000 rw-p 00000000 [anon:signal_stack:1055]
+f701d000-f701f000 ---p 00000000 [anon:guard:1053]
+f701f000-f7040000 rw-p 00000000 [anon:stack:1053]
+f7040000-f7043000 r--p 00000000 /system/lib/librelational_common_base.z.so
+f7043000-f7049000 r-xp 00002000 /system/lib/librelational_common_base.z.so
+f7049000-f704a000 r--p 00007000 /system/lib/librelational_common_base.z.so
+f704a000-f704b000 rw-p 00007000 /system/lib/librelational_common_base.z.so
+f704b000-f704c000 rw-s 00000000 /data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr
+f704c000-f704d000 rw-s 00000000 /data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr
+f704d000-f704f000 ---p 00000000 
+f704f000-f7052000 rw-p 00000000 [anon:signal_stack:1053]
+f7052000-f705c000 rw-p 00000000 [anon:native_heap:brk]
+f705c000-f7080000 rw-p 00000000 [anon:native_heap:brk]
+f7080000-f7082000 r--p 00000000 /system/lib/platformsdk/libappexecfwk_common.z.so
+f7082000-f7086000 r-xp 00001000 /system/lib/platformsdk/libappexecfwk_common.z.so
+f7086000-f7087000 r--p 00004000 /system/lib/platformsdk/libappexecfwk_common.z.so
+f7087000-f7088000 rw-p 00004000 /system/lib/platformsdk/libappexecfwk_common.z.so
+f7088000-f7089000 rw-s 00000000 /data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr
+f7089000-f709d000 rw-p 00000000 [anon:native_heap:brk]
+f709d000-f709f000 ---p 00000000 [anon:guard:1028]
+f709f000-f70c0000 rw-p 00000000 [anon:stack:1028]
+f70c0000-f70c9000 r--p 00000000 /system/lib/chipset-sdk/libselinux.z.so
+f70c9000-f70df000 r-xp 00008000 /system/lib/chipset-sdk/libselinux.z.so
+f70df000-f70e1000 r--p 0001d000 /system/lib/chipset-sdk/libselinux.z.so
+f70e1000-f70e2000 rw-p 0001e000 /system/lib/chipset-sdk/libselinux.z.so
+f70e2000-f70e3000 rw-p 00000000 [anon:libselinux.z.so.bss]
+f70e3000-f70ec000 rw-p 00000000 [anon:native_heap:brk]
+f70ec000-f70f4000 rw-s 00000000 /data/log/hiview/sys_event_threshold/events_20170815.db-shm
+f70f4000-f7100000 rw-p 00000000 [anon:native_heap:brk]
+f7100000-f7169000 r--p 00000000 /system/lib/chipset-sdk-sp/libc++.so
+f7169000-f720b000 r-xp 00068000 /system/lib/chipset-sdk-sp/libc++.so
+f720b000-f7211000 r--p 00109000 /system/lib/chipset-sdk-sp/libc++.so
+f7211000-f7212000 rw-p 0010e000 /system/lib/chipset-sdk-sp/libc++.so
+f7212000-f7218000 rw-p 00000000 [anon:libc++.so.bss]
+f7218000-f721c000 rw-p 00000000 [anon:native_heap:brk]
+f721c000-f7226000 r--s 00000000 /dev/__parameters__/u:object_r:hiviewdfx_hiview_param:s0
+f7226000-f7229000 rw-p 00000000 [anon:native_heap:brk]
+f7229000-f7240000 rw-p 00000000 [anon:native_heap:brk]
+f7240000-f7244000 r--p 00000000 /system/lib/libres_sched_util.z.so
+f7244000-f724b000 r-xp 00003000 /system/lib/libres_sched_util.z.so
+f724b000-f724c000 r--p 00009000 /system/lib/libres_sched_util.z.so
+f724c000-f724d000 rw-p 00009000 /system/lib/libres_sched_util.z.so
+f724d000-f724e000 rw-p 00000000 [anon:native_heap:brk]
+f724e000-f7250000 ---p 00000000 
+f7250000-f7253000 rw-p 00000000 [anon:signal_stack:1028]
+f7253000-f7255000 ---p 00000000 [anon:guard:1026]
+f7255000-f7276000 rw-p 00000000 [anon:stack:1026]
+f7276000-f727f000 rw-p 00000000 [anon:native_heap:brk]
+f727f000-f7281000 ---p 00000000 [anon:guard:1021]
+f7281000-f72a2000 rw-p 00000000 [anon:stack:1021]
+f72a2000-f72a4000 ---p 00000000 [anon:guard:1019]
+f72a4000-f72c5000 rw-p 00000000 [anon:stack:1019]
+f72c5000-f72c7000 rw-p 00000000 [anon:native_heap:brk]
+f72c7000-f72c8000 rw-s 00000000 /data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr
+f72c8000-f72d1000 rw-p 00000000 [anon:native_heap:brk]
+f72d1000-f72d2000 rw-s 00000000 /data/log/hiview/sys_event_threshold/events_20170815.db-dwr
+f72d2000-f72d4000 ---p 00000000 
+f72d4000-f72d7000 rw-p 00000000 [anon:signal_stack:1026]
+f72d7000-f72da000 r--s 00000000 /dev/__parameters__/u:object_r:samgr_writable_param:s0
+f72da000-f72dc000 ---p 00000000 
+f72dc000-f72df000 rw-p 00000000 [anon:signal_stack:1021]
+f72df000-f72e1000 ---p 00000000 
+f72e1000-f72e4000 rw-p 00000000 [anon:signal_stack:1019]
+f72e4000-f7340000 rw-p 00000000 [anon:native_heap:brk]
+f7340000-f7346000 r--p 00000000 /system/lib/libtrace_manager.z.so
+f7346000-f735a000 r-xp 00005000 /system/lib/libtrace_manager.z.so
+f735a000-f735c000 r--p 00018000 /system/lib/libtrace_manager.z.so
+f735c000-f735d000 rw-p 00019000 /system/lib/libtrace_manager.z.so
+f735d000-f735e000 rw-p 00000000 [anon:native_heap:brk]
+f735e000-f735f000 rw-s 00000000 /data/log/hiview/sys_event_threshold/events_20170815.db-dwr
+f735f000-f7380000 rw-p 00000000 [anon:native_heap:brk]
+f7380000-f7384000 r--p 00000000 /system/lib/chipset-sdk-sp/libcjson.z.so
+f7384000-f738c000 r-xp 00003000 /system/lib/chipset-sdk-sp/libcjson.z.so
+f738c000-f738d000 r--p 0000a000 /system/lib/chipset-sdk-sp/libcjson.z.so
+f738d000-f738e000 rw-p 0000a000 /system/lib/chipset-sdk-sp/libcjson.z.so
+f738e000-f7397000 rw-p 00000000 [anon:native_heap:brk]
+f7397000-f7398000 rw-s 00000000 /data/log/hiview/sys_event_threshold/events_20170815.db-dwr
+f7398000-f73c0000 rw-p 00000000 [anon:native_heap:brk]
+f73c0000-f73c3000 r--p 00000000 /system/lib/platformsdk/libimageformatagent.z.so
+f73c3000-f73c7000 r-xp 00002000 /system/lib/platformsdk/libimageformatagent.z.so
+f73c7000-f73c8000 r--p 00005000 /system/lib/platformsdk/libimageformatagent.z.so
+f73c8000-f73c9000 rw-p 00005000 /system/lib/platformsdk/libimageformatagent.z.so
+f73c9000-f7419000 rw-p 00000000 [anon:native_heap:brk]
+f7419000-f741a000 rw-s 00000000 /data/log/hiview/sys_event_threshold/events_20170815.db-dwr
+f741a000-f7440000 rw-p 00000000 [anon:native_heap:brk]
+f7440000-f7443000 r--p 00000000 /system/lib/librdb_obs_mgr_adapter.z.so
+f7443000-f7449000 r-xp 00002000 /system/lib/librdb_obs_mgr_adapter.z.so
+f7449000-f744b000 r--p 00007000 /system/lib/librdb_obs_mgr_adapter.z.so
+f744b000-f744c000 rw-p 00008000 /system/lib/librdb_obs_mgr_adapter.z.so
+f744c000-f749c000 rw-p 00000000 [anon:native_heap:brk]
+f749c000-f749d000 rw-s 00000000 /data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr
+f749d000-f74a2000 rw-p 00000000 [anon:native_heap:brk]
+f74a2000-f74a4000 ---p 00000000 
+f74a4000-f74a7000 rw-p 00000000 [anon:signal_stack:2083]
+f74a7000-f74a9000 rw-p 00000000 [anon:native_heap:brk]
+f74a9000-f74ab000 ---p 00000000 
+f74ab000-f74ae000 rw-p 00000000 [anon:signal_stack:1951]
+f74ae000-f74b0000 ---p 00000000 
+f74b0000-f74b3000 rw-p 00000000 [anon:signal_stack:1298]
+f74b3000-f74b5000 ---p 00000000 
+f74b5000-f74b8000 rw-p 00000000 [anon:signal_stack:1291]
+f74b8000-f74bf000 rw-p 00000000 [anon:native_heap:brk]
+f74bf000-f74c0000 rw-s 00000000 /data/log/hiview/sys_event_threshold/events_20170815.db-dwr
+f74c0000-f74c2000 rw-p 00000000 [anon:native_heap:brk]
+f74c2000-f74db000 rw-p 00000000 [anon:native_heap:brk]
+f74db000-f74dc000 r--s 00000000 /dev/__parameters__/u:object_r:const_i18n_param:s0
+f74dc000-f74f6000 rw-p 00000000 [anon:native_heap:brk]
+f74f6000-f74f7000 r--s 00000000 /dev/__parameters__/u:object_r:debug_param:s0
+f74f7000-f74fd000 rw-p 00000000 [anon:native_heap:brk]
+f74fd000-f7503000 rw-p 00000000 [anon:native_heap:brk]
+f7503000-f7506000 r--s 00000000 /dev/__parameters__/u:object_r:persist_sys_param:s0
+f7506000-f752a000 rw-p 00000000 [anon:native_heap:brk]
+f752a000-f752c000 ---p 00000000 
+f752c000-f752f000 rw-p 00000000 [anon:signal_stack:425]
+f752f000-f7531000 ---p 00000000 [anon:guard:425]
+f7531000-f7552000 rw-p 00000000 [anon:stack:425]
+f7552000-f7554000 ---p 00000000 
+f7554000-f7557000 rw-p 00000000 [anon:signal_stack:197]
+f7557000-f759d000 r--s 00000000 /system/etc/zoneinfo/tzdata
+f759d000-f759f000 ---p 00000000 [anon:guard:246]
+f759f000-f75c0000 rw-p 00000000 [anon:stack:246]
+f75c0000-f75c1000 r--p 00000000 /system/lib/platformsdk/libfwmark_client.z.so
+f75c1000-f75c4000 r-xp 00000000 /system/lib/platformsdk/libfwmark_client.z.so
+f75c4000-f75c5000 r--p 00002000 /system/lib/platformsdk/libfwmark_client.z.so
+f75c5000-f75c6000 rw-p 00002000 /system/lib/platformsdk/libfwmark_client.z.so
+f75c6000-f75c7000 rw-p 00000000 [anon:native_heap:brk]
+f75c7000-f75c8000 r--s 00000000 /dev/__parameters__/u:object_r:devinfo_type_param:s0
+f75c8000-f75c9000 r--s 00000000 /dev/__parameters__/u:object_r:bootevent_param:s0
+f75c9000-f75d8000 rw-p 00000000 [anon:native_heap:brk]
+f75d8000-f75da000 ---p 00000000 
+f75da000-f75dd000 rw-p 00000000 [anon:signal_stack:246]
+f75dd000-f75e1000 rw-p 00000000 [anon:native_heap:brk]
+f75e1000-f75e2000 r--s 00000000 /dev/__parameters__/u:object_r:hilog_private_param:s0
+f75e2000-f75e4000 ---p 00000000 
+f75e4000-f75e7000 rw-p 00000000 [anon:signal_stack:245]
+f75e7000-f75e9000 ---p 00000000 [anon:guard:245]
+f75e9000-f760a000 rw-p 00000000 [anon:stack:245]
+f760a000-f761f000 rw-p 00000000 [anon:native_heap:brk]
+f761f000-f7629000 r--s 00000000 /dev/__parameters__/u:object_r:hilog_param:s0
+f7629000-f763d000 r--s 00000000 /dev/__parameters__/u:object_r:startup_init_param:s0
+f763d000-f763f000 rw-p 00000000 [anon:native_heap:brk]
+f763f000-f7643000 rw-p 00000000 [anon:native_heap:brk]
+f7643000-f764d000 r--s 00000000 /dev/__parameters__/u:object_r:persist_param:s0
+f764d000-f764e000 r--s 00000000 /dev/__parameters__/u:object_r:hook_param:s0
+f764e000-f764f000 r--p 00000000 [anon:cfi_shadow:musl]
+f764f000-f7655000 ---p 00000000 [anon:cfi_shadow:musl]
+f7655000-f7656000 r--p 00000000 [anon:cfi_shadow:musl]
+f7656000-f7657000 rw-p 00000000 [anon:native_heap:brk]
+f7657000-f7658000 r--s 00000000 /dev/__parameters__/u:object_r:hitrace_param:s0
+f7658000-f7659000 r--s 00000000 /dev/__parameters__/u:object_r:time_param:s0
+f7659000-f765a000 r--s 00000000 /dev/__parameters__/u:object_r:i18n_param_tz_override:s0
+f765a000-f7664000 r--s 00000000 /dev/__parameters__/u:object_r:devinfo_public_param:s0
+f7664000-f7665000 r--s 00000000 /dev/__parameters__/u:object_r:musl_param:s0
+f7665000-f7669000 rw-p 00000000 [anon:native_heap:brk]
+f7669000-f7869000 r--s 00000000 /dev/__parameters__/param_sec_dac
+f7869000-f7879000 rw-p 00000000 [anon:native_heap:brk]
+f7879000-f788d000 r--s 00000000 /dev/__parameters__/param_selinux
+f788d000-f788e000 rw-p 00000000 [anon:native_heap:brk]
+f788e000-f788f000 r-xp 00000000 [sigpage]
+f788f000-f7891000 r--p 00000000 [vvar]
+f7891000-f7892000 r-xp 00000000 [vdso]
+f7892000-f78ec000 r--p 00000000 /system/lib/ld-musl-arm.so.1
+f78ec000-f79b6000 r-xp 00059000 /system/lib/ld-musl-arm.so.1
+f79b6000-f79b8000 r--p 00122000 /system/lib/ld-musl-arm.so.1
+f79b8000-f79ba000 rw-p 00123000 /system/lib/ld-musl-arm.so.1
+f79ba000-f79c6000 rw-p 00000000 [anon:ld-musl-arm.so.1.bss]
+ff86c000-ff88d000 rw-p 00000000 [stack]
+ffff0000-ffff1000 r-xp 00000000 [vectors]
+OpenFiles:
+0->/dev/null native object of unknown type 0
+1->/dev/null native object of unknown type 0
+2->/dev/null native object of unknown type 0
+3->/dev/binder FILE* 218126272
+4->socket:[2814] native object of unknown type 0
+5->anon_inode:[eventpoll] FILE* 5
+6->anon_inode:[eventfd] FILE* 6
+7->anon_inode:[eventpoll] native object of unknown type 0
+8->anon_inode:[timerfd] native object of unknown type 0
+9->socket:[11517] native object of unknown type 0
+10->anon_inode:[eventpoll] native object of unknown type 0
+11->socket:[2793] native object of unknown type 218115344
+12->socket:[2796] native object of unknown type 218115344
+13->anon_inode:[eventfd] native object of unknown type 0
+14->socket:[12099] native object of unknown type 0
+15->anon_inode:[eventpoll] native object of unknown type 0
+16->anon_inode:[eventfd] native object of unknown type 0
+17->anon_inode:[eventpoll] native object of unknown type 0
+18->anon_inode:[eventfd] native object of unknown type 0
+19->socket:[12103] native object of unknown type 0
+20->/dev/ucollection native object of unknown type 218115344
+21->/data/log/hiview/sys_event_threshold/events_20170815.db FILE* 5351
+22->/data/log/hiview/sys_event_threshold/events_20170815.db-dwr FILE* 5351
+23->/data/log/hiview/sys_event_threshold/events_20170815.db-wal FILE* 5351
+24->/data/log/hiview/sys_event_threshold/events_20170815.db-shm FILE* 5351
+25->/data/log/hiview/sys_event_threshold/events_20170815.db FILE* 5351
+26->/data/log/hiview/sys_event_threshold/events_20170815.db-dwr FILE* 5351
+27->/data/log/hiview/sys_event_threshold/events_20170815.db FILE* 5351
+28->/data/log/hiview/sys_event_threshold/events_20170815.db-dwr FILE* 5351
+29->/data/log/hiview/sys_event_threshold/events_20170815.db FILE* 5351
+30->/data/log/hiview/sys_event_threshold/events_20170815.db-dwr FILE* 5351
+31->/data/log/hiview/sys_event_threshold/events_20170815.db FILE* 5351
+32->/data/log/hiview/sys_event_threshold/events_20170815.db-dwr FILE* 5351
+33->anon_inode:[eventpoll] native object of unknown type 0
+34->anon_inode:[eventfd] native object of unknown type 0
+35->anon_inode:[eventpoll] native object of unknown type 0
+36->anon_inode:[eventfd] native object of unknown type 0
+37->/dev/kmsg native object of unknown type 0
+38->anon_inode:[eventpoll] native object of unknown type 0
+39->anon_inode:[eventfd] native object of unknown type 0
+40->socket:[12834] native object of unknown type 0
+41->/dev/bbox native object of unknown type 218115344
+42->anon_inode:[eventpoll] native object of unknown type 0
+43->anon_inode:[eventpoll] native object of unknown type 0
+44->anon_inode:[eventfd] native object of unknown type 0
+45->/data/log/hiview/sys_event_threshold/events_20170815.db-wal FILE* 5351
+46->/data/log/hiview/sys_event_db/SAMGR/SA_LOAD_DURATION-4-CRITICAL-100.db FILE* 4150617208
+47->/data/log/hiview/sys_event_threshold/events_20170815.db-wal FILE* 5351
+48->/data/log/hiview/sys_event_db/SAMGR/SA_UNLOAD_DURATION-4-CRITICAL-943.db FILE* 4150617056
+49->/data/log/hiview/sys_event_threshold/events_20170815.db-wal FILE* 5351
+50->/data/log/hiview/sys_event_db/GRAPHIC/JANK_FRAME_SKIP-1-MINOR-1162.db FILE* 4150616904
+51->/data/log/hiview/sys_event_threshold/events_20170815.db-wal FILE* 5351
+52->/data/log/hiview/sys_event_db/DISTDM/GET_LOCAL_DEVICE_INFO_SUCCESS-4-CRITICAL-481.db FILE* 4150616752
+53->/data/log/hiview/sys_event_db/SAMGR/ONDEMAND_SA_UNLOAD-4-CRITICAL-941.db FILE* 4150616600
+54->/data/log/hiview/sys_event_db/AAFWK/PROCESS_START-4-MINOR-600.db FILE* 4150616448
+55->/data/log/hiview/sys_event_db/DISTDM/DM_INIT_DEVICE_MANAGER_SUCCESS-4-CRITICAL-473.db FILE* 4150616296
+56->/data/log/hiview/sys_event_db/SAMGR/PROCESS_STOP_DURATION-4-CRITICAL-944.db FILE* 4150616144
+57->/data/log/hiview/sys_event_db/AAFWK/PROCESS_EXIT-4-MINOR-647.db FILE* 4146234504
+58->/data/log/hiview/sys_event_db/MISCDEVICE/SWITCHES_TOGGLE-4-CRITICAL-1329.db FILE* 4146234352
+59->/data/log/hiview/sys_event_db/AAFWK/APP_LAUNCH-4-MINOR-608.db FILE* 4146234200
+60->/data/log/hiview/sys_event_db/INIT/CHILD_PROCESS_EXIT-4-CRITICAL-1015.db FILE* 4146234048
+61->/data/log/hiview/sys_event_db/RSS/LIMIT_REQUEST-4-MINOR-1358.db FILE* 4146233896
+62->/data/log/hiview/sys_event_db/TELEPHONY/SIM_STATE_CHANGE-4-MINOR-297.db FILE* 4146233744
+63->/data/log/hiview/sys_event_db/AAFWK/START_ABILITY-4-MINOR-583.db FILE* 4146233592
+64->/data/log/hiview/sys_event_db/AAFWK/APP_STARTUP_TYPE-4-MINOR-601.db FILE* 4146233440
+65->/data/log/hiview/sys_event_db/IMAGE_FWK_UE/DECODE_INFORMATION-4-MINOR-268.db FILE* 4146235848
+66->/data/log/hiview/sys_event_db/MISCDEVICE/DATASHARE_EXCEPTION-1-CRITICAL-547.db FILE* 4146235696
+67->/data/log/hiview/sys_event_db/SAMGR/PROCESS_START_DURATION-4-CRITICAL-210.db FILE* 4146235544
+68->/data/log/hiview/sys_event_db/AAFWK/DISCONNECT_SERVICE-4-MINOR-625.db FILE* 4146235392
+69->/data/log/hiview/sys_event_db/ACCOUNT/DISTRIBUTED_ACCOUNT_FAILED-1-CRITICAL-261.db FILE* 4146235240
+70->/data/log/hiview/sys_event_db/AAFWK/APP_FOREGROUND-4-MINOR-1270.db FILE* 4146235088
+71->/data/log/hiview/sys_event_db/ACCESSIBILITY/UNAVAILABLE-1-CRITICAL-573.db FILE* 4146234936
+72->/data/log/hiview/sys_event_db/AUDIO/DB_ACCESS_EXCEPTION-1-CRITICAL-406.db FILE* 4146234784
+73->/data/log/hiview/sys_event_db/AAFWK/CONNECT_SERVICE-4-MINOR-622.db FILE* 4146237144
+74->/data/log/hiview/sys_event_db/SAMGR/ONDEMAND_SA_LOAD-4-CRITICAL-174.db FILE* 4146236992
+75->/data/log/hiview/sys_event_db/TELEPHONY/AIRPLANE_MODE_STATE-4-MINOR-559.db FILE* 4146236840
+76->/data/log/hiview/sys_event_db/THERMAL/ACTION_TRIGGERED-2-MINOR-1351.db FILE* 4146236688
+77->/data/log/hiview/sys_event_db/AAFWK/APP_ATTACH-4-MINOR-609.db FILE* 4146236536
+78->/data/log/hiview/sys_event_db/DSOFTBUS/TRANSPORT_BEHAVIOR-4-MINOR-459.db FILE* 4146236384
+79->/sys/kernel/debug/tracing/trace_marker native object of unknown type 0
+80->/data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr FILE* 5351
+81->/data/log/hiview/unified_collection/trace/trace_flow_control.db FILE* 5351
+82->/data/log/hiview/unified_collection/trace/trace_flow_control.db-wal FILE* 5351
+83->socket:[14801] native object of unknown type 0
+84->/sys/kernel/debug/tracing/trace_marker native object of unknown type 0
+85->/data/log/hiview/unified_collection/trace/trace_flow_control.db-shm FILE* 5351
+86->/data/log/hiview/unified_collection/trace/trace_flow_control.db FILE* 5351
+87->/data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr FILE* 5351
+88->/data/log/hiview/unified_collection/trace/trace_flow_control.db FILE* 5351
+89->/data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr FILE* 5351
+90->/data/log/hiview/unified_collection/trace/trace_flow_control.db FILE* 5351
+91->/data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr FILE* 5351
+92->/data/log/hiview/unified_collection/trace/trace_flow_control.db FILE* 5351
+93->/data/log/hiview/unified_collection/trace/trace_flow_control.db-dwr FILE* 5351
+94->/data/log/hiview/unified_collection/trace/trace_flow_control.db-wal FILE* 5351
+95->socket:[18219] native object of unknown type 0

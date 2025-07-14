@@ -30,6 +30,7 @@ public:
 private:
     void StartBootScan();
     void AddBootScanEvent();
+    static bool IsCrashTempBigFile(const std::string& file);
     bool IsCrashType(const std::string& file);
     bool IsInValidTime(const std::string& file, const time_t& now);
     bool IsEmptyStack(const std::string& file, const FaultLogInfo& info);
