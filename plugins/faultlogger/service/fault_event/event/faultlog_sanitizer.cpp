@@ -74,6 +74,30 @@ std::string FaultLogSanitizer::GetFaultModule(SysEvent& sysEvent) const
     return sysEvent.GetEventValue(FaultKey::MODULE_NAME);
 }
 
+void FaultLogSanitizer::ParseSanitizerEasyEvent(SysEvent& sysEvent) const
+{
+    std::string data = sysEvent.GetEventValue("DATA");
+    if (data.empty()) {
+        HIVIEW_LOGW("Sanitizer receive empty hiSysEventEasy");
+        return;
+    }
+    size_t start = 0;
+    while (start < data.size()) {
+        size_t end = data.find(';', start);
+        if (end == std::string::npos) {
+            end = data.size();
+        }
+        size_t pos = data.find(':', start);
+        if (pos != std::string::npos && pos > start && pos < end) {
+            std::string key = data.substr(start, pos - start);
+            std::string value = data.substr(pos + 1, end - pos - 1);
+            sysEvent.SetEventValue(key, value);
+        }
+        start = end + 1;
+    }
+    sysEvent.SetEventValue("DATA", "");
+}
+
 void FaultLogSanitizer::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo& info) const
 {
     if (info.reason.find("FDSAN") != std::string::npos) {
@@ -91,8 +115,10 @@ void FaultLogSanitizer::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInf
         info.dumpLogToFaultlogger = false;
         info.logPath = GetDebugSignalTempLogName(info);
     } else {
+        ParseSanitizerEasyEvent(sysEvent);
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
-        info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME));
+        info.reason = sysEvent.GetEventValue(FaultKey::REASON);
+        info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
         info.summary = "";
     }
 }

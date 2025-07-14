@@ -30,6 +30,7 @@
 #include "faultlog_util.h"
 #include "file_util.h"
 #include "hisysevent.h"
+#include "hisysevent_easy.h"
 #include "hilog/log.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
@@ -45,7 +46,7 @@
 #define LOG_TAG "Sanitizer"
 
 namespace {
-constexpr unsigned SUMMARY_LOG_SIZE = 350 * 1024;
+constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
 constexpr unsigned BUF_SIZE = 128;
 constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
 constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
@@ -105,8 +106,6 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     const std::unordered_set<std::string> setAsanOptionTypeList = {"ASAN", "HWASAN"};
     GwpAsanCurrInfo currInfo;
     currInfo.description = gwpAsanBuffer;
-    currInfo.summary = (gwpAsanBuffer.length() > SUMMARY_LOG_SIZE) ?
-        (gwpAsanBuffer.substr(0, SUMMARY_LOG_SIZE) + "\nEnd Summary report") : gwpAsanBuffer;
     if (logPath == nullptr || strlen(logPath) == 0 ||
         setAsanOptionTypeList.find(faultType) == setAsanOptionTypeList.end()) {
         currInfo.logPath = "faultlogger";
@@ -119,7 +118,6 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     currInfo.faultType = faultType;
     currInfo.errType = GetErrorTypeFromBuffer(gwpAsanBuffer, faultType);
     currInfo.moduleName = GetNameByPid(currInfo.pid);
-    currInfo.appVersion = "";
     time_t timeNow = time(nullptr);
     uint64_t timeTmp = timeNow;
     constexpr int decimalBase = 10;
@@ -141,45 +139,38 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
 
 void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
 {
-    std::vector<HiSysEventParam> params = {
-        { .name = "MODULE", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.moduleName.c_str()) }, .arraySize = 0 },
-        { .name = "VERSION", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.appVersion.c_str()) }, .arraySize = 0 },
-        { .name = "FAULT_TYPE", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.faultType.c_str()) }, .arraySize = 0 },
-        { .name = "REASON", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.errType.c_str()) }, .arraySize = 0 },
-        { .name = "PID", .t = HISYSEVENT_INT32,
-            .v = { .i32 = currInfo.pid }, .arraySize = 0 },
-        { .name = "UID", .t = HISYSEVENT_INT32,
-            .v = { .i32 = currInfo.uid }, .arraySize = 0 },
-        { .name = "SUMMARY", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.summary.c_str()) }, .arraySize = 0 },
-        { .name = "HAPPEN_TIME", .t = HISYSEVENT_UINT64,
-            .v = { .ui64 = currInfo.happenTime }, .arraySize = 0 },
-        { .name = "FINGERPRINT", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.hash.c_str()) }, .arraySize = 0 },
-        { .name = "FIRST_FRAME", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.errType.c_str()) }, .arraySize = 0 },
-        { .name = "SECOND_FRAME", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.topStack.c_str()) }, .arraySize = 0 }
-    };
+    std::stringstream ssPrefix;
+    ssPrefix << "FAULT_TYPE:" << currInfo.faultType <<
+        ";REASON:" << currInfo.errType <<
+        ";PID:" << currInfo.pid <<
+        ";UID:" << currInfo.uid <<
+        ";HAPPEN_TIME:" << currInfo.happenTime <<
+        ";FINGERPRINT:" << currInfo.hash <<
+        ";FIRST_FRAME:" << currInfo.errType <<
+        ";SECOND_FRAME:" << currInfo.topStack;
     if (!currInfo.telemetryId.empty()) {
-        params.push_back({
-            .name = "TELEMETRY_ID", .t = HISYSEVENT_STRING,
-            .v = { .s = const_cast<char*>(currInfo.telemetryId.c_str()) }, .arraySize = 0 }
-        );
+        ssPrefix << ";TELEMETRY_ID:" << currInfo.telemetryId;
     }
-    int ret = OH_HiSysEvent_Write(
+
+    std::string prefixStr = ssPrefix.str();
+    size_t maxSummaryLen = 0;
+    const std::string summaryPrefix = ";SUMMARY:";
+    if (prefixStr.size() + summaryPrefix.size() < MAX_HISYSEVENT_SIZE) {
+        maxSummaryLen = MAX_HISYSEVENT_SIZE - prefixStr.size() - summaryPrefix.size();
+    }
+    std::string summary = currInfo.description.substr(0, maxSummaryLen);
+
+    std::stringstream ssParams;
+    ssParams << prefixStr << summaryPrefix << summary;
+    std::string params = ssParams.str();
+    int ret = HiSysEventEasyWrite(
         OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY,
         ADDR_SANITIZER_EVENT,
-        HISYSEVENT_FAULT,
-        params.data(),
-        params.size()
+        HiSysEventEasyType::EASY_EVENT_TYPE_FAULT,
+        params.c_str()
     );
     if (ret < 0) {
-        HILOG_ERROR(LOG_CORE, "Sanitizer send hisysevent failed, ret = %{public}d", ret);
+        HILOG_ERROR(LOG_CORE, "Sanitizer send easyhisysevent failed, ret = %{public}d", ret);
     }
 }
 

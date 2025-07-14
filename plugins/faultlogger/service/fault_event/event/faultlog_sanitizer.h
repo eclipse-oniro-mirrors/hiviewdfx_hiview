@@ -28,6 +28,7 @@ private:
     std::string GetFaultModule(SysEvent& sysEvent) const override;
     void FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo& info) const override;
     void ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) const;
+    void ParseSanitizerEasyEvent(SysEvent& sysEvent) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
