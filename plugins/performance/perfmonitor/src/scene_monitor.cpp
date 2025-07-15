@@ -474,7 +474,7 @@ void SceneMonitor::SetVsyncLazyMode(uint64_t sceneTag)
     }
     
     lastExcusion = needExcusion;
-    XPERF_TRACE_SCOPED("SetVsyncLazyMode: sceneTag = %llu", sceneTag);
+    XPERF_TRACE_SCOPED("SetVsyncLazyMode: sceneTag = %" PRIu64, sceneTag);
     OHOS::AppExecFwk::EventHandler::SetVsyncLazyMode(needExcusion);
 }
 
