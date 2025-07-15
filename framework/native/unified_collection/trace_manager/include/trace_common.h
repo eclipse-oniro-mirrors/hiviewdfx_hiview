@@ -56,7 +56,7 @@ enum class TraceScenario : uint8_t {
 
 struct DumpTraceArgs {
     TraceScenario scenario;
-    int maxDuration = 0;
+    uint32_t maxDuration = 0;
     uint64_t happenTime = 0;
 };
 

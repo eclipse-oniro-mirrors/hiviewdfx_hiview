@@ -16,7 +16,6 @@
 
 #include <ctime>
 #include <memory>
-#include <fcntl.h>
 #include <sys/file.h>
 
 #include "collect_event.h"
@@ -24,7 +23,6 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "io_collector.h"
-#include "memory_collector.h"
 #include "parameter_ex.h"
 #ifdef HAS_HIPERF
 #include "perf_collect_config.h"
@@ -33,20 +31,16 @@
 #include "process_status.h"
 #include "sys_event.h"
 #include "string_util.h"
-#include "time_util.h"
 #include "uc_observer_mgr.h"
 #include "unified_collection_stat.h"
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-#include "app_caller_event.h"
 #include "event_publish.h"
 #include "hisysevent.h"
 #include "json/json.h"
-#include "trace_worker.h"
-#include "trace_utils.h"
 #include "trace_state_machine.h"
-#include "trace_flow_controller.h"
 #include "uc_telemetry_listener.h"
 #include "unified_common.h"
+#include "trace_collector.h"
 #endif
 
 namespace OHOS {
@@ -66,59 +60,27 @@ constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 const std::string OTHER = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
+constexpr char UNIFIED_SHARE_PATH[] = "/data/log/hiview/unified_collection/trace/share/";
+constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";
+constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
+constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
 
 void CreateTracePathInner(const std::string &filePath)
 {
     if (FileUtil::FileExists(filePath)) {
         return;
     }
-    if (!CreateMultiDirectory(filePath)) {
+    if (!FileUtil::CreateMultiDirectory(filePath)) {
         HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
-        return;
     }
 }
 
 void CreateTracePath()
 {
     CreateTracePathInner(UNIFIED_SHARE_PATH);
+    CreateTracePathInner(UNIFIED_SHARE_TEMP_PATH);
     CreateTracePathInner(UNIFIED_SPECIAL_PATH);
     CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
-}
-
-void RecoverTmpTrace()
-{
-    std::vector<std::string> traceFiles;
-    FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
-    HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
-    for (auto &filePath : traceFiles) {
-        std::string fileName = FileUtil::ExtractFileName(filePath);
-        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
-        std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
-        if (!FileUtil::FileExists(originTraceFile)) {
-            HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
-            FileUtil::RemoveFile(UNIFIED_SHARE_TEMP_PATH + fileName);
-            continue;
-        }
-        int fd = open(originTraceFile.c_str(), O_RDONLY | O_NONBLOCK);
-        if (fd == -1) {
-            HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
-            continue;
-        }
-        fdsan_exchange_owner_tag(fd, 0, logLabelDomain);
-        // add lock before zip trace file, in case hitrace delete origin trace file.
-        if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
-            HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
-            fdsan_close_with_tag(fd, logLabelDomain);
-            continue;
-        }
-        HIVIEW_LOGI("originTraceFile path: %{public}s", originTraceFile.c_str());
-        UcollectionTask traceTask = [=]() {
-            ZipTraceFile(originTraceFile, UNIFIED_SHARE_PATH);
-            flock(fd, LOCK_UN);
-            fdsan_close_with_tag(fd, logLabelDomain);
-        };
-        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
-    }
 }
 #endif
 }
@@ -223,7 +185,7 @@ void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
 
         HIVIEW_LOGI("send as stack trigger for uid=%{public}d pid=%{public}d", sysEvent.GetUid(), sysEvent.GetPid());
         EventPublish::GetInstance().PushEvent(sysEvent.GetUid(), UCollectUtil::MAIN_THREAD_JANK,
-                                              HiSysEvent::EventType::FAULT, param);
+            HiSysEvent::EventType::FAULT, param);
     }
 }
 
@@ -320,7 +282,7 @@ void UnifiedCollector::Init()
     telemetryListener_ = std::make_shared<TelemetryListener>();
     context->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
     context->RegisterUnorderedEventListener(telemetryListener_);
-    RecoverTmpTrace();
+    TraceCollector::Create()->RecoverTmpTrace();
 #endif
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn()) {
         RunIoCollectionTask();

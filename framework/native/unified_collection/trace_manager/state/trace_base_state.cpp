@@ -105,7 +105,8 @@ TraceRet TraceBaseState::OpenAppTrace(int32_t appPid)
     return TraceRet(TraceStateCode::DENY);
 }
 
-TraceRet TraceBaseState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet TraceBaseState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime,
+    TraceRetInfo &info)
 {
     HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
     return TraceRet(TraceStateCode::FAIL);
@@ -130,7 +131,7 @@ TraceRet TraceBaseState::TraceDropOff(TraceScenario scenario, TraceRetInfo &info
     return TraceRet(TraceStateCode::FAIL);
 }
 
-TraceRet TraceBaseState::DumpTraceWithFilter(int32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet TraceBaseState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     HIVIEW_LOGW("%{public}s is fail", GetTag().c_str());
     return TraceRet(TraceStateCode::FAIL);

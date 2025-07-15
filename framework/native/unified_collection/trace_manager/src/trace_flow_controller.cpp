@@ -32,8 +32,6 @@ namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceFlowController");
 constexpr int32_t DB_VERSION = 5;
-const std::string UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
-const std::string UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
 const std::string DB_NAME = "trace_flow_control.db";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
 const std::set<std::string> DB_CALLER {

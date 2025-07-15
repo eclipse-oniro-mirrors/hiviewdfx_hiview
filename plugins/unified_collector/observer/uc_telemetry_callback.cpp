@@ -22,7 +22,6 @@
 #include "power_status_manager.h"
 #include "parameter_ex.h"
 #include "time_util.h"
-#include "trace_utils.h"
 #include "trace_flow_controller.h"
 #include "hiview_logger.h"
 #include "string_util.h"

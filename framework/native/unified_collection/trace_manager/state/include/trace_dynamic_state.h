@@ -15,7 +15,6 @@
 
 #ifndef HIVIEWDFX_HIVIEW_TRACE_DYNAMIC_STATE_H
 #define HIVIEWDFX_HIVIEW_TRACE_DYNAMIC_STATE_H
-#include <memory>
 
 #include "time_util.h"
 #include "trace_common.h"
@@ -33,7 +32,7 @@ public:
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet OpenAppTrace(int32_t appPid) override;
     TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy) override;
-    TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
+    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
 
     uint64_t GetTaskBeginTime() override

@@ -65,35 +65,4 @@ HWTEST_F(TraceUtilsTest, TraceUtilsTest001, TestSize.Level1)
     ASSERT_EQ(ClientToString(UCollect::TraceClient::BETACLUB), "BetaClub");
     ASSERT_EQ(ClientToString(static_cast<UCollect::TraceClient>(10)), "");
 }
-
-/**
- * @tc.name: TraceUtilsTest002
- * @tc.desc: used to test ParseAndFilterTraceArgs
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceUtilsTest, TraceUtilsTest002, TestSize.Level1)
-{
-const std::unordered_set<std::string> TEST_WHITE_LIST {
-    "tag2", "tag3", "tag5", "tag9"
-};
-std::string traceArags = R"~({"tags":["tag1","tag2","tag3","tag4","tag5","tag6","tag7"],"bufferSize":1000})~";
-cJSON* root = cJSON_Parse(traceArags.c_str());
-auto result1 = ParseAndFilterTraceArgs(TEST_WHITE_LIST, root, "tags");
-cJSON_Delete(root);
-//std::string result1 = "tags:tag2, tag3, tag5 bufferSize:1000";
-ASSERT_EQ(result1.size(), 3);
-
-std::string traceArags2 = R"~({"tags":["tag4"],"bufferSize":1000})~";
-cJSON* root2 = cJSON_Parse(traceArags2.c_str());
-auto result2 = ParseAndFilterTraceArgs(TEST_WHITE_LIST, root2, "tags");
-cJSON_Delete(root2);
-ASSERT_TRUE(result2.empty());
-
-// Json format error
-std::string traceArags3 = R"~({"tags":["tag1","tag2","tag3",,,,"tag4"],"bufferSize":1000})~";
-cJSON* root3 = cJSON_Parse(traceArags3.c_str());
-auto result3 = ParseAndFilterTraceArgs(TEST_WHITE_LIST, root3, "tags");
-cJSON_Delete(root3);
-ASSERT_TRUE(result3.empty());
-}
 #endif

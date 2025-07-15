@@ -85,6 +85,11 @@ CollectResult<int32_t> TraceDecorator::FilterTraceOff(UCollect::TeleModule modul
     return traceCollector_->FilterTraceOff(module);
 }
 
+void TraceDecorator::RecoverTmpTrace()
+{
+    return traceCollector_->RecoverTmpTrace();
+}
+
 void TraceDecorator::SaveStatSpecialInfo()
 {
     WriteLinesToFile({""}, false, UC_STAT_LOG_PATH); // a blank line after common stat info

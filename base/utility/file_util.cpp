@@ -40,7 +40,15 @@ namespace HiviewDFX {
 namespace FileUtil {
 using namespace std;
 namespace {
-    constexpr int VALUE_MOD = 200000;
+constexpr int VALUE_MOD = 200000;
+
+bool CheckAndCreateDirectory(const std::string &tmpDirPath)
+{
+    if (!FileExists(tmpDirPath)) {
+        return ForceCreateDirectory(tmpDirPath, FILE_PERM_775);
+    }
+    return true;
+}
 }
 
 bool LoadStringFromFile(const std::string& filePath, std::string& content)
@@ -478,6 +486,24 @@ std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder)
         return "";
     }
     return "/data/app/el2/" + std::to_string(userId) + "/base/" + pathHolder + "/cache/hiappevent";
+}
+
+bool CreateMultiDirectory(const std::string &dirPath)
+{
+    uint32_t dirPathLen = dirPath.length();
+    if (dirPathLen > PATH_MAX) {
+        return false;
+    }
+    char tmpDirPath[PATH_MAX] = { 0 };
+    for (uint32_t i = 0; i < dirPathLen; ++i) {
+        tmpDirPath[i] = dirPath[i];
+        if (tmpDirPath[i] == '/') {
+            if (!CheckAndCreateDirectory(tmpDirPath)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 } // namespace FileUtil
 } // namespace HiviewDFX

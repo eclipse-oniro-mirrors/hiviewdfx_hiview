@@ -20,7 +20,7 @@
 
 namespace OHOS::HiviewDFX {
 namespace {
-    DEFINE_LOG_TAG("TraceStateMachine");
+DEFINE_LOG_TAG("TraceStateMachine");
 }
 CommonState::CommonState(bool isCachOn, int32_t totalFileSize, int32_t sliceMaxDuration)
     : totalFileSize_(totalFileSize), sliceMaxDuration_(sliceMaxDuration)
@@ -64,7 +64,7 @@ TraceRet CommonState::OpenTrace(TraceScenario scenario, const std::string &args)
     return TraceBaseState::OpenTrace(TraceScenario::TRACE_COMMAND, args);
 }
 
-TraceRet CommonState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet CommonState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (scenario == TraceScenario::TRACE_COMMON || scenario == TraceScenario::TRACE_COMMAND) {
         info = Hitrace::DumpTrace(maxDuration, happenTime);

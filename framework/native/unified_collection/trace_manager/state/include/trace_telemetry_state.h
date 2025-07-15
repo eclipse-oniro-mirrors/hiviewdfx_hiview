@@ -37,7 +37,7 @@ public:
 
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
-    TraceRet DumpTraceWithFilter(int maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
+    TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
     TraceRet PowerTelemetryOn() override;
     TraceRet PowerTelemetryOff() override;

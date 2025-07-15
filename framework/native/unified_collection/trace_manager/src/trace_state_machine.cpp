@@ -44,7 +44,8 @@ TraceRet TraceStateMachine::OpenTelemetryTrace(const std::string &args, Telemetr
     return currentState_->OpenTelemetryTrace(args, policy);
 }
 
-TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime,
+    TraceRetInfo &info)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
     auto ret = currentState_->DumpTrace(scenario, maxDuration, happenTime, info);
@@ -67,7 +68,7 @@ TraceRet TraceStateMachine::DumpTraceAsync(const DumpTraceArgs &args, int64_t fi
     return ret;
 }
 
-TraceRet TraceStateMachine::DumpTraceWithFilter(int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet TraceStateMachine::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     std::lock_guard<std::mutex> lock(traceMutex_);
     return currentState_->DumpTraceWithFilter(maxDuration, happenTime, info);

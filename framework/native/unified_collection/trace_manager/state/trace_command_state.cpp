@@ -20,7 +20,7 @@
 
 namespace OHOS::HiviewDFX {
 namespace {
-    DEFINE_LOG_TAG("TraceStateMachine");
+DEFINE_LOG_TAG("TraceStateMachine");
 }
 TraceRet CommandState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
 {
@@ -34,7 +34,7 @@ TraceRet CommandState::OpenTrace(TraceScenario scenario, const std::string &args
     return TraceRet(TraceStateCode::DENY);
 }
 
-TraceRet CommandState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet CommandState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (scenario != TraceScenario::TRACE_COMMAND) {
         HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));

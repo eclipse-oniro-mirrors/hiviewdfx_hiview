@@ -121,7 +121,7 @@ config("ucollection_source_config") {
   if (hiview_unified_collector_trace_enable) {
     include_dirs += [
       "collector/impl/trace/include",
-      "collector/impl/trace/utils/include",
+      "collector/impl/trace/strategy/include",
     ]
   } else {
     include_dirs += [ "collector/empty_impl/trace" ]
@@ -281,9 +281,11 @@ ohos_source_set("ucollection_source") {
   if (hiview_unified_collector_trace_enable) {
     sources += [
       "collector/impl/trace/trace_collector_impl.cpp",
-      "collector/impl/trace/trace_strategy.cpp",
-      "collector/impl/trace/utils/trace_utils.cpp",
-      "collector/impl/trace/utils/trace_worker.cpp",
+      "collector/impl/trace/strategy/src/trace_strategy.cpp",
+      "collector/impl/trace/strategy/src/trace_strategy_factory.cpp",
+      "collector/impl/trace/strategy/src/trace_handler.cpp",
+      "collector/impl/trace/trace_utils.cpp",
+      "collector/impl/trace/trace_worker.cpp",
       "decorator/trace_decorator.cpp",
     ]
     defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]

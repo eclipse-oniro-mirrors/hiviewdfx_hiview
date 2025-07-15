@@ -20,7 +20,6 @@ config("unified_collector_config") {
     "observer/include",
     "storage/include",
     "task/include",
-    "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
     "$hiview_framework/native/unified_collection/collector/config",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_framework/native/unified_collection/process/include",

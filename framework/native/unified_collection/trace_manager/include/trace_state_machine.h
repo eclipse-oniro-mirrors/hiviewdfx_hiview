@@ -35,10 +35,10 @@ public:
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
     TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy);
     TraceRet OpenDynamicTrace(int32_t appid);
-    TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info);
+    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
     TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
         TraceRetInfo &info, DumpTraceCallback callback);
-    TraceRet DumpTraceWithFilter(int32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
+    TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
     TraceRet TraceDropOn(TraceScenario scenario);
     TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info);
     TraceRet CloseTrace(TraceScenario scenario);
