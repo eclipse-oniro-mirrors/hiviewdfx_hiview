@@ -2362,6 +2362,7 @@ HWTEST_F(FaultloggerUnittest, FaultloggerListener001, testing::ext::TestSize.Lev
 
     time_t now = time(nullptr);
     faultloggerListener.IsInValidTime(fileName, now);
+    ASSERT_TRUE(faultloggerListener.IsInValidTime(fileName, 0));
 
     FaultLogBootScan faultloggerListenerEmpty(nullptr, plugin->faultLogManager_);
     faultloggerListenerEmpty.AddBootScanEvent();
