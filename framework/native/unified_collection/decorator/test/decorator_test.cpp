@@ -86,11 +86,9 @@ const std::vector<std::regex> REGEXS = {
     // eg: OTHER 0 0 1 127609 127609 127609
     std::regex("\\w{1,}\\s\\d+\\s\\d+\\s\\d+\\s\\d+\\s\\d+\\s\\d+"),
     std::regex("Hitrace Traffic statistics:"),
-    std::regex("Caller TraceFile RawSize\\(b\\) UsedSize\\(b\\) TimeSpent\\(us\\) TimeStamp\\(us\\)"),
+    std::regex("Caller TraceFile RawSize\\(b\\) TimeSpent\\(us\\) TimeStamp\\(us\\)"),
     // eg: OTHER /data/Other_trace_2024051200504@14036-90732232.sys 176129 25151 127609 1715446244066654
-    std::regex("\\w{1,}\\s.{1,}\\.(sys|zip)\\s\\d+\\s\\d+\\s\\d+\\s\\d{16}"),
-    std::regex("Hitrace Traffic Compress Ratio:"),
-    std::regex("^0.142800$")
+    std::regex("\\w{1,}\\s.{1,}\\.(sys|zip)\\s\\d+\\s\\d+\\s\\d+"),
 };
 
 std::unordered_set<std::string> g_collector_names;
