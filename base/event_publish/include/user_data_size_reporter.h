@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
+#ifndef OHOS_HIVIEWDFX_USER_DATA_SIZE_REPORTER_H
+#define OHOS_HIVIEWDFX_USER_DATA_SIZE_REPORTER_H
+
 #include <vector>
 #include <string>
 #include <utility>
 
 #include "singleton.h"
 
-#ifndef OHOS_HIVIEWDFX_USER_DATA_SIZE_REPORTER_H
-#define OHOS_HIVIEWDFX_USER_DATA_SIZE_REPORTER_H
 namespace OHOS {
 namespace HiviewDFX {
 class UserDataSizeReporter : public OHOS::DelayedRefSingleton<UserDataSizeReporter> {
