@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,13 +23,13 @@ namespace HiviewDFX {
 struct ProcessIo {
     int32_t pid;
     std::string name;
-    int32_t rchar;
-    int32_t wchar;
-    int32_t syscr;
-    int32_t syscw;
-    int32_t readBytes;
-    int32_t writeBytes;
-    int32_t cancelledWriteBytes;
+    uint64_t rchar = 0;
+    uint64_t wchar = 0;
+    uint64_t syscr = 0;
+    uint64_t syscw = 0;
+    uint64_t readBytes = 0;
+    uint64_t writeBytes = 0;
+    uint64_t cancelledWriteBytes = 0;
 };
 
 struct DiskData {

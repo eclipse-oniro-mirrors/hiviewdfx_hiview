@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #define OHOS_HIVIEWDFX_UCOLLECTUTIL_COMMON_UTIL_H
 
 #include <cinttypes>
+#include <sstream>
 #include <string>
 
 namespace OHOS {
@@ -39,14 +40,17 @@ private:
     ~CommonUtil() = default;
 
 public:
-    template <typename T>
-    static bool StrToNum(const std::string& sString, T &tX);
-    static bool ParseTypeAndValue(const std::string &str, std::string &type, int32_t &value);
+    static bool ParseTypeAndValue(const std::string &str, std::string &type, int64_t &value);
     static void GetDirRegexFiles(const std::string& path, const std::string& pattern, std::vector<std::string>& files);
     static int GetFileNameNum(const std::string& fileName, const std::string& ext);
     static std::string CreateExportFile(const std::string& path, int32_t maxFileNum, const std::string& prefix,
         const std::string& ext);
     static int32_t ReadNodeWithOnlyNumber(const std::string& fileName);
+    template <typename T> static bool StrToNum(const std::string& sString, T &tX)
+    {
+        std::istringstream iStream(sString);
+        return (iStream >> tX) ? true : false;
+    }
 }; // CommonUtil
 } // UCollectUtil
 } // HiviewDFX

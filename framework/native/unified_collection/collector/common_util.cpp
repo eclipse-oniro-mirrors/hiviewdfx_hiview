@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,13 +31,7 @@ const std::string EXPORT_FILE_REGEX = "[0-9]{14}(.*)";
 const std::string UNDERLINE = "_";
 }
 
-template <typename T> bool CommonUtil::StrToNum(const std::string &sString, T &tX)
-{
-    std::istringstream iStream(sString);
-    return (iStream >> tX) ? true : false;
-}
-
-bool CommonUtil::ParseTypeAndValue(const std::string &str, std::string &type, int32_t &value)
+bool CommonUtil::ParseTypeAndValue(const std::string &str, std::string &type, int64_t &value)
 {
     std::string::size_type typePos = str.find(":");
     if (typePos != std::string::npos) {

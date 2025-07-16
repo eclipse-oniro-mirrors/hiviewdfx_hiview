@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,13 +28,13 @@ const std::string SYS_CPU_DIR_PREFIX = "/sys/devices/system/cpu/cpu";
 
 struct CpuTimeInfo {
     std::string cpuId;
-    uint32_t userTime = 0;
-    uint32_t niceTime = 0;
-    uint32_t systemTime = 0;
-    uint32_t idleTime = 0;
-    uint32_t ioWaitTime = 0;
-    uint32_t irqTime = 0;
-    uint32_t softIrqTime = 0;
+    uint64_t userTime = 0;
+    uint64_t niceTime = 0;
+    uint64_t systemTime = 0;
+    uint64_t idleTime = 0;
+    uint64_t ioWaitTime = 0;
+    uint64_t irqTime = 0;
+    uint64_t softIrqTime = 0;
 };
 
 struct CalculationTimeInfo {
