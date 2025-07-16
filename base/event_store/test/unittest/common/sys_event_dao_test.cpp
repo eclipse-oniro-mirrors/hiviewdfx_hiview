@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -363,48 +363,86 @@ HWTEST_F(SysEventDaoTest, TestEventDaoQuery_011, testing::ext::TestSize.Level3)
 HWTEST_F(SysEventDaoTest, FieldValueTest_01, testing::ext::TestSize.Level0)
 {
     using namespace EventStore;
-
     // default value
     FieldValue value1;
     ASSERT_TRUE(value1.IsNumber());
     ASSERT_TRUE(value1.Index() == FieldValue::NUMBER);
     ASSERT_EQ(value1.GetFieldNumber().GetNumber<int64_t>(), 0);
-
-    // int32_t value
-    FieldValue value2(TEST_INT32_VALUE);
-    ASSERT_TRUE(value2.IsNumber());
-    ASSERT_TRUE(value1.Index() == FieldValue::NUMBER);
-    ASSERT_EQ(value2.GetFieldNumber().GetNumber<int64_t>(), TEST_INT32_VALUE);
-
-    // int64_t value
-    FieldValue value3(TEST_INT64_VALUE);
-    ASSERT_TRUE(value3.IsNumber());
-    ASSERT_TRUE(value1.Index() == FieldValue::NUMBER);
-    ASSERT_EQ(value3.GetFieldNumber().GetNumber<int64_t>(), TEST_INT64_VALUE);
-
-    // double value
-    FieldValue value4(TEST_DOU_VALUE);
-    ASSERT_TRUE(value4.IsNumber());
-    ASSERT_TRUE(value1.Index() == FieldValue::NUMBER);
-    ASSERT_EQ(value4.GetFieldNumber().GetNumber<double>(), TEST_DOU_VALUE);
-
-    // string value
-    FieldValue value5(TEST_STR_VALUE);
-    ASSERT_TRUE(value5.IsString());
-    ASSERT_TRUE(value1.Index() == FieldValue::NUMBER);
-    ASSERT_EQ(value5.GetString(), TEST_STR_VALUE);
 }
 
 /**
  * @tc.name: FieldValueTest_02
- * @tc.desc: test the operator function of FieldValue.
+ * @tc.desc: test the constructor function of FieldValue.
  * @tc.type: FUNC
  * @tc.require: issueI7NUTO
  */
 HWTEST_F(SysEventDaoTest, FieldValueTest_02, testing::ext::TestSize.Level0)
 {
     using namespace EventStore;
+    // int32_t value
+    FieldValue value2(TEST_INT32_VALUE);
+    ASSERT_TRUE(value2.IsNumber());
+    ASSERT_TRUE(value2.Index() == FieldValue::NUMBER);
+    ASSERT_EQ(value2.GetFieldNumber().GetNumber<int64_t>(), TEST_INT32_VALUE);
+}
 
+/**
+ * @tc.name: FieldValueTest_03
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_03, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
+    // int64_t value
+    FieldValue value3(TEST_INT64_VALUE);
+    ASSERT_TRUE(value3.IsNumber());
+    ASSERT_TRUE(value3.Index() == FieldValue::NUMBER);
+    ASSERT_EQ(value3.GetFieldNumber().GetNumber<int64_t>(), TEST_INT64_VALUE);
+}
+
+/**
+ * @tc.name: FieldValueTest_04
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_04, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
+    // double value
+    FieldValue value4(TEST_DOU_VALUE);
+    ASSERT_TRUE(value4.IsNumber());
+    ASSERT_TRUE(value4.Index() == FieldValue::NUMBER);
+    ASSERT_EQ(value4.GetFieldNumber().GetNumber<double>(), TEST_DOU_VALUE);
+}
+
+/**
+ * @tc.name: FieldValueTest_05
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_05, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
+    // string value
+    FieldValue value5(TEST_STR_VALUE);
+    ASSERT_TRUE(value5.IsString());
+    ASSERT_TRUE(value5.Index() == FieldValue::STRING);
+    ASSERT_EQ(value5.GetString(), TEST_STR_VALUE);
+}
+
+/**
+ * @tc.name: FieldValueTest_06
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_06, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     // ==
     FieldValue iValue1(TEST_INT32_VALUE);
     FieldValue iValue2(TEST_INT32_VALUE);
@@ -416,41 +454,133 @@ HWTEST_F(SysEventDaoTest, FieldValueTest_02, testing::ext::TestSize.Level0)
     FieldValue sValue2(TEST_STR_VALUE);
     ASSERT_TRUE(sValue1 == sValue2);
     ASSERT_FALSE(iValue1 == dValue1);
+}
 
+/**
+ * @tc.name: FieldValueTest_07
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_07, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     // !=
+    FieldValue iValue1(TEST_INT32_VALUE);
     FieldValue iValue3(0);
     ASSERT_TRUE(iValue1 != iValue3);
+    FieldValue dValue1(TEST_DOU_VALUE);
     FieldValue dValue3(12.3456);
     ASSERT_TRUE(dValue1 != dValue3);
+    FieldValue sValue1(TEST_STR_VALUE);
     FieldValue sValue3("tes");
     ASSERT_TRUE(sValue1 != sValue3);
     ASSERT_TRUE(iValue1 != dValue1);
+}
 
+/**
+ * @tc.name: FieldValueTest_08
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_08, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     // <
+    FieldValue iValue1(TEST_INT32_VALUE);
+    FieldValue iValue3(0);
     ASSERT_TRUE(iValue3 < iValue1);
+    FieldValue dValue1(TEST_DOU_VALUE);
+    FieldValue dValue3(12.3456);
     ASSERT_TRUE(dValue3 < dValue1);
+    FieldValue sValue1(TEST_STR_VALUE);
+    FieldValue sValue3("tes");
     ASSERT_TRUE(sValue3 < sValue1);
     ASSERT_TRUE(iValue1 < dValue1);
+}
 
+/**
+ * @tc.name: FieldValueTest_09
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_09, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     // <=
+    FieldValue iValue1(TEST_INT32_VALUE);
+    FieldValue iValue3(0);
     ASSERT_TRUE(iValue3 <= iValue1);
+    FieldValue dValue1(TEST_DOU_VALUE);
+    FieldValue dValue3(12.3456);
     ASSERT_TRUE(dValue3 <= dValue1);
+    FieldValue sValue1(TEST_STR_VALUE);
+    FieldValue sValue3("tes");
     ASSERT_TRUE(sValue3 <= sValue1);
     ASSERT_TRUE(iValue1 <= dValue1);
+}
 
+/**
+ * @tc.name: FieldValueTest_10
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_10, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     // >
+    FieldValue iValue1(TEST_INT32_VALUE);
+    FieldValue iValue3(0);
     ASSERT_TRUE(iValue1 > iValue3);
+    FieldValue dValue1(TEST_DOU_VALUE);
+    FieldValue dValue3(12.3456);
     ASSERT_TRUE(dValue1 > dValue3);
+    FieldValue sValue1(TEST_STR_VALUE);
+    FieldValue sValue3("tes");
     ASSERT_TRUE(sValue1 > sValue3);
     ASSERT_FALSE(iValue1 > dValue1);
+}
 
+/**
+ * @tc.name: FieldValueTest_11
+ * @tc.desc: test the constructor function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_11, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     // >=
+    FieldValue iValue1(TEST_INT32_VALUE);
+    FieldValue iValue3(0);
     ASSERT_TRUE(iValue1 >= iValue3);
+    FieldValue dValue1(TEST_DOU_VALUE);
+    FieldValue dValue3(12.3456);
     ASSERT_TRUE(dValue1 >= dValue3);
+    FieldValue sValue1(TEST_STR_VALUE);
+    FieldValue sValue3("tes");
     ASSERT_TRUE(sValue1 >= sValue3);
     ASSERT_FALSE(iValue1 >= dValue1);
+}
+
+/**
+ * @tc.name: FieldValueTest_12
+ * @tc.desc: test the operator function of FieldValue.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, FieldValueTest_12, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
 
     // IsStartWith / IsNotStartWith for string
+    FieldValue iValue1(TEST_INT32_VALUE);
+    FieldValue iValue2(TEST_INT32_VALUE);
+    FieldValue sValue1(TEST_STR_VALUE);
+    FieldValue sValue3("tes");
     ASSERT_FALSE(sValue1.IsStartWith(iValue1));
     ASSERT_FALSE(sValue1.IsNotStartWith(iValue1));
     ASSERT_FALSE(iValue1.IsStartWith(iValue2));
@@ -460,12 +590,12 @@ HWTEST_F(SysEventDaoTest, FieldValueTest_02, testing::ext::TestSize.Level0)
 }
 
 /**
- * @tc.name: FieldValueTest_03
+ * @tc.name: FieldValueTest_13
  * @tc.desc: test the base functions of FieldValue.
  * @tc.type: FUNC
  * @tc.require: issueI7NUTO
  */
-HWTEST_F(SysEventDaoTest, FieldValueTest_03, testing::ext::TestSize.Level0)
+HWTEST_F(SysEventDaoTest, FieldValueTest_13, testing::ext::TestSize.Level0)
 {
     using namespace EventStore;
 
@@ -659,20 +789,108 @@ HWTEST_F(SysEventDaoTest, CondTest_01, testing::ext::TestSize.Level0)
 
     Cond invalidCond;
     ASSERT_EQ(invalidCond.ToString(), "INVALID COND");
+}
+
+/**
+ * @tc.name: CondTest_02
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_02, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond1("name", EQ, "event");
     ASSERT_EQ(cond1.ToString(), "name == event");
+}
+
+/**
+ * @tc.name: CondTest_03
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_03, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond2("name", NE, "event");
     ASSERT_EQ(cond2.ToString(), "name != event");
+}
+
+/**
+ * @tc.name: CondTest_04
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_04, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond3("num", LT, 0);
     ASSERT_EQ(cond3.ToString(), "num < 0");
+}
+
+/**
+ * @tc.name: CondTest_05
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_05, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond4("num", LE, 0);
     ASSERT_EQ(cond4.ToString(), "num <= 0");
+}
+
+/**
+ * @tc.name: CondTest_06
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_06, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond5("num", GT, TEST_DOU_VALUE);
     ASSERT_EQ(cond5.ToString(), "num > 123.456000");
+}
+
+/**
+ * @tc.name: CondTest_07
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_07, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond6("num", GE, TEST_DOU_VALUE);
     ASSERT_EQ(cond6.ToString(), "num >= 123.456000");
+}
+
+/**
+ * @tc.name: CondTest_08
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_08, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond7("name", SW, "event");
     ASSERT_EQ(cond7.ToString(), "name SW event");
+}
+
+/**
+ * @tc.name: CondTest_09
+ * @tc.desc: test the function of Cond.
+ * @tc.type: FUNC
+ * @tc.require: issueI7NUTO
+ */
+HWTEST_F(SysEventDaoTest, CondTest_09, testing::ext::TestSize.Level0)
+{
+    using namespace EventStore;
     Cond cond8("name", NSW, "event");
     ASSERT_EQ(cond8.ToString(), "name NSW event");
 }
