@@ -257,7 +257,7 @@ static void InitSmapsOfProcessMemory(const std::string& procDir, ProcessMemory& 
     OHOS::SplitStr(content, "\n", vec);
     for (const std::string& str : vec) {
         std::string attrName;
-        int32_t value = 0;
+        int64_t value = 0;
         if (CommonUtil::ParseTypeAndValue(str, attrName, value)) {
             SetValueOfProcessMemory(memory, attrName, value);
         }
@@ -352,7 +352,7 @@ CollectResult<SysMemory> MemoryCollectorImpl::CollectSysMemory()
     SysMemory& sysmemory = result.data;
     for (const std::string& str : vec) {
         std::string attrName;
-        int32_t value = 0;
+        int64_t value = 0;
         if (CommonUtil::ParseTypeAndValue(str, attrName, value)) {
             SetValueOfSysMemory(sysmemory, attrName, value);
         }

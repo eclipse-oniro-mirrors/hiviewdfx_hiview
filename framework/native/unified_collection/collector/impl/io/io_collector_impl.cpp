@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,23 +97,23 @@ CollectResult<ProcessIo> IoCollectorImpl::CollectProcessIo(int32_t pid)
     processIO.pid = pid;
     processIO.name = CommonUtils::GetProcNameByPid(pid);
     std::string type;
-    int32_t value = 0;
+    int64_t value = 0;
     for (const std::string &str : vec) {
         if (CommonUtil::ParseTypeAndValue(str, type, value)) {
             if (type == "rchar") {
-                processIO.rchar = value;
+                processIO.rchar = static_cast<uint64_t>(value);
             } else if (type == "wchar") {
-                processIO.wchar = value;
+                processIO.wchar = static_cast<uint64_t>(value);
             } else if (type == "syscr") {
-                processIO.syscr = value;
+                processIO.syscr = static_cast<uint64_t>(value);
             } else if (type == "syscw") {
-                processIO.syscw = value;
+                processIO.syscw = static_cast<uint64_t>(value);
             } else if (type == "read_bytes") {
-                processIO.readBytes = value;
+                processIO.readBytes = static_cast<uint64_t>(value);
             } else if (type == "cancelled_write_bytes") {
-                processIO.cancelledWriteBytes = value;
+                processIO.cancelledWriteBytes = static_cast<uint64_t>(value);
             } else if (type == "write_bytes") {
-                processIO.writeBytes = value;
+                processIO.writeBytes = static_cast<uint64_t>(value);
             }
         }
     }

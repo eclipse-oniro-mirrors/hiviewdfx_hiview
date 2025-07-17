@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,13 +25,13 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 DEFINE_LOG_TAG("UCollectUtil-CpuCalculator");
 namespace {
-uint32_t CalcSysCpuTotalTime(const CpuTimeInfo& cpuTimeInfo)
+uint64_t CalcSysCpuTotalTime(const CpuTimeInfo& cpuTimeInfo)
 {
     return cpuTimeInfo.userTime + cpuTimeInfo.niceTime + cpuTimeInfo.systemTime + cpuTimeInfo.idleTime
         + cpuTimeInfo.ioWaitTime + cpuTimeInfo.irqTime + cpuTimeInfo.softIrqTime;
 }
 
-double CalcSysCpuUsage(uint32_t deltaTime, uint32_t currTime, uint32_t lastTime)
+double CalcSysCpuUsage(uint64_t deltaTime, uint64_t currTime, uint64_t lastTime)
 {
     return currTime <= lastTime ?  0 : (((currTime - lastTime) * 1.0) / deltaTime);
 }
