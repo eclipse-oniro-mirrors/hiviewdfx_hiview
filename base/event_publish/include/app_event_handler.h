@@ -41,6 +41,8 @@ public:
         uint64_t pss = 0;
         uint64_t rss = 0;
         uint64_t vss = 0;
+        uint64_t gpu = 0;
+        uint64_t ion = 0;
         uint64_t avaliableMem = 0;
         uint64_t freeMem = 0;
         uint64_t totalMem = 0;
