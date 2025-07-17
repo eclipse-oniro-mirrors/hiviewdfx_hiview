@@ -251,33 +251,6 @@ HWTEST_F(SysEventServiceOhosTest, ConditionParserTest01, testing::ext::TestSize.
         "value":"SysEventService"}]}})~";
     auto ret = parser.ParseCondition(condStr, cond);
     ASSERT_TRUE(ret);
-    std::string condStr2 = R"~({"version":"V1", "condition":{"and":[{"param":"NAME", "op":"=",
-        "value":"SysEventService"}, {"param":"uid_", "op":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condStr2, cond);
-    ASSERT_TRUE(ret);
-
-    std::string condStr3 = R"~({"version":"V1", "condition":{"and":[{"param":"type_", "op":">", "value":0},
-        {"param":"uid_", "op":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condStr3, cond);
-    ASSERT_TRUE(ret);
-
-    std::string condStr4 = R"~({"version":"V1", "condition":{"and":[{"param1":"type_", "op":">", "value":0},
-        {"param2":"uid_", "op":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condStr4, cond);
-    ASSERT_TRUE(!ret);
-
-    std::string condSt5 = R"~({"version":"V1", "condition":{"and":[{"param":"", "op":">", "value":0},
-        {"param":"", "op":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condSt5, cond);
-    ASSERT_TRUE(!ret);
-
-    std::string condSt6 = R"~({"version":"V1", "condition":{"and":[{"param":"type_", "op1":">", "value":0},
-        {"param":"uid_", "op2":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condSt6, cond);
-    ASSERT_TRUE(!ret);
-
-    ret = parser.ParseCondition("", cond);
-    ASSERT_FALSE(ret);
 }
 
 /**
@@ -290,29 +263,167 @@ HWTEST_F(SysEventServiceOhosTest, ConditionParserTest02, testing::ext::TestSize.
 {
     OHOS::HiviewDFX::ConditionParser parser;
     EventStore::Cond cond;
+    std::string condStr2 = R"~({"version":"V1", "condition":{"and":[{"param":"NAME", "op":"=",
+        "value":"SysEventService"}, {"param":"uid_", "op":"=", "value":1201}]}})~";
+    auto ret = parser.ParseCondition(condStr2, cond);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: ConditionParserTest03
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest03, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
+    std::string condStr3 = R"~({"version":"V1", "condition":{"and":[{"param":"type_", "op":">", "value":0},
+        {"param":"uid_", "op":"=", "value":1201}]}})~";
+    auto ret = parser.ParseCondition(condStr3, cond);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: ConditionParserTest04
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest04, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
+    std::string condStr4 = R"~({"version":"V1", "condition":{"and":[{"param1":"type_", "op":">", "value":0},
+        {"param2":"uid_", "op":"=", "value":1201}]}})~";
+    auto ret = parser.ParseCondition(condStr4, cond);
+    ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: ConditionParserTest05
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest05, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
+    std::string condSt5 = R"~({"version":"V1", "condition":{"and":[{"param":"", "op":">", "value":0},
+        {"param":"", "op":"=", "value":1201}]}})~";
+    auto ret = parser.ParseCondition(condSt5, cond);
+    ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: ConditionParserTest06
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest06, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
+    std::string condSt6 = R"~({"version":"V1", "condition":{"and":[{"param":"type_", "op1":">", "value":0},
+        {"param":"uid_", "op2":"=", "value":1201}]}})~";
+    auto ret = parser.ParseCondition(condSt6, cond);
+    ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: ConditionParserTest07
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest07, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
     std::string condSt7 = R"~({"version":"V1", "condition":{"and":[{"param":"type_", "op":">", "value11":0},
         {"param":"uid_", "op":"=", "value2":1201}]}})~";
     auto ret = parser.ParseCondition(condSt7, cond);
     ASSERT_TRUE(!ret);
+}
 
+/**
+ * @tc.name: ConditionParserTest08
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest08, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
     std::string condStr8 = R"~({"version":"V1", "condition":{"and":[{"param":"type_", "op":">", "value":[]},
         {"param":"uid_", "op":"=", "value":[]}]}})~";
-    ret = parser.ParseCondition(condStr8, cond);
+    auto ret = parser.ParseCondition(condStr8, cond);
     ASSERT_TRUE(!ret);
+}
 
+/**
+ * @tc.name: ConditionParserTest09
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest09, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
     std::string condStr9 = R"~({"version":"V1", "condition1":{"and":[{"param":"type_", "op":">", "value":0},
         {"param":"uid_", "op":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condStr9, cond);
+    auto ret = parser.ParseCondition(condStr9, cond);
     ASSERT_TRUE(!ret);
+}
 
+/**
+ * @tc.name: ConditionParserTest10
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest10, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
     std::string condStr10 = R"~({"version":"V1", "condition":1})~";
-    ret = parser.ParseCondition(condStr10, cond);
+    auto ret = parser.ParseCondition(condStr10, cond);
     ASSERT_TRUE(!ret);
+}
 
+/**
+ * @tc.name: ConditionParserTest11
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest11, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
     std::string condStr11 = R"~({"version":"V2", "condition":{"and":[{"param1":"type_", "op":">", "value":0},
         {"param2":"uid_", "op":"=", "value":1201}]}})~";
-    ret = parser.ParseCondition(condStr11, cond);
+    auto ret = parser.ParseCondition(condStr11, cond);
     ASSERT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: ConditionParserTest12
+ * @tc.desc: Test apis of ConditionParser
+ * @tc.type: FUNC
+ * @tc.require: issueI62WJT
+ */
+HWTEST_F(SysEventServiceOhosTest, ConditionParserTest12, testing::ext::TestSize.Level1)
+{
+    OHOS::HiviewDFX::ConditionParser parser;
+    EventStore::Cond cond;
+    auto ret = parser.ParseCondition("", cond);
+    ASSERT_FALSE(ret);
 }
 
 /**

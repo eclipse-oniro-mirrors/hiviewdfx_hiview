@@ -176,7 +176,7 @@ HWTEST_F(PluginTest, PluginTest003, testing::ext::TestSize.Level3)
  * @tc.name: HiviewContextTest001
  * @tc.desc: Test the api of HiviewContext.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICMREU
  */
 HWTEST_F(PluginTest, HiviewContextTest001, testing::ext::TestSize.Level0)
 {
@@ -213,38 +213,149 @@ HWTEST_F(PluginTest, HiviewContextTest001, testing::ext::TestSize.Level0)
     /* default null function test with return value */
     // PostSyncEventToTarget
     ASSERT_TRUE(context.PostSyncEventToTarget(nullptr, "", nullptr));
-    // GetSharedWorkLoop
-    ASSERT_EQ(context.GetSharedWorkLoop(), nullptr);
-    // GetPipelineSequenceByName
-    ASSERT_TRUE(context.GetPipelineSequenceByName("").empty());
-    // IsReady
-    ASSERT_FALSE(context.IsReady());
-    // GetHiViewDirectory
-    ASSERT_TRUE(context.GetHiViewDirectory(HiviewContext::DirectoryType::CONFIG_DIRECTORY).empty());
-    ASSERT_TRUE(context.GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY).empty());
-    ASSERT_TRUE(context.GetHiViewDirectory(HiviewContext::DirectoryType::PERSIST_DIR).empty());
-    // GetHiviewProperty
-    ASSERT_EQ(context.GetHiviewProperty("test_key", "test_value"), "test_value");
-    // SetHiviewProperty
-    ASSERT_TRUE(context.SetHiviewProperty("test_key", "test_value", true));
-    // InstancePluginByProxy
-    ASSERT_EQ(context.InstancePluginByProxy(nullptr), nullptr);
-    // GetPluginByName
-    ASSERT_EQ(context.GetPluginByName(""), nullptr);
-    // GetListenerInfo
-    ASSERT_TRUE(context.GetListenerInfo(0, "", "").empty());
-    // GetDisPatcherInfo
-    ASSERT_TRUE(context.GetDisPatcherInfo(0, "", "", "").empty());
 
     printf("HiviewContextTest001 end\n");
 }
 
 /**
  * @tc.name: HiviewContextTest002
- * @tc.desc: Test the GetMainWorkLoop of HiviewContext.
+ * @tc.desc: Test the api of HiviewContext.
  * @tc.type: FUNC
+ * @tc.require: issueICMREU
  */
 HWTEST_F(PluginTest, HiviewContextTest002, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetSharedWorkLoop
+    ASSERT_EQ(context.GetSharedWorkLoop(), nullptr);
+}
+
+/**
+ * @tc.name: HiviewContextTest003
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest003, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetPipelineSequenceByName
+    ASSERT_TRUE(context.GetPipelineSequenceByName("").empty());
+}
+
+/**
+ * @tc.name: HiviewContextTest004
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest004, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // IsReady
+    ASSERT_FALSE(context.IsReady());
+}
+
+/**
+ * @tc.name: HiviewContextTest005
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest005, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetHiViewDirectory
+    ASSERT_TRUE(context.GetHiViewDirectory(HiviewContext::DirectoryType::CONFIG_DIRECTORY).empty());
+    ASSERT_TRUE(context.GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY).empty());
+    ASSERT_TRUE(context.GetHiViewDirectory(HiviewContext::DirectoryType::PERSIST_DIR).empty());
+}
+
+/**
+ * @tc.name: HiviewContextTest006
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest006, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetHiviewProperty
+    ASSERT_EQ(context.GetHiviewProperty("test_key", "test_value"), "test_value");
+}
+
+/**
+ * @tc.name: HiviewContextTest007
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest007, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // SetHiviewProperty
+    ASSERT_TRUE(context.SetHiviewProperty("test_key", "test_value", true));
+}
+
+/**
+ * @tc.name: HiviewContextTest008
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest008, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // InstancePluginByProxy
+    ASSERT_EQ(context.InstancePluginByProxy(nullptr), nullptr);
+}
+
+/**
+ * @tc.name: HiviewContextTest009
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest009, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetPluginByName
+    ASSERT_EQ(context.GetPluginByName(""), nullptr);
+}
+
+/**
+ * @tc.name: HiviewContextTest010
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest010, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetListenerInfo
+    ASSERT_TRUE(context.GetListenerInfo(0, "", "").empty());
+}
+
+/**
+ * @tc.name: HiviewContextTest011
+ * @tc.desc: Test the api of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest011, testing::ext::TestSize.Level0)
+{
+    HiviewContext context;
+    // GetDisPatcherInfo
+    ASSERT_TRUE(context.GetDisPatcherInfo(0, "", "", "").empty());
+}
+
+/**
+ * @tc.name: HiviewContextTest012
+ * @tc.desc: Test the GetMainWorkLoop of HiviewContext.
+ * @tc.type: FUNC
+ * @tc.require: issueICMREU
+ */
+HWTEST_F(PluginTest, HiviewContextTest012, testing::ext::TestSize.Level0)
 {
     /**
      * @tc.steps: step1. create HiviewContext object.

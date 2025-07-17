@@ -56,5 +56,5 @@ ohos_shared_library("sys_event_service_adapter") {
 
 group("unittest") {
   testonly = true
-  deps = [ "test:SysEventServiceOhosUnitTest" ]
+  deps = [ "test:unittest" ]
 }
