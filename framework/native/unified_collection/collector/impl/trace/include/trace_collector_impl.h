@@ -26,17 +26,18 @@ public:
     ~TraceCollectorImpl() override = default;
 
 public:
-    CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) override;
+    CollectResult<std::vector<std::string>> DumpTrace(TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
-        UCollect::TraceCaller caller, uint32_t timeLimit, uint64_t happenTime) override;
-    CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule module,
-        uint32_t timeLimit, uint64_t happenTime) override;
-    CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
-    CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
+        TraceCaller caller, uint32_t maxDuration, uint64_t happenTime) override;
+    CollectResult<std::vector<std::string>> DumpTraceWithFilter(TeleModule module,
+        uint32_t maxDuration, uint64_t happenTime) override;
+    CollectResult<int32_t> FilterTraceOn(TeleModule module, uint64_t postTime) override;
+    CollectResult<int32_t> FilterTraceOff(TeleModule module) override;
+    void RecoverTmpTrace() override;
 
 private:
-    CollectResult<std::vector<std::string>> StartDumpTrace(UCollect::TraceCaller &caller,
-        int32_t timeLimit, uint64_t happenTime = 0);
+    CollectResult<std::vector<std::string>> StartDumpTrace(TraceCaller &caller, uint32_t timeLimit,
+        uint64_t happenTime = 0);
 
     std::unique_ptr<ffrt::queue> ffrtQueue_;
     ffrt::task_handle handle_;

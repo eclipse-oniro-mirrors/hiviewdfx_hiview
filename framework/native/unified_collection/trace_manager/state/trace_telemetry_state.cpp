@@ -20,8 +20,7 @@
 
 namespace OHOS::HiviewDFX {
 namespace {
-    DEFINE_LOG_TAG("TraceStateMachine");
-    const std::vector<std::string> TELEMETRY_TAG_GROUPS_DEFAULT = {"telemetry"};
+DEFINE_LOG_TAG("TraceStateMachine");
 }
 
 bool TelemetryState::RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback> stateCallback)
@@ -55,7 +54,7 @@ TraceRet TelemetryState::OpenTrace(TraceScenario scenario, const std::string &ar
     return TraceBaseState::OpenTrace(scenario, args);
 }
 
-TraceRet TelemetryState::DumpTraceWithFilter(int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (policy_ != TelemetryPolicy::DEFAULT) {
         if (innerStateMachine_ != nullptr && !innerStateMachine_->IsTraceOn()) {

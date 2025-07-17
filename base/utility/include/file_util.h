@@ -110,6 +110,7 @@ int64_t GetLastModifiedTimeStamp(const std::string& filePath);
 int GetUserId(int32_t uid);
 std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder);
 std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const std::string& subPath);
+bool CreateMultiDirectory(const std::string &dirPath);
 } // namespace FileUtil
 } // namespace HiviewDFX
 } // namespace OHOS

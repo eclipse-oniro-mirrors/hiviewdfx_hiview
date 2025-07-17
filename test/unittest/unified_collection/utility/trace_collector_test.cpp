@@ -29,32 +29,12 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace OHOS::HiviewDFX::UCollect;
 
-void CreateTracePathInner(const std::string &filePath)
-{
-    if (FileUtil::FileExists(filePath)) {
-        return;
-    }
-    if (!CreateMultiDirectory(filePath)) {
-        return;
-    }
-}
-
-void CreateTracePath()
-{
-    CreateTracePathInner(UNIFIED_SHARE_PATH);
-    CreateTracePathInner(UNIFIED_SPECIAL_PATH);
-    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
-}
-
 class TraceCollectorTest : public testing::Test {
 public:
     void SetUp() override {};
     void TearDown() override {};
 
-    static void SetUpTestCase()
-    {
-        void CreateTracePath();
-    }
+    static void SetUpTestCase() {}
 
     static void TearDownTestCase()
     {

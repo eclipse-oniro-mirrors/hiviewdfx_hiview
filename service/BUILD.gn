@@ -19,7 +19,7 @@ config("hiview_service_config") {
   include_dirs = [
     ".",
     "$hiview_framework/native/unified_collection/collector/impl/trace/include",
-    "$hiview_framework/native/unified_collection/collector/impl/trace/utils/include",
+    "$hiview_framework/native/unified_collection/collector/impl/trace/strategy/include",
     "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_interfaces/inner_api/unified_collection",
   ]

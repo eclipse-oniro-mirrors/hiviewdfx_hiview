@@ -33,6 +33,7 @@
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_state_machine.h"
 #include "trace_strategy.h"
+#include "trace_strategy_factory.h"
 #endif
 namespace OHOS {
 namespace HiviewDFX {
@@ -224,7 +225,7 @@ CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(UCollec
 #else
     HIVIEW_LOGI("client:[%{public}d] dump trace in snapshot mode.", static_cast<int32_t>(client));
     CollectResult<std::vector<std::string>> result;
-    auto traceStrategy = TraceFactory::CreateTraceStrategy(client, 0, static_cast<uint64_t>(0));
+    auto traceStrategy = TraceStrategyFactory::CreateTraceStrategy(client, 0, static_cast<uint64_t>(0));
     if (traceStrategy == nullptr) {
         HIVIEW_LOGE("Create traceStrategy error client:%{public}d", static_cast<int32_t>(client));
         return {UcError::UNSUPPORT};
@@ -325,7 +326,8 @@ CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient:
 CollectResult<int32_t> HiviewService::InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller)
 {
     CollectResult<std::vector<std::string>> result;
-    auto strategy = TraceFactory::CreateAppStrategy(InnerCreateAppCallerEvent(appCaller, UCollectUtil::DUMP_APP_TRACE));
+    auto strategy = TraceStrategyFactory::CreateAppStrategy(InnerCreateAppCallerEvent(appCaller,
+        UCollectUtil::DUMP_APP_TRACE));
     return {GetUcError(strategy->DoDump(result.data))};
 }
 #endif

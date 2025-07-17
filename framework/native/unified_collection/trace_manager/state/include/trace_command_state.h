@@ -24,7 +24,7 @@ class CommandState : public TraceBaseState {
 public:
     TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
     TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
-    TraceRet DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
+    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet TraceDropOn(TraceScenario scenario) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
 

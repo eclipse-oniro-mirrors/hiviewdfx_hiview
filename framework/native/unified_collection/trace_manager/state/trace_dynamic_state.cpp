@@ -19,8 +19,8 @@
 
 namespace OHOS::HiviewDFX {
 namespace {
-    DEFINE_LOG_TAG("TraceStateMachine");
-    const std::vector<std::string> TELEMETRY_TAG_GROUPS_DEFAULT = {"telemetry"};
+DEFINE_LOG_TAG("TraceStateMachine");
+const std::vector<std::string> TELEMETRY_TAG_GROUPS_DEFAULT = {"telemetry"};
 }
 TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
 {
@@ -61,7 +61,7 @@ TraceRet DynamicState::OpenAppTrace(int32_t appPid)
     return TraceRet(TraceStateCode::DENY);
 }
 
-TraceRet DynamicState::DumpTrace(TraceScenario scenario, int maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet DynamicState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (scenario != TraceScenario::TRACE_DYNAMIC) {
         HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));

@@ -40,6 +40,8 @@ public:
     //postTime unit: milliseconds
     virtual CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime = 0) = 0;
     virtual CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) = 0;
+    virtual void RecoverTmpTrace() = 0;
+
     static std::shared_ptr<TraceCollector> Create();
 }; // TraceCollector
 } // UCollectUtil

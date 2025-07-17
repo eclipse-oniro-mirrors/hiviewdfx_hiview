@@ -473,6 +473,7 @@
         "OHOS::HiviewDFX::SysEvent::GetReportInterval()";
         "OHOS::HiviewDFX::FfrtUtil::Sleep(long long)";
         "OHOS::HiviewDFX::FfrtUtil::Sleep(long)";
+        "OHOS::HiviewDFX::FileUtil::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

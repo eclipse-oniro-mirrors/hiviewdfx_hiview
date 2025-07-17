@@ -105,6 +105,7 @@ public:
         uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
+    void RecoverTmpTrace() override;
     static void SaveStatSpecialInfo();
     static void ResetStatInfo();
     static void WriteTrafficAfterZip(const std::string& caller, const std::string& traceZipFile);

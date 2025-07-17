@@ -39,9 +39,9 @@
       "OHOS::HiviewDFX::TraceFlowController::CleanOldAppTrace()";
       "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(OHOS::HiviewDFX::UCollect::TraceCaller)";
       "OHOS::HiviewDFX::GetUcError(OHOS::HiviewDFX::TraceRet)";
-      "OHOS::HiviewDFX::TraceFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, int, unsigned long long)";
-      "OHOS::HiviewDFX::TraceFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, int, unsigned long)";
-      "OHOS::HiviewDFX::TraceFactory::CreateAppStrategy(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
+      "OHOS::HiviewDFX::TraceStrategyFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, unsigned int, unsigned long long)";
+      "OHOS::HiviewDFX::TraceStrategyFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, unsigned int, unsigned long)";
+      "OHOS::HiviewDFX::TraceStrategyFactory::CreateAppStrategy(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
       "OHOS::HiviewDFX::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::ZipTraceFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

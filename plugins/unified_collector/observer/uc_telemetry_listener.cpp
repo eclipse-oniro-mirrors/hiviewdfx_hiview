@@ -17,7 +17,6 @@
 #include "cjson_util.h"
 #include "hiview_logger.h"
 #include "time_util.h"
-#include "trace_utils.h"
 #include "hisysevent.h"
 #include "uc_telemetry_callback.h"
 
@@ -43,6 +42,22 @@ const int64_t DEFAULT_XPOWER_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_RELIABILITY_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_TOTAL_SIZE = 350 * 1024 * 1024;
 const int64_t MAX_TOTAL_SIZE = 500;
+
+std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
+    cJSON* root, const std::string &key)
+{
+    if (!cJSON_IsObject(root)) {
+        HIVIEW_LOGE("trace jsonArgs parse error");
+        return {};
+    }
+    std::vector<std::string> traceArgs;
+    CJsonUtil::GetStringArray(root, key, traceArgs);
+    auto new_end = std::remove_if(traceArgs.begin(), traceArgs.end(), [&filterList](const std::string& tag) {
+        return filterList.find(tag) == filterList.end();
+    });
+    traceArgs.erase(new_end, traceArgs.end());
+    return traceArgs;
+}
 }
 
 void TelemetryListener::OnUnorderedEvent(const Event &msg)
