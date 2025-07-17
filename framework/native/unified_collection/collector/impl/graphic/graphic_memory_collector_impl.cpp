@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,6 +53,7 @@ CollectResult<int32_t> GraphicMemoryCollectorImpl::GetGraphicUsage(int32_t pid, 
     auto getInterface = reinterpret_cast<GraphicMemoryCollector *(*)()>(dlsym(handler, GET_INSTANCE));
     if (getInterface == nullptr) {
         HIVIEW_LOGW("dlsym failed, error: %{public}s", dlerror());
+        dlclose(handler);
         return result;
     }
     graphCollectorInstance = getInterface();

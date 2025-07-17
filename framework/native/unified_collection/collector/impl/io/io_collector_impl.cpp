@@ -145,23 +145,6 @@ static void GetDirRegexFiles(const std::string& path, const std::string& pattern
     std::sort(files.begin(), files.end());
 }
 
-static int GetFileNameNum(const std::string& fileName)
-{
-    int ret = 0;
-    auto startPos = fileName.find(UNDERLINE);
-    if (startPos == std::string::npos) {
-        return ret;
-    }
-    auto endPos = fileName.find(EXPORT_FILE_SUFFIX);
-    if (endPos == std::string::npos) {
-        return ret;
-    }
-    if (endPos <= startPos + 1) {
-        return ret;
-    }
-    return StringUtil::StrToInt(fileName.substr(startPos + 1, endPos - startPos - 1));
-}
-
 std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
 {
     std::unique_lock<std::mutex> lock(exportFileMutex_);
@@ -186,7 +169,8 @@ std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
     if (!files.empty()) {
         auto startPos = files.back().find(timeFormat);
         if (startPos != std::string::npos) {
-            int fileNameNum = GetFileNameNum(files.back().substr(startPos)); // yyyymmddHHMMSS_1.txt
+            // yyyymmddHHMMSS_1.txt
+            int fileNameNum = CommonUtil::GetFileNameNum(files.back().substr(startPos), EXPORT_FILE_SUFFIX);
             fileName.append(UNDERLINE).append(std::to_string(++fileNameNum));
         }
     }
