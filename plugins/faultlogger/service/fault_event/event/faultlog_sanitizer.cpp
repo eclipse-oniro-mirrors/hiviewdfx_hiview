@@ -90,8 +90,14 @@ void FaultLogSanitizer::ParseSanitizerEasyEvent(SysEvent& sysEvent) const
         size_t pos = data.find(':', start);
         if (pos != std::string::npos && pos > start && pos < end) {
             std::string key = data.substr(start, pos - start);
-            std::string value = data.substr(pos + 1, end - pos - 1);
-            sysEvent.SetEventValue(key, value);
+            if (key == "SUMMARY") {
+                std::string value = data.substr(pos + 1);
+                sysEvent.SetEventValue(key, value);
+                break;
+            } else {
+                std::string value = data.substr(pos + 1, end - pos - 1);
+                sysEvent.SetEventValue(key, value);
+            }
         }
         start = end + 1;
     }
@@ -116,6 +122,7 @@ void FaultLogSanitizer::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInf
         info.logPath = GetDebugSignalTempLogName(info);
     } else {
         ParseSanitizerEasyEvent(sysEvent);
+        info.module = sysEvent.GetEventValue(FaultKey::MODULE_NAME);
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
         info.reason = sysEvent.GetEventValue(FaultKey::REASON);
         info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));

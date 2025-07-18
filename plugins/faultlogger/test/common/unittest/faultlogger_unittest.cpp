@@ -2514,6 +2514,41 @@ HWTEST_F(FaultloggerUnittest, FaultLogSanitizer001, testing::ext::TestSize.Level
 }
 
 /**
+ * @tc.name: FaultLogSanitizer002
+ * @tc.desc: Test ParseSanitizerEasyEvent Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogSanitizer002, testing::ext::TestSize.Level3)
+{
+    FaultLogSanitizer sanitizer;
+    auto runTest = [&sanitizer](const std::string& input,
+        const std::unordered_map<std::string, std::string>& expected) {
+        SysEventCreator sysEventCreator("RELIABILITY", "ADDR_SANITIZER", SysEventCreator::FAULT);
+        sysEventCreator.SetKeyValue("DATA", input);
+ 
+        auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+        sanitizer.ParseSanitizerEasyEvent(*sysEvent);
+ 
+        for (const auto& [key, val] : expected) {
+            EXPECT_EQ(sysEvent->GetEventValue(key), val);
+        }
+    };
+    runTest("FAULT_TYPE:8;MODULE:debugsanitizer;SUMMARY:debug text with ; and :",
+            {{"FAULT_TYPE", "8"},
+             {"MODULE", "debugsanitizer"},
+             {"SUMMARY", "debug text with ; and :"}});
+    runTest("FAULT_TYPE;MODULE:debugsanitizer:2;SUMMARY:debug text with ; and :",
+            {{"FAULT_TYPE", ""},
+             {"MODULE", "debugsanitizer:2"},
+             {"SUMMARY", "debug text with ; and :"}});
+    runTest("SUMMARY:only summary",
+            {{"SUMMARY", "only summary"}});
+    runTest("FAULT_TYPE:;SUMMARY:only summary",
+            {{"FAULT_TYPE", ""},
+             {"SUMMARY", "only summary"}});
+}
+
+/**
  * @tc.name: EventHandlerStrategyFactory001
  * @tc.desc: Test CreateFaultLogEvent Func
  * @tc.type: FUNC

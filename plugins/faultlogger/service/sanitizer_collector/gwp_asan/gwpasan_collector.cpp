@@ -141,6 +141,7 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
 {
     std::stringstream ssPrefix;
     ssPrefix << "FAULT_TYPE:" << currInfo.faultType <<
+        ";MODULE:" << currInfo.moduleName <<
         ";REASON:" << currInfo.errType <<
         ";PID:" << currInfo.pid <<
         ";UID:" << currInfo.uid <<
