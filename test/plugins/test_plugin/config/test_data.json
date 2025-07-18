@@ -1,0 +1,15 @@
+{
+  "telemetryId": "test_id_5",
+  "tracePolicy": "manual",
+  "telemetryStatus": "on",
+  "traceOpenTime": "0",
+  "appFilterName": "com.ohos.systemui",
+  "traceDuration": "3600",
+  "traceCompressRatio": "7",
+  "xperfTraceQuota": "10",
+  "xpowerTraceQuota": "15",
+  "reliabilityTraceQuota": "15",
+  "traceQuota": "5000",
+  "traceArgs": "{\"tags\":[\"sched\",\"freq\",\"disk\",\"sync\",\"binder\",\"tag6\",\"tag7\"],\"bufferSize\":1000}",
+  "saNames": "{\"saNames\":[\"render_service\", \"test_service\"]}"
+}
