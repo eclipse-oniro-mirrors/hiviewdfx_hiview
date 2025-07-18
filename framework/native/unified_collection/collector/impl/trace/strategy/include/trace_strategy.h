@@ -133,6 +133,7 @@ public:
     {
         appCallerEvent_ = appCallerEvent;
         traceFlowController_ = std::make_shared<TraceFlowController>(ClientName::APP, dbPath_);
+        traceHandler_ = std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH);
     }
     TraceRet DoDump(std::vector<std::string> &outputFiles) override;
 

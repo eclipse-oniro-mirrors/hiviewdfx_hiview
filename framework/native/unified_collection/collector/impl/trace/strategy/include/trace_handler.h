@@ -86,6 +86,7 @@ class TraceAppHandler : public TraceHandler {
 public:
     explicit TraceAppHandler(const std::string& tracePath) : TraceHandler(tracePath, ClientName::APP) {}
     auto HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string> override;
+    std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) override;
 
 protected:
     uint32_t GetTraceCleanThreshold(const std::string& prefix) override;

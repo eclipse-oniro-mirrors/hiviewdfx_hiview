@@ -221,6 +221,11 @@ auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles) -
     return {};
 }
 
+std::string TraceAppHandler::GetTraceFinalPath(const std::string &tracePath, const std::string &prefix)
+{
+    return "";
+}
+
 uint32_t TraceAppHandler::GetTraceCleanThreshold(const std::string &business)
 {
     return UNIFIED_APP_SHARE_COUNTS;

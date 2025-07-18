@@ -280,7 +280,9 @@ TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFiles)
         }
         std::string traceFileName = InnerMakeTraceFileName(appCallerEvent_);
         FileUtil::RenameFile(outputFiles[0], traceFileName);
-        traceHandler_->HandleTrace(traceRetInfo.outputFiles);
+        if (traceHandler_ != nullptr) {
+            traceHandler_->HandleTrace(traceRetInfo.outputFiles);
+        }
         appCallerEvent_->externalLog_ = traceFileName;
         traceFlowController_->RecordCaller(appCallerEvent_);
     }
