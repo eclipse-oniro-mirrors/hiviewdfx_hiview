@@ -97,7 +97,7 @@ namespace {
     static constexpr const char* const FFRT_REPORT_EVENT_TYPE[] = {
         "Trigger_Escape", "Serial_Queue_Timeout", "Task_Sch_Timeout"
     };
-    static constexpr const char* const TASK_TIMEOUT = "TASK_TIMEOUT";
+    static constexpr const char* const TASK_TIMEOUT = "CONGESTION";
     static constexpr const char* const SENARIO = "SENARIO";
 
     static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
