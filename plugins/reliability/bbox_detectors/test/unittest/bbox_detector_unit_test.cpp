@@ -336,5 +336,76 @@ HWTEST(StartBootScanTest, StartBootScan002, TestSize.Level1)
     plugin.StartBootScan();
     ASSERT_TRUE(plugin.eventRecorder_ == nullptr);
 }
+
+/**
+ * @tc.name: SaveBboxLogFlagsToFile001
+ * @tc.desc: target dir is not exist, test SaveBboxLogFlagsToFile.
+ * @tc.type: FUNC
+ */
+HWTEST(SaveBboxLogFlagsToFileTest, SaveBboxLogFlagsToFile001, TestSize.Level1)
+{
+    FileUtil::ForceRemoveDirectory("/data/test/bbox/");
+
+    PanicReport::BboxSaveLogFlags bboxSaveLogFlags;
+    ASSERT_FALSE(PanicReport::SaveBboxLogFlagsToFile(bboxSaveLogFlags));
+}
+
+/**
+ * @tc.name: ClearFilesInDir001
+ * @tc.desc: flage file is open, test SaveBboxLogFlagsToFile.
+ * @tc.type: FUNC
+ */
+HWTEST(ClearFilesInDirTest, ClearFilesInDir001, TestSize.Level1)
+{
+    /**
+     * test case: input is invalid
+     * */
+    ASSERT_FALSE(PanicReport::ClearFilesInDir(""));
+    ASSERT_FALSE(PanicReport::ClearFilesInDir("/data/test/invalid_path"));
+
+    /**
+     * test case: input is file path
+     * */
+    ASSERT_TRUE(FileUtil::ForceCreateDirectory("/data/test/bbox/"));
+    ASSERT_TRUE(FileUtil::SaveStringToFile("/data/test/bbox/test_file", "test file"));
+    ASSERT_FALSE(PanicReport::ClearFilesInDir("/data/test/bbox/test_file"));
+}
+
+/**
+ * @tc.name: GetParamValueFromFile001
+ * @tc.desc: file path is invalid.
+ * @tc.type: FUNC
+ */
+HWTEST(GetParamValueFromFileTest, GetParamValueFromFile001, TestSize.Level1)
+{
+    /**
+     * test case: input is invalid
+     * */
+    ASSERT_EQ(PanicReport::GetParamValueFromFile("", "last_bootup_keypoint"), "");
+    ASSERT_EQ(PanicReport::GetParamValueFromFile("/data/test/invalid_file_path", "last_bootup_keypoint"), "");
+}
+
+/**
+ * @tc.name: TryToReportRecoveryPanicEvent001
+ * @tc.desc: file path is invalid.
+ * @tc.type: FUNC
+ */
+HWTEST(TryToReportRecoveryPanicEventTest, TryToReportRecoveryPanicEvent001, TestSize.Level1)
+{
+    ASSERT_TRUE(FileUtil::ForceCreateDirectory("/data/test/bbox/"));
+
+    PanicReport::BboxSaveLogFlags bboxSaveLogFlags;
+    bboxSaveLogFlags.isPanicUploaded = true;
+    bboxSaveLogFlags.happenTime = "0";
+    bboxSaveLogFlags.factoryRecoveryTime = PanicReport::GetLastRecoveryTime();
+    bboxSaveLogFlags.softwareVersion = "UT_TEST";
+    ASSERT_TRUE(PanicReport::SaveBboxLogFlagsToFile(bboxSaveLogFlags));
+
+    ASSERT_FALSE(PanicReport::TryToReportRecoveryPanicEvent());
+
+    bboxSaveLogFlags.isPanicUploaded = false;
+    ASSERT_TRUE(PanicReport::SaveBboxLogFlagsToFile(bboxSaveLogFlags));
+    ASSERT_FALSE(PanicReport::TryToReportRecoveryPanicEvent());
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS
