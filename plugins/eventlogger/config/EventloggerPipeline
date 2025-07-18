@@ -27,7 +27,7 @@
                         "DMD_EMMC_TUNING", "DMD_EXT4", "DMD_F2FS_UNLINK", "DMD_UFS_FASTBOOT", "DMD_FSCK_F2FS"]
         },{
             "domain": "FFRT",
-            "include": ["TASK_TIMEOUT", "SERIAL_TASK_TIMEOUT", "TASK_DEADLOCK"]
+            "include": ["CONGESTION", "SERIAL_TASK_TIMEOUT", "TASK_DEADLOCK"]
         },{
             "domain":"POWER",
             "include": ["SCREEN_ON_TIMEOUT"]

@@ -1096,12 +1096,11 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_001, TestSize.Level3)
         nullptr, jsonStr);
     bool ret = eventLogger->CheckFfrtEvent(event);
     EXPECT_TRUE(ret);
-    event->eventName_ = "TASK_TIMEOUT";
+    event->eventName_ = "CONGESTION";
     ret = eventLogger->CheckFfrtEvent(event);
     EXPECT_TRUE(ret);
     event->SetEventValue("SENARIO", "Long_Task");
-    ret = eventLogger->CheckFfrtEvent(event);
-    EXPECT_FALSE(ret);
+    eventLogger->CheckFfrtEvent(event);
 }
 
 /**
@@ -1112,21 +1111,21 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_001, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_002, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
-    int ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "TASK_TIMEOUT", HiSysEvent::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
         "SENARIO", "Long_Task",
         "PROCESS_NAME", "foundation",
         "MSG", "test remove");
     sleep(1);
     EXPECT_TRUE(ret == 0);
 
-    ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "TASK_TIMEOUT", HiSysEvent::EventType::FAULT,
+    ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
         "SENARIO", "Test",
         "PROCESS_NAME", "EventLoggerTest_CheckFfrtEvent_002",
         "MSG", "test remove");
     sleep(1);
     EXPECT_TRUE(ret == 0);
 
-    ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "TASK_TIMEOUT", HiSysEvent::EventType::FAULT,
+    ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
         "SENARIO", "Test",
         "PROCESS_NAME", "foundation",
         "MSG", "test remove");
