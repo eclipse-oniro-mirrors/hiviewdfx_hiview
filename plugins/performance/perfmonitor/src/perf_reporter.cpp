@@ -504,7 +504,7 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
-    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%lu,"
+    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%llu,"
         "vsyncTime=%lld(ns)", static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(),
         sceneTag, static_cast<long long>(vsyncTime));
 }
