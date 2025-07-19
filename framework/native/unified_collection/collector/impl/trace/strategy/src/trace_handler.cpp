@@ -78,7 +78,7 @@ void TraceHandler::FilterExistFile(std::vector<std::string>& outputFiles)
 
 auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string>
 {
-    if (!FileUtil::FileExists(tracePath_) && !!FileUtil::CreateMultiDirectory(tracePath_)) {
+    if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("failed to create multidirectory.");
         return {};
     }
