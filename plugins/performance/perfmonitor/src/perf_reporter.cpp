@@ -72,6 +72,7 @@ namespace {
     constexpr char EVENT_KEY_SUBHEALTH_INFO[] = "SUB_HEALTH_INFO";
     constexpr char EVENT_KEY_SUBHEALTH_REASON[] = "SUB_HEALTH_REASON";
     constexpr char EVENT_KEY_SUBHEALTH_TIME[] = "SUB_HEALTH_TIME";
+    constexpr char EVENT_KEY_VSYNC_TIME[] = "VSYNC_TIME";
     constexpr char STATISTIC_DURATION[] = "DURATION";
     constexpr char KEY_SCROLL_START_TIME[] = "SCROLL_START_TIME";
     constexpr char KEY_SCROLL_END_TIME[] = "SCROLL_END_TIME";
@@ -481,6 +482,7 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
     const auto& reason = info.baseInfo.subHealthInfo.subHealthReason;
     const auto& subHealthTime = info.baseInfo.subHealthInfo.subHealthTime;
     const auto& sceneTag = info.sceneTag;
+    const auto& vsyncTime = info.vsyncTime;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
@@ -498,11 +500,13 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
         .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
         .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(subHealthTime))
+        .Param(EVENT_KEY_VSYNC_TIME, static_cast<uint64_t>(vsyncTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
-    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%llu",
-        static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(), sceneTag);
+    XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%lu,"
+        "vsyncTime=%lld(ns)", static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(),
+        sceneTag, static_cast<long long>(vsyncTime));
 }
 
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE

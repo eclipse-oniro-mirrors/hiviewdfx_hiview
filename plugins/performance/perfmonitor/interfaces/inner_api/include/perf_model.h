@@ -100,6 +100,7 @@ struct JankInfo {
     std::string sceneId {""};
     uint64_t sceneTag {0};
     int64_t realSkippedFrameTime {0};
+    int64_t vsyncTime {0};
     BaseInfo baseInfo;
 };
 
