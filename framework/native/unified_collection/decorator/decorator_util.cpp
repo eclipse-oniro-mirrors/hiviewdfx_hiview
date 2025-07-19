@@ -16,17 +16,12 @@
 
 #include <ctime>
 
-#include "file_util.h"
 #include "time_util.h"
 
 namespace OHOS::HiviewDFX::UCollectUtil {
 void WriteLinesToFile(const std::list<std::string>& stats, bool addBlankLine, const std::string& path)
 {
-    std::string realPath;
-    if (!FileUtil::PathToRealPath(path, realPath)) {
-        return;
-    }
-    FILE* fp = fopen(realPath.c_str(), "a");
+    FILE* fp = fopen(path.c_str(), "a");
     if (fp == nullptr) {
         return;
     }
