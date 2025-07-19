@@ -125,9 +125,11 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
     if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
         dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
     }
-    if (traceHandler_ != nullptr) {
-        outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
+    if (traceHandler_ == nullptr) {
+        outputFiles = traceRetInfo.outputFiles;
+        return ret;
     }
+    outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
     if (zipHandler_ == nullptr) {
         return ret;
     }
