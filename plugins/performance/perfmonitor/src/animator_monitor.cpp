@@ -79,6 +79,10 @@ void AnimatorMonitor::End(const std::string& sceneId, bool isRsRender)
 
 void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
+    if (!isValidSceneId(sceneId)) {
+        HIVIEW_LOGW("invalid sceneId: %{public}s", sceneId.c_str());
+        return;
+    }
     int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
@@ -169,6 +173,14 @@ void AnimatorMonitor::RemoveRecord(const std::string& sceneId)
         }
         mRecords.erase(iter);
     }
+}
+
+bool AnimatorMonitor::isValidSceneId(const std::string& sceneId)
+{
+    if (sceneId.empty()) {
+        return false;
+    }
+    return validSceneIds.count(sceneId);
 }
 
 void AnimatorMonitor::FlushDataBase(AnimatorRecord* record, DataBase& data)

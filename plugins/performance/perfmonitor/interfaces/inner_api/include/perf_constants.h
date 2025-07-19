@@ -212,6 +212,220 @@ public:
 
     //screenlock into pin
     static constexpr char SCREENLOCK_SCREEN_INTO_PIN[] = "SCREENLOCK_SCREEN_INTO_PIN";
+
+    static constexpr char CLEAR_1_RECENT_ANI[] = "CLEAR_1_RECENT_ANI";
+
+    static constexpr char CLEAR_All_RECENT_ANI[] = "CLEAR_All_RECENT_ANI";
+
+    static constexpr char RECENT_REALIGN_ANI[] = "RECENT_REALIGN_ANI";
+
+    static constexpr char INTO_CC_ANI[] = "INTO_CC_ANI";
+
+    static constexpr char EXIT_CC_ANI[] = "EXIT_CC_ANI";
+
+    static constexpr char INTO_CC_FROM_NC[] = "INTO_CC_FROM_NC";
+
+    static constexpr char INTO_CC_SUB_BLUETOOTH_ANI[] = "INTO_CC_SUB_BLUETOOTH_ANI";
+
+    static constexpr char EXIT_CC_SUB_BLUETOOTH_ANI[] = "EXIT_CC_SUB_BLUETOOTH_ANI";
+
+    static constexpr char INTO_CC_SUB_WIFI_ANI[] = "INTO_CC_SUB_WIFI_ANI";
+
+    static constexpr char EXIT_CC_SUB_WIFI_ANI[] = "EXIT_CC_SUB_WIFI_ANI";
+
+    static constexpr char INTO_CC_MEDIA_ANI[] = "INTO_CC_MEDIA_ANI";
+
+    static constexpr char EXIT_CC_MEDIA_ANI[] = "EXIT_CC_MEDIA_ANI";
+
+    static constexpr char INTO_NC_ANI[] = "INTO_NC_ANI";
+
+    static constexpr char INTO_NC_FROM_CC[] = "INTO_NC_FROM_CC";
+
+    static constexpr char CLEAR_NT_ANI[] = "CLEAR_NT_ANI";
+
+    static constexpr char SCROLL_NC_LIST_ANI[] = "SCROLL_NC_LIST_ANI";
+
+    static constexpr char EXIT_NC_ANI[] = "EXIT_NC_ANI";
+
+    static constexpr char VOLUME_BAR_CHANGE_ON[] = "VOLUME_BAR_CHANGE_ON";
+
+    static constexpr char VOLUME_BAR_SLIDE[] = "VOLUME_BAR_SLIDE";
+
+    static constexpr char VOLUME_BAR_EXPAND[] = "VOLUME_BAR_EXPAND";
+
+    static constexpr char VOLUME_BAR_COLLAPSE[] = "VOLUME_BAR_COLLAPSE";
+
+    static constexpr char VOLUME_BAR_TOUCHED[] = "VOLUME_BAR_TOUCHED";
+
+    static constexpr char FOLD_EXPAND_SPLIT_VIEW[] = "FOLD_EXPAND_SPLIT_VIEW";
+
+    static constexpr char FOLD_TO_EXPAND_AA[] = "FOLD_TO_EXPAND_AA";
+
+    static constexpr char EXPAND_TO_FOLD_AA[] = "EXPAND_TO_FOLD_AA";
+
+    static constexpr char FOLD_TO_EXPAND_DOCK_BACKGROUND_SCALE_TWO[] = "FOLD_TO_EXPAND_DOCK_BACKGROUND_SCALE_TWO";
+
+    static constexpr char EXPAND_TO_FOLD_INDICATOR[] = "EXPAND_TO_FOLD_INDICATOR";
+
+    static constexpr char FOLD_TO_EXPAND_WINDOWS[] = "FOLD_TO_EXPAND_WINDOWS";
+
+    static constexpr char EXPAND_TO_FOLD_WINDOWS[] = "EXPAND_TO_FOLD_WINDOWS";
+
+    static constexpr char LAUNCHER_BIGFOLDER_OPEN[] = "LAUNCHER_BIGFOLDER_OPEN";
+
+    static constexpr char LAUNCHER_SMALLFOLDER_OPEN[] = "LAUNCHER_SMALLFOLDER_OPEN";
+
+    static constexpr char LAUNCHER_FOLDER_OPEN[] = "LAUNCHER_FOLDER_OPEN";
+
+    static constexpr char OPEN_ALBUM[] = "OPEN_ALBUM";
+
+    static constexpr char OPEN_BROWSER[] = "OPEN_BROWSER";
+
+    static constexpr char BROWSER_SWIPE[] = "BROWSER_SWIPE";
+
+    static constexpr char EXPAND_SCREEN_ROTATION_ANI[] = "EXPAND_SCREEN_ROTATION_ANI";
+
+    static constexpr char CANTACTS_DIALER_BUTTON_PRESS[] = "CANTACTS_DIALER_BUTTON_PRESS";
+
+    static constexpr char CONTACTS_DIALER_HIDE[] = "CONTACTS_DIALER_HIDE";
+
+    static constexpr char CONTACTS_DIALER_SHOW[] = "CONTACTS_DIALER_SHOW";
+
+    static constexpr char SCREENSHOT_SCALE_ANIMATION[] = "SCREENSHOT_SCALE_ANIMATION";
+
+    static constexpr char SCREENSHOT_DISMISS_ANIMATION[] = "SCREENSHOT_DISMISS_ANIMATION";
+
+    static constexpr char SCREENSHOT_DISMISS_ANIMATION_BY_USER[] = "SCREENSHOT_DISMISS_ANIMATION_BY_USER";
+
+    static constexpr char SCREENRECORD_ANIMATION[] = "SCREENRECORD_ANIMATION";
+
+    static constexpr char SCREENRECORD_DISMISS_ANIMATION[] = "SCREENRECORD_DISMISS_ANIMATION";
+
+    static constexpr char SCREENRECORD_DISMISS_ANIMATION_BY_USER[] = "SCREENRECORD_DISMISS_ANIMATION_BY_USER";
+
+    static constexpr char AOD_TO_LOCKSCREEN[] = "AOD_TO_LOCKSCREEN";
+
+    static constexpr char AOD_TO_LAUNCHER[] = "AOD_TO_LAUNCHER";
+
+    static constexpr char LOCKSCREEN_TO_LAUNCHER[] = "LOCKSCREEN_TO_LAUNCHER";
+
+    static constexpr char LOCKSCREEN_TO_AOD[] = "LOCKSCREEN_TO_AOD";
+
+    static constexpr char LAUNCHER_TO_AOD[] = "LAUNCHER_TO_AOD";
+
+    static constexpr char SCENE_CAP_TO_CARD_ANIM[] = "SCENE_CAP_TO_CARD_ANIM";
+
+    static constexpr char SCENE_CARD_TO_CAP_ANIM[] = "SCENE_CARD_TO_CAP_ANIM";
+
+    static constexpr char SCENE_LIST_TO_CAP_ANIM[] = "SCENE_LIST_TO_CAP_ANIM";
+
+    static constexpr char SCENE_CAP_TO_LIST_ANIM[] = "SCENE_CAP_TO_LIST_ANIM";
+
+    static constexpr char SCENE_LIST_SWIPE_ANIM[] = "SCENE_LIST_SWIPE_ANIM";
+
+    static constexpr char SCREENLOCK_INTO_EDITOR_ANIM[] = "SCREENLOCK_INTO_EDITOR_ANIM";
+
+    static constexpr char SCREENLOCK_EXIT_EDITOR_ANIM[] = "SCREENLOCK_EXIT_EDITOR_ANIM";
+
+    static constexpr char SCREEN_OFF_TO_SCREENLOCK_END[] = "SCREEN_OFF_TO_SCREENLOCK_END";
+
+    static constexpr char SCROLL_2_AA[] = "SCROLL_2_AA";
+
+    static constexpr char INTO_AA_ANI[] = "INTO_AA_ANI";
+
+    static constexpr char EXIT_AA_ANI[] = "EXIT_AA_ANI";
+
+    static constexpr char INTO_SEARCH_ANI[] = "INTO_SEARCH_ANI";
+
+    static constexpr char EXIT_SEARCH_ANI[] = "EXIT_SEARCH_ANI";
+
+    static constexpr char FORMSTACK_SLIDE_BACK[] = "FORMSTACK_SLIDE_BACK";
+
+    static constexpr char FORMSTACK_SLIDE_DOWN[] = "FORMSTACK_SLIDE_DOWN";
+
+    static constexpr char FORMSTACK_SLIDE_UP[] = "FORMSTACK_SLIDE_UP";
+
+    static constexpr char FORMSTACK_SWITCH_CARD[] = "FORMSTACK_SWITCH_CARD";
+
+    static constexpr char FORM_MANAGER_CREATE_FORM[] = "FORM_MANAGER_CREATE_FORM";
+
+    static constexpr char INTO_LV_ANIM[] = "INTO_LV_ANIM";
+
+    static constexpr char EXIT_LV_ANIM[] = "EXIT_LV_ANIM";
+
+    static constexpr char LV_INTO_APP_ANIM[] = "LV_INTO_APP_ANIM";
+
+    static constexpr char CAMERA_UE_GO_GALLERY[] = "CAMERA_UE_GO_GALLERY";
+
+    static constexpr char EDITMODE_ENTER[] = "EDITMODE_ENTER";
+
+    static constexpr char EDITMODE_EXIT[] = "EDITMODE_EXIT";
+
+    static constexpr char LAUNCHER_OVER_SCROLL[] = "LAUNCHER_OVER_SCROLL";
+
+    static constexpr char DRAG_ITEM_ANI[] = "DRAG_ITEM_ANI";
+    
+    static constexpr char WEB_LIST_FLING[] = "WEB_LIST_FLING";
+
+    static constexpr char START_APP_ANI_MENU[] = "START_APP_ANI_MENU";
+
+    static constexpr char LAUNCHER_APP_LAUNCH_FROM_APPCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_APPCENTER";
+
+    static constexpr char PC_CLICK_ARROW_RESTORE_DESKTOP[] = "PC_CLICK_ARROW_RESTORE_DESKTOP";
+
+    static constexpr char PC_CLICK_ARROW_SHOW_DESKTOP[] = "PC_CLICK_ARROW_SHOW_DESKTOP";
+    
+    static constexpr char PC_DOCK_EXIT_APP_CENTER[] = "PC_DOCK_EXIT_APP_CENTER";
+
+    static constexpr char PC_DOCK_INTO_APP_CENTER[] = "PC_DOCK_INTO_APP_CENTER";
+
+    static constexpr char PC_INTO_APP_CENTER_ON_RECENT[] = "PC_INTO_APP_CENTER_ON_RECENT";
+
+    static constexpr char PC_INTO_RECENT[] = "PC_INTO_RECENT";
+
+    static constexpr char PC_SPLIT_SCROLL_RECENT[] = "PC_SPLIT_SCROLL_RECENT";
+
+    static constexpr char PC_SPLIT_START_ANIMATE[] = "PC_SPLIT_START_ANIMATE";
+
+    static constexpr char SMARTDOCK_RECENTANIM_FIRSTOPEN[] = "SMARTDOCK_RECENTANIM_FIRSTOPEN";
+
+    static constexpr char PC_SHORTCUT_GLOBAL_SEARCH[] = "PC_SHORTCUT_GLOBAL_SEARCH";
+
+    static constexpr char SWITCH_DESKTOP[] = "SWITCH_DESKTOP";
+
+    static constexpr char LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY[] = "LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY";
+
+    static constexpr char WATCH_SCROLL_CARD_LIST_ANI[] = "WATCH_SCROLL_CARD_LIST_ANI";
+
+    static constexpr char WATCH_WATCHFACE_LONGPRESS_TO_LIST[] = "WATCH_WATCHFACE_LONGPRESS_TO_LIST";
+
+    static constexpr char WATCH_WATCHFACELIST_CLICK_TO_EDIT[] = "WATCH_WATCHFACELIST_CLICK_TO_EDIT";
+
+    static constexpr char WATCH_WATCHFACESELECT_TO_WATCHFACE[] = "WATCH_WATCHFACESELECT_TO_WATCHFACE";
+
+    static constexpr char WATCH_WATCHFACE_STYLE_SWIPE[] = "WATCH_WATCHFACE_STYLE_SWIPE";
+
+    static constexpr char WATCH_POWER_DOUBLE_CLICK_TO_RECENTS[] = "WATCH_POWER_DOUBLE_CLICK_TO_RECENTS";
+    
+    static constexpr char APP_ASSOCIATED_START[] = "APP_ASSOCIATED_START";
+
+    static constexpr char CONTACTS_DIALER_BUTTON_PRESS[] = "CONTACTS_DIALER_BUTTON_PRESS";
+
+    static constexpr char LAUNCHER_CARD_TEMP_SHOW[] = "LAUNCHER_CARD_TEMP_SHOW";
+
+    static constexpr char GESTURE_TO_RECENTS[] = "GESTURE_TO_RECENTS";
+
+    static constexpr char START_APP_ANI_AG[] = "START_APP_ANI_AG";
+
+    static constexpr char CORE_METHOD_DESKTOP_SHOW[] = "CORE_METHOD_DESKTOP_SHOW";
+
+    static constexpr char APP_START[] = "APP_START";
+
+    static constexpr char PC_SPLIT_DRAG_DIVIDER_ANIMATE[] = "PC_SPLIT_DRAG_DIVIDER_ANIMATE";
+
+    static constexpr char PC_STARTUP_TIME[] = "PC_STARTUP_TIME";
+
+    static constexpr char PC_WAKEUP_LATENCY[] = "PC_WAKEUP_LATENCY";
 };
 } // namespace OHOS
 } // namespace HiviewDFX
