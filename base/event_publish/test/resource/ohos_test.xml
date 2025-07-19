@@ -15,9 +15,18 @@
 <configuration ver="2.0">
     <target name="EventPublishTest">
         <preparer>
-            <option name="push" value="tests/unittest/hiview/hiview/event_publish/EventPublishJsTest.hap -> /data/" src="out"/>
+            <option name="push" value="testdata/jscrash-com.example.tstest-20010045-20250718202951568.log ->
+                /data/log/faultlog/faultlogger/" src="res"/>
+            <option name="push" value="testdata/unittest_eventpublishtest005.txt -> /data/" src="res"/>
+            <option name="push" value="testdata/unittest_eventpublishtest010.txt -> /data/" src="res"/>
+            <option name="push" value="tests/unittest/hiview/event_publish/EventPublishJsTest.hap -> /data/" src="out"/>
         </preparer>
         <cleaner>
+            <option name="shell" value=
+                "rm -rf /data/log/faultlog/faultlogger/jscrash-com.example.tstest-20010045-20250718202951568.log"/>
+            <option name="shell" value="rm -rf /data/app/el2/100/log/com.example.myapplication/hiappevent/*"/>
+            <option name="shell" value="rm -rf /data/unittest_eventpublishtest005.txt"/>
+            <option name="shell" value="rm -rf /data/unittest_eventpublishtest010.txt"/>
             <option name="shell" value="rm -rf /data/EventPublishJsTest.hap"/>
         </cleaner>
     </target>

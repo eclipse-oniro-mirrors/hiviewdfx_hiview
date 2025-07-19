@@ -42,6 +42,7 @@ ohos_unittest("EventPublishTest") {
     "$hiview_base:logger",
     "$hiview_base/event_publish:hiview_event_publish",
     "$hiview_base/event_publish/test/resource:EventPublishJsTest",
+    "$hiview_base/utility:hiview_utility",
   ]
 
   external_deps = [
