@@ -37,7 +37,7 @@ public:
     void OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName);
 
     // inner interface for app frame observer
-    void ProcessJank(double jank, const std::string& windowName);
+    void ProcessJank(int64_t vsyncTime, double jank, const std::string& windowName);
     void JankFrameStatsRecord(double jank);
 
     // stats app jank frame

@@ -74,12 +74,12 @@ void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double 
     if (AnimatorMonitor::GetInstance().IsSubHealthScene()) {
         SceneMonitor::GetInstance().FlushSubHealthInfo();
     }
-    ProcessJank(jank, windowName);
+    ProcessJank(vsyncTime, jank, windowName);
     JankFrameStatsRecord(jank);
     SceneMonitor::GetInstance().SingleFrameSceneStop(windowName);
 }
 
-void JankFrameMonitor::ProcessJank(double jank, const std::string& windowName)
+void JankFrameMonitor::ProcessJank(int64_t vsyncTime, double jank, const std::string& windowName)
 {
     // single frame behavior report
     if (jank >= static_cast<double>(DEFAULT_JANK_REPORT_THRESHOLD)) {
@@ -89,6 +89,7 @@ void JankFrameMonitor::ProcessJank(double jank, const std::string& windowName)
         jankInfo.windowName = windowName;
         jankInfo.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
         jankInfo.sceneTag = SceneMonitor::GetInstance().GetNonexpFilterTag();
+        jankInfo.vsyncTime = vsyncTime;
         if (!AnimatorMonitor::GetInstance().RecordsIsEmpty()) {
             jankInfo.sceneId = SceneMonitor::GetInstance().GetCurrentSceneId();
         } else {
