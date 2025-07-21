@@ -44,7 +44,6 @@ void SceneManager::OnSceneStart(const SceneType& type)
     } else {
         sceneBoard[type]->StartRecord(type);
     }
-    HIVIEW_LOGI("SceneManager::OnSceneStart scene type: %{public}d", static_cast<int>(type));
     return;
 }
 
@@ -53,7 +52,6 @@ void SceneManager::OnSceneStop(const SceneType& type)
     std::lock_guard<std::mutex> Lock(mMutex);
     if (sceneBoard.find(type) != sceneBoard.end()) {
         sceneBoard[type]->StopRecord(type);
-        HIVIEW_LOGI("SceneManager::OnSceneStop scene type: %{public}d", static_cast<int>(type));
     } else {
         HIVIEW_LOGW("SceneManager::OnSceneStop scene has not started, scene type: %{public}d", static_cast<int>(type));
     }
@@ -71,8 +69,6 @@ void SceneManager::OnSceneStart(const SceneType& type, const std::string& sceneI
     } else {
         sceneBoard[type]->StartRecord(type, sceneId);
     }
-    HIVIEW_LOGI("SceneManager::OnSceneStart scene type: %{public}d, scene id: %{public}s",
-        static_cast<int>(type), sceneId.c_str());
     return;
 }
 
@@ -81,8 +77,6 @@ void SceneManager::OnSceneStop(const SceneType& type, const std::string& sceneId
     std::lock_guard<std::mutex> Lock(mMutex);
     if (sceneBoard.find(type) != sceneBoard.end()) {
         sceneBoard[type]->StopRecord(type, sceneId);
-        HIVIEW_LOGI("SceneManager::OnSceneStop scene type: %{public}d, scene id: %{public}s",
-            static_cast<int>(type), sceneId.c_str());
     } else {
         HIVIEW_LOGW("SceneManager::OnSceneStop scene has not started, scene type: %{public}d, scene id: %{public}s",
             static_cast<int>(type), sceneId.c_str());
