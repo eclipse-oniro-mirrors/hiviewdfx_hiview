@@ -20,10 +20,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-constexpr char CLASS_NAME_LOGLIBRARY[] = "L@ohos/logLibrary/logLibrary;";
-constexpr char CLASS_NAME_LOGENTRY[] = "L@ohos/logLibrary/LogEntryInner;";
-constexpr char CLASS_NAME_BUSINESSERROR[] = "L@ohos/base/BusinessError;";
-constexpr char CLASS_NAME_RESULTS[] = "L@ohos/logLibrary/ResultsInner;";
+constexpr char CLASS_NAME_LOGLIBRARY[] = "@ohos.logLibrary.logLibrary";
+constexpr char CLASS_NAME_LOGENTRY[] = "@ohos.logLibrary.LogEntryInner";
+constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos.base.BusinessError";
+constexpr char CLASS_NAME_RESULTS[] = "@ohos.logLibrary.ResultsInner";
 } // namespace HiviewDFX
 } // namespace OHOS
 
