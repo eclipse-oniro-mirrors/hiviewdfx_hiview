@@ -57,11 +57,11 @@ bool LogLibraryAniUtil::CreateLogEntryArray(ani_env *env,
             HILOG_ERROR(LOG_CORE, "Set LogEntry name Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
-        if (ANI_OK != env->Object_SetPropertyByName_Double(logEntryObj, "mtime", value.mtime)) {
+        if (ANI_OK != env->Object_SetPropertyByName_Long(logEntryObj, "mtime", value.mtime)) {
             HILOG_ERROR(LOG_CORE, "Set LogEntry mtime Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
-        if (ANI_OK != env->Object_SetPropertyByName_Double(logEntryObj, "size", value.size)) {
+        if (ANI_OK != env->Object_SetPropertyByName_Long(logEntryObj, "size", value.size)) {
             HILOG_ERROR(LOG_CORE, "Set LogEntry size Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
