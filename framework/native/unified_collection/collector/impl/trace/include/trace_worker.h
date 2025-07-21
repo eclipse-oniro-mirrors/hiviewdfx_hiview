@@ -16,7 +16,7 @@
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_WORKER_H
 
 #include <functional>
-#include <string>
+#include <memory>
 
 #include "ffrt.h"
 
@@ -33,9 +33,10 @@ public:
     void HandleUcollectionTask(UcollectionTask ucollectionTask);
 
 private:
-    TraceWorker() {};
-    ~TraceWorker() {};
-    static TraceWorker traceWorker_;
+    TraceWorker() = default;
+    ~TraceWorker() = default;
+    TraceWorker(const TraceWorker&) = delete;
+    TraceWorker& operator = (const TraceWorker&) = delete;
     std::unique_ptr<ffrt::queue> ffrtQueue_ = std::make_unique<ffrt::queue>("dft_trace_worker");
 };
 } // HiViewDFX

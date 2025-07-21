@@ -51,8 +51,8 @@ protected:
     std::string caller_;
     std::string dbPath_;
     TraceScenario scenario_;
-    std::shared_ptr<TraceHandler> traceHandler_ = nullptr;
-    std::shared_ptr<TraceFlowController> traceFlowController_ = nullptr;
+    std::shared_ptr<TraceHandler> traceHandler_;
+    std::shared_ptr<TraceFlowController> traceFlowController_;
 };
 
 class TraceFlowControlStrategy : public TraceStrategy {
@@ -78,7 +78,7 @@ public:
     TraceRet DoDump(std::vector<std::string> &outputFiles) override;
 
 private:
-    std::shared_ptr<TraceZipHandler> zipHandler_ = nullptr;
+    std::shared_ptr<TraceZipHandler> zipHandler_;
 };
 
 /*
@@ -112,10 +112,10 @@ private:
     }
 
 private:
-    std::shared_ptr<TraceZipHandler> zipHandler_ = nullptr;
+    std::shared_ptr<TraceZipHandler> zipHandler_;
 };
 
-class TelemetryStrategy : public TraceStrategy  {
+class TelemetryStrategy : public TraceStrategy, public std::enable_shared_from_this<TelemetryStrategy> {
 public:
     TelemetryStrategy(StrategyParam strategyParam, std::shared_ptr<TraceHandler> traceHandler)
         : TraceStrategy(strategyParam, TraceScenario::TRACE_TELEMETRY, traceHandler)

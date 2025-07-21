@@ -19,11 +19,11 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
-TraceWorker TraceWorker::traceWorker_;
 
 TraceWorker& TraceWorker::GetInstance()
 {
-    return traceWorker_;
+    static TraceWorker instance;
+    return instance;
 }
 
 void TraceWorker::HandleUcollectionTask(UcollectionTask ucollectionTask)

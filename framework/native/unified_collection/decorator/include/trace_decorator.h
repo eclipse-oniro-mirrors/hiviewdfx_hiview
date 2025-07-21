@@ -57,9 +57,9 @@ struct TraceStatInfo {
 struct TraceTrafficInfo {
     std::string caller;
     std::string traceFile;
-    uint32_t rawSize = 0;
-    uint64_t timeSpent = 0;
-    uint64_t timeStamp = 0;
+    uint64_t rawSize = 0;
+    uint64_t zipSize = 0;
+    int64_t handleCostTime = 0;
 
     std::string ToString() const
     {
@@ -67,8 +67,8 @@ struct TraceTrafficInfo {
         str.append(caller).append(" ")
         .append(traceFile).append(" ")
         .append(std::to_string(rawSize)).append(" ")
-        .append(std::to_string(timeSpent)).append(" ")
-        .append(std::to_string(timeStamp));
+        .append(std::to_string(zipSize)).append(" ")
+        .append(std::to_string(handleCostTime));
         return str;
     }
 };
@@ -78,20 +78,16 @@ public:
     void UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, UCollect::TraceCaller& caller,
         const CollectResult<std::vector<std::string>>& result);
     std::map<std::string, TraceStatInfo> GetTraceStatInfo();
-    std::map<std::string, std::vector<TraceTrafficInfo>> GetTrafficStatInfo();
     void ResetStatInfo();
-    void WriteZipTrafficToLogFile(const std::string& trafficInfo);
+    void WriteTrafficToLogFile(const std::string& trafficInfo);
 
 private:
     void UpdateAPIStatInfo(const TraceStatItem& item);
-    void UpdateTrafficInfo(const std::string& caller, uint64_t latency,
-        const CollectResult<std::vector<std::string>>& result);
 
 private:
     std::string date_;
     std::mutex traceMutex_;
     std::map<std::string, TraceStatInfo> traceStatInfos_;
-    std::map<std::string,  std::vector<TraceTrafficInfo>> trafficStatInfos_;
 };
 
 class TraceDecorator : public TraceCollector, public UCDecorator {
@@ -108,7 +104,7 @@ public:
     void RecoverTmpTrace() override;
     static void SaveStatSpecialInfo();
     static void ResetStatInfo();
-    static void WriteTrafficAfterZip(const std::string& caller, const std::string& traceZipFile);
+    static void WriteTrafficAfterHandle(const TraceTrafficInfo& trace_traffic);
 
 private:
     template <typename T> auto Invoke(T task, UCollect::TraceCaller& caller)
