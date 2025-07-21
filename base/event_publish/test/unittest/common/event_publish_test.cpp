@@ -17,8 +17,10 @@
 #include <string>
 
 #include "app_event_elapsed_time.h"
+#include "app_event_publisher_factory.h"
 #include "event_publish.h"
 #include "event_publish_test_util.h"
+#include "file_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -27,6 +29,7 @@ constexpr int DELAY_TIME_FOR_WRITE = 1;  // Used to wait for events to be writte
 constexpr int DELAY_TIME_FOR_REPORT = 32;  // sleep 30s and 2s for report
 const std::string TEST_ABILITY_NAME = "com.example.myapplication.MainAbility";
 const std::string TEST_BUNDLE_NAME = "com.example.myapplication";
+const std::string TEST_EXTERNAL_LOG_PATH = "/data/app/el2/100/log/" + TEST_BUNDLE_NAME + "/hiappevent/";
 const std::string TEST_HAP_PATH = "/data/EventPublishJsTest.hap";
 const std::string TEST_SANDBOX_BASE_PATH = "/data/app/el2/100/base/" + TEST_BUNDLE_NAME;
 const std::string APPEVENT_DB_WAL_PATH = "/files/hiappevent/databases/appevent.db-wal";
@@ -223,8 +226,19 @@ HWTEST_F(EventPublishTest, EventPublishTest005, TestSize.Level1)
 
         EventPublish::GetInstance().PushEvent(testUid, "RESOURCE_OVERLIMIT",
             HiSysEvent::EventType::FAULT, "{\"time\":12}");
-        std::string resourceMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
-        EXPECT_NE(resourceMd5Sum, beginMd5Sum);
+        std::string resource1Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+        EXPECT_NE(resource1Md5Sum, beginMd5Sum);
+
+        std::string filePath = "/data/unittest_eventpublishtest005.txt";
+        std::vector<std::string> lines;
+        if (FileUtil::LoadLinesFromFile(filePath, lines)) {
+            for (const auto& line : lines) {
+                EventPublish::GetInstance().PushEvent(testUid, "RESOURCE_OVERLIMIT",
+                    HiSysEvent::EventType::FAULT, line);
+                std::string resource2Md5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+                EXPECT_NE(resource1Md5Sum, resource2Md5Sum);
+            }
+        }
     }
 }
 
@@ -368,4 +382,60 @@ HWTEST_F(EventPublishTest, EventPublishTest009, TestSize.Level1)
         ret = EventPublish::GetInstance().IsAppListenedEvent(testUid, "CPU_USAGE_HIGH");
         EXPECT_TRUE(ret);
     }
+}
+
+/**
+ * @tc.name: EventPublishTest010
+ * @tc.desc: used to test PushEvent when the event is APP_CRASH. Test function CopyExternalLog().
+ *           When external_log file exists, send it to sandbox if needed.
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest010, TestSize.Level1)
+{
+    bool isSuccess = g_testPid != -1;
+    if (!isSuccess) {
+        ASSERT_FALSE(isSuccess);
+        GTEST_LOG_(ERROR) << "Failed to launch target hap.";
+    } else {
+        uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+        EXPECT_GT(testUid, 0);
+
+        std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+        bool existRes = FileExists(testDatabaseWALPath);
+        EXPECT_TRUE(existRes);
+
+        std::string filePath = "/data/unittest_eventpublishtest010.txt";
+        std::vector<std::string> lines;
+        if (FileUtil::LoadLinesFromFile(filePath, lines)) {
+            for (const auto& line : lines) {
+                EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, line);
+                sleep(2 * DELAY_TIME_FOR_WRITE);
+                EXPECT_GT(FileUtil::GetFolderSize(TEST_EXTERNAL_LOG_PATH), 0);
+            }
+        }
+    }
+}
+
+/**
+@tc.name: AppEventPublisherFactoryTest001
+@tc.desc: used to test class AppEventPublisherFactory
+@tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, AppEventPublisherFactoryTest001, TestSize.Level1)
+{
+    std::string publisherName = "plugin_config";
+    if (!AppEventPublisherFactory::IsPublisher(publisherName)) {
+        AppEventPublisherFactory::RegisterPublisher(publisherName);
+        ASSERT_TRUE(AppEventPublisherFactory::IsPublisher(publisherName));
+    }
+
+    // Register publisher which is already exists.
+    AppEventPublisherFactory::RegisterPublisher(publisherName);
+    ASSERT_TRUE(AppEventPublisherFactory::IsPublisher(publisherName));
+    AppEventPublisherFactory::UnregisterPublisher(publisherName);
+    ASSERT_FALSE(AppEventPublisherFactory::IsPublisher(publisherName));
+
+    std::string invalidName = "";
+    AppEventPublisherFactory::RegisterPublisher(invalidName);
+    ASSERT_FALSE(AppEventPublisherFactory::IsPublisher(invalidName));
 }
