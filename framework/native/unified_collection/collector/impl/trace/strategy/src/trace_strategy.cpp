@@ -115,7 +115,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
         WriteDumpTraceHisysevent(dumpEvent);
-        return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
+        return ret;
     }
     if (traceRetInfo.outputFiles.empty()) {
         HIVIEW_LOGE("TraceDevStrategy outputFiles empty.");
