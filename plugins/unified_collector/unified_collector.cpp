@@ -60,7 +60,6 @@ constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 const std::string OTHER = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
-constexpr char UNIFIED_SHARE_PATH[] = "/data/log/hiview/unified_collection/trace/share/";
 constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";
 constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
 constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
@@ -77,7 +76,6 @@ void CreateTracePathInner(const std::string &filePath)
 
 void CreateTracePath()
 {
-    CreateTracePathInner(UNIFIED_SHARE_PATH);
     CreateTracePathInner(UNIFIED_SHARE_TEMP_PATH);
     CreateTracePathInner(UNIFIED_SPECIAL_PATH);
     CreateTracePathInner(UNIFIED_TELEMETRY_PATH);

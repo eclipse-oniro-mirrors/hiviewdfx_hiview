@@ -32,8 +32,7 @@ namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 constexpr int32_t FULL_TRACE_DURATION = -1;
-const uint32_t MB_TO_KB = 1024;
-const uint32_t KB_TO_BYTE = 1024;
+const uint32_t BYTE_UNIT = 1024;
 const uint32_t MS_UNIT = 1000;
 
 void InitDumpEvent(DumpEvent &dumpEvent, const std::string &caller, uint32_t maxDuration, uint64_t happenTime)
@@ -59,9 +58,9 @@ void LoadMemoryInfo(DumpEvent &dumpEvent)
 {
     std::shared_ptr<UCollectUtil::MemoryCollector> collector = UCollectUtil::MemoryCollector::Create();
     CollectResult<SysMemory> data = collector->CollectSysMemory();
-    dumpEvent.sysMemTotal = data.data.memTotal / MB_TO_KB;
-    dumpEvent.sysMemFree = data.data.memFree / MB_TO_KB;
-    dumpEvent.sysMemAvail = data.data.memAvailable / MB_TO_KB;
+    dumpEvent.sysMemTotal = data.data.memTotal / BYTE_UNIT;
+    dumpEvent.sysMemFree = data.data.memFree / BYTE_UNIT;
+    dumpEvent.sysMemAvail = data.data.memAvailable / BYTE_UNIT;
 }
 
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
@@ -122,8 +121,8 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
         return ret;
     }
     const int64_t traceSize = traceRetInfo.fileSize;
-    if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
-        dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
+    if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
+        dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
     }
     if (traceHandler_ == nullptr) {
         outputFiles = traceRetInfo.outputFiles;
@@ -166,8 +165,8 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles)
         return ret;
     }
     const int64_t traceSize = traceRetInfo.fileSize;
-    if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
-        dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
+    if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
+        dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
     }
     if (traceSize > traceRemainingSize) {
         dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
@@ -241,8 +240,8 @@ TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles)
         return ret;
     }
     const int64_t traceSize = traceRetInfo.fileSize;
-    if (traceSize <= static_cast<int64_t>(INT32_MAX) * MB_TO_KB * KB_TO_BYTE) {
-        dumpEvent.fileSize = traceSize / MB_TO_KB / KB_TO_BYTE;
+    if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
+        dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
     }
     if (traceRetInfo.isOverflowControl) {
         SetResultCopyFiles(outputFiles, traceRetInfo.outputFiles);

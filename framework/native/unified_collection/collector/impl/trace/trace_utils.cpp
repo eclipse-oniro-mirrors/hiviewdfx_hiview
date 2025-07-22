@@ -37,7 +37,6 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 const double CPU_LOAD_THRESHOLD = 0.03;
 const uint32_t MAX_TRY_COUNT = 6;
-const uint32_t MB_TO_KB = 1024;
 
 const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::SUCCESS, UcError::SUCCESS},
@@ -50,8 +49,10 @@ const std::map<TraceErrorCode, UcError> CODE_MAP = {
     {TraceErrorCode::OUT_OF_TIME, UcError::TRACE_OUT_OF_TIME},
     {TraceErrorCode::FORK_ERROR, UcError::TRACE_FORK_ERROR},
     {TraceErrorCode::EPOLL_WAIT_ERROR, UcError::TRACE_EPOLL_WAIT_ERROR},
-    {TraceErrorCode::PIPE_CREATE_ERROR, UcError::TRACE_PIPE_CREATE_ERROR},
     {TraceErrorCode::INVALID_MAX_DURATION, UcError::TRACE_INVALID_MAX_DURATION},
+    {TraceErrorCode::ASYNC_DUMP, UcError::ASYNC_DUMP},
+    {TraceErrorCode::TRACE_TASK_SUBMIT_ERROR, UcError::TRACE_TASK_SUBMIT_ERROR},
+    {TraceErrorCode::TRACE_TASK_DUMP_TIMEOUT, UcError::TRACE_TASK_DUMP_TIMEOUT},
 };
 
 const std::map<TraceStateCode, UcError> TRACE_STATE_MAP = {

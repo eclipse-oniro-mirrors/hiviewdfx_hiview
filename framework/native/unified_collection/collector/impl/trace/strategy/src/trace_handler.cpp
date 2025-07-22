@@ -20,7 +20,6 @@
 #include "file_util.h"
 #include "trace_worker.h"
 #include "trace_decorator.h"
-#include "hisysevent.h"
 #include "hiview_event_report.h"
 #include "hiview_zip_util.h"
 
@@ -39,6 +38,36 @@ const std::map<std::string, uint32_t> TRACE_CLEAN_THRESHOLD = {
     {CallerName::SCREEN,      1},
     {ClientName::BETACLUB,    2}
 };
+
+void WriteTrafficLog(std::chrono::time_point<std::chrono::steady_clock> startTime, const std::string& caller,
+    const std::string& srcFile, const std::string& traceFile)
+{
+    auto endTime = std::chrono::steady_clock::now();
+    auto execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    UCollectUtil::TraceTrafficInfo traceInfo {
+        caller,
+        traceFile,
+        FileUtil::GetFileSize(srcFile),
+        0,
+        execDuration
+    };
+    UCollectUtil::TraceDecorator::WriteTrafficAfterHandle(traceInfo);
+}
+
+void WriteZipTrafficLog(std::chrono::time_point<std::chrono::steady_clock> startTime, const std::string& caller,
+    const std::string& srcFile, const std::string& zipFile)
+{
+    auto endTime = std::chrono::steady_clock::now();
+    auto execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    UCollectUtil::TraceTrafficInfo traceInfo {
+        caller,
+        zipFile,
+        FileUtil::GetFileSize(srcFile),
+        FileUtil::GetFileSize(zipFile),
+        execDuration
+    };
+    UCollectUtil::TraceDecorator::WriteTrafficAfterHandle(traceInfo);
+}
 }
 
 void TraceHandler::DoClean(const std::string &prefix)
@@ -67,35 +96,38 @@ void TraceHandler::DoClean(const std::string &prefix)
     }
 }
 
-void TraceHandler::FilterExistFile(std::vector<std::string>& outputFiles)
-{
-    auto newEnd = std::remove_if(outputFiles.begin(), outputFiles.end(), [this](const std::string& filename) {
-        const std::string traceZipFile = GetTraceFinalPath(filename, "");
-        return FileUtil::FileExists(traceZipFile);
-    });
-    outputFiles.erase(newEnd, outputFiles.end());
-}
-
-auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string>
+auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+    -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("failed to create multidirectory.");
         return {};
     }
-    auto zipFileInfos = outputFiles;
-    FilterExistFile(zipFileInfos);
     std::vector<std::string> files;
-    for (const auto &filename : zipFileInfos) {
+    for (const auto &filename : outputFiles) {
+        auto startTime = std::chrono::steady_clock::now();
         const std::string traceZipFile = GetTraceFinalPath(filename, "");
+        if (FileUtil::FileExists(traceZipFile)) {
+            HIVIEW_LOGI("trace:%{public}s already zipped, zip pass", traceZipFile.c_str());
+            continue;
+        }
         const std::string tmpZipFile = GetTraceZipTmpPath(filename);
         if (!tmpZipFile.empty()) {
+            if (FileUtil::FileExists(tmpZipFile)) {
+                HIVIEW_LOGI("trace:%{public}s already in zip queue, zip pass", traceZipFile.c_str());
+                continue;
+            }
             // a trace producted, just make a marking
             FileUtil::SaveStringToFile(tmpZipFile, " ", true);
         }
-        UcollectionTask traceTask = [filename, traceZipFile, tmpZipFile, handler = shared_from_this()] {
-            handler->ZipTraceFile(filename, traceZipFile, tmpZipFile);
-            UCollectUtil::TraceDecorator::WriteTrafficAfterZip(handler->caller_, traceZipFile);
-            handler->DoClean("");
+        UcollectionTask traceTask = [filename, traceZipFile, tmpZipFile, startTime, callback,
+            handler = shared_from_this()] {
+                handler->ZipTraceFile(filename, traceZipFile, tmpZipFile);
+                handler->DoClean("");
+                if (callback != nullptr) {
+                    callback(static_cast<int64_t>(FileUtil::GetFileSize(traceZipFile)));
+                }
+                WriteZipTrafficLog(startTime, handler->caller_, filename, traceZipFile);
         };
         TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
         files.push_back(traceZipFile);
@@ -175,7 +207,8 @@ uint32_t TraceCopyHandler::GetTraceCleanThreshold(const std::string &prefix)
     return TRACE_CLEAN_THRESHOLD.at(prefix);
 }
 
-auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string>
+auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+    -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
@@ -183,21 +216,26 @@ auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles) 
     }
     std::vector<std::string> files;
     for (const auto &trace : outputFiles) {
+        auto startTime = std::chrono::steady_clock::now();
         std::string dst = GetTraceFinalPath(trace, caller_);
         files.push_back(dst);
-        if (!FileUtil::FileExists(dst)) {
-            // copy trace in ffrt asynchronously
-            UcollectionTask traceTask = [trace, dst, handler = shared_from_this()]() {
-                handler->CopyTraceFile(trace, dst);
-                handler->DoClean(handler->caller_);
-            };
-            TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+        if (FileUtil::FileExists(dst)) {
+            continue;
         }
+
+        // copy trace in ffrt asynchronously
+        UcollectionTask traceTask = [trace, dst, startTime, handler = shared_from_this()]() {
+            handler->CopyTraceFile(trace, dst);
+            handler->DoClean(handler->caller_);
+            WriteTrafficLog(startTime, handler->caller_, trace, dst);
+        };
+        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
     return files;
 }
 
-auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string>
+auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+    -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
@@ -207,15 +245,18 @@ auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFil
 
     // copy trace immediately for betaclub and screen recording
     for (const auto &trace : outputFiles) {
+        auto startTime = std::chrono::steady_clock::now();
         std::string dst = GetTraceFinalPath(trace, caller_);
         files.push_back(dst);
         CopyTraceFile(trace, dst);
         DoClean(caller_);
+        WriteTrafficLog(startTime, caller_, trace, dst);
     }
     return files;
 }
 
-auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string>
+auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+    -> std::vector<std::string>
 {
     DoClean(caller_);
     return {};

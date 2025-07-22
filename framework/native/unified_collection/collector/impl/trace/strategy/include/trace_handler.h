@@ -23,19 +23,19 @@
 #include "hitrace_define.h"
 
 namespace OHOS::HiviewDFX {
-
+using HandleCallback = std::function<void(int64_t)>;
 class TraceHandler {
 public:
     TraceHandler(const std::string &tracePath, const std::string& caller)
         : tracePath_(tracePath), caller_(caller) {}
     virtual ~TraceHandler() = default;
-    virtual auto HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string> = 0;
+    virtual auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {})
+        -> std::vector<std::string> = 0;
     virtual std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) = 0;
 
 protected:
     virtual uint32_t GetTraceCleanThreshold(const std::string&) = 0;
     virtual void DoClean(const std::string& business);
-    virtual void FilterExistFile(std::vector<std::string>& outputFiles);
 
 protected:
     std::string tracePath_;
@@ -45,7 +45,8 @@ protected:
 class TraceZipHandler : public TraceHandler, public std::enable_shared_from_this<TraceZipHandler> {
 public:
     TraceZipHandler(const std::string& tracePath, const std::string& caller) : TraceHandler(tracePath, caller) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string> override;
+    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {})
+        -> std::vector<std::string> override;
     std::string GetTraceFinalPath(const std::string& fileName, const std::string& prefix) override
     {
         auto tempZipName = tracePath_ + StringUtil::ReplaceStr(FileUtil::ExtractFileName(fileName), ".sys", ".zip");
@@ -63,7 +64,8 @@ class TraceCopyHandler : public TraceHandler, public std::enable_shared_from_thi
 public:
     TraceCopyHandler(const std::string& tracePath, const std::string& caller)
         : TraceHandler(tracePath, caller) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string> override;
+    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+        -> std::vector<std::string> override;
 
 protected:
     void CopyTraceFile(const std::string& src, const std::string& dst);
@@ -79,13 +81,15 @@ class TraceSyncCopyHandler : public TraceCopyHandler {
 public:
     TraceSyncCopyHandler(const std::string& tracePath, const std::string& caller)
         : TraceCopyHandler(tracePath, caller) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string> override;
+    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+        -> std::vector<std::string> override;
 };
 
 class TraceAppHandler : public TraceHandler {
 public:
     explicit TraceAppHandler(const std::string& tracePath) : TraceHandler(tracePath, ClientName::APP) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles) -> std::vector<std::string> override;
+    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+        -> std::vector<std::string> override;
     std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) override;
 
 protected:

@@ -15,14 +15,16 @@
 
 #ifndef HIVIEW_BASE_APP_CALLER_EVENT_H
 #define HIVIEW_BASE_APP_CALLER_EVENT_H
-#include <cinttypes>
+
 #include <string>
 #include "event.h"
 namespace OHOS {
 namespace HiviewDFX {
 class AppCallerEvent : public Event {
 public:
-    AppCallerEvent(const std::string &sender);
+    explicit AppCallerEvent(const std::string &sender) : Event(sender), uid_(0), pid_(0), beginTime_(0), endTime_(0),
+        resultCode_(0), taskBeginTime_(0), taskEndTime_(0), foreground_(0), isBusinessJank_(false) {}
+
     ~AppCallerEvent() = default;
 
 public:
@@ -39,11 +41,6 @@ public:
     bool isBusinessJank_;        // is business jank or not, control output file name
     std::string threadName_;    // app thread name
     std::string externalLog_;   // trace file
-
-public:
-    static bool IsEnableAppCaptureTrace();
-    static bool isDynamicTraceOpen_;
-    static bool enableDynamicTrace_;
 };
 } // HiviewDFX
 } // OHOS
