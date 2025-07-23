@@ -173,8 +173,9 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest003, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    g_screenStat = dbHelper.QueryFinalScreenStatus(g_endTime);
-    EXPECT_EQ(g_screenStat, 220);
+    FoldAppUsageRawEvent event;
+    dbHelper.QueryFinalAppInfo(g_endTime, event);
+    EXPECT_EQ(event.screenStatusAfter, FOLD_PORTRAIT_FULL_STATUS);
 
     int deleteEventNum = dbHelper.DeleteEventsByTime(g_startTime - 2 * g_dayGapTime);
     EXPECT_EQ(deleteEventNum, 1);

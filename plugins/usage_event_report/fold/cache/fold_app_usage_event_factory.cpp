@@ -101,7 +101,6 @@ void FoldAppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>> 
     clearDataTime_ = today0Time_ > gapTime * DATA_KEEP_DAY ?
         (today0Time_ - gapTime * DATA_KEEP_DAY) : 0;
     std::string dateStr = TimeUtil::TimestampFormatToDate(startTime_ / TimeUtil::SEC_TO_MILLISEC, DATE_FORMAT);
-    foldStatus_ = dbHelper_->QueryFinalScreenStatus(endTime_);
     std::vector<FoldAppUsageInfo> foldAppUsageInfos;
     GetAppUsageInfo(foldAppUsageInfos);
     for (const auto &info : foldAppUsageInfos) {
@@ -116,23 +115,16 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
 {
     std::unordered_map<std::string, FoldAppUsageInfo> statisticInfos;
     dbHelper_->QueryStatisticEventsInPeriod(startTime_, endTime_, statisticInfos);
-    std::vector<std::string> appNames;
-    std::pair<std::string, bool> focusedAppPair;
-    std::unordered_map<std::string, int32_t> multiWindowInfos;
-    FoldCommonUtils::GetFocusedAppAndWindowInfos(focusedAppPair, multiWindowInfos);
-    if (focusedAppPair.second) {
-        appNames.emplace_back(focusedAppPair.first);
-    }
-    GetForegroundAppsAtEndTime(appNames);
+    FoldAppUsageRawEvent event;
+    dbHelper_->QueryFinalAppInfo(endTime_, event);
     std::unordered_map<std::string, FoldAppUsageInfo> forgroundInfos;
-    for (const auto &app : appNames) {
-        if (app.empty()) {
-            continue;
+    if (event.rawId == FoldEventId::EVENT_APP_START || event.rawId == FoldEventId::EVENT_SCREEN_STATUS_CHANGED) {
+        if (!event.package.empty()) {
+            FoldAppUsageInfo usageInfo;
+            usageInfo.package = event.package;
+            dbHelper_->QueryForegroundAppsInfo(startTime_, endTime_, event.screenStatusAfter, usageInfo);
+            forgroundInfos[usageInfo.package + usageInfo.version] = usageInfo;
         }
-        FoldAppUsageInfo usageInfo;
-        usageInfo.package = app;
-        dbHelper_->QueryForegroundAppsInfo(startTime_, endTime_, foldStatus_, usageInfo);
-        forgroundInfos[usageInfo.package + usageInfo.version] = usageInfo;
     }
     for (const auto &forgroundInfo : forgroundInfos) {
         if (statisticInfos.count(forgroundInfo.first) == 0) {
@@ -152,21 +144,6 @@ void FoldAppUsageEventFactory::GetAppUsageInfo(std::vector<FoldAppUsageInfo> &in
     if (infos.size() > MAX_APP_USAGE_SIZE) {
         HIVIEW_LOGI("FoldAppUsageInfo size=%{public}zu, resize=%{public}zu", infos.size(), MAX_APP_USAGE_SIZE);
         infos.resize(MAX_APP_USAGE_SIZE);
-    }
-}
-
-void FoldAppUsageEventFactory::GetForegroundAppsAtEndTime(std::vector<std::string> &appNames)
-{
-    std::vector<std::pair<int, std::string>> switchEvents = dbHelper_->QueryEventAfterEndTime(
-        endTime_, TimeUtil::GetMilliseconds());
-    for (const auto &event : switchEvents) {
-        auto iter = std::find(appNames.begin(), appNames.end(), event.second);
-        if (iter == appNames.end() && event.first == FoldEventId::EVENT_APP_EXIT) {
-            appNames.emplace_back(event.second);
-        }
-        if (iter != appNames.end() && event.first == FoldEventId::EVENT_APP_START) {
-            appNames.erase(iter);
-        }
     }
 }
 } // namespace HiviewDFX

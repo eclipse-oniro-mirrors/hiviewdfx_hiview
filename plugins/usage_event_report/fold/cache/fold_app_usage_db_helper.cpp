@@ -539,33 +539,34 @@ void FoldAppUsageDbHelper::QueryAppEventRecords(int startIndex, int64_t dayStart
     resultSet->Close();
 }
 
-int FoldAppUsageDbHelper::QueryFinalScreenStatus(uint64_t endTime)
+void FoldAppUsageDbHelper::QueryFinalAppInfo(uint64_t endTime, FoldAppUsageRawEvent& event)
 {
     std::lock_guard<std::mutex> lockGuard(dbMutex_);
     if (rdbStore_ == nullptr) {
         HIVIEW_LOGE("db is nullptr");
-        return 0;
+        return;
     }
     NativeRdb::AbsRdbPredicates predicates(LOG_DB_TABLE_NAME);
     predicates.Between(FIELD_HAPPEN_TIME, 0, static_cast<int64_t>(endTime));
     predicates.OrderByDesc(FIELD_ID);
     predicates.Limit(1);
-    auto resultSet = rdbStore_->Query(predicates, {FIELD_ID, FIELD_FOLD_STATUS});
+    auto resultSet = rdbStore_->Query(predicates, {FIELD_ID, FIELD_EVENT_ID, FIELD_FOLD_STATUS, FIELD_BUNDLE_NAME});
     if (resultSet == nullptr) {
         HIVIEW_LOGE("resultSet is nullptr");
-        return 0;
+        return;
     }
-    int id = 0;
-    int status = 0;
     if (resultSet->GoToNextRow() == NativeRdb::E_OK &&
-        GetIntFromResultSet(resultSet, FIELD_ID, id) &&
-        GetIntFromResultSet(resultSet, FIELD_FOLD_STATUS, status)) {
-        HIVIEW_LOGI("get handle seq: %{public}d, screen stat: %{public}d", id, status);
+        GetLongFromResultSet(resultSet, FIELD_ID, event.id) &&
+        GetIntFromResultSet(resultSet, FIELD_EVENT_ID, event.rawId) &&
+        GetIntFromResultSet(resultSet, FIELD_FOLD_STATUS, event.screenStatusAfter) &&
+        GetStringFromResultSet(resultSet, FIELD_BUNDLE_NAME, event.package)) {
+        HIVIEW_LOGI("get handle seq=%{public}" PRId64 ", rawId=%{public}d, screen stat=%{public}d",
+            event.id, event.rawId, event.screenStatusAfter);
     } else {
         HIVIEW_LOGE("get handle seq and screen stat failed");
     }
     resultSet->Close();
-    return status;
+    return;
 }
 
 void FoldAppUsageDbHelper::QueryStatisticEventsInPeriod(uint64_t startTime, uint64_t endTime,
@@ -683,39 +684,6 @@ int FoldAppUsageDbHelper::DeleteEventsByTime(uint64_t clearDataTime)
     int ret = rdbStore_->Delete(seq, predicates);
     HIVIEW_LOGI("rows are deleted: %{public}d, ret: %{public}d", seq, ret);
     return seq;
-}
-
-std::vector<std::pair<int, std::string>> FoldAppUsageDbHelper::QueryEventAfterEndTime(
-    uint64_t endTime, uint64_t nowTime)
-{
-    std::vector<std::pair<int, std::string>> retEvents = {};
-    std::lock_guard<std::mutex> lockGuard(dbMutex_);
-    if (rdbStore_ == nullptr) {
-        HIVIEW_LOGE("db is nullptr");
-        return retEvents;
-    }
-    NativeRdb::AbsRdbPredicates predicates(LOG_DB_TABLE_NAME);
-    predicates.Between(FIELD_HAPPEN_TIME, static_cast<int64_t>(endTime),
-        static_cast<int64_t>(nowTime))->BeginWrap()->
-        EqualTo(FIELD_EVENT_ID, FoldEventId::EVENT_APP_START)->Or()->
-        EqualTo(FIELD_EVENT_ID, FoldEventId::EVENT_APP_EXIT)->EndWrap();
-    predicates.OrderByDesc(FIELD_ID);
-    auto resultSet = rdbStore_->Query(predicates, { FIELD_EVENT_ID,
-        FIELD_BUNDLE_NAME});
-    if (resultSet == nullptr) {
-        HIVIEW_LOGE("resultSet is nullptr");
-        return retEvents;
-    }
-    while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
-        std::pair<int, std::string> appSwitchEvent;
-        if (!GetIntFromResultSet(resultSet, FIELD_EVENT_ID, appSwitchEvent.first) ||
-            !GetStringFromResultSet(resultSet, FIELD_BUNDLE_NAME, appSwitchEvent.second)) {
-            continue;
-        }
-        retEvents.emplace_back(appSwitchEvent);
-    }
-    resultSet->Close();
-    return retEvents;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -90,12 +90,11 @@ public:
         std::unordered_map<std::string, FoldAppUsageInfo> &infos);
     void QueryForegroundAppsInfo(uint64_t startTime, uint64_t endTime, int screenStatus, FoldAppUsageInfo &info);
     int DeleteEventsByTime(uint64_t clearDataTime);
-    int QueryFinalScreenStatus(uint64_t endTime);
+    void QueryFinalAppInfo(uint64_t endTime, FoldAppUsageRawEvent& event);
     int AddAppEvent(const AppEventRecord& appEventRecord, const std::map<int, uint64_t>& durations = {});
     int QueryRawEventIndex(const std::string& bundleName, int rawId);
     void QueryAppEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
         std::vector<AppEventRecord>& records);
-    std::vector<std::pair<int, std::string>> QueryEventAfterEndTime(uint64_t endTime, uint64_t nowTime);
 
 private:
     void CreateDbStore(const std::string& dbPath, const std::string& dbName);
