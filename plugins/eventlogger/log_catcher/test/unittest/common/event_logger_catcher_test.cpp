@@ -40,6 +40,7 @@
 #include "shell_catcher.h"
 #ifdef BINDER_CATCHER_ENABLE
 #include "peer_binder_catcher.h"
+#include "parameter_ex.h"
 #endif // BINDER_CATCHER_ENABLE
 #ifdef USAGE_CATCHER_ENABLE
 #include "cpu_core_info_catcher.h"
@@ -770,7 +771,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level0)
 
     peerBinderCatcher->Initialize("a", 1, 1);
     res = peerBinderCatcher->Catch(fd, jsonFd);
-    EXPECT_TRUE(res > 0);
+    if (Parameter::IsOversea()) {
+        EXPECT_TRUE(res == 0);
+    } else {
+        EXPECT_TRUE(res > 0);
+    }
 
     int pid = CommonUtils::GetPidByName("foundation");
 #ifdef HAS_HIPERF
@@ -816,7 +821,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_002, TestSize.Level1)
     peerBinderCatcher->Init(event, filePath, catchedPids);
     peerBinderCatcher->Initialize("foundation", 1, pid);
     int res = peerBinderCatcher->Catch(fd, 1);
-    EXPECT_GT(res, 0);
+    if (Parameter::IsOversea()) {
+        EXPECT_EQ(res, 0);
+    } else {
+        EXPECT_GT(res, 0);
+    }
     close(fd);
 }
 
@@ -961,6 +970,54 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_007, TestSize.Level1)
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     bool ret = peerBinderCatcher->IsAncoProc(getpid());
     EXPECT_TRUE(!ret);
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_008
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_008, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string str = "123";
+    uint16_t index = 1;
+    std::string ret = peerBinderCatcher->StrSplit(str, index);
+    EXPECT_EQ(ret, "");
+    str = "123:456";
+    ret = peerBinderCatcher->StrSplit(str, index);
+    EXPECT_EQ(ret, "456");
+
+    bool isBinderMatchup = false;
+    std::string line = "    async_space";
+
+    auto fd = open("/data/test/peerBinderTestFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create peerBinderTestFile. errno: %d\n", errno);
+        FAIL();
+    }
+    peerBinderCatcher->SaveBinderLineToFd(fd, line, isBinderMatchup);
+    EXPECT_FALSE(isBinderMatchup);
+
+    line = "    free_async_space";
+    peerBinderCatcher->SaveBinderLineToFd(fd, line, isBinderMatchup);
+    EXPECT_TRUE(isBinderMatchup);
+
+    peerBinderCatcher->SaveBinderLineToFd(fd, line, isBinderMatchup);
+    EXPECT_TRUE(isBinderMatchup);
+
+    fsync(fd);
+    close(fd);
+
+    std::ifstream testFile("/data/test/peerBinderTestFile");
+    if (testFile.is_open()) {
+        std::string line;
+        while (std::getline(testFile, line)) {
+            printf("%s\n", line.c_str());
+            EXPECT_TRUE(line.find("async_space") != std::string::npos);
+        }
+        testFile.close();
+    }
 }
 #endif // BINDER_CATCHER_ENABLE
 

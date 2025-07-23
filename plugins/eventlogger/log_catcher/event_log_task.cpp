@@ -303,6 +303,9 @@ void EventLogTask::AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher
         return;
     }
 
+    if (catcher->GetName() == "PeerBinderCatcher" && Parameter::IsOversea()) {
+        summary = "binder info is not saved in oversea version\n";
+    }
     int ret = snprintf_s(buf, BUF_SIZE_512, BUF_SIZE_512 - 1, "\n%s\n", summary.c_str());
     if (ret > 0) {
         write(fd, buf, strnlen(buf, BUF_SIZE_512));

@@ -41,7 +41,8 @@ public:
     static constexpr const char* const TELEMETRY_ID = "TELEMETRY_ID";
     static constexpr const char* const TRACE_NAME = "TRACE_NAME";
     static constexpr const char* const PB_EVENTS[] = {
-        "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT"
+        "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT",
+        "LIFECYCLE_HALF_TIMEOUT_WARNING"
     };
     static constexpr const char* const EVENT_TRACE_ID = "HITRACE_ID";
     static constexpr const char* const EVENT_SPAN_ID = "SPAN_ID";
