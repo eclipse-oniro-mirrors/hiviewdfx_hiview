@@ -34,6 +34,16 @@ public:
 };
 
 #ifdef UNIFIED_COLLECTOR_GRAPHIC_ENABLE
+void GetTestProcNameAndPid(std::string& procName, int32_t& pid)
+{
+    const std::string systemuiProcName = "com.ohos.systemui";
+    const std::string sceneBoardProcName = "com.ohos.sceneboard";
+    auto systemuiPid = CommonUtils::GetPidByName(systemuiProcName);
+    auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
+    pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
+    procName = systemuiPid > 0 ? systemuiProcName : sceneBoardProcName;
+}
+
 /**
  * @tc.name: GraphicMemoryCollectorTest001
  * @tc.desc: used to test GraphicMemoryCollector.GetGraphicUsage
@@ -41,12 +51,9 @@ public:
 */
 HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Level1)
 {
-    const std::string systemuiProcName = "com.ohos.systemui";
-    const std::string sceneBoardProcName = "com.ohos.sceneboard";
-    auto systemuiPid = CommonUtils::GetPidByName(systemuiProcName);
-    auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
-    auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
-    const std::string procName = systemuiPid > 0 ? systemuiProcName : sceneBoardProcName;
+    std::string procName;
+    int32_t pid = 0;
+    GetTestProcNameAndPid(procName, pid);
     ASSERT_GT(pid, 0);
     std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
     CollectResult<int32_t> data = collector->GetGraphicUsage(pid, GraphicType::TOTAL, false);
@@ -54,18 +61,60 @@ HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest001, TestSize.Lev
     std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] total result:" << data.data;
     std::cout << std::endl;
     ASSERT_GE(data.data, 0);
+}
+
+/**
+ * @tc.name: GraphicMemoryCollectorTest002
+ * @tc.desc: used to test GraphicMemoryCollector.GetGraphicUsage
+ * @tc.type: FUNC
+*/
+HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest002, TestSize.Level1)
+{
+    std::string procName;
+    int32_t pid = 0;
+    GetTestProcNameAndPid(procName, pid);
+    ASSERT_GT(pid, 0);
+    std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
     CollectResult<int32_t> glData = collector->GetGraphicUsage(pid, GraphicType::GL, false);
     ASSERT_EQ(glData.retCode, UcError::SUCCESS);
     std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] gl result:" << glData.data;
     std::cout << std::endl;
     ASSERT_GE(glData.data, 0);
-    CollectResult<int32_t> graphicData = collector->GetGraphicUsage(pid, GraphicType::GRAPH, false);
-    ASSERT_EQ(graphicData.retCode, UcError::SUCCESS);
-    std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] graphic result:" << graphicData.data;
+}
+
+/**
+ * @tc.name: GraphicMemoryCollectorTest003
+ * @tc.desc: used to test GraphicMemoryCollector.GetGraphicUsage
+ * @tc.type: FUNC
+*/
+HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest003, TestSize.Level1)
+{
+    std::string procName;
+    int32_t pid = 0;
+    GetTestProcNameAndPid(procName, pid);
+    ASSERT_GT(pid, 0);
+    std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
+    CollectResult<int32_t> glData = collector->GetGraphicUsage(pid, GraphicType::GRAPH, false);
+    ASSERT_EQ(glData.retCode, UcError::SUCCESS);
+    std::cout << "GetGraphicUsage [pid=" << pid <<", procName=" << procName << "] gl result:" << glData.data;
     std::cout << std::endl;
-    ASSERT_GE(graphicData.data, 0);
+    ASSERT_GE(glData.data, 0);
+}
+
+/**
+ * @tc.name: GraphicMemoryCollectorTest004
+ * @tc.desc: used to test GraphicMemoryCollector.GetGraphicUsage
+ * @tc.type: FUNC
+*/
+HWTEST_F(GraphicMemoryCollectorTest, GraphicMemoryCollectorTest004, TestSize.Level1)
+{
+    std::string procName;
+    int32_t pid = 0;
+    GetTestProcNameAndPid(procName, pid);
+    ASSERT_GT(pid, 0);
+    std::shared_ptr<GraphicMemoryCollector> collector = GraphicMemoryCollector::Create();
     const int invalidNum = 10; // 10 : invalid number used to cast to GraphicType
-    graphicData = collector->GetGraphicUsage(pid, static_cast<GraphicType>(invalidNum), false);
+    auto graphicData = collector->GetGraphicUsage(pid, static_cast<GraphicType>(invalidNum), false);
     ASSERT_EQ(graphicData.retCode, UcError::UNSUPPORT);
 }
 #else

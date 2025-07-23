@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,25 +47,64 @@ void TestResult(const CollectResult<int32_t>& result)
 HWTEST_F(ThermalCollectorTest, ThermalCollectorTest001, TestSize.Level1)
 {
     std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
-    CollectResult<int32_t> result;
-    result = collector->CollectDevThermal(ThermalZone::SHELL_FRONT);
-    TestResult(result);
-    result = collector->CollectDevThermal(ThermalZone::SHELL_FRAME);
-    TestResult(result);
-    result = collector->CollectDevThermal(ThermalZone::SHELL_BACK);
-    TestResult(result);
-    result = collector->CollectDevThermal(ThermalZone::SOC_THERMAL);
-    TestResult(result);
-    result = collector->CollectDevThermal(ThermalZone::SYSTEM);
+    CollectResult<int32_t> result = collector->CollectDevThermal(ThermalZone::SHELL_FRONT);
     TestResult(result);
 }
 
 /**
  * @tc.name: ThermalCollectorTest002
- * @tc.desc: used to test ThermalCollector.CollectThermaLevel
+ * @tc.desc: used to test ThermalCollector.CollectDevThermal
  * @tc.type: FUNC
 */
 HWTEST_F(ThermalCollectorTest, ThermalCollectorTest002, TestSize.Level1)
+{
+    std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
+    CollectResult<int32_t> result = collector->CollectDevThermal(ThermalZone::SHELL_FRAME);
+    TestResult(result);
+}
+
+/**
+ * @tc.name: ThermalCollectorTest003
+ * @tc.desc: used to test ThermalCollector.CollectDevThermal
+ * @tc.type: FUNC
+*/
+HWTEST_F(ThermalCollectorTest, ThermalCollectorTest003, TestSize.Level1)
+{
+    std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
+    CollectResult<int32_t> result = collector->CollectDevThermal(ThermalZone::SHELL_BACK);
+    TestResult(result);
+}
+
+/**
+ * @tc.name: ThermalCollectorTest004
+ * @tc.desc: used to test ThermalCollector.CollectDevThermal
+ * @tc.type: FUNC
+*/
+HWTEST_F(ThermalCollectorTest, ThermalCollectorTest004, TestSize.Level1)
+{
+    std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
+    CollectResult<int32_t> result = collector->CollectDevThermal(ThermalZone::SOC_THERMAL);
+    TestResult(result);
+}
+
+/**
+ * @tc.name: ThermalCollectorTest005
+ * @tc.desc: used to test ThermalCollector.CollectDevThermal
+ * @tc.type: FUNC
+*/
+HWTEST_F(ThermalCollectorTest, ThermalCollectorTest005, TestSize.Level1)
+{
+    std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
+    CollectResult<int32_t> result = collector->CollectDevThermal(ThermalZone::SYSTEM);
+    TestResult(result);
+}
+
+/**
+ * @tc.name: ThermalCollectorTest006
+ * @tc.desc: used to test ThermalCollector.CollectThermaLevel
+ * @tc.type: FUNC
+*/
+HWTEST_F(ThermalCollectorTest, ThermalCollectorTest006, TestSize.Level1)
 {
     std::shared_ptr<ThermalCollector> collector = ThermalCollector::Create();
     CollectResult<uint32_t> result = collector->CollectThermaLevel();
