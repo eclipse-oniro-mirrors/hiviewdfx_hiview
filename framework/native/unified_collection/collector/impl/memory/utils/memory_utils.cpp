@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,7 +50,6 @@ const std::list<std::pair<std::string, MemoryItemType>> PREFIX_LIST = {
     {"/dev/__parameters__/", MemoryItemType::MEMORY_ITEM_ENTITY_DEV_PARAMETER},
     {"/dev/", MemoryItemType::MEMORY_ITEM_ENTITY_DEV_OTHER},
     {"/dmabuf", MemoryItemType::MEMORY_ITEM_ENTITY_DMABUF},
-    {"/data/storage", MemoryItemType::MEMORY_ITEM_ENTITY_DATA_STORAGE},
     {"/", MemoryItemType::MEMORY_ITEM_ENTITY_OTHER}, // do not adjust forward, because it has sub-path like /dev
     {"anon_inode", MemoryItemType::MEMORY_ITEM_TYPE_ANON_INODE},
     {"[anon:v8", MemoryItemType::MEMORY_ITEM_TYPE_ANON_V8},
@@ -68,12 +67,19 @@ const std::list<std::pair<std::string, MemoryItemType>> PREFIX_LIST = {
     {"[vnodes", MemoryItemType::MEMORY_ITEM_TYPE_VNODES},
 };
 
+const std::list<std::pair<std::string, MemoryItemType>> HIGH_PRIORITY_SUFFIX_LIST = {
+    {".db-shm", MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM}
+};
+
+const std::list<std::pair<std::string, MemoryItemType>> HIGH_PRIORITY_PREFIX_LIST = {
+    {"/data/storage", MemoryItemType::MEMORY_ITEM_ENTITY_DATA_STORAGE}
+};
+
 const std::list<std::pair<std::string, MemoryItemType>> SUFFIX_LIST = {
     {".so", MemoryItemType::MEMORY_ITEM_ENTITY_SO},
     {".so.1", MemoryItemType::MEMORY_ITEM_ENTITY_SO1},
     {".ttf", MemoryItemType::MEMORY_ITEM_ENTITY_TTF},
     {".db", MemoryItemType::MEMORY_ITEM_ENTITY_DB},
-    {".db-shm", MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM},
     {".hap", MemoryItemType::MEMORY_ITEM_ENTITY_HAP},
     {".hsp", MemoryItemType::MEMORY_ITEM_ENTITY_HSP},
     {".so.1.bss]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_BSS},
@@ -129,7 +135,17 @@ const std::map<MemoryItemType, MemoryClass> TYPE_TO_CLASS_MAP = {
 
 MemoryItemType MapNameToType(const std::string& name)
 {
-    // must match suffix first, like /system/lib64/xxx.so belong to .so suffix but not / prefix
+    // do not adjust match order, strictly follow the order from high priority to suffix to prefix
+    for (const auto& suffix : HIGH_PRIORITY_SUFFIX_LIST) {
+        if (StringUtil::EndWith(name, suffix.first)) {
+            return suffix.second;
+        }
+    }
+    for (const auto& prefix : HIGH_PRIORITY_PREFIX_LIST) {
+        if (StringUtil::StartWith(name, prefix.first)) {
+            return prefix.second;
+        }
+    }
     for (const auto& suffix : SUFFIX_LIST) {
         if (StringUtil::EndWith(name, suffix.first)) {
             return suffix.second;

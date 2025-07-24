@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ const char TEST_SMAPS_PATH[] = "/data/test/hiview/ucollection/smaps_example.txt"
 const int SUM_1_TO_43 = 946; // 946 : total sum from 1 to 43
 const std::map<MemoryItemType, std::string> TYPE_TO_NAME_MAP = {
     {MemoryItemType::MEMORY_ITEM_ENTITY_DB, "/data/other.db"},
-    {MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM, "/data/other.db-shm"},
+    {MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM, "/data/storage/other.db-shm"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_HAP, "/system/app/other.hap"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_HSP, "/system/app/other.hsp"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_SO, "/system/lib/other.so"},
@@ -36,7 +36,7 @@ const std::map<MemoryItemType, std::string> TYPE_TO_NAME_MAP = {
     {MemoryItemType::MEMORY_ITEM_ENTITY_TTF, "/system/fonts/other.ttf"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_DEV_PARAMETER, "/dev/__parameters__/u:object_r:debug_param:s0"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_DEV_OTHER, "/dev/other"},
-    {MemoryItemType::MEMORY_ITEM_ENTITY_DATA_STORAGE, "/data/storage/other"},
+    {MemoryItemType::MEMORY_ITEM_ENTITY_DATA_STORAGE, "/data/storage/other.hap"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_DMABUF, "/dmabuf:1000"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_OTHER, "/other"},
     {MemoryItemType::MEMORY_ITEM_TYPE_ANON_INODE, "anon_inode:dev/other"},

@@ -23,7 +23,7 @@ SwapPss:               1 kB
 Locked:                0 kB
 THPeligible:           0
 VmFlags: mr mw me
-00a8f000-00a90000 ---p 00000000 00:00 2                                  /data/other.db-shm
+00a8f000-00a90000 ---p 00000000 00:00 2                                  /data/storage/other.db-shm
 Size:                  0 kB
 KernelPageSize:        0 kB
 MMUPageSize:           0 kB
@@ -223,7 +223,7 @@ SwapPss:               9 kB
 Locked:                0 kB
 THPeligible:           0
 VmFlags: mr mw me
-00a8f000-00a90000 ---p 00000000 00:00 10                                  /data/storage/other
+00a8f000-00a90000 ---p 00000000 00:00 10                                  /data/storage/other.hap
 Size:                  0 kB
 KernelPageSize:        0 kB
 MMUPageSize:           0 kB
