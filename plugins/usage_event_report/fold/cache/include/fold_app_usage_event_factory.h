@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,8 +31,6 @@ public:
     void Create(std::vector<std::unique_ptr<LoggerEvent>> &events) override;
 
 private:
-    void GetForegroundAppNames(std::vector<std::string> &appNames);
-    void GetForegroundAppsAtEndTime(std::vector<std::string> &appNames);
     void GetAppUsageInfo(std::vector<FoldAppUsageInfo> &infos);
 
 private:
@@ -40,7 +38,6 @@ private:
     uint64_t startTime_ = 0;
     uint64_t endTime_ = 0;
     uint64_t clearDataTime_ = 0;
-    int foldStatus_ = 0;
     std::unique_ptr<FoldAppUsageDbHelper> dbHelper_;
 };
 } // namespace HiviewDFX
