@@ -39,16 +39,14 @@ ohos_shared_library("loglibrary_ani") {
 
   deps = [
     "$hiview_adapter/service/client:hiview_service_proxy",
-    "$hiview_base/utility:hiview_utility",
+    "$hiview_base:hiviewbase"
   ]
 
   external_deps = [
     "ability_runtime:app_context",
     "access_token:libtokenid_sdk",
-    "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
     "runtime_core:ani",
-    "samgr:samgr_proxy",
     "storage_service:storage_manager_acl",
   ]
 
