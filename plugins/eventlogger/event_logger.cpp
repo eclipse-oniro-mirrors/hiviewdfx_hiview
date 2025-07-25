@@ -854,7 +854,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
 {
     std::string msg = StringUtil::ReplaceStr(event->GetEventValue("MSG"), "\\n", "\n");
     std::string stack;
-    std::string kernelStack = "";
+    std::string kernelStack;
     std::string binderInfo = event -> GetEventValue("BINDER_INFO");
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
@@ -880,7 +880,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             ffrt::task_attr().name("write_kernel_stack"));
     }
     std::ostringstream oss;
-    std::string endTimeStamp = "";
+    std::string endTimeStamp;
     size_t endTimeStampIndex = msg.find("Catche stack trace end time: ");
     if (endTimeStampIndex != std::string::npos) {
         endTimeStamp = msg.substr(endTimeStampIndex);
@@ -891,8 +891,10 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
         oss << StringUtil::UnescapeJsonStringValue(stack) << std::endl;
     }
     oss << endTimeStamp << std::endl;
+    
     if (!binderInfo.empty()) {
-        oss << StringUtil::UnescapeJsonStringValue(binderInfo) << std::endl;
+        oss << (Parameter::IsOversea() ? "binder info is not saved in oversea version":
+            StringUtil::UnescapeJsonStringValue(binderInfo)) << std::endl;
     }
     FileUtil::SaveStringToFd(fd, oss.str());
     WriteCallStack(event, fd);

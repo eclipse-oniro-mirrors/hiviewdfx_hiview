@@ -68,6 +68,8 @@ private:
         std::map<uint32_t, uint32_t>& asyncBinderMap,
         std::vector<std::pair<uint32_t, uint64_t>>& freezeAsyncSpacePairs) const;
     std::vector<std::string> GetFileToList(std::string line) const;
+    std::string StrSplit(const std::string& str, uint16_t index) const;
+    void SaveBinderLineToFd(int fd, const std::string& line, bool& isBinderMatchup) const;
     void ParseBinderCallChain(std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
         std::set<int>& pids, int pid, const PeerBinderCatcher::ParseBinderParam& params, bool getTerminal);
     std::set<int> GetBinderPeerPids(int fd, int jsonFd, std::set<int>& asyncPids);
