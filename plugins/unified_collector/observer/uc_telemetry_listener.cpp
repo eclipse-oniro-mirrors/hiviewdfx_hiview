@@ -24,7 +24,8 @@ namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("HiView-UnifiedCollector");
 namespace {
 
-const int32_t DURATION_DEFAULT = 3600 * SECONDS_TO_MS; // ms
+const int64_t DURATION_DEFAULT = 3600 * SECONDS_TO_MS; // ms
+const int64_t MAX_DURATION = 7 * 24 * 3600 * SECONDS_TO_MS; // ms
 const uint32_t DEFAULT_RATIO = 7;
 const uint32_t BT_M_UNIT = 1024 * 1024;
 constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
@@ -41,7 +42,7 @@ const int64_t DEFAULT_XPERF_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_XPOWER_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_RELIABILITY_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_TOTAL_SIZE = 350 * 1024 * 1024;
-const int64_t MAX_TOTAL_SIZE = 500;
+const int64_t MAX_TOTAL_SIZE = 1024; // 1G
 
 std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
     cJSON* root, const std::string &key)
@@ -75,8 +76,10 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
     }
     params.appFilterName = msg.GetValue(Telemetry::KEY_FILTER_NAME);
     params.traceDuration = msg.GetInt64Value(Telemetry::KEY_DURATION) * SECONDS_TO_MS;
-    if (params.traceDuration <= 0 || params.traceDuration > DURATION_DEFAULT) {
+    if (params.traceDuration <= 0) {
         params.traceDuration = DURATION_DEFAULT;
+    } else if (params.traceDuration > MAX_DURATION) {
+        params.traceDuration = MAX_DURATION;
     }
     GetSaNames(msg, params);
 
