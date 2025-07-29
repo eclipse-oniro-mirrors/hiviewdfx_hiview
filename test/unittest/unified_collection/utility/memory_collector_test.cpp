@@ -112,6 +112,7 @@ bool CheckFormat(const std::string &fileName, const std::vector<std::regex>& reg
         }
         if (!isMatch) {
             file.close();
+            std::cout << "not match line : " << line << std::endl;
             return false;
         }
     }
