@@ -106,9 +106,6 @@ void JankFrameMonitor::JankFrameStatsRecord(double jank)
     if (SceneMonitor::GetInstance().GetIsStats() && jank > 1.0f && !jankFrameRecord.empty()) {
         jankFrameRecord[GetJankLimit(jank)]++;
         jankFrameTotalCount++;
-    } else {
-        HIVIEW_LOGW("JankFrameStatsRecord abnormal statistics, jank %{public}d, record size %{public}zu",
-            static_cast<int>(jank), jankFrameRecord.size());
     }
 }
 
