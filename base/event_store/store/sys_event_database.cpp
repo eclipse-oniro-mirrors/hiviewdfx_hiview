@@ -236,7 +236,7 @@ void SysEventDatabase::Clear()
                 HIVIEW_LOGI("failed to remove file=%{public}s", delFile.c_str());
                 continue;
             }
-            HIVIEW_LOGI("success to remove file=%{public}s", delFile.c_str());
+            HIVIEW_LOGD("success to remove file=%{public}s", delFile.c_str());
             totalFileSize = totalFileSize >= fileSize ? (totalFileSize - fileSize) : 0;
         }
         HIVIEW_LOGI("end to clear type=%{public}d, curSize=%{public}" PRIu64 ", maxSize=%{public}" PRIu64,
