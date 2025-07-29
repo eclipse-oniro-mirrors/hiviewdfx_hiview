@@ -43,7 +43,7 @@ void GetExpiredFileNames(std::vector<std::string>& dest, const std::string& scan
     std::regex reg { ".*/HSE_.*\\.zip$" };
     std::smatch match;
     for (const auto& scannedFile : scannedFiles) {
-        HIVIEW_LOGD("scannedFile is %{public}s", scannedFile.c_str());
+        HIVIEW_LOGD("scannedFile is %{public}s", StringUtil::HideDeviceIdInfo(scannedFile).c_str());
         if (!std::regex_match(scannedFile, match, reg)) {
             continue;
         }
