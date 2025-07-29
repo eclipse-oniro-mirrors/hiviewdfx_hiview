@@ -581,7 +581,7 @@ HWTEST_F(FaultloggerUnittest, AddFaultLogTest001, testing::ext::TestSize.Level0)
     info.pid = 7496;
     faultlogManagerService.AddFaultLog(info);
     std::string timeStr = GetFormatedTimeWithMillsec(info.time);
-    std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-com.example.myapplication-0-" + timeStr + ".log";
+    std::string fileName = "/data/log/faultlog/faultlogger/cppcrash-com.example.myapplication-1-" + timeStr + ".log";
     ASSERT_EQ(FileUtil::FileExists(fileName), true);
 }
 

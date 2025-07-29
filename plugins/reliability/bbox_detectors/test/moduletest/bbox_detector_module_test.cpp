@@ -51,7 +51,7 @@ void BBoxDetectorModuleTest::TearDown(void) {}
  * @tc.require:
  * @tc.author: liuwei
  */
-HWTEST_F(BBoxDetectorModuleTest, BBoxDetectorModuleTest001, TestSize.Level1)
+HWTEST_F(BBoxDetectorModuleTest, BBoxDetectorModuleTest001, TestSize.Level0)
 {
     /**
      * @tc.steps: step1. construct PANIC SysEvent
