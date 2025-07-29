@@ -56,6 +56,7 @@ int32_t MemoryTrackerGetGLByPid(int32_t pid)
     if (it == records.end()) {
         return 0;
     }
+    HILOG_DEBUG(LOG_CORE, "MemoryTrackerGetGLByPid(%{public}d) = %{public}" PRId64, pid, it->size);
     return static_cast<int32_t>(it->size / BYTE_PER_KB);
 }
 
@@ -70,8 +71,34 @@ int32_t RsGetGLByPid(int32_t pid)
     return memGraphic->GetGpuMemorySize() / BYTE_PER_KB;
 }
 
+int32_t GetSumAppGLFromRenderService()
+{
+    auto memGraphicVec = Rosen::RSInterfaces::GetInstance().GetMemoryGraphics();
+    int64_t sumPidsMemGL = 0;
+
+    for (const auto &memGraphic : memGraphicVec) {
+        sumPidsMemGL += static_cast<int64_t>(memGraphic.GetGpuMemorySize());
+    }
+    HILOG_DEBUG(LOG_CORE, "sumPidsMemGL=%{public}" PRId64, sumPidsMemGL);
+    return static_cast<int32_t>(sumPidsMemGL / BYTE_PER_KB);
+}
+
+std::string GetCommByPid(int32_t pid)
+{
+    const std::string filePath = "/proc/" + std::to_string(pid) + "/comm";
+    std::string comm = "";
+    FileHelper::ReadFileByLine(filePath, [&comm](std::string &line) -> bool {
+        comm = line;
+        return true;
+    });
+    return comm;
+}
+
 int32_t GetGLByPid(int32_t pid)
 {
+    if (GetCommByPid(pid) == "render_service") {
+        return MemoryTrackerGetGLByPid(pid) - GetSumAppGLFromRenderService();
+    }
     return MemoryTrackerGetGLByPid(pid) + RsGetGLByPid(pid);
 }
 
