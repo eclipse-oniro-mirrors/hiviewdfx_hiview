@@ -248,7 +248,10 @@ bool CheckContent(const std::string& fileName, const std::vector<std::regex>& re
         RemoveCollectorNameIfMatched(line, collectorNames);
     }
     file.close();
-    return collectorNames.empty() ? true : false;
+    for (const auto& name : collectorNames) {
+        std::cout << "not match name : " << name << std::endl;
+    }
+    return collectorNames.empty();
 }
 }
 
