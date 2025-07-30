@@ -300,8 +300,12 @@ public:
 #ifdef UNIFIED_COLLECTOR_WM_ENABLE
         g_collector_names.insert("WmCollector");
 #endif
+        system("param set hiviewdfx.ucollection.switchon true");
     };
-    static void TearDownTestCase() {};
+    static void TearDownTestCase()
+    {
+        system("param set hiviewdfx.ucollection.switchon false");
+    };
 };
 
 /**
