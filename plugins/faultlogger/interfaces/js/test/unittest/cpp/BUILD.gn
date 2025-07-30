@@ -34,10 +34,7 @@ ohos_shared_library("faultlogger_test_napi") {
 
   configs = [ ":config" ]
 
-  external_deps = [
-    "napi:ace_napi",
-    "node:node_header_notice",
-  ]
+  external_deps = [ "napi:ace_napi" ]
 
   output_extension = "so"
   part_name = "hiview"
