@@ -156,9 +156,10 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
     std::string prefixStr = ssPrefix.str();
     size_t maxSummaryLen = 0;
     const std::string summaryPrefix = ";SUMMARY:";
-    if (prefixStr.size() + summaryPrefix.size() < MAX_HISYSEVENT_SIZE) {
-        maxSummaryLen = MAX_HISYSEVENT_SIZE - prefixStr.size() - summaryPrefix.size();
+    if (prefixStr.size() + summaryPrefix.size() >= MAX_HISYSEVENT_SIZE) {
+        return;
     }
+    maxSummaryLen = MAX_HISYSEVENT_SIZE - prefixStr.size() - summaryPrefix.size();
     std::string summary = currInfo.description.substr(0, maxSummaryLen);
 
     std::stringstream ssParams;
@@ -270,26 +271,43 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
     return true;
 }
 
+bool IsIgnoreStack(const std::string& stack)
+{
+    const std::unordered_set<std::string> ignoreList = {
+        "libclang_rt.hwasan.so",
+        "libclang_rt.asan.so",
+        "ld-musl-aarch64.so",
+        "ld-musl-aarch64-asan.so"
+    };
+    for (const auto& str : ignoreList) {
+        if (stack.find(str, 0) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string GetTopStackWithoutCommonLib(const std::string& description)
 {
     std::string topstack;
     std::string record = description;
     std::smatch stackCaptured;
     std::string stackRecord =
-        std::string("  #[\\d+] ") +
+        std::string("#[\\d+] ") +
         "0[xX][0-9a-fA-F]+" +
         "[\\s\\?(]+" +
-        "[^\\+ ]+/([a-zA-Z0-9_.]+)(\\.z)?(\\.so)?\\+" +
+        "[^\\+ ]+/([a-zA-Z0-9_.-]+)(\\.z)?(\\.so)?\\+" +
         "0[xX][0-9a-fA-F]+";
     static const std::regex STACK_RE(stackRecord);
 
     while (std::regex_search(record, stackCaptured, STACK_RE)) {
-        if (topstack.size() == 0) {
-            topstack = stackCaptured[1].str();
+        std::string current = stackCaptured[1].str();
+        if (!IsIgnoreStack(current)) {
+            return current;
         }
+        topstack = current;
         record = stackCaptured.suffix().str();
     }
-
     return topstack;
 }
 
