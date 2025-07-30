@@ -34,6 +34,7 @@
 #include "string_util.h"
 #include "system_ability_definition.h"
 #include "utility/trace_collector.h"
+#include "xcollie/ipc_full.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -47,6 +48,7 @@ constexpr int32_t MEMMGR_UID = 1111;
 const std::string READ_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.READ_HIVIEW_SYSTEM";
 const std::string WRITE_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.WRITE_HIVIEW_SYSTEM";
 const std::string HIVIEW_TRACE_MANAGE_PERMISSION = "ohos.permission.HIVIEW_TRACE_MANAGE";
+constexpr uint64_t IPC_FULL_CHECK_INTERVAL = 10; // 10s
 
 static std::string GetApplicationNameById(int32_t uid)
 {
@@ -159,6 +161,10 @@ void HiviewServiceAbility::StartServiceAbility(int sleepS)
     bool ret = abilityObjext->AddDeathRecipient(new HiviewServiceAbilityDeathRecipient());
     if (ret == false) {
         HIVIEW_LOGE("AddDeathRecipient == false");
+    }
+
+    if (!HiviewDFX::IpcFull::GetInstance().AddIpcFull(IPC_FULL_CHECK_INTERVAL, XCOLLIE_FLAG_LOG)) {
+        HIVIEW_LOGE("AddIpcFull failed");
     }
 }
 
