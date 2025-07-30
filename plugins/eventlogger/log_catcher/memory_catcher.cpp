@@ -52,22 +52,33 @@ bool MemoryCatcher::Initialize(const std::string& strParam1, int intParam1, int 
     // this catcher do not need parameters, just return true
     description_ = "MemoryCatcher --\n";
     return true;
-};
+}
 
 int MemoryCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
-    std::string freezeMemory = event_ != nullptr ? event_->GetEventValue("FREEZE_MEMORY") : "";
-    std::string content = freezeMemory.empty() ? CollectFreezeSysMemory() : freezeMemory;
-    std::string data = "";
+    std::string freezeMemory;
+    std::string content;
+    if (event_ != nullptr) {
+        freezeMemory = event_->GetEventValue("FREEZE_MEMORY");
+        size_t tagIndex = freezeMemory.find("Get freeze memory end time:");
+        std::string splitStr = "\\n";
+        size_t procStatmIndex = freezeMemory.rfind(splitStr);
+        if (tagIndex != std::string::npos && procStatmIndex != std::string::npos && procStatmIndex > tagIndex) {
+            content = freezeMemory.substr(0, procStatmIndex);
+            event_->SetEventValue("PROC_STATM", freezeMemory.substr(procStatmIndex + splitStr.size()));
+        }
+    }
+    content = freezeMemory.empty() ? CollectFreezeSysMemory() : content;
+    std::string data;
     if (!content.empty()) {
         std::vector<std::string> vec;
         StringUtil::SplitStr(content, "\\n", vec);
         for (const std::string& mem : vec) {
             FileUtil::SaveStringToFd(fd, mem + "\n");
-            CheckString(fd, mem, data, ASHMEM, ASHMEM_PATH);
-            CheckString(fd, mem, data, DMAHEAP, DMAHEAP_PATH);
-            CheckString(fd, mem, data, GPUMEM, GPUMEM_PATH);
+            CheckString(mem, data, ASHMEM, ASHMEM_PATH);
+            CheckString(mem, data, DMAHEAP, DMAHEAP_PATH);
+            CheckString(mem, data, GPUMEM, GPUMEM_PATH);
         }
     }
     if (!data.empty()) {
@@ -83,7 +94,7 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
         FileUtil::SaveStringToFd(fd, "sysMemory content is empty!");
     }
     return logSize_;
-};
+}
 
 void MemoryCatcher::CollectMemInfo()
 {
@@ -121,7 +132,7 @@ int MemoryCatcher::GetNumFromString(const std::string &mem)
 }
 
 void MemoryCatcher::CheckString(
-    int fd, const std::string &mem, std::string &data, const std::string key, const std::string path)
+    const std::string &mem, std::string &data, const std::string key, const std::string path)
 {
     if (mem.find(key) != std::string::npos) {
         int memsize = GetNumFromString(mem);
@@ -133,13 +144,8 @@ void MemoryCatcher::CheckString(
 
 std::string MemoryCatcher::CollectFreezeSysMemory()
 {
-    std::string content = "";
-    content += GetStringFromFile(PROC_PRESSUER_MEMORY) + "\n";
-    std::string memInfoPath = PROC_MEMORYVIEW;
-    if (!FileUtil::FileExists(memInfoPath)) {
-        memInfoPath = PROC_MEMORYINFO;
-    }
-    content += GetStringFromFile(memInfoPath);
+    std::string memInfoPath = FileUtil::FileExists(PROC_MEMORYVIEW) ? PROC_MEMORYVIEW : PROC_MEMORYINFO;
+    std::string content = GetStringFromFile(PROC_PRESSUER_MEMORY) + "\n" + GetStringFromFile(memInfoPath);
     return content;
 }
 #endif // USAGE_CATCHER_ENABLE

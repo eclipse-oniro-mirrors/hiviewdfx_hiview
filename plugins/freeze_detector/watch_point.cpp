@@ -21,7 +21,7 @@ namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_("")
 {
 }
 
@@ -43,13 +43,14 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     logPath_(builder.logPath_),
     hitraceTime_(builder.hitraceTime_),
     sysrqTime_(builder.sysrqTime_),
-    hitraceIdInfo_(builder.hitraceIdInfo_)
+    hitraceIdInfo_(builder.hitraceIdInfo_),
+    procStatm_(builder.procStatm_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_("")
 {
 }
 
@@ -163,6 +164,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitHitraceIdInfo(const std::string& h
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitProcStatm(const std::string& procStatm)
+{
+    procStatm_ = procStatm;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -257,6 +264,11 @@ std::string WatchPoint::GetSysrqTime() const
 std::string WatchPoint::GetHitraceIdInfo() const
 {
     return hitraceIdInfo_;
+}
+
+std::string WatchPoint::GetProcStatm() const
+{
+    return procStatm_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

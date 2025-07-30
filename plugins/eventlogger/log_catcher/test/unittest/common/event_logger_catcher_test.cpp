@@ -422,7 +422,7 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
 {
     auto memoryCatcher = std::make_shared<MemoryCatcher>();
     std::string data;
-    memoryCatcher->CheckString(0, "abc: 100", data, "abc", "/data/log/test");
+    memoryCatcher->CheckString("abc: 100", data, "abc", "/data/log/test");
     EXPECT_TRUE(data.empty());
 }
 
@@ -454,6 +454,10 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_006, TestSize.Level3)
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
     sysEvent->SetEventValue("FREEZE_MEMORY", "test\\ntest");
     std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
+    logTask->MemoryUsageCapture();
+    EXPECT_TRUE(logTask != nullptr);
+
+    sysEvent->SetEventValue("FREEZE_MEMORY", "freeze Get freeze memory end time:\\n123 456 789 100 200");
     logTask->MemoryUsageCapture();
     EXPECT_TRUE(logTask != nullptr);
     close(fd);

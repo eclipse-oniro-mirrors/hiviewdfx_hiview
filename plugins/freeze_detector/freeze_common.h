@@ -48,6 +48,7 @@ public:
     static constexpr const char* const EVENT_SPAN_ID = "SPAN_ID";
     static constexpr const char* const EVENT_PARENT_SPAN_ID = "PARENT_SPAN_ID";
     static constexpr const char* const EVENT_TRACE_FLAG = "TRACE_FLAG";
+    static constexpr const char* const PROC_STATM = "PROC_STATM";
 
     FreezeCommon();
     ~FreezeCommon();

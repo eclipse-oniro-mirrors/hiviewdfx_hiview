@@ -45,6 +45,7 @@ public:
         Builder& InitHitraceTime(const std::string& hitraceTime);
         Builder& InitSysrqTime(const std::string& sysrqTime);
         Builder& InitHitraceIdInfo(const std::string& hitraceIdInfo);
+        Builder& InitProcStatm(const std::string& procStatm);
         WatchPoint Build() const;
 
     private:
@@ -66,6 +67,7 @@ public:
         std::string hitraceTime_;
         std::string sysrqTime_;
         std::string hitraceIdInfo_;
+        std::string procStatm_;
         friend class WatchPoint;
     };
 
@@ -91,6 +93,7 @@ public:
     std::string GetHitraceTime() const;
     std::string GetSysrqTime() const;
     std::string GetHitraceIdInfo() const;
+    std::string GetProcStatm() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -116,6 +119,7 @@ private:
     std::string hitraceTime_;
     std::string sysrqTime_;
     std::string hitraceIdInfo_;
+    std::string procStatm_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
