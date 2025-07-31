@@ -16,27 +16,28 @@
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_STORAGE_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_STORAGE_H
 
-#include <cstdint>
 #include <memory>
 #include <string>
 
-#include "app_event_task_storage.h"
 #include "rdb_store.h"
 
-namespace OHOS {
-namespace HiviewDFX {
+namespace OHOS::HiviewDFX {
 struct TraceFlowRecord {
     std::string systemTime;
     std::string callerName;
     int64_t usedSize = 0;
+    int64_t dynamicDecrease = 0;
 };
 
 class TraceStorage {
 public:
-    TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller);
+    TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller,
+        const std::string& configPath);
     ~TraceStorage() = default;
 
     int64_t GetRemainingTraceSize();
+    bool IsOverLimit();
+    void DecreaseDynamicThreshold();
     void StoreDb(int64_t traceSize);
 
 private:
@@ -46,13 +47,17 @@ private:
     void InsertTable(const TraceFlowRecord& traceFlowRecord);
     void QueryTable(TraceFlowRecord& traceFlowRecord);
     void UpdateTable(const TraceFlowRecord& traceFlowRecord);
+    int64_t GetTraceQuota(const std::string& key);
     std::string GetDate();
 
 private:
     TraceFlowRecord traceFlowRecord_;
     std::string caller_;
+    std::string traceQuotaConfig_;
+    int64_t quota_ = 0;
+    int64_t decreaseUnit_ = 0;
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 }; // TraceStorage
-} // namespace HiviewDFX
-} // namespace OHOS
+} // namespace OHOS::HiviewDFX
+
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_STORAGE_H

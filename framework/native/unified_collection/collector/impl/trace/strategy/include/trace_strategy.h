@@ -22,12 +22,32 @@
 #include "trace_handler.h"
 
 namespace OHOS::HiviewDFX {
+struct DumpEvent {
+    std::string caller;
+    int32_t errorCode = 0;
+    uint64_t ipcTime = 0;
+    uint64_t reqTime = 0;
+    int32_t reqDuration = 0;
+    uint64_t execTime = 0;
+    int32_t execDuration = 0;
+    int32_t coverDuration = 0;
+    int32_t coverRatio = 0;
+    std::vector<std::string> tags;
+    int64_t fileSize = 0;
+    int32_t sysMemTotal = 0;
+    int32_t sysMemFree = 0;
+    int32_t sysMemAvail = 0;
+    int32_t sysCpu = 0;
+    uint8_t traceMode = 0;
+    uint64_t startTime;
+};
 
 struct StrategyParam {
     uint32_t maxDuration = 0;
     uint64_t happenTime = 0;
     std::string caller;
-    std::string dbPath = DB_PATH;
+    std::string dbPath = FlowController::DEFAULT_DB_PATH;
+    std::string configPath = FlowController::DEFAULT_CONFIG_PATH;
 };
 
 class TraceStrategy {
@@ -37,19 +57,21 @@ public:
           happenTime_(strategyParam.happenTime),
           caller_(strategyParam.caller),
           dbPath_(strategyParam.dbPath),
+          configPath_(strategyParam.configPath),
           scenario_(scenario),
           traceHandler_(traceHandler) {}
     virtual ~TraceStrategy() = default;
-    virtual TraceRet DoDump(std::vector<std::string> &outputFiles) = 0;
+    virtual TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) = 0;
 
 protected:
-    TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const;
+    virtual TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const;
 
 protected:
     uint32_t maxDuration_;
     uint64_t happenTime_;
     std::string caller_;
     std::string dbPath_;
+    std::string configPath_;
     TraceScenario scenario_;
     std::shared_ptr<TraceHandler> traceHandler_;
     std::shared_ptr<TraceFlowController> traceFlowController_;
@@ -61,10 +83,10 @@ public:
         std::shared_ptr<TraceHandler> traceHandler)
         : TraceStrategy(strategyParam, scenario, traceHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_, configPath_);
     }
 
-    TraceRet DoDump(std::vector<std::string> &outputFiles) override;
+    TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 };
 
 class TraceDevStrategy : public TraceStrategy {
@@ -73,9 +95,9 @@ public:
         std::shared_ptr<TraceZipHandler> zipHandler)
         : TraceStrategy(strategyParam, scenario, traceHandler), zipHandler_(zipHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_, configPath_);
     }
-    TraceRet DoDump(std::vector<std::string> &outputFiles) override;
+    TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 
 private:
     std::shared_ptr<TraceZipHandler> zipHandler_;
@@ -91,14 +113,21 @@ public:
         std::shared_ptr<TraceZipHandler> zipHandler)
         : TraceStrategy(strategyParam, scenario, traceHandler), zipHandler_(zipHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_, configPath_);
     }
 
-    TraceRet DoDump(std::vector<std::string> &outputFiles) override;
+    TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
+
+protected:
+    TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const override;
 
 private:
     void SetResultCopyFiles(std::vector<std::string> &outputFiles, const std::vector<std::string>& traceFiles) const
     {
+        if (traceHandler_ == nullptr) {
+            return;
+        }
+        outputFiles.clear();
         for (const auto &file : traceFiles) {
             outputFiles.emplace_back(traceHandler_->GetTraceFinalPath(file, ""));
         }
@@ -106,6 +135,10 @@ private:
 
     void SetResultZipFiles(std::vector<std::string> &outputFiles, const std::vector<std::string>& traceFiles) const
     {
+        if (zipHandler_ == nullptr) {
+            return;
+        }
+        outputFiles.clear();
         for (const auto &file : traceFiles) {
             outputFiles.emplace_back(zipHandler_->GetTraceFinalPath(file, ""));
         }
@@ -120,22 +153,21 @@ public:
     TelemetryStrategy(StrategyParam strategyParam, std::shared_ptr<TraceHandler> traceHandler)
         : TraceStrategy(strategyParam, TraceScenario::TRACE_TELEMETRY, traceHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(BusinessName::TELEMETRY, dbPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(BusinessName::TELEMETRY, dbPath_, configPath_);
     }
 
-    TraceRet DoDump(std::vector<std::string> &outputFiles) override;
+    TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 };
 
 class TraceAppStrategy : public TraceStrategy  {
 public:
-    TraceAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent)
-        : TraceStrategy(StrategyParam {0, 0, ClientName::APP}, TraceScenario::TRACE_DYNAMIC, nullptr)
+    TraceAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent, std::shared_ptr<TraceAppHandler> appHandler)
+        : TraceStrategy(StrategyParam {0, 0, ClientName::APP}, TraceScenario::TRACE_DYNAMIC, appHandler)
     {
         appCallerEvent_ = appCallerEvent;
-        traceFlowController_ = std::make_shared<TraceFlowController>(ClientName::APP, dbPath_);
-        traceHandler_ = std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH);
+        traceFlowController_ = std::make_shared<TraceFlowController>(ClientName::APP, dbPath_, configPath_);
     }
-    TraceRet DoDump(std::vector<std::string> &outputFiles) override;
+    TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 
 private:
     void InnerShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent);

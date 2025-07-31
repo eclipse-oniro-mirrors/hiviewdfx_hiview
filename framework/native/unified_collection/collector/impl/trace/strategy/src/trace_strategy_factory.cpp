@@ -17,63 +17,85 @@
 #include "hiview_logger.h"
 #include "trace_utils.h"
 
-using namespace OHOS::HiviewDFX::Hitrace;
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 }
 
-std::shared_ptr<TraceStrategy> TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller,
-    uint32_t maxDuration, uint64_t happenTime)
+namespace CleanThreahold {
+const uint32_t XPERF = 3;
+const uint32_t RELIABILITY = 3;
+const uint32_t OTHER = 5;
+const uint32_t SCREEN = 1;
+const uint32_t BETACLUB = 2;
+const uint32_t ZIP_FILE = 20;
+const uint32_t TELE_ZIP_FILE = 20;
+const uint32_t APP_FILE = 40;
+}
+
+auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uint32_t maxDuration, uint64_t happenTime)
+    ->std::shared_ptr<TraceStrategy>
 {
-    std::string callStr = EnumToString(caller);
-    StrategyParam strategyParam {maxDuration, happenTime, callStr};
+    StrategyParam strategyParam {maxDuration, happenTime, EnumToString(caller)};
     switch (caller) {
         case UCollect::TraceCaller::XPERF:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, callStr),
-                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, callStr));
+                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreahold::XPERF),
+                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreahold::ZIP_FILE));
         case UCollect::TraceCaller::RELIABILITY:
             return std::make_shared<TraceAsyncStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, callStr),
-                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, callStr));
+                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
+                    CleanThreahold::RELIABILITY),
+                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreahold::ZIP_FILE));
         case UCollect::TraceCaller::XPOWER:
         case UCollect::TraceCaller::HIVIEW:
             return std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, callStr));
+                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreahold::ZIP_FILE));
         case UCollect::TraceCaller::OTHER:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, callStr), nullptr);
+                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreahold::OTHER),
+                    nullptr);
         case UCollect::TraceCaller::SCREEN:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, callStr), nullptr);
+                std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
+                    CleanThreahold::SCREEN), nullptr);
         default:
             return nullptr;
     }
 }
 
-std::shared_ptr<TraceStrategy> TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceClient client,
-    uint32_t maxDuration, uint64_t happenTime)
+auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceClient client, uint32_t maxDuration, uint64_t happenTime)
+    ->std::shared_ptr<TraceStrategy>
 {
-    std::string clientStr = ClientToString(client);
-    StrategyParam strategyParam {maxDuration, happenTime, clientStr};
+    StrategyParam strategyParam {maxDuration, happenTime, ClientToString(client)};
     switch (client) {
         case UCollect::TraceClient::COMMAND:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMAND, nullptr, nullptr);
         case UCollect::TraceClient::COMMON_DEV:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, clientStr), nullptr);
+                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreahold::OTHER),
+                    nullptr);
         case UCollect::TraceClient::BETACLUB:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, clientStr), nullptr);
+                std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
+                   CleanThreahold::BETACLUB), nullptr);
         default:
             return nullptr;
     }
 }
 
+auto TraceStrategyFactory::CreateStrategy(UCollect::TeleModule module, uint32_t maxDuration, uint64_t happenTime)
+    -> std::shared_ptr<TelemetryStrategy>
+{
+    return std::make_shared<TelemetryStrategy>(StrategyParam {maxDuration, happenTime, ModuleToString(module)},
+        std::make_shared<TraceZipHandler>(UNIFIED_TELEMETRY_PATH, BusinessName::TELEMETRY,
+            CleanThreahold::TELE_ZIP_FILE));
+}
+
 auto TraceStrategyFactory::CreateAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent)
     ->std::shared_ptr<TraceAppStrategy>
 {
-    return std::make_shared<TraceAppStrategy>(appCallerEvent);
+    return std::make_shared<TraceAppStrategy>(appCallerEvent,
+        std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH, CleanThreahold::APP_FILE));
 }
 }

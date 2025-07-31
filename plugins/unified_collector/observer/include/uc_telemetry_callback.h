@@ -16,6 +16,7 @@
 #define HIVIEWDFX_HIVIEW_UC_TELEMETRY_CALLBACK_H
 #include "plugin.h"
 #include "trace_common.h"
+#include "power_status_manager.h"
 #include "uc_telemetry_listener.h"
 
 namespace OHOS::HiviewDFX {
@@ -53,7 +54,7 @@ public:
     void OnTelemetryStart() override;
 };
 
-class PowerTelemetryListener : public PowerListener {
+class PowerTelemetryListener : public UCollectUtil::PowerListener {
 public:
     void OnScreenOn() override;
     void OnScreenOff() override;
@@ -69,7 +70,7 @@ public:
     void OnTelemetryFinish() override;
 
 private:
-    std::shared_ptr<PowerListener> powerListener_;
+    std::shared_ptr<UCollectUtil::PowerListener> powerListener_;
 };
 }
 #endif //HIVIEWDFX_HIVIEW_UC_TELEMETRY_CALLBACK_H

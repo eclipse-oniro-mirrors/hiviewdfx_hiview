@@ -20,7 +20,6 @@
 #include "common_event_data.h"
 #include "common_event_subscriber.h"
 #include "singleton.h"
-#include "unified_common.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -30,6 +29,13 @@ using namespace EventFwk;
 enum PowerState {
     SCREEN_ON = 0,
     SCREEN_OFF = 10,
+};
+
+class PowerListener {
+public:
+    virtual ~PowerListener() = default;
+    virtual void OnScreenOn() = 0;
+    virtual void OnScreenOff() = 0;
 };
 
 class PowerStateSubscriber : public CommonEventSubscriber {

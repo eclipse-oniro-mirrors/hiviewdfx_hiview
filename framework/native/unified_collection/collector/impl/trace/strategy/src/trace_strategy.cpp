@@ -21,13 +21,11 @@
 #include "hiview_logger.h"
 #include "time_util.h"
 #include "trace_utils.h"
-#include "trace_worker.h"
 #include "trace_state_machine.h"
 #include "collect_event.h"
 #include "json/json.h"
 #include "memory_collector.h"
 
-using namespace OHOS::HiviewDFX::Hitrace;
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
@@ -38,20 +36,23 @@ const uint32_t MS_UNIT = 1000;
 void InitDumpEvent(DumpEvent &dumpEvent, const std::string &caller, uint32_t maxDuration, uint64_t happenTime)
 {
     dumpEvent.caller = caller;
-    dumpEvent.reqDuration = maxDuration;
+    dumpEvent.reqDuration = static_cast<int32_t>(maxDuration);
     dumpEvent.reqTime = happenTime;
     dumpEvent.execTime = TimeUtil::GenerateTimestamp() / MS_UNIT; // convert execTime into ms unit
+    auto startPoint = std::chrono::steady_clock::now();
+    dumpEvent.startTime = std::chrono::duration_cast<std::chrono::milliseconds>(startPoint.time_since_epoch()).count();
 }
 
-void UpdateDumpEvent(DumpEvent &dumpEvent, const TraceRet &ret, int64_t execDuration,
-    const TraceRetInfo &retInfo)
+void UpdateDumpEvent(DumpEvent &dumpEvent, const TraceRet &ret, const TraceRetInfo &retInfo)
 {
+    auto endPoint = std::chrono::steady_clock::now();
+    auto endTime = std::chrono::duration_cast<std::chrono::milliseconds>(endPoint.time_since_epoch()).count();
     dumpEvent.errorCode = GetUcError(ret);
-    dumpEvent.execDuration = execDuration;
+    dumpEvent.execDuration = static_cast<int32_t>(endTime - dumpEvent.startTime);
     dumpEvent.coverDuration = retInfo.coverDuration;
     dumpEvent.coverRatio = retInfo.coverRatio;
     dumpEvent.traceMode = retInfo.mode;
-    dumpEvent.tags = std::move(retInfo.tags);
+    dumpEvent.tags = retInfo.tags;
 }
 
 void LoadMemoryInfo(DumpEvent &dumpEvent)
@@ -93,24 +94,19 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
 {
     InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
-    auto start = std::chrono::steady_clock::now();
     uint32_t maxDuration = (maxDuration_ == FULL_TRACE_DURATION) ? 0 : maxDuration_;
     TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, maxDuration, happenTime_, traceRetInfo);
     if (!ret.IsSuccess()) {
         HIVIEW_LOGW("scenario_:%{public}d, stateError:%{public}d, codeError:%{public}d", static_cast<int>(scenario_),
             static_cast<int>(ret.stateError_), ret.codeError_);
     }
-    auto end = std::chrono::steady_clock::now();
-    auto execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    UpdateDumpEvent(dumpEvent, ret, execDuration, traceRetInfo);
+    UpdateDumpEvent(dumpEvent, ret, traceRetInfo);
     return ret;
 }
 
-TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
+TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
     DumpEvent dumpEvent;
-    dumpEvent.caller = caller_;
-    TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
         WriteDumpTraceHisysevent(dumpEvent);
@@ -118,7 +114,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
     }
     if (traceRetInfo.outputFiles.empty()) {
         HIVIEW_LOGE("TraceDevStrategy outputFiles empty.");
-        return ret;
+        return TraceRet(TraceStateCode::FAIL);
     }
     const int64_t traceSize = traceRetInfo.fileSize;
     if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
@@ -130,6 +126,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
     }
     outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
     if (zipHandler_ == nullptr) {
+        WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
     int64_t traceRemainingSize = traceFlowController_->GetRemainingTraceSize();
@@ -145,16 +142,17 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles)
     return ret;
 }
 
-TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles)
+TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
-    int64_t traceRemainingSize = traceFlowController_->GetRemainingTraceSize();
-    if (traceRemainingSize <= 0) {
+    if (traceHandler_ == nullptr) {
+        HIVIEW_LOGE("traceHandler is null");
+        return TraceRet(TraceStateCode::FAIL);
+    }
+    if (traceFlowController_->IsOverLimit()) {
         HIVIEW_LOGI("trace is over flow, can not dump.");
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     DumpEvent dumpEvent;
-    dumpEvent.caller = caller_;
-    TraceRetInfo traceRetInfo;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
         WriteDumpTraceHisysevent(dumpEvent);
@@ -162,62 +160,96 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles)
     }
     if (traceRetInfo.outputFiles.empty()) {
         HIVIEW_LOGE("TraceFlowControlStrategy outputFiles empty.");
-        return ret;
+        return TraceRet(TraceStateCode::FAIL);
     }
     const int64_t traceSize = traceRetInfo.fileSize;
     if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
         dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
     }
-    if (traceSize > traceRemainingSize) {
+    if (traceSize > traceFlowController_->GetRemainingTraceSize()) {
         dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
         WriteDumpTraceHisysevent(dumpEvent);
+        traceFlowController_->DecreaseDynamicThreshold();
         HIVIEW_LOGI("trace is over flow, can not upload.");
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
-    if (traceHandler_ != nullptr) {
-        outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
-    }
+    outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
     WriteDumpTraceHisysevent(dumpEvent);
     traceFlowController_->StoreDb(traceSize);
     return ret;
 }
 
-TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFiles)
+TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
-    TraceRetInfo traceRetInfo;
+    if (traceHandler_ == nullptr) {
+        HIVIEW_LOGW("traceHandler is null");
+        return TraceRet(TraceStateCode::FAIL);
+    }
     if (auto ret = TraceStateMachine::GetInstance().DumpTraceWithFilter(maxDuration_, happenTime_, traceRetInfo);
         !ret.IsSuccess()) {
         HIVIEW_LOGE("fail stateError:%{public}d codeError:%{public}d", static_cast<int>(ret.GetStateError()),
             static_cast<int>(ret.GetCodeError()));
         return ret;
     }
-    const int64_t traceSize = traceRetInfo.fileSize;
-    if (auto flowRet = traceFlowController_->NeedTelemetryDump(caller_, traceSize); flowRet != TelemetryRet::SUCCESS) {
+    if (auto flowRet = traceFlowController_->NeedTelemetryDump(caller_); flowRet != TelemetryRet::SUCCESS) {
         HIVIEW_LOGI("trace is over flow, can not dump.");
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     if (traceRetInfo.outputFiles.empty()) {
         HIVIEW_LOGW("TraceFlowControlStrategy outputFiles empty.");
-        return TraceRet(traceRetInfo.errorCode);
+        return TraceRet(TraceStateCode::FAIL);
     }
-    if (traceHandler_ != nullptr) {
-        outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
-    }
+    outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles,
+        [strategy = shared_from_this()](int64_t zipTraffic) {
+        strategy->traceFlowController_->TelemetryStore(strategy->caller_, zipTraffic);
+        HIVIEW_LOGI("storage zipTraffic:%{public}" PRId64 "", zipTraffic);
+    });
     return {};
 }
 
-TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles)
+TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
-    int64_t traceRemainingSize = traceFlowController_->GetRemainingTraceSize();
-    if (traceRemainingSize <= 0) {
-        HIVIEW_LOGI("trace is over flow, can not dump.");
-        return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
-    }
     DumpEvent dumpEvent;
+    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
+    HIVIEW_LOGI("caller:%{public}s trace size:%{public}" PRId64 "", caller_.c_str(), traceRetInfo.fileSize);
+    if (!ret.IsSuccess()) {
+        WriteDumpTraceHisysevent(dumpEvent);
+        return ret;
+    }
+    if (traceRetInfo.outputFiles.empty()) {
+        HIVIEW_LOGE("TraceAsyncStrategy outputFiles empty.");
+        return TraceRet(TraceStateCode::FAIL);
+    }
+    const int64_t traceSize = traceRetInfo.fileSize;
+    if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
+        dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
+    }
+    if (traceHandler_ == nullptr) {
+        outputFiles = traceRetInfo.outputFiles;
+        return ret;
+    }
+    SetResultCopyFiles(outputFiles, traceRetInfo.outputFiles);
+    if (zipHandler_ == nullptr) {
+        WriteDumpTraceHisysevent(dumpEvent);
+        return ret;
+    }
+    if (traceRetInfo.isOverflowControl) {
+        dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
+        WriteDumpTraceHisysevent(dumpEvent);
+        HIVIEW_LOGI("over flow, trace generate in special dir, can not upload.");
+        return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
+    }
+    SetResultZipFiles(outputFiles, traceRetInfo.outputFiles);
+    WriteDumpTraceHisysevent(dumpEvent);
+    traceFlowController_->StoreDb(traceSize);
+    return ret;
+}
+
+TraceRet TraceAsyncStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
+{
     InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
-    auto start = std::chrono::steady_clock::now();
     DumpTraceArgs args = {scenario_, maxDuration_, happenTime_};
-    TraceRetInfo traceRetInfo;
+    int64_t traceRemainingSize = traceFlowController_->GetRemainingTraceSize();
     TraceRet ret = TraceStateMachine::GetInstance().DumpTraceAsync(args, traceRemainingSize, traceRetInfo,
         [strategy = shared_from_this()](TraceRetInfo asyncTraceRetInfo) {
             if (asyncTraceRetInfo.errorCode != TraceErrorCode::SUCCESS || asyncTraceRetInfo.outputFiles.empty()) {
@@ -231,34 +263,12 @@ TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles)
                 strategy->zipHandler_ ->HandleTrace(asyncTraceRetInfo.outputFiles);
             }
     });
-    auto end = std::chrono::steady_clock::now();
-    auto execDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    UpdateDumpEvent(dumpEvent, ret, execDuration, traceRetInfo);
-    HIVIEW_LOGI("caller:%{public}s trace size:%{public}" PRId64 "", caller_.c_str(), traceRetInfo.fileSize);
-    if (!ret.IsSuccess()) {
-        WriteDumpTraceHisysevent(dumpEvent);
-        return ret;
-    }
-    const int64_t traceSize = traceRetInfo.fileSize;
-    if (traceSize <= static_cast<int64_t>(INT32_MAX) * BYTE_UNIT * BYTE_UNIT) {
-        dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
-    }
-    if (traceRetInfo.isOverflowControl) {
-        SetResultCopyFiles(outputFiles, traceRetInfo.outputFiles);
-        dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
-        WriteDumpTraceHisysevent(dumpEvent);
-        HIVIEW_LOGI("over flow, trace generate in special dir, can not upload.");
-        return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
-    }
-    SetResultZipFiles(outputFiles, traceRetInfo.outputFiles);
-    WriteDumpTraceHisysevent(dumpEvent);
-    traceFlowController_->StoreDb(traceSize);
+    UpdateDumpEvent(dumpEvent, ret, traceRetInfo);
     return ret;
 }
 
-TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFiles)
+TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
-    TraceRetInfo traceRetInfo;
     auto appPid = TraceStateMachine::GetInstance().GetCurrentAppPid();
     if (appPid != appCallerEvent_->pid_) {
         HIVIEW_LOGW("pid check fail, maybe is app state closed, current:%{public}d, pid:%{public}d", appPid,

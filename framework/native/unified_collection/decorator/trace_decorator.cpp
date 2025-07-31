@@ -82,7 +82,7 @@ CollectResult<int32_t> TraceDecorator::FilterTraceOff(UCollect::TeleModule modul
     return traceCollector_->FilterTraceOff(module);
 }
 
-void TraceDecorator::RecoverTmpTrace()
+bool TraceDecorator::RecoverTmpTrace()
 {
     return traceCollector_->RecoverTmpTrace();
 }

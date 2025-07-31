@@ -19,11 +19,14 @@
 namespace OHOS::HiviewDFX {
 class TraceStrategyFactory {
 public:
-    static std::shared_ptr<TraceStrategy> CreateTraceStrategy(UCollect::TraceCaller caller, uint32_t maxDuration,
-        uint64_t happenTime);
+    static auto CreateTraceStrategy(UCollect::TraceCaller caller, uint32_t maxDuration, uint64_t happenTime)
+        ->std::shared_ptr<TraceStrategy>;
 
-    static std::shared_ptr<TraceStrategy> CreateTraceStrategy(UCollect::TraceClient client, uint32_t maxDuration,
-        uint64_t happenTime);
+    static auto CreateTraceStrategy(UCollect::TraceClient client, uint32_t maxDuration, uint64_t happenTime)
+        ->std::shared_ptr<TraceStrategy>;
+
+    static auto CreateStrategy(UCollect::TeleModule module, uint32_t maxDuration, uint64_t happenTime)
+        -> std::shared_ptr<TelemetryStrategy>;
 
     static auto CreateAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent) ->std::shared_ptr<TraceAppStrategy>;
 };

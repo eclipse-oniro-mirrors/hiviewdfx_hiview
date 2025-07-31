@@ -285,7 +285,6 @@ ohos_source_set("ucollection_source") {
       "collector/impl/trace/strategy/src/trace_strategy_factory.cpp",
       "collector/impl/trace/strategy/src/trace_handler.cpp",
       "collector/impl/trace/trace_utils.cpp",
-      "collector/impl/trace/trace_worker.cpp",
       "decorator/trace_decorator.cpp",
     ]
     defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]

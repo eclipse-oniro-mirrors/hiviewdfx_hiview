@@ -27,24 +27,24 @@ namespace HiviewDFX {
 using namespace Hitrace;
 
 namespace CallerName {
-const std::string XPERF = "Xperf";
-const std::string XPOWER = "Xpower";
-const std::string RELIABILITY = "Reliability";
-const std::string HIVIEW = "Hiview";
-const std::string OTHER = "Other";
-const std::string SCREEN = "Screen";
+inline constexpr char XPERF[] = "Xperf";
+inline constexpr char XPOWER[] = "Xpower";
+inline constexpr char RELIABILITY[] = "Reliability";
+inline constexpr char HIVIEW[] = "Hiview";
+inline constexpr char OTHER[] = "Other";
+inline constexpr char SCREEN[] = "Screen";
 };
 
 namespace ClientName {
-const std::string COMMAND = "Command";
-const std::string COMMON_DEV = "Other";
-const std::string APP = "APP";
-const std::string BETACLUB = "BetaClub";
+inline constexpr char COMMAND[] = "Command";
+inline constexpr char COMMON_DEV[] = "Other";
+inline constexpr char APP[] = "APP";
+inline constexpr char BETACLUB[] = "BetaClub";
 };
 
 namespace BusinessName {
-const std::string BEHAVIOR = "behavior";
-const std::string TELEMETRY = "Telemetry";
+inline constexpr char BEHAVIOR[] = "behavior";
+inline constexpr char TELEMETRY[] = "Telemetry";
 }
 
 enum class TraceScenario : uint8_t {

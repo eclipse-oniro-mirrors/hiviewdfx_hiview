@@ -23,14 +23,16 @@
 #include "trace_storage.h"
 #include "telemetry_storage.h"
 #include "trace_behavior_storage.h"
+#include "app_event_task_storage.h"
 
 using OHOS::HiviewDFX::Hitrace::TraceErrorCode;
 using OHOS::HiviewDFX::Hitrace::TraceRetInfo;
 
 namespace OHOS {
 namespace HiviewDFX {
-namespace {
-const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
+namespace FlowController {
+inline constexpr char DEFAULT_DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
+inline constexpr char DEFAULT_CONFIG_PATH[] = "/system/etc/hiview/";
 }
 
 enum class CacheFlow {
@@ -41,10 +43,13 @@ enum class CacheFlow {
 
 class TraceFlowController {
 public:
-    explicit TraceFlowController(const std::string &caller, const std::string& dbPath = DB_PATH);
+    explicit TraceFlowController(const std::string &caller, const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
+        const std::string& configPath = FlowController::DEFAULT_CONFIG_PATH);
     ~TraceFlowController() = default;
+    bool IsOverLimit();
     int64_t GetRemainingTraceSize();
     void StoreDb(int64_t traceSize);
+    void DecreaseDynamicThreshold();
 
     /**
      * @brief app whether report jank event trace today
@@ -71,14 +76,15 @@ public:
     CacheFlow UseCacheTimeQuota(int32_t interval);
     TelemetryRet InitTelemetryData(const std::string &telemetryId, int64_t &runningTime,
         const std::map<std::string, int64_t> &flowControlQuotas);
-    TelemetryRet NeedTelemetryDump(const std::string& module, int64_t traceSize);
+    TelemetryRet NeedTelemetryDump(const std::string& module);
+    void TelemetryStore(const std::string &module, int64_t zipTraceSize);
     bool QueryRunningTime(int64_t &runningTime);
     bool UpdateRunningTime(int64_t runningTime);
     void ClearTelemetryData();
 
 private:
     void InitTraceDb(const std::string& dbPath);
-    void InitTraceStorage(const std::string& caller);
+    void InitTraceStorage(const std::string& caller, const std::string& configPath);
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;

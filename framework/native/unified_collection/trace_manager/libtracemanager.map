@@ -15,7 +15,7 @@
         "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
         "OHOS::HiviewDFX::TraceStateMachine::CloseTrace(OHOS::HiviewDFX::TraceScenario)";
         "OHOS::HiviewDFX::TraceFlowController::CleanOldAppTrace(int)";
-        "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TraceStateMachine::GetTaskBeginTime()";
         "OHOS::HiviewDFX::TraceStateMachine::InitOrUpdateState()";
         "OHOS::HiviewDFX::TraceStateMachine::OpenTrace(OHOS::HiviewDFX::TraceScenario, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&)";
@@ -27,8 +27,7 @@
         "OHOS::HiviewDFX::TraceStateMachine::TraceCacheOff()";
         "OHOS::HiviewDFX::TraceStateMachine::RegisterTelemetryCallback(std::__h::shared_ptr<OHOS::HiviewDFX::TelemetryCallback>)";
         "OHOS::HiviewDFX::TraceFlowController::UseCacheTimeQuota(int)";
-        "OHOS::HiviewDFX::TraceFlowController::NeedTelemetryDump(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
-        "OHOS::HiviewDFX::TraceFlowController::NeedTelemetryDump(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
+        "OHOS::HiviewDFX::TraceFlowController::NeedTelemetryDump(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(unsigned int, unsigned long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
         "OHOS::HiviewDFX::TraceStateMachine::DumpTraceWithFilter(unsigned int, unsigned long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
         "OHOS::HiviewDFX::TraceStateMachine::OpenTelemetryTrace(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::TelemetryPolicy)";
@@ -50,7 +49,12 @@
         "OHOS::HiviewDFX::TraceFlowController::UpdateRunningTime(long long)";
         "OHOS::HiviewDFX::TraceFlowController::UpdateRunningTime(long)";
         "OHOS::HiviewDFX::TraceStateMachine::InitTelemetryStatus(bool)";
-    };
+        "OHOS::HiviewDFX::TraceFlowController::IsOverLimit()";
+        "OHOS::HiviewDFX::TraceFlowController::DecreaseDynamicThreshold()";
+        "OHOS::HiviewDFX::TraceFlowController::TelemetryStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
+        "OHOS::HiviewDFX::FlowController::DEFAULT_CONFIG_PATH";
+        "OHOS::HiviewDFX::FlowController::DEFAULT_DB_PATH";
+};
   local:
     *;
 };

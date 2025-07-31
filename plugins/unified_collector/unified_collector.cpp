@@ -39,7 +39,6 @@
 #include "json/json.h"
 #include "trace_state_machine.h"
 #include "uc_telemetry_listener.h"
-#include "unified_common.h"
 #include "trace_collector.h"
 #endif
 
