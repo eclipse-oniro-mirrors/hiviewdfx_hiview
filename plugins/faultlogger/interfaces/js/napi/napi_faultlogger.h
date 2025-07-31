@@ -26,7 +26,6 @@ namespace OHOS {
 namespace HiviewDFX {
 class BaseContext {
 public:
-    BaseContext() {};
     virtual ~BaseContext() {};
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
@@ -46,8 +45,6 @@ struct FaultLogNapiInfo {
 
 class FaultLogInfoContext : public BaseContext {
 public:
-    FaultLogInfoContext() {};
-    ~FaultLogInfoContext() {};
     int32_t faultType = 0;
     bool resolved = false;
     std::vector<FaultLogNapiInfo> infoVector;
