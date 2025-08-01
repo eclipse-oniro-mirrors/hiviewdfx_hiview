@@ -53,7 +53,7 @@ void SceneManager::OnSceneStop(const SceneType& type)
     if (sceneBoard.find(type) != sceneBoard.end()) {
         sceneBoard[type]->StopRecord(type);
     } else {
-        HIVIEW_LOGW("SceneManager::OnSceneStop scene has not started, scene type: %{public}d", static_cast<int>(type));
+        HIVIEW_LOGD("SceneManager::OnSceneStop scene has not started, scene type: %{public}d", static_cast<int>(type));
     }
     return;
 }
@@ -78,7 +78,7 @@ void SceneManager::OnSceneStop(const SceneType& type, const std::string& sceneId
     if (sceneBoard.find(type) != sceneBoard.end()) {
         sceneBoard[type]->StopRecord(type, sceneId);
     } else {
-        HIVIEW_LOGW("SceneManager::OnSceneStop scene has not started, scene type: %{public}d, scene id: %{public}s",
+        HIVIEW_LOGD("SceneManager::OnSceneStop scene has not started, scene type: %{public}d, scene id: %{public}s",
             static_cast<int>(type), sceneId.c_str());
     }
     return;

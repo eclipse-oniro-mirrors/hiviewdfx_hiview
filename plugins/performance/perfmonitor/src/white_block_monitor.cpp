@@ -74,7 +74,7 @@ void WhiteBlockMonitor::EndRecordImageLoadStat(int64_t id, std::pair<int, int> s
     std::lock_guard<std::mutex> Lock(mMutex);
     ImageLoadInfo* record = GetRecord(id);
     if (record == nullptr) {
-        HIVIEW_LOGW("record not exists");
+        HIVIEW_LOGD("record not exists");
         return;
     }
     record->loadEndTime = GetCurrentSystimeMs();
