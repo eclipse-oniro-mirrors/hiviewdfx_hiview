@@ -104,7 +104,8 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
 
     collector.exception = GetException(collector.stringId, collector.message);
     collector.hilog = GetFreezeHilogByPid(collector.pid);
-    collector.memory = GetMemoryStrByPid(collector.pid);
+    std::string procStatm = GetStrValFromMap(info.sectionMap, FaultKey::PROC_STATM);
+    collector.memory = GetMemoryStrByPid(collector.pid, procStatm);
     collector.foreground = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
     collector.version = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
     collector.uuid = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
@@ -137,17 +138,20 @@ auto GetDightStrArr(const std::string& target)
 }
 }
 
-void FaultLogFreeze::FillProcMemory(long pid, uint64_t& rss,  uint64_t& vss) const
+void FaultLogFreeze::FillProcMemory(const std::string& procStatm, long pid, uint64_t& rss,  uint64_t& vss) const
 {
-    std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
-    if (!statmStream) {
-        HIVIEW_LOGE("Fail to open /proc/%{public}ld/statm  errno %{public}d", pid, errno);
-        return;
+    std::string statmLine = procStatm;
+    if (statmLine.empty()) {
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (!statmStream) {
+            HIVIEW_LOGE("Fail to open /proc/%{public}ld/statm  errno %{public}d", pid, errno);
+            return;
+        }
+        std::getline(statmStream, statmLine);
+        HIVIEW_LOGI("/proc/%{public}ld/statm : %{public}s", pid, statmLine.c_str());
+        statmStream.close();
     }
-    std::string statmLine;
-    std::getline(statmStream, statmLine);
-    HIVIEW_LOGI("/proc/%{public}ld/statm : %{public}s", pid, statmLine.c_str());
-    statmStream.close();
+
     auto numStrArr = GetDightStrArr(statmLine);
     if (numStrArr.size() > 1) {
         uint64_t multiples = 4;
@@ -177,14 +181,14 @@ void FaultLogFreeze::FillSystemMemory(uint64_t& sysFreeMem, uint64_t& sysAvailMe
         sysTotalMem=%{public}" PRIu64".", sysFreeMem, sysAvailMem, sysTotalMem);
 }
 
-std::string FaultLogFreeze::GetMemoryStrByPid(long pid) const
+std::string FaultLogFreeze::GetMemoryStrByPid(long pid, const std::string& procStatm) const
 {
     if (pid <= 0) {
         return "";
     }
     uint64_t rss = 0; // statm col = 2 *4
     uint64_t vss = 0; // statm col = 1 *4
-    FillProcMemory(pid, rss, vss);
+    FillProcMemory(procStatm, pid, rss, vss);
 
     uint64_t sysFreeMem = 0; // meminfo row=2
     uint64_t sysAvailMem = 0; // meminfo row=3

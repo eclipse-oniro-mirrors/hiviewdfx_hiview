@@ -69,6 +69,7 @@ constexpr const char * const PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
 constexpr const char * const DEVICE_MEMINFO = "DEVICE_MEMINFO";
 constexpr const char * const TELEMETRY_ID = "TELEMETRY_ID";
 constexpr const char * const TRACE_NAME = "TRACE_NAME";
+constexpr const char * const PROC_STATM = "PROC_STATM";
 const char * const LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
 const char * const STACK = "STACK";
 const char * const PACKAGE_NAME = "PACKAGE_NAME";

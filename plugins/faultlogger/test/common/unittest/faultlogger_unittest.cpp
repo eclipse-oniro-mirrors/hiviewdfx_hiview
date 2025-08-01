@@ -2042,9 +2042,15 @@ HWTEST_F(FaultloggerUnittest, FaultloggerUnittest001, testing::ext::TestSize.Lev
 HWTEST_F(FaultloggerUnittest, FaultloggerUnittest002, testing::ext::TestSize.Level3)
 {
     FaultLogFreeze faultAppFreeze;
-    std::string str = faultAppFreeze.GetMemoryStrByPid(-1);
+    std::string procStatm;
+    std::string str = faultAppFreeze.GetMemoryStrByPid(-1, procStatm);
     ASSERT_EQ(str, "");
-    str = faultAppFreeze.GetMemoryStrByPid(1);
+    str = faultAppFreeze.GetMemoryStrByPid(1, procStatm);
+    ASSERT_NE(str, "");
+    str = faultAppFreeze.GetMemoryStrByPid(getpid(), procStatm);
+    ASSERT_NE(str, "");
+    procStatm = "12 34 56 789 200";
+    str = faultAppFreeze.GetMemoryStrByPid(getpid(), procStatm);
     ASSERT_NE(str, "");
 }
 

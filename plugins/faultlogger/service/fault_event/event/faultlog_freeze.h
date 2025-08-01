@@ -25,13 +25,13 @@ private:
     bool ReportEventToAppEvent(const FaultLogInfo& info) override;
     void AddSpecificInfo(FaultLogInfo& info) override;
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
-    std::string GetMemoryStrByPid(long pid) const;
+    std::string GetMemoryStrByPid(long pid, const std::string& procStatm) const;
     void ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie = false) const;
 
     std::string GetException(const std::string& name, const std::string& message) const;
     std::string GetFreezeHilogByPid(long pid) const;
 
-    void FillProcMemory(long pid, uint64_t& rss,  uint64_t& vss) const;
+    void FillProcMemory(const std::string& procStatm, long pid, uint64_t& rss, uint64_t& vss) const;
     void FillSystemMemory(uint64_t& sysFreeMem, uint64_t& sysAvailMem, uint64_t& sysTotalMem) const;
 };
 } // namespace HiviewDFX

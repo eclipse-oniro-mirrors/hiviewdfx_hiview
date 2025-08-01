@@ -926,12 +926,14 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitTerminalThreadStack("threadStaskTest")
         .InitTelemetryId("telemetryIdTest")
         .InitTraceName("traceNameTest")
+        .InitProcStatm("123 45 678")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
     ASSERT_EQ(wp1->GetTerminalThreadStack(), "threadStaskTest");
     ASSERT_EQ(wp1->GetTelemetryId(), "telemetryIdTest");
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
+    ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
 }
 
 /**
