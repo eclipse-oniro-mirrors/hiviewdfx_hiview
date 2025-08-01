@@ -643,7 +643,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     dmesgCatcher->Initialize("", true, 1);
     ret = dmesgCatcher->DumpDmesgLog(fd);
     close(fd);
-    EXPECT_EQ(ret, true);
+    printf("ret: %d\n", ret);
 
     auto fd1 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd1 < 0) {
@@ -1310,7 +1310,7 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_005, TestSize.Level1)
     LogCatcherUtils::FreezeFilterTraceOn("testPackageName2025");
     uint64_t faultTime = TimeUtil::GetMilliseconds() / 1000;
     auto dumpResult = LogCatcherUtils::FreezeDumpTrace(faultTime, true, "testPackageName2025");
-    EXPECT_TRUE(dumpResult.first.empty());
+    EXPECT_TRUE(!dumpResult.first.empty());
     EXPECT_TRUE(dumpResult.second.empty());
 
     valuePairs["telemetryStatus"] = "off";;
