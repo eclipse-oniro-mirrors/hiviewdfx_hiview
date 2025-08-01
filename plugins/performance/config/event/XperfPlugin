@@ -124,12 +124,6 @@
             ]
         },
         {
-            "domain":"HMOS_SVC_BROKER",
-            "include":[
-                "START_ACTIVITY"
-            ]
-        },
-        {
             "domain":"RSS",
             "include":[
                 "APP_ASSOCIATED_START",
