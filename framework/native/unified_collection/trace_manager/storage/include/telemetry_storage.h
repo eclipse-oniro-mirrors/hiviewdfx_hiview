@@ -50,7 +50,7 @@ private:
     bool GetFlowRecord(const std::string &module, TeleMetryFlowRecord &flowRecord);
     void InsertNewData(const std::string &telemetryId, const std::map<std::string, int64_t> &flowControlQuotas);
     bool QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize);
-    void UpdateTable(const std::string &module, int64_t newSize);
+    bool UpdateTable(const std::string &module, int64_t newSize);
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;

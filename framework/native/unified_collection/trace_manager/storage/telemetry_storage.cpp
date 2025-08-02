@@ -47,7 +47,7 @@ bool TeleMetryStorage::QueryTable(const std::string &module, int64_t &usedSize, 
     return true;
 }
 
-void TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
+bool TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
 {
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(COLUMN_USED_SIZE, newSize);
@@ -55,8 +55,10 @@ void TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
     predicates.EqualTo(COLUMN_MODULE_NAME, module);
     int changeRows = 0;
     if (dbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK) {
-        HIVIEW_LOGW("failed to update table");
+        HIVIEW_LOGW("module:%{public}s failed to update table", module.c_str());
+        return false;
     }
+    return true;
 }
 
 void TeleMetryStorage::InsertNewData(const std::string &telemetryId,
@@ -216,8 +218,14 @@ void TeleMetryStorage::TelemetryStore(const std::string &module, int64_t traceSi
     }
     flowRecord.usedSize += traceSize;
     flowRecord.totalUsedSize += traceSize;
-    UpdateTable(module, flowRecord.usedSize);
-    UpdateTable(TOTAL, flowRecord.totalUsedSize);
+    if (!UpdateTable(module, flowRecord.usedSize)) {
+        transaction->Rollback();
+        return;
+    }
+    if (!UpdateTable(TOTAL, flowRecord.totalUsedSize)) {
+        transaction->Rollback();
+        return;
+    }
     transaction->Commit();
 }
 

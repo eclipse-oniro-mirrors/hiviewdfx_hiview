@@ -33,9 +33,13 @@ enum PowerState {
 
 class PowerListener {
 public:
+    PowerListener() = default;
     virtual ~PowerListener() = default;
     virtual void OnScreenOn() = 0;
     virtual void OnScreenOff() = 0;
+
+    PowerListener(const PowerListener &) = delete;
+    PowerListener& operator=(const PowerListener&) = delete;
 };
 
 class PowerStateSubscriber : public CommonEventSubscriber {
