@@ -129,37 +129,22 @@ TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetry
     return TelemetryRet::SUCCESS;
 }
 
-TelemetryRet TeleMetryStorage::NeedTelemetryDump(const std::string &module, int64_t traceSize)
+TelemetryRet TeleMetryStorage::NeedTelemetryDump(const std::string &module)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("Open db failed");
         return TelemetryRet::EXIT;
     }
-    auto [errcode, transaction] = dbStore_->CreateTransaction(NativeRdb::Transaction::DEFERRED);
-    if (errcode != NativeRdb::E_OK || transaction == nullptr) {
-        HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
+    TeleMetryFlowRecord flowRecord;
+    if (!GetFlowRecord(module, flowRecord)) {
+        HIVIEW_LOGE("get flow data failed");
         return TelemetryRet::EXIT;
     }
-    int64_t usedSize = 0;
-    int64_t quotaSize = 0;
-    int64_t totalUsedSize = 0;
-    int64_t totalQuotaSize = 0;
-    if (!QueryTable(module, usedSize, quotaSize) || !QueryTable(TOTAL, totalUsedSize, totalQuotaSize)) {
-        transaction->Commit();
-        HIVIEW_LOGE("db data init failed");
-        return TelemetryRet::EXIT;
-    }
-    usedSize += traceSize;
-    totalUsedSize += traceSize;
-    if (usedSize > quotaSize || totalUsedSize > totalQuotaSize) {
-        transaction->Commit();
-        HIVIEW_LOGI("%{public}s over flow usedSize:%{public}lu totalUsedSize:%{public}lu", module.c_str(),
-            static_cast<long>(usedSize), static_cast<long>(totalUsedSize));
+    if (flowRecord.usedSize > flowRecord.quotaSize || flowRecord.totalUsedSize > flowRecord.totalQuotaSize) {
+        HIVIEW_LOGI("%{public}s over flow usedSize:%{public}" PRId64 " totalUsedSize:%{public}" PRId64 "",
+            module.c_str(), flowRecord.usedSize, flowRecord.totalUsedSize);
         return TelemetryRet::OVER_FLOW;
     }
-    UpdateTable(module, usedSize);
-    UpdateTable(TOTAL, totalUsedSize);
-    transaction->Commit();
     return TelemetryRet::SUCCESS;
 }
 
@@ -209,6 +194,39 @@ bool TeleMetryStorage::UpdateRunningTime(int64_t runningTime)
         return false;
     }
     HIVIEW_LOGI("Update new traceOntime:%{public} " PRId64 "", runningTime);
+    return true;
+}
+
+void TeleMetryStorage::TelemetryStore(const std::string &module, int64_t traceSize)
+{
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("Open db failed");
+        return;
+    }
+    auto [errcode, transaction] = dbStore_->CreateTransaction(NativeRdb::Transaction::DEFERRED);
+    if (errcode != NativeRdb::E_OK || transaction == nullptr) {
+        HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
+        return;
+    }
+    TeleMetryFlowRecord flowRecord;
+    if (!GetFlowRecord(module, flowRecord)) {
+        HIVIEW_LOGE("get flow data failed");
+        transaction->Commit();
+        return;
+    }
+    flowRecord.usedSize += traceSize;
+    flowRecord.totalUsedSize += traceSize;
+    UpdateTable(module, flowRecord.usedSize);
+    UpdateTable(TOTAL, flowRecord.totalUsedSize);
+    transaction->Commit();
+}
+
+bool TeleMetryStorage::GetFlowRecord(const std::string &module, TeleMetryFlowRecord &flowRecord)
+{
+    if (!QueryTable(module, flowRecord.usedSize, flowRecord.quotaSize) ||
+        !QueryTable(TOTAL, flowRecord.totalUsedSize, flowRecord.totalQuotaSize)) {
+        return false;
+    }
     return true;
 }
 }

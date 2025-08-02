@@ -230,7 +230,8 @@ CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(UCollec
         HIVIEW_LOGE("Create traceStrategy error client:%{public}d", static_cast<int32_t>(client));
         return {UcError::UNSUPPORT};
     }
-    TraceRet dumpRet = traceStrategy->DoDump(result.data);
+    TraceRetInfo traceRetInfo;
+    TraceRet dumpRet = traceStrategy->DoDump(result.data, traceRetInfo);
     result.retCode = GetUcError(dumpRet);
     return result;
 #endif
@@ -311,8 +312,8 @@ CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient:
 {
     auto appCallerEvent = InnerCreateAppCallerEvent(appCaller, UCollectUtil::START_APP_TRACE);
     if (InnerHasCallAppTrace(appCallerEvent)) {
-        HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d",
-                    appCallerEvent->uid_, appCallerEvent->pid_);
+        HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d", appCallerEvent->uid_,
+            appCallerEvent->pid_);
         return {UCollect::UcError::HAD_CAPTURED_TRACE};
     }
     TraceRet ret = TraceStateMachine::GetInstance().OpenDynamicTrace(appCallerEvent->pid_);
@@ -328,7 +329,8 @@ CollectResult<int32_t> HiviewService::InnerResponseDumpAppTrace(UCollectClient::
     CollectResult<std::vector<std::string>> result;
     auto strategy = TraceStrategyFactory::CreateAppStrategy(InnerCreateAppCallerEvent(appCaller,
         UCollectUtil::DUMP_APP_TRACE));
-    return {GetUcError(strategy->DoDump(result.data))};
+    TraceRetInfo traceRetInfo;
+    return {GetUcError(strategy->DoDump(result.data, traceRetInfo))};
 }
 #endif
 

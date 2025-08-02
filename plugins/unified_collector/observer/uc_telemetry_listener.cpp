@@ -23,19 +23,17 @@
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("HiView-UnifiedCollector");
 namespace {
-
 const int64_t DURATION_DEFAULT = 3600 * SECONDS_TO_MS; // ms
 const int64_t MAX_DURATION = 7 * 24 * 3600 * SECONDS_TO_MS; // ms
-const uint32_t DEFAULT_RATIO = 7;
 const uint32_t BT_M_UNIT = 1024 * 1024;
 constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 constexpr char TAGS[] = "tags";
 constexpr char BUFFER_SIZE[] = "bufferSize";
 
-const std::string SWITCH_ON = "on";
-const std::string SWITCH_OFF = "off";
-const std::string POLICY_POWER = "power";
-const std::string POLICY_MANUAL = "manual";
+constexpr char SWITCH_ON[] = "on";
+constexpr char SWITCH_OFF[] = "off";
+constexpr char POLICY_POWER[] = "power";
+constexpr char POLICY_MANUAL[] = "manual";
 
 // Default quota of flow control
 const int64_t DEFAULT_XPERF_SIZE = 140 * 1024 * 1024;
@@ -43,6 +41,32 @@ const int64_t DEFAULT_XPOWER_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_RELIABILITY_SIZE = 140 * 1024 * 1024;
 const int64_t DEFAULT_TOTAL_SIZE = 350 * 1024 * 1024;
 const int64_t MAX_TOTAL_SIZE = 1024; // 1G
+
+constexpr char KEY_ID[] = "telemetryId";
+constexpr char KEY_FILTER_NAME[] = "appFilterName";
+constexpr char KEY_SA_NAMES[] = "saNames";
+constexpr char KEY_SWITCH_STATUS[] = "telemetryStatus";
+constexpr char KEY_TRACE_POLICY[] = "tracePolicy";
+constexpr char KEY_TRACE_TAG[] = "traceArgs";
+constexpr char KEY_TOTAL_QUOTA[] = "traceQuota";
+constexpr char KEY_OPEN_TIME[] = "traceOpenTime";
+constexpr char KEY_DURATION[] = "traceDuration";
+constexpr char KEY_XPERF_QUOTA[] = "xperfTraceQuota";
+constexpr char KEY_XPOWER_QUOTA[] = "xpowerTraceQuota";
+constexpr char KEY_RELIABILITY_QUOTA[] = "reliabilityTraceQuota";
+constexpr char TOTAL[] = "Total";
+
+
+const std::unordered_set<std::string> TRACE_TAG_FILTER_LIST {
+    "sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "pagecache", "workq", "net", "dsched",
+    "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio", "zmedia", "dcamera",
+    "zcamera", "dhfwk", "app", "ability", "power", "samgr", "nweb"
+};
+
+const std::unordered_set<std::string> TRACE_SA_FILTER_LIST {
+    "render_service", "foundation"
+};
+
 
 std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
     cJSON* root, const std::string &key)
@@ -74,8 +98,8 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
         HandleStop();
         return;
     }
-    params.appFilterName = msg.GetValue(Telemetry::KEY_FILTER_NAME);
-    params.traceDuration = msg.GetInt64Value(Telemetry::KEY_DURATION) * SECONDS_TO_MS;
+    params.appFilterName = msg.GetValue(KEY_FILTER_NAME);
+    params.traceDuration = msg.GetInt64Value(KEY_DURATION) * SECONDS_TO_MS;
     if (params.traceDuration <= 0) {
         params.traceDuration = DURATION_DEFAULT;
     } else if (params.traceDuration > MAX_DURATION) {
@@ -130,29 +154,25 @@ bool TelemetryListener::InitTelemetryDbData(const Event &msg, bool &isTimeOut, c
         {CallerName::XPERF, DEFAULT_XPERF_SIZE },
         {CallerName::XPOWER, DEFAULT_XPOWER_SIZE},
         {CallerName::RELIABILITY, DEFAULT_RELIABILITY_SIZE},
-        {Telemetry::TOTAL, DEFAULT_TOTAL_SIZE}
+        {TOTAL, DEFAULT_TOTAL_SIZE}
     };
-    int32_t traceCompressRatio = msg.GetIntValue(Telemetry::KEY_FLOW_RATE);
-    if (traceCompressRatio <= 0) {
-        traceCompressRatio = DEFAULT_RATIO;
-    }
-    auto xperfTraceQuota = msg.GetInt64Value(Telemetry::KEY_XPERF_QUOTA);
+    auto xperfTraceQuota = msg.GetInt64Value(KEY_XPERF_QUOTA);
     if (xperfTraceQuota > 0) {
-        flowControlQuotas[CallerName::XPERF] = xperfTraceQuota * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[CallerName::XPERF] = xperfTraceQuota * BT_M_UNIT;
     }
-    auto xpowerTraceQuota = msg.GetInt64Value(Telemetry::KEY_XPOWER_QUOTA);
+    auto xpowerTraceQuota = msg.GetInt64Value(KEY_XPOWER_QUOTA);
     if (xpowerTraceQuota > 0) {
-        flowControlQuotas[CallerName::XPOWER] = xpowerTraceQuota * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[CallerName::XPOWER] = xpowerTraceQuota * BT_M_UNIT;
     }
-    auto reliabilityTraceQuota = msg.GetInt64Value(Telemetry::KEY_RELIABILITY_QUOTA);
+    auto reliabilityTraceQuota = msg.GetInt64Value(KEY_RELIABILITY_QUOTA);
     if (reliabilityTraceQuota > 0) {
-        flowControlQuotas[CallerName::RELIABILITY] = reliabilityTraceQuota * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[CallerName::RELIABILITY] = reliabilityTraceQuota * BT_M_UNIT;
     }
-    auto totalTraceQuota = msg.GetInt64Value(Telemetry::KEY_TOTAL_QUOTA);
+    auto totalTraceQuota = msg.GetInt64Value(KEY_TOTAL_QUOTA);
     if (totalTraceQuota > 0 && totalTraceQuota <= MAX_TOTAL_SIZE) {
-        flowControlQuotas[Telemetry::TOTAL] = totalTraceQuota * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[TOTAL] = totalTraceQuota * BT_M_UNIT;
     } else if (totalTraceQuota > MAX_TOTAL_SIZE) {
-        flowControlQuotas[Telemetry::TOTAL] = MAX_TOTAL_SIZE * traceCompressRatio * BT_M_UNIT;
+        flowControlQuotas[TOTAL] = MAX_TOTAL_SIZE * BT_M_UNIT;
     } else {
         HIVIEW_LOGI("default total quota size");
     }
@@ -216,7 +236,7 @@ bool TelemetryListener::ProcessTraceTag(std::string &traceTag)
     if (root == nullptr) {
         return false;
     }
-    auto tags = ParseAndFilterTraceArgs(Telemetry::TRACE_TAG_FILTER_LIST, root, TAGS);
+    auto tags = ParseAndFilterTraceArgs(TRACE_TAG_FILTER_LIST, root, TAGS);
     if (tags.empty()) {
         cJSON_Delete(root);
         return false;
@@ -244,7 +264,7 @@ bool TelemetryListener::ProcessTraceTag(std::string &traceTag)
 
 bool TelemetryListener::CheckTelemetryId(const Event &msg, TelemetryParams &params, std::string &errorMsg)
 {
-    std::string telemetryId = msg.GetValue(Telemetry::KEY_ID);
+    std::string telemetryId = msg.GetValue(KEY_ID);
     if (telemetryId.empty()) {
         errorMsg.append("telemetryId get empty");
         return false;
@@ -255,13 +275,13 @@ bool TelemetryListener::CheckTelemetryId(const Event &msg, TelemetryParams &para
 
 void TelemetryListener::GetSaNames(const Event &msg, TelemetryParams &params)
 {
-    std::string saJsonNames = msg.GetValue(Telemetry::KEY_SA_NAMES);
+    std::string saJsonNames = msg.GetValue(KEY_SA_NAMES);
     if (!saJsonNames.empty()) {
         cJSON* root = cJSON_Parse(saJsonNames.c_str());
         if (root == nullptr) {
             return;
         }
-        auto saNames = ParseAndFilterTraceArgs(Telemetry::TRACE_SA_FILTER_LIST, root, Telemetry::KEY_SA_NAMES);
+        auto saNames = ParseAndFilterTraceArgs(TRACE_SA_FILTER_LIST, root, KEY_SA_NAMES);
         for (const auto &saName : saNames) {
             auto param = "startup.service.ctl." + saName + ".pid";
             params.saParams.emplace_back(param);
@@ -272,7 +292,7 @@ void TelemetryListener::GetSaNames(const Event &msg, TelemetryParams &params)
 
 bool TelemetryListener::CheckTraceTags(const Event &msg, TelemetryParams &params, std::string &errorMsg)
 {
-    auto traceTag = msg.GetValue(Telemetry::KEY_TRACE_TAG);
+    auto traceTag = msg.GetValue(KEY_TRACE_TAG);
     if (!traceTag.empty() && !ProcessTraceTag(traceTag)) {
         errorMsg.append("process trace tag fail");
         return false;
@@ -283,7 +303,7 @@ bool TelemetryListener::CheckTraceTags(const Event &msg, TelemetryParams &params
 
 bool TelemetryListener::CheckTracePolicy(const Event &msg, TelemetryParams &params, std::string &errorMsg)
 {
-    auto tracePolicy = msg.GetValue(Telemetry::KEY_TRACE_POLICY);
+    auto tracePolicy = msg.GetValue(KEY_TRACE_POLICY);
     if (tracePolicy.empty()) {
         params.tracePolicy = TelemetryPolicy::DEFAULT;
         return true;
@@ -301,7 +321,7 @@ bool TelemetryListener::CheckTracePolicy(const Event &msg, TelemetryParams &para
 
 bool TelemetryListener::CheckSwitchValid(const Event &msg, bool &isCloseMsg, std::string &errorMsg)
 {
-    auto switchStatus = msg.GetValue(Telemetry::KEY_SWITCH_STATUS);
+    auto switchStatus = msg.GetValue(KEY_SWITCH_STATUS);
     if (switchStatus.empty()) {
         errorMsg.append("switchStatus get empty");
         return false;
@@ -320,7 +340,7 @@ bool TelemetryListener::CheckSwitchValid(const Event &msg, bool &isCloseMsg, std
 bool TelemetryListener::CheckBeginTime(const Event &msg, TelemetryParams &params, std::string &errorMsg)
 {
     // Get begin time of telemetry trace unit seconds
-    int64_t beginTime = msg.GetInt64Value(Telemetry::KEY_OPEN_TIME);
+    int64_t beginTime = msg.GetInt64Value(KEY_OPEN_TIME);
     if (beginTime < 0) {
         errorMsg.append("begin time get failed");
         return false;

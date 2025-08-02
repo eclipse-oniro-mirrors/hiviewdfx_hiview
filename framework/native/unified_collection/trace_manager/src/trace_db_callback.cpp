@@ -28,6 +28,7 @@ const std::string TABLE_NAME = "trace_flow_control";
 const std::string COLUMN_SYSTEM_TIME = "system_time";
 const std::string COLUMN_CALLER_NAME = "caller_name";
 const std::string COLUMN_USED_SIZE = "used_size";
+const std::string COLUMN_DYNAMIC_DECREASE = "dynamic_decrease";
 
 // Table unified_collection_task column name
 const std::string TABLE_NAME_TASK = "unified_collection_task";
@@ -105,16 +106,17 @@ int32_t TraceDbStoreCallback::CreateTraceFlowControlTable(NativeRdb::RdbStore& r
      * table: trace_flow_control
      *
      * describe: store data that has been used
-     * |-----|-------------|-------------|-----------|
-     * |  id | system_time | caller_name | used_size |
-     * |-----|-------------|-------------|-----------|
-     * | INT |   VARCHAR   |   VARCHAR   |   INT64   |
-     * |-----|-------------|-------------|-----------|
+     * |-----|-------------|-------------|-----------|-------------------|
+     * |  id | system_time | caller_name | used_size | dynamic_decrease |
+     * |-----|-------------|-------------|-----------|-------------------|
+     * | INT |   VARCHAR   |   VARCHAR   |   INT64   |       INT64       |
+     * |-----|-------------|-------------|-----------|-------------------|
      */
     const std::vector<std::pair<std::string, std::string>> fields = {
         {COLUMN_SYSTEM_TIME, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_CALLER_NAME, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_DYNAMIC_DECREASE, SqlUtil::COLUMN_TYPE_INT},
     };
     HIVIEW_LOGI("create table trace_flow_control table");
     std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME, fields);

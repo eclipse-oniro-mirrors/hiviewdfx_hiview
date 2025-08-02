@@ -18,8 +18,6 @@
 
 #include "ffrt.h"
 #include "hisysevent.h"
-#include "unified_common.h"
-#include "power_status_manager.h"
 #include "parameter_ex.h"
 #include "time_util.h"
 #include "trace_flow_controller.h"
@@ -31,6 +29,7 @@ namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("UcTelemetryCallback");
 using namespace UCollectUtil;
 namespace {
+constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 constexpr char LISTENER_KEY[] = "TelemetryCallback";
 
 void OnSaParamChanged(const char *key, const char *value, void *context)
@@ -59,7 +58,7 @@ void HandTimeout()
 
 void UcTelemetryCallback::OnTelemetryStart()
 {
-    HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
         "ID", telemetryId_,
         "STAGE", "TRACE_BEGIN");
     HIVIEW_LOGI("telemetry start");
@@ -95,7 +94,7 @@ void UcTelemetryCallback::OnTelemetryStart()
 void UcTelemetryCallback::OnTelemetryFinish()
 {
     HIVIEW_LOGI("telemetry finish");
-    HiSysEventWrite(Telemetry::TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
         "ID", telemetryId_,
         "STAGE", "TRACE_END");
     if (saParams_.empty()) {

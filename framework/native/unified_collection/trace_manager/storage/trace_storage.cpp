@@ -14,14 +14,11 @@
  */
 #include "trace_storage.h"
 
-#include <algorithm>
 #include <cinttypes>
 
+#include "cjson_util.h"
 #include "hiview_logger.h"
-#include "parameter_ex.h"
 #include "time_util.h"
-#include "trace_common.h"
-#include "trace_quota_config.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,6 +28,9 @@ const std::string TABLE_NAME = "trace_flow_control";
 const std::string COLUMN_SYSTEM_TIME = "system_time";
 const std::string COLUMN_CALLER_NAME = "caller_name";
 const std::string COLUMN_USED_SIZE = "used_size";
+const std::string COLUMN_DYNAMIC_DECREASE = "dynamic_decrease";
+const std::string DYNAMIC_DECREASE_KEY = "DecreaseUnit";
+const std::string TRACE_QUOTA_CONFIG_FILE = "trace_quota_config.json";
 const float TEN_PERCENT_LIMIT = 0.1;
 
 NativeRdb::ValuesBucket GetBucket(const TraceFlowRecord& traceFlowRecord)
@@ -39,34 +39,27 @@ NativeRdb::ValuesBucket GetBucket(const TraceFlowRecord& traceFlowRecord)
     bucket.PutString(COLUMN_SYSTEM_TIME, traceFlowRecord.systemTime);
     bucket.PutString(COLUMN_CALLER_NAME, traceFlowRecord.callerName);
     bucket.PutLong(COLUMN_USED_SIZE, traceFlowRecord.usedSize);
+    bucket.PutLong(COLUMN_DYNAMIC_DECREASE, traceFlowRecord.dynamicDecrease);
     return bucket;
 }
-
-const std::map<std::string, int64_t> TRACE_QUOTA = {
-    {CallerName::XPERF, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::XPERF)},
-    {CallerName::XPOWER, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::XPOWER)},
-    {CallerName::RELIABILITY, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::RELIABILITY)},
-    {CallerName::HIVIEW, TraceQuotaConfig::GetTraceQuotaByCaller(CallerName::HIVIEW)},
-};
 }
 
-TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller)
-    : caller_(caller), dbStore_(dbStore)
+TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller,
+    const std::string& configPath): caller_(caller), dbStore_(dbStore)
 {
+    traceQuotaConfig_ = configPath + TRACE_QUOTA_CONFIG_FILE;
+    quota_ = GetTraceQuota(caller);
+    decreaseUnit_ = GetTraceQuota(DYNAMIC_DECREASE_KEY);
     InitTableRecord();
 }
 
 void TraceStorage::InitTableRecord()
 {
-    if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
-        HIVIEW_LOGE("caller_ is invalid");
-        return;
-    }
     traceFlowRecord_.callerName = caller_;
     Query(traceFlowRecord_);
-    HIVIEW_LOGI("systemTime:%{public}s, callerName:%{public}s, usedSize:%{public}" PRId64,
-    traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(),
-        traceFlowRecord_.usedSize);
+    HIVIEW_LOGI("systemTime:%{public}s, callerName:%{public}s, usedSize:%{public}" PRId64 " threshold:%{public}" PRId64,
+        traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(), traceFlowRecord_.usedSize,
+            traceFlowRecord_.dynamicDecrease);
 }
 
 void TraceStorage::Store(const TraceFlowRecord& traceFlowRecord)
@@ -117,7 +110,7 @@ void TraceStorage::QueryTable(TraceFlowRecord& traceFlowRecord)
 {
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME);
     predicates.EqualTo(COLUMN_CALLER_NAME, traceFlowRecord.callerName);
-    auto resultSet = dbStore_->Query(predicates, {COLUMN_SYSTEM_TIME, COLUMN_USED_SIZE});
+    auto resultSet = dbStore_->Query(predicates, {COLUMN_SYSTEM_TIME, COLUMN_USED_SIZE, COLUMN_DYNAMIC_DECREASE});
     if (resultSet == nullptr) {
         HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME.c_str());
         return;
@@ -126,6 +119,7 @@ void TraceStorage::QueryTable(TraceFlowRecord& traceFlowRecord)
     if (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         resultSet->GetString(0, traceFlowRecord.systemTime); // 0 means system_time field
         resultSet->GetLong(1, traceFlowRecord.usedSize); // 1 means used_size field
+        resultSet->GetLong(2, traceFlowRecord.dynamicDecrease); // 2 means dynamic_threshold field
     }
     resultSet->Close();
 }
@@ -139,10 +133,9 @@ std::string TraceStorage::GetDate()
 // remaining trace size contains 10% fluctuation of the quota when quota not completely used up
 int64_t TraceStorage::GetRemainingTraceSize()
 {
-    if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
+    if (quota_ <= 0) {
         return 0;
     }
-    auto quota = TRACE_QUOTA.at(caller_);
     std::string nowDays = GetDate();
     HIVIEW_LOGI("start to dump, nowDays = %{public}s, systemTime = %{public}s.",
                 nowDays.c_str(), traceFlowRecord_.systemTime.c_str());
@@ -150,25 +143,56 @@ int64_t TraceStorage::GetRemainingTraceSize()
         HIVIEW_LOGD("date changes");
         traceFlowRecord_.systemTime = nowDays;
         traceFlowRecord_.usedSize = 0;
-        return quota + quota * TEN_PERCENT_LIMIT;
+        traceFlowRecord_.dynamicDecrease = 0;
+        return quota_ + quota_ * TEN_PERCENT_LIMIT;
     }
-    if (quota <= traceFlowRecord_.usedSize) {
+    if (quota_ <= traceFlowRecord_.usedSize) {
         return 0;
     }
-    return (quota - traceFlowRecord_.usedSize) + quota * TEN_PERCENT_LIMIT;
+    return (quota_ - traceFlowRecord_.usedSize) + quota_ * TEN_PERCENT_LIMIT;
+}
+
+bool TraceStorage::IsOverLimit()
+{
+    if (quota_ <= 0) {
+        return true;
+    }
+    return (quota_ - traceFlowRecord_.dynamicDecrease) < traceFlowRecord_.usedSize;
+}
+
+void TraceStorage::DecreaseDynamicThreshold()
+{
+    if (quota_ <= 0) {
+        return;
+    }
+    traceFlowRecord_.dynamicDecrease += decreaseUnit_;
+    Store(traceFlowRecord_);
 }
 
 void TraceStorage::StoreDb(int64_t traceSize)
 {
-    if (TRACE_QUOTA.find(caller_) == TRACE_QUOTA.end()) {
-        HIVIEW_LOGI("caller %{public}s not need store", caller_.c_str());
+    if (quota_ <= 0) {
         return;
     }
     traceFlowRecord_.usedSize += traceSize;
     HIVIEW_LOGI("systemTime:%{public}s, callerName:%{public}s, usedSize:%{public}" PRId64,
-                traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(),
-                traceFlowRecord_.usedSize);
+        traceFlowRecord_.systemTime.c_str(), traceFlowRecord_.callerName.c_str(), traceFlowRecord_.usedSize);
     Store(traceFlowRecord_);
+}
+
+int64_t TraceStorage::GetTraceQuota(const std::string& key)
+{
+    auto root = CJsonUtil::ParseJsonRoot(traceQuotaConfig_);
+    if (root == nullptr) {
+        HIVIEW_LOGW("failed to parse config");
+        return -1;
+    }
+    int64_t traceQuota = CJsonUtil::GetIntValue(root, key, 0);
+    if (traceQuota <= 0) {
+        HIVIEW_LOGW("failed to get value for key=%{public}s", key.c_str());
+    }
+    cJSON_Delete(root);
+    return traceQuota;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

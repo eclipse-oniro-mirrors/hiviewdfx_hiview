@@ -21,11 +21,11 @@
 
 namespace OHOS::HiviewDFX {
 
-struct TeleMetryRecord {
-    std::string module;
-    uint32_t usedSize = 0;
-    uint32_t quota = 0;
-    uint32_t threshold = 0;
+struct TeleMetryFlowRecord {
+    int64_t usedSize = 0;
+    int64_t quotaSize = 0;
+    int64_t totalUsedSize = 0;
+    int64_t totalQuotaSize = 0;
 };
 
 enum class TelemetryRet {
@@ -40,18 +40,20 @@ public:
     ~TeleMetryStorage() = default;
     TelemetryRet InitTelemetryControl(const std::string &telemetryId, int64_t &runningTime,
         const std::map<std::string, int64_t> &flowControlQuotas);
-    TelemetryRet NeedTelemetryDump(const std::string& module, int64_t traceSize);
+    TelemetryRet NeedTelemetryDump(const std::string &module);
     void ClearTelemetryData();
     bool QueryRunningTime(int64_t &runningTime);
     bool UpdateRunningTime(int64_t runningTime);
+    void TelemetryStore(const std::string &module, int64_t traceSize);
+
+private:
+    bool GetFlowRecord(const std::string &module, TeleMetryFlowRecord &flowRecord);
+    void InsertNewData(const std::string &telemetryId, const std::map<std::string, int64_t> &flowControlQuotas);
+    bool QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize);
+    void UpdateTable(const std::string &module, int64_t newSize);
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
-
-    void InsertNewData(const std::string &telemetryId, const std::map<std::string, int64_t> &flowControlQuotas);
-    bool QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize);
-
-    void UpdateTable(const std::string &module, int64_t newSize);
 };
 
 }

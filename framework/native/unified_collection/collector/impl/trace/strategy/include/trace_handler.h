@@ -20,31 +20,43 @@
 #include "trace_utils.h"
 #include "file_util.h"
 #include "string_util.h"
-#include "hitrace_define.h"
+#include "ffrt.h"
+#include "singleton.h"
 
 namespace OHOS::HiviewDFX {
 using HandleCallback = std::function<void(int64_t)>;
+using UcollectionTask = std::function<void ()>;
+
+class TraceWorker : public DelayedRefSingleton<TraceWorker> {
+public:
+    void HandleUcollectionTask(UcollectionTask ucollectionTask);
+
+private:
+    std::unique_ptr<ffrt::queue> ffrtQueue_ = std::make_unique<ffrt::queue>("dft_trace_worker");
+};
+
 class TraceHandler {
 public:
-    TraceHandler(const std::string &tracePath, const std::string& caller)
-        : tracePath_(tracePath), caller_(caller) {}
+    TraceHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
+        : tracePath_(tracePath), caller_(caller), cleanThreshold_(cleanThreshold) {}
     virtual ~TraceHandler() = default;
     virtual auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {})
         -> std::vector<std::string> = 0;
     virtual std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) = 0;
 
 protected:
-    virtual uint32_t GetTraceCleanThreshold(const std::string&) = 0;
     virtual void DoClean(const std::string& business);
 
 protected:
     std::string tracePath_;
     std::string caller_;
+    uint32_t cleanThreshold_;
 };
 
 class TraceZipHandler : public TraceHandler, public std::enable_shared_from_this<TraceZipHandler> {
 public:
-    TraceZipHandler(const std::string& tracePath, const std::string& caller) : TraceHandler(tracePath, caller) {}
+    TraceZipHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
+        : TraceHandler(tracePath, caller, cleanThreshold) {}
     auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {})
         -> std::vector<std::string> override;
     std::string GetTraceFinalPath(const std::string& fileName, const std::string& prefix) override
@@ -54,7 +66,6 @@ public:
     }
 
 private:
-    uint32_t GetTraceCleanThreshold(const std::string&) override;
     std::string GetTraceZipTmpPath(const std::string& fileName);
     void AddZipFile(const std::string& srcPath, const std::string& traceZipFile);
     void ZipTraceFile(const std::string& srcPath, const std::string& traceZipFile, const std::string& tmpZipFile);
@@ -62,14 +73,13 @@ private:
 
 class TraceCopyHandler : public TraceHandler, public std::enable_shared_from_this<TraceCopyHandler> {
 public:
-    TraceCopyHandler(const std::string& tracePath, const std::string& caller)
-        : TraceHandler(tracePath, caller) {}
+    TraceCopyHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
+        : TraceHandler(tracePath, caller, cleanThreshold) {}
     auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
         -> std::vector<std::string> override;
 
 protected:
     void CopyTraceFile(const std::string& src, const std::string& dst);
-    uint32_t GetTraceCleanThreshold(const std::string& prefix) override;
 
     std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) override
     {
@@ -79,21 +89,19 @@ protected:
 
 class TraceSyncCopyHandler : public TraceCopyHandler {
 public:
-    TraceSyncCopyHandler(const std::string& tracePath, const std::string& caller)
-        : TraceCopyHandler(tracePath, caller) {}
+    TraceSyncCopyHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
+        : TraceCopyHandler(tracePath, caller, cleanThreshold) {}
     auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
         -> std::vector<std::string> override;
 };
 
 class TraceAppHandler : public TraceHandler {
 public:
-    explicit TraceAppHandler(const std::string& tracePath) : TraceHandler(tracePath, ClientName::APP) {}
+    explicit TraceAppHandler(const std::string& tracePath, uint32_t cleanThreshold)
+        : TraceHandler(tracePath, ClientName::APP, cleanThreshold) {}
     auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
         -> std::vector<std::string> override;
     std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) override;
-
-protected:
-    uint32_t GetTraceCleanThreshold(const std::string& prefix) override;
 };
 }
 #endif

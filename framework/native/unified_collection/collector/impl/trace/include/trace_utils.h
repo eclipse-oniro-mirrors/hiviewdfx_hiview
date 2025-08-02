@@ -24,33 +24,11 @@
 
 using OHOS::HiviewDFX::Hitrace::TraceErrorCode;
 using OHOS::HiviewDFX::UCollect::UcError;
-
-namespace OHOS {
-namespace HiviewDFX {
-
-extern const char* const UNIFIED_SHARE_PATH;
-extern const char* const UNIFIED_SPECIAL_PATH;
-extern const char* const UNIFIED_TELEMETRY_PATH;
-extern const char* const UNIFIED_SHARE_TEMP_PATH;
-
-struct DumpEvent {
-    std::string caller;
-    int32_t errorCode = 0;
-    uint64_t ipcTime = 0;
-    uint64_t reqTime = 0;
-    int32_t reqDuration = 0;
-    uint64_t execTime = 0;
-    int32_t execDuration = 0;
-    int32_t coverDuration = 0;
-    int32_t coverRatio = 0;
-    std::vector<std::string> tags;
-    int64_t fileSize = 0;
-    int32_t sysMemTotal = 0;
-    int32_t sysMemFree = 0;
-    int32_t sysMemAvail = 0;
-    int32_t sysCpu = 0;
-    uint8_t traceMode = 0;
-};
+namespace OHOS::HiviewDFX {
+inline constexpr char UNIFIED_SHARE_PATH[] = "/data/log/hiview/unified_collection/trace/share/";
+inline constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";
+inline constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
+inline constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
 
 UcError TransCodeToUcError(TraceErrorCode ret);
 UcError TransStateToUcError(TraceStateCode ret);
@@ -62,5 +40,5 @@ UcError GetUcError(TraceRet ret);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);
 void CheckCurrentCpuLoad();
 } // HiViewDFX
-} // OHOS
+// OHOS
 #endif // FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_FILE_UTILS_H

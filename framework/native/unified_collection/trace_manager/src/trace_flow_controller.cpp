@@ -31,7 +31,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceFlowController");
-constexpr int32_t DB_VERSION = 5;
+constexpr int32_t DB_VERSION = 6;
 const std::string DB_NAME = "trace_flow_control.db";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
 const std::set<std::string> DB_CALLER {
@@ -53,7 +53,7 @@ void TraceFlowController::InitTraceDb(const std::string& dbPath)
     }
 }
 
-void TraceFlowController::InitTraceStorage(const std::string& caller)
+void TraceFlowController::InitTraceStorage(const std::string& caller, const std::string& configPath)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("dbStore fail init");
@@ -61,7 +61,7 @@ void TraceFlowController::InitTraceStorage(const std::string& caller)
     }
     if (DB_CALLER.find(caller) != DB_CALLER.end()) {
         HIVIEW_LOGD("is db caller, init TraceStorage");
-        traceStorage_ = std::make_shared<TraceStorage>(dbStore_, caller);
+        traceStorage_ = std::make_shared<TraceStorage>(dbStore_, caller, configPath);
     }
     if (caller == ClientName::APP) {
         appTaskStore_ = std::make_shared<AppEventTaskStorage>(dbStore_);
@@ -74,10 +74,11 @@ void TraceFlowController::InitTraceStorage(const std::string& caller)
     }
 }
 
-TraceFlowController::TraceFlowController(const std::string& caller, const std::string& dbPath)
+TraceFlowController::TraceFlowController(const std::string& caller, const std::string& dbPath,
+    const std::string& configPath)
 {
     InitTraceDb(dbPath);
-    InitTraceStorage(caller);
+    InitTraceStorage(caller, configPath);
 }
 
 int64_t TraceFlowController::GetRemainingTraceSize()
@@ -94,6 +95,22 @@ void TraceFlowController::StoreDb(int64_t traceSize)
         return;
     }
     traceStorage_->StoreDb(traceSize);
+}
+
+bool TraceFlowController::IsOverLimit()
+{
+    if (traceStorage_ == nullptr) {
+        return true;
+    }
+    return traceStorage_->IsOverLimit();
+}
+
+void TraceFlowController::DecreaseDynamicThreshold()
+{
+    if (traceStorage_ == nullptr) {
+        return;
+    }
+    traceStorage_->DecreaseDynamicThreshold();
 }
 
 bool TraceFlowController::HasCallOnceToday(int32_t uid, uint64_t happenTime)
@@ -185,13 +202,22 @@ TelemetryRet TraceFlowController::InitTelemetryData(const std::string &telemetry
     return teleMetryStorage_->InitTelemetryControl(telemetryId, runningTime, flowControlQuotas);
 }
 
-TelemetryRet TraceFlowController::NeedTelemetryDump(const std::string &module, int64_t traceSize)
+TelemetryRet TraceFlowController::NeedTelemetryDump(const std::string &module)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage, close task");
         return TelemetryRet::EXIT;
     }
-    return teleMetryStorage_->NeedTelemetryDump(module, traceSize);
+    return teleMetryStorage_->NeedTelemetryDump(module);
+}
+
+void TraceFlowController::TelemetryStore(const std::string &module, int64_t zipTraceSize)
+{
+    if (teleMetryStorage_ == nullptr) {
+        HIVIEW_LOGE("failed to init teleMetryStorage, close task");
+        return;
+    }
+    return teleMetryStorage_->TelemetryStore(module, zipTraceSize);
 }
 
 void TraceFlowController::ClearTelemetryData()

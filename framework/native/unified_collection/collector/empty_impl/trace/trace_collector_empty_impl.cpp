@@ -50,7 +50,10 @@ CollectResult<int32_t> TraceCollectorEmptyImpl::FilterTraceOff(UCollect::TeleMod
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-void TraceCollectorEmptyImpl::RecoverTmpTrace() {}
+bool TraceCollectorEmptyImpl::RecoverTmpTrace()
+{
+    return false;
+}
 } // UCollectUtil
 } // HiViewDFX
 } // OHOS

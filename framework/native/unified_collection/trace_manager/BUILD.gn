@@ -47,7 +47,6 @@ ohos_source_set("trace_manager_source") {
   sources = [
     "src/trace_db_callback.cpp",
     "src/trace_flow_controller.cpp",
-    "src/trace_quota_config.cpp",
     "src/trace_state_machine.cpp",
     "state/trace_base_state.cpp",
     "state/trace_command_state.cpp",

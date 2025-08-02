@@ -18,27 +18,13 @@
 
 #include "hiview_logger.h"
 #include "file_util.h"
-#include "trace_worker.h"
 #include "trace_decorator.h"
 #include "hiview_event_report.h"
 #include "hiview_zip_util.h"
 
-using namespace OHOS::HiviewDFX::Hitrace;
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
-constexpr uint32_t UNIFIED_SHARE_COUNTS = 25;
-constexpr uint32_t UNIFIED_TELEMETRY_COUNTS = 20;
-constexpr uint32_t UNIFIED_APP_SHARE_COUNTS = 40;
-
-const std::map<std::string, uint32_t> TRACE_CLEAN_THRESHOLD = {
-    {CallerName::XPERF,       3},
-    {CallerName::RELIABILITY, 3},
-    {CallerName::OTHER,       5},
-    {CallerName::SCREEN,      1},
-    {ClientName::BETACLUB,    2}
-};
-
 void WriteTrafficLog(std::chrono::time_point<std::chrono::steady_clock> startTime, const std::string& caller,
     const std::string& srcFile, const std::string& traceFile)
 {
@@ -70,6 +56,11 @@ void WriteZipTrafficLog(std::chrono::time_point<std::chrono::steady_clock> start
 }
 }
 
+void TraceWorker::HandleUcollectionTask(UcollectionTask ucollectionTask)
+{
+    ffrtQueue_->submit(ucollectionTask, ffrt::task_attr().name("dft_uc_trace"));
+}
+
 void TraceHandler::DoClean(const std::string &prefix)
 {
     // Load all files under the path
@@ -86,10 +77,9 @@ void TraceHandler::DoClean(const std::string &prefix)
     std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
         return a < b;
     });
-    auto threshold = GetTraceCleanThreshold(prefix);
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), threshold);
+    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), cleanThreshold_);
 
-    while (filteredFiles.size() > threshold) {
+    while (filteredFiles.size() > cleanThreshold_) {
         FileUtil::RemoveFile(filteredFiles.front());
         HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
         filteredFiles.pop_front();
@@ -134,17 +124,6 @@ auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, H
         HIVIEW_LOGI("insert zip file : %{public}s.", traceZipFile.c_str());
     }
     return files;
-}
-
-uint32_t TraceZipHandler::GetTraceCleanThreshold(const std::string &)
-{
-    if (tracePath_ == UNIFIED_SHARE_PATH) {
-        return UNIFIED_SHARE_COUNTS;
-    }
-    if (tracePath_ == UNIFIED_TELEMETRY_PATH) {
-        return UNIFIED_TELEMETRY_COUNTS;
-    }
-    return 0;
 }
 
 std::string TraceZipHandler::GetTraceZipTmpPath(const std::string &fileName)
@@ -196,15 +175,6 @@ void TraceCopyHandler::CopyTraceFile(const std::string &src, const std::string &
     } else {
         HIVIEW_LOGI("copy end, file : %{public}s.", dstFileName.c_str());
     }
-}
-
-uint32_t TraceCopyHandler::GetTraceCleanThreshold(const std::string &prefix)
-{
-    if (TRACE_CLEAN_THRESHOLD.find(prefix) == TRACE_CLEAN_THRESHOLD.end()) {
-        HIVIEW_LOGW("lack count config : %{public}s", prefix.c_str());
-        return 0;
-    }
-    return TRACE_CLEAN_THRESHOLD.at(prefix);
 }
 
 auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
@@ -265,10 +235,5 @@ auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles, H
 std::string TraceAppHandler::GetTraceFinalPath(const std::string &tracePath, const std::string &prefix)
 {
     return "";
-}
-
-uint32_t TraceAppHandler::GetTraceCleanThreshold(const std::string &business)
-{
-    return UNIFIED_APP_SHARE_COUNTS;
 }
 }

@@ -19,11 +19,9 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "singleton.h"
-
 #include "trace_common.h"
 #include "trace_base_state.h"
 

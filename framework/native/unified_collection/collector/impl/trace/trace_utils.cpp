@@ -20,17 +20,11 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
-#include "securec.h"
-#include "trace_decorator.h"
-#include "trace_worker.h"
 #include "string_util.h"
-#include "hiview_zip_util.h"
 #include "cpu_collector.h"
-#include "hisysevent.h"
+#include "ffrt.h"
 
 using namespace std::chrono_literals;
-using OHOS::HiviewDFX::TraceWorker;
-
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -71,11 +65,6 @@ const std::map<TraceFlowCode, UcError> TRACE_FLOW_MAP = {
     {TraceFlowCode::TRACE_HAS_CAPTURED_TRACE, UcError::HAD_CAPTURED_TRACE}
 };
 }
-
-const auto UNIFIED_SHARE_PATH = "/data/log/hiview/unified_collection/trace/share/";
-const auto UNIFIED_SPECIAL_PATH = "/data/log/hiview/unified_collection/trace/special/";
-const auto UNIFIED_TELEMETRY_PATH = "/data/log/hiview/unified_collection/trace/telemetry/";
-const auto UNIFIED_SHARE_TEMP_PATH = "/data/log/hiview/unified_collection/trace/share/temp/";
 
 UcError TransCodeToUcError(TraceErrorCode ret)
 {

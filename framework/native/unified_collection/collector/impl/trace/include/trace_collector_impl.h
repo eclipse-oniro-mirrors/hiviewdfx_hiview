@@ -33,7 +33,7 @@ public:
         uint32_t maxDuration, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(TeleModule module) override;
-    void RecoverTmpTrace() override;
+    bool RecoverTmpTrace() override;
 
 private:
     CollectResult<std::vector<std::string>> StartDumpTrace(TraceCaller &caller, uint32_t timeLimit,

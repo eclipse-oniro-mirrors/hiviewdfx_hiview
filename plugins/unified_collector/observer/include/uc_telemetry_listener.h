@@ -21,7 +21,6 @@
 #include "plugin.h"
 #include "trace_flow_controller.h"
 #include "trace_state_machine.h"
-#include "unified_common.h"
 #include "ffrt.h"
 
 namespace OHOS::HiviewDFX {

@@ -29,7 +29,6 @@
 #include "trace_utils.h"
 #include "trace_strategy_factory.h"
 #include "hiview_zip_util.h"
-#include "trace_worker.h"
 #include "hiview_event_report.h"
 
 using namespace OHOS::HiviewDFX;
@@ -87,10 +86,9 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(
         return {UcError::PERMISSION_CHECK_FAILED};
     }
     CollectResult<std::vector<std::string>> result;
-    auto strategy = std::make_shared<TelemetryStrategy>(
-        StrategyParam {maxDuration, happenTime, ModuleToString(module)},
-            std::make_shared<TraceZipHandler>(UNIFIED_TELEMETRY_PATH, BusinessName::TELEMETRY));
-    TraceRet ret = strategy->DoDump(result.data);
+    auto strategy = TraceStrategyFactory::CreateStrategy(module, maxDuration, happenTime);
+    TraceRetInfo traceRetInfo;
+    TraceRet ret = strategy->DoDump(result.data, traceRetInfo);
     result.retCode = GetUcError(ret);
     HIVIEW_LOGI("caller:%{public}s retCode = %{public}d, file number = %{public}zu.", ModuleToString(module).c_str(),
         result.retCode, result.data.size());
@@ -156,18 +154,19 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(Trace
         result.retCode = UcError::UNSUPPORT;
         return result;
     }
-    TraceRet ret = strategy->DoDump(result.data);
+    TraceRetInfo traceRetInfo;
+    TraceRet ret = strategy->DoDump(result.data, traceRetInfo);
     result.retCode = GetUcError(ret);
     HIVIEW_LOGI("caller:%{public}s, retCode = %{public}d, data.size = %{public}zu.", EnumToString(caller).c_str(),
         result.retCode, result.data.size());
     return result;
 }
 
-void TraceCollectorImpl::RecoverTmpTrace()
+bool TraceCollectorImpl::RecoverTmpTrace()
 {
     if (auto uid = getuid(); uid != HIVIEW_UID) {
         HIVIEW_LOGE("Do not allow uid:%{public}d to RecoverTmpTrace trace except in hiview process", uid);
-        return;
+        return false;
     }
     std::vector<std::string> traceFiles;
     FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
@@ -201,6 +200,7 @@ void TraceCollectorImpl::RecoverTmpTrace()
         };
         TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
+    return true;
 }
 } // UCollectUtil
 } // HiViewDFX
