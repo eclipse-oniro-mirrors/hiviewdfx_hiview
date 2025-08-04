@@ -137,6 +137,7 @@ bool LogSignTools::VerifyRsa(RSA *pubKey, const std::string &digest, const std::
 
     if (EVP_PKEY_set1_RSA(evpKey, pubKey) != 1) {
         HIVIEW_LOGE("set RSA failed.");
+        EVP_PKEY_free(evpKey);
         return false;
     }
 
