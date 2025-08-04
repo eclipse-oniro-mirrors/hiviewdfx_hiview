@@ -161,8 +161,9 @@ public:
 
 class TraceAppStrategy : public TraceStrategy  {
 public:
-    TraceAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent, std::shared_ptr<TraceAppHandler> appHandler)
-        : TraceStrategy(StrategyParam {0, 0, ClientName::APP}, TraceScenario::TRACE_DYNAMIC, appHandler)
+    TraceAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent, std::shared_ptr<TraceAppHandler> appHandler,
+        std::string dbPath = FlowController::DEFAULT_DB_PATH)
+        : TraceStrategy(StrategyParam {0, 0, ClientName::APP, dbPath}, TraceScenario::TRACE_DYNAMIC, appHandler)
     {
         appCallerEvent_ = appCallerEvent;
         traceFlowController_ = std::make_shared<TraceFlowController>(ClientName::APP, dbPath_, configPath_);
@@ -170,10 +171,9 @@ public:
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 
 private:
-    void InnerShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent);
-    void InnerReportMainThreadJankForTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
+    void ShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent);
+    void ReportMainThreadJankForTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
     void CleanOldAppTrace();
-    std::string InnerMakeTraceFileName(std::shared_ptr<AppCallerEvent> appCallerEvent);
 
 private:
     std::shared_ptr<AppCallerEvent> appCallerEvent_;

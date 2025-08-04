@@ -130,6 +130,25 @@ config("ucollection_source_config") {
   defines = [ "PC_APP_STATE_COLLECT_ENABLE = $hiview_unified_collector_PC_app_state_collect_enable" ]
 }
 
+config("ucollection_test_config") {
+
+  visibility = [ "*:*" ]
+
+  include_dirs = [
+    "collector/inner_include",
+    "process/include",
+    "decorator/include",
+    "$hiview_interfaces/inner_api/unified_collection",
+    "$hiview_interfaces/inner_api/unified_collection/utility",
+    "$hiview_interfaces/inner_api/unified_collection/resource",
+  ]
+
+  include_dirs += [
+    "collector/empty_impl/cpu",
+    "collector/empty_impl/memory",
+  ]
+}
+
 ohos_source_set("ucollection_source") {
   configs = [
     ":ucollection_source_config",
@@ -346,6 +365,40 @@ ohos_source_set("ucollection_source") {
   subsystem_name = "hiviewdfx"
 }
 
+ohos_source_set("memory_collector_empty_source") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":ucollection_test_config" ]
+
+  sources = [ "collector/empty_impl/memory/memory_collector_empty_impl.cpp" ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_source_set("cpu_collector_empty_source") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":ucollection_test_config" ]
+
+  sources = [ "collector/empty_impl/cpu/cpu_collector_empty_impl.cpp" ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
 group("unittest") {
   testonly = true
   deps = [ "decorator/test:DecoratorUnitTest" ]
@@ -353,6 +406,8 @@ group("unittest") {
   if (hiview_unified_collector_trace_enable) {
     deps += [
       "collector/impl/trace/test:TraceUtilsTest",
+      "collector/impl/trace/test:TraceStrategyTest",
+      "collector/impl/trace/test:TraceAppStrategyTest",
       "trace_manager/test:TraceManagerTest",
     ]
   }

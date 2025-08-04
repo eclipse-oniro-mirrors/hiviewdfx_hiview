@@ -76,3 +76,25 @@ ohos_shared_library("libucollection_graphic") {
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 }
+
+ohos_static_library("trace_strategy_for_tdd") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":ucolletciton_utility_config" ]
+
+  sources = []
+
+  deps = [
+    "$hiview_framework/native/unified_collection:memory_collector_empty_source",
+    "$hiview_framework/native/unified_collection:cpu_collector_empty_source",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

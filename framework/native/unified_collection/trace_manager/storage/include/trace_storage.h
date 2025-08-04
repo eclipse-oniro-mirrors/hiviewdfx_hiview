@@ -39,6 +39,12 @@ public:
     bool IsOverLimit();
     void DecreaseDynamicThreshold();
     void StoreDb(int64_t traceSize);
+#ifdef TRACE_MANAGER_UNITTEST
+    void SetTestDate(const std::string& testDate)
+    {
+        testDate_ = testDate;
+    }
+#endif
 
 private:
     void InitTableRecord();
@@ -58,6 +64,9 @@ private:
     int64_t quota_ = 0;
     int64_t decreaseUnit_ = 0;
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+#ifdef TRACE_MANAGER_UNITTEST
+    std::string testDate_;
+#endif
 }; // TraceStorage
 } // namespace OHOS::HiviewDFX
 

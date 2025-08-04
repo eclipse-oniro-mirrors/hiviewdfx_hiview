@@ -86,8 +86,8 @@ void TraceHandler::DoClean(const std::string &prefix)
     }
 }
 
-auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
-    -> std::vector<std::string>
+auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
+    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("failed to create multidirectory.");
@@ -177,8 +177,8 @@ void TraceCopyHandler::CopyTraceFile(const std::string &src, const std::string &
     }
 }
 
-auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
-    -> std::vector<std::string>
+auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
+    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
@@ -204,8 +204,8 @@ auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, 
     return files;
 }
 
-auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
-    -> std::vector<std::string>
+auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
+    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
@@ -225,15 +225,34 @@ auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFil
     return files;
 }
 
-auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
-    -> std::vector<std::string>
+auto TraceAppHandler::HandleTrace(const std::vector<std::string> &outputFiles, HandleCallback callback,
+    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
 {
+    if (appCallerEvent == nullptr || outputFiles.empty()) {
+        return {};
+    }
+    std::string traceFileName = MakeTraceFileName(appCallerEvent);
+    HIVIEW_LOGI("src:%{public}s, dir:%{public}s", outputFiles[0].c_str(), traceFileName.c_str());
+    FileUtil::RenameFile(outputFiles[0], traceFileName);
+    appCallerEvent->externalLog_ = traceFileName;
     DoClean(caller_);
-    return {};
+    return {traceFileName};
 }
 
-std::string TraceAppHandler::GetTraceFinalPath(const std::string &tracePath, const std::string &prefix)
+std::string TraceAppHandler::MakeTraceFileName(std::shared_ptr<AppCallerEvent> appCallerEvent)
 {
-    return "";
+    std::string &bundleName = appCallerEvent->bundleName_;
+    int32_t pid = appCallerEvent->pid_;
+    int64_t beginTime = appCallerEvent->taskBeginTime_;
+    int64_t endTime = appCallerEvent->taskEndTime_;
+    int32_t costTime = (appCallerEvent->taskEndTime_ - appCallerEvent->taskBeginTime_);
+
+    std::string d1 = TimeUtil::TimestampFormatToDate(beginTime/ TimeUtil::SEC_TO_MILLISEC, "%Y%m%d%H%M%S");
+    std::string d2 = TimeUtil::TimestampFormatToDate(endTime/ TimeUtil::SEC_TO_MILLISEC, "%Y%m%d%H%M%S");
+
+    std::string name;
+    name.append(tracePath_).append("APP_").append(bundleName).append("_").append(std::to_string(pid));
+    name.append("_").append(d1).append("_").append(d2).append("_").append(std::to_string(costTime)).append(".sys");
+    return name;
 }
 }
