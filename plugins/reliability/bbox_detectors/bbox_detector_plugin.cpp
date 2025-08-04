@@ -154,6 +154,7 @@ void BBoxDetectorPlugin::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent)
 
 void BBoxDetectorPlugin::StartBootScan()
 {
+    constexpr int oneDaySecond = 60 * 60 * 24;
     for (auto historyLog : HISTORYLOGLIST) {
         int num = READ_LINE_NUM;
         string line;
@@ -172,7 +173,7 @@ void BBoxDetectorPlugin::StartBootScan()
             }
             auto timeNow = TimeUtil::GetSeconds();
             auto happenTime = GetHappenTime(line, hisiHistory);
-            if (abs(timeNow - static_cast<int64_t>(happenTime)) > ONE_DAY  ||
+            if (abs(timeNow - static_cast<int64_t>(happenTime)) > oneDaySecond ||
                 HisysEventUtil::IsEventProcessed(name, "LOG_PATH", historyMap["dynamicPaths"]) ||
                 (eventRecorder_ != nullptr &&
                  eventRecorder_->IsExistEvent(name, happenTime, historyMap["dynamicPaths"]))) {
