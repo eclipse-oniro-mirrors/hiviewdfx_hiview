@@ -48,6 +48,7 @@ private:
     void QueryTable(TraceFlowRecord& traceFlowRecord);
     void UpdateTable(const TraceFlowRecord& traceFlowRecord);
     int64_t GetTraceQuota(const std::string& key);
+    bool IsDateChange();
     std::string GetDate();
 
 private:
