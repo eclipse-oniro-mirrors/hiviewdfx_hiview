@@ -136,14 +136,7 @@ int64_t TraceStorage::GetRemainingTraceSize()
     if (quota_ <= 0) {
         return 0;
     }
-    std::string nowDays = GetDate();
-    HIVIEW_LOGI("start to dump, nowDays = %{public}s, systemTime = %{public}s.",
-                nowDays.c_str(), traceFlowRecord_.systemTime.c_str());
-    if (nowDays != traceFlowRecord_.systemTime) {
-        HIVIEW_LOGD("date changes");
-        traceFlowRecord_.systemTime = nowDays;
-        traceFlowRecord_.usedSize = 0;
-        traceFlowRecord_.dynamicDecrease = 0;
+    if (IsDateChange()) {
         return quota_ + quota_ * TEN_PERCENT_LIMIT;
     }
     if (quota_ <= traceFlowRecord_.usedSize) {
@@ -156,6 +149,9 @@ bool TraceStorage::IsOverLimit()
 {
     if (quota_ <= 0) {
         return true;
+    }
+    if (IsDateChange()) {
+        return false;
     }
     return (quota_ - traceFlowRecord_.dynamicDecrease) < traceFlowRecord_.usedSize;
 }
@@ -193,6 +189,21 @@ int64_t TraceStorage::GetTraceQuota(const std::string& key)
     }
     cJSON_Delete(root);
     return traceQuota;
+}
+
+bool TraceStorage::IsDateChange()
+{
+    std::string nowDays = GetDate();
+    HIVIEW_LOGI("start to dump, nowDays = %{public}s, systemTime = %{public}s.",
+                nowDays.c_str(), traceFlowRecord_.systemTime.c_str());
+    if (nowDays != traceFlowRecord_.systemTime) {
+        HIVIEW_LOGD("date changes");
+        traceFlowRecord_.systemTime = nowDays;
+        traceFlowRecord_.usedSize = 0;
+        traceFlowRecord_.dynamicDecrease = 0;
+        return true;
+    }
+    return false;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
