@@ -155,10 +155,13 @@ void BBoxDetectorPlugin::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent)
 void BBoxDetectorPlugin::StartBootScan()
 {
     constexpr int oneDaySecond = 60 * 60 * 24;
+    bool hisiHistory = false;
     for (auto historyLog : HISTORYLOGLIST) {
         int num = READ_LINE_NUM;
         string line;
-        bool hisiHistory = FileUtil::FileExists(historyLog) && historyLog.find(HISIPATH) != std::string::npos;
+        if (FileUtil::FileExists(historyLog) && historyLog.find(HISIPATH) != std::string::npos) {
+            hisiHistory = true;
+        }
 
         ifstream fin(historyLog, ios::ate);
         while (FileUtil::GetLastLine(fin, line) && num > 0) {
