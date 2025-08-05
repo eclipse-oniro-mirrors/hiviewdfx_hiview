@@ -68,7 +68,11 @@ const std::list<std::pair<std::string, MemoryItemType>> PREFIX_LIST = {
 };
 
 const std::list<std::pair<std::string, MemoryItemType>> HIGH_PRIORITY_SUFFIX_LIST = {
-    {".db-shm", MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM}
+    {".db-shm", MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM},
+    {".so", MemoryItemType::MEMORY_ITEM_ENTITY_SO},
+    {".so.1", MemoryItemType::MEMORY_ITEM_ENTITY_SO1},
+    {".ttf", MemoryItemType::MEMORY_ITEM_ENTITY_TTF},
+    {".db", MemoryItemType::MEMORY_ITEM_ENTITY_DB},
 };
 
 const std::list<std::pair<std::string, MemoryItemType>> HIGH_PRIORITY_PREFIX_LIST = {
@@ -76,10 +80,6 @@ const std::list<std::pair<std::string, MemoryItemType>> HIGH_PRIORITY_PREFIX_LIS
 };
 
 const std::list<std::pair<std::string, MemoryItemType>> SUFFIX_LIST = {
-    {".so", MemoryItemType::MEMORY_ITEM_ENTITY_SO},
-    {".so.1", MemoryItemType::MEMORY_ITEM_ENTITY_SO1},
-    {".ttf", MemoryItemType::MEMORY_ITEM_ENTITY_TTF},
-    {".db", MemoryItemType::MEMORY_ITEM_ENTITY_DB},
     {".hap", MemoryItemType::MEMORY_ITEM_ENTITY_HAP},
     {".hsp", MemoryItemType::MEMORY_ITEM_ENTITY_HSP},
     {".so.1.bss]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_BSS},
