@@ -39,14 +39,12 @@ void InitDumpEvent(DumpEvent &dumpEvent, const std::string &caller, uint32_t max
     dumpEvent.reqDuration = static_cast<int32_t>(maxDuration);
     dumpEvent.reqTime = happenTime;
     dumpEvent.execTime = TimeUtil::GenerateTimestamp() / MS_UNIT; // convert execTime into ms unit
-    auto startPoint = std::chrono::steady_clock::now();
-    dumpEvent.startTime = std::chrono::duration_cast<std::chrono::milliseconds>(startPoint.time_since_epoch()).count();
+    dumpEvent.startTime = TimeUtil::GetSteadyClockTimeMs();
 }
 
 void UpdateDumpEvent(DumpEvent &dumpEvent, const TraceRet &ret, const TraceRetInfo &retInfo)
 {
-    auto endPoint = std::chrono::steady_clock::now();
-    auto endTime = std::chrono::duration_cast<std::chrono::milliseconds>(endPoint.time_since_epoch()).count();
+    auto endTime = TimeUtil::GetSteadyClockTimeMs();
     dumpEvent.errorCode = GetUcError(ret);
     dumpEvent.execDuration = static_cast<int32_t>(endTime - dumpEvent.startTime);
     dumpEvent.coverDuration = retInfo.coverDuration;
