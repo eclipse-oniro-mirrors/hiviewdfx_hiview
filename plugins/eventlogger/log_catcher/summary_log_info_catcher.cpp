@@ -37,7 +37,7 @@ namespace {
         unsigned int magic;
         int64_t needed_sec_timestamp;
         struct summary_log_line_info line[SUMMARY_LOG_INFO_MAX_SIZE];
-        unsigned int magic_size;
+        unsigned int magicSize;
     };
 }
 
@@ -72,7 +72,7 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
     ringbuff_log_info info = {0};
     info.magic = SUMMARY_LOG_MAGIC;
     info.needed_sec_timestamp = faultTime_;
-    info.magic_size = sizeof(struct ringbuff_log_info);
+    info.magicSize = sizeof(struct ringbuff_log_info);
 
     int res = ioctl(sysLoadFd, GET_SUMMARY_LOG, info);
     if (res < 0) {
