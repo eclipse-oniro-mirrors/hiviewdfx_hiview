@@ -29,6 +29,7 @@ namespace {
 
     static constexpr int LINE_BASE_SIZE = 120;
     static constexpr int SUMMARY_LOG_INFO_MAX_SIZE = 10;
+    static constexpr int SUMMARY_LOG_MAGIC = 0xE5AC01;
     struct summary_log_line_info {
         int64_t sec_timestamp;
         char buffer[LINE_BASE_SIZE];
