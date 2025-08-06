@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string HIEBPF_COLLECTOR_NAME = "HiebpfCollector";
+constexpr char HIEBPF_COLLECTOR_NAME[] = "HiebpfCollector";
 StatInfoWrapper HiebpfDecorator::statInfoWrapper_;
 
 CollectResult<bool> HiebpfDecorator::StartHiebpf(int duration,
@@ -28,13 +28,13 @@ CollectResult<bool> HiebpfDecorator::StartHiebpf(int duration,
     auto task = [this, &duration, &processName, &outFile] {
         return hiebpfCollector_->StartHiebpf(duration, processName, outFile);
     };
-    return Invoke(task, statInfoWrapper_, HIEBPF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(HIEBPF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<bool> HiebpfDecorator::StopHiebpf()
 {
     auto task = [this] { return hiebpfCollector_->StopHiebpf(); };
-    return Invoke(task, statInfoWrapper_, HIEBPF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(HIEBPF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void HiebpfDecorator::SaveStatCommonInfo()

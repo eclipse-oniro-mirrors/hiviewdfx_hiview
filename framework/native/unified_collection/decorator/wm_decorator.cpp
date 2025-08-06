@@ -19,25 +19,25 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string WM_COLLECTOR_NAME = "WmCollector";
+constexpr char WM_COLLECTOR_NAME[] = "WmCollector";
 StatInfoWrapper WmDecorator::statInfoWrapper_;
 
 CollectResult<std::string> WmDecorator::ExportWindowsInfo()
 {
     auto task = [this] { return wmCollector_->ExportWindowsInfo(); };
-    return Invoke(task, statInfoWrapper_, WM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(WM_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<std::string> WmDecorator::ExportWindowsMemory()
 {
     auto task = [this] { return wmCollector_->ExportWindowsMemory(); };
-    return Invoke(task, statInfoWrapper_, WM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(WM_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<std::string> WmDecorator::ExportGpuMemory()
 {
     auto task = [this] { return wmCollector_->ExportGpuMemory(); };
-    return Invoke(task, statInfoWrapper_, WM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(WM_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void WmDecorator::SaveStatCommonInfo()

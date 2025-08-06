@@ -26,9 +26,11 @@ AppUsageEvent::AppUsageEvent(const std::string &name, HiSysEvent::EventType type
     : LoggerEvent(name, type)
 {
     this->paramMap_ = {
-        {KEY_OF_PACKAGE, DEFAULT_STRING}, {KEY_OF_VERSION, DEFAULT_STRING},
-        {KEY_OF_USAGE, DEFAULT_UINT64}, {KEY_OF_DATE, DEFAULT_STRING},
-        {KEY_OF_START_NUM, DEFAULT_UINT32}
+        {std::string(KEY_OF_PACKAGE), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_VERSION), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_USAGE), DEFAULT_UINT64},
+        {std::string(KEY_OF_DATE), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_START_NUM), DEFAULT_UINT32}
     };
 }
 

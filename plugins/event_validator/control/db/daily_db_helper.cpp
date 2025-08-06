@@ -26,11 +26,11 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("DailyController");
 namespace {
-const std::string EVENTS_TABLE = "events_count";
-const std::string EVENTS_COLUMIN_DOMAIN = "domain";
-const std::string EVENTS_COLUMIN_NAME = "name";
-const std::string EVENTS_COLUMIN_COUNT = "count";
-const std::string EVENTS_COLUMIN_EXCEED_TIME = "exceed_time";
+constexpr char EVENTS_TABLE[] = "events_count";
+constexpr char EVENTS_COLUMN_DOMAIN[] = "domain";
+constexpr char EVENTS_COLUMN_NAME[] = "name";
+constexpr char EVENTS_COLUMN_COUNT[] = "count";
+constexpr char EVENTS_COLUMN_EXCEED_TIME[] = "exceed_time";
 
 int32_t CreateEventsTable(NativeRdb::RdbStore& dbStore)
 {
@@ -44,14 +44,14 @@ int32_t CreateEventsTable(NativeRdb::RdbStore& dbStore)
      * |-----|-----------|---------|-------|-------------|
      */
     const std::vector<std::pair<std::string, std::string>> fields = {
-        {EVENTS_COLUMIN_DOMAIN, SqlUtil::COLUMN_TYPE_STR},
-        {EVENTS_COLUMIN_NAME, SqlUtil::COLUMN_TYPE_STR},
-        {EVENTS_COLUMIN_COUNT, SqlUtil::COLUMN_TYPE_INT},
-        {EVENTS_COLUMIN_EXCEED_TIME, SqlUtil::COLUMN_TYPE_INT},
+        {EVENTS_COLUMN_DOMAIN, SqlUtil::COLUMN_TYPE_STR},
+        {EVENTS_COLUMN_NAME, SqlUtil::COLUMN_TYPE_STR},
+        {EVENTS_COLUMN_COUNT, SqlUtil::COLUMN_TYPE_INT},
+        {EVENTS_COLUMN_EXCEED_TIME, SqlUtil::COLUMN_TYPE_INT},
     };
     std::string sql = SqlUtil::GenerateCreateSql(EVENTS_TABLE, fields);
     if (auto ret = dbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGW("failed to create table=%{public}s, ret=%{public}d", EVENTS_TABLE.c_str(), ret);
+        HIVIEW_LOGW("failed to create table=%{public}s, ret=%{public}d", EVENTS_TABLE, ret);
         return ret;
     }
     return NativeRdb::E_OK;
@@ -122,10 +122,10 @@ int32_t DailyDbHelper::InsertEventInfo(const EventInfo& info)
     }
 
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(EVENTS_COLUMIN_DOMAIN, info.domain);
-    bucket.PutString(EVENTS_COLUMIN_NAME, info.name);
-    bucket.PutInt(EVENTS_COLUMIN_COUNT, info.count);
-    bucket.PutLong(EVENTS_COLUMIN_EXCEED_TIME, info.exceedTime);
+    bucket.PutString(EVENTS_COLUMN_DOMAIN, info.domain);
+    bucket.PutString(EVENTS_COLUMN_NAME, info.name);
+    bucket.PutInt(EVENTS_COLUMN_COUNT, info.count);
+    bucket.PutLong(EVENTS_COLUMN_EXCEED_TIME, info.exceedTime);
     int64_t seq = 0;
     if (auto ret = dbStore_->Insert(seq, EVENTS_TABLE, bucket); ret != NativeRdb::E_OK) {
         HIVIEW_LOGW("failed to insert event, domain=%{public}s, name=%{public}s",
@@ -144,13 +144,13 @@ int32_t DailyDbHelper::UpdateEventInfo(const EventInfo& info)
     }
 
     NativeRdb::ValuesBucket bucket;
-    bucket.PutInt(EVENTS_COLUMIN_COUNT, info.count);
+    bucket.PutInt(EVENTS_COLUMN_COUNT, info.count);
     if (info.exceedTime != 0) {
-        bucket.PutLong(EVENTS_COLUMIN_EXCEED_TIME, info.exceedTime);
+        bucket.PutLong(EVENTS_COLUMN_EXCEED_TIME, info.exceedTime);
     }
     NativeRdb::AbsRdbPredicates predicates(EVENTS_TABLE);
-    predicates.EqualTo(EVENTS_COLUMIN_DOMAIN, info.domain);
-    predicates.EqualTo(EVENTS_COLUMIN_NAME, info.name);
+    predicates.EqualTo(EVENTS_COLUMN_DOMAIN, info.domain);
+    predicates.EqualTo(EVENTS_COLUMN_NAME, info.name);
     int32_t changeRows = 0;
     if (dbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK || changeRows == 0) {
         HIVIEW_LOGW("failed to update event, domain=%{public}s, name=%{public}s, count=%{public}d",
@@ -167,9 +167,9 @@ int32_t DailyDbHelper::QueryEventInfo(EventInfo& info)
     }
 
     NativeRdb::AbsRdbPredicates predicates(EVENTS_TABLE);
-    predicates.EqualTo(EVENTS_COLUMIN_DOMAIN, info.domain);
-    predicates.EqualTo(EVENTS_COLUMIN_NAME, info.name);
-    auto resultSet = dbStore_->Query(predicates, {EVENTS_COLUMIN_COUNT});
+    predicates.EqualTo(EVENTS_COLUMN_DOMAIN, info.domain);
+    predicates.EqualTo(EVENTS_COLUMN_NAME, info.name);
+    auto resultSet = dbStore_->Query(predicates, {EVENTS_COLUMN_COUNT});
     if (resultSet == nullptr) {
         HIVIEW_LOGW("failed to query table, domain=%{public}s, name=%{public}s",
             info.domain.c_str(), info.name.c_str());

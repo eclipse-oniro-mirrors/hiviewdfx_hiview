@@ -45,9 +45,9 @@ constexpr int USER_ID_MOD = 200000;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
 constexpr int32_t MEDIA_UID = 1013;
 constexpr int32_t MEMMGR_UID = 1111;
-const std::string READ_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.READ_HIVIEW_SYSTEM";
-const std::string WRITE_HIVIEW_SYSTEM_PERMISSION = "ohos.permission.WRITE_HIVIEW_SYSTEM";
-const std::string HIVIEW_TRACE_MANAGE_PERMISSION = "ohos.permission.HIVIEW_TRACE_MANAGE";
+constexpr char READ_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.READ_HIVIEW_SYSTEM";
+constexpr char WRITE_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.WRITE_HIVIEW_SYSTEM";
+constexpr char HIVIEW_TRACE_MANAGE_PERMISSION[] = "ohos.permission.HIVIEW_TRACE_MANAGE";
 constexpr uint64_t IPC_FULL_CHECK_INTERVAL = 10; // 10s
 
 static std::string GetApplicationNameById(int32_t uid)

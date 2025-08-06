@@ -28,10 +28,10 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace EventStore {
 DEFINE_LOG_TAG("HiView-SysEventDao");
-const std::string BACKUP_DIR = "/log/hiview/backup/";
-const std::string LOG_HIVIEW_DIR = "/log/hiview/";
-const std::string DIRTY_EVENT_CLEAR_FLAG_PATH = "/log/hiview/dirty_event_clear_flag";
-const std::string DIRTY_EVENT_CLEARED_PROP = "sys.hiview.diag.dirty_event_cleared";
+constexpr char BACKUP_DIR[] = "/log/hiview/backup/";
+constexpr char LOG_HIVIEW_DIR[] = "/log/hiview/";
+constexpr char DIRTY_EVENT_CLEAR_FLAG_PATH[] = "/log/hiview/dirty_event_clear_flag";
+constexpr char DIRTY_EVENT_CLEARED_PROP[] = "sys.hiview.diag.dirty_event_cleared";
 
 std::shared_ptr<SysEventQuery> SysEventDao::BuildQuery(const std::string& domain,
     const std::vector<std::string>& names)

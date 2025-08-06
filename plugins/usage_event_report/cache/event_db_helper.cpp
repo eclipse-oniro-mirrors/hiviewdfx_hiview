@@ -26,11 +26,11 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventDbHelper");
 namespace {
-const std::string DB_DIR = "sys_event_logger/";
-const std::string DB_NAME = "event.db";
-const std::string DB_COLUMIN_EVNET = "event";
-const std::string DB_COLUMIN_PLUGIN = "plugin";
-const std::string DB_TABLE_PLUGIN_STATS = "plugin_stats";
+constexpr char DB_DIR[] = "sys_event_logger/";
+constexpr char DB_NAME[] = "event.db";
+constexpr char DB_COLUMN_EVNET[] = "event";
+constexpr char DB_COLUMN_PLUGIN[] = "plugin";
+constexpr char DB_TABLE_PLUGIN_STATS[] = "plugin_stats";
 const char SQL_TEXT_TYPE[] = "TEXT NOT NULL";
 constexpr int DB_VERSION = 1;
 }
@@ -199,7 +199,7 @@ int EventDbHelper::CreatePluginStatsTable(const std::string& table)
      * |----|--------|-------|
      */
     std::vector<std::pair<std::string, std::string>> fields = {
-        {DB_COLUMIN_EVNET, SQL_TEXT_TYPE}, {DB_COLUMIN_PLUGIN, SQL_TEXT_TYPE}
+        {DB_COLUMN_EVNET, SQL_TEXT_TYPE}, {DB_COLUMN_PLUGIN, SQL_TEXT_TYPE}
     };
     return CreateTable(table, fields);
 }
@@ -213,21 +213,21 @@ int EventDbHelper::CreateSysUsageTable(const std::string& table)
      * | id | event |
      * |----|-------|
      */
-    std::vector<std::pair<std::string, std::string>> fields = {{DB_COLUMIN_EVNET, SQL_TEXT_TYPE}};
+    std::vector<std::pair<std::string, std::string>> fields = {{DB_COLUMN_EVNET, SQL_TEXT_TYPE}};
     return CreateTable(table, fields);
 }
 
 int EventDbHelper::InsertPluginStatsTable(const std::string& pluginName, const std::string& eventStr)
 {
     if (CreatePluginStatsTable(DB_TABLE_PLUGIN_STATS) != 0) {
-        HIVIEW_LOGE("failed to create table=%{public}s", DB_TABLE_PLUGIN_STATS.c_str());
+        HIVIEW_LOGE("failed to create table=%{public}s", DB_TABLE_PLUGIN_STATS);
         return -1;
     }
 
     HIVIEW_LOGD("insert db=%{public}s with %{public}s", dbPath_.c_str(), eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(DB_COLUMIN_PLUGIN, pluginName);
-    bucket.PutString(DB_COLUMIN_EVNET, eventStr);
+    bucket.PutString(DB_COLUMN_PLUGIN, pluginName);
+    bucket.PutString(DB_COLUMN_EVNET, eventStr);
     int64_t seq = 0;
     if (rdbStore_->Insert(seq, DB_TABLE_PLUGIN_STATS, bucket) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to insert pluginStats event=%{public}s", eventStr.c_str());
@@ -245,7 +245,7 @@ int EventDbHelper::InsertSysUsageTable(const std::string& table, const std::stri
 
     HIVIEW_LOGI("insert table=%{public}s with %{public}s", table.c_str(), eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(DB_COLUMIN_EVNET, eventStr);
+    bucket.PutString(DB_COLUMN_EVNET, eventStr);
     int64_t seq = 0;
     if (rdbStore_->Insert(seq, table, bucket) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to insert sysUsage event=%{public}s", eventStr.c_str());
@@ -256,11 +256,11 @@ int EventDbHelper::InsertSysUsageTable(const std::string& table, const std::stri
 
 int EventDbHelper::UpdatePluginStatsTable(const std::string& pluginName, const std::string& eventStr)
 {
-    HIVIEW_LOGD("update db table %{public}s with %{public}s", DB_TABLE_PLUGIN_STATS.c_str(), eventStr.c_str());
+    HIVIEW_LOGD("update db table %{public}s with %{public}s", DB_TABLE_PLUGIN_STATS, eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(DB_COLUMIN_EVNET, eventStr);
+    bucket.PutString(DB_COLUMN_EVNET, eventStr);
     NativeRdb::AbsRdbPredicates predicates(DB_TABLE_PLUGIN_STATS);
-    predicates.EqualTo(DB_COLUMIN_PLUGIN, pluginName);
+    predicates.EqualTo(DB_COLUMN_PLUGIN, pluginName);
     int changeRows = 0;
     if (rdbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK || changeRows == 0) {
         HIVIEW_LOGE("failed to update pluginStats event=%{public}s", eventStr.c_str());
@@ -273,7 +273,7 @@ int EventDbHelper::UpdateSysUsageTable(const std::string& table, const std::stri
 {
     HIVIEW_LOGI("update db table %{public}s with %{public}s", table.c_str(), eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(DB_COLUMIN_EVNET, eventStr);
+    bucket.PutString(DB_COLUMN_EVNET, eventStr);
     NativeRdb::AbsRdbPredicates predicates(table);
     int changeRows = 0;
     if (rdbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK || changeRows == 0) {
@@ -285,7 +285,7 @@ int EventDbHelper::UpdateSysUsageTable(const std::string& table, const std::stri
 
 int EventDbHelper::QueryPluginStatsTable(std::vector<std::string>& eventStrs, const std::string& pluginName)
 {
-    return (QueryDb(eventStrs, DB_TABLE_PLUGIN_STATS, {{DB_COLUMIN_PLUGIN, pluginName}}) != NativeRdb::E_OK) ? -1 : 0;
+    return (QueryDb(eventStrs, DB_TABLE_PLUGIN_STATS, {{DB_COLUMN_PLUGIN, pluginName}}) != NativeRdb::E_OK) ? -1 : 0;
 }
 
 int EventDbHelper::QuerySysUsageTable(std::string& eventStr, const std::string& table)
@@ -305,7 +305,7 @@ int EventDbHelper::QueryDb(std::vector<std::string>& eventStrs, const std::strin
     for (auto queryCond : queryConds) {
         predicates.EqualTo(queryCond.first, queryCond.second);
     }
-    auto resultSet = rdbStore_->Query(predicates, {DB_COLUMIN_EVNET});
+    auto resultSet = rdbStore_->Query(predicates, {DB_COLUMN_EVNET});
     if (resultSet == nullptr) {
         HIVIEW_LOGI("failed to query table=%{public}s", table.c_str());
         return -1;
@@ -313,7 +313,7 @@ int EventDbHelper::QueryDb(std::vector<std::string>& eventStrs, const std::strin
     while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         std::string event;
         if (resultSet->GetString(0, event) != NativeRdb::E_OK) {
-            HIVIEW_LOGI("failed to get %{public}s string from resultSet", DB_COLUMIN_EVNET.c_str());
+            HIVIEW_LOGI("failed to get %{public}s string from resultSet", DB_COLUMN_EVNET);
             continue;
         }
         eventStrs.emplace_back(event);

@@ -52,7 +52,7 @@ DEFINE_LOG_TAG("UCollectUtil");
 
 std::mutex g_memMutex;
 const int NON_PC_APP_STATE = -1;
-const std::string DDR_CUR_FREQ = "/sys/class/devfreq/ddrfreq/cur_freq";
+constexpr char DDR_CUR_FREQ[] = "/sys/class/devfreq/ddrfreq/cur_freq";
 using IHiaiInfraGetFunc = struct IHiaiInfra*(*)(bool);
 using IHiaiInfraReleaseFunc = void(*)(struct IHiaiInfra*, bool);
 

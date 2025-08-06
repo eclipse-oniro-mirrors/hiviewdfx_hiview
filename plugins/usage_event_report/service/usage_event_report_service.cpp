@@ -30,7 +30,7 @@ using namespace SysUsageEventSpace;
 using namespace SysUsageDbSpace;
 namespace {
 constexpr char ARG_SELECTION[] = "p:t:T:sSA";
-const std::string DEFAULT_WORK_PATH = "/data/log/hiview";
+constexpr char DEFAULT_WORK_PATH[] = "/data/log/hiview";
 const std::string SYS_USAGE_KEYS[] = { KEY_OF_POWER, KEY_OF_RUNNING };
 }
 

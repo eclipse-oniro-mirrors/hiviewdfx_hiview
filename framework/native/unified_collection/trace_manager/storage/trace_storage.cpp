@@ -24,13 +24,13 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStorage");
-const std::string TABLE_NAME = "trace_flow_control";
-const std::string COLUMN_SYSTEM_TIME = "system_time";
-const std::string COLUMN_CALLER_NAME = "caller_name";
-const std::string COLUMN_USED_SIZE = "used_size";
-const std::string COLUMN_DYNAMIC_DECREASE = "dynamic_decrease";
-const std::string DYNAMIC_DECREASE_KEY = "DecreaseUnit";
-const std::string TRACE_QUOTA_CONFIG_FILE = "trace_quota_config.json";
+constexpr char TABLE_NAME[] = "trace_flow_control";
+constexpr char COLUMN_SYSTEM_TIME[] = "system_time";
+constexpr char COLUMN_CALLER_NAME[] = "caller_name";
+constexpr char COLUMN_USED_SIZE[] = "used_size";
+constexpr char COLUMN_DYNAMIC_DECREASE[] = "dynamic_decrease";
+constexpr char DYNAMIC_DECREASE_KEY[] = "DecreaseUnit";
+constexpr char TRACE_QUOTA_CONFIG_FILE[] = "trace_quota_config.json";
 const float TEN_PERCENT_LIMIT = 0.1;
 
 NativeRdb::ValuesBucket GetBucket(const TraceFlowRecord& traceFlowRecord)
@@ -112,7 +112,7 @@ void TraceStorage::QueryTable(TraceFlowRecord& traceFlowRecord)
     predicates.EqualTo(COLUMN_CALLER_NAME, traceFlowRecord.callerName);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_SYSTEM_TIME, COLUMN_USED_SIZE, COLUMN_DYNAMIC_DECREASE});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME);
         return;
     }
 

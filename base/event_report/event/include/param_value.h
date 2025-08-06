@@ -26,9 +26,9 @@ constexpr uint8_t DEFAULT_UINT8 = 0;
 constexpr uint16_t DEFAULT_UINT16 = 0;
 constexpr uint32_t DEFAULT_UINT32 = 0;
 constexpr uint64_t DEFAULT_UINT64 = 0;
-const std::string DEFAULT_STRING = "";
-const std::vector<uint32_t> DEFAULT_UINT32_VEC = {};
-const std::vector<std::string> DEFAULT_STRING_VEC = {};
+inline constexpr char DEFAULT_STRING[] = "";
+inline const std::vector<uint32_t> DEFAULT_UINT32_VEC = {};
+inline const std::vector<std::string> DEFAULT_STRING_VEC = {};
 
 class ParamValue {
 public:

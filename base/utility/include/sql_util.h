@@ -22,9 +22,9 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace SqlUtil {
-const std::string COLUMN_TYPE_INT = "INTEGER";
-const std::string COLUMN_TYPE_STR = "TEXT";
-const std::string COLUMN_TYPE_DOU = "REAL";
+inline constexpr char COLUMN_TYPE_INT[] = "INTEGER";
+inline constexpr char COLUMN_TYPE_STR[] = "TEXT";
+inline constexpr char COLUMN_TYPE_DOU[] = "REAL";
 
 std::string GenerateCreateSql(const std::string& table,
     const std::vector<std::pair<std::string, std::string>>& fields);

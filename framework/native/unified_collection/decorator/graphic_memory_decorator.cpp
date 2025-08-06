@@ -19,7 +19,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string GRAPHIC_MEM_COLLECTOR_NAME = "GraphicMemoryCollector";
+constexpr char GRAPHIC_MEM_COLLECTOR_NAME[] = "GraphicMemoryCollector";
 StatInfoWrapper GraphicMemoryDecorator::statInfoWrapper_;
 
 CollectResult<int32_t> GraphicMemoryDecorator::GetGraphicUsage(int32_t pid, GraphicType type, bool isLowLatencyMode)
@@ -27,7 +27,7 @@ CollectResult<int32_t> GraphicMemoryDecorator::GetGraphicUsage(int32_t pid, Grap
     auto task = [this, pid, type, isLowLatencyMode] {
         return graphicMemoryCollector_->GetGraphicUsage(pid, type, isLowLatencyMode);
     };
-    return Invoke(task, statInfoWrapper_, GRAPHIC_MEM_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(GRAPHIC_MEM_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void GraphicMemoryDecorator::SaveStatCommonInfo()

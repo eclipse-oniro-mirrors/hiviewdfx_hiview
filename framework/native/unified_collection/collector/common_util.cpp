@@ -27,8 +27,8 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-CommonUtil");
-const std::string EXPORT_FILE_REGEX = "[0-9]{14}(.*)";
-const std::string UNDERLINE = "_";
+constexpr char EXPORT_FILE_REGEX[] = "[0-9]{14}(.*)";
+constexpr char UNDERLINE[] = "_";
 }
 
 bool CommonUtil::ParseTypeAndValue(const std::string &str, std::string &type, int64_t &value)

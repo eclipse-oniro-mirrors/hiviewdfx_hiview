@@ -23,14 +23,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string TRACE_COLLECTOR_NAME = "TraceCollector";
-const std::string UC_HITRACE_API_STAT_TITLE = "Hitrace API detail statistics:";
-const std::string UC_HITRACE_API_STAT_ITEM =
+constexpr char UC_HITRACE_API_STAT_TITLE[] = "Hitrace API detail statistics:";
+constexpr char UC_HITRACE_API_STAT_ITEM[] =
     "Caller FailCall OverCall TotalCall AvgLatency(us) MaxLatency(us) TotalTimeSpent(us)";
-const std::string UC_HITRACE_TRAFFIC_TITLE = "Hitrace Traffic statistics:";
-const std::string UC_HITRACE_TRAFFIC_ITEM =
+constexpr char UC_HITRACE_TRAFFIC_TITLE[] = "Hitrace Traffic statistics:";
+constexpr char UC_HITRACE_TRAFFIC_ITEM[] =
     "Caller TraceFile RawSize(b) ZipSize(b) HandleTime(us)";
-const std::string TRACE_TRAFFIC_LOG_PATH = "/data/log/hiview/unified_collection/ucollection_trace_traffic.log";
+constexpr char TRACE_TRAFFIC_LOG_PATH[] = "/data/log/hiview/unified_collection/ucollection_trace_traffic.log";
 
 TraceStatWrapper TraceDecorator::traceStatWrapper_;
 
@@ -141,7 +140,7 @@ void TraceStatWrapper::UpdateAPIStatInfo(const TraceStatItem& item)
         traceStatInfos_.insert(std::make_pair(item.caller, statInfo));
         return;
     }
-    
+
     TraceStatInfo& statInfo = traceStatInfos_[item.caller];
     statInfo.totalCall += 1;
     statInfo.failCall += ((item.isCallSucc || item.isOverCall) ? 0 : 1);

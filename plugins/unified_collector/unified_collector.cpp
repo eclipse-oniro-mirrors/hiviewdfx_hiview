@@ -49,14 +49,14 @@ DEFINE_LOG_TAG("HiView-UnifiedCollector");
 using namespace OHOS::HiviewDFX::UCollectUtil;
 using namespace std::literals::chrono_literals;
 namespace {
-const std::string HIPERF_LOG_PATH = "/data/log/hiperf";
-const std::string COLLECTION_IO_PATH = "/data/log/hiview/unified_collection/io/";
-const std::string HIVIEW_UCOLLECTION_STATE_TRUE = "true";
-const std::string HIVIEW_UCOLLECTION_STATE_FALSE = "false";
+constexpr char HIPERF_LOG_PATH[] = "/data/log/hiperf";
+constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io/";
+constexpr char HIVIEW_UCOLLECTION_STATE_TRUE[] = "true";
+constexpr char HIVIEW_UCOLLECTION_STATE_FALSE[] = "false";
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-const std::string DEVELOP_TRACE_RECORDER_FALSE = "false";
+constexpr char DEVELOP_TRACE_RECORDER_FALSE[] = "false";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
-const std::string OTHER = "Other";
+constexpr char OTHER[] = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
 constexpr int32_t DURATION_TRACE = 10; // unit second
 constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";

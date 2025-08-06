@@ -40,7 +40,7 @@ namespace HiviewDFX {
 namespace {
 REGISTER(SysEventStore);
 DEFINE_LOG_TAG("HiView-SysEventStore");
-const std::string PROP_LAST_BACKUP = "persist.hiviewdfx.priv.sysevent.backup_time";
+constexpr char PROP_LAST_BACKUP[] = "persist.hiviewdfx.priv.sysevent.backup_time";
 constexpr int TWO_HOURS_OFFSET = -2;
 constexpr size_t EVENT_STORE_INFO_DEFAULT_CNT = 1;
 constexpr char STORE_PERIOD_CNT_ITEM_CONCATE[] = " ";

@@ -34,8 +34,8 @@ namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-WmCollector");
 constexpr int32_t MAX_FILE_NUM = 10;
-const std::string COLLECTION_WM_PATH = "/data/log/hiview/unified_collection/wm/";
-const std::string GPU_MEMORY_PATH = "/proc/gpu_memory";
+constexpr char COLLECTION_WM_PATH[] = "/data/log/hiview/unified_collection/wm/";
+constexpr char GPU_MEMORY_PATH[] = "/proc/gpu_memory";
 std::mutex g_memMutex;
 
 std::string CreateExportFileName(const std::string& filePrefix, const std::string& ext)

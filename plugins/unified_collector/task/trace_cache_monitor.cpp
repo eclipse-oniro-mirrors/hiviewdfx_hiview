@@ -35,7 +35,7 @@ constexpr int32_t CACHE_OFF_CONDITION_COUNTDOWN = 2;
 constexpr int32_t MONITOR_INTERVAL = 5;
 constexpr char PARAM_KEY_CACHE_LOW_MEM_THRESHOLD[] = "hiviewdfx.ucollection.memthreshold";
 constexpr int32_t HIVIEW_CACHE_LOW_MEM_THRESHOLD = HIVIEW_LOW_MEM_THRESHOLD;
-const std::string BEHAVIOR = "behavior";
+constexpr char BEHAVIOR[] = "behavior";
 
 std::chrono::system_clock::time_point GetNextDay()
 {
