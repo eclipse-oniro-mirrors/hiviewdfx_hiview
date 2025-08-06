@@ -46,7 +46,6 @@ using namespace std;
 const char INDICATE_VALUE_CHAR = ':';
 const char KEY_VALUE_END_CHAR = ';';
 constexpr int SKIP_NEXT_INDEX_LENGTH = 2;
-const std::string EMPTY_STRING = "";
 std::string ConvertVectorToStr(const std::vector<std::string> &listStr, const std::string &split)
 {
     std::string str("");

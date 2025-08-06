@@ -23,7 +23,9 @@ using namespace PluginFaultEventSpace;
 PluginFaultEvent::PluginFaultEvent(const std::string &name, HiSysEvent::EventType type)
     : LoggerEvent(name, type)
 {
-    this->paramMap_ = { {KEY_OF_PLUGIN_NAME, DEFAULT_STRING}, {KEY_OF_REASON, DEFAULT_STRING} };
+    this->paramMap_ = {
+        {std::string(KEY_OF_PLUGIN_NAME), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_REASON), std::string(DEFAULT_STRING)} };
 }
 
 void PluginFaultEvent::Report()

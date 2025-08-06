@@ -29,17 +29,17 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-ProcessCollector");
-const std::string LIB_NAME = "libucollection_utility_ex.z.so";
-const std::string GET_MEM_CG_PROCESSES_FUNC_NAME = "GetMemCgProcesses";
-const std::string PROCESS_COLLECTOT_DIR = "/data/log/hiview/unified_collection/process/";
+constexpr char LIB_NAME[] = "libucollection_utility_ex.z.so";
+constexpr char GET_MEM_CG_PROCESSES_FUNC_NAME[] = "GetMemCgProcesses";
+constexpr char PROCESS_COLLECTOT_DIR[] = "/data/log/hiview/unified_collection/process/";
 constexpr int32_t MAX_FILE_NUM = 10;
-const std::string PREFIX = "memcg_process_";
-const std::string SUFFIX = ".txt";
+constexpr char PREFIX[] = "memcg_process_";
+constexpr char SUFFIX[] = ".txt";
 }
 
 ProcessCollectorImpl::ProcessCollectorImpl()
 {
-    handle_ = dlopen(LIB_NAME.c_str(), RTLD_LAZY);
+    handle_ = dlopen(LIB_NAME, RTLD_LAZY);
     if (handle_ == nullptr) {
         HIVIEW_LOGW("dlopen failed, error: %{public}s", dlerror());
     }
@@ -68,7 +68,7 @@ CollectResult<std::unordered_set<int32_t>> ProcessCollectorImpl::GetMemCgProcess
 
     using GetMemCgProcesses = bool (*)(std::unordered_set<int32_t>&);
     GetMemCgProcesses getMemCgProcesses =
-        reinterpret_cast<GetMemCgProcesses>(dlsym(handle_, GET_MEM_CG_PROCESSES_FUNC_NAME.c_str()));
+        reinterpret_cast<GetMemCgProcesses>(dlsym(handle_, GET_MEM_CG_PROCESSES_FUNC_NAME));
     if (!getMemCgProcesses) {
         HIVIEW_LOGW("dlsym failed, %{public}s.", dlerror());
         return result;

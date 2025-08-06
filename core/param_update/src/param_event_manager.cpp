@@ -30,8 +30,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("Hiview-ParamUpdate");
-const std::string EVENT_INFO_TYPE = "type";
-const std::string EVENT_INFO_SUBTYPE = "subtype";
+constexpr char EVENT_INFO_TYPE[] = "type";
+constexpr char EVENT_INFO_SUBTYPE[] = "subtype";
 ParamEventManager::ParamEventManager() {}
 
 ParamEventManager::~ParamEventManager()

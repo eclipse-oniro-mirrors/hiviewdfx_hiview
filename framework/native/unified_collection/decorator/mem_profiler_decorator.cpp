@@ -19,13 +19,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string MEM_PROFILER_COLLECTOR_NAME = "MemProfilerCollector";
+constexpr char MEM_PROFILER_COLLECTOR_NAME[] = "MemProfilerCollector";
 StatInfoWrapper MemProfilerDecorator::statInfoWrapper_;
 
 int MemProfilerDecorator::Prepare()
 {
     auto task = [this] { return memProfilerCollector_->Prepare(); };
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 int MemProfilerDecorator::Start(const MemoryProfilerConfig& memoryProfilerConfig)
@@ -34,21 +34,21 @@ int MemProfilerDecorator::Start(const MemoryProfilerConfig& memoryProfilerConfig
         return memProfilerCollector_->Start(memoryProfilerConfig);
     };
     // has same func name, rename it with num "-1"
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-1");
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__ + "-1");
 }
 
 int MemProfilerDecorator::Stop(int pid)
 {
     auto task = [this, &pid] { return memProfilerCollector_->Stop(pid); };
     // has same func name, rename it with num "-1"
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-1");
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__ + "-1");
 }
 
 int MemProfilerDecorator::Stop(const std::string& processName)
 {
     auto task = [this, &processName] { return memProfilerCollector_->Stop(processName); };
     // has same func name, rename it with num "-1"
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-2");
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__ + "-2");
 }
 
 int MemProfilerDecorator::Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig)
@@ -57,13 +57,13 @@ int MemProfilerDecorator::Start(int fd, const MemoryProfilerConfig& memoryProfil
         return memProfilerCollector_->Start(fd, memoryProfilerConfig);
     };
     // has same func name, rename it with num "-2"
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-2");
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__ + "-2");
 }
 
 int MemProfilerDecorator::StartPrintNmd(int fd, int pid, int type)
 {
     auto task = [this, &fd, &pid, &type] { return memProfilerCollector_->StartPrintNmd(fd, pid, type); };
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 int MemProfilerDecorator::Start(int fd, bool startup, const MemoryProfilerConfig& memoryProfilerConfig)
@@ -72,7 +72,7 @@ int MemProfilerDecorator::Start(int fd, bool startup, const MemoryProfilerConfig
         return memProfilerCollector_->Start(fd, startup, memoryProfilerConfig);
     };
     // has same func name, rename it with num "-3"
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-3");
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__ + "-3");
 }
 
 int MemProfilerDecorator::Start(int fd, pid_t pid, uint32_t duration, const SimplifiedMemConfig& config)
@@ -81,13 +81,13 @@ int MemProfilerDecorator::Start(int fd, pid_t pid, uint32_t duration, const Simp
         return memProfilerCollector_->Start(fd, pid, duration, config);
     };
     // has same func name, rename it with num "-4"
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__ + "-4");
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__ + "-4");
 }
 
 int MemProfilerDecorator::StartPrintSimplifiedNmd(pid_t pid, std::vector<SimplifiedMemStats>& memStats)
 {
     auto task = [this, &pid, &memStats] { return memProfilerCollector_->StartPrintSimplifiedNmd(pid, memStats); };
-    return Invoke(task, statInfoWrapper_, MEM_PROFILER_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(MEM_PROFILER_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void MemProfilerDecorator::SaveStatCommonInfo()

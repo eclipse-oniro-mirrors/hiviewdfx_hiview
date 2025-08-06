@@ -24,9 +24,9 @@ PluginEvent::PluginEvent(const std::string &name, HiSysEvent::EventType type)
     : LoggerEvent(name, type)
 {
     this->paramMap_ = {
-        {KEY_OF_PLUGIN_NAME, DEFAULT_STRING},
-        {KEY_OF_RESULT, DEFAULT_UINT32},
-        {KEY_OF_DURATION, DEFAULT_UINT32}
+        {std::string(KEY_OF_PLUGIN_NAME), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_RESULT), DEFAULT_UINT32},
+        {std::string(KEY_OF_DURATION), DEFAULT_UINT32}
     };
 }
 

@@ -21,20 +21,20 @@
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("AppEventTaskStorage");
 namespace {
-const std::string TABLE_NAME_TASK = "unified_collection_task";
-const std::string COLUMN_ID = "id";
-const std::string COLUMN_TASK_DATE = "task_date";
-const std::string COLUMN_TASK_TYPE = "task_type";
-const std::string COLUMN_UID = "uid";
-const std::string COLUMN_PID = "pid";
-const std::string COLUMN_BUNDLE_NAME = "bundle_name";
-const std::string COLUMN_BUNDLE_VERSION = "bundle_version";
-const std::string COLUMN_START_TIME = "start_time";
-const std::string COLUMN_FINISH_TIME = "finish_time";
-const std::string COLUMN_RESOURCE_PATH = "resource_path";
-const std::string COLUMN_RESOURCE_SIZE = "resource_size";
-const std::string COLUMN_COST_CPU = "cost_cpu";
-const std::string COLUMN_STATE = "state";
+constexpr char TABLE_NAME_TASK[] = "unified_collection_task";
+constexpr char COLUMN_ID[] = "id";
+constexpr char COLUMN_TASK_DATE[] = "task_date";
+constexpr char COLUMN_TASK_TYPE[] = "task_type";
+constexpr char COLUMN_UID[] = "uid";
+constexpr char COLUMN_PID[] = "pid";
+constexpr char COLUMN_BUNDLE_NAME[] = "bundle_name";
+constexpr char COLUMN_BUNDLE_VERSION[] = "bundle_version";
+constexpr char COLUMN_START_TIME[] = "start_time";
+constexpr char COLUMN_FINISH_TIME[] = "finish_time";
+constexpr char COLUMN_RESOURCE_PATH[] = "resource_path";
+constexpr char COLUMN_RESOURCE_SIZE[] = "resource_size";
+constexpr char COLUMN_COST_CPU[] = "cost_cpu";
+constexpr char COLUMN_STATE[] = "state";
 
 void InnerGetAppTaskCondition(int32_t uid, int32_t eventDate, NativeRdb::AbsRdbPredicates &predicates)
 {
@@ -46,43 +46,43 @@ bool InnerGetAppTask(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet, A
 {
     while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
         if (resultSet->GetLong(0, appEventTask.id_) != NativeRdb::E_OK) {
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_ID.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_ID);
         }
         if (resultSet->GetLong(1, appEventTask.taskDate_) != NativeRdb::E_OK) { // 1: task date
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_TASK_DATE.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_TASK_DATE);
         }
         if (resultSet->GetInt(2, appEventTask.taskType_) != NativeRdb::E_OK) { // 2: task type
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_TASK_TYPE.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_TASK_TYPE);
         }
         if (resultSet->GetInt(3, appEventTask.uid_) != NativeRdb::E_OK) { // 3: uid
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_UID.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_UID);
         }
         if (resultSet->GetInt(4, appEventTask.pid_) != NativeRdb::E_OK) { // 4: pid
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_PID.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_PID);
         }
         if (resultSet->GetString(5, appEventTask.bundleName_) != NativeRdb::E_OK) { // 5: bundle name
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_BUNDLE_NAME.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_BUNDLE_NAME);
         }
         if (resultSet->GetString(6, appEventTask.bundleVersion_) != NativeRdb::E_OK) { // 6: bundle version
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_BUNDLE_VERSION.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_BUNDLE_VERSION);
         }
         if (resultSet->GetLong(7, appEventTask.startTime_) != NativeRdb::E_OK) { // 7: start time
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_START_TIME.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_START_TIME);
         }
         if (resultSet->GetLong(8, appEventTask.finishTime_) != NativeRdb::E_OK) { // 8: finish time
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_FINISH_TIME.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_FINISH_TIME);
         }
         if (resultSet->GetString(9, appEventTask.resourePath_) != NativeRdb::E_OK) { // 9: resource path
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_RESOURCE_PATH.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_RESOURCE_PATH);
         }
         if (resultSet->GetInt(10, appEventTask.resourceSize_) != NativeRdb::E_OK) { // 10: resource size
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_RESOURCE_SIZE.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_RESOURCE_SIZE);
         }
         if (resultSet->GetDouble(11, appEventTask.costCpu_) != NativeRdb::E_OK) { // 11: cost cpu
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_COST_CPU.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_COST_CPU);
         }
         if (resultSet->GetInt(12, appEventTask.state_) != NativeRdb::E_OK) { // 12: state of cpature trace
-            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_STATE.c_str());
+            HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_STATE);
         }
         break;
     }
@@ -100,7 +100,7 @@ bool InnerQueryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::
             COLUMN_RESOURCE_PATH, COLUMN_RESOURCE_SIZE, COLUMN_COST_CPU, COLUMN_STATE
         });
     if (resultSet == nullptr) {
-        HIVIEW_LOGI("failed to query app task table=%{public}s", TABLE_NAME_TASK.c_str());
+        HIVIEW_LOGI("failed to query app task table=%{public}s", TABLE_NAME_TASK);
         return false;
     }
     bool result = InnerGetAppTask(resultSet, appEventTask);

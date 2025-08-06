@@ -34,7 +34,7 @@ DEFINE_LOG_TAG("FoldAppUsageFactory");
 namespace {
 constexpr int APP_MGR_SERVICE_ID = 501;
 constexpr uint32_t DATA_KEEP_DAY = 3;
-const std::string DATE_FORMAT = "%Y-%m-%d";
+constexpr char DATE_FORMAT[] = "%Y-%m-%d";
 
 std::string GetAppVersion(const std::string& bundleName)
 {

@@ -18,19 +18,19 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string THERMAL_COLLECTOR_NAME = "ThermalCollector";
+constexpr char THERMAL_COLLECTOR_NAME[] = "ThermalCollector";
 StatInfoWrapper ThermalDecorator::statInfoWrapper_;
 
 CollectResult<int32_t> ThermalDecorator::CollectDevThermal(ThermalZone thermalZone)
 {
     auto task = [this, thermalZone] { return thermalCollector_->CollectDevThermal(thermalZone); };
-    return Invoke(task, statInfoWrapper_, THERMAL_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(THERMAL_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<uint32_t> ThermalDecorator::CollectThermaLevel()
 {
     auto task = [this] { return thermalCollector_->CollectThermaLevel(); };
-    return Invoke(task, statInfoWrapper_, THERMAL_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(THERMAL_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void ThermalDecorator::SaveStatCommonInfo()

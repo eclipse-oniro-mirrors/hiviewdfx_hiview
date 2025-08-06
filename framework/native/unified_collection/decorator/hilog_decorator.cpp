@@ -18,13 +18,13 @@
 #include <functional>
 
 namespace OHOS::HiviewDFX::UCollectUtil {
-const std::string HILOG_COLLECTOR_NAME = "HilogCollector";
+constexpr char HILOG_COLLECTOR_NAME[] = "HilogCollector";
 StatInfoWrapper HilogDecorator::statInfoWrapper_;
 
 CollectResult<std::string> HilogDecorator::CollectLastLog(uint32_t pid, uint32_t num)
 {
     auto task = [this, &pid, &num] { return hilogCollector_->CollectLastLog(pid, num); };
-    return Invoke(task, statInfoWrapper_, HILOG_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(HILOG_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void HilogDecorator::SaveStatCommonInfo()

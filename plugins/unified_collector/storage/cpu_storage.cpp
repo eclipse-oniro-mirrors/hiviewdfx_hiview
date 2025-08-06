@@ -37,20 +37,20 @@ DEFINE_LOG_TAG("HiView-CpuStorage");
 using namespace OHOS::HiviewDFX::UCollectUtil;
 namespace {
 constexpr int32_t DB_VERSION = 2;
-const std::string CPU_COLLECTION_TABLE_NAME = "unified_collection_cpu";
-const std::string THREAD_CPU_COLLECTION_TABLE_NAME = "unified_collection_hiview_cpu";
-const std::string SYS_VERSION_TABLE_NAME = "version";
-const std::string COLUMN_START_TIME = "start_time";
-const std::string COLUMN_END_TIME = "end_time";
-const std::string COLUMN_PID = "pid";
-const std::string COLUMN_TID = "tid";
-const std::string COLUMN_PROC_NAME = "proc_name";
-const std::string COLUMN_THREAD_NAME = "thread_name";
-const std::string COLUMN_PROC_STATE = "proc_state";
-const std::string COLUMN_CPU_LOAD = "cpu_load";
-const std::string COLUMN_CPU_USAGE = "cpu_usage";
-const std::string COLUMN_THREAD_CNT = "thread_cnt";
-const std::string COLUMN_VERSION_NAME = "name";
+constexpr char CPU_COLLECTION_TABLE_NAME[] = "unified_collection_cpu";
+constexpr char THREAD_CPU_COLLECTION_TABLE_NAME[] = "unified_collection_hiview_cpu";
+constexpr char SYS_VERSION_TABLE_NAME[] = "version";
+constexpr char COLUMN_START_TIME[] = "start_time";
+constexpr char COLUMN_END_TIME[] = "end_time";
+constexpr char COLUMN_PID[] = "pid";
+constexpr char COLUMN_TID[] = "tid";
+constexpr char COLUMN_PROC_NAME[] = "proc_name";
+constexpr char COLUMN_THREAD_NAME[] = "thread_name";
+constexpr char COLUMN_PROC_STATE[] = "proc_state";
+constexpr char COLUMN_CPU_LOAD[] = "cpu_load";
+constexpr char COLUMN_CPU_USAGE[] = "cpu_usage";
+constexpr char COLUMN_THREAD_CNT[] = "thread_cnt";
+constexpr char COLUMN_VERSION_NAME[] = "name";
 constexpr uint32_t DEFAULT_PRECISION_OF_DECIMAL = 6; // 0.123456
 constexpr int32_t MEM_CG_PROCESS_FLAG = 100;
 
@@ -169,7 +169,7 @@ int32_t CreateCpuCollectionTable(NativeRdb::RdbStore& dbStore)
         {COLUMN_THREAD_CNT, SqlUtil::COLUMN_TYPE_INT},
     };
     if (auto ret = CreateTable(dbStore, CPU_COLLECTION_TABLE_NAME, fields); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create %{public}s table", CPU_COLLECTION_TABLE_NAME.c_str());
+        HIVIEW_LOGE("failed to create %{public}s table", CPU_COLLECTION_TABLE_NAME);
         return ret;
     }
     return NativeRdb::E_OK;
@@ -195,7 +195,7 @@ int32_t CreateThreadCpuCollectionTable(NativeRdb::RdbStore& dbStore)
         {COLUMN_CPU_USAGE, SqlUtil::COLUMN_TYPE_DOU},
     };
     if (auto ret = CreateTable(dbStore, THREAD_CPU_COLLECTION_TABLE_NAME, fields); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create %{public}s table", THREAD_CPU_COLLECTION_TABLE_NAME.c_str());
+        HIVIEW_LOGE("failed to create %{public}s table", THREAD_CPU_COLLECTION_TABLE_NAME);
         return ret;
     }
     return NativeRdb::E_OK;
@@ -216,7 +216,7 @@ int32_t CreateVersionTable(NativeRdb::RdbStore& dbStore)
         {COLUMN_VERSION_NAME, SqlUtil::COLUMN_TYPE_STR},
     };
     if (auto ret = CreateTable(dbStore, SYS_VERSION_TABLE_NAME, fields); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create %{public}s table", SYS_VERSION_TABLE_NAME.c_str());
+        HIVIEW_LOGE("failed to create %{public}s table", SYS_VERSION_TABLE_NAME);
         return ret;
     }
     return NativeRdb::E_OK;

@@ -18,13 +18,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string PERF_COLLECTOR_NAME = "PerfCollector";
+constexpr char PERF_COLLECTOR_NAME[] = "PerfCollector";
 StatInfoWrapper PerfDecorator::statInfoWrapper_;
 
 CollectResult<bool> PerfDecorator::StartPerf(const std::string &logDir)
 {
     auto task = [this, &logDir] { return perfCollector_->StartPerf(logDir); };
-    return Invoke(task, statInfoWrapper_, PERF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(PERF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void PerfDecorator::SetSelectPids(const std::vector<pid_t> &selectPids)
@@ -95,31 +95,31 @@ void PerfDecorator::ResetStatInfo()
 CollectResult<bool> PerfDecorator::Prepare(const std::string &logDir)
 {
     auto task = [this, &logDir] { return perfCollector_->Prepare(logDir); };
-    return Invoke(task, statInfoWrapper_, PERF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(PERF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<bool> PerfDecorator::StartRun()
 {
     auto task = [this] { return perfCollector_->StartRun(); };
-    return Invoke(task, statInfoWrapper_, PERF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(PERF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<bool> PerfDecorator::Pause()
 {
     auto task = [this] { return perfCollector_->Pause(); };
-    return Invoke(task, statInfoWrapper_, PERF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(PERF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<bool> PerfDecorator::Resume()
 {
     auto task = [this] { return perfCollector_->Resume(); };
-    return Invoke(task, statInfoWrapper_, PERF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(PERF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 CollectResult<bool> PerfDecorator::Stop()
 {
     auto task = [this] { return perfCollector_->Stop(); };
-    return Invoke(task, statInfoWrapper_, PERF_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(PERF_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 } // namespace UCollectUtil
 } // namespace HiviewDFX

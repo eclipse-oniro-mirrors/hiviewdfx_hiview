@@ -29,7 +29,7 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-SettingObserverManager");
 namespace {
-const std::string SETTINGS_DATA_BASE_URI =
+constexpr char SETTINGS_DATA_BASE_URI[] =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true";
 
 std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper()
@@ -148,7 +148,7 @@ std::string SettingObserverManager::GetStringValue(const std::string& paramKey, 
 
 Uri SettingObserverManager::AssembleUri(const std::string& paramKey)
 {
-    return Uri(SETTINGS_DATA_BASE_URI + "&key=" + paramKey);
+    return Uri(std::string(SETTINGS_DATA_BASE_URI) + "&key=" + paramKey);
 }
 
 sptr<SettingObserver> SettingObserverManager::GetSettingObserver(const std::string& paramKey)

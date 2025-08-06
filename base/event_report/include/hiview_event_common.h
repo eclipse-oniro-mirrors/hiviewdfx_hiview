@@ -21,20 +21,20 @@
 namespace OHOS {
 namespace HiviewDFX {
 constexpr unsigned int LABEL_DOMAIN = 0xD002D10;
-const std::string EVENT_DOMAIN = "HIVIEWDFX";
+inline constexpr char EVENT_DOMAIN[] = "HIVIEWDFX";
 
 namespace BaseEventSpace {
-const std::string KEY_OF_DOMAIN = "domain_";
-const std::string KEY_OF_NAME = "name_";
-const std::string KEY_OF_TYPE = "type_";
+inline constexpr char KEY_OF_DOMAIN[] = "domain_";
+inline constexpr char KEY_OF_NAME[] = "name_";
+inline constexpr char KEY_OF_TYPE[] = "type_";
 }
 
 namespace PluginEventSpace {
-const std::string LOAD_EVENT_NAME = "PLUGIN_LOAD";
-const std::string UNLOAD_EVENT_NAME = "PLUGIN_UNLOAD";
-const std::string KEY_OF_PLUGIN_NAME = "NAME";
-const std::string KEY_OF_RESULT = "RESULT";
-const std::string KEY_OF_DURATION = "DURATION";
+inline constexpr char LOAD_EVENT_NAME[] = "PLUGIN_LOAD";
+inline constexpr char UNLOAD_EVENT_NAME[] = "PLUGIN_UNLOAD";
+inline constexpr char KEY_OF_PLUGIN_NAME[] = "NAME";
+inline constexpr char KEY_OF_RESULT[] = "RESULT";
+inline constexpr char KEY_OF_DURATION[] = "DURATION";
 constexpr uint32_t LOAD_SUCCESS = 0;
 constexpr uint32_t LOAD_DUPLICATE_NAME = 1;
 constexpr uint32_t LOAD_UNREGISTERED = 2;
@@ -45,25 +45,25 @@ constexpr uint32_t UNLOAD_IN_USE = 3;
 }
 
 namespace PluginFaultEventSpace {
-const std::string EVENT_NAME = "PLUGIN_FAULT";
-const std::string KEY_OF_PLUGIN_NAME = "NAME";
-const std::string KEY_OF_REASON = "REASON";
+inline constexpr char EVENT_NAME[] = "PLUGIN_FAULT";
+inline constexpr char KEY_OF_PLUGIN_NAME[] = "NAME";
+inline constexpr char KEY_OF_REASON[] = "REASON";
 }
 
 namespace PluginStatsEventSpace {
-const std::string EVENT_NAME = "PLUGIN_STATS";
-const std::string KEY_OF_PLUGIN_NAME = "NAME";
-const std::string KEY_OF_AVG_TIME = "AVG_TIME";
-const std::string KEY_OF_TOP_K_TIME = "TOP_K_TIME";
-const std::string KEY_OF_TOP_K_EVENT = "TOP_K_EVENT";
-const std::string KEY_OF_TOTAL = "TOTAL";
-const std::string KEY_OF_PROC_NAME = "PROC_NAME";
-const std::string KEY_OF_PROC_TIME = "PROC_TIME";
-const std::string KEY_OF_TOTAL_TIME = "TOTAL_TIME";
+inline constexpr char EVENT_NAME[] = "PLUGIN_STATS";
+inline constexpr char KEY_OF_PLUGIN_NAME[] = "NAME";
+inline constexpr char KEY_OF_AVG_TIME[] = "AVG_TIME";
+inline constexpr char KEY_OF_TOP_K_TIME[] = "TOP_K_TIME";
+inline constexpr char KEY_OF_TOP_K_EVENT[] = "TOP_K_EVENT";
+inline constexpr char KEY_OF_TOTAL[] = "TOTAL";
+inline constexpr char KEY_OF_PROC_NAME[] = "PROC_NAME";
+inline constexpr char KEY_OF_PROC_TIME[] = "PROC_TIME";
+inline constexpr char KEY_OF_TOTAL_TIME[] = "TOTAL_TIME";
 }
 
 namespace CpuSceneEvent {
-constexpr char DOMAIN[] = "PERFORMANCE";
+inline constexpr char DOMAIN[] = "PERFORMANCE";
 }
 } // namespace HiviewDFX
 } // namespace OHOS

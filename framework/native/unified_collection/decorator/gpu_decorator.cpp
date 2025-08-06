@@ -19,18 +19,18 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string GPU_COLLECTOR_NAME = "GpuCollector";
+constexpr char GPU_COLLECTOR_NAME[] = "GpuCollector";
 StatInfoWrapper GpuDecorator::statInfoWrapper_;
 
 CollectResult<GpuFreq> GpuDecorator::CollectGpuFrequency()
 {
     auto task = [this] { return gpuCollector_->CollectGpuFrequency(); };
-    return Invoke(task, statInfoWrapper_, GPU_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(GPU_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 CollectResult<SysGpuLoad> GpuDecorator::CollectSysGpuLoad()
 {
     auto task = [this] { return gpuCollector_->CollectSysGpuLoad(); };
-    return Invoke(task, statInfoWrapper_, GPU_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(GPU_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void GpuDecorator::SaveStatCommonInfo()

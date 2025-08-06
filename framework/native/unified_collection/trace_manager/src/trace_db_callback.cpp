@@ -23,41 +23,41 @@ namespace {
 DEFINE_LOG_TAG("TraceDbStoreCallback");
 
 // Table trace_flow_control column name
-const std::string FLOW_TABLE_NAME = "trace_flow_control";
-const std::string TABLE_NAME = "trace_flow_control";
-const std::string COLUMN_SYSTEM_TIME = "system_time";
-const std::string COLUMN_CALLER_NAME = "caller_name";
-const std::string COLUMN_USED_SIZE = "used_size";
-const std::string COLUMN_DYNAMIC_DECREASE = "dynamic_decrease";
+constexpr char FLOW_TABLE_NAME[] = "trace_flow_control";
+constexpr char TABLE_NAME[] = "trace_flow_control";
+constexpr char COLUMN_SYSTEM_TIME[] = "system_time";
+constexpr char COLUMN_CALLER_NAME[] = "caller_name";
+constexpr char COLUMN_USED_SIZE[] = "used_size";
+constexpr char COLUMN_DYNAMIC_DECREASE[] = "dynamic_decrease";
 
 // Table unified_collection_task column name
-const std::string TABLE_NAME_TASK = "unified_collection_task";
-const std::string COLUMN_ID = "id";
-const std::string COLUMN_TASK_DATE = "task_date";
-const std::string COLUMN_TASK_TYPE = "task_type";
-const std::string COLUMN_UID = "uid";
-const std::string COLUMN_PID = "pid";
-const std::string COLUMN_BUNDLE_NAME = "bundle_name";
-const std::string COLUMN_BUNDLE_VERSION = "bundle_version";
-const std::string COLUMN_START_TIME = "start_time";
-const std::string COLUMN_FINISH_TIME = "finish_time";
-const std::string COLUMN_RESOURCE_PATH = "resource_path";
-const std::string COLUMN_RESOURCE_SIZE = "resource_size";
-const std::string COLUMN_COST_CPU = "cost_cpu";
-const std::string COLUMN_STATE = "state";
+constexpr char TABLE_NAME_TASK[] = "unified_collection_task";
+constexpr char COLUMN_ID[] = "id";
+constexpr char COLUMN_TASK_DATE[] = "task_date";
+constexpr char COLUMN_TASK_TYPE[] = "task_type";
+constexpr char COLUMN_UID[] = "uid";
+constexpr char COLUMN_PID[] = "pid";
+constexpr char COLUMN_BUNDLE_NAME[] = "bundle_name";
+constexpr char COLUMN_BUNDLE_VERSION[] = "bundle_version";
+constexpr char COLUMN_START_TIME[] = "start_time";
+constexpr char COLUMN_FINISH_TIME[] = "finish_time";
+constexpr char COLUMN_RESOURCE_PATH[] = "resource_path";
+constexpr char COLUMN_RESOURCE_SIZE[] = "resource_size";
+constexpr char COLUMN_COST_CPU[] = "cost_cpu";
+constexpr char COLUMN_STATE[] = "state";
 
 // Table trace_behavior_db_helper column name
-const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_db_helper";
-const std::string COLUMN_BEHAVIOR_ID = "behavior_id ";
-const std::string COLUMN_DATE = "task_date";
-const std::string COLUMN_USED_QUOTA = "used_quota";
+constexpr char TABLE_NAME_BEHAVIOR[] = "trace_behavior_db_helper";
+constexpr char COLUMN_BEHAVIOR_ID[] = "behavior_id ";
+constexpr char COLUMN_DATE[] = "task_date";
+constexpr char COLUMN_USED_QUOTA[] = "used_quota";
 
 // Table telemetry_flow_control column name
-const std::string TABLE_TELEMETRY_CONTROL = "telemetry_control";
-const std::string COLUMN_MODULE_NAME = "module";
-const std::string COLUMN_QUOTA = "quota";
-const std::string COLUMN_TELEMTRY_ID = "telemetry_id";
-const std::string COLUMN_RUNNING_TIME = "running_time";
+constexpr char TABLE_TELEMETRY_CONTROL[] = "telemetry_control";
+constexpr char COLUMN_MODULE_NAME[] = "module";
+constexpr char COLUMN_QUOTA[] = "quota";
+constexpr char COLUMN_TELEMTRY_ID[] = "telemetry_id";
+constexpr char COLUMN_RUNNING_TIME[] = "running_time";
 }
 
 int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
@@ -83,19 +83,19 @@ int TraceDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersio
     HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
     std::string flowDropSql = SqlUtil::GenerateDropSql(FLOW_TABLE_NAME);
     if (int ret = rdbStore.ExecuteSql(flowDropSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", FLOW_TABLE_NAME.c_str(), ret);
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", FLOW_TABLE_NAME, ret);
     }
     std::string taskSql = SqlUtil::GenerateDropSql(TABLE_NAME_TASK);
     if (int ret = rdbStore.ExecuteSql(taskSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_TASK.c_str(), ret);
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_TASK, ret);
     }
     std::string behaviorSql = SqlUtil::GenerateDropSql(TABLE_NAME_BEHAVIOR);
     if (int ret = rdbStore.ExecuteSql(behaviorSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_BEHAVIOR.c_str(), ret);
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_BEHAVIOR, ret);
     }
     std::string flowSql = SqlUtil::GenerateDropSql(TABLE_TELEMETRY_CONTROL);
     if (int ret = rdbStore.ExecuteSql(flowSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_TELEMETRY_CONTROL.c_str(), ret);
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_TELEMETRY_CONTROL, ret);
     }
     return OnCreate(rdbStore);
 }
@@ -159,7 +159,7 @@ int32_t TraceDbStoreCallback::CreateAppTaskTable(NativeRdb::RdbStore& rdbStore)
         {COLUMN_COST_CPU, SqlUtil::COLUMN_TYPE_DOU},
         {COLUMN_STATE, SqlUtil::COLUMN_TYPE_INT},
     };
-    HIVIEW_LOGI("create table app task=%{public}s", TABLE_NAME_TASK.c_str());
+    HIVIEW_LOGI("create table app task=%{public}s", TABLE_NAME_TASK);
     std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME_TASK, fields);
     if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create app task table, sql=%{public}s", sql.c_str());
@@ -214,7 +214,7 @@ int32_t TraceDbStoreCallback::CreateTelemetryControlTable(NativeRdb::RdbStore &r
         {COLUMN_QUOTA, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_RUNNING_TIME, SqlUtil::COLUMN_TYPE_INT},
     };
-    HIVIEW_LOGI("create table %{public}s table", TABLE_TELEMETRY_CONTROL.c_str());
+    HIVIEW_LOGI("create table %{public}s table", TABLE_TELEMETRY_CONTROL);
     std::string sql = SqlUtil::GenerateCreateSql(TABLE_TELEMETRY_CONTROL, fields);
     if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table, sql=%{public}s", sql.c_str());

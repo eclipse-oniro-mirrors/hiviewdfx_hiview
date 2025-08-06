@@ -44,17 +44,17 @@ constexpr int DISK_STATS_PERIOD = 2;
 constexpr int PROC_IO_STATS_PERIOD = 2;
 constexpr int EMMC_INFO_SIZE_RATIO = 2 * 1024 * 1024;
 constexpr int MAX_FILE_NUM = 10;
-const std::string MMC = "mmc";
-const std::string EXPORT_FILE_SUFFIX = ".txt";
-const std::string EXPORT_FILE_REGEX = "[0-9]{14}(.*)";
-const std::string UNDERLINE = "_";
-const std::string RAW_DISK_STATS_FILE_PREFIX = "proc_diskstats_";
-const std::string DISK_STATS_FILE_PREFIX = "proc_diskstats_statistics_";
-const std::string EMMC_INFO_FILE_PREFIX = "emmc_info_";
-const std::string PROC_IO_STATS_FILE_PREFIX = "proc_io_stats_";
-const std::string SYS_IO_STATS_FILE_PREFIX = "sys_io_stats_";
-const std::string PROC_DISKSTATS = "/proc/diskstats";
-const std::string COLLECTION_IO_PATH = "/data/log/hiview/unified_collection/io/";
+constexpr char MMC[] = "mmc";
+constexpr char EXPORT_FILE_SUFFIX[] = ".txt";
+constexpr char EXPORT_FILE_REGEX[] = "[0-9]{14}(.*)";
+constexpr char UNDERLINE[] = "_";
+constexpr char RAW_DISK_STATS_FILE_PREFIX[] = "proc_diskstats_";
+constexpr char DISK_STATS_FILE_PREFIX[] = "proc_diskstats_statistics_";
+constexpr char EMMC_INFO_FILE_PREFIX[] = "emmc_info_";
+constexpr char PROC_IO_STATS_FILE_PREFIX[] = "proc_io_stats_";
+constexpr char SYS_IO_STATS_FILE_PREFIX[] = "sys_io_stats_";
+constexpr char PROC_DISKSTATS[] = "/proc/diskstats";
+constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io/";
 }
 
 std::shared_ptr<IoCollector> IoCollector::Create()
@@ -149,7 +149,7 @@ std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
 {
     std::unique_lock<std::mutex> lock(exportFileMutex_);
     if (!FileUtil::IsDirectory(COLLECTION_IO_PATH) && !FileUtil::ForceCreateDirectory(COLLECTION_IO_PATH)) {
-        HIVIEW_LOGE("failed to create dir=%{public}s", COLLECTION_IO_PATH.c_str());
+        HIVIEW_LOGE("failed to create dir=%{public}s", COLLECTION_IO_PATH);
         return "";
     }
 
@@ -239,7 +239,7 @@ void IoCollectorImpl::CalculateDiskStats(uint64_t period, bool isUpdate)
 {
     std::string content;
     if (!FileUtil::LoadStringFromFile(PROC_DISKSTATS, content) || content.empty()) {
-        HIVIEW_LOGE("load file=%{public}s failed.", PROC_DISKSTATS.c_str());
+        HIVIEW_LOGE("load file=%{public}s failed.", PROC_DISKSTATS);
         return;
     }
     std::vector<std::string> contents;
@@ -365,10 +365,10 @@ std::string IoCollectorImpl::GetEMMCPath(const std::string& path)
     while ((de = readdir(dir)) != nullptr) {
         if ((de->d_type == DT_LNK) || (de->d_type == DT_DIR)) {
             std::string fileName = std::string(de->d_name);
-            if (fileName.length() <= MMC.length()) {
+            if (fileName.length() <= strlen(MMC)) {
                 continue;
             }
-            if (fileName.substr(0, MMC.length()) != MMC) {
+            if (fileName.substr(0, strlen(MMC)) != MMC) {
                 continue;
             }
             if (fileName.find(":") == std::string::npos) {
@@ -402,7 +402,7 @@ void IoCollectorImpl::CalculateEMMCInfo(std::vector<EMMCInfo>& mmcInfos)
     struct dirent *de = nullptr;
     while ((de = readdir(dir)) != nullptr) {
         if ((de->d_type == DT_LNK) || (de->d_type == DT_DIR)) {
-            if ((strlen(de->d_name) <= MMC.length()) || (de->d_name[0] != 'm')) {
+            if ((strlen(de->d_name) <= strlen(MMC)) || (de->d_name[0] != 'm')) {
                 continue;
             }
             // mmc0

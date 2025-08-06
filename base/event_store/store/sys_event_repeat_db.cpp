@@ -24,14 +24,14 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-SysEvent-Repeat-Db");
 namespace {
-    const std::string DB_FILE_NAME = "sys_event_history.db";
-    const std::string TABLE_NAME = "sys_event_history";
+    inline constexpr char DB_FILE_NAME[] = "sys_event_history.db";
+    inline constexpr char TABLE_NAME[] = "sys_event_history";
     constexpr int32_t DB_VERSION = 1;
 
-    const std::string COLUMN_DOMAIN = "domain";
-    const std::string COLUMN_NAME = "name";
-    const std::string COLUMN_EVENT_HASH = "eventHash";
-    const std::string COLUMN_HAPPENTIME = "happentime";
+    inline constexpr char COLUMN_DOMAIN[] = "domain";
+    inline constexpr char COLUMN_NAME[] = "name";
+    inline constexpr char COLUMN_EVENT_HASH[] = "eventHash";
+    inline constexpr char COLUMN_HAPPENTIME[] = "happentime";
     constexpr int32_t MAX_DB_COUNT = 10000;
 
 class SysEventRepeatDbCallback : public NativeRdb::RdbOpenCallback {
@@ -224,7 +224,7 @@ void SysEventRepeatDb::RefreshDbCount()
     sql.append("SELECT count(*) from ").append(TABLE_NAME).append(";");
     std::shared_ptr<NativeRdb::ResultSet> resultSet = dbStore_->QuerySql(sql, std::vector<std::string> {});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME);
         return;
     }
     if (int32_t ret = resultSet->GoToNextRow(); ret != NativeRdb::E_OK) {
@@ -249,7 +249,7 @@ int64_t SysEventRepeatDb::QueryHappentime(SysEventHashRecord &sysEventHashRecord
     predicates.EqualTo(COLUMN_EVENT_HASH, sysEventHashRecord.eventHash);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_HAPPENTIME});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s, db is null", TABLE_NAME);
         return 0;
     }
 

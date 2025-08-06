@@ -33,7 +33,7 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("ThermalCollector");
-const std::string THERMAL_PATH = "/sys/class/thermal/";
+constexpr char THERMAL_PATH[] = "/sys/class/thermal/";
 
 std::string GetThermalType(const std::string& thermalZone)
 {

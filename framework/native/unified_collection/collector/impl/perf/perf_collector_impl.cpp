@@ -33,7 +33,7 @@ namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-PerfCollectorImpl");
 constexpr int DEFAULT_PERF_RECORD_FREQUENCY = 100;
-const std::string DEFAULT_PERF_RECORD_CALLGRAPH = "fp";
+constexpr char DEFAULT_PERF_RECORD_CALLGRAPH[] = "fp";
 constexpr uint32_t MB_TO_KB = 1024;
 const int64_t ALLOW_COLLECT_MEMORY = PerfCollectConfig::GetAllowMemory(PerfCollectConfig::GetConfigPath());
 const std::map<PerfCaller, uint8_t> PERF_CONCURRENCY_COUNT =

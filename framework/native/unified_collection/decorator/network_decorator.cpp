@@ -19,13 +19,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string NET_COLLECTOR_NAME = "NetworkCollector";
+constexpr char NET_COLLECTOR_NAME[] = "NetworkCollector";
 StatInfoWrapper NetworkDecorator::statInfoWrapper_;
 
 CollectResult<NetworkRate> NetworkDecorator::CollectRate()
 {
     auto task = [this] { return networkCollector_->CollectRate(); };
-    return Invoke(task, statInfoWrapper_, NET_COLLECTOR_NAME + UC_SEPARATOR + __func__);
+    return Invoke(task, statInfoWrapper_, std::string(NET_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
 void NetworkDecorator::SaveStatCommonInfo()

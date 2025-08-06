@@ -32,7 +32,7 @@ namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceFlowController");
 constexpr int32_t DB_VERSION = 6;
-const std::string DB_NAME = "trace_flow_control.db";
+constexpr char DB_NAME[] = "trace_flow_control.db";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
 const std::set<std::string> DB_CALLER {
     CallerName::XPERF, CallerName::XPOWER, CallerName::RELIABILITY, CallerName::HIVIEW

@@ -36,8 +36,8 @@ constexpr int32_t DEFAULT_USER_ID = 100;
 #ifdef DEVICE_USAGE_STATISTICS_ENABLE
 constexpr int32_t INTERVAL_TYPE = 1;
 constexpr int64_t MILLISEC_TO_SEC = 1000;
+constexpr char DATE_FORMAT[] = "%Y-%m-%d";
 #endif
-const std::string DATE_FORMAT = "%Y-%m-%d";
 }
 using namespace AppUsageEventSpace;
 using namespace OHOS::AccountSA;

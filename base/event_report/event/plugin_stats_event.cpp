@@ -30,10 +30,11 @@ PluginStatsEvent::PluginStatsEvent(const std::string &name, HiSysEvent::EventTyp
     : LoggerEvent(name, type)
 {
     paramMap_ = {
-        {KEY_OF_PLUGIN_NAME, DEFAULT_STRING}, {KEY_OF_PROC_NAME, DEFAULT_STRING},
-        {KEY_OF_PROC_TIME, DEFAULT_UINT32}, {KEY_OF_TOTAL_TIME, DEFAULT_UINT64},
-        {KEY_OF_AVG_TIME, DEFAULT_UINT32}, {KEY_OF_TOP_K_TIME, INIT_TOP_K_TIME},
-        {KEY_OF_TOP_K_EVENT, INIT_TOP_K_EVENT}, {KEY_OF_TOTAL, DEFAULT_UINT32}
+        {std::string(KEY_OF_PLUGIN_NAME), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_PROC_NAME), std::string(DEFAULT_STRING)},
+        {std::string(KEY_OF_PROC_TIME), DEFAULT_UINT32}, {std::string(KEY_OF_TOTAL_TIME), DEFAULT_UINT64},
+        {std::string(KEY_OF_AVG_TIME), DEFAULT_UINT32}, {std::string(KEY_OF_TOP_K_TIME), INIT_TOP_K_TIME},
+        {std::string(KEY_OF_TOP_K_EVENT), INIT_TOP_K_EVENT}, {std::string(KEY_OF_TOTAL), DEFAULT_UINT32}
     };
 }
 

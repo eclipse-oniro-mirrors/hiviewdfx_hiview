@@ -19,22 +19,22 @@
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("TeleMetryStorage");
 namespace {
-const std::string TABLE_TELEMETRY_CONTROL = "telemetry_control";
-const std::string COLUMN_MODULE_NAME = "module";
-const std::string COLUMN_RUNNING_TIME = "running_time";
-const std::string COLUMN_USED_SIZE = "used_size";
-const std::string COLUMN_QUOTA = "quota";
-const std::string COLUMN_TELEMTRY_ID = "telemetry_id";
-const std::string TOTAL = "Total";
+constexpr char TABLE_TELEMETRY_CONTROL[] = "telemetry_control";
+constexpr char COLUMN_MODULE_NAME[] = "module";
+constexpr char COLUMN_RUNNING_TIME[] = "running_time";
+constexpr char COLUMN_USED_SIZE[] = "used_size";
+constexpr char COLUMN_QUOTA[] = "quota";
+constexpr char COLUMN_TELEMTRY_ID[] = "telemetry_id";
+constexpr char TOTAL[] = "Total";
 }
 
 bool TeleMetryStorage::QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize)
 {
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, module);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_USED_SIZE, COLUMN_QUOTA});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_TELEMETRY_CONTROL.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_TELEMETRY_CONTROL);
         return false;
     }
     if (resultSet->GoToNextRow() != NativeRdb::E_OK) {
@@ -51,7 +51,7 @@ bool TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
 {
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(COLUMN_USED_SIZE, newSize);
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, module);
     int changeRows = 0;
     if (dbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK) {
@@ -99,7 +99,7 @@ TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetry
         HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
         return TelemetryRet::EXIT;
     }
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_TELEMTRY_ID, COLUMN_RUNNING_TIME});
     if (resultSet == nullptr) {
@@ -156,7 +156,7 @@ void TeleMetryStorage::ClearTelemetryData()
         HIVIEW_LOGE("clear db failed");
         return ;
     }
-    NativeRdb::AbsRdbPredicates predicates({TABLE_TELEMETRY_CONTROL});
+    NativeRdb::AbsRdbPredicates predicates({std::string(TABLE_TELEMETRY_CONTROL)});
     int32_t deleteRows = 0;
     int ret = dbStore_->Delete(deleteRows, predicates);
     if (ret != NativeRdb::E_OK) {
@@ -166,11 +166,11 @@ void TeleMetryStorage::ClearTelemetryData()
 
 bool TeleMetryStorage::QueryRunningTime(int64_t &runningTime)
 {
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_RUNNING_TIME});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_TELEMETRY_CONTROL.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_TELEMETRY_CONTROL);
         return false;
     }
     if (resultSet->GoToNextRow() != NativeRdb::E_OK) {
@@ -188,7 +188,7 @@ bool TeleMetryStorage::UpdateRunningTime(int64_t runningTime)
 {
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(COLUMN_RUNNING_TIME, runningTime);
-    NativeRdb::AbsRdbPredicates predicates(TABLE_TELEMETRY_CONTROL);
+    NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
     int changeRows = 0;
     if (dbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK) {

@@ -23,14 +23,14 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("TraceBehaviorDbHelper");
 namespace {
-const std::string DB_PATH = "/data/log/hiview/unified_collection/trace/";
-const std::string DB_NAME = "trace_flow_control";
+constexpr char DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
+constexpr char DB_NAME[] = "trace_flow_control";
 constexpr int32_t DB_VERSION = 1;
-const std::string TABLE_NAME_BEHAVIOR = "trace_behavior_db_helper";
-const std::string COLUMN_ID = "id";
-const std::string COLUMN_BEHAVIOR_ID = "behavior_id ";
-const std::string COLUMN_DATE = "task_date";
-const std::string COLUMN_USED_QUOTA = "used_quota";
+constexpr char TABLE_NAME_BEHAVIOR[] = "trace_behavior_db_helper";
+constexpr char COLUMN_ID[] = "id";
+constexpr char COLUMN_BEHAVIOR_ID[] = "behavior_id ";
+constexpr char COLUMN_DATE[] = "task_date";
+constexpr char COLUMN_USED_QUOTA[] = "used_quota";
 
 NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 {
@@ -45,7 +45,7 @@ NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 bool TraceBehaviorStorage::GetRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH);
         return false;
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
@@ -53,7 +53,7 @@ bool TraceBehaviorStorage::GetRecord(BehaviorRecord &behaviorRecord)
     predicates.EqualTo(COLUMN_DATE, behaviorRecord.dateNum);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_USED_QUOTA});
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_NAME_BEHAVIOR.c_str());
+        HIVIEW_LOGE("failed to query from table %{public}s", TABLE_NAME_BEHAVIOR);
         return false;
     }
 
@@ -72,7 +72,7 @@ bool TraceBehaviorStorage::GetRecord(BehaviorRecord &behaviorRecord)
 bool TraceBehaviorStorage::InsertRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH);
         return false;
     }
     NativeRdb::ValuesBucket bucket;
@@ -90,7 +90,7 @@ bool TraceBehaviorStorage::InsertRecord(BehaviorRecord &behaviorRecord)
 bool TraceBehaviorStorage::UpdateRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH.c_str());
+        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH);
         return false;
     }
     HIVIEW_LOGD("Update usedQuota:%{public}d", behaviorRecord.usedQuota);

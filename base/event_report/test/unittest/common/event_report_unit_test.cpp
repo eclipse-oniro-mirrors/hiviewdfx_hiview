@@ -34,7 +34,7 @@ public:
         : LoggerEvent(name, type)
     {
         this->paramMap_ = {
-            {"KEY_STRING", DEFAULT_STRING}, {"KEY_INT", DEFAULT_UINT8}
+            {"KEY_STRING", std::string(DEFAULT_STRING)}, {"KEY_INT", DEFAULT_UINT8}
         };
     }
 

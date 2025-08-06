@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-const std::string SYS_CPU_DIR_PREFIX = "/sys/devices/system/cpu/cpu";
+inline constexpr char SYS_CPU_DIR_PREFIX[] = "/sys/devices/system/cpu/cpu";
 
 struct CpuTimeInfo {
     std::string cpuId;
