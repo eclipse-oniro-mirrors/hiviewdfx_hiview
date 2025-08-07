@@ -156,10 +156,9 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
     std::string prefixStr = ssPrefix.str();
     size_t maxSummaryLen = 0;
     const std::string summaryPrefix = ";SUMMARY:";
-    if (prefixStr.size() + summaryPrefix.size() >= MAX_HISYSEVENT_SIZE) {
-        return;
+    if (prefixStr.size() + summaryPrefix.size() < MAX_HISYSEVENT_SIZE) {
+        maxSummaryLen = MAX_HISYSEVENT_SIZE - prefixStr.size() - summaryPrefix.size();
     }
-    maxSummaryLen = MAX_HISYSEVENT_SIZE - prefixStr.size() - summaryPrefix.size();
     std::string summary = currInfo.description.substr(0, maxSummaryLen);
 
     std::stringstream ssParams;

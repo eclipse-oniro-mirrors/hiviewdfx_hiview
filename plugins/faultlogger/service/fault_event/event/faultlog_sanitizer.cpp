@@ -94,10 +94,9 @@ void FaultLogSanitizer::ParseSanitizerEasyEvent(SysEvent& sysEvent) const
                 std::string value = data.substr(pos + 1);
                 sysEvent.SetEventValue(key, value);
                 break;
-            } else {
-                std::string value = data.substr(pos + 1, end - pos - 1);
-                sysEvent.SetEventValue(key, value);
             }
+            std::string value = data.substr(pos + 1, end - pos - 1);
+            sysEvent.SetEventValue(key, value);
         }
         start = end + 1;
     }
