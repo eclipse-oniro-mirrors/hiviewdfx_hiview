@@ -148,7 +148,11 @@ ohos_unittest("AsanUnittest") {
     "$hiview_faultlogger/service/sanitizer_collector/gwp_asan:libasan_logger",
   ]
 
-  external_deps = [ "googletest:gtest_main" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "googletest:gtest_main",
+    "jsoncpp:jsoncpp",
+  ]
 }
 
 ohos_unittest("FreezeJsonGeneratorUnittest") {
