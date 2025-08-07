@@ -18,6 +18,7 @@
 #include <ctime>
 
 #include "ffrt.h"
+#include "hitrace_meter.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "string_util.h"
@@ -200,6 +201,7 @@ void TraceCacheMonitor::SetCacheStatus(int32_t interval)
 
 bool TraceCacheMonitor::IsLowMemState()
 {
+    HitraceScoped trace(HITRACE_TAG_OHOS, std::string(__func__));
     CollectResult<SysMemory> data = collector_->CollectSysMemory();
     return (data.retCode == UCollect::UcError::SUCCESS) && (data.data.memAvailable < lowMemThreshold_);
 }
