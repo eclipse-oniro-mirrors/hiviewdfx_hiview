@@ -161,11 +161,6 @@ CpuUsageInfo CpuCalculator::CalculateSysCpuUsageInfo(const CpuTimeInfo& currCpuT
     calcInfo.softIrqUsage = CalcSysCpuUsage(deltaTime, currCpuTimeInfo.softIrqTime, lastCpuTimeInfo.softIrqTime);
     return calcInfo;
 }
-
-std::vector<uint32_t> CpuCalculator::GetCpuDmipses()
-{
-    return cpuDmipses_;
-}
 } // UCollectUtil
 } // HiViewDFX
 } // OHOS
