@@ -269,6 +269,7 @@
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::CpuUsageHighInfo const&)";
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::BatteryUsageInfo const&)";
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::AppKilledInfo const&)";
+        "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::AudioJankFrameInfo const&)";
         "OHOS::HiviewDFX::AppEventHandler::IsAppListenedEvent(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::CommonUtils::GetProcFullNameByPid(int)";
         "OHOS::HiviewDFX::SysEvent::SysEvent(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::PipelineEventProducer*, std::__h::shared_ptr<OHOS::HiviewDFX::EventRaw::RawData>, long)";
