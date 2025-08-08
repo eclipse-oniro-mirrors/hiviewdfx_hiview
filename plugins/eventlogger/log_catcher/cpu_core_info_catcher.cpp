@@ -15,7 +15,6 @@
 #include "cpu_core_info_catcher.h"
 
 #include "file_util.h"
-#include "time_util.h"
 #include "freeze_common.h"
 #include "hiview_logger.h"
 #include "collect_result.h"
@@ -88,22 +87,9 @@ void CpuCoreInfoCatcher::GetCpuCoreFreqInfo(int fd)
 
     const SysCpuUsage& sysCpuUsage = resultInfo.data;
     std::string temp = "";
-    std::string startTime = TimeUtil::TimestampFormatToDate(sysCpuUsage.startTime /
-        TimeUtil::SEC_TO_MILLISEC, "%Y/%m/%d-%H:%M:%S") + ":" +
-        std::to_string(sysCpuUsage.startTime % TimeUtil::SEC_TO_MILLISEC);
-    std::string endTime = TimeUtil::TimestampFormatToDate(sysCpuUsage.endTime /
-        TimeUtil::SEC_TO_MILLISEC, "%Y/%m/%d-%H:%M:%S") + ":" +
-        std::to_string(sysCpuUsage.endTime % TimeUtil::SEC_TO_MILLISEC);
-    FileUtil::SaveStringToFd(fd, "\nCPU usage info from " + startTime + " to " + endTime + "\n");
     for (size_t i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
         temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
-            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) +
-            ", niceUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].niceUsage) +
-            ", systemUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].systemUsage) +
-            ", idleUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].idleUsage) +
-            ", ioWaitUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].ioWaitUsage) +
-            ", irqUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].irqUsage) +
-            ", softIrqUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].softIrqUsage) + "\n";
+            ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) + "\n";
         FileUtil::SaveStringToFd(fd, temp);
         temp = "";
     }

@@ -75,7 +75,7 @@ void EventFocusListener::RegisterFocusListener()
 void EventFocusListener::UnRegisterFocusListener()
 {
     if (registerState_ != REGISTERED) {
-        HIVIEW_LOGD("eventFocusListener not need unRegister");
+        HIVIEW_LOGD("eventFocusListener not need unRegistered");
         return;
     }
     if (GetInstance() == nullptr) {

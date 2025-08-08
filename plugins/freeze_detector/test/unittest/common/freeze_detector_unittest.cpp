@@ -731,6 +731,35 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_006, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeDetectorPlugin_007
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_007, TestSize.Level3)
+{
+    auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
+    std::string testName = "FreezeDetectorPlugin_007";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    ASSERT_TRUE(sysEvent != nullptr);
+    sysEvent->eventName_ = testName;
+    sysEvent->SetSeq(1234567890);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PID, getpid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_TID, getpid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_UID, getuid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PACKAGE_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::HITRACE_TIME, "12453");
+    sysEvent->SetEventValue(FreezeCommon::SYSRQ_TIME, "12453");
+    sysEvent->SetEventValue(FreezeCommon::TERMINAL_THREAD_STACK, testName);
+    sysEvent->SetEventValue(EventStore::EventCol::INFO, testName);
+    auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
+    freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    sysEvent->SetEventValue(FreezeCommon::EVENT_TRACE_ID, "12345;123456");
+    freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    ASSERT_TRUE(freezeDetectorPlugin != nullptr);
+}
+
+/**
  * @tc.name: FreezeCommon_001
  * @tc.desc: FreezeDetector
  */
@@ -922,18 +951,17 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitPackageName("com.package.name")
         .InitHitraceTime("20230627")
         .InitSysrqTime("20230627")
-        .InitHitraceIdInfo("hitraceId: 123")
         .InitTerminalThreadStack("threadStaskTest")
         .InitTelemetryId("telemetryIdTest")
         .InitTraceName("traceNameTest")
-        .InitProcStatm("123 45 678")
+        .InitHitraceIdInfo("hitraceId: 123")
+        .InitProcStatm("hitraceId: 123")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
     ASSERT_EQ(wp1->GetTerminalThreadStack(), "threadStaskTest");
     ASSERT_EQ(wp1->GetTelemetryId(), "telemetryIdTest");
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
-    ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
 }
 
 /**

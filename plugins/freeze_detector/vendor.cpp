@@ -143,9 +143,10 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.summary = type + ": " + processName + " " + stringId +
         " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
     info.summary += std::string(DISPLAY_POWER_INFO) + disPlayPowerInfo;
-    info.summary += std::string(HITRACE_ID_INFO) + watchPoint.GetHitraceIdInfo();
+    std::string hiTraceIdInfo = watchPoint.GetHitraceIdInfo();
+    info.summary += hiTraceIdInfo.empty() ? "" : (std::string(HITRACE_ID_INFO) + hiTraceIdInfo + "\n");
     info.logPath = logPath;
-    info.sectionMaps[FreezeCommon::HIREACE_TIME] = watchPoint.GetHitraceTime();
+    info.sectionMaps[FreezeCommon::HITRACE_TIME] = watchPoint.GetHitraceTime();
     info.sectionMaps[FreezeCommon::SYSRQ_TIME] = watchPoint.GetSysrqTime();
     info.sectionMaps[FORE_GROUND] = watchPoint.GetForeGround();
     info.sectionMaps[SCB_PROCESS] = isScbPro;
@@ -292,7 +293,7 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
 bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
     const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
 {
-    if  (stringId != "SERVICE_WARNING" && stringId != "THREAD_BLOCK_3S") {
+    if (stringId != "SERVICE_WARNING" && stringId != "THREAD_BLOCK_3S") {
         return true;
     }
 

@@ -29,10 +29,6 @@
 
 #include "parameter.h"
 
-#ifdef SOC_PERF_ENABLE
-#include "socperf_client.h"
-#endif
-
 #include "common_utils.h"
 #include "dfx_json_formatter.h"
 #include "event_source.h"
@@ -70,27 +66,12 @@ namespace {
     static constexpr const char* const MONITOR_STACK_FLIE_NAME[] = {
         "jsstack",
     };
-    static constexpr const char* const TWELVE_BIG_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
-    static constexpr const char* const TWELVE_BIG_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
-    static constexpr const char* const TWELVE_MID_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
-    static constexpr const char* const TWELVE_MID_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_CUR_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_MAX_FREQ =
-        "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq";
     static constexpr const char* const CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
-    const static std::set<std::string> HALF_EVENT_CONFIGS = {
-        "UI_BLOCK_3S",
-        "THREAD_BLOCK_3S",
-        "BUSSNESS_THREAD_BLOCK_3S",
-        "LIFECYCLE_HALF_TIMEOUT"
-    };
+    static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
+    static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
+    static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
     static constexpr const char* const FFRT_PTOCESSES[] = {
         "com.ohos.sceneboard", "foundation", "hiview"
     };
@@ -100,9 +81,6 @@ namespace {
     static constexpr const char* const TASK_TIMEOUT = "CONGESTION";
     static constexpr const char* const SENARIO = "SENARIO";
 
-    static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
-    static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
-    static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -112,7 +90,7 @@ namespace {
 #endif
     static constexpr int DUMP_TIME_RATIO = 2;
     static constexpr int EVENT_MAX_ID = 1000000;
-    static constexpr int MIN_KEEP_FILE_NUM = 100;
+    static constexpr int MIN_KEEP_FILE_NUM = 80;
     static constexpr int MAX_FOLDER_SIZE = 100 * 1024 * 1024;
     static constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
     static constexpr int HISTORY_EVENT_LIMIT = 500;
@@ -122,8 +100,6 @@ namespace {
     static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
     static constexpr int BOOT_SCAN_SECONDS = 60;
-    static constexpr int PERF_TIME = 60;
-    static constexpr int PERF_NUM = 10202;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     constexpr size_t FREEZE_SAMPLE_STACK_INDEX = 1;
     constexpr int32_t MAX_FREEZE_PER_HAP = 10;
@@ -334,6 +310,7 @@ void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
 {
     std::string tmp = event->GetEventValue("FREEZE_INFO_PATH");
     if (tmp.empty()) {
+        HIVIEW_LOGD("failed to save freezeInfo to file, FREEZE_INFO_PATH is empty.");
         return;
     }
 
@@ -424,7 +401,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     threadStack = threadStack.empty() ? logTask->terminalThreadStack_ : threadStack;
     SetEventTerminalBinder(event, threadStack, fd);
     auto end = TimeUtil::GetMilliseconds();
-    FileUtil::SaveStringToFd(fd, "\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
+    FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
 void EventLogger::SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd)
@@ -463,11 +440,11 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
     }
     UpdateDB(event, logFile);
     SaveDbToFile(event);
-    SaveFreezeInfoToFile(event);
 
     constexpr int waitTime = 1;
     auto CheckFinishFun = [this, event] { this->CheckEventOnContinue(event); };
     threadLoop_->AddTimerEvent(nullptr, nullptr, CheckFinishFun, waitTime, false);
+    SaveFreezeInfoToFile(event);
     HIVIEW_LOGI("Collect on finish, name: %{public}s", logFile.c_str());
 }
 
@@ -485,38 +462,6 @@ void EventLogger::FreezeFilterTraceOn(std::shared_ptr<SysEvent> event, bool isBe
     LogCatcherUtils::FreezeFilterTraceOn(bundleName);
 }
 #endif
-
-void EventLogger::PerfStart(std::string eventName)
-{
-    const int buffSize = 128;
-    char paramOutBuff[buffSize] = {0};
-    GetParameter("const.dfx.sub_health_recovery.enable", "", paramOutBuff, buffSize - 1);
-    std::string str(paramOutBuff);
-    if (str!= "true") {
-        return;
-    }
-    auto it = HALF_EVENT_CONFIGS.find(eventName);
-    if (it == HALF_EVENT_CONFIGS.end()) {
-        return;
-    }
-    auto curTime = TimeUtil::GetSeconds();
-    if (curTime - perfTime < PERF_TIME) {
-        HIVIEW_LOGI("perf time is less than 60s");
-        return;
-    }
-    std::string bigCpuCurFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
-    std::string bigCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_BIG_CPU_MAX_FREQ);
-    std::string midCpuCurFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_CUR_FREQ);
-    std::string midCpuMaxFreq = FileUtil::GetFirstLine(TWELVE_MID_CPU_MAX_FREQ);
-    if (bigCpuCurFreq == bigCpuMaxFreq || midCpuCurFreq == midCpuMaxFreq) {
-        perfTime = curTime;
-        HIVIEW_LOGI("perf start");
-        #ifdef SOC_PERF_ENABLE
-        OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(PERF_NUM, "");
-        #endif
-        HIVIEW_LOGI("perf end");
-    }
-}
 
 bool ParseMsgForMessageAndEventHandler(const std::string& msg, std::string& message, std::string& eventHandlerStr)
 {
@@ -679,7 +624,7 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
     long uid = event->GetEventIntValue("UID");
     uid = uid ? uid : event->GetUid();
     headerStream << "UID = " << uid << std::endl;
-    if (event->GetEventIntValue("TID") > 0) {
+    if (event->GetEventIntValue("TID")) {
         headerStream << "TID = " << event->GetEventIntValue("TID") << std::endl;
     } else {
         headerStream << "TID = " << pid << std::endl;
@@ -854,7 +799,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
 {
     std::string msg = StringUtil::ReplaceStr(event->GetEventValue("MSG"), "\\n", "\n");
     std::string stack;
-    std::string kernelStack;
+    std::string kernelStack = "";
     std::string binderInfo = event -> GetEventValue("BINDER_INFO");
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
@@ -880,7 +825,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             ffrt::task_attr().name("write_kernel_stack"));
     }
     std::ostringstream oss;
-    std::string endTimeStamp;
+    std::string endTimeStamp = "";
     size_t endTimeStampIndex = msg.find("Catche stack trace end time: ");
     if (endTimeStampIndex != std::string::npos) {
         endTimeStamp = msg.substr(endTimeStampIndex);
@@ -891,7 +836,6 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
         oss << StringUtil::UnescapeJsonStringValue(stack) << std::endl;
     }
     oss << endTimeStamp << std::endl;
-    
     if (!binderInfo.empty()) {
         oss << (Parameter::IsOversea() ? "binder info is not saved in oversea version":
             StringUtil::UnescapeJsonStringValue(binderInfo)) << std::endl;
@@ -1015,7 +959,6 @@ bool EventLogger::UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile)
 
 bool EventLogger::IsHandleAppfreeze(std::shared_ptr<SysEvent> event)
 {
-    this->PerfStart(event->eventName_);
     std::string bundleName = event->GetEventValue("PACKAGE_NAME");
     if (bundleName.empty()) {
         bundleName = event->GetEventValue("MODULE_NAME");

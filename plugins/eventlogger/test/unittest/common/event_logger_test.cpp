@@ -964,7 +964,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_SetEventTerminalBinder_001, TestSize.L
     eventLogger->SetEventTerminalBinder(event, threadStack, 0);
     EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "");
     threadStack = "thread_block_3s thread stack";
-    int fd = eventLogger->logStore_->CreateLogFile("test_thread_stack_file");
+    int fd = eventLogger->logStore_->CreateLogFile("test_set_terminal_binder");
     if (fd > 0) {
         eventLogger->SetEventTerminalBinder(event, threadStack, fd);
         EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "thread_block_3s thread stack");
@@ -1010,7 +1010,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_AddBootScanEvent_001, TestSize.Level3)
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_001, TestSize.Level0)
+HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_001, TestSize.Level3)
 {
     std::string path = "/data/log/faultlog/freeze/appfreeze-com.test.demo-20020191-20250320154130";
     auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
@@ -1049,7 +1049,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_002, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_GetFileLastAccessTimeStamp_001, TestSize.Level3)
 {
     time_t ret = GetFileLastAccessTimeStamp("EventLoggerTest");
-    GetFileLastAccessTimeStamp("/data/test/log/test.txt");
+    ret = GetFileLastAccessTimeStamp("/data/test/log/test.txt");
     EXPECT_TRUE(ret >= 0);
 }
 

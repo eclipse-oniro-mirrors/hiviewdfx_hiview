@@ -134,6 +134,7 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 #endif // DMESG_CATCHER_ENABLE
     AddCapture();
 }
+
 void EventLogTask::AddCapture()
 {
 #ifdef HITRACE_CATCHER_ENABLE
@@ -421,22 +422,25 @@ void EventLogTask::DmesgCapture(bool writeNewFile, int type)
         HIVIEW_LOGI("the dmesg cmd can only be executed in beta version");
         return;
     }
+
     auto capture = std::make_shared<DmesgCatcher>();
     capture->Initialize("", writeNewFile, type);
     capture->Init(event_);
-    if (writeNewFile) {
-        int pid = -1;
+    if (!writeNewFile) {
+        tasks_.push_back(capture);
+        return;
+    }
+    int pid = -1;
 #ifdef KERNELSTACK_CATCHER_ENABLE
+    if (type == DmesgCatcher::SYS_RQ) {
         std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
         if (!processName.empty()) {
             pid = CommonUtils::GetPidByName(processName);
             HIVIEW_LOGI("processName:%{public}s, pid:%{public}d.", processName.c_str(), pid);
         }
-#endif //KERNELSTACK_CATCHER_ENABLE
-        capture->WriteNewFile(pid);
-    } else {
-        tasks_.push_back(capture);
     }
+#endif //KERNELSTACK_CATCHER_ENABLE
+    capture->WriteNewFile(pid);
 }
 #endif // DMESG_CATCHER_ENABLE
 
