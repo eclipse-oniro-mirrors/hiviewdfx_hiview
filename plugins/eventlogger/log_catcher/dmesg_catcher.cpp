@@ -230,16 +230,17 @@ void DmesgCatcher::WriteNewFile(int pid)
     std::string fileType = (writeType_ == SYS_RQ) ? "sysrq" : "hungtask";
     std::string fileTime = (writeType_ == SYS_RQ) ?  event_->GetEventValue("SYSRQ_TIME") :
         event_->GetEventValue("HUNGTASK_TIME");
-    std::string fullPath = std::string(FULL_DIR) + fileType + "-" + fileTime + ".log";
-    HIVIEW_LOGI("write new %{public}s start, fullPath : %{public}s", fileType.c_str(), fullPath.c_str());
+    std::string fileName = fileType + "-" + fileTime + ".log";
+    std::string fullPath = std::string(FULL_DIR) + fileName;
+    HIVIEW_LOGI("write new %{public}s start", fileName.c_str());
     if (FileUtil::FileExists(fullPath)) {
-        HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fullPath.c_str());
+        HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fileName.c_str());
         return;
     }
     FILE* fp = fopen(fullPath.c_str(), "w");
     chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
     if (fp == nullptr) {
-        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fullPath.c_str(), errno);
+        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fileName.c_str(), errno);
         return;
     }
     auto fd = fileno(fp);
@@ -251,7 +252,7 @@ void DmesgCatcher::WriteNewFile(int pid)
         HIVIEW_LOGE("fclose is failed");
     }
     fp = nullptr;
-    HIVIEW_LOGI("write new %{public}s end, fullPath : %{public}s", fileType.c_str(), fullPath.c_str());
+    HIVIEW_LOGI("write new %{public}s end", fileName.c_str());
 }
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX
