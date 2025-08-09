@@ -88,7 +88,7 @@ void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType
     HIVIEW_LOGI("Animation start and current sceneId: %{public}s", sceneId.c_str());
     if (record == nullptr) {
         record = new AnimatorRecord();
-		int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
+        int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
         PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
         record->InitRecord(sceneId, type, sourceType, note, inputTime);
         mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
