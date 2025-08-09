@@ -82,6 +82,12 @@ bool IsDeveloperMode()
     return GetBoolean(KEY_DEVELOPER_MODE_STATE, false);
 }
 
+bool IsFactoryMode()
+{
+    static bool isFactoryMode = (GetString("const.runmode", "") == "factory");
+    return isFactoryMode;
+}
+
 bool IsOversea()
 {
     // if param not been set, take it as china version

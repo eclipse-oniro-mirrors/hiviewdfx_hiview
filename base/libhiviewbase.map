@@ -284,6 +284,7 @@
         "OHOS::HiviewDFX::Parameter::GetDisplayVersionStr()";
         "OHOS::HiviewDFX::Parameter::IsUCollectionSwitchOn()";
         "OHOS::HiviewDFX::Parameter::IsDeveloperMode()";
+        "OHOS::HiviewDFX::Parameter::IsFactoryMode()";
         "OHOS::HiviewDFX::Parameter::IsTraceCollectionSwitchOn()";
         "OHOS::HiviewDFX::Parameter::IsLeakStateMode()";
         "OHOS::HiviewDFX::Parameter::IsUserMode()";

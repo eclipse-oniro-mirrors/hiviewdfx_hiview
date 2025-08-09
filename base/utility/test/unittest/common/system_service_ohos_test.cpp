@@ -92,5 +92,22 @@ HWTEST_F(SystemServiceOhosTest, SystemServiceTest003, testing::ext::TestSize.Lev
         }
     }
 }
+
+/**
+ * @tc.name: SystemServiceTest004
+ * @tc.desc: Test factory mode
+ * @tc.type: FUNC
+ * @tc.require: issueICS6LM
+ */
+HWTEST_F(SystemServiceOhosTest, SystemServiceTest004, testing::ext::TestSize.Level3)
+{
+    std::string runmode = Parameter::GetString("const.runmode", "");
+    bool isFactoryMode = Parameter::IsFactoryMode();
+    if (runmode == "factory") {
+        ASSERT_TRUE(isFactoryMode);
+    } else {
+        ASSERT_FALSE(isFactoryMode);
+    }
+}
 }
 }

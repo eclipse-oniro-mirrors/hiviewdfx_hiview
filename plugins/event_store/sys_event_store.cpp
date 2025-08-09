@@ -143,7 +143,7 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
         EventStore::SysEventSequenceManager::GetInstance().SetSequence(++eventSeq);
         sysEventDbMgr_->SaveToStore(sysEvent);
 
-        if (!Parameter::IsOversea()) {
+        if (!Parameter::IsOversea() && !Parameter::IsFactoryMode()) {
             std::string dateStr(TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d"));
             if (IsNeedBackup(dateStr)) {
                 EventStore::SysEventDao::Backup();
