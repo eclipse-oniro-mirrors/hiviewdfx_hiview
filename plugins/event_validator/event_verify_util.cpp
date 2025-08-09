@@ -68,7 +68,7 @@ bool EventVerifyUtil::IsValidSysEvent(const std::shared_ptr<SysEvent> event)
     }
     auto baseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(event->domain_, event->eventName_);
     if (baseInfo.keyConfig.type == INVALID_EVENT_TYPE) {
-        HIVIEW_LOGW("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] invalid, or privacy dismatch.",
+        HIVIEW_LOGD("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] invalid, or privacy dismatch.",
             event->domain_.c_str(), event->eventName_.c_str(), event->happenTime_);
         return false;
     }

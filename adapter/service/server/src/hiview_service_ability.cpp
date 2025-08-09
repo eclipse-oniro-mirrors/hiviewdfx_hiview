@@ -39,7 +39,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-DEFINE_LOG_TAG("HiViewSA-HiviewServiceAbility");
+DEFINE_LOG_TAG("HiViewSA");
 constexpr int MAXRETRYTIMEOUT = 10;
 constexpr int USER_ID_MOD = 200000;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
@@ -256,7 +256,7 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
         return HiviewNapiErrCode::ERR_INNER_READ_ONLY;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
-    HIVIEW_LOGI("uid %{public}d, isMove: %{public}d, type:%{public}s, name:%{public}s",
+    HIVIEW_LOGD("uid %{public}d, isMove: %{public}d, type:%{public}s, name:%{public}s",
         uid, isMove, logType.c_str(), StringUtil::HideSnInfo(logName).c_str());
     std::string sandboxPath = GetSandBoxPathByUid(uid);
     if (sandboxPath.empty()) {

@@ -43,7 +43,7 @@ void PlatformMonitor::AccumulateTimeInterval(uint64_t costTime, std::map<int8_t,
     auto lastPos = std::end(intervals_);
     auto it = std::lower_bound(intervals_, lastPos, costTime);
     if (it == lastPos) {
-        HIVIEW_LOGW("lower bound base on %{public}" PRIu64 " not found", costTime);
+        HIVIEW_LOGD("lower bound base on %{public}" PRIu64 " not found", costTime);
         return;
     }
     int index = it - intervals_;
