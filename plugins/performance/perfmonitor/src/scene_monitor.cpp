@@ -64,7 +64,7 @@ void SceneManager::OnSceneStart(const SceneType& type, const std::string& sceneI
     auto it = sceneBoard.find(type);
     if (it == sceneBoard.end()) {
         SceneRecord* newRecord = GetRecordByType(type);
-        newRecord->StartRecord(type);
+        newRecord->StartRecord(type, sceneId);
         sceneBoard.insert(std::pair<SceneType, SceneRecord*> (type, newRecord));
     } else {
         sceneBoard[type]->StartRecord(type, sceneId);

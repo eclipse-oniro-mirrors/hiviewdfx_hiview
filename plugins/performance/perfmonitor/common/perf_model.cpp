@@ -275,10 +275,7 @@ void NonExperienceResponse::StartRecord(const SceneType& sType, const std::strin
 bool NonExperienceResponse::IsNonExperienceWhiteList(const std::string& sceneId)
 {
     // app list fling response is experience jank
-    if (sceneId == PerfConstants::APP_LIST_FLING) {
-        return true;
-    }
-    return false;
+    return (sceneId == PerfConstants::APP_LIST_FLING);
 }
 
 }
