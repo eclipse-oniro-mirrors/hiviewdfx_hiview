@@ -317,6 +317,8 @@ void Faultlogger::AddPublicInfo(FaultLogInfo &info)
     AnalysisFaultlog(info, info.parsedLogInfo);
     info.sectionMap.insert(info.parsedLogInfo.begin(), info.parsedLogInfo.end());
     info.parsedLogInfo.clear();
+
+    AddHilog(info);
 }
 
 void Faultlogger::AddBundleInfo(FaultLogInfo& info)
@@ -373,6 +375,15 @@ void Faultlogger::AddCppCrashInfo(FaultLogInfo& info)
     std::string log;
     GetHilog(info.pid, log);
     info.sectionMap["HILOG"] = log;
+}
+
+void Faultlogger::AddHilog(FaultLogInfo& info)
+{
+    if (info.faultLogType == FaultLogType::JS_CRASH) {
+        std::string log;
+        GetHilog(info.pid, log);
+        info.sectionMap["HILOG"] = log;
+    }
 }
 
 void Faultlogger::AddDebugSignalInfo(FaultLogInfo& info) const
