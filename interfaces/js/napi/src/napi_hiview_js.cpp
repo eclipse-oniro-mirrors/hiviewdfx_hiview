@@ -64,11 +64,6 @@ static napi_value List(napi_env env, napi_callback_info info)
 
 static napi_value CopyOrMoveFile(napi_env env, napi_callback_info info, bool isMove)
 {
-    if (isMove) {
-        HIVIEW_LOGI("call move");
-    } else {
-        HIVIEW_LOGI("call copy");
-    }
     constexpr size_t maxParamNum = 4;
     constexpr size_t paramNumWithoutCallback = 3;
     size_t paramNum = maxParamNum;
@@ -86,10 +81,11 @@ static napi_value CopyOrMoveFile(napi_env env, napi_callback_info info, bool isM
     if (!HiviewNapiUtil::ParseStringValue(env, "logType", params[LOG_TYPE_INDEX], logType)
         || !HiviewNapiUtil::ParseStringValue(env, "logName", params[LOG_NAME_INDEX], logName)
         || !HiviewNapiUtil::ParseStringValue(env, "dest", params[DEST_DIR_INDEX], destDir)) {
+        HIVIEW_LOGW("failed to parse params");
         return result;
     }
-    HIVIEW_LOGI("type:%{public}s, name:%{public}s, dir: %{public}s",
-        logType.c_str(), StringUtil::HideSnInfo(logName).c_str(), destDir.c_str());
+    HIVIEW_LOGD("isMove:%{public}d, type:%{public}s, name:%{public}s, dir: %{public}s",
+        isMove, logType.c_str(), StringUtil::HideSnInfo(logName).c_str(), destDir.c_str());
     if (!HiviewNapiUtil::CheckDirPath(destDir)) {
         HIVIEW_LOGE("dest param is invalid: %{public}s", destDir.c_str());
         HiviewNapiUtil::ThrowParamContentError(env, "dest");

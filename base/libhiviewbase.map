@@ -30,12 +30,7 @@
         "OHOS::HiviewDFX::PluginProxy::DestroyInstanceIfNeed(long long)";
         "OHOS::HiviewDFX::Event::ResetTimestamp()";
         "OHOS::HiviewDFX::Plugin::GetVersion()";
-        "OHOS::HiviewDFX::AuditLogParser::StartParse()";
-        "OHOS::HiviewDFX::AuditLogParser::GetAuditLogTimeScope()";
-        "OHOS::HiviewDFX::AuditLogParser::GetPluginSummary(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::AuditLogParser::GetThreadSummary(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::Pipeline::AppendProcessor(std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>)";
-        "OHOS::HiviewDFX::AuditLogParser::GetPipelineSummary(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::SysEvent::totalCount_";
         "OHOS::HiviewDFX::SysEvent::totalSize_";
         "OHOS::HiviewDFX::SysEventCreator::SysEventCreator(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::SysEventCreator::EventType)";
@@ -67,7 +62,6 @@
         "OHOS::HiviewDFX::SysEvent::GetPid() const";
         "OHOS::HiviewDFX::Event::SetValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
         "OHOS::HiviewDFX::Event::GetValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
-        "OHOS::HiviewDFX::EventThreadPool::AddTask(std::__h::function<void ()>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long long, unsigned char)";
         "OHOS::HiviewDFX::SysEvent::GetSeq() const";
         "OHOS::HiviewDFX::SysEvent::SetEventValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
         "OHOS::HiviewDFX::LogStoreEx::CreateLogFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -79,10 +73,6 @@
         "OHOS::HiviewDFX::LogStoreEx::SetMinKeepingFileNumber(unsigned int)";
         "OHOS::HiviewDFX::LogStoreEx::Init()";
         "OHOS::HiviewDFX::EventLoop::AddFileDescriptorEventCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::HiviewDFX::FileDescriptorEventCallback>)";
-        "OHOS::HiviewDFX::EventThreadPool::EventThreadPool(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::EventThreadPool::~EventThreadPool()";
-        "OHOS::HiviewDFX::EventThreadPool::Start()";
-        "OHOS::HiviewDFX::EventThreadPool::Stop()";
         "OHOS::HiviewDFX::SysEvent::SetEventValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::PipelineEvent::SetPipelineInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::list<std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>, std::__h::allocator<std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>>>&)";
         "OHOS::HiviewDFX::LogStoreEx::LogStoreEx(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
@@ -117,7 +107,6 @@
         "OHOS::HiviewDFX::Event::GetKeyValuePairs() const";
         "OHOS::HiviewDFX::PluginProxy::DestroyInstanceIfNeed(long)";
         "OHOS::HiviewDFX::EventLoop::AddTimerEvent(std::__h::shared_ptr<OHOS::HiviewDFX::EventHandler>, std::__h::shared_ptr<OHOS::HiviewDFX::Event>, std::__h::function<void ()> const&, unsigned long, bool)";
-        "OHOS::HiviewDFX::EventThreadPool::AddTask(std::__h::function<void ()>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long, unsigned char)";
         "OHOS::HiviewDFX::SysEvent::SetEventValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
         "OHOS::HiviewDFX::SysEvent::SetSeq(long)";
         "OHOS::HiviewDFX::ParamValue::ParamValue(unsigned long)";
