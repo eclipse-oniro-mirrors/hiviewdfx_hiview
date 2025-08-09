@@ -44,6 +44,7 @@ int WatchParamChange(const char *keyPrefix, ParameterChgPtr callback, void *cont
 int RemoveParameterWatcherEx(const char *keyPrefix, ParameterChgPtr callback, void *context);
 bool IsBetaVersion();
 bool IsDeveloperMode();
+bool IsFactoryMode();
 bool IsOversea();
 UserType GetUserType();
 bool IsUCollectionSwitchOn();
