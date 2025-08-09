@@ -42,6 +42,44 @@ namespace {
     const int64_t DFX_HILOG_TIMESTAMP_THOUSAND = 1000;
 }
 
+int64_t FaultLogCppCrash::GetLastLineHilogTime(const std::string& lastLineHilog) const
+{
+    if (lastLineHilog.length() < DFX_HILOG_TIMESTAMP_LEN) {
+        HIVIEW_LOGE("GetLastLineHilogTime invalid length last line");
+        return -1;
+    }
+    std::string lastLineHilogTimeStr = lastLineHilog.substr(0, DFX_HILOG_TIMESTAMP_LEN);
+    // get year of the current time
+    std::time_t nowTt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::tm* nowTm = std::localtime(&nowTt);
+    if (!nowTm) {
+        HIVIEW_LOGE("GetLastLineHilogTime tm is null");
+        return -1;
+    }
+    // add year for time format
+    lastLineHilogTimeStr = std::to_string(nowTm->tm_year + DFX_HILOG_TIMESTAMP_START_YEAR) +
+                            "-" + lastLineHilogTimeStr;
+    // format last line hilog time
+    std::tm lastLineHilogTm = {0};
+    std::istringstream ss(lastLineHilogTimeStr);
+    ss >> std::get_time(&lastLineHilogTm, "%Y-%m-%d %H:%M:%S");
+    if (ss.fail()) {
+        HIVIEW_LOGE("GetLastLineHilogTime get time fail");
+        return -1;
+    }
+    std::time_t lastLineHilogTt = std::mktime(&lastLineHilogTm);
+    int64_t lastLineHilogTime = static_cast<int64_t>(lastLineHilogTt);
+    // format time from second to milliseconds
+    size_t dotPos = lastLineHilogTimeStr.find_last_of('.');
+    long milliseconds = 0;
+    if (dotPos != std::string::npos && dotPos + DFX_HILOG_TIMESTAMP_MILLISEC_NUM < lastLineHilogTimeStr.size()) {
+        std::string millisecStr = lastLineHilogTimeStr.substr(dotPos + 1, DFX_HILOG_TIMESTAMP_MILLISEC_NUM);
+        milliseconds = strtol(millisecStr.c_str(), nullptr, DFX_HILOG_TIMESTAMP_DECIMAL);
+    }
+    lastLineHilogTime = lastLineHilogTime * DFX_HILOG_TIMESTAMP_THOUSAND + static_cast<int64_t>(milliseconds);
+    return lastLineHilogTime;
+}
+
 void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
 {
     if (!Parameter::IsBetaVersion()) {
@@ -61,36 +99,12 @@ void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
         HIVIEW_LOGE("CheckHilogTime get last line hilog fail");
         return;
     }
-    // add hilog time year
+    // get last hilog time
     std::string lastLineHilog = info.sectionMap[FaultKey::HILOG].substr(pos + 1);
-    if (lastLineHilog.length() < DFX_HILOG_TIMESTAMP_LEN) {
-        HIVIEW_LOGE("CheckHilogTime invalid length last line");
+    int64_t lastLineHilogTime = GetLastLineHilogTime(lastLineHilog);
+    if (lastLineHilogTime < 0) {
         return;
     }
-    std::string lastLineHilogTimeStr = lastLineHilog.substr(0, DFX_HILOG_TIMESTAMP_LEN);
-    auto now = std::chrono::system_clock::now();
-    std::time_t nowTt = std::chrono::system_clock::to_time_t(now);
-    std::tm* nowTm = std::localtime(&nowTt);
-    lastLineHilogTimeStr = std::to_string(nowTm->tm_year + DFX_HILOG_TIMESTAMP_START_YEAR) +
-                            "-" + lastLineHilogTimeStr;
-    // format last line hilog time
-    std::tm lastLineHilogTm = {0};
-    std::istringstream ss(lastLineHilogTimeStr);
-    ss >> std::get_time(&lastLineHilogTm, "%Y-%m-%d %H:%M:%S");
-    if (ss.fail()) {
-        HIVIEW_LOGE("CheckHilogTime get time fail");
-        return;
-    }
-    std::time_t lastLineHilogTt = std::mktime(&lastLineHilogTm);
-    int64_t lastLineHilogTime = static_cast<int64_t>(lastLineHilogTt);
-    // format time from second to milliseconds
-    size_t dotPos = lastLineHilogTimeStr.find_last_of('.');
-    long milliseconds = 0;
-    if (dotPos != std::string::npos && dotPos + DFX_HILOG_TIMESTAMP_MILLISEC_NUM < lastLineHilogTimeStr.size()) {
-        std::string millisecStr = lastLineHilogTimeStr.substr(dotPos + 1, DFX_HILOG_TIMESTAMP_MILLISEC_NUM);
-        milliseconds = strtol(millisecStr.c_str(), nullptr, DFX_HILOG_TIMESTAMP_DECIMAL);
-    }
-    lastLineHilogTime = lastLineHilogTime * DFX_HILOG_TIMESTAMP_THOUSAND + static_cast<int64_t>(milliseconds);
     // check time invalid
     if (lastLineHilogTime < info.time) {
         info.sectionMap["INVAILED_HILOG_TIME"] = "true";
