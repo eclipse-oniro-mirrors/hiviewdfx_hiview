@@ -35,7 +35,7 @@ public:
     static constexpr const char* const EVENT_PACKAGE_NAME = "PACKAGE_NAME";
     static constexpr const char* const EVENT_PROCESS_NAME = "PROCESS_NAME";
     static constexpr const char* const EVENT_MSG = "MSG";
-    static constexpr const char* const HIREACE_TIME = "HITRACE_TIME";
+    static constexpr const char* const HITRACE_TIME = "HITRACE_TIME";
     static constexpr const char* const SYSRQ_TIME = "SYSRQ_TIME";
     static constexpr const char* const TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
     static constexpr const char* const TELEMETRY_ID = "TELEMETRY_ID";
@@ -45,9 +45,6 @@ public:
         "LIFECYCLE_HALF_TIMEOUT_WARNING"
     };
     static constexpr const char* const EVENT_TRACE_ID = "HITRACE_ID";
-    static constexpr const char* const EVENT_SPAN_ID = "SPAN_ID";
-    static constexpr const char* const EVENT_PARENT_SPAN_ID = "PARENT_SPAN_ID";
-    static constexpr const char* const EVENT_TRACE_FLAG = "TRACE_FLAG";
     static constexpr const char* const PROC_STATM = "PROC_STATM";
 
     FreezeCommon();

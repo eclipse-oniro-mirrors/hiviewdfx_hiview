@@ -61,7 +61,12 @@ bool PeerBinderCatcher::Initialize(const std::string& perfCmd, int layer, int pi
     pid_ = pid;
     layer_ = layer;
     perfCmd_ = perfCmd;
-    description_ = "PeerBinderCatcher -- pid==" + std::to_string(pid_) + " layer_ == " + std::to_string(layer_) + "\n";
+    char buf[BUF_SIZE_512] = {0};
+    int ret = snprintf_s(buf, BUF_SIZE_512, BUF_SIZE_512 - 1,
+        "PeerBinderCatcher -- pid==%d layer_ =%d\n", pid_, layer_);
+    if (ret > 0) {
+        description_ = buf;
+    }
     return true;
 }
 
@@ -104,7 +109,7 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
     std::string pidStr = "";
     for (auto pidTemp : syncPids) {
         if (pidTemp == pid_ || IsAncoProc(pidTemp)) {
-            HIVIEW_LOGI("Stack of PeerBinder pid %{public}d is catched.", pidTemp);
+            HIVIEW_LOGI("Stack of PeerBinder Pid %{public}d is catched.", pidTemp);
             continue;
         }
 
@@ -117,7 +122,7 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
     for (auto pidTemp : asyncPids) {
         if (pidTemp == pid_ || IsAncoProc(pidTemp) || syncPids.find(pidTemp) != syncPids.end() ||
             catchedPids_.count(pidTemp) != 0) {
-            HIVIEW_LOGI("Stack of AsyncBinder pid %{public}d is catched.", pidTemp);
+            HIVIEW_LOGI("Stack of AsyncBinder Pid %{public}d is catched.", pidTemp);
             continue;
         }
         CatcherStacktrace(fd, pidTemp, false);
@@ -315,7 +320,7 @@ std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd, std::set<
     std::map<int, std::list<PeerBinderCatcher::BinderInfo>> manager = BinderInfoParser(fin, fd, jsonFd, asyncPids);
     fin.close();
 
-    if (manager.size() == 0 || manager.find(pid_) == manager.end()) {
+    if (Parameter::IsOversea() || manager.size() == 0 || manager.find(pid_) == manager.end()) {
         return pids;
     }
 
@@ -346,11 +351,13 @@ void PeerBinderCatcher::ParseBinderCallChain(std::map<int, std::list<PeerBinderC
             continue;
         }
         pids.insert(each.serverPid);
-        if (getTerminal && ((each.clientPid == params.eventPid && each.clientTid == params.eventTid) ||
-            (each.clientPid == terminalBinder_.pid && each.clientTid == terminalBinder_.tid))) {
-            terminalBinder_.pid = each.serverPid;
-            terminalBinder_.tid = each.serverTid;
-            ParseBinderCallChain(manager, pids, each.serverPid, params, true);
+        if (getTerminal) {
+            if ((each.clientPid == params.eventPid && each.clientTid == params.eventTid) ||
+                (each.clientPid == terminalBinder_.pid && each.clientTid == terminalBinder_.tid)) {
+                terminalBinder_.pid = each.serverPid;
+                terminalBinder_.tid = each.serverTid;
+                ParseBinderCallChain(manager, pids, each.serverPid, params, true);
+            }
         }
         ParseBinderCallChain(manager, pids, each.serverPid, params, false);
     }

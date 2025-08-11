@@ -19,8 +19,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sstream>
-#include <iostream>
 
 #ifdef KERNELSTACK_CATCHER_ENABLE
 #include "dfx_kernel_stack.h"
@@ -85,7 +83,7 @@ bool DmesgCatcher::DumpToFile(int fd, const std::string& dataStr)
         lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
         lineEnd = dataStr.find('\n', sysRqEnd);
         lineEnd = (lineEnd == std::string::npos) ? dataStr.length() : lineEnd;
-        res =  FileUtil::SaveStringToFd(fd, dataStr.substr(lineStart, lineEnd - lineStart));
+        res =  FileUtil::SaveStringToFd(fd, dataStr.substr(lineStart, lineEnd - lineStart + 1));
     } else if (writeType_ == HUNG_TASK) {
         std::string hungtaskStr;
         while (lineStart < lineEnd) {
@@ -147,6 +145,7 @@ bool DmesgCatcher::WriteSysrqTrigger()
 
     FILE* file = fopen("/proc/sysrq-trigger", "w");
     if (file == nullptr) {
+        isWriting.store(false);
         HIVIEW_LOGE("Can't read sysrq,errno: %{public}d", errno);
         return false;
     }
@@ -167,7 +166,7 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
         return 0;
     }
     description_ = (writeType_ == SYS_RQ) ? "\nSysrqCatcher -- \n" :
-        (writeType_ == HUNG_TASK) ? "\nHungTaskCatcher -- \n" : "\nDmesgCatcher -- \n";
+        (writeType_ == HUNG_TASK) ? "\nHungTaskCatcher -- \n" : "\nDmesgCatcher -- \n";;
     auto originSize = GetFdSize(fd);
     FileUtil::SaveStringToFd(fd, description_);
     DumpDmesgLog(fd);
@@ -246,7 +245,9 @@ void DmesgCatcher::WriteNewFile(int pid)
     auto fd = fileno(fp);
     DumpDmesgLog(fd);
 #ifdef KERNELSTACK_CATCHER_ENABLE
-    DumpKernelStacktrace(fd, pid);
+    if (writeType_ == SYS_RQ) {
+        DumpKernelStacktrace(fd, pid);
+    }
 #endif // KERNELSTACK_CATCHER_ENABLE
     if (fclose(fp)) {
         HIVIEW_LOGE("fclose is failed");

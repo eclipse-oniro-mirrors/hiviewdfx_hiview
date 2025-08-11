@@ -292,7 +292,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_005, TestSize.Level3)
     sysEvent->SetEventValue("LEASHWINDOWID", 319);
     sysEvent->SetEventValue("LEASHWINDOWNAME", "test leashWindowName");
     sysEvent->SetEventValue("EXT_INFO", "test ext_info");
-
+ 
     sysEvent->domain_ = "AAFWK";
     sysEvent->eventName_ = "APP_INPUT_BLOCK";
     std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(fd, 1, sysEvent);
@@ -301,7 +301,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_005, TestSize.Level3)
     sysEvent->eventName_ = "RS_VULKAN_ERROR";
     logTask->SaveRsVulKanError();
     close(fd);
-
+ 
     std::string line;
     std::ifstream ifs("/data/test/vreFile", std::ios::in);
     if (ifs.is_open()) {
@@ -380,6 +380,10 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_001, TestSize.Level0)
         printf("Fail to create catcherFile. errno: %d\n", errno);
         FAIL();
     }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    sysEvent->SetEventValue("FREEZE_MEMORY", "Get freeze memory end time:\\n12300 45600 78900 36001 96300");
+    memoryCatcher->SetEvent(sysEvent);
     int res = memoryCatcher->Catch(fd, 1);
     EXPECT_TRUE(res > 0);
     res = memoryCatcher->Catch(0, 1);
@@ -631,7 +635,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     dmesgCatcher->Init(event);
 
     bool ret = dmesgCatcher->DumpDmesgLog(-1);
-    EXPECT_EQ(ret, false);    
+    EXPECT_EQ(ret, false);
     ret = dmesgCatcher->WriteSysrqTrigger();
     EXPECT_EQ(ret, true);
     
@@ -643,7 +647,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     dmesgCatcher->Initialize("", true, 1);
     ret = dmesgCatcher->DumpDmesgLog(fd);
     close(fd);
-    printf("ret: %d\n", ret);
+    EXPECT_EQ(ret, false);
 
     auto fd1 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd1 < 0) {
@@ -940,6 +944,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     testFile << "0:pid\tcontext:binder\t0:request\t3:started\t"
         "16:max\t4:ready\t521092:free_space\n";
     testFile.close();
+    close(fd);
 
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     std::ifstream fin;
@@ -960,7 +965,6 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     pids = peerBinderCatcher->GetBinderPeerPids(-1, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
     fin.close();
-    close(fd);
     close(fd1);
 }
 

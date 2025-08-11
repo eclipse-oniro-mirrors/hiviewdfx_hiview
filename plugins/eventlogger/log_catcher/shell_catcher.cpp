@@ -66,7 +66,6 @@ void ShellCatcher::DoChildProcess(int writeFd)
 #ifdef OTHER_CATCHER_ENABLE
     ret = DoOtherCatcher(writeFd);
 #endif // OTHER_CATCHER_ENABLE
-
     if (ret < 0) {
         HIVIEW_LOGE("execl %{public}d, errno: %{public}d", ret, errno);
         _exit(-1);
@@ -97,6 +96,7 @@ int ShellCatcher::DoHilogCatcher(int writeFd)
                 "hilog",
                 "-T",
                 "PowerState,PowerSuspend,PowerInput,DisplayState,DfxFaultLogger",
+                "-x",
                 nullptr);
             break;
         default:
@@ -229,7 +229,6 @@ int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
                 "hilog",
                 "-T",
                 "PowerState,PowerSuspend,PowerInput,DisplayState,DfxFaultLogger",
-                "-x",
                 nullptr);
             break;
         default:

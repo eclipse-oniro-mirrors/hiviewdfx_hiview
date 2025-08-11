@@ -26,6 +26,12 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
     static const int LOG_MAP_SIZE = 2;
+    static const int  INDEX_OF_TYPE = 0;
+    static const int  INDEX_OF_MOUDLE = 1;
+    static const int  INDEX_OF_UID = 2;
+    static const int  INDEX_OF_TIME = 3;
+    static const uint32_t INDEX_OF_TIMESTAMP = 4;
+    static const uint32_t FREEZE_VECTOR_SIZE = 5;
     static constexpr time_t FORTYEIGHT_HOURS = 48 * 60 * 60;
     static const size_t FREEZE_FILE_NAME_SIZE = 6;
     static const int FREEZE_UID_INDEX = 4;
@@ -61,22 +67,17 @@ FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName)
 {
     FaultLogInfoInner info;
     std::vector<std::string> splitStr;
-    int32_t idxOfType = 0;
-    int32_t idxOfMoudle = 1;
-    int32_t idxOfUid = 2;
-    int32_t idxOfTime = 3;
-    uint32_t idxOfTimeStamp = 4;
-    uint32_t vectorSize = 5;
+
     StringUtil::SplitStr(fileName, "-", splitStr);
-    if (splitStr.size() == vectorSize) {
-        std::string type = splitStr[idxOfType];
+    if (splitStr.size() == FREEZE_VECTOR_SIZE) {
+        std::string type = splitStr[INDEX_OF_TYPE];
         info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : ((type == SYSFREEZE) ?
             FaultLogType::SYS_FREEZE : FaultLogType::SYS_WARNING);
-        info.summary = splitStr[idxOfType] + ": ";
-        info.module = splitStr[idxOfMoudle];
-        StringUtil::ConvertStringTo<uint32_t>(splitStr[idxOfUid], info.id);
-        info.sectionMaps[EVENT_TIMESTAMP] = splitStr[idxOfTime];
-        std::string timeStamp = splitStr[idxOfTimeStamp].substr(0, splitStr[idxOfTimeStamp].find(".log"));
+        info.summary = type + ": ";
+        info.module = splitStr[INDEX_OF_MOUDLE];
+        StringUtil::ConvertStringTo<uint32_t>(splitStr[INDEX_OF_UID], info.id);
+        info.sectionMaps[EVENT_TIMESTAMP] = splitStr[INDEX_OF_TIME];
+        std::string timeStamp = splitStr[INDEX_OF_TIMESTAMP].substr(0, splitStr[INDEX_OF_TIMESTAMP].find(".log"));
         StringUtil::ConvertStringTo<uint64_t>(timeStamp, info.time);
     }
     return info;
@@ -109,7 +110,6 @@ FaultLogInfoInner ParseFaultLogInfoFromFile(const std::string &path, const std::
     StringUtil::ConvertStringTo<int32_t>(info.sectionMaps[EVENT_PID], pid);
     info.pid = pid;
     info.summary += info.module + " " + info.reason + " at " + info.sectionMaps[EVENT_TIMESTAMP];
-    info.time = TimeUtil::StrToTimeStamp(std::to_string(info.time), "%Y%m%d%H%M%S");
     HIVIEW_LOGI("log info, pid:%{public}u, id:%{public}u, module:%{public}s, time:%{public}" PRIu64
         ", summary:%{public}s", info.pid, info.id, info.module.c_str(), info.time, info.summary.c_str());
     return info;
@@ -157,7 +157,6 @@ LogStoreEx::LogFileFilter CreateLogFileFilter(int32_t id, const std::string& fil
         if (file.name_.find(filePrefix) == std::string::npos) {
             return false;
         }
-
         int fileId = GetUidFromFileName(file.name_);
         if (fileId != id) {
             return false;

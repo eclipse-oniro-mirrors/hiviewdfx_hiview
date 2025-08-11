@@ -51,13 +51,13 @@
         </event>
       </links>
     </rule>
-    <rule id="6" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+      <rule id="6" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
-        <event window="-30" domain="AAFWK" delay="10" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
-          <result code="1" scope="sys" samePackage="true"/>
+        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
+          <result code="1" delay="10" scope="sys" samePackage="true"/>
         </event>
       </links>
     </rule>
@@ -73,8 +73,8 @@
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
-        <event window="-70" delay="5" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
-          <result code="1" scope="sys" samePackage="true"/>
+        <event window="-70" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
+          <result code="1" delay="5" scope="sys" samePackage="true"/>
         </event>
       </links>
     </rule>
@@ -82,11 +82,6 @@
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="IPC_FULL">	<!-- IPC_FULL -->
           <result code="1" scope="sys"/>
-        </event>
-      </links>
-      <links type="watchpoint">
-        <event window="-45" domain="FRAMEWORK" stringid="IPC_FULL_WARNING">	<!-- IPC_FULL_WARNING -->
-          <result code="1" scope="sys" samePackage="true"/>
         </event>
       </links>
     </rule>
@@ -118,13 +113,6 @@
         </event>
         <event window="-120" domain="KERNEL_VENDOR" stringid="DMD_FSCK_F2FS">	<!-- DMD_FSCK_F2FS -->
           <result code="1" scope="sys" action="or"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="11" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
-      <links type="watchpoint">
-        <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
-          <result code="2" scope="sys"/>
         </event>
       </links>
     </rule>
@@ -193,87 +181,87 @@
         </event>
       </links>
     </rule>
-    <rule id="3" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
+    <rule id="3" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="4" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
       <links type="watchpoint">
         <event window="0" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="4" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
+    <rule id="5" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
       <links type="watchpoint">
         <event window="0" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="5" domain="ACE" stringid="UIEXTENSION_TRANSPARENT_DETECTED">	<!-- UIEXTENSION_TRANSPARENT_DETECTED -->
+    <rule id="6" domain="ACE" stringid="UIEXTENSION_TRANSPARENT_DETECTED">	<!-- UIEXTENSION_TRANSPARENT_DETECTED -->
       <links type="watchpoint">
         <event window="0" domain="ACE" stringid="UIEXTENSION_TRANSPARENT_DETECTED">	<!-- UIEXTENSION_TRANSPARENT_DETECTED -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="6" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
+    <rule id="7" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="APP_HICOLLIE">	<!-- APP_HICOLLIE -->
           <result code="2" scope="sysWarning" samePackage="true"/>
         </event>
       </links>
     </rule>
-    <rule id="7" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
+    <rule id="8" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="HIT_EMPTY_WARNING">	<!-- HIT_EMPTY_WARNING -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="8" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
+    <rule id="9" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
-          <result code="2"/>
+          <result code="2" scope="sysWarning"/>
         </event>
       </links>
       <links type="watchpoint">
         <event window="70" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
-          <result code="2" samePackage="true"/>
+          <result code="2" scope="sysWarning" samePackage="true"/>
         </event>
       </links>
     </rule>
-    <rule id="9" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
+    <rule id="10" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
-          <result code="2"/>
+          <result code="2" scope="sysWarning"/>
         </event>
       </links>
       <links type="watchpoint">
         <event window="14" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
-          <result code="2" samePackage="true"/>
+          <result code="2" scope="sysWarning" samePackage="true"/>
         </event>
       </links>
     </rule>
-    <rule id="10" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
+    <rule id="11" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="11" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
+     <rule id="12" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
-          <result code="2" scope="sysWarning"/>
-        </event>
+          <result code="2" scope="sysWarning" samePackage="true"/>
+          </event>
       </links>
     </rule>
-    <rule id="12" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
-      <links type="watchpoint">
-        <event window="0" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
-          <result code="2" scope="sysWarning"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="13" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
+    <rule id="14" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
           <result code="2" scope="sysWarning"/>

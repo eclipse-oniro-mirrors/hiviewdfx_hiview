@@ -102,19 +102,6 @@ std::string FreezeDetectorPlugin::RemoveRedundantNewline(const std::string& cont
     return outContent;
 }
 
-std::string GetHitraceIdInfo(SysEvent sysEvent)
-{
-    std::string hitraceId = sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_ID);
-    if (hitraceId.empty()) {
-        return "";
-    }
-    std::string outContent = "hitrace_id: " + hitraceId +
-        ", span_id: " + sysEvent.GetEventValue(FreezeCommon::EVENT_SPAN_ID) +
-        ", parent_span_id: " + sysEvent.GetEventValue(FreezeCommon::EVENT_PARENT_SPAN_ID) +
-        ", trace_flag: " + sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_FLAG) + "\n";
-    return outContent;
-}
-
 WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
 {
     Event& eventRef = const_cast<Event&>(event);
@@ -128,25 +115,40 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     uid = uid ? uid : sysEvent.GetUid();
     std::string packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     std::string processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
-    std::string hitraceTime = sysEvent.GetEventValue(FreezeCommon::HIREACE_TIME);
+    std::string hitraceTime = sysEvent.GetEventValue(FreezeCommon::HITRACE_TIME);
     std::string sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     std::string terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
     std::string telemetryId = sysEvent.GetEventValue(FreezeCommon::TELEMETRY_ID);
     std::string traceName = sysEvent.GetEventValue(FreezeCommon::TRACE_NAME);
     std::string info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
-    std::string hitraceIdInfo = GetHitraceIdInfo(sysEvent);
+    std::string hitraceIdInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_ID);
     std::string procStatm = sysEvent.GetEventValue(FreezeCommon::PROC_STATM);
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
     std::string logPath = std::regex_search(info, result, reg) ? result[1].str() : info;
     std::string foreGround = "";
     CheckForeGround(uid, pid, event.happenTime_, foreGround);
-    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder().InitSeq(seq).InitDomain(event.domain_)
-        .InitStringId(event.eventName_).InitTimestamp(event.happenTime_).InitPid(pid).InitTid(tid).InitUid(uid)
-        .InitTerminalThreadStack(terminalThreadStack).InitTelemetryId(telemetryId).InitTraceName(traceName)
-        .InitPackageName(packageName).InitProcessName(processName).InitForeGround(foreGround).InitMsg("")
-        .InitLogPath(logPath).InitHitraceTime(hitraceTime).InitSysrqTime(sysrqTime).InitHitraceIdInfo(hitraceIdInfo)
-        .InitProcStatm(procStatm).Build();
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitSeq(seq)
+        .InitDomain(event.domain_)
+        .InitStringId(event.eventName_)
+        .InitTimestamp(event.happenTime_)
+        .InitPid(pid)
+        .InitTid(tid)
+        .InitUid(uid)
+        .InitTerminalThreadStack(terminalThreadStack)
+        .InitTelemetryId(telemetryId)
+        .InitTraceName(traceName)
+        .InitPackageName(packageName)
+        .InitProcessName(processName)
+        .InitForeGround(foreGround)
+        .InitMsg("")
+        .InitLogPath(logPath)
+        .InitHitraceTime(hitraceTime)
+        .InitSysrqTime(sysrqTime)
+        .InitHitraceIdInfo(hitraceIdInfo)
+        .InitProcStatm(procStatm)
+        .Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logPath=%{public}s, hitraceIdInfo=%{public}s,"
         "procStatm=%{public}s.", event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq, packageName.c_str(),

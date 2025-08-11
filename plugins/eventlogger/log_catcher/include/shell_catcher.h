@@ -76,6 +76,7 @@ private:
 
 #ifdef USAGE_CATCHER_ENABLE
     int DoUsageCatcher(int writeFd);
+    void GetCpuCoreFreqInfo(int fd) const;
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef SCB_CATCHER_ENABLE
