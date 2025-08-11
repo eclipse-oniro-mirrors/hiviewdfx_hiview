@@ -27,7 +27,7 @@ namespace HiviewDFX {
 
 /**
  * @tc.name: SmartParserPanicTest001
- * @tc.desc: Smart paerser non-encrypted panic log.
+ * @tc.desc: Smart parser non-encrypted panic log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserPanicTest, SmartParserPanicTest001, testing::ext::TestSize.Level3)
@@ -69,7 +69,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest001, testing::ext::TestSize.Lev
 
 /**
  * @tc.name: SmartParserPanicTest002
- * @tc.desc: Smart paerser encrypted panic log.
+ * @tc.desc: Smart parser encrypted panic log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserPanicTest, SmartParserPanicTest002, testing::ext::TestSize.Level3)
@@ -111,7 +111,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest002, testing::ext::TestSize.Lev
 
 /**
  * @tc.name: SmartParserPanicTest003
- * @tc.desc: Smart paerser hguard abnormal panic log.
+ * @tc.desc: Smart parser hguard abnormal panic log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserPanicTest, SmartParserPanicTest003, testing::ext::TestSize.Level3)

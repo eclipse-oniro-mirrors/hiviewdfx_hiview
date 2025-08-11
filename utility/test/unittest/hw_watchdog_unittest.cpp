@@ -27,7 +27,7 @@ namespace HiviewDFX {
 
 /**
  * @tc.name: SmartParserHwWatchdogTest001
- * @tc.desc: Smart paerser hw wwatchdog log.
+ * @tc.desc: Smart parser hw wwatchdog log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserHwWatchdogTest, SmartParserHwWatchdogTest001, testing::ext::TestSize.Level3)
@@ -50,7 +50,7 @@ HWTEST(SmartParserHwWatchdogTest, SmartParserHwWatchdogTest001, testing::ext::Te
 
 /**
  * @tc.name: SmartParserHwWatchdogTest002
- * @tc.desc: Smart paerser BBK hw wwatchdog log.
+ * @tc.desc: Smart parser BBK hw wwatchdog log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserHwWatchdogTest, SmartParserHwWatchdogTest002, testing::ext::TestSize.Level3)
