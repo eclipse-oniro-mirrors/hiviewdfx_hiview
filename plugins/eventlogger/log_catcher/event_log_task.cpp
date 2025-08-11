@@ -748,10 +748,9 @@ uint64_t EventLogTask::GetFaultTime()
 
     std::string msg = event_->GetEventValue("MSG");
     std::string faultTimeTag = "Fault time:";
-    std::string faultTimeStr;
     size_t startIndex = msg.find(faultTimeTag);
     if (startIndex != std::string::npos && msg.size() >= (startIndex + faultTimeTag.size() + FAULTTIME_STR_SIZE)) {
-        faultTimeStr = msg.substr(startIndex + faultTimeTag.size(), FAULTTIME_STR_SIZE);
+        std::string faultTimeStr = msg.substr(startIndex + faultTimeTag.size(), FAULTTIME_STR_SIZE);
         if (faultTimeStr[FAULTTIME_ONE_INDEX] == '/' && faultTimeStr[FAULTTIME_TWO_INDEX] == '/' &&
             faultTimeStr[FAULTTIME_THREE_INDEX] == '-' && faultTimeStr[FAULTTIME_FOUR_INDEX] == ':' &&
             faultTimeStr[FAULTTIME_FIVE_INDEX] == ':') {

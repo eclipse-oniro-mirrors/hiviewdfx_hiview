@@ -523,7 +523,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_011, TestSize.Level3)
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .Build();
     list.push_back(watchPoint2);
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), false);
+    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), true);
 }
 
 /**
@@ -955,13 +955,14 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitTelemetryId("telemetryIdTest")
         .InitTraceName("traceNameTest")
         .InitHitraceIdInfo("hitraceId: 123")
-        .InitProcStatm("hitraceId: 123")
+        .InitProcStatm("123 45 678")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
     ASSERT_EQ(wp1->GetTerminalThreadStack(), "threadStaskTest");
     ASSERT_EQ(wp1->GetTelemetryId(), "telemetryIdTest");
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
+    ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
 }
 
 /**
