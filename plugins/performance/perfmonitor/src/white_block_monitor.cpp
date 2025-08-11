@@ -39,14 +39,14 @@ WhiteBlockMonitor& WhiteBlockMonitor::GetInstance()
 void WhiteBlockMonitor::StartScroll()
 {
     std::lock_guard<std::mutex> Lock(mMutex);
-    scrollStartTime = GetCurrentSystimeMs();
+    scrollStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     scrolling = true;
 }
  
 void WhiteBlockMonitor::EndScroll()
 {
     std::lock_guard<std::mutex> Lock(mMutex);
-    scrollEndTime = GetCurrentSystimeMs();
+    scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     scrolling = false;
     std::thread delayThread([this] { this->ReportWhiteBlockStat(); });
     delayThread.detach();
@@ -65,7 +65,7 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
     }
     ImageLoadInfo* record = new ImageLoadInfo();
     record->id = id;
-    record->loadStartTime = GetCurrentSystimeMs();
+    record->loadStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     mRecords.emplace(id, record);
 }
  
@@ -77,7 +77,7 @@ void WhiteBlockMonitor::EndRecordImageLoadStat(int64_t id, std::pair<int, int> s
         HIVIEW_LOGD("record not exists");
         return;
     }
-    record->loadEndTime = GetCurrentSystimeMs();
+    record->loadEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     record->imageType = type;
     record->width = size.first;
     record->height = size.second;

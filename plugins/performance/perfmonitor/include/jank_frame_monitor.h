@@ -55,7 +55,7 @@ private:
     mutable std::mutex mMutex;
     std::vector<IFrameCallback*> frameCallbacks;
     std::vector<uint16_t> jankFrameRecord;
-    int64_t jankFrameRecordBeginTime;
+    int64_t jankFrameRecordBeginTime {0};
     int32_t jankFrameTotalCount {0};
 };
 

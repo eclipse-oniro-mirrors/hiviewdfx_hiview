@@ -20,8 +20,8 @@
 #include "perf_trace.h"
 #include "perf_utils.h"
 #include "res_sched_client.h"
-#include "white_block_monitor.h"
 #include "hiview_logger.h"
+#include "white_block_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -83,12 +83,12 @@ void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType
         HIVIEW_LOGW("invalid sceneId: %{public}s", sceneId.c_str());
         return;
     }
-    int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
     HIVIEW_LOGI("Animation start and current sceneId: %{public}s", sceneId.c_str());
     if (record == nullptr) {
         record = new AnimatorRecord();
+        int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
         PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
         record->InitRecord(sceneId, type, sourceType, note, inputTime);
         mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
