@@ -27,7 +27,7 @@ namespace HiviewDFX {
 
 /**
  * @tc.name: SmartParserLpm3ExceptionTest001
- * @tc.desc: Smart paerser lpm3 exception log.
+ * @tc.desc: Smart parser lpm3 exception log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserLpm3ExceptionTest, SmartParserLpm3ExceptionTest001, testing::ext::TestSize.Level3)
@@ -50,7 +50,7 @@ HWTEST(SmartParserLpm3ExceptionTest, SmartParserLpm3ExceptionTest001, testing::e
 
 /**
  * @tc.name: SmartParserLpm3ExceptionTest002
- * @tc.desc: Smart paerser BBK lpm3 exception log.
+ * @tc.desc: Smart parser BBK lpm3 exception log.
  * @tc.type: FUNC
  */
 HWTEST(SmartParserLpm3ExceptionTest, SmartParserLpm3ExceptionTest002, testing::ext::TestSize.Level3)
