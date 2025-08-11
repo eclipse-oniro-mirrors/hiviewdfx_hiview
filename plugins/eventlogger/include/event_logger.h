@@ -58,7 +58,6 @@ public:
     std::string GetAppFreezeFile(std::string& stackPath);
 private:
     static constexpr const char* const LOGGER_EVENT_LOG_PATH = "/data/log/eventlog";
-    int64_t perfTime = 0;
 
 #ifdef WINDOW_MANAGER_ENABLE
     std::vector<uint64_t> backTimes_;
@@ -128,7 +127,6 @@ private:
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
     void AddBootScanEvent();
-    void PerfStart(std::string eventName);
     bool CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
     bool CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent);
 };

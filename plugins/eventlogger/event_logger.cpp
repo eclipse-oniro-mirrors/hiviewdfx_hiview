@@ -69,6 +69,7 @@ namespace {
     static constexpr const char* const CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
+
     static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
     static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
     static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
@@ -799,7 +800,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
 {
     std::string msg = StringUtil::ReplaceStr(event->GetEventValue("MSG"), "\\n", "\n");
     std::string stack;
-    std::string kernelStack = "";
+    std::string kernelStack;
     std::string binderInfo = event -> GetEventValue("BINDER_INFO");
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
@@ -825,7 +826,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             ffrt::task_attr().name("write_kernel_stack"));
     }
     std::ostringstream oss;
-    std::string endTimeStamp = "";
+    std::string endTimeStamp;
     size_t endTimeStampIndex = msg.find("Catche stack trace end time: ");
     if (endTimeStampIndex != std::string::npos) {
         endTimeStamp = msg.substr(endTimeStampIndex);

@@ -32,7 +32,7 @@ namespace {
     static constexpr const char* const GPUMEM = "GpuTotalUsed";
     static constexpr const char* const LONG_PRESS = "LONG_PRESS";
     static constexpr const char* const AP_S_PRESS6S = "AP_S_PRESS6S";
-    static constexpr const char* const PROC_PRESSUER_MEMORY = "/proc/pressure/memory";
+    static constexpr const char* const PROC_PRESSURE_MEMORY = "/proc/pressure/memory";
     static constexpr const char* const PROC_MEMORYVIEW = "/proc/memview";
     static constexpr const char* const PROC_MEMORYINFO = "/proc/meminfo";
     static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
@@ -145,7 +145,7 @@ void MemoryCatcher::CheckString(
 std::string MemoryCatcher::CollectFreezeSysMemory()
 {
     std::string memInfoPath = FileUtil::FileExists(PROC_MEMORYVIEW) ? PROC_MEMORYVIEW : PROC_MEMORYINFO;
-    std::string content = GetStringFromFile(PROC_PRESSUER_MEMORY) + "\n" + GetStringFromFile(memInfoPath);
+    std::string content = GetStringFromFile(PROC_PRESSURE_MEMORY) + "\n" + GetStringFromFile(memInfoPath);
     return content;
 }
 #endif // USAGE_CATCHER_ENABLE

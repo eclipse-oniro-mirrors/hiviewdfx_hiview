@@ -231,7 +231,7 @@ void DmesgCatcher::WriteNewFile(int pid)
         event_->GetEventValue("HUNGTASK_TIME");
     std::string fileName = fileType + "-" + fileTime + ".log";
     std::string fullPath = std::string(FULL_DIR) + fileName;
-    HIVIEW_LOGI("write new %{public}s start", fileName.c_str());
+    HIVIEW_LOGI("write file %{public}s start", fileName.c_str());
     if (FileUtil::FileExists(fullPath)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fileName.c_str());
         return;
@@ -253,7 +253,7 @@ void DmesgCatcher::WriteNewFile(int pid)
         HIVIEW_LOGE("fclose is failed");
     }
     fp = nullptr;
-    HIVIEW_LOGI("write new %{public}s end", fileName.c_str());
+    HIVIEW_LOGI("write file %{public}s end", fileName.c_str());
 }
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX

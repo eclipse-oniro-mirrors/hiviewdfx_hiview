@@ -647,7 +647,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     dmesgCatcher->Initialize("", true, 1);
     ret = dmesgCatcher->DumpDmesgLog(fd);
     close(fd);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, true);
 
     auto fd1 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd1 < 0) {

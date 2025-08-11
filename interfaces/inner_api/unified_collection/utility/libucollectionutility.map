@@ -1,7 +1,7 @@
 {
   global:
     extern "C" {
-      GetThreadCpuload;
+      GetThreadCpuLoad;
     };
     extern "C++" {
       "OHOS::HiviewDFX::UCollectUtil::CpuCollector::Create(bool)";

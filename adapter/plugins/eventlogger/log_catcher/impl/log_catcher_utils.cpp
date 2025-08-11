@@ -119,7 +119,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
         StringUtil::FormatProcessName(procName);
         auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
         std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
-        std::string logName = procName + "-" + formatTime + filterName;
+        std::string logName = procName + "-" + std::to_string(pid) + "-" + formatTime + filterName;
         realPath = logPath + logName;
         chmod(realPath.c_str(), DEFAULT_LOG_FILE_MODE);
         fp = fopen(realPath.c_str(), "w+");
@@ -145,7 +145,7 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int termin
         std::string ret;
         std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, ret);
         if (dumpResult.first == DUMP_STACK_FAILED) {
-            msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + "\n" + ret;
+            msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + ret;
         } else if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
             std::string failInfo = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" +
                 dumpResult.second;
@@ -213,7 +213,7 @@ int DumpStackFfrt(int fd, const std::string& pid)
 {
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (sam == nullptr) {
-        HIVIEW_LOGE("dump stack ffrt , get system ability manager failed!");
+        HIVIEW_LOGE("dump stack ffrt, get system ability manager failed!");
         return 0;
     }
 

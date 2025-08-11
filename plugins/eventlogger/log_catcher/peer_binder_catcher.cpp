@@ -61,12 +61,7 @@ bool PeerBinderCatcher::Initialize(const std::string& perfCmd, int layer, int pi
     pid_ = pid;
     layer_ = layer;
     perfCmd_ = perfCmd;
-    char buf[BUF_SIZE_512] = {0};
-    int ret = snprintf_s(buf, BUF_SIZE_512, BUF_SIZE_512 - 1,
-        "PeerBinderCatcher -- pid==%d layer_ =%d\n", pid_, layer_);
-    if (ret > 0) {
-        description_ = buf;
-    }
+    description_ = "PeerBinderCatcher -- pid==" + std::to_string(pid) + " layer_ == "+ std::to_string(layer_) + "\n";
     return true;
 }
 

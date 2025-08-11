@@ -218,7 +218,7 @@ std::optional<ThreadCpuStatInfo> ThreadStateInfoCollector::CalculateThreadCpuSta
 #ifdef __cplusplus
 extern "C" {
 #endif
-__attribute__((visibility ("default"))) double GetThreadCpuload(int32_t pid)
+__attribute__((visibility ("default"))) double GetThreadCpuLoad(int32_t pid)
 {
     OHOS::HiviewDFX::CollectResult<std::vector<OHOS::HiviewDFX::ThreadCpuStatInfo>> threadCollectResult;
     threadCollectResult = OHOS::HiviewDFX::UCollectUtil::ThreadCpuCollector::Create(pid)->CollectThreadStatInfos();

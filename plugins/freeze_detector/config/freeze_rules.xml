@@ -197,7 +197,7 @@
       <links type="watchpoint">
         <event window="0" domain="WINDOWMANAGER" stringid="WINDOW_EXCEPTION_DETECTION">	<!-- WINDOW_EXCEPTION_DETECTION -->
           <result code="2" scope="sysWarning"/>
-        </event> 
+        </event>
       </links>
     </rule>
     <rule id="4" domain="WINDOWMANAGER" stringid="WINDOW_STATE_ERROR">	<!-- WINDOW_STATE_ERROR -->
