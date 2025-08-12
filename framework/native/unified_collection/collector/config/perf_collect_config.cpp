@@ -59,7 +59,7 @@ std::map<PerfCaller, uint8_t> PerfCollectConfig::GetPerfCount(const std::string&
 {
     // default config for perf collect concurrency
     std::map<PerfCaller, uint8_t> perfMaxCountForCaller = {
-        // key : caller, value : max hiperf processes count can be started at same time
+        // key : caller, value : max hiperf processes count can be started at the same time
         {PerfCaller::EVENTLOGGER, HIPERF_PROCESS_COUNTS_FOR_NORMAL},
         {PerfCaller::XPOWER, HIPERF_PROCESS_COUNTS_FOR_NORMAL},
         {PerfCaller::UNIFIED_COLLECTOR, HIPERF_PROCESS_COUNTS_FOR_NORMAL},
