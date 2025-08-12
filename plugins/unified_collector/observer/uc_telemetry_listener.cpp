@@ -36,10 +36,10 @@ constexpr char POLICY_POWER[] = "power";
 constexpr char POLICY_MANUAL[] = "manual";
 
 // Default quota of flow control
-const int64_t DEFAULT_XPERF_SIZE = 140 * 1024 * 1024;
-const int64_t DEFAULT_XPOWER_SIZE = 140 * 1024 * 1024;
-const int64_t DEFAULT_RELIABILITY_SIZE = 140 * 1024 * 1024;
-const int64_t DEFAULT_TOTAL_SIZE = 350 * 1024 * 1024;
+const int64_t DEFAULT_XPERF_SIZE = 20 * 1024 * 1024;
+const int64_t DEFAULT_XPOWER_SIZE = 20 * 1024 * 1024;
+const int64_t DEFAULT_RELIABILITY_SIZE = 20 * 1024 * 1024;
+const int64_t DEFAULT_TOTAL_SIZE = 50 * 1024 * 1024;
 const int64_t MAX_TOTAL_SIZE = 1024; // 1G
 
 constexpr char KEY_ID[] = "telemetryId";
