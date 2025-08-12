@@ -73,6 +73,7 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filename" name="0-1-123456" desc="build and load config file, not support comments"/>
                 <filteritem type="filename" name="hiview_config_version" desc="config file for test"/>
                 <filteritem type="filename" name="cppcrash-*" desc="resource for test"/>
+                <filteritem type="filename" name="Faultlogger" desc="build and load config file, not support comments"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
                 <filteritem type="filename" name="*plugin_config*" desc="build and load config file, not support comments"/>
@@ -93,6 +94,7 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filename" name="hiview_config_version" desc="config file for test"/>
                 <filteritem type="filename" name="history.log" desc="resource for test"/>
                 <filteritem type="filename" name="cppcrash-*" desc="resource for test"/>
+                <filteritem type="filename" name="Faultlogger" desc="build and load config file, not support comments"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
                 <filteritem type="filepath" name="figures/.*" desc="self developed pictures used in readme documents"/>

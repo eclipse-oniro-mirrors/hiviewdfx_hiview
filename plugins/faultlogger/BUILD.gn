@@ -46,6 +46,7 @@ ohos_source_set("faultlogger") {
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   deps = [
+    "config:Faultlogger",
     "config:faultloggerPipeline",
     "service:faultlogger_service_with_cfi",
   ]

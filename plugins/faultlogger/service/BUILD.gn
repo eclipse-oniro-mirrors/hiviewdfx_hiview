@@ -23,6 +23,7 @@ ohos_source_set("faultlogger_service") {
     "$hiview_plugin/faultlogger/service/fault_event/factory",
     "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_file",
+    "$hiview_plugin/faultlogger/service/page_history",
     "$hiview_plugin/faultlogger/service/sanitizer_collector",
     "$hiview_framework/native/unified_collection/process/include",
   ]
@@ -48,6 +49,9 @@ ohos_source_set("faultlogger_service") {
     "fault_file/faultlog_manager.cpp",
     "faultlog_manager_service.cpp",
     "faultlogger.cpp",
+    "page_history/page_history_manager.cpp",
+    "page_history/page_history_recorder.cpp",
+    "page_history/pages_trace.cpp",
     "sanitizer_collector/sanitizer_telemetry.cpp",
   ]
 
@@ -94,6 +98,7 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "$hiview_plugin/faultlogger/service/fault_event/factory",
     "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_file",
+    "$hiview_plugin/faultlogger/service/page_history",
     "$hiview_plugin/faultlogger/service/sanitizer_collector",
     "$hiview_framework/native/unified_collection/process/include",
   ]
@@ -128,6 +133,7 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "$hiview_plugin/faultlogger/common:faultlogger_common_with_cfi",
     "$hiview_plugin/faultlogger/common:log_analyzer_with_cfi",
     "idl:faultlogger_service_impl_with_cfi",
+    "page_history:page_history_with_cfi",
   ]
 
   external_deps = [
@@ -159,6 +165,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "$hiview_plugin/faultlogger/service/fault_event/factory",
     "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_file",
+    "$hiview_plugin/faultlogger/service/page_history",
     "$hiview_plugin/faultlogger/service/sanitizer_collector",
     "$hiview_framework/native/unified_collection/process/include",
   ]
@@ -186,6 +193,9 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "fault_file/faultlog_manager.cpp",
     "faultlog_manager_service.cpp",
     "faultlogger.cpp",
+    "page_history/page_history_manager.cpp",
+    "page_history/page_history_recorder.cpp",
+    "page_history/pages_trace.cpp",
     "sanitizer_collector/sanitizer_telemetry.cpp",
   ]
 

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "faultlogger.h"
+#include <memory>
 
 #ifdef UNIT_TEST
 #include <iostream>
@@ -25,6 +26,7 @@
 #include "faultlog_util.h"
 #include "faultlogger_service_ohos.h"
 #include "hiview_logger.h"
+#include "page_history_manager.h"
 #include "plugin_factory.h"
 
 namespace OHOS {
@@ -63,6 +65,14 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event>& event)
         return faultLogEvent->ProcessFaultLogEvent(event, workLoop_, faultLogManager_);
     }
     return true;
+}
+
+void Faultlogger::OnEventListeningCallback(const Event& event)
+{
+    if (!hasInit_ || event.rawData_ == nullptr) {
+        return;
+    }
+    PageHistoryManager::GetInstance().HandleEvent(event);
 }
 
 bool Faultlogger::CanProcessEvent(std::shared_ptr<Event> event)

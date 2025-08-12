@@ -1,0 +1,17 @@
+{
+    "domains": [
+        {
+            "domain": "ACE",
+            "include": [
+                "INTERACTION_COMPLETED_LATENCY"
+            ]
+        },
+        {
+            "domain": "AAFWK",
+            "include": [
+                "ABILITY_ONFOREGROUND",
+                "ABILITY_ONBACKGROUND"
+            ]
+        }
+    ]
+}

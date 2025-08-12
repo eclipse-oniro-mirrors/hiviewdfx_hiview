@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "page_history/page_history_manager.h"
 #include "plugin.h"
 
 #include "faultlog_info.h"
@@ -33,6 +34,7 @@ class Faultlogger : public Plugin {
 public:
     ~Faultlogger() override = default;
     bool OnEvent(std::shared_ptr<Event>& event) override;
+    void OnEventListeningCallback(const Event& event) override;
     bool IsInterestedPipelineEvent(std::shared_ptr<Event> event) override;
     bool CanProcessEvent(std::shared_ptr<Event> event) override;
     bool ReadyToLoad() override;

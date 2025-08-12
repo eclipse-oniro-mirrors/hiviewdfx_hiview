@@ -218,6 +218,7 @@ void FaultLogFreeze::AddSpecificInfo(FaultLogInfo& info)
 {
     if (info.faultLogType == FaultLogType::APP_FREEZE) {
         info.sectionMap[FaultKey::STACK] = GetThreadStack(info.logPath, info.pid);
+        AddPagesHistory(info);
     }
 }
 } // namespace HiviewDFX
