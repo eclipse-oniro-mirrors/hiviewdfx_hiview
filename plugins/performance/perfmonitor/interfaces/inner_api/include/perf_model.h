@@ -212,12 +212,6 @@ public:
     bool IsNonExperienceWhiteList(const std::string& sceneId);
 };
 
-class NonExperienceResponse : public SceneRecord {
-public:
-    void StartRecord(const SceneType& sType, const std::string& sId) override;
-    bool IsNonExperienceWhiteList(const std::string& sceneId);
-};
-
 class IFrameCallback : public IRemoteBroker {
 public:
     virtual void OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName) = 0;
