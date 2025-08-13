@@ -21,6 +21,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+    constexpr int TEMP_EVENT_LIMIT = 5;
+}
+
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-ThermalInfoCatcher");
 
 ThermalInfoCatcher::ThermalInfoCatcher() : EventLogCatcher()
@@ -41,11 +45,17 @@ int ThermalInfoCatcher::Catch(int fd, int jsonFd)
     PowerMgr::ThermalLevel temp = PowerMgr::ThermalMgrClient::GetInstance().GetThermalLevel();
     int tempNum = static_cast<int>(temp);
     FileUtil::SaveStringToFd(fd, "\nThermalLevel info: " + std::to_string(tempNum) + "\n");
-    logSize_ = GetFdSize(fd) - originSize;
-    if (logSize_ <= 0) {
-        FileUtil::SaveStringToFd(fd, "thermalLevel is empty!");
+    if (tempNum >= TEMP_EVENT_LIMIT && event_) {
+        event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "Yes");
     }
+
+    logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
+}
+
+void ThermalInfoCatcher::SetEvent(std::shared_ptr<SysEvent> event)
+{
+    event_ = event;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

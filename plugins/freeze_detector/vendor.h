@@ -47,7 +47,6 @@ public:
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     std::string MergeEventLog(WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
         const std::vector<FreezeResult>& result) const;
-    bool ReduceRelevanceEvents(std::list<WatchPoint>& list, const FreezeResult& result) const;
 
 private:
     std::string SendFaultLog(const WatchPoint &watchPoint, const std::string& logPath, const std::string& type,

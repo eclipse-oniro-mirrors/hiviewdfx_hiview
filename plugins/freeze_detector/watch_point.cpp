@@ -21,7 +21,7 @@ namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_("")
 {
 }
 
@@ -44,13 +44,14 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     hitraceTime_(builder.hitraceTime_),
     sysrqTime_(builder.sysrqTime_),
     hitraceIdInfo_(builder.hitraceIdInfo_),
-    procStatm_(builder.procStatm_)
+    procStatm_(builder.procStatm_),
+    hostResourceWarning_(builder.hostResourceWarning_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_("")
 {
 }
 
@@ -170,6 +171,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitProcStatm(const std::string& procS
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitHostResourceWarning(const std::string& hostResourceWarning)
+{
+    hostResourceWarning_ = hostResourceWarning;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -269,6 +276,11 @@ std::string WatchPoint::GetHitraceIdInfo() const
 std::string WatchPoint::GetProcStatm() const
 {
     return procStatm_;
+}
+
+std::string WatchPoint::GetHostResourceWarning() const
+{
+    return hostResourceWarning_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

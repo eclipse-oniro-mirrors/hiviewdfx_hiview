@@ -18,6 +18,8 @@
 #include <string>
 
 #include "event_log_catcher.h"
+#include "sys_event.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 class ThermalInfoCatcher : public EventLogCatcher {
@@ -26,6 +28,10 @@ public:
     ~ThermalInfoCatcher() override{};
     bool Initialize(const std::string& strParam1, int intParam1, int intParam2) override;
     int Catch(int fd, int jsonFd) override;
+    void SetEvent(std::shared_ptr<SysEvent> event);
+
+private:
+    std::shared_ptr<SysEvent> event_ = nullptr;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

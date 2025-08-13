@@ -222,9 +222,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_001, TestSize.Level0)
 {
     auto vendor = std::make_unique<Vendor>(nullptr);
     ASSERT_EQ(vendor->Init(), false);
-    std::list<WatchPoint> list;
-    FreezeResult result;
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), false);
 }
 
 /**
@@ -238,10 +235,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_002, TestSize.Level3)
     ASSERT_EQ(ret1, true);
     auto vendor = std::make_unique<Vendor>(freezeCommon);
     ASSERT_EQ(vendor->Init(), true);
-    std::list<WatchPoint> list;
-    FreezeResult result;
-    result.SetId(3);
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), false);
 }
 
 /**
@@ -255,22 +248,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_003, TestSize.Level3)
     ASSERT_EQ(ret1, true);
     auto vendor = std::make_unique<Vendor>(freezeCommon);
     ASSERT_EQ(vendor->Init(), true);
-    std::list<WatchPoint> list;
-    FreezeResult result;
-    result.SetId(1);
-    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("KERNEL_VENDOR")
-        .InitStringId("SCREEN_ON")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .Build();
-    list.push_back(watchPoint1);
-    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("KERNEL_VENDOR3")
-        .InitStringId("SCREEN_ON223")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .Build();
-    list.push_back(watchPoint2);
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), true);
+    ASSERT_EQ(vendor->GetTimeString(1687836954734), "20230627113554");
 }
 
 /**
@@ -278,49 +256,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_003, TestSize.Level3)
  * @tc.desc: FreezeDetector
  */
 HWTEST_F(FreezeDetectorUnittest, FreezeVender_004, TestSize.Level3)
-{
-    auto freezeCommon = std::make_shared<FreezeCommon>();
-    bool ret1 = freezeCommon->Init();
-    ASSERT_EQ(ret1, true);
-    auto vendor = std::make_unique<Vendor>(freezeCommon);
-    ASSERT_EQ(vendor->Init(), true);
-    std::list<WatchPoint> list;
-    FreezeResult result;
-    result.SetId(0);
-    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("KERNEL_VENDOR")
-        .InitStringId("SCREEN_ON")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .Build();
-    list.push_back(watchPoint1);
-    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("AAFWK")
-        .InitStringId("THREAD_BLOCK_6S")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .Build();
-    list.push_back(watchPoint2);
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), true);
-}
-
-/**
- * @tc.name: FreezeVender_005
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_005, TestSize.Level3)
-{
-    auto freezeCommon = std::make_shared<FreezeCommon>();
-    bool ret1 = freezeCommon->Init();
-    ASSERT_EQ(ret1, true);
-    auto vendor = std::make_unique<Vendor>(freezeCommon);
-    ASSERT_EQ(vendor->Init(), true);
-    ASSERT_EQ(vendor->GetTimeString(1687836954734), "20230627113554");
-}
-
-/**
- * @tc.name: FreezeVender_006
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_006, TestSize.Level3)
 {
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret1 = freezeCommon->Init();
@@ -344,10 +279,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_006, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_007
+ * @tc.name: FreezeVender_005
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_007, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_005, TestSize.Level3)
 {
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitDomain("KERNEL_VENDOR")
@@ -393,10 +328,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_007, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_008
+ * @tc.name: FreezeVender_006
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_008, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_006, TestSize.Level3)
 {
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret1 = freezeCommon->Init();
@@ -422,10 +357,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_008, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_009
+ * @tc.name: FreezeVender_007
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_007, TestSize.Level3)
 {
     auto vendor1 = std::make_unique<Vendor>(nullptr);
     EXPECT_EQ(vendor1->Init(), false);
@@ -463,10 +398,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_010
+ * @tc.name: FreezeVender_008
  * @tc.desc: FreezeDetector
  */
- HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
+ HWTEST_F(FreezeDetectorUnittest, FreezeVender_008, TestSize.Level3)
  {
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret = freezeCommon->Init();
@@ -498,39 +433,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_011
+ * @tc.name: FreezeVender_009
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_011, TestSize.Level3)
-{
-    auto freezeCommon = std::make_shared<FreezeCommon>();
-    bool ret1 = freezeCommon->Init();
-    ASSERT_EQ(ret1, true);
-    auto vendor = std::make_unique<Vendor>(freezeCommon);
-    ASSERT_EQ(vendor->Init(), true);
-    std::list<WatchPoint> list;
-    FreezeResult result;
-    result.SetId(2);
-    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("KERNEL_VENDOR")
-        .InitStringId("SCREEN_ON")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .Build();
-    list.push_back(watchPoint1);
-    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("AAFWK")
-        .InitStringId("THREAD_BLOCK_6S")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .Build();
-    list.push_back(watchPoint2);
-    ASSERT_EQ(vendor->ReduceRelevanceEvents(list, result), true);
-}
-
-/**
- * @tc.name: FreezeVender_012
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_012, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
 {
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitDomain("AAFWK")
@@ -767,7 +673,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_001, TestSize.Level0)
 {
     auto freezeCommon = std::make_unique<FreezeCommon>();
     ASSERT_EQ(freezeCommon->Init(), true);
-    ASSERT_EQ(freezeCommon->IsBetaVersion(), true);
 }
 
 /**
@@ -813,12 +718,10 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_004, TestSize.Level3)
 HWTEST_F(FreezeDetectorUnittest, FreezeCommon_005, TestSize.Level3)
 {
     auto freezeCommon = std::make_unique<FreezeCommon>();
+    ASSERT_TRUE(freezeCommon != nullptr);
+    freezeCommon->GetPrincipalStringIds();
     freezeCommon->Init();
-    FreezeResult result;
-    result.SetId(1);
-    ASSERT_EQ(freezeCommon->IsSystemResult(result), true);
-    result.SetId(0);
-    ASSERT_EQ(freezeCommon->IsSystemResult(result), false);
+    freezeCommon->GetPrincipalStringIds();
 }
 
 /**
@@ -828,36 +731,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_005, TestSize.Level3)
 HWTEST_F(FreezeDetectorUnittest, FreezeCommon_006, TestSize.Level3)
 {
     auto freezeCommon = std::make_unique<FreezeCommon>();
-    freezeCommon->Init();
-    FreezeResult result;
-    result.SetId(0);
-    ASSERT_EQ(freezeCommon->IsApplicationResult(result), true);
-    result.SetId(1);
-    ASSERT_EQ(freezeCommon->IsApplicationResult(result), false);
-}
-
-/**
- * @tc.name: FreezeCommon_007
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeCommon_007, TestSize.Level3)
-{
-    auto freezeCommon = std::make_unique<FreezeCommon>();
-    ASSERT_TRUE(freezeCommon != nullptr);
-    freezeCommon->GetPrincipalStringIds();
-    freezeCommon->Init();
-    freezeCommon->GetPrincipalStringIds();
-}
-
-/**
- * @tc.name: FreezeCommon_008
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeCommon_008, TestSize.Level3)
-{
-    auto freezeCommon = std::make_unique<FreezeCommon>();
-    freezeCommon->WriteStartInfoToFd(0, "FreezeCommon_008 test");
-    freezeCommon->WriteEndInfoToFd(0, "FreezeCommon_008 test");
+    freezeCommon->WriteTimeInfoToFd(0, "FreezeCommon_008 test");
+    freezeCommon->WriteTimeInfoToFd(0, "FreezeCommon_008 test", false);
     ASSERT_TRUE(freezeCommon != nullptr);
 }
 
@@ -956,6 +831,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitTraceName("traceNameTest")
         .InitHitraceIdInfo("hitraceId: 123")
         .InitProcStatm("123 45 678")
+        .InitHostResourceWarning("Yes")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
@@ -963,6 +839,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
     ASSERT_EQ(wp1->GetTelemetryId(), "telemetryIdTest");
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
     ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
+    ASSERT_EQ(wp1->GetHostResourceWarning(), "Yes");
 }
 
 /**

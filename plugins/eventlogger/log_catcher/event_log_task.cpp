@@ -56,25 +56,20 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static constexpr int BP_CMD_PERF_TYPE_INDEX = 2;
-    static constexpr int BP_CMD_LAYER_INDEX = 1;
-    static constexpr size_t BP_CMD_SZ = 3;
-    static constexpr size_t FAULTTIME_STR_SIZE = 19;
-    static constexpr size_t FAULTTIME_ONE_INDEX = 4;
-    static constexpr size_t FAULTTIME_TWO_INDEX = 7;
-    static constexpr size_t FAULTTIME_THREE_INDEX = 10;
-    static constexpr size_t FAULTTIME_FOUR_INDEX = 13;
-    static constexpr size_t FAULTTIME_FIVE_INDEX = 16;
-
-    const char* SYSTEM_STACK[] = {
-        "foundation",
-        "render_service",
-    };
-    static constexpr int TRACE_OUT_OF_TIME = 30; // 30s
-    static constexpr int DELAY_OUT_OF_TIME = 15; // 15s
-    static constexpr int DEFAULT_LOG_SIZE = 3 * 1024 * 1024; // 3M
-    static constexpr uint64_t MILLISEC_TO_SEC = 1000;
-    static constexpr uint64_t DELAY_TIME = 2;
+    constexpr int BP_CMD_PERF_TYPE_INDEX = 2;
+    constexpr int BP_CMD_LAYER_INDEX = 1;
+    constexpr size_t BP_CMD_SZ = 3;
+    constexpr size_t FAULTTIME_STR_SIZE = 19;
+    constexpr size_t FAULTTIME_ONE_INDEX = 4;
+    constexpr size_t FAULTTIME_TWO_INDEX = 7;
+    constexpr size_t FAULTTIME_THREE_INDEX = 10;
+    constexpr size_t FAULTTIME_FOUR_INDEX = 13;
+    constexpr size_t FAULTTIME_FIVE_INDEX = 16;
+    const char* SYSTEM_STACK[] = { "foundation", "render_service" };
+    constexpr int TRACE_OUT_OF_TIME = 30; // 30s
+    constexpr int DELAY_OUT_OF_TIME = 15; // 15s
+    constexpr int DEFAULT_LOG_SIZE = 3 * 1024 * 1024; // 3M
+    constexpr uint64_t MILLISEC_TO_SEC = 1000;
 }
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-EventLogTask");
 EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
@@ -225,14 +220,14 @@ EventLogTask::Status EventLogTask::StartCompose()
         }
         std::string description = catcher->GetDescription();
         description.erase(description.find_last_not_of(" \n\r\t") + 1);
-        FreezeCommon::WriteStartInfoToFd(dupedFd, description + " start time: ");
+        FreezeCommon::WriteTimeInfoToFd(dupedFd, description + " start time: ");
         AddSeparator(dupedFd, catcher);
         int curLogSize = catcher->Catch(dupedFd, dupedJsonFd);
         if (catcher->name_ == "PeerBinderCatcher") {
             terminalThreadStack_ = catcher->terminalBinder_.threadStack;
         }
         HIVIEW_LOGI("finish catcher: %{public}s, curLogSize: %{public}d", description.c_str(), curLogSize);
-        FreezeCommon::WriteEndInfoToFd(dupedFd, description + " end time: ");
+        FreezeCommon::WriteTimeInfoToFd(dupedFd, description + " end time: ", false);
         if (ShouldStopLogTask(dupedFd, catcherIndex, curLogSize, catcher)) {
             break;
         }
@@ -489,22 +484,20 @@ void EventLogTask::InputHilogCapture()
 #ifdef HITRACE_CATCHER_ENABLE
 void EventLogTask::HitraceCapture(bool isBetaVersion)
 {
-    uint64_t hitraceTime = GetFaultTime() + DELAY_TIME;
+    uint64_t hitraceTime = GetFaultTime();
     uint64_t currentTime = TimeUtil::GetMilliseconds() / MILLISEC_TO_SEC;
     if (hitraceTime + TRACE_OUT_OF_TIME <= currentTime) {
         hitraceTime = currentTime - DELAY_OUT_OF_TIME;
     }
 
     bool grayscale = false;
-    std::string bundleName = "";
-    if (!isBetaVersion) {
-        if (event_->eventName_ == "THREAD_BLOCK_6S") {
-            grayscale = true;
-            bundleName = event_->GetEventValue("PACKAGE_NAME");
-            if (bundleName.empty()) {
-                bundleName = event_->GetEventValue("PROCESS_NAME");
-            }
-        }
+    std::string bundleName;
+    std::string eventName = event_->eventName_;
+    if (!isBetaVersion && (eventName == "THREAD_BLOCK_6S" || eventName == "LIFECYCLE_TIMEOUT" ||
+        eventName == "APP_INPUT_BLOCK")) {
+        grayscale = true;
+        bundleName = event_->GetEventValue("PACKAGE_NAME");
+        bundleName = bundleName.empty() ? event_->GetEventValue("PROCESS_NAME") : bundleName;
     }
     std::pair<std::string, std::vector<std::string>> result =
         LogCatcherUtils::FreezeDumpTrace(hitraceTime, grayscale, bundleName);
@@ -707,6 +700,7 @@ void EventLogTask::GetThermalInfoCapture()
 {
     auto capture = std::make_shared<ThermalInfoCatcher>();
     capture->Initialize("", 0, pid_);
+    capture->SetEvent(event_);
     tasks_.push_back(capture);
 }
 

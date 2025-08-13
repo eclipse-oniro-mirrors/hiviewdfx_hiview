@@ -28,19 +28,19 @@ namespace OHOS {
 namespace HiviewDFX {
 #ifdef USAGE_CATCHER_ENABLE
 namespace {
-    static constexpr const char* const TWELVE_BIG_CPU_CUR_FREQ =
+    constexpr const char* TWELVE_BIG_CPU_CUR_FREQ =
         "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
-    static constexpr const char* const TWELVE_BIG_CPU_MAX_FREQ =
+    constexpr const char* TWELVE_BIG_CPU_MAX_FREQ =
         "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
-    static constexpr const char* const TWELVE_MID_CPU_CUR_FREQ =
+    constexpr const char* TWELVE_MID_CPU_CUR_FREQ =
         "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
-    static constexpr const char* const TWELVE_MID_CPU_MAX_FREQ =
+    constexpr const char* TWELVE_MID_CPU_MAX_FREQ =
         "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_CUR_FREQ =
+    constexpr const char* TWELVE_LIT_CPU_CUR_FREQ =
         "/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq";
-    static constexpr const char* const TWELVE_LIT_CPU_MAX_FREQ =
+    constexpr const char* TWELVE_LIT_CPU_MAX_FREQ =
         "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq";
-    static constexpr const char* const SUSTAINABLE_POWER =
+    constexpr const char* SUSTAINABLE_POWER =
         "/sys/class/thermal/thermal_zone1/sustainable_power";
 }
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-CpuCoreInfoCatcher");
@@ -61,13 +61,10 @@ int CpuCoreInfoCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
     GetCpuCoreFreqInfo(fd);
-    FreezeCommon::WriteStartInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
+    FreezeCommon::WriteTimeInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
     StabilityGetTempFreqInfo(fd);
-    FreezeCommon::WriteEndInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ");
+    FreezeCommon::WriteTimeInfoToFd(fd, "\ncollect StabilityGetTempFreqInfo end time: ", false);
     logSize_ = GetFdSize(fd) - originSize;
-    if (logSize_ <= 0) {
-        FileUtil::SaveStringToFd(fd, "cpu info is empty!");
-    }
     return logSize_;
 }
 
@@ -86,12 +83,11 @@ void CpuCoreInfoCatcher::GetCpuCoreFreqInfo(int fd)
     }
 
     const SysCpuUsage& sysCpuUsage = resultInfo.data;
-    std::string temp = "";
+    std::string temp;
     for (size_t i = 0; i < sysCpuUsage.cpuInfos.size(); i++) {
         temp = "\n" + sysCpuUsage.cpuInfos[i].cpuId +
             ", userUsage=" + std::to_string(sysCpuUsage.cpuInfos[i].userUsage) + "\n";
         FileUtil::SaveStringToFd(fd, temp);
-        temp = "";
     }
     CollectResult<std::vector<CpuFreq>> resultCpuFreq = collector->CollectCpuFrequency();
     if (resultCpuFreq.retCode != UCollect::UcError::SUCCESS) {
@@ -105,7 +101,6 @@ void CpuCoreInfoCatcher::GetCpuCoreFreqInfo(int fd)
                ", minFreq=" + std::to_string(cpuFreqs[i].minFreq) + ", maxFreq=" + std::to_string(cpuFreqs[i].maxFreq) +
                "\n";
         FileUtil::SaveStringToFd(fd, temp);
-        temp = "";
     }
 }
 

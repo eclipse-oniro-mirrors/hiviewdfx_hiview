@@ -51,34 +51,24 @@
         </event>
       </links>
     </rule>
-      <rule id="6" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
-      <links type="watchpoint">
-        <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
-          <result code="1" scope="sys" samePackage="true"/>
-        </event>
-        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
-          <result code="1" delay="15" scope="sys" samePackage="true"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="7" domain="FRAMEWORK" stringid="SERVICE_TIMEOUT">	<!-- SERVICE_TIMEOUT -->
+    <rule id="6" domain="FRAMEWORK" stringid="SERVICE_TIMEOUT">	<!-- SERVICE_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_TIMEOUT">	<!-- SERVICE_TIMEOUT -->
           <result code="1" scope="sys" samePackage="true"/>
         </event>
       </links>
     </rule>
-    <rule id="8" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
+    <rule id="7" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="SERVICE_BLOCK">	<!-- SERVICE_BLOCK -->
-          <result code="1" scope="sys" samePackage="true"/>
+          <result code="1" scope="sys"/>
         </event>
         <event window="-70" domain="FRAMEWORK" stringid="SERVICE_WARNING">	<!-- SERVICE_WARNING -->
           <result code="1" delay="15" scope="sys" samePackage="true"/>
         </event>
       </links>
     </rule>
-    <rule id="9" domain="FRAMEWORK" stringid="IPC_FULL">	<!-- IPC_FULL -->
+    <rule id="8" domain="FRAMEWORK" stringid="IPC_FULL">	<!-- IPC_FULL -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="IPC_FULL">	<!-- IPC_FULL -->
           <result code="1" scope="sys"/>
@@ -90,7 +80,7 @@
         </event>
       </links>
     </rule>
-    <rule id="10" domain="KERNEL_VENDOR" stringid="COM_LONG_PRESS">	<!-- COM_LONG_PRESS -->
+    <rule id="9" domain="KERNEL_VENDOR" stringid="COM_LONG_PRESS">	<!-- COM_LONG_PRESS -->
       <links type="watchpoint">
         <event window="0" domain="KERNEL_VENDOR" stringid="COM_LONG_PRESS">	<!-- COM_LONG_PRESS -->
           <result code="1" scope="sys"/>
@@ -139,7 +129,7 @@
     <rule id="2" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
-          <result code="0" scope="app" samePackage="true"/>
+          <result code="0" scope="app"/>
         </event>
         <event window="-14" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
           <result code="0" delay="15" scope="app" samePackage="true"/>
@@ -174,6 +164,16 @@
       <links type="watchpoint">
         <event window="0" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
           <result code="0" scope="app" samePackage="true"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="7" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+          <result code="0" scope="app"/>
+        </event>
+        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
+          <result code="0" delay="15" scope="app" samePackage="true"/>
         </event>
       </links>
     </rule>
@@ -285,8 +285,8 @@
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT_WARNING">	<!-- LIFECYCLE_TIMEOUT_WARNING -->
           <result code="2" scope="sysWarning"/>
         </event>
-        <event window="-30" domain="AAFWK" delay="15" stringid="LIFECYCLE_HALF_TIMEOUT_WARNING">	<!-- LIFECYCLE_HALF_TIMEOUT_WARNING -->
-          <result code="2" scope="sysWarning"/>
+        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT_WARNING">	<!-- LIFECYCLE_HALF_TIMEOUT_WARNING -->
+          <result code="2" delay="15" scope="sysWarning" samePackage="true"/>
         </event>
       </links>
     </rule>
