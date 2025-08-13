@@ -147,6 +147,8 @@ private:
         PerfConstants::OPEN_ALBUM,
         PerfConstants::OPEN_BROWSER,
         PerfConstants::BROWSER_SWIPE,
+        PerfConstants::CLOSE_BROWSER,
+        PerfConstants::ANIMATE_TO_POSITION,
         PerfConstants::EXPAND_SCREEN_ROTATION_ANI,
         PerfConstants::CANTACTS_DIALER_BUTTON_PRESS,
         PerfConstants::CONTACTS_DIALER_HIDE,
@@ -218,7 +220,19 @@ private:
         PerfConstants::APP_START,
         PerfConstants::PC_SPLIT_DRAG_DIVIDER_ANIMATE,
         PerfConstants::PC_STARTUP_TIME,
-        PerfConstants::PC_WAKEUP_LATENCY
+        PerfConstants::PC_WAKEUP_LATENCY,
+        PerfConstants::APP_EXIT_FROM_RECENT,
+        PerfConstants::APP_EXIT_FROM_RECENT,
+        PerfConstants::COLLABORATION_ANIMATION,
+        PerfConstants::CUSTOM_ANIMATOR_ROTATE90ACW,
+        PerfConstants::EXIT_APP_CENTER,
+        PerfConstants::PC_RESTORE_DESKTOP_GESTURE_OPERATION,
+        PerfConstants::PC_SHOW_DESKTOP_GESTURE,
+        PerfConstants::PC_TO_RECENT_GESTURE,
+        PerfConstants::PC_ONE_FIN_SHOW_DESKTOP_GESTURE,
+        PerfConstants::PC_ONE_FINGER_TO_RECENT_GESTURE,
+        PerfConstants::WINDOW_DO_RESET_SCALE_ANIMATION,
+        PerfConstants::WINDOW_DO_SCALE_ANIMATION
     };
 };
 

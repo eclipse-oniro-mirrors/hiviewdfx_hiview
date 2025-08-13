@@ -283,6 +283,10 @@ public:
 
     static constexpr char BROWSER_SWIPE[] = "BROWSER_SWIPE";
 
+    static constexpr char CLOSE_BROWSER[] = "CLOSE_BROWSER";
+
+    static constexpr char ANIMATE_TO_POSITION[] = "ANIMATE_TO_POSITION";
+
     static constexpr char EXPAND_SCREEN_ROTATION_ANI[] = "EXPAND_SCREEN_ROTATION_ANI";
 
     static constexpr char CANTACTS_DIALER_BUTTON_PRESS[] = "CANTACTS_DIALER_BUTTON_PRESS";
@@ -426,6 +430,28 @@ public:
     static constexpr char PC_STARTUP_TIME[] = "PC_STARTUP_TIME";
 
     static constexpr char PC_WAKEUP_LATENCY[] = "PC_WAKEUP_LATENCY";
+
+    static constexpr char APP_EXIT_FROM_RECENT[] = "APP_EXIT_FROM_RECENT";
+
+    static constexpr char COLLABORATION_ANIMATION[] = "COLLABORATION_ANIMATION";
+
+    static constexpr char CUSTOM_ANIMATOR_ROTATE90ACW[] = "CUSTOM_ANIMATOR rotate90Acw";
+
+    static constexpr char EXIT_APP_CENTER[] = "EXIT_APP_CENTER";
+
+    static constexpr char PC_RESTORE_DESKTOP_GESTURE_OPERATION[] = "PC_RESTORE_DESKTOP_GESTURE_OPERATION";
+
+    static constexpr char PC_SHOW_DESKTOP_GESTURE[] = "PC_SHOW_DESKTOP_GESTURE";
+
+    static constexpr char PC_TO_RECENT_GESTURE[] = "PC_TO_RECENT_GESTURE";
+
+    static constexpr char PC_ONE_FIN_SHOW_DESKTOP_GESTURE[] = "PC_ONE_FIN_SHOW_DESKTOP_GESTURE";
+
+    static constexpr char PC_ONE_FINGER_TO_RECENT_GESTURE[] = "PC_ONE_FINGER_TO_RECENT_GESTURE";
+
+    static constexpr char WINDOW_DO_RESET_SCALE_ANIMATION[] = "WINDOW_DO_RESET_SCALE_ANIMATION";
+
+    static constexpr char WINDOW_DO_SCALE_ANIMATION[] = "WINDOW_DO_SCALE_ANIMATION";
 };
 } // namespace OHOS
 } // namespace HiviewDFX

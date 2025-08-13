@@ -85,7 +85,7 @@ void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType
     }
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
-    HIVIEW_LOGI("Animation start and current sceneId: %{public}s", sceneId.c_str());
+    HIVIEW_LOGD("Animation start and current sceneId: %{public}s", sceneId.c_str());
     if (record == nullptr) {
         record = new AnimatorRecord();
         int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
@@ -102,7 +102,7 @@ void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender
 {
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
-    HIVIEW_LOGI("Animation start and current sceneId: %{public}s", sceneId.c_str());
+    HIVIEW_LOGD("Animation stop and current sceneId: %{public}s", sceneId.c_str());
     if (record != nullptr) {
         SceneMonitor::GetInstance().FlushSubHealthInfo();
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
