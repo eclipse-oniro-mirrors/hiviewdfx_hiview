@@ -17,6 +17,7 @@
 
 #include "event_export_util.h"
 #include "event_json_parser.h"
+#include "export_db_manager.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "setting_observer_manager.h"
@@ -40,35 +41,37 @@ std::shared_ptr<ExportEventListParser> GetParser(ExportEventListParsers& parsers
     return iter->second;
 }
 
-int64_t GetModuleExportStartSeq(std::shared_ptr<ExportDbManager> mgr, std::shared_ptr<ExportConfig> cfg)
+int64_t GetModuleExportStartSeq(std::shared_ptr<ExportConfig> config)
 {
+    auto& dbMgr = ExportDbManager::GetInstance();
     int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
     HIVIEW_LOGI("start sequence is %{public}" PRId64 "", startSeq);
-    if (mgr == nullptr || cfg == nullptr || !mgr->IsUnrecordedModule(cfg->moduleName) ||
-        cfg->inheritedModule.empty() || mgr->IsUnrecordedModule(cfg->inheritedModule)) {
+    if (config == nullptr || !dbMgr.IsUnrecordedModule(config->moduleName) ||
+        config->inheritedModule.empty() || dbMgr.IsUnrecordedModule(config->inheritedModule)) {
         return startSeq;
     }
-    return mgr->GetExportEndSeq(cfg->inheritedModule);
+    return dbMgr.GetExportEndSeq(config->inheritedModule);
 }
 
-bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
+bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config)
 {
     bool isSwitchOff = (SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name) !=
         config->exportSwitchParam.enabledVal);
+    auto& dbMgr = ExportDbManager::GetInstance();
     if (isSwitchOff) {
         HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
-        int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
+        int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
         if (enabledSeq != INVALID_SEQ_VAL &&
-            !FileUtil::FileExists(dbMgr->GetEventInheritFlagPath(config->moduleName))) {
-            dbMgr->HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
+            !FileUtil::FileExists(dbMgr.GetEventInheritFlagPath(config->moduleName))) {
+            dbMgr.HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
         }
         return true;
     }
     HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
-    int64_t enabledSeq = dbMgr->GetExportEnabledSeq(config->moduleName);
+    int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
     if (enabledSeq == INVALID_SEQ_VAL) {
-        enabledSeq = GetModuleExportStartSeq(dbMgr, config);
-        dbMgr->HandleExportSwitchChanged(config->moduleName, enabledSeq);
+        enabledSeq = GetModuleExportStartSeq(config);
+        dbMgr.HandleExportSwitchChanged(config->moduleName, enabledSeq);
     }
     return false;
 }
@@ -76,11 +79,11 @@ bool IsExportSwitchOff(std::shared_ptr<ExportConfig> config, std::shared_ptr<Exp
 
 void EventExportTask::OnTaskRun()
 {
-    if (config_ == nullptr || dbMgr_ == nullptr) {
-        HIVIEW_LOGE("config manager or db manager is invalid");
+    if (config_ == nullptr) {
+        HIVIEW_LOGE("export config is invalid");
         return;
     }
-    if (IsExportSwitchOff(config_, dbMgr_)) {
+    if (IsExportSwitchOff(config_)) {
         return;
     }
     if (FileUtil::GetFolderSize(config_->exportDir) >= static_cast<uint64_t>(config_->maxCapcity * BYTE_TO_MB)) {
@@ -101,7 +104,7 @@ void EventExportTask::OnTaskRun()
         HIVIEW_LOGW("finished exporting events in range [%{public}" PRId64 ", %{public}" PRId64 ")",
             beginSeq, endSeq);
         // sync export progress to db
-        dbMgr_->HandleExportTaskFinished(config_->moduleName, endSeq);
+        ExportDbManager::GetInstance().HandleExportTaskFinished(config_->moduleName, endSeq);
     });
     // init handler chain
     readHandler->SetNextHandler(writeHandler);
@@ -145,7 +148,7 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
     if (readReq == nullptr) {
         return false;
     }
-    readReq->beginSeq = dbMgr_->GetExportBeginSeq(config_->moduleName);
+    readReq->beginSeq = ExportDbManager::GetInstance().GetExportBeginSeq(config_->moduleName);
     if (readReq->beginSeq == INVALID_SEQ_VAL) {
         HIVIEW_LOGE("invalid export: begin sequence:%{public}" PRId64 "", readReq->beginSeq);
         return false;

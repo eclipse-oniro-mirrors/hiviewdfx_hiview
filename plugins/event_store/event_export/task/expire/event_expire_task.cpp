@@ -38,8 +38,8 @@ std::string CreateExpireFileScanDir(const std::string& baseDir, const std::strin
 }
 void EventExpireTask::OnTaskRun()
 {
-    if (config_ == nullptr || dbMgr_ == nullptr) {
-        HIVIEW_LOGE("config manager or db manager is invalid");
+    if (config_ == nullptr) {
+        HIVIEW_LOGE("export config is invalid");
         return;
     }
     // init delete handler

@@ -26,8 +26,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class EventExpireTask : public ExportBaseTask {
 public:
-    EventExpireTask(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
-        : ExportBaseTask(config, dbMgr) {}
+    EventExpireTask(std::shared_ptr<ExportConfig> config) : ExportBaseTask(config) {}
 
 protected:
     void OnTaskRun() override;

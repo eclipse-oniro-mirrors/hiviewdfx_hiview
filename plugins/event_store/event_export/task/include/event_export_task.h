@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,8 +27,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class EventExportTask : public ExportBaseTask {
 public:
-    EventExportTask(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
-        : ExportBaseTask(config, dbMgr) {}
+    EventExportTask(std::shared_ptr<ExportConfig> config) : ExportBaseTask(config) {}
 
 protected:
     void OnTaskRun() override;

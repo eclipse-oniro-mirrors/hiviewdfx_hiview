@@ -7,7 +7,7 @@
         "name": "test_param_key",
         "enabledValue": "1"
     },
-    "exportDir": "/data/test/test_data",
+    "exportDir": "/data/test/test_data/",
     "exportDirMaxCapacity": 100,
     "exportSingleFileMaxSize": 2,
     "taskExecutingCycle": 3600,
