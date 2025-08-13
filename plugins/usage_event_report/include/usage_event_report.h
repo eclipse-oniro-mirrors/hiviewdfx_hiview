@@ -22,9 +22,7 @@
 #include "event_loop.h"
 #include "ffrt.h"
 #include "plugin.h"
-#ifdef POWER_MANAGER_ENABLE
 #include "shutdown/iasync_shutdown_callback.h"
-#endif
 #include "usage_fold_event_report.h"
 
 namespace OHOS {
@@ -57,9 +55,7 @@ private:
     void InitFoldEventReport(const std::string& workPath);
 
 private:
-#ifdef POWER_MANAGER_ENABLE
     sptr<PowerMgr::IAsyncShutdownCallback> callback_;
-#endif
     uint64_t timeOutCnt_;
     ffrt::mutex runningMutex_;
     bool isRunning_;

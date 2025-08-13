@@ -49,7 +49,7 @@ static bool IsNumber(const std::string& str)
 {
     return !str.empty() && std::find_if(str.begin(), str.end(), [](unsigned char c) {
         return !std::isdigit(c);
-    }) == str.end();
+        }) == str.end();
 }
 
 static int GetUid(int pid)
@@ -61,10 +61,10 @@ static int GetUid(int pid)
     }
 
     std::string line;
-    std::string uidLable = "Uid:";
+    std::string uidLabel = "Uid:";
     std::string uid;
     while (std::getline(statusFile, line)) {
-        if ((line.length() >= uidLable.length()) && line.substr(0, uidLable.length()) == uidLable) {
+        if ((line.length() >= uidLabel.length()) && line.substr(0, uidLabel.length()) == uidLabel) {
             std::stringstream is(line);
             is >> uid;
             is >> uid;
