@@ -15,10 +15,10 @@
 
 #include "content_reader.h"
 
-#include "hiview_logger.h"
 #include "base/raw_data_base_def.h"
 #include "base/raw_data.h"
 #include "encoded/encoded_param.h"
+#include "hiview_logger.h"
 #include "securec.h"
 #include "sys_event.h"
 
