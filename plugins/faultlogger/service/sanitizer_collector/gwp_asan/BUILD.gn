@@ -44,7 +44,6 @@ ohos_shared_library("libasan_logger") {
 
   deps = [
     "$hiview_base:hiviewbase",
-    "$hiview_base:logger",
     "$hiview_base/event_raw:hiview_event_raw_decode",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
