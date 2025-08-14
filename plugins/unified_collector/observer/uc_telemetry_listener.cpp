@@ -26,6 +26,7 @@ namespace {
 const int64_t DURATION_DEFAULT = 3600 * SECONDS_TO_MS; // ms
 const int64_t MAX_DURATION = 7 * 24 * 3600 * SECONDS_TO_MS; // ms
 const uint32_t BT_M_UNIT = 1024 * 1024;
+const int64_t MAX_BUFFER_SIZE = 500 * 1024; // 500M
 constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 constexpr char TAGS[] = "tags";
 constexpr char BUFFER_SIZE[] = "bufferSize";
@@ -246,6 +247,9 @@ bool TelemetryListener::ProcessTraceTag(std::string &traceTag)
     if (bufferSize <= 0) {
         HIVIEW_LOGE("jsonArgs parse trace bufferSize error");
         return false;
+    }
+    if (bufferSize > MAX_BUFFER_SIZE) {
+        bufferSize = MAX_BUFFER_SIZE;
     }
     bool isFirst = true;
     std::string result("tags:");
