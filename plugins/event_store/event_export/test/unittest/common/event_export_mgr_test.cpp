@@ -15,13 +15,35 @@
 
 #include "event_export_mgr_test.h"
 
+#include "event_expire_task.h"
+#include "event_export_engine.h"
+#include "event_export_task.h"
+#include "event_export_util.h"
+#include "file_util.h"
+#include "hiview_global.h"
 #include "setting_observer_manager.h"
+#include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
 constexpr char PARAM_NAME[] = "PARAM_NAME";
 constexpr char DEFAULT_VAL[] = "DEFAULT_VAL";
+constexpr char TEST_CFG_DIR[] = "/data/test/test_data/cfg/";
+constexpr char TEST_WORK_DIR[] = "/data/test/test_data/work/";
+constexpr char TEST_CFG_FILE[] = "/data/test/test_data/cfg/sys_event_export/test3_event_export_config.json";
+constexpr char TEST_MODULE_NAME[] = "test3";
+
+class EventExportMgrTestContext : public HiviewContext {
+public:
+    std::string GetHiViewDirectory(DirectoryType type)
+    {
+        if (type == HiviewContext::DirectoryType::WORK_DIRECTORY) {
+            return TEST_WORK_DIR;
+        }
+        return TEST_CFG_DIR;
+    }
+};
 }
 
 void EventExportMgrTest::SetUpTestCase()
@@ -60,6 +82,88 @@ HWTEST_F(EventExportMgrTest, EventExportMgrTest001, testing::ext::TestSize.Level
     ASSERT_TRUE(SettingObserverManager::GetInstance()->UnregisterObserver(PARAM_NAME));
     auto value = SettingObserverManager::GetInstance()->GetStringValue(PARAM_NAME, DEFAULT_VAL);
     ASSERT_EQ(value, DEFAULT_VAL);
+}
+
+/**
+ * @tc.name: EventExportMgrTest002
+ * @tc.desc: Test apis of EventExportEngine
+ * @tc.type: FUNC
+ * @tc.require: issueICSFYS
+ */
+HWTEST_F(EventExportMgrTest, EventExportEngine001, testing::ext::TestSize.Level3)
+{
+    EventExportMgrTestContext context;
+    HiviewGlobal::CreateInstance(context);
+    auto& eventExportEngine = EventExportEngine::GetInstance();
+    eventExportEngine.SetTaskDelayedSecond(1); // delay 1 second
+    eventExportEngine.Start();
+    TimeUtil::Sleep(5); // sleep 5 seconds
+    eventExportEngine.Stop();
+    std::vector<std::string> eventZipFiles;
+    FileUtil::GetDirFiles(TEST_WORK_DIR, eventZipFiles);
+    ASSERT_FALSE(eventZipFiles.empty());
+}
+
+/**
+ * @tc.name: EventExportMgrTest003
+ * @tc.desc: Test apis of EventExpireTask
+ * @tc.type: FUNC
+ * @tc.require: issueICSFYS
+ */
+HWTEST_F(EventExportMgrTest, EventExportMgrTest003, testing::ext::TestSize.Level3)
+{
+    EventExpireTask invalidTask(nullptr);
+    invalidTask.Run();
+    ExportConfigParser parser(TEST_CFG_FILE, TEST_MODULE_NAME);
+    auto exportConfig = parser.Parse();
+    ASSERT_NE(exportConfig, nullptr);
+    EventExpireTask validTask(exportConfig);
+    validTask.Run();
+}
+
+/**
+ * @tc.name: EventExportMgrTest004
+ * @tc.desc: Test apis of EventExportTask
+ * @tc.type: FUNC
+ * @tc.require: issueICSFYS
+ */
+HWTEST_F(EventExportMgrTest, EventExportMgrTest004, testing::ext::TestSize.Level3)
+{
+    EventExportTask invalidTask(nullptr);
+    invalidTask.Run();
+    ExportConfigParser parser(TEST_CFG_FILE, TEST_MODULE_NAME);
+    auto exportConfig = parser.Parse();
+    ASSERT_NE(exportConfig, nullptr);
+    EventExportTask validTask(exportConfig);
+    validTask.Run();
+}
+
+/**
+ * @tc.name: EventExportUtilTest001
+ * @tc.desc: Test apis of EventExportUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICSFYS
+ */
+HWTEST_F(EventExportMgrTest, EventExportUtilTest001, testing::ext::TestSize.Level3)
+{
+    EventExportMgrTestContext context;
+    HiviewGlobal::CreateInstance(context);
+    ASSERT_FALSE(EventExportUtil::CheckAndPostExportEvent(nullptr));
+    ExportConfigParser parser(TEST_CFG_FILE, TEST_MODULE_NAME);
+    auto exportConfig = parser.Parse();
+    ASSERT_NE(exportConfig, nullptr);
+    exportConfig->exportDir = "/data/test/test_data/cfg/sys_event_export/";
+    ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    exportConfig->needPostEvent = false;
+    ASSERT_FALSE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    exportConfig->needPostEvent = true;
+    exportConfig->exportDir = "/data/test/test_data/no_exist_dir/";
+    ASSERT_FALSE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    exportConfig->exportDir = "/data/test/test_data/cfg/sys_event_export/";
+    exportConfig->taskType = ALL_EVENT_TASK_TYPE;
+    ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    exportConfig->taskType = 30; // 30 is a test task type
+    ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -33,19 +33,8 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
-constexpr char SYS_EVENT_EXPORT_DIR_NAME[] = "sys_event_export";
 constexpr int REGISTER_RETRY_CNT = 100;
 constexpr int REGISTER_LOOP_DURATION = 6;
-constexpr int TASK_FIRST_RUN_DELAY_SEC = 180;
-std::string GetExportDir(HiviewContext::DirectoryType type)
-{
-    auto& context = HiviewGlobal::GetInstance();
-    if (context == nullptr) {
-        return "";
-    }
-    std::string configDir = context->GetHiViewDirectory(type);
-    return FileUtil::IncludeTrailingPathDelimiter(configDir.append(SYS_EVENT_EXPORT_DIR_NAME));
-}
 
 std::string GenerateUuid()
 {
@@ -67,129 +56,29 @@ std::string GenerateUuid()
     return uuid;
 }
 
-bool IsExportDirEmpty(const std::string& exportDir)
+void HandleExportSwitchOn(const std::string& moduleName)
 {
-    std::vector<std::string> eventZipFiles;
-    FileUtil::GetDirFiles(exportDir, eventZipFiles);
-    return !any_of(eventZipFiles.begin(), eventZipFiles.end(), [] (const std::string& file) {
-        return !FileUtil::IsDirectory(file);
-    });
-}
-
-void PostExportEvent(const std::string& moduleName, int16_t taskType)
-{
-    auto event = std::make_shared<Event>("post_export_type_event");
-    event->messageType_ = Event::MessageType::EVENT_EXPORT_TYPE;
-    event->SetValue("reportModule", moduleName);
-    if (taskType == ALL_EVENT_TASK_TYPE) {
-        event->SetValue("reportInterval", "0");
-    } else {
-        event->SetValue("reportInterval", std::to_string(taskType));
-    }
-
-    auto& context = HiviewGlobal::GetInstance();
-    if (context == nullptr) {
-        HIVIEW_LOGW("hiview context is invalid.");
+    auto& dbMgr = ExportDbManager::GetInstance();
+    if (FileUtil::FileExists(dbMgr.GetEventInheritFlagPath(moduleName))) {
+        // if inherit flag file exists, no need to update export enabled seq
         return;
     }
-    context->PostUnorderedEvent(event);
+    auto curEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    HIVIEW_LOGI("update enabled seq:%{public}" PRId64 " for module %{public}s", curEventSeq, moduleName.c_str());
+    dbMgr.HandleExportSwitchChanged(moduleName, curEventSeq);
 }
 
-bool CheckAndPostEvent(std::shared_ptr<ExportConfig> config)
+void HandleExportSwitchOff(const std::string& moduleName)
 {
-    if (config == nullptr) {
-        HIVIEW_LOGW("export cfg file is invalid.");
-        return false;
-    }
-    if (!config->needPostEvent) {
-        HIVIEW_LOGW("no need to post event");
-        return false;
-    }
-    if (IsExportDirEmpty(config->exportDir)) {
-        HIVIEW_LOGW("no event zip file found");
-        return false;
-    }
-    return true;
-}
+    auto& dbMgr = ExportDbManager::GetInstance();
+    dbMgr.HandleExportSwitchChanged(moduleName, INVALID_SEQ_VAL);
+    FileUtil::RemoveFile(dbMgr.GetEventInheritFlagPath(moduleName)); // remove inherit flag file if switch changes
 }
 
-EventExportEngine& EventExportEngine::GetInstance()
-{
-    static EventExportEngine instance;
-    return instance;
-}
-
-EventExportEngine::EventExportEngine()
-{
-}
-
-EventExportEngine::~EventExportEngine()
-{
-    for (auto& config : configs_) {
-        SettingObserverManager::GetInstance()->UnregisterObserver(config->exportSwitchParam.name);
-    }
-}
-
-void EventExportEngine::Start()
-{
-    std::lock_guard<std::mutex> lock(mgrMutex_);
-    if (isTaskRunning_) {
-        HIVIEW_LOGW("tasks have been started.");
-        return;
-    }
-    isTaskRunning_ = true;
-    auto initTaskHandle = ffrt::submit_h([this] () {
-            Init();
-        }, {}, {}, ffrt::task_attr().name("dft_export_init").qos(ffrt::qos_default));
-    ffrt::submit([this] () {
-            InitAndRunTasks();
-        }, { initTaskHandle }, {}, ffrt::task_attr().name("dft_export_start").qos(ffrt::qos_default));
-}
-
-void EventExportEngine::Stop()
-{
-    std::lock_guard<std::mutex> lock(mgrMutex_);
-    if (!isTaskRunning_) {
-        HIVIEW_LOGW("tasks have been stopped");
-        return;
-    }
-    isTaskRunning_ = false;
-    HIVIEW_LOGE("succeed to stop all tasks");
-}
-
-void EventExportEngine::Init()
-{
-    // init ExportConfigManager
-    std::string configFileStoreDir = GetExportDir(HiviewContext::DirectoryType::CONFIG_DIRECTORY);
-    HIVIEW_LOGI("directory for export config file to store: %{public}s", configFileStoreDir.c_str());
-    ExportConfigManager configMgr(configFileStoreDir);
-
-    // init ExportDbManager
-    std::string dbStoreDir = GetExportDir(HiviewContext::DirectoryType::WORK_DIRECTORY);
-    HIVIEW_LOGI("directory for export db to store: %{public}s", dbStoreDir.c_str());
-    dbMgr_ = std::make_shared<ExportDbManager>(dbStoreDir);
-
-    // build tasks for all modules
-    configMgr.GetExportConfigs(configs_);
-    HIVIEW_LOGD("count of configuration: %{public}zu", configs_.size());
-}
-
-void EventExportEngine::InitAndRunTasks()
-{
-    HIVIEW_LOGI("total count of module is %{public}zu", configs_.size());
-    for (const auto& config : configs_) {
-        if (config == nullptr || config->taskType == INVALID_TASK_TYPE) {
-            continue;
-        }
-        auto task = std::bind(&EventExportEngine::InitAndRunTask, this, config);
-        ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_event_export").qos(ffrt::qos_default));
-    }
-}
-
-bool EventExportEngine::RegistSettingObserver(std::shared_ptr<ExportConfig> config)
+bool RegisterSettingObserver(std::shared_ptr<ExportConfig> config)
 {
     SettingObserver::ObserverCallback callback =
-        [this, &config] (const std::string& paramKey) {
+        [&config] (const std::string& paramKey) {
             std::string val = SettingObserverManager::GetInstance()->GetStringValue(paramKey);
             HIVIEW_LOGI("value of param key[%{public}s] is %{public}s", paramKey.c_str(), val.c_str());
             if (val == config->exportSwitchParam.enabledVal) {
@@ -213,58 +102,101 @@ bool EventExportEngine::RegistSettingObserver(std::shared_ptr<ExportConfig> conf
         HIVIEW_LOGW("failed to regist setting db observer for module %{public}s", config->moduleName.c_str());
         return regRet;
     }
-    if (dbMgr_->IsUnrecordedModule(config->moduleName)) { // first time to export event for current module
+    auto& dbMgr = ExportDbManager::GetInstance();
+    if (dbMgr.IsUnrecordedModule(config->moduleName)) { // first time to export event for current module
         auto upgradeParam = config->sysUpgradeParam;
         if (!upgradeParam.name.empty() &&
             SettingObserverManager::GetInstance()->GetStringValue(upgradeParam.name) == upgradeParam.enabledVal) {
             int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
             HIVIEW_LOGI("reset enabled sequence to %{public}" PRId64 " for moudle %{public}s",
                 startSeq, config->moduleName.c_str());
-            dbMgr_->HandleExportSwitchChanged(config->moduleName, startSeq);
-            FileUtil::CreateFile(dbMgr_->GetEventInheritFlagPath(config->moduleName)); // create inherit flag file
+            dbMgr.HandleExportSwitchChanged(config->moduleName, startSeq);
+            FileUtil::CreateFile(dbMgr.GetEventInheritFlagPath(config->moduleName)); // create inherit flag file
         }
     }
     HIVIEW_LOGI("succeed to regist setting db observer for module %{public}s", config->moduleName.c_str());
     return regRet;
 }
 
+void UnregisterSettingObserver(std::vector<std::shared_ptr<ExportConfig>>& configs)
+{
+    for (auto& config : configs) {
+        SettingObserverManager::GetInstance()->UnregisterObserver(config->exportSwitchParam.name);
+    }
+}
+}
+
+EventExportEngine& EventExportEngine::GetInstance()
+{
+    static EventExportEngine instance;
+    return instance;
+}
+
+EventExportEngine::~EventExportEngine()
+{
+    std::vector<std::shared_ptr<ExportConfig>> configs;
+    ExportConfigManager::GetInstance().GetAllExportConfigs(configs);
+    UnregisterSettingObserver(configs);
+}
+
+void EventExportEngine::Start()
+{
+    std::lock_guard<std::mutex> lock(mgrMutex_);
+    if (isTaskRunning_) {
+        HIVIEW_LOGW("tasks have been started.");
+        return;
+    }
+    isTaskRunning_ = true;
+    ffrt::submit([this] () {
+            InitAndRunTasks();
+        }, { }, {}, ffrt::task_attr().name("dft_export_start").qos(ffrt::qos_default));
+}
+
+void EventExportEngine::Stop()
+{
+    std::lock_guard<std::mutex> lock(mgrMutex_);
+    if (!isTaskRunning_) {
+        HIVIEW_LOGW("tasks have been stopped");
+        return;
+    }
+    isTaskRunning_ = false;
+}
+
+void EventExportEngine::SetTaskDelayedSecond(int second)
+{
+    delayedSecond_ = second;
+}
+
+void EventExportEngine::InitAndRunTasks()
+{
+    std::vector<std::shared_ptr<ExportConfig>> configs;
+    ExportConfigManager::GetInstance().GetAllExportConfigs(configs);
+    HIVIEW_LOGI("total count of periodic config is %{public}zu", configs.size());
+    for (const auto& config : configs) {
+        auto task = std::bind(&EventExportEngine::InitAndRunTask, this, config);
+        ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_event_export").qos(ffrt::qos_default));
+    }
+}
+
 void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
 {
     // reg setting db observer
-    auto regRet = RegistSettingObserver(config);
-    if (!regRet) {
+    if (!RegisterSettingObserver(config)) {
         return;
     }
-    ffrt::this_task::sleep_for(std::chrono::seconds(TASK_FIRST_RUN_DELAY_SEC));
+    ffrt::this_task::sleep_for(std::chrono::seconds(delayedSecond_));
     // init tasks of current config then run them
-    auto expireTask = std::make_shared<EventExpireTask>(config, dbMgr_);
-    auto exportTask = std::make_shared<EventExportTask>(config, dbMgr_);
+    auto expireTask = std::make_shared<EventExpireTask>(config);
+    auto exportTask = std::make_shared<EventExportTask>(config);
     while (isTaskRunning_) {
         expireTask->Run();
         exportTask->Run();
-        if (CheckAndPostEvent(config)) {
-            PostExportEvent(config->moduleName, config->taskType);
+        if (!EventExportUtil::CheckAndPostExportEvent(config)) {
+            HIVIEW_LOGW("failed to post export event");
         }
         // sleep for a task cycle
         FfrtUtil::Sleep(config->taskCycle);
     }
-}
-
-void EventExportEngine::HandleExportSwitchOn(const std::string& moduleName)
-{
-    if (FileUtil::FileExists(dbMgr_->GetEventInheritFlagPath(moduleName))) {
-        // if inherit flag file exists, no need to update export enabled seq
-        return;
-    }
-    auto curEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
-    HIVIEW_LOGI("update enabled seq:%{public}" PRId64 " for moudle %{public}s", curEventSeq, moduleName.c_str());
-    dbMgr_->HandleExportSwitchChanged(moduleName, curEventSeq);
-}
-
-void EventExportEngine::HandleExportSwitchOff(const std::string& moduleName)
-{
-    dbMgr_->HandleExportSwitchChanged(moduleName, INVALID_SEQ_VAL);
-    FileUtil::RemoveFile(dbMgr_->GetEventInheritFlagPath(moduleName)); // remove inherit flag file if switch changes
 }
 
 void EventExportEngine::InitPackId()

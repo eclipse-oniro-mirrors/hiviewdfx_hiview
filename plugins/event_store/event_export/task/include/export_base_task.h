@@ -19,14 +19,12 @@
 #include <memory>
 
 #include "export_config_parser.h"
-#include "export_db_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 class ExportBaseTask {
 public:
-    ExportBaseTask(std::shared_ptr<ExportConfig> config, std::shared_ptr<ExportDbManager> dbMgr)
-        : config_(config), dbMgr_(dbMgr) {}
+    ExportBaseTask(std::shared_ptr<ExportConfig> config) : config_(config) {}
     virtual ~ExportBaseTask() = default;
 
     void Run();
@@ -36,7 +34,6 @@ protected:
 
 protected:
     std::shared_ptr<ExportConfig> config_ = nullptr;
-    std::shared_ptr<ExportDbManager> dbMgr_ = nullptr;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
