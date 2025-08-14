@@ -329,7 +329,7 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         HIVIEW_LOGE("unifiedCollectorPtr is null");
         return;
     }
-    if (value == HIVIEW_UCOLLECTION_STATE_TRUE) {
+    if (strncmp(value, HIVIEW_UCOLLECTION_STATE_TRUE, strlen(HIVIEW_UCOLLECTION_STATE_TRUE)) == 0) {
         unifiedCollectorPtr->RunCpuCollectionTask();
         unifiedCollectorPtr->RunIoCollectionTask();
         unifiedCollectorPtr->RunUCollectionStatTask();
