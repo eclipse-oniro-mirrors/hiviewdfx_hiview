@@ -31,8 +31,6 @@
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hisysevent_easy.h"
-#include "hilog/log.h"
-#include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "faultlog_formatter.h"
 #include "faultloggerd_client.h"
@@ -74,7 +72,6 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     char *asanOutput = strstr(buf, "End Asan report");
     if (gwpOutput) {
         std::string gwpasanlog = g_asanlog.str();
-        HILOG_INFO(LOG_CORE, "[gwp_asan] %{public}s", gwpasanlog.c_str());
         ReadGwpAsanRecord(gwpasanlog, "GWP-ASAN", path);
         // clear buffer
         g_asanlog.str("");
@@ -109,7 +106,6 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     if (logPath == nullptr || strlen(logPath) == 0 ||
         setAsanOptionTypeList.find(faultType) == setAsanOptionTypeList.end()) {
         currInfo.logPath = "faultlogger";
-        HILOG_INFO(LOG_CORE, "Logpath is null, set as default path: faultlogger");
     } else {
         currInfo.logPath = std::string(logPath);
     }
@@ -127,8 +123,6 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
         currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
     currInfo.telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
-    HILOG_INFO(LOG_CORE, "ReportSanitizerAppEvent: uid: %{public}d, logPath: %{public}s, telemetryId: %{public}s",
-        currInfo.uid, currInfo.logPath.c_str(), currInfo.telemetryId.c_str());
     // Do upload when data ready
     bool isSendHisysevent = false;
     WriteCollectedData(currInfo, isSendHisysevent);
@@ -164,15 +158,12 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
     std::stringstream ssParams;
     ssParams << prefixStr << summaryPrefix << summary;
     std::string params = ssParams.str();
-    int ret = HiSysEventEasyWrite(
+    HiSysEventEasyWrite(
         OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY,
         ADDR_SANITIZER_EVENT,
         HiSysEventEasyType::EASY_EVENT_TYPE_FAULT,
         params.c_str()
     );
-    if (ret < 0) {
-        HILOG_ERROR(LOG_CORE, "Sanitizer send easyhisysevent failed, ret = %{public}d", ret);
-    }
 }
 
 std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType)
@@ -187,14 +178,12 @@ std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string&
     if (std::regex_search(buffer, match, hwasanRegex)) {
         return match[HWASAN_ERRTYPE_FIELD].str();
     }
-    HILOG_INFO(LOG_CORE, "%{public}s Regex not match, set default type.", faultType.c_str());
     return faultType;
 }
 
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo, bool& isSendHisysevent)
 {
     if (currInfo.logPath != "faultlogger" && WriteToSandbox(currInfo)) {
-        HILOG_INFO(LOG_CORE, "Write to sandbox success!");
         return;
     }
 
@@ -211,7 +200,6 @@ void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo)
     request.time = currInfo.happenTime;
     int fd = RequestFileDescriptorEx(&request);
     if (fd < 0) {
-        HILOG_ERROR(LOG_CORE, "failed to RequestFileDescriptorEx, err: %{public}s", strerror(errno));
         return;
     }
 
@@ -223,7 +211,6 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
 {
     auto pos = currInfo.logPath.find_last_of('/');
     if (pos == std::string::npos || pos == currInfo.logPath.length() - 1) {
-        HILOG_ERROR(LOG_CORE, "Invalid logPath: %{public}s", currInfo.logPath.c_str());
         return false;
     }
 
@@ -231,14 +218,11 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
     std::string fileName = currInfo.logPath.substr(pos + 1);
     std::string realPath;
     if (!OHOS::HiviewDFX::FileUtil::PathToRealPath(logDir, realPath)) {
-        HILOG_ERROR(LOG_CORE, "realpath failed on parent dir: %{public}s, err: %{public}s",
-            logDir.c_str(), strerror(errno));
         return false;
     }
 
     const std::regex sandboxRegex("^/data/storage/el[0-9]+(?:/|$)");
     if (!std::regex_search(realPath, sandboxRegex)) {
-        HILOG_ERROR(LOG_CORE, "Invalid sandbox path: %{public}s", realPath.c_str());
         return false;
     }
 
@@ -247,8 +231,6 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
         std::to_string(currInfo.happenTime);
     int fd = open(logFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
     if (fd < 0) {
-        HILOG_ERROR(LOG_CORE, "Failed to open sandbox file: %{public}s, err: %{public}s",
-            logFilePath.c_str(), strerror(errno));
         return false;
     }
 
