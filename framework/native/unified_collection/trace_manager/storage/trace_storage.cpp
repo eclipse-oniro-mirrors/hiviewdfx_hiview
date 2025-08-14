@@ -50,6 +50,9 @@ TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const s
     traceQuotaConfig_ = configPath + TRACE_QUOTA_CONFIG_FILE;
     quota_ = GetTraceQuota(caller);
     decreaseUnit_ = GetTraceQuota(DYNAMIC_DECREASE_KEY);
+#ifdef TRACE_MANAGER_UNITTEST
+    testDate_ = TimeUtil::TimestampFormatToDate(std::time(nullptr), "%Y-%m-%d");
+#endif
     InitTableRecord();
 }
 
@@ -126,8 +129,12 @@ void TraceStorage::QueryTable(TraceFlowRecord& traceFlowRecord)
 
 std::string TraceStorage::GetDate()
 {
+#ifndef TRACE_MANAGER_UNITTEST
     std::string dateStr = TimeUtil::TimestampFormatToDate(std::time(nullptr), "%Y-%m-%d");
     return dateStr;
+#else
+    return testDate_;
+#endif
 }
 
 // remaining trace size contains 10% fluctuation of the quota when quota not completely used up

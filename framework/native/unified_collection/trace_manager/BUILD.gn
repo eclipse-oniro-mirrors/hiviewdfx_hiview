@@ -104,26 +104,3 @@ ohos_shared_library("libtrace_manager") {
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 }
-
-ohos_static_library("trace_manager_for_tdd") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
-
-  public_configs = [ ":trace_manager_config" ]
-
-  deps = [ ":trace_manager_source" ]
-
-  public_external_deps = [
-    "ffrt:libffrt",
-    "hitrace:hitrace_dump",
-    "relational_store:native_rdb",
-  ]
-
-  part_name = "hiview"
-  subsystem_name = "hiviewdfx"
-}

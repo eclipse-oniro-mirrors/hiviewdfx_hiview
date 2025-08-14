@@ -50,6 +50,14 @@ public:
     int64_t GetRemainingTraceSize();
     void StoreDb(int64_t traceSize);
     void DecreaseDynamicThreshold();
+#ifdef TRACE_MANAGER_UNITTEST
+    void SetTestDate(const std::string& testDate)
+    {
+        if (traceStorage_ != nullptr) {
+            traceStorage_->SetTestDate(testDate);
+        }
+    }
+#endif
 
     /**
      * @brief app whether report jank event trace today

@@ -85,7 +85,7 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceClient client, uin
 }
 
 auto TraceStrategyFactory::CreateStrategy(UCollect::TeleModule module, uint32_t maxDuration, uint64_t happenTime)
-    -> std::shared_ptr<TelemetryStrategy>
+    ->std::shared_ptr<TelemetryStrategy>
 {
     return std::make_shared<TelemetryStrategy>(StrategyParam {maxDuration, happenTime, ModuleToString(module)},
         std::make_shared<TraceZipHandler>(UNIFIED_TELEMETRY_PATH, BusinessName::TELEMETRY,

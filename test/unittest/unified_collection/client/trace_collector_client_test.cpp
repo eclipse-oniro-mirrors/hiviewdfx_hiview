@@ -220,3 +220,23 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     }
     DisablePermissionAccess();
 }
+
+/**
+ * @tc.name: TraceCollectorTest003
+ * @tc.desc: dump trace in common state.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
+{
+    system("param set hiviewdfx.ucollection.switchon true");
+    sleep(1);
+    auto traceCollector = TraceCollector::Create();
+    ASSERT_TRUE(traceCollector != nullptr);
+    EnablePermissionAccess();
+    auto result = traceCollector->DumpSnapshot();
+    ASSERT_EQ(result.retCode, UcError::SUCCESS);
+    ASSERT_FALSE(result.data.empty());
+    ASSERT_TRUE(result.data[0].find("Other") != std::string::npos);
+    DisablePermissionAccess();
+    system("param set hiviewdfx.ucollection.switchon false");
+}

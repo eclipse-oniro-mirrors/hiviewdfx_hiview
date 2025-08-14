@@ -67,25 +67,22 @@ class TestTelemetryCallback : public TelemetryCallback {
 
 class TraceManagerTest : public testing::Test {
 public:
-    void SetUp() {};
-
-    void TearDown() {};
-
-    static void SetUpTestCase()
+    void SetUp() override
     {
         if (!FileUtil::FileExists(TEST_DB_PATH)) {
             FileUtil::ForceCreateDirectory(TEST_DB_PATH);
-            std::cout << "create path:" << TEST_DB_PATH << std::endl;
         }
     };
 
-    static void TearDownTestCase()
+    void TearDown() override
     {
         if (FileUtil::FileExists(TEST_DB_PATH)) {
             FileUtil::ForceRemoveDirectory(TEST_DB_PATH);
-            std::cout << "clear path:" << TEST_DB_PATH << std::endl;
         }
     };
+
+    static void SetUpTestCase() {};
+    static void TearDownTestCase() {};
 };
 
 /**
@@ -97,6 +94,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
+
     int64_t traceSize1 = 699 * 1024 * 1024; // xpower trace Threshold is 150M
     int64_t remainingSize = flowController1->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
@@ -1052,4 +1050,80 @@ HWTEST_F(TraceManagerTest, TraceManagerTest027, TestSize.Level1)
     ASSERT_EQ(ret, E_OK);
     ret = callback.OnUpgrade(*dbStore, 1, 2); // test db upgrade from version 1 to version 2
     ASSERT_EQ(ret, E_OK);
+}
+
+/**
+ * @tc.name: TraceManagerTest028
+ * @tc.desc: used to test TraceDbStoreCallback
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest028, TestSize.Level1)
+{
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    int64_t traceSize1 = 601 * 1024 * 1024; // xpower trace Threshold is 700M
+    ASSERT_GT(flowController1->GetRemainingTraceSize(), 0);
+    flowController1->StoreDb(traceSize1);
+
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    ASSERT_FALSE(flowController2->IsOverLimit());
+    ASSERT_GT(flowController2->GetRemainingTraceSize(), 0);
+    flowController2->DecreaseDynamicThreshold(); // dynamic_threashold 650M
+
+    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    ASSERT_FALSE(flowController3->IsOverLimit());
+    ASSERT_GT(flowController2->GetRemainingTraceSize(), 0);
+    flowController3->DecreaseDynamicThreshold(); // dynamic_threashold 600M
+
+    auto flowController4 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+    FlowController::DEFAULT_CONFIG_PATH);
+    ASSERT_TRUE(flowController4->IsOverLimit());
+}
+
+/**
+ * @tc.name: TraceManagerTest028
+ * @tc.desc: used to test TraceDbStoreCallback
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest029, TestSize.Level1)
+{
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    int64_t traceSize1 = 600 * 1024 * 1024; // xpower trace Threshold is 700M
+    ASSERT_GT(flowController1->GetRemainingTraceSize(), 0);
+    flowController1->StoreDb(traceSize1);
+
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    ASSERT_FALSE(flowController2->IsOverLimit());
+    ASSERT_EQ(flowController2->GetRemainingTraceSize(), 170 * 1024 * 1024); // remaining size 170M
+    flowController2->DecreaseDynamicThreshold(); // dynamic_threashold 650M
+
+    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+    FlowController::DEFAULT_CONFIG_PATH);
+    ASSERT_EQ(flowController2->GetRemainingTraceSize(), 170 * 1024 * 1024); // remaining size still 170M
+}
+
+/**
+ * @tc.name: TraceManagerTest028
+ * @tc.desc: used to test TraceDbStoreCallback
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest030, TestSize.Level1)
+{
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    flowController1->SetTestDate("2025-07-30");
+    int64_t traceSize1 = 750 * 1024 * 1024; // xpower trace Threshold is 700M
+    ASSERT_EQ(flowController1->GetRemainingTraceSize(), 770 * 1024 * 1024);
+    flowController1->StoreDb(traceSize1); // greater than threshold but less than 10% deadline
+    ASSERT_TRUE(flowController1->IsOverLimit());
+
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    flowController1->SetTestDate("2025-07-31");
+    ASSERT_FALSE(flowController1->IsOverLimit());
+    ASSERT_EQ(flowController1->GetRemainingTraceSize(), 770 * 1024 * 1024);
 }

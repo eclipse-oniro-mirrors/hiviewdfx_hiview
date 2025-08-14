@@ -38,6 +38,11 @@ void TestXperfDump(const EventFwk::CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
     auto result = TraceCollector::Create()->DumpTrace(XPERF);
+    if (result.data.empty()) {
+        HIVIEW_LOGW("result event:%{public}s, code:%{public}d empty data file",
+            action.c_str(), result.retCode);
+        return;
+    }
     HIVIEW_LOGI("result event:%{public}s, code:%{public}d, fileCount:%{public}d, headFile:%{public}s",
         action.c_str(), result.retCode, result.data.size(), result.data[0].c_str());
 }
@@ -46,6 +51,11 @@ void TestReliabilityDump(const EventFwk::CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
     auto result = TraceCollector::Create()->DumpTrace(RELIABILITY);
+    if (result.data.empty()) {
+        HIVIEW_LOGW("result event:%{public}s, code:%{public}d empty data file",
+            action.c_str(), result.retCode);
+        return;
+    }
     HIVIEW_LOGI("result event:%{public}s, code:%{public}d, fileCount:%{public}d, headFile:%{public}s",
         action.c_str(), result.retCode, result.data.size(), result.data[0].c_str());
 }
@@ -54,6 +64,11 @@ void TestXpowerDump(const EventFwk::CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
     auto result = TraceCollector::Create()->DumpTrace(XPOWER);
+    if (result.data.empty()) {
+        HIVIEW_LOGW("result event:%{public}s, code:%{public}d empty data file",
+            action.c_str(), result.retCode);
+        return;
+    }
     HIVIEW_LOGI("result event:%{public}s, code:%{public}d, fileCount:%{public}d, headFile:%{public}s",
         action.c_str(), result.retCode, result.data.size(), result.data[0].c_str());
 }
@@ -62,6 +77,11 @@ void TestOtherDump(const EventFwk::CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
     auto result = TraceCollector::Create()->DumpTrace(OTHER);
+    if (result.data.empty()) {
+        HIVIEW_LOGW("result event:%{public}s, code:%{public}d empty data file",
+            action.c_str(), result.retCode);
+        return;
+    }
     HIVIEW_LOGI("result event:%{public}s, code:%{public}d, fileCount:%{public}d, headFile:%{public}s",
         action.c_str(), result.retCode, result.data.size(), result.data[0].c_str());
 }
@@ -70,6 +90,11 @@ void TestScreenDump(const EventFwk::CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
     auto result = TraceCollector::Create()->DumpTrace(SCREEN);
+    if (result.data.empty()) {
+        HIVIEW_LOGW("result event:%{public}s, code:%{public}d empty data file",
+            action.c_str(), result.retCode);
+        return;
+    }
     HIVIEW_LOGI("result event:%{public}s, code:%{public}d, fileCount:%{public}d, headFile:%{public}s",
         action.c_str(), result.retCode, result.data.size(), result.data[0].c_str());
 }

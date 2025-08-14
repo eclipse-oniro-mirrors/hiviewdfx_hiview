@@ -21,7 +21,6 @@
 #include "parameter_ex.h"
 #include "trace_collector.h"
 #include "trace_flow_controller.h"
-#include "trace_state_machine.h"
 #include "trace_utils.h"
 
 using namespace testing::ext;
@@ -33,276 +32,70 @@ class TraceCollectorTest : public testing::Test {
 public:
     void SetUp() override {};
     void TearDown() override {};
-
     static void SetUpTestCase() {}
-
-    static void TearDownTestCase()
-    {
-        bool isBetaVersion = Parameter::IsBetaVersion();
-        bool isUCollectionSwitchOn = Parameter::IsUCollectionSwitchOn();
-        bool isTraceCollectionSwitchOn = Parameter::IsTraceCollectionSwitchOn();
-        bool isFrozeSwitchOn = Parameter::GetBoolean("persist.hiview.freeze_detector", false);
-        if (!isBetaVersion && !isFrozeSwitchOn && !isUCollectionSwitchOn && !isTraceCollectionSwitchOn) {
-            return;
-        }
-
-        if (isTraceCollectionSwitchOn) {
-            std::cout << "recover to hitrace CommonDropState" << std::endl;
-            TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
-        } else {
-            TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-            std::cout << "recover to hitrace CommonState" << std::endl;
-        }
-    }
+    static void TearDownTestCase() {}
 };
-
-/**
- * @tc.name: TraceCollectorTest006
- * @tc.desc: used to test TraceCollector for xpower dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest006, TestSize.Level1) {
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    auto result1 = collector->FilterTraceOn(TeleModule::XPOWER);
-    ASSERT_EQ(result1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
-    auto result2 = collector->FilterTraceOn(TeleModule::XPOWER, 1000);
-    ASSERT_EQ(result2.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
-    auto result3 = collector->FilterTraceOn(TeleModule::XPOWER);
-    ASSERT_EQ(result3.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
-
-    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-    TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::DEFAULT);
-}
 
 /**
  * @tc.name: TraceCollectorTest001
  * @tc.desc: used to test TraceCollector for xpower dump
  * @tc.type: FUNC
 */
-HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
-{
-    UCollect::TraceCaller caller = UCollect::TraceCaller::XPOWER;
+HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1) {
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    CollectResult<std::vector<std::string>> resultDumpTrace = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
-
-    UCollect::TeleModule module = UCollect::TeleModule::XPOWER;
-    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, 0, 0);
-    ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
-    setuid(1201); // hiview uid
-    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    sleep(2);
-    auto resultDumpTrace2 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
-    ASSERT_GE(resultDumpTrace2.data.size(), 0);
-    std::vector<std::string> items = resultDumpTrace2.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
-    auto resultDumpTrace3 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    auto result1 = collector->FilterTraceOn(TeleModule::XPOWER);
+    ASSERT_EQ(result1.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+    auto result2 = collector->FilterTraceOn(TeleModule::XPOWER, 1000);
+    ASSERT_EQ(result2.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+    auto result3 = collector->FilterTraceOff(TeleModule::XPOWER);
+    ASSERT_EQ(result3.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
 
 /**
  * @tc.name: TraceCollectorTest002
- * @tc.desc: used to test TraceCollector for xperf dump
+ * @tc.desc: used to test TraceCollector for xpower dump
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
 {
-    setuid(1201); // hiview uid
-    UCollect::TraceCaller caller = UCollect::TraceCaller::XPERF;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-
-    // open ucollection switch dump success
-    TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
-    sleep(1);
-
-    //trans to common state, assert dump success
-    auto resultDumpTrace = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::SUCCESS);
-    ASSERT_GE(resultDumpTrace.data.size(), 0);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
-    sleep(1);
-
-    //trans to common drop state, assert dump fail
-    auto resultDumpTrace2 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::TRACE_STATE_ERROR);
-    TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
-    sleep(1);
-
-    // trans to common state
-    auto resultDumpTrace3 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::SUCCESS);
-    TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
-    sleep(1);
-
-    // trans to close state
-    auto resultDumpTrace4 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace4.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    CollectResult<std::vector<std::string>> result = collector->DumpTraceWithDuration(XPOWER, 0, 0);
+    ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
 
 /**
  * @tc.name: TraceCollectorTest003
- * @tc.desc: used to test TraceCollector for other dump
+ * @tc.desc: used to test TraceCollector for screen dump
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
 {
-    setuid(1201); // hiview uid
-    UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    sleep(1);
-    auto resultDumpTrace2 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
-    ASSERT_GE(resultDumpTrace2.data.size(), 0);
-    string traceName = resultDumpTrace2.data[0];
-    ASSERT_FALSE(traceName.empty());
-    ASSERT_NE(traceName.find(CallerName::OTHER), string::npos);
-    std::vector<std::string> items = resultDumpTrace2.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
-    auto resultDumpTrace3 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    CollectResult<std::vector<std::string>> result = collector->DumpTrace(SCREEN);
+    ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
 
 /**
  * @tc.name: TraceCollectorTest004
- * @tc.desc: used to test TraceCollector for other dump
+ * @tc.desc: used to test TraceCollector for DumpTraceWithFilter
  * @tc.type: FUNC
 */
 HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
 {
-    setuid(1201); // hiview uid
-    UCollect::TraceCaller caller = UCollect::TraceCaller::SCREEN;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
-    sleep(1);
-    auto resultDumpTrace2 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
-    ASSERT_GE(resultDumpTrace2.data.size(), 0);
-    string traceName = resultDumpTrace2.data[0];
-    ASSERT_FALSE(traceName.empty());
-    ASSERT_NE(traceName.find(CallerName::SCREEN), string::npos);
-    std::vector<std::string> items = resultDumpTrace2.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-    TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
-    auto resultDumpTrace3 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    CollectResult<std::vector<std::string>> result = collector->DumpTraceWithFilter(TeleModule::XPOWER, 0,
+        0);
+    ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
 
 /**
  * @tc.name: TraceCollectorTest005
- * @tc.desc: used to test TraceCollector for other dump
+ * @tc.desc: used to test TraceCollector for RecoverTmpTrace
  * @tc.type: FUNC
 */
-HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1) {
-    setuid(1201); // hiview uid
-    UCollect::TeleModule module = UCollect::TeleModule::XPOWER;
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-    TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::DEFAULT);
-    CollectResult<std::vector<std::string>> resultDumpTrace1 = collector->DumpTraceWithFilter(module, 0, 0);
-    ASSERT_EQ(resultDumpTrace1.retCode, UCollect::UcError::TRACE_DUMP_OVER_FLOW);
-
-    int64_t runningTime = 0;
-    std::map<std::string, int64_t> flowControlQuotas {
-            {CallerName::XPERF, 100000000 },
-            {CallerName::XPOWER, 120000000},
-            {"Total", 180000000}
-    };
-    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData("id", runningTime,
-        flowControlQuotas);
-    ASSERT_EQ(ret, TelemetryRet::SUCCESS);
-    sleep(1);
-
-    CollectResult<std::vector<std::string>> resultDumpTrace2 = collector->DumpTraceWithFilter(module, 0, 0);
-    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::SUCCESS);
-    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-
-    sleep(1);
-    CollectResult<std::vector<std::string>> resultDumpTrace3 = collector->DumpTraceWithFilter(module, 0, 0);
-    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
-}
-
-/**
- * @tc.name: TraceCollectorTest007
- * @tc.desc: used to test TraceCollector for xpower dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest007, TestSize.Level1) {
-    setuid(1201); // hiview uid
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceFlowController(BusinessName::TELEMETRY).ClearTelemetryData();
-    TraceStateMachine::GetInstance().OpenTelemetryTrace("", TelemetryPolicy::MANUAL);
-    TraceStateMachine::GetInstance().InitTelemetryStatus(false);
-    int64_t runningTime = 0;
-    std::map<std::string, int64_t> flowControlQuotas {
-                {CallerName::XPERF, 100000000 },
-                {CallerName::XPOWER, 120000000},
-                {"Total", 180000000}
-    };
-    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData("id", runningTime,
-        flowControlQuotas);
-    ASSERT_EQ(ret, TelemetryRet::SUCCESS);
-    auto result1 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
-    ASSERT_EQ(result1.retCode, UCollect::UcError::TRACE_STATE_ERROR);
-    collector->FilterTraceOn(TeleModule::XPERF);
-    auto result2 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
-    ASSERT_EQ(result2.retCode, UCollect::UcError::SUCCESS);
-    collector->FilterTraceOff(TeleModule::XPERF);
-    auto result3 = collector->DumpTraceWithFilter(TeleModule::XPERF, 0, 0);
-    ASSERT_EQ(result3.retCode, UCollect::UcError::TRACE_STATE_ERROR);
-    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-}
-
-/**
- * @tc.name: TraceCollectorTest008
- * @tc.desc: used to test TraceCollector for reliability dump
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest008, TestSize.Level1)
+HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
 {
-    setuid(1201); // 1201 : hiview uid
-    UCollect::TraceCaller caller = UCollect::TraceCaller::RELIABILITY;
     std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
-    sleep(1);
-    auto resultDumpTrace = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace.retCode, UCollect::UcError::SUCCESS);
-    ASSERT_GE(resultDumpTrace.data.size(), 0);
-    std::vector<std::string> items = resultDumpTrace.data;
-    std::cout << "collect DumpTrace result size : " << items.size() << std::endl;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::cout << "collect DumpTrace result path : " << it->c_str() << std::endl;
-    }
-
-    TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
-    sleep(1);
-    auto resultDumpTrace2 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace2.retCode, UCollect::UcError::TRACE_STATE_ERROR);
-    TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
-    sleep(1);
-    auto resultDumpTrace3 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace3.retCode, UCollect::UcError::SUCCESS);
-
-    TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
-    sleep(1);
-    auto resultDumpTrace4 = collector->DumpTrace(caller);
-    ASSERT_EQ(resultDumpTrace4.retCode, UCollect::UcError::TRACE_STATE_ERROR);
+    bool result = collector->RecoverTmpTrace();
+    ASSERT_FALSE(result);
 }

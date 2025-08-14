@@ -18,8 +18,14 @@ config("trace_manager_test_config") {
 
   include_dirs = [
     ".",
+    "$hiview_base/include",
+    "$hiview_base/utility/include",
+    "$hiview_base/event_raw/include",
     "$hiview_base/utility/include",
     "$hiview_framework/native/unified_collection/trace_manager/include",
+    "$hiview_framework/native/unified_collection/trace_manager/state/include",
+    "$hiview_framework/native/unified_collection/trace_manager/storage/include",
+    "$hiview_framework/native/unified_collection/trace_manager/telemetry/include",
   ]
 
   cflags = [
@@ -44,17 +50,37 @@ ohos_unittest("TraceManagerTest") {
   sources = [
     "trace_manager_test.cpp",
     "trace_state_test.cpp",
+    "../src/trace_db_callback.cpp",
+    "../src/trace_flow_controller.cpp",
+    "../src/trace_state_machine.cpp",
+    "../state/trace_base_state.cpp",
+    "../state/trace_command_state.cpp",
+    "../state/trace_common_state.cpp",
+    "../state/trace_dynamic_state.cpp",
+    "../state/trace_telemetry_state.cpp",
+    "../storage/app_event_task_storage.cpp",
+    "../storage/telemetry_storage.cpp",
+    "../storage/trace_behavior_storage.cpp",
+    "../storage/trace_storage.cpp",
+    "../telemetry/telemetry_state_machine.cpp",
   ]
 
   deps = [
     "$hiview_base:hiviewbase",
-    "$hiview_framework/native/unified_collection/trace_manager:trace_manager_for_tdd",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "cJSON:cjson",
     "googletest:gtest_main",
     "hilog:libhilog",
     "relational_store:native_rdb",
+    "ffrt:libffrt",
+    "hitrace:hitrace_dump",
+    "hitrace:libhitrace_option",
+  ]
+
+  defines = [
+    "TRACE_MANAGER_UNITTEST",
   ]
 }

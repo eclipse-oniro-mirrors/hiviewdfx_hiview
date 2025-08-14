@@ -57,7 +57,6 @@ constexpr char KEY_XPOWER_QUOTA[] = "xpowerTraceQuota";
 constexpr char KEY_RELIABILITY_QUOTA[] = "reliabilityTraceQuota";
 constexpr char TOTAL[] = "Total";
 
-
 const std::unordered_set<std::string> TRACE_TAG_FILTER_LIST {
     "sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "pagecache", "workq", "net", "dsched",
     "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio", "zmedia", "dcamera",
@@ -67,7 +66,6 @@ const std::unordered_set<std::string> TRACE_TAG_FILTER_LIST {
 const std::unordered_set<std::string> TRACE_SA_FILTER_LIST {
     "render_service", "foundation"
 };
-
 
 std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
     cJSON* root, const std::string &key)
