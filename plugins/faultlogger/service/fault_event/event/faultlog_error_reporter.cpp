@@ -60,12 +60,13 @@ auto ParseErrorSummary(const std::string& summary)
     return std::make_tuple(name, leftStr, stack);
 }
 
-void FillErrorParams(const std::string& summary, Json::Value& params)
+void FillErrorParams(const std::string& summary, Json::Value& params, const std::string& threadName)
 {
     Json::Value exception;
     exception["name"] = "";
     exception["message"] = "";
     exception["stack"] = "";
+    exception["thread_name"] = threadName;
     if (!summary.empty()) {
         auto [name, message, stack] = ParseErrorSummary(summary);
         name.erase(name.find_last_not_of("\n") + 1);
@@ -92,6 +93,7 @@ void FaultLogErrorReporter::ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysE
     HIVIEW_LOGD("ReportAppEvent:summary:%{public}s.", summary.c_str());
 
     Json::Value params;
+    params["process_name"] = sysEvent->GetEventValue(FaultKey::P_NAME);
     params["time"] = sysEvent->happenTime_;
     params["crash_type"] = type;
     params["foreground"] = sysEvent->GetEventValue(FaultKey::FOREGROUND) == "Yes";
@@ -107,7 +109,8 @@ void FaultLogErrorReporter::ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysE
     params["uid"] = sysEvent->GetUid();
     params["uuid"] = sysEvent->GetEventValue(FaultKey::FINGERPRINT);
     params["app_running_unique_id"] = sysEvent->GetEventValue("APP_RUNNING_UNIQUE_ID");
-    FillErrorParams(summary, params);
+    std::string threadName = sysEvent->GetEventValue(FaultKey::THREAD_NAME);
+    FillErrorParams(summary, params, threadName);
     std::string log = GetHilogByPid(sysEvent->GetPid());
     params["hilog"] = ParseHilogToJson(log);
     std::string paramsStr = Json::FastWriter().write(params);

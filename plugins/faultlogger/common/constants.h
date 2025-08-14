@@ -37,6 +37,7 @@ constexpr const char * const DEVICE_INFO = "DEVICE_INFO";
 constexpr const char * const BUILD_INFO = "BUILD_INFO";
 constexpr const char * const MODULE_NAME = "MODULE";
 constexpr const char * const P_NAME = "PNAME";
+constexpr const char * const THREAD_NAME = "THREAD_NAME";
 constexpr const char * const MODULE_PID = "PID";
 constexpr const char * const MODULE_UID = "UID";
 constexpr const char * const MODULE_VERSION = "VERSION";
