@@ -22,10 +22,10 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static const int APPLICATION_RESULT_ID = 0;
-    static const int SYSTEM_RESULT_ID = 1;
-    static const int SYSTEM_WARNING_RESULT_ID = 2;
-    static const uint32_t PLACEHOLDER = 3;
+    const int APPLICATION_RESULT_ID = 0;
+    const int SYSTEM_RESULT_ID = 1;
+    const int SYSTEM_WARNING_RESULT_ID = 2;
+    const uint32_t PLACEHOLDER = 3;
 }
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
 FreezeCommon::FreezeCommon()
@@ -94,26 +94,6 @@ bool FreezeCommon::IsAssignedEvent(const std::string& domain, const std::string&
     return false;
 }
 
-bool FreezeCommon::IsSystemResult(const FreezeResult& result) const
-{
-    return result.GetId() == SYSTEM_RESULT_ID;
-}
-
-bool FreezeCommon::IsApplicationResult(const FreezeResult& result) const
-{
-    return result.GetId() == APPLICATION_RESULT_ID;
-}
-
-bool FreezeCommon::IsSysWarningResult(const FreezeResult& result) const
-{
-    return result.GetId() == SYSTEM_WARNING_RESULT_ID;
-}
-
-bool FreezeCommon::IsBetaVersion() const
-{
-    return true;
-}
-
 std::set<std::string> FreezeCommon::GetPrincipalStringIds() const
 {
     std::set<std::string> set;
@@ -148,28 +128,20 @@ std::shared_ptr<FreezeRuleCluster> FreezeCommon::GetFreezeRuleCluster() const
     return freezeRuleCluster_;
 }
 
-void FreezeCommon::WriteStartInfoToFd(int fd, const std::string& msg)
+void FreezeCommon::WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart)
 {
-    FileUtil::SaveStringToFd(fd, "\n---------------------------------------------------\n");
-    auto start = TimeUtil::GetMilliseconds();
-    uint64_t startTime = start / TimeUtil::SEC_TO_MILLISEC;
-    std::ostringstream startTimeStr;
-    startTimeStr << msg << TimeUtil::TimestampFormatToDate(startTime, "%Y/%m/%d-%H:%M:%S");
-    startTimeStr << ":" << std::setw(PLACEHOLDER) << std::setfill('0') <<
-        std::to_string(start % TimeUtil::SEC_TO_MILLISEC) << std::endl;
-    FileUtil::SaveStringToFd(fd, startTimeStr.str());
-}
-
-void FreezeCommon::WriteEndInfoToFd(int fd, const std::string& msg)
-{
-    auto end = TimeUtil::GetMilliseconds();
-    uint64_t endTime = end / TimeUtil::SEC_TO_MILLISEC;
-    std::ostringstream endTimeStr;
-    endTimeStr << msg << TimeUtil::TimestampFormatToDate(endTime, "%Y/%m/%d-%H:%M:%S");
-    endTimeStr << ":" << std::setw(PLACEHOLDER) << std::setfill('0') <<
-        std::to_string(end % TimeUtil::SEC_TO_MILLISEC) << std::endl;
-    FileUtil::SaveStringToFd(fd, endTimeStr.str());
-    FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");
+    if (isStart) {
+        FileUtil::SaveStringToFd(fd, "\n---------------------------------------------------\n");
+    }
+    uint64_t ms = TimeUtil::GetMilliseconds();
+    std::ostringstream timeStr;
+    timeStr << msg << TimeUtil::TimestampFormatToDate(ms / TimeUtil::SEC_TO_MILLISEC, "%Y/%m/%d-%H:%M:%S")
+            << ":" << std::setw(PLACEHOLDER) << std::setfill('0')
+            << std::to_string(ms % TimeUtil::SEC_TO_MILLISEC) << std::endl;
+    FileUtil::SaveStringToFd(fd, timeStr.str());
+    if (!isStart) {
+        FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");
+    }
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

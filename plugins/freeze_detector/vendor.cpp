@@ -27,91 +27,39 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static const int SYS_MATCH_NUM = 1;
-    static const int MILLISECOND = 1000;
-    static const int TIME_STRING_LEN = 16;
-    static const int MIN_KEEP_FILE_NUM = 5;
-    static const int MAX_FOLDER_SIZE = 10 * 1024 * 1024;
-    static constexpr const char* const TRIGGER_HEADER = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
-    static constexpr const char* const HEADER = "*******************************************";
-    static constexpr const char* const HYPHEN = "-";
-    static constexpr const char* const POSTFIX = ".tmp";
-    static constexpr const char* const APPFREEZE = "appfreeze";
-    static constexpr const char* const SYSFREEZE = "sysfreeze";
-    static constexpr const char* const SYSWARNING = "syswarning";
-    static constexpr const char* const FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
-    static constexpr const char* const FAULT_LOGGER_PATH = "/data/log/faultlog/faultlogger/";
-    static constexpr const char* const COLON = ":";
-    static constexpr const char* const EVENT_DOMAIN = "DOMAIN";
-    static constexpr const char* const EVENT_STRINGID = "STRINGID";
-    static constexpr const char* const EVENT_TIMESTAMP = "TIMESTAMP";
-    static constexpr const char* const DISPLAY_POWER_INFO = "DisplayPowerInfo:";
-    static constexpr const char* const FORE_GROUND = "FOREGROUND";
-    static constexpr const char* const SCB_PROCESS = "SCBPROCESS";
-    static constexpr const char* const SCB_PRO_FLAG = "com.ohos.sceneboard";
-    static constexpr const char* const THREAD_STACK_START = "\nThread stack start:\n";
-    static constexpr const char* const THREAD_STACK_END = "Thread stack end\n";
-    static constexpr const char* const KEY_PROCESS[] = {
+    const int SYS_MATCH_NUM = 1;
+    const int MILLISECOND = 1000;
+    const int TIME_STRING_LEN = 16;
+    const int MIN_KEEP_FILE_NUM = 5;
+    const int MAX_FOLDER_SIZE = 10 * 1024 * 1024;
+    constexpr const char* TRIGGER_HEADER = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+    constexpr const char* HEADER = "*******************************************";
+    constexpr const char* HYPHEN = "-";
+    constexpr const char* POSTFIX = ".tmp";
+    constexpr const char* APPFREEZE = "appfreeze";
+    constexpr const char* SYSFREEZE = "sysfreeze";
+    constexpr const char* SYSWARNING = "syswarning";
+    constexpr const char* FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
+    constexpr const char* FAULT_LOGGER_PATH = "/data/log/faultlog/faultlogger/";
+    constexpr const char* COLON = ":";
+    constexpr const char* EVENT_DOMAIN = "DOMAIN";
+    constexpr const char* EVENT_STRINGID = "STRINGID";
+    constexpr const char* EVENT_TIMESTAMP = "TIMESTAMP";
+    constexpr const char* DISPLAY_POWER_INFO = "DisplayPowerInfo:";
+    constexpr const char* FORE_GROUND = "FOREGROUND";
+    constexpr const char* SCB_PROCESS = "SCBPROCESS";
+    constexpr const char* SCB_PRO_FLAG = "com.ohos.sceneboard";
+    constexpr const char* THREAD_STACK_START = "\nThread stack start:\n";
+    constexpr const char* THREAD_STACK_END = "Thread stack end\n";
+    constexpr const char* KEY_PROCESS[] = {
         "foundation", "com.ohos.sceneboard", "render_service"
     };
-    static constexpr const char* const HITRACE_ID_INFO = "HitraceIdInfo: ";
+    constexpr const char* HITRACE_ID_INFO = "HitraceIdInfo: ";
+    constexpr const char* HOST_RESOURCE_WARNING_INFO =
+        "NOTE: Current fault may be caused by system issue, you may ignore it and analysis other faults.";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
-bool Vendor::ReduceRelevanceEvents(std::list<WatchPoint>& list, const FreezeResult& result) const
-{
-    HIVIEW_LOGI("before size=%{public}zu", list.size());
-    if (freezeCommon_ == nullptr) {
-        return false;
-    }
-    if (!freezeCommon_->IsSystemResult(result) && !freezeCommon_->IsApplicationResult(result) &&
-        !freezeCommon_->IsSysWarningResult(result)) {
-        list.clear();
-        return false;
-    }
-
-    // erase if not system event
-    if (freezeCommon_->IsSystemResult(result)) {
-        std::list<WatchPoint>::iterator watchPoint;
-        for (watchPoint = list.begin(); watchPoint != list.end();) {
-            if (freezeCommon_->IsSystemEvent(watchPoint->GetDomain(), watchPoint->GetStringId())) {
-                watchPoint++;
-            } else {
-                watchPoint = list.erase(watchPoint);
-            }
-        }
-    }
-
-    // erase if not application event
-    if (freezeCommon_->IsApplicationResult(result)) {
-        std::list<WatchPoint>::iterator watchPoint;
-        for (watchPoint = list.begin(); watchPoint != list.end();) {
-            if (freezeCommon_->IsApplicationEvent(watchPoint->GetDomain(), watchPoint->GetStringId())) {
-                watchPoint++;
-            } else {
-                watchPoint = list.erase(watchPoint);
-            }
-        }
-    }
-
-    // erase if not sysWarning event
-    if (freezeCommon_->IsSysWarningResult(result)) {
-        std::list<WatchPoint>::iterator watchPoint;
-        for (watchPoint = list.begin(); watchPoint != list.end();) {
-            if (freezeCommon_->IsSysWarningEvent(watchPoint->GetDomain(), watchPoint->GetStringId())) {
-                watchPoint++;
-            } else {
-                watchPoint = list.erase(watchPoint);
-            }
-        }
-    }
-
-    list.sort();
-    list.unique();
-    HIVIEW_LOGI("after size=%{public}zu", list.size());
-    return list.size() != 0;
-}
-
 std::string Vendor::GetTimeString(unsigned long long timestamp) const
 {
     struct tm tm;
@@ -162,15 +110,18 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
 {
     uint64_t timestamp = watchPoint.GetTimestamp() / TimeUtil::SEC_TO_MILLISEC;
     oss << header << std::endl;
-    oss << std::string(EVENT_DOMAIN) << std::string(COLON) << watchPoint.GetDomain() << std::endl;
-    oss << std::string(EVENT_STRINGID) << std::string(COLON) << watchPoint.GetStringId() << std::endl;
-    oss << std::string(EVENT_TIMESTAMP) << std::string(COLON) <<
+    oss << EVENT_DOMAIN << COLON << watchPoint.GetDomain() << std::endl;
+    oss << EVENT_STRINGID << COLON << watchPoint.GetStringId() << std::endl;
+    oss << EVENT_TIMESTAMP << COLON <<
         TimeUtil::TimestampFormatToDate(timestamp, "%Y/%m/%d-%H:%M:%S") <<
         ":" << watchPoint.GetTimestamp() % TimeUtil::SEC_TO_MILLISEC << std::endl;
-    oss << FreezeCommon::EVENT_PID << std::string(COLON) << watchPoint.GetPid() << std::endl;
-    oss << FreezeCommon::EVENT_UID << std::string(COLON) << watchPoint.GetUid() << std::endl;
-    oss << FreezeCommon::EVENT_PACKAGE_NAME << std::string(COLON) << watchPoint.GetPackageName() << std::endl;
-    oss << FreezeCommon::EVENT_PROCESS_NAME << std::string(COLON) << watchPoint.GetProcessName() << std::endl;
+    oss << FreezeCommon::EVENT_PID << COLON << watchPoint.GetPid() << std::endl;
+    oss << FreezeCommon::EVENT_UID << COLON << watchPoint.GetUid() << std::endl;
+    oss << FreezeCommon::EVENT_PACKAGE_NAME << COLON << watchPoint.GetPackageName() << std::endl;
+    oss << FreezeCommon::EVENT_PROCESS_NAME << COLON << watchPoint.GetProcessName() << std::endl;
+    if (watchPoint.GetHostResourceWarning() == "Yes") {
+        oss << HOST_RESOURCE_WARNING_INFO << std::endl;
+    }
 }
 
 void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const

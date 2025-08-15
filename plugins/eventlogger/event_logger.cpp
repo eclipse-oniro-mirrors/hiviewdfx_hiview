@@ -135,16 +135,11 @@ bool EventLogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
 long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
 {
     long pid = sysEvent->GetEventIntValue("PID");
-    if (pid > 0) {
-        return pid;
-    }
-    pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
-    if (pid > 0) {
+    if (pid <= 0) {
+        pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
+        pid = (pid > 0) ? pid : sysEvent->GetPid();
         sysEvent->SetEventValue("PID", pid);
-        return pid;
     }
-    pid = sysEvent->GetPid();
-    sysEvent->SetEventValue("PID", pid);
     return pid;
 }
 
@@ -162,7 +157,10 @@ bool EventLogger::CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent)
 bool EventLogger::CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName)
 {
 #ifdef HITRACE_CATCHER_ENABLE
-    FreezeFilterTraceOn(sysEvent, Parameter::IsBetaVersion());
+    if (eventName == "HIVIEW_HALF_FREEZE_LOG") {
+        FreezeFilterTraceOn(sysEvent, Parameter::IsBetaVersion());
+        return false;
+    }
 #endif
 
 #ifdef WINDOW_MANAGER_ENABLE
@@ -452,13 +450,14 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
 #ifdef HITRACE_CATCHER_ENABLE
 void EventLogger::FreezeFilterTraceOn(std::shared_ptr<SysEvent> event, bool isBetaVersion)
 {
-    if (isBetaVersion || event->eventName_ != "THREAD_BLOCK_3S") {
+    if (isBetaVersion) {
         return;
     }
 
     std::string bundleName = event->GetEventValue("PACKAGE_NAME");
     if (bundleName.empty()) {
-        bundleName = event->GetEventValue("PROCESS_NAME");
+        long pid = GetEventPid(event);
+        bundleName = CommonUtils::GetProcFullNameByPid(pid);
     }
     LogCatcherUtils::FreezeFilterTraceOn(bundleName);
 }
@@ -817,7 +816,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
             stack = tempStack;
         }
         GetFailedDumpStackMsg(stack, event);
-        if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT" || event->eventName_ == "LIFECYCLE_HALF_TIMEOUT_WARNING") {
+        if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT_WARNING") {
             WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
         }
     }

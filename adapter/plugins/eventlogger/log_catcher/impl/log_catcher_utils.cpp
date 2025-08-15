@@ -41,15 +41,15 @@ namespace LogCatcherUtils {
 static std::map<int, std::shared_ptr<std::pair<bool, std::string>>> dumpMap;
 static std::mutex dumpMutex;
 static std::condition_variable getSync;
-static constexpr int DUMP_KERNEL_STACK_SUCCESS = 1;
-static constexpr int DUMP_STACK_FAILED = -1;
-static constexpr int MAX_RETRY_COUNT = 20;
-static constexpr int WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000;
-static constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+constexpr int DUMP_KERNEL_STACK_SUCCESS = 1;
+constexpr int DUMP_STACK_FAILED = -1;
+constexpr int MAX_RETRY_COUNT = 20;
+constexpr int WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000;
+constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
 
 #ifdef HITRACE_CATCHER_ENABLE
-static constexpr uint32_t MAX_DUMP_TRACE_LIMIT = 15;
-static constexpr const char* const FAULT_FREEZE_TYPE = "32";
+constexpr uint32_t MAX_DUMP_TRACE_LIMIT = 15;
+constexpr const char* FAULT_FREEZE_TYPE = "32";
 static std::shared_mutex grayscaleMutex_;
 static std::string telemetryId_;
 static std::string traceAppFilter_;
@@ -62,16 +62,13 @@ bool GetDump(int pid, std::string& msg)
     std::unique_lock lock(dumpMutex);
     auto it = dumpMap.find(pid);
     if (it == dumpMap.end()) {
-        dumpMap[pid] = std::make_shared<std::pair<bool, std::string>>(
-            std::pair<bool, std::string>(false, ""));
+        dumpMap[pid] = std::make_shared<std::pair<bool, std::string>>(std::pair<bool, std::string>(false, ""));
         return false;
     }
     std::shared_ptr<std::pair<bool, std::string>> tmp = it->second;
     if (!tmp->first) {
         getSync.wait_for(lock, std::chrono::seconds(10), // 10: dump stack timeout
-                         [pid]() -> bool {
-                                return (dumpMap.find(pid) == dumpMap.end());
-                            });
+            [pid]() -> bool { return (dumpMap.find(pid) == dumpMap.end()); });
         if (!tmp->first) {
             return false;
         }
@@ -100,7 +97,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
     std::vector<std::string> files;
     FileUtil::GetDirFiles(logPath, files, false);
     std::string filterName = "-KernelStack-" + std::to_string(originFd) + ".log";
-    std::string targetPath = "";
+    std::string targetPath;
     for (auto& fileName : files) {
         if (fileName.find(filterName) != std::string::npos) {
             targetPath = fileName;
@@ -108,7 +105,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
         }
     }
     FILE* fp = nullptr;
-    std::string realPath = "";
+    std::string realPath;
     if (FileUtil::PathToRealPath(targetPath, realPath)) {
         fp = fopen(realPath.c_str(), "a");
     } else {
@@ -139,7 +136,7 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int termin
     if (fd < 0) {
         return -1;
     }
-    std::string msg = "";
+    std::string msg;
     if (!GetDump(pid, msg)) {
         DfxDumpCatcher dumplog;
         std::string ret;
@@ -212,8 +209,7 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
 int DumpStackFfrt(int fd, const std::string& pid)
 {
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (sam == nullptr) {
-        HIVIEW_LOGE("dump stack ffrt, get system ability manager failed!");
+    if (!sam) {
         return 0;
     }
 
@@ -267,26 +263,19 @@ void ReadShellToFile(int fd, const std::string& serviceName, const std::string& 
 void HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs)
 {
     std::string telemetryId = valuePairs["telemetryId"];
-    if (telemetryId.empty()) {
-        HIVIEW_LOGE("freeze grayscale trace, telemetryId is empty");
+    if (telemetryId.empty() || valuePairs["fault"] != FAULT_FREEZE_TYPE) {
+        HIVIEW_LOGE("telemetryId is empty or fault type is not freeze");
         return;
     }
 
-    std::string fault = valuePairs["fault"];
-    if (fault != FAULT_FREEZE_TYPE) {
-        HIVIEW_LOGE("freeze grayscale trace, fault type is not freeze");
-        return;
-    }
     std::string telemetryStatus = valuePairs["telemetryStatus"];
-    std::string traceAppFilter = valuePairs["traceAppFilter"];
-
     std::unique_lock<std::shared_mutex> lock(grayscaleMutex_);
     if (telemetryStatus == "off") {
         telemetryId_ = "";
         traceAppFilter_ = "";
     } else if (telemetryStatus == "on") {
         telemetryId_  = telemetryId;
-        traceAppFilter_ = traceAppFilter;
+        traceAppFilter_ = valuePairs["traceAppFilter"];
     }
 
     HIVIEW_LOGW("telemetryId_:%{public}s, traceAppFilter_:%{public}s, after received telemetryStatus:%{public}s",
@@ -297,69 +286,65 @@ void FreezeFilterTraceOn(const std::string& bundleName)
 {
     {
         std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
-        if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
+        if (telemetryId_.empty() || (!traceAppFilter_.empty() &&
+            bundleName.find(traceAppFilter_) == std::string::npos)) {
             return;
         }
     }
 
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
-    UCollect::TeleModule caller = UCollect::TeleModule::RELIABILITY;
-    long postTime = 20 * 1000;
-    auto result = collector->FilterTraceOn(caller, postTime);
-    if (result.retCode != UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGE("FreezeFilterTraceOn failed, telemetryId_:%{public}s, traceAppFilter_:%{public}s, "
-            "code:%{public}d", telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
-    } else {
-        HIVIEW_LOGW("FreezeFilterTraceOn success, telemetryId_:%{public}s, traceAppFilter_:%{public}s, "
-            "code:%{public}d", telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
+    if (!collector) {
+        return;
     }
+    UCollect::TeleModule caller = UCollect::TeleModule::RELIABILITY;
+    auto result = collector->FilterTraceOn(caller, MAX_DUMP_TRACE_LIMIT * TimeUtil::SEC_TO_MILLISEC);
+    HIVIEW_LOGW("FreezeFilterTraceOn, telemetryId_:%{public}s, traceAppFilter_:%{public}s, retCode:%{public}d",
+        telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
 }
 
-std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t faultTime, bool grayscale,
+std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t hitraceTime, bool grayscale,
     const std::string& bundleName)
 {
     std::pair<std::string, std::vector<std::string>> result;
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
-    if (collector == nullptr) {
-        HIVIEW_LOGE("get hitrace failed, create trace collector failed!");
+    if (!collector) {
         return result;
     }
 
     UCollect::TraceCaller traceCaller = UCollect::TraceCaller::RELIABILITY;
-    HIVIEW_LOGW("get hitrace start with duration, faultTime:%{public}" PRIu64, faultTime);
+    uint64_t startTime = TimeUtil::GetMilliseconds();
     CollectResult<std::vector<std::string>> collectResult =
-        collector->DumpTraceWithDuration(traceCaller, MAX_DUMP_TRACE_LIMIT, faultTime);
+        collector->DumpTraceWithDuration(traceCaller, MAX_DUMP_TRACE_LIMIT, hitraceTime);
+    uint64_t endTime = TimeUtil::GetMilliseconds();
+    HIVIEW_LOGW("get hitrace with duration, hitraceTime:%{public}" PRIu64 ", startTime:%{public}" PRIu64
+        ", endTime:%{public}" PRIu64 ", retCode:%{public}d", hitraceTime, startTime, endTime, collectResult.retCode);
     if (collectResult.retCode == UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("get hitrace end with duration, faultTime:%{public}" PRIu64, faultTime);
         result.second = collectResult.data;
         return result;
     }
-    HIVIEW_LOGE("get hitrace failed with duration, faultTime:%{public}" PRIu64 ", error code:%{public}d",
-        faultTime, collectResult.retCode);
 
     if (!grayscale) {
         return result;
     } else {
         std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
-        if (telemetryId_.empty() || (!traceAppFilter_.empty() && traceAppFilter_ != bundleName)) {
+        if (telemetryId_.empty() || (!traceAppFilter_.empty() &&
+            bundleName.find(traceAppFilter_) == std::string::npos)) {
             return result;
         }
         result.first = telemetryId_;
     }
 
     UCollect::TeleModule teleModule = UCollect::TeleModule::RELIABILITY;
-    HIVIEW_LOGW("get hitrace start with filter, faultTime:%{public}" PRIu64, faultTime);
-    collectResult = collector->DumpTraceWithFilter(teleModule, MAX_DUMP_TRACE_LIMIT, faultTime);
+    startTime = TimeUtil::GetMilliseconds();
+    collectResult = collector->DumpTraceWithFilter(teleModule, MAX_DUMP_TRACE_LIMIT, hitraceTime);
+    endTime = TimeUtil::GetMilliseconds();
+    HIVIEW_LOGW("get hitrace with filter, hitraceTime:%{public}" PRIu64 ", startTime:%{public}" PRIu64
+        ", endTime:%{public}" PRIu64 ", retCode:%{public}d", hitraceTime, startTime, endTime, collectResult.retCode);
     if (collectResult.retCode == UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGW("get hitrace end with filter, faultTime:%{public}" PRIu64, faultTime);
         result.second = collectResult.data;
-    } else {
-        HIVIEW_LOGE("get hitrace failed with filter, faultTime:%{public}" PRIu64 ", error code:%{public}d",
-            faultTime, collectResult.retCode);
     }
     return result;
 }
-
 std::pair<std::string, std::string> GetTelemetryInfo()
 {
     std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);

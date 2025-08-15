@@ -35,7 +35,7 @@ void ReadShellToFile(int fd, const std::string& serviceName, const std::string& 
 #ifdef HITRACE_CATCHER_ENABLE
 void HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs);
 void FreezeFilterTraceOn(const std::string& bundleName);
-std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t faultTime, bool grayscale,
+std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t hitraceTime, bool grayscale,
     const std::string& bundleName);
 std::pair<std::string, std::string> GetTelemetryInfo();
 #endif

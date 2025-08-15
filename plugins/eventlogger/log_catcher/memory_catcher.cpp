@@ -24,19 +24,21 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static constexpr const char* const ASHMEM_PATH = "/proc/ashmem_process_info";
-    static constexpr const char* const DMAHEAP_PATH = "/proc/dmaheap_process_info";
-    static constexpr const char* const GPUMEM_PATH = "/proc/gpumem_process_info";
-    static constexpr const char* const ASHMEM = "AshmemUsed";
-    static constexpr const char* const DMAHEAP = "DmaHeapTotalUsed";
-    static constexpr const char* const GPUMEM = "GpuTotalUsed";
-    static constexpr const char* const LONG_PRESS = "LONG_PRESS";
-    static constexpr const char* const AP_S_PRESS6S = "AP_S_PRESS6S";
-    static constexpr const char* const PROC_PRESSURE_MEMORY = "/proc/pressure/memory";
-    static constexpr const char* const PROC_MEMORYVIEW = "/proc/memview";
-    static constexpr const char* const PROC_MEMORYINFO = "/proc/meminfo";
-    static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
-    static constexpr int DECIMEL = 10;
+    constexpr const char* ASHMEM_PATH = "/proc/ashmem_process_info";
+    constexpr const char* DMAHEAP_PATH = "/proc/dmaheap_process_info";
+    constexpr const char* GPUMEM_PATH = "/proc/gpumem_process_info";
+    constexpr const char* ASHMEM = "AshmemUsed";
+    constexpr const char* DMAHEAP = "DmaHeapTotalUsed";
+    constexpr const char* GPUMEM = "GpuTotalUsed";
+    constexpr const char* RECLAIM = "ReclaimAvailBuffer";
+    constexpr const char* LONG_PRESS = "LONG_PRESS";
+    constexpr const char* AP_S_PRESS6S = "AP_S_PRESS6S";
+    constexpr const char* PROC_PRESSURE_MEMORY = "/proc/pressure/memory";
+    constexpr const char* PROC_MEMORYVIEW = "/proc/memview";
+    constexpr const char* PROC_MEMORYINFO = "/proc/meminfo";
+    constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
+    constexpr int BELOW_MEM_SIZE = 500 * 1024;
+    constexpr int DECIMAL = 10;
 }
 #ifdef USAGE_CATCHER_ENABLE
 using namespace UCollect;
@@ -59,7 +61,7 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
     int originSize = GetFdSize(fd);
     std::string freezeMemory;
     std::string content;
-    if (event_ != nullptr) {
+    if (event_) {
         freezeMemory = event_->GetEventValue("FREEZE_MEMORY");
         size_t tagIndex = freezeMemory.find("Get freeze memory end time:");
         std::string splitStr = "\\n";
@@ -79,30 +81,27 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
             CheckString(mem, data, ASHMEM, ASHMEM_PATH);
             CheckString(mem, data, DMAHEAP, DMAHEAP_PATH);
             CheckString(mem, data, GPUMEM, GPUMEM_PATH);
+            CheckString(mem, data, RECLAIM, "");
         }
     }
     if (!data.empty()) {
-        FreezeCommon::WriteStartInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
+        FreezeCommon::WriteTimeInfoToFd(fd, "collect ashmem dmaheap gpumem start time: ");
         FileUtil::SaveStringToFd(fd, data);
-        FreezeCommon::WriteEndInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ");
+        FreezeCommon::WriteTimeInfoToFd(fd, "\ncollect ashmem dmaheap gpumem end time: ", false);
     } else {
         FileUtil::SaveStringToFd(fd, "don't collect ashmem dmaheap gpumem\n");
     }
-
     logSize_ = GetFdSize(fd) - originSize;
-    if (logSize_ <= 0) {
-        FileUtil::SaveStringToFd(fd, "sysMemory content is empty!");
-    }
     return logSize_;
 }
 
 void MemoryCatcher::CollectMemInfo()
 {
-    HIVIEW_LOGI("Collect rawMemInfo and export memView start");
+    HIVIEW_LOGI("CollectMemInfo start");
     std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
     collector->CollectRawMemInfo();
     collector->ExportMemView();
-    HIVIEW_LOGI("Collect rawMemInfo and export memView end");
+    HIVIEW_LOGI("CollectMemInfo end");
 }
 
 void MemoryCatcher::SetEvent(std::shared_ptr<SysEvent> event)
@@ -110,7 +109,7 @@ void MemoryCatcher::SetEvent(std::shared_ptr<SysEvent> event)
     event_ = event;
 }
 
-std::string MemoryCatcher::GetStringFromFile(const std::string path)
+std::string MemoryCatcher::GetStringFromFile(const std::string &path)
 {
     std::string content;
     FileUtil::LoadStringFromFile(path, content);
@@ -120,24 +119,33 @@ std::string MemoryCatcher::GetStringFromFile(const std::string path)
 int MemoryCatcher::GetNumFromString(const std::string &mem)
 {
     int num = 0;
+    int digit = 0;
+    int maxDivTen = INT_MAX / DECIMAL;
+    int maxLastDigit = INT_MAX % DECIMAL;
+
     for (const char &c : mem) {
-        if (isdigit(c)) {
-            num = num * DECIMEL + (c - '0');
+        if (!isdigit(c)) {
+            continue;
         }
-        if (num > INT_MAX) {
+        digit = c - '0';
+        if (num > maxDivTen || (num == maxDivTen && digit > maxLastDigit)) {
             return INT_MAX;
         }
+        num = num * DECIMAL + digit;
     }
     return num;
 }
 
 void MemoryCatcher::CheckString(
-    const std::string &mem, std::string &data, const std::string key, const std::string path)
+    const std::string &mem, std::string &data, const std::string &key, const std::string &path)
 {
     if (mem.find(key) != std::string::npos) {
         int memsize = GetNumFromString(mem);
-        if (memsize > OVER_MEM_SIZE) {
+        if (!path.empty() && memsize > OVER_MEM_SIZE) {
             data += GetStringFromFile(path);
+        }
+        if (path.empty() && memsize < BELOW_MEM_SIZE && event_) {
+            event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "Yes");
         }
     }
 }

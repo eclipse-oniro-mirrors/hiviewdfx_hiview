@@ -34,9 +34,9 @@ public:
 
 private:
     std::string CollectFreezeSysMemory();
-    void CheckString(const std::string &mem, std::string &data, const std::string key, const std::string path);
+    void CheckString(const std::string &mem, std::string &data, const std::string &key, const std::string &path);
     int GetNumFromString(const std::string &mem);
-    std::string GetStringFromFile(const std::string path);
+    std::string GetStringFromFile(const std::string &path);
 
     std::shared_ptr<SysEvent> event_ = nullptr;
 };

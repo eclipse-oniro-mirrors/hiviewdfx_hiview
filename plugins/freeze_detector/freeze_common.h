@@ -29,23 +29,24 @@ const std::string FREEZE_DETECTOR_PLUGIN_NAME = "FreezeDetector";
 const std::string FREEZE_DETECTOR_PLUGIN_VERSION = "1.0";
 class FreezeCommon {
 public:
-    static constexpr const char* const EVENT_PID = "PID";
-    static constexpr const char* const EVENT_TID = "TID";
-    static constexpr const char* const EVENT_UID = "UID";
-    static constexpr const char* const EVENT_PACKAGE_NAME = "PACKAGE_NAME";
-    static constexpr const char* const EVENT_PROCESS_NAME = "PROCESS_NAME";
-    static constexpr const char* const EVENT_MSG = "MSG";
-    static constexpr const char* const HITRACE_TIME = "HITRACE_TIME";
-    static constexpr const char* const SYSRQ_TIME = "SYSRQ_TIME";
-    static constexpr const char* const TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
-    static constexpr const char* const TELEMETRY_ID = "TELEMETRY_ID";
-    static constexpr const char* const TRACE_NAME = "TRACE_NAME";
-    static constexpr const char* const PB_EVENTS[] = {
+    static constexpr const char* EVENT_PID = "PID";
+    static constexpr const char* EVENT_TID = "TID";
+    static constexpr const char* EVENT_UID = "UID";
+    static constexpr const char* EVENT_PACKAGE_NAME = "PACKAGE_NAME";
+    static constexpr const char* EVENT_PROCESS_NAME = "PROCESS_NAME";
+    static constexpr const char* EVENT_MSG = "MSG";
+    static constexpr const char* HITRACE_TIME = "HITRACE_TIME";
+    static constexpr const char* SYSRQ_TIME = "SYSRQ_TIME";
+    static constexpr const char* TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
+    static constexpr const char* TELEMETRY_ID = "TELEMETRY_ID";
+    static constexpr const char* TRACE_NAME = "TRACE_NAME";
+    static constexpr const char* PB_EVENTS[] = {
         "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT",
         "LIFECYCLE_HALF_TIMEOUT_WARNING"
     };
-    static constexpr const char* const EVENT_TRACE_ID = "HITRACE_ID";
-    static constexpr const char* const PROC_STATM = "PROC_STATM";
+    static constexpr const char* EVENT_TRACE_ID = "HITRACE_ID";
+    static constexpr const char* PROC_STATM = "PROC_STATM";
+    static constexpr const char* HOST_RESOURCE_WARNING = "HOST_RESOURCE_WARNING";
 
     FreezeCommon();
     ~FreezeCommon();
@@ -53,16 +54,11 @@ public:
     bool Init();
     bool IsFreezeEvent(const std::string& domain, const std::string& stringId) const;
     bool IsApplicationEvent(const std::string& domain, const std::string& stringId) const;
-    bool IsBetaVersion() const;
     bool IsSystemEvent(const std::string& domain, const std::string& stringId) const;
     bool IsSysWarningEvent(const std::string& domain, const std::string& stringId) const;
-    bool IsSystemResult(const FreezeResult& result) const;
-    bool IsSysWarningResult(const FreezeResult& result) const;
-    bool IsApplicationResult(const FreezeResult& result) const;
     std::set<std::string> GetPrincipalStringIds() const;
     std::shared_ptr<FreezeRuleCluster> GetFreezeRuleCluster() const;
-    static void WriteStartInfoToFd(int fd, const std::string& msg);
-    static void WriteEndInfoToFd(int fd, const std::string& msg);
+    static void WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart = true);
 
 private:
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_;

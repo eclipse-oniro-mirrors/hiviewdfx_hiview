@@ -16,7 +16,7 @@
                         "LIFECYCLE_HALF_TIMEOUT","LIFECYCLE_TIMEOUT_WARNING",
                         "LIFECYCLE_HALF_TIMEOUT_WARNING", "APP_LIFECYCLE_TIMEOUT",
                         "APP_INPUT_BLOCK","BUSSINESS_THREAD_BLOCK_6S",
-                        "BUSSINESS_THREAD_BLOCK_3S"]
+                        "BUSSINESS_THREAD_BLOCK_3S", "HIVIEW_HALF_FREEZE_LOG"]
         },{
             "domain": "FRAMEWORK",
             "include": ["SERVICE_BLOCK", "SERVICE_WARNING", "SERVICE_TIMEOUT", "SERVICE_TIMEOUT_WARNING", "IPC_FULL_WARNING",
