@@ -71,6 +71,7 @@ const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
     { EVENT_APP_START, 9 },
     { EVENT_APP_HICOLLIE, 10 },
     { EVENT_APP_KILLED, 11 },
+    { EVENT_AUDIO_JANK_FRAME, 12 },
 };
 
 struct ExternalLogInfo {
@@ -538,16 +539,15 @@ void EventPublish::PushEvent(int32_t uid, const std::string& eventName, HiSysEve
     }
     eventJson[PARAM_PROPERTY] = params;
     AppEventParams eventParams(uid, eventName, pathHolder, eventJson, maxFileSizeBytes);
-    const std::set<std::string> immediateEvents = {EVENT_APP_CRASH, EVENT_APP_FREEZE, EVENT_ADDRESS_SANITIZER,
-        EVENT_APP_LAUNCH, EVENT_CPU_USAGE_HIGH, EVENT_MAIN_THREAD_JANK, EVENT_APP_HICOLLIE, EVENT_APP_KILLED};
-    if (immediateEvents.find(eventName) != immediateEvents.end()) {
-        SaveEventAndLogToSandBox(eventParams);
-        UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, eventName);
+    const std::set<std::string> delayedEvents = {EVENT_SCROLL_JANK, EVENT_BATTERY_USAGE, EVENT_APP_START};
+    if (delayedEvents.find(eventName) != delayedEvents.end()) {
+        SaveEventToTempFile(uid, eventParams.eventJson);
+        StartSendingThread();
     } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
         StartOverLimitThread(eventParams);
     } else {
-        SaveEventToTempFile(uid, eventParams.eventJson);
-        StartSendingThread();
+        SaveEventAndLogToSandBox(eventParams);
+        UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, eventName);
     }
 }
 } // namespace HiviewDFX

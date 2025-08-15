@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -292,6 +292,26 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     return 0;
 }
 
+int AppEventHandler::PostEvent(const AudioJankFrameInfo& event)
+{
+    if (event.bundleName.empty()) {
+        HIVIEW_LOGW("bundleName empty.");
+        return -1;
+    }
+    int32_t uid = GetUidByBundleName(event.bundleName);
+    std::stringstream jsonStr;
+    jsonStr << "{";
+    AddTimeToJsonString(jsonStr);
+    AddBundleInfoToJsonString(event, jsonStr);
+    AddValueToJsonString("process_name", event.process_name, jsonStr);
+    AddValueToJsonString("max_frame_time", event.max_frame_time, jsonStr);
+    AddValueToJsonString("happen_time", event.happen_time, jsonStr);
+    AddValueToJsonString("fault_type", event.fault_type, jsonStr, true);
+    jsonStr << std::endl;
+    EventPublish::GetInstance().PushEvent(uid, "AUDIO_JANK_FRAME", HiSysEvent::EventType::FAULT, jsonStr.str());
+    return 0;
+}
+
 bool AppEventHandler::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 {
     return EventPublish::GetInstance().IsAppListenedEvent(uid, eventName);
@@ -327,6 +347,11 @@ int OHOS::HiviewDFX::AppEventHandler::PostEvent(const BatteryUsageInfo& event)
 }
 
 int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AppKilledInfo& event)
+{
+    return -1;
+}
+
+int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AudioJankFrameInfo& event)
 {
     return -1;
 }

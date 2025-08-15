@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -149,10 +149,24 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest007, TestSize.Level1)
     auto handler = std::make_shared<AppEventHandler>();
     ASSERT_FALSE(handler->IsAppListenedEvent(UID_FOR_TEST, "CPU_USAGE_HIGH"));
 }
+
+/**
+@tc.name: AppEventHandlerTest008
+@tc.desc: used to test PostEvent
+@tc.type: FUNC
+*/
+HWTEST_F(AppEventHandlerTest, AppEventHandlerTest008, TestSize.Level0)
+{
+    AppEventHandler::AudioJankFrameInfo audioJankFrameInfo;
+    auto handler = std::make_shared<AppEventHandler>();
+    ASSERT_EQ(handler->PostEvent(audioJankFrameInfo), -1);
+    audioJankFrameInfo.bundleName = BUNDLE_NAME_FOR_TEST;
+    ASSERT_EQ(handler->PostEvent(audioJankFrameInfo), 0);
+}
 #else
 /**
  * @tc.name: AppEventHandlerTest001
- * @tc.desc: used to test empty PostEvent
+ * @tc.desc: used to test PostEvent with empty info when appevent publish is unable
  * @tc.type: FUNC
 */
 HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level0)
@@ -175,6 +189,9 @@ HWTEST_F(AppEventHandlerTest, AppEventHandlerTest001, TestSize.Level0)
 
     AppEventHandler::AppKilledInfo appKilledInfo;
     ASSERT_EQ(handler->PostEvent(appKilledInfo), -1);
+
+    AppEventHandler::AudioJankFrameInfo audioJankFrameInfo;
+    ASSERT_EQ(handler->PostEvent(audioJankFrameInfo), -1);
 
     ASSERT_FALSE(handler->IsAppListenedEvent(UID_FOR_TEST, "CPU_USAGE_HIGH"));
 }

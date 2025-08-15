@@ -41,6 +41,7 @@ constexpr const char* const EVENT_MAIN_THREAD_JANK = "MAIN_THREAD_JANK";
 constexpr const char* const EVENT_APP_START = "APP_START";
 constexpr const char* const EVENT_APP_HICOLLIE = "APP_HICOLLIE";
 constexpr const char* const EVENT_APP_KILLED = "APP_KILLED";
+constexpr const char* const EVENT_AUDIO_JANK_FRAME = "AUDIO_JANK_FRAME";
 
 struct AppEventParams {
     int32_t uid = 0;
