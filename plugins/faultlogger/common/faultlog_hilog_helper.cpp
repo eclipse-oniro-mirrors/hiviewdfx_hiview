@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include <poll.h>
+#include <queue>
 #include <unistd.h>
 
 #include <sys/syscall.h>
@@ -173,8 +174,16 @@ Json::Value FaultlogHilogHelper::ParseHilogToJson(const std::string &hilogStr)
     }
     std::stringstream logStream(hilogStr);
     std::string oneLine;
-    for (int count = 0; count < REPORT_HILOG_LINE && getline(logStream, oneLine); count++) {
-        hilog.append(oneLine);
+    std::queue<std::string> hilogContent;
+    while (getline(logStream, oneLine)) {
+        if (hilogContent.size() == REPORT_HILOG_LINE) {
+            hilogContent.pop();
+        }
+        hilogContent.push(std::move(oneLine));
+    }
+    while (!hilogContent.empty()) {
+        hilog.append(std::move(hilogContent.front()));
+        hilogContent.pop();
     }
     return hilog;
 }
