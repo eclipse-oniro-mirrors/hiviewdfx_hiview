@@ -124,6 +124,14 @@ struct ImageLoadStat {
     std::string typeDetails;
 };
 
+struct SurfaceInfo {
+    int64_t uniqueId{0};
+    std::string surfaceName;
+    std::string componentName;
+    std::string bundleName;
+    int32_t pid{0};
+};
+
 class AnimatorRecord {
 public:
     void InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType, const std::string& nt,

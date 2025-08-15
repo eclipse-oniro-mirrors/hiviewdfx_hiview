@@ -81,6 +81,10 @@ namespace {
     constexpr char KEY_TOTAL_SIZE[] = "TOTAL_SIZE";
     constexpr char KEY_FAILED_SIZE[] = "FAILED_SIZE";
     constexpr char KEY_TYPE_DETAILS[] = "TYPE_DETAILS";
+    constexpr char KEY_PID[] = "PID";
+    constexpr char KEY_SURFACE_NAME[] = "SURFACE_NAME";
+    constexpr char KEY_COMPONENT_NAME[] = "COMPONENT_NAME";
+
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     constexpr int32_t MAX_JANK_FRAME_TIME = 32;
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -266,6 +270,13 @@ void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrol
  
     ImageLoadStat stat = {scrollStartTime, scrollEndTime, totalNum, failedNum, totalSize, failedSize, imageLoadStat};
     EventReporter::ReportImageLoadStat(stat);
+}
+
+void PerfReporter::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+{
+    SurfaceInfo surfaceInfo = {uniqueId, surfaceName, componentName, bundleName, pid};
+    EventReporter::ReportSurfaceInfo(surfaceInfo);
 }
 
 void EventReporter::ReportJankFrameApp(JankInfo& info)
@@ -541,5 +552,19 @@ void EventReporter::ReportImageLoadStat(const ImageLoadStat& stat)
     reporter.Report(PERFORMANCE_DOMAIN, event);
 }
 
+void EventReporter::ReportSurfaceInfo(const SurfaceInfo& surface)
+{
+    XperfEventBuilder builder;
+    XperfEvent event = builder.EventName("SURFACE_ATTACH")
+            .EventType(HISYSEVENT_BEHAVIOR)
+            .Param(KEY_PID, surface.pid)
+            .Param(EVENT_KEY_BUNDLE_NAME, surface.bundleName)
+            .Param(EVENT_KEY_UNIQUE_ID, surface.uniqueId)
+            .Param(KEY_SURFACE_NAME, surface.surfaceName)
+            .Param(KEY_COMPONENT_NAME, surface.componentName)
+            .Build();
+    XperfEventReporter reporter;
+    reporter.Report(ACE_DOMAIN, event);
+}
 }
 }

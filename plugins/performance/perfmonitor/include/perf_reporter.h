@@ -35,6 +35,8 @@ public:
         const std::vector<uint16_t>& jankFrameRecord, int32_t jankFrameTotalCount, const BaseInfo& baseInfo);
     void ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
                               const std::map<int64_t, ImageLoadInfo*>& mRecords);
+    void ReportSurface(const int64_t& uniqueId, const std::string& surfaceName, const std::string& componentName,
+        const std::string& bundleName, const int32_t& pid);
 
 private:
     void ConvertToRsData(OHOS::Rosen::DataBaseRs &dataRs, DataBase& data);
@@ -60,6 +62,7 @@ public:
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
 
     static void ReportImageLoadStat(const ImageLoadStat& stat);
+    static void ReportSurfaceInfo(const SurfaceInfo& surface);
 };
 }
 }
