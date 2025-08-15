@@ -14,6 +14,7 @@
  */
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <ctime>
 #include <cctype>
@@ -66,6 +67,33 @@ std::string GetFormatedTimeWithMillsec(uint64_t time)
     }
     std::string millStr(millBuf);
     return GetFormatedTime(time) + millStr;
+}
+
+std::string GetFormatedTimeHHMMSS(uint64_t target, bool isMillsec)
+{
+    uint64_t millsec = 0;
+    if (isMillsec) {
+        millsec = target % TIME_RATIO;
+        target = target / TIME_RATIO; // 1000 : convert millisecond to seconds
+    }
+
+    time_t out = static_cast<time_t>(target);
+    struct tm tmStruct {0};
+    struct tm* timeInfo = localtime_r(&out, &tmStruct);
+    if (timeInfo == nullptr) {
+        return "00:00:00";
+    }
+
+    char buf[DEFAULT_BUFFER_SIZE] = {0};
+    if (strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%H:%M:%S", timeInfo) == 0) {
+        return "00:00:00";
+    }
+    auto timeStr = std::string(buf);
+    if (isMillsec) {
+        int ret = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, ".%03lu", millsec);
+        timeStr += (ret > 0) ? std::string(buf) : ".000";
+    }
+    return timeStr;
 }
 
 std::string GetFaultNameByType(int32_t faultType, bool asFileName)

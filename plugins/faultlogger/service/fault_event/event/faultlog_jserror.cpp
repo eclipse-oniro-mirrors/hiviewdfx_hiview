@@ -16,6 +16,7 @@
 
 #include "constants.h"
 #include "hiview_logger.h"
+#include "page_history_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -43,6 +44,10 @@ void FaultLogJsError::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo&
 {
     std::string rssStr = sysEvent.GetEventValue("PROCESS_RSS_MEMINFO");
     info.sectionMap["PROCESS_RSS_MEMINFO"] = "Process Memory(kB): " + rssStr + "(Rss)";
+    auto trace = PageHistoryManager::GetInstance().GetPageHistory(info.module, info.pid);
+    if (!trace.empty()) {
+        info.sectionMap[FaultKey::PAGE_SWITCH_HISTORY] = std::move(trace);
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

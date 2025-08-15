@@ -33,6 +33,8 @@ public:
 protected:
     std::string ReadLogFile(const std::string& logPath) const;
     void WriteLogFile(const std::string& logPath, const std::string& content) const;
+    void AddPagesHistory(FaultLogInfo& info) const;
+
 private:
     virtual void AddSpecificInfo(FaultLogInfo& info) = 0;
     virtual void DoFaultLogLimit(const std::string& logPath, int32_t faultType) const {}

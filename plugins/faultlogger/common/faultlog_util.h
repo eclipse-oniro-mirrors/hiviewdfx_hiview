@@ -27,6 +27,7 @@ namespace OHOS {
 namespace HiviewDFX {
 std::string GetFormatedTime(uint64_t time);
 std::string GetFormatedTimeWithMillsec(uint64_t time);
+std::string GetFormatedTimeHHMMSS(uint64_t target, bool isMillsec);
 std::string GetFaultNameByType(int32_t faultType, bool asfileName);
 std::string GetFaultLogName(const FaultLogInfo& info);
 int32_t GetLogTypeByName(const std::string& type);

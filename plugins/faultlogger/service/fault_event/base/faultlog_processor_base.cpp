@@ -17,12 +17,13 @@
 #include "constants.h"
 #include "dfx_define.h"
 #include "faultlog_bundle_util.h"
-#include "faultlog_hilog_helper.h"
 #include "faultlog_formatter.h"
+#include "faultlog_hilog_helper.h"
 #include "faultlog_util.h"
-#include "hiview_logger.h"
 #include "hisysevent.h"
+#include "hiview_logger.h"
 #include "log_analyzer.h"
+#include "page_history_manager.h"
 #include "parameter_ex.h"
 #include "process_status.h"
 #include "string_util.h"
@@ -317,6 +318,17 @@ std::list<std::string> FaultLogProcessorBase::GetDigtStrArr(const std::string &t
     }
     ret.push_back("0");
     return ret;
+}
+
+void FaultLogProcessorBase::AddPagesHistory(FaultLogInfo& info) const
+{
+    if (info.id < MIN_APP_USERID) {
+        return;
+    }
+    auto trace = PageHistoryManager::GetInstance().GetPageHistory(info.module, info.pid);
+    if (!trace.empty()) {
+        info.sectionMap[FaultKey::PAGE_SWITCH_HISTORY] = std::move(trace);
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

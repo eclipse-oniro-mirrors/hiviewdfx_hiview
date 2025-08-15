@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -63,6 +65,7 @@
 #include "faultlog_cppcrash.h"
 #include "faultlog_jserror.h"
 #include "faultlog_cjerror.h"
+#include "page_history_manager.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -2650,6 +2653,155 @@ HWTEST_F(FaultloggerUnittest, FaultLogBootScan002, testing::ext::TestSize.Level3
     file.close();
 
     ASSERT_TRUE(FaultLogBootScan::IsCrashTempBigFile(path));
+}
+
+/**
+ * @tc.name: GetFormatedTimeHHMMSS001
+ * @tc.desc: Test format time string
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFormatedTimeHHMMSS001, testing::ext::TestSize.Level3)
+{
+    uint64_t ts = 1755067031234;
+    auto timeStr = GetFormatedTimeHHMMSS(ts, true);
+    std::string msStr = "14:37:11.234";
+    ASSERT_EQ(timeStr, msStr);
+}
+
+/**
+ * @tc.name: GetFormatedTimeHHMMSS002
+ * @tc.desc: Test format time string
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFormatedTimeHHMMSS002, testing::ext::TestSize.Level3)
+{
+    uint64_t ts = 1755067031;
+    auto timeStr = GetFormatedTimeHHMMSS(ts, false);
+    std::string msStr = "14:37:11";
+    ASSERT_EQ(timeStr, msStr);
+}
+
+/**
+ * @tc.name: GetFormatedTimeHHMMSS003
+ * @tc.desc: Test format time string
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, GetFormatedTimeHHMMSS003, testing::ext::TestSize.Level3)
+{
+    uint64_t ts = 1755067031004;
+    auto timeStr = GetFormatedTimeHHMMSS(ts, true);
+    std::string msStr = "14:37:11.004";
+    ASSERT_EQ(timeStr, msStr);
+}
+
+/**
+ * @tc.name: PageTraceNode001
+ * @tc.desc: Test PageTraceNode ToString
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, PageTraceNode001, testing::ext::TestSize.Level3)
+{
+    PageTraceNode node1(123, 1755067031234, "/test/pageUrl", "testName");
+    std::string timeStr1 = "14:37:11.234 /test/pageUrl:testName";
+    ASSERT_EQ(node1.ToString(), timeStr1);
+
+    PageTraceNode node2(123, 1755067031234, "/test/pageUrl", "");
+    std::string timeStr2 = "14:37:11.234 /test/pageUrl";
+    ASSERT_EQ(node2.ToString(), timeStr2);
+
+    PageTraceNode node3(123, 1755067031234, "", "testName");
+    std::string timeStr3 = "14:37:11.234 :testName";
+    ASSERT_EQ(node3.ToString(), timeStr3);
+}
+
+/**
+ * @tc.name: PageTrace001
+ * @tc.desc: Test PageTrace
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, PageTrace001, testing::ext::TestSize.Level3)
+{
+    PagesTrace pageTrace;
+    pageTrace.AddPageTrace(PageTraceNode(123, 1755067031234, "/test/pageUrl", "testName"));
+    ASSERT_EQ(pageTrace.pages_.size(), 1);
+    ASSERT_TRUE(pageTrace.ToString(1).empty());
+    ASSERT_FALSE(pageTrace.ToString(123).empty());
+    std::string timeStr = "  14:37:11.234 /test/pageUrl:testName\n";
+    ASSERT_EQ(pageTrace.ToString(123), timeStr);
+
+    pageTrace.AddPageTrace(PageTraceNode(124, 1755067031234, "/test/pageUrl", "testName"));
+    ASSERT_EQ(pageTrace.pages_.size(), 2);
+    ASSERT_TRUE(pageTrace.ToString(1).empty());
+    ASSERT_FALSE(pageTrace.ToString(123).empty());
+    ASSERT_EQ(pageTrace.ToString(123), timeStr);
+
+    pageTrace.AddPageTrace(PageTraceNode(123, 1755067031234, "", "enters foreground"));
+    ASSERT_EQ(pageTrace.pages_.size(), 3);
+    ASSERT_TRUE(pageTrace.ToString(1).empty());
+    ASSERT_FALSE(pageTrace.ToString(123).empty());
+    timeStr = "  14:37:11.234 :enters foreground\n" + timeStr;
+    ASSERT_EQ(pageTrace.ToString(123), timeStr);
+
+    pageTrace.AddPageTrace(PageTraceNode(123, 1755067031234, "", "leaves foreground"));
+    ASSERT_EQ(pageTrace.pages_.size(), 4);
+    ASSERT_TRUE(pageTrace.ToString(1).empty());
+    ASSERT_FALSE(pageTrace.ToString(123).empty());
+    timeStr = "  14:37:11.234 :leaves foreground\n" + timeStr;
+    ASSERT_EQ(pageTrace.ToString(123), timeStr);
+
+    for (size_t i = 0; i < pageTrace.MAX_PAGES_NUM; i++) {
+        pageTrace.AddPageTrace(PageTraceNode(124, 1755067031234, "/test/pageUrl", "testName"));
+    }
+    ASSERT_EQ(pageTrace.pages_.size(), pageTrace.MAX_PAGES_NUM);
+    ASSERT_TRUE(pageTrace.ToString(1).empty());
+}
+
+/**
+ * @tc.name: PageHistoryManager001
+ * @tc.desc: Test PageHistoryManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, PageHistoryManager001, testing::ext::TestSize.Level3)
+{
+    auto& manager = PageHistoryManager::GetInstance();
+    SysEventCreator sysEventCreator("AAFWK", "ABILITY_ONFOREGROUND", SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("BUNDLE_NAME", "process_1");
+    sysEventCreator.SetKeyValue("name_", "ABILITY_ONFOREGROUND");
+
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+    sysEvent->pid_ = 1234;
+    sysEvent->happenTime_ = 1755067031234;
+    manager.HandleEvent(*sysEvent);
+
+    ASSERT_TRUE(manager.GetPageHistory("process_1", 1).empty());
+    ASSERT_FALSE(manager.GetPageHistory("process_1", 1234).empty());
+    std::string timeStr = "  14:37:11.234 :enters foreground\n";
+    ASSERT_EQ(manager.GetPageHistory("process_1", 1234), timeStr);
+
+    sysEvent->eventName_ = "INTERACTION_COMPLETED_LATENCY";
+    sysEvent->SetEventValue("SCENE_ID", "ABILITY_OR_PAGE_SWITCH");
+    sysEvent->SetEventValue("PAGE_URL", "/test/testPageUrl");
+    sysEvent->SetEventValue("PAGE_NAME", "testPageName");
+    manager.HandleEvent(*sysEvent);
+    ASSERT_TRUE(manager.GetPageHistory("process_1", 1).empty());
+    ASSERT_FALSE(manager.GetPageHistory("process_1", 1234).empty());
+    timeStr = "  14:37:11.234 /test/testPageUrl:testPageName\n" + timeStr;
+    ASSERT_EQ(manager.GetPageHistory("process_1", 1234), timeStr);
+
+    sysEvent->eventName_ = "ABILITY_ONBACKGROUND";
+    manager.HandleEvent(*sysEvent);
+    ASSERT_TRUE(manager.GetPageHistory("process_1", 1).empty());
+    ASSERT_FALSE(manager.GetPageHistory("process_1", 1234).empty());
+    timeStr = "  14:37:11.234 :leaves foreground\n" + timeStr;
+    ASSERT_EQ(manager.GetPageHistory("process_1", 1234), timeStr);
+
+    for (size_t i = 1; i <= manager.recorder_.MAX_RECORDED_PROCESS_NUM; i++) {
+        std::string process = "test_process_" + std::to_string(i);
+        sysEvent->SetEventValue("BUNDLE_NAME", process);
+        manager.HandleEvent(*sysEvent);
+    }
+    ASSERT_EQ(manager.recorder_.MAX_RECORDED_PROCESS_NUM, manager.recorder_.pagesList_.size());
+    ASSERT_EQ(manager.recorder_.MAX_RECORDED_PROCESS_NUM, manager.recorder_.lruCache_.size());
 }
 } // namespace HiviewDFX
 } // namespace OHOS
