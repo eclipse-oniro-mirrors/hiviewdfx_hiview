@@ -23,6 +23,7 @@
 #include "perf_utils.h"
 #include "scene_monitor.h"
 #include "white_block_monitor.h"
+#include "surface_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -182,6 +183,12 @@ void PerfMonitorAdapter::EndRecordImageLoadStat(int64_t id, std::pair<int, int> 
 void PerfMonitorAdapter::OnSceneChanged(const SceneType& type, bool status)
 {
     SceneMonitor::GetInstance().OnSceneChanged(type, status);
+}
+
+void PerfMonitorAdapter::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+{
+    SurfaceMonitor::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
 }
 
 }

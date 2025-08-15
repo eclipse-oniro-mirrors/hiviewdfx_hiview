@@ -63,6 +63,7 @@ ohos_shared_library("libperfmonitor") {
       "src/perf_utils.cpp",
       "src/scene_monitor.cpp",
       "src/white_block_monitor.cpp",
+      "src/surface_monitor.cpp",
     ]
 
     configs = [ ":xperf_perfmonitor_config" ]
