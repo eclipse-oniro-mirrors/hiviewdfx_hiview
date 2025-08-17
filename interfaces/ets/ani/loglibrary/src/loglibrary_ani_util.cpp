@@ -45,7 +45,7 @@ std::string LogLibraryAniUtil::ParseStringValue(ani_env *env, ani_string aniStrR
 }
 
 bool LogLibraryAniUtil::CreateLogEntryArray(ani_env *env,
-    const std::vector<HiviewFileInfo>& fileInfos, ani_array_ref &logEntryArray)
+    const std::vector<HiviewFileInfo>& fileInfos, ani_array &logEntryArray)
 {
     ani_size index = 0;
     for (const auto& value: fileInfos) {
@@ -65,7 +65,7 @@ bool LogLibraryAniUtil::CreateLogEntryArray(ani_env *env,
             HILOG_ERROR(LOG_CORE, "Set LogEntry size Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
-        if (ANI_OK != env->Array_Set_Ref(logEntryArray, index, static_cast<ani_ref>(logEntryObj))) {
+        if (ANI_OK != env->Array_Set(logEntryArray, index, static_cast<ani_ref>(logEntryObj))) {
             HILOG_ERROR(LOG_CORE, "Set logEntryObj to array Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
@@ -98,15 +98,10 @@ ani_object LogLibraryAniUtil::CreateLogEntryObject(ani_env *env)
 
 ani_ref LogLibraryAniUtil::ListResult(ani_env *env, const std::vector<HiviewFileInfo>& fileInfos)
 {
-    ani_class cls {};
-    ani_array_ref logEntryArray {};
-    if (ANI_OK != env->FindClass(CLASS_NAME_LOGENTRY, &cls)) {
-        HILOG_ERROR(LOG_CORE, "FindClass %{public}s Failed", CLASS_NAME_LOGENTRY);
-        return logEntryArray;
-    }
+    ani_array logEntryArray {};
 
     ani_ref undefinedRef = LogLibraryAniUtil::GetAniUndefined(env);
-    if (ANI_OK != env->Array_New_Ref(cls, fileInfos.size(), undefinedRef, &logEntryArray)) {
+    if (ANI_OK != env->Array_New(fileInfos.size(), undefinedRef, &logEntryArray)) {
         HILOG_ERROR(LOG_CORE, "Array_New_Ref Failed");
         return logEntryArray;
     }
