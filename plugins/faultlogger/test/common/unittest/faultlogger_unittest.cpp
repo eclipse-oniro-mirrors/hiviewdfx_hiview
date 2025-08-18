@@ -2179,7 +2179,6 @@ HWTEST_F(FaultloggerUnittest, ReadHilogUnittest001, testing::ext::TestSize.Level
     if (childPid == 0) {
         syscall(SYS_close, fds[0]);
 
-
         int rc = DoGetHilogProcess(pid, fds[1]);
         syscall(SYS_close, fds[1]);
         _exit(rc);
