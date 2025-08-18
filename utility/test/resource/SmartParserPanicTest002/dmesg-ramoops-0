@@ -149,7 +149,7 @@
 <5>[  155.825796] audit: type=1400 audit(1501923758.686:538): avc:  denied  { open } for  pid=1520 comm="sh" path="/proc/sysrq-trigger" dev="proc" ino=4026532372 scontext=u:r:su:s0 tcontext=u:object_r:proc_sysrq_trigger_file:s0 tclass=file permissive=1
 <4>[  155.826130] CPU: 1 PID: 1520 Comm: sh Not tainted 5.10.184 #1
 <4>[  155.828542] Hardware name: rockchip,rk3568-toybrick-dev-linux-x0 (DT)
-<4>[  155.829135] [PANIC][ED_00]Stack backtrace:
+<4>[  155.829135] [PANIC][ED_ba]Stack backtrace:
 <4>[  155.829403]  <dump_backtrace+0x0/0x0>
 <4>[  155.829754]  <show_stack+0x0/0x0>
 <4>[  155.830088]  <dump_stack+0x0/0x0>
