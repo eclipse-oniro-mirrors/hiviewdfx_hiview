@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,7 +53,7 @@ struct ExportConfig {
     // the maximum size of the export event file, unit: Mb
     int64_t maxSize = 0;
 
-    // the executing cycle for exporting&expiring task, unit: hour
+    // the executing cycle for exporting&expiring task, unit: second
     int64_t taskCycle = 0;
 
     // the config files for events configured to export
@@ -68,6 +68,9 @@ struct ExportConfig {
 
     // true: a event would be posted after event export finished
     bool needPostEvent = false;
+
+    // the triggle cycle for triggle export task, unit: second
+    int64_t taskTriggleCycle = 0;
 };
 
 class ExportConfigParser {
@@ -83,6 +86,7 @@ private:
     bool ParseResidualContent(std::shared_ptr<ExportConfig> config);
     bool ParseTaskType(std::shared_ptr<ExportConfig> config);
     bool ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> config);
+    bool ParseTaskTriggleCycle(std::shared_ptr<ExportConfig> config);
 
 private:
     cJSON* jsonRoot_ = nullptr;

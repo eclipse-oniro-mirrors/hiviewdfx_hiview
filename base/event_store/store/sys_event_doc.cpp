@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <cerrno>
 
 #include "base_def.h"
+#include "event_db_file_util.h"
 #include "event_store_config.h"
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -125,7 +126,7 @@ int SysEventDoc::UpdateCurFile(const std::shared_ptr<SysEvent>& sysEvent)
         return DOC_STORE_ERROR_IO;
     }
     std::string filePath = GetCurFile(dir);
-    if (filePath.empty() || IsFileFull(filePath)) {
+    if (filePath.empty() || !EventDbFileUtil::IsCurrentVersionDbFilePath(filePath) || IsFileFull(filePath)) {
         return CreateCurFile(dir, sysEvent);
     }
     curFile_ = filePath;
@@ -166,9 +167,11 @@ uint32_t SysEventDoc::GetMaxFileSize()
 int SysEventDoc::CreateCurFile(const std::string& dir, const std::shared_ptr<SysEvent>& sysEvent)
 {
     auto seq = sysEvent->GetEventSeq();
+    auto reportInterval = sysEvent->GetReportInterval();
     std::string filePath = dir + FILE_SEPARATOR;
     filePath.append(name_).append(FILE_NAME_SEPARATOR).append(std::to_string(type_)).append(FILE_NAME_SEPARATOR)
-        .append(level_).append(FILE_NAME_SEPARATOR).append(std::to_string(seq)).append(FILE_EXT);
+        .append(level_).append(FILE_NAME_SEPARATOR).append(std::to_string(seq)).append(FILE_NAME_SEPARATOR)
+        .append(std::to_string(reportInterval)).append(FILE_EXT);
     if (FileUtil::CreateFile(filePath, FileUtil::FILE_PERM_660) != 0 && !FileUtil::FileExists(filePath)) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", filePath.c_str(), errno);
         return DOC_STORE_ERROR_IO;

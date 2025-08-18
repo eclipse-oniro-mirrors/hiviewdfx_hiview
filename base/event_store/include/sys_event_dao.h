@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,9 @@ public:
     /* for external query */
     static std::shared_ptr<SysEventQuery> BuildQuery(const std::string& domain,
         const std::vector<std::string>& names, uint32_t type, int64_t toSeq, int64_t fromSeq);
+
+    static std::shared_ptr<SysEventQuery> BuildQuery(const std::string& domain,
+        const std::vector<std::string>& names, uint32_t type, QueryExtraInfo info);
 
     static int Insert(std::shared_ptr<SysEvent> sysEvent);
     static void CheckRepeat(SysEvent& event);

@@ -38,6 +38,7 @@ constexpr char EXPORT_EVENT_LIST_CONFIG_PATHS[] = "exportEventListConfigPaths";
 constexpr char FILE_STORED_MAX_DAY_CNT[] = "fileStoredMaxDayCnt";
 constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
 constexpr char INHERITED_MODULE[] = "inheritedModule";
+constexpr char TASK_TRIGGLE_CYCLE[] = "taskTriggleCycle";
 constexpr int32_t INVALID_INT_VAL = -1;
 
 bool ParseIntFromCfg(cJSON* json, std::string& areaTag, std::string& versionTag, int64_t& val)
@@ -167,7 +168,7 @@ bool ExportConfigParser::ParseResidualContent(std::shared_ptr<ExportConfig> conf
         return false;
     }
     config->inheritedModule = CJsonUtil::GetStringValue(jsonRoot_, INHERITED_MODULE);
-    if (!ParseTaskType(config) || !ParseTaskExecutingCycle(config)) {
+    if (!ParseTaskType(config) || (!ParseTaskExecutingCycle(config) && !ParseTaskTriggleCycle(config))) {
         return false;
     }
     return true;
@@ -227,6 +228,28 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
     }
     HIVIEW_LOGI("task cycle is configured as object for module: %{public}s, value is %{public}" PRId64 "",
         config->moduleName.c_str(), config->taskCycle);
+    return true;
+}
+
+bool ExportConfigParser::ParseTaskTriggleCycle(std::shared_ptr<ExportConfig> config)
+{
+    auto taskTriggleCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_TRIGGLE_CYCLE);
+    if (taskTriggleCycleJson == nullptr) {
+        config->taskTriggleCycle = 0;
+        return false;
+    }
+    if (!cJSON_IsObject(taskTriggleCycleJson)) {
+        return false;
+    }
+    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
+    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    if (!ParseIntFromCfg(taskTriggleCycleJson, areaTag, versionTag, config->taskTriggleCycle)) {
+        HIVIEW_LOGE("failed to parse task type");
+        config->taskTriggleCycle = 0;
+        return false;
+    }
+    HIVIEW_LOGI("task triggle cycle for module: %{public}s, value is %{public}" PRId64 "",
+        config->moduleName.c_str(), config->taskTriggleCycle);
     return true;
 }
 } // HiviewDFX

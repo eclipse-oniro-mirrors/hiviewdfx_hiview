@@ -101,7 +101,7 @@ void EventExportTask::OnTaskRun()
     // init read handler
     auto readHandler = std::make_shared<EventReadHandler>();
     readHandler->SetEventExportedListener([this] (int64_t beginSeq, int64_t endSeq) {
-        HIVIEW_LOGW("finished exporting events in range [%{public}" PRId64 ", %{public}" PRId64 ")",
+        HIVIEW_LOGI("finished exporting events in range [%{public}" PRId64 ", %{public}" PRId64 ")",
             beginSeq, endSeq);
         // sync export progress to db
         ExportDbManager::GetInstance().HandleExportTaskFinished(config_->moduleName, endSeq);
@@ -119,11 +119,11 @@ void EventExportTask::OnTaskRun()
         readReq->endSeq);
 }
 
-bool EventExportTask::ParseExportEventList(ExportEventList& list) const
+bool EventExportTask::ParseExportEventList(ExportEventList& list)
 {
     if (config_->eventsConfigFiles.empty()) {
         // if export event list file isn't configured, use export info configured in hisysevent.def
-        EventJsonParser::GetInstance()->GetAllCollectEvents(list);
+        EventJsonParser::GetInstance()->GetAllCollectEvents(list, config_->taskType);
         return true;
     }
     ExportEventListParsers parsers;
@@ -143,7 +143,12 @@ bool EventExportTask::ParseExportEventList(ExportEventList& list) const
     return true;
 }
 
-bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq) const
+int64_t EventExportTask::GetExportRangeEndSeq()
+{
+    return EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+}
+
+bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
 {
     if (readReq == nullptr) {
         return false;
@@ -153,7 +158,7 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
         HIVIEW_LOGE("invalid export: begin sequence:%{public}" PRId64 "", readReq->beginSeq);
         return false;
     }
-    readReq->endSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    readReq->endSeq = GetExportRangeEndSeq();
     if (readReq->beginSeq >= readReq->endSeq) {
         HIVIEW_LOGE("invalid export range: [%{public}" PRId64 ",%{public}" PRId64 ")",
             readReq->beginSeq, readReq->endSeq);

@@ -13,25 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_EVENT_EXPORT_UTIL_H
-#define HIVIEW_BASE_EVENT_EXPORT_UTIL_H
-
-#include <memory>
-#include <string>
-
-#include "export_config_parser.h"
-#include "export_db_manager.h"
+#ifndef HIVIEW_BASE_TRIGGLE_EXPORT_EVENT_H
+#define HIVIEW_BASE_TRIGGLE_EXPORT_EVENT_H
 
 namespace OHOS {
 namespace HiviewDFX {
-class EventExportUtil {
-public:
-    static std::string GetDeviceId();
-    static bool CheckAndPostExportEvent(std::shared_ptr<ExportConfig> config);
-    static bool RegisterSettingObserver(std::shared_ptr<ExportConfig> config);
-    static void UnregisterSettingObserver(std::shared_ptr<ExportConfig> config);
+struct TriggleExportEvent {
+    std::string domain;
+
+    std::string eventName;
+
+    int64_t timeStamp = 0;
+
+    int64_t seq = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_EVENT_EXPORT_UTIL_H
+#endif // HIVIEW_BASE_TRIGGLE_EXPORT_EVENT_H

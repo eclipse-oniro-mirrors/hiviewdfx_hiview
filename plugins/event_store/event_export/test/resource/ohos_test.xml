@@ -23,6 +23,8 @@
             <option name="push" value="export_config/invalid_test_events3.json -> /data/test/test_data/" src="res"/>
             <option name="push" value="export_config/test1_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
             <option name="push" value="export_config/test2_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
+            <option name="push" value="export_config/test4_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
+            <option name="push" value="export_config/test5_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
         </preparer>
     </target>
     <target name="EventExportMgrTest">

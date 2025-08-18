@@ -71,7 +71,7 @@ HWTEST_F(EventJsonParserTest, EventJsonParserInitTest001, testing::ext::TestSize
     ASSERT_TRUE(baseInfo.level.empty());
 
     ExportEventList list;
-    EventJsonParser::GetInstance()->GetAllCollectEvents(list);
+    EventJsonParser::GetInstance()->GetAllCollectEvents(list, 0); // 0 means no filter
     ASSERT_EQ(list.size(), 0);
 }
 
@@ -167,7 +167,7 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest003, testing::ext::TestSize.Lev
     EventJsonParser::GetInstance()->OnConfigUpdate();
 
     ExportEventList list;
-    EventJsonParser::GetInstance()->GetAllCollectEvents(list);
+    EventJsonParser::GetInstance()->GetAllCollectEvents(list, 0); // 0 means no filter
     ASSERT_EQ(list.size(), 2); // 2 is the expected length
 
     auto firstDomainDef = list.find(FIRST_TEST_DOMAIN);

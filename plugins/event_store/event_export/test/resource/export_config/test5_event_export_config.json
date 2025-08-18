@@ -1,0 +1,35 @@
+{
+    "exportSwitchParam": {
+        "name": "test_param_key",
+        "enabledValue": "1"
+    },
+    "sysUpgradeParam": {
+        "name": "test_param_key",
+        "enabledValue": "1"
+    },
+    "exportDir": "/data/test/test_data/work/",
+    "exportDirMaxCapacity": 100,
+    "exportSingleFileMaxSize": 2,
+    "exportTaskType": {
+        "domestic": {
+            "beta": 21,
+            "commercial": 22
+        },
+        "oversea": {
+            "beta": 23,
+            "commercial": 24
+        }
+    },
+    "taskTriggleCycle": {
+        "domestic": {
+            "beta": 25,
+            "commercial": 26
+        },
+        "oversea": {
+            "beta": 27,
+            "commercial": 28
+        }
+    },
+    "exportEventListConfigPaths": [],
+    "fileStoredMaxDayCnt": 7
+}

@@ -49,7 +49,7 @@ struct EventReadRequest : public BaseRequest {
     std::string exportDir;
 
     // task type
-    int64_t taskType;
+    int16_t taskType;
 };
 
 struct ExportPeriodInfo {
