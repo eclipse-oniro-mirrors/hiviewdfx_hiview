@@ -932,7 +932,11 @@ void Faultlogger::StartBootScan()
             continue;
         }
         time_t lastAccessTime = GetFileLastAccessTimeStamp(file);
-        if ((now > lastAccessTime) && (now - lastAccessTime > FORTYEIGHT_HOURS)) {
+        if (now < lastAccessTime) {
+            HIVIEW_LOGI("Skip this file(%{public}s) that current time may be incorrect.", file.c_str());
+            continue;
+        }
+        if (now - lastAccessTime > FORTYEIGHT_HOURS) {
             HIVIEW_LOGI("Skip this file(%{public}s) that were created 48 hours ago.", file.c_str());
             continue;
         }
@@ -1331,7 +1335,7 @@ void Faultlogger::AddBootScanEvent()
     auto task = [this] {
         StartBootScan();
     };
-    workLoop_->AddTimerEvent(nullptr, nullptr, task, 10, false); // delay 10 seconds
+    workLoop_->AddTimerEvent(nullptr, nullptr, task, 60, false); // delay 60 seconds
 }
 
 Faultlogger::FaultloggerListener::FaultloggerListener(Faultlogger& faultlogger) : faultlogger_(faultlogger)
