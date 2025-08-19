@@ -14,7 +14,6 @@
  */
 #include "video_jank_monitor.h"
 #include "xperf_constant.h"
-#include "transaction/rs_interfaces.h"
 #include "avcodec_event.h"
 #include "xperf_register_manager.h"
 #include "perf_trace.h"
