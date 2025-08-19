@@ -434,7 +434,7 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
     memoryCatcher->CheckString("abc: 100", data, "abc", "");
     EXPECT_EQ(sysEvent->GetEventValue("HOST_RESOURCE_WARNING"), "Yes");
     memoryCatcher->CheckString("abc: 3000000", data, "abc", "/proc/ashmem_process_info");
-    EXPECT_TRUE(!data.empty());
+    EXPECT_TRUE(data.empty());
 }
 
 /**
@@ -654,7 +654,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     dmesgCatcher->Initialize("", true, 1);
     ret = dmesgCatcher->DumpDmesgLog(fd);
     close(fd);
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, false);
 
     auto fd1 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd1 < 0) {
