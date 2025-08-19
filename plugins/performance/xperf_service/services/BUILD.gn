@@ -1,0 +1,140 @@
+# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../xperf_service.gni")
+
+config("xperfservice_server_config") {
+  include_dirs = [
+    "${xperfservice_common}/include",
+    "${xperfservice_interfaces}/inner_api/xperfservice_client/include",
+    "core/include",
+    "common/include",
+    "server/include",
+    ".",
+    "framework/task_manager/include",
+    "framework/xperf_parser/include",
+    "framework/xperf_dispatcher/include",
+    "framework/model/xperf_event/include",
+    "framework/xperf_monitor/include",
+    "framework/model/xperf_record/include",
+    "framework/model/xperf_report",
+    #"framework/xperf_reporter/base",
+    "framework/xperf_reporter/include",
+    "framework/event_builder",
+  ]
+}
+
+ohos_shared_library("xperfservice_server") {
+  public_configs = [ ":xperfservice_server_config" ]
+
+  sources = [
+    "common/src/xperf_parser.cpp",
+    "common/src/perf_trace.cpp",
+    "core/src/xperf_service.cpp",
+    "core/src/xperf_register_manager.cpp",
+    "framework/event_builder/xperf_event_builder.cpp",
+    "framework/event_builder/xperf_event_reporter.cpp",
+    "framework/task_manager/src/queue_task_manager.cpp",
+
+    "framework/xperf_dispatcher/src/register_xperf_monitor.cpp",
+    "framework/xperf_dispatcher/src/register_xperf_parser.cpp",
+    "framework/xperf_dispatcher/src/xperf_dispatcher.cpp",
+
+    "framework/xperf_monitor/src/video_jank_monitor.cpp",
+    "framework/xperf_monitor/src/video_xperf_monitor.cpp",
+
+    "framework/xperf_parser/src/audio_event_parser.cpp",
+    "framework/xperf_parser/src/avcodec_event_parser.cpp",
+    "framework/xperf_parser/src/network_event_parser.cpp",
+    "framework/xperf_parser/src/rs_event_parser.cpp",
+
+    "framework/xperf_reporter/src/video_reporter.cpp",
+
+    "server/src/xperf_service_server.cpp",
+    "server/src/xperf_service_stub.cpp",
+    "xperf_service_main.cpp",
+    "xperf_service_interfaces.cpp",
+
+    "${xperfservice_interfaces}/inner_api/xperfservice_client/src/video_jank_proxy.cpp",
+    "${xperfservice_interfaces}/inner_api/xperfservice_client/src/audio_jank_proxy.cpp",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "hitrace:libhitracechain",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "graphic_2d:librender_service_client",
+    "hisysevent:libhisysevent",
+  ]
+
+  defines = []
+
+  #shlib_type = "sa"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  asmflags = [ "-Wl,-z,relro,-z,now" ]
+
+  cflags_cc = [ "-fstack-protector-strong" ]
+}
+
+ohos_static_library("xperfservice_server_static") {
+  configs = [ ":xperfservice_server_config" ]
+
+  sources = [
+    "core/src/xperf_service.cpp",
+    "core/src/xperf_register_manager.cpp",
+    "server/src/xperfservice_server.cpp",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "hitrace:libhitracechain",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
+  ]
+
+  defines = []
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+}

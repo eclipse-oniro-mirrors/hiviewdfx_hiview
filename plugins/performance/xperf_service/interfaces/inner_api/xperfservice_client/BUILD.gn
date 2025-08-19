@@ -1,0 +1,86 @@
+# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/idl_tool/idl.gni")
+import("//build/ohos.gni")
+import("../../../xperf_service.gni")
+
+config("xperf_service_client_public_config") {
+  include_dirs = [
+    "include",
+    "${xperfservice_common}/include",
+  ]
+}
+
+ohos_shared_library("xperfservice_client") {
+  sources = [
+    "src/xperf_service_client.cpp",
+    "src/xperf_service_proxy.cpp",
+    "src/video_jank_proxy.cpp",
+    "src/video_jank_stub.cpp",
+    "src/audio_jank_proxy.cpp",
+    "src/audio_jank_stub.cpp",
+  ]
+
+  public_configs = [ ":xperf_service_client_public_config" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "ipc:ipc_single",
+  ]
+
+  innerapi_tags = [
+    "platformsdk",
+    "chipsetsdk",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  asmflags = [ "-Wl,-z,relro,-z,now" ]
+
+  cflags_cc = [ "-fstack-protector-strong" ]
+}
+
+ohos_source_set("xperfservice_stub") {
+  public_configs = [ ":xperf_service_client_public_config" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+    "ipc:ipc_single",
+  ]
+
+  subsystem_name = "hiviewdfx"
+  part_name = "hiview"
+
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+}
