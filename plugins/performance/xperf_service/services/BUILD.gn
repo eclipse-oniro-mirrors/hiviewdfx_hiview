@@ -29,7 +29,6 @@ config("xperfservice_server_config") {
     "framework/xperf_monitor/include",
     "framework/model/xperf_record/include",
     "framework/model/xperf_report",
-    #"framework/xperf_reporter/base",
     "framework/xperf_reporter/include",
     "framework/event_builder",
   ]
@@ -81,7 +80,6 @@ ohos_shared_library("xperfservice_server") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "graphic_2d:librender_service_client",
     "hisysevent:libhisysevent",
   ]
 
