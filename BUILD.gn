@@ -121,6 +121,7 @@ group("hiview_package") {
     "$hiview_plugin/faultlogger:libfaultlogger",
     "$hiview_plugin/performance:xperformance",
     "$hiview_plugin/performance/perfmonitor:libperfmonitor",
+    "$hiview_plugin/performance/xperf_service/services:xperfservice_server",
     "$hiview_plugin/plugin_build:adft",
     "$hiview_plugin/plugin_build:bdfr",
     "$hiview_root/utility/analysis_faultlog:analysis_faultlog",
