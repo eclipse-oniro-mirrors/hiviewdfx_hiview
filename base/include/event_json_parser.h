@@ -70,7 +70,7 @@ public:
     bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name);
     void OnConfigUpdate();
     BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name);
-    void GetAllCollectEvents(ExportEventList& list);
+    void GetAllCollectEvents(ExportEventList& list, int16_t reportInterval);
     void ReadDefFile();
 
 private:

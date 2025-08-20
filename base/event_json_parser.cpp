@@ -41,6 +41,7 @@ constexpr char REPORT_INTERVAL[] = "reportInterval";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
 };
+constexpr int16_t EXPORT_ALL_EVENT = -1; // equal with ALL_EVENT_TASK_TYPE definited in export_config_parser.h
 
 bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
 {
@@ -56,9 +57,12 @@ bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef
 }
 
 void AddEventToExportList(ExportEventList& list, const std::string& domain, const std::string& name,
-    const BaseInfo& baseInfo)
+    const BaseInfo& baseInfo, int16_t reportInterval)
 {
     if (baseInfo.keyConfig.preserve != DEFAULT_PERSERVE_VAL || baseInfo.keyConfig.collect == DEFAULT_COLLECT_VAL) {
+        return;
+    }
+    if (reportInterval != EXPORT_ALL_EVENT && baseInfo.reportInterval != reportInterval) {
         return;
     }
     auto foundRet = list.find(domain);
@@ -291,7 +295,7 @@ void EventJsonParser::OnConfigUpdate()
     ReadDefFile();
 }
 
-void EventJsonParser::GetAllCollectEvents(ExportEventList& list)
+void EventJsonParser::GetAllCollectEvents(ExportEventList& list, int16_t reportInterval)
 {
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
     if (sysEventDefMap_ == nullptr) {
@@ -299,7 +303,7 @@ void EventJsonParser::GetAllCollectEvents(ExportEventList& list)
     }
     for (auto iter = sysEventDefMap_->cbegin(); iter != sysEventDefMap_->cend(); ++iter) {
         for (const auto& eventDef : iter->second) {
-            AddEventToExportList(list, iter->first, eventDef.first, eventDef.second);
+            AddEventToExportList(list, iter->first, eventDef.first, eventDef.second, reportInterval);
         }
     }
 }

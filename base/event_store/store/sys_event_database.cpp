@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,11 +43,13 @@ constexpr size_t INDEX_LIMIT_QUEUE = 2;
 
 int64_t GetFileSeq(const std::string& file)
 {
-    std::stringstream ss;
-    ss << file.substr(file.rfind(FILE_NAME_DELIMIT_STR) + 1);
-    long long seq = 0;
-    ss >> seq;
-    return seq;
+    std::string fileName(FileUtil::ExtractFileName(file));
+    SplitedEventInfo eventInfo;
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, SEQ_ONLY)) {
+        HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
+        return 0;
+    }
+    return eventInfo.seq;
 }
 
 std::string GetFileDomain(const std::string& file)
@@ -359,7 +361,8 @@ bool SysEventDatabase::IsContainQueryArg(const std::string& file, const SysEvent
     }
     std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for next char
     SplitedEventInfo eventInfo;
-    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY | SEQ_ONLY)) {
+    if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo,
+        NAME_ONLY | TYPE_ONLY | SEQ_ONLY | REPORT_INTERVAL_ONLY)) {
         HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
         return false;
     }
@@ -380,6 +383,11 @@ bool SysEventDatabase::IsContainQueryArg(const std::string& file, const SysEvent
         return false;
     }
     if (queryArg.toSeq != INVALID_VALUE_INT && eventInfo.seq >= queryArg.toSeq) {
+        return false;
+    }
+    if ((queryArg.reportInterval != DEFAULT_REPORT_INTERVAL) &&
+        (eventInfo.reportInterval != NOT_CFG_REPORT_INTERVAL) &&
+        (queryArg.reportInterval != eventInfo.reportInterval)) {
         return false;
     }
     return true;

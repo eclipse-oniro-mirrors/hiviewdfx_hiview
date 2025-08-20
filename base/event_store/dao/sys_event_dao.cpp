@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,9 +46,16 @@ std::shared_ptr<SysEventQuery> SysEventDao::BuildQuery(const std::string& domain
 std::shared_ptr<SysEventQuery> SysEventDao::BuildQuery(const std::string& domain,
     const std::vector<std::string>& names, uint32_t type, int64_t toSeq, int64_t fromSeq)
 {
+    return BuildQuery(domain, names, type, QueryExtraInfo { toSeq, fromSeq, DEFAULT_REPORT_INTERVAL });
+}
+
+std::shared_ptr<SysEventQuery> SysEventDao::BuildQuery(const std::string& domain,
+    const std::vector<std::string>& names, uint32_t type, QueryExtraInfo info)
+{
     HIVIEW_LOGD("query domain=%{public}s, names.size=%{public}zu, type=%{public}u, toSeq=%{public}" PRId64
-        ",  fromSeq=%{public}" PRId64, domain.c_str(), names.size(), type, toSeq, fromSeq);
-    return std::make_shared<SysEventQueryWrapper>(domain, names, type, toSeq, fromSeq);
+        ",  fromSeq=%{public}" PRId64 ", reportInterval=%{public}" PRId16 ".", domain.c_str(), names.size(), type,
+        info.toSeq, info.fromSeq, info.reportInterval);
+    return std::make_shared<SysEventQueryWrapper>(domain, names, type, info);
 }
 
 int SysEventDao::Insert(std::shared_ptr<SysEvent> sysEvent)

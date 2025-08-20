@@ -143,7 +143,8 @@ bool EventReadHandler::QuerySysEvent(const int64_t beginSeq, const int64_t endSe
     auto iter = eventList.begin();
     while (queryCnt > 0 && iter != eventList.end()) {
         int64_t queryLimit = queryCnt < QUERY_LIMIT ? queryCnt : QUERY_LIMIT;
-        query = EventStore::SysEventDao::BuildQuery(iter->first, iter->second, 0, endSeq, beginSeq);
+        query = EventStore::SysEventDao::BuildQuery(iter->first, iter->second, 0,
+            EventStore::QueryExtraInfo { endSeq, beginSeq, req_->taskType });
         query->Where(whereCond);
         query->Order(EventStore::EventCol::SEQ, true);
         auto resultSet = query->Execute(queryLimit, { true, isFirstPartialQuery },
@@ -184,9 +185,6 @@ bool EventReadHandler::HandleQueryResult(EventStore::ResultSet& resultSet, Query
             .systemVersion = iter->GetSysVersion(),
             .patchVersion = iter->GetPatchVersion()
         };
-        if ((req_->taskType != ALL_EVENT_TASK_TYPE) && (req_->taskType != iter->GetReportInterval())) {
-            continue;
-        }
         UpdatePeriodInfoMap(allPeriodInfoInOneQueryRange_, iter->GetEventPeriodSeqInfo());
         auto item = std::make_shared<CachedEvent>(eventVersion, iter->domain_, iter->eventName_,
             currentEventStr, CommonUtils::GetTransformedUid(iter->GetUid()));

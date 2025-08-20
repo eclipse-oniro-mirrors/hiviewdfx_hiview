@@ -34,6 +34,7 @@
 #include "sys_event_db_mgr.h"
 #include "sys_event_sequence_mgr.h"
 #include "time_util.h"
+#include "triggle_export_engine.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -142,6 +143,8 @@ bool SysEventStore::OnEvent(std::shared_ptr<Event>& event)
         }
         EventStore::SysEventSequenceManager::GetInstance().SetSequence(++eventSeq);
         sysEventDbMgr_->SaveToStore(sysEvent);
+
+        TriggleExportEngine::GetInstance().ProcessEvent(sysEvent);
 
         if (!Parameter::IsOversea() && !Parameter::IsFactoryMode()) {
             std::string dateStr(TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -105,6 +105,8 @@ public:
         : SysEventQuery(domain, names) {}
     SysEventQueryWrapper(const std::string& domain, const std::vector<std::string>& names,
         uint32_t type, int64_t toSeq, int64_t fromSeq) : SysEventQuery(domain, names, type, toSeq, fromSeq) {}
+    SysEventQueryWrapper(const std::string& domain, const std::vector<std::string>& names,
+        uint32_t type, QueryExtraInfo info) : SysEventQuery(domain, names, type, info) {}
     ~SysEventQueryWrapper() {}
 
 public:

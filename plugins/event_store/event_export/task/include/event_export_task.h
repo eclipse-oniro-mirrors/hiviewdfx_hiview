@@ -31,10 +31,11 @@ public:
 
 protected:
     void OnTaskRun() override;
+    virtual bool ParseExportEventList(ExportEventList& list);
+    virtual int64_t GetExportRangeEndSeq();
 
 private:
-    bool InitReadRequest(std::shared_ptr<EventReadRequest> readReq) const;
-    bool ParseExportEventList(ExportEventList& list) const;
+    bool InitReadRequest(std::shared_ptr<EventReadRequest> readReq);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

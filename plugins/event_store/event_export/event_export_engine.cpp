@@ -26,16 +26,12 @@
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
-#include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
-constexpr int REGISTER_RETRY_CNT = 100;
-constexpr int REGISTER_LOOP_DURATION = 6;
-
 std::string GenerateUuid()
 {
     std::string uuid;
@@ -55,75 +51,6 @@ std::string GenerateUuid()
     uuid.erase(std::remove(uuid.begin(), uuid.end(), '-'), uuid.end()); // remove character '-'
     return uuid;
 }
-
-void HandleExportSwitchOn(const std::string& moduleName)
-{
-    auto& dbMgr = ExportDbManager::GetInstance();
-    if (FileUtil::FileExists(dbMgr.GetEventInheritFlagPath(moduleName))) {
-        // if inherit flag file exists, no need to update export enabled seq
-        return;
-    }
-    auto curEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
-    HIVIEW_LOGI("update enabled seq:%{public}" PRId64 " for module %{public}s", curEventSeq, moduleName.c_str());
-    dbMgr.HandleExportSwitchChanged(moduleName, curEventSeq);
-}
-
-void HandleExportSwitchOff(const std::string& moduleName)
-{
-    auto& dbMgr = ExportDbManager::GetInstance();
-    dbMgr.HandleExportSwitchChanged(moduleName, INVALID_SEQ_VAL);
-    FileUtil::RemoveFile(dbMgr.GetEventInheritFlagPath(moduleName)); // remove inherit flag file if switch changes
-}
-
-bool RegisterSettingObserver(std::shared_ptr<ExportConfig> config)
-{
-    SettingObserver::ObserverCallback callback =
-        [&config] (const std::string& paramKey) {
-            std::string val = SettingObserverManager::GetInstance()->GetStringValue(paramKey);
-            HIVIEW_LOGI("value of param key[%{public}s] is %{public}s", paramKey.c_str(), val.c_str());
-            if (val == config->exportSwitchParam.enabledVal) {
-                HandleExportSwitchOn(config->moduleName);
-            } else {
-                HandleExportSwitchOff(config->moduleName);
-            }
-        };
-    bool regRet = false;
-    int retryCount = REGISTER_RETRY_CNT;
-    while (!regRet && retryCount > 0) {
-        regRet = SettingObserverManager::GetInstance()->RegisterObserver(config->exportSwitchParam.name,
-            callback);
-        if (regRet) {
-            break;
-        }
-        retryCount--;
-        ffrt::this_task::sleep_for(std::chrono::seconds(REGISTER_LOOP_DURATION));
-    }
-    if (!regRet) {
-        HIVIEW_LOGW("failed to regist setting db observer for module %{public}s", config->moduleName.c_str());
-        return regRet;
-    }
-    auto& dbMgr = ExportDbManager::GetInstance();
-    if (dbMgr.IsUnrecordedModule(config->moduleName)) { // first time to export event for current module
-        auto upgradeParam = config->sysUpgradeParam;
-        if (!upgradeParam.name.empty() &&
-            SettingObserverManager::GetInstance()->GetStringValue(upgradeParam.name) == upgradeParam.enabledVal) {
-            int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
-            HIVIEW_LOGI("reset enabled sequence to %{public}" PRId64 " for moudle %{public}s",
-                startSeq, config->moduleName.c_str());
-            dbMgr.HandleExportSwitchChanged(config->moduleName, startSeq);
-            FileUtil::CreateFile(dbMgr.GetEventInheritFlagPath(config->moduleName)); // create inherit flag file
-        }
-    }
-    HIVIEW_LOGI("succeed to regist setting db observer for module %{public}s", config->moduleName.c_str());
-    return regRet;
-}
-
-void UnregisterSettingObserver(std::vector<std::shared_ptr<ExportConfig>>& configs)
-{
-    for (auto& config : configs) {
-        SettingObserverManager::GetInstance()->UnregisterObserver(config->exportSwitchParam.name);
-    }
-}
 }
 
 EventExportEngine& EventExportEngine::GetInstance()
@@ -135,8 +62,10 @@ EventExportEngine& EventExportEngine::GetInstance()
 EventExportEngine::~EventExportEngine()
 {
     std::vector<std::shared_ptr<ExportConfig>> configs;
-    ExportConfigManager::GetInstance().GetAllExportConfigs(configs);
-    UnregisterSettingObserver(configs);
+    ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
+    for (auto& config : configs) {
+        EventExportUtil::UnregisterSettingObserver(config);
+    }
 }
 
 void EventExportEngine::Start()
@@ -170,7 +99,7 @@ void EventExportEngine::SetTaskDelayedSecond(int second)
 void EventExportEngine::InitAndRunTasks()
 {
     std::vector<std::shared_ptr<ExportConfig>> configs;
-    ExportConfigManager::GetInstance().GetAllExportConfigs(configs);
+    ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
     HIVIEW_LOGI("total count of periodic config is %{public}zu", configs.size());
     for (const auto& config : configs) {
         auto task = std::bind(&EventExportEngine::InitAndRunTask, this, config);
@@ -181,7 +110,7 @@ void EventExportEngine::InitAndRunTasks()
 void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
 {
     // reg setting db observer
-    if (!RegisterSettingObserver(config)) {
+    if (!EventExportUtil::RegisterSettingObserver(config)) {
         return;
     }
     ffrt::this_task::sleep_for(std::chrono::seconds(delayedSecond_));

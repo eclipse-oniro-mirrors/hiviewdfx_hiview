@@ -59,9 +59,22 @@ void ExportConfigManager::GetModuleNames(std::vector<std::string>& moduleNames) 
     }
 }
 
-void ExportConfigManager::GetAllExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const
+void ExportConfigManager::GetPeriodicExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const
 {
     for (auto& config : exportConfigs_) {
+        if (config.second->taskCycle <= 0) {
+            continue;
+        }
+        configs.emplace_back(config.second);
+    }
+}
+
+void ExportConfigManager::GetTriggleExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const
+{
+    for (auto& config : exportConfigs_) {
+        if (config.second->taskTriggleCycle <= 0) {
+            continue;
+        }
         configs.emplace_back(config.second);
     }
 }
@@ -78,7 +91,6 @@ std::shared_ptr<ExportConfig> ExportConfigManager::GetExportConfig(const std::st
 void ExportConfigManager::Init()
 {
     std::string configDir = GetExportConfigDir();
-    HIVIEW_LOGD("configuration file directory is %{public}s.", configDir.c_str());
     if (configDir.empty()) {
         return;
     }

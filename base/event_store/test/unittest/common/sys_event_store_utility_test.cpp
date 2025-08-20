@@ -330,7 +330,7 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest007, testing::ext::Te
 
 /**
  * @tc.name: SysEventStoreUtilityTest008
- * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.desc: Test ParseEventInfoFromDbFileName API of EventDbFileUtil
  * @tc.type: FUNC
  * @tc.require: issueIBM04F
  */
@@ -353,11 +353,18 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest008, testing::ext::Te
     ASSERT_EQ(testInfo.seq, 101); // 101 is expected sequence
 
     ASSERT_FALSE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-5-MINOR.db", testInfo, ALL_INFO));
+
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-3-MINOR-101-180.db", testInfo, ALL_INFO));
+    ASSERT_EQ(testInfo.name, "HIVIEW");
+    ASSERT_EQ(testInfo.type, 3); // 3 is expected type
+    ASSERT_EQ(testInfo.level, "MINOR");
+    ASSERT_EQ(testInfo.seq, 101); // 101 is expected sequence
+    ASSERT_EQ(testInfo.reportInterval, 180); // 180 is expected report interval value
 }
 
 /**
  * @tc.name: SysEventStoreUtilityTest009
- * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.desc: Test APIs of SysEventDocWriter
  * @tc.type: FUNC
  * @tc.require: issueIBT9BB
  */
@@ -372,6 +379,18 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest009, testing::ext::Te
     testEventContent.append(R"("id_":"12254568215815823881","MSG":"none","level_":"CRITICAL","seq_":1})");
     sysEvent = std::make_shared<SysEvent>("", nullptr, testEventContent);
     ASSERT_EQ(DOC_STORE_NEW_FILE, writer.Write(sysEvent));
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest010
+ * @tc.desc: Test IsCurrentVersionDbFilePath API of EventDbFileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICT59K
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest010, testing::ext::TestSize.Level3)
+{
+    ASSERT_FALSE(EventDbFileUtil::IsCurrentVersionDbFilePath("*/HIVIEW-3-MINOR-101.db"));
+    ASSERT_TRUE(EventDbFileUtil::IsCurrentVersionDbFilePath("*/HIVIEW-3-MINOR-101-180.db"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

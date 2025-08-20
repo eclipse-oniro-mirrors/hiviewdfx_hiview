@@ -1,0 +1,35 @@
+{
+    "exportSwitchParam": {
+        "name": "hiview_ue_swicth_enable",
+        "enabledValue": "1"
+    },
+    "sysUpgradeParam": {
+        "name": "hiview_ue_swicth_tmp",
+        "enabledValue": "1"
+    },
+    "exportDir": "/data/test/test_data/work/",
+    "exportDirMaxCapacity": 100,
+    "exportSingleFileMaxSize": 2,
+    "exportTaskType": {
+        "domestic": {
+            "beta": 180,
+            "commercial": 180
+        },
+        "oversea": {
+            "beta": 180,
+            "commercial": 180
+        }
+    },
+    "taskTriggleCycle": {
+        "domestic": {
+            "beta": 3,
+            "commercial": 3
+        },
+        "oversea": {
+            "beta": 3,
+            "commercial": 3
+        }
+    },
+    "exportEventListConfigPaths": [],
+    "fileStoredMaxDayCnt": 7
+}
