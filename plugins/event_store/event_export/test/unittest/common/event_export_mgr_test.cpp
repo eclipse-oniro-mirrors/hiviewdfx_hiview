@@ -99,6 +99,7 @@ HWTEST_F(EventExportMgrTest, EventExportEngine001, testing::ext::TestSize.Level3
     eventExportEngine.Start();
     TimeUtil::Sleep(5); // sleep 5 seconds
     eventExportEngine.Stop();
+
     std::vector<std::string> eventZipFiles;
     FileUtil::GetDirFiles(TEST_WORK_DIR, eventZipFiles);
     ASSERT_FALSE(eventZipFiles.empty());

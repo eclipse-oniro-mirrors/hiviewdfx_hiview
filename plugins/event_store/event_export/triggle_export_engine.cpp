@@ -74,12 +74,12 @@ TriggleExportEngine::TriggleExportEngine()
     ffrt::submit([this] () {
             InitFfrtQueueRefer();
             InitByAllExportConfigs();
-        }, { }, {}, ffrt::task_attr().name("init_triggle_export").qos(ffrt::qos_default));
+        }, {}, {}, ffrt::task_attr().name("init_triggle_export").qos(ffrt::qos_default));
 
     // delay 3 mins to export
     ffrt::submit([this] () {
             ffrt::this_task::sleep_for(std::chrono::seconds(taskDelaySecond_));
-            CancleExportDelay();
+            CancelExportDelay();
         }, {}, {}, ffrt::task_attr().name("triggle_export_delay_cancel").qos(ffrt::qos_default));
 }
 
@@ -123,7 +123,7 @@ void TriggleExportEngine::BuildNewTaskList(std::shared_ptr<SysEvent> event, std:
     StartTask(newTask);
 }
 
-void TriggleExportEngine::CancleExportDelay()
+void TriggleExportEngine::CancelExportDelay()
 {
     HIVIEW_LOGI("cancel triggle export delay");
     {

@@ -91,7 +91,6 @@ std::shared_ptr<ExportConfig> ExportConfigManager::GetExportConfig(const std::st
 void ExportConfigManager::Init()
 {
     std::string configDir = GetExportConfigDir();
-    HIVIEW_LOGI("configuration file directory is %{public}s.", configDir.c_str());
     if (configDir.empty()) {
         return;
     }

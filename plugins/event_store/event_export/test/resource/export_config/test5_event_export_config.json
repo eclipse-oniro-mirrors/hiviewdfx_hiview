@@ -20,16 +20,7 @@
             "commercial": 24
         }
     },
-    "taskTriggleCycle": {
-        "domestic": {
-            "beta": 25,
-            "commercial": 26
-        },
-        "oversea": {
-            "beta": 27,
-            "commercial": 28
-        }
-    },
+    "taskTriggleCycle": 25,
     "exportEventListConfigPaths": [],
     "fileStoredMaxDayCnt": 7
 }

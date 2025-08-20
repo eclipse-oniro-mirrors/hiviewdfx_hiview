@@ -39,7 +39,7 @@ private:
     TriggleExportEngine();
     ~TriggleExportEngine();
     void BuildNewTaskList(std::shared_ptr<SysEvent> event, std::shared_ptr<ExportConfig> config);
-    void CancleExportDelay();
+    void CancelExportDelay();
     void GetReportIntervalMatchedConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs,
         int16_t eventReportInterval);
     void InitByAllExportConfigs();

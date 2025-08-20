@@ -39,6 +39,10 @@ constexpr char FILE_STORED_MAX_DAY_CNT[] = "fileStoredMaxDayCnt";
 constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
 constexpr char INHERITED_MODULE[] = "inheritedModule";
 constexpr char TASK_TRIGGLE_CYCLE[] = "taskTriggleCycle";
+constexpr char DOMESTIC_TAG[] = "domestic";
+constexpr char OVERSEA_TAG[] = "oversea";
+constexpr char BETA_TAG[] = "beta";
+constexpr char COMMERCIAL_TAG[] = "commercial";
 constexpr int32_t INVALID_INT_VAL = -1;
 
 bool ParseIntFromCfg(cJSON* json, std::string& areaTag, std::string& versionTag, int64_t& val)
@@ -187,8 +191,8 @@ bool ExportConfigParser::ParseTaskType(std::shared_ptr<ExportConfig> config)
     if (!cJSON_IsObject(taskTypeJson)) {
         return false;
     }
-    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
-    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
+    std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
     int64_t taskType = INVALID_TASK_TYPE;
     if (!ParseIntFromCfg(taskTypeJson, areaTag, versionTag, taskType)) {
         HIVIEW_LOGE("failed to parse task type");
@@ -207,7 +211,6 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
 {
     auto taskCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_EXECUTING_CYCLE);
     if (taskCycleJson == nullptr) {
-        config->taskCycle = 0;
         return false;
     }
     if (cJSON_IsNumber(taskCycleJson)) {
@@ -219,11 +222,10 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
     if (!cJSON_IsObject(taskCycleJson)) {
         return false;
     }
-    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
-    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
+    std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
     if (!ParseIntFromCfg(taskCycleJson, areaTag, versionTag, config->taskCycle)) {
         HIVIEW_LOGE("failed to parse task type");
-        config->taskCycle = 0;
         return false;
     }
     HIVIEW_LOGI("task cycle is configured as object for module: %{public}s, value is %{public}" PRId64 "",
@@ -235,17 +237,15 @@ bool ExportConfigParser::ParseTaskTriggleCycle(std::shared_ptr<ExportConfig> con
 {
     auto taskTriggleCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_TRIGGLE_CYCLE);
     if (taskTriggleCycleJson == nullptr) {
-        config->taskTriggleCycle = 0;
         return false;
     }
     if (!cJSON_IsObject(taskTriggleCycleJson)) {
         return false;
     }
-    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
-    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
+    std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
     if (!ParseIntFromCfg(taskTriggleCycleJson, areaTag, versionTag, config->taskTriggleCycle)) {
         HIVIEW_LOGE("failed to parse task type");
-        config->taskTriggleCycle = 0;
         return false;
     }
     HIVIEW_LOGI("task triggle cycle for module: %{public}s, value is %{public}" PRId64 "",

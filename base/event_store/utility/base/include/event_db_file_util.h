@@ -21,8 +21,8 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-using ParseType = uint16_t;
-constexpr ParseType ALL_INFO = 0x0F;
+using ParseType = uint8_t;
+constexpr ParseType ALL_INFO = 0xFF;
 constexpr ParseType NAME_ONLY = 0x01;
 constexpr ParseType TYPE_ONLY = 0x02;
 constexpr ParseType LEVEL_ONLY = 0x04;

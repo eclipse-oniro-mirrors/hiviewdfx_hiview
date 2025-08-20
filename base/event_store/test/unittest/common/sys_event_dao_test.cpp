@@ -343,14 +343,21 @@ HWTEST_F(SysEventDaoTest, TestEventDaoQuery_011, testing::ext::TestSize.Level3)
 
     auto sysEventQuery1 = EventStore::SysEventDao::BuildQuery("DEMO", {"SYS_EVENT_DAO_TEST"});
     EventStore::ResultSet resultSet1 = sysEventQuery1->Execute();
+    int queryCnt = 10;
     auto sysEventQuery2 = EventStore::SysEventDao::BuildQuery("DEMO", {"SYS_EVENT_DAO_TEST"}, 1,
-        std::numeric_limits<int64_t>::max(), 10); // 10 is a test value
+        std::numeric_limits<int64_t>::max(), queryCnt);
     EventStore::ResultSet resultSet2 = sysEventQuery2->Execute();
+    EventStore::QueryExtraInfo info { std::numeric_limits<int64_t>::max(), queryCnt,
+        EventStore::DEFAULT_REPORT_INTERVAL };
+    auto sysEventQuery3 = EventStore::SysEventDao::BuildQuery("DEMO", {"SYS_EVENT_DAO_TEST"}, 1, info);
+    EventStore::ResultSet resultSet3 = sysEventQuery3->Execute();
 
-    while (resultSet1.HasNext() && resultSet2.HasNext()) {
+    while (resultSet1.HasNext() && resultSet2.HasNext() && resultSet3.HasNext()) {
         EventStore::ResultSet::RecordIter it1 = resultSet1.Next();
         EventStore::ResultSet::RecordIter it2 = resultSet2.Next();
-        ASSERT_TRUE(it1->GetSeq() == it2->GetSeq());
+        EventStore::ResultSet::RecordIter it3 = resultSet3.Next();
+        ASSERT_EQ(it1->GetSeq(), it2->GetSeq());
+        ASSERT_EQ(it2->GetSeq(), it3->GetSeq());
     }
 }
 

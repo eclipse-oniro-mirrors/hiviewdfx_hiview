@@ -55,6 +55,7 @@ void PostExportEvent(const std::string& moduleName, int16_t taskType)
 {
     auto event = std::make_shared<Event>("post_export_type_event");
     event->messageType_ = Event::MessageType::EVENT_EXPORT_TYPE;
+    event->SetValue("taskType", std::to_string(taskType));
     event->SetValue("reportModule", moduleName);
     if (taskType == ALL_EVENT_TASK_TYPE) {
         event->SetValue("reportInterval", "0");
