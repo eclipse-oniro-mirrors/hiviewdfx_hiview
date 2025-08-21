@@ -33,9 +33,6 @@ int main(int argc __UNUSED, char* argv[] __UNUSED)
     }
 
     auto& hiview = HiviewPlatform::GetInstance();
-    // process cmdline
-    hiview.ProcessArgsRequest(argc, argv);
-
     // parse configs and load plugin
     if (!hiview.InitEnvironment()) {
         HIVIEW_LOGW("Fail to init plugin environment. exit");
