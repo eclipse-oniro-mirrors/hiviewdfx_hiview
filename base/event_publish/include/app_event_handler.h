@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,21 +155,12 @@ public:
         bool isForeground = false;
     };
 
-    struct AudioJankFrameInfo : public BundleInfo {
-        uint64_t time = 0;
-        std::string process_name;
-        uint32_t max_frame_time = 0;
-        int64_t happen_time = 0;
-        std::string fault_type;
-    };
-
     int PostEvent(const AppLaunchInfo& event);
     int PostEvent(const ScrollJankInfo& event);
     int PostEvent(const ResourceOverLimitInfo& event);
     int PostEvent(const CpuUsageHighInfo& event);
     int PostEvent(const BatteryUsageInfo& event);
     int PostEvent(const AppKilledInfo& event);
-    int PostEvent(const AudioJankFrameInfo& event);
     bool IsAppListenedEvent(int32_t uid, const std::string& eventName);
 };
 } // namespace HiviewDFX

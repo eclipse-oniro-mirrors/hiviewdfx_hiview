@@ -35,7 +35,6 @@ describe("EventPublishJsTest", function () {
                         "MAIN_THREAD_JANK",
                         "APP_HICOLLIE",
                         "APP_KILLED",
-                        "AUDIO_JANK_FRAME",
                     ]
                 }
             ]
