@@ -32,7 +32,7 @@
             <option name="push" value="export_config/test3_event_export_config.json -> /data/test/test_data/cfg/sys_event_export/" src="res"/>
         </preparer>
     </target>
-    <target name="TriggleExportTest">
+    <target name="TriggerExportTest">
         <preparer>
             <option name="push" value="export_config/test4_event_export_config.json -> /data/test/test_data/cfg/sys_event_export/" src="res"/>
         </preparer>

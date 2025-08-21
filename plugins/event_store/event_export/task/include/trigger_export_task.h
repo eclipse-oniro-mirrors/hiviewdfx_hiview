@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_TRIGGLE_EXPORT_TASK_H
-#define HIVIEW_BASE_TRIGGLE_EXPORT_TASK_H
+#ifndef HIVIEW_BASE_TRIGGER_EXPORT_TASK_H
+#define HIVIEW_BASE_TRIGGER_EXPORT_TASK_H
 
 #include "event_export_task.h"
 #include "ffrt.h"
 #include "sys_event.h"
-#include "triggle_export_event.h"
+#include "trigger_export_event.h"
 
 #include <list>
 #include <memory>
@@ -27,15 +27,15 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-class TriggleExportTask : public EventExportTask {
+class TriggerExportTask : public EventExportTask {
 public:
-    TriggleExportTask(std::shared_ptr<ExportConfig> config, int taskId);
+    TriggerExportTask(std::shared_ptr<ExportConfig> config, int taskId);
 
     void AppendEvent(std::shared_ptr<SysEvent> sysEvent);
     std::string GetModuleName();
     int64_t GetTimeStamp();
     int GetId();
-    std::chrono::seconds GetTriggleCycle();
+    std::chrono::seconds GetTriggerCycle();
 
 protected:
     void OnTaskRun() override;
@@ -46,9 +46,9 @@ private:
     int id_ = 0;
     int64_t endSeq_ = 0;
     ffrt::mutex listMutex_;
-    std::list<std::shared_ptr<TriggleExportEvent>> allEvent_;
+    std::list<std::shared_ptr<TriggerExportEvent>> allEvent_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_TRIGGLE_EXPORT_TASK_H
+#endif // HIVIEW_BASE_TRIGGER_EXPORT_TASK_H

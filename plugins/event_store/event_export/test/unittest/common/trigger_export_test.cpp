@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "triggle_export_test.h"
+#include "trigger_export_test.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@
 #include "sys_event.h"
 #include "sys_event_sequence_mgr.h"
 #include "time_util.h"
-#include "triggle_export_engine.h"
+#include "trigger_export_engine.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -35,7 +35,7 @@ constexpr char TEST_MODULE_NAME[] = "test4";
 constexpr char TEST_CFG_DIR[] = "/data/test/test_data/cfg/";
 constexpr char TEST_WORK_DIR[] = "/data/test/test_data/work/";
 constexpr int64_t TEST_TASK_TYPE = 180;
-constexpr int64_t TEST_TRIGGLE_CYCLE = 5;
+constexpr int64_t TEST_TRIGGER_CYCLE = 5;
 
 std::shared_ptr<SysEvent> BuildTestSysEvent(int64_t seq)
 {
@@ -47,7 +47,7 @@ std::shared_ptr<SysEvent> BuildTestSysEvent(int64_t seq)
     return sysEvent;
 }
 
-class TriggleExportTestContext : public HiviewContext {
+class TriggerExportTestContext : public HiviewContext {
 public:
     std::string GetHiViewDirectory(DirectoryType type)
     {
@@ -59,108 +59,108 @@ public:
 };
 }
 
-void TriggleExportTest::SetUpTestCase()
+void TriggerExportTest::SetUpTestCase()
 {
 }
 
-void TriggleExportTest::TearDownTestCase()
+void TriggerExportTest::TearDownTestCase()
 {
 }
 
-void TriggleExportTest::SetUp()
+void TriggerExportTest::SetUp()
 {
 }
 
-void TriggleExportTest::TearDown()
+void TriggerExportTest::TearDown()
 {
 }
 
 /**
- * @tc.name: TriggleExportTaskTest001
- * @tc.desc: Test business of TriggleExportTask with null config
+ * @tc.name: TriggerExportTaskTest001
+ * @tc.desc: Test business of TriggerExportTask with null config
  * @tc.type: FUNC
  * @tc.require: issueICT59K
  */
-HWTEST_F(TriggleExportTest, TriggleExportTaskTest001, testing::ext::TestSize.Level3)
+HWTEST_F(TriggerExportTest, TriggerExportTaskTest001, testing::ext::TestSize.Level3)
 {
-    auto triggleTask = std::make_shared<TriggleExportTask>(nullptr, FIRST_TASK_ID);
-    ASSERT_NE(triggleTask, nullptr);
-    ASSERT_TRUE(triggleTask->GetModuleName().empty());
-    ASSERT_EQ(triggleTask->GetTimeStamp(), 0);
-    ASSERT_EQ(triggleTask->GetId(), FIRST_TASK_ID);
-    ASSERT_EQ(triggleTask->GetTriggleCycle(), std::chrono::seconds(0));
-    triggleTask->AppendEvent(nullptr);
-    ASSERT_EQ(triggleTask->GetTimeStamp(), 0);
+    auto triggerTask = std::make_shared<TriggerExportTask>(nullptr, FIRST_TASK_ID);
+    ASSERT_NE(triggerTask, nullptr);
+    ASSERT_TRUE(triggerTask->GetModuleName().empty());
+    ASSERT_EQ(triggerTask->GetTimeStamp(), 0);
+    ASSERT_EQ(triggerTask->GetId(), FIRST_TASK_ID);
+    ASSERT_EQ(triggerTask->GetTriggerCycle(), std::chrono::seconds(0));
+    triggerTask->AppendEvent(nullptr);
+    ASSERT_EQ(triggerTask->GetTimeStamp(), 0);
     auto maxEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
     auto sysEvent = BuildTestSysEvent(++maxEventSeq);
-    triggleTask->AppendEvent(sysEvent);
-    ASSERT_GT(triggleTask->GetTimeStamp(), 0);
+    triggerTask->AppendEvent(sysEvent);
+    ASSERT_GT(triggerTask->GetTimeStamp(), 0);
 }
 
 /**
- * @tc.name: TriggleExportTaskTest002
- * @tc.desc: Test business of TriggleExportTask with normal config
+ * @tc.name: TriggerExportTaskTest002
+ * @tc.desc: Test business of TriggerExportTask with normal config
  * @tc.type: FUNC
  * @tc.require: issueICT59K
  */
-HWTEST_F(TriggleExportTest, TriggleExportTaskTest002, testing::ext::TestSize.Level3)
+HWTEST_F(TriggerExportTest, TriggerExportTaskTest002, testing::ext::TestSize.Level3)
 {
     std::shared_ptr<ExportConfig> config = std::make_shared<ExportConfig>();
     config->moduleName = TEST_MODULE_NAME;
-    config->taskTriggleCycle = TEST_TRIGGLE_CYCLE;
-    auto triggleTask = std::make_shared<TriggleExportTask>(config, FIRST_TASK_ID);
-    ASSERT_NE(triggleTask, nullptr);
-    ASSERT_EQ(triggleTask->GetModuleName(), TEST_MODULE_NAME);
-    ASSERT_EQ(triggleTask->GetTriggleCycle(), std::chrono::seconds(TEST_TRIGGLE_CYCLE));
+    config->taskTriggerCycle = TEST_TRIGGER_CYCLE;
+    auto triggerTask = std::make_shared<TriggerExportTask>(config, FIRST_TASK_ID);
+    ASSERT_NE(triggerTask, nullptr);
+    ASSERT_EQ(triggerTask->GetModuleName(), TEST_MODULE_NAME);
+    ASSERT_EQ(triggerTask->GetTriggerCycle(), std::chrono::seconds(TEST_TRIGGER_CYCLE));
 }
 
 /**
- * @tc.name: TriggleExportTaskTest003
- * @tc.desc: Test entire business of TriggleExportTask
+ * @tc.name: TriggerExportTaskTest003
+ * @tc.desc: Test entire business of TriggerExportTask
  * @tc.type: FUNC
  * @tc.require: issueICT59K
  */
-HWTEST_F(TriggleExportTest, TriggleExportTaskTest003, testing::ext::TestSize.Level3)
+HWTEST_F(TriggerExportTest, TriggerExportTaskTest003, testing::ext::TestSize.Level3)
 {
-    TriggleExportTestContext context;
+    TriggerExportTestContext context;
     HiviewGlobal::CreateInstance(context);
 
     std::vector<std::shared_ptr<ExportConfig>> configs;
-    ExportConfigManager::GetInstance().GetTriggleExportConfigs(configs);
+    ExportConfigManager::GetInstance().GetTriggerExportConfigs(configs);
     ASSERT_EQ(configs.size(), 1); // 1 is expected config number
 
-    auto triggleTask = std::make_shared<TriggleExportTask>(configs.front(), FIRST_TASK_ID);
+    auto triggerTask = std::make_shared<TriggerExportTask>(configs.front(), FIRST_TASK_ID);
     auto maxEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
-    triggleTask->AppendEvent(BuildTestSysEvent(++maxEventSeq));
-    triggleTask->AppendEvent(BuildTestSysEvent(++maxEventSeq));
-    triggleTask->Run();
+    triggerTask->AppendEvent(BuildTestSysEvent(++maxEventSeq));
+    triggerTask->AppendEvent(BuildTestSysEvent(++maxEventSeq));
+    triggerTask->Run();
 
-    ASSERT_EQ(triggleTask->GetModuleName(), TEST_MODULE_NAME);
+    ASSERT_EQ(triggerTask->GetModuleName(), TEST_MODULE_NAME);
 }
 
 /**
- * @tc.name:TriggleExportEngineTest001
- * @tc.desc: Test apis of TriggleExportEngine
+ * @tc.name:TriggerExportEngineTest001
+ * @tc.desc: Test apis of TriggerExportEngine
  * @tc.type: FUNC
  * @tc.require: issueICT59K
  */
-HWTEST_F(TriggleExportTest, TriggleExportEngineTest001, testing::ext::TestSize.Level3)
+HWTEST_F(TriggerExportTest, TriggerExportEngineTest001, testing::ext::TestSize.Level3)
 {
-    TriggleExportTestContext context;
+    TriggerExportTestContext context;
     HiviewGlobal::CreateInstance(context);
 
-    auto& triggleExportEngine = TriggleExportEngine::GetInstance();
-    triggleExportEngine.SetTaskDelayedSecond(1); // 1 second is a test delay value
+    auto& triggerExportEngine = TriggerExportEngine::GetInstance();
+    triggerExportEngine.SetTaskDelayedSecond(1); // 1 second is a test delay value
 
     auto maxEventSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
-    triggleExportEngine.ProcessEvent(nullptr);
-    triggleExportEngine.ProcessEvent(BuildTestSysEvent(++maxEventSeq));
-    triggleExportEngine.ProcessEvent(BuildTestSysEvent(++maxEventSeq));
+    triggerExportEngine.ProcessEvent(nullptr);
+    triggerExportEngine.ProcessEvent(BuildTestSysEvent(++maxEventSeq));
+    triggerExportEngine.ProcessEvent(BuildTestSysEvent(++maxEventSeq));
 
     TimeUtil::Sleep(5); // sleep 5 seconds
 
     std::vector<std::shared_ptr<ExportConfig>> configs;
-    ExportConfigManager::GetInstance().GetTriggleExportConfigs(configs);
+    ExportConfigManager::GetInstance().GetTriggerExportConfigs(configs);
     ASSERT_EQ(configs.size(), 1); // 1 is expected config number
     auto frontConfig = configs.front();
     ASSERT_NE(frontConfig, nullptr);

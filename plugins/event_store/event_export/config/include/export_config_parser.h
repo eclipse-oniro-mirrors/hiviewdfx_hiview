@@ -69,8 +69,8 @@ struct ExportConfig {
     // true: a event would be posted after event export finished
     bool needPostEvent = false;
 
-    // the triggle cycle for triggle export task, unit: second
-    int64_t taskTriggleCycle = 0;
+    // the trigger cycle for trigger export task, unit: second
+    int64_t taskTriggerCycle = 0;
 };
 
 class ExportConfigParser {
@@ -86,7 +86,7 @@ private:
     bool ParseResidualContent(std::shared_ptr<ExportConfig> config);
     bool ParseTaskType(std::shared_ptr<ExportConfig> config);
     bool ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> config);
-    bool ParseTaskTriggleCycle(std::shared_ptr<ExportConfig> config);
+    bool ParseTaskTriggerCycle(std::shared_ptr<ExportConfig> config);
 
 private:
     cJSON* jsonRoot_ = nullptr;

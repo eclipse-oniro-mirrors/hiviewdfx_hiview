@@ -38,7 +38,7 @@ constexpr char EXPORT_EVENT_LIST_CONFIG_PATHS[] = "exportEventListConfigPaths";
 constexpr char FILE_STORED_MAX_DAY_CNT[] = "fileStoredMaxDayCnt";
 constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
 constexpr char INHERITED_MODULE[] = "inheritedModule";
-constexpr char TASK_TRIGGLE_CYCLE[] = "taskTriggleCycle";
+constexpr char TASK_TRIGGER_CYCLE[] = "taskTriggerCycle";
 constexpr char DOMESTIC_TAG[] = "domestic";
 constexpr char OVERSEA_TAG[] = "oversea";
 constexpr char BETA_TAG[] = "beta";
@@ -172,7 +172,7 @@ bool ExportConfigParser::ParseResidualContent(std::shared_ptr<ExportConfig> conf
         return false;
     }
     config->inheritedModule = CJsonUtil::GetStringValue(jsonRoot_, INHERITED_MODULE);
-    if (!ParseTaskType(config) || (!ParseTaskExecutingCycle(config) && !ParseTaskTriggleCycle(config))) {
+    if (!ParseTaskType(config) || (!ParseTaskExecutingCycle(config) && !ParseTaskTriggerCycle(config))) {
         return false;
     }
     return true;
@@ -233,23 +233,23 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
     return true;
 }
 
-bool ExportConfigParser::ParseTaskTriggleCycle(std::shared_ptr<ExportConfig> config)
+bool ExportConfigParser::ParseTaskTriggerCycle(std::shared_ptr<ExportConfig> config)
 {
-    auto taskTriggleCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_TRIGGLE_CYCLE);
-    if (taskTriggleCycleJson == nullptr) {
+    auto taskTriggerCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_TRIGGER_CYCLE);
+    if (taskTriggerCycleJson == nullptr) {
         return false;
     }
-    if (!cJSON_IsObject(taskTriggleCycleJson)) {
+    if (!cJSON_IsObject(taskTriggerCycleJson)) {
         return false;
     }
     std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
     std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
-    if (!ParseIntFromCfg(taskTriggleCycleJson, areaTag, versionTag, config->taskTriggleCycle)) {
-        HIVIEW_LOGE("failed to parse task type");
+    if (!ParseIntFromCfg(taskTriggerCycleJson, areaTag, versionTag, config->taskTriggerCycle)) {
+        HIVIEW_LOGE("failed to parse trigger cycle");
         return false;
     }
-    HIVIEW_LOGI("task triggle cycle for module: %{public}s, value is %{public}" PRId64 "",
-        config->moduleName.c_str(), config->taskTriggleCycle);
+    HIVIEW_LOGI("task trigger cycle for module: %{public}s, value is %{public}" PRId64 "",
+        config->moduleName.c_str(), config->taskTriggerCycle);
     return true;
 }
 } // HiviewDFX

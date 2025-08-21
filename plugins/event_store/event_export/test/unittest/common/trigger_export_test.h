@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_TRIGGLE_EXPORT_UNITTEST
-#define HIVIEW_BASE_TRIGGLE_EXPORT_UNITTEST
+#ifndef HIVIEW_BASE_TRIGGER_EXPORT_UNITTEST
+#define HIVIEW_BASE_TRIGGER_EXPORT_UNITTEST
 
 #include <gtest/gtest.h>
 
 namespace OHOS {
 namespace HiviewDFX {
-class TriggleExportTest : public testing::Test {
+class TriggerExportTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -29,4 +29,4 @@ public:
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS
-#endif  // HIVIEW_BASE_TRIGGLE_EXPORT_UNITTEST
+#endif  // HIVIEW_BASE_TRIGGER_EXPORT_UNITTEST

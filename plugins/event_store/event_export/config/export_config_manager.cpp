@@ -69,10 +69,10 @@ void ExportConfigManager::GetPeriodicExportConfigs(std::vector<std::shared_ptr<E
     }
 }
 
-void ExportConfigManager::GetTriggleExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const
+void ExportConfigManager::GetTriggerExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const
 {
     for (auto& config : exportConfigs_) {
-        if (config.second->taskTriggleCycle <= 0) {
+        if (config.second->taskTriggerCycle <= 0) {
             continue;
         }
         configs.emplace_back(config.second);

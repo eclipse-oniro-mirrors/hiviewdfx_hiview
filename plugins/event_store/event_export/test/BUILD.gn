@@ -23,7 +23,7 @@ group("unittest") {
     ":EventExportDbMgrTest",
     ":EventExportMgrTest",
     ":EventExportWriteTest",
-    ":TriggleExportTest",
+    ":TriggerExportTest",
   ]
 }
 
@@ -155,12 +155,12 @@ ohos_unittest("EventExportWriteTest") {
   ]
 }
 
-ohos_unittest("TriggleExportTest") {
+ohos_unittest("TriggerExportTest") {
   module_out_path = module_output_path
 
   configs = [ ":event_export_mgr_test_config" ]
 
-  sources = [ "unittest/common/triggle_export_test.cpp" ]
+  sources = [ "unittest/common/trigger_export_test.cpp" ]
 
   deps = [
     "$hiview_base:hiviewbase",
