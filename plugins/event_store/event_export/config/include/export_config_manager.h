@@ -30,7 +30,7 @@ public:
 
     void GetModuleNames(std::vector<std::string>& moduelNames) const;
     void GetPeriodicExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const;
-    void GetTriggleExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const;
+    void GetTriggerExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const;
     std::shared_ptr<ExportConfig> GetExportConfig(const std::string& moduleName) const;
 
 private:

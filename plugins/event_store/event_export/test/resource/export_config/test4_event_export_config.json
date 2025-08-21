@@ -20,7 +20,7 @@
             "commercial": 180
         }
     },
-    "taskTriggleCycle": {
+    "taskTriggerCycle": {
         "domestic": {
             "beta": 3,
             "commercial": 3

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "triggle_export_task.h"
+#include "trigger_export_task.h"
 
 #include "event_export_util.h"
 #include "hiview_logger.h"
@@ -20,22 +20,22 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-TriggleExportFlow");
+DEFINE_LOG_TAG("HiView-TriggerExportFlow");
 
-TriggleExportTask::TriggleExportTask(std::shared_ptr<ExportConfig> config, int taskId)
+TriggerExportTask::TriggerExportTask(std::shared_ptr<ExportConfig> config, int taskId)
     : EventExportTask(config)
 {
     id_ = taskId;
     endSeq_ = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
 }
 
-void TriggleExportTask::AppendEvent(std::shared_ptr<SysEvent> sysEvent)
+void TriggerExportTask::AppendEvent(std::shared_ptr<SysEvent> sysEvent)
 {
     if (sysEvent == nullptr) {
         HIVIEW_LOGE("invalid event");
         return;
     }
-    auto event = std::make_shared<TriggleExportEvent>();
+    auto event = std::make_shared<TriggerExportEvent>();
     event->domain = sysEvent->domain_;
     event->eventName = sysEvent->eventName_;
     event->timeStamp = sysEvent->happenTime_;
@@ -46,7 +46,7 @@ void TriggleExportTask::AppendEvent(std::shared_ptr<SysEvent> sysEvent)
     }
 }
 
-std::string TriggleExportTask::GetModuleName()
+std::string TriggerExportTask::GetModuleName()
 {
     if (config_ == nullptr) {
         HIVIEW_LOGE("export config is invalid");
@@ -55,7 +55,7 @@ std::string TriggleExportTask::GetModuleName()
     return config_->moduleName;
 }
 
-int64_t TriggleExportTask::GetTimeStamp()
+int64_t TriggerExportTask::GetTimeStamp()
 {
     std::unique_lock<ffrt::mutex> lock(listMutex_);
     if (allEvent_.empty()) {
@@ -69,27 +69,27 @@ int64_t TriggleExportTask::GetTimeStamp()
     return frontEvent->timeStamp;
 }
 
-int TriggleExportTask::GetId()
+int TriggerExportTask::GetId()
 {
     return id_;
 }
 
-std::chrono::seconds TriggleExportTask::GetTriggleCycle()
+std::chrono::seconds TriggerExportTask::GetTriggerCycle()
 {
     if (config_ == nullptr) {
         HIVIEW_LOGE("export config is invalid");
         return std::chrono::seconds(0);
     }
-    return std::chrono::seconds(config_->taskTriggleCycle);
+    return std::chrono::seconds(config_->taskTriggerCycle);
 }
 
-void TriggleExportTask::OnTaskRun()
+void TriggerExportTask::OnTaskRun()
 {
     EventExportTask::OnTaskRun();
     EventExportUtil::CheckAndPostExportEvent(config_);
 }
 
-bool TriggleExportTask::ParseExportEventList(ExportEventList& list)
+bool TriggerExportTask::ParseExportEventList(ExportEventList& list)
 {
     std::unique_lock<ffrt::mutex> lock(listMutex_);
     if (allEvent_.empty()) {
@@ -110,7 +110,7 @@ bool TriggleExportTask::ParseExportEventList(ExportEventList& list)
     return true;
 }
 
-int64_t TriggleExportTask::GetExportRangeEndSeq()
+int64_t TriggerExportTask::GetExportRangeEndSeq()
 {
     std::unique_lock<ffrt::mutex> lock(listMutex_);
     if (allEvent_.empty()) {

@@ -20,7 +20,7 @@
             "commercial": 24
         }
     },
-    "taskTriggleCycle": 25,
+    "taskTriggerCycle": 25,
     "exportEventListConfigPaths": [],
     "fileStoredMaxDayCnt": 7
 }

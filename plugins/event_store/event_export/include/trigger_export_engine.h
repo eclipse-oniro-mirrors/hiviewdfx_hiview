@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_TRIGGLE_EXPORT_ENGINE_H
-#define HIVIEW_BASE_TRIGGLE_EXPORT_ENGINE_H
+#ifndef HIVIEW_BASE_TRIGGER_EXPORT_ENGINE_H
+#define HIVIEW_BASE_TRIGGER_EXPORT_ENGINE_H
 
 #include "export_config_manager.h"
 #include "ffrt.h"
 #include "sys_event.h"
-#include "triggle_export_task.h"
+#include "trigger_export_task.h"
 
 #include <unordered_map>
 #include <memory>
@@ -28,33 +28,33 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-using TriggleTaskList = std::list<std::shared_ptr<TriggleExportTask>>;
-class TriggleExportEngine {
+using TriggerTaskList = std::list<std::shared_ptr<TriggerExportTask>>;
+class TriggerExportEngine {
 public:
-    static TriggleExportEngine& GetInstance();
+    static TriggerExportEngine& GetInstance();
     void ProcessEvent(std::shared_ptr<SysEvent> sysEvent);
     void SetTaskDelayedSecond(int second);
 
 private:
-    TriggleExportEngine();
-    ~TriggleExportEngine();
+    TriggerExportEngine();
+    ~TriggerExportEngine();
     void BuildNewTaskList(std::shared_ptr<SysEvent> event, std::shared_ptr<ExportConfig> config);
     void CancelExportDelay();
     void GetReportIntervalMatchedConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs,
         int16_t eventReportInterval);
     void InitByAllExportConfigs();
     void InitFfrtQueueRefer();
-    void RebuildExistTaskList(TriggleTaskList& taskList, std::shared_ptr<SysEvent> event,
+    void RebuildExistTaskList(TriggerTaskList& taskList, std::shared_ptr<SysEvent> event,
         std::shared_ptr<ExportConfig> config);
-    void RemoveTask(std::shared_ptr<TriggleExportTask> task);
-    void StartTask(std::shared_ptr<TriggleExportTask> task);
+    void RemoveTask(std::shared_ptr<TriggerExportTask> task);
+    void StartTask(std::shared_ptr<TriggerExportTask> task);
 
 private:
     ffrt_queue_t runningTaskQueue_;
     ffrt_task_attr_t taskAttr_;
     ffrt::mutex taskMapMutex_;
     ffrt::mutex delayMutex_;
-    std::unordered_map<std::string, TriggleTaskList> taskMap_;
+    std::unordered_map<std::string, TriggerTaskList> taskMap_;
     bool isTaskNeedDelay_ = true;
     int taskDelaySecond_ = 180;
     std::vector<std::shared_ptr<ExportConfig>> exportConfigs_;
@@ -62,4 +62,4 @@ private:
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_TRIGGLE_EXPORT_ENGINE_H
+#endif // HIVIEW_BASE_TRIGGER_EXPORT_ENGINE_H

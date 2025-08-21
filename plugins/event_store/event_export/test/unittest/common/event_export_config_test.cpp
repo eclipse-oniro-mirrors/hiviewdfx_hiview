@@ -32,7 +32,7 @@ constexpr char TEST_MODULE_NAME[] = "test";
 constexpr char TEST_SETTING_DB_PARAM_NAME[] = "test_param_key";
 constexpr char TEST_SETTING_DB_PARAM_ENABLED_VAL[] = "1";
 constexpr size_t TEST_PERIODIC_MODULE_CNT = 2;
-constexpr size_t TEST_TRIGGLE_MODULE_CNT = 1;
+constexpr size_t TEST_TRIGGER_MODULE_CNT = 1;
 constexpr int64_t TEST_CAPACITY = 100;
 constexpr int64_t TEST_SIZE = 2;
 constexpr int64_t TEST_CYCLE = 3600;
@@ -85,7 +85,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest001, testing::ext
     auto& manager = ExportConfigManager::GetInstance();
     std::vector<std::string> moduleNames;
     manager.GetModuleNames(moduleNames);
-    ASSERT_EQ(moduleNames.size(), TEST_PERIODIC_MODULE_CNT + TEST_TRIGGLE_MODULE_CNT);
+    ASSERT_EQ(moduleNames.size(), TEST_PERIODIC_MODULE_CNT + TEST_TRIGGER_MODULE_CNT);
     auto testModuleName = moduleNames.at(0);
     ASSERT_EQ(testModuleName, TEST_MODULE_NAME);
     auto exportConfig = manager.GetExportConfig(testModuleName);
@@ -94,8 +94,8 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest001, testing::ext
     manager.GetPeriodicExportConfigs(configs);
     ASSERT_EQ(configs.size(), TEST_PERIODIC_MODULE_CNT);
     configs.clear();
-    manager.GetTriggleExportConfigs(configs);
-    ASSERT_EQ(configs.size(), TEST_TRIGGLE_MODULE_CNT);
+    manager.GetTriggerExportConfigs(configs);
+    ASSERT_EQ(configs.size(), TEST_TRIGGER_MODULE_CNT);
 }
 
 /**

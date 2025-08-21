@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_TRIGGLE_EXPORT_EVENT_H
-#define HIVIEW_BASE_TRIGGLE_EXPORT_EVENT_H
+#ifndef HIVIEW_BASE_TRIGGER_EXPORT_EVENT_H
+#define HIVIEW_BASE_TRIGGER_EXPORT_EVENT_H
 
 namespace OHOS {
 namespace HiviewDFX {
-struct TriggleExportEvent {
+struct TriggerExportEvent {
     std::string domain;
 
     std::string eventName;
@@ -30,4 +30,4 @@ struct TriggleExportEvent {
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_TRIGGLE_EXPORT_EVENT_H
+#endif // HIVIEW_BASE_TRIGGER_EXPORT_EVENT_H

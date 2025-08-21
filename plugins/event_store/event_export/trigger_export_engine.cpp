@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "triggle_export_engine.h"
+#include "trigger_export_engine.h"
 
 #include "event_export_util.h"
 #include "hiview_logger.h"
@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-TriggleExportFlow");
+DEFINE_LOG_TAG("HiView-TriggerExportFlow");
 namespace {
 constexpr int FIRST_TASK_ID = 1;
 
@@ -31,16 +31,16 @@ int64_t CalculateTimeDuration(int64_t ts1, int64_t ts2)
 }
 }
 
-TriggleExportEngine& TriggleExportEngine::GetInstance()
+TriggerExportEngine& TriggerExportEngine::GetInstance()
 {
-    static TriggleExportEngine instance;
+    static TriggerExportEngine instance;
     return instance;
 }
 
-void TriggleExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
+void TriggerExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
 {
     if (sysEvent == nullptr) {
-        HIVIEW_LOGE("triggle event is null");
+        HIVIEW_LOGE("trigger event is null");
         return;
     }
     ffrt::submit([this, sysEvent] () {
@@ -55,18 +55,18 @@ void TriggleExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
                     RebuildExistTaskList(iter->second, sysEvent, config);
                 }
             }
-        }, { }, {}, ffrt::task_attr().name("process_triggle_event").qos(ffrt::qos_default));
+        }, { }, {}, ffrt::task_attr().name("process_trigger_event").qos(ffrt::qos_default));
 }
 
-void TriggleExportEngine::SetTaskDelayedSecond(int second)
+void TriggerExportEngine::SetTaskDelayedSecond(int second)
 {
     taskDelaySecond_ = second;
 }
 
-TriggleExportEngine::TriggleExportEngine()
+TriggerExportEngine::TriggerExportEngine()
 {
-    ExportConfigManager::GetInstance().GetTriggleExportConfigs(exportConfigs_);
-    HIVIEW_LOGI("total count of triggle config is %{public}zu", exportConfigs_.size());
+    ExportConfigManager::GetInstance().GetTriggerExportConfigs(exportConfigs_);
+    HIVIEW_LOGI("total count of trigger config is %{public}zu", exportConfigs_.size());
     if (exportConfigs_.empty()) {
         return;
     }
@@ -74,16 +74,16 @@ TriggleExportEngine::TriggleExportEngine()
     ffrt::submit([this] () {
             InitFfrtQueueRefer();
             InitByAllExportConfigs();
-        }, {}, {}, ffrt::task_attr().name("init_triggle_export").qos(ffrt::qos_default));
+        }, {}, {}, ffrt::task_attr().name("init_trigger_export").qos(ffrt::qos_default));
 
     // delay 3 mins to export
     ffrt::submit([this] () {
             ffrt::this_task::sleep_for(std::chrono::seconds(taskDelaySecond_));
             CancelExportDelay();
-        }, {}, {}, ffrt::task_attr().name("triggle_export_delay_cancel").qos(ffrt::qos_default));
+        }, {}, {}, ffrt::task_attr().name("trigger_export_delay_cancel").qos(ffrt::qos_default));
 }
 
-TriggleExportEngine::~TriggleExportEngine()
+TriggerExportEngine::~TriggerExportEngine()
 {
     for (auto& config : exportConfigs_) {
         EventExportUtil::UnregisterSettingObserver(config);
@@ -94,17 +94,17 @@ TriggleExportEngine::~TriggleExportEngine()
     }
 }
 
-void TriggleExportEngine::RebuildExistTaskList(TriggleTaskList& taskList, std::shared_ptr<SysEvent> event,
+void TriggerExportEngine::RebuildExistTaskList(TriggerTaskList& taskList, std::shared_ptr<SysEvent> event,
     std::shared_ptr<ExportConfig> config)
 {
-    std::shared_ptr<TriggleExportTask> lastTask = nullptr;
+    std::shared_ptr<TriggerExportTask> lastTask = nullptr;
     if (!taskList.empty()) {
         lastTask = taskList.back();
     }
     if ((lastTask == nullptr) || (CalculateTimeDuration(lastTask->GetTimeStamp(), event->happenTime_) >
-        config->taskTriggleCycle * TimeUtil::SEC_TO_MILLISEC)) {
+        config->taskTriggerCycle * TimeUtil::SEC_TO_MILLISEC)) {
         int newTaskId = (lastTask == nullptr) ? FIRST_TASK_ID : lastTask->GetId() + 1;
-        auto newTask = std::make_shared<TriggleExportTask>(config, newTaskId);
+        auto newTask = std::make_shared<TriggerExportTask>(config, newTaskId);
         newTask->AppendEvent(event);
         taskList.emplace_back(newTask);
         StartTask(newTask);
@@ -113,19 +113,19 @@ void TriggleExportEngine::RebuildExistTaskList(TriggleTaskList& taskList, std::s
     }
 }
 
-void TriggleExportEngine::BuildNewTaskList(std::shared_ptr<SysEvent> event, std::shared_ptr<ExportConfig> config)
+void TriggerExportEngine::BuildNewTaskList(std::shared_ptr<SysEvent> event, std::shared_ptr<ExportConfig> config)
 {
-    std::list<std::shared_ptr<TriggleExportTask>> taskList;
-    auto newTask = std::make_shared<TriggleExportTask>(config, FIRST_TASK_ID);
+    std::list<std::shared_ptr<TriggerExportTask>> taskList;
+    auto newTask = std::make_shared<TriggerExportTask>(config, FIRST_TASK_ID);
     newTask->AppendEvent(event);
     taskList.emplace_back(newTask);
     taskMap_.insert(std::make_pair(config->moduleName, taskList));
     StartTask(newTask);
 }
 
-void TriggleExportEngine::CancelExportDelay()
+void TriggerExportEngine::CancelExportDelay()
 {
-    HIVIEW_LOGI("cancel triggle export delay");
+    HIVIEW_LOGI("cancel trigger export delay");
     {
         std::unique_lock<ffrt::mutex> lock(delayMutex_);
         isTaskNeedDelay_ = false;
@@ -142,7 +142,7 @@ void TriggleExportEngine::CancelExportDelay()
     }
 }
 
-void TriggleExportEngine::StartTask(std::shared_ptr<TriggleExportTask> task)
+void TriggerExportEngine::StartTask(std::shared_ptr<TriggerExportTask> task)
 {
     {
         std::unique_lock<ffrt::mutex> lock(delayMutex_);
@@ -154,7 +154,7 @@ void TriggleExportEngine::StartTask(std::shared_ptr<TriggleExportTask> task)
         if (task == nullptr) {
             return;
         }
-        ffrt::this_task::sleep_for(task->GetTriggleCycle());
+        ffrt::this_task::sleep_for(task->GetTriggerCycle());
         task->Run();
 
         // remove task cache from list
@@ -163,7 +163,7 @@ void TriggleExportEngine::StartTask(std::shared_ptr<TriggleExportTask> task)
     ffrt_queue_submit(runningTaskQueue_, ffrt::create_function_wrapper(taskFunc, ffrt_function_kind_queue), &taskAttr_);
 }
 
-void TriggleExportEngine::RemoveTask(std::shared_ptr<TriggleExportTask> task)
+void TriggerExportEngine::RemoveTask(std::shared_ptr<TriggerExportTask> task)
 {
     std::unique_lock<ffrt::mutex> lock(taskMapMutex_);
     auto mapIter = taskMap_.find(task->GetModuleName());
@@ -179,7 +179,7 @@ void TriggleExportEngine::RemoveTask(std::shared_ptr<TriggleExportTask> task)
     }
 }
 
-void TriggleExportEngine::InitByAllExportConfigs()
+void TriggerExportEngine::InitByAllExportConfigs()
 {
     std::unique_lock<ffrt::mutex> lock(taskMapMutex_);
     for (auto& config : exportConfigs_) {
@@ -189,27 +189,27 @@ void TriggleExportEngine::InitByAllExportConfigs()
         // init task by config
         auto mapIter = taskMap_.find(config->moduleName);
         if (mapIter == taskMap_.end()) {
-            std::list<std::shared_ptr<TriggleExportTask>> taskList;
-            auto task = std::make_shared<TriggleExportTask>(config, FIRST_TASK_ID);
+            std::list<std::shared_ptr<TriggerExportTask>> taskList;
+            auto task = std::make_shared<TriggerExportTask>(config, FIRST_TASK_ID);
             taskList.emplace_back(task);
             taskMap_.insert(std::make_pair(config->moduleName, taskList));
         }
     }
 }
 
-void TriggleExportEngine::InitFfrtQueueRefer()
+void TriggerExportEngine::InitFfrtQueueRefer()
 {
     // init ffrt task queue
     ffrt_queue_attr_t queueAttr;
     (void)ffrt_queue_attr_init(&queueAttr);
-    runningTaskQueue_ = ffrt_queue_create(ffrt_queue_serial, "triggle_export_engine", &queueAttr);
+    runningTaskQueue_ = ffrt_queue_create(ffrt_queue_serial, "trigger_export_engine", &queueAttr);
 
     // init ffrt task
     ffrt_task_attr_init(&taskAttr_);
     ffrt_task_attr_set_qos(&taskAttr_, ffrt_qos_user_initiated);
 }
 
-void TriggleExportEngine::GetReportIntervalMatchedConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs,
+void TriggerExportEngine::GetReportIntervalMatchedConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs,
     int16_t eventReportInterval)
 {
     for (auto& config : exportConfigs_) {
