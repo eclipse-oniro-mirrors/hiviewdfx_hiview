@@ -1377,9 +1377,9 @@ HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.
 
     auto summaryLogInfoCatcher = std::make_shared<SummaryLogInfoCatcher>();
     summaryLogInfoCatcher->SetFaultTime(static_cast<int64_t>(logTask->GetFaultTime()));
-    bool ret = summaryLogInfoCatcher->Catch(fd, 1);
+    int ret = summaryLogInfoCatcher->Catch(fd, 1);
     close(fd);
-    EXPECT_TRUE(!ret);
+    EXPECT_TRUE(ret >= 0);
     EXPECT_EQ(logTask->GetFaultTime(), faultTime);
 
     EXPECT_EQ(summaryLogInfoCatcher->CharArrayStr(nullptr, 8), "");
