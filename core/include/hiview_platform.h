@@ -37,7 +37,6 @@ public:
     HiviewPlatform();
     ~HiviewPlatform();
     bool InitEnvironment(const std::string& platformConfigDir = "");
-    void ProcessArgsRequest(int argc, char* argv[]);
     void StartLoop();
     void SetMaxProxyIdleTime(time_t idleTime);
     void SetCheckProxyIdlePeriod(time_t period);

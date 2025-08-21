@@ -52,9 +52,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 constexpr uint32_t AID_SYSTEM = 1000;
-static const char VERSION[] = "1.0.0.0";
-static const char SEPARATOR_VERSION[] = " ";
-static const char RECORDER_VERSION[] = "01.00";
 static const char PLUGIN_CONFIG_NAME[] = "plugin_config";
 static const char HIVIEW_PID_FILE_NAME[] = "hiview.pid";
 static const char DEFAULT_CONFIG_DIR[] = "/system/etc/hiview/";
@@ -312,22 +309,6 @@ void HiviewPlatform::LoadPluginBundles()
         std::string configPath = defaultConfigDir_ + bundleName + "_plugin_config";
         LoadPluginBundle(bundleName, configPath);
     }
-}
-
-void HiviewPlatform::ProcessArgsRequest(int argc, char* argv[])
-{
-#ifndef _WIN32
-    umask(0002); // 0002 is block other write permissions, -------w-
-    signal(SIGPIPE, SIG_IGN);
-    int ch = -1;
-    while ((ch = getopt(argc, argv, "v")) != -1) {
-        if (ch == 'v') {
-            HIVIEW_LOGI("hiview version: %s%s%s", VERSION, SEPARATOR_VERSION, RECORDER_VERSION);
-            printf("hiview version: %s%s%s\n", VERSION, SEPARATOR_VERSION, RECORDER_VERSION);
-            _exit(1);
-        }
-    }
-#endif // !_WIN32
 }
 
 DynamicModule HiviewPlatform::LoadDynamicPlugin(const std::string& name) const
