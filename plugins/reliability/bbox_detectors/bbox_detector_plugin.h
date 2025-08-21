@@ -50,7 +50,7 @@ private:
     static constexpr int SECONDS = 60;
     static constexpr int READ_LINE_NUM = 5;
     static constexpr int MILLSECONDS = 1000;
-    static constexpr int ONE_DAY = 86400 * MILLSECONDS;
+    static constexpr int ONE_DAY = 60 * 60 * 24;
     bool hisiHistoryPath_ = false;
     uint64_t timeEventId_ = 0;
     std::mutex lock_;
