@@ -39,6 +39,14 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultLogDatabase");
 using namespace FaultLogger;
 namespace {
+#define EVENT_PARAM_CTOR(pName, pType, uType, pVal, pSize) \
+    { \
+        .name = (pName), \
+        .t = (pType), \
+        .v = {.uType = (pVal)}, \
+        .arraySize = (pSize) \
+    }
+
 static const std::vector<std::string> QUERY_ITEMS = {
     "time_", "name_", "uid_", "pid_", FaultKey::MODULE_NAME, FaultKey::REASON, FaultKey::SUMMARY, FaultKey::LOG_PATH,
     FaultKey::FAULT_TYPE
@@ -93,38 +101,7 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
     auto task = [info, hitraceId] () mutable {
         // Need set hitrace again in async task
         HiTraceChainSetId(&hitraceId);
-        int result = HiSysEventWrite(HiSysEvent::Domain::RELIABILITY, GetFaultNameByType(info.faultLogType, false),
-            HiSysEvent::EventType::FAULT, FaultKey::FAULT_TYPE, std::to_string(info.faultLogType),
-            FaultKey::MODULE_PID, info.pid, FaultKey::MODULE_UID, info.id, FaultKey::MODULE_NAME, info.module,
-            FaultKey::REASON, info.reason, FaultKey::SUMMARY, info.summary, FaultKey::LOG_PATH, info.logPath,
-            FaultKey::MODULE_VERSION, info.sectionMap.find(FaultKey::MODULE_VERSION) != info.sectionMap.end() ?
-                info.sectionMap.at(FaultKey::MODULE_VERSION) : "",
-            FaultKey::VERSION_CODE, info.sectionMap.find(FaultKey::VERSION_CODE) != info.sectionMap.end() ?
-                            info.sectionMap.at(FaultKey::VERSION_CODE) : "",
-            FaultKey::PRE_INSTALL, info.sectionMap[FaultKey::PRE_INSTALL],
-            FaultKey::FOREGROUND, info.sectionMap[FaultKey::FOREGROUND], FaultKey::HAPPEN_TIME, info.time,
-            "HITRACE_TIME", info.sectionMap.find("HITRACE_TIME") != info.sectionMap.end() ?
-                            info.sectionMap.at("HITRACE_TIME") : "",
-            "SYSRQ_TIME", info.sectionMap.find("SYSRQ_TIME") != info.sectionMap.end() ?
-                          info.sectionMap.at("SYSRQ_TIME") : "",
-            "FG", info.sectionMap.find("INVAILED_HILOG_TIME") != info.sectionMap.end() ?
-                            (info.sectionMap.at("INVAILED_HILOG_TIME") == "true" ? 1 : -1) : 0,
-            FaultKey::P_NAME, info.sectionMap["PROCESS_NAME"].empty() ? "/" : info.sectionMap["PROCESS_NAME"],
-            FaultKey::FIRST_FRAME, info.sectionMap[FaultKey::FIRST_FRAME].empty() ?
-                "/" : info.sectionMap[FaultKey::FIRST_FRAME],
-            FaultKey::SECOND_FRAME, info.sectionMap[FaultKey::SECOND_FRAME].empty() ?
-                "/" : info.sectionMap[FaultKey::SECOND_FRAME],
-            FaultKey::LAST_FRAME, info.sectionMap[FaultKey::LAST_FRAME].empty() ?
-                "/" : info.sectionMap[FaultKey::LAST_FRAME],
-            FaultKey::FINGERPRINT, info.sectionMap[FaultKey::FINGERPRINT].empty() ?
-                "/" : info.sectionMap[FaultKey::FINGERPRINT],
-            FaultKey::STACK, info.sectionMap[FaultKey::STACK].empty() ? "" : info.sectionMap[FaultKey::STACK],
-            FaultKey::TELEMETRY_ID, info.sectionMap[FaultKey::TELEMETRY_ID].empty() ?
-                "" : info.sectionMap[FaultKey::TELEMETRY_ID],
-            FaultKey::TRACE_NAME, info.sectionMap[FaultKey::TRACE_NAME].empty() ?
-                "" : info.sectionMap[FaultKey::TRACE_NAME]);
-        std::string eventName = GetFaultNameByType(info.faultLogType, false);
-        HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
+        FaultLogDatabase::WritrEvent(info);
         HiTraceChainClearId();
     };
     if (info.faultLogType == FaultLogType::CPP_CRASH) {
@@ -238,6 +215,58 @@ bool FaultLogDatabase::IsFaultExist(int32_t pid, int32_t uid, int32_t faultType)
         }
     }
     return false;
+}
+
+void FaultLogDatabase::FillInfoDefault(FaultLogInfo& info)
+{
+    auto setDefault = [&info](const char* key) {
+        if (info.sectionMap[key].empty()) {
+            info.sectionMap[key] = "/";
+        }
+    };
+    setDefault("PROCESS_NAME");
+    setDefault(FaultKey::FIRST_FRAME);
+    setDefault(FaultKey::SECOND_FRAME);
+    setDefault(FaultKey::LAST_FRAME);
+    setDefault(FaultKey::FINGERPRINT);
+}
+
+void FaultLogDatabase::WritrEvent(FaultLogInfo& info)
+{
+    std::string eventName = GetFaultNameByType(info.faultLogType, false);
+    auto faultLogType = std::to_string(info.faultLogType);
+    FaultLogDatabase::FillInfoDefault(info);
+    auto fg = info.sectionMap.find("INVAILED_HILOG_TIME") != info.sectionMap.end() ?
+        (info.sectionMap.at("INVAILED_HILOG_TIME") == "true" ? 1 : -1) : 0;
+
+    HiSysEventParam params[] = {
+        EVENT_PARAM_CTOR("FAULT_TYPE", HISYSEVENT_STRING, s, faultLogType.data(), 0),
+        EVENT_PARAM_CTOR("PID", HISYSEVENT_INT32, i32, info.pid, 0),
+        EVENT_PARAM_CTOR("UID", HISYSEVENT_INT32, i32, info.id, 0),
+        EVENT_PARAM_CTOR("MODULE", HISYSEVENT_STRING, s, info.module.data(), 0),
+        EVENT_PARAM_CTOR("REASON", HISYSEVENT_STRING, s, info.reason.data(), 0),
+        EVENT_PARAM_CTOR("SUMMARY", HISYSEVENT_STRING, s, info.summary.data(), 0),
+        EVENT_PARAM_CTOR("LOG_PATH", HISYSEVENT_STRING, s, info.logPath.data(), 0),
+        EVENT_PARAM_CTOR("VERSION", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::MODULE_VERSION].data(), 0),
+        EVENT_PARAM_CTOR("VERSION_CODE", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::VERSION_CODE].data(), 0),
+        EVENT_PARAM_CTOR("PRE_INSTALL", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::PRE_INSTALL].data(), 0),
+        EVENT_PARAM_CTOR("FOREGROUND", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FOREGROUND].data(), 0),
+        EVENT_PARAM_CTOR("HAPPEN_TIME", HISYSEVENT_INT64, i64, info.time, 0),
+        EVENT_PARAM_CTOR("HITRACE_TIME", HISYSEVENT_STRING, s, info.sectionMap["HITRACE_TIME"].data(), 0),
+        EVENT_PARAM_CTOR("SYSRQ_TIME", HISYSEVENT_STRING, s, info.sectionMap["SYSRQ_TIME"].data(), 0),
+        EVENT_PARAM_CTOR("FG", HISYSEVENT_INT32, i32, fg, 0),
+        EVENT_PARAM_CTOR("PNAME", HISYSEVENT_STRING, s, info.sectionMap["PROCESS_NAME"].data(), 0),
+        EVENT_PARAM_CTOR("FIRST_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FIRST_FRAME].data(), 0),
+        EVENT_PARAM_CTOR("SECOND_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::SECOND_FRAME].data(), 0),
+        EVENT_PARAM_CTOR("LAST_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::LAST_FRAME].data(), 0),
+        EVENT_PARAM_CTOR("FINGERPRINT", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FINGERPRINT].data(), 0),
+        EVENT_PARAM_CTOR("STACK", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::STACK].data(), 0),
+        EVENT_PARAM_CTOR("TELEMETRY_ID", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TELEMETRY_ID].data(), 0),
+        EVENT_PARAM_CTOR("TRACE_NAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TRACE_NAME].data(), 0)
+    };
+    int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
+    HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

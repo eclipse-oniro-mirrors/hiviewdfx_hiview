@@ -236,22 +236,27 @@ void CompressAndCopyLogFiles(const std::string& srcPath, const std::string& time
 
 void ReportPanicEventAfterRecovery(const BboxSaveLogFlags& bboxSaveLogFlags)
 {
-    const std::string& timeStr = bboxSaveLogFlags.happenTime;
+    std::string timeStr = bboxSaveLogFlags.happenTime;
     int64_t happenTime = Tbox::GetHappenTime(StringUtil::GetRleftSubstr(timeStr, "-"),
                                              "(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})");
-    HiSysEventWrite(
-        HisysEventUtil::KERNEL_VENDOR,
-        "PANIC",
-        HiSysEvent::EventType::FAULT,
-        "MODULE", "AP",
-        "REASON", "HM_PANIC:HM_PANIC_SYSMGR",
-        "LOG_PATH", GetBackupFilePath(timeStr),
-        "SUB_LOG_PATH", timeStr,
-        "HAPPEN_TIME", happenTime,
-        "FIRST_FRAME", "RECOVERY_PANIC",
-        "LAST_FRAME", bboxSaveLogFlags.softwareVersion,
-        "FINGERPRINT", Tbox::CalcFingerPrint(timeStr + bboxSaveLogFlags.softwareVersion, 0, FP_BUFFER)
-    );
+    char ap[] = "AP";
+    char sysmgr[] = "HM_PANIC:HM_PANIC_SYSMGR";
+    auto logPath = GetBackupFilePath(timeStr);
+    char recPanic[] = "RECOVERY_PANIC";
+    auto fp = Tbox::CalcFingerPrint(timeStr + bboxSaveLogFlags.softwareVersion, 0, FP_BUFFER);
+    auto softwareVersion = bboxSaveLogFlags.softwareVersion;
+    HiSysEventParam params[] = {
+        {.name = "MODULE", .t = HISYSEVENT_STRING, .v = {.s = ap}, .arraySize = 0},
+        {.name = "REASON", .t = HISYSEVENT_STRING, .v = {.s = sysmgr}, .arraySize = 0},
+        {.name = "LOG_PATH", .t = HISYSEVENT_STRING, .v = {.s = logPath.data()}, .arraySize = 0},
+        {.name = "SUB_LOG_PATH", .t = HISYSEVENT_STRING, .v = {.s = timeStr.data()}, .arraySize = 0},
+        {.name = "HAPPEN_TIME", .t = HISYSEVENT_INT64, .v = {.i64 = happenTime}, .arraySize = 0},
+        {.name = "FIRST_FRAME", .t = HISYSEVENT_STRING, .v = {.s = recPanic}, .arraySize = 0},
+        {.name = "LAST_FRAME", .t = HISYSEVENT_STRING, .v = {.s = softwareVersion.data()}, .arraySize = 0},
+        {.name = "FINGERPRINT", .t = HISYSEVENT_STRING, .v = {.s = fp.data()}, .arraySize = 0},
+    };
+    OH_HiSysEvent_Write(HisysEventUtil::KERNEL_VENDOR, "PANIC", HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
 }
 
 bool TryToReportRecoveryPanicEvent()
