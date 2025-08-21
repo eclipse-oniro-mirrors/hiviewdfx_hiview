@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "hiview_logger.h"
 #include "securec.h"
 #include "time_util.h"
 
@@ -33,6 +34,7 @@ using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
 namespace CommonUtils {
+DEFINE_LOG_TAG("CommonUtils");
 namespace {
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;
 std::string GetProcessNameFromProcCmdline(int32_t pid)
@@ -87,7 +89,10 @@ std::string GetProcNameByPid(pid_t pid)
 {
     std::string result;
     char buf[BUF_SIZE_256] = {0};
-    (void)snprintf_s(buf, BUF_SIZE_256, BUF_SIZE_256 - 1, "/proc/%d/comm", pid);
+    if (snprintf_s(buf, BUF_SIZE_256, BUF_SIZE_256 - 1, "/proc/%d/comm", pid) <= 0) {
+        HIVIEW_LOGE("failed to printf %{public}d", errno);
+        return "";
+    }
     FileUtil::LoadStringFromFile(std::string(buf, strlen(buf)), result);
     auto pos = result.find_last_not_of(" \n\r\t");
     if (pos == std::string::npos) {
