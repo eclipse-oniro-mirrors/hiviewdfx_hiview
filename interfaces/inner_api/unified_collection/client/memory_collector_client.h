@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,11 @@ struct MemoryCaller {
     bool enabledDebugLog;
 };
 
+struct GraphicUsage {
+    int32_t gl = 0;
+    int32_t graph = 0;
+};
+
 class MemoryCollector {
 public:
     MemoryCollector() = default;
@@ -39,7 +44,7 @@ public:
 public:
     virtual CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) = 0;
     virtual CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList) = 0;
-    virtual CollectResult<int32_t> GetGraphicUsage() = 0;
+    virtual CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage() = 0;
     static std::shared_ptr<MemoryCollector> Create();
 }; // MemoryCollector
 } // UCollectClient

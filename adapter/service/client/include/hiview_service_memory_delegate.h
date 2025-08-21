@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ namespace HiviewDFX {
 class HiViewServiceMemoryDelegate {
 public:
     static CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
-    static CollectResult<int32_t> GetGraphicUsage();
+    static CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage();
     static CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
 };
 } // namespace HiviewDFX

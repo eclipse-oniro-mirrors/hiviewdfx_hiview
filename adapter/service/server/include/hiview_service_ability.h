@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "app_caller_parcelable.h"
+#include "graphic_usage_parcelable.h"
 #include "hiview_err_code.h"
 #include "hiview_file_info.h"
 #include "hiview_service.h"
@@ -59,7 +60,7 @@ public:
         const MemoryCallerParcelable& memoryCallerParcelable, int32_t& errNo, int32_t& ret) override;
     ErrCode SetSplitMemoryValue(
         const std::vector<MemoryCallerParcelable>& memCallerParcelableList, int32_t& errNo, int32_t& ret) override;
-    ErrCode GetGraphicUsage(int32_t& errNo, int32_t& ret) override;
+    ErrCode GetGraphicUsage(int32_t& errNo, GraphicUsageParcelable& graphicUsageParcelable) override;
 
 protected:
     void OnDump() override;

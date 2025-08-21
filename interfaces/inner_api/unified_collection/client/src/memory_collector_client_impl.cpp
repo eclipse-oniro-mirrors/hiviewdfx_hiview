@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ public:
 public:
     CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;
     CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList) override;
-    CollectResult<int32_t> GetGraphicUsage() override;
+    CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage() override;
 };
 
 std::shared_ptr<MemoryCollector> MemoryCollector::Create()
@@ -47,7 +47,7 @@ CollectResult<int32_t> MemoryCollectorImpl::SetSplitMemoryValue(std::vector<UCol
     return HiViewServiceMemoryDelegate::SetSplitMemoryValue(memList);
 }
 
-CollectResult<int32_t> MemoryCollectorImpl::GetGraphicUsage()
+CollectResult<UCollectClient::GraphicUsage> MemoryCollectorImpl::GetGraphicUsage()
 {
     return HiViewServiceMemoryDelegate::GetGraphicUsage();
 }

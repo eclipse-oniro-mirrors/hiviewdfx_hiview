@@ -18,6 +18,7 @@ package OHOS.HiviewDFX;
 sequenceable OHOS.HiviewDFX.HiviewFileInfo;
 sequenceable OHOS.HiviewDFX.AppCallerParcelable;
 sequenceable OHOS.HiviewDFX.MemoryCallerParcelable;
+sequenceable OHOS.HiviewDFX.GraphicUsageParcelable;
 
 interface IHiviewServiceAbility {
     [ipcoutcapacity 480] void ListFiles([in] String logType, [out] HiviewFileInfo[] fileInfos);
@@ -33,6 +34,6 @@ interface IHiviewServiceAbility {
     void CaptureDurationTrace([in] AppCallerParcelable appCaller, [out] int errNo, [out] int ret);
     void GetSysCpuUsage([out] int errNo, [out] double ret);
     void SetAppResourceLimit([in] MemoryCallerParcelable memoryCallerParcelable, [out] int errNo, [out] int ret);
-    void GetGraphicUsage([out] int errNo, [out] int ret);
+    void GetGraphicUsage([out] int errNo, [out] GraphicUsageParcelable graphicUsageParcelable);
     void SetSplitMemoryValue([in] MemoryCallerParcelable[] memCallerParcelableList, [out] int errNo, [out] int ret);
 }

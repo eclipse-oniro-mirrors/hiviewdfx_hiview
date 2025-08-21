@@ -36,18 +36,20 @@ CollectResult<int32_t> HiViewServiceMemoryDelegate::SetAppResourceLimit(UCollect
     return ret;
 }
 
-CollectResult<int32_t> HiViewServiceMemoryDelegate::GetGraphicUsage()
+CollectResult<UCollectClient::GraphicUsage> HiViewServiceMemoryDelegate::GetGraphicUsage()
 {
-    CollectResult<int32_t> ret;
+    CollectResult<UCollectClient::GraphicUsage> ret;
     auto service = RemoteService::GetHiViewRemoteService();
     if (!service) {
         ret.retCode = UCollect::SYSTEM_ERROR;
         return ret;
     }
     int32_t errNo = 0;
-    if (HiviewServiceAbilityProxy(service).GetGraphicUsage(errNo, ret.data) == 0) {
+    GraphicUsageParcelable graphicUsageParcelable;
+    if (HiviewServiceAbilityProxy(service).GetGraphicUsage(errNo, graphicUsageParcelable) == 0) {
         ret.retCode = static_cast<UCollect::UcError>(errNo);
     }
+    ret.data = graphicUsageParcelable.GetGraphicUsage();
     return ret;
 }
 
