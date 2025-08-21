@@ -34,7 +34,7 @@ config("trace_unified_collection_test_config") {
 }
 
 ohos_unittest("TraceUtilsTest") {
-  module_out_path = hiview_module + "/ucollection"
+  module_out_path = hiview_module + "/ucollection/trace"
 
   configs = [ ":trace_unified_collection_test_config" ]
 
@@ -57,7 +57,7 @@ ohos_unittest("TraceUtilsTest") {
 }
 
 ohos_unittest("TraceStrategyTest") {
-  module_out_path = hiview_module + "/ucollection"
+  module_out_path = hiview_module + "/ucollection/trace"
 
   configs = [ ":trace_unified_collection_test_config" ]
 
@@ -96,7 +96,7 @@ ohos_unittest("TraceStrategyTest") {
 }
 
 ohos_unittest("TraceAppStrategyTest") {
-  module_out_path = hiview_module + "/ucollection"
+  module_out_path = hiview_module + "/ucollection/trace"
 
   configs = [ ":trace_unified_collection_test_config" ]
 
