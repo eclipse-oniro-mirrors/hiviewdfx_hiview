@@ -19,6 +19,7 @@
 #include "video_jank_report.h"
 #include "video_reporter.h"
 #include "xperf_service_log.h"
+#include "xperf_service_action_type.h"
 
 namespace OHOS {
 namespace HiviewDFX {
