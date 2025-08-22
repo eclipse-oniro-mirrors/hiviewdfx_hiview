@@ -25,15 +25,6 @@ namespace HiviewDFX {
 
 constexpr int32_t XPERF_SA_ID = 8600;
 
-enum DomainId {
-    XPERF = 0,
-    NETWORK = 1,
-    APP = 2,
-    AUDIO = 3,
-    AVCODEC = 4,
-    RS = 5,
-};
-
 enum XperfServiceIpcCode {
     NOTIFY_TO_XPERF = 1,
     REGISTER_VIDEO_JANK,

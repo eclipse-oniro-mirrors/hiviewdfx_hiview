@@ -80,6 +80,10 @@ OhosXperfEvent* XperfDispatcher::DispatcherMsgToParser(int32_t domainId, int32_t
 
 OhosXperfEvent* XperfDispatcher::DispatcherMsgToParser(int32_t logId, const std::string& msg)
 {
+    if (parsers.find(logId) == parsers.end()) {
+        LOGI("no ParserXperfFunc found for logId:%{public}d", logId);
+        return nullptr;
+    }
     OhosXperfEvent* event = parsers[logId](msg);
     event->logId = logId;
     event->rawMsg = msg;

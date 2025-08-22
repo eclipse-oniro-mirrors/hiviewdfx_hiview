@@ -51,6 +51,10 @@ void XperfService::InitXperfService()
 void XperfService::DispatchMsg(int32_t domainId, int32_t eventId, const std::string& msg)
 {
     OhosXperfEvent* event = dispatcher->DispatcherMsgToParser(domainId, eventId, msg);
+    if (event == nullptr) {
+        LOGE("Parser msg failed domainId:%{public}d eventId:%{public}d", domainId, eventId);
+        return;
+    }
     if (event->emergency) {
         taskManager->TaskRunnerOnce(event);
     } else {

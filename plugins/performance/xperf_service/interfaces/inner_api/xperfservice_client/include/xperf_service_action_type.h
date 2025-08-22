@@ -21,6 +21,48 @@
 namespace OHOS {
 namespace HiviewDFX {
 
+enum DomainId {
+    XPERF = 0,
+    NETWORK = 1,
+    APP = 2,
+    AUDIO = 3,
+    AVCODEC = 4,
+    RS = 5,
+};
+
+enum NetworkEventCode {
+    NETWORK_JANK_REPORT,
+};
+
+enum AudioEventCode {
+    AUDIO_START,
+    AUDIO_PAUSE_STOP,
+    AUDIO_RELEASE,
+    AUDIO_JNAK_FRAME,
+};
+
+enum AvcodecEventCode {
+    AVCODEC_FIRST_FRAME_START,
+    AVCODEC_JANK_REPORT,
+};
+
+enum RsEventCode {
+    VIDEO_JANK_FRAME,
+    VIDEO_FRAME_STATS,
+    VIDEO_EXCEPT_STOP,
+};
+
+enum AvcodecFaultCode {
+    AVCODEC_NONE,
+    HCODEC_HOLD_INPUT_TOO_MORE,
+    USER_HOLD_INPUT_TOO_MORE,
+    HAL_HOLD_INPUT_TOO_MORE,
+    HCODEC_HOLD_OUTPUT_TOO_MORE,
+    USER_HOLD_OUTPUT_TOO_MORE,
+    HAL_HOLD_OUTPUT_TOO_MORE,
+    CONSUMER_HOLD_OUTPUT_TOO_MORE,
+};
+
 enum ActionType : uint32_t {
     ACTION_TYPE_PERF,
     ACTION_TYPE_POWER,
