@@ -155,7 +155,11 @@ void LoadCollectorFromFile(const std::string& filePath, FreezeJsonCollector& jso
     if (!FileUtil::FileExists(filePath)) {
         return;
     }
-    std::ifstream jsonFile(filePath);
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(filePath, realPath)) {
+        return;
+    }
+    std::ifstream jsonFile(realPath);
     while (std::getline(jsonFile, lineStr)) {
         std::string::size_type pos = lineStr.find(COMMON_EQUAL);
         if (pos == std::string::npos) {
