@@ -28,6 +28,7 @@
 #include "native_memory_profiler_sa_config.h"
 #include "parameters.h"
 #include "singleton.h"
+#include "string_util.h"
 
 using namespace OHOS::Developtools::NativeDaemon;
 
@@ -45,13 +46,6 @@ constexpr int PREPARE_THRESH = 2000;
 constexpr int ONLY_NMD_TYPE = 2;
 constexpr int APP_THRESH = 20000;
 
-static bool IsNumber(const std::string& str)
-{
-    return !str.empty() && std::find_if(str.begin(), str.end(), [](unsigned char c) {
-        return !std::isdigit(c);
-        }) == str.end();
-}
-
 static int GetUid(int pid)
 {
     std::string pidStr = std::to_string(pid);
@@ -68,11 +62,7 @@ static int GetUid(int pid)
             std::stringstream is(line);
             is >> uid;
             is >> uid;
-            if (IsNumber(uid)) {
-                return stoi(uid);
-            } else {
-                break;
-            }
+            return StringUtil::StrToInt(uid);
         }
     }
     return -1;
