@@ -303,7 +303,6 @@ int AppEventHandler::PostEvent(const AudioJankFrameInfo& event)
     jsonStr << "{";
     AddTimeToJsonString(jsonStr);
     AddBundleInfoToJsonString(event, jsonStr);
-    AddValueToJsonString("process_name", event.process_name, jsonStr);
     AddValueToJsonString("max_frame_time", event.max_frame_time, jsonStr);
     AddValueToJsonString("happen_time", event.happen_time, jsonStr);
     AddValueToJsonString("fault_type", event.fault_type, jsonStr, true);
