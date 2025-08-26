@@ -46,6 +46,7 @@ ohos_source_set("hiview_service_stub") {
 
   sources = [
     "../common/src/app_caller_parcelable.cpp",
+    "../common/src/graphic_usage_parcelable.cpp",
     "../common/src/hiview_file_info.cpp",
     "../common/src/memory_caller_parcelable.cpp",
     "src/hiview_log_config_manager.cpp",

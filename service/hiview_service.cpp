@@ -402,9 +402,23 @@ CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectCl
     return {UCollect::UcError::SUCCESS};
 }
 
-CollectResult<int32_t> HiviewService::GetGraphicUsage(int32_t pid)
+CollectResult<UCollectClient::GraphicUsage> HiviewService::GetGraphicUsage(int32_t pid)
 {
-    return graphicMemoryCollector_->GetGraphicUsage(pid, GraphicType::TOTAL, true);
+    CollectResult<UCollectClient::GraphicUsage> result;
+    result.retCode = UCollect::UcError::SUCCESS;
+    CollectResult<int32_t> glRet = graphicMemoryCollector_->GetGraphicUsage(pid, GraphicType::GL, true);
+    if (glRet.retCode != UCollect::UcError::SUCCESS) {
+        result.retCode = glRet.retCode;
+        return result;
+    }
+    CollectResult<int32_t> graphRet = graphicMemoryCollector_->GetGraphicUsage(pid, GraphicType::GRAPH, true);
+    if (graphRet.retCode != UCollect::UcError::SUCCESS) {
+        result.retCode = graphRet.retCode;
+        return result;
+    }
+    result.data.gl = glRet.data;
+    result.data.graph = graphRet.data;
+    return result;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

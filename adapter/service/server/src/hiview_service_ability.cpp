@@ -449,7 +449,7 @@ ErrCode HiviewServiceAbility::SetSplitMemoryValue(
     return 0;
 }
 
-ErrCode HiviewServiceAbility::GetGraphicUsage(int32_t& errNo, int32_t& ret)
+ErrCode HiviewServiceAbility::GetGraphicUsage(int32_t& errNo, GraphicUsageParcelable& graphicUsageParcelable)
 {
     int32_t pid = IPCObjectStub::GetCallingPid();
     if (pid < 0) {
@@ -458,7 +458,9 @@ ErrCode HiviewServiceAbility::GetGraphicUsage(int32_t& errNo, int32_t& ret)
     auto handler = [pid] (HiviewService* service) {
         return service->GetGraphicUsage(pid);
     };
-    TraceCalling<int32_t>(handler, errNo, ret);
+    UCollectClient::GraphicUsage graphicUsage;
+    TraceCalling<UCollectClient::GraphicUsage>(handler, errNo, graphicUsage);
+    graphicUsageParcelable.UpdateGraphicUsage(graphicUsage);
     return 0;
 }
 

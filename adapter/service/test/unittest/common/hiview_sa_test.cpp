@@ -110,12 +110,14 @@ HWTEST_F(HiviewSATest, CommonTest003, testing::ext::TestSize.Level3)
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     ASSERT_GT(pid, 0);
     int32_t errNo = UCollect::UcError::UNSUPPORT;
-    int32_t value = 0;
+    GraphicUsageParcelable value;
     int32_t ret = hiviewSAProxy->GetGraphicUsage(errNo, value);
     ASSERT_EQ(ret, 0);
     ASSERT_EQ(errNo, UCollect::UcError::SUCCESS);
-    std::cout << "GetGraphicUsage result:" << value << std::endl;
-    ASSERT_GE(value, 0);
+    auto data = value.GetGraphicUsage();
+    std::cout << "GetGraphicUsage result gl:" << data.gl << " graph:" << data.graph << std::endl;
+    ASSERT_GE(data.gl, 0);
+    ASSERT_GE(data.graph, 0);
 }
 }
 }

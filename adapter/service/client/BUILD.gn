@@ -89,6 +89,7 @@ ohos_source_set("hiview_service_proxy") {
   sources = filter_include(output_values, [ "*_proxy.cpp" ])
   sources += [
     "../common/src/app_caller_parcelable.cpp",
+    "../common/src/graphic_usage_parcelable.cpp",
     "../common/src/hiview_file_info.cpp",
     "../common/src/memory_caller_parcelable.cpp",
   ]
