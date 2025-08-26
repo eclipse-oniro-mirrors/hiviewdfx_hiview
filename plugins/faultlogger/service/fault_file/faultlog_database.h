@@ -31,6 +31,8 @@ private:
     std::shared_ptr<EventLoop> eventLoop_;
     std::mutex mutex_;
     bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info);
+    static void FillInfoDefault(FaultLogInfo& info);
+    static void WritrEvent(FaultLogInfo& info);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

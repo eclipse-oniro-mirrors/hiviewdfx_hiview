@@ -74,12 +74,15 @@ bool FaultLogBootScan::IsEmptyStack(const std::string& file, const FaultLogInfo&
 {
     if (info.summary.find("#00") == std::string::npos) {
         HIVIEW_LOGI("Skip this file(%{public}s) which stack is empty.", file.c_str());
-        HiSysEventWrite(HiSysEvent::Domain::RELIABILITY, "CPP_CRASH_NO_LOG", HiSysEvent::EventType::FAULT,
-            FaultKey::MODULE_PID, info.pid,
-            FaultKey::MODULE_UID, info.id,
-            "PROCESS_NAME", info.module,
-            FaultKey::HAPPEN_TIME, std::to_string(info.time)
-        );
+        auto module = info.module;
+        HiSysEventParam params[] = {
+            {.name = "PID", .t = HISYSEVENT_INT32, .v = {.i32 = info.pid}, .arraySize = 0},
+            {.name = "UID", .t = HISYSEVENT_INT32, .v = {.i32 = info.id}, .arraySize = 0},
+            {.name = "PROCESS_NAME", .t = HISYSEVENT_STRING, .v = {.s = module.data()}, .arraySize = 0},
+            {.name = "HAPPEN_TIME", .t = HISYSEVENT_INT64, .v = {.i64 = info.time}, .arraySize = 0},
+        };
+        OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, "CPP_CRASH_NO_LOG", HISYSEVENT_FAULT,
+            params, sizeof(params) / sizeof(HiSysEventParam));
         if (remove(file.c_str()) != 0) {
             HIVIEW_LOGE("Failed to remove file(%{public}s) which stack is empty", file.c_str());
         }

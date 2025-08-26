@@ -24,9 +24,6 @@ namespace {
     constexpr const char *COMPOSE_CONFIG = "compose_rule.json";
     constexpr const char *EXTRACT_CONFIG = "extract_rule.json";
 }
-    std::map<std::string, FeatureSet> extractRule_;
-    std::list<std::pair<std::string, std::map<std::string, std::string>>> composeRule_;
-    std::map<std::string, std::vector<std::string>> segStatusCfg_;
 
 void Rule::ParseRule()
 {

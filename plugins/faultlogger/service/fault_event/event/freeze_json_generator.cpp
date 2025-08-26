@@ -49,9 +49,10 @@ FreezeJsonException FreezeJsonException::Builder::Build() const
 
 std::string FreezeJsonException::JsonStr() const
 {
-    std::map<std::string, std::string> exceptionMap;
-    exceptionMap[jsonExceptionName] = name_;
-    exceptionMap[jsonExceptionMessage] = message_;
+    std::map<std::string, std::string> exceptionMap = {
+        {jsonExceptionName, name_},
+        {jsonExceptionMessage, message_}
+    };
     return FreezeJsonUtil::GetStrByMap(exceptionMap);
 }
 
@@ -109,13 +110,14 @@ FreezeJsonMemory FreezeJsonMemory::Builder::Build() const
 
 std::string FreezeJsonMemory::JsonStr() const
 {
-    std::map<std::string, uint64_t> memoryMap;
-    memoryMap[jsonMemoryRss] = rss_;
-    memoryMap[jsonMemoryVss] = vss_;
-    memoryMap[jsonMemoryPss] = pss_;
-    memoryMap[jsonMemorySysFreeMem] = sysFreeMem_;
-    memoryMap[jsonMemorySysAvailMem] = sysAvailMem_;
-    memoryMap[jsonMemorySysTotalMem] = sysTotalMem_;
+    std::map<std::string, uint64_t> memoryMap = {
+        {jsonMemoryRss, rss_},
+        {jsonMemoryVss, vss_},
+        {jsonMemoryPss, pss_},
+        {jsonMemorySysFreeMem, sysFreeMem_},
+        {jsonMemorySysAvailMem, sysAvailMem_},
+        {jsonMemorySysTotalMem, sysTotalMem_}
+    };
     return FreezeJsonUtil::GetStrByMap(memoryMap);
 }
 
@@ -264,25 +266,26 @@ FreezeJsonParams FreezeJsonParams::Builder::Build() const
 
 std::string FreezeJsonParams::JsonStr() const
 {
-    std::list<std::string> list;
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsTime, time_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsUuid, uuid_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsForeground, foreground_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsBundleVersion, bundleVersion_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsBundleName, bundleName_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsProcessName, processName_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsExternalLog, externalLog_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsPid, pid_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsUid, uid_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsAppRunningUniqueId, appRunningUniqueId_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsException, exception_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsHilog, hilog_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandler, eventHandler_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandlerSize3s, eventHandlerSize3s_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandlerSize6s, eventHandlerSize6s_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsPeerBinder, peerBinder_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsThreads, threads_));
-    list.push_back(FreezeJsonUtil::GetStrByKeyValue(jsonParamsMemory, memory_));
+    std::list<std::string> list = {
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsTime, time_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsUuid, uuid_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsForeground, foreground_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsBundleVersion, bundleVersion_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsBundleName, bundleName_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsProcessName, processName_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsExternalLog, externalLog_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsPid, pid_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsUid, uid_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsAppRunningUniqueId, appRunningUniqueId_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsException, exception_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsHilog, hilog_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandler, eventHandler_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandlerSize3s, eventHandlerSize3s_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandlerSize6s, eventHandlerSize6s_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsPeerBinder, peerBinder_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsThreads, threads_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsMemory, memory_)
+    };
     return FreezeJsonUtil::MergeKeyValueList(list);
 }
 

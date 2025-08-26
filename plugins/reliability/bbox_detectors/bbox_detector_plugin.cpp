@@ -39,10 +39,10 @@ REGISTER(BBoxDetectorPlugin);
 DEFINE_LOG_LABEL(0xD002D11, "BBoxDetectorPlugin");
 
 namespace {
-    const std::string HISIPATH = "/data/hisi_logs/";
-    const std::string BBOXPATH = "/data/log/bbox/";
-    const std::string LOGPARSECONFIG = "/system/etc/hiview";
-    const std::vector<std::string> HISTORYLOGLIST = {
+    constexpr const char* const HISIPATH = "/data/hisi_logs/";
+    constexpr const char* const BBOXPATH = "/data/log/bbox/";
+    constexpr const char* const LOGPARSECONFIG = "/system/etc/hiview";
+    constexpr const char* const HISTORYLOGLIST[] = {
         "/data/hisi_logs/history.log",
         "/data/log/bbox/history.log"
     };
@@ -156,7 +156,7 @@ void BBoxDetectorPlugin::StartBootScan()
 {
     constexpr int oneDaySecond = 60 * 60 * 24;
     bool hisiHistory = false;
-    for (auto historyLog : HISTORYLOGLIST) {
+    for (std::string historyLog : HISTORYLOGLIST) {
         int num = READ_LINE_NUM;
         string line;
         if (FileUtil::FileExists(historyLog) && historyLog.find(HISIPATH) != std::string::npos) {
@@ -207,13 +207,17 @@ uint64_t BBoxDetectorPlugin::GetHappenTime(std::string& line, bool isHisiHistory
 int BBoxDetectorPlugin::CheckAndHiSysEventWrite(std::string& name, std::map<std::string, std::string>& historyMap,
     uint64_t& happenTime)
 {
-    int res = HiSysEventWrite(HisysEventUtil::KERNEL_VENDOR, name, HiSysEvent::EventType::FAULT,
-        "MODULE", historyMap["module"],
-        "REASON", historyMap["reason"],
-        "LOG_PATH", historyMap["logPath"],
-        "SUB_LOG_PATH", historyMap["subLogPath"],
-        "HAPPEN_TIME", happenTime,
-        "SUMMARY", "bootup_keypoint:" + historyMap["bootup_keypoint"]);
+    auto summary = "bootup_keypoint:" + historyMap["bootup_keypoint"];
+    HiSysEventParam params[] = {
+        {.name = "MODULE", .t = HISYSEVENT_STRING, .v = {.s = historyMap["module"].data()}, .arraySize = 0},
+        {.name = "REASON", .t = HISYSEVENT_STRING, .v = {.s = historyMap["reason"].data()}, .arraySize = 0},
+        {.name = "LOG_PATH", .t = HISYSEVENT_STRING, .v = {.s = historyMap["logPath"].data()}, .arraySize = 0},
+        {.name = "SUB_LOG_PATH", .t = HISYSEVENT_STRING, .v = {.s = historyMap["subLogPath"].data()}, .arraySize = 0},
+        {.name = "HAPPEN_TIME", .t = HISYSEVENT_INT64, .v = {.i64 = happenTime}, .arraySize = 0},
+        {.name = "SUMMARY", .t = HISYSEVENT_STRING, .v = {.s = summary.data()}, .arraySize = 0},
+    };
+    int res = OH_HiSysEvent_Write(HisysEventUtil::KERNEL_VENDOR, "PANIC", HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (res == 0 || (res < 0 && name.find("UNKNOWNS") != std::string::npos)) {
         return res;
     } else if (res < 0) {
