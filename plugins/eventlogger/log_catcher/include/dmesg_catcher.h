@@ -37,16 +37,21 @@ public:
     enum WRITE_TYPE {
         DMESG,
         SYS_RQ,
-        HUNG_TASK
+        HUNG_TASK,
+        SYSRQ_HUNGTASK
     };
 private:
     int writeNewFile_ = 0;
     int writeType_ = 0;
     std::shared_ptr<SysEvent> event_;
 
-    bool DumpDmesgLog(int fd);
+    bool DumpDmesgLog(int fdOne, int fdTwo);
     bool WriteSysrqTrigger();
-    bool DumpToFile(int fd, const std::string& dataStr);
+    bool DumpToFile(int fdOne, int fdTwo, const std::string& dataStr);
+    void GetSysrq(const std::string& dataStr, std::string& sysrqStr);
+    void GetHungTask(const std::string& dataStr, std::string& hungTaskStr);
+    FILE* GeFileInfoByName(const std::string& fileName, int& fd);
+    void CloseFp(FILE*& fp);
 #ifdef KERNELSTACK_CATCHER_ENABLE
     void GetTidsByPid(int pid, std::vector<pid_t>& tids);
     int DumpKernelStacktrace(int fd, int pid);
