@@ -152,6 +152,10 @@ std::string WriteZipFileStrategy::GetPackagerKey(std::shared_ptr<CachedEvent> ev
 
 bool WriteZipFileStrategy::Write(std::string& exportContent, WroteCallback callback)
 {
+    if (callback == nullptr) {
+        HIVIEW_LOGE("wrote call back is invalid");
+        return false;
+    }
     auto wroteFileName = GetWroteTempDir(param_.moduleName, param_.version).append(EXPORT_JSON_FILE_NAME);
     WriteContentToFile(exportContent, wroteFileName);
     // zip json file into a temporary zip file
@@ -163,9 +167,7 @@ bool WriteZipFileStrategy::Write(std::string& exportContent, WroteCallback callb
     }
     auto zipFile = GetZipFile(param_.exportDir, param_.uid);
     HIVIEW_LOGD("dest file: %{public}s", StringUtil::HideDeviceIdInfo(zipFile).c_str());
-    if (callback != nullptr) {
-        callback(tmpZipFile, zipFile);
-    }
+    callback(tmpZipFile, zipFile);
     return true;
 }
 } // namespace HiviewDFX
