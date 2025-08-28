@@ -41,15 +41,18 @@ namespace {
     constexpr int SYSLOG_ACTION_READ_ALL = 3;
     constexpr int SYSLOG_ACTION_SIZE_BUFFER = 10;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
-    static constexpr const char* const FULL_DIR = "/data/log/eventlog/";
+    constexpr const char* FULL_DIR = "/data/log/eventlog/";
 #ifdef KERNELSTACK_CATCHER_ENABLE
     static constexpr int DECIMEL = 10;
     static constexpr int DIR_BUFFER = 256;
 #endif
+    constexpr const char* SYSRQ_START = "sysrq start:";
+    constexpr const char* SYSRQ_END = "sysrq end:";
+    constexpr const char* HGUARD_WORKER = "hguard-worker";
+    constexpr const char* LMK_DEBUG = "sys-lmk-debug-t";
 }
 DmesgCatcher::DmesgCatcher() : EventLogCatcher()
 {
-    event_ = nullptr;
     name_ = "DmesgCatcher";
 }
 
@@ -67,71 +70,111 @@ bool DmesgCatcher::Init(std::shared_ptr<SysEvent> event)
     return true;
 }
 
-bool DmesgCatcher::DumpToFile(int fd, const std::string& dataStr)
+bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
 {
-    bool res = false;
-    size_t lineStart = 0;
-    size_t lineEnd = dataStr.size();
-    if (writeType_ == SYS_RQ) {
-        size_t sysRqStart = dataStr.find("sysrq start:");
-        if (sysRqStart == std::string::npos) {
-            return false;
-        }
-        size_t sysRqEnd = dataStr.find("sysrq end:", sysRqStart);
-        if (sysRqEnd == std::string::npos) {
-            return false;
-        }
-        lineStart = dataStr.rfind('\n', sysRqStart);
-        lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
-        lineEnd = dataStr.find('\n', sysRqEnd);
-        lineEnd = (lineEnd == std::string::npos) ? dataStr.length() : lineEnd;
-        res =  FileUtil::SaveStringToFd(fd, dataStr.substr(lineStart, lineEnd - lineStart + 1));
-    } else if (writeType_ == HUNG_TASK) {
-        std::string hungtaskStr;
-        while (lineStart < lineEnd) {
-            size_t seekPos = dataStr.find("hguard-worker", lineStart);
-            if (seekPos == std::string::npos) {
-                seekPos = dataStr.find("sys-lmk-debug-t", lineStart);
+    std::string strOne;
+    std::string strTwo;
+    if (writeType_ == HUNG_TASK) {
+        GetHungTask(dataStr, strOne);
+    } else {
+        GetSysrq(dataStr, strOne);
+        if (writeType_ == SYSRQ_HUNGTASK) {
+            if (writeNewFile_) {
+                GetHungTask(dataStr, strTwo);
+            } else {
+                strOne += "\n";
+                GetHungTask(dataStr, strOne);
             }
-            if (seekPos == std::string::npos) {
-                break;
-            }
-            lineStart = dataStr.rfind("\n", seekPos);
-            lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
-            lineEnd = dataStr.find("\n", seekPos);
-            lineEnd = (lineEnd == std::string::npos) ? dataStr.size() : lineEnd;
+        }
+    }
 
-            hungtaskStr.append(dataStr, lineStart, lineEnd - lineStart + 1);
-            lineStart = lineEnd + 1;
-        }
-        res = FileUtil::SaveStringToFd(fd, hungtaskStr);
+    bool res = true;
+    if (fdOne > -1 && writeType_ != HUNG_TASK) {
+        res = FileUtil::SaveStringToFd(fdOne, strOne);
+    }
+    if (fdTwo > -1 && writeType_ != SYS_RQ) {
+        res = FileUtil::SaveStringToFd(fdTwo, strTwo);
     }
     return res;
 }
-
-bool DmesgCatcher::DumpDmesgLog(int fd)
+ 
+void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr)
 {
-    if (fd < 0) {
+    size_t lineStart = 0;
+    size_t lineEnd = dataStr.size();
+    size_t sysrqStart = dataStr.find(SYSRQ_START);
+    if (sysrqStart == std::string::npos) {
+        return;
+    }
+    size_t sysrqEnd = dataStr.find(SYSRQ_END, sysrqStart);
+    if (sysrqEnd == std::string::npos) {
+        return;
+    }
+    lineStart = dataStr.rfind('\n', sysrqStart);
+    lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
+    lineEnd = dataStr.find('\n', sysrqEnd);
+    lineEnd = (lineEnd == std::string::npos) ? dataStr.length() : lineEnd;
+    sysrqStr = dataStr.substr(lineStart, lineEnd - lineStart + 1);
+}
+
+void DmesgCatcher::GetHungTask(const std::string& dataStr, std::string& hungtaskStr)
+{
+    if (writeType_ == SYSRQ_HUNGTASK && !writeNewFile_) {
+        hungtaskStr.append("\nHungTaskCatcher -- \n");
+    }
+    size_t lineStart = 0;
+    size_t lineEnd = dataStr.size();
+    size_t seekPos = 0;
+    while (lineStart < lineEnd) {
+        seekPos = dataStr.find(HGUARD_WORKER, lineStart);
+        if (seekPos == std::string::npos) {
+            seekPos = dataStr.find(LMK_DEBUG, lineStart);
+        }
+        if (seekPos == std::string::npos) {
+            break;
+        }
+        lineStart = dataStr.rfind("\n", seekPos);
+        lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
+        lineEnd = dataStr.find("\n", seekPos);
+        lineEnd = (lineEnd == std::string::npos) ? dataStr.size() : lineEnd;
+
+        hungtaskStr.append(dataStr, lineStart, lineEnd - lineStart + 1);
+        lineStart = lineEnd + 1;
+    }
+}
+
+bool DmesgCatcher::DumpDmesgLog(int fdOne, int fdTwo)
+{
+    if (fdOne < 0 && fdTwo < 0) {
         return false;
     }
+
     int size = klogctl(SYSLOG_ACTION_SIZE_BUFFER, 0, 0);
     if (size <= 0) {
         return false;
     }
-    char *data = (char *)malloc(size + 1);
-    if (data == nullptr) {
+
+    std::unique_ptr<char[]> data = std::make_unique<char[]>(size + 1);
+    if (!data) {
         return false;
     }
 
-    memset_s(data, size + 1, 0, size + 1);
-    int readSize = klogctl(SYSLOG_ACTION_READ_ALL, data, size);
-    if (readSize < 0) {
-        free(data);
+    if (memset_s(data.get(), size + 1, 0, size + 1) != 0) {
         return false;
     }
-    std::string dataStr = std::string(data, size);
-    free(data);
-    bool res = (writeType_ == DMESG) ? FileUtil::SaveStringToFd(fd, dataStr) : DumpToFile(fd, dataStr);
+
+    int readSize = klogctl(SYSLOG_ACTION_READ_ALL, data.get(), size);
+    if (readSize < 0) {
+        return false;
+    }
+    std::string dataStr(data.get(), readSize);
+
+    bool res = false;
+    if (writeType_ == DMESG) {
+        res = FileUtil::SaveStringToFd(fdOne, dataStr);
+    } else {
+        res = DumpToFile(fdOne, fdTwo, dataStr);
+    }
     return res;
 }
 
@@ -167,14 +210,15 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
     if (writeType_ && !WriteSysrqTrigger()) {
         return 0;
     }
-    description_ = (writeType_ == SYS_RQ) ? "\nSysrqCatcher -- \n" :
-        (writeType_ == HUNG_TASK) ? "\nHungTaskCatcher -- \n" : "\nDmesgCatcher -- \n";;
+    description_ = (writeType_ == HUNG_TASK) ? "\nHungTaskCatcher -- \n" :
+        (writeType_ == DMESG) ? "\nDmesgCatcher -- \n" : "\nSysrqCatcher -- \n";
     auto originSize = GetFdSize(fd);
     FileUtil::SaveStringToFd(fd, description_);
-    DumpDmesgLog(fd);
+    DumpDmesgLog(fd, -1);
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
 }
+
 #ifdef KERNELSTACK_CATCHER_ENABLE
 void DmesgCatcher::GetTidsByPid(int pid, std::vector<pid_t>& tids)
 {
@@ -189,7 +233,7 @@ void DmesgCatcher::GetTidsByPid(int pid, std::vector<pid_t>& tids)
         struct dirent* dent;
         while ((dent = readdir(dir)) != nullptr) {
             char* endptr;
-            unsigned long tid = strtoul(dent->d_name, &endptr, DECIMEL);
+            unsigned long tid = strtoul(dent->d_name, &endptr, DECIMAL);
             if (tid == ULONG_MAX || *endptr) {
                 continue;
             }
@@ -204,11 +248,11 @@ int DmesgCatcher::DumpKernelStacktrace(int fd, int pid)
     if (fd < 0 || pid < 0) {
         return -1;
     }
-    std::string msg = "";
+    std::string msg;
     std::vector<pid_t> tids;
     GetTidsByPid(pid, tids);
     for (auto tid : tids) {
-        std::string temp = "";
+        std::string temp;
         if (DfxGetKernelStack(tid, temp) != 0) {
             msg = "Failed to format kernel stack for " + std::to_string(tid) + temp + "\n";
             continue;
@@ -228,34 +272,58 @@ void DmesgCatcher::WriteNewFile(int pid)
     if (writeType_ && !WriteSysrqTrigger()) {
         return;
     }
-    std::string fileType = (writeType_ == SYS_RQ) ? "sysrq" : "hungtask";
     std::string fileTime = (writeType_ == SYS_RQ) ?  event_->GetEventValue("SYSRQ_TIME") :
         event_->GetEventValue("HUNGTASK_TIME");
-    std::string fileName = fileType + "-" + fileTime + ".log";
-    std::string fullPath = std::string(FULL_DIR) + fileName;
-    HIVIEW_LOGI("write file %{public}s start", fileName.c_str());
-    if (FileUtil::FileExists(fullPath)) {
-        HIVIEW_LOGW("filename: %{public}s is existed, direct use.", fileName.c_str());
+    std::string fileNameOne = (writeType_ == HUNG_TASK) ? "" : "sysrq-" + fileTime + ".log";
+    std::string fileNameTwo = (writeType_ == SYS_RQ) ? "" : "hungtask-" + fileTime + ".log";
+    HIVIEW_LOGI("write %{public}d %{public}s %{public}s start", writeType_, fileNameOne.c_str(), fileNameTwo.c_str());
+
+    int fdOne = -1;
+    FILE* fpOne = GeFileInfoByName(fileNameOne, fdOne);
+    int fdTwo = -1;
+    FILE* fpTwo = GeFileInfoByName(fileNameTwo, fdTwo);
+    if (!fpOne && !fpTwo) {
         return;
     }
-    FILE* fp = fopen(fullPath.c_str(), "w");
-    chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
-    if (fp == nullptr) {
-        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fileName.c_str(), errno);
-        return;
-    }
-    auto fd = fileno(fp);
-    DumpDmesgLog(fd);
+    DumpDmesgLog(fdOne, fdTwo);
 #ifdef KERNELSTACK_CATCHER_ENABLE
     if (writeType_ == SYS_RQ) {
         DumpKernelStacktrace(fd, pid);
     }
 #endif // KERNELSTACK_CATCHER_ENABLE
-    if (fclose(fp)) {
-        HIVIEW_LOGE("fclose is failed");
+    CloseFp(fpOne);
+    CloseFp(fpTwo);
+    HIVIEW_LOGI("write file %{public}s %{public}s end", fileNameOne.c_str(), fileNameTwo.c_str());
+}
+
+FILE* DmesgCatcher::GeFileInfoByName(const std::string& fileName, int& fd)
+{
+    if (fileName.empty()) {
+        return nullptr;
+    }
+    std::string fullPath = std::string(FULL_DIR) + fileName;
+    if (FileUtil::FileExists(fullPath)) {
+        return nullptr;
+    }
+    FILE* fp = fopen(fullPath.c_str(), "w");
+    if (!fp) {
+        HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fileName.c_str(), errno);
+    }
+    chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
+    fd = fileno(fp);
+    return fp;
+}
+
+void DmesgCatcher::CloseFp(FILE*& fp)
+{
+    if (fp == nullptr) {
+        return;
+    }
+
+    if (fclose(fp) != 0) {
+        HIVIEW_LOGE("fclose failed, errno: %{public}d", errno);
     }
     fp = nullptr;
-    HIVIEW_LOGI("write file %{public}s end", fileName.c_str());
 }
 #endif // DMESG_CATCHER_ENABLE
 } // namespace HiviewDFX
