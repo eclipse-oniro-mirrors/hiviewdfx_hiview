@@ -61,13 +61,11 @@ ohos_shared_library("xperfservice_server") {
     "framework/xperf_reporter/src/video_reporter.cpp",
 
     "server/src/xperf_service_server.cpp",
-    "server/src/xperf_service_stub.cpp",
     "xperf_service_main.cpp",
     "xperf_service_interfaces.cpp",
-
-    "${xperfservice_interfaces}/inner_api/xperfservice_client/src/video_jank_proxy.cpp",
-    "${xperfservice_interfaces}/inner_api/xperfservice_client/src/audio_jank_proxy.cpp",
   ]
+
+  deps = [ "${xperfservice_interfaces}/inner_api/xperfservice_client:xperfservice_stub" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",

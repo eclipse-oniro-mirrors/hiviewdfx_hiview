@@ -19,6 +19,7 @@
 #include "ixperf_service.h"
 #include "xperf_service_log.h"
 #include "system_ability_definition.h"
+#include "xperf_service_action_type.h"
 
 namespace {
     OHOS::sptr<OHOS::HiviewDFX::IXperfService> client = nullptr;
@@ -55,7 +56,7 @@ bool XperfServiceClient::CheckClientValid()
         return false;
     }
 
-    sptr<IRemoteObject> object = samgr->CheckSystemAbility(XPERF_SA_ID);
+    sptr<IRemoteObject> object = samgr->CheckSystemAbility(XPERF_SERVICE_SA_ID);
     if (!object) {
         LOGE("Failed to get SystemAbility[XPERF_SA_ID].");
         return false;
@@ -106,12 +107,10 @@ void XperfServiceClient::NotifyToXperf(int32_t domainId, int32_t eventId, const 
 
 int32_t XperfServiceClient::RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb)
 {
-    LOGI("XperfServiceClient::RegisterVideoJank");
     std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return XPERF_SERVICE_ERR;
     }
-    LOGI("XperfServiceClient::RegisterVideoJank caller:%{public}s, cb:%{public}p", caller.c_str(), cb.GetRefPtr());
     return client->RegisterVideoJank(caller, cb);
 }
 
@@ -126,13 +125,10 @@ int32_t XperfServiceClient::UnregisterVideoJank(const std::string& caller)
 
 int32_t XperfServiceClient::RegisterAudioJank(const std::string& caller, const sptr<IAudioJankCallback>& cb)
 {
-    HiLog::Error(LABEL, "XperfServiceClient::RegisterAudioJank");
     std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return XPERF_SERVICE_ERR;
     }
-    HiLog::Error(LABEL, "XperfServiceClient::RegisterAudioJank caller:%{public}s, cb:%{public}p", caller.c_str(),
-                 cb.GetRefPtr());
     return client->RegisterAudioJank(caller, cb);
 }
 

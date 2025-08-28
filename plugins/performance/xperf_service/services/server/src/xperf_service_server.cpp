@@ -22,11 +22,12 @@
 #include "tokenid_kit.h"
 #include "xperf_register_manager.h"
 #include "perf_trace.h"
+#include "xperf_service_action_type.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-XperfServiceServer::XperfServiceServer() : SystemAbility(XPERF_SA_ID, true)
+XperfServiceServer::XperfServiceServer() : SystemAbility(XPERF_SERVICE_SA_ID, true)
 {
 }
 
