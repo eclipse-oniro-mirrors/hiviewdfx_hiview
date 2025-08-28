@@ -641,29 +641,46 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
     dmesgCatcher->Init(event);
 
-    bool ret = dmesgCatcher->DumpDmesgLog(-1);
+    bool ret = dmesgCatcher->DumpDmesgLog(-1, -1);
     EXPECT_EQ(ret, false);
     ret = dmesgCatcher->WriteSysrqTrigger();
     EXPECT_EQ(ret, true);
     
-    auto fd = open("/data/test/dmesgCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
-    if (fd < 0) {
-        printf("Fail to create dmesgCatcherFile. errno: %d\n", errno);
+    auto fd1 = open("/data/test/dmesgCatcherFile1", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd1 < 0) {
+        printf("Fail to create dmesgCatcherFile1. errno: %d\n", errno);
         FAIL();
     }
     dmesgCatcher->Initialize("", true, 1);
-    ret = dmesgCatcher->DumpDmesgLog(fd);
-    close(fd);
-    EXPECT_EQ(ret, false);
+    ret = dmesgCatcher->DumpDmesgLog(fd1, -1);
+    close(fd1);
+    EXPECT_EQ(ret, true);
 
-    auto fd1 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
-    if (fd1 < 0) {
+    auto fd2 = open("/data/test/dmesgCatcherFile2", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd2 < 0) {
         printf("Fail to create dmesgCatcherFile2. errno: %d\n", errno);
         FAIL();
     }
     dmesgCatcher->Initialize("", true, 2);
-    ret = dmesgCatcher->DumpDmesgLog(fd1);
-    close(fd1);
+    ret = dmesgCatcher->DumpDmesgLog(-1, fd2);
+    close(fd2);
+    EXPECT_EQ(ret, true);
+
+    auto fd3 = open("/data/test/dmesgCatcherFile3", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd3 < 0) {
+        printf("Fail to create dmesgCatcherFile3. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto fd4 = open("/data/test/dmesgCatcherFile4", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd4 < 0) {
+        printf("Fail to create dmesgCatcherFile4. errno: %d\n", errno);
+        FAIL();
+    }
+    dmesgCatcher->Initialize("", true, 3);
+    ret = dmesgCatcher->DumpDmesgLog(fd3, fd4);
+    close(fd3);
+    close(fd4);
     EXPECT_EQ(ret, true);
 }
 

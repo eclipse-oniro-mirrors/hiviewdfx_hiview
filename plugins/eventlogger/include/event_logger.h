@@ -89,6 +89,8 @@ private:
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
     void SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event);
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
+    void HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<SysEvent> event, int fd,
+        std::shared_ptr<EventLogTask> logTask);
     void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
 #ifdef HITRACE_CATCHER_ENABLE

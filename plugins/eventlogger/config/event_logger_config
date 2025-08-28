@@ -22,7 +22,7 @@ event id="" name="REPEAT_SET_UI_NODE_ID" action="cmd:w,cmd:rs,cmd:scbCS,cmd:scbV
 event id="" name="SAMGR_SERVICE_BLOCK" action="s,pb:0:a,cmd:c,cmd:cci,cmd:m" interval="0"
 event id="" name="SCREEN_ON" action="T:power,cmd:p,cmd:d,cmd:w" interval="0"
 event id="" name="SCREEN_OFF" action="cmd:p,cmd:d,cmd:w" interval="0"
-event id="" name="HUNGTASK" action="k:SysRq,k:HungTask" interval="0"
+event id="" name="HUNGTASK" action="k:SysrqHungtask" interval="0"
 event id="" name="SERIAL_TASK_TIMEOUT" action="s,pb:0:a,k:SysRq,cmd:c,cmd:cci,cmd:m" interval="0"
 event id="" name="TASK_DEADLOCK" action="s" interval="0"
 event id="" name="IPC_FULL_WARNING" action="pb:1:r,hot" interval="0"
