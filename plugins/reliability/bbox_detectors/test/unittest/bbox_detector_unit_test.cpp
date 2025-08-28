@@ -240,6 +240,26 @@ HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BBoxDetectorUnitTest008
+ * @tc.desc: check whether the plugin initialize success.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest008, TestSize.Level1)
+{
+    auto testPlugin = make_shared<BBoxDetectorPlugin>();
+    testPlugin->AddBootScanEvent();
+    testPlugin->AddDetectBootCompletedTask();
+    testPlugin->workLoop_ = std::make_shared<EventLoop>("test");
+    testPlugin->AddBootScanEvent();
+    testPlugin->AddDetectBootCompletedTask();
+    testPlugin->NotifyBootStable();
+    testPlugin->NotifyBootCompleted();
+    ASSERT_NE(testPlugin->workLoop_, nullptr);
+}
+
+/**
  * @tc.name: BboxEventRecorder001
  * @tc.desc: check BboxEventRecorder.
  * @tc.type: FUNC
