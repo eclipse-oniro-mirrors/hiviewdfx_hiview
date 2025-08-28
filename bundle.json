@@ -241,10 +241,6 @@
                     "header": {
                         "header_base": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/interfaces/inner_api/xperfservice_client/include",
                         "header_files": [
-                            "ixperf_service.h",
-                            "video_jank_stub.h",
-                            "audio_jank_stub.h",
-                            "xperf_service_proxy.h",
                             "xperf_service_action_type.h",
                             "xperf_service_client.h"
                         ]

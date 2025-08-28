@@ -63,14 +63,26 @@ enum AvcodecFaultCode {
     CONSUMER_HOLD_OUTPUT_TOO_MORE,
 };
 
-enum ActionType : uint32_t {
-    ACTION_TYPE_PERF,
-    ACTION_TYPE_POWER,
-    ACTION_TYPE_THERMAL,
-    ACTION_TYPE_PERFLVL,
-    ACTION_TYPE_BATTERY,
-    ACTION_TYPE_MAX
+enum XperfServiceIpcCode {
+    NOTIFY_TO_XPERF = 1,
+    REGISTER_VIDEO_JANK,
+    UNREGISTER_VIDEO_JANK,
+    REGISTER_AUDIO_JANK,
+    UNREGISTER_AUDIO_JANK,
 };
+
+enum VideoJankIpcCode {
+    NOTIFY_VIDEO_JANK = 1,
+};
+
+enum AudioJankIpcCode {
+    NOTIFY_AUDIO_JANK = 1,
+};
+
+typedef enum {
+    XPERF_SERVICE_ERR = (-1),
+    XPERF_SERVICE_OK = 0,
+} XperfServiceBasicErr;
 
 } // namespace HiviewDFX
 } // namespace OHOS

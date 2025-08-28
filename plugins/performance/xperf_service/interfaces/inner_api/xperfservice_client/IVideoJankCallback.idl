@@ -13,13 +13,6 @@
  * limitations under the License.
  */
 
-import IVideoJankCallback;
-import IAudioJankCallback;
-
-interface OHOS.HiviewDFX.IXperfService {
-    [oneway] void NotifyToXperf([in] int domainId, [in] int eventId, [in] String msg);
-    void RegisterVideoJank([in] String caller, [in] IVideoJankCallback cb);
-    void UnregisterVideoJank([in] String caller);
-    void RegisterAudioJank([in] String caller, [in] IAudioJankCallback cb);
-    void UnregisterAudioJank([in] String caller);
+[callback] interface OHOS.HiviewDFX.IVideoJankCallback {
+    [oneway] void OnVideoJankEvent([in] String msg);
 }

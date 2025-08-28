@@ -15,24 +15,36 @@ import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../../xperf_service.gni")
 
+idl_gen_interface("xperf_service_interface") {
+  sources = [
+    "IAudioJankCallback.idl",
+    "IVideoJankCallback.idl",
+    "IXperfService.idl",
+  ]
+  log_domainid = "0xD002D66"
+  log_tag = "XPERF_SERVICE"
+  subsystem_name = "hiviewdfx"
+  part_name = "hiview"
+}
+
 config("xperf_service_client_public_config") {
   include_dirs = [
     "include",
+    "${target_gen_dir}",
     "${xperfservice_common}/include",
   ]
 }
 
 ohos_shared_library("xperfservice_client") {
+  output_values = get_target_outputs(":xperf_service_interface")
   sources = [
     "src/xperf_service_client.cpp",
-    "src/xperf_service_proxy.cpp",
-    "src/video_jank_proxy.cpp",
-    "src/video_jank_stub.cpp",
-    "src/audio_jank_proxy.cpp",
-    "src/audio_jank_stub.cpp",
   ]
+  sources += filter_include(output_values, [ "*_proxy.cpp" ])
+  sources += filter_include(output_values, [ "*_stub.cpp" ])
 
   public_configs = [ ":xperf_service_client_public_config" ]
+  deps = [ ":xperf_service_interface" ]
 
   external_deps = [
     "c_utils:utils",
@@ -64,23 +76,29 @@ ohos_shared_library("xperfservice_client") {
 }
 
 ohos_source_set("xperfservice_stub") {
-  public_configs = [ ":xperf_service_client_public_config" ]
+    public_configs = [ ":xperf_service_client_public_config" ]
+    output_values = get_target_outputs(":xperf_service_interface")
+    sources = []
+    sources += filter_include(output_values, [ "*_proxy.cpp" ])
+    sources += filter_include(output_values, [ "*_stub.cpp" ])
 
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "samgr:samgr_proxy",
-    "ipc:ipc_single",
-  ]
+    deps = [ ":xperf_service_interface" ]
 
-  subsystem_name = "hiviewdfx"
-  part_name = "hiview"
+    external_deps = [
+        "c_utils:utils",
+        "hilog:libhilog",
+        "samgr:samgr_proxy",
+        "ipc:ipc_single",
+    ]
 
-  branch_protector_ret = "pac_ret"
+    subsystem_name = "hiviewdfx"
+    part_name = "hiview"
 
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
+    branch_protector_ret = "pac_ret"
+
+    sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+        debug = false
+    }
 }
