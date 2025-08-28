@@ -192,8 +192,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveFile(ani_env *env,
     std::string logTypeTemp = LogLibraryAniUtil::ParseStringValue(env, logType);
     std::string logNameTemp = LogLibraryAniUtil::ParseStringValue(env, logName);
     std::string destTemp = LogLibraryAniUtil::ParseStringValue(env, dest);
-    HIVIEW_LOGI("type:%{public}s, name:%{public}s, dir: %{public}s",
-        logTypeTemp.c_str(), StringUtil::HideSnInfo(logNameTemp).c_str(), destTemp.c_str());
+    HIVIEW_LOGI("type:%{public}s", logTypeTemp.c_str());
 
     if (!LogLibraryAniUtil::CheckDirPath(destTemp)) {
         HIVIEW_LOGE("dest param is invalid: %{public}s", destTemp.c_str());
