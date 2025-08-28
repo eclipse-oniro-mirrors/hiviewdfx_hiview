@@ -45,6 +45,9 @@ ohos_unittest("BBoxDetectorUnitTest") {
 
   configs = [ ":bbox_detector_test_config" ]
 
+  cflags_cc = [ "-Dprivate=public" ]
+  cflags_cc += [ "-Dprotected=public" ]
+
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
