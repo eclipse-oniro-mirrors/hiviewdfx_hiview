@@ -32,21 +32,14 @@ namespace {
     static constexpr const char* const TAG_LINKS = "links";
     static constexpr const char* const TAG_EVENT = "event";
     static constexpr const char* const TAG_RESULT = "result";
-    static constexpr const char* const TAG_RELEVANCE = "relevance";
-    static constexpr const char* const ATTRIBUTE_ID = "id";
     static constexpr const char* const ATTRIBUTE_WINDOW = "window";
     static constexpr const char* const ATTRIBUTE_DELAY = "delay";
     static constexpr const char* const ATTRIBUTE_DOMAIN = "domain";
     static constexpr const char* const ATTRIBUTE_STRINGID = "stringid";
-    static constexpr const char* const ATTRIBUTE_TYPE = "type";
-    static constexpr const char* const ATTRIBUTE_USER = "user";
-    static constexpr const char* const ATTRIBUTE_WATCHPOINT = "watchpoint";
     static constexpr const char* const ATTRIBUTE_CODE = "code";
     static constexpr const char* const ATTRIBUTE_SCOPE = "scope";
     static constexpr const char* const ATTRIBUTE_SAME_PACKAGE = "samePackage";
     static constexpr const char* const ATTRIBUTE_ACTION = "action";
-    static constexpr const char* const ATTRIBUTE_APPLICATION = "application";
-    static constexpr const char* const ATTRIBUTE_SYSTEM = "system";
     static const int MAX_FILE_SIZE = 512 * 1024;
 }
 

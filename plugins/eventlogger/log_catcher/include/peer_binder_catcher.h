@@ -50,7 +50,6 @@ private:
         int eventTid;
     };
 
-    bool firstLayerInit_ = false;
     int pid_ = 0;
     int layer_ = 0;
     std::string perfCmd_ = "";

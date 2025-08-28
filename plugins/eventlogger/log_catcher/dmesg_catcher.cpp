@@ -42,8 +42,10 @@ namespace {
     constexpr int SYSLOG_ACTION_SIZE_BUFFER = 10;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     static constexpr const char* const FULL_DIR = "/data/log/eventlog/";
+#ifdef KERNELSTACK_CATCHER_ENABLE
     static constexpr int DECIMEL = 10;
     static constexpr int DIR_BUFFER = 256;
+#endif
 }
 DmesgCatcher::DmesgCatcher() : EventLogCatcher()
 {

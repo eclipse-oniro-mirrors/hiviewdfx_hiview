@@ -63,9 +63,6 @@ namespace {
     static constexpr const char* const STRINGID_LONGPRESS = "COM_LONG_PRESS";
     static constexpr const char* const LONGPRESS_LEVEL = "CRITICAL";
     static constexpr const char* const EXPECTION_FLAG = "notifyAppFault exception";
-    static constexpr const char* const MONITOR_STACK_FLIE_NAME[] = {
-        "jsstack",
-    };
     static constexpr const char* const CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
@@ -96,8 +93,6 @@ namespace {
     static constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
     static constexpr int HISTORY_EVENT_LIMIT = 500;
     static constexpr uint8_t LONGPRESS_PRIVACY = 1;
-    static constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
-    static constexpr int DECIMEL = 10;
     static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
     static constexpr int BOOT_SCAN_SECONDS = 60;

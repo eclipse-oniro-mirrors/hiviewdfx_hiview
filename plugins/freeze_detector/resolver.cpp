@@ -27,7 +27,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static const int DEFAULT_TIME_WINDOW = 30;
     static const int MINUTES_IN_HOUR = 60;
     static const int MIN_MATCH_NUM = 2;
     static const int DEFAULT_HOURS = 10;
