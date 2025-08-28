@@ -46,7 +46,6 @@ private:
     void DumpCapture(int fd);
 
     mutable ffrt::mutex mutex_;
-    const uint64_t initDelay_ = 5000;
     std::list<int32_t> subscribeIds_;
     std::shared_ptr<LogStoreEx> logStore_;
     uint64_t triggeringTime_;

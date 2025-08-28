@@ -31,8 +31,6 @@ namespace {
     constexpr const char* DMAHEAP = "DmaHeapTotalUsed";
     constexpr const char* GPUMEM = "GpuTotalUsed";
     constexpr const char* RECLAIM = "ReclaimAvailBuffer";
-    constexpr const char* LONG_PRESS = "LONG_PRESS";
-    constexpr const char* AP_S_PRESS6S = "AP_S_PRESS6S";
     constexpr const char* PROC_PRESSURE_MEMORY = "/proc/pressure/memory";
     constexpr const char* PROC_MEMORYVIEW = "/proc/memview";
     constexpr const char* PROC_MEMORYINFO = "/proc/meminfo";

@@ -33,7 +33,6 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-EventLogCatcher");
 namespace {
     constexpr char SED_EXEC_PATH[] = "/system/bin/sed";
-    constexpr size_t BLOCK_COUNT = 1;
 }
 
 std::string EventLogCatcher::GetName() const

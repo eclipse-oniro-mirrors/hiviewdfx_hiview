@@ -42,8 +42,10 @@ namespace {
     constexpr int SYSLOG_ACTION_SIZE_BUFFER = 10;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     constexpr const char* FULL_DIR = "/data/log/eventlog/";
-    constexpr int DECIMAL = 10;
-    constexpr int DIR_BUFFER = 256;
+#ifdef KERNELSTACK_CATCHER_ENABLE
+    static constexpr int DECIMEL = 10;
+    static constexpr int DIR_BUFFER = 256;
+#endif
     constexpr const char* SYSRQ_START = "sysrq start:";
     constexpr const char* SYSRQ_END = "sysrq end:";
     constexpr const char* HGUARD_WORKER = "hguard-worker";
