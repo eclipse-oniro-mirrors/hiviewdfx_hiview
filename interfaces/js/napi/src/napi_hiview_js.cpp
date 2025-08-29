@@ -149,7 +149,6 @@ static napi_value Remove(napi_env env, napi_callback_info info)
         || !HiviewNapiUtil::ParseStringValue(env, "logName", params[LOG_NAME_INDEX], logName)) {
         return result;
     }
-    HIVIEW_LOGI("type: %{public}s", logType.c_str());
     int32_t retCode = HiviewServiceAgent::GetInstance().Remove(logType, logName);
     if (retCode != 0) {
         HIVIEW_LOGI("retCode: %{public}u.", retCode);
