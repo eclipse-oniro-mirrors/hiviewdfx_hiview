@@ -36,6 +36,10 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
     FreezeJsonUtil::FreezeJsonCollector collector = GetFreezeJsonCollector(info);
     std::list<std::string> externalLogList;
     externalLogList.push_back(info.logPath);
+    std::string freezeExtPath = GetStrValFromMap(info.sectionMap, FaultKey::FREEZE_INFO_PATH);
+    if (!freezeExtPath.empty()) {
+        externalLogList.push_back(freezeExtPath);
+    }
     std::string externalLog = FreezeJsonUtil::GetStrByList(externalLogList);
 
     FreezeJsonParams freezeJsonParams = FreezeJsonParams::Builder()

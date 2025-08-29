@@ -19,7 +19,6 @@
 #include <string>
 #include <list>
 
-#include "log_store_ex.h"
 #include "input_manager.h"
 #include "ffrt.h"
 
@@ -31,7 +30,7 @@ public:
     ~ActiveKeyEvent();
     ActiveKeyEvent& operator=(const ActiveKeyEvent&) = delete;
     ActiveKeyEvent(const ActiveKeyEvent&) = delete;
-    void Init(std::shared_ptr<LogStoreEx> logStore);
+    void Init();
     static int64_t SystemTimeMillisecond();
 
 private:
@@ -47,7 +46,6 @@ private:
 
     mutable ffrt::mutex mutex_;
     std::list<int32_t> subscribeIds_;
-    std::shared_ptr<LogStoreEx> logStore_;
     uint64_t triggeringTime_;
     uint8_t taskOutDeps = 0;
     int reportLimit_ = 0;

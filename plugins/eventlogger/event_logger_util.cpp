@@ -33,8 +33,6 @@ namespace {
     static const uint32_t INDEX_OF_TIMESTAMP = 4;
     static const uint32_t FREEZE_VECTOR_SIZE = 5;
     static constexpr time_t FORTYEIGHT_HOURS = 48 * 60 * 60;
-    static const size_t FREEZE_FILE_NAME_SIZE = 6;
-    static const int FREEZE_UID_INDEX = 4;
     static constexpr const char* const APPFREEZE = "appfreeze";
     static constexpr const char* const SYSFREEZE = "sysfreeze";
     static constexpr const char* const SYSWARNING = "syswarning";
@@ -138,33 +136,6 @@ void StartBootScan()
         HIVIEW_LOGI("Boot scan file: %{public}s.", file.c_str());
         AddFaultLog(info);
     }
-}
-
-int32_t GetUidFromFileName(const std::string& fileName)
-{
-    std::vector<std::string> splitStr;
-    StringUtil::SplitStr(fileName, "-", splitStr);
-    int32_t id = 0;
-    if (splitStr.size() == FREEZE_FILE_NAME_SIZE) {
-        StringUtil::ConvertStringTo<int32_t>(splitStr[FREEZE_UID_INDEX], id);
-    }
-    return id;
-}
-
-LogStoreEx::LogFileFilter CreateLogFileFilter(int32_t id, const std::string& filePrefix)
-{
-    LogStoreEx::LogFileFilter filter = [id, filePrefix](const LogFile &file) {
-        if (file.name_.find(filePrefix) == std::string::npos) {
-            return false;
-        }
-        int fileId = GetUidFromFileName(file.name_);
-        if (fileId != id) {
-            return false;
-        }
-
-        return true;
-    };
-    return filter;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

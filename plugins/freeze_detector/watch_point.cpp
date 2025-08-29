@@ -21,7 +21,7 @@ namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_("")
 {
 }
 
@@ -45,13 +45,15 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     sysrqTime_(builder.sysrqTime_),
     hitraceIdInfo_(builder.hitraceIdInfo_),
     procStatm_(builder.procStatm_),
-    hostResourceWarning_(builder.hostResourceWarning_)
+    hostResourceWarning_(builder.hostResourceWarning_),
+    freezeExtFile_(builder.freezeExtFile_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    freezeExtFile_("")
 {
 }
 
@@ -177,6 +179,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitHostResourceWarning(const std::str
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitFreezeExtFile(const std::string& freezeExtFile)
+{
+    freezeExtFile_ = freezeExtFile;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -283,9 +291,19 @@ std::string WatchPoint::GetHostResourceWarning() const
     return hostResourceWarning_;
 }
 
+std::string WatchPoint::GetFreezeExtFile() const
+{
+    return freezeExtFile_;
+}
+
 void WatchPoint::SetLogPath(const std::string& logPath)
 {
     logPath_ = logPath;
+}
+
+void WatchPoint::SetFreezeExtFile(const std::string& freezeExtFile)
+{
+    freezeExtFile_ = freezeExtFile;
 }
 
 void WatchPoint::SetTerminalThreadStack(const std::string& terminalThreadStack)

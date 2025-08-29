@@ -21,6 +21,7 @@
 
 #define private public
 #include "event_logger.h"
+#include "freeze_manager.h"
 #undef private
 #include "event.h"
 #include "hiview_platform.h"
@@ -246,21 +247,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckEventOnContinue_001, TestSize.Lev
         nullptr, jsonStr);
     eventLogger->CheckEventOnContinue(sysEvent);
     EXPECT_TRUE(sysEvent != nullptr);
-}
-
-/**
- * @tc.name: EventLoggerTest_GetAppFreezeFile_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeFile_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    std::string testFile = "/data/test/log/testFile";
-    auto ret = eventLogger->GetAppFreezeFile(testFile);
-    EXPECT_TRUE(ret.empty());
-    ret = eventLogger->GetAppFreezeFile(TEST_PATH);
-    EXPECT_TRUE(!ret.empty());
 }
 
 /**
@@ -522,7 +508,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnUnorderedEvent_002, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
-    eventLogger->OnLoad();
     sleep(1);
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
         "MODULE", "foundation", "MSG", "test remove");
@@ -532,7 +517,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
     sleep(3);
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT,
         "MODULE", "foundation", "MSG", "test remove");
-    std::vector<LogFile> logFileList = eventLogger->logStore_->GetLogFiles();
+    std::vector<LogFile> logFileList = FreezeManager::GetInstance()->eventLogStore_->GetLogFiles();
     auto beforeSize = static_cast<long>(logFileList.size());
     printf("Before-- logFileList num: %ld\n", beforeSize);
     auto iter = logFileList.begin();
@@ -541,19 +526,18 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
         iter++;
         EXPECT_TRUE(beforeIter < iter);
     }
-    auto folderSize = FileUtil::GetFolderSize(EventLogger::LOGGER_EVENT_LOG_PATH);
+    auto folderSize = FileUtil::GetFolderSize(FreezeManager::LOGGER_EVENT_LOG_PATH);
     uint32_t maxSize = 10240; // test value
-    eventLogger->logStore_->SetMaxSize(maxSize);
-    eventLogger->logStore_->ClearOldestFilesIfNeeded();
-    auto size = FileUtil::GetFolderSize(EventLogger::LOGGER_EVENT_LOG_PATH);
-    auto listSize = static_cast<long>(eventLogger->logStore_->GetLogFiles().size());
+    FreezeManager::GetInstance()->eventLogStore_->SetMaxSize(maxSize);
+    FreezeManager::GetInstance()->eventLogStore_->ClearOldestFilesIfNeeded();
+    auto size = FileUtil::GetFolderSize(FreezeManager::LOGGER_EVENT_LOG_PATH);
+    auto listSize = static_cast<long>(FreezeManager::GetInstance()->eventLogStore_->GetLogFiles().size());
     printf("After-- logFileList num: %ld\n", listSize);
     if (listSize == beforeSize) {
         EXPECT_TRUE(size == folderSize);
     } else {
         EXPECT_TRUE(size < folderSize);
     }
-    eventLogger->OnUnload();
 }
 
 /**
@@ -964,7 +948,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_SetEventTerminalBinder_001, TestSize.L
     eventLogger->SetEventTerminalBinder(event, threadStack, 0);
     EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "");
     threadStack = "thread_block_3s thread stack";
-    int fd = eventLogger->logStore_->CreateLogFile("test_set_terminal_binder");
+    int fd = FreezeManager::GetInstance()->eventLogStore_->CreateLogFile("test_set_terminal_binder");
     if (fd > 0) {
         eventLogger->SetEventTerminalBinder(event, threadStack, fd);
         EXPECT_EQ(event->GetEventValue("TERMINAL_THREAD_STACK"), "thread_block_3s thread stack");
@@ -1051,35 +1035,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetFileLastAccessTimeStamp_001, TestSi
     time_t ret = GetFileLastAccessTimeStamp("EventLoggerTest");
     ret = GetFileLastAccessTimeStamp("/data/test/log/test.txt");
     EXPECT_TRUE(ret >= 0);
-}
-
-/**
- * @tc.name: EventLoggerTest_SaveFreezeInfoToFile_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_SaveFreezeInfoToFile_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
-    std::string testName = "EventLoggerTest_SaveFreezeInfoToFile_001";
-    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName,
-        nullptr, jsonStr);
-    eventLogger->SaveFreezeInfoToFile(event);
-    std::string path = "/data/test/log/test.txt";
-    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
-    if (fd < 0) {
-        printf("Fail to create File. errno: %d\n", errno);
-        FAIL();
-    }
-    event->SetEventValue("FREEZE_INFO_PATH", path);
-    eventLogger->SaveFreezeInfoToFile(event);
-    FileUtil::SaveStringToFd(fd, "\123456\n");
-    close(fd);
-    event->SetEventValue("UID", getuid());
-    event->SetEventValue("PACKAGE_NAME", "EventLoggerTest");
-    eventLogger->SaveFreezeInfoToFile(event);
-    EXPECT_TRUE(eventLogger != nullptr);
 }
 
 /**
