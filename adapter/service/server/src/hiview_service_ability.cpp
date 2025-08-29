@@ -256,15 +256,15 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
         return HiviewNapiErrCode::ERR_INNER_READ_ONLY;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
-    HIVIEW_LOGD("uid %{public}d, isMove: %{public}d, type:%{public}s, name:%{public}s",
-        uid, isMove, logType.c_str(), StringUtil::HideSnInfo(logName).c_str());
+    HIVIEW_LOGD("uid %{public}d, isMove: %{public}d, type:%{public}s",
+        uid, isMove, logType.c_str());
     std::string sandboxPath = GetSandBoxPathByUid(uid);
     if (sandboxPath.empty()) {
         return HiviewNapiErrCode::ERR_DEFAULT;
     }
     std::string sourceFile = configInfoPtr->path + logName;
     if (!FileUtil::FileExists(sourceFile)) {
-        HIVIEW_LOGW("file: %{public}s not exist.", StringUtil::HideSnInfo(logName).c_str());
+        HIVIEW_LOGW("file not exist.");
         return HiviewNapiErrCode::ERR_SOURCE_FILE_NOT_EXIST;
     }
     std::string fullPath = ComposeFilePath(sandboxPath, dest, logName);
@@ -280,7 +280,7 @@ ErrCode HiviewServiceAbility::Remove(const std::string& logType, const std::stri
     if (service == nullptr) {
         return HiviewNapiErrCode::ERR_DEFAULT;
     }
-    HIVIEW_LOGI("type:%{public}s, name:%{public}s", logType.c_str(), StringUtil::HideSnInfo(logName).c_str());
+    HIVIEW_LOGI("type:%{public}s", logType.c_str());
     auto configInfoPtr = HiviewLogConfigManager::GetInstance().GetConfigInfoByType(logType);
     if (configInfoPtr == nullptr) {
         HIVIEW_LOGI("invalid logtype: %{public}s", logType.c_str());
@@ -292,7 +292,7 @@ ErrCode HiviewServiceAbility::Remove(const std::string& logType, const std::stri
     }
     std::string sourceFile = configInfoPtr->path + logName;
     if (!FileUtil::FileExists(sourceFile)) {
-        HIVIEW_LOGW("file: %{public}s not exist.", StringUtil::HideSnInfo(logName).c_str());
+        HIVIEW_LOGW("file not exist.");
         return HiviewNapiErrCode::ERR_SOURCE_FILE_NOT_EXIST;
     }
     return service->Remove(sourceFile);
