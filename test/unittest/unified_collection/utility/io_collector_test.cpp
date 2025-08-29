@@ -37,8 +37,8 @@ public:
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
 namespace {
 // %-13s\t%12s\t%12s\t%12s\t%12s\t%12s\t%12s\t%20s\t%20s
-const std::regex ALL_PROC_IO_STATS1("^\\d{1,}\\s{1,}[\\w/\\.:-]{1,}\\s{1,}\\d{1,}(\\s{1,}\\d{1,}\\.\\d{2}){6}$");
-const std::regex ALL_PROC_IO_STATS2("^[\\d\\s]{12}[\\s\\w/\\.:-]{13,}[\\s\\d]{13}([\\s\\d\\.]{13}){6}$");
+const std::regex ALL_PROC_IO_STATS1("^\\d{1,}\\s{1,}[\\w/\\.:@-]{1,}\\s{1,}\\d{1,}(\\s{1,}\\d{1,}\\.\\d{2}){6}$");
+const std::regex ALL_PROC_IO_STATS2("^[\\d\\s]{12}[\\s\\w/\\.:@-]{13,}[\\s\\d]{13}([\\s\\d\\.]{13}){6}$");
 // %-13s\t%20s\t%20s\t%20s\t%20s\t%12s\t%12s\t%12s
 const std::regex DISK_STATS1("^\\w{1,}(\\s{1,}\\d{1,}\\.\\d{2}){4}(\\s{1,}\\d{1,}\\.\\d{4}){2}\\s{1,}\\d{1,}$");
 const std::regex DISK_STATS2("^[\\w\\s]{13,}([\\s\\d\\.]{13}){4}([\\s\\d\\.]{13}){2}[\\s\\d]{13}$");
