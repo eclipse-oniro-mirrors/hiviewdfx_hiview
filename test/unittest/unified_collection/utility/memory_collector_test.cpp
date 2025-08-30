@@ -43,14 +43,16 @@ public:
 namespace {
 // eg: 123   ab-cd   456 789 0   -123  0
 //     123   ab cd   0   0   0   0     0
-const std::regex ALL_PROC_MEM1("^\\d{1,}\\s{1,}[\\w\\.\\[\\]():/>-]*(\\s{1,}\\d{1,}){3}\\s{1,}-?\\d{1,}\\s{1,}-?[01]$");
+const std::string ALL_PROC_MEM1_STR1("^\\d{1,}\\s{1,}[\\w\\.\\[\\]():@/>-]*");
+const std::string ALL_PROC_MEM1_STR2("(\\s{1,}\\d{1,}){3}\\s{1,}-?\\d{1,}\\s{1,}-?[01]$");
+const std::regex ALL_PROC_MEM1(ALL_PROC_MEM1_STR1 + ALL_PROC_MEM1_STR2);
 const std::regex ALL_PROC_MEM2("^\\d{1,}\\s{1,}\\w{1,}( \\w{1,}){1,}(\\s{1,}\\d{1,}){3}\\s{1,}-?\\d{1,}\\s{1,}-?[01]$");
 // eg: ab.cd    12  34  567  890  123   ef   gh   ijk
 //     Total dmabuf size of ab.cd: 12345 bytes
-const std::string RAW_DMA1_STR1("^[\\w\\.\\[\\]():/>-]{1,}(\\s{1,}\\d{1,}){5}(\\s{1,}[\\w\\.\\[\\]():/>-]{1,}){3}");
-const std::string RAW_DMA1_STR2("(\\s{1,}\\d{1,}){0,2}(\\s{1,}\\w{1,}\\s{1,}){0,2}$");
+const std::string RAW_DMA1_STR1("^[\\w\\.\\[\\]():@/>-]{1,}(\\s{1,}\\d{1,}){5}(\\s{1,}[\\w\\.\\[\\]():@/>-]{1,}){3}");
+const std::string RAW_DMA1_STR2("(\\s{1,}\\d{1,}){0,2}(\\s{1,}[\\w\\.\\[\\]():@#/>-]{1,}\\s{0,}){0,3}$");
 const std::regex RAW_DMA1(RAW_DMA1_STR1 + RAW_DMA1_STR2);
-const std::regex RAW_DMA2("^(Total dmabuf size of )[\\w\\.\\[\\]():/>-]{1,}(: )\\d{1,}( bytes)$");
+const std::regex RAW_DMA2("^(Total dmabuf size of )[\\w\\.\\[\\]():@/>-]{1,}(: )\\d{1,}( bytes)$");
 // eg: ab(cd):      12345 kB
 //     ab:              - kB
 const std::regex RAW_MEM_INFO1("^[\\w()]{1,}:\\s{1,}\\d{1,}( kB)?$");
@@ -69,7 +71,7 @@ const std::regex RAW_PAGE_TYPE_INFO3("^(Node)\\s{1,}\\d{1,}(, zone)\\s{1,}\\w{1,
 // eg: abc   12    34    5  678    9 : tunables    1    2    3 : slabdata      4      5      6
 //     abc - version: 1.2
 //     #name       <ab> <cd> <ef> <hi> <jk> : tunables <lmn> <opq> <rst> : slabdata <uv> <wx> <yz>
-const std::string RAW_SLAB_STR1("^[\\w\\.\\[\\]():/>-]{1,}(\\s{1,}\\d{1,}){5}( : tunables)(\\s{1,}\\d{1,}){3}");
+const std::string RAW_SLAB_STR1("^[\\w\\.\\[\\]():@/>-]{1,}(\\s{1,}\\d{1,}){5}( : tunables)(\\s{1,}\\d{1,}){3}");
 const std::string RAW_SLAB_STR2("( : slabdata)(\\s{1,}\\d{1,}){3,5}(\\s{1,}\\w{1,})?$");
 const std::regex RAW_SLAB_INFO1(RAW_SLAB_STR1 + RAW_SLAB_STR2);
 const std::string RAW_SLAB_STR3("^(\\w{1,} - version: )[\\d\\.]{1,}|# ?name\\s{1,}");
