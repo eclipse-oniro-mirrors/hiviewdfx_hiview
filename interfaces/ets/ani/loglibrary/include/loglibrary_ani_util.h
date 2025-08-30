@@ -31,7 +31,7 @@ class LogLibraryAniUtil {
 public:
     static std::string ParseStringValue(ani_env *env, ani_string aniStrRef);
     static bool CreateLogEntryArray(ani_env *env,
-        const std::vector<HiviewFileInfo>& fileInfos, ani_array_ref &logEntryArray);
+        const std::vector<HiviewFileInfo>& fileInfos, ani_array &logEntryArray);
     static ani_object CreateLogEntryObject(ani_env *env);
     static ani_ref ListResult(ani_env *env, const std::vector<HiviewFileInfo>& fileInfos);
     static bool IsSystemAppCall();
