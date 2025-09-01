@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #include "file_util.h"
+#include "time_util.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -27,16 +28,19 @@ namespace {
     #define SUMMARY_LOG_BASE 'S'
     #define GET_SUMMARY_LOG _IOWR(SUMMARY_LOG_BASE, 0x01, int32_t)
 
-    static constexpr int LINE_BASE_SIZE = 108;
+    static constexpr int LINE_BASE_SIZE = 120;
     static constexpr int SUMMARY_LOG_INFO_MAX_SIZE = 10;
+    static constexpr int SUMMARY_LOG_MAGIC = 0xE5AC01;
+    static constexpr int FAULT_DELAY_SECONDS = 30;
     struct summary_log_line_info {
         int64_t sec_timestamp;
         char buffer[LINE_BASE_SIZE];
     };
     struct ringbuff_log_info {
+        unsigned int magic;
         int64_t needed_sec_timestamp;
-        unsigned int size;
         struct summary_log_line_info line[SUMMARY_LOG_INFO_MAX_SIZE];
+        unsigned int magicSize;
     };
 }
 
@@ -67,7 +71,11 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         HIVIEW_LOGE("open /dev/sysload failed!");
         return 0;
     }
-    ringbuff_log_info info = { faultTime_, sizeof(info.line) / sizeof(info.line[0]) };
+    ringbuff_log_info info = {0};
+    info.magic = SUMMARY_LOG_MAGIC;
+    info.needed_sec_timestamp = faultTime_ + FAULT_DELAY_SECONDS;
+    info.magicSize = sizeof(struct ringbuff_log_info);
+
     int res = ioctl(sysLoadFd, GET_SUMMARY_LOG, &info);
     if (res < 0) {
         HIVIEW_LOGE("ioctl failed, errno:%{public}d", errno);
@@ -75,7 +83,7 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         return 0;
     }
     close(sysLoadFd);
-    HIVIEW_LOGI("ioctl res:%{public}d, info size:%{public}d", res, info.size);
+    HIVIEW_LOGI("ioctl res:%{public}d", res);
 
     std::string summaryLogInfoStr;
     std::string lineStr;
@@ -83,7 +91,7 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         if (lineInfo.sec_timestamp == 0) {
             continue;
         }
-        lineStr = "timestamp=" + std::to_string(lineInfo.sec_timestamp) +
+        lineStr = "time=" + TimeUtil::TimestampFormatToDate(lineInfo.sec_timestamp, "%Y/%m/%d-%H:%M:%S") +
             ", data=" + CharArrayStr(lineInfo.buffer, static_cast<size_t>(LINE_BASE_SIZE)) + "\n";
         summaryLogInfoStr += lineStr;
     }
