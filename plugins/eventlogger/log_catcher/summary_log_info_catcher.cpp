@@ -109,7 +109,7 @@ std::string SummaryLogInfoCatcher::CharArrayStr(const char* chars, size_t maxSiz
     if (!chars) {
         return "";
     }
- 
+
     size_t length = 0;
     while (length < maxSize && chars[length] != '\0') {
         length++;
