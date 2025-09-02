@@ -47,6 +47,7 @@ public:
     static constexpr const char* EVENT_TRACE_ID = "HITRACE_ID";
     static constexpr const char* PROC_STATM = "PROC_STATM";
     static constexpr const char* HOST_RESOURCE_WARNING = "HOST_RESOURCE_WARNING";
+    static constexpr const char* FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
 
     FreezeCommon();
     ~FreezeCommon();

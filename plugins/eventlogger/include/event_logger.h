@@ -26,7 +26,6 @@
 #include "event_loop.h"
 #include "event_log_task.h"
 #include "ffrt.h"
-#include "log_store_ex.h"
 #include "hiview_logger.h"
 #include "plugin.h"
 #include "sys_event.h"
@@ -46,8 +45,7 @@ struct BinderInfo {
 
 class EventLogger : public EventListener, public Plugin {
 public:
-    EventLogger() : logStore_(std::make_shared<LogStoreEx>(LOGGER_EVENT_LOG_PATH, true)),
-        startTime_(time(nullptr)) {};
+    EventLogger() : startTime_(time(nullptr)) {};
     ~EventLogger() {};
     bool OnEvent(std::shared_ptr<Event> &event) override;
     void OnLoad() override;
@@ -55,16 +53,13 @@ public:
     bool IsInterestedPipelineEvent(std::shared_ptr<Event> event) override;
     std::string GetListenerName() override;
     void OnUnorderedEvent(const Event& msg) override;
-    std::string GetAppFreezeFile(std::string& stackPath);
-private:
-    static constexpr const char* const LOGGER_EVENT_LOG_PATH = "/data/log/eventlog";
 
+private:
 #ifdef WINDOW_MANAGER_ENABLE
     std::vector<uint64_t> backTimes_;
 #endif
     std::unique_ptr<DBHelper> dbHelper_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
-    std::shared_ptr<LogStoreEx> logStore_;
     long lastPid_ = 0;
     uint64_t startTime_;
     std::unordered_map<std::string, std::time_t> eventTagTime_;
@@ -87,7 +82,6 @@ private:
     void StartFfrtDump(std::shared_ptr<SysEvent> event);
 #endif
     void SaveDbToFile(const std::shared_ptr<SysEvent>& event);
-    void SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event);
     void WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack);
     void HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<SysEvent> event, int fd,
         std::shared_ptr<EventLogTask> logTask);
@@ -129,8 +123,8 @@ private:
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
     void AddBootScanEvent();
-    bool CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
-    bool CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent);
+    bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
+    bool CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

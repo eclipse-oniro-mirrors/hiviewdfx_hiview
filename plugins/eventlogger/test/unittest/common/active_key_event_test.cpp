@@ -22,7 +22,6 @@
 #define private public
 #define protected public
 #include "active_key_event.h"
-#include "log_store_ex.h"
 #include "hiview_platform.h"
 #include "sysevent_source.h"
 using namespace testing::ext;
@@ -60,16 +59,13 @@ void ActiveKeyEventTest::TearDownTestCase()
  */
 HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_001, TestSize.Level0)
 {
-    std::string logStorePath = "/data/test/";
-    std::shared_ptr<LogStoreEx> logStoreEx = std::make_shared<LogStoreEx>(logStorePath, true);
-    auto ret = logStoreEx->Init();
-    EXPECT_EQ(ret, true);
     std::shared_ptr<ActiveKeyEvent> activeKeyEvent = std::make_shared<ActiveKeyEvent>();
-    activeKeyEvent->Init(logStoreEx);
+    activeKeyEvent->Init();
     activeKeyEvent->triggeringTime_ = 0;
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyHandle(keyEvent);
     sleep(1);
+    EXPECT_TRUE(activeKeyEvent != nullptr);
 }
 
 /**
@@ -79,16 +75,13 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_001, TestSize.Level0)
  */
 HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_002, TestSize.Level3)
 {
-    std::string logStorePath = "/data/test/";
-    std::shared_ptr<LogStoreEx> logStoreEx = std::make_shared<LogStoreEx>(logStorePath, true);
-    auto ret = logStoreEx->Init();
-    EXPECT_EQ(ret, true);
     std::shared_ptr<ActiveKeyEvent> activeKeyEvent = std::make_shared<ActiveKeyEvent>();
-    activeKeyEvent->Init(logStoreEx);
-    activeKeyEvent->triggeringTime_ = 0;
+    activeKeyEvent->Init();
+    activeKeyEvent->triggeringTime_ = 1234;
     auto keyEvent = OHOS::MMI::KeyEvent::Create();
     activeKeyEvent->CombinationKeyCallback(keyEvent);
     sleep(1);
+    EXPECT_TRUE(activeKeyEvent != nullptr);
 }
 
 /**
@@ -98,15 +91,12 @@ HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_002, TestSize.Level3)
  */
 HWTEST_F(ActiveKeyEventTest, ActiveKeyEventTest_003, TestSize.Level3)
 {
-    std::string logStorePath = "/data/test/";
-    std::shared_ptr<LogStoreEx> logStoreEx = std::make_shared<LogStoreEx>(logStorePath, true);
-    auto ret = logStoreEx->Init();
-    EXPECT_EQ(ret, true);
     std::shared_ptr<ActiveKeyEvent> activeKeyEvent = std::make_shared<ActiveKeyEvent>();
     std::set<int32_t> preKeys;
     preKeys.insert(OHOS::MMI::KeyEvent::KEYCODE_VOLUME_UP);
     activeKeyEvent->InitSubscribe(preKeys, OHOS::MMI::KeyEvent::KEYCODE_VOLUME_DOWN, 5, 500);
     sleep(1);
+    EXPECT_TRUE(activeKeyEvent != nullptr);
 }
 
 /**

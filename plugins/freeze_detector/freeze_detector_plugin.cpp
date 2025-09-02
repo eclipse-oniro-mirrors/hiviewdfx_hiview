@@ -124,22 +124,23 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     std::string hitraceIdInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_ID);
     std::string procStatm = sysEvent.GetEventValue(FreezeCommon::PROC_STATM);
     std::string hostResourceWarning = sysEvent.GetEventValue(FreezeCommon::HOST_RESOURCE_WARNING);
+    std::string freezeExtFile = sysEvent.GetEventValue(FreezeCommon::FREEZE_INFO_PATH);
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
-    std::string logPath = std::regex_search(info, result, reg) ? result[1].str() : info;
+    std::string logFile = std::regex_search(info, result, reg) ? result[1].str() : info;
     std::string foreGround;
     CheckForeGround(uid, pid, event.happenTime_, foreGround);
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder().InitSeq(seq).InitDomain(event.domain_)
         .InitStringId(event.eventName_).InitTimestamp(event.happenTime_).InitPid(pid).InitTid(tid).InitUid(uid)
         .InitTerminalThreadStack(terminalThreadStack).InitTelemetryId(telemetryId).InitTraceName(traceName)
         .InitPackageName(packageName).InitProcessName(processName).InitForeGround(foreGround).InitMsg("")
-        .InitLogPath(logPath).InitHitraceTime(hitraceTime).InitSysrqTime(sysrqTime).InitHitraceIdInfo(hitraceIdInfo)
-        .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).Build();
+        .InitLogPath(logFile).InitHitraceTime(hitraceTime).InitSysrqTime(sysrqTime).InitHitraceIdInfo(hitraceIdInfo)
+        .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).InitFreezeExtFile(freezeExtFile).Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
-        " packageName=%{public}s, processName=%{public}s, logPath=%{public}s, hitraceIdInfo=%{public}s,"
-        "procStatm=%{public}s, hostResourceWarning=%{public}s", event.domain_.c_str(), event.eventName_.c_str(), pid,
-        uid, seq, packageName.c_str(), processName.c_str(), logPath.c_str(), hitraceIdInfo.c_str(), procStatm.c_str(),
-        hostResourceWarning.c_str());
+        " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
+        "procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s",
+        event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq, packageName.c_str(), processName.c_str(),
+        logFile.c_str(), hitraceIdInfo.c_str(), procStatm.c_str(), hostResourceWarning.c_str(), freezeExtFile.c_str());
     return watchPoint;
 }
 

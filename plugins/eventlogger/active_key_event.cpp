@@ -26,6 +26,8 @@
 #include "trace_collector.h"
 #endif // HITRACE_CATCHER_ENABLE
 #include "parameter_ex.h"
+#include "freeze_manager.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -44,7 +46,6 @@ DEFINE_LOG_LABEL(0xD002D01, "EventLogger-ActiveKeyEvent");
 ActiveKeyEvent::ActiveKeyEvent()
 {
     triggeringTime_ = 0;
-    logStore_ = nullptr;
 }
 
 ActiveKeyEvent::~ActiveKeyEvent()
@@ -103,10 +104,9 @@ void ActiveKeyEvent::InitSubscribe(std::set<int32_t> preKeys, int32_t finalKey, 
         finalKey, subscribeId);
 }
 
-void ActiveKeyEvent::Init(std::shared_ptr<LogStoreEx> logStore)
+void ActiveKeyEvent::Init()
 {
     HIVIEW_LOGI("CombinationKeyInit");
-    logStore_ = logStore;
 
     std::set<int32_t> prePowerKeys;
     prePowerKeys.insert(MMI::KeyEvent::KEYCODE_VOLUME_DOWN);
@@ -168,7 +168,7 @@ void ActiveKeyEvent::DumpCapture(int fd)
 void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
     HIVIEW_LOGI("Receive CombinationKeyHandle.");
-    if (logStore_ == nullptr || !Parameter::IsBetaVersion() || reportLimit_ > REPORT_LIMIT) {
+    if (!Parameter::IsBetaVersion() || reportLimit_ > REPORT_LIMIT) {
         HIVIEW_LOGI("Don't report ACTIVE_KEY_EVENT");
         return;
     }
@@ -180,7 +180,11 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", logFile.c_str());
         return;
     }
-    int fd = logStore_->CreateLogFile(logFile);
+    int fd = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::EVENTLOG, logFile);
+    if (fd < 0) {
+        HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
+        return;
+    }
 
     auto sysStart = ActiveKeyEvent::SystemTimeMillisecond();
     const uint32_t placeholder = 3;

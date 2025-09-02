@@ -23,6 +23,7 @@
 #include "hiview_logger.h"
 #include "string_util.h"
 #include "time_util.h"
+#include "freeze_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -39,7 +40,6 @@ namespace {
     constexpr const char* APPFREEZE = "appfreeze";
     constexpr const char* SYSFREEZE = "sysfreeze";
     constexpr const char* SYSWARNING = "syswarning";
-    constexpr const char* FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
     constexpr const char* FAULT_LOGGER_PATH = "/data/log/faultlog/faultlogger/";
     constexpr const char* COLON = ":";
     constexpr const char* EVENT_DOMAIN = "DOMAIN";
@@ -57,6 +57,10 @@ namespace {
     constexpr const char* HITRACE_ID_INFO = "HitraceIdInfo: ";
     constexpr const char* HOST_RESOURCE_WARNING_INFO =
         "NOTE: Current fault may be caused by system issue, you may ignore it and analysis other faults.";
+    constexpr const char* THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
+    constexpr const char* LIFECYCLE_HALF_TIMEOUT = "LIFECYCLE_HALF_TIMEOUT";
+    constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
+    constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -102,6 +106,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.sectionMaps[FreezeCommon::TELEMETRY_ID] = watchPoint.GetTelemetryId();
     info.sectionMaps[FreezeCommon::TRACE_NAME] = watchPoint.GetTraceName();
     info.sectionMaps[FreezeCommon::PROC_STATM] = watchPoint.GetProcStatm();
+    info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
     AddFaultLog(info);
     return logPath;
 }
@@ -122,6 +127,33 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     if (watchPoint.GetHostResourceWarning() == "Yes") {
         oss << HOST_RESOURCE_WARNING_INFO << std::endl;
     }
+}
+
+std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const
+{
+    std::string stackFile;
+    std::string cpuFile;
+    std::string eventName;
+    std::string path;
+    for (auto node : list) {
+        eventName = node.GetStringId();
+        if (eventName == THREAD_BLOCK_3S || eventName == LIFECYCLE_HALF_TIMEOUT) {
+            stackFile = node.GetFreezeExtFile();
+        }
+        if (eventName == THREAD_BLOCK_6S || eventName == LIFECYCLE_TIMEOUT) {
+            cpuFile = node.GetFreezeExtFile();
+        }
+    }
+    if (stackFile.empty() && cpuFile.empty()) {
+        HIVIEW_LOGI("failed to get freeze cpu and stack file, eventName:%{public}s.",
+            watchPoint.GetStringId().c_str());
+        return "";
+    }
+
+    long uid = watchPoint.GetUid();
+    std::string bundleName = watchPoint.GetPackageName().empty() ?
+        watchPoint.GetProcessName() : watchPoint.GetPackageName();
+    return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile);
 }
 
 void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const
@@ -277,7 +309,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     }
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
-    std::string tmpLogPath = std::string(FREEZE_DETECTOR_PATH) + tmpLogName;
+    std::string tmpLogPath = std::string(FreezeManager::FREEZE_DETECTOR_PATH) + tmpLogName;
 
     if (FileUtil::FileExists(retPath)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", retPath.c_str());
@@ -302,15 +334,18 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
         MergeFreezeJsonFile(watchPoint, list);
     }
 
-    int fd = logStore_->CreateLogFile(tmpLogName);
+    int fd = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::FREEZE_DETECTOR, tmpLogName);
     if (fd < 0) {
-        HIVIEW_LOGE("failed to create tmp log file %{public}s.", tmpLogPath.c_str());
+        HIVIEW_LOGE("failed to create tmp log file %{public}s, errno:%{public}d.",
+            tmpLogPath.c_str(), errno);
         return "";
     }
 
     FileUtil::SaveStringToFd(fd, header.str());
     FileUtil::SaveStringToFd(fd, body.str());
     close(fd);
+
+    watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint, list));
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
 
@@ -319,14 +354,6 @@ bool Vendor::Init()
     if (freezeCommon_ == nullptr) {
         return false;
     }
-    logStore_ = std::make_unique<LogStoreEx>(FREEZE_DETECTOR_PATH, true);
-    logStore_->SetMaxSize(MAX_FOLDER_SIZE);
-    logStore_->SetMinKeepingFileNumber(MIN_KEEP_FILE_NUM);
-    LogStoreEx::LogFileComparator comparator = [this](const LogFile &lhs, const LogFile &rhs) {
-        return rhs < lhs;
-    };
-    logStore_->SetLogFileComparator(comparator);
-    logStore_->Init();
     return true;
 }
 

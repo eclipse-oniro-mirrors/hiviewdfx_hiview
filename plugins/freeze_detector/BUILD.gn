@@ -39,6 +39,7 @@ ohos_source_set("freeze_detector") {
     "rule_cluster.cpp",
     "vendor.cpp",
     "watch_point.cpp",
+    "freeze_manager.cpp",
   ]
 
   configs = [ ":freeze_detector_config" ]

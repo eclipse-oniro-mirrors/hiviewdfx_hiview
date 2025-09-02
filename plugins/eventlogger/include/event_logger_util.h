@@ -17,7 +17,6 @@
 
 #include <string>
 
-#include "log_store_ex.h"
 #include "faultlogger_client.h"
 
 namespace OHOS {
@@ -26,7 +25,6 @@ void StartBootScan();
 time_t GetFileLastAccessTimeStamp(const std::string& fileName);
 FaultLogInfoInner ParseFaultLogInfoFromFile(const std::string &path, const std::string &fileName);
 FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName);
-LogStoreEx::LogFileFilter CreateLogFileFilter(int32_t id, const std::string& filePrefix);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEWDFX_HIVIEW_FAULTLOGGER_UTIL_H

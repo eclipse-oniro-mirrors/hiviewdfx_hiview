@@ -50,6 +50,7 @@
 #include "event_log_task.h"
 #include "event_logger_config.h"
 #include "event_logger_util.h"
+#include "freeze_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -66,10 +67,6 @@ namespace {
     static constexpr const char* const CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
-
-    static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
-    static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
-    static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
     static constexpr const char* const FFRT_PTOCESSES[] = {
         "com.ohos.sceneboard", "foundation", "hiview"
     };
@@ -88,8 +85,6 @@ namespace {
 #endif
     static constexpr int DUMP_TIME_RATIO = 2;
     static constexpr int EVENT_MAX_ID = 1000000;
-    static constexpr int MIN_KEEP_FILE_NUM = 80;
-    static constexpr int MAX_FOLDER_SIZE = 100 * 1024 * 1024;
     static constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
     static constexpr int HISTORY_EVENT_LIMIT = 500;
     static constexpr uint8_t LONGPRESS_PRIVACY = 1;
@@ -97,8 +92,6 @@ namespace {
     static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
     static constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
-    constexpr size_t FREEZE_SAMPLE_STACK_INDEX = 1;
-    constexpr int32_t MAX_FREEZE_PER_HAP = 10;
 }
 
 REGISTER(EventLogger);
@@ -138,7 +131,7 @@ long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
     return pid;
 }
 
-bool EventLogger::CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent)
+bool EventLogger::CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent)
 {
     if (sysEvent->eventName_ != TASK_TIMEOUT) {
         return true;
@@ -149,7 +142,8 @@ bool EventLogger::CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent)
             sysEvent->GetEventValue("PROCESS_NAME")) != std::end(FFRT_PTOCESSES));
 }
 
-bool EventLogger::CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName)
+bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
+    long pid, const std::string &eventName)
 {
 #ifdef HITRACE_CATCHER_ENABLE
     if (eventName == "HIVIEW_HALF_FREEZE_LOG") {
@@ -230,14 +224,14 @@ int EventLogger::GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, 
         logFile = "ffrt_" + std::to_string(pid) + "_" + formatTime;
     }
 
-    if (FileUtil::FileExists(std::string(LOGGER_EVENT_LOG_PATH) + "/" + logFile)) {
+    if (FileUtil::FileExists(std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" + logFile)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", logFile.c_str());
         if (!isFfrt) {
             UpdateDB(event, logFile);
         }
         return -1;
     }
-    return logStore_->CreateLogFile(logFile);
+    return FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::EVENTLOG, logFile);
 }
 
 #ifdef WINDOW_MANAGER_ENABLE
@@ -252,7 +246,8 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     std::string ffrtFile;
     int ffrtFd = GetFile(event, ffrtFile, true);
     if (ffrtFd < 0) {
-        HIVIEW_LOGE("create ffrt log file %{public}s failed, %{public}d", ffrtFile.c_str(), ffrtFd);
+        HIVIEW_LOGE("failed to create file=%{public}s, %{public}d, errno=%{public}d",
+            ffrtFile.c_str(), ffrtFd, errno);
         return;
     }
 
@@ -277,7 +272,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 
 void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
 {
-    std::string historyFile = std::string(LOGGER_EVENT_LOG_PATH) + "/" + "history.log";
+    std::string historyFile = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" + "history.log";
     if (FileUtil::CreateFile(historyFile, DEFAULT_LOG_FILE_MODE) != 0 && !FileUtil::FileExists(historyFile)) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", historyFile.c_str(), errno);
         return;
@@ -298,51 +293,6 @@ void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
     std::string str = "time[" + time + "], domain[" + event->domain_ + "], wpName[" +
         event->eventName_ + "], pid: " + std::to_string(pid) + ", uid: " + std::to_string(uid) + "\n";
     FileUtil::SaveStringToFile(historyFile, str, truncated);
-}
-
-void EventLogger::SaveFreezeInfoToFile(const std::shared_ptr<SysEvent>& event)
-{
-    std::string tmp = event->GetEventValue("FREEZE_INFO_PATH");
-    if (tmp.empty()) {
-        HIVIEW_LOGD("failed to save freezeInfo to file, FREEZE_INFO_PATH is empty.");
-        return;
-    }
-
-    std::vector<std::string> tokens;
-    StringUtil::SplitStr(tmp, ",", tokens);
-    if (tokens.size() <= 0) {
-        return;
-    }
-
-    std::string cpuInfo = GetAppFreezeFile(tokens[0]);
-    if (cpuInfo.empty()) {
-        HIVIEW_LOGW("failed to save freezeInfo to file, cpu content is empty.");
-        return;
-    }
-
-    std::string bundleName = event->GetEventValue("PACKAGE_NAME").empty() ?
-        event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
-    std::string stackInfo;
-    if (tokens.size() > FREEZE_SAMPLE_STACK_INDEX) {
-        std::string filePath = APPFREEZE_LOG_PREFIX + bundleName + APPFREEZE_LOG_SUFFIX + tokens[1];
-        stackInfo = GetAppFreezeFile(filePath);
-        if (stackInfo.empty()) {
-            HIVIEW_LOGW("freeze sapmle stack content is empty.");
-        }
-    }
-
-    long uid = event->GetEventIntValue("UID") ? event->GetEventIntValue("UID") : event->GetUid();
-    std::string freezeFile = FREEZE_CPUINFO_PREFIX +
-        bundleName + "-" + std::to_string(uid) + "-" + TimeUtil::GetFormattedTimestampEndWithMilli();
-    int fd = logStore_->CreateLogFile(freezeFile);
-    if (fd < 0) {
-        HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
-        return;
-    }
-    FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo);
-    close(fd);
-
-    logStore_->ClearSameLogFilesIfNeeded(CreateLogFileFilter(uid, FREEZE_CPUINFO_PREFIX), MAX_FREEZE_PER_HAP);
 }
 
 void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int jsonFd, std::string& threadStack)
@@ -388,7 +338,7 @@ void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<S
             auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
             std::string fileTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
             std::string fileInfo;
-            std::string filePath = std::string(LOGGER_EVENT_LOG_PATH);
+            std::string filePath = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH);
             if (cmd == "k:SysrqHungtaskFile") {
                 event->SetEventValue("SYSRQ_TIME", fileTime);
                 event->SetEventValue("HUNGTASK_TIME", fileTime);
@@ -397,7 +347,7 @@ void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<S
             } else {
                 std::string fileType = (cmd == "k:SysRqFile") ? "sysrq" : "hungtask";
                 std::string catcher = (fileType == "sysrq") ? "\nSysrqCatcher" : "\nHungTaskCatcher";
-                fileInfo = catcher + " -- fullPath:" + std::string(LOGGER_EVENT_LOG_PATH) + "/" +
+                fileInfo = catcher + " -- fullPath:" + std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" +
                     fileType + "-" + fileTime + ".log\n";
                 std::string fileTimeKey = (fileType == "sysrq") ? "SYSRQ_TIME" : "HUNGTASK_TIME";
                 event->SetEventValue(fileTimeKey, fileTime);
@@ -453,7 +403,6 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
     constexpr int waitTime = 1;
     auto CheckFinishFun = [this, event] { this->CheckEventOnContinue(event); };
     threadLoop_->AddTimerEvent(nullptr, nullptr, CheckFinishFun, waitTime, false);
-    SaveFreezeInfoToFile(event);
     HIVIEW_LOGI("Collect on finish, name: %{public}s", logFile.c_str());
 }
 
@@ -669,20 +618,6 @@ void EventLogger::WriteCallStack(std::shared_ptr<SysEvent> event, int fd)
     }
 }
 
-std::string EventLogger::GetAppFreezeFile(std::string& stackPath)
-{
-    std::string result = "";
-    if (!FileUtil::FileExists(stackPath)) {
-        result = "";
-        HIVIEW_LOGE("File is not exist");
-        return result;
-    }
-    FileUtil::LoadStringFromFile(stackPath, result);
-    bool isRemove = FileUtil::RemoveFile(stackPath.c_str());
-    HIVIEW_LOGI("Remove file? isRemove:%{public}d", isRemove);
-    return result;
-}
-
 bool EventLogger::IsKernelStack(const std::string& stack)
 {
     return (!stack.empty() && stack.find("Stack backtrace") != std::string::npos);
@@ -728,7 +663,7 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
     std::string jsonStack = event->GetEventValue("STACK");
     HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
     if (FileUtil::FileExists(jsonStack)) {
-        jsonStack = GetAppFreezeFile(jsonStack);
+        jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
     }
 
     if (!jsonStack.empty() && jsonStack[0] == '[') { // json stack info should start with '['
@@ -763,17 +698,19 @@ void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int or
     std::string idStr = event->eventName_.empty() ? std::to_string(event->eventId_) : event->eventName_;
     std::string logFile = idStr + "-" + std::to_string(pid) + "-" + formatTime + "-KernelStack-" +
         std::to_string(originFd) + ".log";
-    std::string path = std::string(LOGGER_EVENT_LOG_PATH) + "/" + logFile;
+    std::string path = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" + logFile;
     if (FileUtil::FileExists(path)) {
         HIVIEW_LOGI("Filename: %{public}s is existed.", logFile.c_str());
         return;
     }
-    int kernelFd = logStore_->CreateLogFile(logFile);
-    if (kernelFd >= 0) {
-        FileUtil::SaveStringToFd(kernelFd, kernelStack);
-        close(kernelFd);
-        HIVIEW_LOGD("Success WriteKernelStackToFile: %{public}s.", path.c_str());
+    int kernelFd = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::EVENTLOG, logFile);
+    if (kernelFd < 0) {
+        HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
+        return;
     }
+    FileUtil::SaveStringToFd(kernelFd, kernelStack);
+    close(kernelFd);
+    HIVIEW_LOGD("Success WriteKernelStackToFile: %{public}s.", path.c_str());
 }
 
 void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPeerStack)
@@ -820,7 +757,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
         stack = event->GetEventValue("STACK");
         HIVIEW_LOGI("Current stack is? stack:%{public}s", stack.c_str());
         if (FileUtil::FileExists(stack)) {
-            stack = GetAppFreezeFile(stack);
+            stack = FreezeManager::GetAppFreezeFile(stack);
             std::string tempStack = "";
             GetNoJsonStack(tempStack, stack, kernelStack, false);
             stack = tempStack;
@@ -866,7 +803,7 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
         int terminalBinderTid = std::atoi(binderInfo.substr(indexTwo + 1).c_str());
         std::string binderPath = binderInfo.substr(0, indexOne);
         if (FileUtil::FileExists(binderPath)) {
-            binderInfo = GetAppFreezeFile(binderPath);
+            binderInfo = FreezeManager::GetAppFreezeFile(binderPath);
         }
         if (jsonFd >= 0) {
             std::string binderInfoJsonStr;
@@ -961,7 +898,7 @@ bool EventLogger::UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile)
         HIVIEW_LOGI("set info_ with nolog into db.");
         event->SetEventValue(EventStore::EventCol::INFO, "nolog", false);
     } else {
-        auto logPath = R"~(logPath:)~" + std::string(LOGGER_EVENT_LOG_PATH)  + "/" + logFile;
+        auto logPath = R"~(logPath:)~" + std::string(FreezeManager::LOGGER_EVENT_LOG_PATH)  + "/" + logFile;
         event->SetEventValue(EventStore::EventCol::INFO, logPath, true);
     }
     return true;
@@ -1099,23 +1036,13 @@ void EventLogger::CheckEventOnContinue(std::shared_ptr<SysEvent> event)
     event->OnContinue();
 }
 
-void EventLogger::LogStoreSetting()
-{
-    logStore_->SetMaxSize(MAX_FOLDER_SIZE);
-    logStore_->SetMinKeepingFileNumber(MIN_KEEP_FILE_NUM);
-    LogStoreEx::LogFileComparator comparator = [this](const LogFile &lhs, const LogFile &rhs) {
-        return rhs < lhs;
-    };
-    logStore_->SetLogFileComparator(comparator);
-    logStore_->Init();
-}
-
 void EventLogger::OnLoad()
 {
     HIVIEW_LOGI("EventLogger OnLoad.");
     SetName("EventLogger");
     SetVersion("1.0");
-    LogStoreSetting();
+    FreezeManager::GetInstance()->InitLogStore();
+
     queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
         "EventLogger_queue",
         ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_TASK_MAX_CONCURRENCY_NUM));
@@ -1125,7 +1052,7 @@ void EventLogger::OnLoad()
     eventLoggerConfig_ = logConfig.GetConfig();
 #ifdef MULTIMODALINPUT_INPUT_ENABLE
     activeKeyEvent_ = std::make_unique<ActiveKeyEvent>();
-    activeKeyEvent_ ->Init(logStore_);
+    activeKeyEvent_ ->Init();
 #endif
     FreezeCommon freezeCommon;
     if (!freezeCommon.Init()) {

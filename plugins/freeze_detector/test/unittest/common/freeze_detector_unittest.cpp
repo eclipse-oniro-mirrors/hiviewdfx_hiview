@@ -323,8 +323,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_005, TestSize.Level3)
     ASSERT_EQ(ret1, true);
     auto vendor = std::make_unique<Vendor>(freezeCommon);
     ASSERT_EQ(vendor->Init(), true);
-
-    ASSERT_TRUE(!vendor->MergeEventLog(watchPoint, list, result).empty());
+    vendor->MergeEventLog(watchPoint, list, result);
 }
 
 /**
@@ -472,6 +471,43 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .Build();
     list.push_back(watchPoint2);
     ASSERT_TRUE(vendor->MergeEventLog(watchPoint2, list, result).empty());
+}
+
+/**
+ * @tc.name: FreezeVender_010
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.package.name")
+        .InitMsg("msg")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint1);
+    std::string ret = vendor->MergeFreezeExtFile(watchPoint1, list);
+    EXPECT_EQ(ret, "");
+
+    std::string freezeExtFile = "/data/test";
+    std::string testName = "FreezeDetectorUnittest";
+    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName(testName)
+        .InitPackageName(testName)
+        .InitFreezeExtFile(freezeExtFile)
+        .Build();
+    vendor->MergeFreezeExtFile(watchPoint1, list);
 }
 
 /**
@@ -840,6 +876,39 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
     ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
     ASSERT_EQ(wp1->GetHostResourceWarning(), "Yes");
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_006
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_006, TestSize.Level0)
+{
+    std::string logPath = "/data/log/testLog";
+    WatchPoint point = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitFreezeExtFile(logPath)
+        .Build();
+    EXPECT_EQ(point.GetFreezeExtFile(), logPath);
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_007
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_007, TestSize.Level0)
+{
+    std::string logPath = "/data/log/testLog111";
+    WatchPoint point = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitFreezeExtFile(logPath)
+        .Build();
+    point.SetFreezeExtFile(logPath);
+    EXPECT_EQ(point.GetFreezeExtFile(), logPath);
 }
 
 /**

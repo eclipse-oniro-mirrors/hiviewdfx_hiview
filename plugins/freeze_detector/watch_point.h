@@ -47,6 +47,7 @@ public:
         Builder& InitHitraceIdInfo(const std::string& hitraceIdInfo);
         Builder& InitProcStatm(const std::string& procStatm);
         Builder& InitHostResourceWarning(const std::string& hostResourceWarning);
+        Builder& InitFreezeExtFile(const std::string& freezeExtFile);
         WatchPoint Build() const;
 
     private:
@@ -70,6 +71,7 @@ public:
         std::string hitraceIdInfo_;
         std::string procStatm_;
         std::string hostResourceWarning_;
+        std::string freezeExtFile_;
         friend class WatchPoint;
     };
 
@@ -97,9 +99,11 @@ public:
     std::string GetHitraceIdInfo() const;
     std::string GetProcStatm() const;
     std::string GetHostResourceWarning() const;
+    std::string GetFreezeExtFile() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
+    void SetFreezeExtFile(const std::string& freezeExtFile);
     bool operator<(const WatchPoint& node) const;
     bool operator==(const WatchPoint& node) const;
 
@@ -124,6 +128,7 @@ private:
     std::string hitraceIdInfo_;
     std::string procStatm_;
     std::string hostResourceWarning_;
+    std::string freezeExtFile_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

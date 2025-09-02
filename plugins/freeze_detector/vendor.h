@@ -22,7 +22,6 @@
 
 #include "faultlog_info.h"
 #include "freeze_common.h"
-#include "log_store_ex.h"
 #include "power_mgr_client.h"
 #include "smart_parser.h"
 #include "watch_point.h"
@@ -52,11 +51,11 @@ private:
     std::string SendFaultLog(const WatchPoint &watchPoint, const std::string& logPath, const std::string& type,
         const std::string& processName, const std::string& isScbPro) const;
     void MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const;
+    std::string MergeFreezeExtFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const;
     static std::string GetDisPlayPowerInfo();
     static std::string GetPowerStateString(OHOS::PowerMgr::PowerState state);
     static void CheckProcessName(std::string& processName, std::string& isScbPro);
 
-    std::unique_ptr<LogStoreEx> logStore_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
 };
 }  // namespace HiviewDFX
