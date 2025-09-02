@@ -103,7 +103,7 @@ void UcTelemetryCallback::OnTelemetryFinish()
     for (const auto &param : saParams_) {
         Parameter::RemoveParameterWatcherEx(param.c_str(), OnSaParamChanged, nullptr);
     }
-    std::lock_guard<std::mutex> lock(timeMutex_);
+    std::lock_guard<ffrt::mutex> lock(timeMutex_);
     isTraceOn_ = false;
 }
 
@@ -132,7 +132,7 @@ void UcTelemetryCallback::RunTraceOnTimeTask()
 {
     while (true) {
         ffrt::this_task::sleep_for(std::chrono::seconds(60)); // 60s: collect period
-        std::lock_guard<std::mutex> lock(timeMutex_);
+        std::lock_guard<ffrt::mutex> lock(timeMutex_);
         if (!isTraceOn_) {
             HIVIEW_LOGE("exit RunTraceOnTime task");
             isTaskOn_ = false;
@@ -152,7 +152,7 @@ void UcTelemetryCallback::RunTraceOnTimeTask()
 void UcTelemetryCallback::OnTelemetryTraceOn()
 {
     HIVIEW_LOGI("trace on");
-    std::lock_guard<std::mutex> lock(timeMutex_);
+    std::lock_guard<ffrt::mutex> lock(timeMutex_);
     traceOnStartTime_ = TimeUtil::GetBootTimeMs();
     isTraceOn_ = true;
     if (isTaskOn_) {
@@ -169,7 +169,7 @@ void UcTelemetryCallback::OnTelemetryTraceOn()
 void UcTelemetryCallback::OnTelemetryTraceOff()
 {
     HIVIEW_LOGI("trace off");
-    std::lock_guard<std::mutex> lock(timeMutex_);
+    std::lock_guard<ffrt::mutex> lock(timeMutex_);
     isTraceOn_ = false;
     auto timeCost = TimeUtil::GetBootTimeMs() - traceOnStartTime_;
     traceOnStartTime_ += timeCost;

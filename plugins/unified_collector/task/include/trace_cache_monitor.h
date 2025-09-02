@@ -16,6 +16,7 @@
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_CACHE_MONITOR_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_CACHE_MONITOR_H
 
+#include "ffrt.h"
 #include "memory_collector.h"
 #include "trace_behavior_storage.h"
 #include "trace_flow_controller.h"
@@ -48,7 +49,7 @@ private:
     void SetCacheStatus(int32_t interval);
 
 private:
-    std::mutex stateMutex_;
+    ffrt::mutex stateMutex_;
     TraceCacheMonitorState monitorState_ = EXIT;
     std::shared_ptr<UCollectUtil::MemoryCollector> collector_;
     bool isCacheOn_ = false;

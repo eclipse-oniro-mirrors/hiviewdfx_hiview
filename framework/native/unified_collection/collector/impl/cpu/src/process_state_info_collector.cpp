@@ -90,7 +90,7 @@ CollectResult<std::vector<ProcessCpuStatInfo>> ProcessStatInfoCollector::Collect
     bool isNeedUpdate)
 {
     CollectResult<std::vector<ProcessCpuStatInfo>> cpuCollectResult;
-    std::unique_lock<std::mutex> lock(collectMutex_);
+    std::unique_lock<ffrt::mutex> lock(collectMutex_);
     auto processCpuData = FetchProcessCpuData();
     if (processCpuData == nullptr) {
         return cpuCollectResult;
@@ -196,7 +196,7 @@ CollectResult<ProcessCpuStatInfo> ProcessStatInfoCollector::CollectProcessCpuSta
 {
     CollectResult<ProcessCpuStatInfo> cpuCollectResult;
 
-    std::unique_lock<std::mutex> lock(collectMutex_);
+    std::unique_lock<ffrt::mutex> lock(collectMutex_);
     if (!CommonUtils::IsPidExist(pid)) {
         HIVIEW_LOGD("pid:%{public}d not exist", pid);
         TryToDeleteDeadProcessInfoByPid(pid);

@@ -19,6 +19,7 @@
 
 #include "common_event_data.h"
 #include "common_event_subscriber.h"
+#include "ffrt.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -58,7 +59,7 @@ public:
     void RemovePowerListener(const std::string &name);
 
 private:
-    std::mutex mutex_;
+    ffrt::mutex mutex_;
     int32_t powerState_;
     std::map<std::string, std::shared_ptr<PowerListener>> listeners_;
     std::shared_ptr<EventFwk::CommonEventSubscriber> powerStateSubscriber_ = nullptr;

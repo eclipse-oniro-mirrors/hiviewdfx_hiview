@@ -107,8 +107,8 @@ void TraceDecorator::WriteTrafficAfterHandle(const TraceTrafficInfo& trace_traff
     if (!Parameter::IsBetaVersion() && !Parameter::IsUCollectionSwitchOn()) {
         return;
     }
-    static std::mutex mtx;
-    std::lock_guard<std::mutex> lock(mtx);
+    static ffrt::mutex mtx;
+    std::lock_guard<ffrt::mutex> lock(mtx);
     traceStatWrapper_.WriteTrafficToLogFile(trace_traffic.ToString());
 }
 
@@ -126,7 +126,7 @@ void TraceStatWrapper::UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime,
 
 void TraceStatWrapper::UpdateAPIStatInfo(const TraceStatItem& item)
 {
-    std::lock_guard<std::mutex> lock(traceMutex_);
+    std::lock_guard<ffrt::mutex> lock(traceMutex_);
     if (traceStatInfos_.find(item.caller) == traceStatInfos_.end()) {
         TraceStatInfo statInfo = {
             .caller = item.caller,
@@ -157,7 +157,7 @@ void TraceStatWrapper::UpdateAPIStatInfo(const TraceStatItem& item)
 
 std::map<std::string, TraceStatInfo> TraceStatWrapper::GetTraceStatInfo()
 {
-    std::lock_guard<std::mutex> lock(traceMutex_);
+    std::lock_guard<ffrt::mutex> lock(traceMutex_);
     return traceStatInfos_;
 }
 
@@ -176,7 +176,7 @@ void TraceStatWrapper::WriteTrafficToLogFile(const std::string& trafficInfo)
 
 void TraceStatWrapper::ResetStatInfo()
 {
-    std::lock_guard<std::mutex> lock(traceMutex_);
+    std::lock_guard<ffrt::mutex> lock(traceMutex_);
     traceStatInfos_.clear();
 }
 } // namespace UCollectUtil

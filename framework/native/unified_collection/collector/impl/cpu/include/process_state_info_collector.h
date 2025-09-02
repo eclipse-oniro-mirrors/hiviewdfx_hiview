@@ -16,12 +16,11 @@
 #ifndef HIVIEW_FRAMEWORK_NATIVE_PROCESS_STATE_INFO_COLLECTION_H
 #define HIVIEW_FRAMEWORK_NATIVE_PROCESS_STATE_INFO_COLLECTION_H
 
-#include <mutex>
-
 #include "collect_device_client.h"
 #include "cpu_calculator.h"
 #include "cpu_collector.h"
 #include "cpu_util.h"
+#include "ffrt.h"
 #include "process_cpu_data.h"
 
 namespace OHOS {
@@ -69,7 +68,7 @@ private:
     void TryToDeleteDeadProcessInfoByTime(uint64_t collectionBootTime);
 
 private:
-    std::mutex collectMutex_;
+    ffrt::mutex collectMutex_;
     uint64_t lastCollectionTime_ = 0;
     uint64_t lastCollectionBootTime_ = 0;
     std::shared_ptr<CollectDeviceClient> deviceClient_;

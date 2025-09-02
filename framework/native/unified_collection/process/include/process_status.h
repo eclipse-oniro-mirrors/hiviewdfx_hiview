@@ -15,9 +15,9 @@
 #ifndef HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_PROCESS_PROCESS_STATUS_H
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_PROCESS_PROCESS_STATUS_H
 
-#include <mutex>
 #include <unordered_map>
 
+#include "ffrt.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -54,7 +54,7 @@ private:
     void ClearProcessInfo(int32_t pid);
 
 private:
-    std::mutex mutex_;
+    ffrt::mutex mutex_;
     /* map<pid, ProcessInfo> */
     std::unordered_map<int32_t, ProcessInfo> processInfos_;
     uint32_t capacity_ = 1000; // 1000, max number of processes

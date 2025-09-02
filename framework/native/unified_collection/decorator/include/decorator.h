@@ -17,10 +17,10 @@
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_DECORATOR_H
 
 #include <map>
-#include <mutex>
 #include <string>
 
 #include "collect_result.h"
+#include "ffrt.h"
 #include "time_util.h"
 #include "parameter_ex.h"
 
@@ -62,7 +62,7 @@ public:
 
 private:
     std::map<std::string, StatInfo> statInfos_;
-    std::mutex mutex_;
+    ffrt::mutex mutex_;
 };
 
 class UCDecorator {

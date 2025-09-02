@@ -36,7 +36,7 @@ public:
 
 protected:
     uint64_t traceOnStartTime_ = 0;
-    std::mutex timeMutex_;
+    ffrt::mutex timeMutex_;
     bool isTraceOn_ = false;
     bool isTaskOn_ = false;
     int64_t traceDuration_;

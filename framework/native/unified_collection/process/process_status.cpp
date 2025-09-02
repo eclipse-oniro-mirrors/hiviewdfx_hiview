@@ -30,7 +30,7 @@ constexpr uint64_t INVALID_LAST_FOREGROUND_TIME = 0;
 
 std::string ProcessStatus::GetProcessName(int32_t pid)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     // the cleanup judgment is triggered each time
     if (NeedClearProcessInfos()) {
         ClearProcessInfos();
@@ -98,7 +98,7 @@ bool ProcessStatus::UpdateProcessName(int32_t pid, const std::string& procName)
 
 ProcessState ProcessStatus::GetProcessState(int32_t pid)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     return (processInfos_.find(pid) != processInfos_.end())
         ? processInfos_[pid].state
         : BACKGROUND;
@@ -106,7 +106,7 @@ ProcessState ProcessStatus::GetProcessState(int32_t pid)
 
 uint64_t ProcessStatus::GetProcessLastForegroundTime(int32_t pid)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     return (processInfos_.find(pid) != processInfos_.end())
         ? processInfos_[pid].lastForegroundTime
         : INVALID_LAST_FOREGROUND_TIME;
@@ -114,7 +114,7 @@ uint64_t ProcessStatus::GetProcessLastForegroundTime(int32_t pid)
 
 void ProcessStatus::NotifyProcessState(int32_t pid, ProcessState procState)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     UpdateProcessState(pid, procState);
 }
 

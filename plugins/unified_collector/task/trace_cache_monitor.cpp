@@ -106,7 +106,7 @@ void TraceCacheMonitor::RunMonitorLoop()
             data.retCode, lowMemThreshold_, data.data.memTotal);
         return;
     }
-    std::lock_guard<std::mutex> lock(stateMutex_);
+    std::lock_guard<ffrt::mutex> lock(stateMutex_);
     if (monitorState_ != EXIT) {
         HIVIEW_LOGW("monitorLoop is already running");
         return;
@@ -119,7 +119,7 @@ void TraceCacheMonitor::RunMonitorLoop()
 
 void TraceCacheMonitor::ExitMonitorLoop()
 {
-    std::lock_guard<std::mutex> lock(stateMutex_);
+    std::lock_guard<ffrt::mutex> lock(stateMutex_);
     if (monitorState_ == RUNNING) {
         HIVIEW_LOGI("interrupting monitor running state.");
         monitorState_ = INTERRUPT;
@@ -133,7 +133,7 @@ void TraceCacheMonitor::MonitorFfrtTask()
     while (monitorState_ == RUNNING) {
         RunMonitorCycle(MONITOR_INTERVAL);
     }
-    std::lock_guard<std::mutex> lock(stateMutex_);
+    std::lock_guard<ffrt::mutex> lock(stateMutex_);
     if (monitorState_ == INTERRUPT) {
         monitorState_ = EXIT;
     }

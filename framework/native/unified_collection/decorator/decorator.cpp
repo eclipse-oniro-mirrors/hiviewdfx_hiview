@@ -26,7 +26,7 @@ const auto UC_API_STAT_ITEM = "API TotalCall FailCall AvgLatency(us) MaxLatency(
 
 void StatInfoWrapper::UpdateStatInfo(uint64_t startTime, uint64_t endTime, const std::string& funcName, bool isCallSucc)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     uint64_t latency = (endTime - startTime) > 0 ? (endTime - startTime) : 0;
     if (statInfos_.find(funcName) == statInfos_.end()) {
         StatInfo statInfo = {
@@ -53,13 +53,13 @@ void StatInfoWrapper::UpdateStatInfo(uint64_t startTime, uint64_t endTime, const
 
 std::map<std::string, StatInfo> StatInfoWrapper::GetStatInfo()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     return statInfos_;
 }
 
 void StatInfoWrapper::ResetStatInfo()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     statInfos_.clear();
 }
 } // namespace UCollectUtil

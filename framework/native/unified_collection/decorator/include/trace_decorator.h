@@ -86,7 +86,7 @@ private:
 
 private:
     std::string date_;
-    std::mutex traceMutex_;
+    ffrt::mutex traceMutex_;
     std::map<std::string, TraceStatInfo> traceStatInfos_;
 };
 
