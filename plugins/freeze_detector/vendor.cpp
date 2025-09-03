@@ -56,7 +56,8 @@ namespace {
     };
     constexpr const char* HITRACE_ID_INFO = "HitraceIdInfo: ";
     constexpr const char* HOST_RESOURCE_WARNING_INFO =
-        "NOTE: Current fault may be caused by system issue, you may ignore it and analysis other faults.";
+        "NOTE: Current fault may be caused by the system's low memory or thermal throttling,"
+        "you may ignore it and analysis other faults.";
     constexpr const char* THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
     constexpr const char* LIFECYCLE_HALF_TIMEOUT = "LIFECYCLE_HALF_TIMEOUT";
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
