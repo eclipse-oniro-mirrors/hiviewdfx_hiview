@@ -114,7 +114,7 @@ void ThreadStateInfoCollector::UpdateCollectionTime(const CalculationTimeInfo& c
 CollectResult<std::vector<ThreadCpuStatInfo>> ThreadStateInfoCollector::CollectThreadStatInfos(bool isNeedUpdate)
 {
     CollectResult<std::vector<ThreadCpuStatInfo>> threadCollectResult;
-    std::unique_lock<std::mutex> lock(collectMutex_);
+    std::unique_lock<ffrt::mutex> lock(collectMutex_);
     auto threadCpuData = FetchThreadCpuData();
     if (threadCpuData == nullptr) {
         return threadCollectResult;

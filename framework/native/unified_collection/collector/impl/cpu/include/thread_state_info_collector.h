@@ -15,13 +15,13 @@
 
 #ifndef HIVIEW_THREAD_STATE_INFO_COLLECTOR_H
 #define HIVIEW_THREAD_STATE_INFO_COLLECTOR_H
-#include <mutex>
 
 #include "cpu.h"
 #include "collect_result.h"
 #include "collect_device_client.h"
 #include "cpu_calculator.h"
 #include "cpu_collector.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -61,7 +61,7 @@ private:
     void InitDeviceClient();
 
 private:
-    std::mutex collectMutex_;
+    ffrt::mutex collectMutex_;
     uint64_t lastCollectionTime_ = 0;
     uint64_t lastCollectionBootTime_ = 0;
     std::shared_ptr<CollectDeviceClient> deviceClient_;

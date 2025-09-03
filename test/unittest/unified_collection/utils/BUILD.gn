@@ -46,6 +46,7 @@ ohos_unittest("UCollectionUtilsUnitTest") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
   ]

@@ -17,10 +17,10 @@
 
 #include <cinttypes>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
+#include "ffrt.h"
 #include "singleton.h"
 #include "trace_common.h"
 #include "trace_base_state.h"
@@ -78,7 +78,7 @@ public:
 
     void SetTraceVersionBeta()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t beta = 1 << 3;
         traceSwitchState_ = traceSwitchState_ | beta;
         RecoverState();
@@ -92,7 +92,7 @@ public:
 
     void SetTraceSwitchUcOn()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t ucollection = 1 << 2;
         traceSwitchState_ = traceSwitchState_ | ucollection;
         RecoverState();
@@ -100,7 +100,7 @@ public:
 
     void SetTraceSwitchUcOff()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t ucollection = 1 << 2;
         traceSwitchState_ = traceSwitchState_ & (~ucollection);
         RecoverState();
@@ -108,7 +108,7 @@ public:
 
     void SetTraceSwitchFreezeOn()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t freeze = 1 << 1;
         traceSwitchState_ = traceSwitchState_ | freeze;
         RecoverState();
@@ -116,7 +116,7 @@ public:
 
     void SetTraceSwitchFreezeOff()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t freeze = 1 << 1;
         traceSwitchState_ = traceSwitchState_ & (~freeze);
         RecoverState();
@@ -124,7 +124,7 @@ public:
 
     void SetTraceSwitchDevOn()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t dev = 1;
         traceSwitchState_ = traceSwitchState_ | dev;
         RecoverState();
@@ -132,7 +132,7 @@ public:
 
     void SetTraceSwitchDevOff()
     {
-        std::lock_guard<std::mutex> lock(traceMutex_);
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t dev = 1;
         traceSwitchState_ = traceSwitchState_ & (~dev);
         RecoverState();
@@ -160,7 +160,7 @@ private:
     uint8_t traceSwitchState_ = 0;
     bool isCommandState_ = false;
     bool isCachSwitchOn_ = false;
-    std::mutex traceMutex_;
+    ffrt::mutex traceMutex_;
 };
 }
 

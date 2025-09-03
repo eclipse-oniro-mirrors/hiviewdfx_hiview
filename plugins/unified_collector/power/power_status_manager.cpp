@@ -56,7 +56,7 @@ PowerStatusManager::~PowerStatusManager()
 
 void PowerStatusManager::SetPowerState(PowerState powerState)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     powerState_ = powerState;
     HIVIEW_LOGI("listeners size:%{public}zu", listeners_.size());
     for (const auto& it : listeners_) {
@@ -70,13 +70,13 @@ void PowerStatusManager::SetPowerState(PowerState powerState)
 
 int32_t PowerStatusManager::GetPowerState()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     return powerState_;
 }
 
 void PowerStatusManager::AddPowerListener(const std::string &name, std::shared_ptr<PowerListener> listener)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     if (listeners_.find(name) == listeners_.end()) {
         listeners_[name] = listener;
     }
@@ -84,7 +84,7 @@ void PowerStatusManager::AddPowerListener(const std::string &name, std::shared_p
 
 void PowerStatusManager::RemovePowerListener(const std::string &name)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<ffrt::mutex> lock(mutex_);
     auto it = listeners_.find(name);
     if (it != listeners_.end()) {
         listeners_.erase(it);
