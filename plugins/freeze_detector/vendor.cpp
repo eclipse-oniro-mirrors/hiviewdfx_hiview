@@ -28,6 +28,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+    const size_t FREEZE_EXT_FILE_SIZE = 2;
+    const size_t FREEZE_CPU_INDEX = 1;
     const int SYS_MATCH_NUM = 1;
     const int MILLISECOND = 1000;
     const int TIME_STRING_LEN = 16;
@@ -130,20 +132,18 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     }
 }
 
-std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const
+std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint) const
 {
     std::string stackFile;
     std::string cpuFile;
     std::string eventName;
     std::string path;
-    for (auto node : list) {
-        eventName = node.GetStringId();
-        if (eventName == THREAD_BLOCK_3S || eventName == LIFECYCLE_HALF_TIMEOUT) {
-            stackFile = node.GetFreezeExtFile();
-        }
-        if (eventName == THREAD_BLOCK_6S || eventName == LIFECYCLE_TIMEOUT) {
-            cpuFile = node.GetFreezeExtFile();
-        }
+    
+    std::vector<std::string> fileList;
+    StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
+    if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
+        stackFile = fileList[0];
+        cpuFile = fileList[FREEZE_CPU_INDEX];
     }
     if (stackFile.empty() && cpuFile.empty()) {
         HIVIEW_LOGI("failed to get freeze cpu and stack file, eventName:%{public}s.",
@@ -346,7 +346,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     FileUtil::SaveStringToFd(fd, body.str());
     close(fd);
 
-    watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint, list));
+    watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint));
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
 

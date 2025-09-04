@@ -492,9 +492,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
         .InitPackageName("com.package.name")
         .InitMsg("msg")
         .Build();
-    std::vector<WatchPoint> list;
-    list.push_back(watchPoint1);
-    std::string ret = vendor->MergeFreezeExtFile(watchPoint1, list);
+    std::string ret = vendor->MergeFreezeExtFile(watchPoint1);
     EXPECT_EQ(ret, "");
 
     std::string freezeExtFile = "/data/test";
@@ -507,7 +505,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
         .InitPackageName(testName)
         .InitFreezeExtFile(freezeExtFile)
         .Build();
-    vendor->MergeFreezeExtFile(watchPoint1, list);
+    vendor->MergeFreezeExtFile(watchPoint2);
 }
 
 /**

@@ -177,7 +177,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         return "";
     }
 
-    int fd = eventLogStore_ ? eventLogStore_->CreateLogFile(freezeFile) : -1;
+    int fd = GetFreezeLogFd(FreezeLogType::FREEZE_EXT, freezeFile);
     if (fd < 0) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return "";
@@ -188,8 +188,9 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
     freezeExtLogStore_->ClearSameLogFilesIfNeeded(CreateLogFileFilter(uid, FREEZE_CPUINFO_PREFIX),
         MAX_FREEZE_PER_HAP);
 
-    HIVIEW_LOGE("create freezeExt file=%{public}s success.", freezeFile.c_str());
-    return freezeFile;
+    std::string logFile = FREEZE_EXT_LOG_PATH + freezeFile;
+    HIVIEW_LOGE("create freezeExt file=%{public}s success.", logFile.c_str());
+    return logFile;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
