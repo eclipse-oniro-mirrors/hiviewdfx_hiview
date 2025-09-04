@@ -270,17 +270,9 @@ void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrol
     }
  
     ImageLoadStat stat = {
-        scrollStartTime,
-        scrollEndTime,
-        totalNum,
-        failedNum,
-        totalSize,
-        failedSize,
-        imageLoadStat,
-        appWhiteInfo.bundleName,
-        appWhiteInfo.abilityName,
-        appWhiteInfo.pageUrl,
-        appWhiteInfo.pageName
+        scrollStartTime, scrollEndTime, totalNum, failedNum, totalSize, failedSize, imageLoadStat,
+        appWhiteInfo.bundleName, appWhiteInfo.abilityName,
+        appWhiteInfo.pageUrl, appWhiteInfo.pageName
     };
     
     EventReporter::ReportImageLoadStat(stat);
