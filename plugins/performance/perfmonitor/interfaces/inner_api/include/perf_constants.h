@@ -452,6 +452,8 @@ public:
     static constexpr char WINDOW_DO_RESET_SCALE_ANIMATION[] = "WINDOW_DO_RESET_SCALE_ANIMATION";
 
     static constexpr char WINDOW_DO_SCALE_ANIMATION[] = "WINDOW_DO_SCALE_ANIMATION";
+
+    static constexpr char AUTO_APP_SWIPER_FLING[] = "AUTO_APP_SWIPER_FLING";
 };
 } // namespace OHOS
 } // namespace HiviewDFX

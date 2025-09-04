@@ -232,7 +232,8 @@ private:
         PerfConstants::PC_ONE_FIN_SHOW_DESKTOP_GESTURE,
         PerfConstants::PC_ONE_FINGER_TO_RECENT_GESTURE,
         PerfConstants::WINDOW_DO_RESET_SCALE_ANIMATION,
-        PerfConstants::WINDOW_DO_SCALE_ANIMATION
+        PerfConstants::WINDOW_DO_SCALE_ANIMATION,
+        PerfConstants::AUTO_APP_SWIPER_FLING
     };
 };
 
