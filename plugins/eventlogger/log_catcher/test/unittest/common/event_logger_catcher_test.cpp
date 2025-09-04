@@ -292,6 +292,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_005, TestSize.Level3)
     sysEvent->SetEventValue("LEASHWINDOWID", 319);
     sysEvent->SetEventValue("LEASHWINDOWNAME", "test leashWindowName");
     sysEvent->SetEventValue("EXT_INFO", "test ext_info");
+    sysEvent->SetEventValue("PROCESS_NAME", "EventloggerCatcherTest");
  
     sysEvent->domain_ = "AAFWK";
     sysEvent->eventName_ = "APP_INPUT_BLOCK";
