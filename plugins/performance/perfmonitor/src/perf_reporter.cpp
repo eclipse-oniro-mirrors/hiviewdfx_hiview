@@ -223,7 +223,8 @@ void PerfReporter::ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_
 }
 
 void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
-                                        const std::map<int64_t, ImageLoadInfo*>& mRecords, const AppWhiteInfo& appWhiteInfo)
+                                        const std::map<int64_t, ImageLoadInfo*>& mRecords,
+                                        const AppWhiteInfo& appWhiteInfo)
 {
     if (mRecords.size() == 0) {
         HIVIEW_LOGD("no data to report");
@@ -268,8 +269,20 @@ void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrol
         imageLoadStat += str;
     }
  
-    ImageLoadStat stat = {scrollStartTime, scrollEndTime, totalNum, failedNum, totalSize, failedSize, imageLoadStat,
-                            appWhiteInfo.bundleName, appWhiteInfo.abilityName, appWhiteInfo.pageUrl, appWhiteInfo.pageName};
+    ImageLoadStat stat = {
+        scrollStartTime,
+        scrollEndTime,
+        totalNum,
+        failedNum,
+        totalSize,
+        failedSize,
+        imageLoadStat,
+        appWhiteInfo.bundleName,
+        appWhiteInfo.abilityName,
+        appWhiteInfo.pageUrl,
+        appWhiteInfo.pageName
+    };
+    
     EventReporter::ReportImageLoadStat(stat);
 }
 

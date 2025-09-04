@@ -136,7 +136,7 @@ struct SurfaceInfo {
     int32_t pid{0};
 };
 
-struct AppWhiteInfo{
+struct AppWhiteInfo {
     std::string bundleName;
     std::string abilityName;
     std::string pageUrl;
