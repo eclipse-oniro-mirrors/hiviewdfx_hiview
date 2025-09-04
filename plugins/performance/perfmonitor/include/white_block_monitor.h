@@ -28,7 +28,7 @@ class WhiteBlockMonitor {
 public:
     static WhiteBlockMonitor& GetInstance();
  
-    void StartScroll();
+    void StartScroll(BaseInfo baseInfo);
     void EndScroll();
     void StartRecordImageLoadStat(int64_t id);
     void EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type, int state);
@@ -45,6 +45,7 @@ private:
     uint64_t scrollEndTime{0};
     bool scrolling{false};
     std::map<int64_t, ImageLoadInfo*> mRecords;
+    AppWhiteInfo appWhiteInfo;
 };
  
 }

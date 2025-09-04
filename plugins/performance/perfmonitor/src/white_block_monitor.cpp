@@ -36,10 +36,14 @@ WhiteBlockMonitor& WhiteBlockMonitor::GetInstance()
     return instance;
 }
  
-void WhiteBlockMonitor::StartScroll()
+void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
     scrollStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
+    appWhiteInfo.bundleName = baseInfo.bundleName;
+    appWhiteInfo.abilityName = baseInfo.abilityName;
+    appWhiteInfo.pageUrl = baseInfo.pageUrl;
+    appWhiteInfo.pageName = baseInfo.pageName;
     scrolling = true;
 }
  
@@ -103,7 +107,7 @@ void WhiteBlockMonitor::ReportWhiteBlockStat()
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
     std::lock_guard<std::mutex> Lock(mMutex);
-    PerfReporter::GetInstance().ReportWhiteBlockStat(scrollStartTime, scrollEndTime, mRecords);
+    PerfReporter::GetInstance().ReportWhiteBlockStat(scrollStartTime, scrollEndTime, mRecords, appWhiteInfo);
     CleanUpRecords();
 }
  

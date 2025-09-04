@@ -202,7 +202,8 @@ void SceneMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType ty
     SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_ANIMATOR, true, sceneId);
     SceneMonitor::GetInstance().SetCurrentSceneId(sceneId);
     if (IsScrollJank(sceneId)) {
-        WhiteBlockMonitor::GetInstance().StartScroll();
+        BaseInfo baseInfo = GetBaseInfo();
+        WhiteBlockMonitor::GetInstance().StartScroll(baseInfo);
     }
     SetAppGCStatus(sceneId, 0);
     NotifyScbJankStatsEnd(sceneId);

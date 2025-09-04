@@ -122,6 +122,10 @@ struct ImageLoadStat {
     int64_t totalSize {0};
     int64_t failedSize {0};
     std::string typeDetails;
+    std::string bundleName;
+    std::string abilityName;
+    std::string pageUrl;
+    std::string pageName;
 };
 
 struct SurfaceInfo {
@@ -130,6 +134,13 @@ struct SurfaceInfo {
     std::string componentName;
     std::string bundleName;
     int32_t pid{0};
+};
+
+struct AppWhiteInfo{
+    std::string bundleName;
+    std::string abilityName;
+    std::string pageUrl;
+    std::string pageName;
 };
 
 class AnimatorRecord {
