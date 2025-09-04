@@ -1188,7 +1188,8 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level0)
     }
     int pid = getpid();
     std::string threadStack;
-    int ret = LogCatcherUtils::DumpStacktrace(-1, pid, threadStack);
+    LogCatcherUtils::TerminalBinderInfo binderInfo;
+    int ret = LogCatcherUtils::DumpStacktrace(-1, pid, threadStack, binderInfo);
     EXPECT_EQ(ret, -1);
     std::thread thread1([pid]{
         auto fd1 = open("/data/test/dumpstacktrace_file1", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
@@ -1197,13 +1198,14 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_001, TestSize.Level0)
             FAIL();
         }
         std::string threadStack1;
-        LogCatcherUtils::DumpStacktrace(fd1, pid, threadStack1);
+        LogCatcherUtils::TerminalBinderInfo binderInfo;
+        LogCatcherUtils::DumpStacktrace(fd1, pid, threadStack1, binderInfo);
         close(fd1);
     });
     if (thread1.joinable()) {
         thread1.detach();
     }
-    ret = LogCatcherUtils::DumpStacktrace(fd, pid, threadStack);
+    ret = LogCatcherUtils::DumpStacktrace(fd, pid, threadStack, binderInfo);
     close(fd);
     EXPECT_TRUE(threadStack.empty());
     EXPECT_EQ(ret, 0);

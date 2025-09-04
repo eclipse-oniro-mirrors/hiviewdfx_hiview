@@ -25,9 +25,14 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace LogCatcherUtils {
 static constexpr int WAIT_CHILD_PROCESS_COUNT = 200;
+struct TerminalBinderInfo {
+    int terminalBinderPid = 0;
+    int terminalBinderTid = 0;
+    std::string bundleName = "";
+};
 
-int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int terminalBinderPid = 0,
-    int terminalBinderTid = 0);
+int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack,
+    TerminalBinderInfo& binderInfo);
 void GetThreadStack(const std::string& processStack, std::string& stack, int tid);
 int DumpStackFfrt(int fd, const std::string& pid);
 int WriteKernelStackToFd(int originFd, const std::string& msg, int pid);

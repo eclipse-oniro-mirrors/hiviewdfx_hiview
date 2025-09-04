@@ -624,7 +624,7 @@ bool EventLogger::IsKernelStack(const std::string& stack)
 }
 
 void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
-    std::string& kernelStack, bool isFormat)
+    std::string& kernelStack, bool isFormat, std::string bundleName)
 {
     if (!IsKernelStack(contentStack)) {
         stack = contentStack;
@@ -639,7 +639,7 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
         contentStack = contentStack.substr(kernelStackIndex + kernelStackTag.size());
     }
     kernelStack = contentStack;
-    if (DfxJsonFormatter::FormatKernelStack(contentStack, stack, isFormat)) {
+    if (DfxJsonFormatter::FormatKernelStack(contentStack, stack, isFormat, true, bundleName)) {
         contentStack = stack;
         if (isFormat) {
             stack = "";
@@ -661,6 +661,7 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
     std::string appRunningUniqueId = event->GetEventValue("APP_RUNNING_UNIQUE_ID");
 
     std::string jsonStack = event->GetEventValue("STACK");
+    std::string bundleName = event->GetEventValue("PACKAGE_NAME");
     HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
     if (FileUtil::FileExists(jsonStack)) {
         jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
@@ -672,7 +673,7 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
             stack = jsonStack;
         }
     } else {
-        GetNoJsonStack(stack, jsonStack, kernelStack, true);
+        GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName);
     }
 
     GetFailedDumpStackMsg(stack, event);
@@ -713,7 +714,7 @@ void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int or
     HIVIEW_LOGD("Success WriteKernelStackToFile: %{public}s.", path.c_str());
 }
 
-void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPeerStack)
+void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPeerStack, std::string bundleName)
 {
     if (binderInfo.empty() || !IsKernelStack(binderInfo)) {
         return;
@@ -734,7 +735,7 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
         std::string line = tags + *lineIt;
         stack = "";
         kernelStack = "";
-        GetNoJsonStack(stack, line, kernelStack, false);
+        GetNoJsonStack(stack, line, kernelStack, false, bundleName);
         binderPeerStack += kernelStack;
         oss << stack << std::endl;
     }
@@ -748,9 +749,10 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     std::string stack;
     std::string kernelStack;
     std::string binderInfo = event -> GetEventValue("BINDER_INFO");
+    std::string bundleName = event->GetEventValue("PACKAGE_NAME");
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
-        WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
+        WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack, bundleName);
     } else if (FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
     } else {
@@ -759,12 +761,12 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
         if (FileUtil::FileExists(stack)) {
             stack = FreezeManager::GetAppFreezeFile(stack);
             std::string tempStack = "";
-            GetNoJsonStack(tempStack, stack, kernelStack, false);
+            GetNoJsonStack(tempStack, stack, kernelStack, false, bundleName);
             stack = tempStack;
         }
         GetFailedDumpStackMsg(stack, event);
         if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT_WARNING") {
-            WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack);
+            WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack, bundleName);
         }
     }
     if (!kernelStack.empty()) {
@@ -793,7 +795,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
 }
 
 void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
-    std::string& threadStack, std::string& kernelStack)
+    std::string& threadStack, std::string& kernelStack, std::string bundleName)
 {
     size_t indexOne = binderInfo.find(",");
     size_t indexTwo = binderInfo.rfind(",");
@@ -810,7 +812,7 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
             ParsePeerBinder(binderInfo, binderInfoJsonStr);
             FreezeJsonUtil::WriteKeyValue(jsonFd, "peer_binder", binderInfoJsonStr);
         }
-        ParsePeerStack(binderInfo, kernelStack);
+        ParsePeerStack(binderInfo, kernelStack, bundleName);
         std::string terminalBinderTag = "Binder catcher stacktrace, terminal binder tag\n";
         size_t tagSize = terminalBinderTag.size();
         size_t startIndex = binderInfo.find(terminalBinderTag);

@@ -377,9 +377,11 @@ void PeerBinderCatcher::CatcherStacktrace(int fd, int pid, bool sync)
 {
     std::string type = sync ? "peer" : "async";
     std::string content = "Binder catcher stacktrace, type is " + type + ", pid : " + std::to_string(pid) + "\r\n";
+    std::string bundleName = event_ ? event_->GetEventValue("PACKAGE_NAME"):"";
     FileUtil::SaveStringToFd(fd, content);
 
-    LogCatcherUtils::DumpStacktrace(fd, pid, terminalBinder_.threadStack, terminalBinder_.pid, terminalBinder_.tid);
+    LogCatcherUtils::TerminalBinderInfo binderInfo{terminalBinder_.pid, terminalBinder_.tid, bundleName};
+    LogCatcherUtils::DumpStacktrace(fd, pid, terminalBinder_.threadStack, binderInfo);
 }
 
 #ifdef HAS_HIPERF

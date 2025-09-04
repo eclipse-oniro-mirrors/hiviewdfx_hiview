@@ -98,14 +98,15 @@ private:
     void GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
         std::string& stack, const std::string& msg, std::string& kernelStack);
     bool IsKernelStack(const std::string& stack);
-    void GetNoJsonStack(std::string& stack, std::string& contentStack, std::string& kernelStack, bool isFormat);
-    void ParsePeerStack(std::string& binderInfo, std::string& binderPeerStack);
+    void GetNoJsonStack(std::string& stack, std::string& contentStack, std::string& kernelStack, bool isFormat,
+        std::string bundleName);
+    void ParsePeerStack(std::string& binderInfo, std::string& binderPeerStack, std::string bundleName);
     void WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int originFd,
         const std::string& kernelStack);
     bool WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEvent> event,
         std::vector<std::string>& binderPids, std::string& threadStack);
     void WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
-        std::string& threadStack, std::string& kernelStack);
+        std::string& threadStack, std::string& kernelStack, std::string bundleName);
     bool UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile);
     void CreateAndPublishEvent(std::string& dirPath, std::string& fileName);
     bool CheckProcessRepeatFreeze(const std::string& eventName, long pid);

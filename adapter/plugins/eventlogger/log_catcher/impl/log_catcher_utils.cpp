@@ -131,7 +131,7 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
     return -1;
 }
 
-int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int terminalBinderPid, int terminalBinderTid)
+int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, TerminalBinderInfo& binderInfo)
 {
     if (fd < 0) {
         return -1;
@@ -146,7 +146,7 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int termin
         } else if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
             std::string failInfo = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" +
                 dumpResult.second;
-            msg = failInfo + (DfxJsonFormatter::FormatKernelStack(ret, msg, false) ? msg :
+            msg = failInfo + (DfxJsonFormatter::FormatKernelStack(ret, msg, false, true, binderInfo.bundleName) ? msg :
                 "Failed to format kernel stack for " + std::to_string(pid) + "\n");
             WriteKernelStackToFd(fd, ret, pid);
         } else {
@@ -158,15 +158,15 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, int termin
     if (msg == "") {
         msg = "dumpCatch return empty stack!!!!";
     }
-    if (terminalBinderPid > 0 && pid == terminalBinderPid) {
-        terminalBinderTid  = (terminalBinderTid > 0) ? terminalBinderTid : terminalBinderPid;
+    if (binderInfo.terminalBinderPid > 0 && pid == binderInfo.terminalBinderPid) {
+        int terminalBinderTid =
+            (binderInfo.terminalBinderTid > 0) ? binderInfo.terminalBinderTid : binderInfo.terminalBinderPid;
         GetThreadStack(msg, terminalBinderStack, terminalBinderTid);
     }
 
     FileUtil::SaveStringToFd(fd, msg);
     return 0;
 }
-
 void GetThreadStack(const std::string& processStack, std::string& stack, int tid)
 {
     if (tid <= 0) {
