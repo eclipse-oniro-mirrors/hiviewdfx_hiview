@@ -87,7 +87,6 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
         HIVIEW_LOGE("eventLoop_ is not inited.");
         return;
     }
-
     // Get hitrace id which from processdump
     HiTraceIdStruct hitraceId = HiTraceChainGetId();
     auto task = [info, hitraceId] () mutable {
