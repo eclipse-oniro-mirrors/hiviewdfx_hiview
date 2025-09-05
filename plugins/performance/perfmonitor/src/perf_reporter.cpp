@@ -223,7 +223,8 @@ void PerfReporter::ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_
 }
 
 void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
-                                        const std::map<int64_t, ImageLoadInfo*>& mRecords)
+                                        const std::map<int64_t, ImageLoadInfo*>& mRecords,
+                                        const AppWhiteInfo& appWhiteInfo)
 {
     if (mRecords.size() == 0) {
         HIVIEW_LOGD("no data to report");
@@ -268,7 +269,12 @@ void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrol
         imageLoadStat += str;
     }
  
-    ImageLoadStat stat = {scrollStartTime, scrollEndTime, totalNum, failedNum, totalSize, failedSize, imageLoadStat};
+    ImageLoadStat stat = {
+        scrollStartTime, scrollEndTime, totalNum, failedNum, totalSize, failedSize, imageLoadStat,
+        appWhiteInfo.bundleName, appWhiteInfo.abilityName,
+        appWhiteInfo.pageUrl, appWhiteInfo.pageName
+    };
+    
     EventReporter::ReportImageLoadStat(stat);
 }
 
@@ -547,6 +553,10 @@ void EventReporter::ReportImageLoadStat(const ImageLoadStat& stat)
             .Param(KEY_TOTAL_SIZE, stat.totalSize)
             .Param(KEY_FAILED_SIZE, stat.failedSize)
             .Param(KEY_TYPE_DETAILS, stat.typeDetails)
+            .Param(EVENT_KEY_BUNDLE_NAME, stat.bundleName)
+            .Param(EVENT_KEY_ABILITY_NAME, stat.abilityName)
+            .Param(EVENT_KEY_PAGE_URL, stat.pageUrl)
+            .Param(EVENT_KEY_PAGE_NAME, stat.pageName)
             .Build();
     XperfEventReporter reporter;
     reporter.Report(PERFORMANCE_DOMAIN, event);

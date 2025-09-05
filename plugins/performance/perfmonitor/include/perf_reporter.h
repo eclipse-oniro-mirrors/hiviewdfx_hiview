@@ -34,7 +34,7 @@ public:
     void ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_t duration,
         const std::vector<uint16_t>& jankFrameRecord, int32_t jankFrameTotalCount, const BaseInfo& baseInfo);
     void ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
-                              const std::map<int64_t, ImageLoadInfo*>& mRecords);
+                              const std::map<int64_t, ImageLoadInfo*>& mRecords, const AppWhiteInfo& appWhiteInfo);
     void ReportSurface(const int64_t& uniqueId, const std::string& surfaceName, const std::string& componentName,
         const std::string& bundleName, const int32_t& pid);
 
