@@ -63,8 +63,8 @@ private:
     void GetSaNames(const Event &msg, TelemetryParams &params);
 
 private:
-    std::unique_ptr<ffrt::queue> taskQueue_ = nullptr;
-    ffrt::task_handle startTaskHandle_;
+    std::atomic<bool> isCanceled_ = false;
+    ffrt::mutex telemetryMutex_;
 };
 
 }

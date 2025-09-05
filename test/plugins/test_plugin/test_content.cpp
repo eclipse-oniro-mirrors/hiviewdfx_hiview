@@ -31,7 +31,7 @@ using namespace UCollect;
 namespace {
 const std::string COMMON_EVENT_TELEMETRY_START = "telemetryStart";
 const std::string COMMON_EVENT_TELEMETRY_END = "telemetryEnd";
-const std::string CONFIG_PATH = "/data/log/hiview/unified_collection/trace/telemetry/test_data.json";
+const std::string CONFIG_PATH = "/data/log/hiview/unified_collection/trace/test_data.json";
 }
 
 void TestXperfDump(const EventFwk::CommonEventData &data)
@@ -103,12 +103,11 @@ std::shared_ptr<Event> MakeTelemetryEvent()
 {
     cJSON* root = CJsonUtil::ParseJsonRoot(CONFIG_PATH);
     if (root == nullptr) {
-        HIVIEW_LOGI("trace jsonArgs parse error");
         return nullptr;
     }
     if (!cJSON_IsObject(root)) {
         cJSON_Delete(root);
-        HIVIEW_LOGI("trace jsonArgs parse error");
+        return nullptr;
     }
     auto event = std::make_shared<Event>("TelemetrySubscriber");
     if (auto telemetryId = CJsonUtil::GetStringValue(root, "telemetryId"); !telemetryId.empty()) {
@@ -169,6 +168,10 @@ void TestTelemetryEnd(const EventFwk::CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
     auto event = MakeTelemetryEvent();
+    if (event == nullptr) {
+        HIVIEW_LOGI("event == nullptr check config file parse");
+        return;
+    }
     event->messageType_ = Event::TELEMETRY_EVENT;
     event->eventName_ = COMMON_EVENT_TELEMETRY_END;
     event->SetValue("telemetryStatus", "off");
