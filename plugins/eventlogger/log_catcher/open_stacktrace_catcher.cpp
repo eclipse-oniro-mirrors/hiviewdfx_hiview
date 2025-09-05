@@ -74,7 +74,8 @@ int OpenStacktraceCatcher::Catch(int fd, int jsonFd)
 
 #ifdef DUMP_STACK_IN_PROCESS
     std::string threadStack;
-    LogCatcherUtils::DumpStacktrace(fd, pid_, threadStack);
+    LogCatcherUtils::TerminalBinderInfo binderInfo{0, 0, packageName_};
+    LogCatcherUtils::DumpStacktrace(fd, pid_, threadStack, binderInfo);
 #else
     ForkAndDumpStackTrace(fd);
 #endif
@@ -106,7 +107,8 @@ int32_t OpenStacktraceCatcher::ForkAndDumpStackTrace(int32_t fd)
     if (pid == 0) {
         auto newFd = dup(fd);
         std::string threadStack;
-        int ret = LogCatcherUtils::DumpStacktrace(newFd, pid_, threadStack);
+        LogCatcherUtils::TerminalBinderInfo binderInfo{0, 0, packageName_};
+        int ret = LogCatcherUtils::DumpStacktrace(newFd, pid_, threadStack, binderInfo);
         HIVIEW_LOGD("LogCatcherUtils::DumpStacktrace ret %{public}d", ret);
         close(newFd);
         _exit(ret);

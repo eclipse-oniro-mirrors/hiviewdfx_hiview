@@ -814,6 +814,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeStack_001, TestSize.Level3
     std::string stack = "TEST\\nTEST\\nTEST";
     std::string kernelStack = "";
     std::string contentStack = "Test";
+    std::string bundleName = "Test bundleName";
     auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
     std::string testName = "EventLoggerTest_GetAppFreezeStack_001";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
@@ -828,13 +829,13 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeStack_001, TestSize.Level3
     EXPECT_TRUE(kernelStack.empty());
     eventLogger->GetAppFreezeStack(1, sysEvent, stack, "msg", kernelStack);
     EXPECT_TRUE(kernelStack.empty());
-    eventLogger->GetNoJsonStack(stack, contentStack, kernelStack, false);
+    eventLogger->GetNoJsonStack(stack, contentStack, kernelStack, false, bundleName);
     EXPECT_TRUE(kernelStack.empty());
     stack = "Test:Stack backtrace";
     sysEvent->SetEventValue("STACK", stack);
     eventLogger->GetAppFreezeStack(1, sysEvent, stack, "msg", kernelStack);
     EXPECT_TRUE(!kernelStack.empty());
-    eventLogger->GetNoJsonStack(stack, contentStack, kernelStack, false);
+    eventLogger->GetNoJsonStack(stack, contentStack, kernelStack, false, bundleName);
     EXPECT_TRUE(!kernelStack.empty());
     sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "Test");
     sysEvent->SetEventValue("STACK", "/data/test/log/test.txt");
@@ -880,18 +881,19 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ParsePeerStack_001, TestSize.Level3)
     auto eventLogger = std::make_shared<EventLogger>();
     std::string binderInfo = "";
     std::string binderPeerStack = "";
-    eventLogger->ParsePeerStack(binderInfo, binderPeerStack);
+    std::string bundleName = "";
+    eventLogger->ParsePeerStack(binderInfo, binderPeerStack, bundleName);
     EXPECT_TRUE(binderPeerStack.empty());
     binderInfo = "Test";
-    eventLogger->ParsePeerStack(binderInfo, binderPeerStack);
+    eventLogger->ParsePeerStack(binderInfo, binderPeerStack, bundleName);
     EXPECT_TRUE(binderPeerStack.empty());
     binderInfo = "Binder catcher stacktrace, type is peer, pid : 111\n Stack "
         "backtrace: Test\n Binder catcher stacktrace, type is peer, pid : 112\n Test";
-    eventLogger->ParsePeerStack(binderInfo, binderPeerStack);
+    eventLogger->ParsePeerStack(binderInfo, binderPeerStack, bundleName);
     EXPECT_TRUE(!binderPeerStack.empty());
     binderPeerStack = "";
     binderInfo = "111\n Stack backtrace: Test\n 112\n Test";
-    eventLogger->ParsePeerStack(binderInfo, binderPeerStack);
+    eventLogger->ParsePeerStack(binderInfo, binderPeerStack, bundleName);
     EXPECT_TRUE(binderPeerStack.empty());
 }
 
