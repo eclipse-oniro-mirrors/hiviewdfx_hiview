@@ -50,8 +50,8 @@ private:
     void StartTask(std::shared_ptr<TriggerExportTask> task);
 
 private:
-    ffrt_queue_t runningTaskQueue_;
-    ffrt_task_attr_t taskAttr_;
+    ffrt_queue_t runningTaskQueue_ = nullptr;
+    ffrt_task_attr_t taskAttr_ { 0 };
     ffrt::mutex taskMapMutex_;
     ffrt::mutex delayMutex_;
     std::unordered_map<std::string, TriggerTaskList> taskMap_;
