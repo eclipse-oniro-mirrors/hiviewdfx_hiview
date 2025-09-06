@@ -178,7 +178,7 @@ void HiviewServiceAbility::StartServiceAbility(int sleepS)
         HIVIEW_LOGE("AddDeathRecipient == false");
     }
 
-    if (!HiviewDFX::IpcFull::GetInstance().AddIpcFull(IPC_FULL_CHECK_INTERVAL, XCOLLIE_FLAG_LOG)) {
+    if (!HiviewDFX::IpcFull::GetInstance().AddIpcFull(IPC_FULL_CHECK_INTERVAL, XCOLLIE_FLAG_DEFAULT)) {
         HIVIEW_LOGE("AddIpcFull failed");
     }
 }
