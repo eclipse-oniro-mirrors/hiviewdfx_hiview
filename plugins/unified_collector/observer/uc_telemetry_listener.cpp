@@ -42,6 +42,7 @@ const int64_t DEFAULT_XPOWER_SIZE = 20 * 1024 * 1024;
 const int64_t DEFAULT_RELIABILITY_SIZE = 20 * 1024 * 1024;
 const int64_t DEFAULT_TOTAL_SIZE = 50 * 1024 * 1024;
 const int64_t MAX_TOTAL_SIZE = 1024; // 1G
+const int64_t CHECK_CYCLE_SECONDS = 30;
 
 constexpr char KEY_ID[] = "telemetryId";
 constexpr char KEY_FILTER_NAME[] = "appFilterName";
@@ -89,7 +90,7 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
     bool isCloseMsg = false;
     TelemetryParams params;
     std::string errorMsg = CheckValidParam(msg, params, isCloseMsg);
-    HIVIEW_LOGI("isClose:%{public}d", isCloseMsg);
+    HIVIEW_LOGI("isClose:%{public}d begin time:%{public}" PRId64 "", isCloseMsg, params.beginTime);
     if (!errorMsg.empty()) {
         return WriteErrorEvent(errorMsg, params);
     }
@@ -111,19 +112,22 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
         return WriteErrorEvent("init telemetry time table fail", params);
     }
     if (isTimeOut) {
-        HIVIEW_LOGE("%{public}s", "trace already time out");
+        HIVIEW_LOGI("trace already time out");
         return;
     }
-    auto delaySeconds = params.beginTime - TimeUtil::GetSeconds();
-    if (delaySeconds <= 0) {
-        HandleStart(params);
-    } else {
-        if (taskQueue_ == nullptr) {
-            taskQueue_ = std::make_unique<ffrt::queue>("telemetry_queue");
+    isCanceled_ = false;
+    ffrt::submit([this, params] {
+        while (params.beginTime > TimeUtil::GetSeconds()) {
+            if (isCanceled_) {
+                return;
+            }
+            ffrt::this_task::sleep_for(std::chrono::seconds(CHECK_CYCLE_SECONDS));
         }
-        startTaskHandle_ = taskQueue_->submit_h([this, params] { this->HandleStart(params); },
-            ffrt::task_attr().delay(delaySeconds * SECONDS_TO_MS * MS_TO_US));
-    }
+        std::unique_lock<ffrt::mutex> lock(telemetryMutex_);
+        if (!isCanceled_) {
+            this->HandleStart(params);
+        }
+    });
 }
 
 std::string TelemetryListener::CheckValidParam(const Event &msg, TelemetryParams &params, bool &isCloseMsg)
@@ -203,7 +207,7 @@ void TelemetryListener::HandleStart(const TelemetryParams &params)
                 break;
         }
         bool isSuccess = TraceStateMachine::GetInstance().RegisterTelemetryCallback(callback);
-        HIVIEW_LOGI("register callback result:%{public}d, traceDuration%{public}" PRId64 "", isSuccess,
+        HIVIEW_LOGI("register callback result:%{public}d, traceDuration:%{public}" PRId64 "", isSuccess,
             params.traceDuration);
     } else {
         WriteErrorEvent("trace state error", params);
@@ -212,12 +216,11 @@ void TelemetryListener::HandleStart(const TelemetryParams &params)
 
 void TelemetryListener::HandleStop()
 {
+    std::unique_lock<ffrt::mutex> lock(telemetryMutex_);
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
     TraceFlowController controller(BusinessName::TELEMETRY);
     controller.ClearTelemetryData();
-    if (taskQueue_ != nullptr && taskQueue_->cancel(startTaskHandle_) < 0) {
-        HIVIEW_LOGW("%{public}s", "telemetstartTaskHandle_ry trace already start");
-    }
+    isCanceled_ = true;
 }
 
 void TelemetryListener::WriteErrorEvent(const std::string &error, const TelemetryParams &params)
