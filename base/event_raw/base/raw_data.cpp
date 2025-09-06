@@ -164,7 +164,7 @@ bool RawData::Update(uint8_t* data, size_t len, size_t pos)
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (data_ == nullptr) {
-        HIVIEW_LOGE("data_ is null");
+        HIVIEW_LOGE("Try to update an invalid raw data");
         return false;
     }
     auto ret = EOK;
