@@ -187,9 +187,13 @@ XperfEventBuilder& XperfEventBuilder::Param(const char* name, const std::vector<
 {
     HiSysEventParam param = {
         .t = HISYSEVENT_UINT16_ARRAY,
-        .v = { .array = static_cast<void*>(const_cast<uint16_t*>(value.data())) },
-        .arraySize = value.size(),
+        .v = { .array = nullptr },
+        .arraySize = 0,
     };
+    if (!value.empty()) {
+        param.v.array = static_cast<void*>(const_cast<uint16_t*>(value.data()));
+        param.arraySize = value.size();
+    }
     SetParamName(param, name);
     paramList.push_back(param);
     return *this;
