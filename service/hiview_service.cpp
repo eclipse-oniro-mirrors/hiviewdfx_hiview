@@ -370,10 +370,7 @@ CollectResult<int32_t> HiviewService::SetAppResourceLimit(UCollectClient::Memory
     sysEventCreator.SetKeyValue("RESOURCE_DEBUG_ENABLE", memoryCaller.enabledDebugLog ? "true" : "false");
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-    if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, "XPower", event)) {
-        HIVIEW_LOGE("%{public}s failed for pid=%{public}d error", eventName.c_str(), memoryCaller.pid);
-        return {UCollect::UcError::SYSTEM_ERROR};
-    }
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
     return {UCollect::UcError::SUCCESS};
 }
 
@@ -395,10 +392,7 @@ CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectCl
 
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     auto event = std::dynamic_pointer_cast<Event>(sysEvent);
-    if (!HiviewPlatform::GetInstance().PostSyncEventToTarget(nullptr, "XPower", event)) {
-        HIVIEW_LOGE("%{public}s failed for post event", eventName.c_str());
-        return {UCollect::UcError::SYSTEM_ERROR};
-    }
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
     return {UCollect::UcError::SUCCESS};
 }
 
