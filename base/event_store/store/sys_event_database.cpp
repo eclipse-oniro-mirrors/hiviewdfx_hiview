@@ -36,7 +36,6 @@ DEFINE_LOG_TAG("HiView-SysEventDatabase");
 namespace {
 constexpr size_t DEFAULT_CAPACITY = 30;
 const char FILE_DELIMIT_STR[] = "/";
-const char FILE_NAME_DELIMIT_STR[] = "-";
 constexpr size_t INDEX_FILE_SIZE = 0;
 constexpr size_t INDEX_NORMAL_QUEUE = 1;
 constexpr size_t INDEX_LIMIT_QUEUE = 2;
