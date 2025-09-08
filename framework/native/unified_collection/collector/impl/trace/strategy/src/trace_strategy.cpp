@@ -33,7 +33,6 @@ namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 const uint32_t BYTE_UNIT = 1024;
-constexpr int32_t FULL_TRACE_DURATION = -1;
 const uint32_t MS_UNIT = 1000;
 
 void InitDumpEvent(DumpEvent &dumpEvent, const std::string &caller, uint32_t maxDuration, uint64_t happenTime)
@@ -95,9 +94,8 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
 {
     InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
-    uint32_t maxDuration = (maxDuration_ == FULL_TRACE_DURATION) ? 0 : maxDuration_;
 #ifndef TRACE_STRATEGY_UNITTEST
-    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, maxDuration, happenTime_, traceRetInfo);
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, maxDuration_, happenTime_, traceRetInfo);
 #else
     TraceRet ret(traceRetInfo.errorCode);
 #endif
