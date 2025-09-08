@@ -27,10 +27,8 @@
 #include "common_utils.h"
 #include "defines.h"
 #include "file_util.h"
-#include "hiview_logger.h"
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_LABEL(0xD002D01, "EventLogger-EventLogCatcher");
 namespace {
     constexpr char SED_EXEC_PATH[] = "/system/bin/sed";
 }

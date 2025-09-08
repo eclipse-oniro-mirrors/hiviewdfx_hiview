@@ -16,7 +16,6 @@
 
 #include "file_util.h"
 #include "freeze_common.h"
-#include "hiview_logger.h"
 #include "thermal_mgr_client.h"
 
 namespace OHOS {
@@ -24,8 +23,6 @@ namespace HiviewDFX {
 namespace {
     constexpr int TEMP_EVENT_LIMIT = 5;
 }
-
-DEFINE_LOG_LABEL(0xD002D01, "EventLogger-ThermalInfoCatcher");
 
 ThermalInfoCatcher::ThermalInfoCatcher() : EventLogCatcher()
 {
