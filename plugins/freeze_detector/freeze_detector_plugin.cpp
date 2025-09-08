@@ -33,6 +33,8 @@ namespace {
     const static int MIN_APP_UID = 10000;
     const static long MULTIPLE_DELAY_TIME = 10;
     const static long SINGLE_DELAY_TIME = 3;
+    const static uint64_t HIVIEW_UID = 1201;
+    constexpr const char* IPC_FULL = "IPC_FULL";
 }
 REGISTER_PROXY(FreezeDetectorPlugin);
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -201,9 +203,13 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
         return;
     }
     long delayTime = freezeResultList.size() > 1 ? MULTIPLE_DELAY_TIME : SINGLE_DELAY_TIME;
-    for (auto& i : freezeResultList) {
-        long window = i.GetWindow();
-        delayTime = std::max(delayTime, window);
+    if (watchPoint.GetUid() == HIVIEW_UID && watchPoint.GetStringId() == "IPC_FULL") {
+        delayTime = 0;
+    } else {
+        for(auto& i : freezeResultList) {
+            long window = i.GetWindow();
+            delayTime = std::max(delayTime, window);
+        }
     }
     ffrt::submit([this, watchPoint] { this->ProcessEvent(watchPoint); }, {}, {},
         ffrt::task_attr().name("dfr_fre_detec").qos(ffrt::qos_default)
