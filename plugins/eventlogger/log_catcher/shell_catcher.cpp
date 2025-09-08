@@ -167,6 +167,7 @@ int ShellCatcher::DoScbCatcher(int writeFd)
                 ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a",
                     cmd.c_str(), nullptr);
             }
+            break;
         default:
             break;
     }

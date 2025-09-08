@@ -16,7 +16,6 @@
 
 #include "file_util.h"
 #include "freeze_common.h"
-#include "hiview_logger.h"
 #include "collect_result.h"
 #include "parameter_ex.h"
 
@@ -43,7 +42,6 @@ namespace {
     constexpr const char* SUSTAINABLE_POWER =
         "/sys/class/thermal/thermal_zone1/sustainable_power";
 }
-DEFINE_LOG_LABEL(0xD002D01, "EventLogger-CpuCoreInfoCatcher");
 
 CpuCoreInfoCatcher::CpuCoreInfoCatcher() : EventLogCatcher()
 {
