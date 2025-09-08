@@ -111,7 +111,9 @@ bool FaultLogProcessorBase::VerifyModule(FaultLogInfo& info)
     }
     HIVIEW_LOGI("Start saving Faultlog of Process:%{public}d, Name:%{public}s, Reason:%{public}s.",
         info.pid, info.module.c_str(), info.reason.c_str());
-    info.sectionMap["PROCESS_NAME"] = info.module; // save process name
+    if (info.sectionMap.find("PROCESS_NAME") == info.sectionMap.end()) {
+        info.sectionMap["PROCESS_NAME"] = info.module; // save process name
+    }
     // Non system processes use UID to pass events to applications
     if (!IsSystemProcess(info.module, info.id) && info.sectionMap["SCBPROCESS"] != "Yes") {
         std::string appName = GetApplicationNameById(info.id);

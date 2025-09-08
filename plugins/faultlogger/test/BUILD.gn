@@ -22,6 +22,7 @@ config("hiview_faultlogger_test_config") {
     ".",
     "$hiview_core",
     "$hiview_faultlogger/service/",
+    "$hiview_faultlogger/service/extension_manager/include",
     "$hiview_faultlogger/service/fault_event/base",
     "$hiview_faultlogger/service/fault_event/event",
     "$hiview_faultlogger/service/fault_event/factory",
@@ -46,6 +47,8 @@ ohos_unittest("FaultloggerUnittest") {
 
   cflags = [ "-Dprivate=public" ]
   sources = [
+    "$hiview_faultlogger/service/extension_manager/src/faultlog_ext_conn_manager.cpp",
+    "$hiview_faultlogger/service/extension_manager/src/faultlog_ext_connection.cpp",
     "$hiview_faultlogger/service/fault_event/base/faultlog_event_base.cpp",
     "$hiview_faultlogger/service/fault_event/base/faultlog_processor_base.cpp",
     "$hiview_faultlogger/service/fault_event/event/faultlog_cjerror.cpp",
@@ -71,6 +74,7 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_faultlogger/service/page_history/pages_trace.cpp",
     "$hiview_faultlogger/service/sanitizer_collector/sanitizer_telemetry.cpp",
     "common/faultevent_listener.cpp",
+    "common/unittest/extension_manager_unittest.cpp",
     "common/unittest/faultlog_bundle_util_unittest.cpp",
     "common/unittest/faultlog_formatter_unittest.cpp",
     "common/unittest/faultlogger_unittest.cpp",
@@ -92,12 +96,15 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_framework/native/unified_collection:ucollection_source",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
+    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_impl",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_ohos_common",
   ]
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -105,13 +112,13 @@ ohos_unittest("FaultloggerUnittest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "hitrace:libhitracechain",
     "hisysevent:libhisysevent",
     "hisysevent:libhisyseventmanager",
+    "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "safwk:system_ability_fwk",
     "jsoncpp:jsoncpp",
+    "safwk:system_ability_fwk",
   ]
 
   resource_config_file = "//base/hiviewdfx/hiview/plugins/faultlogger/test/common/resource/ohos_test.xml"

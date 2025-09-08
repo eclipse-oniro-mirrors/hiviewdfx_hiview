@@ -38,7 +38,7 @@ void TriggerExportTask::AppendEvent(std::shared_ptr<SysEvent> sysEvent)
     auto event = std::make_shared<TriggerExportEvent>();
     event->domain = sysEvent->domain_;
     event->eventName = sysEvent->eventName_;
-    event->timeStamp = sysEvent->happenTime_;
+    event->timeStamp = static_cast<int64_t>(sysEvent->happenTime_);
     event->seq = sysEvent->GetEventSeq();
     {
         std::unique_lock<ffrt::mutex> lock(listMutex_);
