@@ -72,9 +72,6 @@ std::shared_ptr<TraceCollector> TraceCollector::Create()
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithDuration(
     TraceCaller caller, uint32_t maxDuration, uint64_t happenTime)
 {
-    if (maxDuration > INT32_MAX) {
-        return StartDumpTrace(caller, INT32_MAX, happenTime);
-    }
     return StartDumpTrace(caller, maxDuration, happenTime);
 }
 
