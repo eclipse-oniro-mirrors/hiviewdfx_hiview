@@ -343,6 +343,162 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_006, TestSize.Level3)
 }
 #endif
 
+#ifdef SCB_CATCHER_ENABLE
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventLogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_SCBWMSCapture_001, TestSize.Level0)
+{
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(-1, 1, sysEvent);
+    WindowIdInfo windowInfo;
+    windowInfo.focusWindowId = "focusWindowId";
+    windowInfo.softKeyboardWindowId = "softKeyboardWindowId";
+    windowInfo.screenLockWindowId = "screenLockWindowId";
+    windowInfo.statusBarWindowId = "statusBarWindowId";
+    logTask->SetFocusWindowId(windowInfo);
+    logTask->SCBWMSCapture();
+
+    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
+
+    EXPECT_EQ(logTask->tasks_.size(), 4);
+}
+
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventLogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_SCBWMSCapture_002, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Create EventLogTask with focus window only
+     */
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(-1, 1, sysEvent);
+    WindowIdInfo windowInfo;
+    windowInfo.focusWindowId = "focusWindowId";
+    logTask->SetFocusWindowId(windowInfo);
+
+    /**
+     * @tc.steps: step2. Call SCBWMSCapture
+     */
+    logTask->SCBWMSCapture();
+
+    /**
+     * @tc.steps: step3. Verify tasks_ vector contains exactly one task
+     */
+    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
+    EXPECT_EQ(logTask->tasks_.size(), 1);
+
+    /**
+     * @tc.steps: step4. Verify the task is ShellCatcher with correct properties
+     */
+    auto shellCatcher = std::static_pointer_cast<ShellCatcher>(logTask->tasks_[0]);
+    ASSERT_NE(shellCatcher, nullptr);
+    
+    EXPECT_EQ(shellCatcher->focusWindowId_, "focusWindowId");
+    EXPECT_EQ(shellCatcher->catcherType_, ShellCatcher::CATCHER_SCBWMS);
+    EXPECT_TRUE(shellCatcher->catcherCmd_.find("focusWindowId") != std::string::npos);
+    EXPECT_TRUE(shellCatcher->catcherCmd_.find("-simplify") != std::string::npos);
+}
+
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventLogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_SCBWMSCapture_003, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Create EventLogTask with focus window and softKeyboard window
+     */
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(-1, 1, sysEvent);
+    WindowIdInfo windowInfo;
+    windowInfo.focusWindowId = "focusWindowId";
+    windowInfo.softKeyboardWindowId = "softKeyboardWindowId";
+    logTask->SetFocusWindowId(windowInfo);
+
+    /**
+     * @tc.steps: step2. Call SCBWMSCapture
+     */
+    logTask->SCBWMSCapture();
+
+    /**
+     * @tc.steps: step3. Verify tasks_ vector contains exactly two task
+     */
+    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
+    EXPECT_EQ(logTask->tasks_.size(), 2);
+
+    /**
+     * @tc.steps: step4. Verify the task is ShellCatcher with correct properties
+     */
+    auto shellCatcher = std::static_pointer_cast<ShellCatcher>(logTask->tasks_[1]);
+    ASSERT_NE(shellCatcher, nullptr);
+    
+    EXPECT_EQ(shellCatcher->focusWindowId_, "softKeyboardWindowId");
+    EXPECT_EQ(shellCatcher->catcherType_, ShellCatcher::CATCHER_SCBWMS);
+    EXPECT_TRUE(shellCatcher->catcherCmd_.find("softKeyboardWindowId") != std::string::npos);
+    EXPECT_TRUE(shellCatcher->catcherCmd_.find("-simplify") != std::string::npos);
+}
+
+/**
+ * @tc.name: EventlogTask
+ * @tc.desc: test EventLogTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, EventlogTask_SCBWMSCapture_004, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Create EventLogTask with focus window ，screenLock window and statusBar window
+     */
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventlogTask", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventlogTask", nullptr, sysEventCreator);
+    std::unique_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(-1, 1, sysEvent);
+    WindowIdInfo windowInfo;
+    windowInfo.focusWindowId = "focusWindowId";
+    windowInfo.screenLockWindowId = "screenLockWindowId";
+    windowInfo.statusBarWindowId = "statusBarWindowId";
+    logTask->SetFocusWindowId(windowInfo);
+
+    /**
+     * @tc.steps: step2. Call SCBWMSCapture
+     */
+    logTask->SCBWMSCapture();
+
+    /**
+     * @tc.steps: step3. Verify tasks_ vector contains exactly three task
+     */
+    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
+    EXPECT_EQ(logTask->tasks_.size(), 3);
+
+    /**
+     * @tc.steps: step4. Verify the task is ShellCatcher with correct properties
+     */
+    auto shellCatcherLock = std::static_pointer_cast<ShellCatcher>(logTask->tasks_[1]);
+    ASSERT_NE(shellCatcherLock, nullptr);
+    
+    EXPECT_EQ(shellCatcherLock->focusWindowId_, "screenLockWindowId");
+    EXPECT_EQ(shellCatcherLock->catcherType_, ShellCatcher::CATCHER_SCBWMS);
+    EXPECT_TRUE(shellCatcherLock->catcherCmd_.find("screenLockWindowId") != std::string::npos);
+    EXPECT_TRUE(shellCatcherLock->catcherCmd_.find("-simplify -compname SCBScreenLock") != std::string::npos);
+
+    auto shellCatcherBar = std::static_pointer_cast<ShellCatcher>(logTask->tasks_[2]);
+    ASSERT_NE(shellCatcherBar, nullptr);
+    
+    EXPECT_EQ(shellCatcherBar->focusWindowId_, "statusBarWindowId");
+    EXPECT_EQ(shellCatcherBar->catcherType_, ShellCatcher::CATCHER_SCBWMS);
+    EXPECT_TRUE(shellCatcherBar->catcherCmd_.find("statusBarWindowId") != std::string::npos);
+    EXPECT_TRUE(shellCatcherBar->catcherCmd_.find("-simplify -compname SCBStatusBar") != std::string::npos);
+}
+#endif // SCB_CATCHER_ENABLE
+
 #ifdef BINDER_CATCHER_ENABLE
 /**
  * @tc.name: BinderCatcherTest_001
@@ -1172,6 +1328,18 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_003, TestSize.Level1)
     auto shellCatcher = std::make_shared<ShellCatcher>();
     shellCatcher->SetFocusWindowId("ShellCatcherTest_003");
     EXPECT_TRUE(!shellCatcher->focusWindowId_.empty());
+}
+
+/**
+ * @tc.name: ShellCatcherTest
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_004, TestSize.Level1)
+{
+    auto shellCatcher = std::make_shared<ShellCatcher>();
+    shellCatcher->SetComponentName("ShellCatcherTest_004");
+    EXPECT_TRUE(!shellCatcher->componentName_.empty());
 }
 
 /**

@@ -147,8 +147,10 @@ int ShellCatcher::DoScbCatcher(int writeFd)
         case CATCHER_SCBWMS:
         case CATCHER_SCBWMSEVT:
             {
-                std::string cmdSuffix = (catcherType_ == CATCHER_SCBWMS) ? " -simplify" : " -event";
-                std::string cmd = "-w " + focusWindowId_ + cmdSuffix;
+            std::string cmdSuffix = (catcherType_ == CATCHER_SCBWMS)
+                                        ? (componentName_.empty() ? " -simplify" : " -simplify -compname ")
+                                        : " -event";
+            std::string cmd = "-w " + focusWindowId_ + cmdSuffix + componentName_;
                 ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a",
                     cmd.c_str(), nullptr);
             }
@@ -240,6 +242,11 @@ int ShellCatcher::DoOtherChildProcesscatcher(int writeFd)
 void ShellCatcher::SetFocusWindowId(const std::string& focusWindowId)
 {
     focusWindowId_ = focusWindowId;
+}
+
+void ShellCatcher::SetComponentName(const std::string& compName)
+{
+    componentName_ = compName;
 }
 
 bool ShellCatcher::ReadShellToFile(int writeFd, const std::string& cmd)

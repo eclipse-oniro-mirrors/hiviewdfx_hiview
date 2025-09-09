@@ -1090,5 +1090,65 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_002, TestSize.Level3)
     EXPECT_TRUE(ret == 0);
     EXPECT_TRUE(eventLogger);
 }
+
+/**
+ * @tc.name: EventLoggerTest_GetWindowIdFromLine_001
+ * @tc.desc: Test GetWindowIdFromLine with WindowId containing special characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetWindowIdFromLine_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string line = "WindowName 0 100 123";
+    std::string expected = "123";
+    
+    std::string result = eventLogger->GetWindowIdFromLine(line);
+    EXPECT_EQ(expected, result);
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetWindowIdFromLine_002
+ * @tc.desc: Test GetWindowIdFromLine with WindowId containing special characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetWindowIdFromLine_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string line = "WindowName 0 100";
+    std::string expected = "";
+    
+    std::string result = eventLogger->GetWindowIdFromLine(line);
+    EXPECT_EQ(expected, result);
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetWindowIdFromLine_003
+ * @tc.desc: Test GetWindowIdFromLine with WindowId containing special characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetWindowIdFromLine_003, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string line = "WindowName 0 100 123 200";
+    std::string expected = "123";
+    
+    std::string result = eventLogger->GetWindowIdFromLine(line);
+    EXPECT_EQ(expected, result);
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetWindowIdFromLine_004
+ * @tc.desc: Test GetWindowIdFromLine with WindowId containing special characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetWindowIdFromLine_004, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string line = "";
+    std::string expected = "";
+    
+    std::string result = eventLogger->GetWindowIdFromLine(line);
+    EXPECT_EQ(expected, result);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
