@@ -258,9 +258,10 @@ void ParseMemoryItem(const std::string& line, MemoryItem& item, std::vector<Memo
         StringUtil::SplitStr(line, " ", elements);
         if (elements.size() > 1) {
             std::string address = elements[0];
-            auto pos = address.find("-");
-            item.startAddr = address.substr(0, pos);
-            item.endAddr = address.substr(pos + 1);
+            if (auto pos = address.find("-"); pos != std::string::npos) {
+                item.startAddr = address.substr(0, pos);
+                item.endAddr = address.substr(pos + 1);
+            }
             item.permission = elements[1];
         }
     }
