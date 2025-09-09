@@ -18,10 +18,6 @@
 #include "trace_utils.h"
 
 namespace OHOS::HiviewDFX {
-namespace {
-DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
-}
-
 namespace CleanThreshold {
 const uint32_t XPERF = 3;
 const uint32_t RELIABILITY = 3;

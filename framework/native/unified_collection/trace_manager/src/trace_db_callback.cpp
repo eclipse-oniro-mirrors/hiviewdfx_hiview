@@ -32,7 +32,6 @@ constexpr char COLUMN_DYNAMIC_DECREASE[] = "dynamic_decrease";
 
 // Table unified_collection_task column name
 constexpr char TABLE_NAME_TASK[] = "unified_collection_task";
-constexpr char COLUMN_ID[] = "id";
 constexpr char COLUMN_TASK_DATE[] = "task_date";
 constexpr char COLUMN_TASK_TYPE[] = "task_type";
 constexpr char COLUMN_UID[] = "uid";

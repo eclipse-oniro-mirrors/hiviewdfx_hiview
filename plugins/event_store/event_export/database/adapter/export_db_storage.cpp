@@ -27,7 +27,6 @@ namespace {
 constexpr int32_t DB_VERSION = 1;
 constexpr char EXPORT_DB_NAME[] = "event_export_mgr.db";
 constexpr char MODULE_EXPORT_DETAILS_TABLE_NAME[] = "module_export_details";
-constexpr char COLUMN_ID[] = "id";
 constexpr char COLUMN_MODULE_NAME[] = "module_name";
 constexpr char COLUMN_EXPORT_ENABLED_SEQ[] = "export_enabled_seq";
 constexpr char COLUMN_EXPORTED_MAX_SEQ[] = "exported_max_seq";

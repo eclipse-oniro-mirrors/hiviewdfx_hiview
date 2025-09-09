@@ -24,10 +24,7 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("TraceBehaviorDbHelper");
 namespace {
 constexpr char DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
-constexpr char DB_NAME[] = "trace_flow_control";
-constexpr int32_t DB_VERSION = 1;
 constexpr char TABLE_NAME_BEHAVIOR[] = "trace_behavior_db_helper";
-constexpr char COLUMN_ID[] = "id";
 constexpr char COLUMN_BEHAVIOR_ID[] = "behavior_id ";
 constexpr char COLUMN_DATE[] = "task_date";
 constexpr char COLUMN_USED_QUOTA[] = "used_quota";

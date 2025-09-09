@@ -40,7 +40,6 @@ constexpr int DB_VERSION_2 = 2;
 constexpr char SQL_TYPE_INTEGER_NOT_NULL[] = "INTEGER NOT NULL";
 constexpr char SQL_TYPE_INTEGER_DEFAULT_0[] = "INTEGER DEFAULT 0";
 constexpr char SQL_TYPE_INTEGER[] = "INTEGER";
-constexpr char SQL_TYPE_REAL[] = "REAL";
 constexpr char SQL_TYPE_TEXT_NOT_NULL[] = "TEXT NOT NULL";
 constexpr char SQL_TYPE_TEXT[] = "TEXT";
 

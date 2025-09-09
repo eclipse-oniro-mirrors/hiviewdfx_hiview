@@ -29,8 +29,6 @@ using namespace OHOS::HiviewDFX::UCollectUtil;
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("Hiview-CpuCollectionTask");
-
 CpuCollectionTask::CpuCollectionTask(const std::string& workPath) : workPath_(workPath)
 {
     InitCpuCollector();
