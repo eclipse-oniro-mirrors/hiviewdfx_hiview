@@ -249,7 +249,10 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
 
     std::string message = result.second;
     ani_string message_string {};
-    env->String_NewUTF8(message.c_str(), message.size(), &message_string);
+    if (ANI_OK != env->String_NewUTF8(message.c_str(), message.size(), &message_string)) {
+        HILOG_ERROR(LOG_CORE, "new message string failed");
+        return results_obj;
+    }
 
     if (ANI_OK != env->Object_CallMethod_Void(results_obj, messageSetter, message_string)) {
         HILOG_ERROR(LOG_CORE, "call method messageSetter Fail %{public}s", CLASS_NAME_RESULTS);
