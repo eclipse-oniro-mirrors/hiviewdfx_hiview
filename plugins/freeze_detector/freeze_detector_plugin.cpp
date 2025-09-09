@@ -203,10 +203,10 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
         return;
     }
     long delayTime = freezeResultList.size() > 1 ? MULTIPLE_DELAY_TIME : SINGLE_DELAY_TIME;
-    if (watchPoint.GetUid() == HIVIEW_UID && watchPoint.GetStringId() == "IPC_FULL") {
+    if (watchPoint.GetUid() == HIVIEW_UID && watchPoint.GetStringId() == IPC_FULL) {
         delayTime = 0;
     } else {
-        for(auto& i : freezeResultList) {
+        for (auto& i : freezeResultList) {
             long window = i.GetWindow();
             delayTime = std::max(delayTime, window);
         }
