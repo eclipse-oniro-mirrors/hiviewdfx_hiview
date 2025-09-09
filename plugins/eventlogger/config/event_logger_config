@@ -10,7 +10,7 @@ event id="" name="LIFECYCLE_HALF_TIMEOUT" action="ffrt,t,cmd:m,hot" interval="10
 event id="" name="LIFECYCLE_TIMEOUT_WARNING" action="t,cmd:c,cmd:cci,cmd:m,cmd:dam,k:SysRqFile,hot" interval="10"
 event id="" name="LIFECYCLE_HALF_TIMEOUT_WARNING" action="ffrt,t,cmd:m,hot" interval="10"
 event id="" name="APP_INPUT_BLOCK" action="ffrt,t:input,t,cmd:c,cmd:cci,cmd:m,cmd:dam,tr,k:SysRqFile,hot,sli" interval="10"
-event id="" name="SCREEN_ON_TIMEOUT" action="cmd:p,cmd:d,cmd:w,T:power,e" interval="10"
+event id="" name="SCREEN_ON_TIMEOUT" action="s,ffrt,tr,pb:1:a,k:SysRqFile,cmd:p,cmd:d,cmd:w,T:power,e" interval="10"
 event id="" name="NO_FOCUS_WINDOW" action="cmd:w,cmd:a" interval="10"
 event id="" name="SERVICE_BLOCK" action="tr,pb:1:a,k:SysRqFile,cmd:c,cmd:cci,cmd:m,cmd:dam,hot,sli" interval="0"
 event id="" name="SERVICE_WARNING" action="ffrt,pb:1:a,k:SysRqFile,cmd:c,cmd:cci,cmd:m,hot" interval="10"
