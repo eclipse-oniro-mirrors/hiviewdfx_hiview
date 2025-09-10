@@ -192,9 +192,9 @@ void EventLogTask::AddLog(const std::string &cmd)
     catchedPids_.clear();
 }
 
-void EventLogTask::SetFocusWindowId(const std::string& focusWindowId)
+void EventLogTask::SetFocusWindowId(const WindowIdInfo& windowIdInfo)
 {
-    focusWindowId_ = focusWindowId;
+    windowIdInfo_ = windowIdInfo;
 }
 
 EventLogTask::Status EventLogTask::StartCompose()
@@ -610,29 +610,63 @@ void EventLogTask::SCBViewParamCapture()
 
 void EventLogTask::SCBWMSCapture()
 {
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->SetEvent(event_);
-    if (focusWindowId_.empty()) {
+    if (windowIdInfo_.focusWindowId.empty()) {
         HIVIEW_LOGE("dump simplify get focus window error");
-        return;
+    } else {
+        auto capture = std::make_shared<ShellCatcher>();
+        capture->SetEvent(event_);
+        std::string cmd = "hidumper -s WindowManagerService -a -w " + windowIdInfo_.focusWindowId + " -simplify";
+        capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
+        capture->SetFocusWindowId(windowIdInfo_.focusWindowId);
+        tasks_.push_back(capture);
     }
-    std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -simplify";
-    capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
-    capture->SetFocusWindowId(focusWindowId_);
-    tasks_.push_back(capture);
+
+    if (!windowIdInfo_.softKeyboardWindowId.empty()) {
+        auto capture = std::make_shared<ShellCatcher>();
+        capture->SetEvent(event_);
+        std::string cmd = "hidumper -s WindowManagerService -a -w " + windowIdInfo_.softKeyboardWindowId + " -simplify";
+        capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
+        capture->SetFocusWindowId(windowIdInfo_.softKeyboardWindowId);
+        tasks_.push_back(capture);
+    }
+    SCBWMSCaptureComponent();
+}
+
+void EventLogTask::SCBWMSCaptureComponent()
+{
+    if (!windowIdInfo_.screenLockWindowId.empty()) {
+        auto capture = std::make_shared<ShellCatcher>();
+        capture->SetEvent(event_);
+        std::string cmd = "hidumper -s WindowManagerService -a -w " + windowIdInfo_.screenLockWindowId +
+                          " -simplify -compname SCBScreenLock";
+        capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
+        capture->SetFocusWindowId(windowIdInfo_.screenLockWindowId);
+        capture->SetComponentName("SCBScreenLock");
+        tasks_.push_back(capture);
+    }
+    if (!windowIdInfo_.statusBarWindowId.empty()) {
+        auto capture = std::make_shared<ShellCatcher>();
+        capture->SetEvent(event_);
+        std::string cmd = "hidumper -s WindowManagerService -a -w " + windowIdInfo_.statusBarWindowId +
+                          " -simplify -compname SCBStatusBar";
+        capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMS, pid_);
+        capture->SetFocusWindowId(windowIdInfo_.statusBarWindowId);
+        capture->SetComponentName("SCBStatusBar");
+        tasks_.push_back(capture);
+    }
 }
 
 void EventLogTask::SCBWMSEVTCapture()
 {
     auto capture = std::make_shared<ShellCatcher>();
     capture->SetEvent(event_);
-    if (focusWindowId_.empty()) {
+    if (windowIdInfo_.focusWindowId.empty()) {
         HIVIEW_LOGE("dump event get focus window error");
         return;
     }
-    std::string cmd = "hidumper -s WindowManagerService -a -w " + focusWindowId_ + " -event";
+    std::string cmd = "hidumper -s WindowManagerService -a -w " + windowIdInfo_.focusWindowId + " -event";
     capture->Initialize(cmd, ShellCatcher::CATCHER_SCBWMSEVT, pid_);
-    capture->SetFocusWindowId(focusWindowId_);
+    capture->SetFocusWindowId(windowIdInfo_.focusWindowId);
     tasks_.push_back(capture);
 }
 

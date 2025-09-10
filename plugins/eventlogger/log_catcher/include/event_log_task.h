@@ -29,6 +29,14 @@
 #include "event_log_catcher.h"
 namespace OHOS {
 namespace HiviewDFX {
+
+struct WindowIdInfo {
+    std::string focusWindowId = "";
+    std::string softKeyboardWindowId = "";
+    std::string screenLockWindowId = "";
+    std::string statusBarWindowId = "";
+};
+
 class EventLogTask {
 public:
     std::string terminalThreadStack_ = "";
@@ -49,7 +57,7 @@ public:
     EventLogTask::Status StartCompose();
     EventLogTask::Status GetTaskStatus() const;
     long GetLogSize() const;
-    void SetFocusWindowId(const std::string& focusWindowId);
+    void SetFocusWindowId(const WindowIdInfo& focusWindowId);
 private:
     static constexpr uint32_t MAX_DUMP_TRACE_LIMIT = 15;
 
@@ -65,7 +73,7 @@ private:
     std::map<std::string, capture> captureList_;
     int pid_;
     std::set<int> catchedPids_;
-    std::string focusWindowId_ = "";
+    WindowIdInfo windowIdInfo_;
     bool memoryCatched_ = false;
     uint64_t faultTime_ = 0;
     ffrt::mutex faultTimeMutex_;
@@ -125,6 +133,7 @@ private:
     void SCBSessionCapture();
     void SCBViewParamCapture();
     void SCBWMSCapture();
+    void SCBWMSCaptureComponent();
     void SCBWMSEVTCapture();
     void SCBWMSVCapture();
 #endif // SCB_CATCHER_ENABLE

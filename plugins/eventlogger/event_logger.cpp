@@ -524,24 +524,42 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
     binderInfoJsonStr = FreezeJsonUtil::GetStrByList(infoList);
 }
 
-std::string EventLogger::DumpWindowInfo(int fd)
+WindowIdInfo EventLogger::DumpWindowInfo(int fd)
 {
-    std::string focusWindowId = "";
-    FILE *file = popen("/system/bin/hidumper -s WindowManagerService -a -a", "r");
+    WindowIdInfo windowIdInfo;
+    FILE* file = popen("/system/bin/hidumper -s WindowManagerService -a -a", "r");
     if (file == nullptr) {
         HIVIEW_LOGE("parse focus window id error");
-        return focusWindowId;
+        return windowIdInfo;
     }
     FileUtil::SaveStringToFd(fd, std::string("\ncatcher cmd: hidumper -s WindowManagerService -a -a\n"));
+
     std::smatch result;
     std::string line = "";
     auto windowIdRegex = std::regex("Focus window: ([0-9]+)");
-    char *buffer = nullptr;
+
+    bool inScreenGroup = false;
+    char* buffer = nullptr;
     size_t length = 0;
     while (getline(&buffer, &length, file) != -1) {
         line = buffer;
+        // Check whether the current line has entered the ScreenGroup area.
+        if (line.find("ScreenGroup") != std::string::npos) {
+            inScreenGroup = true;
+        } else if (line.find("-----------------------") != std::string::npos && inScreenGroup) {
+            inScreenGroup = false;
+        }
+        if (inScreenGroup && line.find("SCBStatusBar") != std::string::npos) {
+            windowIdInfo.statusBarWindowId = GetWindowIdFromLine(line);
+        }
+        if (inScreenGroup && line.find("SCBScreenLock") != std::string::npos) {
+            windowIdInfo.screenLockWindowId = GetWindowIdFromLine(line);
+        }
+        if (inScreenGroup && line.find("softKeyboard") != std::string::npos) {
+            windowIdInfo.softKeyboardWindowId = GetWindowIdFromLine(line);
+        }
         if (regex_search(line, result, windowIdRegex)) {
-            focusWindowId = result[1];
+            windowIdInfo.focusWindowId = result[1];
         }
         FileUtil::SaveStringToFd(fd, line);
     }
@@ -551,7 +569,26 @@ std::string EventLogger::DumpWindowInfo(int fd)
     }
     pclose(file);
     file = nullptr;
-    return focusWindowId;
+    return windowIdInfo;
+}
+
+std::string EventLogger::GetWindowIdFromLine(const std::string& line)
+{
+    std::string windowId = "";
+
+    // Segmentation and extraction of WinId.
+    std::vector<std::string> tokens;
+    std::istringstream iss(line);
+    std::string token;
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+
+    if (tokens.size() >=
+        4) { // The WinId is typically the fourth field,therefore it needs to be greater than or equal to 4.
+        windowId = tokens[3]; // indexed from 0, this is at index 3
+    }
+    return windowId;
 }
 
 bool EventLogger::WriteStartTime(int fd, uint64_t start)

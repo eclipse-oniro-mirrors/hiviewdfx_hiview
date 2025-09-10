@@ -93,7 +93,8 @@ private:
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
     bool WriteStartTime(int fd, uint64_t start);
-    std::string DumpWindowInfo(int fd);
+    WindowIdInfo DumpWindowInfo(int fd);
+    std::string GetWindowIdFromLine(const std::string& line);
     bool WriteCommonHead(int fd, std::shared_ptr<SysEvent> event);
     void GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
         std::string& stack, const std::string& msg, std::string& kernelStack);

@@ -32,6 +32,7 @@ public:
     int Catch(int fd, int jsonFd) override;
     void SetEvent(std::shared_ptr<SysEvent> event);
     void SetFocusWindowId(const std::string& focusWindowId);
+    void SetComponentName(const std::string& compName);
 
     enum CATCHER_TYPE {
         CATCHER_UNKNOWN = -1,
@@ -62,6 +63,7 @@ public:
 private:
     std::string catcherCmd_ = "";
     std::string focusWindowId_ = "";
+    std::string componentName_ = "";
     int pid_ = -1;
     CATCHER_TYPE catcherType_ = CATCHER_TYPE::CATCHER_UNKNOWN;
     std::shared_ptr<SysEvent> event_ = nullptr;
