@@ -73,14 +73,6 @@ namespace {
     static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/100/log/";
     static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
     static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
-    static constexpr const char* const FFRT_PTOCESSES[] = {
-        "com.ohos.sceneboard", "foundation", "hiview"
-    };
-    static constexpr const char* const FFRT_REPORT_EVENT_TYPE[] = {
-        "Trigger_Escape", "Serial_Queue_Timeout", "Task_Sch_Timeout"
-    };
-    static constexpr const char* const TASK_TIMEOUT = "CONGESTION";
-    static constexpr const char* const SENARIO = "SENARIO";
 
 #ifdef WINDOW_MANAGER_ENABLE
     static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
@@ -143,21 +135,10 @@ long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
     return pid;
 }
 
-bool EventLogger::CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent)
-{
-    if (sysEvent->eventName_ != TASK_TIMEOUT) {
-        return true;
-    }
-    return (std::find(std::begin(FFRT_REPORT_EVENT_TYPE), std::end(FFRT_REPORT_EVENT_TYPE),
-        sysEvent->GetEventValue(SENARIO)) != std::end(FFRT_REPORT_EVENT_TYPE)) &&
-        (std::find(std::begin(FFRT_PTOCESSES), std::end(FFRT_PTOCESSES),
-            sysEvent->GetEventValue("PROCESS_NAME")) != std::end(FFRT_PTOCESSES));
-}
-
-bool EventLogger::CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName)
+bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName)
 {
 #ifdef HITRACE_CATCHER_ENABLE
-    if (eventName == "HIVIEW_HALF_FREEZE_LOG") {
+    if (eventName == "FREEZE_HALF_HIVIEW_LOG") {
         FreezeFilterTraceOn(sysEvent, Parameter::IsBetaVersion());
         return false;
     }
@@ -193,7 +174,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     long pid = GetEventPid(sysEvent);
     std::string eventName = sysEvent->eventName_;
 
-    if (!CheckContinueReport(sysEvent, pid, eventName) || !CheckFfrtEvent(sysEvent) || !IsHandleAppfreeze(sysEvent) ||
+    if (!CheckContinueReport(sysEvent, pid, eventName) || !IsHandleAppfreeze(sysEvent) ||
         CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
         return true;
     }

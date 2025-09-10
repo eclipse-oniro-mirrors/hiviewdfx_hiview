@@ -38,7 +38,7 @@ private:
     int GetNumFromString(const std::string &mem);
     std::string GetStringFromFile(const std::string &path);
 
-    std::shared_ptr<SysEvent> event_ = nullptr;
+    std::shared_ptr<SysEvent> event_;
 };
 #endif // USAGE_CATCHER_ENABLE
 } // namespace HiviewDFX

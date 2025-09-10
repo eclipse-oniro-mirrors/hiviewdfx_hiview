@@ -16,7 +16,7 @@
                         "LIFECYCLE_HALF_TIMEOUT","LIFECYCLE_TIMEOUT_WARNING",
                         "LIFECYCLE_HALF_TIMEOUT_WARNING", "APP_LIFECYCLE_TIMEOUT",
                         "APP_INPUT_BLOCK","BUSSINESS_THREAD_BLOCK_6S",
-                        "BUSSINESS_THREAD_BLOCK_3S", "HIVIEW_HALF_FREEZE_LOG"]
+                        "BUSSINESS_THREAD_BLOCK_3S", "FREEZE_HALF_HIVIEW_LOG"]
         },{
             "domain": "FRAMEWORK",
             "include": ["SERVICE_BLOCK", "SERVICE_WARNING", "SERVICE_TIMEOUT", "SERVICE_TIMEOUT_WARNING", "IPC_FULL_WARNING",
@@ -27,7 +27,7 @@
                         "DMD_EMMC_TUNING", "DMD_EXT4", "DMD_F2FS_UNLINK", "DMD_UFS_FASTBOOT", "DMD_FSCK_F2FS"]
         },{
             "domain": "FFRT",
-            "include": ["CONGESTION", "SERIAL_TASK_TIMEOUT", "TASK_DEADLOCK"]
+            "include": ["SERIAL_TASK_TIMEOUT", "TASK_DEADLOCK"]
         },{
             "domain":"POWER",
             "include": ["SCREEN_ON_TIMEOUT"]
