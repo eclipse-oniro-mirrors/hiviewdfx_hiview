@@ -20,8 +20,8 @@
 #include "faultlog_info.h"
 #include "faultlog_info_ohos.h"
 #include "hiviewfaultlogger_ipc_interface_code.h"
-
 #include "hiview_logger.h"
+#include "xcollie_detection.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,6 +32,7 @@ int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParce
     int ret = ERR_FLATTEN_OBJECT;
     switch (code) {
         case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_GRAYSALE): {
+            XCollieDetector xcollie("EnableGwpAsanGrayscale");
             bool alwaysEnabled = data.ReadBool();
             double sampleRate = data.ReadDouble();
             double maxSimutaneousAllocations = data.ReadDouble();
@@ -52,11 +53,13 @@ int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParce
             break;
         }
         case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DISABLE_GWP_ASAN_GRAYSALE): {
+            XCollieDetector xcollie("DisableGwpAsanGrayscale");
             DisableGwpAsanGrayscale();
             ret = ERR_OK;
             break;
         }
         case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::GET_GWP_ASAN_GRAYSALE): {
+            XCollieDetector xcollie("GetGwpAsanGrayscaleState");
             auto result = GetGwpAsanGrayscaleState();
             if (reply.WriteUint32(result)) {
                 ret = ERR_OK;
@@ -83,6 +86,7 @@ int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
     switch (code) {
         case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ADD_FAULTLOG): {
+            XCollieDetector xcollie("AddFaultLog", XCOLLIE_OTHER_THREAD_TIMEOUT_SECOND);
             sptr<FaultLogInfoOhos> ohosInfo = FaultLogInfoOhos::Unmarshalling(data);
             if (ohosInfo == nullptr) {
                 HIVIEW_LOGE("failed to Unmarshalling info.");
@@ -96,6 +100,7 @@ int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             return ERR_OK;
         }
         case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::QUERY_SELF_FAULTLOG): {
+            XCollieDetector xcollie("QuerySelfFaultLog", XCOLLIE_OTHER_THREAD_TIMEOUT_SECOND);
             int32_t type = data.ReadInt32();
             int32_t maxNum = data.ReadInt32();
             auto result = QuerySelfFaultLog(type, maxNum);
@@ -111,6 +116,7 @@ int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             return ERR_OK;
         }
         case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DESTROY): {
+            XCollieDetector xcollie("Destroy", XCOLLIE_OTHER_THREAD_TIMEOUT_SECOND);
             Destroy();
             return ERR_OK;
         }

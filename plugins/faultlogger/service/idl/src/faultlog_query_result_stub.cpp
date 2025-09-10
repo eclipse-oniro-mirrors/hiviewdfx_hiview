@@ -20,6 +20,7 @@
 #include "faultlog_info_ohos.h"
 #include "hiviewfaultlogger_ipc_interface_code.h"
 #include "hiview_logger.h"
+#include "xcollie_detection.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -33,6 +34,8 @@ int FaultLogQueryResultStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         HIVIEW_LOGE("read descriptor failed.");
         return -1;
     }
+
+    XCollieDetector xcollie("FaultLogQuery_" + std::to_string(code), XCOLLIE_OTHER_THREAD_TIMEOUT_SECOND);
 
     switch (code) {
         case static_cast<uint32_t>(FaultLogQueryResultInterfaceCode::HASNEXT): {
