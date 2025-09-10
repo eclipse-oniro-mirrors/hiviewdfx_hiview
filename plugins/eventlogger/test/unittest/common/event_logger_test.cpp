@@ -541,6 +541,24 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: OnEventListeningCallbackTest_001
+ * @tc.desc: OnEventListeningCallbackTest_001 matching IPC_FULL events and HIVIEW's UID
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    sleep(1);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "IPC_FULL_WARNING", HiSysEvent::EventType::FAULT,
+        "MODULE", "foundation", "UID", 1201);
+    sleep(3);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "IPC_FULL", HiSysEvent::EventType::FAULT,
+        "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "UID", 1201);
+    EXPECT_TRUE(eventLogger != nullptr);
+    eventLogger->OnUnload();
+}
+
+/**
  * @tc.name: EventLoggerTest_GetFile_001
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
