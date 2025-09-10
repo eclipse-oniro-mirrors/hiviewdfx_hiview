@@ -39,8 +39,8 @@ struct ProcessMemory {
     int32_t adj = 0;             // /proc/$pid/oom_score_adj
     int32_t sharedDirty = 0;     // process Shared_Dirty
     int32_t privateDirty = 0;    // process Private_Dirty
-    int32_t sharedClean = 0;     // process Shared_Clean
-    int32_t privateClean = 0;    // process Private_Clean
+    int32_t sharedClean = 0;   // process Shared_Clean
+    int32_t privateClean = 0;  // process Private_Clean
     int32_t procState = 0;       // process State
 };
 

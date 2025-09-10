@@ -41,7 +41,7 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uin
         case UCollect::TraceCaller::RELIABILITY:
             return std::make_shared<TraceAsyncStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
                 std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
-                    CleanThreshold::RELIABILITY),
+                   CleanThreshold::RELIABILITY),
                 std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreshold::ZIP_FILE));
         case UCollect::TraceCaller::XPOWER:
         case UCollect::TraceCaller::HIVIEW:
@@ -74,7 +74,7 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceClient client, uin
         case UCollect::TraceClient::BETACLUB:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
                 std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
-                   CleanThreshold::BETACLUB), nullptr);
+                    CleanThreshold::BETACLUB), nullptr);
         default:
             return nullptr;
     }

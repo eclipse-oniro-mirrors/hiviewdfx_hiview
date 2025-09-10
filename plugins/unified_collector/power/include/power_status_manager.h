@@ -39,7 +39,7 @@ public:
     virtual void OnScreenOn() = 0;
     virtual void OnScreenOff() = 0;
 
-    PowerListener(const PowerListener &) = delete;
+    PowerListener(const PowerListener&) = delete;
     PowerListener& operator=(const PowerListener&) = delete;
 };
 
