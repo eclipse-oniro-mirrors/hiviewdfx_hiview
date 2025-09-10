@@ -127,8 +127,8 @@ private:
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
     void AddBootScanEvent();
-    bool CheckContinueReport(std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
-    bool CheckFfrtEvent(std::shared_ptr<SysEvent> &sysEvent);
+    bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
+        long pid, const std::string &eventName);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

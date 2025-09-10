@@ -51,12 +51,11 @@ namespace {
     constexpr const char* SCB_PRO_FLAG = "com.ohos.sceneboard";
     constexpr const char* THREAD_STACK_START = "\nThread stack start:\n";
     constexpr const char* THREAD_STACK_END = "Thread stack end\n";
-    constexpr const char* KEY_PROCESS[] = {
-        "foundation", "com.ohos.sceneboard", "render_service"
-    };
+    constexpr const char* KEY_PROCESS[] = { "foundation", "com.ohos.sceneboard", "render_service" };
     constexpr const char* HITRACE_ID_INFO = "HitraceIdInfo: ";
     constexpr const char* HOST_RESOURCE_WARNING_INFO =
-        "NOTE: Current fault may be caused by system issue, you may ignore it and analysis other faults.";
+        "NOTE: Current fault may be caused by the system's low memory and thermal throttling,"
+        "you may ignore it and analysis other faults.";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -119,7 +118,7 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     oss << FreezeCommon::EVENT_UID << COLON << watchPoint.GetUid() << std::endl;
     oss << FreezeCommon::EVENT_PACKAGE_NAME << COLON << watchPoint.GetPackageName() << std::endl;
     oss << FreezeCommon::EVENT_PROCESS_NAME << COLON << watchPoint.GetProcessName() << std::endl;
-    if (watchPoint.GetHostResourceWarning() == "Yes") {
+    if (watchPoint.GetHostResourceWarning() == "TRUE") {
         oss << HOST_RESOURCE_WARNING_INFO << std::endl;
     }
 }

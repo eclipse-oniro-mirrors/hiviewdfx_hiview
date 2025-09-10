@@ -136,8 +136,8 @@ void FreezeCommon::WriteTimeInfoToFd(int fd, const std::string& msg, bool isStar
     uint64_t ms = TimeUtil::GetMilliseconds();
     std::ostringstream timeStr;
     timeStr << msg << TimeUtil::TimestampFormatToDate(ms / TimeUtil::SEC_TO_MILLISEC, "%Y/%m/%d-%H:%M:%S")
-            << ":" << std::setw(PLACEHOLDER) << std::setfill('0')
-            << std::to_string(ms % TimeUtil::SEC_TO_MILLISEC) << std::endl;
+        << ":" << std::setw(PLACEHOLDER) << std::setfill('0')
+        << (ms % TimeUtil::SEC_TO_MILLISEC) << std::endl;
     FileUtil::SaveStringToFd(fd, timeStr.str());
     if (!isStart) {
         FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");

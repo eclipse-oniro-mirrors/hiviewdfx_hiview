@@ -1081,57 +1081,5 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_SaveFreezeInfoToFile_001, TestSize.Lev
     eventLogger->SaveFreezeInfoToFile(event);
     EXPECT_TRUE(eventLogger != nullptr);
 }
-
-/**
- * @tc.name: EventLoggerTest_CheckFfrtEvent_001
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
-    std::string testName = "EventLoggerTest_CheckFfrtEvent_001";
-    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>(testName,
-        nullptr, jsonStr);
-    bool ret = eventLogger->CheckFfrtEvent(event);
-    EXPECT_TRUE(ret);
-    event->eventName_ = "CONGESTION";
-    ret = eventLogger->CheckFfrtEvent(event);
-    printf("ret: %d\n", ret);
-    event->SetEventValue("SENARIO", "Long_Task");
-    eventLogger->CheckFfrtEvent(event);
-}
-
-/**
- * @tc.name: EventLoggerTest_CheckFfrtEvent_002
- * @tc.desc: EventLoggerTest
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_002, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    int ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
-        "SENARIO", "Long_Task",
-        "PROCESS_NAME", "foundation",
-        "MSG", "test remove");
-    sleep(1);
-    EXPECT_TRUE(ret == 0);
-
-    ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
-        "SENARIO", "Test",
-        "PROCESS_NAME", "EventLoggerTest_CheckFfrtEvent_002",
-        "MSG", "test remove");
-    sleep(1);
-    EXPECT_TRUE(ret == 0);
-
-    ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
-        "SENARIO", "Test",
-        "PROCESS_NAME", "foundation",
-        "MSG", "test remove");
-    sleep(1);
-    EXPECT_TRUE(ret == 0);
-    EXPECT_TRUE(eventLogger);
-}
 } // namespace HiviewDFX
 } // namespace OHOS

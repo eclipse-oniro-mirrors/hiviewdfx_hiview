@@ -160,14 +160,7 @@
         </event>
       </links>
     </rule>
-    <rule id="6" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
-      <links type="watchpoint">
-        <event window="0" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
-          <result code="0" scope="app" samePackage="true"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="7" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+    <rule id="6" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
           <result code="0" scope="app"/>
