@@ -549,10 +549,10 @@ HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     sleep(1);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "IPC_FULL_WARNING", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::FRAMEWORK, "IPC_FULL_WARNING", HiSysEvent::EventType::FAULT,
         "MODULE", "foundation", "UID", 1201);
     sleep(3);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "IPC_FULL", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::FRAMEWORK, "IPC_FULL", HiSysEvent::EventType::FAULT,
         "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "UID", 1201);
     EXPECT_TRUE(eventLogger != nullptr);
     eventLogger->OnUnload();
