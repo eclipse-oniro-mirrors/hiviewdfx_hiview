@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <getopt.h>
+#include <iostream>
 
 #include "app_usage_event_factory.h"
 #include "hiview_logger.h"
@@ -29,9 +30,23 @@ DEFINE_LOG_TAG("HiView-UsageEventReportService");
 using namespace SysUsageEventSpace;
 using namespace SysUsageDbSpace;
 namespace {
-constexpr char ARG_SELECTION[] = "p:t:T:sSA";
+constexpr char ARG_SELECTION[] = "p:t:T:sSAh";
 constexpr char DEFAULT_WORK_PATH[] = "/data/log/hiview";
 const std::string SYS_USAGE_KEYS[] = { KEY_OF_POWER, KEY_OF_RUNNING };
+
+void PrintHelpInfo()
+{
+    const std::string helpInfo =
+        "usage:\n"
+        "  -h             | help text for the tool\n"
+        "  -p [path]      | specify the storage path for data, which must be in the /data/log/hiview directory\n"
+        "  -s             | storage system usage duration data\n"
+        "  -A             | report APP_USAGE event\n"
+        "  -S             | reprot SYS_USAGE event\n"
+        "  -t [timestamp] | specify the last report time for APP_USAGE, in milliseconds\n"
+        "  -T [timestamp] | specify the last report time for SYS_USAGE, in milliseconds\n";
+    std::cout << helpInfo;
+}
 }
 
 UsageEventReportService::UsageEventReportService() : workPath_(DEFAULT_WORK_PATH), lastReportTime_(0),
@@ -151,6 +166,9 @@ bool UsageEventReportService::ProcessArgsRequest(int argc, char* argv[])
                 break;
             case 'T':
                 lastSysReportTime_ = strtoull(optarg, nullptr, 0);
+                break;
+            case 'h':
+                PrintHelpInfo();
                 break;
             default:
                 break;
