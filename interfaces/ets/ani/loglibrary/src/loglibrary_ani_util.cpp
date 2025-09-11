@@ -165,7 +165,6 @@ void LogLibraryAniUtil::ThrowAniError(ani_env *env, int32_t code, const std::str
 
 std::pair<int32_t, std::string> LogLibraryAniUtil::GetErrorDetailByRet(const int32_t retCode)
 {
-    HIVIEW_LOGI("origin result code is %{public}d.", retCode);
     const std::map<int32_t, std::pair<int32_t, std::string>> errMap = {
         {SUCCESS, {SUCCESS, "Success."}},
         {HiviewNapiErrCode::ERR_PERMISSION_CHECK, {HiviewNapiErrCode::ERR_PERMISSION_CHECK,
@@ -188,13 +187,9 @@ std::pair<int32_t, std::string> LogLibraryAniUtil::GetErrorDetailByRet(const int
 ani_object LogLibraryAniUtil::CopyOrMoveFile(ani_env *env,
     ani_string logType, ani_string logName, ani_string dest, bool isMove)
 {
-    isMove ? HIVIEW_LOGI("call move") : HIVIEW_LOGI("call copy");
     std::string logTypeTemp = LogLibraryAniUtil::ParseStringValue(env, logType);
     std::string logNameTemp = LogLibraryAniUtil::ParseStringValue(env, logName);
     std::string destTemp = LogLibraryAniUtil::ParseStringValue(env, dest);
-    HIVIEW_LOGI("type:%{public}s, name:%{public}s, dir: %{public}s",
-        logTypeTemp.c_str(), StringUtil::HideSnInfo(logNameTemp).c_str(), destTemp.c_str());
-
     if (!LogLibraryAniUtil::CheckDirPath(destTemp)) {
         HIVIEW_LOGE("dest param is invalid: %{public}s", destTemp.c_str());
         return LogLibraryAniUtil::CopyOrMoveResult(env,
