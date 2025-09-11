@@ -65,7 +65,7 @@ std::shared_ptr<ExportEventPackager> EventWriteHandler::GetEventPackager(
     }
     std::string packagerKey = strategy->GetPackagerKey(event);
     if (packagerKey.empty()) {
-        HIVIEW_LOGW("pacakger key is empty");
+        HIVIEW_LOGW("packager key is empty");
         return nullptr;
     }
     auto iter = packagers_.find(packagerKey);
