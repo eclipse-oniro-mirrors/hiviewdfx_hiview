@@ -71,8 +71,6 @@ void LogLibraryAni::Remove(ani_env *env, ani_string logType, ani_string logName)
 
     std::string logTypeTemp = LogLibraryAniUtil::ParseStringValue(env, logType);
     std::string logNameTemp = LogLibraryAniUtil::ParseStringValue(env, logName);
-    HIVIEW_LOGI("type: %{public}s, name: %{public}s", logTypeTemp.c_str(),
-        StringUtil::HideSnInfo(logNameTemp).c_str());
     int32_t retCode = HiviewServiceAgent::GetInstance().Remove(logTypeTemp, logNameTemp);
     if (retCode != 0) {
         HIVIEW_LOGI("retCode: %{public}u.", retCode);

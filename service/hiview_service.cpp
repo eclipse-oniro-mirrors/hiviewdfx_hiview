@@ -139,7 +139,7 @@ int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::strin
 {
     int srcFd = open(srcFilePath.c_str(), O_RDONLY);
     if (srcFd == -1) {
-        HIVIEW_LOGE("failed to open source file, src=%{public}s", StringUtil::HideSnInfo(srcFilePath).c_str());
+        HIVIEW_LOGE("failed to open source file");
         return ERR_DEFAULT;
     }
     fdsan_exchange_owner_tag(srcFd, 0, logLabelDomain);
@@ -151,7 +151,7 @@ int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::strin
     }
     int destFd = open(destFilePath.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IROTH);
     if (destFd == -1) {
-        HIVIEW_LOGE("failed to open destination file, des=%{public}s", StringUtil::HideSnInfo(destFilePath).c_str());
+        HIVIEW_LOGE("failed to open destination file");
         fdsan_close_with_tag(srcFd, logLabelDomain);
         return ERR_DEFAULT;
     }
