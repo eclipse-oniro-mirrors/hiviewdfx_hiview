@@ -110,8 +110,9 @@ void ExportEventPackager::HandlePackagedFiles()
         if (!FileUtil::RenameFile(item.first, item.second)) {
             HIVIEW_LOGE("failed to move %{public}s to %{public}s", StringUtil::HideDeviceIdInfo(item.first).c_str(),
                 StringUtil::HideDeviceIdInfo(item.second).c_str());
+        } else {
+            HIVIEW_LOGI("renamed file: %{public}s", StringUtil::HideDeviceIdInfo(item.second).c_str());
         }
-        HIVIEW_LOGI("renamed file: %{public}s", StringUtil::HideDeviceIdInfo(item.second).c_str());
     });
     packagedFiles_.clear();
 }

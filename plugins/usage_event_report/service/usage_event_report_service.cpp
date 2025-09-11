@@ -42,7 +42,7 @@ void PrintHelpInfo()
         "  -p [path]      | specify the storage path for data, which must be in the /data/log/hiview directory\n"
         "  -s             | storage system usage duration data\n"
         "  -A             | report APP_USAGE event\n"
-        "  -S             | reprot SYS_USAGE event\n"
+        "  -S             | report SYS_USAGE event\n"
         "  -t [timestamp] | specify the last report time for APP_USAGE, in milliseconds\n"
         "  -T [timestamp] | specify the last report time for SYS_USAGE, in milliseconds\n";
     std::cout << helpInfo;
