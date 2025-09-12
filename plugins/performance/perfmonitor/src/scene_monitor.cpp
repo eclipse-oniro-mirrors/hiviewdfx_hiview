@@ -32,6 +32,7 @@ DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 
 static constexpr uint32_t SENSITIVE_SCENE_RESTYPE = 72;
 static constexpr const char* const SENSITIVE_SCENE_EXTTYPE = "10000";
+static constexpr int64_t APP_LIST_FLING_EXIT_GC = 2;
 
 void SceneManager::OnSceneStart(const SceneType& type)
 {
@@ -475,6 +476,9 @@ void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
     std::unordered_map<std::string, std::string> payload;
     payload["extType"] = SENSITIVE_SCENE_EXTTYPE;
     payload["srcPid"] = std::to_string(GetPid());
+    if (value == 1 && sceneId == PerfConstants::APP_LIST_FLING) {
+        value = APP_LIST_FLING_EXIT_GC;
+    }
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(SENSITIVE_SCENE_RESTYPE, value, payload);
 }
 
