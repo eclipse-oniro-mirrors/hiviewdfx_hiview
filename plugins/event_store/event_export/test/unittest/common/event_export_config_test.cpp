@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,6 @@
 
 #include "export_config_manager.h"
 #include "export_event_list_parser.h"
-#include "hiview_global.h"
 #include "parameter_ex.h"
 
 namespace OHOS {
@@ -27,7 +26,7 @@ namespace HiviewDFX {
 namespace {
 // all value is from resource file: test_event_export_config.json and test_events.json
 constexpr char TEST_CONFIG_DIR[] = "/data/test/test_data/";
-constexpr char TEST_CONFIG_FILE[] = "/data/test/test_data/sys_event_export/test_event_export_config.json";
+constexpr char TEST_CONFIG_FILE[] = "/data/test/test_data/test_event_export_config.json";
 constexpr char TEST_MODULE_NAME[] = "test";
 constexpr char TEST_SETTING_DB_PARAM_NAME[] = "test_param_key";
 constexpr char TEST_SETTING_DB_PARAM_ENABLED_VAL[] = "1";
@@ -44,16 +43,8 @@ constexpr char INVALID_TEST_EXPORT_CFG_FILE1[] = "/data/test/test_data/invalid_t
 constexpr char INVALID_TEST_EXPORT_CFG_FILE2[] = "/data/test/test_data/invalid_test_events2.json";
 constexpr char INVALID_TEST_EXPORT_CFG_FILE3[] = "/data/test/test_data/invalid_test_events3.json";
 constexpr int64_t DEFAULT_VERSION = 0;
-constexpr char TEST_CONFIG_FILE1[] = "/data/test/test_data/sys_event_export/test1_event_export_config.json";
-constexpr char TEST_CONFIG_FILE2[] = "/data/test/test_data/sys_event_export/test2_event_export_config.json";
-
-class EventExportConfigTestContext : public HiviewContext {
-public:
-    std::string GetHiViewDirectory(DirectoryType type __UNUSED)
-    {
-        return TEST_CONFIG_DIR;
-    }
-};
+constexpr char TEST_CONFIG_FILE1[] = "/data/test/test_data/test1_event_export_config.json";
+constexpr char TEST_CONFIG_FILE2[] = "/data/test/test_data/test2_event_export_config.json";
 }
 void EventExportConfigParseTest::SetUpTestCase()
 {
@@ -79,9 +70,7 @@ void EventExportConfigParseTest::TearDown()
  */
 HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest001, testing::ext::TestSize.Level3)
 {
-    EventExportConfigTestContext context;
-    HiviewGlobal::CreateInstance(context);
-    auto& manager = ExportConfigManager::GetInstance();
+    ExportConfigManager manager(TEST_CONFIG_DIR);
     std::vector<std::string> moduleNames;
     manager.GetModuleNames(moduleNames);
     ASSERT_EQ(moduleNames.size(), TEST_MODULE_CNT);
@@ -90,7 +79,7 @@ HWTEST_F(EventExportConfigParseTest, EventExportConfigParseTest001, testing::ext
     auto exportConfig = manager.GetExportConfig(testModuleName);
     ASSERT_NE(exportConfig, nullptr);
     std::vector<std::shared_ptr<ExportConfig>> configs;
-    manager.GetAllExportConfigs(configs);
+    manager.GetExportConfigs(configs);
     ASSERT_EQ(configs.size(), TEST_MODULE_CNT);
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,8 +25,10 @@ namespace OHOS {
 namespace HiviewDFX {
 class ExportDbManager {
 public:
-    static ExportDbManager& GetInstance();
+    ExportDbManager(const std::string& dbStoreDir) : dbStoreDir_(dbStoreDir) {}
+    ~ExportDbManager() = default;
 
+public:
     int64_t GetExportEnabledSeq(const std::string& moduleName);
     int64_t GetExportBeginSeq(const std::string& moduleName);
     int64_t GetExportEndSeq(const std::string& moduleName);
@@ -34,10 +36,6 @@ public:
     void HandleExportTaskFinished(const std::string& moduleName, int64_t eventSeq);
     bool IsUnrecordedModule(const std::string& moduleName);
     std::string GetEventInheritFlagPath(const std::string& moduleName);
-
-private:
-    ExportDbManager();
-    ~ExportDbManager() = default;
 
 private:
     ffrt::mutex dbMutex_;

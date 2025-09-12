@@ -16,7 +16,6 @@
 #include "export_config_manager.h"
 
 #include "file_util.h"
-#include "hiview_global.h"
 #include "hiview_logger.h"
 #include "string_util.h"
 
@@ -25,29 +24,7 @@ namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventExportConfig");
 namespace {
 constexpr char EXPORT_CFG_FILE_NAME_SUFFIX[] = "_event_export_config.json";
-
-std::string GetExportConfigDir()
-{
-    auto& context = HiviewGlobal::GetInstance();
-    if (context == nullptr) {
-        return "";
-    }
-    std::string configDir = context->GetHiViewDirectory(HiviewContext::DirectoryType::CONFIG_DIRECTORY);
-    return FileUtil::IncludeTrailingPathDelimiter(configDir.append("sys_event_export"));
 }
-}
-
-ExportConfigManager& ExportConfigManager::GetInstance()
-{
-    static ExportConfigManager instance;
-    return instance;
-}
-
-ExportConfigManager::ExportConfigManager()
-{
-    Init();
-}
-
 void ExportConfigManager::GetModuleNames(std::vector<std::string>& moduleNames) const
 {
     if (exportConfigs_.empty()) {
@@ -59,10 +36,10 @@ void ExportConfigManager::GetModuleNames(std::vector<std::string>& moduleNames) 
     }
 }
 
-void ExportConfigManager::GetAllExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const
+void ExportConfigManager::GetExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& exportConfigs) const
 {
     for (auto& config : exportConfigs_) {
-        configs.emplace_back(config.second);
+        exportConfigs.emplace_back(config.second);
     }
 }
 
@@ -75,13 +52,9 @@ std::shared_ptr<ExportConfig> ExportConfigManager::GetExportConfig(const std::st
     return iter->second;
 }
 
-void ExportConfigManager::Init()
+void ExportConfigManager::Init(const std::string& configDir)
 {
-    std::string configDir = GetExportConfigDir();
     HIVIEW_LOGD("configuration file directory is %{public}s.", configDir.c_str());
-    if (configDir.empty()) {
-        return;
-    }
     if (!FileUtil::IsLegalPath(configDir) || !FileUtil::FileExists(configDir)) {
         HIVIEW_LOGW("configuration file directory is invalid, dir: %{public}s.", configDir.c_str());
         return;
@@ -119,8 +92,8 @@ void ExportConfigManager::ParseConfigFile(const std::string& configFile)
     }
     ExportConfigParser parser(configFile, moduleName);
     config = parser.Parse();
-    if (config == nullptr || config->taskType == INVALID_TASK_TYPE) {
-        HIVIEW_LOGE("failed to parse or parsed config is invalid from file: %{public}s", configFile.c_str());
+    if (config == nullptr) {
+        HIVIEW_LOGE("failed to parse config file, file=%{public}s.", configFile.c_str());
         return;
     }
     exportConfigs_.emplace(moduleName, config);

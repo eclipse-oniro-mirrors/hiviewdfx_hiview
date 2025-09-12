@@ -70,12 +70,12 @@ bool EventScanHandler::Scan(const std::string& moduleName, const std::string& sc
     delReq->moduleName = moduleName;
     GetExpiredFileNames(delReq->files, scanDir, storedDayCnt);
     if (delReq->files.empty()) {
-        HIVIEW_LOGI("no expired event file found");
-        return true;
+        HIVIEW_LOGW("no expired event file found");
+        return false;
     }
-    HIVIEW_LOGI("count of export event zip file is %{public}zu", delReq->files.size());
+    HIVIEW_LOGW("count of export event zip file is %{public}zu", delReq->files.size());
     if (nextHandler_ != nullptr) {
-        return nextHandler_->HandleRequest(delReq);
+        nextHandler_->HandleRequest(delReq);
     }
     return true;
 }
