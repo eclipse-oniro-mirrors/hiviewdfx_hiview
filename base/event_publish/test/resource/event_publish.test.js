@@ -34,7 +34,7 @@ describe("EventPublishJsTest", function () {
                         "ADDRESS_SANITIZER",
                         "MAIN_THREAD_JANK",
                         "APP_HICOLLIE",
-                        "APP_KILLED",
+                        "APP_KILLED"
                     ]
                 }
             ]
