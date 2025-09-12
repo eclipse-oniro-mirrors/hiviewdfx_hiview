@@ -15,8 +15,6 @@
 
 #include "export_db_manager.h"
 
-#include "file_util.h"
-#include "hiview_global.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -29,27 +27,6 @@ ExportDetailRecord GetExportDetailRecord(std::shared_ptr<ExportDbStorage> storag
     storage->QueryExportDetailRecord(moduleName, record);
     return record;
 }
-
-std::string GetExportDbDir()
-{
-    auto& context = HiviewGlobal::GetInstance();
-    if (context == nullptr) {
-        return "";
-    }
-    std::string configDir = context->GetHiViewDirectory(HiviewContext::DirectoryType::WORK_DIRECTORY);
-    return FileUtil::IncludeTrailingPathDelimiter(configDir.append("sys_event_export"));
-}
-}
-
-ExportDbManager& ExportDbManager::GetInstance()
-{
-    static ExportDbManager instance;
-    return instance;
-}
-
-ExportDbManager::ExportDbManager()
-{
-    dbStoreDir_ = GetExportDbDir();
 }
 
 std::string ExportDbManager::GetEventInheritFlagPath(const std::string& moduleName)

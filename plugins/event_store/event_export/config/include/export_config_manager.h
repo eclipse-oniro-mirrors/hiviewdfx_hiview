@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,16 +26,18 @@ namespace OHOS {
 namespace HiviewDFX {
 class ExportConfigManager {
 public:
-    static ExportConfigManager& GetInstance();
+    ExportConfigManager(const std::string& configDir)
+    {
+        Init(configDir);
+    }
 
+public:
     void GetModuleNames(std::vector<std::string>& moduelNames) const;
-    void GetAllExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& configs) const;
+    void GetExportConfigs(std::vector<std::shared_ptr<ExportConfig>>& exportConfigs) const;
     std::shared_ptr<ExportConfig> GetExportConfig(const std::string& moduleName) const;
 
 private:
-    ExportConfigManager();
-    ~ExportConfigManager() = default;
-    void Init();
+    void Init(const std::string& configDir);
     void ParseConfigFiles(const std::vector<std::string>& configFiles);
     void ParseConfigFile(const std::string& configFile);
 

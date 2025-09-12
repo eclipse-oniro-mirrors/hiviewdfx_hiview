@@ -35,20 +35,24 @@ public:
 public:
     void Start();
     void Stop();
-    void SetTaskDelayedSecond(int second);
 
 private:
-    EventExportEngine() = default;
+    EventExportEngine();
     ~EventExportEngine();
 
 private:
+    void Init();
     void InitAndRunTasks();
+    void HandleExportSwitchOn(const std::string& moduleName);
+    void HandleExportSwitchOff(const std::string& moduleName);
+    bool RegistSettingObserver(std::shared_ptr<ExportConfig> config);
     void InitAndRunTask(std::shared_ptr<ExportConfig> config);
 
 private:
     bool isTaskRunning_ = false;
-    int delayedSecond_ = 180; // default is 180 seconds
+    std::shared_ptr<ExportDbManager> dbMgr_ = nullptr;
     std::mutex mgrMutex_;
+    std::vector<std::shared_ptr<ExportConfig>> configs_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

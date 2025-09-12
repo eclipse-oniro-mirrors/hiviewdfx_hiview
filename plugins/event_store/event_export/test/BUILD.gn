@@ -120,11 +120,8 @@ ohos_unittest("EventExportMgrTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
-    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
   ]
-
-  resource_config_file = "resource/ohos_test.xml"
 }
 
 ohos_unittest("EventExportWriteTest") {
