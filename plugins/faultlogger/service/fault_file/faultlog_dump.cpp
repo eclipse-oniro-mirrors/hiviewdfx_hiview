@@ -37,7 +37,32 @@ constexpr int DUMP_PARSE_CMD = 0;
 constexpr int DUMP_PARSE_FILE_NAME = 1;
 constexpr int DUMP_PARSE_TIME = 2;
 constexpr int DUMP_START_PARSE_MODULE_NAME = 3;
+constexpr int DUMP_PARSE_HELP = 4;
 constexpr uint32_t MAX_NAME_LENGTH = 4096;
+static constexpr const char* FAULTLOGGER_CMD_USAGE_INFO = R"(Usage:
+    hidumper -s 1201 -a "-p Faultlogger [options] [parameters]"
+Examples:
+    hidumper -s 1201 -a "-p Faultlogger -l"                  #Query fault files
+    hidumper -s 1201 -a "-p Faultlogger -t 20250821100000"   #Query fault files after 2025-08-21 10:00:00
+Available Options:
+    -h                  Display this help information
+    -l                  List all fault file names in the faultlogger directory
+    -f fileName         View the content of a specified fault file. File names can be obtained using the -l parameter
+    -t time             Query fault file names generated after the specified time in the faultlogger directory.
+                        Supports two time formats:
+                            Unix timestamp or year-month-day-hour-minute-second (e.g., 20250820211600)
+    -m moduleName       Query fault file names related to the specified moduleName in the faultlogger directory
+    -d                  Display detailed content of the file
+    -LogSuffixWithMs    List all fault file names in the faultlogger directory
+                        with millisecond timestamps in their suffixes
+Additional Notes:
+    The -s 1201 parameter specifies the hiview service ID for the operation
+    Combine options for more precise queries (e.g., -t with -m to filter by both time and module)
+    File names retrieved with -l or -LogSuffixWithMs
+    can be used as parameters for the -f option to view specific file contents
+    The -d option provides extended information including timestamps,
+    severity levels, and contextual data when available)";
+
 bool IsLogNameValid(const std::string& name)
 {
     const int32_t idxOfType = 0;
@@ -194,6 +219,11 @@ ParseCmdResult FaultLogDump::HandleCommandOption(const std::string& cmd, int32_t
 {
     const std::map<std::string, std::function<void(int32_t&, DumpRequest&)>> cmdHandlers = {
         {"-f", [](int32_t& status, DumpRequest& request) { status = DUMP_PARSE_FILE_NAME; }},
+        {"-h", [this](int32_t& status, DumpRequest& request) {
+                dprintf(fd_, "%s\n", FAULTLOGGER_CMD_USAGE_INFO);
+                status = DUMP_PARSE_HELP;
+            }
+        },
         {"-l", [](int32_t& status, DumpRequest& request) { request.requestList = true; }},
         {"-t", [](int32_t& status, DumpRequest& request) { status = DUMP_PARSE_TIME; }},
         {"-m", [](int32_t& status, DumpRequest& request) { status = DUMP_START_PARSE_MODULE_NAME; }},
@@ -209,6 +239,7 @@ ParseCmdResult FaultLogDump::HandleCommandOption(const std::string& cmd, int32_t
 
     if (!cmd.empty() && cmd.at(0) == '-') {
         dprintf(fd_, "Unknown command.\n");
+        dprintf(fd_, "%s\n", FAULTLOGGER_CMD_USAGE_INFO);
         return ParseCmdResult::UNKNOWN;
     }
     return ParseCmdResult::MAX;
@@ -219,6 +250,9 @@ bool FaultLogDump::ParseDumpCommands(const std::vector<std::string>& cmds, DumpR
     for (const auto& cmd: cmds) {
         auto result = HandleCommandOption(cmd, status, request);
         if (result == ParseCmdResult::SUCCESS) {
+            if (status == DUMP_PARSE_HELP) {
+                return false;
+            }
             continue;
         } else if (result == ParseCmdResult::UNKNOWN) {
             return false;
