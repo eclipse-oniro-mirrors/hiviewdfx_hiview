@@ -86,6 +86,7 @@ ohos_unittest("ActiveKeyEventTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "jsoncpp:jsoncpp",
   ]
 
