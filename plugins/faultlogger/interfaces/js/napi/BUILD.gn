@@ -35,6 +35,7 @@ ohos_shared_library("faultlogger_napi") {
     "hilog:libhilog",
     "napi:ace_napi",
   ]
+
   relative_install_dir = "module"
   part_name = "hiview"
   subsystem_name = "hiviewdfx"

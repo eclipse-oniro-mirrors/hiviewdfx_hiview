@@ -18,11 +18,12 @@
 
 #include "constants.h"
 #include "faultlog_bundle_util.h"
+#include "faultlog_ext_conn_manager.h"
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
 #include "freeze_json_generator.h"
-#include "hiview_logger.h"
 #include "hisysevent.h"
+#include "hiview_logger.h"
 #include "string_util.h"
 
 namespace OHOS {
@@ -214,6 +215,7 @@ bool FaultLogFreeze::ReportEventToAppEvent(const FaultLogInfo& info)
     }
     if (info.faultLogType == FaultLogType::APP_FREEZE) {
         ReportAppFreezeToAppEvent(info);
+        FaultLogExtConnManager::GetInstance().OnFault(info);
     }
     return true;
 }

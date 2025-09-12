@@ -1,0 +1,64 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/es2abc_config.gni")
+import("//build/ohos.gni")
+
+es2abc_gen_abc("gen_fault_log_extension_ability_abc") {
+  src_js = rebase_path("fault_log_extension_ability.js")
+  dst_file = rebase_path(target_out_dir + "/fault_log_extension_ability.abc")
+  in_puts = [ "fault_log_extension_ability.js" ]
+  out_puts = [ target_out_dir + "/fault_log_extension_ability.abc" ]
+  extra_args = [ "--module" ]
+}
+
+gen_js_obj("fault_log_extension_ability_js") {
+  input = "fault_log_extension_ability.js"
+  output = target_out_dir + "/fault_log_extension_ability.o"
+}
+
+gen_js_obj("fault_log_extension_ability_abc") {
+  input = get_label_info(":gen_fault_log_extension_ability_abc",
+                         "target_out_dir") + "/fault_log_extension_ability.abc"
+  output = target_out_dir + "/fault_log_extension_ability_abc.o"
+  dep = ":gen_fault_log_extension_ability_abc"
+}
+
+ohos_shared_library("faultlogextensionability_napi") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+    "-fstack-protector-strong",
+    "-Os",
+  ]
+  sources = [ "fault_log_extension_ability_module.cpp" ]
+
+  deps = [
+    ":fault_log_extension_ability_abc",
+    ":fault_log_extension_ability_js",
+  ]
+
+  external_deps = [ "napi:ace_napi" ]
+
+  relative_install_dir = "module"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

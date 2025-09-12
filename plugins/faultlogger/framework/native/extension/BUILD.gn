@@ -1,0 +1,80 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+
+config("faultlog_ext_private_config") {
+  include_dirs = [ "zidl/include" ]
+}
+
+config("faultlog_ext_public_config") {
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("faultlogextension") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+    "-Os",
+  ]
+
+  sources = [
+    "src/faultlog_extension.cpp",
+    "src/faultlog_extension_context.cpp",
+    "src/faultlog_extension_module_loader.cpp",
+    "src/js_faultlog_extension.cpp",
+    "src/js_faultlog_extension_context.cpp",
+    "zidl/src/faultlog_ext_stub_imp.cpp",
+  ]
+
+  configs = [ ":faultlog_ext_private_config" ]
+  public_configs = [ ":faultlog_ext_public_config" ]
+
+  deps = [
+    "$hiview_base:hiviewbase",
+    "zidl:faultlog_extservice_zidl_stub",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
+    "ability_runtime:extensionkit_native",
+    "ability_runtime:napi_common",
+    "ability_runtime:runtime",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_napi",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+  ]
+
+  relative_install_dir = "extensionability"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

@@ -18,17 +18,20 @@ ohos_source_set("faultlogger_service") {
   subsystem_name = "hiviewdfx"
   include_dirs = [
     ".",
+    "$hiview_framework/native/unified_collection/process/include",
     "$hiview_plugin/faultlogger/common",
+    "$hiview_plugin/faultlogger/service/extension_manager/include",
+    "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_event/event",
     "$hiview_plugin/faultlogger/service/fault_event/factory",
-    "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_file",
     "$hiview_plugin/faultlogger/service/page_history",
     "$hiview_plugin/faultlogger/service/sanitizer_collector",
-    "$hiview_framework/native/unified_collection/process/include",
   ]
 
   sources = [
+    "extension_manager/src/faultlog_ext_conn_manager.cpp",
+    "extension_manager/src/faultlog_ext_connection.cpp",
     "fault_event/base/faultlog_event_base.cpp",
     "fault_event/base/faultlog_processor_base.cpp",
     "fault_event/event/faultlog_cjerror.cpp",
@@ -60,10 +63,14 @@ ohos_source_set("faultlogger_service") {
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
+    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
     "idl:faultlogger_service_impl",
   ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
@@ -72,8 +79,8 @@ ohos_source_set("faultlogger_service") {
     "faultloggerd:crash_exception",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hitrace:libhitracechain",
     "hisysevent:libhisysevent",
+    "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
@@ -93,17 +100,20 @@ ohos_source_set("faultlogger_service_with_cfi") {
   subsystem_name = "hiviewdfx"
   include_dirs = [
     ".",
+    "$hiview_framework/native/unified_collection/process/include",
     "$hiview_plugin/faultlogger/common",
+    "$hiview_plugin/faultlogger/service/extension_manager/include",
+    "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_event/event",
     "$hiview_plugin/faultlogger/service/fault_event/factory",
-    "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_file",
     "$hiview_plugin/faultlogger/service/page_history",
     "$hiview_plugin/faultlogger/service/sanitizer_collector",
-    "$hiview_framework/native/unified_collection/process/include",
   ]
 
   sources = [
+    "extension_manager/src/faultlog_ext_conn_manager.cpp",
+    "extension_manager/src/faultlog_ext_connection.cpp",
     "fault_event/base/faultlog_event_base.cpp",
     "fault_event/base/faultlog_processor_base.cpp",
     "fault_event/event/faultlog_cjerror.cpp",
@@ -132,11 +142,15 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
     "$hiview_plugin/faultlogger/common:faultlogger_common_with_cfi",
     "$hiview_plugin/faultlogger/common:log_analyzer_with_cfi",
+    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
     "idl:faultlogger_service_impl_with_cfi",
     "page_history:page_history_with_cfi",
   ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
@@ -145,8 +159,8 @@ ohos_source_set("faultlogger_service_with_cfi") {
     "faultloggerd:crash_exception",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hitrace:libhitracechain",
     "hisysevent:libhisysevent",
+    "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
@@ -161,6 +175,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
   include_dirs = [
     ".",
     "$hiview_plugin/faultlogger/common",
+    "$hiview_plugin/faultlogger/service/extension_manager/include",
     "$hiview_plugin/faultlogger/service/fault_event/event",
     "$hiview_plugin/faultlogger/service/fault_event/factory",
     "$hiview_plugin/faultlogger/service/fault_event/base",
@@ -173,6 +188,8 @@ ohos_source_set("faultlogger_service_fuzz_src") {
   defines += [ "UNITTEST" ]
 
   sources = [
+    "extension_manager/src/faultlog_ext_conn_manager.cpp",
+    "extension_manager/src/faultlog_ext_connection.cpp",
     "fault_event/base/faultlog_event_base.cpp",
     "fault_event/base/faultlog_processor_base.cpp",
     "fault_event/event/faultlog_cjerror.cpp",
@@ -204,10 +221,14 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
+    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
     "idl:faultlogger_service_impl",
   ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
@@ -216,8 +237,8 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "faultloggerd:crash_exception",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hitrace:libhitracechain",
     "hisysevent:libhisysevent",
+    "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",

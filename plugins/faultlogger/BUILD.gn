@@ -77,3 +77,11 @@ group("moduletest") {
   testonly = true
   deps = [ "interfaces/cpp/innerkits/test:FaultloggerNativeInterfaceTest" ]
 }
+
+group("fwk_group_fault_log_extension") {
+  deps = [
+    "framework/native/extension:faultlogextension",
+    "interfaces/js/napi/fault_log_extension:faultlogextensionability_napi",
+    "interfaces/js/napi/fault_log_extension_context:faultlogextensioncontext_napi",
+  ]
+}

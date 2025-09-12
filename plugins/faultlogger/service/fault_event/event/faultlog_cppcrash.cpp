@@ -18,10 +18,11 @@
 #include <ctime>
 #include <fstream>
 
-#include "crash_exception.h"
 #include "constants.h"
+#include "crash_exception.h"
 #include "dfx_define.h"
 #include "faultlog_bundle_util.h"
+#include "faultlog_ext_conn_manager.h"
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
 #include "file_util.h"
@@ -243,6 +244,7 @@ bool FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
     }
     CheckFaultLogAsync(info);
     ReportCppCrashToAppEvent(info);
+    FaultLogExtConnManager::GetInstance().OnFault(info);
     return true;
 }
 

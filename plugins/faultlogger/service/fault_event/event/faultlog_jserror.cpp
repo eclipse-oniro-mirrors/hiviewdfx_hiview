@@ -15,6 +15,7 @@
 #include "faultlog_jserror.h"
 
 #include "constants.h"
+#include "faultlog_ext_conn_manager.h"
 #include "hiview_logger.h"
 #include "page_history_manager.h"
 
@@ -27,6 +28,7 @@ bool FaultLogJsError::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent, const
         return false;
     }
     errorReporter_.ReportErrorToAppEvent(sysEvent, "JsError", "/data/test_jsError_info");
+    FaultLogExtConnManager::GetInstance().OnFault(info);
     return true;
 }
 
@@ -48,6 +50,7 @@ void FaultLogJsError::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo&
     if (!trace.empty()) {
         info.sectionMap[FaultKey::PAGE_SWITCH_HISTORY] = std::move(trace);
     }
+    info.sectionMap["PROCESS_NAME"] = sysEvent.GetEventValue(FaultKey::P_NAME);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

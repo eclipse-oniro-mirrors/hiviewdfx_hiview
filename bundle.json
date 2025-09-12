@@ -123,6 +123,7 @@
         "build": {
             "sub_component": [
                 "//base/hiviewdfx/hiview:hiview_package",
+                "//base/hiviewdfx/hiview/plugins/faultlogger:fwk_group_fault_log_extension",
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/js/napi:faultlogger_napi",
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/cj:cj_faultlogger_ffi",
                 "//base/hiviewdfx/hiview/interfaces/js/napi:loglibrary_napi",
