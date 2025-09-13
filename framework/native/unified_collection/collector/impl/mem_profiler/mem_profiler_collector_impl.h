@@ -28,6 +28,7 @@ public:
 
 public:
     int Start(const MemoryProfilerConfig& memoryProfilerConfig) override;
+    int Start(int fd, pid_t pid, uint32_t duration, const MemConfig& memConfig) override;
     int StartPrintNmd(int fd, int pid, int type) override;
     int Stop(int pid) override;
     int Stop(const std::string& processName) override;

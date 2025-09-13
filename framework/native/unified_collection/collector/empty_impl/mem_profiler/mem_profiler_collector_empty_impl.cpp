@@ -28,6 +28,11 @@ int MemProfilerCollectorEmptyImpl::Start(const MemoryProfilerConfig& memoryProfi
     return RET_FAIL;
 }
 
+int MemProfilerCollectorEmptyImpl::Start(int fd, pid_t pid, uint32_t duration, const MemConfig& memConfig)
+{
+    return RET_FAIL;
+}
+
 int MemProfilerCollectorEmptyImpl::StartPrintNmd(int fd, int pid, int type)
 {
     return RET_FAIL;

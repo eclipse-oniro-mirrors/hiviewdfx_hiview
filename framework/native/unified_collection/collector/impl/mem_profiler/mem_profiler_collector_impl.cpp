@@ -110,6 +110,26 @@ int MemProfilerCollectorImpl::Start(const MemoryProfilerConfig& memoryProfilerCo
         memoryProfilerConfig.duration, memoryProfilerConfig.sampleInterval);
 }
 
+int MemProfilerCollectorImpl::Start(int fd, pid_t pid, uint32_t duration, const MemConfig& memConfig)
+{
+    if (int res = StartNativeDaemon(); res != RET_SUCC) {
+        return res;
+    }
+    HIVIEW_LOGI("mem_profiler_collector starting");
+    if (GetUid(pid) >= APP_THRESH) {
+        auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        if (client == nullptr) {
+            HIVIEW_LOGE("AppMgrClient is nullptr");
+        } else {
+            client->SetAppFreezeFilter(pid);
+        }
+    }
+    MemSaConfig saConfig;
+    saConfig.mask = memConfig.mask;
+    saConfig.hookSizes = memConfig.hookSizes;
+    return NativeMemoryProfilerSaClientManager::Start(fd, pid, duration, saConfig);
+}
+
 int MemProfilerCollectorImpl::StartPrintNmd(int fd, int pid, int type)
 {
     if (int res = StartNativeDaemon(); res != RET_SUCC) {
