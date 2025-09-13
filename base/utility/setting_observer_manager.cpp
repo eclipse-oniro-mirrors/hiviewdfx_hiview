@@ -80,7 +80,7 @@ bool SettingObserverManager::RegisterObserver(const std::string& paramKey, Setti
     helper->RegisterObserver(uri, observer);
     helper->Release();
     HIVIEW_LOGI("succeed to register observer with key %{public}s", paramKey.c_str());
-    std::lock_guard<std::mutex> observerGurad(observersMutex_);
+    std::lock_guard<ffrt::mutex> observerGuard(observersMutex_);
     observers_[paramKey] = observer;
     return true;
 }
@@ -101,7 +101,7 @@ bool SettingObserverManager::UnregisterObserver(const std::string& paramKey)
     helper->UnregisterObserver(uri, observer);
     helper->Release();
     HIVIEW_LOGI("succeed to unregister observer with key %{public}s", paramKey.c_str());
-    std::lock_guard<std::mutex> observerGurad(observersMutex_);
+    std::lock_guard<ffrt::mutex> observerGuard(observersMutex_);
     observers_.erase(paramKey);
     return true;
 }
@@ -153,7 +153,7 @@ Uri SettingObserverManager::AssembleUri(const std::string& paramKey)
 
 sptr<SettingObserver> SettingObserverManager::GetSettingObserver(const std::string& paramKey)
 {
-    std::lock_guard<std::mutex> observerGurad(observersMutex_);
+    std::lock_guard<ffrt::mutex> observerGuard(observersMutex_);
     auto iter = observers_.find(paramKey);
     if (iter != observers_.end()) {
         return iter->second;

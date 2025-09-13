@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "data_ability_observer_stub.h"
+#include "ffrt.h"
 #include "singleton.h"
 #include "uri.h"
 
@@ -53,7 +54,7 @@ private:
 
 private:
     std::unordered_map<std::string, sptr<SettingObserver>> observers_;
-    std::mutex observersMutex_;
+    ffrt::mutex observersMutex_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
