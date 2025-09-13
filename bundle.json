@@ -74,7 +74,6 @@
                 "ability_base",
                 "ability_runtime",
                 "access_token",
-                "soc_perf",
                 "bounds_checking_function",
                 "bundle_framework",
                 "common_event_service",
@@ -83,7 +82,6 @@
                 "c_utils",
                 "data_share",
                 "device_usage_statistics",
-                "display_manager",
                 "drivers_interface_memorytracker",
                 "ets_runtime",
                 "faultloggerd",
@@ -113,10 +111,9 @@
                 "wifi",
                 "window_manager",
                 "zlib",
-                "thermal_manager",
-                "selinux_adapter",
                 "resource_schedule_service",
                 "eventhandler",
+                "selinux_adapter",
                 "runtime_core"
             ]
         },
