@@ -15,6 +15,7 @@
 #ifndef INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_MEM_PROFILER_COLLECTOR_H
 #define INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_MEM_PROFILER_COLLECTOR_H
 #include <memory>
+#include <map>
 
 #include "collect_result.h"
 #include "native_memory_profiler_sa_client_manager.h"
@@ -46,6 +47,13 @@ struct SimplifiedMemConfig {
     size_t sampleSize = 0;
 };
 
+using Range = std::pair<uint64_t, uint64_t>;
+
+struct MemConfig {
+    uint64_t mask = 0;
+    std::map<std::string, std::pair<Range, Range>> hookSizes;
+};
+
 class MemProfilerCollector {
 public:
     MemProfilerCollector() = default;
@@ -53,6 +61,7 @@ public:
 
 public:
     virtual int Start(const MemoryProfilerConfig& memoryProfilerConfig) = 0;
+    virtual int Start(int fd, pid_t pid, uint32_t duration, const MemConfig& memConfig) = 0;
     virtual int StartPrintNmd(int fd, int pid, int type) = 0;
     virtual int Stop(int pid) = 0;
     virtual int Stop(const std::string& processName) = 0;

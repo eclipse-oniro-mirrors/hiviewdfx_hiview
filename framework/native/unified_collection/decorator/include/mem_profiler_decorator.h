@@ -27,6 +27,7 @@ public:
     MemProfilerDecorator(std::shared_ptr<MemProfilerCollector> collector) : memProfilerCollector_(collector) {};
     virtual ~MemProfilerDecorator() = default;
     int Start(const MemoryProfilerConfig& memoryProfilerConfig) override;
+    int Start(int fd, pid_t pid, uint32_t duration, const MemConfig& memConfig) override;
     int Stop(int pid) override;
     int Stop(const std::string& processName) override;
     int Start(int fd, const MemoryProfilerConfig& memoryProfilerConfig) override;

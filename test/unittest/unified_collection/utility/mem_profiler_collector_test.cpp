@@ -12,12 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iostream>
-#include "common.h"
-#include "mem_profiler_collector.h"
-#include "native_memory_profiler_sa_client_manager.h"
 #include <thread>
 #include <gtest/gtest.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <iostream>
+
+#include "common.h"
+#include "common_utils.h"
+#include "file_util.h"
+#include "mem_profiler_collector.h"
+#include "native_memory_profiler_sa_client_manager.h"
+
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -230,4 +237,38 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest006, TestSize.Level1)
     }
     ASSERT_TRUE(time < FINAL_TIME);
     std::this_thread::sleep_for(std::chrono::milliseconds(EXIT_TIME));
+}
+
+/**
+ * @tc.name: MemProfilerCollectorTest007
+ * @tc.desc: used to test MemProfilerCollector.Start
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest007, TestSize.Level1)
+{
+    std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
+    collector->Prepare();
+    MemConfig memConfig = {
+        .mask = 0xFFFF,
+        .hookSizes = {
+            {"RES_GPU_VK", {{0, 100}, {0, 20}}},
+            {"RES_GPU_GLES_IMAGE", {{0, 101}, {0, 21}}},
+            {"RES_GPU_GLES_BUFFER", {{0, 102}, {0, 22}}},
+            {"RES_GPU_CL_IMAGE", {{0, 103}, {0, 23}}},
+            {"RES_GPU_CL_BUFFER", {{0, 104}, {0, 24}}},
+        }
+    };
+
+    auto fd = open("/data/test/profiler_file", O_CREAT | O_RDWR, 0664);
+    ASSERT_FALSE(fd < 0);
+    const std::string systemuiProcName = "com.ohos.systemui";
+    const std::string sceneBoardProcName = "com.ohos.sceneboard";
+    auto systemuiPid = CommonUtils::GetPidByName(systemuiProcName);
+    auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
+    auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
+    int ret = collector->Start(fd, pid, 10, memConfig);
+
+    // Permission deny, if the invoker is not hiview
+    ASSERT_NE(ret, 0);
+    close(fd);
 }
