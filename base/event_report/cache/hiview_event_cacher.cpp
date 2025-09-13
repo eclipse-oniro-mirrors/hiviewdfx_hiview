@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,7 @@ using namespace PluginStatsEventSpace;
 
 void HiviewEventCacher::AddPluginStatsEvent(const std::vector<std::shared_ptr<LoggerEvent>>& events)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     for (auto event : events) {
         std::string name = event->GetValue(KEY_OF_PLUGIN_NAME).GetString();
         if (!name.empty()) {
@@ -34,7 +34,7 @@ void HiviewEventCacher::AddPluginStatsEvent(const std::vector<std::shared_ptr<Lo
 
 void HiviewEventCacher::GetPluginStatsEvents(std::vector<std::shared_ptr<LoggerEvent>>& events)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     for (auto entry : pluginStatsEvents_) {
         events.push_back(entry.second);
     }
@@ -45,7 +45,7 @@ void HiviewEventCacher::UpdatePluginStatsEvent(const std::string &name, const st
     if (name.empty()) {
         return;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     if (pluginStatsEvents_.find(name) != pluginStatsEvents_.end()) {
         auto event = pluginStatsEvents_.find(name)->second;
         event->Update(KEY_OF_PROC_NAME, procName);
@@ -61,7 +61,7 @@ void HiviewEventCacher::UpdatePluginStatsEvent(const std::string &name, const st
 
 void HiviewEventCacher::ClearPluginStatsEvents()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     pluginStatsEvents_.clear();
 }
 } // namespace HiviewDFX

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "ffrt.h"
 #include "logger_event.h"
 #include "singleton.h"
 
@@ -36,7 +37,7 @@ public:
 
 private:
     std::map<std::string, std::shared_ptr<LoggerEvent>> pluginStatsEvents_;
-    std::mutex mutex_;
+    ffrt::mutex mutex_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
