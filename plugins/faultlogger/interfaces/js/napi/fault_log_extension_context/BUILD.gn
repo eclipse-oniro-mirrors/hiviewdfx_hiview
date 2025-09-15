@@ -58,7 +58,7 @@ ohos_shared_library("faultlogextensioncontext_napi") {
 
   external_deps = [ "napi:ace_napi" ]
 
-  relative_install_dir = "module/application"
+  relative_install_dir = "module/hiviewdfx"
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 }

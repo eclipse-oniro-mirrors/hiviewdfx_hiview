@@ -20,18 +20,18 @@ extern const char _binary_fault_log_extension_context_js_end[];
 extern const char _binary_fault_log_extension_context_abc_start[];
 extern const char _binary_fault_log_extension_context_abc_end[];
 
-extern "C" __attribute__((constructor)) void NapiApplicationFaultLogExtensionContextAutoRegister()
+extern "C" __attribute__((constructor)) void Napi_hiviewdfx_FaultLogExtensionContextAutoRegister()
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "application.FaultLogExtensionContext",
-        .fileName = "application/libfaultlogextensioncontext_napi.so/FaultLogExtensionContext.js",
+        .name = "hiviewdfx.FaultLogExtensionContext",
+        .fileName = "hiviewdfx/libfaultlogextensioncontext_napi.so/FaultLogExtensionContext.js",
     };
 
     moduleManager->Register(&newModuleInfo);
 }
 
-extern "C" __attribute__((visibility("default"))) void NAPI_application_FaultLogExtensionContext_GetJSCode(
+extern "C" __attribute__((visibility("default"))) void NAPI_hiviewdfx_FaultLogExtensionContext_GetJSCode(
     const char **buf, int32_t *bufLen)
 {
     if (buf != nullptr) {
@@ -45,7 +45,7 @@ extern "C" __attribute__((visibility("default"))) void NAPI_application_FaultLog
 }
 
 // FaultLogExtensionContext JS register
-extern "C" __attribute__((visibility("default"))) void NAPI_application_FaultLogExtensionContext_GetABCCode(
+extern "C" __attribute__((visibility("default"))) void NAPI_hiviewdfx_FaultLogExtensionContext_GetABCCode(
     const char **buf, int32_t *buflen)
 {
     if (buf != nullptr) {
