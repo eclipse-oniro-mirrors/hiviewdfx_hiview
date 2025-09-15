@@ -28,6 +28,7 @@
 #include "client/memory_collector_client.h"
 #include "file_util.h"
 #include "hiview_log_config_manager.h"
+#include "hiview_xcollie_timer.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "parameter_ex.h"
@@ -200,6 +201,7 @@ HiviewService *HiviewServiceAbility::GetOrSetHiviewService(HiviewService *servic
 
 ErrCode HiviewServiceAbility::ListFiles(const std::string& logType, std::vector<HiviewFileInfo>& fileInfos)
 {
+    HiviewXCollieTimer timer("ListFiles", APP_CALLING_TIMEOUT);
     if (!HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -236,6 +238,7 @@ void HiviewServiceAbility::GetFileInfoUnderDir(const std::string& dirPath, std::
 
 ErrCode HiviewServiceAbility::Copy(const std::string& logType, const std::string& logName, const std::string& dest)
 {
+    HiviewXCollieTimer timer("Copy", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -244,6 +247,7 @@ ErrCode HiviewServiceAbility::Copy(const std::string& logType, const std::string
 
 ErrCode HiviewServiceAbility::Move(const std::string& logType, const std::string& logName, const std::string& dest)
 {
+    HiviewXCollieTimer timer("Move", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -292,6 +296,7 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
 
 ErrCode HiviewServiceAbility::Remove(const std::string& logType, const std::string& logName)
 {
+    HiviewXCollieTimer timer("Remove", APP_CALLING_TIMEOUT);
     if (!HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -337,6 +342,7 @@ void HiviewServiceAbility::OnStop()
 
 ErrCode HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& tagGroups, int32_t& errNo, int32_t& ret)
 {
+    HiviewXCollieTimer timer("OpenSnapshotTrace", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -349,6 +355,7 @@ ErrCode HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& 
 
 ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, std::vector<std::string>& files)
 {
+    HiviewXCollieTimer timer("DumpSnapshotTrace", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION) &&
         !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
@@ -362,6 +369,7 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, 
 
 ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_t& errNo, int32_t& ret)
 {
+    HiviewXCollieTimer timer("OpenRecordingTrace", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -374,6 +382,7 @@ ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_
 
 ErrCode HiviewServiceAbility::RecordingTraceOn(int32_t& errNo, int32_t& ret)
 {
+    HiviewXCollieTimer timer("RecordingTraceOn", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -386,6 +395,7 @@ ErrCode HiviewServiceAbility::RecordingTraceOn(int32_t& errNo, int32_t& ret)
 
 ErrCode HiviewServiceAbility::RecordingTraceOff(int32_t& errNo, std::vector<std::string>& files)
 {
+    HiviewXCollieTimer timer("RecordingTraceOff", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -398,6 +408,7 @@ ErrCode HiviewServiceAbility::RecordingTraceOff(int32_t& errNo, std::vector<std:
 
 ErrCode HiviewServiceAbility::CloseTrace(int32_t& errNo, int32_t& ret)
 {
+    HiviewXCollieTimer timer("CloseTrace", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -411,6 +422,7 @@ ErrCode HiviewServiceAbility::CloseTrace(int32_t& errNo, int32_t& ret)
 ErrCode HiviewServiceAbility::CaptureDurationTrace(
     const AppCallerParcelable& appCallerParcelable, int32_t& errNo, int32_t& ret)
 {
+    HiviewXCollieTimer timer("CaptureDurationTrace", APP_CALLING_TIMEOUT);
     auto caller = appCallerParcelable.GetAppCaller();
     caller.uid = IPCSkeleton::GetCallingUid();
     caller.pid = IPCSkeleton::GetCallingPid();
@@ -423,6 +435,7 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
 
 ErrCode HiviewServiceAbility::GetSysCpuUsage(int32_t& errNo, double& ret)
 {
+    HiviewXCollieTimer timer("GetSysCpuUsage", APP_CALLING_TIMEOUT);
     TraceCalling<double>([] (HiviewService* service) {
         return service->GetSysCpuUsage();
         }, errNo, ret);
@@ -473,6 +486,7 @@ ErrCode HiviewServiceAbility::SetSplitMemoryValue(
 
 ErrCode HiviewServiceAbility::GetGraphicUsage(int32_t& errNo, GraphicUsageParcelable& graphicUsageParcelable)
 {
+    HiviewXCollieTimer timer("GetGraphicUsage", APP_CALLING_TIMEOUT);
     int32_t pid = IPCObjectStub::GetCallingPid();
     if (pid < 0) {
         return TraceErrCode::ERR_SEND_REQUEST;

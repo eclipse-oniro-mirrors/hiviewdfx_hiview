@@ -28,6 +28,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "hiview_logger.h"
+#include "hiview_xcollie_timer.h"
 #include "ret_code.h"
 #include "running_status_log_util.h"
 #include "string_ex.h"
@@ -242,6 +243,7 @@ SysEventServiceBase* SysEventServiceOhos::GetSysEventService(SysEventServiceBase
 ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     const sptr<ISysEventCallback>& callback)
 {
+    HiviewXCollieTimer timer("AddListener", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
         return ERR_NO_PERMISSION;
     }
@@ -289,6 +291,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
 
 ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>& callback)
 {
+    HiviewXCollieTimer timer("RemoveListener", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
         return ERR_NO_PERMISSION;
     }
@@ -370,6 +373,7 @@ bool SysEventServiceOhos::BuildEventQuery(std::shared_ptr<EventQueryWrapperBuild
 ErrCode SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
     const OHOS::sptr<IQuerySysEventCallback>& callback)
 {
+    HiviewXCollieTimer timer("Query", SYS_CALLING_TIMEOUT);
     if (callback == nullptr) {
         return ERR_LISTENER_NOT_EXIST;
     }
@@ -441,6 +445,7 @@ void CallbackDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 
 ErrCode SysEventServiceOhos::AddSubscriber(const std::vector<SysEventQueryRule>& rules, int64_t& funcResult)
 {
+    HiviewXCollieTimer timer("AddSubscriber", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !IsSystemAppCaller()) {
         return ERR_NO_PERMISSION;
     }
@@ -472,6 +477,7 @@ void SysEventServiceOhos::MergeEventList(const std::vector<SysEventQueryRule>& r
 
 ErrCode SysEventServiceOhos::RemoveSubscriber()
 {
+    HiviewXCollieTimer timer("RemoveSubscriber", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !IsSystemAppCaller()) {
         return ERR_NO_PERMISSION;
     }
@@ -487,6 +493,7 @@ ErrCode SysEventServiceOhos::RemoveSubscriber()
 ErrCode SysEventServiceOhos::Export(const QueryArgument &queryArgument,
     const std::vector<SysEventQueryRule>& rules, int64_t& funcResult)
 {
+    HiviewXCollieTimer timer("Export", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !IsSystemAppCaller()) {
         return ERR_NO_PERMISSION;
     }
