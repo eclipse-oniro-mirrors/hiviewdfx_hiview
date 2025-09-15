@@ -446,5 +446,61 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest022, testing::ext::TestSize.Lev
         ASSERT_GE(ts2 - WAIT_TIME * TimeUtil::SEC_TO_MILLISEC, ts1);
     }, {}, {}, ffrt::task_attr().name("base_util_ut_022").qos(ffrt::qos_default));
 }
+
+/**
+ * @tc.name: BaseUtilityUnitTest023
+ * @tc.desc: Test CreateDirectory defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICXU4N
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest023, testing::ext::TestSize.Level3)
+{
+    std::string parentPath = "/data/local/tmp/BaseUtilityUnitTest023Parent";
+    std::string path = parentPath + "/BaseUtilityUnitTest023";
+    rmdir(parentPath.c_str());
+    ASSERT_FALSE(FileUtil::FileExists(parentPath));
+
+    EXPECT_FALSE(FileUtil::CreateDirectory(path));
+
+    rmdir(path.c_str());
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest024
+ * @tc.desc: Test CreateDirectory defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICXU4N
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest024, testing::ext::TestSize.Level3)
+{
+    std::string basePath = "/data/local/tmp";
+    ASSERT_TRUE(FileUtil::FileExists(basePath));
+    std::string parentPath = basePath + "/BaseUtilityUnitTest024Parent";
+    std::ofstream parentFile(parentPath);
+    parentFile.close();
+    ASSERT_TRUE(FileUtil::FileExists(parentPath));
+
+    std::string path = parentPath + "/BaseUtilityUnitTest024";
+    EXPECT_FALSE(FileUtil::CreateDirectory(path));
+
+    remove(parentPath.c_str());
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest025
+ * @tc.desc: Test CreateDirectory defined in namespace FileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICXU4N
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest025, testing::ext::TestSize.Level3)
+{
+    std::string parentPath = "/data/local/tmp";
+    ASSERT_TRUE(FileUtil::FileExists(parentPath));
+
+    std::string path = parentPath + "/BaseUtilityUnitTest025";
+    EXPECT_TRUE(FileUtil::CreateDirectory(path));
+
+    rmdir(path.c_str());
+}
 } // namespace HiviewDFX
 } // namespace OHOS
