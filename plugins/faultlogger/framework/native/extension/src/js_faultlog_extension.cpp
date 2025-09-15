@@ -67,7 +67,7 @@ napi_value AttachFaultLogExtensionContext(napi_env env, void *value, void *)
     }
     napi_value object = CreateJsFaultLogExtensionContext(env, ptr);
     auto loadObject = AbilityRuntime::JsRuntime::LoadSystemModuleByEngine(env,
-        "application.FaultLogExtensionContext", &object, 1);
+        "hiviewdfx.FaultLogExtensionContext", &object, 1);
     if (loadObject == nullptr) {
         return nullptr;
     }
@@ -138,7 +138,7 @@ void JsFaultLogExtension::BindContext(napi_env env, napi_value obj)
         return;
     }
     napi_value contextObj = CreateJsFaultLogExtensionContext(env, context);
-    shellContextRef_ = jsRuntime_.LoadSystemModule("application.FaultLogExtensionContext",
+    shellContextRef_ = jsRuntime_.LoadSystemModule("hiviewdfx.FaultLogExtensionContext",
         &contextObj, 1);
     if (shellContextRef_ == nullptr) {
         HIVIEW_LOGE("FaultLogExtension Failed to get shellContextRef_");
@@ -252,8 +252,8 @@ void JsFaultLogExtension::OnDisconnect(const AAFwk::Want& want)
         AbilityRuntime::HandleScope handleScope(jsRuntime_);
         napi_env env = jsRuntime_.GetNapiEnv();
 
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "JsFaultLogExtension::onDisConnect");
-        if (!CallFuncation(env, jsObj_, "onDisConnect")) {
+        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "JsFaultLogExtension::onDisconnect");
+        if (!CallFuncation(env, jsObj_, "onDisconnect")) {
             return;
         }
     };
