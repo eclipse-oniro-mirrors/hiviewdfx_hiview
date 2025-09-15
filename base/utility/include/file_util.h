@@ -79,6 +79,7 @@ std::string IncludeTrailingPathDelimiter(const std::string& path);
 std::string ExcludeTrailingPathDelimiter(const std::string& path);
 void GetDirFiles(const std::string& path, std::vector<std::string>& files, bool isRecursive = true);
 void GetDirDirs(const std::string& path, std::vector<std::string>& dirs);
+bool CreateDirectory(const std::string& path);
 bool ForceCreateDirectory(const std::string& path);
 bool ForceCreateDirectory(const std::string& path, mode_t mode);
 void RemoveFolderBeginWith(const std::string &path, const std::string &folderName);
