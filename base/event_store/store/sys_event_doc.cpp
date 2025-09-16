@@ -126,7 +126,7 @@ int SysEventDoc::UpdateCurFile(const std::shared_ptr<SysEvent>& sysEvent)
         return DOC_STORE_ERROR_IO;
     }
     std::string filePath = GetCurFile(dir);
-    if (filePath.empty() || !EventDbFileUtil::IsCurrentVersionDbFilePath(filePath) || IsFileFull(filePath)) {
+    if (filePath.empty() || !EventDbFileUtil::IsMatchedDbFilePath(filePath, sysEvent) || IsFileFull(filePath)) {
         return CreateCurFile(dir, sysEvent);
     }
     curFile_ = filePath;
