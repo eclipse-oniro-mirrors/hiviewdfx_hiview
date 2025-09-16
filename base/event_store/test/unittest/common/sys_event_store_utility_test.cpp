@@ -398,6 +398,7 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest009, testing::ext::Te
  */
 HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest010, testing::ext::TestSize.Level3)
 {
+    ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101.db", nullptr));
     auto sysEvent = InitNewEvent(1); // 1 is a test event sequence
     sysEvent->SetReportInterval(30); // 30 is a test report interval
     ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101.db", sysEvent));

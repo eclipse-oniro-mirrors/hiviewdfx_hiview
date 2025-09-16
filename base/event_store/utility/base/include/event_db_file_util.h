@@ -47,10 +47,6 @@ public:
     static bool ParseEventInfoFromDbFileName(const std::string& fileName, SplitedEventInfo& info,
         ParseType tag = ALL_INFO);
     static bool IsMatchedDbFilePath(const std::string& filePath, const std::shared_ptr<SysEvent>& sysEvent);
-
-private:
-    static bool IsCurrentVersionDbFilePath(const std::string& fileName);
-    static bool IsReportIntervalMatched(const std::string& fileName, int16_t reportInterval);
 };
 }
 }
