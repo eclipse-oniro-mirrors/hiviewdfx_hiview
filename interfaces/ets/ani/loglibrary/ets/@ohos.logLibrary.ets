@@ -32,7 +32,7 @@ class ResultsInner implements Results {
 }
 
 export default namespace logLibrary {
-    loadLibrary("loglibrary_ani");
+    loadLibraryWithPermissionCheck("loglibrary_ani", "@ohos.logLibrary");
     export interface LogEntry {
         name: string;
         mtime: number;
