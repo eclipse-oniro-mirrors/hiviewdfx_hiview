@@ -17,8 +17,8 @@ import { AsyncCallback, BusinessError } from '@ohos.base';
 
 class LogEntryInner implements logLibrary.LogEntry {
     name: string = "";
-    mtime: number = 0;
-    size: number = 0;
+    mtime: long = 0;
+    size: long = 0;
 }
 
 interface Results {
@@ -35,8 +35,8 @@ export default namespace logLibrary {
     loadLibrary("loglibrary_ani");
     export interface LogEntry {
         name: string;
-        mtime: number;
-        size: number;
+        mtime: long;
+        size: long;
     }
 
     export native function list(logType: string): LogEntry[];
