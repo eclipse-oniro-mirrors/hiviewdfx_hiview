@@ -159,15 +159,20 @@ bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, 
     return dbFileNameParser(eventInfoList, info, parseType);
 }
 
-bool EventDbFileUtil::IsCurrentVersionDbFilePath(const std::string& filePath)
+bool EventDbFileUtil::IsMatchedDbFilePath(const std::string& filePath, const std::shared_ptr<SysEvent>& sysEvent)
 {
-    std::string fileName = FileUtil::ExtractFileName(filePath);
-    if (filePath.empty()) {
+    if (sysEvent == nullptr) {
         return false;
     }
+    std::string fileName = FileUtil::ExtractFileName(filePath);
     std::vector<std::string> eventInfoList;
     StringUtil::SplitStr(fileName, DB_NAME_CONCATE, eventInfoList);
-    return eventInfoList.size() == FILE_NAME_SPLIT_CUR_VER_SIZE;
+    if (eventInfoList.size() != FILE_NAME_SPLIT_CUR_VER_SIZE) {
+        return false;
+    }
+    int16_t reportInterval = NOT_CFG_REPORT_INTERVAL;
+    StringUtil::ConvertStringTo(eventInfoList[EVENT_REPORT_INTERVAL_INDEX], reportInterval);
+    return reportInterval == sysEvent->GetReportInterval();
 }
 }
 }
