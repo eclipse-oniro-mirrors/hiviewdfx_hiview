@@ -145,7 +145,7 @@ void LogLibraryAniUtil::ThrowAniError(ani_env *env, int32_t code, const std::str
         HILOG_ERROR(LOG_CORE, "new object %{public}s failed", CLASS_NAME_BUSINESSERROR);
         return;
     }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(error, "code", static_cast<ani_double>(code))) {
+    if (ANI_OK != env->Object_SetPropertyByName_Int(error, "code", static_cast<ani_int>(code))) {
         HILOG_ERROR(LOG_CORE, "set property BusinessError.code failed");
         return;
     }
@@ -236,7 +236,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
         return results_obj;
     }
 
-    if (ANI_OK != env->Object_CallMethod_Void(results_obj, codeSetter, static_cast<ani_double>(result.first))) {
+    if (ANI_OK != env->Object_CallMethod_Void(results_obj, codeSetter, static_cast<ani_int>(result.first))) {
         HILOG_ERROR(LOG_CORE, "call method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
