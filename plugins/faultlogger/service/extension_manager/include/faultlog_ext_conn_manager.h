@@ -41,7 +41,6 @@ public:
 
 private:
     std::string GetExtName(const std::string& bundleName, int32_t userId) const;
-    sptr<OHOS::AAFwk::IAbilityManager> GetSystemAbilityManager();
 
     bool IsExistList(const std::string& bundleName) const;
     void AddToList(const std::string& bundleName);

@@ -32,6 +32,7 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt");
 
+constexpr const char* const APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 constexpr const char* const HMOS_HAP_CODE_PATH = "1";
 constexpr const char* const LINUX_HAP_CODE_PATH = "2";
 constexpr int VALUE_MOD = 200000;
@@ -51,6 +52,52 @@ static uint64_t GetDelayTimeout()
         return timeout * SECONDS_TO_MICRO;
     }();
     return timeout;
+}
+
+static sptr<IRemoteObject> GetSystemAbility(int32_t id)
+{
+    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        HIVIEW_LOGE("Failed to get system ability manager service.");
+        return nullptr;
+    }
+    return systemAbilityManager->GetSystemAbility(id);
+}
+
+static int32_t GetAppIndexByUid(int32_t uid)
+{
+    auto remoteObject = GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (!remoteObject) {
+        HIVIEW_LOGE("failed to get bundle manager proxy.");
+        return 0;
+    }
+    auto bundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    int32_t appIndex = 0;
+    std::string bundleName;
+    auto ret = bundleMgr->GetNameAndIndexForUid(uid, bundleName, appIndex);
+    if (ret != ERR_OK) {
+        HIVIEW_LOGE("failed to get appIndex, %{public}d", ret);
+        return 0;
+    }
+    return appIndex;
+}
+
+static sptr<AAFwk::IAbilityManager> GetIAbilityManager()
+{
+    sptr<IRemoteObject> remoteObject = GetSystemAbility(ABILITY_MGR_SERVICE_ID);
+    if (remoteObject == nullptr) {
+        HIVIEW_LOGE("Failed to get system ability.");
+        return nullptr;
+    }
+    return iface_cast<AAFwk::IAbilityManager>(remoteObject);
+}
+
+static OHOS::AAFwk::Want FillWant(const std::string& bundleName, const std::string& extensionName, int32_t uid)
+{
+    OHOS::AAFwk::Want want;
+    want.SetElementName(bundleName, extensionName);
+    want.SetParam(APP_CLONE_INDEX, GetAppIndexByUid(uid));
+    return want;
 }
 
 bool FaultLogExtConnManager::IsExistList(const std::string& bundleName) const
@@ -82,13 +129,7 @@ bool FaultLogExtConnManager::IsExtension(const FaultLogInfo& info) const
 
 std::string FaultLogExtConnManager::GetExtName(const std::string& bundleName, int32_t userId) const
 {
-    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (saMgr == nullptr) {
-        HIVIEW_LOGE("Failed to get system ability manager");
-        return "";
-    }
-
-    auto bundleObj = saMgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    auto bundleObj = GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     if (bundleObj == nullptr) {
         HIVIEW_LOGE("Failed to get bundle manager service");
         return "";
@@ -126,7 +167,7 @@ bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
         HIVIEW_LOGI("%{public}s Unsupported faultlog abily", info.module.c_str());
         return false;
     }
-    auto task = [this, bundleName = info.module, extensionName, userId]() {
+    auto task = [this, bundleName = info.module, extensionName, uid = info.id, userId]() {
         HIVIEW_LOGI("connect bundle:%{public}s(%{public}s)", bundleName.c_str(), extensionName.c_str());
         sptr<FaultLogExtConnection> connection(new (std::nothrow) FaultLogExtConnection());
         if (connection == nullptr) {
@@ -135,55 +176,33 @@ bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
             return;
         }
 
-        sptr<AAFwk::IAbilityManager> abilityMgr = GetSystemAbilityManager();
+        auto abilityMgr = GetIAbilityManager();
         if (abilityMgr == nullptr) {
+            HIVIEW_LOGE("Failed to get IAbilityManager.");
             RemoveFromList(bundleName);
             return;
         }
 
-        OHOS::AAFwk::Want want;
-        want.SetElementName(bundleName, extensionName);
-        int32_t ret = abilityMgr->ConnectAbility(want, connection, nullptr, userId);
+        auto ret = abilityMgr->ConnectAbility(FillWant(bundleName, extensionName, uid), connection, nullptr, userId);
         if (ret != ERR_OK) {
             HIVIEW_LOGE("connect failed, ret: %{public}d", ret);
             RemoveFromList(bundleName);
             return;
         }
-        auto disconnectTask = [this, connection, abilityMgr, bundleName] {
+        auto disconnTask = [this, connection, abilityMgr, bundleName] {
             HIVIEW_LOGI("disconnect bundle:%{public}s", bundleName.c_str());
             if (connection->IsConnected()) {
                 abilityMgr->DisconnectAbility(connection);
             }
             RemoveFromList(bundleName);
         };
-        ffrt::submit(disconnectTask,
-            ffrt::task_attr().name("FaultlogExtensionDisconnect").delay(DELAY_CLEAN_TIME_MICRO));
+        ffrt::submit(disconnTask, ffrt::task_attr().name("FaultlogExtensionDisconnect").delay(DELAY_CLEAN_TIME_MICRO));
     };
 
     HIVIEW_LOGI("add to List : %{public}s", info.module.c_str());
     ffrt::submit(task, ffrt::task_attr().name("FaultlogExtensionStart").delay(GetDelayTimeout()));
     AddToList(info.module);
     return true;
-}
-
-sptr<AAFwk::IAbilityManager> FaultLogExtConnManager::GetSystemAbilityManager()
-{
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        HIVIEW_LOGE("Failed to get system ability manager service.");
-        return nullptr;
-    }
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-    if (remoteObject == nullptr) {
-        HIVIEW_LOGE("Failed to get system ability.");
-        return nullptr;
-    }
-    sptr<AAFwk::IAbilityManager> abilityMgr = iface_cast<AAFwk::IAbilityManager>(remoteObject);
-    if ((abilityMgr == nullptr) || (abilityMgr->AsObject() == nullptr)) {
-        HIVIEW_LOGE("Failed to get ability manager services object");
-        return nullptr;
-    }
-    return abilityMgr;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
