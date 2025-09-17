@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,6 @@
 
 #include "app_event_publisher_factory.h"
 
-#ifdef APPEVENT_PUBLISH_ENABLE
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -67,15 +66,3 @@ void AppEventPublisherFactory::UnregisterPublisher(const std::string& name)
 }
 } // namespace HiviewDFX
 } // namespace OHOS
-#else // feature not supported
-bool OHOS::HiviewDFX::AppEventPublisherFactory::IsPublisher(const std::string& name)
-{
-    return false;
-}
-
-void OHOS::HiviewDFX::AppEventPublisherFactory::RegisterPublisher(const std::string& name)
-{}
-
-void OHOS::HiviewDFX::AppEventPublisherFactory::UnregisterPublisher(const std::string& name)
-{}
-#endif

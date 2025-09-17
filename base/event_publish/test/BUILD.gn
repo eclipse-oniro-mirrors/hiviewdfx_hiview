@@ -25,6 +25,10 @@ config("hiview_event_publish_config_test") {
   visibility = [ "*:*" ]
 
   include_dirs = [ "unittest/common" ]
+
+  if (hiview_appevent_publish_enable) {
+    defines = [ "APPEVENT_PUBLISH_ENABLE" ]
+  }
 }
 
 ohos_unittest("EventPublishTest") {

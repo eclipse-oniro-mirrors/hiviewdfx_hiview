@@ -18,6 +18,7 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "hisysevent.h"
+#include "json/json.h"
 #include "string_util.h"
 #include "faultlog_util.h"
 
