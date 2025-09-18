@@ -39,6 +39,7 @@ constexpr int BUNDLE_MGR_SERVICE_SYS_ABILITY_ID = 401;
 constexpr int DELAY_TIME = 30;
 constexpr const char* const PATH_DIR = "/data/log/hiview/system_event_db/events/temp";
 constexpr const char* const SANDBOX_DIR = "/data/storage/el2/log";
+constexpr const char* const LOG_PATH_PREFIX = "/data/log/";
 constexpr const char* const FILE_PREFIX = "/hiappevent_";
 constexpr const char* const FILE_SUFFIX = ".evt";
 constexpr const char* const DOMAIN_PROPERTY = "domain";
@@ -246,6 +247,15 @@ std::string GetDesFileName(Json::Value& params, const std::string& eventName,
     return desFileName;
 }
 
+bool VerifyPathSecurity(const std::string& path)
+{
+    std::string realPath;
+    if (FileUtil::PathToRealPath(path, realPath)) {
+        return strncmp(realPath.c_str(), LOG_PATH_PREFIX, strlen(LOG_PATH_PREFIX)) == 0;
+    }
+    return false;
+}
+
 void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, const ExternalLogInfo &externalLogInfo)
 {
     if (!eventParams.eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) ||
@@ -266,8 +276,8 @@ void SendLogToSandBox(AppEventParams& eventParams, std::string& sandBoxLogPath, 
         if (CheckInSandBoxLog(externalLog, sandBoxLogPath, externalLogJson, logOverLimit)) {
             continue;
         }
-        if (externalLog.empty() || !FileUtil::FileExists(externalLog)) {
-            HIVIEW_LOGI("externalLog is empty or not exist.");
+        if (externalLog.empty() || !VerifyPathSecurity(externalLog)) {
+            HIVIEW_LOGI("externalLog is empty or invalid. externalLog=%{public}s", externalLog.c_str());
             continue;
         }
         uint64_t fileSize = FileUtil::GetFileSize(externalLog);
