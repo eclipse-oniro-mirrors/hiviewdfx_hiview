@@ -110,12 +110,12 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
         currInfo.logPath = std::string(logPath);
     }
     currInfo.pid = getprocpid();
-    currInfo.uid = getuid();
+    currInfo.uid = static_cast<int32_t>(getuid());
     currInfo.faultType = faultType;
     currInfo.errType = GetErrorTypeFromBuffer(gwpAsanBuffer, faultType);
     currInfo.moduleName = GetNameByPid(currInfo.pid);
     time_t timeNow = time(nullptr);
-    uint64_t timeTmp = timeNow;
+    uint64_t timeTmp = static_cast<uint64_t>(timeNow);
     constexpr int decimalBase = 10;
     std::string timeStr = OHOS::HiviewDFX::GetFormatedTime(timeTmp);
     currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, decimalBase));
