@@ -216,7 +216,7 @@ int BBoxDetectorPlugin::CheckAndHiSysEventWrite(std::string& name, std::map<std:
         {.name = "HAPPEN_TIME", .t = HISYSEVENT_INT64, .v = {.i64 = happenTime}, .arraySize = 0},
         {.name = "SUMMARY", .t = HISYSEVENT_STRING, .v = {.s = summary.data()}, .arraySize = 0},
     };
-    int res = OH_HiSysEvent_Write(HisysEventUtil::KERNEL_VENDOR, "PANIC", HISYSEVENT_FAULT,
+    int res = OH_HiSysEvent_Write(HisysEventUtil::KERNEL_VENDOR, name.c_str(), HISYSEVENT_FAULT,
         params, sizeof(params) / sizeof(HiSysEventParam));
     if (res == 0 || (res < 0 && name.find("UNKNOWNS") != std::string::npos)) {
         return res;
