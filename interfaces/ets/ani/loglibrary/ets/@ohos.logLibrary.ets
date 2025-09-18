@@ -22,12 +22,12 @@ class LogEntryInner implements logLibrary.LogEntry {
 }
 
 interface Results {
-    code: number;
+    code: int;
     message: string;
 }
 
 class ResultsInner implements Results {
-    code: number = 0;
+    code: int = 0;
     message: string = "";
 }
 
@@ -52,7 +52,7 @@ export default namespace logLibrary {
                 if (copyResults.code === 0) {
                     resolve(undefined);
                 } else {
-                    retError.code = copyResults.code as number;
+                    retError.code = copyResults.code;
                     retError.message = copyResults.message as string;
                     reject(retError);
                 }
@@ -65,7 +65,7 @@ export default namespace logLibrary {
         taskpool.execute(cb).then((ret: NullishType): void => {
             let retError = new BusinessError<void>();
             let copyResults: Results = ret as Results;
-            retError.code = copyResults.code as number;
+            retError.code = copyResults.code;
             retError.message = copyResults.message as string;
             callback(retError, undefined);
         });
@@ -82,7 +82,7 @@ export default namespace logLibrary {
                 if (moveResults.code === 0) {
                     resolve(undefined);
                 } else {
-                    retError.code = moveResults.code as number;
+                    retError.code = moveResults.code;
                     retError.message = moveResults.message as string;
                     reject(retError)
                 }
@@ -95,7 +95,7 @@ export default namespace logLibrary {
         taskpool.execute(cb).then((ret: NullishType): void => {
             let retError = new BusinessError<void>();
             let moveResults: Results = ret as Results;
-            retError.code = moveResults.code as number;
+            retError.code = moveResults.code;
             retError.message = moveResults.message as string;
             callback(retError, undefined);
         });
