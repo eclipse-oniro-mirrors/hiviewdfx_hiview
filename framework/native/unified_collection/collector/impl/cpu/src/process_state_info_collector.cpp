@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,8 +97,7 @@ CollectResult<std::vector<ProcessCpuStatInfo>> ProcessStatInfoCollector::Collect
     }
 
     CalculateProcessCpuStatInfos(cpuCollectResult.data, processCpuData, isNeedUpdate);
-    HIVIEW_LOGI("collect process cpu statistics information size=%{public}zu, isNeedUpdate=%{public}d",
-        cpuCollectResult.data.size(), isNeedUpdate);
+    HIVIEW_LOGD("size=%{public}zu, isNeedUpdate=%{public}d", cpuCollectResult.data.size(), isNeedUpdate);
     if (!cpuCollectResult.data.empty()) {
         cpuCollectResult.retCode = UCollect::UcError::SUCCESS;
         TryToDeleteDeadProcessInfo();
@@ -113,8 +112,9 @@ void ProcessStatInfoCollector::CalculateProcessCpuStatInfos(
 {
     CalculationTimeInfo calcTimeInfo = InitCalculationTimeInfo();
     HIVIEW_LOGI("startTime=%{public}" PRIu64 ", endTime=%{public}" PRIu64 ", startBootTime=%{public}" PRIu64
-        ", endBootTime=%{public}" PRIu64 ", period=%{public}" PRIu64, calcTimeInfo.startTime,
-        calcTimeInfo.endTime, calcTimeInfo.startBootTime, calcTimeInfo.endBootTime, calcTimeInfo.period);
+        ", endBootTime=%{public}" PRIu64 ", period=%{public}" PRIu64 ", isNeedUpdate=%{public}d",
+        calcTimeInfo.startTime, calcTimeInfo.endTime, calcTimeInfo.startBootTime,
+        calcTimeInfo.endBootTime, calcTimeInfo.period, isNeedUpdate);
     auto procCpuItem = processCpuData->GetNextProcess();
     while (procCpuItem != nullptr) {
         auto processCpuStatInfo = CalculateProcessCpuStatInfo(procCpuItem, calcTimeInfo);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ DEFINE_LOG_TAG("UCollectUtil-PowerState");
 void PowerStateSubscriber::OnReceiveEvent(const CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
-    HIVIEW_LOGI("OnReceiveEvent action%{public}s", action.c_str());
+    HIVIEW_LOGI("action=%{public}s", action.c_str());
     if (action == CommonEventSupport::COMMON_EVENT_SCREEN_ON) {
         PowerStatusManager::GetInstance().SetPowerState(SCREEN_ON);
     } else if (action == CommonEventSupport::COMMON_EVENT_SCREEN_OFF) {
@@ -58,7 +58,7 @@ void PowerStatusManager::SetPowerState(PowerState powerState)
 {
     std::unique_lock<ffrt::mutex> lock(mutex_);
     powerState_ = powerState;
-    HIVIEW_LOGI("listeners size:%{public}zu", listeners_.size());
+    HIVIEW_LOGD("listeners size:%{public}zu", listeners_.size());
     for (const auto& it : listeners_) {
         if (powerState == SCREEN_ON) {
             it.second->OnScreenOn();
