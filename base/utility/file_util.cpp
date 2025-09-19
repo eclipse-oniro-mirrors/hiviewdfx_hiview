@@ -172,19 +172,6 @@ void GetDirDirs(const std::string& path, std::vector<std::string>& dirs)
     closedir(dir);
 }
 
-bool CreateDirectory(const std::string& path)
-{
-    size_t pos = path.find_last_of("/\\");
-    std::string parent = pos == std::string::npos ? "." : path.substr(0, pos);
-    if (access(parent.c_str(), F_OK) != 0) {
-        return false;
-    }
-    if (mkdir(path.c_str(), FILE_PERM_775) != 0) {
-        return false;
-    }
-    return true;
-}
-
 bool ForceCreateDirectory(const std::string& path)
 {
     return OHOS::ForceCreateDirectory(path);

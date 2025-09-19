@@ -367,7 +367,7 @@ void WriteEventJson(Json::Value& eventJson, const std::string& filePath)
 
 void CreateSandBox(const std::string& dirPath)
 {
-    if (!FileUtil::FileExists(dirPath) && !FileUtil::CreateDirectory(dirPath)) {
+    if (!FileUtil::FileExists(dirPath) && mkdir(dirPath.c_str(), FileUtil::FILE_PERM_775) != 0) {
         HILOG_ERROR(LOG_CORE, "failed to create dir=%{public}s", dirPath.c_str());
         return;
     }
