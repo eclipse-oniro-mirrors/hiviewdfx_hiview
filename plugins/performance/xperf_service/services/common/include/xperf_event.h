@@ -20,8 +20,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-class OhosXperfEvent {
-public:
+struct OhosXperfEvent {
     std::string rawMsg;
     int16_t domainId{0};
     int16_t eventId{0};
@@ -31,7 +30,8 @@ public:
     int64_t happenTime{0};
     std::string eventName;
     std::string bundleName;
-    bool emergency{false};
+
+    virtual ~OhosXperfEvent() {}
 };
 } // namespace HiviewDFX
 } // namespace OHOS

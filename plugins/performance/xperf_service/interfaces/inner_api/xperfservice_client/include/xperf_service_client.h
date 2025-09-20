@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,12 +57,12 @@ private:
         void OnRemoteDied(const wptr<IRemoteObject> &object) override;
 
     private:
-        XperfServiceClient& xperfServiceClient_;
+        XperfServiceClient& xperfServiceClient;
     };
 
 private:
-    std::mutex mutex_;
-    sptr<XPerfServiceDeathRecipient> recipient_;
+    std::mutex mutex;
+    sptr<XPerfServiceDeathRecipient> recipient;
     static constexpr HiLogLabel LABEL = {LOG_CORE, 0xD002D66, "XPERF_SERVICE"};
 };
 } // namespace HiviewDFX

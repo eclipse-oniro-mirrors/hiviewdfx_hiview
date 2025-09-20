@@ -22,24 +22,23 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class VideoRecord {
-public:
+struct VideoRecord {
     int16_t faultId{0};
     int16_t faultCode{0};
     int16_t playState{0};
     int16_t decodeRate{0};
     int16_t avgRate{0};
+    int16_t fps{0};
     int32_t pid{0};
     int32_t uid{0};
+    int32_t reportInterval{0};
+    int32_t maxFrameTime{0};
     int64_t uniqueId{0};
-    int64_t maxFrameTime{0};
     int64_t inputTime{0};
     int64_t startTime{0};
     int64_t duration{0};
     std::string bundleName;
     std::string surfaceName;
-    int16_t fps{0};
-    int32_t reportInterval{0};
 };
 } // namespace HiviewDFX
 } // namespace OHOS

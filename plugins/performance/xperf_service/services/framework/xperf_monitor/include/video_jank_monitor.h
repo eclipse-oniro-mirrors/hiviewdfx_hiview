@@ -18,7 +18,6 @@
 
 #include <list>
 #include <mutex>
-#include "xperf_service_log.h"
 #include "xperf_monitor.h"
 #include "audio_record.h"
 #include "video_record.h"
@@ -26,12 +25,11 @@
 #include "video_xperf_event.h"
 #include "video_play_record.h"
 #include "avcodec_event.h"
-#include "audio_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-enum NotifyState {
+enum PlayState {
     INIT,
     START,
     STOP
@@ -43,38 +41,29 @@ public:
     VideoJankMonitor(const VideoJankMonitor &) = delete;
     void operator=(const VideoJankMonitor &) = delete;
 
-    bool ProcessEvent(OhosXperfEvent* event) override;
+    void ProcessEvent(OhosXperfEvent* event) override;
 
-    void OnSurfaceReceived(int32_t pid, std::string bundleName, int64_t uniqueId, std::string surfaceName);
+    void OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
+        const std::string& surfaceName);
 
 private:
-    const uint32_t MAX_FRAME_NUM = 3;
-    const uint32_t fps = 3; // 读配置
-    const uint64_t interval = 300; // 读配置
+    VideoJankMonitor() = default;
+    ~VideoJankMonitor() = default;
+
+private:
     mutable std::mutex mMutex;
-    AudioRecord* record{nullptr};
-    VideoRecord* videoRecord{nullptr};
-    NotifyState notifyState{NotifyState::INIT};
 
-    std::list<VideoPlayRecord> playRecords;
-    std::list<AvcodecFirstFrame> firstFrameList;
     AudioStateEvent audioStateEvt;
-
-    VideoJankMonitor();
-    ~VideoJankMonitor() noexcept;
+    PlayState playState{PlayState::INIT};
+    std::list<AvcodecFirstFrame> firstFrameList;
 
     void AddToList(const AvcodecFirstFrame& firstFrame);
 
     void MonitorStart();
     void MonitorStop();
-    void StartDetectVideoJank(uint64_t uniqueId, const std::string& surfaceName, uint32_t fps, uint64_t reportInterval);
-    void StopDetectVideoJank(uint64_t uniqueId, const std::string& surfaceName, uint32_t fps);
-    bool IsNewProcess(const int32_t& pid);
-    bool IsNewProcess(AvcodecFirstFrame* firstFrameEvent);
-    bool IsNewProcess(AudioStateEvent* audioEvent);
 
-    void printList(int index);
-    void print(int index);
+    void OnAudioStart(OhosXperfEvent* event);
+    void OnAudioStop(OhosXperfEvent* event);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

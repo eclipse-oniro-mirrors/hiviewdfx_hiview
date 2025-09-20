@@ -25,38 +25,14 @@ namespace HiviewDFX {
 //#UNIQUEID:100003#PID:8565#BUNDLE_NAME:20020048#HANPPEN_TIME:1753233970222#STATUS:2
 OhosXperfEvent* ParseAudioState(const std::string& msg)
 {
-    AudioStateEvent* event = new (std::nothrow) AudioStateEvent();
+    AudioStateEvent* event = new AudioStateEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_PID, 0);
     ExtractStrToInt(msg, event->pid, TAG_PID, TAG_BUNDLE_NAME, 0);
     ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_HAPPEN_TIME, "NA");
     ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_STATUS, 0);
     ExtractStrToInt16(msg, event->status, TAG_STATUS, "", -1);
-
     return event;
 }
 
-//#UNIQUEID:100003#PID:8565#BUNDLE_NAME:20020048#HANPPEN_TIME:1753233970222#STATUS:2
-OhosXperfEvent* ParserAudioRenderStatus(const std::string& msg)
-{
-    AudioXperfEvent* event = new (std::nothrow) AudioXperfEvent();
-    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_PID, 0);
-    ExtractStrToInt(msg, event->appPid, TAG_PID, TAG_BUNDLE_NAME, 0);
-    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_HAPPEN_TIME, "NA");
-    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_STATUS, 0);
-    ExtractStrToInt16(msg, event->status, TAG_STATUS, "", -1);
-
-    return event;
-}
-
-OhosXperfEvent* ParserVideoJankFrame(const std::string& msg)
-{
-    AudioXperfEvent* event = new (std::nothrow) AudioXperfEvent();
-    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_FAULT_ID, 0);
-    ExtractStrToInt16(msg, event->faultId, TAG_FAULT_ID, TAG_FAULT_CODE, 0);
-    ExtractStrToInt16(msg, event->faultCode, TAG_FAULT_CODE, TAG_MAX_FRAME_TIME, 0);
-    ExtractStrToInt(msg, event->maxFrameTime, TAG_MAX_FRAME_TIME, TAG_HAPPEN_TIME, 0);
-    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, "", 0);
-    return event;
-}
 } // namespace HiviewDFX
 } // namespace OHOS

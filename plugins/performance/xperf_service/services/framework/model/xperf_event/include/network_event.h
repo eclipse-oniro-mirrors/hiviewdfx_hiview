@@ -23,13 +23,12 @@ namespace OHOS {
 namespace HiviewDFX {
 
 //1000  "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
-class NetworkJankEvent : public OhosXperfEvent {
-public:
-    int64_t uniqueId{0};
-    int32_t pid{0};
-    std::string bundleName;
+struct NetworkJankEvent : public OhosXperfEvent {
     int16_t faultId{0};
     int16_t faultCode{0};
+    int32_t pid{0};
+    int64_t uniqueId{0};
+    std::string bundleName;
 };
 
 } // namespace HiviewDFX

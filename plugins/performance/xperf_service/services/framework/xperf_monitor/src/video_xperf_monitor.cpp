@@ -26,41 +26,54 @@ namespace HiviewDFX {
 
 static constexpr int DELAY_MS = 3000;
 static constexpr int MAX_JANK_SIZE = 10;
+static constexpr int MAX_SURFACE_SIZE = 20;
 
-VideoXperfMonitor::VideoXperfMonitor(VideoRecord* record)
+VideoXperfMonitor &VideoXperfMonitor::GetInstance()
 {
-    this->record = record;
+    static VideoXperfMonitor instance;
+    return instance;
 }
 
-VideoXperfMonitor::~VideoXperfMonitor()
+void VideoXperfMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
+    const std::string& surfaceName)
 {
-    if (record) {
-        delete record;
-        record = nullptr;
+    LOGD("VideoXperfMonitor::OnSurfaceReceived");
+    std::lock_guard<std::mutex> Lock(mMutex);
+
+    SurfaceInfo surface;
+    surface.uniqueId = uniqueId;
+    surface.pid = pid;
+    surface.bundleName = bundleName;
+    surface.surfaceName = surfaceName;
+
+    if (static_cast<uint32_t>(surfaceInfoList.size()) >= MAX_SURFACE_SIZE) {
+        surfaceInfoList.pop_front();
     }
+    surfaceInfoList.push_back(surface);
+    return;
 }
 
-bool VideoXperfMonitor::ProcessEvent(OhosXperfEvent* event)
+void VideoXperfMonitor::ProcessEvent(OhosXperfEvent* event)
 {
-    LOGI("VideoXperfMonitor logId:%{public}d", event->logId);
+    LOGD("VideoXperfMonitor logId:%{public}d", event->logId);
     switch (event->logId) {
-        case XperfConstants::VIDEO_JANK_FRAME:
+        case XperfConstants::VIDEO_JANK_FRAME: //图形上报视频卡顿
             OnVideoJankReceived(event);
-            return true;
+            break;
         case XperfConstants::NETWORK_JANK_REPORT: //网络故障事件
             OnNetworkJankReceived(event);
-            return true;
+            break;
         case XperfConstants::AVCODEC_JANK_REPORT: //avcodec故障事件
             OnAvcodecJankReceived(event);
-            return true;
+            break;
         default:
-            return false;
+            break;
     }
 }
 
 void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
 {
-    LOGI("VideoXperfMonitor::OnVideoJankReceived ------");
+    LOGD("VideoXperfMonitor::OnVideoJankReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
     if (videoJankRecordMap.size() >= MAX_JANK_SIZE) {
         LOGW("VideoXperfMonitor::OnVideoJankReceived more than 10 records");
@@ -72,10 +85,9 @@ void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
         return;
     }
 
-    //1.保存图形上报卡顿事件
     VideoJankRecord videoJankRecord;
     videoJankRecord.rsJankEvent = *rsJankEvent;
-    videoJankRecordMap.emplace(rsJankEvent->uniqueId, videoJankRecord);
+    videoJankRecordMap.emplace(rsJankEvent->uniqueId, videoJankRecord); //1.保存图形上报卡顿事件
 
     BroadcastVideoJank(event->rawMsg); //2.广播卡顿事件
     WaitForDomainReport(rsJankEvent->uniqueId); //3.等待接收网络、avcodec上报检测结果
@@ -83,39 +95,35 @@ void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
 
 void VideoXperfMonitor::OnNetworkJankReceived(OhosXperfEvent* event)
 {
-    LOGI("VideoXperfMonitor::OnNetworkJankReceived ------");
+    LOGD("VideoXperfMonitor::OnNetworkJankReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
     NetworkJankEvent* domainEvent = (NetworkJankEvent*) event;
-    if (videoJankRecordMap.find(domainEvent->uniqueId) == videoJankRecordMap.end()) {
-        LOGW("OnNetworkJankReceived VideoJankRecord not exists");
+    auto iter = videoJankRecordMap.find(domainEvent->uniqueId);
+    if (iter == videoJankRecordMap.end()) {
+        LOGW("VideoJankRecord not exists");
         return;
     }
 
-    auto& record = videoJankRecordMap.find(domainEvent->uniqueId)->second;
-    record.nwJankEvent = *domainEvent;  //1.保存网络上报卡顿事件
+    (iter->second).nwJankEvent = *domainEvent;  //保存网络上报卡顿原因
 }
 
 void VideoXperfMonitor::OnAvcodecJankReceived(OhosXperfEvent* event)
 {
-    LOGI("VideoXperfMonitor::OnNetworkJankReceived ------");
+    LOGD("VideoXperfMonitor::OnAvcodecJankReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
     AvcodecJankEvent* domainEvent = (AvcodecJankEvent*) event;
-    if (videoJankRecordMap.find(domainEvent->uniqueId) == videoJankRecordMap.end()) {
-        LOGW("OnAvcodecJankReceived VideoJankRecord not exists");
+    auto iter = videoJankRecordMap.find(domainEvent->uniqueId);
+    if (iter == videoJankRecordMap.end()) {
+        LOGW("VideoJankRecord not exists");
         return;
     }
 
-    auto& record = videoJankRecordMap.find(domainEvent->uniqueId)->second;
-    record.avcodecJankEvent = *domainEvent;  //1.保存avcodec上报卡顿事件
+    (iter->second).avcodecJankEvent = *domainEvent;  //保存avcodec上报卡顿原因
 }
 
-/**
- * 通知丢帧事件到网络,avcodec
- * @param msg
- */
 void VideoXperfMonitor::BroadcastVideoJank(const std::string& msg)
 {
-    LOGI("VideoXperfMonitor::BroadcastVideoJank ------");
+    LOGD("VideoXperfMonitor::BroadcastVideoJank");
     std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoJankEvent(msg); });
     delayThread.detach();
 }
@@ -128,7 +136,7 @@ void VideoXperfMonitor::WaitForDomainReport(int64_t uniqueId)
 
 void VideoXperfMonitor::FaultJudgment(int64_t uniqueId)
 {
-    LOGI("VideoXperfMonitor::FaultJudgment ------");
+    LOGD("VideoXperfMonitor::FaultJudgment");
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
     std::lock_guard<std::mutex> Lock(mMutex);
 
@@ -154,20 +162,33 @@ void VideoXperfMonitor::FaultJudgment(int64_t uniqueId)
         videoJankReport.faultId = DomainId::APP;
         videoJankReport.faultCode = 0;
     }
-    //1.填充更多字段
-    videoJankReport.appPid = 0;
-    videoJankReport.versionCode = "";
-    videoJankReport.versionName = "";
-    videoJankReport.bundleName = "";
-    videoJankReport.abilityName = "";
-    videoJankReport.pageUrl = "";
-    videoJankReport.pageName = "";
-    videoJankReport.surfaceName = "";
+
     videoJankReport.maxFrameTime = record.rsJankEvent.maxFrameTime;
     videoJankReport.happenTime = record.rsJankEvent.happenTime;
 
+    SurfaceInfo si = GetSurfaceInfo(uniqueId);
+    videoJankReport.appPid = si.pid;
+    videoJankReport.bundleName = si.bundleName;
+    videoJankReport.surfaceName = si.surfaceName;
+
+    //details
+    std::string details = record.nwJankEvent.rawMsg + ";" + record.avcodecJankEvent.rawMsg + ";" +
+        record.rsJankEvent.rawMsg;
+    videoJankReport.details = details;
+
     VideoReporter::ReportVideoJankFrame(videoJankReport); //打点上报
     videoJankRecordMap.erase(uniqueId);
+}
+
+SurfaceInfo VideoXperfMonitor::GetSurfaceInfo(int64_t uniqueId)
+{
+    for (std::list<SurfaceInfo>::const_iterator cit = surfaceInfoList.cbegin(); cit != surfaceInfoList.cend(); ++cit) {
+        if ((*cit).uniqueId == uniqueId) {
+            return *cit;
+        }
+    }
+    SurfaceInfo si;
+    return si;
 }
 
 } // namespace HiviewDFX
