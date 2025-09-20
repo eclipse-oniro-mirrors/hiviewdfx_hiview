@@ -20,29 +20,41 @@
 using namespace std;
 namespace OHOS {
 namespace HiviewDFX {
-// some stack function is invalid, so it should be ignored
-const std::map<std::string, std::set<std::string>> LogParse::ignoreList_ = {
-    {"Level1", {
-        "libc.so",
-        "libc++.so",
-        "ld-musl-aarch64.so",
-        "libc_fdleak_debug.so",
-        "unknown",
-        "watchdog",
-        "kthread",
-        "rdr_system_error"}
-    },
-    {"Level2", {
-        "libart.so",
-        "__switch_to",
-        "dump_backtrace",
-        "show_stack",
-        "dump_stack"}
-    },
-    {"Level3", {
-        "panic"}
+
+LogParse::LogParse(const std::string& eventName)
+{
+    // some stack function is invalid, so it should be ignored
+    std::map<std::string, std::set<std::string>> ignoreList = {
+        {"Level1", {
+            "libc.so",
+            "libc++.so",
+            "ld-musl-aarch64.so",
+            "libc_fdleak_debug.so",
+            "unknown",
+            "watchdog",
+            "kthread",
+            "rdr_system_error"}
+        },
+        {"Level2", {
+            "libart.so",
+            "__switch_to",
+            "dump_backtrace",
+            "show_stack",
+            "dump_stack"}
+        },
+        {"Level3", {
+            "panic"}
+        }
+    };
+
+    ignoreList_ = std::move(ignoreList);
+    if (eventName == "APP_FREEZE" || eventName == "SYS_FREEZE") {
+        ignoreList_["Level1"].emplace("libeventhandler.z.so");
+        ignoreList_["Level1"].emplace("libipc_common.z.so");
+        ignoreList_["Level1"].emplace("libipc_core.z.so");
+        ignoreList_["Level1"].emplace("libipc_single.z.so");
     }
-};
+}
 
 bool LogParse::IsIgnoreLibrary(const string& val) const
 {

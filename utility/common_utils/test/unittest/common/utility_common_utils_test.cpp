@@ -114,7 +114,7 @@ HWTEST_F(UtilityCommonUtilsTest, CalcFingerprintTest002, testing::ext::TestSize.
  */
 HWTEST_F(UtilityCommonUtilsTest, LogParseTest001, testing::ext::TestSize.Level3)
 {
-    LogParse logParse;
+    LogParse logParse("");
     auto ret = logParse.IsIgnoreLibrary("watchdog");
     ASSERT_TRUE(ret);
     ret = logParse.IsIgnoreLibrary("ohos");
@@ -127,11 +127,31 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest001, testing::ext::TestSize.Level3)
  */
 HWTEST_F(UtilityCommonUtilsTest, LogParseTest002, testing::ext::TestSize.Level3)
 {
-    LogParse logParse;
+    LogParse logParse("");
     std::stack<std::string> inStack;
     std::vector<std::string> lastPart;
     auto ret = logParse.GetValidBlock(inStack, lastPart);
     ASSERT_TRUE(ret.empty());
+}
+
+/* @tc.name: LogParseTest003
+ * @tc.desc: Test IsIgnoreLibrary interface method of class LogParse
+ * @tc.type: FUNC
+ * @tc.require: issueI65DUW
+ */
+HWTEST_F(UtilityCommonUtilsTest, LogParseTest003, testing::ext::TestSize.Level3)
+{
+    std::vector<std::string> eventList = {
+        "APP_FREEZE",
+        "SYS_FREEZE"
+    };
+    for (auto eventName : eventList) {
+        LogParse logParse(eventName);
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_common.z.so")) << eventName;
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("libeventhandler.z.so")) << eventName;
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("libffrt.so")) << eventName;
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_single.z.so")) << eventName;
+    }
 }
 
 /* @tc.name: TboxTest001
@@ -421,6 +441,55 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest012, testing::ext::TestSize.Level3)
     EXPECT_EQ(eventInfos["SECOND_FRAME"],
                  "/system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144");
     EXPECT_EQ(eventInfos["LAST_FRAME"], "/system/lib64/libc.so(__libc_init+112");
+}
+
+/* @tc.name: TboxTest013
+ * @tc.desc: Test FilterTrace, freeze need ignored basic libraries
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilityCommonUtilsTest, TboxTest013, testing::ext::TestSize.Level3)
+{
+    std::string stack1 = R"(#00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
+#01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor()+192)
+#02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked()+96)
+#20 pc 0002c675 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCObjectStub::SendRequestInner()+120)
+#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder()+78)
+#04 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#06 pc 000000000009380c /system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372)
+#11 pc 000000000001ccd0 /system/lib64/libbegetutil.z.so(ProcessEvent+108)
+#12 pc 000000000001c6cc /system/lib64/libbegetutil.z.so
+#13 pc 00000000000128b4 /system/bin/appspawn
+#14 pc 000000000001053c /system/bin/appspawn
+#15 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112))";
+
+    struct TestCast {
+        uint32_t index;
+        std::string eventName;
+        std::string stack;
+        std::string f1;
+        std::string f2;
+        std::string f3;
+    };
+    std::vector<TestCast> list = {
+        {1, "", stack1, "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor()+192",
+            "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked()+96",
+            "/system/bin/appspawn"},
+        {2, "APP_FREEZE", stack1, "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
+            "/system/lib64/libbegetutil.z.so(ProcessEvent+108", "/system/bin/appspawn"},
+        {3, "SYS_FREEZE", stack1, "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
+            "/system/lib64/libbegetutil.z.so(ProcessEvent+108", "/system/bin/appspawn"},
+    };
+
+    for (auto& it : list) {
+        std::map<std::string, std::string> eventInfos;
+        eventInfos.insert(std::pair("END_STACK", it.stack));
+        eventInfos.insert(std::pair("PNAME", "foundation"));
+        Tbox::FilterTrace(eventInfos, it.eventName);
+
+        EXPECT_EQ(eventInfos["FIRST_FRAME"], it.f1) << it.eventName << "[" << it.index << "]";
+        EXPECT_EQ(eventInfos["SECOND_FRAME"], it.f2) << it.eventName << "[" << it.index << "]";
+        EXPECT_EQ(eventInfos["LAST_FRAME"], it.f3) << it.eventName << "[" << it.index << "]";
+    }
 }
 }
 }
