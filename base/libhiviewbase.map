@@ -118,7 +118,6 @@
         "OHOS::HiviewDFX::FileUtil::IsLegalPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::ForceRemoveDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
         "OHOS::HiviewDFX::FileUtil::FileExists(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::FileUtil::ForceCreateDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::ChangeMode(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
         "OHOS::HiviewDFX::StringUtil::ReplaceStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::GetDirFiles(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&, bool)";
