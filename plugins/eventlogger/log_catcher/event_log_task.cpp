@@ -43,8 +43,9 @@
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
-#include "memory_catcher.h"
+#include "cpu_catcher.h"
 #include "cpu_core_info_catcher.h"
+#include "memory_catcher.h"
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef OTHER_CATCHER_ENABLE
@@ -82,15 +83,12 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 {
     int pid = event_->GetEventIntValue("PID");
     pid_ = pid ? pid : event_->GetPid();
-#ifdef STACKTRACE_CATCHER_ENABLE
-    captureList_.insert(std::pair<std::string, capture>("s", [this] { this->AppStackCapture(); }));
-    captureList_.insert(std::pair<std::string, capture>("S", [this] { this->SystemStackCapture(); }));
-#endif // STACKTRACE_CATCHER_ENABLE
 #ifdef BINDER_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("b", [this] { this->BinderLogCapture(); }));
 #endif // BINDER_CATCHER_ENABLE
 #ifdef USAGE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:m", [this] { this->MemoryUsageCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("cmd:udc", [this] { this->CpuUsageCapture(true); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:c", [this] { this->CpuUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:w", [this] { this->WMSUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:a", [this] { this->AMSUsageCapture(); }));
@@ -133,6 +131,10 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 
 void EventLogTask::AddCapture()
 {
+#ifdef STACKTRACE_CATCHER_ENABLE
+    captureList_.insert(std::pair<std::string, capture>("s", [this] { this->AppStackCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("S", [this] { this->SystemStackCapture(); }));
+#endif // STACKTRACE_CATCHER_ENABLE
 #ifdef OTHER_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("ffrt", [this] { this->FfrtCapture(); }));
 #endif // OTHER_CATCHER_ENABLE
@@ -530,10 +532,10 @@ void EventLogTask::MemoryUsageCapture()
     }
 }
 
-void EventLogTask::CpuUsageCapture()
+void EventLogTask::CpuUsageCapture(bool isNeedUpdate)
 {
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hidumper --cpuusage", ShellCatcher::CATCHER_CPU, pid_);
+    auto capture = std::make_shared<CpuCatcher>();
+    capture->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, -1);
     tasks_.push_back(capture);
 }
 

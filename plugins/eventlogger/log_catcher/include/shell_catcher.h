@@ -36,7 +36,6 @@ public:
 
     enum CATCHER_TYPE {
         CATCHER_UNKNOWN = -1,
-        CATCHER_CPU,
         CATCHER_WMS,
         CATCHER_AMS,
         CATCHER_PMS,
