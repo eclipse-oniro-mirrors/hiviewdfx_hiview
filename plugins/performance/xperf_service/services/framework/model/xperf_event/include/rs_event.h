@@ -22,8 +22,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class RenderXperfEvent : public OhosXperfEvent {
-public:
+struct RenderXperfEvent : public OhosXperfEvent {
     int16_t faultId{0};
     int16_t faultCode{0};
     int16_t avgFps{0};
@@ -33,28 +32,24 @@ public:
     std::string surfaceName;
 };
 
-class RsJankEvent : public OhosXperfEvent {
-public:
-    int64_t uniqueId{0};
+struct RsJankEvent : public OhosXperfEvent {
     int16_t faultId{0};
     int16_t faultCode{0};
     int32_t maxFrameTime{0};
+    int64_t uniqueId{0};
     int64_t happenTime{0};
 };
 
-class RsVideoFrameStatsEvent : public OhosXperfEvent {
-public:
+struct RsVideoFrameStatsEvent : public OhosXperfEvent {
     int64_t uniqueId{0};
     int32_t duration{0};
     int16_t avgFPS{0};
 };
 
-class RsVideoExceptStopEvent : public OhosXperfEvent {
-public:
+struct RsVideoExceptStopEvent : public OhosXperfEvent {
     int64_t uniqueId{0};
 };
 
 } // namespace HiviewDFX
 } // namespace OHOS
-
 #endif

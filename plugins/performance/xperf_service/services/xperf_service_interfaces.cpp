@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 #include "xperf_service_interfaces.h"
 #include "xperf_service_log.h"
 #include "video_jank_monitor.h"
+#include "video_xperf_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -25,19 +26,11 @@ XperfServiceInterfaces &XperfServiceInterfaces::GetInstance()
     return instance;
 }
 
-XperfServiceInterfaces::XperfServiceInterfaces()
+void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& bundleName, int64_t uniqueId,
+    const std::string& surfaceName)
 {
-}
-
-XperfServiceInterfaces::~XperfServiceInterfaces() noexcept
-{
-}
-
-void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, std::string bundleName, int64_t uniqueId,
-    std::string surfaceName)
-{
-    LOGI("XperfServiceInterfaces::ReportSurfaceInfo ------");
     VideoJankMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
+    VideoXperfMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
 }
 
 }

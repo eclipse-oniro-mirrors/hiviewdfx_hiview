@@ -50,7 +50,7 @@ const std::regex ALL_PROC_MEM2("^\\d{1,}\\s{1,}\\w{1,}( \\w{1,}){1,}(\\s{1,}\\d{
 // eg: ab.cd    12  34  567  890  123   ef   gh   ijk
 //     Total dmabuf size of ab.cd: 12345 bytes
 const std::string RAW_DMA1_STR1("^[\\w\\.\\[\\]():@/>-]{1,}(\\s{1,}\\d{1,}){5}(\\s{1,}[\\w\\.\\[\\]():@/>-]{1,}){3}");
-const std::string RAW_DMA1_STR2("(\\s{1,}\\d{1,}){0,2}(\\s{1,}[\\w\\.\\[\\]():@#/>-]{1,}\\s{0,}){0,3}$");
+const std::string RAW_DMA1_STR2("(\\s{1,}\\d{1,}){0,2}(\\s{1,}[\\w\\.\\[\\]():@#/>-]{1,}\\s{0,}){0,}$");
 const std::regex RAW_DMA1(RAW_DMA1_STR1 + RAW_DMA1_STR2);
 const std::regex RAW_DMA2("^(Total dmabuf size of )[\\w\\.\\[\\]():@/>-]{1,}(: )\\d{1,}( bytes)$");
 // eg: ab(cd):      12345 kB

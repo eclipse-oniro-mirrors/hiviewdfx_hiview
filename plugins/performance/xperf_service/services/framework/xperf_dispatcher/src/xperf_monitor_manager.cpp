@@ -12,25 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "register_xperf_monitor.h"
-
+#include "xperf_monitor_manager.h"
 #include "xperf_service_log.h"
-#include "xperf_constant.h"
 #include "video_jank_monitor.h"
 #include "video_xperf_monitor.h"
-#include "audio_record.h"
-#include "video_record.h"
+#include "xperf_constant.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-std::map<int32_t, std::vector<XperfMonitor*>> RegisterMonitor::RegisterXperfMonitor()
+
+void XperfMonitorManager::RegisterXperfMonitor()
 {
     InitPlayStateMonitor();
-    RegisterVideoMonitor();
-    return dispatchers;
+    InitVideoMonitor();
 }
 
-void RegisterMonitor::RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor)
+void XperfMonitorManager::RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor)
 {
     if (dispatchers.find(logId) == dispatchers.end()) {
         std::vector<XperfMonitor*> monitors;
@@ -42,7 +39,7 @@ void RegisterMonitor::RegisterMonitorByLogID(int32_t logId, XperfMonitor* monito
     }
 }
 
-void RegisterMonitor::InitPlayStateMonitor()
+void XperfMonitorManager::InitPlayStateMonitor()
 {
     XperfMonitor* monitor = &VideoJankMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_START, monitor);
@@ -51,19 +48,22 @@ void RegisterMonitor::InitPlayStateMonitor()
     RegisterMonitorByLogID(XperfConstants::AVCODEC_FIRST_FRAME_START, monitor);
 }
 
-void RegisterMonitor::RegisterVideoMonitor()
+void XperfMonitorManager::InitVideoMonitor()
 {
-    XperfMonitor* monitor = MakeVideoMonitor();
+    XperfMonitor* monitor = &VideoXperfMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::VIDEO_JANK_FRAME, monitor);
     RegisterMonitorByLogID(XperfConstants::NETWORK_JANK_REPORT, monitor);
     RegisterMonitorByLogID(XperfConstants::AVCODEC_JANK_REPORT, monitor);
 }
 
-XperfMonitor* RegisterMonitor::MakeVideoMonitor()
+std::vector<XperfMonitor*> XperfMonitorManager::GetMonitors(int32_t logId)
 {
-    VideoRecord* record = new (std::nothrow) VideoRecord();
-    XperfMonitor* monitor = new (std::nothrow) VideoXperfMonitor(record);
-    return monitor;
+    auto monitors = dispatchers.find(logId);
+    if (monitors == dispatchers.end()) {
+        std::vector<XperfMonitor*> empty;
+        return empty;
+    }
+    return monitors->second;
 }
 
 } // namespace HiviewDFX

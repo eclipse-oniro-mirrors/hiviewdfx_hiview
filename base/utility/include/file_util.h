@@ -79,9 +79,7 @@ std::string IncludeTrailingPathDelimiter(const std::string& path);
 std::string ExcludeTrailingPathDelimiter(const std::string& path);
 void GetDirFiles(const std::string& path, std::vector<std::string>& files, bool isRecursive = true);
 void GetDirDirs(const std::string& path, std::vector<std::string>& dirs);
-bool CreateDirectory(const std::string& path);
-bool ForceCreateDirectory(const std::string& path);
-bool ForceCreateDirectory(const std::string& path, mode_t mode);
+bool ForceCreateDirectory(const std::string& path, mode_t mode = FILE_PERM_755);
 void RemoveFolderBeginWith(const std::string &path, const std::string &folderName);
 bool ForceRemoveDirectory(const std::string& path, bool isNeedDeleteGivenDirSelf = true);
 bool RemoveFile(const std::string& fileName);
@@ -98,6 +96,7 @@ void FormatPath2UnixStyle(std::string &path);
 void CreateDirWithDefaultPerm(const std::string& path, uid_t aidRoot, uid_t aid_system);
 int CopyFile(const std::string &src, const std::string &des);
 int CopyFileFast(const std::string &src, const std::string &des, uint32_t truncatedFileSize = 0);
+bool IsKeyDirectory(const std::string& dirPath);
 bool IsDirectory(const std::string &path);
 bool GetLastLine(std::istream &fin, std::string &line, uint32_t maxLen = 10240); // 10240 : max line len
 std::string GetFirstLine(const std::string& path);

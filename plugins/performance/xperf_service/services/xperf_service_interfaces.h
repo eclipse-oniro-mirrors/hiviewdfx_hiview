@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,11 +27,11 @@ public:
     XperfServiceInterfaces(const XperfServiceInterfaces &) = delete;
     void operator=(const XperfServiceInterfaces &) = delete;
 
-    void ReportSurfaceInfo(int32_t pid, std::string bundleName, int64_t uniqueId, std::string surfaceName);
+    void ReportSurfaceInfo(int32_t pid, const std::string& bundleName, int64_t uniqueId,
+        const std::string& surfaceName);
 
 private:
-    XperfServiceInterfaces();
-    ~XperfServiceInterfaces() noexcept;
+    XperfServiceInterfaces() = default;
 };
 
 }

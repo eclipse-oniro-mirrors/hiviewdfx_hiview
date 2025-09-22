@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_HIVIEWDFX_XPERF_CONSTANT_H
-#define OHOS_HIVIEWDFX_XPERF_CONSTANT_H
+#ifndef OHOS_HIVIEWDFX_XPERF_MONITOR_H
+#define OHOS_HIVIEWDFX_XPERF_MONITOR_H
 
 #include "xperf_event.h"
 
@@ -24,7 +24,7 @@ class XperfMonitor {
 public:
     XperfMonitor() = default;
     virtual ~XperfMonitor() = default;
-    virtual bool ProcessEvent(OhosXperfEvent* event);
+    virtual void ProcessEvent(OhosXperfEvent* event);
 };
 
 } // namespace HiviewDFX

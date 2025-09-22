@@ -38,7 +38,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
 namespace {
-DEFINE_LOG_TAG("UCollectUtil-IoCollector");
+DEFINE_LOG_TAG("IoCollector");
 constexpr int DISK_STATS_SIZE = 12;
 constexpr int DISK_STATS_PERIOD = 2;
 constexpr int PROC_IO_STATS_PERIOD = 2;
@@ -204,7 +204,7 @@ CollectResult<std::vector<DiskStats>> IoCollectorImpl::CollectDiskStats(DiskStat
 {
     CollectResult<std::vector<DiskStats>> result;
     GetDiskStats(filter, isUpdate, result.data);
-    HIVIEW_LOGI("collect disk stats size=%{public}zu, isUpdate=%{public}d", result.data.size(), isUpdate);
+    HIVIEW_LOGD("size=%{public}zu, isUpdate=%{public}d", result.data.size(), isUpdate);
     result.retCode = UcError::SUCCESS;
     return result;
 }
@@ -556,7 +556,7 @@ CollectResult<std::vector<ProcessIoStats>> IoCollectorImpl::CollectAllProcIoStat
 {
     CollectResult<std::vector<ProcessIoStats>> result;
     GetProcIoStats(result.data, isUpdate);
-    HIVIEW_LOGI("collect process io stats size=%{public}zu, isUpdate=%{public}d", result.data.size(), isUpdate);
+    HIVIEW_LOGI("size=%{public}zu, isUpdate=%{public}d", result.data.size(), isUpdate);
     result.retCode = UcError::SUCCESS;
     return result;
 }

@@ -12,26 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef OHOS_HIVIEWDFX_REGISTER_XPERF_MONITOR_H
-#define OHOS_HIVIEWDFX_REGISTER_XPERF_MONITOR_H
+#ifndef EVENT_PARSER_MANAGER_H
+#define EVENT_PARSER_MANAGER_H
 
 #include <map>
-#include "xperf_monitor.h"
+#include "xperf_service_log.h"
+#include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class RegisterMonitor {
+
+using ParserXperfFunc = OhosXperfEvent* (*)(const std::string&);
+
+class EventParserManager {
 public:
-    std::map<int32_t, std::vector<XperfMonitor*>> RegisterXperfMonitor();
-    void RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor);
-    void InitPlayStateMonitor();
-    void RegisterVideoMonitor();
-    XperfMonitor* MakeVideoMonitor();
+    void InitParser();
+    ParserXperfFunc GetEventParser(int32_t logId);
+
 private:
-    std::map<int32_t, std::vector<XperfMonitor*>> dispatchers;
+    std::map<int32_t, ParserXperfFunc> parsers;
+
+    void RegisterParserByLogID(int32_t logId, ParserXperfFunc func);
 };
-} // namespace HiviewDFX
-} // namespace OHOS
+}
+}
 
 #endif

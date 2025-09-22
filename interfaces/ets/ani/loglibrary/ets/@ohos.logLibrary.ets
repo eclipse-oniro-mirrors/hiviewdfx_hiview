@@ -17,17 +17,17 @@ import { AsyncCallback, BusinessError } from '@ohos.base';
 
 class LogEntryInner implements logLibrary.LogEntry {
     name: string = "";
-    mtime: number = 0;
-    size: number = 0;
+    mtime: long = 0;
+    size: long = 0;
 }
 
 interface Results {
-    code: number;
+    code: int;
     message: string;
 }
 
 class ResultsInner implements Results {
-    code: number = 0;
+    code: int = 0;
     message: string = "";
 }
 
@@ -35,8 +35,8 @@ export default namespace logLibrary {
     loadLibrary("loglibrary_ani");
     export interface LogEntry {
         name: string;
-        mtime: number;
-        size: number;
+        mtime: long;
+        size: long;
     }
 
     export native function list(logType: string): LogEntry[];
@@ -52,7 +52,7 @@ export default namespace logLibrary {
                 if (copyResults.code === 0) {
                     resolve(undefined);
                 } else {
-                    retError.code = copyResults.code as number;
+                    retError.code = copyResults.code;
                     retError.message = copyResults.message as string;
                     reject(retError);
                 }
@@ -65,7 +65,7 @@ export default namespace logLibrary {
         taskpool.execute(cb).then((ret: NullishType): void => {
             let retError = new BusinessError<void>();
             let copyResults: Results = ret as Results;
-            retError.code = copyResults.code as number;
+            retError.code = copyResults.code;
             retError.message = copyResults.message as string;
             callback(retError, undefined);
         });
@@ -82,7 +82,7 @@ export default namespace logLibrary {
                 if (moveResults.code === 0) {
                     resolve(undefined);
                 } else {
-                    retError.code = moveResults.code as number;
+                    retError.code = moveResults.code;
                     retError.message = moveResults.message as string;
                     reject(retError)
                 }
@@ -95,7 +95,7 @@ export default namespace logLibrary {
         taskpool.execute(cb).then((ret: NullishType): void => {
             let retError = new BusinessError<void>();
             let moveResults: Results = ret as Results;
-            retError.code = moveResults.code as number;
+            retError.code = moveResults.code;
             retError.message = moveResults.message as string;
             callback(retError, undefined);
         });

@@ -57,8 +57,7 @@
             "hiview_unified_collector_trace_enable",
             "hiview_unified_collector_low_mem_threshold",
             "hiview_unified_collector_trace_for_cpu_high_load",
-            "hiview_eventlogger_kernel_catcher_enable",
-            "hiview_xperf_service_device_enable"
+            "hiview_eventlogger_kernel_catcher_enable"
         ],
         "rom": "",
         "ram": "",

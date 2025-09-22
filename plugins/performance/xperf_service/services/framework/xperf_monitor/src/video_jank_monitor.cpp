@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "xperf_service_log.h"
 #include "video_jank_monitor.h"
 #include "xperf_constant.h"
 #include "avcodec_event.h"
@@ -21,29 +22,26 @@
 namespace OHOS {
 namespace HiviewDFX {
 
+static constexpr uint32_t MAX_FRAME_NUM = 3;
+static constexpr uint32_t fps = 3;
+static constexpr uint64_t interval = 300;
+
 VideoJankMonitor &VideoJankMonitor::GetInstance()
 {
     static VideoJankMonitor instance;
     return instance;
 }
 
-VideoJankMonitor::VideoJankMonitor()
+void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
+    const std::string& surfaceName)
 {
-}
-
-VideoJankMonitor::~VideoJankMonitor() noexcept
-{
-}
-
-void VideoJankMonitor::OnSurfaceReceived(int32_t pid, std::string bundleName, int64_t uniqueId, std::string surfaceName)
-{
-    LOGI("VideoJankMonitor::OnSurfaceReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
 
     AvcodecFirstFrame surface;
     surface.pid = pid;
     surface.uniqueId = uniqueId;
     surface.surfaceName = surfaceName;
+    surface.bundleName = bundleName;
 
     if (firstFrameList.empty()) {
         firstFrameList.push_back(surface);
@@ -51,7 +49,7 @@ void VideoJankMonitor::OnSurfaceReceived(int32_t pid, std::string bundleName, in
         return;
     }
 
-    if (firstFrameList.front().pid != surface.pid) {
+    if (firstFrameList.front().pid != surface.pid) { //切换应用
         firstFrameList.clear();
         firstFrameList.push_back(surface);
         MonitorStart();
@@ -63,36 +61,6 @@ void VideoJankMonitor::OnSurfaceReceived(int32_t pid, std::string bundleName, in
     return;
 }
 
-void VideoJankMonitor::printList(int index)
-{
-    for (auto it = playRecords.begin(); it != playRecords.end(); ++it) {
-        LOGI("VideoJankMonitor VideoPlayRecord:%{public}s", (*it).toString().c_str());
-    }
-}
-
-void VideoJankMonitor::print(int index)
-{
-    LOGI("VideoJankMonitor index:%{public}d", index);
-    LOGI("VideoJankMonitor audioStateEvt:%{public}s", audioStateEvt.toString().c_str());
-    for (auto it = firstFrameList.begin(); it != firstFrameList.end(); ++it) {
-        LOGI("VideoJankMonitor AvcodecFirstFrame:%{public}s", (*it).toString().c_str());
-    }
-}
-
-bool VideoJankMonitor::IsNewProcess(AvcodecFirstFrame* firstFrameEvent)
-{
-    if (firstFrameList.empty()) {
-        return true;
-    }
-
-    return firstFrameEvent->pid != firstFrameList.front().pid;
-}
-
-bool VideoJankMonitor::IsNewProcess(AudioStateEvent* audioEvent)
-{
-    return audioEvent->pid != audioStateEvt.pid;
-}
-
 void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
 {
     if (static_cast<uint32_t>(firstFrameList.size()) >= MAX_FRAME_NUM) {
@@ -101,50 +69,50 @@ void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
     firstFrameList.push_back(firstFrame);
 }
 
-bool VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
+void VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
 {
-    LOGI("VideoJankMonitor logId:%{public}d bundleName:%{public}s", event->logId, event->bundleName.c_str());
+    LOGD("VideoJankMonitor logId:%{public}d bundleName:%{public}s", event->logId, event->bundleName.c_str());
     std::lock_guard<std::mutex> Lock(mMutex);
     switch (event->logId) {
-        case XperfConstants::AUDIO_RENDER_START: {
-            AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-            audioStateEvt = *audioEvent;
-            if (firstFrameList.empty()) {
-                return true;
-            }
-            if (firstFrameList.front().pid == audioEvent->pid) {
-                MonitorStart();
-                return true;
-            } else {
-                MonitorStop();
-                firstFrameList.clear();
-                notifyState = INIT;
-                return true;
-            }
-        }
+        case XperfConstants::AUDIO_RENDER_START:
+            OnAudioStart(event);
+            break;
         case XperfConstants::AUDIO_RENDER_PAUSE_STOP:
-        case XperfConstants::AUDIO_RENDER_RELEASE: {
-            if (firstFrameList.empty()) {
-                return true;
-            }
-            AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-
-            if (audioEvent->pid == firstFrameList.front().pid && audioEvent->uniqueId == audioStateEvt.uniqueId) {
-                audioStateEvt = *audioEvent;
-                MonitorStop();
-                return true;
-            } else {
-                return true;
-            }
-        }
+        case XperfConstants::AUDIO_RENDER_RELEASE:
+            OnAudioStop(event);
+            break;
         default:
-            return false;
+            break;
     }
 }
 
-bool VideoJankMonitor::IsNewProcess(const int32_t& pid)
+void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 {
-    return pid != playRecords.front().pid;
+    AudioStateEvent* audioEvent = (AudioStateEvent*) event;
+    audioStateEvt = *audioEvent; //保存音频开始
+    if (firstFrameList.empty()) { //没有首帧信息
+        return;
+    }
+    if (firstFrameList.front().pid == audioEvent->pid) { //没有切换应用
+        MonitorStart();
+    } else { //切换了应用
+        MonitorStop();
+        firstFrameList.clear(); //清空旧的首帧数据
+        playState = INIT;
+    }
+}
+
+void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
+{
+    if (firstFrameList.empty()) {
+        return;
+    }
+    AudioStateEvent* audioEvent = (AudioStateEvent*) event;
+
+    if (audioEvent->pid == firstFrameList.front().pid && audioEvent->uniqueId == audioStateEvt.uniqueId) {
+        audioStateEvt = *audioEvent;
+        MonitorStop();
+    }
 }
 
 void VideoJankMonitor::MonitorStart()
@@ -157,23 +125,15 @@ void VideoJankMonitor::MonitorStart()
         uniqueIds.push_back(item.uniqueId);
         surfaceNames.push_back(item.surfaceName);
     }
-    // 添加AvcodecVideoStart调用
-    notifyState = START;
-}
-
-void VideoJankMonitor::StartDetectVideoJank(uint64_t uniqueId, const std::string& surfaceName, uint32_t fps,
-    uint64_t reportInterval)
-{
-    XPERF_TRACE_SCOPED("VideoJankMonitor::StartDetectVideoJank surfaceName:%s fps:%d", surfaceName.c_str(), fps);
-    // 添加AvcodecVideoStart调用
+    playState = START;
 }
 
 void VideoJankMonitor::MonitorStop()
 {
-    if (notifyState != START) {
+    if (playState != START) {
         return;
     } else {
-        notifyState = STOP;
+        playState = STOP;
     }
     std::vector<uint64_t> uniqueIds;
     std::vector<std::string> surfaceNames;
@@ -181,14 +141,6 @@ void VideoJankMonitor::MonitorStop()
         uniqueIds.push_back(item.uniqueId);
         surfaceNames.push_back(item.surfaceName);
     }
-    //添加AvcodecVideoStop调用
-}
-
-void VideoJankMonitor::StopDetectVideoJank(uint64_t uniqueId, const std::string& surfaceName, uint32_t fps)
-{
-    LOGI("VideoJankMonitor surfaceName:%{public}s fps:%{public}d", surfaceName.c_str(), fps);
-    XPERF_TRACE_SCOPED("VideoJankMonitor::StopDetectVideoJank surfaceName:%s fps:%d", surfaceName.c_str(), fps);
-    //添加AvcodecVideoStop调用
 }
 
 } // namespace HiviewDFX
