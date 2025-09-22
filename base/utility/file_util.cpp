@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <istream>
+#include <regex>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
@@ -32,6 +33,7 @@
 #include "common_utils.h"
 #include "directory_ex.h"
 #include "file_ex.h"
+#include "hiview_logger.h"
 
 #define FDSAN_FILEUTIL_TAG 0xD002D10 // hiview domainid
 
@@ -41,6 +43,7 @@ namespace FileUtil {
 using namespace std;
 namespace {
 constexpr int VALUE_MOD = 200000;
+DEFINE_LOG_TAG("FileUtil");
 
 bool CheckAndCreateDirectory(const std::string &tmpDirPath)
 {
@@ -172,11 +175,6 @@ void GetDirDirs(const std::string& path, std::vector<std::string>& dirs)
     closedir(dir);
 }
 
-bool ForceCreateDirectory(const std::string& path)
-{
-    return OHOS::ForceCreateDirectory(path);
-}
-
 bool ForceCreateDirectory(const string& path, mode_t mode)
 {
     string::size_type index = 0;
@@ -184,6 +182,10 @@ bool ForceCreateDirectory(const string& path, mode_t mode)
         index = path.find('/', index + 1);
         string subPath = (index == string::npos) ? path : path.substr(0, index);
         if (access(subPath.c_str(), F_OK) != 0) {
+            if (IsKeyDirectory(subPath)) {
+                HIVIEW_LOGW("can not create key dir=%{public}s", subPath.c_str());
+                return false;
+            }
             if (mkdir(subPath.c_str(), mode) != 0) {
                 return false;
             }
@@ -362,6 +364,13 @@ int CopyFileFast(const std::string &src, const std::string &des, uint32_t trunca
     fdsan_close_with_tag(fdIn, FDSAN_FILEUTIL_TAG);
     fdsan_close_with_tag(fdOut, FDSAN_FILEUTIL_TAG);
     return copyTotalLen == totalLen ? 0 : -1;
+}
+
+bool IsKeyDirectory(const std::string& dirPath)
+{
+    std::string keyDirPattern = R"(^/data/(?:app|service|chipset)?(?:/el\d+)?(?:/\d+)?/?$)";
+    std::string fullDirPath = IncludeTrailingPathDelimiter(dirPath);
+    return std::regex_match(fullDirPath, std::regex(keyDirPattern));
 }
 
 bool IsDirectory(const std::string &path)
