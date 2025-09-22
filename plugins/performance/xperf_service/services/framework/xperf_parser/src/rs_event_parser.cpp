@@ -25,7 +25,7 @@ namespace HiviewDFX {
 //"#UNIQUEID:7095285973044#FAULT_ID:0#FAULT_CODE:0#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111";
 OhosXperfEvent* ParseRsVideoJankEventMsg(const std::string& msg)
 {
-    RsJankEvent* event = new (std::nothrow) RsJankEvent();
+    RsJankEvent* event = new RsJankEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_FAULT_ID, 0);
     ExtractStrToInt16(msg, event->faultId, TAG_FAULT_ID, TAG_FAULT_CODE, 0);
     ExtractStrToInt16(msg, event->faultCode, TAG_FAULT_CODE, TAG_MAX_FRAME_TIME, 0);
@@ -37,7 +37,7 @@ OhosXperfEvent* ParseRsVideoJankEventMsg(const std::string& msg)
 //"#UNIQUEID:7095285973044#DURATION:20000#AVG_FPS:56";
 OhosXperfEvent* ParseRsVideoFrameStatsMsg(const std::string& msg)
 {
-    RsVideoFrameStatsEvent* event = new (std::nothrow) RsVideoFrameStatsEvent();
+    RsVideoFrameStatsEvent* event = new RsVideoFrameStatsEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_DURATION, 0);
     ExtractStrToInt(msg, event->duration, TAG_DURATION, TAG_AVG_FPS, 0);
     ExtractStrToInt16(msg, event->avgFPS, TAG_AVG_FPS, "", 0);
@@ -47,7 +47,7 @@ OhosXperfEvent* ParseRsVideoFrameStatsMsg(const std::string& msg)
 //"#UNIQUEID:7095285973044#HAPPEN_TIME:1720001111";
 OhosXperfEvent* ParseRsVideoExceptStopMsg(const std::string& msg)
 {
-    RsVideoExceptStopEvent* event = new (std::nothrow) RsVideoExceptStopEvent();
+    RsVideoExceptStopEvent* event = new RsVideoExceptStopEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_HAPPEN_TIME, 0);
     ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, "", 0);
     return event;

@@ -22,20 +22,15 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class VideoJankReport {
-public:
-    int32_t appPid{0};
-    std::string versionCode;
-    std::string versionName;
-    std::string bundleName;
-    std::string abilityName;
-    std::string pageUrl;
-    std::string pageName;
-    std::string surfaceName;
-    int64_t maxFrameTime{0};
-    int64_t happenTime{0};
+struct VideoJankReport {
     int16_t faultId{0};
     int16_t faultCode{0};
+    int32_t appPid{0};
+    int32_t maxFrameTime{0};
+    int64_t happenTime{0};
+    std::string bundleName;
+    std::string surfaceName;
+    std::string details;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

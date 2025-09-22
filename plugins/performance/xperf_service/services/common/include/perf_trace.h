@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-constexpr int TRACE_BUF_LEN = 128;
+constexpr int TRACE_BUF_LEN = 256;
 void XperfStartTrace(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 void FormatTraceName(char *name, size_t size, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 

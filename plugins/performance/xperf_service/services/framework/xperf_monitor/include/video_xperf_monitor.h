@@ -16,31 +16,39 @@
 #ifndef VIDEO_XPERF_MONITOR_H
 #define VIDEO_XPERF_MONITOR_H
 
+#include <mutex>
+#include <map>
+#include <list>
 #include "xperf_monitor.h"
 #include "video_record.h"
 #include "rs_event.h"
 #include "network_event.h"
 #include "avcodec_event.h"
 #include "video_jank_record.h"
-#include <mutex>
-#include <map>
+#include "surface_info.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
 class VideoXperfMonitor : public XperfMonitor {
 public:
-    VideoXperfMonitor(VideoRecord* record);
-    ~VideoXperfMonitor() override;
-    bool ProcessEvent(OhosXperfEvent* event) override;
+    static VideoXperfMonitor& GetInstance();
+    VideoXperfMonitor(const VideoXperfMonitor&) = delete;
+    void operator=(const VideoXperfMonitor&) = delete;
+
+    void OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
+        const std::string& surfaceName);
+
+    void ProcessEvent(OhosXperfEvent* event) override;
+
+private:
+    VideoXperfMonitor() = default;
+    ~VideoXperfMonitor() = default;
 
 private:
     mutable std::mutex mMutex;
-    VideoRecord* record{nullptr};
-    RsJankEvent rsVideoJankEvent;
-    NetworkJankEvent networkXperfEvent;
-    AvcodecJankEvent avcodecVideoJankEvent;
     std::map<int64_t, VideoJankRecord> videoJankRecordMap;
+    std::list<SurfaceInfo> surfaceInfoList;
 
     void BroadcastVideoJank(const std::string& msg);
     void OnVideoJankReceived(OhosXperfEvent* event);
@@ -48,6 +56,7 @@ private:
     void OnAvcodecJankReceived(OhosXperfEvent* event);
     void WaitForDomainReport(int64_t uniqueId);
     void FaultJudgment(int64_t uniqueId);
+    SurfaceInfo GetSurfaceInfo(int64_t uniqueId);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

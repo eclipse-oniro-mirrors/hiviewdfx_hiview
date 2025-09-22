@@ -16,26 +16,36 @@
 #include "xperf_service_log.h"
 #include "video_reporter.h"
 #include "hisysevent.h"
-#include "xperf_event_builder.h"
-#include "xperf_event_reporter.h"
+#include "hiview_global.h"
+#include "sys_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
 void VideoReporter::ReportVideoJankFrame(const VideoJankReport& record)
 {
-    XperfEventBuilder builder;
-    XperfEvent event = builder.EventName("VIDEO_JANK_FRAME")
-            .EventType(HISYSEVENT_STATISTIC)
-            .Param("APP_PID", record.appPid)
-            .Param("BUNDLE_NAME", record.bundleName)
-            .Param("SURFACE_NAME", record.surfaceName)
-            .Param("MAX_FRAME_TIME", record.maxFrameTime)
-            .Param("HAPPEN_TIME", record.happenTime)
-            .Param("FAULT_ID", record.faultId)
-            .Param("FAULT_CODE", record.faultCode)
-            .Build();
-    XperfEventReporter::Report(PERFORMANCE_DOMAIN, event);
+    std::string eventName = "VIDEO_JANK_INNER";
+    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", eventName, OHOS::HiviewDFX::SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("APP_PID", record.appPid);
+    sysEventCreator.SetKeyValue("BUNDLE_NAME", record.bundleName);
+    sysEventCreator.SetKeyValue("SURFACE_NAME", record.surfaceName);
+    sysEventCreator.SetKeyValue("MAX_FRAME_TIME", record.maxFrameTime);
+    sysEventCreator.SetKeyValue("HAPPEN_TIME", record.happenTime);
+    sysEventCreator.SetKeyValue("FAULT_ID", record.faultId);
+    sysEventCreator.SetKeyValue("FAULT_CODE", record.faultCode);
+    sysEventCreator.SetKeyValue("DETAILS", record.details);
+
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+
+    auto& hiviewInstance = OHOS::HiviewDFX::HiviewGlobal::GetInstance();
+    if (!hiviewInstance) {
+        LOGE("HiviewGlobal::GetInstance failed");
+        return;
+    }
+    if (!hiviewInstance->PostSyncEventToTarget("XperfPlugin", event)) {
+        LOGE("hiviewInstance->PostSyncEventToTarget failed");
+    }
 }
 
 } // namespace HiviewDFX

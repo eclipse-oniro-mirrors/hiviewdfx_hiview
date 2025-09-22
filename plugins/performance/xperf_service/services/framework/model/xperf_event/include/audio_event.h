@@ -23,32 +23,20 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class AudioXperfEvent : public OhosXperfEvent {
-public:
+struct AudioXperfEvent : public OhosXperfEvent {
     int16_t status{0};
-    int64_t uniqueId{0};
     int16_t faultId{0};
     int16_t faultCode{0};
-    int maxFrameTime{0};
+    int32_t maxFrameTime{0};
+    int64_t uniqueId{0};
 };
 
-class AudioStateEvent : public OhosXperfEvent {
-public:
-    int64_t uniqueId{0};
-    int32_t pid{0};
-    std::string bundleName;
-    int64_t happenTime{0};
+struct AudioStateEvent : public OhosXperfEvent {
     int16_t status{0};
-
-    std::string toString()
-    {
-        std::string str = "pid:" + std::to_string(pid)
-            + " uniqueId:" + std::to_string(uniqueId)
-            + " bundleName:" + bundleName
-            + " happenTime:" + std::to_string(happenTime)
-            + " status:" + std::to_string(status);
-        return str;
-    }
+    int32_t pid{0};
+    int64_t happenTime{0};
+    int64_t uniqueId{0};
+    std::string bundleName;
 };
 
 } // namespace HiviewDFX

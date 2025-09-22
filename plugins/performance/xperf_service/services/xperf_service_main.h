@@ -15,10 +15,12 @@
 #ifndef OHOS_HIVIEWDFX_XPERF_SERVICE_MAIN_H
 #define OHOS_HIVIEWDFX_XPERF_SERVICE_MAIN_H
 
+#include <cstdint>
+
 namespace OHOS {
 namespace HiviewDFX {
 
-    int32_t LoadXperfService();
+int32_t LoadXperfService();
 
 }
 }

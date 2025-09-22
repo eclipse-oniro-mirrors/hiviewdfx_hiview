@@ -17,77 +17,65 @@
 namespace OHOS {
 namespace HiviewDFX {
 
+const int32_t DOMAIN_TO_LOGID = 1000;
+
+int32_t ConvertIntoLogId(int16_t domainId, int16_t eventId)
+{
+    return domainId * DOMAIN_TO_LOGID + eventId;
+}
+
 XperfDispatcher::~XperfDispatcher()
 {
-    for (const auto& dispatcher : dispatchers) {
-        for (XperfMonitor* monitor : dispatcher.second) {
-            if (monitor) {
-                delete monitor;
-                monitor = nullptr;
-            }
-        }
+    if (parserManager) {
+        delete parserManager;
+        parserManager = nullptr;
     }
-    if (registerMonitor) {
-        delete registerMonitor;
-        registerMonitor = nullptr;
-    }
-    if (registerParser) {
-        delete registerParser;
-        registerParser = nullptr;
+    if (monitorManager) {
+        delete monitorManager;
+        monitorManager = nullptr;
     }
 }
 
 void XperfDispatcher::InitXperfDispatcher()
 {
-    registerParser = new (std::nothrow) RegisterParser();
-    parsers = registerParser->RegisterXperfParser();
+    parserManager = new EventParserManager();
+    parserManager->InitParser();
 
-    registerMonitor = new (std::nothrow) RegisterMonitor();
-    dispatchers = registerMonitor->RegisterXperfMonitor();
-}
-
-void XperfDispatcher::DispatcherEventToMonitor(OhosXperfEvent* event)
-{
-    LOGI("XperfDispatcher_DispatcherEventToMonitor logId:%{public}d", event->logId);
-    int32_t logId = event->logId;
-    DispatcherEventToMonitor(logId, event);
-}
-
-void XperfDispatcher::DispatcherEventToMonitor(int32_t logId, OhosXperfEvent* event)
-{
-    if (event == nullptr || dispatchers.find(logId) == dispatchers.end()) {
-        return;
-    }
-    std::vector<XperfMonitor*> logIdMonitors = dispatchers[logId];
-    for (XperfMonitor* monitor : logIdMonitors) {
-        if (monitor) {
-            monitor->ProcessEvent(event);
-        }
-    }
-    if (event) {
-        delete event;
-        event = nullptr;
-    }
+    monitorManager = new XperfMonitorManager();
+    monitorManager->RegisterXperfMonitor();
 }
 
 OhosXperfEvent* XperfDispatcher::DispatcherMsgToParser(int32_t domainId, int32_t eventId, const std::string& msg)
 {
-    LOGI("XperfDispatcher_DispatcherMsgToParser domainId:%{public}d, eventId:%{public}d, msg:%{public}s", domainId,
+    LOGD("XperfDispatcher_DispatcherMsgToParser domainId:%{public}d, eventId:%{public}d, msg:%{public}s", domainId,
          eventId, msg.c_str());
     int32_t logId = ConvertIntoLogId(domainId, eventId);
-    return DispatcherMsgToParser(logId, msg);
-}
-
-OhosXperfEvent* XperfDispatcher::DispatcherMsgToParser(int32_t logId, const std::string& msg)
-{
-    if (parsers.find(logId) == parsers.end()) {
-        LOGI("no ParserXperfFunc found for logId:%{public}d", logId);
+    auto parser = parserManager->GetEventParser(logId);
+    if (parser == nullptr) {
+        LOGW("NO ParserXperfFunc found for logId:%{public}d", logId);
         return nullptr;
     }
-    OhosXperfEvent* event = parsers[logId](msg);
-    event->logId = logId;
-    event->rawMsg = msg;
+    OhosXperfEvent* event = parser(msg);
+    if (event != nullptr) {
+        event->logId = logId;
+        event->rawMsg = msg;
+    }
     return event;
+}
+
+void XperfDispatcher::DispatcherEventToMonitor(OhosXperfEvent* event)
+{
+    if (event == nullptr) {
+        LOGE("invalid data");
+        return;
+    }
+    LOGD("XperfDispatcher_DispatcherEventToMonitor logId:%{public}d", event->logId);
+    std::vector<XperfMonitor*> monitors = monitorManager->GetMonitors(event->logId);
+    for (XperfMonitor* monitor : monitors) {
+        if (monitor) {
+            monitor->ProcessEvent(event);
+        }
+    }
 }
 
 } // namespace HiviewDFX

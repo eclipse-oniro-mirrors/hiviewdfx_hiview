@@ -22,15 +22,14 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class AudioRecord {
-public:
+struct AudioRecord {
     int16_t faultId{0};
     int16_t faultCode{0};
     int16_t playState{-1};
     int32_t pid{0};
     int32_t uid{0};
+    int32_t maxFrameTime{0};
     int64_t uniqueId{0};
-    int64_t maxFrameTime{0};
     int64_t inputTime{0};
     int64_t startTime{0};
     int64_t duration{0};

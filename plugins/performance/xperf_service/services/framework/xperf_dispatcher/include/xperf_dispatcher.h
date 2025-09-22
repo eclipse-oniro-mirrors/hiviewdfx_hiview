@@ -16,32 +16,22 @@
 #ifndef XPERF_DISPATCHER_H
 #define XPERF_DISPATCHER_H
 
-#include <vector>
-#include <map>
-
-#include "xperf_service_log.h"
-#include "xperf_monitor.h"
 #include "xperf_event.h"
-#include "xperf_parser.h"
-#include "register_xperf_monitor.h"
-#include "register_xperf_parser.h"
+#include "event_parser_manager.h"
+#include "xperf_monitor_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 class XperfDispatcher {
 public:
-    XperfDispatcher() = default;
     ~XperfDispatcher();
     void InitXperfDispatcher();
     void DispatcherEventToMonitor(OhosXperfEvent* event);
-    void DispatcherEventToMonitor(int32_t logId, OhosXperfEvent* event);
     OhosXperfEvent* DispatcherMsgToParser(int32_t domainId, int32_t eventId, const std::string& msg);
-    OhosXperfEvent* DispatcherMsgToParser(int32_t logId, const std::string& msg);
+
 private:
-    RegisterMonitor* registerMonitor{nullptr};
-    RegisterParser* registerParser{nullptr};
-    std::map<int32_t, std::vector<XperfMonitor*>> dispatchers;
-    std::map<int32_t, ParserXperfFunc> parsers;
+    EventParserManager* parserManager{nullptr};
+    XperfMonitorManager* monitorManager{nullptr};
 };
 } // namespace HiviewDFX
 } // namespace OHOS

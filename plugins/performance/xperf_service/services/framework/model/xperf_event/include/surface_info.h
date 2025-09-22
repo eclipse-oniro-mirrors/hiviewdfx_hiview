@@ -13,26 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef REGISTER_XPERF_PARSER_H
-#define REGISTER_XPERF_PARSER_H
+#ifndef SURFACE_INFO_H
+#define SURFACE_INFO_H
 
-#include <map>
 #include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-using ParserXperfFunc = OhosXperfEvent* (*)(const std::string&);
-class RegisterParser {
-public:
-    void RegisterParserByLogID(int32_t logId, ParserXperfFunc func);
-    std::map<int32_t, ParserXperfFunc> RegisterXperfParser();
-    void RegisterAudioParser();
-    void RegisterVideoParser();
-private:
-    std::map<int32_t, ParserXperfFunc> parsers;
+
+struct SurfaceInfo : public OhosXperfEvent {
+    int32_t pid{0};
+    int64_t uniqueId{0};
+    std::string bundleName;
+    std::string surfaceName;
 };
+
 } // namespace HiviewDFX
 } // namespace OHOS
-
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,37 +68,40 @@ bool XperfServiceClient::CheckClientValid()
         return false;
     }
 
-    recipient_ = new (std::nothrow) XPerfServiceDeathRecipient(*this);
-    if (!recipient_) {
+    recipient = new (std::nothrow) XPerfServiceDeathRecipient(*this);
+    if (!recipient) {
         LOGE("create XPerfServiceDeathRecipient failed");
         return false;
     }
-    client->AsObject()->AddDeathRecipient(recipient_);
+    client->AsObject()->AddDeathRecipient(recipient);
     return true;
 }
 
 void XperfServiceClient::ResetClient()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex);
     if (client && client->AsObject()) {
-        client->AsObject()->RemoveDeathRecipient(recipient_);
+        client->AsObject()->RemoveDeathRecipient(recipient);
     }
     client = nullptr;
+    if (recipient) {
+        recipient = nullptr;
+    }
 }
 
 XperfServiceClient::XPerfServiceDeathRecipient::XPerfServiceDeathRecipient(XperfServiceClient &client)
-    : xperfServiceClient_(client) {}
+    : xperfServiceClient(client) {}
 
 XperfServiceClient::XPerfServiceDeathRecipient::~XPerfServiceDeathRecipient() {}
 
 void XperfServiceClient::XPerfServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    xperfServiceClient_.ResetClient();
+    xperfServiceClient.ResetClient();
 }
 
 void XperfServiceClient::NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex);
     if (!CheckClientValid()) {
         return;
     }
@@ -107,7 +110,7 @@ void XperfServiceClient::NotifyToXperf(int32_t domainId, int32_t eventId, const 
 
 int32_t XperfServiceClient::RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex);
     if (!CheckClientValid()) {
         return XPERF_SERVICE_ERR;
     }
@@ -116,7 +119,7 @@ int32_t XperfServiceClient::RegisterVideoJank(const std::string& caller, const s
 
 int32_t XperfServiceClient::UnregisterVideoJank(const std::string& caller)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex);
     if (!CheckClientValid()) {
         return XPERF_SERVICE_ERR;
     }
@@ -125,7 +128,7 @@ int32_t XperfServiceClient::UnregisterVideoJank(const std::string& caller)
 
 int32_t XperfServiceClient::RegisterAudioJank(const std::string& caller, const sptr<IAudioJankCallback>& cb)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex);
     if (!CheckClientValid()) {
         return XPERF_SERVICE_ERR;
     }
@@ -134,7 +137,7 @@ int32_t XperfServiceClient::RegisterAudioJank(const std::string& caller, const s
 
 int32_t XperfServiceClient::UnregisterAudioJank(const std::string& caller)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex);
     if (!CheckClientValid()) {
         return XPERF_SERVICE_ERR;
     }

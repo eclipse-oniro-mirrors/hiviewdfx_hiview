@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "xperf_service_main.h"
 #include "xperf_service_server.h"
 #include "xperf_service_log.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-    int32_t LoadXperfService()
-    {
-        DelayedSingleton<XperfServiceServer>::GetInstance()->Start();
-        LOGI("XperfService Loaded");
-        return 0;
-    }
+int32_t LoadXperfService()
+{
+    DelayedSingleton<XperfServiceServer>::GetInstance()->Start();
+    LOGI("XperfService Loaded");
+    return 0;
+}
 
 }
 }
