@@ -57,6 +57,7 @@ void EventPublishTest::TearDownTestCase()
 }
 }
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 /**
  * @tc.name: EventPublishTest001
  * @tc.desc: used to test PushEvent with invalid param
@@ -443,3 +444,25 @@ HWTEST_F(EventPublishTest, AppEventPublisherFactoryTest001, TestSize.Level1)
     AppEventPublisherFactory::RegisterPublisher(invalidName);
     ASSERT_FALSE(AppEventPublisherFactory::IsPublisher(invalidName));
 }
+#else // feature not supported
+/**
+ * @tc.name: app event publish unable Test001
+ * @tc.desc: used to test app event publish when appevent publish is unable
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest001, TestSize.Level0)
+{
+    ElapsedTime elapsedTime;
+    ElapsedTime elapsedTime2(60, "testPrintContent");
+    elapsedTime2.MarkElapsedTime("testMarkComtent");
+ 
+    AppEventPublisherFactory::RegisterPublisher("testName");
+    AppEventPublisherFactory::UnRegisterPublisher("testName");
+    ASSERT_FALSE(AppEventPublisherFactory::IsPublisher("testName"));
+ 
+    EventPublish::GetInstance().PushEvent(0, "eventName", HiSysEvent::EventType::FAULT, "testInfo");
+    ASSERT_FALSE(EventPublish::GetInstance().IsAppListenedEvent(0, "eventName"));
+ 
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(0, "pathHolder", "eventName");
+}
+#endif

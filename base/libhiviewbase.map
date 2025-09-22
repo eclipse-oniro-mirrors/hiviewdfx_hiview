@@ -252,7 +252,7 @@
         "OHOS::HiviewDFX::AppEventPublisherFactory::UnregisterPublisher(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::AppEventPublisherFactory::IsPublisher(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::AppLaunchInfo const&)";
-        "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::EventPublish>::instance_";
+        "OHOS::HiviewDFX::EventPublish::GetInstance()";
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::ScrollJankInfo const&)";
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::ResourceOverLimitInfo const&)";
         "OHOS::HiviewDFX::AppEventHandler::PostEvent(OHOS::HiviewDFX::AppEventHandler::CpuUsageHighInfo const&)";

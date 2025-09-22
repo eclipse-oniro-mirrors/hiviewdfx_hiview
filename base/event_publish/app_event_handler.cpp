@@ -15,7 +15,6 @@
 
 #include "app_event_handler.h"
 
-#ifdef APPEVENT_PUBLISH_ENABLE
 #include <sstream>
 
 #include "bundle_mgr_client.h"
@@ -315,48 +314,5 @@ bool AppEventHandler::IsAppListenedEvent(int32_t uid, const std::string& eventNa
 {
     return EventPublish::GetInstance().IsAppListenedEvent(uid, eventName);
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS
-
-#else // feature not supported
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AppLaunchInfo& event)
-{
-    return -1;
-}
-
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const ScrollJankInfo& event)
-{
-    return -1;
-}
-
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
-{
-    return -1;
-}
-
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const CpuUsageHighInfo& event)
-{
-    return -1;
-}
-
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const BatteryUsageInfo& event)
-{
-    return -1;
-}
-
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AppKilledInfo& event)
-{
-    return -1;
-}
-
-int OHOS::HiviewDFX::AppEventHandler::PostEvent(const AudioJankFrameInfo& event)
-{
-    return -1;
-}
-
-bool OHOS::HiviewDFX::AppEventHandler::IsAppListenedEvent(int32_t uid, const std::string& eventName)
-{
-    return false;
-}
-#endif
