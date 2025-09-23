@@ -24,6 +24,12 @@ int32_t ConvertIntoLogId(int16_t domainId, int16_t eventId)
     return domainId * DOMAIN_TO_LOGID + eventId;
 }
 
+XperfDispatcher::XperfDispatcher()
+{
+    parserManager = new EventParserManager();
+    monitorManager = new XperfMonitorManager();
+}
+
 XperfDispatcher::~XperfDispatcher()
 {
     if (parserManager) {
@@ -36,19 +42,14 @@ XperfDispatcher::~XperfDispatcher()
     }
 }
 
-void XperfDispatcher::InitXperfDispatcher()
-{
-    parserManager = new EventParserManager();
-    parserManager->InitParser();
-
-    monitorManager = new XperfMonitorManager();
-    monitorManager->RegisterXperfMonitor();
-}
-
-OhosXperfEvent* XperfDispatcher::DispatcherMsgToParser(int32_t domainId, int32_t eventId, const std::string& msg)
+OhosXperfEvent* XperfDispatcher::DispatchMsgToParser(int32_t domainId, int32_t eventId, const std::string& msg)
 {
     LOGD("XperfDispatcher_DispatcherMsgToParser domainId:%{public}d, eventId:%{public}d, msg:%{public}s", domainId,
          eventId, msg.c_str());
+    if (parserManager == nullptr) {
+        LOGE("XperfDispatcher parserManager is nullptr");
+        return nullptr;
+    }
     int32_t logId = ConvertIntoLogId(domainId, eventId);
     auto parser = parserManager->GetEventParser(logId);
     if (parser == nullptr) {
@@ -63,13 +64,17 @@ OhosXperfEvent* XperfDispatcher::DispatcherMsgToParser(int32_t domainId, int32_t
     return event;
 }
 
-void XperfDispatcher::DispatcherEventToMonitor(OhosXperfEvent* event)
+void XperfDispatcher::DispatchEventToMonitor(OhosXperfEvent* event)
 {
+    LOGD("XperfDispatcher_DispatcherEventToMonitor logId:%{public}d", event->logId);
     if (event == nullptr) {
         LOGE("invalid data");
         return;
     }
-    LOGD("XperfDispatcher_DispatcherEventToMonitor logId:%{public}d", event->logId);
+    if (monitorManager == nullptr) {
+        LOGE("XperfDispatcher monitorManager is nullptr");
+        return;
+    }
     std::vector<XperfMonitor*> monitors = monitorManager->GetMonitors(event->logId);
     for (XperfMonitor* monitor : monitors) {
         if (monitor) {

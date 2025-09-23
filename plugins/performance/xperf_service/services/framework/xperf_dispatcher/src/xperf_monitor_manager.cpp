@@ -20,8 +20,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-
-void XperfMonitorManager::RegisterXperfMonitor()
+XperfMonitorManager::XperfMonitorManager()
 {
     InitPlayStateMonitor();
     InitVideoMonitor();

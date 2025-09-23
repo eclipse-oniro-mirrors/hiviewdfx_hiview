@@ -26,12 +26,13 @@ using ParserXperfFunc = OhosXperfEvent* (*)(const std::string&);
 
 class EventParserManager {
 public:
-    void InitParser();
+    EventParserManager();
+
     ParserXperfFunc GetEventParser(int32_t logId);
 
 private:
     std::map<int32_t, ParserXperfFunc> parsers;
-
+    void InitParser();
     void RegisterParserByLogID(int32_t logId, ParserXperfFunc func);
 };
 }

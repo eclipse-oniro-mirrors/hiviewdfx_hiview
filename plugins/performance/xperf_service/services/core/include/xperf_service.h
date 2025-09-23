@@ -24,11 +24,10 @@ class XperfService {
 public:
     static XperfService& GetInstance();
 
-    void InitXperfService();
     void DispatchMsg(int32_t domainId, int32_t eventId, const std::string& msg);
 
 private:
-    XperfService() = default;
+    XperfService();
     ~XperfService();
 
     XperfDispatcher* dispatcher{nullptr};

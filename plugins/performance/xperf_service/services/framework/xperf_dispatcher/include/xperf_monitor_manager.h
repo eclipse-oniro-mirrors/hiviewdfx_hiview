@@ -23,7 +23,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class XperfMonitorManager {
 public:
-    void RegisterXperfMonitor();
+    XperfMonitorManager();
     std::vector<XperfMonitor*> GetMonitors(int32_t logId);
 
 private:

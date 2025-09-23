@@ -22,6 +22,11 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+EventParserManager::EventParserManager()
+{
+    InitParser();
+}
+
 void EventParserManager::RegisterParserByLogID(int32_t logId, ParserXperfFunc func)
 {
     parsers[logId] = func;

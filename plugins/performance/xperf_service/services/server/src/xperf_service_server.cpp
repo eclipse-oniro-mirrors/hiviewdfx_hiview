@@ -40,7 +40,6 @@ void XperfServiceServer::Start()
         LOGE("Register SystemAbility for XperfService FAILED.");
         return;
     }
-    XperfService::GetInstance().InitXperfService();
 }
 
 ErrCode XperfServiceServer::NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg)
