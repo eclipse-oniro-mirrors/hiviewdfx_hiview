@@ -36,7 +36,6 @@ constexpr char EXPORT_JSON_FILE_NAME[] = "HiSysEvent.json";
 constexpr char SYSEVENT_EXPORT_TMP_DIR[] = "tmp";
 constexpr char SYSEVENT_EXPORT_DIR[] = "sys_event_export";
 constexpr char ZIP_FILE_DELIM[] = "_";
-constexpr mode_t EVENT_EXPORT_DIR_MODE = S_IRWXU | S_IRWXG; // rwxrwx---
 constexpr mode_t EVENT_EXPORT_FILE_MODE = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP; // rw-rw----
 constexpr uint32_t LOG_GID = 1007;
 
@@ -72,6 +71,10 @@ std::string GetWroteTempDir(const std::string& moduleName, const EventVersion& v
 std::string GetTmpZipFile(const std::string& exportDir, const std::string& moduleName,
     const EventVersion& version, int32_t uid)
 {
+    if (!FileUtil::FileExists(exportDir)) {
+        HIVIEW_LOGE("export directory isn't created");
+        return "";
+    }
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(SYSEVENT_EXPORT_TMP_DIR));
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(moduleName));
@@ -97,17 +100,14 @@ bool ChangeFileModeAndGid(const std::string& file, mode_t mode, uint32_t gid)
     return true;
 }
 
-std::string GetZipFile(const std::string& exportDir, int32_t uid)
+std::string GetZipFile(const std::string& exportDir, int32_t uid, std::string& zipFileName)
 {
+    if (!FileUtil::IsDirectory(exportDir)) {
+        HIVIEW_LOGE("export directory isn't created");
+        return "";
+    }
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
-    if (!FileUtil::IsDirectory(dir) && !FileUtil::ForceCreateDirectory(dir)) {
-        HIVIEW_LOGE("failed to init directory %{public}s.", dir.c_str());
-        return "";
-    }
-    if (!ChangeFileModeAndGid(dir, EVENT_EXPORT_DIR_MODE, LOG_GID)) {
-        return "";
-    }
-    AppendZipFile(dir, uid);
+    dir.append(zipFileName);
     return dir;
 }
 
@@ -165,7 +165,8 @@ bool WriteZipFileStrategy::Write(std::string& exportContent, WroteCallback callb
             StringUtil::HideDeviceIdInfo(tmpZipFile).c_str());
         return false;
     }
-    auto zipFile = GetZipFile(param_.exportDir, param_.uid);
+    auto zipFileName = FileUtil::ExtractFileName(tmpZipFile);
+    auto zipFile = GetZipFile(param_.exportDir, param_.uid, zipFileName);
     HIVIEW_LOGD("dest file: %{public}s", StringUtil::HideDeviceIdInfo(zipFile).c_str());
     callback(tmpZipFile, zipFile);
     return true;

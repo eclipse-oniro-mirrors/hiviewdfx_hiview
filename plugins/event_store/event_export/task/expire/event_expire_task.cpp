@@ -24,12 +24,12 @@ DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
 constexpr char SYSEVENT_EXPORT_TMP_DIR[] = "tmp";
 
-std::string CreateExpireFileScanDir(const std::string& baseDir, const std::string& moduleName)
+std::string GetExpireFileScanDir(const std::string& baseDir, const std::string& moduleName)
 {
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(baseDir);
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(SYSEVENT_EXPORT_TMP_DIR));
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(moduleName));
-    if (!FileUtil::IsDirectory(dir) && !FileUtil::ForceCreateDirectory(dir)) {
+    if (!FileUtil::IsDirectory(dir)) {
         return "";
     }
     HIVIEW_LOGD("scan directory is %{public}s", dir.c_str());
@@ -51,7 +51,7 @@ void EventExpireTask::OnTaskRun()
     // start handler chain, try to scan expired event file
     auto scanReq = std::make_shared<EventScanRequest>();
     scanReq->moduleName = config_->moduleName;
-    scanReq->scanDir = CreateExpireFileScanDir(config_->exportDir, config_->moduleName);
+    scanReq->scanDir = GetExpireFileScanDir(config_->exportDir, config_->moduleName);
     scanReq->storedDayCnt = static_cast<uint8_t>(config_->dayCnt);
     if (!scanHandler->HandleRequest(scanReq)) {
         HIVIEW_LOGE("some error occured during event expring");
