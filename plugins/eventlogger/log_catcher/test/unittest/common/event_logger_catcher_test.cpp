@@ -43,6 +43,7 @@
 #include "parameter_ex.h"
 #endif // BINDER_CATCHER_ENABLE
 #ifdef USAGE_CATCHER_ENABLE
+#include "cpu_catcher.h"
 #include "cpu_core_info_catcher.h"
 #include "memory_catcher.h"
 #endif // USAGE_CATCHER_ENABLE
@@ -160,6 +161,46 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_002, TestSize.Level3)
     close(fd);
 }
 
+void LogTaskCapture(std::shared_ptr<SysEvent>& sysEvent, std::unique_ptr<EventLogTask> logTask, int fd)
+{
+#ifdef USAGE_CATCHER_ENABLE
+    logTask->DumpAppMapCapture();
+    logTask->WMSUsageCapture();
+    logTask->AMSUsageCapture();
+    logTask->PMSUsageCapture();
+    logTask->DPMSUsageCapture();
+    logTask->RSUsageCapture();
+    logTask->MemoryUsageCapture();
+    logTask->CpuUsageCapture(true);
+    logTask->CpuUsageCapture();
+    logTask->CpuCoreInfoCapture();
+#endif // USAGE_CATCHER_ENABLE
+#ifdef OTHER_CATCHER_ENABLE
+    logTask->Screenshot();
+    logTask->FfrtCapture();
+    logTask->DMSUsageCapture();
+    logTask->MMIUsageCapture();
+    logTask->EECStateCapture();
+    logTask->GECStateCapture();
+    logTask->UIStateCapture();
+#endif // OTHER_CATCHER_ENABLE
+
+#ifdef HITRACE_CATCHER_ENABLE
+    logTask->HitraceCapture(false);
+    sysEvent->eventName_ = "THREAD_BLOCK_6S";
+    sysEvent->SetValue("PROCESS_NAME", "EventloggerCatcherTest");
+    logTask->HitraceCapture(true);
+#endif // HITRACE_CATCHER_ENABLE
+    logTask->GetThermalInfoCapture();
+    logTask->AddLog("Test");
+    logTask->AddLog("cmd:w");
+    logTask->status_ = EventLogTask::Status::TASK_RUNNING;
+    auto ret = logTask->StartCompose();
+    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
+
+    close(fd);
+}
+
 /**
  * @tc.name: EventlogTask
  * @tc.desc: test EventlogTask
@@ -203,18 +244,6 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     logTask->SCBWMSEVTCapture();
 #endif // SCB_CATCHER_ENABLE
 
-#ifdef USAGE_CATCHER_ENABLE
-    logTask->DumpAppMapCapture();
-    logTask->WMSUsageCapture();
-    logTask->AMSUsageCapture();
-    logTask->PMSUsageCapture();
-    logTask->DPMSUsageCapture();
-    logTask->RSUsageCapture();
-    logTask->MemoryUsageCapture();
-    logTask->CpuUsageCapture();
-    logTask->CpuCoreInfoCapture();
-#endif // USAGE_CATCHER_ENABLE
-
 #ifdef DMESG_CATCHER_ENABLE
     logTask->DmesgCapture(0, 0);
     logTask->DmesgCapture(0, 1);
@@ -222,31 +251,7 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     logTask->DmesgCapture(0, 2);
     logTask->DmesgCapture(1, 2);
 #endif // DMESG_CATCHER_ENABLE
-
-#ifdef OTHER_CATCHER_ENABLE
-    logTask->Screenshot();
-    logTask->FfrtCapture();
-    logTask->DMSUsageCapture();
-    logTask->MMIUsageCapture();
-    logTask->EECStateCapture();
-    logTask->GECStateCapture();
-    logTask->UIStateCapture();
-#endif // OTHER_CATCHER_ENABLE
-
-#ifdef HITRACE_CATCHER_ENABLE
-    logTask->HitraceCapture(false);
-    sysEvent->eventName_ = "THREAD_BLOCK_6S";
-    sysEvent->SetValue("PROCESS_NAME", "EventloggerCatcherTest");
-    logTask->HitraceCapture(true);
-#endif // HITRACE_CATCHER_ENABLE
-    logTask->GetThermalInfoCapture();
-    logTask->AddLog("Test");
-    logTask->AddLog("cmd:w");
-    logTask->status_ = EventLogTask::Status::TASK_RUNNING;
-    auto ret = logTask->StartCompose();
-    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
-
-    close(fd);
+    LogTaskCapture(sysEvent, std::move(logTask), fd);
 }
 
 #ifdef STACKTRACE_CATCHER_ENABLE
@@ -1242,9 +1247,6 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level0)
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_AMS, pid);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
 
-    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_CPU, pid);
-    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
-
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_PMS, pid);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_DPMS, pid);
@@ -1547,7 +1549,7 @@ HWTEST_F(EventloggerCatcherTest, ThermalInfoCatcherTest_001, TestSize.Level1)
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherTest_001, TestSize.Level1)
 {
     auto fd = open("/data/test/summaryLogInfoFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -1587,6 +1589,68 @@ HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherCatcherTest_001, TestSize.
     logTask->faultTime_ = 0;
     logTask = std::make_unique<EventLogTask>(0, 0, sysEvent2);
     EXPECT_EQ(logTask->GetFaultTime(), sysEvent2->happenTime_ / 1000);
+}
+
+/**
+ * @tc.name: CpuCatcherTest_001
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, CpuCatcherTest_001, TestSize.Level1)
+{
+    auto fd = open("/data/test/cpuCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create cpuCatcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto cpuCatcher = std::make_shared<CpuCatcher>();
+    bool isNeedUpdate = true;
+    cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, -1);
+    cpuCatcher->Catch(fd, -1);
+
+    isNeedUpdate = false;
+    cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, -1);
+    cpuCatcher->Catch(fd, -1);
+
+    int cpuUsagePid = CommonUtils::GetPidByName("foundation");
+    if (cpuUsagePid > 0) {
+        isNeedUpdate = true;
+        cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, cpuUsagePid);
+        cpuCatcher->Catch(fd, -1);
+
+        isNeedUpdate = false;
+        cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, cpuUsagePid);
+        cpuCatcher->Catch(fd, -1);
+    }
+    close(fd);
+
+    bool loadExist = false;
+    bool usageExist = false;
+    bool totalExist = false;
+    bool detailsExist = false;
+
+    std::string line;
+    std::ifstream ifs("/data/test/cpuCatcherFile", std::ios::in);
+    if (ifs.is_open()) {
+        while (std::getline(ifs, line)) {
+            if (!loadExist && line.find("Load average:") != std::string::npos) {
+                loadExist = true;
+            } else if (!usageExist && line.find("CPU usage from") != std::string::npos) {
+                usageExist = true;
+            } else if (!totalExist && line.find("Total:") != std::string::npos) {
+                totalExist = true;
+            } else if (!detailsExist && line.find("Details of Processes:") != std::string::npos) {
+                detailsExist = true;
+                break;
+            }
+        }
+    }
+
+    EXPECT_TRUE(loadExist);
+    EXPECT_TRUE(usageExist);
+    EXPECT_TRUE(totalExist);
+    EXPECT_TRUE(detailsExist);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

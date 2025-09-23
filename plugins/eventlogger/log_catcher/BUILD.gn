@@ -88,6 +88,7 @@ ohos_source_set("log_catcher") {
 
   if (hiview_eventlogger_usage_catcher_enable) {
     sources += [
+      "cpu_catcher.cpp",
       "cpu_core_info_catcher.cpp",
       "memory_catcher.cpp",
     ]
