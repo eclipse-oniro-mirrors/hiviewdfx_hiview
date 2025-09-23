@@ -24,10 +24,11 @@ namespace OHOS {
 namespace HiviewDFX {
 class XperfDispatcher {
 public:
+    XperfDispatcher();
     ~XperfDispatcher();
-    void InitXperfDispatcher();
-    void DispatcherEventToMonitor(OhosXperfEvent* event);
-    OhosXperfEvent* DispatcherMsgToParser(int32_t domainId, int32_t eventId, const std::string& msg);
+
+    void DispatchEventToMonitor(OhosXperfEvent* event);
+    OhosXperfEvent* DispatchMsgToParser(int32_t domainId, int32_t eventId, const std::string& msg);
 
 private:
     EventParserManager* parserManager{nullptr};

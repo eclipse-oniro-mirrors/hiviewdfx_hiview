@@ -19,6 +19,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+XperfService::XperfService()
+{
+    dispatcher = new XperfDispatcher();
+}
 
 XperfService::~XperfService()
 {
@@ -34,21 +38,18 @@ XperfService& XperfService::GetInstance()
     return service;
 }
 
-void XperfService::InitXperfService()
-{
-    dispatcher = new XperfDispatcher();
-    dispatcher->InitXperfDispatcher();
-}
-
 void XperfService::DispatchMsg(int32_t domainId, int32_t eventId, const std::string& msg)
 {
-    OhosXperfEvent* event = dispatcher->DispatcherMsgToParser(domainId, eventId, msg);
-
+    if (dispatcher == nullptr) {
+        LOGE("XperfService dispatcher is nullptr");
+        return;
+    }
+    OhosXperfEvent* event = dispatcher->DispatchMsgToParser(domainId, eventId, msg);
     if (event == nullptr) {
         LOGE("Parser msg failed domainId:%{public}d eventId:%{public}d", domainId, eventId);
         return;
     }
-    dispatcher->DispatcherEventToMonitor(event);
+    dispatcher->DispatchEventToMonitor(event);
     if (event) {
         delete event;
         event = nullptr;
