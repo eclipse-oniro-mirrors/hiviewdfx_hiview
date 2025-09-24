@@ -62,7 +62,7 @@ std::string GetWroteTempDir(const std::string& moduleName, const EventVersion& v
     tmpDir = FileUtil::IncludeTrailingPathDelimiter(tmpDir.append(moduleName));
     tmpDir = FileUtil::IncludeTrailingPathDelimiter(tmpDir.append(version.systemVersion));
     if (!FileUtil::IsDirectory(tmpDir) && !FileUtil::ForceCreateDirectory(tmpDir)) {
-        HIVIEW_LOGE("failed to init directory %{public}s.", tmpDir.c_str());
+        HIVIEW_LOGE("failed to init temporary directory for json file to store");
         return "";
     }
     return tmpDir;
@@ -71,16 +71,12 @@ std::string GetWroteTempDir(const std::string& moduleName, const EventVersion& v
 std::string GetTmpZipFile(const std::string& exportDir, const std::string& moduleName,
     const EventVersion& version, int32_t uid)
 {
-    if (!FileUtil::FileExists(exportDir)) {
-        HIVIEW_LOGE("export directory isn't created");
-        return "";
-    }
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(SYSEVENT_EXPORT_TMP_DIR));
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(moduleName));
     dir = FileUtil::IncludeTrailingPathDelimiter(dir.append(version.systemVersion));
     if (!FileUtil::IsDirectory(dir) && !FileUtil::ForceCreateDirectory(dir)) {
-        HIVIEW_LOGE("failed to init directory %{public}s.", dir.c_str());
+        HIVIEW_LOGE("failed to init temporary directory for zip file to store");
         return "";
     }
     AppendZipFile(dir, uid);
@@ -90,11 +86,9 @@ std::string GetTmpZipFile(const std::string& exportDir, const std::string& modul
 bool ChangeFileModeAndGid(const std::string& file, mode_t mode, uint32_t gid)
 {
     if (!FileUtil::ChangeModeFile(file, mode)) {
-        HIVIEW_LOGE("failed to change file mode of %{public}s.", StringUtil::HideDeviceIdInfo(file).c_str());
         return false;
     }
     if (chown(file.c_str(), -1, gid) != 0) {
-        HIVIEW_LOGE("failed to change file owner of %{public}s.", StringUtil::HideDeviceIdInfo(file).c_str());
         return false;
     }
     return true;
@@ -102,10 +96,6 @@ bool ChangeFileModeAndGid(const std::string& file, mode_t mode, uint32_t gid)
 
 std::string GetZipFile(const std::string& exportDir, int32_t uid, std::string& zipFileName)
 {
-    if (!FileUtil::IsDirectory(exportDir)) {
-        HIVIEW_LOGE("export directory isn't created");
-        return "";
-    }
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
     dir.append(zipFileName);
     return dir;
@@ -130,7 +120,8 @@ void WriteContentToFile(std::string& content, const std::string& localFile)
 {
     FILE* file = fopen(localFile.c_str(), "w+");
     if (file == nullptr) {
-        HIVIEW_LOGE("failed to open file: %{public}s.", localFile.c_str());
+        HIVIEW_LOGE("failed to open file: %{public}s.",
+            StringUtil::HideDeviceIdInfo(FileUtil::ExtractFileName(localFile)).c_str());
         return;
     }
     (void)fprintf(file, "%s", content.c_str());
@@ -160,14 +151,13 @@ bool WriteZipFileStrategy::Write(std::string& exportContent, WroteCallback callb
     WriteContentToFile(exportContent, wroteFileName);
     // zip json file into a temporary zip file
     auto tmpZipFile = GetTmpZipFile(param_.exportDir, param_.moduleName, param_.version, param_.uid);
+    auto zipFileName = FileUtil::ExtractFileName(tmpZipFile);
     if (!ZipExportFile(wroteFileName, tmpZipFile)) {
-        HIVIEW_LOGE("failed to zip %{public}s to %{public}s", wroteFileName.c_str(),
-            StringUtil::HideDeviceIdInfo(tmpZipFile).c_str());
+        HIVIEW_LOGE("failed to zip %{public}s", StringUtil::HideDeviceIdInfo(zipFileName).c_str());
         return false;
     }
-    auto zipFileName = FileUtil::ExtractFileName(tmpZipFile);
     auto zipFile = GetZipFile(param_.exportDir, param_.uid, zipFileName);
-    HIVIEW_LOGD("dest file: %{public}s", StringUtil::HideDeviceIdInfo(zipFile).c_str());
+    HIVIEW_LOGD("dest file: %{public}s", StringUtil::HideDeviceIdInfo(zipFileName).c_str());
     callback(tmpZipFile, zipFile);
     return true;
 }

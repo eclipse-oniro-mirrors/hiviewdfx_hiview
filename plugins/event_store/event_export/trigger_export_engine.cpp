@@ -16,6 +16,7 @@
 #include "trigger_export_engine.h"
 
 #include "event_export_util.h"
+#include "export_dir_creator.h"
 #include "hiview_logger.h"
 #include "time_util.h"
 
@@ -69,6 +70,12 @@ TriggerExportEngine::TriggerExportEngine()
     HIVIEW_LOGI("total count of trigger config is %{public}zu", exportConfigs_.size());
     if (exportConfigs_.empty()) {
         return;
+    }
+
+    for (const auto& config : exportConfigs_) {
+        if (!ExportDirCreator::GetInstance().CreateExportDir(config->exportDir)) {
+            continue;
+        }
     }
 
     ffrt::submit([this] () {

@@ -108,10 +108,11 @@ void ExportEventPackager::HandlePackagedFiles()
     // move all temporary packaged file to dest directory
     std::for_each(packagedFiles_.begin(), packagedFiles_.end(), [] (const auto& item) {
         if (!FileUtil::RenameFile(item.first, item.second)) {
-            HIVIEW_LOGE("failed to move %{public}s to %{public}s", StringUtil::HideDeviceIdInfo(item.first).c_str(),
-                StringUtil::HideDeviceIdInfo(item.second).c_str());
+            HIVIEW_LOGE("failed to move %{public}s",
+                StringUtil::HideDeviceIdInfo(FileUtil::ExtractFileName(item.first)).c_str());
         } else {
-            HIVIEW_LOGI("renamed file: %{public}s", StringUtil::HideDeviceIdInfo(item.second).c_str());
+            HIVIEW_LOGI("renamed file: %{public}s",
+                StringUtil::HideDeviceIdInfo(FileUtil::ExtractFileName(item.second)).c_str());
         }
     });
     packagedFiles_.clear();

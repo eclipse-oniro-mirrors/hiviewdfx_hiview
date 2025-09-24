@@ -20,6 +20,7 @@
 #include "event_expire_task.h"
 #include "event_export_task.h"
 #include "event_export_util.h"
+#include "export_dir_creator.h"
 #include "ffrt.h"
 #include "ffrt_util.h"
 #include "file_util.h"
@@ -101,6 +102,11 @@ void EventExportEngine::InitAndRunTasks()
     std::vector<std::shared_ptr<ExportConfig>> configs;
     ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
     HIVIEW_LOGI("total count of periodic config is %{public}zu", configs.size());
+    for (const auto& config : configs) {
+        if (!ExportDirCreator::GetInstance().CreateExportDir(config->exportDir)) {
+            continue;
+        }
+    }
     for (const auto& config : configs) {
         auto task = std::bind(&EventExportEngine::InitAndRunTask, this, config);
         ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_event_export").qos(ffrt::qos_default));
