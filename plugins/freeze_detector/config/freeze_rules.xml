@@ -111,6 +111,16 @@
         </event>
       </links>
     </rule>
+    <rule id="10" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+          <result code="1" scope="sys"/>
+        </event>
+        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
+          <result code="1" delay="15" scope="sys" samePackage="true"/>
+        </event>
+      </links>
+    </rule>
   </rules>
   <rules resolver="AppResolver">
     <rule id="1" domain="ACE" stringid="UI_BLOCK_6S">	<!-- UI_BLOCK_6S -->
@@ -164,16 +174,6 @@
       <links type="watchpoint">
         <event window="0" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
           <result code="0" scope="app" samePackage="true"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="7" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
-      <links type="watchpoint">
-        <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
-          <result code="0" scope="app"/>
-        </event>
-        <event window="-30" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
-          <result code="0" delay="15" scope="app" samePackage="true"/>
         </event>
       </links>
     </rule>
