@@ -147,7 +147,7 @@ ohos_unittest("FaultloggerClientUnittest") {
 }
 
 ohos_unittest("AsanUnittest") {
-  module_out_path = module_output_path
+  module_out_path = "hiview/sanitizer_collector"
 
   configs = [ ":hiview_faultlogger_test_config" ]
 
