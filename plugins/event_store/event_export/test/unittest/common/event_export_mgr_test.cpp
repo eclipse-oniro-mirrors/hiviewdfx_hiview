@@ -19,6 +19,7 @@
 #include "event_export_engine.h"
 #include "event_export_task.h"
 #include "event_export_util.h"
+#include "export_dir_creator.h"
 #include "file_util.h"
 #include "hiview_global.h"
 #include "setting_observer_manager.h"
@@ -165,6 +166,21 @@ HWTEST_F(EventExportMgrTest, EventExportUtilTest001, testing::ext::TestSize.Leve
     ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
     exportConfig->taskType = 30; // 30 is a test task type
     ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+}
+
+/**
+ * @tc.name: ExportDirCreator001
+ * @tc.desc: Test apis of ExportDirCreator001
+ * @tc.type: FUNC
+ * @tc.require: issueICSFYS
+ */
+HWTEST_F(EventExportMgrTest, ExportDirCreator001, testing::ext::TestSize.Level3)
+{
+    EventExportMgrTestContext context;
+    HiviewGlobal::CreateInstance(context);
+    ASSERT_TRUE(ExportDirCreator::GetInstance().CreateExportDir("/data/test/"));
+    ASSERT_TRUE(ExportDirCreator::GetInstance().CreateExportDir("/data/service/el1/public|hiview_upload/"));
+    ASSERT_FALSE(ExportDirCreator::GetInstance().CreateExportDir("/data/service/el11/public|hiview_upload/"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS
