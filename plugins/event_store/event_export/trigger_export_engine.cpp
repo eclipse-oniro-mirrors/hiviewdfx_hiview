@@ -73,9 +73,7 @@ TriggerExportEngine::TriggerExportEngine()
     }
 
     for (const auto& config : exportConfigs_) {
-        if (!ExportDirCreator::GetInstance().CreateExportDir(config->exportDir)) {
-            continue;
-        }
+        (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
     }
 
     ffrt::submit([this] () {

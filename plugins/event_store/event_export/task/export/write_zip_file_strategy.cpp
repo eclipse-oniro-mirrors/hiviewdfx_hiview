@@ -86,9 +86,11 @@ std::string GetTmpZipFile(const std::string& exportDir, const std::string& modul
 bool ChangeFileModeAndGid(const std::string& file, mode_t mode, uint32_t gid)
 {
     if (!FileUtil::ChangeModeFile(file, mode)) {
+        HIVIEW_LOGE("failed to change file mode");
         return false;
     }
     if (chown(file.c_str(), -1, gid) != 0) {
+        HIVIEW_LOGE("failed to change file owner");
         return false;
     }
     return true;

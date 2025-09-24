@@ -103,9 +103,7 @@ void EventExportEngine::InitAndRunTasks()
     ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
     HIVIEW_LOGI("total count of periodic config is %{public}zu", configs.size());
     for (const auto& config : configs) {
-        if (!ExportDirCreator::GetInstance().CreateExportDir(config->exportDir)) {
-            continue;
-        }
+        (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
     }
     for (const auto& config : configs) {
         auto task = std::bind(&EventExportEngine::InitAndRunTask, this, config);

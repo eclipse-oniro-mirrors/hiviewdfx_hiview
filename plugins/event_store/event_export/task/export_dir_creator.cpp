@@ -31,9 +31,11 @@ constexpr uint32_t LOG_GID = 1007;
 bool ChangeDirModeAndGid(const std::string& dir, mode_t mode, uint32_t gid)
 {
     if (!FileUtil::ChangeModeFile(dir, mode)) {
+        HIVIEW_LOGE("failed to change file mode");
         return false;
     }
     if (chown(dir.c_str(), -1, gid) != 0) {
+        HIVIEW_LOGE("failed to change file owner");
         return false;
     }
     return true;
