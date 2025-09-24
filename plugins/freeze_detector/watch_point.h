@@ -48,6 +48,7 @@ public:
         Builder& InitProcStatm(const std::string& procStatm);
         Builder& InitHostResourceWarning(const std::string& hostResourceWarning);
         Builder& InitFreezeExtFile(const std::string& freezeExtFile);
+        Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
         WatchPoint Build() const;
 
     private:
@@ -72,6 +73,7 @@ public:
         std::string procStatm_;
         std::string hostResourceWarning_;
         std::string freezeExtFile_;
+        std::string appRunningUniqueId_;
         friend class WatchPoint;
     };
 
@@ -100,6 +102,7 @@ public:
     std::string GetProcStatm() const;
     std::string GetHostResourceWarning() const;
     std::string GetFreezeExtFile() const;
+    std::string GetAppRunningUniqueId() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -129,6 +132,7 @@ private:
     std::string procStatm_;
     std::string hostResourceWarning_;
     std::string freezeExtFile_;
+    std::string appRunningUniqueId_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

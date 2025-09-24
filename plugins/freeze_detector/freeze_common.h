@@ -48,6 +48,7 @@ public:
     static constexpr const char* PROC_STATM = "PROC_STATM";
     static constexpr const char* HOST_RESOURCE_WARNING = "HOST_RESOURCE_WARNING";
     static constexpr const char* FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
+    static constexpr const char* APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
 
     FreezeCommon();
     ~FreezeCommon();

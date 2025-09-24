@@ -110,6 +110,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.sectionMaps[FreezeCommon::TRACE_NAME] = watchPoint.GetTraceName();
     info.sectionMaps[FreezeCommon::PROC_STATM] = watchPoint.GetProcStatm();
     info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
+    info.sectionMaps[FreezeCommon::APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     AddFaultLog(info);
     return logPath;
 }
