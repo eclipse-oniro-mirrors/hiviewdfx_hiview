@@ -75,19 +75,19 @@ bool FaultLogInfoOhos::ReadString(Parcel& parcel, std::string strItem, std::stri
 
 sptr<FaultLogInfoOhos> FaultLogInfoOhos::Unmarshalling(Parcel& parcel)
 {
-    sptr<FaultLogInfoOhos> FaultLogInfo = new FaultLogInfoOhos();
+    sptr<FaultLogInfoOhos> infoOhos = new FaultLogInfoOhos();
 
-    if (!parcel.ReadInt64(FaultLogInfo->time) || !parcel.ReadInt32(FaultLogInfo->uid) ||
-        !parcel.ReadInt32(FaultLogInfo->pid) || !parcel.ReadInt32(FaultLogInfo->faultLogType) ||
-        !parcel.ReadUint32(FaultLogInfo->logFileCutoffSizeBytes)) {
+    if (!parcel.ReadInt64(infoOhos->time) || !parcel.ReadInt32(infoOhos->uid) ||
+        !parcel.ReadInt32(infoOhos->pid) || !parcel.ReadInt32(infoOhos->faultLogType) ||
+        !parcel.ReadUint32(infoOhos->logFileCutoffSizeBytes)) {
         HIVIEW_LOGE("Parcel failed to read int number.");
         return nullptr;
     }
-    if (!FaultLogInfoOhos::ReadString(parcel, "module", FaultLogInfo->module) ||
-        !FaultLogInfoOhos::ReadString(parcel, "reason", FaultLogInfo->reason) ||
-        !FaultLogInfoOhos::ReadString(parcel, "summary", FaultLogInfo->summary) ||
-        !FaultLogInfoOhos::ReadString(parcel, "logPath", FaultLogInfo->logPath) ||
-        !FaultLogInfoOhos::ReadString(parcel, "registers", FaultLogInfo->registers)) {
+    if (!FaultLogInfoOhos::ReadString(parcel, "module", infoOhos->module) ||
+        !FaultLogInfoOhos::ReadString(parcel, "reason", infoOhos->reason) ||
+        !FaultLogInfoOhos::ReadString(parcel, "summary", infoOhos->summary) ||
+        !FaultLogInfoOhos::ReadString(parcel, "logPath", infoOhos->logPath) ||
+        !FaultLogInfoOhos::ReadString(parcel, "registers", infoOhos->registers)) {
         return nullptr;
     }
 
@@ -107,10 +107,10 @@ sptr<FaultLogInfoOhos> FaultLogInfoOhos::Unmarshalling(Parcel& parcel)
             HIVIEW_LOGE("Parcel failed to read value of sectionMaps(%{public}s).", value.c_str());
             return nullptr;
         }
-        FaultLogInfo->sectionMaps[key] = value;
+        infoOhos->sectionMaps[key] = value;
     }
 
-    return FaultLogInfo;
+    return infoOhos;
 }
 }  // namespace hiview
 }  // namespace OHOS
