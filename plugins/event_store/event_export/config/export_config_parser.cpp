@@ -72,7 +72,7 @@ void RebuildExportDir(std::shared_ptr<ExportConfig> config, bool appendTaskType)
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir);
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append("sys_event_export"));
     if (!appendTaskType) {
-        HIVIEW_LOGI("no need to rebuild export dir: %{public}s", config->exportDir.c_str());
+        HIVIEW_LOGI("no need to rebuild export directory");
         return;
     }
     std::string dirSuffix("0");
@@ -80,7 +80,7 @@ void RebuildExportDir(std::shared_ptr<ExportConfig> config, bool appendTaskType)
         dirSuffix = std::to_string(config->taskType);
     }
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(dirSuffix));
-    HIVIEW_LOGI("rebuild export dir to %{public}s", config->exportDir.c_str());
+    HIVIEW_LOGI("append suffix:%{public}s to export directory", dirSuffix.c_str());
 }
 }
 

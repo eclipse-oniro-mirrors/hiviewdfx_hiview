@@ -875,7 +875,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
     ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
     ASSERT_EQ(wp1->GetHostResourceWarning(), "Yes");
-    ASSERT_EQ(wp1->GetAppRunningUniqueId("20250924"));
+    ASSERT_EQ(wp1->GetAppRunningUniqueId(), "20250924");
 }
 
 /**

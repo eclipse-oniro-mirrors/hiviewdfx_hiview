@@ -138,7 +138,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitTerminalThreadStack(terminalThreadStack).InitTelemetryId(telemetryId).InitTraceName(traceName)
         .InitPackageName(packageName).InitProcessName(processName).InitForeGround(foreGround).InitMsg("")
         .InitLogPath(logFile).InitHitraceTime(hitraceTime).InitSysrqTime(sysrqTime).InitHitraceIdInfo(hitraceIdInfo)
-        .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).InitFreezeExtFile(freezeExtFile).
+        .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).InitFreezeExtFile(freezeExtFile)
         .InitAppRunningUniqueId(appRunningUniqueId).Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"

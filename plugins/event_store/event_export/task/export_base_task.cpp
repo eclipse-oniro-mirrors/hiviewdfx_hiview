@@ -15,10 +15,15 @@
 
 #include "export_base_task.h"
 
+#include "export_dir_creator.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 void ExportBaseTask::Run()
 {
+    if (config_ == nullptr || !ExportDirCreator::GetInstance().CreateExportDir(config_->exportDir)) {
+        return;
+    }
     OnTaskRun();
 }
 } // HiviewDFX
