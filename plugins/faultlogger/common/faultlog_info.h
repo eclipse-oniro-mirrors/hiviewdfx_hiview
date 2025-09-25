@@ -29,6 +29,7 @@ struct FaultLogInfo {
     int32_t faultLogType {0};
     int32_t fd = {-1};
     uint32_t logFileCutoffSizeBytes {0};
+    int32_t deviceMode {0};
     std::string module;
     std::string reason;
     std::string summary;

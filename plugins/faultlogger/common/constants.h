@@ -73,6 +73,7 @@ constexpr const char * const TRACE_NAME = "TRACE_NAME";
 constexpr const char * const PROC_STATM = "PROC_STATM";
 constexpr const char * const FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
 constexpr const char * const PAGE_SWITCH_HISTORY = "PAGE_SWITCH_HISTORY";
+constexpr const char * const DEVICE_MODE = "DEVICE_MODE";
 const char * const LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
 const char * const STACK = "STACK";
 const char * const PACKAGE_NAME = "PACKAGE_NAME";
