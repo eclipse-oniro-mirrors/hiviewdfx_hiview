@@ -52,6 +52,25 @@ ohos_source_set("faultlog_extservice_zidl_stub") {
   subsystem_name = "hiviewdfx"
 }
 
+ohos_source_set("faultlog_ext_zidl_proxy_for_test") {
+  public_configs = [ ":faultlog_ext_public_config" ]
+  output_values = get_target_outputs(":faultlog_ext_interface")
+  sources = filter_include(output_values, [ "*_proxy.cpp" ])
+  deps = [
+    ":faultlog_ext_interface",
+    "$hiview_base:hiviewbase",
+  ]
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+  ]
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
 ohos_source_set("faultlog_ext_zidl_proxy") {
   branch_protector_ret = "pac_ret"
   sanitize = {
