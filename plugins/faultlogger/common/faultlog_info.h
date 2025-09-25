@@ -29,8 +29,6 @@ struct FaultLogInfo {
     int32_t faultLogType {0};
     int32_t fd = {-1};
     uint32_t logFileCutoffSizeBytes {0};
-    // 设备模式，0：初始值；16：正常模式；32：极限续航；64：户外模式；
-    int32_t deviceMode {0};
     std::string module;
     std::string reason;
     std::string summary;
