@@ -115,6 +115,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     long tid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_TID);
     long uid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_UID);
     uid = uid ? uid : sysEvent.GetUid();
+    std::string appRunningUniqueId = sysEvent.GetEventValue(FreezeCommon::APP_RUNNING_UNIQUE_ID);
     std::string packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     std::string processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
     std::string hitraceTime = sysEvent.GetEventValue(FreezeCommon::HITRACE_TIME);
@@ -137,12 +138,14 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitTerminalThreadStack(terminalThreadStack).InitTelemetryId(telemetryId).InitTraceName(traceName)
         .InitPackageName(packageName).InitProcessName(processName).InitForeGround(foreGround).InitMsg("")
         .InitLogPath(logFile).InitHitraceTime(hitraceTime).InitSysrqTime(sysrqTime).InitHitraceIdInfo(hitraceIdInfo)
-        .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).InitFreezeExtFile(freezeExtFile).Build();
+        .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).InitFreezeExtFile(freezeExtFile)
+        .InitAppRunningUniqueId(appRunningUniqueId).Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
-        "procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s",
-        event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq, packageName.c_str(), processName.c_str(),
-        logFile.c_str(), hitraceIdInfo.c_str(), procStatm.c_str(), hostResourceWarning.c_str(), freezeExtFile.c_str());
+        " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
+        " appRunningUniqueId=%{public}s", event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq,
+        packageName.c_str(), processName.c_str(), logFile.c_str(), hitraceIdInfo.c_str(), procStatm.c_str(),
+        hostResourceWarning.c_str(), freezeExtFile.c_str(), appRunningUniqueId.c_str());
     return watchPoint;
 }
 
