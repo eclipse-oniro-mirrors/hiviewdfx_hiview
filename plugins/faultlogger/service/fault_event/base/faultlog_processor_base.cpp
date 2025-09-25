@@ -256,7 +256,7 @@ void FaultLogProcessorBase::PrintFaultLogInfo(const FaultLogInfo& info)
 void FaultLogProcessorBase::AddDeviceMode(FaultLogInfo& info)
 {
     auto deviceMode = system::GetIntParameter("persist.phone_focus.mode.status", 0);
-    info.deviceMode = static_cast<int32_t>(deviceMode);
+    info.sectionMap[FaultKey::DEVICE_MODE] = std::to_string(deviceMode);
 }
 
 std::string FaultLogProcessorBase::ReadLogFile(const std::string& logPath) const
