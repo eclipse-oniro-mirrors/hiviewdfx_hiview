@@ -132,6 +132,8 @@ public:
         UsageStatInfo modemEnergy;
         UsageStatInfo romEnergy;
         UsageStatInfo wifiEnergy;
+        UsageStatInfo sensorEnergy;
+        UsageStatInfo gpsEnergy;
         UsageStatInfo othersEnergy;
     };
 

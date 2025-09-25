@@ -260,6 +260,10 @@ int AppEventHandler::PostEvent(const BatteryUsageInfo& event)
     AddVectorToJsonString("rom_background_energy", event.romEnergy.bgUsages, jsonStr);
     AddVectorToJsonString("wifi_foreground_energy", event.wifiEnergy.fgUsages, jsonStr);
     AddVectorToJsonString("wifi_background_energy", event.wifiEnergy.bgUsages, jsonStr);
+    AddVectorToJsonString("sensor_foreground_energy", event.sensorEnergy.fgUsages, jsonStr);
+    AddVectorToJsonString("sensor_background_energy", event.sensorEnergy.bgUsages, jsonStr);
+    AddVectorToJsonString("gps_foreground_energy", event.gpsEnergy.fgUsages, jsonStr);
+    AddVectorToJsonString("gps_background_energy", event.gpsEnergy.bgUsages, jsonStr);
     AddVectorToJsonString("others_foreground_energy", event.othersEnergy.fgUsages, jsonStr);
     AddVectorToJsonString("others_background_energy", event.othersEnergy.bgUsages, jsonStr, true);
     jsonStr << std::endl;
