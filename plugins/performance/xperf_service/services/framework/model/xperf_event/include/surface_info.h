@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef XPERF_EVENT_REPORTER_H
-#define XPERF_EVENT_REPORTER_H
+#ifndef SURFACE_INFO_H
+#define SURFACE_INFO_H
 
-#include <string>
+#include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-constexpr char ACE_DOMAIN[] = "ACE";
-constexpr char PERFORMANCE_DOMAIN[] = "PERFORMANCE";
-
-class XperfEventReporter {
-public:
-    explicit XperfEventReporter();
-    ~XperfEventReporter();
-
-    static void Report(const char* domain, const OHOS::HiviewDFX::XperfEvent& event);
+struct SurfaceInfo : public OhosXperfEvent {
+    int32_t pid{0};
+    int64_t uniqueId{0};
+    std::string bundleName;
+    std::string surfaceName;
 };
-}
-}
-#endif //XPERF_EVENT_REPORTER_H
+
+} // namespace HiviewDFX
+} // namespace OHOS
+#endif

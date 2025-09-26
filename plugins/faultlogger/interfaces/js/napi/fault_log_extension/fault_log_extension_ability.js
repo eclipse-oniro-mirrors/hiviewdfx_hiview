@@ -21,8 +21,8 @@ class FaultLogExtensionAbility extends ExtensionAbility {
     onConnect() {
         console.log('onConnect');
     }
-    onDisConnect() {
-        console.log('onDisConnect');
+    onDisconnect() {
+        console.log('onDisconnect');
     }
 }
 

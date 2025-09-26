@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2025-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("../xperf_service.gni")
+import("//base/hiviewdfx/hiview/hiview.gni")
 
 config("xperfservice_server_config") {
   include_dirs = [
@@ -30,7 +31,6 @@ config("xperfservice_server_config") {
     "framework/model/xperf_record/include",
     "framework/model/xperf_report",
     "framework/xperf_reporter/include",
-    "framework/event_builder",
   ]
 }
 
@@ -42,12 +42,9 @@ ohos_shared_library("xperfservice_server") {
     "common/src/perf_trace.cpp",
     "core/src/xperf_service.cpp",
     "core/src/xperf_register_manager.cpp",
-    "framework/event_builder/xperf_event_builder.cpp",
-    "framework/event_builder/xperf_event_reporter.cpp",
-    "framework/task_manager/src/queue_task_manager.cpp",
 
-    "framework/xperf_dispatcher/src/register_xperf_monitor.cpp",
-    "framework/xperf_dispatcher/src/register_xperf_parser.cpp",
+    "framework/xperf_dispatcher/src/xperf_monitor_manager.cpp",
+    "framework/xperf_dispatcher/src/event_parser_manager.cpp",
     "framework/xperf_dispatcher/src/xperf_dispatcher.cpp",
 
     "framework/xperf_monitor/src/video_jank_monitor.cpp",
@@ -65,7 +62,10 @@ ohos_shared_library("xperfservice_server") {
     "xperf_service_interfaces.cpp",
   ]
 
-  deps = [ "${xperfservice_interfaces}/inner_api/xperfservice_client:xperfservice_stub" ]
+  deps = [
+        "${xperfservice_interfaces}/inner_api/xperfservice_client:xperfservice_stub",
+        "$hiview_base:hiviewbase"
+    ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
@@ -79,6 +79,7 @@ ohos_shared_library("xperfservice_server") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "hisysevent:libhisysevent",
+    "hicollie:libhicollie",
   ]
 
   defines = []

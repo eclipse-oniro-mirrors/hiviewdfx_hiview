@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,27 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef HIVIEW_BASE_XCOLLIE_TIMER_H
+#define HIVIEW_BASE_XCOLLIE_TIMER_H
 
-#ifndef REGISTER_XPERF_PARSER_H
-#define REGISTER_XPERF_PARSER_H
-
-#include <map>
-#include "xperf_service_log.h"
-#include "xperf_event.h"
+#include <string>
 
 namespace OHOS {
 namespace HiviewDFX {
-using ParserXperfFunc = OhosXperfEvent* (*)(const std::string&);
-class RegisterParser {
+constexpr unsigned int APP_CALLING_TIMEOUT = 10; // 10s
+constexpr unsigned int SYS_CALLING_TIMEOUT = 60; // 60s
+
+class HiviewXCollieTimer {
 public:
-    void RegisterParserByLogID(int32_t logId, ParserXperfFunc func);
-    std::map<int32_t, ParserXperfFunc> RegisterXperfParser();
-    void RegisterAudioParser();
-    void RegisterVideoParser();
+    HiviewXCollieTimer(const std::string& name, unsigned int timeout);
+    ~HiviewXCollieTimer();
+    HiviewXCollieTimer(const HiviewXCollieTimer&) = delete;
+    HiviewXCollieTimer& operator=(const HiviewXCollieTimer&) = delete;
+
 private:
-    std::map<int32_t, ParserXperfFunc> parsers;
+    int id_ = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-
-#endif
+#endif // HIVIEW_BASE_XCOLLIE_TIMER_H

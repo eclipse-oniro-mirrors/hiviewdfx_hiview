@@ -13,31 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef QUEUE_TASK_MANAGER_H
-#define QUEUE_TASK_MANAGER_H
+#ifndef XPERF_MONITOR_MANAGER_H
+#define XPERF_MONITOR_MANAGER_H
 
-#include "ffrt.h"
-#include "xperf_service_log.h"
-#include "xperf_event.h"
-#include "xperf_dispatcher.h"
+#include <map>
+#include "xperf_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class QueueTaskManager {
+class XperfMonitorManager {
 public:
-    QueueTaskManager(XperfDispatcher* dispatcher);
-    ~QueueTaskManager();
-    void TaskRunnerLoop();
-    void TaskRunnerOnce(OhosXperfEvent* event);
-    void SendTask(OhosXperfEvent* event);
+    XperfMonitorManager();
+    std::vector<XperfMonitor*> GetMonitors(int32_t logId);
+
 private:
-    ffrt::queue mTaskQueue;
-    std::shared_ptr<ffrt::task_handle> mCurrentQueueTask;
-    ffrt::mutex mMutex;
-    std::vector<OhosXperfEvent*> eventTasks;
-    XperfDispatcher* dispatcher{nullptr};
-private:
-    void RunTasks();
+    std::map<int32_t, std::vector<XperfMonitor*>> dispatchers;
+
+    void RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor);
+    void InitPlayStateMonitor();
+    void InitVideoMonitor();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

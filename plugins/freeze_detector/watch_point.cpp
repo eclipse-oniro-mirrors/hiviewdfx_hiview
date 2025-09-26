@@ -21,7 +21,8 @@ namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_("")
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    freezeExtFile_(""), appRunningUniqueId_("")
 {
 }
 
@@ -46,14 +47,15 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     hitraceIdInfo_(builder.hitraceIdInfo_),
     procStatm_(builder.procStatm_),
     hostResourceWarning_(builder.hostResourceWarning_),
-    freezeExtFile_(builder.freezeExtFile_)
+    freezeExtFile_(builder.freezeExtFile_),
+    appRunningUniqueId_(builder.appRunningUniqueId_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_("")
+    freezeExtFile_(""), appRunningUniqueId_("")
 {
 }
 
@@ -185,6 +187,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitFreezeExtFile(const std::string& f
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::string& appRunningUniqueId)
+{
+    appRunningUniqueId_ = appRunningUniqueId;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -294,6 +302,11 @@ std::string WatchPoint::GetHostResourceWarning() const
 std::string WatchPoint::GetFreezeExtFile() const
 {
     return freezeExtFile_;
+}
+
+std::string WatchPoint::GetAppRunningUniqueId() const
+{
+    return appRunningUniqueId_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

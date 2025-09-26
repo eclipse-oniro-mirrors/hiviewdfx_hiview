@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef OHOS_HIVIEWDFX_XPERFSERVICESERVER_H
-#define OHOS_HIVIEWDFX_XPERFSERVICESERVER_H
+#ifndef OHOS_HIVIEW_DFX_XPERF_SERVICE_SERVER_H
+#define OHOS_HIVIEW_DFX_XPERF_SERVICE_SERVER_H
 
 #include "singleton.h"
 #include "xperf_service_stub.h"
@@ -30,31 +29,19 @@ DECLARE_SYSTEM_ABILITY(XperfServiceServer);
 DECLARE_DELAYED_SINGLETON(XperfServiceServer);
 
 public:
-    virtual ErrCode NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg) override;
-
-    virtual int32_t RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb) override;
-    virtual int32_t UnregisterVideoJank(const std::string& caller) override;
-
-    virtual int32_t RegisterAudioJank(const std::string& caller, const sptr<IAudioJankCallback>& cb) override;
-    virtual int32_t UnregisterAudioJank(const std::string& caller) override;
-
-    int32_t Dump(int32_t fd, const std::vector<std::u16string>& args) override;
-
-    void Start();
-
-public:
     XperfServiceServer(int32_t systemAbilityId, bool runOnCreate);
 
-protected:
-    void OnStart() override;
-    void OnStop() override;
+    ErrCode NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg) override;
 
-private:
-    XperfService xperfService;
+    int32_t RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb) override;
+    int32_t UnregisterVideoJank(const std::string& caller) override;
 
-    bool AllowDump();
+    int32_t RegisterAudioJank(const std::string& caller, const sptr<IAudioJankCallback>& cb) override;
+    int32_t UnregisterAudioJank(const std::string& caller) override;
+
+    void Start();
 };
-} // namespace HiviewDFX
-} // namespace OHOS
+}
+}
 
 #endif

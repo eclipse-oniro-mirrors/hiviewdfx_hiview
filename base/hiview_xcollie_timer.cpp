@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_HIVIEWDFX_REGISTER_XPERF_MONITOR_H
-#define OHOS_HIVIEWDFX_REGISTER_XPERF_MONITOR_H
+#include "hiview_xcollie_timer.h"
 
-#include <map>
-#include "xperf_monitor.h"
+#include "xcollie/xcollie.h"
+#include "xcollie/xcollie_define.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class RegisterMonitor {
-public:
-    std::map<int32_t, std::vector<XperfMonitor*>> RegisterXperfMonitor();
-    void RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor);
-    void InitPlayStateMonitor();
-    void RegisterVideoMonitor();
-    XperfMonitor* MakeVideoMonitor();
-private:
-    std::map<int32_t, std::vector<XperfMonitor*>> dispatchers;
-};
+HiviewXCollieTimer::HiviewXCollieTimer(const std::string& name, unsigned int timeout)
+{
+    id_ = XCollie::GetInstance().SetTimer("dft:" + name, timeout,
+        nullptr, nullptr, XCOLLIE_FLAG_LOG | XCOLLIE_FLAG_RECOVERY);
+}
+
+HiviewXCollieTimer::~HiviewXCollieTimer()
+{
+    XCollie::GetInstance().CancelTimer(id_);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
-
-#endif

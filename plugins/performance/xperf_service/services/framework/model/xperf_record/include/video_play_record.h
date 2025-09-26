@@ -22,33 +22,17 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class VideoPlayRecord {
-public:
-    int32_t pid{0};
-    int64_t audioUniqueId{0};
-    std::string audioBundleName;
-    int64_t audioHappenTime{0};
+struct VideoPlayRecord {
     int16_t audioStatus{-1};
+    int16_t fps{0};
+    int32_t pid{0};
+    int32_t reportInterval{0};
+    int64_t audioUniqueId{0};
+    int64_t audioHappenTime{0};
     int64_t codecUniqueId{0};
+    std::string audioBundleName;
     std::string codecBundleName;
     std::string surfaceName;
-    int16_t fps{0};
-    int32_t reportInterval{0};
-
-    std::string toString()
-    {
-        std::string str = "pid:" + std::to_string(pid)
-                +" audioUniqueId:"+std::to_string(audioUniqueId)
-                +" audioBundleName:"+audioBundleName
-                +" audioHappenTime:"+std::to_string(audioHappenTime)
-                +" audioStatus:"+std::to_string(audioStatus)
-                +" codecUniqueId:"+std::to_string(codecUniqueId)
-                +" codecBundleName:"+codecBundleName
-                +" surfaceName:"+surfaceName
-                +" fps:"+std::to_string(fps)
-                +" reportInterval:"+std::to_string(reportInterval);
-        return str;
-    }
 };
 } // namespace HiviewDFX
 } // namespace OHOS

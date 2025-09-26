@@ -154,7 +154,7 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest003, testing::ext::TestSize.Level1)
  * @tc.desc: Test calling WriteSanitizerLog Func
  * @tc.type: FUNC
  */
-HWTEST_F(AsanUnittest, WriteSanitizerLogTest004, testing::ext::TestSize.Level1)
+HWTEST_F(AsanUnittest, WriteSanitizerLogTest004, testing::ext::TestSize.Level0)
 {
     ClearAllLogs("/data/log/faultlog/faultlogger/");
     char hwasanBuf[] =

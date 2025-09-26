@@ -57,6 +57,7 @@ void EventPublishTest::TearDownTestCase()
 }
 }
 
+#ifdef APPEVENT_PUBLISH_ENABLE
 /**
  * @tc.name: EventPublishTest001
  * @tc.desc: used to test PushEvent with invalid param
@@ -406,12 +407,16 @@ HWTEST_F(EventPublishTest, EventPublishTest010, TestSize.Level1)
 
         std::string filePath = "/data/unittest_eventpublishtest010.txt";
         std::vector<std::string> lines;
-        if (FileUtil::LoadLinesFromFile(filePath, lines)) {
-            for (const auto& line : lines) {
-                EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, line);
-                sleep(2 * DELAY_TIME_FOR_WRITE);
-                EXPECT_GT(FileUtil::GetFolderSize(TEST_EXTERNAL_LOG_PATH), 0);
-            }
+        int srcSize = FileUtil::GetFolderSize(TEST_EXTERNAL_LOG_PATH);
+        if (FileUtil::LoadLinesFromFile(filePath, lines) && lines.size() == 2) {
+            EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, lines[0]);
+            sleep(2 * DELAY_TIME_FOR_WRITE);
+            int curSize = FileUtil::GetFolderSize(TEST_EXTERNAL_LOG_PATH);  // Normal
+            EXPECT_GT(curSize, srcSize);
+
+            EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH", HiSysEvent::EventType::FAULT, lines[1]);
+            sleep(2 * DELAY_TIME_FOR_WRITE);
+            EXPECT_EQ(FileUtil::GetFolderSize(TEST_EXTERNAL_LOG_PATH), curSize);  // path is illegal
         }
     }
 }
@@ -439,3 +444,25 @@ HWTEST_F(EventPublishTest, AppEventPublisherFactoryTest001, TestSize.Level1)
     AppEventPublisherFactory::RegisterPublisher(invalidName);
     ASSERT_FALSE(AppEventPublisherFactory::IsPublisher(invalidName));
 }
+#else // feature not supported
+/**
+ * @tc.name: app event publish unable Test001
+ * @tc.desc: used to test app event publish when appevent publish is unable
+ * @tc.type: FUNC
+*/
+HWTEST_F(EventPublishTest, EventPublishTest001, TestSize.Level0)
+{
+    ElapsedTime elapsedTime;
+    ElapsedTime elapsedTime2(60, "testPrintContent");
+    elapsedTime2.MarkElapsedTime("testMarkComtent");
+ 
+    AppEventPublisherFactory::RegisterPublisher("testName");
+    AppEventPublisherFactory::UnRegisterPublisher("testName");
+    ASSERT_FALSE(AppEventPublisherFactory::IsPublisher("testName"));
+ 
+    EventPublish::GetInstance().PushEvent(0, "eventName", HiSysEvent::EventType::FAULT, "testInfo");
+    ASSERT_FALSE(EventPublish::GetInstance().IsAppListenedEvent(0, "eventName"));
+ 
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(0, "pathHolder", "eventName");
+}
+#endif

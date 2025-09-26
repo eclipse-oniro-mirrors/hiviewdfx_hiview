@@ -27,17 +27,16 @@ const std::string TAG_BUNDLE_NAME = "#BUNDLE_NAME:";
 const std::string TAG_STATUS = "#STATUS:";
 const std::string TAG_SURFACE_NAME = "#SURFACE_NAME:";
 const std::string TAG_FPS = "#FPS:";
-const std::string REPORT_INTERVAL_TAG = "#REPORT_INTERVAL:";
+const std::string TAG_REPORT_INTERVAL = "#REPORT_INTERVAL:";
 const std::string TAG_HAPPEN_TIME = "#HAPPEN_TIME:";
 const std::string TAG_FAULT_ID = "#FAULT_ID:";
 const std::string TAG_FAULT_CODE = "#FAULT_CODE:";
 const std::string TAG_MAX_FRAME_TIME = "#MAX_FRAME_TIME:";
 const std::string TAG_DURATION = "#DURATION:";
 const std::string TAG_AVG_FPS = "#AVG_FPS:";
+const std::string TAG_JANK_REASON = "#JANK_REASON:";
 
-int32_t ConvertIntoLogId(int16_t domainId, int16_t eventId);
-
-bool ScreemExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,
+bool ExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,
     const std::string& nextTag);
 
 void ExtractStrToLong(const std::string &msg, int64_t &result, const std::string &preTag,
@@ -50,7 +49,7 @@ void ExtractStrToInt16(const std::string &msg, int16_t &result, const std::strin
     const std::string &nextTag, int16_t defaultValue);
  
 void ExtractStrToStr(const std::string &msg, std::string &result,
-    const std::string &preTag, const std::string &nextTag, std::string defaultValue);
+    const std::string &preTag, const std::string &nextTag, const std::string& defaultValue);
 
 } // namespace HiviewDFX
 } // namespace OHOS

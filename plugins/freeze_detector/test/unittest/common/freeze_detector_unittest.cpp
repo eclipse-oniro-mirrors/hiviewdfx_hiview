@@ -442,6 +442,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitStringId("THREAD_BLOCK_3S")
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .InitProcessName("foundation")
+        .InitForeGround("No")
         .Build();
     std::vector<WatchPoint> list;
     list.push_back(watchPoint);
@@ -459,6 +460,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitStringId("SERVICE_WARNING")
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .InitProcessName("foundation")
+        .InitForeGround("No")
         .Build();
     list.push_back(watchPoint1);
     ASSERT_TRUE(vendor->MergeEventLog(watchPoint1, list, result).empty());
@@ -468,6 +470,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitStringId("SERVICE_WARNING")
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .InitProcessName("FreezeVender_012")
+        .InitForeGround("Yes")
         .Build();
     list.push_back(watchPoint2);
     ASSERT_TRUE(vendor->MergeEventLog(watchPoint2, list, result).empty());
@@ -852,6 +855,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitHitraceIdInfo("hitraceId: 123")
         .InitProcStatm("123 45 678")
         .InitHostResourceWarning("Yes")
+        .InitAppRunningUniqueId("20250924")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
@@ -860,6 +864,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
     ASSERT_EQ(wp1->GetTraceName(), "traceNameTest");
     ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
     ASSERT_EQ(wp1->GetHostResourceWarning(), "Yes");
+    ASSERT_EQ(wp1->GetAppRunningUniqueId(), "20250924");
 }
 
 /**

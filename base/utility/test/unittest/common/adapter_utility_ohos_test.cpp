@@ -453,6 +453,46 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest014, testing::ext::TestSize.Lev
 }
 
 /**
+ * @tc.name: FileUtilOhosTest015
+ * @tc.desc: Test ForceCreateDirectory in namespace FileUtil
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest015, testing::ext::TestSize.Level3)
+{
+    std::string normalDir = "/data/test/ForceCreateDirectory/";
+    ASSERT_TRUE(FileUtil::ForceCreateDirectory(normalDir));
+    ASSERT_TRUE(FileUtil::FileExists(normalDir));
+    ASSERT_TRUE(FileUtil::ForceRemoveDirectory(normalDir));
+
+    normalDir = "/data/app/el1/ForceCreateDirectory/";
+    ASSERT_TRUE(FileUtil::ForceCreateDirectory(normalDir));
+    ASSERT_TRUE(FileUtil::FileExists(normalDir));
+    ASSERT_TRUE(FileUtil::ForceRemoveDirectory(normalDir));
+}
+
+/**
+ * @tc.name: FileUtilOhosTest016
+ * @tc.desc: Test IsKeyDirectory in namespace FileUtil
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest016, testing::ext::TestSize.Level3)
+{
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/app/"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/app/el1/"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/app/el1/100/"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/service"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/service/el1"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/service/el1/100"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/chipset/"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/chipset/el1/"));
+    ASSERT_TRUE(FileUtil::IsKeyDirectory("/data/chipset/el1/100/"));
+
+    ASSERT_FALSE(FileUtil::IsKeyDirectory("/data/app/test"));
+    ASSERT_FALSE(FileUtil::IsKeyDirectory("/data/test/test"));
+}
+
+/**
  * @tc.name: AshMemoryUtilsOhosTest001
  * @tc.desc: Test AshMemoryUtil
  * @tc.type: FUNC

@@ -22,14 +22,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-class VideoXperfEvent : public OhosXperfEvent {
-public:
+struct VideoXperfEvent : public OhosXperfEvent {
+    int16_t faultId{0};
+    int16_t faultCode{0};
     int16_t freshRate{0};
     int32_t reportInterval{0};
     int64_t uniqueId{0};
     std::string surfaceName;
-    int16_t faultId{0};
-    int16_t faultCode{0};
 };
 
 } // namespace HiviewDFX

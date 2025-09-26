@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +25,7 @@ namespace HiviewDFX {
 // "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
 OhosXperfEvent* ParseNetworkFaultMsg(const std::string& msg)
 {
-    NetworkJankEvent* event = new (std::nothrow) NetworkJankEvent();
+    NetworkJankEvent* event = new NetworkJankEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_PID, 0);
     ExtractStrToInt(msg, event->appPid, TAG_PID, TAG_BUNDLE_NAME, 0);
     ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_FAULT_ID, "NA");

@@ -117,9 +117,6 @@ int ShellCatcher::DoUsageCatcher(int writeFd)
         case CATCHER_WMS:
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "WindowManagerService", "-a", "-a", nullptr);
             break;
-        case CATCHER_CPU:
-            ret = execl("/system/bin/hidumper", "hidumper", "--cpuusage", nullptr);
-            break;
         case CATCHER_PMS:
             ret = execl("/system/bin/hidumper", "hidumper", "-s", "PowerManagerService", "-a", "-s", nullptr);
             break;

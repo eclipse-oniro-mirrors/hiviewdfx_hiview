@@ -18,10 +18,6 @@ config("hiview_event_publish_config") {
   visibility = [ "*:*" ]
 
   include_dirs = [ "include" ]
-
-  if (hiview_appevent_publish_enable) {
-    defines = [ "APPEVENT_PUBLISH_ENABLE" ]
-  }
 }
 
 ohos_source_set("hiview_event_publish") {
@@ -33,17 +29,18 @@ ohos_source_set("hiview_event_publish") {
     "jsoncpp:jsoncpp",
   ]
 
-  sources = [
-    "app_event_elapsed_time.cpp",
-    "app_event_handler.cpp",
-    "app_event_publisher_factory.cpp",
-    "event_publish.cpp",
-  ]
+  sources = []
 
   deps = [ "$hiview_base:logger" ]
 
   if (hiview_appevent_publish_enable) {
-    sources += [ "user_data_size_reporter.cpp" ]
+    sources += [
+      "app_event_elapsed_time.cpp",
+      "app_event_handler.cpp",
+      "app_event_publisher_factory.cpp",
+      "event_publish.cpp",
+      "user_data_size_reporter.cpp",
+    ]
 
     external_deps += [
       "ability_base:want",
@@ -56,6 +53,8 @@ ohos_source_set("hiview_event_publish") {
     ]
 
     deps += [ "$hiview_base/utility:hiview_utility" ]
+  } else {
+    sources += [ "app_event_publish_unable.cpp" ]
   }
 
   part_name = "hiview"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,29 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef EVENT_PARSER_MANAGER_H
+#define EVENT_PARSER_MANAGER_H
 
-#include "xperf_event_reporter.h"
+#include <map>
 #include "xperf_service_log.h"
+#include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-XperfEventReporter::XperfEventReporter()
-{
+using ParserXperfFunc = OhosXperfEvent* (*)(const std::string&);
+
+class EventParserManager {
+public:
+    EventParserManager();
+
+    ParserXperfFunc GetEventParser(int32_t logId);
+
+private:
+    std::map<int32_t, ParserXperfFunc> parsers;
+    void InitParser();
+    void RegisterParserByLogID(int32_t logId, ParserXperfFunc func);
+};
+}
 }
 
-XperfEventReporter::~XperfEventReporter()
-{
-}
-
-void XperfEventReporter::Report(const char* domain, const OHOS::HiviewDFX::XperfEvent& event)
-{
-    if (event.evtName.empty() || (event.paramSize == 0) || (event.params == nullptr)) {
-        LOGE("[XperfEventReporter::Report] invalid XperfEvent data, will not report");
-        return;
-    }
-    OH_HiSysEvent_Write(domain, event.evtName.c_str(), event.evtType, event.params, event.paramSize);
-}
-
-}
-}
+#endif

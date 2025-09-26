@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,10 +79,10 @@ enum AudioJankIpcCode {
     NOTIFY_AUDIO_JANK = 1,
 };
 
-typedef enum {
+enum ResultCode {
     XPERF_SERVICE_ERR = (-1),
     XPERF_SERVICE_OK = 0,
-} XperfServiceBasicErr;
+};
 
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef AVCODEC_EVENT_H
-#define AVCODEC_EVENT_H
+#ifndef OHOS_HIVIEW_DFX_AVCODEC_EVENT_H
+#define OHOS_HIVIEW_DFX_AVCODEC_EVENT_H
 
 #include "xperf_service_log.h"
 #include "xperf_event.h"
@@ -23,34 +23,24 @@ namespace OHOS {
 namespace HiviewDFX {
 
 //4001 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
-class AvcodecJankEvent : public OhosXperfEvent {
-public:
-    int64_t uniqueId{0};
-    int32_t pid{0};
-    std::string bundleName;
+struct AvcodecJankEvent : public OhosXperfEvent {
     int16_t faultId{0};
     int16_t faultCode{0};
+    int32_t pid{0};
+    int64_t uniqueId{0};
+    std::string jankReason;
+    std::string bundleName;
+    std::string surfaceName;
 };
 
-//4000    "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
+//4000 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
 // #REPORT_INTERVAL:100";
-class AvcodecFirstFrame : public OhosXperfEvent {
-public:
-    int64_t uniqueId{0};
+struct AvcodecFirstFrame : public OhosXperfEvent {
     int32_t pid{0};
-    std::string surfaceName;
     int32_t fps{0};
     int32_t reportInterval{0};
-
-    std::string toString()
-    {
-        std::string str = "pid:" + std::to_string(pid)
-            +" uniqueId:"+std::to_string(uniqueId)
-            +" surfaceName:"+surfaceName
-            +" fps:"+std::to_string(fps)
-            +" reportInterval:"+std::to_string(reportInterval);
-        return str;
-    }
+    int64_t uniqueId{0};
+    std::string surfaceName;
 };
 
 } // namespace HiviewDFX

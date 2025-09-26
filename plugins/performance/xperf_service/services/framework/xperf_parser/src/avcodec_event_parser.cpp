@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,29 +21,33 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-// "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
+//#UNIQUEID:6670084210789#PID:11283#BUNDLE_NAME:com.kuaishou.hmapp
+//#SURFACE_NAME:be89e1dc-7cc0-4b79-8023-b2d63bb75f78Surface#FAULT_ID:4#FAULT_CODE:3
+//#JANK_REASON:omx hold input too more
 OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg)
 {
-    AvcodecJankEvent* event = new (std::nothrow) AvcodecJankEvent();
+    AvcodecJankEvent* event = new AvcodecJankEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_PID, 0);
-    ExtractStrToInt(msg, event->appPid, TAG_PID, TAG_BUNDLE_NAME, 0);
-    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_FAULT_ID, "NA");
+    ExtractStrToInt(msg, event->pid, TAG_PID, TAG_BUNDLE_NAME, 0);
+    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_SURFACE_NAME, "NA");
+    ExtractStrToStr(msg, event->surfaceName, TAG_SURFACE_NAME, TAG_FAULT_ID, "NA");
     ExtractStrToInt16(msg, event->faultId, TAG_FAULT_ID, TAG_FAULT_CODE, 0);
-    ExtractStrToInt16(msg, event->faultCode, TAG_FAULT_CODE, "", -1);
+    ExtractStrToInt16(msg, event->faultCode, TAG_FAULT_CODE, TAG_JANK_REASON, -1);
+    ExtractStrToStr(msg, event->jankReason, TAG_JANK_REASON, "", "NA");
     return event;
 }
 
 //4000 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
-// #REPORT_INTERVAL:100";
-OhosXperfEvent* ParserAvcodecFirstFrame(const std::string& msg)
+//#REPORT_INTERVAL:100";
+OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg)
 {
-    AvcodecFirstFrame* event = new (std::nothrow) AvcodecFirstFrame();
+    AvcodecFirstFrame* event = new AvcodecFirstFrame();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_PID, 0);
     ExtractStrToInt(msg, event->pid, TAG_PID, TAG_BUNDLE_NAME, 0);
     ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_SURFACE_NAME, "NA");
     ExtractStrToStr(msg, event->surfaceName, TAG_SURFACE_NAME, TAG_FPS, "NA");
-    ExtractStrToInt(msg, event->fps, TAG_FPS, REPORT_INTERVAL_TAG, 0);
-    ExtractStrToInt(msg, event->reportInterval, REPORT_INTERVAL_TAG, "", 0);
+    ExtractStrToInt(msg, event->fps, TAG_FPS, TAG_REPORT_INTERVAL, 0);
+    ExtractStrToInt(msg, event->reportInterval, TAG_REPORT_INTERVAL, "", 0);
     return event;
 }
 

@@ -19,15 +19,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-const int32_t DOMAIN_TO_LOGID = 1000;
-const int32_t EVENTID_TO_LOGID = 1;
-
-int32_t ConvertIntoLogId(int16_t domainId, int16_t eventId)
-{
-    return domainId * DOMAIN_TO_LOGID + eventId * EVENTID_TO_LOGID;
-}
-
-bool ScreemExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,
+bool ExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,
     const std::string& nextTag)
 {
     if (msg.empty() || preTag.empty() || (msg.length() == preTag.length())) {
@@ -58,7 +50,7 @@ void ExtractStrToLong(const std::string &msg, int64_t &result, const std::string
     const std::string &nextTag, int64_t defaultValue)
 {
     std::string value;
-    if (ScreemExtractSubTag(msg, value, preTag, nextTag)) {
+    if (ExtractSubTag(msg, value, preTag, nextTag)) {
         result = atoll(value.c_str());
     } else {
         LOGD("ExtractStrToLong error, preTag:%{public}s, nextTag:%{public}s", preTag.c_str(), nextTag.c_str());
@@ -70,7 +62,7 @@ void ExtractStrToInt(const std::string &msg, int32_t &result, const std::string 
     const std::string &nextTag, int32_t defaultValue)
 {
     std::string value;
-    if (ScreemExtractSubTag(msg, value, preTag, nextTag)) {
+    if (ExtractSubTag(msg, value, preTag, nextTag)) {
         result = atoi(value.c_str());
     } else {
         LOGD("ExtractStrToInt error, preTag:%{public}s, nextTag:%{public}s", preTag.c_str(), nextTag.c_str());
@@ -82,18 +74,18 @@ void ExtractStrToInt16(const std::string &msg, int16_t &result, const std::strin
     const std::string &nextTag, int16_t defaultValue)
 {
     std::string value;
-    if (ScreemExtractSubTag(msg, value, preTag, nextTag)) {
+    if (ExtractSubTag(msg, value, preTag, nextTag)) {
         result = static_cast<int16_t>(atoi(value.c_str()));
     } else {
-        LOGD("ExtractStrToInt error, preTag:%{public}s, nextTag:%{public}s", preTag.c_str(), nextTag.c_str());
+        LOGD("ExtractStrToInt16 error, preTag:%{public}s, nextTag:%{public}s", preTag.c_str(), nextTag.c_str());
         result = defaultValue;
     }
 }
  
 void ExtractStrToStr(const std::string &msg, std::string &result,
-    const std::string &preTag, const std::string &nextTag, std::string defaultValue)
+    const std::string &preTag, const std::string &nextTag, const std::string& defaultValue)
 {
-    if (!ScreemExtractSubTag(msg, result, preTag, nextTag)) {
+    if (!ExtractSubTag(msg, result, preTag, nextTag)) {
         LOGD("ExtractStrToStr error, preTag:%{public}s, nextTag:%{public}s", preTag.c_str(), nextTag.c_str());
         result = defaultValue;
     }

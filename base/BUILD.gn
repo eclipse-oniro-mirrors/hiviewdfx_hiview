@@ -58,6 +58,7 @@ ohos_source_set("hiview_base") {
     "event_loop.cpp",
     "event_source.cpp",
     "hiview_global.cpp",
+    "hiview_xcollie_timer.cpp",
     "pipeline.cpp",
     "plugin.cpp",
     "plugin_factory.cpp",
@@ -82,6 +83,7 @@ ohos_source_set("hiview_base") {
   external_deps = [
     "c_utils:utils",
     "ffrt:libffrt",
+    "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "jsoncpp:jsoncpp",
