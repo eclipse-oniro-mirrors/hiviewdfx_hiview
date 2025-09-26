@@ -51,7 +51,7 @@ void FaultLogEventBase::UpdateSysEvent(SysEvent& sysEvent, FaultLogInfo& info)
     sysEvent.SetEventValue(FaultKey::VERSION_CODE, info.sectionMap[FaultKey::VERSION_CODE]);
     sysEvent.SetEventValue(FaultKey::PRE_INSTALL, info.sectionMap[FaultKey::PRE_INSTALL]);
     sysEvent.SetEventValue(FaultKey::FOREGROUND, info.sectionMap[FaultKey::FOREGROUND]);
-    sysEvent.SetEventValue(FaultKey::FOCUS_MODE, 
+    sysEvent.SetEventValue(FaultKey::FOCUS_MODE,
         strtol(info.sectionMap[FaultKey::FOCUS_MODE].c_str(), nullptr, FaultLogger::DECIMAL_BASE));
 
     std::map<std::string, std::string> eventInfos;
