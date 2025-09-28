@@ -127,7 +127,7 @@ bool EventExportUtil::CheckAndPostExportEvent(std::shared_ptr<ExportConfig> conf
 bool EventExportUtil::RegisterSettingObserver(std::shared_ptr<ExportConfig> config)
 {
     SettingObserver::ObserverCallback callback =
-        [&config] (const std::string& paramKey) {
+        [config] (const std::string& paramKey) {
             std::string val = SettingObserverManager::GetInstance()->GetStringValue(paramKey);
             HIVIEW_LOGI("value of param key[%{public}s] is %{public}s", paramKey.c_str(), val.c_str());
             if (val == config->exportSwitchParam.enabledVal) {
