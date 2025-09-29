@@ -96,7 +96,7 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_framework/native/unified_collection:ucollection_source",
     "$hiview_plugin/faultlogger/common:faultlogger_common",
     "$hiview_plugin/faultlogger/common:log_analyzer",
-    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
+    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy_for_test",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_impl",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_ohos_common",
   ]
