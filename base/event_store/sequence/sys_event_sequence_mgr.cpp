@@ -83,8 +83,8 @@ void LogEventSeqReadException(int64_t seq, int64_t backupSeq)
     RunningStatusLogger::GetInstance().LogEventRunningLogInfo(info);
 }
 
-void WriteSeqReadExcpetionEvent(bool isSeqFileExist, int64_t seq, bool isSeqBackupFileExist, int64_t seqBackup,
-    int64_t maxSeqReadFromFile = 0)
+void WriteSeqReadExceptionEvent(bool isSeqFileExist, int64_t seq, bool isSeqBackupFileExist, int64_t seqBackup,
+    int64_t maxSeqReadFromFile)
 {
     int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, READ_UNEXPECTED_SEQ, HiSysEvent::EventType::FAULT,
         "IS_SEQ_FILE_EXIST", isSeqFileExist, "SEQ", seq,
@@ -239,26 +239,24 @@ void SysEventSequenceManager::ReadSeqFromFile(int64_t& seq)
     bool isSeqBackupFileExist = false;
     int64_t seqBackup = 0;
     CheckFileExistThenReadSeq(seqBackupFilePath, isSeqBackupFileExist, seqBackup);
-    if (seq == seqBackup && (!isSeqFileExist || seq != 0)) {
+    if ((seq == seqBackup) && (!isSeqFileExist || seq != 0)) {
         HIVIEW_LOGI("succeed to read event sequence, value is %{public}" PRId64 "", seq);
         return;
     }
     LogEventSeqReadException(seq, seqBackup);
     HIVIEW_LOGW("seq[%{public}" PRId64 "] is different with backup seq[%{public}" PRId64 "]", seq, seqBackup);
-    if (seq == 0) {
+    if ((seq - seqBackup) == SEQ_INCREMENT) {
+        HIVIEW_LOGI("valid diff between seq and back up seq");
+    } else {
         int64_t seqReadFromLocalFile = GetEventMaxSeqFromLocalDbFiles();
-        WriteSeqReadExcpetionEvent(isSeqFileExist, seq, isSeqBackupFileExist, seqBackup, seqReadFromLocalFile);
+        WriteSeqReadExceptionEvent(isSeqFileExist, seq, isSeqBackupFileExist, seqBackup, seqReadFromLocalFile);
         seq = seqReadFromLocalFile;
-        HIVIEW_LOGI("adjust seq to %{public}" PRId64 "", seq);
-    } else {
-        WriteSeqReadExcpetionEvent(isSeqFileExist, seq, isSeqBackupFileExist, seqBackup);
-    }
-    if (seq > seqBackup) {
-        WriteEventSeqToFile(seq, seqBackupFilePath);
-    } else {
-        seq = seqBackup;
         WriteEventSeqToFile(seq, seqFilePath);
+        HIVIEW_LOGI("adjust seq to %{public}" PRId64, seq);
     }
+    seqBackup = seq;
+    WriteEventSeqToFile(seq, seqBackupFilePath);
+    HIVIEW_LOGI("adjust backup seq to %{public}" PRId64, seqBackup);
 }
 
 std::string SysEventSequenceManager::GetSequenceFile() const
