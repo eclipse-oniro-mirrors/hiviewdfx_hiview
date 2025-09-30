@@ -111,6 +111,27 @@ public:
     // volume bar show
     static constexpr char VOLUME_BAR_SHOW[] = "VOLUME_BAR_SHOW";
 
+    // PC split exit animate on drag
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_DRAG[] = "PC_SPLIT_EXIT_ANIMATE_ON_DRAG";
+
+    // PC split exit animate on recover
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_RECOVER[] = "PC_SPLIT_EXIT_ANIMATE_ON_RECOVER";
+
+    // PC split exit animate on minimize
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_MINIMIZE[] = "PC_SPLIT_EXIT_ANIMATE_ON_MINIMIZE";
+
+    // PC split exit animate on maximize
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_MAXIMIZE[] = "PC_SPLIT_EXIT_ANIMATE_ON_MAXIMIZE";
+
+    // PC split exit animate on close
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_CLOSE[] = "PC_SPLIT_EXIT_ANIMATE_ON_CLOSE";
+
+    // PC split exit animate on split
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_SPLIT[] = "PC_SPLIT_EXIT_ANIMATE_ON_SPLIT";
+
+    // PC split exit animate default
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_DEFAULT[] = "PC_SPLIT_EXIT_ANIMATE_DEFAULT";   
+
     // PC app center gesture operation
     static constexpr char PC_APP_CENTER_GESTURE_OPERATION[] = "PC_APP_CENTER_GESTURE_OPERATION";
 
