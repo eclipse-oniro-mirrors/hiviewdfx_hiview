@@ -179,7 +179,7 @@ void FaultLogProcessorBase::AddCommonInfo(FaultLogInfo& info)
     info.sectionMap[FaultKey::MODULE_PID] = std::to_string(info.pid);
     info.module = RegulateModuleNameIfNeed(info.module);
     info.sectionMap[FaultKey::MODULE_NAME] = info.module;
-    AddDeviceMode(info);
+    AddPhoneFocusMode(info);
     AddBundleInfo(info);
     AddForegroundInfo(info);
 
