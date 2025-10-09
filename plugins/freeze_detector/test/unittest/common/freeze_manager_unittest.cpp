@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <map>
 
 #include "file_util.h"
 #include "time_util.h"
@@ -144,6 +145,21 @@ HWTEST_F(FreezeManagerTest, SaveFreezeExtInfoToFile_001, TestSize.Level3)
     auto ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName,
         stackFile, cpuFile);
     EXPECT_TRUE(!ret.empty());
+}
+
+/**
+ * @tc.name: ParseLogEntry_001
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ParseLogEntry_001, TestSize.Level3)
+{
+    EXPECT_TRUE(freezeManager != nullptr);
+    std::string testValue = "";
+    std::map<std::string, std::string> sectionMaps;
+    freezeManager->ParseLogEntry(testValue, sectionMaps);
+    testValue = "ParseLogEntry:001,ParseLogEntry123:1234";
+    freezeManager->ParseLogEntry(testValue, sectionMaps);
+    EXPECT_TRUE(sectionMaps.size() > 0);
 }
 }
 }
