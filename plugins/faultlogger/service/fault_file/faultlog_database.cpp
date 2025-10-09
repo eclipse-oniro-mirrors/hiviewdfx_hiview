@@ -263,6 +263,8 @@ void FaultLogDatabase::WritrEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("STACK", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::STACK].data(), 0),
         EVENT_PARAM_CTOR("TELEMETRY_ID", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TELEMETRY_ID].data(), 0),
         EVENT_PARAM_CTOR("TRACE_NAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TRACE_NAME].data(), 0),
+        EVENT_PARAM_CTOR("FOCUS_MODE", HISYSEVENT_INT32, i32,
+            strtol(info.sectionMap[FaultKey::FOCUS_MODE].c_str(), nullptr, DECIMAL_BASE), 0),
         EVENT_PARAM_CTOR("APP_RUNNING_UNIQUE_ID", HISYSEVENT_STRING, s,
             info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID].data(), 0)
     };

@@ -27,6 +27,7 @@
 #include "parameter_ex.h"
 #include "process_status.h"
 #include "string_util.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -178,6 +179,7 @@ void FaultLogProcessorBase::AddCommonInfo(FaultLogInfo& info)
     info.sectionMap[FaultKey::MODULE_PID] = std::to_string(info.pid);
     info.module = RegulateModuleNameIfNeed(info.module);
     info.sectionMap[FaultKey::MODULE_NAME] = info.module;
+    AddPhoneFocusMode(info);
     AddBundleInfo(info);
     AddForegroundInfo(info);
 
@@ -249,6 +251,12 @@ void FaultLogProcessorBase::PrintFaultLogInfo(const FaultLogInfo& info)
         "ModuleName:%{public}s\n"
         "Reason:%{public}s\n",
         info.pid, info.module.c_str(), info.reason.c_str());
+}
+
+void FaultLogProcessorBase::AddPhoneFocusMode(FaultLogInfo& info)
+{
+    auto focusMode = system::GetIntParameter("persist.phone_focus.mode.status", 0);
+    info.sectionMap[FaultKey::FOCUS_MODE] = std::to_string(focusMode);
 }
 
 std::string FaultLogProcessorBase::ReadLogFile(const std::string& logPath) const
