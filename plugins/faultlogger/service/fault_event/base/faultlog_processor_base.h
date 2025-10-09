@@ -49,7 +49,7 @@ private:
     void AddForegroundInfo(FaultLogInfo& info);
     void UpdateTerminalThreadStack(FaultLogInfo& info);
     void PrintFaultLogInfo(const FaultLogInfo& info);
-    void AddDeviceMode(FaultLogInfo& info);
+    void AddPhoneFocusMode(FaultLogInfo& info);
 protected:
     std::shared_ptr<EventLoop> workLoop_;
     std::shared_ptr<FaultLogManager> faultLogManager_;
