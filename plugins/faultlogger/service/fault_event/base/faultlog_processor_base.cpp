@@ -253,7 +253,7 @@ void FaultLogProcessorBase::PrintFaultLogInfo(const FaultLogInfo& info)
         info.pid, info.module.c_str(), info.reason.c_str());
 }
 
-void FaultLogProcessorBase::AddDeviceMode(FaultLogInfo& info)
+void FaultLogProcessorBase::AddPhoneFocusMode(FaultLogInfo& info)
 {
     auto focusMode = system::GetIntParameter("persist.phone_focus.mode.status", 0);
     info.sectionMap[FaultKey::FOCUS_MODE] = std::to_string(focusMode);
