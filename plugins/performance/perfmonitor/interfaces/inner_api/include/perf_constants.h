@@ -130,7 +130,7 @@ public:
     static constexpr char PC_SPLIT_EXIT_ANIMATE_ON_SPLIT[] = "PC_SPLIT_EXIT_ANIMATE_ON_SPLIT";
 
     // PC split exit animate default
-    static constexpr char PC_SPLIT_EXIT_ANIMATE_DEFAULT[] = "PC_SPLIT_EXIT_ANIMATE_DEFAULT";   
+    static constexpr char PC_SPLIT_EXIT_ANIMATE_DEFAULT[] = "PC_SPLIT_EXIT_ANIMATE_DEFAULT";
 
     // PC app center gesture operation
     static constexpr char PC_APP_CENTER_GESTURE_OPERATION[] = "PC_APP_CENTER_GESTURE_OPERATION";
