@@ -131,8 +131,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
     std::string logFile = std::regex_search(info, result, reg) ? result[1].str() : info;
-    std::string foreGround;
-    CheckForeGround(uid, pid, event.happenTime_, foreGround);
+    std::string foreGround = sysEvent.GetEventIntValue(FreezeCommon::FOREGROUND) ? "Yes" : "No";
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder().InitSeq(seq).InitDomain(event.domain_)
         .InitStringId(event.eventName_).InitTimestamp(event.happenTime_).InitPid(pid).InitTid(tid).InitUid(uid)
         .InitTerminalThreadStack(terminalThreadStack).InitTelemetryId(telemetryId).InitTraceName(traceName)
@@ -143,27 +142,11 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
         " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
-        " appRunningUniqueId=%{public}s", event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq,
+        " appRunningUniqueId=%{public}s, foreGround=%{public}s",
+        event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq,
         packageName.c_str(), processName.c_str(), logFile.c_str(), hitraceIdInfo.c_str(), procStatm.c_str(),
-        hostResourceWarning.c_str(), freezeExtFile.c_str(), appRunningUniqueId.c_str());
+        hostResourceWarning.c_str(), freezeExtFile.c_str(), appRunningUniqueId.c_str(), foreGround.c_str());
     return watchPoint;
-}
-
-void FreezeDetectorPlugin::CheckForeGround(long uid, long pid, unsigned long long eventTime, std::string& foreGround)
-{
-    if (uid < MIN_APP_UID) {
-        return;
-    }
-
-    UCollectUtil::ProcessState state = UCollectUtil::ProcessStatus::GetInstance().GetProcessState(pid);
-    if (state == UCollectUtil::FOREGROUND) {
-        foreGround = "Yes";
-    }
-    if (state == UCollectUtil::BACKGROUND) {
-        uint64_t lastFgTime = static_cast<uint64_t>(UCollectUtil::ProcessStatus::GetInstance()
-            .GetProcessLastForegroundTime(pid));
-        foreGround = (lastFgTime > eventTime) ? "Yes" : "No";
-    }
 }
 
 void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)

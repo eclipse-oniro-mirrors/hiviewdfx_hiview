@@ -41,7 +41,6 @@ public:
 private:
     std::string RemoveRedundantNewline(const std::string& content) const;
     WatchPoint MakeWatchPoint(const Event& event);
-    void CheckForeGround(long uid, long pid, unsigned long long eventTime, std::string& foreGround);
     void ProcessEvent(WatchPoint watchPoint);
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;

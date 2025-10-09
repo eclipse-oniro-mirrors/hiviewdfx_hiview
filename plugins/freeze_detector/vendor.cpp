@@ -64,6 +64,7 @@ namespace {
     constexpr const char* LIFECYCLE_HALF_TIMEOUT = "LIFECYCLE_HALF_TIMEOUT";
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
+    constexpr const char* BACKGROUND_VALUE = "No";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -214,8 +215,14 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
     } else {
         CheckProcessName(processName, isScbPro);
     }
-    type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
-        (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE : SYSWARNING);
+    std::string foreGround = watchPoint.GetForeGround();
+    if (foreGround == BACKGROUND_VALUE && stringId == THREAD_BLOCK_6S) {
+        type = FaultLogType::SYS_WARNING;
+    } else {
+        type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
+            (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ?
+            SYSFREEZE : SYSWARNING);
+    }
     pubLogPathName = type + std::string(HYPHEN) + processName + std::string(HYPHEN) + std::to_string(uid) +
         std::string(HYPHEN) + timestamp + std::string(HYPHEN) + std::to_string(watchPoint.GetTimestamp());
 }

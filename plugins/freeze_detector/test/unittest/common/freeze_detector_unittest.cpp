@@ -442,6 +442,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitStringId("THREAD_BLOCK_3S")
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .InitProcessName("foundation")
+        .InitForeGround("No")
         .Build();
     std::vector<WatchPoint> list;
     list.push_back(watchPoint);
@@ -459,6 +460,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitStringId("SERVICE_WARNING")
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .InitProcessName("foundation")
+        .InitForeGround("No")
         .Build();
     list.push_back(watchPoint1);
     ASSERT_TRUE(vendor->MergeEventLog(watchPoint1, list, result).empty());
@@ -468,6 +470,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
         .InitStringId("SERVICE_WARNING")
         .InitTimestamp(TimeUtil::GetMilliseconds())
         .InitProcessName("FreezeVender_012")
+        .InitForeGround("Yes")
         .Build();
     list.push_back(watchPoint2);
     ASSERT_TRUE(vendor->MergeEventLog(watchPoint2, list, result).empty());
@@ -654,20 +657,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_005, TestSize.Level3)
         .Build();
     freezeDetectorPlugin->ProcessEvent(watchPoint);
     ASSERT_EQ(freezeDetectorPlugin->CanProcessEvent(event), false);
-}
-
-/**
- * @tc.name: FreezeDetectorPlugin_006
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_006, TestSize.Level3)
-{
-    auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
-    int uid = 10005;
-    unsigned long long eventTime = 1234567890;
-    std::string foreGround;
-    freezeDetectorPlugin->CheckForeGround(uid, getpid(), eventTime, foreGround);
-    ASSERT_EQ(foreGround, "No");
 }
 
 /**
