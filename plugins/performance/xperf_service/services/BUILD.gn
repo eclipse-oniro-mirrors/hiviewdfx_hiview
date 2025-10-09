@@ -37,6 +37,8 @@ config("xperfservice_server_config") {
 ohos_shared_library("xperfservice_server") {
   public_configs = [ ":xperfservice_server_config" ]
 
+  version_script = "libxperfservie_server.map"
+
   sources = [
     "common/src/xperf_parser.cpp",
     "common/src/perf_trace.cpp",
