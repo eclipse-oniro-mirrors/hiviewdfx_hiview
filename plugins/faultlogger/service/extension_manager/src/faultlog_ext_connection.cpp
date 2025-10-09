@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt");
+DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Con");
 
 void FaultLogExtConnection::OnFault()
 {

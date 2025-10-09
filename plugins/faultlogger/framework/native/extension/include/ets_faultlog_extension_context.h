@@ -13,22 +13,15 @@
  * limitations under the License.
  */
 
-#include "faultlog_ext_stub_imp.h"
-#include "hiview_logger.h"
+#ifndef ETS_FAULTLOG_EXTENSION_CONTEXT_H
+#define ETS_FAULTLOG_EXTENSION_CONTEXT_H
+
+#include "faultlog_extension_context.h"
 
 namespace OHOS {
 namespace FaultLogExt {
-DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Stub");
-
-ErrCode FaultLogExtStubImp::OnFaultReportReady()
-{
-    HIVIEW_LOGI("begin OnFaultReportReady.");
-    auto extension = extension_.lock();
-    if (extension != nullptr) {
-        extension->OnFaultReportReady();
-        HIVIEW_LOGI("end OnFaultReportReady successfully.");
-    }
-    return ERR_OK;
-}
+ani_object CreateEtsFaultLogExtensionContext(ani_env* env, std::shared_ptr<FaultLogExtensionContext> context);
 } // namespace FaultLogExt
 } // namespace OHOS
+
+#endif // ETS_FAULTLOG_EXTENSION_CONTEXT_H

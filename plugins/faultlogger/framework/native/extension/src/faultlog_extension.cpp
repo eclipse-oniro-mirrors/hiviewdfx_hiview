@@ -15,6 +15,7 @@
 
 #include "faultlog_extension.h"
 
+#include "ets_faultlog_extension.h"
 #include "js_faultlog_extension.h"
 
 namespace OHOS {
@@ -27,6 +28,8 @@ FaultLogExtension* FaultLogExtension::Create(const std::unique_ptr<AbilityRuntim
     switch (runtime->GetLanguage()) {
         case AbilityRuntime::Runtime::Language::JS:
             return JsFaultLogExtension::Create(runtime);
+        case AbilityRuntime::Runtime::Language::ETS:
+            return EtsFaultLogExtension::Create(runtime);
         default:
             return (new (std::nothrow) FaultLogExtension());
     }
