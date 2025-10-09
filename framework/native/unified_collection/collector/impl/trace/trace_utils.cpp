@@ -118,8 +118,8 @@ const std::string EnumToString(UCollect::TraceCaller caller)
             return CallerName::XPOWER;
         case UCollect::TraceCaller::HIVIEW:
             return CallerName::HIVIEW;
-        case UCollect::TraceCaller::OTHER:
-            return CallerName::OTHER;
+        case UCollect::TraceCaller::XPERF_EX:
+            return CallerName::XPERF;
         case UCollect::TraceCaller::SCREEN:
             return CallerName::SCREEN;
         default:
@@ -134,8 +134,6 @@ const std::string ClientToString(UCollect::TraceClient client)
             return ClientName::COMMAND;
         case UCollect::TraceClient::COMMON_DEV:
             return ClientName::COMMON_DEV;
-        case UCollect::TraceClient::BETACLUB:
-            return ClientName::BETACLUB;
         default:
             return "UNKNOWN";
     }

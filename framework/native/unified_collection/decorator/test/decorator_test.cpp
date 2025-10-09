@@ -146,10 +146,7 @@ void CallCollectorFuncs()
 #endif
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-    auto traceCollector = TraceCollector::Create();
-    UCollect::TraceCaller caller = UCollect::TraceCaller::OTHER;
-    const std::vector<std::string> tagGroups = {"scene_performance"};
-    CollectResult<std::vector<std::string>> resultDumpTrace = traceCollector->DumpTrace(caller);
+    TraceCollector::Create()->DumpTrace(UCollect::TraceCaller::HIVIEW);
 #endif
 
 #ifdef UNIFIED_COLLECTOR_WM_ENABLE

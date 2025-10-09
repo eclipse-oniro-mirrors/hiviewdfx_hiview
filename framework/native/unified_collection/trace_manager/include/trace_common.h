@@ -39,7 +39,6 @@ namespace ClientName {
 inline constexpr char COMMAND[] = "Command";
 inline constexpr char COMMON_DEV[] = "Other";
 inline constexpr char APP[] = "APP";
-inline constexpr char BETACLUB[] = "BetaClub";
 };
 
 namespace BusinessName {

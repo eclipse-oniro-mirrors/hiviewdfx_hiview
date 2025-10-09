@@ -22,7 +22,7 @@ namespace OHOS::HiviewDFX {
 void TestXperfDump(const EventFwk::CommonEventData &data);
 void TestReliabilityDump(const EventFwk::CommonEventData &data);
 void TestXpowerDump(const EventFwk::CommonEventData &data);
-void TestOtherDump(const EventFwk::CommonEventData &data);
+void TestXperfExDump(const EventFwk::CommonEventData &data);
 void TestScreenDump(const EventFwk::CommonEventData &data);
 void TestTelemetryStart(const EventFwk::CommonEventData &data);
 void TestTelemetryEnd(const EventFwk::CommonEventData &data);
