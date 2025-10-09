@@ -84,7 +84,7 @@ private:
         PerfConstants::PC_SPLIT_EXIT_ANIMATE_ON_MAXIMIZE,
         PerfConstants::PC_SPLIT_EXIT_ANIMATE_ON_CLOSE,
         PerfConstants::PC_SPLIT_EXIT_ANIMATE_ON_SPLIT,
-        PerfConstants::PC_SPLIT_EXIT_ANIMATE_DEFAULT,        
+        PerfConstants::PC_SPLIT_EXIT_ANIMATE_DEFAULT,
         PerfConstants::PC_APP_CENTER_GESTURE_OPERATION,
         PerfConstants::PC_GESTURE_TO_RECENT,
         PerfConstants::PC_SHORTCUT_SHOW_DESKTOP,
