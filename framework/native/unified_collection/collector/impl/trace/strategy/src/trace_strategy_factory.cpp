@@ -14,12 +14,11 @@
  */
 #include "trace_strategy_factory.h"
 
-#include "hiview_logger.h"
 #include "trace_utils.h"
 
 namespace OHOS::HiviewDFX {
 namespace CleanThreshold {
-const uint32_t XPERF = 3;
+const uint32_t XPERF = 6;
 const uint32_t RELIABILITY = 3;
 const uint32_t OTHER = 5;
 const uint32_t SCREEN = 1;
@@ -47,9 +46,9 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uin
         case UCollect::TraceCaller::HIVIEW:
             return std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
                 std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreshold::ZIP_FILE));
-        case UCollect::TraceCaller::OTHER:
+        case UCollect::TraceCaller::XPERF_EX:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::OTHER),
+                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::XPERF),
                     nullptr);
         case UCollect::TraceCaller::SCREEN:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
@@ -71,10 +70,6 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceClient client, uin
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
                 std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::OTHER),
                     nullptr);
-        case UCollect::TraceClient::BETACLUB:
-            return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
-                    CleanThreshold::BETACLUB), nullptr);
         default:
             return nullptr;
     }

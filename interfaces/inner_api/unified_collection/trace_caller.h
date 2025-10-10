@@ -23,8 +23,8 @@ namespace UCollect {
 enum TraceCaller {
     RELIABILITY,
     XPERF,
+    XPERF_EX,
     XPOWER,
-    OTHER,
     HIVIEW,
     SCREEN
 };
@@ -33,7 +33,6 @@ enum TraceCaller {
 enum TraceClient {
     COMMAND,
     COMMON_DEV,
-    BETACLUB
 };
 
 // Used for telemetry interface param

@@ -596,7 +596,7 @@ std::make_shared<TraceCopyHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), 
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest019, TestSize.Level1)
 {
-    StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::OTHER), TEST_DB_PATH, TEST_CONFIG_PATH};
+    StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPERF_EX), TEST_DB_PATH, TEST_CONFIG_PATH};
     auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
         std::make_shared<TraceCopyHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), nullptr);
     TraceRetInfo testInfo {
@@ -682,7 +682,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest021, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest022, TestSize.Level1)
 {
-    StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::OTHER), TEST_DB_PATH, TEST_CONFIG_PATH};
+    StrategyParam strategyParam {0, 0, ClientToString(UCollect::TraceClient::COMMON_DEV), TEST_DB_PATH,
+        TEST_CONFIG_PATH};
     auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
         std::make_shared<TraceCopyHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 2), nullptr);
     TraceRetInfo testInfo {
@@ -705,39 +706,6 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest022, TestSize.Level1)
     auto ret1 = devStrategy1->DoDump(result1.data, testInfo1);
     ASSERT_TRUE(ret1.IsSuccess());
     sleep(1);
-    ASSERT_EQ(GetDirFileCount(TEST_SPECIAL_PATH), 4);
-}
-
-/**
- * @tc.name: TraceStrategyTest
- * @tc.desc: used to test TraceDevStrategy' s clean threshold
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceStrategyTest, TraceStrategyTest023, TestSize.Level1)
-{
-    StrategyParam strategyParam {0, 0, ClientToString(UCollect::TraceClient::BETACLUB), TEST_DB_PATH,
-        TEST_CONFIG_PATH};
-    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceSyncCopyHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 2), nullptr);
-    TraceRetInfo testInfo {
-        .errorCode = TraceErrorCode::SUCCESS,
-        .fileSize = 90,
-        .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
-    };
-    CollectResult<std::vector<std::string>> result;
-    auto ret = devStrategy->DoDump(result.data, testInfo);
-    ASSERT_TRUE(ret.IsSuccess());
-    StrategyParam strategyParam1 {0, 0, EnumToString(UCollect::TraceCaller::SCREEN), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto devStrategy1 = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceSyncCopyHandler>(TEST_SPECIAL_PATH, strategyParam1.caller, 2), nullptr);
-    TraceRetInfo testInfo1 {
-        .errorCode = TraceErrorCode::SUCCESS,
-        .fileSize = 10,
-        .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
-    };
-    CollectResult<std::vector<std::string>> result1;
-    auto ret1 = devStrategy1->DoDump(result1.data, testInfo1);
-    ASSERT_TRUE(ret1.IsSuccess());
     ASSERT_EQ(GetDirFileCount(TEST_SPECIAL_PATH), 4);
 }
 

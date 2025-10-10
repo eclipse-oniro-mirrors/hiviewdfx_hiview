@@ -31,7 +31,7 @@ const std::map<std::string, std::function<void(const CommonEventData &)>> TEST_C
     {"xperf_dump", TestXperfDump},
     {"reliability_dump", TestReliabilityDump},
     {"xpower_dump", TestXpowerDump},
-    {"other_dump", TestOtherDump},
+    {"xperf_ex_dump", TestXperfExDump},
     {"screen_dump", TestScreenDump},
     {"telemetryStart", TestTelemetryStart},
     {"telemetryEnd", TestTelemetryEnd},
@@ -61,7 +61,7 @@ void TraceTestPlugin::OnLoad()
     matchingSkills.AddEvent("xperf_dump");
     matchingSkills.AddEvent("reliability_dump");
     matchingSkills.AddEvent("xpower_dump");
-    matchingSkills.AddEvent("other_dump");
+    matchingSkills.AddEvent("xperf_ex_dump");
     matchingSkills.AddEvent("screen_dump");
 
     CommonEventSubscribeInfo info(matchingSkills);
