@@ -170,7 +170,7 @@ int32_t GetLogTypeByName(const std::string& type)
         return FaultLogType::SYS_FREEZE;
     } else if (type == "syswarning") {
         return FaultLogType::SYS_WARNING;
-    } else if (type == "sanitizer") {
+    } else if (type.find("san") != std::string::npos) {
         return FaultLogType::ADDR_SANITIZER;
     } else if (type == "cjerror") {
         return FaultLogType::CJ_ERROR;
