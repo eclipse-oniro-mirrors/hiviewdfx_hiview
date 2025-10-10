@@ -192,5 +192,23 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
     HIVIEW_LOGE("create freezeExt file=%{public}s success.", logFile.c_str());
     return logFile;
 }
+
+void FreezeManager::ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps)
+{
+    // input: HEAP_TOTAL_SIZE,HEAP_OBJECT_SIZE,PROCESS_LIFETIME
+    std::istringstream iss(input);
+    std::string token;
+    while (std::getline(iss, token, ',')) {
+        size_t colonPos = token.find(':');
+        if (colonPos != std::string::npos) {
+            std::string key = token.substr(0, colonPos);
+            sectionMaps[key] = token.substr(colonPos + 1);
+            HIVIEW_LOGI("parse key:%{public}s value:%{public}s ssuccess.", key.c_str(),
+                sectionMaps[key].c_str());
+        } else {
+            HIVIEW_LOGE("parse %{public}s failed.", token.c_str());
+        }
+    }
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

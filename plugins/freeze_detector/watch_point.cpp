@@ -22,7 +22,7 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_("")
 {
 }
 
@@ -48,14 +48,15 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     procStatm_(builder.procStatm_),
     hostResourceWarning_(builder.hostResourceWarning_),
     freezeExtFile_(builder.freezeExtFile_),
-    appRunningUniqueId_(builder.appRunningUniqueId_)
+    appRunningUniqueId_(builder.appRunningUniqueId_),
+    applicationInfo_(builder.applicationInfo_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_("")
 {
 }
 
@@ -193,6 +194,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::stri
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitApplicationInfo(const std::string& applicationInfo)
+{
+    applicationInfo_ = applicationInfo;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -307,6 +314,11 @@ std::string WatchPoint::GetFreezeExtFile() const
 std::string WatchPoint::GetAppRunningUniqueId() const
 {
     return appRunningUniqueId_;
+}
+
+std::string WatchPoint::GetApplicationInfo() const
+{
+    return applicationInfo_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

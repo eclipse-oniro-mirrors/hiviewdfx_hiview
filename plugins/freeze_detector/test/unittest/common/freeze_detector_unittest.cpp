@@ -370,6 +370,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_007, TestSize.Level3)
         .InitProcessName("processName")
         .InitPackageName("com.package.name")
         .InitMsg("msg")
+        .InitApplicationInfo("msg:123;1234:1234")
         .Build();
     vendor1->SendFaultLog(watchPoint, "test", "sysfreeze", "processName", "No");
 

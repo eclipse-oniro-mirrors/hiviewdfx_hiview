@@ -16,6 +16,7 @@
 #ifndef HIVIEWDFX_FREEZE_MANAGER_H
 #define HIVIEWDFX_FREEZE_MANAGER_H
 
+#include <map>
 #include "log_store_ex.h"
 #include "singleton.h"
 
@@ -42,6 +43,7 @@ public:
     std::string SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
         const std::string& stackFile, const std::string& cpuFile) const;
     int GetFreezeLogFd(int32_t freezeLogType, const std::string& fileName) const;
+    void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
 
 private:
     void InitEventLogStore();
