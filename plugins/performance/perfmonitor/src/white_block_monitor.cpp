@@ -55,6 +55,7 @@ void WhiteBlockMonitor::EndScroll()
     if (versionType != "beta") {
         return;
     }
+    std::lock_guard<std::mutex> Lock(mMutex);
     scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     scrolling = false;
     std::thread delayThread([this] { this->ReportWhiteBlockStat(); });
