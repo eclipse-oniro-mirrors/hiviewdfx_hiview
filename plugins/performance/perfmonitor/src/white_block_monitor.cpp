@@ -39,6 +39,9 @@ WhiteBlockMonitor& WhiteBlockMonitor::GetInstance()
  
 void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
 {
+    if (!IsBetaVersion()) {
+        return;
+    }
     std::lock_guard<std::mutex> Lock(mMutex);
     scrollStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     appWhiteInfo.bundleName = baseInfo.bundleName;
@@ -50,11 +53,10 @@ void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
  
 void WhiteBlockMonitor::EndScroll()
 {
-    XPERF_TRACE_SCOPED("WhiteBlockMonitor::EndScroll");
-    static std::string versionType = OHOS::system::GetParameter("const.logsystem.versiontype", "");
-    if (versionType != "beta") {
+    if (!IsBetaVersion()) {
         return;
     }
+    XPERF_TRACE_SCOPED("WhiteBlockMonitor::EndScroll");
     std::lock_guard<std::mutex> Lock(mMutex);
     scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     scrolling = false;
@@ -64,6 +66,9 @@ void WhiteBlockMonitor::EndScroll()
  
 void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
 {
+    if (!IsBetaVersion()) {
+        return;
+    }
     std::lock_guard<std::mutex> Lock(mMutex);
     if (!scrolling) {
         HIVIEW_LOGD("not scrolling");
@@ -81,6 +86,9 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
  
 void WhiteBlockMonitor::EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type, int state)
 {
+    if (!IsBetaVersion()) {
+        return;
+    }
     std::lock_guard<std::mutex> Lock(mMutex);
     ImageLoadInfo* record = GetRecord(id);
     if (record == nullptr) {
@@ -127,5 +135,12 @@ void WhiteBlockMonitor::CleanUpRecords()
         iter = mRecords.erase(iter);
     }
 }
+
+bool WhiteBlockMonitor::IsBetaVersion()
+{
+    static std::string versionType = OHOS::system::GetParameter("const.logsystem.versiontype", "");
+    return versionType == "beta";
+}
+
 }
 }

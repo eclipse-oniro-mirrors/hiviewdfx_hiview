@@ -38,6 +38,7 @@ private:
     ImageLoadInfo* GetRecord(int64_t id);
     void ReportWhiteBlockStat();
     void CleanUpRecords();
+    bool IsBetaVersion();
  
 private:
     mutable std::mutex mMutex;
