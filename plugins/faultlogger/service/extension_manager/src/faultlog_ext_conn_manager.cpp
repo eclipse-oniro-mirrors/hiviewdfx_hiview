@@ -30,7 +30,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt");
+DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Mgr");
 
 constexpr const char* const APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 constexpr const char* const HMOS_HAP_CODE_PATH = "1";

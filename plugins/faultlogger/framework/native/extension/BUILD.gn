@@ -40,6 +40,8 @@ ohos_shared_library("faultlogextension") {
   ]
 
   sources = [
+    "src/ets_faultlog_extension.cpp",
+    "src/ets_faultlog_extension_context.cpp",
     "src/faultlog_extension.cpp",
     "src/faultlog_extension_context.cpp",
     "src/faultlog_extension_module_loader.cpp",
@@ -60,6 +62,7 @@ ohos_shared_library("faultlogextension") {
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:ani_common",
     "ability_runtime:app_context",
     "ability_runtime:extensionkit_native",
     "ability_runtime:napi_common",
@@ -72,6 +75,7 @@ ohos_shared_library("faultlogextension") {
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "runtime_core:ani",
   ]
 
   relative_install_dir = "extensionability"

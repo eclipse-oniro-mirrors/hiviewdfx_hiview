@@ -23,7 +23,7 @@ namespace OHOS {
 namespace FaultLogExt {
 class FaultLogExtStubImp : public FaultLogExtStub {
 public:
-    explicit FaultLogExtStubImp(const std::shared_ptr<JsFaultLogExtension>& extension)
+    explicit FaultLogExtStubImp(const std::shared_ptr<FaultLogExtension>& extension)
         : extension_(extension) {}
 
     ~FaultLogExtStubImp() override {}
@@ -33,7 +33,7 @@ public:
      */
     ErrCode OnFaultReportReady() override;
 private:
-    std::weak_ptr<JsFaultLogExtension> extension_;
+    std::weak_ptr<FaultLogExtension> extension_;
 };
 } // namespace FaultLogExt
 } // namespace OHOS

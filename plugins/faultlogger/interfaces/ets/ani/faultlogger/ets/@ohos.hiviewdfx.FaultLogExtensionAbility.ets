@@ -13,22 +13,17 @@
  * limitations under the License.
  */
 
-#include "faultlog_ext_stub_imp.h"
-#include "hiview_logger.h"
+import FaultLogExtensionContext from '@ohos.hiviewdfx.FaultLogExtensionContext';
 
-namespace OHOS {
-namespace FaultLogExt {
-DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Stub");
-
-ErrCode FaultLogExtStubImp::OnFaultReportReady()
-{
-    HIVIEW_LOGI("begin OnFaultReportReady.");
-    auto extension = extension_.lock();
-    if (extension != nullptr) {
-        extension->OnFaultReportReady();
-        HIVIEW_LOGI("end OnFaultReportReady successfully.");
+export default class FaultLogExtensionAbility {
+    public context: FaultLogExtensionContext = {};
+    onFaultReportReady() : void {
+        console.log('FaultLogExtensionAbility onFaultReportReady');
     }
-    return ERR_OK;
+    onConnect() : void {
+        console.log('FaultLogExtensionAbility onConnect');
+    }
+    onDisconnect() : void {
+        console.log('FaultLogExtensionAbility onDisconnect');
+    }
 }
-} // namespace FaultLogExt
-} // namespace OHOS

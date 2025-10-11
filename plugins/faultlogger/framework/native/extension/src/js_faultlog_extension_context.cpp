@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace FaultLogExt {
 namespace {
-DEFINE_LOG_TAG("HiView-FaultLogExt");
+DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Js");
 
 using namespace OHOS::AbilityRuntime;
 class JsFaultLogExtensionContext final {

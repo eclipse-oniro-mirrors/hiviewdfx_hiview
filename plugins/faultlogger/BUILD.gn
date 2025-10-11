@@ -81,6 +81,7 @@ group("moduletest") {
 group("fwk_group_fault_log_extension") {
   deps = [
     "framework/native/extension:faultlogextension",
+    "interfaces/ets/ani/faultlogger:faultlog_extension_ability_ani_etc",
     "interfaces/js/napi/fault_log_extension:faultlogextensionability_napi",
     "interfaces/js/napi/fault_log_extension_context:faultlogextensioncontext_napi",
   ]
