@@ -82,6 +82,7 @@ ohos_shared_library("libperfmonitor") {
       "hitrace:hitrace_meter",
       "hilog:libhilog",
       "ipc:ipc_single",
+      "init:libbegetutil",
       "samgr:samgr_proxy"
     ]
 

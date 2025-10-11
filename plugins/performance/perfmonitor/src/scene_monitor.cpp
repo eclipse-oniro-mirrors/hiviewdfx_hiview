@@ -474,6 +474,7 @@ void SceneMonitor::SetVsyncLazyMode(uint64_t sceneTag)
 
 void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
 {
+    XPERF_TRACE_SCOPED("SceneMonitor::SetAppGCStatus");
     std::unordered_map<std::string, std::string> payload;
     payload["extType"] = SENSITIVE_SCENE_EXTTYPE;
     payload["srcPid"] = std::to_string(GetPid());

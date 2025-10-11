@@ -13,6 +13,7 @@
  * limitations under the License.
  */
  
+#include <parameters.h>
 #include "hiview_logger.h"
 #include "input_monitor.h"
 #include "jank_frame_monitor.h"
@@ -49,7 +50,11 @@ void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
  
 void WhiteBlockMonitor::EndScroll()
 {
-    std::lock_guard<std::mutex> Lock(mMutex);
+    XPERF_TRACE_SCOPED("WhiteBlockMonitor::EndScroll");
+    static std::string versionType = OHOS::system::GetParameter("const.logsystem.versiontype", "");
+    if (versionType != "beta") {
+        return;
+    }
     scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     scrolling = false;
     std::thread delayThread([this] { this->ReportWhiteBlockStat(); });
