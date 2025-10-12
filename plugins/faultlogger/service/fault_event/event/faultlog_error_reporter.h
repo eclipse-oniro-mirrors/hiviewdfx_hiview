@@ -22,7 +22,7 @@ namespace HiviewDFX {
 class FaultLogErrorReporter {
 public:
     void ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent, const std::string& type,
-        const std::string& outputFilePath) const;
+        const std::string& outputFilePath, const std::map<std::string, std::string>& sectionMap) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

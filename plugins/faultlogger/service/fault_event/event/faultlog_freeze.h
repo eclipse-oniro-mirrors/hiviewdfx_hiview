@@ -25,7 +25,8 @@ private:
     bool ReportEventToAppEvent(const FaultLogInfo& info) override;
     void AddSpecificInfo(FaultLogInfo& info) override;
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
-    std::string GetMemoryStrByPid(long pid, const std::string& procStatm) const;
+    std::string GetMemoryStrByPid(long pid, const std::string& procStatm, const uint64_t& heapTotalSize,
+        const uint64_t& heapObjectSize) const;
     void ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie = false) const;
 
     std::string GetException(const std::string& name, const std::string& message) const;

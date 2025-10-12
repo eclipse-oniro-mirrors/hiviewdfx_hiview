@@ -62,7 +62,9 @@ FreezeJsonMemory::FreezeJsonMemory(const FreezeJsonMemory::Builder& builder)
     pss_(builder.pss_),
     sysFreeMem_(builder.sysFreeMem_),
     sysAvailMem_(builder.sysAvailMem_),
-    sysTotalMem_(builder.sysTotalMem_)
+    sysTotalMem_(builder.sysTotalMem_),
+    heapTotalSize_(builder.heapTotalSize_),
+    heapObjectSize_(builder.heapObjectSize_)
 {
 }
 
@@ -102,6 +104,18 @@ FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysTotalMem(uint64_t s
     return *this;
 }
 
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitHeapTotalSize(uint64_t heapTotalSize)
+{
+    heapTotalSize_ = heapTotalSize;
+    return *this;
+}
+
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitHeapObjectSize(uint64_t heapObjectSize)
+{
+    heapObjectSize_ = heapObjectSize;
+    return *this;
+}
+
 FreezeJsonMemory FreezeJsonMemory::Builder::Build() const
 {
     FreezeJsonMemory freezeJsonMemory = FreezeJsonMemory(*this);
@@ -116,7 +130,9 @@ std::string FreezeJsonMemory::JsonStr() const
         {jsonMemoryPss, pss_},
         {jsonMemorySysFreeMem, sysFreeMem_},
         {jsonMemorySysAvailMem, sysAvailMem_},
-        {jsonMemorySysTotalMem, sysTotalMem_}
+        {jsonMemorySysTotalMem, sysTotalMem_},
+        {jsonMemoryHeapTotalSize, heapTotalSize_},
+        {jsonMemoryHeapObjcetSize, heapObjectSize_}
     };
     return FreezeJsonUtil::GetStrByMap(memoryMap);
 }
@@ -129,6 +145,7 @@ FreezeJsonParams::FreezeJsonParams(const FreezeJsonParams::Builder& builder)
     bundleVersion_(builder.bundleVersion_),
     bundleName_(builder.bundleName_),
     processName_(builder.processName_),
+    processLifeTime_(builder.processLifeTime_),
     externalLog_(builder.externalLog_),
     pid_(builder.pid_),
     uid_(builder.uid_),
@@ -183,6 +200,12 @@ FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitBundleName(const std::
 FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitProcessName(const std::string& processName)
 {
     processName_ = processName;
+    return *this;
+}
+
+FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitProcessLifeTime(const uint64_t& processLifeTime)
+{
+    processLifeTime_ = processLifeTime;
     return *this;
 }
 
@@ -273,6 +296,7 @@ std::string FreezeJsonParams::JsonStr() const
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsBundleVersion, bundleVersion_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsBundleName, bundleName_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsProcessName, processName_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsProcessLifeTime, processLifeTime_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsExternalLog, externalLog_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsPid, pid_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsUid, uid_),

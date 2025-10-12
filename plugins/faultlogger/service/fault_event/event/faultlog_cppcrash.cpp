@@ -29,6 +29,7 @@
 #include "hisysevent.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "procinfo.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -140,6 +141,27 @@ Json::Value FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::strin
     Json::Value externalLog;
     externalLog.append(info.logPath);
     stackInfoObj["external_log"] = externalLog;
+
+    const auto& sectionMap = info.sectionMap;
+    auto getProcessInfo = [&sectionMap] (const std::string &key) -> uint64_t {
+        auto iter = sectionMap.find(key);
+        if (iter != sectionMap.end()) {
+            return strtoull(iter->second.c_str(), nullptr, DECIMAL_BASE);
+        }
+        return 0;
+    };
+    stackInfoObj["process_life_time"] = getProcessInfo(FaultKey::PROCESS_LIFETIME);
+    // Init Memory
+    uint64_t rss = getProcessInfo(FaultKey::PROCESS_RSS_MEMINFO);
+    uint64_t sysFreeMem = getProcessInfo(FaultKey::SYS_FREE_MEM);
+    uint64_t sysTotalMem = getProcessInfo(FaultKey::SYS_TOTAL_MEM);
+    uint64_t sysAvailMem = getProcessInfo(FaultKey::SYS_AVAIL_MEM);
+    Json::Value memory;
+    memory["rss"] = rss;
+    memory["sys_avail_mem"] = sysAvailMem;
+    memory["sys_free_mem"] = sysFreeMem;
+    memory["sys_total_mem"] = sysTotalMem;
+    stackInfoObj["memory"] = memory;
     if (info.sectionMap.count(FaultKey::MODULE_VERSION) == 1) {
         stackInfoObj["bundle_version"] = info.sectionMap.at(FaultKey::MODULE_VERSION);
     }

@@ -27,6 +27,7 @@
 #include "time_util.h"
 #include "event.h"
 #include "event_publish.h"
+#include "procinfo.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -86,8 +87,34 @@ void FillErrorParams(const std::string& summary, Json::Value& params, const std:
 }
 } // namespace
 
+void JsErrorAddparams(Json::Value& params, std::shared_ptr<SysEvent> sysEvent,
+    const std::map<std::string, std::string>& sectionMap)
+{
+    std::string lifeTime = sysEvent->GetEventValue(FaultKey::PROCESS_LIFETIME);
+    uint64_t processLifeTime = strtoull(lifeTime.c_str(), nullptr, DECIMAL_BASE);
+    params["process_life_time"] = processLifeTime;
+    std::string processMemory = sysEvent->GetEventValue(FaultKey::PROCESS_RSS_MEMINFO);
+    uint64_t rss = strtoull(processMemory.c_str(), nullptr, DECIMAL_BASE);
+    auto getMem = [&sectionMap] (const std::string &key) -> uint64_t {
+        auto iter = sectionMap.find(key);
+        if (iter != sectionMap.end()) {
+            return strtoull(iter->second.c_str(), nullptr, DECIMAL_BASE);
+        }
+        return 0;
+    };
+    uint64_t sysFreeMem = getMem(FaultKey::SYS_FREE_MEM);
+    uint64_t sysTotalMem = getMem(FaultKey::SYS_TOTAL_MEM);
+    uint64_t sysAvailMem = getMem(FaultKey::SYS_AVAIL_MEM);
+    Json::Value memory;
+    memory["rss"] = rss;
+    memory["sys_avail_mem"] = sysAvailMem;
+    memory["sys_free_mem"] = sysFreeMem;
+    memory["sys_total_mem"] = sysTotalMem;
+    params["memory"] = memory;
+}
+
 void FaultLogErrorReporter::ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysEvent, const std::string& type,
-    const std::string& outputFilePath) const
+    const std::string& outputFilePath, const std::map<std::string, std::string>& sectionMap) const
 {
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue(FaultKey::SUMMARY));
     HIVIEW_LOGD("ReportAppEvent:summary:%{public}s.", summary.c_str());
@@ -112,6 +139,9 @@ void FaultLogErrorReporter::ReportErrorToAppEvent(std::shared_ptr<SysEvent> sysE
     std::string threadName = sysEvent->GetEventValue(FaultKey::THREAD_NAME);
     FillErrorParams(summary, params, threadName);
     std::string log = GetHilogByPid(sysEvent->GetPid());
+    if (type == "JsError") {
+        JsErrorAddparams(params, sysEvent, sectionMap);
+    }
     params["hilog"] = ParseHilogToJson(log);
     std::string paramsStr = Json::FastWriter().write(params);
     HIVIEW_LOGD("ReportAppEvent: uid:%{public}d, json:%{public}s.",

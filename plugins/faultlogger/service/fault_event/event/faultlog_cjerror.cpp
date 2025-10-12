@@ -25,7 +25,7 @@ bool FaultLogCjError::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent, const
     if (!info.reportToAppEvent || !sysEvent) {
         return false;
     }
-    errorReporter_.ReportErrorToAppEvent(sysEvent, "CjError",  "/data/test_cjError_info");
+    errorReporter_.ReportErrorToAppEvent(sysEvent, "CjError",  "/data/test_cjError_info", info.sectionMap);
     return true;
 }
 
