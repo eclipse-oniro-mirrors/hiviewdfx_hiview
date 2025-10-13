@@ -67,33 +67,55 @@ std::string GetLogDir()
     return workPath;
 }
 
+void UpdateThenReadSeqFromFile(int64_t seq, int64_t seqBackup, int64_t& curSeqRead, int64_t& startSeqRead)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    std::string eventSeqFilePath = GetLogDir() + "sys_event_db/event_sequence";
+    FileUtil::SaveStringToFile(eventSeqFilePath, std::to_string(seq));
+    std::string eventSeqBackupFilePath = GetLogDir() + "sys_event_db/event_sequence_backup";
+    FileUtil::SaveStringToFile(eventSeqBackupFilePath, std::to_string(seqBackup));
+    curSeqRead = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    startSeqRead = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
+}
+
 /**
  * @tc.name: SysEventSequenceMgrTest001
- * @tc.desc: test apis of class SysEventSequenceManager
+ * @tc.desc: test reading sequence from normal sequence files
  * @tc.type: FUNC
  * @tc.require: issueIBT9BB
  */
 HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest001, testing::ext::TestSize.Level3)
 {
-    HiviewTestContext hiviewTestContext;
-    HiviewGlobal::CreateInstance(hiviewTestContext);
-    std::string eventSeqFilePath = GetLogDir() + "sys_event_db/event_sequence";
-    FileUtil::SaveStringToFile(eventSeqFilePath, "0");
-    std::string eventSeqBackupFilePath = GetLogDir() + "sys_event_db/event_sequence_backup";
-    FileUtil::SaveStringToFile(eventSeqBackupFilePath, "1000");
-    int64_t curSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
-    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
-    ASSERT_EQ(curSeq, 1100); // 1100 is expected seq value
+    int64_t curSeq = 0;
+    int64_t startSeq = 0;
+    UpdateThenReadSeqFromFile(100, 0, curSeq, startSeq); // 100 is normal difference between two sequence files
+    ASSERT_EQ(curSeq, 200); // current sequence is expected to be 200
     ASSERT_EQ(curSeq, startSeq);
 }
 
 /**
  * @tc.name: SysEventSequenceMgrTest002
+ * @tc.desc: test reading sequence from abnormal sequence files
+ * @tc.type: FUNC
+ * @tc.require: issue#2986
+ */
+HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest002, testing::ext::TestSize.Level3)
+{
+    int64_t curSeq = 0;
+    int64_t startSeq = 0;
+    UpdateThenReadSeqFromFile(101, 0, curSeq, startSeq); // 101 is abnormal difference between two sequence files
+    ASSERT_GT(curSeq, 0); // current sequence is expected to be greater than 0
+    ASSERT_EQ(curSeq, startSeq);
+}
+
+/**
+ * @tc.name: SysEventSequenceMgrTest003
  * @tc.desc: test apis of class SysEventSequenceManager
  * @tc.type: FUNC
  * @tc.require: issueI9U6IV
  */
-HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest002, testing::ext::TestSize.Level3)
+HWTEST_F(SysEventSequenceMgrTest, SysEventSequenceMgrTest003, testing::ext::TestSize.Level3)
 {
     HiviewTestContext hiviewTestContext;
     HiviewGlobal::CreateInstance(hiviewTestContext);
