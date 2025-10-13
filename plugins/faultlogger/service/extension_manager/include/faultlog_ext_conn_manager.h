@@ -42,9 +42,10 @@ public:
 private:
     std::string GetExtName(const std::string& bundleName, int32_t userId) const;
 
-    bool IsExistList(const std::string& bundleName) const;
-    void AddToList(const std::string& bundleName);
-    void RemoveFromList(const std::string& bundleName);
+    bool IsExistList(const std::string& bundleName, int32_t uid) const;
+    void AddToList(const std::string& bundleName, int32_t uid);
+    void RemoveFromList(const std::string& bundleName, int32_t uid);
+    static std::string GetListKey(const std::string& bundleName, int32_t uid);
     bool IsExtension(const FaultLogInfo& info) const;
 
     mutable std::mutex waitStartMtx_;

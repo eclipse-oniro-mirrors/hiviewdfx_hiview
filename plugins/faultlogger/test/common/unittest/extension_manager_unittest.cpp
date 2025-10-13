@@ -28,18 +28,19 @@ namespace HiviewDFX {
  */
 HWTEST(FaultLogExtConnManagerUnittest, RecordOperateTest001, testing::ext::TestSize.Level1)
 {
+    const int32_t uid = 20020200;
     FaultLogExtConnManager mgr;
     ASSERT_EQ(mgr.waitStartList_.size(), 0);
 
-    mgr.AddToList("com.test.bundle.name");
+    mgr.AddToList("com.test.bundle.name", uid);
     ASSERT_EQ(mgr.waitStartList_.size(), 1);
 
-    ASSERT_TRUE(mgr.IsExistList("com.test.bundle.name"));
+    ASSERT_TRUE(mgr.IsExistList("com.test.bundle.name", uid));
 
-    mgr.RemoveFromList("com.test.bundle.name");
+    mgr.RemoveFromList("com.test.bundle.name", uid);
     ASSERT_EQ(mgr.waitStartList_.size(), 0);
 
-    ASSERT_FALSE(mgr.IsExistList("com.test.bundle.name"));
+    ASSERT_FALSE(mgr.IsExistList("com.test.bundle.name", uid));
 }
 
 /**
