@@ -100,22 +100,27 @@ static OHOS::AAFwk::Want FillWant(const std::string& bundleName, const std::stri
     return want;
 }
 
-bool FaultLogExtConnManager::IsExistList(const std::string& bundleName) const
+bool FaultLogExtConnManager::IsExistList(const std::string& bundleName, int32_t uid) const
 {
     std::lock_guard<std::mutex> lock(waitStartMtx_);
-    return waitStartList_.find(bundleName) != waitStartList_.end();
+    return waitStartList_.find(GetListKey(bundleName, uid)) != waitStartList_.end();
 }
 
-void FaultLogExtConnManager::AddToList(const std::string& bundleName)
+void FaultLogExtConnManager::AddToList(const std::string& bundleName, int32_t uid)
 {
     std::lock_guard<std::mutex> lock(waitStartMtx_);
-    waitStartList_.insert(bundleName);
+    waitStartList_.insert(GetListKey(bundleName, uid));
 }
 
-void FaultLogExtConnManager::RemoveFromList(const std::string& bundleName)
+void FaultLogExtConnManager::RemoveFromList(const std::string& bundleName, int32_t uid)
 {
     std::lock_guard<std::mutex> lock(waitStartMtx_);
-    waitStartList_.erase(bundleName);
+    waitStartList_.erase(GetListKey(bundleName, uid));
+}
+
+std::string FaultLogExtConnManager::GetListKey(const std::string& bundleName, int32_t uid)
+{
+    return bundleName + "_" + std::to_string(uid);
 }
 
 bool FaultLogExtConnManager::IsExtension(const FaultLogInfo& info) const
@@ -157,7 +162,7 @@ std::string FaultLogExtConnManager::GetExtName(const std::string& bundleName, in
 
 bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
 {
-    if (IsExtension(info) || IsExistList(info.module)) {
+    if (IsExtension(info) || IsExistList(info.module, info.id)) {
         HIVIEW_LOGE("%{public}s is extension or exist list", info.module.c_str());
         return false;
     }
@@ -168,40 +173,41 @@ bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
         return false;
     }
     auto task = [this, bundleName = info.module, extensionName, uid = info.id, userId]() {
-        HIVIEW_LOGI("connect bundle:%{public}s(%{public}s)", bundleName.c_str(), extensionName.c_str());
+        HIVIEW_LOGI("connect bundle:%{public}s(%{public}s), uid %{public}" PRIi32,
+                    bundleName.c_str(), extensionName.c_str(), uid);
         sptr<FaultLogExtConnection> connection(new (std::nothrow) FaultLogExtConnection());
         if (connection == nullptr) {
             HIVIEW_LOGE("Failed to new connection.");
-            RemoveFromList(bundleName);
+            RemoveFromList(bundleName, uid);
             return;
         }
 
         auto abilityMgr = GetIAbilityManager();
         if (abilityMgr == nullptr) {
             HIVIEW_LOGE("Failed to get IAbilityManager.");
-            RemoveFromList(bundleName);
+            RemoveFromList(bundleName, uid);
             return;
         }
 
         auto ret = abilityMgr->ConnectAbility(FillWant(bundleName, extensionName, uid), connection, nullptr, userId);
         if (ret != ERR_OK) {
             HIVIEW_LOGE("connect failed, ret: %{public}d", ret);
-            RemoveFromList(bundleName);
+            RemoveFromList(bundleName, uid);
             return;
         }
-        auto disconnTask = [this, connection, abilityMgr, bundleName] {
-            HIVIEW_LOGI("disconnect bundle:%{public}s", bundleName.c_str());
+        auto disconnTask = [this, connection, abilityMgr, bundleName, uid] {
+            HIVIEW_LOGI("disconnect bundle:%{public}s, uid %{public}" PRIi32, bundleName.c_str(), uid);
             if (connection->IsConnected()) {
                 abilityMgr->DisconnectAbility(connection);
             }
-            RemoveFromList(bundleName);
+            RemoveFromList(bundleName, uid);
         };
         ffrt::submit(disconnTask, ffrt::task_attr().name("FaultlogExtensionDisconnect").delay(DELAY_CLEAN_TIME_MICRO));
     };
 
-    HIVIEW_LOGI("add to List : %{public}s", info.module.c_str());
+    HIVIEW_LOGI("add to List : %{public}s, uid %{public}" PRIi32, info.module.c_str(), info.id);
     ffrt::submit(task, ffrt::task_attr().name("FaultlogExtensionStart").delay(GetDelayTimeout()));
-    AddToList(info.module);
+    AddToList(info.module, info.id);
     return true;
 }
 } // namespace HiviewDFX
