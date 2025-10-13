@@ -61,6 +61,8 @@ public:
         Builder& InitSysFreeMem(uint64_t sysFreeMem);
         Builder& InitSysAvailMem(uint64_t sysAvailMem);
         Builder& InitSysTotalMem(uint64_t sysTotalMem);
+        Builder& InitHeapTotalSize(uint64_t heapTotalSize);
+        Builder& InitHeapObjectSize(uint64_t heapObjectSize);
         FreezeJsonMemory Build() const;
 
     private:
@@ -70,6 +72,8 @@ public:
         uint64_t sysFreeMem_ = 0;
         uint64_t sysAvailMem_ = 0;
         uint64_t sysTotalMem_ = 0;
+        uint64_t heapTotalSize_ = 0;
+        uint64_t heapObjectSize_ = 0;
         friend class FreezeJsonMemory;
     };
 
@@ -84,12 +88,16 @@ private:
     static constexpr const char* const jsonMemorySysFreeMem = "sys_free_mem";
     static constexpr const char* const jsonMemorySysAvailMem = "sys_avail_mem";
     static constexpr const char* const jsonMemorySysTotalMem = "sys_total_mem";
+    static constexpr const char* const jsonMemoryHeapTotalSize = "vm_heap_total_size";
+    static constexpr const char* const jsonMemoryHeapObjcetSize = "vm_object_used_size";
     uint64_t rss_;
     uint64_t vss_;
     uint64_t pss_;
     uint64_t sysFreeMem_;
     uint64_t sysAvailMem_;
     uint64_t sysTotalMem_;
+    uint64_t heapTotalSize_;
+    uint64_t heapObjectSize_;
 };
 
 class FreezeJsonParams {
@@ -105,6 +113,7 @@ public:
         Builder& InitBundleVersion(const std::string& bundleVersion);
         Builder& InitBundleName(const std::string& bundleName);
         Builder& InitProcessName(const std::string& processName);
+        Builder& InitProcessLifeTime(const uint64_t& processLifeTime);
         Builder& InitExternalLog(const std::string& externalLog);
         Builder& InitPid(long pid);
         Builder& InitUid(long uid);
@@ -127,6 +136,7 @@ public:
         std::string bundleVersion_ = "";
         std::string bundleName_ = "";
         std::string processName_ = "";
+        uint64_t processLifeTime_ = 0;
         std::string externalLog_ = "[]";
         long pid_ = 0;
         long uid_ = 0;
@@ -154,6 +164,7 @@ private:
     static constexpr const char* const jsonParamsBundleVersion = "bundle_version";
     static constexpr const char* const jsonParamsBundleName = "bundle_name";
     static constexpr const char* const jsonParamsProcessName = "process_name";
+    static constexpr const char* const jsonParamsProcessLifeTime = "process_life_time";
     static constexpr const char* const jsonParamsExternalLog = "external_log";
     static constexpr const char* const jsonParamsPid = "pid";
     static constexpr const char* const jsonParamsUid = "uid";
@@ -174,6 +185,7 @@ private:
     std::string bundleVersion_;
     std::string bundleName_;
     std::string processName_;
+    uint64_t processLifeTime_ = 0;
     std::string externalLog_ = "";
     long pid_ = 0;
     long uid_ = 0;

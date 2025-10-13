@@ -16,6 +16,7 @@
 
 #include <fstream>
 
+#include <string>
 #include "constants.h"
 #include "faultlog_bundle_util.h"
 #include "faultlog_ext_conn_manager.h"
@@ -30,6 +31,31 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 using namespace FaultLogger;
+namespace {
+auto GetDightStrArr(const std::string& target)
+{
+    std::vector<std::string> dightStrArr;
+    std::string dightStr;
+    for (char ch : target) {
+        if (isdigit(ch)) {
+            dightStr += ch;
+            continue;
+        }
+        if (!dightStr.empty()) {
+            dightStrArr.push_back(std::move(dightStr));
+            dightStr.clear();
+        }
+    }
+
+    if (!dightStr.empty()) {
+        dightStrArr.push_back(std::move(dightStr));
+    }
+
+    dightStrArr.push_back("0");
+    return dightStrArr;
+}
+}
+
 void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie) const
 {
     HIVIEW_LOGI("Start to report freezeJson !!!");
@@ -38,6 +64,8 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
     std::list<std::string> externalLogList;
     externalLogList.push_back(info.logPath);
     std::string freezeExtPath = GetStrValFromMap(info.sectionMap, FaultKey::FREEZE_INFO_PATH);
+    std::string lifeTime = GetStrValFromMap(info.sectionMap, FaultKey::PROCESS_LIFETIME);
+    uint64_t processLifeTime = strtoull(GetDightStrArr(lifeTime).front().c_str(), nullptr, DECIMAL_BASE);
     if (!freezeExtPath.empty()) {
         externalLogList.push_back(freezeExtPath);
     }
@@ -51,6 +79,7 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
         .InitBundleVersion(collector.version)
         .InitBundleName(collector.package_name)
         .InitProcessName(collector.process_name)
+        .InitProcessLifeTime(processLifeTime)
         .InitExternalLog(externalLog)
         .InitPid(collector.pid)
         .InitUid(collector.uid)
@@ -110,37 +139,16 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
     collector.exception = GetException(collector.stringId, collector.message);
     collector.hilog = GetFreezeHilogByPid(collector.pid);
     std::string procStatm = GetStrValFromMap(info.sectionMap, FaultKey::PROC_STATM);
-    collector.memory = GetMemoryStrByPid(collector.pid, procStatm);
+    std::string totalSize = GetStrValFromMap(info.sectionMap, FaultKey::HEAP_TOTAL_SIZE);
+    std::string objectSize = GetStrValFromMap(info.sectionMap, FaultKey::HEAP_OBJECT_SIZE);
+    uint64_t heapTotalSize = strtoull(GetDightStrArr(totalSize).front().c_str(), nullptr, DECIMAL_BASE);
+    uint64_t heapObjectSize = strtoull(GetDightStrArr(objectSize).front().c_str(), nullptr, DECIMAL_BASE);
+    collector.memory = GetMemoryStrByPid(collector.pid, procStatm, heapTotalSize, heapObjectSize);
     collector.foreground = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
     collector.version = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
     collector.uuid = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
 
     return collector;
-}
-
-namespace {
-auto GetDightStrArr(const std::string& target)
-{
-    std::vector<std::string> dightStrArr;
-    std::string dightStr;
-    for (char ch : target) {
-        if (isdigit(ch)) {
-            dightStr += ch;
-            continue;
-        }
-        if (!dightStr.empty()) {
-            dightStrArr.push_back(std::move(dightStr));
-            dightStr.clear();
-        }
-    }
-
-    if (!dightStr.empty()) {
-        dightStrArr.push_back(std::move(dightStr));
-    }
-
-    dightStrArr.push_back("0");
-    return dightStrArr;
-}
 }
 
 void FaultLogFreeze::FillProcMemory(const std::string& procStatm, long pid, uint64_t& rss,  uint64_t& vss) const
@@ -186,7 +194,8 @@ void FaultLogFreeze::FillSystemMemory(uint64_t& sysFreeMem, uint64_t& sysAvailMe
         sysTotalMem=%{public}" PRIu64".", sysFreeMem, sysAvailMem, sysTotalMem);
 }
 
-std::string FaultLogFreeze::GetMemoryStrByPid(long pid, const std::string& procStatm) const
+std::string FaultLogFreeze::GetMemoryStrByPid(long pid, const std::string& procStatm, const uint64_t& heapTotalSize,
+    const uint64_t& heapObjectSize) const
 {
     if (pid <= 0) {
         return "";
@@ -201,7 +210,8 @@ std::string FaultLogFreeze::GetMemoryStrByPid(long pid, const std::string& procS
     FillSystemMemory(sysFreeMem, sysAvailMem, sysTotalMem);
 
     FreezeJsonMemory freezeJsonMemory = FreezeJsonMemory::Builder().InitRss(rss).InitVss(vss).
-        InitSysFreeMem(sysFreeMem).InitSysAvailMem(sysAvailMem).InitSysTotalMem(sysTotalMem).Build();
+        InitSysFreeMem(sysFreeMem).InitSysAvailMem(sysAvailMem).InitSysTotalMem(sysTotalMem).
+        InitHeapTotalSize(heapTotalSize).InitHeapObjectSize(heapObjectSize).Build();
     return freezeJsonMemory.JsonStr();
 }
 

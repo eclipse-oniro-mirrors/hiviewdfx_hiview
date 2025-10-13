@@ -302,8 +302,11 @@ void FaultLogProcessorBase::GetProcMemInfo(FaultLogInfo& info)
         std::getline(meminfoStream, meminfoLine);
         availMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
         meminfoStream.close();
-        info.sectionMap["DEVICE_MEMINFO"] = "Device Memory(kB): Total " + std::to_string(totalMem) +
+        info.sectionMap[FaultKey::DEVICE_MEMINFO] = "Device Memory(kB): Total " + std::to_string(totalMem) +
             ", Free " + std::to_string(freeMem) + ", Available " + std::to_string(availMem);
+        info.sectionMap[FaultKey::SYS_TOTAL_MEM] = std::to_string(totalMem);
+        info.sectionMap[FaultKey::SYS_FREE_MEM] = std::to_string(freeMem);
+        info.sectionMap[FaultKey::SYS_AVAIL_MEM] = std::to_string(availMem);
     } else {
         HIVIEW_LOGE("Fail to open /proc/meminfo");
     }
