@@ -302,10 +302,10 @@ void FreezeFilterTraceOn(const std::string& bundleName)
         telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
 }
 
-std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t hitraceTime, bool grayscale,
-    const std::string& bundleName)
+std::pair<std::string, std::pair<std::string, std::vector<std::string>>> FreezeDumpTrace(uint64_t hitraceTime,
+    bool grayscale, const std::string& bundleName)
 {
-    std::pair<std::string, std::vector<std::string>> result;
+    std::pair<std::string, std::pair<std::string, std::vector<std::string>>> result;
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
     if (!collector) {
         return result;
@@ -318,8 +318,9 @@ std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t hitrac
     uint64_t endTime = TimeUtil::GetMilliseconds();
     HIVIEW_LOGW("get hitrace with duration, hitraceTime:%{public}" PRIu64 ", startTime:%{public}" PRIu64
         ", endTime:%{public}" PRIu64 ", retCode:%{public}d", hitraceTime, startTime, endTime, collectResult.retCode);
+    result.first = std::to_string(static_cast<int>(collectResult.retCode));
     if (collectResult.retCode == UCollect::UcError::SUCCESS) {
-        result.second = collectResult.data;
+        result.second.second = collectResult.data;
         return result;
     }
 
@@ -331,7 +332,7 @@ std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t hitrac
             bundleName.find(traceAppFilter_) == std::string::npos)) {
             return result;
         }
-        result.first = telemetryId_;
+        result.second.first = telemetryId_;
     }
 
     UCollect::TeleModule teleModule = UCollect::TeleModule::RELIABILITY;
@@ -341,7 +342,7 @@ std::pair<std::string, std::vector<std::string>> FreezeDumpTrace(uint64_t hitrac
     HIVIEW_LOGW("get hitrace with filter, hitraceTime:%{public}" PRIu64 ", startTime:%{public}" PRIu64
         ", endTime:%{public}" PRIu64 ", retCode:%{public}d", hitraceTime, startTime, endTime, collectResult.retCode);
     if (collectResult.retCode == UCollect::UcError::SUCCESS) {
-        result.second = collectResult.data;
+        result.second.second = collectResult.data;
     }
     return result;
 }

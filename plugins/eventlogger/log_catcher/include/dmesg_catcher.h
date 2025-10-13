@@ -32,6 +32,7 @@ public:
     bool Initialize(const std::string& packageNam, int writeNewFile, int writeType) override;
     int Catch(int fd, int jsonFd) override;
     bool Init(std::shared_ptr<SysEvent> event);
+    void SetExtraFile(bool extraFile);
     void WriteNewFile(int pid);
 
     enum WRITE_TYPE {
@@ -43,6 +44,7 @@ public:
 private:
     int writeNewFile_ = 0;
     int writeType_ = 0;
+    bool extraFile_ = false;
     std::shared_ptr<SysEvent> event_;
 
     bool DumpDmesgLog(int fdOne, int fdTwo);

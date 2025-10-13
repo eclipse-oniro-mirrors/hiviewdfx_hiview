@@ -408,9 +408,9 @@ void PeerBinderCatcher::DoExecHiperf(const std::string& fileName, const std::set
     perfCollector->SetFrequency(1000); // 1000 : 1kHz
     CollectResult<bool> ret = perfCollector->StartPerf(EVENT_LOG_PATH);
     if (ret.retCode == UCollect::UcError::SUCCESS) {
-        HIVIEW_LOGI("Success to call perf result : %{public}d", ret.data);
+        HIVIEW_LOGI("Success to call perf result : %{public}d, retCode : %{public}d", ret.data, ret.retCode);
     } else {
-        HIVIEW_LOGI("Failed to  call perf result : %{public}d", ret.data);
+        HIVIEW_LOGE("Failed to call perf result : %{public}d, retCode : %{public}d", ret.data, ret.retCode);
     }
 }
 

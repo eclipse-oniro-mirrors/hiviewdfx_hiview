@@ -84,6 +84,7 @@ const char * const FIRST_FRAME = "FIRST_FRAME";
 const char * const SECOND_FRAME = "SECOND_FRAME";
 const char * const LAST_FRAME = "LAST_FRAME";
 constexpr const char * const APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
+constexpr const char * const TASK_NAME = "TASK_NAME";
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

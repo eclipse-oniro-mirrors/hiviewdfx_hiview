@@ -105,20 +105,19 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
     captureList_.insert(std::pair<std::string, capture>("cmd:ui", [this] { this->UIStateCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:ss", [this] { this->Screenshot(); }));
 #endif // OTHER_CATCHER_ENABLE
-#ifdef HILOG_CATCHER_ENABLE
-    captureList_.insert(std::pair<std::string, capture>("T", [this] { this->HilogCapture(); }));
-    captureList_.insert(std::pair<std::string, capture>("T:power", [this] { this->HilogTagCapture(); }));
-    captureList_.insert(std::pair<std::string, capture>("t", [this] { this->LightHilogCapture(); }));
-#endif // HILOG_CATCHER_ENABLE
 #ifdef DMESG_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("e",
         [this] { this->DmesgCapture(false, DmesgCatcher::DMESG); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysRq",
         [this] { this->DmesgCapture(false, DmesgCatcher::SYS_RQ); }));
+    captureList_.insert(std::pair<std::string, capture>("k:SysRq:a",
+        [this] { this->DmesgCapture(false, DmesgCatcher::SYS_RQ, true); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysRqFile",
         [this] { this->DmesgCapture(true, DmesgCatcher::SYS_RQ); }));
     captureList_.insert(std::pair<std::string, capture>("k:HungTask",
         [this] { this->DmesgCapture(false, DmesgCatcher::HUNG_TASK); }));
+    captureList_.insert(std::pair<std::string, capture>("k:HungTask:a",
+        [this] { this->DmesgCapture(false, DmesgCatcher::HUNG_TASK, true); }));
     captureList_.insert(std::pair<std::string, capture>("k:HungTaskFile",
         [this] { this->DmesgCapture(true, DmesgCatcher::HUNG_TASK); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysrqHungtask",
@@ -126,18 +125,23 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
     captureList_.insert(std::pair<std::string, capture>("k:SysrqHungtaskFile",
         [this] { this->DmesgCapture(true, DmesgCatcher::HUNG_TASK); }));
 #endif // DMESG_CATCHER_ENABLE
+#ifdef OTHER_CATCHER_ENABLE
+    captureList_.insert(std::pair<std::string, capture>("ffrt", [this] { this->FfrtCapture(); }));
+#endif // OTHER_CATCHER_ENABLE
     AddCapture();
 }
 
 void EventLogTask::AddCapture()
 {
+#ifdef HILOG_CATCHER_ENABLE
+    captureList_.insert(std::pair<std::string, capture>("T", [this] { this->HilogCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("T:power", [this] { this->HilogTagCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("t", [this] { this->LightHilogCapture(); }));
+#endif // HILOG_CATCHER_ENABLE
 #ifdef STACKTRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("s", [this] { this->AppStackCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("S", [this] { this->SystemStackCapture(); }));
 #endif // STACKTRACE_CATCHER_ENABLE
-#ifdef OTHER_CATCHER_ENABLE
-    captureList_.insert(std::pair<std::string, capture>("ffrt", [this] { this->FfrtCapture(); }));
-#endif // OTHER_CATCHER_ENABLE
 #ifdef HITRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("tr",
         [this] { this->HitraceCapture(Parameter::IsBetaVersion()); }));
@@ -417,7 +421,7 @@ bool EventLogTask::PeerBinderCapture(const std::string &cmd)
 #endif // BINDER_CATCHER_ENABLE
 
 #ifdef DMESG_CATCHER_ENABLE
-void EventLogTask::DmesgCapture(bool writeNewFile, int type)
+void EventLogTask::DmesgCapture(bool writeNewFile, int type, bool extraFile)
 {
     if (type == DmesgCatcher::DMESG && !Parameter::IsBetaVersion()) {
         HIVIEW_LOGI("the dmesg cmd can only be executed in beta version");
@@ -427,6 +431,7 @@ void EventLogTask::DmesgCapture(bool writeNewFile, int type)
     auto capture = std::make_shared<DmesgCatcher>();
     capture->Initialize("", writeNewFile, type);
     capture->Init(event_);
+    capture->SetExtraFile(extraFile);
     if (!writeNewFile) {
         tasks_.push_back(capture);
         return;
@@ -505,15 +510,15 @@ void EventLogTask::HitraceCapture(bool isBetaVersion)
         bundleName = event_->GetEventValue("PACKAGE_NAME");
         bundleName = bundleName.empty() ? event_->GetEventValue("PROCESS_NAME") : bundleName;
     }
-    std::pair<std::string, std::vector<std::string>> result =
+    std::pair<std::string, std::pair<std::string, std::vector<std::string>>> result =
         LogCatcherUtils::FreezeDumpTrace(hitraceTime, grayscale, bundleName);
-    event_->SetEventValue("TELEMETRY_ID", result.first);
-    if (!result.second.empty()) {
-        event_->SetEventValue("TRACE_NAME", result.second[0]);
+    event_->SetEventValue("TELEMETRY_ID", result.second.first);
+    if (!result.second.second.empty()) {
+        event_->SetEventValue("TRACE_NAME", result.second.second[0]);
     } else if (isBetaVersion) {
-        event_->SetEventValue("TRACE_NAME", "dump trace failed in beta!");
-    } else if (!result.first.empty()) {
-        event_->SetEventValue("TRACE_NAME", "dump trace failed with grayscale!");
+        event_->SetEventValue("TRACE_NAME", "dump trace failed in beta, retCode : " + result.first);
+    } else if (!result.second.first.empty()) {
+        event_->SetEventValue("TRACE_NAME", "dump trace failed with grayscale, retCode : " + result.first);
     }
 }
 #endif // HITRACE_CATCHER_ENABLE

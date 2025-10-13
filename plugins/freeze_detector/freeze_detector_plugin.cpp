@@ -130,6 +130,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     std::string freezeExtFile = sysEvent.GetEventValue(FreezeCommon::FREEZE_INFO_PATH);
     std::string applicationInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO) + "," +
         sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_LIFECYCLE_INFO);
+    std::string taskName = sysEvent.GetEventValue(FreezeCommon::EVENT_TASK_NAME);
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
     std::string logFile = std::regex_search(info, result, reg) ? result[1].str() : info;
@@ -140,15 +141,16 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitPackageName(packageName).InitProcessName(processName).InitForeGround(foreGround).InitMsg("")
         .InitLogPath(logFile).InitHitraceTime(hitraceTime).InitSysrqTime(sysrqTime).InitHitraceIdInfo(hitraceIdInfo)
         .InitProcStatm(procStatm).InitHostResourceWarning(hostResourceWarning).InitFreezeExtFile(freezeExtFile)
-        .InitAppRunningUniqueId(appRunningUniqueId).InitApplicationInfo(applicationInfo).Build();
+        .InitAppRunningUniqueId(appRunningUniqueId).InitApplicationInfo(applicationInfo).InitTaskName(taskName)
+        .Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
         " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
-        " appRunningUniqueId=%{public}s, foreGround=%{public}s, applicationInfo=%{public}s",
+        " appRunningUniqueId=%{public}s, foreGround=%{public}s, applicationInfo=%{public}s, taskName=%{public}s",
         event.domain_.c_str(), event.eventName_.c_str(), pid, uid, seq,
         packageName.c_str(), processName.c_str(), logFile.c_str(), hitraceIdInfo.c_str(), procStatm.c_str(),
         hostResourceWarning.c_str(), freezeExtFile.c_str(), appRunningUniqueId.c_str(), foreGround.c_str(),
-        applicationInfo.c_str());
+        applicationInfo.c_str(), taskName.c_str());
     return watchPoint;
 }
 
