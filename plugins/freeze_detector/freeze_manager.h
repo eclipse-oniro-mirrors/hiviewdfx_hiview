@@ -44,6 +44,8 @@ public:
         const std::string& stackFile, const std::string& cpuFile) const;
     int GetFreezeLogFd(int32_t freezeLogType, const std::string& fileName) const;
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
+    void FillProcMemory(const std::string& procStatm, long pid,
+        std::map<std::string, std::string> &sectionMaps) const;
 
 private:
     void InitEventLogStore();
@@ -51,6 +53,7 @@ private:
     void InitFreezeDetectorLogStore();
     LogStoreEx::LogFileFilter CreateLogFileFilter(int32_t id, const std::string& filePrefix) const;
     int32_t GetUidFromFileName(const std::string& fileName) const;
+    std::vector<std::string> GetDightStrArr(const std::string& target) const;
 
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;

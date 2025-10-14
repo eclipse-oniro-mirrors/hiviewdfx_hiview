@@ -37,6 +37,8 @@ namespace {
     static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
     static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
     static constexpr const char* FREEZE_EXT_LOG_PATH = "/data/log/faultlog/freeze_ext/";
+    static constexpr const char* PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
+    static constexpr const char* PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
 }
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
 FreezeManager::FreezeManager()
@@ -209,6 +211,57 @@ void FreezeManager::ParseLogEntry(const std::string& input, std::map<std::string
             HIVIEW_LOGE("parse %{public}s failed.", token.c_str());
         }
     }
+}
+
+std::vector<std::string> FreezeManager::GetDightStrArr(const std::string& target) const
+{
+    std::vector<std::string> dightStrArr;
+    std::string dightStr;
+    for (char ch : target) {
+        if (isdigit(ch)) {
+            dightStr += ch;
+            continue;
+        }
+        if (!dightStr.empty()) {
+            dightStrArr.push_back(std::move(dightStr));
+            dightStr.clear();
+        }
+    }
+
+    if (!dightStr.empty()) {
+        dightStrArr.push_back(std::move(dightStr));
+    }
+
+    dightStrArr.push_back("0");
+    return dightStrArr;
+}
+
+void FreezeManager::FillProcMemory(const std::string& procStatm, long pid,
+    std::map<std::string, std::string> &sectionMaps) const
+{
+    std::string statmLine = procStatm;
+    if (statmLine.empty()) {
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (!statmStream) {
+            HIVIEW_LOGE("Fail to open /proc/%{public}ld/statm  errno %{public}d", pid, errno);
+            return;
+        }
+        std::getline(statmStream, statmLine);
+        HIVIEW_LOGI("/proc/%{public}ld/statm : %{public}s", pid, statmLine.c_str());
+        statmStream.close();
+    }
+
+    auto numStrArr = GetDightStrArr(statmLine);
+    uint64_t rss = 0; // statm col = 2 *4
+    uint64_t vss = 0; // statm col = 1 *4
+    if (numStrArr.size() > 1) {
+        uint64_t multiples = 4;
+        vss = multiples * static_cast<uint64_t>(std::atoll(numStrArr[0].c_str()));
+        rss = multiples * static_cast<uint64_t>(std::atoll(numStrArr[1].c_str()));
+    }
+    sectionMaps[PROCESS_RSS_MEMINFO] = rss;
+    sectionMaps[PROCESS_VSS_MEMINFO] = vss;
+    HIVIEW_LOGI("Get FreezeJson rss=%{public}" PRIu64", vss=%{public}" PRIu64".", rss, vss);
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

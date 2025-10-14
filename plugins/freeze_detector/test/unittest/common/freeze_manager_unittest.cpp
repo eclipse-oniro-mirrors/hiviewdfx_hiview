@@ -161,5 +161,38 @@ HWTEST_F(FreezeManagerTest, ParseLogEntry_001, TestSize.Level3)
     freezeManager->ParseLogEntry(testValue, sectionMaps);
     EXPECT_TRUE(sectionMaps.size() > 0);
 }
+
+/**
+ * @tc.name: FillProcMemory Test
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, FillProcMemory_Test_001, TestSize.Level3)
+{
+    std::string procStatm;
+    int pid = getpid();
+    std::map<std::string, std::string> sectionMaps;
+    freezeManager->FillProcMemory(procStatm, -1, sectionMaps);
+    freezeManager->FillProcMemory(procStatm, pid, sectionMaps);
+    EXPECT_TRUE(sectionMaps.size() > 0);
+    freezeManager->FillProcMemory(procStatm, 1, sectionMaps);
+    EXPECT_TRUE(sectionMaps.size() > 0);
+    procStatm = "925867 206755 78784 17 0 193490 0";
+    freezeManager->FillProcMemory(procStatm, pid, sectionMaps);
+    EXPECT_TRUE(sectionMaps.size() > 0);
+}
+
+/**
+ * @tc.name: GetDightStrArr Test
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, GetDightStrArr_Test_001, TestSize.Level3)
+{
+    std::string target = "abc abc 123";
+    auto numStrArr = freezeManager->GetDightStrArr(target);
+    EXPECT_TRUE(numStrArr.size() > 0);
+    target = "0 0 123 123";
+    auto numStrArr = freezeManager->GetDightStrArr(target);
+    EXPECT_TRUE(numStrArr.size() > 0);
+}
 }
 }
