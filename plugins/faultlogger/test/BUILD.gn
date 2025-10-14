@@ -109,6 +109,7 @@ ohos_unittest("FaultloggerUnittest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "faultloggerd:crash_exception",
+    "faultloggerd:libdfx_procinfo",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",

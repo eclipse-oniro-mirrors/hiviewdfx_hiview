@@ -27,7 +27,7 @@ bool FaultLogJsError::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent, const
     if (!info.reportToAppEvent || !sysEvent) {
         return false;
     }
-    errorReporter_.ReportErrorToAppEvent(sysEvent, "JsError", "/data/test_jsError_info");
+    errorReporter_.ReportErrorToAppEvent(sysEvent, "JsError", "/data/test_jsError_info", info.sectionMap);
     FaultLogExtConnManager::GetInstance().OnFault(info);
     return true;
 }
@@ -51,6 +51,7 @@ void FaultLogJsError::FillSpecificFaultLogInfo(SysEvent& sysEvent, FaultLogInfo&
         info.sectionMap[FaultKey::PAGE_SWITCH_HISTORY] = std::move(trace);
     }
     info.sectionMap["PROCESS_NAME"] = sysEvent.GetEventValue(FaultKey::P_NAME);
+    info.sectionMap["PROCESS_LIFETIME"] = sysEvent.GetEventValue(FaultKey::PROCESS_LIFETIME);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
