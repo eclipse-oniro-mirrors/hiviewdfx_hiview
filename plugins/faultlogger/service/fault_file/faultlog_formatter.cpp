@@ -77,8 +77,6 @@ const SectionLog FINGERPRINT = {FaultKey::FINGERPRINT, "Fingerprint:"};
 const SectionLog APPEND_ORIGIN_LOG = {FaultKey::APPEND_ORIGIN_LOG, ""};
 const SectionLog PROCESS_RSS_MEMINFO = {FaultKey::PROCESS_RSS_MEMINFO, ""};
 const SectionLog PROCESS_LIFETIME = {FaultKey::PROCESS_LIFETIME, "Process life time:"};
-const SectionLog HEAP_TOTAL_SIZE = {FaultKey::HEAP_TOTAL_SIZE, "Vm heap total size:"};
-const SectionLog HEAP_OBJECT_SIZE = {FaultKey::HEAP_OBJECT_SIZE, "Vm object used size:"};
 const SectionLog DEVICE_MEMINFO = {FaultKey::DEVICE_MEMINFO, ""};
 const SectionLog PAGE_SWITCH_HISTORY = {FaultKey::PAGE_SWITCH_HISTORY, "Page switch history:\n"};
 
@@ -119,7 +117,7 @@ std::vector<SectionLog> GetAppFreezeSectionLogs()
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
         PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE,
-        APP_VM_TYPE, PROCESS_LIFETIME, HEAP_TOTAL_SIZE, HEAP_OBJECT_SIZE, REASON,
+        APP_VM_TYPE, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON,
         TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE, MSG_QUEUE_INFO,
         BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY, PAGE_SWITCH_HISTORY
     };

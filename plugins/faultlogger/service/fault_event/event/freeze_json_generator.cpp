@@ -63,8 +63,8 @@ FreezeJsonMemory::FreezeJsonMemory(const FreezeJsonMemory::Builder& builder)
     sysFreeMem_(builder.sysFreeMem_),
     sysAvailMem_(builder.sysAvailMem_),
     sysTotalMem_(builder.sysTotalMem_),
-    heapTotalSize_(builder.heapTotalSize_),
-    heapObjectSize_(builder.heapObjectSize_)
+    vmHeapTotalSize_(builder.vmHeapTotalSize_),
+    vmHeapUsedSize_(builder.vmHeapUsedSize_)
 {
 }
 
@@ -104,15 +104,15 @@ FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitSysTotalMem(uint64_t s
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitHeapTotalSize(uint64_t heapTotalSize)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitVmHeapTotalSize(uint64_t vmHeapTotalSize)
 {
-    heapTotalSize_ = heapTotalSize;
+    vmHeapTotalSize_ = vmHeapTotalSize;
     return *this;
 }
 
-FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitHeapObjectSize(uint64_t heapObjectSize)
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitVmHeapUsedSize(uint64_t vmHeapUsedSize)
 {
-    heapObjectSize_ = heapObjectSize;
+    vmHeapUsedSize_ = vmHeapUsedSize;
     return *this;
 }
 
@@ -131,8 +131,8 @@ std::string FreezeJsonMemory::JsonStr() const
         {jsonMemorySysFreeMem, sysFreeMem_},
         {jsonMemorySysAvailMem, sysAvailMem_},
         {jsonMemorySysTotalMem, sysTotalMem_},
-        {jsonMemoryHeapTotalSize, heapTotalSize_},
-        {jsonMemoryHeapObjcetSize, heapObjectSize_}
+        {jsonMemoryVmHeapTotalSize, vmHeapTotalSize_},
+        {jsonMemoryVmHeapUsedSize, vmHeapUsedSize_}
     };
     return FreezeJsonUtil::GetStrByMap(memoryMap);
 }

@@ -73,6 +73,7 @@ constexpr const char * const VERSION_CODE = "VERSION_CODE";
 constexpr const char * const FINGERPRINT = "FINGERPRINT";
 constexpr const char * const APPEND_ORIGIN_LOG = "APPEND_ORIGIN_LOG";
 constexpr const char * const PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
+constexpr const char * const PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
 constexpr const char * const DEVICE_MEMINFO = "DEVICE_MEMINFO";
 constexpr const char * const TELEMETRY_ID = "TELEMETRY_ID";
 constexpr const char * const TRACE_NAME = "TRACE_NAME";

@@ -61,8 +61,8 @@ public:
         Builder& InitSysFreeMem(uint64_t sysFreeMem);
         Builder& InitSysAvailMem(uint64_t sysAvailMem);
         Builder& InitSysTotalMem(uint64_t sysTotalMem);
-        Builder& InitHeapTotalSize(uint64_t heapTotalSize);
-        Builder& InitHeapObjectSize(uint64_t heapObjectSize);
+        Builder& InitVmHeapTotalSize(uint64_t vmHeapTotalSize);
+        Builder& InitVmHeapUsedSize(uint64_t vmHeapUsedSize);
         FreezeJsonMemory Build() const;
 
     private:
@@ -72,8 +72,8 @@ public:
         uint64_t sysFreeMem_ = 0;
         uint64_t sysAvailMem_ = 0;
         uint64_t sysTotalMem_ = 0;
-        uint64_t heapTotalSize_ = 0;
-        uint64_t heapObjectSize_ = 0;
+        uint64_t vmHeapTotalSize_ = 0;
+        uint64_t vmHeapUsedSize_ = 0;
         friend class FreezeJsonMemory;
     };
 
@@ -88,16 +88,16 @@ private:
     static constexpr const char* const jsonMemorySysFreeMem = "sys_free_mem";
     static constexpr const char* const jsonMemorySysAvailMem = "sys_avail_mem";
     static constexpr const char* const jsonMemorySysTotalMem = "sys_total_mem";
-    static constexpr const char* const jsonMemoryHeapTotalSize = "vm_heap_total_size";
-    static constexpr const char* const jsonMemoryHeapObjcetSize = "vm_object_used_size";
+    static constexpr const char* const jsonMemoryVmHeapTotalSize = "vm_heap_total_size";
+    static constexpr const char* const jsonMemoryVmHeapUsedSize = "vm_heap_used_size";
     uint64_t rss_;
     uint64_t vss_;
     uint64_t pss_;
     uint64_t sysFreeMem_;
     uint64_t sysAvailMem_;
     uint64_t sysTotalMem_;
-    uint64_t heapTotalSize_;
-    uint64_t heapObjectSize_;
+    uint64_t vmHeapTotalSize_;
+    uint64_t vmHeapUsedSize_;
 };
 
 class FreezeJsonParams {
