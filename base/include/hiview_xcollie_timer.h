@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 constexpr unsigned int APP_CALLING_TIMEOUT = 10; // 10s
+constexpr unsigned int THIRTY_SECONDS_TIMEOUT = 30; // 30s
 constexpr unsigned int SYS_CALLING_TIMEOUT = 60; // 60s
 
 class HiviewXCollieTimer {
