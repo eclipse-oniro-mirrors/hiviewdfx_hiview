@@ -192,6 +192,7 @@ public:
         sysEventCreator.SetKeyValue("VERSION", "1.0.0");
         sysEventCreator.SetKeyValue("TYPE", 3); // 3 : Simulate TYPE value
         sysEventCreator.SetKeyValue("VERSION", "1.0.0");
+        sysEventCreator.SetKeyValue("PROCESS_LIFETIME", "1s");
 
         auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
         std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
@@ -220,7 +221,7 @@ public:
         std::string keywords[] = {
             "\"bundle_name\":", "\"bundle_version\":", "\"crash_type\":", "\"exception\":",
             "\"foreground\":", "\"hilog\":", "\"pid\":", "\"time\":", "\"uid\":", "\"uuid\":",
-            "\"name\":", "\"message\":", "\"stack\":", "\"Process life time\":"
+            "\"name\":", "\"message\":", "\"stack\":", "\"process_life_time\":"
         };
         int length = sizeof(keywords) / sizeof(keywords[0]);
         std::string oldFileName = "/data/test_jsError_info";
@@ -2036,26 +2037,6 @@ HWTEST_F(FaultloggerUnittest, FaultloggerUnittest001, testing::ext::TestSize.Lev
     info.logPath = "/proc/self/test";
     faultManagerService.AddFaultLog(info);
     ASSERT_TRUE(info.sectionMap.empty());
-}
-
-/**
- * @tc.name: FaultloggerUnittest002
- * @tc.desc: test QuerySelfFaultLog and GetMemoryStrByPid
- * @tc.type: FUNC
- */
-HWTEST_F(FaultloggerUnittest, FaultloggerUnittest002, testing::ext::TestSize.Level3)
-{
-    FaultLogFreeze faultAppFreeze;
-    std::string procStatm;
-    std::string str = faultAppFreeze.GetMemoryStrByPid(-1, procStatm, 0, 0);
-    ASSERT_EQ(str, "");
-    str = faultAppFreeze.GetMemoryStrByPid(1, procStatm, 0, 0);
-    ASSERT_NE(str, "");
-    str = faultAppFreeze.GetMemoryStrByPid(getpid(), procStatm, 0, 0);
-    ASSERT_NE(str, "");
-    procStatm = "12 34 56 789 200";
-    str = faultAppFreeze.GetMemoryStrByPid(getpid(), procStatm, 0, 0);
-    ASSERT_NE(str, "");
 }
 
 /**

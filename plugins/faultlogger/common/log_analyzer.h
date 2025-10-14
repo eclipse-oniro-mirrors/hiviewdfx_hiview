@@ -17,10 +17,13 @@
 #include <map>
 
 #include "faultlog_info.h"
+#include "json/json.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::string>& eventInfos);
+uint64_t GetProcessInfo(const std::map<std::string, std::string>& sectionMap, const std::string &key);
+Json::Value GetMemoryJsonValue(const std::map<std::string, std::string>& sectionMap);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // LOG_ANALYZER_H

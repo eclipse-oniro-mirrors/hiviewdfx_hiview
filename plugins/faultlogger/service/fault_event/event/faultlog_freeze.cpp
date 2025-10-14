@@ -26,6 +26,7 @@
 #include "hisysevent.h"
 #include "hiview_logger.h"
 #include "string_util.h"
+#include "log_analyzer.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -138,12 +139,7 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
 
     collector.exception = GetException(collector.stringId, collector.message);
     collector.hilog = GetFreezeHilogByPid(collector.pid);
-    std::string procStatm = GetStrValFromMap(info.sectionMap, FaultKey::PROC_STATM);
-    std::string totalSize = GetStrValFromMap(info.sectionMap, FaultKey::HEAP_TOTAL_SIZE);
-    std::string objectSize = GetStrValFromMap(info.sectionMap, FaultKey::HEAP_OBJECT_SIZE);
-    uint64_t heapTotalSize = strtoull(GetDightStrArr(totalSize).front().c_str(), nullptr, DECIMAL_BASE);
-    uint64_t heapObjectSize = strtoull(GetDightStrArr(objectSize).front().c_str(), nullptr, DECIMAL_BASE);
-    collector.memory = GetMemoryStrByPid(collector.pid, procStatm, heapTotalSize, heapObjectSize);
+    collector.memory = GetMemoryStrByPid(info.sectionMap);
     collector.foreground = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
     collector.version = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
     collector.uuid = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
@@ -151,67 +147,19 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
     return collector;
 }
 
-void FaultLogFreeze::FillProcMemory(const std::string& procStatm, long pid, uint64_t& rss,  uint64_t& vss) const
+std::string FaultLogFreeze::GetMemoryStrByPid(const std::map<std::string, std::string>& sectionMap) const
 {
-    std::string statmLine = procStatm;
-    if (statmLine.empty()) {
-        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
-        if (!statmStream) {
-            HIVIEW_LOGE("Fail to open /proc/%{public}ld/statm  errno %{public}d", pid, errno);
-            return;
-        }
-        std::getline(statmStream, statmLine);
-        HIVIEW_LOGI("/proc/%{public}ld/statm : %{public}s", pid, statmLine.c_str());
-        statmStream.close();
-    }
-
-    auto numStrArr = GetDightStrArr(statmLine);
-    if (numStrArr.size() > 1) {
-        uint64_t multiples = 4;
-        vss = multiples * static_cast<uint64_t>(std::atoll(numStrArr[0].c_str()));
-        rss = multiples * static_cast<uint64_t>(std::atoll(numStrArr[1].c_str()));
-    }
-    HIVIEW_LOGI("GET FreezeJson rss=%{public}" PRIu64", vss=%{public}" PRIu64".", rss, vss);
-}
-
-void FaultLogFreeze::FillSystemMemory(uint64_t& sysFreeMem, uint64_t& sysAvailMem, uint64_t& sysTotalMem) const
-{
-    std::ifstream meminfoStream("/proc/meminfo");
-    if (!meminfoStream) {
-        HIVIEW_LOGE("Fail to open /proc/meminfo errno %{public}d", errno);
-        return;
-    }
-
-    std::string meminfoLine;
-    std::getline(meminfoStream, meminfoLine);
-    sysTotalMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, DECIMAL_BASE);
-    std::getline(meminfoStream, meminfoLine);
-    sysFreeMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, DECIMAL_BASE);
-    std::getline(meminfoStream, meminfoLine);
-    sysAvailMem = strtoull(GetDightStrArr(meminfoLine).front().c_str(), nullptr, DECIMAL_BASE);
-    meminfoStream.close();
-    HIVIEW_LOGI("GET FreezeJson sysFreeMem=%{public}" PRIu64 ", sysAvailMem=%{public}" PRIu64",\
-        sysTotalMem=%{public}" PRIu64".", sysFreeMem, sysAvailMem, sysTotalMem);
-}
-
-std::string FaultLogFreeze::GetMemoryStrByPid(long pid, const std::string& procStatm, const uint64_t& heapTotalSize,
-    const uint64_t& heapObjectSize) const
-{
-    if (pid <= 0) {
-        return "";
-    }
-    uint64_t rss = 0; // statm col = 2 *4
-    uint64_t vss = 0; // statm col = 1 *4
-    FillProcMemory(procStatm, pid, rss, vss);
-
-    uint64_t sysFreeMem = 0; // meminfo row=2
-    uint64_t sysAvailMem = 0; // meminfo row=3
-    uint64_t sysTotalMem = 0; // meminfo row=1
-    FillSystemMemory(sysFreeMem, sysAvailMem, sysTotalMem);
+    uint64_t rss = GetProcessInfo(sectionMap, FaultKey::PROCESS_RSS_MEMINFO);
+    uint64_t vss = GetProcessInfo(sectionMap, FaultKey::PROCESS_VSS_MEMINFO);
+    uint64_t sysFreeMem = GetProcessInfo(sectionMap, FaultKey::SYS_FREE_MEM);
+    uint64_t sysTotalMem = GetProcessInfo(sectionMap, FaultKey::SYS_TOTAL_MEM);
+    uint64_t sysAvailMem = GetProcessInfo(sectionMap, FaultKey::SYS_AVAIL_MEM);
+    uint64_t vmHeapTotalSize = GetProcessInfo(sectionMap, FaultKey::HEAP_TOTAL_SIZE);
+    uint64_t vmHeapUsedSize = GetProcessInfo(sectionMap, FaultKey::HEAP_OBJECT_SIZE);
 
     FreezeJsonMemory freezeJsonMemory = FreezeJsonMemory::Builder().InitRss(rss).InitVss(vss).
         InitSysFreeMem(sysFreeMem).InitSysAvailMem(sysAvailMem).InitSysTotalMem(sysTotalMem).
-        InitHeapTotalSize(heapTotalSize).InitHeapObjectSize(heapObjectSize).Build();
+        InitVmHeapTotalSize(vmHeapTotalSize).InitVmHeapUsedSize(vmHeapUsedSize).Build();
     return freezeJsonMemory.JsonStr();
 }
 
@@ -233,6 +181,7 @@ bool FaultLogFreeze::ReportEventToAppEvent(const FaultLogInfo& info)
 void FaultLogFreeze::AddSpecificInfo(FaultLogInfo& info)
 {
     if (info.faultLogType == FaultLogType::APP_FREEZE) {
+        FaultLogProcessorBase::GetProcMemInfo(info);
         info.sectionMap[FaultKey::STACK] = GetThreadStack(info.logPath, info.pid);
         AddPagesHistory(info);
     }

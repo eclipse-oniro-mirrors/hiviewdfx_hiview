@@ -91,5 +91,29 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
     }
     return true;
 }
+
+uint64_t GetProcessInfo(const std::map<std::string, std::string>& sectionMap, const std::string &key)
+{
+    auto iter = sectionMap.find(key);
+    if (iter != sectionMap.end()) {
+        return strtoull(iter->second.c_str(), nullptr, FaultLogger::DECIMAL_BASE);
+    }
+    return 0;
+}
+
+Json::Value GetMemoryJsonValue(const std::map<std::string, std::string>& sectionMap)
+{
+    // Init Memory
+    uint64_t rss = GetProcessInfo(sectionMap, FaultKey::PROCESS_RSS_MEMINFO);
+    uint64_t sysFreeMem = GetProcessInfo(sectionMap, FaultKey::SYS_FREE_MEM);
+    uint64_t sysTotalMem = GetProcessInfo(sectionMap, FaultKey::SYS_TOTAL_MEM);
+    uint64_t sysAvailMem = GetProcessInfo(sectionMap, FaultKey::SYS_AVAIL_MEM);
+    Json::Value memory;
+    memory["rss"] = rss;
+    memory["sys_avail_mem"] = sysAvailMem;
+    memory["sys_free_mem"] = sysFreeMem;
+    memory["sys_total_mem"] = sysTotalMem;
+    return memory;
+}
 } // namespace HiviewDFX
 } // namespace OHOS
