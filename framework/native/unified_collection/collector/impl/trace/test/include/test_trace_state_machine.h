@@ -39,6 +39,7 @@ const std::string TRACE_TEST_SRC3 = TEST_SRC_PATH + TRACE_TEST_ID3 + ".sys";
 const std::string TRACE_TEST_SRC4 = TEST_SRC_PATH + TRACE_TEST_ID4 + ".sys";
 const std::string TRACE_TEST_SRC5 = TEST_SRC_PATH + TRACE_TEST_ID5 + ".sys";
 const std::string TOTAL = "Total";
+constexpr double TOLERATION = 1.1;
 
 inline bool IsContainSrcTrace(const std::string& tracePath, const std::string& srcPath)
 {
@@ -94,6 +95,9 @@ public:
         TraceRetInfo &info, const DumpTraceCallback &callback)
     {
         info = info_;
+        if (info_.fileSize > static_cast<int64_t>(static_cast<double>(fileSizeLimit) * TOLERATION)) {
+            info.isOverflowControl = true;
+        }
         callback_ = callback;
         return TraceRet(info.errorCode);
     }

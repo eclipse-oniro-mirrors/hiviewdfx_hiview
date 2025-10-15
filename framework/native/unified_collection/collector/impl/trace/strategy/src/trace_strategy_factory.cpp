@@ -22,7 +22,6 @@ const uint32_t XPERF = 6;
 const uint32_t RELIABILITY = 3;
 const uint32_t OTHER = 5;
 const uint32_t SCREEN = 1;
-const uint32_t BETACLUB = 2;
 const uint32_t ZIP_FILE = 20;
 const uint32_t TELE_ZIP_FILE = 20;
 const uint32_t APP_FILE = 40;
@@ -35,11 +34,11 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uin
     switch (caller) {
         case UCollect::TraceCaller::XPERF:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::XPERF),
+                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::XPERF),
                 std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreshold::ZIP_FILE));
         case UCollect::TraceCaller::RELIABILITY:
             return std::make_shared<TraceAsyncStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
+                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
                    CleanThreshold::RELIABILITY),
                 std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreshold::ZIP_FILE));
         case UCollect::TraceCaller::XPOWER:
@@ -48,11 +47,11 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uin
                 std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, strategyParam.caller, CleanThreshold::ZIP_FILE));
         case UCollect::TraceCaller::XPERF_EX:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::XPERF),
+                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::XPERF),
                     nullptr);
         case UCollect::TraceCaller::SCREEN:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceSyncCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
+                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller,
                     CleanThreshold::SCREEN), nullptr);
         default:
             return nullptr;
@@ -65,10 +64,10 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceClient client, uin
     StrategyParam strategyParam {maxDuration, happenTime, ClientToString(client)};
     switch (client) {
         case UCollect::TraceClient::COMMAND:
-            return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMAND, nullptr, nullptr);
+            return std::make_shared<TraceStrategy>(strategyParam, TraceScenario::TRACE_COMMAND, nullptr);
         case UCollect::TraceClient::COMMON_DEV:
             return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-                std::make_shared<TraceCopyHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::OTHER),
+                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, strategyParam.caller, CleanThreshold::OTHER),
                     nullptr);
         default:
             return nullptr;

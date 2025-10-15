@@ -279,7 +279,7 @@ void UnifiedCollector::Init()
     telemetryListener_ = std::make_shared<TelemetryListener>();
     context->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
     context->RegisterUnorderedEventListener(telemetryListener_);
-    TraceCollector::Create()->RecoverTmpTrace();
+    TraceCollector::Create()->PrepareTrace();
 #endif
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn()) {
         RunIoCollectionTask();

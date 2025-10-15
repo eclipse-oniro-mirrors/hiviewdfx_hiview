@@ -15,12 +15,14 @@
 #include "trace_handler.h"
 
 #include <deque>
+#include <filesystem>
 
 #include "hiview_logger.h"
 #include "file_util.h"
 #include "trace_decorator.h"
 #include "hiview_event_report.h"
 #include "hiview_zip_util.h"
+#include "trace_state_machine.h"
 
 namespace OHOS::HiviewDFX {
 namespace {
@@ -61,19 +63,14 @@ void TraceWorker::HandleUcollectionTask(UcollectionTask ucollectionTask)
     ffrtQueue_->submit(ucollectionTask, ffrt::task_attr().name("dft_uc_trace"));
 }
 
-void TraceHandler::DoClean(const std::string &prefix)
+void TraceHandler::DoClean()
 {
     // Load all files under the path
     std::vector<std::string> files;
     FileUtil::GetDirFiles(tracePath_, files);
 
     // Filter files that belong to me
-    std::deque<std::string> filteredFiles;
-    for (const auto &file : files) {
-        if (prefix.empty() || file.find(prefix) != std::string::npos) {
-            filteredFiles.emplace_back(file);
-        }
-    }
+    std::deque<std::string> filteredFiles(files.begin(), files.end());
     std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
         return a < b;
     });
@@ -113,7 +110,7 @@ auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, H
         UcollectionTask traceTask = [filename, traceZipFile, tmpZipFile, startTime, callback,
             handler = shared_from_this()] {
                 handler->ZipTraceFile(filename, traceZipFile, tmpZipFile);
-                handler->DoClean("");
+                handler->DoClean();
                 if (callback != nullptr) {
                     callback(static_cast<int64_t>(FileUtil::GetFileSize(traceZipFile)));
                 }
@@ -161,50 +158,58 @@ void TraceZipHandler::ZipTraceFile(const std::string &srcPath, const std::string
     HIVIEW_LOGI("finish rename file %{public}s", traceZipFile.c_str());
 }
 
-void TraceCopyHandler::CopyTraceFile(const std::string &src, const std::string &dst)
+void TraceLinkHandler::LinkTraceFile(const std::string &src, const std::string &dst)
 {
     std::string dstFileName = FileUtil::ExtractFileName(dst);
-    if (FileUtil::FileExists(dst)) {
-        HIVIEW_LOGI("copy already, file : %{public}s.", dstFileName.c_str());
+    if (!FileUtil::FileExists(src)) {
+        HIVIEW_LOGE("src file : %{public}s. not exist", src.c_str());
         return;
     }
-    HIVIEW_LOGI("copy start, file : %{public}s.", dstFileName.c_str());
-    int ret = FileUtil::CopyFileFast(src, dst);
-    if (ret != 0) {
-        HIVIEW_LOGE("copy failed, file : %{public}s, errno : %{public}d", src.c_str(), errno);
-    } else {
-        HIVIEW_LOGI("copy end, file : %{public}s.", dstFileName.c_str());
+    if (FileUtil::FileExists(dst)) {
+        HIVIEW_LOGI("same link file : %{public}s. return", dst.c_str());
+        return;
     }
+    std::filesystem::create_symlink(src, dst);
+    bool result = TraceStateMachine::GetInstance().AddSymlinkXattr(src);
+    HIVIEW_LOGI("Link, src: %{public}s, dst: %{public}s, result:%{public}d", src.c_str(), dst.c_str(), result);
 }
 
-auto TraceCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
-    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
+void TraceLinkHandler::DoLinkClean(const std::string &prefix)
 {
-    if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
-        HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
-        return {};
+    if (prefix.empty()) {
+        return;
     }
+    // Load all files under the path
     std::vector<std::string> files;
-    for (const auto &trace : outputFiles) {
-        auto startTime = std::chrono::steady_clock::now();
-        std::string dst = GetTraceFinalPath(trace, caller_);
-        files.push_back(dst);
-        if (FileUtil::FileExists(dst)) {
+    FileUtil::GetDirFiles(tracePath_, files);
+
+    std::deque<std::string> filteredLinks;
+    for (const auto &link : files) {
+        if (link.find(prefix) != std::string::npos) {
+            filteredLinks.emplace_back(link);
+        }
+    }
+    std::sort(filteredLinks.begin(), filteredLinks.end(), [](const auto& a, const auto& b) {
+        return a < b;
+    });
+    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredLinks.size(), cleanThreshold_);
+    while (filteredLinks.size() > cleanThreshold_) {
+        std::string link = filteredLinks.front();
+        std::string src = FileUtil::ReadSymlink(link);
+        if (!FileUtil::RemoveFile(link)) {
+            HIVIEW_LOGE("file:%{public}s delete failed", link.c_str());
             continue;
         }
-
-        // copy trace in ffrt asynchronously
-        UcollectionTask traceTask = [trace, dst, startTime, handler = shared_from_this()]() {
-            handler->CopyTraceFile(trace, dst);
-            handler->DoClean(handler->caller_);
-            WriteTrafficLog(startTime, handler->caller_, trace, dst);
-        };
-        TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
+        bool result = false;
+        if (!src.empty()) {
+            result = TraceStateMachine::GetInstance().RemoveSymlinkXattr(src);
+        }
+        filteredLinks.pop_front();
+        HIVIEW_LOGI("file:%{public}s is delete, remove attr:%{public}d", link.c_str(), result);
     }
-    return files;
 }
 
-auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
+auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
     std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
@@ -212,14 +217,12 @@ auto TraceSyncCopyHandler::HandleTrace(const std::vector<std::string>& outputFil
         return {};
     }
     std::vector<std::string> files;
-
-    // copy trace immediately for betaclub and screen recording
     for (const auto &trace : outputFiles) {
         auto startTime = std::chrono::steady_clock::now();
         std::string dst = GetTraceFinalPath(trace, caller_);
         files.push_back(dst);
-        CopyTraceFile(trace, dst);
-        DoClean(caller_);
+        LinkTraceFile(trace, dst);
+        DoLinkClean(caller_);
         WriteTrafficLog(startTime, caller_, trace, dst);
     }
     return files;
@@ -235,7 +238,7 @@ auto TraceAppHandler::HandleTrace(const std::vector<std::string> &outputFiles, H
     HIVIEW_LOGI("src:%{public}s, dir:%{public}s", outputFiles[0].c_str(), traceFileName.c_str());
     FileUtil::RenameFile(outputFiles[0], traceFileName);
     appCallerEvent->externalLog_ = traceFileName;
-    DoClean(caller_);
+    DoClean();
     return {traceFileName};
 }
 

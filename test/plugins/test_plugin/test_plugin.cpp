@@ -40,7 +40,8 @@ const std::map<std::string, std::function<void(const CommonEventData &)>> TEST_C
     {"traceOnXPerf", TestTraceOnXPerf},
     {"traceOffXPerf", TestTraceOffXPerf},
     {"telemetryDumpXpower", TelemetryDumpXpower},
-    {"telemetryDumpXPerf", TelemetryDumpXPerf}
+    {"telemetryDumpXPerf", TelemetryDumpXPerf},
+    {"get_file_attr", GetFileAttr}
 };
 }
 using namespace UCollectUtil;
@@ -63,6 +64,7 @@ void TraceTestPlugin::OnLoad()
     matchingSkills.AddEvent("xpower_dump");
     matchingSkills.AddEvent("xperf_ex_dump");
     matchingSkills.AddEvent("screen_dump");
+    matchingSkills.AddEvent("get_file_attr");
 
     CommonEventSubscribeInfo info(matchingSkills);
     telemetrySubscriber_ = std::make_shared<TestSubscriber>(info);

@@ -46,9 +46,11 @@ public:
     explicit TraceFlowController(const std::string &caller, const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
         const std::string& configPath = FlowController::DEFAULT_CONFIG_PATH);
     ~TraceFlowController() = default;
-    bool IsOverLimit();
+    bool IsZipOverFlow();
+    bool IsIoOverFlow();
     int64_t GetRemainingTraceSize();
-    void StoreDb(int64_t traceSize);
+    void StoreIoSize(int64_t traceSize);
+    void StoreTraceSize(int64_t traceSize);
     void DecreaseDynamicThreshold();
 #ifdef TRACE_MANAGER_UNITTEST
     void SetTestDate(const std::string& testDate)

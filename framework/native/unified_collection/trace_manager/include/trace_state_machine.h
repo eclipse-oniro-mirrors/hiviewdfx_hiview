@@ -50,6 +50,8 @@ public:
     TraceRet PowerTelemetryOff();
     int32_t SetAppFilterInfo(const std::string &bundleName);
     int32_t SetFilterPidInfo(pid_t pid);
+    bool AddSymlinkXattr(const std::string& fileName);
+    bool RemoveSymlinkXattr(const std::string& fileName);
     void InitTelemetryStatus(bool isStatusOn);
     void TransToCommonState();
     void TransToCommandState();

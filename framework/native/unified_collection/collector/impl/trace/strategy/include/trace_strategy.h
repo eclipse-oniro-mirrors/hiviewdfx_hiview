@@ -61,7 +61,7 @@ public:
           scenario_(scenario),
           traceHandler_(traceHandler) {}
     virtual ~TraceStrategy() = default;
-    virtual TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) = 0;
+    virtual TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo);
 
 protected:
     virtual TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const;

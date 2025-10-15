@@ -407,7 +407,7 @@ group("unittest") {
     deps += [
       "collector/impl/trace/test:TraceUtilsTest",
       "collector/impl/trace/test:TraceStrategyTest",
-      "collector/impl/trace/test:TraceAppStrategyTest",
+      "collector/impl/trace/test:TraceStrategyExTest",
       "trace_manager/test:TraceManagerTest",
     ]
   }

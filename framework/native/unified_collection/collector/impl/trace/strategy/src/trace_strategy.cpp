@@ -23,6 +23,7 @@
 #include "collect_event.h"
 #include "json/json.h"
 #include "memory_collector.h"
+#include "parameter_ex.h"
 #ifndef TRACE_STRATEGY_UNITTEST
 #include "trace_state_machine.h"
 #else
@@ -91,6 +92,17 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 }
 }
 
+TraceRet TraceStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
+{
+#ifndef TRACE_STRATEGY_UNITTEST
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario_, maxDuration_, happenTime_, traceRetInfo);
+#else
+    TraceRet ret(traceRetInfo.errorCode);
+#endif
+    outputFiles = traceRetInfo.outputFiles;
+    return ret;
+}
+
 TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const
 {
     InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
@@ -109,6 +121,9 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
 
 TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
+    if (traceFlowController_->IsIoOverFlow()) {
+        return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
+    }
     DumpEvent dumpEvent;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     if (!ret.IsSuccess()) {
@@ -124,11 +139,13 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRe
         dumpEvent.fileSize = traceSize / BYTE_UNIT / BYTE_UNIT;
     }
     if (traceHandler_ == nullptr) {
+        HIVIEW_LOGE("traceHandler is nullptr.");
         outputFiles = traceRetInfo.outputFiles;
-        return ret;
+        return TraceRet(TraceStateCode::FAIL);
     }
     outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
     if (zipHandler_ == nullptr) {
+        traceFlowController_->StoreIoSize(traceSize);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
@@ -136,12 +153,13 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRe
     if (traceRemainingSize <= traceSize) {
         dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
         WriteDumpTraceHisysevent(dumpEvent);
+        traceFlowController_->StoreIoSize(traceSize);
         HIVIEW_LOGI("over flow, trace generate in special dir, can not upload.");
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
     outputFiles = zipHandler_->HandleTrace(traceRetInfo.outputFiles);
     WriteDumpTraceHisysevent(dumpEvent);
-    traceFlowController_->StoreDb(traceSize);
+    traceFlowController_->StoreTraceSize(traceSize);
     return ret;
 }
 
@@ -151,7 +169,7 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles,
         HIVIEW_LOGE("traceHandler is null");
         return TraceRet(TraceStateCode::FAIL);
     }
-    if (traceFlowController_->IsOverLimit()) {
+    if (traceFlowController_->IsZipOverFlow()) {
         HIVIEW_LOGI("trace is over flow, can not dump.");
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
@@ -178,7 +196,7 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles,
     }
     outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles);
     WriteDumpTraceHisysevent(dumpEvent);
-    traceFlowController_->StoreDb(traceSize);
+    traceFlowController_->StoreTraceSize(traceSize);
     return ret;
 }
 
@@ -216,6 +234,9 @@ TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFiles, TraceR
 
 TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
+    if (traceFlowController_->IsIoOverFlow()) {
+        return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
+    }
     DumpEvent dumpEvent;
     TraceRet ret = DumpTrace(dumpEvent, traceRetInfo);
     HIVIEW_LOGI("caller:%{public}s trace size:%{public}" PRId64 "", caller_.c_str(), traceRetInfo.fileSize);
@@ -237,6 +258,7 @@ TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, Trace
     }
     SetResultCopyFiles(outputFiles, traceRetInfo.outputFiles);
     if (zipHandler_ == nullptr) {
+        traceFlowController_->StoreIoSize(traceSize);
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
     }
@@ -244,11 +266,12 @@ TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, Trace
         dumpEvent.errorCode = TransFlowToUcError(TraceFlowCode::TRACE_UPLOAD_DENY);
         WriteDumpTraceHisysevent(dumpEvent);
         HIVIEW_LOGI("over flow, trace generate in special dir, can not upload.");
+        traceFlowController_->StoreIoSize(traceSize);
         return TraceRet(TraceFlowCode::TRACE_UPLOAD_DENY);
     }
     SetResultZipFiles(outputFiles, traceRetInfo.outputFiles);
     WriteDumpTraceHisysevent(dumpEvent);
-    traceFlowController_->StoreDb(traceSize);
+    traceFlowController_->StoreTraceSize(traceSize);
     return ret;
 }
 

@@ -16,10 +16,11 @@
 #ifndef HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_TRACE_DECORATOR_H
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_TRACE_DECORATOR_H
 
-#include <mutex>
+#include <type_traits>
 
 #include "trace_collector.h"
 #include "decorator.h"
+#include "trace_utils.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -75,7 +76,7 @@ struct TraceTrafficInfo {
 
 class TraceStatWrapper {
 public:
-    void UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, UCollect::TraceCaller& caller,
+    void UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, const std::string& caller,
         const CollectResult<std::vector<std::string>>& result);
     std::map<std::string, TraceStatInfo> GetTraceStatInfo();
     void ResetStatInfo();
@@ -95,19 +96,21 @@ public:
     explicit TraceDecorator(std::shared_ptr<TraceCollector> collector) : traceCollector_(collector) {};
     ~TraceDecorator() = default;
     CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) override;
+    CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceClient client) override;
+    CollectResult<int32_t> DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller caller,
         uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule module,
         uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
-    bool RecoverTmpTrace() override;
+    void PrepareTrace() override;
     static void SaveStatSpecialInfo();
     static void ResetStatInfo();
     static void WriteTrafficAfterHandle(const TraceTrafficInfo& trace_traffic);
 
 private:
-    template <typename T> auto Invoke(T task, UCollect::TraceCaller& caller)
+    template <typename T, typename V> auto Invoke(T task, V& caller)
     {
         uint64_t startTime = TimeUtil::GenerateTimestamp();
         auto result = task();
@@ -115,7 +118,13 @@ private:
             return result;
         }
         uint64_t endTime = TimeUtil::GenerateTimestamp();
-        traceStatWrapper_.UpdateTraceStatInfo(startTime, endTime, caller, result);
+        std::string callerStr;
+        if constexpr (std::is_same_v<V, UCollect::TraceCaller>) {
+            callerStr = EnumToString(caller);
+        } else {
+            callerStr = ClientToString(caller);
+        }
+        traceStatWrapper_.UpdateTraceStatInfo(startTime, endTime, callerStr, result);
         return result;
     }
 

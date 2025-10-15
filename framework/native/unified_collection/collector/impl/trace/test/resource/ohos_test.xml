@@ -18,4 +18,9 @@
             <option name="push" value="config/trace_quota_config.json -> /data/test/trace_config/" src="res"/>
         </preparer>
     </target>
+    <target name="TraceStrategyExTest">
+        <preparer>
+            <option name="push" value="config/trace_quota_config.json -> /data/test/trace_config/" src="res"/>
+        </preparer>
+    </target>
 </configuration>

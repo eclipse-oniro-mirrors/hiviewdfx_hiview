@@ -25,7 +25,8 @@ namespace OHOS::HiviewDFX {
 struct TraceFlowRecord {
     std::string systemTime;
     std::string callerName;
-    int64_t usedSize = 0;
+    int64_t usedIoSize = 0;
+    int64_t usedZipSize = 0;
     int64_t dynamicDecrease = 0;
 };
 
@@ -36,9 +37,11 @@ public:
     ~TraceStorage() = default;
 
     int64_t GetRemainingTraceSize();
-    bool IsOverLimit();
+    bool IsZipOverFlow();
     void DecreaseDynamicThreshold();
-    void StoreDb(int64_t traceSize);
+    void StoreTraceSize(int64_t traceSize);
+    bool IsIoOverFlow();
+    void StoreIoSize(int64_t traceSize);
 #ifdef TRACE_MANAGER_UNITTEST
     void SetTestDate(const std::string& testDate)
     {
@@ -53,7 +56,7 @@ private:
     void InsertTable(const TraceFlowRecord& traceFlowRecord);
     void QueryTable(TraceFlowRecord& traceFlowRecord);
     void UpdateTable(const TraceFlowRecord& traceFlowRecord);
-    int64_t GetTraceQuota(const std::string& key);
+    void InitTraceQuota();
     bool IsDateChange();
     std::string GetDate();
 
@@ -61,7 +64,8 @@ private:
     TraceFlowRecord traceFlowRecord_;
     std::string caller_;
     std::string traceQuotaConfig_;
-    int64_t quota_ = 0;
+    int64_t ioQuota_ = 0;
+    int64_t zipQuota_ = 0;
     int64_t decreaseUnit_ = 0;
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
 #ifdef TRACE_MANAGER_UNITTEST

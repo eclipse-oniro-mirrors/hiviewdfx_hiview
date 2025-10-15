@@ -42,8 +42,11 @@ public:
     virtual TraceRet PostTelemetryTimeOut();
     virtual TraceRet PowerTelemetryOn();
     virtual TraceRet PowerTelemetryOff();
-    virtual int32_t SetAppFilterInfo(const std::string &bundleName);
-    virtual int32_t SetFilterPidInfo(pid_t pid);
+    int32_t SetAppFilterInfo(const std::string &bundleName);
+    int32_t SetFilterPidInfo(pid_t pid);
+    bool AddSymlinkXattr(const std::string& fileName);
+    bool RemoveSymlinkXattr(const std::string& fileName);
+
     virtual void InitTelemetryStatus(bool isStatusOn);
 
     virtual bool RegisterTelemetryCallback(std::shared_ptr <TelemetryCallback> stateCallback)

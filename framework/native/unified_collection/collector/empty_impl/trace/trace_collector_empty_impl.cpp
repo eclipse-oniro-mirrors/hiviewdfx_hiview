@@ -29,6 +29,16 @@ CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithDu
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
+CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceClient client)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
+CollectResult<int32_t> TraceCollectorEmptyImpl::DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
 CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceCaller caller)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
@@ -50,10 +60,7 @@ CollectResult<int32_t> TraceCollectorEmptyImpl::FilterTraceOff(UCollect::TeleMod
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-bool TraceCollectorEmptyImpl::RecoverTmpTrace()
-{
-    return false;
-}
+void TraceCollectorEmptyImpl::PrepareTrace() {}
 } // UCollectUtil
 } // HiViewDFX
 } // OHOS

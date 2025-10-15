@@ -514,6 +514,26 @@ bool CreateMultiDirectory(const std::string &dirPath)
     }
     return true;
 }
+
+bool IsSymlink(const std::string& path)
+{
+    struct stat pathStat;
+    if (lstat(path.c_str(), &pathStat) != 0) {
+        return false;
+    }
+    return S_ISLNK(pathStat.st_mode);
+}
+
+std::string ReadSymlink(const std::string &path)
+{
+    char buffer[PATH_MAX] = {0};
+    ssize_t readSize = readlink(path.c_str(), buffer, sizeof(buffer) - 1);
+    if (readSize >= 0) {
+        buffer[readSize] = '\0';
+        return std::string(buffer);
+    }
+    return "";
+}
 } // namespace FileUtil
 } // namespace HiviewDFX
 } // namespace OHOS

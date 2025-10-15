@@ -18,17 +18,12 @@
 #include "hiview_logger.h"
 #include "rdb_store.h"
 #include "sql_util.h"
+#include "trace_db_callback.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("TraceBehaviorDbHelper");
 namespace {
-constexpr char DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
-constexpr char TABLE_NAME_BEHAVIOR[] = "trace_behavior_db_helper";
-constexpr char COLUMN_BEHAVIOR_ID[] = "behavior_id ";
-constexpr char COLUMN_DATE[] = "task_date";
-constexpr char COLUMN_USED_QUOTA[] = "used_quota";
-
 NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 {
     NativeRdb::ValuesBucket bucket;
@@ -42,7 +37,7 @@ NativeRdb::ValuesBucket InnerGetBucket(const BehaviorRecord &behaviorRecord)
 bool TraceBehaviorStorage::GetRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH);
+        HIVIEW_LOGE("db store is null");
         return false;
     }
     NativeRdb::AbsRdbPredicates predicates(TABLE_NAME_BEHAVIOR);
@@ -69,7 +64,7 @@ bool TraceBehaviorStorage::GetRecord(BehaviorRecord &behaviorRecord)
 bool TraceBehaviorStorage::InsertRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH);
+        HIVIEW_LOGE("db store is null");
         return false;
     }
     NativeRdb::ValuesBucket bucket;
@@ -87,7 +82,7 @@ bool TraceBehaviorStorage::InsertRecord(BehaviorRecord &behaviorRecord)
 bool TraceBehaviorStorage::UpdateRecord(BehaviorRecord &behaviorRecord)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("db store is null, path=%{public}s", DB_PATH);
+        HIVIEW_LOGE("db store is null");
         return false;
     }
     HIVIEW_LOGD("Update usedQuota:%{public}d", behaviorRecord.usedQuota);

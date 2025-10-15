@@ -1,7 +1,15 @@
 {
-    "Xperf" : 100,
-    "Xpower" : 100,
-    "Hiview" : 100,
-    "Reliability" : 100,
-    "DecreaseUnit" : 5
+    "ioQuota": {
+        "Xperf": 200,
+        "Reliability": 200,
+        "Screen": 200,
+        "Other": 200
+    },
+    "zipQuota": {
+        "Xperf": 100,
+        "Xpower": 100,
+        "Hiview": 100,
+        "Reliability": 100,
+        "DecreaseUnit": 5
+    }
 }

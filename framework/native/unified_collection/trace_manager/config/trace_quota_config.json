@@ -1,7 +1,15 @@
 {
-    "Xperf" : 1887436800,
-    "Xpower" : 734003200,
-    "Hiview" : 157286400,
-    "Reliability" : 786432000,
-    "DecreaseUnit" : 52428800
+    "ioQuota": {
+        "Xperf": 10485760000,
+        "Reliability": 7340032000,
+        "Screen": 7340032000,
+        "Other": 7340032000
+    },
+    "zipQuota": {
+        "Xperf": 1887436800,
+        "Xpower": 734003200,
+        "Hiview": 157286400,
+        "Reliability": 786432000,
+        "DecreaseUnit": 52428800
+    }
 }

@@ -21,6 +21,7 @@
 
 #include "collect_result.h"
 #include "trace_caller.h"
+#include "app_caller_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,6 +33,8 @@ public:
 
 public:
     virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) = 0;
+    virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceClient client) = 0;
+    virtual CollectResult<int32_t> DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent) = 0;
     virtual CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller caller,
         uint32_t timeLimit, uint64_t happenTime = 0) = 0;
     virtual CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule module,
@@ -40,7 +43,7 @@ public:
     //postTime unit: milliseconds
     virtual CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime = 0) = 0;
     virtual CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) = 0;
-    virtual bool RecoverTmpTrace() = 0;
+    virtual void PrepareTrace() = 0;
 
     static std::shared_ptr<TraceCollector> Create();
 }; // TraceCollector

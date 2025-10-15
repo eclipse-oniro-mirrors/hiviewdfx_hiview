@@ -99,7 +99,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
     int64_t remainingSize = flowController1->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
     ASSERT_GT(remainingSize, traceSize1);
-    flowController1->StoreDb(traceSize1);
+    flowController1->StoreTraceSize(traceSize1);
 
     sleep(1);
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
@@ -110,7 +110,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
     // NeedUpload allow 10% over limits
     int64_t traceSize2 = 70 * 1024 * 1024;
     ASSERT_GT(remainingSize, traceSize2);
-    flowController2->StoreDb(traceSize2);
+    flowController2->StoreTraceSize(traceSize2);
 
     sleep(1);
     auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
@@ -132,7 +132,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
     int64_t remainingSize = flowController1->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
     ASSERT_GT(remainingSize, traceSize1);
-    flowController1->StoreDb(traceSize1);
+    flowController1->StoreTraceSize(traceSize1);
     sleep(1);
 
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::HIVIEW, TEST_DB_PATH,
@@ -1063,23 +1063,23 @@ HWTEST_F(TraceManagerTest, TraceManagerTest028, TestSize.Level1)
         FlowController::DEFAULT_CONFIG_PATH);
     int64_t traceSize1 = 601 * 1024 * 1024; // xpower trace Threshold is 700M
     ASSERT_GT(flowController1->GetRemainingTraceSize(), 0);
-    flowController1->StoreDb(traceSize1);
+    flowController1->StoreTraceSize(traceSize1);
 
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
-    ASSERT_FALSE(flowController2->IsOverLimit());
+    ASSERT_FALSE(flowController2->IsZipOverFlow());
     ASSERT_GT(flowController2->GetRemainingTraceSize(), 0);
     flowController2->DecreaseDynamicThreshold(); // dynamic_threashold 650M
 
     auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
-    ASSERT_FALSE(flowController3->IsOverLimit());
+    ASSERT_FALSE(flowController3->IsZipOverFlow());
     ASSERT_GT(flowController2->GetRemainingTraceSize(), 0);
     flowController3->DecreaseDynamicThreshold(); // dynamic_threashold 600M
 
     auto flowController4 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
     FlowController::DEFAULT_CONFIG_PATH);
-    ASSERT_TRUE(flowController4->IsOverLimit());
+    ASSERT_TRUE(flowController4->IsZipOverFlow());
 }
 
 /**
@@ -1093,11 +1093,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest029, TestSize.Level1)
         FlowController::DEFAULT_CONFIG_PATH);
     int64_t traceSize1 = 600 * 1024 * 1024; // xpower trace Threshold is 700M
     ASSERT_GT(flowController1->GetRemainingTraceSize(), 0);
-    flowController1->StoreDb(traceSize1);
+    flowController1->StoreTraceSize(traceSize1);
 
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
-    ASSERT_FALSE(flowController2->IsOverLimit());
+    ASSERT_FALSE(flowController2->IsZipOverFlow());
     ASSERT_EQ(flowController2->GetRemainingTraceSize(), 170 * 1024 * 1024); // remaining size 170M
     flowController2->DecreaseDynamicThreshold(); // dynamic_threashold 650M
 
@@ -1118,12 +1118,54 @@ HWTEST_F(TraceManagerTest, TraceManagerTest030, TestSize.Level1)
     flowController1->SetTestDate("2025-07-30");
     int64_t traceSize1 = 750 * 1024 * 1024; // xpower trace Threshold is 700M
     ASSERT_EQ(flowController1->GetRemainingTraceSize(), 770 * 1024 * 1024);
-    flowController1->StoreDb(traceSize1); // greater than threshold but less than 10% deadline
-    ASSERT_TRUE(flowController1->IsOverLimit());
+    flowController1->StoreTraceSize(traceSize1); // greater than threshold but less than 10% deadline
+    ASSERT_TRUE(flowController1->IsZipOverFlow());
 
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     flowController1->SetTestDate("2025-07-31");
-    ASSERT_FALSE(flowController1->IsOverLimit());
+    ASSERT_FALSE(flowController1->IsZipOverFlow());
     ASSERT_EQ(flowController1->GetRemainingTraceSize(), 770 * 1024 * 1024);
+}
+
+/**
+ * @tc.name: TraceManagerTest031
+ * @tc.desc: used to test TraceFlowControl api: IsOverFlow
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest031, TestSize.Level1)
+{
+    auto flowController = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    flowController->SetTestDate("2025-10-01");
+    ASSERT_FALSE(flowController->IsIoOverFlow()); // update system time to record
+    int64_t traceSize = 5368709120; // 5G Xperf trace io threshold is 3G
+    flowController->StoreIoSize(traceSize);
+    sleep(1);
+
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+    FlowController::DEFAULT_CONFIG_PATH);
+    flowController1->SetTestDate("2025-10-01"); // caller xperf
+    ASSERT_TRUE(flowController1->IsIoOverFlow());
+}
+
+/**
+ * @tc.name: TraceManagerTest032
+ * @tc.desc: used to test TraceFlowControl api: IsOverFlow
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, TraceManagerTest032, TestSize.Level1)
+{
+    auto flowController = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+        FlowController::DEFAULT_CONFIG_PATH);
+    flowController->SetTestDate("2025-10-01");
+    ASSERT_FALSE(flowController->IsIoOverFlow()); // update system time to record
+    int64_t traceSize = 2147483648; // 2G Xperf trace io threshold is 3G
+    flowController->StoreIoSize(traceSize);
+    sleep(1);
+
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+    FlowController::DEFAULT_CONFIG_PATH);
+    flowController1->SetTestDate("2025-10-01"); // caller xperf
+    ASSERT_FALSE(flowController1->IsIoOverFlow());
 }
