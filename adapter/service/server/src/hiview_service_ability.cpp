@@ -435,7 +435,7 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
 
 ErrCode HiviewServiceAbility::GetSysCpuUsage(int32_t& errNo, double& ret)
 {
-    HiviewXCollieTimer timer("GetSysCpuUsage", APP_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("GetSysCpuUsage", THIRTY_SECONDS_TIMEOUT);
     TraceCalling<double>([] (HiviewService* service) {
         return service->GetSysCpuUsage();
         }, errNo, ret);
