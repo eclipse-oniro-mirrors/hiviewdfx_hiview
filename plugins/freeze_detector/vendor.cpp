@@ -109,10 +109,12 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK] = watchPoint.GetTerminalThreadStack();
     info.sectionMaps[FreezeCommon::TELEMETRY_ID] = watchPoint.GetTelemetryId();
     info.sectionMaps[FreezeCommon::TRACE_NAME] = watchPoint.GetTraceName();
-    info.sectionMaps[FreezeCommon::PROC_STATM] = watchPoint.GetProcStatm();
+    std::string procStatm = watchPoint.GetProcStatm();
+    info.sectionMaps[FreezeCommon::PROC_STATM] = procStatm;
     info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
     info.sectionMaps["app_running_unique_id"] = watchPoint.GetAppRunningUniqueId();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
+    FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
     AddFaultLog(info);
     return logPath;
 }
