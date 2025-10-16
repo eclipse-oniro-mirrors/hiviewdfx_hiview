@@ -28,15 +28,6 @@ public:
     static bool StringValueDecoded(uint8_t* rawData, const size_t maxLen, size_t& pos, std::string& dest);
     static bool UnsignedVarintDecoded(uint8_t* rawData, const size_t maxLen, size_t& pos, uint64_t& dest);
     static bool ValueTypeDecoded(uint8_t* rawData, const size_t maxLen, size_t& pos, struct ParamValueType& dest);
-
-private:
-    static constexpr int TAG_BYTE_OFFSET = 5;
-    static constexpr int TAG_BYTE_BOUND  = (1 << TAG_BYTE_OFFSET);
-    static constexpr int TAG_BYTE_MASK = (TAG_BYTE_BOUND - 1);
-
-    static constexpr int NON_TAG_BYTE_OFFSET = 7;
-    static constexpr int NON_TAG_BYTE_BOUND = (1 << NON_TAG_BYTE_OFFSET);
-    static constexpr int NON_TAG_BYTE_MASK = (NON_TAG_BYTE_BOUND - 1);
 };
 } // namespace EventRaw
 } // namespace HiviewDFX

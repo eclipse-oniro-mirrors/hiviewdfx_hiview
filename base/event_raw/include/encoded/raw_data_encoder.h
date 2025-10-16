@@ -19,6 +19,7 @@
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,9 @@ public:
     template<typename T>
     static bool UnsignedVarintEncoded(RawData& data, const EncodeType type, T val)
     {
+        if constexpr (!isUnsignedNum<T>) {
+            return false;
+        }
         uint8_t cpyVal = EncodedTag(static_cast<uint8_t>(type)) | ((val < TAG_BYTE_BOUND) ? 0 : TAG_BYTE_BOUND) |
             static_cast<uint8_t>(val & TAG_BYTE_MASK);
         if (!data.Append(reinterpret_cast<uint8_t*>(&cpyVal), 1)) {
@@ -62,7 +66,8 @@ public:
     {
         int64_t valInt64 = static_cast<int64_t>(val);
         // zigzag encode
-        uint64_t uValInt64 = static_cast<uint64_t>((valInt64 << 1) ^ (valInt64 >> ((sizeof(valInt64) << 3) - 1)));
+        uint64_t signMask = (val >= 0) ? 0 : std::numeric_limits<uint64_t>::max();
+        uint64_t uValInt64 = (static_cast<uint64_t>(valInt64) << 1) ^ signMask;
         return UnsignedVarintEncoded(data, type, uValInt64);
     }
 
@@ -82,15 +87,6 @@ public:
 
 private:
     static uint8_t EncodedTag(uint8_t type);
-
-private:
-    static constexpr int TAG_BYTE_OFFSET = 5;
-    static constexpr int TAG_BYTE_BOUND  = (1 << TAG_BYTE_OFFSET);
-    static constexpr int TAG_BYTE_MASK = (TAG_BYTE_BOUND - 1);
-
-    static constexpr int NON_TAG_BYTE_OFFSET = 7;
-    static constexpr int NON_TAG_BYTE_BOUND = (1 << NON_TAG_BYTE_OFFSET);
-    static constexpr int NON_TAG_BYTE_MASK = (NON_TAG_BYTE_BOUND - 1);
 };
 } // namespace EventRaw
 } // namespace HiviewDFX

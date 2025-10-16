@@ -44,6 +44,14 @@ constexpr char BASE_INFO_KEY_SPAN_ID[] = "spanid_";
 constexpr char BASE_INFO_KEY_PARENT_SPAN_ID[] = "pspanid_";
 constexpr char BASE_INFO_KEY_TRACE_FLAG[] = "trace_flag_";
 
+constexpr unsigned int TAG_BYTE_OFFSET = 5;
+constexpr unsigned int TAG_BYTE_BOUND  = (1 << TAG_BYTE_OFFSET);
+constexpr unsigned int TAG_BYTE_MASK = (TAG_BYTE_BOUND - 1);
+
+constexpr unsigned int NON_TAG_BYTE_OFFSET = 7;
+constexpr unsigned int NON_TAG_BYTE_BOUND = (1 << NON_TAG_BYTE_OFFSET);
+constexpr unsigned int NON_TAG_BYTE_MASK = (NON_TAG_BYTE_BOUND - 1);
+
 template<typename T>
 inline static constexpr bool isUnsignedNum = std::is_same_v<std::decay_t<T>, std::uint8_t> ||
     std::is_same_v<std::decay_t<T>, std::uint16_t> || std::is_same_v<std::decay_t<T>, std::uint32_t> ||
