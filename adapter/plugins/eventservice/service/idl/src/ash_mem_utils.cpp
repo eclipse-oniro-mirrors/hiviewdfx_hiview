@@ -116,6 +116,11 @@ bool AshMemUtils::ReadBulkData(MessageParcel& parcel, std::vector<std::u16string
     uint32_t offset = 0;
     for (uint32_t i = 0; i < allSize.size(); i++) {
         auto origin = ashmem->ReadFromAshmem(allSize[i], offset);
+        if (origin == nullptr) {
+            HILOG_ERROR(LOG_CORE, "invalid ash memory");
+            CloseAshmem(ashmem);
+            return false;
+        }
         dest.emplace_back(Str8ToStr16(std::string(reinterpret_cast<const char*>(origin))));
         offset += allSize[i];
     }
