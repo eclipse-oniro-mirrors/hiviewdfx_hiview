@@ -247,9 +247,13 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
 #ifdef DMESG_CATCHER_ENABLE
     logTask->DmesgCapture(0, 0);
     logTask->DmesgCapture(0, 1);
+    logTask->DmesgCapture(0, 1, true);
     logTask->DmesgCapture(1, 1);
     logTask->DmesgCapture(0, 2);
+    logTask->DmesgCapture(0, 2, true);
     logTask->DmesgCapture(1, 2);
+    logTask->DmesgCapture(0, 3);
+    logTask->DmesgCapture(1, 3);
 #endif // DMESG_CATCHER_ENABLE
     LogTaskCapture(sysEvent, std::move(logTask), fd);
 }
@@ -1511,8 +1515,8 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_005, TestSize.Level1)
     LogCatcherUtils::FreezeFilterTraceOn("testPackageName2025");
     uint64_t faultTime = TimeUtil::GetMilliseconds() / 1000;
     auto dumpResult = LogCatcherUtils::FreezeDumpTrace(faultTime, true, "testPackageName2025");
-    EXPECT_TRUE(!dumpResult.first.empty());
-    EXPECT_TRUE(dumpResult.second.empty());
+    EXPECT_TRUE(!dumpResult.second.first.empty());
+    EXPECT_TRUE(dumpResult.second.second.empty());
 
     valuePairs["telemetryStatus"] = "off";;
     LogCatcherUtils::HandleTelemetryMsg(valuePairs);

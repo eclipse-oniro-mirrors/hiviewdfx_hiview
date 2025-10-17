@@ -103,7 +103,7 @@ private:
 #endif // BINDER_CATCHER_ENABLE
 
 #ifdef DMESG_CATCHER_ENABLE
-    void DmesgCapture(bool writeNewFile, int type);
+    void DmesgCapture(bool writeNewFile, int type, bool extraFile = false);
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef HILOG_CATCHER_ENABLE

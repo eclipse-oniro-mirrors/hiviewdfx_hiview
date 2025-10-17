@@ -858,6 +858,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitProcStatm("123 45 678")
         .InitHostResourceWarning("Yes")
         .InitAppRunningUniqueId("20250924")
+        .InitTaskName("testTaskName")
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
@@ -867,6 +868,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
     ASSERT_EQ(wp1->GetProcStatm(), "123 45 678");
     ASSERT_EQ(wp1->GetHostResourceWarning(), "Yes");
     ASSERT_EQ(wp1->GetAppRunningUniqueId(), "20250924");
+    ASSERT_EQ(wp1->GetTaskName(), "testTaskName");
 }
 
 /**

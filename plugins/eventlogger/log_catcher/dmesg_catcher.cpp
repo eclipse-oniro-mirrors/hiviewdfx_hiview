@@ -70,56 +70,77 @@ bool DmesgCatcher::Init(std::shared_ptr<SysEvent> event)
     return true;
 }
 
+void DmesgCatcher::SetExtraFile(bool extraFile)
+{
+    extraFile_ = extraFile;
+}
+
 bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
 {
     std::string strOne;
     std::string strTwo;
-    if (writeType_ == HUNG_TASK) {
-        GetHungTask(dataStr, strOne);
-    } else {
+    if (writeType_ == SYS_RQ) {
+        GetSysrq(dataStr, strOne);
+        if (extraFile_) {
+            GetHungTask(dataStr, strTwo);
+        }
+    } else if (writeType_ == HUNG_TASK) {
+        if (!writeNewFile_) {
+            GetHungTask(dataStr, strOne);
+        } else {
+            GetHungTask(dataStr, strTwo);
+        }
+        if (extraFile_) {
+            GetSysrq(dataStr, strTwo);
+        }
+    } else if (writeType_ == SYSRQ_HUNGTASK) {
         GetSysrq(dataStr, strOne);
         if (writeType_ == SYSRQ_HUNGTASK) {
-            if (writeNewFile_) {
-                GetHungTask(dataStr, strTwo);
-            } else {
-                strOne += "\n";
+            if (!writeNewFile_) {
+                strOne.append("\n");
                 GetHungTask(dataStr, strOne);
+            } else {
+                GetHungTask(dataStr, strTwo);
             }
         }
     }
 
     bool res = true;
-    if (fdOne > -1 && writeType_ != HUNG_TASK) {
+    if (fdOne > -1) {
         res = FileUtil::SaveStringToFd(fdOne, strOne);
     }
-    if (fdTwo > -1 && writeType_ != SYS_RQ) {
-        res = FileUtil::SaveStringToFd(fdTwo, strTwo);
+    if (fdTwo > -1) {
+        res = FileUtil::SaveStringToFd(fdTwo, strTwo) && res;
     }
     return res;
 }
  
 void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr)
 {
+    if (!writeType_) {
+        sysrqStr.append("\nSysrqCatcher -- \n");
+    }
+
     size_t lineStart = 0;
     size_t lineEnd = dataStr.size();
     size_t sysrqStart = dataStr.find(SYSRQ_START);
     if (sysrqStart == std::string::npos) {
         return;
     }
-    size_t sysrqEnd = dataStr.find(SYSRQ_END, sysrqStart);
-    if (sysrqEnd == std::string::npos) {
+    size_t sysrqEnd = dataStr.rfind(SYSRQ_END);
+    if (sysrqEnd == std::string::npos || sysrqEnd <= sysrqStart + strlen(SYSRQ_START)) {
         return;
     }
     lineStart = dataStr.rfind('\n', sysrqStart);
     lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
     lineEnd = dataStr.find('\n', sysrqEnd);
     lineEnd = (lineEnd == std::string::npos) ? dataStr.length() : lineEnd;
-    sysrqStr = dataStr.substr(lineStart, lineEnd - lineStart + 1);
+    sysrqStr.append(dataStr.substr(lineStart, lineEnd - lineStart + 1));
 }
 
 void DmesgCatcher::GetHungTask(const std::string& dataStr, std::string& hungtaskStr)
 {
-    if (writeType_ == SYSRQ_HUNGTASK && !writeNewFile_) {
+    if (!writeNewFile_) {
         hungtaskStr.append("\nHungTaskCatcher -- \n");
     }
     size_t lineStart = 0;
@@ -155,10 +176,6 @@ bool DmesgCatcher::DumpDmesgLog(int fdOne, int fdTwo)
     }
 
     std::unique_ptr<char[]> data = std::make_unique<char[]>(size + 1);
-    if (!data) {
-        return false;
-    }
-
     if (memset_s(data.get(), size + 1, 0, size + 1) != 0) {
         return false;
     }
@@ -171,7 +188,8 @@ bool DmesgCatcher::DumpDmesgLog(int fdOne, int fdTwo)
 
     bool res = false;
     if (writeType_ == DMESG) {
-        res = FileUtil::SaveStringToFd(fdOne, dataStr);
+        res = FileUtil::SaveStringToFd(fdOne, "\nDmesgCatcher -- \n");
+        res = FileUtil::SaveStringToFd(fdOne, dataStr) && res;
     } else {
         res = DumpToFile(fdOne, fdTwo, dataStr);
     }
@@ -210,12 +228,34 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
     if (writeType_ && !WriteSysrqTrigger()) {
         return 0;
     }
-    description_ = (writeType_ == HUNG_TASK) ? "\nHungTaskCatcher -- \n" :
-        (writeType_ == DMESG) ? "\nDmesgCatcher -- \n" : "\nSysrqCatcher -- \n";
+
+    int extraFd = -1;
+    FILE* extraFp = nullptr;
+    std::string fileName;
+    if (extraFile_) {
+        auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+        std::string fileTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+        fileName = (writeType_ == HUNG_TASK) ? "sysrq-" : "hungtask-";
+        fileName.append(fileName);
+        fileName.append(".log");
+        extraFp = GeFileInfoByName(fileName, extraFd);
+    }
     auto originSize = GetFdSize(fd);
-    FileUtil::SaveStringToFd(fd, description_);
-    DumpDmesgLog(fd, -1);
+    DumpDmesgLog(fd, extraFd);
     logSize_ = GetFdSize(fd) - originSize;
+
+    if (extraFp) {
+        CloseFp(extraFp);
+        std::string extraFileDes = (writeType_ == HUNG_TASK) ? "\nSysrqCatcher" :"\nHungTaskCatcher";
+        extraFileDes.append(" -- fullPath:")
+                    .append(FULL_DIR)
+                    .append(fileName)
+                    .append("\n");
+        if (fd > -1) {
+            FileUtil::SaveStringToFd(fd, extraFileDes);
+        }
+    }
+
     return logSize_;
 }
 

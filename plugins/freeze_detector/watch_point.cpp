@@ -22,7 +22,7 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_("")
 {
 }
 
@@ -49,14 +49,15 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     hostResourceWarning_(builder.hostResourceWarning_),
     freezeExtFile_(builder.freezeExtFile_),
     appRunningUniqueId_(builder.appRunningUniqueId_),
-    applicationInfo_(builder.applicationInfo_)
+    applicationInfo_(builder.applicationInfo_),
+    taskName_(builder.taskName_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_("")
 {
 }
 
@@ -200,6 +201,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitApplicationInfo(const std::string&
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitTaskName(const std::string& taskName)
+{
+    taskName_ = taskName;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -319,6 +326,11 @@ std::string WatchPoint::GetAppRunningUniqueId() const
 std::string WatchPoint::GetApplicationInfo() const
 {
     return applicationInfo_;
+}
+
+std::string WatchPoint::GetTaskName() const
+{
+    return taskName_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

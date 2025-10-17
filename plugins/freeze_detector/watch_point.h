@@ -50,6 +50,7 @@ public:
         Builder& InitFreezeExtFile(const std::string& freezeExtFile);
         Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
         Builder& InitApplicationInfo(const std::string& applicationInfo);
+        Builder& InitTaskName(const std::string& taskName);
         WatchPoint Build() const;
 
     private:
@@ -76,6 +77,7 @@ public:
         std::string freezeExtFile_;
         std::string appRunningUniqueId_;
         std::string applicationInfo_;
+        std::string taskName_;
         friend class WatchPoint;
     };
 
@@ -106,6 +108,7 @@ public:
     std::string GetFreezeExtFile() const;
     std::string GetAppRunningUniqueId() const;
     std::string GetApplicationInfo() const;
+    std::string GetTaskName() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -137,6 +140,7 @@ private:
     std::string freezeExtFile_;
     std::string appRunningUniqueId_;
     std::string applicationInfo_;
+    std::string taskName_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

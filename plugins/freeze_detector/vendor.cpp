@@ -112,7 +112,8 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     std::string procStatm = watchPoint.GetProcStatm();
     info.sectionMaps[FreezeCommon::PROC_STATM] = procStatm;
     info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
-    info.sectionMaps["app_running_unique_id"] = watchPoint.GetAppRunningUniqueId();
+    info.sectionMaps[FreezeCommon::LOWERCASE_OF_APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
+    info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
     AddFaultLog(info);

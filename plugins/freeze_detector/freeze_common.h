@@ -49,9 +49,11 @@ public:
     static constexpr const char* HOST_RESOURCE_WARNING = "HOST_RESOURCE_WARNING";
     static constexpr const char* FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
     static constexpr const char* APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
+    static constexpr const char* LOWERCASE_OF_APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
     static constexpr const char* FOREGROUND = "FOREGROUND";
     static constexpr const char* EVENT_APPLICATION_HEAP_INFO = "APPLICATION_HEAP_INFO";
     static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
+    static constexpr const char* EVENT_TASK_NAME = "TASK_NAME";
 
     FreezeCommon();
     ~FreezeCommon();
