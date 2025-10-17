@@ -351,7 +351,7 @@ int EventServer::AddToMonitor(int pollFd, struct epoll_event pollEvents[])
 
 void EventServer::Start()
 {
-    HIVIEW_LOGI("start event server");
+    HIVIEW_LOGD("start event server");
     if (OpenDevs() < 0) {
         return;
     }
