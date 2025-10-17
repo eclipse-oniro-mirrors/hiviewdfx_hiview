@@ -100,7 +100,7 @@ void AppUsageEventFactory::GetAllCreatedOsAccountIds(std::vector<int32_t>& ids)
 void AppUsageEventFactory::GetAppUsageInfosByUserId(std::vector<AppUsageInfo>& appUsageInfos, int32_t userId)
 {
 #ifdef DEVICE_USAGE_STATISTICS_ENABLE
-    HIVIEW_LOGI("get app usage info by userId=%{public}d", userId);
+    HIVIEW_LOGD("get app usage info by userId=%{public}d", userId);
     int64_t today0Time = TimeUtil::Get0ClockStampMs();
     int64_t gapTime = static_cast<int64_t>(TimeUtil::MILLISECS_PER_DAY);
     int64_t startTime = today0Time > gapTime ? (today0Time - gapTime) : 0;
@@ -109,12 +109,12 @@ void AppUsageEventFactory::GetAppUsageInfosByUserId(std::vector<AppUsageInfo>& a
     int32_t errCode = BundleActiveClient::GetInstance().QueryBundleStatsInfoByInterval(pkgStats, INTERVAL_TYPE,
         startTime, endTime, userId);
     if (errCode != ERR_OK) {
-        HIVIEW_LOGE("failed to get package stats, errCode=%{public}d", errCode);
+        HIVIEW_LOGE("failed to get package stats userId=%{public}d, errCode=%{public}d", userId, errCode);
         return;
     }
 
-    HIVIEW_LOGI("startTime=%{public}" PRId64 ", endTime=%{public}" PRId64 ", size=%{public}zu",
-        startTime, endTime, pkgStats.size());
+    HIVIEW_LOGI("userId=%{public}d, startTime=%{public}" PRId64 ", endTime=%{public}" PRId64 ", size=%{public}zu",
+        userId, startTime, endTime, pkgStats.size());
     std::string dateStr = TimeUtil::TimestampFormatToDate(startTime / MILLISEC_TO_SEC, DATE_FORMAT);
     for (auto stat : pkgStats) {
         std::string package = stat.bundleName_;

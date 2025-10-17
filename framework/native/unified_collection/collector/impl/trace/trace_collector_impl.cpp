@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -170,7 +170,7 @@ bool TraceCollectorImpl::RecoverTmpTrace()
     HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
     for (auto &filePath : traceFiles) {
         std::string fileName = FileUtil::ExtractFileName(filePath);
-        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
+        HIVIEW_LOGD("unfinished trace file: %{public}s", fileName.c_str());
         std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
         if (!FileUtil::FileExists(originTraceFile)) {
             HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
