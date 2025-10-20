@@ -46,7 +46,7 @@ export default namespace logLibrary {
     export function copy(logType: string, logName: string, dest: string): Promise<void> {
         return new Promise<void>((resolve: (v: undefined) => void, reject: (e: BusinessError<void>) => void): void => {
             let cb = (): Results => { return copySync(logType, logName, dest) }
-            taskpool.execute(cb).then((ret: NullishType): void => {
+            taskpool.execute(cb).then((ret: Any): void => {
                 let retError = new BusinessError<void>();
                 let copyResults: Results = ret as Results;
                 if (copyResults.code === 0) {
@@ -62,7 +62,7 @@ export default namespace logLibrary {
 
     export function copy(logType: string, logName: string, dest: string, callback: AsyncCallback<void>): void {
         let cb = (): Results => { return copySync(logType, logName, dest) }
-        taskpool.execute(cb).then((ret: NullishType): void => {
+        taskpool.execute(cb).then((ret: Any): void => {
             let retError = new BusinessError<void>();
             let copyResults: Results = ret as Results;
             retError.code = copyResults.code;
@@ -76,7 +76,7 @@ export default namespace logLibrary {
     export function move(logType: string, logName: string, dest: string): Promise<void> {
         return new Promise<void>((resolve: (v: undefined) => void, reject: (e: BusinessError<void>) => void): void => {
             let cb = (): Results => { return moveSync(logType, logName, dest) }
-            taskpool.execute(cb).then((ret: NullishType): void => {
+            taskpool.execute(cb).then((ret: Any): void => {
                 let retError = new BusinessError<void>();
                 let moveResults: Results = ret as Results;
                 if (moveResults.code === 0) {
@@ -92,7 +92,7 @@ export default namespace logLibrary {
 
     export function move(logType: string, logName: string, dest: string, callback: AsyncCallback<void>): void {
         let cb = (): Results => { return moveSync(logType, logName, dest) }
-        taskpool.execute(cb).then((ret: NullishType): void => {
+        taskpool.execute(cb).then((ret: Any): void => {
             let retError = new BusinessError<void>();
             let moveResults: Results = ret as Results;
             retError.code = moveResults.code;
