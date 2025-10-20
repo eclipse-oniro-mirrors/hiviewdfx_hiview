@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,6 +155,16 @@ void TestEventsOfDocReader(const std::string& path, bool isVersionEmpty = false)
         CheckEvent(event);
         entries.pop();
     }
+}
+
+std::shared_ptr<SysEvent> InitNewEvent(int64_t eventSeq)
+{
+    std::string eventContent = R"({"domain_":"TEST_DOMAIN","name_":"TEST_VERSION1","type_":1,)";
+    eventContent.append(R"("time_":1742021943126,"tz_":"+0800","pid_":92,"tid_":92,"uid_":0,"log_":0,)");
+    eventContent.append(R"("id_":"12254568215815823881","MSG":"none","level_":"CRITICAL","seq_":)");
+    eventContent.append(std::to_string(eventSeq));
+    eventContent.append(R"(})");
+    return std::make_shared<SysEvent>("", nullptr, eventContent);
 }
 }
 
@@ -330,7 +340,7 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest007, testing::ext::Te
 
 /**
  * @tc.name: SysEventStoreUtilityTest008
- * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.desc: Test ParseEventInfoFromDbFileName API of EventDbFileUtil
  * @tc.type: FUNC
  * @tc.require: issueIBM04F
  */
@@ -353,11 +363,18 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest008, testing::ext::Te
     ASSERT_EQ(testInfo.seq, 101); // 101 is expected sequence
 
     ASSERT_FALSE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-5-MINOR.db", testInfo, ALL_INFO));
+
+    ASSERT_TRUE(EventDbFileUtil::ParseEventInfoFromDbFileName("HIVIEW-3-MINOR-101-180.db", testInfo, ALL_INFO));
+    ASSERT_EQ(testInfo.name, "HIVIEW");
+    ASSERT_EQ(testInfo.type, 3); // 3 is expected type
+    ASSERT_EQ(testInfo.level, "MINOR");
+    ASSERT_EQ(testInfo.seq, 101); // 101 is expected sequence
+    ASSERT_EQ(testInfo.reportInterval, 180); // 180 is expected report interval value
 }
 
 /**
  * @tc.name: SysEventStoreUtilityTest009
- * @tc.desc: Test IsValidDbDir API of EventDbFileUtil
+ * @tc.desc: Test APIs of SysEventDocWriter
  * @tc.type: FUNC
  * @tc.require: issueIBT9BB
  */
@@ -367,11 +384,30 @@ HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest009, testing::ext::Te
     ASSERT_EQ(DOC_STORE_ERROR_NULL, writer.Write(nullptr));
     auto sysEvent = std::make_shared<SysEvent>("", nullptr, nullptr, 6); // 6 is a test event sequence
     ASSERT_EQ(DOC_STORE_ERROR_NULL, writer.Write(sysEvent));
-    std::string testEventContent = R"({"domain_":"TEST_DOMAIN","name_":"TEST_VERSION1","type_":1,)";
-    testEventContent.append(R"("time_":1742021943126,"tz_":"+0800","pid_":92,"tid_":92,"uid_":0,"log_":0,)");
-    testEventContent.append(R"("id_":"12254568215815823881","MSG":"none","level_":"CRITICAL","seq_":1})");
-    sysEvent = std::make_shared<SysEvent>("", nullptr, testEventContent);
+    sysEvent = InitNewEvent(1); // 1 is a test event sequence
     ASSERT_EQ(DOC_STORE_NEW_FILE, writer.Write(sysEvent));
+    sysEvent->SetReportInterval(30); // 30 is a test report interval
+    ASSERT_EQ(DOC_STORE_NEW_FILE, writer.Write(sysEvent));
+}
+
+/**
+ * @tc.name: SysEventStoreUtilityTest010
+ * @tc.desc: Test IsCurrentVersionDbFilePath API of EventDbFileUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICT59K
+ */
+HWTEST_F(SysEventStoreUtilityTest, SysEventStoreUtilityTest010, testing::ext::TestSize.Level3)
+{
+    ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101.db", nullptr));
+    auto sysEvent = InitNewEvent(1); // 1 is a test event sequence
+    sysEvent->SetReportInterval(30); // 30 is a test report interval
+    ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101.db", sysEvent));
+    ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101-MM.db", sysEvent));
+    ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101--1.db", sysEvent));
+    ASSERT_FALSE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101-0.db", sysEvent));
+    ASSERT_TRUE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101-30.db", sysEvent));
+    sysEvent->SetReportInterval(1800); // 1800 is a test report interval
+    ASSERT_TRUE(EventDbFileUtil::IsMatchedDbFilePath("*/HIVIEW-3-MINOR-101-1800.db", sysEvent));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -22,9 +22,6 @@ namespace OHOS::HiviewDFX {
 namespace EventStore {
 using namespace testing::ext;
 using TestEventType = HiSysEvent::EventType;
-namespace {
-constexpr int INVALID_EVENT_TYPE = 0;
-}
 
 class EventStoreConfigTest : public testing::Test {
 public:
@@ -33,7 +30,7 @@ public:
     void SetUp();
     void TearDown();
 };
- 
+
 void EventStoreConfigTest::SetUpTestCase()
 {
 }
@@ -49,7 +46,7 @@ void EventStoreConfigTest::SetUp()
 void EventStoreConfigTest::TearDown()
 {
 }
- 
+
 /**
  * @tc.name: EventStoreConfigTest001
  * @tc.desc: test GetStoreDay of EventStoreConfig

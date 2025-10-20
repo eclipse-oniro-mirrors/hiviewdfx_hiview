@@ -23,6 +23,7 @@ group("unittest") {
     ":EventExportDbMgrTest",
     ":EventExportMgrTest",
     ":EventExportWriteTest",
+    ":TriggerExportTest",
   ]
 }
 
@@ -120,8 +121,11 @@ ohos_unittest("EventExportMgrTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
   ]
+
+  resource_config_file = "resource/ohos_test.xml"
 }
 
 ohos_unittest("EventExportWriteTest") {
@@ -147,6 +151,34 @@ ohos_unittest("EventExportWriteTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "relational_store:native_rdb",
+  ]
+}
+
+ohos_unittest("TriggerExportTest") {
+  module_out_path = module_output_path
+
+  configs = [ ":event_export_mgr_test_config" ]
+
+  sources = [ "unittest/common/trigger_export_test.cpp" ]
+
+  deps = [
+    "$hiview_base:hiviewbase",
+    "../../event_export:event_export_engine",
+  ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "cJSON:cjson",
+    "data_share:datashare_consumer",
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "jsoncpp:jsoncpp",
     "relational_store:native_rdb",
   ]
 }

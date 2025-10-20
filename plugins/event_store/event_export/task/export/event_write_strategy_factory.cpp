@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("HiView-EventExportFlow");
 namespace {
 using StrategyBuilderFunc = std::function<std::shared_ptr<EventWriteBaseStrategy>()>;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,29 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_BASE_EVENT_EXPORT_BASE_TASK_H
-#define HIVIEW_BASE_EVENT_EXPORT_BASE_TASK_H
-
-#include <memory>
-
-#include "export_config_parser.h"
+#ifndef HIVIEW_BASE_TRIGGER_EXPORT_EVENT_H
+#define HIVIEW_BASE_TRIGGER_EXPORT_EVENT_H
 
 namespace OHOS {
 namespace HiviewDFX {
-class ExportBaseTask {
-public:
-    ExportBaseTask(std::shared_ptr<ExportConfig> config) : config_(config) {}
-    virtual ~ExportBaseTask() = default;
+struct TriggerExportEvent {
+    std::string domain;
 
-    void Run();
+    std::string eventName;
 
-protected:
-    virtual void OnTaskRun() = 0;
+    int64_t timeStamp = 0;
 
-protected:
-    std::shared_ptr<ExportConfig> config_ = nullptr;
+    int64_t seq = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // HIVIEW_BASE_EVENT_EXPORT_BASE_TASK_H
+#endif // HIVIEW_BASE_TRIGGER_EXPORT_EVENT_H

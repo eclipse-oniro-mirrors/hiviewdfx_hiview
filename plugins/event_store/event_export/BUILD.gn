@@ -58,6 +58,9 @@ ohos_source_set("event_export_engine") {
     "task/export/export_json_file_builder.cpp",
     "task/export/write_zip_file_strategy.cpp",
     "task/export_base_task.cpp",
+    "task/export_dir_creator.cpp",
+    "task/trigger/trigger_export_task.cpp",
+    "trigger_export_engine.cpp"
   ]
 
   deps = [ "$hiview_base:hiviewbase" ]

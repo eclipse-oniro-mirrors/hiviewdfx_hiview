@@ -7,30 +7,20 @@
         "name": "test_param_key",
         "enabledValue": "1"
     },
-    "exportDir": "/data/test/test_data/",
+    "exportDir": "/data/test/test_data/work/",
     "exportDirMaxCapacity": 100,
     "exportSingleFileMaxSize": 2,
-    "inheritedModule": "inherited_test_module",
     "exportTaskType": {
         "domestic": {
-            "beta": -1,
-            "commercial": 2000
+            "beta": 21,
+            "commercial": 22
         },
         "oversea": {
-            "beta": -1,
-            "commercial": 2000
+            "beta": 23,
+            "commercial": 24
         }
     },
-    "taskExecutingCycle": {
-        "domestic": {
-            "beta": {},
-            "commercial": {}
-        },
-        "oversea": {
-            "beta": {},
-            "commercial": {}
-        }
-    },
+    "taskTriggerCycle": 25,
     "exportEventListConfigPaths": [],
     "fileStoredMaxDayCnt": 7
 }
