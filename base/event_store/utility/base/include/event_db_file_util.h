@@ -19,20 +19,25 @@
 #include <cstdint>
 #include <string>
 
+#include "sys_event.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 using ParseType = uint8_t;
-constexpr ParseType ALL_INFO = 0x0F;
+constexpr ParseType ALL_INFO = 0xFF;
 constexpr ParseType NAME_ONLY = 0x01;
 constexpr ParseType TYPE_ONLY = 0x02;
 constexpr ParseType LEVEL_ONLY = 0x04;
 constexpr ParseType SEQ_ONLY = 0x08;
+constexpr ParseType REPORT_INTERVAL_ONLY = 0x10;
+constexpr int16_t NOT_CFG_REPORT_INTERVAL = -1;
 
 struct SplitedEventInfo {
     std::string name;
     uint8_t type = 0;
     std::string level;
     int64_t seq = 0;
+    int16_t reportInterval = NOT_CFG_REPORT_INTERVAL;
 };
 
 class EventDbFileUtil {
@@ -41,6 +46,7 @@ public:
     static bool IsValidDbFilePath(const std::string& filePath);
     static bool ParseEventInfoFromDbFileName(const std::string& fileName, SplitedEventInfo& info,
         ParseType tag = ALL_INFO);
+    static bool IsMatchedDbFilePath(const std::string& filePath, const std::shared_ptr<SysEvent>& sysEvent);
 };
 }
 }

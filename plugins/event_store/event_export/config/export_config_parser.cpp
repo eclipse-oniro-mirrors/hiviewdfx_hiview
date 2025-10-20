@@ -38,6 +38,11 @@ constexpr char EXPORT_EVENT_LIST_CONFIG_PATHS[] = "exportEventListConfigPaths";
 constexpr char FILE_STORED_MAX_DAY_CNT[] = "fileStoredMaxDayCnt";
 constexpr char EXPORT_TASK_TYPE[] = "exportTaskType";
 constexpr char INHERITED_MODULE[] = "inheritedModule";
+constexpr char TASK_TRIGGER_CYCLE[] = "taskTriggerCycle";
+constexpr char DOMESTIC_TAG[] = "domestic";
+constexpr char OVERSEA_TAG[] = "oversea";
+constexpr char BETA_TAG[] = "beta";
+constexpr char COMMERCIAL_TAG[] = "commercial";
 constexpr int32_t INVALID_INT_VAL = -1;
 
 bool ParseIntFromCfg(cJSON* json, std::string& areaTag, std::string& versionTag, int64_t& val)
@@ -67,7 +72,7 @@ void RebuildExportDir(std::shared_ptr<ExportConfig> config, bool appendTaskType)
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir);
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append("sys_event_export"));
     if (!appendTaskType) {
-        HIVIEW_LOGI("no need to rebuild export dir: %{public}s", config->exportDir.c_str());
+        HIVIEW_LOGI("no need to rebuild export directory");
         return;
     }
     std::string dirSuffix("0");
@@ -75,7 +80,7 @@ void RebuildExportDir(std::shared_ptr<ExportConfig> config, bool appendTaskType)
         dirSuffix = std::to_string(config->taskType);
     }
     config->exportDir = FileUtil::IncludeTrailingPathDelimiter(config->exportDir.append(dirSuffix));
-    HIVIEW_LOGI("rebuild export dir to %{public}s", config->exportDir.c_str());
+    HIVIEW_LOGI("append suffix:%{public}s to export directory", dirSuffix.c_str());
 }
 }
 
@@ -167,7 +172,7 @@ bool ExportConfigParser::ParseResidualContent(std::shared_ptr<ExportConfig> conf
         return false;
     }
     config->inheritedModule = CJsonUtil::GetStringValue(jsonRoot_, INHERITED_MODULE);
-    if (!ParseTaskType(config) || !ParseTaskExecutingCycle(config)) {
+    if (!ParseTaskType(config) || (!ParseTaskExecutingCycle(config) && !ParseTaskTriggerCycle(config))) {
         return false;
     }
     return true;
@@ -186,8 +191,8 @@ bool ExportConfigParser::ParseTaskType(std::shared_ptr<ExportConfig> config)
     if (!cJSON_IsObject(taskTypeJson)) {
         return false;
     }
-    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
-    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
+    std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
     int64_t taskType = INVALID_TASK_TYPE;
     if (!ParseIntFromCfg(taskTypeJson, areaTag, versionTag, taskType)) {
         HIVIEW_LOGE("failed to parse task type");
@@ -206,7 +211,6 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
 {
     auto taskCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_EXECUTING_CYCLE);
     if (taskCycleJson == nullptr) {
-        config->taskCycle = 0;
         return false;
     }
     if (cJSON_IsNumber(taskCycleJson)) {
@@ -218,15 +222,34 @@ bool ExportConfigParser::ParseTaskExecutingCycle(std::shared_ptr<ExportConfig> c
     if (!cJSON_IsObject(taskCycleJson)) {
         return false;
     }
-    std::string areaTag(Parameter::IsOversea() ? "oversea" : "domestic");
-    std::string versionTag(Parameter::IsBetaVersion() ? "beta" : "commercial");
+    std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
+    std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
     if (!ParseIntFromCfg(taskCycleJson, areaTag, versionTag, config->taskCycle)) {
         HIVIEW_LOGE("failed to parse task type");
-        config->taskCycle = 0;
         return false;
     }
     HIVIEW_LOGI("task cycle is configured as object for module: %{public}s, value is %{public}" PRId64 "",
         config->moduleName.c_str(), config->taskCycle);
+    return true;
+}
+
+bool ExportConfigParser::ParseTaskTriggerCycle(std::shared_ptr<ExportConfig> config)
+{
+    auto taskTriggerCycleJson = cJSON_GetObjectItem(jsonRoot_, TASK_TRIGGER_CYCLE);
+    if (taskTriggerCycleJson == nullptr) {
+        return false;
+    }
+    if (!cJSON_IsObject(taskTriggerCycleJson)) {
+        return false;
+    }
+    std::string areaTag(Parameter::IsOversea() ? OVERSEA_TAG : DOMESTIC_TAG);
+    std::string versionTag(Parameter::IsBetaVersion() ? BETA_TAG : COMMERCIAL_TAG);
+    if (!ParseIntFromCfg(taskTriggerCycleJson, areaTag, versionTag, config->taskTriggerCycle)) {
+        HIVIEW_LOGE("failed to parse trigger cycle");
+        return false;
+    }
+    HIVIEW_LOGI("task trigger cycle for module: %{public}s, value is %{public}" PRId64 "",
+        config->moduleName.c_str(), config->taskTriggerCycle);
     return true;
 }
 } // HiviewDFX

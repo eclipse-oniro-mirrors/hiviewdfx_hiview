@@ -32,7 +32,12 @@ constexpr size_t EVENT_NAME_INDEX = 0;
 constexpr size_t EVENT_TYPE_INDEX = 1;
 constexpr size_t EVENT_LEVEL_INDEX = 2;
 constexpr size_t EVENT_SEQ_INDEX = 3;
-constexpr size_t FILE_NAME_SPLIT_SIZE = 4;
+constexpr size_t EVENT_REPORT_INTERVAL_INDEX = 4;
+constexpr size_t FILE_NAME_SPLIT_VER1_SIZE = 4; // NAME-TYPE-LEVEL-SEQ.db
+constexpr size_t FILE_NAME_SPLIT_CUR_VER_SIZE = 5; // NAME-TYPE-LEVEL-SEQ-REPORT_INTERVAL.db
+
+using EventDbFileNameParser =
+    std::function<bool(std::vector<std::string>&, SplitedEventInfo&, ParseType)>;
 
 bool IsValidDomainName(const std::string& content, const size_t lenLimit)
 {
@@ -54,31 +59,9 @@ bool IsValidType(int type)
     return type == HiSysEvent::EventType::FAULT || type == HiSysEvent::EventType::STATISTIC ||
         type == HiSysEvent::EventType::SECURITY || type == HiSysEvent::EventType::BEHAVIOR;
 }
-}
 
-bool EventDbFileUtil::IsValidDbDir(const std::string& dir)
+bool ParseVer1DbFileName(std::vector<std::string>& eventInfoList, SplitedEventInfo& info, ParseType parseType)
 {
-    return IsValidDomainName(FileUtil::ExtractFileName(dir), MAX_DOMAIN_LEN);
-}
-
-bool EventDbFileUtil::IsValidDbFilePath(const std::string& filePath)
-{
-    std::string fileName = FileUtil::ExtractFileName(filePath);
-
-    SplitedEventInfo eventInfo;
-    return ParseEventInfoFromDbFileName(fileName, eventInfo, ALL_INFO);
-}
-
-bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, SplitedEventInfo& info,
-    ParseType parseType)
-{
-    std::vector<std::string> eventInfoList;
-    StringUtil::SplitStr(fileName, DB_NAME_CONCATE, eventInfoList);
-
-    if (eventInfoList.size() != FILE_NAME_SPLIT_SIZE) {
-        HIVIEW_LOGW("invalid size=%{public}zu of event info list", eventInfoList.size());
-        return false;
-    }
     // parse event name
     if (parseType & NAME_ONLY) {
         std::string name = eventInfoList[EVENT_NAME_INDEX];
@@ -115,8 +98,81 @@ bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, 
             return false;
         }
     }
-
     return true;
+}
+
+bool ParseCurVersionDbFileName(std::vector<std::string>& eventInfoList, SplitedEventInfo& info, ParseType parseType)
+{
+    if (!ParseVer1DbFileName(eventInfoList, info, parseType)) {
+        return false;
+    }
+    // parse event report interval
+    if (parseType & REPORT_INTERVAL_ONLY) {
+        StringUtil::ConvertStringTo(eventInfoList[EVENT_REPORT_INTERVAL_INDEX], info.reportInterval);
+        if (info.reportInterval < 0) {
+            HIVIEW_LOGW("invalid report interval: %{public}" PRId16 "", info.reportInterval);
+            return false;
+        }
+    }
+    return true;
+}
+
+EventDbFileNameParser GetEventDbFileNameParser(std::vector<std::string>& eventInfoList)
+{
+    switch (eventInfoList.size()) {
+        case FILE_NAME_SPLIT_VER1_SIZE:
+            return std::bind(ParseVer1DbFileName, std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3);
+        case FILE_NAME_SPLIT_CUR_VER_SIZE:
+            return std::bind(ParseCurVersionDbFileName, std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3);
+        default:
+            return nullptr;
+    }
+}
+}
+
+bool EventDbFileUtil::IsValidDbDir(const std::string& dir)
+{
+    return IsValidDomainName(FileUtil::ExtractFileName(dir), MAX_DOMAIN_LEN);
+}
+
+bool EventDbFileUtil::IsValidDbFilePath(const std::string& filePath)
+{
+    std::string fileName = FileUtil::ExtractFileName(filePath);
+
+    SplitedEventInfo eventInfo;
+    return ParseEventInfoFromDbFileName(fileName, eventInfo, ALL_INFO);
+}
+
+bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, SplitedEventInfo& info,
+    ParseType parseType)
+{
+    std::vector<std::string> eventInfoList;
+    StringUtil::SplitStr(fileName, DB_NAME_CONCATE, eventInfoList);
+
+    auto dbFileNameParser = GetEventDbFileNameParser(eventInfoList);
+    if (dbFileNameParser == nullptr) {
+        HIVIEW_LOGW("invalid size=%{public}zu of event info list", eventInfoList.size());
+        return false;
+    }
+    return dbFileNameParser(eventInfoList, info, parseType);
+}
+
+bool EventDbFileUtil::IsMatchedDbFilePath(const std::string& filePath, const std::shared_ptr<SysEvent>& sysEvent)
+{
+    if (sysEvent == nullptr) {
+        return false;
+    }
+    std::string fileName = FileUtil::ExtractFileName(filePath);
+    std::vector<std::string> eventInfoList;
+    StringUtil::SplitStr(fileName, DB_NAME_CONCATE, eventInfoList);
+    if (eventInfoList.size() != FILE_NAME_SPLIT_CUR_VER_SIZE) {
+        return false;
+    }
+    int16_t reportInterval = NOT_CFG_REPORT_INTERVAL;
+    StringUtil::ConvertStringTo(eventInfoList[EVENT_REPORT_INTERVAL_INDEX], reportInterval);
+    return reportInterval == sysEvent->GetReportInterval();
 }
 }
 }

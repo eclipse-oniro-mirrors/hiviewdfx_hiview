@@ -17,7 +17,8 @@
                 "desc": "test",
                 "privacy": 1,
                 "preserve": true,
-                "collect": true
+                "collect": true,
+                "reportInterval": 180
             }
         },
         "THIRD_TEST_NAME": {
@@ -26,7 +27,8 @@
                 "level": "CRITICAL",
                 "desc": "test",
                 "privacy": 1,
-                "collect": true
+                "collect": true,
+                "reportInterval": 0
             }
         },
         "FORTH_TEST_NAME": {

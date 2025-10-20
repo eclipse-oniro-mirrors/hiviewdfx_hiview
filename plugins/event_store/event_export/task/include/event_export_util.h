@@ -27,6 +27,9 @@ namespace HiviewDFX {
 class EventExportUtil {
 public:
     static std::string GetDeviceId();
+    static bool CheckAndPostExportEvent(std::shared_ptr<ExportConfig> config);
+    static bool RegisterSettingObserver(std::shared_ptr<ExportConfig> config);
+    static void UnregisterSettingObserver(std::shared_ptr<ExportConfig> config);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

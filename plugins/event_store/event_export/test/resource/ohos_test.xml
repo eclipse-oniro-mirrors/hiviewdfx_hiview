@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2024 Huawei Device Co., Ltd.
+<!-- Copyright (c) 2024-2025 Huawei Device Co., Ltd.
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
@@ -15,14 +15,26 @@
 <configuration ver="2.0">
     <target name="EventExportConfigTest">
         <preparer>
-            <option name="push" value="export_config/test_event_export_config.json -> /data/test/test_data/" src="res"/>
+            <option name="push" value="export_config/test_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
             <option name="push" value="export_config/test_events.json -> /data/test/test_data/" src="res"/>
             <option name="push" value="export_config/test_events_v2.json -> /data/test/test_data/" src="res"/>
             <option name="push" value="export_config/invalid_test_events1.json -> /data/test/test_data/" src="res"/>
             <option name="push" value="export_config/invalid_test_events2.json -> /data/test/test_data/" src="res"/>
             <option name="push" value="export_config/invalid_test_events3.json -> /data/test/test_data/" src="res"/>
-            <option name="push" value="export_config/test1_event_export_config.json -> /data/test/test_data/" src="res"/>
-            <option name="push" value="export_config/test2_event_export_config.json -> /data/test/test_data/" src="res"/>
+            <option name="push" value="export_config/test1_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
+            <option name="push" value="export_config/test2_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
+            <option name="push" value="export_config/test4_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
+            <option name="push" value="export_config/test5_event_export_config.json -> /data/test/test_data/sys_event_export/" src="res"/>
+        </preparer>
+    </target>
+    <target name="EventExportMgrTest">
+        <preparer>
+            <option name="push" value="export_config/test3_event_export_config.json -> /data/test/test_data/cfg/sys_event_export/" src="res"/>
+        </preparer>
+    </target>
+    <target name="TriggerExportTest">
+        <preparer>
+            <option name="push" value="export_config/test4_event_export_config.json -> /data/test/test_data/cfg/sys_event_export/" src="res"/>
         </preparer>
     </target>
 </configuration>
