@@ -1656,5 +1656,47 @@ HWTEST_F(EventloggerCatcherTest, CpuCatcherTest_001, TestSize.Level1)
     EXPECT_TRUE(totalExist);
     EXPECT_TRUE(detailsExist);
 }
+
+#ifdef BINDER_CATCHER_ENABLE
+/**
+ * @tc.name: CatchSyncPidTest_001
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, CatchSyncPidTest_001, TestSize.Level1)
+{
+    auto fd = open("/data/test/peerBinderCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create peerBinderCatcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    int pid = getpid();
+    peerBinderCatcher->Initialize("test", 1, pid);
+    std::set<int> asyncPids;
+    auto systemuiPid = CommonUtils::GetPidByName("com.ohos.systemui");
+    auto launcherPid = CommonUtils::GetPidByName("com.ohos.sceneboard");
+    auto hiviewPid = CommonUtils::GetPidByName("hiview");
+    asyncPids.insert(systemuiPid);
+    asyncPids.insert(launcherPid);
+    asyncPids.insert(hiviewPid);
+    asyncPids.insert(pid);
+    asyncPids.insert(-1);
+
+    std::set<int> syncPids;
+    syncPids.insert(hiviewPid);
+    syncPids.insert(launcherPid);
+    syncPids.insert(pid);
+    peerBinderCatcher->catchedPids_.insert(pid);
+    std::string ret = peerBinderCatcher->CatchSyncPid(fd, asyncPids, syncPids);
+    printf("ret: %s\n", ret.c_str());
+    peerBinderCatcher->Initialize("test", 1, 1);
+    ret = peerBinderCatcher->CatchSyncPid(fd, asyncPids, syncPids);
+    printf("ret: %s\n", ret.c_str());
+    EXPECT_TRUE(pid > 0);
+    close(fd);
+}
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

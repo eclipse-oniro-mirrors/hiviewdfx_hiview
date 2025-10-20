@@ -20,6 +20,7 @@
 #include <list>
 #include <securec.h>
 #include <sys/wait.h>
+#include <fstream>
 
 #include "common_utils.h"
 #include "file_util.h"
@@ -40,6 +41,7 @@ namespace {
     static constexpr uint8_t DECIMAL = 10;
     static constexpr uint8_t FREE_ASYNC_INDEX = 6;
     static constexpr uint16_t FREE_ASYNC_MAX = 1000;
+    static constexpr int MIN_APP_UID = 20000;
     static constexpr const char* const LOGGER_EVENT_PEERBINDER = "PeerBinder";
     enum {
         LOGGER_BINDER_STACK_ONE = 0,
@@ -101,6 +103,17 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
             ffrt::task_attr().name("dump_hiperf").qos(ffrt::qos_default));
     }
 #endif
+    std::string pidStr = CatchSyncPid(fd, asyncPids, syncPids);
+    if (event_ != nullptr) {
+        event_->SetValue(LOGGER_EVENT_PEERBINDER, StringUtil::TrimStr(pidStr, ','));
+    }
+
+    logSize_ = GetFdSize(fd) - originSize;
+    return logSize_;
+}
+
+std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPids, const std::set<int>& syncPids)
+{
     std::string pidStr = "";
     for (auto pidTemp : syncPids) {
         if (pidTemp == pid_ || IsAncoProc(pidTemp)) {
@@ -114,7 +127,12 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
         }
         CatcherFfrtStack(fd, pidTemp);
     }
+
     for (auto pidTemp : asyncPids) {
+        if (GetUidByPid(pidTemp) >= MIN_APP_UID) {
+            HIVIEW_LOGI("Async stack, skip current pid: %{public}d", pidTemp);
+            continue;
+        }
         if (pidTemp == pid_ || IsAncoProc(pidTemp) || syncPids.find(pidTemp) != syncPids.end() ||
             catchedPids_.count(pidTemp) != 0) {
             HIVIEW_LOGI("Stack of AsyncBinder Pid %{public}d is catched.", pidTemp);
@@ -122,13 +140,7 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
         }
         CatcherStacktrace(fd, pidTemp, false);
     }
-
-    if (event_ != nullptr) {
-        event_->SetValue(LOGGER_EVENT_PEERBINDER, StringUtil::TrimStr(pidStr, ','));
-    }
-
-    logSize_ = GetFdSize(fd) - originSize;
-    return logSize_;
+    return pidStr;
 }
 
 void PeerBinderCatcher::AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const
@@ -446,6 +458,38 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids, int processId, con
 #endif
 }
 #endif
+
+int32_t PeerBinderCatcher::GetUidByPid(const int32_t pid)
+{
+    int32_t uid = -1;
+    std::string pidStatusPath = "/proc/" + std::to_string(pid) + "/status";
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(pidStatusPath, realPath)) {
+        HIVIEW_LOGE("pathToRealPath failed, file:%{public}s, errno:%{public}d",
+            pidStatusPath.c_str(), errno);
+        return uid;
+    }
+    std::string content;
+    if (!FileUtil::LoadStringFromFile(realPath, content) || content.empty()) {
+        HIVIEW_LOGE("failed to read path:%{public}s, errno:%{public}d",
+            realPath.c_str(), errno);
+        return uid;
+    }
+    std::istringstream iss(content);
+    std::string uidFlag = "Uid:";
+    std::string infoLine;
+    while (std::getline(iss, infoLine)) {
+        if (infoLine.compare(0, uidFlag.size(), uidFlag) == 0) {
+            std::istringstream infoStream(infoLine);
+            if (std::getline(infoStream, infoLine, ':') && std::getline(infoStream, infoLine)) {
+                std::stringstream(infoLine) >> uid;
+                HIVIEW_LOGI("uid of pid %{public}" PRId32 " is %{public}" PRId32 ".", pid, uid);
+                break;
+            }
+        }
+    }
+    return uid;
+}
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

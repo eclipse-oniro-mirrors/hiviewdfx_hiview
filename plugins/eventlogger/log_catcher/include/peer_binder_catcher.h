@@ -81,6 +81,8 @@ private:
     void DoExecHiperf(const std::string& fileName, const std::set<int>& pids, int processId,
         const std::string& perfCmd);
 #endif
+    int32_t GetUidByPid(const int32_t pid);
+    std::string CatchSyncPid(int fd, const std::set<int>& asyncPids, const std::set<int>& syncPids);
 };
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
