@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -350,6 +350,7 @@ HWTEST_F(CpuCollectorTest, CpuCollectorTest018, TestSize.Level1)
     std::shared_ptr<CpuCollector> collector = CpuCollector::Create();
     auto threadCollector = collector->CreateThreadCollector(1);
     sleep(1);
+    ASSERT_EQ(threadCollector->GetCollectPid(), 1);
     auto collectResult1 = threadCollector->CollectThreadStatInfos(true);
     ASSERT_TRUE(collectResult1.retCode == UcError::SUCCESS);
     sleep(1);
