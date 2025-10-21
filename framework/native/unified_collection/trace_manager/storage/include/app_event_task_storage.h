@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,19 +28,19 @@ constexpr int8_t APP_EVENT_TASK_TYPE_JANK_EVENT = 1;
 constexpr int8_t APP_EVENT_TASK_STATE_FINISH = 2;
 
 struct AppEventTask {
-    int64_t id_;
-    int64_t taskDate_;
-    int32_t taskType_;
-    int32_t uid_;
-    int32_t pid_;
+    int64_t id_ = 0;
+    int64_t taskDate_ = 0;
+    int32_t taskType_ = 0;
+    int32_t uid_ = 0;
+    int32_t pid_ = 0;
     std::string bundleName_;
     std::string bundleVersion_;
-    int64_t startTime_;
-    int64_t finishTime_;
+    int64_t startTime_ = 0;
+    int64_t finishTime_ = 0;
     std::string resourePath_;
-    int32_t resourceSize_;
-    double costCpu_;
-    int32_t state_;
+    int32_t resourceSize_ = 0;
+    double costCpu_ = 0.0;
+    int32_t state_ = 0;
 };
 
 class AppEventTaskStorage {
