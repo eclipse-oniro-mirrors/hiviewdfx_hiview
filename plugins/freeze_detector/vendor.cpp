@@ -227,8 +227,8 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
             (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ?
             SYSFREEZE : SYSWARNING);
     }
-    pubLogPathName = type + std::string(HYPHEN) + processName + std::string(HYPHEN) + std::to_string(uid) +
-        std::string(HYPHEN) + timestamp + std::string(HYPHEN) + std::to_string(watchPoint.GetTimestamp());
+    pubLogPathName = processName + std::string(HYPHEN) + std::to_string(uid) + std::string(HYPHEN) + timestamp +
+        std::string(HYPHEN) + std::to_string(watchPoint.GetTimestamp());
 }
 
 void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
@@ -320,6 +320,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     if (!JudgeSysWarningEvent(watchPoint.GetStringId(), type, processName, list, result)) {
         return "";
     }
+    pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
     std::string tmpLogPath = std::string(FreezeManager::FREEZE_DETECTOR_PATH) + tmpLogName;
