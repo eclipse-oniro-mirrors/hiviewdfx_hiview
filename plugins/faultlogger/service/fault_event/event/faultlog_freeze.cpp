@@ -149,7 +149,7 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
 
 std::string FaultLogFreeze::GetMemoryStrByPid(const std::map<std::string, std::string>& sectionMap) const
 {
-    uint64_t rss = GetProcessInfo(sectionMap, FaultKey::PROCESS_RSS_MEMINFO);
+    uint64_t rss = rss_;
     uint64_t vss = GetProcessInfo(sectionMap, FaultKey::PROCESS_VSS_MEMINFO);
     uint64_t sysFreeMem = GetProcessInfo(sectionMap, FaultKey::SYS_FREE_MEM);
     uint64_t sysTotalMem = GetProcessInfo(sectionMap, FaultKey::SYS_TOTAL_MEM);
@@ -182,6 +182,8 @@ void FaultLogFreeze::AddSpecificInfo(FaultLogInfo& info)
 {
     if (info.faultLogType == FaultLogType::APP_FREEZE) {
         FaultLogProcessorBase::GetProcMemInfo(info);
+        rss_ = GetProcessInfo(info.sectionMap, FaultKey::PROCESS_RSS_MEMINFO);
+        info.sectionMap[FaultKey::PROCESS_RSS_MEMINFO] = "Process Memory(kB): " + std::to_string(rss_) + "(Rss)";
         info.sectionMap[FaultKey::STACK] = GetThreadStack(info.logPath, info.pid);
         AddPagesHistory(info);
     }
