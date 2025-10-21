@@ -185,8 +185,8 @@ void PerfMonitorAdapter::OnSceneChanged(const SceneType& type, bool status)
     SceneMonitor::GetInstance().OnSceneChanged(type, status);
 }
 
-void PerfMonitorAdapter::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
-    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+void PerfMonitorAdapter::ReportSurface(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
 {
     SurfaceMonitor::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
 }

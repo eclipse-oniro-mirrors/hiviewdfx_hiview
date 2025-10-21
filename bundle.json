@@ -129,6 +129,14 @@
                 "//base/hiviewdfx/hiview/framework/native/unified_collection/trace_manager:libtrace_manager",
                 "//base/hiviewdfx/hiview/interfaces/ets/ani:ani_loglibrary_package"
             ],
+            "group_type": {
+                "fwk_group" : [
+                    "//base/hiviewdfx/hiview/plugins/performance/xperf_service:fwk_group_xperf_client_all"
+                ],
+                "service_group" : [
+                    "//base/hiviewdfx/hiview/plugins/performance/xperf_service:service_group_xperf_all"
+                ]
+            },
             "inner_kits": [
                 {
                     "name": "//base/hiviewdfx/hiview/plugins/faultlogger:libfaultlogger",
@@ -221,6 +229,26 @@
                             "perf_monitor_adapter.h",
                             "perf_model.h",
                             "perf_constants.h"
+                        ]
+                    }
+                },
+                {
+                    "name": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/interfaces/inner_api/xperfservice_client:xperfservice_client",
+                    "header": {
+                        "header_base": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/interfaces/inner_api/xperfservice_client/include",
+                        "header_files": [
+                            "xperf_service_action_type.h",
+                            "xperf_service_client.h"
+                        ]
+                    }
+                },
+                {
+                    "name": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/services:xperfservice_server",
+                    "header": {
+                        "header_base": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/services",
+                        "header_files": [
+                            "xperf_service_main.h",
+                            "xperf_service_interfaces.h"
                         ]
                     }
                 }

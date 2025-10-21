@@ -1,0 +1,12 @@
+{
+    "process": "xperf_service",
+    "systemability": [
+        {
+            "name": 8600,
+            "libpath": "libxperfservice_server.z.so",
+            "run-on-create": true,
+            "distributed": false,
+            "dump_level": 1
+        }
+    ]
+}

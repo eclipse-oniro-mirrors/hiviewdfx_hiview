@@ -125,7 +125,7 @@ struct ImageLoadStat {
 };
 
 struct SurfaceInfo {
-    int64_t uniqueId{0};
+    uint64_t uniqueId{0};
     std::string surfaceName;
     std::string componentName;
     std::string bundleName;
