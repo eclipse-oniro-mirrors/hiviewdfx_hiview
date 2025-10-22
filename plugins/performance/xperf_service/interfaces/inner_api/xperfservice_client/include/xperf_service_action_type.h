@@ -61,6 +61,7 @@ enum AvcodecFaultCode {
     USER_HOLD_OUTPUT_TOO_MORE,
     HAL_HOLD_OUTPUT_TOO_MORE,
     CONSUMER_HOLD_OUTPUT_TOO_MORE,
+    NO_MATCHING_DECODER,
 };
 
 enum XperfServiceIpcCode {
