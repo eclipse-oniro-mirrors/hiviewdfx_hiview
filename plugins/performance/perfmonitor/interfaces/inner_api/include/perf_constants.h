@@ -488,7 +488,6 @@ public:
     static constexpr char LAUNCHER_APP_LAUNCH_FROM_CARD[] = "LAUNCHER_APP_LAUNCH_FROM_CARD";
 
     static constexpr char LAUNCHER_APP_LAUNCH_FROM_APPCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_APPCENTER";
-
 };
 } // namespace OHOS
 } // namespace HiviewDFX
