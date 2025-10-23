@@ -82,7 +82,7 @@ bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
     if (writeType_ == SYS_RQ) {
         GetSysrq(dataStr, strOne);
         if (extraFile_) {
-            GetHungTask(dataStr, strTwo);
+            GetHungTask(dataStr, strTwo, false);
         }
     } else if (writeType_ == HUNG_TASK) {
         if (!writeNewFile_) {
@@ -91,7 +91,7 @@ bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
             GetHungTask(dataStr, strTwo);
         }
         if (extraFile_) {
-            GetSysrq(dataStr, strTwo);
+            GetSysrq(dataStr, strTwo, false);
         }
     } else if (writeType_ == SYSRQ_HUNGTASK) {
         GetSysrq(dataStr, strOne);
@@ -115,9 +115,9 @@ bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
     return res;
 }
  
-void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr)
+void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr, bool needHeaderStr)
 {
-    if (!writeType_) {
+    if (needHeaderStr && !writeType_) {
         sysrqStr.append("\nSysrqCatcher -- \n");
     }
 
@@ -138,9 +138,9 @@ void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr)
     sysrqStr.append(dataStr.substr(lineStart, lineEnd - lineStart + 1));
 }
 
-void DmesgCatcher::GetHungTask(const std::string& dataStr, std::string& hungtaskStr)
+void DmesgCatcher::GetHungTask(const std::string& dataStr, std::string& hungtaskStr, bool needHeaderStr)
 {
-    if (!writeNewFile_) {
+    if (needHeaderStr && !writeNewFile_) {
         hungtaskStr.append("\nHungTaskCatcher -- \n");
     }
     size_t lineStart = 0;
@@ -238,7 +238,7 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
         fileName = (writeType_ == HUNG_TASK) ? "sysrq-" : "hungtask-";
         fileName.append(fileName);
         fileName.append(".log");
-        extraFp = GeFileInfoByName(fileName, extraFd);
+        extraFp = GetFileInfoByName(fileName, extraFd);
     }
     auto originSize = GetFdSize(fd);
     DumpDmesgLog(fd, extraFd);
@@ -319,9 +319,9 @@ void DmesgCatcher::WriteNewFile(int pid)
     HIVIEW_LOGI("write %{public}d %{public}s %{public}s start", writeType_, fileNameOne.c_str(), fileNameTwo.c_str());
 
     int fdOne = -1;
-    FILE* fpOne = GeFileInfoByName(fileNameOne, fdOne);
+    FILE* fpOne = GetFileInfoByName(fileNameOne, fdOne);
     int fdTwo = -1;
-    FILE* fpTwo = GeFileInfoByName(fileNameTwo, fdTwo);
+    FILE* fpTwo = GetFileInfoByName(fileNameTwo, fdTwo);
     if (!fpOne && !fpTwo) {
         return;
     }
@@ -336,7 +336,7 @@ void DmesgCatcher::WriteNewFile(int pid)
     HIVIEW_LOGI("write file %{public}s %{public}s end", fileNameOne.c_str(), fileNameTwo.c_str());
 }
 
-FILE* DmesgCatcher::GeFileInfoByName(const std::string& fileName, int& fd)
+FILE* DmesgCatcher::GetFileInfoByName(const std::string& fileName, int& fd)
 {
     if (fileName.empty()) {
         return nullptr;

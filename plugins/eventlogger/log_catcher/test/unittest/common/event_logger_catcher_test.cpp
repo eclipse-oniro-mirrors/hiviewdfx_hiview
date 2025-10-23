@@ -870,7 +870,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_004, TestSize.Level1)
     ret = dmesgCatcher->DumpKernelStacktrace(fd, pid);
     EXPECT_EQ(ret, 0);
     close(fd);
-}
+}..
 
 /**
  * @tc.name: DmesgCatcherTest_005

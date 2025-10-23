@@ -50,9 +50,9 @@ private:
     bool DumpDmesgLog(int fdOne, int fdTwo);
     bool WriteSysrqTrigger();
     bool DumpToFile(int fdOne, int fdTwo, const std::string& dataStr);
-    void GetSysrq(const std::string& dataStr, std::string& sysrqStr);
-    void GetHungTask(const std::string& dataStr, std::string& hungTaskStr);
-    FILE* GeFileInfoByName(const std::string& fileName, int& fd);
+    void GetSysrq(const std::string& dataStr, std::string& sysrqStr, bool needHeaderStr = true);
+    void GetHungTask(const std::string& dataStr, std::string& hungTaskStr, bool needHeaderStr = true);
+    FILE* GetFileInfoByName(const std::string& fileName, int& fd);
     void CloseFp(FILE*& fp);
 #ifdef KERNELSTACK_CATCHER_ENABLE
     void GetTidsByPid(int pid, std::vector<pid_t>& tids);
