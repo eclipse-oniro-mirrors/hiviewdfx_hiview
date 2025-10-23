@@ -364,12 +364,14 @@ void WriteEventJson(Json::Value& eventJson, const std::string& filePath)
 void CreateSandBox(const std::string& dirPath)
 {
     if (!FileUtil::FileExists(dirPath) && mkdir(dirPath.c_str(), FileUtil::FILE_PERM_775) != 0) {
-        HILOG_ERROR(LOG_CORE, "failed to create dir=%{public}s", dirPath.c_str());
-        return;
+        HIVIEW_LOGE("failed to create dir=%{public}s", dirPath.c_str());
     }
-    if (OHOS::StorageDaemon::AclSetAccess(dirPath, "u:1201:rwx") != 0) {
-        HILOG_ERROR(LOG_CORE, "failed to set acl access dir=%{public}s", dirPath.c_str());
-        return;
+}
+
+void SetSandBoxAccess(int32_t uid, const std::string& dirPath)
+{
+    if (OHOS::StorageDaemon::AclSetAccess(dirPath, "u:" + std::to_string(uid) + ":rwx") != 0) {
+        HIVIEW_LOGE("failed to set acl access dir=%{public}s", dirPath.c_str());
     }
 }
 
@@ -485,6 +487,7 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::str
 {
     std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(uid, pathHolder, "resourcelimit");
     CreateSandBox(sandBoxLogPath);
+    SetSandBoxAccess(uid, sandBoxLogPath);
     SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
     SaveEventToSandBox(uid, pathHolder, eventJson);
     UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, EVENT_RESOURCE_OVERLIMIT);
