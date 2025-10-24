@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,8 +67,11 @@ int RemoveParameterWatcherEx(const char *keyPrefix, ParameterChgPtr callback, vo
 
 std::string GetDisplayVersionStr()
 {
-    static std::string displayedVersionStr = std::string(GetDisplayVersion());
-    return displayedVersionStr;
+    const char *displayVersion = GetDisplayVersion();
+    if (displayVersion == nullptr) {
+        return "";
+    }
+    return std::string(displayVersion);
 }
 
 bool IsBetaVersion()
@@ -135,20 +138,29 @@ std::string GetDeviceTypeStr()
 
 std::string GetBrandStr()
 {
-    static std::string brandStr = std::string(GetBrand());
-    return brandStr;
+    const char *brand = GetBrand();
+    if (brand == nullptr) {
+        return "";
+    }
+    return std::string(brand);
 }
 
 std::string GetManufactureStr()
 {
-    static std::string manufactureStr = std::string(GetManufacture());
-    return manufactureStr;
+    const char *manufacture = GetManufacture();
+    if (manufacture == nullptr) {
+        return "";
+    }
+    return std::string(manufacture);
 }
 
 std::string GetMarketNameStr()
 {
-    static std::string marketNameStr = std::string(GetMarketName());
-    return marketNameStr;
+    const char *marketName = GetMarketName();
+    if (marketName == nullptr) {
+        return "";
+    }
+    return std::string(marketName);
 }
 
 std::string GetSysVersionStr()
@@ -163,8 +175,11 @@ std::string GetSysVersionStr()
 
 std::string GetProductModelStr()
 {
-    static std::string productModelStr = std::string(GetProductModel());
-    return productModelStr;
+    const char *productModel = GetProductModel();
+    if (productModel == nullptr) {
+        return "";
+    }
+    return std::string(productModel);
 }
 
 std::string GetSysVersionDetailsStr()
