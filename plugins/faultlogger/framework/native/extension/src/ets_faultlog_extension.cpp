@@ -168,6 +168,11 @@ bool EtsFaultLogExtension::CallObjectMethod(const char* name, const char* signat
     }
 
     auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        HIVIEW_LOGE("GetAniEnv is nullptr");
+        return false;
+    }
+
     ani_status status = ANI_OK;
     ani_method method = nullptr;
     if ((status = env->Class_FindMethod(etsObj_->aniCls, name, signature, &method)) != ANI_OK) {
