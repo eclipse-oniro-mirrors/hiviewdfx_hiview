@@ -85,11 +85,15 @@ void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
         return;
     }
 
+    SurfaceInfo si = GetSurfaceInfo(rsJankEvent->uniqueId);
     VideoJankRecord videoJankRecord;
+    videoJankRecord.appPid = si.pid;
+    videoJankRecord.bundleName = si.bundleName;
+    videoJankRecord.surfaceName = si.surfaceName;
     videoJankRecord.rsJankEvent = *rsJankEvent;
     videoJankRecordMap.emplace(rsJankEvent->uniqueId, videoJankRecord); //1.保存图形上报卡顿事件
 
-    BroadcastVideoJank(event->rawMsg); //2.广播卡顿事件
+    BroadcastVideoJank(event->rawMsg + "#BUNDLE_NAME:" + si.bundleName); //2.广播卡顿事件
     WaitForDomainReport(rsJankEvent->uniqueId); //3.等待接收网络、avcodec上报检测结果
 }
 
@@ -165,11 +169,9 @@ void VideoXperfMonitor::FaultJudgment(int64_t uniqueId)
 
     videoJankReport.maxFrameTime = record.rsJankEvent.maxFrameTime;
     videoJankReport.happenTime = record.rsJankEvent.happenTime;
-
-    SurfaceInfo si = GetSurfaceInfo(uniqueId);
-    videoJankReport.appPid = si.pid;
-    videoJankReport.bundleName = si.bundleName;
-    videoJankReport.surfaceName = si.surfaceName;
+    videoJankReport.appPid = record.appPid;
+    videoJankReport.bundleName = record.bundleName;
+    videoJankReport.surfaceName = record.surfaceName;
 
     //details
     std::string details = record.nwJankEvent.rawMsg + ";" + record.avcodecJankEvent.rawMsg + ";" +
