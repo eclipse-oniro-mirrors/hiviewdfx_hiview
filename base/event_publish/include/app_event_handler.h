@@ -159,9 +159,9 @@ public:
 
     struct AudioJankFrameInfo : public BundleInfo {
         uint64_t time = 0;
-        uint32_t max_frame_time = 0;
-        int64_t happen_time = 0;
-        std::string fault_type;
+        uint32_t maxFrameTime = 0;
+        int64_t happenTime = 0;
+        std::string faultType;
     };
 
     int PostEvent(const AppLaunchInfo& event);
