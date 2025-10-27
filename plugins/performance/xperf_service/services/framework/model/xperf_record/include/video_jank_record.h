@@ -25,6 +25,9 @@ namespace OHOS {
 namespace HiviewDFX {
 
 struct VideoJankRecord {
+    int32_t appPid{0};
+    std::string bundleName;
+    std::string surfaceName;
     RsJankEvent rsJankEvent;
     NetworkJankEvent nwJankEvent;
     AvcodecJankEvent avcodecJankEvent;
