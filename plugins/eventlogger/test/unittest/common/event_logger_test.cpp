@@ -36,6 +36,7 @@
 #include "db_helper.h"
 #include "freeze_common.h"
 #include "event_logger_util.h"
+#include "event_log_task.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -1167,6 +1168,39 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetWindowIdFromLine_004, TestSize.Leve
     
     std::string result = eventLogger->GetWindowIdFromLine(line);
     EXPECT_EQ(expected, result);
+}
+
+/**
+ * @tc.name: EventLoggerTest_HandleEventLoggerCmd_001
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string cmd = "tr";
+    auto fd = open(TEST_PATH.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create File. errno: %d\n", errno);
+        FAIL();
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "EventLoggerTest", SysEventCreator::FAULT);
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, sysEventCreator);
+    std::shared_ptr<EventLogTask> logTask = std::make_shared<EventLogTask>(fd, 1, sysEvent);
+    eventLogger->queue_ = nullptr;
+    eventLogger->queueSubmitTrace_ = nullptr;
+    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
+    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
+    eventLogger->InitQueue();
+    EXPECT_TRUE(eventLogger->queue_ != nullptr);
+    EXPECT_TRUE(eventLogger->queueSubmitTrace_ != nullptr);
+    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
+    cmd = "k:SysRqFile";
+    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
+    cmd = "cmd:m";
+    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
+    close(fd);
+    EXPECT_TRUE(eventLogger);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
