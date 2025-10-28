@@ -76,6 +76,7 @@ private:
     std::string lastEventName_ = "";
     std::vector<std::string> rebootReasons_;
     std::unique_ptr<ffrt::queue> queue_ = nullptr;
+    std::unique_ptr<ffrt::queue> queueSubmitTrace_ = nullptr;
 
 #ifdef WINDOW_MANAGER_ENABLE
     void ReportUserPanicWarning(std::shared_ptr<SysEvent> event, long pid);
@@ -127,6 +128,9 @@ private:
     void AddBootScanEvent();
     bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
     bool CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent);
+    void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask);
+    void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask);
+    void InitQueue();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

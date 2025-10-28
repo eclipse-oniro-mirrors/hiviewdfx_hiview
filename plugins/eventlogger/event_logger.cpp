@@ -89,7 +89,8 @@ namespace {
     static constexpr int HISTORY_EVENT_LIMIT = 500;
     static constexpr uint8_t LONGPRESS_PRIVACY = 1;
     static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
-    static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 8;
+    static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 6;
+    static constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     static constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
 }
@@ -330,36 +331,53 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
+void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask)
+{
+    if (queueSubmitTrace_) {
+        queueSubmitTrace_->submit([this, logTask, cmd] { logTask->AddLog(cmd); },
+            ffrt::task_attr().name("async_log"));
+    }
+}
+
+void EventLogger::SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask)
+{
+    if (queue_) {
+        queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
+    }
+}
+
 void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<SysEvent> event, int fd,
     std::shared_ptr<EventLogTask> logTask)
 {
-    if (cmd == "tr" || (cmd.find("k:") != std::string::npos && cmd.find("File") != std::string::npos)) {
-        if (cmd != "tr") {
-            auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
-            std::string fileTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
-            std::string fileInfo;
-            std::string filePath = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH);
-            if (cmd == "k:SysrqHungtaskFile") {
-                event->SetEventValue("SYSRQ_TIME", fileTime);
-                event->SetEventValue("HUNGTASK_TIME", fileTime);
-                fileInfo = "\nSysrqCatcher -- fullPath:" + filePath + "/" + "sysrq-" + fileTime + ".log" +
-                    "\nHungTaskCatcher -- fullPath:" + filePath + "/" + "hungtask-" + fileTime + ".log\n";
-            } else {
-                std::string fileType = (cmd == "k:SysRqFile") ? "sysrq" : "hungtask";
-                std::string catcher = (fileType == "sysrq") ? "\nSysrqCatcher" : "\nHungTaskCatcher";
-                fileInfo = catcher + " -- fullPath:" + std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" +
-                    fileType + "-" + fileTime + ".log\n";
-                std::string fileTimeKey = (fileType == "sysrq") ? "SYSRQ_TIME" : "HUNGTASK_TIME";
-                event->SetEventValue(fileTimeKey, fileTime);
-            }
-            FileUtil::SaveStringToFd(fd, fileInfo);
+    if (cmd == "tr") {
+        SubmitTraceTask(cmd, logTask);
+        return;
+    }
+    if ((cmd.find("k:") != std::string::npos && cmd.find("File") != std::string::npos)) {
+        auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+        std::string fileTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+        std::string fileInfo;
+        std::string filePath = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH);
+        if (cmd == "k:SysrqHungtaskFile") {
+            event->SetEventValue("SYSRQ_TIME", fileTime);
+            event->SetEventValue("HUNGTASK_TIME", fileTime);
+            fileInfo = "\nSysrqCatcher -- fullPath:" + filePath + "/" + "sysrq-" + fileTime + ".log" +
+                "\nHungTaskCatcher -- fullPath:" + filePath + "/" + "hungtask-" + fileTime + ".log\n";
+        } else {
+            std::string fileType = (cmd == "k:SysRqFile") ? "sysrq" : "hungtask";
+            std::string catcher = (fileType == "sysrq") ? "\nSysrqCatcher" : "\nHungTaskCatcher";
+            fileInfo = catcher + " -- fullPath:" + std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" +
+                fileType + "-" + fileTime + ".log\n";
+            std::string fileTimeKey = (fileType == "sysrq") ? "SYSRQ_TIME" : "HUNGTASK_TIME";
+            event->SetEventValue(fileTimeKey, fileTime);
         }
-        queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
-    } else {
-        logTask->AddLog(cmd);
-        if (cmd == "cmd:m") {
-            queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
-        }
+        FileUtil::SaveStringToFd(fd, fileInfo);
+        SubmitEventlogTask(cmd, logTask);
+        return;
+    }
+    logTask->AddLog(cmd);
+    if (cmd == "cmd:m") {
+        SubmitEventlogTask(cmd, logTask);
     }
 }
 
@@ -1075,16 +1093,23 @@ void EventLogger::CheckEventOnContinue(std::shared_ptr<SysEvent> event)
     event->OnContinue();
 }
 
+void EventLogger::InitQueue()
+{
+    queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
+        "EventLogger_queue",
+        ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_TASK_MAX_CONCURRENCY_NUM));
+    queueSubmitTrace_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
+        "EventLogger_SubmitTrace_queue",
+        ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM));
+}
+
 void EventLogger::OnLoad()
 {
     HIVIEW_LOGI("EventLogger OnLoad.");
     SetName("EventLogger");
     SetVersion("1.0");
     FreezeManager::GetInstance()->InitLogStore();
-
-    queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
-        "EventLogger_queue",
-        ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_TASK_MAX_CONCURRENCY_NUM));
+    InitQueue();
     threadLoop_ = GetWorkLoop();
 
     EventLoggerConfig logConfig;
