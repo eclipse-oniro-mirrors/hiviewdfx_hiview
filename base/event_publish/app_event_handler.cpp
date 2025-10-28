@@ -306,9 +306,9 @@ int AppEventHandler::PostEvent(const AudioJankFrameInfo& event)
     jsonStr << "{";
     AddTimeToJsonString(jsonStr);
     AddBundleInfoToJsonString(event, jsonStr);
-    AddValueToJsonString("max_frame_time", event.max_frame_time, jsonStr);
-    AddValueToJsonString("happen_time", event.happen_time, jsonStr);
-    AddValueToJsonString("fault_type", event.fault_type, jsonStr, true);
+    AddValueToJsonString("max_frame_time", event.maxFrameTime, jsonStr);
+    AddValueToJsonString("happen_time", event.happenTime, jsonStr);
+    AddValueToJsonString("fault_type", event.faultType, jsonStr, true);
     jsonStr << std::endl;
     EventPublish::GetInstance().PushEvent(uid, "AUDIO_JANK_FRAME", HiSysEvent::EventType::FAULT, jsonStr.str());
     return 0;
