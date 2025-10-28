@@ -30,6 +30,7 @@ private:
 
     std::string GetException(const std::string& name, const std::string& message) const;
     std::string GetFreezeHilogByPid(long pid) const;
+    uint64_t rss_ = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
