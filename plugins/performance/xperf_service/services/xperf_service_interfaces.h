@@ -28,7 +28,7 @@ public:
     void operator=(const XperfServiceInterfaces &) = delete;
 
     void ReportSurfaceInfo(int32_t pid, const std::string& bundleName, int64_t uniqueId,
-        const std::string& surfaceName);
+        const std::string& surfaceName) const;
 
 private:
     XperfServiceInterfaces() = default;
