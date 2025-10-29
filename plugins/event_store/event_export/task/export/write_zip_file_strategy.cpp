@@ -96,7 +96,7 @@ bool ChangeFileModeAndGid(const std::string& file, mode_t mode, uint32_t gid)
     return true;
 }
 
-std::string GetZipFile(const std::string& exportDir, int32_t uid, std::string& zipFileName)
+std::string GetZipFile(const std::string& exportDir, std::string& zipFileName)
 {
     std::string dir = FileUtil::IncludeTrailingPathDelimiter(exportDir);
     dir.append(zipFileName);
@@ -158,7 +158,7 @@ bool WriteZipFileStrategy::Write(std::string& exportContent, WroteCallback callb
         HIVIEW_LOGE("failed to zip %{public}s", StringUtil::HideDeviceIdInfo(zipFileName).c_str());
         return false;
     }
-    auto zipFile = GetZipFile(param_.exportDir, param_.uid, zipFileName);
+    auto zipFile = GetZipFile(param_.exportDir, zipFileName);
     HIVIEW_LOGD("dest file: %{public}s", StringUtil::HideDeviceIdInfo(zipFileName).c_str());
     callback(tmpZipFile, zipFile);
     return true;
