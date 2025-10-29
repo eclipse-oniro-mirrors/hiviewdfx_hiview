@@ -64,7 +64,7 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
         return;
     }
     if (RecordExist(id)) {
-        HIVIEW_LOGW("record already exists");
+        HIVIEW_LOGD("record already exists");
         return;
     }
     ImageLoadInfo* record = new ImageLoadInfo();
