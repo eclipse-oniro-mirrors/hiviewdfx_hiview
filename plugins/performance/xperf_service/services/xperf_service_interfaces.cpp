@@ -27,7 +27,7 @@ XperfServiceInterfaces &XperfServiceInterfaces::GetInstance()
 }
 
 void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& bundleName, int64_t uniqueId,
-    const std::string& surfaceName)
+    const std::string& surfaceName) const
 {
     VideoJankMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
     VideoXperfMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
