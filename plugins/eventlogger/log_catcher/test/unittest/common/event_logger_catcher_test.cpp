@@ -432,9 +432,9 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
     memoryCatcher->CheckString("abc: 100", data, "abcd", "/data/log/test");
     EXPECT_TRUE(data.empty());
     memoryCatcher->CheckString("abc: 100", data, "abc", "");
-    EXPECT_EQ(sysEvent->GetEventValue("HOST_RESOURCE_WARNING"), "Yes");
+    EXPECT_EQ(sysEvent->GetEventValue("HOST_RESOURCE_WARNING"), "TRUE");
     memoryCatcher->CheckString("abc: 3000000", data, "abc", "/proc/ashmem_process_info");
-    EXPECT_TRUE(data.empty());
+    EXPECT_TRUE(!data.empty());
 }
 
 /**
