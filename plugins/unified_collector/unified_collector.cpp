@@ -62,6 +62,7 @@ constexpr int32_t DURATION_TRACE = 10; // unit second
 constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";
 constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
 constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
+constexpr int32_t LOG_GID = 1007;
 
 void CreateTracePathInner(const std::string &filePath)
 {
@@ -70,6 +71,10 @@ void CreateTracePathInner(const std::string &filePath)
     }
     if (!FileUtil::CreateMultiDirectory(filePath)) {
         HIVIEW_LOGE("failed to create multidirectory %{public}s.", filePath.c_str());
+        return;
+    }
+    if (chown(filePath.c_str(), -1, LOG_GID) != 0) {
+        HIVIEW_LOGE("failed to change owner %{public}s.", filePath.c_str());
     }
 }
 
