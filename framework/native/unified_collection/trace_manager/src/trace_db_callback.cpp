@@ -21,42 +21,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceDbStoreCallback");
-
-// Table trace_flow_control column name
-constexpr char FLOW_TABLE_NAME[] = "trace_flow_control";
-constexpr char TABLE_NAME[] = "trace_flow_control";
-constexpr char COLUMN_SYSTEM_TIME[] = "system_time";
-constexpr char COLUMN_CALLER_NAME[] = "caller_name";
-constexpr char COLUMN_USED_SIZE[] = "used_size";
-constexpr char COLUMN_DYNAMIC_DECREASE[] = "dynamic_decrease";
-
-// Table unified_collection_task column name
-constexpr char TABLE_NAME_TASK[] = "unified_collection_task";
-constexpr char COLUMN_TASK_DATE[] = "task_date";
-constexpr char COLUMN_TASK_TYPE[] = "task_type";
-constexpr char COLUMN_UID[] = "uid";
-constexpr char COLUMN_PID[] = "pid";
-constexpr char COLUMN_BUNDLE_NAME[] = "bundle_name";
-constexpr char COLUMN_BUNDLE_VERSION[] = "bundle_version";
-constexpr char COLUMN_START_TIME[] = "start_time";
-constexpr char COLUMN_FINISH_TIME[] = "finish_time";
-constexpr char COLUMN_RESOURCE_PATH[] = "resource_path";
-constexpr char COLUMN_RESOURCE_SIZE[] = "resource_size";
-constexpr char COLUMN_COST_CPU[] = "cost_cpu";
-constexpr char COLUMN_STATE[] = "state";
-
-// Table trace_behavior_db_helper column name
-constexpr char TABLE_NAME_BEHAVIOR[] = "trace_behavior_db_helper";
-constexpr char COLUMN_BEHAVIOR_ID[] = "behavior_id ";
-constexpr char COLUMN_DATE[] = "task_date";
-constexpr char COLUMN_USED_QUOTA[] = "used_quota";
-
-// Table telemetry_flow_control column name
-constexpr char TABLE_TELEMETRY_CONTROL[] = "telemetry_control";
-constexpr char COLUMN_MODULE_NAME[] = "module";
-constexpr char COLUMN_QUOTA[] = "quota";
-constexpr char COLUMN_TELEMTRY_ID[] = "telemetry_id";
-constexpr char COLUMN_RUNNING_TIME[] = "running_time";
 }
 
 int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
@@ -105,20 +69,21 @@ int32_t TraceDbStoreCallback::CreateTraceFlowControlTable(NativeRdb::RdbStore& r
      * table: trace_flow_control
      *
      * describe: store data that has been used
-     * |-----|-------------|-------------|-----------|-------------------|
-     * |  id | system_time | caller_name | used_size | dynamic_decrease |
-     * |-----|-------------|-------------|-----------|-------------------|
-     * | INT |   VARCHAR   |   VARCHAR   |   INT64   |       INT64       |
-     * |-----|-------------|-------------|-----------|-------------------|
+     * |-----|-------------|-------------|--------------|---------------|-------------------|
+     * |  id | system_time | caller_name | io_used_size | zip_used_size | dynamic_decrease  |
+     * |-----|-------------|-------------|--------------|---------------|-------------------|
+     * | INT |   VARCHAR   |   VARCHAR   |   INT64      |    INT64      |       INT64       |
+     * |-----|-------------|-------------|--------------|---------------|-------------------|
      */
     const std::vector<std::pair<std::string, std::string>> fields = {
         {COLUMN_SYSTEM_TIME, SqlUtil::COLUMN_TYPE_STR},
         {COLUMN_CALLER_NAME, SqlUtil::COLUMN_TYPE_STR},
-        {COLUMN_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_IO_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
+        {COLUMN_ZIP_USED_SIZE, SqlUtil::COLUMN_TYPE_INT},
         {COLUMN_DYNAMIC_DECREASE, SqlUtil::COLUMN_TYPE_INT},
     };
     HIVIEW_LOGI("create table trace_flow_control table");
-    std::string sql = SqlUtil::GenerateCreateSql(TABLE_NAME, fields);
+    std::string sql = SqlUtil::GenerateCreateSql(FLOW_TABLE_NAME, fields);
     if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to create table, sql=%{public}s", sql.c_str());
         return -1;

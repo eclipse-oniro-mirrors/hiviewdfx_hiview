@@ -8,8 +8,8 @@
         "OHOS::HiviewDFX::TraceStateMachine::DumpTraceAsync(OHOS::HiviewDFX::DumpTraceArgs const&, long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&, std::__h::function<void (OHOS::HiviewDFX::Hitrace::TraceRetInfo)>)";
         "OHOS::HiviewDFX::TraceStateMachine::TraceStateMachine()";
         "OHOS::HiviewDFX::TraceFlowController::GetRemainingTraceSize()";
-        "OHOS::HiviewDFX::TraceFlowController::StoreDb(long)";
-        "OHOS::HiviewDFX::TraceFlowController::StoreDb(long long)";
+        "OHOS::HiviewDFX::TraceFlowController::StoreTraceSize(long)";
+        "OHOS::HiviewDFX::TraceFlowController::StoreTraceSize(long long)";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long long)";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
         "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
@@ -49,12 +49,17 @@
         "OHOS::HiviewDFX::TraceFlowController::UpdateRunningTime(long long)";
         "OHOS::HiviewDFX::TraceFlowController::UpdateRunningTime(long)";
         "OHOS::HiviewDFX::TraceStateMachine::InitTelemetryStatus(bool)";
-        "OHOS::HiviewDFX::TraceFlowController::IsOverLimit()";
+        "OHOS::HiviewDFX::TraceFlowController::IsZipOverFlow()";
         "OHOS::HiviewDFX::TraceFlowController::DecreaseDynamicThreshold()";
         "OHOS::HiviewDFX::TraceFlowController::TelemetryStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::TraceFlowController::TelemetryStore(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
         "OHOS::HiviewDFX::FlowController::DEFAULT_CONFIG_PATH";
         "OHOS::HiviewDFX::FlowController::DEFAULT_DB_PATH";
+        "OHOS::HiviewDFX::TraceFlowController::IsIoOverFlow()";
+        "OHOS::HiviewDFX::TraceFlowController::StoreIoSize(long)";
+        "OHOS::HiviewDFX::TraceFlowController::StoreIoSize(long long)";
+        "OHOS::HiviewDFX::TraceStateMachine::AddSymlinkXattr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::TraceStateMachine::RemoveSymlinkXattr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
 };
   local:
     *;

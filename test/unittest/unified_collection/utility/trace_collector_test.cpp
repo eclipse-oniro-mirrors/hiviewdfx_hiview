@@ -87,15 +87,3 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
         0);
     ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
-
-/**
- * @tc.name: TraceCollectorTest005
- * @tc.desc: used to test TraceCollector for RecoverTmpTrace
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
-{
-    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
-    bool result = collector->RecoverTmpTrace();
-    ASSERT_FALSE(result);
-}

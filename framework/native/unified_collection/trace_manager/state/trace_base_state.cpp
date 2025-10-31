@@ -159,6 +159,16 @@ int32_t TraceBaseState::SetFilterPidInfo(pid_t pid)
     return Hitrace::AddFilterPid(pid);
 }
 
+bool TraceBaseState::AddSymlinkXattr(const std::string &fileName)
+{
+    return Hitrace::AddSymlinkXattr(fileName);
+}
+
+bool TraceBaseState::RemoveSymlinkXattr(const std::string &fileName)
+{
+    return Hitrace::RemoveSymlinkXattr(fileName);
+}
+
 TraceRet TraceBaseState::PowerTelemetryOn()
 {
     HIVIEW_LOGW("%{public}s, state fail", GetTag().c_str());

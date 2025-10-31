@@ -31,7 +31,6 @@ using namespace OHOS::HiviewDFX::UCollectClient;
 using namespace OHOS::HiviewDFX::UCollect;
 
 namespace {
-constexpr int SLEEP_DURATION = 10;
 const std::vector<std::string> TAG_GROUPS = {"scene_performance"};
 
 void NativeTokenGet(const char* perms[], int size)
@@ -66,11 +65,6 @@ void EnablePermissionAccess()
 void DisablePermissionAccess()
 {
     NativeTokenGet(nullptr, 0); // empty permission array.
-}
-
-void Sleep()
-{
-    sleep(SLEEP_DURATION);
 }
 
 bool IsCommonState()
@@ -109,7 +103,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
     EnablePermissionAccess();
     auto openRet = traceCollector->OpenSnapshot(TAG_GROUPS);
     ASSERT_EQ(openRet.retCode, UcError::SUCCESS);
-    Sleep();
+    sleep(1);
     auto dumpRes = traceCollector->DumpSnapshot(UCollect::TraceClient::COMMAND);
     ASSERT_TRUE(dumpRes.retCode == UcError::SUCCESS);
     ASSERT_TRUE(dumpRes.data.size() >= 0);
@@ -136,7 +130,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
     if (openRet.retCode == UcError::SUCCESS) {
         auto recOnRet = traceCollector->RecordingOn();
         ASSERT_TRUE(recOnRet.retCode == UcError::SUCCESS);
-        Sleep();
+        sleep(1);
         auto recOffRet = traceCollector->RecordingOff();
         ASSERT_TRUE(recOffRet.data.size() >= 0);
     }

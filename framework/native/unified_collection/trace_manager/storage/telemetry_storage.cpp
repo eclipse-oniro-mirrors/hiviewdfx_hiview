@@ -15,16 +15,11 @@
 #include "telemetry_storage.h"
 
 #include "hiview_logger.h"
+#include "trace_db_callback.h"
 
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("TeleMetryStorage");
 namespace {
-constexpr char TABLE_TELEMETRY_CONTROL[] = "telemetry_control";
-constexpr char COLUMN_MODULE_NAME[] = "module";
-constexpr char COLUMN_RUNNING_TIME[] = "running_time";
-constexpr char COLUMN_USED_SIZE[] = "used_size";
-constexpr char COLUMN_QUOTA[] = "quota";
-constexpr char COLUMN_TELEMTRY_ID[] = "telemetry_id";
 constexpr char TOTAL[] = "Total";
 }
 

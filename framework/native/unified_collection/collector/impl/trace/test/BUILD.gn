@@ -95,7 +95,7 @@ ohos_unittest("TraceStrategyTest") {
   resource_config_file = "$hiview_framework/native/unified_collection/collector/impl/trace/test/resource/ohos_test.xml"
 }
 
-ohos_unittest("TraceAppStrategyTest") {
+ohos_unittest("TraceStrategyExTest") {
   module_out_path = hiview_module + "/ucollection/trace"
 
   configs = [ ":trace_unified_collection_test_config" ]
@@ -103,7 +103,7 @@ ohos_unittest("TraceAppStrategyTest") {
   sources = [
     "$hiview_framework/native/unified_collection/collector/impl/trace/strategy/src/trace_handler.cpp",
     "$hiview_framework/native/unified_collection/collector/impl/trace/strategy/src/trace_strategy.cpp",
-    "$hiview_framework/native/unified_collection/collector/impl/trace/test/trace_app_strategy_test.cpp",
+    "$hiview_framework/native/unified_collection/collector/impl/trace/test/trace_strategy_ex_test.cpp",
     "$hiview_framework/native/unified_collection/collector/impl/trace/trace_utils.cpp",
     "$hiview_framework/native/unified_collection/decorator/trace_decorator.cpp",
     "$hiview_framework/native/unified_collection/decorator/decorator_util.cpp",

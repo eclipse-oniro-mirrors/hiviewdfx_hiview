@@ -17,24 +17,12 @@
 
 #include "hiview_logger.h"
 #include "sql_util.h"
+#include "trace_db_callback.h"
 
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("AppEventTaskStorage");
 namespace {
-constexpr char TABLE_NAME_TASK[] = "unified_collection_task";
 constexpr char COLUMN_ID[] = "id";
-constexpr char COLUMN_TASK_DATE[] = "task_date";
-constexpr char COLUMN_TASK_TYPE[] = "task_type";
-constexpr char COLUMN_UID[] = "uid";
-constexpr char COLUMN_PID[] = "pid";
-constexpr char COLUMN_BUNDLE_NAME[] = "bundle_name";
-constexpr char COLUMN_BUNDLE_VERSION[] = "bundle_version";
-constexpr char COLUMN_START_TIME[] = "start_time";
-constexpr char COLUMN_FINISH_TIME[] = "finish_time";
-constexpr char COLUMN_RESOURCE_PATH[] = "resource_path";
-constexpr char COLUMN_RESOURCE_SIZE[] = "resource_size";
-constexpr char COLUMN_COST_CPU[] = "cost_cpu";
-constexpr char COLUMN_STATE[] = "state";
 
 void InnerGetAppTaskCondition(int32_t uid, int32_t eventDate, NativeRdb::AbsRdbPredicates &predicates)
 {

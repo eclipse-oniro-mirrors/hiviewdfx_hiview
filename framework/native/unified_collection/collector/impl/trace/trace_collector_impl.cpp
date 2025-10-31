@@ -62,6 +62,7 @@ void ZipShareTempTraceFile(const std::string &srcFile)
     HIVIEW_LOGI("ZipTraceFile success: %{public}s", FileUtil::ExtractFileName(zipTraceFile).c_str());
 }
 }
+
 std::shared_ptr<TraceCollector> TraceCollector::Create()
 {
     static std::shared_ptr<TraceCollector> instance_ =
@@ -75,6 +76,43 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithDuratio
     return StartDumpTrace(caller, maxDuration, happenTime);
 }
 
+CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(UCollect::TraceClient client)
+{
+    if (auto uid = getuid(); uid != HIVIEW_UID) {
+        HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
+        return {UcError::PERMISSION_CHECK_FAILED};
+    }
+    HIVIEW_LOGI("client:[%{public}d] dump trace in snapshot mode.", static_cast<int32_t>(client));
+    std::lock_guard<std::mutex> lock(dumpMutex_);
+    CollectResult<std::vector<std::string>> result;
+    auto traceStrategy = TraceStrategyFactory::CreateTraceStrategy(client, 0, static_cast<uint64_t>(0));
+    if (traceStrategy == nullptr) {
+        HIVIEW_LOGE("Create traceStrategy error client:%{public}d", static_cast<int32_t>(client));
+        return {UcError::UNSUPPORT};
+    }
+    TraceRetInfo traceRetInfo;
+    TraceRet dumpRet = traceStrategy->DoDump(result.data, traceRetInfo);
+    result.retCode = GetUcError(dumpRet);
+    return result;
+}
+
+CollectResult<int32_t> TraceCollectorImpl::DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+{
+    if (auto uid = getuid(); uid != HIVIEW_UID) {
+        HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
+        return {UcError::PERMISSION_CHECK_FAILED};
+    }
+    if (appCallerEvent == nullptr) {
+        HIVIEW_LOGE("appCallerEvent is null");
+        return {UcError::UNSUPPORT};
+    }
+    std::lock_guard<std::mutex> lock(dumpMutex_);
+    CollectResult<std::vector<std::string>> result;
+    auto strategy = TraceStrategyFactory::CreateAppStrategy(appCallerEvent);
+    TraceRetInfo traceRetInfo;
+    return {GetUcError(strategy->DoDump(result.data, traceRetInfo))};
+}
+
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(TeleModule module,
     uint32_t maxDuration, uint64_t happenTime)
 {
@@ -82,6 +120,7 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(
         HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
         return {UcError::PERMISSION_CHECK_FAILED};
     }
+    std::lock_guard<std::mutex> lock(dumpMutex_);
     CollectResult<std::vector<std::string>> result;
     auto strategy = TraceStrategyFactory::CreateStrategy(module, maxDuration, happenTime);
     TraceRetInfo traceRetInfo;
@@ -144,6 +183,7 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(Trace
         HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
         return {UcError::PERMISSION_CHECK_FAILED};
     }
+    std::lock_guard<std::mutex> lock(dumpMutex_);
     CollectResult<std::vector<std::string>> result;
     auto strategy = TraceStrategyFactory::CreateTraceStrategy(caller, timeLimit, happenTime);
     if (strategy == nullptr) {
@@ -159,11 +199,29 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::StartDumpTrace(Trace
     return result;
 }
 
-bool TraceCollectorImpl::RecoverTmpTrace()
+void TraceCollectorImpl::PrepareTrace()
+{
+    RecoverTmpTrace();
+    ClearInvalidLinkTrace();
+}
+
+void TraceCollectorImpl::ClearInvalidLinkTrace()
+{
+    std::vector<std::string> traceFiles;
+    FileUtil::GetDirFiles(UNIFIED_SPECIAL_PATH, traceFiles, false);
+    for (const auto &filePath : traceFiles) {
+        if (!FileUtil::IsSymlink(filePath)) {
+            bool result = FileUtil::RemoveFile(filePath);
+            HIVIEW_LOGE("remove:%{public}s, result:%{public}d", filePath.c_str(), result);
+        }
+    }
+}
+
+void TraceCollectorImpl::RecoverTmpTrace()
 {
     if (auto uid = getuid(); uid != HIVIEW_UID) {
         HIVIEW_LOGE("Do not allow uid:%{public}d to RecoverTmpTrace trace except in hiview process", uid);
-        return false;
+        return;
     }
     std::vector<std::string> traceFiles;
     FileUtil::GetDirFiles(UNIFIED_SHARE_TEMP_PATH, traceFiles, false);
@@ -197,7 +255,6 @@ bool TraceCollectorImpl::RecoverTmpTrace()
         };
         TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
-    return true;
 }
 } // UCollectUtil
 } // HiViewDFX

@@ -29,19 +29,24 @@ public:
     CollectResult<std::vector<std::string>> DumpTrace(TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
         TraceCaller caller, uint32_t maxDuration, uint64_t happenTime) override;
+    CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceClient client) override;
+    CollectResult<int32_t> DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent) override;
     CollectResult<std::vector<std::string>> DumpTraceWithFilter(TeleModule module,
         uint32_t maxDuration, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(TeleModule module) override;
-    bool RecoverTmpTrace() override;
+    void PrepareTrace() override;
 
 private:
     CollectResult<std::vector<std::string>> StartDumpTrace(TraceCaller &caller, uint32_t timeLimit,
         uint64_t happenTime = 0);
+    void RecoverTmpTrace();
+    void ClearInvalidLinkTrace();
 
     std::unique_ptr<ffrt::queue> ffrtQueue_;
     ffrt::task_handle handle_;
     std::mutex postMutex_;
+    std::mutex dumpMutex_;
 };
 } // namespace OHOS::HiviewDFX::UCollectUtil
 

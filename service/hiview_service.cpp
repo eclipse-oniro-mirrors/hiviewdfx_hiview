@@ -222,17 +222,7 @@ CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(UCollec
 #ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
     return {UcError::FEATURE_CLOSED};
 #else
-    HIVIEW_LOGI("client:[%{public}d] dump trace in snapshot mode.", static_cast<int32_t>(client));
-    CollectResult<std::vector<std::string>> result;
-    auto traceStrategy = TraceStrategyFactory::CreateTraceStrategy(client, 0, static_cast<uint64_t>(0));
-    if (traceStrategy == nullptr) {
-        HIVIEW_LOGE("Create traceStrategy error client:%{public}d", static_cast<int32_t>(client));
-        return {UcError::UNSUPPORT};
-    }
-    TraceRetInfo traceRetInfo;
-    TraceRet dumpRet = traceStrategy->DoDump(result.data, traceRetInfo);
-    result.retCode = GetUcError(dumpRet);
-    return result;
+    return UCollectUtil::TraceCollector::Create()->DumpTrace(client);
 #endif
 }
 
@@ -325,11 +315,8 @@ CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient:
 
 CollectResult<int32_t> HiviewService::InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller)
 {
-    CollectResult<std::vector<std::string>> result;
-    auto strategy = TraceStrategyFactory::CreateAppStrategy(InnerCreateAppCallerEvent(appCaller,
+    return UCollectUtil::TraceCollector::Create()->DumpAppTrace(InnerCreateAppCallerEvent(appCaller,
         UCollectUtil::DUMP_APP_TRACE));
-    TraceRetInfo traceRetInfo;
-    return {GetUcError(strategy->DoDump(result.data, traceRetInfo))};
 }
 #endif
 

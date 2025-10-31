@@ -15,6 +15,7 @@
 #include "test_content.h"
 
 #include <charconv>
+#include <sys/xattr.h>
 
 #include "cjson_util.h"
 #include "event.h"
@@ -32,6 +33,8 @@ namespace {
 const std::string COMMON_EVENT_TELEMETRY_START = "telemetryStart";
 const std::string COMMON_EVENT_TELEMETRY_END = "telemetryEnd";
 const std::string CONFIG_PATH = "/data/log/hiview/unified_collection/trace/test_data.json";
+const int BUF_SIZE_64 = 64;
+const std::string ATTRNAME = "user.linknum";
 }
 
 void TestXperfDump(const EventFwk::CommonEventData &data)
@@ -237,5 +240,21 @@ void TestTraceOffXPerf(const EventFwk::CommonEventData &data)
     std::string action = data.GetWant().GetAction();
     auto result = TraceCollector::Create()->FilterTraceOff(TeleModule::XPERF);
     HIVIEW_LOGE("result event:%{public}s, code:%{public}d", action.c_str(), result.retCode);
+}
+
+void GetFileAttr(const EventFwk::CommonEventData &data)
+{
+    std::string str = data.GetData();
+    if (str.empty()) {
+        HIVIEW_LOGE("path is empty");
+    }
+    const char* realFilePath = str.c_str();
+    char valueStr[BUF_SIZE_64];
+    ssize_t len = getxattr(realFilePath, ATTRNAME.c_str(), valueStr, sizeof(valueStr));
+    if (len < 0) {
+        HIVIEW_LOGE("getxattr failed errno %{public}d", errno);
+    } else {
+        HIVIEW_LOGI("getxattr, user.linknum : %{public}s", valueStr);
+    }
 }
 }

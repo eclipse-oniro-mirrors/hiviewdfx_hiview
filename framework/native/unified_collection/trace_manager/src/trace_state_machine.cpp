@@ -215,6 +215,16 @@ int32_t TraceStateMachine::SetFilterPidInfo(pid_t pid)
     return currentState_->SetFilterPidInfo(pid);
 }
 
+bool TraceStateMachine::AddSymlinkXattr(const std::string &fileName)
+{
+    return currentState_->AddSymlinkXattr(fileName);
+}
+
+bool TraceStateMachine::RemoveSymlinkXattr(const std::string &fileName)
+{
+    return currentState_->RemoveSymlinkXattr(fileName);
+}
+
 TraceRet TraceStateMachine::PowerTelemetryOn()
 {
     std::lock_guard<ffrt::mutex> lock(traceMutex_);

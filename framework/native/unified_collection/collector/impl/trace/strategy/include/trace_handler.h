@@ -45,7 +45,7 @@ public:
     virtual std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) = 0;
 
 protected:
-    virtual void DoClean(const std::string& business);
+    virtual void DoClean();
 
 protected:
     std::string tracePath_;
@@ -71,28 +71,23 @@ private:
     void ZipTraceFile(const std::string& srcPath, const std::string& traceZipFile, const std::string& tmpZipFile);
 };
 
-class TraceCopyHandler : public TraceHandler, public std::enable_shared_from_this<TraceCopyHandler> {
+class TraceLinkHandler : public TraceHandler, public std::enable_shared_from_this<TraceLinkHandler> {
 public:
-    TraceCopyHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
+    TraceLinkHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
         : TraceHandler(tracePath, caller, cleanThreshold) {}
     auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
         std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string> override;
 
 protected:
-    void CopyTraceFile(const std::string& src, const std::string& dst);
+    void LinkTraceFile(const std::string& src, const std::string& dst);
 
     std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) override
     {
         return tracePath_ + prefix + "_" + FileUtil::ExtractFileName(tracePath);
     }
-};
 
-class TraceSyncCopyHandler : public TraceCopyHandler {
-public:
-    TraceSyncCopyHandler(const std::string& tracePath, const std::string& caller, uint32_t cleanThreshold)
-        : TraceCopyHandler(tracePath, caller, cleanThreshold) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
-        std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string> override;
+private:
+    void DoLinkClean(const std::string& prefix);
 };
 
 class TraceAppHandler : public TraceHandler {

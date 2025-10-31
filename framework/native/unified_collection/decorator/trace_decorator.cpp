@@ -56,6 +56,17 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(UCollect::Trac
     return Invoke(task, caller);
 }
 
+CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(UCollect::TraceClient client)
+{
+    auto task = [this, &client] { return traceCollector_->DumpTrace(client); };
+    return Invoke(task, client);
+}
+
+CollectResult<int32_t> TraceDecorator::DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+{
+    return traceCollector_->DumpAppTrace(appCallerEvent);
+}
+
 CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UCollect::TraceCaller caller,
     uint32_t timeLimit, uint64_t happenTime)
 {
@@ -81,9 +92,9 @@ CollectResult<int32_t> TraceDecorator::FilterTraceOff(UCollect::TeleModule modul
     return traceCollector_->FilterTraceOff(module);
 }
 
-bool TraceDecorator::RecoverTmpTrace()
+void TraceDecorator::PrepareTrace()
 {
-    return traceCollector_->RecoverTmpTrace();
+    return traceCollector_->PrepareTrace();
 }
 
 void TraceDecorator::SaveStatSpecialInfo()
@@ -112,13 +123,12 @@ void TraceDecorator::WriteTrafficAfterHandle(const TraceTrafficInfo& trace_traff
     traceStatWrapper_.WriteTrafficToLogFile(trace_traffic.ToString());
 }
 
-void TraceStatWrapper::UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, UCollect::TraceCaller& caller,
+void TraceStatWrapper::UpdateTraceStatInfo(uint64_t startTime, uint64_t endTime, const std::string& callerStr,
     const CollectResult<std::vector<std::string>>& result)
 {
     bool isCallSucc = (result.retCode == UCollect::UcError::SUCCESS);
     bool isOverCall = (result.retCode == UCollect::UcError::TRACE_OVER_FLOW);
     uint64_t latency = (endTime - startTime > 0) ? (endTime - startTime) : 0;
-    std::string callerStr = EnumToString(caller);
     TraceStatItem item = {.caller = callerStr, .isCallSucc = isCallSucc,
         .isOverCall = isOverCall, .latency = latency};
     UpdateAPIStatInfo(item);

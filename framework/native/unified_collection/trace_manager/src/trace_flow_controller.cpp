@@ -31,12 +31,9 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceFlowController");
-constexpr int32_t DB_VERSION = 6;
+constexpr int32_t DB_VERSION = 7;
 constexpr char DB_NAME[] = "trace_flow_control.db";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
-const std::set<std::string> DB_CALLER {
-    CallerName::XPERF, CallerName::XPOWER, CallerName::RELIABILITY, CallerName::HIVIEW
-};
 }
 
 void TraceFlowController::InitTraceDb(const std::string& dbPath)
@@ -49,7 +46,6 @@ void TraceFlowController::InitTraceDb(const std::string& dbPath)
     if (ret != NativeRdb::E_OK) {
         HIVIEW_LOGE("failed to init db store, db store path=%{public}s", dbPath.c_str());
         dbStore_ = nullptr;
-        return;
     }
 }
 
@@ -59,19 +55,19 @@ void TraceFlowController::InitTraceStorage(const std::string& caller, const std:
         HIVIEW_LOGE("dbStore fail init");
         return;
     }
-    if (DB_CALLER.find(caller) != DB_CALLER.end()) {
-        HIVIEW_LOGD("is db caller, init TraceStorage");
-        traceStorage_ = std::make_shared<TraceStorage>(dbStore_, caller, configPath);
-    }
     if (caller == ClientName::APP) {
         appTaskStore_ = std::make_shared<AppEventTaskStorage>(dbStore_);
+        return;
     }
     if (caller == BusinessName::BEHAVIOR) {
         behaviorTaskStore_ = std::make_shared<TraceBehaviorStorage>(dbStore_);
+        return;
     }
     if (caller == BusinessName::TELEMETRY) {
         teleMetryStorage_ = std::make_shared<TeleMetryStorage>(dbStore_);
+        return;
     }
+    traceStorage_ = std::make_shared<TraceStorage>(dbStore_, caller, configPath);
 }
 
 TraceFlowController::TraceFlowController(const std::string& caller, const std::string& dbPath,
@@ -89,20 +85,36 @@ int64_t TraceFlowController::GetRemainingTraceSize()
     return traceStorage_->GetRemainingTraceSize();
 }
 
-void TraceFlowController::StoreDb(int64_t traceSize)
+void TraceFlowController::StoreIoSize(int64_t traceSize)
 {
     if (traceStorage_ == nullptr) {
         return;
     }
-    traceStorage_->StoreDb(traceSize);
+    traceStorage_->StoreIoSize(traceSize);
 }
 
-bool TraceFlowController::IsOverLimit()
+void TraceFlowController::StoreTraceSize(int64_t traceSize)
+{
+    if (traceStorage_ == nullptr) {
+        return;
+    }
+    traceStorage_->StoreTraceSize(traceSize);
+}
+
+bool TraceFlowController::IsZipOverFlow()
 {
     if (traceStorage_ == nullptr) {
         return true;
     }
-    return traceStorage_->IsOverLimit();
+    return traceStorage_->IsZipOverFlow();
+}
+
+bool TraceFlowController::IsIoOverFlow()
+{
+    if (traceStorage_ == nullptr) {
+        return true;
+    }
+    return traceStorage_->IsIoOverFlow();
 }
 
 void TraceFlowController::DecreaseDynamicThreshold()

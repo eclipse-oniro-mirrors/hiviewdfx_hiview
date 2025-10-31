@@ -32,5 +32,6 @@ void TestTraceOnXpower(const EventFwk::CommonEventData &data);
 void TestTraceOffXpower(const EventFwk::CommonEventData &data);
 void TestTraceOnXPerf(const EventFwk::CommonEventData &data);
 void TestTraceOffXPerf(const EventFwk::CommonEventData &data);
+void GetFileAttr(const EventFwk::CommonEventData &data);
 }
 #endif // HIVIEWDFX_HIVIEW_TRACE_TEST_CONTENT_H

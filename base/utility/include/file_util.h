@@ -105,6 +105,8 @@ bool IsLegalPath(const std::string& path);
 bool RenameFile(const std::string& src, const std::string& dest);
 bool GetDirXattr(const std::string& dir, const std::string& name, std::string& value);
 int64_t GetLastModifiedTimeStamp(const std::string& filePath);
+bool IsSymlink(const std::string& path);
+std::string ReadSymlink(const std::string& path);
 
 // for report
 int GetUserId(int32_t uid);

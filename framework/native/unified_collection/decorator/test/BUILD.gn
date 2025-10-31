@@ -33,7 +33,8 @@ ohos_unittest("DecoratorUnitTest") {
   sources = [ "decorator_test.cpp" ]
 
   deps = [
-    "$hiview_base/utility:hiview_utility",
+    "$hiview_base:hiviewbase",
+    "$hiview_framework/native/unified_collection/trace_manager:libtrace_manager",
     "$hiview_framework/native/unified_collection:ucollection_source",
   ]
 
