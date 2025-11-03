@@ -32,7 +32,7 @@ private:
     std::mutex mutex_;
     bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info);
     static void FillInfoDefault(FaultLogInfo& info);
-    static void WritrEvent(FaultLogInfo& info);
+    static void WriteEvent(FaultLogInfo& info);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

@@ -101,7 +101,7 @@ void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
     auto task = [info, hitraceId] () mutable {
         // Need set hitrace again in async task
         HiTraceChainSetId(&hitraceId);
-        FaultLogDatabase::WritrEvent(info);
+        FaultLogDatabase::WriteEvent(info);
         HiTraceChainClearId();
     };
     if (info.faultLogType == FaultLogType::CPP_CRASH) {
@@ -231,7 +231,7 @@ void FaultLogDatabase::FillInfoDefault(FaultLogInfo& info)
     setDefault(FaultKey::FINGERPRINT);
 }
 
-void FaultLogDatabase::WritrEvent(FaultLogInfo& info)
+void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
 {
     std::string eventName = GetFaultNameByType(info.faultLogType, false);
     auto faultLogType = std::to_string(info.faultLogType);
