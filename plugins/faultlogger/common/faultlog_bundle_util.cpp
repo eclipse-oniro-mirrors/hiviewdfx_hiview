@@ -16,8 +16,11 @@
 #include "faultlog_bundle_util.h"
 
 #include <regex>
+#include "application_info.h"
 #include "bundle_mgr_client.h"
+#include "bundle_mgr_proxy.h"
 #include "hiview_logger.h"
+#include "iservice_registry.h"
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD002D11
@@ -83,10 +86,29 @@ bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo)
         HILOG_INFO(LOG_CORE, "The version of %{public}s is %{public}s", bundleName.c_str(),
             info.versionName.c_str());
     }
+    bundleInfo.cpuAbi = info.applicationInfo.cpuAbi;
+    bundleInfo.releaseType = info.releaseType;
     bundleInfo.isPreInstalled = info.isPreInstallApp;
     bundleInfo.versionName = info.versionName;
     bundleInfo.versionCode = info.versionCode;
     return true;
+}
+
+bool GetIsSystemApp(const std::string &module, int32_t uid)
+{
+    constexpr int vauleMod = 200000;
+    constexpr int bundleMgrServiceSysAbilityId = 401;
+    AppExecFwk::ApplicationInfo appInfo;
+    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = systemAbilityManager->GetSystemAbility(bundleMgrServiceSysAbilityId);
+    auto proxy = iface_cast<AppExecFwk::BundleMgrProxy>(remoteObject);
+    int userId = uid / vauleMod;
+    bool res = proxy->GetApplicationInfo(module, 0, userId, appInfo);
+    if (!res) {
+        HILOG_WARN(LOG_CORE, "Failed to get ApplicationInfo from module.");
+        return false;
+    }
+    return appInfo.isSystemApp;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

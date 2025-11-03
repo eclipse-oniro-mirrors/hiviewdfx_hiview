@@ -146,15 +146,11 @@ Json::Value FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::strin
     stackInfoObj["process_life_time"] = GetProcessInfo(info.sectionMap, FaultKey::PROCESS_LIFETIME);
     auto memory = GetMemoryJsonValue(info.sectionMap);
     stackInfoObj["memory"] = memory;
-    if (info.sectionMap.count(FaultKey::MODULE_VERSION) == 1) {
-        stackInfoObj["bundle_version"] = info.sectionMap.at(FaultKey::MODULE_VERSION);
-    }
-    if (info.sectionMap.count(FaultKey::FOREGROUND) == 1) {
-        stackInfoObj["foreground"] = info.sectionMap.at(FaultKey::FOREGROUND) == "Yes";
-    }
-    if (info.sectionMap.count(FaultKey::FINGERPRINT) == 1) {
-        stackInfoObj["uuid"] = info.sectionMap.at(FaultKey::FINGERPRINT);
-    }
+    stackInfoObj["app_type"] = GetStrValFromMap(info.sectionMap, FaultKey::APP_TYPE);
+    stackInfoObj["cpu_abi"] = GetStrValFromMap(info.sectionMap, FaultKey::CPU_ABI);
+    stackInfoObj["bundle_version"] = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
+    stackInfoObj["foreground"] = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
+    stackInfoObj["uuid"] = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
     if (info.sectionMap.count(FaultKey::HILOG) == 1) {
         stackInfoObj["hilog"] = ParseHilogToJson(info.sectionMap.at(FaultKey::HILOG));
     }
