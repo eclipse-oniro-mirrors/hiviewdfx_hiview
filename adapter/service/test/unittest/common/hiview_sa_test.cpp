@@ -119,5 +119,27 @@ HWTEST_F(HiviewSATest, CommonTest003, testing::ext::TestSize.Level3)
     ASSERT_GE(data.gl, 0);
     ASSERT_GE(data.graph, 0);
 }
+
+/**
+ * @tc.name: CommonTest004
+ * @tc.desc: Check hidumper -s 1201 -a '--sysevent_backup'.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HiviewSATest, CommonTest004, testing::ext::TestSize.Level1)
+{
+    printf("system(\"hidumper -s 1201 -a '--sysevent_backup'\") \r\n");
+    FILE* fp = popen("hidumper -s 1201 -a '--sysevent_backup'", "r");
+    ASSERT_NE(fp, nullptr);
+    std::string result;
+    while (!feof(fp)) {
+        char buffer[256] = {'\0'};
+        if (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+            result += buffer;
+        }
+    }
+    pclose(fp);
+    printf("result:%s", result.c_str());
+    ASSERT_NE(result.find("System Events Backup Done."), std::string::npos);
+}
 }
 }

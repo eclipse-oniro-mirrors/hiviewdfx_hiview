@@ -32,6 +32,7 @@ constexpr char BACKUP_DIR[] = "/log/hiview/backup/";
 constexpr char LOG_HIVIEW_DIR[] = "/log/hiview/";
 constexpr char DIRTY_EVENT_CLEAR_FLAG_PATH[] = "/log/hiview/dirty_event_clear_flag";
 constexpr char DIRTY_EVENT_CLEARED_PROP[] = "sys.hiview.diag.dirty_event_cleared";
+static std::mutex g_mutex;
 
 std::shared_ptr<SysEventQuery> SysEventDao::BuildQuery(const std::string& domain,
     const std::vector<std::string>& names)
@@ -70,8 +71,16 @@ void SysEventDao::CheckRepeat(SysEvent& event)
 
 void SysEventDao::Backup()
 {
-    SysEventBackup backup(BACKUP_DIR);
-    backup.Backup();
+    // If there are two tasks at the same time, backup only once.
+    if (g_mutex.try_lock()) {
+        SysEventBackup backup(BACKUP_DIR);
+        backup.Backup();
+        g_mutex.unlock();
+    } else {
+        // Waiting for another backup task to complete.
+        g_mutex.lock();
+        g_mutex.unlock();
+    }
 }
 
 void SysEventDao::Restore()
