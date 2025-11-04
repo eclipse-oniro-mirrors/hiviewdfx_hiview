@@ -247,7 +247,7 @@ ErrCode HiviewServiceAbility::Copy(const std::string& logType, const std::string
 
 ErrCode HiviewServiceAbility::Move(const std::string& logType, const std::string& logName, const std::string& dest)
 {
-    HiviewXCollieTimer timer("Move", SYS_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("Move", TWO_MINUTES_TIMEOUT);
     if (!HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -355,7 +355,7 @@ ErrCode HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& 
 
 ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, std::vector<std::string>& files)
 {
-    HiviewXCollieTimer timer("DumpSnapshotTrace", SYS_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("DumpSnapshotTrace", TWO_MINUTES_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION) &&
         !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
@@ -369,7 +369,7 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, 
 
 ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_t& errNo, int32_t& ret)
 {
-    HiviewXCollieTimer timer("OpenRecordingTrace", SYS_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("OpenRecordingTrace", TWO_MINUTES_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -422,7 +422,7 @@ ErrCode HiviewServiceAbility::CloseTrace(int32_t& errNo, int32_t& ret)
 ErrCode HiviewServiceAbility::CaptureDurationTrace(
     const AppCallerParcelable& appCallerParcelable, int32_t& errNo, int32_t& ret)
 {
-    HiviewXCollieTimer timer("CaptureDurationTrace", APP_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("CaptureDurationTrace", TWO_MINUTES_TIMEOUT);
     auto caller = appCallerParcelable.GetAppCaller();
     caller.uid = IPCSkeleton::GetCallingUid();
     caller.pid = IPCSkeleton::GetCallingPid();
@@ -435,7 +435,7 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
 
 ErrCode HiviewServiceAbility::GetSysCpuUsage(int32_t& errNo, double& ret)
 {
-    HiviewXCollieTimer timer("GetSysCpuUsage", THIRTY_SECONDS_TIMEOUT);
+    HiviewXCollieTimer timer("GetSysCpuUsage", TWO_MINUTES_TIMEOUT);
     TraceCalling<double>([] (HiviewService* service) {
         return service->GetSysCpuUsage();
         }, errNo, ret);
@@ -486,7 +486,7 @@ ErrCode HiviewServiceAbility::SetSplitMemoryValue(
 
 ErrCode HiviewServiceAbility::GetGraphicUsage(int32_t& errNo, GraphicUsageParcelable& graphicUsageParcelable)
 {
-    HiviewXCollieTimer timer("GetGraphicUsage", APP_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("GetGraphicUsage", TWO_MINUTES_TIMEOUT);
     int32_t pid = IPCObjectStub::GetCallingPid();
     if (pid < 0) {
         return TraceErrCode::ERR_SEND_REQUEST;

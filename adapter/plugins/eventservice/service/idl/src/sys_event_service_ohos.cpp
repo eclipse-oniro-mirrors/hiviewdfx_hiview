@@ -373,7 +373,7 @@ bool SysEventServiceOhos::BuildEventQuery(std::shared_ptr<EventQueryWrapperBuild
 ErrCode SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std::vector<SysEventQueryRule>& rules,
     const OHOS::sptr<IQuerySysEventCallback>& callback)
 {
-    HiviewXCollieTimer timer("Query", SYS_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("Query", TWO_MINUTES_TIMEOUT);
     if (callback == nullptr) {
         return ERR_LISTENER_NOT_EXIST;
     }
