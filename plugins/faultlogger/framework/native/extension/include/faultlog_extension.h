@@ -51,7 +51,7 @@ public:
      * @param record The record.
      * @param application The application.
      * @param handler The handler.
-     * @param token The remmote object token.
+     * @param token The remote object token.
      */
     void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord>& record,
         const std::shared_ptr<AppExecFwk::OHOSApplication>& application,
