@@ -28,6 +28,7 @@
 #include "hiview_platform.h"
 #include "hiview_service_adapter.h"
 #include "sys_event.h"
+#include "sys_event_dao.h"
 #include "string_util.h"
 #include "time_util.h"
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
@@ -71,6 +72,12 @@ void HiviewService::DumpRequestDispatcher(int fd, const std::vector<std::string>
     // hidumper hiviewdfx -p
     if ((cmds.size() >= MIN_SUPPORT_CMD_SIZE) && (cmds[0] == "-p")) {
         DumpPluginInfo(fd, cmds);
+        return;
+    }
+
+    if ((cmds.size() >= MIN_SUPPORT_CMD_SIZE) && (cmds[0] == "--sysevent_backup")) {
+        EventStore::SysEventDao::Backup();
+        dprintf(fd, "System Events Backup Done.\n");
         return;
     }
 
@@ -133,6 +140,7 @@ void HiviewService::PrintUsage(int fd) const
 {
     dprintf(fd, "Hiview Plugin Platform dump options:\n");
     dprintf(fd, "hidumper hiviewdfx [-p(lugin) pluginName]\n");
+    dprintf(fd, "hidumper hiviewdfx [--sysevent_backup]\n");
 }
 
 int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::string& destFilePath)
