@@ -92,6 +92,10 @@ const char * const SECOND_FRAME = "SECOND_FRAME";
 const char * const LAST_FRAME = "LAST_FRAME";
 constexpr const char * const APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
 constexpr const char * const TASK_NAME = "TASK_NAME";
+constexpr const char * const IS_SYSTEM_APP = "IS_SYSTEM_APP";
+constexpr const char * const DEVICE_DEBUGABLE = "DEVICE_DEBUGABLE";
+constexpr const char * const CPU_ABI = "CPU_ABI";
+constexpr const char * const APP_TYPE = "APP_TYPE";
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

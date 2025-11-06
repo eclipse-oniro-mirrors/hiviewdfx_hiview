@@ -20,6 +20,7 @@
 
 #include "constants.h"
 #include "faultlog_hilog_helper.h"
+#include "faultlog_util.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "hisysevent.h"
@@ -94,6 +95,8 @@ void JsErrorAddparams(Json::Value& params, std::shared_ptr<SysEvent> sysEvent,
     std::string lifeTime = sysEvent->GetEventValue(FaultKey::PROCESS_LIFETIME);
     uint64_t processLifeTime = strtoull(lifeTime.c_str(), nullptr, DECIMAL_BASE);
     params["process_life_time"] = processLifeTime;
+    params["app_type"] = GetStrValFromMap(sectionMap, FaultKey::APP_TYPE);
+    params["cpu_abi"] = GetStrValFromMap(sectionMap, FaultKey::CPU_ABI);
     std::string processMemory = sysEvent->GetEventValue(FaultKey::PROCESS_RSS_MEMINFO);
     uint64_t rss = strtoull(processMemory.c_str(), nullptr, DECIMAL_BASE);
     auto memory = GetMemoryJsonValue(sectionMap);

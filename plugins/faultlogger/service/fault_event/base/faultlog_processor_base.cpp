@@ -179,6 +179,7 @@ void FaultLogProcessorBase::AddCommonInfo(FaultLogInfo& info)
     info.sectionMap[FaultKey::MODULE_PID] = std::to_string(info.pid);
     info.module = RegulateModuleNameIfNeed(info.module);
     info.sectionMap[FaultKey::MODULE_NAME] = info.module;
+    info.sectionMap[FaultKey::DEVICE_DEBUGABLE] = Parameter::IsUserMode() ? "No" : "Yes";
     AddPhoneFocusMode(info);
     AddBundleInfo(info);
     AddForegroundInfo(info);
@@ -217,6 +218,9 @@ void FaultLogProcessorBase::AddBundleInfo(FaultLogInfo& info)
         info.sectionMap[FaultKey::VERSION_CODE] = std::to_string(bundleInfo.versionCode);
     }
 
+    info.sectionMap[FaultKey::IS_SYSTEM_APP] = GetIsSystemApp(info.module, info.id) ? "Yes" : "No";
+    info.sectionMap[FaultKey::CPU_ABI] = bundleInfo.cpuAbi;
+    info.sectionMap[FaultKey::APP_TYPE] = bundleInfo.releaseType;
     info.sectionMap[FaultKey::PRE_INSTALL] = bundleInfo.isPreInstalled ? "Yes" : "No";
 }
 

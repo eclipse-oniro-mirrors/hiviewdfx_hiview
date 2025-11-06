@@ -32,12 +32,15 @@ struct DfxBundleInfo {
     bool isPreInstalled;
     uint32_t versionCode;
     std::string versionName;
+    std::string cpuAbi;
+    std::string releaseType;
 };
 
 bool IsModuleNameValid(const std::string& name);
 std::string GetApplicationNameById(int32_t uid);
 bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo);
 bool IsNameValid(const std::string& name, const std::string& sep, bool canEmpty);
+bool GetIsSystemApp(const std::string &module, int32_t uid);
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif

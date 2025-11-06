@@ -82,6 +82,8 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
         .InitProcessName(collector.process_name)
         .InitProcessLifeTime(processLifeTime)
         .InitExternalLog(externalLog)
+        .InitCpuAbi(collector.cpuAbi)
+        .InitAppType(collector.appType)
         .InitPid(collector.pid)
         .InitUid(collector.uid)
         .InitAppRunningUniqueId(collector.appRunningUniqueId)
@@ -141,6 +143,8 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
     collector.hilog = GetFreezeHilogByPid(collector.pid);
     collector.memory = GetMemoryStrByPid(info.sectionMap);
     collector.foreground = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
+    collector.cpuAbi = GetStrValFromMap(info.sectionMap, FaultKey::CPU_ABI);
+    collector.appType = GetStrValFromMap(info.sectionMap, FaultKey::APP_TYPE);
     collector.version = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
     collector.uuid = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
 

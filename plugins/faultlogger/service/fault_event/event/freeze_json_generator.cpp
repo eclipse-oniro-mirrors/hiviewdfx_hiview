@@ -147,6 +147,8 @@ FreezeJsonParams::FreezeJsonParams(const FreezeJsonParams::Builder& builder)
     processName_(builder.processName_),
     processLifeTime_(builder.processLifeTime_),
     externalLog_(builder.externalLog_),
+    cpuAbi_(builder.cpuAbi_),
+    appType_(builder.appType_),
     pid_(builder.pid_),
     uid_(builder.uid_),
     appRunningUniqueId_(builder.appRunningUniqueId_),
@@ -212,6 +214,18 @@ FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitProcessLifeTime(const 
 FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitExternalLog(const std::string& externalLog)
 {
     externalLog_ = externalLog;
+    return *this;
+}
+
+FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitCpuAbi(const std::string& cpuAbi)
+{
+    cpuAbi_ = cpuAbi;
+    return *this;
+}
+
+FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitAppType(const std::string& appType)
+{
+    appType_ = appType;
     return *this;
 }
 
@@ -298,6 +312,8 @@ std::string FreezeJsonParams::JsonStr() const
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsProcessName, processName_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsProcessLifeTime, processLifeTime_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsExternalLog, externalLog_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsCpuAbi, cpuAbi_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsAppType, appType_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsPid, pid_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsUid, uid_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsAppRunningUniqueId, appRunningUniqueId_),

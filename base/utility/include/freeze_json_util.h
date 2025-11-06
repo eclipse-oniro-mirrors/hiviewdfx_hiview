@@ -91,6 +91,9 @@ struct FreezeJsonCollector {
     std::string domain = "";
     std::string stringId = "";
     bool foreground = false;
+    bool isSystemApp = false;
+    std::string cpuAbi = "";
+    std::string appType = "";
     std::string version = "unknown";
     std::string package_name = "";
     std::string process_name = "";

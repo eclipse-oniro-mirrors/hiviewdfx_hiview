@@ -115,6 +115,8 @@ public:
         Builder& InitProcessName(const std::string& processName);
         Builder& InitProcessLifeTime(const uint64_t& processLifeTime);
         Builder& InitExternalLog(const std::string& externalLog);
+        Builder& InitCpuAbi(const std::string& cpuAbi);
+        Builder& InitAppType(const std::string& appType);
         Builder& InitPid(long pid);
         Builder& InitUid(long uid);
         Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
@@ -138,6 +140,8 @@ public:
         std::string processName_ = "";
         uint64_t processLifeTime_ = 0;
         std::string externalLog_ = "[]";
+        std::string cpuAbi_ = "";
+        std::string appType_ = "";
         long pid_ = 0;
         long uid_ = 0;
         std::string appRunningUniqueId_ = "";
@@ -166,6 +170,8 @@ private:
     static constexpr const char* const jsonParamsProcessName = "process_name";
     static constexpr const char* const jsonParamsProcessLifeTime = "process_life_time";
     static constexpr const char* const jsonParamsExternalLog = "external_log";
+    static constexpr const char* const jsonParamsCpuAbi = "cpu_abi";
+    static constexpr const char* const jsonParamsAppType = "app_type";
     static constexpr const char* const jsonParamsPid = "pid";
     static constexpr const char* const jsonParamsUid = "uid";
     static constexpr const char* const jsonParamsAppRunningUniqueId = "app_running_unique_id";
@@ -187,6 +193,8 @@ private:
     std::string processName_;
     uint64_t processLifeTime_ = 0;
     std::string externalLog_ = "";
+    std::string cpuAbi_ = "";
+    std::string appType_ = "";
     long pid_ = 0;
     long uid_ = 0;
     std::string appRunningUniqueId_ = "";
