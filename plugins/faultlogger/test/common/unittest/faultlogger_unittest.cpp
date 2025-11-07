@@ -2493,6 +2493,9 @@ HWTEST_F(FaultloggerUnittest, FaultLogSanitizer001, testing::ext::TestSize.Level
     auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     FaultLogSanitizer san;
     FaultLogInfo info;
+    auto plugin = GetFaultloggerInstance();
+    san.workLoop_ = plugin->GetWorkLoop();
+
     info.reportToAppEvent = false;
     bool ret = san.ReportToAppEvent(sysEvent, info);
     EXPECT_EQ(ret, false);

@@ -120,6 +120,7 @@ void FaultLogEventBase::FillTimestampInfo(const SysEvent& sysEvent, FaultLogInfo
 bool FaultLogEventBase::ProcessFaultLogEvent(std::shared_ptr<Event>& event, const std::shared_ptr<EventLoop>& workLoop,
     const std::shared_ptr<FaultLogManager>& faultLogManager)
 {
+    workLoop_ = workLoop;
     auto sysEvent = std::static_pointer_cast<SysEvent>(event);
     FaultLogInfo info = FillFaultLogInfo(*sysEvent);
     FaultLogEventsProcessor faultLogEventsProcessor;
