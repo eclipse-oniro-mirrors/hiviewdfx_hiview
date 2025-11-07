@@ -31,6 +31,7 @@ namespace {
     static const int MIN_MATCH_NUM = 2;
     static const int DEFAULT_HOURS = 10;
     static const int SYS_MATCH_NUM = 1;
+    static const int APP_MATCH_NUM = 1;
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -111,6 +112,10 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
     }
 
     if (list.size() == result.size()) {
+        return true;
+    }
+    if (watchPoint.GetStringId() == "APP_INPUT_BLOCK"
+        && (list.size() == result.size() - APP_MATCH_NUM)) {
         return true;
     }
     return false;

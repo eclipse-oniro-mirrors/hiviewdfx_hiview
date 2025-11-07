@@ -22,7 +22,8 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_(""),
+    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
 {
 }
 
@@ -50,14 +51,20 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     freezeExtFile_(builder.freezeExtFile_),
     appRunningUniqueId_(builder.appRunningUniqueId_),
     applicationInfo_(builder.applicationInfo_),
-    taskName_(builder.taskName_)
+    taskName_(builder.taskName_),
+    timeoutEventId_(builder.timeoutEventId_),
+    lastDispatchEventId_(builder.lastDispatchEventId_),
+    lastProcessEventId_(builder.lastProcessEventId_),
+    lastMarkedEventId_(builder.lastMarkedEventId_),
+    thermalLevel_(builder.thermalLevel_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_(""),
+    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
 {
 }
 
@@ -207,6 +214,36 @@ WatchPoint::Builder& WatchPoint::Builder::InitTaskName(const std::string& taskNa
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitTimeoutEventId(const std::string& timeoutEventId)
+{
+    timeoutEventId_ = timeoutEventId;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitLastDispatchEventId(const std::string& lastDispatchEventId)
+{
+    lastDispatchEventId_ = lastDispatchEventId;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitLastProcessEventId(const std::string& lastProcessEventId)
+{
+    lastProcessEventId_ = lastProcessEventId;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitLastMarkedEventId(const std::string& lastMarkedEventId)
+{
+    lastMarkedEventId_ = lastMarkedEventId;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitThermalLevel(const std::string& thermalLevel)
+{
+    thermalLevel_ = thermalLevel;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -333,6 +370,31 @@ std::string WatchPoint::GetTaskName() const
     return taskName_;
 }
 
+std::string WatchPoint::GetTimeoutEventId() const
+{
+    return timeoutEventId_;
+}
+
+std::string WatchPoint::GetLastDispatchEventId() const
+{
+    return lastDispatchEventId_;
+}
+
+std::string WatchPoint::GetLastProcessEventId() const
+{
+    return lastProcessEventId_;
+}
+
+std::string WatchPoint::GetLastMarkedEventId() const
+{
+    return lastMarkedEventId_;
+}
+
+std::string WatchPoint::GetThermalLevel() const
+{
+    return thermalLevel_;
+}
+
 void WatchPoint::SetLogPath(const std::string& logPath)
 {
     logPath_ = logPath;
@@ -351,6 +413,31 @@ void WatchPoint::SetTerminalThreadStack(const std::string& terminalThreadStack)
 void WatchPoint::SetSeq(long seq)
 {
     seq_ = seq;
+}
+
+void WatchPoint::SetTimeoutEventId(const std::string& timeoutEventId)
+{
+    timeoutEventId_ = timeoutEventId;
+}
+
+void WatchPoint::SetLastDispatchEventId(const std::string& lastDispatchEventId)
+{
+    lastDispatchEventId_ = lastDispatchEventId;
+}
+
+void WatchPoint::SetLastProcessEventId(const std::string& lastProcessEventId)
+{
+    lastProcessEventId_ = lastProcessEventId;
+}
+
+void WatchPoint::SetLastMarkedEventId(const std::string& lastMarkedEventId)
+{
+    lastMarkedEventId_ = lastMarkedEventId;
+}
+
+void WatchPoint::SetThermalLevel(const std::string& thermalLevel)
+{
+    thermalLevel_ = thermalLevel;
 }
 
 bool WatchPoint::operator<(const WatchPoint& node) const

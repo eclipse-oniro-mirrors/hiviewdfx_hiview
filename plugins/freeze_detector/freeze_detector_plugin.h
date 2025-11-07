@@ -27,6 +27,34 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+    struct WatchPointParams {
+    long seq;
+    long pid;
+    long tid;
+    long uid;
+    std::string appRunningUniqueId;
+    std::string packageName;
+    std::string processName;
+    std::string hitraceTime;
+    std::string sysrqTime;
+    std::string terminalThreadStack;
+    std::string telemetryId;
+    std::string traceName;
+    std::string info;
+    std::string hitraceIdInfo;
+    std::string procStatm;
+    std::string hostResourceWarning;
+    std::string freezeExtFile;
+    std::string applicationInfo;
+    std::string taskName;
+    std::string timeoutEventId;
+    std::string lastDispatchEventId;
+    std::string lastProcessEventId;
+    std::string lastMarkedEventId;
+    std::string thermalLevel;
+    std::string logFile;
+    std::string foreGround;
+};
 class FreezeDetectorPlugin : public Plugin {
 public:
     FreezeDetectorPlugin();
@@ -39,9 +67,11 @@ public:
     void OnEventListeningCallback(const Event& msg) override;
 
 private:
+
     std::string RemoveRedundantNewline(const std::string& content) const;
     WatchPoint MakeWatchPoint(const Event& event);
     void ProcessEvent(WatchPoint watchPoint);
+    void ExtractWatchPointParams(SysEvent& sysEvent, const Event& event, WatchPointParams& params);
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::unique_ptr<FreezeResolver> freezeResolver_ = nullptr;

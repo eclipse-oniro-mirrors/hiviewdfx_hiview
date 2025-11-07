@@ -40,7 +40,11 @@ FreezeJsonException::Builder& FreezeJsonException::Builder::InitMessage(const st
     message_ = message;
     return *this;
 }
-
+FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitThermalLevel(const std::string& thermalLevel)
+{
+    thermalLevel_ = thermalLevel;
+    return *this;
+}
 FreezeJsonException FreezeJsonException::Builder::Build() const
 {
     FreezeJsonException freezeJsonException = FreezeJsonException(*this);
@@ -159,7 +163,8 @@ FreezeJsonParams::FreezeJsonParams(const FreezeJsonParams::Builder& builder)
     eventHandlerSize6s_(builder.eventHandlerSize6s_),
     peerBinder_(builder.peerBinder_),
     threads_(builder.threads_),
-    memory_(builder.memory_)
+    memory_(builder.memory_),
+    thermalLevel_(builder.thermalLevel_)
 {
 }
 
@@ -324,7 +329,8 @@ std::string FreezeJsonParams::JsonStr() const
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsEventHandlerSize6s, eventHandlerSize6s_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsPeerBinder, peerBinder_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsThreads, threads_),
-        FreezeJsonUtil::GetStrByKeyValue(jsonParamsMemory, memory_)
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsMemory, memory_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsThermalLevel, thermalLevel_)
     };
     return FreezeJsonUtil::MergeKeyValueList(list);
 }

@@ -268,6 +268,7 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("APP_RUNNING_UNIQUE_ID", HISYSEVENT_STRING, s,
             info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID].data(), 0),
         EVENT_PARAM_CTOR("TASK_NAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TASK_NAME].data(), 0),
+        EVENT_PARAM_CTOR("THERMAL_LEVEL", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::THERMAL_LEVEL].data(), 0),
     };
     int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
         params, sizeof(params) / sizeof(HiSysEventParam));

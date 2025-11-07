@@ -51,6 +51,11 @@ public:
         Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
         Builder& InitApplicationInfo(const std::string& applicationInfo);
         Builder& InitTaskName(const std::string& taskName);
+        Builder& InitTimeoutEventId(const std::string& timeoutEventId);
+        Builder& InitLastDispatchEventId(const std::string& lastDispatchEventId);
+        Builder& InitLastProcessEventId(const std::string& lastProcessEventId);
+        Builder& InitLastMarkedEventId(const std::string& lastMarkedEventId);
+        Builder& InitThermalLevel(const std::string& thermalLevel);
         WatchPoint Build() const;
 
     private:
@@ -78,6 +83,11 @@ public:
         std::string appRunningUniqueId_;
         std::string applicationInfo_;
         std::string taskName_;
+        std::string timeoutEventId_;
+        std::string lastDispatchEventId_;
+        std::string lastProcessEventId_;
+        std::string lastMarkedEventId_;
+        std::string thermalLevel_;
         friend class WatchPoint;
     };
 
@@ -109,10 +119,20 @@ public:
     std::string GetAppRunningUniqueId() const;
     std::string GetApplicationInfo() const;
     std::string GetTaskName() const;
+    std::string GetTimeoutEventId() const;
+    std::string GetLastDispatchEventId() const;
+    std::string GetLastProcessEventId() const;
+    std::string GetLastMarkedEventId() const;
+    std::string GetThermalLevel() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
     void SetFreezeExtFile(const std::string& freezeExtFile);
+    void SetTimeoutEventId(const std::string& timeoutEventId);
+    void SetLastDispatchEventId(const std::string& lastDispatchEventId);
+    void SetLastProcessEventId(const std::string& lastProcessEventId);
+    void SetLastMarkedEventId(const std::string& lastMarkedEventId);
+    void SetThermalLevel(const std::string& thermalLevel);
     bool operator<(const WatchPoint& node) const;
     bool operator==(const WatchPoint& node) const;
 
@@ -141,6 +161,11 @@ private:
     std::string appRunningUniqueId_;
     std::string applicationInfo_;
     std::string taskName_;
+    std::string timeoutEventId_;
+    std::string lastDispatchEventId_;
+    std::string lastProcessEventId_;
+    std::string lastMarkedEventId_;
+    std::string thermalLevel_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

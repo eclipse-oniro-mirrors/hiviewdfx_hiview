@@ -24,6 +24,7 @@
 #include "string_util.h"
 #include "time_util.h"
 #include "freeze_manager.h"
+#include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -65,6 +66,15 @@ namespace {
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
     constexpr const char* BACKGROUND_VALUE = "No";
+    constexpr const char* WAIT_EVENT = "Wait Event";
+    constexpr const char* LAST_DISPATCH_EVENT = "lastDispatchEvent";
+    constexpr const char* LAST_PROCESS_EVENT = "lastProcessEvent";
+    constexpr const char* LAST_MARKED_EVENT = "lastMarkedEvent";
+    constexpr const char* LEFT_PARENTHESIS = "(";
+    constexpr const char* RIGHT_PARENTHESIS = ")";
+    constexpr const char* COMMA = ", ";
+    constexpr const char* EXCEED = " to be marked exceed ";
+    constexpr const char* MS = "ms";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -98,6 +108,15 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     std::string disPlayPowerInfo = GetDisPlayPowerInfo();
     info.summary = type + ": " + processName + " " + stringId +
         " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
+    if (watchPoint.GetStringId() == "APP_INPUT_BLOCK") {
+    int timeoutThreshold = Parameter::IsBetaVersion() ? 8000 : 5000;
+    info.summary += std::string(WAIT_EVENT) + LEFT_PARENTHESIS + watchPoint.GetTimeoutEventId() +
+                RIGHT_PARENTHESIS + EXCEED + std::to_string(timeoutThreshold) + MS + COMMA +
+                std::string(LAST_DISPATCH_EVENT) + LEFT_PARENTHESIS + watchPoint.GetLastDispatchEventId() +
+                RIGHT_PARENTHESIS + COMMA + std::string(LAST_PROCESS_EVENT) + LEFT_PARENTHESIS +
+                watchPoint.GetLastProcessEventId() + RIGHT_PARENTHESIS + std::string(LAST_MARKED_EVENT) +
+                LEFT_PARENTHESIS + watchPoint.GetLastMarkedEventId() + RIGHT_PARENTHESIS + "\n";
+    }
     info.summary += std::string(DISPLAY_POWER_INFO) + disPlayPowerInfo;
     std::string hiTraceIdInfo = watchPoint.GetHitraceIdInfo();
     info.summary += hiTraceIdInfo.empty() ? "" : (std::string(HITRACE_ID_INFO) + hiTraceIdInfo + "\n");
@@ -114,6 +133,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
     info.sectionMaps[FreezeCommon::LOWERCASE_OF_APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
+    info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
     AddFaultLog(info);
