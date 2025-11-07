@@ -1152,7 +1152,7 @@ void EventLogger::OnLoad()
     GetRebootReasonConfig();
 
     freezeCommon_ = std::make_shared<FreezeCommon>();
-    if (freezeCommon_->Init() && freezeCommon_ != nullptr && freezeCommon_->GetFreezeRuleCluster() != nullptr) {
+    if (freezeCommon_ != nullptr && freezeCommon_->Init() && freezeCommon_->GetFreezeRuleCluster() != nullptr) {
         dbHelper_ = std::make_unique<DBHelper>(freezeCommon_);
     }
 }
