@@ -207,7 +207,7 @@ uint64_t GetFileSize(const std::string& path)
 
 bool RemoveFile(const std::string& fileName)
 {
-    return OHOS::RemoveFile(fileName);
+    return remove(fileName.c_str()) == 0 || errno == ENOENT;
 }
 
 uint64_t GetFolderSize(const std::string& path)

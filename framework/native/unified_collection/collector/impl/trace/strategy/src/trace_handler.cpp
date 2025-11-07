@@ -195,16 +195,16 @@ void TraceLinkHandler::DoLinkClean(const std::string &prefix)
     HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredLinks.size(), cleanThreshold_);
     while (filteredLinks.size() > cleanThreshold_) {
         std::string link = filteredLinks.front();
-        std::string src = FileUtil::ReadSymlink(link);
+        filteredLinks.pop_front();
         if (!FileUtil::RemoveFile(link)) {
             HIVIEW_LOGE("file:%{public}s delete failed", link.c_str());
             continue;
         }
         bool result = false;
+        std::string src = FileUtil::ReadSymlink(link);
         if (!src.empty()) {
             result = TraceStateMachine::GetInstance().RemoveSymlinkXattr(src);
         }
-        filteredLinks.pop_front();
         HIVIEW_LOGI("file:%{public}s is delete, remove attr:%{public}d", link.c_str(), result);
     }
 }
