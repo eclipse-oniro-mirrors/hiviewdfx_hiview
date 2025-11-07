@@ -26,7 +26,7 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 
-void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent) const
+void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent)
 {
     std::string summary = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue(FaultKey::SUMMARY));
     HIVIEW_LOGD("ReportSanitizerAppEvent:summary:%{public}s.", summary.c_str());
@@ -61,7 +61,15 @@ bool FaultLogSanitizer::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent, con
     if (!info.reportToAppEvent || !sysEvent) {
         return false;
     }
-    ReportSanitizerToAppEvent(sysEvent);
+    if (!workLoop_) {
+        HIVIEW_LOGE("ReportSanitizerToAppEvent workLoop_ is null.");
+        return false;
+    }
+    auto task = [sysEvent] {
+        ReportSanitizerToAppEvent(sysEvent);
+    };
+    constexpr int delayTime = 2;
+    workLoop_->AddTimerEvent(nullptr, nullptr, task, delayTime, false);
     return true;
 }
 

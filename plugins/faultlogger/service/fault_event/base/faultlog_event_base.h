@@ -35,6 +35,7 @@ private:
     void FillTimestampInfo(const SysEvent& sysEvent, FaultLogInfo& info) const;
 protected:
     int32_t faultType_ {0};
+    std::shared_ptr<EventLoop> workLoop_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
