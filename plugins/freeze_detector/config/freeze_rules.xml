@@ -151,6 +151,9 @@
         <event window="0" domain="AAFWK" stringid="APP_INPUT_BLOCK">	<!-- APP_INPUT_BLOCK -->
           <result code="0" scope="app"/>
         </event>
+        <event window="-14" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
+          <result code="0" delay="15" scope="app" samePackage="true"/>
+        </event>
       </links>
     </rule>
     <rule id="4" domain="GRAPHIC" stringid="NO_DRAW">	<!-- NO_DRAW -->

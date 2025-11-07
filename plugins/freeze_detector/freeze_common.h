@@ -54,7 +54,11 @@ public:
     static constexpr const char* EVENT_APPLICATION_HEAP_INFO = "APPLICATION_HEAP_INFO";
     static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
     static constexpr const char* EVENT_TASK_NAME = "TASK_NAME";
-
+    static constexpr const char* EVENT_TIMEOUT_EVENT_ID = "INPUT_ID";
+    static constexpr const char* EVENT_LAST_DISPATCH_EVENT_ID = "LAST_DISPATCH_EVENTID";
+    static constexpr const char* EVENT_LAST_PROCESS_EVENT_ID = "LAST_PROCESS_EVENTID";
+    static constexpr const char* EVENT_LAST_MARKED_EVENT_ID = "LAST_MARKED_EVENTID";
+    static constexpr const char* EVENT_THERMAL_LEVEL = "THERMAL_LEVEL";
     FreezeCommon();
     ~FreezeCommon();
 

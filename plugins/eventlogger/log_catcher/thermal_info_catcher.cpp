@@ -42,10 +42,12 @@ int ThermalInfoCatcher::Catch(int fd, int jsonFd)
     PowerMgr::ThermalLevel temp = PowerMgr::ThermalMgrClient::GetInstance().GetThermalLevel();
     int tempNum = static_cast<int>(temp);
     FileUtil::SaveStringToFd(fd, "\nThermalLevel info: " + std::to_string(tempNum) + "\n");
-    if (tempNum >= TEMP_EVENT_LIMIT && event_) {
-        event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "Yes");
+    if (event_ != nullptr) {
+        if (tempNum >= TEMP_EVENT_LIMIT) {
+            event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "Yes");
+        }
+        event_->SetEventValue(FreezeCommon::EVENT_THERMAL_LEVEL, std::to_string(tempNum));
     }
-
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
 }

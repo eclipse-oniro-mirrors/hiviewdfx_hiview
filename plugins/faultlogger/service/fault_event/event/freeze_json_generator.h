@@ -128,6 +128,7 @@ public:
         Builder& InitPeerBinder(const std::string& peerBinder);
         Builder& InitThreads(const std::string& threads);
         Builder& InitMemory(const std::string& memory);
+        Builder& InitThermalLevel(const std::string& thermalLevel);
         FreezeJsonParams Build() const;
 
     private:
@@ -153,6 +154,7 @@ public:
         std::string peerBinder_ = "[]";
         std::string threads_ = "[]";
         std::string memory_ = "{}";
+        std::string thermalLevel_ = "";
         friend class FreezeJsonParams;
     };
 
@@ -183,6 +185,7 @@ private:
     static constexpr const char* const jsonParamsPeerBinder = "peer_binder";
     static constexpr const char* const jsonParamsThreads = "threads";
     static constexpr const char* const jsonParamsMemory = "memory";
+    static constexpr const char* const jsonParamsThermalLevel = "thermal_Level";
 
     unsigned long long time_;
     std::string uuid_;
@@ -206,6 +209,7 @@ private:
     std::string peerBinder_;
     std::string threads_;
     std::string memory_;
+    std::string thermalLevel_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

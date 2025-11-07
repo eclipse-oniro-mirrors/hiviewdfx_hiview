@@ -100,8 +100,20 @@ bool GetIsSystemApp(const std::string &module, int32_t uid)
     constexpr int bundleMgrServiceSysAbilityId = 401;
     AppExecFwk::ApplicationInfo appInfo;
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        HILOG_WARN(LOG_CORE, "Fail to get system ability manager.");
+        return false;
+    }
     auto remoteObject = systemAbilityManager->GetSystemAbility(bundleMgrServiceSysAbilityId);
+    if (remoteObject == nullptr) {
+        HILOG_WARN(LOG_CORE, "Fail to get bundle manager proxy.");
+        return false;
+    }
     auto proxy = iface_cast<AppExecFwk::BundleMgrProxy>(remoteObject);
+    if (proxy == nullptr) {
+        HILOG_WARN(LOG_CORE, "Iface_cast BundleMgrProxy is nullptr.");
+        return false;
+    }
     int userId = uid / vauleMod;
     bool res = proxy->GetApplicationInfo(module, 0, userId, appInfo);
     if (!res) {
