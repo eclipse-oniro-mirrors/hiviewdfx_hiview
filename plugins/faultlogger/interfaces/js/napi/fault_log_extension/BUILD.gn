@@ -46,7 +46,6 @@ ohos_shared_library("faultlogextensionability_napi") {
     "-fdata-sections",
     "-ffunction-sections",
     "-fvisibility=hidden",
-    "-fstack-protector-strong",
     "-Os",
   ]
   sources = [ "fault_log_extension_ability_module.cpp" ]
