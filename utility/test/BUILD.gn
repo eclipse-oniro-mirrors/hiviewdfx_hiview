@@ -28,6 +28,7 @@ ohos_unittest("SmartParserUnitTest") {
     "unittest/lpm3_exception_unittest.cpp",
     "unittest/panic_unittest.cpp",
     "unittest/iom3_exception_unittest.cpp",
+    "unittest/syswarning_unittest.cpp",
   ]
 
   deps = [

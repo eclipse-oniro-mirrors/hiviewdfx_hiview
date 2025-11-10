@@ -1,31 +1,30 @@
 {
     "version": "1.0.0",
     "APP_FREEZE": {
-            "63_APP_FREEZE_00": {
-                "PNAME": "BasicParam.v_process",
-                "TIME_OUT": "BasicParam.v_timeout",
-                "END_STACK":"MainCallTrace.v_trace",
-                "LAST_FRAME":"BasicParam.v_state",
-                "TRACER_PID":"BasicParam.v_tracer",
-                "NORMAL_STACK_REASON":"BasicParam.v_normal_stack_reason"
-            }
+        "63_APP_FREEZE_00": {
+            "PNAME": "BasicParam.v_process",
+            "TIME_OUT": "BasicParam.v_timeout",
+            "END_STACK":"MainCallTrace.v_trace",
+            "LAST_FRAME":"BasicParam.v_state",
+            "TRACER_PID":"BasicParam.v_tracer",
+            "NORMAL_STACK_REASON":"BasicParam.v_normal_stack_reason"
+        }
     },
     "SYS_FREEZE": {
-            "63_SYS_FREEZE_01": {
-                "PNAME": "BasicParam.v_process",
-                "QUEUE_NAME": "BasicParam.v_queue_name",
-                "TIME_OUT": "BasicParam.v_timeout",
-                "END_STACK":"MainCallTrace.v_trace",
-                "NORMAL_STACK_REASON":"BasicParam.v_normal_stack_reason"
-            },
-            "63_SYS_FREEZE_02": {
-                "PNAME": "BasicParam.v_process",
-                "END_STACK":"MainCallTrace.v_trace"
-            }
+        "63_SYS_FREEZE_01": {
+            "PNAME": "BasicParam.v_process",
+            "QUEUE_NAME": "BasicParam.v_queue_name",
+            "TIME_OUT": "BasicParam.v_timeout",
+            "END_STACK":"MainCallTrace.v_trace",
+            "NORMAL_STACK_REASON":"BasicParam.v_normal_stack_reason"
+        },
+        "63_SYS_FREEZE_02": {
+            "PNAME": "BasicParam.v_process",
+            "END_STACK":"MainCallTrace.v_trace"
+        }
     },
     "SYS_WARNING": {
         "63_SYS_WARNING_01": {
-            "PNAME": "BasicParam.v_process",
             "TIME_OUT": "BasicParam.v_timeout",
             "END_STACK":"MainCallTrace.v_trace"
         }

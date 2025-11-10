@@ -22,8 +22,8 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_(""),
-    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_(""), timeoutEventId_(""),
+    lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""), clusterRaw_("")
 {
 }
 
@@ -56,15 +56,16 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     lastDispatchEventId_(builder.lastDispatchEventId_),
     lastProcessEventId_(builder.lastProcessEventId_),
     lastMarkedEventId_(builder.lastMarkedEventId_),
-    thermalLevel_(builder.thermalLevel_)
+    thermalLevel_(builder.thermalLevel_),
+    clusterRaw_(builder.clusterRaw_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), traceName_(""),
     domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
-    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_(""),
-    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
+    freezeExtFile_(""), appRunningUniqueId_(""), applicationInfo_(""), taskName_(""), timeoutEventId_(""),
+    lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""), clusterRaw_("")
 {
 }
 
@@ -211,6 +212,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitApplicationInfo(const std::string&
 WatchPoint::Builder& WatchPoint::Builder::InitTaskName(const std::string& taskName)
 {
     taskName_ = taskName;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitClusterRaw(const std::string& clusterRaw)
+{
+    clusterRaw_ = clusterRaw;
     return *this;
 }
 
@@ -393,6 +400,11 @@ std::string WatchPoint::GetLastMarkedEventId() const
 std::string WatchPoint::GetThermalLevel() const
 {
     return thermalLevel_;
+}
+
+std::string WatchPoint::GetClusterRaw() const
+{
+    return clusterRaw_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

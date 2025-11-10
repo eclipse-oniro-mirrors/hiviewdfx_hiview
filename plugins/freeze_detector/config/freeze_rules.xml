@@ -173,13 +173,6 @@
         </event>
       </links>
     </rule>
-    <rule id="6" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
-      <links type="watchpoint">
-        <event window="0" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
-          <result code="0" scope="app" samePackage="true"/>
-        </event>
-      </links>
-    </rule>
   </rules>
   <rules resolver="SysWarningResolver">
     <rule id="1" domain="FRAMEWORK" stringid="SERVICE_TIMEOUT_WARNING">	<!-- SERVICE_TIMEOUT_WARNING -->
@@ -296,6 +289,13 @@
     <rule id="15" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="16" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
+      <links type="watchpoint">
+        <event window="0" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>

@@ -55,43 +55,40 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static constexpr const char* const LONG_PRESS = "LONG_PRESS";
-    static constexpr const char* const AP_S_PRESS6S = "AP_S_PRESS6S";
-    static constexpr const char* const REBOOT_REASON = "reboot_reason";
-    static constexpr const char* const NORMAL_RESET_TYPE = "normal_reset_type";
-    static constexpr const char* const PATTERN_WITHOUT_SPACE = "\\s*=\\s*([^ \\n]*)";
-    static constexpr const char* const DOMAIN_LONGPRESS = "KERNEL_VENDOR";
-    static constexpr const char* const STRINGID_LONGPRESS = "COM_LONG_PRESS";
-    static constexpr const char* const LONGPRESS_LEVEL = "CRITICAL";
-    static constexpr const char* const EXPECTION_FLAG = "notifyAppFault exception";
-    static constexpr const char* const CORE_PROCESSES[] = {
+    constexpr const char* LONG_PRESS = "LONG_PRESS";
+    constexpr const char* AP_S_PRESS6S = "AP_S_PRESS6S";
+    constexpr const char* REBOOT_REASON = "reboot_reason";
+    constexpr const char* NORMAL_RESET_TYPE = "normal_reset_type";
+    constexpr const char* PATTERN_WITHOUT_SPACE = "\\s*=\\s*([^ \\n]*)";
+    constexpr const char* DOMAIN_LONGPRESS = "KERNEL_VENDOR";
+    constexpr const char* STRINGID_LONGPRESS = "COM_LONG_PRESS";
+    constexpr const char* LONGPRESS_LEVEL = "CRITICAL";
+    constexpr const char* EXCEPTION_FLAG = "notifyAppFault exception";
+    constexpr const char* CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
-    static constexpr const char* const FFRT_PTOCESSES[] = {
-        "com.ohos.sceneboard", "foundation", "hiview"
-    };
-    static constexpr const char* const FFRT_REPORT_EVENT_TYPE[] = {
+    constexpr const char* FFRT_REPORT_EVENT_TYPE[] = {
         "Trigger_Escape", "Serial_Queue_Timeout", "Task_Sch_Timeout"
     };
-    static constexpr const char* const TASK_TIMEOUT = "CONGESTION";
-    static constexpr const char* const SENARIO = "SENARIO";
-
+    constexpr const char* TASK_TIMEOUT = "CONGESTION";
+    constexpr const char* SCENARIO = "SCENARIO";
+    constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
 #ifdef WINDOW_MANAGER_ENABLE
-    static constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
-    static constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
-    static constexpr int CLICK_FREEZE_TIME_LIMIT = 3000;
-    static constexpr int TOP_WINDOW_NUM = 3;
-    static constexpr uint8_t USER_PANIC_WARNING_PRIVACY = 2;
+    constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
+    constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
+    constexpr int CLICK_FREEZE_TIME_LIMIT = 3000;
+    constexpr int TOP_WINDOW_NUM = 3;
+    constexpr uint8_t USER_PANIC_WARNING_PRIVACY = 2;
 #endif
-    static constexpr int DUMP_TIME_RATIO = 2;
-    static constexpr int EVENT_MAX_ID = 1000000;
-    static constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
-    static constexpr int HISTORY_EVENT_LIMIT = 500;
-    static constexpr uint8_t LONGPRESS_PRIVACY = 1;
-    static constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
-    static constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 6;
-    static constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
-    static constexpr int BOOT_SCAN_SECONDS = 60;
+    constexpr int DUMP_TIME_RATIO = 2;
+    constexpr int EVENT_MAX_ID = 1000000;
+    constexpr int QUERY_PROCESS_KILL_INTERVAL = 10000;
+    constexpr int HISTORY_EVENT_LIMIT = 500;
+    constexpr uint8_t LONGPRESS_PRIVACY = 1;
+    constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
+    constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 6;
+    constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
+    constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
 }
 
@@ -137,10 +134,15 @@ bool EventLogger::CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent)
     if (sysEvent->eventName_ != TASK_TIMEOUT) {
         return true;
     }
-    return (std::find(std::begin(FFRT_REPORT_EVENT_TYPE), std::end(FFRT_REPORT_EVENT_TYPE),
-        sysEvent->GetEventValue(SENARIO)) != std::end(FFRT_REPORT_EVENT_TYPE)) &&
-        (std::find(std::begin(FFRT_PTOCESSES), std::end(FFRT_PTOCESSES),
-            sysEvent->GetEventValue("PROCESS_NAME")) != std::end(FFRT_PTOCESSES));
+    if (std::find(std::begin(FFRT_REPORT_EVENT_TYPE), std::end(FFRT_REPORT_EVENT_TYPE),
+        sysEvent->GetEventValue(SCENARIO)) == std::end(FFRT_REPORT_EVENT_TYPE)) {
+        return false;
+    }
+    long tid = sysEvent->GetEventIntValue("TID");
+    if (tid <= 0 && sysEvent->GetEventValue(SCENARIO) != TRIGGER_ESCAPE) {
+        return false;
+    }
+    return true;
 }
 
 bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
@@ -314,7 +316,7 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     std::vector<std::string> cmdList;
     StringUtil::SplitStr(event->GetValue("eventLog_action"), ",", cmdList);
-    if (event->GetEventValue("MSG").find(EXPECTION_FLAG) != std::string::npos) {
+    if (event->GetEventValue("MSG").find(EXCEPTION_FLAG) != std::string::npos) {
         logTask->AddLog("S");
     }
     for (const std::string& cmd : cmdList) {
@@ -651,6 +653,12 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
     headerStream << "PROCESS_NAME = " << event->GetEventValue("PROCESS_NAME") << std::endl;
     headerStream << "eventLog_action = " << event->GetValue("eventLog_action") << std::endl;
     headerStream << "eventLog_interval = " << event->GetValue("eventLog_interval") << std::endl;
+
+    if (event->eventName_ == TASK_TIMEOUT) {
+        headerStream << "SCENARIO = " << event->GetEventValue(SCENARIO) << std::endl;
+        headerStream << "QNAME = " << event->GetEventValue("QNAME") << std::endl;
+        headerStream << "QOS = " << event->GetEventIntValue("QOS") << std::endl;
+    }
 
     FileUtil::SaveStringToFd(fd, headerStream.str());
     return true;

@@ -29,12 +29,13 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    const static uint64_t TO_NANO_SECOND_MULTPLE = 1000000;
-    const static int MIN_APP_UID = 10000;
-    const static long MULTIPLE_DELAY_TIME = 10;
-    const static long SINGLE_DELAY_TIME = 3;
-    const static uint64_t HIVIEW_UID = 1201;
+    constexpr uint64_t TO_NANO_SECOND_MULTPLE = 1000000;
+    constexpr int MIN_APP_UID = 10000;
+    constexpr long MULTIPLE_DELAY_TIME = 10;
+    constexpr long SINGLE_DELAY_TIME = 3;
+    constexpr uint64_t HIVIEW_UID = 1201;
     constexpr const char* IPC_FULL = "IPC_FULL";
+    constexpr const char* COMMA_SEPARATOR = ",";
 }
 REGISTER_PROXY(FreezeDetectorPlugin);
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -126,15 +127,17 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.procStatm = sysEvent.GetEventValue(FreezeCommon::PROC_STATM);
     params.hostResourceWarning = sysEvent.GetEventValue(FreezeCommon::HOST_RESOURCE_WARNING);
     params.freezeExtFile = sysEvent.GetEventValue(FreezeCommon::FREEZE_INFO_PATH);
-    params.applicationInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO) + "," +
-                             sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_LIFECYCLE_INFO);
+    std::string applicationInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO) +
+        COMMA_SEPARATOR + sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_LIFECYCLE_INFO);
     params.taskName = sysEvent.GetEventValue(FreezeCommon::EVENT_TASK_NAME);
     params.timeoutEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_TIMEOUT_EVENT_ID);
     params.lastDispatchEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_DISPATCH_EVENT_ID);
     params.lastProcessEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_PROCESS_EVENT_ID);
     params.lastMarkedEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_MARKED_EVENT_ID);
     params.thermalLevel = sysEvent.GetEventValue(FreezeCommon::EVENT_THERMAL_LEVEL);
-    
+    std::string clusterRaw = sysEvent.GetEventValue(FreezeCommon::QNAME)
+        + std::to_string(sysEvent.GetEventIntValue(FreezeCommon::QOS));
+
     std::regex reg("logPath:([^,]+)");
     std::smatch result;
     params.logFile = std::regex_search(params.info, result, reg) ? result[1].str() : params.info;
@@ -143,8 +146,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
 
 WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
 {
-    Event& eventRef = const_cast<Event&>(event);
-    SysEvent& sysEvent = static_cast<SysEvent&>(eventRef);
+    SysEvent& sysEvent = static_cast<SysEvent&>(const_cast<Event&>(event));
     WatchPointParams params;
     ExtractWatchPointParams(sysEvent, event, params);
 
@@ -161,20 +163,21 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitApplicationInfo(params.applicationInfo).InitTaskName(params.taskName)
         .InitTimeoutEventId(params.timeoutEventId).InitLastDispatchEventId(params.lastDispatchEventId)
         .InitLastProcessEventId(params.lastProcessEventId).InitLastMarkedEventId(params.lastMarkedEventId)
-        .InitThermalLevel(params.thermalLevel).Build();
+        .InitThermalLevel(params.thermalLevel).InitClusterRaw(params.clusterRaw).Build();
 
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
         " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
         " appRunningUniqueId=%{public}s, foreGround=%{public}s, applicationInfo=%{public}s, taskName=%{public}s,"
         " timeoutEventId=%{public}s, lastDispatchEventId=%{public}s, lastProcessEventId=%{public}s,"
-        " lastMarkedEventId=%{public}s, thermalLevel=%{public}s",
+        " lastMarkedEventId=%{public}s, thermalLevel=%{public}s, clusterRaw=%{public}s",
         event.domain_.c_str(), event.eventName_.c_str(), params.pid, params.uid, params.seq,
         params.packageName.c_str(), params.processName.c_str(), params.logFile.c_str(), params.hitraceIdInfo.c_str(),
         params.procStatm.c_str(), params.hostResourceWarning.c_str(), params.freezeExtFile.c_str(),
         params.appRunningUniqueId.c_str(), params.foreGround.c_str(), params.applicationInfo.c_str(),
         params.taskName.c_str(), params.timeoutEventId.c_str(), params.lastDispatchEventId.c_str(),
-        params.lastProcessEventId.c_str(), params.lastMarkedEventId.c_str(), params.thermalLevel.c_str());
+        params.lastProcessEventId.c_str(), params.lastMarkedEventId.c_str(), params.thermalLevel.c_str(),
+        params.clusterRaw.c_str());
 
     return watchPoint;
 }

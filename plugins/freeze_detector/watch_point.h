@@ -56,6 +56,7 @@ public:
         Builder& InitLastProcessEventId(const std::string& lastProcessEventId);
         Builder& InitLastMarkedEventId(const std::string& lastMarkedEventId);
         Builder& InitThermalLevel(const std::string& thermalLevel);
+        Builder& InitClusterRaw(const std::string& clusterRaw);
         WatchPoint Build() const;
 
     private:
@@ -88,6 +89,7 @@ public:
         std::string lastProcessEventId_;
         std::string lastMarkedEventId_;
         std::string thermalLevel_;
+        std::string clusterRaw_;
         friend class WatchPoint;
     };
 
@@ -124,6 +126,7 @@ public:
     std::string GetLastProcessEventId() const;
     std::string GetLastMarkedEventId() const;
     std::string GetThermalLevel() const;
+    std::string GetClusterRaw() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -166,6 +169,7 @@ private:
     std::string lastProcessEventId_;
     std::string lastMarkedEventId_;
     std::string thermalLevel_;
+    std::string clusterRaw_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
