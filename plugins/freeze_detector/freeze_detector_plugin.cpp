@@ -129,7 +129,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.applicationInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO) + "," +
                              sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_LIFECYCLE_INFO);
     params.taskName = sysEvent.GetEventValue(FreezeCommon::EVENT_TASK_NAME);
-    params.timeoutEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_TIMEOUT_EVENT_ID);
+    params.timeoutEventId = std::to_string(sysEvent.GetEventIntValue(FreezeCommon::EVENT_TIMEOUT_EVENT_ID));
     params.lastDispatchEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_DISPATCH_EVENT_ID);
     params.lastProcessEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_PROCESS_EVENT_ID);
     params.lastMarkedEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_MARKED_EVENT_ID);

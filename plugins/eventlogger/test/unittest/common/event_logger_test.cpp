@@ -542,6 +542,25 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: OnEventListeningCallbackTest_002
+ * @tc.desc: OnEventListeningCallbackTest_002 - Verify APP_FREEZE event reporting.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    sleep(1);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+        "MODULE", "foundation", "MSG", "test remove");
+    sleep(3);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "APP_INPUT_BLOCK", HiSysEvent::EventType::FAULT,
+        "MODULE", "foundation", "MSG", "test remove", "LAST_DISPATCH_EVENTID", "1234", "LAST_PROCESS_EVENTID", "3475",
+        "LAST_MARKED_EVENTID", "34564");
+    EXPECT_TRUE(eventLogger != nullptr);
+    eventLogger->OnUnload();
+}
+
+/**
  * @tc.name: OnEventListeningCallbackTest_001
  * @tc.desc: OnEventListeningCallbackTest_001 matching IPC_FULL events and HIVIEW's UID
  * @tc.type: FUNC

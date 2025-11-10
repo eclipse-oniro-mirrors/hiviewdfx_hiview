@@ -905,6 +905,39 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_007, TestSize.Level0)
 }
 
 /**
+ * @tc.name: FreezeWatchPoint_008
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_008, TestSize.Level0)
+{
+    WatchPoint point = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitTimeoutEventId("123454")
+        .InitLastDispatchEventId("812434")
+        .InitLastProcessEventId("125374")
+        .InitLastMarkedEventId("751234")
+        .InitThermalLevel("5")
+        .Build();
+    auto wp1 = std::make_unique<WatchPoint>(point);
+    ASSERT_EQ(wp1->GetTimeoutEventId(), "123454");
+    ASSERT_EQ(wp1->GetLastDispatchEventId(), "812434");
+    ASSERT_EQ(wp1->GetLastProcessEventId(), "125374");
+    ASSERT_EQ(wp1->GetLastMarkedEventId(), "751234");
+    ASSERT_EQ(wp1->GetThermalLevel(), "5");
+    
+    wp1->SetTimeoutEventId("123");
+    wp1->SetLastDispatchEventId("1234");
+    wp1->SetLastProcessEventId("12345");
+    wp1->SetLastMarkedEventId("123456");
+    wp1->SetThermalLevel("1");
+
+    ASSERT_EQ(wp1->GetTimeoutEventId(), "123");
+    ASSERT_EQ(wp1->GetLastDispatchEventId(), "1234");
+    ASSERT_EQ(wp1->GetLastProcessEventId(), "12345");
+    ASSERT_EQ(wp1->GetLastMarkedEventId(), "123456");
+    ASSERT_EQ(wp1->GetThermalLevel(), "1");
+}
+
+/**
  * @tc.name: FreezeDBHelper_001
  * @tc.desc: FreezeDetector
  */
