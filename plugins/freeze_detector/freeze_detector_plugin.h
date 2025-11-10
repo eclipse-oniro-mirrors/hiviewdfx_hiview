@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-    struct WatchPointParams {
+struct WatchPointParams {
     long seq;
     long pid;
     long tid;
