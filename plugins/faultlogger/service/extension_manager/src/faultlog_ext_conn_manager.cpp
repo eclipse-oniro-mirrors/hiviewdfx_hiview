@@ -162,6 +162,8 @@ std::string FaultLogExtConnManager::GetExtName(const std::string& bundleName, in
 
 bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
 {
+    static std::mutex mtx;
+    std::lock_guard<std::mutex> lock(mtx);
     if (IsExtension(info) || IsExistList(info.module, info.id)) {
         HIVIEW_LOGE("%{public}s is extension or exist list", info.module.c_str());
         return false;

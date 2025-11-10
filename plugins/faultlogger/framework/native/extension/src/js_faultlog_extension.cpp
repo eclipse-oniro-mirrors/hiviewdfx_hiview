@@ -66,6 +66,9 @@ napi_value AttachFaultLogExtensionContext(napi_env env, void *value, void *)
         return nullptr;
     }
     napi_value object = CreateJsFaultLogExtensionContext(env, ptr);
+    if (object == nullptr) {
+        return nullptr;
+    }
     auto loadObject = AbilityRuntime::JsRuntime::LoadSystemModuleByEngine(env,
         "hiviewdfx.FaultLogExtensionContext", &object, 1);
     if (loadObject == nullptr) {
