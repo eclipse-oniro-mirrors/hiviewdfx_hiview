@@ -59,6 +59,10 @@ public:
     static constexpr const char* EVENT_LAST_PROCESS_EVENT_ID = "LAST_PROCESS_EVENTID";
     static constexpr const char* EVENT_LAST_MARKED_EVENT_ID = "LAST_MARKED_EVENTID";
     static constexpr const char* EVENT_THERMAL_LEVEL = "THERMAL_LEVEL";
+    static constexpr const char* QNAME = "QNAME";
+    static constexpr const char* QOS = "QOS";
+    static constexpr const char* CLUSTER_RAW = "CLUSTER_RAW";
+
     FreezeCommon();
     ~FreezeCommon();
 

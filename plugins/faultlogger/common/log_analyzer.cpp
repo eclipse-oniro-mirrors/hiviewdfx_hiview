@@ -29,12 +29,12 @@ namespace HiviewDFX {
 static void GetFingerRawString(std::string& fingerRawString, const FaultLogInfo& info,
                                std::map<std::string, std::string>& eventInfos)
 {
-    if ((info.reason.compare("APP_HICOLLIE") == 0 || info.reason.compare("SERVICE_TIMEOUT_WARNING") == 0 ||
-        info.reason.compare("SERVICE_TIMEOUT") == 0) && !eventInfos["TIME_OUT"].empty()) {
+    if ((info.reason == "APP_HICOLLIE" || info.reason == "SERVICE_TIMEOUT_WARNING" ||
+        info.reason == "SERVICE_TIMEOUT") && !eventInfos["TIME_OUT"].empty()) {
         eventInfos[FaultKey::LAST_FRAME] = eventInfos["TIME_OUT"];
     }
 
-    if (info.reason.compare("SERVICE_BLOCK") == 0 && !eventInfos["QUEUE_NAME"].empty()) {
+    if (info.reason == "SERVICE_BLOCK" && !eventInfos["QUEUE_NAME"].empty()) {
         eventInfos[FaultKey::LAST_FRAME] = eventInfos["QUEUE_NAME"];
     }
 
@@ -42,6 +42,10 @@ static void GetFingerRawString(std::string& fingerRawString, const FaultLogInfo&
     fingerRawString = info.module + StringUtil::GetLeftSubstr(info.reason, "@") +
         eventInfos[FaultKey::FIRST_FRAME] + eventInfos[FaultKey::SECOND_FRAME] + eventInfos[FaultKey::LAST_FRAME] +
         ((eventType == "JS_ERROR") ? eventInfos["SUBREASON"] : "");
+
+    if (info.reason == "CONGESTION" && info.sectionMap.find(FaultKey::CLUSTER_RAW) != info.sectionMap.end()) {
+        fingerRawString += info.sectionMap.at(FaultKey::CLUSTER_RAW);
+    }
 }
 
 bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::string>& eventInfos)

@@ -15,6 +15,7 @@
 <configuration ver="2.0">
     <target name="SmartParserUnitTest">
         <preparer>
+            <option name="push" value="SmartParserSysWarningTest001/syswarning-com.ohos.launcher-20010025-20251107170236-19700324235211000.tmp -> /data/test/test_data/SmartParser/SmartParserSysWarningTest001" src="res"/>
             <option name="push" value="SmartParserCppCrashTest001/cppcrash-com.ohos.launcher-20010025-19700324235211000.log -> /data/test/test_data/SmartParser/SmartParserCppCrashTest001" src="res"/>
             <option name="push" value="SmartParserPanicTest001/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest001/19700101000000-00000007/ap_log" src="res"/>
             <option name="push" value="SmartParserPanicTest002/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest002/19700101000000-00000007/ap_log" src="res"/>

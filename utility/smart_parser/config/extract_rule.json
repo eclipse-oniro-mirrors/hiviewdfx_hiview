@@ -183,15 +183,14 @@
         ]
     },
     "Rule16":{
-        "DirOrFile":"/data/log/warninglog/",
-        "Subcatalog":"syswarning-.*-\\d+-\\d+\\.log",
+        "DirOrFile":"/data/log/faultlog/freeze/",
+        "Subcatalog":"syswarning-.*-\\d+-\\d+-\\d+\\.tmp",
         "featureId":"63_SYS_WARNING_01",
         "rules":[
-            {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
-            {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"PID = (.*)"},
-            {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"TID = (.*)"},
-            {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"timeout: (.*)"},
-            {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+            {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"^PID = (.*)$"},
+            {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"^TID = (.*)$"},
+            {"namespace":"BasicParam", "matchKey":"timeout: ", "v_timeout":"^timeout: (.*)$"},
+            {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@, Name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
     "Rule17":{

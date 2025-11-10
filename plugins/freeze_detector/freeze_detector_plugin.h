@@ -54,6 +54,7 @@ namespace HiviewDFX {
     std::string thermalLevel;
     std::string logFile;
     std::string foreGround;
+    std::string clusterRaw;
 };
 class FreezeDetectorPlugin : public Plugin {
 public:

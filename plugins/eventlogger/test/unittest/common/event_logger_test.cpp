@@ -1074,9 +1074,21 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_001, TestSize.Level3)
     EXPECT_TRUE(ret);
     event->eventName_ = "CONGESTION";
     ret = eventLogger->CheckFfrtEvent(event);
-    printf("ret: %d\n", ret);
-    event->SetEventValue("SENARIO", "Long_Task");
-    eventLogger->CheckFfrtEvent(event);
+    EXPECT_FALSE(ret);
+    event->SetEventValue("SCENARIO", "Task_Sch_Timeout");
+    ret = eventLogger->CheckFfrtEvent(event);
+    EXPECT_FALSE(ret);
+    event->SetEventValue("PROCESS_NAME", "com.ohos.sceneboard");
+    ret = eventLogger->CheckFfrtEvent(event);
+    EXPECT_FALSE(ret);
+    event->SetEventValue("SCENARIO", "Trigger_Escape");
+    ret = eventLogger->CheckFfrtEvent(event);
+    EXPECT_TRUE(ret);
+    event->SetEventValue("SCENARIO", "Serial_Queue_Timeout");
+    event->SetEventValue("PROCESS_NAME", "foundation");
+    event->SetEventValue("TID", 2025);
+    ret = eventLogger->CheckFfrtEvent(event);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -1088,23 +1100,23 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckFfrtEvent_002, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     int ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
-        "SENARIO", "Long_Task",
+        "SENARIO", "Trigger_Escape",
         "PROCESS_NAME", "foundation",
-        "MSG", "test remove");
+        "MSG", "qos:2, qName:testName");
     sleep(1);
     EXPECT_TRUE(ret == 0);
 
     ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
-        "SENARIO", "Test",
+        "SENARIO", "Serial_Queue_Timeout",
         "PROCESS_NAME", "EventLoggerTest_CheckFfrtEvent_002",
-        "MSG", "test remove");
+        "MSG", "qos:2, qName:testName2");
     sleep(1);
     EXPECT_TRUE(ret == 0);
 
     ret = HiSysEventWrite(HiSysEvent::Domain::FFRT, "CONGESTION", HiSysEvent::EventType::FAULT,
-        "SENARIO", "Test",
+        "SENARIO", "Task_Sch_Timeout",
         "PROCESS_NAME", "foundation",
-        "MSG", "test remove");
+        "MSG", "qos:2, qName:testName3");
     sleep(1);
     EXPECT_TRUE(ret == 0);
     EXPECT_TRUE(eventLogger);
