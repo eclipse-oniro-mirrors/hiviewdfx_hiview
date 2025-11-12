@@ -19,7 +19,6 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-constexpr unsigned int APP_CALLING_TIMEOUT = 10; // 10s
 constexpr unsigned int SYS_CALLING_TIMEOUT = 60; // 60s
 constexpr unsigned int TWO_MINUTES_TIMEOUT = 120; // 120s
 

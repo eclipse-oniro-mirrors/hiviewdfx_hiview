@@ -23,7 +23,7 @@ namespace HiviewDFX {
 HiviewXCollieTimer::HiviewXCollieTimer(const std::string& name, unsigned int timeout)
 {
     id_ = XCollie::GetInstance().SetTimer("dft:" + name, timeout,
-        nullptr, nullptr, XCOLLIE_FLAG_LOG | XCOLLIE_FLAG_RECOVERY);
+        nullptr, nullptr, XCOLLIE_FLAG_LOG);
 }
 
 HiviewXCollieTimer::~HiviewXCollieTimer()

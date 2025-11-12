@@ -201,7 +201,7 @@ HiviewService *HiviewServiceAbility::GetOrSetHiviewService(HiviewService *servic
 
 ErrCode HiviewServiceAbility::ListFiles(const std::string& logType, std::vector<HiviewFileInfo>& fileInfos)
 {
-    HiviewXCollieTimer timer("ListFiles", APP_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("ListFiles", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
@@ -296,7 +296,7 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
 
 ErrCode HiviewServiceAbility::Remove(const std::string& logType, const std::string& logName)
 {
-    HiviewXCollieTimer timer("Remove", APP_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("Remove", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission(WRITE_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
