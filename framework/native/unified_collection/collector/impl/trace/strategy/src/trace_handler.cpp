@@ -15,7 +15,6 @@
 #include "trace_handler.h"
 
 #include <deque>
-#include <filesystem>
 
 #include "hiview_logger.h"
 #include "file_util.h"
@@ -169,7 +168,11 @@ void TraceLinkHandler::LinkTraceFile(const std::string &src, const std::string &
         HIVIEW_LOGI("same link file : %{public}s. return", dst.c_str());
         return;
     }
-    std::filesystem::create_symlink(src, dst);
+    if (symlink(src.c_str(), dst.c_str()) != 0) {
+        HIVIEW_LOGE("fail to create symlink src:%{public}s, dst:%{public}s error:%{public}s", src.c_str(), dst.c_str(),
+            strerror(errno));
+        return;
+    }
     bool result = TraceStateMachine::GetInstance().AddSymlinkXattr(src);
     HIVIEW_LOGI("Link, src: %{public}s, dst: %{public}s, result:%{public}d", src.c_str(), dst.c_str(), result);
 }
