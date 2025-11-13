@@ -26,6 +26,13 @@ config("freeze_detector_config") {
 }
 
 ohos_source_set("freeze_detector") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   include_dirs =

@@ -52,6 +52,10 @@
 #include "event_logger_util.h"
 #include "freeze_manager.h"
 
+#ifdef HITRACE_CATCHER_ENABLE
+#include "event_cache_trace.h"
+#endif
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -90,6 +94,7 @@ namespace {
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+    constexpr unsigned long long GET_TRACE_NAME_DELAY_TIME = 2500000;
 }
 
 REGISTER(EventLogger);
@@ -149,8 +154,8 @@ bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
     long pid, const std::string &eventName)
 {
 #ifdef HITRACE_CATCHER_ENABLE
-    if (eventName == "HIVIEW_HALF_FREEZE_LOG") {
-        FreezeFilterTraceOn(sysEvent, Parameter::IsBetaVersion());
+    if (eventName == "FREEZE_HALF_HIVIEW_LOG") {
+        HandleFreezeHalfHiview(sysEvent, Parameter::IsBetaVersion());
         return false;
     }
 #endif
@@ -333,15 +338,16 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
-void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask)
+void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask,
+    unsigned long long delayTime)
 {
     if (queueSubmitTrace_) {
         queueSubmitTrace_->submit([this, logTask, cmd] { logTask->AddLog(cmd); },
-            ffrt::task_attr().name("async_log"));
+            ffrt::task_attr().name("async_log").delay(delayTime));
     }
 }
 
-void EventLogger::SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask)
+void EventLogger::SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask)
 {
     if (queue_) {
         queue_->submit([this, logTask, cmd] { logTask->AddLog(cmd); }, ffrt::task_attr().name("async_log"));
@@ -352,7 +358,11 @@ void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<S
     std::shared_ptr<EventLogTask> logTask)
 {
     if (cmd == "tr") {
-        SubmitTraceTask(cmd, logTask);
+        if (event->GetEventValue("GET_TRACE_NAME") == "Yes") {
+            SubmitTraceTask(cmd, logTask, GET_TRACE_NAME_DELAY_TIME);
+        } else {
+            SubmitTraceTask(cmd, logTask);
+        }
         return;
     }
     if ((cmd.find("k:") != std::string::npos && cmd.find("File") != std::string::npos)) {
@@ -427,18 +437,33 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
 }
 
 #ifdef HITRACE_CATCHER_ENABLE
-void EventLogger::FreezeFilterTraceOn(std::shared_ptr<SysEvent> event, bool isBetaVersion)
+void EventLogger::HandleFreezeHalfHiview(std::shared_ptr<SysEvent> event, bool isBetaVersion)
 {
     if (isBetaVersion) {
-        return;
+        if (!queueSubmitTrace_) {
+            return;
+        }
+        std::string faultTimeStr = event->GetEventValue("FAULT_TIME");
+        int64_t hitraceTime = static_cast<int64_t>(FreezeCommon::GetFaultTime(faultTimeStr));
+        auto task = [hitraceTime] {
+            std::pair<std::string, std::pair<std::string, std::vector<std::string>>> result =
+                EventCacheTrace::GetInstance().FreezeDumpTrace(hitraceTime, false, "");
+            if (!result.second.second.empty()) {
+                EventCacheTrace::GetInstance().InsertTraceName(hitraceTime, result.second.second[0]);
+            } else {
+                EventCacheTrace::GetInstance().InsertTraceName(hitraceTime,
+                    "dump trace failed in beta, retCode :" + result.first);
+            }
+        };
+        queueSubmitTrace_->submit(task, ffrt::task_attr().name("extra_dump_trace"));
+    } else {
+        std::string bundleName = event->GetEventValue("PACKAGE_NAME");
+        if (bundleName.empty()) {
+            long pid = GetEventPid(event);
+            bundleName = CommonUtils::GetProcFullNameByPid(pid);
+        }
+        EventCacheTrace::GetInstance().FreezeFilterTraceOn(bundleName);
     }
-
-    std::string bundleName = event->GetEventValue("PACKAGE_NAME");
-    if (bundleName.empty()) {
-        long pid = GetEventPid(event);
-        bundleName = CommonUtils::GetProcFullNameByPid(pid);
-    }
-    LogCatcherUtils::FreezeFilterTraceOn(bundleName);
 }
 #endif
 
@@ -838,11 +863,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     }
     std::ostringstream oss;
     std::string endTimeStamp;
-    size_t endTimeStampIndex = msg.find("Catche stack trace end time: ");
-    if (endTimeStampIndex != std::string::npos) {
-        endTimeStamp = msg.substr(endTimeStampIndex);
-        msg = msg.substr(0, endTimeStampIndex);
-    }
+    HandleMsgStr(msg, endTimeStamp, event);
     oss << "MSG = " << msg << std::endl;
     if (!stack.empty()) {
         oss << StringUtil::UnescapeJsonStringValue(stack) << std::endl;
@@ -855,6 +876,20 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     FileUtil::SaveStringToFd(fd, oss.str());
     WriteCallStack(event, fd);
     return true;
+}
+
+void EventLogger::HandleMsgStr(std::string& msg, std::string& endTimeStamp, std::shared_ptr<SysEvent>& event)
+{
+    size_t endTimeStampIndex = msg.find("Catche stack trace end time: ");
+    if (endTimeStampIndex != std::string::npos) {
+        endTimeStamp = msg.substr(endTimeStampIndex);
+        msg = msg.substr(0, endTimeStampIndex);
+    }
+    size_t pos = msg.find(FreezeCommon::FREEZE_HALF_HIVIEW_SUCCESS);
+    if (pos != std::string::npos) {
+        event->SetEventValue("GET_TRACE_NAME", "Yes");
+        msg.erase(pos, std::strlen(FreezeCommon::FREEZE_HALF_HIVIEW_SUCCESS));
+    }
 }
 
 void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
@@ -1183,7 +1218,7 @@ void EventLogger::OnUnorderedEvent(const Event& msg)
 #ifdef HITRACE_CATCHER_ENABLE
     if (msg.messageType_ == Event::MessageType::TELEMETRY_EVENT) {
         std::map<std::string, std::string> valuePairs = msg.GetKeyValuePairs();
-        LogCatcherUtils::HandleTelemetryMsg(valuePairs);
+        EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);
         return;
     }
 #endif

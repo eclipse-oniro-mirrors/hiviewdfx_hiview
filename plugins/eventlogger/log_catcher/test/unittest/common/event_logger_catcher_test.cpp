@@ -1477,55 +1477,6 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_004, TestSize.Level1)
     close(fd);
 }
 
-#ifdef HITRACE_CATCHER_ENABLE
-/**
- * @tc.name: LogCatcherUtilsTest_005
- * @tc.desc: add test
- * @tc.type: FUNC
- */
-HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_005, TestSize.Level1)
-{
-    std::map<std::string, std::string> valuePairs;
-    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
-    std::pair<std::string, std::string> telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
-
-    EXPECT_EQ(telemetryInfo.first, "");
-    EXPECT_EQ(telemetryInfo.second, "");
-
-    valuePairs["telemetryId"] = "testId2025";
-    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
-    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
-    EXPECT_EQ(telemetryInfo.first, "");
-    EXPECT_EQ(telemetryInfo.second, "");
-
-    valuePairs["fault"] = "1";
-    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
-    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
-    EXPECT_EQ(telemetryInfo.first, "");
-    EXPECT_EQ(telemetryInfo.second, "");
-
-    valuePairs["fault"] = "32";
-    valuePairs["telemetryStatus"] = "on";
-    valuePairs["traceAppFilter"] = "testPackageName2025";
-    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
-    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
-    EXPECT_EQ(telemetryInfo.first, "testId2025");
-    EXPECT_EQ(telemetryInfo.second, "testPackageName2025");
-
-    LogCatcherUtils::FreezeFilterTraceOn("testPackageName2025");
-    uint64_t faultTime = TimeUtil::GetMilliseconds() / 1000;
-    auto dumpResult = LogCatcherUtils::FreezeDumpTrace(faultTime, true, "testPackageName2025");
-    EXPECT_TRUE(!dumpResult.second.first.empty());
-    EXPECT_TRUE(dumpResult.second.second.empty());
-
-    valuePairs["telemetryStatus"] = "off";;
-    LogCatcherUtils::HandleTelemetryMsg(valuePairs);
-    telemetryInfo = LogCatcherUtils::GetTelemetryInfo();
-    EXPECT_EQ(telemetryInfo.first, "");
-    EXPECT_EQ(telemetryInfo.second, "");
-}
-#endif
-
 /**
  * @tc.name: ThermalInfoCatcherTest_001
  * @tc.desc: add testcase code coverage

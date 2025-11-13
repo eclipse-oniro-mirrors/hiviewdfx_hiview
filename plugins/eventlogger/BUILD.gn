@@ -22,6 +22,13 @@ config("event_logger_config") {
 }
 
 ohos_source_set("eventlogger") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   public_configs = [ ":event_logger_config" ]
@@ -74,8 +81,10 @@ ohos_shared_library("eventloggerso") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
     debug = false
   }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 
@@ -95,6 +104,7 @@ group("unittest") {
       "config/test:EventloggerConfigTest",
       "log_catcher/test:EventloggerCatcherTest",
       "test:EventLoggerTest",
+      "manager/test:EventloggerManagerTest",
     ]
     if (multimodalinput_input_enable) {
       deps += [ "test:ActiveKeyEventTest" ]

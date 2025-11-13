@@ -40,6 +40,7 @@ public:
     static constexpr const char* TERMINAL_THREAD_STACK = "TERMINAL_THREAD_STACK";
     static constexpr const char* TELEMETRY_ID = "TELEMETRY_ID";
     static constexpr const char* TRACE_NAME = "TRACE_NAME";
+    static constexpr const char* FREEZE_HALF_HIVIEW_SUCCESS = "FREEZE_HALF_HIVIEW_LOG write success";
     static constexpr const char* PB_EVENTS[] = {
         "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT",
         "LIFECYCLE_HALF_TIMEOUT_WARNING"
@@ -74,7 +75,7 @@ public:
     std::set<std::string> GetPrincipalStringIds() const;
     std::shared_ptr<FreezeRuleCluster> GetFreezeRuleCluster() const;
     static void WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart = true);
-
+    static time_t GetFaultTime(const std::string& msg);
 private:
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_;
     bool IsAssignedEvent(const std::string& domain, const std::string& stringId, int freezeId) const;

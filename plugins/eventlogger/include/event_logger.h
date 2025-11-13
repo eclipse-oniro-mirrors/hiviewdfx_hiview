@@ -89,7 +89,7 @@ private:
     void SetEventTerminalBinder(std::shared_ptr<SysEvent> event, const std::string& threadStack, int fd);
     void StartLogCollect(std::shared_ptr<SysEvent> event);
 #ifdef HITRACE_CATCHER_ENABLE
-    void FreezeFilterTraceOn(std::shared_ptr<SysEvent> event, bool isBetaVersion);
+    void HandleFreezeHalfHiview(std::shared_ptr<SysEvent> event, bool isBetaVersion);
 #endif
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
@@ -107,6 +107,7 @@ private:
         const std::string& kernelStack);
     bool WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEvent> event,
         std::vector<std::string>& binderPids, std::string& threadStack);
+    void HandleMsgStr(std::string& msg, std::string& endTimeStamp, std::shared_ptr<SysEvent>& event);
     void WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
         std::string& threadStack, std::string& kernelStack, std::string bundleName);
     bool UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile);
@@ -128,8 +129,9 @@ private:
     void AddBootScanEvent();
     bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
     bool CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent);
-    void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask);
-    void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask> logTask);
+    void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask,
+        unsigned long long delayTime = 0);
+    void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void InitQueue();
 };
 } // namespace HiviewDFX
