@@ -51,7 +51,7 @@ Tid:3446, Name:WatchDogRunner
 #09 pc 0000000000018aa4 /system/lib64/libeventhandler.z.so
 #10 pc 00000000000cfce0 /system/lib64/libc.so(__pthread_start(void*)+40)
 #11 pc 0000000000072028 /system/lib64/libc.so(__start_thread+68)
-Tid:2798 Name:com.ohos.launch
+Tid:2798, Name:com.ohos.launch
 #00 pc 00000000000bb328 /system/lib64/libc.so(__epoll_pwait+8)
 #01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192)
 #02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked(std::__1::chrono::time_point<std::__1::chrono::steady_clock, std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, std::__1::unique_lock<std::__1::mutex>&)+96)
