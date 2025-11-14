@@ -334,6 +334,7 @@ void EventReporter::ReportPageShowMsg(const std::string& pageUrl, const std::str
 void EventReporter::ReportEventComplete(DataBase& data)
 {
     std::string eventName = "INTERACTION_COMPLETED_LATENCY";
+    const auto& uniqueId = data.beginVsyncTime / NS_TO_MS;
     const auto& appPid = data.baseInfo.pid;
     const auto& bundleName = data.baseInfo.bundleName;
     const auto& processName = data.baseInfo.processName;
@@ -356,11 +357,9 @@ void EventReporter::ReportEventComplete(DataBase& data)
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
-        .Param(EVENT_KEY_APP_PID, appPid)
-        .Param(EVENT_KEY_BUNDLE_NAME, bundleName)
-        .Param(EVENT_KEY_PROCESS_NAME, processName)
-        .Param(EVENT_KEY_ABILITY_NAME, abilityName)
-        .Param(EVENT_KEY_PAGE_URL, pageUrl)
+        .Param(EVENT_KEY_UNIQUE_ID, static_cast<int32_t>(uniqueId)).Param(EVENT_KEY_APP_PID, appPid)
+        .Param(EVENT_KEY_BUNDLE_NAME, bundleName).Param(EVENT_KEY_PROCESS_NAME, processName)
+        .Param(EVENT_KEY_ABILITY_NAME, abilityName).Param(EVENT_KEY_PAGE_URL, pageUrl)
         .Param(EVENT_KEY_VERSION_CODE, versionCode)
         .Param(EVENT_KEY_VERSION_NAME, versionName)
         .Param(EVENT_KEY_PAGE_NAME, pageName)
