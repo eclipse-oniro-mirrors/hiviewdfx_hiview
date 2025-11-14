@@ -82,7 +82,7 @@ const SectionLog PAGE_SWITCH_HISTORY = {FaultKey::PAGE_SWITCH_HISTORY, "Page swi
 const SectionLog IS_SYSTEM_APP = {FaultKey::IS_SYSTEM_APP, "IsSystemApp:"};
 const SectionLog DEVICE_DEBUGABLE = {FaultKey::DEVICE_DEBUGABLE, "DeviceDebuggable:"};
 const SectionLog CPU_ABI = {FaultKey::CPU_ABI, "CpuAbi:"};
-const SectionLog APP_TYPE = {FaultKey::APP_TYPE, "Apptype:"};
+const SectionLog APP_TYPE = {FaultKey::APP_TYPE, "AppType:"};
 
 std::vector<SectionLog> GetCppCrashSectionLogs()
 {
