@@ -37,6 +37,8 @@ namespace CommonUtils {
 DEFINE_LOG_TAG("CommonUtils");
 namespace {
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;
+constexpr int32_t MAX_RETRY_COUNT = 20;
+constexpr int32_t WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000; // 5ms
 std::string GetProcessNameFromProcCmdline(int32_t pid)
 {
     std::string procCmdlinePath = "/proc/" + std::to_string(pid) + "/cmdline";
@@ -82,6 +84,20 @@ std::string GetProcessNameFromProcStat(int32_t pid)
         return "";
     }
     return procStatFileContent.substr(procNameStartPos, procNameEndPos - procNameStartPos);
+}
+
+pid_t KillChildPid(pid_t pid, int signal)
+{
+    kill(pid, signal);
+    int32_t retryCount = MAX_RETRY_COUNT;
+    pid_t ret = waitpid(pid, nullptr, WNOHANG);
+    while (retryCount > 0 && (ret == 0)) {
+        usleep(WAIT_CHILD_PROCESS_INTERVAL);
+        retryCount--;
+        ret = waitpid(pid, nullptr, WNOHANG);
+    }
+    HIVIEW_LOGI("pid = %{public}d, signal = %{public}d, ret = %{public}d", pid, signal, ret);
+    return ret;
 }
 }
 
@@ -146,13 +162,13 @@ int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<s
 
     pid_t pid = fork();
     if (pid < 0) {
+        HIVIEW_LOGE("fork failed");
         return -1;
     } else if (pid == 0) {
         // follow standard, although dup2 may handle the case of invalid oldfd
-        if (fd >= 0) {
-            dup2(fd, STDOUT_FILENO);
-            dup2(fd, STDIN_FILENO);
-            dup2(fd, STDERR_FILENO);
+        if (fd < 0 || dup2(fd, STDOUT_FILENO) == -1 || dup2(fd, STDIN_FILENO) == -1 || dup2(fd, STDERR_FILENO) == -1) {
+            HIVIEW_LOGE("dup failed %{public}d", errno);
+            _exit(EXIT_FAILURE);
         }
 
         std::vector<char *> argv;
@@ -160,7 +176,11 @@ int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<s
             argv.push_back(const_cast<char *>(arg.c_str()));
         }
         argv.push_back(0);
-        execv(cmd.c_str(), &argv[0]);
+        if (execv(cmd.c_str(), &argv[0]) < 0) {
+            HIVIEW_LOGE("execv failed %{public}d", errno);
+            _exit(EXIT_FAILURE);
+        }
+        _exit(EXIT_SUCCESS);
     }
 
     constexpr uint64_t maxWaitingTime = 120; // 120 seconds
@@ -176,7 +196,13 @@ int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<s
             return WEXITSTATUS(status);
         }
     }
-
+    HIVIEW_LOGE("wait timeout pid = %{public}d", pid);
+    pid_t ret = KillChildPid(pid, SIGUSR1);
+    if (ret == pid || ret < 0) {
+        return -1;
+    }
+    // kill SIGUSR1 child process exit timeout, use kill SIGKILL
+    (void)KillChildPid(pid, SIGKILL);
     return -1;
 }
 
