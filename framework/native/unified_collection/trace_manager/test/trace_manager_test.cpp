@@ -1135,17 +1135,17 @@ HWTEST_F(TraceManagerTest, TraceManagerTest030, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest031, TestSize.Level1)
 {
-    auto flowController = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+    auto flowController = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     flowController->SetTestDate("2025-10-01");
     ASSERT_FALSE(flowController->IsIoOverFlow()); // update system time to record
-    int64_t traceSize = 5368709120; // 5G Xperf trace io threshold is 3G
+    int64_t traceSize = 5368709120; // 5G RELIABILITY trace io threshold is 1G
     flowController->StoreIoSize(traceSize);
     sleep(1);
 
-    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
     FlowController::DEFAULT_CONFIG_PATH);
-    flowController1->SetTestDate("2025-10-01"); // caller xperf
+    flowController1->SetTestDate("2025-10-01"); // caller Other
     ASSERT_TRUE(flowController1->IsIoOverFlow());
 }
 
@@ -1156,16 +1156,16 @@ HWTEST_F(TraceManagerTest, TraceManagerTest031, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest032, TestSize.Level1)
 {
-    auto flowController = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+    auto flowController = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
-    flowController->SetTestDate("2025-10-01");
+    flowController->SetTestDate("2025-10-02");
     ASSERT_FALSE(flowController->IsIoOverFlow()); // update system time to record
-    int64_t traceSize = 2147483648; // 2G Xperf trace io threshold is 3G
+    int64_t traceSize = 524288000; // 500M RELIABILITY trace io threshold is 1G
     flowController->StoreIoSize(traceSize);
     sleep(1);
 
-    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::OTHER, TEST_DB_PATH,
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
     FlowController::DEFAULT_CONFIG_PATH);
-    flowController1->SetTestDate("2025-10-01"); // caller xperf
+    flowController1->SetTestDate("2025-10-02"); // caller Other
     ASSERT_FALSE(flowController1->IsIoOverFlow());
 }

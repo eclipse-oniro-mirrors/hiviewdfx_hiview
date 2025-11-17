@@ -67,6 +67,7 @@ void LoadMemoryInfo(DumpEvent &dumpEvent)
 
 void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 {
+#ifndef TRACE_STRATEGY_UNITTEST
     LoadMemoryInfo(dumpEvent);
     int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::PROFILER, "DUMP_TRACE",
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
@@ -89,6 +90,7 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
     if (ret != 0) {
         HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
     }
+#endif
 }
 }
 
