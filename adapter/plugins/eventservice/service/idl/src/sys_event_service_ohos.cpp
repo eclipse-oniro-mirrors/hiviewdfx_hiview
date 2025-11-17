@@ -49,8 +49,6 @@ constexpr pid_t HID_ROOT = 0;
 constexpr pid_t HID_SHELL = 2000;
 constexpr pid_t HID_OHOS = 1000;
 const std::vector<int> EVENT_TYPES = {1, 2, 3, 4}; // FAULT = 1, STATISTIC = 2 SECURITY = 3, BEHAVIOR = 4
-const string READ_DFX_SYSEVENT_PERMISSION = "ohos.permission.READ_DFX_SYSEVENT";
-const string DFX_DUMP_PERMISSION = "ohos.permission.DUMP";
 constexpr size_t REGEX_LEN_LIMIT = 32; // max(domainLen, nameLen, tagLen)
 
 bool IsMatchedWithRegex(const string& rule, const string& match)
@@ -149,6 +147,18 @@ bool IsNativeCaller()
     return (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE)
         || (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL);
 }
+
+bool IsCustomSandboxAppCaller()
+{
+#ifdef SUPPORT_LOCAL_READ_DIADNOSTIC_LOGS
+    using namespace Security::AccessToken;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if ((AccessTokenKit::VerifyAccessToken(tokenId, "ohos.permission.CUSTOM_SANDBOX") == RET_SUCCESS)) {
+        return true;
+    }
+#endif
+    return false;
+}
 }
 
 sptr<SysEventServiceOhos> SysEventServiceOhos::instance_(new SysEventServiceOhos);
@@ -244,7 +254,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     const sptr<ISysEventCallback>& callback)
 {
     HiviewXCollieTimer timer("AddListener", SYS_CALLING_TIMEOUT);
-    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller() || IsCustomSandboxAppCaller())) {
         return ERR_NO_PERMISSION;
     }
     size_t watchRuleCntLimit = 20; // count of listener rule for each watcher is limited to 20.
@@ -292,7 +302,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
 ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>& callback)
 {
     HiviewXCollieTimer timer("RemoveListener", SYS_CALLING_TIMEOUT);
-    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller() || IsCustomSandboxAppCaller())) {
         return ERR_NO_PERMISSION;
     }
     auto service = GetSysEventService();
@@ -416,8 +426,8 @@ bool SysEventServiceOhos::HasAccessPermission() const
 {
     using namespace Security::AccessToken;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if ((AccessTokenKit::VerifyAccessToken(tokenId, READ_DFX_SYSEVENT_PERMISSION) == RET_SUCCESS) ||
-        (AccessTokenKit::VerifyAccessToken(tokenId, DFX_DUMP_PERMISSION) == RET_SUCCESS)) {
+    if ((AccessTokenKit::VerifyAccessToken(tokenId, "ohos.permission.READ_DFX_SYSEVENT") == RET_SUCCESS) ||
+        (AccessTokenKit::VerifyAccessToken(tokenId, "ohos.permission.DUMP") == RET_SUCCESS)) {
         return true;
     }
     return false;
