@@ -863,6 +863,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetAppFreezeStack_001, TestSize.Level3
     sysEvent->SetEventValue("MSG", stack);
     sysEvent->eventName_ = "UI_BLOCK_6S";
     sysEvent->SetEventValue("BINDER_INFO", "async\\nEventLoggerTest");
+    eventLogger->InitQueue();
     eventLogger->GetAppFreezeStack(-1, sysEvent, stack, "msg", kernelStack);
     EXPECT_TRUE(kernelStack.empty());
     eventLogger->GetAppFreezeStack(1, sysEvent, stack, "msg", kernelStack);

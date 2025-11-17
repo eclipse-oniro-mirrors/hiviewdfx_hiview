@@ -87,6 +87,7 @@ namespace {
     constexpr uint8_t LONGPRESS_PRIVACY = 1;
     constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     constexpr int DFX_TASK_MAX_CONCURRENCY_NUM = 6;
+    constexpr int DFX_TASK_SERIAL_EXECUTION_NUM = 1;
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
@@ -736,7 +737,14 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
             stack = jsonStack;
         }
     } else {
-        GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName);
+        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd]() {
+            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName);
+        };
+        if (!stackQueue_) {
+            return;
+        }
+        ffrt::task_handle handle = stackQueue_->submit_h(task, ffrt::task_attr().name("appfreeze dump stack"));
+        stackQueue_->wait(handle);
     }
 
     GetFailedDumpStackMsg(stack, event);
@@ -1109,6 +1117,9 @@ void EventLogger::InitQueue()
     queueSubmitTrace_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
         "EventLogger_SubmitTrace_queue",
         ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM));
+    stackQueue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
+        "EventLogger_stackQueue",
+        ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(DFX_TASK_SERIAL_EXECUTION_NUM));
 }
 
 void EventLogger::OnLoad()
