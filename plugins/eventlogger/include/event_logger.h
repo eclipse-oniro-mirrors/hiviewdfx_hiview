@@ -77,6 +77,7 @@ private:
     std::vector<std::string> rebootReasons_;
     std::unique_ptr<ffrt::queue> queue_ = nullptr;
     std::unique_ptr<ffrt::queue> queueSubmitTrace_ = nullptr;
+    std::unique_ptr<ffrt::queue> stackQueue_ = nullptr;
 
 #ifdef WINDOW_MANAGER_ENABLE
     void ReportUserPanicWarning(std::shared_ptr<SysEvent> event, long pid);
