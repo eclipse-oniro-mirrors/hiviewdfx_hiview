@@ -199,16 +199,16 @@ void FreezeManager::ParseLogEntry(const std::string& input, std::map<std::string
 {
     // input: HEAP_TOTAL_SIZE,HEAP_OBJECT_SIZE,PROCESS_LIFETIME
     std::istringstream iss(input);
-    std::string token;
-    while (std::getline(iss, token, ',')) {
-        size_t colonPos = token.find(':');
+    std::string content;
+    while (std::getline(iss, content, ',')) {
+        size_t colonPos = content.find(':');
         if (colonPos != std::string::npos) {
-            std::string key = token.substr(0, colonPos);
-            sectionMaps[key] = token.substr(colonPos + 1);
+            std::string key = content.substr(0, colonPos);
+            sectionMaps[key] = content.substr(colonPos + 1);
             HIVIEW_LOGI("parse key:%{public}s value:%{public}s ssuccess.", key.c_str(),
                 sectionMaps[key].c_str());
         } else {
-            HIVIEW_LOGE("parse %{public}s failed.", token.c_str());
+            HIVIEW_LOGE("parse %{public}s failed.", content.c_str());
         }
     }
 }
