@@ -221,7 +221,8 @@ public:
         std::string keywords[] = {
             "\"bundle_name\":", "\"bundle_version\":", "\"crash_type\":", "\"exception\":",
             "\"foreground\":", "\"hilog\":", "\"pid\":", "\"time\":", "\"uid\":", "\"uuid\":",
-            "\"name\":", "\"message\":", "\"stack\":", "\"process_life_time\":"
+            "\"name\":", "\"message\":", "\"stack\":", "\"process_life_time\":", "\"release_type\":",
+            "\"cpu_abi\":"
         };
         int length = sizeof(keywords) / sizeof(keywords[0]);
         std::string oldFileName = "/data/test_jsError_info";

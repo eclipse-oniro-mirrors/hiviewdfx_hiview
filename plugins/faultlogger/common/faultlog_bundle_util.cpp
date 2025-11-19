@@ -96,7 +96,7 @@ bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo)
 
 bool GetIsSystemApp(const std::string &module, int32_t uid)
 {
-    constexpr int vauleMod = 200000;
+    constexpr int valueMod = 200000;
     constexpr int bundleMgrServiceSysAbilityId = 401;
     AppExecFwk::ApplicationInfo appInfo;
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -114,7 +114,7 @@ bool GetIsSystemApp(const std::string &module, int32_t uid)
         HILOG_WARN(LOG_CORE, "Iface_cast BundleMgrProxy is nullptr.");
         return false;
     }
-    int userId = uid / vauleMod;
+    int userId = uid / valueMod;
     bool res = proxy->GetApplicationInfo(module, 0, userId, appInfo);
     if (!res) {
         HILOG_WARN(LOG_CORE, "Failed to get ApplicationInfo from module.");

@@ -249,6 +249,7 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("LOG_PATH", HISYSEVENT_STRING, s, info.logPath.data(), 0),
         EVENT_PARAM_CTOR("VERSION", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::MODULE_VERSION].data(), 0),
         EVENT_PARAM_CTOR("VERSION_CODE", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::VERSION_CODE].data(), 0),
+        EVENT_PARAM_CTOR("IS_SYSTEM_APP", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::IS_SYSTEM_APP].data(), 0),
         EVENT_PARAM_CTOR("PRE_INSTALL", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::PRE_INSTALL].data(), 0),
         EVENT_PARAM_CTOR("FOREGROUND", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FOREGROUND].data(), 0),
         EVENT_PARAM_CTOR("HAPPEN_TIME", HISYSEVENT_INT64, i64, info.time, 0),
