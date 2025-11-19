@@ -135,4 +135,5 @@ declare_args() {
   hiview_unified_collector_trace_enable = true
   hiview_unified_collector_low_mem_threshold = 0
   hiview_unified_collector_trace_for_cpu_high_load = true
+  hiview_support_local_read_diagnostic_logs = false
 }
