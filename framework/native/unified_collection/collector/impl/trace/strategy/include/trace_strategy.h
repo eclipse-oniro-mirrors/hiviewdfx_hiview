@@ -52,54 +52,68 @@ struct StrategyParam {
 
 class TraceStrategy {
 public:
-    TraceStrategy(StrategyParam strategyParam, TraceScenario scenario, std::shared_ptr<TraceHandler> traceHandler)
+    TraceStrategy(StrategyParam strategyParam, std::shared_ptr<TraceHandler> traceHandler)
         : maxDuration_(strategyParam.maxDuration),
           happenTime_(strategyParam.happenTime),
           caller_(strategyParam.caller),
           dbPath_(strategyParam.dbPath),
           configPath_(strategyParam.configPath),
-          scenario_(scenario),
-          traceHandler_(traceHandler) {}
+          traceHandler_(traceHandler),
+          scenario_(TraceScenario::TRACE_COMMON) {}
+
+    TraceStrategy(StrategyParam strategyParam, TraceScenario scenario)
+        : maxDuration_(strategyParam.maxDuration),
+          happenTime_(strategyParam.happenTime),
+          caller_(strategyParam.caller),
+          dbPath_(strategyParam.dbPath),
+          configPath_(strategyParam.configPath),
+          scenario_(scenario) {}
+
     virtual ~TraceStrategy() = default;
     virtual TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo);
 
 protected:
-    virtual TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const;
+    virtual TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, TraceScenario scenario) const;
 
-protected:
     uint32_t maxDuration_;
     uint64_t happenTime_;
     std::string caller_;
     std::string dbPath_;
     std::string configPath_;
-    TraceScenario scenario_;
     std::shared_ptr<TraceHandler> traceHandler_;
     std::shared_ptr<TraceFlowController> traceFlowController_;
+
+private:
+    TraceScenario scenario_;
 };
 
 class TraceFlowControlStrategy : public TraceStrategy {
 public:
-    TraceFlowControlStrategy(StrategyParam strategyParam, TraceScenario scenario,
+    TraceFlowControlStrategy(StrategyParam strategyParam, const std::string& flowControlName,
         std::shared_ptr<TraceHandler> traceHandler)
-        : TraceStrategy(strategyParam, scenario, traceHandler)
+        : TraceStrategy(strategyParam, traceHandler), flowControlName_(flowControlName)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_, configPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(flowControlName_, dbPath_, configPath_);
     }
 
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
+
+private:
+    std::string flowControlName_;
 };
 
 class TraceDevStrategy : public TraceStrategy {
 public:
-    TraceDevStrategy(StrategyParam strategyParam, TraceScenario scenario, std::shared_ptr<TraceHandler> traceHandler,
-        std::shared_ptr<TraceZipHandler> zipHandler)
-        : TraceStrategy(strategyParam, scenario, traceHandler), zipHandler_(zipHandler)
+    TraceDevStrategy(StrategyParam strategyParam, const std::string& flowControlName,
+         std::shared_ptr<TraceHandler> traceHandler, std::shared_ptr<TraceZipHandler> zipHandler)
+        : TraceStrategy(strategyParam, traceHandler), flowControlName_(flowControlName), zipHandler_(zipHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_, configPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(flowControlName_, dbPath_, configPath_);
     }
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 
 private:
+    std::string flowControlName_;
     std::shared_ptr<TraceZipHandler> zipHandler_;
 };
 
@@ -109,17 +123,17 @@ private:
 */
 class TraceAsyncStrategy : public TraceStrategy, public std::enable_shared_from_this<TraceAsyncStrategy> {
 public:
-    TraceAsyncStrategy(StrategyParam strategyParam, TraceScenario scenario, std::shared_ptr<TraceHandler> traceHandler,
-        std::shared_ptr<TraceZipHandler> zipHandler)
-        : TraceStrategy(strategyParam, scenario, traceHandler), zipHandler_(zipHandler)
+    TraceAsyncStrategy(StrategyParam strategyParam, const std::string& flowControlName,
+         std::shared_ptr<TraceHandler> traceHandler, std::shared_ptr<TraceZipHandler> zipHandler)
+        : TraceStrategy(strategyParam, traceHandler), flowControlName_(flowControlName), zipHandler_(zipHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(caller_, dbPath_, configPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(flowControlName_, dbPath_, configPath_);
     }
 
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 
 protected:
-    TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo) const override;
+    TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, TraceScenario scenario) const override;
 
 private:
     void SetResultCopyFiles(std::vector<std::string> &outputFiles, const std::vector<std::string>& traceFiles) const
@@ -144,16 +158,16 @@ private:
         }
     }
 
-private:
+    std::string flowControlName_;
     std::shared_ptr<TraceZipHandler> zipHandler_;
 };
 
 class TelemetryStrategy : public TraceStrategy, public std::enable_shared_from_this<TelemetryStrategy> {
 public:
     TelemetryStrategy(StrategyParam strategyParam, std::shared_ptr<TraceHandler> traceHandler)
-        : TraceStrategy(strategyParam, TraceScenario::TRACE_TELEMETRY, traceHandler)
+        : TraceStrategy(strategyParam, traceHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(BusinessName::TELEMETRY, dbPath_, configPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(FlowControlName::TELEMETRY, dbPath_, configPath_);
     }
 
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
@@ -163,10 +177,10 @@ class TraceAppStrategy : public TraceStrategy  {
 public:
     TraceAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent, std::shared_ptr<TraceAppHandler> appHandler,
         std::string dbPath = FlowController::DEFAULT_DB_PATH)
-        : TraceStrategy(StrategyParam {0, 0, ClientName::APP, dbPath}, TraceScenario::TRACE_DYNAMIC, appHandler)
+        : TraceStrategy(StrategyParam {0, 0, "", dbPath}, appHandler)
     {
         appCallerEvent_ = appCallerEvent;
-        traceFlowController_ = std::make_shared<TraceFlowController>(ClientName::APP, dbPath_, configPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(FlowControlName::APP, dbPath_, configPath_);
     }
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 

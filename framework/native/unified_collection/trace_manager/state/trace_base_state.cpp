@@ -18,6 +18,7 @@
 
 #include "trace_state_machine.h"
 #include "hiview_logger.h"
+#include "hitrace_dump.h"
 
 namespace OHOS::HiviewDFX {
 namespace {

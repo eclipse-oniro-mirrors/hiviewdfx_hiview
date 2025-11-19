@@ -34,7 +34,6 @@ UcError TransCodeToUcError(TraceErrorCode ret);
 UcError TransStateToUcError(TraceStateCode ret);
 UcError TransFlowToUcError(TraceFlowCode ret);
 const std::string EnumToString(UCollect::TraceCaller caller);
-const std::string ClientToString(UCollect::TraceClient client);
 const std::string ModuleToString(UCollect::TeleModule module);
 UcError GetUcError(TraceRet ret);
 std::string AddVersionInfoToZipName(const std::string &srcZipPath);

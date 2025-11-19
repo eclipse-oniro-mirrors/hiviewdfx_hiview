@@ -225,12 +225,13 @@ CollectResult<int32_t> HiviewService::OpenSnapshotTrace(const std::vector<std::s
 #endif
 }
 
-CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(UCollect::TraceClient client)
+CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(const std::string& callerName,
+    bool isNeedFlowControl)
 {
 #ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
     return {UcError::FEATURE_CLOSED};
 #else
-    return UCollectUtil::TraceCollector::Create()->DumpTrace(client);
+    return UCollectUtil::TraceCollector::Create()->DumpTrace(callerName, isNeedFlowControl);
 #endif
 }
 
@@ -302,7 +303,8 @@ static std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(UCollectClient:
 
 bool HiviewService::InnerHasCallAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
 {
-    return TraceFlowController(ClientName::APP).HasCallOnceToday(appCallerEvent->uid_, appCallerEvent->happenTime_);
+    return TraceFlowController(FlowControlName::APP).HasCallOnceToday(appCallerEvent->uid_,
+        appCallerEvent->happenTime_);
 }
 
 CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller)

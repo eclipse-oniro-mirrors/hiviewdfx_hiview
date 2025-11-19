@@ -97,11 +97,11 @@ const std::string ModuleToString(UCollect::TeleModule module)
 {
     switch (module) {
         case UCollect::TeleModule::XPERF:
-            return CallerName::XPERF;
+            return FlowControlName::XPERF;
         case UCollect::TeleModule::XPOWER:
-            return CallerName::XPOWER;
+            return FlowControlName::XPOWER;
         case UCollect::TeleModule::RELIABILITY:
-            return CallerName::RELIABILITY;
+            return FlowControlName::RELIABILITY;
         default:
             return "UNKNOWN";
     }
@@ -119,21 +119,9 @@ const std::string EnumToString(UCollect::TraceCaller caller)
         case UCollect::TraceCaller::HIVIEW:
             return CallerName::HIVIEW;
         case UCollect::TraceCaller::XPERF_EX:
-            return CallerName::XPERF;
+            return CallerName::XPERF_EX;
         case UCollect::TraceCaller::SCREEN:
             return CallerName::SCREEN;
-        default:
-            return "UNKNOWN";
-    }
-}
-
-const std::string ClientToString(UCollect::TraceClient client)
-{
-    switch (client) {
-        case UCollect::TraceClient::COMMAND:
-            return ClientName::COMMAND;
-        case UCollect::TraceClient::COMMON_DEV:
-            return ClientName::COMMON_DEV;
         default:
             return "UNKNOWN";
     }

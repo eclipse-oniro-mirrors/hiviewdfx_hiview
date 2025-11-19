@@ -109,7 +109,7 @@ void UcTelemetryCallback::OnTelemetryFinish()
 
 bool UcTelemetryCallback::UpdateAndCheckTimeOut(int64_t timeCost)
 {
-    TraceFlowController controller(BusinessName::TELEMETRY);
+    TraceFlowController controller(FlowControlName::TELEMETRY);
     int64_t traceOnTime = 0;
     if (!controller.QueryRunningTime(traceOnTime) || traceOnTime < 0) {
         HIVIEW_LOGE("QueryTraceOnTime error");

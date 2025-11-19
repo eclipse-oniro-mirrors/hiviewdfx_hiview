@@ -29,7 +29,8 @@ CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTraceWithDu
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceClient client)
+CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(const std::string& callName,
+    bool isNeedFlowControl)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
 }

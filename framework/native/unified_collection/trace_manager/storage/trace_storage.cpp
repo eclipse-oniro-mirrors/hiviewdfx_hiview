@@ -48,8 +48,8 @@ void PrintRecordLog(const TraceFlowRecord& traceFlowRecord)
 }
 }
 
-TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller,
-    const std::string& configPath): caller_(caller), dbStore_(dbStore)
+TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& name,
+    const std::string& configPath): name_(name), dbStore_(dbStore)
 {
     traceQuotaConfig_ = configPath + TRACE_QUOTA_CONFIG_FILE;
     InitTraceQuota();
@@ -61,7 +61,7 @@ TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const s
 
 void TraceStorage::InitTableRecord()
 {
-    traceFlowRecord_.callerName = caller_;
+    traceFlowRecord_.callerName = name_;
     Query(traceFlowRecord_);
     PrintRecordLog(traceFlowRecord_);
 }
@@ -227,8 +227,8 @@ void TraceStorage::InitTraceQuota()
         cJSON_Delete(root);
         return;
     }
-    ioQuota_ =  CJsonUtil::GetIntValue(ioQuotaObj, caller_, 0);
-    zipQuota_ = CJsonUtil::GetIntValue(zipQuotaObj, caller_, 0);
+    ioQuota_ =  CJsonUtil::GetIntValue(ioQuotaObj, name_, 0);
+    zipQuota_ = CJsonUtil::GetIntValue(zipQuotaObj, name_, 0);
     decreaseUnit_ = CJsonUtil::GetIntValue(zipQuotaObj, DYNAMIC_DECREASE_KEY, 0);
     cJSON_Delete(root);
 }

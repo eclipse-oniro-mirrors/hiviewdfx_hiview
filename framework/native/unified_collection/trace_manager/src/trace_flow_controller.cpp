@@ -49,32 +49,32 @@ void TraceFlowController::InitTraceDb(const std::string& dbPath)
     }
 }
 
-void TraceFlowController::InitTraceStorage(const std::string& caller, const std::string& configPath)
+void TraceFlowController::InitTraceStorage(const std::string& name, const std::string& configPath)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("dbStore fail init");
         return;
     }
-    if (caller == ClientName::APP) {
+    if (name == FlowControlName::APP) {
         appTaskStore_ = std::make_shared<AppEventTaskStorage>(dbStore_);
         return;
     }
-    if (caller == BusinessName::BEHAVIOR) {
+    if (name == FlowControlName::BEHAVIOR) {
         behaviorTaskStore_ = std::make_shared<TraceBehaviorStorage>(dbStore_);
         return;
     }
-    if (caller == BusinessName::TELEMETRY) {
+    if (name == FlowControlName::TELEMETRY) {
         teleMetryStorage_ = std::make_shared<TeleMetryStorage>(dbStore_);
         return;
     }
-    traceStorage_ = std::make_shared<TraceStorage>(dbStore_, caller, configPath);
+    traceStorage_ = std::make_shared<TraceStorage>(dbStore_, name, configPath);
 }
 
-TraceFlowController::TraceFlowController(const std::string& caller, const std::string& dbPath,
+TraceFlowController::TraceFlowController(const std::string& name, const std::string& dbPath,
     const std::string& configPath)
 {
     InitTraceDb(dbPath);
-    InitTraceStorage(caller, configPath);
+    InitTraceStorage(name, configPath);
 }
 
 int64_t TraceFlowController::GetRemainingTraceSize()

@@ -181,7 +181,7 @@ bool TelemetryListener::InitTelemetryDbData(const Event &msg, bool &isTimeOut, c
     }
 
     int64_t running_time = 0;
-    auto ret = TraceFlowController(BusinessName::TELEMETRY).InitTelemetryData(params.telemetryId, running_time,
+    auto ret = TraceFlowController(FlowControlName::TELEMETRY).InitTelemetryData(params.telemetryId, running_time,
         flowControlQuotas);
     if (ret == TelemetryRet::EXIT) {
         return false;
@@ -218,7 +218,7 @@ void TelemetryListener::HandleStop()
 {
     std::unique_lock<ffrt::mutex> lock(telemetryMutex_);
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-    TraceFlowController controller(BusinessName::TELEMETRY);
+    TraceFlowController controller(FlowControlName::TELEMETRY);
     controller.ClearTelemetryData();
     isCanceled_ = true;
 }
