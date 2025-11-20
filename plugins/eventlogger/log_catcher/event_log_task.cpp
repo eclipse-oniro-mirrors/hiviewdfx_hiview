@@ -39,7 +39,7 @@
 #endif // DMESG_CATCHER_ENABLE
 
 #ifdef HITRACE_CATCHER_ENABLE
-#include "log_catcher_utils.h"
+#include "event_cache_trace.h"
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
@@ -60,12 +60,6 @@ namespace {
     constexpr int BP_CMD_PERF_TYPE_INDEX = 2;
     constexpr int BP_CMD_LAYER_INDEX = 1;
     constexpr size_t BP_CMD_SZ = 3;
-    constexpr size_t FAULTTIME_STR_SIZE = 19;
-    constexpr size_t FAULTTIME_ONE_INDEX = 4;
-    constexpr size_t FAULTTIME_TWO_INDEX = 7;
-    constexpr size_t FAULTTIME_THREE_INDEX = 10;
-    constexpr size_t FAULTTIME_FOUR_INDEX = 13;
-    constexpr size_t FAULTTIME_FIVE_INDEX = 16;
     const char* SYSTEM_STACK[] = { "foundation", "render_service" };
     constexpr int TRACE_OUT_OF_TIME = 30; // 30s
     constexpr int DELAY_OUT_OF_TIME = 15; // 15s
@@ -496,6 +490,12 @@ void EventLogTask::InputHilogCapture()
 void EventLogTask::HitraceCapture(bool isBetaVersion)
 {
     uint64_t hitraceTime = GetFaultTime();
+    if (isBetaVersion && event_->GetEventValue("GET_TRACE_NAME") == "Yes") {
+        std::string traceName = EventCacheTrace::GetInstance().GetTraceName(hitraceTime);
+        event_->SetEventValue("TRACE_NAME", traceName);
+        return;
+    }
+
     uint64_t currentTime = TimeUtil::GetMilliseconds() / MILLISEC_TO_SEC;
     if (hitraceTime + TRACE_OUT_OF_TIME <= currentTime) {
         hitraceTime = currentTime - DELAY_OUT_OF_TIME;
@@ -511,7 +511,7 @@ void EventLogTask::HitraceCapture(bool isBetaVersion)
         bundleName = bundleName.empty() ? event_->GetEventValue("PROCESS_NAME") : bundleName;
     }
     std::pair<std::string, std::pair<std::string, std::vector<std::string>>> result =
-        LogCatcherUtils::FreezeDumpTrace(hitraceTime, grayscale, bundleName);
+        EventCacheTrace::GetInstance().FreezeDumpTrace(hitraceTime, grayscale, bundleName);
     event_->SetEventValue("TELEMETRY_ID", result.second.first);
     if (!result.second.second.empty()) {
         event_->SetEventValue("TRACE_NAME", result.second.second[0]);
@@ -785,17 +785,7 @@ uint64_t EventLogTask::GetFaultTime()
         return faultTime_;
     }
 
-    std::string msg = event_->GetEventValue("MSG");
-    std::string faultTimeTag = "Fault time:";
-    size_t startIndex = msg.find(faultTimeTag);
-    if (startIndex != std::string::npos && msg.size() >= (startIndex + faultTimeTag.size() + FAULTTIME_STR_SIZE)) {
-        std::string faultTimeStr = msg.substr(startIndex + faultTimeTag.size(), FAULTTIME_STR_SIZE);
-        if (faultTimeStr[FAULTTIME_ONE_INDEX] == '/' && faultTimeStr[FAULTTIME_TWO_INDEX] == '/' &&
-            faultTimeStr[FAULTTIME_THREE_INDEX] == '-' && faultTimeStr[FAULTTIME_FOUR_INDEX] == ':' &&
-            faultTimeStr[FAULTTIME_FIVE_INDEX] == ':') {
-            faultTime_ = static_cast<uint64_t>(TimeUtil::StrToTimeStamp(faultTimeStr, "%Y/%m/%d-%H:%M:%S"));
-        }
-    }
+    faultTime_ = static_cast<uint64_t>(FreezeCommon::GetFaultTime(event_->GetEventValue("MSG")));
     faultTime_ = (faultTime_ == 0) ? event_->happenTime_ / MILLISEC_TO_SEC : faultTime_;
     return faultTime_;
 }

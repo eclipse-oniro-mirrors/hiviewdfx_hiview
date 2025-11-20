@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,12 +13,14 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-config("adapter_log_catcher_config") {
+config("eventlogger_manager_config") {
   visibility = [ "*:*" ]
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+  ]
 }
 
-ohos_source_set("eventlogger_adapter_logcatcher") {
+ohos_source_set("eventlogger_manager") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -26,20 +28,22 @@ ohos_source_set("eventlogger_adapter_logcatcher") {
     debug = false
   }
 
+  defines = []
+  deps = []
+  external_deps = []
+  sources = []
+
+  if (hiview_eventlogger_hitrace_catcher_enable) {
+    defines += [ "HITRACE_CATCHER_ENABLE" ]
+    deps += [
+      "$hiview_base:hiviewbase",
+      "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
+    ]
+    external_deps += [ "hilog:libhilog", ]
+    sources += [ "event_cache_trace.cpp", ]
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
-  public_configs = [ ":adapter_log_catcher_config" ]
-
-  sources = [ "impl/log_catcher_utils.cpp" ]
-
-  deps = [ "$hiview_base:hiviewbase" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "faultloggerd:libdfx_dumpcatcher",
-    "faultloggerd:libjson_stack_formatter",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-  ]
+  public_configs = [ ":eventlogger_manager_config" ]
 }

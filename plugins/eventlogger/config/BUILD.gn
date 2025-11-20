@@ -40,6 +40,13 @@ ohos_prebuilt_etc("eventloggerso_plugin_config") {
 }
 
 ohos_source_set("eventlogger_config") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   public_configs = [ ":eventlogger_config_config" ]

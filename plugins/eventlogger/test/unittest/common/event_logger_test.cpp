@@ -330,6 +330,26 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_003, TestSize.Leve
 }
 
 /**
+ * @tc.name: EventLoggerTest_HandleMsgStr_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_HandleMsgStr_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string testName = "EventLoggerTest_HandleMsgStr_001";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    std::string msg = "TEST MSG FREEZE_HALF_HIVIEW_LOG write success Catche stack trace end time: XXXX";
+    std::string endTimeStamp;
+    eventLogger->HandleMsgStr(msg, endTimeStamp, sysEvent);
+    EXPECT_EQ(msg, "TEST MSG  ");
+    EXPECT_EQ(endTimeStamp, "Catche stack trace end time: XXXX");
+    EXPECT_EQ(sysEvent->GetEventValue("GET_TRACE_NAME"), "Yes");
+}
+
+/**
  * @tc.name: EventLoggerTest_JudgmentRateLimiting_001
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
@@ -785,11 +805,11 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
 }
 
 /**
- * @tc.name: EventLoggerTest_FreezeFilterTraceOn_001
+ * @tc.name: EventLoggerTest_HandleFreezeHalfHiview_001
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_FreezeFilterTraceOn_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_HandleFreezeHalfHiview_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
 #ifdef HITRACE_CATCHER_ENABLE
@@ -799,10 +819,13 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_FreezeFilterTraceOn_001, TestSize.Leve
         nullptr, jsonStr);
     event->SetEventValue("PROCESS_NAME", "EventLoggerTest");
     event->eventName_ = "APP_INPUT_BLOCK";
-    eventLogger->FreezeFilterTraceOn(event, true);
-    eventLogger->FreezeFilterTraceOn(event, false);
+    eventLogger->HandleFreezeHalfHiview(event, true);
+    eventLogger->InitQueue();
+    eventLogger->HandleFreezeHalfHiview(event, true);
+    sleep(1);
+    eventLogger->HandleFreezeHalfHiview(event, false);
     event->eventName_ = "THREAD_BLOCK_3S";
-    eventLogger->FreezeFilterTraceOn(event, false);
+    eventLogger->HandleFreezeHalfHiview(event, false);
 #endif
     EXPECT_EQ(event->GetEventValue("PACKAGE_NAME"), "");
 }
@@ -1222,10 +1245,11 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_001, TestSize.Lev
     eventLogger->queue_ = nullptr;
     eventLogger->queueSubmitTrace_ = nullptr;
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
-    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
     eventLogger->InitQueue();
     EXPECT_TRUE(eventLogger->queue_ != nullptr);
     EXPECT_TRUE(eventLogger->queueSubmitTrace_ != nullptr);
+    eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
+    sysEvent->SetEventValue("MSG", "FREEZE_HALF_HIVIEW_LOG write success");
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
     cmd = "k:SysRqFile";
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);

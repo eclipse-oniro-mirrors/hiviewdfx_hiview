@@ -19,13 +19,20 @@
 #include "hiview_logger.h"
 #include "file_util.h"
 #include "time_util.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    const int APPLICATION_RESULT_ID = 0;
-    const int SYSTEM_RESULT_ID = 1;
-    const int SYSTEM_WARNING_RESULT_ID = 2;
-    const uint32_t PLACEHOLDER = 3;
+    constexpr int APPLICATION_RESULT_ID = 0;
+    constexpr int SYSTEM_RESULT_ID = 1;
+    constexpr int SYSTEM_WARNING_RESULT_ID = 2;
+    constexpr uint32_t PLACEHOLDER = 3;
+    constexpr size_t FAULTTIME_STR_SIZE = 19;
+    constexpr size_t FAULTTIME_ONE_INDEX = 4;
+    constexpr size_t FAULTTIME_TWO_INDEX = 7;
+    constexpr size_t FAULTTIME_THREE_INDEX = 10;
+    constexpr size_t FAULTTIME_FOUR_INDEX = 13;
+    constexpr size_t FAULTTIME_FIVE_INDEX = 16;
 }
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
 FreezeCommon::FreezeCommon()
@@ -142,6 +149,22 @@ void FreezeCommon::WriteTimeInfoToFd(int fd, const std::string& msg, bool isStar
     if (!isStart) {
         FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");
     }
+}
+
+time_t FreezeCommon::GetFaultTime(const std::string& msg)
+{
+    std::string faultTimeTag = "Fault time:";
+    size_t startIndex = msg.find(faultTimeTag);
+    time_t faultTime = 0;
+    if (startIndex != std::string::npos && msg.size() >= (startIndex + faultTimeTag.size() + FAULTTIME_STR_SIZE)) {
+        std::string faultTimeStr = msg.substr(startIndex + faultTimeTag.size(), FAULTTIME_STR_SIZE);
+        if (faultTimeStr[FAULTTIME_ONE_INDEX] == '/' && faultTimeStr[FAULTTIME_TWO_INDEX] == '/' &&
+            faultTimeStr[FAULTTIME_THREE_INDEX] == '-' && faultTimeStr[FAULTTIME_FOUR_INDEX] == ':' &&
+            faultTimeStr[FAULTTIME_FIVE_INDEX] == ':') {
+            faultTime = TimeUtil::StrToTimeStamp(faultTimeStr, "%Y/%m/%d-%H:%M:%S");
+        }
+    }
+    return faultTime;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

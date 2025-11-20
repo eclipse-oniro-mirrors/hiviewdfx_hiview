@@ -19,12 +19,20 @@ config("log_catcher_config") {
     "include",
     "$hiview_adapter/plugins/eventlogger/log_catcher/include",
     "$hiview_plugin/freeze_detector",
+    "$hiview_eventlogger/manager/include",
   ]
 
   cflags_cc = [ "-DDUMP_STACK_IN_PROCESS" ]
 }
 
 ohos_source_set("log_catcher") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   public_configs = [ ":log_catcher_config" ]
@@ -41,6 +49,7 @@ ohos_source_set("log_catcher") {
     "$hiview_adapter/plugins/eventlogger/log_catcher:eventlogger_adapter_logcatcher",
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
+    "$hiview_eventlogger/manager:eventlogger_manager",
   ]
 
   external_deps = [
