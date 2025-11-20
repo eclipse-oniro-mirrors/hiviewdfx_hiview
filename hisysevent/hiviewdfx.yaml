@@ -155,3 +155,13 @@ READ_UNEXPECTED_SEQ:
   MAX_SEQ_FROM_DB_FILE: {type: INT64, desc: maximum sequence read from local db file}
   IS_SEQ_FILE_EXIST: {type: BOOL, desc: tag for whether event sequence file is exist}
   IS_SEQ_BACKUP_FILE_EXIST: {type: BOOL, desc: tag for whether event sequence backup file is exist}
+
+SYSEVENT_LISTENER_ANALYSIS:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: system event subscription maintenance event, preserve: true}
+  USER_ID: {type: INT32, desc: subscriber uid}
+  LISTENER_NAME: {type: STRING, desc: subscriber process name or package name}
+  LISTENER_MATCH_COUNT: {type: INT32, desc: matching status of AddListener and RemoveListener}
+  ADDLISTENER_SUCC_COUNT: {type: INT32, desc: number of AddListener success}
+  ADDLISTENER_FAULT_COUNT: {type: INT32, desc: number of AddListener failures}
+  REMOVELISTENER_FAULT_COUNT: {type: INT32, desc: number of RemoveListener failures}
+  EVENT_RULE: {type: STRING, desc: subscribed event rule}

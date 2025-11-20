@@ -21,6 +21,7 @@ group("unittest") {
   deps = [
     ":EventCheckerUnitTest",
     ":EventServiceAdapterUtilsTest",
+    ":ListenerStatusMonitorTest",
     ":SysEventServiceOhosUnitTest",
   ]
 }
@@ -117,6 +118,33 @@ ohos_unittest("EventServiceAdapterUtilsTest") {
   external_deps = [
     "googletest:gtest_main",
     "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
+    "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+}
+
+ohos_unittest("ListenerStatusMonitorTest") {
+  module_out_path = module_output_path
+  configs = [ ":unittest_config" ]
+
+  sources = [ "unittest/common/listener_status_monitor_test.cpp" ]
+
+  deps = [
+    "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
+    "$hiview_adapter/plugins/eventservice/service/idl:sys_event_service_ohos",
+    "$hiview_base:hiview_base",
+    "$hiview_core:hiview_core",
+  ]
+
+  external_deps = [
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_single",

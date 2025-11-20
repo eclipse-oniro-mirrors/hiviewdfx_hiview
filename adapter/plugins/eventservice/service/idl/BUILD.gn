@@ -47,11 +47,13 @@ ohos_source_set("sys_event_service_ohos") {
   include_dirs = [
     "$hiview_plugin/eventservice/include",
     "$hiview_base/event_store/include",
-    "$hiview_base/event_threshold/include",
     "$hiview_base/running_status_logger/include",
+    "dfx/include",
   ]
 
   sources = [
+    "dfx/src/listener_status_monitor.cpp",
+    "dfx/src/listener_status_util.cpp",
     "src/ash_mem_utils.cpp",
     "src/compliant_event_checker.cpp",
     "src/data_publisher.cpp",
