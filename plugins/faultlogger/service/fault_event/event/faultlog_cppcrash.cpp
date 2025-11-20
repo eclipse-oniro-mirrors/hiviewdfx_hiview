@@ -146,7 +146,7 @@ Json::Value FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::strin
     stackInfoObj["process_life_time"] = GetProcessInfo(info.sectionMap, FaultKey::PROCESS_LIFETIME);
     auto memory = GetMemoryJsonValue(info.sectionMap);
     stackInfoObj["memory"] = memory;
-    stackInfoObj["app_type"] = GetStrValFromMap(info.sectionMap, FaultKey::APP_TYPE);
+    stackInfoObj["release_type"] = GetStrValFromMap(info.sectionMap, FaultKey::RELEASE_TYPE);
     stackInfoObj["cpu_abi"] = GetStrValFromMap(info.sectionMap, FaultKey::CPU_ABI);
     stackInfoObj["bundle_version"] = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
     stackInfoObj["foreground"] = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";

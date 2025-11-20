@@ -220,7 +220,7 @@ void FaultLogProcessorBase::AddBundleInfo(FaultLogInfo& info)
 
     info.sectionMap[FaultKey::IS_SYSTEM_APP] = GetIsSystemApp(info.module, info.id) ? "Yes" : "No";
     info.sectionMap[FaultKey::CPU_ABI] = bundleInfo.cpuAbi;
-    info.sectionMap[FaultKey::APP_TYPE] = bundleInfo.releaseType;
+    info.sectionMap[FaultKey::RELEASE_TYPE] = bundleInfo.releaseType;
     info.sectionMap[FaultKey::PRE_INSTALL] = bundleInfo.isPreInstalled ? "Yes" : "No";
 }
 
