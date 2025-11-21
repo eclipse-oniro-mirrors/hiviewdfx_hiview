@@ -47,31 +47,13 @@ void EventCacheTraceTest::TearDown()
 }
 
 #ifdef HITRACE_CATCHER_ENABLE
-/**
- * @tc.name: EventCacheTrace_001
- * @tc.desc: test EventCacheTrace InserTraceName and GetTraceName
- * @tc.type: FUNC
- */
-HWTEST_F(EventCacheTraceTest, EventCacheTraceTest_001, TestSize.Level3)
-{
-    int64_t execCapacity = 11;
-    std::string traceName = "traceName_";
-    for (int64_t i = 0; i < execCapacity; i ++) {
-        EventCacheTrace::GetInstance().InsertTraceName(i, traceName + std::to_string(i));
-        if (i == execCapacity - 2) {
-            EventCacheTrace::GetInstance().InsertTraceName(i, traceName + std::to_string(i));
-        }
-    }
-    EXPECT_EQ(EventCacheTrace::GetInstance().GetTraceName(0), "");
-    EXPECT_EQ(EventCacheTrace::GetInstance().GetTraceName(10), "traceName_10");
-}
 
 /**
- * @tc.name: EventCacheTraceTest_002
+ * @tc.name: EventCacheTraceTest_001
  * @tc.desc: add test
  * @tc.type: FUNC
  */
-HWTEST_F(EventCacheTraceTest, EventCacheTraceTest_002, TestSize.Level1)
+HWTEST_F(EventCacheTraceTest, EventCacheTraceTest_001, TestSize.Level1)
 {
     std::map<std::string, std::string> valuePairs;
     EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);

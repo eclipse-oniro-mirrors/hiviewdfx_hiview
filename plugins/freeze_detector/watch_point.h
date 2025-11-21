@@ -34,7 +34,6 @@ public:
         Builder& InitUid(long uid);
         Builder& InitTerminalThreadStack(const std::string& terminalThreadStack);
         Builder& InitTelemetryId(const std::string& telemetryId);
-        Builder& InitTraceName(const std::string& traceName);
         Builder& InitDomain(const std::string& domain);
         Builder& InitStringId(const std::string& stringId);
         Builder& InitMsg(const std::string& msg);
@@ -67,7 +66,6 @@ public:
         long uid_;
         std::string terminalThreadStack_;
         std::string telemetryId_;
-        std::string traceName_;
         std::string domain_;
         std::string stringId_;
         std::string msg_;
@@ -104,7 +102,6 @@ public:
     long GetUid() const;
     std::string GetTerminalThreadStack() const;
     std::string GetTelemetryId() const;
-    std::string GetTraceName() const;
     std::string GetDomain() const;
     std::string GetStringId() const;
     std::string GetMsg() const;
@@ -147,7 +144,6 @@ private:
     long uid_;
     std::string terminalThreadStack_;
     std::string telemetryId_;
-    std::string traceName_;
     std::string domain_;
     std::string stringId_;
     std::string msg_;

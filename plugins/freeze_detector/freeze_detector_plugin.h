@@ -39,7 +39,6 @@ struct WatchPointParams {
     std::string sysrqTime;
     std::string terminalThreadStack;
     std::string telemetryId;
-    std::string traceName;
     std::string info;
     std::string hitraceIdInfo;
     std::string procStatm;
@@ -55,6 +54,7 @@ struct WatchPointParams {
     std::string logFile;
     std::string foreGround;
     std::string clusterRaw;
+    std::string msg;
 };
 class FreezeDetectorPlugin : public Plugin {
 public:

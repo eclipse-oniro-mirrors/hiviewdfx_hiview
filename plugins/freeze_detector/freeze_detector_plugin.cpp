@@ -117,11 +117,11 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.appRunningUniqueId = sysEvent.GetEventValue(FreezeCommon::APP_RUNNING_UNIQUE_ID);
     params.packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     params.processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+    params.msg = sysEvent.GetEventValue(FreezeCommon::EVENT_MSG);
     params.hitraceTime = sysEvent.GetEventValue(FreezeCommon::HITRACE_TIME);
     params.sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     params.terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
     params.telemetryId = sysEvent.GetEventValue(FreezeCommon::TELEMETRY_ID);
-    params.traceName = sysEvent.GetEventValue(FreezeCommon::TRACE_NAME);
     params.info = sysEvent.GetEventValue(EventStore::EventCol::INFO);
     params.hitraceIdInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_TRACE_ID);
     params.procStatm = sysEvent.GetEventValue(FreezeCommon::PROC_STATM);
@@ -154,16 +154,15 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitDomain(event.domain_).InitStringId(event.eventName_).InitTimestamp(event.happenTime_)
         .InitPid(params.pid).InitTid(params.tid).InitUid(params.uid)
         .InitTerminalThreadStack(params.terminalThreadStack).InitTelemetryId(params.telemetryId)
-        .InitTraceName(params.traceName).InitPackageName(params.packageName)
-        .InitProcessName(params.processName).InitForeGround(params.foreGround).InitMsg("")
-        .InitLogPath(params.logFile).InitHitraceTime(params.hitraceTime)
-        .InitSysrqTime(params.sysrqTime).InitHitraceIdInfo(params.hitraceIdInfo)
-        .InitProcStatm(params.procStatm).InitHostResourceWarning(params.hostResourceWarning)
-        .InitFreezeExtFile(params.freezeExtFile).InitAppRunningUniqueId(params.appRunningUniqueId)
-        .InitApplicationInfo(params.applicationInfo).InitTaskName(params.taskName)
-        .InitTimeoutEventId(params.timeoutEventId).InitLastDispatchEventId(params.lastDispatchEventId)
-        .InitLastProcessEventId(params.lastProcessEventId).InitLastMarkedEventId(params.lastMarkedEventId)
-        .InitThermalLevel(params.thermalLevel).InitClusterRaw(params.clusterRaw).Build();
+        .InitPackageName(params.packageName).InitProcessName(params.processName).InitForeGround(params.foreGround)
+        .InitMsg(params.msg).InitLogPath(params.logFile).InitHitraceTime(params.hitraceTime)
+        .InitSysrqTime(params.sysrqTime).InitHitraceIdInfo(params.hitraceIdInfo).InitProcStatm(params.procStatm)
+        .InitHostResourceWarning(params.hostResourceWarning).InitFreezeExtFile(params.freezeExtFile)
+        .InitAppRunningUniqueId(params.appRunningUniqueId).InitApplicationInfo(params.applicationInfo)
+        .InitTaskName(params.taskName).InitTimeoutEventId(params.timeoutEventId)
+        .InitLastDispatchEventId(params.lastDispatchEventId).InitLastProcessEventId(params.lastProcessEventId)
+        .InitLastMarkedEventId(params.lastMarkedEventId).InitThermalLevel(params.thermalLevel)
+        .InitClusterRaw(params.clusterRaw).Build();
 
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"

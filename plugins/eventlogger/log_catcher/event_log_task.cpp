@@ -40,6 +40,7 @@
 
 #ifdef HITRACE_CATCHER_ENABLE
 #include "event_cache_trace.h"
+#include "freeze_manager.h"
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
@@ -489,13 +490,8 @@ void EventLogTask::InputHilogCapture()
 #ifdef HITRACE_CATCHER_ENABLE
 void EventLogTask::HitraceCapture(bool isBetaVersion)
 {
-    uint64_t hitraceTime = GetFaultTime();
-    if (isBetaVersion && event_->GetEventValue("GET_TRACE_NAME") == "Yes") {
-        std::string traceName = EventCacheTrace::GetInstance().GetTraceName(hitraceTime);
-        event_->SetEventValue("TRACE_NAME", traceName);
-        return;
-    }
-
+    uint64_t faultTime = GetFaultTime();
+    uint64_t hitraceTime = faultTime;
     uint64_t currentTime = TimeUtil::GetMilliseconds() / MILLISEC_TO_SEC;
     if (hitraceTime + TRACE_OUT_OF_TIME <= currentTime) {
         hitraceTime = currentTime - DELAY_OUT_OF_TIME;
@@ -514,11 +510,13 @@ void EventLogTask::HitraceCapture(bool isBetaVersion)
         EventCacheTrace::GetInstance().FreezeDumpTrace(hitraceTime, grayscale, bundleName);
     event_->SetEventValue("TELEMETRY_ID", result.second.first);
     if (!result.second.second.empty()) {
-        event_->SetEventValue("TRACE_NAME", result.second.second[0]);
+        FreezeManager::GetInstance()->InsertTraceName(faultTime, result.second.second[0]);
     } else if (isBetaVersion) {
-        event_->SetEventValue("TRACE_NAME", "dump trace failed in beta, retCode : " + result.first);
+        FreezeManager::GetInstance()->InsertTraceName(faultTime, "dump trace failed in beta, retCode : " +
+            result.first);
     } else if (!result.second.first.empty()) {
-        event_->SetEventValue("TRACE_NAME", "dump trace failed with grayscale, retCode : " + result.first);
+        FreezeManager::GetInstance()->InsertTraceName(faultTime, "dump trace failed with grayscale, retCode : " +
+            result.first);
     }
 }
 #endif // HITRACE_CATCHER_ENABLE

@@ -23,23 +23,25 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static const int VALUE_MOD = 200000;
-    static const size_t FREEZE_FILE_NAME_SIZE = 6;
-    static const int FREEZE_UID_INDEX = 4;
-    static constexpr int MAX_FREEZE_PER_HAP = 10;
-    static constexpr int EVENTLOG_MIN_KEEP_FILE_NUM = 80;
-    static constexpr int EVENTLOG_MAX_FOLDER_SIZE = 100 * 1024 * 1024;
-    static constexpr int FREEZE_DETECTOR_MIN_KEEP_FILE_NUM = 5;
-    static constexpr int FREEZE_DETECTOR_MAX_FOLDER_SIZE = 10 * 1024 * 1024;
-    static constexpr int FREEZE_EXT_MIN_KEEP_FILE_NUM = 5;
-    static constexpr int FREEZE_EXT_MAX_FOLDER_SIZE = 10 * 1024 * 1024;
-    static constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/";
-    static constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
-    static constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
-    static constexpr const char* FREEZE_EXT_LOG_PATH = "/data/log/faultlog/freeze_ext/";
-    static constexpr const char* PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
-    static constexpr const char* PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
+    constexpr int VALUE_MOD = 200000;
+    constexpr size_t FREEZE_FILE_NAME_SIZE = 6;
+    constexpr int FREEZE_UID_INDEX = 4;
+    constexpr int MAX_FREEZE_PER_HAP = 10;
+    constexpr int EVENTLOG_MIN_KEEP_FILE_NUM = 80;
+    constexpr int EVENTLOG_MAX_FOLDER_SIZE = 100 * 1024 * 1024;
+    constexpr int FREEZE_DETECTOR_MIN_KEEP_FILE_NUM = 5;
+    constexpr int FREEZE_DETECTOR_MAX_FOLDER_SIZE = 10 * 1024 * 1024;
+    constexpr int FREEZE_EXT_MIN_KEEP_FILE_NUM = 5;
+    constexpr int FREEZE_EXT_MAX_FOLDER_SIZE = 10 * 1024 * 1024;
+    constexpr const char* const APPFREEZE_LOG_PREFIX = "/data/app/el2/";
+    constexpr const char* const APPFREEZE_LOG_SUFFIX = "/watchdog/freeze/";
+    constexpr const char* const FREEZE_CPUINFO_PREFIX = "freeze-cpuinfo-ext-";
+    constexpr const char* FREEZE_EXT_LOG_PATH = "/data/log/faultlog/freeze_ext/";
+    constexpr const char* PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
+    constexpr const char* PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
+    constexpr size_t TRACE_NAME_MAP_CAPACITY = 10;
 }
+
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
 FreezeManager::FreezeManager()
 {
@@ -53,6 +55,28 @@ FreezeManager &FreezeManager::GetInStance()
 {
     static FreezeManager instance;
     return instance;
+}
+
+void FreezeManager::InsertTraceName(int64_t time, std::string traceName)
+{
+    std::unique_lock lock(traceNameMapMutex_);
+    auto it = traceNameMap_.find(time);
+    if (it != traceNameMap_.end()) {
+        it->second = std::move(traceName);
+        return;
+    }
+
+    while (traceNameMap_.size() >= TRACE_NAME_MAP_CAPACITY) {
+        traceNameMap_.erase(traceNameMap_.begin());
+    }
+    traceNameMap_.emplace(time, std::move(traceName));
+}
+
+std::string FreezeManager::GetTraceName(int64_t time) const
+{
+    std::shared_lock lock(traceNameMapMutex_);
+    auto it = traceNameMap_.find(time);
+    return it == traceNameMap_.end() ? "" : it->second;
 }
 
 int32_t FreezeManager::GetUidFromFileName(const std::string& fileName) const
