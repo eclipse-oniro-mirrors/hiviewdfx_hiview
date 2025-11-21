@@ -150,7 +150,7 @@ bool IsNativeCaller()
 
 bool IsCustomSandboxAppCaller()
 {
-#ifdef SUPPORT_LOCAL_READ_DIADNOSTIC_LOGS
+#ifdef SUPPORT_LOCAL_READ_DIAGNOSTIC_LOGS
     using namespace Security::AccessToken;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     if ((AccessTokenKit::VerifyAccessToken(tokenId, "ohos.permission.CUSTOM_SANDBOX") == RET_SUCCESS)) {
