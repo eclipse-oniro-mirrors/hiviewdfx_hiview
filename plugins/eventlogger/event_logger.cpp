@@ -95,7 +95,6 @@ namespace {
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
-    constexpr unsigned long long GET_TRACE_NAME_DELAY_TIME = 2500000;
 }
 
 REGISTER(EventLogger);
@@ -339,12 +338,11 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
 }
 
-void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask,
-    unsigned long long delayTime)
+void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask)
 {
     if (queueSubmitTrace_) {
         queueSubmitTrace_->submit([this, logTask, cmd] { logTask->AddLog(cmd); },
-            ffrt::task_attr().name("async_log").delay(delayTime));
+            ffrt::task_attr().name("async_log"));
     }
 }
 
@@ -359,9 +357,7 @@ void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<S
     std::shared_ptr<EventLogTask> logTask)
 {
     if (cmd == "tr") {
-        if (event->GetEventValue("GET_TRACE_NAME") == "Yes") {
-            SubmitTraceTask(cmd, logTask, GET_TRACE_NAME_DELAY_TIME);
-        } else {
+        if (event->GetEventValue("NOT_DUMP_TRACE") != "Yes") {
             SubmitTraceTask(cmd, logTask);
         }
         return;
@@ -445,14 +441,14 @@ void EventLogger::HandleFreezeHalfHiview(std::shared_ptr<SysEvent> event, bool i
             return;
         }
         std::string faultTimeStr = event->GetEventValue("FAULT_TIME");
-        int64_t hitraceTime = static_cast<int64_t>(FreezeCommon::GetFaultTime(faultTimeStr));
-        auto task = [hitraceTime] {
+        int64_t faultTime = static_cast<int64_t>(FreezeCommon::GetFaultTime(faultTimeStr));
+        auto task = [faultTime] {
             std::pair<std::string, std::pair<std::string, std::vector<std::string>>> result =
-                EventCacheTrace::GetInstance().FreezeDumpTrace(hitraceTime, false, "");
+                EventCacheTrace::GetInstance().FreezeDumpTrace(faultTime, false, "");
             if (!result.second.second.empty()) {
-                EventCacheTrace::GetInstance().InsertTraceName(hitraceTime, result.second.second[0]);
+                FreezeManager::GetInstance()->InsertTraceName(faultTime, result.second.second[0]);
             } else {
-                EventCacheTrace::GetInstance().InsertTraceName(hitraceTime,
+                FreezeManager::GetInstance()->InsertTraceName(faultTime,
                     "dump trace failed in beta, retCode :" + result.first);
             }
         };
@@ -895,7 +891,7 @@ void EventLogger::HandleMsgStr(std::string& msg, std::string& endTimeStamp, std:
     }
     size_t pos = msg.find(FreezeCommon::FREEZE_HALF_HIVIEW_SUCCESS);
     if (pos != std::string::npos) {
-        event->SetEventValue("GET_TRACE_NAME", "Yes");
+        event->SetEventValue("NOT_DUMP_TRACE", "Yes");
         msg.erase(pos, std::strlen(FreezeCommon::FREEZE_HALF_HIVIEW_SUCCESS));
     }
 }

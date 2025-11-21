@@ -28,26 +28,20 @@ class EventCacheTrace {
 public:
     static EventCacheTrace& GetInstance();
 
-    void InsertTraceName(int64_t time, std::string traceName);
-    std::string GetTraceName(int64_t time) const;
-
     void HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs);
     void FreezeFilterTraceOn(const std::string& bundleName);
     std::pair<std::string, std::pair<std::string, std::vector<std::string>>> FreezeDumpTrace(uint64_t hitraceTime,
         bool grayscale, const std::string& bundleName);
     std::pair<std::string, std::string> GetTelemetryInfo();
 private:
-    explicit EventCacheTrace(std::size_t capacity);
+    explicit EventCacheTrace();
 
     EventCacheTrace(const EventCacheTrace&) = delete;
     EventCacheTrace& operator=(const EventCacheTrace&) = delete;
 
-    std::map<int64_t, std::string> traceNameMap_;
-    mutable std::shared_mutex traceNameMapMutex_;
     std::shared_mutex grayscaleMutex_;
     std::string telemetryId_;
     std::string traceAppFilter_;
-    const std::size_t traceNameMapCapacity_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

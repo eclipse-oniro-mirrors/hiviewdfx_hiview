@@ -346,7 +346,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_HandleMsgStr_001, TestSize.Level3)
     eventLogger->HandleMsgStr(msg, endTimeStamp, sysEvent);
     EXPECT_EQ(msg, "TEST MSG  ");
     EXPECT_EQ(endTimeStamp, "Catche stack trace end time: XXXX");
-    EXPECT_EQ(sysEvent->GetEventValue("GET_TRACE_NAME"), "Yes");
+    EXPECT_EQ(sysEvent->GetEventValue("NOT_DUMP_TRACE"), "Yes");
 }
 
 /**
@@ -1250,6 +1250,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_001, TestSize.Lev
     EXPECT_TRUE(eventLogger->queueSubmitTrace_ != nullptr);
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
     sysEvent->SetEventValue("MSG", "FREEZE_HALF_HIVIEW_LOG write success");
+    sysEvent->SetEventValue("NOT_DUMP_TRACE", "Yes");
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
     cmd = "k:SysRqFile";
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);

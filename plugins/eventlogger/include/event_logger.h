@@ -130,8 +130,7 @@ private:
     void AddBootScanEvent();
     bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
     bool CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent);
-    void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask,
-        unsigned long long delayTime = 0);
+    void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void InitQueue();
 };

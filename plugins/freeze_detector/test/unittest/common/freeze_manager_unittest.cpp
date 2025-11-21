@@ -194,5 +194,23 @@ HWTEST_F(FreezeManagerTest, GetDightStrArr_Test_001, TestSize.Level3)
     auto numStrArr = freezeManager->GetDightStrArr(target);
     EXPECT_TRUE(numStrArr.size() > 0);
 }
+
+/**
+ * @tc.name: InsertTraceName and GetTraceName test
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
+{
+    int64_t execCapacity = 11;
+    std::string traceName = "traceName_";
+    for (int64_t i = 0; i < execCapacity; i++) {
+        FreezeManager::GetInstance()->InsertTraceName(i, traceName + std::to_string(i));
+        if (i == execCapacity - 2) {
+            FreezeManager::GetInstance()->InsertTraceName(i, traceName + std::to_string(i));
+        }
+    }
+    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "");
+    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(10), "traceName_10");
+}
 }
 }

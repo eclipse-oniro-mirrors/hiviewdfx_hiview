@@ -22,7 +22,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    constexpr size_t TRACE_NAME_MAP_CAPACITY = 10;
     constexpr uint32_t MAX_DUMP_TRACE_LIMIT = 15;
     constexpr const char* FAULT_FREEZE_TYPE = "32";
 }
@@ -31,33 +30,11 @@ DEFINE_LOG_LABEL(0xD002D01, "EventCacheTrace");
 
 EventCacheTrace& EventCacheTrace::GetInstance()
 {
-    static EventCacheTrace instance(TRACE_NAME_MAP_CAPACITY);
+    static EventCacheTrace instance;
     return instance;
 }
 
-EventCacheTrace::EventCacheTrace(std::size_t capacity) : traceNameMapCapacity_(capacity) {}
-
-void EventCacheTrace::InsertTraceName(int64_t time, std::string traceName)
-{
-    std::unique_lock lock(traceNameMapMutex_);
-    auto it = traceNameMap_.find(time);
-    if (it != traceNameMap_.end()) {
-        it->second = std::move(traceName);
-        return;
-    }
-
-    while (traceNameMap_.size() >= traceNameMapCapacity_) {
-        traceNameMap_.erase(traceNameMap_.begin());
-    }
-    traceNameMap_.emplace(time, std::move(traceName));
-}
-
-std::string EventCacheTrace::GetTraceName(int64_t time) const
-{
-    std::shared_lock lock(traceNameMapMutex_);
-    auto it = traceNameMap_.find(time);
-    return it == traceNameMap_.end() ? "" : it->second;
-}
+EventCacheTrace::EventCacheTrace() {}
 
 void EventCacheTrace::HandleTelemetryMsg(std::map<std::string, std::string>& valuePairs)
 {

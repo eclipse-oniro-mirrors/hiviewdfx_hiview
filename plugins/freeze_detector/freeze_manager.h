@@ -19,6 +19,7 @@
 #include <map>
 #include "log_store_ex.h"
 #include "singleton.h"
+#include <shared_mutex>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -40,6 +41,8 @@ public:
     void InitLogStore();
     static std::string GetAppFreezeFile(const std::string& stackPath);
 
+    void InsertTraceName(int64_t time, std::string traceName);
+    std::string GetTraceName(int64_t time) const;
     std::string SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
         const std::string& stackFile, const std::string& cpuFile) const;
     int GetFreezeLogFd(int32_t freezeLogType, const std::string& fileName) const;
@@ -58,6 +61,9 @@ private:
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeExtLogStore_ = nullptr;
+
+    std::map<int64_t, std::string> traceNameMap_;
+    mutable std::shared_mutex traceNameMapMutex_;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS
