@@ -73,6 +73,9 @@ void FaultLogEventBase::UpdateSysEvent(SysEvent& sysEvent, FaultLogInfo& info)
     if (info.faultLogType == FaultLogType::ADDR_SANITIZER) {
         fingerPrint = sysEvent.GetEventValue(FaultKey::FINGERPRINT);
     }
+    if (info.faultLogType == FaultLogType::JS_CRASH) {
+        sysEvent.SetEventValue(FaultKey::IS_SYSTEM_APP, info.sectionMap[FaultKey::IS_SYSTEM_APP]);
+    }
     if (fingerPrint.empty()) {
         sysEvent.SetEventValue(FaultKey::FINGERPRINT, eventInfos[FaultKey::FINGERPRINT]);
     }
