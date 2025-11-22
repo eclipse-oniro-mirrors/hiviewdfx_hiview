@@ -25,6 +25,7 @@
 #include "iquery_base_callback.h"
 #include "iquery_sys_event_callback.h"
 #include "isys_event_callback.h"
+#include "listener_status_monitor.h"
 #include "query_argument.h"
 #include "singleton.h"
 #include "sys_event_dao.h"
@@ -50,7 +51,9 @@ class SysEventServiceOhos : public SystemAbility,
 public:
     DISALLOW_COPY_AND_MOVE(SysEventServiceOhos);
     SysEventServiceOhos()
-        : deathRecipient_(new CallbackDeathRecipient()), dataPublisher_(new DataPublisher()){};
+        : deathRecipient_(new CallbackDeathRecipient()),
+        dataPublisher_(std::make_shared<DataPublisher>()),
+        statusMonitor_(std::make_shared<ListenerStatusMonitor>()) {}
     virtual ~SysEventServiceOhos();
 
     static sptr<SysEventServiceOhos> GetInstance();
@@ -102,6 +105,7 @@ private:
     std::map<OHOS::sptr<OHOS::IRemoteObject>, ListenerInfo> registeredListeners_;
     std::mutex publisherMutex_;
     std::shared_ptr<DataPublisher> dataPublisher_;
+    std::shared_ptr<ListenerStatusMonitor> statusMonitor_;
 
 private:
     static sptr<SysEventServiceOhos> instance_;

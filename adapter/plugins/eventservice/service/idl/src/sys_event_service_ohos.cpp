@@ -24,11 +24,12 @@
 #include "data_publisher.h"
 #include "event_json_parser.h"
 #include "event_query_wrapper_builder.h"
+#include "hiview_logger.h"
+#include "hiview_xcollie_timer.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
-#include "hiview_logger.h"
-#include "hiview_xcollie_timer.h"
+#include "listener_status_util.h"
 #include "ret_code.h"
 #include "running_status_log_util.h"
 #include "string_ex.h"
@@ -45,10 +46,11 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-SysEventService");
 namespace {
+constexpr size_t WATCH_RULE_CNT_LIMIT = 20; // count of listener rule for each watcher
+constexpr size_t WATCHER_TOTAL_CNT_LIMIT = 30; // count of total watches
 constexpr pid_t HID_ROOT = 0;
 constexpr pid_t HID_SHELL = 2000;
 constexpr pid_t HID_OHOS = 1000;
-const std::vector<int> EVENT_TYPES = {1, 2, 3, 4}; // FAULT = 1, STATISTIC = 2 SECURITY = 3, BEHAVIOR = 4
 constexpr size_t REGEX_LEN_LIMIT = 32; // max(domainLen, nameLen, tagLen)
 
 bool IsMatchedWithRegex(const string& rule, const string& match)
@@ -255,26 +257,28 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
 {
     HiviewXCollieTimer timer("AddListener", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller() || IsCustomSandboxAppCaller())) {
+        statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), false);
         return ERR_NO_PERMISSION;
     }
-    size_t watchRuleCntLimit = 20; // count of listener rule for each watcher is limited to 20.
-    if (rules.size() > watchRuleCntLimit) {
+
+    if (rules.size() > WATCH_RULE_CNT_LIMIT) {
         OHOS::HiviewDFX::RunningStatusLogUtil::LogTooManyWatchRules(rules);
+        statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), false);
         return ERR_TOO_MANY_WATCH_RULES;
     }
     lock_guard<mutex> lock(listenersMutex_);
-    size_t watcherTotalCntLimit = 30; // count of total watches is limited to 30.
-    if (registeredListeners_.size() >= watcherTotalCntLimit) {
-        OHOS::HiviewDFX::RunningStatusLogUtil::LogTooManyWatchers(watcherTotalCntLimit);
+    if (registeredListeners_.size() >= WATCHER_TOTAL_CNT_LIMIT) {
+        OHOS::HiviewDFX::RunningStatusLogUtil::LogTooManyWatchers(WATCHER_TOTAL_CNT_LIMIT);
+        statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), false);
         return ERR_TOO_MANY_WATCHERS;
     }
-    auto service = GetSysEventService();
-    if (service == nullptr) {
+    if (GetSysEventService() == nullptr) {
         HIVIEW_LOGE("subscribe fail, sys event service is null.");
         return ERR_REMOTE_SERVICE_IS_NULL;
     }
     if (callback == nullptr) {
         HIVIEW_LOGE("subscribe fail, callback is null.");
+        statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), false);
         return ERR_LISTENER_NOT_EXIST;
     }
     OHOS::sptr<OHOS::IRemoteObject> callbackObject = callback->AsObject();
@@ -287,6 +291,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
         registeredListeners_[callbackObject] = listenerInfo;
         HIVIEW_LOGD("uid %{public}d pid %{public}d listener has been added and update rules.",
             listenerInfo.uid, listenerInfo.pid);
+        statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), true);
         return IPC_CALL_SUCCEED;
     }
     if (callbackObject->IsProxyObject() && !callbackObject->AddDeathRecipient(deathRecipient_)) {
@@ -296,6 +301,7 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     registeredListeners_.insert(make_pair(callbackObject, listenerInfo));
     HIVIEW_LOGD("uid %{public}d pid %{public}d listener is added successfully, total is %{public}zu.",
         listenerInfo.uid, listenerInfo.pid, registeredListeners_.size());
+    statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), true);
     return IPC_CALL_SUCCEED;
 }
 
@@ -303,6 +309,7 @@ ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>&
 {
     HiviewXCollieTimer timer("RemoveListener", SYS_CALLING_TIMEOUT);
     if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller() || IsCustomSandboxAppCaller())) {
+        statusMonitor_->RecordRemoveListener(ListenerStatusUtil::GetListenerCallerInfo(), false);
         return ERR_NO_PERMISSION;
     }
     auto service = GetSysEventService();
@@ -312,6 +319,7 @@ ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>&
     }
     if (callback == nullptr) {
         HIVIEW_LOGE("callback is null.");
+        statusMonitor_->RecordRemoveListener(ListenerStatusUtil::GetListenerCallerInfo(), false);
         return ERR_LISTENER_NOT_EXIST;
     }
     OHOS::sptr<OHOS::IRemoteObject> callbackObject = callback->AsObject();
@@ -324,6 +332,7 @@ ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>&
     lock_guard<mutex> lock(listenersMutex_);
     if (registeredListeners_.empty()) {
         HIVIEW_LOGD("has no any listeners.");
+        statusMonitor_->RecordRemoveListener(ListenerStatusUtil::GetListenerCallerInfo(), false);
         return ERR_LISTENERS_EMPTY;
     }
     auto registeredListener = registeredListeners_.find(callbackObject);
@@ -332,11 +341,14 @@ ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>&
             HIVIEW_LOGE("uid %{public}d pid %{public}d listener can not remove death recipient.", uid, pid);
             return ERR_ADD_DEATH_RECIPIENT;
         }
+        auto rules = registeredListener->second.rules;
         registeredListeners_.erase(registeredListener);
         HIVIEW_LOGD("uid %{public}d pid %{public}d has found listener and removes it.", uid, pid);
+        statusMonitor_->RecordRemoveListener(ListenerStatusUtil::GetListenerCallerInfo(rules), true);
         return IPC_CALL_SUCCEED;
     } else {
         HIVIEW_LOGD("uid %{public}d pid %{public}d has not found listener.", uid, pid);
+        statusMonitor_->RecordRemoveListener(ListenerStatusUtil::GetListenerCallerInfo(), false);
         return ERR_LISTENER_NOT_EXIST;
     }
 }
@@ -549,6 +561,7 @@ void SysEventServiceOhos::SetWorkLoop(std::shared_ptr<EventLoop> looper)
         return;
     }
     dataPublisher_->SetWorkLoop(looper);
+    statusMonitor_->SetWorkLoop(looper);
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

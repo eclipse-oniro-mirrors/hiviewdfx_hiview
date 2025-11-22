@@ -19,6 +19,7 @@ config("sys_event_service_adapter_config") {
 
   include_dirs = [
     ".",
+    "idl/dfx/include",
     "idl/include/type",
   ]
 }
