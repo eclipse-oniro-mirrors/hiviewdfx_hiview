@@ -2309,6 +2309,18 @@ HWTEST_F(FaultloggerUnittest, FaultlogLimit001, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: ReportProcessKillEvent001
+ * @tc.desc: Test calling ReportProcessKillEvent Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, ReportProcessKillEvent001, testing::ext::TestSize.Level3)
+{
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    EXPECT_TRUE(faultCppCrash.ReportProcessKillEvent(info));
+}
+
+/**
  * @tc.name: FaultLogManagerService001
  * @tc.desc: Test calling querySelfFaultLog Func
  * @tc.type: FUNC
@@ -2520,10 +2532,10 @@ HWTEST_F(FaultloggerUnittest, FaultLogSanitizer002, testing::ext::TestSize.Level
         const std::unordered_map<std::string, std::string>& expected) {
         SysEventCreator sysEventCreator("RELIABILITY", "ADDR_SANITIZER", SysEventCreator::FAULT);
         sysEventCreator.SetKeyValue("DATA", input);
- 
+
         auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
         sanitizer.ParseSanitizerEasyEvent(*sysEvent);
- 
+
         for (const auto& [key, val] : expected) {
             EXPECT_EQ(sysEvent->GetEventValue(key), val);
         }

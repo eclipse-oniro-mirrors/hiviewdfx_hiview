@@ -26,7 +26,7 @@
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_c.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "procinfo.h"
@@ -237,6 +237,7 @@ bool FaultLogCppCrash::CheckFaultLog(const FaultLogInfo& info)
 void FaultLogCppCrash::AddSpecificInfo(FaultLogInfo& info)
 {
     AddCppCrashInfo(info);
+    ReportProcessKillEvent(info);
 }
 
 bool FaultLogCppCrash::ReportEventToAppEvent(const FaultLogInfo& info)
@@ -281,6 +282,30 @@ bool FaultLogCppCrash::TruncateLogIfExceedsLimit(std::string& readContent) const
     readContent.resize(maxLogSize);
     readContent += "\n[truncated]";
     return true;
+}
+
+bool FaultLogCppCrash::ReportProcessKillEvent(const FaultLogInfo& info) const
+{
+    char killReason[] = "Kill Reason:Cpp Crash";
+    char reason[] = "CppCrash"; // distinguish different kill types
+    std::string appRunningUniqueId = GetStrValFromMap(info.sectionMap, FaultKey::APP_RUNNING_UNIQUE_ID);
+    HiSysEventParam params[] = {
+        {.name = "PID", .t = HISYSEVENT_UINT32, .v = { .ui32 = info.pid}, .arraySize = 0},
+        {.name = "PROCESS_NAME", .t = HISYSEVENT_STRING,
+            .v = {.s = const_cast<char*>(info.module.c_str())}, .arraySize = 0},
+        {.name = "MSG", .t = HISYSEVENT_STRING, .v = {.s = killReason}, .arraySize = 0},
+        {.name =  "APP_RUNNING_UNIQUE_ID", .t = HISYSEVENT_STRING,
+            .v = {.s = const_cast<char*>(appRunningUniqueId.c_str())}, .arraySize = 0},
+        {.name = "REASON", .t = HISYSEVENT_STRING, .v = {.s = reason}, .arraySize = 0},
+        {.name = "FOREGROUND", .t = HISYSEVENT_UINT32,
+            .v = {.ui32 = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes" ? 1 : 0}, .arraySize = 0}
+    };
+    int result = OH_HiSysEvent_Write("FRAMEWORK", "PROCESS_KILL",
+        HISYSEVENT_FAULT, params, sizeof(params) / sizeof(params[0]));
+    HIVIEW_LOGI("hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid=%{public}d,"
+        " processName=%{public}s, msg=%{public}s", result, info.pid,
+        info.module.c_str(), killReason);
+    return result == 0;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
