@@ -62,6 +62,9 @@
 #include "eventlogger_util_test.h"
 #include "log_catcher_utils.h"
 #include "thermal_info_catcher.h"
+#ifdef HILOG_CATCHER_ENABLE
+#include "light_hilog_catcher.h"
+#endif
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -1263,9 +1266,6 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level0)
 #ifdef HILOG_CATCHER_ENABLE
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_HILOG, 0);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
-
-    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_LIGHT_HILOG, 0);
-    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
 #endif // HILOG_CATCHER_ENABLE
 
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_SNAPSHOT, 0);
@@ -1649,5 +1649,39 @@ HWTEST_F(EventloggerCatcherTest, CatchSyncPidTest_001, TestSize.Level1)
     close(fd);
 }
 #endif // BINDER_CATCHER_ENABLE
+
+#ifdef HILOG_CATCHER_ENABLE
+/**
+ * @tc.name: LightHilogCatcherTest_001
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LightHilogCatcherTest_001, TestSize.Level1)
+{
+    auto fd = open("/data/test/TestLightHilogCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create TestLightHilogCatcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto jsFd = open("/data/test/TestLightHilogCatcherJsonFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (jsFd < 0) {
+        printf("Fail to create TestLightHilogCatcherJsonFile. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto lightHilogCatcher = std::make_shared<LightHilogCatcher>();
+    lightHilogCatcher->Initialize("testLightHilogCatcher", 0, 0);
+    lightHilogCatcher->Catch(fd, jsFd);
+
+    int pid = CommonUtils::GetPidByName("foundation");
+    lightHilogCatcher->Initialize("testLightHilogCatcher", 0, pid);
+    lightHilogCatcher->Initialize("testLightHilogCatcher", 1, pid);
+    lightHilogCatcher->Catch(fd, jsFd);
+    close(fd);
+    close(jsFd);
+    EXPECT_TRUE(pid > 0);
+}
+#endif // HILOG_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -80,10 +80,6 @@ int ShellCatcher::DoHilogCatcher(int writeFd)
         case CATCHER_HILOG:
             ret = execl("/system/bin/hilog", "hilog", "-x", nullptr);
             break;
-        case CATCHER_LIGHT_HILOG:
-            ret = execl("/system/bin/hilog", "hilog", "-z", "1000", "-P", std::to_string(pid_).c_str(),
-                nullptr);
-            break;
         case CATCHER_INPUT_EVENT_HILOG:
             ret = execl("/system/bin/hilog", "hilog", "-T", "InputKeyFlow", "-e",
                 std::to_string(pid_).c_str(), "-x", nullptr);

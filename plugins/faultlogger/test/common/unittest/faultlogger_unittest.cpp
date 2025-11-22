@@ -2424,24 +2424,10 @@ pid_t GetPidByProcessName(const std::string &procName)
 
 /**
  * @tc.name: FaultLogAppFreeze001
- * @tc.desc: Test faultAppFreeze GetFreezeHilogByPid Func
- * @tc.type: FUNC
- */
-HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze001, testing::ext::TestSize.Level3)
-{
-    FaultLogFreeze faultAppFreeze;
-    faultAppFreeze.GetFreezeHilogByPid(1);
-    std::string processName = "faultloggerd";
-    auto pid = GetPidByProcessName(processName);
-    auto hilog = faultAppFreeze.GetFreezeHilogByPid(pid);
-    ASSERT_TRUE(!hilog.empty());
-}
-/**
- * @tc.name: FaultLogAppFreeze002
  * @tc.desc: Test faultAppFreeze ReportEventToAppEvent Func
  * @tc.type: FUNC
  */
-HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze002, testing::ext::TestSize.Level3)
+HWTEST_F(FaultloggerUnittest, FaultLogAppFreeze001, testing::ext::TestSize.Level3)
 {
     FaultLogFreeze faultAppFreeze;
     FaultLogInfo info;

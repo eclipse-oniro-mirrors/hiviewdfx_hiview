@@ -146,6 +146,10 @@ void FormatCollect(std::map<std::string, std::list<std::string>>& collectMap, Fr
     if (!collectMap["appRunningUniqueId"].empty()) {
         jsonCollector.appRunningUniqueId = collectMap["appRunningUniqueId"].front();
     }
+
+    if (!collectMap["hilog"].empty()) {
+        jsonCollector.hilog = collectMap["hilog"].back();
+    }
 }
 
 void LoadCollectorFromFile(const std::string& filePath, FreezeJsonCollector& jsonCollector)
