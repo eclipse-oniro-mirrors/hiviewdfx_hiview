@@ -186,7 +186,8 @@
         "OHOS::HiviewDFX::EventStore::EventCol::LEVEL";
         "OHOS::HiviewDFX::EventStore::EventCol::SEQ";
         "OHOS::HiviewDFX::EventStore::EventCol::TAG";
-        "OHOS::HiviewDFX::TimeUtil::Get0ClockStampMs()";
+        "OHOS::HiviewDFX::TimeUtil::Get0ClockStampMs(long)";
+        "OHOS::HiviewDFX::TimeUtil::Get0ClockStampMs(long long)";
         "OHOS::HiviewDFX::TimeUtil::TimestampFormatToDate(long, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TimeUtil::TimestampFormatToDate(long long, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TimeUtil::GetMilliseconds()";

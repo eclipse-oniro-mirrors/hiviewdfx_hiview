@@ -118,11 +118,13 @@ void UsageEventReport::Init()
         BindWorkLoop(context->GetSharedWorkLoop());
         InitFoldEventReport(workPath_);
     }
-    nextReportTime_ = static_cast<uint64_t>(TimeUtil::Get0ClockStampMs()) + TimeUtil::MILLISECS_PER_DAY;
+    uint64_t today0Time = static_cast<uint64_t>(TimeUtil::Get0ClockStampMs());
+    nextReportTime_ = today0Time + TimeUtil::MILLISECS_PER_DAY;
 
     // more than one day since the last report
-    if (nowTime >= (lastReportTime_ + TimeUtil::MILLISECS_PER_DAY)) {
+    if (lastReportTime_ < today0Time) {
         HIVIEW_LOGI("lastReportTime=%{public}" PRIu64 ", need to report daily event now", lastReportTime_);
+        nextReportTime_ = today0Time;
         ReportDailyEvent();
     }
 

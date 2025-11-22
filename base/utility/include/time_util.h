@@ -54,7 +54,7 @@ void Sleep(unsigned int seconds);
 int64_t GetSeconds();
 std::string TimestampFormatToDate(time_t timeStamp, const std::string& format);
 std::string GetTimeZone();
-int64_t Get0ClockStampMs();
+int64_t Get0ClockStampMs(time_t timeStamp = std::time(nullptr));
 uint64_t GetSteadyClockTimeMs();
 uint64_t GetBootTimeMs();
 uint64_t GetMonotonicTimeMs();
