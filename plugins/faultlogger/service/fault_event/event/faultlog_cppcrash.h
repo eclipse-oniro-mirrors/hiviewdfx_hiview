@@ -40,6 +40,7 @@ private:
     bool RemoveHiLogSection(std::string& readContent) const;
     int64_t GetLastLineHilogTime(const std::string& lastLineHilog) const;
     void CheckHilogTime(FaultLogInfo& info);
+    bool ReportProcessKillEvent(const FaultLogInfo& info) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
