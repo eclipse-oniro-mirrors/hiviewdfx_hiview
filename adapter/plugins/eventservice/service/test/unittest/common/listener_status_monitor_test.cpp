@@ -106,7 +106,7 @@ HWTEST_F(ListenerStatusMonitorTest, ListenerStatusMonitorTest002, testing::ext::
 
     // 3. try to report event
     SetLastDate(monitor, TEST_LAST_DATE);
-    sleep(TEST_INTERVAL); // 2s
+    sleep(TEST_INTERVAL * 2); // 2s
 
     // 4. check the result
     GetCallers(monitor, callers);
