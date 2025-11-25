@@ -102,23 +102,6 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
     HIVIEW_LOGI("Report FreezeJson Successfully!");
 }
 
-std::string FaultLogFreeze::GetFreezeHilogByPid(long pid) const
-{
-    std::list<std::string> hilogList;
-    std::string hilogStr = GetHilogByPid(pid);
-    if (hilogStr.empty()) {
-        HIVIEW_LOGE("Get FreezeJson hilog is empty!");
-    } else {
-        std::stringstream hilogStream(hilogStr);
-        std::string oneLine;
-        int count = 0;
-        while (++count <= REPORT_HILOG_LINE && std::getline(hilogStream, oneLine)) {
-            hilogList.push_back(StringUtil::EscapeJsonStringValue(oneLine));
-        }
-    }
-    return FreezeJsonUtil::GetStrByList(hilogList);
-}
-
 std::string FaultLogFreeze::GetException(const std::string& name, const std::string& message) const
 {
     FreezeJsonException exception = FreezeJsonException::Builder()
@@ -141,7 +124,6 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
     FreezeJsonUtil::DelFile(jsonFilePath);
 
     collector.exception = GetException(collector.stringId, collector.message);
-    collector.hilog = GetFreezeHilogByPid(collector.pid);
     collector.memory = GetMemoryStrByPid(info.sectionMap);
     collector.foreground = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
     collector.cpuAbi = GetStrValFromMap(info.sectionMap, FaultKey::CPU_ABI);

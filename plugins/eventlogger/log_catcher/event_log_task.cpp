@@ -55,6 +55,10 @@
 #include "thermal_info_catcher.h"
 #include "summary_log_info_catcher.h"
 
+#ifdef HILOG_CATCHER_ENABLE
+#include "light_hilog_catcher.h"
+#endif
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -466,8 +470,9 @@ void EventLogTask::HilogTagCapture()
 
 void EventLogTask::LightHilogCapture()
 {
-    auto capture = std::make_shared<ShellCatcher>();
-    capture->Initialize("hilog -z 1000 -P", ShellCatcher::CATCHER_LIGHT_HILOG, pid_);
+    auto capture = std::make_shared<LightHilogCatcher>();
+    bool writeToJsFd = (event_->eventName_ == "THREAD_BLOCK_3S") ? false: true;
+    capture->Initialize("hilog -z 1000 -P", writeToJsFd, pid_);
     tasks_.push_back(capture);
 }
 

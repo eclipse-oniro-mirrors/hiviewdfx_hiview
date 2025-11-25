@@ -88,6 +88,7 @@ ohos_source_set("log_catcher") {
   }
 
   if (hiview_eventlogger_hilog_catcher_enable) {
+    sources += [ "light_hilog_catcher.cpp" ]
     defines += [ "HILOG_CATCHER_ENABLE" ]
   }
 

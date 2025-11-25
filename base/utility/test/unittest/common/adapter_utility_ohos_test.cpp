@@ -586,10 +586,12 @@ HWTEST_F(AdapterUtilityOhosTest, CJsonUtilTest002, testing::ext::TestSize.Level3
  */
 HWTEST_F(AdapterUtilityOhosTest, FreezeJsonUtilTest001, testing::ext::TestSize.Level3)
 {
-    FreezeJsonUtil::FreezeJsonCollector jsonCollector;
+    FreezeJsonUtil::FreezeJsonCollector jsonCollector = {0};
     FreezeJsonUtil::LoadCollectorFromFile(FREEZE_JSON_FILE, jsonCollector);
-    ASSERT_NE(jsonCollector.domain, "");
-    ASSERT_NE(jsonCollector.stringId, "");
+    ASSERT_EQ(jsonCollector.domain, "AAFWK");
+    ASSERT_EQ(jsonCollector.stringId, "APP_INPUT_BLOCK");
+    ASSERT_EQ(jsonCollector.appRunningUniqueId, "123");
+    ASSERT_EQ(jsonCollector.hilog, "test_hilog_limit_100_02");
 }
 
 /**
@@ -599,10 +601,11 @@ HWTEST_F(AdapterUtilityOhosTest, FreezeJsonUtilTest001, testing::ext::TestSize.L
  */
 HWTEST_F(AdapterUtilityOhosTest, FreezeJsonUtilTest002, testing::ext::TestSize.Level3)
 {
-    FreezeJsonUtil::FreezeJsonCollector jsonCollector;
+    FreezeJsonUtil::FreezeJsonCollector jsonCollector = {0};
     FreezeJsonUtil::LoadCollectorFromFile(FREEZE_JSON_FILE_EMPTY, jsonCollector);
     ASSERT_EQ(jsonCollector.domain, "");
     ASSERT_EQ(jsonCollector.stringId, "");
+    ASSERT_EQ(jsonCollector.hilog, "[]");
 }
 
 /**
