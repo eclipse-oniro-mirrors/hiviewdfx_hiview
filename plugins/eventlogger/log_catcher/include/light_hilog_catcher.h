@@ -29,9 +29,6 @@ public:
 private:
     int pid_ = -1;
     bool writeToJsFd = false;
-    std::string GetHilogByPid(int32_t pid);
-    int DoGetHilogProcess(int32_t pid, int writeFd);
-    std::string ReadHilogTimeout(int fd, uint64_t timeout = 5000); // 5000 : 5s
 };
 #endif
 } // namespace HiviewDFX

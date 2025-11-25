@@ -17,53 +17,20 @@
 #include "file_util.h"
 #include "freeze_json_util.h"
 #include "hiview_logger.h"
-#include "parameter_ex.h"
+#include "hilog_collector.h"
 #include "string_util.h"
-
-#include <fcntl.h>
-#include <poll.h>
-#include <sys/syscall.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-// define Fdsan Domain
-#ifndef FDSAN_DOMAIN
-#undef FDSAN_DOMAIN
-#endif
-#define FDSAN_DOMAIN 0xD002D11
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
     constexpr int REPORT_HILOG_LINE = 100;
-    constexpr int READ_HILOG_BUFFER_SIZE = 1024;
-    constexpr int NUMBER_ONE_THOUSAND = 1000;
-    constexpr int NUMBER_ONE_MILLION = 1000 * 1000;
-    constexpr uint64_t MAX_HILOG_TIMEOUT = 15 * 1000;
+    constexpr uint32_t HILOG_LINE_NUM = 1000;
 }
 #ifdef HILOG_CATCHER_ENABLE
+using namespace UCollect;
+using namespace UCollectUtil;
+
 DEFINE_LOG_LABEL(0xD002D11, "EventLogger-LightHilogCatcher");
-
-uint64_t GetTimeMilliseconds(void)
-{
-    struct timespec ts;
-    (void)clock_gettime(CLOCK_REALTIME, &ts);
-    return (static_cast<uint64_t>(ts.tv_sec) * NUMBER_ONE_THOUSAND) +
-        (static_cast<uint64_t>(ts.tv_nsec) / NUMBER_ONE_MILLION);
-}
-
-void ReadDataFromPipe(int fd, std::string &log)
-{
-    char buffer[READ_HILOG_BUFFER_SIZE];
-    ssize_t nread {0};
-    do {
-        nread = TEMP_FAILURE_RETRY(read(fd, buffer, sizeof(buffer) - 1));
-        if (nread > 0) {
-            log.append(buffer, nread);
-        }
-    } while (nread > 0);
-}
-
 LightHilogCatcher::LightHilogCatcher() : EventLogCatcher()
 {
     name_ = "LightHilogCatcher";
@@ -72,7 +39,7 @@ LightHilogCatcher::LightHilogCatcher() : EventLogCatcher()
 bool LightHilogCatcher::Initialize(const std::string& strParam1, int intParam1, int intParam2)
 {
     // this catcher do not need parameters, just return true
-    description_ = "LightHilogCatcher --";
+    description_ = "catcher cmd: hilog -z 1000 -P ";
     writeToJsFd = intParam1;
     pid_ = intParam2;
     return true;
@@ -84,10 +51,17 @@ int LightHilogCatcher::Catch(int fd, int jsonFd)
         return 0;
     }
 
+    std::shared_ptr<HilogCollector> collector = HilogCollector::Create();
+    CollectResult<std::string> result = collector->CollectLastLog(pid_, HILOG_LINE_NUM);
+    if (result.retCode != UcError::SUCCESS) {
+        HIVIEW_LOGE("Collect last log failed, retCode:%{public}d", result.retCode);
+        return 0;
+    }
+
+    std::string lightHiLogStr = result.data;
     int originSize = GetFdSize(fd);
-    std::string lightHiLogStr = GetHilogByPid(pid_);
     if (lightHiLogStr.empty()) {
-        HIVIEW_LOGE("Get FreezeJson hilog is empty!");
+        HIVIEW_LOGE("light hilog is empty!");
         return 0;
     } else if (writeToJsFd && jsonFd >= 0) {
         std::list<std::string> lightHiLogList;
@@ -103,108 +77,6 @@ int LightHilogCatcher::Catch(int fd, int jsonFd)
     FileUtil::SaveStringToFd(fd, lightHiLogStr);
     logSize_ = GetFdSize(fd) - originSize;
     return logSize_;
-}
-
-std::string LightHilogCatcher::GetHilogByPid(int32_t pid)
-{
-    if (Parameter::IsOversea() && !Parameter::IsBetaVersion()) {
-        HIVIEW_LOGI("Do not get hilog in oversea commercial version.");
-        return "";
-    }
-    int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
-    if (pipe2(fds, O_NONBLOCK) != 0) {
-        HIVIEW_LOGE("Failed to create pipe for get log.");
-        return "";
-    }
-    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
-    fdsan_exchange_owner_tag(fds[0], 0, ownerTag);
-    fdsan_exchange_owner_tag(fds[1], 0, ownerTag);
-
-    int childPid = fork();
-    if (childPid < 0) {
-        HIVIEW_LOGE("fork fail");
-        return "";
-    } else if (childPid == 0) {
-        syscall(SYS_close, fds[0]);
-        int rc = DoGetHilogProcess(pid, fds[1]);
-        fdsan_close_with_tag(fds[1], ownerTag);
-        _exit(rc);
-    } else {
-        fdsan_close_with_tag(fds[1], ownerTag);
-        HIVIEW_LOGI("read hilog start");
-        std::string log = ReadHilogTimeout(fds[0]);
-        fdsan_close_with_tag(fds[0], ownerTag);
-
-        if (TEMP_FAILURE_RETRY(waitpid(childPid, nullptr, 0)) != childPid) {
-            HIVIEW_LOGE("waitpid fail, pid: %{public}d, errno: %{public}d", childPid, errno);
-            return "";
-        }
-        HIVIEW_LOGI("get hilog waitpid %{public}d success", childPid);
-        return log;
-    }
-    return "";
-}
-
-int LightHilogCatcher::DoGetHilogProcess(int32_t pid, int writeFd)
-{
-    HIVIEW_LOGD("Start do get hilog process, pid:%{public}d", pid);
-    if (writeFd < 0 || dup2(writeFd, STDOUT_FILENO) == -1 ||
-        dup2(writeFd, STDERR_FILENO) == -1) {
-        HIVIEW_LOGE("dup2 writeFd fail");
-        return -1;
-    }
-
-    int ret = -1;
-    ret = execl("/system/bin/hilog", "hilog", "-z", "1000", "-P", std::to_string(pid).c_str(), nullptr);
-    if (ret < 0) {
-        HIVIEW_LOGE("execl %{public}d, errno: %{public}d", ret, errno);
-        return ret;
-    }
-    return 0;
-}
-
-std::string LightHilogCatcher::ReadHilogTimeout(int fd, uint64_t timeout)
-{
-    if (fd < 0 || timeout > MAX_HILOG_TIMEOUT) {
-        HIVIEW_LOGE("Invalid fd or timeout");
-        return "";
-    }
-    uint64_t startTime = GetTimeMilliseconds();
-    uint64_t endTime = startTime + timeout;
-
-    struct pollfd pfds[1];
-    pfds[0].fd = fd;
-    pfds[0].events = POLLIN | POLLHUP;
-
-    std::string log;
-    int pollRet = -1;
-    do {
-        uint64_t now = GetTimeMilliseconds();
-        if (now >= endTime || now < startTime) {
-            HIVIEW_LOGI("read hilog timeout.");
-            break;
-        } else {
-            timeout = endTime - now;
-        }
-
-        pollRet = poll(pfds, 1, timeout);
-        if (pollRet < 0) {
-            continue;
-        } else if (pollRet == 0) {
-            HIVIEW_LOGI("poll timeout");
-            break;
-        } else {
-            if (pfds[0].revents & POLLHUP) {
-                ReadDataFromPipe(fd, log);
-                break;
-            }
-
-            if ((pfds[0].revents & POLLIN)) {
-                ReadDataFromPipe(fd, log);
-            }
-        }
-    } while (pollRet > 0 || errno == EINTR);
-    return log;
 }
 #endif
 } // namespace HiviewDFX
