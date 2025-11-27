@@ -27,11 +27,11 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-    static const int MINUTES_IN_HOUR = 60;
-    static const int MIN_MATCH_NUM = 2;
-    static const int DEFAULT_HOURS = 10;
-    static const int SYS_MATCH_NUM = 1;
-    static const int APP_MATCH_NUM = 1;
+    constexpr int MINUTES_IN_HOUR = 60;
+    constexpr int MIN_MATCH_NUM = 2;
+    constexpr int DEFAULT_HOURS = 10;
+    constexpr int SYS_MATCH_NUM = 1;
+    constexpr int APP_MATCH_NUM = 1;
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -75,7 +75,7 @@ bool FreezeResolver::ResolveEvent(const WatchPoint& watchPoint,
         }
     }
 
-    HIVIEW_LOGI("list size %{public}zu", list.size());
+    HIVIEW_LOGI("list size %{public}zu for pid:%{public}lu", list.size(), pid);
     return true;
 }
 
@@ -123,8 +123,8 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
 
 int FreezeResolver::ProcessEvent(const WatchPoint &watchPoint) const
 {
-    HIVIEW_LOGI("process event [%{public}s, %{public}s]",
-        watchPoint.GetDomain().c_str(), watchPoint.GetStringId().c_str());
+    HIVIEW_LOGI("process event [%{public}s, %{public}s, %{public}lu]",
+        watchPoint.GetDomain().c_str(), watchPoint.GetStringId().c_str(), watchPoint.GetPid());
     if (vendor_ == nullptr) {
         return -1;
     }
