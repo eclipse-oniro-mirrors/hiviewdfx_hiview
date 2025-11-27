@@ -50,6 +50,7 @@ ohos_unittest("BaseUtilityUnitTest") {
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "relational_store:native_rdb",
   ]
 }
 

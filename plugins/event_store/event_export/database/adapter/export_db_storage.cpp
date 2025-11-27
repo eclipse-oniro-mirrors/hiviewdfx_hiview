@@ -15,10 +15,12 @@
 
 #include "export_db_storage.h"
 
+#include "export_config_manager.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "rdb_predicates.h"
 #include "sql_util.h"
+#include "sys_event_sequence_mgr.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -64,20 +66,41 @@ int32_t CreateExportDetailsTable(NativeRdb::RdbStore& dbStore)
     }
     return NativeRdb::E_OK;
 }
-}
 
-int ExportDbOpenCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
+void RestoreModuleByConfigs(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
+    std::vector<std::shared_ptr<ExportConfig>>& configs)
 {
-    if (auto ret = CreateExportDetailsTable(rdbStore); ret != NativeRdb::E_OK) {
-        return ret;
+    if (rdbStore == nullptr || configs.empty()) {
+        HIVIEW_LOGE("db store is invalid or export config list is empty");
+        return;
     }
-    return NativeRdb::E_OK;
+    int64_t curSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    int64_t id = 0;
+    for (auto& config : configs) {
+        NativeRdb::ValuesBucket bucket;
+        bucket.PutString(COLUMN_MODULE_NAME, config->moduleName);
+        bucket.PutLong(COLUMN_EXPORTED_MAX_SEQ, curSeq);
+        bucket.PutLong(COLUMN_EXPORT_ENABLED_SEQ, curSeq);
+        id = 0;
+        if (rdbStore->Insert(id, MODULE_EXPORT_DETAILS_TABLE_NAME, bucket) != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to restore record into %{public}s table.", MODULE_EXPORT_DETAILS_TABLE_NAME);
+        }
+    }
 }
 
-int ExportDbOpenCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
+void RestoreAllPeriodicExportModule(std::shared_ptr<NativeRdb::RdbStore> rdbStore)
 {
-    HIVIEW_LOGD("oldVersion=%{public}d, newVersion=%{public}d.", oldVersion, newVersion);
-    return NativeRdb::E_OK;
+    std::vector<std::shared_ptr<ExportConfig>> configs;
+    ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
+    RestoreModuleByConfigs(rdbStore, configs);
+}
+
+void RestoreAllTriggerExportModule(std::shared_ptr<NativeRdb::RdbStore> rdbStore)
+{
+    std::vector<std::shared_ptr<ExportConfig>> configs;
+    ExportConfigManager::GetInstance().GetTriggerExportConfigs(configs);
+    RestoreModuleByConfigs(rdbStore, configs);
+}
 }
 
 ExportDbStorage::ExportDbStorage(const std::string& dbStoreDir)
@@ -153,23 +176,17 @@ void ExportDbStorage::QueryExportDetailRecord(const std::string& moduleName, Exp
 
 void ExportDbStorage::InitDbStore(const std::string& dbStoreDir)
 {
-    std::string dbStorePath = FileUtil::IncludeTrailingPathDelimiter(dbStoreDir);
-    if (!FileUtil::IsDirectory(dbStorePath) && !FileUtil::ForceCreateDirectory(dbStorePath)) {
-        HIVIEW_LOGE("failed to create dir=%{public}s.", dbStorePath.c_str());
-        return;
-    }
-    dbStorePath.append(EXPORT_DB_NAME);
-    HIVIEW_LOGD("db store path=%{public}s.", dbStorePath.c_str());
-    NativeRdb::RdbStoreConfig config(dbStorePath);
-    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
-    ExportDbOpenCallback callback;
-    auto ret = NativeRdb::E_OK;
-    dbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
-    if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to init db store, db store path=%{public}s.", dbStorePath.c_str());
-        dbStore_ = nullptr;
-        return;
-    }
+    dbStore_ = std::make_shared<RestorableDbStore>(dbStoreDir, std::string(EXPORT_DB_NAME), DB_VERSION);
+    dbStore_->Initialize(CreateExportDetailsTable,
+        [] (NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) {
+            HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d.", oldVersion, newVersion);
+            return NativeRdb::E_OK;
+        },
+        [] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+            RestoreAllPeriodicExportModule(rdbStore);
+            RestoreAllTriggerExportModule(rdbStore);
+        });
+    
 }
 
 void ExportDbStorage::UpdateExportDetailRecordSeq(ExportDetailRecord& record, const std::string& seqName,
