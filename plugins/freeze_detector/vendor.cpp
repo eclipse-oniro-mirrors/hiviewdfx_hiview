@@ -101,7 +101,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
 
     FaultLogInfoInner info;
     info.time = watchPoint.GetTimestamp();
-    info.id = watchPoint.GetUid();
+    info.id = static_cast<uint32_t>(watchPoint.GetUid());
     info.pid = watchPoint.GetPid();
     info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : ((type == SYSFREEZE) ?
         FaultLogType::SYS_FREEZE : FaultLogType::SYS_WARNING);
