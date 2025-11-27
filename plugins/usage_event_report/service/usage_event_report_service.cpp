@@ -74,7 +74,7 @@ void UsageEventReportService::InitWorkPath(const char* path)
 void UsageEventReportService::ReportAppUsage()
 {
     HIVIEW_LOGD("start to report app usage event");
-    auto factory = std::make_unique<AppUsageEventFactory>();
+    auto factory = std::make_unique<AppUsageEventFactory>(lastReportTime_);
     std::vector<std::unique_ptr<LoggerEvent>> events;
     factory->Create(events);
     HIVIEW_LOGI("report app usage event num: %{public}zu", events.size());

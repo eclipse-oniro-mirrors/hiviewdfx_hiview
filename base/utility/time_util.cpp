@@ -94,11 +94,10 @@ std::string GetTimeZone()
     return std::string("+0000");
 }
 
-int64_t Get0ClockStampMs()
+int64_t Get0ClockStampMs(time_t timeStamp)
 {
-    time_t now = std::time(nullptr);
-    int64_t zero = now;
-    struct tm *l = std::localtime(&now);
+    int64_t zero = timeStamp;
+    struct tm *l = std::localtime(&timeStamp);
     if (l != nullptr) {
         l->tm_hour = 0;
         l->tm_min = 0;

@@ -38,6 +38,7 @@ struct AppUsageInfo {
 
 class AppUsageEventFactory : public LoggerEventFactory {
 public:
+    AppUsageEventFactory(uint64_t lastReportTime) : lastReportTime_(lastReportTime) {}
     std::unique_ptr<LoggerEvent> Create() override;
     void Create(std::vector<std::unique_ptr<LoggerEvent>>& events) override;
 
@@ -45,6 +46,9 @@ private:
     void GetAllCreatedOsAccountIds(std::vector<int32_t>& ids);
     void GetAppUsageInfosByUserId(std::vector<AppUsageInfo>& infos, int32_t userId);
     std::string GetAppVersion(const std::string& bundleName);
+
+private:
+    uint64_t lastReportTime_ = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

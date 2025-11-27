@@ -101,20 +101,23 @@ void AppUsageEventFactory::GetAppUsageInfosByUserId(std::vector<AppUsageInfo>& a
 {
 #ifdef DEVICE_USAGE_STATISTICS_ENABLE
     HIVIEW_LOGD("get app usage info by userId=%{public}d", userId);
-    int64_t today0Time = TimeUtil::Get0ClockStampMs();
+    int64_t lastReport0Time = TimeUtil::Get0ClockStampMs(static_cast<int64_t>(lastReportTime_) / MILLISEC_TO_SEC);
     int64_t gapTime = static_cast<int64_t>(TimeUtil::MILLISECS_PER_DAY);
-    int64_t startTime = today0Time > gapTime ? (today0Time - gapTime) : 0;
-    int64_t endTime = today0Time > MILLISEC_TO_SEC ? (today0Time - MILLISEC_TO_SEC) : 0;
+    int64_t startTime = lastReport0Time;
+    int64_t endTime = lastReport0Time > 0 ? (lastReport0Time + gapTime - MILLISEC_TO_SEC) : 0;
     std::vector<BundleActivePackageStats> pkgStats;
     int32_t errCode = BundleActiveClient::GetInstance().QueryBundleStatsInfoByInterval(pkgStats, INTERVAL_TYPE,
         startTime, endTime, userId);
     if (errCode != ERR_OK) {
-        HIVIEW_LOGE("failed to get package stats userId=%{public}d, errCode=%{public}d", userId, errCode);
+        HIVIEW_LOGE("failed to get package stats userId=%{public}d, lastReportTime=%{public}" PRIu64
+            ", startTime=%{public}" PRId64 ", endTime=%{public}" PRId64 ", errCode=%{public}d",
+            userId, lastReportTime_, startTime, endTime, errCode);
         return;
     }
 
-    HIVIEW_LOGI("userId=%{public}d, startTime=%{public}" PRId64 ", endTime=%{public}" PRId64 ", size=%{public}zu",
-        userId, startTime, endTime, pkgStats.size());
+    HIVIEW_LOGI("userId=%{public}d, lastReportTime=%{public}" PRIu64 ", startTime=%{public}" PRId64
+        ", endTime=%{public}" PRId64 ", size=%{public}zu",
+        userId, lastReportTime_, startTime, endTime, pkgStats.size());
     std::string dateStr = TimeUtil::TimestampFormatToDate(startTime / MILLISEC_TO_SEC, DATE_FORMAT);
     for (auto stat : pkgStats) {
         std::string package = stat.bundleName_;
@@ -131,6 +134,8 @@ void AppUsageEventFactory::GetAppUsageInfosByUserId(std::vector<AppUsageInfo>& a
             appUsageInfos.push_back(AppUsageInfo(stat.bundleName_, version, usage, dateStr, startNum));
         }
     }
+#else
+    HIVIEW_LOGI("userId=%{public}d, lastReportTime=%{public}" PRIu64, userId, lastReportTime_);
 #endif
 }
 
