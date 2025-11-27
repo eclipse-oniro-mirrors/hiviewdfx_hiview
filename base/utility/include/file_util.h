@@ -68,7 +68,6 @@ bool LoadBufferFromFile(const std::string& filePath, std::vector<char>& content)
 bool SaveBufferToFile(const std::string& filePath, const std::vector<char>& content, bool truncated = true);
 bool FileExists(const std::string& fileName);
 bool FileExistsA(const std::string& fileName);
-bool WriteBufferToFd(int fd, const char* buffer, size_t size);
 int32_t CreateFile(const std::string &path, mode_t mode = DEFAULT_FILE_MODE);
 
 // directory_ex.h
@@ -80,7 +79,6 @@ std::string ExcludeTrailingPathDelimiter(const std::string& path);
 void GetDirFiles(const std::string& path, std::vector<std::string>& files, bool isRecursive = true);
 void GetDirDirs(const std::string& path, std::vector<std::string>& dirs);
 bool ForceCreateDirectory(const std::string& path, mode_t mode = FILE_PERM_755);
-void RemoveFolderBeginWith(const std::string &path, const std::string &folderName);
 bool ForceRemoveDirectory(const std::string& path, bool isNeedDeleteGivenDirSelf = true);
 bool RemoveFile(const std::string& fileName);
 uint64_t GetFolderSize(const std::string& path);
@@ -90,8 +88,6 @@ bool ChangeMode(const std::string& fileName, const mode_t& mode);
 bool ChangeModeFile(const std::string& fileName, const mode_t& mode);
 bool ChangeModeDirectory(const std::string& path, const mode_t& mode);
 bool PathToRealPath(const std::string& path, std::string& realPath);
-mode_t Umask(const mode_t& mode);
-int Open(const std::string& path, const int flags, const mode_t mode);
 void FormatPath2UnixStyle(std::string &path);
 void CreateDirWithDefaultPerm(const std::string& path, uid_t aidRoot, uid_t aid_system);
 int CopyFile(const std::string &src, const std::string &des);
@@ -100,7 +96,6 @@ bool IsKeyDirectory(const std::string& dirPath);
 bool IsDirectory(const std::string &path);
 bool GetLastLine(std::istream &fin, std::string &line, uint32_t maxLen = 10240); // 10240 : max line len
 std::string GetFirstLine(const std::string& path);
-std::string GetParentDir(const std::string &path);
 bool IsLegalPath(const std::string& path);
 bool RenameFile(const std::string& src, const std::string& dest);
 bool GetDirXattr(const std::string& dir, const std::string& name, std::string& value);

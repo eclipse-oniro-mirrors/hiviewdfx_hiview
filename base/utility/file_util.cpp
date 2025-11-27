@@ -88,16 +88,6 @@ bool SaveStringToFd(int fd, const std::string& content)
     return OHOS::SaveStringToFd(fd, content);
 }
 
-bool LoadBufferFromFile(const std::string& filePath, std::vector<char>& content)
-{
-    return OHOS::LoadBufferFromFile(filePath, content);
-}
-
-bool SaveBufferToFile(const std::string& filePath, const std::vector<char>& content, bool truncated)
-{
-    return OHOS::SaveBufferToFile(filePath, content, truncated);
-}
-
 bool FileExists(const std::string& fileName)
 {
     return OHOS::FileExists(fileName);
@@ -250,16 +240,6 @@ bool PathToRealPath(const std::string& path, std::string& realPath)
     return OHOS::PathToRealPath(path, realPath);
 }
 
-mode_t Umask(const mode_t& mode)
-{
-    return umask(mode);
-}
-
-int Open(const std::string& path, const int flags, const mode_t mode)
-{
-    return open(path.c_str(), flags, mode);
-}
-
 void CreateDirWithDefaultPerm(const std::string& path, uid_t aidRoot, uid_t aidSystem)
 {
     FileUtil::ForceCreateDirectory(path);
@@ -269,29 +249,6 @@ void CreateDirWithDefaultPerm(const std::string& path, uid_t aidRoot, uid_t aidS
 void FormatPath2UnixStyle(std::string &path)
 {
     // unimplemented
-}
-
-void RemoveFolderBeginWith(const std::string &path, const std::string &folderName)
-{
-    // unimplemented
-}
-
-bool WriteBufferToFd(int fd, const char* buffer, size_t size)
-{
-    if (fd < 0) {
-        return false;
-    }
-
-    if (buffer == nullptr) {
-        return false;
-    }
-
-    ssize_t writeSize = size;
-    if (writeSize != TEMP_FAILURE_RETRY(write(fd, buffer, size))) {
-        return false;
-    }
-
-    return true;
 }
 
 int CreateFile(const std::string &path, mode_t mode)
@@ -427,15 +384,6 @@ std::string GetFirstLine(const std::string& path)
     getline(inFile, firstLine);
     inFile.close();
     return firstLine;
-}
-
-std::string GetParentDir(const std::string &path)
-{
-    string str = ExtractFilePath(path);
-    if (str.empty()) {
-        return "";
-    }
-    return str.substr(0, str.size() - 1);
 }
 
 bool IsLegalPath(const std::string& path)

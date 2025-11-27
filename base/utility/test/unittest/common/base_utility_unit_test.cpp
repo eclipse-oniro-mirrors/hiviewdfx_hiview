@@ -99,69 +99,6 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest003, testing::ext::TestSize.Lev
 }
 
 /**
- * @tc.name: BaseUtilityUnitTest004
- * @tc.desc: Test DexToHexString defined in namespace StringUtil
- * @tc.type: FUNC
- * @tc.require: issueI651IG
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest004, testing::ext::TestSize.Level3)
-{
-    auto intVal1 = 1;
-    auto intVal2 = 11;
-    auto ret = StringUtil::DexToHexString(intVal1, true);
-    ASSERT_EQ("1", ret);
-    ret = StringUtil::DexToHexString(intVal1, false);
-    ASSERT_EQ("1", ret);
-    ret = StringUtil::DexToHexString(intVal2, true);
-    ASSERT_EQ("B", ret);
-    ret = StringUtil::DexToHexString(intVal2, false);
-    ASSERT_EQ("b", ret);
-}
-
-/**
- * @tc.name: BaseUtilityUnitTest005
- * @tc.desc: Test GetKeyValueByString defined in namespace StringUtil
- * @tc.type: FUNC
- * @tc.require: issueI651IG
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest005, testing::ext::TestSize.Level3)
-{
-    size_t start = 0;
-    std::string origin1 = "key:value;";
-    auto ret = StringUtil::GetKeyValueByString(start, origin1);
-    ASSERT_EQ("key", ret.first);
-    ASSERT_EQ("value", ret.second.first);
-    std::string origin2 = "key::value;";
-    ret = StringUtil::GetKeyValueByString(start, origin2);
-    ASSERT_EQ(";", ret.first);
-    ASSERT_EQ("", ret.second.first);
-    std::string origin3 = "key:value;;";
-    ret = StringUtil::GetKeyValueByString(start, origin3);
-    ASSERT_EQ("", ret.first);
-    ASSERT_EQ("", ret.second.first);
-}
-
-/**
- * @tc.name: BaseUtilityUnitTest006
- * @tc.desc: Test IsValidFloatNum defined in namespace StringUtil
- * @tc.type: FUNC
- * @tc.require: issueI651IG
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest006, testing::ext::TestSize.Level3)
-{
-    auto ret = StringUtil::IsValidFloatNum("123+456");
-    ASSERT_TRUE(!ret);
-    ret = StringUtil::IsValidFloatNum("123.45.6");
-    ASSERT_TRUE(!ret);
-    ret = StringUtil::IsValidFloatNum("123.");
-    ASSERT_TRUE(!ret);
-    ret = StringUtil::IsValidFloatNum(".123");
-    ASSERT_TRUE(!ret);
-    ret = StringUtil::IsValidFloatNum("123.45");
-    ASSERT_TRUE(ret);
-}
-
-/**
  * @tc.name: BaseUtilityUnitTest007
  * @tc.desc: Test GetLeft/RightSubstr defined in namespace StringUtil
  * @tc.type: FUNC
@@ -272,31 +209,6 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest012, testing::ext::TestSize.Lev
     double origin = 3.3;
     ret2 = StringUtil::StringToDouble(std::to_string(origin));
     ASSERT_TRUE(fabs(ret2 - origin) < std::numeric_limits<double>::epsilon());
-}
-
-/**
- * @tc.name: BaseUtilityUnitTest013
- * @tc.desc: Test FindMatchSubString defined in namespace StringUtil
- * @tc.type: FUNC
- * @tc.require: issueI651IG
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest013, testing::ext::TestSize.Level3)
-{
-    std::string target = "123456abcdefh";
-    std::string begin1 = "xyz";
-    std::string end1 = "dfh";
-    int offset = 0;
-    auto ret = StringUtil::FindMatchSubString(target, begin1, offset, end1);
-    ASSERT_EQ("", ret);
-    int offset1 = 100;
-    std::string begin2 = "123";
-    ret = StringUtil::FindMatchSubString(target, begin2, offset, end1);
-    ASSERT_EQ("123456abc", ret);
-    std::string end2 = "opq";
-    ret = StringUtil::FindMatchSubString(target, begin2, offset, end2);
-    ASSERT_EQ("123456abcdefh", ret);
-    ret = StringUtil::FindMatchSubString(target, begin1, offset1, end1);
-    ASSERT_EQ("", ret);
 }
 
 /**

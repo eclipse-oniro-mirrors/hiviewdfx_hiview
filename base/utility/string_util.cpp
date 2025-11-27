@@ -133,84 +133,6 @@ int StrToInt(const string& str)
     return id;
 }
 
-string DexToHexString(int value, bool upper)
-{
-    stringstream ioss;
-    string hexString;
-    if (upper) {
-        ioss << setiosflags(ios::uppercase) << hex << value;
-    } else {
-        ioss << hex << value;
-    }
-
-    ioss >> hexString;
-    return hexString;
-}
-
-KeyValuePair GetKeyValueByString(size_t &start, const std::string &inputString)
-{
-    std::string key;
-    std::string value;
-    auto length = inputString.size();
-    while (start < length) {
-        if (inputString[start] == INDICATE_VALUE_CHAR) {
-            start++;
-            break;
-        }
-        key.append(1, inputString[start]);
-        start++;
-    }
-
-    while (start < length) {
-        if (inputString[start] == KEY_VALUE_END_CHAR) {
-            // replace ;; to ; in value;
-            // one ';' means the end of a "key:value;"
-            if (start + 1 < length && inputString[start + 1] == KEY_VALUE_END_CHAR) {
-                value.append(1, inputString[start]);
-                start = start + SKIP_NEXT_INDEX_LENGTH;
-                continue;
-            } else {
-                start++;
-                break;
-            }
-        }
-        if (inputString[start] == INDICATE_VALUE_CHAR && start + 1 < length &&
-            inputString[start + 1] == INDICATE_VALUE_CHAR) {
-            // replace :: to :
-            value.append(1, inputString[start]);
-            start = start + SKIP_NEXT_INDEX_LENGTH;
-            continue;
-        }
-        value.append(1, inputString[start]);
-        start++;
-    }
-    return make_pair(key, make_pair(value, 0));
-}
-
-bool IsValidFloatNum(const std::string &value)
-{
-    int len = value.size();
-    int pointNum = 0;
-
-    for (int i = 0; i < len; i++) {
-        if (isdigit(value[i])) {
-            continue;
-        }
-        if (value[i] == '.') {
-            pointNum++;
-        } else {
-            // the string contains not valid num;
-            return false;
-        }
-    }
-    // the string contains more than one character '.'
-    if (pointNum > 1) {
-        return false;
-    }
-    // the string format is .111/111.
-    return isdigit(value[0]) && isdigit(value[len - 1]);
-}
-
 std::list<std::string> SplitStr(const std::string& str, char delimiter)
 {
     std::list<std::string> tokens;
@@ -322,24 +244,6 @@ double StringToDouble(const string& input)
         return 0;
     }
     return temp;
-}
-
-std::string FindMatchSubString(const std::string& target, const std::string& begin, int offset,
-    const std::string& end)
-{
-    auto matchPos = target.find_first_of(begin);
-    if (matchPos == std::string::npos) {
-        return "";
-    }
-    auto beginPos = matchPos + offset;
-    if (beginPos > target.length()) {
-        return "";
-    }
-    auto endPos = target.find_first_of(end, beginPos);
-    if (endPos == std::string::npos) {
-        return target.substr(beginPos);
-    }
-    return target.substr(beginPos, endPos);
 }
 
 std::string EscapeJsonStringValue(const std::string &value)
