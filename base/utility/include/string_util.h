@@ -83,8 +83,6 @@ bool IsConvertable(const std::string &inValue)
     return true;
 }
 
-bool IsValidFloatNum(const std::string &value);
-
 /**
  * The StrToInt function convert str to int.
  */
@@ -95,18 +93,6 @@ int StrToInt(const std::string& str);
  * Append the strings in list with specific delimiter
  */
 std::string ConvertVectorToStr(const std::vector<std::string> &listStr, const std::string &split);
-
-/**
- * The DexToHexString function convert dex to hex string.
- */
-std::string DexToHexString(int value, bool upper = true);
-
-/**
- * Get key-value pair separated by colon
- */
-using KeyValuePair = std::pair<std::string, std::pair<std::string, char>>;
-KeyValuePair GetKeyValueByString(size_t &start, const std::string &inputString);
-
 
 template<typename T>
 std::string ConvertToUTF8(const std::basic_string<T, std::char_traits<T>, std::allocator<T>> &source)
@@ -146,9 +132,6 @@ std::string VectorToString(const std::vector<std::string>& src, bool reverse, co
 
 uint64_t StringToUl(const std::string& flag, int base = 10); // 10 : default base
 double StringToDouble(const std::string& input);
-
-std::string FindMatchSubString(const std::string& target, const std::string& begin, int offset,
-    const std::string& end);
 
 std::string EscapeJsonStringValue(const std::string &value);
 std::string UnescapeJsonStringValue(const std::string &value);

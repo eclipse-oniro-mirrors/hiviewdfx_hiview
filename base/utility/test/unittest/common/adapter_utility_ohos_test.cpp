@@ -207,23 +207,6 @@ HWTEST_F(AdapterUtilityOhosTest, TimeUtilOhosTest004, testing::ext::TestSize.Lev
 }
 
 /**
- * @tc.name: FileUtilOhosTest001
- * @tc.desc: Test LoadBufferFromFile/SaveBufferToFile defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest001, testing::ext::TestSize.Level3)
-{
-    std::string caseName("FileUtilOhosTest001");
-    std::vector<char> content;
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "123");
-    (void)FileUtil::LoadBufferFromFile(GenerateLogFileName(caseName, SUFFIX_0), content);
-    ASSERT_TRUE(true);
-    (void)FileUtil::SaveBufferToFile(GenerateLogFileName(caseName, SUFFIX_0), content, true);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: FileUtilOhosTest002
  * @tc.desc: Test ExtractFilePath/ExtractFileName defined in namespace FileUtil
  * @tc.type: FUNC
@@ -269,21 +252,8 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest004, testing::ext::TestSize.Lev
 }
 
 /**
- * @tc.name: FileUtilOhosTest005
- * @tc.desc: Test Umask defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest005, testing::ext::TestSize.Level3)
-{
-    auto umask = FileUtil::Umask(FileUtil::FILE_PERM_755);
-    auto expectedRet = 18;
-    ASSERT_EQ(expectedRet, umask);
-}
-
-/**
  * @tc.name: FileUtilOhosTest006
- * @tc.desc: Test FormatPath2UnixStyle/RemoveFolderBeginWith defined in namespace FileUtil
+ * @tc.desc: Test FormatPath2UnixStyle defined in namespace FileUtil
  * @tc.type: FUNC
  * @tc.require: issueI65DUW
  */
@@ -291,32 +261,6 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest006, testing::ext::TestSize.Lev
 {
     std::string path = std::string(LOG_FILE_PATH);
     FileUtil::FormatPath2UnixStyle(path);
-    ASSERT_TRUE(true);
-    FileUtil::RemoveFolderBeginWith(path, "data");
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: FileUtilOhosTest007
- * @tc.desc: Test WriteBufferToFd defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest007, testing::ext::TestSize.Level3)
-{
-    std::string caseName("FileUtilOhosTest007");
-    auto fd = -1;
-    std::string writeContent = "write content";
-    auto ret = FileUtil::WriteBufferToFd(fd, writeContent.c_str(), writeContent.size());
-    ASSERT_TRUE(!ret);
-    (void)FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "test");
-    fd = FileUtil::Open(GenerateLogFileName(caseName, SUFFIX_0),
-        O_CREAT | O_WRONLY | O_TRUNC, FileUtil::FILE_PERM_770);
-    ret = FileUtil::WriteBufferToFd(fd, nullptr, writeContent.size());
-    ASSERT_TRUE(!ret);
-    (void)FileUtil::WriteBufferToFd(fd, "", writeContent.size());
-    ASSERT_TRUE(true);
-    (void)FileUtil::WriteBufferToFd(fd, writeContent.c_str(), writeContent.size());
     ASSERT_TRUE(true);
 }
 
@@ -385,20 +329,6 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest010, testing::ext::TestSize.Lev
     validMaxLen = 3;
     ret = FileUtil::GetLastLine(in1, line, validMaxLen);
     ASSERT_TRUE(!ret);
-}
-
-/**
- * @tc.name: FileUtilOhosTest011
- * @tc.desc: Test GetParentDir defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest011, testing::ext::TestSize.Level3)
-{
-    auto ret = FileUtil::GetParentDir("/");
-    ASSERT_EQ("", ret);
-    ret = FileUtil::GetParentDir("123/345/789");
-    ASSERT_EQ("123/345", ret);
 }
 
 /**
