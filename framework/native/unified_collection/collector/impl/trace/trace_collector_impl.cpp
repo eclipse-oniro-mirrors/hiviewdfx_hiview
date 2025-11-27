@@ -76,18 +76,20 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithDuratio
     return StartDumpTrace(caller, maxDuration, happenTime);
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(UCollect::TraceClient client)
+CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(const std::string& callName,
+    bool isNeedFlowControl)
 {
     if (auto uid = getuid(); uid != HIVIEW_UID) {
         HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
         return {UcError::PERMISSION_CHECK_FAILED};
     }
-    HIVIEW_LOGI("client:[%{public}d] dump trace in snapshot mode.", static_cast<int32_t>(client));
+    HIVIEW_LOGI("client:[%{public}s] dump trace in snapshot mode.", callName.c_str());
     std::lock_guard<std::mutex> lock(dumpMutex_);
     CollectResult<std::vector<std::string>> result;
-    auto traceStrategy = TraceStrategyFactory::CreateTraceStrategy(client, 0, static_cast<uint64_t>(0));
+    auto traceStrategy = TraceStrategyFactory::CreateTraceStrategy(callName, 0, static_cast<uint64_t>(0),
+        isNeedFlowControl);
     if (traceStrategy == nullptr) {
-        HIVIEW_LOGE("Create traceStrategy error client:%{public}d", static_cast<int32_t>(client));
+        HIVIEW_LOGE("Create traceStrategy error client:%{public}s", callName.c_str());
         return {UcError::UNSUPPORT};
     }
     TraceRetInfo traceRetInfo;

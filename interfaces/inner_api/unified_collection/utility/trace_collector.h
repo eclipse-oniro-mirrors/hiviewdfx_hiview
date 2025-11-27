@@ -33,7 +33,7 @@ public:
 
 public:
     virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) = 0;
-    virtual CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceClient client) = 0;
+    virtual CollectResult<std::vector<std::string>> DumpTrace(const std::string& callName, bool isNeedFlowControl) = 0;
     virtual CollectResult<int32_t> DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent) = 0;
     virtual CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller caller,
         uint32_t timeLimit, uint64_t happenTime = 0) = 0;

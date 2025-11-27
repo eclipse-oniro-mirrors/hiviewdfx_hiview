@@ -2,7 +2,6 @@
     "ioQuota": {
         "Xperf": 200,
         "Reliability": 200,
-        "Screen": 200,
         "Other": 200
     },
     "zipQuota": {

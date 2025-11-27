@@ -26,7 +26,31 @@ namespace OHOS {
 namespace HiviewDFX {
 using namespace Hitrace;
 
+namespace FlowControlName {
+inline constexpr char XPERF[] = "Xperf";
+inline constexpr char XPOWER[] = "Xpower";
+inline constexpr char RELIABILITY[] = "Reliability";
+inline constexpr char HIVIEW[] = "Hiview";
+inline constexpr char OTHER[] = "Other";
+inline constexpr char APP[] = "APP";
+inline constexpr char BEHAVIOR[] = "behavior";
+inline constexpr char TELEMETRY[] = "Telemetry";
+}
+
+// used for log
 namespace CallerName {
+inline constexpr char XPERF[] = "Xperf";
+inline constexpr char XPERF_EX[] = "XperfEx";
+inline constexpr char XPOWER[] = "Xpower";
+inline constexpr char RELIABILITY[] = "Reliability";
+inline constexpr char HIVIEW[] = "Hiview";
+inline constexpr char OTHER[] = "Other";
+inline constexpr char SCREEN[] = "Screen";
+inline constexpr char COMMAND[] = "traceCommand";
+};
+
+namespace PrefixName {
+inline constexpr char APP[] = "APP";
 inline constexpr char XPERF[] = "Xperf";
 inline constexpr char XPOWER[] = "Xpower";
 inline constexpr char RELIABILITY[] = "Reliability";
@@ -34,17 +58,6 @@ inline constexpr char HIVIEW[] = "Hiview";
 inline constexpr char OTHER[] = "Other";
 inline constexpr char SCREEN[] = "Screen";
 };
-
-namespace ClientName {
-inline constexpr char COMMAND[] = "Command";
-inline constexpr char COMMON_DEV[] = "Other";
-inline constexpr char APP[] = "APP";
-};
-
-namespace BusinessName {
-inline constexpr char BEHAVIOR[] = "behavior";
-inline constexpr char TELEMETRY[] = "Telemetry";
-}
 
 enum class TraceScenario : uint8_t {
     TRACE_COMMAND,

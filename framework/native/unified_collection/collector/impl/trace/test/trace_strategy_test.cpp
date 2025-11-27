@@ -89,18 +89,19 @@ public:
 std::shared_ptr<TraceStrategy> MakeXperfStrategy(int linkThreshold, int zipThreshold)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH};
-    return std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, linkThreshold),
-            std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, zipThreshold));
+    return std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::XPERF,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::XPERF, linkThreshold, strategyParam.caller),
+            std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, zipThreshold, strategyParam.caller));
 }
 
 std::shared_ptr<TraceStrategy> MakeReliabiltyStrategy(int linkThreshold, int zipThreshold)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::RELIABILITY), TEST_DB_PATH,
         TEST_CONFIG_PATH};
-    return std::make_shared<TraceAsyncStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, linkThreshold),
-            std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, zipThreshold));
+    return std::make_shared<TraceAsyncStrategy>(strategyParam, FlowControlName::RELIABILITY,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::RELIABILITY, linkThreshold,
+            strategyParam.caller), std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, zipThreshold,
+                strategyParam.caller));
 }
 
 /**
@@ -111,8 +112,8 @@ std::shared_ptr<TraceStrategy> MakeReliabiltyStrategy(int linkThreshold, int zip
 HWTEST_F(TraceStrategyTest, TraceStrategyTest001, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 3));
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 3, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::OUT_OF_TIME
     };
@@ -129,8 +130,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest001, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest002, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 3));
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 3, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1, // trace file size
@@ -149,8 +150,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest002, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest003, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 3));
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 3, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -173,8 +174,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest003, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest004, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 2)); // clean threshold
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 2, strategyParam.caller)); // clean threshold
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -198,8 +199,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest005, TestSize.Level1)
 {
     FileUtil::ForceCreateDirectory(TEST_SHARED_TEMP_PATH);
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 3)); // clean threshold
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 3, strategyParam.caller)); // clean threshold
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -224,16 +225,16 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest009, TestSize.Level1)
 {
     FileUtil::ForceCreateDirectory(TEST_SHARED_TEMP_PATH);
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 2));
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 2, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2}
     };
     CollectResult<std::vector<std::string>> result;
     auto ret = flowControlStrategy->DoDump(result.data, testInfo);
     ASSERT_TRUE(ret.IsSuccess());
-    auto flowControlStrategy1 = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 2));
+    auto flowControlStrategy1 = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 2, strategyParam.caller));
     TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC3}
     };
@@ -255,16 +256,16 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest010, TestSize.Level1)
 {
     FileUtil::ForceCreateDirectory(TEST_SHARED_TEMP_PATH);
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 5));
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 5, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2}
     };
     CollectResult<std::vector<std::string>> result;
     auto ret = flowControlStrategy->DoDump(result.data, testInfo);
     ASSERT_TRUE(ret.IsSuccess());
-    auto flowControlStrategy1 = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 5));
+    auto flowControlStrategy1 = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 5, strategyParam.caller));
     auto ret1 = flowControlStrategy1->DoDump(result.data, testInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     sleep(1);
@@ -280,7 +281,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest010, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest011, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
         nullptr);
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2}
@@ -298,8 +299,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest011, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest007, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::HIVIEW), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, strategyParam.caller, 3));
+    auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::HIVIEW,
+        std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 3, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS, .fileSize = 90, .outputFiles = {TRACE_TEST_SRC1}
     };
@@ -378,8 +379,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest013, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest014, TestSize.Level1)
 {
-    StrategyParam strategyParam {0, 0, ClientToString(UCollect::TraceClient::COMMAND), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto commandStrategy = std::make_shared<TraceStrategy>(strategyParam, TraceScenario::TRACE_COMMAND, nullptr);
+    StrategyParam strategyParam {0, 0, CallerName::COMMAND, TEST_DB_PATH, TEST_CONFIG_PATH};
+    auto commandStrategy = std::make_shared<TraceStrategy>(strategyParam, TraceScenario::TRACE_COMMAND);
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -400,10 +401,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest014, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest015, TestSize.Level1)
 {
-    StrategyParam strategyParam {0, 0, ClientToString(UCollect::TraceClient::COMMON_DEV), TEST_DB_PATH,
+    StrategyParam strategyParam {0, 0, "test", TEST_DB_PATH,
         TEST_CONFIG_PATH};
-    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 2), nullptr);
+    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::OTHER,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::OTHER, 2, strategyParam.caller), nullptr);
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -474,9 +475,9 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest017, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest019, TestSize.Level1)
 {
-    StrategyParam strategyParam {0, 0, "Other", TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), nullptr);
+    StrategyParam strategyParam {0, 0, "test", TEST_DB_PATH, TEST_CONFIG_PATH};
+    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::OTHER,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::OTHER, 5, strategyParam.caller), nullptr);
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 90,
@@ -487,8 +488,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest019, TestSize.Level1)
     ASSERT_TRUE(ret.IsSuccess());
     sleep(1);
     ASSERT_EQ(GetDirFileCount(TEST_SPECIAL_PATH), 3);
-    auto devStrategy1 = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), nullptr);
+    auto devStrategy1 = std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::OTHER,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::OTHER, 5, strategyParam.caller), nullptr);
     TraceRetInfo testInfo2 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 90,
@@ -565,8 +566,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest018, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest020, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::SCREEN), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), nullptr);
+    auto devStrategy = std::make_shared<TraceStrategy>(strategyParam,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::SCREEN, 5, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -586,8 +587,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest020, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest021, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::SCREEN), TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto devStrategy = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), nullptr);
+    auto devStrategy = std::make_shared<TraceStrategy>(strategyParam,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::SCREEN, 5, strategyParam.caller));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -596,8 +597,8 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest021, TestSize.Level1)
     CollectResult<std::vector<std::string>> result;
     auto ret = devStrategy->DoDump(result.data, testInfo);
     ASSERT_TRUE(ret.IsSuccess());
-    auto devStrategy1 = std::make_shared<TraceDevStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-    std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 5), nullptr);
+    auto devStrategy1 = std::make_shared<TraceStrategy>(strategyParam,
+    std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::SCREEN, 5, strategyParam.caller));
     TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
@@ -617,12 +618,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest021, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest024, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId1", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, FlowControlName::XPERF));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::OUT_OF_TIME,
         .fileSize = 10,
@@ -641,12 +642,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest024, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest025, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId2", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, FlowControlName::TELEMETRY));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -667,12 +668,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest025, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest026, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId3", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -691,12 +692,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest026, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest027, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId4", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -708,7 +709,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest027, TestSize.Level1)
     sleep(1);
     auto teleStrategy1 = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -729,12 +730,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest027, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest028, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId5", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -746,7 +747,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest028, TestSize.Level1)
     sleep(1);
     auto teleStrategy1 = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -767,12 +768,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest028, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest029, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId6", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -784,7 +785,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest029, TestSize.Level1)
     sleep(1);
     auto teleStrategy1 = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -796,7 +797,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest029, TestSize.Level1)
     sleep(1);
     auto teleStrategy2 = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::RELIABILITY), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo2 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -816,12 +817,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest029, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest030, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId7", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -833,7 +834,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest030, TestSize.Level1)
     sleep(1);
     auto teleStrategy1 = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -845,7 +846,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest030, TestSize.Level1)
     sleep(1);
     auto teleStrategy2 = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::RELIABILITY), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 20));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
     TraceRetInfo testInfo2 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -866,12 +867,12 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest030, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest031, TestSize.Level1)
 {
     int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(BusinessName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
+    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
         .InitTelemetryData("telemetryId8", runningTime, FLOW_CONTROL_MAP);
     ASSERT_NE(flowRet, TelemetryRet::EXIT);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
-            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, BusinessName::TELEMETRY, 2));
+            std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 2, ""));
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
@@ -1007,8 +1008,9 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest036, TestSize.Level1)
     TraceRetInfo resultInfo;
     StrategyParam strategyParam{0, 0, EnumToString(UCollect::TraceCaller::RELIABILITY), TEST_DB_PATH,
         TEST_CONFIG_PATH};
-    auto asyncStrategy = std::make_shared<TraceAsyncStrategy>(strategyParam, TraceScenario::TRACE_COMMON,
-    std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, strategyParam.caller, 3), nullptr);
+    auto asyncStrategy = std::make_shared<TraceAsyncStrategy>(strategyParam, FlowControlName::RELIABILITY,
+        std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::RELIABILITY, 3, strategyParam.caller),
+            nullptr);
     auto ret = asyncStrategy->DoDump(result.data, resultInfo);
     ASSERT_TRUE(ret.IsSuccess());
     auto callback = MockTraceStateMachine::GetInstance().GetAsyncCallback();
@@ -1040,7 +1042,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest037, TestSize.Level1)
     TraceRetInfo resultInfo;
     StrategyParam strategyParam{0, 0, EnumToString(UCollect::TraceCaller::RELIABILITY), TEST_DB_PATH,
         TEST_CONFIG_PATH};
-    auto asyncStrategy = std::make_shared<TraceAsyncStrategy>(strategyParam, TraceScenario::TRACE_COMMAND, nullptr,
+    auto asyncStrategy = std::make_shared<TraceAsyncStrategy>(strategyParam, FlowControlName::RELIABILITY, nullptr,
         nullptr);
     auto ret = asyncStrategy->DoDump(result.data, resultInfo);
     ASSERT_TRUE(ret.IsSuccess());

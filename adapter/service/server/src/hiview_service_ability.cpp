@@ -36,6 +36,7 @@
 #include "system_ability_definition.h"
 #include "utility/trace_collector.h"
 #include "xcollie/ipc_full.h"
+#include "common_utils.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -360,8 +361,26 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, 
         !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
-    auto traceRetHandler = [client] (HiviewService* service) {
-        return service->DumpSnapshotTrace(static_cast<UCollect::TraceClient>(client));
+    auto token_type = Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
+    std::string caller;
+    auto traceClient = static_cast<UCollect::TraceClient>(client);
+    bool isNeedFlowControl = false;
+    if (traceClient == UCollect::TraceClient::COMMAND) {
+        caller = "traceCommand";
+    } else if (token_type == Security::AccessToken::TOKEN_HAP) {
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        caller = GetApplicationNameById(uid);
+    } else {
+        int32_t pid = IPCSkeleton::GetCallingPid();
+        caller = CommonUtils::GetProcNameByPid(pid);
+        isNeedFlowControl = true;
+    }
+    if (caller.empty()) {
+        HIVIEW_LOGE("Get callName failed.");
+        return UCollect::UcError::SYSTEM_ERROR;
+    }
+    auto traceRetHandler = [caller, isNeedFlowControl] (HiviewService* service) {
+        return service->DumpSnapshotTrace(caller, isNeedFlowControl);
     };
     TraceCalling<std::vector<std::string>>(traceRetHandler, errNo, files);
     return 0;

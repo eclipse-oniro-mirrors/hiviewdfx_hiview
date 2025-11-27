@@ -43,7 +43,7 @@ enum class CacheFlow {
 
 class TraceFlowController {
 public:
-    explicit TraceFlowController(const std::string &caller, const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
+    explicit TraceFlowController(const std::string &name, const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
         const std::string& configPath = FlowController::DEFAULT_CONFIG_PATH);
     ~TraceFlowController() = default;
     bool IsZipOverFlow();

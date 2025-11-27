@@ -199,16 +199,18 @@ void TraceLinkHandler::DoLinkClean(const std::string &prefix)
     while (filteredLinks.size() > cleanThreshold_) {
         std::string link = filteredLinks.front();
         filteredLinks.pop_front();
+        std::string src = FileUtil::ReadSymlink(link);
         if (!FileUtil::RemoveFile(link)) {
             HIVIEW_LOGE("file:%{public}s delete failed", link.c_str());
             continue;
         }
-        bool result = false;
-        std::string src = FileUtil::ReadSymlink(link);
-        if (!src.empty()) {
-            result = TraceStateMachine::GetInstance().RemoveSymlinkXattr(src);
+        if (src.empty()) {
+            HIVIEW_LOGE("read link:%{public}s failed", link.c_str());
+            continue;
         }
-        HIVIEW_LOGI("file:%{public}s is delete, remove attr:%{public}d", link.c_str(), result);
+        if (!TraceStateMachine::GetInstance().RemoveSymlinkXattr(src)) {
+            HIVIEW_LOGI("remove attr failed file:%{public}s", src.c_str());
+        }
     }
 }
 
@@ -222,10 +224,10 @@ auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, 
     std::vector<std::string> files;
     for (const auto &trace : outputFiles) {
         auto startTime = std::chrono::steady_clock::now();
-        std::string dst = GetTraceFinalPath(trace, caller_);
+        std::string dst = GetTraceFinalPath(trace, prefix_);
         files.push_back(dst);
         LinkTraceFile(trace, dst);
-        DoLinkClean(caller_);
+        DoLinkClean(prefix_);
         WriteTrafficLog(startTime, caller_, trace, dst);
     }
     return files;

@@ -2,8 +2,7 @@
     "ioQuota": {
         "Xperf": 5242880000,
         "Reliability": 1048576000,
-        "Screen": 2097152000,
-        "Other": 7340032000
+        "Other": 2147483648
     },
     "zipQuota": {
         "Xperf": 1887436800,

@@ -96,7 +96,7 @@ public:
     explicit TraceDecorator(std::shared_ptr<TraceCollector> collector) : traceCollector_(collector) {};
     ~TraceDecorator() = default;
     CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) override;
-    CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceClient client) override;
+    CollectResult<std::vector<std::string>> DumpTrace(const std::string& callName, bool isNeedFlowControl) override;
     CollectResult<int32_t> DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(UCollect::TraceCaller caller,
         uint32_t timeLimit, uint64_t happenTime) override;
@@ -122,7 +122,7 @@ private:
         if constexpr (std::is_same_v<V, UCollect::TraceCaller>) {
             callerStr = EnumToString(caller);
         } else {
-            callerStr = ClientToString(caller);
+            callerStr = caller;
         }
         traceStatWrapper_.UpdateTraceStatInfo(startTime, endTime, callerStr, result);
         return result;

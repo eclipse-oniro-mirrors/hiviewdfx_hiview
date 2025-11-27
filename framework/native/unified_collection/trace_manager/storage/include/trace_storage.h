@@ -32,7 +32,7 @@ struct TraceFlowRecord {
 
 class TraceStorage {
 public:
-    TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& caller,
+    TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& name,
         const std::string& configPath);
     ~TraceStorage() = default;
 
@@ -62,7 +62,7 @@ private:
 
 private:
     TraceFlowRecord traceFlowRecord_;
-    std::string caller_;
+    std::string name_;
     std::string traceQuotaConfig_;
     int64_t ioQuota_ = 0;
     int64_t zipQuota_ = 0;

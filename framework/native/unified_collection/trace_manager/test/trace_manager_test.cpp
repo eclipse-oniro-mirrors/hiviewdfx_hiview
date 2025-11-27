@@ -150,7 +150,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
 {
-    auto flowController1 = std::make_shared<TraceFlowController>(ClientName::APP, TEST_DB_PATH,
+    auto flowController1 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     int32_t appid1 = 100;
     uint64_t happenTime1 = TimeUtil::GetMilliseconds() - 10000;  // 10 seconds ago
@@ -159,7 +159,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
     flowController1->RecordCaller(appEvent1);
     sleep(1);
 
-    auto flowController21 = std::make_shared<TraceFlowController>(ClientName::APP, TEST_DB_PATH,
+    auto flowController21 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     uint64_t happenTime2 = TimeUtil::GetMilliseconds() - 5000; // 5 seconds ago
     auto appEvent21 = InnerCreateAppCallerEvent(appid1, happenTime2);
@@ -167,7 +167,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
     flowController21->RecordCaller(appEvent21);
     sleep(1);
 
-    auto flowController22 = std::make_shared<TraceFlowController>(ClientName::APP, TEST_DB_PATH,
+    auto flowController22 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     int32_t appid2 = 101;
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid2, happenTime2));
@@ -182,7 +182,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
     flowController22->CleanOldAppTrace(dateNum + 1);
 
     sleep(1);
-    auto flowController23 = std::make_shared<TraceFlowController>(ClientName::APP, TEST_DB_PATH,
+    auto flowController23 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid1, TimeUtil::GetMilliseconds()));
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid2, TimeUtil::GetMilliseconds()));
@@ -224,7 +224,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
         {"Total", 180}
     };
 
-    TraceFlowController flowController(BusinessName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
     int64_t runningTime = 0;
     ASSERT_EQ(flowController.InitTelemetryData("id", runningTime, flowControlQuotas), TelemetryRet::SUCCESS);
     sleep(1);
@@ -247,13 +247,13 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
     flowController.ClearTelemetryData();
 
     // data is cleared
-    TraceFlowController flowController2(BusinessName::TELEMETRY, TEST_DB_PATH);
+    TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH);
     ASSERT_EQ(flowController2.InitTelemetryData("id", runningTime, flowControlQuotas), TelemetryRet::SUCCESS);
     flowController2.TelemetryStore(CallerName::XPOWER, 5000);
     ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER), TelemetryRet::SUCCESS);
 
     // do not clear db
-    TraceFlowController flowController3(BusinessName::TELEMETRY, TEST_DB_PATH);
+    TraceFlowController flowController3(FlowControlName::TELEMETRY, TEST_DB_PATH);
 
     // Already init, old data still take effect
     ASSERT_EQ(flowController2.InitTelemetryData("id", runningTime, flowControlQuota2), TelemetryRet::SUCCESS);
@@ -265,7 +265,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
     flowController.ClearTelemetryData();
 
     // flowControlQuota2 take effect
-    TraceFlowController flowController4(BusinessName::TELEMETRY, TEST_DB_PATH);
+    TraceFlowController flowController4(FlowControlName::TELEMETRY, TEST_DB_PATH);
     ASSERT_EQ(flowController4.InitTelemetryData("id", runningTime, flowControlQuota2), TelemetryRet::SUCCESS);
     flowController4.TelemetryStore(CallerName::XPOWER, 500);
     ASSERT_EQ(flowController4.NeedTelemetryDump(CallerName::XPOWER), TelemetryRet::OVER_FLOW);
@@ -283,13 +283,13 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
         {CallerName::XPOWER, 12000},
         {"Total", 18000}
     };
-    TraceFlowController flowController(BusinessName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
     int64_t runningTime1 = 0;
     ASSERT_EQ(flowController.InitTelemetryData("id1", runningTime1, flowControlQuotas), TelemetryRet::SUCCESS);
     ASSERT_EQ(runningTime1, 0);
 
     // if data init, correct btime2 etime2 value
-    TraceFlowController flowController2(BusinessName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
     int64_t runningTime2 = 100;
     ASSERT_EQ(flowController2.InitTelemetryData("id1", runningTime2, flowControlQuotas), TelemetryRet::SUCCESS);
     ASSERT_EQ(runningTime2, 0);
