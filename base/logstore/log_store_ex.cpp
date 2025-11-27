@@ -110,9 +110,9 @@ bool LogStoreEx::Clear()
     return Init();
 }
 
-void LogStoreEx::DoDeleteLogFiles(const std::vector<LogFile> &fileList, int32_t removeFileNums) const
+void LogStoreEx::DoDeleteLogFiles(const std::vector<LogFile> &fileList, uint32_t removeFileNums) const
 {
-    int32_t deleteCount = 0;
+    uint32_t deleteCount = 0;
     for (auto it = fileList.rbegin(); it != fileList.rend(); ++it) {
         if (deleteCount >= removeFileNums) {
             break;
@@ -135,9 +135,11 @@ void LogStoreEx::ClearOldestFilesIfNeeded()
     }
 
     auto fileList = GetLogFiles();
-    int32_t removeFileNumber = fileList.size() - minKeepingNumberOfFiles_;
-    if (removeFileNumber < 0) {
+    uint32_t removeFileNumber = 0;
+    if (fileList.size() < minKeepingNumberOfFiles_) {
         removeFileNumber = fileList.size() / 2; // 2 : remove half of the total
+    } else {
+        removeFileNumber = fileList.size() - minKeepingNumberOfFiles_;
     }
     DoDeleteLogFiles(fileList, removeFileNumber);
 }
