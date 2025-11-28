@@ -347,10 +347,10 @@ TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRe
             outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles, {}, appCallerEvent_);
         }
         traceFlowController_->RecordCaller(appCallerEvent_);
+        ShareAppEvent(appCallerEvent_);
+        ReportMainThreadJankForTrace(appCallerEvent_);
+        CleanOldAppTrace();
     }
-    ShareAppEvent(appCallerEvent_);
-    CleanOldAppTrace();
-    ReportMainThreadJankForTrace(appCallerEvent_);
     return ret;
 }
 
