@@ -52,6 +52,9 @@
         },{
             "domain":"THP",
             "include":["DMDW_THP_DAE_PROCESS_TIMEOUT"]
+        },{
+            "domain":"WEBVIEW",
+            "include":["PROCESS_FREEZE_WARNING", "RENDER_JS_FREEZE"]
         }
     ]
 }
