@@ -197,6 +197,7 @@ void UsageEventReport::ReportDailyEvent()
     if (nowTime > (nextReportTime_ + TimeUtil::MILLISECS_PER_DAY)
         || nowTime < (nextReportTime_ - TimeUtil::MILLISECS_PER_DAY)) {
         HIVIEW_LOGW("start to update the next daily report time");
+        lastReportTime_ = nowTime;
         nextReportTime_ = static_cast<uint64_t>(TimeUtil::Get0ClockStampMs()) + TimeUtil::MILLISECS_PER_DAY;
     } else if (nowTime >= nextReportTime_) {
         // report plugin stats event
