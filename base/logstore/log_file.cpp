@@ -38,7 +38,7 @@ LogFile::LogFile(const std::string& fullPath) : path_(fullPath)
         if (!isDir_) {
             size_ = sb.st_size;
         } else {
-            size_ = FileUtil::GetFolderSize(fullPath);
+            size_ = static_cast<int64_t>(FileUtil::GetFolderSize(fullPath));
         }
     }
     name_ = FileUtil::ExtractFileName(fullPath);

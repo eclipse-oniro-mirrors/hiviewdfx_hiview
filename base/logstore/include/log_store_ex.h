@@ -77,7 +77,7 @@ protected:
     std::string path_;
 
 private:
-    void DoDeleteLogFiles(const std::vector<LogFile> &fileList, int32_t removeFileNums) const;
+    void DoDeleteLogFiles(const std::vector<LogFile> &fileList, uint32_t removeFileNums) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
