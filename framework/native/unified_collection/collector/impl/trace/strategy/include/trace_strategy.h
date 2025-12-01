@@ -173,24 +173,23 @@ public:
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 };
 
-class TraceAppStrategy : public TraceStrategy  {
+class TraceAppStrategy {
 public:
-    TraceAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent, std::shared_ptr<TraceAppHandler> appHandler,
-        std::string dbPath = FlowController::DEFAULT_DB_PATH)
-        : TraceStrategy(StrategyParam {0, 0, "", dbPath}, appHandler)
+    TraceAppStrategy(std::shared_ptr<TraceAppHandler> appHandler,
+        const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
+            const std::string& configPath = FlowController::DEFAULT_DB_PATH) : appHandler_(appHandler)
     {
-        appCallerEvent_ = appCallerEvent;
-        traceFlowController_ = std::make_shared<TraceFlowController>(FlowControlName::APP, dbPath_, configPath_);
+        traceFlowController_ = std::make_shared<TraceFlowController>(FlowControlName::APP, dbPath, configPath);
     }
-    TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
+    TraceRet DoDump(const UCollectClient::AppCaller& appCaller, TraceRetInfo &traceRetInfo, std::string& outputFile);
 
 private:
-    void ShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent);
-    void ReportMainThreadJankForTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
     void CleanOldAppTrace();
+    bool MakeAppEventTask(const UCollectClient::AppCaller& appCaller, int64_t traceOpenTime, int64_t traceDumpTime,
+        const std::string &resourcePath, AppEventTask& appEventTask);
 
-private:
-    std::shared_ptr<AppCallerEvent> appCallerEvent_;
+    std::shared_ptr<TraceFlowController> traceFlowController_;
+    std::shared_ptr<TraceAppHandler> appHandler_;
 };
 }
 #endif

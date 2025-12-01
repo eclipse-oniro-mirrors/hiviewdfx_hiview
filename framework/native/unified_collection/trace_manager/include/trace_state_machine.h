@@ -68,14 +68,9 @@ public:
         cacheSliceSpan_ = sliceMaxDuration;
     }
 
-    int32_t GetCurrentAppPid()
+    std::pair<int32_t, uint64_t> GetCurrentAppInfo()
     {
-        return currentState_->GetAppPid();
-    }
-
-    uint64_t GetTaskBeginTime()
-    {
-        return currentState_->GetTaskBeginTime();
+        return currentState_->GetCurrentAppInfo();
     }
 
     void SetTraceVersionBeta()

@@ -84,10 +84,9 @@ auto TraceStrategyFactory::CreateStrategy(UCollect::TeleModule module, uint32_t 
         std::make_shared<TraceZipHandler>(UNIFIED_TELEMETRY_PATH, CleanThreshold::TELE_ZIP_FILE, ""));
 }
 
-auto TraceStrategyFactory::CreateAppStrategy(std::shared_ptr<AppCallerEvent> appCallerEvent)
-    ->std::shared_ptr<TraceAppStrategy>
+auto TraceStrategyFactory::CreateAppStrategy()->std::shared_ptr<TraceAppStrategy>
 {
-    return std::make_shared<TraceAppStrategy>(appCallerEvent,
-        std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH, CleanThreshold::APP_FILE));
+    return std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH,
+        CleanThreshold::APP_FILE));
 }
 }

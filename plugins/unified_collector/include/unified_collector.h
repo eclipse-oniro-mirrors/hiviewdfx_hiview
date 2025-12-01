@@ -33,7 +33,6 @@ public:
     void OnLoad() override;
     void OnUnload() override;
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-    bool OnEvent(std::shared_ptr<Event>& event) override;
     void OnEventListeningCallback(const Event& event) override;
     void Dump(int fd, const std::vector<std::string>& cmds) override;
 #endif

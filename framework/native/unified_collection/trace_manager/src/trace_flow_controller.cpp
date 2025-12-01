@@ -16,7 +16,6 @@
 #include <sys/stat.h>
 #include <set>
 
-#include "app_caller_event.h"
 #include "app_event_task_storage.h"
 #include "file_util.h"
 #include "hiview_logger.h"
@@ -146,31 +145,11 @@ bool TraceFlowController::HasCallOnceToday(int32_t uid, uint64_t happenTime)
     return appEventTask.id_ > 0;
 }
 
-bool TraceFlowController::RecordCaller(std::shared_ptr<AppCallerEvent> appEvent)
+bool TraceFlowController::RecordCaller(AppEventTask& appEventTask)
 {
     if (appTaskStore_ == nullptr) {
         return false;
     }
-    uint64_t happenTimeInSecond = appEvent->happenTime_ / TimeUtil::SEC_TO_MILLISEC;
-    std::string date = TimeUtil::TimestampFormatToDate(happenTimeInSecond, "%Y%m%d");
-    int64_t dateNum = 0;
-    auto result = std::from_chars(date.c_str(), date.c_str() + date.size(), dateNum);
-    if (result.ec != std::errc()) {
-        HIVIEW_LOGW("convert error, dateStr: %{public}s", date.c_str());
-        return false;
-    }
-    AppEventTask appEventTask;
-    appEventTask.taskDate_ = dateNum;
-    appEventTask.taskType_ = APP_EVENT_TASK_TYPE_JANK_EVENT;
-    appEventTask.uid_ = appEvent->uid_;
-    appEventTask.pid_ = appEvent->pid_;
-    appEventTask.bundleName_ = appEvent->bundleName_;
-    appEventTask.bundleVersion_ = appEvent->bundleVersion_;
-    appEventTask.startTime_ = appEvent->taskBeginTime_;
-    appEventTask.finishTime_ = appEvent->taskEndTime_;
-    appEventTask.resourePath_ = appEvent->externalLog_;
-    appEventTask.resourceSize_ = static_cast<int32_t>(FileUtil::GetFileSize(appEventTask.resourePath_));
-    appEventTask.state_ = APP_EVENT_TASK_STATE_FINISH;
     return appTaskStore_->InsertAppEventTask(appEventTask);
 }
 

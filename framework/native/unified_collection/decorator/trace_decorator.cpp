@@ -64,9 +64,9 @@ CollectResult<std::vector<std::string>> TraceDecorator::DumpTrace(const std::str
     return Invoke(task, callName);
 }
 
-CollectResult<int32_t> TraceDecorator::DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+CollectResult<std::string> TraceDecorator::DumpAppTrace(const UCollectClient::AppCaller& appCaller)
 {
-    return traceCollector_->DumpAppTrace(appCallerEvent);
+    return traceCollector_->DumpAppTrace(appCaller);
 }
 
 CollectResult<std::vector<std::string>> TraceDecorator::DumpTraceWithDuration(UCollect::TraceCaller caller,

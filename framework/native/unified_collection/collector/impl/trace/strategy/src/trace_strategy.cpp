@@ -16,12 +16,10 @@
 
 #include <charconv>
 
-#include "event_publish.h"
+#include "hisysevent.h"
 #include "hiview_logger.h"
 #include "time_util.h"
 #include "trace_utils.h"
-#include "collect_event.h"
-#include "json/json.h"
 #include "memory_collector.h"
 #include "parameter_ex.h"
 #ifndef TRACE_STRATEGY_UNITTEST
@@ -314,57 +312,73 @@ TraceRet TraceAsyncStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &trace
     return ret;
 }
 
-TraceRet TraceAppStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
+TraceRet TraceAppStrategy::DoDump(const UCollectClient::AppCaller& appCaller, TraceRetInfo &traceRetInfo,
+    std::string& outputFile)
 {
 #ifndef TRACE_STRATEGY_UNITTEST
-    auto appPid = TraceStateMachine::GetInstance().GetCurrentAppPid();
+    auto appInfo = TraceStateMachine::GetInstance().GetCurrentAppInfo();
 #else
-    auto appPid = MockTraceStateMachine::GetInstance().GetCurrentAppPid();
+    auto appInfo = MockTraceStateMachine::GetInstance().GetCurrentAppInfo();
 #endif
-    if (appPid != appCallerEvent_->pid_) {
-        HIVIEW_LOGW("pid check fail, maybe is app state closed, current:%{public}d, pid:%{public}d", appPid,
-            appCallerEvent_->pid_);
+    int32_t appPid = appInfo.first;
+    int64_t traceOpenTime = static_cast<int64_t>(appInfo.second);
+    if (appPid != appCaller.pid || traceOpenTime == 0) {
+        HIVIEW_LOGW("state check fail, maybe is app state closed, current:%{public}d, pid:%{public}d,"
+            " traceTaskOpenTime:%{public}" PRId64 "", appPid, appCaller.pid, traceOpenTime);
         return TraceRet(TraceStateCode::FAIL);
     }
-    if (traceFlowController_->HasCallOnceToday(appCallerEvent_->uid_, appCallerEvent_->happenTime_)) {
-        HIVIEW_LOGE("already capture trace uid=%{public}d pid==%{public}d", appCallerEvent_->uid_,
-            appCallerEvent_->pid_);
+    if (traceFlowController_->HasCallOnceToday(appCaller.uid, appCaller.happenTime)) {
+        HIVIEW_LOGE("already capture trace uid=%{public}d pid==%{public}d", appCaller.uid, appCaller.pid);
         return TraceRet(TraceFlowCode::TRACE_HAS_CAPTURED_TRACE);
     }
 #ifndef TRACE_STRATEGY_UNITTEST
     TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, traceRetInfo);
-    appCallerEvent_->taskBeginTime_ = static_cast<int64_t>(TraceStateMachine::GetInstance().GetTaskBeginTime());
 #else
     TraceRet ret(traceRetInfo.errorCode);
 #endif
-    appCallerEvent_->taskEndTime_ = static_cast<int64_t>(TimeUtil::GetMilliseconds());
-    if (ret.IsSuccess()) {
-        if (traceRetInfo.outputFiles.empty() || traceRetInfo.outputFiles[0].empty()) {
-            HIVIEW_LOGE("TraceAppStrategy dump file empty");
-            return TraceRet(TraceStateCode::FAIL);
-        }
-        if (traceHandler_ != nullptr) {
-            outputFiles = traceHandler_->HandleTrace(traceRetInfo.outputFiles, {}, appCallerEvent_);
-        }
-        traceFlowController_->RecordCaller(appCallerEvent_);
+    int64_t traceDumpTime = static_cast<int64_t>(TimeUtil::GetMilliseconds());
+    if (!ret.IsSuccess()) {
+        HIVIEW_LOGE("TraceAppStrategy dump failed code:%{public}d", ret.codeError_);
+        return ret;
     }
-    ShareAppEvent(appCallerEvent_);
+    if (traceRetInfo.outputFiles.empty() || traceRetInfo.outputFiles[0].empty()) {
+        HIVIEW_LOGE("TraceAppStrategy dump file empty");
+        return TraceRet(TraceStateCode::FAIL);
+    }
+    if (appHandler_ != nullptr) {
+        outputFile = appHandler_->HandleTrace(traceRetInfo.outputFiles, appCaller, traceOpenTime, traceDumpTime);
+    }
+    if (AppEventTask appEventTask;
+        MakeAppEventTask(appCaller, traceOpenTime, traceDumpTime, outputFile, appEventTask)) {
+        traceFlowController_->RecordCaller(appEventTask);
+    }
     CleanOldAppTrace();
-    ReportMainThreadJankForTrace(appCallerEvent_);
     return ret;
 }
 
-void TraceAppStrategy::ReportMainThreadJankForTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+bool TraceAppStrategy::MakeAppEventTask(const UCollectClient::AppCaller& appCaller, int64_t traceOpenTime,
+    int64_t traceDumpTime, const std::string &resourcePath, AppEventTask& appEventTask)
 {
-    HiSysEventWrite(HiSysEvent::Domain::FRAMEWORK, UCollectUtil::MAIN_THREAD_JANK, HiSysEvent::EventType::FAULT,
-        UCollectUtil::SYS_EVENT_PARAM_BUNDLE_NAME, appCallerEvent->bundleName_,
-        UCollectUtil::SYS_EVENT_PARAM_BUNDLE_VERSION, appCallerEvent->bundleVersion_,
-        UCollectUtil::SYS_EVENT_PARAM_BEGIN_TIME, appCallerEvent->beginTime_,
-        UCollectUtil::SYS_EVENT_PARAM_END_TIME, appCallerEvent->endTime_,
-        UCollectUtil::SYS_EVENT_PARAM_THREAD_NAME, appCallerEvent->threadName_,
-        UCollectUtil::SYS_EVENT_PARAM_FOREGROUND, appCallerEvent->foreground_,
-        UCollectUtil::SYS_EVENT_PARAM_LOG_TIME, appCallerEvent->taskEndTime_,
-        UCollectUtil::SYS_EVENT_PARAM_JANK_LEVEL, 1); // 1: over 450ms
+    uint64_t happenTimeInSecond = appCaller.happenTime / TimeUtil::SEC_TO_MILLISEC;
+    std::string date = TimeUtil::TimestampFormatToDate(happenTimeInSecond, "%Y%m%d");
+    int64_t dateNum = 0;
+    auto result = std::from_chars(date.c_str(), date.c_str() + date.size(), dateNum);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGW("convert error, dateStr: %{public}s", date.c_str());
+        return false;
+    }
+    appEventTask.taskDate_ = dateNum;
+    appEventTask.taskType_ = APP_EVENT_TASK_TYPE_JANK_EVENT;
+    appEventTask.uid_ = appCaller.uid;
+    appEventTask.pid_ = appCaller.pid;
+    appEventTask.bundleName_ = appCaller.bundleName;
+    appEventTask.bundleVersion_ = appCaller.bundleVersion;
+    appEventTask.startTime_ = traceOpenTime;
+    appEventTask.finishTime_ = traceDumpTime;
+    appEventTask.resourcePath_ = resourcePath;
+    appEventTask.resourceSize_ = static_cast<int32_t>(FileUtil::GetFileSize(appEventTask.resourcePath_));
+    appEventTask.state_ = APP_EVENT_TASK_STATE_FINISH;
+    return true;
 }
 
 void TraceAppStrategy::CleanOldAppTrace()
@@ -385,25 +399,5 @@ void TraceAppStrategy::CleanOldAppTrace()
         return;
     }
     traceFlowController_->CleanOldAppTrace(dateNum);
-}
-
-void TraceAppStrategy::ShareAppEvent(std::shared_ptr<AppCallerEvent> appCallerEvent)
-{
-    Json::Value eventJson;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_UID] = appCallerEvent->uid_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_PID] = appCallerEvent->pid_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_TIME] = appCallerEvent->happenTime_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_NAME] = appCallerEvent->bundleName_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_VERSION] = appCallerEvent->bundleVersion_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_BEGIN_TIME] = appCallerEvent->beginTime_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_END_TIME] = appCallerEvent->endTime_;
-    eventJson[UCollectUtil::APP_EVENT_PARAM_ISBUSINESSJANK] = appCallerEvent->isBusinessJank_;
-    Json::Value externalLog;
-    externalLog.append(appCallerEvent->externalLog_);
-    eventJson[UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG] = externalLog;
-    std::string param = Json::FastWriter().write(eventJson);
-    HIVIEW_LOGI("send for uid=%{public}d pid=%{public}d", appCallerEvent->uid_, appCallerEvent->pid_);
-    EventPublish::GetInstance().PushEvent(appCallerEvent->uid_, UCollectUtil::MAIN_THREAD_JANK,
-        HiSysEvent::EventType::FAULT, param);
 }
 }

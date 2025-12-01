@@ -54,14 +54,9 @@ public:
         return false;
     }
 
-    virtual uint64_t GetTaskBeginTime()
+    virtual std::pair<int32_t, uint64_t> GetCurrentAppInfo()
     {
-        return 0;
-    }
-
-    virtual int32_t GetAppPid()
-    {
-        return -1;
+        return {-1, 0};
     }
 
 protected:

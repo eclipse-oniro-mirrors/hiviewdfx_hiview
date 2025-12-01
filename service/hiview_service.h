@@ -20,7 +20,6 @@
 #include <string>
 #include <vector>
 
-#include "app_caller_event.h"
 #include "client/memory_collector_client.h"
 #include "client/trace_collector_client.h"
 #include "utility/cpu_collector.h"
@@ -59,9 +58,9 @@ private:
     void DumpPluginInfo(int fd, const std::vector<std::string>& cmds) const;
     void DumpLoadedPluginInfo(int fd) const;
 
-    bool InnerHasCallAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent);
-    CollectResult<int32_t> InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller);
-    CollectResult<int32_t> InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller);
+    bool InnerHasCallAppTrace(int32_t uid, int64_t happenTime);
+    CollectResult<int32_t> InnerResponseStartAppTrace(const UCollectClient::AppCaller &appCaller);
+    CollectResult<int32_t> InnerResponseDumpAppTrace(const UCollectClient::AppCaller &appCaller);
 
     int CopyFile(const std::string& srcFilePath, const std::string& destFilePath);
 

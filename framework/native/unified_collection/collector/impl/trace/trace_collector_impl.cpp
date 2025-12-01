@@ -98,21 +98,23 @@ CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(const std:
     return result;
 }
 
-CollectResult<int32_t> TraceCollectorImpl::DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+CollectResult<std::string> TraceCollectorImpl::DumpAppTrace(const UCollectClient::AppCaller& appCaller)
 {
     if (auto uid = getuid(); uid != HIVIEW_UID) {
         HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
         return {UcError::PERMISSION_CHECK_FAILED};
     }
-    if (appCallerEvent == nullptr) {
-        HIVIEW_LOGE("appCallerEvent is null");
+    std::lock_guard<std::mutex> lock(dumpMutex_);
+    CollectResult<std::string> result;
+    auto strategy = TraceStrategyFactory::CreateAppStrategy();
+    if (strategy == nullptr) {
         return {UcError::UNSUPPORT};
     }
-    std::lock_guard<std::mutex> lock(dumpMutex_);
-    CollectResult<std::vector<std::string>> result;
-    auto strategy = TraceStrategyFactory::CreateAppStrategy(appCallerEvent);
     TraceRetInfo traceRetInfo;
-    return {GetUcError(strategy->DoDump(result.data, traceRetInfo))};
+    TraceRet dumpRet = strategy->DoDump(appCaller, traceRetInfo, result.data);
+    result.retCode = GetUcError(dumpRet);
+    HIVIEW_LOGI("pid:%{public}d ret:%{public}d file:%{public}s", appCaller.pid, result.retCode, result.data.c_str());
+    return result;
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTraceWithFilter(TeleModule module,

@@ -37,7 +37,7 @@ struct AppEventTask {
     std::string bundleVersion_;
     int64_t startTime_ = 0;
     int64_t finishTime_ = 0;
-    std::string resourePath_;
+    std::string resourcePath_;
     int32_t resourceSize_ = 0;
     double costCpu_ = 0.0;
     int32_t state_ = 0;

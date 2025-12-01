@@ -35,14 +35,9 @@ public:
     TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
 
-    uint64_t GetTaskBeginTime() override
+    std::pair<int32_t, uint64_t> GetCurrentAppInfo() override
     {
-        return taskBeginTime_;
-    }
-
-    int32_t GetAppPid() override
-    {
-        return appPid_;
+        return {appPid_, taskBeginTime_};
     }
 
 protected:

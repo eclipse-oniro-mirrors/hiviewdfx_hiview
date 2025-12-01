@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 #include <functional>
 
-#include "app_caller_event.h"
 #include "file_util.h"
 #include "trace_common.h"
 #include "trace_db_callback.h"
@@ -36,25 +35,19 @@ const std::string DEVELOPER_MODE_TRACE_ARGS = "tags:sched, freq, disk, sync, bin
     dcamera, zcamera, dhfwk, app, gresource, ability, power, samgr, ffrt clockType:boot1 bufferSize:32768 overwrite:0 \
     fileLimit:20 fileSize:102400";
 
-std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(int32_t uid, uint64_t happendTime)
+AppEventTask InnerCreateAppEventTask(int32_t uid, uint64_t happendTime)
 {
-    std::shared_ptr<AppCallerEvent> appCallerEvent = std::make_shared<AppCallerEvent>("HiViewService");
-    appCallerEvent->messageType_ = Event::MessageType::PLUGIN_MAINTENANCE;
-    appCallerEvent->eventName_ = "DUMP_APP_TRACE";
-    appCallerEvent->isBusinessJank_ = false;
-    appCallerEvent->bundleName_ = "com.example.helloworld";
-    appCallerEvent->bundleVersion_ = "2.0.1";
-    appCallerEvent->uid_ = uid;
-    appCallerEvent->pid_ = 1000;
-    appCallerEvent->happenTime_ = happendTime;
-    appCallerEvent->beginTime_ = 0;
-    appCallerEvent->endTime_ = 0;
-    appCallerEvent->taskBeginTime_ = static_cast<int64_t>(TimeUtil::GetMilliseconds());
-    appCallerEvent->taskEndTime_ = appCallerEvent->taskBeginTime_;
-    appCallerEvent->resultCode_ = 0;
-    appCallerEvent->foreground_ = 1;
-    appCallerEvent->threadName_ = "mainThread";
-    return appCallerEvent;
+    AppEventTask appEventTask;
+    uint64_t happenTimeInSecond = happendTime / TimeUtil::SEC_TO_MILLISEC;
+    std::string date = TimeUtil::TimestampFormatToDate(happenTimeInSecond, "%Y%m%d");
+    int64_t dateNum = 0;
+    std::from_chars(date.c_str(), date.c_str() + date.size(), dateNum);
+    appEventTask.taskDate_ = dateNum;
+    appEventTask.bundleName_ = "com.example.helloworld";
+    appEventTask.bundleVersion_ = "2.0.1";
+    appEventTask.uid_ = uid;
+    appEventTask.taskDate_ = dateNum;
+    return appEventTask;
 }
 
 class TestTelemetryCallback : public TelemetryCallback {
@@ -154,25 +147,25 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
         FlowController::DEFAULT_CONFIG_PATH);
     int32_t appid1 = 100;
     uint64_t happenTime1 = TimeUtil::GetMilliseconds() - 10000;  // 10 seconds ago
-    auto appEvent1 = InnerCreateAppCallerEvent(appid1, happenTime1);
+    auto appTaskEvent1 = InnerCreateAppEventTask(appid1, happenTime1);
     ASSERT_FALSE(flowController1->HasCallOnceToday(appid1, happenTime1));
-    flowController1->RecordCaller(appEvent1);
+    flowController1->RecordCaller(appTaskEvent1);
     sleep(1);
 
     auto flowController21 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     uint64_t happenTime2 = TimeUtil::GetMilliseconds() - 5000; // 5 seconds ago
-    auto appEvent21 = InnerCreateAppCallerEvent(appid1, happenTime2);
+    auto appTaskEvent21 = InnerCreateAppEventTask(appid1, happenTime2);
     ASSERT_TRUE(flowController21->HasCallOnceToday(appid1, happenTime2));
-    flowController21->RecordCaller(appEvent21);
+    flowController21->RecordCaller(appTaskEvent21);
     sleep(1);
 
     auto flowController22 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
         FlowController::DEFAULT_CONFIG_PATH);
     int32_t appid2 = 101;
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid2, happenTime2));
-    auto appEvent22 = InnerCreateAppCallerEvent(appid2, happenTime2);
-    flowController22->RecordCaller(appEvent22);
+    auto appTaskEvent22 = InnerCreateAppEventTask(appid2, happenTime2);
+    flowController22->RecordCaller(appTaskEvent22);
 
     sleep(1);
     std::string date = TimeUtil::TimestampFormatToDate(TimeUtil::GetSeconds(), "%Y%m%d");
@@ -595,8 +588,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     ASSERT_TRUE(ret1.IsSuccess());
 
     // Trans to app state
-    ASSERT_EQ(TraceStateMachine::GetInstance().GetCurrentAppPid(), 100);
-    ASSERT_GT(TraceStateMachine::GetInstance().GetTaskBeginTime(), 0);
+    auto item = TraceStateMachine::GetInstance().GetCurrentAppInfo();
+    ASSERT_EQ(item.first, 100);
+    ASSERT_GT(item.second, 0);
     TraceRetInfo info;
     TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
@@ -634,7 +628,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     ASSERT_TRUE(ret15.IsSuccess());
 
     // Trans to app state again
-    ASSERT_EQ(TraceStateMachine::GetInstance().GetCurrentAppPid(), 101);
+    ASSERT_EQ(TraceStateMachine::GetInstance().GetCurrentAppInfo().first, 101);
     TraceRet ret16 = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMON, TAG_GROUPS);
     ASSERT_TRUE(ret16.IsSuccess());
 
