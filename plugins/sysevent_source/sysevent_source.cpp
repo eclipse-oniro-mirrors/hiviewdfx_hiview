@@ -91,8 +91,8 @@ bool SysEventSource::PublishPipelineEvent(std::shared_ptr<PipelineEvent> event)
     auto const &pipelineMap = hiviewPlatform->GetPipelineMap();
     for (auto it = pipelineRules.begin(); it != pipelineRules.end(); it++) {
         std::string pipelineName = it->first;
-        auto dispathRule = it->second;
-        if (dispathRule->FindEvent(event->domain_, event->eventName_)) {
+        auto dispatchRule = it->second;
+        if (dispatchRule->FindEvent(event->domain_, event->eventName_)) {
             pipelineMap.at(pipelineName)->ProcessEvent(event);
             return true;
         }

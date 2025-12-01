@@ -66,6 +66,9 @@ namespace {
     \"tags\":[1]\
     }";
 
+    const std::string TEST_JSON_ALL_EVENTS_OF_DOMAIN = R"~({"domains":[{"domain":"HIVIEWDFX"}]})~";
+    const std::string TEST_JSON_INVALID_DOMAIN = R"~({"domains":[{"domain":"HIVIEWDFX", "test":"invalid"}]})~";
+
     const std::string TEST_JSON_NOJSON = "not json";
 }
 void DispatchRuleParserTest::SetUpTestCase()
@@ -78,6 +81,8 @@ void DispatchRuleParserTest::SetUpTestCase()
     FileUtil::SaveStringToFile(TEST_FILE_DIR + "test_json_nojson", TEST_JSON_NOJSON, true);
     FileUtil::SaveStringToFile(TEST_FILE_DIR + "test_json_error_type_key", TEST_JSON_ERROR_TYPE_KEY, true);
     FileUtil::SaveStringToFile(TEST_FILE_DIR + "test_json_error_type_value", TEST_JSON_ERROR_TYPE_VALUE, true);
+    (void)FileUtil::SaveStringToFile(TEST_FILE_DIR + "test_json_all_event", TEST_JSON_ALL_EVENTS_OF_DOMAIN, true);
+    (void)FileUtil::SaveStringToFile(TEST_FILE_DIR + "test_json_invalid_domain", TEST_JSON_INVALID_DOMAIN, true);
 }
 
 void DispatchRuleParserTest::TearDownTestCase()
@@ -172,6 +177,36 @@ HWTEST_F(DispatchRuleParserTest, DispatchRuleParser005, testing::ext::TestSize.L
     ASSERT_EQ(rules->tagList.size(), 0);
     ASSERT_EQ(rules->eventList.size(), 0);
     ASSERT_EQ(rules->domainRuleMap.size(), 0);
+}
+
+/**
+ * @tc.name: DispatchRuleParser006
+ * @tc.desc: Test the api of DispatchRuleParser for all events of the domain.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DispatchRuleParserTest, DispatchRuleParser006, testing::ext::TestSize.Level0)
+{
+    DispatchRuleParser ruleParser(TEST_FILE_DIR + "test_json_all_event");
+    auto rules = ruleParser.GetRule();
+    ASSERT_NE(rules, nullptr);
+    ASSERT_EQ(rules->domainRuleMap.size(), 1); // 1 domain: HIVIEWDFX
+    ASSERT_TRUE(rules->FindEvent("HIVIEWDFX", "APP_USAGE"));
+    ASSERT_TRUE(rules->FindEvent("HIVIEWDFX", "SYS_USAGE"));
+    ASSERT_FALSE(rules->FindEvent("HIVIEWDFX_UE", "SYS_USAGE"));
+}
+
+/**
+ * @tc.name: DispatchRuleParser007
+ * @tc.desc: Test the api of DispatchRuleParser for invalid domain config.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DispatchRuleParserTest, DispatchRuleParser007, testing::ext::TestSize.Level0)
+{
+    DispatchRuleParser ruleParser(TEST_FILE_DIR + "test_json_invalid_domain");
+    auto rules = ruleParser.GetRule();
+    ASSERT_NE(rules, nullptr);
+    ASSERT_EQ(rules->domainRuleMap.size(), 1); // 1 domain: HIVIEWDFX
+    ASSERT_FALSE(rules->FindEvent("HIVIEWDFX", "APP_USAGE"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

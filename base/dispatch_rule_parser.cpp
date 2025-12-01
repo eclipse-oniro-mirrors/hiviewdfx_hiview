@@ -150,6 +150,9 @@ void DispatchRuleParser::ParseDomains(const Json::Value& json, DomainRule& domai
     } else if (json.isMember("exclude") && json["exclude"].isArray()) {
         domainRule.filterType = DomainRule::EXCLUDE;
         jsonArray = json["exclude"];
+    } else if (json.size() == 1) { // 1: only domain key, for all events under the domain
+        domainRule.filterType = DomainRule::EXCLUDE;
+        return;
     } else {
         return;
     }
