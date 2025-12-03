@@ -123,9 +123,8 @@ void UsageEventReport::Init()
 
     // more than one day since the last report
     if (lastReportTime_ < today0Time) {
-        HIVIEW_LOGI("lastReportTime=%{public}" PRIu64 ", need to report daily event now", lastReportTime_);
-        nextReportTime_ = today0Time;
-        ReportDailyEvent();
+        HIVIEW_LOGI("lastReportTime=%{public}" PRIu64 ", need to report daily event", lastReportTime_);
+        shouldReportLastData_ = true;
     }
 
     // more than one hours since the shutdown time
@@ -192,6 +191,11 @@ void UsageEventReport::TimeOut()
 
 void UsageEventReport::ReportDailyEvent()
 {
+    if (shouldReportLastData_) {
+        InnerReportDailyEvent();
+        shouldReportLastData_ = false;
+        return;
+    }
     // check whether time step occurs. If yes, update the next report time
     auto nowTime = TimeUtil::GetMilliseconds();
     if (nowTime > (nextReportTime_ + TimeUtil::MILLISECS_PER_DAY)
@@ -200,19 +204,24 @@ void UsageEventReport::ReportDailyEvent()
         lastReportTime_ = nowTime;
         nextReportTime_ = static_cast<uint64_t>(TimeUtil::Get0ClockStampMs()) + TimeUtil::MILLISECS_PER_DAY;
     } else if (nowTime >= nextReportTime_) {
-        // report plugin stats event
-        HIVIEW_LOGI("start to report daily event");
-        HiviewEventReport::ReportPluginStats();
-        DeletePluginStatsEvents();
-
-        // report app usage event
-        StartServiceByOption("-A");
-        ReportFoldAppUsageEvent();
-
-        // update report time
-        lastReportTime_ = TimeUtil::GetMilliseconds();
-        nextReportTime_ += TimeUtil::MILLISECS_PER_DAY;
+        InnerReportDailyEvent();
     }
+}
+
+void UsageEventReport::InnerReportDailyEvent()
+{
+    // report plugin stats event
+    HIVIEW_LOGI("start to report daily event");
+    HiviewEventReport::ReportPluginStats();
+    DeletePluginStatsEvents();
+
+    // report app usage event
+    StartServiceByOption("-A");
+    ReportFoldAppUsageEvent();
+
+    // update report time
+    lastReportTime_ = TimeUtil::GetMilliseconds();
+    nextReportTime_ += TimeUtil::MILLISECS_PER_DAY;
 }
 
 void UsageEventReport::ReportTimeOutEvent()

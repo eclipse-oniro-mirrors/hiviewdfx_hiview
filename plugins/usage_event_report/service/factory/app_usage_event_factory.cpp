@@ -91,8 +91,8 @@ void AppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>>& eve
 
 void AppUsageEventFactory::GetAllCreatedOsAccountIds(std::vector<int32_t>& ids)
 {
-    if (auto res = OsAccountManager::QueryActiveOsAccountIds(ids); res != ERR_OK) {
-        HIVIEW_LOGE("failed to get userId, err=%{public}d", res);
+    if (auto res = OsAccountManager::QueryActiveOsAccountIds(ids); ids.empty()) {
+        HIVIEW_LOGW("ids is empty, res=%{public}d", res);
         ids.push_back(DEFAULT_USER_ID);
     }
 }

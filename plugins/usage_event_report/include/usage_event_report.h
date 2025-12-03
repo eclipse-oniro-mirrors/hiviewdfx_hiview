@@ -53,6 +53,7 @@ private:
     static void SavePluginStatsEvents();
     static void SaveSysUsageEvent();
     void InitFoldEventReport(const std::string& workPath);
+    void InnerReportDailyEvent();
 
 private:
     sptr<PowerMgr::IAsyncShutdownCallback> callback_;
@@ -64,6 +65,7 @@ private:
     static uint64_t lastReportTime_;
     static uint64_t nextReportTime_;
     static std::string workPath_;
+    bool shouldReportLastData_ = false;
 }; // UsageEventReport
 } // namespace HiviewDFX
 } // namespace OHOS
