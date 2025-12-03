@@ -18,7 +18,6 @@
 #include <memory>
 #include <string>
 
-#include "app_caller_event.h"
 #include "hitrace_dump.h"
 #include "trace_storage.h"
 #include "telemetry_storage.h"
@@ -76,7 +75,7 @@ public:
      * @param appEvent app caller
      * @return true: save success; false: save fail
      */
-    bool RecordCaller(std::shared_ptr<AppCallerEvent> appEvent);
+    bool RecordCaller(AppEventTask& appEventTask);
 
     /**
      * @brief clean which remain in share create by app

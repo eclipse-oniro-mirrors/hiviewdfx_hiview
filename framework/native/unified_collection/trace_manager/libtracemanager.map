@@ -12,7 +12,7 @@
         "OHOS::HiviewDFX::TraceFlowController::StoreTraceSize(long long)";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long long)";
         "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
-        "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
+        "OHOS::HiviewDFX::TraceFlowController::RecordCaller(OHOS::HiviewDFX::AppEventTask&)";
         "OHOS::HiviewDFX::TraceStateMachine::CloseTrace(OHOS::HiviewDFX::TraceScenario)";
         "OHOS::HiviewDFX::TraceFlowController::CleanOldAppTrace(int)";
         "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

@@ -40,13 +40,11 @@ public:
     TraceHandler(const std::string& tracePath, uint32_t cleanThreshold, const std::string& caller)
         : tracePath_(tracePath), cleanThreshold_(cleanThreshold), caller_(caller) {}
     virtual ~TraceHandler() = default;
-    virtual auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {},
-        std::shared_ptr<AppCallerEvent> appCallerEvent = nullptr) -> std::vector<std::string> = 0;
+    virtual auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {})
+        -> std::vector<std::string> = 0;
     virtual std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) = 0;
 
 protected:
-    virtual void DoClean();
-
     std::string tracePath_;
     uint32_t cleanThreshold_;
     std::string caller_;
@@ -56,8 +54,8 @@ class TraceZipHandler : public TraceHandler, public std::enable_shared_from_this
 public:
     TraceZipHandler(const std::string& tracePath, uint32_t cleanThreshold, const std::string& caller)
         : TraceHandler(tracePath, cleanThreshold, caller) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {},
-        std::shared_ptr<AppCallerEvent> appCallerEvent = nullptr) -> std::vector<std::string> override;
+    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback = {})
+        -> std::vector<std::string> override;
     std::string GetTraceFinalPath(const std::string& fileName, const std::string& prefix) override
     {
         auto tempZipName = tracePath_ + StringUtil::ReplaceStr(FileUtil::ExtractFileName(fileName), ".sys", ".zip");
@@ -75,8 +73,8 @@ public:
     TraceLinkHandler(const std::string& tracePath, const std::string& prefix, uint32_t cleanThreshold,
         const std::string& caller)
         : TraceHandler(tracePath, cleanThreshold, caller), prefix_(prefix) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
-        std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string> override;
+    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+        -> std::vector<std::string> override;
 
 protected:
     void LinkTraceFile(const std::string& src, const std::string& dst);
@@ -87,26 +85,22 @@ protected:
     }
 
 private:
-    void DoLinkClean(const std::string& prefix);
-
-private:
     std::string prefix_;
 };
 
-class TraceAppHandler : public TraceHandler {
+class TraceAppHandler {
 public:
-    explicit TraceAppHandler(const std::string& tracePath, uint32_t cleanThreshold)
-        : TraceHandler(tracePath, cleanThreshold, "") {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
-        std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string> override;
-
-    std::string GetTraceFinalPath(const std::string& tracePath, const std::string& prefix) override
-    {
-        return "";
-    }
+    TraceAppHandler(const std::string& tracePath, uint32_t cleanThreshold) : tracePath_(tracePath),
+        cleanThreshold_(cleanThreshold) {}
+    auto HandleTrace(const std::vector<std::string>& outputFiles, const UCollectClient::AppCaller& appCaller,
+        int64_t traceOpenTime, int64_t traceDumpTime) -> std::string;
 
 private:
-    std::string MakeTraceFileName(std::shared_ptr<AppCallerEvent> appCallerEvent);
+    std::string MakeTraceFileName(const UCollectClient::AppCaller& appCaller, int64_t traceOpenTime,
+        int64_t traceDumpTime);
+
+    std::string tracePath_;
+    uint32_t cleanThreshold_;
 };
 }
 #endif

@@ -19,10 +19,6 @@
       "OHOS::HiviewDFX::UCollectUtil::ProcessCollector::Create()";
       "OHOS::HiviewDFX::UCollectUtil::ThreadCpuCollector::Create(int, bool)";
       "OHOS::HiviewDFX::UCollectUtil::GraphicMemoryCollector::Create()";
-      "OHOS::HiviewDFX::TraceFlowController::AddNewFinishTask(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
-      "OHOS::HiviewDFX::TraceFlowController::CleanAppTrace()";
-      "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long)";
-      "OHOS::HiviewDFX::TraceFlowController::TraceFlowController()";
       "OHOS::HiviewDFX::TraceCacheMonitor::TraceCacheMonitor()";
       "OHOS::HiviewDFX::TraceCacheMonitor::~TraceCacheMonitor()";
       "OHOS::HiviewDFX::TraceCacheMonitor::RunMonitorLoop()";
@@ -34,14 +30,9 @@
       "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::NotifyProcessState(int, OHOS::HiviewDFX::UCollectUtil::ProcessState)";
       "OHOS::HiviewDFX::UCollectUtil::UnifiedCollectionStat::Report()";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::UCollectUtil::ProcessStatus>::instance_";
-      "OHOS::HiviewDFX::TraceFlowController::HasCallOnceToday(int, unsigned long long)";
-      "OHOS::HiviewDFX::TraceFlowController::RecordCaller(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
-      "OHOS::HiviewDFX::TraceFlowController::CleanOldAppTrace()";
-      "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(OHOS::HiviewDFX::UCollect::TraceCaller)";
       "OHOS::HiviewDFX::GetUcError(OHOS::HiviewDFX::TraceRet)";
       "OHOS::HiviewDFX::TraceStrategyFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, unsigned int, unsigned long long)";
       "OHOS::HiviewDFX::TraceStrategyFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, unsigned int, unsigned long)";
-      "OHOS::HiviewDFX::TraceStrategyFactory::CreateAppStrategy(std::__h::shared_ptr<OHOS::HiviewDFX::AppCallerEvent>)";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
       "OHOS::HiviewDFX::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::ZipTraceFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -49,7 +40,6 @@
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetPerfCount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::MapPerfCallerToString(OHOS::HiviewDFX::UCollectUtil::PerfCaller)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetAllowMemory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-      "OHOS::HiviewDFX::ParseAndFilterTraceArgs(std::__h::unordered_set<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, cJSON*, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

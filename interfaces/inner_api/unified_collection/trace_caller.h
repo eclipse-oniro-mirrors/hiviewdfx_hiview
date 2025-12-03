@@ -17,6 +17,22 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace UCollectClient {
+struct AppCaller {
+    int32_t actionId;          // 1: start trace; 2: dump trace
+    std::string bundleName;    // app bundle name
+    std::string bundleVersion; // app bundle version
+    std::string threadName;    // app thread name
+    int32_t foreground;        // app foreground
+    int32_t uid;               // app user id
+    int32_t pid;               // app process id
+    int64_t happenTime;  // jank happend time, millisecond unit
+    int64_t beginTime;   // message handle begin time, millisecond unit
+    int64_t endTime;     // message handle end time, millisecond unit
+    bool isBusinessJank = false;       // is business jank or not, control output file name
+};
+}
+
 namespace UCollect {
 
 // Used for utility interface, for hiview inner only

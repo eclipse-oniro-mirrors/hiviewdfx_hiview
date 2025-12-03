@@ -60,7 +60,7 @@ bool InnerGetAppTask(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet, A
         if (resultSet->GetLong(8, appEventTask.finishTime_) != NativeRdb::E_OK) { // 8: finish time
             HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_FINISH_TIME);
         }
-        if (resultSet->GetString(9, appEventTask.resourePath_) != NativeRdb::E_OK) { // 9: resource path
+        if (resultSet->GetString(9, appEventTask.resourcePath_) != NativeRdb::E_OK) { // 9: resource path
             HIVIEW_LOGI("failed to get %{public}s from resultSet", COLUMN_RESOURCE_PATH);
         }
         if (resultSet->GetInt(10, appEventTask.resourceSize_) != NativeRdb::E_OK) { // 10: resource size
@@ -125,7 +125,7 @@ bool AppEventTaskStorage::InsertAppEventTask(AppEventTask &appEventTask)
     bucket.PutString(COLUMN_BUNDLE_VERSION, appEventTask.bundleVersion_);
     bucket.PutLong(COLUMN_START_TIME, appEventTask.startTime_);
     bucket.PutLong(COLUMN_FINISH_TIME, appEventTask.finishTime_);
-    bucket.PutString(COLUMN_RESOURCE_PATH, appEventTask.resourePath_);
+    bucket.PutString(COLUMN_RESOURCE_PATH, appEventTask.resourcePath_);
     bucket.PutInt(COLUMN_RESOURCE_SIZE, appEventTask.resourceSize_);
     bucket.PutDouble(COLUMN_COST_CPU, appEventTask.costCpu_);
     bucket.PutInt(COLUMN_STATE, appEventTask.state_);

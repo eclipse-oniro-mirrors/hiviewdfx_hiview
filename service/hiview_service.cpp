@@ -23,6 +23,7 @@
 
 #include "bundle_mgr_client.h"
 #include "collect_event.h"
+#include "event_publish.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "hiview_platform.h"
@@ -34,7 +35,7 @@
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_state_machine.h"
 #include "trace_strategy.h"
-#include "trace_strategy_factory.h"
+#include "json/json.h"
 #endif
 namespace OHOS {
 namespace HiviewDFX {
@@ -43,6 +44,42 @@ DEFINE_LOG_TAG("HiView-Service");
 namespace {
 constexpr int MIN_SUPPORT_CMD_SIZE = 1;
 constexpr int32_t ERR_DEFAULT = -1;
+constexpr int32_t APP_TRACE_STOP_TIME = 10 * 1000 * 1000; // 10S
+
+void ShareAppEvent(const UCollectClient::AppCaller &appCaller, const std::string& externalLog)
+{
+    Json::Value eventJson;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_UID] = appCaller.uid;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_PID] = appCaller.pid;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_TIME] = appCaller.happenTime;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_NAME] = appCaller.bundleName;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_BUNDLE_VERSION] = appCaller.bundleVersion;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_BEGIN_TIME] = appCaller.beginTime;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_END_TIME] = appCaller.endTime;
+    eventJson[UCollectUtil::APP_EVENT_PARAM_ISBUSINESSJANK] = appCaller.isBusinessJank;
+    Json::Value externalLogJson;
+    externalLogJson.append(externalLog);
+    eventJson[UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG] = externalLogJson;
+    std::string param = Json::FastWriter().write(eventJson);
+    HIVIEW_LOGI("send for uid=%{public}d pid=%{public}d", appCaller.uid, appCaller.pid);
+    EventPublish::GetInstance().PushEvent(appCaller.uid, UCollectUtil::MAIN_THREAD_JANK,
+        HiSysEvent::EventType::FAULT, param);
+}
+
+void ReportMainThreadJankForTrace(const UCollectClient::AppCaller &appCaller, int32_t dumpCode,
+    const std::string& externalLog)
+{
+    HiSysEventWrite(HiSysEvent::Domain::FRAMEWORK, UCollectUtil::MAIN_THREAD_JANK, HiSysEvent::EventType::FAULT,
+        UCollectUtil::SYS_EVENT_PARAM_BUNDLE_NAME, appCaller.bundleName,
+        UCollectUtil::SYS_EVENT_PARAM_BUNDLE_VERSION, appCaller.bundleVersion,
+        UCollectUtil::SYS_EVENT_PARAM_BEGIN_TIME, appCaller.beginTime,
+        UCollectUtil::SYS_EVENT_PARAM_END_TIME, appCaller.endTime,
+        UCollectUtil::SYS_EVENT_PARAM_THREAD_NAME, appCaller.threadName,
+        UCollectUtil::SYS_EVENT_PARAM_FOREGROUND, appCaller.foreground,
+        UCollectUtil::SYS_EVENT_TRACE_DUMP_CODE, dumpCode,
+        UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG, externalLog,
+        UCollectUtil::SYS_EVENT_PARAM_JANK_LEVEL, 1); // 1: over 450ms
+}
 }
 
 HiviewService::HiviewService()
@@ -279,54 +316,38 @@ CollectResult<int32_t> HiviewService::CloseTrace()
 }
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
-static std::shared_ptr<AppCallerEvent> InnerCreateAppCallerEvent(UCollectClient::AppCaller &appCaller,
-    const std::string &eventName)
+
+bool HiviewService::InnerHasCallAppTrace(int32_t uid, int64_t happenTime)
 {
-    std::shared_ptr<AppCallerEvent> appCallerEvent = std::make_shared<AppCallerEvent>("HiViewService");
-    appCallerEvent->messageType_ = Event::MessageType::PLUGIN_MAINTENANCE;
-    appCallerEvent->eventName_ = eventName;
-    appCallerEvent->isBusinessJank_ = appCaller.isBusinessJank;
-    appCallerEvent->bundleName_ = appCaller.bundleName;
-    appCallerEvent->bundleVersion_ = appCaller.bundleVersion;
-    appCallerEvent->uid_ = appCaller.uid;
-    appCallerEvent->pid_ = appCaller.pid;
-    appCallerEvent->happenTime_ = static_cast<uint64_t>(appCaller.happenTime);
-    appCallerEvent->beginTime_ = appCaller.beginTime;
-    appCallerEvent->endTime_ = appCaller.endTime;
-    appCallerEvent->taskBeginTime_ = static_cast<int64_t>(TimeUtil::GetMilliseconds());
-    appCallerEvent->taskEndTime_ = appCallerEvent->taskBeginTime_;
-    appCallerEvent->resultCode_ = UCollect::UcError::SUCCESS;
-    appCallerEvent->foreground_ = appCaller.foreground;
-    appCallerEvent->threadName_ = appCaller.threadName;
-    return appCallerEvent;
+    return TraceFlowController(FlowControlName::APP).HasCallOnceToday(uid, happenTime);
 }
 
-bool HiviewService::InnerHasCallAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(const UCollectClient::AppCaller &appCaller)
 {
-    return TraceFlowController(FlowControlName::APP).HasCallOnceToday(appCallerEvent->uid_,
-        appCallerEvent->happenTime_);
-}
-
-CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(UCollectClient::AppCaller &appCaller)
-{
-    auto appCallerEvent = InnerCreateAppCallerEvent(appCaller, UCollectUtil::START_APP_TRACE);
-    if (InnerHasCallAppTrace(appCallerEvent)) {
-        HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d", appCallerEvent->uid_,
-            appCallerEvent->pid_);
+    if (InnerHasCallAppTrace(appCaller.uid, appCaller.happenTime)) {
+        HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d", appCaller.uid, appCaller.pid);
         return {UCollect::UcError::HAD_CAPTURED_TRACE};
     }
-    TraceRet ret = TraceStateMachine::GetInstance().OpenDynamicTrace(appCallerEvent->pid_);
+    TraceRet ret = TraceStateMachine::GetInstance().OpenDynamicTrace(appCaller.pid);
     if (!ret.IsSuccess()) {
         return {GetUcError(ret)};
     }
-    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, UCollectUtil::UCOLLECTOR_PLUGIN, appCallerEvent);
+    auto task = [] {
+        auto ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+        if (!ret.IsSuccess()) {
+            HIVIEW_LOGW("CloseTrace app trace fail");
+        }
+    };
+    ffrt::submit(task, {}, {}, ffrt::task_attr().name("app_trace_stop").delay(APP_TRACE_STOP_TIME));
     return {UCollect::UcError::SUCCESS};
 }
 
-CollectResult<int32_t> HiviewService::InnerResponseDumpAppTrace(UCollectClient::AppCaller &appCaller)
+CollectResult<int32_t> HiviewService::InnerResponseDumpAppTrace(const UCollectClient::AppCaller &appCaller)
 {
-    return UCollectUtil::TraceCollector::Create()->DumpAppTrace(InnerCreateAppCallerEvent(appCaller,
-        UCollectUtil::DUMP_APP_TRACE));
+    auto ret = UCollectUtil::TraceCollector::Create()->DumpAppTrace(appCaller);
+    ShareAppEvent(appCaller, ret.data);
+    ReportMainThreadJankForTrace(appCaller, ret.retCode, ret.data);
+    return {ret.retCode};
 }
 #endif
 
@@ -337,16 +358,15 @@ CollectResult<int32_t> HiviewService::CaptureDurationTrace(UCollectClient::AppCa
 #else
     if (appCaller.actionId == UCollectClient::ACTION_ID_START_TRACE) {
         return InnerResponseStartAppTrace(appCaller);
-    } else if (appCaller.actionId == UCollectClient::ACTION_ID_DUMP_TRACE) {
-        return InnerResponseDumpAppTrace(appCaller);
-    } else {
-        HIVIEW_LOGE("invalid param %{public}d, can not capture trace for uid=%{public}d, pid=%{public}d",
-            appCaller.actionId, appCaller.uid, appCaller.pid);
-        return {UCollect::UcError::INVALID_ACTION_ID};
     }
+    if (appCaller.actionId == UCollectClient::ACTION_ID_DUMP_TRACE) {
+        return InnerResponseDumpAppTrace(appCaller);
+    }
+    HIVIEW_LOGE("invalid param %{public}d, can not capture trace for uid=%{public}d, pid=%{public}d",
+        appCaller.actionId, appCaller.uid, appCaller.pid);
+    return {UCollect::UcError::INVALID_ACTION_ID};
 #endif
 }
-
 
 CollectResult<double> HiviewService::GetSysCpuUsage()
 {

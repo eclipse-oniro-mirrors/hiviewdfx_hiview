@@ -267,10 +267,6 @@
         "OHOS::HiviewDFX::SysEvent::InitBuilder()";
         "OHOS::HiviewDFX::Plugin::DelayProcessEvent(std::__h::shared_ptr<OHOS::HiviewDFX::Event>, unsigned long)";
         "OHOS::HiviewDFX::Plugin::DelayProcessEvent(std::__h::shared_ptr<OHOS::HiviewDFX::Event>, unsigned long long)";
-        "OHOS::HiviewDFX::AppCallerEvent::AppCallerEvent(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::AppCallerEvent::isDynamicTraceOpen_";
-        "OHOS::HiviewDFX::AppCallerEvent::enableDynamicTrace_";
-        "OHOS::HiviewDFX::AppCallerEvent::IsEnableAppCaptureTrace()";
         "OHOS::HiviewDFX::Parameter::IsBetaVersion()";
         "OHOS::HiviewDFX::Parameter::GetDisplayVersionStr()";
         "OHOS::HiviewDFX::Parameter::IsUCollectionSwitchOn()";

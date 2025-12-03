@@ -35,7 +35,7 @@ CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(const
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
-CollectResult<int32_t> TraceCollectorEmptyImpl::DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent)
+CollectResult<std::string> TraceCollectorEmptyImpl::DumpAppTrace(const UCollectClient::AppCaller& appCaller)
 {
     return {UCollect::UcError::FEATURE_CLOSED};
 }

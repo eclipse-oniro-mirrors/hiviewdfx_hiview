@@ -58,7 +58,6 @@ constexpr char DEVELOP_TRACE_RECORDER_FALSE[] = "false";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 constexpr char OTHER[] = "Other";
 using namespace OHOS::HiviewDFX::Hitrace;
-constexpr int32_t DURATION_TRACE = 10; // unit second
 constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";
 constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
 constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
@@ -190,28 +189,6 @@ void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
             HiSysEvent::EventType::FAULT, param);
     }
 }
-
-bool UnifiedCollector::OnEvent(std::shared_ptr<Event>& event)
-{
-    if (event == nullptr || workLoop_ == nullptr) {
-        return true;
-    }
-    HIVIEW_LOGI("Receive Event %{public}s", event->GetEventName().c_str());
-    if (event->eventName_ == UCollectUtil::START_APP_TRACE) {
-        event->eventName_ = UCollectUtil::STOP_APP_TRACE;
-        DelayProcessEvent(event, DURATION_TRACE);
-        return true;
-    }
-    if (event->eventName_ == UCollectUtil::STOP_APP_TRACE) {
-        auto ret = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
-        if (!ret.IsSuccess()) {
-            HIVIEW_LOGW("CloseTrace app trace fail");
-        }
-        return true;
-    }
-    return true;
-}
-
 
 void UnifiedCollector::OnEventListeningCallback(const Event& event)
 {

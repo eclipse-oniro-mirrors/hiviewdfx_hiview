@@ -15,6 +15,8 @@
 
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TEST_TRACE_STATE_MACHINE_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TEST_TRACE_STATE_MACHINE_H
+#include <charconv>
+
 #include "singleton.h"
 #include "trace_common.h"
 #include "time_util.h"
@@ -78,15 +80,27 @@ inline void CreateTraceFile(const std::string& traceName)
     file.close();
 }
 
-inline std::shared_ptr<AppCallerEvent> CreateAppCallerEvent(int32_t uid, int32_t pid, uint64_t happendTime)
+inline UCollectClient::AppCaller CreateAppCaller(int32_t uid, int32_t pid, uint64_t happendTime)
 {
-    std::shared_ptr<AppCallerEvent> appCallerEvent = std::make_shared<AppCallerEvent>("HiViewService");
-    appCallerEvent->messageType_ = Event::MessageType::PLUGIN_MAINTENANCE;
-    appCallerEvent->bundleVersion_ = "2.0.1";
-    appCallerEvent->uid_ = uid;
-    appCallerEvent->pid_ = pid;
-    appCallerEvent->happenTime_ = happendTime;
-    return appCallerEvent;
+    UCollectClient::AppCaller appCaller;
+    appCaller.bundleVersion = "2.0.1";
+    appCaller.uid = uid;
+    appCaller.pid = pid;
+    appCaller.happenTime = happendTime;
+    return appCaller;
+}
+
+inline AppEventTask CreateAppEventTask(int32_t uid, int32_t pid, uint64_t happendTime)
+{
+    AppEventTask appEventTask;
+    appEventTask.pid_ = pid;
+    appEventTask.uid_ = uid;
+    uint64_t happenTimeInSecond = happendTime / TimeUtil::SEC_TO_MILLISEC;
+    std::string date = TimeUtil::TimestampFormatToDate(happenTimeInSecond, "%Y%m%d");
+    int64_t dateNum = 0;
+    std::from_chars(date.c_str(), date.c_str() + date.size(), dateNum);
+    appEventTask.taskDate_ = dateNum;
+    return appEventTask;
 }
 
 class MockTraceStateMachine : public DelayedRefSingleton<MockTraceStateMachine> {
@@ -112,14 +126,15 @@ public:
         info_ = info;
     }
 
-    int32_t GetCurrentAppPid()
+    std::pair<int32_t, uint64_t> GetCurrentAppInfo()
     {
-        return appid_;
+        return {appid_, taskBeginTime_};
     }
 
     void SetCurrentAppPid(int32_t appid)
     {
         appid_ = appid;
+        taskBeginTime_ = TimeUtil::GetMilliseconds();
     }
 
 private:

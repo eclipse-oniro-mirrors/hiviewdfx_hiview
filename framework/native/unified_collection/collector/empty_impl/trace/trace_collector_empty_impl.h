@@ -27,7 +27,7 @@ public:
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
             UCollect::TraceCaller caller, uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<std::vector<std::string>> DumpTrace(const std::string& callName, bool isNeedFlowControl) override;
-    CollectResult<int32_t> DumpAppTrace(std::shared_ptr<AppCallerEvent> appCallerEvent) override;
+    CollectResult<std::string> DumpAppTrace(const UCollectClient::AppCaller& appCaller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithFilter(UCollect::TeleModule module,
         uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;

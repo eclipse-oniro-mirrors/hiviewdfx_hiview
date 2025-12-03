@@ -55,6 +55,63 @@ void WriteZipTrafficLog(std::chrono::time_point<std::chrono::steady_clock> start
     };
     UCollectUtil::TraceDecorator::WriteTrafficAfterHandle(traceInfo);
 }
+
+void DoClean(const std::string tracePath, uint32_t cleanThreshold)
+{
+    // Load all files under the path
+    std::vector<std::string> files;
+    FileUtil::GetDirFiles(tracePath, files);
+
+    // Filter files that belong to me
+    std::deque<std::string> filteredFiles(files.begin(), files.end());
+    std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
+        return a < b;
+    });
+    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), cleanThreshold);
+
+    while (filteredFiles.size() > cleanThreshold) {
+        FileUtil::RemoveFile(filteredFiles.front());
+        HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
+        filteredFiles.pop_front();
+    }
+}
+
+void DoLinkClean(const std::string &prefix, const std::string tracePath, uint32_t cleanThreshold)
+{
+    if (prefix.empty()) {
+        return;
+    }
+    // Load all files under the path
+    std::vector<std::string> files;
+    FileUtil::GetDirFiles(tracePath, files);
+
+    std::deque<std::string> filteredLinks;
+    for (const auto &link : files) {
+        if (link.find(prefix) != std::string::npos) {
+            filteredLinks.emplace_back(link);
+        }
+    }
+    std::sort(filteredLinks.begin(), filteredLinks.end(), [](const auto& a, const auto& b) {
+        return a < b;
+    });
+    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredLinks.size(), cleanThreshold);
+    while (filteredLinks.size() > cleanThreshold) {
+        std::string link = filteredLinks.front();
+        filteredLinks.pop_front();
+        std::string src = FileUtil::ReadSymlink(link);
+        if (!FileUtil::RemoveFile(link)) {
+            HIVIEW_LOGE("file:%{public}s delete failed", link.c_str());
+            continue;
+        }
+        if (src.empty()) {
+            HIVIEW_LOGE("read link:%{public}s failed", link.c_str());
+            continue;
+        }
+        if (!TraceStateMachine::GetInstance().RemoveSymlinkXattr(src)) {
+            HIVIEW_LOGI("remove attr failed file:%{public}s", src.c_str());
+        }
+    }
+}
 }
 
 void TraceWorker::HandleUcollectionTask(UcollectionTask ucollectionTask)
@@ -62,28 +119,8 @@ void TraceWorker::HandleUcollectionTask(UcollectionTask ucollectionTask)
     ffrtQueue_->submit(ucollectionTask, ffrt::task_attr().name("dft_uc_trace"));
 }
 
-void TraceHandler::DoClean()
-{
-    // Load all files under the path
-    std::vector<std::string> files;
-    FileUtil::GetDirFiles(tracePath_, files);
-
-    // Filter files that belong to me
-    std::deque<std::string> filteredFiles(files.begin(), files.end());
-    std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
-        return a < b;
-    });
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), cleanThreshold_);
-
-    while (filteredFiles.size() > cleanThreshold_) {
-        FileUtil::RemoveFile(filteredFiles.front());
-        HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
-        filteredFiles.pop_front();
-    }
-}
-
-auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
-    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
+auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+    -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("failed to create multidirectory.");
@@ -109,7 +146,7 @@ auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, H
         UcollectionTask traceTask = [filename, traceZipFile, tmpZipFile, startTime, callback,
             handler = shared_from_this()] {
                 handler->ZipTraceFile(filename, traceZipFile, tmpZipFile);
-                handler->DoClean();
+                DoClean(handler->tracePath_, handler->cleanThreshold_);
                 if (callback != nullptr) {
                     callback(static_cast<int64_t>(FileUtil::GetFileSize(traceZipFile)));
                 }
@@ -177,45 +214,8 @@ void TraceLinkHandler::LinkTraceFile(const std::string &src, const std::string &
     HIVIEW_LOGI("Link, src: %{public}s, dst: %{public}s, result:%{public}d", src.c_str(), dst.c_str(), result);
 }
 
-void TraceLinkHandler::DoLinkClean(const std::string &prefix)
-{
-    if (prefix.empty()) {
-        return;
-    }
-    // Load all files under the path
-    std::vector<std::string> files;
-    FileUtil::GetDirFiles(tracePath_, files);
-
-    std::deque<std::string> filteredLinks;
-    for (const auto &link : files) {
-        if (link.find(prefix) != std::string::npos) {
-            filteredLinks.emplace_back(link);
-        }
-    }
-    std::sort(filteredLinks.begin(), filteredLinks.end(), [](const auto& a, const auto& b) {
-        return a < b;
-    });
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredLinks.size(), cleanThreshold_);
-    while (filteredLinks.size() > cleanThreshold_) {
-        std::string link = filteredLinks.front();
-        filteredLinks.pop_front();
-        std::string src = FileUtil::ReadSymlink(link);
-        if (!FileUtil::RemoveFile(link)) {
-            HIVIEW_LOGE("file:%{public}s delete failed", link.c_str());
-            continue;
-        }
-        if (src.empty()) {
-            HIVIEW_LOGE("read link:%{public}s failed", link.c_str());
-            continue;
-        }
-        if (!TraceStateMachine::GetInstance().RemoveSymlinkXattr(src)) {
-            HIVIEW_LOGI("remove attr failed file:%{public}s", src.c_str());
-        }
-    }
-}
-
-auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback,
-    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
+auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
+    -> std::vector<std::string>
 {
     if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
         HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
@@ -227,39 +227,36 @@ auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, 
         std::string dst = GetTraceFinalPath(trace, prefix_);
         files.push_back(dst);
         LinkTraceFile(trace, dst);
-        DoLinkClean(prefix_);
+        DoLinkClean(prefix_, tracePath_, cleanThreshold_);
         WriteTrafficLog(startTime, caller_, trace, dst);
     }
     return files;
 }
 
-auto TraceAppHandler::HandleTrace(const std::vector<std::string> &outputFiles, HandleCallback callback,
-    std::shared_ptr<AppCallerEvent> appCallerEvent) -> std::vector<std::string>
+auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles,
+    const UCollectClient::AppCaller& appCaller, int64_t traceOpenTime, int64_t traceDumpTime) -> std::string
 {
-    if (appCallerEvent == nullptr || outputFiles.empty()) {
+    if (outputFiles.empty()) {
         return {};
     }
-    std::string traceFileName = MakeTraceFileName(appCallerEvent);
+    std::string traceFileName = MakeTraceFileName(appCaller, traceOpenTime, traceDumpTime);
     HIVIEW_LOGI("src:%{public}s, dir:%{public}s", outputFiles[0].c_str(), traceFileName.c_str());
     FileUtil::RenameFile(outputFiles[0], traceFileName);
-    appCallerEvent->externalLog_ = traceFileName;
-    DoClean();
+    DoClean(tracePath_, cleanThreshold_);
     return {traceFileName};
 }
 
-std::string TraceAppHandler::MakeTraceFileName(std::shared_ptr<AppCallerEvent> appCallerEvent)
+std::string TraceAppHandler::MakeTraceFileName(const UCollectClient::AppCaller& appCaller, int64_t traceOpenTime,
+    int64_t traceDumpTime)
 {
-    std::string &bundleName = appCallerEvent->bundleName_;
-    int32_t pid = appCallerEvent->pid_;
-    int64_t beginTime = appCallerEvent->taskBeginTime_;
-    int64_t endTime = appCallerEvent->taskEndTime_;
-    int32_t costTime = (appCallerEvent->taskEndTime_ - appCallerEvent->taskBeginTime_);
+    int32_t pid = appCaller.pid;
+    int32_t costTime = traceDumpTime - traceOpenTime;
 
-    std::string d1 = TimeUtil::TimestampFormatToDate(beginTime/ TimeUtil::SEC_TO_MILLISEC, "%Y%m%d%H%M%S");
-    std::string d2 = TimeUtil::TimestampFormatToDate(endTime/ TimeUtil::SEC_TO_MILLISEC, "%Y%m%d%H%M%S");
+    std::string d1 = TimeUtil::TimestampFormatToDate(traceOpenTime / TimeUtil::SEC_TO_MILLISEC, "%Y%m%d%H%M%S");
+    std::string d2 = TimeUtil::TimestampFormatToDate(traceDumpTime / TimeUtil::SEC_TO_MILLISEC, "%Y%m%d%H%M%S");
 
     std::string name;
-    name.append(tracePath_).append("APP_").append(bundleName).append("_").append(std::to_string(pid));
+    name.append(tracePath_).append("APP_").append(appCaller.bundleName).append("_").append(std::to_string(pid));
     name.append("_").append(d1).append("_").append(d2).append("_").append(std::to_string(costTime)).append(".sys");
     return name;
 }

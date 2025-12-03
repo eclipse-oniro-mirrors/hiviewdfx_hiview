@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include "trace_utils.h"
 #include "trace_handler.h"
 #include "trace_strategy.h"
@@ -244,31 +245,31 @@ std::make_shared<TraceLinkHandler>(TEST_SPECIAL_PATH, PrefixName::XPERF, 5, stra
 HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest001, TestSize.Level1)
 {
     // new event uid = 100, pid = 1001
-    auto appCallerEvent1 = CreateAppCallerEvent(100, 1001, TimeUtil::GetMilliseconds());
+    auto appCaller1 = CreateAppCaller(100, 1001, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1001); // current open trace pid
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10, // trace test file size
         .outputFiles = {TRACE_TEST_SRC1}
     };
-    CollectResult<std::vector<std::string>> result;
-    auto appStrategy = std::make_shared<TraceAppStrategy>(appCallerEvent1,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40), TEST_DB_PATH);
-    auto ret = appStrategy->DoDump(result.data, testInfo);
+    CollectResult<std::string> result;
+    auto appStrategy = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40),
+        TEST_DB_PATH);
+    auto ret = appStrategy->DoDump(appCaller1, testInfo, result.data);
     ASSERT_TRUE(ret.IsSuccess());
 
     // new event uid = 102, pid = 1002
-    auto appCallerEvent2 = CreateAppCallerEvent(102, 1002, TimeUtil::GetMilliseconds());
+    auto appCaller2 = CreateAppCaller(102, 1002, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1002); // current open trace pid
     TraceRetInfo testInfo2 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10, // trace test file size
         .outputFiles = {TRACE_TEST_SRC2}
     };
-    CollectResult<std::vector<std::string>> result2;
-    auto appStrategy2 = std::make_shared<TraceAppStrategy>(appCallerEvent2,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40), TEST_DB_PATH);
-    auto ret2 = appStrategy2->DoDump(result.data, testInfo2);
+    CollectResult<std::string> result2;
+    auto appStrategy2 = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40),
+        TEST_DB_PATH);
+    auto ret2 = appStrategy2->DoDump(appCaller2, testInfo2, result2.data);
     ASSERT_TRUE(ret2.IsSuccess());
     sleep(1);
     ASSERT_EQ(GetDirFileCount(TEST_SHARED_PATH), 2); // two trace generated
@@ -283,22 +284,22 @@ HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest001, TestSize.Level1)
 HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest002, TestSize.Level1)
 {
     // new event uid = 103, pid = 1002
-    auto appCallerEvent = CreateAppCallerEvent(103, 1002, TimeUtil::GetMilliseconds());
+    auto appEventTask = CreateAppEventTask(103, 1002, TimeUtil::GetMilliseconds());
     auto traceFlowController = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH);
-    traceFlowController->RecordCaller(appCallerEvent);
+    traceFlowController->RecordCaller(appEventTask);
 
     // new event uid = 103, pid = 1001 again
-    auto appCallerEvent1 = CreateAppCallerEvent(103, 1001, TimeUtil::GetMilliseconds());
+    auto appCaller1 = CreateAppCaller(103, 1001, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1001); // current open trace pid
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10, // trace test file size
         .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
     };
-    CollectResult<std::vector<std::string>> result;
-    auto appStrategy = std::make_shared<TraceAppStrategy>(appCallerEvent1,
+    CollectResult<std::string> result;
+    auto appStrategy = std::make_shared<TraceAppStrategy>(
         std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40), TEST_DB_PATH);
-    auto ret = appStrategy->DoDump(result.data, testInfo);
+    auto ret = appStrategy->DoDump(appCaller1, testInfo, result.data);
     ASSERT_EQ(ret.flowError_, TraceFlowCode::TRACE_HAS_CAPTURED_TRACE);
 }
 
@@ -310,17 +311,17 @@ HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest002, TestSize.Level1)
 HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest003, TestSize.Level1)
 {
     // new event uid = 100, pid = 1001
-    auto appCallerEvent1 = CreateAppCallerEvent(104, 1001, TimeUtil::GetMilliseconds());
+    auto appCaller1 = CreateAppCaller(104, 1001, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1001); // current open trace pid
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::OUT_OF_TIME,
         .fileSize = 10, // trace test file size
         .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
     };
-    CollectResult<std::vector<std::string>> result;
-    auto appStrategy = std::make_shared<TraceAppStrategy>(appCallerEvent1,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40), TEST_DB_PATH);
-    auto ret = appStrategy->DoDump(result.data, testInfo);
+    CollectResult<std::string> result;
+    auto appStrategy = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40),
+        TEST_DB_PATH);
+    auto ret = appStrategy->DoDump(appCaller1, testInfo, result.data);
     ASSERT_EQ(ret.codeError_, TraceErrorCode::OUT_OF_TIME);
 }
 
@@ -332,18 +333,18 @@ HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest003, TestSize.Level1)
 HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest004, TestSize.Level1)
 {
     // new event uid = 100, pid = 1001
-    auto appCallerEvent1 = CreateAppCallerEvent(105, 1001, TimeUtil::GetMilliseconds());
+    auto appCaller1 = CreateAppCaller(105, 1001, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1001); // current open trace pid
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10, // trace test file size
         .outputFiles = {}
     };
-    CollectResult<std::vector<std::string>> result;
+    CollectResult<std::string> result;
     sleep(1);
-    auto appStrategy = std::make_shared<TraceAppStrategy>(appCallerEvent1,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40), TEST_DB_PATH);
-    auto ret = appStrategy->DoDump(result.data, testInfo);
+    auto appStrategy = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40),
+        TEST_DB_PATH);
+    auto ret = appStrategy->DoDump(appCaller1, testInfo, result.data);
     ASSERT_EQ(ret.stateError_, TraceStateCode::FAIL);
 }
 
@@ -355,30 +356,30 @@ HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest004, TestSize.Level1)
 HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest005, TestSize.Level1)
 {
     // new event uid = 100, pid = 1001
-    auto appCallerEvent1 = CreateAppCallerEvent(106, 1006, TimeUtil::GetMilliseconds());
+    auto appCaller1 = CreateAppCaller(106, 1006, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1006); // current open trace pid
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10, // trace test file size
         .outputFiles = {TRACE_TEST_SRC3}
     };
-    CollectResult<std::vector<std::string>> result;
-    auto appStrategy = std::make_shared<TraceAppStrategy>(appCallerEvent1,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 1), TEST_DB_PATH); // trace clean threshold is 1
-    auto ret = appStrategy->DoDump(result.data, testInfo);
+    CollectResult<std::string> result;
+    auto appStrategy = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 1),
+        TEST_DB_PATH); // trace clean threshold is 1
+    auto ret = appStrategy->DoDump(appCaller1, testInfo, result.data);
     ASSERT_TRUE(ret.IsSuccess());
     sleep(1);
-    auto appCallerEvent2 = CreateAppCallerEvent(107, 1007, TimeUtil::GetMilliseconds());
+    auto appCaller2 = CreateAppCaller(107, 1007, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1007); // current open trace pid
     TraceRetInfo testInfo2 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10, // trace test file size
         .outputFiles = {TRACE_TEST_SRC4}
     };
-    CollectResult<std::vector<std::string>> result2;
-    auto appStrategy2 = std::make_shared<TraceAppStrategy>(appCallerEvent2,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 1), TEST_DB_PATH); // trace clean threshold is 1
-    auto ret2 = appStrategy2->DoDump(result.data, testInfo2);
+    CollectResult<std::string> result2;
+    auto appStrategy2 = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 1),
+        TEST_DB_PATH); // trace clean threshold is 1
+    auto ret2 = appStrategy2->DoDump(appCaller2, testInfo2, result2.data);
     ASSERT_TRUE(ret2.IsSuccess());
     sleep(1);
     ASSERT_EQ(GetDirFileCount(TEST_SHARED_PATH), 1); // only one trace file in trace dir
@@ -392,17 +393,17 @@ HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest005, TestSize.Level1)
 HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest006, TestSize.Level1)
 {
     // new event uid = 100, pid = 1000
-    std::shared_ptr<AppCallerEvent> appCallerEvent = CreateAppCallerEvent(108, 1000, TimeUtil::GetMilliseconds());
+    auto appCaller = CreateAppCaller(108, 1000, TimeUtil::GetMilliseconds());
     MockTraceStateMachine::GetInstance().SetCurrentAppPid(1001); // current open trace pid
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,
         .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
     };
-    CollectResult<std::vector<std::string>> result;
-    auto appStrategy = std::make_shared<TraceAppStrategy>(appCallerEvent,
-        std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40), TEST_DB_PATH);
-    auto ret = appStrategy->DoDump(result.data, testInfo);
+    CollectResult<std::string> result;
+    auto appStrategy = std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(TEST_SHARED_PATH, 40),
+        TEST_DB_PATH);
+    auto ret = appStrategy->DoDump(appCaller, testInfo, result.data);
     ASSERT_EQ(ret.stateError_, TraceStateCode::FAIL);
 }
 
