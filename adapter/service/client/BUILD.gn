@@ -92,6 +92,7 @@ ohos_source_set("hiview_service_proxy") {
     "../common/src/graphic_usage_parcelable.cpp",
     "../common/src/hiview_file_info.cpp",
     "../common/src/memory_caller_parcelable.cpp",
+    "../common/src/trace_param_parcelable.cpp",
   ]
 
   deps = [ ":hiview_service_idl_interface" ]

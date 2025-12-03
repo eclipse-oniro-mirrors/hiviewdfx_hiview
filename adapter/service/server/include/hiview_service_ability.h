@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "app_caller_parcelable.h"
+#include "trace_param_parcelable.h"
 #include "graphic_usage_parcelable.h"
 #include "hiview_err_code.h"
 #include "hiview_file_info.h"
@@ -47,10 +48,9 @@ public:
     ErrCode Copy(const std::string& logType, const std::string& logName, const std::string& dest) override;
     ErrCode Move(const std::string& logType, const std::string& logName, const std::string& dest) override;
     ErrCode Remove(const std::string& logType, const std::string& logName) override;
-
-    ErrCode OpenSnapshotTrace(const std::vector<std::string>& tagGroups, int32_t& errNo, int32_t& ret) override;
+    ErrCode OpenTrace(const std::vector<std::string>& tags, const TraceParamParcelable& traceParam,
+        const std::vector<int32_t>& filterPids, int32_t& errNo, int32_t& retData) override;
     ErrCode DumpSnapshotTrace(int32_t client, int32_t& errNo, std::vector<std::string>& files) override;
-    ErrCode OpenRecordingTrace(const std::string& tags, int32_t& errNo, int32_t& ret) override;
     ErrCode RecordingTraceOn(int32_t& errNo, int32_t& ret) override;
     ErrCode RecordingTraceOff(int32_t& errNo, std::vector<std::string>& files) override;
     ErrCode CloseTrace(int32_t& errNo, int32_t& ret) override;

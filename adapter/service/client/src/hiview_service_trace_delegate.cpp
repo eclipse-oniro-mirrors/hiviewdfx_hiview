@@ -20,14 +20,6 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-CollectResult<int32_t> HiViewServiceTraceDelegate::OpenSnapshot(const std::vector<std::string>& tagGroups)
-{
-    auto proxyHandler = [&tagGroups] (
-        const sptr<IRemoteObject>& remote, CollectResult<int32_t>& collectResult, int32_t& errNo) {
-        return HiviewServiceAbilityProxy(remote).OpenSnapshotTrace(tagGroups, errNo, collectResult.data);
-    };
-    return TraceCalling<int32_t>(proxyHandler);
-}
 
 CollectResult<std::vector<std::string>> HiViewServiceTraceDelegate::DumpSnapshot(int32_t client)
 {
@@ -38,11 +30,12 @@ CollectResult<std::vector<std::string>> HiViewServiceTraceDelegate::DumpSnapshot
     return TraceCalling<std::vector<std::string>>(proxyHandler);
 }
 
-CollectResult<int32_t> HiViewServiceTraceDelegate::OpenRecording(const std::string& tags)
+CollectResult<int32_t> HiViewServiceTraceDelegate::OpenTrace(const std::vector<std::string>& tags,
+    const UCollectClient::TraceParam& param, const std::vector<int32_t>& filterPids)
 {
-    auto proxyHandler = [&tags] (
-        const sptr<IRemoteObject>& remote, CollectResult<int32_t>& collectResult, int32_t& errNo) {
-        return HiviewServiceAbilityProxy(remote).OpenRecordingTrace(tags, errNo, collectResult.data);
+    auto proxyHandler = [&tags, &param, &filterPids] (
+    const sptr<IRemoteObject>& remote, CollectResult<int32_t>& collectResult, int32_t& error) {
+        return HiviewServiceAbilityProxy(remote).OpenTrace(tags, param, filterPids, error, collectResult.data);
     };
     return TraceCalling<int32_t>(proxyHandler);
 }

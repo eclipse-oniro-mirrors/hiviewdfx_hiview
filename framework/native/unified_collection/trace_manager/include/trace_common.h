@@ -59,11 +59,26 @@ inline constexpr char OTHER[] = "Other";
 inline constexpr char SCREEN[] = "Screen";
 };
 
+// must order by trace priority
 enum class TraceScenario : uint8_t {
-    TRACE_COMMAND,
-    TRACE_COMMON,
-    TRACE_DYNAMIC,
+    TRACE_CLOSE,
+    TRACE_DYNAMIC, // collect app trace scenario
     TRACE_TELEMETRY,
+    TRACE_COMMON,  // beta version scenario
+    TRACE_COMMON_DROP,  // settings switch "system tracing" open scenario
+    TRACE_COMMAND, // trace command cmd scenario
+};
+
+enum class TelemetryPolicy {
+    DEFAULT,
+    POWER,
+    MANUAL
+};
+
+struct ScenarioInfo {
+    TraceScenario scenario = TraceScenario::TRACE_CLOSE;
+    TelemetryPolicy tracePolicy = TelemetryPolicy::DEFAULT;
+    TraceArgs args;
 };
 
 struct DumpTraceArgs {
@@ -88,12 +103,6 @@ enum class TraceFlowCode : uint8_t {
     TRACE_DUMP_DENY,
     TRACE_UPLOAD_DENY,
     TRACE_HAS_CAPTURED_TRACE
-};
-
-enum class TelemetryPolicy {
-    DEFAULT,
-    POWER,
-    MANUAL
 };
 
 struct TraceRet {

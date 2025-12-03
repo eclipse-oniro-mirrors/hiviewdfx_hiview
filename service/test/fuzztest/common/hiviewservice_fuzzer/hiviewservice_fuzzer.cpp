@@ -70,18 +70,16 @@ static void HiViewServiceSnapshotTraceFuzzTest(const uint8_t* data, size_t size)
     std::string tag = std::string(reinterpret_cast<const char*>(data), size);
     std::vector<std::string> tagsGroup;
     tagsGroup.emplace_back(tag);
-    g_hiviewService.OpenSnapshotTrace(tagsGroup);
+    std::vector<std::string> tags {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa",
+                "hdf", "virse"};
+    UCollectClient::TraceParam param;
+    std::vector<int32_t> filterPids;
+    g_hiviewService.OpenTrace(tags, param, filterPids);
 }
 
 static void HiViewServiceDumpSnapshotTraceFuzzTest(const uint8_t* data, size_t size)
 {
     g_hiviewService.DumpSnapshotTrace("fuzzTest", false);
-}
-
-static void HiViewServiceRecordingTraceFuzzTest(const uint8_t* data, size_t size)
-{
-    std::string tags = std::string(reinterpret_cast<const char*>(data), size);
-    g_hiviewService.OpenRecordingTrace(tags);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
@@ -97,7 +95,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::HiviewDFX::HiviewServiceDumpFuzzTest(data, size);
     OHOS::HiviewDFX::HiViewServiceSnapshotTraceFuzzTest(data, size);
     OHOS::HiviewDFX::HiViewServiceDumpSnapshotTraceFuzzTest(data, size);
-    OHOS::HiviewDFX::HiViewServiceRecordingTraceFuzzTest(data, size);
     return 0;
 }
 

@@ -32,6 +32,7 @@
 #include "sys_event_dao.h"
 #include "string_util.h"
 #include "time_util.h"
+#include "trace_common.h"
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_state_machine.h"
 #include "trace_strategy.h"
@@ -252,12 +253,23 @@ int32_t HiviewService::Remove(const std::string& filePath)
     return 0;
 }
 
-CollectResult<int32_t> HiviewService::OpenSnapshotTrace(const std::vector<std::string>& tagGroups)
+CollectResult<int32_t> HiviewService::OpenTrace(const std::vector<std::string> &tags,
+    const UCollectClient::TraceParam &param, const std::vector<int32_t> &filterPids)
 {
 #ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
     return {UcError::FEATURE_CLOSED};
 #else
-    TraceRet openRet = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, tagGroups);
+    ScenarioInfo commandSecnario {
+        .scenario = TraceScenario::TRACE_COMMAND,
+        .args = {
+            .tags = tags,
+            .clockType = param.clockType,
+            .bufferSize = param.bufferSize,
+            .fileSizeLimit = param.fileSizeLimit,
+            .filterPids = filterPids
+        }
+    };
+    TraceRet openRet = TraceStateMachine::GetInstance().OpenTrace(commandSecnario);
     return {GetUcError(openRet)};
 #endif
 }
@@ -269,16 +281,6 @@ CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(const s
     return {UcError::FEATURE_CLOSED};
 #else
     return UCollectUtil::TraceCollector::Create()->DumpTrace(callerName, isNeedFlowControl);
-#endif
-}
-
-CollectResult<int32_t> HiviewService::OpenRecordingTrace(const std::string& tags)
-{
-#ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
-    return {UcError::FEATURE_CLOSED};
-#else
-    TraceRet openRet = TraceStateMachine::GetInstance().OpenTrace(TraceScenario::TRACE_COMMAND, tags);
-    return {GetUcError(openRet)};
 #endif
 }
 
@@ -328,7 +330,16 @@ CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(const UCollectC
         HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d", appCaller.uid, appCaller.pid);
         return {UCollect::UcError::HAD_CAPTURED_TRACE};
     }
-    TraceRet ret = TraceStateMachine::GetInstance().OpenDynamicTrace(appCaller.pid);
+    ScenarioInfo appInfo {
+        .scenario = TraceScenario::TRACE_DYNAMIC,
+        .args = {
+            .tags = {"graphic", "ace", "app"},
+            .bufferSize = 10240,  // app trace buffer size
+            .fileSizeLimit = 20, // app record trace file size
+            .appPid = appCaller.pid
+        },
+    };
+    TraceRet ret = TraceStateMachine::GetInstance().OpenTrace(appInfo);
     if (!ret.IsSuccess()) {
         return {GetUcError(ret)};
     }

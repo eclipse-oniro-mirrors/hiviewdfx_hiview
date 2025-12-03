@@ -192,7 +192,24 @@ bool TelemetryListener::InitTelemetryDbData(const Event &msg, bool &isTimeOut, c
 
 void TelemetryListener::HandleStart(const TelemetryParams &params)
 {
-    auto ret = TraceStateMachine::GetInstance().OpenTelemetryTrace(params.traceTag, params.tracePolicy);
+    std::vector<std::string> traceTags = {"ace", "app", "ark", "binder", "freq", "graphic", "multimodalinput", "nweb",
+        "sched", "window"};
+    uint32_t bufferSize = 0;
+    if (!params.traceTag.empty()) {
+        traceTags = params.traceTag;
+    }
+    if (params.bufferSize > 0) {
+        bufferSize = params.bufferSize;
+    }
+    ScenarioInfo telemetryScenario {
+        .scenario = TraceScenario::TRACE_TELEMETRY,
+        .args = {
+            .tags = std::move(traceTags),
+            .bufferSize = bufferSize,
+        },
+        .tracePolicy = params.tracePolicy
+    };
+    auto ret = TraceStateMachine::GetInstance().OpenTrace(telemetryScenario);
     if (ret.IsSuccess()) {
         std::shared_ptr<TelemetryCallback> callback;
         switch (params.tracePolicy) {
@@ -232,18 +249,19 @@ void TelemetryListener::WriteErrorEvent(const std::string &error, const Telemetr
         "ERROR", error);
 }
 
-bool TelemetryListener::ProcessTraceTag(std::string &traceTag)
+bool TelemetryListener::ProcessTraceTag(const std::string &traceTag, std::vector<std::string> &traceTags,
+    uint32_t &bufferSize)
 {
     cJSON* root = cJSON_Parse(traceTag.c_str());
     if (root == nullptr) {
         return false;
     }
-    auto tags = ParseAndFilterTraceArgs(TRACE_TAG_FILTER_LIST, root, TAGS);
-    if (tags.empty()) {
+    traceTags = ParseAndFilterTraceArgs(TRACE_TAG_FILTER_LIST, root, TAGS);
+    if (traceTags.empty()) {
         cJSON_Delete(root);
         return false;
     }
-    auto bufferSize = CJsonUtil::GetIntValue(root, BUFFER_SIZE);
+    bufferSize = static_cast<uint32_t>(CJsonUtil::GetIntValue(root, BUFFER_SIZE));
     cJSON_Delete(root);
     if (bufferSize <= 0) {
         HIVIEW_LOGE("jsonArgs parse trace bufferSize error");
@@ -252,18 +270,6 @@ bool TelemetryListener::ProcessTraceTag(std::string &traceTag)
     if (bufferSize > MAX_BUFFER_SIZE) {
         bufferSize = MAX_BUFFER_SIZE;
     }
-    bool isFirst = true;
-    std::string result("tags:");
-    for (const auto &tag: tags) {
-        if (!isFirst) {
-            result.append(", ").append(tag);
-            continue;
-        }
-        result.append(tag);
-        isFirst = false;
-    }
-    result.append(" bufferSize:").append(std::to_string(bufferSize));
-    traceTag = std::move(result);
     return true;
 }
 
@@ -297,12 +303,15 @@ void TelemetryListener::GetSaNames(const Event &msg, TelemetryParams &params)
 
 bool TelemetryListener::CheckTraceTags(const Event &msg, TelemetryParams &params, std::string &errorMsg)
 {
-    auto traceTag = msg.GetValue(KEY_TRACE_TAG);
-    if (!traceTag.empty() && !ProcessTraceTag(traceTag)) {
+    auto traceTagStr = msg.GetValue(KEY_TRACE_TAG);
+    std::vector<std::string> traceTags;
+    uint32_t bufferSize = 0;
+    if (!traceTagStr.empty() && !ProcessTraceTag(traceTagStr, traceTags, bufferSize)) {
         errorMsg.append("process trace tag fail");
         return false;
     }
-    params.traceTag = traceTag;
+    params.traceTag = traceTags;
+    params.bufferSize = bufferSize;
     return true;
 }
 

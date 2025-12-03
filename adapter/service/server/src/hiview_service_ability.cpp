@@ -341,16 +341,18 @@ void HiviewServiceAbility::OnStop()
     HIVIEW_LOGI("called");
 }
 
-ErrCode HiviewServiceAbility::OpenSnapshotTrace(const std::vector<std::string>& tagGroups, int32_t& errNo, int32_t& ret)
+ErrCode HiviewServiceAbility::OpenTrace(const std::vector<std::string> &tags, const TraceParamParcelable &traceParam,
+    const std::vector<int32_t> &filterPids, int32_t& errNo, int32_t &retData)
 {
-    HiviewXCollieTimer timer("OpenSnapshotTrace", SYS_CALLING_TIMEOUT);
+    HiviewXCollieTimer timer("OpenTrace", TWO_MINUTES_TIMEOUT);
     if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
-    auto traceRetHandler = [&tagGroups] (HiviewService* service) {
-        return service->OpenSnapshotTrace(tagGroups);
+    auto param = traceParam.GetTraceParam();
+    auto traceRetHandler = [&tags, &param, &filterPids] (HiviewService* service) {
+        return service->OpenTrace(tags, param, filterPids);
     };
-    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    TraceCalling<int32_t>(traceRetHandler, errNo, retData);
     return 0;
 }
 
@@ -383,19 +385,6 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, 
         return service->DumpSnapshotTrace(caller, isNeedFlowControl);
     };
     TraceCalling<std::vector<std::string>>(traceRetHandler, errNo, files);
-    return 0;
-}
-
-ErrCode HiviewServiceAbility::OpenRecordingTrace(const std::string& tags, int32_t& errNo, int32_t& ret)
-{
-    HiviewXCollieTimer timer("OpenRecordingTrace", TWO_MINUTES_TIMEOUT);
-    if (!HasAccessPermission(HIVIEW_TRACE_MANAGE_PERMISSION)) {
-        return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
-    }
-    auto traceRetHandler = [&tags] (HiviewService* service) {
-        return service->OpenRecordingTrace(tags);
-    };
-    TraceCalling<int32_t>(traceRetHandler, errNo, ret);
     return 0;
 }
 

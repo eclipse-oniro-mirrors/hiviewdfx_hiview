@@ -19,15 +19,15 @@ sequenceable OHOS.HiviewDFX.HiviewFileInfo;
 sequenceable OHOS.HiviewDFX.AppCallerParcelable;
 sequenceable OHOS.HiviewDFX.MemoryCallerParcelable;
 sequenceable OHOS.HiviewDFX.GraphicUsageParcelable;
+sequenceable OHOS.HiviewDFX.TraceParamParcelable;
 
 interface IHiviewServiceAbility {
     [ipcoutcapacity 480] void ListFiles([in] String logType, [out] HiviewFileInfo[] fileInfos);
     void Copy([in] String logType, [in] String logName, [in] String dest);
     void Move([in] String logType, [in] String logName, [in] String dest);
     void Remove([in] String logType, [in] String logName);
-    void OpenSnapshotTrace([in] String[] tagGroups, [out] int errNo, [out] int ret);
+    void OpenTrace([in] String[] tags, [in] TraceParamParcelable traceParam, [in] int[] filterPids, [out] int errNo, [out] int retData);
     void DumpSnapshotTrace([in] int client, [out] int errNo, [out] String[] files);
-    void OpenRecordingTrace([in] String tags, [out] int errNo, [out] int ret);
     void RecordingTraceOn([out] int errNo, [out] int ret);
     void RecordingTraceOff([out] int errNo, [out] String[] files);
     void CloseTrace([out] int errNo, [out] int ret);

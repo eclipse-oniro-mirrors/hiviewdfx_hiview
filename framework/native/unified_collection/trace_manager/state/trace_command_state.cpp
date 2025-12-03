@@ -22,17 +22,6 @@ namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
 }
-TraceRet CommandState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CommandState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
 
 TraceRet CommandState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
@@ -61,27 +50,11 @@ TraceRet CommandState::TraceDropOn(TraceScenario scenario)
 
 TraceRet CommandState::CloseTrace(TraceScenario scenario)
 {
-    if (scenario != TraceScenario::TRACE_COMMAND) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
     auto ret = TraceBaseState::CloseTrace(scenario);
     if (ret.IsSuccess()) {
         TraceStateMachine::GetInstance().SetCommandState(false);
     }
     return ret;
-}
-
-TraceRet CommandDropState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
-}
-
-TraceRet CommandDropState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-    return TraceRet(TraceStateCode::DENY);
 }
 
 TraceRet CommandDropState::TraceDropOff(TraceScenario scenario, TraceRetInfo &info)
@@ -96,14 +69,5 @@ TraceRet CommandDropState::TraceDropOff(TraceScenario scenario, TraceRetInfo &in
     }
     TraceStateMachine::GetInstance().TransToCommandState();
     return {};
-}
-
-TraceRet CommandDropState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario == TraceScenario::TRACE_COMMAND) {
-        return TraceBaseState::CloseTrace(TraceScenario::TRACE_COMMAND);
-    }
-    HIVIEW_LOGW(":%{public}s, invoke state fail", GetTag().c_str());
-    return TraceRet(TraceStateCode::FAIL);
 }
 }

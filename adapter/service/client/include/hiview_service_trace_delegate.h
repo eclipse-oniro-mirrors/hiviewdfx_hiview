@@ -28,9 +28,9 @@ namespace OHOS {
 namespace HiviewDFX {
 class HiViewServiceTraceDelegate {
 public:
-    static CollectResult<int32_t> OpenSnapshot(const std::vector<std::string>& tagGroups);
     static CollectResult<std::vector<std::string>> DumpSnapshot(int32_t client);
-    static CollectResult<int32_t> OpenRecording(const std::string& tags);
+    static CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags,
+        const UCollectClient::TraceParam& param, const std::vector<int32_t>& filterPids);
     static CollectResult<int32_t> RecordingOn();
     static CollectResult<std::vector<std::string>> RecordingOff();
     static CollectResult<int32_t> Close();

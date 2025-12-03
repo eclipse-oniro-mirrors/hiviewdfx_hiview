@@ -28,12 +28,7 @@ public:
         taskBeginTime_ = TimeUtil::GetMilliseconds();
     }
 
-    TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
-    TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
-    TraceRet OpenAppTrace(int32_t appPid) override;
-    TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy) override;
     TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
-    TraceRet CloseTrace(TraceScenario scenario) override;
 
     std::pair<int32_t, uint64_t> GetCurrentAppInfo() override
     {
@@ -41,9 +36,14 @@ public:
     }
 
 protected:
-    std::string GetTag() override
+    std::string GetTag() const override
     {
         return "DynamicState";
+    }
+
+    TraceScenario GetCurrentScenario() const override
+    {
+        return TraceScenario::TRACE_DYNAMIC;
     }
 
 private:
