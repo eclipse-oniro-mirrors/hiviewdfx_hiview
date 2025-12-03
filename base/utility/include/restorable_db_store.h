@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-using OnRestoreEndCallback = std::function<void(std::shared_ptr<NativeRdb::RdbStore>)>;
+using OnRestoreEndCallback = std::function<int(std::shared_ptr<NativeRdb::RdbStore>)>;
 using OnDbCreatedCallback = std::function<int(NativeRdb::RdbStore&)>;
 using OnDbUpgradedCallback = std::function<int(NativeRdb::RdbStore&, int, int)>;
 

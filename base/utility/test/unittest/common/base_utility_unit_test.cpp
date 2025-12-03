@@ -38,9 +38,9 @@ constexpr char TEST_TABLE_NAME[] = "test_table";
 constexpr char TEST_COLUMN_KEY_1[] = "test_column_1";
 constexpr char TEST_COLUMN_KEY_2[] = "test_column_2";
 constexpr char COLUMN_1_INIT_VAL[] = "test_value";
-constexpr long COLUMN_2_INIT_VAL = 666;
+constexpr int64_t COLUMN_2_INIT_VAL = 666;
 
-void InsertTableValue(std::shared_ptr<RestorableDbStore> dbStore, const std::string& column1Val, long column2Val)
+void InsertTableValue(std::shared_ptr<RestorableDbStore> dbStore, const std::string& column1Val, int64_t column2Val)
 {
     ASSERT_NE(dbStore, nullptr);
     NativeRdb::ValuesBucket bucket;
@@ -50,7 +50,7 @@ void InsertTableValue(std::shared_ptr<RestorableDbStore> dbStore, const std::str
     ASSERT_EQ(dbStore->Insert(id, TEST_TABLE_NAME, bucket), NativeRdb::E_OK);
 }
 
-void UpdateTable(std::shared_ptr<RestorableDbStore> dbStore, long column2Val)
+void UpdateTable(std::shared_ptr<RestorableDbStore> dbStore, int64_t column2Val)
 {
     ASSERT_NE(dbStore, nullptr);
     NativeRdb::ValuesBucket bucket;
@@ -62,7 +62,7 @@ void UpdateTable(std::shared_ptr<RestorableDbStore> dbStore, long column2Val)
         std::vector<std::string> { COLUMN_1_INIT_VAL }), NativeRdb::E_OK);
 }
 
-void QueryColumn2Val(std::shared_ptr<RestorableDbStore> dbStore, long& val)
+void QueryColumn2Val(std::shared_ptr<RestorableDbStore> dbStore, int64_t& val)
 {
     ASSERT_NE(dbStore, nullptr);
     NativeRdb::RdbPredicates predicates(TEST_TABLE_NAME);
@@ -89,33 +89,30 @@ void ExecuteSql(std::shared_ptr<RestorableDbStore> dbStore)
 
 void InitRestorableDbStore(std::shared_ptr<RestorableDbStore>& dbStore)
 {
-    dbStore = std::make_shared<RestorableDbStore>(dbDir,
-        dbName, 1); // 1 is a test version
+    std::string dbDir(TEST_DB_DIR);
+    std::string dbName(TEST_DB_NAME);
+    dbStore = std::make_shared<RestorableDbStore>(dbDir, dbName, 1); // 1 is a test version
     ASSERT_NE(dbStore, nullptr);
-    dbStore->Initialize(tables,
+    dbStore->Initialize(
         [] (NativeRdb::RdbStore& rdbStore) {
             const std::vector<std::pair<std::string, std::string>> fields = {
                 {TEST_COLUMN_KEY_1, SqlUtil::COLUMN_TYPE_STR},
                 {TEST_COLUMN_KEY_2, SqlUtil::COLUMN_TYPE_INT},
             };
             std::string sql = SqlUtil::GenerateCreateSql(TEST_TABLE_NAME, fields);
-            auto ret = dbStore.ExecuteSql(sql);
-            if (ret != NativeRdb::E_OK) {
-                HIVIEW_LOGE("failed to execute sql=%{public}s.", sql.c_str());
-            }
-            return ret;
+            return rdbStore.ExecuteSql(sql);
         },
         [] (NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) {
             return NativeRdb::E_OK;
         },
         [] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
-        NativeRdb::ValuesBucket bucket;
-        bucket.PutString(TEST_COLUMN_KEY_1, column1Val);
-        bucket.PutLong(TEST_COLUMN_KEY_2, column2Val);
-        int64_t id = 0;
-        ASSERT_EQ(rdbStore->Insert(id, TEST_TABLE_NAME, bucket), NativeRdb::E_OK);
-    });
-    ASSERT_TRUE(FileUtil::FileExists(dbFile));
+            NativeRdb::ValuesBucket bucket;
+            bucket.PutString(TEST_COLUMN_KEY_1, COLUMN_1_INIT_VAL);
+            bucket.PutLong(TEST_COLUMN_KEY_2, COLUMN_2_INIT_VAL);
+            int64_t id = 0;
+            return rdbStore->Insert(id, TEST_TABLE_NAME, bucket);
+        });
+    ASSERT_TRUE(FileUtil::FileExists(dbDir + dbName));
 }
 }
 void BaseUtilityUnitTest::SetUpTestCase()
@@ -545,12 +542,16 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest022, testing::ext::TestSize.Lev
  */
 HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest023, testing::ext::TestSize.Level3)
 {
+    std::string dbDir(TEST_DB_DIR);
+    std::string dbName(TEST_DB_NAME);
+    (void)NativeRdb::RdbHelper::DeleteRdbStore(dbDir + dbName);
+
     std::shared_ptr<RestorableDbStore> dbStore;
     InitRestorableDbStore(dbStore);
     ASSERT_NE(dbStore, nullptr);
 
     InsertTableValue(dbStore, std::string(COLUMN_1_INIT_VAL), COLUMN_2_INIT_VAL);
-    long val = 0;
+    int64_t val = 0;
     QueryColumn2Val(dbStore, val);
     ASSERT_EQ(val, COLUMN_2_INIT_VAL);
 
@@ -558,7 +559,7 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest023, testing::ext::TestSize.Lev
     QueryColumn2Val(dbStore, val);
     ASSERT_EQ(val, COLUMN_2_INIT_VAL);
 
-    long testUpdateVal = 999;
+    int64_t testUpdateVal = 999; // 999 is a test value
     UpdateTable(dbStore, testUpdateVal);
     QueryColumn2Val(dbStore, val);
     ASSERT_EQ(val, testUpdateVal);
