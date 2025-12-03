@@ -47,7 +47,7 @@ private:
     void RebuildExistTaskList(TriggerTaskList& taskList, std::shared_ptr<SysEvent> event,
         std::shared_ptr<ExportConfig> config);
     void RemoveTask(std::shared_ptr<TriggerExportTask> task);
-    void StartTask(std::shared_ptr<TriggerExportTask> task);
+    void StartTask(std::shared_ptr<TriggerExportTask> task, bool isDelayed);
 
 private:
     ffrt_queue_t runningTaskQueue_ = nullptr;

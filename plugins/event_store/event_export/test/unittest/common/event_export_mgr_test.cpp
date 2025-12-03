@@ -166,11 +166,23 @@ HWTEST_F(EventExportMgrTest, EventExportUtilTest001, testing::ext::TestSize.Leve
     ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
     exportConfig->taskType = 30; // 30 is a test task type
     ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+
+    ASSERT_TRUE(EventExportUtil::RegisterSettingObserver(exportConfig));
+    EventExportUtil::UnregisterSettingObserver(exportConfig);
+
+    auto& manager = ExportDbManager::GetInstance();
+    ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME), INVALID_SEQ_VAL);
+    EventExportUtil::SyncDbByExportSwitchStatus(exportConfig, false);
+    ASSERT_GT(manager.GetExportBeginSeq(TEST_MODULE_NAME), 0);
+    EventExportUtil::SyncDbByExportSwitchStatus(exportConfig, true);
+    ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME), INVALID_SEQ_VAL);
+    EventExportUtil::InitEnvBeforeExport(exportConfig);
+    ASSERT_TRUE(FileUtil::FileExists(exportConfig->exportDir));
 }
 
 /**
  * @tc.name: ExportDirCreator001
- * @tc.desc: Test apis of ExportDirCreator001
+ * @tc.desc: Test apis of ExportDirCreator
  * @tc.type: FUNC
  * @tc.require: issueICSFYS
  */

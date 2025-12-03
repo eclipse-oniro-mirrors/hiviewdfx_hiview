@@ -17,6 +17,7 @@
 
 #include "event.h"
 #include "export_db_storage.h"
+#include "export_dir_creator.h"
 #include "file_util.h"
 #include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
@@ -106,6 +107,20 @@ void HandleExportSwitchOff(const std::string& moduleName)
     dbMgr.HandleExportSwitchChanged(moduleName, INVALID_SEQ_VAL);
     FileUtil::RemoveFile(dbMgr.GetEventInheritFlagPath(moduleName)); // remove inherit flag file if switch changes
 }
+
+int64_t GetModuleExportStartSeq(std::shared_ptr<ExportConfig> config)
+{
+    auto& dbMgr = ExportDbManager::GetInstance();
+    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
+    if (config == nullptr || !dbMgr.IsUnrecordedModule(config->moduleName) ||
+        config->inheritedModule.empty() || dbMgr.IsUnrecordedModule(config->inheritedModule)) {
+        HIVIEW_LOGI("start sequence is %{public}" PRId64, startSeq);
+        return startSeq;
+    }
+    startSeq = dbMgr.GetExportEndSeq(config->inheritedModule);
+    HIVIEW_LOGI("inherited start sequence is %{public}" PRId64 "", startSeq);
+    return startSeq;
+}
 }
 
 std::string EventExportUtil::GetDeviceId()
@@ -170,6 +185,36 @@ bool EventExportUtil::RegisterSettingObserver(std::shared_ptr<ExportConfig> conf
 void EventExportUtil::UnregisterSettingObserver(std::shared_ptr<ExportConfig> config)
 {
     SettingObserverManager::GetInstance()->UnregisterObserver(config->exportSwitchParam.name);
+}
+
+void EventExportUtil::SyncDbByExportSwitchStatus(std::shared_ptr<ExportConfig> config, bool isSwitchOff)
+{
+    auto& dbMgr = ExportDbManager::GetInstance();
+    if (isSwitchOff) {
+        HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
+        int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
+        if (enabledSeq != INVALID_SEQ_VAL &&
+            !FileUtil::FileExists(dbMgr.GetEventInheritFlagPath(config->moduleName))) {
+            dbMgr.HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
+        }
+        return;
+    }
+    HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
+    int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
+    if (enabledSeq == INVALID_SEQ_VAL) {
+        enabledSeq = GetModuleExportStartSeq(config);
+        dbMgr.HandleExportSwitchChanged(config->moduleName, enabledSeq);
+    }
+}
+
+void EventExportUtil::InitEnvBeforeExport(std::shared_ptr<ExportConfig> config)
+{
+    // create export directory
+    (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
+    // do inherit by switch status
+    bool isSwitchOff = (SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name)
+        != config->exportSwitchParam.enabledVal);
+    SyncDbByExportSwitchStatus(config, isSwitchOff);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

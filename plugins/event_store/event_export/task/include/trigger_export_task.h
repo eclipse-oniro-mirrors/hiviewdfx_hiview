@@ -44,7 +44,6 @@ protected:
 
 private:
     int id_ = 0;
-    int64_t endSeq_ = 0;
     ffrt::mutex listMutex_;
     std::list<std::shared_ptr<TriggerExportEvent>> allEvent_;
 };
