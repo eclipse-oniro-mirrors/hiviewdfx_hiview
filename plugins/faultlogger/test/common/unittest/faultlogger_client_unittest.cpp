@@ -191,6 +191,8 @@ HWTEST_F(FaultloggerClientUnittest, FaultLogInfoTest001, testing::ext::TestSize.
     info.SetFaultType(6);
     ASSERT_EQ(info.GetFaultType(), 6);
     ASSERT_EQ(info.GetStringFaultType(), "SysWarning");
+    ASSERT_EQ(info.GetFaultType(), 7);
+    ASSERT_EQ(info.GetStringFaultType(), "AppWarning");
 }
 } // namespace HiviewDFX
 } // namespace OHOS

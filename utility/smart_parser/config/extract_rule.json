@@ -194,6 +194,16 @@
         ]
     },
     "Rule17":{
+        "DirOrFile":"/data/log/faultlog/freeze/",
+        "Subcatalog":"appwarning-.*-\\d+-\\d+-\\d+\\.tmp",
+        "featureId":"63_APP_WARNING_01",
+        "rules":[
+            {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"^PID = (.*)$"},
+            {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"^TID = (.*)$"},
+            {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@, Name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+        ]
+    },
+    "Rule18":{
         "DirOrFile":"/data/log/faultlog/faultlogger/",
         "Subcatalog":"sysfreeze-HUNGTASK-\\d+-\\d+\\.log",
         "featureId":"63_SYS_FREEZE_02",
@@ -204,7 +214,7 @@
             {"namespace":"MainCallTrace", "depend":"MainCallTrace.v_start", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"}
         ]
     },
-    "Rule18":{
+    "Rule19":{
         "DirOrFile":"/data/log/faultlog/temp/",
         "Subcatalog":"stacktrace-\\d+-\\d+",
         "featureId":"64_ADDR_SANITIZER_01",
@@ -212,7 +222,7 @@
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}\\d+, Name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
-    "Rule19":{
+    "Rule20":{
         "DirOrFile":"/data/log/faultlog/freeze/",
         "Subcatalog":"sysfreeze-(?!HUNGTASK).*-\\d+-\\d+\\.tmp",
         "featureId":"63_SYS_FREEZE_01",
@@ -226,7 +236,7 @@
             {"namespace":"MainCallTrace", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
-    "Rule20":{
+    "Rule21":{
         "DirOrFile":"/data/log/faultlog/freeze/",
         "Subcatalog":"sysfreeze-HUNGTASK-\\d+-\\d+-\\d+\\.tmp",
         "featureId":"63_SYS_FREEZE_02",
@@ -237,7 +247,7 @@
             {"namespace":"MainCallTrace", "depend":"MainCallTrace.v_start", "v_trace":"@T@(<[_a-zA-Z0-9]+\\+0x[0-9a-fA-F]+/0x[0-9a-fA-F]+> \\(.*\\))"}
         ]
     },
-    "Rule21":{
+    "Rule22":{
         "DirOrFile":"/data/hisi_logs/",
         "Subcatalog":"\\d{14}-\\d{8}/dpa_log/reset.log",
         "featureId":"03_DPACRASH_00",
@@ -247,7 +257,7 @@
             {"namespace":"BasicParam", "matchKey":"modid:", "v_last":"^modid:(.*)"}
         ]
     },
-    "Rule22":{
+    "Rule23":{
         "DirOrFile":"/data/hisi_logs/",
         "Subcatalog":"hisi_diaginfo.log",
         "featureId":"03_GPUEXCEPTION_00",
@@ -256,7 +266,7 @@
             {"namespace":"BasicParam", "matchKey":"DMD_HIGPU_JOB_FAIL", "v_first":"@L@(source_id:0x\\d+|fault:\\d 0x\\d+)", "v_second":"@L@(stream_id:0x\\d+)", "v_last":"@L@(task:.*)\\]"}
         ]
     },
-    "Rule23":{
+    "Rule24":{
         "DirOrFile":"/data/hisi_logs/",
         "Subcatalog":"\\d{14}-\\d{8}/ap_log/fastboot_log",
         "featureId":"04_LPM3EXCEPTION_00",

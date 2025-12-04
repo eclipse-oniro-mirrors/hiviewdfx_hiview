@@ -29,6 +29,11 @@
             "END_STACK":"MainCallTrace.v_trace"
         }
     },
+    "APP_WARNING": {
+        "63_APP_WARNING_01": {
+            "END_STACK":"MainCallTrace.v_trace"
+        }
+    },
     "CPP_CRASH": {
             "07_CPP_CRASH_00": {
                 "PNAME": "BasicParam.v_process",

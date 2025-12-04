@@ -25,6 +25,7 @@
 #include "time_util.h"
 
 #define private public
+#include "ffrt.h"
 #include "freeze_common.h"
 #include "rule_cluster.h"
 #include "resolver.h"

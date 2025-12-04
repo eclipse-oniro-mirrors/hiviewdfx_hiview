@@ -81,7 +81,8 @@ bool IsFaultByIpc(const FaultLogInfo& info)
     return info.faultLogType == FaultLogType::CPP_CRASH ||
         info.faultLogType == FaultLogType::SYS_FREEZE ||
         info.faultLogType == FaultLogType::SYS_WARNING ||
-        info.faultLogType == FaultLogType::APP_FREEZE;
+        info.faultLogType == FaultLogType::APP_FREEZE ||
+        info.faultLogType == FaultLogType::APP_WARNING;
 }
 } // namespace
 

@@ -50,6 +50,7 @@ enum FaultLogType {
     APP_FREEZE,
     SYS_FREEZE,
     SYS_WARNING,
+    APP_WARNING,
     RUST_PANIC,
     ADDR_SANITIZER,
     CJ_ERROR,

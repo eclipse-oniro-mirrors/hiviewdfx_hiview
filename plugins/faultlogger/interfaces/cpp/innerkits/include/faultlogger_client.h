@@ -61,6 +61,8 @@ enum FaultLogType {
     SYS_FREEZE,
     /** system happen warning */
     SYS_WARNING,
+    /** application happen warning */
+    APP_WARNING,
     /** rust crash at runtime */
     RUST_PANIC,
     /** cj error at runtime */
@@ -95,7 +97,7 @@ void AddFaultLog(const FaultLogInfoInner &info);
  *
  * @param time  the time of happening fault(unix timestamp of Milliseconds)
  * @param logType  the type of fault log.
- * eg: CPP_CRASH,JS_CRASH,APP_FREEZE,SYS_FREEZE,SYS_WARNING,RUST_PANIC
+ * eg: CPP_CRASH,JS_CRASH,APP_FREEZE,SYS_FREEZE,SYS_WARNING,APP_WARNING,RUST_PANIC
  * @param module name of module which happened fault
  * @param summary the summary of fault information
 */

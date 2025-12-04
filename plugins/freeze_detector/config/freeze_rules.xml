@@ -250,47 +250,35 @@
         </event>
       </links>
     </rule>
-    <rule id="9" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
-      <links type="watchpoint">
-        <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
-          <result code="2" scope="sysWarning"/>
-        </event>
-      </links>
-      <links type="watchpoint">
-        <event window="14" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
-          <result code="2" scope="sysWarning" samePackage="true"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="10" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
+    <rule id="9" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHIC" stringid="RS_VULKAN_ERROR">	<!-- RS_VULKAN_ERROR -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="11" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
+    <rule id="10" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHICS_GAME" stringid="GAME_FREEZE_DUMPSTACK">	<!-- GAME_FREEZE_DUMPSTACK -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="12" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
+    <rule id="11" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="THP" stringid="DMDW_THP_DAE_PROCESS_TIMEOUT">	<!-- DMDW_THP_DAE_PROCESS_TIMEOUT -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="13" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
+    <rule id="12" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
       <links type="watchpoint">
         <event window="0" domain="GRAPHIC" stringid="RS_RENDER_EXCEPTION">	<!-- RS_RENDER_EXCEPTION -->
         <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="14" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT_WARNING">	<!-- LIFECYCLE_TIMEOUT_WARNING -->
+    <rule id="13" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT_WARNING">	<!-- LIFECYCLE_TIMEOUT_WARNING -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT_WARNING">	<!-- LIFECYCLE_TIMEOUT_WARNING -->
           <result code="2" scope="sysWarning"/>
@@ -300,17 +288,43 @@
         </event>
       </links>
     </rule>
-    <rule id="15" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
+    <rule id="14" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="MULTIMODALINPUT" stringid="INPUT_EVENT_SOCKET_TIMEOUT">	<!-- INPUT_EVENT_SOCKET_TIMEOUT -->
           <result code="2" scope="sysWarning"/>
         </event>
       </links>
     </rule>
-    <rule id="16" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
+    <rule id="15" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
       <links type="watchpoint">
         <event window="0" domain="FFRT" stringid="CONGESTION">	<!-- CONGESTION -->
           <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+  </rules>
+    <rules resolver="AppWarningResolver">
+    <rule id="1" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
+      <links type="watchpoint">
+        <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
+          <result code="3" scope="appWarning"/>
+        </event>
+      </links>
+      <links type="watchpoint">
+        <event window="60" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
+          <result code="3" scope="appWarning" samePackage="true"/>
+        </event>
+      </links>
+    </rule>
+        <rule id="2" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
+      <links type="watchpoint">
+        <event window="0" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
+          <result code="3" scope="appWarning"/>
+        </event>
+      </links>
+      <links type="watchpoint">
+        <event window="60" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
+          <result code="3" scope="appWarning" samePackage="true"/>
         </event>
       </links>
     </rule>

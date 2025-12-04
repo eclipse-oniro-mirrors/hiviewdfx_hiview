@@ -136,7 +136,7 @@ HWTEST_F(FreezeDetectorIPCFULLTest, FreezeDetectorIPCFULLTest001, TestSize.Level
     std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
     plugin->OnEventListeningCallback(*(event.get()));
 
-        if (event == nullptr) {
+    if (event == nullptr) {
         printf("Get FreezeDetectorIPCFULLPlugin after OnEventListeningCallback, failed\n");
         FAIL();
     }

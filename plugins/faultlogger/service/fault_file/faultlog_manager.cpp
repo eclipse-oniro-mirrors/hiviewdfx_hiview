@@ -114,7 +114,7 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
     }
     int fd = GetFaultLogFileFd(info.faultLogType, fileName);
     if (fd < 0) {
-        if (info.faultLogType == FaultLogType::SYS_WARNING) {
+        if (info.faultLogType == FaultLogType::SYS_WARNING || info.faultLogType == FaultLogType::APP_WARNING) {
             if (access(FAULTLOG_WARNING_LOG_FOLDER, F_OK) != 0) {
                 HIVIEW_LOGE("%{public}s does not exist!!!", FAULTLOG_WARNING_LOG_FOLDER);
             }
@@ -143,13 +143,13 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
 
 std::string FaultLogManager::GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName) const
 {
-    return (faultLogType == FaultLogType::SYS_WARNING) ?
+    return (faultLogType == FaultLogType::SYS_WARNING || faultLogType == FaultLogType::APP_WARNING) ?
         std::string(FAULTLOG_WARNING_LOG_FOLDER) + fileName : std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
 }
 
 int FaultLogManager::GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName) const
 {
-    return (faultLogType == FaultLogType::SYS_WARNING) ?
+    return (faultLogType == FaultLogType::SYS_WARNING || faultLogType == FaultLogType::APP_WARNING) ?
         warningLogStore_->CreateLogFile(fileName): store_->CreateLogFile(fileName);
 }
 

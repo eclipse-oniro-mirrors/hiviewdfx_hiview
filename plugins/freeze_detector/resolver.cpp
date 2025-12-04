@@ -107,7 +107,8 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
     }
 
     if ((watchPoint.GetStringId() == "SERVICE_WARNING" || watchPoint.GetStringId() ==
-        "THREAD_BLOCK_3S") && (list.size() == result.size() - SYS_MATCH_NUM)) {
+        "THREAD_BLOCK_3S" || watchPoint.GetStringId() == "LIFECYCLE_HALF_TIMEOUT") &&
+        (list.size() == result.size() - SYS_MATCH_NUM)) {
         return true;
     }
 

@@ -26,6 +26,7 @@ namespace {
     constexpr int APPLICATION_RESULT_ID = 0;
     constexpr int SYSTEM_RESULT_ID = 1;
     constexpr int SYSTEM_WARNING_RESULT_ID = 2;
+    constexpr int APPLICATION_WARNING_RESULT_ID = 3;
     constexpr uint32_t PLACEHOLDER = 3;
     constexpr size_t FAULTTIME_STR_SIZE = 19;
     constexpr size_t FAULTTIME_ONE_INDEX = 4;
@@ -54,7 +55,7 @@ bool FreezeCommon::Init()
 bool FreezeCommon::IsFreezeEvent(const std::string& domain, const std::string& stringId) const
 {
     return IsApplicationEvent(domain, stringId) || IsSystemEvent(domain, stringId) ||
-        IsSysWarningEvent(domain, stringId);
+        IsSysWarningEvent(domain, stringId) || IsAppWarningEvent(domain, stringId);
 }
 
 bool FreezeCommon::IsApplicationEvent(const std::string& domain, const std::string& stringId) const
@@ -70,6 +71,11 @@ bool FreezeCommon::IsSystemEvent(const std::string& domain, const std::string& s
 bool FreezeCommon::IsSysWarningEvent(const std::string& domain, const std::string& stringId) const
 {
     return IsAssignedEvent(domain, stringId, SYSTEM_WARNING_RESULT_ID);
+}
+
+bool FreezeCommon::IsAppWarningEvent(const std::string& domain, const std::string& stringId) const
+{
+    return IsAssignedEvent(domain, stringId, APPLICATION_WARNING_RESULT_ID);
 }
 
 bool FreezeCommon::IsAssignedEvent(const std::string& domain, const std::string& stringId, int freezeId) const
@@ -89,6 +95,9 @@ bool FreezeCommon::IsAssignedEvent(const std::string& domain, const std::string&
             break;
         case SYSTEM_WARNING_RESULT_ID:
             pairs = freezeRuleCluster_->GetSysWarningPairs();
+            break;
+        case APPLICATION_WARNING_RESULT_ID:
+            pairs = freezeRuleCluster_->GetAppWarningPairs();
             break;
         default:
             return false;
@@ -111,6 +120,7 @@ std::set<std::string> FreezeCommon::GetPrincipalStringIds() const
     auto applicationPairs = freezeRuleCluster_->GetApplicationPairs();
     auto systemPairs = freezeRuleCluster_->GetSystemPairs();
     auto sysWarningPairs = freezeRuleCluster_->GetSysWarningPairs();
+    auto appWarningPairs = freezeRuleCluster_->GetAppWarningPairs();
     for (auto const &pair : applicationPairs) {
         if (pair.second.second) {
             set.insert(pair.first);
@@ -122,6 +132,11 @@ std::set<std::string> FreezeCommon::GetPrincipalStringIds() const
         }
     }
     for (auto const &pair : sysWarningPairs) {
+        if (pair.second.second) {
+            set.insert(pair.first);
+        }
+    }
+    for (auto const &pair : appWarningPairs) {
         if (pair.second.second) {
             set.insert(pair.first);
         }
