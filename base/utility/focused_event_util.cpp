@@ -23,6 +23,9 @@ namespace HiviewDFX {
 namespace FocusedEventUtil {
 namespace {
 const std::map<std::string, std::list<std::string>> FOCUSED_EVENT_MAP {
+    {"AAFWK", {"THREAD_BLOCK_3S", "THREAD_BLOCK_6S"}},
+    {"ACE", {"UI_BLOCK_3S", "UI_BLOCK_6S"}},
+    {"FRAMEWORK", {"SERVICE_BLOCK", "SERVICE_WARNING"}},
     {"HMOS_SVC_BROKER", {"CONTAINER_LIFECYCLE_EVENT"}},
 };
 }
