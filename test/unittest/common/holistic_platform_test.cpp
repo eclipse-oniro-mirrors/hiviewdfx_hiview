@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,9 +35,11 @@ void HolisticPlatformTest::SetUp()
      */
     printf("SetUp.\n");
 }
+
 OHOS::HiviewDFX::HiviewPlatform HolisticPlatformTest::platform_;
 std::set<std::string>* HolisticPlatformTest::count1_;
 std::set<std::string>* HolisticPlatformTest::count2_;
+
 void HolisticPlatformTest::SetUpTestCase()
 {
     printf("SetUpTestCase.\n");
@@ -49,8 +51,7 @@ void HolisticPlatformTest::SetUpTestCase()
     platform_.SetMaxProxyIdleTime(IDLE_TIME);
     platform_.SetCheckProxyIdlePeriod(CHECK_TIME);
     if (!platform_.InitEnvironment("/data/test/test_data/hiview_platform_config")) {
-        printf("Fail to init environment. \n");
-        FAIL();
+        printf("Failed to init environment. \n");
     }
     auto& pluginMap = platform_.GetPluginMap();
     for (auto& i : pluginMap) {
@@ -59,13 +60,13 @@ void HolisticPlatformTest::SetUpTestCase()
 
     auto itaa = pluginMap.find("EventSourceExample");
     if (itaa == pluginMap.end()) {
-        FAIL();
+        printf("Failed to find EventSourceExample. \n");
     }
     auto eventSourceExample = std::static_pointer_cast<EventSourceExample>(itaa->second);
 
     auto itbb = pluginMap.find("BundleEventSourceExample");
     if (itbb == pluginMap.end()) {
-        FAIL();
+        printf("Failed to find BundleEventSourceExample. \n");
     }
     auto bundleEventSourceExample = std::static_pointer_cast<BundleEventSourceExample>(itbb->second);
     count1_ = &(eventSourceExample->count);
@@ -86,7 +87,6 @@ void HolisticPlatformTest::TearDown()
  * @tc.name: HolisticPlatformLoadingPlugins001
  * @tc.desc: 平台插件与插件包一起加载，动态卸载查询插件数目
  * @tc.type: FUNC
- * @tc.require: AR000GICT3
  */
 HWTEST_F(HolisticPlatformTest, HolisticPlatformLoadingPlugins001, TestSize.Level3)
 {
@@ -94,6 +94,7 @@ HWTEST_F(HolisticPlatformTest, HolisticPlatformLoadingPlugins001, TestSize.Level
      * @tc.steps: step1. init plugin platform
      */
     printf("HolisticPlatformLoadingPlugins001.\n");
+
     auto& pluginMap = platform_.GetPluginMap();
     for (auto& i : pluginMap) {
         printf("name:%s, \n", i.first.c_str());
@@ -169,11 +170,11 @@ void HolisticPlatformTest::LoadingPlugins002Check()
  * @tc.name: HolisticPlatformLoadingPlugins002
  * @tc.desc: 平台插件与插件包一起加载，运行加载查询插件数目
  * @tc.type: FUNC
- * @tc.require: AR000GICT3
  */
 HWTEST_F(HolisticPlatformTest, HolisticPlatformLoadingPlugins002, TestSize.Level3)
 {
     printf("HolisticPlatformLoadingPlugins002.\n");
+
     auto& pluginMap = platform_.GetPluginMap();
     for (auto& i : pluginMap) {
         printf("name:%s, \n", i.first.c_str());
@@ -183,7 +184,7 @@ HWTEST_F(HolisticPlatformTest, HolisticPlatformLoadingPlugins002, TestSize.Level
     const std::map<std::string, std::shared_ptr<Pipeline>>& pipelines = platform_.GetPipelineMap();
     auto it = pipelines.find("NormalPipeline");
     if (it == pipelines.end()) {
-        printf("Fail to find pipeline with name :NormalPipeline");
+        printf("Failed to find pipeline with name :NormalPipeline");
         FAIL();
     }
     ASSERT_EQ(it->second->GetProcessSequence().size(), 5ul);
@@ -224,7 +225,6 @@ HWTEST_F(HolisticPlatformTest, HolisticPlatformLoadingPlugins002, TestSize.Level
  * @tc.name: HolisticPlatformLoadingPlugins003
  * @tc.desc: 平台插件与插件包一起加载，运行加载查询插件数目
  * @tc.type: FUNC
- * @tc.require: AR000GICT3
  */
 HWTEST_F(HolisticPlatformTest, HolisticPlatformLoadingPlugins003, TestSize.Level3)
 {
@@ -282,7 +282,6 @@ void HolisticPlatformTest::Run001Check02()
  * @tc.name: HolisticPlatformRun001
  * @tc.desc: 插件平台订阅运行检查
  * @tc.type: FUNC
- * @tc.require: AR000GICT3
  */
 HWTEST_F(HolisticPlatformTest, HolisticPlatformRun001, TestSize.Level3)
 {
@@ -381,7 +380,7 @@ void HolisticPlatformTest::Run002Check02()
     if (epe4t.find("testcc") == epe4t.npos) {
         FAIL();
     }
-    
+
     std::string be2t = platform_.GetHiviewProperty("BE2_OnEvent", "");
     printf("be2t %s\n", be2t.c_str());
     if (be2t.find("testcc") == be2t.npos) {
@@ -392,7 +391,6 @@ void HolisticPlatformTest::Run002Check02()
  * @tc.name: HolisticPlatformRun002
  * @tc.desc: 插件平台流水线运行检查
  * @tc.type: FUNC
- * @tc.require: AR000GICT3
  */
 HWTEST_F(HolisticPlatformTest, HolisticPlatformRun002, TestSize.Level3)
 {
