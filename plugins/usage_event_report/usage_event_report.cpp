@@ -221,7 +221,7 @@ void UsageEventReport::InnerReportDailyEvent()
 
     // update report time
     lastReportTime_ = TimeUtil::GetMilliseconds();
-    nextReportTime_ += TimeUtil::MILLISECS_PER_DAY;
+    nextReportTime_ = static_cast<uint64_t>(TimeUtil::Get0ClockStampMs()) + TimeUtil::MILLISECS_PER_DAY;
 }
 
 void UsageEventReport::ReportTimeOutEvent()
