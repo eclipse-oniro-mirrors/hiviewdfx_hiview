@@ -176,8 +176,6 @@ HWTEST_F(EventExportMgrTest, EventExportUtilTest001, testing::ext::TestSize.Leve
     ASSERT_GT(manager.GetExportBeginSeq(TEST_MODULE_NAME), 0);
     EventExportUtil::SyncDbByExportSwitchStatus(exportConfig, true);
     ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME), INVALID_SEQ_VAL);
-    EventExportUtil::InitEnvBeforeExport(exportConfig);
-    ASSERT_TRUE(FileUtil::FileExists(exportConfig->exportDir));
 }
 
 /**

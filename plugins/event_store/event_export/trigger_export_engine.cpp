@@ -15,8 +15,10 @@
 
 #include "trigger_export_engine.h"
 
+#include "export_dir_creator.h"
 #include "event_export_util.h"
 #include "hiview_logger.h"
+#include "setting_observer_manager.h"
 #include "time_util.h"
 
 namespace OHOS {
@@ -39,8 +41,11 @@ TriggerExportEngine& TriggerExportEngine::GetInstance()
 
 void TriggerExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
 {
-    if (sysEvent == nullptr || isTaskNeedDelay_) {
-        return;
+    {
+        std::unique_lock<ffrt::mutex> lock(delayMutex_);
+        if (sysEvent == nullptr || isTaskNeedDelay_) {
+            return;
+        }
     }
     ffrt::submit([this, sysEvent] () {
             std::vector<std::shared_ptr<ExportConfig>> configs;
@@ -71,7 +76,9 @@ TriggerExportEngine::TriggerExportEngine()
     }
 
     for (const auto& config : exportConfigs_) {
-        EventExportUtil::InitEnvBeforeExport(config);
+        // in order to avoid visit permission,
+        // the export directories must be created before any export task start
+        (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
     }
 
     ffrt::submit([this] () {
@@ -189,8 +196,12 @@ void TriggerExportEngine::InitByAllExportConfigs()
     std::unique_lock<ffrt::mutex> lock(taskMapMutex_);
     for (auto& config : exportConfigs_) {
         // register setting observer
-        EventExportUtil::RegisterSettingObserver(config);
-
+        if (!EventExportUtil::RegisterSettingObserver(config)) {
+            continue;
+        }
+        EventExportUtil::SyncDbByExportSwitchStatus(config,
+            SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name)
+            != config->exportSwitchParam.enabledVal);
         // init task by config
         auto mapIter = taskMap_.find(config->moduleName);
         if (mapIter == taskMap_.end()) {

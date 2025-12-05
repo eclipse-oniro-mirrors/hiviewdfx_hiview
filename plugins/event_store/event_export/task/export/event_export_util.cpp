@@ -17,7 +17,6 @@
 
 #include "event.h"
 #include "export_db_storage.h"
-#include "export_dir_creator.h"
 #include "file_util.h"
 #include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
@@ -108,7 +107,7 @@ void HandleExportSwitchOff(const std::string& moduleName)
     FileUtil::RemoveFile(dbMgr.GetEventInheritFlagPath(moduleName)); // remove inherit flag file if switch changes
 }
 
-int64_t GetModuleExportStartSeq(std::shared_ptr<ExportConfig> config)
+int64_t GetModuleExportEnabledSeq(std::shared_ptr<ExportConfig> config)
 {
     auto& dbMgr = ExportDbManager::GetInstance();
     int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
@@ -202,19 +201,9 @@ void EventExportUtil::SyncDbByExportSwitchStatus(std::shared_ptr<ExportConfig> c
     HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
     int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
     if (enabledSeq == INVALID_SEQ_VAL) {
-        enabledSeq = GetModuleExportStartSeq(config);
+        enabledSeq = GetModuleExportEnabledSeq(config);
         dbMgr.HandleExportSwitchChanged(config->moduleName, enabledSeq);
     }
-}
-
-void EventExportUtil::InitEnvBeforeExport(std::shared_ptr<ExportConfig> config)
-{
-    // create export directory
-    (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
-    // do inherit by switch status
-    bool isSwitchOff = (SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name)
-        != config->exportSwitchParam.enabledVal);
-    SyncDbByExportSwitchStatus(config, isSwitchOff);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

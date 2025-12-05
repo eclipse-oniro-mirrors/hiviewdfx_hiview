@@ -52,7 +52,7 @@ void EventExportTask::OnTaskRun()
         != config_->exportSwitchParam.enabledVal);
     EventExportUtil::SyncDbByExportSwitchStatus(config_, isSwitchOff);
     if (isSwitchOff) {
-        HIVIEW_LOGE("export switch is off, no need to export");
+        HIVIEW_LOGI("export switch is off, no need to export");
         return;
     }
     if (FileUtil::GetFolderSize(config_->exportDir) >= static_cast<uint64_t>(config_->maxCapcity * BYTE_TO_MB)) {
