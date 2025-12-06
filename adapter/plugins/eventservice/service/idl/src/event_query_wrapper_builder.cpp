@@ -21,6 +21,7 @@
 #include "compliant_event_checker.h"
 #include "common_utils.h"
 #include "data_publisher.h"
+#include "event_service_base_util.h"
 #include "hiview_event_common.h"
 #include "ipc_skeleton.h"
 #include "hiview_logger.h"
@@ -41,18 +42,6 @@ constexpr int MAX_QUERY_EVENTS = 1000; // The maximum number of queries is 1000 
 constexpr int MAX_TRANS_BUF = 1024 * 770;  // Max transmission at one time: 384KB * 2 + 2KB for extra fields
 constexpr size_t U16_CHAR_SIZE = sizeof(char16_t);
 constexpr int32_t HID_SHELL = 2000;
-
-inline bool IsCustomSandboxAppCaller()
-{
-#ifdef SUPPORT_LOCAL_READ_DIAGNOSTIC_LOGS
-    using namespace Security::AccessToken;
-    if ((AccessTokenKit::VerifyAccessToken(IPCSkeleton::GetCallingTokenID(), "ohos.permission.CUSTOM_SANDBOX")
-        == RET_SUCCESS)) {
-        return true;
-    }
-#endif
-    return false;
-}
 }
 
 bool ConditionParser::ParseCondition(const std::string& condStr, EventStore::Cond& condition)
@@ -190,7 +179,7 @@ BaseEventQueryWrapper::BaseEventQueryWrapper(std::shared_ptr<EventStore::SysEven
 {
     query_ = query;
 
-    querierInfo_.uid = IsCustomSandboxAppCaller() ? HID_SHELL : IPCSkeleton::GetCallingUid();
+    querierInfo_.uid = EventServiceBaseUtil::IsCustomSandboxAppCaller() ? HID_SHELL : IPCSkeleton::GetCallingUid();
     querierInfo_.pid = IPCSkeleton::GetCallingPid();
     querierInfo_.processName = CommonUtils::GetProcNameByPid(querierInfo_.pid);
     HIVIEW_LOGI("uid is %{public}d, pid is %{public}d of querier", querierInfo_.uid, querierInfo_.pid);

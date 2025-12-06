@@ -62,6 +62,7 @@ ohos_source_set("sys_event_service_ohos") {
     "src/data_share_store.cpp",
     "src/data_share_util.cpp",
     "src/event_query_wrapper_builder.cpp",
+    "src/event_service_base_util.cpp",
     "src/query_argument.cpp",
     "src/query_sys_event_callback_proxy.cpp",
     "src/running_status_log_util.cpp",
