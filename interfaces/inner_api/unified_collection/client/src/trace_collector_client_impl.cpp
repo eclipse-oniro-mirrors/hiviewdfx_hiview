@@ -27,13 +27,13 @@ public:
     virtual ~TraceCollectorImpl() = default;
 
 public:
-    virtual CollectResult<int32_t> OpenSnapshot(const std::vector<std::string>& tagGroups) override;
-    virtual CollectResult<std::vector<std::string>> DumpSnapshot(TraceClient client) override;
-    virtual CollectResult<int32_t> OpenRecording(const std::string& tags) override;
-    virtual CollectResult<int32_t> RecordingOn() override;
-    virtual CollectResult<std::vector<std::string>> RecordingOff() override;
-    virtual CollectResult<int32_t> Close() override;
-    virtual CollectResult<int32_t> CaptureDurationTrace(AppCaller &appCaller) override;
+    CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags, const TraceParam& param,
+        const std::vector<int32_t>& filterPids = {}) override;
+    CollectResult<std::vector<std::string>> DumpSnapshot(TraceClient client) override;
+    CollectResult<int32_t> RecordingOn() override;
+    CollectResult<std::vector<std::string>> RecordingOff() override;
+    CollectResult<int32_t> Close() override;
+    CollectResult<int32_t> CaptureDurationTrace(AppCaller &appCaller) override;
 };
 
 std::shared_ptr<TraceCollector> TraceCollector::Create()
@@ -41,19 +41,15 @@ std::shared_ptr<TraceCollector> TraceCollector::Create()
     return std::make_shared<TraceCollectorImpl>();
 }
 
-CollectResult<int32_t> TraceCollectorImpl::OpenSnapshot(const std::vector<std::string>& tagGroups)
+CollectResult<int32_t> TraceCollectorImpl::OpenTrace(const std::vector<std::string> &tags, const TraceParam &param,
+    const std::vector<int32_t> &filterPids)
 {
-    return HiViewServiceTraceDelegate::OpenSnapshot(tagGroups);
+    return HiViewServiceTraceDelegate::OpenTrace(tags, param, filterPids);
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpSnapshot(TraceClient client)
 {
     return HiViewServiceTraceDelegate::DumpSnapshot(client);
-}
-
-CollectResult<int32_t> TraceCollectorImpl::OpenRecording(const std::string& tags)
-{
-    return HiViewServiceTraceDelegate::OpenRecording(tags);
 }
 
 CollectResult<int32_t> TraceCollectorImpl::RecordingOn()

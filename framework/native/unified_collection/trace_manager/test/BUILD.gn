@@ -49,7 +49,6 @@ ohos_unittest("TraceManagerTest") {
 
   sources = [
     "trace_manager_test.cpp",
-    "trace_state_test.cpp",
     "../src/trace_db_callback.cpp",
     "../src/trace_flow_controller.cpp",
     "../src/trace_state_machine.cpp",

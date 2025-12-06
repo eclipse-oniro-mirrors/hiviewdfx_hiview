@@ -36,24 +36,6 @@ bool TelemetryState::RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback
     return true;
 }
 
-TraceRet TelemetryState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, tagGroups);
-}
-
-TraceRet TelemetryState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE(":%{public}s, CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, args);
-}
-
 TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
 {
     if (policy_ != TelemetryPolicy::DEFAULT) {
@@ -65,15 +47,6 @@ TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happ
     info = Hitrace::DumpTrace(maxDuration, happenTime);
     HIVIEW_LOGI(":%{public}s, result:%{public}d", GetTag().c_str(), info.errorCode);
     return TraceRet(info.errorCode);
-}
-
-TraceRet TelemetryState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_TELEMETRY) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is deny", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    return TraceBaseState::CloseTrace(scenario);
 }
 
 TraceRet TelemetryState::PowerTelemetryOn()

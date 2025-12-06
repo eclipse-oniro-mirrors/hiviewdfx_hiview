@@ -22,30 +22,35 @@
 namespace OHOS::HiviewDFX {
 class CommandState : public TraceBaseState {
 public:
-    TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
-    TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
     TraceRet TraceDropOn(TraceScenario scenario) override;
     TraceRet CloseTrace(TraceScenario scenario) override;
 
 protected:
-    std::string GetTag() override
+    std::string GetTag() const override
     {
         return "CommandState";
+    }
+
+    TraceScenario GetCurrentScenario() const override
+    {
+        return TraceScenario::TRACE_COMMAND;
     }
 };
 
 class CommandDropState : public TraceBaseState {
 public:
-    TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
-    TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info) override;
-    TraceRet CloseTrace(TraceScenario scenario) override;
 
 protected:
-    std::string GetTag() override
+    std::string GetTag() const override
     {
         return "CommandDropState";
+    }
+
+    TraceScenario GetCurrentScenario() const override
+    {
+        return TraceScenario::TRACE_COMMAND;
     }
 };
 }

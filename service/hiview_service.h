@@ -42,9 +42,9 @@ public:
     int32_t Remove(const std::string& filePath);
 
     // Trace interfaces
-    CollectResult<int32_t> OpenSnapshotTrace(const std::vector<std::string>& tagGroups);
     CollectResult<std::vector<std::string>> DumpSnapshotTrace(const std::string& callerName, bool isNeedFlowControl);
-    CollectResult<int32_t> OpenRecordingTrace(const std::string& tags);
+    CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags, const UCollectClient::TraceParam& param,
+        const std::vector<int32_t>& filterPids);
     CollectResult<int32_t> RecordingTraceOn();
     CollectResult<std::vector<std::string>> RecordingTraceOff();
     CollectResult<int32_t> CloseTrace();

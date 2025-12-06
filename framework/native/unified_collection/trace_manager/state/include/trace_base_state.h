@@ -22,10 +22,7 @@ namespace OHOS::HiviewDFX {
 class TraceBaseState {
 public:
     virtual ~TraceBaseState() = default;
-    virtual TraceRet OpenTrace(TraceScenario scenario, const std::vector <std::string> &tagGroups);
-    virtual TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
-    virtual TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy);
-    virtual TraceRet OpenAppTrace(int32_t appPid);
+    virtual TraceRet OpenTrace(const ScenarioInfo& scenarioInfo);
     virtual TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
     virtual TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
         TraceRetInfo &info, DumpTraceCallback callback);
@@ -54,23 +51,18 @@ public:
         return false;
     }
 
+    virtual TraceScenario GetCurrentScenario() const
+    {
+        return TraceScenario::TRACE_CLOSE;
+    }
+
     virtual std::pair<int32_t, uint64_t> GetCurrentAppInfo()
     {
         return {-1, 0};
     }
 
 protected:
-    virtual std::string GetTag() = 0;
-};
-
-class CloseState : public TraceBaseState {
-public:
-    TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy) override;
-    TraceRet OpenAppTrace(int32_t appPid) override;
-    TraceRet CloseTrace(TraceScenario scenario) override;
-
-protected:
-    std::string GetTag() override
+    virtual std::string GetTag() const
     {
         return "CloseState";
     }

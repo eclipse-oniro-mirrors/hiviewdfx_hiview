@@ -29,10 +29,7 @@ namespace OHOS::HiviewDFX {
 class TraceStateMachine : public OHOS::DelayedRefSingleton<TraceStateMachine> {
 public:
     TraceStateMachine();
-    TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups);
-    TraceRet OpenTrace(TraceScenario scenario, const std::string &args);
-    TraceRet OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy);
-    TraceRet OpenDynamicTrace(int32_t appid);
+    TraceRet OpenTrace(const ScenarioInfo& scenarioInfo);
     TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
     TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
         TraceRetInfo &info, DumpTraceCallback callback);
@@ -57,7 +54,7 @@ public:
     void TransToCommandState();
     void TransToCommandDropState();
     void TransToCommonDropState();
-    void TransToTeleMetryState(TelemetryPolicy policy);
+    void TransToTelemetryState(TelemetryPolicy policy);
     void TransToDynamicState(int32_t appid);
     void TransToCloseState();
     bool RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback> stateCallback);
@@ -78,7 +75,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t beta = 1 << 3;
         traceSwitchState_ = traceSwitchState_ | beta;
-        RecoverState();
+        RefreshState();
     }
 
     void CloseVersionBeta()
@@ -92,7 +89,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t ucollection = 1 << 2;
         traceSwitchState_ = traceSwitchState_ | ucollection;
-        RecoverState();
+        RefreshState();
     }
 
     void SetTraceSwitchUcOff()
@@ -100,7 +97,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t ucollection = 1 << 2;
         traceSwitchState_ = traceSwitchState_ & (~ucollection);
-        RecoverState();
+        RefreshState();
     }
 
     void SetTraceSwitchFreezeOn()
@@ -108,7 +105,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t freeze = 1 << 1;
         traceSwitchState_ = traceSwitchState_ | freeze;
-        RecoverState();
+        RefreshState();
     }
 
     void SetTraceSwitchFreezeOff()
@@ -116,7 +113,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t freeze = 1 << 1;
         traceSwitchState_ = traceSwitchState_ & (~freeze);
-        RecoverState();
+        RefreshState();
     }
 
     void SetTraceSwitchDevOn()
@@ -124,7 +121,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t dev = 1;
         traceSwitchState_ = traceSwitchState_ | dev;
-        RecoverState();
+        RefreshState();
     }
 
     void SetTraceSwitchDevOff()
@@ -132,7 +129,7 @@ public:
         std::lock_guard<ffrt::mutex> lock(traceMutex_);
         uint8_t dev = 1;
         traceSwitchState_ = traceSwitchState_ & (~dev);
-        RecoverState();
+        RefreshState();
     }
 
     void SetCommandState(bool isCommandState)
@@ -146,9 +143,7 @@ public:
     }
 
 private:
-    TraceRet RecoverState();
-    TraceRet InitCommonDropState();
-    TraceRet InitCommonState();
+    TraceRet RefreshState();
 
 private:
     std::shared_ptr<TraceBaseState> currentState_;

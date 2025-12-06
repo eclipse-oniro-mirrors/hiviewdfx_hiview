@@ -20,45 +20,6 @@
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
-const std::vector<std::string> TELEMETRY_TAG_GROUPS_DEFAULT = {"telemetry"};
-}
-TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s:  CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, tagGroups);
-}
-
-TraceRet DynamicState::OpenTrace(TraceScenario scenario, const std::string &args)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s: CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    return TraceBaseState::OpenTrace(scenario, args);
-}
-
-TraceRet DynamicState::OpenTelemetryTrace(const std::string &args, TelemetryPolicy policy)
-{
-    if (auto closeRet = Hitrace::CloseTrace(); closeRet != TraceErrorCode::SUCCESS) {
-        HIVIEW_LOGE("%{public}s:  CloseTrace result:%{public}d", GetTag().c_str(), closeRet);
-        return TraceRet(closeRet);
-    }
-    auto ret = args.empty() ? Hitrace::OpenTrace(TELEMETRY_TAG_GROUPS_DEFAULT) : Hitrace::OpenTrace(args);
-    HIVIEW_LOGI("%{public}s: args:%{public}s: result:%{public}d", GetTag().c_str(), args.c_str(), ret);
-    if (ret != TraceErrorCode::SUCCESS) {
-        return TraceRet(ret);
-    }
-    TraceStateMachine::GetInstance().TransToTeleMetryState(policy);
-    return {};
-}
-
-TraceRet DynamicState::OpenAppTrace(int32_t appPid)
-{
-    HIVIEW_LOGW("DynamicState already open, occupied by appid:%{public}d", appPid);
-    return TraceRet(TraceStateCode::DENY);
 }
 
 TraceRet DynamicState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
@@ -70,14 +31,5 @@ TraceRet DynamicState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, u
     info = Hitrace::DumpTrace(maxDuration, happenTime);
     HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
     return TraceRet(info.errorCode);
-}
-
-TraceRet DynamicState::CloseTrace(TraceScenario scenario)
-{
-    if (scenario != TraceScenario::TRACE_DYNAMIC) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
-        return TraceRet(TraceStateCode::FAIL);
-    }
-    return TraceBaseState::CloseTrace(scenario);
 }
 }

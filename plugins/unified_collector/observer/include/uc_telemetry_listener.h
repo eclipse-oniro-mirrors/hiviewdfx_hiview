@@ -34,7 +34,8 @@ struct TelemetryParams {
     int64_t beginTime = -1;
     std::string telemetryId;
     std::string appFilterName;
-    std::string traceTag;
+    std::vector<std::string> traceTag;
+    uint32_t bufferSize = 0;
     std::vector<std::string> saParams;
     TelemetryPolicy tracePolicy;
 };
@@ -53,7 +54,7 @@ private:
     void HandleStart(const TelemetryParams &params);
     void HandleStop();
     void WriteErrorEvent(const std::string &error, const TelemetryParams &params);
-    bool ProcessTraceTag(std::string &traceTag);
+    bool ProcessTraceTag(const std::string &traceTag, std::vector<std::string> &traceTags, uint32_t &bufferSize);
     bool CheckTelemetryId(const Event &msg, TelemetryParams &params, std::string &errorMsg);
     bool CheckTraceTags(const Event &msg, TelemetryParams &params, std::string &errorMsg);
     bool CheckTracePolicy(const Event &msg, TelemetryParams &params, std::string &errorMsg);

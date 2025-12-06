@@ -35,10 +35,7 @@ public:
 
     bool RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback> stateCallback) override;
 
-    TraceRet OpenTrace(TraceScenario scenario, const std::vector<std::string> &tagGroups) override;
-    TraceRet OpenTrace(TraceScenario scenario, const std::string &args) override;
     TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
-    TraceRet CloseTrace(TraceScenario scenario) override;
     TraceRet PowerTelemetryOn() override;
     TraceRet PowerTelemetryOff() override;
     TraceRet TraceTelemetryOn() override;
@@ -48,9 +45,14 @@ public:
     void InitTelemetryStatus(bool isStatusOn) override;
 
 protected:
-    std::string GetTag() override
+    std::string GetTag() const override
     {
         return "TelemetryState";
+    }
+
+    TraceScenario GetCurrentScenario() const override
+    {
+        return TraceScenario::TRACE_TELEMETRY;
     }
 
 private:

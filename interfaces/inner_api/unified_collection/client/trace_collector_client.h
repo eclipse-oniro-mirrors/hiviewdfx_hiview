@@ -28,16 +28,23 @@ namespace UCollectClient {
 constexpr int32_t ACTION_ID_START_TRACE = 1;
 constexpr int32_t ACTION_ID_DUMP_TRACE = 2;
 
+struct TraceParam {
+    uint32_t bufferSize = 0;
+    std::string clockType;
+    bool isOverWrite = true;
+    uint32_t fileSizeLimit = 0;
+};
+
 class TraceCollector {
 public:
     TraceCollector() = default;
     virtual ~TraceCollector() = default;
 
 public:
-    virtual CollectResult<int32_t> OpenSnapshot(const std::vector<std::string>& tagGroups) = 0;
     virtual CollectResult<std::vector<std::string>> DumpSnapshot(
         UCollect::TraceClient client = UCollect::TraceClient::COMMON_DEV) = 0;
-    virtual CollectResult<int32_t> OpenRecording(const std::string& tags) = 0;
+    virtual CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags, const TraceParam& param,
+        const std::vector<int32_t>& filterPids = {}) = 0;
     virtual CollectResult<int32_t> RecordingOn() = 0;
     virtual CollectResult<std::vector<std::string>> RecordingOff() = 0;
     virtual CollectResult<int32_t> Close() = 0;
