@@ -16,6 +16,7 @@
 #include "event_service_base_util.h"
 
 #include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace HiviewDFX {
