@@ -59,7 +59,7 @@ const std::regex RAW_MEM_INFO1("^[\\w()]{1,}:\\s{1,}\\d{1,}( kB)?$");
 const std::regex RAW_MEM_INFO2("^[\\w()]{1,}:\\s{1,}- kB$");
 // eg: ab-cd:       12345 kB
 //     ab-cd        12345 (0 in SwapPss) kB
-const std::regex RAW_MEM_VIEW_INFO1("^[\\w\\s()-]{1,}:?\\s{1,}\\w{1,}( kB| \\%)?$");
+const std::regex RAW_MEM_VIEW_INFO1("^[\\w\\s()-]{1,}:?\\s{1,}\\w{1,}( kB| \\%| ms)?$");
 const std::regex RAW_MEM_VIEW_INFO2("^\\w{1,}[-\\.]\\w{1,}(-\\w{1,})?\\s{1,}\\d{1,} \\(\\d{1,} in SwapPss\\) (kB)$");
 // eg: Node     0, zone     abc, type   def  0  0  0  0  0  0  0  0  0  0  0
 //     ab  cd  efg  hi    jk     lmn  opq     rst   uvw     xyz
