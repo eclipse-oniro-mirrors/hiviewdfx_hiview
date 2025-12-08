@@ -24,6 +24,7 @@
 #include "data_publisher.h"
 #include "event_json_parser.h"
 #include "event_query_wrapper_builder.h"
+#include "event_service_base_util.h"
 #include "hiview_logger.h"
 #include "hiview_xcollie_timer.h"
 #include "if_system_ability_manager.h"
@@ -149,18 +150,6 @@ bool IsNativeCaller()
     return (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE)
         || (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL);
 }
-
-bool IsCustomSandboxAppCaller()
-{
-#ifdef SUPPORT_LOCAL_READ_DIAGNOSTIC_LOGS
-    using namespace Security::AccessToken;
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if ((AccessTokenKit::VerifyAccessToken(tokenId, "ohos.permission.CUSTOM_SANDBOX") == RET_SUCCESS)) {
-        return true;
-    }
-#endif
-    return false;
-}
 }
 
 sptr<SysEventServiceOhos> SysEventServiceOhos::instance_(new SysEventServiceOhos);
@@ -256,7 +245,8 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
     const sptr<ISysEventCallback>& callback)
 {
     HiviewXCollieTimer timer("AddListener", SYS_CALLING_TIMEOUT);
-    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller() || IsCustomSandboxAppCaller())) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller()
+        || EventServiceBaseUtil::IsCustomSandboxAppCaller())) {
         statusMonitor_->RecordAddListener(ListenerStatusUtil::GetListenerCallerInfo(rules), false);
         return ERR_NO_PERMISSION;
     }
@@ -286,7 +276,8 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
         HIVIEW_LOGE("subscribe fail, object in callback is null.");
         return ERR_LISTENER_STATUS_INVALID;
     }
-    ListenerInfo listenerInfo {IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), rules};
+    ListenerInfo listenerInfo {IPCSkeleton::GetCallingPid(),
+        (EventServiceBaseUtil::IsCustomSandboxAppCaller() ? HID_SHELL : IPCSkeleton::GetCallingUid()), rules};
     if (registeredListeners_.find(callbackObject) != registeredListeners_.end()) {
         registeredListeners_[callbackObject] = listenerInfo;
         HIVIEW_LOGD("uid %{public}d pid %{public}d listener has been added and update rules.",
@@ -308,7 +299,8 @@ ErrCode SysEventServiceOhos::AddListener(const std::vector<SysEventRule>& rules,
 ErrCode SysEventServiceOhos::RemoveListener(const OHOS::sptr<ISysEventCallback>& callback)
 {
     HiviewXCollieTimer timer("RemoveListener", SYS_CALLING_TIMEOUT);
-    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller() || IsCustomSandboxAppCaller())) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller()
+        || EventServiceBaseUtil::IsCustomSandboxAppCaller())) {
         statusMonitor_->RecordRemoveListener(ListenerStatusUtil::GetListenerCallerInfo(), false);
         return ERR_NO_PERMISSION;
     }
@@ -359,7 +351,7 @@ bool SysEventServiceOhos::BuildEventQuery(std::shared_ptr<EventQueryWrapperBuild
     if (builder == nullptr) {
         return false;
     }
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = EventServiceBaseUtil::IsCustomSandboxAppCaller() ? HID_SHELL : IPCSkeleton::GetCallingUid();
     if (rules.empty() && (callingUid == HID_SHELL || callingUid == HID_ROOT ||
         callingUid == HID_OHOS)) {
         builder->Append("", "", 0, "");
@@ -399,7 +391,8 @@ ErrCode SysEventServiceOhos::Query(const QueryArgument& queryArgument, const std
     if (callback == nullptr) {
         return ERR_LISTENER_NOT_EXIST;
     }
-    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller())) {
+    if (!HasAccessPermission() || !(IsSystemAppCaller() || IsNativeCaller()
+        || EventServiceBaseUtil::IsCustomSandboxAppCaller())) {
         callback->OnComplete(ERR_NO_PERMISSION, 0, EventStore::SysEventSequenceManager::GetInstance().GetSequence());
         return ERR_NO_PERMISSION;
     }

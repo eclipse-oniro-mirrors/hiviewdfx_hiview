@@ -21,6 +21,7 @@
 #include "compliant_event_checker.h"
 #include "common_utils.h"
 #include "data_publisher.h"
+#include "event_service_base_util.h"
 #include "hiview_event_common.h"
 #include "ipc_skeleton.h"
 #include "hiview_logger.h"
@@ -178,7 +179,7 @@ BaseEventQueryWrapper::BaseEventQueryWrapper(std::shared_ptr<EventStore::SysEven
 {
     query_ = query;
 
-    querierInfo_.uid = IPCSkeleton::GetCallingUid();
+    querierInfo_.uid = EventServiceBaseUtil::IsCustomSandboxAppCaller() ? HID_SHELL : IPCSkeleton::GetCallingUid();
     querierInfo_.pid = IPCSkeleton::GetCallingPid();
     querierInfo_.processName = CommonUtils::GetProcNameByPid(querierInfo_.pid);
     HIVIEW_LOGI("uid is %{public}d, pid is %{public}d of querier", querierInfo_.uid, querierInfo_.pid);
