@@ -195,10 +195,9 @@
     },
     "Rule17":{
         "DirOrFile":"/data/log/faultlog/freeze/",
-        "Subcatalog":"appwarning-.*-\\d+-\\d+-\\d+\\.tmp",
-        "featureId":"63_APP_WARNING_01",
+        "Subcatalog":"appfreezewarning-.{1,64}-\\d+-\\d+-\\d+\\.tmp",
+        "featureId":"63_APPFREEZE_WARNING_01",
         "rules":[
-            {"namespace":"BasicParam", "matchKey":"PID = ", "v_pid":"^PID = (.*)$"},
             {"namespace":"BasicParam", "matchKey":"TID = ", "v_tid":"^TID = (.*)$"},
             {"namespace":"MainCallTrace", "depend":"BasicParam.v_tid", "matchKey":"@R@(Tid:){1}@{BasicParam.v_tid}@, Name:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]

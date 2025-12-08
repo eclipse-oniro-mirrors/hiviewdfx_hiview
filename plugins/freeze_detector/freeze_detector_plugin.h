@@ -78,7 +78,7 @@ private:
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::unique_ptr<FreezeResolver> freezeResolver_ = nullptr;
-    std::unique_ptr<ffrt::queue> warnQueue_ = nullptr;
+    std::unique_ptr<ffrt::queue> warningQueue_ = nullptr;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

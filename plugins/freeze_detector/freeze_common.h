@@ -72,7 +72,7 @@ public:
     bool IsApplicationEvent(const std::string& domain, const std::string& stringId) const;
     bool IsSystemEvent(const std::string& domain, const std::string& stringId) const;
     bool IsSysWarningEvent(const std::string& domain, const std::string& stringId) const;
-    bool IsAppWarningEvent(const std::string& domain, const std::string& stringId) const;
+    bool IsAppFreezeWarningEvent(const std::string& domain, const std::string& stringId) const;
     std::set<std::string> GetPrincipalStringIds() const;
     std::shared_ptr<FreezeRuleCluster> GetFreezeRuleCluster() const;
     static void WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart = true);

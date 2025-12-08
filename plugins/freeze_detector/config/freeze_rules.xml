@@ -303,28 +303,28 @@
       </links>
     </rule>
   </rules>
-    <rules resolver="AppWarningResolver">
+    <rules resolver="AppFreezeWarningResolver">
     <rule id="1" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
-          <result code="3" scope="appWarning"/>
+          <result code="3" scope="appFreezeWarning"/>
         </event>
       </links>
       <links type="watchpoint">
         <event window="60" domain="AAFWK" stringid="THREAD_BLOCK_6S">	<!-- THREAD_BLOCK_6S -->
-          <result code="3" scope="appWarning" samePackage="true"/>
+          <result code="3" scope="appFreezeWarning" samePackage="true"/>
         </event>
       </links>
     </rule>
         <rule id="2" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
       <links type="watchpoint">
         <event window="0" domain="AAFWK" stringid="LIFECYCLE_HALF_TIMEOUT">	<!-- LIFECYCLE_HALF_TIMEOUT -->
-          <result code="3" scope="appWarning"/>
+          <result code="3" scope="appFreezeWarning"/>
         </event>
       </links>
       <links type="watchpoint">
         <event window="60" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
-          <result code="3" scope="appWarning" samePackage="true"/>
+          <result code="3" scope="appFreezeWarning" samePackage="true"/>
         </event>
       </links>
     </rule>

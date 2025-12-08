@@ -114,14 +114,14 @@ public:
     std::map<std::string, std::pair<std::string, bool>> GetApplicationPairs() const;
     std::map<std::string, std::pair<std::string, bool>> GetSystemPairs() const;
     std::map<std::string, std::pair<std::string, bool>> GetSysWarningPairs() const;
-    std::map<std::string, std::pair<std::string, bool>> GetAppWarningPairs() const;
+    std::map<std::string, std::pair<std::string, bool>> GetAppFreezeWarningPairs() const;
 
 private:
     std::map<std::string, FreezeRule> rules_;
     std::map<std::string, std::pair<std::string, bool>> applicationPairs_;
     std::map<std::string, std::pair<std::string, bool>> systemPairs_;
     std::map<std::string, std::pair<std::string, bool>> sysWarningPairs_;
-    std::map<std::string, std::pair<std::string, bool>> appWarningPairs_;
+    std::map<std::string, std::pair<std::string, bool>> appFreezeWarningPairs_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

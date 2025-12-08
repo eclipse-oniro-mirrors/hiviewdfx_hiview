@@ -216,6 +216,34 @@ HWTEST_F(FreezeDetectorUnittest, FreezeResolver_008, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeResolver_009
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_009, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto freezeResolver = std::make_unique<FreezeResolver>(freezeCommon);
+    ASSERT_EQ(freezeResolver->Init(), true);
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("FRAMEWORK")
+        .InitStringId("SERVICE_WARNING")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::vector<WatchPoint> list;
+    std::vector<FreezeResult> result;
+    list.push_back(watchPoint);
+    FreezeResult result1;
+    FreezeResult result2;
+    result.push_back(result1);
+    result.push_back(result2);
+    EXPECT_TRUE(freezeResolver->JudgmentResult(watchPoint, list,
+        result));
+}
+
+
+/**
  * @tc.name: FreezeVender_001
  * @tc.desc: FreezeDetector
  */

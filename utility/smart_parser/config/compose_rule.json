@@ -29,8 +29,8 @@
             "END_STACK":"MainCallTrace.v_trace"
         }
     },
-    "APP_WARNING": {
-        "63_APP_WARNING_01": {
+    "APPFREEZE_WARNING": {
+        "63_APPFREEZE_WARNING_01": {
             "END_STACK":"MainCallTrace.v_trace"
         }
     },

@@ -32,7 +32,7 @@ namespace {
     constexpr uint64_t TO_NANO_SECOND_MULTPLE = 1000000;
     constexpr int MIN_APP_UID = 10000;
     constexpr int HALF_EVENT_TIME = 60;
-    concept int WARNINGLOG_TASK_CNT = 1;
+    constexpr int WARNINGLOG_TASK_CNT = 1;
     constexpr long MULTIPLE_DELAY_TIME = 10;
     constexpr long SINGLE_DELAY_TIME = 3;
     constexpr uint64_t HIVIEW_UID = 1201;
@@ -65,9 +65,9 @@ void FreezeDetectorPlugin::OnLoad()
     SetVersion(FREEZE_DETECTOR_PLUGIN_VERSION);
 
     freezeCommon_ = std::make_shared<FreezeCommon>();
-    warningQueue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
+    warningQueue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent,
         "warningLog_queue",
-    ffrt::queue_attr().qos(ffrt::qos_default).max_concurrent(WARNINGLOG_TASK_CNT));
+    ffrt::queue_attr().qos(ffrt::qos_default).max_concurrency(WARNINGLOG_TASK_CNT));
     bool ret = freezeCommon_->Init();
     if (!ret) {
         HIVIEW_LOGW("freezeCommon_->Init false.");
@@ -239,11 +239,11 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
         .delay(static_cast<unsigned long long>(delayTime) * TO_NANO_SECOND_MULTPLE));
     ScheduleEventProcessing(watchPoint, freezeResultList);
 }
-void FreezeDectoretorPlugin::ScheduleEventProcessing(
+void FreezeDetectorPlugin::ScheduleEventProcessing(
     const WatchPoint &watchPoint, const std::vector<FreezeResult> &freezeResultList)
-{ 
+{
     long delayTime = freezeResultList.size() > 1 ? MULTIPLE_DELAY_TIME : SINGLE_DELAY_TIME;
-    if(watchPoint.GetUid() == HIVIEW_UID && watchPoint.GetStringId() == IPC_FULL) {
+    if (watchPoint.GetUid() == HIVIEW_UID && watchPoint.GetStringId() == IPC_FULL) {
         delayTime = 0;
     } else {
         for (auto& i : freezeResultList) {
@@ -252,9 +252,11 @@ void FreezeDectoretorPlugin::ScheduleEventProcessing(
         }
     }
 
-    if(watchPoint.GetStringId() == "THREAD_BLOCK_3S" || watchPoint.GetStringId() == "LIFECYCLE_HALF_TIMEOUT") {
+    if (watchPoint.GetStringId() == "THREAD_BLOCK_3S" || watchPoint.GetStringId() == "LIFECYCLE_HALF_TIMEOUT") {
         warningQueue_->submit([this, watchPoint] { this->ProcessEvent(watchPoint); },
-    ffrt::task_attr().name("warninglog_task").delay(static_cast<unsigned long long>(HALF_EVENT_TIME) * TO_NANO_SECOND_MULTPLE));
+            ffrt::task_attr()
+                .name("warninglog_task")
+                .delay (static_cast<unsigned long long>(HALF_EVENT_TIME) * TO_NANO_SECOND_MULTPLE));
     } else {
         ffrt::submit([this, watchPoint] { this->ProcessEvent(watchPoint); }, {}, {},
             ffrt::task_attr().name("dfr_fre_detec").qos(ffrt::qos_default)

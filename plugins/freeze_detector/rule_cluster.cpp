@@ -209,8 +209,8 @@ void FreezeRuleCluster::HandeleScopePair(const FreezeResult &result,
         systemPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
     } else if (scope == "sysWarning") {
         sysWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
-    } else if (scope == "appWarning") {
-        appWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
+    } else if (scope == "appFreezeWarning") {
+        appFreezeWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
     }
 }
 
@@ -291,9 +291,9 @@ std::map<std::string, std::pair<std::string, bool>> FreezeRuleCluster::GetSysWar
     return sysWarningPairs_;
 }
 
-std::map<std::string, std::pair<std::string, bool>> FreezeRuleCluster::GetAppWarningPairs() const
+std::map<std::string, std::pair<std::string, bool>> FreezeRuleCluster::GetAppFreezeWarningPairs() const
 {
-    return appWarningPairs_;
+    return appFreezeWarningPairs_;
 }
 
 std::string FreezeResult::GetDomain() const

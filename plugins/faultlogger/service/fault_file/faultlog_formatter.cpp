@@ -150,7 +150,7 @@ std::vector<SectionLog> GetSysWarningSectionLogs()
     return info;
 }
 
-std::vector<SectionLog> GetAppWarningSectionLogs()
+std::vector<SectionLog> GetAppFreezeWarningSectionLogs()
 {
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
@@ -190,7 +190,7 @@ std::vector<SectionLog> GetLogParseSections(int32_t logType)
         {FaultLogType::APP_FREEZE, GetAppFreezeSectionLogs},
         {FaultLogType::SYS_FREEZE, GetSysFreezeSectionLogs},
         {FaultLogType::SYS_WARNING, GetSysWarningSectionLogs},
-        {FaultLogType::APP_WARNING, GetAppWarningSectionLogs},
+        {FaultLogType::APPFREEZE_WARNING, GetAppFreezeWarningSectionLogs},
         {FaultLogType::RUST_PANIC, GetRustPanicSectionLogs},
         {FaultLogType::ADDR_SANITIZER, GetAddrSanitizerSectionLogs},
     };

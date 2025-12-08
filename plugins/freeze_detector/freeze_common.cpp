@@ -55,7 +55,7 @@ bool FreezeCommon::Init()
 bool FreezeCommon::IsFreezeEvent(const std::string& domain, const std::string& stringId) const
 {
     return IsApplicationEvent(domain, stringId) || IsSystemEvent(domain, stringId) ||
-        IsSysWarningEvent(domain, stringId) || IsAppWarningEvent(domain, stringId);
+        IsSysWarningEvent(domain, stringId) || IsAppFreezeWarningEvent(domain, stringId);
 }
 
 bool FreezeCommon::IsApplicationEvent(const std::string& domain, const std::string& stringId) const
@@ -73,7 +73,7 @@ bool FreezeCommon::IsSysWarningEvent(const std::string& domain, const std::strin
     return IsAssignedEvent(domain, stringId, SYSTEM_WARNING_RESULT_ID);
 }
 
-bool FreezeCommon::IsAppWarningEvent(const std::string& domain, const std::string& stringId) const
+bool FreezeCommon::IsAppFreezeWarningEvent(const std::string& domain, const std::string& stringId) const
 {
     return IsAssignedEvent(domain, stringId, APPLICATION_WARNING_RESULT_ID);
 }
@@ -97,7 +97,7 @@ bool FreezeCommon::IsAssignedEvent(const std::string& domain, const std::string&
             pairs = freezeRuleCluster_->GetSysWarningPairs();
             break;
         case APPLICATION_WARNING_RESULT_ID:
-            pairs = freezeRuleCluster_->GetAppWarningPairs();
+            pairs = freezeRuleCluster_->GetAppFreezeWarningPairs();
             break;
         default:
             return false;
@@ -120,7 +120,7 @@ std::set<std::string> FreezeCommon::GetPrincipalStringIds() const
     auto applicationPairs = freezeRuleCluster_->GetApplicationPairs();
     auto systemPairs = freezeRuleCluster_->GetSystemPairs();
     auto sysWarningPairs = freezeRuleCluster_->GetSysWarningPairs();
-    auto appWarningPairs = freezeRuleCluster_->GetAppWarningPairs();
+    auto appFreezeWarningPairs = freezeRuleCluster_->GetAppFreezeWarningPairs();
     for (auto const &pair : applicationPairs) {
         if (pair.second.second) {
             set.insert(pair.first);
@@ -136,7 +136,7 @@ std::set<std::string> FreezeCommon::GetPrincipalStringIds() const
             set.insert(pair.first);
         }
     }
-    for (auto const &pair : appWarningPairs) {
+    for (auto const &pair : appFreezeWarningPairs) {
         if (pair.second.second) {
             set.insert(pair.first);
         }

@@ -36,11 +36,12 @@ namespace {
     static constexpr const char* const APPFREEZE = "appfreeze";
     static constexpr const char* const SYSFREEZE = "sysfreeze";
     static constexpr const char* const SYSWARNING = "syswarning";
+    static constexpr const char* const APPFREEZEWARNING = "appfreezewarning";
     static constexpr const char* const EVENT_PID = "PID";
     static constexpr const char* const EVENT_REASON = "STRINGID";
     static constexpr const char* const EVENT_TIMESTAMP = "TIMESTAMP";
     static constexpr const char* const FREEZE_PREFIX[] = {
-        APPFREEZE, SYSFREEZE, SYSWARNING, APPWARNING
+        APPFREEZE, SYSFREEZE, SYSWARNING, APPFREEZEWARNING
     };
     static constexpr const char* const FREEZE_LOG_SEQUENCE[] = {
         EVENT_PID, EVENT_REASON
@@ -70,7 +71,8 @@ FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName)
     if (splitStr.size() == FREEZE_VECTOR_SIZE) {
         std::string type = splitStr[INDEX_OF_TYPE];
         info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : (type == SYSFREEZE) ?
-            FaultLogType::SYS_FREEZE : (type == SYS_WARNING) ? FaultLogType::SYS_WARNING : FaultLogType::APP_WARNING;
+                            FaultLogType::SYS_FREEZE : (type == SYSWARNING) ?
+                            FaultLogType::SYS_WARNING : FaultLogType::APPFREEZE_WARNING;
         info.summary = type + ": ";
         info.module = splitStr[INDEX_OF_MOUDLE];
         StringUtil::ConvertStringTo<uint32_t>(splitStr[INDEX_OF_UID], info.id);

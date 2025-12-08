@@ -38,7 +38,7 @@ void FaultLogProcessorFactory::InitializeProcessors()
     };
     faultLogProcessors[FaultLogType::SYS_FREEZE] = faultLogProcessors[FaultLogType::APP_FREEZE];
     faultLogProcessors[FaultLogType::SYS_WARNING] = faultLogProcessors[FaultLogType::APP_FREEZE];
-    faultLogProcessors[FaultLogType::APP_WARNING] = faultLogProcessors[FaultLogType::APP_FREEZE];
+    faultLogProcessors[FaultLogType::APPFREEZE_WARNING] = faultLogProcessors[FaultLogType::APP_FREEZE];
 }
 
 std::unique_ptr<FaultLogProcessorInterface> FaultLogProcessorFactory::CreateFaultLogProcessor(FaultLogType type)
