@@ -467,6 +467,7 @@
         "OHOS::HiviewDFX::HiviewXCollieTimer::~HiviewXCollieTimer()";
         "OHOS::HiviewDFX::FileUtil::IsSymlink(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::ReadSymlink(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::FileUtil::GetDirFileInfos(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, stat>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, stat>>>&)";
     };
   local:
     *;

@@ -165,6 +165,30 @@ void GetDirDirs(const std::string& path, std::vector<std::string>& dirs)
     closedir(dir);
 }
 
+void GetDirFileInfos(const std::string& path, std::vector<std::pair<std::string, struct stat>>& fileInfos)
+{
+    DIR* dir = opendir(path.c_str());
+    if (dir == nullptr) {
+        return;
+    }
+    while (true) {
+        struct dirent *ptr = readdir(dir);
+        if (ptr == nullptr) {
+            break;
+        }
+        if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0 || ptr->d_type == DT_DIR) {
+            continue;
+        }
+        string filePath = IncludeTrailingPathDelimiter(path) + string(ptr->d_name);
+        struct stat fileStat;
+        if (stat(filePath.c_str(), &fileStat) < 0) {
+            continue;
+        }
+        fileInfos.emplace_back(filePath, fileStat);
+    }
+    closedir(dir);
+}
+
 bool ForceCreateDirectory(const string& path, mode_t mode)
 {
     string::size_type index = 0;
