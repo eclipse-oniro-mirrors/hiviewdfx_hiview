@@ -123,7 +123,8 @@ private:
     void GetCmdlineContent();
     void GetRebootReasonConfig();
     void GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysEvent> event);
-    bool GetMatchString(const std::string& src, std::string& dst, const std::string& pattern) const;
+    bool GetMatchRebootString(const std::string& src, std::string& dst) const;
+    bool GetMatchResetString(const std::string& src, std::string& dst) const;
     void WriteCallStack(std::shared_ptr<SysEvent> event, int fd);
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
