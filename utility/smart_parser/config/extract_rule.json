@@ -121,7 +121,7 @@
         "featureId":"07_CPP_CRASH_00",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"Module name:(.*)"},
-            {"namespace":"MainCallTrace", "matchKey":"Thread name:@|@Tid:", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
+            {"namespace":"MainCallTrace", "matchKey":"Thread name:@|@Tid:@|@Uncaught Kotlin exception", "v_trace":"@T@#\\d+ pc [0-9a-zA-Z]+ (.*)"}
         ]
     },
     "Rule11":{
