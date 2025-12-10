@@ -87,7 +87,7 @@ bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo)
             info.versionName.c_str());
     }
     bundleInfo.cpuAbi = info.applicationInfo.cpuAbi;
-    bundleInfo.releaseType = info.releaseType;
+    bundleInfo.releaseType = info.applicationInfo.debug ? "debug" : "release";
     bundleInfo.isPreInstalled = info.isPreInstallApp;
     bundleInfo.versionName = info.versionName;
     bundleInfo.versionCode = info.versionCode;
