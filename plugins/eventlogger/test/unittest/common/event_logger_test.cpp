@@ -1259,5 +1259,27 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_001, TestSize.Lev
     close(fd);
     EXPECT_TRUE(eventLogger);
 }
+
+/**
+ * @tc.name: EventLoggerTest_GetRebootReason_001
+ * @tc.desc: Test GetRebootReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetRebootReason_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    eventLogger->cmdlineContent_ = "";
+    std::string result = eventLogger->GetRebootReason();
+    EXPECT_EQ("", result);
+    eventLogger->cmdlineContent_ = "reboot_reason=testValue1 normal_reset_type=testValue2";
+    result = eventLogger->GetRebootReason();
+    EXPECT_EQ("", result);
+    eventLogger->rebootReasons_.push_back("testValue1");
+    result = eventLogger->GetRebootReason();
+    EXPECT_EQ("LONG_PRESS", result);
+    eventLogger->rebootReasons_.push_back("testValue2");
+    result = eventLogger->GetRebootReason();
+    EXPECT_EQ("LONG_PRESS", result);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
