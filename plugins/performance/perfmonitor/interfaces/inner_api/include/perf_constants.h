@@ -488,6 +488,58 @@ public:
     static constexpr char LAUNCHER_APP_LAUNCH_FROM_CARD[] = "LAUNCHER_APP_LAUNCH_FROM_CARD";
 
     static constexpr char LAUNCHER_APP_LAUNCH_FROM_APPCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_APPCENTER";
+    
+    static constexpr char ENTER_ONE_STEP_SPLIT[] = "ENTER_ONE_STEP_SPLIT";
+
+    static constexpr char ENTER_SPLIT[] = "ENTER_SPLIT";
+
+    static constexpr char SPLIT_TO_FLOAT[] = "SPLIT_TO_FLOAT";
+
+    static constexpr char ADJUST_SPLIT_RATIO[] = "ADJUST_SPLIT_RATIO";
+
+    static constexpr char SPLIT_SWAP_ANIMATION[] = "SPLIT_SWAP_ANIMATION";
+
+    static constexpr char SPLIT_BACK_SEC[] = "SPLIT_BACK_SEC";
+
+    static constexpr char SPLIT_DRAG_EXIT[] = "SPLIT_DRAG_EXIT";
+    
+    static constexpr char ENTER_ONE_STEP_FLOAT[] = "ENTER_ONE_STEP_FLOAT";
+
+    static constexpr char FLOAT_START_FROM_DOCK[] = "FLOAT_START_FROM_DOCK";
+
+    static constexpr char FLOAT_START_FROM_SIDEBAR[] = "FLOAT_START_FROM_SIDEBAR";
+
+    static constexpr char EXIT_FLOAT_BY_CLICK[] = "EXIT_FLOAT_BY_CLICK";
+
+    static constexpr char FLOAT_TO_FULL[] = "FLOAT_TO_FULL";
+
+    static constexpr char MINIMIZE_FLOAT_BY_CLICK[] = "MINIMIZE_FLOAT_BY_CLICK";
+
+    static constexpr char DRAG_FLOAT[] = "DRAG_FLOAT";
+
+    static constexpr char MINI_FLOAT_TO_DEFAULT[] = "MINI_FLOAT_TO_DEFAULT";
+
+    static constexpr char SPLIT_STYLE_EXCHANGE[] = "SPLIT_STYLE_EXCHANGE";
+
+    static constexpr char ENTER_ONE_STEP_MIDSCENE[] = "ENTER_ONE_STEP_MIDSCENE";
+
+    static constexpr char ENTER_MIDSCENE[] = "ENTER_MIDSCENE";
+
+    static constexpr char MIDSCENE_REPLACE[] = "MIDSCENE_REPLACE";
+
+    static constexpr char MIDSCENE_TO_FULL[] = "MIDSCENE_TO_FULL";
+
+    static constexpr char MIDSCENE_TO_SPLIT[] = "MIDSCENE_TO_SPLIT";
+
+    static constexpr char MIDSCENE_FOCUS_TRANSFER[] = "MIDSCENE_FOCUS_TRANSFER";
+
+    static constexpr char MIDSCENE_ROTATION[] = "MIDSCENE_ROTATION";
+
+    static constexpr char MIDSCENE_TO_RECENT[] = "MIDSCENE_TO_RECENT";
+
+    static constexpr char SAVE_COMBINATION[] = "SAVE_COMBINATION";
+
+    static constexpr char START_COMBINATION[] = "START_COMBINATION";
 };
 } // namespace OHOS
 } // namespace HiviewDFX
