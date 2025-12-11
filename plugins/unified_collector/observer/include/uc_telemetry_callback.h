@@ -21,7 +21,7 @@
 
 namespace OHOS::HiviewDFX {
 
-class UcTelemetryCallback : public TelemetryCallback {
+class UcTelemetryCallback : public TelemetryCallback, public std::enable_shared_from_this<UcTelemetryCallback> {
 public:
     explicit UcTelemetryCallback(const TelemetryParams &params)
         : traceDuration_(params.traceDuration),
@@ -33,6 +33,7 @@ public:
     void OnTelemetryFinish() override;
     void OnTelemetryTraceOn() override;
     void OnTelemetryTraceOff() override;
+    void RunTraceOnTimeTask();
 
 protected:
     uint64_t traceOnStartTime_ = 0;
@@ -44,7 +45,6 @@ protected:
     std::string appFilterName_;
     std::vector<std::string> saParams_;
 
-    void RunTraceOnTimeTask();
     bool UpdateAndCheckTimeOut(int64_t timeCost);
 };
 
