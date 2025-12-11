@@ -20,14 +20,101 @@
 #include <vector>
 #include <string>
 
-#include "string_util.h"
 #include "ffrt.h"
 #include "ffrt_util.h"
 #include "file_util.h"
+#include "rdb_predicates.h"
+#include "restorable_db_store.h"
+#include "string_util.h"
+#include "sql_util.h"
 #include "time_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+constexpr char TEST_DB_DIR[] = "/data/test/";
+constexpr char TEST_DB_NAME[] = "test.db";
+constexpr char TEST_TABLE_NAME[] = "test_table";
+constexpr char TEST_COLUMN_KEY_1[] = "test_column_1";
+constexpr char TEST_COLUMN_KEY_2[] = "test_column_2";
+constexpr char COLUMN_1_INIT_VAL[] = "test_value";
+constexpr int64_t COLUMN_2_INIT_VAL = 666;
+
+void InsertTableValue(std::shared_ptr<RestorableDbStore> dbStore, const std::string& column1Val, int64_t column2Val)
+{
+    ASSERT_NE(dbStore, nullptr);
+    NativeRdb::ValuesBucket bucket;
+    bucket.PutString(TEST_COLUMN_KEY_1, column1Val);
+    bucket.PutLong(TEST_COLUMN_KEY_2, column2Val);
+    int64_t id = 0;
+    ASSERT_EQ(dbStore->Insert(id, TEST_TABLE_NAME, bucket), NativeRdb::E_OK);
+}
+
+void UpdateTable(std::shared_ptr<RestorableDbStore> dbStore, int64_t column2Val)
+{
+    ASSERT_NE(dbStore, nullptr);
+    NativeRdb::ValuesBucket bucket;
+    bucket.PutLong(TEST_COLUMN_KEY_2, column2Val);
+    int changeRow = 0;
+    std::string condition(TEST_COLUMN_KEY_1);
+    condition.append(" = ?");
+    ASSERT_EQ(dbStore->Update(changeRow, TEST_TABLE_NAME, bucket, condition,
+        std::vector<std::string> { COLUMN_1_INIT_VAL }), NativeRdb::E_OK);
+}
+
+void QueryColumn2Val(std::shared_ptr<RestorableDbStore> dbStore, int64_t& val)
+{
+    ASSERT_NE(dbStore, nullptr);
+    NativeRdb::RdbPredicates predicates(TEST_TABLE_NAME);
+    predicates.EqualTo(TEST_COLUMN_KEY_1, COLUMN_1_INIT_VAL);
+    std::vector<std::string> columns;
+    columns.emplace_back(TEST_COLUMN_KEY_2);
+    std::shared_ptr<NativeRdb::ResultSet> records = dbStore->Query(predicates, columns);
+    ASSERT_NE(records, nullptr);
+    ASSERT_EQ(records->GoToFirstRow(), NativeRdb::E_OK);
+    NativeRdb::RowEntity entity;
+    ASSERT_EQ(records->GetRow(entity), NativeRdb::E_OK);
+    ASSERT_EQ(entity.Get(TEST_COLUMN_KEY_2).GetLong(val), NativeRdb::E_OK);
+    records->Close();
+}
+
+void ExecuteSql(std::shared_ptr<RestorableDbStore> dbStore)
+{
+    ASSERT_NE(dbStore, nullptr);
+    const std::vector<std::pair<std::string, std::string>> fields {
+        { TEST_COLUMN_KEY_1, SqlUtil::COLUMN_TYPE_STR },
+    };
+    ASSERT_EQ(dbStore->ExecuteSql(SqlUtil::GenerateCreateSql(std::string("test_table_2"), fields)), NativeRdb::E_OK);
+}
+
+void InitRestorableDbStore(std::shared_ptr<RestorableDbStore>& dbStore)
+{
+    std::string dbDir(TEST_DB_DIR);
+    std::string dbName(TEST_DB_NAME);
+    dbStore = std::make_shared<RestorableDbStore>(dbDir, dbName, 1); // 1 is a test version
+    ASSERT_NE(dbStore, nullptr);
+    dbStore->Initialize(
+        [] (NativeRdb::RdbStore& rdbStore) {
+            const std::vector<std::pair<std::string, std::string>> fields = {
+                {TEST_COLUMN_KEY_1, SqlUtil::COLUMN_TYPE_STR},
+                {TEST_COLUMN_KEY_2, SqlUtil::COLUMN_TYPE_INT},
+            };
+            std::string sql = SqlUtil::GenerateCreateSql(TEST_TABLE_NAME, fields);
+            return rdbStore.ExecuteSql(sql);
+        },
+        [] (NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) {
+            return NativeRdb::E_OK;
+        },
+        [] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+            NativeRdb::ValuesBucket bucket;
+            bucket.PutString(TEST_COLUMN_KEY_1, COLUMN_1_INIT_VAL);
+            bucket.PutLong(TEST_COLUMN_KEY_2, COLUMN_2_INIT_VAL);
+            int64_t id = 0;
+            return rdbStore->Insert(id, TEST_TABLE_NAME, bucket);
+        });
+    ASSERT_TRUE(FileUtil::FileExists(dbDir + dbName));
+}
+}
 void BaseUtilityUnitTest::SetUpTestCase()
 {
 }
@@ -357,6 +444,39 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest022, testing::ext::TestSize.Lev
         auto ts2 = static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs());
         ASSERT_GE(ts2 - WAIT_TIME * TimeUtil::SEC_TO_MILLISEC, ts1);
     }, {}, {}, ffrt::task_attr().name("base_util_ut_022").qos(ffrt::qos_default));
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest023
+ * @tc.desc: Test public apis of class RestorableDbStore
+ * @tc.type: FUNC
+ * @tc.require: issue#3057
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest023, testing::ext::TestSize.Level3)
+{
+    std::string dbDir(TEST_DB_DIR);
+    std::string dbName(TEST_DB_NAME);
+    (void)NativeRdb::RdbHelper::DeleteRdbStore(dbDir + dbName);
+
+    std::shared_ptr<RestorableDbStore> dbStore;
+    InitRestorableDbStore(dbStore);
+    ASSERT_NE(dbStore, nullptr);
+
+    InsertTableValue(dbStore, std::string(COLUMN_1_INIT_VAL), COLUMN_2_INIT_VAL);
+    int64_t val = 0;
+    QueryColumn2Val(dbStore, val);
+    ASSERT_EQ(val, COLUMN_2_INIT_VAL);
+
+    ASSERT_EQ(dbStore->Restore(), NativeRdb::E_OK);
+    QueryColumn2Val(dbStore, val);
+    ASSERT_EQ(val, COLUMN_2_INIT_VAL);
+
+    int64_t testUpdateVal = 999; // 999 is a test value
+    UpdateTable(dbStore, testUpdateVal);
+    QueryColumn2Val(dbStore, val);
+    ASSERT_EQ(val, testUpdateVal);
+
+    ExecuteSql(dbStore);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
