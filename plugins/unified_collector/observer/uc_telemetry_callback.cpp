@@ -161,7 +161,7 @@ void UcTelemetryCallback::OnTelemetryTraceOn()
     }
 
     // start new task
-    auto task = [this] { this->RunTraceOnTimeTask(); };
+    auto task = [callback = shared_from_this()] { callback->RunTraceOnTimeTask(); };
     ffrt::submit(task, {}, {}, ffrt::task_attr().name("telemetry_trace_on").qos(ffrt::qos_default));
     isTaskOn_ = true;
 }

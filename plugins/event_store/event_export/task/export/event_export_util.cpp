@@ -106,6 +106,20 @@ void HandleExportSwitchOff(const std::string& moduleName)
     dbMgr.HandleExportSwitchChanged(moduleName, INVALID_SEQ_VAL);
     FileUtil::RemoveFile(dbMgr.GetEventInheritFlagPath(moduleName)); // remove inherit flag file if switch changes
 }
+
+int64_t GetModuleExportEnabledSeq(std::shared_ptr<ExportConfig> config)
+{
+    auto& dbMgr = ExportDbManager::GetInstance();
+    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
+    if (config == nullptr || !dbMgr.IsUnrecordedModule(config->moduleName) ||
+        config->inheritedModule.empty() || dbMgr.IsUnrecordedModule(config->inheritedModule)) {
+        HIVIEW_LOGI("start sequence is %{public}" PRId64, startSeq);
+        return startSeq;
+    }
+    startSeq = dbMgr.GetExportEndSeq(config->inheritedModule);
+    HIVIEW_LOGI("inherited start sequence is %{public}" PRId64 "", startSeq);
+    return startSeq;
+}
 }
 
 std::string EventExportUtil::GetDeviceId()
@@ -170,6 +184,26 @@ bool EventExportUtil::RegisterSettingObserver(std::shared_ptr<ExportConfig> conf
 void EventExportUtil::UnregisterSettingObserver(std::shared_ptr<ExportConfig> config)
 {
     SettingObserverManager::GetInstance()->UnregisterObserver(config->exportSwitchParam.name);
+}
+
+void EventExportUtil::SyncDbByExportSwitchStatus(std::shared_ptr<ExportConfig> config, bool isSwitchOff)
+{
+    auto& dbMgr = ExportDbManager::GetInstance();
+    if (isSwitchOff) {
+        HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());
+        int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
+        if (enabledSeq != INVALID_SEQ_VAL &&
+            !FileUtil::FileExists(dbMgr.GetEventInheritFlagPath(config->moduleName))) {
+            dbMgr.HandleExportSwitchChanged(config->moduleName, INVALID_SEQ_VAL);
+        }
+        return;
+    }
+    HIVIEW_LOGI("export switch for module %{public}s is on", config->moduleName.c_str());
+    int64_t enabledSeq = dbMgr.GetExportEnabledSeq(config->moduleName);
+    if (enabledSeq == INVALID_SEQ_VAL) {
+        enabledSeq = GetModuleExportEnabledSeq(config);
+        dbMgr.HandleExportSwitchChanged(config->moduleName, enabledSeq);
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

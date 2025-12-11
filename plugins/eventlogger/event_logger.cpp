@@ -61,9 +61,6 @@ namespace HiviewDFX {
 namespace {
     constexpr const char* LONG_PRESS = "LONG_PRESS";
     constexpr const char* AP_S_PRESS6S = "AP_S_PRESS6S";
-    constexpr const char* REBOOT_REASON = "reboot_reason";
-    constexpr const char* NORMAL_RESET_TYPE = "normal_reset_type";
-    constexpr const char* PATTERN_WITHOUT_SPACE = "\\s*=\\s*([^ \\n]*)";
     constexpr const char* DOMAIN_LONGPRESS = "KERNEL_VENDOR";
     constexpr const char* STRINGID_LONGPRESS = "COM_LONG_PRESS";
     constexpr const char* LONGPRESS_LEVEL = "CRITICAL";
@@ -1298,17 +1295,14 @@ std::string EventLogger::GetRebootReason() const
 {
     std::string reboot = "";
     std::string reset = "";
-    if (GetMatchString(cmdlineContent_, reboot, std::string(REBOOT_REASON) +
-        std::string(PATTERN_WITHOUT_SPACE)) &&
-        GetMatchString(cmdlineContent_, reset, std::string(NORMAL_RESET_TYPE) +
-        std::string(PATTERN_WITHOUT_SPACE))) {
-            if (std::any_of(rebootReasons_.begin(), rebootReasons_.end(), [&reboot, &reset](auto& reason) {
-                return (reason == reboot || reason == reset);
-            })) {
-                HIVIEW_LOGI("get reboot reason: LONG_PRESS.");
-                return LONG_PRESS;
-            }
+    if (GetMatchRebootString(cmdlineContent_, reboot) && GetMatchResetString(cmdlineContent_, reset)) {
+        if (std::any_of(rebootReasons_.begin(), rebootReasons_.end(), [&reboot, &reset](auto& reason) {
+            return (reason == reboot || reason == reset);
+        })) {
+            HIVIEW_LOGI("get reboot reason: LONG_PRESS.");
+            return LONG_PRESS;
         }
+    }
     return "";
 }
 
@@ -1327,9 +1321,20 @@ void EventLogger::GetRebootReasonConfig()
     }
 }
 
-bool EventLogger::GetMatchString(const std::string& src, std::string& dst, const std::string& pattern) const
+bool EventLogger::GetMatchRebootString(const std::string& src, std::string& dst) const
 {
-    std::regex reg(pattern);
+    std::regex reg("reboot_reason\\s*=\\s*([^ \\n]*)");
+    std::smatch result;
+    if (std::regex_search(src, result, reg)) {
+        dst = StringUtil::TrimStr(result[1], '\n');
+        return true;
+    }
+    return false;
+}
+
+bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) const
+{
+    std::regex reg("normal_reset_type\\s*=\\s*([^ \\n]*)");
     std::smatch result;
     if (std::regex_search(src, result, reg)) {
         dst = StringUtil::TrimStr(result[1], '\n');

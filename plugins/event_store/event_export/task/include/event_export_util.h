@@ -30,6 +30,7 @@ public:
     static bool CheckAndPostExportEvent(std::shared_ptr<ExportConfig> config);
     static bool RegisterSettingObserver(std::shared_ptr<ExportConfig> config);
     static void UnregisterSettingObserver(std::shared_ptr<ExportConfig> config);
+    static void SyncDbByExportSwitchStatus(std::shared_ptr<ExportConfig> config, bool isSwitchOff);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

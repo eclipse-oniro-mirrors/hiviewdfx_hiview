@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,7 @@
 
 #include <string>
 
-#include "rdb_helper.h"
-#include "rdb_store.h"
+#include "restorable_db_store.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -35,12 +34,6 @@ struct ExportDetailRecord {
     // update when export task is finished
     int64_t exportedMaxSeq = INVALID_SEQ_VAL;
 };
-
-class ExportDbOpenCallback : public NativeRdb::RdbOpenCallback {
-public:
-    int OnCreate(NativeRdb::RdbStore& rdbStore) override;
-    int OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) override;
-}; // class ExportDbOpenCallback
 
 class ExportDbStorage {
 public:
@@ -58,7 +51,7 @@ private:
     void UpdateExportDetailRecordSeq(ExportDetailRecord& record, const std::string& seqName, int64_t seqValue);
 
 private:
-    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+    std::shared_ptr<RestorableDbStore> dbStore_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

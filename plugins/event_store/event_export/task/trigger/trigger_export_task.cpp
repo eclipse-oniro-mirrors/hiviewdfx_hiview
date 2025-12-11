@@ -26,7 +26,6 @@ TriggerExportTask::TriggerExportTask(std::shared_ptr<ExportConfig> config, int t
     : EventExportTask(config)
 {
     id_ = taskId;
-    endSeq_ = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
 }
 
 void TriggerExportTask::AppendEvent(std::shared_ptr<SysEvent> sysEvent)
@@ -115,7 +114,7 @@ int64_t TriggerExportTask::GetExportRangeEndSeq()
     std::unique_lock<ffrt::mutex> lock(listMutex_);
     if (allEvent_.empty()) {
         HIVIEW_LOGI("export event list is empty");
-        return endSeq_;
+        return EventStore::SysEventSequenceManager::GetInstance().GetSequence();
     }
     auto lastEvent = allEvent_.back();
     if (lastEvent == nullptr) {
