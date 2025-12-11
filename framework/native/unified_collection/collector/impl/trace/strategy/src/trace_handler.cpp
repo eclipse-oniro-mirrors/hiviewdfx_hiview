@@ -59,20 +59,24 @@ void WriteZipTrafficLog(std::chrono::time_point<std::chrono::steady_clock> start
 void DoClean(const std::string tracePath, uint32_t cleanThreshold)
 {
     // Load all files under the path
-    std::vector<std::string> files;
-    FileUtil::GetDirFiles(tracePath, files);
+    std::vector<std::pair<std::string, struct stat>> fileInfos;
+    FileUtil::GetDirFileInfos(tracePath, fileInfos);
+    if (fileInfos.size() <= cleanThreshold) {
+        HIVIEW_LOGI("no need clean, file count:%{public}zu, threshold:%{public}u.", fileInfos.size(), cleanThreshold);
+        return;
+    }
 
     // Filter files that belong to me
-    std::deque<std::string> filteredFiles(files.begin(), files.end());
-    std::sort(filteredFiles.begin(), filteredFiles.end(), [](const auto& a, const auto& b) {
-        return a < b;
+    std::sort(fileInfos.begin(), fileInfos.end(), [](const std::pair<std::string, struct stat>& a,
+        const std::pair<std::string, struct stat>& b) {
+        return a.second.st_mtime > b.second.st_mtime;
     });
-    HIVIEW_LOGI("myFiles size : %{public}zu, MyThreshold : %{public}u.", filteredFiles.size(), cleanThreshold);
 
-    while (filteredFiles.size() > cleanThreshold) {
-        FileUtil::RemoveFile(filteredFiles.front());
-        HIVIEW_LOGI("remove file : %{public}s is deleted.", filteredFiles.front().c_str());
-        filteredFiles.pop_front();
+    while (fileInfos.size() > cleanThreshold) {
+        FileUtil::RemoveFile(fileInfos.back().first);
+        HIVIEW_LOGI("file count:%{public}zu, threshold:%{public}u ,remove file:%{public}s", fileInfos.size(),
+            cleanThreshold, fileInfos.back().first.c_str());
+        fileInfos.pop_back();
     }
 }
 

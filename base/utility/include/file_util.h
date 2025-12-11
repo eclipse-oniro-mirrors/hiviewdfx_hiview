@@ -78,6 +78,7 @@ std::string IncludeTrailingPathDelimiter(const std::string& path);
 std::string ExcludeTrailingPathDelimiter(const std::string& path);
 void GetDirFiles(const std::string& path, std::vector<std::string>& files, bool isRecursive = true);
 void GetDirDirs(const std::string& path, std::vector<std::string>& dirs);
+void GetDirFileInfos(const std::string& path, std::vector<std::pair<std::string, struct stat>>& fileInfos);
 bool ForceCreateDirectory(const std::string& path, mode_t mode = FILE_PERM_755);
 bool ForceRemoveDirectory(const std::string& path, bool isNeedDeleteGivenDirSelf = true);
 bool RemoveFile(const std::string& fileName);
