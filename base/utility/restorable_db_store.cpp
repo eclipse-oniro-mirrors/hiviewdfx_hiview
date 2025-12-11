@@ -58,12 +58,16 @@ int RestorableDbStore::Initialize(OnDbCreatedCallback onDbCreatedCallback,
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     RestorableDbOpenCallback dbOpenCallback(onDbCreatedCallback_, onDbUpgradedCallback_);
     auto ret = NativeRdb::E_OK;
-    {
-        std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
+
+    std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
+    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
+    if (ret != NativeRdb::E_OK) {
+        ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_);
         rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
-        if (ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to init db store, db store name=%{public}s.", dbName_.c_str());
-            rdbStore_ = nullptr;
+        if (rdbStore_ == nullptr || ret != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to init db store %{public}s, ret is %{public}d", dbName_.c_str(), ret);
+        } else {
+            HIVIEW_LOGI("succeed to init db store %{public}s", dbName_.c_str());
         }
     }
     return ret;

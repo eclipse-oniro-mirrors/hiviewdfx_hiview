@@ -19,6 +19,7 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "rdb_predicates.h"
+#include "setting_observer_manager.h"
 #include "sql_util.h"
 #include "sys_event_sequence_mgr.h"
 
@@ -69,7 +70,7 @@ int32_t CreateExportDetailsTable(NativeRdb::RdbStore& dbStore)
 }
 
 int RestoreModuleByConfigs(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
-    std::vector<std::shared_ptr<ExportConfig>>& configs)
+    const std::vector<std::shared_ptr<ExportConfig>>& configs)
 {
     int64_t curSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
     int64_t id = 0;
@@ -78,7 +79,9 @@ int RestoreModuleByConfigs(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
         NativeRdb::ValuesBucket bucket;
         bucket.PutString(COLUMN_MODULE_NAME, config->moduleName);
         bucket.PutLong(COLUMN_EXPORTED_MAX_SEQ, curSeq);
-        bucket.PutLong(COLUMN_EXPORT_ENABLED_SEQ, curSeq);
+        bucket.PutLong(COLUMN_EXPORT_ENABLED_SEQ,
+            SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name)
+            == config->exportSwitchParam.enabledVal ? curSeq : INVALID_SEQ_VAL);
         id = 0;
         if (ret = rdbStore->Insert(id, MODULE_EXPORT_DETAILS_TABLE_NAME, bucket); ret != NativeRdb::E_OK) {
             HIVIEW_LOGE("failed to restore record into %{public}s table, ret is %{public}d",
@@ -91,15 +94,12 @@ int RestoreModuleByConfigs(std::shared_ptr<NativeRdb::RdbStore> rdbStore,
 
 int RestoreAllExportModule(std::shared_ptr<NativeRdb::RdbStore> rdbStore)
 {
-    std::vector<std::shared_ptr<ExportConfig>> configs;
-    ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
-    int ret = RestoreModuleByConfigs(rdbStore, configs);
-    if (ret != NativeRdb::E_OK) {
-        return ret;
-    }
-    configs.clear();
-    ExportConfigManager::GetInstance().GetTriggerExportConfigs(configs);
-    return RestoreModuleByConfigs(rdbStore, configs);
+    std::vector<std::shared_ptr<ExportConfig>> periodicConfigs;
+    ExportConfigManager::GetInstance().GetPeriodicExportConfigs(periodicConfigs);
+    std::vector<std::shared_ptr<ExportConfig>> triggerConfigs;
+    ExportConfigManager::GetInstance().GetTriggerExportConfigs(triggerConfigs);
+    periodicConfigs.insert(periodicConfigs.end(), triggerConfigs.begin(), triggerConfigs.end());
+    return RestoreModuleByConfigs(rdbStore, periodicConfigs);
 }
 }
 
