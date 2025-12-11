@@ -15,9 +15,10 @@
 
 #include "trigger_export_engine.h"
 
-#include "event_export_util.h"
 #include "export_dir_creator.h"
+#include "event_export_util.h"
 #include "hiview_logger.h"
+#include "setting_observer_manager.h"
 #include "time_util.h"
 
 namespace OHOS {
@@ -40,9 +41,11 @@ TriggerExportEngine& TriggerExportEngine::GetInstance()
 
 void TriggerExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
 {
-    if (sysEvent == nullptr) {
-        HIVIEW_LOGE("trigger event is null");
-        return;
+    {
+        std::unique_lock<ffrt::mutex> lock(delayMutex_);
+        if (sysEvent == nullptr || isTaskNeedDelay_) {
+            return;
+        }
     }
     ffrt::submit([this, sysEvent] () {
             std::vector<std::shared_ptr<ExportConfig>> configs;
@@ -73,6 +76,8 @@ TriggerExportEngine::TriggerExportEngine()
     }
 
     for (const auto& config : exportConfigs_) {
+        // in order to avoid visit permission,
+        // the export directories must be created before any export task start
         (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
     }
 
@@ -112,7 +117,7 @@ void TriggerExportEngine::RebuildExistTaskList(TriggerTaskList& taskList, std::s
         auto newTask = std::make_shared<TriggerExportTask>(config, newTaskId);
         newTask->AppendEvent(event);
         taskList.emplace_back(newTask);
-        StartTask(newTask);
+        StartTask(newTask, true);
     } else {
         lastTask->AppendEvent(event);
     }
@@ -125,7 +130,7 @@ void TriggerExportEngine::BuildNewTaskList(std::shared_ptr<SysEvent> event, std:
     newTask->AppendEvent(event);
     taskList.emplace_back(newTask);
     taskMap_.insert(std::make_pair(config->moduleName, taskList));
-    StartTask(newTask);
+    StartTask(newTask, true);
 }
 
 void TriggerExportEngine::CancelExportDelay()
@@ -142,12 +147,12 @@ void TriggerExportEngine::CancelExportDelay()
             continue;
         }
         for (auto& task : allTaskInSameModule) {
-            StartTask(task);
+            StartTask(task, false);
         }
     }
 }
 
-void TriggerExportEngine::StartTask(std::shared_ptr<TriggerExportTask> task)
+void TriggerExportEngine::StartTask(std::shared_ptr<TriggerExportTask> task, bool isDelayed)
 {
     {
         std::unique_lock<ffrt::mutex> lock(delayMutex_);
@@ -155,11 +160,13 @@ void TriggerExportEngine::StartTask(std::shared_ptr<TriggerExportTask> task)
             return;
         }
     }
-    std::function<void()>&& taskFunc = [this, task] () {
+    std::function<void()>&& taskFunc = [this, task, isDelayed] () {
         if (task == nullptr) {
             return;
         }
-        ffrt::this_task::sleep_for(task->GetTriggerCycle());
+        if (isDelayed) {
+            ffrt::this_task::sleep_for(task->GetTriggerCycle());
+        }
         task->Run();
 
         // remove task cache from list
@@ -189,8 +196,12 @@ void TriggerExportEngine::InitByAllExportConfigs()
     std::unique_lock<ffrt::mutex> lock(taskMapMutex_);
     for (auto& config : exportConfigs_) {
         // register setting observer
-        EventExportUtil::RegisterSettingObserver(config);
-
+        if (!EventExportUtil::RegisterSettingObserver(config)) {
+            continue;
+        }
+        EventExportUtil::SyncDbByExportSwitchStatus(config,
+            SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name)
+            != config->exportSwitchParam.enabledVal);
         // init task by config
         auto mapIter = taskMap_.find(config->moduleName);
         if (mapIter == taskMap_.end()) {

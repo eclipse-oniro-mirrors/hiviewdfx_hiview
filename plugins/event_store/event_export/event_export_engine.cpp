@@ -17,16 +17,17 @@
 
 #include <chrono>
 
+#include "export_dir_creator.h"
 #include "event_expire_task.h"
 #include "event_export_task.h"
 #include "event_export_util.h"
-#include "export_dir_creator.h"
 #include "ffrt.h"
 #include "ffrt_util.h"
 #include "file_util.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
 
 namespace OHOS {
@@ -103,6 +104,8 @@ void EventExportEngine::InitAndRunTasks()
     ExportConfigManager::GetInstance().GetPeriodicExportConfigs(configs);
     HIVIEW_LOGI("total count of periodic config is %{public}zu", configs.size());
     for (const auto& config : configs) {
+        // in order to avoid visit permission,
+        // the export directories must be created before any export task start
         (void)ExportDirCreator::GetInstance().CreateExportDir(config->exportDir);
     }
     for (const auto& config : configs) {
@@ -117,6 +120,9 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
     if (!EventExportUtil::RegisterSettingObserver(config)) {
         return;
     }
+    EventExportUtil::SyncDbByExportSwitchStatus(config,
+        SettingObserverManager::GetInstance()->GetStringValue(config->exportSwitchParam.name)
+        != config->exportSwitchParam.enabledVal);
     ffrt::this_task::sleep_for(std::chrono::seconds(delayedSecond_));
     // init tasks of current config then run them
     auto expireTask = std::make_shared<EventExpireTask>(config);
