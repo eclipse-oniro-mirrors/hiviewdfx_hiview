@@ -20,6 +20,7 @@
 #include "plugin_stats_event_factory.h"
 #include "sql_util.h"
 #include "sys_usage_event.h"
+#include "sys_usage_event_factory.h"
 #include "usage_event_common.h"
 
 namespace OHOS {
@@ -33,18 +34,84 @@ constexpr char DB_COLUMN_PLUGIN[] = "plugin";
 constexpr char DB_TABLE_PLUGIN_STATS[] = "plugin_stats";
 const char SQL_TEXT_TYPE[] = "TEXT NOT NULL";
 constexpr int DB_VERSION = 1;
+
+void CreateTable(NativeRdb::RdbStore& rdbStore, const std::string& table,
+    const std::vector<std::pair<std::string, std::string>>& fields)
+{
+    std::string sql = SqlUtil::GenerateCreateSql(table, fields);
+    if (rdbStore.ExecuteSql(sql) != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table=%{public}s", table.c_str());
+    }
 }
 
-int EventDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
+void CreatePluginStatsTable(NativeRdb::RdbStore& rdbStore, const std::string& table)
 {
-    HIVIEW_LOGD("create dbStore");
+    /**
+     * table: plugin_stats
+     *
+     * |----|--------|-------|
+     * | id | plugin | event |
+     * |----|--------|-------|
+     */
+    std::vector<std::pair<std::string, std::string>> fields = {
+        {DB_COLUMN_EVENT, SQL_TEXT_TYPE}, {DB_COLUMN_PLUGIN, SQL_TEXT_TYPE}
+    };
+    CreateTable(rdbStore, table, fields);
+}
+
+void CreateSysUsageTable(NativeRdb::RdbStore& rdbStore, const std::string& table)
+{
+    /**
+     * table: sys_usage / last_sys_usage
+     *
+     * |----|-------|
+     * | id | event |
+     * |----|-------|
+     */
+    std::vector<std::pair<std::string, std::string>> fields = {{DB_COLUMN_EVENT, SQL_TEXT_TYPE}};
+    CreateTable(rdbStore, table, fields);
+}
+
+template <typename T>
+int InnerInsertSysUsageTable(std::shared_ptr<T> rdbStore, const std::string& table,
+    const std::string& eventStr)
+{
+    HIVIEW_LOGI("insert table=%{public}s with %{public}s", table.c_str(), eventStr.c_str());
+    NativeRdb::ValuesBucket bucket;
+    bucket.PutString(DB_COLUMN_EVENT, eventStr);
+    int64_t seq = 0;
+    if (rdbStore->Insert(seq, table, bucket) != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to insert SysUsage event=%{public}s", eventStr.c_str());
+        return -1;
+    }
+    return 0;
+}
+
+int EventDbStoreOnCreate(NativeRdb::RdbStore& rdbStore)
+{
+    HIVIEW_LOGI("create dbStore");
+    CreateSysUsageTable(rdbStore, SysUsageDbSpace::SYS_USAGE_TABLE);
+    CreateSysUsageTable(rdbStore, SysUsageDbSpace::LAST_SYS_USAGE_TABLE);
+    CreatePluginStatsTable(rdbStore, DB_TABLE_PLUGIN_STATS);
     return NativeRdb::E_OK;
 }
 
-int EventDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
+int EventDbStoreOnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
 {
-    HIVIEW_LOGD("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
+    HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
     return NativeRdb::E_OK;
+}
+
+int EventDbStoreOnRestore(std::shared_ptr<NativeRdb::RdbStore> rdbStore)
+{
+    HIVIEW_LOGI("start to restore db");
+    auto nowUsage = std::make_unique<SysUsageEventFactory>()->Create();
+    (void)InnerInsertSysUsageTable(rdbStore, SysUsageDbSpace::LAST_SYS_USAGE_TABLE, nowUsage->ToJsonString());
+    nowUsage->Update(SysUsageEventSpace::KEY_OF_POWER, DEFAULT_UINT64);
+    nowUsage->Update(SysUsageEventSpace::KEY_OF_RUNNING, DEFAULT_UINT64);
+    (void)InnerInsertSysUsageTable(rdbStore, SysUsageDbSpace::SYS_USAGE_TABLE, nowUsage->ToJsonString());
+    return NativeRdb::E_SQLITE_CORRUPT;
+}
 }
 
 EventDbHelper::EventDbHelper(const std::string workPath) : dbPath_(workPath), rdbStore_(nullptr)
@@ -57,29 +124,9 @@ EventDbHelper::~EventDbHelper()
 
 void EventDbHelper::InitDbStore()
 {
-    std::string workPath = dbPath_;
-    if (workPath.back() != '/') {
-        dbPath_ +=  "/";
-    }
-    dbPath_ += DB_DIR;
-    if (!FileUtil::FileExists(dbPath_)) {
-        if (FileUtil::ForceCreateDirectory(dbPath_, FileUtil::FILE_PERM_770)) {
-            HIVIEW_LOGI("create sys_event_logger path successfully");
-        } else {
-            dbPath_ = workPath;
-            HIVIEW_LOGE("failed to create sys_event_logger path, use default path");
-        }
-    }
-    dbPath_ += DB_NAME;
-
-    NativeRdb::RdbStoreConfig config(dbPath_);
-    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
-    EventDbStoreCallback callback;
-    int ret = NativeRdb::E_OK;
-    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
-    if (ret != NativeRdb::E_OK || rdbStore_ == nullptr) {
-        HIVIEW_LOGE("failed to create db store, ret=%{public}d", ret);
-    }
+    rdbStore_ = std::make_shared<RestorableDbStore>(
+        FileUtil::IncludeTrailingPathDelimiter(dbPath_) + DB_DIR, DB_NAME, DB_VERSION);
+    rdbStore_->Initialize(EventDbStoreOnCreate, EventDbStoreOnUpgrade, EventDbStoreOnRestore);
 }
 
 int EventDbHelper::InsertPluginStatsEvent(std::shared_ptr<LoggerEvent> event)
@@ -178,52 +225,8 @@ int EventDbHelper::DeleteSysUsageEvent(const std::string& table)
     return DeleteTableData(table);
 }
 
-int EventDbHelper::CreateTable(const std::string& table,
-    const std::vector<std::pair<std::string, std::string>>& fields)
-{
-    std::string sql = SqlUtil::GenerateCreateSql(table, fields);
-    if (rdbStore_->ExecuteSql(sql) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table=%{public}s, sql=%{public}s", table.c_str(), sql.c_str());
-        return -1;
-    }
-    return 0;
-}
-
-int EventDbHelper::CreatePluginStatsTable(const std::string& table)
-{
-    /**
-     * table: plugin_stats
-     *
-     * |----|--------|-------|
-     * | id | plugin | event |
-     * |----|--------|-------|
-     */
-    std::vector<std::pair<std::string, std::string>> fields = {
-        {DB_COLUMN_EVENT, SQL_TEXT_TYPE}, {DB_COLUMN_PLUGIN, SQL_TEXT_TYPE}
-    };
-    return CreateTable(table, fields);
-}
-
-int EventDbHelper::CreateSysUsageTable(const std::string& table)
-{
-    /**
-     * table: sys_usage / last_sys_usage
-     *
-     * |----|-------|
-     * | id | event |
-     * |----|-------|
-     */
-    std::vector<std::pair<std::string, std::string>> fields = {{DB_COLUMN_EVENT, SQL_TEXT_TYPE}};
-    return CreateTable(table, fields);
-}
-
 int EventDbHelper::InsertPluginStatsTable(const std::string& pluginName, const std::string& eventStr)
 {
-    if (CreatePluginStatsTable(DB_TABLE_PLUGIN_STATS) != 0) {
-        HIVIEW_LOGE("failed to create table=%{public}s", DB_TABLE_PLUGIN_STATS);
-        return -1;
-    }
-
     HIVIEW_LOGD("insert db=%{public}s with %{public}s", dbPath_.c_str(), eventStr.c_str());
     NativeRdb::ValuesBucket bucket;
     bucket.PutString(DB_COLUMN_PLUGIN, pluginName);
@@ -238,20 +241,7 @@ int EventDbHelper::InsertPluginStatsTable(const std::string& pluginName, const s
 
 int EventDbHelper::InsertSysUsageTable(const std::string& table, const std::string& eventStr)
 {
-    if (CreateSysUsageTable(table) != 0) {
-        HIVIEW_LOGE("failed to create table=%{public}s", table.c_str());
-        return -1;
-    }
-
-    HIVIEW_LOGI("insert table=%{public}s with %{public}s", table.c_str(), eventStr.c_str());
-    NativeRdb::ValuesBucket bucket;
-    bucket.PutString(DB_COLUMN_EVENT, eventStr);
-    int64_t seq = 0;
-    if (rdbStore_->Insert(seq, table, bucket) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to insert sysUsage event=%{public}s", eventStr.c_str());
-        return -1;
-    }
-    return 0;
+    return InnerInsertSysUsageTable(rdbStore_, table, eventStr);
 }
 
 int EventDbHelper::UpdatePluginStatsTable(const std::string& pluginName, const std::string& eventStr)

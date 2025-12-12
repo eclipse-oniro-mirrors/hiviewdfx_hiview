@@ -15,7 +15,6 @@
 
 #include "fold_app_usage_db_helper.h"
 
-#include "event_db_helper.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "rdb_helper.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SREVICE_EVENT_DB_HELPER_H
-#define HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SREVICE_EVENT_DB_HELPER_H
+#ifndef HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SERVICE_EVENT_DB_HELPER_H
+#define HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SERVICE_EVENT_DB_HELPER_H
 
 #include <map>
 #include <memory>
 #include <string>
 
 #include "logger_event.h"
-#include "rdb_helper.h"
-#include "rdb_store.h"
+#include "restorable_db_store.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -54,14 +53,9 @@ private:
 
 private:
     std::string dbPath_;
-    std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
+    std::shared_ptr<RestorableDbStore> rdbStore_;
 };
 
-class EventDbStoreCallback : public NativeRdb::RdbOpenCallback {
-public:
-    int OnCreate(NativeRdb::RdbStore &rdbStore) override;
-    int OnUpgrade(NativeRdb::RdbStore &rdbStore, int oldVersion, int newVersion) override;
-};
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SREVICE_EVENT_DB_HELPER_H
+#endif // HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SERVICE_EVENT_DB_HELPER_H

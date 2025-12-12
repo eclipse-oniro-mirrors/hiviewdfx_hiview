@@ -84,6 +84,7 @@ ohos_unittest("UsageEventReportCacheTest") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -104,6 +105,7 @@ ohos_unittest("FoldAppUsageTest") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
@@ -111,5 +113,6 @@ ohos_unittest("FoldAppUsageTest") {
     "relational_store:native_rdb",
   ]
 
-  resource_config_file = "$hiview_plugin/usage_event_report/test/resource/ohos_test.xml"
+  resource_config_file =
+      "$hiview_plugin/usage_event_report/test/resource/ohos_test.xml"
 }

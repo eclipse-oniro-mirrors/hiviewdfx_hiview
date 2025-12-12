@@ -99,10 +99,10 @@ void UsageEventReportService::ReportSysUsage()
     for (auto key : SYS_USAGE_KEYS) {
         cacheUsage->Update(key, DEFAULT_UINT64);
     }
-    cacher.SaveSysUsageEventToDb(cacheUsage);
+    (void)cacher.SaveSysUsageEventToDb(cacheUsage);
 }
 
-void UsageEventReportService::UpdateCacheSysUsage(std::shared_ptr<LoggerEvent>& cacheUsage,
+int UsageEventReportService::UpdateCacheSysUsage(std::shared_ptr<LoggerEvent>& cacheUsage,
     const UsageEventCacher& cacher)
 {
     std::shared_ptr<LoggerEvent> nowUsage = std::make_unique<SysUsageEventFactory>()->Create();
@@ -114,31 +114,35 @@ void UsageEventReportService::UpdateCacheSysUsage(std::shared_ptr<LoggerEvent>& 
         cacheUsage->Update(key, curUsageTime + cacheUsage->GetValue(key).GetUint64());
     }
     cacheUsage->Update(KEY_OF_END, nowUsage->GetValue(KEY_OF_END).GetUint64());
-    UpdateLastSysUsage(nowUsage, cacher);
+    return UpdateLastSysUsage(nowUsage, cacher);
 }
 
-void UsageEventReportService::UpdateLastSysUsage(std::shared_ptr<LoggerEvent>& nowUsage,
+int UsageEventReportService::UpdateLastSysUsage(std::shared_ptr<LoggerEvent>& nowUsage,
     const UsageEventCacher& cacher)
 {
     nowUsage->Update(KEY_OF_START, lastReportTime_); // save the last report time for app_usage
-    cacher.SaveSysUsageEventToDb(nowUsage, LAST_SYS_USAGE_TABLE);
+    return cacher.SaveSysUsageEventToDb(nowUsage, LAST_SYS_USAGE_TABLE);
 }
 
 void UsageEventReportService::SaveSysUsage()
 {
     HIVIEW_LOGI("start to save sys usage event to db");
     UsageEventCacher cacher(workPath_);
+    int ret = 0;
     auto cacheUsage = cacher.GetSysUsageEvent();
     if (cacheUsage == nullptr) {
         // if it is the first save, set the current usage to the cache_usage
         cacheUsage = std::make_unique<SysUsageEventFactory>()->Create();
-        UpdateLastSysUsage(cacheUsage, cacher);
+        ret = UpdateLastSysUsage(cacheUsage, cacher);
         cacheUsage->Update(KEY_OF_START, lastSysReportTime_);
     } else {
         // add the current usage to the cache_usage since the last save
-        UpdateCacheSysUsage(cacheUsage, cacher);
+        ret = UpdateCacheSysUsage(cacheUsage, cacher);
     }
-    cacher.SaveSysUsageEventToDb(cacheUsage);
+
+    if (ret == 0) { // not 0 means db is abnormal, do not need to save
+        cacher.SaveSysUsageEventToDb(cacheUsage);
+    }
 }
 
 bool UsageEventReportService::ProcessArgsRequest(int argc, char* argv[])
