@@ -193,14 +193,24 @@ void FreezeRuleCluster::ParseTagLinks(xmlNode* tag, FreezeRule& rule)
             if (rule.GetDomain() == domain && rule.GetStringId() == stringId) {
                 principalPoint = true;
             }
-            if (result.GetScope() == "app") {
-                applicationPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
-            } else if (result.GetScope() == "sys") {
-                systemPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
-            } else if (result.GetScope() == "sysWarning") {
-                sysWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
-            }
+            HandeleScopePair(result, stringId, domain, principalPoint);
         }
+    }
+}
+void FreezeRuleCluster::HandeleScopePair(const FreezeResult &result,
+                                         const std::string &stringId,
+                                         const std::string &domain,
+                                         bool principalPoint)
+{
+    std::string scope = result.GetScope();
+    if (scope == "app") {
+        applicationPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
+    } else if (scope == "sys") {
+        systemPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
+    } else if (scope == "sysWarning") {
+        sysWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
+    } else if (scope == "appFreezeWarning") {
+        appFreezeWarningPairs_[stringId] = std::pair<std::string, bool>(domain, principalPoint);
     }
 }
 
@@ -279,6 +289,11 @@ std::map<std::string, std::pair<std::string, bool>> FreezeRuleCluster::GetSystem
 std::map<std::string, std::pair<std::string, bool>> FreezeRuleCluster::GetSysWarningPairs() const
 {
     return sysWarningPairs_;
+}
+
+std::map<std::string, std::pair<std::string, bool>> FreezeRuleCluster::GetAppFreezeWarningPairs() const
+{
+    return appFreezeWarningPairs_;
 }
 
 std::string FreezeResult::GetDomain() const

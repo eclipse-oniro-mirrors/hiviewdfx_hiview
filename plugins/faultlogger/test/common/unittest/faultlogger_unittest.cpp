@@ -888,6 +888,8 @@ HWTEST_F(FaultloggerUnittest, WriteFaultLogToFile001, testing::ext::TestSize.Lev
     FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
     info.faultLogType = FaultLogType::SYS_WARNING;
     FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
+    info.faultLogType = FaultLogType::APPFREEZE_WARNING;
+    FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
     info.faultLogType = FaultLogType::RUST_PANIC;
     FaultLogger::WriteFaultLogToFile(0, info.faultLogType, info.sectionMap);
     info.faultLogType = FaultLogType::ADDR_SANITIZER;
@@ -1013,8 +1015,9 @@ std::string GetTargetFileName(int32_t faultLogType, int64_t time)
         {4, "appfreeze"}, // 4 : faultLogType to appfreeze
         {5, "sysfreeze"}, // 5 : faultLogType to sysfreeze
         {6, "syswarning"}, // 6 : faultLogType to syswarning
-        {7, "rustpanic"}, // 7 : faultLogType to rustpanic
-        {8, "sanitizer"}, // 8 : faultLogType to sanitizer
+        {7, "appfreezewarning"}, // 7 : faultLogType to appfreezewarning
+        {8, "rustpanic"}, // 8 : faultLogType to rustpanic
+        {9, "sanitizer"}, // 9 : faultLogType to sanitizer
     };
     std::string fileName = fileNames_[faultLogType];
     return fileName + "-FaultloggerUnittest1111-0-" + GetFormatedTimeWithMillsec(time) + ".log";
@@ -1108,6 +1111,8 @@ HWTEST_F(FaultloggerUnittest, GetFaultLogFilePathTest001, testing::ext::TestSize
 
     faultLogFilePath = faultLogManager->GetFaultLogFilePath(FaultLogType::SYS_WARNING, fileName);
     ASSERT_EQ(faultLogFilePath, "/data/log/warninglog/com.freeze.test001-202506023.log");
+    faultLogFilePath = faultLogManager->GetFaultLogFilePath(FaultLogType::APPFREEZE_WARNING, fileName);
+    ASSERT_EQ(faultLogFilePath, "/data/log/warninglog/com.freeze.test001-202506023.log");
 }
 
 /**
@@ -1127,6 +1132,10 @@ HWTEST_F(FaultloggerUnittest, GetFaultLogFileFdTest001, testing::ext::TestSize.L
     close(faultLogFileFd);
 
     faultLogFileFd = faultLogManager->GetFaultLogFileFd(FaultLogType::SYS_WARNING, fileName);
+    ASSERT_TRUE(faultLogFileFd > 0);
+    close(faultLogFileFd);
+
+    faultLogFileFd = faultLogManager->GetFaultLogFileFd(FaultLogType::APPFREEZE_WARNING, fileName);
     ASSERT_TRUE(faultLogFileFd > 0);
     close(faultLogFileFd);
 }
@@ -1235,6 +1244,9 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest005, testing::ext::TestSize.Level3
     ASSERT_EQ(GetFaultNameByType(FaultLogType::SYS_WARNING, true), "syswarning");
     ASSERT_EQ(GetFaultNameByType(FaultLogType::SYS_WARNING, false), "SYS_WARNING");
 
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::APPFREEZE_WARNING, true), "appfreezewarning");
+    ASSERT_EQ(GetFaultNameByType(FaultLogType::APPFREEZE_WARNING, false), "APPFREEZE_WARNING");
+
     ASSERT_EQ(GetFaultNameByType(FaultLogType::RUST_PANIC, true), "rustpanic");
     ASSERT_EQ(GetFaultNameByType(FaultLogType::RUST_PANIC, false), "RUST_PANIC");
 
@@ -1260,6 +1272,7 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest006, testing::ext::TestSize.Level3
     ASSERT_EQ(GetLogTypeByName("appfreeze"), FaultLogType::APP_FREEZE);
     ASSERT_EQ(GetLogTypeByName("sysfreeze"), FaultLogType::SYS_FREEZE);
     ASSERT_EQ(GetLogTypeByName("syswarning"), FaultLogType::SYS_WARNING);
+    ASSERT_EQ(GetLogTypeByName("appfreezewarning"), FaultLogType::APPFREEZE_WARNING);
     ASSERT_EQ(GetLogTypeByName("sanitizer"), FaultLogType::ADDR_SANITIZER);
     ASSERT_EQ(GetLogTypeByName("cjerror"), FaultLogType::CJ_ERROR);
     ASSERT_EQ(GetLogTypeByName("all"), FaultLogType::ALL);
@@ -1279,6 +1292,21 @@ HWTEST_F(FaultloggerUnittest, FaultLogUtilTest007, testing::ext::TestSize.Level3
     info.time = 123456789;
     auto fileName = GetDebugSignalTempLogName(info);
     ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-123-123456789");
+}
+
+/**
+ * @tc.name: FaultLogUtilTest008
+ * @tc.desc: check ExtractInfoFromFileName Func
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogUtilTest008, testing::ext::TestSize.Level3)
+{
+    std::string filename = "appfreezewarning-com.ohos.systemui-10006-20170805172159";
+    auto info = ExtractInfoFromFileName(filename);
+    ASSERT_EQ(info.pid, 0);
+    ASSERT_EQ(info.faultLogType, FaultLogType::APPFREEZE_WARNING); // 7 : APPFREEZE_WARNING
+    ASSERT_EQ(info.module, "com.ohos.systemui");
+    ASSERT_EQ(info.id, 10006); // 10006 : test uid
 }
 
 /**
@@ -2115,6 +2143,8 @@ HWTEST_F(FaultloggerUnittest, FaultlogUtilUnittest002, testing::ext::TestSize.Le
     ASSERT_EQ(result, "SYS_FREEZE");
     result = GetFaultNameByType(FaultLogType::SYS_WARNING, false);
     ASSERT_EQ(result, "SYS_WARNING");
+    result = GetFaultNameByType(FaultLogType::APPFREEZE_WARNING, false);
+    ASSERT_EQ(result, "APPFREEZE_WARNING");
     result = GetFaultNameByType(FaultLogType::CJ_ERROR, false);
     ASSERT_EQ(result, "CJ_ERROR");
 }

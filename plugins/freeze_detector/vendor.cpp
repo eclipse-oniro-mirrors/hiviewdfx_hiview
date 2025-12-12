@@ -45,6 +45,7 @@ namespace {
     constexpr const char* APPFREEZE = "appfreeze";
     constexpr const char* SYSFREEZE = "sysfreeze";
     constexpr const char* SYSWARNING = "syswarning";
+    constexpr const char* APPFREEZEWARNING = "appfreezewarning";
     constexpr const char* FAULT_LOGGER_PATH = "/data/log/faultlog/faultlogger/";
     constexpr const char* COLON = ":";
     constexpr const char* EVENT_DOMAIN = "DOMAIN";
@@ -103,8 +104,8 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.time = watchPoint.GetTimestamp();
     info.id = static_cast<uint32_t>(watchPoint.GetUid());
     info.pid = watchPoint.GetPid();
-    info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : ((type == SYSFREEZE) ?
-        FaultLogType::SYS_FREEZE : FaultLogType::SYS_WARNING);
+    info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : (type == SYSFREEZE) ?
+        FaultLogType::SYS_FREEZE : (type == SYSWARNING) ? FaultLogType::SYS_WARNING : FaultLogType::APPFREEZE_WARNING;
     info.module = processName;
     info.reason = stringId;
     std::string disPlayPowerInfo = GetDisPlayPowerInfo();
@@ -248,8 +249,9 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
         type = FaultLogType::SYS_WARNING;
     } else {
         type = freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? APPFREEZE :
-            (freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ?
-            SYSFREEZE : SYSWARNING);
+            freezeCommon_->IsSystemEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ? SYSFREEZE :
+            freezeCommon_->IsSysWarningEvent(watchPoint.GetDomain(), watchPoint.GetStringId()) ?
+            SYSWARNING : APPFREEZEWARNING;
     }
     pubLogPathName = processName + std::string(HYPHEN) + std::to_string(uid) + std::string(HYPHEN) + timestamp +
         std::string(HYPHEN) + std::to_string(watchPoint.GetTimestamp());
@@ -313,16 +315,23 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
 bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
     const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
 {
-    if (stringId != "SERVICE_WARNING" && stringId != "THREAD_BLOCK_3S") {
+    bool isAppHalfEvent = (stringId == "THREAD_BLOCK_3S" || stringId == "LIFECYCLE_HALF_TIMEOUT");
+    bool isSysHalfEvent = (stringId == "SERVICE_WARNING");
+    if (!isAppHalfEvent && !isSysHalfEvent) {
         return true;
-    }
-
-    if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) == std::end(KEY_PROCESS)) {
-        return false;
     }
 
     if (list.size() != SYS_MATCH_NUM) {
         HIVIEW_LOGW("Not meeting the requirements for syswarning reporting.");
+        return false;
+    }
+
+    if (isAppHalfEvent) {
+        type = APPFREEZEWARNING;
+        return true;
+    }
+
+    if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) == std::end(KEY_PROCESS)) {
         return false;
     }
     type = SYSWARNING;
@@ -344,6 +353,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     if (!JudgeSysWarningEvent(watchPoint.GetStringId(), type, processName, list, result)) {
         return "";
     }
+    CovertHighLoadToWarning(type, watchPoint);
     pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
@@ -386,7 +396,17 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint));
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
-
+void Vendor::CovertHighLoadToWarning(std::string& type, WatchPoint& watchPoint) const
+{
+    std::string hostResourceWarning = watchPoint.GetHostResourceWarning();
+    std::string stringId = watchPoint.GetStringId();
+    if (hostResourceWarning == "YES") {
+        type = (stringId == "THREAD_BLOCK_3S" || stringId == "THREAD_BLOCK_6S" ||
+            stringId == "LIFECYCLE_HALF_TIMEOUT" ||
+            stringId == "LIFECYCLE_TIMEOUT") ?
+            APPFREEZEWARNING : SYSWARNING;
+    }
+}
 bool Vendor::Init()
 {
     if (freezeCommon_ == nullptr) {

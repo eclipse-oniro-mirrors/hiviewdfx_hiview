@@ -23,6 +23,7 @@
 #include "string_util.h"
 #include "sys_event.h"
 #include "sys_event_dao.h"
+#include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -106,8 +107,11 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
         return list.size() >= MIN_MATCH_NUM;
     }
 
-    if ((watchPoint.GetStringId() == "SERVICE_WARNING" || watchPoint.GetStringId() ==
-        "THREAD_BLOCK_3S") && (list.size() == result.size() - SYS_MATCH_NUM)) {
+    if (IsSysWarning(watchPoint, list, result)) {
+        return true;
+    }
+
+    if (IsAppFreezeWarningForBetaVersion(watchPoint, list, result)) {
         return true;
     }
 
@@ -115,12 +119,27 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
         return true;
     }
     if (watchPoint.GetStringId() == "APP_INPUT_BLOCK"
-        && (list.size() == result.size() - APP_MATCH_NUM)) {
+        && (list.size() >= result.size() - APP_MATCH_NUM)) {
         return true;
     }
     return false;
 }
 
+bool FreezeResolver::IsSysWarning(const WatchPoint& watchPoint,
+    const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
+{
+    return watchPoint.GetStringId() == "SERVICE_WARNING" &&
+        (list.size() == result.size() - SYS_MATCH_NUM);
+}
+
+bool FreezeResolver::IsAppFreezeWarningForBetaVersion(const WatchPoint& watchPoint,
+    const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
+{
+    return (watchPoint.GetStringId() == "THREAD_BLOCK_3S" ||
+            watchPoint.GetStringId() == "LIFECYCLE_HALF_TIMEOUT") &&
+            (list.size() == result.size() - APP_MATCH_NUM) &&
+            Parameter::IsBetaVersion();
+}
 int FreezeResolver::ProcessEvent(const WatchPoint &watchPoint) const
 {
     HIVIEW_LOGI("process event [%{public}s, %{public}s, %{public}lu]",

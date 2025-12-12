@@ -92,6 +92,7 @@ ohos_unittest("FreezeDetectorUnittest") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "hiview:libfaultlogger",
     "ipc:ipc_single",

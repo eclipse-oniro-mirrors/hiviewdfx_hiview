@@ -24,6 +24,7 @@
 #include "plugin.h"
 #include "watch_point.h"
 #include "resolver.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -66,6 +67,7 @@ public:
     void OnUnload() override;
     bool CanProcessEvent(std::shared_ptr<Event> event) override;
     void OnEventListeningCallback(const Event& msg) override;
+    void ScheduleEventProcessing(const WatchPoint &watchpoint, const std::vector<FreezeResult> &freezeResultList);
 
 private:
 
@@ -76,6 +78,7 @@ private:
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::unique_ptr<FreezeResolver> freezeResolver_ = nullptr;
+    std::unique_ptr<ffrt::queue> warningQueue_ = nullptr;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

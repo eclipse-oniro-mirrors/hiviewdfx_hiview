@@ -125,6 +125,8 @@ std::string FaultLogInfo::GetStringFaultType() const
             return "SysFreeze";
         case SYS_WARNING:
             return "SysWarning";
+        case APPFREEZE_WARNING:
+            return "AppFreezeWarning";
         default:
             return "UnknownFaultType";
     }

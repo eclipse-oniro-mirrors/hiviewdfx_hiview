@@ -176,21 +176,24 @@ HWTEST_F(FaultloggerClientUnittest, FaultLogInfoTest001, testing::ext::TestSize.
     ASSERT_EQ(info.GetModuleName(), "some module");
     info.SetFaultSummary("some summary");
     ASSERT_EQ(info.GetFaultSummary(), "some summary");
-    info.SetFaultType(2);
+    info.SetFaultType(FaultLogType::CPP_CRASH);
     ASSERT_EQ(info.GetFaultType(), 2);
     ASSERT_EQ(info.GetStringFaultType(), "CppCrash");
-    info.SetFaultType(3);
+    info.SetFaultType(FaultLogType::JS_CRASH);
     ASSERT_EQ(info.GetFaultType(), 3);
     ASSERT_EQ(info.GetStringFaultType(), "JsCrash");
-    info.SetFaultType(4);
+    info.SetFaultType(FaultLogType::APP_FREEZE);
     ASSERT_EQ(info.GetFaultType(), 4);
     ASSERT_EQ(info.GetStringFaultType(), "AppFreeze");
-    info.SetFaultType(5);
+    info.SetFaultType(FaultLogType::APP_FREEZE);
     ASSERT_EQ(info.GetFaultType(), 5);
-    ASSERT_EQ(info.GetStringFaultType(), "SysFreeze");
-    info.SetFaultType(6);
+    ASSERT_EQ(info.GetStringFaultType(), "SYS_FREEZE");
+    info.SetFaultType(FaultLogType::SYS_WARNING);
     ASSERT_EQ(info.GetFaultType(), 6);
     ASSERT_EQ(info.GetStringFaultType(), "SysWarning");
+    info.SetFaultType(FaultLogType::APPFREEZE_WARNING);
+    ASSERT_EQ(info.GetFaultType(), 7);
+    ASSERT_EQ(info.GetStringFaultType(), "AppFreezeWarning");
 }
 } // namespace HiviewDFX
 } // namespace OHOS

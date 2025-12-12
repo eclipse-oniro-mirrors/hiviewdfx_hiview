@@ -51,6 +51,8 @@ void FaultLogManagerService::AddFaultLog(FaultLogInfo& info)
     auto processor = factory.CreateFaultLogProcessor(static_cast<FaultLogType>(info.faultLogType));
     if (processor) {
         processor->AddFaultLog(info, workLoop_, faultLogManager_);
+    } else {
+        HIVIEW_LOGW("Failed to create the faultlog processor");
     }
 }
 

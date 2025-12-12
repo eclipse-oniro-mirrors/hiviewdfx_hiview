@@ -2,7 +2,7 @@
     "domains": [
         {
             "domain": "RELIABILITY",
-            "include": ["CPP_CRASH", "CPP_CRASH_EXCEPTION", "APP_FREEZE", "RUST_PANIC", "ADDR_SANITIZER", "SYS_FREEZE", "SYS_WARNING"]
+            "include": ["CPP_CRASH", "CPP_CRASH_EXCEPTION", "APP_FREEZE", "RUST_PANIC", "ADDR_SANITIZER", "SYS_FREEZE", "SYS_WARNING", "APPFREEZE_WARNING"]
         },
         {
             "domain": "ACE",
