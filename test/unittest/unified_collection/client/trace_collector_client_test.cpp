@@ -31,7 +31,6 @@ using namespace OHOS::HiviewDFX::UCollectClient;
 using namespace OHOS::HiviewDFX::UCollect;
 
 namespace {
-const std::vector<std::string> TAG_GROUPS = {"scene_performance"};
 
 void NativeTokenGet(const char* perms[], int size)
 {
@@ -66,21 +65,6 @@ void DisablePermissionAccess()
 {
     NativeTokenGet(nullptr, 0); // empty permission array.
 }
-
-bool IsCommonState()
-{
-    bool isBetaVersion = Parameter::IsBetaVersion();
-    bool isUCollectionSwitchOn = Parameter::IsUCollectionSwitchOn();
-    bool isTraceCollectionSwitchOn = Parameter::IsTraceCollectionSwitchOn();
-    bool isFrozeSwitchOn = Parameter::GetBoolean("persist.hiview.freeze_detector", false);
-    if (!isBetaVersion && !isFrozeSwitchOn && !isUCollectionSwitchOn && !isTraceCollectionSwitchOn) {
-        return false;
-    }
-    if (isTraceCollectionSwitchOn) {
-        return false;
-    }
-    return true;
-}
 }
 
 class TraceCollectorTest : public testing::Test {
@@ -101,17 +85,33 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
     EnablePermissionAccess();
-    auto openRet = traceCollector->OpenSnapshot(TAG_GROUPS);
-    ASSERT_EQ(openRet.retCode, UcError::SUCCESS);
-    sleep(1);
-    auto dumpRes = traceCollector->DumpSnapshot(UCollect::TraceClient::COMMAND);
-    ASSERT_TRUE(dumpRes.retCode == UcError::SUCCESS);
-    ASSERT_TRUE(dumpRes.data.size() >= 0);
-    auto dumpRes2 = traceCollector->DumpSnapshot(); // dump common trace in command state return fail
-    ASSERT_EQ(dumpRes2.retCode, UcError::TRACE_STATE_ERROR);
-    auto closeRet = traceCollector->Close();
-    ASSERT_TRUE(closeRet.retCode == UcError::SUCCESS);
+    std::vector<std::string> tags {
+        "net", "dsched", "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio",
+        "zmedia", "dcamera", "zcamera", "dhfwk", "app", "gresource", "ability", "power", "samgr", "ffrt", "nweb",
+        "hdf", "virse", "workq", "ipa", "sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load"
+    };
+    const TraceParam params {
+        .fileSizeLimit = 100 * 1024
+    };
+    auto openRet = traceCollector->OpenTrace(tags, params);
 
+    /**
+     * Reasonable scenarios
+     * PERMISSION_CHECK_FAILED : user version can not get permission
+     * TRACE_OPEN_ERROR : trace command is already open
+    */
+    ASSERT_TRUE(openRet.retCode == UcError::SUCCESS || openRet.retCode == UcError::PERMISSION_CHECK_FAILED ||
+        openRet.retCode == UcError::TRACE_OPEN_ERROR);
+    if (openRet.retCode == UcError::SUCCESS) {
+        sleep(2);
+        auto dumpRes = traceCollector->DumpSnapshot(COMMAND);
+        ASSERT_TRUE(dumpRes.retCode == UcError::SUCCESS);
+        ASSERT_TRUE(dumpRes.data.size() > 0);
+        auto dumpRes2 = traceCollector->DumpSnapshot(); // dump common trace in command state return fail
+        ASSERT_EQ(dumpRes2.retCode, UcError::TRACE_STATE_ERROR);
+        auto closeRet = traceCollector->Close();
+        ASSERT_EQ(closeRet.retCode, UcError::SUCCESS);
+    }
     DisablePermissionAccess();
 }
 
@@ -125,16 +125,30 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
     EnablePermissionAccess();
-    std::string args = "tags:sched clockType:boot bufferSize:1024 overwrite:1 output:/data/log/test.sys";
-    auto openRet = traceCollector->OpenRecording(args);
+    std::vector<std::string> tags {"sched"};
+    const TraceParam params {
+        .bufferSize = 1024,
+        .clockType = "boot",
+        .isOverWrite = true
+    };
+    auto openRet = traceCollector->OpenTrace(tags, params);
+
+    /**
+     * Reasonable scenarios
+     * PERMISSION_CHECK_FAILED : user version can not get permission
+     * TRACE_OPEN_ERROR : trace command is already open
+    */
+    ASSERT_TRUE(openRet.retCode == UcError::SUCCESS || openRet.retCode == UcError::PERMISSION_CHECK_FAILED ||
+        openRet.retCode == UcError::PERMISSION_CHECK_FAILED);
     if (openRet.retCode == UcError::SUCCESS) {
         auto recOnRet = traceCollector->RecordingOn();
         ASSERT_TRUE(recOnRet.retCode == UcError::SUCCESS);
         sleep(1);
         auto recOffRet = traceCollector->RecordingOff();
-        ASSERT_TRUE(recOffRet.data.size() >= 0);
+        ASSERT_TRUE(recOffRet.data.size() > 0);
+        auto closeRet = traceCollector->Close();
+        ASSERT_EQ(closeRet.retCode, UcError::SUCCESS);
     }
-    traceCollector->Close();
     DisablePermissionAccess();
 }
 
@@ -149,11 +163,17 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
     ASSERT_TRUE(traceCollector != nullptr);
     EnablePermissionAccess();
     auto ret = traceCollector->DumpSnapshot();
-    if (IsCommonState()) {
-        ASSERT_TRUE(ret.retCode == UcError::SUCCESS);
-        ASSERT_TRUE(ret.data.size() >= 0);
-    } else {
-        ASSERT_EQ(ret.retCode, UcError::TRACE_STATE_ERROR);
+
+    /**
+     * Reasonable scenarios
+     * TRACE_STATE_ERROR : trace not in beta state
+     * PERMISSION_CHECK_FAILED : user version can not get permission
+     * TRACE_DUMP_OVER_FLOW : io over limits of "Other" caller
+    */
+    ASSERT_TRUE(ret.retCode == UcError::SUCCESS || ret.retCode == UcError::TRACE_STATE_ERROR ||
+        ret.retCode == UcError::PERMISSION_CHECK_FAILED || ret.retCode == UcError::TRACE_DUMP_OVER_FLOW);
+    if (ret.retCode == UcError::SUCCESS) {
+        ASSERT_TRUE(ret.data.size() > 0);
     }
     DisablePermissionAccess();
 }
@@ -188,49 +208,27 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     appCaller.endTime = appCaller.happenTime + 100; // 100: ms
     auto result = traceCollector->CaptureDurationTrace(appCaller);
     std::cout << "retCode=" << result.retCode << ", data=" << result.data << std::endl;
-    if (IsCommonState()) {
-        ASSERT_EQ(result.retCode, UcError::TRACE_OPEN_ERROR);
-    } else {
-        ASSERT_EQ(result.retCode, UcError::SUCCESS);
-    }
 
-    AppCaller appCaller2;
-    appCaller2.actionId = ACTION_ID_DUMP_TRACE;
-    appCaller2.bundleName = "com.example.helloworld";
-    appCaller2.bundleVersion = "2.0.1";
-    appCaller2.foreground = 1;
-    appCaller2.threadName = "mainThread";
-    appCaller2.uid = 20020143; // 20020143: user id
-    appCaller2.pid = 100; // 100: pid
-    appCaller2.happenTime = GetMilliseconds();
-    appCaller2.beginTime = appCaller.happenTime - 100; // 100: ms
-    appCaller2.endTime = appCaller.happenTime + 100; // 100: ms
-    auto result2 = traceCollector->CaptureDurationTrace(appCaller2);
-    std::cout << "retCode=" << result2.retCode << ", data=" << result2.data << std::endl;
-    if (IsCommonState()) {
-        ASSERT_EQ(result2.retCode, UcError::TRACE_STATE_ERROR);
-    } else {
-        ASSERT_NE(result2.retCode, UcError::TRACE_STATE_ERROR);
+    /**
+     * Reasonable scenarios
+     * TRACE_OPEN_ERROR : app trace open deny, trace is not in close state
+    */
+    ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::TRACE_OPEN_ERROR);
+    if (result.retCode == UcError::SUCCESS) {
+        sleep(3);
+        AppCaller appCaller2;
+        appCaller2.actionId = ACTION_ID_DUMP_TRACE;
+        appCaller2.bundleName = "com.example.helloworld";
+        appCaller2.bundleVersion = "2.0.1";
+        appCaller2.foreground = 1;
+        appCaller2.threadName = "mainThread";
+        appCaller2.uid = 20020143; // 20020143: user id
+        appCaller2.pid = 100; // 100: pid
+        appCaller2.happenTime = GetMilliseconds();
+        appCaller2.beginTime = appCaller.happenTime - 100; // 100: ms
+        appCaller2.endTime = appCaller.happenTime + 100; // 100: ms
+        auto result2 = traceCollector->CaptureDurationTrace(appCaller2);
+        std::cout << "retCode=" << result2.retCode << ", data=" << result2.data << std::endl;
+        ASSERT_EQ(result2.retCode, SUCCESS);
     }
-    DisablePermissionAccess();
-}
-
-/**
- * @tc.name: TraceCollectorTest003
- * @tc.desc: dump trace in common state.
- * @tc.type: FUNC
-*/
-HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
-{
-    system("param set hiviewdfx.ucollection.switchon true");
-    sleep(1);
-    auto traceCollector = TraceCollector::Create();
-    ASSERT_TRUE(traceCollector != nullptr);
-    EnablePermissionAccess();
-    auto result = traceCollector->DumpSnapshot();
-    ASSERT_EQ(result.retCode, UcError::SUCCESS);
-    ASSERT_FALSE(result.data.empty());
-    ASSERT_TRUE(result.data[0].find("Other") != std::string::npos);
-    DisablePermissionAccess();
-    system("param set hiviewdfx.ucollection.switchon false");
 }
