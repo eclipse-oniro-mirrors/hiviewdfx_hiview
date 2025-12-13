@@ -27,7 +27,7 @@ namespace {
 DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Ets");
 
 constexpr const char* const FAU_EXTENSION_CONTEXT_CLASS_NAME =
-    "L@ohos/hiviewdfx/FaultLogExtensionContext/FaultLogExtensionContext;";
+    "@ohos.hiviewdfx.FaultLogExtensionContext.FaultLogExtensionContext";
 
 using namespace OHOS::AbilityRuntime;
 class EtsFaultLogExtensionContext final {
