@@ -221,6 +221,10 @@ void FaultLogProcessorBase::AddBundleInfo(FaultLogInfo& info)
         return;
     }
 
+    if (info.module.find("arkwebcore") == std::string::npos) {
+        info.id = bundleInfo.uid;
+    }
+
     if (!bundleInfo.versionName.empty()) {
         info.sectionMap[FaultKey::MODULE_VERSION] = bundleInfo.versionName;
         info.sectionMap[FaultKey::VERSION_CODE] = std::to_string(bundleInfo.versionCode);

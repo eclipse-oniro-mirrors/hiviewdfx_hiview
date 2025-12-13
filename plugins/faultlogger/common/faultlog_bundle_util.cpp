@@ -86,6 +86,7 @@ bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo)
         HILOG_INFO(LOG_CORE, "The version of %{public}s is %{public}s", bundleName.c_str(),
             info.versionName.c_str());
     }
+    bundleInfo.uid = info.uid;
     bundleInfo.cpuAbi = info.applicationInfo.cpuAbi;
     bundleInfo.releaseType = info.applicationInfo.debug ? "debug" : "release";
     bundleInfo.isPreInstalled = info.isPreInstallApp;

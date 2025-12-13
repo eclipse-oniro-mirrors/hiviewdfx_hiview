@@ -34,6 +34,7 @@ struct DfxBundleInfo {
     std::string versionName;
     std::string cpuAbi;
     std::string releaseType;
+    int uid;
 };
 
 bool IsModuleNameValid(const std::string& name);
