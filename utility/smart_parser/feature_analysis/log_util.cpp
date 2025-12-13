@@ -77,7 +77,7 @@ void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, stri
             continue;
         }
 
-        if (regex_match(line, matches, regex("^Tid:\\d+, Name:.*$"))) {
+        if (regex_match(line, matches, regex("^Tid:\\d+, Name:.{0,64}|Thread name:.{0,64}$"))) {
             break; // match new thread break
         }
 
