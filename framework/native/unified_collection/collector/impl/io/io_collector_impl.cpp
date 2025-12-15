@@ -43,18 +43,16 @@ constexpr int DISK_STATS_SIZE = 12;
 constexpr int DISK_STATS_PERIOD = 2;
 constexpr int PROC_IO_STATS_PERIOD = 2;
 constexpr int EMMC_INFO_SIZE_RATIO = 2 * 1024 * 1024;
-constexpr int MAX_FILE_NUM = 10;
+constexpr int32_t MAX_FILE_NUM = 10;
 constexpr char MMC[] = "mmc";
 constexpr char EXPORT_FILE_SUFFIX[] = ".txt";
-constexpr char EXPORT_FILE_REGEX[] = "[0-9]{14}(.*)";
-constexpr char UNDERLINE[] = "_";
 constexpr char RAW_DISK_STATS_FILE_PREFIX[] = "proc_diskstats_";
 constexpr char DISK_STATS_FILE_PREFIX[] = "proc_diskstats_statistics_";
 constexpr char EMMC_INFO_FILE_PREFIX[] = "emmc_info_";
 constexpr char PROC_IO_STATS_FILE_PREFIX[] = "proc_io_stats_";
 constexpr char SYS_IO_STATS_FILE_PREFIX[] = "sys_io_stats_";
 constexpr char PROC_DISKSTATS[] = "/proc/diskstats";
-constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io/";
+constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io";
 }
 
 std::shared_ptr<IoCollector> IoCollector::Create()
@@ -121,63 +119,10 @@ CollectResult<ProcessIo> IoCollectorImpl::CollectProcessIo(int32_t pid)
     return result;
 }
 
-static void GetDirRegexFiles(const std::string& path, const std::string& pattern,
-    std::vector<std::string>& files)
-{
-    DIR* dir = opendir(path.c_str());
-    if (dir == nullptr) {
-        HIVIEW_LOGE("failed to open dir=%{public}s", path.c_str());
-        return;
-    }
-    std::regex reg = std::regex(pattern);
-    while (true) {
-        struct dirent* ptr = readdir(dir);
-        if (ptr == nullptr) {
-            break;
-        }
-        if (ptr->d_type == DT_REG) {
-            if (regex_match(ptr->d_name, reg)) {
-                files.push_back(FileUtil::IncludeTrailingPathDelimiter(path) + std::string(ptr->d_name));
-            }
-        }
-    }
-    closedir(dir);
-    std::sort(files.begin(), files.end());
-}
-
 std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
 {
     std::unique_lock<std::mutex> lock(exportFileMutex_);
-    if (!FileUtil::IsDirectory(COLLECTION_IO_PATH) && !FileUtil::ForceCreateDirectory(COLLECTION_IO_PATH)) {
-        HIVIEW_LOGE("failed to create dir=%{public}s", COLLECTION_IO_PATH);
-        return "";
-    }
-
-    std::vector<std::string> files;
-    GetDirRegexFiles(COLLECTION_IO_PATH, filePrefix + EXPORT_FILE_REGEX, files);
-    if (files.size() >= MAX_FILE_NUM) {
-        for (size_t index = 0; index <= files.size() - MAX_FILE_NUM; ++index) {
-            HIVIEW_LOGI("remove file=%{public}s", files[index].c_str());
-            (void)FileUtil::RemoveFile(files[index]);
-        }
-    }
-
-    uint64_t fileTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
-    std::string timeFormat = TimeUtil::TimestampFormatToDate(fileTime, "%Y%m%d%H%M%S");
-    std::string fileName;
-    fileName.append(COLLECTION_IO_PATH).append(filePrefix).append(timeFormat);
-    if (!files.empty()) {
-        auto startPos = files.back().find(timeFormat);
-        if (startPos != std::string::npos) {
-            // yyyymmddHHMMSS_1.txt
-            int fileNameNum = CommonUtil::GetFileNameNum(files.back().substr(startPos), EXPORT_FILE_SUFFIX);
-            fileName.append(UNDERLINE).append(std::to_string(++fileNameNum));
-        }
-    }
-    fileName.append(EXPORT_FILE_SUFFIX);
-    (void)FileUtil::CreateFile(fileName);
-    HIVIEW_LOGI("create file=%{public}s", fileName.c_str());
-    return fileName;
+    return CommonUtil::CreateExportFile(COLLECTION_IO_PATH, MAX_FILE_NUM, filePrefix, EXPORT_FILE_SUFFIX);
 }
 
 CollectResult<std::string> IoCollectorImpl::CollectRawDiskStats()

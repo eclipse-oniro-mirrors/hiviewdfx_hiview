@@ -19,6 +19,7 @@
 #include <regex>
 #include <string>
 
+#include "collector_test_common.h"
 #include "common_utils.h"
 #include "file_util.h"
 #include "string_util.h"
@@ -78,6 +79,7 @@ const std::string RAW_SLAB_STR3("^(\\w{1,} - version: )[\\d\\.]{1,}|# ?name\\s{1
 const std::string RAW_SLAB_STR4("( <\\w{1,}>){5} : tunables( <\\w{1,}>){3} : slabdata( <\\w{1,}>){3,5}$");
 const std::regex RAW_SLAB_INFO2(RAW_SLAB_STR3 + RAW_SLAB_STR4);
 const std::regex RAW_SLAB_INFO3("-{52}");
+const std::size_t MAX_FILE_SAVE_SIZE = 10;
 
 bool HasValidAILibrary()
 {
@@ -383,6 +385,46 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest017, TestSize.Level1)
     ASSERT_EQ(data2.retCode, UcError::SUCCESS);
     auto data3 = collector->CollectProcessMemoryDetail(1, GraphicMemOption::LOW_MEMORY);
     ASSERT_EQ(data3.retCode, UcError::SUCCESS);
+}
+
+/**
+ * @tc.name: MemoryCollectorTest018
+ * @tc.desc: used to test file clean
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemoryCollectorTest, MemoryCollectorTest018, TestSize.Level3)
+{
+    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
+    auto task1 = [&collector] { return collector->CollectRawMemInfo(); };
+    FileCleanTest(task1, MEMINFO_SAVE_DIR, "proc_meminfo_", MAX_FILE_SAVE_SIZE);
+
+    if (FileUtil::FileExists("/proc/memview")) {
+        auto task2 = [&collector] { return collector->ExportMemView(); };
+        FileCleanTest(task2, MEMINFO_SAVE_DIR, "proc_memview_", MAX_FILE_SAVE_SIZE);
+    }
+
+    auto task3 = [&collector] { return collector->ExportAllProcessMemory(); };
+    FileCleanTest(task3, MEMINFO_SAVE_DIR, "all_processes_mem_", MAX_FILE_SAVE_SIZE);
+
+    auto task4 = [&collector] { return collector->CollectRawSlabInfo(); };
+    FileCleanTest(task4, MEMINFO_SAVE_DIR, "proc_slabinfo_", MAX_FILE_SAVE_SIZE);
+
+    auto task5 = [&collector] { return collector->CollectRawPageTypeInfo(); };
+    FileCleanTest(task5, MEMINFO_SAVE_DIR, "proc_pagetypeinfo_", MAX_FILE_SAVE_SIZE);
+
+    auto task6 = [&collector] { return collector->CollectRawDMA(); };
+    FileCleanTest(task6, MEMINFO_SAVE_DIR, "proc_process_dmabuf_info_", MAX_FILE_SAVE_SIZE);
+
+    if (HasValidAILibrary()) {
+        auto task7 = [&collector] { return collector->ExportAllAIProcess(); };
+        FileCleanTest(task7, MEMINFO_SAVE_DIR, "all_ai_processes_mem_", MAX_FILE_SAVE_SIZE);
+    }
+
+    auto task8 = [&collector] {
+        (void)collector->CollectRawSmaps(1);
+        return collector->CollectRawSmaps(CommonUtils::GetPidByName("hiview"));
+    };
+    FileCleanTest(task8, MEMINFO_SAVE_DIR, "proc_smaps_", MAX_FILE_SAVE_SIZE);
 }
 #else
 /**

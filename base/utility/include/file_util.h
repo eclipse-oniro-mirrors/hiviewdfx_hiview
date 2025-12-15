@@ -67,7 +67,6 @@ bool SaveStringToFd(int fd, const std::string& content);
 bool LoadBufferFromFile(const std::string& filePath, std::vector<char>& content);
 bool SaveBufferToFile(const std::string& filePath, const std::vector<char>& content, bool truncated = true);
 bool FileExists(const std::string& fileName);
-bool FileExistsA(const std::string& fileName);
 int32_t CreateFile(const std::string &path, mode_t mode = DEFAULT_FILE_MODE);
 
 // directory_ex.h

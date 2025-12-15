@@ -17,6 +17,7 @@
 #include <regex>
 #include <string>
 
+#include "collector_test_common.h"
 #include "io_collector.h"
 
 #include <gtest/gtest.h>
@@ -48,6 +49,8 @@ const std::regex EMMC_INFO2("^[\\w\\.\\s]{15,}([\\w\\s]{10}){3}[\\s\\d\\.]{12}$"
 // %-12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.2f
 const std::regex SYS_IO_STATS1("^\\d{1,}\\.\\d{2}(\\s{1,}\\d{1,}\\.\\d{2}){5}$");
 const std::regex SYS_IO_STATS2("^[\\d\\s\\.]{12}([\\d\\s\\.]{13}){5}$");
+constexpr int32_t MAX_FILE_NUM = 10;
+constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io";
 
 bool CheckFormat(const std::string &fileName, const std::regex &reg1, const std::regex &reg2)
 {
@@ -267,6 +270,30 @@ HWTEST_F(IoCollectorTest, IoCollectorTest012, TestSize.Level1)
     ASSERT_TRUE(result.retCode == UcError::SUCCESS);
     bool flag = CheckFormat(result.data, SYS_IO_STATS1, SYS_IO_STATS2);
     ASSERT_TRUE(flag);
+}
+
+/**
+ * @tc.name: IoCollectorTest013
+ * @tc.desc: used to test file clean
+ * @tc.type: FUNC
+*/
+HWTEST_F(IoCollectorTest, IoCollectorTest013, TestSize.Level3)
+{
+    std::shared_ptr<IoCollector> collect = IoCollector::Create();
+    auto task1 = [&collect] { return collect->CollectRawDiskStats(); };
+    FileCleanTest(task1, COLLECTION_IO_PATH, "proc_diskstats_", MAX_FILE_NUM);
+
+    auto task2 = [&collect] { return collect->ExportDiskStats(); };
+    FileCleanTest(task2, COLLECTION_IO_PATH, "proc_diskstats_statistics_", MAX_FILE_NUM);
+
+    auto task3 = [&collect] { return collect->ExportEMMCInfo(); };
+    FileCleanTest(task3, COLLECTION_IO_PATH, "emmc_info_", MAX_FILE_NUM);
+
+    auto task4 = [&collect] { return collect->ExportAllProcIoStats(); };
+    FileCleanTest(task4, COLLECTION_IO_PATH, "proc_io_stats_", MAX_FILE_NUM);
+
+    auto task5 = [&collect] { return collect->ExportSysIoStats(); };
+    FileCleanTest(task5, COLLECTION_IO_PATH, "sys_io_stats_", MAX_FILE_NUM);
 }
 #else
 /**
