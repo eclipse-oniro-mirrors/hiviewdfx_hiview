@@ -185,9 +185,9 @@ HWTEST_F(FaultloggerClientUnittest, FaultLogInfoTest001, testing::ext::TestSize.
     info.SetFaultType(FaultLogType::APP_FREEZE);
     ASSERT_EQ(info.GetFaultType(), 4);
     ASSERT_EQ(info.GetStringFaultType(), "AppFreeze");
-    info.SetFaultType(FaultLogType::APP_FREEZE);
+    info.SetFaultType(FaultLogType::SYS_FREEZE);
     ASSERT_EQ(info.GetFaultType(), 5);
-    ASSERT_EQ(info.GetStringFaultType(), "SYS_FREEZE");
+    ASSERT_EQ(info.GetStringFaultType(), "SysFreeze");
     info.SetFaultType(FaultLogType::SYS_WARNING);
     ASSERT_EQ(info.GetFaultType(), 6);
     ASSERT_EQ(info.GetStringFaultType(), "SysWarning");
