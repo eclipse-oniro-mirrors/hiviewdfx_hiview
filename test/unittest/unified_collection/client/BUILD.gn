@@ -45,6 +45,10 @@ ohos_unittest("UCollectionClientUnitTest") {
     defines += [ "UNIFIED_COLLECTOR_GRAPHIC_ENABLE" ]
   }
 
+  if (hiview_unified_collector_trace_enable) {
+    sources += [ "trace_collector_client_test.cpp" ]
+  }
+
   deps = [
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/client:libucollection_client",
