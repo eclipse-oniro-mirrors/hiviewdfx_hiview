@@ -221,7 +221,7 @@ void FaultLogProcessorBase::AddBundleInfo(FaultLogInfo& info)
         return;
     }
 
-    if (info.module.find("arkwebcore") == std::string::npos) {
+    if (info.module.find("arkwebcore") != std::string::npos) {
         info.id = bundleInfo.uid;
     }
 
