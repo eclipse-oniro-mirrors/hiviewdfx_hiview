@@ -97,11 +97,9 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
 
     /**
      * Reasonable scenarios
-     * PERMISSION_CHECK_FAILED : user version can not get permission
      * TRACE_OPEN_ERROR : trace command is already open
     */
-    ASSERT_TRUE(openRet.retCode == UcError::SUCCESS || openRet.retCode == UcError::PERMISSION_CHECK_FAILED ||
-        openRet.retCode == UcError::TRACE_OPEN_ERROR);
+    ASSERT_TRUE(openRet.retCode == UcError::SUCCESS || openRet.retCode == UcError::TRACE_OPEN_ERROR);
     if (openRet.retCode == UcError::SUCCESS) {
         sleep(2);
         auto dumpRes = traceCollector->DumpSnapshot(COMMAND);
@@ -135,11 +133,9 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
 
     /**
      * Reasonable scenarios
-     * PERMISSION_CHECK_FAILED : user version can not get permission
      * TRACE_OPEN_ERROR : trace command is already open
     */
-    ASSERT_TRUE(openRet.retCode == UcError::SUCCESS || openRet.retCode == UcError::PERMISSION_CHECK_FAILED ||
-        openRet.retCode == UcError::PERMISSION_CHECK_FAILED);
+    ASSERT_TRUE(openRet.retCode == UcError::SUCCESS || openRet.retCode == UcError::TRACE_OPEN_ERROR);
     if (openRet.retCode == UcError::SUCCESS) {
         auto recOnRet = traceCollector->RecordingOn();
         ASSERT_TRUE(recOnRet.retCode == UcError::SUCCESS);
@@ -167,11 +163,10 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
     /**
      * Reasonable scenarios
      * TRACE_STATE_ERROR : trace not in beta state
-     * PERMISSION_CHECK_FAILED : user version can not get permission
      * TRACE_DUMP_OVER_FLOW : io over limits of "Other" caller
     */
     ASSERT_TRUE(ret.retCode == UcError::SUCCESS || ret.retCode == UcError::TRACE_STATE_ERROR ||
-        ret.retCode == UcError::PERMISSION_CHECK_FAILED || ret.retCode == UcError::TRACE_DUMP_OVER_FLOW);
+        ret.retCode == UcError::TRACE_DUMP_OVER_FLOW);
     if (ret.retCode == UcError::SUCCESS) {
         ASSERT_TRUE(ret.data.size() > 0);
     }
