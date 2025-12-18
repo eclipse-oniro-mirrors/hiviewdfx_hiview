@@ -124,11 +124,8 @@ bool FaultLogProcessorBase::VerifyModule(FaultLogInfo& info)
         }
     }
 
-    auto tmpModule = info.module;
-    if (tmpModule.find("hmos.browser:render") != std::string::npos ||
-        tmpModule.find("hmos.browser:gpu") != std::string::npos) {
-        tmpModule = tmpModule.substr(0, tmpModule.find("hmos.browser"));
-        info.module = tmpModule + "hmos.arkwebcore";
+    if (GetStrValFromMap(info.sectionMap, "IS_ARKWEB_CORE") == "true") {
+        info.module = "com.huawei.hmos.arkwebcore";
     }
 
     HIVIEW_LOGD("nameProc %{public}s", info.module.c_str());
