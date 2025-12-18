@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-module_output_path = hiview_module + "/utility/common_utils"
+module_output_path = "hiview/faultlogger/utility/common_utils"
 
 group("unittest") {
   testonly = true

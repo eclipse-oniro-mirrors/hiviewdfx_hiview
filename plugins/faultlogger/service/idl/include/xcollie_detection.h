@@ -14,7 +14,9 @@
  */
 #ifndef XCOLLOE_DETECTION_H
 #define XCOLLOE_DETECTION_H
+#include <ctime>
 #include <string.h>
+#include <string>
 
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
@@ -28,8 +30,9 @@ class XCollieDetector {
 public:
     XCollieDetector(const std::string& name, unsigned int timeout = XCOLLIE_MAIN_THREAD_TIMEOUT_SECOND)
     {
+        std::string xcollieNmae = name + "_" + std::to_string(time(nullptr));
         timerId_ = XCollie::GetInstance()
-            .SetTimer(name, timeout, nullptr, nullptr, XCOLLIE_FLAG_LOG | XCOLLIE_FLAG_RECOVERY);
+            .SetTimer(xcollieNmae, timeout, nullptr, nullptr, XCOLLIE_FLAG_LOG | XCOLLIE_FLAG_RECOVERY);
     }
     XCollieDetector(const XCollieDetector&) = delete;
     XCollieDetector &operator=(const XCollieDetector&) = delete;

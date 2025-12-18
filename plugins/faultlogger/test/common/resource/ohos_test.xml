@@ -17,13 +17,6 @@
         <preparer>
             <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
             <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
-            <option name="push" value="faultlogger/plugin_config_test -> /data/test/test_faultlogger_data" src="res"/>
-            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest001" src="res"/>
-            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest002" src="res"/>
-            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest003" src="res"/>
-            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/log/faultlog/faultlogger/" src="res"/>
-            <option name="push" value="faultlogger/cppcrash-197-1502809621426 -> /data/test/test_data/FaultLogBootScan001" src="res"/>
-            <option name="push" value="faultlogger/cppcrash-197-1502809621426 -> /data/test/test_data/FaultLogBootScan002" src="res"/>
         </preparer>
     </target>
     <target name="FaultloggerServiceFuzzTest">

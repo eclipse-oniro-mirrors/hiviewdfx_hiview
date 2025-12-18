@@ -215,9 +215,9 @@
                     "name": "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/cj:cj_faultlogger_ffi"
                 },
                 {
-                    "name": "//base/hiviewdfx/hiview/plugins/faultlogger/service/sanitizer_collector/gwp_asan:libasan_logger",
+                    "name": "//base/hiviewdfx/hiview/plugins/faultlogger/service/bdfr_base/sanitizer_collector/gwp_asan:libasan_logger",
                     "header": {
-                        "header_base": "//base/hiviewdfx/hiview/plugins/faultlogger/service/sanitizer_collector/gwp_asan",
+                        "header_base": "//base/hiviewdfx/hiview/plugins/faultlogger/service/bdfr_base/sanitizer_collector/gwp_asan",
                         "header_files": [
                             "gwpasan_collector.h"
                         ]

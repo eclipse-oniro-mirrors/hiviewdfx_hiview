@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "faultlogger.h"
+#include <cstdint>
 #include <memory>
 
 #ifdef UNIT_TEST
@@ -21,9 +22,7 @@
 #endif
 #include <fstream>
 
-#include "faultlog_dump.h"
-#include "faultlog_event_factory.h"
-#include "faultlog_util.h"
+#include "export_faultlogger_interface.h"
 #include "faultlogger_service_ohos.h"
 #include "hiview_logger.h"
 #include "page_history_manager.h"
@@ -33,15 +32,15 @@ namespace OHOS {
 namespace HiviewDFX {
 REGISTER(Faultlogger);
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
+
 bool Faultlogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
 {
     if (!hasInit_ || event == nullptr) {
         return false;
     }
 
-    const int eventCount = 5;
-    std::array<std::string, eventCount> eventNames = {
-        "PROCESS_EXIT",
+    const int eventCount = 4;
+    std::array<const char* const, eventCount> eventNames = {
         "JS_ERROR",
         "CJ_ERROR",
         "RUST_PANIC",
@@ -59,11 +58,12 @@ bool Faultlogger::OnEvent(std::shared_ptr<Event>& event)
     if (event->rawData_ == nullptr) {
         return false;
     }
-    FaultLogEventFactory factory;
-    auto faultLogEvent = factory.CreateFaultLogEvent(event->eventName_);
-    if (faultLogEvent) {
-        return faultLogEvent->ProcessFaultLogEvent(event, workLoop_, faultLogManager_);
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        HIVIEW_LOGE("run func failed.");
+        return true;
     }
+    instance->ProcessFaultLogEvent(event->eventName_, event);
     return true;
 }
 
@@ -93,21 +93,23 @@ void Faultlogger::OnLoad()
         return;
     }
     workLoop_ = context->GetSharedWorkLoop();
-    faultLogManager_ = std::make_shared<FaultLogManager>(workLoop_);
-    faultLogManager_->Init();
     hasInit_ = true;
 #ifndef UNITTEST
-    FaultloggerServiceOhos::StartService(std::make_shared<FaultLogManagerService>(workLoop_, faultLogManager_));
+    FaultloggerServiceOhos::StartService();
 
-    faultLogBootScan_ = std::make_shared<FaultLogBootScan>(workLoop_, faultLogManager_);
+    faultLogBootScan_ = std::make_shared<FaultLogBootScanListener>(workLoop_);
     context->RegisterUnorderedEventListener(faultLogBootScan_);
 #endif
 }
 
 void Faultlogger::Dump(int fd, const std::vector<std::string>& cmds)
 {
-    FaultLogDump faultLogDump(fd, faultLogManager_);
-    faultLogDump.DumpByCommands(cmds);
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        dprintf(fd, "Service is not ready.\n");
+        return;
+    }
+    instance->FaultLogDumpByCommands(fd, cmds);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

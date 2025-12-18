@@ -42,11 +42,17 @@ LogStoreEx::LogStoreEx(const std::string& path, bool autoDeleteFiles)
       path_(path)
 {}
 
-bool LogStoreEx::Init()
+bool LogStoreEx::Init(bool createDir)
 {
-    if (!FileUtil::FileExists(path_)) {
+    if (FileUtil::FileExists(path_)) {
+        return true;
+    }
+
+    if (createDir) {
         FileUtil::ForceCreateDirectory(path_);
         FileUtil::ChangeModeDirectory(path_, DEFAULT_LOG_DIR_MODE);
+    } else {
+        HIVIEW_LOGW("%{public}s does not exist. plsace check.", path_.c_str());
     }
     return true;
 }

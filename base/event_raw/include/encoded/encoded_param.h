@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "base/raw_data_base_def.h"
 #include "base/value_param.h"
@@ -416,6 +417,10 @@ public:
 private:
     std::vector<std::string> vals_;
 };
+
+extern template class FloatingNumberEncodedParam<double>;
+extern template class SignedVarintEncodedParam<int64_t>;
+extern template class UnsignedVarintEncodedParam<uint64_t>;
 } // namespace EventRaw
 } // namespace HiviewDFX
 } // namespace OHOS

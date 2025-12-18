@@ -14,22 +14,22 @@
  */
 #include "faultlogger_service_ohos.h"
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
 
-#include "if_system_ability_manager.h"
-#include "ipc_skeleton.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
-
-#include "hiview_logger.h"
-
-#include "faultlog_info.h"
+#include "export_faultlogger_interface.h"
+#include "faultlog_info_inner.h"
 #include "faultlog_info_ohos.h"
 #include "faultlog_query_result_inner.h"
 #include "faultlog_query_result_ohos.h"
 #include "faultlogger.h"
+#include "hiview_logger.h"
+#include "if_system_ability_manager.h"
+#include "ipc_skeleton.h"
+#include "iservice_registry.h"
+#include "system_ability_definition.h"
 
 DEFINE_LOG_LABEL(0xD002D11, "FaultloggerServiceOhos");
 namespace OHOS {
@@ -69,19 +69,17 @@ int32_t FaultloggerServiceOhos::Dump(int32_t fd, const std::vector<std::u16strin
         return converter.to_bytes(arg);
     });
 
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
         dprintf(fd, "Service is not ready.\n");
         return -1;
     }
-
-    service->Dump(fd, cmdList);
+    instance->FaultLogDumpByCommands(fd, cmdList);
     return 0;
 }
 
-void FaultloggerServiceOhos::StartService(std::shared_ptr<IFaultLogManagerService> service)
+void FaultloggerServiceOhos::StartService()
 {
-    GetOrSetFaultlogger(service);
     sptr<ISystemAbilityManager> serviceManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (serviceManager == nullptr) {
         HIVIEW_LOGE("Failed to find samgr, exit.");
@@ -93,23 +91,8 @@ void FaultloggerServiceOhos::StartService(std::shared_ptr<IFaultLogManagerServic
     HIVIEW_LOGI("FaultLogger Service started.");
 }
 
-std::shared_ptr<IFaultLogManagerService> FaultloggerServiceOhos::GetOrSetFaultlogger(
-    std::shared_ptr<IFaultLogManagerService> service)
-{
-    static std::shared_ptr<IFaultLogManagerService> ref;
-    if (service != nullptr) {
-        ref = service;
-    }
-    return ref;
-}
-
 void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
 {
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
-        return;
-    }
-
     int32_t uid = IPCSkeleton::GetCallingUid();
     HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d", info.uid, uid, info.pid);
     if ((uid != static_cast<int32_t>(getuid())) && uid != info.uid && uid != UID_FAULTLOGGERD) {
@@ -117,6 +100,10 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
         return;
     }
 
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        return;
+    }
     FaultLogInfo outInfo;
     outInfo.time = info.time;
     outInfo.id = info.uid;
@@ -139,16 +126,11 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
     }
     outInfo.registers = info.registers;
     outInfo.sectionMap = info.sectionMaps;
-    service->AddFaultLog(outInfo);
+    instance->AddFaultLog(static_cast<FaultLogType>(outInfo.faultLogType), outInfo);
 }
 
 sptr<IRemoteObject> FaultloggerServiceOhos::QuerySelfFaultLog(int32_t faultType, int32_t maxNum)
 {
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
-        return nullptr;
-    }
-
     int32_t uid = IPCSkeleton::GetCallingUid();
     int32_t pid = IPCSkeleton::GetCallingPid();
     std::lock_guard<std::mutex> lock(mutex_);
@@ -158,7 +140,18 @@ sptr<IRemoteObject> FaultloggerServiceOhos::QuerySelfFaultLog(int32_t faultType,
         return nullptr;
     }
 
-    auto queryResult = service->QuerySelfFaultLog(uid, pid, faultType, maxNum);
+    if ((faultType < FaultLogType::ALL) || (faultType > FaultLogType::APP_FREEZE)) {
+        HIVIEW_LOGW("Unsupported fault type");
+        return nullptr;
+    }
+
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        return nullptr;
+    }
+
+    auto queryResult =
+        std::make_unique<FaultLogQueryResultInner>(instance->QuerySelfFaultLog(uid, pid, faultType, maxNum));
     if (queryResult == nullptr) {
         HIVIEW_LOGW("Fail to query fault log for uid:%d", uid);
         return nullptr;
@@ -176,51 +169,46 @@ sptr<IRemoteObject> FaultloggerServiceOhos::QuerySelfFaultLog(int32_t faultType,
 bool FaultloggerServiceOhos::EnableGwpAsanGrayscale(bool alwaysEnabled, double sampleRate,
     double maxSimutaneousAllocations, int32_t duration)
 {
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
-        return false;
-    }
     if (sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
         HIVIEW_LOGE("failed to enable gwp asan grayscale, sampleRate: %{public}f"
             ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
             sampleRate, maxSimutaneousAllocations, duration);
         return false;
     }
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        return false;
+    }
     int32_t uid = IPCSkeleton::GetCallingUid();
-    bool result = service->EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
+    bool result = instance->EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
         maxSimutaneousAllocations, duration, uid);
     return result;
 }
 
 void FaultloggerServiceOhos::DisableGwpAsanGrayscale()
 {
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
         return;
     }
 
     int32_t uid = IPCSkeleton::GetCallingUid();
-    service->DisableGwpAsanGrayscale(uid);
+    instance->DisableGwpAsanGrayscale(uid);
 }
 
 uint32_t FaultloggerServiceOhos::GetGwpAsanGrayscaleState()
 {
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
         return 0;
     }
 
     int32_t uid = IPCSkeleton::GetCallingUid();
-    return service->GetGwpAsanGrayscaleState(uid);
+    return instance->GetGwpAsanGrayscaleState(uid);
 }
 
 void FaultloggerServiceOhos::Destroy()
 {
-    auto service = GetOrSetFaultlogger();
-    if (!service) {
-        return;
-    }
-
     int32_t uid = IPCSkeleton::GetCallingUid();
     HIVIEW_LOGI("Destroy Query from uid:%d", uid);
     ClearQueryStub(uid);

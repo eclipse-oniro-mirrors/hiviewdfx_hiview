@@ -65,7 +65,6 @@ ohos_source_set("hiview_reliability_common_utils_with_cfi") {
   ]
 
   external_deps = [
-    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "openssl:libcrypto_shared",

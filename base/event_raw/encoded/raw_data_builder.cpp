@@ -27,6 +27,16 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace EventRaw {
 DEFINE_LOG_TAG("HiView-RawDataBuilder");
+template void RawDataBuilder::InitIdInfoAppendHandlers<char const*>(
+    std::unordered_map<std::string, std::function<RawDataBuilder&(char const*)>>&);
+template void RawDataBuilder::InitIdInfoAppendHandlers<std::string>(
+    std::unordered_map<std::string, std::function<RawDataBuilder&(std::string)>>&);
+template void RawDataBuilder::InitIdInfoAppendHandlers<uint64_t>(
+    std::unordered_map<std::string, std::function<RawDataBuilder&(uint64_t)>>&);
+template RawDataBuilder& RawDataBuilder::AppendValue<double>(const std::string&, double);
+template RawDataBuilder& RawDataBuilder::AppendValue<std::string>(const std::string&, std::string);
+template RawDataBuilder& RawDataBuilder::AppendValue<int64_t>(const std::string&, int64_t);
+template RawDataBuilder& RawDataBuilder::AppendValue<uint64_t>(const std::string&, uint64_t);
 RawDataBuilder::RawDataBuilder(std::shared_ptr<EventRaw::RawData> rawData)
 {
     if (rawData == nullptr) {

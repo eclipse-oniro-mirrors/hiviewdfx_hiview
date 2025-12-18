@@ -18,14 +18,12 @@
 #include <string>
 #include <vector>
 #include "faultlogger.h"
-#include "faultlog_manager.h"
 #include "faultlogger_service_ohos.h"
 #include "faultlogger_service_fuzzer.h"
 #include "faultlogger_fuzzertest_common.h"
 #include "hiview_global.h"
 #include "hiview_platform.h"
 #include "sys_event.h"
-#include "faultlog_manager_service.h"
 
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
@@ -61,15 +59,8 @@ void FuzzServiceInterfaceDump(const uint8_t* data, size_t size)
         return;
     }
 
-    auto service = CreateFaultloggerInstance();
-    auto faultlogManagerService = std::make_shared<FaultLogManagerService>(service->GetWorkLoop(),
-        service->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(faultlogManagerService);
-    if (FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) != faultlogManagerService) {
-        printf("FaultloggerServiceOhos start service error.\n");
-        return;
-    }
+    FaultloggerServiceOhos::StartService();
 
     STREAM_TO_VALUEINFO(data, fd);
     std::vector<std::u16string> args;
@@ -89,15 +80,8 @@ void FuzzServiceInterfaceQuerySelfFaultLog(const uint8_t* data, size_t size)
     HiviewTestContext hiviewTestContext;
     HiviewGlobal::CreateInstance(hiviewTestContext);
 
-    auto service = CreateFaultloggerInstance();
-    auto faultlogManagerService = std::make_shared<FaultLogManagerService>(service->GetWorkLoop(),
-        service->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(faultlogManagerService);
-    if (FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) != faultlogManagerService) {
-        printf("FaultloggerServiceOhos start service error.\n");
-        return;
-    }
+    FaultloggerServiceOhos::StartService();
     int32_t faultType;
     int32_t maxNum;
     auto offsetTotalLength = sizeof(faultType) + sizeof(maxNum);
@@ -117,39 +101,10 @@ void FuzzServiceInterfaceQuerySelfFaultLog(const uint8_t* data, size_t size)
     }
 }
 
-void FuzzServiceInterfaceCreateTempFaultLogFile(const uint8_t* data, size_t size)
-{
-    auto faultLogManager = std::make_unique<FaultLogManager>(nullptr);
-    faultLogManager->Init();
-
-    int64_t time;
-    int32_t id;
-    int32_t faultType;
-    auto offsetTotalLength = sizeof(time) + sizeof(id) + sizeof(faultType) + FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
-    if (offsetTotalLength > size) {
-        return;
-    }
-
-    STREAM_TO_VALUEINFO(data, time);
-    STREAM_TO_VALUEINFO(data, id);
-    STREAM_TO_VALUEINFO(data, faultType);
-
-    std::string module(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
-    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
-    faultLogManager->CreateTempFaultLogFile(time, id, faultType, module);
-}
-
 void FuzzServiceInterfaceAddFaultLog(const uint8_t* data, size_t size)
 {
-    auto service = CreateFaultloggerInstance();
-    auto faultlogManagerService = std::make_shared<FaultLogManagerService>(service->GetWorkLoop(),
-        service->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(faultlogManagerService);
-    if (FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) != faultlogManagerService) {
-        printf("FaultloggerServiceOhos start service error.\n");
-        return;
-    }
+    FaultloggerServiceOhos::StartService();
     FaultLogInfoOhos info;
     int32_t faultLogType {0};
     auto offsetTotalLength = sizeof(info.time) + sizeof(info.pid) + sizeof(info.uid) + sizeof(faultLogType) +
@@ -239,15 +194,8 @@ void FuzzServiceInterfaceGwpAsanGrayscale(const uint8_t* data, size_t size)
     HiviewTestContext hiviewTestContext;
     HiviewGlobal::CreateInstance(hiviewTestContext);
 
-    auto service = CreateFaultloggerInstance();
-    auto faultlogManagerService = std::make_shared<FaultLogManagerService>(service->GetWorkLoop(),
-        service->faultLogManager_);
     FaultloggerServiceOhos serviceOhos;
-    FaultloggerServiceOhos::StartService(faultlogManagerService);
-    if (FaultloggerServiceOhos::GetOrSetFaultlogger(nullptr) != faultlogManagerService) {
-        printf("FaultloggerServiceOhos start service error.\n");
-        return;
-    }
+    FaultloggerServiceOhos::StartService();
     bool alwaysEnabled;
     double sampleRate;
     double maxSimutaneousAllocations;
@@ -272,7 +220,6 @@ void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
 {
     FuzzServiceInterfaceDump(data, size);
     FuzzServiceInterfaceQuerySelfFaultLog(data, size);
-    FuzzServiceInterfaceCreateTempFaultLogFile(data, size);
     FuzzServiceInterfaceAddFaultLog(data, size);
     FuzzServiceInterfaceOnEvent(data, size);
     FuzzServiceInterfaceGwpAsanGrayscale(data, size);

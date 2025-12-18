@@ -1,0 +1,153 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+
+config("bdfr_base_public_include") {
+  visibility = [ "*:*" ]
+
+  include_dirs = [
+    "public_include",
+  ]
+}
+
+config("bdfr_base_local_include") {
+  visibility = [ "*:*" ]
+
+  include_dirs = [
+    "$hiview_framework/native/unified_collection/process/include",
+    "$hiview_plugin/faultlogger/service/extension_manager/include",
+    "$hiview_plugin/faultlogger/service/page_history",
+    ".",
+    "base",
+    "event",
+    "event/cpp_crash",
+    "event/freeze",
+    "event/js_cj_error",
+    "event/page_info",
+    "event/rust_panic",
+    "event/sanitizer",
+    "fault_file",
+    "utils",
+    "sanitizer_collector",
+  ]
+}
+
+faultlogger_base_sources = [
+  "base/faultlog_event_factory.cpp",
+  "base/faultlog_event_interface.cpp",
+  "base/faultlog_event_ipc.cpp",
+  "base/faultlog_event_pipeline.cpp",
+  "event/cpp_crash/faultlog_cppcrash.cpp",
+  "event/freeze/faultlog_freeze.cpp",
+  "event/freeze/freeze_json_generator.cpp",
+  "event/js_cj_error/faultlog_cjerror.cpp",
+  "event/js_cj_error/faultlog_error_reporter.cpp",
+  "event/js_cj_error/faultlog_jserror.cpp",
+  "event/page_info/faultlog_page_info.cpp",
+  "event/rust_panic/faultlog_rust_panic.cpp",
+  "event/sanitizer/faultlog_sanitizer.cpp",
+  "fault_file/faultlog_bootscan.cpp",
+  "fault_file/faultlog_database.cpp",
+  "fault_file/faultlog_dump.cpp",
+  "fault_file/faultlog_formatter.cpp",
+  "fault_file/faultlog_manager.cpp",
+  "faultlogger_base.cpp",
+  "sanitizer_collector/sanitizer_telemetry.cpp",
+  "utils/faultlog_bundle_util.cpp",
+  "utils/faultlog_hilog_helper.cpp",
+  "utils/faultlog_util.cpp",
+  "utils/log_analyzer.cpp",
+]
+
+ohos_shared_library("bdfr_base") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  configs = [
+    "$hiview_root/utility/smart_parser:smart_parser_config",
+    ":bdfr_base_local_include",
+  ]
+
+  public_configs = [ ":bdfr_base_public_include" ]
+
+  sources = faultlogger_base_sources
+
+  deps = [
+    "$hiview_base:hiviewbase",
+    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
+    "$hiview_plugin/faultlogger:libfaultlogger",
+    "$hiview_plugin/plugin_build:bdfr",
+    "$hiview_plugin/reliability/bbox_detectors/bdfr_base:bbox_detectors_base_src",
+    "$hiview_root/utility/common_utils:hiview_reliability_common_utils_with_cfi",
+    "$hiview_root/utility/smart_parser:smart_parser_with_cfi",
+  ]
+
+  version_script = "libdfr_base.map"
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "bounds_checking_function:libsec_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "faultloggerd:crash_exception",
+    "faultloggerd:libdfx_procinfo",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:libhitracechain",
+    "init:libbegetutil",
+    "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_static_library("export_bdfr_base") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":bdfr_base_public_include" ]
+  configs = [ "$hiview_faultlogger/service:bdfr_public_include" ]
+
+  sources = [
+    "export_faultlogger_interface.cpp",
+  ]
+
+  deps = [
+    "$hiview_base:hiviewbase",
+  ]
+
+  external_deps = [
+    "hilog:libhilog",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

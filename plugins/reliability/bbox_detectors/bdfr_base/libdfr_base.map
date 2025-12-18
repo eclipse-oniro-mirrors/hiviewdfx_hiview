@@ -1,0 +1,9 @@
+{
+  global:
+    extern "C" {
+      NewFaultloggerInterface*;
+      DeleteFaultloggerInterface*;
+    };
+  local:
+    *;
+};

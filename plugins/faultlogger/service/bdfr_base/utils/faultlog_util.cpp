@@ -1,0 +1,524 @@
+/*
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "faultlog_util.h"
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <ctime>
+#include <cctype>
+#include <mutex>
+#include <securec.h>
+#include <string>
+#include <sys/stat.h>
+#include <vector>
+
+#include "constants.h"
+#include "faultlog_bundle_util.h"
+#include "faultlog_info_inner.h"
+#include "hiview_logger.h"
+#include "page_history_manager.h"
+#include "process_status.h"
+#include "string_util.h"
+#include "time_util.h"
+
+namespace OHOS {
+namespace HiviewDFX {
+DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
+using namespace FaultLogger;
+namespace {
+constexpr int DEFAULT_BUFFER_SIZE = 64;
+constexpr uint64_t TIME_RATIO = 1000;
+const char * const DEFAULT_FAULTLOG_TEST = "/data/test/";
+constexpr int MIN_APP_USERID = 10000;
+} // namespace
+
+std::string GetFormatedTime(uint64_t target)
+{
+    time_t now = time(nullptr);
+    if (target > static_cast<uint64_t>(now)) {
+        target = target / TIME_RATIO; // 1000 : convert millisecond to seconds
+    }
+
+    time_t out = static_cast<time_t>(target);
+    struct tm tmStruct {0};
+    struct tm* timeInfo = localtime_r(&out, &tmStruct);
+    if (timeInfo == nullptr) {
+        return "00000000000000";
+    }
+
+    char buf[DEFAULT_BUFFER_SIZE] = {0};
+    strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%Y%m%d%H%M%S", timeInfo);
+    return std::string(buf, strlen(buf));
+}
+
+std::string GetFormatedTimeWithMillsec(uint64_t time)
+{
+    char millBuf[DEFAULT_BUFFER_SIZE] = {0};
+    int ret = snprintf_s(millBuf, sizeof(millBuf), sizeof(millBuf) - 1, "%03lu", time % TIME_RATIO);
+    if (ret <= 0) {
+        return GetFormatedTime(time) + "000";
+    }
+    std::string millStr(millBuf);
+    return GetFormatedTime(time) + millStr;
+}
+
+std::string GetFaultNameByType(int32_t faultType, bool asFileName)
+{
+    switch (faultType) {
+        case FaultLogType::JS_CRASH:
+            return asFileName ? "jscrash" : "JS_ERROR";
+        case FaultLogType::CPP_CRASH:
+            return asFileName ? "cppcrash" : "CPP_CRASH";
+        case FaultLogType::APP_FREEZE:
+            return asFileName ? "appfreeze" : "APP_FREEZE";
+        case FaultLogType::SYS_FREEZE:
+            return asFileName ? "sysfreeze" : "SYS_FREEZE";
+        case FaultLogType::SYS_WARNING:
+            return asFileName ? "syswarning" : "SYS_WARNING";
+        case FaultLogType::APPFREEZE_WARNING:
+            return asFileName ? "appfreezewarning" : "APPFREEZE_WARNING";
+        case FaultLogType::RUST_PANIC:
+            return asFileName ? "rustpanic" : "RUST_PANIC";
+        case FaultLogType::ADDR_SANITIZER:
+            return asFileName ? "sanitizer" : "ADDR_SANITIZER";
+        case FaultLogType::CJ_ERROR:
+            return asFileName ? "cjerror" : "CJ_ERROR";
+        default:
+            break;
+    }
+    return "Unknown";
+}
+
+std::string GetFaultLogName(const FaultLogInfo& info)
+{
+    std::string name = info.module;
+    if (name.find("/") != std::string::npos) {
+        name = info.module.substr(info.module.find_last_of("/") + 1);
+    }
+
+    std::string ret = "";
+    if (info.faultLogType == FaultLogType::ADDR_SANITIZER) {
+        if (info.sanitizerType.compare("TSAN") == 0) {
+            ret.append("tsan");
+        } else if (info.sanitizerType.compare("UBSAN") == 0) {
+            ret.append("ubsan");
+        } else if (info.sanitizerType.compare("GWP-ASAN") == 0) {
+            ret.append("gwpasan");
+        } else if (info.sanitizerType.compare("HWASAN") == 0) {
+            ret.append("hwasan");
+        } else if (info.sanitizerType.compare("ASAN") == 0) {
+            ret.append("asan");
+        } else if (info.sanitizerType.compare("FDSAN") == 0) {
+            ret.append("fdsan");
+        } else {
+            ret.append("sanitizer");
+        }
+    } else {
+        ret.append(GetFaultNameByType(info.faultLogType, true));
+    }
+    ret.append("-");
+    ret.append(name);
+    ret.append("-");
+    ret.append(std::to_string(info.id));
+    ret.append("-");
+    ret.append(GetFormatedTimeWithMillsec(info.time));
+    ret.append(".log");
+    return ret;
+}
+
+int32_t GetLogTypeByName(const std::string& type)
+{
+    if (type == "jscrash") {
+        return FaultLogType::JS_CRASH;
+    } else if (type == "cppcrash") {
+        return FaultLogType::CPP_CRASH;
+    } else if (type == "appfreeze") {
+        return FaultLogType::APP_FREEZE;
+    } else if (type == "sysfreeze") {
+        return FaultLogType::SYS_FREEZE;
+    } else if (type == "syswarning") {
+        return FaultLogType::SYS_WARNING;
+    } else if (type == "appfreezewarning") {
+        return FaultLogType::APPFREEZE_WARNING;
+    } else if (type.find("san") != std::string::npos) {
+        return FaultLogType::ADDR_SANITIZER;
+    } else if (type == "cjerror") {
+        return FaultLogType::CJ_ERROR;
+    } else if (type == "all" || type == "ALL") {
+        return FaultLogType::ALL;
+    } else {
+        return -1;
+    }
+}
+
+FaultLogType GetLogTypeByEventName(const std::string& eventName)
+{
+    struct EventBond {
+        const char* const name;
+        FaultLogType type;
+    };
+    constexpr const size_t eventCnt = 9;
+    std::array<EventBond, eventCnt> list = {{
+        { "JS_ERROR", FaultLogType::JS_CRASH },
+        { "CPP_CRASH", FaultLogType::CPP_CRASH },
+        { "APP_FREEZE", FaultLogType::APP_FREEZE },
+        { "SYS_FREEZE", FaultLogType::SYS_FREEZE },
+        { "SYS_WARNING", FaultLogType::SYS_WARNING },
+        { "APPFREEZE_WARNING", FaultLogType::APPFREEZE_WARNING },
+        { "ADDR_SANITIZER", FaultLogType::ADDR_SANITIZER },
+        { "CJ_ERROR", FaultLogType::CJ_ERROR },
+        { "RUST_PANIC", FaultLogType::RUST_PANIC }
+    }};
+    for (const auto& bond : list) {
+        if (eventName == bond.name) {
+            return bond.type;
+        }
+    }
+    return FaultLogType::ALL;
+}
+
+FaultLogInfo ExtractInfoFromFileName(const std::string& fileName)
+{
+    // FileName LogType-PackageName-Uid-YYYYMMDDHHMMSS
+    FaultLogInfo info;
+    std::vector<std::string> splitStr;
+    const int32_t idxOfType = 0;
+    const int32_t idxOfMoudle = 1;
+    const int32_t idxOfUid = 2;
+    const int32_t idxOfTime = 3;
+    const int32_t expectedVecSize = 4;
+    const size_t tailWithMillSecLen = 7u;
+    const size_t tailWithLogLen = 4u;
+    StringUtil::SplitStr(fileName, "-", splitStr);
+    if (splitStr.size() == expectedVecSize) {
+        info.faultLogType = GetLogTypeByName(splitStr[idxOfType]);
+        info.module = splitStr[idxOfMoudle];
+        StringUtil::ConvertStringTo<int32_t>(splitStr[idxOfUid], info.id);
+        size_t timeStampStrLen = splitStr[idxOfTime].length();
+        if (timeStampStrLen > tailWithMillSecLen &&
+                splitStr[idxOfTime].substr(timeStampStrLen - tailWithLogLen).compare(".log") == 0) {
+            info.time = TimeUtil::StrToTimeStamp(splitStr[idxOfTime].substr(0, timeStampStrLen - tailWithMillSecLen),
+                "%Y%m%d%H%M%S");
+        } else {
+            info.time = TimeUtil::StrToTimeStamp(splitStr[idxOfTime], "%Y%m%d%H%M%S");
+        }
+    }
+    info.pid = 0;
+    return info;
+}
+
+FaultLogInfo ExtractInfoFromTempFile(const std::string& fileName)
+{
+    // FileName LogType-pid-time
+    FaultLogInfo info;
+    std::vector<std::string> splitStr;
+    const int32_t expectedVecSize = 3;
+    StringUtil::SplitStr(fileName, "-", splitStr);
+    if (splitStr.size() == expectedVecSize) {
+        info.faultLogType = GetLogTypeByName(splitStr[0]);                 // 0 : index of log type
+        StringUtil::ConvertStringTo<int32_t>(splitStr[1], info.pid);       // 1 : index of pid
+        StringUtil::ConvertStringTo<int64_t>(splitStr[2], info.time);      // 2 : index of timestamp
+    }
+    return info;
+}
+
+std::string RegulateModuleNameIfNeed(const std::string& name)
+{
+    std::vector<std::string> splitStr;
+    StringUtil::SplitStr(name, "/", splitStr);
+    auto size = splitStr.size();
+    if (size > 0) {
+        return splitStr[size - 1];
+    }
+    return name;
+}
+
+time_t GetFileLastAccessTimeStamp(const std::string& fileName)
+{
+    struct stat fileInfo;
+    if (stat(fileName.c_str(), &fileInfo) != 0) {
+        return 0;
+    }
+    return fileInfo.st_atime;
+}
+
+std::string GetCppCrashTempLogName(const FaultLogInfo& info)
+{
+    return std::string(FAULTLOG_TEMP_FOLDER) +
+        "cppcrash-" +
+        std::to_string(info.pid) +
+        "-" +
+        std::to_string(info.time);
+}
+
+std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
+{
+    return std::string(FAULTLOG_TEMP_FOLDER) +
+        "stacktrace-" +
+        std::to_string(info.pid) +
+        "-" +
+        std::to_string(info.time);
+}
+
+std::string GetSanitizerTempLogName(int32_t pid, const std::string& happenTime)
+{
+    return std::string(FAULTLOG_TEMP_FOLDER) +
+        "sanitizer-" +
+        std::to_string(pid) +
+        "-" +
+        happenTime;
+}
+
+std::string GetThreadStack(const std::string& path, int32_t threadId)
+{
+    std::string stack;
+    if (path.empty()) {
+        return stack;
+    }
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        return stack;
+    }
+    if (strncmp(realPath, FAULTLOG_BASE_FOLDER, strlen(FAULTLOG_BASE_FOLDER)) != 0) {
+        return stack;
+    }
+
+    std::ifstream logFile(realPath);
+    if (!logFile.is_open()) {
+        return stack;
+    }
+    std::string regTidString = "^Tid:" + std::to_string(threadId) + ", Name:(.{0,32})$";
+    std::regex regTid(regTidString);
+    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$|^ThreadInfo:.*$)");
+    std::string line;
+    while (std::getline(logFile, line)) {
+        if (!logFile.good()) {
+            break;
+        }
+
+        if (!std::regex_match(line, regTid)) {
+            continue;
+        }
+
+        do {
+            stack.append(line + "\n");
+            if (!logFile.good()) {
+                break;
+            }
+        } while (std::getline(logFile, line) && std::regex_match(line, regStack));
+        break;
+    }
+
+    return stack;
+}
+
+bool IsValidPath(const std::string& path)
+{
+    if (path.size() == 0) {
+        return true;
+    }
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        return false;
+    }
+    if (strncmp(realPath, FAULTLOG_BASE_FOLDER, strlen(FAULTLOG_BASE_FOLDER)) == 0 ||
+        strncmp(realPath, DEFAULT_FAULTLOG_TEST, strlen(DEFAULT_FAULTLOG_TEST)) == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool ExtractSubMoudleName(std::string &module)
+{
+    const std::string sceneboard = "com.ohos.sceneboard:";
+    if (module.compare(0, sceneboard.size(), sceneboard) == 0) {
+        module = module.substr(sceneboard.size());
+        std::replace(module.begin(), module.end(), '/', '_');
+        auto start = std::find_if(module.begin(), module.end(), isalpha);
+        auto end = std::find_if(module.rbegin(), module.rend(), isalpha);
+        if (start == module.end() || end == module.rend()) {
+            return false;
+        }
+        auto size = module.rend() - end;
+        module = std::string(start, module.begin() + size);
+        return true;
+    }
+    return false;
+}
+
+bool IsSystemProcess(std::string_view processName, int32_t uid)
+{
+    constexpr std::string_view sysBin = "/system/bin";
+    constexpr std::string_view venBin = "/vendor/bin";
+    return (uid < MIN_APP_USERID ||
+            (processName.substr(0, sysBin.size()) == sysBin) ||
+            (processName.substr(0, venBin.size()) == venBin));
+}
+
+std::string GetStrValFromMap(const std::map<std::string, std::string>& map, const std::string& key)
+{
+    if (auto it = map.find(key); it != map.end()) {
+        return it->second;
+    }
+    return "";
+}
+
+uint64_t GetProcessInfo(const std::map<std::string, std::string>& sectionMap, const std::string &key)
+{
+    auto iter = sectionMap.find(key);
+    if (iter != sectionMap.end()) {
+        return strtoull(iter->second.c_str(), nullptr, FaultLogger::DECIMAL_BASE);
+    }
+    return 0;
+}
+
+Json::Value GetMemoryJsonValue(const std::map<std::string, std::string>& sectionMap)
+{
+    // Init Memory
+    uint64_t rss = GetProcessInfo(sectionMap, FaultKey::PROCESS_RSS_MEMINFO);
+    uint64_t sysFreeMem = GetProcessInfo(sectionMap, FaultKey::SYS_FREE_MEM);
+    uint64_t sysTotalMem = GetProcessInfo(sectionMap, FaultKey::SYS_TOTAL_MEM);
+    uint64_t sysAvailMem = GetProcessInfo(sectionMap, FaultKey::SYS_AVAIL_MEM);
+    Json::Value memory;
+    memory["rss"] = rss;
+    memory["sys_avail_mem"] = sysAvailMem;
+    memory["sys_free_mem"] = sysFreeMem;
+    memory["sys_total_mem"] = sysTotalMem;
+    return memory;
+}
+
+std::string GetSummaryFromSectionMap(int32_t type, const std::map<std::string, std::string>& maps)
+{
+    std::string key = "";
+    switch (type) {
+        case CPP_CRASH:
+            key = FaultKey::KEY_THREAD_INFO;
+            break;
+        default:
+            break;
+    }
+
+    if (key.empty()) {
+        return "";
+    }
+
+    auto value = maps.find(key);
+    if (value == maps.end()) {
+        return "";
+    }
+    return value->second;
+}
+
+void AddForegroundInfo(FaultLogInfo& info)
+{
+    if (!info.sectionMap[FaultKey::FOREGROUND].empty() || info.id < MIN_APP_USERID) {
+        return;
+    }
+
+    if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) == UCollectUtil::FOREGROUND) {
+        info.sectionMap[FaultKey::FOREGROUND] = "Yes";
+    } else if (UCollectUtil::ProcessStatus::GetInstance().GetProcessState(info.pid) == UCollectUtil::BACKGROUND) {
+        int64_t lastFgTime = static_cast<int64_t>(UCollectUtil::ProcessStatus::GetInstance()
+                                                  .GetProcessLastForegroundTime(info.pid));
+        info.sectionMap[FaultKey::FOREGROUND] = lastFgTime > info.time ? "Yes" : "No";
+    }
+}
+
+std::list<std::string> GetDigtStrArr(const std::string &target)
+{
+    std::list<std::string> ret;
+    std::string temp = "";
+    for (size_t i = 0, len = target.size(); i < len; i++) {
+        if (target[i] >= '0' && target[i] <= '9') {
+            temp += target[i];
+            continue;
+        }
+        if (temp.size() != 0) {
+            ret.push_back(temp);
+            temp = "";
+        }
+    }
+    if (temp.size() != 0) {
+        ret.push_back(temp);
+    }
+    ret.push_back("0");
+    return ret;
+}
+
+void AddBundleInfo(FaultLogInfo& info)
+{
+    DfxBundleInfo bundleInfo;
+    if (info.id < MIN_APP_USERID || !GetDfxBundleInfo(info.module, bundleInfo)) {
+        return;
+    }
+
+    if (info.module.find("arkwebcore") != std::string::npos) {
+        info.id = bundleInfo.uid;
+    }
+
+    if (!bundleInfo.versionName.empty()) {
+        info.sectionMap[FaultKey::MODULE_VERSION] = bundleInfo.versionName;
+        info.sectionMap[FaultKey::VERSION_CODE] = std::to_string(bundleInfo.versionCode);
+    }
+
+    info.sectionMap[FaultKey::IS_SYSTEM_APP] = GetIsSystemApp(info.module, info.id) ? "Yes" : "No";
+    info.sectionMap[FaultKey::CPU_ABI] = bundleInfo.cpuAbi;
+    info.sectionMap[FaultKey::RELEASE_TYPE] = bundleInfo.releaseType;
+    info.sectionMap[FaultKey::PRE_INSTALL] = bundleInfo.isPreInstalled ? "Yes" : "No";
+}
+
+void AddPagesHistory(FaultLogInfo& info, bool onlyReportApp)
+{
+    if (onlyReportApp && info.id < MIN_APP_USERID) {
+        return;
+    }
+    auto trace = PageHistoryManager::GetInstance().GetPageHistory(info.module, info.pid);
+    if (!trace.empty()) {
+        info.sectionMap[FaultKey::PAGE_SWITCH_HISTORY] = std::move(trace);
+    }
+}
+
+void GetProcMemInfo(FaultLogInfo& info)
+{
+    if (!info.sectionMap["START_BOOT_SCAN"].empty()) {
+        return;
+    }
+
+    std::ifstream meminfoStream("/proc/meminfo");
+    if (meminfoStream) {
+        constexpr int decimalBase = 10;
+        unsigned long long totalMem = 0; // row 1
+        unsigned long long freeMem = 0; // row 2
+        unsigned long long availMem = 0; // row 3
+        std::string meminfoLine;
+        std::getline(meminfoStream, meminfoLine);
+        totalMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        std::getline(meminfoStream, meminfoLine);
+        freeMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        std::getline(meminfoStream, meminfoLine);
+        availMem = strtoull(GetDigtStrArr(meminfoLine).front().c_str(), nullptr, decimalBase);
+        meminfoStream.close();
+        info.sectionMap[FaultKey::DEVICE_MEMINFO] = "Device Memory(kB): Total " + std::to_string(totalMem) +
+            ", Free " + std::to_string(freeMem) + ", Available " + std::to_string(availMem);
+        info.sectionMap[FaultKey::SYS_TOTAL_MEM] = std::to_string(totalMem);
+        info.sectionMap[FaultKey::SYS_FREE_MEM] = std::to_string(freeMem);
+        info.sectionMap[FaultKey::SYS_AVAIL_MEM] = std::to_string(availMem);
+    } else {
+        HIVIEW_LOGE("Fail to open /proc/meminfo");
+    }
+}
+} // namespace HiviewDFX
+} // namespace OHOS

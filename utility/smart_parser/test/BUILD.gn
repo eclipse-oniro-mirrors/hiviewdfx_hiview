@@ -15,7 +15,7 @@ import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "hiview/hiview/smart_parser"
+module_output_path = "hiview/faultlogger/utility/smart_parser"
 
 config("smart_parser_test_config") {
   include_dirs = [

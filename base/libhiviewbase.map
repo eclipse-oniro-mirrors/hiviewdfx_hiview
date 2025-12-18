@@ -1,6 +1,40 @@
 {
   global:
     extern "C++" {
+        "void OHOS::HiviewDFX::SysEvent::SetEventValue<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, bool)";
+        "void OHOS::HiviewDFX::SysEvent::SetEventValue<unsigned long>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long, bool)";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::AsDouble(double&)";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::AsString(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::EncodeValue()";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::EncodeValueType()";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::FloatingNumberEncodedParam(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, double)";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::GetDataCodedType()";
+        "OHOS::HiviewDFX::EventRaw::FloatingNumberEncodedParam<double, (void*)0>::~FloatingNumberEncodedParam()";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::AsInt64(long&)";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::AsString(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::EncodeValue()";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::EncodeValueType()";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::GetDataCodedType()";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::SignedVarintEncodedParam(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
+        "OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>::~SignedVarintEncodedParam()";
+        "vtable for OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long, (void*)0>";
+        "vtable for OHOS::HiviewDFX::EventRaw::SignedVarintEncodedParam<long long, (void*)0>";
+        "void OHOS::HiviewDFX::EventRaw::RawDataBuilder::InitIdInfoAppendHandlers<char const*>(std::__h::unordered_map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::function<OHOS::HiviewDFX::EventRaw::RawDataBuilder& (char const*)>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::function<OHOS::HiviewDFX::EventRaw::RawDataBuilder& (char const*)>>>>&)";
+        "void OHOS::HiviewDFX::EventRaw::RawDataBuilder::InitIdInfoAppendHandlers<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>(std::__h::unordered_map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::function<OHOS::HiviewDFX::EventRaw::RawDataBuilder& (std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::function<OHOS::HiviewDFX::EventRaw::RawDataBuilder& (std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)>>>>&)";
+        "void OHOS::HiviewDFX::EventRaw::RawDataBuilder::InitIdInfoAppendHandlers<unsigned long>(std::__h::unordered_map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::function<OHOS::HiviewDFX::EventRaw::RawDataBuilder& (unsigned long)>, std::__h::hash<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::equal_to<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::function<OHOS::HiviewDFX::EventRaw::RawDataBuilder& (unsigned long)>>>>&)";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::AsString(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::AsUint64(unsigned long&)";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::EncodeValue()";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::EncodeValueType()";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::GetDataCodedType()";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::UnsignedVarintEncodedParam(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long)";
+        "OHOS::HiviewDFX::EventRaw::UnsignedVarintEncodedParam<unsigned long, (void*)0>::~UnsignedVarintEncodedParam()";
+        "OHOS::HiviewDFX::EventRaw::RawDataBuilder& OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendValue<double>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, double)";
+        "OHOS::HiviewDFX::EventRaw::RawDataBuilder& OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendValue<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
+        "OHOS::HiviewDFX::EventRaw::RawDataBuilder& OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendValue<unsigned long>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long)";
+        "OHOS::HiviewDFX::EventRaw::RawDataBuilder& OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendValue<unsigned long long>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned long long)";
+        "OHOS::HiviewDFX::EventRaw::RawDataBuilder& OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendValue<long>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
+        "OHOS::HiviewDFX::EventRaw::RawDataBuilder& OHOS::HiviewDFX::EventRaw::RawDataBuilder::AppendValue<long long>(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::EventDispatchQueue::Stop()";
         "OHOS::HiviewDFX::EventLoop::StopLoop()";
         "OHOS::HiviewDFX::HiviewGlobal::ReleaseInstance()";
@@ -71,7 +105,7 @@
         "OHOS::HiviewDFX::Plugin::SetVersion(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::LogStoreEx::SetMaxSize(unsigned int)";
         "OHOS::HiviewDFX::LogStoreEx::SetMinKeepingFileNumber(unsigned int)";
-        "OHOS::HiviewDFX::LogStoreEx::Init()";
+        "OHOS::HiviewDFX::LogStoreEx::Init(bool)";
         "OHOS::HiviewDFX::EventLoop::AddFileDescriptorEventCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::HiviewDFX::FileDescriptorEventCallback>)";
         "OHOS::HiviewDFX::SysEvent::SetEventValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::PipelineEvent::SetPipelineInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::list<std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>, std::__h::allocator<std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>>>&)";

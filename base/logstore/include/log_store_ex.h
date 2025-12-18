@@ -42,7 +42,7 @@ public:
     ~LogStoreEx() {};
 
     // create path with expected permission
-    bool Init();
+    bool Init(bool createDir = true);
     void SetLogFileComparator(LogFileComparator comparator);
 
     // Get all files in log store, sorted by last modify time by default

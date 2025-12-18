@@ -38,10 +38,11 @@ ohos_fuzztest("FaultloggerServiceFuzzTest") {
     "$hiview_base/event_publish:hiview_event_publish",
     "$hiview_core:hiview_core",
     "$hiview_framework/native/unified_collection:ucollection_source",
-    "$hiview_plugin/faultlogger/common:faultlogger_common",
-    "$hiview_plugin/faultlogger/common:log_analyzer",
+    #"$hiview_plugin/faultlogger/common:faultlogger_common",
+    #"$hiview_plugin/faultlogger/common:log_analyzer",
     "$hiview_plugin/faultlogger/service:faultlogger_service_fuzz_src",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_ohos_common",
+    "$hiview_plugin/faultlogger/service/bdfr_base:export_bdfr_base",
   ]
 
   external_deps = [

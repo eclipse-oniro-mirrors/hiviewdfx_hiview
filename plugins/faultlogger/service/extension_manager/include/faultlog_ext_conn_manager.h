@@ -23,15 +23,17 @@
 
 #include "ability_manager_interface.h"
 #include "bundlemgr/bundle_mgr_interface.h"
-#include "faultlog_ext_connection.h"
-#include "faultlog_util.h"
+#include "faultlog_info_inner.h"
 #include "ffrt.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class FaultLogExtConnManager : public OHOS::DelayedRefSingleton<FaultLogExtConnManager> {
+class FaultLogExtConnManager {
 public:
+    static FaultLogExtConnManager& GetInstance();
+    FaultLogExtConnManager(const FaultLogExtConnManager&) = delete;
+    FaultLogExtConnManager &operator=(const FaultLogExtConnManager&) = delete;
     /**
      * @brief on Fault.
      *
@@ -40,8 +42,8 @@ public:
     bool OnFault(const FaultLogInfo& info);
 
 private:
+    FaultLogExtConnManager() = default;
     std::string GetExtName(const std::string& bundleName, int32_t userId) const;
-
     bool IsExistList(const std::string& bundleName, int32_t uid) const;
     void AddToList(const std::string& bundleName, int32_t uid);
     void RemoveFromList(const std::string& bundleName, int32_t uid);

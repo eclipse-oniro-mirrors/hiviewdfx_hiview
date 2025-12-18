@@ -18,14 +18,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "page_history/page_history_manager.h"
 #include "plugin.h"
 
-#include "faultlog_info.h"
-#include "faultlog_manager.h"
-#include "faultlog_bootscan.h"
-
-#include "faultlog_manager_service.h"
+#include "faultlog_info_inner.h"
+#include "faultlog_bootscan_listener.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -43,8 +39,7 @@ public:
     void Dump(int fd, const std::vector<std::string>& cmds) override;
 private:
     bool hasInit_{false};
-    std::shared_ptr<FaultLogManager> faultLogManager_;
-    std::shared_ptr<FaultLogBootScan> faultLogBootScan_;
+    std::shared_ptr<FaultLogBootScanListener> faultLogBootScan_;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

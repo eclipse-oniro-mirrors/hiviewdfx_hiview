@@ -54,17 +54,17 @@ enum FaultLogType {
     /** C/C++ crash at runtime*/
     CPP_CRASH = 2,
     /** js crash at runtime*/
-    JS_CRASH,
+    JS_CRASH = 3,
     /** application happen freezing */
-    APP_FREEZE,
+    APP_FREEZE = 4,
     /** system happen freezing */
-    SYS_FREEZE,
+    SYS_FREEZE = 5,
     /** system happen warning */
-    SYS_WARNING,
+    SYS_WARNING = 6,
     /** application happen warning */
-    APPFREEZE_WARNING,
+    APPFREEZE_WARNING = 7,
     /** rust crash at runtime */
-    RUST_PANIC,
+    RUST_PANIC = 8,
     /** cj error at runtime */
     CJ_ERROR = 9,
 };

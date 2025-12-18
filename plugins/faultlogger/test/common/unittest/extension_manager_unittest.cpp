@@ -17,7 +17,7 @@
 
 #include "faultlog_ext_connection.h"
 #include "faultlog_ext_conn_manager.h"
-#include "faultlog_info.h"
+#include "faultlog_info_inner.h"
 
 namespace OHOS {
 namespace HiviewDFX {
