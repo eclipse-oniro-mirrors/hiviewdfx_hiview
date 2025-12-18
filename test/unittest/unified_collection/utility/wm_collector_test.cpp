@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 #include <iostream>
 
 #include "accesstoken_kit.h"
+#include "collector_test_common.h"
+#include "file_util.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "wm_collector.h"
@@ -35,6 +37,9 @@ public:
 };
 
 namespace {
+constexpr int32_t MAX_FILE_NUM = 10;
+constexpr char COLLECTION_WM_PATH[] = "/data/log/hiview/unified_collection/wm";
+
 void NativeTokenGet(const char* perms[], int size)
 {
     uint64_t tokenId;
@@ -110,6 +115,28 @@ HWTEST_F(WmCollectorTest, WmCollectorTest003, TestSize.Level1)
     auto result = collector->ExportGpuMemory();
     std::cout << "export Gpu memory result " << result.retCode << std::endl;
     ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::UNSUPPORT);
+}
+
+/**
+ * @tc.name: WmCollectorTest004
+ * @tc.desc: used to test file clean
+ * @tc.type: FUNC
+*/
+HWTEST_F(WmCollectorTest, WmCollectorTest004, TestSize.Level3)
+{
+    std::shared_ptr<WmCollector> collector = WmCollector::Create();
+    EnablePermissionAccess();
+    auto task1 = [&collector] { return collector->ExportWindowsInfo(); };
+    FileCleanTest(task1, COLLECTION_WM_PATH, "windows_info_", MAX_FILE_NUM);
+
+    auto task2 = [&collector] { return collector->ExportWindowsMemory(); };
+    FileCleanTest(task2, COLLECTION_WM_PATH, "windows_memory_", MAX_FILE_NUM);
+    DisablePermissionAccess();
+
+    if (FileUtil::FileExists("/proc/gpu_memory")) {
+        auto task3 = [&collector] { return collector->ExportGpuMemory(); };
+        FileCleanTest(task3, COLLECTION_WM_PATH, "gpu_memory_", MAX_FILE_NUM);
+    }
 }
 #else
 /**

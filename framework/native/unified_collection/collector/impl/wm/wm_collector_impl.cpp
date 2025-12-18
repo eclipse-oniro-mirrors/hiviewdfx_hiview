@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,7 +34,7 @@ namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil-WmCollector");
 constexpr int32_t MAX_FILE_NUM = 10;
-constexpr char COLLECTION_WM_PATH[] = "/data/log/hiview/unified_collection/wm/";
+constexpr char COLLECTION_WM_PATH[] = "/data/log/hiview/unified_collection/wm";
 constexpr char GPU_MEMORY_PATH[] = "/proc/gpu_memory";
 std::mutex g_memMutex;
 

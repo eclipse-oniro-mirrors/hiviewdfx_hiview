@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-ProcessCollector");
 constexpr char LIB_NAME[] = "libucollection_utility_ex.z.so";
 constexpr char GET_MEM_CG_PROCESSES_FUNC_NAME[] = "GetMemCgProcesses";
-constexpr char PROCESS_COLLECTOT_DIR[] = "/data/log/hiview/unified_collection/process/";
+constexpr char PROCESS_COLLECTOT_DIR[] = "/data/log/hiview/unified_collection/process";
 constexpr int32_t MAX_FILE_NUM = 10;
 constexpr char PREFIX[] = "memcg_process_";
 constexpr char SUFFIX[] = ".txt";

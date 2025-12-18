@@ -62,30 +62,10 @@ static std::string GetCurrTimestamp()
     return TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
 }
 
-static std::string GetSavePath(const std::string& preFix, const std::string& ext)
+static std::string GetSavePath(const std::string& preFix, const std::string& ext, const std::string& pidStr = "")
 {
     std::lock_guard<std::mutex> lock(g_memMutex);   // lock when get save path
-    if ((!FileUtil::FileExists(MEMINFO_SAVE_DIR)) &&
-        (!FileUtil::ForceCreateDirectory(MEMINFO_SAVE_DIR, FileUtil::FILE_PERM_755))) {
-        HIVIEW_LOGE("create %{public}s dir failed.", MEMINFO_SAVE_DIR);
-        return "";
-    }
-    std::string timeStamp = GetCurrTimestamp();
-    std::string savePath = std::string(MEMINFO_SAVE_DIR) + "/" + preFix + timeStamp + ext;
-    int suffix = 0;
-    while (FileUtil::FileExists(savePath)) {
-        std::stringstream ss;
-        ss << std::string(MEMINFO_SAVE_DIR) << "/" << preFix << timeStamp << "_" << suffix << ext;
-        suffix++;
-        savePath = ss.str();
-    }
-    int fd = 0;
-    if (fd = creat(savePath.c_str(), FileUtil::DEFAULT_FILE_MODE); fd == -1) {
-        HIVIEW_LOGE("create %{public}s failed, errno=%{public}d.", savePath.c_str(), errno);
-        return "";
-    }
-    close(fd);
-    return savePath;
+    return CommonUtil::CreateExportFile(MEMINFO_SAVE_DIR, MAX_FILE_SAVE_SIZE, preFix, ext, pidStr);
 }
 
 static bool WriteProcessMemoryToFile(std::string& filePath, const std::vector<ProcessMemory>& processMems)
@@ -150,42 +130,8 @@ static bool ReadMemFromAILib(AIProcessMem memInfos[], uint32_t len, int& realSiz
     return (ret == 0) && (realSize >= 0);
 }
 
-static void DoClearFiles(const std::string& filePrefix)
-{
-    // Filter files with same prefix
-    std::vector<std::string> files;
-    FileUtil::GetDirFiles(MEMINFO_SAVE_DIR, files, false);
-    std::map<uint64_t, std::string> fileLists;
-    for (auto& file : files) {
-        std::string fileName = FileUtil::ExtractFileName(file);
-        if (!StringUtil::StartWith(fileName, filePrefix)) {
-            continue;
-        }
-        struct stat fileInfo;
-        if (stat(file.c_str(), &fileInfo) != 0) {
-            HIVIEW_LOGE("stat %{public}s failed.", file.c_str());
-            continue;
-        }
-        fileLists.insert(std::pair<uint64_t, std::string>(fileInfo.st_mtime, file));
-    }
-
-    size_t len = fileLists.size();
-    if (len <= MAX_FILE_SAVE_SIZE) {
-        HIVIEW_LOGI("%{public}zu files with same prefix %{public}s.", len, filePrefix.c_str());
-        return;
-    }
-    // clear more than 10 old files
-    size_t count = len - MAX_FILE_SAVE_SIZE;
-    for (auto it = fileLists.begin(); it != fileLists.end() && count > 0; ++it, --count) {
-        if (!FileUtil::RemoveFile(it->second)) {
-            HIVIEW_LOGE("remove %{public}s failed.", it->second.c_str());
-        }
-        HIVIEW_LOGI("succ remove %{public}s.", it->second.c_str());
-    }
-}
-
 static CollectResult<std::string> CollectRawInfo(const std::string& filePath, const std::string& preFix,
-                                                 bool doClearFlag = true)
+    const std::string& pidStr = "")
 {
     CollectResult<std::string> result;
     std::string content;
@@ -194,19 +140,15 @@ static CollectResult<std::string> CollectRawInfo(const std::string& filePath, co
         return result;
     }
 
-    result.data = GetSavePath(preFix, ".txt");
+    result.data = GetSavePath(preFix, ".txt", pidStr);
     if (result.data.empty()) {
         result.retCode = UcError::WRITE_FAILED;
         return result;
     }
-    HIVIEW_LOGI("save path is %{public}s.", result.data.c_str());
     if (!FileUtil::SaveStringToFile(result.data, content)) {
         HIVIEW_LOGE("save to %{public}s failed, content is %{public}s.", result.data.c_str(), content.c_str());
         result.retCode = UcError::WRITE_FAILED;
         return result;
-    }
-    if (doClearFlag) {
-        DoClearFiles(preFix);
     }
     result.retCode = UcError::SUCCESS;
     return result;
@@ -418,7 +360,6 @@ CollectResult<std::string> MemoryCollectorImpl::ExportAllProcessMemory()
         result.retCode = UcError::WRITE_FAILED;
         return result;
     }
-    DoClearFiles("all_processes_mem_");
     result.data = savePath;
     result.retCode = UcError::SUCCESS;
     return result;
@@ -475,7 +416,6 @@ CollectResult<std::string> MemoryCollectorImpl::ExportAllAIProcess()
         result.retCode = UcError::WRITE_FAILED;
         return result;
     }
-    DoClearFiles("all_ai_processes_mem_");
     result.data = savePath;
     result.retCode = UcError::SUCCESS;
     return result;
@@ -485,9 +425,7 @@ CollectResult<std::string> MemoryCollectorImpl::CollectRawSmaps(int32_t pid)
 {
     std::string pidStr = std::to_string(pid);
     std::string fileName = PROC + pidStr + "/smaps";
-    std::string preFix = "proc_smaps_" + pidStr + "_";
-    CollectResult<std::string> result = CollectRawInfo(fileName, preFix, false);
-    DoClearFiles("proc_smaps_");
+    CollectResult<std::string> result = CollectRawInfo(fileName, "proc_smaps_", pidStr + "_");
     return result;
 }
 
@@ -551,8 +489,7 @@ CollectResult<std::string> MemoryCollectorImpl::CollectHprof(int32_t pid)
     }
     TimeUtil::Sleep(DELAY_MILLISEC);
 
-    std::string preFix = "jsheap_" + pidStr + "_";
-    std::string savePath = GetSavePath(preFix, ".snapshot");
+    std::string savePath = GetSavePath("jsheap_", ".snapshot", pidStr + "_");
     if (savePath.empty()) {
         result.retCode = UcError::WRITE_FAILED;
         return result;
@@ -569,7 +506,6 @@ CollectResult<std::string> MemoryCollectorImpl::CollectHprof(int32_t pid)
                 result.retCode = UcError::WRITE_FAILED;
                 return result;
             }
-            DoClearFiles("jsheap_");
             result.data = savePath;
             result.retCode = UcError::SUCCESS;
             return result;
@@ -581,7 +517,6 @@ CollectResult<std::string> MemoryCollectorImpl::CollectHprof(int32_t pid)
         result.retCode = UcError::WRITE_FAILED;
         return result;
     }
-    DoClearFiles("jsheap_");
     result.data = savePath;
     result.retCode = UcError::SUCCESS;
     return result;

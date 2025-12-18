@@ -41,10 +41,11 @@ private:
 
 public:
     static bool ParseTypeAndValue(const std::string &str, std::string &type, int64_t &value);
-    static void GetDirRegexFiles(const std::string& path, const std::string& pattern, std::vector<std::string>& files);
+    static void GetDirRegexFiles(const std::string& path, const std::string& prefix, std::vector<std::string>& files,
+        const std::string& pidStr = "");
     static int GetFileNameNum(const std::string& fileName, const std::string& ext);
     static std::string CreateExportFile(const std::string& path, int32_t maxFileNum, const std::string& prefix,
-        const std::string& ext);
+        const std::string& ext, const std::string& pidStr = "");
     static int32_t ReadNodeWithOnlyNumber(const std::string& fileName);
     template <typename T> static bool StrToNum(const std::string& sString, T &tX)
     {
