@@ -69,7 +69,7 @@ void DoClean(const std::string tracePath, uint32_t cleanThreshold)
     // Filter files that belong to me
     std::sort(fileInfos.begin(), fileInfos.end(), [](const std::pair<std::string, struct stat>& a,
         const std::pair<std::string, struct stat>& b) {
-        return a.second.st_mtime > b.second.st_mtime;
+        return a.second.st_mtim.tv_nsec > b.second.st_mtim.tv_nsec;
     });
 
     while (fileInfos.size() > cleanThreshold) {
