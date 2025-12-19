@@ -19,6 +19,7 @@
 #include "file_util.h"
 #include "time_util.h"
 #include "log_store_ex.h"
+#include "log_file.h"
 
 #define private public
 #include "freeze_manager.h"
@@ -62,18 +63,12 @@ void FreezeManagerTest::TearDown(void)
  */
 HWTEST_F(FreezeManagerTest, GetUidFromFileName_001, TestSize.Level0)
 {
+    LogStoreEx::LogFileFilter filter1 = freezeManager->CreateLogFileFilter(0, "FreezeManagerTest");
+    EXPECT_TRUE(filter1 != nullptr);
+    LogStoreEx::LogFileFilter filter2 = freezeManager->CreateLogFileFilter(0, "111");
+    EXPECT_TRUE(filter2 != nullptr);
     int32_t id = freezeManager->GetUidFromFileName("com.ohos.sceneboard");
     EXPECT_TRUE(id >= 0);
-}
-
-/**
- * @tc.name: CreateLogFileFilter_001
- * @tc.desc: FreezeManager
- */
-HWTEST_F(FreezeManagerTest, CreateLogFileFilter_001, TestSize.Level0)
-{
-    LogStoreEx::LogFileFilter filter = freezeManager->CreateLogFileFilter(0, "FreezeManagerTest");
-    EXPECT_TRUE(filter != nullptr);
 }
 
 /**
@@ -187,11 +182,13 @@ HWTEST_F(FreezeManagerTest, FillProcMemory_Test_001, TestSize.Level3)
  */
 HWTEST_F(FreezeManagerTest, GetDightStrArr_Test_001, TestSize.Level3)
 {
-    std::string target = "abc abc 123";
+    std::string target = "test arr";
     auto numStrArr = freezeManager->GetDightStrArr(target);
     EXPECT_TRUE(numStrArr.size() > 0);
+    target = "abc abc 123";
+    numStrArr = freezeManager->GetDightStrArr(target);
     target = "0 0 123 123";
-    auto numStrArr = freezeManager->GetDightStrArr(target);
+    numStrArr = freezeManager->GetDightStrArr(target);
     EXPECT_TRUE(numStrArr.size() > 0);
 }
 
@@ -209,7 +206,7 @@ HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
             FreezeManager::GetInstance()->InsertTraceName(i, traceName + std::to_string(i));
         }
     }
-    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "");
+    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "trace is dumpping or not find traceName");
     EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(10), "traceName_10");
 }
 }
