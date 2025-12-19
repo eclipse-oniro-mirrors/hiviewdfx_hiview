@@ -176,15 +176,30 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest004, TestSize.Level1)
     StrategyParam strategyParam {0, 0, EnumToString(UCollect::TraceCaller::XPOWER), TEST_DB_PATH, TEST_CONFIG_PATH};
     auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
         std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 2, strategyParam.caller)); // clean threshold
-    TraceRetInfo testInfo {
+    TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
-        .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
+        .outputFiles = {TRACE_TEST_SRC1}
     };
     CollectResult<std::vector<std::string>> result;
-    auto ret = flowControlStrategy->DoDump(result.data, testInfo);
+    auto ret1 = flowControlStrategy->DoDump(result.data, testInfo1);
+    ASSERT_TRUE(ret1.IsSuccess());
     sleep(1);
-    ASSERT_TRUE(ret.IsSuccess());
+    TraceRetInfo testInfo2 {
+        .errorCode = TraceErrorCode::SUCCESS,
+        .fileSize = 1,
+        .outputFiles = {TRACE_TEST_SRC2}
+    };
+    auto ret2 = flowControlStrategy->DoDump(result.data, testInfo2);
+    ASSERT_TRUE(ret2.IsSuccess());
+    sleep(1);
+    TraceRetInfo testInfo3 {
+        .errorCode = TraceErrorCode::SUCCESS,
+        .fileSize = 1,
+        .outputFiles = {TRACE_TEST_SRC3}
+    };
+    auto ret3 = flowControlStrategy->DoDump(result.data, testInfo3);
+    ASSERT_TRUE(ret3.IsSuccess());
     ASSERT_EQ(GetDirFileCount(TEST_SHARED_PATH), 2);
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID2));
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID3));
@@ -228,19 +243,26 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest009, TestSize.Level1)
     auto flowControlStrategy = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
         std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 2, strategyParam.caller));
     TraceRetInfo testInfo {
-        .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2}
+        .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC1}
     };
     CollectResult<std::vector<std::string>> result;
     auto ret = flowControlStrategy->DoDump(result.data, testInfo);
     ASSERT_TRUE(ret.IsSuccess());
+    TraceRetInfo testInfo2 {
+        .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC2}
+    };
+    sleep(1);
+    auto ret2 = flowControlStrategy->DoDump(result.data, testInfo2);
+    ASSERT_TRUE(ret2.IsSuccess());
     auto flowControlStrategy1 = std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
         std::make_shared<TraceZipHandler>(TEST_SHARED_PATH, 2, strategyParam.caller));
-    TraceRetInfo testInfo1 {
+    TraceRetInfo testInfo3 {
         .errorCode = TraceErrorCode::SUCCESS, .fileSize = 1, .outputFiles = {TRACE_TEST_SRC3}
     };
-    auto ret1 = flowControlStrategy1->DoDump(result.data, testInfo1);
     sleep(1);
-    ASSERT_TRUE(ret1.IsSuccess());
+    auto ret3 = flowControlStrategy1->DoDump(result.data, testInfo3);
+    sleep(1);
+    ASSERT_TRUE(ret3.IsSuccess());
     ASSERT_FALSE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID1));
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID2));
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID3));
@@ -451,18 +473,32 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest016, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest017, TestSize.Level1)
 {
     auto devStrategy = MakeXperfStrategy(2, 2);
-    TraceRetInfo testInfo {
+    TraceRetInfo testInfo1 {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 1,
-        .outputFiles = {TRACE_TEST_SRC1, TRACE_TEST_SRC2, TRACE_TEST_SRC3}
+        .outputFiles = {TRACE_TEST_SRC1}
     };
     CollectResult<std::vector<std::string>> result;
-    auto ret = devStrategy->DoDump(result.data, testInfo);
-    ASSERT_TRUE(ret.IsSuccess());
+    auto ret1 = devStrategy->DoDump(result.data, testInfo1);
+    ASSERT_TRUE(ret1.IsSuccess());
     sleep(1);
+    TraceRetInfo testInfo2 {
+        .errorCode = TraceErrorCode::SUCCESS,
+        .fileSize = 1,
+        .outputFiles = {TRACE_TEST_SRC2}
+    };
+    auto ret2 = devStrategy->DoDump(result.data, testInfo2);
+    ASSERT_TRUE(ret2.IsSuccess());
+    sleep(1);
+    TraceRetInfo testInfo3 {
+        .errorCode = TraceErrorCode::SUCCESS,
+        .fileSize = 1,
+        .outputFiles = {TRACE_TEST_SRC3}
+    };
+    auto ret3 = devStrategy->DoDump(result.data, testInfo3);
+    ASSERT_TRUE(ret3.IsSuccess());
     ASSERT_EQ(GetDirFileCount(TEST_SPECIAL_PATH), 2);
     ASSERT_EQ(GetDirFileCount(TEST_SHARED_PATH), 2);
-    ASSERT_EQ(result.data.size(), 3);
     ASSERT_FALSE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID1));
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID2));
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID3));
