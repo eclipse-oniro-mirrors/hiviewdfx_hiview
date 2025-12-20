@@ -21,6 +21,7 @@ if (enable_hiview_usage_event_report_build) {
       "event/include",
       "fold/include",
       "include",
+      "service/factory/include",
     ]
 
     if (power_manager_enable) {
@@ -50,6 +51,7 @@ if (enable_hiview_usage_event_report_build) {
       "cache/json_parser.cpp",
       "cache/usage_event_cacher.cpp",
       "event/sys_usage_event.cpp",
+      "service/factory/sys_usage_event_factory.cpp",
       "usage_event_report.cpp",
     ]
 
@@ -128,6 +130,7 @@ if (enable_hiview_usage_event_report_build) {
       "fold/cache/fold_common_utils.cpp",
       "fold/cache/fold_event_cacher.cpp",
       "fold/event/fold_app_usage_event.cpp",
+      "service/factory/sys_usage_event_factory.cpp",
       "usage_event_report.cpp",
     ]
 

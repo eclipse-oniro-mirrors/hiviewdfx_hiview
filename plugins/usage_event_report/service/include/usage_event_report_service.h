@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,8 +34,8 @@ private:
     void ReportAppUsage();
     void ReportSysUsage();
     void SaveSysUsage();
-    void UpdateCacheSysUsage(std::shared_ptr<LoggerEvent>& cacheUsage, const UsageEventCacher& cacher);
-    void UpdateLastSysUsage(std::shared_ptr<LoggerEvent>& nowUsage, const UsageEventCacher& cacher);
+    int UpdateCacheSysUsage(std::shared_ptr<LoggerEvent>& cacheUsage, const UsageEventCacher& cacher);
+    int UpdateLastSysUsage(std::shared_ptr<LoggerEvent>& nowUsage, const UsageEventCacher& cacher);
 
 private:
     std::string workPath_;

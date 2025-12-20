@@ -114,6 +114,15 @@ int RestorableDbStore::Update(int& changeRow, const std::string& table, const Na
         });
 }
 
+int RestorableDbStore::Update(int& changeRow, const NativeRdb::ValuesBucket& bucket,
+    const NativeRdb::AbsRdbPredicates& absRdbPredicates)
+{
+    return AdaptRdbOpt(
+        [&changeRow, &bucket, &absRdbPredicates] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+            return rdbStore->Update(changeRow, bucket, absRdbPredicates);
+        });
+}
+
 int RestorableDbStore::Insert(int64_t& outRowId, const std::string& table, const NativeRdb::ValuesBucket& row)
 {
     return AdaptRdbOpt([&outRowId, &table, &row] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
@@ -130,6 +139,13 @@ std::shared_ptr<NativeRdb::AbsSharedResultSet> RestorableDbStore::Query(
         return ret == nullptr ? NativeRdb::E_ERROR : NativeRdb::E_OK;
     });
     return ret;
+}
+
+int RestorableDbStore::Delete(int& deleteRow, const NativeRdb::AbsRdbPredicates& absRdbPredicates)
+{
+    return AdaptRdbOpt([&deleteRow, &absRdbPredicates] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+        return rdbStore->Delete(deleteRow, absRdbPredicates);
+    });
 }
 
 int RestorableDbStore::AdaptRdbOpt(std::function<int(std::shared_ptr<NativeRdb::RdbStore>)> func)

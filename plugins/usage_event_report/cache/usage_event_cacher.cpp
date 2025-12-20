@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,7 +37,7 @@ std::shared_ptr<LoggerEvent> UsageEventCacher::GetSysUsageEvent(const std::strin
 {
     std::shared_ptr<LoggerEvent> event = nullptr;
     if (dbHelper_->QuerySysUsageEvent(event, table) < 0) {
-        HIVIEW_LOGI("failed to query sys usage event from db");
+        HIVIEW_LOGI("failed to query sys usage event from db=%{public}s", table.c_str());
         return nullptr;
     }
     return event;
@@ -69,14 +69,16 @@ void UsageEventCacher::SavePluginStatsEventsToDb(const std::vector<std::shared_p
     }
 }
 
-void UsageEventCacher::SaveSysUsageEventToDb(const std::shared_ptr<LoggerEvent>& event, const std::string& table) const
+int UsageEventCacher::SaveSysUsageEventToDb(const std::shared_ptr<LoggerEvent>& event, const std::string& table) const
 {
     if (event == nullptr) {
-        return;
+        return -1;
     }
     if (dbHelper_->InsertSysUsageEvent(event, table) < 0) {
-        HIVIEW_LOGE("failed to save sys usage event to db");
+        HIVIEW_LOGE("failed to save sys usage event to db=%{public}s", table.c_str());
+        return -1;
     }
+    return 0;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

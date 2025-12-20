@@ -44,9 +44,12 @@ public:
     int ExecuteSql(const std::string& sql);
     int Update(int& changeRow, const std::string& table, const NativeRdb::ValuesBucket& row,
         const std::string& whereClause, const std::vector<std::string>& args);
+    int Update(int& changeRow, const NativeRdb::ValuesBucket& bucket,
+        const NativeRdb::AbsRdbPredicates& absRdbPredicates);
     int Insert(int64_t& outRowId, const std::string& table, const NativeRdb::ValuesBucket& row);
     std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(const NativeRdb::AbsRdbPredicates& absRdbPredicates,
         const std::vector<std::string>& columns);
+    int Delete(int& deleteRow, const NativeRdb::AbsRdbPredicates& absRdbPredicates);
 
 private:
     class RestorableDbOpenCallback : public NativeRdb::RdbOpenCallback {
