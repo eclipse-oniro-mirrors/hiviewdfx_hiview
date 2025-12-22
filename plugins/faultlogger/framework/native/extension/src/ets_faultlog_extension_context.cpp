@@ -27,7 +27,7 @@ namespace {
 DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Ets");
 
 constexpr const char* const FAU_EXTENSION_CONTEXT_CLASS_NAME =
-    "L@ohos/hiviewdfx/FaultLogExtensionContext/FaultLogExtensionContext;";
+    "@ohos.hiviewdfx.FaultLogExtensionContext.FaultLogExtensionContext";
 
 using namespace OHOS::AbilityRuntime;
 class EtsFaultLogExtensionContext final {
@@ -52,7 +52,7 @@ ani_object CreateEtsFaultLogExtensionContext(ani_env* env, std::shared_ptr<Fault
         return nullptr;
     }
 
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "l:", &method)) != ANI_OK) {
         HIVIEW_LOGE("status: %{public}d", status);
         return nullptr;
     }
