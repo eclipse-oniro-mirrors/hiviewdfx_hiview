@@ -200,6 +200,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest004, TestSize.Level1)
     };
     auto ret3 = flowControlStrategy->DoDump(result.data, testInfo3);
     ASSERT_TRUE(ret3.IsSuccess());
+    sleep(1);
     ASSERT_EQ(GetDirFileCount(TEST_SHARED_PATH), 2);
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID2));
     ASSERT_TRUE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID3));
@@ -497,6 +498,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest017, TestSize.Level1)
     };
     auto ret3 = devStrategy->DoDump(result.data, testInfo3);
     ASSERT_TRUE(ret3.IsSuccess());
+    sleep(1);
     ASSERT_EQ(GetDirFileCount(TEST_SPECIAL_PATH), 2);
     ASSERT_EQ(GetDirFileCount(TEST_SHARED_PATH), 2);
     ASSERT_FALSE(IsContainSrcTrace(TEST_SHARED_PATH, TRACE_TEST_ID1));
