@@ -66,6 +66,7 @@ TraceRet TraceBaseState::OpenTrace(const ScenarioInfo& scenarioInfo)
             break;
         case TraceScenario::TRACE_DYNAMIC:
             TraceStateMachine::GetInstance().TransToDynamicState(scenarioInfo.args.appPid);
+            break;
         default:
             break;
     }
