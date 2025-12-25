@@ -267,8 +267,7 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest007, TestSize.Level1)
     auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     int ret = collector->Start(fd, pid, 10, memConfig);
-
-    // Permission deny, if the invoker is not hiview
-    ASSERT_NE(ret, 0);
     close(fd);
+    ASSERT_EQ(ret, 0);
+    ASSERT_TRUE(FileUtil::FileExists("/data/test/profiler_file"));
 }
