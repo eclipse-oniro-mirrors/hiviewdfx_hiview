@@ -77,8 +77,8 @@ enum class TelemetryPolicy {
 
 struct ScenarioInfo {
     TraceScenario scenario = TraceScenario::TRACE_CLOSE;
-    TelemetryPolicy tracePolicy = TelemetryPolicy::DEFAULT;
     TraceArgs args;
+    TelemetryPolicy tracePolicy = TelemetryPolicy::DEFAULT;
 };
 
 struct DumpTraceArgs {
