@@ -127,6 +127,46 @@ bool GetBoolValue(const cJSON* json, const std::string& key, bool& value)
     value = cJSON_IsTrue(boolJson);
     return true;
 }
+
+cJSON* CreateStringArray(const std::vector<std::string>& strArray)
+{
+    cJSON* arrayRoot = cJSON_CreateArray();
+    if (arrayRoot == nullptr) {
+        return nullptr;
+    }
+
+    for (const auto& str : strArray) {
+        cJSON* item = cJSON_CreateString(str.c_str());
+        if (item == nullptr) {
+            break;
+        }
+        cJSON_AddItemToArray(arrayRoot, item);
+    }
+    return arrayRoot;
+}
+
+void BuildJsonString(const cJSON* value, std::string& str)
+{
+    char* strValue = cJSON_PrintUnformatted(value);
+    if (strValue == nullptr) {
+        return;
+    }
+    str = strValue;
+    cJSON_free(strValue);
+}
+
+bool GetStringMemberValue(const cJSON* jsonRoot, const std::string& key, std::string& value)
+{
+    if (jsonRoot == nullptr || !cJSON_IsObject(jsonRoot) || !cJSON_HasObjectItem(jsonRoot, key.c_str())) {
+        return false;
+    }
+    cJSON* jsonValue = cJSON_GetObjectItem(jsonRoot, key.c_str());
+    if (!cJSON_IsString(jsonValue)) {
+        return false;
+    }
+    value = cJSON_GetStringValue(jsonValue);
+    return true;
+}
 } // namespace CJsonUtil
 } // namespace HiviewDFX
 } // namespace OHOS

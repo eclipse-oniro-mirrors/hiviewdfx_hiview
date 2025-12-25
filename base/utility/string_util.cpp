@@ -369,6 +369,19 @@ std::string HideSnInfo(const std::string& str)
     return ReplaceMatchedStrWithAsterisk(str, R"(_([-=+$a-zA-Z0-9\[\)\>]{12,50})_)");
 }
 
+std::string HideStrInfo(const std::string& originStr)
+{
+    constexpr int tailKeepCharNum = 4;
+    constexpr int headerKeepCharNum = 4;
+    if (originStr.length() <= headerKeepCharNum + tailKeepCharNum) {
+        return originStr;
+    }
+    std::string result = originStr.substr(0, headerKeepCharNum);
+    result += "****";
+    result += originStr.substr(originStr.length() - tailKeepCharNum, tailKeepCharNum);
+    return result;
+}
+
 std::string HideDeviceIdInfo(const std::string& str)
 {
     return ReplaceMatchedStrWithAsterisk(str, R"(_([A-Za-z0-9]{60,65})_)");
