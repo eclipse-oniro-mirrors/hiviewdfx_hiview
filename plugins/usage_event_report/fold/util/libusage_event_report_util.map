@@ -1,0 +1,13 @@
+{
+  global:
+    extern "C++" {
+    };
+    extern "C" {
+      "IsFoldable";
+      "GetFoldStatus";
+      "GetVhMode";
+      "GetFocusedAppAndWindowInfos";
+    };
+  local:
+    *;
+};

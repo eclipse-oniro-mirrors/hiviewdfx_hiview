@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -32,6 +32,7 @@ if (enable_hiview_usage_event_report_build) {
       include_dirs += [
         "fold/cache/include",
         "fold/event/include",
+        "fold/util/include",
       ]
     }
   }
@@ -86,7 +87,6 @@ if (enable_hiview_usage_event_report_build) {
       sources += [
         "fold/cache/fold_app_usage_db_helper.cpp",
         "fold/cache/fold_app_usage_event_factory.cpp",
-        "fold/cache/fold_common_utils.cpp",
         "fold/cache/fold_event_cacher.cpp",
         "fold/event/fold_app_usage_event.cpp",
         "fold/usage_fold_event_report.cpp",
@@ -95,9 +95,9 @@ if (enable_hiview_usage_event_report_build) {
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
-        "window_manager:libdm",
-        "window_manager:libwm",
       ]
+
+      deps += [ "fold/util:usage_event_report_util" ]
 
       defines += [ "USAGE_FOLD_STAT_ENABLE" ]
     }
@@ -127,7 +127,6 @@ if (enable_hiview_usage_event_report_build) {
       "event/sys_usage_event.cpp",
       "fold/cache/fold_app_usage_db_helper.cpp",
       "fold/cache/fold_app_usage_event_factory.cpp",
-      "fold/cache/fold_common_utils.cpp",
       "fold/cache/fold_event_cacher.cpp",
       "fold/event/fold_app_usage_event.cpp",
       "service/factory/sys_usage_event_factory.cpp",
@@ -155,8 +154,6 @@ if (enable_hiview_usage_event_report_build) {
       "jsoncpp:jsoncpp",
       "relational_store:native_rdb",
       "samgr:samgr_proxy",
-      "window_manager:libdm",
-      "window_manager:libwm",
     ]
 
     defines = []

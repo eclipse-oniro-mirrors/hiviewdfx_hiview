@@ -24,6 +24,7 @@
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "privacy_manager.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -39,7 +40,7 @@ constexpr char PRESERVE[] = "preserve";
 constexpr char COLLECT[] = "collect";
 constexpr char REPORT_INTERVAL[] = "reportInterval";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
-    {"FAULT", 1}, {"STATISTIC", 2}, {"SECURITY", 3}, {"BEHAVIOR", 4}
+    {"FAULT", 0}, {"STATISTIC", 1}, {"SECURITY", 2}, {"BEHAVIOR", 3}
 };
 constexpr int16_t EXPORT_ALL_EVENT = -1; // equal with ALL_EVENT_TASK_TYPE definited in export_config_parser.h
 
@@ -59,7 +60,7 @@ bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef
 void AddEventToExportList(ExportEventList& list, const std::string& domain, const std::string& name,
     const BaseInfo& baseInfo, int16_t reportInterval)
 {
-    if (baseInfo.keyConfig.preserve != DEFAULT_PERSERVE_VAL || baseInfo.keyConfig.collect == DEFAULT_COLLECT_VAL) {
+    if (baseInfo.keyConfig.preserve != DEFAULT_PRESERVE_VAL || baseInfo.keyConfig.collect == DEFAULT_COLLECT_VAL) {
         return;
     }
     if (reportInterval != EXPORT_ALL_EVENT && baseInfo.reportInterval != reportInterval) {
@@ -71,6 +72,26 @@ void AddEventToExportList(ExportEventList& list, const std::string& domain, cons
         return;
     }
     foundRet->second.emplace_back(name);
+}
+
+void SetTagOfBaseInfo(BaseInfo& baseInfo, const std::string& tag)
+{
+    if (tag.empty()) {
+        HIVIEW_LOGW("tag is empty");
+        return;
+    }
+    constexpr size_t maxTagLen = 100; // temporary value, needs to be adjusted to 17 later
+    size_t tagLen = tag.length();
+    if (tagLen >= maxTagLen) {
+        HIVIEW_LOGW("tag len=%{public}zu is too long", tagLen);
+        return;
+    }
+    baseInfo.tag = new(std::nothrow) char[tagLen + 1];
+    if (strcpy_s(baseInfo.tag, tagLen + 1, tag.c_str()) != EOK) {
+        HIVIEW_LOGW("failed to copy tag=%{public}s", tag.c_str());
+        delete[] baseInfo.tag;
+        baseInfo.tag = nullptr;
+    }
 }
 }
 
@@ -84,37 +105,41 @@ EventJsonParser::~EventJsonParser()
 
 std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, const std::string& name)
 {
-    return GetDefinedBaseInfoByDomainName(domain, name).tag;
+    auto baseInfo = GetDefinedBaseInfoByDomainName(domain, name);
+    return baseInfo.has_value() ? (baseInfo->tag == nullptr ? "" :  baseInfo->tag) : "";
 }
 
 uint8_t EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name)
 {
-    return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.type;
+    auto baseInfo = GetDefinedBaseInfoByDomainName(domain, name);
+    return baseInfo.has_value() ? baseInfo->keyConfig.GetType() : INVALID_EVENT_TYPE;
 }
 
 bool EventJsonParser::GetPreserveByDomainAndName(const std::string& domain, const std::string& name)
 {
-    return GetDefinedBaseInfoByDomainName(domain, name).keyConfig.preserve;
+    auto baseInfo = GetDefinedBaseInfoByDomainName(domain, name);
+    return baseInfo.has_value() ? baseInfo->keyConfig.preserve : DEFAULT_PRESERVE_VAL;
 }
 
-BaseInfo EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name)
+std::optional<BaseInfo> EventJsonParser::GetDefinedBaseInfoByDomainName(const std::string& domain,
+    const std::string& name)
 {
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
     if (sysEventDefMap_ == nullptr) {
         HIVIEW_LOGD("sys def map is null");
-        return BaseInfo();
+        return std::nullopt;
     }
     auto domainIter = sysEventDefMap_->find(domain);
     if (domainIter == sysEventDefMap_->end()) {
         HIVIEW_LOGD("domain %{public}s is not defined.", domain.c_str());
-        return BaseInfo();
+        return std::nullopt;
     }
     auto domainNames = sysEventDefMap_->at(domain);
     auto nameIter = domainNames.find(name);
     if (nameIter == domainNames.end()) {
         HIVIEW_LOGD("%{public}s is not defined in domain %{public}s, or privacy not allowed.",
             name.c_str(), domain.c_str());
-        return BaseInfo();
+        return std::nullopt;
     }
     return nameIter->second;
 }
@@ -181,10 +206,11 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         HIVIEW_LOGD("level is not defined in __BASE.");
         return baseInfo;
     }
-    baseInfo.level = baseJsonInfo[LEVEL].asString();
+    baseInfo.keyConfig.level = baseJsonInfo[LEVEL].asString() == CRITICAL_LEVEL_STR ? CRITICAL_LEVEL_VAL
+        : MINOR_LEVEL_VAL;
 
     if (HasStringMember(baseJsonInfo, TAG)) {
-        baseInfo.tag = baseJsonInfo[TAG].asString();
+        SetTagOfBaseInfo(baseInfo, baseJsonInfo[TAG].asString());
     }
     if (HasIntMember(baseJsonInfo, REPORT_INTERVAL)) {
         baseInfo.reportInterval = static_cast<int16_t>(baseJsonInfo[REPORT_INTERVAL].asInt());
@@ -218,7 +244,8 @@ NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, c
     InitEventInfoMapRef(domainJson,
         [this, &domain, &allNames] (const std::string& eventName, const Json::Value& eventContent) {
         BaseInfo baseInfo = ParseBaseConfig(eventContent);
-        if (PrivacyManager::IsAllowed(domain, baseInfo.keyConfig.type, baseInfo.level, baseInfo.keyConfig.privacy)) {
+        if (PrivacyManager::IsAllowed(domain, baseInfo.keyConfig.type, baseInfo.keyConfig.GetLevel(),
+            baseInfo.keyConfig.privacy)) {
             baseInfo.disallowParams = ParseEventParamInfo(eventContent);
             allNames[eventName] = baseInfo;
         } else {

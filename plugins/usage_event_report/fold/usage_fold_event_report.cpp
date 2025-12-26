@@ -14,7 +14,9 @@
  */
 #include "usage_fold_event_report.h"
 
-#include "display_manager.h"
+#include <dlfcn.h>
+
+#include "fold_constant.h"
 #include "hiview_logger.h"
 #include "logger_event.h"
 #include "sys_event.h"
@@ -22,11 +24,32 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("UsageFoldEventReport");
+namespace {
+bool IsFoldableDevice()
+{
+    using IsFoldableFunc = bool(*)();
+    void* handle = dlopen(FoldCommonUtils::SO_NAME, RTLD_LAZY);
+    if (handle == nullptr) {
+        HIVIEW_LOGE("failed to dlopen, error: %{public}s", dlerror());
+        return false;
+    }
+
+    auto isFoldable = reinterpret_cast<IsFoldableFunc>(dlsym(handle, "IsFoldable"));
+    if (isFoldable == nullptr) {
+        HIVIEW_LOGW("failed to dlsym IsFoldable, error: %{public}s", dlerror());
+        dlclose(handle);
+        return false;
+    }
+    bool ret = isFoldable();
+    dlclose(handle);
+    return ret;
+}
+}
 
 void UsageFoldEventReport::Init(const std::string& workPath)
 {
-    if (!OHOS::Rosen::DisplayManager::GetInstance().IsFoldable()) {
-        HIVIEW_LOGI("unfoldable device");
+    if (!IsFoldableDevice()) {
+        HIVIEW_LOGI("non-foldable device");
         return;
     }
     foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath);

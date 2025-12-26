@@ -15,9 +15,9 @@
 
 #include "fold_event_cacher.h"
 
-#include "display_info.h"
-#include "display_manager.h"
-#include "fold_common_utils.h"
+#include <dlfcn.h>
+
+#include "fold_constant.h"
 #include "hiview_logger.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -102,29 +102,58 @@ int GetScreenFoldStatus(int32_t foldStatus, int32_t vhMode, int32_t windowMode)
     // for example ScreenFoldStatus = 110 means foldStatus = 1, vhMode = 1 and windowMode = 0
     return ((combineFoldStatus * THE_TENS_DIGIT) + combineVhMode) * THE_TENS_DIGIT + combineWindowMode;
 }
+
+void InitFromSo(int32_t& foldStatus, int32_t& vhMode, std::pair<std::string, bool>& focusedAppPair,
+    std::unordered_map<std::string, int32_t>& multiWindowInfos)
+{
+    using GetFoldStatusFunc = int32_t(*)();
+    using GetVhModeFunc = int32_t(*)();
+    using GetFocusedAppAndWindowInfosFunc = void(*)(std::pair<std::string, bool>& focusedAppPair,
+        std::unordered_map<std::string, int32_t>& multiWindowInfos);
+
+    void* handle = dlopen(FoldCommonUtils::SO_NAME, RTLD_LAZY);
+    if (handle == nullptr) {
+        HIVIEW_LOGE("failed to dlopen, error: %{public}s", dlerror());
+        return;
+    }
+
+    auto getFoldStatus = reinterpret_cast<GetFoldStatusFunc>(dlsym(handle, "GetFoldStatus"));
+    if (getFoldStatus == nullptr) {
+        HIVIEW_LOGW("failed to dlsym GetFoldStatus, error: %{public}s", dlerror());
+        dlclose(handle);
+        return;
+    }
+    foldStatus = getFoldStatus();
+
+    auto getVhMode = reinterpret_cast<GetVhModeFunc>(dlsym(handle, "GetVhMode"));
+    if (getVhMode == nullptr) {
+        HIVIEW_LOGW("failed to dlsym GetVhMode, error: %{public}s", dlerror());
+        dlclose(handle);
+        return;
+    }
+    vhMode = getVhMode();
+
+    auto getFocusedAppAndWindowInfos = reinterpret_cast<GetFocusedAppAndWindowInfosFunc>(dlsym(handle,
+        "GetFocusedAppAndWindowInfos"));
+    if (getFocusedAppAndWindowInfos == nullptr) {
+        HIVIEW_LOGW("failed to dlsym GetFocusedAppAndWindowInfos, error: %{public}s", dlerror());
+        dlclose(handle);
+        return;
+    }
+    getFocusedAppAndWindowInfos(focusedAppPair, multiWindowInfos);
+
+    dlclose(handle);
+}
 } // namespace
 
 FoldEventCacher::FoldEventCacher(const std::string& workPath)
 {
     timelyStart_ = TimeUtil::GetBootTimeMs();
     dbHelper_ = std::make_unique<FoldAppUsageDbHelper>(workPath);
-
-    foldStatus_ = static_cast<int32_t>(OHOS::Rosen::DisplayManager::GetInstance().GetFoldStatus());
-    auto display = OHOS::Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    if (display != nullptr) {
-        auto displayInfo = display->GetDisplayInfo();
-        if (displayInfo != nullptr) {
-            auto orientation = displayInfo->GetDisplayOrientation();
-            if (orientation == OHOS::Rosen::DisplayOrientation::PORTRAIT ||
-                orientation == OHOS::Rosen::DisplayOrientation::PORTRAIT_INVERTED) {
-                vhMode_ = 0; // 0-Portrait
-            } else {
-                vhMode_ = 1; // 1-landscape
-            }
-        }
-    }
-    FoldCommonUtils::GetFocusedAppAndWindowInfos(focusedAppPair_, multiWindowInfos_);
-    HIVIEW_LOGI("foldStatus=%{public}d, vhMode=%{public}d", foldStatus_, vhMode_);
+    InitFromSo(foldStatus_, vhMode_, focusedAppPair_, multiWindowInfos_);
+    HIVIEW_LOGI("foldStatus=%{public}d, vhMode=%{public}d, focusedApp=[%{public}s, %{public}d],"
+        "multiWindowInfos=%{public}zu", foldStatus_, vhMode_, focusedAppPair_.first.c_str(),
+        focusedAppPair_.second, multiWindowInfos_.size());
 }
 
 void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)

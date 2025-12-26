@@ -68,7 +68,7 @@ HWTEST_F(EventJsonParserTest, EventJsonParserInitTest001, testing::ext::TestSize
     // must be the first test case.
     auto baseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
-    ASSERT_TRUE(baseInfo.level.empty());
+    ASSERT_FALSE(baseInfo.has_value());
 
     ExportEventList list;
     EventJsonParser::GetInstance()->GetAllCollectEvents(list, 0);
@@ -95,7 +95,7 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest001, testing::ext::TestSize.Lev
     ASSERT_EQ(EventJsonParser::GetInstance()->GetPreserveByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), true);
     auto configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
-    ASSERT_TRUE(configBaseInfo.keyConfig.preserve);
+    ASSERT_FALSE(configBaseInfo.has_value());
 }
 
 /**
@@ -112,9 +112,10 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
 
     EventJsonParser::GetInstance()->OnConfigUpdate();
 
-    BaseInfo configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+    auto configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
-    ASSERT_EQ(configBaseInfo.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
+    ASSERT_TRUE(configBaseInfo.has_value());
+    ASSERT_EQ(configBaseInfo->keyConfig.privacy, PRIVACY_LEVEL_SECRET);
 
     ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME),
         "FIRST_TEST_CASE");
@@ -123,8 +124,9 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
     ASSERT_EQ(EventJsonParser::GetInstance()->GetPreserveByDomainAndName(FIRST_TEST_DOMAIN, FIRST_TEST_NAME), false);
     configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
-    ASSERT_FALSE(configBaseInfo.keyConfig.preserve);
-    ASSERT_EQ(configBaseInfo.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
+    ASSERT_TRUE(configBaseInfo.has_value());
+    ASSERT_FALSE(configBaseInfo->keyConfig.preserve);
+    ASSERT_EQ(configBaseInfo->keyConfig.privacy, PRIVACY_LEVEL_SECRET);
 
     ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME),
         "SECOND_TEST_CASE");
@@ -133,23 +135,26 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest002, testing::ext::TestSize.Lev
     ASSERT_EQ(EventJsonParser::GetInstance()->GetPreserveByDomainAndName(SECOND_TEST_DOMAIN, SECOND_TEST_NAME), true);
     configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(SECOND_TEST_DOMAIN,
         SECOND_TEST_NAME);
-    ASSERT_TRUE(configBaseInfo.keyConfig.preserve);
-    ASSERT_EQ(configBaseInfo.keyConfig.privacy, DEFAULT_PRIVACY);
+    ASSERT_TRUE(configBaseInfo.has_value());
+    ASSERT_TRUE(configBaseInfo->keyConfig.preserve);
+    ASSERT_EQ(configBaseInfo->keyConfig.privacy, DEFAULT_PRIVACY);
 
     // valid domain, invalid name
     configBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN, "INVALID_NAME");
-    ASSERT_TRUE(configBaseInfo.level.empty());
+    ASSERT_FALSE(configBaseInfo.has_value());
 
     RenameDefFile("hisysevent_update.def", "hisysevent.def");
     RemoveConfigVerFile();
     EventJsonParser::GetInstance()->OnConfigUpdate();
 
-    BaseInfo firstEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
+    auto firstEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(FIRST_TEST_DOMAIN,
         FIRST_TEST_NAME);
-    ASSERT_EQ(firstEventUpdated.keyConfig.privacy, PRIVACY_LEVEL_SENSITIVE);
-    BaseInfo thirdEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName("THIRD_TEST_DOMAIN",
+    ASSERT_TRUE(firstEventUpdated.has_value());
+    ASSERT_EQ(firstEventUpdated->keyConfig.privacy, PRIVACY_LEVEL_SENSITIVE);
+    auto thirdEventUpdated = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName("THIRD_TEST_DOMAIN",
         "THIRD_TEST_NAME");
-    ASSERT_EQ(thirdEventUpdated.keyConfig.privacy, PRIVACY_LEVEL_SECRET);
+    ASSERT_TRUE(thirdEventUpdated.has_value());
+    ASSERT_EQ(thirdEventUpdated->keyConfig.privacy, PRIVACY_LEVEL_SECRET);
 }
 
 /**

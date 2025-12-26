@@ -67,12 +67,12 @@ bool EventVerifyUtil::IsValidSysEvent(const std::shared_ptr<SysEvent> event)
         return false;
     }
     auto baseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(event->domain_, event->eventName_);
-    if (baseInfo.keyConfig.type == INVALID_EVENT_TYPE) {
-        HIVIEW_LOGD("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] invalid, or privacy dismatch.",
+    if (!baseInfo.has_value()) {
+        HIVIEW_LOGD("type defined for event[%{public}s|%{public}s|%{public}" PRIu64 "] invalid, or privacy mismatch.",
             event->domain_.c_str(), event->eventName_.c_str(), event->happenTime_);
         return false;
     }
-    if (event->GetEventType() != baseInfo.keyConfig.type) {
+    if (event->GetEventType() != baseInfo->keyConfig.GetType()) {
         HIVIEW_LOGW("type=%{public}d of event[%{public}s|%{public}s|%{public}" PRIu64 "] is invalid.",
             event->GetEventType(), event->domain_.c_str(), event->eventName_.c_str(), event->happenTime_);
         return false;
@@ -87,7 +87,7 @@ bool EventVerifyUtil::IsValidSysEvent(const std::shared_ptr<SysEvent> event)
     }
 
     // append extra event info
-    DecorateSysEvent(event, baseInfo, eventId);
+    DecorateSysEvent(event, baseInfo.value(), eventId);
     return true;
 }
 
@@ -108,10 +108,8 @@ bool EventVerifyUtil::IsDuplicateEvent(const uint64_t eventId)
 
 void EventVerifyUtil::DecorateSysEvent(const std::shared_ptr<SysEvent> event, const BaseInfo& baseInfo, uint64_t id)
 {
-    if (!baseInfo.level.empty()) {
-        event->SetLevel(baseInfo.level);
-    }
-    if (!baseInfo.tag.empty()) {
+    event->SetLevel(baseInfo.keyConfig.GetLevel());
+    if (baseInfo.tag != nullptr) {
         event->SetTag(baseInfo.tag);
     }
     event->SetPrivacy(baseInfo.keyConfig.privacy);
