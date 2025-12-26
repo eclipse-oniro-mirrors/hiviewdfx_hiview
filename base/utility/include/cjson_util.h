@@ -32,6 +32,13 @@ namespace CJsonUtil {
 cJSON* ParseJsonRoot(const std::string& configFile);
 
 /**
+ * @brief try to build string value from json object.
+ * @param value json object.
+ * @param str string value.
+ */
+void BuildJsonString(const cJSON* value, std::string& str);
+
+/**
  * @brief try to parse an integer value from json string.
  * @param json json string.
  * @param key key defined for the integer value.
@@ -58,12 +65,28 @@ double GetDoubleValue(cJSON* json, const std::string& key, double defaultValue =
 std::string GetStringValue(cJSON* json, const std::string& key);
 
 /**
+ * @brief try to parse a string value from json string.
+ * @param jsonRoot json object.
+ * @param key key defined for the string value.
+ * @param value the parsed string value.
+ * @return success flag.
+ */
+bool GetStringMemberValue(const cJSON* jsonRoot, const std::string& key, std::string& value);
+
+/**
  * @brief try to parse a string array value from json string.
  * @param json json string.
  * @param key key defined for the string array value.
  * @param dest the parsed string array value.
  */
 void GetStringArray(cJSON* json, const std::string& key, std::vector<std::string>& dest);
+
+/**
+ * @brief try to create an object value from string array.
+ * @param strArray string array.
+ * @return json object.
+ */
+cJSON* CreateStringArray(const std::vector<std::string>& strArray);
 
 /**
  * @brief try to parse an object value from json object.
@@ -89,6 +112,66 @@ cJSON* GetArrayValue(const cJSON* json, const std::string& key);
  * @return parsed result.
  */
 bool GetBoolValue(const cJSON* json, const std::string& key, bool& value);
+
+template<typename T>
+inline bool IsDoubleInRange(double doubleVal)
+{
+    return doubleVal <= std::numeric_limits<T>::max() && doubleVal >= std::numeric_limits<T>::lowest();
+}
+
+/**
+ * @brief try to parse a number value from json object.
+ * @param jsonRoot json object.
+ * @param key key defined for the double value.
+ * @param value the parsed number value
+ * @return parsed result.
+ */
+template<typename T>
+bool GetNumberMemberValue(const cJSON* jsonRoot, const std::string& key, T& value)
+{
+    if (jsonRoot == nullptr || !cJSON_IsObject(jsonRoot)) {
+        return false;
+    }
+    cJSON* jsonValue = cJSON_GetObjectItem(jsonRoot, key.c_str());
+    if (!cJSON_IsNumber(jsonValue)) {
+        return false;
+    }
+    double srcValue = cJSON_GetNumberValue(jsonValue);
+    if (!IsDoubleInRange<T>(srcValue)) {
+        return false;
+    }
+    value = static_cast<T>(srcValue);
+    return true;
+}
+
+/**
+ * @brief try to parse a number array value from json object.
+ * @param jsonConfig json object.
+ * @param key key defined for the double value.
+ * @param value the parsed number array value
+ * @return parsed result.
+ */
+template<typename T>
+bool GetNumberArray(const cJSON* jsonConfig, const std::string& key, std::vector<T>& array)
+{
+    cJSON* arrayObj = GetArrayValue(jsonConfig, key);
+    if (arrayObj == nullptr) {
+        return false;
+    }
+    cJSON* configItem = nullptr;
+    cJSON_ArrayForEach(configItem, arrayObj) {
+        if (!cJSON_IsNumber(configItem)) {
+            return false;
+        }
+        double srcValue = cJSON_GetNumberValue(configItem);
+        if (!IsDoubleInRange<T>(srcValue)) {
+            array.clear();
+            return false;
+        }
+        array.emplace_back(static_cast<T>(srcValue));
+    }
+    return true;
+}
 };
 } // HiviewDFX
 } // OHOS

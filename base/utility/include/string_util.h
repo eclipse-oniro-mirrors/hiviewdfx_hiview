@@ -140,7 +140,7 @@ std::string FormatCmdLine(const std::string& cmdLine);
 void FormatProcessName(std::string& cmdLine);
 
 std::string HideSnInfo(const std::string& str);
-
+std::string HideStrInfo(const std::string& originStr);
 std::string HideDeviceIdInfo(const std::string& str);
 
 bool StartWith(const std::string& str, const std::string& sub);

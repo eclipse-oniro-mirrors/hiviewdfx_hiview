@@ -509,6 +509,67 @@ HWTEST_F(AdapterUtilityOhosTest, CJsonUtilTest002, testing::ext::TestSize.Level3
 }
 
 /**
+ * @tc.name: CJsonUtilTest003
+ * @tc.desc: Test api of CJsonUtil
+ * @tc.type: FUNC
+ * @tc.require: issueICJI0P
+ */
+HWTEST_F(AdapterUtilityOhosTest, CJsonUtilTest003, testing::ext::TestSize.Level3)
+{
+    std::string jsonStr(R"({ "age" : 18, "level" : -2, "speed" : 1024 , "score" : 0 })");
+    cJSON* root = cJSON_Parse(jsonStr.c_str());
+    ASSERT_FALSE(root == nullptr);
+
+    uint32_t age = 0;
+    CJsonUtil::GetNumberMemberValue(root, "age", age);
+    EXPECT_EQ(18, age); // 18, test data
+
+    uint32_t levelErr = 0;
+    EXPECT_FALSE(CJsonUtil::GetNumberMemberValue(root, "level", levelErr));
+
+    int32_t ilevelOk = 0;
+    bool ilevelRet = CJsonUtil::GetNumberMemberValue(root, "level", ilevelOk);
+    EXPECT_TRUE(ilevelRet);
+    EXPECT_EQ(-2, ilevelOk); // -2, test data
+
+    double dlevelOk = 0;
+    bool dlevelRet = CJsonUtil::GetNumberMemberValue(root, "level", dlevelOk);
+    EXPECT_TRUE(dlevelRet);
+    EXPECT_EQ(-2, dlevelOk); // -2, test data
+
+    float flevelOk = 0;
+    bool flevelRet = CJsonUtil::GetNumberMemberValue(root, "level", flevelOk);
+    EXPECT_TRUE(flevelRet);
+    EXPECT_EQ(-2, flevelOk); // -2, test data
+
+    int32_t iscoreOk = -1; // -1, init value
+    bool iscoreRet = CJsonUtil::GetNumberMemberValue(root, "score", iscoreOk);
+    EXPECT_TRUE(iscoreRet);
+    EXPECT_EQ(0, iscoreOk);
+
+    double dscoreOk = -1;
+    bool dscoreRet = CJsonUtil::GetNumberMemberValue(root, "score", dscoreOk);
+    EXPECT_TRUE(dscoreRet);
+    EXPECT_EQ(0, dscoreOk);
+
+    float fscoreOk = -1;
+    bool fscoreRet = CJsonUtil::GetNumberMemberValue(root, "score", fscoreOk);
+    EXPECT_TRUE(fscoreRet);
+    EXPECT_EQ(0, fscoreOk);
+
+    uint8_t speedErr = 0;
+    EXPECT_FALSE(CJsonUtil::GetNumberMemberValue(root, "speed", speedErr));
+    EXPECT_EQ(0, speedErr);
+
+    double speedOk = 0;
+    EXPECT_FALSE(CJsonUtil::GetNumberMemberValue(root, "not_member", speedOk));
+    EXPECT_TRUE(CJsonUtil::GetNumberMemberValue(root, "speed", speedOk));
+    EXPECT_EQ(1024, static_cast<uint32_t>(speedOk)); // 1024, test data
+
+    cJSON_Delete(root);
+}
+
+/**
  * @tc.name: FreezeJsonUtilTest001
  * @tc.desc: Test api of FreezeJsonUtil
  * @tc.type: FUNC
