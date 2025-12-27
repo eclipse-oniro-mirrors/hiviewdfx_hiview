@@ -71,7 +71,6 @@ private:
     std::shared_ptr<TraceCacheMonitor> traceCacheMonitor_;
 #endif
     std::list<uint64_t> taskList_;
-    volatile bool isCpuTaskRunning_;
 }; // UnifiedCollector
 } // namespace HiviewDFX
 } // namespace OHOS

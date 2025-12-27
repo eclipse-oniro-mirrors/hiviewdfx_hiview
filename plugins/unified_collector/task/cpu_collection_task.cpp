@@ -51,7 +51,12 @@ void CpuCollectionTask::Collect()
     if (Parameter::IsBetaVersion()) {
         ReportCpuCollectionEvent();
     }
-    CollectCpuData();
+    if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn() || Parameter::IsDeveloperMode()) {
+        CollectCpuData();
+    } else {
+        // update cpu time always
+        (void)cpuCollector_->CollectProcessCpuStatInfos(true);
+    }
 }
 
 void CpuCollectionTask::InitCpuCollector()
