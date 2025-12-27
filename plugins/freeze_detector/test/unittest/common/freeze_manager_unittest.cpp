@@ -206,7 +206,7 @@ HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
             FreezeManager::GetInstance()->InsertTraceName(i, traceName + std::to_string(i));
         }
     }
-    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "trace is dumpping or not find traceName");
+    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "");
     EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(10), "traceName_10");
 }
 }

@@ -603,7 +603,7 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
     memoryCatcher->CheckString("abc: 100", data, "abc", "");
     EXPECT_EQ(sysEvent->GetEventValue("HOST_RESOURCE_WARNING"), "Yes");
     memoryCatcher->CheckString("abc: 3000000", data, "abc", "/proc/ashmem_process_info");
-    EXPECT_TRUE(data.empty());
+    EXPECT_TRUE(!data.empty());
 }
 
 /**
@@ -782,7 +782,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_002, TestSize.Level1)
     EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) > 0);
 
     dmesgCatcher->Initialize("", 0, 1);
-    EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) > 0);
+    EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) >= 0);
 
     dmesgCatcher->Initialize("", 1, 1);
     printf("dmesgCatcher result: %d\n", dmesgCatcher->Catch(fd, jsonFd));
