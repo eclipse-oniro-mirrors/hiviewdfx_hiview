@@ -129,7 +129,7 @@ void Tbox::FilterTrace(std::map<std::string, std::string>& eventInfo, string eve
         return;
     }
     std::vector<std::string> trace;
-    LogParse logparse;
+    LogParse logparse(eventType);
     std::string block = logparse.GetFilterTrace(iterEndStack->second, trace, eventType);
     eventInfo[PARAMETER_ENDSTACK] = block;
     std::stack<std::string> stackTop = logparse.GetStackTop(trace, 3);  // 3 : first/second/last frame

@@ -25,8 +25,8 @@ namespace OHOS {
 namespace HiviewDFX {
 class LogParse {
 public:
-    LogParse() {};
-    ~LogParse() {};
+    explicit LogParse(const std::string& eventName);
+    ~LogParse() = default;
     LogParse(const LogParse&) = delete;
     LogParse& operator=(const LogParse&) = delete;
     bool IsIgnoreLibrary(const std::string& val) const;
@@ -43,7 +43,7 @@ private:
 
 private:
     static const int STACK_LEN_MAX = 30;
-    static const std::map<std::string, std::set<std::string>> ignoreList_;
+    std::map<std::string, std::set<std::string>> ignoreList_;
 };
 }
 }
