@@ -20,6 +20,7 @@
 #include "faultlog_jserror.h"
 #include "faultlog_sanitizer.h"
 #include "faultlog_rust_panic.h"
+#include "faultlog_page_info.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -44,6 +45,9 @@ void FaultLogEventFactory::InitializeFaultLogEvents()
     };
     faultLogEvents["ADDR_SANITIZER"] = []() {
         return std::make_unique<FaultLogSanitizer>();
+    };
+    faultLogEvents["PROCESS_PAGE_INFO"] = []() {
+        return std::make_unique<FaultLogPageInfo>();
     };
 }
 
