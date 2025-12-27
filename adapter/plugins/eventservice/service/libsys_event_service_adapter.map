@@ -1,0 +1,11 @@
+{
+  global:
+    extern "C++" {
+        "OHOS::HiviewDFX::SysEventServiceAdapter::OnSysEvent(std::__h::shared_ptr<OHOS::HiviewDFX::SysEvent>&)";
+        "OHOS::HiviewDFX::SysEventServiceAdapter::StartService(OHOS::HiviewDFX::SysEventServiceBase*)";
+        "OHOS::HiviewDFX::SysEventServiceAdapter::SetWorkLoop(std::__h::shared_ptr<OHOS::HiviewDFX::EventLoop>)";
+        "OHOS::DelayedSingleton<OHOS::HiviewDFX::EventJsonParser>::instance_";
+    };
+  local:
+    *;
+};

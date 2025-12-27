@@ -87,7 +87,7 @@ bool MatchContent(int type, const string& rule, const string& match)
 
 bool MatchEventType(int rule, int match)
 {
-    return rule == INVALID_EVENT_TYPE || rule == match;
+    return rule == DEFAULT_EVENT_TYPE || rule == match;
 }
 
 bool IsMatchedRule(const OHOS::HiviewDFX::SysEventRule& rule, const string& domain,
@@ -373,7 +373,7 @@ bool SysEventServiceOhos::BuildEventQuery(std::shared_ptr<EventQueryWrapperBuild
                     " is %{public}u, and event type in query rule is %{public}u.",
                     rule.domain.c_str(), eventName.c_str(), eventType, rule.eventType);
                 if ((!rule.domain.empty() && !eventName.empty() && eventType == INVALID_EVENT_TYPE) ||
-                    (eventType != INVALID_EVENT_TYPE && rule.eventType != INVALID_EVENT_TYPE &&
+                    (eventType != INVALID_EVENT_TYPE && rule.eventType != DEFAULT_EVENT_TYPE &&
                     eventType != rule.eventType)) {
                     return false;
                 }

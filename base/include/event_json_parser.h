@@ -18,8 +18,10 @@
 
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,30 +33,49 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-constexpr uint8_t INVALID_EVENT_TYPE = 0;
+constexpr uint8_t INVALID_EVENT_TYPE = std::numeric_limits<uint8_t>::max();
+constexpr uint8_t DEFAULT_EVENT_TYPE = 0;
 constexpr uint8_t DEFAULT_PRIVACY = 4;
-constexpr uint8_t DEFAULT_PERSERVE_VAL = 1;
+constexpr uint8_t DEFAULT_PRESERVE_VAL = 1;
 constexpr uint8_t DEFAULT_COLLECT_VAL = 0;
 constexpr int16_t DEFAULT_REPORT_INTERVAL = 0;
+constexpr uint8_t MINOR_LEVEL_VAL = 0;
+constexpr uint8_t CRITICAL_LEVEL_VAL = 1;
+inline constexpr char MINOR_LEVEL_STR[] = "MINOR";
+inline constexpr char CRITICAL_LEVEL_STR[] = "CRITICAL";
 
+#pragma pack(push, 1)
 struct KeyConfig {
-    uint8_t type : 3;
+    uint8_t type : 2;
+    uint8_t level : 1;
     uint8_t privacy : 3;
     uint8_t preserve : 1;
     uint8_t collect : 1;
 
-    KeyConfig(uint8_t type = INVALID_EVENT_TYPE, uint8_t privacy = DEFAULT_PRIVACY,
-        uint8_t preserve = DEFAULT_PERSERVE_VAL, uint8_t collect = DEFAULT_COLLECT_VAL)
-        : type(type), privacy(privacy), preserve(preserve), collect(collect) {}
-};
+    KeyConfig(uint8_t type = DEFAULT_EVENT_TYPE, uint8_t level = MINOR_LEVEL_VAL, uint8_t privacy = DEFAULT_PRIVACY,
+        uint8_t preserve = DEFAULT_PRESERVE_VAL, uint8_t collect = DEFAULT_COLLECT_VAL)
+        : type(type), level(level), privacy(privacy), preserve(preserve), collect(collect) {}
 
+    uint8_t GetType() const
+    {
+        return type + 1; // 1: for hisysevent type enum
+    }
+
+    std::string GetLevel() const
+    {
+        return level == CRITICAL_LEVEL_VAL ? CRITICAL_LEVEL_STR : MINOR_LEVEL_STR;
+    }
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct BaseInfo {
     KeyConfig keyConfig;
-    std::string level;
-    std::string tag;
     PARAM_INFO_MAP_PTR disallowParams;
     int16_t reportInterval = DEFAULT_REPORT_INTERVAL;
+    char* tag = nullptr;
 };
+#pragma pack(pop)
 
 using NAME_INFO_MAP = std::unordered_map<std::string, BaseInfo>;
 using DOMAIN_INFO_MAP = std::unordered_map<std::string, NAME_INFO_MAP>;
@@ -69,7 +90,7 @@ public:
     uint8_t GetTypeByDomainAndName(const std::string& domain, const std::string& name);
     bool GetPreserveByDomainAndName(const std::string& domain, const std::string& name);
     void OnConfigUpdate();
-    BaseInfo GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name);
+    std::optional<BaseInfo> GetDefinedBaseInfoByDomainName(const std::string& domain, const std::string& name);
     void GetAllCollectEvents(ExportEventList& list, int16_t reportInterval);
     void ReadDefFile();
 

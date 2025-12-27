@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,17 +14,15 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-config("sys_event_service_adapter_config") {
+config("usage_event_report_util_config") {
   visibility = [ "*:*" ]
-
   include_dirs = [
-    ".",
-    "idl/dfx/include",
-    "idl/include/type",
+    "../cache/include",
+    "include",
   ]
 }
 
-ohos_shared_library("sys_event_service_adapter") {
+ohos_shared_library("usage_event_report_util") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -32,32 +30,21 @@ ohos_shared_library("sys_event_service_adapter") {
     cfi_vcall_icall_only = true
     debug = false
   }
-  part_name = "hiview"
-  subsystem_name = "hiviewdfx"
 
-  public_configs = [ ":sys_event_service_adapter_config" ]
+  configs = [ ":usage_event_report_util_config" ]
 
-  sources = [ "sys_event_service_adapter.cpp" ]
-
-  deps = [
-    "$hiview_base:hiviewbase",
-    "idl:sys_event_service_ohos",
-  ]
+  sources = [ "src/fold_common_utils.cpp" ]
 
   external_deps = [
     "c_utils:utils",
-    "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
+    "window_manager:libdm",
+    "window_manager:libwm",
   ]
 
-  version_script = "libsys_event_service_adapter.map"
-}
+  version_script = "libusage_event_report_util.map"
 
-group("unittest") {
-  testonly = true
-  deps = [ "test:unittest" ]
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
 }

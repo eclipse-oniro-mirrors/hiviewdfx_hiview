@@ -15,14 +15,14 @@
 
 #include "fold_common_utils.h"
 
-#include "hiview_logger.h"
-#include "usage_event_common.h"
+#include "display_info.h"
+#include "display_manager.h"
+#include "fold_constant.h"
 #include "window_manager.h"
 
-namespace OHOS {
-namespace HiviewDFX {
-namespace FoldCommonUtils {
-DEFINE_LOG_TAG("FoldCommonUtils");
+using namespace OHOS::HiviewDFX;
+using namespace OHOS::HiviewDFX::FoldCommonUtils;
+
 namespace {
 int32_t GetMultiWindowMode(int32_t mode)
 {
@@ -39,17 +39,45 @@ int32_t GetMultiWindowMode(int32_t mode)
 }
 }
 
+bool IsFoldable()
+{
+    return OHOS::Rosen::DisplayManager::GetInstance().IsFoldable();
+}
+
+int32_t GetFoldStatus()
+{
+    return static_cast<int32_t>(OHOS::Rosen::DisplayManager::GetInstance().GetFoldStatus());
+}
+
+int32_t GetVhMode()
+{
+    int32_t vhMode = 0;
+    auto display = OHOS::Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    if (display != nullptr) {
+        auto displayInfo = display->GetDisplayInfo();
+        if (displayInfo != nullptr) {
+            auto orientation = displayInfo->GetDisplayOrientation();
+            if (orientation == OHOS::Rosen::DisplayOrientation::PORTRAIT ||
+                orientation == OHOS::Rosen::DisplayOrientation::PORTRAIT_INVERTED) {
+                vhMode = 0; // 0-Portrait
+            } else {
+                vhMode = 1; // 1-landscape
+            }
+        }
+    }
+    return vhMode;
+}
+
 void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
     std::unordered_map<std::string, int32_t>& multiWindowInfos)
 {
     focusedAppPair = std::pair<std::string, bool>("", false);
     multiWindowInfos.clear();
-    Rosen::WindowInfoOption windowInfoOption;
-    windowInfoOption.windowInfoFilterOption = Rosen::WindowInfoFilterOption::FOREGROUND;
-    std::vector<sptr<Rosen::WindowInfo>> winInfos;
-    Rosen::WMError ret = Rosen::WindowManager::GetInstance().ListWindowInfo(windowInfoOption, winInfos);
-    if (ret != Rosen::WMError::WM_OK) {
-        HIVIEW_LOGI("get windowInfos failed, ret=%{public}d", ret);
+    OHOS::Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowInfoFilterOption = OHOS::Rosen::WindowInfoFilterOption::FOREGROUND;
+    std::vector<OHOS::sptr<OHOS::Rosen::WindowInfo>> winInfos;
+    OHOS::Rosen::WMError ret = OHOS::Rosen::WindowManager::GetInstance().ListWindowInfo(windowInfoOption, winInfos);
+    if (ret != OHOS::Rosen::WMError::WM_OK) {
         return;
     }
     for (auto winInfo : winInfos) {
@@ -69,6 +97,3 @@ void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
         }
     }
 }
-} // namespace FoldCommonUtils
-} // namespace HiviewDFX
-} // namespace OHOS
