@@ -31,6 +31,8 @@ namespace HiviewDFX {
 #ifdef USAGE_FOLD_STAT_ENABLE
 class UsageFoldEventReport {
 public:
+    UsageFoldEventReport() = default;
+    ~UsageFoldEventReport();
     void Init(const std::string& workPath);
     void ProcessEvent(std::shared_ptr<Event> event);
     void ReportEvent();
@@ -38,6 +40,7 @@ public:
 private:
     std::unique_ptr<FoldEventCacher> foldEventCacher_;
     std::unique_ptr<FoldAppUsageEventFactory> foldAppUsageFactory_;
+    void* utilHandle_ = nullptr;
 };
 #else // empty impl
 class UsageFoldEventReport {

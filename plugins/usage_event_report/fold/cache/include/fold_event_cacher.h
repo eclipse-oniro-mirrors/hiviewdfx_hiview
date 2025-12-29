@@ -27,7 +27,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class FoldEventCacher {
 public:
-    FoldEventCacher(const std::string& workPath);
+    FoldEventCacher(const std::string& workPath, void* handle = nullptr);
     ~FoldEventCacher() {}
 
     void ProcessEvent(std::shared_ptr<SysEvent> event);

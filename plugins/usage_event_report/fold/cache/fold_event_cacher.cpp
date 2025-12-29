@@ -104,23 +104,21 @@ int GetScreenFoldStatus(int32_t foldStatus, int32_t vhMode, int32_t windowMode)
 }
 
 void InitFromSo(int32_t& foldStatus, int32_t& vhMode, std::pair<std::string, bool>& focusedAppPair,
-    std::unordered_map<std::string, int32_t>& multiWindowInfos)
+    std::unordered_map<std::string, int32_t>& multiWindowInfos, void* handle)
 {
     using GetFoldStatusFunc = int32_t(*)();
     using GetVhModeFunc = int32_t(*)();
     using GetFocusedAppAndWindowInfosFunc = void(*)(std::pair<std::string, bool>& focusedAppPair,
         std::unordered_map<std::string, int32_t>& multiWindowInfos);
 
-    void* handle = dlopen(FoldCommonUtils::SO_NAME, RTLD_LAZY);
     if (handle == nullptr) {
-        HIVIEW_LOGE("failed to dlopen, error: %{public}s", dlerror());
+        HIVIEW_LOGE("handle is null");
         return;
     }
 
     auto getFoldStatus = reinterpret_cast<GetFoldStatusFunc>(dlsym(handle, "GetFoldStatus"));
     if (getFoldStatus == nullptr) {
         HIVIEW_LOGW("failed to dlsym GetFoldStatus, error: %{public}s", dlerror());
-        dlclose(handle);
         return;
     }
     foldStatus = getFoldStatus();
@@ -128,7 +126,6 @@ void InitFromSo(int32_t& foldStatus, int32_t& vhMode, std::pair<std::string, boo
     auto getVhMode = reinterpret_cast<GetVhModeFunc>(dlsym(handle, "GetVhMode"));
     if (getVhMode == nullptr) {
         HIVIEW_LOGW("failed to dlsym GetVhMode, error: %{public}s", dlerror());
-        dlclose(handle);
         return;
     }
     vhMode = getVhMode();
@@ -137,20 +134,17 @@ void InitFromSo(int32_t& foldStatus, int32_t& vhMode, std::pair<std::string, boo
         "GetFocusedAppAndWindowInfos"));
     if (getFocusedAppAndWindowInfos == nullptr) {
         HIVIEW_LOGW("failed to dlsym GetFocusedAppAndWindowInfos, error: %{public}s", dlerror());
-        dlclose(handle);
         return;
     }
     getFocusedAppAndWindowInfos(focusedAppPair, multiWindowInfos);
-
-    dlclose(handle);
 }
 } // namespace
 
-FoldEventCacher::FoldEventCacher(const std::string& workPath)
+FoldEventCacher::FoldEventCacher(const std::string& workPath, void* handle)
 {
     timelyStart_ = TimeUtil::GetBootTimeMs();
     dbHelper_ = std::make_unique<FoldAppUsageDbHelper>(workPath);
-    InitFromSo(foldStatus_, vhMode_, focusedAppPair_, multiWindowInfos_);
+    InitFromSo(foldStatus_, vhMode_, focusedAppPair_, multiWindowInfos_, handle);
     HIVIEW_LOGI("foldStatus=%{public}d, vhMode=%{public}d, focusedApp=[%{public}s, %{public}d],"
         "multiWindowInfos=%{public}zu", foldStatus_, vhMode_, focusedAppPair_.first.c_str(),
         focusedAppPair_.second, multiWindowInfos_.size());
