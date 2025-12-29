@@ -147,9 +147,9 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest003, testing::ext::TestSize.Level3)
     };
     for (auto eventName : eventList) {
         LogParse logParse(eventName);
-        ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_common.z.so")) << eventName;
         ASSERT_TRUE(logParse.IsIgnoreLibrary("libeventhandler.z.so")) << eventName;
-        ASSERT_TRUE(logParse.IsIgnoreLibrary("libffrt.so")) << eventName;
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_common.z.so")) << eventName;
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_core.z.so")) << eventName;
         ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_single.z.so")) << eventName;
     }
 }
@@ -453,8 +453,8 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest013, testing::ext::TestSize.Level3)
 #01 pc 000000000000d370 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor()+192)
 #02 pc 0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked()+96)
 #20 pc 0002c675 /system/lib/chipset-sdk/libipc_single.z.so(OHOS::IPCObjectStub::SendRequestInner()+120)
-#01 pc 0000d853 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder()+78)
-#04 pc 0005bb53 /system/lib/ndk/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306)(bb0dfa44f16dc950c89a55942ecbb28b)
+#01 pc 0000d953 /system/lib/chipset-sdk/libipc_common.z.so(OHOS::BinderConnector::WriteBinder()+78)
+#04 pc 0005bb53 /system/lib/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306)(bb0dfa44f16dc950c89a55942ecbb28b)
 #06 pc 000000000009380c /system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372)
 #11 pc 000000000001ccd0 /system/lib64/libbegetutil.z.so(ProcessEvent+108)
 #12 pc 000000000001c6cc /system/lib64/libbegetutil.z.so
@@ -474,10 +474,12 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest013, testing::ext::TestSize.Level3)
         {1, "", stack1, "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor()+192",
             "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked()+96",
             "/system/bin/appspawn"},
-        {2, "APP_FREEZE", stack1, "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
-            "/system/lib64/libbegetutil.z.so(ProcessEvent+108", "/system/bin/appspawn"},
-        {3, "SYS_FREEZE", stack1, "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
-            "/system/lib64/libbegetutil.z.so(ProcessEvent+108", "/system/bin/appspawn"},
+        {2, "APP_FREEZE", stack1, "/system/lib/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306",
+            "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
+            "/system/bin/appspawn"},
+        {3, "SYS_FREEZE", stack1, "/system/lib/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306",
+            "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
+            "/system/bin/appspawn"},
     };
 
     for (auto& it : list) {
