@@ -25,34 +25,39 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("UsageFoldEventReport");
 namespace {
-bool IsFoldableDevice()
+bool IsFoldableDevice(void* handle)
 {
     using IsFoldableFunc = bool(*)();
-    void* handle = dlopen(FoldCommonUtils::SO_NAME, RTLD_LAZY);
-    if (handle == nullptr) {
-        HIVIEW_LOGE("failed to dlopen, error: %{public}s", dlerror());
-        return false;
-    }
-
     auto isFoldable = reinterpret_cast<IsFoldableFunc>(dlsym(handle, "IsFoldable"));
     if (isFoldable == nullptr) {
         HIVIEW_LOGW("failed to dlsym IsFoldable, error: %{public}s", dlerror());
-        dlclose(handle);
         return false;
     }
-    bool ret = isFoldable();
-    dlclose(handle);
-    return ret;
+    return isFoldable();
 }
+}
+
+UsageFoldEventReport::~UsageFoldEventReport()
+{
+    if (utilHandle_ != nullptr) {
+        dlclose(utilHandle_);
+        utilHandle_ = nullptr;
+    }
 }
 
 void UsageFoldEventReport::Init(const std::string& workPath)
 {
-    if (!IsFoldableDevice()) {
+    utilHandle_ = dlopen(FoldCommonUtils::SO_NAME, RTLD_LAZY);
+    if (utilHandle_ == nullptr) {
+        HIVIEW_LOGE("failed to dlopen, error: %{public}s", dlerror());
+        return;
+    }
+
+    if (!IsFoldableDevice(utilHandle_)) {
         HIVIEW_LOGI("non-foldable device");
         return;
     }
-    foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath);
+    foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath, utilHandle_);
     foldAppUsageFactory_ = std::make_unique<FoldAppUsageEventFactory>(workPath);
 }
 
