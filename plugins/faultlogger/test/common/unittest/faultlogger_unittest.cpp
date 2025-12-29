@@ -1969,14 +1969,9 @@ HWTEST_F(FaultloggerUnittest, AppFreezeCrashLogTest001, testing::ext::TestSize.L
         "appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
     faultManagerService.AddFaultLog(info);
 
-    const std::string firstFrame = "/system/lib64/libeventhandler.z.so"
-        "(OHOS::AppExecFwk::NoneIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+204";
+    const std::string firstFrame = "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372";
     ASSERT_EQ(info.sectionMap["FIRST_FRAME"], firstFrame);
-    const std::string secondFrame = "/system/lib64/libeventhandler.z.so"
-        "(OHOS::AppExecFwk::EventQueue::WaitUntilLocked"
-        "(std::__1::chrono::time_point<std::__1::chrono::steady_clock, "
-        "std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l> > > const&, "
-        "std::__1::unique_lock<std::__1::mutex>&)+96";
+    const std::string secondFrame = "/system/bin/appspawn";
     ASSERT_EQ(info.sectionMap["SECOND_FRAME"], secondFrame);
 }
 
