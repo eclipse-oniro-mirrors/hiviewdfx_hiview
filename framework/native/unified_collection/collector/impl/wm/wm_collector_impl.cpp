@@ -90,7 +90,7 @@ CollectResult<std::string> WmCollectorImpl::ExportWindowsMemory()
     args.push_back("-s");
     args.push_back("RenderService");
     args.push_back("-a");
-    args.push_back("dumpMem");
+    args.push_back("dumpMemLite");
     std::string fileName = CreateExportFileName("windows_memory_", ".txt");
     if (fileName.empty()) {
         return result;
