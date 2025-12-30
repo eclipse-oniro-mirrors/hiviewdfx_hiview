@@ -232,22 +232,22 @@ void TraceCollectorImpl::RecoverTmpTrace()
     HIVIEW_LOGI("traceFiles need recover: %{public}zu", traceFiles.size());
     for (auto &filePath : traceFiles) {
         std::string fileName = FileUtil::ExtractFileName(filePath);
-        HIVIEW_LOGD("unfinished trace file: %{public}s", fileName.c_str());
+        HIVIEW_LOGI("unfinished trace file: %{public}s", fileName.c_str());
         std::string originTraceFile = StringUtil::ReplaceStr("/data/log/hitrace/" + fileName, ".zip", ".sys");
         if (!FileUtil::FileExists(originTraceFile)) {
-            HIVIEW_LOGI("source file not exist: %{public}s", originTraceFile.c_str());
-            FileUtil::RemoveFile(UNIFIED_SHARE_TEMP_PATH + fileName);
+            FileUtil::RemoveFile(filePath);
+            HIVIEW_LOGW("source file not exist: %{public}s", originTraceFile.c_str());
             continue;
         }
         int fd = open(originTraceFile.c_str(), O_RDONLY | O_NONBLOCK);
         if (fd == -1) {
-            HIVIEW_LOGI("open source file failed: %{public}s", originTraceFile.c_str());
+            HIVIEW_LOGW("open source file failed: %{public}s", originTraceFile.c_str());
             continue;
         }
         fdsan_exchange_owner_tag(fd, 0, logLabelDomain);
         // add lock before zip trace file, in case hitrace delete origin trace file.
         if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
-            HIVIEW_LOGI("get source file lock failed: %{public}s", originTraceFile.c_str());
+            HIVIEW_LOGW("get source file lock failed: %{public}s", originTraceFile.c_str());
             fdsan_close_with_tag(fd, logLabelDomain);
             continue;
         }
@@ -256,6 +256,7 @@ void TraceCollectorImpl::RecoverTmpTrace()
             ZipShareTempTraceFile(originTraceFile);
             flock(fd, LOCK_UN);
             fdsan_close_with_tag(fd, logLabelDomain);
+            FileUtil::RemoveFile(filePath);
         };
         TraceWorker::GetInstance().HandleUcollectionTask(traceTask);
     }
