@@ -158,7 +158,7 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     oss << FreezeCommon::EVENT_UID << COLON << watchPoint.GetUid() << std::endl;
     oss << FreezeCommon::EVENT_PACKAGE_NAME << COLON << watchPoint.GetPackageName() << std::endl;
     oss << FreezeCommon::EVENT_PROCESS_NAME << COLON << watchPoint.GetProcessName() << std::endl;
-    if (watchPoint.GetHostResourceWarning() == "Yes") {
+    if (watchPoint.GetHostResourceWarning() == "TRUE") {
         oss << HOST_RESOURCE_WARNING_INFO << std::endl;
     }
 }

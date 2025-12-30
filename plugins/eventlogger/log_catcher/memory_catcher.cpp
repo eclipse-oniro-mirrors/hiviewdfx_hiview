@@ -143,7 +143,7 @@ void MemoryCatcher::CheckString(
             data += GetStringFromFile(path);
         }
         if (path.empty() && memsize < BELOW_MEM_SIZE && event_) {
-            event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "Yes");
+            event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "TRUE");
         }
     }
 }

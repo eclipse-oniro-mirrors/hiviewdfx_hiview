@@ -44,7 +44,7 @@ int ThermalInfoCatcher::Catch(int fd, int jsonFd)
     FileUtil::SaveStringToFd(fd, "\nThermalLevel info: " + std::to_string(tempNum) + "\n");
     if (event_ != nullptr) {
         if (tempNum >= TEMP_EVENT_LIMIT) {
-            event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "Yes");
+            event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "TRUE");
         }
         event_->SetEventValue(FreezeCommon::EVENT_THERMAL_LEVEL, std::to_string(tempNum));
     }
