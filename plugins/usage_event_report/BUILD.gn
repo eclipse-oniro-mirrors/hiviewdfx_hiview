@@ -75,6 +75,7 @@ if (enable_hiview_usage_event_report_build) {
       "jsoncpp:jsoncpp",
       "relational_store:native_rdb",
       "samgr:samgr_proxy",
+      "window_manager:libdm_lite",
     ]
 
     defines = []
@@ -90,14 +91,15 @@ if (enable_hiview_usage_event_report_build) {
         "fold/cache/fold_event_cacher.cpp",
         "fold/event/fold_app_usage_event.cpp",
         "fold/usage_fold_event_report.cpp",
+        "fold/util/fold_common_utils.cpp",
       ]
 
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
+        "window_manager:libdm_lite",
+        "window_manager:libwm_lite",
       ]
-
-      deps += [ "fold/util:usage_event_report_util" ]
 
       defines += [ "USAGE_FOLD_STAT_ENABLE" ]
     }
@@ -129,6 +131,7 @@ if (enable_hiview_usage_event_report_build) {
       "fold/cache/fold_app_usage_event_factory.cpp",
       "fold/cache/fold_event_cacher.cpp",
       "fold/event/fold_app_usage_event.cpp",
+      "fold/util/fold_common_utils.cpp",
       "service/factory/sys_usage_event_factory.cpp",
       "usage_event_report.cpp",
     ]
@@ -154,6 +157,8 @@ if (enable_hiview_usage_event_report_build) {
       "jsoncpp:jsoncpp",
       "relational_store:native_rdb",
       "samgr:samgr_proxy",
+      "window_manager:libdm_lite",
+      "window_manager:libwm_lite",
     ]
 
     defines = []

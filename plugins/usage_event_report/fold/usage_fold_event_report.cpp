@@ -14,9 +14,7 @@
  */
 #include "usage_fold_event_report.h"
 
-#include <dlfcn.h>
-
-#include "fold_constant.h"
+#include "display_manager_lite.h"
 #include "hiview_logger.h"
 #include "logger_event.h"
 #include "sys_event.h"
@@ -24,40 +22,14 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("UsageFoldEventReport");
-namespace {
-bool IsFoldableDevice(void* handle)
-{
-    using IsFoldableFunc = bool(*)();
-    auto isFoldable = reinterpret_cast<IsFoldableFunc>(dlsym(handle, "IsFoldable"));
-    if (isFoldable == nullptr) {
-        HIVIEW_LOGW("failed to dlsym IsFoldable, error: %{public}s", dlerror());
-        return false;
-    }
-    return isFoldable();
-}
-}
-
-UsageFoldEventReport::~UsageFoldEventReport()
-{
-    if (utilHandle_ != nullptr) {
-        dlclose(utilHandle_);
-        utilHandle_ = nullptr;
-    }
-}
 
 void UsageFoldEventReport::Init(const std::string& workPath)
 {
-    utilHandle_ = dlopen(FoldCommonUtils::SO_NAME, RTLD_LAZY);
-    if (utilHandle_ == nullptr) {
-        HIVIEW_LOGE("failed to dlopen, error: %{public}s", dlerror());
-        return;
-    }
-
-    if (!IsFoldableDevice(utilHandle_)) {
+    if (!OHOS::Rosen::DisplayManagerLite::GetInstance().IsFoldable()) {
         HIVIEW_LOGI("non-foldable device");
         return;
     }
-    foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath, utilHandle_);
+    foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath);
     foldAppUsageFactory_ = std::make_unique<FoldAppUsageEventFactory>(workPath);
 }
 
