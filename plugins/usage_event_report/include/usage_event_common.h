@@ -124,6 +124,14 @@ constexpr char KEY_OF_MULTI_NUM[] = "MULTI_NUM";
 constexpr char KEY_OF_MULTI_WINDOW[] = "MULTI_WINDOW";
 }
 
+namespace MultiWindowMode {
+constexpr int32_t WINDOW_MODE_FULL = 0;
+constexpr int32_t WINDOW_MODE_FLOATING = 1;
+constexpr int32_t WINDOW_MODE_SPLIT_PRIMARY = 2;
+constexpr int32_t WINDOW_MODE_SPLIT_SECONDARY = 3;
+constexpr int32_t WINDOW_MODE_MIDSCENE = 4;
+}
+
 namespace ScreenFoldStatus {
 constexpr int EXPAND_LANDSCAPE_FULL_STATUS = 110;
 constexpr int EXPAND_LANDSCAPE_SPLIT_STATUS = 111;

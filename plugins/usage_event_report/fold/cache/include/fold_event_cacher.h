@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SREVICE_FOLD_EVENT_CACHER_H
-#define HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SREVICE_FOLD_EVENT_CACHER_H
+#ifndef HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SERVICE_FOLD_EVENT_CACHER_H
+#define HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SERVICE_FOLD_EVENT_CACHER_H
 
 #include <memory>
 #include <map>
@@ -27,7 +27,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class FoldEventCacher {
 public:
-    FoldEventCacher(const std::string& workPath, void* handle = nullptr);
+    FoldEventCacher(const std::string& workPath);
     ~FoldEventCacher() {}
 
     void ProcessEvent(std::shared_ptr<SysEvent> event);
@@ -58,4 +58,4 @@ private:
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SREVICE_EVENT_CACHER_H
+#endif // HIVIEW_PLUGINS_USAGE_EVENT_REPORT_SERVICE_FOLD_EVENT_CACHER_H

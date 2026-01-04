@@ -19,12 +19,16 @@
 #include <string>
 #include <unordered_map>
 
-extern "C" {
-bool IsFoldable();
+namespace OHOS {
+namespace HiviewDFX {
+namespace FoldCommonUtils {
+constexpr int SYSTEM_WINDOW_BASE = 2000;
+
 int32_t GetFoldStatus();
 int32_t GetVhMode();
 void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
     std::unordered_map<std::string, int32_t>& multiWindowInfos);
-}
-
+} // namespace FoldCommonUtils
+} // namespace HiviewDFX
+} // namespace OHOS
 #endif // HIVIEW_FOLD_COMMON_UTILS_H
