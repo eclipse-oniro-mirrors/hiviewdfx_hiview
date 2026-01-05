@@ -24,20 +24,17 @@
 #include "ffrt.h"
 
 namespace OHOS::HiviewDFX {
-namespace {
-    const int64_t SECONDS_TO_MS = 1000;
-    const int64_t MS_TO_US = 1000;
-}
-
 struct TelemetryParams {
-    int64_t traceDuration = 3600 * SECONDS_TO_MS; //ms
+    int64_t traceDuration = 3600 * 1000; //ms
+    bool isNewTask = false;
     int64_t beginTime = -1;
     std::string telemetryId;
-    std::string appFilterName;
+    std::vector<std::string> appFilterNames;
+    std::vector<std::string> saParameters;
     std::vector<std::string> traceTag;
     uint32_t bufferSize = 0;
-    std::vector<std::string> saParams;
-    TelemetryPolicy tracePolicy;
+    TelemetryPolicy tracePolicy = TelemetryPolicy::DEFAULT;
+    std::map<std::string, int64_t> flowControlQuotas;
 };
 
 class TelemetryListener : public EventListener {
@@ -60,8 +57,7 @@ private:
     bool CheckTracePolicy(const Event &msg, TelemetryParams &params, std::string &errorMsg);
     bool CheckSwitchValid(const Event &msg, bool &isCloseMsg, std::string &errorMsg);
     bool CheckBeginTime(const Event &msg, TelemetryParams &params, std::string &errorMsg);
-    bool InitTelemetryDbData(const Event &msg, bool &isTimeOut, const TelemetryParams &params);
-    void GetSaNames(const Event &msg, TelemetryParams &params);
+    bool CheckTimeOut(const Event &msg, TelemetryParams &params, std::string &errorMsg);
 
 private:
     std::atomic<bool> isCanceled_ = false;

@@ -56,73 +56,31 @@ bool TeleMetryStorage::UpdateTable(const std::string &module, int64_t newSize)
     return true;
 }
 
-void TeleMetryStorage::InsertNewData(const std::string &telemetryId,
+TelemetryRet TeleMetryStorage::InitTelemetryQuota(const std::string &telemetryId,
     const std::map<std::string, int64_t> &flowControlQuotas)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("Open db failed");
-        return;
+        return TelemetryRet::FAILED;
     }
     std::vector<NativeRdb::ValuesBucket> valuesBuckets;
     for (const auto& quotaPair: flowControlQuotas) {
         NativeRdb::ValuesBucket bucket;
-        if (quotaPair.first == TOTAL) {
-            bucket.PutString(COLUMN_TELEMTRY_ID, telemetryId);
-            bucket.PutLong(COLUMN_RUNNING_TIME, 0);
-        }
+        bucket.PutString(COLUMN_TELEMTRY_ID, telemetryId);
         bucket.PutString(COLUMN_MODULE_NAME, quotaPair.first);
         bucket.PutLong(COLUMN_USED_SIZE, 0);
         bucket.PutLong(COLUMN_QUOTA, quotaPair.second);
+        if (quotaPair.first == TOTAL) {
+            bucket.PutLong(COLUMN_RUNNING_TIME, 0);
+        }
         valuesBuckets.push_back(bucket);
     }
     int64_t outInsertNum = 0;
     int result = dbStore_->BatchInsert(outInsertNum, TABLE_TELEMETRY_CONTROL, valuesBuckets);
     if (result != NativeRdb::E_OK) {
         HIVIEW_LOGE("Insert batch operation failed, result: %{public}d", result);
+        return TelemetryRet::FAILED;
     }
-}
-
-TelemetryRet TeleMetryStorage::InitTelemetryControl(const std::string &telemetryId, int64_t &runningTime,
-    const std::map<std::string, int64_t> &flowControlQuotas)
-{
-    if (dbStore_ == nullptr) {
-        HIVIEW_LOGE("Open db failed");
-        return TelemetryRet::EXIT;
-    }
-    auto [errcode, transaction] = dbStore_->CreateTransaction(NativeRdb::Transaction::DEFERRED);
-    if (errcode != NativeRdb::E_OK || transaction == nullptr) {
-        HIVIEW_LOGE("CreateTransaction failed, error:%{public}d", errcode);
-        return TelemetryRet::EXIT;
-    }
-    NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
-    predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
-    auto resultSet = dbStore_->Query(predicates, {COLUMN_TELEMTRY_ID, COLUMN_RUNNING_TIME});
-    if (resultSet == nullptr) {
-        HIVIEW_LOGW("resultSet == nullptr");
-        transaction->Commit();
-        return TelemetryRet::EXIT;
-    }
-    if (resultSet->GoToNextRow() != NativeRdb::E_OK) {
-        HIVIEW_LOGW("empty data do init");
-        resultSet->Close();
-        InsertNewData(telemetryId, flowControlQuotas);
-        transaction->Commit();
-        return TelemetryRet::SUCCESS;
-    }
-    std::string dbTelemerty;
-    resultSet->GetString(0, dbTelemerty);
-    if (dbTelemerty != telemetryId) {
-        HIVIEW_LOGW("left over data, clear and do init");
-        resultSet->Close();
-        ClearTelemetryData();
-        InsertNewData(telemetryId, flowControlQuotas);
-        transaction->Commit();
-        return TelemetryRet::SUCCESS;
-    }
-    HIVIEW_LOGW("reboot scenario, get running time");
-    resultSet->GetLong(1, runningTime);
-    resultSet->Close();
-    transaction->Commit();
     return TelemetryRet::SUCCESS;
 }
 
@@ -130,12 +88,12 @@ TelemetryRet TeleMetryStorage::NeedTelemetryDump(const std::string &module)
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("Open db failed");
-        return TelemetryRet::EXIT;
+        return TelemetryRet::FAILED;
     }
     TeleMetryFlowRecord flowRecord;
     if (!GetFlowRecord(module, flowRecord)) {
         HIVIEW_LOGE("get flow data failed");
-        return TelemetryRet::EXIT;
+        return TelemetryRet::FAILED;
     }
     if (flowRecord.usedSize > flowRecord.quotaSize || flowRecord.totalUsedSize > flowRecord.totalQuotaSize) {
         HIVIEW_LOGI("%{public}s over flow usedSize:%{public}" PRId64 " totalUsedSize:%{public}" PRId64 "",
@@ -159,39 +117,53 @@ void TeleMetryStorage::ClearTelemetryData()
     }
 }
 
-bool TeleMetryStorage::QueryRunningTime(int64_t &runningTime)
+TelemetryRet TeleMetryStorage::QueryRunningTime(const std::string &telemetryId, int64_t &runningTime)
 {
     NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
+    predicates.EqualTo(COLUMN_TELEMTRY_ID, telemetryId);
     auto resultSet = dbStore_->Query(predicates, {COLUMN_RUNNING_TIME});
     if (resultSet == nullptr) {
         HIVIEW_LOGE("failed to query from table %{public}s", TABLE_TELEMETRY_CONTROL);
-        return false;
+        return TelemetryRet::FAILED;
     }
-    if (resultSet->GoToNextRow() != NativeRdb::E_OK) {
-        HIVIEW_LOGW("query empty");
+    int rowCount;
+    auto getRowCountRet = resultSet->GetRowCount(rowCount);
+    if (getRowCountRet != NativeRdb::E_OK) {
+        HIVIEW_LOGE("query fail");
         resultSet->Close();
-        return true;
+        return TelemetryRet::FAILED;
+    }
+    if (rowCount == 0) {
+        HIVIEW_LOGI("query empty");
+        resultSet->Close();
+        return TelemetryRet::EMPTY_DATA;
+    }
+    if (resultSet->GoToFirstRow() != NativeRdb::E_OK) {
+        HIVIEW_LOGE("query fail");
+        resultSet->Close();
+        return TelemetryRet::FAILED;
     }
     resultSet->GetLong(0, runningTime);
     HIVIEW_LOGI("query traceOntime:%{public} " PRId64 "", runningTime);
     resultSet->Close();
-    return true;
+    return TelemetryRet::SUCCESS;
 }
 
-bool TeleMetryStorage::UpdateRunningTime(int64_t runningTime)
+TelemetryRet TeleMetryStorage::UpdateRunningTime(const std::string &telemetryId, int64_t runningTime)
 {
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(COLUMN_RUNNING_TIME, runningTime);
     NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
+    predicates.EqualTo(COLUMN_TELEMTRY_ID, telemetryId);
     int changeRows = 0;
     if (dbStore_->Update(changeRows, bucket, predicates) != NativeRdb::E_OK) {
         HIVIEW_LOGW("failed to update table");
-        return false;
+        return TelemetryRet::FAILED;
     }
     HIVIEW_LOGI("Update new traceOntime:%{public} " PRId64 "", runningTime);
-    return true;
+    return TelemetryRet::SUCCESS;
 }
 
 void TeleMetryStorage::TelemetryStore(const std::string &module, int64_t traceSize)

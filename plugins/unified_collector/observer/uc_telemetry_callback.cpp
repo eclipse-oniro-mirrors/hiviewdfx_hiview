@@ -61,24 +61,59 @@ void UcTelemetryCallback::OnTelemetryStart()
     HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
         "ID", telemetryId_,
         "STAGE", "TRACE_BEGIN");
-    HIVIEW_LOGI("telemetry start");
+    HIVIEW_LOGI("telemetry start isNewTask:%{public}d", isNewTask_);
+    if (isNewTask_) {
+        flowController_->ClearTelemetryData();
+        flowController_->InitTelemetryQuota(telemetryId_, flowControlQuotas_);
+    }
 
     // set app bundle names to kernel
-    if (!appFilterName_.empty()) {
-        int32_t ret = TraceStateMachine::GetInstance().SetAppFilterInfo(appFilterName_);
-        auto pid = CommonUtils::GetPidByName(appFilterName_);
-        HIVIEW_LOGI("set app package:%{public}s ret:%{public}d pid:%{public}d", appFilterName_.c_str(), ret, pid);
-        if (pid > 0) {
-            int32_t pidRet = TraceStateMachine::GetInstance().SetFilterPidInfo(pid);
-            HIVIEW_LOGI("app started ,set app pid:%{public}d ret:%{public}d", pid, pidRet);
-        }
+    if (!appFilterNames_.empty()) {
+        int32_t ret = TraceStateMachine::GetInstance().SetFilterInfoToAppSwan(appFilterNames_);
+        HIVIEW_LOGI("Set filter infos to app swan ret:%{public}d", ret);
+        SetAppFilterInfo();
     }
-    if (saParams_.empty()) {
+    if (!saParameters_.empty()) {
+        SetSaFilterInfo();
+    }
+}
+
+void UcTelemetryCallback::OnTelemetryFinish()
+{
+    HIVIEW_LOGI("telemetry finish");
+    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
+        "ID", telemetryId_,
+        "STAGE", "TRACE_END");
+    if (saParameters_.empty()) {
         return;
     }
+    for (const auto &param : saParameters_) {
+        Parameter::RemoveParameterWatcherEx(param.c_str(), OnSaParamChanged, nullptr);
+    }
+    std::lock_guard<ffrt::mutex> lock(timeMutex_);
+    isTraceOn_ = false;
+}
 
+
+void UcTelemetryCallback::SetAppFilterInfo()
+{
+    for (const auto &appBundleName : appFilterNames_) {
+        auto pid = CommonUtils::GetPidByName(appBundleName);
+        if (pid <= 0) {
+            HIVIEW_LOGI("get pid failed, app name:%{public}s", appBundleName.c_str());
+            continue;
+        }
+        int32_t pidRet = TraceStateMachine::GetInstance().SetFilterPidInfo(pid);
+        if (pidRet < 0) {
+            HIVIEW_LOGE("app started but failed to set app pid:%{public}d ret:%{public}d", pid, pidRet);
+        }
+    }
+}
+
+void UcTelemetryCallback::SetSaFilterInfo()
+{
     // set sa pids to kernel
-    for (const auto &param : saParams_) {
+    for (const auto &param : saParameters_) {
         Parameter::WatchParamChange(param.c_str(), OnSaParamChanged, nullptr);
         auto pid = static_cast<pid_t>(Parameter::GetInteger(param, -1));
         if (pid < 0) {
@@ -91,32 +126,15 @@ void UcTelemetryCallback::OnTelemetryStart()
     }
 }
 
-void UcTelemetryCallback::OnTelemetryFinish()
-{
-    HIVIEW_LOGI("telemetry finish");
-    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-        "ID", telemetryId_,
-        "STAGE", "TRACE_END");
-    if (saParams_.empty()) {
-        return;
-    }
-    for (const auto &param : saParams_) {
-        Parameter::RemoveParameterWatcherEx(param.c_str(), OnSaParamChanged, nullptr);
-    }
-    std::lock_guard<ffrt::mutex> lock(timeMutex_);
-    isTraceOn_ = false;
-}
-
 bool UcTelemetryCallback::UpdateAndCheckTimeOut(int64_t timeCost)
 {
-    TraceFlowController controller(FlowControlName::TELEMETRY);
     int64_t traceOnTime = 0;
-    if (!controller.QueryRunningTime(traceOnTime) || traceOnTime < 0) {
+    if (flowController_->QueryRunningTime(telemetryId_, traceOnTime) != TelemetryRet::SUCCESS || traceOnTime < 0) {
         HIVIEW_LOGE("QueryTraceOnTime error");
         return false;
     }
     traceOnTime += timeCost;
-    if (!controller.UpdateRunningTime(traceOnTime)) {
+    if (flowController_->UpdateRunningTime(telemetryId_, traceOnTime) != TelemetryRet::SUCCESS) {
         HIVIEW_LOGE("UpdateTraceOnTime error");
         return false;
     }

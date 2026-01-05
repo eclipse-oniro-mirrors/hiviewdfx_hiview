@@ -23,10 +23,15 @@
 namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("HiView-UnifiedCollector");
 namespace {
+const int64_t SECONDS_TO_MS = 1000;
 const int64_t DURATION_DEFAULT = 3600 * SECONDS_TO_MS; // ms
 const int64_t MAX_DURATION = 7 * 24 * 3600 * SECONDS_TO_MS; // ms
 const uint32_t BT_M_UNIT = 1024 * 1024;
 const int64_t MAX_BUFFER_SIZE = 500 * 1024; // 500M
+const int64_t DEFAULT_XPERF_SIZE = 20 * 1024 * 1024;
+const int64_t DEFAULT_XPOWER_SIZE = 20 * 1024 * 1024;
+const int64_t DEFAULT_RELIABILITY_SIZE = 20 * 1024 * 1024;
+const int64_t DEFAULT_TOTAL_SIZE = 50 * 1024 * 1024;
 constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 constexpr char TAGS[] = "tags";
 constexpr char BUFFER_SIZE[] = "bufferSize";
@@ -36,16 +41,11 @@ constexpr char SWITCH_OFF[] = "off";
 constexpr char POLICY_POWER[] = "power";
 constexpr char POLICY_MANUAL[] = "manual";
 
-// Default quota of flow control
-const int64_t DEFAULT_XPERF_SIZE = 20 * 1024 * 1024;
-const int64_t DEFAULT_XPOWER_SIZE = 20 * 1024 * 1024;
-const int64_t DEFAULT_RELIABILITY_SIZE = 20 * 1024 * 1024;
-const int64_t DEFAULT_TOTAL_SIZE = 50 * 1024 * 1024;
 const int64_t MAX_TOTAL_SIZE = 1024; // 1G
 const int64_t CHECK_CYCLE_SECONDS = 30;
 
 constexpr char KEY_ID[] = "telemetryId";
-constexpr char KEY_FILTER_NAME[] = "appFilterName";
+constexpr char KEY_FILTER_NAMES[] = "appFilterNames";
 constexpr char KEY_SA_NAMES[] = "saNames";
 constexpr char KEY_SWITCH_STATUS[] = "telemetryStatus";
 constexpr char KEY_TRACE_POLICY[] = "tracePolicy";
@@ -64,10 +64,6 @@ const std::unordered_set<std::string> TRACE_TAG_FILTER_LIST {
     "zcamera", "dhfwk", "app", "ability", "power", "samgr", "nweb"
 };
 
-const std::unordered_set<std::string> TRACE_SA_FILTER_LIST {
-    "render_service", "foundation"
-};
-
 std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::string> &filterList,
     cJSON* root, const std::string &key)
 {
@@ -82,6 +78,76 @@ std::vector<std::string> ParseAndFilterTraceArgs(const std::unordered_set<std::s
     });
     traceArgs.erase(new_end, traceArgs.end());
     return traceArgs;
+}
+
+std::vector<std::string> GetParamArrayNames(const Event &msg, const std::string &key)
+{
+    auto paramValueStr = msg.GetValue(key);
+    if (paramValueStr.empty()) {
+        HIVIEW_LOGE("get:%{public}s empty", key.c_str());
+        return {};
+    }
+    cJSON* root = cJSON_Parse(paramValueStr.c_str());
+    if (!cJSON_IsArray(root)) {
+        HIVIEW_LOGE("get array params: %{public}s format error", key.c_str());
+        cJSON_Delete(root);
+        return {};
+    }
+    int size = cJSON_GetArraySize(root);
+    if (size <= 0) {
+        cJSON_Delete(root);
+        HIVIEW_LOGE("get array params: %{public}s size error", key.c_str());
+        return {};
+    }
+    std::vector<std::string> dest;
+    for (int index = 0; index < size; ++index) {
+        cJSON* strItem = cJSON_GetArrayItem(root, index);
+        if (strItem == nullptr || !cJSON_IsString(strItem)) {
+            continue;
+        }
+        dest.emplace_back(strItem->valuestring);
+    }
+    cJSON_Delete(root);
+    return dest;
+}
+
+void SetFilterConfigs(const Event &msg, TelemetryParams &params)
+{
+    params.appFilterNames = GetParamArrayNames(msg, KEY_FILTER_NAMES);
+    for (const auto &saName : GetParamArrayNames(msg, KEY_SA_NAMES)) {
+        auto param = "startup.service.ctl." + saName + ".pid";
+        params.saParameters.emplace_back(param);
+    }
+}
+
+void SetFlowQuotaConfigs(const Event &msg, TelemetryParams &params)
+{
+    auto xperfTraceQuota = msg.GetInt64Value(KEY_XPERF_QUOTA);
+    if (xperfTraceQuota >= 0) {
+        params.flowControlQuotas[CallerName::XPERF] = xperfTraceQuota * BT_M_UNIT;
+    } else {
+        params.flowControlQuotas[CallerName::XPERF] = DEFAULT_XPERF_SIZE;
+    }
+    auto xpowerTraceQuota = msg.GetInt64Value(KEY_XPOWER_QUOTA);
+    if (xpowerTraceQuota >= 0) {
+        params.flowControlQuotas[CallerName::XPOWER] = xpowerTraceQuota * BT_M_UNIT;
+    } else {
+        params.flowControlQuotas[CallerName::XPOWER] = DEFAULT_XPOWER_SIZE;
+    }
+    auto reliabilityTraceQuota = msg.GetInt64Value(KEY_RELIABILITY_QUOTA);
+    if (reliabilityTraceQuota >= 0) {
+        params.flowControlQuotas[CallerName::RELIABILITY] = reliabilityTraceQuota * BT_M_UNIT;
+    } else {
+        params.flowControlQuotas[CallerName::RELIABILITY] = DEFAULT_RELIABILITY_SIZE;
+    }
+    auto totalTraceQuota = msg.GetInt64Value(KEY_TOTAL_QUOTA);
+    if (totalTraceQuota > 0 && totalTraceQuota <= MAX_TOTAL_SIZE) {
+        params.flowControlQuotas[TOTAL] = totalTraceQuota * BT_M_UNIT;
+    } else if (totalTraceQuota > MAX_TOTAL_SIZE) {
+        params.flowControlQuotas[TOTAL] = MAX_TOTAL_SIZE * BT_M_UNIT;
+    } else {
+        params.flowControlQuotas[TOTAL] = DEFAULT_TOTAL_SIZE;
+    }
 }
 }
 
@@ -98,23 +164,8 @@ void TelemetryListener::OnUnorderedEvent(const Event &msg)
         HandleStop();
         return;
     }
-    params.appFilterName = msg.GetValue(KEY_FILTER_NAME);
-    params.traceDuration = msg.GetInt64Value(KEY_DURATION) * SECONDS_TO_MS;
-    if (params.traceDuration <= 0) {
-        params.traceDuration = DURATION_DEFAULT;
-    } else if (params.traceDuration > MAX_DURATION) {
-        params.traceDuration = MAX_DURATION;
-    }
-    GetSaNames(msg, params);
-
-    bool isTimeOut = false;
-    if (!InitTelemetryDbData(msg, isTimeOut, params)) {
-        return WriteErrorEvent("init telemetry time table fail", params);
-    }
-    if (isTimeOut) {
-        HIVIEW_LOGI("trace already time out");
-        return;
-    }
+    SetFilterConfigs(msg, params);
+    SetFlowQuotaConfigs(msg, params);
     isCanceled_ = false;
     ffrt::submit([this, params] {
         while (params.beginTime > TimeUtil::GetSeconds()) {
@@ -148,46 +199,10 @@ std::string TelemetryListener::CheckValidParam(const Event &msg, TelemetryParams
     if (!CheckBeginTime(msg, params, errorMsg)) {
         return errorMsg;
     }
-    return errorMsg;
-}
-
-bool TelemetryListener::InitTelemetryDbData(const Event &msg, bool &isTimeOut, const TelemetryParams &params)
-{
-    std::map<std::string, int64_t> flowControlQuotas {
-        {CallerName::XPERF, DEFAULT_XPERF_SIZE },
-        {CallerName::XPOWER, DEFAULT_XPOWER_SIZE},
-        {CallerName::RELIABILITY, DEFAULT_RELIABILITY_SIZE},
-        {TOTAL, DEFAULT_TOTAL_SIZE}
-    };
-    auto xperfTraceQuota = msg.GetInt64Value(KEY_XPERF_QUOTA);
-    if (xperfTraceQuota > 0) {
-        flowControlQuotas[CallerName::XPERF] = xperfTraceQuota * BT_M_UNIT;
+    if (CheckTimeOut(msg, params, errorMsg)) {
+        return errorMsg;
     }
-    auto xpowerTraceQuota = msg.GetInt64Value(KEY_XPOWER_QUOTA);
-    if (xpowerTraceQuota > 0) {
-        flowControlQuotas[CallerName::XPOWER] = xpowerTraceQuota * BT_M_UNIT;
-    }
-    auto reliabilityTraceQuota = msg.GetInt64Value(KEY_RELIABILITY_QUOTA);
-    if (reliabilityTraceQuota > 0) {
-        flowControlQuotas[CallerName::RELIABILITY] = reliabilityTraceQuota * BT_M_UNIT;
-    }
-    auto totalTraceQuota = msg.GetInt64Value(KEY_TOTAL_QUOTA);
-    if (totalTraceQuota > 0 && totalTraceQuota <= MAX_TOTAL_SIZE) {
-        flowControlQuotas[TOTAL] = totalTraceQuota * BT_M_UNIT;
-    } else if (totalTraceQuota > MAX_TOTAL_SIZE) {
-        flowControlQuotas[TOTAL] = MAX_TOTAL_SIZE * BT_M_UNIT;
-    } else {
-        HIVIEW_LOGI("default total quota size");
-    }
-
-    int64_t running_time = 0;
-    auto ret = TraceFlowController(FlowControlName::TELEMETRY).InitTelemetryData(params.telemetryId, running_time,
-        flowControlQuotas);
-    if (ret == TelemetryRet::EXIT) {
-        return false;
-    }
-    isTimeOut = running_time >= params.traceDuration;
-    return true;
+    return "";
 }
 
 void TelemetryListener::HandleStart(const TelemetryParams &params)
@@ -235,8 +250,7 @@ void TelemetryListener::HandleStop()
 {
     std::unique_lock<ffrt::mutex> lock(telemetryMutex_);
     TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
-    TraceFlowController controller(FlowControlName::TELEMETRY);
-    controller.ClearTelemetryData();
+    TraceFlowController(FlowControlName::TELEMETRY).ClearTelemetryData();
     isCanceled_ = true;
 }
 
@@ -284,29 +298,15 @@ bool TelemetryListener::CheckTelemetryId(const Event &msg, TelemetryParams &para
     return true;
 }
 
-void TelemetryListener::GetSaNames(const Event &msg, TelemetryParams &params)
-{
-    std::string saJsonNames = msg.GetValue(KEY_SA_NAMES);
-    if (!saJsonNames.empty()) {
-        cJSON* root = cJSON_Parse(saJsonNames.c_str());
-        if (root == nullptr) {
-            return;
-        }
-        auto saNames = ParseAndFilterTraceArgs(TRACE_SA_FILTER_LIST, root, KEY_SA_NAMES);
-        for (const auto &saName : saNames) {
-            auto param = "startup.service.ctl." + saName + ".pid";
-            params.saParams.emplace_back(param);
-        }
-        cJSON_Delete(root);
-    }
-}
-
 bool TelemetryListener::CheckTraceTags(const Event &msg, TelemetryParams &params, std::string &errorMsg)
 {
     auto traceTagStr = msg.GetValue(KEY_TRACE_TAG);
+    if (traceTagStr.empty()) {
+        return true;
+    }
     std::vector<std::string> traceTags;
     uint32_t bufferSize = 0;
-    if (!traceTagStr.empty() && !ProcessTraceTag(traceTagStr, traceTags, bufferSize)) {
+    if (!ProcessTraceTag(traceTagStr, traceTags, bufferSize)) {
         errorMsg.append("process trace tag fail");
         return false;
     }
@@ -319,7 +319,6 @@ bool TelemetryListener::CheckTracePolicy(const Event &msg, TelemetryParams &para
 {
     auto tracePolicy = msg.GetValue(KEY_TRACE_POLICY);
     if (tracePolicy.empty()) {
-        params.tracePolicy = TelemetryPolicy::DEFAULT;
         return true;
     }
     if (tracePolicy == POLICY_POWER) {
@@ -360,6 +359,38 @@ bool TelemetryListener::CheckBeginTime(const Event &msg, TelemetryParams &params
         return false;
     }
     params.beginTime = beginTime;
+    return true;
+}
+
+bool TelemetryListener::CheckTimeOut(const Event &msg, TelemetryParams &params, std::string &errorMsg)
+{
+    params.traceDuration = msg.GetInt64Value(KEY_DURATION) * SECONDS_TO_MS;
+    if (params.traceDuration <= 0) {
+        params.traceDuration = DURATION_DEFAULT;
+    } else if (params.traceDuration > MAX_DURATION) {
+        params.traceDuration = MAX_DURATION;
+    }
+    int64_t running_time = 0;
+    TraceFlowController flowControl(FlowControlName::TELEMETRY);
+    auto ret = flowControl.QueryRunningTime(params.telemetryId, running_time);
+    if (ret == TelemetryRet::FAILED) {
+        errorMsg.append("failed to query running time");
+        return true;
+    }
+    if (ret == TelemetryRet::EMPTY_DATA) {
+        // New telemetry task, running time will be empty
+        HIVIEW_LOGE("New telemetry task");
+        params.isNewTask = true;
+        return false;
+    }
+    if (ret == TelemetryRet::SUCCESS) {
+        // reboot senario, check trace time out
+        if (running_time >= params.traceDuration) {
+            errorMsg.append("trace already time out");
+            return true;
+        }
+        return false;
+    }
     return true;
 }
 }

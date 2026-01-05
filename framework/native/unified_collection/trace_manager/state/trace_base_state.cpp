@@ -153,9 +153,9 @@ TraceRet TraceBaseState::TraceTelemetryOff()
     return TraceRet(TraceStateCode::FAIL);
 }
 
-int32_t TraceBaseState::SetAppFilterInfo(const std::string &bundleName)
+int32_t TraceBaseState::SetFilterInfoToAppSwan(const std::vector<std::string>& appfilterNames)
 {
-    return Hitrace::SetFilterAppName(bundleName);
+    return Hitrace::SetFilterAppName(appfilterNames);
 }
 
 int32_t TraceBaseState::SetFilterPidInfo(pid_t pid)

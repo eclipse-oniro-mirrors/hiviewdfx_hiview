@@ -83,12 +83,12 @@ public:
      */
     void CleanOldAppTrace(int32_t dateNum);
     CacheFlow UseCacheTimeQuota(int32_t interval);
-    TelemetryRet InitTelemetryData(const std::string &telemetryId, int64_t &runningTime,
+    TelemetryRet InitTelemetryQuota(const std::string &telemetryId,
         const std::map<std::string, int64_t> &flowControlQuotas);
     TelemetryRet NeedTelemetryDump(const std::string& module);
     void TelemetryStore(const std::string &module, int64_t zipTraceSize);
-    bool QueryRunningTime(int64_t &runningTime);
-    bool UpdateRunningTime(int64_t runningTime);
+    TelemetryRet QueryRunningTime(const std::string &telemetryId, int64_t &runningTime);
+    TelemetryRet UpdateRunningTime(const std::string &telemetryId, int64_t runningTime);
     void ClearTelemetryData();
 
 private:
