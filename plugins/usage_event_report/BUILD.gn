@@ -97,7 +97,6 @@ if (enable_hiview_usage_event_report_build) {
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
-        "window_manager:libdm_lite",
         "window_manager:libwm_lite",
       ]
 
@@ -113,6 +112,7 @@ if (enable_hiview_usage_event_report_build) {
     include_dirs = [
       "fold/cache/include",
       "fold/event/include",
+      "fold/util/include",
     ]
   }
 
