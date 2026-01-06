@@ -54,6 +54,7 @@ enum FaultLogType {
     RUST_PANIC,
     ADDR_SANITIZER,
     CJ_ERROR,
+    PROCESS_PAGE_INFO,
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

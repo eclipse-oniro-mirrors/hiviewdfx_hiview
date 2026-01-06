@@ -65,6 +65,7 @@
 #include "faultlog_cppcrash.h"
 #include "faultlog_jserror.h"
 #include "faultlog_cjerror.h"
+#include "faultlog_page_info.h"
 #include "page_history_manager.h"
 
 using namespace testing::ext;
@@ -2811,6 +2812,32 @@ HWTEST_F(FaultloggerUnittest, PageHistoryManager001, testing::ext::TestSize.Leve
     }
     ASSERT_EQ(manager.recorder_.MAX_RECORDED_PROCESS_NUM, manager.recorder_.pagesList_.size());
     ASSERT_EQ(manager.recorder_.MAX_RECORDED_PROCESS_NUM, manager.recorder_.lruCache_.size());
+}
+
+/**
+ * @tc.name: FaultLogPageInfo001
+ * @tc.desc: Test FaultLogPageInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogPageInfo001, testing::ext::TestSize.Level3)
+{
+    FaultLogEventFactory factory;
+    std::string eventName = "PROCESS_PAGE_INFO";
+    auto fault = factory.CreateFaultLogEvent(eventName);
+    ASSERT_NE(fault, nullptr);
+    fault = factory.CreateFaultLogEvent("abcd");
+    ASSERT_EQ(fault, nullptr);
+    
+    SysEventCreator sysEventCreator("PERFORMANCE", eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("PID", 2413);
+    sysEventCreator.SetKeyValue("PROCESS_NAME", "com.ohos.systemui");
+
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    auto plugin = GetFaultloggerInstance();
+    bool result = plugin->OnEvent(event);
+
+    EXPECT_TRUE(result);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

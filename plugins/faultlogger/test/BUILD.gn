@@ -59,6 +59,7 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_faultlogger/service/fault_event/event/faultlog_jserror.cpp",
     "$hiview_faultlogger/service/fault_event/event/faultlog_rust_panic.cpp",
     "$hiview_faultlogger/service/fault_event/event/faultlog_sanitizer.cpp",
+    "$hiview_faultlogger/service/fault_event/event/faultlog_page_info.cpp",
     "$hiview_faultlogger/service/fault_event/event/freeze_json_generator.cpp",
     "$hiview_faultlogger/service/fault_event/factory/faultlog_event_factory.cpp",
     "$hiview_faultlogger/service/fault_event/factory/faultlog_processor_factory.cpp",
