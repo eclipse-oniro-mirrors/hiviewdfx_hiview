@@ -60,7 +60,7 @@ bool FreezeDetectorPlugin::ReadyToLoad()
 
 void FreezeDetectorPlugin::OnLoad()
 {
-    HIVIEW_LOGD("OnLoad.");
+    HIVIEW_LOGI("OnLoad.");
     SetName(FREEZE_DETECTOR_PLUGIN_NAME);
     SetVersion(FREEZE_DETECTOR_PLUGIN_VERSION);
 
@@ -85,7 +85,7 @@ void FreezeDetectorPlugin::OnLoad()
 
 void FreezeDetectorPlugin::OnUnload()
 {
-    HIVIEW_LOGD("OnUnload.");
+    HIVIEW_LOGI("OnUnload.");
 }
 
 bool FreezeDetectorPlugin::OnEvent(std::shared_ptr<Event> &event)
@@ -234,8 +234,9 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
             delayTime = std::max(delayTime, window);
         }
     }
-    ffrt::submit([this, watchPoint] { this->ProcessEvent(watchPoint); }, {}, {},
-        ffrt::task_attr().name("dfr_fre_detec").qos(ffrt::qos_default)
+    ffrt::submit([watchPoint, freezeThis = std::enable_shared_from_this<FreezeDetectorPlugin>::shared_from_this()] {
+            freezeThis->ProcessEvent(watchPoint);
+        }, {}, {}, ffrt::task_attr().name("dfr_fre_detec").qos(ffrt::qos_default)
         .delay(static_cast<unsigned long long>(delayTime) * TO_NANO_SECOND_MULTPLE));
     ScheduleEventProcessing(watchPoint, freezeResultList);
 }
@@ -253,13 +254,15 @@ void FreezeDetectorPlugin::ScheduleEventProcessing(
     }
 
     if (watchPoint.GetStringId() == "THREAD_BLOCK_3S" || watchPoint.GetStringId() == "LIFECYCLE_HALF_TIMEOUT") {
-        warningQueue_->submit([this, watchPoint] { this->ProcessEvent(watchPoint); },
-            ffrt::task_attr()
-                .name("warninglog_task")
-                .delay (static_cast<unsigned long long>(HALF_EVENT_TIME) * TO_NANO_SECOND_MULTPLE));
+        warningQueue_->submit([watchPoint, freezeThis =
+            std::enable_shared_from_this<FreezeDetectorPlugin>::shared_from_this()] {
+                freezeThis->ProcessEvent(watchPoint);
+            }, ffrt::task_attr().name("warninglog_task")
+            .delay (static_cast<unsigned long long>(HALF_EVENT_TIME) * TO_NANO_SECOND_MULTPLE));
     } else {
-        ffrt::submit([this, watchPoint] { this->ProcessEvent(watchPoint); }, {}, {},
-            ffrt::task_attr().name("dfr_fre_detec").qos(ffrt::qos_default)
+        ffrt::submit([watchPoint, freezeThis = std::enable_shared_from_this<FreezeDetectorPlugin>::shared_from_this()] {
+                freezeThis->ProcessEvent(watchPoint);
+            }, {}, {}, ffrt::task_attr().name("dfr_fre_detec").qos(ffrt::qos_default)
             .delay(static_cast<unsigned long long>(delayTime) * TO_NANO_SECOND_MULTPLE));
     }
 }
