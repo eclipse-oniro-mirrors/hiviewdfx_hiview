@@ -249,7 +249,11 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest001, TestSize.Level0)
 
     sleep(10);
     bool getFreezeTestFile = GetFreezeDectorTestFile("AAFWK", "APP_INPUT_BLOCK", "FreezeDectorTest", time);
-    printf("GetFreezeDectorTest002File result: %d\n", getFreezeTestFile);
+    if (!getFreezeTestFile) {
+        printf("GetFreezeDectorTest001File, failed\n");
+        FAIL();
+    }
+    ASSERT_TRUE(getFreezeTestFile);
 }
 
 /**
@@ -300,7 +304,11 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest002, TestSize.Level3)
 
     sleep(10);
     bool getFreezeTestFile = GetFreezeDectorTestFile("GRAPHIC", "NO_DRAW", "FreezeDectorTest", time);
-    printf("GetFreezeDectorTest002File result: %d\n", getFreezeTestFile);
+    if (!getFreezeTestFile) {
+        printf("GetFreezeDectorTest002File, failed\n");
+        FAIL();
+    }
+    ASSERT_TRUE(true);
 }
 
 /**

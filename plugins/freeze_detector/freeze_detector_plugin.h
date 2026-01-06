@@ -57,7 +57,7 @@ struct WatchPointParams {
     std::string clusterRaw;
     std::string msg;
 };
-class FreezeDetectorPlugin : public Plugin, public std::enable_shared_from_this<FreezeDetectorPlugin> {
+class FreezeDetectorPlugin : public Plugin {
 public:
     FreezeDetectorPlugin();
     ~FreezeDetectorPlugin();
