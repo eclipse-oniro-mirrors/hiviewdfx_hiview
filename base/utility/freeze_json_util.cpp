@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace FreezeJsonUtil {
-bool IncludeWith(std::list<std::string> list, const std::string& target)
+bool IncludeWith(const std::list<const char* const>& list, const std::string& target)
 {
     for (auto it = list.begin(); it != list.end(); it++) {
         if (target == *it) {
@@ -173,7 +173,7 @@ void LoadCollectorFromFile(const std::string& filePath, FreezeJsonCollector& jso
         if (!IncludeWith(KEY_IN_LOGFILE, key)) {
             continue;
         }
-        std::string value = lineStr.substr(pos + COMMON_EQUAL.size());
+        std::string value = lineStr.substr(pos + std::strlen(COMMON_EQUAL));
         collectMap[key].push_back(value);
     }
     jsonFile.close();

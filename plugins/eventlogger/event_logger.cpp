@@ -158,12 +158,15 @@ bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
 #endif
 
 #ifdef WINDOW_MANAGER_ENABLE
-    EventFocusListener::RegisterFocusListener();
+    if (Parameter::IsBetaVersion()) {
+        EventFocusListener::RegisterFocusListener();
+    }
 #endif
 
     if (eventName == "GESTURE_NAVIGATION_BACK" || eventName == "FREQUENT_CLICK_WARNING") {
 #ifdef WINDOW_MANAGER_ENABLE
-        if (EventFocusListener::registerState_ == EventFocusListener::REGISTERED) {
+        if (Parameter::IsBetaVersion() &&
+            EventFocusListener::registerState_ == EventFocusListener::REGISTERED) {
             ReportUserPanicWarning(sysEvent, pid);
         }
 #endif
@@ -1162,10 +1165,6 @@ void EventLogger::OnLoad()
 
     EventLoggerConfig logConfig;
     eventLoggerConfig_ = logConfig.GetConfig();
-#ifdef MULTIMODALINPUT_INPUT_ENABLE
-    activeKeyEvent_ = std::make_unique<ActiveKeyEvent>();
-    activeKeyEvent_ ->Init();
-#endif
     FreezeCommon freezeCommon;
     if (!freezeCommon.Init()) {
         HIVIEW_LOGE("FreezeCommon filed.");
@@ -1209,7 +1208,9 @@ void EventLogger::OnUnload()
 {
     HIVIEW_LOGD("called");
 #ifdef WINDOW_MANAGER_ENABLE
-    EventFocusListener::UnRegisterFocusListener();
+    if (Parameter::IsBetaVersion()) {
+        EventFocusListener::UnRegisterFocusListener();
+    }
 #endif
 }
 

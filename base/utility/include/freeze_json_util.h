@@ -27,21 +27,21 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace FreezeJsonUtil {
 
-const std::string LOGGER_FREEZEJSON_LOG_PATH = "/data/log/freezejson";
-const std::string COMMON_QUOTE = "\"";
-const std::string COMMON_COMMA = ", ";
-const std::string COMMON_COLON = " : ";
-const std::string COMMON_LEFT_BRACE = "{";
-const std::string COMMON_RIGHT_BRACE = "}";
-const std::string COMMON_LEFT_SQUARE_BRACKET = "[";
-const std::string COMMON_RIGHT_SQUARE_BREAKET = "]";
-const std::string COMMON_LEFT_PARENTHESIS = "(";
-const std::string COMMON_RIGHT_PARENTHESIS = ")";
-const std::string COMMON_EQUAL = " = ";
+constexpr const char* const LOGGER_FREEZEJSON_LOG_PATH = "/data/log/freezejson";
+constexpr const char* const COMMON_QUOTE = "\"";
+constexpr const char* const COMMON_COMMA = ", ";
+constexpr const char* const COMMON_COLON = " : ";
+constexpr const char* const COMMON_LEFT_BRACE = "{";
+constexpr const char* const COMMON_RIGHT_BRACE = "}";
+constexpr const char* const COMMON_LEFT_SQUARE_BRACKET = "[";
+constexpr const char* const COMMON_RIGHT_SQUARE_BREAKET = "]";
+constexpr const char* const COMMON_LEFT_PARENTHESIS = "(";
+constexpr const char* const COMMON_RIGHT_PARENTHESIS = ")";
+constexpr const char* const COMMON_EQUAL = " = ";
 const unsigned int DEFAULT_LOG_FILE_MODE = 0644;
 
 // base/hiviewdfx/hiview/plugins/freeze_detector/config/freeze_rules.xml
-const std::list<std::string> APPFREEZE_TYPE_LIST{
+inline const std::list<const char* const> APPFREEZE_TYPE_LIST{
     "UI_BLOCK_6S",
     "UI_BLOCK_3S",
     "UI_BLOCK_RECOVERED",
@@ -55,11 +55,11 @@ const std::list<std::string> APPFREEZE_TYPE_LIST{
     "LIFECYCLE_TIMEOUT"
 };
 
-const std::list<std::string> APPHICOLLIE_TYPE_LIST{
+inline const std::list<const char* const> APPHICOLLIE_TYPE_LIST{
     "APP_HICOLLIE"
 };
 
-const std::list<std::string> KEY_IN_LOGFILE{
+inline const std::list<const char* const> KEY_IN_LOGFILE{
     "timestamp",
     "pid",
     "uid",
