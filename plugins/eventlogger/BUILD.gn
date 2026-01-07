@@ -61,16 +61,8 @@ ohos_source_set("eventlogger") {
   defines = []
   if (window_manager_enable && hiview_eventlogger_window_manager_enable) {
     sources += [ "event_focus_listener.cpp" ]
-    external_deps += [
-      "window_manager:libwm",
-      "window_manager:libwm_lite",
-    ]
+    external_deps += [ "window_manager:libwm_lite" ]
     defines += [ "WINDOW_MANAGER_ENABLE" ]
-  }
-  if (multimodalinput_input_enable) {
-    sources += [ "active_key_event.cpp" ]
-    external_deps += [ "input:libmmi-client" ]
-    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
   }
   if (hiview_eventlogger_hitrace_catcher_enable) {
     defines += [ "HITRACE_CATCHER_ENABLE" ]
@@ -106,9 +98,6 @@ group("unittest") {
       "test:EventLoggerTest",
       "manager/test:EventloggerManagerTest",
     ]
-    if (multimodalinput_input_enable) {
-      deps += [ "test:ActiveKeyEventTest" ]
-    }
   }
 }
 

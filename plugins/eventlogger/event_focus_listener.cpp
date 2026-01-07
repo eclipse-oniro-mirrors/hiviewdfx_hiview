@@ -19,6 +19,7 @@
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "time_util.h"
+#include "window_manager_lite.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -58,7 +59,7 @@ void EventFocusListener::RegisterFocusListener()
 
     auto registerTask = [] {
         registerState_ = REGISTERING;
-        Rosen::WMError ret = Rosen::WindowManager::GetInstance().RegisterFocusChangedListener(GetInstance());
+        Rosen::WMError ret = Rosen::WindowManagerLite::GetInstance().RegisterFocusChangedListener(GetInstance());
         if (ret == Rosen::WMError::WM_OK) {
             HIVIEW_LOGI("register eventFocusListener succeed.");
             registerState_ = REGISTERED;
@@ -83,7 +84,7 @@ void EventFocusListener::UnRegisterFocusListener()
         return;
     }
 
-    Rosen::WMError ret = Rosen::WindowManager::GetInstance().UnregisterFocusChangedListener(GetInstance());
+    Rosen::WMError ret = Rosen::WindowManagerLite::GetInstance().UnregisterFocusChangedListener(GetInstance());
     if (ret == Rosen::WMError::WM_OK) {
         HIVIEW_LOGI("unRegister eventFocusListener succeed");
         registerState_ = UNREGISTERED;

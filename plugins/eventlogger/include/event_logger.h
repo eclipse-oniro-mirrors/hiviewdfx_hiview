@@ -30,7 +30,6 @@
 #include "plugin.h"
 #include "sys_event.h"
 
-#include "active_key_event.h"
 #include "db_helper.h"
 #include "event_logger_config.h"
 #include "freeze_common.h"
@@ -68,9 +67,6 @@ private:
     std::shared_ptr<EventLoop> threadLoop_ = nullptr;
     int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
-#ifdef MULTIMODALINPUT_INPUT_ENABLE
-    std::unique_ptr<ActiveKeyEvent> activeKeyEvent_;
-#endif
     std::string cmdlinePath_ = "/proc/cmdline";
     std::string cmdlineContent_ = "";
     std::string lastEventName_ = "";
