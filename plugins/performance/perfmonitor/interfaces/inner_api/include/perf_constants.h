@@ -171,6 +171,9 @@ public:
     // another app jamps back to A app
     static constexpr char APP_TRANSITION_FROM_OTHER_APP[] = "APP_TRANSITION_FROM_OTHER_APP";
 
+    // another service jamps to A app
+    static constexpr char APP_TRANSITION_FROM_OTHER_SERVICE[] = "APP_TRANSITION_FROM_OTHER_SERVICE";
+
     // mutitask scroll
     static constexpr char SNAP_RECENT_ANI[] = "SNAP_RECENT_ANI";
 
