@@ -94,7 +94,6 @@ ohos_unittest("FreezeDetectorUnittest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hiview:libfaultlogger",
     "ipc:ipc_single",
     "libxml2:libxml2",
     "power_manager:powermgr_client",
@@ -102,6 +101,7 @@ ohos_unittest("FreezeDetectorUnittest") {
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_faultlogger:libfaultlogger",
     "$hiview_plugin/freeze_detector:freeze_detector",
     "$hiview_root/utility/smart_parser:smart_parser",
   ]
@@ -124,7 +124,6 @@ ohos_unittest("FreezeManagerTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "hiview:libfaultlogger",
     "ipc:ipc_single",
     "libxml2:libxml2",
     "power_manager:powermgr_client",
@@ -132,6 +131,7 @@ ohos_unittest("FreezeManagerTest") {
 
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_faultlogger:libfaultlogger",
     "$hiview_plugin/freeze_detector:freeze_detector",
     "$hiview_root/utility/smart_parser:smart_parser",
   ]
