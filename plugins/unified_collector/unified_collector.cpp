@@ -285,8 +285,8 @@ void UnifiedCollector::Init()
         RunIoCollectionTask();
         RunUCollectionStatTask();
     }
+    RunCpuCollectionTask();
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn() || Parameter::IsDeveloperMode()) {
-        RunCpuCollectionTask();
 #ifdef HIVIEW_LOW_MEM_THRESHOLD
         RunCacheMonitorLoop();
 #endif
@@ -330,7 +330,6 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
         return;
     }
     if (strncmp(value, HIVIEW_UCOLLECTION_STATE_TRUE, strlen(HIVIEW_UCOLLECTION_STATE_TRUE)) == 0) {
-        unifiedCollectorPtr->RunCpuCollectionTask();
         unifiedCollectorPtr->RunIoCollectionTask();
         unifiedCollectorPtr->RunUCollectionStatTask();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
@@ -340,9 +339,6 @@ void UnifiedCollector::OnSwitchStateChanged(const char* key, const char* value, 
 #endif
 #endif
     } else {
-        if (!Parameter::IsDeveloperMode()) {
-            unifiedCollectorPtr->isCpuTaskRunning_ = false;
-        }
         for (const auto &it : unifiedCollectorPtr->taskList_) {
             unifiedCollectorPtr->workLoop_->RemoveEvent(it);
         }
@@ -371,11 +367,10 @@ void UnifiedCollector::InitWorkPath()
 
 void UnifiedCollector::RunCpuCollectionTask()
 {
-    if (workPath_.empty() || isCpuTaskRunning_) {
-        HIVIEW_LOGE("workPath is null or task is running");
+    if (workPath_.empty()) {
+        HIVIEW_LOGE("workPath is null");
         return;
     }
-    isCpuTaskRunning_ = true;
     auto task = [this] { this->CpuCollectionFfrtTask(); };
     ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_cpu").qos(ffrt::qos_default));
 }
@@ -384,10 +379,6 @@ void UnifiedCollector::CpuCollectionFfrtTask()
 {
     cpuCollectionTask_ = std::make_shared<CpuCollectionTask>(workPath_);
     while (true) {
-        if (!isCpuTaskRunning_) {
-            HIVIEW_LOGE("exit cpucollection task");
-            break;
-        }
         ffrt::this_task::sleep_for(10s); // 10s: collect period
         cpuCollectionTask_->Collect();
     }
