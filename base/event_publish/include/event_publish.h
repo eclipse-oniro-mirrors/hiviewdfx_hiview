@@ -33,7 +33,6 @@ constexpr const char* const EVENT_BATTERY_USAGE = "BATTERY_USAGE";
 constexpr const char* const EVENT_RESOURCE_OVERLIMIT = "RESOURCE_OVERLIMIT";
 constexpr const char* const EVENT_ADDRESS_SANITIZER = "ADDRESS_SANITIZER";
 constexpr const char* const EVENT_MAIN_THREAD_JANK = "MAIN_THREAD_JANK";
-constexpr const char* const EVENT_APP_START = "APP_START";
 constexpr const char* const EVENT_APP_HICOLLIE = "APP_HICOLLIE";
 constexpr const char* const EVENT_APP_KILLED = "APP_KILLED";
 constexpr const char* const EVENT_AUDIO_JANK_FRAME = "AUDIO_JANK_FRAME";

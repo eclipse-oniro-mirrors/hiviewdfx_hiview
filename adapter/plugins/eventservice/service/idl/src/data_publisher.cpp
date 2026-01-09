@@ -31,9 +31,7 @@
 #include "data_share_dao.h"
 #include "data_share_store.h"
 #include "data_share_util.h"
-#include "event_publish.h"
 #include "file_util.h"
-#include "hisysevent.h"
 #include "hiview_event_common.h"
 #include "iquery_base_callback.h"
 #include "json/json.h"
@@ -146,7 +144,6 @@ void DataPublisher::InitSubscriber()
 void DataPublisher::OnSysEvent(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event)
 {
     HandleAppUninstallEvent(event);
-    HandleAppStartEvent(event);
     if (eventRelationMap_.find(event->eventName_) == eventRelationMap_.end()) {
         return;
     }
@@ -216,21 +213,6 @@ void DataPublisher::HandleAppUninstallEvent(std::shared_ptr<OHOS::HiviewDFX::Sys
     if (ret != DB_SUCC) {
         HIVIEW_LOGE("failed to remove from DB.");
     }
-}
-
-void DataPublisher::HandleAppStartEvent(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event)
-{
-    if (event->eventName_ != "APP_START") {
-        return;
-    }
-    std::string jsonExtraInfo = event->AsJsonStr();
-    std::string bundleName = GetBundleNameFromJsonStr(jsonExtraInfo);
-    if (bundleName.empty()) {
-        HIVIEW_LOGW("bundleName empty.");
-        return;
-    }
-    int32_t uid = OHOS::HiviewDFX::DataShareUtil::GetUidByBundleName(bundleName);
-    EventPublish::GetInstance().PushEvent(uid, event->eventName_, HiSysEvent::EventType::BEHAVIOR, jsonExtraInfo);
 }
 
 void DataPublisher::SetWorkLoop(std::shared_ptr<EventLoop> looper)
