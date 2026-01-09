@@ -117,6 +117,12 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest001, testing::ext::TestSize.Level3)
     LogParse logParse("");
     auto ret = logParse.IsIgnoreLibrary("watchdog");
     ASSERT_TRUE(ret);
+    ret = logParse.IsIgnoreLibrary("libc++_shared.so");
+    ASSERT_TRUE(ret);
+    ret = logParse.IsIgnoreLibrary("[Unknown]");
+    ASSERT_TRUE(ret);
+    ret = logParse.IsIgnoreLibrary("Not mapped");
+    ASSERT_TRUE(ret);
     ret = logParse.IsIgnoreLibrary("ohos");
     ASSERT_TRUE(!ret);
 }
@@ -151,6 +157,7 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest003, testing::ext::TestSize.Level3)
         ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_common.z.so")) << eventName;
         ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_core.z.so")) << eventName;
         ASSERT_TRUE(logParse.IsIgnoreLibrary("libipc_single.z.so")) << eventName;
+        ASSERT_TRUE(logParse.IsIgnoreLibrary("stub.an")) << eventName;
     }
 }
 
