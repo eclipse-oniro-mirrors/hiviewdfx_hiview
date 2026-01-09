@@ -98,6 +98,7 @@ private:
         PerfConstants::PC_SHORTCUT_EXIT_APP_CENTER,
         PerfConstants::APP_TRANSITION_TO_OTHER_APP,
         PerfConstants::APP_TRANSITION_FROM_OTHER_APP,
+        PerfConstants::APP_TRANSITION_FROM_OTHER_SERVICE,
         PerfConstants::SNAP_RECENT_ANI,
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_DOCK,
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_MISSON,
