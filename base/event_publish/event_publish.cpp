@@ -15,6 +15,7 @@
 
 #include "event_publish.h"
 
+#include <cerrno>
 #include <mutex>
 #include <thread>
 
@@ -195,9 +196,9 @@ std::string GetPathPlaceHolder(int32_t uid)
 bool CopyExternalLog(int32_t uid, const std::string& curLogPath, const std::string& destPath, uint32_t maxFileSizeByte)
 {
     if (FileUtil::CopyFileFast(curLogPath, destPath, maxFileSizeByte) == 0) {
-        std::string entryTxt = "u:" + std::to_string(uid) + ":rwx";
-        if (OHOS::StorageDaemon::AclSetAccess(destPath, entryTxt) != 0) {
-            HIVIEW_LOGE("failed to set acl access dir");
+        if (chown(destPath.c_str(), uid, uid) != 0) {
+            HIVIEW_LOGE("failed to change the owner and group of log file %{public}s, err: %{public}d",
+                destPath.c_str(), errno);
             FileUtil::RemoveFile(destPath);
             return false;
         }
