@@ -24,10 +24,15 @@ namespace OHOS::HiviewDFX {
 class UcTelemetryCallback : public TelemetryCallback, public std::enable_shared_from_this<UcTelemetryCallback> {
 public:
     explicit UcTelemetryCallback(const TelemetryParams &params)
-        : traceDuration_(params.traceDuration),
+        : isNewTask_(params.isNewTask),
+          traceDuration_(params.traceDuration),
           telemetryId_(params.telemetryId),
-          appFilterName_(params.appFilterName),
-          saParams_(params.saParams) {}
+          flowControlQuotas_(params.flowControlQuotas),
+          appFilterNames_(params.appFilterNames),
+          saParameters_(params.saParameters)
+    {
+        flowController_ = std::make_shared<TraceFlowController>(FlowControlName::TELEMETRY);
+    }
 
     void OnTelemetryStart() override;
     void OnTelemetryFinish() override;
@@ -40,12 +45,17 @@ protected:
     ffrt::mutex timeMutex_;
     bool isTraceOn_ = false;
     bool isTaskOn_ = false;
+    bool isNewTask_;
     int64_t traceDuration_;
     std::string telemetryId_;
-    std::string appFilterName_;
-    std::vector<std::string> saParams_;
+    std::map<std::string, int64_t> flowControlQuotas_;
+    std::vector<std::string> appFilterNames_;
+    std::vector<std::string> saParameters_;
+    std::shared_ptr<TraceFlowController> flowController_;
 
     bool UpdateAndCheckTimeOut(int64_t timeCost);
+    void SetSaFilterInfo();
+    void SetAppFilterInfo();
 };
 
 class ManualCallback : public UcTelemetryCallback {

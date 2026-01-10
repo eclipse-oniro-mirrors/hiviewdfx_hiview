@@ -655,10 +655,9 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest021, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest024, TestSize.Level1)
 {
-    int64_t runningTime = 0;
     auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId1", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+        .InitTelemetryQuota("telemetryId1", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, FlowControlName::XPERF));
@@ -679,10 +678,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest024, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest025, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId2", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId2", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, FlowControlName::TELEMETRY));
@@ -705,10 +704,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest025, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest026, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId3", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId3", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
@@ -729,10 +728,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest026, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest027, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId4", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId4", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
@@ -767,10 +766,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest027, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest028, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId5", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId5", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
@@ -805,10 +804,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest028, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest029, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId6", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId6", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
@@ -854,10 +853,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest029, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest030, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId7", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId7", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 20, ""));
@@ -904,10 +903,10 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest030, TestSize.Level1)
 */
 HWTEST_F(TraceStrategyTest, TraceStrategyTest031, TestSize.Level1)
 {
-    int64_t runningTime = 0;
-    auto flowRet = TraceFlowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH)
-        .InitTelemetryData("telemetryId8", runningTime, FLOW_CONTROL_MAP);
-    ASSERT_NE(flowRet, TelemetryRet::EXIT);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.ClearTelemetryData();
+    auto flowRet = flowController.InitTelemetryQuota("telemetryId8", FLOW_CONTROL_MAP);
+    ASSERT_NE(flowRet, TelemetryRet::FAILED);
     auto teleStrategy = std::make_shared<TelemetryStrategy>(
         StrategyParam {0, 0, ModuleToString(UCollect::TeleModule::XPERF), TEST_DB_PATH, TEST_CONFIG_PATH},
             std::make_shared<TraceZipHandler>(TEST_TELEMETRY_PATH, 2, ""));

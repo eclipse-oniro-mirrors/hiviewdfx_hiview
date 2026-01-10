@@ -197,9 +197,9 @@ TraceRet TraceStateMachine::TraceCacheOff()
     return currentState_->TraceCacheOff();
 }
 
-int32_t TraceStateMachine::SetAppFilterInfo(const std::string &bundleName)
+int32_t TraceStateMachine::SetFilterInfoToAppSwan(const std::vector<std::string>& appFilterNames)
 {
-    return currentState_->SetAppFilterInfo(bundleName);
+    return currentState_->SetFilterInfoToAppSwan(appFilterNames);
 }
 
 int32_t TraceStateMachine::SetFilterPidInfo(pid_t pid)

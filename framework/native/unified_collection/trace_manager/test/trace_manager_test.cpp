@@ -271,8 +271,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
     };
 
     TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
-    int64_t runningTime = 0;
-    ASSERT_EQ(flowController.InitTelemetryData("id", runningTime, flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(flowController.InitTelemetryQuota("id", flowControlQuotas), TelemetryRet::SUCCESS);
     sleep(1);
     flowController.TelemetryStore(CallerName::XPERF, 9000);
     ASSERT_EQ(flowController.NeedTelemetryDump(CallerName::XPERF), TelemetryRet::SUCCESS);
@@ -294,7 +293,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
 
     // data is cleared
     TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH);
-    ASSERT_EQ(flowController2.InitTelemetryData("id", runningTime, flowControlQuotas), TelemetryRet::SUCCESS);
+    ASSERT_EQ(flowController2.InitTelemetryQuota("id", flowControlQuotas), TelemetryRet::SUCCESS);
     flowController2.TelemetryStore(CallerName::XPOWER, 5000);
     ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER), TelemetryRet::SUCCESS);
 
@@ -302,7 +301,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
     TraceFlowController flowController3(FlowControlName::TELEMETRY, TEST_DB_PATH);
 
     // Already init, old data still take effect
-    ASSERT_EQ(flowController2.InitTelemetryData("id", runningTime, flowControlQuota2), TelemetryRet::SUCCESS);
+    ASSERT_EQ(flowController2.InitTelemetryQuota("id", flowControlQuota2), TelemetryRet::SUCCESS);
 
     // flowControlQuota2 do not take effect
 
@@ -312,7 +311,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
 
     // flowControlQuota2 take effect
     TraceFlowController flowController4(FlowControlName::TELEMETRY, TEST_DB_PATH);
-    ASSERT_EQ(flowController4.InitTelemetryData("id", runningTime, flowControlQuota2), TelemetryRet::SUCCESS);
+    ASSERT_EQ(flowController4.InitTelemetryQuota("id", flowControlQuota2), TelemetryRet::SUCCESS);
     flowController4.TelemetryStore(CallerName::XPOWER, 500);
     ASSERT_EQ(flowController4.NeedTelemetryDump(CallerName::XPOWER), TelemetryRet::OVER_FLOW);
 }
@@ -330,17 +329,14 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
         {"Total", 18000}
     };
     TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
-    int64_t runningTime1 = 0;
-    ASSERT_EQ(flowController.InitTelemetryData("id1", runningTime1, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(runningTime1, 0);
+    ASSERT_EQ(flowController.InitTelemetryQuota("id1", flowControlQuotas), TelemetryRet::SUCCESS);
 
     // if data init, correct btime2 etime2 value
     TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
-    int64_t runningTime2 = 100;
-    ASSERT_EQ(flowController2.InitTelemetryData("id1", runningTime2, flowControlQuotas), TelemetryRet::SUCCESS);
-    ASSERT_EQ(runningTime2, 0);
-    flowController2.UpdateRunningTime(400);
-    flowController2.QueryRunningTime(runningTime2);
+    ASSERT_EQ(flowController2.InitTelemetryQuota("id1", flowControlQuotas), TelemetryRet::SUCCESS);
+    flowController2.UpdateRunningTime("id1", 400);
+    int64_t runningTime2 = 0;
+    flowController2.QueryRunningTime("id1", runningTime2);
     ASSERT_EQ(runningTime2, 400);
 }
 

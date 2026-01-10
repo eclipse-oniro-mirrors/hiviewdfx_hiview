@@ -31,24 +31,24 @@ struct TeleMetryFlowRecord {
 enum class TelemetryRet {
     SUCCESS,
     OVER_FLOW,
-    EXIT
+    EMPTY_DATA,
+    FAILED,
 };
 
 class TeleMetryStorage {
 public:
     explicit TeleMetryStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
     ~TeleMetryStorage() = default;
-    TelemetryRet InitTelemetryControl(const std::string &telemetryId, int64_t &runningTime,
+    TelemetryRet InitTelemetryQuota(const std::string &telemetryId,
         const std::map<std::string, int64_t> &flowControlQuotas);
     TelemetryRet NeedTelemetryDump(const std::string &module);
     void ClearTelemetryData();
-    bool QueryRunningTime(int64_t &runningTime);
-    bool UpdateRunningTime(int64_t runningTime);
+    TelemetryRet QueryRunningTime(const std::string &telemetryId, int64_t &runningTime);
+    TelemetryRet UpdateRunningTime(const std::string &telemetryId, int64_t runningTime);
     void TelemetryStore(const std::string &module, int64_t traceSize);
 
 private:
     bool GetFlowRecord(const std::string &module, TeleMetryFlowRecord &flowRecord);
-    void InsertNewData(const std::string &telemetryId, const std::map<std::string, int64_t> &flowControlQuotas);
     bool QueryTable(const std::string &module, int64_t &usedSize, int64_t &quotaSize);
     bool UpdateTable(const std::string &module, int64_t newSize);
 

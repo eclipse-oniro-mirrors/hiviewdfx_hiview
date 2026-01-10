@@ -125,8 +125,8 @@ std::shared_ptr<Event> MakeTelemetryEvent()
     if (auto traceOpenTime = CJsonUtil::GetStringValue(root, "traceOpenTime"); !traceOpenTime.empty()) {
         event->SetValue("traceOpenTime", traceOpenTime);
     }
-    if (auto appFilterName = CJsonUtil::GetStringValue(root, "appFilterName"); !appFilterName.empty()) {
-        event->SetValue("appFilterName", appFilterName);
+    if (auto appFilterName = CJsonUtil::GetStringValue(root, "appFilterNames"); !appFilterName.empty()) {
+        event->SetValue("appFilterNames", appFilterName);
     }
     if (auto saNames = CJsonUtil::GetStringValue(root, "saNames"); !saNames.empty()) {
         event->SetValue("saNames", saNames);

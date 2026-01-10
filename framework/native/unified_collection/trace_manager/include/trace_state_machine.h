@@ -45,7 +45,7 @@ public:
     TraceRet PostTelemetryTimeOut();
     TraceRet PowerTelemetryOn();
     TraceRet PowerTelemetryOff();
-    int32_t SetAppFilterInfo(const std::string &bundleName);
+    int32_t SetFilterInfoToAppSwan(const std::vector<std::string>& appFilterNames);
     int32_t SetFilterPidInfo(pid_t pid);
     bool AddSymlinkXattr(const std::string& fileName);
     bool RemoveSymlinkXattr(const std::string& fileName);

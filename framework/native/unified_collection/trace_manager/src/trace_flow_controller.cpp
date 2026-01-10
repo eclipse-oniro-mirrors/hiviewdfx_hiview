@@ -183,21 +183,21 @@ CacheFlow TraceFlowController::UseCacheTimeQuota(int32_t interval)
     return CacheFlow::SUCCESS;
 }
 
-TelemetryRet TraceFlowController::InitTelemetryData(const std::string &telemetryId, int64_t &runningTime,
+TelemetryRet TraceFlowController::InitTelemetryQuota(const std::string &telemetryId,
     const std::map<std::string, int64_t>& flowControlQuotas)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage");
-        return TelemetryRet::EXIT;
+        return TelemetryRet::FAILED;
     }
-    return teleMetryStorage_->InitTelemetryControl(telemetryId, runningTime, flowControlQuotas);
+    return teleMetryStorage_->InitTelemetryQuota(telemetryId, flowControlQuotas);
 }
 
 TelemetryRet TraceFlowController::NeedTelemetryDump(const std::string &module)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to init teleMetryStorage, close task");
-        return TelemetryRet::EXIT;
+        return TelemetryRet::FAILED;
     }
     return teleMetryStorage_->NeedTelemetryDump(module);
 }
@@ -220,22 +220,22 @@ void TraceFlowController::ClearTelemetryData()
     return teleMetryStorage_->ClearTelemetryData();
 }
 
-bool TraceFlowController::QueryRunningTime(int64_t &runningTime)
+TelemetryRet TraceFlowController::QueryRunningTime(const std::string &telemetryId, int64_t &runningTime)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to QueryTraceOnTime, return");
-        return false;
+        return TelemetryRet::FAILED;
     }
-    return teleMetryStorage_->QueryRunningTime(runningTime);
+    return teleMetryStorage_->QueryRunningTime(telemetryId, runningTime);
 }
 
-bool TraceFlowController::UpdateRunningTime(int64_t runningTime)
+TelemetryRet TraceFlowController::UpdateRunningTime(const std::string &telemetryId, int64_t runningTime)
 {
     if (teleMetryStorage_ == nullptr) {
         HIVIEW_LOGE("failed to UpdateTraceOnTime, return");
-        return false;
+        return TelemetryRet::FAILED;
     }
-    return teleMetryStorage_->UpdateRunningTime(runningTime);
+    return teleMetryStorage_->UpdateRunningTime(telemetryId, runningTime);
 }
 } // HiViewDFX
 } // OHOS
