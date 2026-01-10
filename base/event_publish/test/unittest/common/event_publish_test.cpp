@@ -91,38 +91,6 @@ HWTEST_F(EventPublishTest, EventPublishTest001, TestSize.Level0)
 }
 
 /**
- * @tc.name: EventPublishTest002
- * @tc.desc: used to test PushEvent with unlistened os event
- * @tc.type: FUNC
-*/
-HWTEST_F(EventPublishTest, EventPublishTest002, TestSize.Level1)
-{
-    bool isSuccess = g_testPid != -1;
-    if (!isSuccess) {
-        ASSERT_FALSE(isSuccess);
-        GTEST_LOG_(ERROR) << "Failed to launch target hap.";
-    } else {
-        uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
-        EXPECT_GT(testUid, 0);
-
-        std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
-        bool existRes = FileExists(testDatabaseWALPath);
-        EXPECT_TRUE(existRes);
-        std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
-
-        // the demo has not listened the APP_START event
-        EventPublish::GetInstance().PushEvent(testUid, "APP_START", HiSysEvent::EventType::FAULT, "{\"time\":123}");
-        std::string tempPath = PATH_DIR + "/hiappevent_" + std::to_string(testUid) + ".evt";
-        std::string curLine;
-        if (LoadlastLineFromFile(tempPath, curLine)) {
-            EXPECT_EQ(curLine.find("APP_START"), std::string::npos);
-        }
-        std::string endMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
-        EXPECT_EQ(beginMd5Sum, endMd5Sum);
-    }
-}
-
-/**
  * @tc.name: EventPublishTest003
  * @tc.desc: used to test PushEvent when the event is immediate os event
  * @tc.type: FUNC

@@ -72,7 +72,6 @@ const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
     { EVENT_RESOURCE_OVERLIMIT, 6 },
     { EVENT_ADDRESS_SANITIZER, 7 },
     { EVENT_MAIN_THREAD_JANK, 8 },
-    { EVENT_APP_START, 9 },
     { EVENT_APP_HICOLLIE, 10 },
     { EVENT_APP_KILLED, 11 },
     { EVENT_AUDIO_JANK_FRAME, 12 },
@@ -571,8 +570,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         HIVIEW_LOGE("failed to create resourceDir.");
         return;
     }
-    const std::set<std::string> specialEvents = {
-        EVENT_RESOURCE_OVERLIMIT, EVENT_SCROLL_JANK, EVENT_BATTERY_USAGE, EVENT_APP_START};
+    const std::set<std::string> specialEvents = {EVENT_RESOURCE_OVERLIMIT, EVENT_SCROLL_JANK, EVENT_BATTERY_USAGE};
     if (specialEvents.find(eventName) == specialEvents.end()) {  // immediate report
         SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
         SaveEventToSandBox(uid, pathHolder, eventJson);
