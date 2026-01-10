@@ -47,9 +47,12 @@ void TriggerExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
             return;
         }
     }
-    ffrt::submit([this, sysEvent] () {
-            std::vector<std::shared_ptr<ExportConfig>> configs;
-            GetReportIntervalMatchedConfigs(configs, sysEvent->GetReportInterval());
+    std::vector<std::shared_ptr<ExportConfig>> configs;
+    GetReportIntervalMatchedConfigs(configs, sysEvent->GetReportInterval());
+    if (configs.empty()) {
+        return;
+    }
+    ffrt::submit([this, sysEvent, configs] () {
             std::unique_lock<ffrt::mutex> lock(taskMapMutex_);
             for (auto& config : configs) {
                 auto iter = taskMap_.find(config->moduleName);
@@ -59,7 +62,7 @@ void TriggerExportEngine::ProcessEvent(std::shared_ptr<SysEvent> sysEvent)
                     RebuildExistTaskList(iter->second, sysEvent, config);
                 }
             }
-        }, { }, {}, ffrt::task_attr().name("process_trigger_event").qos(ffrt::qos_default));
+        }, {}, {}, ffrt::task_attr().name("process_trigger_event").qos(ffrt::qos_default));
 }
 
 void TriggerExportEngine::SetTaskDelayedSecond(int second)
