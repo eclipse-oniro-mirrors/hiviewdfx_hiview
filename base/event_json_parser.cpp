@@ -87,6 +87,10 @@ void SetTagOfBaseInfo(BaseInfo& baseInfo, const std::string& tag)
         return;
     }
     baseInfo.tag = new(std::nothrow) char[tagLen + 1];
+    if (baseInfo.tag == nullptr) {
+        HIVIEW_LOGW("baseInfo.tag is null");
+        return;
+    }
     if (strcpy_s(baseInfo.tag, tagLen + 1, tag.c_str()) != EOK) {
         HIVIEW_LOGW("failed to copy tag=%{public}s", tag.c_str());
         delete[] baseInfo.tag;
