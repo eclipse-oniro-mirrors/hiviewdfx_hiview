@@ -28,12 +28,15 @@ LogParse::LogParse(const std::string& eventName)
         {"Level1", {
             "libc.so",
             "libc++.so",
+            "libc++_shared.so",
             "ld-musl-aarch64.so",
             "libc_fdleak_debug.so",
             "unknown",
             "watchdog",
             "kthread",
-            "rdr_system_error"}
+            "rdr_system_error",
+            "[Unknown]",
+            "Not mapped"}
         },
         {"Level2", {
             "libart.so",
@@ -53,6 +56,7 @@ LogParse::LogParse(const std::string& eventName)
         ignoreList_["Level1"].emplace("libipc_common.z.so");
         ignoreList_["Level1"].emplace("libipc_core.z.so");
         ignoreList_["Level1"].emplace("libipc_single.z.so");
+        ignoreList_["Level1"].emplace("stub.an");
     }
 }
 
