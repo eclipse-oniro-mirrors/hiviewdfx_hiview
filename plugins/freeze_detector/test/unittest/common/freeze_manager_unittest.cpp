@@ -209,5 +209,33 @@ HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
     EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "");
     EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(10), "traceName_10");
 }
+
+/**
+ * @tc.name: ExchangeFdWithFdsanTag and CloseFdWithFdsanTag test
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, FreezeManagerTest_ExchangeFdWithFdsanTag_001, TestSize.Level3)
+{
+    std::string fileName = "/data/test/log/test.txt";
+    int fd = 0;
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
+    int result = FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
+    result = FreezeManager::GetInstance()->CloseFdWithFdsanTag(-1234);
+    EXPECT_EQ(result, -1);
+}
+
+/**
+ * @tc.name: GetlineByFile and CloseFileByFp test
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, FreezeManagerTest_GetlineByFile_001, TestSize.Level3)
+{
+    std::string path = "/data/test/log/test.txt";
+    std::string result = FreezeManager::GetInstance()->GetlineByFile(path);
+    printf("%s\n", result.c_str());
+    FILE* fp = nullptr;
+    int ret = FreezeManager::GetInstance()->CloseFileByFp(fp, path);
+    EXPECT_EQ(ret, -1);
+}
 }
 }

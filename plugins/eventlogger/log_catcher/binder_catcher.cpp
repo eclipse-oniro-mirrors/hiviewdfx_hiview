@@ -20,12 +20,17 @@
 
 #include "common_utils.h"
 #include "defines.h"
+#include "hiview_logger.h"
 #include "parameter_ex.h"
+#include "freeze_manager.h"
+#include "file_util.h"
 
+DEFINE_LOG_LABEL(0xD002D01, "EventLogger-BinderCatcher");
 namespace OHOS {
 namespace HiviewDFX {
 #ifdef BINDER_CATCHER_ENABLE
 using namespace OHOS::HiviewDFX::CommonUtils;
+
 BinderCatcher::BinderCatcher() : EventLogCatcher()
 {
     name_ = "BinderCatcher";
@@ -44,17 +49,22 @@ int BinderCatcher::Catch(int fd, int jsonFd)
     if (Parameter::IsOversea()) {
         FileUtil::SaveStringToFd(fd, "binder info is not saved in oversea version\n");
     } else {
-        std::string line;
-        std::ifstream fin;
-        fin.open("/proc/transaction_proc");
-        if (!fin.is_open()) {
+        std::string realPath;
+        if (!FileUtil::PathToRealPath("/proc/transaction_proc", realPath)) {
+            return 0;
+        }
+        FILE* fp = fopen(realPath.c_str(), "r");
+        if (fp == nullptr) {
             std::string content = "open binder file failed :/proc/transaction_proc\r\n";
             FileUtil::SaveStringToFd(fd, content);
         } else {
-            while (getline(fin, line)) {
+            char buffer[FreezeManager::BUF_SIZE_1024] = {'\0'};
+            std::string line;
+            while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+                line = buffer;
                 FileUtil::SaveStringToFd(fd, line + "\n");
             }
-            fin.close();
+            FreezeManager::GetInstance()->CloseFileByFp(fp, realPath);
         }
     }
 

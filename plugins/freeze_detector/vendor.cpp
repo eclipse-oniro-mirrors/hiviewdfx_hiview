@@ -15,6 +15,7 @@
 
 #include "vendor.h"
 
+#include <cstdio>
 #include <regex>
 
 #include "faultlogger_client.h"
@@ -200,10 +201,15 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
         if (!FileUtil::PathToRealPath(filePath, realPath)) {
             continue;
         }
-        std::ifstream ifs(realPath, std::ios::in);
-        if (ifs.is_open()) {
-            oss << ifs.rdbuf();
-            ifs.close();
+        FILE* fp = fopen(realPath.c_str(), "r");
+        if (fp != nullptr) {
+            char buffer[FreezeManager::BUF_SIZE_1024] = {'\0'};
+            while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+                oss << buffer;
+            }
+            FreezeManager::GetInstance()->CloseFileByFp(fp, realPath);
+        } else {
+            HIVIEW_LOGE("Fail to create %{public}s, errno: %{public}d.", realPath.c_str(), errno);
         }
         FreezeJsonUtil::DelFile(realPath);
     }
@@ -217,6 +223,7 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     } else {
         HIVIEW_LOGI("success to open FreezeJsonFile! jsonFd: %{public}d", jsonFd);
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(jsonFd);
     HIVIEW_LOGI("MergeFreezeJsonFile oss size: %{public}zu.", oss.str().size());
     FileUtil::SaveStringToFd(jsonFd, oss.str());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "domain", watchPoint.GetDomain());
@@ -226,7 +233,7 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     FreezeJsonUtil::WriteKeyValue(jsonFd, "uid", watchPoint.GetUid());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "package_name", watchPoint.GetPackageName());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "process_name", watchPoint.GetProcessName());
-    close(jsonFd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(jsonFd);
     HIVIEW_LOGI("success to merge FreezeJsonFiles!");
 }
 
@@ -276,40 +283,49 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
                 node.GetDomain().c_str(), node.GetStringId().c_str(), filePath.c_str());
             return;
         }
-
-        HIVIEW_LOGI("merging file:%{public}s.", filePath.c_str());
-        std::string realPath;
-        if (!FileUtil::PathToRealPath(filePath, realPath)) {
-            HIVIEW_LOGE("PathToRealPath Failed:%{public}s.", filePath.c_str());
-            continue;
-        }
-        std::ifstream ifs(realPath, std::ios::in);
-        if (!ifs.is_open()) {
-            HIVIEW_LOGE("cannot open log file for reading:%{public}s.", realPath.c_str());
-            DumpEventInfo(body, HEADER, node);
-            continue;
-        }
-
-        body << std::string(HEADER) << std::endl;
-        if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), node.GetStringId()) !=
-            std::end(FreezeCommon::PB_EVENTS) && watchPoint.GetTerminalThreadStack().empty()) {
-            std::stringstream ss;
-            ss << ifs.rdbuf();
-            std::string logContent = ss.str();
-            size_t startPos = logContent.find(THREAD_STACK_START);
-            size_t endPos = logContent.find(THREAD_STACK_END, startPos);
-            if (startPos != std::string::npos && endPos != std::string::npos && endPos > startPos) {
-                size_t startSize = strlen(THREAD_STACK_START);
-                std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
-                watchPoint.SetTerminalThreadStack(threadStack);
-                logContent.erase(startPos, endPos - startPos + strlen(THREAD_STACK_END));
-            }
-            body << logContent << std::endl;
-        } else {
-            body << ifs.rdbuf();
-        }
-        ifs.close();
+        MergeBodyInfo(body, watchPoint, node);
     }
+}
+
+void Vendor::MergeBodyInfo(std::ostringstream& body, WatchPoint &watchPoint, WatchPoint node) const
+{
+    std::string filePath = node.GetLogPath();
+    HIVIEW_LOGI("merging file:%{public}s.", filePath.c_str());
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(filePath, realPath)) {
+        HIVIEW_LOGE("PathToRealPath Failed:%{public}s.", filePath.c_str());
+        return;
+    }
+    FILE* fp = fopen(realPath.c_str(), "r");
+    if (fp == nullptr) {
+        HIVIEW_LOGE("cannot open log file for reading:%{public}s.", realPath.c_str());
+        DumpEventInfo(body, HEADER, node);
+        return;
+    }
+    char buffer[FreezeManager::BUF_SIZE_1024] = {'\0'};
+    body << std::string(HEADER) << std::endl;
+    if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), node.GetStringId()) !=
+        std::end(FreezeCommon::PB_EVENTS) && watchPoint.GetTerminalThreadStack().empty()) {
+        std::stringstream ss;
+        while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+            ss << buffer;
+        }
+        std::string logContent = ss.str();
+        size_t startPos = logContent.find(THREAD_STACK_START);
+        size_t endPos = logContent.find(THREAD_STACK_END, startPos);
+        if (startPos != std::string::npos && endPos != std::string::npos && endPos > startPos) {
+            size_t startSize = strlen(THREAD_STACK_START);
+            std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
+            watchPoint.SetTerminalThreadStack(threadStack);
+            logContent.erase(startPos, endPos - startPos + strlen(THREAD_STACK_END));
+        }
+        body << logContent << std::endl;
+    } else {
+        while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+            body << buffer;
+        }
+    }
+    FreezeManager::GetInstance()->CloseFileByFp(fp, realPath);
 }
 
 bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
@@ -388,10 +404,11 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
             tmpLogPath.c_str(), errno);
         return "";
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
 
     FileUtil::SaveStringToFd(fd, header.str());
     FileUtil::SaveStringToFd(fd, body.str());
-    close(fd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
 
     watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint));
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);

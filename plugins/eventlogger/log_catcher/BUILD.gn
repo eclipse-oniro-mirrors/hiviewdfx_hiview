@@ -50,6 +50,7 @@ ohos_source_set("log_catcher") {
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
     "$hiview_eventlogger/manager:eventlogger_manager",
+    "$hiview_plugin/freeze_detector:freeze_detector",
   ]
 
   external_deps = [
