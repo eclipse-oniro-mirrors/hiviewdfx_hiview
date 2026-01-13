@@ -401,7 +401,10 @@ ohos_source_set("cpu_collector_empty_source") {
 
 group("unittest") {
   testonly = true
-  deps = [ "decorator/test:DecoratorUnitTest" ]
+  deps = [
+    "decorator/test:DecoratorUnitTest",
+    "collector/test:CommonUtilTest",
+  ]
 
   if (hiview_unified_collector_trace_enable) {
     deps += [

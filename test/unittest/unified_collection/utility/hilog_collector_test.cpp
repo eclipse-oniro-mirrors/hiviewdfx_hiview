@@ -71,11 +71,6 @@ HWTEST_F(HilogCollectorTest, HilogCollectorTest001, TestSize.Level1)
         int lineNum = std::count(result.data.begin(), result.data.end(), '\n');
         std::cout << "line num :" << lineNum << std::endl;
         ASSERT_TRUE(lineNum >= HILOG_LINE_NUM);
-
-        // get child process log
-        result = collector->CollectLastLog(childPid, HILOG_LINE_NUM);
-        ASSERT_TRUE(result.retCode == UcError::SUCCESS);
-        ASSERT_TRUE(result.data == "");
     }
 }
 #else

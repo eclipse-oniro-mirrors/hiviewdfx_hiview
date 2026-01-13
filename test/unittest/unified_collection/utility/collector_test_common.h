@@ -14,15 +14,17 @@
  */
 #ifndef OHOS_HIVIEWDFX_UCOLLECT_TEST_COMMON_H
 #define OHOS_HIVIEWDFX_UCOLLECT_TEST_COMMON_H
+
 #include <gtest/gtest.h>
 
 #include "collect_result.h"
-#include "common_util.h"
+#include "common_utils.h"
 #include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollect {
+
 template <typename T> void FileCleanTest(T task, const std::string& path, const std::string& prefix, int32_t maxNum)
 {
     std::string oldFile;
@@ -35,7 +37,7 @@ template <typename T> void FileCleanTest(T task, const std::string& path, const 
     }
     ASSERT_FALSE(FileUtil::FileExists(oldFile));
     std::vector<std::string> files;
-    UCollectUtil::CommonUtil::GetDirRegexFiles(path, prefix, files);
+    CommonUtils::GetDirRegexFiles(path, prefix, files);
     ASSERT_EQ(files.size(), maxNum);
 }
 } // UCollect

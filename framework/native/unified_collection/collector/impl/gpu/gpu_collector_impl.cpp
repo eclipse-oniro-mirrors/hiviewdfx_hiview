@@ -27,7 +27,14 @@ using namespace OHOS::HiviewDFX::UCollect;
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
+namespace {
 DEFINE_LOG_TAG("UCollectUtil");
+constexpr char GPU_CUR_FREQ[] = "/sys/class/devfreq/gpufreq/cur_freq";
+constexpr char GPU_MAX_FREQ[] = "/sys/class/devfreq/gpufreq/max_freq";
+constexpr char GPU_MIN_FREQ[] = "/sys/class/devfreq/gpufreq/min_freq";
+constexpr char GPU_LOAD[] = "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation";
+}
+
 std::shared_ptr<GpuCollector> GpuCollector::Create()
 {
     return std::make_shared<GpuDecorator>(std::make_shared<GpuCollectorImpl>());
