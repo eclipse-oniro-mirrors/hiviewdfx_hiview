@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -77,7 +77,7 @@ bool InnerGetAppTask(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultSet, A
     return true;
 }
 
-bool InnerQueryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::AbsRdbPredicates &predicates,
+bool InnerQueryAppTask(std::shared_ptr<RestorableDbStore> dbStore, NativeRdb::AbsRdbPredicates &predicates,
     AppEventTask &appEventTask)
 {
     appEventTask.id_ = 0;
@@ -97,7 +97,7 @@ bool InnerQueryAppTask(std::shared_ptr<NativeRdb::RdbStore> dbStore, NativeRdb::
 }
 }
 
-AppEventTaskStorage::AppEventTaskStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
+AppEventTaskStorage::AppEventTaskStorage(std::shared_ptr<RestorableDbStore> dbStore) : dbStore_(dbStore) {}
 
 bool AppEventTaskStorage::GetAppEventTask(int32_t uid, int32_t eventDate, AppEventTask &appEventTask)
 {

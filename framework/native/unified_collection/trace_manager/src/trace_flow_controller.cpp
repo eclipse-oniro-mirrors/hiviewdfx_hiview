@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,13 +37,9 @@ constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minu
 
 void TraceFlowController::InitTraceDb(const std::string& dbPath)
 {
-    NativeRdb::RdbStoreConfig config(dbPath + DB_NAME);
-    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
-    TraceDbStoreCallback callback;
-    auto ret = NativeRdb::E_OK;
-    dbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
+    dbStore_ = std::make_shared<RestorableDbStore>(dbPath, DB_NAME, DB_VERSION);
+    int ret = dbStore_->Initialize(TraceDbStoreCallback::OnCreate, TraceDbStoreCallback::OnUpgrade, nullptr);
     if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to init db store, db store path=%{public}s", dbPath.c_str());
         dbStore_ = nullptr;
     }
 }

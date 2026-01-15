@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -221,34 +221,24 @@ int32_t CreateVersionTable(NativeRdb::RdbStore& dbStore)
     }
     return NativeRdb::E_OK;
 }
-}
 
-int CpuStorageDbCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
+int CreateTables(NativeRdb::RdbStore& rdbStore)
 {
     HIVIEW_LOGD("create dbStore");
     if (auto ret = CreateVersionTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create version table in db creation");
         return ret;
     }
     if (auto ret = StoreSysVersion(rdbStore, Parameter::GetDisplayVersionStr()); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to insert system version into version table in db creation");
         return ret;
     }
     if (auto ret = CreateCpuCollectionTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create cpu collection table in db creation");
         return ret;
     }
     if (auto ret = CreateThreadCpuCollectionTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create cpu collection table in db creation");
         return ret;
     }
     return NativeRdb::E_OK;
 }
-
-int CpuStorageDbCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
-{
-    HIVIEW_LOGD("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
-    return NativeRdb::E_OK;
 }
 
 CpuStorage::CpuStorage(const std::string& workPath) : workPath_(workPath)
@@ -270,29 +260,28 @@ void CpuStorage::InitDbStorePath()
         HIVIEW_LOGE("failed to create dir=%{public}s", tempDbStorePath.c_str());
         return;
     }
-    tempDbStorePath.append(CreateDbFileName());
     dbStorePath_ = tempDbStorePath;
-    HIVIEW_LOGI("succ to init db store path=%{public}s", dbStorePath_.c_str());
+    dbFileName_ = CreateDbFileName();
+    HIVIEW_LOGI("succ to init db store %{public}s, dbStorePath_=%{public}s", dbFileName_.c_str(), dbStorePath_.c_str());
 }
 
 void CpuStorage::InitDbStore()
 {
-    NativeRdb::RdbStoreConfig config(dbStorePath_);
-    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
-    CpuStorageDbCallback callback;
-    auto ret = NativeRdb::E_OK;
-    dbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
+    dbStore_ = std::make_shared<RestorableDbStore>(dbStorePath_, dbFileName_, DB_VERSION);
+    int ret = dbStore_->Initialize(CreateTables,
+        [] (NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) {
+            HIVIEW_LOGD("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
+            return NativeRdb::E_OK;
+        }, nullptr);
     if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to init db store, db store path=%{public}s", dbStorePath_.c_str());
         dbStore_ = nullptr;
-        return;
     }
 }
 
 void CpuStorage::StoreProcessDatas(const std::vector<ProcessCpuStatInfo>& cpuCollectionInfos)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGW("db store is null, path=%{public}s", dbStorePath_.c_str());
+        HIVIEW_LOGW("db store is null, name=%{public}s", dbFileName_.c_str());
         return;
     }
     auto processCollector = UCollectUtil::ProcessCollector::Create();
@@ -314,15 +303,16 @@ void CpuStorage::StoreProcessDatas(const std::vector<ProcessCpuStatInfo>& cpuCol
         valuesBuckets.push_back(bucket);
     }
     int64_t outInsertNum = 0;
-    if (dbStore_->BatchInsert(outInsertNum, CPU_COLLECTION_TABLE_NAME, valuesBuckets) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("Insert process data to unified_collection_cpu failed");
+    if (int ret = dbStore_->BatchInsert(outInsertNum, CPU_COLLECTION_TABLE_NAME, valuesBuckets);
+        ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("Insert process data failed, ret is %{public}d", ret);
     }
 }
 
 void CpuStorage::StoreThreadDatas(const std::vector<ThreadCpuStatInfo>& cpuCollections)
 {
     if (dbStore_ == nullptr) {
-        HIVIEW_LOGW("db store is null, path=%{public}s", dbStorePath_.c_str());
+        HIVIEW_LOGW("db store is null, name=%{public}s", dbFileName_.c_str());
         return;
     }
     std::vector<NativeRdb::ValuesBucket> valuesBuckets;
@@ -337,8 +327,9 @@ void CpuStorage::StoreThreadDatas(const std::vector<ThreadCpuStatInfo>& cpuColle
         valuesBuckets.push_back(bucket);
     }
     int64_t outInsertNum = 0;
-    if (dbStore_->BatchInsert(outInsertNum, THREAD_CPU_COLLECTION_TABLE_NAME, valuesBuckets) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("Insert thread data to unified_collection_cpu failed");
+    if (int ret = dbStore_->BatchInsert(outInsertNum, THREAD_CPU_COLLECTION_TABLE_NAME, valuesBuckets);
+        ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("Insert thread data failed, ret is %{public}d", ret);
     }
 }
 
@@ -365,13 +356,17 @@ std::string CpuStorage::GetStoredSysVersion()
     columns.emplace_back(COLUMN_VERSION_NAME);
     std::string version;
     std::shared_ptr<NativeRdb::ResultSet> allVersions = dbStore_->Query(predicates, columns);
-    if (allVersions == nullptr || allVersions->GoToFirstRow() != NativeRdb::E_OK) {
+    if (allVersions == nullptr) {
         HIVIEW_LOGE("failed to get result set from db query");
         return version;
     }
+    if (int ret = allVersions->GoToFirstRow(); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to get result, ret is %{public}d", ret);
+        return version;
+    }
     NativeRdb::RowEntity entity;
-    if (allVersions->GetRow(entity) != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to read row entity from result set");
+    if (int ret = allVersions->GetRow(entity); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to read row entity from result set, ret is %{public}d", ret);
         return version;
     }
     if (entity.Get(COLUMN_VERSION_NAME).GetString(version) != NativeRdb::E_OK) {
@@ -383,13 +378,12 @@ std::string CpuStorage::GetStoredSysVersion()
 
 bool CpuStorage::NeedReport()
 {
-    if (dbStorePath_.empty()) {
+    if (dbFileName_.empty()) {
         HIVIEW_LOGI("the db file stored directory is empty");
         return false;
     }
-    std::string nowDbFileName = FileUtil::ExtractFileName(dbStorePath_);
     std::string newDbFileName = CreateDbFileName();
-    return newDbFileName != nowDbFileName;
+    return newDbFileName != dbFileName_;
 }
 
 void CpuStorage::PrepareOldDbFilesBeforeReport()

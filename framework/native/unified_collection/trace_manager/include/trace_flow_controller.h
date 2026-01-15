@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <string>
 
 #include "hitrace_dump.h"
+#include "restorable_db_store.h"
 #include "trace_storage.h"
 #include "telemetry_storage.h"
 #include "trace_behavior_storage.h"
@@ -96,7 +97,7 @@ private:
     void InitTraceStorage(const std::string& caller, const std::string& configPath);
 
 private:
-    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+    std::shared_ptr<RestorableDbStore> dbStore_;
     std::shared_ptr<TraceStorage> traceStorage_;
     std::shared_ptr<AppEventTaskStorage> appTaskStore_;
     std::shared_ptr<TraceBehaviorStorage> behaviorTaskStore_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_DB_HELPER_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TRACE_BEHAVIOR_DB_HELPER_H
 
-#include "rdb_store.h"
+#include "restorable_db_store.h"
 
 namespace OHOS::HiviewDFX {
 enum BEHAVOIR_ID {
@@ -31,7 +31,7 @@ struct BehaviorRecord {
 
 class TraceBehaviorStorage {
 public:
-    explicit TraceBehaviorStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
+    explicit TraceBehaviorStorage(std::shared_ptr<RestorableDbStore> dbStore) : dbStore_(dbStore) {}
     ~TraceBehaviorStorage() = default;
 
 public:
@@ -39,7 +39,7 @@ public:
     bool InsertRecord(BehaviorRecord &behaviorRecord);
     bool UpdateRecord(BehaviorRecord &behaviorRecord);
 private:
-    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+    std::shared_ptr<RestorableDbStore> dbStore_;
 };
 } // namespace OHOS::HiviewDFX
 

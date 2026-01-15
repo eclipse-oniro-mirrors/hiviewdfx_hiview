@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,9 @@
 #include "file_util.h"
 #include "trace_common.h"
 #include "trace_db_callback.h"
+#define private public
 #include "trace_flow_controller.h"
+#undef private
 #include "trace_state_machine.h"
 #include "time_util.h"
 
@@ -1076,16 +1078,10 @@ HWTEST_F(TraceManagerTest, TraceManagerTest027, TestSize.Level1)
 {
     FileUtil::ForceRemoveDirectory(TEST_DB_PATH);
     FileUtil::ForceCreateDirectory(TEST_DB_PATH);
-    std::string dbFile = std::string(TEST_DB_PATH) + "trace_flow_control.db";
-    RdbStoreConfig config(dbFile);
-    config.SetSecurityLevel(SecurityLevel::S1);
-    auto ret = E_OK;
-    TraceDbStoreCallback callback;
-    auto dbStore = RdbHelper::GetRdbStore(config, 1, callback, ret);
+    auto dbStore = std::make_shared<RestorableDbStore>(TEST_DB_PATH, "trace_flow_control.db", 1);
+    int ret = dbStore->Initialize(TraceDbStoreCallback::OnCreate, TraceDbStoreCallback::OnUpgrade, nullptr);
     ASSERT_EQ(ret, E_OK);
-    ret = callback.OnCreate(*dbStore);
-    ASSERT_EQ(ret, E_OK);
-    ret = callback.OnUpgrade(*dbStore, 1, 2); // test db upgrade from version 1 to version 2
+    ret = TraceDbStoreCallback::OnUpgrade(*dbStore->rdbStore_, 1, 2); // test db upgrade from version 1 to version 2
     ASSERT_EQ(ret, E_OK);
 }
 

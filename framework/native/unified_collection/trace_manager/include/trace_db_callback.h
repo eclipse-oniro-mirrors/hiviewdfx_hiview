@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,17 +57,10 @@ inline constexpr char COLUMN_QUOTA[] = "quota";
 inline constexpr char COLUMN_TELEMTRY_ID[] = "telemetry_id";
 inline constexpr char COLUMN_RUNNING_TIME[] = "running_time";
 
-class TraceDbStoreCallback : public NativeRdb::RdbOpenCallback {
-public:
-    int OnCreate(NativeRdb::RdbStore &rdbStore) override;
-    int OnUpgrade(NativeRdb::RdbStore &rdbStore, int oldVersion, int newVersion) override;
-
-private:
-    int32_t CreateTraceFlowControlTable(NativeRdb::RdbStore& rdbStore);
-    int32_t CreateAppTaskTable(NativeRdb::RdbStore& rdbStore);
-    int32_t CreateTraceBehaviorDbHelperTable(NativeRdb::RdbStore& rdbStore);
-    int32_t CreateTelemetryControlTable(NativeRdb::RdbStore &rdbStore);
-};
+namespace TraceDbStoreCallback {
+int OnCreate(NativeRdb::RdbStore &rdbStore);
+int OnUpgrade(NativeRdb::RdbStore &rdbStore, int oldVersion, int newVersion);
+}
 }
 }
 #endif // HIVIEWDFX_HIVIEW_TRACE_DB_CALLBACK_H

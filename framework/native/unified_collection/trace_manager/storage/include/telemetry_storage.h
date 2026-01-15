@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #define HIVIEWDFX_HIVIEW_TELEMETRY_STORAGE_H
 #include "memory"
 
-#include "rdb_store.h"
+#include "restorable_db_store.h"
 
 namespace OHOS::HiviewDFX {
 
@@ -37,7 +37,7 @@ enum class TelemetryRet {
 
 class TeleMetryStorage {
 public:
-    explicit TeleMetryStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore) : dbStore_(dbStore) {}
+    explicit TeleMetryStorage(std::shared_ptr<RestorableDbStore> dbStore) : dbStore_(dbStore) {}
     ~TeleMetryStorage() = default;
     TelemetryRet InitTelemetryQuota(const std::string &telemetryId,
         const std::map<std::string, int64_t> &flowControlQuotas);
@@ -53,7 +53,7 @@ private:
     bool UpdateTable(const std::string &module, int64_t newSize);
 
 private:
-    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+    std::shared_ptr<RestorableDbStore> dbStore_;
 };
 
 }

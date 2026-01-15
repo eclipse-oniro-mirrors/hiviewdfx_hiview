@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -107,7 +107,7 @@ void TeleMetryStorage::ClearTelemetryData()
 {
     if (dbStore_ == nullptr) {
         HIVIEW_LOGE("clear db failed");
-        return ;
+        return;
     }
     NativeRdb::AbsRdbPredicates predicates({std::string(TABLE_TELEMETRY_CONTROL)});
     int32_t deleteRows = 0;
@@ -119,6 +119,10 @@ void TeleMetryStorage::ClearTelemetryData()
 
 TelemetryRet TeleMetryStorage::QueryRunningTime(const std::string &telemetryId, int64_t &runningTime)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("db store is null");
+        return TelemetryRet::FAILED;
+    }
     NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
     predicates.EqualTo(COLUMN_MODULE_NAME, TOTAL);
     predicates.EqualTo(COLUMN_TELEMTRY_ID, telemetryId);
@@ -152,6 +156,10 @@ TelemetryRet TeleMetryStorage::QueryRunningTime(const std::string &telemetryId, 
 
 TelemetryRet TeleMetryStorage::UpdateRunningTime(const std::string &telemetryId, int64_t runningTime)
 {
+    if (dbStore_ == nullptr) {
+        HIVIEW_LOGE("db store is null");
+        return TelemetryRet::FAILED;
+    }
     NativeRdb::ValuesBucket bucket;
     bucket.PutLong(COLUMN_RUNNING_TIME, runningTime);
     NativeRdb::AbsRdbPredicates predicates{std::string(TABLE_TELEMETRY_CONTROL)};
