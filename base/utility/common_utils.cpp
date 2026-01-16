@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <dirent.h>
 #include <fcntl.h>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <sys/wait.h>
@@ -29,6 +30,7 @@
 #include "hiview_logger.h"
 #include "securec.h"
 #include "time_util.h"
+#include "string_util.h"
 
 using namespace std;
 namespace OHOS {
@@ -39,6 +41,10 @@ namespace {
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;
 constexpr int32_t MAX_RETRY_COUNT = 20;
 constexpr int32_t WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000; // 5ms
+constexpr char EXPORT_FILE_REGEX[] = "[0-9]{1,}(.*)";
+constexpr char UNDERLINE[] = "_";
+constexpr size_t FORMAT_DATE_LEN = 14;
+
 std::string GetProcessNameFromProcCmdline(int32_t pid)
 {
     std::string procCmdlinePath = "/proc/" + std::to_string(pid) + "/cmdline";
@@ -98,6 +104,33 @@ pid_t KillChildPid(pid_t pid, int signal)
     }
     HIVIEW_LOGI("pid = %{public}d, signal = %{public}d, ret = %{public}d", pid, signal, ret);
     return ret;
+}
+
+std::string GetTimeFromFileName(const std::string& fileName, const std::string& prefix, const std::string& pidStr)
+{
+    std::string fileTimeSub = StringUtil::GetRightSubstr(fileName, prefix);
+    if (!pidStr.empty()) {
+        // pid_yyyymmddHHMMSS.txt
+        fileTimeSub = StringUtil::GetRightSubstr(fileTimeSub, UNDERLINE);
+    }
+    return fileTimeSub;
+}
+
+int GetFileNameNum(const std::string& fileName, const std::string& ext)
+{
+    int ret = 0;
+    auto startPos = fileName.find(UNDERLINE);
+    if (startPos == std::string::npos) {
+        return ret;
+    }
+    auto endPos = fileName.find(ext);
+    if (endPos == std::string::npos) {
+        return ret;
+    }
+    if (endPos <= startPos + 1) {
+        return ret;
+    }
+    return StringUtil::StrToInt(fileName.substr(startPos + 1, endPos - startPos - 1));
 }
 }
 
@@ -209,6 +242,70 @@ int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<s
 int32_t GetTransformedUid(int32_t uid)
 {
     return uid / UID_TRANSFORM_DIVISOR;
+}
+
+void GetDirRegexFiles(const std::string& path, const std::string& prefix,
+    std::vector<std::string>& files, const std::string& pidStr)
+{
+    DIR* dir = opendir(path.c_str());
+    if (dir == nullptr) {
+        HIVIEW_LOGE("failed to open dir=%{public}s", path.c_str());
+        return;
+    }
+    std::regex reg = std::regex(prefix + EXPORT_FILE_REGEX);
+    struct dirent* ptr = nullptr;
+    while ((ptr = readdir(dir)) != nullptr) {
+        if (ptr->d_type == DT_REG) {
+            if (regex_match(ptr->d_name, reg)) {
+                files.push_back(FileUtil::IncludeTrailingPathDelimiter(path) + std::string(ptr->d_name));
+            }
+        }
+    }
+    closedir(dir);
+    std::sort(files.begin(), files.end(), [&prefix, &pidStr](const std::string& file1, const std::string& file2) {
+        std::string fileTimeSub1 = GetTimeFromFileName(file1, prefix, pidStr);
+        std::string fileTimeSub2 = GetTimeFromFileName(file2, prefix, pidStr);
+        if (fileTimeSub1.substr(0, FORMAT_DATE_LEN) == fileTimeSub2.substr(0, FORMAT_DATE_LEN) &&
+            fileTimeSub1.size() != fileTimeSub2.size()) { // compare yyyymmddHHMMSS_1.txt and yyyymmddHHMMSS_10.txt
+            return fileTimeSub1.size() < fileTimeSub2.size();
+        }
+        return fileTimeSub1 < fileTimeSub2;
+    });
+}
+
+std::string CreateExportFile(const std::string& path, int32_t maxFileNum, const std::string& prefix,
+    const std::string& ext, const std::string& pidStr)
+{
+    if (!FileUtil::IsDirectory(path) && !FileUtil::ForceCreateDirectory(path)) {
+        HIVIEW_LOGE("failed to create dir=%{public}s", path.c_str());
+        return "";
+    }
+
+    std::vector<std::string> files;
+    GetDirRegexFiles(path, prefix, files, pidStr);
+    if (files.size() >= static_cast<size_t>(maxFileNum)) {
+        for (size_t index = 0; index <= files.size() - static_cast<size_t>(maxFileNum); ++index) {
+            HIVIEW_LOGI("remove file=%{public}s", FileUtil::ExtractFileName(files[index]).c_str());
+            (void)FileUtil::RemoveFile(files[index]);
+        }
+    }
+
+    uint64_t fileTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+    std::string timeFormat = TimeUtil::TimestampFormatToDate(fileTime, "%Y%m%d%H%M%S");
+    // file name e.g. prefix_[pid_]yyyymmddHHMMSS.txt
+    std::string fileName;
+    fileName.append(FileUtil::IncludeTrailingPathDelimiter(path)).append(prefix).append(pidStr).append(timeFormat);
+    if (!files.empty()) {
+        auto startPos = files.back().find(timeFormat);
+        if (startPos != std::string::npos) {
+            int fileNameNum = GetFileNameNum(files.back().substr(startPos), ext); // yyyymmddHHMMSS_1.txt
+            fileName.append(UNDERLINE).append(std::to_string(++fileNameNum));
+        }
+    }
+    fileName.append(ext);
+    (void)FileUtil::CreateFile(fileName);
+    HIVIEW_LOGI("create file=%{public}s", FileUtil::ExtractFileName(fileName).c_str());
+    return fileName;
 }
 }
 } // namespace HiviewDFX

@@ -41,7 +41,7 @@ std::mutex g_memMutex;
 std::string CreateExportFileName(const std::string& filePrefix, const std::string& ext)
 {
     std::unique_lock<std::mutex> lock(g_memMutex);
-    return CommonUtil::CreateExportFile(COLLECTION_WM_PATH, MAX_FILE_NUM, filePrefix, ext);
+    return CommonUtils::CreateExportFile(COLLECTION_WM_PATH, MAX_FILE_NUM, filePrefix, ext);
 }
 }
 

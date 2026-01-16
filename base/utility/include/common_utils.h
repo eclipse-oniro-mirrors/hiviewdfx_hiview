@@ -44,6 +44,10 @@ bool IsSpecificCmdExist(const std::string& fullPath);
 bool IsPidExist(pid_t pid);
 int WriteCommandResultToFile(int fd, const std::string &cmd, const std::vector<std::string> &args);
 int32_t GetTransformedUid(int32_t uid);
+std::string CreateExportFile(const std::string& path, int32_t maxFileNum, const std::string& prefix,
+    const std::string& ext, const std::string& pidStr = "");
+void GetDirRegexFiles(const std::string& path, const std::string& prefix, std::vector<std::string>& files,
+    const std::string& pidStr = "");
 };
 } // namespace HiviewDFX
 } // namespace OHOS

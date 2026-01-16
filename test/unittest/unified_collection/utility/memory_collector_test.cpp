@@ -77,6 +77,7 @@ const std::string RAW_SLAB_STR2("( : slabdata)(\\s{1,}\\d{1,}){3,5}(\\s{1,}\\w{1
 const std::regex RAW_SLAB_INFO1(RAW_SLAB_STR1 + RAW_SLAB_STR2);
 const std::string RAW_SLAB_STR3("^(\\w{1,} - version: )[\\d\\.]{1,}|# ?name\\s{1,}");
 const std::string RAW_SLAB_STR4("( <\\w{1,}>){5} : tunables( <\\w{1,}>){3} : slabdata( <\\w{1,}>){3,5}$");
+const std::string MEMINFO_SAVE_DIR = "/data/log/hiview/unified_collection/memory";
 const std::regex RAW_SLAB_INFO2(RAW_SLAB_STR3 + RAW_SLAB_STR4);
 const std::regex RAW_SLAB_INFO3("-{52}");
 const std::size_t MAX_FILE_SAVE_SIZE = 10;

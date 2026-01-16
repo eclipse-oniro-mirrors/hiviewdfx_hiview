@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,27 +10,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/test.gni")
 
-config("ucollection_utils_test_config") {
+config("common_util_test_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    ".",
+    "$hiview_framework/native/unified_collection/collector/inner_include",
     "$hiview_framework/native/unified_collection/collector/impl/cpu/calculator/include",
     "$hiview_framework/native/unified_collection/collector/impl/cpu/utils/include",
     "$hiview_framework/native/unified_collection/process/include",
   ]
 
-  cflags = [ "-D__UNITTEST__" ]
+  cflags = [
+    "-D__UNITTEST__",
+  ]
 }
 
-ohos_unittest("UCollectionUtilsUnitTest") {
-  module_out_path = hiview_module
+ohos_unittest("CommonUtilTest") {
+  module_out_path = hiview_module + "/ucollection/common"
 
-  configs = [ ":ucollection_utils_test_config" ]
+  configs = [ ":common_util_test_config" ]
 
   sources = [
     "collect_device_client_test.cpp",

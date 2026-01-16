@@ -53,6 +53,8 @@ constexpr char PROC_IO_STATS_FILE_PREFIX[] = "proc_io_stats_";
 constexpr char SYS_IO_STATS_FILE_PREFIX[] = "sys_io_stats_";
 constexpr char PROC_DISKSTATS[] = "/proc/diskstats";
 constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io";
+constexpr char IO[] = "/io";
+constexpr char PROC[] = "/proc/";
 }
 
 std::shared_ptr<IoCollector> IoCollector::Create()
@@ -122,7 +124,7 @@ CollectResult<ProcessIo> IoCollectorImpl::CollectProcessIo(int32_t pid)
 std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
 {
     std::unique_lock<std::mutex> lock(exportFileMutex_);
-    return CommonUtil::CreateExportFile(COLLECTION_IO_PATH, MAX_FILE_NUM, filePrefix, EXPORT_FILE_SUFFIX);
+    return CommonUtils::CreateExportFile(COLLECTION_IO_PATH, MAX_FILE_NUM, filePrefix, EXPORT_FILE_SUFFIX);
 }
 
 CollectResult<std::string> IoCollectorImpl::CollectRawDiskStats()

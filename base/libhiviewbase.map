@@ -482,6 +482,7 @@
         "OHOS::HiviewDFX::RestorableDbStore::Delete(long&, OHOS::NativeRdb::AbsRdbPredicates const&)";
         "OHOS::HiviewDFX::RestorableDbStore::Update(int&, OHOS::NativeRdb::ValuesBucket const&, OHOS::NativeRdb::AbsRdbPredicates const&)";
         "OHOS::HiviewDFX::RestorableDbStore::Update(long&, OHOS::NativeRdb::ValuesBucket const&, OHOS::NativeRdb::AbsRdbPredicates const&)";
+        "OHOS::HiviewDFX::CommonUtils::CreateExportFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

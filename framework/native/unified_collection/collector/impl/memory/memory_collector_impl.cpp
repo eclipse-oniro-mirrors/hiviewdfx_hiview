@@ -34,10 +34,11 @@
 #include "hiview_logger.h"
 #include "memory_decorator.h"
 #include "memory_utils.h"
-#include "process_status.h"
 #include "string_util.h"
 #include "time_util.h"
-
+#ifdef PC_APP_STATE_COLLECT_ENABLE
+#include "process_status.h"
+#endif
 
 const std::size_t MAX_FILE_SAVE_SIZE = 10;
 const std::size_t WIDTH = 12;
@@ -52,20 +53,20 @@ DEFINE_LOG_TAG("UCollectUtil");
 
 std::mutex g_memMutex;
 const int NON_PC_APP_STATE = -1;
+const int VSS_BIT = 4;
 constexpr char DDR_CUR_FREQ[] = "/sys/class/devfreq/ddrfreq/cur_freq";
+constexpr char MEM_INFO[] = "/proc/meminfo";
+constexpr char STATM[] = "/statm";
+constexpr char SMAPS_ROLLUP[] = "/smaps_rollup";
+constexpr char PROC[] = "/proc/";
+constexpr char MEMINFO_SAVE_DIR[] = "/data/log/hiview/unified_collection/memory";
 using IHiaiInfraGetFunc = struct IHiaiInfra*(*)(bool);
 using IHiaiInfraReleaseFunc = void(*)(struct IHiaiInfra*, bool);
-
-static std::string GetCurrTimestamp()
-{
-    auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
-    return TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
-}
 
 static std::string GetSavePath(const std::string& preFix, const std::string& ext, const std::string& pidStr = "")
 {
     std::lock_guard<std::mutex> lock(g_memMutex);   // lock when get save path
-    return CommonUtil::CreateExportFile(MEMINFO_SAVE_DIR, MAX_FILE_SAVE_SIZE, preFix, ext, pidStr);
+    return CommonUtils::CreateExportFile(MEMINFO_SAVE_DIR, MAX_FILE_SAVE_SIZE, preFix, ext, pidStr);
 }
 
 static bool WriteProcessMemoryToFile(std::string& filePath, const std::vector<ProcessMemory>& processMems)

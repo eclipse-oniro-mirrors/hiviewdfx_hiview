@@ -18,6 +18,7 @@
 #include <dlfcn.h>
 
 #include "common_util.h"
+#include "common_utils.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "process_decorator.h"
@@ -111,7 +112,7 @@ CollectResult<std::string> ProcessCollectorImpl::ExportMemCgProcesses()
     std::string filePath;
     {
         std::unique_lock<std::mutex> lock(fileMutex_);
-        filePath = CommonUtil::CreateExportFile(PROCESS_COLLECTOT_DIR, MAX_FILE_NUM, PREFIX, SUFFIX);
+        filePath = CommonUtils::CreateExportFile(PROCESS_COLLECTOT_DIR, MAX_FILE_NUM, PREFIX, SUFFIX);
     }
 
     FILE* fp = fopen(filePath.c_str(), "w");

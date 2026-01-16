@@ -49,6 +49,8 @@ const std::string DB_PATH = "/data/test/test_data/db/";
 const std::string UPLOAD_PATH = "/data/test/test_data/upload/";
 constexpr char STRING_VAL[] = "OpenHarmony is a better choice for you.";
 constexpr char STRING_ARR_FIRST_VAL[] = "3.1 release";
+const std::string TEST_PATH = "/data/test/hiview/unified_collection";
+constexpr int32_t MAX_FILE_NUM = 5;
 constexpr int64_t INT_VAL = 2024;
 constexpr int64_t INT_VAL_DEFAULT = -1;
 constexpr double DOU_VAL = 2024.0;
@@ -719,6 +721,66 @@ HWTEST_F(AdapterUtilityOhosTest, FocusedEventUtilTest001, testing::ext::TestSize
     ASSERT_FALSE(FocusedEventUtil::IsFocusedEvent("TEST_DOMAIN", "TEST_EVENT_NAME"));
     ASSERT_FALSE(FocusedEventUtil::IsFocusedEvent("HMOS_SVC_BROKER", "TEST_EVENT_NAME"));
     ASSERT_TRUE(FocusedEventUtil::IsFocusedEvent("HMOS_SVC_BROKER", "CONTAINER_LIFECYCLE_EVENT"));
+}
+
+/**
+ * @tc.name: CommonUtilTest004
+ * @tc.desc: used to test CreateExportFile, file name without pid.
+ * @tc.type: FUNC
+*/
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest004, testing::ext::TestSize.Level1)
+{
+    // path not exit.
+    FileUtil::ForceRemoveDirectory(TEST_PATH);
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_name_", ".txt")));
+
+    uint64_t fileTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+    std::string timeFormat1 = TimeUtil::TimestampFormatToDate(fileTime - 1, "%Y%m%d%H%M%S");
+    std::string timeFormat2 = TimeUtil::TimestampFormatToDate(fileTime, "%Y%m%d%H%M%S");
+    FileUtil::CreateFile(TEST_PATH + "/file_name_" + timeFormat1 + "_11.txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_name_" + timeFormat2 + ".txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_name_" + timeFormat2 + "_1.txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_name_" + timeFormat2 + "_2.txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_name_" + timeFormat2 + "_10.txt");
+
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_name_", ".txt")));
+    ASSERT_FALSE(FileUtil::FileExists(TEST_PATH + "/file_name_" + timeFormat1 + "_11.txt"));
+
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_name_", ".txt")));
+    ASSERT_FALSE(FileUtil::FileExists(TEST_PATH + "/file_name_" + timeFormat2 + ".txt"));
+
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_name_", ".txt")));
+    ASSERT_FALSE(FileUtil::FileExists(TEST_PATH + "/file_name_" + timeFormat2 + "_1.txt"));
+}
+
+/**
+ * @tc.name: CommonUtilTest005
+ * @tc.desc: used to test CreateExportFile, file name with pid.
+ * @tc.type: FUNC
+*/
+HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest005, testing::ext::TestSize.Level1)
+{
+    // path not exit.
+    FileUtil::ForceRemoveDirectory(TEST_PATH);
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_", ".txt", "12_")));
+
+    uint64_t fileTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
+    std::string timeFormat1 = TimeUtil::TimestampFormatToDate(fileTime - 1, "%Y%m%d%H%M%S");
+    std::string timeFormat2 = TimeUtil::TimestampFormatToDate(fileTime, "%Y%m%d%H%M%S");
+    FileUtil::CreateFile(TEST_PATH + "/file_33_" + timeFormat1 + "_11.txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_4_" + timeFormat2 + ".txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_5_" + timeFormat2 + "_1.txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_2_" + timeFormat2 + "_2.txt");
+    FileUtil::CreateFile(TEST_PATH + "/file_11_" + timeFormat2 + "_10.txt");
+
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_", ".txt", "12_")));
+    ASSERT_FALSE(FileUtil::FileExists(TEST_PATH + "/file_33_" + timeFormat1 + "_11.txt"));
+
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_", ".txt", "2_")));
+    ASSERT_FALSE(FileUtil::FileExists(TEST_PATH + "/file_4_" + timeFormat2 + ".txt"));
+
+    ASSERT_TRUE(FileUtil::FileExists(CommonUtils::CreateExportFile(TEST_PATH, MAX_FILE_NUM, "file_", ".txt", "1_")));
+    ASSERT_FALSE(FileUtil::FileExists(TEST_PATH + "/file_5_" + timeFormat2 + "_1.txt"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS
