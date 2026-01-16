@@ -81,6 +81,7 @@ constexpr const char * const PROC_STATM = "PROC_STATM";
 constexpr const char * const FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
 constexpr const char * const PAGE_SWITCH_HISTORY = "PAGE_SWITCH_HISTORY";
 constexpr const char * const FOCUS_MODE = "FOCUS_MODE"; // scene mode params
+constexpr const char * const PSS_MEMORY = "PSS_MEMORY";
 const char * const LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
 const char * const STACK = "STACK";
 const char * const PACKAGE_NAME = "PACKAGE_NAME";
