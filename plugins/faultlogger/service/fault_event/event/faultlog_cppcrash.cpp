@@ -273,7 +273,7 @@ bool FaultLogCppCrash::RemoveHiLogSection(std::string& readContent) const
 
 bool FaultLogCppCrash::TruncateLogIfExceedsLimit(std::string& readContent) const
 {
-    constexpr size_t maxLogSize = 1024 * 1024;
+    constexpr size_t maxLogSize = 2 * 1024 * 1024;
     auto fileLen = readContent.length();
     if (fileLen <= maxLogSize) {
         return false;
