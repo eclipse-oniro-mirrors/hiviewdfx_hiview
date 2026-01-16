@@ -236,8 +236,6 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
     std::string eventName = GetFaultNameByType(info.faultLogType, false);
     auto faultLogType = std::to_string(info.faultLogType);
     FaultLogDatabase::FillInfoDefault(info);
-    auto fg = info.sectionMap.find("INVAILED_HILOG_TIME") != info.sectionMap.end() ?
-        (info.sectionMap.at("INVAILED_HILOG_TIME") == "true" ? 1 : -1) : 0;
 
     HiSysEventParam params[] = {
         EVENT_PARAM_CTOR("FAULT_TYPE", HISYSEVENT_STRING, s, faultLogType.data(), 0),
@@ -255,7 +253,8 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("HAPPEN_TIME", HISYSEVENT_INT64, i64, info.time, 0),
         EVENT_PARAM_CTOR("HITRACE_TIME", HISYSEVENT_STRING, s, info.sectionMap["HITRACE_TIME"].data(), 0),
         EVENT_PARAM_CTOR("SYSRQ_TIME", HISYSEVENT_STRING, s, info.sectionMap["SYSRQ_TIME"].data(), 0),
-        EVENT_PARAM_CTOR("FG", HISYSEVENT_INT32, i32, fg, 0),
+        EVENT_PARAM_CTOR("FG", HISYSEVENT_INT32, i32,
+            strtol(info.sectionMap[FaultKey::PSS_MEMORY].c_str(), nullptr, DECIMAL_BASE), 0),
         EVENT_PARAM_CTOR("PNAME", HISYSEVENT_STRING, s, info.sectionMap["PROCESS_NAME"].data(), 0),
         EVENT_PARAM_CTOR("FIRST_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FIRST_FRAME].data(), 0),
         EVENT_PARAM_CTOR("SECOND_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::SECOND_FRAME].data(), 0),
