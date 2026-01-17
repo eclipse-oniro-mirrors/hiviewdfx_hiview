@@ -1,0 +1,77 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+module_output_path = "hiview/bbox_detector"
+
+config("bbox_detector_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "../",
+    "../include",
+    "moduletest",
+    "mock",
+    "unittest",
+    "$hiview_root/utility/common_utils/include",
+    "$hiview_root/utility/smart_parser",
+    "$hiview_plugin/reliability/bbox_detectors/",
+    "$hiview_root/utility/smart_parser/feature_analysis/include",
+  ]
+}
+
+bbox_detector_test_source = [
+  "$hiview_plugin/reliability/bbox_detectors/bbox_event_recorder.cpp",
+  "$hiview_plugin/reliability/bbox_detectors/test/mock/hisysevent_util_mock.cpp",
+  "$hiview_plugin/reliability/bbox_detectors/bdfr_base/bbox_detectors_base.cpp",
+  "$hiview_plugin/reliability/bbox_detectors/bdfr_base/panic_report_recovery.cpp",
+]
+
+ohos_unittest("BBoxDetectorBaseUnitTest") {
+  sources = [ "unittest/bbox_detector_base_unit_test.cpp" ]
+
+  sources += bbox_detector_test_source
+
+  configs = [ ":bbox_detector_test_config" ]
+
+  include_dirs = [ "$hiview_plugin/reliability/bbox_detectors/test/mock/" ]
+
+  cflags_cc = [ "-Dprivate=public" ]
+  cflags_cc += [ "-Dprotected=public" ]
+
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "init:libbegetutil",
+    "zlib:shared_libz",
+  ]
+
+  cflags = [
+    "-DUNITTEST",
+    "-Dprivate=public",
+  ]
+
+  deps = [
+    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_base/event_store:event_store_source",
+    "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
+    "$hiview_root/utility/smart_parser:smart_parser",
+  ]
+
+  module_out_path = module_output_path
+}

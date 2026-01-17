@@ -66,10 +66,11 @@ group("unittest") {
   testonly = true
   deps = [
     "interfaces/js/test/unittest:unittest",
-    "test:AsanUnittest",
+    "service/bdfr_base/test:AsanUnittest",
+    "service/bdfr_base/test:FaultloggerBaseUnittest",
+    "service/bdfr_base/test:FreezeJsonGeneratorUnittest",
     "test:FaultloggerClientUnittest",
     "test:FaultloggerUnittest",
-    "test:FreezeJsonGeneratorUnittest",
   ]
 }
 

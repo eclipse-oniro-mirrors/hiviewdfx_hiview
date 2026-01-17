@@ -18,41 +18,6 @@ config("bbox_detector_config") {
   include_dirs = [
     ".",
     "include",
-    "$hiview_root/utility/smart_parser",
-    "$hiview_root/utility/common_utils/include",
-  ]
-}
-
-ohos_source_set("bbox_detector") {
-  part_name = "hiview"
-  subsystem_name = "hiviewdfx"
-  sources = [
-    "bbox_detector_plugin.cpp",
-    "bbox_event_recorder.cpp",
-    "hisysevent_util.cpp",
-    "panic_report_recovery.cpp",
-  ]
-
-  if (hiview_feature_bbox_userspace) {
-    sources += [ "panic_error_info_handle.cpp" ]
-    cflags = [ "-DBBOX_USERSPACE" ]
-  }
-
-  configs = [ ":bbox_detector_config" ]
-
-  external_deps = [
-    "bounds_checking_function:libsec_shared",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "init:libbegetutil",
-    "libxml2:libxml2",
-    "zlib:shared_libz",
-  ]
-
-  deps = [
-    "$hiview_base:hiviewbase",
-    "config:config",
   ]
 }
 
@@ -68,14 +33,7 @@ ohos_source_set("bbox_detector_with_cfi") {
   sources = [
     "bbox_detector_plugin.cpp",
     "bbox_event_recorder.cpp",
-    "hisysevent_util.cpp",
-    "panic_report_recovery.cpp",
   ]
-
-  if (hiview_feature_bbox_userspace) {
-    sources += [ "panic_error_info_handle.cpp" ]
-    cflags = [ "-DBBOX_USERSPACE" ]
-  }
 
   configs = [ ":bbox_detector_config" ]
 
@@ -84,20 +42,22 @@ ohos_source_set("bbox_detector_with_cfi") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "init:libbegetutil",
     "libxml2:libxml2",
-    "zlib:shared_libz",
   ]
 
   deps = [
     "$hiview_base:hiviewbase",
     "config:config",
+    "bdfr_base:export_bbox_detectors_base",
   ]
 }
 
 group("unittest") {
   testonly = true
-  deps = [ "test:BBoxDetectorUnitTest" ]
+  deps = [
+    "test:BBoxDetectorUnitTest",
+    "bdfr_base/test:BBoxDetectorBaseUnitTest",
+  ]
 }
 
 group("moduletest") {

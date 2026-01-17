@@ -541,6 +541,16 @@ private:
     std::list<std::shared_ptr<EncodedParam>> allParams_;
     std::mutex paramsOptMtx_;
 };
+extern template void RawDataBuilder::InitIdInfoAppendHandlers<char const*>(
+    std::unordered_map<std::string, std::function<RawDataBuilder&(char const*)>>&);
+extern template void RawDataBuilder::InitIdInfoAppendHandlers<std::string>(
+    std::unordered_map<std::string, std::function<RawDataBuilder&(std::string)>>&);
+extern template void RawDataBuilder::InitIdInfoAppendHandlers<uint64_t>(
+    std::unordered_map<std::string, std::function<RawDataBuilder&(uint64_t)>>&);
+extern template RawDataBuilder& RawDataBuilder::AppendValue<double>(const std::string&, double);
+extern template RawDataBuilder& RawDataBuilder::AppendValue<std::string>(const std::string&, std::string);
+extern template RawDataBuilder& RawDataBuilder::AppendValue<int64_t>(const std::string&, int64_t);
+extern template RawDataBuilder& RawDataBuilder::AppendValue<uint64_t>(const std::string&, uint64_t);
 } // namespace EventRaw
 } // namespace HiviewDFX
 } // namespace OHOS

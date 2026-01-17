@@ -25,7 +25,6 @@
 #include "faultlogger_service_stub.h"
 #include "faultlog_info_ohos.h"
 #include "faultlog_query_result_ohos.h"
-#include "i_faultlog_manager_service.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -36,9 +35,7 @@ public:
     FaultloggerServiceOhos() {};
     virtual ~FaultloggerServiceOhos() {};
 
-    static void StartService(std::shared_ptr<IFaultLogManagerService> service);
-    static std::shared_ptr<IFaultLogManagerService> GetOrSetFaultlogger(
-        std::shared_ptr<IFaultLogManagerService> service = nullptr);
+    static void StartService();
 
     int32_t Dump(int32_t fd, const std::vector<std::u16string> &args) override;
 

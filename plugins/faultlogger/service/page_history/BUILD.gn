@@ -30,10 +30,13 @@ ohos_source_set("page_history_with_cfi") {
   sources = [
     "page_history_manager.cpp",
     "page_history_recorder.cpp",
+    "page_trace_node.cpp",
     "pages_trace.cpp",
   ]
 
-  deps = [ "$hiview_base:hiviewbase" ]
+  deps = [
+    "$hiview_base:hiviewbase",
+  ]
 
   external_deps = [
     "hilog:libhilog",

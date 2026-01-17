@@ -17,7 +17,7 @@
 #include "ipc_types.h"
 #include "message_parcel.h"
 
-#include "faultlog_info.h"
+#include "faultlog_info_inner.h"
 #include "faultlog_info_ohos.h"
 #include "hiviewfaultlogger_ipc_interface_code.h"
 #include "hiview_logger.h"

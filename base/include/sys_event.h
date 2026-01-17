@@ -189,6 +189,9 @@ private:
     int16_t reportInterval_ = UNINIT_REPORT_INTERVAL;
 };
 
+extern template void SysEvent::SetEventValue<std::string>(const std::string&, std::string, bool);
+extern template void SysEvent::SetEventValue<uint64_t>(const std::string&, uint64_t, bool);
+
 class SysEventCreator {
 public:
     enum EventType {

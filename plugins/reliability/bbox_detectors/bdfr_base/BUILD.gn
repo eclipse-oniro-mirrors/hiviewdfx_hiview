@@ -1,0 +1,99 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+
+config("public_consfig_bbox_detectors_base") {
+  visibility = [ "*:*" ]
+
+  include_dirs = [
+    "include",
+  ]
+}
+
+sources_bbox_detectors_base = [
+  "bbox_detectors_base.cpp",
+  "hisysevent_util.cpp",
+  "panic_report_recovery.cpp",
+]
+
+
+ohos_source_set("bbox_detectors_base_src") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":public_consfig_bbox_detectors_base" ]
+
+  include_dirs = [
+    "$hiview_root/plugins/reliability/bbox_detectors",
+    "$hiview_root/utility/smart_parser",
+    "$hiview_root/utility/common_utils/include",
+  ]
+  sources = sources_bbox_detectors_base
+
+  if (hiview_feature_bbox_userspace) {
+    sources += [ "panic_error_info_handle.cpp" ]
+    cflags = [ "-DBBOX_USERSPACE" ]
+  }
+
+  deps = [
+    "$hiview_base:hiviewbase",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "init:libbegetutil",
+    "zlib:shared_libz",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_static_library("export_bbox_detectors_base") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":public_consfig_bbox_detectors_base" ]
+  configs = [ "$hiview_faultlogger/service:bdfr_public_include" ]
+
+  include_dirs = [
+    "$hiview_root/plugins/reliability/bbox_detectors",
+  ]
+
+  sources = [
+    "export_bbox_detectors_interface.cpp",
+  ]
+
+  deps = [
+    "$hiview_base:hiviewbase",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}

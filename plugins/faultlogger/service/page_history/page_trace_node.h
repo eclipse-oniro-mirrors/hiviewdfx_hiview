@@ -18,32 +18,23 @@
 #include <cstdint>
 #include <string>
 
-#include "faultlog_util.h"
-
 namespace OHOS {
 namespace HiviewDFX {
 class PageTraceNode {
 public:
     PageTraceNode() = default;
-    PageTraceNode(int32_t pid, uint64_t ts, const std::string& url, const std::string& name)
-        : pid_(pid), timestamp_(ts)
-    {
-        SetPageInfo(url, name);
-    }
+    PageTraceNode(int32_t pid, uint64_t ts, const std::string& url, const std::string& name);
 
-    void SetPageInfo(const std::string& url, const std::string& name)
-    {
-        pagePath_ = url + (name.empty() ? "" : ":" + name);
-    }
+    void SetPageInfo(const std::string& url, const std::string& name);
 
-    std::string ToString() const
-    {
-        return GetFormatedTimeHHMMSS(timestamp_, true) + " " + pagePath_;
-    }
+    std::string ToString() const;
 
     int32_t pid_{0};
     uint64_t timestamp_{0};
     std::string pagePath_;
+
+private:
+    static std::string GetFormatedTimeHHMMSS(uint64_t target, bool isMillsec);
 };
 } // HiviewDFX
 } // OHOS

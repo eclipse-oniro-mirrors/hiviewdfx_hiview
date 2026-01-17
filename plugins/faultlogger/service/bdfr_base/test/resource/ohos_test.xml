@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2026 Huawei Device Co., Ltd.
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<configuration ver="2.0">
+    <target name="FaultloggerBaseUnittest">
+        <preparer>
+            <option name="push" value="faultlogger/cppcrash-197-1502809621426 -> /data/test/test_data/FaultLogBootScan001" src="res"/>
+            <option name="push" value="faultlogger/cppcrash-197-1502809621426 -> /data/test/test_data/FaultLogBootScan002" src="res"/>
+            <option name="push" value="faultlogger/plugin_config_test -> /data/test/test_faultlogger_data" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest001" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest002" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest003" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/log/faultlog/faultlogger/" src="res"/>
+        </preparer>
+    </target>
+</configuration>

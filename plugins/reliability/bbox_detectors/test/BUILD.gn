@@ -24,6 +24,7 @@ config("bbox_detector_test_config") {
     "moduletest",
     "mock",
     "unittest",
+    "$hiview_plugin/reliability/bbox_detectors/bdfr_base",
     "$hiview_root/utility/common_utils/include",
     "$hiview_root/utility/smart_parser",
     "$hiview_root/utility/smart_parser/feature_analysis/include",
@@ -33,9 +34,11 @@ config("bbox_detector_test_config") {
 bbox_detector_test_source = [
   "../bbox_detector_plugin.cpp",
   "../bbox_event_recorder.cpp",
-  "../panic_report_recovery.cpp",
   "mock/bbox_detectors_mock.cpp",
   "mock/hisysevent_util_mock.cpp",
+  "$hiview_plugin/reliability/bbox_detectors/bdfr_base/export_bbox_detectors_interface.cpp",
+  "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_handle.cpp",
+  "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_manager.cpp",
 ]
 
 ohos_unittest("BBoxDetectorUnitTest") {
@@ -43,7 +46,11 @@ ohos_unittest("BBoxDetectorUnitTest") {
 
   sources += bbox_detector_test_source
 
-  configs = [ ":bbox_detector_test_config" ]
+  configs = [
+    ":bbox_detector_test_config",
+    "$hiview_faultlogger/service:bdfr_public_include",
+    "$hiview_plugin/reliability/bbox_detectors/bdfr_base:public_consfig_bbox_detectors_base",
+  ]
 
   cflags_cc = [ "-Dprivate=public" ]
   cflags_cc += [ "-Dprotected=public" ]
@@ -51,6 +58,7 @@ ohos_unittest("BBoxDetectorUnitTest") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
+    "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -65,8 +73,8 @@ ohos_unittest("BBoxDetectorUnitTest") {
   ]
 
   deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
     "$hiview_base/event_store:event_store_source",
+    "$hiview_base:hiviewbase_static_lib_for_tdd",
     "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
     "$hiview_root/utility/smart_parser:smart_parser",
   ]
@@ -79,7 +87,11 @@ ohos_moduletest("BBoxDetectorModuleTest") {
 
   sources += bbox_detector_test_source
 
-  configs = [ ":bbox_detector_test_config" ]
+  configs = [
+    ":bbox_detector_test_config",
+    "$hiview_faultlogger/service:bdfr_public_include",
+    "$hiview_plugin/reliability/bbox_detectors/bdfr_base:public_consfig_bbox_detectors_base",
+  ]
 
   cflags = [
     "-DUNITTEST",
@@ -89,6 +101,7 @@ ohos_moduletest("BBoxDetectorModuleTest") {
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
+    "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",

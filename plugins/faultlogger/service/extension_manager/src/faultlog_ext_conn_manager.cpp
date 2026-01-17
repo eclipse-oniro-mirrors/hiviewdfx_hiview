@@ -15,6 +15,7 @@
 #include "faultlog_ext_conn_manager.h"
 
 #include <cinttypes>
+#include <cstdint>
 #include <if_system_ability_manager.h>
 #include <ipc_skeleton.h>
 #include <iservice_registry.h>
@@ -24,15 +25,15 @@
 #include "ability_manager_client.h"
 #include "ability_manager_proxy.h"
 #include "errors.h"
+#include "faultlog_ext_connection.h"
 #include "hiview_logger.h"
-#include "parameters.h"
 #include "string_util.h"
+#include "export_faultlogger_interface.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultloggerExt-Mgr");
 
-constexpr const char* const APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 constexpr const char* const HMOS_HAP_CODE_PATH = "1";
 constexpr const char* const LINUX_HAP_CODE_PATH = "2";
 constexpr int VALUE_MOD = 200000;
@@ -44,12 +45,12 @@ constexpr uint64_t DELAY_CLEAN_TIME_MICRO = 10 * SECONDS_TO_MICRO; // 10s
 static uint64_t GetDelayTimeout()
 {
     static uint64_t timeout = []() {
-        auto timeout = OHOS::system::GetUintParameter("faultloggerd.extension.delay",
-            DEFAULT_DELAY_TIME_SECONDS, MAX_DELAY_TIME_SECONDS);
-        if (timeout == 0) {
-            timeout = DEFAULT_DELAY_TIME_SECONDS;
+        uint64_t pTimeout = 0;
+        auto instance = GetFaultloggerInterface();
+        if (instance == nullptr || (pTimeout = instance->GetExtensionDelayTime()) == 0) {
+            pTimeout = DEFAULT_DELAY_TIME_SECONDS;
         }
-        return timeout * SECONDS_TO_MICRO;
+        return pTimeout * SECONDS_TO_MICRO;
     }();
     return timeout;
 }
@@ -94,10 +95,17 @@ static sptr<AAFwk::IAbilityManager> GetIAbilityManager()
 
 static OHOS::AAFwk::Want FillWant(const std::string& bundleName, const std::string& extensionName, int32_t uid)
 {
+    constexpr const char* const appCloneIndex = "ohos.extra.param.key.appCloneIndex";
     OHOS::AAFwk::Want want;
     want.SetElementName(bundleName, extensionName);
-    want.SetParam(APP_CLONE_INDEX, GetAppIndexByUid(uid));
+    want.SetParam(appCloneIndex, GetAppIndexByUid(uid));
     return want;
+}
+
+FaultLogExtConnManager& FaultLogExtConnManager::GetInstance()
+{
+    static FaultLogExtConnManager instance;
+    return instance;
 }
 
 bool FaultLogExtConnManager::IsExistList(const std::string& bundleName, int32_t uid) const

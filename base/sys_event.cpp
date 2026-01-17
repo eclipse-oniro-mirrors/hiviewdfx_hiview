@@ -101,6 +101,8 @@ using EventRaw::FloatingNumberEncodedArrayParam;
 using EventRaw::StringEncodedArrayParam;
 std::atomic<uint32_t> SysEvent::totalCount_(0);
 std::atomic<int64_t> SysEvent::totalSize_(0);
+template void SysEvent::SetEventValue<std::string>(const std::string&, std::string, bool);
+template void SysEvent::SetEventValue<uint64_t>(const std::string&, uint64_t, bool);
 
 SysEvent::SysEvent(const std::string& sender, PipelineEventProducer* handler,
     std::shared_ptr<EventRaw::RawData> rawData, int64_t seq,

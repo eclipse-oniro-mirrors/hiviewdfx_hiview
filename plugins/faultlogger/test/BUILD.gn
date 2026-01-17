@@ -43,41 +43,27 @@ ohos_unittest("FaultloggerUnittest") {
 
   defines = [ "UNIT_TEST" ]
 
-  configs = [ ":hiview_faultlogger_test_config" ]
+  configs = [
+    ":hiview_faultlogger_test_config",
+    "$hiview_faultlogger/service:bdfr_public_include",
+  ]
+
+  include_dirs= [ "$hiview_faultlogger/service/bdfr_base/public_include" ]
 
   cflags = [ "-Dprivate=public" ]
   sources = [
+    "$hiview_faultlogger/service/bdfr_base/export_faultlogger_interface.cpp",
+    "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_handle.cpp",
+    "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_manager.cpp",
     "$hiview_faultlogger/service/extension_manager/src/faultlog_ext_conn_manager.cpp",
     "$hiview_faultlogger/service/extension_manager/src/faultlog_ext_connection.cpp",
-    "$hiview_faultlogger/service/fault_event/base/faultlog_event_base.cpp",
-    "$hiview_faultlogger/service/fault_event/base/faultlog_processor_base.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_cjerror.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_cppcrash.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_error_reporter.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_events_processor.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_freeze.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_jserror.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_rust_panic.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_sanitizer.cpp",
-    "$hiview_faultlogger/service/fault_event/event/faultlog_page_info.cpp",
-    "$hiview_faultlogger/service/fault_event/event/freeze_json_generator.cpp",
-    "$hiview_faultlogger/service/fault_event/factory/faultlog_event_factory.cpp",
-    "$hiview_faultlogger/service/fault_event/factory/faultlog_processor_factory.cpp",
-    "$hiview_faultlogger/service/fault_file/faultlog_bootscan.cpp",
-    "$hiview_faultlogger/service/fault_file/faultlog_database.cpp",
-    "$hiview_faultlogger/service/fault_file/faultlog_dump.cpp",
-    "$hiview_faultlogger/service/fault_file/faultlog_formatter.cpp",
-    "$hiview_faultlogger/service/fault_file/faultlog_manager.cpp",
-    "$hiview_faultlogger/service/faultlog_manager_service.cpp",
     "$hiview_faultlogger/service/faultlogger.cpp",
     "$hiview_faultlogger/service/page_history/page_history_manager.cpp",
     "$hiview_faultlogger/service/page_history/page_history_recorder.cpp",
+    "$hiview_faultlogger/service/page_history/page_trace_node.cpp",
     "$hiview_faultlogger/service/page_history/pages_trace.cpp",
-    "$hiview_faultlogger/service/sanitizer_collector/sanitizer_telemetry.cpp",
     "common/faultevent_listener.cpp",
     "common/unittest/extension_manager_unittest.cpp",
-    "common/unittest/faultlog_bundle_util_unittest.cpp",
-    "common/unittest/faultlog_formatter_unittest.cpp",
     "common/unittest/faultlogger_unittest.cpp",
   ]
 
@@ -95,8 +81,6 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_base/event_publish:hiview_event_publish",
     "$hiview_core:hiview_core_for_test",
     "$hiview_framework/native/unified_collection:ucollection_source",
-    "$hiview_plugin/faultlogger/common:faultlogger_common",
-    "$hiview_plugin/faultlogger/common:log_analyzer",
     "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy_for_test",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_impl",
     "$hiview_plugin/faultlogger/service/idl:faultlogger_service_ohos_common",
@@ -143,44 +127,6 @@ ohos_unittest("FaultloggerClientUnittest") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-  ]
-}
-
-ohos_unittest("AsanUnittest") {
-  module_out_path = "hiview/sanitizer_collector"
-
-  configs = [ ":hiview_faultlogger_test_config" ]
-
-  sources = [ "common/unittest/asan_unittest.cpp" ]
-
-  deps = [
-    "$hiview_base/utility:hiview_utility",
-    "$hiview_faultlogger:libfaultlogger",
-    "$hiview_faultlogger/service/sanitizer_collector/gwp_asan:libasan_logger",
-  ]
-
-  external_deps = [
-    "bounds_checking_function:libsec_shared",
-    "googletest:gtest_main",
-    "jsoncpp:jsoncpp",
-  ]
-}
-
-ohos_unittest("FreezeJsonGeneratorUnittest") {
-  module_out_path = module_output_path
-
-  configs = [ ":hiview_faultlogger_test_config" ]
-
-  sources = [ "common/unittest/freeze_json_generator_unittest.cpp" ]
-
-  deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_faultlogger:libfaultlogger",
-    "$hiview_faultlogger/service:faultlogger_service",
-  ]
-  external_deps = [
     "googletest:gtest_main",
     "hilog:libhilog",
   ]

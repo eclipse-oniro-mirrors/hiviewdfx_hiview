@@ -23,6 +23,9 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace EventRaw {
 DEFINE_LOG_TAG("HiView-EncodedParam");
+template class FloatingNumberEncodedParam<double>;
+template class SignedVarintEncodedParam<int64_t>;
+template class UnsignedVarintEncodedParam<uint64_t>;
 EncodedParam::EncodedParam(const std::string& key)
 {
     key_ = key;

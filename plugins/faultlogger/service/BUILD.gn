@@ -13,81 +13,13 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-ohos_source_set("faultlogger_service") {
-  part_name = "hiview"
-  subsystem_name = "hiviewdfx"
+config("bdfr_public_include") {
+  visibility = [ "*:*" ]
+
   include_dirs = [
-    ".",
-    "$hiview_framework/native/unified_collection/process/include",
-    "$hiview_plugin/faultlogger/common",
-    "$hiview_plugin/faultlogger/service/extension_manager/include",
-    "$hiview_plugin/faultlogger/service/fault_event/base",
-    "$hiview_plugin/faultlogger/service/fault_event/event",
-    "$hiview_plugin/faultlogger/service/fault_event/factory",
-    "$hiview_plugin/faultlogger/service/fault_file",
-    "$hiview_plugin/faultlogger/service/page_history",
-    "$hiview_plugin/faultlogger/service/sanitizer_collector",
-  ]
-
-  sources = [
-    "extension_manager/src/faultlog_ext_conn_manager.cpp",
-    "extension_manager/src/faultlog_ext_connection.cpp",
-    "fault_event/base/faultlog_event_base.cpp",
-    "fault_event/base/faultlog_processor_base.cpp",
-    "fault_event/event/faultlog_cjerror.cpp",
-    "fault_event/event/faultlog_cppcrash.cpp",
-    "fault_event/event/faultlog_error_reporter.cpp",
-    "fault_event/event/faultlog_events_processor.cpp",
-    "fault_event/event/faultlog_freeze.cpp",
-    "fault_event/event/faultlog_jserror.cpp",
-    "fault_event/event/faultlog_page_info.cpp",
-    "fault_event/event/faultlog_rust_panic.cpp",
-    "fault_event/event/faultlog_sanitizer.cpp",
-    "fault_event/event/freeze_json_generator.cpp",
-    "fault_event/factory/faultlog_event_factory.cpp",
-    "fault_event/factory/faultlog_processor_factory.cpp",
-    "fault_file/faultlog_bootscan.cpp",
-    "fault_file/faultlog_database.cpp",
-    "fault_file/faultlog_dump.cpp",
-    "fault_file/faultlog_formatter.cpp",
-    "fault_file/faultlog_manager.cpp",
-    "faultlog_manager_service.cpp",
-    "faultlogger.cpp",
-    "page_history/page_history_manager.cpp",
-    "page_history/page_history_recorder.cpp",
-    "page_history/pages_trace.cpp",
-    "sanitizer_collector/sanitizer_telemetry.cpp",
-  ]
-
-  deps = [
-    "$hiview_base:hiviewbase",
-    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
-    "$hiview_plugin/faultlogger/common:faultlogger_common",
-    "$hiview_plugin/faultlogger/common:log_analyzer",
-    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
-    "idl:faultlogger_service_impl",
-  ]
-
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:ability_connect_callback_stub",
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bounds_checking_function:libsec_shared",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "faultloggerd:crash_exception",
-    "faultloggerd:libdfx_procinfo",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "hitrace:libhitracechain",
-    "init:libbegetutil",
-    "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
+    "extension_manager/include",
+    "dynamic_library_management/include",
+    "page_history",
   ]
 }
 
@@ -100,74 +32,41 @@ ohos_source_set("faultlogger_service_with_cfi") {
   }
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
+  public_configs = [ ":bdfr_public_include" ]
+  configs = [ "bdfr_base:bdfr_base_public_include" ]
+
   include_dirs = [
     ".",
     "$hiview_framework/native/unified_collection/process/include",
-    "$hiview_plugin/faultlogger/common",
-    "$hiview_plugin/faultlogger/service/extension_manager/include",
-    "$hiview_plugin/faultlogger/service/fault_event/base",
-    "$hiview_plugin/faultlogger/service/fault_event/event",
-    "$hiview_plugin/faultlogger/service/fault_event/factory",
-    "$hiview_plugin/faultlogger/service/fault_file",
-    "$hiview_plugin/faultlogger/service/page_history",
-    "$hiview_plugin/faultlogger/service/sanitizer_collector",
   ]
 
   sources = [
+    "dynamic_library_management/dynamic_library_handle.cpp",
+    "dynamic_library_management/dynamic_library_manager.cpp",
     "extension_manager/src/faultlog_ext_conn_manager.cpp",
     "extension_manager/src/faultlog_ext_connection.cpp",
-    "fault_event/base/faultlog_event_base.cpp",
-    "fault_event/base/faultlog_processor_base.cpp",
-    "fault_event/event/faultlog_cjerror.cpp",
-    "fault_event/event/faultlog_cppcrash.cpp",
-    "fault_event/event/faultlog_error_reporter.cpp",
-    "fault_event/event/faultlog_events_processor.cpp",
-    "fault_event/event/faultlog_freeze.cpp",
-    "fault_event/event/faultlog_jserror.cpp",
-    "fault_event/event/faultlog_page_info.cpp",
-    "fault_event/event/faultlog_rust_panic.cpp",
-    "fault_event/event/faultlog_sanitizer.cpp",
-    "fault_event/event/freeze_json_generator.cpp",
-    "fault_event/factory/faultlog_event_factory.cpp",
-    "fault_event/factory/faultlog_processor_factory.cpp",
-    "fault_file/faultlog_bootscan.cpp",
-    "fault_file/faultlog_database.cpp",
-    "fault_file/faultlog_dump.cpp",
-    "fault_file/faultlog_formatter.cpp",
-    "fault_file/faultlog_manager.cpp",
-    "faultlog_manager_service.cpp",
+    "faultlog_bootscan_listener.cpp",
     "faultlogger.cpp",
-    "sanitizer_collector/sanitizer_telemetry.cpp",
   ]
 
   deps = [
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
-    "$hiview_plugin/faultlogger/common:faultlogger_common_with_cfi",
-    "$hiview_plugin/faultlogger/common:log_analyzer_with_cfi",
     "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
     "idl:faultlogger_service_impl_with_cfi",
     "page_history:page_history_with_cfi",
+    "bdfr_base:export_bdfr_base",
   ]
 
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
-    "faultloggerd:crash_exception",
-    "faultloggerd:libdfx_procinfo",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "hitrace:libhitracechain",
-    "init:libbegetutil",
     "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -178,54 +77,36 @@ ohos_source_set("faultlogger_service_fuzz_src") {
   subsystem_name = "hiviewdfx"
   include_dirs = [
     ".",
+    "$hiview_faultlogger/service/bdfr_base/public_include",
+    "$hiview_framework/native/unified_collection/process/include",
     "$hiview_plugin/faultlogger/common",
+    "$hiview_plugin/faultlogger/service/dynamic_library_management/include",
     "$hiview_plugin/faultlogger/service/extension_manager/include",
+    "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_event/event",
     "$hiview_plugin/faultlogger/service/fault_event/factory",
-    "$hiview_plugin/faultlogger/service/fault_event/base",
     "$hiview_plugin/faultlogger/service/fault_file",
     "$hiview_plugin/faultlogger/service/page_history",
     "$hiview_plugin/faultlogger/service/sanitizer_collector",
-    "$hiview_framework/native/unified_collection/process/include",
   ]
   defines = [ "UNIT_TEST" ]
   defines += [ "UNITTEST" ]
 
   sources = [
+    "dynamic_library_management/dynamic_library_handle.cpp",
+    "dynamic_library_management/dynamic_library_manager.cpp",
     "extension_manager/src/faultlog_ext_conn_manager.cpp",
     "extension_manager/src/faultlog_ext_connection.cpp",
-    "fault_event/base/faultlog_event_base.cpp",
-    "fault_event/base/faultlog_processor_base.cpp",
-    "fault_event/event/faultlog_cjerror.cpp",
-    "fault_event/event/faultlog_cppcrash.cpp",
-    "fault_event/event/faultlog_error_reporter.cpp",
-    "fault_event/event/faultlog_events_processor.cpp",
-    "fault_event/event/faultlog_freeze.cpp",
-    "fault_event/event/faultlog_jserror.cpp",
-    "fault_event/event/faultlog_page_info.cpp",
-    "fault_event/event/faultlog_rust_panic.cpp",
-    "fault_event/event/faultlog_sanitizer.cpp",
-    "fault_event/event/freeze_json_generator.cpp",
-    "fault_event/factory/faultlog_event_factory.cpp",
-    "fault_event/factory/faultlog_processor_factory.cpp",
-    "fault_file/faultlog_bootscan.cpp",
-    "fault_file/faultlog_database.cpp",
-    "fault_file/faultlog_dump.cpp",
-    "fault_file/faultlog_formatter.cpp",
-    "fault_file/faultlog_manager.cpp",
-    "faultlog_manager_service.cpp",
     "faultlogger.cpp",
     "page_history/page_history_manager.cpp",
     "page_history/page_history_recorder.cpp",
     "page_history/pages_trace.cpp",
-    "sanitizer_collector/sanitizer_telemetry.cpp",
+    "page_history/page_trace_node.cpp",
   ]
 
   deps = [
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
-    "$hiview_plugin/faultlogger/common:faultlogger_common",
-    "$hiview_plugin/faultlogger/common:log_analyzer",
     "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
     "idl:faultlogger_service_impl",
   ]
