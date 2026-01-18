@@ -302,6 +302,18 @@
         </event>
       </links>
     </rule>
+    <rule id="16" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
+      <links type="watchpoint">
+        <event window="0" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+      <links type="watchpoint">
+        <event window="-200" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL_WARNING">	<!-- BINDER_BUFFER_FULL_WARNING -->
+          <result code="2" scope="sysWarning" samePackage="true"/>
+        </event>
+      </links>
+    </rule>
   </rules>
     <rules resolver="AppFreezeWarningResolver">
     <rule id="1" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->

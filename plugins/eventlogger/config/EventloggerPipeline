@@ -21,7 +21,8 @@
         },{
             "domain": "FRAMEWORK",
             "include": ["SERVICE_BLOCK", "SERVICE_WARNING", "SERVICE_TIMEOUT", "SERVICE_TIMEOUT_WARNING", "IPC_FULL_WARNING",
-                        "IPC_FULL", "HIT_EMPTY_WARNING", "APP_HICOLLIE", "FREQUENT_CLICK_WARNING", "USER_PANIC_WARNING"]
+                        "IPC_FULL", "HIT_EMPTY_WARNING", "APP_HICOLLIE", "FREQUENT_CLICK_WARNING", "USER_PANIC_WARNING",
+                        "BINDER_BUFFER_FULL_WARNING", "BINDER_BUFFER_FULL"]
         },{
             "domain": "KERNEL_VENDOR",
             "include": ["SCREEN_ON", "HUNGTASK", "COM_LONG_PRESS", "DMD_TP_I2C", "DMD_TP_HP", "DMD_LCD_DDR",
