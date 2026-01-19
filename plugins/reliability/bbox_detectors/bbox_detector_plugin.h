@@ -48,7 +48,7 @@ private:
     class BBoxListener;
     std::shared_ptr<BBoxListener> eventListener_;
     std::shared_ptr<BboxEventRecorder> eventRecorder_;
-    bool isLastStartUpShort_;
+    bool isLastStartUpShort_ = false;
 };
 }
 }
