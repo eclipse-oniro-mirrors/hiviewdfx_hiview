@@ -123,6 +123,8 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest001, testing::ext::TestSize.Level3)
     ASSERT_TRUE(ret);
     ret = logParse.IsIgnoreLibrary("Not mapped");
     ASSERT_TRUE(ret);
+    ret = logParse.IsIgnoreLibrary("[shmm]");
+    ASSERT_TRUE(ret);
     ret = logParse.IsIgnoreLibrary("ohos");
     ASSERT_TRUE(!ret);
 }
