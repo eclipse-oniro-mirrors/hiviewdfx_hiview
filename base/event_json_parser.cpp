@@ -248,7 +248,7 @@ NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, c
     InitEventInfoMapRef(domainJson,
         [this, &domain, &allNames] (const std::string& eventName, const Json::Value& eventContent) {
         BaseInfo baseInfo = ParseBaseConfig(eventContent);
-        if (PrivacyManager::IsAllowed(domain, baseInfo.keyConfig.type, baseInfo.keyConfig.GetLevel(),
+        if (PrivacyManager::IsAllowed(domain, baseInfo.keyConfig.GetType(), baseInfo.keyConfig.GetLevel(),
             baseInfo.keyConfig.privacy)) {
             baseInfo.disallowParams = ParseEventParamInfo(eventContent);
             allNames[eventName] = baseInfo;
