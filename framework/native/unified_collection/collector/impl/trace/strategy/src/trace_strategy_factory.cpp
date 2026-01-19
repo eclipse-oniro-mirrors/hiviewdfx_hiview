@@ -21,7 +21,7 @@ namespace CleanThreshold {
 const uint32_t XPERF = 6;
 const uint32_t RELIABILITY = 3;
 const uint32_t OTHER = 5;
-const uint32_t SCREEN = 1;
+const uint32_t SCREEN = 2;
 const uint32_t ZIP_FILE = 20;
 const uint32_t TELE_ZIP_FILE = 20;
 const uint32_t APP_FILE = 40;
