@@ -36,6 +36,7 @@ LogParse::LogParse(const std::string& eventName)
             "kthread",
             "rdr_system_error",
             "[Unknown]",
+            "[shmm]",
             "Not mapped"}
         },
         {"Level2", {
