@@ -278,7 +278,7 @@ void FaultLogCppCrash::WriteLogFile(const std::string& logPath, const std::strin
 
 bool FaultLogCppCrash::TruncateLogIfExceedsLimit(std::string& readContent)
 {
-    constexpr size_t maxLogSize = 1024 * 1024;
+    constexpr size_t maxLogSize = 2 * 1024 * 1024;
     auto fileLen = readContent.length();
     if (fileLen <= maxLogSize) {
         return false;
