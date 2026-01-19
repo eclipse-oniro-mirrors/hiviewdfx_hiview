@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,9 +47,11 @@ public:
     int Update(int& changeRow, const NativeRdb::ValuesBucket& bucket,
         const NativeRdb::AbsRdbPredicates& absRdbPredicates);
     int Insert(int64_t& outRowId, const std::string& table, const NativeRdb::ValuesBucket& row);
+    int BatchInsert(int64_t& outInsertNum, const std::string& table, const std::vector<NativeRdb::ValuesBucket>& rows);
     std::shared_ptr<NativeRdb::AbsSharedResultSet> Query(const NativeRdb::AbsRdbPredicates& absRdbPredicates,
         const std::vector<std::string>& columns);
     int Delete(int& deleteRow, const NativeRdb::AbsRdbPredicates& absRdbPredicates);
+    std::pair<int32_t, std::shared_ptr<NativeRdb::Transaction>> CreateTransaction(int32_t type);
 
 private:
     class RestorableDbOpenCallback : public NativeRdb::RdbOpenCallback {

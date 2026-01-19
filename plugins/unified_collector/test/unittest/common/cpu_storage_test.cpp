@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,9 @@
 
 #include <memory>
 
+#define private public
 #include "cpu_storage.h"
+#undef private
 #include "file_util.h"
 #include "rdb_predicates.h"
 #include "time_util.h"
@@ -37,7 +39,6 @@ const std::string DB_FILE_DIR = "/cpu/";
 const std::string DB_FILE_PREIFIX = "cpu_stat_";
 const std::string DB_FILE_SUFFIX = ".db";
 const std::string TIME_STAMP_FORMAT = "%Y%m%d";
-constexpr int32_t DB_VERSION = 2;
 
 std::string GenerateDbFileName()
 {
@@ -102,20 +103,12 @@ HWTEST_F(CpuStorageTest, CpuStorageTest002, TestSize.Level3)
     cpuStorage.Report();
     RdbPredicates predicates(CPU_COLLECTION_TABLE_NAME);
     std::vector<std::string> columns;
-    std::string dbFileName = GenerateDbFileName();
-    std::string dbFile = std::string(DB_PATH);
-    dbFile.append(DB_FILE_DIR).append(dbFileName);
-    RdbStoreConfig config(dbFile);
-    config.SetSecurityLevel(SecurityLevel::S1);
-    auto ret = E_OK;
-    CpuStorageDbCallback callback;
-    auto dbStore = RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
-    std::shared_ptr<ResultSet> allVersions = dbStore->Query(predicates, columns);
+    std::shared_ptr<ResultSet> allVersions = cpuStorage.dbStore_->Query(predicates, columns);
     ASSERT_NE(allVersions, nullptr);
     ASSERT_NE(allVersions->GoToFirstRow(), E_OK);
     processCpuStatInfo.cpuLoad = 1;
     cpuStorage.StoreProcessDatas({processCpuStatInfo});
-    allVersions = dbStore->Query(predicates, columns);
+    allVersions = cpuStorage.dbStore_->Query(predicates, columns);
     ASSERT_NE(allVersions, nullptr);
     ASSERT_EQ(allVersions->GoToFirstRow(), E_OK);
 }
@@ -129,19 +122,8 @@ HWTEST_F(CpuStorageTest, CpuStorageTest002, TestSize.Level3)
 HWTEST_F(CpuStorageTest, CpuStorageTest003, TestSize.Level3)
 {
     FileUtil::RemoveFile(DB_PATH);
-    std::string dbFileName = GenerateDbFileName();
-    std::string dbFile = std::string(DB_PATH);
-    dbFile.append(DB_FILE_DIR).append(dbFileName);
-    RdbStoreConfig config(dbFile);
-    config.SetSecurityLevel(SecurityLevel::S1);
-    auto ret = E_OK;
-    CpuStorageDbCallback callback;
-    auto dbStore = RdbHelper::GetRdbStore(config, DB_VERSION, callback, ret);
-    ASSERT_EQ(ret, E_OK);
-    ret = callback.OnCreate(*dbStore);
-    ASSERT_EQ(ret, E_OK);
-    ret = callback.OnUpgrade(*dbStore, 2, 3); // test db upgrade from version 2 to version 3
-    ASSERT_EQ(ret, E_OK);
+    CpuStorage cpuStorage(DB_PATH);
+    ASSERT_NE(cpuStorage.dbStore_, nullptr);
 }
 
 /**

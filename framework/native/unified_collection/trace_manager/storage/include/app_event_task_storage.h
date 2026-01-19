@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "rdb_store.h"
+#include "restorable_db_store.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -45,7 +45,7 @@ struct AppEventTask {
 
 class AppEventTaskStorage {
 public:
-    AppEventTaskStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore);
+    AppEventTaskStorage(std::shared_ptr<RestorableDbStore> dbStore);
     ~AppEventTaskStorage() = default;
 
 public:
@@ -54,7 +54,7 @@ public:
     void RemoveAppEventTask(int32_t eventDate);
 
 private:
-    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+    std::shared_ptr<RestorableDbStore> dbStore_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

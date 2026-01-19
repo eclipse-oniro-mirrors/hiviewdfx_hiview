@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,7 +48,7 @@ void PrintRecordLog(const TraceFlowRecord& traceFlowRecord)
 }
 }
 
-TraceStorage::TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& name,
+TraceStorage::TraceStorage(std::shared_ptr<RestorableDbStore> dbStore, const std::string& name,
     const std::string& configPath): name_(name), dbStore_(dbStore)
 {
     traceQuotaConfig_ = configPath + TRACE_QUOTA_CONFIG_FILE;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 #include <memory>
 #include <string>
 
-#include "rdb_store.h"
+#include "restorable_db_store.h"
 
 namespace OHOS::HiviewDFX {
 struct TraceFlowRecord {
@@ -32,7 +32,7 @@ struct TraceFlowRecord {
 
 class TraceStorage {
 public:
-    TraceStorage(std::shared_ptr<NativeRdb::RdbStore> dbStore, const std::string& name,
+    TraceStorage(std::shared_ptr<RestorableDbStore> dbStore, const std::string& name,
         const std::string& configPath);
     ~TraceStorage() = default;
 
@@ -67,7 +67,7 @@ private:
     int64_t ioQuota_ = 0;
     int64_t zipQuota_ = 0;
     int64_t decreaseUnit_ = 0;
-    std::shared_ptr<NativeRdb::RdbStore> dbStore_;
+    std::shared_ptr<RestorableDbStore> dbStore_;
 #ifdef TRACE_MANAGER_UNITTEST
     std::string testDate_;
 #endif

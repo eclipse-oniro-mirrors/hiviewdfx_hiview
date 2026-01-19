@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -130,6 +130,14 @@ int RestorableDbStore::Insert(int64_t& outRowId, const std::string& table, const
     });
 }
 
+int RestorableDbStore::BatchInsert(int64_t& outInsertNum, const std::string& table,
+    const std::vector<NativeRdb::ValuesBucket>& rows)
+{
+    return AdaptRdbOpt([&outInsertNum, &table, &rows] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+        return rdbStore->BatchInsert(outInsertNum, table, rows);
+    });
+}
+
 std::shared_ptr<NativeRdb::AbsSharedResultSet> RestorableDbStore::Query(
     const NativeRdb::AbsRdbPredicates& absRdbPredicates, const std::vector<std::string>& columns)
 {
@@ -146,6 +154,16 @@ int RestorableDbStore::Delete(int& deleteRow, const NativeRdb::AbsRdbPredicates&
     return AdaptRdbOpt([&deleteRow, &absRdbPredicates] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
         return rdbStore->Delete(deleteRow, absRdbPredicates);
     });
+}
+
+std::pair<int32_t, std::shared_ptr<NativeRdb::Transaction>> RestorableDbStore::CreateTransaction(int32_t type)
+{
+    std::pair<int32_t, std::shared_ptr<NativeRdb::Transaction>> ret;
+    (void)AdaptRdbOpt([&ret, &type] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+        ret = rdbStore->CreateTransaction(type);
+        return ret.first;
+    });
+    return ret;
 }
 
 int RestorableDbStore::AdaptRdbOpt(std::function<int(std::shared_ptr<NativeRdb::RdbStore>)> func)

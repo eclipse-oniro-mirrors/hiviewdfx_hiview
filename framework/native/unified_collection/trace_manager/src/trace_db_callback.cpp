@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,51 +19,11 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+namespace TraceDbStoreCallback {
 namespace {
 DEFINE_LOG_TAG("TraceDbStoreCallback");
-}
 
-int TraceDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
-{
-    HIVIEW_LOGI("create dbStore");
-    if (auto ret = CreateTraceFlowControlTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table trace_flow_control");
-    }
-    if (auto ret = CreateAppTaskTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table unified_collection_task");
-    }
-    if (auto ret = CreateTraceBehaviorDbHelperTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table trace_behavior_db_helper");
-    }
-    if (auto ret = CreateTelemetryControlTable(rdbStore); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to create table telemetry_flow_control");
-    }
-    return NativeRdb::E_OK;
-}
-
-int TraceDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
-{
-    HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
-    std::string flowDropSql = SqlUtil::GenerateDropSql(FLOW_TABLE_NAME);
-    if (int ret = rdbStore.ExecuteSql(flowDropSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", FLOW_TABLE_NAME, ret);
-    }
-    std::string taskSql = SqlUtil::GenerateDropSql(TABLE_NAME_TASK);
-    if (int ret = rdbStore.ExecuteSql(taskSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_TASK, ret);
-    }
-    std::string behaviorSql = SqlUtil::GenerateDropSql(TABLE_NAME_BEHAVIOR);
-    if (int ret = rdbStore.ExecuteSql(behaviorSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_BEHAVIOR, ret);
-    }
-    std::string flowSql = SqlUtil::GenerateDropSql(TABLE_TELEMETRY_CONTROL);
-    if (int ret = rdbStore.ExecuteSql(flowSql); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_TELEMETRY_CONTROL, ret);
-    }
-    return OnCreate(rdbStore);
-}
-
-int32_t TraceDbStoreCallback::CreateTraceFlowControlTable(NativeRdb::RdbStore& rdbStore)
+int32_t CreateTraceFlowControlTable(NativeRdb::RdbStore& rdbStore)
 {
     /**
      * table: trace_flow_control
@@ -91,7 +51,7 @@ int32_t TraceDbStoreCallback::CreateTraceFlowControlTable(NativeRdb::RdbStore& r
     return 0;
 }
 
-int32_t TraceDbStoreCallback::CreateAppTaskTable(NativeRdb::RdbStore& rdbStore)
+int32_t CreateAppTaskTable(NativeRdb::RdbStore& rdbStore)
 {
     /**
      * table: unified_collection_task
@@ -132,7 +92,7 @@ int32_t TraceDbStoreCallback::CreateAppTaskTable(NativeRdb::RdbStore& rdbStore)
     return 0;
 }
 
-int32_t TraceDbStoreCallback::CreateTraceBehaviorDbHelperTable(NativeRdb::RdbStore& rdbStore)
+int32_t CreateTraceBehaviorDbHelperTable(NativeRdb::RdbStore& rdbStore)
 {
     /**
      * table: trace_behavior_db_helper
@@ -158,7 +118,7 @@ int32_t TraceDbStoreCallback::CreateTraceBehaviorDbHelperTable(NativeRdb::RdbSto
     return 0;
 }
 
-int32_t TraceDbStoreCallback::CreateTelemetryControlTable(NativeRdb::RdbStore &rdbStore)
+int32_t CreateTelemetryControlTable(NativeRdb::RdbStore &rdbStore)
 {
     /**
      * table: telemetry_flow_control
@@ -185,6 +145,48 @@ int32_t TraceDbStoreCallback::CreateTelemetryControlTable(NativeRdb::RdbStore &r
         return -1;
     }
     return 0;
+}
+}
+
+int OnCreate(NativeRdb::RdbStore& rdbStore)
+{
+    HIVIEW_LOGI("create dbStore");
+    if (auto ret = CreateTraceFlowControlTable(rdbStore); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table trace_flow_control");
+    }
+    if (auto ret = CreateAppTaskTable(rdbStore); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table unified_collection_task");
+    }
+    if (auto ret = CreateTraceBehaviorDbHelperTable(rdbStore); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table trace_behavior_db_helper");
+    }
+    if (auto ret = CreateTelemetryControlTable(rdbStore); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to create table telemetry_flow_control");
+    }
+    return NativeRdb::E_OK;
+}
+
+int OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
+{
+    HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
+    std::string flowDropSql = SqlUtil::GenerateDropSql(FLOW_TABLE_NAME);
+    if (int ret = rdbStore.ExecuteSql(flowDropSql); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", FLOW_TABLE_NAME, ret);
+    }
+    std::string taskSql = SqlUtil::GenerateDropSql(TABLE_NAME_TASK);
+    if (int ret = rdbStore.ExecuteSql(taskSql); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_TASK, ret);
+    }
+    std::string behaviorSql = SqlUtil::GenerateDropSql(TABLE_NAME_BEHAVIOR);
+    if (int ret = rdbStore.ExecuteSql(behaviorSql); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_NAME_BEHAVIOR, ret);
+    }
+    std::string flowSql = SqlUtil::GenerateDropSql(TABLE_TELEMETRY_CONTROL);
+    if (int ret = rdbStore.ExecuteSql(flowSql); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to drop table %{public}s, ret=%{public}d", TABLE_TELEMETRY_CONTROL, ret);
+    }
+    return OnCreate(rdbStore);
+}
 }
 }
 }

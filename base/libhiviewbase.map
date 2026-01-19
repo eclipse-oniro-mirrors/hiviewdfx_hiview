@@ -517,6 +517,10 @@
         "OHOS::HiviewDFX::RestorableDbStore::Update(int&, OHOS::NativeRdb::ValuesBucket const&, OHOS::NativeRdb::AbsRdbPredicates const&)";
         "OHOS::HiviewDFX::RestorableDbStore::Update(long&, OHOS::NativeRdb::ValuesBucket const&, OHOS::NativeRdb::AbsRdbPredicates const&)";
         "OHOS::HiviewDFX::CommonUtils::CreateExportFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::RestorableDbStore::BatchInsert(long&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<OHOS::NativeRdb::ValuesBucket, std::__h::allocator<OHOS::NativeRdb::ValuesBucket>> const&)";
+        "OHOS::HiviewDFX::RestorableDbStore::BatchInsert(long long&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<OHOS::NativeRdb::ValuesBucket, std::__h::allocator<OHOS::NativeRdb::ValuesBucket>> const&)";
+        "OHOS::HiviewDFX::RestorableDbStore::CreateTransaction(int)";
+        "OHOS::HiviewDFX::RestorableDbStore::CreateTransaction(long)";
     };
   local:
     *;
