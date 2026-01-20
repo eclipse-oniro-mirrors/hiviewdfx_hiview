@@ -43,7 +43,7 @@ ohos_unittest("EventExportConfigTest") {
   sources = [ "unittest/common/event_export_config_test.cpp" ]
 
   deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_base:hiviewbase",
     "../../event_export:event_export_engine",
   ]
 
@@ -51,7 +51,6 @@ ohos_unittest("EventExportConfigTest") {
     "cJSON:cjson",
     "c_utils:utils",
     "ffrt:libffrt",
-    "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
     "jsoncpp:jsoncpp",
@@ -76,14 +75,13 @@ ohos_unittest("EventExportDbMgrTest") {
   sources = [ "unittest/common/event_export_db_mgr_test.cpp" ]
 
   deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_base:hiviewbase",
     "../../event_export:event_export_engine",
   ]
 
   external_deps = [
     "c_utils:utils",
     "ffrt:libffrt",
-    "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
     "relational_store:native_rdb",
@@ -115,7 +113,6 @@ ohos_unittest("EventExportMgrTest") {
     "cJSON:cjson",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
-    "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbeget_proxy",
@@ -145,7 +142,6 @@ ohos_unittest("EventExportWriteTest") {
     "cJSON:cjson",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
-    "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbeget_proxy",
@@ -172,7 +168,6 @@ ohos_unittest("TriggerExportTest") {
     "cJSON:cjson",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
-    "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbeget_proxy",
