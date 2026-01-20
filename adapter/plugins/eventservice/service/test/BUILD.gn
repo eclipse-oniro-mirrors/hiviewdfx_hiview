@@ -53,7 +53,7 @@ ohos_unittest("SysEventServiceOhosUnitTest") {
   deps = [
     "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_adapter/plugins/eventservice/service/idl:sys_event_service_ohos",
-    "$hiview_base:hiview_base",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
     "$hiview_plugin/sys_dispatcher:sys_dispatcher",
   ]
@@ -83,7 +83,7 @@ ohos_unittest("EventCheckerUnitTest") {
   deps = [
     "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_adapter/plugins/eventservice/service/idl:sys_event_service_ohos",
-    "$hiview_base:hiview_base",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
   ]
 
@@ -111,7 +111,7 @@ ohos_unittest("EventServiceAdapterUtilsTest") {
   deps = [
     "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_adapter/plugins/eventservice/service/idl:sys_event_service_ohos",
-    "$hiview_base:hiview_base",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
   ]
 
@@ -137,7 +137,7 @@ ohos_unittest("ListenerStatusMonitorTest") {
   deps = [
     "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_adapter/plugins/eventservice/service/idl:sys_event_service_ohos",
-    "$hiview_base:hiview_base",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
   ]
 
