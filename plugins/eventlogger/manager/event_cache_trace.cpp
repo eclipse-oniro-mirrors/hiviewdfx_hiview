@@ -60,12 +60,15 @@ void EventCacheTrace::HandleTelemetryMsg(std::map<std::string, std::string>& val
  
 void EventCacheTrace::FreezeFilterTraceOn(const std::string& bundleName)
 {
+    std::string filter;
+    std::string telemetryId;
     {
         std::shared_lock<std::shared_mutex> lock(grayscaleMutex_);
-        if (telemetryId_.empty() || (!traceAppFilter_.empty() &&
-            bundleName.find(traceAppFilter_) == std::string::npos)) {
-            return;
-        }
+        filter = traceAppFilter_;
+        telemetryId = telemetryId_;
+    }
+    if (telemetryId.empty() || (!filter.empty() && bundleName.find(filter) == std::string::npos)) {
+        return;
     }
  
     std::shared_ptr<UCollectUtil::TraceCollector> collector = UCollectUtil::TraceCollector::Create();
@@ -74,8 +77,8 @@ void EventCacheTrace::FreezeFilterTraceOn(const std::string& bundleName)
     }
     UCollect::TeleModule caller = UCollect::TeleModule::RELIABILITY;
     auto result = collector->FilterTraceOn(caller, MAX_DUMP_TRACE_LIMIT * TimeUtil::SEC_TO_MILLISEC);
-    HIVIEW_LOGW("FreezeFilterTraceOn, telemetryId_:%{public}s, traceAppFilter_:%{public}s, retCode:%{public}d",
-        telemetryId_.c_str(), traceAppFilter_.c_str(), result.retCode);
+    HIVIEW_LOGW("FreezeFilterTraceOn, telemetryId:%{public}s, filter:%{public}s, retCode:%{public}d",
+        telemetryId.c_str(), filter.c_str(), result.retCode);
 }
 
 std::pair<std::string, std::pair<std::string, std::vector<std::string>>> EventCacheTrace::FreezeDumpTrace(
