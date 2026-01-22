@@ -84,6 +84,9 @@ bool PrivacyController::OnEvent(std::shared_ptr<Event>& event)
     if (sysEvent == nullptr) {
         return false;
     }
+    if (!PrivacyManager::IsUeEnabled() && StringUtil::EndWith(sysEvent->domain_, "_UE")) {
+        return sysEvent->OnFinish();
+    }
     PARAM_INFO_MAP_PTR invalidParams = sysEvent->GetInvalidParams();
     if (invalidParams == nullptr || invalidParams->empty()) {
         return true;

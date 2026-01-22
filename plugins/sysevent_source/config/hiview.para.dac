@@ -22,6 +22,7 @@ hiviewdfx.ucollection.="hiview:log:755"
 hiviewdfx.hiview.testtype="hiview:log:755"
 hiviewdfx.hiview.ready="hiview:log:755"
 hiviewdfx.hiappevent.="root:root:755"
+persist.hiviewdfx.hiview.ue.enable="hiview:log:755"
 
 persist.hiview.leak_detector="hiview:shell:775"
 persist.hiview.freeze_detector="hiview:shell:775"
