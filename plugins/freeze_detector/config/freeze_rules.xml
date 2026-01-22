@@ -310,6 +310,27 @@
         </event>
       </links>
     </rule>
+    <rule id="17" domain="HIGPU" stringid="DMD_HIGPU_JOB_HANG">	<!-- DMD_HIGPU_JOB_HANG -->
+      <links type="watchpoint">
+        <event window="0" domain="HIGPU" stringid="DMD_HIGPU_JOB_HANG">	<!-- DMD_HIGPU_JOB_HANG -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="18" domain="HIGPU" stringid="DMD_HIGPU_PAGE_FAULT">	<!-- DMD_HIGPU_PAGE_FAULT -->
+      <links type="watchpoint">
+        <event window="0" domain="HIGPU" stringid="DMD_HIGPU_PAGE_FAULT">	<!-- DMD_HIGPU_PAGE_FAULT -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="19" domain="HIGPU" stringid="DMD_HIGPU_JOB_FAIL">	<!-- DMD_HIGPU_JOB_FAIL -->
+      <links type="watchpoint">
+        <event window="0" domain="HIGPU" stringid="DMD_HIGPU_JOB_FAIL">	<!-- DMD_HIGPU_JOB_FAIL -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
   </rules>
     <rules resolver="AppFreezeWarningResolver">
     <rule id="1" domain="AAFWK" stringid="THREAD_BLOCK_3S">	<!-- THREAD_BLOCK_3S -->
