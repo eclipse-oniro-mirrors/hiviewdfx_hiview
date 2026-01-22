@@ -52,5 +52,10 @@ void PrivacyManager::OnConfigUpdate()
         g_privacyController->OnConfigUpdate();
     }
 }
+
+bool PrivacyManager::IsUeEnabled()
+{
+    return g_privacyController == nullptr ? true : g_privacyController->IsUeEnabled();
+}
 } // namespace HiviewDFX
 } // namespace OHOS

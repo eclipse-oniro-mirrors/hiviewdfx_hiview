@@ -30,6 +30,7 @@ public:
     virtual bool IsPrivacyAllowed(uint8_t privacy) = 0;
     virtual bool IsBundleNameInList(const std::string& bundleName, const std::string& allowListFile) = 0;
     virtual void OnConfigUpdate();
+    virtual bool IsUeEnabled();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

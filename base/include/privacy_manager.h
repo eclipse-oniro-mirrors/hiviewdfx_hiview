@@ -28,6 +28,7 @@ public:
     static bool IsPrivacyAllowed(uint8_t privacy);
     static bool IsBundleNameInList(const std::string& bundleName, const std::string& allowListFile);
     static void OnConfigUpdate();
+    static bool IsUeEnabled();
 };
 } // namespace HiviewDFX
 } // namespace OHOS
