@@ -113,6 +113,7 @@ RawData& RawData::operator=(const RawData& data)
     if (data_ != nullptr) {
         delete[] data_;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     data_ = tmpData;
     capacity_ = dataLen;
     len_ = dataLen;

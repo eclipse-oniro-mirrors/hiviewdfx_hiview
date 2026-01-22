@@ -40,7 +40,7 @@ private:
 
 private:
     std::shared_ptr<NativeRdb::RdbStore> dbStore_;
-    std::string dirPath_;
+    const std::string dirPath_;
     std::mutex dbMutex_;
 };
 
