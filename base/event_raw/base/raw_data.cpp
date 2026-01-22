@@ -110,10 +110,10 @@ RawData& RawData::operator=(const RawData& data)
         delete[] tmpData;
         return *this;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     if (data_ != nullptr) {
         delete[] data_;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
     data_ = tmpData;
     capacity_ = dataLen;
     len_ = dataLen;
