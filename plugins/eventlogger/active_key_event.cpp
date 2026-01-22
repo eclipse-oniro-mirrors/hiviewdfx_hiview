@@ -27,7 +27,6 @@
 #endif // HITRACE_CATCHER_ENABLE
 #include "parameter_ex.h"
 #include "freeze_manager.h"
-
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -185,6 +184,7 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
         return;
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
 
     auto sysStart = ActiveKeyEvent::SystemTimeMillisecond();
     const uint32_t placeholder = 3;
@@ -210,7 +210,7 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
     auto end = ActiveKeyEvent::SystemTimeMillisecond();
     std::string totalTime = "\n\nCatcher log total time is " + std::to_string(end - sysStart) + "ms\n";
     FileUtil::SaveStringToFd(fd, totalTime);
-    close(fd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
     reportLimit_++;
 }
 

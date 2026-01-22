@@ -28,6 +28,7 @@ namespace {
     constexpr int NAME_FIELD = 2;
     constexpr int ACTION_FIELD = 3;
     constexpr int INTERVAL_FIELD = 4;
+    constexpr uint32_t BUF_SIZE_1024 = 1024;
 }
 
 DEFINE_LOG_TAG("EventLogger-EventLoggerConfig");
@@ -49,9 +50,9 @@ bool EventLoggerConfig::OpenConfig()
         HIVIEW_LOGI("fail to realPath.");
         return false;
     }
-    in_.open(realPath);
-    if (!in_.is_open()) {
-        HIVIEW_LOGW("fail to open config file.\n");
+    in_ = fopen(realPath.c_str(), "r");
+    if (in_ == nullptr) {
+        HIVIEW_LOGE("Fail to create %{public}s, errno: %{public}d.", realPath.c_str(), errno);
         return false;
     }
     return true;
@@ -59,9 +60,14 @@ bool EventLoggerConfig::OpenConfig()
 
 void EventLoggerConfig::CloseConfig()
 {
-    if (in_.is_open()) {
-        in_.close();
+    if (in_ == nullptr) {
+        return;
     }
+
+    if (fclose(in_) != 0) {
+        HIVIEW_LOGE("Fail to close errno: %{public}d", errno);
+    }
+    in_ = nullptr;
 }
 
 bool EventLoggerConfig::FindConfigVersion()
@@ -71,11 +77,13 @@ bool EventLoggerConfig::FindConfigVersion()
     }
 
     std::string buf = "";
-    if (!getline(in_, buf)) {
+    char buffer[BUF_SIZE_1024] = {'\0'};
+    if (fgets(buffer, sizeof(buffer) - 1, in_) == nullptr) {
         HIVIEW_LOGW("Configfile is none.\n");
         CloseConfig();
         return false;
     }
+    buf = buffer;
 
     std::smatch result;
     auto versionRegex = std::regex("version=\"([0-9\\.]+)\".*");
@@ -101,7 +109,9 @@ bool EventLoggerConfig::ParseConfigData(std::function<bool(EventLoggerConfigData
     auto eventRegex = std::regex(
         "event id=\"([0-9xX]*)\"\\s*name=\"([A-Z0-9_]+)\"\\s*action=\"(.*)\"\\s*interval=\"([0-9]*)\".*");
 
-    while (getline(in_, buf)) {
+    char buffer[BUF_SIZE_1024] = {'\0'};
+    while (fgets(buffer, sizeof(buffer) - 1, in_) != nullptr) {
+        buf = buffer;
         if (!regex_search(buf, result, eventRegex)) {
             HIVIEW_LOGW("match event failed, getline duf is %{public}s.\n", buf.c_str());
             continue;

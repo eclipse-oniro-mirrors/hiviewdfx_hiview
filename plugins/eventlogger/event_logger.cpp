@@ -17,6 +17,7 @@
 #include "securec.h"
 
 #include <cinttypes>
+#include <cstdio>
 #include <list>
 #include <map>
 #include <regex>
@@ -55,6 +56,8 @@
 #ifdef HITRACE_CATCHER_ENABLE
 #include "event_cache_trace.h"
 #endif
+
+#define FDASN_EVENTLOGGER_TAG 0xD002D01 // eventlogger domainid
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -258,6 +261,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
             ffrtFile.c_str(), ffrtFd, errno);
         return;
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(ffrtFd);
 
     int count = LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT * DUMP_TIME_RATIO;
     FileUtil::SaveStringToFd(ffrtFd, "ffrt dump topWindowInfos, process infos:\n");
@@ -274,7 +278,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     if (count > LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT / DUMP_TIME_RATIO) {
         LogCatcherUtils::ReadShellToFile(ffrtFd, "SystemAbilityManager", cmdSam, count);
     }
-    close(ffrtFd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(ffrtFd);
 }
 #endif
 
@@ -410,19 +414,21 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
         HIVIEW_LOGE("create log file %{public}s failed, %{public}d", logFile.c_str(), fd);
         return;
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
 
     int jsonFd = -1;
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_) || FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         std::string jsonFilePath = FreezeJsonUtil::GetFilePath(event->GetEventIntValue("PID"),
             event->GetEventIntValue("UID"), event->happenTime_);
         jsonFd = FreezeJsonUtil::GetFd(jsonFilePath);
+        FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(jsonFd);
     }
 
     std::string terminalBinderThreadStack;
     WriteInfoToLog(event, fd, jsonFd, terminalBinderThreadStack);
-    close(fd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
     if (jsonFd >= 0) {
-        close(jsonFd);
+        FreezeManager::GetInstance()->CloseFdWithFdsanTag(jsonFd);
     }
     UpdateDB(event, logFile);
     SaveDbToFile(event);
@@ -549,16 +555,9 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
             if (!FileUtil::PathToRealPath(filePath, realPath)) {
                 continue;
             }
-            std::ifstream cmdLineFile(realPath);
-            std::string processName;
-            if (cmdLineFile) {
-                std::getline(cmdLineFile, processName);
-                cmdLineFile.close();
-                StringUtil::FormatProcessName(processName);
-                processNameMap[pidStr] = processName;
-            } else {
-                HIVIEW_LOGE("Fail to open /proc/%{public}s/cmdline", pidStr.c_str());
-            }
+            std::string processName = FreezeManager::GetInstance()->GetlineByFile(realPath);
+            StringUtil::FormatProcessName(processName);
+            processNameMap[pidStr] = processName;
         }
         std::string lineStr = line + "    " + pidStr + FreezeJsonUtil::WrapByParenthesis(processNameMap[pidStr]);
         infoList.push_back(lineStr);
@@ -802,8 +801,9 @@ void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int or
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
         return;
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(kernelFd);
     FileUtil::SaveStringToFd(kernelFd, kernelStack);
-    close(kernelFd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(kernelFd);
     HIVIEW_LOGD("Success WriteKernelStackToFile: %{public}s.", path.c_str());
 }
 

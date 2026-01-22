@@ -14,6 +14,7 @@
  */
 #include "event_log_task.h"
 
+#include <cstdio>
 #include <unistd.h>
 
 #include "common_utils.h"
@@ -24,6 +25,7 @@
 #include "string_util.h"
 #include "time_util.h"
 #include "freeze_common.h"
+#include "freeze_manager.h"
 
 #ifdef STACKTRACE_CATCHER_ENABLE
 #include "open_stacktrace_catcher.h"
@@ -58,6 +60,7 @@
 #ifdef HILOG_CATCHER_ENABLE
 #include "light_hilog_catcher.h"
 #endif
+#define FDASN_EVENTLOGGER_TAG 0xD002D01 // eventlogger domainid
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -215,9 +218,11 @@ EventLogTask::Status EventLogTask::StartCompose()
     }
 
     auto dupedFd = dup(targetFd_);
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(dupedFd);
     int dupedJsonFd = -1;
     if (targetJsonFd_ >= 0) {
         dupedJsonFd = dup(targetJsonFd_);
+        FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(dupedJsonFd);
     }
     uint32_t catcherIndex = 0;
     for (auto& catcher : tasks_) {
@@ -241,9 +246,9 @@ EventLogTask::Status EventLogTask::StartCompose()
             break;
         }
     }
-    close(dupedFd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(dupedFd);
     if (dupedJsonFd >= 0) {
-        close(dupedJsonFd);
+        FreezeManager::GetInstance()->CloseFdWithFdsanTag(dupedJsonFd);
     }
     if (status_ == Status::TASK_RUNNING) {
         status_ = Status::TASK_SUCCESS;

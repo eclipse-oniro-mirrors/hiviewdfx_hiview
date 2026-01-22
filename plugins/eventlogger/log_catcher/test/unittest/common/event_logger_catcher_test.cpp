@@ -1140,10 +1140,9 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     close(fd);
 
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
-    std::ifstream fin;
-    fin.open(path.c_str());
-    if (!fin.is_open()) {
-        printf("open binder file failed, %s\n.", path.c_str());
+    FILE* fin = fopen(path.c_str(), "r");
+    if (fin == nullptr) {
+        printf("open path failed!, path=%s\n", path.c_str());
         FAIL();
     }
     auto fd1 = open("/data/test/peerTestFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
@@ -1157,7 +1156,10 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     EXPECT_TRUE(pids.empty());
     pids = peerBinderCatcher->GetBinderPeerPids(-1, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
-    fin.close();
+    if (fin) {
+        fclose(fin);
+        fin = nullptr;
+    }
     close(fd1);
 }
 

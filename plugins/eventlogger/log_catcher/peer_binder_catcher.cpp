@@ -15,7 +15,6 @@
 #include "peer_binder_catcher.h"
 
 #include <ctime>
-#include <cstdio>
 #include <cstdlib>
 #include <list>
 #include <securec.h>
@@ -32,6 +31,7 @@
 #include "parameter_ex.h"
 #include "perf_collector.h"
 #include "string_util.h"
+#include "freeze_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -159,16 +159,9 @@ void PeerBinderCatcher::AddBinderJsonInfo(std::list<OutputBinderInfo> outputBind
         if (!FileUtil::PathToRealPath(filePath, realPath)) {
             continue;
         }
-        std::ifstream cmdLineFile(realPath);
-        std::string processName;
-        if (cmdLineFile) {
-            std::getline(cmdLineFile, processName);
-            cmdLineFile.close();
-            StringUtil::FormatProcessName(processName);
-            processNameMap[pid] = processName;
-        } else {
-            HIVIEW_LOGE("Fail to open /proc/%{public}d/cmdline", pid);
-        }
+        std::string processName = FreezeManager::GetInstance()->GetlineByFile(realPath);
+        StringUtil::FormatProcessName(processName);
+        processNameMap[pid] = processName;
     }
     std::list<std::string> infoList;
     for (auto it = outputBinderInfoList.begin(); it != outputBinderInfoList.end(); it++) {
@@ -184,7 +177,7 @@ void PeerBinderCatcher::AddBinderJsonInfo(std::list<OutputBinderInfo> outputBind
 }
 
 std::map<int, std::list<PeerBinderCatcher::BinderInfo>> PeerBinderCatcher::BinderInfoParser(
-    std::ifstream& fin, int fd, int jsonFd, std::set<int>& asyncPids) const
+    FILE* fp, int fd, int jsonFd, std::set<int>& asyncPids) const
 {
     std::map<int, std::list<BinderInfo>> manager;
     if (!Parameter::IsOversea()) {
@@ -192,7 +185,7 @@ std::map<int, std::list<PeerBinderCatcher::BinderInfo>> PeerBinderCatcher::Binde
     }
     std::list<OutputBinderInfo> outputBinderInfoList;
 
-    BinderInfoParser(fin, fd, manager, outputBinderInfoList, asyncPids);
+    BinderInfoParser(fp, fd, manager, outputBinderInfoList, asyncPids);
     AddBinderJsonInfo(outputBinderInfoList, jsonFd);
 
     if (!Parameter::IsOversea()) {
@@ -229,13 +222,13 @@ void PeerBinderCatcher::SaveBinderLineToFd(int fd, const std::string& line, bool
     isBinderMatchup = (!isBinderMatchup && line.find("free_async_space") != line.npos) ? true : isBinderMatchup;
 }
 
-void PeerBinderCatcher::BinderInfoParser(std::ifstream& fin, int fd,
+void PeerBinderCatcher::BinderInfoParser(FILE* fp, int fd,
     std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
     std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList, std::set<int>& asyncPids) const
 {
     std::map<uint32_t, uint32_t> asyncBinderMap;
     std::vector<std::pair<uint32_t, uint64_t>> freeAsyncSpacePairs;
-    BinderInfoLineParser(fin, fd, manager, outputBinderInfoList, asyncBinderMap, freeAsyncSpacePairs);
+    BinderInfoLineParser(fp, fd, manager, outputBinderInfoList, asyncBinderMap, freeAsyncSpacePairs);
 
     if (Parameter::IsOversea()) {
         return;
@@ -259,15 +252,16 @@ void PeerBinderCatcher::BinderInfoParser(std::ifstream& fin, int fd,
     }
 }
 
-void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
+void PeerBinderCatcher::BinderInfoLineParser(FILE* fp, int fd,
     std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
     std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList,
     std::map<uint32_t, uint32_t>& asyncBinderMap,
     std::vector<std::pair<uint32_t, uint64_t>>& freeAsyncSpacePairs) const
 {
-    std::string line;
     bool isBinderMatchup = false;
-    while (getline(fin, line)) {
+    char buffer[FreezeManager::BUF_SIZE_1024] = {'\0'};
+    while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+        std::string line = buffer;
         SaveBinderLineToFd(fd, line, isBinderMatchup);
         std::vector<std::string> strList = GetFileToList(line);
         if (isBinderMatchup) {
@@ -314,18 +308,22 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
 std::set<int> PeerBinderCatcher::GetBinderPeerPids(int fd, int jsonFd, std::set<int>& asyncPids)
 {
     std::set<int> pids;
-    std::ifstream fin;
     std::string path = binderPath_;
-    fin.open(path.c_str());
-    if (!fin.is_open()) {
-        HIVIEW_LOGE("open binder file failed, %{public}s.", path.c_str());
-        std::string content = "open binder file failed :" + path + "\r\n";
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(path, realPath)) {
+        HIVIEW_LOGE("Fail to realPath %{public}s, errno: %{public}d.", path.c_str(), errno);
+        return pids;
+    }
+    FILE* fp = fopen(realPath.c_str(), "r");
+    if (fp == nullptr) {
+        HIVIEW_LOGE("Fail to open binder file %{public}s, errno: %{public}d.", realPath.c_str(), errno);
+        std::string content = "open binder file failed :" + realPath + "\r\n";
         FileUtil::SaveStringToFd(fd, content);
         return pids;
     }
 
-    std::map<int, std::list<PeerBinderCatcher::BinderInfo>> manager = BinderInfoParser(fin, fd, jsonFd, asyncPids);
-    fin.close();
+    std::map<int, std::list<PeerBinderCatcher::BinderInfo>> manager = BinderInfoParser(fp, fd, jsonFd, asyncPids);
+    FreezeManager::GetInstance()->CloseFileByFp(fp, realPath);
 
     if (Parameter::IsOversea() || manager.size() == 0 || manager.find(pid_) == manager.end()) {
         return pids;

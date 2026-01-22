@@ -35,6 +35,7 @@ class FreezeManager : public DelayedSingleton<FreezeManager>,
 public:
     static constexpr const char* const LOGGER_EVENT_LOG_PATH = "/data/log/eventlog";
     static constexpr const char* FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
+    static constexpr uint32_t BUF_SIZE_1024 = 1024;
     FreezeManager();
     ~FreezeManager();
     static FreezeManager &GetInStance();
@@ -48,7 +49,11 @@ public:
     int GetFreezeLogFd(int32_t freezeLogType, const std::string& fileName) const;
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
     void FillProcMemory(const std::string& procStatm, long pid,
-        std::map<std::string, std::string> &sectionMaps) const;
+        std::map<std::string, std::string> &sectionMaps);
+    void ExchangeFdWithFdsanTag(const int fd);
+    int CloseFdWithFdsanTag(const int fd);
+    int CloseFileByFp(FILE*& fp, std::string path);
+    std::string GetlineByFile(std::string path);
 
 private:
     void InitEventLogStore();

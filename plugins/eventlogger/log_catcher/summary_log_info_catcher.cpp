@@ -21,6 +21,7 @@
 #include "file_util.h"
 #include "time_util.h"
 #include "hiview_logger.h"
+#include "freeze_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -71,6 +72,7 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         HIVIEW_LOGE("open /dev/sysload failed!");
         return 0;
     }
+    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(sysLoadFd);
     ringbuff_log_info info = {0};
     info.magic = SUMMARY_LOG_MAGIC;
     info.needed_sec_timestamp = faultTime_ + FAULT_DELAY_SECONDS;
@@ -79,10 +81,10 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
     int res = ioctl(sysLoadFd, GET_SUMMARY_LOG, &info);
     if (res < 0) {
         HIVIEW_LOGE("ioctl failed, errno:%{public}d", errno);
-        close(sysLoadFd);
+        FreezeManager::GetInstance()->CloseFdWithFdsanTag(sysLoadFd);
         return 0;
     }
-    close(sysLoadFd);
+    FreezeManager::GetInstance()->CloseFdWithFdsanTag(sysLoadFd);
     HIVIEW_LOGI("ioctl res:%{public}d", res);
 
     std::string summaryLogInfoStr;
