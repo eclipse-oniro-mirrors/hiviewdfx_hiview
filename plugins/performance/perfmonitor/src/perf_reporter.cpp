@@ -521,7 +521,8 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
     XPERF_TRACE_SCOPED("JANK_FRAME_UNFILTERED: skipppedFrameTime=%lld(ms), windowName=%s, filterType=%" PRIu64
-        ",vsyncTime=%lld(ns), pageName=%s, timestamp=%lld(ns)", static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(),
+        ",vsyncTime=%lld(ns), pageName=%s, timestamp=%lld(ns)",
+        static_cast<long long>(skippedFrameTime / NS_TO_MS), windowName.c_str(),
         sceneTag, static_cast<long long>(vsyncTime), pageName.c_str(), static_cast<long long>(GetCurrentRealTimeNs())) ;
 }
 
