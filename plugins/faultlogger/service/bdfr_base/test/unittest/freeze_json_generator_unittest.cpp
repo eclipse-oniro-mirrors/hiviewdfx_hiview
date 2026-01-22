@@ -43,7 +43,7 @@ HWTEST(FreezeJsonGeneratorTest, FreezeJsonGeneratorTest_001, testing::ext::TestS
  * @tc.desc: add testcase coverage
  * @tc.type: FUNC
  */
-HWTEST(FreezeJsonGeneratorTest, FreezeJsonGeneratorTest_002, testing::ext::TestSize.Level3)
+HWTEST(FreezeJsonGeneratorTest, FreezeJsonGeneratorTest_002, testing::ext::TestSize.Level0)
 {
     unsigned long long rss = 0; // test value
     unsigned long long vss = 0; // test value
