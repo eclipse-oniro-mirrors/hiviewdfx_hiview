@@ -448,8 +448,14 @@ bool SceneMonitor::IsExceptResponseTime(int64_t time, const std::string& sceneId
     if (exceptSceneSet.find(sceneId) != exceptSceneSet.end()) {
         return true;
     }
-    if ((sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH && currentRealTimeNs - time > RESPONSE_TIMEOUT)
-        || (sceneId == PerfConstants::CLOSE_FOLDER_ANI && currentRealTimeNs - time > RESPONSE_TIMEOUT)) {
+    if ((sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH && currentRealTimeNs - time > RESPONSE_TIMEOUT) ||
+        (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH_INTERACTIVE &&
+            currentRealTimeNs - time > RESPONSE_TIMEOUT) ||
+        (sceneId == PerfConstants::CLOSE_FOLDER_ANI && currentRealTimeNs - time > RESPONSE_TIMEOUT)) {
+        return true;
+    }
+
+    if (currentRealTimeNs - time > ALL_RESPONSE_TIMEOUT || currentRealTimeNs < time) {
         return true;
     }
     return false;
