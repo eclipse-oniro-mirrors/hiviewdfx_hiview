@@ -43,7 +43,7 @@ void FormatTraceName(char *name, size_t size, const char *fmt, ...)
     int ret = vsnprintf_s(name, size, size - 1, fmt, args);
     va_end(args);
     if (ret == -1){
-        printf("length more than 256\n");
+        return;
     }
 }
 
