@@ -175,7 +175,7 @@ std::map<std::string, std::string> BBoxDetectorsBase::GetValueFromHistory(std::s
     return historyMap;
 }
 
-uint64_t BBoxDetectorsBase::GetHappenTime(std::string& line, bool isHisiHistory)
+uint64_t BBoxDetectorsBase::GetHappenTime(const std::string& line, bool isHisiHistory)
 {
     auto happenTime = isHisiHistory ?
         static_cast<uint64_t>(Tbox::GetHappenTime(StringUtil::GetMidSubstr(line, "time [", "-"),
@@ -187,7 +187,7 @@ uint64_t BBoxDetectorsBase::GetHappenTime(std::string& line, bool isHisiHistory)
 }
 
 int BBoxDetectorsBase::CheckAndHiSysEventWrite(std::string& name, std::map<std::string, std::string>& historyMap,
-    uint64_t& happenTime)
+    const uint64_t& happenTime)
 {
     auto summary = "bootup_keypoint:" + historyMap["bootup_keypoint"];
     HiSysEventParam params[] = {

@@ -39,9 +39,9 @@ public:
 
 private:
     std::map<std::string, std::string> GetValueFromHistory(std::string& line, bool isHisiHistory);
-    uint64_t GetHappenTime(std::string& line, bool isHisiHistory);
+    uint64_t GetHappenTime(const std::string& line, bool isHisiHistory);
     int CheckAndHiSysEventWrite(std::string& name, std::map<std::string, std::string>& historyMap,
-        uint64_t& happenTime);
+        const uint64_t& happenTime);
     void WaitForLogs(const std::string& logDir);
 };
 } // namespace HiviewDFX
