@@ -19,8 +19,8 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-void CheckSumarryParseResult(std::string& info, int& matchCount);
-int CheckKeyWordsInFile(const std::string& filePath, std::string *keywords, int length, bool isJsError);
+void CheckSumarryParseResult(const std::string& info, int& matchCount);
+int CheckKeyWordsInFile(const std::string& filePath, const std::string *keywords, int length, bool isJsError);
 } // namespace HiviewDFX
 } // namespace OHOS
 

@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-void CheckSumarryParseResult(std::string& info, int& matchCount)
+void CheckSumarryParseResult(const std::string& info, int& matchCount)
 {
     Json::Reader reader;
     Json::Value appEvent;
@@ -40,7 +40,7 @@ void CheckSumarryParseResult(std::string& info, int& matchCount)
     }
 }
 
-int CheckKeyWordsInFile(const std::string& filePath, std::string *keywords, int length, bool isJsError)
+int CheckKeyWordsInFile(const std::string& filePath, const std::string *keywords, int length, bool isJsError)
 {
     std::ifstream file;
     file.open(filePath.c_str(), std::ios::in);
