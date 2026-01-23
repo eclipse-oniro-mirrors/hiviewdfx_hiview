@@ -42,13 +42,6 @@ void FormatTraceName(char *name, size_t size, const char *fmt, ...)
     va_start(args, fmt);
     int ret = vsnprintf_s(name, size, size - 1, fmt, args);
     va_end(args);
-    std::string traceName = "DefaultTraceName";
-    if (ret == -1 && size > traceName.length()) {
-        ret = strcpy_s(name, size, traceName.c_str());
-        if (ret != 0) {
-            return;
-        }
-    }
 }
 
 void XperfAsyncTraceBegin(int32_t taskId, const char* name, bool isAnimationTrace)
