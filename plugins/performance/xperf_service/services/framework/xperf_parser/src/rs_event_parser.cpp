@@ -30,7 +30,8 @@ OhosXperfEvent* ParseRsVideoJankEventMsg(const std::string& msg)
     ExtractStrToInt16(msg, event->faultId, TAG_FAULT_ID, TAG_FAULT_CODE, 0);
     ExtractStrToInt16(msg, event->faultCode, TAG_FAULT_CODE, TAG_MAX_FRAME_TIME, 0);
     ExtractStrToInt(msg, event->maxFrameTime, TAG_MAX_FRAME_TIME, TAG_HAPPEN_TIME, 0);
-    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, "", 0);
+    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_SURFACE_NAME, 0);
+    ExtractStrToStr(msg, event->surfaceName, TAG_SURFACE_NAME, TAG_END, "");
     return event;
 }
 

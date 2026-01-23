@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,28 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef XPERF_MONITOR_MANAGER_H
-#define XPERF_MONITOR_MANAGER_H
-
-#include <map>
-#include "xperf_monitor.h"
+#include "perf_event_parser.h"
+#include "perf_action_event.h"
+#include "xperf_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-class XperfMonitorManager {
-public:
-    XperfMonitorManager();
-    std::vector<XperfMonitor*> GetMonitors(int32_t logId);
 
-private:
-    std::map<int32_t, std::vector<XperfMonitor*>> dispatchers;
+//"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard"
+OhosXperfEvent* ParserPerfUserAction(const std::string& msg)
+{
+    PerfActionEvent* event = new PerfActionEvent();
+    ExtractStrToStr(msg, event->actionType, TAG_TYPE, TAG_TIME, "");
+    ExtractStrToLong(msg, event->time, TAG_TIME, TAG_BUNDLE_NAME, 0);
+    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_PID, "");
+    ExtractStrToInt(msg, event->pid, TAG_PID, TAG_END, 0);
 
-    void RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor);
-    void InitPlayStateMonitor();
-    void InitVideoMonitor();
-    void InitUserActionMonitor();
-};
+    return event;
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS
-
-#endif

@@ -19,6 +19,7 @@
 #include "network_event_parser.h"
 #include "avcodec_event_parser.h"
 #include "rs_event_parser.h"
+#include "perf_event_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -43,6 +44,7 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::VIDEO_JANK_FRAME, &ParseRsVideoJankEventMsg); //5000
     RegisterParserByLogID(XperfConstants::VIDEO_FRAME_STATS, &ParseRsVideoFrameStatsMsg); //5001
     RegisterParserByLogID(XperfConstants::VIDEO_EXCEPT_STOP, &ParseRsVideoExceptStopMsg); //5002
+    RegisterParserByLogID(XperfConstants::PERF_USER_ACTION, &ParserPerfUserAction); //6000
 }
 
 ParserXperfFunc EventParserManager::GetEventParser(int32_t logId)

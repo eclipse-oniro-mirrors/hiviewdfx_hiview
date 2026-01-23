@@ -45,6 +45,7 @@ public:
 
     void OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
         const std::string& surfaceName);
+    void OnFirstFrame(OhosXperfEvent* event);
 
 private:
     VideoJankMonitor() = default;
@@ -56,6 +57,8 @@ private:
     AudioStateEvent audioStateEvt;
     PlayState playState{PlayState::INIT};
     std::list<AvcodecFirstFrame> firstFrameList;
+    int64_t lastStartTime{0};
+    int64_t lastStopTime{0};
 
     void AddToList(const AvcodecFirstFrame& firstFrame);
 
@@ -64,6 +67,8 @@ private:
 
     void OnAudioStart(OhosXperfEvent* event);
     void OnAudioStop(OhosXperfEvent* event);
+
+    bool IsUserAction();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

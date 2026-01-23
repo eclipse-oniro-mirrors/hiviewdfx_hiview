@@ -37,6 +37,10 @@ private:
     std::map<PerfActionType, int64_t> mInputTime;
     int64_t mVsyncTime {0};
     PerfSourceType mSourceType {UNKNOWN_SOURCE};
+
+    #ifdef NOT_BUILD_FOR_OHOS_SDK
+    void ReportInputEvent(std::string type, int64_t time);
+    #endif
 };
 
 }

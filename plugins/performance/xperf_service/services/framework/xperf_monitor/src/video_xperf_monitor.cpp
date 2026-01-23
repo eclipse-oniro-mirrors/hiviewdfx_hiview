@@ -37,9 +37,6 @@ VideoXperfMonitor &VideoXperfMonitor::GetInstance()
 void VideoXperfMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName)
 {
-    LOGD("VideoXperfMonitor::OnSurfaceReceived");
-    std::lock_guard<std::mutex> Lock(mMutex);
-
     SurfaceInfo surface;
     surface.uniqueId = uniqueId;
     surface.pid = pid;
@@ -55,7 +52,7 @@ void VideoXperfMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundle
 
 void VideoXperfMonitor::ProcessEvent(OhosXperfEvent* event)
 {
-    LOGD("VideoXperfMonitor logId:%{public}d", event->logId);
+    LOGD("VideoXperfMonitor_ProcessEvent logId:%{public}d", event->logId);
     switch (event->logId) {
         case XperfConstants::VIDEO_JANK_FRAME: //图形上报视频卡顿
             OnVideoJankReceived(event);
@@ -73,18 +70,18 @@ void VideoXperfMonitor::ProcessEvent(OhosXperfEvent* event)
 
 void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
 {
-    LOGD("VideoXperfMonitor::OnVideoJankReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
     if (videoJankRecordMap.size() >= MAX_JANK_SIZE) {
         LOGW("VideoXperfMonitor::OnVideoJankReceived more than 10 records");
         return;
     }
     RsJankEvent* rsJankEvent = (RsJankEvent*) event;
+    LOGI("VideoXperfMonitor_OnVideoJankReceived uniqueId:%{public}ld surfaceName:%{public}s", rsJankEvent->uniqueId,
+         rsJankEvent->surfaceName.c_str());
     if (videoJankRecordMap.find(rsJankEvent->uniqueId) != videoJankRecordMap.end()) {
         LOGW("OnVideoJankReceived VideoJankRecord exists");
         return;
     }
-
     SurfaceInfo si = GetSurfaceInfo(rsJankEvent->uniqueId);
     VideoJankRecord videoJankRecord;
     videoJankRecord.appPid = si.pid;
@@ -99,7 +96,6 @@ void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
 
 void VideoXperfMonitor::OnNetworkJankReceived(OhosXperfEvent* event)
 {
-    LOGD("VideoXperfMonitor::OnNetworkJankReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
     NetworkJankEvent* domainEvent = (NetworkJankEvent*) event;
     auto iter = videoJankRecordMap.find(domainEvent->uniqueId);
@@ -113,7 +109,6 @@ void VideoXperfMonitor::OnNetworkJankReceived(OhosXperfEvent* event)
 
 void VideoXperfMonitor::OnAvcodecJankReceived(OhosXperfEvent* event)
 {
-    LOGD("VideoXperfMonitor::OnAvcodecJankReceived");
     std::lock_guard<std::mutex> Lock(mMutex);
     AvcodecJankEvent* domainEvent = (AvcodecJankEvent*) event;
     auto iter = videoJankRecordMap.find(domainEvent->uniqueId);

@@ -18,9 +18,19 @@
 #include "perf_trace.h"
 #include "perf_utils.h"
 #include "scene_monitor.h"
+#include "hiview_logger.h"
+
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+#include <sstream>
+#include <string>
+#include "xperf_service_client.h"
+#include "xperf_service_action_type.h"
+#endif
 
 namespace OHOS {
 namespace HiviewDFX {
+
+DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 
 InputMonitor& InputMonitor::GetInstance()
 {
@@ -47,12 +57,18 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
                 XPERF_TRACE_SCOPED("RecordInputEvent: last_up=%lld(ns)", static_cast<long long>(time));
                 mInputTime[LAST_UP] = time;
                 SceneMonitor::GetInstance().OnSceneChanged(SceneType::APP_RESPONSE, true);
+                #ifdef NOT_BUILD_FOR_OHOS_SDK
+                ReportInputEvent("LAST_UP", GetCurrentSystimeMs());
+                #endif
                 break;
             }
         case FIRST_MOVE:
             {
                 XPERF_TRACE_SCOPED("RecordInputEvent: first_move=%lld(ns)", static_cast<long long>(time));
                 mInputTime[FIRST_MOVE] = time;
+                #ifdef NOT_BUILD_FOR_OHOS_SDK
+                ReportInputEvent("FIRST_MOVE", GetCurrentSystimeMs());
+                #endif
                 break;
             }
         default:
@@ -102,6 +118,17 @@ int64_t InputMonitor::GetVsyncTime()
     std::lock_guard<std::mutex> Lock(mMutex);
     return mVsyncTime;
 }
+
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+void InputMonitor::ReportInputEvent(std::string type, int64_t time)
+{
+    auto bi = SceneMonitor::GetInstance().GetBaseInfo();
+    std::stringstream ss;
+    ss << "#TYPE:" << type << "#TIME:" << time << "#BUNDLE_NAME:" << bi.bundleName << "#PID:" << bi.pid;
+    HIVIEW_LOGD("InputMonitor::ReportInputEvent msg:%{public}s", ss.str().c_str());
+    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::USER_ACTION, ss.str());
+}
+#endif
 
 }
 }
