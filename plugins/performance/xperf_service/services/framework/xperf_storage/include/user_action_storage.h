@@ -39,7 +39,6 @@ private:
 
     PerfActionEvent firstMove;
     PerfActionEvent lastUp;
-
 };
 
 }
