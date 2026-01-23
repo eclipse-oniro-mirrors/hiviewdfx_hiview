@@ -40,7 +40,7 @@ void FormatTraceName(char *name, size_t size, const char *fmt, ...)
     }
     va_list args;
     va_start(args, fmt);
-    int ret = vsnprintf_s(name, size, size - 1, fmt, args);
+    vsnprintf_s(name, size, size - 1, fmt, args);
     va_end(args);
 }
 
