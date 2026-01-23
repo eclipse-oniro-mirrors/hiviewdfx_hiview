@@ -56,9 +56,6 @@ void VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
 void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName)
 {
-    LOGD("VideoJankMonitor::OnSurfaceReceived pid:%{public}d, bundle:%{public}s, surface:%{public}s", 
-        pid, bundleName.c_str(), surfaceName.c_str());
-
     if (bundleName == "com.tencent.wechat") { //过滤微信
         firstFrameList.clear();
         return;
