@@ -37,6 +37,7 @@ void InstallTestHap(const std::string& hapName)
         HIVIEW_LOGE("popen excute install test hap failed.");
     }
     pclose(fp);
+    sleep(2); // 2 : sleep 2s
 }
 
 void UninstallTestHap(const std::string& hapName)
