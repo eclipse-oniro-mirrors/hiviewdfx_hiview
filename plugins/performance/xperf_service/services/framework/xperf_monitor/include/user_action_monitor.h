@@ -32,7 +32,6 @@ public:
 private:
     UserActionMonitor() = default;
     ~UserActionMonitor() = default;
-
 };
 } // namespace HiviewDFX
 } // namespace OHOS
