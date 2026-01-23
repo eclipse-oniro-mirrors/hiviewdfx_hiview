@@ -27,13 +27,13 @@ UserActionStorage& UserActionStorage::GetInstance()
 void UserActionStorage::UpdateFirstMove(const PerfActionEvent& fm)
 {
     firstMove = fm;
-    LOGD("UpdateFirstMove time:%{public}ld bundle:%{public}s", firstMove.time, firstMove.bundleName.c_str());
+    LOGD("UpdateFirstMove bundle:%{public}s", firstMove.bundleName.c_str());
 }
 
 void UserActionStorage::UpdateLastUp(const PerfActionEvent& lu)
 {
     lastUp = lu;
-    LOGD("UpdateLastUp time:%{public}ld bundle:%{public}s", lastUp.time, lastUp.bundleName.c_str());
+    LOGD("UpdateLastUp bundle:%{public}s", lastUp.bundleName.c_str());
 }
 
 const PerfActionEvent& UserActionStorage::GetFirstMove()
