@@ -56,8 +56,8 @@ void VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
 void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName)
 {
-    LOGD("VideoJankMonitor::OnSurfaceReceived pid:%{public}d, bundle:%{public}s, unique:%{public}ld,"
-         "surface:%{public}s", pid, bundleName.c_str(), uniqueId, surfaceName.c_str());
+    LOGD("VideoJankMonitor::OnSurfaceReceived pid:%{public}d, bundle:%{public}s, surface:%{public}s", 
+        pid, bundleName.c_str(), surfaceName.c_str());
 
     if (bundleName == "com.tencent.wechat") { //过滤微信
         firstFrameList.clear();
@@ -76,8 +76,8 @@ void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleN
 void VideoJankMonitor::OnFirstFrame(OhosXperfEvent* event)
 {
     AvcodecFirstFrame* audioEvent = (AvcodecFirstFrame*) event;
-    LOGD("VideoJankMonitor::OnFirstFrame pid:%{public}d, bundle:%{public}s, unique:%{public}ld, surface:%{public}s",
-         audioEvent->pid, audioEvent->bundleName.c_str(), audioEvent->uniqueId, audioEvent->surfaceName.c_str());
+    LOGD("VideoJankMonitor::OnFirstFrame pid:%{public}d, bundle:%{public}s, surface:%{public}s",
+         audioEvent->pid, audioEvent->bundleName.c_str(), audioEvent->surfaceName.c_str());
     if (audioEvent->bundleName == "com.tencent.wechat") { //过滤微信
         firstFrameList.clear();
         return;
@@ -113,7 +113,7 @@ void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
 void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoJankMonitor_OnAudioStart pid:%{public}d uniqueId:%{public}ld", audioEvent->pid, audioEvent->uniqueId);
+    LOGI("VideoJankMonitor_OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid, audioEvent->uniqueId);
     audioStateEvt = *audioEvent; //保存音频开始
     lastStartTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) { //没有首帧信息
@@ -130,7 +130,7 @@ void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoJankMonitor_OnAudio stop pid:%{public}d uniqueId:%{public}ld", audioEvent->pid, audioEvent->uniqueId);
+    LOGI("VideoJankMonitor_OnAudio stop pid:%{public}d uniqueId:%{public}lld", audioEvent->pid, audioEvent->uniqueId);
     audioStateEvt = *audioEvent;
     lastStopTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) {
