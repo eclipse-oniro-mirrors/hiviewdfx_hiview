@@ -142,7 +142,7 @@ void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
         return;
     }
     if (audioEvent->uniqueId != audioStateEvt.uniqueId) {
-        LOGE("VideoJankMonitor_OnAudioStop AudioState uniqueId mismatch");
+        LOGE("VideoJankMonitor_OnAudioStop Audio uniqueId mismatch");
         return;
     }
     if (!IsUserAction()) {
