@@ -110,7 +110,6 @@ void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
 void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoJankMonitor_OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid, audioEvent->uniqueId);
     audioStateEvt = *audioEvent; //保存音频开始
     lastStartTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) { //没有首帧信息
@@ -127,7 +126,6 @@ void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoJankMonitor_OnAudio stop pid:%{public}d uniqueId:%{public}lld", audioEvent->pid, audioEvent->uniqueId);
     audioStateEvt = *audioEvent;
     lastStopTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) {
@@ -177,10 +175,7 @@ void VideoJankMonitor::MonitorStop()
 
 bool VideoJankMonitor::IsUserAction()
 {
-    LOGD("VideoJankMonitor_IsUserAction audioStateEvt.pid:%{public}d audioStateEvt.happenTime:%{public}lld",
-        audioStateEvt.pid, audioStateEvt.happenTime);
     PerfActionEvent lastUp = UserActionStorage::GetInstance().GetLastUp();
-    LOGD("VideoJankMonitor_IsUserAction lastUp.pid:%{public}d lastUp.time:%{public}lld", lastUp.pid, lastUp.time);
     bool upApp = ((lastUp.pid == audioStateEvt.pid)
             && (lastUp.time < audioStateEvt.happenTime)
             && (audioStateEvt.happenTime - lastUp.time) < MANUAL_THRESHOLD);
@@ -190,7 +185,6 @@ bool VideoJankMonitor::IsUserAction()
     }
 
     PerfActionEvent firstMove = UserActionStorage::GetInstance().GetFirstMove();
-    LOGD("VideoJankMonitor_IsUserAction firstMove.pid:%{public}d firstMove.time:%{public}lld", lastUp.pid, lastUp.time);
     bool moveApp = ((firstMove.pid == audioStateEvt.pid)
                      && (firstMove.time < audioStateEvt.happenTime)
                      && (audioStateEvt.happenTime - firstMove.time) < MANUAL_THRESHOLD);
