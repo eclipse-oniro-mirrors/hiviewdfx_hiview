@@ -177,10 +177,10 @@ void VideoJankMonitor::MonitorStop()
 
 bool VideoJankMonitor::IsUserAction()
 {
-    LOGD("VideoJankMonitor_IsUserAction audioStateEvt.pid:%{public}d audioStateEvt.happenTime:%{public}lu",
-         audioStateEvt.pid, audioStateEvt.happenTime);
+    LOGD("VideoJankMonitor_IsUserAction audioStateEvt.pid:%{public}d audioStateEvt.happenTime:%{public}lld",
+        audioStateEvt.pid, audioStateEvt.happenTime);
     PerfActionEvent lastUp = UserActionStorage::GetInstance().GetLastUp();
-    LOGD("VideoJankMonitor_IsUserAction lastUp.pid:%{public}d lastUp.time:%{public}lu", lastUp.pid, lastUp.time);
+    LOGD("VideoJankMonitor_IsUserAction lastUp.pid:%{public}d lastUp.time:%{public}lld", lastUp.pid, lastUp.time);
     bool upApp = ((lastUp.pid == audioStateEvt.pid)
             && (lastUp.time < audioStateEvt.happenTime)
             && (audioStateEvt.happenTime - lastUp.time) < MANUAL_THRESHOLD);
@@ -190,7 +190,7 @@ bool VideoJankMonitor::IsUserAction()
     }
 
     PerfActionEvent firstMove = UserActionStorage::GetInstance().GetFirstMove();
-    LOGD("VideoJankMonitor_IsUserAction firstMove.pid:%{public}d firstMove.time:%{public}lu", lastUp.pid, lastUp.time);
+    LOGD("VideoJankMonitor_IsUserAction firstMove.pid:%{public}d firstMove.time:%{public}lld", lastUp.pid, lastUp.time);
     bool moveApp = ((firstMove.pid == audioStateEvt.pid)
                      && (firstMove.time < audioStateEvt.happenTime)
                      && (audioStateEvt.happenTime - firstMove.time) < MANUAL_THRESHOLD);
