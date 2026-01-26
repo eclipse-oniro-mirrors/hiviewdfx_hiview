@@ -18,13 +18,16 @@
 #include "avcodec_event.h"
 #include "xperf_register_manager.h"
 #include "perf_trace.h"
+#include "user_action_storage.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-static constexpr uint32_t MAX_FRAME_NUM = 3;
+static constexpr uint32_t MAX_FRAME_NUM = 4;
 static constexpr uint32_t fps = 3;
 static constexpr uint64_t interval = 300;
+static constexpr int64_t MANUAL_THRESHOLD = 650;
+static constexpr int STOP_DELAY_MS = 300;
 
 VideoJankMonitor &VideoJankMonitor::GetInstance()
 {
@@ -32,10 +35,30 @@ VideoJankMonitor &VideoJankMonitor::GetInstance()
     return instance;
 }
 
+void VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
+{
+    switch (event->logId) {
+        case XperfConstants::AUDIO_RENDER_START:
+            OnAudioStart(event);
+            break;
+        case XperfConstants::AUDIO_RENDER_PAUSE_STOP:
+            OnAudioStop(event);
+            break;
+        case XperfConstants::AVCODEC_FIRST_FRAME_START:
+            OnFirstFrame(event);
+            break;
+        default:
+            break;
+    }
+}
+
 void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName)
 {
-    std::lock_guard<std::mutex> Lock(mMutex);
+    if (bundleName == "com.tencent.wechat") { //过滤微信
+        firstFrameList.clear();
+        return;
+    }
 
     AvcodecFirstFrame surface;
     surface.pid = pid;
@@ -43,104 +66,135 @@ void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleN
     surface.surfaceName = surfaceName;
     surface.bundleName = bundleName;
 
-    if (firstFrameList.empty()) {
-        firstFrameList.push_back(surface);
-        MonitorStart();
-        return;
-    }
-
-    if (firstFrameList.front().pid != surface.pid) { //切换应用
-        firstFrameList.clear();
-        firstFrameList.push_back(surface);
-        MonitorStart();
-        return;
-    }
-
     AddToList(surface); //保存至列表
-    MonitorStart();
-    return;
+}
+
+void VideoJankMonitor::OnFirstFrame(OhosXperfEvent* event)
+{
+    AvcodecFirstFrame* audioEvent = (AvcodecFirstFrame*) event;
+    LOGD("VideoJankMonitor::OnFirstFrame pid:%{public}d, bundle:%{public}s, surface:%{public}s",
+         audioEvent->pid, audioEvent->bundleName.c_str(), audioEvent->surfaceName.c_str());
+    if (audioEvent->bundleName == "com.tencent.wechat") { //过滤微信
+        firstFrameList.clear();
+        return;
+    }
+    AddToList(*audioEvent); //保存至列表
 }
 
 void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
 {
+    if (firstFrameList.empty()) {
+        firstFrameList.push_back(firstFrame);
+        return;
+    }
+
+    if (firstFrameList.front().pid != firstFrame.pid) { //切换应用
+        firstFrameList.clear();
+        firstFrameList.push_back(firstFrame);
+        return;
+    }
+
+    for (const auto& element : firstFrameList) {
+        if (element.surfaceName == firstFrame.surfaceName) { //过滤重复surface
+            return;
+        }
+    }
+
     if (static_cast<uint32_t>(firstFrameList.size()) >= MAX_FRAME_NUM) {
         firstFrameList.pop_front();
     }
     firstFrameList.push_back(firstFrame);
 }
 
-void VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
-{
-    LOGD("VideoJankMonitor logId:%{public}d bundleName:%{public}s", event->logId, event->bundleName.c_str());
-    std::lock_guard<std::mutex> Lock(mMutex);
-    switch (event->logId) {
-        case XperfConstants::AUDIO_RENDER_START:
-            OnAudioStart(event);
-            break;
-        case XperfConstants::AUDIO_RENDER_PAUSE_STOP:
-        case XperfConstants::AUDIO_RENDER_RELEASE:
-            OnAudioStop(event);
-            break;
-        default:
-            break;
-    }
-}
-
 void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
     audioStateEvt = *audioEvent; //保存音频开始
+    lastStartTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) { //没有首帧信息
+        LOGW("VideoJankMonitor_OnAudioStart firstFrameList empty");
         return;
     }
-    if (firstFrameList.front().pid == audioEvent->pid) { //没有切换应用
-        MonitorStart();
-    } else { //切换了应用
-        MonitorStop();
-        firstFrameList.clear(); //清空旧的首帧数据
-        playState = INIT;
+    if (audioEvent->pid != firstFrameList.front().pid) {
+        LOGW("VideoJankMonitor_OnAudioStart PID mismatch");
+        return;
     }
+    MonitorStart();
 }
 
 void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
 {
+    AudioStateEvent* audioEvent = (AudioStateEvent*) event;
+    audioStateEvt = *audioEvent;
+    lastStopTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) {
+        LOGW("VideoJankMonitor_OnAudioStop firstFrameList empty");
         return;
     }
-    AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-
-    if (audioEvent->pid == firstFrameList.front().pid && audioEvent->uniqueId == audioStateEvt.uniqueId) {
-        audioStateEvt = *audioEvent;
-        MonitorStop();
+    if (audioEvent->pid != firstFrameList.front().pid) {
+        LOGE("VideoJankMonitor_OnAudioStop PID mismatch");
+        return;
     }
+    if (audioEvent->uniqueId != audioStateEvt.uniqueId) {
+        LOGE("VideoJankMonitor_OnAudioStop Audio uniqueId mismatch");
+        return;
+    }
+    if (!IsUserAction()) {
+        LOGI("VideoJankMonitor_OnAudioStop non-user stop");
+        return;
+    }
+    MonitorStop();
 }
 
 void VideoJankMonitor::MonitorStart()
 {
-    //通知图形视频开始。可能是缓存帧，实际并未播放，这个可由RS判断实际正在播放的surface；可能音频先来，已调用过开始接口
-    // 这个已对齐RS会直接返回无影响
+    LOGD("VideoJankMonitor_MonitorStart");
     std::vector<uint64_t> uniqueIds;
     std::vector<std::string> surfaceNames;
     for (const auto& item : firstFrameList) {
         uniqueIds.push_back(item.uniqueId);
         surfaceNames.push_back(item.surfaceName);
     }
-    playState = START;
+    LOGI("VideoJankMonitor_MonitorStart AvcodecVideoStart");
 }
 
 void VideoJankMonitor::MonitorStop()
 {
-    if (playState != START) {
-        return;
-    } else {
-        playState = STOP;
-    }
+    LOGD("VideoJankMonitor_MonitorStop");
     std::vector<uint64_t> uniqueIds;
     std::vector<std::string> surfaceNames;
     for (const auto& item : firstFrameList) {
         uniqueIds.push_back(item.uniqueId);
         surfaceNames.push_back(item.surfaceName);
     }
+    LOGI("VideoJankMonitor_MonitorStop AvcodecVideoStop");
+}
+
+bool VideoJankMonitor::IsUserAction()
+{
+    PerfActionEvent lastUp = UserActionStorage::GetInstance().GetLastUp();
+    bool upApp = ((lastUp.pid == audioStateEvt.pid)
+            && (lastUp.time < audioStateEvt.happenTime)
+            && (audioStateEvt.happenTime - lastUp.time) < MANUAL_THRESHOLD);
+
+    if (upApp) {
+        return true;
+    }
+
+    PerfActionEvent firstMove = UserActionStorage::GetInstance().GetFirstMove();
+    bool moveApp = ((firstMove.pid == audioStateEvt.pid)
+                     && (firstMove.time < audioStateEvt.happenTime)
+                     && (audioStateEvt.happenTime - firstMove.time) < MANUAL_THRESHOLD);
+
+    if (moveApp) {
+        return true;
+    }
+
+    bool swipeSB = ((firstMove.bundleName == "com.ohos.sceneboard")
+            && (firstMove.time < audioStateEvt.happenTime)
+            && (audioStateEvt.happenTime - firstMove.time) < MANUAL_THRESHOLD);
+
+    return swipeSB;
 }
 
 } // namespace HiviewDFX

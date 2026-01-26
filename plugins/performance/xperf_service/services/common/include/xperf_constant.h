@@ -38,8 +38,8 @@ namespace XperfConstants {
     //"#UNIQUEID:7095285973044#FAULT_ID:0#FAULT_CODE:0#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111";
     const int32_t AUDIO_JANK_FRAME = 3003; //音频卡顿
 
-    //"#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60"
-    //"#REPORT_INTERVAL:100";
+    //"#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
+    // #REPORT_INTERVAL:100";
     const int32_t AVCODEC_FIRST_FRAME_START = 4000; //avcodec上报首帧
 
     // "#UNIQUEID:6670084210789#PID:11283#BUNDLE_NAME:com.kuaishou.hmapp"
@@ -55,6 +55,9 @@ namespace XperfConstants {
 
     //"#UNIQUEID:7095285973044#HANPPEN_TIME:1720001111";
     const int32_t VIDEO_EXCEPT_STOP = 5002;  //video play exception stop timeout 6s
+
+    //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
+    const int32_t PERF_USER_ACTION = 6000;  //perfmonitor上报用户操作事件
 
 };
 

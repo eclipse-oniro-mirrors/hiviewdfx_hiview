@@ -26,17 +26,18 @@ config("xperfservice_server_config") {
     "framework/task_manager/include",
     "framework/xperf_parser/include",
     "framework/xperf_dispatcher/include",
+    "framework/model/xperf_event",
     "framework/model/xperf_event/include",
     "framework/xperf_monitor/include",
     "framework/model/xperf_record/include",
     "framework/model/xperf_report",
     "framework/xperf_reporter/include",
+    "framework/xperf_storage/include",
   ]
 }
 
 ohos_shared_library("xperfservice_server") {
   public_configs = [ ":xperfservice_server_config" ]
-
   version_script = "libxperfservie_server.map"
 
   sources = [
@@ -44,21 +45,19 @@ ohos_shared_library("xperfservice_server") {
     "common/src/perf_trace.cpp",
     "core/src/xperf_service.cpp",
     "core/src/xperf_register_manager.cpp",
-
     "framework/xperf_dispatcher/src/xperf_monitor_manager.cpp",
     "framework/xperf_dispatcher/src/event_parser_manager.cpp",
     "framework/xperf_dispatcher/src/xperf_dispatcher.cpp",
-
+    "framework/xperf_monitor/src/user_action_monitor.cpp",
     "framework/xperf_monitor/src/video_jank_monitor.cpp",
     "framework/xperf_monitor/src/video_xperf_monitor.cpp",
-
     "framework/xperf_parser/src/audio_event_parser.cpp",
     "framework/xperf_parser/src/avcodec_event_parser.cpp",
     "framework/xperf_parser/src/network_event_parser.cpp",
+    "framework/xperf_parser/src/perf_event_parser.cpp",
     "framework/xperf_parser/src/rs_event_parser.cpp",
-
     "framework/xperf_reporter/src/video_reporter.cpp",
-
+    "framework/xperf_storage/src/user_action_storage.cpp",
     "server/src/xperf_service_server.cpp",
     "xperf_service_main.cpp",
     "xperf_service_interfaces.cpp",

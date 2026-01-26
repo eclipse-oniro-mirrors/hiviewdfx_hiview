@@ -20,3 +20,5 @@ xperfservice_common = "${xperfservice_path}/common"
 xperfservice_interfaces = "${xperfservice_path}/interfaces"
 
 xperfservice_test = "${xperfservice_path}/test"
+
+xperfservice_client = "${xperfservice_path}/interfaces/inner_api/xperfservice_client"

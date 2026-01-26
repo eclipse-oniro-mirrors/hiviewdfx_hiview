@@ -13,6 +13,7 @@
 
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
+import("//base/hiviewdfx/hiview/plugins/performance/xperf_service/xperf_service.gni")
 
 if (hiview_enable_xperf_perfmonitor) {
   config("xperf_perfmonitor_config") {
@@ -72,7 +73,10 @@ ohos_shared_library("libperfmonitor") {
 
     defines = []
 
-    deps = [ "$hiview_base:hiviewbase" ]
+    deps = [
+      "$hiview_base:hiviewbase",
+      "$xperfservice_client:xperfservice_client"
+    ]
 
     external_deps = [
       "eventhandler:libeventhandler",

@@ -28,6 +28,11 @@ enum DomainId {
     AUDIO = 3,
     AVCODEC = 4,
     RS = 5,
+    PERFMONITOR = 6,
+};
+
+enum PerfEventCode {
+    USER_ACTION,
 };
 
 enum NetworkEventCode {
@@ -44,6 +49,8 @@ enum AudioEventCode {
 enum AvcodecEventCode {
     AVCODEC_FIRST_FRAME_START,
     AVCODEC_JANK_REPORT,
+    AVCODEC_CREATE,
+    AVCODEC_DESTROY,
 };
 
 enum RsEventCode {

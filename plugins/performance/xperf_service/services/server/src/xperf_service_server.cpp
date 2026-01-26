@@ -44,6 +44,8 @@ void XperfServiceServer::Start()
 
 ErrCode XperfServiceServer::NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg)
 {
+    LOGI("XperfServiceServer_NotifyToXperf domainId:%{public}d eventId:%{public}d msg:%{public}s", domainId, eventId,
+         msg.c_str());
     auto timerId = HiviewDFX::XCollie::GetInstance().SetTimer("XPerfIPC_NotifyToXperf", XPERF_IPC_XCOLLIE_TIMEOUT,
         nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
     XperfService::GetInstance().DispatchMsg(domainId, eventId, msg);

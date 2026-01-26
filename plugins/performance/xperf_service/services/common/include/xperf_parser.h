@@ -35,6 +35,9 @@ const std::string TAG_MAX_FRAME_TIME = "#MAX_FRAME_TIME:";
 const std::string TAG_DURATION = "#DURATION:";
 const std::string TAG_AVG_FPS = "#AVG_FPS:";
 const std::string TAG_JANK_REASON = "#JANK_REASON:";
+const std::string TAG_TYPE = "#TYPE:";
+const std::string TAG_TIME = "#TIME:";
+const std::string TAG_END = "";
 
 bool ExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,
     const std::string& nextTag);
