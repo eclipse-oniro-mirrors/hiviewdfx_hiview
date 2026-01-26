@@ -18,7 +18,6 @@
 #include "avcodec_event.h"
 #include "xperf_register_manager.h"
 #include "perf_trace.h"
-#include "transaction/rs_interfaces.h"
 #include "user_action_storage.h"
 
 namespace OHOS {
@@ -157,7 +156,6 @@ void VideoJankMonitor::MonitorStart()
         surfaceNames.push_back(item.surfaceName);
     }
     LOGI("VideoJankMonitor_MonitorStart AvcodecVideoStart");
-    OHOS::Rosen::RSInterfaces::GetInstance().AvcodecVideoStart(uniqueIds, surfaceNames, fps, interval); //通知图形开始检测
 }
 
 void VideoJankMonitor::MonitorStop()
@@ -170,7 +168,6 @@ void VideoJankMonitor::MonitorStop()
         surfaceNames.push_back(item.surfaceName);
     }
     LOGI("VideoJankMonitor_MonitorStop AvcodecVideoStop");
-    OHOS::Rosen::RSInterfaces::GetInstance().AvcodecVideoStop(uniqueIds, surfaceNames, fps); //通知图形停止检测
 }
 
 bool VideoJankMonitor::IsUserAction()
