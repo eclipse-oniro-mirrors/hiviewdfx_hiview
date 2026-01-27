@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,11 @@
  * limitations under the License.
  */
 
-#include <map>
 #include "loglibrary_ani_util.h"
+
+#include <map>
+
+#include "hiview_logger.h"
 #include "hiview_service_agent.h"
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
@@ -29,14 +32,14 @@ std::string LogLibraryAniUtil::ParseStringValue(ani_env *env, ani_string aniStrR
 {
     ani_size strSize = 0;
     if (ANI_OK != env->String_GetUTF8Size(aniStrRef, &strSize)) {
-        HILOG_ERROR(LOG_CORE, "String_GetUTF8Size Failed");
+        HIVIEW_LOGE("String_GetUTF8Size Failed");
         return "";
     }
     std::vector<char> buffer(strSize + 1);
     char* utf8Buffer = buffer.data();
     ani_size bytesWritten = 0;
     if (ANI_OK != env->String_GetUTF8(aniStrRef, utf8Buffer, strSize + 1, &bytesWritten)) {
-        HILOG_ERROR(LOG_CORE, "String_GetUTF8 Failed");
+        HIVIEW_LOGE("String_GetUTF8 Failed");
         return "";
     }
     utf8Buffer[bytesWritten] = '\0';
@@ -54,19 +57,19 @@ bool LogLibraryAniUtil::CreateLogEntryArray(ani_env *env,
         env->String_NewUTF8(name.c_str(), name.size(), &name_string);
         ani_object logEntryObj = LogLibraryAniUtil::CreateLogEntryObject(env);
         if (ANI_OK != env->Object_SetPropertyByName_Ref(logEntryObj, "name", name_string)) {
-            HILOG_ERROR(LOG_CORE, "Set LogEntry name Fail: %{public}s", CLASS_NAME_LOGENTRY);
+            HIVIEW_LOGE("Set LogEntry name Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
         if (ANI_OK != env->Object_SetPropertyByName_Long(logEntryObj, "mtime", value.mtime)) {
-            HILOG_ERROR(LOG_CORE, "Set LogEntry mtime Fail: %{public}s", CLASS_NAME_LOGENTRY);
+            HIVIEW_LOGE("Set LogEntry mtime Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
         if (ANI_OK != env->Object_SetPropertyByName_Long(logEntryObj, "size", value.size)) {
-            HILOG_ERROR(LOG_CORE, "Set LogEntry size Fail: %{public}s", CLASS_NAME_LOGENTRY);
+            HIVIEW_LOGE("Set LogEntry size Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
         if (ANI_OK != env->Array_Set(logEntryArray, index, static_cast<ani_ref>(logEntryObj))) {
-            HILOG_ERROR(LOG_CORE, "Set logEntryObj to array Fail: %{public}s", CLASS_NAME_LOGENTRY);
+            HIVIEW_LOGE("Set logEntryObj to array Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;
         }
         index++;
@@ -79,18 +82,18 @@ ani_object LogLibraryAniUtil::CreateLogEntryObject(ani_env *env)
     ani_class cls {};
     ani_object logEntryObj {};
     if (ANI_OK != env->FindClass(CLASS_NAME_LOGENTRY, &cls)) {
-        HILOG_ERROR(LOG_CORE, "FindClass %{public}s Failed", CLASS_NAME_LOGENTRY);
+        HIVIEW_LOGE("FindClass %{public}s Failed", CLASS_NAME_LOGENTRY);
         return logEntryObj;
     }
 
     ani_method logEntryConstructor {};
     if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", nullptr, &logEntryConstructor)) {
-        HILOG_ERROR(LOG_CORE, "get %{public}s ctor Failed", CLASS_NAME_LOGENTRY);
+        HIVIEW_LOGE("get %{public}s ctor Failed", CLASS_NAME_LOGENTRY);
         return logEntryObj;
     }
 
     if (ANI_OK != env->Object_New(cls, logEntryConstructor, &logEntryObj)) {
-        HILOG_ERROR(LOG_CORE, "Create Object Failed: %{public}s", CLASS_NAME_LOGENTRY);
+        HIVIEW_LOGE("Create Object Failed: %{public}s", CLASS_NAME_LOGENTRY);
         return logEntryObj;
     }
     return logEntryObj;
@@ -102,7 +105,7 @@ ani_ref LogLibraryAniUtil::ListResult(ani_env *env, const std::vector<HiviewFile
 
     ani_ref undefinedRef = LogLibraryAniUtil::GetAniUndefined(env);
     if (ANI_OK != env->Array_New(fileInfos.size(), undefinedRef, &logEntryArray)) {
-        HILOG_ERROR(LOG_CORE, "Array_New_Ref Failed");
+        HIVIEW_LOGE("Array_New_Ref Failed");
         return logEntryArray;
     }
 
@@ -111,7 +114,7 @@ ani_ref LogLibraryAniUtil::ListResult(ani_env *env, const std::vector<HiviewFile
     }
 
     if (!CreateLogEntryArray(env, fileInfos, logEntryArray)) {
-        HILOG_ERROR(LOG_CORE, "CreateLogEntryArray Failed");
+        HIVIEW_LOGE("CreateLogEntryArray Failed");
         return logEntryArray;
     }
     return logEntryArray;
@@ -127,34 +130,34 @@ void LogLibraryAniUtil::ThrowAniError(ani_env *env, int32_t code, const std::str
 {
     ani_class cls {};
     if (ANI_OK != env->FindClass(CLASS_NAME_BUSINESSERROR, &cls)) {
-        HILOG_ERROR(LOG_CORE, "find class %{public}s failed", CLASS_NAME_BUSINESSERROR);
+        HIVIEW_LOGE("find class %{public}s failed", CLASS_NAME_BUSINESSERROR);
         return;
     }
     ani_method ctor {};
     if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":", &ctor)) {
-        HILOG_ERROR(LOG_CORE, "find method BusinessError constructor failed");
+        HIVIEW_LOGE("find method BusinessError constructor failed");
         return;
     }
     ani_object error {};
     if (ANI_OK != env->Object_New(cls, ctor, &error)) {
-        HILOG_ERROR(LOG_CORE, "new object %{public}s failed", CLASS_NAME_BUSINESSERROR);
+        HIVIEW_LOGE("new object %{public}s failed", CLASS_NAME_BUSINESSERROR);
         return;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Int(error, "code_", static_cast<ani_int>(code))) {
-        HILOG_ERROR(LOG_CORE, "set property BusinessError.code failed");
+        HIVIEW_LOGE("set property BusinessError.code failed");
         return;
     }
     ani_string messageRef {};
     if (ANI_OK != env->String_NewUTF8(message.c_str(), message.size(), &messageRef)) {
-        HILOG_ERROR(LOG_CORE, "new message string failed");
+        HIVIEW_LOGE("new message string failed");
         return;
     }
     if (ANI_OK != env->Object_SetPropertyByName_Ref(error, "message", static_cast<ani_ref>(messageRef))) {
-        HILOG_ERROR(LOG_CORE, "set property BusinessError.message failed");
+        HIVIEW_LOGE("set property BusinessError.message failed");
         return;
     }
     if (ANI_OK != env->ThrowError(static_cast<ani_error>(error))) {
-        HILOG_ERROR(LOG_CORE, "throwError ani_error object failed");
+        HIVIEW_LOGE("throwError ani_error object failed");
     }
 }
 
@@ -210,47 +213,47 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
     ani_object results_obj {};
     ani_class cls {};
     if (ANI_OK != env->FindClass(CLASS_NAME_RESULTS, &cls)) {
-        HILOG_ERROR(LOG_CORE, "failed to find class %{public}s", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("failed to find class %{public}s", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
     ani_method ctor {};
     if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor)) {
-        HILOG_ERROR(LOG_CORE, "get method %{public}s <ctor> failed", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("get method %{public}s <ctor> failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
     if (ANI_OK != env->Object_New(cls, ctor, &results_obj)) {
-        HILOG_ERROR(LOG_CORE, "create object %{public}s failed", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("create object %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
     ani_method codeSetter {};
     if (ANI_OK != env->Class_FindMethod(cls, "<set>code", nullptr, &codeSetter)) {
-        HILOG_ERROR(LOG_CORE, "get method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("get method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
     if (ANI_OK != env->Object_CallMethod_Void(results_obj, codeSetter, static_cast<ani_int>(result.first))) {
-        HILOG_ERROR(LOG_CORE, "call method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("call method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
     ani_method messageSetter {};
     if (ANI_OK != env->Class_FindMethod(cls, "<set>message", nullptr, &messageSetter)) {
-        HILOG_ERROR(LOG_CORE, "find method messageSetter %{public}s failed", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("find method messageSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
     std::string message = result.second;
     ani_string message_string {};
     if (ANI_OK != env->String_NewUTF8(message.c_str(), message.size(), &message_string)) {
-        HILOG_ERROR(LOG_CORE, "new message string failed");
+        HIVIEW_LOGE("new message string failed");
         return results_obj;
     }
 
     if (ANI_OK != env->Object_CallMethod_Void(results_obj, messageSetter, message_string)) {
-        HILOG_ERROR(LOG_CORE, "call method messageSetter Fail %{public}s", CLASS_NAME_RESULTS);
+        HIVIEW_LOGE("call method messageSetter Fail %{public}s", CLASS_NAME_RESULTS);
         return results_obj;
     }
 
@@ -261,7 +264,7 @@ ani_ref LogLibraryAniUtil::GetAniUndefined(ani_env *env)
 {
     ani_ref result {};
     if (ANI_OK != env->GetUndefined(&result)) {
-        HILOG_ERROR(LOG_CORE, "GetUndefined Fail");
+        HIVIEW_LOGE("GetUndefined Fail");
         return result;
     }
     return result;

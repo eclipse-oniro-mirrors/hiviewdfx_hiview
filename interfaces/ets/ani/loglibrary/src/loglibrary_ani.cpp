@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,8 +14,10 @@
  */
 
 #include "loglibrary_ani.h"
-#include "loglibrary_ani_util.h"
+
+#include "hiview_logger.h"
 #include "hiview_service_agent.h"
+#include "loglibrary_ani_util.h"
 
 using namespace OHOS::HiviewDFX;
 namespace {
@@ -83,13 +85,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
     ani_env *env = nullptr;
     if (ANI_OK != vm->GetEnv(ANI_VERSION_1, &env)) {
-        HILOG_ERROR(LOG_CORE, "Unsupported ANI_VERSION_1");
+        HIVIEW_LOGE("Unsupported ANI_VERSION_1");
         return ANI_ERROR;
     }
 
     ani_namespace ns {};
     if (ANI_OK != env->FindNamespace(CLASS_NAME_LOGLIBRARY, &ns)) {
-        HILOG_ERROR(LOG_CORE, "FindNamespace %{public}s failed", CLASS_NAME_LOGLIBRARY);
+        HIVIEW_LOGE("FindNamespace %{public}s failed", CLASS_NAME_LOGLIBRARY);
         return ANI_ERROR;
     }
 
@@ -101,7 +103,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
 
     if (ANI_OK != env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size())) {
-        HILOG_ERROR(LOG_CORE, "Namespace %{public}s BindNativeFunctions failed", CLASS_NAME_LOGLIBRARY);
+        HIVIEW_LOGE("Namespace %{public}s BindNativeFunctions failed", CLASS_NAME_LOGLIBRARY);
         return ANI_ERROR;
     };
 
