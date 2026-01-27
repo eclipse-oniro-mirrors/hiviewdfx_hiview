@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,9 @@
 #define LOGLIBRARY_ANI_UTIL_H
 
 #include <ani.h>
-#include "hilog/log.h"
-#include "hilog/log_cpp.h"
+
 #include "hiview_file_info.h"
 #include "hiview_err_code.h"
-#include "hiview_logger.h"
-#include "string_util.h"
 #include "loglibrary_ani_parameter_name.h"
 
 namespace OHOS {
