@@ -76,10 +76,10 @@ static bool WriteProcessMemoryToFile(std::string& filePath, const std::vector<Pr
         HIVIEW_LOGE("open %{public}s failed.", FileUtil::ExtractFileName(filePath).c_str());
         return false;
     }
-    (void)fprintf(fp, "pid\tpname\trss(KB)\tpss(KB)\tswapPss(KB)\tadj\tprocState\n");
+    (void)fprintf(fp, "pid pname rss(KB) pss(KB) swapPss(KB) adj procState\n");
 
     for (auto& processMem : processMems) {
-        (void)fprintf(fp, "%d\t%s\t%d\t%d\t%d\t%d\t%d\n", processMem.pid, processMem.name.c_str(), processMem.rss,
+        (void)fprintf(fp, "%d %s %d %d %d %d %d\n", processMem.pid, processMem.name.c_str(), processMem.rss,
             processMem.pss, processMem.swapPss, processMem.adj, processMem.procState);
     }
     (void)fclose(fp);
