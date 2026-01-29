@@ -513,7 +513,7 @@ bool SceneMonitor::isSetAppGCStatus(int64_t value)
             return false;
         }
     }
-    return true;
+    return false;
 }
 
 void SceneMonitor::SetSubHealthInfo(const SubHealthInfo& info)
