@@ -129,8 +129,9 @@ std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPi
     }
 
     for (auto pidTemp : asyncPids) {
-        if (GetUidByPid(pidTemp) >= MIN_APP_UID) {
-            HIVIEW_LOGI("Async stack, skip current pid: %{public}d", pidTemp);
+        int uid = GetUidByPid(pidTemp);
+        if (uid < 0 || uid >= MIN_APP_UID) {
+            HIVIEW_LOGI("Async stack, skip current pid: %{public}d, uid: %{public}d", pidTemp, uid);
             continue;
         }
         if (pidTemp == pid_ || IsAncoProc(pidTemp) || syncPids.find(pidTemp) != syncPids.end() ||

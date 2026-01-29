@@ -16,9 +16,9 @@
 #define EVENT_LOGGER_THERMAL_INFO_CATCHER
 
 #include <string>
+#include "sys_event.h"
 
 #include "event_log_catcher.h"
-#include "sys_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,7 +31,7 @@ public:
     void SetEvent(std::shared_ptr<SysEvent> event);
 
 private:
-    std::shared_ptr<SysEvent> event_ = nullptr;
+    std::shared_ptr<SysEvent> event_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -168,6 +168,14 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
     sysEvent2->happenTime_ = TimeUtil::GetMilliseconds();
     std::shared_ptr<OHOS::HiviewDFX::Event> event2 = std::static_pointer_cast<Event>(sysEvent2);
     EXPECT_EQ(eventLogger->OnEvent(event2), true);
+
+    jsonStr = "{\"domain_\":\"AAFWK\"}";
+    std::shared_ptr<SysEvent> sysEvent3 = std::make_shared<SysEvent>("HIVIEW_HALF_FREEZE_LOG",
+        nullptr, jsonStr);
+    sysEvent3->SetEventValue("PID", pid);
+    sysEvent3->happenTime_ = TimeUtil::GetMilliseconds();
+    std::shared_ptr<OHOS::HiviewDFX::Event> event3 = std::static_pointer_cast<Event>(sysEvent3);
+    EXPECT_EQ(eventLogger->OnEvent(event3), true);
     eventLogger->OnUnload();
 }
 
@@ -407,6 +415,28 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartLogCollect_001, TestSize.Level3)
     sysEvent->SetEventValue("MSG", "Test\nnotifyAppFault exception\n");
     eventLogger->StartLogCollect(sysEvent);
     EXPECT_TRUE(sysEvent != nullptr);
+}
+
+/**
+ * @tc.name: EventLoggerTest_HandleEventLoggerCmd_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    eventLogger->OnLoad();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string testName = "EventLoggerTest_HandleEventLoggerCmd_001";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    sysEvent->SetValue("eventLog_action", "k:SysrqHungtaskFile");
+
+    std::shared_ptr<EventLogTask> logTask = std::make_unique<EventLogTask>(-1, 1, sysEvent);
+    eventLogger->HandleEventLoggerCmd("k:SysrqHungtaskFile", sysEvent, -1, logTask);
+
+    eventLogger->HandleEventLoggerCmd("k:hungtaskFile", sysEvent, -1, logTask);
+    EXPECT_TRUE(sysEvent != nullptr);
+    eventLogger->OnUnload();
 }
 
 /**
@@ -1227,11 +1257,11 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetWindowIdFromLine_004, TestSize.Leve
 }
 
 /**
- * @tc.name: EventLoggerTest_HandleEventLoggerCmd_001
+ * @tc.name: EventLoggerTest_HandleEventLoggerCmd_002
  * @tc.desc: add testcase
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_002, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     std::string cmd = "tr";

@@ -164,46 +164,6 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_002, TestSize.Level3)
     close(fd);
 }
 
-void LogTaskCapture(std::shared_ptr<SysEvent>& sysEvent, std::unique_ptr<EventLogTask> logTask, int fd)
-{
-#ifdef USAGE_CATCHER_ENABLE
-    logTask->DumpAppMapCapture();
-    logTask->WMSUsageCapture();
-    logTask->AMSUsageCapture();
-    logTask->PMSUsageCapture();
-    logTask->DPMSUsageCapture();
-    logTask->RSUsageCapture();
-    logTask->MemoryUsageCapture();
-    logTask->CpuUsageCapture(true);
-    logTask->CpuUsageCapture();
-    logTask->CpuCoreInfoCapture();
-#endif // USAGE_CATCHER_ENABLE
-#ifdef OTHER_CATCHER_ENABLE
-    logTask->Screenshot();
-    logTask->FfrtCapture();
-    logTask->DMSUsageCapture();
-    logTask->MMIUsageCapture();
-    logTask->EECStateCapture();
-    logTask->GECStateCapture();
-    logTask->UIStateCapture();
-#endif // OTHER_CATCHER_ENABLE
-
-#ifdef HITRACE_CATCHER_ENABLE
-    logTask->HitraceCapture(false);
-    sysEvent->eventName_ = "THREAD_BLOCK_6S";
-    sysEvent->SetValue("PROCESS_NAME", "EventloggerCatcherTest");
-    logTask->HitraceCapture(true);
-#endif // HITRACE_CATCHER_ENABLE
-    logTask->GetThermalInfoCapture();
-    logTask->AddLog("Test");
-    logTask->AddLog("cmd:w");
-    logTask->status_ = EventLogTask::Status::TASK_RUNNING;
-    auto ret = logTask->StartCompose();
-    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
-
-    close(fd);
-}
-
 /**
  * @tc.name: EventlogTask
  * @tc.desc: test EventlogTask
@@ -247,6 +207,18 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     logTask->SCBWMSEVTCapture();
 #endif // SCB_CATCHER_ENABLE
 
+#ifdef USAGE_CATCHER_ENABLE
+    logTask->DumpAppMapCapture();
+    logTask->WMSUsageCapture();
+    logTask->AMSUsageCapture();
+    logTask->PMSUsageCapture();
+    logTask->DPMSUsageCapture();
+    logTask->RSUsageCapture();
+    logTask->MemoryUsageCapture();
+    logTask->CpuUsageCapture();
+    logTask->CpuCoreInfoCapture();
+#endif // USAGE_CATCHER_ENABLE
+
 #ifdef DMESG_CATCHER_ENABLE
     logTask->DmesgCapture(0, 0);
     logTask->DmesgCapture(0, 1);
@@ -258,7 +230,31 @@ HWTEST_F(EventloggerCatcherTest, EventlogTask_003, TestSize.Level3)
     logTask->DmesgCapture(0, 3);
     logTask->DmesgCapture(1, 3);
 #endif // DMESG_CATCHER_ENABLE
-    LogTaskCapture(sysEvent, std::move(logTask), fd);
+
+#ifdef OTHER_CATCHER_ENABLE
+    logTask->Screenshot();
+    logTask->FfrtCapture();
+    logTask->DMSUsageCapture();
+    logTask->MMIUsageCapture();
+    logTask->EECStateCapture();
+    logTask->GECStateCapture();
+    logTask->UIStateCapture();
+#endif // OTHER_CATCHER_ENABLE
+
+#ifdef HITRACE_CATCHER_ENABLE
+    logTask->HitraceCapture(false);
+    sysEvent->eventName_ = "THREAD_BLOCK_6S";
+    sysEvent->SetValue("PROCESS_NAME", "EventloggerCatcherTest");
+    logTask->HitraceCapture(true);
+#endif // HITRACE_CATCHER_ENABLE
+    logTask->GetThermalInfoCapture();
+    logTask->AddLog("Test");
+    logTask->AddLog("cmd:w");
+    logTask->status_ = EventLogTask::Status::TASK_RUNNING;
+    auto ret = logTask->StartCompose();
+    printf("task size: %d\n", static_cast<int>(logTask->tasks_.size()));
+
+    close(fd);
 }
 
 #ifdef STACKTRACE_CATCHER_ENABLE
@@ -782,7 +778,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_002, TestSize.Level1)
     EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) > 0);
 
     dmesgCatcher->Initialize("", 0, 1);
-    EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) >= 0);
+    EXPECT_TRUE(dmesgCatcher->Catch(fd, jsonFd) > 0);
 
     dmesgCatcher->Initialize("", 1, 1);
     printf("dmesgCatcher result: %d\n", dmesgCatcher->Catch(fd, jsonFd));
@@ -814,7 +810,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     EXPECT_EQ(ret, false);
     ret = dmesgCatcher->WriteSysrqTrigger();
     EXPECT_EQ(ret, true);
-    
+
     auto fd1 = open("/data/test/dmesgCatcherFile1", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd1 < 0) {
         printf("Fail to create dmesgCatcherFile1. errno: %d\n", errno);
@@ -848,18 +844,119 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_003, TestSize.Level1)
     }
     dmesgCatcher->Initialize("", true, 3);
     ret = dmesgCatcher->DumpDmesgLog(fd3, fd4);
+    EXPECT_EQ(ret, true);
+
+    dmesgCatcher->Initialize("", false, 3);
+    ret = dmesgCatcher->DumpDmesgLog(fd3, fd4);
+    EXPECT_EQ(ret, true);
     close(fd3);
     close(fd4);
+}
+
+/**
+ * @tc.name: DmesgCatcherTest_004
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_004, TestSize.Level1)
+{
+    auto dmesgCatcher = std::make_shared<DmesgCatcher>();
+    auto fd5 = open("/data/test/dmesgCatcherFile5", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd5 < 0) {
+        printf("Fail to create dmesgCatcherFile5. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto fd6 = open("/data/test/dmesgCatcherFile6", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd6 < 0) {
+        printf("Fail to create dmesgCatcherFile6. errno: %d\n", errno);
+        FAIL();
+    }
+    dmesgCatcher->extraFile_ = true;
+    dmesgCatcher->Initialize("", false, 1);
+    bool ret = dmesgCatcher->DumpDmesgLog(fd5, fd6);
     EXPECT_EQ(ret, true);
+
+    dmesgCatcher->Initialize("", false, 2);
+    ret = dmesgCatcher->DumpDmesgLog(fd5, fd6);
+    EXPECT_EQ(ret, true);
+    close(fd5);
+    close(fd6);
+}
+
+/**
+ * @tc.name: DmesgCatcherTest_005
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_005, TestSize.Level1)
+{
+    auto dmesgCatcher = std::make_shared<DmesgCatcher>();
+    std::string dataStr = "testDataStr";
+    std::string sysrqStr;
+    std::string hungtaskStr;
+
+    dmesgCatcher->writeNewFile_ = 1;
+
+    dmesgCatcher->GetSysrq(dataStr, sysrqStr);
+    EXPECT_TRUE(sysrqStr.empty());
+
+    dataStr = "sysrq start:testInfo";
+    dmesgCatcher->GetSysrq(dataStr, sysrqStr);
+    EXPECT_TRUE(sysrqStr.empty());
+
+    dataStr = "sysrq start:testInfo sysrq end:";
+    dmesgCatcher->GetSysrq(dataStr, sysrqStr);
+    EXPECT_TRUE(!sysrqStr.empty());
+
+    dmesgCatcher->GetHungTask(dataStr, hungtaskStr);
+    EXPECT_TRUE(hungtaskStr.empty());
+
+    dataStr = "testInfo:hguard-worker\n xxx \n sys-lmk-debug-t";
+    dmesgCatcher->GetHungTask(dataStr, hungtaskStr);
+    EXPECT_TRUE(!hungtaskStr.empty());
+
+    dmesgCatcher->writeNewFile_ = 0;
+
+    sysrqStr = "";
+
+    dmesgCatcher->GetSysrq(dataStr, sysrqStr, false);
+    EXPECT_TRUE(sysrqStr.empty());
+
+    dmesgCatcher->GetSysrq(dataStr, sysrqStr);
+    EXPECT_EQ(sysrqStr, "\nSysrqCatcher -- \n");
+
+    sysrqStr = "";
+    dataStr = "sysrq start:testInfo";
+    dmesgCatcher->GetSysrq(dataStr, sysrqStr);
+    EXPECT_EQ(sysrqStr, "\nSysrqCatcher -- \n");
+
+    hungtaskStr = "";
+
+    dmesgCatcher->GetHungTask(dataStr, hungtaskStr, false);
+    EXPECT_TRUE(hungtaskStr.empty());
+
+    dmesgCatcher->GetHungTask(dataStr, hungtaskStr);
+    EXPECT_EQ(hungtaskStr, "\nHungTaskCatcher -- \n");
+
+    std::string fileName = "/data/test/dmesgCatcherFileTest004";
+    auto fd = open(fileName.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create dmesgCatcherFileTest004. errno: %d\n", errno);
+        FAIL();
+    }
+    close(fd);
+    FILE* fp = dmesgCatcher->GetFileInfoByName(fileName.c_str(), fd);
+    EXPECT_EQ(fp, nullptr);
 }
 
 #ifdef KERNELSTACK_CATCHER_ENABLE
 /**
- * @tc.name: DmesgCatcherTest_004
+ * @tc.name: DmesgCatcherTest_006
  * @tc.desc: add test
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_004, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_006, TestSize.Level1)
 {
     int pid = getpid();
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
@@ -873,14 +970,14 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_004, TestSize.Level1)
     ret = dmesgCatcher->DumpKernelStacktrace(fd, pid);
     EXPECT_EQ(ret, 0);
     close(fd);
-}..
+}
 
 /**
- * @tc.name: DmesgCatcherTest_005
+ * @tc.name: DmesgCatcherTest_007
  * @tc.desc: add test
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_005, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_007, TestSize.Level1)
 {
     std::vector<pid_t> tids;
     auto dmesgCatcher = std::make_shared<DmesgCatcher>();
