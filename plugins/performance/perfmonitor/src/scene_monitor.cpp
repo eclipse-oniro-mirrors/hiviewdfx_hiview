@@ -494,7 +494,8 @@ void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(SENSITIVE_SCENE_RESTYPE, value, payload);
 }
 
-bool SceneMonitor::isSetAppGCStatus(int64_t value) {
+bool SceneMonitor::isSetAppGCStatus(int64_t value)
+{
     if (value == 1) {
         if (countStart == 0) {
             return false;
