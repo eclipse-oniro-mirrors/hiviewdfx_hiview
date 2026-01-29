@@ -481,7 +481,10 @@ void SceneMonitor::SetVsyncLazyMode(uint64_t sceneTag)
 
 void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
 {
-    XPERF_TRACE_SCOPED("SceneMonitor::SetAppGCStatus");
+    if (!isSetAppGCStatus(value)) {
+        return;
+    }
+    XPERF_TRACE_SCOPED("SceneMonitor::SetAppGCStatus: value = %ld", value);
     std::unordered_map<std::string, std::string> payload;
     payload["extType"] = SENSITIVE_SCENE_EXTTYPE;
     payload["srcPid"] = std::to_string(GetPid());
@@ -489,6 +492,27 @@ void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
         value = APP_LIST_FLING_EXIT_GC;
     }
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(SENSITIVE_SCENE_RESTYPE, value, payload);
+}
+
+bool SceneMonitor::isSetAppGCStatus(int64_t value) {
+    if (value == 1) {
+        if (countStart == 0) {
+            return false;
+        } else {
+            countStart--;
+            return true;
+        }
+    } else if (value == 0) {
+        int64_t currTime =  GetCurrentRealTimeNs();
+        if (currTime - preStartTime > MIN_GC_INTERVAL) {
+            countStart++;
+            preStartTime = currTime;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return true;
 }
 
 void SceneMonitor::SetSubHealthInfo(const SubHealthInfo& info)
