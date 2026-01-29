@@ -484,7 +484,7 @@ void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
     if (!isSetAppGCStatus(value)) {
         return;
     }
-    XPERF_TRACE_SCOPED("SceneMonitor::SetAppGCStatus: value = %ld", value);
+    XPERF_TRACE_SCOPED("SceneMonitor::SetAppGCStatus: value = %lld", value);
     std::unordered_map<std::string, std::string> payload;
     payload["extType"] = SENSITIVE_SCENE_EXTTYPE;
     payload["srcPid"] = std::to_string(GetPid());
