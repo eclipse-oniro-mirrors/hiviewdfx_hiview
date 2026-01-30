@@ -99,6 +99,7 @@ constexpr const char * const CPU_ABI = "CPU_ABI";
 constexpr const char * const RELEASE_TYPE = "RELEASE_TYPE";
 constexpr const char * const THERMAL_LEVEL = "THERMAL_LEVEL";
 constexpr const char * const CLUSTER_RAW = "CLUSTER_RAW";
+constexpr const char * const IS_SIG_ACTION = "IS_SIG_ACTION";
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
