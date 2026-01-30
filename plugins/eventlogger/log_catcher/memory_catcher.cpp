@@ -142,7 +142,7 @@ void MemoryCatcher::CheckString(
         if (!path.empty() && memsize > OVER_MEM_SIZE) {
             data += GetStringFromFile(path);
         }
-        if (path.empty() && memsize < BELOW_MEM_SIZE && event_) {
+        if (path.empty() && memsize > 0 && memsize < BELOW_MEM_SIZE && event_) {
             event_->SetEventValue(FreezeCommon::HOST_RESOURCE_WARNING, "TRUE");
         }
     }

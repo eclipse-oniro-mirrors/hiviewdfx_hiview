@@ -94,6 +94,45 @@ HWTEST_F(EventCacheTraceTest, EventCacheTraceTest_001, TestSize.Level1)
     EXPECT_EQ(telemetryInfo.first, "");
     EXPECT_EQ(telemetryInfo.second, "");
 }
+
+/**
+ * @tc.name: EventCacheTraceTest_002
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventCacheTraceTest, EventCacheTraceTest_002, TestSize.Level1)
+{
+    std::map<std::string, std::string> valuePairs;
+    EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);
+    std::pair<std::string, std::string> telemetryInfo = EventCacheTrace::GetInstance().GetTelemetryInfo();
+    std::string testValue = "EventCacheTraceTest_002";
+    valuePairs["fault"] = "32";
+    valuePairs["telemetryStatus"] = "on";
+    valuePairs["telemetryId"] = "";
+    EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);
+    telemetryInfo = EventCacheTrace::GetInstance().GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.first, "");
+    EventCacheTrace::GetInstance().FreezeFilterTraceOn(testValue);
+
+    valuePairs["telemetryId"] = "123";
+    EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);
+    telemetryInfo = EventCacheTrace::GetInstance().GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.first, "123");
+    EventCacheTrace::GetInstance().FreezeFilterTraceOn(testValue);
+
+    valuePairs["traceAppFilter"] = "";
+    EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);
+    telemetryInfo = EventCacheTrace::GetInstance().GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.second, "");
+    EventCacheTrace::GetInstance().FreezeFilterTraceOn(testValue);
+
+    valuePairs["traceAppFilter"] = testValue;
+    EventCacheTrace::GetInstance().HandleTelemetryMsg(valuePairs);
+    telemetryInfo = EventCacheTrace::GetInstance().GetTelemetryInfo();
+    EXPECT_EQ(telemetryInfo.second, testValue);
+    EventCacheTrace::GetInstance().FreezeFilterTraceOn("testValue");
+    EventCacheTrace::GetInstance().FreezeFilterTraceOn(testValue);
+}
 #endif
 } // namespace HiviewDFX
 } // namespace OHOS
