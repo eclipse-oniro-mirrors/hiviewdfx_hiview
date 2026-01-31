@@ -47,7 +47,10 @@ static uint64_t GetDelayTimeout()
     static uint64_t timeout = []() {
         uint64_t pTimeout = 0;
         auto instance = GetFaultloggerInterface();
-        if (instance == nullptr || (pTimeout = instance->GetExtensionDelayTime()) == 0) {
+        if (instance != nullptr) {
+            pTimeout = instance->GetExtensionDelayTime();
+        }
+        if (pTimeout == 0) {
             pTimeout = DEFAULT_DELAY_TIME_SECONDS;
         }
         return pTimeout * SECONDS_TO_MICRO;
