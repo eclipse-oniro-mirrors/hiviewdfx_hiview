@@ -49,6 +49,8 @@ private:
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     bool IsSysWarning(const WatchPoint& watchPoint,
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
+    bool IsReportWarning(const WatchPoint& watchPoint,
+        const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     bool IsAppFreezeWarningForBetaVersion(const WatchPoint& watchPoint,
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     unsigned long startTime_;

@@ -63,6 +63,10 @@ public:
     static constexpr const char* QNAME = "QNAME";
     static constexpr const char* QOS = "QOS";
     static constexpr const char* CLUSTER_RAW = "CLUSTER_RAW";
+    static constexpr const char* WARNING_EVENTS[] = {
+        "THREAD_BLOCK_6S",
+        "LIFECYCLE_TIMEOUT",
+    };
 
     FreezeCommon();
     ~FreezeCommon();
@@ -77,6 +81,7 @@ public:
     std::shared_ptr<FreezeRuleCluster> GetFreezeRuleCluster() const;
     static void WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart = true);
     static time_t GetFaultTime(const std::string& msg);
+    bool IsReportAppFreezeEvent(const std::string& stringId) const;
 private:
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_;
     bool IsAssignedEvent(const std::string& domain, const std::string& stringId, int freezeId) const;
