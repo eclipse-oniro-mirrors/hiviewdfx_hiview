@@ -178,6 +178,10 @@ void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info)
     HIVIEW_LOGI("report cppcrash to appevent, pid:%{public}d len:%{public}zu", info.pid, stackInfo.length());
 #ifdef UNIT_TEST
     std::string outputFilePath = "/data/test_cppcrash_info_" + std::to_string(info.pid);
+    std::ofstream testFile(outputFilePath);
+    if (testFile.is_open()) {
+        testFile.close();
+    }
     WriteLogFile(outputFilePath, stackInfo + "\n");
 #endif
     EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo,
