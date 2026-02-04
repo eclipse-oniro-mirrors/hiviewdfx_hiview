@@ -19,9 +19,7 @@
 #include <unistd.h>
 
 #include "file_util.h"
-#include "time_util.h"
 #include "hiview_logger.h"
-#include "freeze_manager.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,7 +30,6 @@ namespace {
     static constexpr int LINE_BASE_SIZE = 120;
     static constexpr int SUMMARY_LOG_INFO_MAX_SIZE = 10;
     static constexpr int SUMMARY_LOG_MAGIC = 0xE5AC01;
-    static constexpr int FAULT_DELAY_SECONDS = 30;
     struct summary_log_line_info {
         int64_t sec_timestamp;
         char buffer[LINE_BASE_SIZE];
@@ -72,19 +69,18 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         HIVIEW_LOGE("open /dev/sysload failed!");
         return 0;
     }
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(sysLoadFd);
     ringbuff_log_info info = {0};
     info.magic = SUMMARY_LOG_MAGIC;
-    info.needed_sec_timestamp = faultTime_ + FAULT_DELAY_SECONDS;
+    info.needed_sec_timestamp = faultTime_;
     info.magicSize = sizeof(struct ringbuff_log_info);
 
     int res = ioctl(sysLoadFd, GET_SUMMARY_LOG, &info);
     if (res < 0) {
         HIVIEW_LOGE("ioctl failed, errno:%{public}d", errno);
-        FreezeManager::GetInstance()->CloseFdWithFdsanTag(sysLoadFd);
+        close(sysLoadFd);
         return 0;
     }
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(sysLoadFd);
+    close(sysLoadFd);
     HIVIEW_LOGI("ioctl res:%{public}d", res);
 
     std::string summaryLogInfoStr;
@@ -93,7 +89,7 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         if (lineInfo.sec_timestamp == 0) {
             continue;
         }
-        lineStr = "time=" + TimeUtil::TimestampFormatToDate(lineInfo.sec_timestamp, "%Y/%m/%d-%H:%M:%S") +
+        lineStr = "timestamp=" + std::to_string(lineInfo.sec_timestamp) +
             ", data=" + CharArrayStr(lineInfo.buffer, static_cast<size_t>(LINE_BASE_SIZE)) + "\n";
         summaryLogInfoStr += lineStr;
     }
