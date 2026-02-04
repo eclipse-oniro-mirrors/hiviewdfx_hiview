@@ -494,8 +494,7 @@
         "OHOS::HiviewDFX::SysEvent::SetReportInterval(int)";
         "OHOS::HiviewDFX::SysEvent::SetReportInterval(short)";
         "OHOS::HiviewDFX::SysEvent::GetReportInterval()";
-        "OHOS::HiviewDFX::FfrtUtil::Sleep(long long)";
-        "OHOS::HiviewDFX::FfrtUtil::Sleep(long)";
+        "OHOS::HiviewDFX::FfrtUtil::Sleep(unsigned int)";
         "OHOS::HiviewDFX::FileUtil::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::HiviewXCollieTimer::HiviewXCollieTimer(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
         "OHOS::HiviewDFX::HiviewXCollieTimer::~HiviewXCollieTimer()";

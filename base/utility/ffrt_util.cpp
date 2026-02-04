@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,18 +22,20 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace FfrtUtil {
 namespace {
-constexpr int64_t CHECK_CYCLE_SECONDS = 60; // 60 seconds
+constexpr uint32_t CHECK_CYCLE_MILLISECONDS = 60 * 1000; // 60 seconds
 }
 
-
-void Sleep(int64_t taskCycleSec)
+void Sleep(uint32_t taskCycleSec)
 {
     uint64_t taskCycleMs = static_cast<uint64_t>(taskCycleSec * TimeUtil::SEC_TO_MILLISEC);
-    uint64_t lastTimeMs = TimeUtil::GetBootTimeMs();
-    while (TimeUtil::GetBootTimeMs() - lastTimeMs < taskCycleMs) {
-        // avoid too long time to sleep, check whether the time difference
-        // is exceed the task cycle is neccessary after each 60 seconds' sleep
-        ffrt::this_task::sleep_for(std::chrono::seconds(CHECK_CYCLE_SECONDS));
+    uint64_t currentTimeMs = TimeUtil::GetBootTimeMs();
+    uint64_t finishTimeMs = currentTimeMs + taskCycleMs;
+    while (currentTimeMs < finishTimeMs) {
+        // if remaining time less than 60 seconds, only need to wait for remaining time
+        uint64_t remainingTimeMs = finishTimeMs - currentTimeMs;
+        ffrt::this_task::sleep_for(std::chrono::milliseconds(
+            remainingTimeMs > CHECK_CYCLE_MILLISECONDS ? CHECK_CYCLE_MILLISECONDS : remainingTimeMs));
+        currentTimeMs = TimeUtil::GetBootTimeMs();
     }
 }
 }
