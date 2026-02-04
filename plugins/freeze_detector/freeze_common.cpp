@@ -181,5 +181,10 @@ time_t FreezeCommon::GetFaultTime(const std::string& msg)
     }
     return faultTime;
 }
+
+bool FreezeCommon::IsReportAppFreezeEvent(const std::string& stringId) const
+{
+    return std::find(std::begin(WARNING_EVENTS), std::end(WARNING_EVENTS), stringId) != std::end(WARNING_EVENTS);
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

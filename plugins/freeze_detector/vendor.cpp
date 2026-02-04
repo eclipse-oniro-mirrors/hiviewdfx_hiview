@@ -33,6 +33,7 @@ namespace {
     const size_t FREEZE_EXT_FILE_SIZE = 2;
     const size_t FREEZE_CPU_INDEX = 1;
     const int SYS_MATCH_NUM = 1;
+    const int APP_MATCH_NUM = 1;
     const int MILLISECOND = 1000;
     const int TIME_STRING_LEN = 16;
     const int MIN_KEEP_FILE_NUM = 5;
@@ -370,6 +371,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
         return "";
     }
     CovertHighLoadToWarning(type, watchPoint);
+    CovertFreezeToWarning(type, list);
     pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
@@ -413,6 +415,14 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint));
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
+
+void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list) const
+{
+    if (freezeCommon_->IsReportAppFreezeEvent(type) && (list.size() == APP_MATCH_NUM)) {
+        type = SYSWARNING;
+    }
+}
+
 void Vendor::CovertHighLoadToWarning(std::string& type, WatchPoint& watchPoint) const
 {
     std::string hostResourceWarning = watchPoint.GetHostResourceWarning();
@@ -424,6 +434,7 @@ void Vendor::CovertHighLoadToWarning(std::string& type, WatchPoint& watchPoint) 
             APPFREEZEWARNING : SYSWARNING;
     }
 }
+
 bool Vendor::Init()
 {
     if (freezeCommon_ == nullptr) {
