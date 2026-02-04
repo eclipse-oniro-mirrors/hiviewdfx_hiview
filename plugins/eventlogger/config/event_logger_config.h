@@ -14,7 +14,6 @@
  */
 #ifndef HIVIEW_PLUGIN_EVENT_LOGGER_CONFIG_H
 #define HIVIEW_PLUGIN_EVENT_LOGGER_CONFIG_H
-#include <cstdio>
 #include <fstream>
 #include <string>
 #include <unordered_map>
@@ -41,7 +40,7 @@ public:
         return version_;
     };
 private:
-    FILE* in_;
+    std::ifstream in_;
     std::string configPath_;
     std::string version_;
 

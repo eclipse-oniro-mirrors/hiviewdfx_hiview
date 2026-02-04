@@ -119,7 +119,7 @@ private:
 
 #ifdef USAGE_CATCHER_ENABLE
     void MemoryUsageCapture();
-    void CpuUsageCapture(bool isNeedUpdate = false);
+    void CpuUsageCapture();
     void WMSUsageCapture();
     void AMSUsageCapture();
     void PMSUsageCapture();

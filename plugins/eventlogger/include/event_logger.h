@@ -125,7 +125,8 @@ private:
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
     void LogStoreSetting();
     void AddBootScanEvent();
-    bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid, const std::string &eventName);
+    bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid,
+        const std::string &eventName);
     bool CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent);
     void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
