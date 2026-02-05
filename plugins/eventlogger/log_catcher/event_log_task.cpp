@@ -14,7 +14,6 @@
  */
 #include "event_log_task.h"
 
-#include <cstdio>
 #include <unistd.h>
 
 #include "common_utils.h"
@@ -25,7 +24,6 @@
 #include "string_util.h"
 #include "time_util.h"
 #include "freeze_common.h"
-#include "freeze_manager.h"
 
 #ifdef STACKTRACE_CATCHER_ENABLE
 #include "open_stacktrace_catcher.h"
@@ -46,9 +44,8 @@
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE
-#include "cpu_catcher.h"
-#include "cpu_core_info_catcher.h"
 #include "memory_catcher.h"
+#include "cpu_core_info_catcher.h"
 #endif // USAGE_CATCHER_ENABLE
 
 #ifdef OTHER_CATCHER_ENABLE
@@ -60,7 +57,6 @@
 #ifdef HILOG_CATCHER_ENABLE
 #include "light_hilog_catcher.h"
 #endif
-#define FDASN_EVENTLOGGER_TAG 0xD002D01 // eventlogger domainid
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -85,12 +81,12 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
 {
     int pid = event_->GetEventIntValue("PID");
     pid_ = pid ? pid : event_->GetPid();
-#ifdef BINDER_CATCHER_ENABLE
-    captureList_.insert(std::pair<std::string, capture>("b", [this] { this->BinderLogCapture(); }));
-#endif // BINDER_CATCHER_ENABLE
+#ifdef STACKTRACE_CATCHER_ENABLE
+    captureList_.insert(std::pair<std::string, capture>("s", [this] { this->AppStackCapture(); }));
+    captureList_.insert(std::pair<std::string, capture>("S", [this] { this->SystemStackCapture(); }));
+#endif // STACKTRACE_CATCHER_ENABLE
 #ifdef USAGE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("cmd:m", [this] { this->MemoryUsageCapture(); }));
-    captureList_.insert(std::pair<std::string, capture>("cmd:udc", [this] { this->CpuUsageCapture(true); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:c", [this] { this->CpuUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:w", [this] { this->WMSUsageCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("cmd:a", [this] { this->AMSUsageCapture(); }));
@@ -123,9 +119,9 @@ EventLogTask::EventLogTask(int fd, int jsonFd, std::shared_ptr<SysEvent> event)
     captureList_.insert(std::pair<std::string, capture>("k:HungTaskFile",
         [this] { this->DmesgCapture(true, DmesgCatcher::HUNG_TASK); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysrqHungtask",
-        [this] { this->DmesgCapture(false, DmesgCatcher::HUNG_TASK); }));
+        [this] { this->DmesgCapture(false, DmesgCatcher::SYSRQ_HUNGTASK); }));
     captureList_.insert(std::pair<std::string, capture>("k:SysrqHungtaskFile",
-        [this] { this->DmesgCapture(true, DmesgCatcher::HUNG_TASK); }));
+        [this] { this->DmesgCapture(true, DmesgCatcher::SYSRQ_HUNGTASK); }));
 #endif // DMESG_CATCHER_ENABLE
 #ifdef OTHER_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("ffrt", [this] { this->FfrtCapture(); }));
@@ -140,10 +136,9 @@ void EventLogTask::AddCapture()
     captureList_.insert(std::pair<std::string, capture>("T:power", [this] { this->HilogTagCapture(); }));
     captureList_.insert(std::pair<std::string, capture>("t", [this] { this->LightHilogCapture(); }));
 #endif // HILOG_CATCHER_ENABLE
-#ifdef STACKTRACE_CATCHER_ENABLE
-    captureList_.insert(std::pair<std::string, capture>("s", [this] { this->AppStackCapture(); }));
-    captureList_.insert(std::pair<std::string, capture>("S", [this] { this->SystemStackCapture(); }));
-#endif // STACKTRACE_CATCHER_ENABLE
+#ifdef BINDER_CATCHER_ENABLE
+    captureList_.insert(std::pair<std::string, capture>("b", [this] { this->BinderLogCapture(); }));
+#endif // BINDER_CATCHER_ENABLE
 #ifdef HITRACE_CATCHER_ENABLE
     captureList_.insert(std::pair<std::string, capture>("tr",
         [this] { this->HitraceCapture(Parameter::IsBetaVersion()); }));
@@ -218,11 +213,9 @@ EventLogTask::Status EventLogTask::StartCompose()
     }
 
     auto dupedFd = dup(targetFd_);
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(dupedFd);
     int dupedJsonFd = -1;
     if (targetJsonFd_ >= 0) {
         dupedJsonFd = dup(targetJsonFd_);
-        FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(dupedJsonFd);
     }
     uint32_t catcherIndex = 0;
     for (auto& catcher : tasks_) {
@@ -246,9 +239,9 @@ EventLogTask::Status EventLogTask::StartCompose()
             break;
         }
     }
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(dupedFd);
+    close(dupedFd);
     if (dupedJsonFd >= 0) {
-        FreezeManager::GetInstance()->CloseFdWithFdsanTag(dupedJsonFd);
+        close(dupedJsonFd);
     }
     if (status_ == Status::TASK_RUNNING) {
         status_ = Status::TASK_SUCCESS;
@@ -545,10 +538,10 @@ void EventLogTask::MemoryUsageCapture()
     }
 }
 
-void EventLogTask::CpuUsageCapture(bool isNeedUpdate)
+void EventLogTask::CpuUsageCapture()
 {
-    auto capture = std::make_shared<CpuCatcher>();
-    capture->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, -1);
+    auto capture = std::make_shared<ShellCatcher>();
+    capture->Initialize("hidumper --cpuusage", ShellCatcher::CATCHER_CPU, pid_);
     tasks_.push_back(capture);
 }
 

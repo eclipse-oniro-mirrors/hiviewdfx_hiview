@@ -42,14 +42,14 @@ namespace {
     constexpr int SYSLOG_ACTION_SIZE_BUFFER = 10;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     constexpr const char* FULL_DIR = "/data/log/eventlog/";
-#ifdef KERNELSTACK_CATCHER_ENABLE
-    static constexpr int DECIMEL = 10;
-    static constexpr int DIR_BUFFER = 256;
-#endif
     constexpr const char* SYSRQ_START = "sysrq start:";
     constexpr const char* SYSRQ_END = "sysrq end:";
     constexpr const char* HGUARD_WORKER = "hguard-worker";
     constexpr const char* LMK_DEBUG = "sys-lmk-debug-t";
+#ifdef KERNELSTACK_CATCHER_ENABLE
+    static constexpr int DECIMEL = 10;
+    static constexpr int DIR_BUFFER = 256;
+#endif
 }
 DmesgCatcher::DmesgCatcher() : EventLogCatcher()
 {
@@ -95,13 +95,11 @@ bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
         }
     } else if (writeType_ == SYSRQ_HUNGTASK) {
         GetSysrq(dataStr, strOne);
-        if (writeType_ == SYSRQ_HUNGTASK) {
-            if (!writeNewFile_) {
-                strOne.append("\n");
-                GetHungTask(dataStr, strOne);
-            } else {
-                GetHungTask(dataStr, strTwo);
-            }
+        if (!writeNewFile_) {
+            strOne.append("\n");
+            GetHungTask(dataStr, strOne);
+        } else {
+            GetHungTask(dataStr, strTwo);
         }
     }
 
@@ -117,7 +115,7 @@ bool DmesgCatcher::DumpToFile(int fdOne, int fdTwo, const std::string& dataStr)
  
 void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr, bool needHeaderStr)
 {
-    if (needHeaderStr && !writeType_) {
+    if (needHeaderStr && !writeNewFile_) {
         sysrqStr.append("\nSysrqCatcher -- \n");
     }
 
@@ -127,7 +125,7 @@ void DmesgCatcher::GetSysrq(const std::string& dataStr, std::string& sysrqStr, b
     if (sysrqStart == std::string::npos) {
         return;
     }
-    size_t sysrqEnd = dataStr.rfind(SYSRQ_END);
+    size_t sysrqEnd = dataStr.find(SYSRQ_END, sysrqStart);
     if (sysrqEnd == std::string::npos || sysrqEnd <= sysrqStart + strlen(SYSRQ_START)) {
         return;
     }
@@ -154,9 +152,9 @@ void DmesgCatcher::GetHungTask(const std::string& dataStr, std::string& hungtask
         if (seekPos == std::string::npos) {
             break;
         }
-        lineStart = dataStr.rfind("\n", seekPos);
+        lineStart = dataStr.rfind('\n', seekPos);
         lineStart = (lineStart == std::string::npos) ? 0 : lineStart + 1;
-        lineEnd = dataStr.find("\n", seekPos);
+        lineEnd = dataStr.find('\n', seekPos);
         lineEnd = (lineEnd == std::string::npos) ? dataStr.size() : lineEnd;
 
         hungtaskStr.append(dataStr, lineStart, lineEnd - lineStart + 1);
@@ -236,7 +234,7 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
         auto logTime = TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC;
         std::string fileTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
         fileName = (writeType_ == HUNG_TASK) ? "sysrq-" : "hungtask-";
-        fileName.append(fileName);
+        fileName.append(fileTime);
         fileName.append(".log");
         extraFp = GetFileInfoByName(fileName, extraFd);
     }
@@ -316,7 +314,8 @@ void DmesgCatcher::WriteNewFile(int pid)
         event_->GetEventValue("HUNGTASK_TIME");
     std::string fileNameOne = (writeType_ == HUNG_TASK) ? "" : "sysrq-" + fileTime + ".log";
     std::string fileNameTwo = (writeType_ == SYS_RQ) ? "" : "hungtask-" + fileTime + ".log";
-    HIVIEW_LOGI("write %{public}d %{public}s %{public}s start", writeType_, fileNameOne.c_str(), fileNameTwo.c_str());
+    HIVIEW_LOGI("write new file start, writeType: %{public}d, fileName: %{public}s %{public}s",
+        writeType_, fileNameOne.c_str(), fileNameTwo.c_str());
 
     int fdOne = -1;
     FILE* fpOne = GetFileInfoByName(fileNameOne, fdOne);
@@ -328,12 +327,13 @@ void DmesgCatcher::WriteNewFile(int pid)
     DumpDmesgLog(fdOne, fdTwo);
 #ifdef KERNELSTACK_CATCHER_ENABLE
     if (writeType_ == SYS_RQ) {
-        DumpKernelStacktrace(fd, pid);
+        DumpKernelStacktrace(fdOne, pid);
     }
 #endif // KERNELSTACK_CATCHER_ENABLE
     CloseFp(fpOne);
     CloseFp(fpTwo);
-    HIVIEW_LOGI("write file %{public}s %{public}s end", fileNameOne.c_str(), fileNameTwo.c_str());
+    HIVIEW_LOGI("write new file end, writeType: %{public}d, fileName: %{public}s %{public}s",
+        writeType_, fileNameOne.c_str(), fileNameTwo.c_str());
 }
 
 FILE* DmesgCatcher::GetFileInfoByName(const std::string& fileName, int& fd)
@@ -348,6 +348,7 @@ FILE* DmesgCatcher::GetFileInfoByName(const std::string& fileName, int& fd)
     FILE* fp = fopen(fullPath.c_str(), "w");
     if (!fp) {
         HIVIEW_LOGI("Fail to create %{public}s, errno: %{public}d.", fileName.c_str(), errno);
+        return nullptr;
     }
     chmod(fullPath.c_str(), DEFAULT_LOG_FILE_MODE);
     fd = fileno(fp);
@@ -359,7 +360,6 @@ void DmesgCatcher::CloseFp(FILE*& fp)
     if (fp == nullptr) {
         return;
     }
-
     if (fclose(fp) != 0) {
         HIVIEW_LOGE("fclose failed, errno: %{public}d", errno);
     }

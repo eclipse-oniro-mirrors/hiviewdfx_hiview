@@ -14,7 +14,6 @@
  */
 #ifndef EVENT_LOGGER_PEER_BINDER_LOG_CATCHER
 #define EVENT_LOGGER_PEER_BINDER_LOG_CATCHER
-#include <cstdio>
 #include <fstream>
 #include <string>
 #include <memory>
@@ -57,12 +56,12 @@ private:
     std::string binderPath_ = "/proc/transaction_proc";
     std::shared_ptr<SysEvent> event_ = nullptr;
     std::set<int> catchedPids_ = {0};
-    std::map<int, std::list<PeerBinderCatcher::BinderInfo>> BinderInfoParser(FILE* fp,
+    std::map<int, std::list<PeerBinderCatcher::BinderInfo>> BinderInfoParser(std::ifstream& fin,
         int fd, int jsonFd, std::set<int>& asyncPids) const;
-    void BinderInfoParser(FILE* fp, int fd,
+    void BinderInfoParser(std::ifstream& fin, int fd,
         std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
         std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList, std::set<int>& asyncPids) const;
-    void BinderInfoLineParser(FILE* fp, int fd,
+    void BinderInfoLineParser(std::ifstream& fin, int fd,
         std::map<int, std::list<PeerBinderCatcher::BinderInfo>>& manager,
         std::list<PeerBinderCatcher::OutputBinderInfo>& outputBinderInfoList,
         std::map<uint32_t, uint32_t>& asyncBinderMap,
