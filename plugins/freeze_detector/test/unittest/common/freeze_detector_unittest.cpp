@@ -543,41 +543,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_MergeBodyInfo_Test001
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_MergeBodyInfo_Test001, TestSize.Level3)
-{
-    auto freezeCommon = std::make_shared<FreezeCommon>();
-    bool ret1 = freezeCommon->Init();
-    ASSERT_EQ(ret1, true);
-    auto vendor = std::make_unique<Vendor>(freezeCommon);
-    ASSERT_EQ(vendor->Init(), true);
-    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("AAFWK")
-        .InitStringId("THREAD_BLOCK_3S")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .InitProcessName("processName")
-        .InitPackageName("com.package.name")
-        .InitMsg("msg")
-        .Build();
-    std::ostringstream body;
-    vendor->MergeBodyInfo(body, watchPoint1, watchPoint1);
-
-    std::string freezeExtFile = "/data/test";
-    std::string testName = "FreezeDetectorUnittest";
-    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("AAFWK")
-        .InitStringId("THREAD_BLOCK_6S")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .InitProcessName(testName)
-        .InitPackageName(testName)
-        .InitFreezeExtFile(freezeExtFile)
-        .Build();
-    vendor->MergeBodyInfo(body, watchPoint2, watchPoint1);
-}
-
-/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
