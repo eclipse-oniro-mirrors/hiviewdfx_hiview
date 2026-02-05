@@ -20,7 +20,6 @@
 #include "time_util.h"
 #include "string_util.h"
 
-#define FDASN_EVENTLOGGER_TAG 0xD002D01 // eventlogger domainid
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -56,52 +55,6 @@ FreezeManager &FreezeManager::GetInStance()
 {
     static FreezeManager instance;
     return instance;
-}
-
-void FreezeManager::ExchangeFdWithFdsanTag(const int fd)
-{
-    fdsan_exchange_owner_tag(fd, 0, FDASN_EVENTLOGGER_TAG);
-}
-
-int FreezeManager::CloseFdWithFdsanTag(const int fd)
-{
-    int fcloseRet = fdsan_close_with_tag(fd, FDASN_EVENTLOGGER_TAG);
-    if (fcloseRet != 0) {
-        HIVIEW_LOGW("Failed to fclose=%{public}d, errno=%{public}d.", fcloseRet, errno);
-    }
-    return fcloseRet;
-}
-
-int FreezeManager::CloseFileByFp(FILE*& fp, std::string path)
-{
-    if (fp == nullptr) {
-        return -1;
-    }
-
-    int result = fclose(fp);
-    if (result != 0) {
-        HIVIEW_LOGE("Fail to close %{public}s, errno: %{public}d", path.c_str(), errno);
-    }
-    fp = nullptr;
-    return result;
-}
-
-std::string FreezeManager::GetlineByFile(std::string path)
-{
-    std::string statmLine;
-    FILE* fp = fopen(path.c_str(), "r");
-    if (fp == nullptr) {
-        HIVIEW_LOGE("Fail to create %{public}s, errno: %{public}d.", path.c_str(), errno);
-    } else {
-        char buffer[BUF_SIZE_1024] = {'\0'};
-        if (fgets(buffer, sizeof(buffer) - 1, fp) == nullptr) {
-            HIVIEW_LOGE("Fail to read %{public}s, errno: %{public}d.", path.c_str(), errno);
-        } else {
-            statmLine = buffer;
-        }
-        CloseFileByFp(fp, path);
-    }
-    return statmLine;
 }
 
 void FreezeManager::InsertTraceName(int64_t time, std::string traceName)
@@ -255,15 +208,14 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return "";
     }
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
     FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo);
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
+    close(fd);
 
     freezeExtLogStore_->ClearSameLogFilesIfNeeded(CreateLogFileFilter(uid, FREEZE_CPUINFO_PREFIX),
         MAX_FREEZE_PER_HAP);
 
     std::string logFile = FREEZE_EXT_LOG_PATH + freezeFile;
-    HIVIEW_LOGW("create freezeExt file=%{public}s success.", logFile.c_str());
+    HIVIEW_LOGE("create freezeExt file=%{public}s success.", logFile.c_str());
     return logFile;
 }
 
@@ -309,15 +261,18 @@ std::vector<std::string> FreezeManager::GetDightStrArr(const std::string& target
 }
 
 void FreezeManager::FillProcMemory(const std::string& procStatm, long pid,
-    std::map<std::string, std::string> &sectionMaps)
+    std::map<std::string, std::string> &sectionMaps) const
 {
     std::string statmLine = procStatm;
     if (statmLine.empty()) {
-        statmLine = FreezeManager::GetInstance()->GetlineByFile("/proc/" + std::to_string(pid) + "/statm");
-        if (statmLine.empty()) {
+        std::ifstream statmStream("/proc/" + std::to_string(pid) + "/statm");
+        if (!statmStream) {
+            HIVIEW_LOGE("Fail to open /proc/%{public}ld/statm  errno %{public}d", pid, errno);
             return;
         }
+        std::getline(statmStream, statmLine);
         HIVIEW_LOGI("/proc/%{public}ld/statm : %{public}s", pid, statmLine.c_str());
+        statmStream.close();
     }
 
     auto numStrArr = GetDightStrArr(statmLine);
