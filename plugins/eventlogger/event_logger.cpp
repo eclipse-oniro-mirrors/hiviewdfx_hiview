@@ -17,7 +17,6 @@
 #include "securec.h"
 
 #include <cinttypes>
-#include <cstdio>
 #include <list>
 #include <map>
 #include <regex>
@@ -56,8 +55,6 @@
 #ifdef HITRACE_CATCHER_ENABLE
 #include "event_cache_trace.h"
 #endif
-
-#define FDASN_EVENTLOGGER_TAG 0xD002D01 // eventlogger domainid
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -150,8 +147,8 @@ bool EventLogger::CheckFfrtEvent(const std::shared_ptr<SysEvent> &sysEvent)
     return true;
 }
 
-bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
-    long pid, const std::string &eventName)
+bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid,
+    const std::string &eventName)
 {
 #ifdef HITRACE_CATCHER_ENABLE
     if (eventName == "FREEZE_HALF_HIVIEW_LOG") {
@@ -261,7 +258,6 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
             ffrtFile.c_str(), ffrtFd, errno);
         return;
     }
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(ffrtFd);
 
     int count = LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT * DUMP_TIME_RATIO;
     FileUtil::SaveStringToFd(ffrtFd, "ffrt dump topWindowInfos, process infos:\n");
@@ -278,7 +274,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     if (count > LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT / DUMP_TIME_RATIO) {
         LogCatcherUtils::ReadShellToFile(ffrtFd, "SystemAbilityManager", cmdSam, count);
     }
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(ffrtFd);
+    close(ffrtFd);
 }
 #endif
 
@@ -414,21 +410,19 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
         HIVIEW_LOGE("create log file %{public}s failed, %{public}d", logFile.c_str(), fd);
         return;
     }
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
 
     int jsonFd = -1;
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_) || FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         std::string jsonFilePath = FreezeJsonUtil::GetFilePath(event->GetEventIntValue("PID"),
             event->GetEventIntValue("UID"), event->happenTime_);
         jsonFd = FreezeJsonUtil::GetFd(jsonFilePath);
-        FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(jsonFd);
     }
 
     std::string terminalBinderThreadStack;
     WriteInfoToLog(event, fd, jsonFd, terminalBinderThreadStack);
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
+    close(fd);
     if (jsonFd >= 0) {
-        FreezeManager::GetInstance()->CloseFdWithFdsanTag(jsonFd);
+        close(jsonFd);
     }
     UpdateDB(event, logFile);
     SaveDbToFile(event);
@@ -555,9 +549,16 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
             if (!FileUtil::PathToRealPath(filePath, realPath)) {
                 continue;
             }
-            std::string processName = FreezeManager::GetInstance()->GetlineByFile(realPath);
-            StringUtil::FormatProcessName(processName);
-            processNameMap[pidStr] = processName;
+            std::ifstream cmdLineFile(realPath);
+            std::string processName;
+            if (cmdLineFile) {
+                std::getline(cmdLineFile, processName);
+                cmdLineFile.close();
+                StringUtil::FormatProcessName(processName);
+                processNameMap[pidStr] = processName;
+            } else {
+                HIVIEW_LOGE("Fail to open /proc/%{public}s/cmdline", pidStr.c_str());
+            }
         }
         std::string lineStr = line + "    " + pidStr + FreezeJsonUtil::WrapByParenthesis(processNameMap[pidStr]);
         infoList.push_back(lineStr);
@@ -674,11 +675,10 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
     headerStream << "PROCESS_NAME = " << event->GetEventValue("PROCESS_NAME") << std::endl;
     headerStream << "eventLog_action = " << event->GetValue("eventLog_action") << std::endl;
     headerStream << "eventLog_interval = " << event->GetValue("eventLog_interval") << std::endl;
-
     if (event->eventName_ == TASK_TIMEOUT) {
         headerStream << "SCENARIO = " << event->GetEventValue(SCENARIO) << std::endl;
-        headerStream << "QNAME = " << event->GetEventValue("QNAME") << std::endl;
-        headerStream << "QOS = " << event->GetEventIntValue("QOS") << std::endl;
+        headerStream << "QNAME = " << event->GetEventValue(FreezeCommon::QNAME) << std::endl;
+        headerStream << "QOS = " << event->GetEventIntValue(FreezeCommon::QOS) << std::endl;
     }
 
     FileUtil::SaveStringToFd(fd, headerStream.str());
@@ -801,9 +801,8 @@ void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int or
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
         return;
     }
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(kernelFd);
     FileUtil::SaveStringToFd(kernelFd, kernelStack);
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(kernelFd);
+    close(kernelFd);
     HIVIEW_LOGD("Success WriteKernelStackToFile: %{public}s.", path.c_str());
 }
 
@@ -1195,6 +1194,7 @@ void EventLogger::OnLoad()
         AddListenerInfo(Event::MessageType::TELEMETRY_EVENT);
     }
 #endif
+
     GetCmdlineContent();
     GetRebootReasonConfig();
 

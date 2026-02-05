@@ -24,7 +24,7 @@
 #include "securec.h"
 #include <sys/wait.h>
 #include <unistd.h>
-#include "freeze_manager.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 #ifdef STACKTRACE_CATCHER_ENABLE
@@ -106,12 +106,11 @@ int32_t OpenStacktraceCatcher::ForkAndDumpStackTrace(int32_t fd)
 
     if (pid == 0) {
         auto newFd = dup(fd);
-        FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(newFd);
         std::string threadStack;
         LogCatcherUtils::TerminalBinderInfo binderInfo{0, 0, packageName_};
         int ret = LogCatcherUtils::DumpStacktrace(newFd, pid_, threadStack, binderInfo);
-        FreezeManager::GetInstance()->CloseFdWithFdsanTag(newFd);
         HIVIEW_LOGD("LogCatcherUtils::DumpStacktrace ret %{public}d", ret);
+        close(newFd);
         _exit(ret);
     }
 

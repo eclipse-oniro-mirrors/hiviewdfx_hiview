@@ -43,7 +43,6 @@
 #include "parameter_ex.h"
 #endif // BINDER_CATCHER_ENABLE
 #ifdef USAGE_CATCHER_ENABLE
-#include "cpu_catcher.h"
 #include "cpu_core_info_catcher.h"
 #include "memory_catcher.h"
 #endif // USAGE_CATCHER_ENABLE
@@ -940,7 +939,7 @@ HWTEST_F(EventloggerCatcherTest, DmesgCatcherTest_005, TestSize.Level1)
     EXPECT_EQ(hungtaskStr, "\nHungTaskCatcher -- \n");
 
     std::string fileName = "/data/test/dmesgCatcherFileTest004";
-    auto fd = open(fileName.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    int fd = open(fileName.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
         printf("Fail to create dmesgCatcherFileTest004. errno: %d\n", errno);
         FAIL();
@@ -1237,9 +1236,10 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     close(fd);
 
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
-    FILE* fin = fopen(path.c_str(), "r");
-    if (fin == nullptr) {
-        printf("open path failed!, path=%s\n", path.c_str());
+    std::ifstream fin;
+    fin.open(path.c_str());
+    if (!fin.is_open()) {
+        printf("open binder file failed, %s\n.", path.c_str());
         FAIL();
     }
     auto fd1 = open("/data/test/peerTestFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
@@ -1253,10 +1253,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
     EXPECT_TRUE(pids.empty());
     pids = peerBinderCatcher->GetBinderPeerPids(-1, 1, asyncPids);
     EXPECT_TRUE(pids.empty());
-    if (fin) {
-        fclose(fin);
-        fin = nullptr;
-    }
+    fin.close();
     close(fd1);
 }
 
@@ -1351,6 +1348,9 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level0)
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
 
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_AMS, pid);
+    EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
+
+    shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_CPU, pid);
     EXPECT_TRUE(shellCatcher->Catch(fd, jsonFd) > 0);
 
     shellCatcher->Initialize(cmd, ShellCatcher::CATCHER_PMS, pid);
@@ -1643,68 +1643,6 @@ HWTEST_F(EventloggerCatcherTest, SummaryLogInfoCatcherTest_001, TestSize.Level1)
     logTask->faultTime_ = 0;
     logTask = std::make_unique<EventLogTask>(0, 0, sysEvent2);
     EXPECT_EQ(logTask->GetFaultTime(), sysEvent2->happenTime_ / 1000);
-}
-
-/**
- * @tc.name: CpuCatcherTest_001
- * @tc.desc: add testcase code coverage
- * @tc.type: FUNC
- */
-HWTEST_F(EventloggerCatcherTest, CpuCatcherTest_001, TestSize.Level1)
-{
-    auto fd = open("/data/test/cpuCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
-    if (fd < 0) {
-        printf("Fail to create cpuCatcherFile. errno: %d\n", errno);
-        FAIL();
-    }
-
-    auto cpuCatcher = std::make_shared<CpuCatcher>();
-    bool isNeedUpdate = true;
-    cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, -1);
-    cpuCatcher->Catch(fd, -1);
-
-    isNeedUpdate = false;
-    cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, -1);
-    cpuCatcher->Catch(fd, -1);
-
-    int cpuUsagePid = CommonUtils::GetPidByName("foundation");
-    if (cpuUsagePid > 0) {
-        isNeedUpdate = true;
-        cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, cpuUsagePid);
-        cpuCatcher->Catch(fd, -1);
-
-        isNeedUpdate = false;
-        cpuCatcher->Initialize("catcher cmd: hidumper --cpuusage", isNeedUpdate, cpuUsagePid);
-        cpuCatcher->Catch(fd, -1);
-    }
-    close(fd);
-
-    bool loadExist = false;
-    bool usageExist = false;
-    bool totalExist = false;
-    bool detailsExist = false;
-
-    std::string line;
-    std::ifstream ifs("/data/test/cpuCatcherFile", std::ios::in);
-    if (ifs.is_open()) {
-        while (std::getline(ifs, line)) {
-            if (!loadExist && line.find("Load average:") != std::string::npos) {
-                loadExist = true;
-            } else if (!usageExist && line.find("CPU usage from") != std::string::npos) {
-                usageExist = true;
-            } else if (!totalExist && line.find("Total:") != std::string::npos) {
-                totalExist = true;
-            } else if (!detailsExist && line.find("Details of Processes:") != std::string::npos) {
-                detailsExist = true;
-                break;
-            }
-        }
-    }
-
-    EXPECT_TRUE(loadExist);
-    EXPECT_TRUE(usageExist);
-    EXPECT_TRUE(totalExist);
-    EXPECT_TRUE(detailsExist);
 }
 
 #ifdef BINDER_CATCHER_ENABLE
