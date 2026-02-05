@@ -213,9 +213,11 @@ EventLogTask::Status EventLogTask::StartCompose()
     }
 
     auto dupedFd = dup(targetFd_);
+    fdsan_exchange_owner_tag(dupedFd, 0, FREEZE_DOMAIN);
     int dupedJsonFd = -1;
     if (targetJsonFd_ >= 0) {
         dupedJsonFd = dup(targetJsonFd_);
+        fdsan_exchange_owner_tag(dupedJsonFd, 0, FREEZE_DOMAIN);
     }
     uint32_t catcherIndex = 0;
     for (auto& catcher : tasks_) {
@@ -239,9 +241,9 @@ EventLogTask::Status EventLogTask::StartCompose()
             break;
         }
     }
-    close(dupedFd);
+    fdsan_close_with_tag(dupedFd, FREEZE_DOMAIN);
     if (dupedJsonFd >= 0) {
-        close(dupedJsonFd);
+        fdsan_close_with_tag(dupedJsonFd, FREEZE_DOMAIN);
     }
     if (status_ == Status::TASK_RUNNING) {
         status_ = Status::TASK_SUCCESS;
