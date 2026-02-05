@@ -25,6 +25,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#undef FREEZE_DOMAIN
+#define FREEZE_DOMAIN 0xD002D01
 namespace OHOS {
 namespace HiviewDFX {
 #ifdef STACKTRACE_CATCHER_ENABLE
@@ -106,11 +108,14 @@ int32_t OpenStacktraceCatcher::ForkAndDumpStackTrace(int32_t fd)
 
     if (pid == 0) {
         auto newFd = dup(fd);
+        fdsan_exchange_owner_tag(newFd, 0, FREEZE_DOMAIN);
         std::string threadStack;
         LogCatcherUtils::TerminalBinderInfo binderInfo{0, 0, packageName_};
         int ret = LogCatcherUtils::DumpStacktrace(newFd, pid_, threadStack, binderInfo);
         HIVIEW_LOGD("LogCatcherUtils::DumpStacktrace ret %{public}d", ret);
-        close(newFd);
+        if (fdsan_close_with_tag(newFd, FREEZE_DOMAIN) != 0) {
+            HIVIEW_LOGE("DumpStacktrace fdsan close failed, errno:%{public}d", errno);
+        }
         _exit(ret);
     }
 

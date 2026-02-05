@@ -21,6 +21,9 @@
 #include "singleton.h"
 #include <shared_mutex>
 
+#undef FREEZE_DOMAIN
+#define FREEZE_DOMAIN 0xD002D01
+
 namespace OHOS {
 namespace HiviewDFX {
 enum FreezeLogType {

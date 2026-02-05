@@ -258,6 +258,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
             ffrtFile.c_str(), ffrtFd, errno);
         return;
     }
+    fdsan_exchange_owner_tag(ffrtFd, 0, FREEZE_DOMAIN);
 
     int count = LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT * DUMP_TIME_RATIO;
     FileUtil::SaveStringToFd(ffrtFd, "ffrt dump topWindowInfos, process infos:\n");
@@ -274,7 +275,9 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
     if (count > LogCatcherUtils::WAIT_CHILD_PROCESS_COUNT / DUMP_TIME_RATIO) {
         LogCatcherUtils::ReadShellToFile(ffrtFd, "SystemAbilityManager", cmdSam, count);
     }
-    close(ffrtFd);
+    if (fdsan_close_with_tag(ffrtFd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("StartFfrtDump fdsan closefailed, errno:%{public}d", errno);
+    }
 }
 #endif
 
@@ -410,19 +413,23 @@ void EventLogger::StartLogCollect(std::shared_ptr<SysEvent> event)
         HIVIEW_LOGE("create log file %{public}s failed, %{public}d", logFile.c_str(), fd);
         return;
     }
+    fdsan_exchange_owner_tag(fd, 0, FREEZE_DOMAIN);
 
     int jsonFd = -1;
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_) || FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         std::string jsonFilePath = FreezeJsonUtil::GetFilePath(event->GetEventIntValue("PID"),
             event->GetEventIntValue("UID"), event->happenTime_);
         jsonFd = FreezeJsonUtil::GetFd(jsonFilePath);
+        fdsan_exchange_owner_tag(jsonFd, 0, FREEZE_DOMAIN);
     }
 
     std::string terminalBinderThreadStack;
     WriteInfoToLog(event, fd, jsonFd, terminalBinderThreadStack);
-    close(fd);
-    if (jsonFd >= 0) {
-        close(jsonFd);
+    if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("StartLogCollect fdsan closefailed, errno:%{public}d", errno);
+    }
+    if (jsonFd >= 0 && fdsan_close_with_tag(jsonFd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("StartLogCollect fdsan closefailed, errno:%{public}d", errno);
     }
     UpdateDB(event, logFile);
     SaveDbToFile(event);
@@ -801,8 +808,11 @@ void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int or
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
         return;
     }
+    fdsan_exchange_owner_tag(kernelFd, 0, FREEZE_DOMAIN);
     FileUtil::SaveStringToFd(kernelFd, kernelStack);
-    close(kernelFd);
+    if (fdsan_close_with_tag(kernelFd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("Kernnel stack fdsan close failed, errno:%{public}d", errno);
+    }
     HIVIEW_LOGD("Success WriteKernelStackToFile: %{public}s.", path.c_str());
 }
 

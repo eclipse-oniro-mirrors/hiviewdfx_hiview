@@ -21,6 +21,9 @@
 #include "file_util.h"
 #include "hiview_logger.h"
 
+#undef FREEZE_DOMAIN
+#define FREEZE_DOMAIN 0xD002D01
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -69,18 +72,20 @@ int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
         HIVIEW_LOGE("open /dev/sysload failed!");
         return 0;
     }
+    fdsan_exchange_owner_tag(sysLoadFd, 0, FREEZE_DOMAIN);
     ringbuff_log_info info = {0};
     info.magic = SUMMARY_LOG_MAGIC;
     info.needed_sec_timestamp = faultTime_;
     info.magicSize = sizeof(struct ringbuff_log_info);
 
     int res = ioctl(sysLoadFd, GET_SUMMARY_LOG, &info);
+    if (fdsan_close_with_tag(sysLoadFd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("Summary catch fdsan close failed, errno:%{public}d", errno);
+    }
     if (res < 0) {
         HIVIEW_LOGE("ioctl failed, errno:%{public}d", errno);
-        close(sysLoadFd);
         return 0;
     }
-    close(sysLoadFd);
     HIVIEW_LOGI("ioctl res:%{public}d", res);
 
     std::string summaryLogInfoStr;
