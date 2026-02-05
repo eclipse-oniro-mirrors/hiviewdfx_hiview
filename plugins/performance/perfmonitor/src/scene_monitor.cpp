@@ -33,6 +33,7 @@ DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 static constexpr uint32_t SENSITIVE_SCENE_RESTYPE = 72;
 static constexpr const char* const SENSITIVE_SCENE_EXTTYPE = "10000";
 static constexpr int64_t APP_LIST_FLING_EXIT_GC = 2;
+static constexpr const char* const BUNDLE_NAME_SCENE_BOARD = "com.ohos.sceneboard";
 
 void SceneManager::OnSceneStart(const SceneType& type)
 {
@@ -303,6 +304,10 @@ int32_t SceneMonitor::GetPid()
 
 void SceneMonitor::SetAppForeground(bool isShow)
 {
+    if (GetBaseInfo().bundleName == BUNDLE_NAME_SCENE_BOARD) {
+        HIVIEW_LOGD("The sceneBoard needs to be excluded.");
+        return;
+    }
     OnSceneChanged(SceneType::APP_BACKGROUND, !isShow);
 }
 
