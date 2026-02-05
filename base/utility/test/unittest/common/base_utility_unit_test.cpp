@@ -438,11 +438,11 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest021, testing::ext::TestSize.Lev
 HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest022, testing::ext::TestSize.Level3)
 {
     ffrt::submit([] () {
-        auto ts1 = static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs());
-        int64_t WAIT_TIME = 11; // 11 seconds is a test duration to sleep
-        FfrtUtil::Sleep(WAIT_TIME); // sleep 11 seconds
-        auto ts2 = static_cast<int64_t>(TimeUtil::GetSteadyClockTimeMs());
-        ASSERT_GE(ts2 - WAIT_TIME * TimeUtil::SEC_TO_MILLISEC, ts1);
+        uint64_t ts1 = TimeUtil::GetSteadyClockTimeMs();
+        uint32_t waitTime = 11; // 11 seconds is a test duration to sleep
+        FfrtUtil::Sleep(11); // sleep 11 seconds
+        uint64_t ts2 = TimeUtil::GetSteadyClockTimeMs();
+        ASSERT_GE(ts2, ts1 + static_cast<uint64_t>(waitTime * TimeUtil::SEC_TO_MILLISEC));
     }, {}, {}, ffrt::task_attr().name("base_util_ut_022").qos(ffrt::qos_default));
 }
 
