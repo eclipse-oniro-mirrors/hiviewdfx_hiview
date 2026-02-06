@@ -104,6 +104,7 @@ public:
 private:
     void NotifyRsJankStatsBegin();
     void NotifyRsJankStatsEnd(int64_t endTime);
+    bool isSetAppGCStatus(int64_t value);
 private:
     BaseInfo baseInfo;
     std::string currentSceneId {""};
@@ -114,6 +115,8 @@ private:
 
     SubHealthInfo subHealthInfo;
     bool isSubHealthScene = false;
+    uint32_t countStart = 0;
+    int64_t preStartTime = 0;
 };
 
 }
