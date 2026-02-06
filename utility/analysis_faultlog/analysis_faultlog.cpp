@@ -85,8 +85,14 @@ static bool SetCpuAffinity(uint16_t mask)
 int main(int argc, char *argv[])
 {
     static uint16_t cpuMask = 0x0f;
+    const int minArgNum = 2;
+    const int maxArgNum = 5;
     SetCpuAffinity(cpuMask);
 
+    if (argc < minArgNum || argc > maxArgNum) {
+        std::cout << "Invalid arguments!" << std::endl;
+        return -1;
+    }
     std::string eventType;
     std::string logPath;
     for (int i = 1; i < argc; i++) {

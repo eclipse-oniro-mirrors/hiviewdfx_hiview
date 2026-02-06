@@ -178,6 +178,10 @@ void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info)
     HIVIEW_LOGI("report cppcrash to appevent, pid:%{public}d len:%{public}zu", info.pid, stackInfo.length());
 #ifdef UNIT_TEST
     std::string outputFilePath = "/data/test_cppcrash_info_" + std::to_string(info.pid);
+    std::ofstream testFile(outputFilePath);
+    if (testFile.is_open()) {
+        testFile.close();
+    }
     WriteLogFile(outputFilePath, stackInfo + "\n");
 #endif
     EventPublish::GetInstance().PushEvent(info.id, APP_CRASH_TYPE, HiSysEvent::EventType::FAULT, stackInfo,
@@ -255,7 +259,11 @@ void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath) const
 
 std::string FaultLogCppCrash::ReadLogFile(const std::string& logPath)
 {
-    std::ifstream logReadFile(logPath);
+    char canonicalPath[PATH_MAX] = {0};
+    if (realpath(logPath.c_str(), canonicalPath) == nullptr) {
+        return "";
+    }
+    std::ifstream logReadFile(canonicalPath);
     if (!logReadFile.is_open()) {
         return "";
     }
@@ -264,7 +272,12 @@ std::string FaultLogCppCrash::ReadLogFile(const std::string& logPath)
 
 void FaultLogCppCrash::WriteLogFile(const std::string& logPath, const std::string& content)
 {
-    std::ofstream logWriteFile(logPath, std::ios::out | std::ios::trunc);
+    char canonicalPath[PATH_MAX] = {0};
+    if (realpath(logPath.c_str(), canonicalPath) == nullptr) {
+        HIVIEW_LOGE("Failed to realpath log file: %{public}s", logPath.c_str());
+        return;
+    }
+    std::ofstream logWriteFile(canonicalPath, std::ios::out | std::ios::trunc);
     if (!logWriteFile.is_open()) {
         HIVIEW_LOGE("Failed to open log file: %{public}s", logPath.c_str());
         return;
