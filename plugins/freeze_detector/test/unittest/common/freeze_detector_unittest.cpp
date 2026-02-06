@@ -242,7 +242,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeResolver_009, TestSize.Level3)
         result));
 }
 
-
 /**
  * @tc.name: FreezeVender_001
  * @tc.desc: FreezeDetector
@@ -543,38 +542,92 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_MergeBodyInfo_Test001
+ * @tc.name: FreezeVender_011
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeVender_MergeBodyInfo_Test001, TestSize.Level3)
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_011, TestSize.Level3)
+{
+    auto vendor1 = std::make_unique<Vendor>(nullptr);
+    EXPECT_EQ(vendor1->Init(), false);
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.package.name")
+        .InitMsg("msg")
+        .InitEnabelMainThreadSample(true)
+        .Build();
+    vendor1->SendFaultLog(watchPoint, "test", "sysfreeze", "processName", "No");
+}
+
+/**
+ * @tc.name: FreezeVender_012
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_012, TestSize.Level3)
+{
+    auto vendor1 = std::make_unique<Vendor>(nullptr);
+    EXPECT_EQ(vendor1->Init(), false);
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("processName")
+        .InitMsg("msg")
+        .InitEnabelMainThreadSample(true)
+        .InitForeGround("No")
+        .Build();
+    std::string type;
+    std::string pubLogPathName;
+    std::string processName;
+    std::string isScbPro;
+    vendor1->InitLogInfo(watchPoint, type, pubLogPathName, processName, isScbPro);
+
+    type = "";
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("processName")
+        .InitForeGround("Yes")
+        .InitMsg("msg")
+        .InitEnabelMainThreadSample(true)
+        .Build();
+    vendor1->InitLogInfo(watchPoint1, type, pubLogPathName, processName, isScbPro);
+    EXPECT_EQ(type, "");
+}
+
+/**
+ * @tc.name: FreezeVender_013
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_013, TestSize.Level3)
 {
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret1 = freezeCommon->Init();
     ASSERT_EQ(ret1, true);
     auto vendor = std::make_unique<Vendor>(freezeCommon);
     ASSERT_EQ(vendor->Init(), true);
-    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
-        .InitDomain("AAFWK")
-        .InitStringId("THREAD_BLOCK_3S")
-        .InitTimestamp(TimeUtil::GetMilliseconds())
-        .InitProcessName("processName")
-        .InitPackageName("com.package.name")
-        .InitMsg("msg")
-        .Build();
-    std::ostringstream body;
-    vendor->MergeBodyInfo(body, watchPoint1, watchPoint1);
 
-    std::string freezeExtFile = "/data/test";
-    std::string testName = "FreezeDetectorUnittest";
-    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitDomain("AAFWK")
         .InitStringId("THREAD_BLOCK_6S")
         .InitTimestamp(TimeUtil::GetMilliseconds())
-        .InitProcessName(testName)
-        .InitPackageName(testName)
-        .InitFreezeExtFile(freezeExtFile)
+        .InitProcessName("processName")
+        .InitPackageName("processName")
+        .InitForeGround("Yes")
+        .InitMsg("msg")
+        .InitEnabelMainThreadSample(true)
         .Build();
-    vendor->MergeBodyInfo(body, watchPoint2, watchPoint1);
+    std::string type;
+    std::string pubLogPathName;
+    std::string processName;
+    std::string isScbPro;
+    vendor->InitLogInfo(watchPoint1, type, pubLogPathName, processName, isScbPro);
+    EXPECT_EQ(type, "appfreeze");
 }
 
 /**
@@ -720,6 +773,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_005, TestSize.Level3)
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitDomain("KERNEL_VENDOR")
         .InitStringId("SCREEN_ON")
+        .InitApplicationInfo("msg:123;1234:1234")
         .Build();
     freezeDetectorPlugin->ProcessEvent(watchPoint);
     ASSERT_EQ(freezeDetectorPlugin->CanProcessEvent(event), false);
@@ -755,6 +809,32 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_007, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeDetectorPlugin_008
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_008, TestSize.Level3)
+{
+    auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
+    std::string testName = "FreezeDetectorPlugin_008";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    ASSERT_TRUE(sysEvent != nullptr);
+    sysEvent->eventName_ = testName;
+    sysEvent->SetSeq(1234567890);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PID, getpid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_TID, getpid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_UID, getuid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PACKAGE_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::SYSRQ_TIME, "12453");
+    sysEvent->SetEventValue(EventStore::EventCol::INFO, testName);
+    sysEvent->SetEventValue(FreezeCommon::FOREGROUND, true);
+    auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
+    freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    ASSERT_TRUE(freezeDetectorPlugin != nullptr);
+}
+
+/**
  * @tc.name: FreezeCommon_001
  * @tc.desc: FreezeDetector
  */
@@ -774,6 +854,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_002, TestSize.Level3)
     ASSERT_EQ(freezeCommon->IsFreezeEvent("KERNEL_VENDOR", "SCREEN_ON"), false);
     freezeCommon->Init();
     ASSERT_EQ(freezeCommon->IsFreezeEvent("KERNEL_VENDOR", "SCREEN_ON"), true);
+    ASSERT_EQ(freezeCommon->IsFreezeEvent("AAFWK", "THREAD_BLOCK_3S"), true);
+    ASSERT_EQ(freezeCommon->IsFreezeEvent("AAFWK1", "THREAD_BLOCK_3S"), false);
 }
 
 /**
@@ -820,8 +902,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeCommon_005, TestSize.Level3)
 HWTEST_F(FreezeDetectorUnittest, FreezeCommon_006, TestSize.Level3)
 {
     auto freezeCommon = std::make_unique<FreezeCommon>();
-    freezeCommon->WriteTimeInfoToFd(0, "FreezeCommon_008 test");
-    freezeCommon->WriteTimeInfoToFd(0, "FreezeCommon_008 test", false);
+    freezeCommon->WriteTimeInfoToFd(0, "FreezeCommon_006 test");
+    freezeCommon->WriteTimeInfoToFd(0, "FreezeCommon_006 test", false);
     ASSERT_TRUE(freezeCommon != nullptr);
 }
 
@@ -972,7 +1054,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_007, TestSize.Level0)
  * @tc.name: FreezeWatchPoint_008
  * @tc.desc: FreezeDetector
  */
-HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_008, TestSize.Level0)
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_008, TestSize.Level3)
 {
     WatchPoint point = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitTimeoutEventId("123454")
@@ -987,7 +1069,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_008, TestSize.Level0)
     ASSERT_EQ(wp1->GetLastProcessEventId(), "125374");
     ASSERT_EQ(wp1->GetLastMarkedEventId(), "751234");
     ASSERT_EQ(wp1->GetThermalLevel(), "5");
-    
+
     wp1->SetTimeoutEventId("123");
     wp1->SetLastDispatchEventId("1234");
     wp1->SetLastProcessEventId("12345");

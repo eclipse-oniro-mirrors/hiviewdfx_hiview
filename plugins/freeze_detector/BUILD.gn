@@ -72,7 +72,10 @@ group("unittest") {
   testonly = true
   deps = []
   if (hiview_freeze_collect_enable) {
-    deps += [ "test:FreezeManagerTest" ]
+    deps += [
+      "test:FreezeDetectorUnittest",
+      "test:FreezeManagerTest",
+    ]
   }
 }
 

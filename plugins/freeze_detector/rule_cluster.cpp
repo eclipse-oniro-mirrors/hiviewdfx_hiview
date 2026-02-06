@@ -193,14 +193,14 @@ void FreezeRuleCluster::ParseTagLinks(xmlNode* tag, FreezeRule& rule)
             if (rule.GetDomain() == domain && rule.GetStringId() == stringId) {
                 principalPoint = true;
             }
-            HandeleScopePair(result, stringId, domain, principalPoint);
+            HandleScopePair(result, stringId, domain, principalPoint);
         }
     }
 }
-void FreezeRuleCluster::HandeleScopePair(const FreezeResult &result,
-                                         const std::string &stringId,
-                                         const std::string &domain,
-                                         bool principalPoint)
+void FreezeRuleCluster::HandleScopePair(const FreezeResult& result,
+                                        const std::string& stringId,
+                                        const std::string& domain,
+                                        bool principalPoint)
 {
     std::string scope = result.GetScope();
     if (scope == "app") {
