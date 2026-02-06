@@ -278,8 +278,8 @@ void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrol
     EventReporter::ReportImageLoadStat(stat);
 }
 
-void PerfReporter::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
-    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+void PerfReporter::ReportSurface(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
 {
     SurfaceInfo surfaceInfo = {uniqueId, surfaceName, componentName, bundleName, pid};
     EventReporter::ReportSurfaceInfo(surfaceInfo);

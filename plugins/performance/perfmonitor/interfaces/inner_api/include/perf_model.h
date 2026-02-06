@@ -129,7 +129,7 @@ struct ImageLoadStat {
 };
 
 struct SurfaceInfo {
-    int64_t uniqueId{0};
+    uint64_t uniqueId{0};
     std::string surfaceName;
     std::string componentName;
     std::string bundleName;
@@ -228,6 +228,12 @@ class NonExperiencePageLoading : public SceneRecord {
 public:
     void StartRecord(const SceneType& sType, const std::string& sId) override;
     void StopRecord(const SceneType& sType) override;
+    bool IsNonExperienceWhiteList(const std::string& sceneId);
+};
+
+class NonExperienceResponse : public SceneRecord {
+public:
+    void StartRecord(const SceneType& sType, const std::string& sId) override;
     bool IsNonExperienceWhiteList(const std::string& sceneId);
 };
 

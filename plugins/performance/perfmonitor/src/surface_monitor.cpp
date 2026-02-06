@@ -14,21 +14,21 @@
  */
 #include "perf_reporter.h"
 #include "surface_monitor.h"
- 
+
 namespace OHOS {
 namespace HiviewDFX {
- 
+
 SurfaceMonitor& SurfaceMonitor::GetInstance()
 {
     static SurfaceMonitor instance;
     return instance;
 }
- 
-void SurfaceMonitor::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
-    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+
+void SurfaceMonitor::ReportSurface(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
 {
     PerfReporter::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
 }
- 
+
 }
 }
