@@ -77,10 +77,10 @@ void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
         return;
     }
     RsJankEvent* rsJankEvent = (RsJankEvent*) event;
-    LOGI("VideoXperfMonitor_OnVideoJankReceived uniqueId:%{public}ld surfaceName:%{public}s", rsJankEvent->uniqueId,
-        rsJankEvent->surfaceName.c_str());
-    XPERF_TRACE_SCOPED("OnVideoJankReceived uniqueId:%ld surfaceName:%s", rsJankEvent->uniqueId,
-        rsJankEvent->surfaceName.c_str());
+    LOGI("VideoXperfMonitor_OnVideoJankReceived uniqueId:%{public}lld surfaceName:%{public}s",
+        static_cast<long long>(rsJankEvent->uniqueId), rsJankEvent->surfaceName.c_str());
+    XPERF_TRACE_SCOPED("OnVideoJankReceived uniqueId:%lld surfaceName:%s",
+        static_cast<long long>(rsJankEvent->uniqueId), rsJankEvent->surfaceName.c_str());
     if (videoJankRecordMap.find(rsJankEvent->uniqueId) != videoJankRecordMap.end()) {
         LOGW("OnVideoJankReceived VideoJankRecord exists");
         return;
