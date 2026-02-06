@@ -442,6 +442,8 @@ bool SceneMonitor::IsExceptResponseTime(int64_t time, const std::string& sceneId
         PerfConstants::PC_GESTURE_TO_RECENT, PerfConstants::PC_SHORTCUT_SHOW_DESKTOP,
         PerfConstants::PC_ALT_TAB_TO_RECENT, PerfConstants::PC_SHOW_DESKTOP_GESTURE_OPERATION,
         PerfConstants::PC_SHORTCUT_RESTORE_DESKTOP, PerfConstants::PC_SHORTCUT_TO_RECENT,
+        PerfConstants::LAUNCHER_APP_LAUNCH_FROM_MENU,
+        PerfConstants::LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN,
         PerfConstants::PC_EXIT_RECENT, PerfConstants::PC_SHORTCUT_TO_APP_CENTER_ON_RECENT,
         PerfConstants::PC_SHORTCUT_TO_APP_CENTER, PerfConstants::PC_SHORTCUT_EXIT_APP_CENTER,
         PerfConstants::WINDOW_TITLE_BAR_MINIMIZED, PerfConstants::WINDOW_RECT_MOVE,
@@ -486,7 +488,7 @@ void SceneMonitor::SetVsyncLazyMode(uint64_t sceneTag)
 
 void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
 {
-    if (!isSetAppGCStatus(value)) {
+    if (!IsSetAppGCStatus(value)) {
         return;
     }
     XPERF_TRACE_SCOPED("SceneMonitor::SetAppGCStatus: value = %d", static_cast<int>(value));
@@ -499,7 +501,7 @@ void SceneMonitor::SetAppGCStatus(const std::string& sceneId, int64_t value)
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(SENSITIVE_SCENE_RESTYPE, value, payload);
 }
 
-bool SceneMonitor::isSetAppGCStatus(int64_t value)
+bool SceneMonitor::IsSetAppGCStatus(int64_t value)
 {
     if (value == 1) {
         if (countStart == 0) {
