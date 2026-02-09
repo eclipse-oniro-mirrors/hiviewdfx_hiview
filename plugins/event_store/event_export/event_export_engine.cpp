@@ -134,7 +134,7 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
             HIVIEW_LOGW("failed to post export event");
         }
         // sleep for a task cycle
-        FfrtUtil::Sleep(config->taskCycle);
+        FfrtUtil::Sleep(static_cast<uint32_t>(config->taskCycle));
     }
 }
 
