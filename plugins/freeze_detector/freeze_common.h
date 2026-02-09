@@ -64,10 +64,6 @@ public:
     static constexpr const char* EVENT_LAST_PROCESS_EVENT_ID = "LAST_PROCESS_EVENTID";
     static constexpr const char* EVENT_LAST_MARKED_EVENT_ID = "LAST_MARKED_EVENTID";
     static constexpr const char* EVENT_THERMAL_LEVEL = "THERMAL_LEVEL";
-    static constexpr const char* WARNING_EVENTS[] = {
-        "THREAD_BLOCK_6S",
-        "LIFECYCLE_TIMEOUT",
-    };
 
     FreezeCommon();
     ~FreezeCommon();
@@ -82,7 +78,6 @@ public:
     std::shared_ptr<FreezeRuleCluster> GetFreezeRuleCluster() const;
     static void WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart = true);
     static time_t GetFaultTime(const std::string& msg);
-    bool IsReportAppFreezeEvent(const std::string& stringId) const;
 private:
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_;
     bool IsAssignedEvent(const std::string& domain, const std::string& stringId, int freezeId) const;

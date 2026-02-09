@@ -23,9 +23,6 @@
 #include "log_file.h"
 #include <shared_mutex>
 
-#undef FREEZE_DOMAIN
-#define FREEZE_DOMAIN 0xD002D01
-
 namespace OHOS {
 namespace HiviewDFX {
 enum FreezeLogType {
@@ -69,7 +66,6 @@ private:
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeExtLogStore_ = nullptr;
-
     std::map<int64_t, std::string> traceNameMap_;
     mutable std::shared_mutex traceNameMapMutex_;
 };

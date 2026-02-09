@@ -47,7 +47,7 @@ namespace {
     constexpr const char* HGUARD_WORKER = "hguard-worker";
     constexpr const char* LMK_DEBUG = "sys-lmk-debug-t";
 #ifdef KERNELSTACK_CATCHER_ENABLE
-    constexpr int DECIMEL = 10;
+    constexpr int DECIMAL = 10;
     constexpr int DIR_BUFFER = 256;
 #endif
 }

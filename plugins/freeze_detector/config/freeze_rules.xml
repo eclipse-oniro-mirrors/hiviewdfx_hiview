@@ -298,7 +298,7 @@
         </event>
       </links>
     </rule>
-        <rule id="19" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
+    <rule id="19" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
           <result code="2" scope="sysWarning"/>
@@ -329,13 +329,6 @@
         </event>
         <event window="60" domain="AAFWK" stringid="LIFECYCLE_TIMEOUT">	<!-- LIFECYCLE_TIMEOUT -->
           <result code="3" scope="appFreezeWarning" samePackage="true"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="3" domain="AAFWK" stringid="BUSINESS_INPUT_BLOCK">	<!-- BUSINESS_INPUT_BLOCK -->
-      <links type="watchpoint">
-        <event window="0" domain="AAFWK" stringid="BUSINESS_INPUT_BLOCK">	<!-- BUSINESS_INPUT_BLOCK -->
-          <result code="0" scope="appFreezeWarning"/>
         </event>
       </links>
     </rule>

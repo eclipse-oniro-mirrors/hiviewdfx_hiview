@@ -52,8 +52,7 @@ inline const std::list<const char* const> APPFREEZE_TYPE_LIST{
     "BUSSINESS_THREAD_BLOCK_3S",
     "BUSSINESS_THREAD_BLOCK_6S",
     "LIFECYCLE_HALF_TIMEOUT",
-    "LIFECYCLE_TIMEOUT",
-    "BUSINESS_INPUT_BLOCK"
+    "LIFECYCLE_TIMEOUT"
 };
 
 inline const std::list<const char* const> APPHICOLLIE_TYPE_LIST{
