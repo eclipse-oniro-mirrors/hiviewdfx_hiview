@@ -28,7 +28,7 @@ class WhiteBlockMonitor {
 public:
     static WhiteBlockMonitor& GetInstance();
  
-    void StartScroll(BaseInfo baseInfo);
+    void StartScroll(const BaseInfo& baseInfo);
     void EndScroll();
     void StartRecordImageLoadStat(int64_t id);
     void EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type, int state);

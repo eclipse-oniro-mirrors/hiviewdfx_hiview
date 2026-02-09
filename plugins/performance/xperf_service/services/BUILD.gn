@@ -80,6 +80,7 @@ ohos_shared_library("xperfservice_server") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "hisysevent:libhisysevent",
+    "graphic_2d:librender_service_client",
     "hicollie:libhicollie",
   ]
 

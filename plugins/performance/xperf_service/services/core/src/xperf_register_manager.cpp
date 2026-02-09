@@ -92,7 +92,7 @@ void XperfRegisterManager::UnregisterAudioJank(const std::string &caller)
 void XperfRegisterManager::NotifyVideoJankEvent(const std::string &msg)
 {
     std::unique_lock<std::shared_timed_mutex> lock(mutex);
-    for (auto &[_, callback] : vjCallbackMap) {
+    for (const auto &[_, callback] : vjCallbackMap) {
         callback->OnVideoJankEvent(msg);
     }
 }

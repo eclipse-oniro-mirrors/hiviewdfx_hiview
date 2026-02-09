@@ -66,7 +66,6 @@ OhosXperfEvent* XperfDispatcher::DispatchMsgToParser(int32_t domainId, int32_t e
 
 void XperfDispatcher::DispatchEventToMonitor(OhosXperfEvent* event)
 {
-    LOGD("XperfDispatcher_DispatcherEventToMonitor logId:%{public}d", event->logId);
     if (event == nullptr) {
         LOGE("invalid data");
         return;
