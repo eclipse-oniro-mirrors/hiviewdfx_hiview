@@ -49,20 +49,25 @@ public:
     static constexpr const char* PROC_STATM = "PROC_STATM";
     static constexpr const char* HOST_RESOURCE_WARNING = "HOST_RESOURCE_WARNING";
     static constexpr const char* FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
+    static constexpr const char* EVENT_ENABLE_MAINTHREAD_SAMPLE = "ENABLE_MAINTHREAD_SAMPLE";
+    static constexpr const char* EVENT_APPLICATION_HEAP_INFO = "APPLICATION_HEAP_INFO";
+    static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
     static constexpr const char* APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
     static constexpr const char* LOWERCASE_OF_APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
     static constexpr const char* FOREGROUND = "FOREGROUND";
-    static constexpr const char* EVENT_APPLICATION_HEAP_INFO = "APPLICATION_HEAP_INFO";
-    static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
     static constexpr const char* EVENT_TASK_NAME = "TASK_NAME";
+    static constexpr const char* QNAME = "QNAME";
+    static constexpr const char* QOS = "QOS";
+    static constexpr const char* CLUSTER_RAW = "CLUSTER_RAW";
     static constexpr const char* EVENT_TIMEOUT_EVENT_ID = "INPUT_ID";
     static constexpr const char* EVENT_LAST_DISPATCH_EVENT_ID = "LAST_DISPATCH_EVENTID";
     static constexpr const char* EVENT_LAST_PROCESS_EVENT_ID = "LAST_PROCESS_EVENTID";
     static constexpr const char* EVENT_LAST_MARKED_EVENT_ID = "LAST_MARKED_EVENTID";
     static constexpr const char* EVENT_THERMAL_LEVEL = "THERMAL_LEVEL";
-    static constexpr const char* QNAME = "QNAME";
-    static constexpr const char* QOS = "QOS";
-    static constexpr const char* CLUSTER_RAW = "CLUSTER_RAW";
+    static constexpr const char* WARNING_EVENTS[] = {
+        "THREAD_BLOCK_6S",
+        "LIFECYCLE_TIMEOUT",
+    };
 
     FreezeCommon();
     ~FreezeCommon();
@@ -77,6 +82,7 @@ public:
     std::shared_ptr<FreezeRuleCluster> GetFreezeRuleCluster() const;
     static void WriteTimeInfoToFd(int fd, const std::string& msg, bool isStart = true);
     static time_t GetFaultTime(const std::string& msg);
+    bool IsReportAppFreezeEvent(const std::string& stringId) const;
 private:
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_;
     bool IsAssignedEvent(const std::string& domain, const std::string& stringId, int freezeId) const;

@@ -16,10 +16,15 @@
 #ifndef HIVIEWDFX_FREEZE_MANAGER_H
 #define HIVIEWDFX_FREEZE_MANAGER_H
 
+#include <list>
 #include <map>
 #include "log_store_ex.h"
 #include "singleton.h"
+#include "log_file.h"
 #include <shared_mutex>
+
+#undef FREEZE_DOMAIN
+#define FREEZE_DOMAIN 0xD002D01
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -39,7 +44,7 @@ public:
     ~FreezeManager();
     static FreezeManager &GetInStance();
     void InitLogStore();
-    static std::string GetAppFreezeFile(const std::string& stackPath);
+    static std::string GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove = false);
 
     void InsertTraceName(int64_t time, std::string traceName);
     std::string GetTraceName(int64_t time) const;
@@ -56,6 +61,9 @@ private:
     void InitFreezeDetectorLogStore();
     LogStoreEx::LogFileFilter CreateLogFileFilter(int32_t id, const std::string& filePrefix) const;
     int32_t GetUidFromFileName(const std::string& fileName) const;
+    void ReduceLogFileListSize(const std::vector<LogFile> &fileList, int32_t maxNum) const;
+    void ClearSameFreezeExtIfNeed(int32_t uid, int32_t maxNum) const;
+    void ClearFreezeExtIfNeed(int32_t maxNum) const;
     std::vector<std::string> GetDightStrArr(const std::string& target) const;
 
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;

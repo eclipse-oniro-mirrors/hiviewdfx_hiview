@@ -22,8 +22,8 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    appRunningUniqueId_(""), applicationInfo_(""), taskName_(""), timeoutEventId_(""), lastDispatchEventId_(""),
-    lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""), clusterRaw_("")
+    enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
 {
 }
 
@@ -48,23 +48,24 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     procStatm_(builder.procStatm_),
     hostResourceWarning_(builder.hostResourceWarning_),
     freezeExtFile_(builder.freezeExtFile_),
-    appRunningUniqueId_(builder.appRunningUniqueId_),
+    enableMainThreadSample_(builder.enableMainThreadSample_),
     applicationInfo_(builder.applicationInfo_),
+    appRunningUniqueId_(builder.appRunningUniqueId_),
     taskName_(builder.taskName_),
+    clusterRaw_(builder.clusterRaw_),
     timeoutEventId_(builder.timeoutEventId_),
     lastDispatchEventId_(builder.lastDispatchEventId_),
     lastProcessEventId_(builder.lastProcessEventId_),
     lastMarkedEventId_(builder.lastMarkedEventId_),
-    thermalLevel_(builder.thermalLevel_),
-    clusterRaw_(builder.clusterRaw_)
+    thermalLevel_(builder.thermalLevel_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    appRunningUniqueId_(""), applicationInfo_(""), taskName_(""), timeoutEventId_(""), lastDispatchEventId_(""),
-    lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""), clusterRaw_("")
+    enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
 {
 }
 
@@ -190,9 +191,9 @@ WatchPoint::Builder& WatchPoint::Builder::InitFreezeExtFile(const std::string& f
     return *this;
 }
 
-WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::string& appRunningUniqueId)
+WatchPoint::Builder& WatchPoint::Builder::InitEnabelMainThreadSample(bool enableMainThreadSample)
 {
-    appRunningUniqueId_ = appRunningUniqueId;
+    enableMainThreadSample_ = enableMainThreadSample;
     return *this;
 }
 
@@ -202,6 +203,11 @@ WatchPoint::Builder& WatchPoint::Builder::InitApplicationInfo(const std::string&
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::string& appRunningUniqueId)
+{
+    appRunningUniqueId_ = appRunningUniqueId;
+    return *this;
+}
 WatchPoint::Builder& WatchPoint::Builder::InitTaskName(const std::string& taskName)
 {
     taskName_ = taskName;
@@ -350,14 +356,13 @@ std::string WatchPoint::GetFreezeExtFile() const
     return freezeExtFile_;
 }
 
-std::string WatchPoint::GetAppRunningUniqueId() const
-{
-    return appRunningUniqueId_;
-}
-
 std::string WatchPoint::GetApplicationInfo() const
 {
     return applicationInfo_;
+}
+std::string WatchPoint::GetAppRunningUniqueId() const
+{
+    return appRunningUniqueId_;
 }
 
 std::string WatchPoint::GetTaskName() const
@@ -365,6 +370,10 @@ std::string WatchPoint::GetTaskName() const
     return taskName_;
 }
 
+std::string WatchPoint::GetClusterRaw() const
+{
+    return clusterRaw_;
+}
 std::string WatchPoint::GetTimeoutEventId() const
 {
     return timeoutEventId_;
@@ -390,11 +399,6 @@ std::string WatchPoint::GetThermalLevel() const
     return thermalLevel_;
 }
 
-std::string WatchPoint::GetClusterRaw() const
-{
-    return clusterRaw_;
-}
-
 void WatchPoint::SetLogPath(const std::string& logPath)
 {
     logPath_ = logPath;
@@ -403,6 +407,11 @@ void WatchPoint::SetLogPath(const std::string& logPath)
 void WatchPoint::SetFreezeExtFile(const std::string& freezeExtFile)
 {
     freezeExtFile_ = freezeExtFile;
+}
+
+bool WatchPoint::GetEnabelMainThreadSample() const
+{
+    return enableMainThreadSample_;
 }
 
 void WatchPoint::SetTerminalThreadStack(const std::string& terminalThreadStack)

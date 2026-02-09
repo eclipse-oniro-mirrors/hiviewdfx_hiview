@@ -34,6 +34,7 @@ namespace {
     constexpr size_t FAULTTIME_THREE_INDEX = 10;
     constexpr size_t FAULTTIME_FOUR_INDEX = 13;
     constexpr size_t FAULTTIME_FIVE_INDEX = 16;
+    constexpr const char* PREFIX_FAULT_TIME = "Fault time:";
 }
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
 FreezeCommon::FreezeCommon()
@@ -158,8 +159,8 @@ void FreezeCommon::WriteTimeInfoToFd(int fd, const std::string& msg, bool isStar
     uint64_t ms = TimeUtil::GetMilliseconds();
     std::ostringstream timeStr;
     timeStr << msg << TimeUtil::TimestampFormatToDate(ms / TimeUtil::SEC_TO_MILLISEC, "%Y/%m/%d-%H:%M:%S")
-            << ":" << std::setw(PLACEHOLDER) << std::setfill('0')
-            << std::to_string(ms % TimeUtil::SEC_TO_MILLISEC) << std::endl;
+        << ":" << std::setw(PLACEHOLDER) << std::setfill('0')
+        << (ms % TimeUtil::SEC_TO_MILLISEC) << std::endl;
     FileUtil::SaveStringToFd(fd, timeStr.str());
     if (!isStart) {
         FileUtil::SaveStringToFd(fd, "---------------------------------------------------\n");
@@ -168,11 +169,14 @@ void FreezeCommon::WriteTimeInfoToFd(int fd, const std::string& msg, bool isStar
 
 time_t FreezeCommon::GetFaultTime(const std::string& msg)
 {
-    std::string faultTimeTag = "Fault time:";
-    size_t startIndex = msg.find(faultTimeTag);
+    size_t startIndex = msg.find(PREFIX_FAULT_TIME);
     time_t faultTime = 0;
-    if (startIndex != std::string::npos && msg.size() >= (startIndex + faultTimeTag.size() + FAULTTIME_STR_SIZE)) {
-        std::string faultTimeStr = msg.substr(startIndex + faultTimeTag.size(), FAULTTIME_STR_SIZE);
+    if (startIndex != std::string::npos) {
+        size_t faultTimeStartPos = startIndex + strlen(PREFIX_FAULT_TIME);
+        if (msg.size() < (faultTimeStartPos + FAULTTIME_STR_SIZE)) {
+            return faultTime;
+        }
+        std::string faultTimeStr = msg.substr(faultTimeStartPos, FAULTTIME_STR_SIZE);
         if (faultTimeStr[FAULTTIME_ONE_INDEX] == '/' && faultTimeStr[FAULTTIME_TWO_INDEX] == '/' &&
             faultTimeStr[FAULTTIME_THREE_INDEX] == '-' && faultTimeStr[FAULTTIME_FOUR_INDEX] == ':' &&
             faultTimeStr[FAULTTIME_FIVE_INDEX] == ':') {

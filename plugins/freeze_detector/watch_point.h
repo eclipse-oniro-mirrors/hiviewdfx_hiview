@@ -47,15 +47,16 @@ public:
         Builder& InitProcStatm(const std::string& procStatm);
         Builder& InitHostResourceWarning(const std::string& hostResourceWarning);
         Builder& InitFreezeExtFile(const std::string& freezeExtFile);
-        Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
+        Builder& InitEnabelMainThreadSample(bool enableMainThreadSample);
         Builder& InitApplicationInfo(const std::string& applicationInfo);
+        Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
         Builder& InitTaskName(const std::string& taskName);
+        Builder& InitClusterRaw(const std::string& clusterRaw);
         Builder& InitTimeoutEventId(const std::string& timeoutEventId);
         Builder& InitLastDispatchEventId(const std::string& lastDispatchEventId);
         Builder& InitLastProcessEventId(const std::string& lastProcessEventId);
         Builder& InitLastMarkedEventId(const std::string& lastMarkedEventId);
         Builder& InitThermalLevel(const std::string& thermalLevel);
-        Builder& InitClusterRaw(const std::string& clusterRaw);
         WatchPoint Build() const;
 
     private:
@@ -79,15 +80,16 @@ public:
         std::string procStatm_;
         std::string hostResourceWarning_;
         std::string freezeExtFile_;
-        std::string appRunningUniqueId_;
+        bool enableMainThreadSample_;
         std::string applicationInfo_;
+        std::string appRunningUniqueId_;
         std::string taskName_;
+        std::string clusterRaw_;
         std::string timeoutEventId_;
         std::string lastDispatchEventId_;
         std::string lastProcessEventId_;
         std::string lastMarkedEventId_;
         std::string thermalLevel_;
-        std::string clusterRaw_;
         friend class WatchPoint;
     };
 
@@ -115,15 +117,16 @@ public:
     std::string GetProcStatm() const;
     std::string GetHostResourceWarning() const;
     std::string GetFreezeExtFile() const;
-    std::string GetAppRunningUniqueId() const;
+    bool GetEnabelMainThreadSample() const;
     std::string GetApplicationInfo() const;
+    std::string GetAppRunningUniqueId() const;
     std::string GetTaskName() const;
+    std::string GetClusterRaw() const;
     std::string GetTimeoutEventId() const;
     std::string GetLastDispatchEventId() const;
     std::string GetLastProcessEventId() const;
     std::string GetLastMarkedEventId() const;
     std::string GetThermalLevel() const;
-    std::string GetClusterRaw() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -157,15 +160,16 @@ private:
     std::string procStatm_;
     std::string hostResourceWarning_;
     std::string freezeExtFile_;
-    std::string appRunningUniqueId_;
+    bool enableMainThreadSample_;
     std::string applicationInfo_;
+    std::string appRunningUniqueId_;
     std::string taskName_;
+    std::string clusterRaw_;
     std::string timeoutEventId_;
     std::string lastDispatchEventId_;
     std::string lastProcessEventId_;
     std::string lastMarkedEventId_;
     std::string thermalLevel_;
-    std::string clusterRaw_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
