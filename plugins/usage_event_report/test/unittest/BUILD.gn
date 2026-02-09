@@ -44,8 +44,7 @@ ohos_unittest("UsageEventReportTest") {
   sources = [ "usage_event_report_test.cpp" ]
 
   deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_base/event_report:hiview_event_report",
+    "$hiview_base:hiviewbase",
     "$hiview_plugin/usage_event_report:usage_event_report",
   ]
 
