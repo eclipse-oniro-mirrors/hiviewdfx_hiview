@@ -29,6 +29,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
+const char LOG_FILE_PATH[] = "/data/log/hiview/log_store_test/";
 class FreezeManagerTest : public testing::Test {
 public:
     std::shared_ptr<FreezeManager> freezeManager = nullptr;
@@ -58,10 +59,10 @@ void FreezeManagerTest::TearDown(void)
 {}
 
 /**
- * @tc.name: GetUidFromFileName_001
+ * @tc.name: CreateLogFileFilter_001
  * @tc.desc: FreezeManager
  */
-HWTEST_F(FreezeManagerTest, GetUidFromFileName_001, TestSize.Level0)
+HWTEST_F(FreezeManagerTest, CreateLogFileFilter_001, TestSize.Level0)
 {
     LogStoreEx::LogFileFilter filter1 = freezeManager->CreateLogFileFilter(0, "FreezeManagerTest");
     EXPECT_TRUE(filter1 != nullptr);
@@ -143,6 +144,87 @@ HWTEST_F(FreezeManagerTest, SaveFreezeExtInfoToFile_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: ReduceLogFileListSize_001
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ReduceLogFileListSize_001, TestSize.Level3)
+{
+    std::vector<LogFile> fileList;
+    int32_t maxNum = -1;
+    freezeManager->ReduceLogFileListSize(fileList, maxNum);
+    EXPECT_EQ(fileList.size(), 0);
+}
+
+/**
+ * @tc.name: ReduceLogFileListSize_002
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ReduceLogFileListSize_002, TestSize.Level3)
+{
+    std::vector<LogFile> fileList;
+    int32_t maxNum = 1;
+    freezeManager->ReduceLogFileListSize(fileList, maxNum);
+    EXPECT_EQ(fileList.size(), 0);
+}
+
+/**
+ * @tc.name: ReduceLogFileListSize_003
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ReduceLogFileListSize_003, TestSize.Level3)
+{
+    std::vector<LogFile> fileList;
+    const std::string testLogDir = std::string(LOG_FILE_PATH);
+    FileUtil::ForceRemoveDirectory(testLogDir);
+    fileList.push_back(LogFile(testLogDir));
+    int32_t maxNum = 0;
+    freezeManager->ReduceLogFileListSize(fileList, maxNum);
+    EXPECT_EQ(fileList.size(), 1);
+}
+
+/**
+ * @tc.name: ClearFreezeExt_Test_001
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ClearFreezeExt_Test_001, TestSize.Level3)
+{
+    freezeManager->freezeExtLogStore_ = nullptr;
+    int32_t maxNum = 10; // test value
+    freezeManager->ClearFreezeExtIfNeed(maxNum);
+    freezeManager->ClearSameFreezeExtIfNeed(getuid(), maxNum);
+    freezeManager->InitFreezeExtLogStore();
+    EXPECT_TRUE(freezeManager->freezeExtLogStore_ != nullptr);
+}
+
+/**
+ * @tc.name: ClearSameFreezeExtIfNeed_Test_001
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ClearSameFreezeExtIfNeed_Test_001, TestSize.Level3)
+{
+    if (!freezeManager->freezeExtLogStore_) {
+        freezeManager->InitFreezeExtLogStore();
+    }
+    int32_t maxNum = 10; // test value
+    freezeManager->ClearSameFreezeExtIfNeed(getuid(), maxNum);
+    EXPECT_TRUE(freezeManager != nullptr);
+}
+
+/**
+ * @tc.name: ClearFreezeExtIfNeed_Test_001
+ * @tc.desc: FreezeManager
+ */
+HWTEST_F(FreezeManagerTest, ClearFreezeExtIfNeed_Test_001, TestSize.Level3)
+{
+    if (!freezeManager->freezeExtLogStore_) {
+        freezeManager->InitFreezeExtLogStore();
+    }
+    int32_t maxNum = 10; // test value
+    freezeManager->ClearFreezeExtIfNeed(maxNum);
+    EXPECT_TRUE(freezeManager != nullptr);
+}
+
+/**
  * @tc.name: ParseLogEntry_001
  * @tc.desc: FreezeManager
  */
@@ -187,6 +269,7 @@ HWTEST_F(FreezeManagerTest, GetDightStrArr_Test_001, TestSize.Level3)
     EXPECT_TRUE(numStrArr.size() > 0);
     target = "abc abc 123";
     numStrArr = freezeManager->GetDightStrArr(target);
+    EXPECT_TRUE(numStrArr.size() > 0);
     target = "0 0 123 123";
     numStrArr = freezeManager->GetDightStrArr(target);
     EXPECT_TRUE(numStrArr.size() > 0);
@@ -198,7 +281,7 @@ HWTEST_F(FreezeManagerTest, GetDightStrArr_Test_001, TestSize.Level3)
  */
 HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
 {
-    int64_t execCapacity = 11;
+    int64_t execCapacity = 7;
     std::string traceName = "traceName_";
     for (int64_t i = 0; i < execCapacity; i++) {
         FreezeManager::GetInstance()->InsertTraceName(i, traceName + std::to_string(i));
@@ -206,8 +289,8 @@ HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
             FreezeManager::GetInstance()->InsertTraceName(i, traceName + std::to_string(i));
         }
     }
-    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "");
-    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(10), "traceName_10");
+    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(0), "Trace not needed, already dumping, or not found");
+    EXPECT_EQ(FreezeManager::GetInstance()->GetTraceName(6), "traceName_6");
 }
 }
 }

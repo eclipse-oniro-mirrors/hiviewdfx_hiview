@@ -104,10 +104,10 @@ public:
     void ParseTagEvent(xmlNode* tag, FreezeResult& result);
     void ParseTagResult(xmlNode* tag, FreezeResult& result);
     void ParseTagRelevance(xmlNode* tag, FreezeResult& result);
-    void HandeleScopePair(const FreezeResult &result,
-                          const std::string &stringId,
-                          const std::string &domain,
-                          bool principalPoint);
+    void HandleScopePair(const FreezeResult& result,
+                        const std::string& stringId,
+                        const std::string& domain,
+                        bool principalPoint);
     template<typename T>
     T GetAttributeValue(xmlNode* node, const std::string& name);
     bool GetResult(const WatchPoint& watchPoint, std::vector<FreezeResult>& list);

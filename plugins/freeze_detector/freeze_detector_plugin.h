@@ -20,11 +20,11 @@
 
 #include "event.h"
 #include "event_loop.h"
+#include "ffrt.h"
 #include "freeze_common.h"
 #include "plugin.h"
 #include "watch_point.h"
 #include "resolver.h"
-#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -47,6 +47,7 @@ struct WatchPointParams {
     std::string freezeExtFile;
     std::string applicationInfo;
     std::string taskName;
+    std::string clusterRaw;
     std::string timeoutEventId;
     std::string lastDispatchEventId;
     std::string lastProcessEventId;
@@ -54,8 +55,8 @@ struct WatchPointParams {
     std::string thermalLevel;
     std::string logFile;
     std::string foreGround;
-    std::string clusterRaw;
     std::string msg;
+    bool enableMainThreadSample;
 };
 class FreezeDetectorPlugin : public Plugin {
 public:
