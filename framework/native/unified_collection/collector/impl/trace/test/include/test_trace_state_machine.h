@@ -73,6 +73,7 @@ inline void CreateTraceFile(const std::string& traceName)
 {
     std::ofstream file(traceName, std::ios::out | std::ios::binary);
     if (!file) {
+        std::cout << traceName << " create failed" << std::endl;
         return;
     }
     std::string data(FILE_SIZE_DEFAULT, 'A');

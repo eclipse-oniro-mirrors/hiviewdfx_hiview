@@ -55,33 +55,45 @@ public:
     static void SetUpTestCase()
     {
         if (!FileUtil::FileExists(TEST_DB_PATH)) {
-            FileUtil::ForceCreateDirectory(TEST_DB_PATH);
+            if (!FileUtil::ForceCreateDirectory(TEST_DB_PATH)) {
+                std::cout << "failed create dir:" << TEST_DB_PATH <<std::endl;
+            }
         }
         if (!FileUtil::FileExists(TEST_SRC_PATH)) {
-            FileUtil::ForceCreateDirectory(TEST_SRC_PATH);
-            CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928220220@75724-2015.sys");
-            CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928220222@75726-992.sys");
-            CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928223217@77520-2883.sys");
-            CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928223909@77932-4731.sys");
-            CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928223913@77937-148363.sys");
+            if (!FileUtil::ForceCreateDirectory(TEST_SRC_PATH)) {
+                std::cout << "failed create dir:" << TEST_SRC_PATH <<std::endl;
+            }
         }
         if (!FileUtil::FileExists(TEST_CONFIG_PATH)) {
-            FileUtil::ForceCreateDirectory(TEST_CONFIG_PATH);
+            if (!FileUtil::ForceCreateDirectory(TEST_CONFIG_PATH)) {
+                std::cout << "failed create dir:" << TEST_CONFIG_PATH <<std::endl;
+            }
         }
+        CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928220220@75724-2015.sys");
+        CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928220222@75726-992.sys");
+        CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928223217@77520-2883.sys");
+        CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928223909@77932-4731.sys");
+        CreateTraceFile("/data/test/trace_src/test_traces/trace_20170928223913@77937-148363.sys");
     };
 
     static void TearDownTestCase()
     {
         if (FileUtil::FileExists(TEST_DB_PATH)) {
-            FileUtil::ForceRemoveDirectory(TEST_DB_PATH);
+            if (!FileUtil::ForceRemoveDirectory(TEST_DB_PATH)) {
+                std::cout << "remove dir:" << TEST_DB_PATH << " failed" << std::endl;
+            }
         }
         if (FileUtil::FileExists(TEST_SRC_PATH)) {
-            FileUtil::ForceRemoveDirectory(TEST_SRC_PATH);
+            if (!FileUtil::ForceRemoveDirectory(TEST_SRC_PATH)) {
+                std::cout << "remove dir:" << TEST_SRC_PATH << " failed" << std::endl;
+            }
         }
         if (FileUtil::FileExists(TEST_CONFIG_PATH)) {
-            FileUtil::ForceRemoveDirectory(TEST_CONFIG_PATH);
+            if (!FileUtil::ForceRemoveDirectory(TEST_CONFIG_PATH)) {
+                std::cout << "remove dir:" << TEST_CONFIG_PATH << " failed" << std::endl;
+            }
         }
-    };
+    }
 };
 
 
