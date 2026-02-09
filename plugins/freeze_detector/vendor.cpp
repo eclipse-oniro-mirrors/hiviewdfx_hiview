@@ -168,7 +168,7 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint) const
     
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
-    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu", fileList.size());
+    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
     if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
         stackFile = fileList[0];
         cpuFile = fileList[FREEZE_CPU_INDEX];
@@ -302,8 +302,8 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
                 std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
                 watchPoint.SetTerminalThreadStack(threadStack);
                 logContent.erase(startPos, endPos - startPos + strlen(THREAD_STACK_END));
-        }
-        body << logContent << std::endl;
+            }
+            body << logContent << std::endl;
         } else {
             body << ifs.rdbuf();
         }
