@@ -164,7 +164,6 @@ void VideoJankMonitor::MonitorStart()
     }
     LOGI("VideoJankMonitor_MonitorStart AvcodecVideoStart");
     XPERF_TRACE_SCOPED("AvcodecVideoStart");
-    OHOS::Rosen::RSInterfaces::GetInstance().AvcodecVideoStart(uniqueIds, surfaceNames, fps, interval); //通知图形开始检测
 }
 
 void VideoJankMonitor::MonitorStop()
@@ -178,7 +177,6 @@ void VideoJankMonitor::MonitorStop()
     }
     LOGI("VideoJankMonitor_MonitorStop AvcodecVideoStop");
     XPERF_TRACE_SCOPED("AvcodecVideoStop");
-    OHOS::Rosen::RSInterfaces::GetInstance().AvcodecVideoStop(uniqueIds, surfaceNames, fps); //通知图形停止检测
 }
 
 bool VideoJankMonitor::IsUserAction()
