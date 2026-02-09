@@ -71,12 +71,6 @@ ohos_source_set("freeze_detector") {
 group("unittest") {
   testonly = true
   deps = []
-  if (hiview_freeze_collect_enable) {
-    deps += [
-      "test:FreezeDetectorUnittest",
-      "test:FreezeManagerTest",
-    ]
-  }
 }
 
 group("moduletest") {

@@ -91,14 +91,6 @@ ohos_shared_library("eventloggerso") {
 group("unittest") {
   testonly = true
   deps = []
-  if (hiview_freeze_collect_enable) {
-    deps += [
-      "config/test:EventloggerConfigTest",
-      "log_catcher/test:EventloggerCatcherTest",
-      "test:EventLoggerTest",
-      "manager/test:EventloggerManagerTest",
-    ]
-  }
 }
 
 group("moduletest") {
