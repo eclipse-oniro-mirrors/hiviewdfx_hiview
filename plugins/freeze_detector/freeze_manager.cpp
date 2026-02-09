@@ -19,13 +19,16 @@
 #include "file_util.h"
 #include "time_util.h"
 #include "string_util.h"
+#include "ffrt.h"
 
-#define FDASN_EVENTLOGGER_TAG 0xD002D01 // eventlogger domainid
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
+    constexpr int DELAY_DELETE_TIME = 1 * 1000 * 1000; // 1 s
     constexpr int VALUE_MOD = 200000;
     constexpr size_t FREEZE_FILE_NAME_SIZE = 6;
+    constexpr int FREEZE_EXT_MAX_FILE_NUM = 20;
+    constexpr int FREEZE_EXT_HALF_FILE_NUM = 2;
     constexpr int FREEZE_UID_INDEX = 4;
     constexpr int MAX_FREEZE_PER_HAP = 10;
     constexpr int EVENTLOG_MIN_KEEP_FILE_NUM = 80;
@@ -40,7 +43,8 @@ namespace {
     constexpr const char* FREEZE_EXT_LOG_PATH = "/data/log/faultlog/freeze_ext/";
     constexpr const char* PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
     constexpr const char* PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
-    constexpr size_t TRACE_NAME_MAP_CAPACITY = 10;
+    constexpr const char* TRACE_GET_ERROR_MESSAGE = "Trace not needed, already dumping, or not found";
+    constexpr size_t TRACE_NAME_MAP_CAPACITY = 6;
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -56,52 +60,6 @@ FreezeManager &FreezeManager::GetInStance()
 {
     static FreezeManager instance;
     return instance;
-}
-
-void FreezeManager::ExchangeFdWithFdsanTag(const int fd)
-{
-    fdsan_exchange_owner_tag(fd, 0, FDASN_EVENTLOGGER_TAG);
-}
-
-int FreezeManager::CloseFdWithFdsanTag(const int fd)
-{
-    int fcloseRet = fdsan_close_with_tag(fd, FDASN_EVENTLOGGER_TAG);
-    if (fcloseRet != 0) {
-        HIVIEW_LOGW("Failed to fclose=%{public}d, errno=%{public}d.", fcloseRet, errno);
-    }
-    return fcloseRet;
-}
-
-int FreezeManager::CloseFileByFp(FILE*& fp, std::string path)
-{
-    if (fp == nullptr) {
-        return -1;
-    }
-
-    int result = fclose(fp);
-    if (result != 0) {
-        HIVIEW_LOGE("Fail to close %{public}s, errno: %{public}d", path.c_str(), errno);
-    }
-    fp = nullptr;
-    return result;
-}
-
-std::string FreezeManager::GetlineByFile(std::string path)
-{
-    std::string statmLine;
-    FILE* fp = fopen(path.c_str(), "r");
-    if (fp == nullptr) {
-        HIVIEW_LOGE("Fail to create %{public}s, errno: %{public}d.", path.c_str(), errno);
-    } else {
-        char buffer[BUF_SIZE_1024] = {'\0'};
-        if (fgets(buffer, sizeof(buffer) - 1, fp) == nullptr) {
-            HIVIEW_LOGE("Fail to read %{public}s, errno: %{public}d.", path.c_str(), errno);
-        } else {
-            statmLine = buffer;
-        }
-        CloseFileByFp(fp, path);
-    }
-    return statmLine;
 }
 
 void FreezeManager::InsertTraceName(int64_t time, std::string traceName)
@@ -123,7 +81,7 @@ std::string FreezeManager::GetTraceName(int64_t time) const
 {
     std::shared_lock lock(traceNameMapMutex_);
     auto it = traceNameMap_.find(time);
-    return it == traceNameMap_.end() ? "" : it->second;
+    return it == traceNameMap_.end() ? TRACE_GET_ERROR_MESSAGE : it->second;
 }
 
 int32_t FreezeManager::GetUidFromFileName(const std::string& fileName) const
@@ -216,7 +174,7 @@ int FreezeManager::GetFreezeLogFd(int32_t freezeLogType, const std::string& file
     return fd;
 }
 
-std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath)
+std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove)
 {
     std::string result = "";
     if (!FileUtil::FileExists(stackPath)) {
@@ -225,7 +183,16 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath)
         return result;
     }
     FileUtil::LoadStringFromFile(stackPath, result);
-    bool isRemove = FileUtil::RemoveFile(stackPath.c_str());
+    bool isRemove = false;
+    if (isDelayRemove) {
+        auto task = [stackPath] {
+            bool ret = FileUtil::RemoveFile(stackPath.c_str());
+            HIVIEW_LOGI("Remove file:%{public}d", ret);
+        };
+        ffrt::submit(task, {}, {}, ffrt::task_attr().name("freeze_delay_delete").delay(DELAY_DELETE_TIME));
+    } else {
+        isRemove = FileUtil::RemoveFile(stackPath.c_str());
+    }
     HIVIEW_LOGI("Remove file? isRemove:%{public}d", isRemove);
     return result;
 }
@@ -236,7 +203,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
     int userId = uid / VALUE_MOD;
     std::string stackPath = APPFREEZE_LOG_PREFIX + std::to_string(userId) + "/log/" + bundleName +
         APPFREEZE_LOG_SUFFIX + stackFile;
-    std::string stackInfo = GetAppFreezeFile(stackPath);
+    std::string stackInfo = GetAppFreezeFile(stackPath, true);
     std::string cpuInfo = GetAppFreezeFile(cpuFile);
     if (stackInfo.empty() && cpuInfo.empty()) {
         HIVIEW_LOGE("freeze sample cpu and stack content is empty.");
@@ -255,16 +222,52 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return "";
     }
-    FreezeManager::GetInstance()->ExchangeFdWithFdsanTag(fd);
-    FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo);
-    FreezeManager::GetInstance()->CloseFdWithFdsanTag(fd);
-
-    freezeExtLogStore_->ClearSameLogFilesIfNeeded(CreateLogFileFilter(uid, FREEZE_CPUINFO_PREFIX),
-        MAX_FREEZE_PER_HAP);
-
-    std::string logFile = FREEZE_EXT_LOG_PATH + freezeFile;
-    HIVIEW_LOGW("create freezeExt file=%{public}s success.", logFile.c_str());
+    std::string logFile;
+    if (FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo)) {
+        logFile = FREEZE_EXT_LOG_PATH + freezeFile;
+        HIVIEW_LOGW("create freezeExt file=%{public}s success.", logFile.c_str());
+    } else {
+        HIVIEW_LOGE("failed to cpu and stack info to file.");
+    }
+    close(fd);
+    ClearFreezeExtIfNeed(FREEZE_EXT_MAX_FILE_NUM);
+    ClearSameFreezeExtIfNeed(uid, MAX_FREEZE_PER_HAP);
     return logFile;
+}
+
+void FreezeManager::ClearFreezeExtIfNeed(int32_t maxNum) const
+{
+    if (!freezeExtLogStore_) {
+        return;
+    }
+    auto infoVec = freezeExtLogStore_->GetLogFiles();
+    auto vecSize = infoVec.size();
+    ReduceLogFileListSize(infoVec, maxNum);
+}
+
+void FreezeManager::ClearSameFreezeExtIfNeed(int32_t uid, int32_t maxNum) const
+{
+    if (!freezeExtLogStore_) {
+        return;
+    }
+    LogStoreEx::LogFileFilter filter = CreateLogFileFilter(uid, FREEZE_CPUINFO_PREFIX);
+    auto infoVec = freezeExtLogStore_->GetLogFiles(filter);
+    ReduceLogFileListSize(infoVec, maxNum);
+}
+
+void FreezeManager::ReduceLogFileListSize(const std::vector<LogFile> &fileList, int32_t maxNum) const
+{
+    if ((maxNum < 0) || (fileList.size() <= static_cast<uint32_t>(maxNum))) {
+        return;
+    }
+    uint32_t deleteCount = 0;
+    uint32_t removeFileNums = fileList.size() / FREEZE_EXT_HALF_FILE_NUM;
+    for (auto it = fileList.rbegin(); it != fileList.rend() && deleteCount < removeFileNums; ++it) {
+        FileUtil::RemoveFile(it->path_);
+        deleteCount++;
+        HIVIEW_LOGI("Remove freezeExt file:%{public}s.", it->path_.c_str());
+    }
+    HIVIEW_LOGW("Remove freezeExt files success, deleteCount=%{public}d.", deleteCount);
 }
 
 void FreezeManager::ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps)
@@ -309,15 +312,25 @@ std::vector<std::string> FreezeManager::GetDightStrArr(const std::string& target
 }
 
 void FreezeManager::FillProcMemory(const std::string& procStatm, long pid,
-    std::map<std::string, std::string> &sectionMaps)
+    std::map<std::string, std::string> &sectionMaps) const
 {
     std::string statmLine = procStatm;
     if (statmLine.empty()) {
-        statmLine = FreezeManager::GetInstance()->GetlineByFile("/proc/" + std::to_string(pid) + "/statm");
-        if (statmLine.empty()) {
+        std::string realPath;
+        std::string logFile = "/proc/" + std::to_string(pid) + "/statm";
+        if (!FileUtil::PathToRealPath(logFile, realPath)) {
+            HIVIEW_LOGE("RealPath failed, logFile=%{public}s errno: %{public}d", logFile.c_str(), errno);
             return;
         }
+
+        std::ifstream statmStream(realPath);
+        if (!statmStream) {
+            HIVIEW_LOGE("Fail to open /proc/%{public}ld/statm  errno %{public}d", pid, errno);
+            return;
+        }
+        std::getline(statmStream, statmLine);
         HIVIEW_LOGI("/proc/%{public}ld/statm : %{public}s", pid, statmLine.c_str());
+        statmStream.close();
     }
 
     auto numStrArr = GetDightStrArr(statmLine);
@@ -328,8 +341,8 @@ void FreezeManager::FillProcMemory(const std::string& procStatm, long pid,
         vss = multiples * static_cast<uint64_t>(std::atoll(numStrArr[0].c_str()));
         rss = multiples * static_cast<uint64_t>(std::atoll(numStrArr[1].c_str()));
     }
-    sectionMaps[PROCESS_RSS_MEMINFO] = rss;
-    sectionMaps[PROCESS_VSS_MEMINFO] = vss;
+    sectionMaps[PROCESS_RSS_MEMINFO] = std::to_string(rss);
+    sectionMaps[PROCESS_VSS_MEMINFO] = std::to_string(vss);
     HIVIEW_LOGI("Get FreezeJson rss=%{public}" PRIu64", vss=%{public}" PRIu64".", rss, vss);
 }
 }  // namespace HiviewDFX

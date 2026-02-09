@@ -16,9 +16,11 @@
 #ifndef HIVIEWDFX_FREEZE_MANAGER_H
 #define HIVIEWDFX_FREEZE_MANAGER_H
 
+#include <list>
 #include <map>
 #include "log_store_ex.h"
 #include "singleton.h"
+#include "log_file.h"
 #include <shared_mutex>
 
 #undef FREEZE_DOMAIN
@@ -38,12 +40,11 @@ class FreezeManager : public DelayedSingleton<FreezeManager>,
 public:
     static constexpr const char* const LOGGER_EVENT_LOG_PATH = "/data/log/eventlog";
     static constexpr const char* FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
-    static constexpr uint32_t BUF_SIZE_1024 = 1024;
     FreezeManager();
     ~FreezeManager();
     static FreezeManager &GetInStance();
     void InitLogStore();
-    static std::string GetAppFreezeFile(const std::string& stackPath);
+    static std::string GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove = false);
 
     void InsertTraceName(int64_t time, std::string traceName);
     std::string GetTraceName(int64_t time) const;
@@ -52,11 +53,7 @@ public:
     int GetFreezeLogFd(int32_t freezeLogType, const std::string& fileName) const;
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
     void FillProcMemory(const std::string& procStatm, long pid,
-        std::map<std::string, std::string> &sectionMaps);
-    void ExchangeFdWithFdsanTag(const int fd);
-    int CloseFdWithFdsanTag(const int fd);
-    int CloseFileByFp(FILE*& fp, std::string path);
-    std::string GetlineByFile(std::string path);
+        std::map<std::string, std::string> &sectionMaps) const;
 
 private:
     void InitEventLogStore();
@@ -64,6 +61,9 @@ private:
     void InitFreezeDetectorLogStore();
     LogStoreEx::LogFileFilter CreateLogFileFilter(int32_t id, const std::string& filePrefix) const;
     int32_t GetUidFromFileName(const std::string& fileName) const;
+    void ReduceLogFileListSize(const std::vector<LogFile> &fileList, int32_t maxNum) const;
+    void ClearSameFreezeExtIfNeed(int32_t uid, int32_t maxNum) const;
+    void ClearFreezeExtIfNeed(int32_t maxNum) const;
     std::vector<std::string> GetDightStrArr(const std::string& target) const;
 
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;

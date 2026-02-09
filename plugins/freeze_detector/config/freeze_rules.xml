@@ -171,20 +171,6 @@
         </event>
       </links>
     </rule>
-    <rule id="6" domain="WEBVIEW" stringid="PROCESS_FREEZE_WARNING">	<!-- PROCESS_FREEZE_WARNING -->
-      <links type="watchpoint">
-        <event window="0" domain="WEBVIEW" stringid="PROCESS_FREEZE_WARNING">	<!-- PROCESS_FREEZE_WARNING -->
-          <result code="0" scope="app"/>
-        </event>
-      </links>
-    </rule>
-    <rule id="7" domain="WEBVIEW" stringid="RENDER_JS_FREEZE">	<!-- RENDER_JS_FREEZE -->
-      <links type="watchpoint">
-        <event window="0" domain="WEBVIEW" stringid="RENDER_JS_FREEZE">	<!-- RENDER_JS_FREEZE -->
-          <result code="0" scope="app"/>
-        </event>
-      </links>
-    </rule>
   </rules>
   <rules resolver="SysWarningResolver">
     <rule id="1" domain="FRAMEWORK" stringid="SERVICE_TIMEOUT_WARNING">	<!-- SERVICE_TIMEOUT_WARNING -->
@@ -298,7 +284,21 @@
         </event>
       </links>
     </rule>
-    <rule id="16" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
+    <rule id="17" domain="WEBVIEW" stringid="PROCESS_FREEZE_WARNING">	<!-- PROCESS_FREEZE_WARNING -->
+      <links type="watchpoint">
+        <event window="0" domain="WEBVIEW" stringid="PROCESS_FREEZE_WARNING">	<!-- PROCESS_FREEZE_WARNING -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+    <rule id="18" domain="WEBVIEW" stringid="RENDER_JS_FREEZE">	<!-- RENDER_JS_FREEZE -->
+      <links type="watchpoint">
+        <event window="0" domain="WEBVIEW" stringid="RENDER_JS_FREEZE">	<!-- RENDER_JS_FREEZE -->
+          <result code="2" scope="sysWarning"/>
+        </event>
+      </links>
+    </rule>
+        <rule id="19" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
           <result code="2" scope="sysWarning"/>
