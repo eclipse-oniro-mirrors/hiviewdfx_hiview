@@ -1329,6 +1329,20 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_TestLogMerge001, TestSize.Level3)
     "MODULE", "foundation", "MSG", "test remove");
     sleep(2);
     EXPECT_EQ(ret, 0);
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT,
+    "MODULE", "foundation", "MSG", "test remove");
+    sleep(2);
+    EXPECT_EQ(ret, 0);
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+    "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
+    "HOST_RESOURCE_WARNING", "TRUE");
+    EXPECT_EQ(ret, 0);
+    sleep(2);
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
+    "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
+    "HOST_RESOURCE_WARNING", "TRUE");
+    EXPECT_EQ(ret, 0);
+    sleep(2);
 }
 
 } // namespace HiviewDFX
