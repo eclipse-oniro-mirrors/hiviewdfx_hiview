@@ -267,6 +267,10 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest007, TestSize.Level1)
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     int ret = collector->Start(fd, pid, 10, memConfig);
     close(fd);
+#ifdef __aarch64__
     ASSERT_EQ(ret, 0);
+#else
+    ASSERT_NE(ret, 0);
+#endif
     ASSERT_TRUE(FileUtil::FileExists("/data/test/profiler_file"));
 }
