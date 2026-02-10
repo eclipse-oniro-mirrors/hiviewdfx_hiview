@@ -25,7 +25,6 @@
 #include "mem_profiler_collector.h"
 #include "native_memory_profiler_sa_client_manager.h"
 
-
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
@@ -246,9 +245,9 @@ HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest006, TestSize.Level1)
 */
 HWTEST_F(MemProfilerCollectorTest, MemProfilerCollectorTest007, TestSize.Level1)
 {
-    std::shared_ptr<MemProfilerCollector> collector = MemProfilerCollector::Create();
+    auto collector = MemProfilerCollector::Create();
     collector->Prepare();
-    MemConfig memConfig = {
+    MemConfig memConfig {
         .mask = 0xFFFF,
         .hookSizes = {
             {"RES_GPU_VK", {{0, 100}, {0, 20}}},
