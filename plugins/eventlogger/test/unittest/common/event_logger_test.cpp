@@ -1312,5 +1312,24 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetRebootReason_001, TestSize.Level3)
     result = eventLogger->GetRebootReason();
     EXPECT_EQ("LONG_PRESS", result);
 }
+
+/**
+ * @tc.name: EventLoggerTest_TestLogMerge001
+ * @tc.desc: Loging aging test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_TestLogMerge001, TestSize.Level3)
+{
+    int ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
+    "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
+    "HOST_RESOURCE_WARNING", "TRUE");
+    EXPECT_EQ(ret, 0);
+    sleep(2);
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_TIMEOUT", HiSysEvent::EventType::FAULT,
+    "MODULE", "foundation", "MSG", "test remove");
+    sleep(2);
+    EXPECT_EQ(ret, 0);
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

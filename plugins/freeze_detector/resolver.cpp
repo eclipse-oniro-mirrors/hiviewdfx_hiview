@@ -107,7 +107,7 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
         return list.size() >= MIN_MATCH_NUM;
     }
 
-    if (IsSysWarning(watchPoint, list, result)) {
+    if (IsSysWarning(watchPoint, list, result) || IsReportWarning(watchPoint, list, result)) {
         return true;
     }
 
@@ -125,11 +125,20 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
     return false;
 }
 
+bool FreezeResolver::IsReportWarning(const WatchPoint& watchPoint,
+    const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
+{
+    if (freezeCommon_ == nullptr) {
+        return false;
+    }
+    return freezeCommon_->IsReportAppFreezeEvent(watchPoint.GetStringId()) &&
+        (list.size() == result.size() - APP_MATCH_NUM);
+}
 bool FreezeResolver::IsSysWarning(const WatchPoint& watchPoint,
     const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
 {
     return watchPoint.GetStringId() == "SERVICE_WARNING" &&
-        (list.size() == result.size() - SYS_MATCH_NUM);
+            (list.size() == result.size() - SYS_MATCH_NUM);
 }
 
 bool FreezeResolver::IsAppFreezeWarningForBetaVersion(const WatchPoint& watchPoint,
