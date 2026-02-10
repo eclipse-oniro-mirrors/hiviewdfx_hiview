@@ -153,17 +153,18 @@ bool RawData::Append(uint8_t* data, size_t len)
 
 bool RawData::IsEmpty()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return len_ == 0 || data_ == nullptr;
 }
 
 bool RawData::Update(uint8_t* data, size_t len, size_t pos)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (data == nullptr || pos > len_) {
         HIVIEW_LOGE("Invalid memory operation: length is %{public}zu, pos is %{public}zu, "
             "len_ is %{public}zu", len, pos, len_);
         return false;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
     if (data_ == nullptr) {
         HIVIEW_LOGE("Try to update an invalid raw data");
         return false;
@@ -206,6 +207,7 @@ uint8_t* RawData::GetData() const
 
 size_t RawData::GetDataLength() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return len_;
 }
 } // namespace EventRaw
