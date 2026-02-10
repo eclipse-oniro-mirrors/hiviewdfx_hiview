@@ -354,7 +354,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
         return "";
     }
     CovertHighLoadToWarning(type, watchPoint);
-    CoverFreezeToWarning(type, list, watchPoint.GetStringId());
+    CovertFreezeToWarning(type, list, watchPoint.GetStringId());
     pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
@@ -398,7 +398,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
 
-bool Vendor::CoverFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
+void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
     const std::string& stringId) const
 {
     if (freezeCommon_ -> IsReportAppFreezeEvent(stringId) && (list.size() == APP_MATCH_NUM)) {
