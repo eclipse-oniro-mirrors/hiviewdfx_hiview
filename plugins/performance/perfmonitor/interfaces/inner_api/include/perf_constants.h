@@ -185,6 +185,9 @@ public:
     // start app from misson
     static constexpr char LAUNCHER_APP_LAUNCH_FROM_MISSON[] = "LAUNCHER_APP_LAUNCH_FROM_MISSON";
 
+    // start app from menu
+    static constexpr char LAUNCHER_APP_LAUNCH_FROM_MENU[] = "LAUNCHER_APP_LAUNCH_FROM_MENU";
+
     // app exit from back to home
     static constexpr char LAUNCHER_APP_BACK_TO_HOME[] = "LAUNCHER_APP_BACK_TO_HOME";
 
