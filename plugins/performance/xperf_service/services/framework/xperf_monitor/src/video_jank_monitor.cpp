@@ -110,7 +110,8 @@ void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
 void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoJankMonitor_OnAudioStart pid:%{public}d uniqueId:%{public}ld", audioEvent->pid, audioEvent->uniqueId);
+    LOGI("VideoJankMonitor_OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
+        static_cast<long long>(audioEvent->uniqueId));
     audioStateEvt = *audioEvent; //保存音频开始
     lastStartTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) { //没有首帧信息
@@ -127,7 +128,8 @@ void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoJankMonitor_OnAudioStop pid:%{public}d uniqueId:%{public}ld", audioEvent->pid, audioEvent->uniqueId);
+    LOGI("VideoJankMonitor_OnAudioStop pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
+        static_cast<long long>(audioEvent->uniqueId));
     audioStateEvt = *audioEvent;
     lastStopTime = audioStateEvt.happenTime;
     if (firstFrameList.empty()) {
