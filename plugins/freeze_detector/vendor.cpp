@@ -402,7 +402,7 @@ void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoi
     const std::string& stringId) const
 {
     if (freezeCommon_ -> IsReportAppFreezeEvent(stringId) && (list.size() == APP_MATCH_NUM)) {
-        type = SYS_WARNING;
+        type = SYSWARNING;
     }
 }
 
