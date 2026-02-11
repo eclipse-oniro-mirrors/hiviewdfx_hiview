@@ -104,7 +104,7 @@ public:
 private:
     void NotifyRsJankStatsBegin();
     void NotifyRsJankStatsEnd(int64_t endTime);
-    bool isSetAppGCStatus(int64_t value);
+    bool IsSetAppGCStatus(int64_t value);
 private:
     BaseInfo baseInfo;
     std::string currentSceneId {""};

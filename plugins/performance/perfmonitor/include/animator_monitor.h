@@ -102,6 +102,7 @@ private:
         PerfConstants::SNAP_RECENT_ANI,
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_DOCK,
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_MISSON,
+        PerfConstants::LAUNCHER_APP_LAUNCH_FROM_MENU,
         PerfConstants::LAUNCHER_APP_BACK_TO_HOME,
         PerfConstants::EXIT_RECENT_2_HOME_ANI,
         PerfConstants::WINDOW_RECT_RESIZE,
