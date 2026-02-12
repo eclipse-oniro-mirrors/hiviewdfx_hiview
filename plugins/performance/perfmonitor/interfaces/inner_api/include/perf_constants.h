@@ -431,8 +431,6 @@ public:
     static constexpr char LAUNCHER_CARD_TEMP_SHOW[] = "LAUNCHER_CARD_TEMP_SHOW";
 
     static constexpr char GESTURE_TO_RECENTS[] = "GESTURE_TO_RECENTS";
-    
-    static constexpr char SWIPER_FROM_BOTTOM[] = "SWIPER_FROM_BOTTOM";
 
     static constexpr char START_APP_ANI_AG[] = "START_APP_ANI_AG";
 
