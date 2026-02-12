@@ -305,7 +305,7 @@
         </event>
       </links>
     </rule>
-        <rule id="19" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
+      <rule id="19" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
       <links type="watchpoint">
         <event window="0" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL">	<!-- BINDER_BUFFER_FULL -->
           <result code="2" scope="sysWarning"/>
@@ -314,7 +314,7 @@
       <links type="watchpoint">
         <event window="-200" domain="FRAMEWORK" stringid="BINDER_BUFFER_FULL_WARNING">	<!-- BINDER_BUFFER_FULL_WARNING -->
           <result code="2" scope="sysWarning" samePackage="true"/>
-        </event>
+          </event>
       </links>
     </rule>
   </rules>

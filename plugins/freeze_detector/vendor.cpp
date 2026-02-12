@@ -169,7 +169,7 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint) const
     
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
-    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu", fileList.size());
+    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
     if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
         stackFile = fileList[0];
         cpuFile = fileList[FREEZE_CPU_INDEX];
@@ -303,8 +303,8 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
                 std::string threadStack = logContent.substr(startPos + startSize, endPos - (startPos + startSize));
                 watchPoint.SetTerminalThreadStack(threadStack);
                 logContent.erase(startPos, endPos - startPos + strlen(THREAD_STACK_END));
-        }
-        body << logContent << std::endl;
+            }
+            body << logContent << std::endl;
         } else {
             body << ifs.rdbuf();
         }
@@ -354,7 +354,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
         return "";
     }
     CovertHighLoadToWarning(type, watchPoint);
-    CovertFreezeToWarning(type, list);
+    CovertFreezeToWarning(type, list, watchPoint.GetStringId());
     pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
     std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
     std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
@@ -398,9 +398,10 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
 }
 
-void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list) const
+void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
+    const std::string& stringId) const
 {
-    if (freezeCommon_->IsReportAppFreezeEvent(type) && (list.size() == APP_MATCH_NUM)) {
+    if (freezeCommon_->IsReportAppFreezeEvent(stringId) && (list.size() == APP_MATCH_NUM)) {
         type = SYSWARNING;
     }
 }

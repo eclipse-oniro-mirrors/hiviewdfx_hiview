@@ -56,7 +56,8 @@ private:
     static std::string GetDisPlayPowerInfo();
     static std::string GetPowerStateString(OHOS::PowerMgr::PowerState state);
     static void CheckProcessName(std::string& processName, std::string& isScbPro);
-    void CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list) const;
+    void CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
+        const std::string& stringId) const;
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
 };
