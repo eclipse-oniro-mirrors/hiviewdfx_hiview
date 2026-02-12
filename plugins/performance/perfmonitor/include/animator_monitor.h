@@ -216,6 +216,7 @@ private:
         PerfConstants::CONTACTS_DIALER_BUTTON_PRESS,
         PerfConstants::LAUNCHER_CARD_TEMP_SHOW,
         PerfConstants::GESTURE_TO_RECENTS,
+        PerfConstants::SWIPER_FROM_BOTTOM,
         PerfConstants::START_APP_ANI_AG,
         PerfConstants::CORE_METHOD_DESKTOP_SHOW,
         PerfConstants::APP_START,

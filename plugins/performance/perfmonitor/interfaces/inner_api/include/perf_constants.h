@@ -432,6 +432,8 @@ public:
 
     static constexpr char GESTURE_TO_RECENTS[] = "GESTURE_TO_RECENTS";
 
+    static constexpr char SWIPER_FROM_BOTTOM[] = "SWIPER_FROM_BOTTOM";
+
     static constexpr char START_APP_ANI_AG[] = "START_APP_ANI_AG";
 
     static constexpr char CORE_METHOD_DESKTOP_SHOW[] = "CORE_METHOD_DESKTOP_SHOW";
