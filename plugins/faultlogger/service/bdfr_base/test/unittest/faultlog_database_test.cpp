@@ -209,5 +209,40 @@ HWTEST(FaultlogDatabaseTest, FaultLogManagerTest002, testing::ext::TestSize.Leve
     auto isProcessedFault4 = FaultLogDatabase::IsFaultExist(1855, 5, 2);
     ASSERT_EQ(isProcessedFault4, false);
 }
+
+/**
+ * @tc.name: GetAppFreezeExtInfoFromFileName001
+ * @tc.desc: Test calling GetAppFreezeExtInfoFromFileName Func
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, GetAppFreezeExtInfoFromFileName001, testing::ext::TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"RELIABILITY", "name_":"APP_FREEZE", "type_":1, "time_":1770875821914,
+        "tz_":"+0800", "pid_":1854, "tid_":1854, "uid_":0, "FAULT_TYPE":"2", "PID":1854, "UID":20010039,
+        "MODULE":"FaultloggerUnittest", "REASON":"unittest for SaveFaultLogInfo",
+        "SUMMARY":"summary for SaveFaultLogInfo",
+        "LOG_PATH":"/data/log/faultlog/faultlogger/appfreeze-com.example.jsinject-20010039-20260212135701914.log",
+        "VERSION":"", "HAPPEN_TIME":1770875821914,
+        "PNAME":"/", "FIRST_FRAME":"/", "SECOND_FRAME":"/", "LAST_FRAME":"/",
+        "FINGERPRINT":"04c0d6f03c73da531f00eb112479a8a2f19f59fafba6a474dcbe455a13288f4d",
+        "FREEZE_INFO_PATH":"/data/log/faultlog/freeze_ext/freeze-cpuinfo-ext-appfreeze-com.example.jsinject",
+        "level_":"CRITICAL", "tag_":"STABILITY", "id_":"17165544771317691984", "info_":""})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, jsonStr);
+    sysEvent->SetLevel("MINOR");
+    sysEvent->SetEventSeq(449); // 449: test seq
+    EventStore::SysEventDao::Insert(sysEvent);
+
+    std::string filename1 = "appfreeze-com.example.jsinject-20010039-20260212135701914.log";
+    auto extPath1 = FaultLogDatabase::GetAppFreezeExtInfoFromFileName(filename1);
+    ASSERT_EQ(extPath1, "/data/log/faultlog/freeze_ext/freeze-cpuinfo-ext-appfreeze-com.example.jsinject");
+
+    std::string filename2 = "appfreeze-com.example.jsinject-20010039-20260212135706914.log";
+    auto extPath2 = FaultLogDatabase::GetAppFreezeExtInfoFromFileName(filename2);
+    ASSERT_EQ(extPath2, "/data/log/faultlog/freeze_ext/freeze-cpuinfo-ext-appfreeze-com.example.jsinject");
+
+    std::string filename3 = "appfreeze-com.example.jsinject-20010039-20260212135713914.log";
+    auto extPath3 = FaultLogDatabase::GetAppFreezeExtInfoFromFileName(filename3);
+    ASSERT_EQ(extPath3, "");
+}
 } // namespace HiviewDFX
 } // namespace OHOS

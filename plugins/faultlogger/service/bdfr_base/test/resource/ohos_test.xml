@@ -22,6 +22,10 @@
             <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest002" src="res"/>
             <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/test/test_data/SmartParser/test_faultlogger_data/AppFreezeCrashLogTest003" src="res"/>
             <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-19700326211815.tmp -> /data/log/faultlog/faultlogger/" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-20260212135701914.log -> /data/log/faultlog/faultlogger/" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-20260212135701914.log -> /data/log/faultlog/faultlogger/appfreeze-com.example.jsinject-20010039-20260212135706914.log" src="res"/>
+            <option name="push" value="faultlogger/appfreeze-com.example.jsinject-20010039-20260212135701914.log -> /data/log/faultlog/faultlogger/appfreeze-com.example.jsinject-20010039-20260212135713914.log" src="res"/>
+            <option name="push" value="faultlogger/freeze-cpuinfo-ext-appfreeze-com.example.jsinject -> /data/log/faultlog/freeze_ext/" src="res"/>
         </preparer>
     </target>
 </configuration>
