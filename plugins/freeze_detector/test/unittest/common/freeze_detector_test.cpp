@@ -386,6 +386,56 @@ HWTEST_F(FreezeDetectorTest, FreezeDetectorTest004, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeDetectorTest005
+ * @tc.desc: FreezeDetector send THREAD_BLOCK_3S
+ * @tc.type: FUNC
+ * @tc.require: AR000H3T5D
+ */
+HWTEST_F(FreezeDetectorTest, FreezeDetectorTest005, TestSize.Level3)
+{
+    HiviewPlatform &platform = HiviewPlatform::GetInstance();
+    std::shared_ptr<Plugin> plugin = platform.GetPluginByName("FreezeDetectorPlugin");
+    if (plugin == nullptr) {
+        printf("Get FreezeDetectorPlugin, failed");
+        FAIL();
+    }
+    ASSERT_TRUE(plugin != nullptr);
+
+    auto sysEvent = makeEvent("FreezeDectorTest004", "AAFWK", "THREAD_BLOCK_3S",
+        "FreezeDectorTest", "/data/test/test_data/FreezeDetectorTest004.log");
+    std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
+    plugin->OnEventListeningCallback(*(event.get()));
+
+    sleep(10);
+    ASSERT_EQ(plugin->GetName(), "FreezeDetectorPlugin");
+}
+
+/**
+ * @tc.name: FreezeDetectorTest006
+ * @tc.desc: FreezeDetector send LIFECYCLE_TIMEOUT
+ * @tc.type: FUNC
+ * @tc.require: AR000H3T5D
+ */
+HWTEST_F(FreezeDetectorTest, FreezeDetectorTest006, TestSize.Level3)
+{
+    HiviewPlatform &platform = HiviewPlatform::GetInstance();
+    std::shared_ptr<Plugin> plugin = platform.GetPluginByName("FreezeDetectorPlugin");
+    if (plugin == nullptr) {
+        printf("Get FreezeDetectorPlugin, failed");
+        FAIL();
+    }
+    ASSERT_TRUE(plugin != nullptr);
+
+    auto sysEvent = makeEvent("FreezeDectorTest004", "AAFWK", "LIFECYCLE_TIMEOUT",
+        "FreezeDectorTest", "/data/test/test_data/FreezeDetectorTest004.log");
+    std::shared_ptr<OHOS::HiviewDFX::Event> event = std::static_pointer_cast<Event>(sysEvent);
+    plugin->OnEventListeningCallback(*(event.get()));
+
+    sleep(10);
+    ASSERT_EQ(plugin->GetName(), "FreezeDetectorPlugin");
+}
+
+/**
  * @tc.name: FreezeRuleTest001
  * @tc.desc: FreezeRule
  * @tc.type: FUNC

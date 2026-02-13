@@ -10,5 +10,9 @@
         "Hiview": 157286400,
         "Reliability": 786432000,
         "DecreaseUnit": 52428800
+    },
+    "appQuota": {
+        "total": 157286400,
+        "app":
     }
 }
