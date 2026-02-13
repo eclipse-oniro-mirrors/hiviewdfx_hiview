@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <time_util.h>
 #include <unistd.h>
+#include <parameter.h>
 #include <parameters.h>
 
 #include "bundle_mgr_client.h"
@@ -257,7 +258,7 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
             << "Device info:"
             << OHOS::system::GetParameter("const.product.name", "Unknown") << "\n"
             << "Build info:"
-            << OHOS::system::GetParameter("const.product.software.version", "Unknown") << "\n"
+            << (GetDisplayVersion() != nullptr ? GetDisplayVersion() : "Unknown") << "\n"
             << "Timestamp:" << currInfo.happenTime << "\n"
             << "Module name:" << currInfo.moduleName << "\n"
             << "Pid:" << std::to_string(currInfo.pid) << "\n"

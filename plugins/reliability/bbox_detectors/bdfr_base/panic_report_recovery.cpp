@@ -23,6 +23,7 @@
 #include "hiview_zip_util.h"
 #include "hisysevent.h"
 #include "hisysevent_util.h"
+#include "parameter.h"
 #include "parameters.h"
 #include "string_util.h"
 #include "tbox.h"
@@ -163,7 +164,7 @@ std::string GetLastRecoveryTime()
 
 std::string GetCurrentVersion()
 {
-    std::string currentVersion = OHOS::system::GetParameter("const.product.software.version", "unknown");
+    std::string currentVersion = GetDisplayVersion() != nullptr ? GetDisplayVersion() : "unknown";
     return std::string("\"") + currentVersion + "\"";
 }
 
