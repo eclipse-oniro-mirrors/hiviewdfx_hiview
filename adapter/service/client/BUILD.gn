@@ -16,7 +16,10 @@ import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 
 idl_gen_interface("hiview_service_idl_interface") {
-  sources = [ "IHiviewServiceAbility.idl" ]
+  sources = [
+    "IHiviewServiceAbility.idl",
+    "IRequestTraceCallback.idl",
+  ]
 
   log_domainid = "0xD002D10"
   log_tag = "HiviewService"
@@ -48,7 +51,7 @@ ohos_source_set("hiview_service_stub_inner") {
   ]
 
   output_values = get_target_outputs(":hiview_service_idl_interface")
-  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  sources = filter_include(output_values, [ "*hiview_service_ability_stub.cpp" ])
 
   deps = [ ":hiview_service_idl_interface" ]
 
@@ -93,6 +96,7 @@ ohos_source_set("hiview_service_proxy") {
     "../common/src/hiview_file_info.cpp",
     "../common/src/memory_caller_parcelable.cpp",
     "../common/src/trace_param_parcelable.cpp",
+    "../common/src/trace_config_parcelable.cpp",
   ]
 
   deps = [ ":hiview_service_idl_interface" ]
@@ -112,6 +116,7 @@ config("hiview_service_ability_config") {
 
   include_dirs = [
     "include",
+    "${target_gen_dir}",
     "$hiview_adapter/service/common/include",
     "$hiview_base/utility/include",
     "$hiview_service",
@@ -126,14 +131,19 @@ ohos_source_set("hiview_service_impl_for_unified_collection") {
     "$hiview_interfaces/inner_api/unified_collection",
   ]
 
-  sources = [
+  output_values = get_target_outputs(":hiview_service_idl_interface")
+  sources = filter_include(output_values, [ "*request_trace_callback_stub.cpp" ])
+  sources += [
     "src/hiview_remote_service.cpp",
     "src/hiview_service_cpu_delegate.cpp",
     "src/hiview_service_memory_delegate.cpp",
     "src/hiview_service_trace_delegate.cpp",
   ]
 
-  deps = [ "$hiview_adapter/service/client:hiview_service_proxy" ]
+  deps = [
+    "$hiview_adapter/service/client:hiview_service_proxy",
+    ":hiview_service_idl_interface",
+  ]
 
   external_deps = [
     "c_utils:utils",

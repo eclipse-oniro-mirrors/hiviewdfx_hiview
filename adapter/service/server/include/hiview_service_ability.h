@@ -21,6 +21,7 @@
 
 #include "app_caller_parcelable.h"
 #include "trace_param_parcelable.h"
+#include "trace_config_parcelable.h"
 #include "graphic_usage_parcelable.h"
 #include "hiview_err_code.h"
 #include "hiview_file_info.h"
@@ -55,6 +56,7 @@ public:
     ErrCode RecordingTraceOff(int32_t& errNo, std::vector<std::string>& files) override;
     ErrCode CloseTrace(int32_t& errNo, int32_t& ret) override;
     ErrCode CaptureDurationTrace(const AppCallerParcelable& appCaller, int32_t& errNo, int32_t& ret) override;
+    ErrCode RequestAppTrace(const TraceConfigParcelable& traceConfig, const sptr<IRequestTraceCallback>& cb) override;
     ErrCode GetSysCpuUsage(int32_t& errNo, double& ret) override;
     ErrCode SetAppResourceLimit(
         const MemoryCallerParcelable& memoryCallerParcelable, int32_t& errNo, int32_t& ret) override;

@@ -35,6 +35,18 @@ struct TraceParam {
     uint32_t fileSizeLimit = 0;
 };
 
+struct TraceConfig {
+    std::string prefix;
+    uint32_t bufferSize = 0;
+    uint32_t duration = 0;
+};
+
+class RequestTraceCallBack {
+public:
+    virtual ~RequestTraceCallBack() = default;
+    virtual void OnTraceResponse(uint32_t retCode, const std::string& traceName) = 0;
+};
+
 class TraceCollector {
 public:
     TraceCollector() = default;
@@ -50,7 +62,7 @@ public:
     virtual CollectResult<int32_t> Close() = 0;
     // use for hap main looper
     virtual CollectResult<int32_t> CaptureDurationTrace(AppCaller &appCaller) = 0;
-
+    virtual void RequestAppTrace(const TraceConfig& traceConfig, std::shared_ptr<RequestTraceCallBack> callback) = 0;
     static std::shared_ptr<TraceCollector> Create();
 }; // TraceCollector
 } // UCollectClient

@@ -23,9 +23,27 @@
 #include "hiview_err_code.h"
 #include "hiview_remote_service.h"
 #include "iremote_proxy.h"
+#include "request_trace_callback_stub.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+
+class TraceCallbackStub : public RequestTraceCallbackStub {
+public:
+    TraceCallbackStub(std::shared_ptr<UCollectClient::RequestTraceCallBack> callback) : callback_(callback) {}
+
+    ErrCode OnTraceResponse(uint32_t retCode, const std::string& traceName) override
+    {
+        if (callback_ != nullptr) {
+            callback_->OnTraceResponse(retCode, traceName);
+        }
+        return 0;
+    }
+
+private:
+    std::shared_ptr<UCollectClient::RequestTraceCallBack> callback_;
+};
+
 class HiViewServiceTraceDelegate {
 public:
     static CollectResult<std::vector<std::string>> DumpSnapshot(int32_t client);
@@ -35,6 +53,8 @@ public:
     static CollectResult<std::vector<std::string>> RecordingOff();
     static CollectResult<int32_t> Close();
     static CollectResult<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller);
+    static void RequestAppTrace(const UCollectClient::TraceConfig &traceConfig,
+        std::shared_ptr<UCollectClient::RequestTraceCallBack> listener);
 
 private:
     template<typename T>

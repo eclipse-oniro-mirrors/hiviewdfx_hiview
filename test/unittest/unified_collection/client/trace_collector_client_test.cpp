@@ -227,3 +227,73 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
         ASSERT_EQ(result2.retCode, SUCCESS);
     }
 }
+
+class TestCallback : public RequestTraceCallBack {
+public:
+    explicit TestCallback(const int32_t id) : id_(id) {}
+
+    void OnTraceResponse(const uint32_t retCode, const std::string& traceName) override
+    {
+        std::cout << "********id:"<< id_ << " OnTraceResponse name:" << traceName << std::endl;
+        testCode = retCode;
+    }
+
+    int id_;
+    int32_t testCode = -1;
+};
+
+/**
+ * @tc.name: TraceCollectorTest005
+ * @tc.desc: start app trace.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
+{
+    TraceConfig traceConfig {
+        .bufferSize = 1024,
+        .duration = 100,
+        .prefix = "test"
+    };
+    std::shared_ptr<TestCallback> callback = std::make_shared<TestCallback>(2);
+    auto traceCollector = TraceCollector::Create();
+    traceCollector->RequestAppTrace(traceConfig, callback);
+    sleep(7);
+    ASSERT_EQ(callback->testCode, 0);
+}
+
+/**
+ * @tc.name: TraceCollectorTest006
+ * @tc.desc: start app trace.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest006, TestSize.Level1)
+{
+    TraceConfig traceConfig {
+        .bufferSize = 1024,
+        .duration = 100,
+        .prefix = "test"
+    };
+    std::shared_ptr<TestCallback> callback = std::make_shared<TestCallback>(1);
+    auto traceCollector = TraceCollector::Create();
+    traceCollector->RequestAppTrace(traceConfig, callback);
+    ASSERT_EQ(callback->testCode, -1);
+}
+
+/**
+ * @tc.name: TraceCollectorTest007
+ * @tc.desc: start app trace.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest007, TestSize.Level1)
+{
+    TraceConfig traceConfig {
+        .bufferSize = 1024,
+        .duration = 100,
+        .prefix = "test"
+    };
+    std::shared_ptr<TestCallback> callback = nullptr;
+    auto traceCollector = TraceCollector::Create();
+    traceCollector->RequestAppTrace(traceConfig, callback);
+    sleep(7);
+    ASSERT_EQ(callback, nullptr);
+}
