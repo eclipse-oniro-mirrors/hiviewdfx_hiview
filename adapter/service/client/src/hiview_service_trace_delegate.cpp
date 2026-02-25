@@ -76,5 +76,16 @@ CollectResult<int32_t> HiViewServiceTraceDelegate::CaptureDurationTrace(UCollect
     };
     return TraceCalling<int32_t>(proxyHandler);
 }
+
+void HiViewServiceTraceDelegate::RequestAppTrace(const UCollectClient::TraceConfig &traceConfig,
+    std::shared_ptr<UCollectClient::RequestTraceCallBack> callBack)
+{
+    TraceConfigParcelable traceConfigParcelable(traceConfig);
+    auto remote = RemoteService::GetHiViewRemoteService();
+    if (remote == nullptr) {
+        return;
+    }
+    HiviewServiceAbilityProxy(remote).RequestAppTrace(traceConfigParcelable, new TraceCallbackStub(callBack));
+}
 } // namespace HiviewDFX
 } // namespace OHOS

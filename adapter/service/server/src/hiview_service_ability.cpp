@@ -47,6 +47,7 @@ constexpr int USER_ID_MOD = 200000;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
 constexpr int32_t MEDIA_UID = 1013;
 constexpr int32_t MEMMGR_UID = 1111;
+constexpr int32_t DUMP_TRACE_SLEEP = 5;
 constexpr char READ_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.READ_HIVIEW_SYSTEM";
 constexpr char WRITE_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.WRITE_HIVIEW_SYSTEM";
 constexpr char HIVIEW_TRACE_MANAGE_PERMISSION[] = "ohos.permission.HIVIEW_TRACE_MANAGE";
@@ -438,6 +439,24 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
         return service->CaptureDurationTrace(caller);
     };
     TraceCalling<int32_t>(traceRetHandler, errNo, ret);
+    return 0;
+}
+
+ErrCode HiviewServiceAbility::RequestAppTrace(const TraceConfigParcelable &traceConfig,
+    const sptr<IRequestTraceCallback> &callback)
+{
+    OHOS::sptr<OHOS::IRemoteObject> callbackObject = callback->AsObject();
+    if (callbackObject == nullptr) {
+        HIVIEW_LOGE("object in callback is null.");
+        return -1;
+    }
+    auto uid = IPCSkeleton::GetCallingUid();
+    auto pid = IPCSkeleton::GetCallingPid();
+    auto paramConfig = traceConfig.GetTraceConfig();
+    sleep(DUMP_TRACE_SLEEP);
+    HIVIEW_LOGI("trace dropping done uid:%{public}d, pid:%{public}d, buffer:%{public}d, prefix:%{public}s", uid, pid,
+        paramConfig.bufferSize, paramConfig.prefix.c_str());
+    callback->OnTraceResponse(0, "trace dump name");
     return 0;
 }
 

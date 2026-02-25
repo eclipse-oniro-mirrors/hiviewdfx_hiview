@@ -50,6 +50,7 @@ ohos_source_set("hiview_service_stub") {
     "../common/src/hiview_file_info.cpp",
     "../common/src/memory_caller_parcelable.cpp",
     "../common/src/trace_param_parcelable.cpp",
+    "../common/src/trace_config_parcelable.cpp",
     "src/hiview_log_config_manager.cpp",
     "src/hiview_service_ability.cpp",
   ]
