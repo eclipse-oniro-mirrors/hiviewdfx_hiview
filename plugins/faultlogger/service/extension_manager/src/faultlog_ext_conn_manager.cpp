@@ -16,7 +16,6 @@
 
 #include <cinttypes>
 #include <cstdint>
-#include <if_system_ability_manager.h>
 #include <ipc_skeleton.h>
 #include <iservice_registry.h>
 #include <string_ex.h>
