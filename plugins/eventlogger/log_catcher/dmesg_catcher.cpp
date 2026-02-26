@@ -237,6 +237,8 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
         fileName.append(fileTime);
         fileName.append(".log");
         extraFp = GetFileInfoByName(fileName, extraFd);
+        std::string fileTimeKey = (writeType_ == HUNG_TASK) ? "SYSRQ_TIME" : "HUNGTASK_TIME";
+        event_->SetEventValue(fileTimeKey, fileTime);
     }
     auto originSize = GetFdSize(fd);
     DumpDmesgLog(fd, extraFd);
