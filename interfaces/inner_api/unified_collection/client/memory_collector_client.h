@@ -46,6 +46,8 @@ public:
     virtual CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList) = 0;
     virtual CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage() = 0;
     static std::shared_ptr<MemoryCollector> Create();
+    virtual CollectResult<int32_t> IsolateSubProcess(
+        const std::string& packageName, int32_t mainProcPid, int32_t subProcPid) = 0;
 }; // MemoryCollector
 } // UCollectClient
 } // HiviewDFX

@@ -39,4 +39,5 @@ interface IHiviewServiceAbility {
     void GetGraphicUsage([out] int errNo, [out] GraphicUsageParcelable graphicUsageParcelable);
     void SetSplitMemoryValue([in] MemoryCallerParcelable[] memCallerParcelableList, [out] int errNo, [out] int ret);
     [oneway] void RequestAppTrace([in] TraceConfigParcelable traceConfig, [in] IRequestTraceCallback cb);
+    void IsolateSubProcess([in] String packageName, [in] int mainProcPid, [in] int subProcPid, [out] int errNo, [out] int ret);
 }

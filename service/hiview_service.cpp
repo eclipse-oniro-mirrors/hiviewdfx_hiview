@@ -442,5 +442,18 @@ CollectResult<UCollectClient::GraphicUsage> HiviewService::GetGraphicUsage(int32
     result.data.graph = graphRet.data;
     return result;
 }
+
+CollectResult<int32_t> HiviewService::SetForkDumpService(
+    const std::string& packageName, int32_t mainProcPid, int32_t subProcPid)
+{
+    std::string eventName = "FORK_DUMP_SERVICE";
+    SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("MAIN_PID", mainProcPid);
+    sysEventCreator.SetKeyValue("SUB_PID", subProcPid);
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
+    return {UCollect::UcError::SUCCESS};
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

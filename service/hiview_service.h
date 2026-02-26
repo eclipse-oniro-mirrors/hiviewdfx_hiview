@@ -53,6 +53,7 @@ public:
     CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
     CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage(int32_t pid);
     CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
+    CollectResult<int32_t> SetForkDumpService(const std::string& packageName, int32_t mainProcPid, int32_t subProcPid);
 
 private:
     void DumpPluginInfo(int fd, const std::vector<std::string>& cmds) const;

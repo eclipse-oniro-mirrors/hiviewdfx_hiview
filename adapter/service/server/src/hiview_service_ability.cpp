@@ -545,5 +545,21 @@ void HiviewServiceAbilityDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> 
     }
     HiviewServiceAbility::StartServiceAbility(1);
 }
+
+ErrCode HiviewServiceAbility::IsolateSubProcess(const std::string& packageName, int32_t mainProcPid,
+                                                int32_t subProcPid, int32_t& errNo, int32_t& ret)
+{
+    HiviewXCollieTimer timer("IsolateSubProcess", SYS_CALLING_TIMEOUT);
+    int32_t pid = IPCObjectStub::GetCallingPid();
+    if (pid < 0 || pid != mainProcPid) {
+        HIVIEW_LOGW("invalid mainProcPid.");
+        return TraceErrCode::ERR_SEND_REQUEST;
+    }
+    auto handler = [&packageName, mainProcPid, subProcPid] (HiviewService* service) {
+        return service->SetForkDumpService(packageName, mainProcPid, subProcPid);
+    };
+    TraceCalling<int32_t>(handler, errNo, ret);
+    return 0;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

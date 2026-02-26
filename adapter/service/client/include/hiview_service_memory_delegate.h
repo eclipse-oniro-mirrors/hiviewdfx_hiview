@@ -26,6 +26,8 @@ public:
     static CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
     static CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage();
     static CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
+    static CollectResult<int32_t> IsolateSubProcess(const std::string& packageName,
+        int32_t mainProcPid, int32_t subProcPid);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
