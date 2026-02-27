@@ -169,8 +169,9 @@ int AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
     AddValueToJsonString("uid", event.uid, jsonStr);
     AddValueToJsonString("resource_type", event.resourceType, jsonStr);
     AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
-    if (event.resourceType == "pss_memory" || event.resourceType == "ion_memory" ||
-        event.resourceType == "gpu_memory") {
+    std::unordered_set<std::string> validResourceTypes = { "pss_memory", "ion_memory",
+        "gpu_memory", "rss_memory", "ashmem_memory" };
+    if (validResourceTypes.find(event.resourceType) != validResourceTypes.end()) {
         AddObjectToJsonString("memory", jsonStr);
         AddValueToJsonString("pss", event.pss, jsonStr);
         AddValueToJsonString("rss", event.rss, jsonStr);
