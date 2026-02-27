@@ -289,7 +289,10 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     jsonStr << "{";
     AddTimeToJsonString(jsonStr);
     AddValueToJsonString("reason", event.reason, jsonStr);
-    AddValueToJsonString("foreground", event.isForeground, jsonStr, true);
+    AddValueToJsonString("foreground", event.isForeground, jsonStr);
+    AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
+    AddValueToJsonString("bundle_version", event.bundleVersion, jsonStr, true);
+
     jsonStr << std::endl;
     EventPublish::GetInstance().PushEvent(uid, "APP_KILLED", HiSysEvent::EventType::STATISTIC, jsonStr.str());
     return 0;
