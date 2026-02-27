@@ -37,6 +37,8 @@ const std::list<std::pair<std::string, MemoryItemType>> PREFIX_LIST = {
     {"[anon:native_heap:jemalloc]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_JEMALLOC},
     {"[anon:native_heap:jemalloc meta]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_JEMALLOC_META},
     {"[anon:native_heap:jemalloc tsd]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_JEMALLOC_TSD},
+    {"[anon:native_heap:dfmalloc data]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_JEMALLOC},
+    {"[anon:native_heap:dfmalloc meta]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_JEMALLOC_META},
     {"[anon:native_heap:meta]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_META},
     {"[anon:native_heap:mmap]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_MMAP},
     {"[anon:native_heap:", MemoryItemType::MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_OTHER}, // do not adjust forward
