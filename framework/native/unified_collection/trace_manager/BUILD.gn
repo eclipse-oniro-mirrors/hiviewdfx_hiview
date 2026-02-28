@@ -48,6 +48,7 @@ ohos_source_set("trace_manager_source") {
     "src/trace_db_callback.cpp",
     "src/trace_flow_controller.cpp",
     "src/trace_state_machine.cpp",
+    "state/trace_app_state.cpp",
     "state/trace_base_state.cpp",
     "state/trace_command_state.cpp",
     "state/trace_common_state.cpp",
@@ -57,6 +58,7 @@ ohos_source_set("trace_manager_source") {
     "storage/telemetry_storage.cpp",
     "storage/trace_behavior_storage.cpp",
     "storage/trace_storage.cpp",
+    "storage/app_storage.cpp",
     "telemetry/telemetry_state_machine.cpp",
   ]
 

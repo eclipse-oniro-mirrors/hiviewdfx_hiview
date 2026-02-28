@@ -46,8 +46,8 @@ struct StrategyParam {
     uint32_t maxDuration = 0;
     uint64_t happenTime = 0;
     std::string caller;
-    std::string dbPath = FlowController::DEFAULT_DB_PATH;
-    std::string configPath = FlowController::DEFAULT_CONFIG_PATH;
+    std::string dbPath;
+    std::string configPath;
 };
 
 class TraceStrategy {
@@ -59,21 +59,21 @@ public:
           dbPath_(strategyParam.dbPath),
           configPath_(strategyParam.configPath),
           traceHandler_(traceHandler),
-          scenario_(TraceScenario::TRACE_COMMON) {}
+          scenarioName_(ScenarioName::COMMON_BETA) {}
 
-    TraceStrategy(StrategyParam strategyParam, TraceScenario scenario)
+    TraceStrategy(StrategyParam strategyParam, const std::string& scenarioName)
         : maxDuration_(strategyParam.maxDuration),
           happenTime_(strategyParam.happenTime),
           caller_(strategyParam.caller),
           dbPath_(strategyParam.dbPath),
           configPath_(strategyParam.configPath),
-          scenario_(scenario) {}
+          scenarioName_(scenarioName) {}
 
     virtual ~TraceStrategy() = default;
     virtual TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo);
 
 protected:
-    virtual TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, TraceScenario scenario) const;
+    virtual TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, const std::string &scenarioName) const;
 
     uint32_t maxDuration_;
     uint64_t happenTime_;
@@ -84,7 +84,7 @@ protected:
     std::shared_ptr<TraceFlowController> traceFlowController_;
 
 private:
-    TraceScenario scenario_;
+    std::string scenarioName_;
 };
 
 class TraceFlowControlStrategy : public TraceStrategy {
@@ -133,7 +133,8 @@ public:
     TraceRet DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo) override;
 
 protected:
-    TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, TraceScenario scenario) const override;
+    TraceRet DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo,
+        const std::string &scenarioName) const override;
 
 private:
     void SetResultCopyFiles(std::vector<std::string> &outputFiles, const std::vector<std::string>& traceFiles) const
@@ -175,11 +176,9 @@ public:
 
 class TraceAppStrategy {
 public:
-    TraceAppStrategy(std::shared_ptr<TraceAppHandler> appHandler,
-        const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
-            const std::string& configPath = FlowController::DEFAULT_DB_PATH) : appHandler_(appHandler)
+    TraceAppStrategy(std::shared_ptr<TraceAppHandler> appHandler, const std::string& dbPath) : appHandler_(appHandler)
     {
-        traceFlowController_ = std::make_shared<TraceFlowController>(FlowControlName::APP, dbPath, configPath);
+        traceFlowController_ = std::make_shared<TraceFlowController>(FlowControlName::APP, dbPath, "");
     }
     TraceRet DoDump(const UCollectClient::AppCaller& appCaller, TraceRetInfo &traceRetInfo, std::string& outputFile);
 

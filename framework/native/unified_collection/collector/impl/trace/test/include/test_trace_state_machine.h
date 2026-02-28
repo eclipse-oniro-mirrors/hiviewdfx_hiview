@@ -16,10 +16,12 @@
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TEST_TRACE_STATE_MACHINE_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TEST_TRACE_STATE_MACHINE_H
 #include <charconv>
+#include <fstream>
 
 #include "singleton.h"
 #include "trace_common.h"
 #include "time_util.h"
+#include "app_event_task_storage.h"
 
 namespace OHOS::HiviewDFX {
 const std::string TEST_DB_PATH = "/data/test/trace_db/";
@@ -117,6 +119,11 @@ public:
         return TraceRet(info.errorCode);
     }
 
+    TraceRet OpenTrace(Scenario scenario)
+    {
+        return traceRet_;
+    }
+
     DumpTraceCallback GetAsyncCallback()
     {
         return callback_;
@@ -138,11 +145,29 @@ public:
         taskBeginTime_ = TimeUtil::GetMilliseconds();
     }
 
+    void SetTraceRet(TraceStateCode stateError, TraceErrorCode codeError)
+    {
+        traceRet_.stateError_ = stateError;
+        traceRet_.codeError_ = codeError;
+    }
+
+    void SetTraceRet(const TraceRetInfo& info)
+    {
+        info_ = info;
+    }
+
+    TraceRet DumpTrace(TraceRetInfo& info) const
+    {
+        info = info_;
+        return traceRet_;
+    }
+
 private:
     DumpTraceCallback callback_;
     TraceRetInfo info_ = {};
     int32_t appid_ = 0;
     uint64_t taskBeginTime_ = 0;
+    TraceRet traceRet_;
 };
 }
 

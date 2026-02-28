@@ -13,19 +13,9 @@
      limitations under the License.
 -->
 <configuration ver="2.0">
-    <target name="TraceStrategyTest">
+    <target name="TraceManagerTest">
         <preparer>
-            <option name="push" value="config/trace_quota_config.json -> /data/test/trace_config/" src="res"/>
-        </preparer>
-    </target>
-    <target name="TraceStrategyExTest">
-        <preparer>
-            <option name="push" value="config/trace_quota_config.json -> /data/test/trace_config/" src="res"/>
-        </preparer>
-    </target>
-    <target name="TraceImplTest">
-        <preparer>
-            <option name="push" value="config/trace_quota_config.json -> /data/test/trace_config/" src="res"/>
+            <option name="push" value="config/trace_quota_config.json -> /data/test/trace_manager_config/" src="res"/>
         </preparer>
     </target>
 </configuration>

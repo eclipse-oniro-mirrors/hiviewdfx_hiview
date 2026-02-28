@@ -87,3 +87,29 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
         0);
     ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
+
+/**
+ * @tc.name: TraceCollectorTest005
+ * @tc.desc: used to test TraceCollector for OpenAppSystemTrace
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest005, TestSize.Level1)
+{
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    AppBundleInfo appInfo {1000, 1100, "com.test", "sandboxPath", false};
+    auto result = collector->OpenAppSystemTrace(1000, appInfo);
+    ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+}
+
+/**
+ * @tc.name: TraceCollectorTest006
+ * @tc.desc: used to test TraceCollector for DumpAppSystemTrace
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest006, TestSize.Level1)
+{
+    std::shared_ptr<TraceCollector> collector = TraceCollector::Create();
+    AppBundleInfo appInfo {1000, 1100, "com.test", "sandboxPath", false};
+    auto result = collector->DumpAppSystemTrace("prefix", 100, appInfo);
+    ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
+}

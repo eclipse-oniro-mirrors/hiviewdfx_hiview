@@ -29,14 +29,14 @@ namespace OHOS::HiviewDFX {
 class TraceStateMachine : public OHOS::DelayedRefSingleton<TraceStateMachine> {
 public:
     TraceStateMachine();
-    TraceRet OpenTrace(const ScenarioInfo& scenarioInfo);
-    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
+    TraceRet OpenTrace(const Scenario& scenario);
+    TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
     TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
         TraceRetInfo &info, DumpTraceCallback callback);
     TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
-    TraceRet TraceDropOn(TraceScenario scenario);
-    TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info);
-    TraceRet CloseTrace(TraceScenario scenario);
+    TraceRet TraceDropOn(const std::string& scenarioName);
+    TraceRet TraceDropOff(const std::string& scenarioName, TraceRetInfo &info);
+    TraceRet CloseTrace(const std::string& scenarioName);
     TraceRet TraceCacheOn();
     TraceRet TraceCacheOff();
     TraceRet TraceTelemetryOn();
@@ -55,6 +55,7 @@ public:
     void TransToCommandDropState();
     void TransToCommonDropState();
     void TransToTelemetryState(TelemetryPolicy policy);
+    void TransToAppSystemState(int32_t appPid);
     void TransToDynamicState(int32_t appid);
     void TransToCloseState();
     bool RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback> stateCallback);

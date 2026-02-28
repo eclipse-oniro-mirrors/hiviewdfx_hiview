@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 
+#include "app_storage.h"
 #include "hitrace_dump.h"
 #include "restorable_db_store.h"
 #include "trace_storage.h"
@@ -30,21 +31,24 @@ using OHOS::HiviewDFX::Hitrace::TraceRetInfo;
 
 namespace OHOS {
 namespace HiviewDFX {
-namespace FlowController {
-inline constexpr char DEFAULT_DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
-inline constexpr char DEFAULT_CONFIG_PATH[] = "/system/etc/hiview/";
-}
-
 enum class CacheFlow {
     SUCCESS,
     OVER_FLOW,
     EXIT
 };
 
+struct AppTraceStorageInfo {
+    int32_t uid;
+    std::string packageName;
+    int64_t durationTime = 0;
+    int64_t traceSize = 0;
+};
+    
 class TraceFlowController {
 public:
-    explicit TraceFlowController(const std::string &name, const std::string& dbPath = FlowController::DEFAULT_DB_PATH,
-        const std::string& configPath = FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController(const std::string &name);
+    TraceFlowController(const std::string &name, const std::string& dbPath, const std::string& configPath);
+    TraceFlowController(int32_t uid, const std::string& dbPath, const std::string& configPath);
     ~TraceFlowController() = default;
     bool IsZipOverFlow();
     bool IsIoOverFlow();
@@ -52,11 +56,16 @@ public:
     void StoreIoSize(int64_t traceSize);
     void StoreTraceSize(int64_t traceSize);
     void DecreaseDynamicThreshold();
+    bool IsAppOverFlow();
+    void StoreAppTraceInfo(const std::string& packageName, int64_t traceDuration, int64_t fileSize);
 #ifdef TRACE_MANAGER_UNITTEST
     void SetTestDate(const std::string& testDate)
     {
         if (traceStorage_ != nullptr) {
             traceStorage_->SetTestDate(testDate);
+        }
+        if (appTraceStorage_ != nullptr) {
+            appTraceStorage_->SetTestDate(testDate);
         }
     }
 #endif
@@ -100,6 +109,7 @@ private:
     std::shared_ptr<RestorableDbStore> dbStore_;
     std::shared_ptr<TraceStorage> traceStorage_;
     std::shared_ptr<AppEventTaskStorage> appTaskStore_;
+    std::shared_ptr<AppTraceStorage> appTraceStorage_;
     std::shared_ptr<TraceBehaviorStorage> behaviorTaskStore_;
     std::shared_ptr<TeleMetryStorage> teleMetryStorage_;
 };

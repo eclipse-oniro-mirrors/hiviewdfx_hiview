@@ -12,9 +12,9 @@
         "DecreaseUnit": 52428800
     },
     "appSystemQuota": {
-        "AppDurationLimits": 60000,
-        "TotalDurationLimits": 180000,
-        "AppFlowLimits": 31457280,
-        "TotalFlowLimits": 104857600
+        "AppDurationLimits": 1000,
+        "TotalDurationLimits": 3000,
+        "AppFlowLimits": 1000,
+        "TotalFlowLimits": 3000
     }
 }

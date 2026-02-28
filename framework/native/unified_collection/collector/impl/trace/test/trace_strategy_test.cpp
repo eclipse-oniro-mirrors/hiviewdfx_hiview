@@ -417,7 +417,7 @@ HWTEST_F(TraceStrategyTest, TraceStrategyTest013, TestSize.Level1)
 HWTEST_F(TraceStrategyTest, TraceStrategyTest014, TestSize.Level1)
 {
     StrategyParam strategyParam {0, 0, CallerName::COMMAND, TEST_DB_PATH, TEST_CONFIG_PATH};
-    auto commandStrategy = std::make_shared<TraceStrategy>(strategyParam, TraceScenario::TRACE_COMMAND);
+    auto commandStrategy = std::make_shared<TraceStrategy>(strategyParam, ScenarioName::COMMAND);
     TraceRetInfo testInfo {
         .errorCode = TraceErrorCode::SUCCESS,
         .fileSize = 10,

@@ -18,7 +18,7 @@
 
 #include <cinttypes>
 #include <string>
-#include <vector>
+#include <functional>
 
 #include "hitrace_dump.h"
 
@@ -33,6 +33,7 @@ inline constexpr char RELIABILITY[] = "Reliability";
 inline constexpr char HIVIEW[] = "Hiview";
 inline constexpr char OTHER[] = "Other";
 inline constexpr char APP[] = "APP";
+inline constexpr char APP_SYSTEM[] = "APP_SYSTEM";
 inline constexpr char BEHAVIOR[] = "behavior";
 inline constexpr char TELEMETRY[] = "Telemetry";
 }
@@ -59,15 +60,27 @@ inline constexpr char OTHER[] = "Other";
 inline constexpr char SCREEN[] = "Screen";
 };
 
-// must order by trace priority
-enum class TraceScenario : uint8_t {
-    TRACE_CLOSE,
-    TRACE_DYNAMIC, // collect app trace scenario
-    TRACE_TELEMETRY,
-    TRACE_COMMON,  // beta version scenario
-    TRACE_COMMON_DROP,  // settings switch "system tracing" open scenario
-    TRACE_COMMAND, // trace command cmd scenario
-};
+namespace ScenarioName {
+inline constexpr char COMMAND[] = "command";
+inline constexpr char COMMAND_DROP[] = "command_drop";
+inline constexpr char COMMON_BETA[] = "common_beta";
+inline constexpr char COMMON_DROP[] = "common_drop";
+inline constexpr char TELEMETRY[] = "telemetry";
+inline constexpr char APP_SYSTEM[] = "app_system";
+inline constexpr char APP_DYNAMIC[] = "app_dynamic";
+inline constexpr char CLOSE[] = "close";
+}
+
+namespace ScenarioLevel {
+constexpr uint8_t COMMAND = 5;
+constexpr uint8_t COMMAND_DROP = 5;
+constexpr uint8_t COMMON_DROP = 4;
+constexpr uint8_t COMMON_BETA = 3;
+constexpr uint8_t TELEMETRY = 2;
+constexpr uint8_t APP_SYSTEM = 2;
+constexpr uint8_t APP_DYNAMIC = 1;
+constexpr uint8_t CLOSE = 0;
+}
 
 enum class TelemetryPolicy {
     DEFAULT,
@@ -75,14 +88,15 @@ enum class TelemetryPolicy {
     MANUAL
 };
 
-struct ScenarioInfo {
-    TraceScenario scenario = TraceScenario::TRACE_CLOSE;
+struct Scenario {
+    std::string name;
+    uint8_t level = 0;
     TraceArgs args;
     TelemetryPolicy tracePolicy = TelemetryPolicy::DEFAULT;
 };
 
 struct DumpTraceArgs {
-    TraceScenario scenario;
+    std::string scenarioName;
     uint32_t maxDuration = 0;
     uint64_t happenTime = 0;
 };

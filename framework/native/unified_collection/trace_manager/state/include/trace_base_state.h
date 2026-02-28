@@ -22,17 +22,18 @@ namespace OHOS::HiviewDFX {
 class TraceBaseState {
 public:
     virtual ~TraceBaseState() = default;
-    virtual TraceRet OpenTrace(const ScenarioInfo& scenarioInfo);
-    virtual TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
+    virtual TraceRet OpenTrace(const Scenario& scenario);
+    virtual TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+        TraceRetInfo &info);
     virtual TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
         TraceRetInfo &info, DumpTraceCallback callback);
     virtual TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info);
-    virtual TraceRet TraceDropOn(TraceScenario scenario);
-    virtual TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info);
+    virtual TraceRet TraceDropOn(const std::string& scenarioName);
+    virtual TraceRet TraceDropOff(const std::string& scenarioName, TraceRetInfo &info);
     virtual TraceRet TraceCacheOn();
     virtual TraceRet SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration);
     virtual TraceRet TraceCacheOff();
-    virtual TraceRet CloseTrace(TraceScenario scenario);
+    virtual TraceRet CloseTrace(const std::string& scenarioName);
     virtual TraceRet TraceTelemetryOn();
     virtual TraceRet TraceTelemetryOff();
     virtual TraceRet PostTelemetryOn(uint64_t time);
@@ -51,20 +52,19 @@ public:
         return false;
     }
 
-    virtual TraceScenario GetCurrentScenario() const
-    {
-        return TraceScenario::TRACE_CLOSE;
-    }
-
     virtual std::pair<int32_t, uint64_t> GetCurrentAppInfo()
     {
         return {-1, 0};
     }
 
-protected:
-    virtual std::string GetTag() const
+    virtual std::string GetStateScenario() const
     {
-        return "CloseState";
+        return ScenarioName::CLOSE;
+    }
+
+    virtual uint32_t GetStateLevel() const
+    {
+        return ScenarioLevel::CLOSE;
     }
 };
 }

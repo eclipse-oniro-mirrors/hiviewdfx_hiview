@@ -30,42 +30,44 @@ CommonState::CommonState(bool isCachOn, int32_t totalFileSize, int32_t sliceMaxD
     }
 }
 
-TraceRet CommonState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet CommonState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+    TraceRetInfo &info)
 {
-    if (scenario == TraceScenario::TRACE_COMMON || scenario == TraceScenario::TRACE_COMMAND) {
+    if (scenarioName == ScenarioName::COMMON_BETA || scenarioName == ScenarioName::COMMAND) {
         info = Hitrace::DumpTrace(maxDuration, happenTime);
-        HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
+        HIVIEW_LOGI("CommonState, DumpTrace result:%{public}d", info.errorCode);
         return TraceRet(info.errorCode);
     }
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
+    HIVIEW_LOGW("CommonState scenario:%{public}s is fail", scenarioName.c_str());
     return TraceRet(TraceStateCode::FAIL);
 }
 
 TraceRet CommonState::DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
     TraceRetInfo &info, DumpTraceCallback callback)
 {
-    if (args.scenario != TraceScenario::TRACE_COMMON) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(args.scenario));
+    if (args.scenarioName != ScenarioName::COMMON_BETA) {
+        HIVIEW_LOGW("CommonState scenario:%{public}s is fail", args.scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
     info = Hitrace::DumpTraceAsync(args.maxDuration, args.happenTime, fileSizeLimit, callback);
-    HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
+    HIVIEW_LOGI("CommonState DumpTrace result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }
 
-TraceRet CommonState::CloseTrace(TraceScenario scenario)
+TraceRet CommonState::CloseTrace(const std::string& scenarioName)
 {
-    if (scenario == TraceScenario::TRACE_COMMON) {
-        return TraceBaseState::CloseTrace(scenario);
+    if (scenarioName == ScenarioName::COMMON_BETA) {
+        return TraceBaseState::CloseTrace(scenarioName);
     }
 
     // beta version can close trace by trace command
-    if (scenario == TraceScenario::TRACE_COMMAND && !TraceStateMachine::GetInstance().GetCommandState()) {
+    if (scenarioName == ScenarioName::COMMAND && !TraceStateMachine::GetInstance().GetCommandState()) {
         // Prevent traceStateMachine recovery to beta common state after close
         TraceStateMachine::GetInstance().CloseVersionBeta();
-        return TraceBaseState::CloseTrace(TraceScenario::TRACE_COMMON);
+        HIVIEW_LOGI("closed common beta from command");
+        return TraceBaseState::CloseTrace(ScenarioName::COMMON_BETA);
     }
-    HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
+    HIVIEW_LOGW("CommonState scenario:%{public}s is fail", scenarioName.c_str());
     return TraceRet(TraceStateCode::DENY);
 }
 

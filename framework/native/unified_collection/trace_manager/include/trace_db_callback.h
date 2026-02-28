@@ -57,6 +57,11 @@ inline constexpr char COLUMN_QUOTA[] = "quota";
 inline constexpr char COLUMN_TELEMTRY_ID[] = "telemetry_id";
 inline constexpr char COLUMN_RUNNING_TIME[] = "running_time";
 
+// Table app_system_control column name
+inline constexpr char APP_SYSTEM_CONTROL[] = "app_system_control";
+inline constexpr char COLUMN_PACKAGE_NAME[] = "package_name";
+inline constexpr char COLUMN_TRACE_DURATION[] = "trace_duration";
+
 namespace TraceDbStoreCallback {
 int OnCreate(NativeRdb::RdbStore &rdbStore);
 int OnUpgrade(NativeRdb::RdbStore &rdbStore, int oldVersion, int newVersion);

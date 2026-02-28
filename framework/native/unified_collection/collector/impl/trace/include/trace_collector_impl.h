@@ -26,6 +26,9 @@ public:
     ~TraceCollectorImpl() override = default;
 
 public:
+    CollectResult<int32_t> OpenAppSystemTrace(uint32_t bufferSize, const AppBundleInfo& appInfo) override;
+    CollectResult<std::string> DumpAppSystemTrace(const std::string& prefix, int64_t traceDuration,
+        const AppBundleInfo& appInfo) override;
     CollectResult<std::vector<std::string>> DumpTrace(TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
         TraceCaller caller, uint32_t maxDuration, uint64_t happenTime) override;

@@ -31,63 +31,80 @@ using namespace OHOS::HiviewDFX;
 using namespace OHOS::NativeRdb;
 namespace {
 const std::string TEST_DB_PATH = "/data/test/trace_storage_test/";
+const std::string TEST_CONFIG_PATH = "/data/test/trace_manager_config/";
 
-const ScenarioInfo commandInfo {
-    .scenario = TraceScenario::TRACE_COMMAND,
+const Scenario commandInfo {
+    .name = ScenarioName::COMMAND,
+    .level = ScenarioLevel::COMMAND,
     .args = {
         .tags = {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa", "hdf", "virse"}
     }
 };
 
-const ScenarioInfo telemetryInfo {
-    .scenario = TraceScenario::TRACE_TELEMETRY,
+const Scenario telemetryInfo {
+    .name = ScenarioName::TELEMETRY,
+    .level = ScenarioLevel::TELEMETRY,
     .args = {
         .tags = {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa", "hdf", "virse"}
     }
 };
 
-const ScenarioInfo telemetryPowerInfo {
-    .scenario = TraceScenario::TRACE_TELEMETRY,
+const Scenario telemetryPowerInfo {
+    .name = ScenarioName::TELEMETRY,
+    .level = ScenarioLevel::TELEMETRY,
     .args = {
         .tags = {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa", "hdf", "virse"}
     },
     .tracePolicy = TelemetryPolicy::POWER
 };
 
-const ScenarioInfo telemetryManualInfo {
-    .scenario = TraceScenario::TRACE_TELEMETRY,
+const Scenario telemetryManualInfo {
+    .name = ScenarioName::TELEMETRY,
+    .level = ScenarioLevel::TELEMETRY,
     .args = {
         .tags = {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa", "hdf", "virse"}
     },
     .tracePolicy = TelemetryPolicy::MANUAL
 };
 
-const ScenarioInfo commonInfo {
-    .scenario = TraceScenario::TRACE_COMMON,
+const Scenario commonInfo {
+    .name = ScenarioName::COMMON_BETA,
+    .level = ScenarioLevel::COMMON_BETA,
     .args = {
         .tags = {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa", "hdf", "virse"}
     },
 };
 
-const ScenarioInfo appInfo {
-    .scenario = TraceScenario::TRACE_DYNAMIC,
+const Scenario appInfo {
+    .name = ScenarioName::APP_DYNAMIC,
+    .level = ScenarioLevel::APP_DYNAMIC,
     .args {
         .appPid = 100
     }
 };
 
-const ScenarioInfo appInfo1 {
-    .scenario = TraceScenario::TRACE_DYNAMIC,
+const Scenario appInfo1 {
+    .name = ScenarioName::APP_DYNAMIC,
+    .level = ScenarioLevel::APP_DYNAMIC,
     .args {
         .appPid = 101
     }
 };
 
-const ScenarioInfo appInfo2 {
-    .scenario = TraceScenario::TRACE_DYNAMIC,
+const Scenario appInfo2 {
+    .name = ScenarioName::APP_DYNAMIC,
+    .level = ScenarioLevel::APP_DYNAMIC,
     .args {
         .appPid = 102
     }
+};
+
+const Scenario appSystemScenaio {
+    .name = ScenarioName::APP_SYSTEM,
+    .level = ScenarioLevel::APP_SYSTEM,
+    .args = {
+            .tags = {"sched", "freq", "disk", "sync", "binder", "mmc", "membus", "load", "workq", "ipa", "hdf", "virse"}
+    },
 };
 
 AppEventTask InnerCreateAppEventTask(int32_t uid, uint64_t happendTime)
@@ -141,7 +158,7 @@ public:
 HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
 
     int64_t traceSize1 = 699 * 1024 * 1024; // xpower trace Threshold is 150M
     int64_t remainingSize = flowController1->GetRemainingTraceSize();
@@ -151,7 +168,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 
     sleep(1);
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     remainingSize = flowController2->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
 
@@ -162,7 +179,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 
     sleep(1);
     auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     remainingSize = flowController3->GetRemainingTraceSize();
     ASSERT_LE(remainingSize, 0);
 }
@@ -175,7 +192,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest001, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::HIVIEW, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     int64_t traceSize1 = 149 * 1024 * 1024; // HIVIEW trace Threshold is 150M
     int64_t remainingSize = flowController1->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
@@ -184,7 +201,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
     sleep(1);
 
     auto flowController2 = std::make_shared<TraceFlowController>(CallerName::HIVIEW, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     remainingSize = flowController2->GetRemainingTraceSize();
     ASSERT_GT(remainingSize, 0);
     int64_t traceSize2 = 100 * 1024 * 1024;
@@ -199,7 +216,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest002, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
 {
     auto flowController1 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     int32_t appid1 = 100;
     uint64_t happenTime1 = TimeUtil::GetMilliseconds() - 10000;  // 10 seconds ago
     auto appTaskEvent1 = InnerCreateAppEventTask(appid1, happenTime1);
@@ -208,7 +225,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
     sleep(1);
 
     auto flowController21 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     uint64_t happenTime2 = TimeUtil::GetMilliseconds() - 5000; // 5 seconds ago
     auto appTaskEvent21 = InnerCreateAppEventTask(appid1, happenTime2);
     ASSERT_TRUE(flowController21->HasCallOnceToday(appid1, happenTime2));
@@ -216,7 +233,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
     sleep(1);
 
     auto flowController22 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     int32_t appid2 = 101;
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid2, happenTime2));
     auto appTaskEvent22 = InnerCreateAppEventTask(appid2, happenTime2);
@@ -231,7 +248,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
 
     sleep(1);
     auto flowController23 = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid1, TimeUtil::GetMilliseconds()));
     ASSERT_FALSE(flowController22->HasCallOnceToday(appid2, TimeUtil::GetMilliseconds()));
 }
@@ -244,7 +261,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest003, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest004, TestSize.Level1)
 {
     auto flowController = std::make_shared<TraceFlowController>("behavior", TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     ASSERT_EQ(flowController->UseCacheTimeQuota(10), CacheFlow::SUCCESS);
     sleep(1);
     ASSERT_EQ(flowController->UseCacheTimeQuota(10 * 60), CacheFlow::SUCCESS);
@@ -272,7 +289,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
         {"Total", 180}
     };
 
-    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_EQ(flowController.InitTelemetryQuota("id", flowControlQuotas), TelemetryRet::SUCCESS);
     sleep(1);
     flowController.TelemetryStore(CallerName::XPERF, 9000);
@@ -294,13 +311,13 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
     flowController.ClearTelemetryData();
 
     // data is cleared
-    TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH);
+    TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_EQ(flowController2.InitTelemetryQuota("id", flowControlQuotas), TelemetryRet::SUCCESS);
     flowController2.TelemetryStore(CallerName::XPOWER, 5000);
     ASSERT_EQ(flowController2.NeedTelemetryDump(CallerName::XPOWER), TelemetryRet::SUCCESS);
 
     // do not clear db
-    TraceFlowController flowController3(FlowControlName::TELEMETRY, TEST_DB_PATH);
+    TraceFlowController flowController3(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
 
     // Already init, old data still take effect
     ASSERT_EQ(flowController2.InitTelemetryQuota("id", flowControlQuota2), TelemetryRet::SUCCESS);
@@ -312,7 +329,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest005, TestSize.Level1)
     flowController.ClearTelemetryData();
 
     // flowControlQuota2 take effect
-    TraceFlowController flowController4(FlowControlName::TELEMETRY, TEST_DB_PATH);
+    TraceFlowController flowController4(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_EQ(flowController4.InitTelemetryQuota("id", flowControlQuota2), TelemetryRet::SUCCESS);
     flowController4.TelemetryStore(CallerName::XPOWER, 500);
     ASSERT_EQ(flowController4.NeedTelemetryDump(CallerName::XPOWER), TelemetryRet::OVER_FLOW);
@@ -330,11 +347,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest006, TestSize.Level1)
         {CallerName::XPOWER, 12000},
         {"Total", 18000}
     };
-    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController flowController(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_EQ(flowController.InitTelemetryQuota("id1", flowControlQuotas), TelemetryRet::SUCCESS);
 
     // if data init, correct btime2 etime2 value
-    TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH, FlowController::DEFAULT_CONFIG_PATH);
+    TraceFlowController flowController2(FlowControlName::TELEMETRY, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_EQ(flowController2.InitTelemetryQuota("id1", flowControlQuotas), TelemetryRet::SUCCESS);
     flowController2.UpdateRunningTime("id1", 400);
     int64_t runningTime2 = 0;
@@ -354,9 +371,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
 
     // trans to command state
     TraceRetInfo info;
-    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_TRUE(ret2.IsSuccess());
-    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
     TraceRet ret40 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret40.stateError_,  TraceStateCode::FAIL);
@@ -364,39 +381,39 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
     ASSERT_EQ(ret4.stateError_, TraceStateCode::FAIL);
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
-    TraceRet ret6 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret6 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret6.stateError_, TraceStateCode::FAIL);
-    TraceRet ret28 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    TraceRet ret28 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMON_BETA, info);
     ASSERT_EQ(ret28.stateError_, TraceStateCode::FAIL);
-    TraceRet ret29 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret29 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND, info);
     ASSERT_EQ(ret29.stateError_, TraceStateCode::FAIL);
-    TraceRet ret61 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMON);
+    TraceRet ret61 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret61.stateError_, TraceStateCode::FAIL);
-    TraceRet ret7 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret7 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_TRUE(ret7.IsSuccess());
 
     // trans to command drop state
-    TraceRet ret8 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret8 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_EQ(ret8.stateError_, TraceStateCode::FAIL);
-    TraceRet ret9 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret9 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_EQ(ret9.stateError_, TraceStateCode::FAIL);
-    TraceRet ret10 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret10 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
     TraceRet ret41 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret41.stateError_,  TraceStateCode::FAIL);
-    TraceRet ret20 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret20 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret20.stateError_, TraceStateCode::DENY);
-    TraceRet ret21 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    TraceRet ret21 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_EQ(ret21.stateError_, TraceStateCode::DENY);
-    TraceRet ret50 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceRet ret50 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_EQ(ret50.stateError_, TraceStateCode::DENY);
-    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret22.IsSuccess());
 
     // trans to close state
     TraceRet ret31 = TraceStateMachine::GetInstance().OpenTrace(commandInfo);
     ASSERT_TRUE(ret31.IsSuccess());
-    TraceRet ret30 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret30 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_TRUE(ret30.IsSuccess());
 
     // trans to command drop state
@@ -410,9 +427,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
     ASSERT_EQ(ret11.stateError_, TraceStateCode::FAIL);
     TraceRet ret12 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_EQ(ret12.stateError_, TraceStateCode::FAIL);
-    TraceRet ret13 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    TraceRet ret13 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMON_BETA, info);
     ASSERT_EQ(ret13.stateError_, TraceStateCode::FAIL);
-    TraceRet ret14 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret14 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND_DROP, info);
     ASSERT_TRUE(ret14.IsSuccess());
 
     // trans to command state
@@ -422,13 +439,13 @@ HWTEST_F(TraceManagerTest, TraceManagerTest007, TestSize.Level1)
     ASSERT_EQ(ret15.stateError_, TraceStateCode::DENY);
     TraceRet ret23 = TraceStateMachine::GetInstance().OpenTrace(appInfo);
     ASSERT_EQ(ret23.stateError_, TraceStateCode::DENY);
-    TraceRet ret17 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret17 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret17.stateError_, TraceStateCode::DENY);
-    TraceRet ret51 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceRet ret51 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_EQ(ret51.stateError_, TraceStateCode::DENY);
-    TraceRet ret18 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    TraceRet ret18 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_EQ(ret18.stateError_, TraceStateCode::DENY);
-    TraceRet ret19 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret19 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret19.IsSuccess());
 }
 
@@ -444,11 +461,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
 
     // trans to common state
     TraceRetInfo info;
-    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_TRUE(ret2.IsSuccess());
-    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_TRUE(ret3.IsSuccess());
-    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.stateError_, TraceStateCode::FAIL);
     TraceRet ret41 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret41.stateError_,  TraceStateCode::FAIL);
@@ -456,20 +473,20 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
     ASSERT_TRUE(ret5.IsSuccess());
     TraceRet ret6 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_TRUE(ret6.IsSuccess());
-    TraceRet ret61 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret61 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND, info);
     ASSERT_EQ(ret61.stateError_, TraceStateCode::FAIL);
-    TraceRet ret71 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    TraceRet ret71 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMON_BETA, info);
     ASSERT_EQ(ret71.stateError_, TraceStateCode::FAIL);
-    TraceRet ret7 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret7 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_EQ(ret7.stateError_, TraceStateCode::FAIL);
     TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
 
     // trans to common drop state
-    TraceRet ret9 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret9 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_EQ(ret9.stateError_, TraceStateCode::FAIL);
-    TraceRet ret10 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret10 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
-    TraceRet ret11 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret11 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret11.stateError_, TraceStateCode::FAIL);
     TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
@@ -477,9 +494,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
     ASSERT_EQ(ret12.stateError_, TraceStateCode::FAIL);
     TraceRet ret13 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_EQ(ret13.stateError_, TraceStateCode::FAIL);
-    TraceRet ret14 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret14 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_EQ(ret14.stateError_, TraceStateCode::FAIL);
-    TraceRet ret15 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMON);
+    TraceRet ret15 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret15.stateError_, TraceStateCode::FAIL);
     TraceRet ret23 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
     ASSERT_EQ(ret23.stateError_, TraceStateCode::DENY);
@@ -491,24 +508,24 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
 
     // trans to command state
     TraceStateMachine::GetInstance().SetTraceSwitchUcOn();
-    TraceRet ret21 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret21 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_TRUE(ret21.IsSuccess());
-    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret22.IsSuccess());
 
     // trans to common state
     TraceStateMachine::GetInstance().SetTraceSwitchDevOn();
 
     // trans to common drop state
-    TraceRet ret26 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret26 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret26.stateError_, TraceStateCode::DENY);
-    TraceRet ret51 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceRet ret51 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_EQ(ret51.stateError_, TraceStateCode::DENY);
-    TraceRet ret27 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    TraceRet ret27 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_EQ(ret27.stateError_, TraceStateCode::DENY);
-    TraceRet ret28 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret28 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_EQ(ret28.stateError_, TraceStateCode::DENY);
-    TraceRet ret16 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret16 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND, info);
     ASSERT_EQ(ret16.stateError_, TraceStateCode::FAIL);
     TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
 
@@ -521,30 +538,30 @@ HWTEST_F(TraceManagerTest, TraceManagerTest008, TestSize.Level1)
     ASSERT_TRUE(ret20.IsSuccess());
 
     // trans to command state
-    TraceRet ret32 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret32 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_TRUE(ret32.IsSuccess());
-    TraceRet ret33 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret33 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret33.IsSuccess());
 
     // trans to common state again
-    TraceRet ret30 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    TraceRet ret30 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_EQ(ret30.stateError_, TraceStateCode::DENY);
-    TraceRet ret29 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret29 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_TRUE(ret29.IsSuccess());
 
     // still recover to common state
-    TraceRet ret31 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret31 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret31.IsSuccess());
 
     // close version beta and trans to close state
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOn();
 
     // trans to common state
-    TraceRet ret35 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret35 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret35.IsSuccess());
 
     // still recover to common state
-    TraceRet ret36 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret36 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_TRUE(ret36.IsSuccess());
     TraceStateMachine::GetInstance().SetTraceSwitchFreezeOff();
     TraceStateMachine::GetInstance().SetTraceSwitchUcOff();
@@ -563,33 +580,33 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
     // Trans to telemetry state
     ASSERT_FALSE(TraceStateMachine::GetInstance().RegisterTelemetryCallback(nullptr));
     TraceRetInfo info;
-    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
-    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
-    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.stateError_,  TraceStateCode::FAIL);
     TraceRet ret11 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_TRUE(ret11.IsSuccess());
-    TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
-    TraceRet ret6 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMON);
+    TraceRet ret6 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret6.stateError_, TraceStateCode::FAIL);
     TraceRet ret7 = TraceStateMachine::GetInstance().TraceCacheOn();
     ASSERT_EQ(ret7.stateError_, TraceStateCode::FAIL);
     TraceRet ret8 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_EQ(ret8.stateError_, TraceStateCode::FAIL);
-    TraceRet ret9 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret9 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND, info);
     ASSERT_EQ(ret9.stateError_, TraceStateCode::FAIL);
-    TraceRet ret10 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    TraceRet ret10 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMON_BETA, info);
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
-    TraceRet ret26 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret26 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret26.stateError_, TraceStateCode::DENY);
-    TraceRet ret27 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    TraceRet ret27 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_EQ(ret27.stateError_, TraceStateCode::DENY);
-    TraceRet ret28 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret28 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_EQ(ret28.stateError_, TraceStateCode::DENY);
-    TraceRet ret51 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceRet ret51 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret51.IsSuccess());
 
     // Trans to close state
@@ -608,7 +625,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
     // Common state to telemetry deny
     TraceRet ret18 = TraceStateMachine::GetInstance().OpenTrace(telemetryInfo);
     ASSERT_EQ(ret18.GetStateError(), TraceStateCode::DENY);
-    TraceRet ret19 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret19 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_TRUE(ret19.IsSuccess());
 
     // Trans to close state
@@ -619,7 +636,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest009, TestSize.Level1)
     TraceRet ret21 = TraceStateMachine::GetInstance().OpenTrace(telemetryInfo);
     ASSERT_EQ(ret21.GetStateError(), TraceStateCode::DENY);
 
-    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret22 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret22.IsSuccess());
 }
 
@@ -638,25 +655,25 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     ASSERT_EQ(item.first, 100);
     ASSERT_GT(item.second, 0);
     TraceRetInfo info;
-    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
-    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
-    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.GetStateError(), TraceStateCode::SUCCESS);
     TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
-    TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
-    TraceRet ret6 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMON);
+    TraceRet ret6 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret6.stateError_, TraceStateCode::FAIL);
     TraceRet ret7 = TraceStateMachine::GetInstance().TraceCacheOn();
     ASSERT_EQ(ret7.stateError_, TraceStateCode::FAIL);
     TraceRet ret8 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_EQ(ret8.stateError_, TraceStateCode::FAIL);
-    TraceRet ret9 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret9 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND, info);
     ASSERT_EQ(ret9.stateError_, TraceStateCode::FAIL);
-    TraceRet ret10 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    TraceRet ret10 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMON_BETA, info);
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
 
     TraceRet ret11 = TraceStateMachine::GetInstance().OpenTrace(appInfo1);
@@ -665,9 +682,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     ASSERT_TRUE(ret12.IsSuccess());
 
     // Trans to command state
-    TraceRet ret13 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret13 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_TRUE(ret13.IsSuccess());
-    TraceRet ret14 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    TraceRet ret14 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret14.IsSuccess());
 
     // Trans to close state
@@ -680,9 +697,9 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
     ASSERT_TRUE(ret16.IsSuccess());
 
     // Trans to common state
-    TraceRet ret17 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret17 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_TRUE(ret17.IsSuccess());
-    TraceRet ret18 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    TraceRet ret18 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_TRUE(ret18.IsSuccess());
 }
 
@@ -694,29 +711,29 @@ HWTEST_F(TraceManagerTest, TraceManagerTest010, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest011, TestSize.Level1)
 {
     TraceRetInfo info;
-    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMAND, 0, 0, info);
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMAND, 0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
-    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_COMMON, 0, 0, info);
+    TraceRet ret3 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::COMMON_BETA, 0, 0, info);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::FAIL);
-    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, info);
+    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, info);
     ASSERT_EQ(ret4.stateError_, TraceStateCode::FAIL);
     TraceRet ret42 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret42.stateError_,  TraceStateCode::FAIL);
-    TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    TraceRet ret5 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
-    TraceRet ret6 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMON);
+    TraceRet ret6 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMON_BETA);
     ASSERT_EQ(ret6.stateError_, TraceStateCode::FAIL);
     TraceRet ret7 = TraceStateMachine::GetInstance().TraceCacheOn();
     ASSERT_EQ(ret7.stateError_, TraceStateCode::FAIL);
     TraceRet ret8 = TraceStateMachine::GetInstance().TraceCacheOff();
     ASSERT_EQ(ret8.stateError_, TraceStateCode::FAIL);
-    TraceRet ret9 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMAND, info);
+    TraceRet ret9 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMAND, info);
     ASSERT_EQ(ret9.stateError_, TraceStateCode::FAIL);
-    TraceRet ret10 = TraceStateMachine::GetInstance().TraceDropOff(TraceScenario::TRACE_COMMON, info);
+    TraceRet ret10 = TraceStateMachine::GetInstance().TraceDropOff(ScenarioName::COMMON_BETA, info);
     ASSERT_EQ(ret10.stateError_, TraceStateCode::FAIL);
-    ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND).IsSuccess());
-    ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON).IsSuccess());
-    ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC).IsSuccess());
+    ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND).IsSuccess());
+    ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA).IsSuccess());
+    ASSERT_TRUE(TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC).IsSuccess());
 }
 
 /**
@@ -734,7 +751,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest012, TestSize.Level1)
     // TranToCommandState
     auto ret1 = TraceStateMachine::GetInstance().OpenTrace(commandInfo);
     ASSERT_EQ(ret1.stateError_, TraceStateCode::DENY);
-    auto ret2 = TraceStateMachine::GetInstance().TraceDropOn(TraceScenario::TRACE_COMMAND);
+    auto ret2 = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     ASSERT_TRUE(ret2.IsSuccess());
 
     // TranToCommandDropState
@@ -743,7 +760,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest012, TestSize.Level1)
 
     auto ret3 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::DENY);
-    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMAND);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMAND);
     ASSERT_TRUE(ret4.IsSuccess());
 
     // TransToCLoseState
@@ -756,27 +773,27 @@ HWTEST_F(TraceManagerTest, TraceManagerTest012, TestSize.Level1)
     auto ret8 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
     ASSERT_EQ(ret8.stateError_, TraceStateCode::DENY);
     TraceStateMachine::GetInstance().SetTraceSwitchDevOff();
-    auto ret10 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    auto ret10 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_TRUE(ret10.IsSuccess());
 
     // TransToDynamicState
     auto ret11 = TraceStateMachine::GetInstance().OpenTrace(appInfo1);
     ASSERT_TRUE(ret11.IsSuccess());
-    auto ret12 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_DYNAMIC);
+    auto ret12 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
     ASSERT_TRUE(ret12.IsSuccess());
 
     auto ret15 = TraceStateMachine::GetInstance().OpenTrace(appInfo2);
     ASSERT_TRUE(ret15.IsSuccess());
     auto ret16 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
     ASSERT_TRUE(ret16.IsSuccess());
-    auto ret17 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    auto ret17 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_TRUE(ret17.IsSuccess());
 
     auto ret13 = TraceStateMachine::GetInstance().OpenTrace(telemetryInfo);
     ASSERT_TRUE(ret13.IsSuccess());
     auto ret14 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
     ASSERT_TRUE(ret14.IsSuccess());
-    auto ret18 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_COMMON);
+    auto ret18 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
     ASSERT_TRUE(ret18.IsSuccess());
 }
 
@@ -798,7 +815,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest013, TestSize.Level1)
     ASSERT_TRUE(ret3.IsSuccess());
     TraceRet ret4 =TraceStateMachine::GetInstance().PowerTelemetryOff();
     ASSERT_TRUE(ret4.IsSuccess());
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -809,14 +826,13 @@ HWTEST_F(TraceManagerTest, TraceManagerTest013, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest014, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
     TraceStateMachine::GetInstance().InitTelemetryStatus(false);
     TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
     ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -827,12 +843,11 @@ HWTEST_F(TraceManagerTest, TraceManagerTest014, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest015, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryPowerInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
     ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -843,13 +858,12 @@ HWTEST_F(TraceManagerTest, TraceManagerTest015, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest016, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryPowerInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().InitTelemetryStatus(false);
     TraceRet ret2 = TraceStateMachine::GetInstance().PowerTelemetryOn();
     ASSERT_TRUE(ret2.IsSuccess());
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -860,7 +874,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest016, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest017, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryManualInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
@@ -869,7 +882,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest017, TestSize.Level1)
     ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
     TraceRet ret3 = TraceStateMachine::GetInstance().PowerTelemetryOff();
     ASSERT_EQ(ret3.stateError_, TraceStateCode::POLICY_ERROR);
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -891,7 +904,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest018, TestSize.Level1)
     ASSERT_TRUE(ret4.IsSuccess());
     TraceRet ret5 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
-    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret6.IsSuccess());
 }
 
@@ -913,7 +926,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest019, TestSize.Level1)
     ASSERT_TRUE(ret3.IsSuccess());
     TraceRet ret4 =TraceStateMachine::GetInstance().TraceTelemetryOff();
     ASSERT_TRUE(ret4.IsSuccess());
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -931,7 +944,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest020, TestSize.Level1)
     TraceStateMachine::GetInstance().InitTelemetryStatus(false);
     TraceRet ret2 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -942,7 +955,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest020, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest021, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryPowerInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
@@ -951,7 +963,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest021, TestSize.Level1)
     ASSERT_EQ(ret2.stateError_, TraceStateCode::POLICY_ERROR);
     TraceRet ret3 = TraceStateMachine::GetInstance().TraceTelemetryOff();
     ASSERT_EQ(ret3.stateError_, TraceStateCode::POLICY_ERROR);
-    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret5.IsSuccess());
 }
 
@@ -977,7 +989,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest022, TestSize.Level1)
     ASSERT_EQ(ret4.stateError_, TraceStateCode::NO_TRIGGER);
     TraceRet ret5 = TraceStateMachine::GetInstance().TraceTelemetryOff();
     ASSERT_TRUE(ret5.IsSuccess());
-    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret6.IsSuccess());
 }
 
@@ -988,13 +1000,13 @@ HWTEST_F(TraceManagerTest, TraceManagerTest022, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest023, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryManualInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
     TraceStateMachine::GetInstance().InitTelemetryStatus(false);
     TraceRet ret2 = TraceStateMachine::GetInstance().PostTelemetryOn(2);
     ASSERT_TRUE(ret2.IsSuccess());
+    TraceRetInfo info;
     TraceRet ret3 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_TRUE(ret3.IsSuccess());
     sleep(2);
@@ -1002,7 +1014,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest023, TestSize.Level1)
     ASSERT_TRUE(ret4.IsSuccess());
     TraceRet ret5 = TraceStateMachine::GetInstance().DumpTraceWithFilter(0, 0, info);
     ASSERT_EQ(ret5.stateError_, TraceStateCode::FAIL);
-    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret6 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret6.IsSuccess());
 }
 
@@ -1013,7 +1025,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest023, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest024, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryManualInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
@@ -1023,7 +1034,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest024, TestSize.Level1)
     sleep(1);
     TraceRet ret3 = TraceStateMachine::GetInstance().PostTelemetryOn(10);
     ASSERT_EQ(ret3.stateError_, TraceStateCode::UPDATE_TIME);
-    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret4.IsSuccess());
 }
 
@@ -1034,7 +1045,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest024, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest025, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryManualInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
@@ -1044,7 +1054,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest025, TestSize.Level1)
     ASSERT_TRUE(ret2.IsSuccess());
     TraceRet ret3 = TraceStateMachine::GetInstance().TraceTelemetryOff();
     ASSERT_EQ(ret3.stateError_, TraceStateCode::NO_TRIGGER);
-    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret4.IsSuccess());
 }
 
@@ -1055,7 +1065,6 @@ HWTEST_F(TraceManagerTest, TraceManagerTest025, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest026, TestSize.Level1)
 {
-    TraceRetInfo info;
     TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryManualInfo);
     ASSERT_TRUE(ret1.IsSuccess());
     TraceStateMachine::GetInstance().RegisterTelemetryCallback(std::make_shared<TestTelemetryCallback>());
@@ -1065,7 +1074,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest026, TestSize.Level1)
     ASSERT_TRUE(ret2.IsSuccess());
     TraceRet ret3 = TraceStateMachine::GetInstance().PostTelemetryTimeOut();
     ASSERT_EQ(ret3.stateError_, TraceStateCode::NO_TRIGGER);
-    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    auto ret4 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     ASSERT_TRUE(ret4.IsSuccess());
 }
 
@@ -1092,26 +1101,22 @@ HWTEST_F(TraceManagerTest, TraceManagerTest027, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest028, TestSize.Level1)
 {
-    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     int64_t traceSize1 = 601 * 1024 * 1024; // xpower trace Threshold is 700M
     ASSERT_GT(flowController1->GetRemainingTraceSize(), 0);
     flowController1->StoreTraceSize(traceSize1);
 
-    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_FALSE(flowController2->IsZipOverFlow());
     ASSERT_GT(flowController2->GetRemainingTraceSize(), 0);
     flowController2->DecreaseDynamicThreshold(); // dynamic_threashold 650M
 
-    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_FALSE(flowController3->IsZipOverFlow());
     ASSERT_GT(flowController2->GetRemainingTraceSize(), 0);
     flowController3->DecreaseDynamicThreshold(); // dynamic_threashold 600M
 
-    auto flowController4 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-    FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController4 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_TRUE(flowController4->IsZipOverFlow());
 }
 
@@ -1122,20 +1127,17 @@ HWTEST_F(TraceManagerTest, TraceManagerTest028, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest029, TestSize.Level1)
 {
-    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     int64_t traceSize1 = 600 * 1024 * 1024; // xpower trace Threshold is 700M
     ASSERT_GT(flowController1->GetRemainingTraceSize(), 0);
     flowController1->StoreTraceSize(traceSize1);
 
-    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_FALSE(flowController2->IsZipOverFlow());
     ASSERT_EQ(flowController2->GetRemainingTraceSize(), 170 * 1024 * 1024); // remaining size 170M
     flowController2->DecreaseDynamicThreshold(); // dynamic_threashold 650M
 
-    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-    FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController3 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     ASSERT_EQ(flowController2->GetRemainingTraceSize(), 170 * 1024 * 1024); // remaining size still 170M
 }
 
@@ -1146,16 +1148,14 @@ HWTEST_F(TraceManagerTest, TraceManagerTest029, TestSize.Level1)
 */
 HWTEST_F(TraceManagerTest, TraceManagerTest030, TestSize.Level1)
 {
-    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController1 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     flowController1->SetTestDate("2025-07-30");
     int64_t traceSize1 = 750 * 1024 * 1024; // xpower trace Threshold is 700M
     ASSERT_EQ(flowController1->GetRemainingTraceSize(), 770 * 1024 * 1024);
     flowController1->StoreTraceSize(traceSize1); // greater than threshold but less than 10% deadline
     ASSERT_TRUE(flowController1->IsZipOverFlow());
 
-    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+    auto flowController2 = std::make_shared<TraceFlowController>(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
     flowController1->SetTestDate("2025-07-31");
     ASSERT_FALSE(flowController1->IsZipOverFlow());
     ASSERT_EQ(flowController1->GetRemainingTraceSize(), 770 * 1024 * 1024);
@@ -1169,7 +1169,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest030, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest031, TestSize.Level1)
 {
     auto flowController = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     flowController->SetTestDate("2025-10-01");
     ASSERT_FALSE(flowController->IsIoOverFlow()); // update system time to record
     int64_t traceSize = 5368709120; // 5G RELIABILITY trace io threshold is 1G
@@ -1177,7 +1177,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest031, TestSize.Level1)
     sleep(1);
 
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
-    FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     flowController1->SetTestDate("2025-10-01"); // caller Other
     ASSERT_TRUE(flowController1->IsIoOverFlow());
 }
@@ -1190,7 +1190,7 @@ HWTEST_F(TraceManagerTest, TraceManagerTest031, TestSize.Level1)
 HWTEST_F(TraceManagerTest, TraceManagerTest032, TestSize.Level1)
 {
     auto flowController = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
-        FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     flowController->SetTestDate("2025-10-02");
     ASSERT_FALSE(flowController->IsIoOverFlow()); // update system time to record
     int64_t traceSize = 524288000; // 500M RELIABILITY trace io threshold is 1G
@@ -1198,7 +1198,264 @@ HWTEST_F(TraceManagerTest, TraceManagerTest032, TestSize.Level1)
     sleep(1);
 
     auto flowController1 = std::make_shared<TraceFlowController>(CallerName::RELIABILITY, TEST_DB_PATH,
-    FlowController::DEFAULT_CONFIG_PATH);
+        TEST_CONFIG_PATH);
     flowController1->SetTestDate("2025-10-02"); // caller Other
     ASSERT_FALSE(flowController1->IsIoOverFlow());
 }
+
+/**
+ * @tc.name: AppStorageTest001
+ * @tc.desc: used to test TraceFlowControl api: traceDuration overflow
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppStorageTest001, TestSize.Level1)
+{
+    int32_t appUid1 = 1001;
+    std::string packageName = "test_package";
+
+    // appUid1 open apptrace allow
+    TraceFlowController flowController(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController.IsAppOverFlow());
+
+    // appUid1  trace done
+    int64_t traceDuration1 = 900;
+    int64_t traceFileSize1 = 100;
+    TraceFlowController flowController1(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController1.SetTestDate("2026-03-11");
+    flowController1.StoreAppTraceInfo(packageName, traceDuration1, traceFileSize1);
+
+    TraceFlowController flowController2(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController2.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController2.IsAppOverFlow());
+
+    int64_t traceDuration2 = 1000;
+    int64_t traceFileSize2 = 100;
+    TraceFlowController flowController3(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController3.SetTestDate("2026-03-11");
+    flowController3.StoreAppTraceInfo(packageName, traceDuration2, traceFileSize2);
+    ASSERT_TRUE(flowController3.IsAppOverFlow());
+
+    TraceFlowController flowController4(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController4.SetTestDate("2026-03-12");
+    ASSERT_FALSE(flowController4.IsAppOverFlow());
+}
+
+/**
+ * @tc.name: AppStorageTest002
+ * @tc.desc: used to test TraceFlowControl api: traceFileSize overflow
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppStorageTest002, TestSize.Level1)
+{
+    int32_t appUid2 = 1002;
+    std::string packageName = "test_package";
+
+    TraceFlowController flowController(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController.IsAppOverFlow());
+
+    int64_t traceDuration1 = 100;
+    int64_t traceFileSize1 = 900;
+    TraceFlowController flowController1(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController1.SetTestDate("2026-03-11");
+    flowController1.StoreAppTraceInfo(packageName, traceDuration1, traceFileSize1);
+
+    TraceFlowController flowController2(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController2.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController2.IsAppOverFlow());
+
+    int64_t traceDuration2 = 100;
+    int64_t traceFileSize2 = 1000;
+    TraceFlowController flowController3(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController3.SetTestDate("2026-03-11");
+    flowController3.StoreAppTraceInfo(packageName, traceDuration2, traceFileSize2);
+    ASSERT_TRUE(flowController3.IsAppOverFlow());
+
+    TraceFlowController flowController4(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController4.SetTestDate("2026-03-12");
+    ASSERT_FALSE(flowController4.IsAppOverFlow());
+}
+
+/**
+ * @tc.name: AppStorageTest003
+ * @tc.desc: used to test TraceFlowControl api: totalDuration overflow
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppStorageTest003, TestSize.Level1)
+{
+    int32_t appUid1 = 1001;
+    std::string packageName = "test_package";
+
+    int64_t traceDuration1 = 1000;
+    int64_t traceFileSize1 = 100;
+    TraceFlowController flowController1(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController1.SetTestDate("2026-03-11");
+    flowController1.StoreAppTraceInfo(packageName, traceDuration1, traceFileSize1);
+
+    int32_t appUid2 = 1002;
+    TraceFlowController flowController2(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController2.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController2.IsAppOverFlow());
+
+    int64_t traceDuration2 = 1100;
+    int64_t traceFileSize2 = 100;
+    TraceFlowController flowController21(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController21.SetTestDate("2026-03-11");
+    flowController21.StoreAppTraceInfo(packageName, traceDuration2, traceFileSize2);
+
+    int32_t appUid3 = 1003;
+    TraceFlowController flowController3(appUid3, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController3.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController3.IsAppOverFlow());
+
+    TraceFlowController flowController31(appUid3, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController31.SetTestDate("2026-03-11");
+    int64_t traceDuration3 = 1100;
+    int64_t traceFileSize3 = 100;
+    flowController31.StoreAppTraceInfo(packageName, traceDuration3, traceFileSize3);
+
+    int32_t appUid4 = 1004;
+    TraceFlowController flowController4(appUid4, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController4.SetTestDate("2026-03-11");
+    ASSERT_TRUE(flowController4.IsAppOverFlow());
+
+    TraceFlowController flowController41(appUid4, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController41.SetTestDate("2026-03-12");
+    ASSERT_FALSE(flowController41.IsAppOverFlow());
+}
+
+/**
+ * @tc.name: AppStorageTest004
+ * @tc.desc: used to test TraceFlowControl api: totalUsedSize overflow
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppStorageTest004, TestSize.Level1)
+{
+    int32_t appUid1 = 1001;
+    std::string packageName = "test_package";
+
+    int64_t traceDuration1 = 100;
+    int64_t traceFileSize1 = 1000;
+    TraceFlowController flowController1(appUid1, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController1.SetTestDate("2026-03-11");
+    flowController1.StoreAppTraceInfo(packageName, traceDuration1, traceFileSize1);
+
+    int32_t appUid2 = 1002;
+    TraceFlowController flowController2(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController2.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController2.IsAppOverFlow());
+
+    int64_t traceDuration2 = 100;
+    int64_t traceFileSize2 = 1100;
+    TraceFlowController flowController21(appUid2, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController21.SetTestDate("2026-03-11");
+    flowController21.StoreAppTraceInfo(packageName, traceDuration2, traceFileSize2);
+
+    int32_t appUid3 = 1003;
+    TraceFlowController flowController3(appUid3, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController3.SetTestDate("2026-03-11");
+    ASSERT_FALSE(flowController3.IsAppOverFlow());
+
+    TraceFlowController flowController31(appUid3, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController31.SetTestDate("2026-03-11");
+    int64_t traceDuration3 = 100;
+    int64_t traceFileSize3 = 1100;
+    flowController31.StoreAppTraceInfo(packageName, traceDuration3, traceFileSize3);
+
+    int32_t appUid4 = 1004;
+    TraceFlowController flowController4(appUid4, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController4.SetTestDate("2026-03-11");
+    ASSERT_TRUE(flowController4.IsAppOverFlow());
+
+    TraceFlowController flowController41(appUid4, TEST_DB_PATH, TEST_CONFIG_PATH);
+    flowController41.SetTestDate("2026-03-12");
+    ASSERT_FALSE(flowController41.IsAppOverFlow());
+}
+
+/**
+ * @tc.name: AppStorageTest005
+ * @tc.desc: used to test TraceFlowControl api: error config
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppStorageTest005, TestSize.Level1)
+{
+    TraceFlowController flowController(CallerName::XPOWER, TEST_DB_PATH, TEST_CONFIG_PATH);
+    ASSERT_TRUE(flowController.IsAppOverFlow());
+
+    TraceFlowController flowController2(1000, TEST_DB_PATH, "");
+    ASSERT_TRUE(flowController2.IsAppOverFlow());
+}
+
+/**
+ * @tc.name: AppSystemStateTest001
+ * @tc.desc: used to app system trace
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppSystemStateTest001, TestSize.Level1)
+{
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(appInfo);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceRetInfo traceInfo;
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_SYSTEM, 0, 0, traceInfo);
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
+    TraceRet ret3 =TraceStateMachine::GetInstance().OpenTrace(appSystemScenaio);
+    ASSERT_TRUE(ret3.IsSuccess());
+    TraceRet ret4 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_SYSTEM, 0, 0, traceInfo);
+    ASSERT_TRUE(ret4.IsSuccess());
+    TraceRet ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_DYNAMIC);
+    ASSERT_EQ(ret5.stateError_, TraceStateCode::DENY);
+    TraceRet ret6 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_SYSTEM);
+    ASSERT_TRUE(ret6.IsSuccess());
+}
+
+/**
+ * @tc.name: AppSystemStateTest002
+ * @tc.desc: used to app system trace
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppSystemStateTest002, TestSize.Level1)
+{
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(telemetryInfo);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceRetInfo traceInfo;
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_SYSTEM, 0, 0, traceInfo);
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
+    TraceRet ret3 =TraceStateMachine::GetInstance().OpenTrace(appSystemScenaio);
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::DENY);
+    TraceRet ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
+    ASSERT_TRUE(ret5.IsSuccess());
+    TraceRet ret6 =TraceStateMachine::GetInstance().OpenTrace(appSystemScenaio);
+    ASSERT_TRUE(ret6.IsSuccess());
+    TraceRet ret7 = TraceStateMachine::GetInstance().OpenTrace(telemetryInfo);
+    ASSERT_EQ(ret7.stateError_, TraceStateCode::DENY);
+    TraceRet ret8 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_SYSTEM);
+    ASSERT_TRUE(ret8.IsSuccess());
+}
+
+/**
+ * @tc.name: AppSystemStateTest003
+ * @tc.desc: used to app system trace
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceManagerTest, AppSystemStateTest003, TestSize.Level1)
+{
+    TraceRet ret1 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
+    ASSERT_TRUE(ret1.IsSuccess());
+    TraceRetInfo traceInfo;
+    TraceRet ret2 = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_SYSTEM, 0, 0, traceInfo);
+    ASSERT_EQ(ret2.stateError_, TraceStateCode::FAIL);
+    TraceRet ret3 =TraceStateMachine::GetInstance().OpenTrace(appSystemScenaio);
+    ASSERT_EQ(ret3.stateError_, TraceStateCode::DENY);
+    TraceRet ret5 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
+    ASSERT_TRUE(ret5.IsSuccess());
+    TraceRet ret6 =TraceStateMachine::GetInstance().OpenTrace(appSystemScenaio);
+    ASSERT_TRUE(ret6.IsSuccess());
+    TraceRet ret7 = TraceStateMachine::GetInstance().OpenTrace(commonInfo);
+    ASSERT_TRUE(ret7.IsSuccess());
+    TraceRet ret8 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_SYSTEM);
+    ASSERT_EQ(ret8.stateError_, TraceStateCode::DENY);
+    TraceRet ret9 = TraceStateMachine::GetInstance().CloseTrace(ScenarioName::COMMON_BETA);
+    ASSERT_TRUE(ret9.IsSuccess());
+}
+
