@@ -4,6 +4,15 @@
       NewFaultloggerInterface*;
       NewBBoxDetectorsInterface*;
     };
+    extern "C++" {
+      "OHOS::HiviewDFX::UCollectUtil::ThreadCpuCollector::Create(int, bool)";
+      "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::NotifyProcessState(int, OHOS::HiviewDFX::UCollectUtil::ProcessState)";
+      "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::GetProcessLastForegroundTime(int)";
+      "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::UCollectUtil::ProcessStatus>::instance_";
+      "OHOS::HiviewDFX::UCollectUtil::TraceCollector::RecoverTmpTrace()";
+      "OHOS::HiviewDFX::UCollectUtil::UnifiedCollectionStat::Report()";
+      "OHOS::HiviewDFX::UCollectUtil::ProcessStatus::NotifyProcessState(int, OHOS::HiviewDFX::UCollectUtil::ProcessState, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+    };
   local:
     *;
 };
