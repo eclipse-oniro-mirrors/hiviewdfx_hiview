@@ -37,8 +37,7 @@ namespace {
     const int TIME_STRING_LEN = 16;
     const int MIN_KEEP_FILE_NUM = 5;
     const int MAX_FOLDER_SIZE = 10 * 1024 * 1024;
-    const int TIMEOUT_THRESHOLD_BETA = 8000;
-    const int TIMEOUT_THRESHOLD_NORMAL = 5000;
+    const int TIMEOUT_THRESHOLD_NORMAL = 8000; // ms
     constexpr const char* TRIGGER_HEADER = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
     constexpr const char* HEADER = "*******************************************";
     constexpr const char* HYPHEN = "-";
@@ -108,9 +107,8 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     info.summary = type + ": " + processName + " " + stringId +
         " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
     if (stringId == "APP_INPUT_BLOCK") {
-        int timeoutThreshold = Parameter::IsBetaVersion() ? TIMEOUT_THRESHOLD_BETA : TIMEOUT_THRESHOLD_NORMAL;
         info.summary += std::string(WAIT_EVENT) + LEFT_PARENTHESIS + watchPoint.GetTimeoutEventId() +
-                RIGHT_PARENTHESIS + EXCEED + std::to_string(timeoutThreshold) + MS + COMMA +
+                RIGHT_PARENTHESIS + EXCEED + std::to_string(TIMEOUT_THRESHOLD_NORMAL) + MS + COMMA +
                 std::string(LAST_DISPATCH_EVENT) + LEFT_PARENTHESIS + watchPoint.GetLastDispatchEventId() +
                 RIGHT_PARENTHESIS + COMMA + std::string(LAST_PROCESS_EVENT) + LEFT_PARENTHESIS +
                 watchPoint.GetLastProcessEventId() + RIGHT_PARENTHESIS + COMMA + std::string(LAST_MARKED_EVENT) +
