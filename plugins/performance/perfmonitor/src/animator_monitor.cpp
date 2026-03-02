@@ -86,16 +86,17 @@ void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType
     AnimatorRecord* record = GetRecord(sceneId);
     XPERF_TRACE_SCOPED("Animation start and current sceneId=%s", sceneId.c_str());
     HIVIEW_LOGD("Animation start and current sceneId: %{public}s", sceneId.c_str());
-    if (record == nullptr) {
-        record = new AnimatorRecord();
-        int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
-        PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
-        record->InitRecord(sceneId, type, sourceType, note, inputTime);
-        mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
-        XperfAsyncTraceBegin(0, sceneId.c_str());
-    } else {
+    if (record != nullptr) {
+        RemoveRecord(sceneId);
+        XperfAsyncTraceEnd(0, sceneId.c_str());
         HIVIEW_LOGW("Animation has already started, sceneId: %{public}s", sceneId.c_str());
     }
+    record = new AnimatorRecord();
+    int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
+    PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
+    record->InitRecord(sceneId, type, sourceType, note, inputTime);
+    mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
+    XperfAsyncTraceBegin(0, sceneId.c_str());
 }
 
 void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender)
