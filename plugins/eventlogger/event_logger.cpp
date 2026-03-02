@@ -360,7 +360,7 @@ void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<S
     std::shared_ptr<EventLogTask> logTask)
 {
     if (cmd == "tr") {
-        if (event->GetEventValue("NOT_DUMP_TRACE") != "Yes") {
+        if (!Parameter::IsBetaVersion() || event->GetEventValue("NOT_DUMP_TRACE") != "Yes") {
             SubmitTraceTask(cmd, logTask);
         }
         return;
