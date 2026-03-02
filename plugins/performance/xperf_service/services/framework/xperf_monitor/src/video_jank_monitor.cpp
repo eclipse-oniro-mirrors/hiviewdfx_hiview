@@ -55,6 +55,7 @@ void VideoJankMonitor::ProcessEvent(OhosXperfEvent* event)
 void VideoJankMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName)
 {
+    std::lock_guard<std::mutex> Lock(mMutex);
     if (bundleName == "com.tencent.wechat") { //过滤微信
         firstFrameList.clear();
         return;
@@ -74,6 +75,7 @@ void VideoJankMonitor::OnFirstFrame(OhosXperfEvent* event)
     AvcodecFirstFrame* audioEvent = (AvcodecFirstFrame*) event;
     LOGD("VideoJankMonitor::OnFirstFrame pid:%{public}d, bundle:%{public}s, surface:%{public}s",
          audioEvent->pid, audioEvent->bundleName.c_str(), audioEvent->surfaceName.c_str());
+    std::lock_guard<std::mutex> Lock(mMutex);
     if (audioEvent->bundleName == "com.tencent.wechat") { //过滤微信
         firstFrameList.clear();
         return;
@@ -111,6 +113,7 @@ void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
     audioStateEvt = *audioEvent; //保存音频开始
     lastStartTime = audioStateEvt.happenTime;
+    std::lock_guard<std::mutex> Lock(mMutex);
     if (firstFrameList.empty()) { //没有首帧信息
         LOGW("VideoJankMonitor_OnAudioStart firstFrameList empty");
         return;
@@ -127,6 +130,7 @@ void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
     audioStateEvt = *audioEvent;
     lastStopTime = audioStateEvt.happenTime;
+    std::lock_guard<std::mutex> Lock(mMutex);
     if (firstFrameList.empty()) {
         LOGW("VideoJankMonitor_OnAudioStop firstFrameList empty");
         return;

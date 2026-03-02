@@ -45,7 +45,6 @@ public:
 
     void OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
         const std::string& surfaceName);
-    void OnFirstFrame(OhosXperfEvent* event);
 
 private:
     VideoJankMonitor() = default;
@@ -67,6 +66,7 @@ private:
 
     void OnAudioStart(OhosXperfEvent* event);
     void OnAudioStop(OhosXperfEvent* event);
+    void OnFirstFrame(OhosXperfEvent* event);
 
     bool IsUserAction();
 };
