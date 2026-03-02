@@ -63,6 +63,8 @@ public:
     ErrCode SetSplitMemoryValue(
         const std::vector<MemoryCallerParcelable>& memCallerParcelableList, int32_t& errNo, int32_t& ret) override;
     ErrCode GetGraphicUsage(int32_t& errNo, GraphicUsageParcelable& graphicUsageParcelable) override;
+    ErrCode IsolateSubProcess(const std::string& packageName, int32_t mainProcPid, int32_t subProcPid,
+                              int32_t& errNo, int32_t& ret) override;
 
 protected:
     void OnDump() override;

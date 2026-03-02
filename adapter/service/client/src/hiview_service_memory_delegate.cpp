@@ -72,5 +72,22 @@ CollectResult<int32_t> HiViewServiceMemoryDelegate::SetSplitMemoryValue(
     }
     return ret;
 }
+
+CollectResult<int32_t> HiViewServiceMemoryDelegate::IsolateSubProcess(
+    const std::string& packageName, int32_t mainProcPid, int32_t subProcPid)
+{
+    CollectResult<int32_t> ret;
+    auto service = RemoteService::GetHiViewRemoteService();
+    if (!service) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    int32_t errNo = 0;
+    if (HiviewServiceAbilityProxy(service).IsolateSubProcess(packageName, mainProcPid, subProcPid,
+                                                             errNo, ret.data) == 0) {
+        ret.retCode = static_cast<UCollect::UcError>(errNo);
+    }
+    return ret;
+}
 }
 }

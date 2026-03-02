@@ -30,6 +30,8 @@ public:
     CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller) override;
     CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList) override;
     CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage() override;
+    CollectResult<int32_t> IsolateSubProcess(
+        const std::string& packageName, int32_t mainProcPid, int32_t subProcPid) override;
 };
 
 std::shared_ptr<MemoryCollector> MemoryCollector::Create()
@@ -50,6 +52,12 @@ CollectResult<int32_t> MemoryCollectorImpl::SetSplitMemoryValue(std::vector<UCol
 CollectResult<UCollectClient::GraphicUsage> MemoryCollectorImpl::GetGraphicUsage()
 {
     return HiViewServiceMemoryDelegate::GetGraphicUsage();
+}
+
+CollectResult<int32_t> MemoryCollectorImpl::IsolateSubProcess(
+    const std::string& packageName, int32_t mainProcPid, int32_t subProcPid)
+{
+    return HiViewServiceMemoryDelegate::IsolateSubProcess(packageName, mainProcPid, subProcPid);
 }
 }
 }
