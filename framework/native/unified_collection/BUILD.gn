@@ -70,12 +70,6 @@ config("ucollection_source_config") {
     include_dirs += [ "collector/empty_impl/cpu" ]
   }
 
-  if (has_hiprofiler && hiview_unified_collector_mem_profiler_enable) {
-    include_dirs += [ "collector/impl/mem_profiler" ]
-  } else {
-    include_dirs += [ "collector/empty_impl/mem_profiler" ]
-  }
-
   if (hiview_unified_collector_io_enable) {
     include_dirs += [
       "collector/impl/io",
@@ -319,17 +313,6 @@ ohos_source_set("ucollection_source") {
   }
 
   cflags = []
-  if (has_hiprofiler && hiview_unified_collector_mem_profiler_enable) {
-    sources += [
-      "collector/impl/mem_profiler/mem_profiler_collector_impl.cpp",
-      "decorator/mem_profiler_decorator.cpp",
-    ]
-    cflags += [ "-DHAS_HIPROFILER" ]
-    external_deps += [
-      "hiprofiler:libnative_daemon_client",
-      "init:libbegetutil",
-    ]
-  }
 
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     sources += [

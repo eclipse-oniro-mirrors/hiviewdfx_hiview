@@ -57,10 +57,6 @@
 #include "wm_decorator.h"
 #endif
 
-#ifdef HAS_HIPROFILER
-#include "mem_profiler_decorator.h"
-#endif
-
 #ifdef HAS_HIPERF
 #include "perf_decorator.h"
 #endif
@@ -68,10 +64,6 @@
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
-
-#ifdef HAS_HIPROFILER
-using namespace OHOS::Developtools::NativeDaemon;
-#endif
 
 namespace {
 const std::vector<std::regex> REGEXS = {
@@ -115,19 +107,6 @@ void CallCollectorFuncs()
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
     auto ioCollector = IoCollector::Create();
     (void)ioCollector->CollectRawDiskStats();
-#endif
-
-#ifdef HAS_HIPROFILER
-    constexpr int TEST_DURATION = 10;
-    constexpr int TEST_INTERVAL = 1;
-    auto memProfilerCollector = MemProfilerCollector::Create();
-    MemoryProfilerConfig memoryProfilerConfig = {
-        .type = NativeMemoryProfilerSaClientManager::NativeMemProfilerType::MEM_PROFILER_LIBRARY,
-        .pid = 0,
-        .duration = TEST_DURATION,
-        .sampleInterval = TEST_INTERVAL,
-    };
-    memProfilerCollector->Start(memoryProfilerConfig);
 #endif
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
@@ -183,10 +162,6 @@ void CallStatFuncs()
 
 #ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
     NetworkDecorator::SaveStatCommonInfo();
-#endif
-
-#ifdef HAS_HIPROFILER
-    MemProfilerDecorator::SaveStatCommonInfo();
 #endif
 
 #ifdef HAS_HIPERF
@@ -258,10 +233,6 @@ public:
     void TearDown() {};
     static void SetUpTestCase()
     {
-#ifdef HAS_HIPROFILER
-        g_collector_names.insert("MemProfilerCollector");
-#endif
-
 #ifdef HAS_HIPERF
         g_collector_names.insert("PerfCollector");
 #endif

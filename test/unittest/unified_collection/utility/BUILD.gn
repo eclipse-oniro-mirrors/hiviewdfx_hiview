@@ -117,11 +117,6 @@ ohos_unittest("UCollectionUtilityUnitTest") {
     defines += [ "UNIFIED_COLLECTOR_THERMAL_ENABLE" ]
   }
 
-  if (has_hiprofiler && hiview_unified_collector_mem_profiler_enable) {
-    sources += [ "mem_profiler_collector_test.cpp" ]
-    external_deps += [ "hiprofiler:libnative_daemon_client" ]
-  }
-
   if (thermal_manager_enable) {
     cflags += [ "-DTHERMAL_MANAGER_ENABLE" ]
   }

@@ -44,10 +44,6 @@
 #include "io_decorator.h"
 #endif
 
-#ifdef HAS_HIPROFILER
-#include "mem_profiler_decorator.h"
-#endif
-
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
 #include "memory_decorator.h"
 #endif
@@ -139,10 +135,6 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     ThermalDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef HAS_HIPROFILER
-    MemProfilerDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef HAS_HIPERF
     PerfDecorator::SaveStatCommonInfo();
 #endif
@@ -213,10 +205,6 @@ void UnifiedCollectionStat::ResetAllStatInfo()
 
 #ifdef UNIFIED_COLLECTOR_WM_ENABLE
     WmDecorator::ResetStatInfo();
-#endif
-
-#ifdef HAS_HIPROFILER
-    MemProfilerDecorator::ResetStatInfo();
 #endif
 
 #ifdef HAS_HIPERF
