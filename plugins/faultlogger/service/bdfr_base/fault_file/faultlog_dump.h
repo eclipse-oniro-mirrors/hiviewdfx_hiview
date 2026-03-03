@@ -28,6 +28,7 @@ struct DumpRequest {
     bool compatFlag {false};
     std::string fileName;
     std::string moduleName;
+    std::string extFileName;
     time_t time {-1};
 };
 
