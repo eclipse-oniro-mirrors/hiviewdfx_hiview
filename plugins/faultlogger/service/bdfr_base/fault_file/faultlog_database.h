@@ -36,6 +36,7 @@ private:
     static bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info);
     static void FillInfoDefault(FaultLogInfo& info);
     static void WriteEvent(FaultLogInfo& info);
+    static int32_t UpdateFGParam(FaultLogInfo& info);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

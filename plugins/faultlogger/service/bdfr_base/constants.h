@@ -54,6 +54,7 @@ constexpr const char * const FOREGROUND = "FOREGROUND";
 constexpr const char * const LIFETIME = "LIFETIME";
 constexpr const char * const REASON = "REASON";
 constexpr const char * const FAULT_MESSAGE = "FAULT_MESSAGE";
+constexpr const char * const LAST_FATAL_MESSAGE = "LAST_FATAL_MESSAGE";
 constexpr const char * const STACKTRACE = "TRUSTSTACK";
 constexpr const char * const ROOT_CAUSE = "BINDERMAX";
 constexpr const char * const MSG_QUEUE_INFO = "MSG_QUEUE_INFO";
