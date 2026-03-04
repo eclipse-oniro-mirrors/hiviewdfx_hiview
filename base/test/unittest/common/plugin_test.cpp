@@ -170,6 +170,22 @@ HWTEST_F(PluginTest, PluginTest003, testing::ext::TestSize.Level3)
     plugin->SetName("test_plugin");
     ASSERT_EQ("test_plugin", plugin->GetName());
     ASSERT_EQ("test_plugin", plugin->GetHandlerInfo());
+    ASSERT_EQ("test_plugin", plugin->GetPluginInfo());
+}
+
+/**
+ * @tc.name: TestPluginTypeInterface
+ * @tc.desc: Test the type interface of Plugin.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginTest, TestPluginTypeInterface, testing::ext::TestSize.Level0)
+{
+    auto plugin = std::make_shared<Plugin>();
+    ASSERT_TRUE(plugin->ReadyToLoad());
+    ASSERT_EQ(Plugin::PluginType::STATIC, plugin->GetType());
+
+    plugin->SetHandle(static_cast<void*>(&plugin));
+    ASSERT_EQ(Plugin::PluginType::DYNAMIC, plugin->GetType());
 }
 
 /**
