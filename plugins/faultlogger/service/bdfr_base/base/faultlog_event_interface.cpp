@@ -109,7 +109,7 @@ bool FaultLogEventInterface::UpdateCommonInfo()
 {
     info_.sectionMap[FaultKey::DEVICE_INFO] = Parameter::GetString("const.product.name", "Unknown");
     if (info_.sectionMap.find(FaultKey::BUILD_INFO) == info_.sectionMap.end()) {
-        info_.sectionMap[FaultKey::BUILD_INFO] = Parameter::GetString("const.product.software.version", "Unknown");
+        info_.sectionMap[FaultKey::BUILD_INFO] = GetDisplayVersion() != nullptr ? GetDisplayVersion() : "Unknown";
     }
     info_.sectionMap[FaultKey::MODULE_UID] = std::to_string(info_.id);
     info_.sectionMap[FaultKey::MODULE_PID] = std::to_string(info_.pid);
