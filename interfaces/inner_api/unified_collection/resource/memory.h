@@ -168,7 +168,7 @@ struct MemoryItem {
     }
 };
 
-struct  MemoryDetail {
+struct MemoryDetail {
     MemoryClass memoryClass = MemoryClass::MEMORY_CLASS_OTHER;
     uint64_t totalRss = 0;
     uint64_t totalPss = 0;

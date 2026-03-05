@@ -158,6 +158,7 @@ ohos_source_set("ucollection_source") {
     "decorator/decorator_util.cpp",
     "decorator/unified_collection_stat.cpp",
     "process/process_status.cpp",
+    "$hiview_interfaces/inner_api/unified_collection/utility/src/memory_collector.cpp"
   ]
 
   deps = [ "$hiview_base:hiviewbase" ]
