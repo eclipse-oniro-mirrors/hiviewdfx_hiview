@@ -24,7 +24,7 @@ bool FaultLogEventIpc::AddFaultLog(FaultLogInfo info)
 
     SaveFaultInfoToRawDb();
     ReportEventToAppEvent();
-    DoFaultLogLimit(info.logPath);
+    DoFaultLogLimit(info_.logPath);
 
     return true;
 }

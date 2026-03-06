@@ -41,6 +41,9 @@ private:
     static void CheckHilogTime(FaultLogInfo& info);
     static void ReportCppCrashToAppEvent(const FaultLogInfo& info);
     static void WriteLogFile(const std::string& logPath, const std::string& content);
+    static int TruncateAppCrashLog(const char *filename, const char *target);
+    static long FindTargetOffset(FILE* fp, long fileSize, const char* target);
+    static long GetFileSize(FILE* fp);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

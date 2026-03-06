@@ -244,8 +244,74 @@ bool FaultLogCppCrash::ReportEventToAppEvent() const
     return true;
 }
 
+int FaultLogCppCrash::TruncateAppCrashLog(const char *logPath, const char *target)
+{
+    if (logPath == nullptr || target == nullptr) {
+        HIVIEW_LOGE("Invalid arguments");
+        return -1;
+    }
+
+    FILE* rawFp = fopen(logPath, "rb+");
+    if (rawFp == nullptr) {
+        HIVIEW_LOGE("Failed open file:%{public}s, errno:%{public}d", logPath, errno);
+        return -1;
+    }
+    std::unique_ptr<FILE, int (*)(FILE *)> fpPtr(rawFp, fclose);
+
+    long fileSize = GetFileSize(fpPtr.get());
+    if (fileSize <= 0) {
+        HIVIEW_LOGE("Invalid file size:%{public}ld", fileSize);
+        return -1;
+    }
+
+    long offset = FindTargetOffset(fpPtr.get(), fileSize, target);
+    if (offset < 0) {
+        return -1;
+    }
+
+    if (ftruncate(fileno(fpPtr.get()), offset) != 0) {
+        HIVIEW_LOGE("ftruncate failed, errno:%{public}d", errno);
+        return -1;
+    }
+    return 0;
+}
+
+long FaultLogCppCrash::GetFileSize(FILE* fp)
+{
+    if (fseek(fp, 0, SEEK_END) != 0) return -1;
+    long fileSize = ftell(fp);
+    if (fseek(fp, 0, SEEK_SET) != 0) {
+        HIVIEW_LOGE("fseek to SEEK_SET failed, errno:%{public}d", errno);
+        return -1;
+    }
+    return fileSize;
+}
+
+long FaultLogCppCrash::FindTargetOffset(FILE* fp, long fileSize, const char* target)
+{
+    if (fileSize <= 0 || target == nullptr) return -1;
+
+    std::vector<char> buffer(static_cast<size_t>(fileSize) + 1, '\0');
+    size_t readSize = fread(buffer.data(), 1, static_cast<size_t>(fileSize), fp);
+    if (readSize != static_cast<size_t>(fileSize)) {
+        HIVIEW_LOGE("Read error. Expected:%{public}ld, Actual:%{public}zu", fileSize, readSize);
+        return -1;
+    }
+
+    char *pos = strstr(buffer.data(), target);
+    if (pos == nullptr) {
+        HIVIEW_LOGW("Target string not found");
+        return -1;
+    }
+    return static_cast<long>(pos - buffer.data());
+}
+
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath) const
 {
+    if (!Parameter::IsBetaVersion() && !Parameter::IsDevloperMode()) {
+        int truncateRet = TruncateAppCrashLog(logPath.c_str(), "MergeLog:");
+    }
+
     if (!IsFaultLogLimit()) {
         return;
     }

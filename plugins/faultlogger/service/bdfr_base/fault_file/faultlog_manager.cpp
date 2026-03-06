@@ -132,6 +132,12 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         FileUtil::SaveStringToFd(fd, "\nHiLog:\n");
         FileUtil::SaveStringToFd(fd, info.sectionMap[FaultKey::HILOG]);
     }
+
+    if (info.sectionMap.count("MERGE_LOG") == 1) {
+        FileUtil::SaveStringToFd(fd, "\nMergeLog:\n");
+        FileUtil::SaveStringToFd(fd, info.sectionMap["MERGE_LOG"]);
+        HIVIEW_LOGI("WriteMergeLogToFile");
+    }
     fdsan_close_with_tag(fd, ownerTag);
 
     RemoveOldFile(info);
