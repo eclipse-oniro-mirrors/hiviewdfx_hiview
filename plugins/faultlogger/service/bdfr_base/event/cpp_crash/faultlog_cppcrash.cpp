@@ -312,7 +312,7 @@ long FaultLogCppCrash::FindTargetOffset(FILE* fp, long fileSize, const char* tar
 
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath) const
 {
-    if (!Parameter::IsBetaVersion() && !Parameter::IsDevloperMode()) {
+    if (!Parameter::IsBetaVersion() && !Parameter::IsDeveloperMode()) {
         int truncateRet = TruncateAppCrashLog(logPath.c_str(), "MergeLog:");
     }
 
