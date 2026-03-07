@@ -24,11 +24,13 @@
 #include "faultlog_info_inner.h"
 #include "faultlog_util.h"
 #include "file_util.h"
+#include "hiview_logger.h"
 #include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace FaultLogger {
+DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 namespace {
 
 struct SectionLog {
@@ -50,6 +52,7 @@ const SectionLog FOREGROUND = {FaultKey::FOREGROUND, "Foreground:"};
 const SectionLog LIFETIME = {FaultKey::LIFETIME, "Up time:"};
 const SectionLog REASON = {FaultKey::REASON, "Reason:"};
 const SectionLog FAULT_MESSAGE = {FaultKey::FAULT_MESSAGE, "Fault message:"};
+const SectionLog LAST_FATAL_MESSAGE = {FaultKey::LAST_FATAL_MESSAGE, "LastFatalMessage:"};
 const SectionLog STACKTRACE = {FaultKey::STACKTRACE, "Selected stacktrace:\n"};
 const SectionLog ROOT_CAUSE = {FaultKey::ROOT_CAUSE, "Blocked chain:\n"};
 const SectionLog MSG_QUEUE_INFO = {FaultKey::MSG_QUEUE_INFO, "Message queue info:\n"};
@@ -84,8 +87,8 @@ std::vector<SectionLog> GetCppCrashSectionLogs()
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, DEVICE_DEBUGABLE, FINGERPRINT, MODULE_NAME, RELEASE_TYPE, CPU_ABI, MODULE_VERSION,
         VERSION_CODE, IS_SYSTEM_APP, PRE_INSTALL, FOREGROUND, PAGE_SWITCH_HISTORY, APPEND_ORIGIN_LOG, MODULE_PID,
-        MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, REASON, FAULT_MESSAGE, TRACE_ID, PROCESS_NAME,
-        KEY_THREAD_INFO, SUMMARY, KEY_THREAD_REGISTERS, OTHER_THREAD_INFO, MEMORY_NEAR_REGISTERS
+        MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, REASON, FAULT_MESSAGE, LAST_FATAL_MESSAGE, TRACE_ID,
+        PROCESS_NAME, KEY_THREAD_INFO, SUMMARY, KEY_THREAD_REGISTERS, OTHER_THREAD_INFO, MEMORY_NEAR_REGISTERS
     };
     return info;
 }
@@ -323,6 +326,14 @@ static void UpdateFaultLogInfoFromTempFile(FaultLogInfo& info)
             }
         }
         info.summary.replace(removeStartPos, removeEndPos - removeStartPos + 1, "Thread n");
+    }
+    const std::string& fatalMessage = info.sectionMap[LAST_FATAL_MESSAGE.sectionName];
+    if (info.reason.find("SIGABRT") != std::string::npos) {
+        HIVIEW_LOGI("BootScan abort cppcrash(pid=%{public}d) has lastfatalmessage: %{public}s", info.pid,
+            fatalMessage.empty() ? "false" : "true");
+    }
+    if (!fatalMessage.empty()) {
+        info.summary = LAST_FATAL_MESSAGE.logName + fatalMessage + "\n" + info.summary;
     }
 }
 

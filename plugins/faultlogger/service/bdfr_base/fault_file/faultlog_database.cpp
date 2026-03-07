@@ -268,6 +268,20 @@ void FaultLogDatabase::FillInfoDefault(FaultLogInfo& info)
     setDefault(FaultKey::FINGERPRINT);
 }
 
+int32_t FaultLogDatabase::UpdateFGParam(FaultLogInfo& info)
+{
+    int32_t fgNum = info.sectionMap[FaultKey::IS_SIG_ACTION] == "Yes" ? 1 : 0;
+    if (info.faultLogType == FaultLogType::CPP_CRASH && info.reason.find("SIGABRT") != std::string::npos) {
+        bool hasLastFatalMsg = (!info.summary.empty() && info.summary.find("LastFatalMessage") != std::string::npos);
+        HIVIEW_LOGI("WriteEvent abort cppcrash(pid=%{public}d) has lastfatalmessage in summary: %{public}s", info.pid,
+            hasLastFatalMsg ? "true" : "false");
+        if (hasLastFatalMsg) {
+            fgNum += (1 << 1); // second bit use for mark fatalmessage existence, 2 means fatalmessage exists.
+        }
+    }
+    return fgNum;
+}
+
 void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
 {
     std::string eventName = GetFaultNameByType(info.faultLogType, false);
@@ -290,8 +304,7 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("HAPPEN_TIME", HISYSEVENT_INT64, i64, info.time, 0),
         EVENT_PARAM_CTOR("HITRACE_TIME", HISYSEVENT_STRING, s, info.sectionMap["HITRACE_TIME"].data(), 0),
         EVENT_PARAM_CTOR("SYSRQ_TIME", HISYSEVENT_STRING, s, info.sectionMap["SYSRQ_TIME"].data(), 0),
-        EVENT_PARAM_CTOR("FG", HISYSEVENT_INT32, i32,
-            info.sectionMap[FaultKey::IS_SIG_ACTION] == "Yes" ? 1 : 0, 0),
+        EVENT_PARAM_CTOR("FG", HISYSEVENT_INT32, i32, UpdateFGParam(info), 0),
         EVENT_PARAM_CTOR("PNAME", HISYSEVENT_STRING, s, info.sectionMap["PROCESS_NAME"].data(), 0),
         EVENT_PARAM_CTOR("FIRST_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FIRST_FRAME].data(), 0),
         EVENT_PARAM_CTOR("SECOND_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::SECOND_FRAME].data(), 0),
