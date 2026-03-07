@@ -106,9 +106,10 @@ void HandleExportSwitchOff(const std::string& moduleName)
 int64_t GetModuleExportEnabledSeq(std::shared_ptr<ExportConfig> config)
 {
     auto& dbMgr = ExportDbManager::GetInstance();
-    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    int64_t startSeq = INVALID_SEQ_VAL;
     if (dbMgr.IsUnrecordedModule(config->moduleName)) {
-        HIVIEW_LOGI("module is not exist, start sequence is  %{public}" PRId64, startSeq);
+        startSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+        HIVIEW_LOGI("module is not exist, start sequence is %{public}" PRId64, startSeq);
         return startSeq;
     }
     if (config->inheritedModule.empty() || dbMgr.IsUnrecordedModule(config->inheritedModule)) {
