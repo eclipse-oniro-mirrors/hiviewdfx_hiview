@@ -65,7 +65,7 @@ void PostExportEvent(const std::string& moduleName, int16_t taskType)
 
     auto& context = HiviewGlobal::GetInstance();
     if (context == nullptr) {
-        HIVIEW_LOGW("hiview context is invalid.");
+        HIVIEW_LOGW("hiview context is invalid");
         return;
     }
     context->PostUnorderedEvent(event);
@@ -73,10 +73,6 @@ void PostExportEvent(const std::string& moduleName, int16_t taskType)
 
 bool IsNeedPostEvent(std::shared_ptr<ExportConfig> config)
 {
-    if (config == nullptr) {
-        HIVIEW_LOGW("export cfg file is invalid.");
-        return false;
-    }
     if (!config->needPostEvent) {
         HIVIEW_LOGW("no need to post event");
         return false;
@@ -110,9 +106,13 @@ void HandleExportSwitchOff(const std::string& moduleName)
 int64_t GetModuleExportEnabledSeq(std::shared_ptr<ExportConfig> config)
 {
     auto& dbMgr = ExportDbManager::GetInstance();
-    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
-    if (config == nullptr || !dbMgr.IsUnrecordedModule(config->moduleName) ||
-        config->inheritedModule.empty() || dbMgr.IsUnrecordedModule(config->inheritedModule)) {
+    int64_t startSeq = EventStore::SysEventSequenceManager::GetInstance().GetSequence();
+    if (dbMgr.IsUnrecordedModule(config->moduleName)) {
+        HIVIEW_LOGI("module is not exist, start sequence is  %{public}" PRId64, startSeq);
+        return startSeq;
+    }
+    if (config->inheritedModule.empty() || dbMgr.IsUnrecordedModule(config->inheritedModule)) {
+        startSeq = EventStore::SysEventSequenceManager::GetInstance().GetStartSequence();
         HIVIEW_LOGI("start sequence is %{public}" PRId64, startSeq);
         return startSeq;
     }
@@ -131,6 +131,10 @@ std::string EventExportUtil::GetDeviceId()
 
 bool EventExportUtil::CheckAndPostExportEvent(std::shared_ptr<ExportConfig> config)
 {
+    if (config == nullptr) {
+        HIVIEW_LOGE("export cfg is invalid");
+        return false;
+    }
     if (!IsNeedPostEvent(config)) {
         return false;
     }
@@ -188,6 +192,10 @@ void EventExportUtil::UnregisterSettingObserver(std::shared_ptr<ExportConfig> co
 
 void EventExportUtil::SyncDbByExportSwitchStatus(std::shared_ptr<ExportConfig> config, bool isSwitchOff)
 {
+    if (config == nullptr) {
+        HIVIEW_LOGE("export cfg is invalid");
+        return;
+    }
     auto& dbMgr = ExportDbManager::GetInstance();
     if (isSwitchOff) {
         HIVIEW_LOGI("export switch for module %{public}s is off", config->moduleName.c_str());

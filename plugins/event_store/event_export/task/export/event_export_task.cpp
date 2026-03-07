@@ -29,6 +29,7 @@ DEFINE_LOG_TAG("HiView-EventExportFlow");
 using  ExportEventListParsers = std::map<std::string, std::shared_ptr<ExportEventListParser>>;
 namespace {
 constexpr int64_t BYTE_TO_MB = 1024 * 1024;
+constexpr int64_t EXPORT_MAX_CNT = 1000000; // the maximum count for event export in one export period
 
 std::shared_ptr<ExportEventListParser> GetParser(ExportEventListParsers& parsers,
     const std::string& path)
@@ -132,6 +133,10 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
         HIVIEW_LOGE("invalid export range: [%{public}" PRId64 ",%{public}" PRId64 ")",
             readReq->beginSeq, readReq->endSeq);
         return false;
+    }
+    if (readReq->endSeq - readReq->beginSeq > EXPORT_MAX_CNT) {
+        HIVIEW_LOGW("export range exceed limit");
+        readReq->endSeq = readReq->beginSeq + EXPORT_MAX_CNT;
     }
     if (!ParseExportEventList(readReq->eventList) || readReq->eventList.empty()) {
         HIVIEW_LOGE("failed to get a valid event export list");
