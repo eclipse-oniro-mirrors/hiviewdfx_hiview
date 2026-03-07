@@ -184,6 +184,9 @@ HWTEST_F(PluginTest, TestPluginTypeInterface, testing::ext::TestSize.Level0)
     ASSERT_TRUE(plugin->ReadyToLoad());
     ASSERT_EQ(Plugin::PluginType::STATIC, plugin->GetType());
 
+    plugin->SetType(Plugin::PluginType::PROXY);
+    ASSERT_EQ(Plugin::PluginType::PROXY, plugin->GetType());
+
     plugin->SetHandle(static_cast<void*>(&plugin));
     ASSERT_EQ(Plugin::PluginType::DYNAMIC, plugin->GetType());
 }
