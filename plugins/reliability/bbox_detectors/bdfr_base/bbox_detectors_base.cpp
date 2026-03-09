@@ -82,6 +82,7 @@ void BBoxDetectorsBase::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent,
         "(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})"));
     if (HisysEventUtil::IsEventProcessed(name, "LOG_PATH", dynamicPaths) ||
         (eventRecorder != nullptr && eventRecorder->IsExistEvent(name, happenTime, dynamicPaths))) {
+        sysEvent->OnFinish();
         HIVIEW_LOGE("HandleBBoxEvent is processed event path is %{public}s", dynamicPaths.c_str());
         return;
     }
@@ -141,6 +142,11 @@ void BBoxDetectorsBase::StartBootScan(std::shared_ptr<BboxEventRecorder> eventRe
                 HisysEventUtil::IsEventProcessed(name, "LOG_PATH", historyMap["dynamicPaths"]) ||
                 (eventRecorder != nullptr &&
                  eventRecorder->IsExistEvent(name, happenTime, historyMap["dynamicPaths"]))) {
+                HIVIEW_LOGI("Skip (%{public}s:%{public}" PRIu64 ")", name.c_str(), happenTime);
+                continue;
+            }
+            if ((name == "DPACRASH" || name == "MODEMCRASH" || name == "MODEM_REBOOTSYS") &&
+                HisysEventUtil::IsEventProcessed(name, "subLogPath", historyMap["subLogPath"])) {
                 HIVIEW_LOGI("Skip (%{public}s:%{public}" PRIu64 ")", name.c_str(), happenTime);
                 continue;
             }
