@@ -58,14 +58,13 @@ void FaultLogBootScanListener::OnUnorderedEvent(const Event& msg)
         }
         instance->SanitizerHandleUnorderedEvent(msg);
     }
-#ifndef UNITTEST
+
     if (msg.messageType_ != Event::MessageType::PLUGIN_MAINTENANCE ||
         msg.eventId_ != Event::EventId::PLUGIN_LOADED) {
         HIVIEW_LOGE("messageType_(%{public}u), eventId_(%{public}u).", msg.messageType_, msg.eventId_);
         return;
     }
     AddBootScanEvent();
-#endif
 }
 
 std::string FaultLogBootScanListener::GetListenerName()
