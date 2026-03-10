@@ -295,6 +295,38 @@ HWTEST_F(IoCollectorTest, IoCollectorTest013, TestSize.Level3)
     auto task5 = [&collect] { return collect->ExportSysIoStats(); };
     FileCleanTest(task5, COLLECTION_IO_PATH, "sys_io_stats_", MAX_FILE_NUM);
 }
+
+/**
+ * @tc.name: IoCollectorTest013
+ * @tc.desc: used to test file clean
+ * @tc.type: FUNC
+*/
+HWTEST_F(IoCollectorTest, IoCollectorTest014, TestSize.Level3)
+{
+    DiskStats stats1 {
+        .operReadRate = 0.1,
+        .operWriteRate = 0.2,
+    };
+    ASSERT_FALSE(DefaultDiskStatsFilter(stats1));
+
+    DiskStats stats2 {
+        .operReadRate = 0.0,
+        .operWriteRate = 0.2,
+    };
+    ASSERT_FALSE(DefaultDiskStatsFilter(stats2));
+
+    DiskStats stats3 {
+        .operReadRate = 0.2,
+        .operWriteRate = 0.0,
+    };
+    ASSERT_FALSE(DefaultDiskStatsFilter(stats3));
+
+    DiskStats stats4 {
+        .operReadRate = 0,
+        .operWriteRate = 0,
+    };
+    ASSERT_TRUE(DefaultDiskStatsFilter(stats4));
+}
 #else
 /**
  * @tc.name: IoCollectorTest001
