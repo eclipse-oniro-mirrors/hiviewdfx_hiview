@@ -72,7 +72,8 @@ std::string GetSourceTypeName(PerfSourceType sourceType)
     return type;
 }
 
-std::string TruncatePageName(const std::string& pageName) {
+std::string TruncatePageName(const std::string& pageName)
+{
     return pageName.length() > MAX_PAGE_NAME_LEN ? pageName.substr(0, MAX_PAGE_NAME_LEN) : pageName;
 }
 
