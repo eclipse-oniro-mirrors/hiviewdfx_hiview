@@ -14,6 +14,9 @@
  */
 
 #include "animator_monitor.h"
+
+#include  <sstream>
+
 #include "input_monitor.h"
 #include "jank_frame_monitor.h"
 #include "perf_reporter.h"
@@ -212,6 +215,13 @@ void AnimatorMonitor::FlushDataBase(AnimatorRecord* record, DataBase& data)
     data.actionType = record->actionType;
     data.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
     data.baseInfo.note = record->note;
+    // In the pageSwitch sences, note is the pageName before and after the pageSwitch.
+    if (data.sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH ||
+        data.sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH_INTERACTIVE) {
+        std::string prePageName = TruncatePageName(data.baseInfo.prePageName);
+        std::string pageName = TruncatePageName(data.baseInfo.pageName);
+        data.baseInfo.note = prePageName + "->" + pageName;
+    }
 }
 
 void AnimatorMonitor::ReportAnimateStart(const std::string& sceneId, AnimatorRecord* record)

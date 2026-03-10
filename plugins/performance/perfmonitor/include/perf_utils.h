@@ -31,6 +31,8 @@ void ConvertRealtimeToSystime(int64_t realTime, int64_t& sysTime);
 
 std::string GetSourceTypeName(PerfSourceType sourceType);
 
+std::string TruncatePageName(const std::string& pageName);
+
 }
 }
 
