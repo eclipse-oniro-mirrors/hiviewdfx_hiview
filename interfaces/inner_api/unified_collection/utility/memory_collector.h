@@ -46,6 +46,10 @@ public:
     virtual CollectResult<MemoryLimit> CollectMemoryLimit() = 0;
     virtual CollectResult<uint32_t> CollectDdrFreq() = 0;
     virtual CollectResult<ProcessMemoryDetail> CollectProcessMemoryDetail(int32_t pid, GraphicMemOption option) = 0;
+
+    static MemoryItemType MapNameToMemoryType(const std::string& name);
+
+    static MemoryClass MapMemoryTypeToClass(MemoryItemType type);
 }; // MemoryCollector
 } // UCollectUtil
 } // HiviewDFX
