@@ -40,6 +40,8 @@
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetPerfCount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::MapPerfCallerToString(OHOS::HiviewDFX::UCollectUtil::PerfCaller)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetAllowMemory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+      "OHOS::HiviewDFX::UCollectUtil::MemoryCollector::MapNameToMemoryType(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+      "OHOS::HiviewDFX::UCollectUtil::MemoryCollector::MapMemoryTypeToClass(OHOS::HiviewDFX::MemoryItemType)";
     };
   local:
     *;

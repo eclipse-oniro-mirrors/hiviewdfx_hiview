@@ -427,6 +427,27 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest018, TestSize.Level3)
     };
     FileCleanTest(task8, MEMINFO_SAVE_DIR, "proc_smaps_", MAX_FILE_SAVE_SIZE);
 }
+
+/**
+ * @tc.name: MemoryCollectorTest019
+ * @tc.desc: used to test memory type
+ * @tc.type: FUNC
+*/
+HWTEST_F(MemoryCollectorTest, MemoryCollectorTest019, TestSize.Level3)
+{
+    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTS Static Object Space]"),
+        MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT);
+    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTS Static Humongous Object Space]"),
+        MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT);
+    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTS Static Non Movable Space]"),
+        MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE);
+    ASSERT_EQ(MemoryCollector::MapMemoryTypeToClass(MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT),
+        MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP);
+    ASSERT_EQ(MemoryCollector::MapMemoryTypeToClass(MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT),
+        MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP);
+    ASSERT_EQ(MemoryCollector::MapMemoryTypeToClass(MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE),
+        MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP);
+}
 #else
 /**
  * @tc.name: MemoryCollectorTest001
