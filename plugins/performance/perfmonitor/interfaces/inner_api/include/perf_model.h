@@ -69,6 +69,7 @@ struct BaseInfo {
     std::string processName {""};
     std::string abilityName {""};
     std::string pageUrl {""};
+    std::string prePageName {""};
     std::string pageName {""};
     std::string note {""};
     SubHealthInfo subHealthInfo;

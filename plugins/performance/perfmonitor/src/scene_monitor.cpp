@@ -287,6 +287,10 @@ std::string SceneMonitor::GetPageUrl()
 void SceneMonitor::SetPageName(const std::string& pageName)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
+    if (baseInfo.pageName == pageName) {
+        return;
+    }
+    baseInfo.prePageName = baseInfo.pageName;
     baseInfo.pageName = pageName;
 }
 
