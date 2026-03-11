@@ -61,15 +61,18 @@ int RestorableDbStore::Initialize(OnDbCreatedCallback onDbCreatedCallback,
 
     std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
-    if (ret != NativeRdb::E_OK) {
+    if (ret == NativeRdb::E_OK) {
+        return ret;
+    }
+    if (ret == NativeRdb::E_SQLITE_CORRUPT) {
         ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_);
         rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
-        if (rdbStore_ == nullptr || ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to init db store %{public}s, ret is %{public}d", dbName_.c_str(), ret);
-        } else {
-            HIVIEW_LOGI("succeed to init db store %{public}s", dbName_.c_str());
+        if (ret != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to reinitialize db store %{public}s, ret is %{public}d", dbName_.c_str(), ret);
         }
+        return ret;
     }
+    HIVIEW_LOGE("failed to init rdb, ret is %{public}d", ret);
     return ret;
 }
 
