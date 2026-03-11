@@ -230,7 +230,6 @@ bool FaultLogCppCrash::CheckFaultLog(const FaultLogInfo& info)
 void FaultLogCppCrash::UpdateFaultLogInfo()
 {
     AddCppCrashInfo(info_);
-    ReportProcessKillEvent(info_);
 }
 
 bool FaultLogCppCrash::ReportEventToAppEvent() const
