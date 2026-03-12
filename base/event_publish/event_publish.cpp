@@ -143,6 +143,16 @@ ErrCode GetBundleNameAndAppIndex(int32_t uid, std::string& bundleName, int32_t& 
     return bundleMgr->GetNameAndIndexForUid(uid, bundleName, appIndex);
 }
 
+std::string GetInputMethodPathHolder(const std::string& bundleName, int32_t uid)
+{
+    std::string tmpHolder = "+extension-entry-InputMethodExtensionAbility+" + bundleName;
+    if (!FileUtil::FileExists(FileUtil::GetSandBoxBasePath(uid, tmpHolder))) {
+        HIVIEW_LOGW("The sandbox of inputMethod extensions does not exist. return common sandbox.");
+        return bundleName;
+    }
+    return tmpHolder;
+}
+
 std::string GetPathPlaceHolder(int32_t uid)
 {
     std::string bundleName = "";
@@ -174,7 +184,7 @@ std::string GetPathPlaceHolder(int32_t uid)
         for (const auto& exetensionAbilityInfo : hapModuleInfo.extensionInfos) {
             if (exetensionAbilityInfo.type == AppExecFwk::ExtensionAbilityType::INPUTMETHOD) {
                 // the bundleName is input method.
-                return "+extension-entry-InputMethodExtensionAbility+" + bundleName;
+                return GetInputMethodPathHolder(bundleName, uid);
             }
         }
     }
