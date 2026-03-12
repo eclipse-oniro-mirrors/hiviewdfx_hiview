@@ -97,6 +97,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "dynamic_library_management/dynamic_library_manager.cpp",
     "extension_manager/src/faultlog_ext_conn_manager.cpp",
     "extension_manager/src/faultlog_ext_connection.cpp",
+    "faultlog_bootscan_listener.cpp",
     "faultlogger.cpp",
     "page_history/page_history_manager.cpp",
     "page_history/page_history_recorder.cpp",

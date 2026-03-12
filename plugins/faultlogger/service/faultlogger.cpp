@@ -96,10 +96,9 @@ void Faultlogger::OnLoad()
     hasInit_ = true;
 #ifndef UNITTEST
     FaultloggerServiceOhos::StartService();
-
+#endif
     faultLogBootScan_ = std::make_shared<FaultLogBootScanListener>(workLoop_);
     context->RegisterUnorderedEventListener(faultLogBootScan_);
-#endif
 }
 
 void Faultlogger::Dump(int fd, const std::vector<std::string>& cmds)
