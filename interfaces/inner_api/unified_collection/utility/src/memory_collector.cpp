@@ -38,6 +38,9 @@ const std::list<std::pair<std::string, MemoryItemType>> PREFIX_LIST = {
     {"[anon:signal_stack", MemoryItemType::MEMORY_ITEM_TYPE_ANON_SIGNAL_STACK},
     {"[anon:ArkTS Code", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARKTS_CODE},
     {"[anon:ArkTS Heap", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARKTS_HEAP},
+    {"[anon:ArkTS Static Object Space]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT},
+    {"[anon:ArkTS Static Humongous Object Space]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT},
+    {"[anon:ArkTS Static Non Movable Space]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE},
     {"[anon:guard", MemoryItemType::MEMORY_ITEM_TYPE_ANON_GUARD},
     {"/dev/__parameters__/", MemoryItemType::MEMORY_ITEM_ENTITY_DEV_PARAMETER},
     {"/dev/", MemoryItemType::MEMORY_ITEM_ENTITY_DEV_OTHER},
@@ -123,6 +126,9 @@ const std::map<MemoryItemType, MemoryClass> TYPE_TO_CLASS_MAP = {
     {MemoryItemType::MEMORY_ITEM_TYPE_OTHER, MemoryClass::MEMORY_CLASS_OTHER},
     {MemoryItemType::MEMORY_ITEM_TYPE_GRAPH_GL, MemoryClass::MEMORY_CLASS_GRAPH},
     {MemoryItemType::MEMORY_ITEM_TYPE_GRAPH_GRAPHICS, MemoryClass::MEMORY_CLASS_GRAPH},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP}
 };
 }
 
