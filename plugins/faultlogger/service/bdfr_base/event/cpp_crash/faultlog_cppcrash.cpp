@@ -250,7 +250,13 @@ int FaultLogCppCrash::TruncateAppCrashLog(const std::string& logPath, const std:
         return -1;
     }
 
-    std::unique_ptr<FILE, decltype(&fclose)> fpPtr(fopen(logPath.c_str(), "rb+"), fclose);
+    FILE* rawFp = fopen(logPath.c_str(), "rb+");
+    if (rawFp == nullptr) {
+        HIVIEW_LOGE("Failed to open file: %{public}s, errno: %{public}d", logPath.c_str(), errno);
+        return -1;
+    }
+
+    std::unique_ptr<FILE, decltype(&fclose)> fpPtr(rawFp, fclose);
     if (fpPtr == nullptr) {
         HIVIEW_LOGE("Failed to open file: %{public}s, errno: %{public}d", logPath.c_str(), errno);
         return -1;

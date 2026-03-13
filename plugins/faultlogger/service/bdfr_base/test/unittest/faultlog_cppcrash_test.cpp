@@ -301,7 +301,9 @@ HWTEST(FaultloggerCppCrashTest, FindTargetOffsetTest_001, testing::ext::TestSize
     FILE* fpEmpty = fopen(emptyFile.c_str(), "rb");
     EXPECT_EQ(faultCppCrash.FindTargetOffset(fpEmpty, target), -1);
 
-    if (fpEmpty) fclose(fpEmpty);
+    if (fpEmpty) {
+        fclose(fpEmpty);
+    }
     remove(testFile.c_str());
     remove(emptyFile.c_str());
 }
