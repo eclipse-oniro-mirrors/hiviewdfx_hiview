@@ -303,7 +303,7 @@ long FaultLogCppCrash::FindTargetOffset(FILE* fp, const std::string& target)
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath) const
 {
     if (!Parameter::IsBetaVersion() && !Parameter::IsDeveloperMode()) {
-        int truncateRet = TruncateAppCrashLog(logPath.c_str(), "MergeLog:");
+        int truncateRet = TruncateAppCrashLog(logPath, "MergeLog:");
         HIVIEW_LOGI("TruncateAppCrashLog truncateRet: %{public}d", truncateRet);
     }
 
