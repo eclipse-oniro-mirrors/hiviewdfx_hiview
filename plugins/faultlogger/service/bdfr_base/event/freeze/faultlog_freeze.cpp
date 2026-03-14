@@ -95,6 +95,7 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
         .InitThreads(collector.stack)
         .InitMemory(collector.memory)
         .InitThermalLevel(collector.thermal_Level)
+        .InitExternalCallbackLog(collector.external_callback_log)
         .Build();
     EventPublish::GetInstance().PushEvent(info.id, isAppHicollie ? APP_HICOLLIE_TYPE : APP_FREEZE_TYPE,
         HiSysEvent::EventType::FAULT, freezeJsonParams.JsonStr());
@@ -130,6 +131,7 @@ FreezeJsonUtil::FreezeJsonCollector FaultLogFreeze::GetFreezeJsonCollector(const
     collector.version = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
     collector.uuid = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
     collector.thermal_Level = GetStrValFromMap(info.sectionMap, FaultKey::THERMAL_LEVEL);
+    collector.external_callback_log = GetStrValFromMap(info.sectionMap, FaultKey::EXTERNAL_CALLBACK_LOG);
     return collector;
 }
 
