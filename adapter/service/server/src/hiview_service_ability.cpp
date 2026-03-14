@@ -27,6 +27,7 @@
 #include "client/trace_collector_client.h"
 #include "client/memory_collector_client.h"
 #include "file_util.h"
+#include "ffrt.h"
 #include "hiview_log_config_manager.h"
 #include "hiview_xcollie_timer.h"
 #include "ipc_skeleton.h"
@@ -47,7 +48,7 @@ constexpr int USER_ID_MOD = 200000;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
 constexpr int32_t MEDIA_UID = 1013;
 constexpr int32_t MEMMGR_UID = 1111;
-constexpr int32_t DUMP_TRACE_SLEEP = 5;
+const int64_t MS_TO_US = 1000;
 constexpr char READ_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.READ_HIVIEW_SYSTEM";
 constexpr char WRITE_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.WRITE_HIVIEW_SYSTEM";
 constexpr char HIVIEW_TRACE_MANAGE_PERMISSION[] = "ohos.permission.HIVIEW_TRACE_MANAGE";
@@ -445,18 +446,49 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
 ErrCode HiviewServiceAbility::RequestAppTrace(const TraceConfigParcelable &traceConfig,
     const sptr<IRequestTraceCallback> &callback)
 {
-    OHOS::sptr<OHOS::IRemoteObject> callbackObject = callback->AsObject();
-    if (callbackObject == nullptr) {
-        HIVIEW_LOGE("object in callback is null.");
-        return -1;
+    auto token_type = Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
+    if (token_type != Security::AccessToken::TOKEN_HAP) {
+        HIVIEW_LOGE("token type is not hap");
+        if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
+            callback->OnTraceResponse(UCollect::UcError::PERMISSION_CHECK_FAILED, "");
+        }
+        return 0;
     }
-    auto uid = IPCSkeleton::GetCallingUid();
-    auto pid = IPCSkeleton::GetCallingPid();
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    std::string packageName = GetApplicationNameById(uid);
+    if (packageName.empty()) {
+        HIVIEW_LOGE("app packageName is empty");
+        if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
+            callback->OnTraceResponse(UCollect::UcError::SYSTEM_ERROR, "");
+        }
+        return 0;
+    }
+
+    // will check config param follow up
     auto paramConfig = traceConfig.GetTraceConfig();
-    sleep(DUMP_TRACE_SLEEP);
-    HIVIEW_LOGI("trace dropping done uid:%{public}d, pid:%{public}d, buffer:%{public}d, prefix:%{public}s", uid, pid,
-        paramConfig.bufferSize, paramConfig.prefix.c_str());
-    callback->OnTraceResponse(0, "trace dump name");
+    std::string sandboxTracePath = FileUtil::GetSandBoxLogPath(uid, packageName, "trace");
+    bool isDebugHap = false; // will implement follow up
+    UCollect::AppBundleInfo appInfo {uid, pid, packageName, sandboxTracePath, isDebugHap};
+    auto traceCollector = UCollectUtil::TraceCollector::Create();
+    auto openResult = traceCollector->OpenAppSystemTrace(paramConfig.bufferSize, appInfo);
+    if (openResult.retCode != UCollect::UcError::SUCCESS) {
+        HIVIEW_LOGW("%{public}s open trace failed, code:%{public}d", appInfo.packageName.c_str(), openResult.retCode);
+        if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
+            callback->OnTraceResponse(openResult.retCode, "");
+        }
+        return 0;
+    }
+    auto dumpTask = [this, traceCollector, appInfo, paramConfig, callback] {
+        auto result = traceCollector->DumpAppSystemTrace(paramConfig.prefix, paramConfig.duration, appInfo);
+        HIVIEW_LOGI("%{public}s get trace done, code:%{public}d, name:%{public}s", appInfo.packageName.c_str(),
+            result.retCode, result.data.c_str());
+        if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
+            callback->OnTraceResponse(result.retCode, result.data);
+        }
+    };
+    ffrt::submit(dumpTask, {}, {},
+        ffrt::task_attr().name("app_system_trace_task").delay(paramConfig.duration * MS_TO_US));
     return 0;
 }
 

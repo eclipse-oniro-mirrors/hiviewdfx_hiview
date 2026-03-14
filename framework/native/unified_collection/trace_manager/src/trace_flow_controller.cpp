@@ -17,6 +17,7 @@
 #include <set>
 
 #include "app_event_task_storage.h"
+#include "app_storage.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "time_util.h"
@@ -30,9 +31,11 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceFlowController");
-constexpr int32_t DB_VERSION = 7;
+constexpr int32_t DB_VERSION = 8;
 constexpr char DB_NAME[] = "trace_flow_control.db";
 constexpr int32_t HITRACE_CACHE_DURATION_LIMIT_DAILY_TOTAL = 10 * 60; // 10 minutes
+constexpr char DEFAULT_DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
+constexpr char DEFAULT_CONFIG_PATH[] = "/system/etc/hiview/";
 }
 
 void TraceFlowController::InitTraceDb(const std::string& dbPath)
@@ -65,11 +68,24 @@ void TraceFlowController::InitTraceStorage(const std::string& name, const std::s
     traceStorage_ = std::make_shared<TraceStorage>(dbStore_, name, configPath);
 }
 
+TraceFlowController::TraceFlowController(const std::string &name)
+{
+    InitTraceDb(DEFAULT_DB_PATH);
+    InitTraceStorage(name, DEFAULT_CONFIG_PATH);
+}
+
 TraceFlowController::TraceFlowController(const std::string& name, const std::string& dbPath,
     const std::string& configPath)
 {
     InitTraceDb(dbPath);
     InitTraceStorage(name, configPath);
+}
+
+TraceFlowController::TraceFlowController(int32_t uid, const std::string &dbPath,
+    const std::string &configPath)
+{
+    InitTraceDb(dbPath);
+    appTraceStorage_ = std::make_shared<AppTraceStorage>(dbStore_, configPath, uid);
 }
 
 int64_t TraceFlowController::GetRemainingTraceSize()
@@ -118,6 +134,22 @@ void TraceFlowController::DecreaseDynamicThreshold()
         return;
     }
     traceStorage_->DecreaseDynamicThreshold();
+}
+
+bool TraceFlowController::IsAppOverFlow()
+{
+    if (appTraceStorage_ == nullptr) {
+        return true;
+    }
+    return appTraceStorage_->IsAppOverFlow();
+}
+
+void TraceFlowController::StoreAppTraceInfo(const std::string& packageName, int64_t traceDuration, int64_t fileSize)
+{
+    if (appTraceStorage_ == nullptr) {
+        return;
+    }
+    return appTraceStorage_->StoreAppTraceInfo(packageName, traceDuration, fileSize);
 }
 
 bool TraceFlowController::HasCallOnceToday(int32_t uid, uint64_t happenTime)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+* Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,25 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "trace_dynamic_state.h"
+#include "trace_app_state.h"
 
 #include "trace_state_machine.h"
 #include "hiview_logger.h"
 
 namespace OHOS::HiviewDFX {
 namespace {
-DEFINE_LOG_TAG("TraceStateMachine");
+    DEFINE_LOG_TAG("TraceStateMachine");
 }
 
-TraceRet DynamicState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+TraceRet AppSystemState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
     TraceRetInfo &info)
 {
-    if (scenarioName != ScenarioName::APP_DYNAMIC) {
-        HIVIEW_LOGW("DynamicState scenario:%{public}s is fail", scenarioName.c_str());
+    if (scenarioName != ScenarioName::APP_SYSTEM) {
+        HIVIEW_LOGW("AppSystemState scenario:%{public}s is fail", scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
     info = Hitrace::DumpTrace(maxDuration, happenTime);
-    HIVIEW_LOGI("DynamicState DumpTrace result:%{public}d", info.errorCode);
+    HIVIEW_LOGI("AppSystemState DumpTrace result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }
 }

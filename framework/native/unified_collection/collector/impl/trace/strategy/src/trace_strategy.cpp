@@ -96,7 +96,7 @@ TraceRet TraceStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetIn
 {
     DumpEvent dumpEvent;
 #ifndef TRACE_STRATEGY_UNITTEST
-    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, scenario_);
+    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, scenarioName_);
 #else
     TraceRet ret(traceRetInfo.errorCode);
 #endif
@@ -112,16 +112,17 @@ TraceRet TraceStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetIn
     return ret;
 }
 
-TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, TraceScenario scenario) const
+TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo,
+    const std::string &scenarioName) const
 {
     InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
 #ifndef TRACE_STRATEGY_UNITTEST
-    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenario, maxDuration_, happenTime_, traceRetInfo);
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(scenarioName, maxDuration_, happenTime_, traceRetInfo);
 #else
     TraceRet ret(traceRetInfo.errorCode);
 #endif
     if (!ret.IsSuccess()) {
-        HIVIEW_LOGW("scenario_:%{public}d, stateError:%{public}d, codeError:%{public}d", static_cast<int>(scenario),
+        HIVIEW_LOGW("scenario_:%{public}s, stateError:%{public}d, codeError:%{public}d", scenarioName.c_str(),
             static_cast<int>(ret.stateError_), ret.codeError_);
     }
     UpdateDumpEvent(dumpEvent, ret, traceRetInfo);
@@ -135,7 +136,7 @@ TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRe
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     DumpEvent dumpEvent;
-    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, TraceScenario::TRACE_COMMON);
+    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, ScenarioName::COMMON_BETA);
     if (!ret.IsSuccess()) {
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
@@ -184,7 +185,7 @@ TraceRet TraceFlowControlStrategy::DoDump(std::vector<std::string> &outputFiles,
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     DumpEvent dumpEvent;
-    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, TraceScenario::TRACE_COMMON);
+    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, ScenarioName::COMMON_BETA);
     if (!ret.IsSuccess()) {
         WriteDumpTraceHisysevent(dumpEvent);
         return ret;
@@ -249,7 +250,7 @@ TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, Trace
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     DumpEvent dumpEvent;
-    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, TraceScenario::TRACE_COMMON);
+    TraceRet ret = DumpTrace(dumpEvent, traceRetInfo, ScenarioName::COMMON_BETA);
     HIVIEW_LOGI("caller:%{public}s trace size:%{public}" PRId64 "", caller_.c_str(), traceRetInfo.fileSize);
     if (!ret.IsSuccess()) {
         WriteDumpTraceHisysevent(dumpEvent);
@@ -286,10 +287,11 @@ TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, Trace
     return ret;
 }
 
-TraceRet TraceAsyncStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo, TraceScenario scenario) const
+TraceRet TraceAsyncStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetInfo,
+    const std::string &scenarioName) const
 {
     InitDumpEvent(dumpEvent, caller_, maxDuration_, happenTime_);
-    DumpTraceArgs args = {scenario, maxDuration_, happenTime_};
+    DumpTraceArgs args = {scenarioName, maxDuration_, happenTime_};
     int64_t traceRemainingSize = traceFlowController_->GetRemainingTraceSize();
 #ifndef TRACE_STRATEGY_UNITTEST
     TraceRet ret = TraceStateMachine::GetInstance().DumpTraceAsync(args, traceRemainingSize, traceRetInfo,
@@ -332,7 +334,7 @@ TraceRet TraceAppStrategy::DoDump(const UCollectClient::AppCaller& appCaller, Tr
         return TraceRet(TraceFlowCode::TRACE_HAS_CAPTURED_TRACE);
     }
 #ifndef TRACE_STRATEGY_UNITTEST
-    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(TraceScenario::TRACE_DYNAMIC, 0, 0, traceRetInfo);
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_DYNAMIC, 0, 0, traceRetInfo);
 #else
     TraceRet ret(traceRetInfo.errorCode);
 #endif

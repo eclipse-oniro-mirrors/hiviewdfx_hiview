@@ -297,7 +297,8 @@ HWTEST_F(TraceStrategyExTest, TraceAppStrategyTest002, TestSize.Level1)
 {
     // new event uid = 103, pid = 1002
     auto appEventTask = CreateAppEventTask(103, 1002, TimeUtil::GetMilliseconds());
-    auto traceFlowController = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH);
+    auto traceFlowController = std::make_shared<TraceFlowController>(FlowControlName::APP, TEST_DB_PATH,
+        TEST_CONFIG_PATH);
     traceFlowController->RecordCaller(appEventTask);
 
     // new event uid = 103, pid = 1001 again

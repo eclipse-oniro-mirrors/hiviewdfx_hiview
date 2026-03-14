@@ -40,23 +40,23 @@ TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happ
 {
     if (policy_ != TelemetryPolicy::DEFAULT) {
         if (innerStateMachine_ != nullptr && !innerStateMachine_->IsTraceOn()) {
-            HIVIEW_LOGW(":%{public}s, IsTraceOn false", GetTag().c_str());
+            HIVIEW_LOGW("TelemetryState: IsTraceOn false");
             return TraceRet(TraceStateCode::FAIL);
         }
     }
     info = Hitrace::DumpTrace(maxDuration, happenTime);
-    HIVIEW_LOGI(":%{public}s, result:%{public}d", GetTag().c_str(), info.errorCode);
+    HIVIEW_LOGI("TelemetryState, result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }
 
 TraceRet TelemetryState::PowerTelemetryOn()
 {
     if (policy_ != TelemetryPolicy::POWER || innerStateMachine_ == nullptr) {
-        HIVIEW_LOGW(":%{public}s, policy:%{public}d is error", GetTag().c_str(), static_cast<int>(policy_));
+        HIVIEW_LOGW("TelemetryState policy:%{public}d is error", static_cast<int>(policy_));
         return TraceRet(TraceStateCode::POLICY_ERROR);
     }
     if (innerStateMachine_->IsTraceOn()) {
-        HIVIEW_LOGW(":%{public}s, already power on", GetTag().c_str());
+        HIVIEW_LOGW("TelemetryState already power on");
         return {};
     }
     return innerStateMachine_->TraceOn();
@@ -65,11 +65,11 @@ TraceRet TelemetryState::PowerTelemetryOn()
 TraceRet TelemetryState::PowerTelemetryOff()
 {
     if (policy_ != TelemetryPolicy::POWER || innerStateMachine_ == nullptr) {
-        HIVIEW_LOGW(":%{public}s, policy:%{public}d is error", GetTag().c_str(), static_cast<int>(policy_));
+        HIVIEW_LOGW("TelemetryState policy:%{public}d is error", static_cast<int>(policy_));
         return TraceRet(TraceStateCode::POLICY_ERROR);
     }
     if (!innerStateMachine_->IsTraceOn()) {
-        HIVIEW_LOGW(":%{public}s, already power off", GetTag().c_str());
+        HIVIEW_LOGW("TelemetryState already power off");
         return {};
     }
     return innerStateMachine_->TraceOff();
@@ -78,7 +78,7 @@ TraceRet TelemetryState::PowerTelemetryOff()
 TraceRet TelemetryState::TraceTelemetryOn()
 {
     if (policy_ != TelemetryPolicy::MANUAL || innerStateMachine_ == nullptr) {
-        HIVIEW_LOGW(":%{public}s, policy:%{public}d is error", GetTag().c_str(), static_cast<int>(policy_));
+        HIVIEW_LOGW("TelemetryState policy:%{public}d is error", static_cast<int>(policy_));
         return TraceRet(TraceStateCode::POLICY_ERROR);
     }
     return innerStateMachine_->TraceOn();
@@ -87,7 +87,7 @@ TraceRet TelemetryState::TraceTelemetryOn()
 TraceRet TelemetryState::TraceTelemetryOff()
 {
     if (policy_ != TelemetryPolicy::MANUAL || innerStateMachine_ == nullptr) {
-        HIVIEW_LOGW(":%{public}s, policy:%{public}d is error", GetTag().c_str(), static_cast<int>(policy_));
+        HIVIEW_LOGW("TelemetryState policy:%{public}d is error", static_cast<int>(policy_));
         return TraceRet(TraceStateCode::POLICY_ERROR);
     }
     return innerStateMachine_->TraceOff();
@@ -96,7 +96,7 @@ TraceRet TelemetryState::TraceTelemetryOff()
 TraceRet TelemetryState::PostTelemetryOn(uint64_t time)
 {
     if (policy_ != TelemetryPolicy::MANUAL || innerStateMachine_ == nullptr) {
-        HIVIEW_LOGW(":%{public}s, policy:%{public}d is error", GetTag().c_str(), static_cast<int>(policy_));
+        HIVIEW_LOGW("TelemetryState policy:%{public}d is error", static_cast<int>(policy_));
         return TraceRet(TraceStateCode::POLICY_ERROR);
     }
     return innerStateMachine_->PostOn(time);
@@ -105,7 +105,7 @@ TraceRet TelemetryState::PostTelemetryOn(uint64_t time)
 TraceRet TelemetryState::PostTelemetryTimeOut()
 {
     if (policy_ != TelemetryPolicy::MANUAL || innerStateMachine_ == nullptr) {
-        HIVIEW_LOGW(":%{public}s, policy:%{public}d is error", GetTag().c_str(), static_cast<int>(policy_));
+        HIVIEW_LOGW("TelemetryState policy:%{public}d is error", static_cast<int>(policy_));
         return TraceRet(TraceStateCode::POLICY_ERROR);
     }
     return innerStateMachine_->TimeOut();
@@ -113,7 +113,7 @@ TraceRet TelemetryState::PostTelemetryTimeOut()
 
 void TelemetryState::InitTelemetryStatus(bool isStatusOn)
 {
-    HIVIEW_LOGI(":%{public}s, isStatusOn:%{public}d", GetTag().c_str(), isStatusOn);
+    HIVIEW_LOGI("TelemetryState isStatusOn:%{public}d", isStatusOn);
     innerStateMachine_ = std::make_shared<TeleMetryStateMachine>();
     auto initState = std::make_shared<InitState>(innerStateMachine_);
     innerStateMachine_->SetInitState(initState);

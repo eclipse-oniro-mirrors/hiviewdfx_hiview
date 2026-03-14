@@ -51,7 +51,7 @@ void HandTimeout()
 {
     // Avoid died lock
     ffrt::submit([] {
-        TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+        TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     });
 }
 }

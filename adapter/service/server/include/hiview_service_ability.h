@@ -84,6 +84,18 @@ private:
         }
     }
 
+    template<typename T>
+    bool IsCallbackNull(const sptr<T> &callback)
+    {
+        if (callback == nullptr) {
+            return true;
+        }
+        OHOS::sptr<OHOS::IRemoteObject> callbackObject = callback->AsObject();
+        if (callbackObject == nullptr) {
+            return true;
+        }
+        return false;
+    }
 private:
     void GetFileInfoUnderDir(const std::string& dirPath, std::vector<HiviewFileInfo>& fileInfos);
     ErrCode CopyOrMoveFile(

@@ -396,6 +396,7 @@ group("unittest") {
       "collector/impl/trace/test:TraceUtilsTest",
       "collector/impl/trace/test:TraceStrategyTest",
       "collector/impl/trace/test:TraceStrategyExTest",
+      "collector/impl/trace/test:TraceImplTest",
       "trace_manager/test:TraceManagerTest",
     ]
   }

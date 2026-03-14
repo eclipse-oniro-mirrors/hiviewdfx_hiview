@@ -22,23 +22,24 @@ namespace OHOS::HiviewDFX {
 class CommonState : public TraceBaseState {
 public:
     explicit CommonState(bool isCachOn, int32_t totalFileSize, int32_t sliceMaxDuration);
-    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
+    TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+        TraceRetInfo &info) override;
     TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
         TraceRetInfo &info, DumpTraceCallback callback) override;
     TraceRet TraceCacheOn() override;
     TraceRet TraceCacheOff() override;
     TraceRet SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration) override;
-    TraceRet CloseTrace(TraceScenario scenario) override;
+    TraceRet CloseTrace(const std::string& scenarioName) override;
 
 protected:
-    std::string GetTag() const override
+    std::string GetStateScenario() const override
     {
-        return "CommonState";
+        return ScenarioName::COMMON_BETA;
     }
 
-    TraceScenario GetCurrentScenario() const override
+    uint32_t GetStateLevel() const override
     {
-        return TraceScenario::TRACE_COMMON;
+        return ScenarioLevel::COMMON_BETA;
     }
 
 private:
@@ -48,14 +49,14 @@ private:
 
 class CommonDropState : public TraceBaseState {
 protected:
-    std::string GetTag() const override
+    std::string GetStateScenario() const override
     {
-        return "CommonDropState";
+        return ScenarioName::COMMON_DROP;
     }
 
-    TraceScenario GetCurrentScenario() const override
+    uint32_t GetStateLevel() const override
     {
-        return TraceScenario::TRACE_COMMON_DROP;
+        return ScenarioLevel::COMMON_DROP;
     }
 };
 }

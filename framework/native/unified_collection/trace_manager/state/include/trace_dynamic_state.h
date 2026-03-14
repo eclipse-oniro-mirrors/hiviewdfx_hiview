@@ -28,7 +28,8 @@ public:
         taskBeginTime_ = TimeUtil::GetMilliseconds();
     }
 
-    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
+    TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+        TraceRetInfo &info) override;
 
     std::pair<int32_t, uint64_t> GetCurrentAppInfo() override
     {
@@ -36,14 +37,14 @@ public:
     }
 
 protected:
-    std::string GetTag() const override
+    std::string GetStateScenario() const override
     {
-        return "DynamicState";
+        return ScenarioName::APP_DYNAMIC;
     }
 
-    TraceScenario GetCurrentScenario() const override
+    uint32_t GetStateLevel() const override
     {
-        return TraceScenario::TRACE_DYNAMIC;
+        return ScenarioLevel::APP_DYNAMIC;
     }
 
 private:

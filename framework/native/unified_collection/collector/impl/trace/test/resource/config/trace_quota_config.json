@@ -10,5 +10,11 @@
         "Hiview": 100,
         "Reliability": 100,
         "DecreaseUnit": 5
+    },
+    "appSystemQuota": {
+        "AppDurationLimits": 1000,
+        "TotalDurationLimits": 15000,
+        "AppFlowLimits": 1000,
+        "TotalFlowLimits": 2000
     }
 }
