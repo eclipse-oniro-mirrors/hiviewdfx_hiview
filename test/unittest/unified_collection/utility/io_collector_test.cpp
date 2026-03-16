@@ -307,25 +307,25 @@ HWTEST_F(IoCollectorTest, IoCollectorTest014, TestSize.Level3)
         .operReadRate = 0.1,
         .operWriteRate = 0.2,
     };
-    ASSERT_FALSE(DefaultDiskStatsFilter(stats1));
+    ASSERT_FALSE(IoCollector::DefaultDiskStatsFilter(stats1));
 
     DiskStats stats2 {
         .operReadRate = 0.0,
         .operWriteRate = 0.2,
     };
-    ASSERT_FALSE(DefaultDiskStatsFilter(stats2));
+    ASSERT_FALSE(IoCollector::DefaultDiskStatsFilter(stats2));
 
     DiskStats stats3 {
         .operReadRate = 0.2,
         .operWriteRate = 0.0,
     };
-    ASSERT_FALSE(DefaultDiskStatsFilter(stats3));
+    ASSERT_FALSE(IoCollector::DefaultDiskStatsFilter(stats3));
 
     DiskStats stats4 {
         .operReadRate = 0,
         .operWriteRate = 0,
     };
-    ASSERT_TRUE(DefaultDiskStatsFilter(stats4));
+    ASSERT_TRUE(IoCollector::DefaultDiskStatsFilter(stats4));
 }
 #else
 /**

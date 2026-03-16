@@ -15,7 +15,9 @@
 #ifndef INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_IO_COLLECTOR_H
 #define INTERFACES_INNER_API_UNIFIED_COLLECTION_UTILITY_IO_COLLECTOR_H
 #include <cinttypes>
+#include <functional>
 #include <memory>
+#include <vector>
 
 #include "collect_result.h"
 #include "resource/io.h"
@@ -24,10 +26,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
 using DiskStatsFilter = std::function<bool(const DiskStats &)>;
-static bool DefaultDiskStatsFilter(const DiskStats &stats)
-{
-    return (stats.operReadRate == 0 && stats.operWriteRate == 0);
-}
 
 class IoCollector {
 public:
@@ -47,6 +45,7 @@ public:
     virtual CollectResult<SysIoStats> CollectSysIoStats() = 0;
     virtual CollectResult<std::string> ExportSysIoStats() = 0;
     static std::shared_ptr<IoCollector> Create();
+    static bool DefaultDiskStatsFilter(const DiskStats &stats);
 }; // IoCollector
 } // UCollectUtil
 } // HiviewDFX
