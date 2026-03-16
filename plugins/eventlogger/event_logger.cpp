@@ -715,7 +715,7 @@ bool EventLogger::IsKernelStack(const std::string& stack)
 }
 
 void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
-    std::string& kernelStack, bool isFormat, std::string bundleName)
+    std::string& kernelStack, bool isFormat, std::string bundleName, const std::string& mainStack)
 {
     if (!IsKernelStack(contentStack)) {
         stack = contentStack;
@@ -730,7 +730,7 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
         contentStack = contentStack.substr(kernelStackIndex + kernelStackTag.size());
     }
     kernelStack = contentStack;
-    if (DfxJsonFormatter::FormatKernelStack(contentStack, stack, isFormat, true, bundleName)) {
+    if (DfxJsonFormatter::FormatKernelStack(contentStack, stack, isFormat, true, bundleName, mainStack)) {
         contentStack = stack;
         if (isFormat) {
             stack = "";
@@ -744,7 +744,7 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
 }
 
 void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
-    std::string& stack, const std::string& msg, std::string& kernelStack)
+    std::string& stack, const std::string& msg, std::string& kernelStack, const std::string& mainStack)
 {
     std::string message;
     std::string eventHandlerStr;
@@ -765,8 +765,8 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
             stack = jsonStack;
         }
     } else {
-        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd]() {
-            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName);
+        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
+            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
         };
         if (!stackQueue_) {
             return;
@@ -850,10 +850,12 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     std::string msg = StringUtil::ReplaceStr(event->GetEventValue("MSG"), "\\n", "\n");
     std::string stack;
     std::string kernelStack;
-    std::string binderInfo = event -> GetEventValue("BINDER_INFO");
+    std::string binderInfo = event->GetEventValue("BINDER_INFO");
     std::string bundleName = event->GetEventValue("PACKAGE_NAME");
+    std::string mainStack = "";
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
-        GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
+        mainStack = StringUtil::UnescapeJsonStringValue(event->GetEventValue("MAIN_STACK"));
+        GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack, mainStack);
         WriteBinderInfo(jsonFd, binderInfo, binderPids, threadStack, kernelStack, bundleName);
     } else if (FreezeJsonUtil::IsAppHicollie(event->eventName_)) {
         GetAppFreezeStack(jsonFd, event, stack, msg, kernelStack);
@@ -883,6 +885,7 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
         oss << StringUtil::UnescapeJsonStringValue(stack) << std::endl;
     }
     oss << endTimeStamp << std::endl;
+    oss << mainStack << std::endl;
     if (!binderInfo.empty()) {
         oss << (Parameter::IsOversea() ? "binder info is not saved in oversea version":
             StringUtil::UnescapeJsonStringValue(binderInfo)) << std::endl;
