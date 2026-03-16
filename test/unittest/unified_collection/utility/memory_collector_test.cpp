@@ -435,11 +435,11 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest018, TestSize.Level3)
 */
 HWTEST_F(MemoryCollectorTest, MemoryCollectorTest019, TestSize.Level3)
 {
-    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTS Static Object Space]"),
+    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTs Static Object Space]"),
         MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT);
-    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTS Static Humongous Object Space]"),
+    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTs Static Humongous Object Space]"),
         MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT);
-    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTS Static Non Movable Space]"),
+    ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTs Static Non Movable Space]"),
         MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE);
     ASSERT_EQ(MemoryCollector::MapMemoryTypeToClass(MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT),
         MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP);
