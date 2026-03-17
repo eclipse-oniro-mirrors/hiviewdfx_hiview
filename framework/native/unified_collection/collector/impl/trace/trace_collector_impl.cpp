@@ -34,6 +34,7 @@
 #include "hiview_zip_util.h"
 #include "hiview_event_report.h"
 #include "unified_collect.h"
+#include "parameter_ex.h"
 
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
@@ -193,8 +194,12 @@ CollectResult<int32_t> TraceCollectorImpl::OpenAppSystemTrace(uint32_t bufferSiz
         return {UcError::PERMISSION_CHECK_FAILED};
     }
     std::lock_guard<std::mutex> lock(dumpMutex_);
-    if (TraceFlowController(appInfo.uid, DB_PATH, CONFIG_PATH).IsAppOverFlow()) {
-        return {UcError::TRACE_OVER_FLOW};
+    if (!Parameter::IsDeveloperMode() || !appInfo.isDebugHap) {
+        if (TraceFlowController(appInfo.uid, DB_PATH, CONFIG_PATH).IsAppOverFlow()) {
+            return {UcError::TRACE_OVER_FLOW};
+        }
+    } else {
+        HIVIEW_LOGI("Debug mode, do not flow control");
     }
     Scenario scenarioInfo {
         .name = ScenarioName::APP_SYSTEM,
@@ -245,18 +250,25 @@ CollectResult<std::string> TraceCollectorImpl::DumpAppSystemTrace(const std::str
     if (!ret.IsSuccess()) {
         return GetUcError(ret);
     }
-    CollectResult<std::string> result;
     TraceFlowController(appInfo.uid, DB_PATH, CONFIG_PATH).StoreAppTraceInfo(appInfo.packageName,
         traceDuration, traceInfo.fileSize);
     if (traceInfo.outputFiles.empty() || traceInfo.outputFiles[0].empty()) {
         return {UcError::SYSTEM_ERROR};
     }
+    return HandAppSystemTrace(traceInfo, prefix, appInfo.sandBoxPath);
+}
+
+
+CollectResult<std::string> TraceCollectorImpl::HandAppSystemTrace(const TraceRetInfo& traceInfo,
+    const std::string& prefix, const std::string &sandBoxPath)
+{
+    CollectResult<std::string> result;
     std::string srcName = traceInfo.outputFiles[0];
     std::string traceName = FileUtil::ExtractFileName(srcName);
     if (!prefix.empty()) {
         traceName = prefix + "_" + traceName;
     }
-    std::string appTraceFullName = appInfo.sandBoxPath + "/" + traceName;
+    std::string appTraceFullName = sandBoxPath + "/" + traceName;
     if (FileUtil::CopyFileFast(srcName, appTraceFullName) == 0) {
         result.data = traceName;
         result.retCode = UcError::SUCCESS;

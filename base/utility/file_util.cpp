@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "iservice_registry.h"
 #include "common_utils.h"
 #include "directory_ex.h"
 #include "file_ex.h"
@@ -42,7 +43,6 @@ namespace HiviewDFX {
 namespace FileUtil {
 using namespace std;
 namespace {
-constexpr int VALUE_MOD = 200000;
 DEFINE_LOG_TAG("FileUtil");
 
 bool CheckAndCreateDirectory(const std::string &tmpDirPath)
@@ -444,29 +444,6 @@ int64_t GetLastModifiedTimeStamp(const std::string& filePath)
         return 0;
     }
     return fileInfo.st_mtime;
-}
-
-int GetUserId(int32_t uid)
-{
-    return uid / VALUE_MOD;
-}
-
-std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const std::string& subPath)
-{
-    int userId = GetUserId(uid);
-    if (pathHolder.empty()) {
-        return "";
-    }
-    return "/data/app/el2/" + std::to_string(userId) + "/log/" + pathHolder + "/" + subPath;
-}
-
-std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder)
-{
-    int userId = GetUserId(uid);
-    if (pathHolder.empty()) {
-        return "";
-    }
-    return "/data/app/el2/" + std::to_string(userId) + "/base/" + pathHolder + "/cache/hiappevent";
 }
 
 bool CreateMultiDirectory(const std::string &dirPath)

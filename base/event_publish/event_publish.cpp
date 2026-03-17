@@ -23,6 +23,7 @@
 #include "app_event_elapsed_time.h"
 #include "bundle_mgr_client.h"
 #include "bundle_mgr_proxy.h"
+#include "bundle_util.h"
 #include "file_util.h"
 #include "iservice_registry.h"
 #include "json/json.h"
@@ -39,6 +40,7 @@ namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("HiView-EventPublish");
 constexpr int BUNDLE_MGR_SERVICE_SYS_ABILITY_ID = 401;
+constexpr int VALUE_MOD = 200000;
 constexpr int DELAY_TIME = 30;
 constexpr const char* const PATH_DIR = "/data/log/hiview/system_event_db/events/temp";
 constexpr const char* const SANDBOX_DIR = "/data/storage/el2/log";
@@ -146,7 +148,7 @@ ErrCode GetBundleNameAndAppIndex(int32_t uid, std::string& bundleName, int32_t& 
 std::string GetInputMethodPathHolder(const std::string& bundleName, int32_t uid)
 {
     std::string tmpHolder = "+extension-entry-InputMethodExtensionAbility+" + bundleName;
-    if (!FileUtil::FileExists(FileUtil::GetSandBoxBasePath(uid, tmpHolder))) {
+    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, "cache/hiappevent"))) {
         HIVIEW_LOGW("The sandbox of inputMethod extensions does not exist. return common sandbox.");
         return bundleName;
     }
@@ -170,7 +172,7 @@ std::string GetPathPlaceHolder(int32_t uid)
         return "+clone-" + std::to_string(appIndex) + "+" + bundleName;
     }
     // the bundleName is mainApp.
-    int userId = FileUtil::GetUserId(uid);
+    int32_t userId = uid / VALUE_MOD;
     AppExecFwk::BundleMgrClient client;
     AppExecFwk::BundleInfo bundleInfo;
     bool getInfoResult = client.GetBundleInfo(
@@ -271,7 +273,7 @@ void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& e
 
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventJson[NAME_PROPERTY].asString(), externalLogInfo);
-    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(uid, pathHolder, externalLogInfo.subPath);
+    std::string sandBoxLogPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, externalLogInfo.subPath);
     uint64_t dirSize = FileUtil::GetFolderSize(sandBoxLogPath);
     bool logOverLimit = false;
     Json::Value externalLogJson(Json::arrayValue);
@@ -387,7 +389,7 @@ void SetSandBoxAccess(int32_t uid, const std::string& dirPath)
 
 void SaveEventToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson)
 {
-    std::string desPath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
+    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventJson, desPath);
@@ -471,7 +473,7 @@ bool EventPublish::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 bool EventPublish::Impl::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 {
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
     if (!FileUtil::FileExists(basePath)) {
         return false;
     }
@@ -495,7 +497,7 @@ void EventPublish::Impl::StartOverLimitThread(int32_t uid, const std::string& pa
 void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson,
     uint32_t maxFileSizeBytes)
 {
-    std::string sandBoxLogPath = FileUtil::GetSandBoxLogPath(uid, pathHolder, "resourcelimit");
+    std::string sandBoxLogPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, "resourcelimit");
     CreateSandBox(sandBoxLogPath);
     SetSandBoxAccess(uid, sandBoxLogPath);
     SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
@@ -527,7 +529,7 @@ void EventPublish::Impl::SendEventToSandBox()
         }
         int32_t uid = StringUtil::StrToInt(uidStr);
         std::string pathHolder = GetPathPlaceHolder(uid);
-        std::string desPath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
+        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
         if (!FileUtil::FileExists(desPath)) {
             HIVIEW_LOGE("SendEventToSandBox not exit.");
             (void)FileUtil::RemoveFile(srcPath);
@@ -553,7 +555,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     }
 
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = FileUtil::GetSandBoxBasePath(uid, pathHolder);
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
     if (!FileUtil::FileExists(basePath)) {
         HIVIEW_LOGE("Current sandbox base path is not exist.");
         (void)FileUtil::RemoveFile(GetTempFilePath(uid));
