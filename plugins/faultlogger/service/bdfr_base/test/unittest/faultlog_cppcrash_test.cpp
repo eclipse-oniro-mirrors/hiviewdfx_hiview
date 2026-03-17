@@ -220,5 +220,92 @@ HWTEST(FaultloggerCppCrashTest, ReportProcessKillEvent001, testing::ext::TestSiz
     FaultLogCppCrash faultCppCrash;
     EXPECT_TRUE(FaultLogCppCrash::ReportProcessKillEvent(faultCppCrash.info_));
 }
+
+/**
+ * @tc.name: TruncateAppCrashLogTest_001
+ * @tc.desc: TruncateAppCrashLog
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, TruncateAppCrashLogTest_001, testing::ext::TestSize.Level0)
+{
+    std::string testFile = "/data/test_truncate_normal.log";
+    std::string target = "MergeLog:";
+    std::string expectedHeader = "This is the primary crash log.\n";
+    std::string content = expectedHeader + target + "This secondary log should be truncated.";
+
+    ASSERT_TRUE(FileUtil::SaveStringToFile(testFile, content));
+
+    FaultLogCppCrash faultCppCrash;
+    int ret = faultCppCrash.TruncateAppCrashLog(testFile, target);
+
+    EXPECT_EQ(ret, 0);
+
+    std::string actualContent;
+    FileUtil::LoadStringFromFile(testFile, actualContent);
+    EXPECT_EQ(actualContent, expectedHeader);
+
+    remove(testFile.c_str());
+}
+
+/**
+ * @tc.name: TruncateAppCrashLogTest_002
+ * @tc.desc: TruncateAppCrashLog
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, TruncateAppCrashLogTest_002, testing::ext::TestSize.Level0)
+{
+    FaultLogCppCrash faultCppCrash;
+
+    int retNoFile = faultCppCrash.TruncateAppCrashLog("/data/file_not_exist_12345.log", "target");
+    EXPECT_EQ(retNoFile, -1);
+
+    std::string testFile = "/data/test_truncate_no_match.log";
+    std::string content = "Normal log without the magic keyword.";
+    ASSERT_TRUE(FileUtil::SaveStringToFile(testFile, content));
+
+    int retNoMatch = faultCppCrash.TruncateAppCrashLog(testFile, "MissingTag:");
+    EXPECT_EQ(retNoMatch, -1);
+
+    std::string checkContent;
+    FileUtil::LoadStringFromFile(testFile, checkContent);
+    EXPECT_EQ(checkContent, content);
+
+    remove(testFile.c_str());
+}
+
+/**
+ * @tc.name: FindTargetOffsetTest_001
+ * @tc.desc: FindTargetOffset
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, FindTargetOffsetTest_001, testing::ext::TestSize.Level0)
+{
+    std::string testFile = "/data/test_find_offset.log";
+    std::string target = "FIND_ME";
+    std::string content = "0123456789" + target + "suffix";
+    ASSERT_TRUE(FileUtil::SaveStringToFile(testFile, content));
+
+    FILE* fp = fopen(testFile.c_str(), "rb");
+    ASSERT_NE(fp, nullptr);
+
+    FaultLogCppCrash faultCppCrash;
+
+    long offset = faultCppCrash.FindTargetOffset(fp, target);
+    EXPECT_EQ(offset, 10);
+
+    EXPECT_EQ(faultCppCrash.FindTargetOffset(fp, ""), -1);
+
+    fclose(fp);
+    std::string emptyFile = "/data/test_empty_file.log";
+    ASSERT_TRUE(FileUtil::SaveStringToFile(emptyFile, ""));
+    FILE* fpEmpty = fopen(emptyFile.c_str(), "rb");
+    EXPECT_EQ(faultCppCrash.FindTargetOffset(fpEmpty, target), -1);
+
+    if (fpEmpty) {
+        fclose(fpEmpty);
+    }
+    remove(testFile.c_str());
+    remove(emptyFile.c_str());
+}
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -243,76 +243,73 @@ bool FaultLogCppCrash::ReportEventToAppEvent() const
     return true;
 }
 
-int FaultLogCppCrash::TruncateAppCrashLog(const char *logPath, const char *target)
+int FaultLogCppCrash::TruncateAppCrashLog(const std::string& logPath, const std::string& target)
 {
-    if (logPath == nullptr || target == nullptr) {
-        HIVIEW_LOGE("Invalid arguments");
+    if (logPath.empty() || target.empty()) {
         return -1;
     }
 
-    FILE* rawFp = fopen(logPath, "rb+");
+    FILE* rawFp = fopen(logPath.c_str(), "rb+");
     if (rawFp == nullptr) {
-        HIVIEW_LOGE("Failed open file:%{public}s, errno:%{public}d", logPath, errno);
-        return -1;
-    }
-    std::unique_ptr<FILE, int (*)(FILE *)> fpPtr(rawFp, fclose);
-
-    long fileSize = GetFileSize(fpPtr.get());
-    if (fileSize <= 0) {
-        HIVIEW_LOGE("Invalid file size:%{public}ld", fileSize);
+        HIVIEW_LOGE("Failed to open file: %{public}s, errno: %{public}d", logPath.c_str(), errno);
         return -1;
     }
 
-    long offset = FindTargetOffset(fpPtr.get(), fileSize, target);
+    std::unique_ptr<FILE, decltype(&fclose)> fpPtr(rawFp, fclose);
+    if (fpPtr == nullptr) {
+        HIVIEW_LOGE("Failed to open file: %{public}s, errno: %{public}d", logPath.c_str(), errno);
+        return -1;
+    }
+
+    long offset = FindTargetOffset(fpPtr.get(), target);
     if (offset < 0) {
+        HIVIEW_LOGW("Target not found or invalid file: %{public}s", logPath.c_str());
         return -1;
     }
 
-    if (ftruncate(fileno(fpPtr.get()), offset) != 0) {
-        HIVIEW_LOGE("ftruncate failed, errno:%{public}d", errno);
+    if (ftruncate(fileno(fpPtr.get()), static_cast<off_t>(offset)) != 0) {
+        HIVIEW_LOGE("ftruncate failed, errno: %{public}d", errno);
         return -1;
     }
+    HIVIEW_LOGI("Truncate log success at offset: %{public}ld", offset);
     return 0;
 }
 
-long FaultLogCppCrash::GetFileSize(FILE* fp)
+
+long FaultLogCppCrash::FindTargetOffset(FILE* fp, const std::string& target)
 {
-    if (fseek(fp, 0, SEEK_END) != 0) {
+    if (fp == nullptr || target.empty()) {
         return -1;
     }
+
+    (void)fseek(fp, 0, SEEK_END);
     long fileSize = ftell(fp);
-    if (fseek(fp, 0, SEEK_SET) != 0) {
-        HIVIEW_LOGE("fseek to SEEK_SET failed, errno:%{public}d", errno);
-        return -1;
-    }
-    return fileSize;
-}
+    rewind(fp);
 
-long FaultLogCppCrash::FindTargetOffset(FILE* fp, long fileSize, const char* target)
-{
-    if (fileSize <= 0 || target == nullptr) {
+    if (fileSize <= 0) {
         return -1;
     }
 
-    std::vector<char> buffer(static_cast<size_t>(fileSize) + 1, '\0');
-    size_t readSize = fread(buffer.data(), 1, static_cast<size_t>(fileSize), fp);
+    std::string content(static_cast<size_t>(fileSize), '\0');
+    size_t readSize = fread(&content[0], 1, static_cast<size_t>(fileSize), fp);
     if (readSize != static_cast<size_t>(fileSize)) {
-        HIVIEW_LOGE("Read error. Expected:%{public}ld, Actual:%{public}zu", fileSize, readSize);
+        HIVIEW_LOGE("Read file failed, expected %{public}ld, actual %{public}zu", fileSize, readSize);
         return -1;
     }
 
-    char *pos = strstr(buffer.data(), target);
-    if (pos == nullptr) {
-        HIVIEW_LOGW("Target string not found");
+    size_t pos = content.find(target);
+    if (pos == std::string::npos) {
         return -1;
     }
-    return static_cast<long>(pos - buffer.data());
+
+    return static_cast<long>(pos);
 }
 
 void FaultLogCppCrash::DoFaultLogLimit(const std::string& logPath) const
 {
     if (!Parameter::IsBetaVersion() && !Parameter::IsDeveloperMode()) {
-        int truncateRet = TruncateAppCrashLog(logPath.c_str(), "MergeLog:");
+        int truncateRet = TruncateAppCrashLog(logPath, "MergeLog:");
+        HIVIEW_LOGI("TruncateAppCrashLog truncateRet: %{public}d", truncateRet);
     }
 
     if (!IsFaultLogLimit()) {
