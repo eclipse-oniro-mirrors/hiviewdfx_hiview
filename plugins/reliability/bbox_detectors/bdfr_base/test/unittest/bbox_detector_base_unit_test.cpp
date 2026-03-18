@@ -289,7 +289,7 @@ HWTEST(BBoxDetectorModuleTest, BBoxDetectorModuleTest008, TestSize.Level1)
     auto sysEvent = make_shared<SysEvent>("test", nullptr, sysEventCreator);
     shared_ptr<Event> event = dynamic_pointer_cast<Event>(sysEvent);
     BBoxDetectorsBase bboxBase;
-    auto eventRecorder = std::make_shared<BboxEventRecorder>();
+    auto eventRecorder = std::make_unique<BboxEventRecorder>();
     bool isLastStartUpShort = false;
     bboxBase.HandleBBoxEvent(sysEvent, eventRecorder, isLastStartUpShort);
 
@@ -320,10 +320,10 @@ HWTEST(StartBootScanTest, StartBootScan001, TestSize.Level1)
         "-00001111],sysreboot[true],errdesc[boot_up_keypoint:46],logpath[/data/test/hisi_logs/]\n";
     EXPECT_CALL(MockHisyseventUtil::GetInstance(), IsEventProcessed).WillRepeatedly(testing::Return(false));
     FileUtil::SaveStringToFile("/data/log/bbox/history.log", bboxContent, true);
-    std::shared_ptr<BboxEventRecorder> eventRecorder = std::make_shared<BboxEventRecorder>();
+    std::unique_ptr<BboxEventRecorder> eventRecorder = std::make_unique<BboxEventRecorder>();
     BBoxDetectorsBase bboxBase;
     bboxBase.StartBootScan(eventRecorder);
-    ASSERT_TRUE(eventRecorder);
+    ASSERT_TRUE(eventRecorder == nullptr);
 }
 
 /**
@@ -351,10 +351,10 @@ HWTEST(StartBootScanTest, StartBootScan002, TestSize.Level1)
     bboxContent += "[system exception],module[AP],category[TEST:123],event[COLDBOOT],time[" + LocalTimeFormat() +
         "-00001111],sysreboot[true],errdesc[boot_up_keypoint:46],logpath[/data/test/hisi_logs/]\n";
     EXPECT_CALL(MockHisyseventUtil::GetInstance(), IsEventProcessed).WillRepeatedly(testing::Return(false));
-    std::shared_ptr<BboxEventRecorder> eventRecorder = std::make_shared<BboxEventRecorder>();
+    std::unique_ptr<BboxEventRecorder> eventRecorder = std::make_unique<BboxEventRecorder>();
     BBoxDetectorsBase bboxBase;
     bboxBase.StartBootScan(eventRecorder);
-    ASSERT_TRUE(eventRecorder);
+    ASSERT_TRUE(eventRecorder == nullptr);
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

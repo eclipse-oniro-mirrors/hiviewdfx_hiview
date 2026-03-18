@@ -58,7 +58,7 @@ BBoxDetectorsBase::~BBoxDetectorsBase()
 }
 
 void BBoxDetectorsBase::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent,
-                                        std::shared_ptr<BboxEventRecorder> eventRecorder,
+                                        std::unique_ptr<BboxEventRecorder> &eventRecorder,
                                         bool isLastStartUpShort)
 {
     if (PanicReport::IsRecoveryPanicEvent(sysEvent)) {
@@ -112,7 +112,7 @@ void BBoxDetectorsBase::HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent,
     HIVIEW_LOGI("HandleBBoxEvent event: %{public}s is success. happenTime %{public}" PRIu64, name.c_str(), happenTime);
 }
 
-void BBoxDetectorsBase::StartBootScan(std::shared_ptr<BboxEventRecorder> eventRecorder)
+void BBoxDetectorsBase::StartBootScan(std::unique_ptr<BboxEventRecorder> &eventRecorder)
 {
     constexpr int oneDaySecond = 60 * 60 * 24;
     constexpr int readLineNum = 5;

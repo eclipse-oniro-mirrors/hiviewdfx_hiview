@@ -53,7 +53,7 @@ void BBoxDetectorPlugin::OnLoad()
 
     eventListener_ = std::make_shared<BBoxListener>(*this);
     context->RegisterUnorderedEventListener(eventListener_);
-    eventRecorder_ = std::make_shared<BboxEventRecorder>();
+    eventRecorder_ = std::make_unique<BboxEventRecorder>();
 }
 
 void BBoxDetectorPlugin::OnUnload()

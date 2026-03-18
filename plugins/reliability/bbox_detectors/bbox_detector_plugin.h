@@ -47,7 +47,7 @@ private:
     bool timeEventAdded_ = false;
     class BBoxListener;
     std::shared_ptr<BBoxListener> eventListener_;
-    std::shared_ptr<BboxEventRecorder> eventRecorder_;
+    std::unique_ptr<BboxEventRecorder> eventRecorder_;
     bool isLastStartUpShort_ = false;
 };
 }

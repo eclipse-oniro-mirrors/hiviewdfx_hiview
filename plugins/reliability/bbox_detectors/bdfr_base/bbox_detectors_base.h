@@ -28,9 +28,9 @@ public:
     ~BBoxDetectorsBase() override;
 
     void HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent,
-                         std::shared_ptr<BboxEventRecorder> eventRecorder,
+                         std::unique_ptr<BboxEventRecorder> &eventRecorder,
                          bool isLastStartUpShort) override;
-    void StartBootScan(std::shared_ptr<BboxEventRecorder> eventRecorder) override;
+    void StartBootScan(std::unique_ptr<BboxEventRecorder> &eventRecorder) override;
 
     bool InitPanicReport(bool& isLastStartUpShort) override;
     bool IsBootCompleted() override;

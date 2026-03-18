@@ -28,9 +28,9 @@ public:
     virtual ~BBoxDetectorsInterface() = default;
 
     virtual void HandleBBoxEvent(std::shared_ptr<SysEvent> &sysEvent,
-                                 std::shared_ptr<BboxEventRecorder> eventRecorder,
+                                 std::unique_ptr<BboxEventRecorder> &eventRecorder,
                                  bool isLastStartUpShort) = 0;
-    virtual void StartBootScan(std::shared_ptr<BboxEventRecorder> eventRecorder) = 0;
+    virtual void StartBootScan(std::unique_ptr<BboxEventRecorder> &eventRecorder) = 0;
 
     virtual bool InitPanicReport(bool& isLastStartUpShort) = 0;
     virtual bool IsBootCompleted() = 0;
