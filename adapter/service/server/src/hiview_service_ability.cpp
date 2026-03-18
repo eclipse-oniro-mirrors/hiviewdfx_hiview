@@ -23,7 +23,6 @@
 #include <unistd.h>
 
 #include "accesstoken_kit.h"
-#include "bundle_mgr_client.h"
 #include "client/trace_collector_client.h"
 #include "client/memory_collector_client.h"
 #include "file_util.h"
@@ -38,13 +37,13 @@
 #include "utility/trace_collector.h"
 #include "xcollie/ipc_full.h"
 #include "common_utils.h"
+#include "bundle_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("HiViewSA");
 constexpr int MAXRETRYTIMEOUT = 10;
-constexpr int USER_ID_MOD = 200000;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
 constexpr int32_t MEDIA_UID = 1013;
 constexpr int32_t MEMMGR_UID = 1111;
@@ -53,33 +52,13 @@ constexpr char READ_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.READ_HIVIEW_SY
 constexpr char WRITE_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.WRITE_HIVIEW_SYSTEM";
 constexpr char HIVIEW_TRACE_MANAGE_PERMISSION[] = "ohos.permission.HIVIEW_TRACE_MANAGE";
 constexpr uint64_t IPC_FULL_CHECK_INTERVAL = 10; // 10s
+constexpr size_t MAX_LEN_OF_TRACE_PREFIX = 20;
+constexpr uint32_t MIN_TRACE_BUFFER_SIZE = 1024; // 1M
+constexpr uint32_t MAX_TRACE_BUFFER_SIZE = 15 * 1024; // 15M
+constexpr uint32_t MIN_TRACE_DURATION = 1000; // 1s
+constexpr uint32_t MAX_TRACE_DURATION = 15 * 1000; // 15s
 
-static std::string GetApplicationNameById(int32_t uid)
-{
-    std::string bundleName;
-    AppExecFwk::BundleMgrClient client;
-    if (client.GetNameForUid(uid, bundleName) != ERR_OK) {
-        HIVIEW_LOGW("Failed to query bundle name, uid:%{public}d.", uid);
-    }
-    return bundleName;
-}
-
-static std::string GetSandBoxPathByUid(int32_t uid)
-{
-    std::string bundleName = GetApplicationNameById(uid);
-    if (bundleName.empty()) {
-        return "";
-    }
-    std::string path;
-    path.append("/data/app/el2/")
-        .append(std::to_string(uid / USER_ID_MOD))
-        .append("/base/")
-        .append(bundleName)
-        .append("/cache/hiview");
-    return path;
-}
-
-static std::string ComposeFilePath(const std::string& rootDir, const std::string& destDir, const std::string& fileName)
+std::string ComposeFilePath(const std::string& rootDir, const std::string& destDir, const std::string& fileName)
 {
     std::string filePath(rootDir);
     if (destDir.empty()) {
@@ -90,7 +69,7 @@ static std::string ComposeFilePath(const std::string& rootDir, const std::string
     return filePath;
 }
 
-static bool HasAccessPermission(const std::string& permission)
+bool HasAccessPermission(const std::string& permission)
 {
     using namespace Security::AccessToken;
     AccessTokenID callerToken = IPCSkeleton::GetCallingTokenID();
@@ -115,6 +94,30 @@ bool IsSafePath(const std::string& basePath, const std::string& fullPath)
         return false;
     }
     return realFullPath.find(realBasePath) == 0;
+}
+
+void CheckAndReplaceTraceParam(std::string& prefix, uint32_t& bufferSize, uint32_t& duration)
+{
+    if (bufferSize < MIN_TRACE_BUFFER_SIZE) {
+        bufferSize = MIN_TRACE_BUFFER_SIZE;
+    } else if (bufferSize > MAX_TRACE_BUFFER_SIZE) {
+        bufferSize = MAX_TRACE_BUFFER_SIZE;
+    }
+    if (duration < MIN_TRACE_DURATION) {
+        duration = MIN_TRACE_DURATION;
+    } else if (duration > MAX_TRACE_DURATION) {
+        duration = MAX_TRACE_DURATION;
+    }
+    if (prefix.length() > MAX_LEN_OF_TRACE_PREFIX) {
+        prefix = prefix.substr(0, MAX_LEN_OF_TRACE_PREFIX);
+    }
+    // char is [a-zA-Z0-9_]
+    bool isValid = std::all_of(prefix.begin(), prefix.end(), [](char c) {
+        return isalnum(static_cast<unsigned char>(c)) || c == '_';
+    });
+    if (!isValid) {
+        prefix = "";
+    }
 }
 }
 
@@ -276,7 +279,7 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
     int32_t uid = IPCSkeleton::GetCallingUid();
     HIVIEW_LOGD("uid %{public}d, isMove: %{public}d, type:%{public}s",
         uid, isMove, logType.c_str());
-    std::string sandboxPath = GetSandBoxPathByUid(uid);
+    std::string sandboxPath = BundleUtil::GetSandBoxPath(uid, "base", "cache/hiview");
     if (sandboxPath.empty()) {
         return HiviewNapiErrCode::ERR_DEFAULT;
     }
@@ -373,7 +376,7 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, int32_t& errNo, 
         caller = "traceCommand";
     } else if (token_type == Security::AccessToken::TOKEN_HAP) {
         int32_t uid = IPCSkeleton::GetCallingUid();
-        caller = GetApplicationNameById(uid);
+        caller = BundleUtil::GetApplicationNameById(uid);
     } else {
         int32_t pid = IPCSkeleton::GetCallingPid();
         caller = CommonUtils::GetProcNameByPid(pid);
@@ -443,7 +446,7 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
     return 0;
 }
 
-ErrCode HiviewServiceAbility::RequestAppTrace(const TraceConfigParcelable &traceConfig,
+bool HiviewServiceAbility::CheckIdentity(int32_t uid, std::string& packageName, std::string& sandboxTracePath,
     const sptr<IRequestTraceCallback> &callback)
 {
     auto token_type = Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
@@ -452,24 +455,40 @@ ErrCode HiviewServiceAbility::RequestAppTrace(const TraceConfigParcelable &trace
         if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
             callback->OnTraceResponse(UCollect::UcError::PERMISSION_CHECK_FAILED, "");
         }
-        return 0;
+        return false;
     }
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    std::string packageName = GetApplicationNameById(uid);
+    packageName = BundleUtil::GetApplicationNameById(uid);
     if (packageName.empty()) {
         HIVIEW_LOGE("app packageName is empty");
         if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
             callback->OnTraceResponse(UCollect::UcError::SYSTEM_ERROR, "");
         }
+        return false;
+    }
+    sandboxTracePath = BundleUtil::GetSandBoxPath(uid, "log", "trace");
+    if (sandboxTracePath.empty()) {
+        HIVIEW_LOGE("app sandboxTracePath is empty");
+        if (!IsCallbackNull<IRequestTraceCallback>(callback)) {
+            callback->OnTraceResponse(UCollect::UcError::SYSTEM_ERROR, "");
+        }
+        return false;
+    }
+    return true;
+}
+
+ErrCode HiviewServiceAbility::RequestAppTrace(const TraceConfigParcelable &traceConfig,
+    const sptr<IRequestTraceCallback> &callback)
+{
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    std::string packageName;
+    std::string sandboxTracePath;
+    if (!CheckIdentity(uid, packageName, sandboxTracePath, callback)) {
         return 0;
     }
-
-    // will check config param follow up
     auto paramConfig = traceConfig.GetTraceConfig();
-    std::string sandboxTracePath = FileUtil::GetSandBoxLogPath(uid, packageName, "trace");
-    bool isDebugHap = false; // will implement follow up
-    UCollect::AppBundleInfo appInfo {uid, pid, packageName, sandboxTracePath, isDebugHap};
+    CheckAndReplaceTraceParam(paramConfig.prefix, paramConfig.bufferSize, paramConfig.duration);
+    UCollect::AppBundleInfo appInfo {uid, pid, packageName, sandboxTracePath, BundleUtil::IsDebugHap(uid)};
     auto traceCollector = UCollectUtil::TraceCollector::Create();
     auto openResult = traceCollector->OpenAppSystemTrace(paramConfig.bufferSize, appInfo);
     if (openResult.retCode != UCollect::UcError::SUCCESS) {

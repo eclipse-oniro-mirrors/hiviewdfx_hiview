@@ -15,6 +15,7 @@
 
 #include "user_data_size_reporter.h"
 
+#include "bundle_util.h"
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hisysevent_c.h"
@@ -41,14 +42,13 @@ void MayPushBackPath(std::vector<std::string>& paths, const std::string& path)
 std::vector<std::string> GetReportPath(int32_t uid, const std::string& pathHolder, const std::string& eventName)
 {
     std::vector<std::string> rtn;
-    MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "hiappevent"));
+    MayPushBackPath(rtn, BundleUtil::GetSandBoxPath(uid, "log", pathHolder, "hiappevent"));
     if (eventName == HiAppEvent::EVENT_MAIN_THREAD_JANK || eventName == HiAppEvent::EVENT_APP_FREEZE) {
-        MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "watchdog"));
+        MayPushBackPath(rtn, BundleUtil::GetSandBoxPath(uid, "log", pathHolder, "watchdog"));
     }
     if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {
-        MayPushBackPath(rtn, FileUtil::GetSandBoxLogPath(uid, pathHolder, "resourcelimit"));
+        MayPushBackPath(rtn, BundleUtil::GetSandBoxPath(uid, "log", pathHolder, "resourcelimit"));
     }
-
     return rtn;
 }
 

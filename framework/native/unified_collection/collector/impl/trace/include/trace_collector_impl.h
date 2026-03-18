@@ -18,6 +18,7 @@
 
 #include "ffrt.h"
 #include "trace_collector.h"
+#include "hitrace_define.h"
 
 namespace OHOS::HiviewDFX::UCollectUtil {
 using namespace UCollect;
@@ -45,6 +46,8 @@ private:
         uint64_t happenTime = 0);
     void RecoverTmpTrace();
     void ClearInvalidLinkTrace();
+    CollectResult<std::string> HandAppSystemTrace(const Hitrace::TraceRetInfo &traceInfo, const std::string &prefix,
+        const std::string &sandBoxPath);
 
     std::unique_ptr<ffrt::queue> ffrtQueue_;
     ffrt::task_handle handle_;
