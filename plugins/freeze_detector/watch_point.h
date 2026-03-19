@@ -58,7 +58,7 @@ public:
         Builder& InitLastMarkedEventId(const std::string& lastMarkedEventId);
         Builder& InitThermalLevel(const std::string& thermalLevel);
         Builder& InitExternalLog(const std::string& externalLog);
-        Builder& InitIsHicollie(const std::string& isHicollie);
+        Builder& InitIsHicollie(bool isHicollie);
         WatchPoint Build() const;
 
     private:

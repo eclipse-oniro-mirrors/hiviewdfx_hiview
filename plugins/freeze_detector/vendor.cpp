@@ -152,7 +152,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
         return "";
     }
     FaultLogInfoInner info;
-    FillSummaryInfo(info, watchPoint, type, processName);
+    FillSummaryInfo(info, watchPoint, logPath, type, processName);
     FillSectionMaps(info, watchPoint, isScbPro);
     AddFaultLog(info);
     return logPath;

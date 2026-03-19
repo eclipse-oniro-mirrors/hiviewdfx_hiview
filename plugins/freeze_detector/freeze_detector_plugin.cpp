@@ -148,7 +148,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.foreGround = sysEvent.GetEventIntValue(FreezeCommon::FOREGROUND) ? "Yes" : "No";
     params.msg = sysEvent.GetEventValue(FreezeCommon::EVENT_MSG);
     params.externalLog = sysEvent.GetEventValue(FreezeCommon::EVENT_EXTERNAL_LOG);
-    int isHicollieValue = sysEvent..GetEventIntValue(FreezeCommon::EVENT_IS_HICOLLIE);
+    int isHicollieValue = sysEvent.GetEventIntValue(FreezeCommon::EVENT_IS_HICOLLIE);
     params.isHicollie = (isHicollieValue == 1);
 }
 
