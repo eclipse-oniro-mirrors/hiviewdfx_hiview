@@ -21,7 +21,6 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
-#define BUF_CMD_LEN    128
 constexpr uint32_t MAX_NAME_LENGTH = 4096;
 constexpr const char* const TEST_TEMP_FILE = "/data/test/testfile";
 /**
