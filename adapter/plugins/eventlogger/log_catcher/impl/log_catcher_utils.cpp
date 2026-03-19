@@ -115,6 +115,13 @@ int WriteKernelStackToFd(int originFd, const std::string& msg, int pid)
     return -1;
 }
 
+int DumpStacktraceJsonFast(int pid, std::string& stack)
+{
+    DfxDumpCatcher dumplog;
+    std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, stack, 3000, 0, true);
+    return dumpResult.first;
+}
+
 int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, TerminalBinderInfo& binderInfo)
 {
     if (fd < 0) {

@@ -56,7 +56,9 @@ struct WatchPointParams {
     std::string logFile;
     std::string foreGround;
     std::string msg;
+    std::string externalLog;
     bool enableMainThreadSample;
+    bool isHicollie;
 };
 class FreezeDetectorPlugin : public Plugin {
 public:

@@ -25,6 +25,7 @@
 #include "power_mgr_client.h"
 #include "smart_parser.h"
 #include "watch_point.h"
+#include "faultlogger_client_msg.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -58,6 +59,11 @@ private:
     static void CheckProcessName(std::string& processName, std::string& isScbPro);
     void CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
         const std::string& stringId) const;
+    bool GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, std::ostringstream& body,
+                               WatchPoint& node) const;
+    void FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& logPath,
+                         const std::string& type, const std::string& processName) const;
+    void FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& isScbPro) const;
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
 };

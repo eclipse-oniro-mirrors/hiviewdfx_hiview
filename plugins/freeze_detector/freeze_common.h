@@ -64,6 +64,8 @@ public:
     static constexpr const char* EVENT_LAST_PROCESS_EVENT_ID = "LAST_PROCESS_EVENTID";
     static constexpr const char* EVENT_LAST_MARKED_EVENT_ID = "LAST_MARKED_EVENTID";
     static constexpr const char* EVENT_THERMAL_LEVEL = "THERMAL_LEVEL";
+    static constexpr const char* EVENT_EXTERNAL_LOG = "EXTERNAL_LOG";
+    static constexpr const char* EVENT_IS_HICOLLIE = "IS_HICOLLIE";
     static constexpr const char* WARNING_EVENTS[] = {
         "THREAD_BLOCK_6S",
         "LIFECYCLE_TIMEOUT",
