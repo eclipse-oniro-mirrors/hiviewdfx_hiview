@@ -90,11 +90,11 @@ std::string Vendor::GetTimeString(unsigned long long timestamp) const
 }
 
 void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& logPath,
-                     const std::string& type, const std::string& processName) const
+    const std::string& type, const std::string& processName) const
 {
     std::string stringId = watchPoint.GetStringId();
     int uid = watchPoint.GetUid();
-    if (watchPoint.GetIsHicollie() && !(uid >= ARKWEB_UID_START && uid <=ARKWEB_UID_END)) {
+    if (watchPoint.GetIsHicollie() && !(uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END)) {
         stringId = "APP_HICOLLIE";
     }
 
@@ -135,7 +135,7 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoi
     std::string procStatm = watchPoint.GetProcStatm();
     info.sectionMaps[FreezeCommon::PROC_STATM] = procStatm;
     info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetEnabelMainThreadSample() ?
-                                                       watchPoint.GetFreezeExtFile() : info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH];
+        watchPoint.GetFreezeExtFile() : info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH];
     info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
@@ -276,7 +276,7 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
 }
 
 bool Vendor::GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, std::ostringstream& body,
-        WatchPoint& node) const
+    WatchPoint& node) const
 {
     HIVIEW_LOGI("merging file:%{public}s.", filePath.c_str());
     std::string realPath;
