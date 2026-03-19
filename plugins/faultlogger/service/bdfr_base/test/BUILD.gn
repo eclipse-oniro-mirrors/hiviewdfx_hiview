@@ -103,6 +103,7 @@ ohos_unittest("FaultloggerBaseUnittest") {
     "unittest/faultlog_sanitizer_test.cpp",
     "unittest/faultlog_utils_test.cpp",
     "unittest/log_analyzer_test.cpp",
+    "unittest/faultlogger_base_test.cpp",
     "unittest/test_utils.cpp",
   ]
 
@@ -114,6 +115,7 @@ ohos_unittest("FaultloggerBaseUnittest") {
   deps = [
     "$hiview_base:hiviewbase_static_lib_for_tdd",
     "$hiview_base/event_publish:hiview_event_publish",
+    "$hiview_base/utility:hiview_utility",
     "$hiview_core:hiview_core_for_test",
     "$hiview_framework/native/unified_collection:ucollection_source",
     "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy_for_test",

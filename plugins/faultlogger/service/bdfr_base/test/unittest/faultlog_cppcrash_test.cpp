@@ -307,5 +307,20 @@ HWTEST(FaultloggerCppCrashTest, FindTargetOffsetTest_001, testing::ext::TestSize
     remove(testFile.c_str());
     remove(emptyFile.c_str());
 }
+
+/**
+ * @tc.name: ReportProcessKillEvent002
+ * @tc.desc: Test calling ReportProcessKillEvent Func
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ReportProcessKillEvent002, testing::ext::TestSize.Level3)
+{
+    FaultLogCppCrash faultCppCrash;
+    EXPECT_EQ(FaultLogCppCrash::GetLastLineHilogTime(""), -1);
+    FaultLogInfo info;
+    FaultLogCppCrash::ReportCppCrashToAppEvent(info), "";
+    EXPECT_EQ(FaultLogCppCrash::ReadLogFile(""), "");
+    EXPECT_EQ(FaultLogCppCrash::ReadLogFile("test"), "");
+}
 } // namespace HiviewDFX
 } // namespace OHOS
