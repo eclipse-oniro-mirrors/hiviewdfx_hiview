@@ -64,6 +64,7 @@ enum class GraphicMemOption {
 enum class MemoryClass {
     MEMORY_CLASS_GRAPH,
     MEMORY_CLASS_ARK_TS_HEAP,
+    MEMORY_CLASS_ARK_STATIC_HEAP,
     MEMORY_CLASS_DB,
     MEMORY_CLASS_DEV,
     MEMORY_CLASS_DMABUF,
@@ -96,6 +97,9 @@ enum class MemoryItemType {
     MEMORY_ITEM_TYPE_ANON_INODE,
     MEMORY_ITEM_TYPE_ANON_ARKTS_CODE,
     MEMORY_ITEM_TYPE_ANON_ARKTS_HEAP,
+    MEMORY_ITEM_TYPE_ANON_ARK_OBJECT,
+    MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT,
+    MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE,
     MEMORY_ITEM_TYPE_ANON_GUARD,
     MEMORY_ITEM_TYPE_ANON_BSS,
     MEMORY_ITEM_TYPE_ANON_NATIVE_HEAP_BRK,
@@ -168,7 +172,7 @@ struct MemoryItem {
     }
 };
 
-struct  MemoryDetail {
+struct MemoryDetail {
     MemoryClass memoryClass = MemoryClass::MEMORY_CLASS_OTHER;
     uint64_t totalRss = 0;
     uint64_t totalPss = 0;

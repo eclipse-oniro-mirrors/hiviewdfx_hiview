@@ -22,14 +22,15 @@ namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
 }
 
-TraceRet DynamicState::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info)
+TraceRet DynamicState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+    TraceRetInfo &info)
 {
-    if (scenario != TraceScenario::TRACE_DYNAMIC) {
-        HIVIEW_LOGW(":%{public}s, scenario:%{public}d is fail", GetTag().c_str(), static_cast<int>(scenario));
+    if (scenarioName != ScenarioName::APP_DYNAMIC) {
+        HIVIEW_LOGW("DynamicState scenario:%{public}s is fail", scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
     info = Hitrace::DumpTrace(maxDuration, happenTime);
-    HIVIEW_LOGI(":%{public}s, DumpTrace result:%{public}d", GetTag().c_str(), info.errorCode);
+    HIVIEW_LOGI("DynamicState DumpTrace result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }
 }

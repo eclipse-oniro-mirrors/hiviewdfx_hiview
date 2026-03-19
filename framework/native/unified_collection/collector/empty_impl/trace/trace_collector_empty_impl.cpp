@@ -40,6 +40,18 @@ CollectResult<std::string> TraceCollectorEmptyImpl::DumpAppTrace(const UCollectC
     return {UCollect::UcError::FEATURE_CLOSED};
 }
 
+CollectResult<int32_t> TraceCollectorEmptyImpl::OpenAppSystemTrace(uint32_t bufferSize,
+    const UCollect::AppBundleInfo &appInfo)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
+CollectResult<std::string> TraceCollectorEmptyImpl::DumpAppSystemTrace(const std::string &prefix, int64_t traceDuration,
+    const UCollect::AppBundleInfo &appInfo)
+{
+    return {UCollect::UcError::FEATURE_CLOSED};
+}
+
 CollectResult<std::vector<std::string>> TraceCollectorEmptyImpl::DumpTrace(UCollect::TraceCaller caller)
 {
     return {UCollect::UcError::FEATURE_CLOSED};

@@ -26,7 +26,7 @@ namespace HiviewDFX {
 namespace {
 const char TEST_SMAPS_PATH[] = "/data/test/hiview/ucollection/smaps_example.txt";
 const int SUM_1_TO_43 = 946; // 946 : total sum from 1 to 43
-const std::map<MemoryItemType, std::string> TYPE_TO_NAME_MAP = {
+const std::map<MemoryItemType, std::string> TYPE_TO_NAME_MAP_TEST = {
     {MemoryItemType::MEMORY_ITEM_ENTITY_DB, "/data/other.db"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_DB_SHM, "/data/storage/other.db-shm"},
     {MemoryItemType::MEMORY_ITEM_ENTITY_HAP, "/system/app/other.hap"},
@@ -90,7 +90,7 @@ public:
 HWTEST_F(MemoryUtilsTest, MemoryUtilsTest001, TestSize.Level1)
 {
     ProcessMemoryDetail processMemoryDetail;
-    ASSERT_TRUE(ParseSmaps(1, TEST_SMAPS_PATH, processMemoryDetail, GraphicMemOption::LOW_LATENCY));
+    ASSERT_TRUE(UCollectUtil::ParseSmaps(1, TEST_SMAPS_PATH, processMemoryDetail, GraphicMemOption::LOW_LATENCY));
     ASSERT_EQ(processMemoryDetail.totalRss, SUM_1_TO_43);
     ASSERT_EQ(processMemoryDetail.totalPss, SUM_1_TO_43);
     ASSERT_EQ(processMemoryDetail.totalSharedDirty, SUM_1_TO_43);
@@ -115,8 +115,8 @@ HWTEST_F(MemoryUtilsTest, MemoryUtilsTest001, TestSize.Level1)
             } else {
                 ASSERT_EQ(item.iNode, static_cast<int32_t>(item.type) + 1);
             }
-            if (TYPE_TO_NAME_MAP.find(item.type) != TYPE_TO_NAME_MAP.end()) {
-                ASSERT_EQ(item.name, TYPE_TO_NAME_MAP.at(item.type));
+            if (TYPE_TO_NAME_MAP_TEST.find(item.type) != TYPE_TO_NAME_MAP_TEST.end()) {
+                ASSERT_EQ(item.name, TYPE_TO_NAME_MAP_TEST.at(item.type));
             }
         }
     }

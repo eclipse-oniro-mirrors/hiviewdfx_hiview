@@ -17,6 +17,9 @@
 #include "trace_utils.h"
 
 namespace OHOS::HiviewDFX {
+namespace {
+constexpr char DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
+constexpr char CONFIG_PATH[] = "/system/etc/hiview/";
 namespace CleanThreshold {
 const uint32_t XPERF = 6;
 const uint32_t RELIABILITY = 3;
@@ -26,11 +29,12 @@ const uint32_t ZIP_FILE = 20;
 const uint32_t TELE_ZIP_FILE = 20;
 const uint32_t APP_FILE = 40;
 }
+}
 
 auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uint32_t maxDuration, uint64_t happenTime)
     ->std::shared_ptr<TraceStrategy>
 {
-    StrategyParam strategyParam {maxDuration, happenTime, EnumToString(caller)};
+    StrategyParam strategyParam {maxDuration, happenTime, EnumToString(caller), DB_PATH, CONFIG_PATH};
     switch (caller) {
         case UCollect::TraceCaller::XPERF:
             return std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::XPERF,
@@ -64,9 +68,9 @@ auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uin
 auto TraceStrategyFactory::CreateTraceStrategy(const std::string& callName, uint32_t maxDuration, uint64_t happenTime,
     bool isNeedFlowControl)->std::shared_ptr<TraceStrategy>
 {
-    StrategyParam strategyParam {maxDuration, happenTime, callName};
+    StrategyParam strategyParam {maxDuration, happenTime, callName, DB_PATH, CONFIG_PATH};
     if (callName == CallerName::COMMAND) {
-        return std::make_shared<TraceStrategy>(strategyParam, TraceScenario::TRACE_COMMAND);
+        return std::make_shared<TraceStrategy>(strategyParam, ScenarioName::COMMAND);
     }
     if (isNeedFlowControl) {
         return std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::OTHER,
@@ -80,13 +84,14 @@ auto TraceStrategyFactory::CreateTraceStrategy(const std::string& callName, uint
 auto TraceStrategyFactory::CreateStrategy(UCollect::TeleModule module, uint32_t maxDuration, uint64_t happenTime)
     ->std::shared_ptr<TelemetryStrategy>
 {
-    return std::make_shared<TelemetryStrategy>(StrategyParam {maxDuration, happenTime, ModuleToString(module)},
+    StrategyParam strategyParam {maxDuration, happenTime, ModuleToString(module), DB_PATH, CONFIG_PATH};
+    return std::make_shared<TelemetryStrategy>(strategyParam,
         std::make_shared<TraceZipHandler>(UNIFIED_TELEMETRY_PATH, CleanThreshold::TELE_ZIP_FILE, ""));
 }
 
 auto TraceStrategyFactory::CreateAppStrategy()->std::shared_ptr<TraceAppStrategy>
 {
     return std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH,
-        CleanThreshold::APP_FILE));
+        CleanThreshold::APP_FILE), DB_PATH);
 }
 }

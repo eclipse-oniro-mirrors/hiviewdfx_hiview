@@ -216,8 +216,9 @@ void TelemetryListener::HandleStart(const TelemetryParams &params)
     if (params.bufferSize > 0) {
         bufferSize = params.bufferSize;
     }
-    ScenarioInfo telemetryScenario {
-        .scenario = TraceScenario::TRACE_TELEMETRY,
+    Scenario telemetryScenario {
+        .name = ScenarioName::TELEMETRY,
+        .level = ScenarioLevel::TELEMETRY,
         .args = {
             .tags = std::move(traceTags),
             .bufferSize = bufferSize,
@@ -249,7 +250,7 @@ void TelemetryListener::HandleStart(const TelemetryParams &params)
 void TelemetryListener::HandleStop()
 {
     std::unique_lock<ffrt::mutex> lock(telemetryMutex_);
-    TraceStateMachine::GetInstance().CloseTrace(TraceScenario::TRACE_TELEMETRY);
+    TraceStateMachine::GetInstance().CloseTrace(ScenarioName::TELEMETRY);
     TraceFlowController(FlowControlName::TELEMETRY).ClearTelemetryData();
     isCanceled_ = true;
 }
@@ -371,8 +372,7 @@ bool TelemetryListener::CheckTimeOut(const Event &msg, TelemetryParams &params, 
         params.traceDuration = MAX_DURATION;
     }
     int64_t running_time = 0;
-    TraceFlowController flowControl(FlowControlName::TELEMETRY);
-    auto ret = flowControl.QueryRunningTime(params.telemetryId, running_time);
+    auto ret = TraceFlowController(FlowControlName::TELEMETRY).QueryRunningTime(params.telemetryId, running_time);
     if (ret == TelemetryRet::FAILED) {
         errorMsg.append("failed to query running time");
         return true;

@@ -84,7 +84,21 @@ private:
         }
     }
 
+    template<typename T>
+    bool IsCallbackNull(const sptr<T> &callback)
+    {
+        if (callback == nullptr) {
+            return true;
+        }
+        OHOS::sptr<OHOS::IRemoteObject> callbackObject = callback->AsObject();
+        if (callbackObject == nullptr) {
+            return true;
+        }
+        return false;
+    }
 private:
+    bool CheckIdentity(int32_t uid, std::string& packageName, std::string& sandboxTracePath,
+        const sptr<IRequestTraceCallback> &callback);
     void GetFileInfoUnderDir(const std::string& dirPath, std::vector<HiviewFileInfo>& fileInfos);
     ErrCode CopyOrMoveFile(
         const std::string& logType, const std::string& logName, const std::string& dest, bool isMove);

@@ -22,35 +22,38 @@
 namespace OHOS::HiviewDFX {
 class CommandState : public TraceBaseState {
 public:
-    TraceRet DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info) override;
-    TraceRet TraceDropOn(TraceScenario scenario) override;
-    TraceRet CloseTrace(TraceScenario scenario) override;
+    TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
+        TraceRetInfo &info) override;
+    TraceRet TraceDropOn(const std::string& scenarioName) override;
+    TraceRet CloseTrace(const std::string& scenarioName) override;
 
 protected:
-    std::string GetTag() const override
+    std::string GetStateScenario() const override
     {
-        return "CommandState";
+        return ScenarioName::COMMAND;
     }
 
-    TraceScenario GetCurrentScenario() const override
+    uint32_t GetStateLevel() const override
     {
-        return TraceScenario::TRACE_COMMAND;
+        return ScenarioLevel::COMMAND;
     }
 };
 
 class CommandDropState : public TraceBaseState {
 public:
-    TraceRet TraceDropOff(TraceScenario scenario, TraceRetInfo &info) override;
+    TraceRet TraceDropOff(const std::string& scenarioName, TraceRetInfo &info) override;
+
+    TraceRet CloseTrace(const std::string& scenarioName) override;
 
 protected:
-    std::string GetTag() const override
+    std::string GetStateScenario() const override
     {
-        return "CommandDropState";
+        return ScenarioName::COMMAND_DROP;
     }
 
-    TraceScenario GetCurrentScenario() const override
+    uint32_t GetStateLevel() const override
     {
-        return TraceScenario::TRACE_COMMAND;
+        return ScenarioLevel::COMMAND_DROP;
     }
 };
 }

@@ -104,9 +104,6 @@ bool IsSymlink(const std::string& path);
 std::string ReadSymlink(const std::string& path);
 
 // for report
-int GetUserId(int32_t uid);
-std::string GetSandBoxBasePath(int32_t uid, const std::string& pathHolder);
-std::string GetSandBoxLogPath(int32_t uid, const std::string& pathHolder, const std::string& subPath);
 bool CreateMultiDirectory(const std::string &dirPath);
 } // namespace FileUtil
 } // namespace HiviewDFX

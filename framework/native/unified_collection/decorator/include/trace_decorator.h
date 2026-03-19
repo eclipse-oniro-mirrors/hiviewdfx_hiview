@@ -104,6 +104,18 @@ public:
         uint32_t timeLimit, uint64_t happenTime) override;
     CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime) override;
     CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) override;
+
+    CollectResult<int32_t> OpenAppSystemTrace(uint32_t bufferSize, const UCollect::AppBundleInfo& appInfo) override
+    {
+        return traceCollector_->OpenAppSystemTrace(bufferSize, appInfo);
+    }
+
+    CollectResult<std::string> DumpAppSystemTrace(const std::string& prefix, int64_t traceDuration,
+        const UCollect::AppBundleInfo& appInfo) override
+    {
+        return traceCollector_->DumpAppSystemTrace(prefix, traceDuration, appInfo);
+    }
+
     void PrepareTrace() override;
     static void SaveStatSpecialInfo();
     static void ResetStatInfo();

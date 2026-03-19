@@ -522,6 +522,9 @@
         "OHOS::HiviewDFX::RestorableDbStore::CreateTransaction(int)";
         "OHOS::HiviewDFX::RestorableDbStore::CreateTransaction(long)";
         "OHOS::HiviewDFX::PrivacyManager::IsUeEnabled()";
+        "OHOS::HiviewDFX::BundleUtil::GetApplicationNameById(int)";
+        "OHOS::HiviewDFX::BundleUtil::IsDebugHap(int)";
+        "OHOS::HiviewDFX::BundleUtil::GetSandBoxPath(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

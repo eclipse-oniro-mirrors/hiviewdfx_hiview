@@ -27,6 +27,7 @@ ohos_source_set("hiview_utility") {
 
   sources = [
     "ash_memory_utils.cpp",
+    "bundle_util.cpp",
     "cjson_util.cpp",
     "common_utils.cpp",
     "dynamic_module.cpp",
@@ -67,6 +68,8 @@ ohos_source_set("hiview_utility") {
     "relational_store:native_rdb",
     "samgr:samgr_proxy",
     "zlib:shared_libz",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
   ]
 
   part_name = "hiview"

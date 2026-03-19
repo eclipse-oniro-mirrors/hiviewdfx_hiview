@@ -18,6 +18,7 @@
 
 #include "ffrt.h"
 #include "trace_collector.h"
+#include "hitrace_define.h"
 
 namespace OHOS::HiviewDFX::UCollectUtil {
 using namespace UCollect;
@@ -26,6 +27,9 @@ public:
     ~TraceCollectorImpl() override = default;
 
 public:
+    CollectResult<int32_t> OpenAppSystemTrace(uint32_t bufferSize, const AppBundleInfo& appInfo) override;
+    CollectResult<std::string> DumpAppSystemTrace(const std::string& prefix, int64_t traceDuration,
+        const AppBundleInfo& appInfo) override;
     CollectResult<std::vector<std::string>> DumpTrace(TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
         TraceCaller caller, uint32_t maxDuration, uint64_t happenTime) override;
@@ -42,6 +46,8 @@ private:
         uint64_t happenTime = 0);
     void RecoverTmpTrace();
     void ClearInvalidLinkTrace();
+    CollectResult<std::string> HandAppSystemTrace(const Hitrace::TraceRetInfo &traceInfo, const std::string &prefix,
+        const std::string &sandBoxPath);
 
     std::unique_ptr<ffrt::queue> ffrtQueue_;
     ffrt::task_handle handle_;

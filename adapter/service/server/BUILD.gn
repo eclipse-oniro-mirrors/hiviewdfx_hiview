@@ -58,12 +58,11 @@ ohos_source_set("hiview_service_stub") {
   deps = [
     "$hiview_base:hiviewbase",
     "../client:hiview_service_stub_inner",
+    "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hicollie:libhicollie",
     "hilog:libhilog",
@@ -71,6 +70,7 @@ ohos_source_set("hiview_service_stub") {
     "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
 
   part_name = "hiview"

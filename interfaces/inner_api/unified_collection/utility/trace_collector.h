@@ -21,6 +21,7 @@
 
 #include "collect_result.h"
 #include "trace_caller.h"
+#include "unified_collect.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -42,6 +43,9 @@ public:
     //postTime unit: milliseconds
     virtual CollectResult<int32_t> FilterTraceOn(UCollect::TeleModule module, uint64_t postTime = 0) = 0;
     virtual CollectResult<int32_t> FilterTraceOff(UCollect::TeleModule module) = 0;
+    virtual CollectResult<int32_t> OpenAppSystemTrace(uint32_t bufferSize, const UCollect::AppBundleInfo& appInfo) = 0;
+    virtual CollectResult<std::string> DumpAppSystemTrace(const std::string& prefix, int64_t traceDuration,
+        const UCollect::AppBundleInfo& appInfo) = 0;
     virtual void PrepareTrace() = 0;
 
     static std::shared_ptr<TraceCollector> Create();

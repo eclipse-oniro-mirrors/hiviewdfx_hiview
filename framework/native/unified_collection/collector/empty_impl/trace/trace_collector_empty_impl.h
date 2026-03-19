@@ -23,6 +23,9 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 class TraceCollectorEmptyImpl : public TraceCollector {
 public:
+    CollectResult<int32_t> OpenAppSystemTrace(uint32_t bufferSize, const UCollect::AppBundleInfo& appInfo) override;
+    CollectResult<std::string> DumpAppSystemTrace(const std::string& prefix, int64_t traceDuration,
+        const UCollect::AppBundleInfo& appInfo) override;
     CollectResult<std::vector<std::string>> DumpTrace(UCollect::TraceCaller caller) override;
     CollectResult<std::vector<std::string>> DumpTraceWithDuration(
             UCollect::TraceCaller caller, uint32_t timeLimit, uint64_t happenTime) override;

@@ -374,48 +374,6 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest017, testing::ext::TestSize.Lev
 }
 
 /**
- * @tc.name: BaseUtilityUnitTest018
- * @tc.desc: Test GetUserId defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueIC8IZD
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest018, testing::ext::TestSize.Level3)
-{
-    int userId = FileUtil::GetUserId(20020193);
-    ASSERT_EQ(userId, 100);
-    userId = FileUtil::GetUserId(1201);
-    ASSERT_EQ(userId, 0);
-}
-
-/**
- * @tc.name: BaseUtilityUnitTest019
- * @tc.desc: Test GetSandBoxLogPath defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueIC8IZD
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest019, testing::ext::TestSize.Level3)
-{
-    std::string sandBox = FileUtil::GetSandBoxLogPath(20020193, "com.ohos.xxx", "resourcelimit");
-    ASSERT_EQ(sandBox, "/data/app/el2/100/log/com.ohos.xxx/resourcelimit");
-    sandBox = FileUtil::GetSandBoxLogPath(20020193, "com.ohos.xxx", "watchdog");
-    ASSERT_EQ(sandBox, "/data/app/el2/100/log/com.ohos.xxx/watchdog");
-    sandBox = FileUtil::GetSandBoxLogPath(20020193, "com.ohos.xxx", "hiappevent");
-    ASSERT_EQ(sandBox, "/data/app/el2/100/log/com.ohos.xxx/hiappevent");
-}
-
-/**
- * @tc.name: BaseUtilityUnitTest020
- * @tc.desc: Test GetSandBoxBasePath defined in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueIC8IZD
- */
-HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest020, testing::ext::TestSize.Level3)
-{
-    std::string sandBox = FileUtil::GetSandBoxBasePath(20020193, "com.ohos.xxx");
-    ASSERT_EQ(sandBox, "/data/app/el2/100/base/com.ohos.xxx/cache/hiappevent");
-}
-
-/**
  * @tc.name: BaseUtilityUnitTest021
  * @tc.desc: Test GetDeviceValidSize defined in namespace FileUtil
  * @tc.type: FUNC

@@ -18,6 +18,7 @@
 #include "trace_common_state.h"
 #include "trace_telemetry_state.h"
 #include "trace_dynamic_state.h"
+#include "trace_app_state.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "unistd.h"
@@ -27,8 +28,9 @@ namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
 const uint32_t FILE_SIZE_LITMIT = 100 * 1024;
 
-const ScenarioInfo SCENARIO_COMMON_DROP_INFO {
-    .scenario = TraceScenario::TRACE_COMMON_DROP,
+const Scenario SCENARIO_COMMON_DROP_INFO {
+    .name = ScenarioName::COMMON_DROP,
+    .level = ScenarioLevel::COMMON_DROP,
     .args = {
         .tags = {
             "net", "dsched", "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio",
@@ -39,8 +41,9 @@ const ScenarioInfo SCENARIO_COMMON_DROP_INFO {
     }
 };
 
-const ScenarioInfo SCENARIO_COMMON_INFO {
-    .scenario = TraceScenario::TRACE_COMMON,
+const Scenario SCENARIO_COMMON_INFO {
+    .name = ScenarioName::COMMON_BETA,
+    .level = ScenarioLevel::COMMON_BETA,
     .args = {
         .tags = {"net", "dsched", "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio",
             "zmedia", "dcamera", "zcamera", "dhfwk", "app", "gresource", "ability", "power", "samgr", "ffrt", "nweb",
@@ -50,8 +53,9 @@ const ScenarioInfo SCENARIO_COMMON_INFO {
     }
 };
 
-const ScenarioInfo SCENARIO_COMMON_SCHEDLT_INFO {
-    .scenario = TraceScenario::TRACE_COMMON,
+const Scenario SCENARIO_COMMON_SCHEDLT_INFO {
+    .name = ScenarioName::COMMON_BETA,
+    .level = ScenarioLevel::COMMON_BETA,
     .args = {
         .tags = {"net", "dsched", "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio",
             "zmedia", "dcamera", "zcamera", "dhfwk", "app", "gresource", "ability", "power", "samgr", "ffrt", "nweb",
@@ -67,11 +71,11 @@ TraceStateMachine::TraceStateMachine()
     currentState_ = std::make_shared<TraceBaseState>();
 }
 
-TraceRet TraceStateMachine::DumpTrace(TraceScenario scenario, uint32_t maxDuration, uint64_t happenTime,
+TraceRet TraceStateMachine::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
     TraceRetInfo &info)
 {
     std::lock_guard<ffrt::mutex> lock(traceMutex_);
-    auto ret = currentState_->DumpTrace(scenario, maxDuration, happenTime, info);
+    auto ret = currentState_->DumpTrace(scenarioName, maxDuration, happenTime, info);
     if (ret.GetCodeError() == TraceErrorCode::TRACE_IS_OCCUPIED ||
         ret.GetCodeError() == TraceErrorCode::WRONG_TRACE_MODE) {
         RefreshState();
@@ -97,23 +101,23 @@ TraceRet TraceStateMachine::DumpTraceWithFilter(uint32_t maxDuration, uint64_t h
     return currentState_->DumpTraceWithFilter(maxDuration, happenTime, info);
 }
 
-TraceRet TraceStateMachine::OpenTrace(const ScenarioInfo& scenarioInfo)
+TraceRet TraceStateMachine::OpenTrace(const Scenario& scenario)
 {
-    HIVIEW_LOGI("TraceStateMachine OpenTrace scenario:%{public}d", static_cast<int>(scenarioInfo.scenario));
+    HIVIEW_LOGI("TraceStateMachine OpenTrace scenario:%{public}s", scenario.name.c_str());
     std::lock_guard<ffrt::mutex> lock(traceMutex_);
-    return currentState_->OpenTrace(scenarioInfo);
+    return currentState_->OpenTrace(scenario);
 }
 
-TraceRet TraceStateMachine::TraceDropOn(TraceScenario scenario)
+TraceRet TraceStateMachine::TraceDropOn(const std::string& scenarioName)
 {
     std::lock_guard<ffrt::mutex> lock(traceMutex_);
-    return currentState_->TraceDropOn(scenario);
+    return currentState_->TraceDropOn(scenarioName);
 }
 
-TraceRet TraceStateMachine::TraceDropOff(TraceScenario scenario, TraceRetInfo &info)
+TraceRet TraceStateMachine::TraceDropOff(const std::string& scenarioName, TraceRetInfo &info)
 {
     std::lock_guard<ffrt::mutex> lock(traceMutex_);
-    return currentState_->TraceDropOff(scenario, info);
+    return currentState_->TraceDropOff(scenarioName, info);
 }
 
 TraceRet TraceStateMachine::TraceTelemetryOn()
@@ -128,10 +132,10 @@ TraceRet TraceStateMachine::TraceTelemetryOff()
     return currentState_->TraceTelemetryOff();
 }
 
-TraceRet TraceStateMachine::CloseTrace(TraceScenario scenario)
+TraceRet TraceStateMachine::CloseTrace(const std::string& scenarioName)
 {
     std::lock_guard<ffrt::mutex> lock(traceMutex_);
-    if (auto ret = currentState_->CloseTrace(scenario); !ret.IsSuccess()) {
+    if (auto ret = currentState_->CloseTrace(scenarioName); !ret.IsSuccess()) {
         HIVIEW_LOGW("fail stateError:%{public}d, codeError%{public}d", static_cast<int >(ret.stateError_),
             ret.codeError_);
         return ret;
@@ -141,8 +145,14 @@ TraceRet TraceStateMachine::CloseTrace(TraceScenario scenario)
 
 void TraceStateMachine::TransToDynamicState(int32_t appPid)
 {
-    HIVIEW_LOGI("to app state");
+    HIVIEW_LOGI("to app dynamic state");
     currentState_ = std::make_shared<DynamicState>(appPid);
+}
+
+void TraceStateMachine::TransToAppSystemState(int32_t appPid)
+{
+    HIVIEW_LOGI("to app system state");
+    currentState_ = std::make_shared<AppSystemState>(appPid);
 }
 
 void TraceStateMachine::TransToCommonState()
@@ -231,10 +241,10 @@ TraceRet TraceStateMachine::PowerTelemetryOff()
 
 TraceRet TraceStateMachine::RefreshState()
 {
-    auto currentScenario = currentState_->GetCurrentScenario();
-    if (currentScenario == TraceScenario::TRACE_COMMON_DROP || currentScenario == TraceScenario::TRACE_COMMON) {
+    auto scenarioName = currentState_->GetStateScenario();
+    if (scenarioName == ScenarioName::COMMON_BETA|| scenarioName == ScenarioName::COMMON_DROP) {
         HIVIEW_LOGI("trans to CloseState");
-        currentState_->CloseTrace(currentScenario);
+        currentState_->CloseTrace(scenarioName);
     }
 
     // All switch is closed

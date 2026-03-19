@@ -26,10 +26,15 @@
 #include "trace_decorator.h"
 #include "trace_strategy.h"
 #include "trace_state_machine.h"
+#ifdef TRACE_IMPL_UNITTEST
+#include "test_trace_state_machine.h"
+#endif
 #include "trace_utils.h"
 #include "trace_strategy_factory.h"
 #include "hiview_zip_util.h"
 #include "hiview_event_report.h"
+#include "unified_collect.h"
+#include "parameter_ex.h"
 
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectUtil;
@@ -42,6 +47,13 @@ namespace {
 DEFINE_LOG_TAG("UCollectUtil-TraceCollector");
 constexpr uid_t HIVIEW_UID = 1201;
 const int64_t MS_TO_US = 1000;
+#ifndef TRACE_IMPL_UNITTEST
+constexpr char DB_PATH[] = "/data/log/hiview/unified_collection/trace/";
+constexpr char CONFIG_PATH[] = "/system/etc/hiview/";
+#else
+constexpr char DB_PATH[] = "/data/test/trace_db/";
+constexpr char CONFIG_PATH[] = "/data/test/trace_config/";
+#endif
 
 void ZipShareTempTraceFile(const std::string &srcFile)
 {
@@ -173,6 +185,98 @@ CollectResult<int32_t> TraceCollectorImpl::FilterTraceOff(TeleModule module)
     }
     HIVIEW_LOGI("module:%{public}d", static_cast<int32_t>(module));
     return GetUcError(TraceStateMachine::GetInstance().TraceTelemetryOff());
+}
+
+CollectResult<int32_t> TraceCollectorImpl::OpenAppSystemTrace(uint32_t bufferSize, const AppBundleInfo &appInfo)
+{
+    if (auto uid = getuid(); uid != HIVIEW_UID) {
+        HIVIEW_LOGE("Do not allow uid:%{public}d to open trace except in hiview process", uid);
+        return {UcError::PERMISSION_CHECK_FAILED};
+    }
+    std::lock_guard<std::mutex> lock(dumpMutex_);
+    if (!Parameter::IsDeveloperMode() || !appInfo.isDebugHap) {
+        if (TraceFlowController(appInfo.uid, DB_PATH, CONFIG_PATH).IsAppOverFlow()) {
+            return {UcError::TRACE_OVER_FLOW};
+        }
+    } else {
+        HIVIEW_LOGI("Debug mode, do not flow control");
+    }
+    Scenario scenarioInfo {
+        .name = ScenarioName::APP_SYSTEM,
+        .level = ScenarioLevel::APP_SYSTEM,
+        .args = {
+            .tags = {"ability", "ace", "app", "sched", "window", "ark", "multimodalinput", "binder", "ffrt"},
+            .bufferSize = bufferSize,  // app trace buffer size
+            .appPid = appInfo.pid,
+            .filterPids = { appInfo.pid }
+        },
+    };
+#ifndef TRACE_IMPL_UNITTEST
+    TraceRet ret = TraceStateMachine::GetInstance().OpenTrace(scenarioInfo);
+#else
+    TraceRet ret = MockTraceStateMachine::GetInstance().OpenTrace(scenarioInfo);
+#endif
+    if (!ret.IsSuccess()) {
+        return {GetUcError(ret)};
+    }
+    return {UcError::SUCCESS};
+}
+
+CollectResult<std::string> TraceCollectorImpl::DumpAppSystemTrace(const std::string &prefix, int64_t traceDuration,
+    const AppBundleInfo &appInfo)
+{
+    if (auto uid = getuid(); uid != HIVIEW_UID) {
+        HIVIEW_LOGE("Do not allow uid:%{public}d to dump trace except in hiview process", uid);
+        return {UcError::PERMISSION_CHECK_FAILED};
+    }
+    std::lock_guard<std::mutex> lock(dumpMutex_);
+#ifndef TRACE_IMPL_UNITTEST
+    auto openInfo = TraceStateMachine::GetInstance().GetCurrentAppInfo();
+#else
+    auto openInfo = MockTraceStateMachine::GetInstance().GetCurrentAppInfo();
+#endif
+    int32_t openPid = openInfo.first;
+    if (openPid != appInfo.pid) {
+        HIVIEW_LOGW("pid check fail. current pid:%{public}d, param pid:%{public}d", openPid, appInfo.pid);
+        return GetUcError(TraceRet(TraceStateCode::FAIL));
+    }
+    TraceRetInfo traceInfo;
+#ifndef TRACE_IMPL_UNITTEST
+    TraceRet ret = TraceStateMachine::GetInstance().DumpTrace(ScenarioName::APP_SYSTEM, 0, 0, traceInfo);
+    TraceStateMachine::GetInstance().CloseTrace(ScenarioName::APP_SYSTEM);
+#else
+    TraceRet ret = MockTraceStateMachine::GetInstance().DumpTrace(traceInfo);
+#endif
+    if (!ret.IsSuccess()) {
+        return GetUcError(ret);
+    }
+    TraceFlowController(appInfo.uid, DB_PATH, CONFIG_PATH).StoreAppTraceInfo(appInfo.packageName,
+        traceDuration, traceInfo.fileSize);
+    if (traceInfo.outputFiles.empty() || traceInfo.outputFiles[0].empty()) {
+        return {UcError::SYSTEM_ERROR};
+    }
+    return HandAppSystemTrace(traceInfo, prefix, appInfo.sandBoxPath);
+}
+
+
+CollectResult<std::string> TraceCollectorImpl::HandAppSystemTrace(const TraceRetInfo& traceInfo,
+    const std::string& prefix, const std::string &sandBoxPath)
+{
+    CollectResult<std::string> result;
+    std::string srcName = traceInfo.outputFiles[0];
+    std::string traceName = FileUtil::ExtractFileName(srcName);
+    if (!prefix.empty()) {
+        traceName = prefix + "_" + traceName;
+    }
+    std::string appTraceFullName = sandBoxPath + "/" + traceName;
+    if (FileUtil::CopyFileFast(srcName, appTraceFullName) == 0) {
+        result.data = traceName;
+        result.retCode = UcError::SUCCESS;
+    } else {
+        result.retCode = UcError::WRITE_FAILED;
+        HIVIEW_LOGE("copy trace file %{public}s fail", appTraceFullName.c_str());
+    }
+    return result;
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpTrace(TraceCaller caller)

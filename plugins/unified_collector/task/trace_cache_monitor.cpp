@@ -176,7 +176,8 @@ void TraceCacheMonitor::SetCacheStatus(int32_t interval)
     clock_gettime(CLOCK_BOOTTIME, &bts);
     uint64_t endTime = static_cast<uint64_t>(bts.tv_sec * S_TO_NS + bts.tv_nsec);
     int32_t timeDiff = static_cast<int32_t>((endTime - startTime) / S_TO_NS);
-    switch (TraceFlowController(BEHAVIOR).UseCacheTimeQuota(timeDiff)) {
+    TraceFlowController flowController(BEHAVIOR);
+    switch (flowController.UseCacheTimeQuota(timeDiff)) {
         case CacheFlow::EXIT:
             HIVIEW_LOGE("failed to get and insert record, close task");
             ExitMonitorLoop();

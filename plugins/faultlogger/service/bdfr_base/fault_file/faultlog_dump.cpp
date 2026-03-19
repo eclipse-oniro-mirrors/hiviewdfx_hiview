@@ -165,17 +165,18 @@ bool FaultLogDump::DumpByFileName(const DumpRequest& request) const
     if (!request.fileName.empty()) {
         std::string content;
         std::string extContent;
-        bool extContentGetRes = false;
+        bool contentGetRes = faultLogManager_->GetFaultLogContent(request.fileName, content);
+        if (!contentGetRes) {
+            dprintf(fd_, "Fail to dump the log.\n");
+            return true;
+        }
+        contentGetRes = false;
         if (!request.extFileName.empty() && FileUtil::LoadStringFromFile(request.extFileName, extContent)) {
-            extContentGetRes = true;
+            contentGetRes = true;
             dprintf(fd_, "%s\n", FILE_SEPARATOR);
         }
-        if (faultLogManager_->GetFaultLogContent(request.fileName, content)) {
-            dprintf(fd_, "%s\n", content.c_str());
-        } else {
-            dprintf(fd_, "Fail to dump the log.\n");
-        }
-        if (extContentGetRes) {
+        dprintf(fd_, "%s\n", content.c_str());
+        if (contentGetRes) {
             dprintf(fd_, "%s\n", FILE_SEPARATOR);
             dprintf(fd_, "%s\n", extContent.c_str());
             dprintf(fd_, "%s\n", FILE_SEPARATOR);

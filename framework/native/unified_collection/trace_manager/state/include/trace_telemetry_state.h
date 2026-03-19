@@ -45,14 +45,14 @@ public:
     void InitTelemetryStatus(bool isStatusOn) override;
 
 protected:
-    std::string GetTag() const override
+    std::string GetStateScenario() const override
     {
-        return "TelemetryState";
+        return ScenarioName::TELEMETRY;
     }
 
-    TraceScenario GetCurrentScenario() const override
+    uint32_t GetStateLevel() const override
     {
-        return TraceScenario::TRACE_TELEMETRY;
+        return ScenarioLevel::TELEMETRY;
     }
 
 private:

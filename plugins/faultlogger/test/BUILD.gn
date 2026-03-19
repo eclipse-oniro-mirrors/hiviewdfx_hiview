@@ -57,6 +57,7 @@ ohos_unittest("FaultloggerUnittest") {
     "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_manager.cpp",
     "$hiview_faultlogger/service/extension_manager/src/faultlog_ext_conn_manager.cpp",
     "$hiview_faultlogger/service/extension_manager/src/faultlog_ext_connection.cpp",
+    "$hiview_faultlogger/service/faultlog_bootscan_listener.cpp",
     "$hiview_faultlogger/service/faultlogger.cpp",
     "$hiview_faultlogger/service/page_history/page_history_manager.cpp",
     "$hiview_faultlogger/service/page_history/page_history_recorder.cpp",
