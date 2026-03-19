@@ -70,7 +70,7 @@ void GenerateFile(const std::string &path, unsigned int size)
  * @tc.require:
  * @tc.author: liuwei
  */
-HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest001, TestSize.Level1)
+HWTEST_F(BBoxDetectorUnitTest, BBoxDetectorUnitTest001, TestSize.Level0)
 {
     /**
      * @tc.steps: step1. init bboxDetector and parse hisysevent.
