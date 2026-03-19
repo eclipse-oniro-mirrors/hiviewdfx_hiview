@@ -796,6 +796,7 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
 void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
     std::string& stack, const std::string& msg, std::string& kernelStack, const std::string& mainStack)
 {
+    int isHicollie = event->GetEventIntValue("IS_HICOLLIE");
     std::string message;
     std::string eventHandlerStr;
     ParseMsgForMessageAndEventHandler(msg, message, eventHandlerStr);
@@ -803,26 +804,30 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
 
     std::string jsonStack = event->GetEventValue("STACK");
     std::string bundleName = event->GetEventValue("PACKAGE_NAME");
-    HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
-    if (FileUtil::FileExists(jsonStack)) {
-        jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
-    }
-
-    if (!jsonStack.empty() &&
-        (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
-        jsonStack = StringUtil::UnescapeJsonStringValue(jsonStack);
-        if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
-            stack = jsonStack;
-        }
+    if (isHicollie) {
+        GetHicollieStack(event, jsonStack, stack);
     } else {
-        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
-            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
-        };
-        if (!stackQueue_) {
-            return;
+        HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
+        if (FileUtil::FileExists(jsonStack)) {
+            jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
         }
-        ffrt::task_handle handle = stackQueue_->submit_h(task, ffrt::task_attr().name("appfreeze dump stack"));
-        stackQueue_->wait(handle);
+
+        if (!jsonStack.empty() &&
+            (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
+            jsonStack = StringUtil::UnescapeJsonStringValue(jsonStack);
+            if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
+                stack = jsonStack;
+            }
+        } else {
+            auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
+                this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
+            };
+            if (!stackQueue_) {
+                return;
+            }
+            ffrt::task_handle handle = stackQueue_->submit_h(task, ffrt::task_attr().name("appfreeze dump stack"));
+            stackQueue_->wait(handle);
+        }
     }
 
     GetFailedDumpStackMsg(stack, event);
