@@ -23,7 +23,8 @@ WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
     enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
-    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
+    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
+    externalLog_(""), isHicollie_(false)
 {
 }
 
@@ -57,7 +58,9 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     lastDispatchEventId_(builder.lastDispatchEventId_),
     lastProcessEventId_(builder.lastProcessEventId_),
     lastMarkedEventId_(builder.lastMarkedEventId_),
-    thermalLevel_(builder.thermalLevel_)
+    thermalLevel_(builder.thermalLevel_),
+    externalLog_(builder.externalLog_),
+    isHicollie_(builder.isHicollie_)
 {
 }
 
@@ -65,7 +68,8 @@ WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
     enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
-    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_("")
+    timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
+    externalLog_(""), isHicollie_(false)
 {
 }
 
@@ -250,6 +254,18 @@ WatchPoint::Builder& WatchPoint::Builder::InitThermalLevel(const std::string& th
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitExternalLog(const std::string& externalLog)
+{
+    externalLog_ = externalLog;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitIsHicollie(bool isHicollie)
+{
+    isHicollie_ = isHicollie;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -399,6 +415,16 @@ std::string WatchPoint::GetThermalLevel() const
     return thermalLevel_;
 }
 
+std::string WatchPoint::GetExternalLog() const
+{
+    return externalLog_;
+}
+
+bool WatchPoint::GetIsHicollie() const
+{
+    return isHicollie_;
+}
+
 void WatchPoint::SetLogPath(const std::string& logPath)
 {
     logPath_ = logPath;
@@ -447,6 +473,16 @@ void WatchPoint::SetLastMarkedEventId(const std::string& lastMarkedEventId)
 void WatchPoint::SetThermalLevel(const std::string& thermalLevel)
 {
     thermalLevel_ = thermalLevel;
+}
+
+void WatchPoint::SetExternalLog(const std::string& externalLog)
+{
+    externalLog_ = externalLog;
+}
+
+void WatchPoint::SetIsHicollie(bool isHicollie)
+{
+    isHicollie_ = isHicollie;
 }
 
 bool WatchPoint::operator<(const WatchPoint& node) const

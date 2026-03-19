@@ -147,6 +147,9 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.logFile = std::regex_search(params.info, result, reg) ? result[1].str() : params.info;
     params.foreGround = sysEvent.GetEventIntValue(FreezeCommon::FOREGROUND) ? "Yes" : "No";
     params.msg = sysEvent.GetEventValue(FreezeCommon::EVENT_MSG);
+    params.externalLog = sysEvent.GetEventValue(FreezeCommon::EVENT_EXTERNAL_LOG);
+    int isHicollieValue = sysEvent.GetEventIntValue(FreezeCommon::EVENT_IS_HICOLLIE);
+    params.isHicollie = (isHicollieValue == 1);
 }
 
 WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
@@ -166,20 +169,22 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitApplicationInfo(params.applicationInfo).InitTaskName(params.taskName).InitClusterRaw(params.clusterRaw)
         .InitTimeoutEventId(params.timeoutEventId).InitLastDispatchEventId(params.lastDispatchEventId)
         .InitLastProcessEventId(params.lastProcessEventId).InitLastMarkedEventId(params.lastMarkedEventId)
-        .InitThermalLevel(params.thermalLevel).Build();
+        .InitThermalLevel(params.thermalLevel).InitExternalLog(params.externalLog).InitIsHicollie(params.isHicollie)
+        .Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
         " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
         " enableMainThreadSample=%{public}d, appRunningUniqueId=%{public}s, foreGround=%{public}s,"
         " applicationInfo=%{public}s, taskName=%{public}s, timeoutEventId=%{public}s, lastDispatchEventId=%{public}s,"
-        " lastProcessEventId=%{public}s,lastMarkedEventId=%{public}s, thermalLevel=%{public}s",
+        " lastProcessEventId=%{public}s,lastMarkedEventId=%{public}s, thermalLevel=%{public}s, externalLog size:"
+        "%{public}zu, isHicollie=%{public}d",
         event.domain_.c_str(), event.eventName_.c_str(), params.pid, params.uid, params.seq,
         params.packageName.c_str(), params.processName.c_str(), params.logFile.c_str(), params.hitraceIdInfo.c_str(),
         params.procStatm.c_str(), params.hostResourceWarning.c_str(), params.freezeExtFile.c_str(),
         params.enableMainThreadSample, params.appRunningUniqueId.c_str(), params.foreGround.c_str(),
         params.applicationInfo.c_str(), params.taskName.c_str(), params.timeoutEventId.c_str(),
         params.lastDispatchEventId.c_str(), params.lastProcessEventId.c_str(), params.lastMarkedEventId.c_str(),
-        params.thermalLevel.c_str());
+        params.thermalLevel.c_str(), params.externalLog.size(), params.isHicollie);
     return watchPoint;
 }
 

@@ -94,6 +94,9 @@ private:
     WindowIdInfo DumpWindowInfo(int fd);
     std::string GetWindowIdFromLine(const std::string& line);
     bool WriteCommonHead(int fd, std::shared_ptr<SysEvent> event);
+    void FormatHicollieStack(std::string& jsonstack, std::string& textStack, int pid,
+                             std::string& bundleName, int errcode);
+    bool GetHicollieStack(std::shared_ptr<SysEvent> event, std::string& jsonStack, std::string& stack);
     void GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
         std::string& stack, const std::string& msg, std::string& kernelStack, const std::string& mainStack = "");
     bool IsKernelStack(const std::string& stack);

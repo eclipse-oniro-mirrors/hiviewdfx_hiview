@@ -92,6 +92,8 @@ namespace {
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+    constexpr int ARKWEB_UID_START = 20100000;
+    constexpr int ARKWEB_UID_END = 20109999;
 }
 
 REGISTER(EventLogger);
@@ -743,9 +745,58 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
     stack = kernelStackStart + stack;
 }
 
+void EventLogger::FormatHicollieStack(std::string& jsonstack, std::string& textStack, int pid,
+                                      std::string& bundleName, int errcode)
+{
+    bool ret = false;
+    if (errcode == 0) {
+        ret = DfxJsonFormatter::FormatJsonStack(jsonstack, textStack, true, bundleName);
+        if (!ret) {
+            HIVIEW_LOGE("format stack failed, pid:%{public}d", pid);
+        }
+    } else if (errcode == 1) {
+        ret = DfxJsonFormatter::FormatKernelStack(jsonstack, textStack, false, true, bundleName);
+        if (!ret) {
+            HIVIEW_LOGE("format kernel stack failed, pid:%{public}d", pid);
+        }
+    } else {
+        HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
+    }
+}
+
+bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string& jsonStack, std::string& stack)
+{
+    int pid = event->GetEventIntValue("PID");
+    int uid = event->GetEventIntValue("UID");
+    std::string allStack;
+    std::string bundleName = CommonUtils::GetProcFullNameByPid(pid);
+    std::string stackStr;
+    int ret = LogCatcherUtils::DumpStacktraceJsonFast(pid, jsonStack);
+    std::string jsonStack1 = jsonStack;
+    FormatHicollieStack(jsonStack1, stackStr, pid, bundleName, ret);
+    allStack += stackStr;
+    if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
+        std::string procName = CommonUtils::GetProcFullNameByPid(pid);
+        size_t len = std::char_traits<char>::length(":render");
+        if (procName.find(":render") != std::string::npos) {
+            std::string appName = procName.substr(0, procName.size() - len);
+            int pidOfApp = CommonUtils::GetPidByName(appName);
+            std::string appStackStr;
+            ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
+            std::string stackApp;
+            FormatHicollieStack(appStackStr, stackApp, pidOfApp, appName, ret);
+            allStack += "\nApp Process:\n";
+            allStack += stackApp;
+        }
+    }
+    stack = allStack;
+    return true;
+}
+
 void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
     std::string& stack, const std::string& msg, std::string& kernelStack, const std::string& mainStack)
 {
+    int isHicollie = event->GetEventIntValue("IS_HICOLLIE");
     std::string message;
     std::string eventHandlerStr;
     ParseMsgForMessageAndEventHandler(msg, message, eventHandlerStr);
@@ -753,26 +804,30 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
 
     std::string jsonStack = event->GetEventValue("STACK");
     std::string bundleName = event->GetEventValue("PACKAGE_NAME");
-    HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
-    if (FileUtil::FileExists(jsonStack)) {
-        jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
-    }
-
-    if (!jsonStack.empty() &&
-        (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
-        jsonStack = StringUtil::UnescapeJsonStringValue(jsonStack);
-        if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
-            stack = jsonStack;
-        }
+    if (isHicollie) {
+        GetHicollieStack(event, jsonStack, stack);
     } else {
-        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
-            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
-        };
-        if (!stackQueue_) {
-            return;
+        HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
+        if (FileUtil::FileExists(jsonStack)) {
+            jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
         }
-        ffrt::task_handle handle = stackQueue_->submit_h(task, ffrt::task_attr().name("appfreeze dump stack"));
-        stackQueue_->wait(handle);
+
+        if (!jsonStack.empty() &&
+            (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
+            jsonStack = StringUtil::UnescapeJsonStringValue(jsonStack);
+            if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
+                stack = jsonStack;
+            }
+        } else {
+            auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
+                this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
+            };
+            if (!stackQueue_) {
+                return;
+            }
+            ffrt::task_handle handle = stackQueue_->submit_h(task, ffrt::task_attr().name("appfreeze dump stack"));
+            stackQueue_->wait(handle);
+        }
     }
 
     GetFailedDumpStackMsg(stack, event);

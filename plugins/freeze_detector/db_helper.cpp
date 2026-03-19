@@ -65,7 +65,8 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
             .InitTimestamp(record->happenTime_).InitPid(pid).InitUid(uid).InitTid(tid).InitPackageName(packageName)
             .InitProcessName(record->GetEventValue(FreezeCommon::EVENT_PROCESS_NAME))
             .InitMsg(StringUtil::ReplaceStr(record->GetEventValue(FreezeCommon::EVENT_MSG), "\\n", "\n"))
-            .InitFreezeExtFile(record->GetEventValue(FreezeCommon::FREEZE_INFO_PATH)).Build();
+            .InitFreezeExtFile(record->GetEventValue(FreezeCommon::FREEZE_INFO_PATH))
+            .InitExternalLog(record->GetEventValue(FreezeCommon::EVENT_EXTERNAL_LOG)).Build();
         std::string info = record->GetEventValue(EventStore::EventCol::INFO);
         std::regex reg("logPath:([^,]+)");
         std::smatch smatchResult;

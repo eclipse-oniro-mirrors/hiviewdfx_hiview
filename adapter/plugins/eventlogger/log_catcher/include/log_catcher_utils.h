@@ -26,6 +26,7 @@ struct TerminalBinderInfo {
     std::string bundleName = "";
 };
 
+int DumpStacktraceJsonFast(int pid, std::string& stack);
 int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack,
     TerminalBinderInfo& binderInfo);
 void GetThreadStack(const std::string& processStack, std::string& stack, int tid);
