@@ -59,6 +59,7 @@ public:
         Builder& InitThermalLevel(const std::string& thermalLevel);
         Builder& InitExternalLog(const std::string& externalLog);
         Builder& InitIsHicollie(bool isHicollie);
+        Builder& InitReportLifecycleAsAppfreeze(bool reportLifecycleToFreeze);
         WatchPoint Build() const;
 
     private:
@@ -94,6 +95,7 @@ public:
         std::string thermalLevel_;
         std::string externalLog_;
         bool isHicollie_;
+        bool reportLifecycleToFreeze_;
         friend class WatchPoint;
     };
 
@@ -133,6 +135,7 @@ public:
     std::string GetThermalLevel() const;
     std::string GetExternalLog() const;
     bool GetIsHicollie() const;
+    bool GetReportLifeCycleAsAppfreeze() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -180,6 +183,7 @@ private:
     std::string thermalLevel_;
     std::string externalLog_;
     bool isHicollie_;
+    bool reportLifecycleToFreeze_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -66,6 +66,7 @@ public:
     static constexpr const char* EVENT_THERMAL_LEVEL = "THERMAL_LEVEL";
     static constexpr const char* EVENT_EXTERNAL_LOG = "EXTERNAL_LOG";
     static constexpr const char* EVENT_IS_HICOLLIE = "IS_HICOLLIE";
+    static constexpr const char* EVENT_REPORT_LIFECYCLE_AS_APPFREEZE = "report_lifecycle_as_appfreeze";
     static constexpr const char* WARNING_EVENTS[] = {
         "THREAD_BLOCK_6S",
         "LIFECYCLE_TIMEOUT",

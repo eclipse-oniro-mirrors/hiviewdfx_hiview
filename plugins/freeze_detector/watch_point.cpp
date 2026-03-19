@@ -24,7 +24,7 @@ WatchPoint::WatchPoint()
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
     enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false)
 {
 }
 
@@ -60,7 +60,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     lastMarkedEventId_(builder.lastMarkedEventId_),
     thermalLevel_(builder.thermalLevel_),
     externalLog_(builder.externalLog_),
-    isHicollie_(builder.isHicollie_)
+    isHicollie_(builder.isHicollie_),
+    reportLifecycleToFreeze_(builder.reportLifecycleToFreeze_)
 {
 }
 
@@ -69,7 +70,7 @@ WatchPoint::Builder::Builder()
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
     enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false)
 {
 }
 
@@ -266,6 +267,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitIsHicollie(bool isHicollie)
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitReportLifecycleAsAppfreeze(bool reportLifecycleToFreeze)
+{
+    reportLifecycleToFreeze_ = reportLifecycleToFreeze;
+    return *this;
+}
+
 WatchPoint WatchPoint::Builder::Build() const
 {
     WatchPoint watchPoint = WatchPoint(*this);
@@ -423,6 +430,11 @@ std::string WatchPoint::GetExternalLog() const
 bool WatchPoint::GetIsHicollie() const
 {
     return isHicollie_;
+}
+
+bool WatchPoint::GetReportLifeCycleAsAppfreeze() const
+{
+    return reportLifecycleToFreeze_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)
