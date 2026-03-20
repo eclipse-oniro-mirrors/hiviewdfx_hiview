@@ -74,6 +74,7 @@ namespace {
     constexpr const char* TASK_TIMEOUT = "CONGESTION";
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
+    constexpr const char* DUMP_TRACE_FLAG = "trace";
 #ifdef WINDOW_MANAGER_ENABLE
     constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -153,7 +154,8 @@ bool EventLogger::CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent,
     const std::string &eventName)
 {
 #ifdef HITRACE_CATCHER_ENABLE
-    if (eventName == "FREEZE_HALF_HIVIEW_LOG") {
+    if (eventName == "FREEZE_HALF_HIVIEW_LOG" ||
+        (sysEvent->GetValue("eventLog_action").find(DUMP_TRACE_FLAG) != std::string::npos)) {
         HandleFreezeHalfHiview(sysEvent, Parameter::IsBetaVersion());
         return false;
     }
