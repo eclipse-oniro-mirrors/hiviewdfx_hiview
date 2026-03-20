@@ -507,6 +507,51 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_009, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_MergeEventLog_Test_001
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_MergeEventLog_Test_001, TestSize.Level3)
+{
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_TIMEOUT")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("FreezeVender_012")
+        .InitReportLifecycleAsAppfreeze(true)
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint1);
+
+    std::vector<FreezeResult> result;
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+    vendor->MergeEventLog(watchPoint1, list, result).empty();
+
+    WatchPoint watchPoint2 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_TIMEOUT")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("FreezeVender_012")
+        .InitReportLifecycleAsAppfreeze(false)
+        .Build();
+    list.push_back(watchPoint2);
+    ASSERT_TRUE(vendor->MergeEventLog(watchPoint2, list, result).empty());
+
+    WatchPoint watchPoint3 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("FreezeVender_012")
+        .InitReportLifecycleAsAppfreeze(false)
+        .Build();
+    list.push_back(watchPoint3);
+    ASSERT_TRUE(vendor->MergeEventLog(watchPoint3, list, result).empty());
+}
+
+/**
  * @tc.name: FreezeVender_010
  * @tc.desc: FreezeDetector
  */
@@ -835,6 +880,37 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_008, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeDetectorPlugin_009
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_009, TestSize.Level3)
+{
+    auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
+    std::string testName = "FreezeDetectorPlugin_009";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
+        nullptr, jsonStr);
+    ASSERT_TRUE(sysEvent != nullptr);
+    sysEvent->eventName_ = testName;
+    sysEvent->SetSeq(1234567890);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PID, getpid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_TID, getpid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_UID, getuid());
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PACKAGE_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::SYSRQ_TIME, "12453");
+    sysEvent->SetEventValue(EventStore::EventCol::INFO, testName);
+    sysEvent->SetEventValue(FreezeCommon::FOREGROUND, true);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_REPORT_LIFECYCLE_AS_APPFREEZE, true);
+    WatchPointParams params;
+    auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
+    freezeDetectorPlugin->ExtractWatchPointParams(*(sysEvent.get()), *(sysEvent.get()), params);
+    ASSERT_TRUE(params.reportLifecycleToFreeze);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_REPORT_LIFECYCLE_AS_APPFREEZE, false);
+    freezeDetectorPlugin->ExtractWatchPointParams(*(sysEvent.get()), *(sysEvent.get()), params);
+    ASSERT_TRUE(!params.reportLifecycleToFreeze);
+}
+
+/**
  * @tc.name: FreezeCommon_001
  * @tc.desc: FreezeDetector
  */
@@ -1005,6 +1081,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
         .InitAppRunningUniqueId("20250924")
         .InitTaskName("testTaskName")
         .InitClusterRaw("testClusterRaw")
+        .InitReportLifecycleAsAppfreeze(true)
         .Build();
     auto wp1 = std::make_unique<WatchPoint>(watchPoint);
     ASSERT_EQ(wp1->GetTid(), 1000);
@@ -1015,6 +1092,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_005, TestSize.Level3)
     ASSERT_EQ(wp1->GetAppRunningUniqueId(), "20250924");
     ASSERT_EQ(wp1->GetTaskName(), "testTaskName");
     ASSERT_EQ(wp1->GetClusterRaw(), "testClusterRaw");
+    ASSERT_EQ(wp1->GetReportLifeCycleAsAppfreeze(), true);
 }
 
 /**

@@ -63,6 +63,7 @@ namespace {
         "NOTE: Current fault may be caused by the system's low memory or thermal throttling, "
         "you may ignore it and analysis other faults.";
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
+    constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
     constexpr const char* BACKGROUND_VALUE = "No";
     constexpr const char* WAIT_EVENT = "Wait Event";
     constexpr const char* LAST_DISPATCH_EVENT = "lastDispatchEvent";
@@ -384,6 +385,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     if (!JudgeSysWarningEvent(watchPoint.GetStringId(), type, processName, list, result)) {
         return "";
     }
+    CovertSysfreezeToAppfreeze(type, watchPoint);
     CovertHighLoadToWarning(type, watchPoint);
     CovertFreezeToWarning(type, list, watchPoint.GetStringId());
     pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
@@ -427,6 +429,13 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
 
     watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint));
     return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
+}
+
+void Vendor::CovertSysfreezeToAppfreeze(std::string& type, const WatchPoint& watchPoint) const
+{
+    if (watchPoint.GetStringId() == LIFECYCLE_TIMEOUT && watchPoint.GetReportLifeCycleAsAppfreeze()) {
+        type = APPFREEZE;
+    }
 }
 
 void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,

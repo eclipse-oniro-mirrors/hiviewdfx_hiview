@@ -59,6 +59,7 @@ private:
     static void CheckProcessName(std::string& processName, std::string& isScbPro);
     void CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
         const std::string& stringId) const;
+    void CovertSysfreezeToAppfreeze(std::string& type, const WatchPoint& watchPoint) const;
     bool GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, std::ostringstream& body,
                                WatchPoint& node) const;
     void FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& logPath,
