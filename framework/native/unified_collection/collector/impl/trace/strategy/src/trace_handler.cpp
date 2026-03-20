@@ -237,15 +237,15 @@ auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, 
     return files;
 }
 
-auto TraceAppHandler::HandleTrace(const std::vector<std::string>& outputFiles,
+auto TraceAppHandler::HandleTrace(const std::string& srcFile,
     const UCollectClient::AppCaller& appCaller, int64_t traceOpenTime, int64_t traceDumpTime) -> std::string
 {
-    if (outputFiles.empty()) {
-        return {};
+    if (srcFile.empty()) {
+        return "";
     }
     std::string traceFileName = MakeTraceFileName(appCaller, traceOpenTime, traceDumpTime);
-    HIVIEW_LOGI("src:%{public}s, dir:%{public}s", outputFiles[0].c_str(), traceFileName.c_str());
-    FileUtil::RenameFile(outputFiles[0], traceFileName);
+    HIVIEW_LOGI("src:%{public}s, dir:%{public}s", srcFile.c_str(), traceFileName.c_str());
+    FileUtil::RenameFile(srcFile, traceFileName);
     DoClean(tracePath_, cleanThreshold_);
     return {traceFileName};
 }
