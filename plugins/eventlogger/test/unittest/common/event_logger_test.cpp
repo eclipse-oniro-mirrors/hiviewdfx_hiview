@@ -1345,5 +1345,38 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_TestLogMerge001, TestSize.Level3)
     sleep(2);
 }
 
+/**
+ * @tc.name: EventLoggerTest_CheckContinueReport_001
+ * @tc.desc: Test GetRebootReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_CheckContinueReport_001, TestSize.Level3)
+{
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string eventName = "FREEZE_HALF_HIVIEW_LOG";
+    std::string action = "eventLog_action"; // test value
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(eventName,
+        nullptr, jsonStr);
+    sysEvent->SetEventValue("PROCESS_NAME", eventName);
+    sysEvent->eventName_ = eventName;
+    sysEvent->SetEventValue(action, "test");
+    auto eventLogger = std::make_shared<EventLogger>();
+    int pid = getpid();
+    auto result = eventLogger->CheckContinueReport(sysEvent, pid, eventName);
+    EXPECT_EQ(false, result);
+    eventName = "EventLoggerTest_CheckContinueReport_001";
+    result = eventLogger->CheckContinueReport(sysEvent, pid, eventName);
+    EXPECT_EQ(true, result);
+    eventName = "GESTURE_NAVIGATION_BACK";
+    result = eventLogger->CheckContinueReport(sysEvent, pid, eventName);
+    EXPECT_EQ(false, result);
+    eventName = "FREQUENT_CLICK_WARNING";
+    sysEvent->SetEventValue(action, "tr");
+    result = eventLogger->CheckContinueReport(sysEvent, pid, eventName);
+    EXPECT_EQ(false, result);
+    sysEvent->SetEventValue(action, "trace");
+    result = eventLogger->CheckContinueReport(sysEvent, pid, eventName);
+    EXPECT_EQ(false, result);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
