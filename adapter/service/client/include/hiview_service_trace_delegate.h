@@ -46,10 +46,11 @@ private:
 
 class HiViewServiceTraceDelegate {
 public:
-    static CollectResult<std::vector<std::string>> DumpSnapshot(int32_t client);
+    static CollectResult<std::vector<std::string>> DumpSnapshot(
+        int32_t client, const std::string& outputPath = "");
     static CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags,
         const UCollectClient::TraceParam& param, const std::vector<int32_t>& filterPids);
-    static CollectResult<int32_t> RecordingOn();
+    static CollectResult<int32_t> RecordingOn(const std::string& outputPath = "");
     static CollectResult<std::vector<std::string>> RecordingOff();
     static CollectResult<int32_t> Close();
     static CollectResult<int32_t> CaptureDurationTrace(UCollectClient::AppCaller &appCaller);

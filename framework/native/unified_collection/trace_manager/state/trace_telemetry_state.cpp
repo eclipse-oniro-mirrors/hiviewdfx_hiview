@@ -17,6 +17,7 @@
 #include <hitrace_option/hitrace_option.h>
 
 #include "hiview_logger.h"
+#include "trace_state_machine.h"
 
 namespace OHOS::HiviewDFX {
 namespace {
@@ -44,7 +45,11 @@ TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happ
             return TraceRet(TraceStateCode::FAIL);
         }
     }
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
+    const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+    if (!outputPath.empty()) {
+        HIVIEW_LOGI("TelemetryState, DumpTrace outputPath:%{public}s", outputPath.c_str());
+    }
+    info = Hitrace::DumpTrace(maxDuration, happenTime, outputPath);
     HIVIEW_LOGI("TelemetryState, result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }

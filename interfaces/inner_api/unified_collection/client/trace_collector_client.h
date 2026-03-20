@@ -54,10 +54,11 @@ public:
 
 public:
     virtual CollectResult<std::vector<std::string>> DumpSnapshot(
-        UCollect::TraceClient client = UCollect::TraceClient::COMMON_DEV) = 0;
+        UCollect::TraceClient client = UCollect::TraceClient::COMMON_DEV,
+        const std::string& outputPath = "") = 0;
     virtual CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags, const TraceParam& param,
         const std::vector<int32_t>& filterPids = {}) = 0;
-    virtual CollectResult<int32_t> RecordingOn() = 0;
+    virtual CollectResult<int32_t> RecordingOn(const std::string& outputPath = "") = 0;
     virtual CollectResult<std::vector<std::string>> RecordingOff() = 0;
     virtual CollectResult<int32_t> Close() = 0;
     // use for hap main looper

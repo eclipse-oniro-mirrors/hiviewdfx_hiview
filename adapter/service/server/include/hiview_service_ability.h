@@ -51,8 +51,9 @@ public:
     ErrCode Remove(const std::string& logType, const std::string& logName) override;
     ErrCode OpenTrace(const std::vector<std::string>& tags, const TraceParamParcelable& traceParam,
         const std::vector<int32_t>& filterPids, int32_t& errNo, int32_t& retData) override;
-    ErrCode DumpSnapshotTrace(int32_t client, int32_t& errNo, std::vector<std::string>& files) override;
-    ErrCode RecordingTraceOn(int32_t& errNo, int32_t& ret) override;
+    ErrCode DumpSnapshotTrace(int32_t client, const std::string& outputPath,
+        int32_t& errNo, std::vector<std::string>& files) override;
+    ErrCode RecordingTraceOn(const std::string& outputPath, int32_t& errNo, int32_t& ret) override;
     ErrCode RecordingTraceOff(int32_t& errNo, std::vector<std::string>& files) override;
     ErrCode CloseTrace(int32_t& errNo, int32_t& ret) override;
     ErrCode CaptureDurationTrace(const AppCallerParcelable& appCaller, int32_t& errNo, int32_t& ret) override;

@@ -30,7 +30,11 @@ TraceRet CommandState::DumpTrace(const std::string& scenarioName, uint32_t maxDu
         HIVIEW_LOGW("command state, scenario:%{public}s is fail", scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
+    const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+    if (!outputPath.empty()) {
+        HIVIEW_LOGI("command state, DumpTrace outputPath:%{public}s", outputPath.c_str());
+    }
+    info = Hitrace::DumpTrace(maxDuration, happenTime, outputPath);
     HIVIEW_LOGI("command state, DumpTrace result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }
@@ -41,7 +45,11 @@ TraceRet CommandState::TraceDropOn(const std::string& scenarioName)
         HIVIEW_LOGW("command state, scenario:%{public}s is deny", scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    if (TraceErrorCode ret = Hitrace::RecordTraceOn(); ret != TraceErrorCode::SUCCESS) {
+    const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+    if (!outputPath.empty()) {
+        HIVIEW_LOGI("command state, RecordTraceOn outputPath:%{public}s", outputPath.c_str());
+    }
+    if (TraceErrorCode ret = Hitrace::RecordTraceOn(outputPath); ret != TraceErrorCode::SUCCESS) {
         HIVIEW_LOGE("command state, TraceDropOn error:%{public}d", ret);
         return TraceRet(ret);
     }

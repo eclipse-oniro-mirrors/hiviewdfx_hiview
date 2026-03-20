@@ -29,8 +29,9 @@ public:
 public:
     CollectResult<int32_t> OpenTrace(const std::vector<std::string>& tags, const TraceParam& param,
         const std::vector<int32_t>& filterPids = {}) override;
-    CollectResult<std::vector<std::string>> DumpSnapshot(TraceClient client) override;
-    CollectResult<int32_t> RecordingOn() override;
+    CollectResult<std::vector<std::string>> DumpSnapshot(TraceClient client,
+        const std::string& outputPath) override;
+    CollectResult<int32_t> RecordingOn(const std::string& outputPath) override;
     CollectResult<std::vector<std::string>> RecordingOff() override;
     CollectResult<int32_t> Close() override;
     CollectResult<int32_t> CaptureDurationTrace(AppCaller &appCaller) override;
@@ -48,14 +49,15 @@ CollectResult<int32_t> TraceCollectorImpl::OpenTrace(const std::vector<std::stri
     return HiViewServiceTraceDelegate::OpenTrace(tags, param, filterPids);
 }
 
-CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpSnapshot(TraceClient client)
+CollectResult<std::vector<std::string>> TraceCollectorImpl::DumpSnapshot(TraceClient client,
+    const std::string& outputPath)
 {
-    return HiViewServiceTraceDelegate::DumpSnapshot(client);
+    return HiViewServiceTraceDelegate::DumpSnapshot(client, outputPath);
 }
 
-CollectResult<int32_t> TraceCollectorImpl::RecordingOn()
+CollectResult<int32_t> TraceCollectorImpl::RecordingOn(const std::string& outputPath)
 {
-    return HiViewServiceTraceDelegate::RecordingOn();
+    return HiViewServiceTraceDelegate::RecordingOn(outputPath);
 }
 
 CollectResult<std::vector<std::string>> TraceCollectorImpl::RecordingOff()

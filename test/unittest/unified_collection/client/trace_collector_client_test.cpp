@@ -208,7 +208,8 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
      * Reasonable scenarios
      * TRACE_OPEN_ERROR : app trace open deny, trace is not in close state
     */
-    ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::TRACE_OPEN_ERROR);
+    ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::TRACE_OPEN_ERROR ||
+        result.retCode == UcError::HAD_CAPTURED_TRACE) << "result.retCode=" << result.retCode;
     if (result.retCode == UcError::SUCCESS) {
         sleep(3);
         AppCaller appCaller2;

@@ -133,6 +133,17 @@ public:
         RefreshState();
     }
 
+    void SetOutputPath(const std::string& outputPath)
+    {
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
+        outputPath_ = outputPath;
+    }
+
+    const std::string& GetOutputPath() const
+    {
+        return outputPath_;
+    }
+
     void SetCommandState(bool isCommandState)
     {
         isCommandState_ = isCommandState;
@@ -153,6 +164,7 @@ private:
     uint8_t traceSwitchState_ = 0;
     bool isCommandState_ = false;
     bool isCachSwitchOn_ = false;
+    std::string outputPath_;
     ffrt::mutex traceMutex_;
 };
 }
