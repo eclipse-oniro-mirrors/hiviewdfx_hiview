@@ -92,7 +92,7 @@ class TraceAppHandler {
 public:
     TraceAppHandler(const std::string& tracePath, uint32_t cleanThreshold) : tracePath_(tracePath),
         cleanThreshold_(cleanThreshold) {}
-    auto HandleTrace(const std::vector<std::string>& outputFiles, const UCollectClient::AppCaller& appCaller,
+    auto HandleTrace(const std::string& srcFile, const UCollectClient::AppCaller& appCaller,
         int64_t traceOpenTime, int64_t traceDumpTime) -> std::string;
 
 private:

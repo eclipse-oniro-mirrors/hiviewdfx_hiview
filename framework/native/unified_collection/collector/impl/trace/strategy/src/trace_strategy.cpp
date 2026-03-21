@@ -343,12 +343,12 @@ TraceRet TraceAppStrategy::DoDump(const UCollectClient::AppCaller& appCaller, Tr
         HIVIEW_LOGE("TraceAppStrategy dump failed code:%{public}d", ret.codeError_);
         return ret;
     }
-    if (traceRetInfo.outputFiles.empty() || traceRetInfo.outputFiles[0].empty()) {
+    if (traceRetInfo.outputFiles.empty() || traceRetInfo.outputFiles.back().empty()) {
         HIVIEW_LOGE("TraceAppStrategy dump file empty");
         return TraceRet(TraceStateCode::FAIL);
     }
     if (appHandler_ != nullptr) {
-        outputFile = appHandler_->HandleTrace(traceRetInfo.outputFiles, appCaller, traceOpenTime, traceDumpTime);
+        outputFile = appHandler_->HandleTrace(traceRetInfo.outputFiles.back(), appCaller, traceOpenTime, traceDumpTime);
     }
     if (AppEventTask appEventTask;
         MakeAppEventTask(appCaller, traceOpenTime, traceDumpTime, outputFile, appEventTask)) {

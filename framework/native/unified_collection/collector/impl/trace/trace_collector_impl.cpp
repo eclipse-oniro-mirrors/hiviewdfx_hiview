@@ -252,18 +252,17 @@ CollectResult<std::string> TraceCollectorImpl::DumpAppSystemTrace(const std::str
     }
     TraceFlowController(appInfo.uid, DB_PATH, CONFIG_PATH).StoreAppTraceInfo(appInfo.packageName,
         traceDuration, traceInfo.fileSize);
-    if (traceInfo.outputFiles.empty() || traceInfo.outputFiles[0].empty()) {
+    if (traceInfo.outputFiles.empty() || traceInfo.outputFiles.back().empty()) {
         return {UcError::SYSTEM_ERROR};
     }
-    return HandAppSystemTrace(traceInfo, prefix, appInfo.sandBoxPath);
+    return HandAppSystemTrace(traceInfo.outputFiles.back(), prefix, appInfo.sandBoxPath);
 }
 
 
-CollectResult<std::string> TraceCollectorImpl::HandAppSystemTrace(const TraceRetInfo& traceInfo,
+CollectResult<std::string> TraceCollectorImpl::HandAppSystemTrace(const std::string& srcName,
     const std::string& prefix, const std::string &sandBoxPath)
 {
     CollectResult<std::string> result;
-    std::string srcName = traceInfo.outputFiles[0];
     std::string traceName = FileUtil::ExtractFileName(srcName);
     if (!prefix.empty()) {
         traceName = prefix + "_" + traceName;
