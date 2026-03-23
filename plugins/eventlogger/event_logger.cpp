@@ -104,8 +104,8 @@ namespace {
     constexpr int DFX_FOREGROUND_TIMEOUT_5S = 5000;
     constexpr int DFX_LOAD_TIMEOUT_5S = 5000;
     constexpr int DFX_LOAD_TIMEOUT_10S = 10000;
-    static float appfreezeTimeoutRatio = 0.0;
-    static float abilitymsTimeoutRatio = 0.0;
+    static float g_appfreezeTimeoutRatio = 0.0;
+    static float g_abilitymsTimeoutRatio = 0.0;
     constexpr float FLOAT_EPSILON = 0.01;
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
@@ -1006,10 +1006,10 @@ std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
 
 float EventLogger::getRatio(const std::string& key)
 {
-    if (key.c_str() == DFX_APPFREEZE_TIMEOUT_RATIO && (appfreezeTimeoutRatio - FLOAT_EPSILON > 0)) {
-        return appfreezeTimeoutRatio;
-    } else if (key.c_str() == DFX_ABILITYMS_TIMEOUT_RATIO && (abilitymsTimeoutRatio - FLOAT_EPSILON > 0)) {
-        return abilitymsTimeoutRatio;
+    if (key.c_str() == DFX_APPFREEZE_TIMEOUT_RATIO && (g_appfreezeTimeoutRatio - FLOAT_EPSILON > 0)) {
+        return g_appfreezeTimeoutRatio;
+    } else if (key.c_str() == DFX_ABILITYMS_TIMEOUT_RATIO && (g_abilitymsTimeoutRatio - FLOAT_EPSILON > 0)) {
+        return g_abilitymsTimeoutRatio;
     }
  
     std::string ratioStr = OHOS::system::GetParameter(key, "1000");
@@ -1022,9 +1022,9 @@ float EventLogger::getRatio(const std::string& key)
     }
  
     if (key.c_str() == DFX_APPFREEZE_TIMEOUT_RATIO) {
-        appfreezeTimeoutRatio =  ratio;
+        g_appfreezeTimeoutRatio =  ratio;
     } else if (key.c_str() == DFX_ABILITYMS_TIMEOUT_RATIO) {
-        abilitymsTimeoutRatio = ratio;
+        g_abilitymsTimeoutRatio = ratio;
     }
     return ratio;
 }
