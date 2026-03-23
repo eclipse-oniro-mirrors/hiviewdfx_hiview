@@ -134,6 +134,8 @@ private:
     void SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void InitQueue();
+    std::string GetBlockedTime(std::shared_ptr<SysEvent> event);
+    float getRatio(const std::string& key);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

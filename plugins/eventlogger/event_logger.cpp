@@ -28,6 +28,7 @@
 #include <string_ex.h>
 
 #include "parameter.h"
+#include "parameters.h"
 
 #include "common_utils.h"
 #include "dfx_json_formatter.h"
@@ -65,6 +66,8 @@ namespace {
     constexpr const char* STRINGID_LONGPRESS = "COM_LONG_PRESS";
     constexpr const char* LONGPRESS_LEVEL = "CRITICAL";
     constexpr const char* EXCEPTION_FLAG = "notifyAppFault exception";
+    const std::string DFX_APPFREEZE_TIMEOUT_RATIO = "const.sys.dfx.appfreeze.timeout_unit_time_ratio";
+    const std::string DFX_ABILITYMS_TIMEOUT_RATIO = "persist.sys.abilityms.timeout_unit_time_ratio";
     constexpr const char* CORE_PROCESSES[] = {
         "com.ohos.sceneboard", "composer_host", "foundation", "powermgr", "render_service"
     };
@@ -93,6 +96,17 @@ namespace {
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+    /* AppFreeze blocked time */
+    constexpr int DFX_THREAD_BLOCK_3S = 3000;
+    constexpr int DFX_THREAD_BLOCK_6S = 6000;
+    constexpr int DFX_APP_INPUT_BLOCK_8S = 8000;
+    constexpr int DFX_FOREGROUND_TIMEOUT_2S5 = 2500;
+    constexpr int DFX_FOREGROUND_TIMEOUT_5S = 5000;
+    constexpr int DFX_LOAD_TIMEOUT_5S = 5000;
+    constexpr int DFX_LOAD_TIMEOUT_10S = 10000;
+    static float appfreezeTimeoutRatio = 0.0;
+    static float abilitymsTimeoutRatio = 0.0;
+    constexpr float FLOAT_EPSILON = 0.01;
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
 }
@@ -686,6 +700,9 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
     headerStream << "PROCESS_NAME = " << event->GetEventValue("PROCESS_NAME") << std::endl;
     headerStream << "eventLog_action = " << event->GetValue("eventLog_action") << std::endl;
     headerStream << "eventLog_interval = " << event->GetValue("eventLog_interval") << std::endl;
+    if (GetBlockedTime(event) != "") {
+        headerStream << "this thread has blocked " + GetBlockedTime(event) + "ms." << std::endl;
+    }
     if (event->eventName_ == TASK_TIMEOUT) {
         headerStream << "SCENARIO = " << event->GetEventValue(SCENARIO) << std::endl;
         headerStream << "QNAME = " << event->GetEventValue(FreezeCommon::QNAME) << std::endl;
@@ -950,6 +967,66 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     FileUtil::SaveStringToFd(fd, oss.str());
     WriteCallStack(event, fd);
     return true;
+}
+
+std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
+{
+    float blockedTime = 0.0;
+ 
+    if (event->eventName_.empty()) {
+        return "";
+    }
+ 
+    if (event->eventName_ == "THREAD_BLOCK_3S") {
+        blockedTime = DFX_THREAD_BLOCK_3S * getRatio(DFX_APPFREEZE_TIMEOUT_RATIO);
+    } else if (event->eventName_ == "THREAD_BLOCK_6S") {
+        blockedTime = DFX_THREAD_BLOCK_6S * getRatio(DFX_APPFREEZE_TIMEOUT_RATIO);
+    } else if (event->eventName_ == "APP_INPUT_BLOCK") {
+        blockedTime = DFX_APP_INPUT_BLOCK_8S * getRatio(DFX_APPFREEZE_TIMEOUT_RATIO);
+    } else if (event->eventName_ == "LIFECYCLE_TIMEOUT") {
+        if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
+            blockedTime = DFX_FOREGROUND_TIMEOUT_5S * getRatio(DFX_ABILITYMS_TIMEOUT_RATIO);
+        } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
+            blockedTime = DFX_LOAD_TIMEOUT_10S * getRatio(DFX_ABILITYMS_TIMEOUT_RATIO);
+        } else {
+            return "";
+        }
+    } else if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT") {
+        if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
+            blockedTime = DFX_FOREGROUND_TIMEOUT_2S5 * getRatio(DFX_ABILITYMS_TIMEOUT_RATIO);
+        } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
+            blockedTime = DFX_LOAD_TIMEOUT_5S * getRatio(DFX_ABILITYMS_TIMEOUT_RATIO);
+        } else {
+            return "";
+        }
+    }
+ 
+    return std::to_string(((int)blockedTime));
+}
+
+float EventLogger::getRatio(const std::string& key)
+{
+    if (key.c_str() == DFX_APPFREEZE_TIMEOUT_RATIO && (appfreezeTimeoutRatio - FLOAT_EPSILON > 0)) {
+        return appfreezeTimeoutRatio;
+    } else if (key.c_str() == DFX_ABILITYMS_TIMEOUT_RATIO && (abilitymsTimeoutRatio - FLOAT_EPSILON > 0)) {
+        return abilitymsTimeoutRatio;
+    }
+ 
+    std::string ratioStr = OHOS::system::GetParameter(key, "1000");
+    int32_t ratioVal = static_cast<int32_t>(std::stoll(ratioStr));
+    float ratio = (ratioVal * 1.0) / 1000;
+ 
+    if (ratio <= 0) {
+        ratio = 1.0;
+        HIVIEW_LOGE("%{public}s read failed.", key.c_str());
+    }
+ 
+    if (key.c_str() == DFX_APPFREEZE_TIMEOUT_RATIO) {
+        appfreezeTimeoutRatio =  ratio;
+    } else if (key.c_str() == DFX_ABILITYMS_TIMEOUT_RATIO) {
+        abilitymsTimeoutRatio = ratio;
+    }
+    return ratio;
 }
 
 void EventLogger::HandleMsgStr(std::string& msg, std::string& endTimeStamp, std::shared_ptr<SysEvent>& event)
