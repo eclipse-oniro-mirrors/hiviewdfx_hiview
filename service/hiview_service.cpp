@@ -46,6 +46,7 @@ namespace {
 constexpr int MIN_SUPPORT_CMD_SIZE = 1;
 constexpr int32_t ERR_DEFAULT = -1;
 constexpr int32_t APP_TRACE_STOP_TIME = 10 * 1000 * 1000; // 10S
+constexpr int32_t OOM_FORK_SLEEP_TIME = 300; // 300ms
 
 void ShareAppEvent(const UCollectClient::AppCaller &appCaller, const std::string& externalLog)
 {
@@ -455,6 +456,7 @@ CollectResult<int32_t> HiviewService::SetForkDumpService(
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
     HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
+    std::this_thread::sleep_for(std::chrono::milliseconds(OOM_FORK_SLEEP_TIME));
     return {UCollect::UcError::SUCCESS};
 }
 }  // namespace HiviewDFX
