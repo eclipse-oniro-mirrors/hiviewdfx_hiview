@@ -29,7 +29,11 @@ TraceRet AppSystemState::DumpTrace(const std::string& scenarioName, uint32_t max
         HIVIEW_LOGW("AppSystemState scenario:%{public}s is fail", scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
+    const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+    if (!outputPath.empty()) {
+        HIVIEW_LOGI("AppSystemState, DumpTrace outputPath:%{public}s", outputPath.c_str());
+    }
+    info = Hitrace::DumpTrace(maxDuration, happenTime, outputPath);
     HIVIEW_LOGI("AppSystemState DumpTrace result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }

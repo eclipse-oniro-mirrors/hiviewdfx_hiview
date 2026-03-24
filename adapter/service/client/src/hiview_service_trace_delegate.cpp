@@ -21,11 +21,12 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-CollectResult<std::vector<std::string>> HiViewServiceTraceDelegate::DumpSnapshot(int32_t client)
+CollectResult<std::vector<std::string>> HiViewServiceTraceDelegate::DumpSnapshot(
+    int32_t client, const std::string& outputPath)
 {
-    auto proxyHandler = [client] (
+    auto proxyHandler = [client, &outputPath](
         const sptr<IRemoteObject>& remote, CollectResult<std::vector<std::string>>& collectResult, int32_t& errNo) {
-        return HiviewServiceAbilityProxy(remote).DumpSnapshotTrace(client, errNo, collectResult.data);
+        return HiviewServiceAbilityProxy(remote).DumpSnapshotTrace(client, outputPath, errNo, collectResult.data);
     };
     return TraceCalling<std::vector<std::string>>(proxyHandler);
 }
@@ -40,11 +41,11 @@ CollectResult<int32_t> HiViewServiceTraceDelegate::OpenTrace(const std::vector<s
     return TraceCalling<int32_t>(proxyHandler);
 }
 
-CollectResult<int32_t> HiViewServiceTraceDelegate::RecordingOn()
+CollectResult<int32_t> HiViewServiceTraceDelegate::RecordingOn(const std::string& outputPath)
 {
-    auto proxyHandler = [] (
+    auto proxyHandler = [&outputPath](
         const sptr<IRemoteObject>& remote, CollectResult<int32_t>& collectResult, int32_t& errNo) {
-        return HiviewServiceAbilityProxy(remote).RecordingTraceOn(errNo, collectResult.data);
+        return HiviewServiceAbilityProxy(remote).RecordingTraceOn(outputPath, errNo, collectResult.data);
     };
     return TraceCalling<int32_t>(proxyHandler);
 }

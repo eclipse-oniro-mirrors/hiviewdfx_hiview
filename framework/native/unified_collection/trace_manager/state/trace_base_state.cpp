@@ -54,7 +54,11 @@ TraceRet TraceBaseState::OpenTrace(const Scenario& scenario)
         TraceStateMachine::GetInstance().TransToCommonState();
     }
     if (scenario.name == ScenarioName::COMMON_DROP) {
-        if (auto retTraceOn = Hitrace::RecordTraceOn(); retTraceOn != TraceErrorCode::SUCCESS) {
+        const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+        if (!outputPath.empty()) {
+            HIVIEW_LOGI("OpenTrace COMMON_DROP, RecordTraceOn outputPath:%{public}s", outputPath.c_str());
+        }
+        if (auto retTraceOn = Hitrace::RecordTraceOn(outputPath); retTraceOn != TraceErrorCode::SUCCESS) {
             HIVIEW_LOGE("RecordTraceOn error:%{public}d", retTraceOn);
             return TraceRet(retTraceOn);
         }

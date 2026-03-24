@@ -29,7 +29,11 @@ TraceRet DynamicState::DumpTrace(const std::string& scenarioName, uint32_t maxDu
         HIVIEW_LOGW("DynamicState scenario:%{public}s is fail", scenarioName.c_str());
         return TraceRet(TraceStateCode::FAIL);
     }
-    info = Hitrace::DumpTrace(maxDuration, happenTime);
+    const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+    if (!outputPath.empty()) {
+        HIVIEW_LOGI("DynamicState, DumpTrace outputPath:%{public}s", outputPath.c_str());
+    }
+    info = Hitrace::DumpTrace(maxDuration, happenTime, outputPath);
     HIVIEW_LOGI("DynamicState DumpTrace result:%{public}d", info.errorCode);
     return TraceRet(info.errorCode);
 }

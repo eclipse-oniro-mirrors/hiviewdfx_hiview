@@ -28,9 +28,10 @@ interface IHiviewServiceAbility {
     void Copy([in] String logType, [in] String logName, [in] String dest);
     void Move([in] String logType, [in] String logName, [in] String dest);
     void Remove([in] String logType, [in] String logName);
-    void OpenTrace([in] String[] tags, [in] TraceParamParcelable traceParam, [in] int[] filterPids, [out] int errNo, [out] int retData);
-    void DumpSnapshotTrace([in] int client, [out] int errNo, [out] String[] files);
-    void RecordingTraceOn([out] int errNo, [out] int ret);
+    void OpenTrace([in] String[] tags, [in] TraceParamParcelable traceParam, [in] int[] filterPids,
+        [out] int errNo, [out] int retData);
+    void DumpSnapshotTrace([in] int client, [in] String outputPath, [out] int errNo, [out] String[] files);
+    void RecordingTraceOn([in] String outputPath, [out] int errNo, [out] int ret);
     void RecordingTraceOff([out] int errNo, [out] String[] files);
     void CloseTrace([out] int errNo, [out] int ret);
     void CaptureDurationTrace([in] AppCallerParcelable appCaller, [out] int errNo, [out] int ret);

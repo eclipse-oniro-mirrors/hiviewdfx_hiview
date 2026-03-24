@@ -61,6 +61,7 @@
         "OHOS::HiviewDFX::TraceFlowController::StoreAppTraceInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long, long)";
         "OHOS::HiviewDFX::TraceStateMachine::TraceDropOn(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TraceStateMachine::TraceDropOff(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::Hitrace::TraceRetInfo&)";
+        "OHOS::HiviewDFX::TraceStateMachine::SetOutputPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TraceFlowController::TraceFlowController(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
 };
   local:

@@ -34,7 +34,11 @@ TraceRet CommonState::DumpTrace(const std::string& scenarioName, uint32_t maxDur
     TraceRetInfo &info)
 {
     if (scenarioName == ScenarioName::COMMON_BETA || scenarioName == ScenarioName::COMMAND) {
-        info = Hitrace::DumpTrace(maxDuration, happenTime);
+        const auto& outputPath = TraceStateMachine::GetInstance().GetOutputPath();
+        if (!outputPath.empty()) {
+            HIVIEW_LOGI("CommonState, DumpTrace outputPath:%{public}s", outputPath.c_str());
+        }
+        info = Hitrace::DumpTrace(maxDuration, happenTime, outputPath);
         HIVIEW_LOGI("CommonState, DumpTrace result:%{public}d", info.errorCode);
         return TraceRet(info.errorCode);
     }

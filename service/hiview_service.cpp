@@ -277,20 +277,24 @@ CollectResult<int32_t> HiviewService::OpenTrace(const std::vector<std::string> &
 }
 
 CollectResult<std::vector<std::string>> HiviewService::DumpSnapshotTrace(const std::string& callerName,
-    bool isNeedFlowControl)
+    bool isNeedFlowControl, const std::string& outputPath)
 {
 #ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
     return {UcError::FEATURE_CLOSED};
 #else
-    return UCollectUtil::TraceCollector::Create()->DumpTrace(callerName, isNeedFlowControl);
+    TraceStateMachine::GetInstance().SetOutputPath(outputPath);
+    auto result = UCollectUtil::TraceCollector::Create()->DumpTrace(callerName, isNeedFlowControl);
+    TraceStateMachine::GetInstance().SetOutputPath("");
+    return result;
 #endif
 }
 
-CollectResult<int32_t> HiviewService::RecordingTraceOn()
+CollectResult<int32_t> HiviewService::RecordingTraceOn(const std::string& outputPath)
 {
 #ifndef UNIFIED_COLLECTOR_TRACE_ENABLE
     return {UcError::FEATURE_CLOSED};
 #else
+    TraceStateMachine::GetInstance().SetOutputPath(outputPath);
     TraceRet ret = TraceStateMachine::GetInstance().TraceDropOn(ScenarioName::COMMAND);
     return {GetUcError(ret)};
 #endif
