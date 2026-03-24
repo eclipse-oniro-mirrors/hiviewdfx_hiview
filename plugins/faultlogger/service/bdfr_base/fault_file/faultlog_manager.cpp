@@ -39,6 +39,7 @@ namespace {
 constexpr int32_t MAX_FAULT_LOG_PER_HAP = 10;
 constexpr uint32_t WARNING_LOG_MAX_SIZE = 3 * 1024 * 1024;
 constexpr uint32_t WARNING_LOG_MIN_KEEP_NUM = 15;
+constexpr uint32_t FAULT_LOG_MAX_SIZE = 20 * 1024 * 1024;
 }
 
 DEFINE_LOG_LABEL(0xD002D11, "FaultLogManager");
@@ -81,6 +82,7 @@ int32_t FaultLogManager::CreateTempFaultLogFile(time_t time, int32_t id, int32_t
 void FaultLogManager::Init()
 {
     store_ = std::make_unique<LogStoreEx>(FAULTLOG_FAULT_LOGGER_FOLDER, true);
+    store_->SetMaxSize(FAULT_LOG_MAX_SIZE);
     LogStoreEx::LogFileComparator comparator = [](const LogFile &lhs, const LogFile &rhs) {
         FaultLogInfo lhsInfo = ExtractInfoFromFileName(lhs.name_);
         FaultLogInfo rhsInfo = ExtractInfoFromFileName(rhs.name_);
