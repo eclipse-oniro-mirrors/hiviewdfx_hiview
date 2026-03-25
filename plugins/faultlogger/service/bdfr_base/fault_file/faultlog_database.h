@@ -20,12 +20,18 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+typedef struct {
+    int64_t happenDiffTime;
+    std::string extFilePath;
+} FaultLogDataBaseExtInfo;
+
 class FaultLogDatabase {
 public:
     static void SaveFaultLogInfo(FaultLogInfo& info);
     static std::list<FaultLogInfo> GetFaultInfoList(
         const std::string& module, int32_t id, int32_t faultType, int32_t maxNum);
     static bool IsFaultExist(int32_t pid, int32_t uid, int32_t faultType);
+    static std::string GetAppFreezeExtInfoFromFileName(const std::string& fileName);
 private:
     static bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info);
     static void FillInfoDefault(FaultLogInfo& info);
