@@ -41,6 +41,7 @@ constexpr uint8_t DEFAULT_COLLECT_VAL = 0;
 constexpr int16_t DEFAULT_REPORT_INTERVAL = 0;
 constexpr uint8_t MINOR_LEVEL_VAL = 0;
 constexpr uint8_t CRITICAL_LEVEL_VAL = 1;
+constexpr int16_t SYS_EVENT_DEF_MAP_MAX_SIZE = 3000;
 inline constexpr char MINOR_LEVEL_STR[] = "MINOR";
 inline constexpr char CRITICAL_LEVEL_STR[] = "CRITICAL";
 
@@ -82,6 +83,24 @@ using DOMAIN_INFO_MAP = std::unordered_map<std::string, NAME_INFO_MAP>;
 using JSON_VALUE_LOOP_HANDLER = std::function<void(const std::string&, const Json::Value&)>;
 using ExportEventList = std::map<std::string, std::vector<std::string>>; // <domain, names>
 
+struct DomainJsonLocation  {
+    Json::ArrayIndex startPos;
+    Json::ArrayIndex length;
+};
+using DOMAIN_LOCATION_MAP = std::unordered_map<std::string, DomainJsonLocation>;
+
+class DomainJsonParser {
+    public:
+        bool CacheDomainJsonLocation(const std::string& defFilePath);
+        bool ParseDomainJsonFromFile(const std::string& domainName, Json::Value& outDomainJson);
+        std::shared_ptr<DOMAIN_LOCATION_MAP>& GetDomainLocationMap();
+
+    private:
+        std::shared_ptr<DOMAIN_LOCATION_MAP> domainLocationMap_ = nullptr;;
+        std::string defFilePath_;
+        mutable ffrt::mutex domainMtx_;
+};
+
 class EventJsonParser : public DelayedSingleton<EventJsonParser> {
 DECLARE_DELAYED_SINGLETON(EventJsonParser);
 
@@ -101,7 +120,6 @@ private:
     bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;
     void InitEventInfoMapRef(const Json::Value& jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
     BaseInfo ParseBaseConfig(const Json::Value& eventNameJson) const;
-    void ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap);
     NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const;
     PARAM_INFO_MAP_PTR ParseEventParamInfo(const Json::Value& eventContent) const;
     void WatchTestTypeParameter();
@@ -109,6 +127,8 @@ private:
 private:
     mutable ffrt::mutex defMtx_;
     std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap_ = nullptr;
+    std::shared_ptr<DomainJsonParser> domainJsonParser_ = nullptr;
+    uint16_t sysEventDefMapCap_ = 0;
 }; // EventJsonParser
 } // namespace HiviewDFX
 } // namespace OHOS
