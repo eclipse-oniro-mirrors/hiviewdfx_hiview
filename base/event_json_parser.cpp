@@ -45,58 +45,7 @@ const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
 };
 constexpr int16_t EXPORT_ALL_EVENT = -1; // equal with ALL_EVENT_TASK_TYPE definited in export_config_parser.h
 static constexpr char EVENT_COUNT_OVER_THRESHOLD[] = "EVENT_COUNT_OVER_THRESHOLD";
-
-bool IsEventCached(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain, const std::string& name)
-{
-    if (sysEventDefMap == nullptr) {
-        HIVIEW_LOGD("sys def map is null");
-        return false;
-    }
-    auto domainIter = sysEventDefMap->find(domain);
-    if (domainIter == sysEventDefMap->end()) {
-        HIVIEW_LOGD("domain %{public}s is not defined.", domain.c_str());
-        return false;
-    }
-    auto domainNames = sysEventDefMap->at(domain);
-    auto nameIter = domainNames.find(name);
-    if (nameIter == domainNames.end()) {
-        HIVIEW_LOGD("%{public}s is not defined in domain %{public}s, or privacy not allowed.",
-            name.c_str(), domain.c_str());
-        return false;
-    }
-    return true;
-}
-
-void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap)
-{
-    std::vector<std::pair<std::string, int>> domainEventVec;
-    int totalEvent = 0;
-    for (auto iter = sysEventDefMap->cbegin(); iter != sysEventDefMap->cend(); ++iter) {
-        domainEventVec.push_back(std::pair<std::string, int>(iter->first, iter->second.size()));
-        totalEvent += iter->second.size();
-    }
-    std::sort(domainEventVec.begin(), domainEventVec.end(),
-        [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
-            return a.second > b.second;
-        });
-    
-    const unsigned int topN = 5;
-    if (domainEventVec.size() > topN) {
-        domainEventVec.resize(topN);
-    }
-    std::vector<std::string> domainName;
-    std::vector<int> eventNum;
-    for (const auto& p : domainEventVec) {
-        domainName.push_back(p.first);
-        eventNum.push_back(p.second);
-    }
-
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD, HiSysEvent::EventType::FAULT,
-        "TOP5_DOMAIN_NAME", domainName, "TOP5_DOMAIN_EVENT_NUM", eventNum, "TOTAL_CACHED_EVENTS", totalEvent);
-    if (ret < 0) {
-        HIVIEW_LOGW("failed to write over threshold event, ret is %{public}d", ret);
-    }
-}
+constexpr int16_t CACHE_SIZE_PRINT_INTERVAL = 200;
 
 bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
 {
@@ -150,6 +99,58 @@ void SetTagOfBaseInfo(BaseInfo& baseInfo, const std::string& tag)
         delete[] baseInfo.tag;
         baseInfo.tag = nullptr;
     }
+}
+
+void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap)
+{
+    std::vector<std::pair<std::string, int>> domainEventVec;
+    int totalEvent = 0;
+    for (auto iter = sysEventDefMap->cbegin(); iter != sysEventDefMap->cend(); ++iter) {
+        domainEventVec.push_back(std::pair<std::string, int>(iter->first, iter->second.size()));
+        totalEvent += iter->second.size();
+    }
+    std::sort(domainEventVec.begin(), domainEventVec.end(),
+        [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
+            return a.second > b.second;
+        });
+    
+    const unsigned int topN = 5;
+    if (domainEventVec.size() > topN) {
+        domainEventVec.resize(topN);
+    }
+    std::vector<std::string> domainName;
+    std::vector<int> eventNum;
+    for (const auto& p : domainEventVec) {
+        domainName.push_back(p.first);
+        eventNum.push_back(p.second);
+    }
+
+    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD, HiSysEvent::EventType::FAULT,
+        "TOP5_DOMAIN_NAME", domainName, "TOP5_DOMAIN_EVENT_NUM", eventNum, "TOTAL_CACHED_EVENTS", totalEvent);
+    if (ret < 0) {
+        HIVIEW_LOGW("failed to write over threshold event, ret is %{public}d", ret);
+    }
+}
+
+bool HasEventInCache(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain, const std::string& name)
+{
+    if (sysEventDefMap == nullptr) {
+        HIVIEW_LOGD("sys def map is null");
+        return false;
+    }
+    auto domainIter = sysEventDefMap->find(domain);
+    if (domainIter == sysEventDefMap->end()) {
+        HIVIEW_LOGD("domain %{public}s is not defined.", domain.c_str());
+        return false;
+    }
+    auto domainNames = sysEventDefMap->at(domain);
+    auto nameIter = domainNames.find(name);
+    if (nameIter == domainNames.end()) {
+        HIVIEW_LOGD("%{public}s is not defined in domain %{public}s, or privacy not allowed.",
+            name.c_str(), domain.c_str());
+        return false;
+    }
+    return true;
 }
 }
 
@@ -260,7 +261,7 @@ std::optional<BaseInfo> EventJsonParser::GetDefinedBaseInfoByDomainName(const st
     const std::string& name)
 {
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
-    if (IsEventCached(sysEventDefMap_, domain, name)) {
+    if (HasEventInCache(sysEventDefMap_, domain, name)) {
         HIVIEW_LOGD("event is in cacheMap, domain: %{public}s, event: %{public}s", domain.c_str(), name.c_str());
         return sysEventDefMap_->at(domain).at(name);
     }
@@ -295,6 +296,9 @@ std::optional<BaseInfo> EventJsonParser::GetDefinedBaseInfoByDomainName(const st
         sysEventDefMap_->insert(std::pair<std::string, NAME_INFO_MAP>(domain, eventsMap));
     }
     sysEventDefMapCap_++;
+    if (sysEventDefMapCap_ % CACHE_SIZE_PRINT_INTERVAL == 0) {
+        HIVIEW_LOGD("add event in sysEventDefMap_, current size: %{public}d", sysEventDefMapCap_);
+    }
     return eventIter->second;
 }
 
