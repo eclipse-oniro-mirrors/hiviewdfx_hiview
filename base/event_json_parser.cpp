@@ -132,7 +132,8 @@ void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefM
     }
 }
 
-bool HasEventInCache(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain, const std::string& name)
+bool HasEventInCache(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain,
+    const std::string& name)
 {
     if (sysEventDefMap == nullptr) {
         HIVIEW_LOGD("sys def map is null");
