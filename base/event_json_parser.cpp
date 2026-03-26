@@ -46,8 +46,7 @@ const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
 constexpr int16_t EXPORT_ALL_EVENT = -1; // equal with ALL_EVENT_TASK_TYPE definited in export_config_parser.h
 static constexpr char EVENT_COUNT_OVER_THRESHOLD[] = "EVENT_COUNT_OVER_THRESHOLD";
 
-bool IsEventCached(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain,
-    const std::string& name)
+bool IsEventCached(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain, const std::string& name)
 {
     if (sysEventDefMap == nullptr) {
         HIVIEW_LOGD("sys def map is null");
