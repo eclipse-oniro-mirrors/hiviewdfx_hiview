@@ -25,7 +25,6 @@
 #include "parameter_ex.h"
 #include "privacy_manager.h"
 #include "securec.h"
-#include "time_util.h"
 #include "hisysevent.h"
 
 namespace OHOS {
