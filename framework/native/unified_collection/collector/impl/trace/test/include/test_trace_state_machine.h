@@ -65,22 +65,23 @@ inline size_t GetDirFileCount(const std::string& dirPath)
 }
 
 const std::map<std::string, int64_t> FLOW_CONTROL_MAP {
-    {CallerName::XPERF, 500}, // telemetry trace threshold
-    {CallerName::XPOWER, 500},
-    {CallerName::RELIABILITY, 500},
-    {TOTAL, 1000} // telemetry total trace threshold
+    {CallerName::XPERF, 400}, // telemetry trace threshold
+    {CallerName::XPOWER, 400},
+    {CallerName::RELIABILITY, 400},
+    {TOTAL, 800} // telemetry total trace threshold
 };
 
 inline void CreateTraceFile(const std::string& traceName)
 {
-    std::ofstream file(traceName, std::ios::out | std::ios::binary);
-    if (!file) {
+    std::ofstream outfile(traceName, std::ios::binary);
+    if (!outfile) {
         std::cout << traceName << " create failed" << std::endl;
         return;
     }
-    std::string data(FILE_SIZE_DEFAULT, 'A');
-    file.write(data.data(), FILE_SIZE_DEFAULT);
-    file.close();
+    int32_t data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    size_t dataSize = sizeof(data);
+    outfile.write(reinterpret_cast<char*>(data), dataSize);
+    outfile.close();
 }
 
 inline UCollectClient::AppCaller CreateAppCaller(int32_t uid, int32_t pid, uint64_t happendTime)
