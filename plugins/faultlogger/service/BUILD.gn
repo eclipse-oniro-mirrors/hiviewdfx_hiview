@@ -108,7 +108,7 @@ ohos_source_set("faultlogger_service_fuzz_src") {
   deps = [
     "$hiview_base:hiviewbase",
     "$hiview_interfaces/inner_api/unified_collection/utility:libucollection_utility",
-    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy",
+    "$hiview_plugin/faultlogger/framework/native/extension/zidl:faultlog_ext_zidl_proxy_for_test",
     "idl:faultlogger_service_impl",
   ]
 
