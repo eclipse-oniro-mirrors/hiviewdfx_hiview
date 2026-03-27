@@ -46,6 +46,9 @@ static const std::vector<std::string> QUERY_ITEMS = {
     "time_", "name_", "uid_", "pid_", FaultKey::MODULE_NAME, FaultKey::REASON, FaultKey::SUMMARY, FaultKey::LOG_PATH,
     FaultKey::FAULT_TYPE
 };
+const int64_t KILO = 1000;
+const int64_t MAX_DIFF_TIME = 10000;
+const int QUERY_LIMIT_MAX = 100;
 }
 
 std::string FaultLogDatabase::GetAppFreezeExtInfoFromFileName(const std::string& fileName)
@@ -53,18 +56,18 @@ std::string FaultLogDatabase::GetAppFreezeExtInfoFromFileName(const std::string&
     std::string path = FAULTLOG_FAULT_LOGGER_FOLDER + fileName;
     std::vector<std::string> faultName = {"APP_FREEZE"};
     FaultLogInfo inputInfo = ExtractInfoFromFileName(fileName);
-    const int64_t kilo = 1000;
-    const int64_t maxDiffTime = 10000;
-    const int queryLimit = 100;
-    inputInfo.time *= kilo;
+    inputInfo.time *= KILO;
     auto query = EventStore::SysEventDao::BuildQuery(HiSysEvent::Domain::RELIABILITY, faultName);
+    if (query == nullptr) {
+        return "";
+    }
     EventStore::Cond uidCond("UID", EventStore::Op::EQ, inputInfo.id);
     query->And(uidCond);
-    EventStore::Cond timeUpperCond("HAPPEN_TIME", EventStore::Op::LE, inputInfo.time + maxDiffTime);
+    EventStore::Cond timeUpperCond("HAPPEN_TIME", EventStore::Op::LE, inputInfo.time + MAX_DIFF_TIME);
     query->And(timeUpperCond);
-    EventStore::Cond timeLowerCond("HAPPEN_TIME", EventStore::Op::GE, inputInfo.time - maxDiffTime);
+    EventStore::Cond timeLowerCond("HAPPEN_TIME", EventStore::Op::GE, inputInfo.time - MAX_DIFF_TIME);
     query->And(timeLowerCond);
-    EventStore::ResultSet resultSet = query->Execute(queryLimit);
+    EventStore::ResultSet resultSet = query->Execute(QUERY_LIMIT_MAX);
     std::list<FaultLogDataBaseExtInfo> queryResult;
     while (resultSet.HasNext()) {
         auto it = resultSet.Next();
