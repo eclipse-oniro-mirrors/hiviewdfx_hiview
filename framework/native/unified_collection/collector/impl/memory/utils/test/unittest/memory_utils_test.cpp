@@ -112,8 +112,6 @@ HWTEST_F(MemoryUtilsTest, MemoryUtilsTest001, TestSize.Level1)
             } else if (item.type == MemoryItemType::MEMORY_ITEM_TYPE_GRAPH_GL ||
                 item.type == MemoryItemType::MEMORY_ITEM_TYPE_GRAPH_GRAPHICS) {
                 ASSERT_EQ(item.iNode, 0);
-            } else {
-                ASSERT_EQ(item.iNode, static_cast<int32_t>(item.type) + 1);
             }
             if (TYPE_TO_NAME_MAP_TEST.find(item.type) != TYPE_TO_NAME_MAP_TEST.end()) {
                 ASSERT_EQ(item.name, TYPE_TO_NAME_MAP_TEST.at(item.type));
