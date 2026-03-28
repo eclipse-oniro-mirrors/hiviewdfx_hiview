@@ -102,6 +102,8 @@ constexpr const char * const THERMAL_LEVEL = "THERMAL_LEVEL";
 constexpr const char * const CLUSTER_RAW = "CLUSTER_RAW";
 constexpr const char * const IS_SIG_ACTION = "IS_SIG_ACTION";
 constexpr const char * const EXTERNAL_CALLBACK_LOG = "EXTERNAL_LOG";
+constexpr const char * const ERRORMANAGER_CAPTURE = "ERRORMANAGER_CAPTURE";
+constexpr const char * const IS_UNCATCH_FAULT = "IS_UNCATCH_FAULT";
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
