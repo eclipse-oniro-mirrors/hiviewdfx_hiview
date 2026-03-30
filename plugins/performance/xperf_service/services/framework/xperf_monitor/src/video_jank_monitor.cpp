@@ -111,9 +111,8 @@ void VideoJankMonitor::AddToList(const AvcodecFirstFrame& firstFrame)
 void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    audioStateEvt = *audioEvent; //保存音频开始
-    lastStartTime = audioStateEvt.happenTime;
     std::lock_guard<std::mutex> Lock(mMutex);
+    audioStateEvt = *audioEvent; //保存音频开始
     if (firstFrameList.empty()) { //没有首帧信息
         LOGW("VideoJankMonitor_OnAudioStart firstFrameList empty");
         return;
@@ -128,23 +127,21 @@ void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
 void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    audioStateEvt = *audioEvent;
-    lastStopTime = audioStateEvt.happenTime;
     std::lock_guard<std::mutex> Lock(mMutex);
+    if (audioEvent->uniqueId != audioStateEvt.uniqueId) { //前一个视频的stop可能会晚于新视频的start到来，此时无需通知RS停止检测
+        LOGE("VideoJankMonitor_OnAudioStop Audio uniqueId mismatch");
+        return;
+    }
+    if (!IsUserAction(*audioEvent)) { //非用户主动暂停
+        LOGI("VideoJankMonitor_OnAudioStop non-user stop");
+        return;
+    }
     if (firstFrameList.empty()) {
         LOGW("VideoJankMonitor_OnAudioStop firstFrameList empty");
         return;
     }
     if (audioEvent->pid != firstFrameList.front().pid) {
         LOGE("VideoJankMonitor_OnAudioStop PID mismatch");
-        return;
-    }
-    if (audioEvent->uniqueId != audioStateEvt.uniqueId) {
-        LOGE("VideoJankMonitor_OnAudioStop Audio uniqueId mismatch");
-        return;
-    }
-    if (!IsUserAction()) {
-        LOGI("VideoJankMonitor_OnAudioStop non-user stop");
         return;
     }
     MonitorStop();
@@ -174,29 +171,29 @@ void VideoJankMonitor::MonitorStop()
     LOGI("VideoJankMonitor_MonitorStop AvcodecVideoStop");
 }
 
-bool VideoJankMonitor::IsUserAction()
+bool VideoJankMonitor::IsUserAction(const AudioStateEvent& audioStop)
 {
     PerfActionEvent lastUp = UserActionStorage::GetInstance().GetLastUp();
-    bool upApp = ((lastUp.pid == audioStateEvt.pid)
-            && (lastUp.time < audioStateEvt.happenTime)
-            && (audioStateEvt.happenTime - lastUp.time) < MANUAL_THRESHOLD);
+    bool upApp = ((lastUp.pid == audioStop.pid)
+            && (lastUp.time < audioStop.happenTime)
+            && (audioStop.happenTime - lastUp.time) < MANUAL_THRESHOLD);
 
     if (upApp) {
         return true;
     }
 
     PerfActionEvent firstMove = UserActionStorage::GetInstance().GetFirstMove();
-    bool moveApp = ((firstMove.pid == audioStateEvt.pid)
-                     && (firstMove.time < audioStateEvt.happenTime)
-                     && (audioStateEvt.happenTime - firstMove.time) < MANUAL_THRESHOLD);
+    bool moveApp = ((firstMove.pid == audioStop.pid)
+                     && (firstMove.time < audioStop.happenTime)
+                     && (audioStop.happenTime - firstMove.time) < MANUAL_THRESHOLD);
 
     if (moveApp) {
         return true;
     }
 
     bool swipeSB = ((firstMove.bundleName == "com.ohos.sceneboard")
-            && (firstMove.time < audioStateEvt.happenTime)
-            && (audioStateEvt.happenTime - firstMove.time) < MANUAL_THRESHOLD);
+            && (firstMove.time < audioStop.happenTime)
+            && (audioStop.happenTime - firstMove.time) < MANUAL_THRESHOLD);
 
     return swipeSB;
 }

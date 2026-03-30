@@ -42,7 +42,7 @@ void VideoXperfMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundle
     surface.pid = pid;
     surface.bundleName = bundleName;
     surface.surfaceName = surfaceName;
-
+    std::lock_guard<std::mutex> Lock(mMutex);
     if (static_cast<uint32_t>(surfaceInfoList.size()) >= MAX_SURFACE_SIZE) {
         surfaceInfoList.pop_front();
     }
