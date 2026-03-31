@@ -125,8 +125,9 @@ void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefM
         eventNum.push_back(p.second);
     }
 
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD, HiSysEvent::EventType::STATISTIC,
-        "TOP5_DOMAIN_NAME", domainName, "TOP5_DOMAIN_EVENT_NUM", eventNum, "TOTAL_CACHED_EVENTS", totalEvent);
+    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD,
+        HiSysEvent::EventType::STATISTIC, "TOP5_DOMAIN_NAME", domainName, "TOP5_DOMAIN_EVENT_NUM", eventNum,
+        "TOTAL_CACHED_EVENTS", totalEvent);
     if (ret < 0) {
         HIVIEW_LOGW("failed to write over threshold event, ret is %{public}d", ret);
     }
