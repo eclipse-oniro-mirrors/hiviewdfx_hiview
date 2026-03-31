@@ -196,9 +196,10 @@ void ReportCppCrashEvent(const FaultLogInfoInner &info)
 }  // namespace HiviewDFX
 }  // namespace OHOS
 
-__attribute__((visibility ("default"))) void AddFaultLog(FaultLogInfoInner* info)
+__attribute__((visibility ("default"))) void AddFaultLog(void* info)
 {
-    OHOS::HiviewDFX::AddFaultLog(*info);
+    FaultLogInfoInner* infoInner = (FaultLogInfoInner*)info;
+    OHOS::HiviewDFX::AddFaultLog(*infoInner);
 }
 
 __attribute__((visibility ("default"))) void ReportCppCrashEvent(FaultLogInfoInner* info)
