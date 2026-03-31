@@ -217,6 +217,9 @@ void SceneMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender)
     if (IsScrollJank(sceneId)) {
         WhiteBlockMonitor::GetInstance().EndScroll();
     }
+    if (SceneMonitor::GetInstance().GetCurrentSceneId() == sceneId) {
+        SceneMonitor::GetInstance().SetCurrentSceneId("");
+    }
     SetAppGCStatus(sceneId, 1);
     NotifyScbJankStatsBegin(sceneId);
 }
