@@ -210,10 +210,11 @@ bool ParseFaultLogLine(const std::vector<SectionLog>& parseList, const std::stri
         if (line.find(sectionHead) == std::string::npos) {
             continue;
         }
-        if (!line.empty() && line.at(line.size() - 1) == ':') {
-            if ((item.sectionName != multlineName) && (!multline.empty())) {
-                info.sectionMap[multlineName] = multline;
-            }
+        // when scan new label, store old multi line info.
+        if ((item.sectionName != multlineName) && (!multline.empty())) {
+            info.sectionMap[multlineName] = multline;
+        }
+        if (line == sectionHead) {
             multlineName = item.sectionName;
         } else {
             info.sectionMap[item.sectionName] = line.substr(line.find_first_of(":") + 1);
