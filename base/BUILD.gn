@@ -115,12 +115,6 @@ ohos_static_library("hiviewbase_static_lib_for_tdd") {
     "logstore:log_store",
   ]
 
-  public_deps = [
-    "$hiview_base/event_raw:hiview_event_raw_base",
-    "$hiview_base/event_raw:hiview_event_raw_decode",
-    "$hiview_base/event_raw:hiview_event_raw_encode",
-  ]
-
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   external_deps = [ "hilog:libhilog" ]
