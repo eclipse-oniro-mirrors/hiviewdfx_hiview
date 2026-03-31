@@ -57,6 +57,9 @@
         },{
             "domain":"WEBVIEW",
             "include":["PROCESS_FREEZE_WARNING", "RENDER_JS_FREEZE"]
+        },{
+            "domain":"HIGPU",
+            "include":["DMD_HIGPU_JOB_HANG", "DMD_HIGPU_PAGE_FAULT", "DMD_HIGPU_JOB_FAIL"]
         }
     ]
 }
