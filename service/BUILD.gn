@@ -80,6 +80,8 @@ ohos_source_set("hiview_service") {
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
     "zlib:libz",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
   ]
 }
 

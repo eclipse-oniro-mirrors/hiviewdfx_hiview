@@ -46,6 +46,8 @@ ohos_unittest("DecoratorUnitTest") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
   ]
 
   defines = []
