@@ -224,6 +224,7 @@ bool DomainJsonParser::ParseDomainJsonFromFile(const std::string& domainName,
     if (!charReader->parse(jsonStr.c_str(), jsonStr.c_str() + jsonStr.size(), &outDomainJson, &errors)) {
         HIVIEW_LOGE("parse part of sysEvent file failed, domain: %{public}s, startPos: %{public}d, length: %{public}d",
             domainName.c_str(), domainIter->second.startPos, domainIter->second.length);
+        file.close();
         return false;
     }
     file.close();
