@@ -38,7 +38,7 @@ private:
     void ProcessLoadCompleteEvent(OhosXperfEvent* event);
  
     PassthroughMonitor() = default;
-    ~PassthroughMonitor() = default;
+    virtual ~PassthroughMonitor() = default;
 
 };
  

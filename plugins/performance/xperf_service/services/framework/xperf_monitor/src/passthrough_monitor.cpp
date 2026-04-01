@@ -34,6 +34,10 @@ PassthroughMonitor& PassthroughMonitor::GetInstance()
  
 void PassthroughMonitor::ProcessEvent(OhosXperfEvent* event)
 {
+    if (event == nullptr) {
+        LOGE("PassthroughMonitor ProcessEvent event is null");
+        return;
+    }
     LOGD("PassthroughMonitor msg:%{public}s", event->rawMsg.c_str());
     if (event->eventName == EVENT_LOAD_COMPLETE) {
         ProcessLoadCompleteEvent(event);
