@@ -39,7 +39,6 @@ private:
  
     PassthroughMonitor() = default;
     virtual ~PassthroughMonitor() = default;
-
 };
  
 } // namespace HiviewDFX

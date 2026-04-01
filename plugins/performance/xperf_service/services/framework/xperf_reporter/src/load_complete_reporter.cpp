@@ -33,7 +33,6 @@ void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
     sysEventCreator.SetKeyValue("ABILITY_NAME", record.abilityName);
     sysEventCreator.SetKeyValue("PAGE_LOAD_COST", record.pageLoadCost);
  
- 
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
     if (!event) {

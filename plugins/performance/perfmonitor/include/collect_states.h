@@ -25,7 +25,7 @@ namespace HiviewDFX {
  
 /**
  * @brief 初始化状态
- * 
+ *
  * 收集器的初始状态，不接受任何组件操作
  */
 class InitState : public ICollectState {
@@ -38,9 +38,7 @@ public:
     void CompleteComponent(int32_t nodeId) override;
     void StopCollect() override;
     
-    const char* GetStateName() const override {
-        return "INIT";
-    }
+    const char* GetStateName() const override { return "INIT"; }
 };
  
 /**
@@ -58,9 +56,7 @@ void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundle
     void CompleteComponent(int32_t nodeId) override;
     void StopCollect() override;
     
-    const char* GetStateName() const override {
-        return "COLLECTING";
-    }
+    const char* GetStateName() const override { return "COLLECTING"; }
 };
  
 /**
@@ -78,9 +74,7 @@ public:
     void CompleteComponent(int32_t nodeId) override;
     void StopCollect() override;
     
-    const char* GetStateName() const override {
-        return "ANALYSIS";
-    }
+    const char* GetStateName() const override { return "ANALYSIS"; }
 };
  
 /**
@@ -98,9 +92,7 @@ public:
     void CompleteComponent(int32_t nodeId) override;
     void StopCollect() override;
     
-    const char* GetStateName() const override {
-        return "COMPLETE";
-    }
+    const char* GetStateName() const override { return "COMPLETE"; }
 };
  
 } // namespace HiviewDFX

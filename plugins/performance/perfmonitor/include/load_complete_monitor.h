@@ -39,7 +39,7 @@ struct LoadCompleteCfg {
  
 /**
  * @brief 页面加载完成监控器
- * 
+ *
  * 使用状态模式管理收集过程的状态转换，监控页面组件加载状态
  */
 class LoadCompleteMonitor final : public IAnimatorCallback {
@@ -151,7 +151,6 @@ private:
     // 多线程任务相关
     std::shared_ptr<std::atomic<bool>> currentTaskFlag_;
     mutable std::mutex mutex_;
- 
 };
 }
 }

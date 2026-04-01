@@ -24,7 +24,7 @@ namespace HiviewDFX {
  
 /**
  * @brief 收集状态接口
- * 
+ *
  * 定义了收集过程中各个状态的行为接口，使用状态模式管理状态转换
  */
 class ICollectState {
@@ -76,7 +76,6 @@ public:
      * @return 状态名称
      */
     virtual const char* GetStateName() const = 0;
- 
 };
  
 } // namespace HiviewDFX

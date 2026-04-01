@@ -87,12 +87,11 @@ void CollectingState::AddComponent(int32_t nodeId)
     int64_t currTime = GetCurrentSystimeMs();
     int64_t gapTime = currTime - monitor.GetLastAddTime();
     
-    if (monitor.GetLastAddTime() == 0 || 
+    if (monitor.GetLastAddTime() == 0 ||
         (gapTime > monitor.GetConfig().intraGroupGapTime && gapTime < monitor.GetConfig().stopCollectTimeWait)) {
-        
         monitor.IncrementGroupNum();
-        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld", 
-                          nodeId, monitor.GetGroupNum(), gapTime);
+        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld",
+            nodeId, monitor.GetGroupNum(), gapTime);
         
         if (monitor.GetGroupNum() > monitor.GetConfig().maxGroupNum) {
             monitor.SetState(std::make_unique<AnalysisState>());
@@ -104,8 +103,8 @@ void CollectingState::AddComponent(int32_t nodeId)
         monitor.IncrementNodeNum();
         
     } else if (gapTime <= monitor.GetConfig().intraGroupGapTime) {
-        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld", 
-                          nodeId, monitor.GetGroupNum(), gapTime);
+        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld",
+            nodeId, monitor.GetGroupNum(), gapTime);
         monitor.SetLastAddTime(currTime);
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
         monitor.IncrementNodeNum();
@@ -152,7 +151,6 @@ void AnalysisState::StartCollectForAnimation(const std::string& pageUrl, const s
     } else {
         monitor.SetState(std::make_unique<CompleteState>());
     }
-    
 }
  
 void AnalysisState::AddComponent(int32_t nodeId)

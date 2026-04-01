@@ -27,6 +27,7 @@
 namespace {
 constexpr int64_t LOAD_COMPLETE_TIMEOUT_VALUE = 3000;
 constexpr int64_t PAGE_LOAD_TIME_THRESHOLD = 100;
+constexpr int CYCLE_INTERVAL_TIME = 500;
 } // namespace
  
 namespace OHOS::HiviewDFX {
@@ -66,7 +67,7 @@ void LoadCompleteMonitor::PostTimeoutTask()
                 LoadCompleteMonitor::GetInstance().StopCollect();
                 break;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            std::this_thread::sleep_for(std::chrono::milliseconds(CYCLE_INTERVAL_TIME));
         }
     }).detach();
 }
@@ -81,7 +82,8 @@ void LoadCompleteMonitor::ResetManagerStatus()
 }
  
 void LoadCompleteMonitor::StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-    const std::string& sceneId) {
+    const std::string& sceneId)
+{
     std::lock_guard<std::mutex> lock(mutex_);
     // 委托给当前状态处理
     currentState_->StartCollectForAnimation(pageUrl, bundleName, sceneId);
@@ -119,7 +121,7 @@ void LoadCompleteMonitor::FinishCollectTask()
  
     int32_t times = config_.maxCompleteTimes;
     int32_t incompleteNum = std::count_if(
-        monitoredNodes_.begin(), 
+        monitoredNodes_.begin(),
         monitoredNodes_.end(),
         [times](const auto& pair) { return pair.second == times; }
     );
