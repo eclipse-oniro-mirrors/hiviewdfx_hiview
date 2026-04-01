@@ -43,7 +43,7 @@ public:
  
 /**
  * @brief 收集状态
- * 
+ *
  * 正在收集组件数据的状态，接受所有组件操作
  */
 class CollectingState : public ICollectState {
@@ -61,7 +61,7 @@ void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundle
  
 /**
  * @brief 分析状态
- * 
+ *
  * 收集完成，不接受增加新的组件操作
  */
 class AnalysisState : public ICollectState {
@@ -79,7 +79,7 @@ public:
  
 /**
  * @brief 完成状态
- * 
+ *
  * 收集和分析全部完成的状态，不接受任何组件操作
  */
 class CompleteState : public ICollectState {

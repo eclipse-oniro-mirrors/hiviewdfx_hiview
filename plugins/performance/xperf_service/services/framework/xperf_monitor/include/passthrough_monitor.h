@@ -23,7 +23,7 @@ namespace HiviewDFX {
  
 /**
  * @brief 透传事件的监控器
- * 
+ *
  * 监控需要透传的事件，按eventName进行上报
  */
 class PassthroughMonitor : public XperfMonitor {

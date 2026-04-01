@@ -86,7 +86,6 @@ void CollectingState::AddComponent(int32_t nodeId)
     LoadCompleteMonitor& monitor = LoadCompleteMonitor::GetInstance();
     int64_t currTime = GetCurrentSystimeMs();
     int64_t gapTime = currTime - monitor.GetLastAddTime();
-    
     if (monitor.GetLastAddTime() == 0 ||
         (gapTime > monitor.GetConfig().intraGroupGapTime && gapTime < monitor.GetConfig().stopCollectTimeWait)) {
         monitor.IncrementGroupNum();

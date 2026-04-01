@@ -124,7 +124,6 @@ public:
     void DeleteLoadComponentInternal(int32_t nodeId);
     void CompleteLoadComponentInternal(int32_t nodeId);
     void StartCollectCommon(const std::string& pageUrl, const std::string& bundleName, bool isLaunch);
-    
  
 private:
     LoadCompleteMonitor();
