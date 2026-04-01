@@ -20,6 +20,7 @@
 #include "faultlogger_client.h"
 #include "file_util.h"
 #include "freeze_json_util.h"
+#include "get_ratio_utils.h"
 #include "hiview_logger.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -109,9 +110,11 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoi
     std::string disPlayPowerInfo = GetDisPlayPowerInfo();
     info.summary = type + ": " + processName + " " + stringId +
                    " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
+    int timeoutThresholdNormal = static_cast<int>(TIMEOUT_THRESHOLD_NORMAL *
+        FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio());
     if (stringId == "APP_INPUT_BLOCK") {
         info.summary += std::string(WAIT_EVENT) + LEFT_PARENTHESIS + watchPoint.GetTimeoutEventId() +
-                RIGHT_PARENTHESIS + EXCEED + std::to_string(TIMEOUT_THRESHOLD_NORMAL) + MS + COMMA +
+                RIGHT_PARENTHESIS + EXCEED + std::to_string(timeoutThresholdNormal) + MS + COMMA +
                 std::string(LAST_DISPATCH_EVENT) + LEFT_PARENTHESIS + watchPoint.GetLastDispatchEventId() +
                 RIGHT_PARENTHESIS + COMMA + std::string(LAST_PROCESS_EVENT) + LEFT_PARENTHESIS +
                 watchPoint.GetLastProcessEventId() + RIGHT_PARENTHESIS + COMMA + std::string(LAST_MARKED_EVENT) +
