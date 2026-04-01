@@ -1333,7 +1333,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_001, TestSize.Level3)
     sysEvent->eventName_ = "THREAD_BLOCK_3S";
     result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 3000 * FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
@@ -1351,7 +1351,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_002, TestSize.Level3)
     sysEvent->eventName_ = "THREAD_BLOCK_6S";
     std::string result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 6000 * FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
@@ -1369,7 +1369,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_003, TestSize.Level3)
     sysEvent->eventName_ = "APP_INPUT_BLOCK";
     std::string result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 8000 * FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
@@ -1388,7 +1388,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_004, TestSize.Level3)
     sysEvent->SetEventValue("MSG", "foreground timeout");
     std::string result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 5000 * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
@@ -1407,7 +1407,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_005, TestSize.Level3)
     sysEvent->SetEventValue("MSG", "load timeout");
     std::string result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 10000 * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
@@ -1444,7 +1444,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_007, TestSize.Level3)
     sysEvent->SetEventValue("MSG", "foreground timeout");
     std::string result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 2500 * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
@@ -1463,7 +1463,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_008, TestSize.Level3)
     sysEvent->SetEventValue("MSG", "load timeout");
     std::string result = eventLogger->GetBlockedTime(sysEvent);
     float blockedTime = 5000 * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
-    EXPECT_EQ(std::to_string(((int)blockedTime)), result);
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
 /**
