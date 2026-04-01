@@ -23,7 +23,7 @@ namespace HiviewDFX {
  
 // ==================== InitState 实现 ====================
 void InitState::StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName) {
-    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForLaunch currentTime:%ld", GetCurrentSystimeMs());
+    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForLaunch currentTime:%lld", GetCurrentSystimeMs());
     LoadCompleteMonitor::GetInstance().StartCollectCommon(pageUrl, bundleName, true);
     LoadCompleteMonitor::GetInstance().SetState(std::make_unique<CollectingState>());
 }
@@ -31,7 +31,7 @@ void InitState::StartCollectForLaunch(const std::string& pageUrl, const std::str
 void InitState::StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
     const std::string& sceneId) {
     if (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
-        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%ld", GetCurrentSystimeMs());
+        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%lld", GetCurrentSystimeMs());
         LoadCompleteMonitor::GetInstance().StartCollectCommon(pageUrl, bundleName, false);
         LoadCompleteMonitor::GetInstance().SetState(std::make_unique<CollectingState>());
     }
@@ -74,7 +74,7 @@ void CollectingState::StartCollectForAnimation(const std::string& pageUrl, const
     monitor.FinishCollectTask();
  
     if (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
-        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%ld", GetCurrentSystimeMs());
+        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%lld", GetCurrentSystimeMs());
         monitor.StartCollectCommon(pageUrl, bundleName, false);
     } else {
         monitor.SetState(std::make_unique<CompleteState>());
@@ -89,7 +89,7 @@ void CollectingState::AddComponent(int32_t nodeId)
     if (monitor.GetLastAddTime() == 0 ||
         (gapTime > monitor.GetConfig().intraGroupGapTime && gapTime < monitor.GetConfig().stopCollectTimeWait)) {
         monitor.IncrementGroupNum();
-        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld",
+        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%lld",
             nodeId, monitor.GetGroupNum(), gapTime);
         
         if (monitor.GetGroupNum() > monitor.GetConfig().maxGroupNum) {
@@ -101,7 +101,7 @@ void CollectingState::AddComponent(int32_t nodeId)
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
         monitor.IncrementNodeNum();
     } else if (gapTime <= monitor.GetConfig().intraGroupGapTime) {
-        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld",
+        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%lld",
             nodeId, monitor.GetGroupNum(), gapTime);
         monitor.SetLastAddTime(currTime);
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
@@ -142,7 +142,7 @@ void AnalysisState::StartCollectForAnimation(const std::string& pageUrl, const s
     monitor.FinishCollectTask();
  
     if (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
-        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%ld", GetCurrentSystimeMs());
+        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%lld", GetCurrentSystimeMs());
         monitor.StartCollectCommon(pageUrl, bundleName, false);
         monitor.SetState(std::make_unique<CollectingState>());
     } else {
@@ -174,7 +174,7 @@ void AnalysisState::StopCollect()
 // ==================== CompleteState 实现 ====================
 void CompleteState::StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName)
 {
-    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForLaunch currentTime:%ld", GetCurrentSystimeMs());
+    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForLaunch currentTime:%lld", GetCurrentSystimeMs());
     LoadCompleteMonitor::GetInstance().StartCollectCommon(pageUrl, bundleName, true);
     LoadCompleteMonitor::GetInstance().SetState(std::make_unique<CollectingState>());
 }
@@ -182,7 +182,7 @@ void CompleteState::StartCollectForLaunch(const std::string& pageUrl, const std:
 void CompleteState::StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
     const std::string& sceneId) {
     if (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
-        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%ld", GetCurrentSystimeMs());
+        XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%lld", GetCurrentSystimeMs());
         LoadCompleteMonitor::GetInstance().StartCollectCommon(pageUrl, bundleName, false);
         LoadCompleteMonitor::GetInstance().SetState(std::make_unique<CollectingState>());
     }

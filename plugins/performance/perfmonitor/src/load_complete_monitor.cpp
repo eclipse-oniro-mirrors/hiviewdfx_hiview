@@ -126,7 +126,7 @@ void LoadCompleteMonitor::FinishCollectTask()
         [times](const auto& pair) { return pair.second == times; }
     );
     bool isCompleted = (incompleteNum <= static_cast<int32_t>(config_.ignorableRatio * nodeNum_));
-    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] FinishCollectTask lastLoadComponent:%ld, nodeNum_:%d,incompleteNum:%d",
+    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] FinishCollectTask lastLoadComponent:%lld, nodeNum_:%d,incompleteNum:%d",
         lastLoadComponent, nodeNum_, incompleteNum);
     int64_t loadCost = isCompleted ? lastLoadComponent - beginTime_ : -1;
     if (loadCost == -1 || loadCost > PAGE_LOAD_TIME_THRESHOLD) {
