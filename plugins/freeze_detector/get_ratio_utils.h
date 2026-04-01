@@ -25,16 +25,16 @@ public:
     FreezeGetRatio();
     ~FreezeGetRatio();
     static FreezeGetRatio &GetInStance();
-    static float getAppfreezeTimeoutRatio();
-    static float getAbilitymsTimeoutRatio();
+    static float GetAppfreezeTimeoutRatio();
+    static float GetAbilitymsTimeoutRatio();
     static bool IsNumeric(const std::string &str);
 private:
-    static float getAppfreezeRatio();
-    static float getAbilitymsRatio();
-    static float getRatio(const std::string& key, const std::string& defaultVal, int maxSize, float convertRatio,
+    static float GetAppfreezeRatio();
+    static float GetAbilitymsRatio();
+    static float GetRatio(const std::string& key, const std::string& defaultVal, int maxSize, float convertRatio,
         float defaultRatio);
-    static float g_appfreezeTimeoutRatio;
-    static float g_abilitymsTimeoutRatio;
+    static float gAppfreezeTimeoutRatio;
+    static float gAbilitymsTimeoutRatio;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

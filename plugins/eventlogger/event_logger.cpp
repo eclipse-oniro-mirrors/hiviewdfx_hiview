@@ -973,24 +973,24 @@ std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
     }
  
     if (event->eventName_ == "THREAD_BLOCK_3S") {
-        blockedTime = DFX_THREAD_BLOCK_3S * FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+        blockedTime = DFX_THREAD_BLOCK_3S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "THREAD_BLOCK_6S") {
-        blockedTime = DFX_THREAD_BLOCK_6S * FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+        blockedTime = DFX_THREAD_BLOCK_6S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "APP_INPUT_BLOCK") {
-        blockedTime = DFX_APP_INPUT_BLOCK_8S * FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+        blockedTime = DFX_APP_INPUT_BLOCK_8S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "LIFECYCLE_TIMEOUT") {
         if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
-            blockedTime = DFX_FOREGROUND_TIMEOUT_5S * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+            blockedTime = DFX_FOREGROUND_TIMEOUT_5S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
-            blockedTime = DFX_LOAD_TIMEOUT_10S * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+            blockedTime = DFX_LOAD_TIMEOUT_10S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else {
             return "";
         }
     } else if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT") {
         if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
-            blockedTime = DFX_FOREGROUND_TIMEOUT_2S5 * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+            blockedTime = DFX_FOREGROUND_TIMEOUT_2S5 * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
-            blockedTime = DFX_LOAD_TIMEOUT_5S * FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+            blockedTime = DFX_LOAD_TIMEOUT_5S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else {
             return "";
         }

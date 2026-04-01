@@ -111,7 +111,7 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoi
     info.summary = type + ": " + processName + " " + stringId +
                    " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
     int timeoutThresholdNormal = static_cast<int>(TIMEOUT_THRESHOLD_NORMAL *
-        FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio());
+        FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio());
     if (stringId == "APP_INPUT_BLOCK") {
         info.summary += std::string(WAIT_EVENT) + LEFT_PARENTHESIS + watchPoint.GetTimeoutEventId() +
                 RIGHT_PARENTHESIS + EXCEED + std::to_string(timeoutThresholdNormal) + MS + COMMA +

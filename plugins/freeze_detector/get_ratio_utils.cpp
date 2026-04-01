@@ -34,13 +34,13 @@ namespace {
     constexpr int32_t MAX_ABILITYMS_RATIO_SIZE = 2;
 }
  
-float FreezeGetRatio::g_appfreezeTimeoutRatio = 0.0f;
-float FreezeGetRatio::g_abilitymsTimeoutRatio = 0.0f;
+float FreezeGetRatio::gAppfreezeTimeoutRatio = 0.0f;
+float FreezeGetRatio::gAbilitymsTimeoutRatio = 0.0f;
  
 FreezeGetRatio::FreezeGetRatio()
 {
-    g_appfreezeTimeoutRatio = getAppfreezeRatio();
-    g_abilitymsTimeoutRatio = getAbilitymsRatio();
+    gAppfreezeTimeoutRatio = GetAppfreezeRatio();
+    gAbilitymsTimeoutRatio = GetAbilitymsRatio();
 }
  
 FreezeGetRatio::~FreezeGetRatio()
@@ -52,33 +52,33 @@ FreezeGetRatio &FreezeGetRatio::GetInStance()
     return instance;
 }
  
-float FreezeGetRatio::getAppfreezeTimeoutRatio()
+float FreezeGetRatio::GetAppfreezeTimeoutRatio()
 {
-    if (g_appfreezeTimeoutRatio > FLOAT_EPSILON) {
-        return g_appfreezeTimeoutRatio;
+    if (gAppfreezeTimeoutRatio > FLOAT_EPSILON) {
+        return gAppfreezeTimeoutRatio;
     }
     return 1.0f;
 }
  
-float FreezeGetRatio::getAbilitymsTimeoutRatio()
+float FreezeGetRatio::GetAbilitymsTimeoutRatio()
 {
-    if (g_abilitymsTimeoutRatio > FLOAT_EPSILON) {
-        return g_abilitymsTimeoutRatio;
+    if (gAbilitymsTimeoutRatio > FLOAT_EPSILON) {
+        return gAbilitymsTimeoutRatio;
     }
     return 1.0f;
 }
  
-float FreezeGetRatio::getAppfreezeRatio()
+float FreezeGetRatio::GetAppfreezeRatio()
 {
-    return getRatio(KEY_APPFREEZE_TIMEOUT_RATIO, "1000", MAX_APPFREEZE_RATIO_SIZE, 1.0f / TIME_CONVERT_RATIO, 1.0f);
+    return GetRatio(KEY_APPFREEZE_TIMEOUT_RATIO, "1000", MAX_APPFREEZE_RATIO_SIZE, 1.0f / TIME_CONVERT_RATIO, 1.0f);
 }
  
-float FreezeGetRatio::getAbilitymsRatio()
+float FreezeGetRatio::GetAbilitymsRatio()
 {
-    return getRatio(KEY_ABILITYMS_TIMEOUT_RATIO, "1", MAX_ABILITYMS_RATIO_SIZE, 1.0f, 1.0f);
+    return GetRatio(KEY_ABILITYMS_TIMEOUT_RATIO, "1", MAX_ABILITYMS_RATIO_SIZE, 1.0f, 1.0f);
 }
  
-float FreezeGetRatio::getRatio(const std::string& key, const std::string& defaultVal, int maxSize,
+float FreezeGetRatio::GetRatio(const std::string& key, const std::string& defaultVal, int maxSize,
     float convertRatio = 1.0f, float defaultRatio = 1.0f)
 {
     std::string ratioStr = OHOS::system::GetParameter(key, defaultVal);

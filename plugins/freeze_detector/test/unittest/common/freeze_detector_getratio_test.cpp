@@ -110,10 +110,10 @@ HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_IsNumeric_004, T
  */
 HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_001, TestSize.Level1)
 {
-    float result = FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+    float result = FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.0f) < FLOAT_EPSILON);
     OHOS::system::SetParameter(DFX_APPFREEZE_TIMEOUT_RATIO, "");
-    result = FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+    result = FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.0f) < FLOAT_EPSILON);
 }
  
@@ -125,7 +125,7 @@ HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_001, Te
 HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_002, TestSize.Level1)
 {
     OHOS::system::SetParameter(DFX_APPFREEZE_TIMEOUT_RATIO, "1500");
-    float result = FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+    float result = FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.5f) < FLOAT_EPSILON);
 }
  
@@ -137,7 +137,7 @@ HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_002, Te
 HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_003, TestSize.Level1)
 {
     OHOS::system::SetParameter(DFX_APPFREEZE_TIMEOUT_RATIO, "1");
-    float result = FreezeGetRatio::GetInstance()->getAppfreezeTimeoutRatio();
+    float result = FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.0f) < FLOAT_EPSILON);
 }
  
@@ -148,10 +148,10 @@ HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_003, Te
  */
 HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_004, TestSize.Level1)
 {
-    float result = FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+    float result = FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.0f) < FLOAT_EPSILON);
     OHOS::system::SetParameter(DFX_ABILITYMS_TIMEOUT_RATIO, "");
-    result = FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+    result = FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.0f) < FLOAT_EPSILON);
 }
  
@@ -163,7 +163,7 @@ HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_004, Te
 HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_005, TestSize.Level1)
 {
     OHOS::system::SetParameter(DFX_ABILITYMS_TIMEOUT_RATIO, "2");
-    float result = FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+    float result = FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 2.0f) < FLOAT_EPSILON);
 }
  
@@ -175,7 +175,7 @@ HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_005, Te
 HWTEST_F(FreezeDetectorGetratiotest, FreezeDetectorGetratiotest_getRatio_006, TestSize.Level1)
 {
     OHOS::system::SetParameter(DFX_ABILITYMS_TIMEOUT_RATIO, "0.001");
-    float result = FreezeGetRatio::GetInstance()->getAbilitymsTimeoutRatio();
+    float result = FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
     EXPECT_TRUE(std::abs(result - 1.0f) < FLOAT_EPSILON);
 }
 }
