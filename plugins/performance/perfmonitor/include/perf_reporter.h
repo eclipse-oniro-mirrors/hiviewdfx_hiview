@@ -63,6 +63,7 @@ public:
 
     static void ReportImageLoadStat(const ImageLoadStat& stat);
     static void ReportSurfaceInfo(const SurfaceInfo& surface);
+    static void ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo);
 };
 }
 }

@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 #include "event_parser_manager.h"
-#include "xperf_service_log.h"
-#include "xperf_constant.h"
+ 
 #include "audio_event_parser.h"
-#include "network_event_parser.h"
 #include "avcodec_event_parser.h"
-#include "rs_event_parser.h"
+#include "load_complete_parser.h"
+#include "network_event_parser.h"
 #include "perf_event_parser.h"
+#include "rs_event_parser.h"
+#include "xperf_constant.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -45,6 +46,7 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::VIDEO_FRAME_STATS, &ParseRsVideoFrameStatsMsg); //5001
     RegisterParserByLogID(XperfConstants::VIDEO_EXCEPT_STOP, &ParseRsVideoExceptStopMsg); //5002
     RegisterParserByLogID(XperfConstants::PERF_USER_ACTION, &ParserPerfUserAction); //6000
+    RegisterParserByLogID(XperfConstants::PERF_LOAD_COMPLETE, &ParserLoadComplete); //6001
 }
 
 ParserXperfFunc EventParserManager::GetEventParser(int32_t logId)

@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
+const std::string TAG_EVENT_NAME = "#EVENT_NAME:";
 const std::string TAG_UNIQUE_ID = "#UNIQUEID:";
 const std::string TAG_PID = "#PID:";
 const std::string TAG_BUNDLE_NAME = "#BUNDLE_NAME:";
@@ -37,6 +38,8 @@ const std::string TAG_AVG_FPS = "#AVG_FPS:";
 const std::string TAG_JANK_REASON = "#JANK_REASON:";
 const std::string TAG_TYPE = "#TYPE:";
 const std::string TAG_TIME = "#TIME:";
+const std::string TAG_LAST_COMPONENT = "#LAST_COMPONENT:";
+const std::string TAG_IS_LAUNCH = "#IS_LAUNCH:";
 const std::string TAG_END = "";
 
 bool ExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,

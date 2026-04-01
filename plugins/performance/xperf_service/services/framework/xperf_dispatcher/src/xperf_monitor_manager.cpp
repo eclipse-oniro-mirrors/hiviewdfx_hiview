@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 #include "xperf_monitor_manager.h"
-#include "xperf_constant.h"
-#include "xperf_service_log.h"
+ 
+#include "passthrough_monitor.h"
+#include "user_action_monitor.h"
 #include "video_jank_monitor.h"
 #include "video_xperf_monitor.h"
-#include "user_action_monitor.h"
+#include "xperf_constant.h"
+#include "xperf_service_log.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -26,6 +28,7 @@ XperfMonitorManager::XperfMonitorManager()
     InitPlayStateMonitor();
     InitVideoMonitor();
     InitUserActionMonitor();
+    InitPassthroughMonitor();
 }
 
 void XperfMonitorManager::RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor)
@@ -61,6 +64,12 @@ void XperfMonitorManager::InitUserActionMonitor()
 {
     XperfMonitor* monitor = &UserActionMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::PERF_USER_ACTION, monitor);
+}
+
+void XperfMonitorManager::InitPassthroughMonitor()
+{
+    XperfMonitor* monitor = &PassthroughMonitor::GetInstance();
+    RegisterMonitorByLogID(XperfConstants::PERF_LOAD_COMPLETE, monitor);
 }
 
 std::vector<XperfMonitor*> XperfMonitorManager::GetMonitors(int32_t logId)

@@ -13,18 +13,21 @@
  * limitations under the License.
  */
 
-#include "animator_monitor.h"
-#include "jank_frame_monitor.h"
 #include "perf_reporter.h"
+ 
+#include "animator_monitor.h"
+#include "hisysevent.h"
+#include "hiview_logger.h"
+#include "jank_frame_monitor.h"
 #include "perf_trace.h"
 #include "perf_utils.h"
+#include "render_service_client/core/transaction/rs_interfaces.h"
 #include "scene_monitor.h"
 #include "xperf_event_builder.h"
 #include "xperf_event_reporter.h"
+#include "xperf_service_action_type.h"
+#include "xperf_service_client.h"
 
-#include "hisysevent.h"
-#include "render_service_client/core/transaction/rs_interfaces.h"
-#include "hiview_logger.h"
 
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
@@ -576,5 +579,23 @@ void EventReporter::ReportSurfaceInfo(const SurfaceInfo& surface)
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
 }
+
+void EventReporter::ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo)
+{
+    // 构建消息字符串
+    std::stringstream ss;
+    ss << "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" << std::to_string(eventInfo.lastComponent)
+        << "#BUNDLE_NAME:" << eventInfo.bundleName
+        << "#IS_LAUNCH:" << std::to_string(eventInfo.isLaunch);
+ 
+    // 通过 XperfService 发送消息
+    // 使用 eventId 6001 (PERF_LOAD_COMPLETE)
+    XperfServiceClient::GetInstance().NotifyToXperf(
+        static_cast<int32_t>(DomainId::PERFMONITOR),
+        static_cast<int32_t>(PerfEventCode::LOAD_COMPLETE),
+        ss.str()
+    );
+}
+
 }
 }
