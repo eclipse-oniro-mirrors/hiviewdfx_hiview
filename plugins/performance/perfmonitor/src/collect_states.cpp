@@ -100,14 +100,12 @@ void CollectingState::AddComponent(int32_t nodeId)
         monitor.SetLastAddTime(currTime);
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
         monitor.IncrementNodeNum();
-        
     } else if (gapTime <= monitor.GetConfig().intraGroupGapTime) {
         XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%ld",
             nodeId, monitor.GetGroupNum(), gapTime);
         monitor.SetLastAddTime(currTime);
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
         monitor.IncrementNodeNum();
-        
     } else {
         monitor.SetState(std::make_unique<AnalysisState>());
     }
