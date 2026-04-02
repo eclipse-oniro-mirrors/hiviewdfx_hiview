@@ -83,6 +83,7 @@
                 "data_share",
                 "device_usage_statistics",
                 "drivers_interface_memorytracker",
+                "ets_frontend",
                 "ets_runtime",
                 "faultloggerd",
                 "ffrt",
