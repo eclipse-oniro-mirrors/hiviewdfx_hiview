@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/config/features.gni")
 import("//build/test.gni")
 
@@ -33,10 +34,9 @@ ohos_fuzztest("FaultloggerClientFuzzTest") {
 
   sources = [ "faultlogger_client_fuzzer.cpp" ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hiview:libfaultlogger",
-  ]
+  deps = [ "$hiview_plugin/faultlogger:libfaultlogger" ]
+
+  external_deps = [ "c_utils:utils" ]
 }
 
 group("fuzztest") {
