@@ -72,6 +72,14 @@ void AnimatorRecord::RecordFrame(int64_t vsyncTime, int64_t duration, int32_t sk
         maxFrameTimeSinceStart = (currentTimeNs - beginVsyncTime) / NS_TO_MS;
     }
     totalFrames++;
+    // 统计直方图
+    size_t length = jankCount.size();
+    if (skippedFrames >=length) {
+        skippedFrames = length;
+    }
+    if (!isFirstFrame) {
+        jankCount[skippedFrames - 1]++;
+    }
 }
 
 void AnimatorRecord::Report(const std::string& sceneId, int64_t vsyncTime, bool isRsRender)
