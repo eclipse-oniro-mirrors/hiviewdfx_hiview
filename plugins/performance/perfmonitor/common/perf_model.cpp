@@ -73,10 +73,9 @@ void AnimatorRecord::RecordFrame(int64_t vsyncTime, int64_t duration, int32_t sk
     }
     totalFrames++;
     // 统计直方图
-    size_t jankIndex = std::min(skippedFrames, length);
-
+    size_t jankIndex = std::min(skippedFrames, jankCount.size()) - 1;
     if (!isFirstFrame) {
-        jankCount[jankIndex-1]++;
+        jankCount[jankIndex]++;
     }
 }
 
