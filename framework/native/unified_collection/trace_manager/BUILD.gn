@@ -94,7 +94,7 @@ ohos_shared_library("libtrace_manager") {
 
   deps = [ ":trace_manager_source" ]
 
-  public_external_deps = [
+  external_deps = [
     "ffrt:libffrt",
     "hilog:libhilog",
     "hitrace:hitrace_dump",

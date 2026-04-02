@@ -53,6 +53,8 @@ ohos_unittest("TraceUtilsTest") {
     "hilog:libhilog",
     "ffrt:libffrt",
     "c_utils:utils",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
   ]
 }
 
@@ -86,6 +88,8 @@ ohos_unittest("TraceStrategyTest") {
     "zlib:libz",
     "hisysevent:libhisysevent",
     "c_utils:utils",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
   ]
 
   defines = [
@@ -125,6 +129,8 @@ ohos_unittest("TraceStrategyExTest") {
     "zlib:libz",
     "hisysevent:libhisysevent",
     "c_utils:utils",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
   ]
 
   defines = [
@@ -166,6 +172,8 @@ ohos_unittest("TraceImplTest") {
     "zlib:libz",
     "hisysevent:libhisysevent",
     "c_utils:utils",
+    "hitrace:hitrace_dump",
+    "relational_store:native_rdb",
   ]
 
   defines = [
