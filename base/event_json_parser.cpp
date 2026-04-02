@@ -198,7 +198,6 @@ bool DomainJsonParser::ParseDomainJsonFromFile(const std::string& domainName,
     std::ifstream file(defFilePath_, std::ifstream::binary);
     if (!file.is_open()) {
         HIVIEW_LOGE("open json file failed, please check the style of json file: %{public}s", defFilePath_.c_str());
-        file.close();
         return false;
     }
     file.seekg(domainIter->second.startPos, std::ifstream::beg);
