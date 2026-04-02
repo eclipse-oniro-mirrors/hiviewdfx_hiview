@@ -213,6 +213,7 @@ void AnimatorMonitor::FlushDataBase(AnimatorRecord* record, DataBase& data)
     data.isDisplayAnimator = record->isDisplayAnimator;
     data.sourceType = record->sourceType;
     data.actionType = record->actionType;
+    data.jankCount = record->jankCount;
     data.baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
     data.baseInfo.note = record->note;
     // In the pageSwitch sences, note is the pageName before and after the pageSwitch.
