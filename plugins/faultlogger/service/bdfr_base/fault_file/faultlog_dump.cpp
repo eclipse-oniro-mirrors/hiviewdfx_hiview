@@ -17,6 +17,7 @@
 #include "accesstoken_kit.h"
 #include "constants.h"
 #include "faultlog_bundle_util.h"
+#include "faultlog_database.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "ipc_skeleton.h"
@@ -35,6 +36,7 @@ constexpr int DUMP_PARSE_FILE_NAME = 1;
 constexpr int DUMP_PARSE_TIME = 2;
 constexpr int DUMP_START_PARSE_MODULE_NAME = 3;
 constexpr int DUMP_PARSE_HELP = 4;
+constexpr int DUMP_PARSE_TO_FIND_FREEZE_EXT_FILE = 5;
 constexpr uint32_t MAX_NAME_LENGTH = 4096;
 static constexpr const char* FAULTLOGGER_CMD_USAGE_INFO = R"(Usage:
     hidumper -s 1201 -a "-p Faultlogger [options] [parameters]"
@@ -44,7 +46,9 @@ Examples:
 Available Options:
     -h                  Display this help information
     -l                  List all fault file names in the faultlogger directory
-    -f fileName         View the content of a specified fault file. File names can be obtained using the -l parameter
+    -f fileName [--ext] View the content of a specified fault file,
+                        the --ext parameter only can be used for appfreeze log file.
+                        File names can be obtained using the -l parameter
     -t time             Query fault file names generated after the specified time in the faultlogger directory.
                         Supports two time formats:
                             Unix timestamp or year-month-day-hour-minute-second (e.g., 20250820211600)
@@ -107,6 +111,19 @@ bool IsLogNameValid(const std::string& name)
     return true;
 }
 
+bool FindAppfreezeExtFile(DumpRequest& request)
+{
+    if (request.fileName.empty() || !StringUtil::StartWith(request.fileName, "appfreeze")) {
+        HIVIEW_LOGW("No appfreeze filename.");
+        return false;
+    }
+    request.extFileName = FaultLogDatabase::GetAppFreezeExtInfoFromFileName(request.fileName);
+    if (request.extFileName.empty()) {
+        return false;
+    }
+    return true;
+}
+
 bool FillDumpRequest(DumpRequest& request, int status, const std::string& item)
 {
     switch (status) {
@@ -129,6 +146,12 @@ bool FillDumpRequest(DumpRequest& request, int status, const std::string& item)
             }
             request.moduleName = item;
             break;
+        case DUMP_PARSE_TO_FIND_FREEZE_EXT_FILE:
+            if (!FindAppfreezeExtFile(request)) {
+                HIVIEW_LOGW("Find no extfile.");
+                request.extFileName.clear();
+            }
+            break;
         default:
             HIVIEW_LOGI("Unknown status.");
             break;
@@ -141,10 +164,22 @@ bool FaultLogDump::DumpByFileName(const DumpRequest& request) const
 {
     if (!request.fileName.empty()) {
         std::string content;
-        if (faultLogManager_->GetFaultLogContent(request.fileName, content)) {
-            dprintf(fd_, "%s\n", content.c_str());
-        } else {
+        std::string extContent;
+        bool contentGetRes = faultLogManager_->GetFaultLogContent(request.fileName, content);
+        if (!contentGetRes) {
             dprintf(fd_, "Fail to dump the log.\n");
+            return true;
+        }
+        contentGetRes = false;
+        if (!request.extFileName.empty() && FileUtil::LoadStringFromFile(request.extFileName, extContent)) {
+            contentGetRes = true;
+            dprintf(fd_, "%s\n", FILE_SEPARATOR);
+        }
+        dprintf(fd_, "%s\n", content.c_str());
+        if (contentGetRes) {
+            dprintf(fd_, "%s\n", FILE_SEPARATOR);
+            dprintf(fd_, "%s\n", extContent.c_str());
+            dprintf(fd_, "%s\n", FILE_SEPARATOR);
         }
         return true;
     }
@@ -226,7 +261,8 @@ ParseCmdResult FaultLogDump::HandleCommandOption(const std::string& cmd, int32_t
         {"-m", [](int32_t& status, DumpRequest& request) { status = DUMP_START_PARSE_MODULE_NAME; }},
         {"-d", [](int32_t& status, DumpRequest& request) { request.requestDetail = true; }},
         {"Faultlogger", [](int32_t& status, DumpRequest& request) { request.compatFlag = true; }},
-        {"-LogSuffixWithMs", [](int32_t& status, DumpRequest& request) { request.compatFlag = false; }}
+        {"-LogSuffixWithMs", [](int32_t& status, DumpRequest& request) { request.compatFlag = false; }},
+        {"--ext", [](int32_t& status, DumpRequest& request) { status = DUMP_PARSE_TO_FIND_FREEZE_EXT_FILE; }}
     };
 
     if (cmdHandlers.count(cmd)) {
@@ -250,7 +286,9 @@ bool FaultLogDump::ParseDumpCommands(const std::vector<std::string>& cmds, DumpR
             if (status == DUMP_PARSE_HELP) {
                 return false;
             }
-            continue;
+            if (status != DUMP_PARSE_TO_FIND_FREEZE_EXT_FILE) {
+                continue;
+            }
         } else if (result == ParseCmdResult::UNKNOWN) {
             return false;
         }
