@@ -33,6 +33,11 @@ private:
     void InitPlayStateMonitor();
     void InitVideoMonitor();
     void InitUserActionMonitor();
+
+    /**
+     * @brief 初始化透传事件的monitor，并订阅需要透传的事件
+     */
+    void InitPassthroughMonitor();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

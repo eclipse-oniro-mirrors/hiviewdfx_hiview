@@ -15,6 +15,7 @@
 
 #include "scene_monitor.h"
 #include "jank_frame_monitor.h"
+#include "load_complete_monitor.h"
 #include "perf_reporter.h"
 #include "perf_trace.h"
 #include "perf_utils.h"
@@ -311,7 +312,13 @@ int32_t SceneMonitor::GetPid()
 
 void SceneMonitor::SetAppForeground(bool isShow)
 {
-    if (GetBaseInfo().bundleName == BUNDLE_NAME_SCENE_BOARD) {
+    BaseInfo baseInfo = GetBaseInfo();
+    if (isShow) {
+        LoadCompleteMonitor::GetInstance().StartCollectForLaunch(baseInfo.pageUrl, baseInfo.bundleName);
+    } else {
+        LoadCompleteMonitor::GetInstance().StopCollect();
+    }
+    if (baseInfo.bundleName == BUNDLE_NAME_SCENE_BOARD) {
         HIVIEW_LOGD("The sceneBoard needs to be excluded.");
         return;
     }
@@ -542,6 +549,12 @@ void SceneMonitor::FlushSubHealthInfo()
         baseInfo.subHealthInfo = subHealthInfo;
         isSubHealthScene = false;
     }
+}
+
+void SceneMonitor::OnLastUpInputEvent()
+{
+    OnSceneChanged(SceneType::APP_RESPONSE, true, GetCurrentSceneId());
+    LoadCompleteMonitor::GetInstance().StopCollect();
 }
 
 }

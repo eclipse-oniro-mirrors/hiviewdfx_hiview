@@ -19,6 +19,7 @@
 #include "animator_monitor.h"
 #include "input_monitor.h"
 #include "jank_frame_monitor.h"
+#include "load_complete_monitor.h"
 #include "perf_reporter.h"
 #include "perf_utils.h"
 #include "scene_monitor.h"
@@ -189,6 +190,21 @@ void PerfMonitorAdapter::ReportSurface(const int64_t& uniqueId, const std::strin
     const std::string& componentName, const std::string& bundleName, const int32_t& pid)
 {
     SurfaceMonitor::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
+}
+
+void PerfMonitorAdapter::AddLoadComponent(int32_t nodeId)
+{
+    LoadCompleteMonitor::GetInstance().AddLoadComponent(nodeId);
+}
+ 
+void PerfMonitorAdapter::DeleteLoadComponent(int32_t nodeId)
+{
+    LoadCompleteMonitor::GetInstance().DeleteLoadComponent(nodeId);
+}
+ 
+void PerfMonitorAdapter::CompleteLoadComponent(int32_t nodeId)
+{
+    LoadCompleteMonitor::GetInstance().CompleteLoadComponent(nodeId);
 }
 
 }

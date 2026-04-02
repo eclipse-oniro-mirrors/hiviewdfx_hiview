@@ -59,6 +59,9 @@ namespace XperfConstants {
     //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
     const int32_t PERF_USER_ACTION = 6000;  //perfmonitor上报用户操作事件
 
+    //"#LAST_COMPONENT:1720001111#BUNDLE_NAME:com.ohos.sceneboard#IS_LAUNCH:0"
+    const int32_t PERF_LOAD_COMPLETE = 6001;  //perfmonitor上报页面加载完成事件
+ 
 };
 
 } // namespace HiviewDFX

@@ -144,6 +144,12 @@ struct AppWhiteInfo {
     std::string pageName;
 };
 
+struct LoadCompleteInfo {
+    int64_t lastComponent{0};
+    std::string bundleName;
+    bool isLaunch{false};
+};
+
 class AnimatorRecord {
 public:
     void InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType, const std::string& nt,

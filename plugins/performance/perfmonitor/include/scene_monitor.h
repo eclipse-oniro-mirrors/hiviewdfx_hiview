@@ -101,6 +101,8 @@ public:
     void SetSubHealthInfo(const SubHealthInfo& info);
     void FlushSubHealthInfo();
 
+    void OnLastUpInputEvent();
+ 
 private:
     void NotifyRsJankStatsBegin();
     void NotifyRsJankStatsEnd(int64_t endTime);
