@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "domain_json_parser.h"
+
 #include <fstream>
 
-#include "domain_json_parser.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
