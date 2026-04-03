@@ -169,6 +169,13 @@ std::pair<int32_t, std::shared_ptr<NativeRdb::Transaction>> RestorableDbStore::C
     return ret;
 }
 
+int RestorableDbStore::Count(int64_t& outValue, const NativeRdb::AbsRdbPredicates& absRdbPredicates)
+{
+    return AdaptRdbOpt([&outValue, &absRdbPredicates] (std::shared_ptr<NativeRdb::RdbStore> rdbStore) {
+        return rdbStore->Count(outValue, absRdbPredicates);
+    });
+}
+
 int RestorableDbStore::AdaptRdbOpt(std::function<int(std::shared_ptr<NativeRdb::RdbStore>)> func)
 {
     auto ret = NativeRdb::E_OK;
