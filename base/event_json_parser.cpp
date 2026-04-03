@@ -47,19 +47,6 @@ constexpr int16_t EXPORT_ALL_EVENT = -1; // equal with ALL_EVENT_TASK_TYPE defin
 constexpr char EVENT_COUNT_OVER_THRESHOLD[] = "EVENT_COUNT_OVER_THRESHOLD";
 constexpr int16_t CACHE_SIZE_PRINT_INTERVAL = 200;
 
-bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
-{
-    std::ifstream fin(path, std::ifstream::binary);
-    if (!fin.is_open()) {
-        HIVIEW_LOGW("failed to open file, path: %{public}s.", path.c_str());
-        return false;
-    }
-    Json::CharReaderBuilder jsonRBuilder;
-    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
-    JSONCPP_STRING errs;
-    return parseFromStream(jsonRBuilder, fin, &hiSysEventDef, &errs);
-}
-
 void AddEventToExportList(ExportEventList& list, const std::string& domain, const std::string& name,
     const BaseInfo& baseInfo, int16_t reportInterval)
 {
@@ -133,109 +120,24 @@ void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefM
     }
 }
 
-bool HasEventInCache(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap, const std::string& domain,
+std::optional<BaseInfo> GetEventInCache(std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap, const std::string& domain,
     const std::string& name)
 {
-    if (sysEventDefMap == nullptr) {
-        HIVIEW_LOGD("sys def map is null");
-        return false;
-    }
     auto domainIter = sysEventDefMap->find(domain);
     if (domainIter == sysEventDefMap->end()) {
-        HIVIEW_LOGD("domain %{public}s is not defined.", domain.c_str());
-        return false;
+        return std::nullopt;
     }
-    auto domainNames = sysEventDefMap->at(domain);
+    auto domainNames = domainIter->second;
     auto nameIter = domainNames.find(name);
     if (nameIter == domainNames.end()) {
-        HIVIEW_LOGD("%{public}s is not defined in domain %{public}s, or privacy not allowed.",
-            name.c_str(), domain.c_str());
-        return false;
+        return std::nullopt;
     }
-    return true;
+    return nameIter->second;
 }
 }
 
-bool DomainJsonParser::CacheDomainJsonLocation(const std::string& defFilePath)
-{
-    Json::Value hiSysEventDef;
-    if (!ReadSysEventDefFromFile(defFilePath, hiSysEventDef)) {
-        HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
-        return false;
-    }
-    std::unique_lock<ffrt::mutex> uniqueLock(domainMtx_);
-    if (domainLocationMap_ == nullptr) {
-        domainLocationMap_ = std::make_shared<DOMAIN_LOCATION_MAP>();
-    } else {
-        domainLocationMap_->clear();
-    }
-
-    defFilePath_ = defFilePath;
-    for (const auto& key : hiSysEventDef.getMemberNames()) {
-        const Json::Value& domainValue = hiSysEventDef[key];
-        DomainJsonLocation info;
-        info.startPos = domainValue.getOffsetStart();
-        info.length = domainValue.getOffsetLimit() - info.startPos;
-        domainLocationMap_->insert(std::pair<std::string, DomainJsonLocation>(key, info));
-    }
-    return true;
-}
-
-bool DomainJsonParser::ParseDomainJsonFromFile(const std::string& domainName,
-    Json::Value& outDomainJson)
-{
-    std::unique_lock<ffrt::mutex> uniqueLock(domainMtx_);
-    if (domainLocationMap_ == nullptr) {
-        HIVIEW_LOGE("domainLocationMap_ is null");
-        return false;
-    }
-    auto domainIter = domainLocationMap_->find(domainName);
-    if (domainIter == domainLocationMap_->end()) {
-        HIVIEW_LOGD("domain %{public}s is not defined.", domainName.c_str());
-        return false;
-    }
-
-    std::ifstream file(defFilePath_, std::ifstream::binary);
-    if (!file.is_open()) {
-        HIVIEW_LOGE("open json file failed, please check the style of json file: %{public}s", defFilePath_.c_str());
-        return false;
-    }
-    file.seekg(domainIter->second.startPos, std::ifstream::beg);
-    if (!file) {
-        HIVIEW_LOGE("seekg sysEvent def json file failed, file: %{public}s, statPos: %{public}d",
-            defFilePath_.c_str(), domainIter->second.startPos);
-        file.close();
-        return false;
-    }
-
-    std::string jsonStr;
-    jsonStr.resize(domainIter->second.length);
-    file.read(&jsonStr[0], domainIter->second.length);
-    if (!file) {
-        HIVIEW_LOGE("read part of sysEvent file failed, startPos: %{public}d, length: %{public}d",
-            domainIter->second.startPos, domainIter->second.length);
-        file.close();
-        return false;
-    }
-    Json::CharReaderBuilder reader;
-    std::string errors;
-    std::unique_ptr<Json::CharReader> charReader(reader.newCharReader());
-    if (!charReader->parse(jsonStr.c_str(), jsonStr.c_str() + jsonStr.size(), &outDomainJson, &errors)) {
-        HIVIEW_LOGE("parse part of sysEvent file failed, domain: %{public}s, startPos: %{public}d, length: %{public}d",
-            domainName.c_str(), domainIter->second.startPos, domainIter->second.length);
-        file.close();
-        return false;
-    }
-    file.close();
-    return true;
-}
-
-std::shared_ptr<DOMAIN_LOCATION_MAP>& DomainJsonParser::GetDomainLocationMap()
-{
-    return domainLocationMap_;
-}
-
-EventJsonParser::EventJsonParser(): domainJsonParser_(std::make_shared<DomainJsonParser>())
+EventJsonParser::EventJsonParser(): sysEventDefMap_(std::make_shared<DOMAIN_INFO_MAP>()),
+    domainJsonParser_(std::make_unique<DomainJsonParser>())
 {
 }
 
@@ -265,14 +167,9 @@ std::optional<BaseInfo> EventJsonParser::GetDefinedBaseInfoByDomainName(const st
     const std::string& name)
 {
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
-    if (sysEventDefMap_ == nullptr || domainJsonParser_ == nullptr) {
-        HIVIEW_LOGE("%{public}s is null", sysEventDefMap_ == nullptr ? "sysEventDefMap_" : "domainJsonParser_");
-        return std::nullopt;
-    }
-    
-    if (HasEventInCache(sysEventDefMap_, domain, name)) {
-        HIVIEW_LOGD("event is in cacheMap, domain: %{public}s, event: %{public}s", domain.c_str(), name.c_str());
-        return sysEventDefMap_->at(domain).at(name);
+    auto baseInfo = GetEventInCache(sysEventDefMap_, domain, name);
+    if (baseInfo != std::nullopt) {
+        return baseInfo;
     }
 
     Json::Value domainJson;
@@ -284,25 +181,26 @@ std::optional<BaseInfo> EventJsonParser::GetDefinedBaseInfoByDomainName(const st
     NAME_INFO_MAP allEvents = ParseEventNameConfig(domain, domainJson);
     auto eventIter = allEvents.find(name);
     if (eventIter == allEvents.end()) {
-        HIVIEW_LOGE("event not defined, domain: %{public}s, event: %{public}s", domain.c_str(), name.c_str());
         return std::nullopt;
     }
 
+    auto domainIter = sysEventDefMap_->find(domain);
+    if (domainIter != sysEventDefMap_->end()) {
+        domainIter->second.insert(*eventIter);
+    } else {
+        NAME_INFO_MAP eventsMap = {*eventIter};
+        sysEventDefMap_->insert(std::pair<std::string, NAME_INFO_MAP>(domain, eventsMap));
+    }
+    
+    sysEventDefMapCap_++;
+    if (sysEventDefMapCap_ % CACHE_SIZE_PRINT_INTERVAL == 0) {
+        HIVIEW_LOGD("add event in sysEventDefMap_, current size: %{public}d", sysEventDefMapCap_);
+    }
     if (sysEventDefMapCap_ >= SYS_EVENT_DEF_MAP_MAX_SIZE) {
         HIVIEW_LOGW("sysEventDefMapCap_ is full, clear it, capSize: %{public}d", sysEventDefMapCap_);
         WriteCountOverThresholdEvent(sysEventDefMap_);
         sysEventDefMap_->clear();
         sysEventDefMapCap_ = 0;
-    }
-    if (sysEventDefMap_->find(domain) != sysEventDefMap_->end()) {
-        sysEventDefMap_->at(domain).insert(*eventIter);
-    } else {
-        NAME_INFO_MAP eventsMap = {*eventIter};
-        sysEventDefMap_->insert(std::pair<std::string, NAME_INFO_MAP>(domain, eventsMap));
-    }
-    sysEventDefMapCap_++;
-    if (sysEventDefMapCap_ % CACHE_SIZE_PRINT_INTERVAL == 0) {
-        HIVIEW_LOGD("add event in sysEventDefMap_, current size: %{public}d", sysEventDefMapCap_);
     }
     return eventIter->second;
 }
@@ -456,16 +354,10 @@ void EventJsonParser::ReadDefFile()
 {
     auto defFilePath = HiViewConfigUtil::GetConfigFilePath("hisysevent.zip", "sys_event_def", "hisysevent.def");
     HIVIEW_LOGI("read event def file path: %{public}s", defFilePath.c_str());
-    if (domainJsonParser_ != nullptr) {
-        domainJsonParser_->CacheDomainJsonLocation(defFilePath);
-    }
+    domainJsonParser_->CacheDomainJsonLocation(defFilePath);
 
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
-    if (sysEventDefMap_ == nullptr) {
-        sysEventDefMap_ = std::make_shared<DOMAIN_INFO_MAP>();
-    } else {
-        sysEventDefMap_->clear();
-    }
+    sysEventDefMap_->clear();
 }
 
 void EventJsonParser::OnConfigUpdate()
@@ -477,17 +369,7 @@ void EventJsonParser::OnConfigUpdate()
 
 void EventJsonParser::GetAllCollectEvents(ExportEventList& list, int16_t reportInterval)
 {
-    if (domainJsonParser_ == nullptr) {
-        HIVIEW_LOGE("domainJsonParser_ is null");
-        return;
-    }
-
-    std::shared_ptr<DOMAIN_LOCATION_MAP>& domainLocationMap = domainJsonParser_->GetDomainLocationMap();
-    if (domainLocationMap == nullptr) {
-        HIVIEW_LOGE("domainLocationMap_ is null");
-        return;
-    }
-
+    std::shared_ptr<DOMAIN_LOCATION_MAP> domainLocationMap = domainJsonParser_->GetDomainLocationMap();
     for (auto iter = domainLocationMap->cbegin(); iter != domainLocationMap->cend(); ++iter) {
         std::string domainName = iter->first;
         Json::Value domainJson;

@@ -30,6 +30,7 @@
 #include "json/json.h"
 #include "singleton.h"
 #include "sys_event.h"
+#include "domain_json_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -83,24 +84,6 @@ using DOMAIN_INFO_MAP = std::unordered_map<std::string, NAME_INFO_MAP>;
 using JSON_VALUE_LOOP_HANDLER = std::function<void(const std::string&, const Json::Value&)>;
 using ExportEventList = std::map<std::string, std::vector<std::string>>; // <domain, names>
 
-struct DomainJsonLocation  {
-    Json::ArrayIndex startPos;
-    Json::ArrayIndex length;
-};
-using DOMAIN_LOCATION_MAP = std::unordered_map<std::string, DomainJsonLocation>;
-
-class DomainJsonParser {
-    public:
-        bool CacheDomainJsonLocation(const std::string& defFilePath);
-        bool ParseDomainJsonFromFile(const std::string& domainName, Json::Value& outDomainJson);
-        std::shared_ptr<DOMAIN_LOCATION_MAP>& GetDomainLocationMap();
-
-    private:
-        std::shared_ptr<DOMAIN_LOCATION_MAP> domainLocationMap_ = nullptr;;
-        std::string defFilePath_;
-        mutable ffrt::mutex domainMtx_;
-};
-
 class EventJsonParser : public DelayedSingleton<EventJsonParser> {
 DECLARE_DELAYED_SINGLETON(EventJsonParser);
 
@@ -127,7 +110,7 @@ private:
 private:
     mutable ffrt::mutex defMtx_;
     std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap_ = nullptr;
-    std::shared_ptr<DomainJsonParser> domainJsonParser_ = nullptr;
+    std::unique_ptr<DomainJsonParser> domainJsonParser_ = nullptr;
     uint16_t sysEventDefMapCap_ = 0;
 }; // EventJsonParser
 } // namespace HiviewDFX
