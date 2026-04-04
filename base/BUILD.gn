@@ -55,6 +55,7 @@ ohos_source_set("hiview_base") {
     "event.cpp",
     "event_dispatch_queue.cpp",
     "event_json_parser.cpp",
+    "domain_json_parser.cpp",
     "event_loop.cpp",
     "event_source.cpp",
     "hiview_global.cpp",

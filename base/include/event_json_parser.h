@@ -30,6 +30,7 @@
 #include "json/json.h"
 #include "singleton.h"
 #include "sys_event.h"
+#include "domain_json_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -41,6 +42,7 @@ constexpr uint8_t DEFAULT_COLLECT_VAL = 0;
 constexpr int16_t DEFAULT_REPORT_INTERVAL = 0;
 constexpr uint8_t MINOR_LEVEL_VAL = 0;
 constexpr uint8_t CRITICAL_LEVEL_VAL = 1;
+constexpr int16_t SYS_EVENT_DEF_MAP_MAX_SIZE = 3000;
 inline constexpr char MINOR_LEVEL_STR[] = "MINOR";
 inline constexpr char CRITICAL_LEVEL_STR[] = "CRITICAL";
 
@@ -101,7 +103,6 @@ private:
     bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;
     void InitEventInfoMapRef(const Json::Value& jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
     BaseInfo ParseBaseConfig(const Json::Value& eventNameJson) const;
-    void ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap);
     NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const;
     PARAM_INFO_MAP_PTR ParseEventParamInfo(const Json::Value& eventContent) const;
     void WatchTestTypeParameter();
@@ -109,6 +110,8 @@ private:
 private:
     mutable ffrt::mutex defMtx_;
     std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap_ = nullptr;
+    std::unique_ptr<DomainJsonParser> domainJsonParser_ = nullptr;
+    uint16_t sysEventDefMapCap_ = 0;
 }; // EventJsonParser
 } // namespace HiviewDFX
 } // namespace OHOS

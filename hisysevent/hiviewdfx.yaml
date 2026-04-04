@@ -165,3 +165,9 @@ SYSEVENT_LISTENER_ANALYSIS:
   ADDLISTENER_FAULT_COUNT: {type: INT32, desc: number of AddListener failures}
   REMOVELISTENER_FAULT_COUNT: {type: INT32, desc: number of RemoveListener failures}
   EVENT_RULE: {type: STRING, desc: subscribed event rule}
+
+EVENT_COUNT_OVER_THRESHOLD:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: system events cached in hiview exceeds the threshold, preserve: true}
+  TOP5_DOMAIN_NAME: {type: STRING, arrsize: 5, desc: top5 domain name}
+  TOP5_DOMAIN_EVENT_NUM: {type: INT32, arrsize: 5, desc: top5 domain name event}
+  TOTAL_CACHED_EVENTS: {type: INT32, desc: total cached events}

@@ -25,6 +25,7 @@
 #include "parameter_ex.h"
 #include "privacy_manager.h"
 #include "securec.h"
+#include "hisysevent.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -43,19 +44,8 @@ const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 0}, {"STATISTIC", 1}, {"SECURITY", 2}, {"BEHAVIOR", 3}
 };
 constexpr int16_t EXPORT_ALL_EVENT = -1; // equal with ALL_EVENT_TASK_TYPE definited in export_config_parser.h
-
-bool ReadSysEventDefFromFile(const std::string& path, Json::Value& hiSysEventDef)
-{
-    std::ifstream fin(path, std::ifstream::binary);
-    if (!fin.is_open()) {
-        HIVIEW_LOGW("failed to open file, path: %{public}s.", path.c_str());
-        return false;
-    }
-    Json::CharReaderBuilder jsonRBuilder;
-    Json::CharReaderBuilder::strictMode(&jsonRBuilder.settings_);
-    JSONCPP_STRING errs;
-    return parseFromStream(jsonRBuilder, fin, &hiSysEventDef, &errs);
-}
+constexpr char EVENT_COUNT_OVER_THRESHOLD[] = "EVENT_COUNT_OVER_THRESHOLD";
+constexpr int16_t CACHE_SIZE_PRINT_INTERVAL = 200;
 
 void AddEventToExportList(ExportEventList& list, const std::string& domain, const std::string& name,
     const BaseInfo& baseInfo, int16_t reportInterval)
@@ -97,9 +87,57 @@ void SetTagOfBaseInfo(BaseInfo& baseInfo, const std::string& tag)
         baseInfo.tag = nullptr;
     }
 }
+
+void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap)
+{
+    std::vector<std::pair<std::string, int>> domainEventVec;
+    int totalEvent = 0;
+    for (auto iter = sysEventDefMap->cbegin(); iter != sysEventDefMap->cend(); ++iter) {
+        domainEventVec.push_back(std::pair<std::string, int>(iter->first, iter->second.size()));
+        totalEvent += iter->second.size();
+    }
+    std::sort(domainEventVec.begin(), domainEventVec.end(),
+        [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
+            return a.second > b.second;
+        });
+    
+    const unsigned int topN = 5;
+    if (domainEventVec.size() > topN) {
+        domainEventVec.resize(topN);
+    }
+    std::vector<std::string> domainName;
+    std::vector<int> eventNum;
+    for (const auto& p : domainEventVec) {
+        domainName.push_back(p.first);
+        eventNum.push_back(p.second);
+    }
+
+    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD,
+        HiSysEvent::EventType::STATISTIC, "TOP5_DOMAIN_NAME", domainName, "TOP5_DOMAIN_EVENT_NUM", eventNum,
+        "TOTAL_CACHED_EVENTS", totalEvent);
+    if (ret < 0) {
+        HIVIEW_LOGW("failed to write over threshold event, ret is %{public}d", ret);
+    }
 }
 
-EventJsonParser::EventJsonParser()
+std::optional<BaseInfo> GetEventInCache(std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap, const std::string& domain,
+    const std::string& name)
+{
+    auto domainIter = sysEventDefMap->find(domain);
+    if (domainIter == sysEventDefMap->end()) {
+        return std::nullopt;
+    }
+    auto domainNames = domainIter->second;
+    auto nameIter = domainNames.find(name);
+    if (nameIter == domainNames.end()) {
+        return std::nullopt;
+    }
+    return nameIter->second;
+}
+}
+
+EventJsonParser::EventJsonParser(): sysEventDefMap_(std::make_shared<DOMAIN_INFO_MAP>()),
+    domainJsonParser_(std::make_unique<DomainJsonParser>())
 {
 }
 
@@ -129,23 +167,42 @@ std::optional<BaseInfo> EventJsonParser::GetDefinedBaseInfoByDomainName(const st
     const std::string& name)
 {
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
-    if (sysEventDefMap_ == nullptr) {
-        HIVIEW_LOGD("sys def map is null");
+    auto baseInfo = GetEventInCache(sysEventDefMap_, domain, name);
+    if (baseInfo != std::nullopt) {
+        return baseInfo;
+    }
+
+    Json::Value domainJson;
+    bool isSuccess = domainJsonParser_->ParseDomainJsonFromFile(domain, domainJson);
+    if (!isSuccess) {
+        HIVIEW_LOGE("ParseDomainJsonFromFile failed");
         return std::nullopt;
     }
+    NAME_INFO_MAP allEvents = ParseEventNameConfig(domain, domainJson);
+    auto eventIter = allEvents.find(name);
+    if (eventIter == allEvents.end()) {
+        return std::nullopt;
+    }
+
     auto domainIter = sysEventDefMap_->find(domain);
-    if (domainIter == sysEventDefMap_->end()) {
-        HIVIEW_LOGD("domain %{public}s is not defined.", domain.c_str());
-        return std::nullopt;
+    if (domainIter != sysEventDefMap_->end()) {
+        domainIter->second.insert(*eventIter);
+    } else {
+        NAME_INFO_MAP eventsMap = {*eventIter};
+        sysEventDefMap_->insert(std::pair<std::string, NAME_INFO_MAP>(domain, eventsMap));
     }
-    auto domainNames = sysEventDefMap_->at(domain);
-    auto nameIter = domainNames.find(name);
-    if (nameIter == domainNames.end()) {
-        HIVIEW_LOGD("%{public}s is not defined in domain %{public}s, or privacy not allowed.",
-            name.c_str(), domain.c_str());
-        return std::nullopt;
+    
+    sysEventDefMapCap_++;
+    if (sysEventDefMapCap_ % CACHE_SIZE_PRINT_INTERVAL == 0) {
+        HIVIEW_LOGD("add event in sysEventDefMap_, current size: %{public}d", sysEventDefMapCap_);
     }
-    return nameIter->second;
+    if (sysEventDefMapCap_ >= SYS_EVENT_DEF_MAP_MAX_SIZE) {
+        HIVIEW_LOGW("sysEventDefMapCap_ is full, clear it, capSize: %{public}d", sysEventDefMapCap_);
+        WriteCountOverThresholdEvent(sysEventDefMap_);
+        sysEventDefMap_->clear();
+        sysEventDefMapCap_ = 0;
+    }
+    return eventIter->second;
 }
 
 bool EventJsonParser::HasIntMember(const Json::Value& jsonObj, const std::string& name) const
@@ -235,13 +292,6 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
     return baseInfo;
 }
 
-void EventJsonParser::ParseSysEventDef(const Json::Value& hiSysEventDef, std::shared_ptr<DOMAIN_INFO_MAP> sysDefMap)
-{
-    InitEventInfoMapRef(hiSysEventDef, [this, sysDefMap] (const std::string& domain, const Json::Value& value) {
-       sysDefMap->insert(std::make_pair(domain, this->ParseEventNameConfig(domain, value)));
-    });
-}
-
 NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const
 {
     NAME_INFO_MAP allNames;
@@ -304,19 +354,10 @@ void EventJsonParser::ReadDefFile()
 {
     auto defFilePath = HiViewConfigUtil::GetConfigFilePath("hisysevent.zip", "sys_event_def", "hisysevent.def");
     HIVIEW_LOGI("read event def file path: %{public}s", defFilePath.c_str());
-    Json::Value hiSysEventDef;
-    if (!ReadSysEventDefFromFile(defFilePath, hiSysEventDef)) {
-        HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
-        return;
-    }
+    domainJsonParser_->CacheDomainJsonLocation(defFilePath);
 
     std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
-    if (sysEventDefMap_ == nullptr) {
-        sysEventDefMap_ = std::make_shared<DOMAIN_INFO_MAP>();
-    } else {
-        sysEventDefMap_->clear();
-    }
-    ParseSysEventDef(hiSysEventDef, sysEventDefMap_);
+    sysEventDefMap_->clear();
 }
 
 void EventJsonParser::OnConfigUpdate()
@@ -328,13 +369,19 @@ void EventJsonParser::OnConfigUpdate()
 
 void EventJsonParser::GetAllCollectEvents(ExportEventList& list, int16_t reportInterval)
 {
-    std::unique_lock<ffrt::mutex> uniqueLock(defMtx_);
-    if (sysEventDefMap_ == nullptr) {
-        return;
-    }
-    for (auto iter = sysEventDefMap_->cbegin(); iter != sysEventDefMap_->cend(); ++iter) {
-        for (const auto& eventDef : iter->second) {
-            AddEventToExportList(list, iter->first, eventDef.first, eventDef.second, reportInterval);
+    std::shared_ptr<DOMAIN_LOCATION_MAP> domainLocationMap = domainJsonParser_->GetDomainLocationMap();
+    for (auto iter = domainLocationMap->cbegin(); iter != domainLocationMap->cend(); ++iter) {
+        std::string domainName = iter->first;
+        Json::Value domainJson;
+        if (!domainJsonParser_->ParseDomainJsonFromFile(domainName, domainJson)) {
+            HIVIEW_LOGE("ParseDomainJsonFromFile failed, domainName: %{public}s", domainName.c_str());
+            continue;
+        }
+        NAME_INFO_MAP allEvents = ParseEventNameConfig(domainName, domainJson);
+        for (auto it = allEvents.cbegin(); it != allEvents.cend(); it++) {
+            std::string eventName = it->first;
+            BaseInfo baseInfo = it->second;
+            AddEventToExportList(list, domainName, eventName, baseInfo, reportInterval);
         }
     }
 }
