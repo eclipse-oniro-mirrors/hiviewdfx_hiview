@@ -52,6 +52,7 @@ public:
         const std::vector<std::string>& columns);
     int Delete(int& deleteRow, const NativeRdb::AbsRdbPredicates& absRdbPredicates);
     std::pair<int32_t, std::shared_ptr<NativeRdb::Transaction>> CreateTransaction(int32_t type);
+    int Count(int64_t& outValue, const NativeRdb::AbsRdbPredicates& absRdbPredicates);
 
 private:
     class RestorableDbOpenCallback : public NativeRdb::RdbOpenCallback {
