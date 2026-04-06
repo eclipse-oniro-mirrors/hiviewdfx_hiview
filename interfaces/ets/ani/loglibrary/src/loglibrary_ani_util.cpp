@@ -54,7 +54,10 @@ bool LogLibraryAniUtil::CreateLogEntryArray(ani_env *env,
     for (const auto& value: fileInfos) {
         std::string name = value.name;
         ani_string name_string{};
-        env->String_NewUTF8(name.c_str(), name.size(), &name_string);
+        if (ANI_OK != env->String_NewUTF8(name.c_str(), name.size(), &name_string)) {
+            HIVIEW_LOGE("new name string failed");
+            return false;
+        }
         ani_object logEntryObj = LogLibraryAniUtil::CreateLogEntryObject(env);
         if (ANI_OK != env->Object_SetPropertyByName_Ref(logEntryObj, "name", name_string)) {
             HIVIEW_LOGE("Set LogEntry name Fail: %{public}s", CLASS_NAME_LOGENTRY);
@@ -87,7 +90,7 @@ ani_object LogLibraryAniUtil::CreateLogEntryObject(ani_env *env)
     }
 
     ani_method logEntryConstructor {};
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", nullptr, &logEntryConstructor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":", &logEntryConstructor)) {
         HIVIEW_LOGE("get %{public}s ctor Failed", CLASS_NAME_LOGENTRY);
         return logEntryObj;
     }
@@ -218,7 +221,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
     }
 
     ani_method ctor {};
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", nullptr, &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", ":", &ctor)) {
         HIVIEW_LOGE("get method %{public}s <ctor> failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
@@ -229,7 +232,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
     }
 
     ani_method codeSetter {};
-    if (ANI_OK != env->Class_FindMethod(cls, "<set>code", nullptr, &codeSetter)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<set>code", "i:", &codeSetter)) {
         HIVIEW_LOGE("get method codeSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
@@ -240,7 +243,7 @@ ani_object LogLibraryAniUtil::CopyOrMoveResult(ani_env *env, std::pair<int32_t, 
     }
 
     ani_method messageSetter {};
-    if (ANI_OK != env->Class_FindMethod(cls, "<set>message", nullptr, &messageSetter)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<set>message", "C{std.core.String}:", &messageSetter)) {
         HIVIEW_LOGE("find method messageSetter %{public}s failed", CLASS_NAME_RESULTS);
         return results_obj;
     }
