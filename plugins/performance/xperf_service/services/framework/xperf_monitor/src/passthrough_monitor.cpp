@@ -54,10 +54,10 @@ void PassthroughMonitor::ProcessLoadCompleteEvent(OhosXperfEvent* event)
     std::vector<std::string> array;
     array.push_back(pageLoadCost.str());
     LoadCompleteReport reportInfo = {
-        .errorType = 6,
-        .pageLoadCost = array,
-        .abilityName = "",
-        .packageName = loadCompleteEvent->bundleName,
+        .lastComponent = loadCompleteEvent->lastComponent,
+        .isLaunch = loadCompleteEvent->isLaunch,
+        .bundleName = loadCompleteEvent->bundleName,
+        .abilityName = loadCompleteEvent->abilityName,
     };
     LoadCompleteReporter::ReportLoadComplete(reportInfo);
 }

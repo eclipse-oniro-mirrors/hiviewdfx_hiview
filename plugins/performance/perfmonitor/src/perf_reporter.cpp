@@ -586,6 +586,7 @@ void EventReporter::ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo)
     std::stringstream ss;
     ss << "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" << std::to_string(eventInfo.lastComponent)
         << "#BUNDLE_NAME:" << eventInfo.bundleName
+        << "#ABILITY_NAME:" << eventInfo.abilityName
         << "#IS_LAUNCH:" << std::to_string(eventInfo.isLaunch);
  
     // 通过 XperfService 发送消息

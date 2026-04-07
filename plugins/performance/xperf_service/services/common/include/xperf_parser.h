@@ -25,6 +25,7 @@ const std::string TAG_EVENT_NAME = "#EVENT_NAME:";
 const std::string TAG_UNIQUE_ID = "#UNIQUEID:";
 const std::string TAG_PID = "#PID:";
 const std::string TAG_BUNDLE_NAME = "#BUNDLE_NAME:";
+const std::string TAG_ABILITY_NAME = "#ABILITY_NAME:";
 const std::string TAG_STATUS = "#STATUS:";
 const std::string TAG_SURFACE_NAME = "#SURFACE_NAME:";
 const std::string TAG_FPS = "#FPS:";

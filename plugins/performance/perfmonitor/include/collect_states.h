@@ -30,9 +30,8 @@ namespace HiviewDFX {
  */
 class InitState : public ICollectState {
 public:
-    void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName) override;
-    void StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-        const std::string& sceneId) override;
+    void StartCollectForLaunch() override;
+    void StartCollectForAnimation(const std::string& sceneId) override;
     void AddComponent(int32_t nodeId) override;
     void DeleteComponent(int32_t nodeId) override;
     void CompleteComponent(int32_t nodeId) override;
@@ -48,9 +47,8 @@ public:
  */
 class CollectingState : public ICollectState {
 public:
-void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName) override;
-    void StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-        const std::string& sceneId) override;
+void StartCollectForLaunch() override;
+    void StartCollectForAnimation(const std::string& sceneId) override;
     void AddComponent(int32_t nodeId) override;
     void DeleteComponent(int32_t nodeId) override;
     void CompleteComponent(int32_t nodeId) override;
@@ -66,9 +64,8 @@ void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundle
  */
 class AnalysisState : public ICollectState {
 public:
-    void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName) override;
-    void StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-        const std::string& sceneId) override;
+    void StartCollectForLaunch() override;
+    void StartCollectForAnimation(const std::string& sceneId) override;
     void AddComponent(int32_t nodeId) override;
     void DeleteComponent(int32_t nodeId) override;
     void CompleteComponent(int32_t nodeId) override;
@@ -84,9 +81,8 @@ public:
  */
 class CompleteState : public ICollectState {
 public:
-    void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName) override;
-    void StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-        const std::string& sceneId) override;
+    void StartCollectForLaunch() override;
+    void StartCollectForAnimation(const std::string& sceneId) override;
     void AddComponent(int32_t nodeId) override;
     void DeleteComponent(int32_t nodeId) override;
     void CompleteComponent(int32_t nodeId) override;

@@ -147,6 +147,7 @@ struct AppWhiteInfo {
 struct LoadCompleteInfo {
     int64_t lastComponent{0};
     std::string bundleName;
+    std::string abilityName;
     bool isLaunch{false};
 };
 

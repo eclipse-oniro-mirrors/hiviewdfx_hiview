@@ -312,13 +312,12 @@ int32_t SceneMonitor::GetPid()
 
 void SceneMonitor::SetAppForeground(bool isShow)
 {
-    BaseInfo baseInfo = GetBaseInfo();
     if (isShow) {
-        LoadCompleteMonitor::GetInstance().StartCollectForLaunch(baseInfo.pageUrl, baseInfo.bundleName);
+        LoadCompleteMonitor::GetInstance().StartCollectForLaunch();
     } else {
         LoadCompleteMonitor::GetInstance().StopCollect();
     }
-    if (baseInfo.bundleName == BUNDLE_NAME_SCENE_BOARD) {
+    if (GetBaseInfo().bundleName == BUNDLE_NAME_SCENE_BOARD) {
         HIVIEW_LOGD("The sceneBoard needs to be excluded.");
         return;
     }

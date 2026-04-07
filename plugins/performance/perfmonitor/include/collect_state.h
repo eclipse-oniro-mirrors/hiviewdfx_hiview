@@ -36,7 +36,7 @@ public:
      * @param pageUrl 页面URL
      * @param bundleName 应用包名
      */
-    virtual void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName) = 0;
+    virtual void StartCollectForLaunch() = 0;
  
     /**
      * @brief 启动动效场景的收集
@@ -44,8 +44,7 @@ public:
      * @param bundleName 应用包名
      * @param sceneId 场景ID
      */
-    virtual void StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-        const std::string& sceneId) = 0;
+    virtual void StartCollectForAnimation(const std::string& sceneId) = 0;
  
     /**
      * @brief 添加加载组件
