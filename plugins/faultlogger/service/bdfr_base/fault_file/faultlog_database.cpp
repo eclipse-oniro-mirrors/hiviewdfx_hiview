@@ -324,6 +324,7 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("THERMAL_LEVEL", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::THERMAL_LEVEL].data(), 0),
         EVENT_PARAM_CTOR("FREEZE_INFO_PATH", HISYSEVENT_STRING, s,
             info.sectionMap[FaultKey::FREEZE_INFO_PATH].data(), 0),
+        EVENT_PARAM_CTOR("LOG_SOURCE", HISYSEVENT_STRING, s, info.sectionMap["LOG_SOURCE"].data(), 0),
     };
     int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
         params, sizeof(params) / sizeof(HiSysEventParam));
