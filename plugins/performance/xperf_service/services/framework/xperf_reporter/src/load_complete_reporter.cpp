@@ -34,7 +34,6 @@ void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
     sysEventCreator.SetKeyValue("BUNDLE_NAME", record.bundleName);
     sysEventCreator.SetKeyValue("ABILITY_NAME", record.abilityName);
 
-
     auto sysEvent = std::make_shared<SysEvent>(EVENT_NAME_LOAD_COMPLETE, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
     if (!event) {

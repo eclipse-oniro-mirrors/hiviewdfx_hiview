@@ -90,7 +90,7 @@ void CollectingState::AddComponent(int32_t nodeId)
     if (monitor.GetLastAddTime() == 0 ||
         (gapTime > monitor.GetConfig().intraGroupGapTime && gapTime < monitor.GetConfig().stopCollectTimeWait)) {
         monitor.IncrementGroupNum();
-        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%lld", 
+        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%lld",
             nodeId, monitor.GetGroupNum(), static_cast<long long>(gapTime));
         
         if (monitor.GetGroupNum() > monitor.GetConfig().maxGroupNum) {
@@ -102,7 +102,7 @@ void CollectingState::AddComponent(int32_t nodeId)
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
         monitor.IncrementNodeNum();
     } else if (gapTime <= monitor.GetConfig().intraGroupGapTime) {
-        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%lld", 
+        XPERF_TRACE_SCOPED("[CollectingState] AddComponent nodeId:%d,groupNum:%d,gapTime:%lld",
             nodeId, monitor.GetGroupNum(), static_cast<long long>(gapTime));
         monitor.SetLastAddTime(currTime);
         monitor.AddMonitoredNode(nodeId, monitor.GetConfig().maxCompleteTimes);
