@@ -181,8 +181,7 @@ void CompleteState::StartCollectForLaunch()
     LoadCompleteMonitor::GetInstance().SetState(std::make_unique<CollectingState>());
 }
  
-void CompleteState::StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-    const std::string& sceneId) {
+void CompleteState::StartCollectForAnimation(const std::string& sceneId) {
     if (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
         XPERF_TRACE_SCOPED("[LoadCompleteMonitor] StartCollectForAnimation currentTime:%lld",
             static_cast<long long>(GetCurrentSystimeMs()));
