@@ -259,10 +259,12 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest004, testing::ext::TestSize.Level3)
     eventInfos.insert(std::pair("PNAME", "foundation"));
     Tbox::FilterTrace(eventInfos);
 
-    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(), "/system/lib64/libbms.z.so(3256be1e0b8fdc2b4e25a28f1c2086eb)");
-    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(), "/system/lib64/libbms.z.so(3256be1e0b8fdc2b4e25a28f1c2086eb)");
+    EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(),
+        "000000000010020c /system/lib64/libbms.z.so(3256be1e0b8fdc2b4e25a28f1c2086eb)");
+    EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(),
+        "0000000000105e58 /system/lib64/libbms.z.so(3256be1e0b8fdc2b4e25a28f1c2086eb)");
     EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(),
-                            "/system/lib64/platformsdk/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler)");
+        "000000000002ff24 /system/lib64/platformsdk/libipc_core.z.so(OHOS::IPCWorkThread::ThreadHandler)");
 }
 
 /* @tc.name: TboxTest005
@@ -298,10 +300,10 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest005, testing::ext::TestSize.Level3)
     Tbox::FilterTrace(eventInfos);
 
     EXPECT_STREQ(eventInfos["FIRST_FRAME"].c_str(),
-                 "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter)");
+                 "000000000001a33c /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::NoneIoWaiter)");
     EXPECT_STREQ(eventInfos["SECOND_FRAME"].c_str(),
-                 "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked)");
-    EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(), "/system/bin/appspawn");
+                 "0000000000011db4 /system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked)");
+    EXPECT_STREQ(eventInfos["LAST_FRAME"].c_str(), "000000000001053c /system/bin/appspawn");
 }
 
 /* @tc.name: TboxTest006
@@ -362,7 +364,7 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest009, testing::ext::TestSize.Level3)
         #02 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144)
         #03 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
         #04 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable)
-        #05 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)";
+        #05 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112))";
 
     std::map<std::string, std::string> eventInfos;
     eventInfos.insert(std::pair("END_STACK", stack));
@@ -426,7 +428,7 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest011, testing::ext::TestSize.Level3)
     std::string secondFrame = "/system/lib64/libeventhandler.z.so" \
         "(OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__1::unique_lock<std::__1::mutex>&, long)+192";
     EXPECT_EQ(eventInfos["SECOND_FRAME"], secondFrame);
-    EXPECT_EQ(eventInfos["LAST_FRAME"], "/system/lib64/libeventhandler.z.so");
+    EXPECT_EQ(eventInfos["LAST_FRAME"], "0000000000018aa4 /system/lib64/libeventhandler.z.so");
 }
 
 /* @tc.name: TboxTest012
@@ -439,7 +441,7 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest012, testing::ext::TestSize.Level3)
         #01 pc 0000000000070cc4 /system/lib64/libc.so(__futex_wait_ex(void volatile*, bool, timespec const*)+144)
         #02 pc 00000000000cf2cc /system/lib64/libc.so(pthread_cond_timedwait+124)
         #03 pc 0000000000071714 /system/lib64/libc++.so(std::__1::condition_variable)
-        #04 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112)";
+        #04 pc 000000000006afa4 /system/lib64/libc.so(__libc_init+112))";
 
     std::map<std::string, std::string> eventInfos;
     eventInfos.insert(std::pair("END_STACK", stack));
@@ -482,13 +484,13 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest013, testing::ext::TestSize.Level3)
     std::vector<TestCast> list = {
         {1, "", stack1, "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EpollIoWaiter::WaitFor()+192",
             "/system/lib64/libeventhandler.z.so(OHOS::AppExecFwk::EventQueue::WaitUntilLocked()+96",
-            "/system/bin/appspawn"},
+            "000000000001053c /system/bin/appspawn"},
         {2, "APP_FREEZE", stack1, "/system/lib/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306",
             "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
-            "/system/bin/appspawn"},
+            "000000000001053c /system/bin/appspawn"},
         {3, "SYS_FREEZE", stack1, "/system/lib/libffrt.so(ffrt::CPUWorker::WorkerLooper()+306",
             "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372",
-            "/system/bin/appspawn"},
+            "000000000001053c /system/bin/appspawn"},
     };
 
     for (auto& it : list) {

@@ -105,7 +105,7 @@ HWTEST(FaultLogFreezeTest, AppFreezeCrashLogTest001, testing::ext::TestSize.Leve
 
     const std::string firstFrame = "/system/lib64/libappkit_native.z.so(OHOS::AppExecFwk::MainThread::Start()+372";
     ASSERT_EQ(faultAppFreeze.info_.sectionMap["FIRST_FRAME"], firstFrame);
-    const std::string secondFrame = "/system/bin/appspawn";
+    const std::string secondFrame = "00000000000144b8 /system/bin/appspawn";
     ASSERT_EQ(faultAppFreeze.info_.sectionMap["SECOND_FRAME"], secondFrame);
 }
 
@@ -134,7 +134,7 @@ HWTEST(FaultLogFreezeTest, AppFreezeCrashLogTest002, testing::ext::TestSize.Leve
     info.sectionMap["TERMINAL_THREAD_STACK"] = binderSatck;
     FaultLogFreeze faultAppFreeze;
     faultAppFreeze.AddFaultLog(info);
-    ASSERT_EQ(faultAppFreeze.info_.sectionMap["FIRST_FRAME"], "/system/lib64/libGLES_mali.so");
+    ASSERT_EQ(faultAppFreeze.info_.sectionMap["FIRST_FRAME"], "000000000051b55c /system/lib64/libGLES_mali.so");
     ASSERT_TRUE(faultAppFreeze.info_.sectionMap["SECOND_FRAME"].empty());
     ASSERT_TRUE(faultAppFreeze.info_.sectionMap["LAST_FRAME"].empty());
 }
@@ -164,7 +164,7 @@ HWTEST(FaultLogFreezeTest, AppFreezeCrashLogTest003, testing::ext::TestSize.Leve
     info.sectionMap["TERMINAL_THREAD_STACK"] = binderSatck;
     FaultLogFreeze faultAppFreeze;
     faultAppFreeze.AddFaultLog(info);
-    ASSERT_EQ(faultAppFreeze.info_.sectionMap["FIRST_FRAME"], "/system/lib64/libGLES_mali.so");
+    ASSERT_EQ(faultAppFreeze.info_.sectionMap["FIRST_FRAME"], "000000000051b55c /system/lib64/libGLES_mali.so");
     ASSERT_TRUE(faultAppFreeze.info_.sectionMap["SECOND_FRAME"].empty());
     ASSERT_TRUE(faultAppFreeze.info_.sectionMap["LAST_FRAME"].empty());
 }
