@@ -89,11 +89,9 @@ bool FaultLogEventInterface::VerifyModule()
         }
     }
 
-    auto tmpModule = info_.module;
-    if (tmpModule.find("hmos.browser:render") != std::string::npos ||
-        tmpModule.find("hmos.browser:gpu") != std::string::npos) {
-        tmpModule = tmpModule.substr(0, tmpModule.find("hmos.browser"));
-        info_.module = tmpModule + "hmos.arkwebcore";
+    if (IsRenderUid(info_.id)) {
+        info_.module = "com.huawei.hmos.arkwebcore";
+        return true;
     }
 
     HIVIEW_LOGD("nameProc %{public}s", info_.module.c_str());

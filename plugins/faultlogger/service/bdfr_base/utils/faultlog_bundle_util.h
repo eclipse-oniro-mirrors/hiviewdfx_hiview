@@ -33,6 +33,7 @@ std::string GetApplicationNameById(int32_t uid);
 bool GetDfxBundleInfo(const std::string& bundleName, DfxBundleInfo& bundleInfo);
 bool IsNameValid(const std::string& name, const std::string& sep, bool canEmpty);
 bool GetIsSystemApp(const std::string &module, int32_t uid);
+bool IsRenderUid(int32_t uid);
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif

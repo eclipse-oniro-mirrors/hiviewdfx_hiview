@@ -33,6 +33,8 @@ namespace HiviewDFX {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr uint32_t MAX_NAME_LENGTH = 4096;
+constexpr int32_t RENDER_ID_START = 100000;
+constexpr int32_t RENDER_ID_END = 109999;
 }
 
 bool IsNameValid(const std::string& name, const std::string& sep, bool canEmpty)
@@ -126,6 +128,13 @@ bool GetIsSystemApp(const std::string &module, int32_t uid)
         return false;
     }
     return appInfo.isSystemApp;
+}
+
+bool IsRenderUid(int32_t uid)
+{
+    int32_t valueMod = 200000;
+    int32_t id = uid % valueMod;
+    return id >= RENDER_ID_START && id <= RENDER_ID_END;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
