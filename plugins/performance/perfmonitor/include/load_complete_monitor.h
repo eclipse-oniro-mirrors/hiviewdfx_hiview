@@ -29,7 +29,7 @@ namespace OHOS {
 namespace HiviewDFX {
  
 struct LoadCompleteCfg {
-    double ignorableRatio {0.0f};
+    double ignorableRatio {0.0};
     int64_t intraGroupGapTime {3000};
     int64_t stopCollectTimeWait {3000};
     int32_t maxGroupNum {1};
@@ -57,7 +57,7 @@ public:
      * @param pageUrl 页面URL
      * @param bundleName 应用包名
      */
-    void StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName);
+    void StartCollectForLaunch();
  
     /**
      * @brief 启动动效场景的收集（状态模式接口）
@@ -65,8 +65,7 @@ public:
      * @param bundleName 应用包名
      * @param sceneId 场景ID
      */
-    void StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-        const std::string& sceneId);
+    void StartCollectForAnimation(const std::string& sceneId);
  
     /**
      * @brief 停止收集（状态模式接口）
@@ -123,13 +122,13 @@ public:
     void ResetManagerStatus();
     void DeleteLoadComponentInternal(int32_t nodeId);
     void CompleteLoadComponentInternal(int32_t nodeId);
-    void StartCollectCommon(const std::string& pageUrl, const std::string& bundleName, bool isLaunch);
+    void StartCollectCommon(bool isLaunch);
  
 private:
     LoadCompleteMonitor();
     ~LoadCompleteMonitor();
  
-    void SetLoadCompleteCfg(const std::string& bundleName);
+    void SetLoadCompleteCfg();
     void PostTimeoutTask();
  
     // 成员变量
@@ -139,8 +138,8 @@ private:
     int32_t groupNum = 0;
     int32_t nodeNum_ = 0;
     LoadCompleteCfg config_;
-    std::string pageUrl_;
     std::string bundleName_;
+    std::string abilityName_;
     std::unordered_map<int32_t, int32_t> monitoredNodes_;
     bool isLaunch_ {false};
  

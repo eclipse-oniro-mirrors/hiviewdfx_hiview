@@ -22,18 +22,19 @@
  
 namespace OHOS {
 namespace HiviewDFX {
+
+const std::string EVENT_NAME_LOAD_COMPLETE = "LOAD_COMPLETE";
  
 void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
 {
-    std::string eventName = "FRAMEWORK_PAGE_ROUTER_EXCEPTION";
-    OHOS::HiviewDFX::SysEventCreator sysEventCreator(HiSysEvent::Domain::ACE, eventName,
-        OHOS::HiviewDFX::SysEventCreator::FAULT);
-    sysEventCreator.SetKeyValue("ERROR_TYPE", record.errorType);
-    sysEventCreator.SetKeyValue("PACKAGE_NAME", record.packageName);
+    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", EVENT_NAME_LOAD_COMPLETE,
+        OHOS::HiviewDFX::SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("LAST_COMPONENT", record.lastComponent);
+    sysEventCreator.SetKeyValue("IS_LAUNCH", record.isLaunch);
+    sysEventCreator.SetKeyValue("BUNDLE_NAME", record.bundleName);
     sysEventCreator.SetKeyValue("ABILITY_NAME", record.abilityName);
-    sysEventCreator.SetKeyValue("PAGE_LOAD_COST", record.pageLoadCost);
- 
-    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+
+    auto sysEvent = std::make_shared<SysEvent>(EVENT_NAME_LOAD_COMPLETE, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
     if (!event) {
         LOGE("[LoadCompleteReporter]ReportLoadComplete dynamic_pointer_cast failed");

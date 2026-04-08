@@ -25,7 +25,7 @@
 #include "scene_monitor.h"
  
 namespace {
-constexpr int64_t LOAD_COMPLETE_TIMEOUT_VALUE = 3000;
+constexpr int64_t LOAD_COMPLETE_MONITOR_DURATION = 3000;
 constexpr int64_t PAGE_LOAD_TIME_THRESHOLD = 100;
 constexpr int CYCLE_INTERVAL_TIME = 500;
 } // namespace
@@ -63,7 +63,7 @@ void LoadCompleteMonitor::PostTimeoutTask()
         while (taskFlag && *taskFlag) {
             auto currentTime = std::chrono::steady_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
-            if (elapsed >= LOAD_COMPLETE_TIMEOUT_VALUE) {
+            if (elapsed >= LOAD_COMPLETE_MONITOR_DURATION) {
                 LoadCompleteMonitor::GetInstance().StopCollect();
                 break;
             }
@@ -81,24 +81,22 @@ void LoadCompleteMonitor::ResetManagerStatus()
     monitoredNodes_.clear();
 }
  
-void LoadCompleteMonitor::StartCollectForAnimation(const std::string& pageUrl, const std::string& bundleName,
-    const std::string& sceneId)
+void LoadCompleteMonitor::StartCollectForAnimation(const std::string& sceneId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     // 委托给当前状态处理
-    currentState_->StartCollectForAnimation(pageUrl, bundleName, sceneId);
+    currentState_->StartCollectForAnimation(sceneId);
 }
  
-void LoadCompleteMonitor::StartCollectForLaunch(const std::string& pageUrl, const std::string& bundleName)
+void LoadCompleteMonitor::StartCollectForLaunch()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    currentState_->StartCollectForLaunch(pageUrl, bundleName);
+    currentState_->StartCollectForLaunch();
 }
  
 void LoadCompleteMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
-    StartCollectForAnimation(SceneMonitor::GetInstance().GetPageUrl(),
-        SceneMonitor::GetInstance().GetBaseInfo().bundleName, sceneId);
+    StartCollectForAnimation(sceneId);
 }
  
 void LoadCompleteMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender)
@@ -127,13 +125,14 @@ void LoadCompleteMonitor::FinishCollectTask()
     );
     bool isCompleted = (incompleteNum <= static_cast<int32_t>(config_.ignorableRatio * nodeNum_));
     XPERF_TRACE_SCOPED("[LoadCompleteMonitor] FinishCollectTask lastLoadComponent:%lld, nodeNum_:%d,incompleteNum:%d",
-        lastLoadComponent, nodeNum_, incompleteNum);
+        static_cast<long long>(lastLoadComponent), nodeNum_, incompleteNum);
     int64_t loadCost = isCompleted ? lastLoadComponent - beginTime_ : -1;
     if (loadCost == -1 || loadCost > PAGE_LOAD_TIME_THRESHOLD) {
         int64_t lastComponent = isCompleted ? lastLoadComponent : -1;
         LoadCompleteInfo eventInfo = {
             .lastComponent = lastComponent,
             .bundleName = std::string(bundleName_),
+            .abilityName = std::string(abilityName_),
             .isLaunch = isLaunch_,
         };
         std::thread([eventInfo] { EventReporter::ReportLoadCompleteEvent(eventInfo); }).detach();
@@ -185,19 +184,20 @@ void LoadCompleteMonitor::CompleteLoadComponentInternal(int32_t nodeId)
     }
 }
  
-void LoadCompleteMonitor::StartCollectCommon(const std::string& pageUrl, const std::string& bundleName, bool isLaunch)
+void LoadCompleteMonitor::StartCollectCommon(bool isLaunch)
 {
     ResetManagerStatus();
     isLaunch_ = isLaunch;
-    SetLoadCompleteCfg(bundleName);
-    bundleName_ = bundleName;
-    pageUrl_ = pageUrl;
+    auto baseInfo = SceneMonitor::GetInstance().GetBaseInfo();
+    bundleName_ = baseInfo.bundleName;
+    abilityName_ = baseInfo.abilityName;
+    SetLoadCompleteCfg();
     beginTime_ = GetCurrentSystimeMs();
  
     PostTimeoutTask();
 }
  
-void LoadCompleteMonitor::SetLoadCompleteCfg(const std::string& bundleName)
+void LoadCompleteMonitor::SetLoadCompleteCfg()
 {
     // 非启动场景采用默认配置
     if (!isLaunch_) {
@@ -229,7 +229,7 @@ void LoadCompleteMonitor::SetLoadCompleteCfg(const std::string& bundleName)
         {"com.tencent.wechat", {0.0f, 3000, 3000, 1, 1, true}}
     };
     
-    auto it = bundleConfigs.find(bundleName);
+    auto it = bundleConfigs.find(bundleName_);
     if (it != bundleConfigs.end()) {
         config_ = it->second;
     } else {

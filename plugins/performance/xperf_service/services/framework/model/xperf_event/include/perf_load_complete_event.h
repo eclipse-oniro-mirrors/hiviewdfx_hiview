@@ -24,6 +24,7 @@ namespace HiviewDFX {
 struct PerfLoadCompleteEvent : public OhosXperfEvent {
     int64_t lastComponent{0};
     int16_t isLaunch{0};
+    std::string abilityName;
 };
  
 } // namespace HiviewDFX

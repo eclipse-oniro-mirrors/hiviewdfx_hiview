@@ -14,7 +14,9 @@
  */
 
 #include "perf_event_parser.h"
+
 #include "perf_action_event.h"
+#include "perf_load_complete_event.h"
 #include "xperf_parser.h"
 
 namespace OHOS {
@@ -28,6 +30,21 @@ OhosXperfEvent* ParserPerfUserAction(const std::string& msg)
     ExtractStrToLong(msg, event->time, TAG_TIME, TAG_BUNDLE_NAME, 0);
     ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_PID, "");
     ExtractStrToInt(msg, event->pid, TAG_PID, TAG_END, 0);
+
+    return event;
+}
+
+// "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:1720001111
+// #BUNDLE_NAME:com.ohos.sceneboard#ABILITY_NAME:"EntryAbility"#IS_LAUNCH:0"
+OhosXperfEvent* ParserLoadComplete(const std::string& msg)
+{
+    PerfLoadCompleteEvent* event = new PerfLoadCompleteEvent();
+    event->rawMsg = msg;
+    ExtractStrToStr(msg, event->eventName, TAG_EVENT_NAME, TAG_LAST_COMPONENT, "");
+    ExtractStrToLong(msg, event->lastComponent, TAG_LAST_COMPONENT, TAG_BUNDLE_NAME, -1);
+    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_ABILITY_NAME, "");
+    ExtractStrToStr(msg, event->abilityName, TAG_ABILITY_NAME, TAG_IS_LAUNCH, "");
+    ExtractStrToInt16(msg, event->isLaunch, TAG_IS_LAUNCH, TAG_END, 0);
 
     return event;
 }

@@ -23,10 +23,10 @@ namespace OHOS {
 namespace HiviewDFX {
  
 struct LoadCompleteReport {
-    int32_t errorType{0};
-    std::string packageName;
+    int64_t lastComponent{0};
+    int16_t isLaunch{0};
+    std::string bundleName;
     std::string abilityName;
-    std::vector<std::string> pageLoadCost;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
