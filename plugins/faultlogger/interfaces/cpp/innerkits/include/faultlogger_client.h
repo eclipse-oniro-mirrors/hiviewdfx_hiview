@@ -30,7 +30,7 @@ extern "C" {
  *
  * @param info  structure containing information about fault
 */
-void AddFaultLog(FaultLogInfoInner* info);
+void AddFaultLog(void* info);
 /**
  * @brief report cpp crash event to Hiview
  *
