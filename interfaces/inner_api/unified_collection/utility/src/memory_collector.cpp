@@ -41,6 +41,16 @@ const std::list<std::pair<std::string, MemoryItemType>> PREFIX_LIST = {
     {"[anon:ArkTs Static Object Space]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT},
     {"[anon:ArkTs Static Humongous Object Space]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT},
     {"[anon:ArkTs Static Non Movable Space]", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE},
+    {"[anon:JS_V8_HEAP", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARKWEB_V8},
+    {"[anon:partition_alloc", MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARKWEB_PA},
+    {"[anon:Kotlin heap", MemoryItemType::MEMORY_ITEM_TYPE_ANON_KMP_HEAP},
+    {"[anon:hades-segment", MemoryItemType::MEMORY_ITEM_TYPE_ANON_RN_HERMES},
+    {"[anon:hermes-rt", MemoryItemType::MEMORY_ITEM_TYPE_ANON_RN_HERMES},
+    {"[anon:hermes-free-heap", MemoryItemType::MEMORY_ITEM_TYPE_ANON_RN_HERMES},
+    {"[anon:dart-", MemoryItemType::MEMORY_ITEM_TYPE_ANON_FLUTTER_DART},
+    {"[anon:regexp-backtrack-stack", MemoryItemType::MEMORY_ITEM_TYPE_ANON_FLUTTER_DART},
+    {"[anon:test", MemoryItemType::MEMORY_ITEM_TYPE_ANON_FLUTTER_DART},
+    {"[anon:FfiCallbackMetadata::TrampolinePage", MemoryItemType::MEMORY_ITEM_TYPE_ANON_FLUTTER_DART},
     {"[anon:guard", MemoryItemType::MEMORY_ITEM_TYPE_ANON_GUARD},
     {"/dev/__parameters__/", MemoryItemType::MEMORY_ITEM_ENTITY_DEV_PARAMETER},
     {"/dev/", MemoryItemType::MEMORY_ITEM_ENTITY_DEV_OTHER},
@@ -128,7 +138,12 @@ const std::map<MemoryItemType, MemoryClass> TYPE_TO_CLASS_MAP = {
     {MemoryItemType::MEMORY_ITEM_TYPE_GRAPH_GRAPHICS, MemoryClass::MEMORY_CLASS_GRAPH},
     {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP},
     {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_HUMONGOUS_OBJECT, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP},
-    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP}
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_NON_MOVABLE, MemoryClass::MEMORY_CLASS_ARK_STATIC_HEAP},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARKWEB_V8, MemoryClass::MEMORY_CLASS_ARKWEB_V8},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARKWEB_PA, MemoryClass::MEMORY_CLASS_ARKWEB_PA},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_KMP_HEAP, MemoryClass::MEMORY_CLASS_KMP_HEAP},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_RN_HERMES, MemoryClass::MEMORY_CLASS_RN_HERMES},
+    {MemoryItemType::MEMORY_ITEM_TYPE_ANON_FLUTTER_DART, MemoryClass::MEMORY_CLASS_FLUTTER_DART}
 };
 }
 
