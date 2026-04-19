@@ -24,6 +24,7 @@
       OHOS::HiviewDFX::EnableGwpAsanGrayscale*;
       OHOS::HiviewDFX::DisableGwpAsanGrayscale*;
       OHOS::HiviewDFX::GetGwpAsanGrayscaleState*;
+      OHOS::HiviewDFX::EnableGwpAsanInner*;
     };
   local:
     *;

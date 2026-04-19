@@ -36,6 +36,8 @@ public:
     virtual void DisableGwpAsanGrayscale() override;
     virtual uint32_t GetGwpAsanGrayscaleState() override;
     virtual void Destroy() override;
+    virtual bool EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration) override;
 
 private:
     static inline BrokerDelegator<FaultLoggerServiceProxy> delegator_;

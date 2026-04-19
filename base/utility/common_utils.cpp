@@ -176,6 +176,38 @@ pid_t GetPidByName(const std::string& processName)
     return pid;
 }
 
+int32_t GetUidByPid(const int32_t pid)
+{
+    int32_t uid = -1;
+    std::string pidStatusPath = "/proc/" + std::to_string(pid) + "/status";
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(pidStatusPath, realPath)) {
+        HIVIEW_LOGE("pathToRealPath failed, file:%{public}s, errno:%{public}d",
+            pidStatusPath.c_str(), errno);
+        return uid;
+    }
+    std::string content;
+    if (!FileUtil::LoadStringFromFile(realPath, content) || content.empty()) {
+        HIVIEW_LOGE("failed to read path:%{public}s, errno:%{public}d",
+            realPath.c_str(), errno);
+        return uid;
+    }
+    std::istringstream iss(content);
+    std::string uidFlag = "Uid:";
+    std::string infoLine;
+    while (std::getline(iss, infoLine)) {
+        if (infoLine.compare(0, uidFlag.size(), uidFlag) == 0) {
+            std::istringstream infoStream(infoLine);
+            if (std::getline(infoStream, infoLine, ':') && std::getline(infoStream, infoLine)) {
+                std::stringstream(infoLine) >> uid;
+                HIVIEW_LOGI("uid of pid %{public}" PRId32 " is %{public}" PRId32 ".", pid, uid);
+                break;
+            }
+        }
+    }
+    return uid;
+}
+
 bool IsPidExist(pid_t pid)
 {
     std::string procDir = "/proc/" + std::to_string(pid);

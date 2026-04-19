@@ -141,6 +141,19 @@ void DisableGwpAsanGrayscale();
  * @returns the remaining days of GWP-ASan grayscale.
 */
 uint32_t GetGwpAsanGrayscaleState();
+
+/**
+ * @brief enable the GWP-ASAN for target process.
+ *
+ * @param processName - target process name.
+ * @param alwaysEnabled - Control whether to enable GWP-ASan every time.
+ * @param sampleRate - sample rate of GWP-ASAN.
+ * @param maxSimutaneousAllocations - the max simutaneous allocations of GWP-ASAN.
+ * @param duration - The duration days of GWP-ASAN grayscale.
+ * @return true - enable success, false - enable falied
+*/
+bool EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEW_FAULTLOGGER_CLIENT_INTERFACE_H

@@ -29,50 +29,81 @@ DEFINE_LOG_LABEL(0xD002D11, "FaultLoggerServiceStub");
 int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
-    int ret = ERR_FLATTEN_OBJECT;
     switch (code) {
-        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_GRAYSALE): {
-            XCollieDetector xcollie("EnableGwpAsanGrayscale");
-            bool alwaysEnabled = data.ReadBool();
-            double sampleRate = data.ReadDouble();
-            double maxSimutaneousAllocations = data.ReadDouble();
-            int32_t duration = data.ReadInt32();
-            bool isRecover = data.ReadBool();
-            if (sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
-                HIVIEW_LOGE("failed to enable gwp asan grayscale, sampleRate: %{public}f"
-                    ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
-                    sampleRate, maxSimutaneousAllocations, duration);
-                break;
-            }
-            auto result = EnableGwpAsanGrayscale(alwaysEnabled, sampleRate,
-                maxSimutaneousAllocations, duration, isRecover);
-            if (reply.WriteBool(result)) {
-                ret = ERR_OK;
-            } else {
-                HIVIEW_LOGE("failed to enable gwp asan grayscale.");
-            }
-            break;
-        }
-        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DISABLE_GWP_ASAN_GRAYSALE): {
-            XCollieDetector xcollie("DisableGwpAsanGrayscale");
-            DisableGwpAsanGrayscale();
-            ret = ERR_OK;
-            break;
-        }
-        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::GET_GWP_ASAN_GRAYSALE): {
-            XCollieDetector xcollie("GetGwpAsanGrayscaleState");
-            auto result = GetGwpAsanGrayscaleState();
-            if (reply.WriteUint32(result)) {
-                ret = ERR_OK;
-            } else {
-                HIVIEW_LOGE("failed to get gwp asan grayscale state.");
-            }
-            break;
-        }
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_GRAYSALE):
+            return HandleEnableGwpAsanGrayscale(data, reply);
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::DISABLE_GWP_ASAN_GRAYSALE):
+            return HandleDisableGwpAsanGrayscale();
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::GET_GWP_ASAN_GRAYSALE):
+            return HandleGetGwpAsanGrayscaleState(reply);
+        case static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_INNER):
+            return HandleEnableGwpAsanInner(data, reply);
         default:
-            ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-    return ret;
+}
+
+int FaultLoggerServiceStub::HandleEnableGwpAsanGrayscale(MessageParcel &data, MessageParcel &reply)
+{
+    XCollieDetector xcollie("EnableGwpAsanGrayscale");
+    bool alwaysEnabled = data.ReadBool();
+    double sampleRate = data.ReadDouble();
+    double maxSimutaneousAllocations = data.ReadDouble();
+    int32_t duration = data.ReadInt32();
+    bool isRecover = data.ReadBool();
+    if (sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
+        HIVIEW_LOGE("failed to enable gwp asan grayscale, sampleRate: %{public}f"
+            ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
+            sampleRate, maxSimutaneousAllocations, duration);
+        return ERR_FLATTEN_OBJECT;
+    }
+    auto result = EnableGwpAsanGrayscale(alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration, isRecover);
+    if (reply.WriteBool(result)) {
+        return ERR_OK;
+    }
+    HIVIEW_LOGE("failed to enable gwp asan grayscale.");
+    return ERR_FLATTEN_OBJECT;
+}
+
+int FaultLoggerServiceStub::HandleDisableGwpAsanGrayscale()
+{
+    XCollieDetector xcollie("DisableGwpAsanGrayscale");
+    DisableGwpAsanGrayscale();
+    return ERR_OK;
+}
+
+    
+int FaultLoggerServiceStub::HandleGetGwpAsanGrayscaleState(MessageParcel& reply)
+{
+    XCollieDetector xcollie("GetGwpAsanGrayscaleState");
+    auto result = GetGwpAsanGrayscaleState();
+    if (reply.WriteUint32(result)) {
+        return ERR_OK;
+    }
+    HIVIEW_LOGE("failed to get gwp asan grayscale state.");
+    return ERR_FLATTEN_OBJECT;
+}
+
+int FaultLoggerServiceStub::HandleEnableGwpAsanInner(MessageParcel& data, MessageParcel& reply)
+{
+    XCollieDetector xcollie("EnableGwpAsanInner");
+    std::string processName = data.ReadString();
+    bool alwaysEnabled = data.ReadBool();
+    double sampleRate = data.ReadDouble();
+    double maxSimutaneousAllocations = data.ReadDouble();
+    int32_t duration = data.ReadInt32();
+    if (sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
+        HIVIEW_LOGE("failed to enable gwp asan inner, sampleRate: %{public}f"
+            ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
+            sampleRate, maxSimutaneousAllocations, duration);
+        return ERR_FLATTEN_OBJECT;
+    }
+    auto result = EnableGwpAsanInner(processName, alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration);
+    if (reply.WriteBool(result)) {
+        return ERR_OK;
+    }
+    HIVIEW_LOGE("failed to enable gwp asan inner.");
+    return ERR_FLATTEN_OBJECT;
 }
 
 int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,

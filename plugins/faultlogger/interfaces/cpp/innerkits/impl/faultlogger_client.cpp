@@ -193,6 +193,23 @@ void ReportCppCrashEvent(const FaultLogInfoInner &info)
         "HAPPEN_TIME", info.time,
         "SUMMARY", info.summary);
 }
+
+bool EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration)
+{
+    auto service = GetFaultloggerService();
+    if (service == nullptr) {
+        HIVIEW_LOGE("Fail to enable EnableGwpAsanInner, get service failed.");
+        return false;
+    }
+
+    auto result = service->EnableGwpAsanInner(processName, alwaysEnabled, sampleRate,
+        maxSimutaneousAllocations, duration);
+    if (!result) {
+        HIVIEW_LOGE("Fail to enable the GWP-ASAN for process: %{public}s.", processName.c_str());
+    }
+    return result;
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS
 

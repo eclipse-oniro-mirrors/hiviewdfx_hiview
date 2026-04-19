@@ -36,6 +36,8 @@ public:
     void DisableGwpAsanGrayscale(int32_t uid) override;
     uint32_t GetGwpAsanGrayscaleState(int32_t uid) override;
     uint64_t GetExtensionDelayTime() override;
+    bool EnableGwpAsanInner(GwpAsanParams gwpAsanParams, const std::string& processName) override;
+    bool CheckCallerIsAllowed() override;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
