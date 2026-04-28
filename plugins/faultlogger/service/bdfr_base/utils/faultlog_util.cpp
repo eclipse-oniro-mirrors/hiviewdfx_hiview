@@ -257,15 +257,6 @@ time_t GetFileLastAccessTimeStamp(const std::string& fileName)
     return fileInfo.st_atime;
 }
 
-std::string GetCppCrashTempLogName(const FaultLogInfo& info)
-{
-    return std::string(FAULTLOG_TEMP_FOLDER) +
-        "cppcrash-" +
-        std::to_string(info.pid) +
-        "-" +
-        std::to_string(info.time);
-}
-
 std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
 {
     return std::string(FAULTLOG_TEMP_FOLDER) +

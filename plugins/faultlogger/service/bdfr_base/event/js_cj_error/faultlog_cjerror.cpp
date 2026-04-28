@@ -47,7 +47,7 @@ FaultLogInfo FaultLogCjError::FillFaultLogInfo(SysEvent& sysEvent)
 {
     auto info = FaultLogEventPipeline::FillFaultLogInfo(sysEvent);
     std::string rssStr = sysEvent.GetEventValue("PROCESS_RSS_MEMINFO");
-    info.sectionMap["PROCESS_RSS_MEMINFO"] = "Process Memory(kB): " + rssStr + "(Rss)";
+    info.sectionMap["PROCESS_RSS_MEMINFO"] = rssStr + "(Rss)";
     return info;
 }
 
