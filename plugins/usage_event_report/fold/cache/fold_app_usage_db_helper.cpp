@@ -81,7 +81,7 @@ const std::vector<std::pair<std::string, std::string>> baseFields_ = {
     {FIELD_G_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0}
 };
  
-std::vector<std::string> baseDurationColumns_ = {
+const std::vector<std::string> baseDurationColumns_ = {
     FIELD_FOLD_PORTRAIT_DURATION, FIELD_FOLD_LANDSCAPE_DURATION, FIELD_EXPAND_PORTRAIT_DURATION,
     FIELD_EXPAND_LANDSCAPE_DURATION, FIELD_FOLD_PORTRAIT_SPLIT_DURATION, FIELD_FOLD_PORTRAIT_FLOATING_DURATION,
     FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, FIELD_FOLD_LANDSCAPE_SPLIT_DURATION,
@@ -741,13 +741,14 @@ void FoldAppUsageDbHelper::QueryStatisticEventsInPeriod(uint64_t startTime, uint
         HIVIEW_LOGE("db is nullptr");
         return;
     }
+    auto tmpDurationColumn = baseDurationColumns_;
 #if FOLD_PC_COUNT_DURATION_ENABLE
-    baseDurationColumns_.push_back(FIELD_FOLD_KB_PORTRAIT_DURATION);
-    baseDurationColumns_.push_back(FIELD_FOLD_DISPLAY_COORDINATION_DURATION);
+    tmpDurationColumn.push_back(FIELD_FOLD_KB_PORTRAIT_DURATION);
+    tmpDurationColumn.push_back(FIELD_FOLD_DISPLAY_COORDINATION_DURATION);
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     std::string sqlCmd = "SELECT ";
     sqlCmd.append(FIELD_BUNDLE_NAME).append(", ").append(FIELD_VERSION_NAME);
-    for (const auto& column : baseDurationColumns_) {
+    for (const auto& column : tmpDurationColumn) {
         sqlCmd.append(", SUM(").append(column).append(") AS ").append(column);
     }
     sqlCmd.append(", COUNT(*) AS start_num FROM ").append(LOG_DB_TABLE_NAME);
