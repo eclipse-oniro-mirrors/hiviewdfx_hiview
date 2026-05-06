@@ -503,7 +503,7 @@ int FoldDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion
         if (ret != NativeRdb::E_OK) {
             return ret;
         }
-    return UpgradeDbFromV2ToV3(rdbStore);
+        return UpgradeDbFromV2ToV3(rdbStore);
     }
 #else
     if (oldVersion == DB_VERSION_1 && newVersion == DB_VERSION_2) {
