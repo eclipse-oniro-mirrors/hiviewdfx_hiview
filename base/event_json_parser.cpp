@@ -248,6 +248,37 @@ void EventJsonParser::InitEventInfoMapRef(const Json::Value& eventJson, JSON_VAL
     }
 }
 
+void EventJsonParser::ValidateAndSetControlTag(BaseInfo& baseInfo, const Json::Value& baseJsonInfo) const
+{
+    uint8_t controlTag = DO_NOTHING;
+
+    // Use versionConfigParser to parse the preserve and collect configurations.
+    bool isBetaCollect = (static_cast<uint8_t>(versionConfigParser_.ParseCollectConfig(baseJsonInfo)) &
+        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::BETA_ONLY)) != 0;
+    bool isCommonCollect = (static_cast<uint8_t>(versionConfigParser_.ParseCollectConfig(baseJsonInfo)) &
+        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::COMMERCIAL_ONLY)) != 0;
+    bool isBetaPreserve = (static_cast<uint8_t>(versionConfigParser_.ParsePreserveConfig(baseJsonInfo)) &
+        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::BETA_ONLY)) != 0;
+    bool isCommonPreserve = (static_cast<uint8_t>(versionConfigParser_.ParsePreserveConfig(baseJsonInfo)) &
+        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::COMMERCIAL_ONLY)) != 0;
+
+    if (isBetaCollect) {
+        controlTag |= BETA_COLLECT;
+    }
+    if (isCommonCollect) {
+        controlTag |= COMM_COLLECT;
+    }
+    if (isBetaPreserve) {
+        controlTag |= BETA_PRESERVE;
+    }
+    if (isCommonPreserve) {
+        controlTag |= COMM_PRESERVE;
+    }
+
+    // Store the controlTag in baseInfo
+    baseInfo.keyConfig.collect = controlTag;
+}
+
 BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) const
 {
     BaseInfo baseInfo;
@@ -290,33 +321,8 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
-
-    // Use versionConfigParser to parse the preserve and collect configurations.
-    uint8_t controlTag = DO_NOTHING;
-    bool isBetaCollect = (static_cast<uint8_t>(versionConfigParser_.ParseCollectConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::BETA_ONLY)) != 0;
-    bool isCommonCollect = (static_cast<uint8_t>(versionConfigParser_.ParseCollectConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::COMMERCIAL_ONLY)) != 0;
-    bool isBetaPreserve = (static_cast<uint8_t>(versionConfigParser_.ParsePreserveConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::BETA_ONLY)) != 0;
-    bool isCommonPreserve = (static_cast<uint8_t>(versionConfigParser_.ParsePreserveConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::COMMERCIAL_ONLY)) != 0;
-
-    if (isBetaCollect) {
-        controlTag |= BETA_COLLECT;
-    }
-    if (isCommonCollect) {
-        controlTag |= COMM_COLLECT;
-    }
-    if (isBetaPreserve) {
-        controlTag |= BETA_PRESERVE;
-    }
-    if (isCommonPreserve) {
-        controlTag |= COMM_PRESERVE;
-    }
-
-    // Store the controlTag in baseInfo
-    baseInfo.keyConfig.collect = controlTag;
+    // Extract the validation logic to a separate function
+    ValidateAndSetControlTag(baseInfo, baseJsonInfo);
 
     HIVIEW_LOGI("ivy5 preserve: %{public}d, collect: %{public}d", baseInfo.keyConfig.preserve,
         baseInfo.keyConfig.collect);

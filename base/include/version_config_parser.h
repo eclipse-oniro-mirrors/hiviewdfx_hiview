@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef HIVIEW_PLUGINS_EVENT_SERVICE_INCLUDE_VERSION_CONFIG_PARSER_H
+#define HIVIEW_PLUGINS_EVENT_SERVICE_INCLUDE_VERSION_CONFIG_PARSER_H
 
 #pragma once
 
@@ -43,3 +45,4 @@ private:
 };
 }
 }
+#endif

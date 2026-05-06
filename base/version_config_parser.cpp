@@ -14,7 +14,7 @@
  */
 
 #include "version_config_parser.h"
-#include "event_json_parser.h" 
+#include "event_json_parser.h"
 #include "hiview_logger.h"
 #include "hiview_config_util.h"
 
@@ -75,9 +75,8 @@ uint8_t VersionConfigParser::ParseVersionConfigInternal(const Json::Value& versi
     // case 2: If it's an object, parse the beta/commercial fields.
     if (versionConfig.isObject()) {
         bool beta = versionConfig.isMember("beta") && versionConfig["beta"].isBool() && versionConfig["beta"].asBool();
-        bool commercial = versionConfig.isMember("commercial") && versionConfig["commercial"].isBool() 
+        bool commercial = versionConfig.isMember("commercial") && versionConfig["commercial"].isBool()
             && versionConfig["commercial"].asBool();
-
         if (beta && commercial) {
             return static_cast<uint8_t>(VersionControl::PreserveCollectRule::ALL);
         } else if (!beta && commercial) {
