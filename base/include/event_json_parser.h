@@ -31,6 +31,7 @@
 #include "singleton.h"
 #include "sys_event.h"
 #include "domain_json_parser.h"
+#include "version_config_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -51,8 +52,8 @@ struct KeyConfig {
     uint8_t type : 2;
     uint8_t level : 1;
     uint8_t privacy : 3;
-    uint8_t preserve : 1;
-    uint8_t collect : 1;
+    uint8_t preserve : 2;    // Change to 2 digits to support values ​​from 0 to 3.
+    uint8_t collect : 2;    // Change to 2 digits to support values ​​from 0 to 3.
 
     KeyConfig(uint8_t type = DEFAULT_EVENT_TYPE, uint8_t level = MINOR_LEVEL_VAL, uint8_t privacy = DEFAULT_PRIVACY,
         uint8_t preserve = DEFAULT_PRESERVE_VAL, uint8_t collect = DEFAULT_COLLECT_VAL)
@@ -112,6 +113,7 @@ private:
     std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap_ = nullptr;
     std::unique_ptr<DomainJsonParser> domainJsonParser_ = nullptr;
     uint16_t sysEventDefMapCap_ = 0;
+    VersionConfigParser versionConfigParser_;  // Add new member
 }; // EventJsonParser
 } // namespace HiviewDFX
 } // namespace OHOS
