@@ -814,7 +814,6 @@ void FoldAppUsageDbHelper::QueryForegroundAppsInfo(uint64_t startTime, uint64_t 
     NativeRdb::AbsRdbPredicates predicates(LOG_DB_TABLE_NAME);
     predicates.EqualTo(FIELD_BUNDLE_NAME, info.package);
     predicates.Between(FIELD_HAPPEN_TIME, static_cast<int64_t>(startTime), static_cast<int64_t>(endTime));
- 
     predicates.OrderByDesc(FIELD_ID);
     std::vector<std::string> queryFields = {FIELD_ID, FIELD_EVENT_ID, FIELD_BUNDLE_NAME,
         FIELD_VERSION_NAME, FIELD_HAPPEN_TIME, FIELD_FOLD_STATUS, FIELD_PRE_FOLD_STATUS, FIELD_TS};
