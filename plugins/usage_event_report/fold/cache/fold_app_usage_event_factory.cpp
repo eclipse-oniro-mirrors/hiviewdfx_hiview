@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "bundle_mgr_client.h"
-#include "fold_common_utils.h"
 #include "fold_app_usage_event.h"
 #include "hiview_logger.h"
 #include "if_system_ability_manager.h"
@@ -37,6 +36,9 @@ constexpr char DATE_FORMAT[] = "%Y-%m-%d";
 
 std::string GetAppVersion(const std::string& bundleName)
 {
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    return ""; // GetBundleInfo will crash
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     AppExecFwk::BundleInfo info;
     AppExecFwk::BundleMgrClient client;
     if (!client.GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_INFO_EXCLUDE_EXT,
@@ -79,6 +81,11 @@ void UpdateEventFromFoldAppUsageInfo(const FoldAppUsageInfo& info, const std::st
     event->Update(KEY_OF_DATE, dateStr);
     event->Update(KEY_OF_START_NUM, info.startNum);
     event->Update(KEY_OF_USAGE, info.usage);
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    event->Update(KEY_OF_FOLD_KB_VER_USAGE, info.foldKbVer);
+    event->Update(KEY_OF_FOLD_DISPLAY_OUTER_USAGE, info.foldHor);
+    event->Update(KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE, info.foldDisplayCoordination);
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 }
 }
 

@@ -2,7 +2,7 @@
     "domains": [
         {
             "domain": "WINDOWMANAGER",
-            "include": ["NOTIFY_FOLD_STATE_CHANGE", "VH_MODE", "FOCUS_WINDOW"]
+            "include": ["NOTIFY_FOLD_STATE_CHANGE", "VH_MODE", "FOCUS_WINDOW", "DISPLAY_MODE"]
         },
         {
             "domain": "MULTIWINDOW_UE",

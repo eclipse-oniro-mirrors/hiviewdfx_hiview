@@ -44,6 +44,11 @@ int32_t GetFoldStatus()
     return static_cast<int32_t>(Rosen::DisplayManagerLite::GetInstance().GetFoldStatus());
 }
 
+int32_t GetFoldDisplayMode()
+{
+    return static_cast<int32_t>(Rosen::DisplayManagerLite::GetInstance().GetFoldDisplayMode());
+}
+
 int32_t GetVhMode()
 {
     int32_t vhMode = 0;

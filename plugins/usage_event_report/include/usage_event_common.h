@@ -38,6 +38,9 @@ constexpr char EVENT_NAME[] = "FOLD_APP_USAGE";
 constexpr char KEY_OF_PACKAGE[] = "PACKAGE";
 constexpr char KEY_OF_VERSION[] = "VERSION";
 constexpr char KEY_OF_USAGE[] = "USAGE";
+constexpr char KEY_OF_FOLD_KB_VER_USAGE[] = "FOLD_KB_V";
+constexpr char KEY_OF_FOLD_DISPLAY_OUTER_USAGE[] = "FOLD_DISPLAY_OUTER_V";
+constexpr char KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE[] = "FOLD_DISPLAY_COORDINATION";
 constexpr char KEY_OF_FOLD_VER_USAGE[] = "FOLD_V";
 constexpr char KEY_OF_FOLD_VER_SPLIT_USAGE[] = "FOLD_V_SPLIT";
 constexpr char KEY_OF_FOLD_VER_FLOATING_USAGE[] = "FOLD_V_FLOATING";
@@ -88,6 +91,9 @@ constexpr int EVENT_APP_START = 1101;
 constexpr int EVENT_APP_EXIT = 1102;
 constexpr int EVENT_SCREEN_STATUS_CHANGED = 1103;
 constexpr int EVENT_COUNT_DURATION = 1104;
+constexpr int EVENT_ENTER_COORDINATION_MODE = 1105;
+constexpr int EVENT_EXIT_COORDINATION_MODE = 1106;
+constexpr int EVENT_COUNT_COORDINATION_DURATION = 1107;
 }
 
 namespace AppEventSpace {
@@ -101,10 +107,16 @@ constexpr char EVENT_NAME[] = "NOTIFY_FOLD_STATE_CHANGE";
 constexpr char KEY_OF_NEXT_STATUS[] = "NEXT_FOLD_STATUS";
 }
 
+namespace FoldDisplayModeChangeEventSpace {
+constexpr char EVENT_NAME[] = "DISPLAY_MODE";
+constexpr char KEY_OF_NEXT_STATUS[] = "FOLD_DISPLAY_MODE";
+}
+
 namespace FoldState {
 constexpr int32_t FOLD_STATE_EXPAND = 1;
 constexpr int32_t FOLD_STATE_FOLDED = 2;
 constexpr int32_t FOLD_STATE_HALF_FOLDED = 3;
+constexpr int32_t FOLD_STATE_WITH_KEYBOARD  = 4;
 constexpr int32_t FOLD_STATE_EXPAND_WITH_SECOND_EXPAND = 11;
 constexpr int32_t FOLD_STATE_EXPAND_WITH_SECOND_HALF_FOLDED = 21;
 constexpr int32_t FOLD_STATE_FOLDED_WITH_SECOND_EXPAND = 12;
@@ -157,6 +169,8 @@ constexpr int G_PORTRAIT_FULL_STATUS = 320;
 constexpr int G_PORTRAIT_SPLIT_STATUS = 321;
 constexpr int G_PORTRAIT_FLOATING_STATUS = 322;
 constexpr int G_PORTRAIT_MIDSCENE_STATUS = 323;
+constexpr int FOLD_KB_PORTRAIT_STATUS = 420;
+constexpr int FOLD_DISPLAY_MODE_COORDINATION_STATUS = 4;
 }
 
 namespace FoldEventTable {
@@ -166,9 +180,13 @@ constexpr char FIELD_EVENT_ID[] = "rawid";
 constexpr char FIELD_TS[] = "ts";
 constexpr char FIELD_FOLD_STATUS[] = "fold_status";
 constexpr char FIELD_PRE_FOLD_STATUS[] = "pre_fold_status";
+constexpr char FIELD_DISPLAY_MODE[] = "fold_display_mode";
+constexpr char FIELD_PRE_DISPLAY_MODE[] = "pre_fold_display_mode";
 constexpr char FIELD_VERSION_NAME[] = "version_name";
 constexpr char FIELD_HAPPEN_TIME[] = "happen_time";
 constexpr char FIELD_FOLD_PORTRAIT_DURATION[] = "fold_portrait_duration";
+constexpr char FIELD_FOLD_KB_PORTRAIT_DURATION[] = "fold_kb_portrait_duration";
+constexpr char FIELD_FOLD_DISPLAY_COORDINATION_DURATION[] = "fold_display_coordination_duration";
 constexpr char FIELD_FOLD_PORTRAIT_SPLIT_DURATION[] = "fold_portrait_split_duration";
 constexpr char FIELD_FOLD_PORTRAIT_FLOATING_DURATION[] = "fold_portrait_floating_duration";
 constexpr char FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION[] = "fold_portrait_midscene_duration";

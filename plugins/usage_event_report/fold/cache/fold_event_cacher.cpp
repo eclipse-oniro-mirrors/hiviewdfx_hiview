@@ -33,6 +33,7 @@ constexpr uint32_t MILLISEC_TO_MICROSEC = 1000;
 constexpr int8_t EXPAND = 1;
 constexpr int8_t FOLD = 2;
 constexpr int8_t G = 3;
+constexpr int8_t MAGNETIC = 4;
 constexpr int8_t LANDSCAPE = 1;
 constexpr int8_t PORTRAIT = 2;
 constexpr int8_t FULL = 0;
@@ -40,9 +41,19 @@ constexpr int8_t SPLIT = 1;
 constexpr int8_t FLOATING = 2;
 constexpr int8_t MIDSCENE = 3;
 constexpr int8_t THE_TENS_DIGIT = 10;
+constexpr int8_t FOLD_DISPLAY_MODE_UNKNOWN = 0;
+constexpr int8_t FOLD_DISPLAY_MODE_COORDINATION = 4;
+constexpr int8_t FOLD_PC_INVALID_MODE_SIX = 6;
+constexpr int8_t FOLD_PC_INVALID_MODE_SEVEN = 7;
+constexpr int8_t FOLD_PC_INVALID_MODE_EIGHT = 8;
 
 int8_t ConvertFoldStatus(int32_t foldStatus)
 {
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    if (foldStatus == FOLD_STATE_WITH_KEYBOARD) {
+        return MAGNETIC;
+    }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     switch (foldStatus) {
         case FOLD_STATE_EXPAND:
         case FOLD_STATE_HALF_FOLDED:
@@ -107,6 +118,10 @@ FoldEventCacher::FoldEventCacher(const std::string& workPath)
     timelyStart_ = TimeUtil::GetBootTimeMs();
     dbHelper_ = std::make_unique<FoldAppUsageDbHelper>(workPath);
     foldStatus_ = FoldCommonUtils::GetFoldStatus();
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    displayMode_ = FoldCommonUtils::GetFoldDisplayMode();
+    predisplayMode_ = displayMode_;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     vhMode_ = FoldCommonUtils::GetVhMode();
     FoldCommonUtils::GetFocusedAppAndWindowInfos(focusedAppPair_, multiWindowInfos_);
     HIVIEW_LOGI("foldStatus=%{public}d, vhMode=%{public}d, focusedApp=[%{public}s, %{public}d], "
@@ -121,12 +136,87 @@ void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
         return;
     }
     std::string eventName = event->eventName_;
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    if (eventName == FoldDisplayModeChangeEventSpace::EVENT_NAME) {
+        ProcessDisplayModeChangedEvent(event);
+    }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     if (eventName == AppEventSpace::FOCUS_WINDOW) {
         ProcessFocusWindowEvent(event);
     }
     if ((eventName == FoldStateChangeEventSpace::EVENT_NAME) || (eventName == VhModeChangeEventSpace::EVENT_NAME) ||
         (eventName == MultiWindowChangeEventSpace::EVENT_NAME)) {
         ProcessSceenStatusChangedEvent(event);
+    }
+}
+
+void FoldEventCacher::ProcessDisplayModeChangedEvent(std::shared_ptr<SysEvent> event)
+{
+    int displayMode =
+        static_cast<int32_t>(event->GetEventIntValue(FoldDisplayModeChangeEventSpace::KEY_OF_NEXT_STATUS));
+    if (displayMode == 0) {
+        HIVIEW_LOGE("return, displayMode is invalid");
+        return;
+    }
+    predisplayMode_ = displayMode_;
+    UpdateDisplayMode(displayMode);
+    AppEventRecord appEventRecord;
+    appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
+    appEventRecord.bundleName = focusedAppPair_.first;
+    appEventRecord.preDisplayMode = predisplayMode_;
+    appEventRecord.displayMode = displayMode_;
+    appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
+    if (predisplayMode_ != FOLD_DISPLAY_MODE_COORDINATION && displayMode_ == FOLD_DISPLAY_MODE_COORDINATION) {
+        appEventRecord.rawid = FoldEventId::EVENT_ENTER_COORDINATION_MODE;
+        dbHelper_->AddAppEvent(appEventRecord);
+        coordinationAppName_ = appEventRecord.bundleName;
+    } else if (predisplayMode_ == FOLD_DISPLAY_MODE_COORDINATION && displayMode_ != FOLD_DISPLAY_MODE_COORDINATION) {
+        appEventRecord.rawid = FoldEventId::EVENT_EXIT_COORDINATION_MODE;
+        appEventRecord.bundleName = coordinationAppName_;
+        dbHelper_->AddAppEvent(appEventRecord);
+        CountCoordinationDuration(appEventRecord);
+    }
+}
+ 
+void FoldEventCacher::CountCoordinationDuration(AppEventRecord& appEventRecord)
+{
+    int startIndex = GetCoordinationStartIndex(coordinationAppName_);
+    int64_t dayStartTime = TimeUtil::Get0ClockStampMs();
+    std::vector<AppEventRecord> records;
+    dbHelper_->QueryDisplayModeEventRecords(startIndex, dayStartTime, coordinationAppName_, records);
+    std::map<int, uint64_t> durations;
+    CalCulateCoordinationDuration(dayStartTime, records, durations);
+    AppEventRecord newRecord;
+    newRecord.rawid = FoldEventId::EVENT_COUNT_COORDINATION_DURATION;
+    newRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
+    newRecord.preDisplayMode = predisplayMode_;
+    newRecord.displayMode = displayMode_;
+    newRecord.bundleName = coordinationAppName_;
+    newRecord.happenTime = static_cast<int64_t>(TimeUtil::GenerateTimestamp()) / MILLISEC_TO_MICROSEC;
+    dbHelper_->AddAppEvent(newRecord, durations);
+}
+ 
+void FoldEventCacher::CalCulateCoordinationDuration(uint64_t dayStartTime, 
+    std::vector<AppEventRecord>& records, std::map<int, uint64_t>& durations)
+{
+    if (records.empty()) {
+        return;
+    }
+    auto it = records.begin();
+    if (it->rawid == FoldEventId::EVENT_EXIT_COORDINATION_MODE) {
+        Accumulative(FOLD_DISPLAY_MODE_COORDINATION, (it->happenTime - dayStartTime), durations);
+    }
+    auto preIt = it;
+    it++;
+    for (; it != records.end(); it++) {
+        if (it->rawid == FoldEventId::EVENT_EXIT_COORDINATION_MODE &&
+            preIt->rawid == FoldEventId::EVENT_ENTER_COORDINATION_MODE) {
+            uint64_t duration = (it->ts > preIt->ts) ? static_cast<uint64_t>(it->ts - preIt->ts) : 0;
+            if (predisplayMode_ == FOLD_DISPLAY_MODE_COORDINATION) {
+                Accumulative(FOLD_DISPLAY_MODE_COORDINATION, duration, durations);
+            }
+        }
+        preIt = it;
     }
 }
 
@@ -154,6 +244,10 @@ void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = combineScreenStatus;
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    appEventRecord.preDisplayMode = predisplayMode_;
+    appEventRecord.displayMode= displayMode_;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
     if (combineScreenStatus != UNKNOWN_STATUS) {
         dbHelper_->AddAppEvent(appEventRecord);
@@ -182,6 +276,15 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     int preFoldStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
     std::string eventName = event->eventName_;
     if (eventName == FoldStateChangeEventSpace::EVENT_NAME) {
+#if FOLD_PC_COUNT_DURATION_ENABLE
+        int32_t nextState =
+            static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
+        if (nextState == FOLD_PC_INVALID_MODE_SIX || nextState == FOLD_PC_INVALID_MODE_SEVEN ||
+            nextState == FOLD_PC_INVALID_MODE_EIGHT) {
+            HIVIEW_LOGI("no valid fold status, dont update fold status");
+            return;
+        }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
         UpdateFoldStatus(static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS)));
     } else if (eventName == VhModeChangeEventSpace::EVENT_NAME) {
         UpdateVhMode(static_cast<int32_t>(event->GetEventIntValue(VhModeChangeEventSpace::KEY_OF_MODE)));
@@ -285,6 +388,11 @@ int FoldEventCacher::GetStartIndex(const std::string& bundleName)
     return dbHelper_->QueryRawEventIndex(bundleName, FoldEventId::EVENT_APP_START);
 }
 
+int FoldEventCacher::GetCoordinationStartIndex(const std::string& bundleName)
+{
+    return dbHelper_->QueryRawEventIndex(bundleName, FoldEventId::EVENT_ENTER_COORDINATION_MODE);
+}
+
 void FoldEventCacher::UpdateFoldStatus(int32_t status)
 {
     foldStatus_ = status;
@@ -293,6 +401,11 @@ void FoldEventCacher::UpdateFoldStatus(int32_t status)
 void FoldEventCacher::UpdateVhMode(int32_t mode)
 {
     vhMode_ = mode;
+}
+
+void FoldEventCacher::UpdateDisplayMode(int32_t displayMode)
+{
+    displayMode_ = displayMode;
 }
 
 void FoldEventCacher::UpdateMultiWindowInfos(uint8_t multiNum, const std::string& multiWindow)

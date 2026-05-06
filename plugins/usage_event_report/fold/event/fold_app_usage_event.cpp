@@ -54,10 +54,30 @@ FoldAppUsageEvent::FoldAppUsageEvent(const std::string &name, HiSysEvent::EventT
         {std::string(KEY_OF_DATE), std::string(DEFAULT_STRING)},
         {std::string(KEY_OF_START_NUM), DEFAULT_UINT32}
     };
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    this->paramMap_.insert({std::string(KEY_OF_FOLD_KB_VER_USAGE), DEFAULT_UINT32});
+    this->paramMap_.insert({std::string(KEY_OF_FOLD_DISPLAY_OUTER_USAGE), DEFAULT_UINT32});
+    this->paramMap_.insert({std::string(KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE), DEFAULT_UINT32});
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 }
 
 void FoldAppUsageEvent::Report()
 {
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, this->eventName_, this->eventType_,
+        KEY_OF_PACKAGE, this->paramMap_[KEY_OF_PACKAGE].GetString(),
+        KEY_OF_FOLD_VER_USAGE, this->paramMap_[KEY_OF_FOLD_VER_USAGE].GetUint32(),
+        KEY_OF_EXPD_VER_USAGE, this->paramMap_[KEY_OF_EXPD_VER_USAGE].GetUint32(),
+        KEY_OF_EXPD_HOR_USAGE, this->paramMap_[KEY_OF_EXPD_HOR_USAGE].GetUint32(),
+        KEY_OF_USAGE, this->paramMap_[KEY_OF_USAGE].GetUint32(),
+        KEY_OF_DATE, this->paramMap_[KEY_OF_DATE].GetString(),
+        KEY_OF_START_NUM, this->paramMap_[KEY_OF_START_NUM].GetUint32(),
+        KEY_OF_FOLD_KB_VER_USAGE, this->paramMap_[KEY_OF_FOLD_KB_VER_USAGE].GetUint32(),
+        KEY_OF_FOLD_DISPLAY_OUTER_USAGE, this->paramMap_[KEY_OF_FOLD_HOR_USAGE].GetUint32(),
+        KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE, this->paramMap_[KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE].GetUint32()
+    );
+    return;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, this->eventName_, this->eventType_,
         KEY_OF_PACKAGE, this->paramMap_[KEY_OF_PACKAGE].GetString(),
         KEY_OF_VERSION, this->paramMap_[KEY_OF_VERSION].GetString(),

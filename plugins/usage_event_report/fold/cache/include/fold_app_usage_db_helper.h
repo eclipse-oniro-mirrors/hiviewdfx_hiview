@@ -51,6 +51,9 @@ struct FoldAppUsageInfo {
     uint32_t gHorSplit = 0; // usage duration when screen in g-horizon status and split-screen window
     uint32_t gHorFloating = 0; // usage duration when screen in g-horizon status and floating window
     uint32_t gHorMidscene = 0; // usage duration when screen in g-horizon status and midscene window
+    uint32_t foldKbVer = 0;
+    uint32_t foldDisplayOuter = 0;
+    uint32_t foldDisplayCoordination = 0;
     uint32_t startNum = 1;
     std::string date;
     uint32_t usage = 0;
@@ -68,6 +71,8 @@ struct FoldAppUsageRawEvent {
     int64_t happenTime = 0;
     int screenStatusBefore = 0;
     int screenStatusAfter = 0;
+    int preDisplayMode = 0;
+    int displayMode = 0;
 };
 
 struct AppEventRecord {
@@ -76,6 +81,8 @@ struct AppEventRecord {
     std::string bundleName = "";
     int preFoldStatus = 0;
     int foldStatus = 0;
+    int preDisplayMode = 0;
+    int displayMode = 0;
     std::string versionName = "";
     int64_t happenTime = 0;
 };
@@ -95,6 +102,9 @@ public:
     int QueryRawEventIndex(const std::string& bundleName, int rawId);
     void QueryAppEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
         std::vector<AppEventRecord>& records);
+    void QueryDisplayModeEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
+        std::vector<AppEventRecord>& records);
+    bool IsReadEventSucc(std::shared_ptr<NativeRdb::AbsSharedResultSet> rs, FoldAppUsageRawEvent& evt);
 
 private:
     void CreateDbStore(const std::string& dbPath, const std::string& dbName);
