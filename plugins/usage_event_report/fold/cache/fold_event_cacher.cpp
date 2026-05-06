@@ -196,7 +196,7 @@ void FoldEventCacher::CountCoordinationDuration(AppEventRecord& appEventRecord)
     dbHelper_->AddAppEvent(newRecord, durations);
 }
  
-void FoldEventCacher::CalCulateCoordinationDuration(uint64_t dayStartTime, 
+void FoldEventCacher::CalCulateCoordinationDuration(uint64_t dayStartTime,
     std::vector<AppEventRecord>& records, std::map<int, uint64_t>& durations)
 {
     if (records.empty()) {

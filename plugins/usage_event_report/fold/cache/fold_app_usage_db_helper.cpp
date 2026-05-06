@@ -806,7 +806,7 @@ bool FoldAppUsageDbHelper::IsReadEventSucc(std::shared_ptr<NativeRdb::AbsSharedR
 void FoldAppUsageDbHelper::QueryForegroundAppsInfo(uint64_t startTime, uint64_t endTime, int screenStatus,
     FoldAppUsageInfo &info)
 {
-   std::lock_guard<std::mutex> lockGuard(dbMutex_);
+    std::lock_guard<std::mutex> lockGuard(dbMutex_);
     if (rdbStore_ == nullptr) {
         HIVIEW_LOGE("db is nullptr");
         return;
