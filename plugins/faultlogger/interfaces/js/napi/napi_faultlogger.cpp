@@ -153,6 +153,34 @@ static void FaultLogCompleteCallback(napi_env env, napi_status status, void *dat
     delete faultLogInfoContext;
 }
 
+static bool ProcessCallbackRef(napi_env env, napi_value callback,
+    FaultLogInfoContext* faultLogInfoContext)
+{
+    napi_status status = napi_create_reference(env, callback, 1, &faultLogInfoContext->callbackRef);
+    if (status != napi_ok) {
+        HIVIEW_LOGE("napi_create_reference failed");
+        GET_AND_THROW_LAST_ERROR(env);
+        return false;
+    }
+    return true;
+}
+
+static bool CreateFaultLogAsyncWork(napi_env env, FaultLogInfoContext* faultLogInfoContext)
+{
+    napi_value resource = NapiUtil::CreateUndefined(env);
+    napi_value resourceName = nullptr;
+    napi_create_string_utf8(env, "QuerySelfFaultLog", NAPI_AUTO_LENGTH, &resourceName);
+    napi_status status = napi_create_async_work(env, resource, resourceName, FaultLogExecuteCallback,
+        FaultLogCompleteCallback, (void *)faultLogInfoContext, &faultLogInfoContext->work);
+    if (status != napi_ok) {
+        HIVIEW_LOGE("napi_create_async_work failed");
+        GET_AND_THROW_LAST_ERROR(env);
+        return false;
+    }
+    napi_queue_async_work_with_qos(env, faultLogInfoContext->work, napi_qos_default);
+    return true;
+}
+
 static napi_value QuerySelfFaultLog(napi_env env, napi_callback_info info)
 {
     size_t parameterCount = 2;
@@ -173,11 +201,6 @@ static napi_value QuerySelfFaultLog(napi_env env, napi_callback_info info)
     }
 
     auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>().release();
-    if (faultLogInfoContext == nullptr) {
-        HIVIEW_LOGE("faultLogInfoContext == nullptr");
-        return result;
-    }
-
     napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType);
     if (parameterCount == ONE_PARAMETER) {
         napi_create_promise(env, &faultLogInfoContext->deferred, &result);
@@ -187,15 +210,16 @@ static napi_value QuerySelfFaultLog(napi_env env, napi_callback_info info)
             delete faultLogInfoContext;
             return result;
         }
-        NAPI_CALL(env, napi_create_reference(env, parameters[TWO_PARAMETER - 1], 1, &faultLogInfoContext->callbackRef));
+        if (!ProcessCallbackRef(env, parameters[TWO_PARAMETER - 1], faultLogInfoContext)) {
+            delete faultLogInfoContext;
+            return result;
+        }
     }
 
-    napi_value resource = NapiUtil::CreateUndefined(env);
-    napi_value resourceName = nullptr;
-    napi_create_string_utf8(env, "QuerySelfFaultLog", NAPI_AUTO_LENGTH, &resourceName);
-    napi_create_async_work(env, resource, resourceName, FaultLogExecuteCallback,
-        FaultLogCompleteCallback, (void *)faultLogInfoContext, &faultLogInfoContext->work);
-    napi_queue_async_work_with_qos(env, faultLogInfoContext->work, napi_qos_default);
+    if (!CreateFaultLogAsyncWork(env, faultLogInfoContext)) {
+        delete faultLogInfoContext;
+        return result;
+    }
     return result;
 }
 
@@ -269,11 +293,6 @@ static napi_value Query(napi_env env, napi_callback_info info)
     }
 
     auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>().release();
-    if (faultLogInfoContext == nullptr) {
-        HIVIEW_LOGE("faultLogInfoContext == nullptr");
-        return result;
-    }
-
     napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType);
     if (parameterCount == ONE_PARAMETER) {
         napi_create_promise(env, &faultLogInfoContext->deferred, &result);
@@ -285,15 +304,16 @@ static napi_value Query(napi_env env, napi_callback_info info)
                 NapiUtil::CreateErrMsg("callback", napi_function), true);
             return result;
         }
-        NAPI_CALL(env, napi_create_reference(env, parameters[TWO_PARAMETER - 1], 1, &faultLogInfoContext->callbackRef));
+        if (!ProcessCallbackRef(env, parameters[TWO_PARAMETER - 1], faultLogInfoContext)) {
+            delete faultLogInfoContext;
+            return result;
+        }
     }
 
-    napi_value resource = NapiUtil::CreateUndefined(env);
-    napi_value resourceName = nullptr;
-    napi_create_string_utf8(env, "QuerySelfFaultLog", NAPI_AUTO_LENGTH, &resourceName);
-    napi_create_async_work(env, resource, resourceName, FaultLogExecuteCallback,
-        FaultLogCompleteCallback, (void *)faultLogInfoContext, &faultLogInfoContext->work);
-    napi_queue_async_work_with_qos(env, faultLogInfoContext->work, napi_qos_default);
+    if (!CreateFaultLogAsyncWork(env, faultLogInfoContext)) {
+        delete faultLogInfoContext;
+        return result;
+    }
     return result;
 }
 
