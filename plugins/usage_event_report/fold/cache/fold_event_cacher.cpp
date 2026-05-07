@@ -155,7 +155,7 @@ void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
 #if FOLD_PC_COUNT_DURATION_ENABLE
 void FoldEventCacher::ProcessDisplayModeChangedEvent(std::shared_ptr<SysEvent> event)
 {
-    int displayMode =
+    int32_t displayMode =
         static_cast<int32_t>(event->GetEventIntValue(FoldDisplayModeChangeEventSpace::KEY_OF_NEXT_STATUS));
     if (displayMode == 0) {
         HIVIEW_LOGE("return, displayMode is invalid");

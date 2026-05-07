@@ -68,7 +68,7 @@ void FoldAppUsageTest::TearDown(void) {}
 
 #if FOLD_PC_COUNT_DURATION_ENABLE
 /**
- * @tc.name: FoldAppUsageTest002
+ * @tc.name: FoldPcAppUsageTest001
  * @tc.desc: check fold app usage func get 1103, 1101 data from db.
  * @tc.type: FUNC
  */
@@ -125,7 +125,7 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
     AppEventRecord record1{1104, 1000, "app1", 110, 110, "55", g_today0Time - 5 * g_dayGapTime};
     AppEventRecord record2{1104, 1000, "app1", 110, 110, "55", g_startTime - 5 * g_hourGapTime};
     AppEventRecord record3{1104, 1000, "app1", 110, 110, "55", g_startTime + 7 * g_hourGapTime};
- 
+
     AppEventRecord record4{1104, 1000, "app2", 110, 110, "55", g_startTime + 8 * g_hourGapTime};
     AppEventRecord record5{1104, 1000, "app2", 110, 110, "55", g_startTime + 9 * g_hourGapTime};
 
@@ -181,7 +181,7 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
     AppEventRecord record8{1103, 6000, "app3", 220, 210, 0, 0, "55", g_startTime + 12 * g_hourGapTime};
     AppEventRecord record12{1103, 7000, "app3", 210, 310, 0, 0, "55", g_startTime + 13 * g_hourGapTime};
     AppEventRecord record13{1103, 8000, "app3", 310, 320, 0, 0, "55", g_startTime + 14 * g_hourGapTime};
- 
+
     AppEventRecord record9{1103, 7000, "app4", 110, 210, 0, 0, "55", g_startTime + 15 * g_hourGapTime};
     AppEventRecord record10{1103, 8000, "app4", 210, 220, 0, 0, "55", g_startTime + 16 * g_hourGapTime};
     AppEventRecord record11{1102, 9000, "app4", 220, 120, 0, 0, "55", g_today0Time + 2 * g_hourGapTime};
@@ -191,7 +191,7 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
     AppEventRecord record8{1103, 6000, "app3", 220, 210, "55", g_startTime + 12 * g_hourGapTime};
     AppEventRecord record12{1103, 7000, "app3", 210, 310, "55", g_startTime + 13 * g_hourGapTime};
     AppEventRecord record13{1103, 8000, "app3", 310, 320, "55", g_startTime + 14 * g_hourGapTime};
- 
+
     AppEventRecord record9{1103, 7000, "app4", 110, 210, "55", g_startTime + 15 * g_hourGapTime};
     AppEventRecord record10{1103, 8000, "app4", 210, 220, "55", g_startTime + 16 * g_hourGapTime};
     AppEventRecord record11{1102, 9000, "app4", 220, 120, "55", g_today0Time + 2 * g_hourGapTime};
