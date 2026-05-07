@@ -52,8 +52,8 @@ struct KeyConfig {
     uint8_t type : 2;
     uint8_t level : 1;
     uint8_t privacy : 3;
-    uint8_t preserve : 2;    // Change to 2 digits to support values ​​from 0 to 3.
-    uint8_t collect : 2;    // Change to 2 digits to support values ​​from 0 to 3.
+    uint8_t preserve : 1;
+    uint8_t collect : 1;
 
     KeyConfig(uint8_t type = DEFAULT_EVENT_TYPE, uint8_t level = MINOR_LEVEL_VAL, uint8_t privacy = DEFAULT_PRIVACY,
         uint8_t preserve = DEFAULT_PRESERVE_VAL, uint8_t collect = DEFAULT_COLLECT_VAL)
@@ -104,7 +104,6 @@ private:
     bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;
     void InitEventInfoMapRef(const Json::Value& jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
     BaseInfo ParseBaseConfig(const Json::Value& eventNameJson) const;
-    void ValidateAndSetControlTag(BaseInfo& baseInfo, const Json::Value& baseJsonInfo) const;
     NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const;
     PARAM_INFO_MAP_PTR ParseEventParamInfo(const Json::Value& eventContent) const;
     void WatchTestTypeParameter();

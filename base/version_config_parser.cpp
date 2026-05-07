@@ -17,79 +17,107 @@
 #include "event_json_parser.h"
 #include "hiview_logger.h"
 #include "hiview_config_util.h"
+#include "parameter_ex.h"
+#include "json/json.h"
+#include <string>
 
 namespace OHOS {
+inline constexpr uint8_t DO_NOTHING = 0b0000;
+inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
+inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
+inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
+inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
+
 namespace HiviewDFX {
 
 DEFINE_LOG_TAG("VersionConfigParser");
 
-uint8_t VersionConfigParser::ParseVersionConfig(const Json::Value& versionConfig) const
-{
-    return ParseVersionConfigInternal(versionConfig);
-}
+VersionConfigParser::VersionConfigParser() {}
 
-uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& baseJsonInfo) const
+VersionConfigParser::~VersionConfigParser() {}
+
+uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue) const
 {
-    uint8_t preserveValue = DEFAULT_PRESERVE_VAL;
-    if (baseJsonInfo.isMember("preserve")) {
-        const Json::Value& preserveConfig = baseJsonInfo["preserve"];
-        if (preserveConfig.isObject()) {
-            preserveValue = ParseVersionConfigInternal(preserveConfig);
-            HIVIEW_LOGI("ivy1 preserve: %{public}d", preserveValue);
-        } else if (preserveConfig.isInt()) {
-            preserveValue = static_cast<uint8_t>(preserveConfig.asInt());
-            HIVIEW_LOGI("ivy2 preserve: %{public}d", preserveValue);
+    uint8_t controlTag = DO_NOTHING;
+
+    if (jsonValue.isBool()) {
+        // old format: true/false
+        bool value = jsonValue.asBool();
+        if (value) {
+            controlTag = BETA_COLLECT;
+            HIVIEW_LOGI("ivy1 controlTag: %{public}d", controlTag);
         }
-        return preserveValue;
-    }
-    return DEFAULT_PRESERVE_VAL;
-}
+    } else if (jsonValue.isObject()) {
+        // New format: Supports version-differentiated configurations
+        Json::Value preserve = jsonValue["preserve"];
+        Json::Value collect = jsonValue["collect"];
 
-uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& baseJsonInfo) const
-{
-    uint8_t collectValue = DEFAULT_COLLECT_VAL;
-    if (baseJsonInfo.isMember("collect")) {
-        const Json::Value& collectConfig = baseJsonInfo["collect"];
-        if (collectConfig.isObject()) {
-            collectValue = ParseVersionConfigInternal(collectConfig);
-            HIVIEW_LOGI("ivy3 collect: %{public}d", collectValue);
-        } else if (collectConfig.isInt()) {
-            collectValue = static_cast<uint8_t>(collectConfig.asInt());
-            HIVIEW_LOGI("ivy4 collect: %{public}d", collectValue);
+        // Check if preserve is a bool
+        if (preserve.isBool()) {
+            if (preserve.asBool()) {
+                controlTag |= BETA_PRESERVE;
+                HIVIEW_LOGI("ivy2 preserve is bool: true");
+            }
+        } else if (preserve.isObject()) {
+            Json::Value betaPreserve = preserve["beta"];
+            Json::Value commPreserve = preserve["commercial"];
+            if (betaPreserve.isBool() && betaPreserve.asBool()) {
+                controlTag |= BETA_PRESERVE;
+                HIVIEW_LOGI("ivy3 betaPreserve is true");
+            }
+            if (commPreserve.isBool() && commPreserve.asBool()) {
+                controlTag |= COMM_PRESERVE;
+                HIVIEW_LOGI("ivy4 commPreserve is true");
+            }
         }
-        return collectValue;
-    }
-    return DEFAULT_COLLECT_VAL;
-}
 
-uint8_t VersionConfigParser::ParseVersionConfigInternal(const Json::Value& versionConfig) const
-{
-    // Case 1: Directly a boolean value -> true:1, false:0
-    if (versionConfig.isBool()) {
-        bool val = versionConfig.asBool();
-        uint8_t result = val ? 1 : 0;
-        HIVIEW_LOGI("ParseVersionConfigInternal: bool_value=%{public}d, result=%{public}d", val, result);
-        return result;
-    }
-
-    // case 2: If it's an object, parse the beta/commercial fields.
-    if (versionConfig.isObject()) {
-        bool beta = versionConfig.isMember("beta") && versionConfig["beta"].isBool() && versionConfig["beta"].asBool();
-        bool commercial = versionConfig.isMember("commercial") && versionConfig["commercial"].isBool()
-            && versionConfig["commercial"].asBool();
-        if (beta && commercial) {
-            return static_cast<uint8_t>(VersionControl::PreserveCollectRule::ALL);
-        } else if (!beta && commercial) {
-            return static_cast<uint8_t>(VersionControl::PreserveCollectRule::COMMERCIAL_ONLY);
-        } else if (beta && !commercial) {
-            return static_cast<uint8_t>(VersionControl::PreserveCollectRule::BETA_ONLY);
+        // Check if collect is a bool
+        if (collect.isBool()) {
+            if (collect.asBool()) {
+                controlTag |= BETA_COLLECT;
+                HIVIEW_LOGI("ivy5 collect is bool: true");
+            }
+        } else if (collect.isObject()) {
+            Json::Value betaCollect = collect["beta"];
+            Json::Value commCollect = collect["commercial"];
+            if (betaCollect.isBool() && betaCollect.asBool()) {
+                controlTag |= BETA_COLLECT;
+                HIVIEW_LOGI("ivy6 betaCollect is true");
+            }
+            if (commCollect.isBool() && commCollect.asBool()) {
+                controlTag |= COMM_COLLECT;
+                HIVIEW_LOGI("ivy7 commCollect is true");
+            }
         }
-        return static_cast<uint8_t>(VersionControl::PreserveCollectRule::NONE);
     }
 
-    // case 3: Illegal configuration
-    HIVIEW_LOGW("ParseVersionConfig: unknown config format, use default 0");
-    return static_cast<uint8_t>(VersionControl::PreserveCollectRule::NONE);
+    return controlTag;
 }
+
+bool VersionConfigParser::ShouldCollect(uint8_t controlTag) const
+{
+    bool isBeta = Parameter::IsBetaVersion();
+    uint8_t checkTag = BETA_COLLECT;
+    if (isBeta) {
+        checkTag = controlTag & checkTag;           // check bit 0 (BETA_COLLECT)
+    } else {
+        checkTag = controlTag & (checkTag << 1);       // check bit 1 (checkTag << 1)
+    }
+    HIVIEW_LOGI("ivy8 checkTag: %{public}d", checkTag);
+    return checkTag != 0;  // It is necessary to determine whether the value is 0.
 }
+
+bool VersionConfigParser::ShouldPreserve(uint8_t controlTag) const
+{
+    bool isBeta = Parameter::IsBetaVersion();
+    uint8_t checkTag = BETA_PRESERVE;
+    if (isBeta) {
+        checkTag = controlTag & checkTag;           // check bit 2 (BETA_PRESERVE)
+    } else {
+        checkTag = controlTag & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
+    }
+    HIVIEW_LOGI("ivy9 checkTag: %{public}d", checkTag);
+    return checkTag != 0;  // It is necessary to determine whether the value is 0.
 }
+} // namespace HiviewDFX
+} // namespace OHOS

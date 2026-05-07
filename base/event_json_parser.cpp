@@ -39,11 +39,6 @@ constexpr char TYPE[] = "type";
 constexpr char PRIVACY[] = "privacy";
 constexpr char PRESERVE[] = "preserve";
 constexpr char COLLECT[] = "collect";
-inline constexpr uint8_t DO_NOTHING = 0b0000;
-inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
-inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
-inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
-inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
 constexpr char REPORT_INTERVAL[] = "reportInterval";
 const std::map<std::string, uint8_t> EVENT_TYPE_MAP = {
     {"FAULT", 0}, {"STATISTIC", 1}, {"SECURITY", 2}, {"BEHAVIOR", 3}
@@ -248,42 +243,9 @@ void EventJsonParser::InitEventInfoMapRef(const Json::Value& eventJson, JSON_VAL
     }
 }
 
-void EventJsonParser::ValidateAndSetControlTag(BaseInfo& baseInfo, const Json::Value& baseJsonInfo) const
-{
-    uint8_t controlTag = DO_NOTHING;
-
-    // Use versionConfigParser to parse the preserve and collect configurations.
-    bool isBetaCollect = (static_cast<uint8_t>(versionConfigParser_.ParseCollectConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::BETA_ONLY)) != 0;
-    bool isCommonCollect = (static_cast<uint8_t>(versionConfigParser_.ParseCollectConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::COMMERCIAL_ONLY)) != 0;
-    bool isBetaPreserve = (static_cast<uint8_t>(versionConfigParser_.ParsePreserveConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::BETA_ONLY)) != 0;
-    bool isCommonPreserve = (static_cast<uint8_t>(versionConfigParser_.ParsePreserveConfig(baseJsonInfo)) &
-        static_cast<uint8_t>(OHOS::HiviewDFX::VersionControl::PreserveCollectRule::COMMERCIAL_ONLY)) != 0;
-
-    if (isBetaCollect) {
-        controlTag |= BETA_COLLECT;
-    }
-    if (isCommonCollect) {
-        controlTag |= COMM_COLLECT;
-    }
-    if (isBetaPreserve) {
-        controlTag |= BETA_PRESERVE;
-    }
-    if (isCommonPreserve) {
-        controlTag |= COMM_PRESERVE;
-    }
-
-    // Store the controlTag in baseInfo
-    baseInfo.keyConfig.collect = controlTag;
-}
-
 BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) const
 {
     BaseInfo baseInfo;
-    HIVIEW_LOGI("ParseBaseConfig: ivy0 preserve: %{public}d, collect: %{public}d",
-        baseInfo.keyConfig.preserve, baseInfo.keyConfig.collect);
 
     if (!eventNameJson.isObject() || !eventNameJson[BASE].isObject()) {
         HIVIEW_LOGD("__BASE definition is invalid.");
@@ -321,29 +283,15 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
-    // Extract the validation logic to a separate function
-    ValidateAndSetControlTag(baseInfo, baseJsonInfo);
-
-    HIVIEW_LOGI("ivy5 preserve: %{public}d, collect: %{public}d", baseInfo.keyConfig.preserve,
+    // Use VersionConfigParser to parse collect and preserve.
+    HIVIEW_LOGI("ivy0 baseJsonInfo: %{public}s", baseJsonInfo.toStyledString().c_str());
+    uint8_t controlTag = versionConfigParser_.ParsePreserveCollectConfig(baseJsonInfo);
+    baseInfo.keyConfig.collect = versionConfigParser_.ShouldCollect(controlTag) ? 1 : 0;
+    baseInfo.keyConfig.preserve = versionConfigParser_.ShouldPreserve(controlTag) ? 1 : 0;
+    HIVIEW_LOGI("ivy10 preserve: %{public}d, collect: %{public}d", baseInfo.keyConfig.preserve,
         baseInfo.keyConfig.collect);
 
     return baseInfo;
-}
-
-bool ShouldCollect(const KeyConfig& keyConfig)
-{
-    uint8_t controlTag = keyConfig.collect;
-    bool isBetaVersion = Parameter::IsBetaVersion();
-    uint8_t checkTag = isBetaVersion ? BETA_COLLECT : COMM_COLLECT;
-    return (controlTag & checkTag) != 0;
-}
-
-bool ShouldPreserve(const KeyConfig& keyConfig)
-{
-    uint8_t controlTag = keyConfig.collect;
-    bool isBetaVersion = Parameter::IsBetaVersion();
-    uint8_t checkTag = isBetaVersion ? BETA_PRESERVE : COMM_PRESERVE;
-    return (controlTag & checkTag) != 0;
 }
 
 NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const

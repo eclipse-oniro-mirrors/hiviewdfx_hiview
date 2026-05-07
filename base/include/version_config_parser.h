@@ -12,37 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef HIVIEW_PLUGINS_EVENT_SERVICE_INCLUDE_VERSION_CONFIG_PARSER_H
-#define HIVIEW_PLUGINS_EVENT_SERVICE_INCLUDE_VERSION_CONFIG_PARSER_H
+// version_config_parser.h
+#ifndef HIVEVENT_VERSION_CONFIG_PARSER_H
+#define HIVEVENT_VERSION_CONFIG_PARSER_H
 
-#pragma once
-
-#include <json/json.h>
-#include <cstdint>
+#include <string>
+#include "json/json.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-namespace VersionControl {
-    enum class PreserveCollectRule : uint8_t {
-        NONE = 0,                // Neither collect nor Preserve
-        ALL = 1,                 // All collect and Preserve
-        COMMERCIAL_ONLY = 2,     // Commercial collection or Preserve
-        BETA_ONLY = 3            // Beta collection or Preserve
-    };
-}
 
 class VersionConfigParser {
 public:
-    uint8_t ParseVersionConfig(const Json::Value& versionConfig) const;
-    uint8_t ParsePreserveConfig(const Json::Value& baseJsonInfo) const;
-    uint8_t ParseCollectConfig(const Json::Value& baseJsonInfo) const;
-
-private:
-    static constexpr uint8_t DEFAULT_PRESERVE_VAL = 1;
-    static constexpr uint8_t DEFAULT_COLLECT_VAL = 0;
+    VersionConfigParser();
+    ~VersionConfigParser();
     
-    uint8_t ParseVersionConfigInternal(const Json::Value& versionConfig) const;
+    uint8_t ParsePreserveCollectConfig(const Json::Value& jsonValue) const;
+    bool ShouldCollect(uint8_t controlTag) const;
+    bool ShouldPreserve(uint8_t controlTag) const;
+
+    // Define constants for preserve and collect
+    static constexpr char PRESERVE[] = "preserve";
+    static constexpr char COLLECT[] = "collect";
 };
-}
-}
-#endif
+} // namespace HiviewDFX
+} // namespace OHOS
+#endif // HIVEVENT_VERSION_CONFIG_PARSER_H
