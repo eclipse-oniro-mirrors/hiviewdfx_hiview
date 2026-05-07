@@ -47,6 +47,14 @@ private:
     void ProcessCountDurationEvent(AppEventRecord& appEventRecord, std::map<int, uint64_t>& durations);
     void UpdateMultiWindowInfos(uint8_t multiNum, const std::string& multiWindow);
     int32_t GetWindowModeOfFocusedApp();
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    void ProcessDisplayModeChangedEvent(std::shared_ptr<SysEvent> event);
+    void CountCoordinationDuration(AppEventRecord& appEventRecord);
+    void UpdateDisplayMode(int32_t displayMode);
+    int GetCoordinationStartIndex(const std::string& bundleName);
+    void CalCulateCoordinationDuration(
+        uint64_t dayStartTime, std::vector<AppEventRecord> &records, std::map<int, uint64_t> &durations);
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 private:
     std::unique_ptr<FoldAppUsageDbHelper> dbHelper_;
@@ -55,6 +63,11 @@ private:
     int32_t foldStatus_ = 0;
     int32_t vhMode_ = 0;
     uint64_t timelyStart_ = 0;
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    int32_t displayMode_ = 0;
+    int32_t predisplayMode_ = 0;
+    std::string coordinationAppName_ = "";
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 };
 } // namespace HiviewDFX
 } // namespace OHOS
