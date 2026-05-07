@@ -48,7 +48,7 @@ constexpr char SQL_TYPE_TEXT[] = "TEXT";
 constexpr int DB_SUCC = 0;
 constexpr int DB_FAILED = -1;
 
-const std::vector<std::pair<std::string, std::string>> BASE_FIELDS= {
+const std::vector<std::pair<std::string, std::string>> BASE_FIELDS = {
     {FIELD_UID, SQL_TYPE_INTEGER_NOT_NULL},
     {FIELD_EVENT_ID, SQL_TYPE_INTEGER_NOT_NULL},
     {FIELD_TS, SQL_TYPE_INTEGER_NOT_NULL},
@@ -83,7 +83,7 @@ const std::vector<std::pair<std::string, std::string>> BASE_FIELDS= {
     {FIELD_G_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0}
 };
  
-const std::vector<std::string> BASE_DURATION_COLUMNS= {
+const std::vector<std::string> BASE_DURATION_COLUMNS = {
     FIELD_FOLD_PORTRAIT_DURATION, FIELD_FOLD_LANDSCAPE_DURATION, FIELD_EXPAND_PORTRAIT_DURATION,
     FIELD_EXPAND_LANDSCAPE_DURATION, FIELD_FOLD_PORTRAIT_SPLIT_DURATION, FIELD_FOLD_PORTRAIT_FLOATING_DURATION,
     FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, FIELD_FOLD_LANDSCAPE_SPLIT_DURATION,
