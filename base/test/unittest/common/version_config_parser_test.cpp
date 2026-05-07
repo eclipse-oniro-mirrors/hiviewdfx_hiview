@@ -19,15 +19,44 @@
 using namespace OHOS::HiviewDFX;
 
 namespace OHOS {
+inline constexpr uint8_t DO_NOTHING = 0b0000;
+inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
+inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
+inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
+inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
+
 namespace HiviewDFX {
+
+class ParameterMock {
+public:
+    static void SetParameter(const std::string& key, const std::string& value)
+    {
+        // Mock implementation for testing
+        if (key == "const.hiview.isBeta") {
+            isBeta_ = value == "true";
+        }
+    }
+
+    static bool IsBetaVersion()
+    {
+        return isBeta_;
+    }
+
+private:
+    static bool isBeta_;
+};
+
+bool ParameterMock::isBeta_ = false;
 
 class VersionConfigParserTest : public testing::Test {
 protected:
-    void SetUp() override {
+    void SetUp() override
+    {
         // You can initialize the resources required for testing here.
     }
 
-    void TearDown() override {
+    void TearDown() override
+    {
         // You can release the resources needed for testing here.
     }
 };
@@ -67,7 +96,7 @@ HWTEST_F(VersionConfigParserTest, ParsePreserveCollectConfigTest002, testing::ex
  */
 HWTEST_F(VersionConfigParserTest, ShouldCollectTest001, testing::ext::TestSize.Level0)
 {
-    Parameter::SetParameter("const.hiview.isBeta", "true");
+    ParameterMock::SetParameter("const.hiview.isBeta", "true");
     VersionConfigParser parser;
     ASSERT_TRUE(parser.ShouldCollect(BETA_COLLECT));
     ASSERT_FALSE(parser.ShouldCollect(COMM_COLLECT));
@@ -80,7 +109,7 @@ HWTEST_F(VersionConfigParserTest, ShouldCollectTest001, testing::ext::TestSize.L
  */
 HWTEST_F(VersionConfigParserTest, ShouldCollectTest002, testing::ext::TestSize.Level0)
 {
-    Parameter::SetParameter("const.hiview.isBeta", "false");
+    ParameterMock::SetParameter("const.hiview.isBeta", "false");
     VersionConfigParser parser;
     ASSERT_TRUE(parser.ShouldCollect(COMM_COLLECT));
     ASSERT_FALSE(parser.ShouldCollect(BETA_COLLECT));
@@ -93,7 +122,7 @@ HWTEST_F(VersionConfigParserTest, ShouldCollectTest002, testing::ext::TestSize.L
  */
 HWTEST_F(VersionConfigParserTest, ShouldPreserveTest001, testing::ext::TestSize.Level0)
 {
-    Parameter::SetParameter("const.hiview.isBeta", "true");
+    ParameterMock::SetParameter("const.hiview.isBeta", "true");
     VersionConfigParser parser;
     ASSERT_TRUE(parser.ShouldPreserve(BETA_PRESERVE));
     ASSERT_FALSE(parser.ShouldPreserve(COMM_PRESERVE));
@@ -106,7 +135,7 @@ HWTEST_F(VersionConfigParserTest, ShouldPreserveTest001, testing::ext::TestSize.
  */
 HWTEST_F(VersionConfigParserTest, ShouldPreserveTest002, testing::ext::TestSize.Level0)
 {
-    Parameter::SetParameter("const.hiview.isBeta", "false");
+    ParameterMock::SetParameter("const.hiview.isBeta", "false");
     VersionConfigParser parser;
     ASSERT_TRUE(parser.ShouldPreserve(COMM_PRESERVE));
     ASSERT_FALSE(parser.ShouldPreserve(BETA_PRESERVE));
