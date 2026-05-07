@@ -36,34 +36,38 @@ private:
     void ProcessForegroundEvent(std::shared_ptr<SysEvent> event);
     void ProcessBackgroundEvent(std::shared_ptr<SysEvent> event);
     void ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> event);
-    void ProcessDisplayModeChangedEvent(std::shared_ptr<SysEvent> event);
-    void CountCoordinationDuration(AppEventRecord& appEventRecord);
     void CountLifeCycleDuration(AppEventRecord& appEventRecord);
     void UpdateFoldStatus(int32_t status);
     void UpdateVhMode(int32_t mode);
-    void UpdateDisplayMode(int32_t displayMode);
     int GetStartIndex(const std::string& bundleName);
-    int GetCoordinationStartIndex(const std::string& bundleName);
     void CalCulateDuration(uint64_t dayStartTime, std::vector<AppEventRecord>& events,
         std::map<int, uint64_t>& durations);
-    void CalCulateCoordinationDuration(
-        uint64_t dayStartTime, std::vector<AppEventRecord> &records, std::map<int, uint64_t> &durations);
     bool CanCalcDuration(uint32_t preId, uint32_t id);
     void Accumulative(int foldStatus, uint64_t duration, std::map<int, uint64_t>& durations);
     void ProcessCountDurationEvent(AppEventRecord& appEventRecord, std::map<int, uint64_t>& durations);
     void UpdateMultiWindowInfos(uint8_t multiNum, const std::string& multiWindow);
     int32_t GetWindowModeOfFocusedApp();
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    void ProcessDisplayModeChangedEvent(std::shared_ptr<SysEvent> event);
+    void CountCoordinationDuration(AppEventRecord& appEventRecord);
+    void UpdateDisplayMode(int32_t displayMode);
+    int GetCoordinationStartIndex(const std::string& bundleName);
+    void CalCulateCoordinationDuration(
+        uint64_t dayStartTime, std::vector<AppEventRecord> &records, std::map<int, uint64_t> &durations);
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 private:
     std::unique_ptr<FoldAppUsageDbHelper> dbHelper_;
     std::pair<std::string, bool> focusedAppPair_;
     std::unordered_map<std::string, int32_t> multiWindowInfos_;
-    std::string coordinationAppName_ = "";
     int32_t foldStatus_ = 0;
     int32_t vhMode_ = 0;
+    uint64_t timelyStart_ = 0;
+#if FOLD_PC_COUNT_DURATION_ENABLE
     int32_t displayMode_ = 0;
     int32_t predisplayMode_ = 0;
-    uint64_t timelyStart_ = 0;
+    std::string coordinationAppName_ = "";
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 };
 } // namespace HiviewDFX
 } // namespace OHOS

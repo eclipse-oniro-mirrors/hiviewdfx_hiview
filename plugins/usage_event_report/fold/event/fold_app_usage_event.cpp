@@ -66,6 +66,7 @@ void FoldAppUsageEvent::Report()
 #if FOLD_PC_COUNT_DURATION_ENABLE
     HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, this->eventName_, this->eventType_,
         KEY_OF_PACKAGE, this->paramMap_[KEY_OF_PACKAGE].GetString(),
+        KEY_OF_VERSION, this->paramMap_[KEY_OF_VERSION].GetString(),
         KEY_OF_FOLD_VER_USAGE, this->paramMap_[KEY_OF_FOLD_VER_USAGE].GetUint32(),
         KEY_OF_EXPD_VER_USAGE, this->paramMap_[KEY_OF_EXPD_VER_USAGE].GetUint32(),
         KEY_OF_EXPD_HOR_USAGE, this->paramMap_[KEY_OF_EXPD_HOR_USAGE].GetUint32(),
@@ -76,8 +77,7 @@ void FoldAppUsageEvent::Report()
         KEY_OF_FOLD_DISPLAY_OUTER_USAGE, this->paramMap_[KEY_OF_FOLD_HOR_USAGE].GetUint32(),
         KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE, this->paramMap_[KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE].GetUint32()
     );
-    return;
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
+#else
     HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, this->eventName_, this->eventType_,
         KEY_OF_PACKAGE, this->paramMap_[KEY_OF_PACKAGE].GetString(),
         KEY_OF_VERSION, this->paramMap_[KEY_OF_VERSION].GetString(),
@@ -108,6 +108,7 @@ void FoldAppUsageEvent::Report()
         KEY_OF_G_HOR_SPLIT_USAGE, this->paramMap_[KEY_OF_G_HOR_SPLIT_USAGE].GetUint32(),
         KEY_OF_G_HOR_FLOATING_USAGE, this->paramMap_[KEY_OF_G_HOR_FLOATING_USAGE].GetUint32(),
         KEY_OF_G_HOR_MIDSCENE_USAGE, this->paramMap_[KEY_OF_G_HOR_MIDSCENE_USAGE].GetUint32());
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 }
 } // namespace HiviewDFX
 } // namespace OHOS

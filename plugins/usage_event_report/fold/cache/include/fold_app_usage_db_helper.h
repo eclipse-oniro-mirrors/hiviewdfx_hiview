@@ -51,9 +51,11 @@ struct FoldAppUsageInfo {
     uint32_t gHorSplit = 0; // usage duration when screen in g-horizon status and split-screen window
     uint32_t gHorFloating = 0; // usage duration when screen in g-horizon status and floating window
     uint32_t gHorMidscene = 0; // usage duration when screen in g-horizon status and midscene window
+#if FOLD_PC_COUNT_DURATION_ENABLE
     uint32_t foldKbVer = 0;
     uint32_t foldDisplayOuter = 0;
     uint32_t foldDisplayCoordination = 0;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     uint32_t startNum = 1;
     std::string date;
     uint32_t usage = 0;
@@ -71,8 +73,10 @@ struct FoldAppUsageRawEvent {
     int64_t happenTime = 0;
     int screenStatusBefore = 0;
     int screenStatusAfter = 0;
+#if FOLD_PC_COUNT_DURATION_ENABLE
     int preDisplayMode = 0;
     int displayMode = 0;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 };
 
 struct AppEventRecord {
@@ -81,8 +85,10 @@ struct AppEventRecord {
     std::string bundleName = "";
     int preFoldStatus = 0;
     int foldStatus = 0;
+#if FOLD_PC_COUNT_DURATION_ENABLE
     int preDisplayMode = 0;
     int displayMode = 0;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     std::string versionName = "";
     int64_t happenTime = 0;
 };
@@ -102,8 +108,10 @@ public:
     int QueryRawEventIndex(const std::string& bundleName, int rawId);
     void QueryAppEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
         std::vector<AppEventRecord>& records);
+#if FOLD_PC_COUNT_DURATION_ENABLE
     void QueryDisplayModeEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
         std::vector<AppEventRecord>& records);
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     bool IsReadEventSucc(std::shared_ptr<NativeRdb::AbsSharedResultSet> rs, FoldAppUsageRawEvent& evt);
 
 private:

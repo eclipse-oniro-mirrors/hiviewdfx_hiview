@@ -26,9 +26,11 @@ constexpr int SYSTEM_WINDOW_BASE = 2000;
 
 int32_t GetFoldStatus();
 int32_t GetVhMode();
-int32_t GetFoldDisplayMode();
 void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
     std::unordered_map<std::string, int32_t>& multiWindowInfos);
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    int32_t GetFoldDisplayMode();
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 } // namespace FoldCommonUtils
 } // namespace HiviewDFX
 } // namespace OHOS

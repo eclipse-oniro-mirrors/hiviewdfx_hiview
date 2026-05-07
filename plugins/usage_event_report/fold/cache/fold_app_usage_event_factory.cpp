@@ -36,9 +36,6 @@ constexpr char DATE_FORMAT[] = "%Y-%m-%d";
 
 std::string GetAppVersion(const std::string& bundleName)
 {
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    return ""; // GetBundleInfo will crash
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
     AppExecFwk::BundleInfo info;
     AppExecFwk::BundleMgrClient client;
     if (!client.GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_INFO_EXCLUDE_EXT,

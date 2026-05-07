@@ -44,10 +44,12 @@ int32_t GetFoldStatus()
     return static_cast<int32_t>(Rosen::DisplayManagerLite::GetInstance().GetFoldStatus());
 }
 
+#if FOLD_PC_COUNT_DURATION_ENABLE
 int32_t GetFoldDisplayMode()
 {
     return static_cast<int32_t>(Rosen::DisplayManagerLite::GetInstance().GetFoldDisplayMode());
 }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 int32_t GetVhMode()
 {

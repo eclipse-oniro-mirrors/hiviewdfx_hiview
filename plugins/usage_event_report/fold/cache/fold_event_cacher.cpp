@@ -33,7 +33,6 @@ constexpr uint32_t MILLISEC_TO_MICROSEC = 1000;
 constexpr int8_t EXPAND = 1;
 constexpr int8_t FOLD = 2;
 constexpr int8_t G = 3;
-constexpr int8_t MAGNETIC = 4;
 constexpr int8_t LANDSCAPE = 1;
 constexpr int8_t PORTRAIT = 2;
 constexpr int8_t FULL = 0;
@@ -41,11 +40,14 @@ constexpr int8_t SPLIT = 1;
 constexpr int8_t FLOATING = 2;
 constexpr int8_t MIDSCENE = 3;
 constexpr int8_t THE_TENS_DIGIT = 10;
+#if FOLD_PC_COUNT_DURATION_ENABLE
+constexpr int8_t MAGNETIC = 4;
 constexpr int8_t FOLD_DISPLAY_MODE_UNKNOWN = 0;
 constexpr int8_t FOLD_DISPLAY_MODE_COORDINATION = 4;
 constexpr int8_t FOLD_PC_INVALID_MODE_SIX = 6;
 constexpr int8_t FOLD_PC_INVALID_MODE_SEVEN = 7;
 constexpr int8_t FOLD_PC_INVALID_MODE_EIGHT = 8;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 int8_t ConvertFoldStatus(int32_t foldStatus)
 {
@@ -150,6 +152,7 @@ void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
     }
 }
 
+#if FOLD_PC_COUNT_DURATION_ENABLE
 void FoldEventCacher::ProcessDisplayModeChangedEvent(std::shared_ptr<SysEvent> event)
 {
     int displayMode =
@@ -185,7 +188,7 @@ void FoldEventCacher::CountCoordinationDuration(AppEventRecord& appEventRecord)
     std::vector<AppEventRecord> records;
     dbHelper_->QueryDisplayModeEventRecords(startIndex, dayStartTime, coordinationAppName_, records);
     std::map<int, uint64_t> durations;
-    CalCulateCoordinationDuration(dayStartTime, records, durations);
+    CalculateCoordinationDuration(dayStartTime, records, durations);
     AppEventRecord newRecord;
     newRecord.rawid = FoldEventId::EVENT_COUNT_COORDINATION_DURATION;
     newRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
@@ -196,7 +199,7 @@ void FoldEventCacher::CountCoordinationDuration(AppEventRecord& appEventRecord)
     dbHelper_->AddAppEvent(newRecord, durations);
 }
  
-void FoldEventCacher::CalCulateCoordinationDuration(uint64_t dayStartTime,
+void FoldEventCacher::CalculateCoordinationDuration(uint64_t dayStartTime,
     std::vector<AppEventRecord>& records, std::map<int, uint64_t>& durations)
 {
     if (records.empty()) {
@@ -219,6 +222,7 @@ void FoldEventCacher::CalCulateCoordinationDuration(uint64_t dayStartTime,
         preIt = it;
     }
 }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 void FoldEventCacher::ProcessFocusWindowEvent(std::shared_ptr<SysEvent> event)
 {
@@ -388,10 +392,17 @@ int FoldEventCacher::GetStartIndex(const std::string& bundleName)
     return dbHelper_->QueryRawEventIndex(bundleName, FoldEventId::EVENT_APP_START);
 }
 
+#if FOLD_PC_COUNT_DURATION_ENABLE
 int FoldEventCacher::GetCoordinationStartIndex(const std::string& bundleName)
 {
     return dbHelper_->QueryRawEventIndex(bundleName, FoldEventId::EVENT_ENTER_COORDINATION_MODE);
 }
+
+void FoldEventCacher::UpdateDisplayMode(int32_t displayMode)
+{
+    displayMode_ = displayMode;
+}
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 void FoldEventCacher::UpdateFoldStatus(int32_t status)
 {
@@ -401,11 +412,6 @@ void FoldEventCacher::UpdateFoldStatus(int32_t status)
 void FoldEventCacher::UpdateVhMode(int32_t mode)
 {
     vhMode_ = mode;
-}
-
-void FoldEventCacher::UpdateDisplayMode(int32_t displayMode)
-{
-    displayMode_ = displayMode;
 }
 
 void FoldEventCacher::UpdateMultiWindowInfos(uint8_t multiNum, const std::string& multiWindow)

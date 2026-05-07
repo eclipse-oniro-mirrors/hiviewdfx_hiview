@@ -35,7 +35,9 @@ constexpr char LOG_DB_TABLE_NAME[] = "app_events";
 constexpr char LOG_DB_APP_EVENTS_TMP[] = "app_events_tmp";
 constexpr int DB_VERSION_1 = 1;
 constexpr int DB_VERSION_2 = 2;
+#if FOLD_PC_COUNT_DURATION_ENABLE
 constexpr int DB_VERSION_3 = 3;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 constexpr char SQL_TYPE_INTEGER_NOT_NULL[] = "INTEGER NOT NULL";
 constexpr char SQL_TYPE_INTEGER_DEFAULT_0[] = "INTEGER DEFAULT 0";
@@ -46,7 +48,7 @@ constexpr char SQL_TYPE_TEXT[] = "TEXT";
 constexpr int DB_SUCC = 0;
 constexpr int DB_FAILED = -1;
 
-const std::vector<std::pair<std::string, std::string>> baseFields_ = {
+const std::vector<std::pair<std::string, std::string>> BASE_FIELDS= {
     {FIELD_UID, SQL_TYPE_INTEGER_NOT_NULL},
     {FIELD_EVENT_ID, SQL_TYPE_INTEGER_NOT_NULL},
     {FIELD_TS, SQL_TYPE_INTEGER_NOT_NULL},
@@ -81,7 +83,7 @@ const std::vector<std::pair<std::string, std::string>> baseFields_ = {
     {FIELD_G_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0}
 };
  
-const std::vector<std::string> baseDurationColumns_ = {
+const std::vector<std::string> BASE_DURATION_COLUMNS= {
     FIELD_FOLD_PORTRAIT_DURATION, FIELD_FOLD_LANDSCAPE_DURATION, FIELD_EXPAND_PORTRAIT_DURATION,
     FIELD_EXPAND_LANDSCAPE_DURATION, FIELD_FOLD_PORTRAIT_SPLIT_DURATION, FIELD_FOLD_PORTRAIT_FLOATING_DURATION,
     FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, FIELD_FOLD_LANDSCAPE_SPLIT_DURATION,
@@ -92,6 +94,9 @@ const std::vector<std::string> baseDurationColumns_ = {
     FIELD_G_PORTRAIT_FULL_DURATION, FIELD_G_PORTRAIT_SPLIT_DURATION, FIELD_G_PORTRAIT_FLOATING_DURATION,
     FIELD_G_PORTRAIT_MIDSCENE_DURATION, FIELD_G_LANDSCAPE_FULL_DURATION, FIELD_G_LANDSCAPE_SPLIT_DURATION,
     FIELD_G_LANDSCAPE_FLOATING_DURATION, FIELD_G_LANDSCAPE_MIDSCENE_DURATION,
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    FIELD_FOLD_KB_PORTRAIT_DURATION, FIELD_FOLD_DISPLAY_COORDINATION_DURATION,
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 };
 
 void UpdateScreenStatInfo(FoldAppUsageInfo &info, uint32_t time, int screenStatus)
@@ -121,9 +126,11 @@ void UpdateScreenStatInfo(FoldAppUsageInfo &info, uint32_t time, int screenStatu
         {G_LANDSCAPE_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.gHorSplit += time;} },
         {G_LANDSCAPE_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.gHorFloating += time;} },
         {G_LANDSCAPE_MIDSCENE_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.gHorMidscene += time;} },
+#if FOLD_PC_COUNT_DURATION_ENABLE
         {FOLD_KB_PORTRAIT_STATUS, [](FoldAppUsageInfo& info, uint32_t time) { info.foldKbVer += time; }},
         {FOLD_DISPLAY_MODE_COORDINATION_STATUS,
             [](FoldAppUsageInfo& info, uint32_t time) { info.foldDisplayCoordination += time; }},
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     };
     if (updateHandlers.find(screenStatus) != updateHandlers.end()) {
         updateHandlers[screenStatus](info, time);
@@ -225,12 +232,13 @@ std::string GenerateRenameTableSql(const std::string& oldTable, const std::strin
 
 std::string GenerateCreateAppEventsSql()
 {
-    return SqlUtil::GenerateCreateSql(LOG_DB_TABLE_NAME, baseFields_);
+    return SqlUtil::GenerateCreateSql(LOG_DB_TABLE_NAME, BASE_FIELDS);
 }
 
+#if FOLD_PC_COUNT_DURATION_ENABLE
 std::string GenerateCreateV3AppEventsSql()
 {
-    std::vector<std::pair<std::string, std::string>> tmpFields = baseFields_;
+    std::vector<std::pair<std::string, std::string>> tmpFields = BASE_FIELDS;
     tmpFields.emplace_back(std::make_pair(FIELD_DISPLAY_MODE, SQL_TYPE_INTEGER));
     tmpFields.emplace_back(std::make_pair(FIELD_PRE_DISPLAY_MODE, SQL_TYPE_INTEGER));
     tmpFields.emplace_back(std::make_pair(FIELD_FOLD_KB_PORTRAIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0));
@@ -270,6 +278,28 @@ std::string GenerateV2ToV3InsertSql(const std::string& newTable, const std::stri
     insertSql.append(") SELECT ").append(values).append(" FROM ").append(oldTable);
     return insertSql;
 }
+
+int UpgradeDbFromV2ToV3(NativeRdb::RdbStore& rdbStore)
+{
+    std::vector<std::string> sqls = {
+        GenerateRenameTableSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
+        GenerateCreateV3AppEventsSql(), GenerateV2ToV3InsertSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
+        SqlUtil::GenerateDropSql(LOG_DB_APP_EVENTS_TMP)
+    };
+    if (int ret = rdbStore.BeginTransaction(); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to begin transaction, ret=%{public}d", ret);
+        return ret;
+    }
+    for (const auto& sql : sqls) {
+        if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to upgrade db version from 2 to 3, ret=%{public}d", ret);
+            rdbStore.RollBack();
+            return ret;
+        }
+    }
+    return rdbStore.Commit();
+}
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 std::string GenerateInsertSql(const std::string& newTable, const std::string& oldTable)
 {
@@ -322,27 +352,6 @@ int UpgradeDbFromV1ToV2(NativeRdb::RdbStore& rdbStore)
     for (const auto& sql : sqls) {
         if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
             HIVIEW_LOGE("failed to upgrade db version from 1 to 2, ret=%{public}d", ret);
-            rdbStore.RollBack();
-            return ret;
-        }
-    }
-    return rdbStore.Commit();
-}
-
-int UpgradeDbFromV2ToV3(NativeRdb::RdbStore& rdbStore)
-{
-    std::vector<std::string> sqls = {
-        GenerateRenameTableSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
-        GenerateCreateV3AppEventsSql(), GenerateV2ToV3InsertSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
-        SqlUtil::GenerateDropSql(LOG_DB_APP_EVENTS_TMP)
-    };
-    if (int ret = rdbStore.BeginTransaction(); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to begin transaction, ret=%{public}d", ret);
-        return ret;
-    }
-    for (const auto& sql : sqls) {
-        if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to upgrade db version from 2 to 3, ret=%{public}d", ret);
             rdbStore.RollBack();
             return ret;
         }
@@ -465,18 +474,24 @@ FoldAppUsageInfo& FoldAppUsageInfo::operator+=(const FoldAppUsageInfo& info)
     gHorFloating += info.gHorFloating;
     gHorMidscene += info.gHorMidscene;
     startNum += info.startNum;
+#if FOLD_PC_COUNT_DURATION_ENABLE
     foldKbVer += info.foldKbVer;
     foldDisplayOuter += info.foldDisplayOuter;
     foldDisplayCoordination += info.foldDisplayCoordination;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     return *this;
 }
 
 uint32_t FoldAppUsageInfo::GetAppUsage() const
 {
-    return foldVer + foldHor + expdVer + expdHor + gVer + gHor + foldVerSplit + foldVerFloating + foldVerMidscene +
+    auto tmp = foldVer + foldHor + expdVer + expdHor + gVer + gHor + foldVerSplit + foldVerFloating + foldVerMidscene +
         foldHorSplit + foldHorFloating + foldHorMidscene + expdVerSplit + expdVerFloating + expdVerMidscene +
         expdHorSplit + expdHorFloating + expdHorMidscene + gVerSplit + gVerFloating + gVerMidscene +
-        gHorSplit + gHorFloating + gHorMidscene + foldKbVer;
+        gHorSplit + gHorFloating + gHorMidscene;
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    tmp += foldKbVer;
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
+    return tmp;
 }
 
 class FoldDbStoreCallback : public NativeRdb::RdbOpenCallback {
@@ -620,6 +635,7 @@ int FoldAppUsageDbHelper::QueryRawEventIndex(const std::string& bundleName, int 
     return index;
 }
 
+#if FOLD_PC_COUNT_DURATION_ENABLE
 void FoldAppUsageDbHelper::QueryDisplayModeEventRecords(
     int startIndex, int64_t dayStartTime, const std::string &bundleName, std::vector<AppEventRecord> &records)
 {
@@ -656,6 +672,7 @@ void FoldAppUsageDbHelper::QueryDisplayModeEventRecords(
     }
     resultSet->Close();
 }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 void FoldAppUsageDbHelper::QueryAppEventRecords(int startIndex, int64_t dayStartTime, const std::string& bundleName,
     std::vector<AppEventRecord>& records)
@@ -689,11 +706,13 @@ void FoldAppUsageDbHelper::QueryAppEventRecords(int startIndex, int64_t dayStart
         }
         AppEventRecord record;
         ParseEntity(entity, record);
+#if FOLD_PC_COUNT_DURATION_ENABLE
         if (record.rawid == FoldEventId::EVENT_ENTER_COORDINATION_MODE ||
             record.rawid == FoldEventId::EVENT_EXIT_COORDINATION_MODE ||
             record.rawid == FoldEventId::EVENT_COUNT_COORDINATION_DURATION) {
             continue;
         }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
         if (record.rawid == FoldEventId::EVENT_COUNT_DURATION) {
             records.clear();
             continue;
@@ -741,14 +760,9 @@ void FoldAppUsageDbHelper::QueryStatisticEventsInPeriod(uint64_t startTime, uint
         HIVIEW_LOGE("db is nullptr");
         return;
     }
-    auto tmpDurationColumn = baseDurationColumns_;
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    tmpDurationColumn.push_back(FIELD_FOLD_KB_PORTRAIT_DURATION);
-    tmpDurationColumn.push_back(FIELD_FOLD_DISPLAY_COORDINATION_DURATION);
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
     std::string sqlCmd = "SELECT ";
     sqlCmd.append(FIELD_BUNDLE_NAME).append(", ").append(FIELD_VERSION_NAME);
-    for (const auto& column : tmpDurationColumn) {
+    for (const auto& column : BASE_DURATION_COLUMNS) {
         sqlCmd.append(", SUM(").append(column).append(") AS ").append(column);
     }
     sqlCmd.append(", COUNT(*) AS start_num FROM ").append(LOG_DB_TABLE_NAME);
