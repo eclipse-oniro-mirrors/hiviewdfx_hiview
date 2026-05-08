@@ -26,6 +26,7 @@
 #include "smart_parser.h"
 #include "watch_point.h"
 #include "faultlogger_client_msg.h"
+#include "db_helper.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -66,8 +67,10 @@ private:
                          const std::string& type, const std::string& processName) const;
     void FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& isScbPro) const;
     void InitHalfFreezeExtFile(WatchPoint node, const std::string name, std::string& halfFreezeExtFile) const;
+    bool CheckNoteInfo(const WatchPoint& watchPoint) const;
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
+    std::unique_ptr<DBHelper> dBHelper_ = nullptr;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

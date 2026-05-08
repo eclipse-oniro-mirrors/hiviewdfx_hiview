@@ -132,6 +132,7 @@ std::vector<SysEvent> DBHelper::SelectRecords(unsigned long long start, unsigned
             records.emplace_back(*record);
         }
     }
+    HIVIEW_LOGI("select records, size =%{public}zu.", records.size());
     return records;
 }
 } // namespace HiviewDFX
