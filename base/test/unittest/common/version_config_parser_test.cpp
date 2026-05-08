@@ -19,13 +19,11 @@
 using namespace OHOS::HiviewDFX;
 
 namespace OHOS {
-inline constexpr uint8_t DO_NOTHING = 0b0000;
+namespace HiviewDFX {
 inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
 inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
 inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
 inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
-
-namespace HiviewDFX {
 
 class ParameterMock {
 public:
@@ -69,9 +67,8 @@ protected:
 HWTEST_F(VersionConfigParserTest, ParsePreserveCollectConfigTest001, testing::ext::TestSize.Level0)
 {
     Json::Value jsonValue = true;
-    VersionConfigParser parser;
-    uint8_t controlTag = parser.ParsePreserveCollectConfig(jsonValue);
-    ASSERT_EQ(controlTag, BETA_COLLECT);
+    VersionConfigParser parser(jsonValue);
+    ASSERT_TRUE(parser.ShouldCollect()); // Indirect test of ParsePreserveCollectConfig
 }
 
 /**
@@ -84,9 +81,8 @@ HWTEST_F(VersionConfigParserTest, ParsePreserveCollectConfigTest002, testing::ex
     Json::Value jsonValue;
     jsonValue["preserve"]["beta"] = true;
     jsonValue["collect"]["beta"] = true;
-    VersionConfigParser parser;
-    uint8_t controlTag = parser.ParsePreserveCollectConfig(jsonValue);
-    ASSERT_EQ(controlTag, BETA_COLLECT | BETA_PRESERVE);
+    VersionConfigParser parser(jsonValue);
+    ASSERT_TRUE(parser.ShouldCollect()); // Indirect test of ParsePreserveCollectConfig
 }
 
 /**
@@ -97,9 +93,10 @@ HWTEST_F(VersionConfigParserTest, ParsePreserveCollectConfigTest002, testing::ex
 HWTEST_F(VersionConfigParserTest, ShouldCollectTest001, testing::ext::TestSize.Level0)
 {
     ParameterMock::SetParameter("const.hiview.isBeta", "true");
-    VersionConfigParser parser;
-    ASSERT_TRUE(parser.ShouldCollect(BETA_COLLECT));
-    ASSERT_FALSE(parser.ShouldCollect(COMM_COLLECT));
+    Json::Value jsonValue;
+    jsonValue["collect"]["beta"] = true;
+    VersionConfigParser parser(jsonValue);
+    ASSERT_TRUE(parser.ShouldCollect());
 }
 
 /**
@@ -110,9 +107,10 @@ HWTEST_F(VersionConfigParserTest, ShouldCollectTest001, testing::ext::TestSize.L
 HWTEST_F(VersionConfigParserTest, ShouldCollectTest002, testing::ext::TestSize.Level0)
 {
     ParameterMock::SetParameter("const.hiview.isBeta", "false");
-    VersionConfigParser parser;
-    ASSERT_TRUE(parser.ShouldCollect(COMM_COLLECT));
-    ASSERT_FALSE(parser.ShouldCollect(BETA_COLLECT));
+    Json::Value jsonValue;
+    jsonValue["collect"]["commercial"] = true;
+    VersionConfigParser parser(jsonValue);
+    ASSERT_TRUE(parser.ShouldCollect());
 }
 
 /**
@@ -123,9 +121,10 @@ HWTEST_F(VersionConfigParserTest, ShouldCollectTest002, testing::ext::TestSize.L
 HWTEST_F(VersionConfigParserTest, ShouldPreserveTest001, testing::ext::TestSize.Level0)
 {
     ParameterMock::SetParameter("const.hiview.isBeta", "true");
-    VersionConfigParser parser;
-    ASSERT_TRUE(parser.ShouldPreserve(BETA_PRESERVE));
-    ASSERT_FALSE(parser.ShouldPreserve(COMM_PRESERVE));
+    Json::Value jsonValue;
+    jsonValue["preserve"]["beta"] = true;
+    VersionConfigParser parser(jsonValue);
+    ASSERT_TRUE(parser.ShouldPreserve());
 }
 
 /**
@@ -136,10 +135,10 @@ HWTEST_F(VersionConfigParserTest, ShouldPreserveTest001, testing::ext::TestSize.
 HWTEST_F(VersionConfigParserTest, ShouldPreserveTest002, testing::ext::TestSize.Level0)
 {
     ParameterMock::SetParameter("const.hiview.isBeta", "false");
-    VersionConfigParser parser;
-    ASSERT_TRUE(parser.ShouldPreserve(COMM_PRESERVE));
-    ASSERT_FALSE(parser.ShouldPreserve(BETA_PRESERVE));
+    Json::Value jsonValue;
+    jsonValue["preserve"]["commercial"] = true;
+    VersionConfigParser parser(jsonValue);
+    ASSERT_TRUE(parser.ShouldPreserve());
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS

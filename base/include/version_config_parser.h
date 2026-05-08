@@ -21,19 +21,19 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+inline constexpr uint8_t DO_NOTHING = 0b0000;
 
 class VersionConfigParser {
 public:
-    VersionConfigParser();
+    VersionConfigParser(const Json::Value& jsonValue);
     ~VersionConfigParser();
     
-    uint8_t ParsePreserveCollectConfig(const Json::Value& jsonValue) const;
-    bool ShouldCollect(uint8_t controlTag) const;
-    bool ShouldPreserve(uint8_t controlTag) const;
+    bool ShouldCollect() const;
+    bool ShouldPreserve() const;
 
-    // Define constants for preserve and collect
-    static constexpr char PRESERVE[] = "preserve";
-    static constexpr char COLLECT[] = "collect";
+private:
+    uint8_t controlTag_ = DO_NOTHING;
+    uint8_t ParsePreserveCollectConfig(const Json::Value& jsonValue);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

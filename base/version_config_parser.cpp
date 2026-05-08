@@ -14,29 +14,33 @@
  */
 
 #include "version_config_parser.h"
-#include "event_json_parser.h"
 #include "hiview_logger.h"
-#include "hiview_config_util.h"
 #include "parameter_ex.h"
 #include "json/json.h"
 #include <string>
 
 namespace OHOS {
-inline constexpr uint8_t DO_NOTHING = 0b0000;
+namespace HiviewDFX {
+
+DEFINE_LOG_TAG("VersionConfigParser");
+
 inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
 inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
 inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
 inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
 
-namespace HiviewDFX {
+// Define constants for preserve and collect
+static constexpr char PRESERVE[] = "preserve";
+static constexpr char COLLECT[] = "collect";
 
-DEFINE_LOG_TAG("VersionConfigParser");
-
-VersionConfigParser::VersionConfigParser() {}
+VersionConfigParser::VersionConfigParser(const Json::Value& jsonValue)
+{
+    controlTag_ = ParsePreserveCollectConfig(jsonValue);
+}
 
 VersionConfigParser::~VersionConfigParser() {}
 
-uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue) const
+uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
 
@@ -94,27 +98,27 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
     return controlTag;
 }
 
-bool VersionConfigParser::ShouldCollect(uint8_t controlTag) const
+bool VersionConfigParser::ShouldCollect() const
 {
     bool isBeta = Parameter::IsBetaVersion();
     uint8_t checkTag = BETA_COLLECT;
     if (isBeta) {
-        checkTag = controlTag & checkTag;           // check bit 0 (BETA_COLLECT)
+        checkTag = controlTag_ & checkTag;           // check bit 0 (BETA_COLLECT)
     } else {
-        checkTag = controlTag & (checkTag << 1);       // check bit 1 (checkTag << 1)
+        checkTag = controlTag_ & (checkTag << 1);       // check bit 1 (checkTag << 1)
     }
     HIVIEW_LOGI("ivy8 checkTag: %{public}d", checkTag);
     return checkTag != 0;  // It is necessary to determine whether the value is 0.
 }
 
-bool VersionConfigParser::ShouldPreserve(uint8_t controlTag) const
+bool VersionConfigParser::ShouldPreserve() const
 {
     bool isBeta = Parameter::IsBetaVersion();
     uint8_t checkTag = BETA_PRESERVE;
     if (isBeta) {
-        checkTag = controlTag & checkTag;           // check bit 2 (BETA_PRESERVE)
+        checkTag = controlTag_ & checkTag;           // check bit 2 (BETA_PRESERVE)
     } else {
-        checkTag = controlTag & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
+        checkTag = controlTag_ & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
     }
     HIVIEW_LOGI("ivy9 checkTag: %{public}d", checkTag);
     return checkTag != 0;  // It is necessary to determine whether the value is 0.
