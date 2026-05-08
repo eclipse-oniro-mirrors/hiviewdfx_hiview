@@ -80,7 +80,7 @@ sptr<Ashmem> AshMemUtils::WriteBulkData(MessageParcel& parcel, const std::vector
     uint32_t offset = 0;
     for (uint32_t i = 0; i < allData.size(); i++) {
         auto translated = allData[i].c_str();
-        if (!ashmem->WriteToAshmem(translated, strlen(translated), offset)) {
+        if (!ashmem->WriteToAshmem(translated, allSize[i], offset)) {
             HIVIEW_LOGE("writing ashmem failed.");
             CloseAshmem(ashmem);
             return nullptr;
