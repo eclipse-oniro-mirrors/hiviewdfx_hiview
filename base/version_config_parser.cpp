@@ -48,44 +48,56 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
         Json::Value preserve = jsonValue["preserve"];
         Json::Value collect = jsonValue["collect"];
 
-        // // New format: Supports version-differentiated configurations
-        if (preserve.isBool()) {
-            if (preserve.asBool()) {
-                controlTag |= BETA_PRESERVE | COMM_PRESERVE;
-            }
-        } else if (preserve.isUInt()) {
-            uint8_t betaPreserve = static_cast<uint8_t>(preserve["beta"].asUInt());
-            uint8_t commPreserve = static_cast<uint8_t>(preserve["commercial"].asUInt());
+        controlTag |= ParsePreserveConfig(preserve);
+        controlTag |= ParseCollectConfig(collect);
+    }
 
-            if (betaPreserve == 0 || commPreserve == 0) {
-                controlTag |= DO_NOTHING;
-            } else if (betaPreserve == 1 || commPreserve == 1) {
-                controlTag |= BETA_PRESERVE | COMM_PRESERVE;
-            } else if (betaPreserve == COMMERCIAL_ONLY || commPreserve == COMMERCIAL_ONLY) {
-                controlTag |= COMM_PRESERVE;
-            } else if (betaPreserve == BETA_ONLY || commPreserve == BETA_ONLY) {
-                controlTag |= BETA_PRESERVE;
-            }
+    return controlTag;
+}
+
+uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& preserve)
+{
+    uint8_t controlTag = DO_NOTHING;
+
+    if (preserve.isBool()) {
+        if (preserve.asBool()) {
+            controlTag |= BETA_PRESERVE | COMM_PRESERVE;
         }
+    } else if (preserve.isUInt()) {
+        uint8_t betaPreserve = static_cast<uint8_t>(preserve["beta"].asUInt());
+        uint8_t commPreserve = static_cast<uint8_t>(preserve["commercial"].asUInt());
+        if (betaPreserve == 0 || commPreserve == 0) {
+            controlTag |= DO_NOTHING;
+        } else if (betaPreserve == 1 || commPreserve == 1) {
+            controlTag |= BETA_PRESERVE | COMM_PRESERVE;
+        } else if (betaPreserve == COMMERCIAL_ONLY || commPreserve == COMMERCIAL_ONLY) {
+            controlTag |= COMM_PRESERVE;
+        } else if (betaPreserve == BETA_ONLY || commPreserve == BETA_ONLY) {
+            controlTag |= BETA_PRESERVE;
+        }
+    }
+    return controlTag;
+}
 
-        // Check if collect is a bool
-        if (collect.isBool()) {
-            if (collect.asBool()) {
-                controlTag |= BETA_COLLECT | COMM_COLLECT;
-            }
-        } else if (collect.isUInt()) {
-            uint8_t betaCollect = static_cast<uint8_t>(collect["beta"].asUInt());
-            uint8_t commCollect = static_cast<uint8_t>(collect["commercial"].asUInt());
+uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
+{
+    uint8_t controlTag = DO_NOTHING;
 
-            if (betaCollect == 0 || commCollect == 0) {
-                controlTag |= DO_NOTHING;
-            } else if (betaCollect == 1 || commCollect == 1) {
-                controlTag |= BETA_COLLECT | COMM_COLLECT;
-            } else if (betaCollect == COMMERCIAL_ONLY || commCollect == COMMERCIAL_ONLY) {
-                controlTag |= COMM_COLLECT;
-            } else if (betaCollect == BETA_ONLY || commCollect == BETA_ONLY) {
-                controlTag |= BETA_COLLECT;
-            }
+    if (collect.isBool()) {
+        if (collect.asBool()) {
+            controlTag |= BETA_COLLECT | COMM_COLLECT;
+        }
+    } else if (collect.isUInt()) {
+        uint8_t betaCollect = static_cast<uint8_t>(collect["beta"].asUInt());
+        uint8_t commCollect = static_cast<uint8_t>(collect["commercial"].asUInt());
+        if (betaCollect == 0 || commCollect == 0) {
+            controlTag |= DO_NOTHING;
+        } else if (betaCollect == 1 || commCollect == 1) {
+            controlTag |= BETA_COLLECT | COMM_COLLECT;
+        } else if (betaCollect == COMMERCIAL_ONLY || commCollect == COMMERCIAL_ONLY) {
+            controlTag |= COMM_COLLECT;
+        } else if (betaCollect == BETA_ONLY || commCollect == BETA_ONLY) {
+            controlTag |= BETA_COLLECT;
         }
     }
     return controlTag;

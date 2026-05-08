@@ -38,6 +38,8 @@ public:
 private:
     uint8_t controlTag_ = DO_NOTHING;
     uint8_t ParsePreserveCollectConfig(const Json::Value& jsonValue);
+    uint8_t ParsePreserveConfig(const Json::Value& preserve);
+    uint8_t ParseCollectConfig(const Json::Value& collect);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
