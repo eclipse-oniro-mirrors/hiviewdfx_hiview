@@ -48,7 +48,7 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
         // old format: true/false
         bool value = jsonValue.asBool();
         if (value) {
-            controlTag = BETA_COLLECT;
+            controlTag = BETA_COLLECT | BETA_PRESERVE;
         }
     } else if (jsonValue.isObject()) {
         // New format: Supports version-differentiated configurations

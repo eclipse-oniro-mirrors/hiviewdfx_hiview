@@ -138,8 +138,7 @@ bool GetEventInCache(std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap, const std:
 }
 
 EventJsonParser::EventJsonParser(): sysEventDefMap_(std::make_shared<DOMAIN_INFO_MAP>()),
-    domainJsonParser_(std::make_unique<DomainJsonParser>()),
-    versionConfigParser_(Json::Value())
+    domainJsonParser_(std::make_unique<DomainJsonParser>())
 {
 }
 
@@ -285,8 +284,8 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
 
     // Use VersionConfigParser to parse collect and preserve.
     VersionConfigParser parser(baseJsonInfo);
-    baseInfo.keyConfig.collect = versionConfigParser_.ShouldCollect() ? 1 : 0;
-    baseInfo.keyConfig.preserve = versionConfigParser_.ShouldPreserve() ? 1 : 0;
+    baseInfo.keyConfig.collect = parser.ShouldCollect() ? 1 : 0;
+    baseInfo.keyConfig.preserve = parser.ShouldPreserve() ? 1 : 0;
 
     return baseInfo;
 }
