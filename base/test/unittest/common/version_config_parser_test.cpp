@@ -27,13 +27,6 @@ inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
 
 class ParameterMock {
 public:
-    static void SetParameter(const std::string& key, const std::string& value)
-    {
-        // Mock implementation for testing
-        if (key == "const.hiview.isBeta") {
-            isBeta_ = value == "true";
-        }
-    }
 
     static bool IsBetaVersion()
     {
@@ -66,79 +59,219 @@ protected:
  */
 HWTEST_F(VersionConfigParserTest, ParsePreserveCollectConfigTest001, testing::ext::TestSize.Level0)
 {
-    Json::Value jsonValue = true;
+    Json::Value jsonValue;
+    jsonValue["preserve"] = true;
+    jsonValue["collect"] = true;
     VersionConfigParser parser(jsonValue);
     ASSERT_TRUE(parser.ShouldCollect()); // Indirect test of ParsePreserveCollectConfig
+    ASSERT_TRUE(parser.ShouldPreserve()); // Indirect test of ParsePreserveCollectConfig
 }
 
 /**
  * @tc.name: ParsePreserveCollectConfigTest002
- * @tc.desc: Test ParsePreserveCollectConfig with object value
+ * @tc.desc: Test ParsePreserveCollectConfig with uint value
  * @tc.type: FUNC
  */
 HWTEST_F(VersionConfigParserTest, ParsePreserveCollectConfigTest002, testing::ext::TestSize.Level0)
 {
     Json::Value jsonValue;
-    jsonValue["preserve"]["beta"] = true;
-    jsonValue["collect"]["beta"] = true;
+    jsonValue["preserve"] = 3; // Both beta and commercial preserve
+    jsonValue["collect"] = 3; // Both beta and commercial collect
     VersionConfigParser parser(jsonValue);
     ASSERT_TRUE(parser.ShouldCollect()); // Indirect test of ParsePreserveCollectConfig
+    ASSERT_TRUE(parser.ShouldPreserve()); // Indirect test of ParsePreserveCollectConfig
 }
 
 /**
  * @tc.name: ShouldCollectTest001
- * @tc.desc: Test ShouldCollect with BETA_COLLECT and beta version
+ * @tc.desc: Test ShouldCollect with beta version and uint value
  * @tc.type: FUNC
  */
 HWTEST_F(VersionConfigParserTest, ShouldCollectTest001, testing::ext::TestSize.Level0)
 {
-    ParameterMock::SetParameter("const.hiview.isBeta", "true");
+    // Test uint input for beta version
     Json::Value jsonValue;
-    jsonValue["collect"]["beta"] = true;
+    jsonValue["collect"]["beta"] = 1; // Enable collection for beta version
+    jsonValue["collect"]["commercial"] = 0; // No collection for commercial version
     VersionConfigParser parser(jsonValue);
-    ASSERT_TRUE(parser.ShouldCollect());
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(parser.ShouldCollect()); // Enable collection for beta version
+    } else {
+        ASSERT_FALSE(parser.ShouldCollect()); // No collection for commercial version
+    }
 }
 
 /**
  * @tc.name: ShouldCollectTest002
- * @tc.desc: Test ShouldCollect with COMM_COLLECT and commercial version
+ * @tc.desc: Test ShouldCollect with commercial version and uint value
  * @tc.type: FUNC
  */
 HWTEST_F(VersionConfigParserTest, ShouldCollectTest002, testing::ext::TestSize.Level0)
 {
-    ParameterMock::SetParameter("const.hiview.isBeta", "false");
+    // Test uint input for commercial version
     Json::Value jsonValue;
-    jsonValue["collect"]["commercial"] = true;
+    jsonValue["collect"]["beta"] = 0; // No collection for beta version
+    jsonValue["collect"]["commercial"] = 1; // Enable collection for commercial version
     VersionConfigParser parser(jsonValue);
-    ASSERT_TRUE(parser.ShouldCollect());
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_FALSE(parser.ShouldCollect()); // No collection for beta version
+    } else {
+        ASSERT_TRUE(parser.ShouldCollect()); // Enable collection for commercial version
+    }
+}
+
+/**
+ * @tc.name: ShouldCollectTest003
+ * @tc.desc: Test ShouldCollect with bool value
+ * @tc.type: FUNC
+ */
+HWTEST_F(VersionConfigParserTest, ShouldCollectTest003, testing::ext::TestSize.Level0)
+{
+    // Test bool input
+    Json::Value jsonValue;
+    jsonValue["collect"] = true; // Enable collection
+    VersionConfigParser parser1(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(parser1.ShouldCollect()); // Enable collection for beta version
+    } else {
+        ASSERT_TRUE(parser1.ShouldCollect()); // Enable collection for commercial version
+    }
+
+    jsonValue["collect"] = false; // Disable collection
+    VersionConfigParser parser2(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_FALSE(parser2.ShouldCollect()); // No collection for beta version
+    } else {
+        ASSERT_FALSE(parser2.ShouldCollect()); // No collection for commercial version
+    }
 }
 
 /**
  * @tc.name: ShouldPreserveTest001
- * @tc.desc: Test ShouldPreserve with BETA_PRESERVE and beta version
+ * @tc.desc: Test ShouldPreserve with beta version and uint value
  * @tc.type: FUNC
  */
 HWTEST_F(VersionConfigParserTest, ShouldPreserveTest001, testing::ext::TestSize.Level0)
 {
-    ParameterMock::SetParameter("const.hiview.isBeta", "true");
+    // Test uint input for beta version
     Json::Value jsonValue;
-    jsonValue["preserve"]["beta"] = true;
+    jsonValue["preserve"]["beta"] = 1; // Enable preserve for beta version
+    jsonValue["preserve"]["commercial"] = 0; // No preserve for commercial version
     VersionConfigParser parser(jsonValue);
-    ASSERT_TRUE(parser.ShouldPreserve());
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(parser.ShouldPreserve()); // Enable preserve for beta version
+    } else {
+        ASSERT_FALSE(parser.ShouldPreserve()); // No preserve for commercial version
+    }
 }
 
 /**
  * @tc.name: ShouldPreserveTest002
- * @tc.desc: Test ShouldPreserve with COMM_PRESERVE and commercial version
+ * @tc.desc: Test ShouldPreserve with commercial version and uint value
  * @tc.type: FUNC
  */
 HWTEST_F(VersionConfigParserTest, ShouldPreserveTest002, testing::ext::TestSize.Level0)
 {
-    ParameterMock::SetParameter("const.hiview.isBeta", "false");
+    // Test uint input for commercial version
     Json::Value jsonValue;
-    jsonValue["preserve"]["commercial"] = true;
+    jsonValue["preserve"]["beta"] = 0; // No preserve for beta version
+    jsonValue["preserve"]["commercial"] = 1; // Enable preserve for commercial version
     VersionConfigParser parser(jsonValue);
-    ASSERT_TRUE(parser.ShouldPreserve());
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_FALSE(parser.ShouldPreserve()); // No preserve for beta version
+    } else {
+        ASSERT_TRUE(parser.ShouldPreserve()); // Enable preserve for commercial version
+    }
+}
+
+/**
+ * @tc.name: ShouldPreserveTest003
+ * @tc.desc: Test ShouldPreserve with bool value
+ * @tc.type: FUNC
+ */
+HWTEST_F(VersionConfigParserTest, ShouldPreserveTest003, testing::ext::TestSize.Level0)
+{
+    // Test bool input
+    Json::Value jsonValue;
+    jsonValue["preserve"] = true; // Enable preserve
+    VersionConfigParser parser1(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(parser1.ShouldPreserve()); // Enable preserve for beta version
+    } else {
+        ASSERT_TRUE(parser1.ShouldPreserve()); // Enable preserve for commercial version
+    }
+
+    jsonValue["preserve"] = false; // Disable preserve
+    VersionConfigParser parser2(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_FALSE(parser2.ShouldPreserve()); // No preserve for beta version
+    } else {
+        ASSERT_FALSE(parser2.ShouldPreserve()); // No preserve for commercial version
+    }
+}
+
+/**
+ * @tc.name: ShouldCollectTest004
+ * @tc.desc: Test ShouldCollect with uint value 0/1/2/3
+ * @tc.type: FUNC
+ */
+HWTEST_F(VersionConfigParserTest, ShouldCollectTest004, testing::ext::TestSize.Level0)
+{
+    // Test uint input for beta version
+    Json::Value jsonValue;
+    jsonValue["collect"] = 3; // Both beta and commercial collect
+    VersionConfigParser parser(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(parser.ShouldCollect()); // Enable collection for beta version
+    } else {
+        ASSERT_TRUE(parser.ShouldCollect()); // Enable collection for commercial version
+    }
+
+    jsonValue["collect"] = 0; // No collection for beta and commercial version
+    VersionConfigParser parser2(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_FALSE(parser2.ShouldCollect()); // No collection for beta version
+    } else {
+        ASSERT_FALSE(parser2.ShouldCollect()); // No collection for commercial version
+    }
+}
+
+/**
+ * @tc.name: ShouldPreserveTest004
+ * @tc.desc: Test ShouldPreserve with uint value 0/1/2/3
+ * @tc.type: FUNC
+ */
+HWTEST_F(VersionConfigParserTest, ShouldPreserveTest004, testing::ext::TestSize.Level0)
+{
+    // Test uint input for beta version
+    Json::Value jsonValue;
+    jsonValue["preserve"] = 3; // Both beta and commercial preserve
+    VersionConfigParser parser(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(parser.ShouldPreserve()); // Enable preserve for beta version
+    } else {
+        ASSERT_TRUE(parser.ShouldPreserve()); // Enable preserve for commercial version
+    }
+
+    jsonValue["preserve"] = 0; // No preserve for beta and commercial version
+    VersionConfigParser parser2(jsonValue);
+
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_FALSE(parser2.ShouldPreserve()); // No preserve for beta version
+    } else {
+        ASSERT_FALSE(parser2.ShouldPreserve()); // No preserve for commercial version
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

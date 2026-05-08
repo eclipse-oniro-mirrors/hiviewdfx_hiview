@@ -22,6 +22,10 @@
 namespace OHOS {
 namespace HiviewDFX {
 inline constexpr uint8_t DO_NOTHING = 0b0000;
+inline constexpr uint8_t NONE = 0;                // Neither collect nor Preserve
+inline constexpr uint8_t ALL = 1;                 // All collect and Preserve
+inline constexpr uint8_t COMMERCIAL_ONLY = 2;     // Commercial collection or Preserve
+inline constexpr uint8_t BETA_ONLY = 3;            // Beta collection or Preserve
 
 class VersionConfigParser {
 public:
