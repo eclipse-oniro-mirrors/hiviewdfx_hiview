@@ -60,8 +60,6 @@ constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
 constexpr uint64_t DMP_MAX_FILE_SIZE = 35 * 1024 * 1024; // 35M
-const std::string DMP_LOG_CONFIG_NAME = "minidump_config.txt";
-const std::string DMP_CONFIG_TRUE = "{collectMinidump:true}";
 constexpr uint64_t WATCHDOG_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M
 constexpr uint64_t RESOURCE_OVERLIMIT_MAX_FILE_SIZE = 2048uLL * 1024 * 1024; // 2G
 constexpr const char* const XATTR_NAME = "user.appevent";
@@ -104,15 +102,18 @@ void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalL
         externalLogInfo.extensionType = ".log";
         externalLogInfo.subPath = "hiappevent";
         externalLogInfo.maxFileSize = MAX_FILE_SIZE;
-        std::string sandBoxInfoPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, "hiappevent") + "/info";
-        std::string realPath;
-        if (!FileUtil::PathToRealPath(sandBoxInfoPath, realPath)) {
-            HIVIEW_LOGI("sandBoxInfoPath real fullPath failed.");
+        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+        if (eventConfigDir.empty()) {
+            HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
             return;
         }
-        std::string content;
-        FileUtil::LoadStringFromFile(realPath + "/" + DMP_LOG_CONFIG_NAME, content);
-        if (content == DMP_CONFIG_TRUE) {
+        std::string property = std::string("user.event_config.minidump");
+        std::string value;
+        if (!FileUtil::GetDirXattr(eventConfigDir, property, value)) {
+            HIVIEW_LOGW("failed to get dir cfg xattr about minidump.");
+            return;
+        }
+        if (value == "true") {
             externalLogInfo.maxFileSize = DMP_MAX_FILE_SIZE;
         }
     }
