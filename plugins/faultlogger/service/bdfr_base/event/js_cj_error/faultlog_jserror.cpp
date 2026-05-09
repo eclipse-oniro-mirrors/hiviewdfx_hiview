@@ -53,7 +53,7 @@ FaultLogInfo FaultLogJsError::FillFaultLogInfo(SysEvent& sysEvent)
 {
     auto info = FaultLogEventPipeline::FillFaultLogInfo(sysEvent);
     std::string rssStr = sysEvent.GetEventValue("PROCESS_RSS_MEMINFO");
-    info.sectionMap["PROCESS_RSS_MEMINFO"] = "Process Memory(kB): " + rssStr + "(Rss)";
+    info.sectionMap["PROCESS_RSS_MEMINFO"] = rssStr + "(Rss)";
     info.sectionMap["PROCESS_NAME"] = sysEvent.GetEventValue(FaultKey::P_NAME);
     info.sectionMap["PROCESS_LIFETIME"] = sysEvent.GetEventValue(FaultKey::PROCESS_LIFETIME);
     info.sectionMap["PNAME"] = sysEvent.GetEventValue(FaultKey::P_NAME);

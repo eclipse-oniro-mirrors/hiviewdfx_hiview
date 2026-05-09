@@ -218,7 +218,7 @@ void FaultLogFreeze::UpdateFaultLogInfo()
     if (info_.faultLogType == FaultLogType::APP_FREEZE || info_.faultLogType == FaultLogType::APPFREEZE_WARNING) {
         GetProcMemInfo(info_);
         rss_ = GetProcessInfo(info_.sectionMap, FaultKey::PROCESS_RSS_MEMINFO);
-        info_.sectionMap[FaultKey::PROCESS_RSS_MEMINFO] = "Process Memory(kB): " + std::to_string(rss_) + "(Rss)";
+        info_.sectionMap[FaultKey::PROCESS_RSS_MEMINFO] = std::to_string(rss_) + "(Rss)";
         info_.sectionMap[FaultKey::STACK] = GetThreadStack(info_.logPath, info_.pid);
         AddPagesHistory(info_, true);
     }

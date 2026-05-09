@@ -16,13 +16,18 @@
 #define FAULTLOG_FORMATTER_H
 #include <string>
 #include <cstdint>
+#include <vector>
 #include "faultlog_info_inner.h"
+#include "json/json.h"
 namespace OHOS {
 namespace HiviewDFX {
 namespace FaultLogger {
 void WriteDfxLogToFile(int32_t fd);
 void WriteFaultLogToFile(int32_t fd, int32_t logType, const std::map<std::string, std::string>& sections);
 FaultLogInfo ParseCppCrashFromFile(const std::string& path);
+void ParseCppCrashFromTextFile(const std::string& path, FaultLogInfo& info);
+bool ParseJsonFromFile(const std::string& path, Json::Value& root);
+void FillSectionMapFromJson(const Json::Value& root, std::map<std::string, std::string>& sectionMap);
 bool WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
 bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string>& sections);
 bool IsFaultLogLimit();
@@ -33,6 +38,10 @@ bool ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix,
 std::string ProcessArkTsLine(const std::string& line, const std::string& packageName);
 bool ParserArkTsStackInfo(const std::string& moduleName, int32_t logType, const std::string& path);
 bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, int32_t logType, const std::string& path);
+std::string FormatFrameIndex(int index);
+std::string FormatThreadInfo(const Json::Value& threadInfo);
+std::string FormatOtherThreadInfo(const Json::Value& otherThreadInfo);
+std::string FormatAppLogConfig(const Json::Value& appLogConfig);
 
 void JumpBuildInfo(int32_t fd, std::ifstream& logFile);
 }  // namespace FaultLogger
