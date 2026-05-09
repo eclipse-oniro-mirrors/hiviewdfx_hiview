@@ -29,15 +29,16 @@ inline constexpr uint8_t BETA_ONLY = 3;
 class VersionConfigParser {
 public:
     VersionConfigParser(const Json::Value& jsonValue);
-    ~VersionConfigParser();
+    ~VersionConfigParser() = default;
     
     bool ShouldCollect() const;
     bool ShouldPreserve() const;
 
 private:
     uint8_t controlTag_ = DO_NOTHING;
-    uint8_t ParsePreserveCollectConfig(const Json::Value& jsonValue);
-    uint8_t ParseConfig(const Json::Value& jsonValue, const std::string& key, const uint8_t betaCfg, const uint8_t commCfg);
+    uint8_t ParseConfig(const Json::Value& jsonValue);
+    uint8_t ParseConfig(const Json::Value& jsonValue, const std::string& key,
+        const uint8_t betaCfg, const uint8_t commCfg);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

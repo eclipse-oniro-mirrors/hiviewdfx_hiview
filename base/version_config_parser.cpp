@@ -50,7 +50,8 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
     return controlTag;
 }
 
-uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std::string& key, const uint8_t betaCfg, const uint8_t commCfg)
+uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std::string& key,
+    const uint8_t betaCfg, const uint8_t commCfg)
 {
     uint8_t controlTag = DO_NOTHING;
     if ((key == PRESERVE && DEFAULT_PRESERVE_VAL) || (key == COLLECT && DEFAULT_COLLECT_VAL)) {
