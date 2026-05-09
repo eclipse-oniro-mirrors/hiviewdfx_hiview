@@ -45,19 +45,16 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
     uint8_t controlTag = DO_NOTHING;
 
     if (jsonValue.isObject()) {
-        Json::Value preserve = jsonValue["preserve"];
-        Json::Value collect = jsonValue["collect"];
-
         controlTag |= ParsePreserveConfig(preserve);
         controlTag |= ParseCollectConfig(collect);
     }
-
     return controlTag;
 }
 
-uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& preserve)
+uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
+    Json::Value preserve = jsonValue["preserve"];
 
     if (preserve.isBool()) {
         if (preserve.asBool()) {
@@ -73,13 +70,13 @@ uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& preserve)
             controlTag |= BETA_PRESERVE;
         }
     }
-
     return controlTag;
 }
 
-uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
+uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
+    Json::Value collect = jsonValue["collect"];
 
     if (collect.isBool()) {
         if (collect.asBool()) {
@@ -95,7 +92,6 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
             controlTag |= BETA_COLLECT;
         }
     }
-
     return controlTag;
 }
 
