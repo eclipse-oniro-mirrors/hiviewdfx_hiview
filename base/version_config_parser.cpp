@@ -43,15 +43,9 @@ VersionConfigParser::~VersionConfigParser() {}
 uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
-    if (DEFAULT_PRESERVE_VAL) {
-        controlTag |= BETA_PRESERVE | COMM_PRESERVE;
-    }
-    if (DEFAULT_COLLECT_VAL) {
-        controlTag |= BETA_COLLECT | COMM_COLLECT;
-    }
     if (jsonValue.isObject()) {
-        controlTag |= ParseConfig(jsonValue, "collect", BETA_COLLECT, COMM_COLLECT);
-        controlTag |= ParseConfig(jsonValue, "preserve", BETA_PRESERVE, COMM_PRESERVE);
+        controlTag |= ParseConfig(jsonValue, COLLECT, BETA_COLLECT, COMM_COLLECT);
+        controlTag |= ParseConfig(jsonValue, PRESERVE, BETA_PRESERVE, COMM_PRESERVE);
     }
     return controlTag;
 }
@@ -59,8 +53,11 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
 uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std::string& key, const uint8_t betaCfg, const uint8_t commCfg)
 {
     uint8_t controlTag = DO_NOTHING;
+    if ((key == PRESERVE && DEFAULT_PRESERVE_VAL) || (key == COLLECT && DEFAULT_COLLECT_VAL)) {
+        controlTag |= betaCfg | commCfg;
+    }
     if (jsonValue.isMember(key.c_str())) {
-        return;
+        return controlTag;
     }
     Json::Value cfgJson = jsonValue[key];
     if (cfgJson.isBool()) {
