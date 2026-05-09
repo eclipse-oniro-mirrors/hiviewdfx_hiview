@@ -64,18 +64,18 @@ uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& preserve)
             controlTag |= BETA_PRESERVE | COMM_PRESERVE;
         }
     } else if (preserve.isUInt()) {
-        uint8_t betaPreserve = static_cast<uint8_t>(preserve["beta"].asUInt());
-        uint8_t commPreserve = static_cast<uint8_t>(preserve["commercial"].asUInt());
-        if (betaPreserve == 0 || commPreserve == 0) {
+        uint8_t PreserveValue = static_cast<uint8_t>(preserve.asUInt());
+        if (PreserveValue == 0) {
             controlTag |= DO_NOTHING;
-        } else if (betaPreserve == 1 || commPreserve == 1) {
+        } else if (PreserveValue == 1) {
             controlTag |= BETA_PRESERVE | COMM_PRESERVE;
-        } else if (betaPreserve == COMMERCIAL_ONLY || commPreserve == COMMERCIAL_ONLY) {
+        } else if (PreserveValue == COMMERCIAL_ONLY) {
             controlTag |= COMM_PRESERVE;
-        } else if (betaPreserve == BETA_ONLY || commPreserve == BETA_ONLY) {
+        } else if (PreserveValue == BETA_ONLY) {
             controlTag |= BETA_PRESERVE;
         }
     }
+
     return controlTag;
 }
 
@@ -88,18 +88,18 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
             controlTag |= BETA_COLLECT | COMM_COLLECT;
         }
     } else if (collect.isUInt()) {
-        uint8_t betaCollect = static_cast<uint8_t>(collect["beta"].asUInt());
-        uint8_t commCollect = static_cast<uint8_t>(collect["commercial"].asUInt());
-        if (betaCollect == 0 || commCollect == 0) {
+        uint8_t collectValue = static_cast<uint8_t>(collect.asUInt());
+        if (collectValue == 0) {
             controlTag |= DO_NOTHING;
-        } else if (betaCollect == 1 || commCollect == 1) {
+        } else if (collectValue == 1) {
             controlTag |= BETA_COLLECT | COMM_COLLECT;
-        } else if (betaCollect == COMMERCIAL_ONLY || commCollect == COMMERCIAL_ONLY) {
+        } else if (collectValue == COMMERCIAL_ONLY) {
             controlTag |= COMM_COLLECT;
-        } else if (betaCollect == BETA_ONLY || commCollect == BETA_ONLY) {
+        } else if (collectValue == BETA_ONLY) {
             controlTag |= BETA_COLLECT;
         }
     }
+
     return controlTag;
 }
 
@@ -108,11 +108,10 @@ bool VersionConfigParser::ShouldCollect() const
     bool isBeta = Parameter::IsBetaVersion();
     uint8_t checkTag = BETA_COLLECT;
     if (isBeta) {
-        checkTag = controlTag_ & checkTag;           // check bit 0 (BETA_COLLECT)
+        return controlTag_ & checkTag;           // check bit 0 (BETA_COLLECT)
     } else {
-        checkTag = controlTag_ & COMM_COLLECT;       // check bit 1 (COMM_COLLECT)
+        return controlTag_ & COMM_COLLECT;       // check bit 1 (COMM_COLLECT)
     }
-    return checkTag != 0;  // It is necessary to determine whether the value is 0.
 }
 
 bool VersionConfigParser::ShouldPreserve() const
@@ -120,11 +119,10 @@ bool VersionConfigParser::ShouldPreserve() const
     bool isBeta = Parameter::IsBetaVersion();
     uint8_t checkTag = BETA_PRESERVE;
     if (isBeta) {
-        checkTag = controlTag_ & checkTag;           // check bit 2 (BETA_PRESERVE)
+        return controlTag_ & checkTag;           // check bit 2 (BETA_PRESERVE)
     } else {
-        checkTag = controlTag_ & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
+        return controlTag_ & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
     }
-    return checkTag != 0;  // It is necessary to determine whether the value is 0.
 }
 } // namespace HiviewDFX
 } // namespace OHOS

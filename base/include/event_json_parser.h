@@ -113,7 +113,6 @@ private:
     std::shared_ptr<DOMAIN_INFO_MAP> sysEventDefMap_ = nullptr;
     std::unique_ptr<DomainJsonParser> domainJsonParser_ = nullptr;
     uint16_t sysEventDefMapCap_ = 0;
-    Json::Value jsonValue_;  // Add new member to hold the Json::Value
 }; // EventJsonParser
 } // namespace HiviewDFX
 } // namespace OHOS
