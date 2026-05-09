@@ -67,8 +67,8 @@ HWTEST_F(VersionConfigParserTest, ParseConfigTest002, testing::ext::TestSize.Lev
     
     VersionConfigParser parser(jsonValue);
     if (Parameter::IsBetaVersion()) {
-        ASSERT_FALSE(parser.ShouldPreserve());
-        ASSERT_TRUE(parser.ShouldCollect());
+        ASSERT_TRUE(parser.ShouldPreserve());
+        ASSERT_FALSE(parser.ShouldCollect());
     } else {
         ASSERT_TRUE(parser.ShouldPreserve());
         ASSERT_TRUE(parser.ShouldCollect());
@@ -83,8 +83,9 @@ HWTEST_F(VersionConfigParserTest, ParseConfigTest002, testing::ext::TestSize.Lev
 HWTEST_F(VersionConfigParserTest, ParseConfigTest003, testing::ext::TestSize.Level0)
 {
     Json::Value jsonValue;
+    jsonValue["invalid"] = "";
     VersionConfigParser parser(jsonValue);
-    ASSERT_FALSE(parser.ShouldPreserve());
+    ASSERT_TRUE(parser.ShouldPreserve());
     ASSERT_FALSE(parser.ShouldCollect());
 }
 
@@ -98,18 +99,18 @@ HWTEST_F(VersionConfigParserTest, ParseConfigTest004, testing::ext::TestSize.Lev
     Json::Value jsonValue;
     jsonValue["preserve"] = "invalid";
     jsonValue["collect"] = -1;
-    
+
     VersionConfigParser parser(jsonValue);
     ASSERT_TRUE(parser.ShouldPreserve());
-    ASSERT_TRUE(parser.ShouldCollect());
+    ASSERT_FALSE(parser.ShouldCollect());
 }
 
 /**
- * @tc.name: ParseConfigTest005
+ * @tc.name: ParseConfigTest006
  * @tc.desc: Test ParseConfig with mixed types
  * @tc.type: FUNC
  */
-HWTEST_F(VersionConfigParserTest, ParseConfigTest005, testing::ext::TestSize.Level0)
+HWTEST_F(VersionConfigParserTest, ParseConfigTest006, testing::ext::TestSize.Level0)
 {
     Json::Value jsonValue;
     jsonValue["preserve"] = true;

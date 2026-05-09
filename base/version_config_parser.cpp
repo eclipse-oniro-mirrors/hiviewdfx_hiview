@@ -31,6 +31,45 @@ static constexpr uint8_t COMM_PRESERVE = 0b1000;
 static constexpr char PRESERVE[] = "preserve";
 static constexpr char COLLECT[] = "collect";
 
+uint8_t GetDefaultConfig(const std::string& key, const uint8_t betaCfg, const uint8_t commCfg)
+{
+    uint8_t controlTag = DO_NOTHING;
+    if ((key == PRESERVE && DEFAULT_PRESERVE_VAL) || (key == COLLECT && DEFAULT_COLLECT_VAL)) {
+        controlTag |= betaCfg | commCfg;
+    }
+    return controlTag;
+}
+
+uint8_t GetBoolCfg(bool enabled, const uint8_t betaCfg, const uint8_t commCfg)
+{
+    uint8_t controlTag = DO_NOTHING;
+    if (enabled) {
+        controlTag |= betaCfg | commCfg;
+    }
+    return controlTag;
+}
+
+uint8_t GetNumConfig(uint8_t cfgVal, const std::string& key, const uint8_t betaCfg, const uint8_t commCfg)
+{
+    uint8_t controlTag = DO_NOTHING;
+    switch (cfgVal) {
+        case ALL:
+            controlTag |= betaCfg | commCfg;
+            break;
+        case COMMERCIAL_ONLY:
+            controlTag |= commCfg;
+            break;
+        case BETA_ONLY:
+            controlTag |= betaCfg;
+            break;
+        case NONE:
+            break;
+        default:
+            controlTag = GetDefaultConfig(key, betaCfg, commCfg);
+    }
+    return controlTag;
+}
+
 VersionConfigParser::VersionConfigParser(const Json::Value& jsonValue)
 {
     controlTag_ = ParseConfig(jsonValue);
@@ -49,30 +88,17 @@ uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue)
 uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std::string& key,
     const uint8_t betaCfg, const uint8_t commCfg)
 {
-    uint8_t controlTag = DO_NOTHING;
-    if ((key == PRESERVE && DEFAULT_PRESERVE_VAL) || (key == COLLECT && DEFAULT_COLLECT_VAL)) {
-        controlTag |= betaCfg | commCfg;
-    }
     if (!jsonValue.isMember(key.c_str())) {
-        return controlTag;
+        return GetDefaultConfig(key, betaCfg, commCfg);
     }
-    controlTag = DO_NOTHING; // need to be reset if perserve or collect is configured
     Json::Value cfgJson = jsonValue[key];
     if (cfgJson.isBool()) {
-        if (cfgJson.asBool()) {
-            controlTag |= betaCfg | commCfg;
-        }
+        return GetBoolCfg(cfgJson.asBool(), betaCfg, commCfg);
     } else if (cfgJson.isUInt()) {
-        uint8_t cfgVal = static_cast<uint8_t>(cfgJson.asUInt());
-        if (cfgVal == ALL) {
-            controlTag |= betaCfg | commCfg;
-        } else if (cfgVal == COMMERCIAL_ONLY) {
-            controlTag |= commCfg;
-        } else if (cfgVal == BETA_ONLY) {
-            controlTag |= betaCfg;
-        }
+        return GetNumConfig(static_cast<uint8_t>(cfgJson.asUInt()), key, betaCfg, commCfg);
+    } else {
+        return GetDefaultConfig(key, betaCfg, commCfg);
     }
-    return controlTag;
 }
 
 bool VersionConfigParser::ShouldCollect() const
