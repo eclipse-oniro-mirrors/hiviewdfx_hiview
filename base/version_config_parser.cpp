@@ -65,9 +65,7 @@ uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& preserve)
         }
     } else if (preserve.isUInt()) {
         uint8_t PreserveValue = static_cast<uint8_t>(preserve.asUInt());
-        if (PreserveValue == 0) {
-            controlTag |= DO_NOTHING;
-        } else if (PreserveValue == 1) {
+        if (PreserveValue == 1) {
             controlTag |= BETA_PRESERVE | COMM_PRESERVE;
         } else if (PreserveValue == COMMERCIAL_ONLY) {
             controlTag |= COMM_PRESERVE;
@@ -89,9 +87,7 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
         }
     } else if (collect.isUInt()) {
         uint8_t collectValue = static_cast<uint8_t>(collect.asUInt());
-        if (collectValue == 0) {
-            controlTag |= DO_NOTHING;
-        } else if (collectValue == 1) {
+        if (collectValue == 1) {
             controlTag |= BETA_COLLECT | COMM_COLLECT;
         } else if (collectValue == COMMERCIAL_ONLY) {
             controlTag |= COMM_COLLECT;
