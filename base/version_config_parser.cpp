@@ -56,6 +56,7 @@ uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std
     if (!jsonValue.isMember(key.c_str())) {
         return controlTag;
     }
+    controlTag = DO_NOTHING; // need to be reset if perserve or collect is configured
     Json::Value cfgJson = jsonValue[key];
     if (cfgJson.isBool()) {
         if (cfgJson.asBool()) {
