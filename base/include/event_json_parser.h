@@ -31,7 +31,6 @@
 #include "singleton.h"
 #include "sys_event.h"
 #include "domain_json_parser.h"
-#include "version_config_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {

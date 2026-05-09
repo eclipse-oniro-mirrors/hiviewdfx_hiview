@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  */
 
 #include "version_config_parser.h"
+
+#include "event_json_parser.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "json/json.h"
@@ -22,10 +24,10 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("VersionConfigParser");
-static constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
-static constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
-static constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
-static constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
+static constexpr uint8_t BETA_COLLECT = 0b0001;
+static constexpr uint8_t COMM_COLLECT = 0b0010;
+static constexpr uint8_t BETA_PRESERVE = 0b0100;
+static constexpr uint8_t COMM_PRESERVE = 0b1000;
 
 // Define constants for preserve and collect
 static constexpr char PRESERVE[] = "preserve";
@@ -41,50 +43,38 @@ VersionConfigParser::~VersionConfigParser() {}
 uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
+    if (DEFAULT_PRESERVE_VAL) {
+        controlTag |= BETA_PRESERVE | COMM_PRESERVE;
+    }
+    if (DEFAULT_COLLECT_VAL) {
+        controlTag |= BETA_COLLECT | COMM_COLLECT;
+    }
     if (jsonValue.isObject()) {
-        controlTag |= ParsePreserveConfig(jsonValue["preserve"]);
-        controlTag |= ParseCollectConfig(jsonValue["collect"]);
+        controlTag |= ParseConfig(jsonValue, "collect", BETA_COLLECT, COMM_COLLECT);
+        controlTag |= ParseConfig(jsonValue, "preserve", BETA_PRESERVE, COMM_PRESERVE);
     }
     return controlTag;
 }
 
-uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& jsonValue)
+uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std::string& key, const uint8_t betaCfg, const uint8_t commCfg)
 {
     uint8_t controlTag = DO_NOTHING;
-    Json::Value preserve = jsonValue["preserve"];
-    if (preserve.isBool()) {
-        if (preserve.asBool()) {
-            controlTag |= BETA_PRESERVE | COMM_PRESERVE;
-        }
-    } else if (preserve.isUInt()) {
-        uint8_t PreserveValue = static_cast<uint8_t>(preserve.asUInt());
-        if (PreserveValue == ALL) {
-            controlTag |= BETA_PRESERVE | COMM_PRESERVE;
-        } else if (PreserveValue == COMMERCIAL_ONLY) {
-            controlTag |= COMM_PRESERVE;
-        } else if (PreserveValue == BETA_ONLY) {
-            controlTag |= BETA_PRESERVE;
-        }
+    if (jsonValue.isMember(key.c_str())) {
+        return;
     }
-    return controlTag;
-}
-
-uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& jsonValue)
-{
-    uint8_t controlTag = DO_NOTHING;
-    Json::Value collect = jsonValue["collect"];
-    if (collect.isBool()) {
-        if (collect.asBool()) {
-            controlTag |= BETA_COLLECT | COMM_COLLECT;
+    Json::Value cfgJson = jsonValue[key];
+    if (cfgJson.isBool()) {
+        if (cfgJson.asBool()) {
+            controlTag |= betaCfg | commCfg;
         }
-    } else if (collect.isUInt()) {
-        uint8_t collectValue = static_cast<uint8_t>(collect.asUInt());
-        if (collectValue == ALL) {
-            controlTag |= BETA_COLLECT | COMM_COLLECT;
-        } else if (collectValue == COMMERCIAL_ONLY) {
-            controlTag |= COMM_COLLECT;
-        } else if (collectValue == BETA_ONLY) {
-            controlTag |= BETA_COLLECT;
+    } else if (cfgJson.isUInt()) {
+        uint8_t cfgVal = static_cast<uint8_t>(cfgJson.asUInt());
+        if (cfgVal == ALL) {
+            controlTag |= betaCfg | commCfg;
+        } else if (cfgVal == COMMERCIAL_ONLY) {
+            controlTag |= commCfg;
+        } else if (cfgVal == BETA_ONLY) {
+            controlTag |= betaCfg;
         }
     }
     return controlTag;
@@ -93,18 +83,18 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& jsonValue)
 bool VersionConfigParser::ShouldCollect() const
 {
     if (Parameter::IsBetaVersion()) {
-        return controlTag_ & BETA_COLLECT;           // check bit 0 (BETA_COLLECT)
+        return controlTag_ & BETA_COLLECT;
     } else {
-        return controlTag_ & COMM_COLLECT;       // check bit 1 (COMM_COLLECT)
+        return controlTag_ & COMM_COLLECT;
     }
 }
 
 bool VersionConfigParser::ShouldPreserve() const
 {
     if (Parameter::IsBetaVersion()) {
-        return controlTag_ & BETA_PRESERVE;       // check bit 2 (BETA_PRESERVE)
+        return controlTag_ & BETA_PRESERVE;
     } else {
-        return controlTag_ & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
+        return controlTag_ & COMM_PRESERVE;
     }
 }
 } // namespace HiviewDFX
