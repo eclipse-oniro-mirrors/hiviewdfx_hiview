@@ -282,7 +282,6 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
-    // Use VersionConfigParser to parse collect and preserve.
     VersionConfigParser parser(baseJsonInfo);
     if (HasBoolMember(baseJsonInfo, PRESERVE)) {
         baseInfo.keyConfig.preserve = parser.ShouldPreserve();

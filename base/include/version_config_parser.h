@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// version_config_parser.h
 #ifndef HIVEVENT_VERSION_CONFIG_PARSER_H
 #define HIVEVENT_VERSION_CONFIG_PARSER_H
 
@@ -21,11 +20,11 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-static constexpr uint8_t DO_NOTHING = 0b0000;
-static constexpr uint8_t NONE = 0;                // Neither collect nor Preserve
-static constexpr uint8_t ALL = 1;                 // All collect and Preserve
-static constexpr uint8_t COMMERCIAL_ONLY = 2;     // Commercial collection or Preserve
-static constexpr uint8_t BETA_ONLY = 3;            // Beta collection or Preserve
+inline constexpr uint8_t DO_NOTHING = 0b0000;
+inline constexpr uint8_t NONE = 0;
+inline constexpr uint8_t ALL = 1;
+inline constexpr uint8_t COMMERCIAL_ONLY = 2;
+inline constexpr uint8_t BETA_ONLY = 3;
 
 class VersionConfigParser {
 public:

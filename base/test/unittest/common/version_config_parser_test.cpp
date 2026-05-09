@@ -20,10 +20,10 @@ using namespace OHOS::HiviewDFX;
 
 namespace OHOS {
 namespace HiviewDFX {
-inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
-inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
-inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
-inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
+inline constexpr uint8_t BETA_COLLECT = 0b0001;
+inline constexpr uint8_t COMM_COLLECT = 0b0010;
+inline constexpr uint8_t BETA_PRESERVE = 0b0100;
+inline constexpr uint8_t COMM_PRESERVE = 0b1000;
 
 class VersionConfigParserTest : public testing::Test {
 protected:

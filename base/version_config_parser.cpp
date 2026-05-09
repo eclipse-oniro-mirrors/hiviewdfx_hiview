@@ -21,17 +21,15 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-
 DEFINE_LOG_TAG("VersionConfigParser");
-
-inline constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
-inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
-inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
-inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
+static constexpr uint8_t BETA_COLLECT = 0b0001;  // Beta collection
+static constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
+static constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
+static constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
 
 // Define constants for preserve and collect
-inline constexpr char PRESERVE[] = "preserve";
-inline constexpr char COLLECT[] = "collect";
+static constexpr char PRESERVE[] = "preserve";
+static constexpr char COLLECT[] = "collect";
 
 VersionConfigParser::VersionConfigParser(const Json::Value& jsonValue)
 {
@@ -43,7 +41,6 @@ VersionConfigParser::~VersionConfigParser() {}
 uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
-
     if (jsonValue.isObject()) {
         controlTag |= ParsePreserveConfig(preserve);
         controlTag |= ParseCollectConfig(collect);
@@ -55,7 +52,6 @@ uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
     Json::Value preserve = jsonValue["preserve"];
-
     if (preserve.isBool()) {
         if (preserve.asBool()) {
             controlTag |= BETA_PRESERVE | COMM_PRESERVE;
@@ -77,7 +73,6 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
     Json::Value collect = jsonValue["collect"];
-
     if (collect.isBool()) {
         if (collect.asBool()) {
             controlTag |= BETA_COLLECT | COMM_COLLECT;
