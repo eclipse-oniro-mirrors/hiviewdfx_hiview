@@ -284,8 +284,13 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
 
     // Use VersionConfigParser to parse collect and preserve.
     VersionConfigParser parser(baseJsonInfo);
-    baseInfo.keyConfig.collect = parser.ShouldCollect();
-    baseInfo.keyConfig.preserve = parser.ShouldPreserve();
+    if (HasBoolMember(baseJsonInfo, PRESERVE)) {
+        baseInfo.keyConfig.preserve = parser.ShouldPreserve();
+    }
+
+    if (HasBoolMember(baseJsonInfo, COLLECT)) {
+        baseInfo.keyConfig.collect = parser.ShouldCollect();
+    }
 
     return baseInfo;
 }
