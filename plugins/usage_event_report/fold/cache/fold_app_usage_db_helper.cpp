@@ -653,7 +653,7 @@ void FoldAppUsageDbHelper::QueryDisplayModeEventRecords(
         FIELD_VERSION_NAME, FIELD_HAPPEN_TIME, FIELD_BUNDLE_NAME};
     auto resultSet = rdbStore_->Query(predicates, columns);
     if (resultSet == nullptr) {
-        HIVIEW_LOGI("failed to query event event");
+        HIVIEW_LOGE("failed to query event event");
         return;
     }
     while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
@@ -694,7 +694,7 @@ void FoldAppUsageDbHelper::QueryAppEventRecords(int startIndex, int64_t dayStart
     };
     auto resultSet = rdbStore_->Query(predicates, columns);
     if (resultSet == nullptr) {
-        HIVIEW_LOGI("failed to query event event");
+        HIVIEW_LOGE("failed to query event event");
         return;
     }
     while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
