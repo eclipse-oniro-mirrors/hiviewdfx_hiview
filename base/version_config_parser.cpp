@@ -65,7 +65,7 @@ uint8_t VersionConfigParser::ParsePreserveConfig(const Json::Value& preserve)
         }
     } else if (preserve.isUInt()) {
         uint8_t PreserveValue = static_cast<uint8_t>(preserve.asUInt());
-        if (PreserveValue == 1) {
+        if (PreserveValue == ALL) {
             controlTag |= BETA_PRESERVE | COMM_PRESERVE;
         } else if (PreserveValue == COMMERCIAL_ONLY) {
             controlTag |= COMM_PRESERVE;
@@ -87,7 +87,7 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
         }
     } else if (collect.isUInt()) {
         uint8_t collectValue = static_cast<uint8_t>(collect.asUInt());
-        if (collectValue == 1) {
+        if (collectValue == ALL) {
             controlTag |= BETA_COLLECT | COMM_COLLECT;
         } else if (collectValue == COMMERCIAL_ONLY) {
             controlTag |= COMM_COLLECT;
@@ -101,10 +101,8 @@ uint8_t VersionConfigParser::ParseCollectConfig(const Json::Value& collect)
 
 bool VersionConfigParser::ShouldCollect() const
 {
-    bool isBeta = Parameter::IsBetaVersion();
-    uint8_t checkTag = BETA_COLLECT;
-    if (isBeta) {
-        return controlTag_ & checkTag;           // check bit 0 (BETA_COLLECT)
+    if (Parameter::IsBetaVersion()) {
+        return controlTag_ & BETA_COLLECT;           // check bit 0 (BETA_COLLECT)
     } else {
         return controlTag_ & COMM_COLLECT;       // check bit 1 (COMM_COLLECT)
     }
@@ -112,12 +110,10 @@ bool VersionConfigParser::ShouldCollect() const
 
 bool VersionConfigParser::ShouldPreserve() const
 {
-    bool isBeta = Parameter::IsBetaVersion();
-    uint8_t checkTag = BETA_PRESERVE;
-    if (isBeta) {
-        return controlTag_ & checkTag;           // check bit 2 (BETA_PRESERVE)
+    if (Parameter::IsBetaVersion()) {
+        return controlTag_ & BETA_PRESERVE;       // check bit 2 (BETA_PRESERVE)
     } else {
-        return controlTag_ & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
+        return controlTag_ & COMM__PRESERVE;      // check bit 3 (COMM_PRESERVE)
     }
 }
 } // namespace HiviewDFX
