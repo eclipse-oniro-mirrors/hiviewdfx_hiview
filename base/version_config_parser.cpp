@@ -16,14 +16,12 @@
 #include "version_config_parser.h"
 
 #include "event_json_parser.h"
-#include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "json/json.h"
 #include <string>
 
 namespace OHOS {
 namespace HiviewDFX {
-DEFINE_LOG_TAG("VersionConfigParser");
 static constexpr uint8_t BETA_COLLECT = 0b0001;
 static constexpr uint8_t COMM_COLLECT = 0b0010;
 static constexpr uint8_t BETA_PRESERVE = 0b0100;
@@ -35,12 +33,10 @@ static constexpr char COLLECT[] = "collect";
 
 VersionConfigParser::VersionConfigParser(const Json::Value& jsonValue)
 {
-    controlTag_ = ParsePreserveCollectConfig(jsonValue);
+    controlTag_ = ParseConfig(jsonValue);
 }
 
-VersionConfigParser::~VersionConfigParser() {}
-
-uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonValue)
+uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue)
 {
     uint8_t controlTag = DO_NOTHING;
     if (jsonValue.isObject()) {
