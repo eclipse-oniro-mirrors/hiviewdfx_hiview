@@ -54,7 +54,6 @@ ohos_source_set("hiview_base") {
     "dispatch_rule_parser.cpp",
     "event.cpp",
     "event_dispatch_queue.cpp",
-    "version_config_parser.cpp",
     "event_json_parser.cpp",
     "domain_json_parser.cpp",
     "event_loop.cpp",
@@ -67,6 +66,7 @@ ohos_source_set("hiview_base") {
     "plugin_proxy.cpp",
     "privacy_manager.cpp",
     "sys_event.cpp",
+    "version_config_parser.cpp",
   ]
 
   deps = [

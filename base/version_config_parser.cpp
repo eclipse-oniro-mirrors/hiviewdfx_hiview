@@ -57,7 +57,7 @@ uint8_t VersionConfigParser::ParseConfig(const Json::Value& jsonValue, const std
     if ((key == PRESERVE && DEFAULT_PRESERVE_VAL) || (key == COLLECT && DEFAULT_COLLECT_VAL)) {
         controlTag |= betaCfg | commCfg;
     }
-    if (jsonValue.isMember(key.c_str())) {
+    if (!jsonValue.isMember(key.c_str())) {
         return controlTag;
     }
     Json::Value cfgJson = jsonValue[key];
