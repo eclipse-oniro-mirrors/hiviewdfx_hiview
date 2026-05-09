@@ -42,8 +42,8 @@ uint8_t VersionConfigParser::ParsePreserveCollectConfig(const Json::Value& jsonV
 {
     uint8_t controlTag = DO_NOTHING;
     if (jsonValue.isObject()) {
-        controlTag |= ParsePreserveConfig(preserve);
-        controlTag |= ParseCollectConfig(collect);
+        controlTag |= ParsePreserveConfig(jsonValue["preserve"]);
+        controlTag |= ParseCollectConfig(jsonValue["collect"]);
     }
     return controlTag;
 }
@@ -104,7 +104,7 @@ bool VersionConfigParser::ShouldPreserve() const
     if (Parameter::IsBetaVersion()) {
         return controlTag_ & BETA_PRESERVE;       // check bit 2 (BETA_PRESERVE)
     } else {
-        return controlTag_ & COMM__PRESERVE;      // check bit 3 (COMM_PRESERVE)
+        return controlTag_ & COMM_PRESERVE;      // check bit 3 (COMM_PRESERVE)
     }
 }
 } // namespace HiviewDFX
