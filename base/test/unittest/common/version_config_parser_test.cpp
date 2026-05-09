@@ -25,20 +25,6 @@ inline constexpr uint8_t COMM_COLLECT = 0b0010;  // Commercial collection
 inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
 inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
 
-class ParameterMock {
-public:
-
-    static bool IsBetaVersion()
-    {
-        return isBeta_;
-    }
-
-private:
-    static bool isBeta_;
-};
-
-bool ParameterMock::isBeta_ = false;
-
 class VersionConfigParserTest : public testing::Test {
 protected:
     void SetUp() override

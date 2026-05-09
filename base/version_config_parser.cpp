@@ -30,8 +30,8 @@ inline constexpr uint8_t BETA_PRESERVE = 0b0100; // Beta Preserve
 inline constexpr uint8_t COMM_PRESERVE = 0b1000; // Commercial Preserve
 
 // Define constants for preserve and collect
-static constexpr char PRESERVE[] = "preserve";
-static constexpr char COLLECT[] = "collect";
+inline constexpr char PRESERVE[] = "preserve";
+inline constexpr char COLLECT[] = "collect";
 
 VersionConfigParser::VersionConfigParser(const Json::Value& jsonValue)
 {
