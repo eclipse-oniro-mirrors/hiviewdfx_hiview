@@ -66,6 +66,7 @@ ohos_source_set("hiview_base") {
     "plugin_proxy.cpp",
     "privacy_manager.cpp",
     "sys_event.cpp",
+    "version_config_parser.cpp",
   ]
 
   deps = [

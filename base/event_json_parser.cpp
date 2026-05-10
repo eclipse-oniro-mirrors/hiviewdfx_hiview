@@ -26,6 +26,7 @@
 #include "privacy_manager.h"
 #include "securec.h"
 #include "hisysevent.h"
+#include "version_config_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -282,13 +283,9 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
-    if (HasBoolMember(baseJsonInfo, PRESERVE)) {
-        baseInfo.keyConfig.preserve = baseJsonInfo[PRESERVE].asBool() ? 1 : 0;
-    }
-
-    if (HasBoolMember(baseJsonInfo, COLLECT)) {
-        baseInfo.keyConfig.collect = baseJsonInfo[COLLECT].asBool() ? 1 : 0;
-    }
+    VersionConfigParser parser(baseJsonInfo);
+    baseInfo.keyConfig.preserve = parser.ShouldPreserve();
+    baseInfo.keyConfig.collect = parser.ShouldCollect();
 
     return baseInfo;
 }
