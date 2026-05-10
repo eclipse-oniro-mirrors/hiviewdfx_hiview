@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,9 +14,10 @@
  */
 #ifndef BASE_HIVIEWDFX_HIVIEW_CORE_PLUGIN_CONFIG_H
 #define BASE_HIVIEWDFX_HIVIEW_CORE_PLUGIN_CONFIG_H
+
 #include <list>
-#include <map>
 #include <string>
+
 namespace OHOS {
 namespace HiviewDFX {
 class PluginConfig {
@@ -36,11 +37,6 @@ public:
         std::list<std::string> pluginNameList;
     };
 
-    struct WorkPoolInfo {
-        std::string name;
-        int32_t threadCount = 0;
-    };
-
     PluginConfig() {};
     ~PluginConfig() {};
     explicit PluginConfig(const std::string& file);
@@ -53,7 +49,6 @@ private:
     void ParsePipeline(const std::string& pipelineStr);
     void ParsePipelineGroup(const std::string& pipelineGroup);
     std::string configPath_;
-    std::map<std::string, WorkPoolInfo> workPoolInfoMap_;
     std::list<PluginInfo> pluginInfoList_;
     std::list<PipelineInfo> pipelineInfoList_;
 };

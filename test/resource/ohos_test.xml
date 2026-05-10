@@ -19,6 +19,8 @@
             <option name="push" value="base/plugin_config1 -> /data/test/test_data/" src="res"/>
             <option name="push" value="base/plugin_config_2 -> /data/test/test_data/" src="res"/>
             <option name="push" value="base/plugin_config_incomplete -> /data/test/test_data/" src="res"/>
+            <option name="push" value="base/plugin_config_invalid_delay_time -> /data/test/test_data/" src="res"/>
+            <option name="push" value="base/plugin_config_invalid_plugin_number -> /data/test/test_data/" src="res"/>
         </preparer>
         <cleaner>
             <option name="shell" value="rm -rf /data/test/"/>
