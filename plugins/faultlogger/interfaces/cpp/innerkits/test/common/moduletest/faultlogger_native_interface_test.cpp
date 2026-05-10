@@ -308,5 +308,27 @@ HWTEST_F(FaultloggerNativeInterfaceTest, GwpAsanGrayscaleFaultLogTest001, testin
     auto result2 = GetGwpAsanGrayscaleState();
     ASSERT_TRUE(result2 >= 0);
 }
+
+/**
+ * @tc.name: GwpAsanInnerFaultLogTest001
+ * @tc.desc: GwpAsanInnerFaultLogTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerNativeInterfaceTest, GwpAsanInnerFaultLogTest001, testing::ext::TestSize.Level3)
+{
+    bool result = EnableGwpAsanInner("test_process", false, 1000, 2000, 5);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: GwpAsanInnerFaultLogTest002
+ * @tc.desc: GwpAsanInnerFaultLogTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerNativeInterfaceTest, GwpAsanInnerFaultLogTest002, testing::ext::TestSize.Level3)
+{
+    bool result = EnableGwpAsanInner("test_process", true, 1.0, 10.0, 1000);
+    ASSERT_FALSE(result);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

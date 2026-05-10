@@ -26,6 +26,7 @@ namespace HiviewDFX {
         DISABLE_GWP_ASAN_GRAYSALE,
         GET_GWP_ASAN_GRAYSALE,
         DESTROY,
+        ENABLE_GWP_ASAN_INNER,
     };
 
     enum class FaultLogQueryResultInterfaceCode {

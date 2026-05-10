@@ -37,6 +37,8 @@ public:
     virtual void DisableGwpAsanGrayscale(int32_t uid) = 0;
     virtual uint32_t GetGwpAsanGrayscaleState(int32_t uid) = 0;
     virtual uint64_t GetExtensionDelayTime() = 0;
+    virtual bool EnableGwpAsanInner(GwpAsanParams gwpAsanParams, const std::string& processName) = 0;
+    virtual bool CheckCallerIsAllowed() = 0;
 };
 
 extern "C" {

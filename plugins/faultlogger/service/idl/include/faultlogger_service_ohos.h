@@ -49,6 +49,9 @@ public:
 
     void Destroy() override;
 
+    bool EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration) override;
+
 private:
     struct FaultLogQuery {
         int32_t pid = -1;

@@ -368,6 +368,12 @@ public:
     {
     }
 
+    bool EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled, double sampleRate,
+        double maxSimutaneousAllocations, int32_t duration)
+    {
+        return false;
+    }
+
 public:
     enum Code {
         DEFAULT = -1,
@@ -377,6 +383,7 @@ public:
         DISABLE_GWP_ASAN_GRAYSALE,
         GET_GWP_ASAN_GRAYSALE,
         DESTROY,
+        ENABLE_GWP_ASAN_INNER,
     };
 };
 
@@ -634,6 +641,29 @@ HWTEST_F(FaultloggerUnittest, PageHistoryManager001, testing::ext::TestSize.Leve
     }
     ASSERT_EQ(manager.recorder_.MAX_RECORDED_PROCESS_NUM, manager.recorder_.pagesList_.size());
     ASSERT_EQ(manager.recorder_.MAX_RECORDED_PROCESS_NUM, manager.recorder_.lruCache_.size());
+}
+
+/**
+ * @tc.name: FaultLoggerServiceStubTest002
+ * @tc.desc: Test HandleEnableGwpAsanInner with invalid parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLoggerServiceStubTest002, testing::ext::TestSize.Level3)
+{
+    TestFaultLoggerServiceStub faultLoggerServiceStub;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    data.WriteInterfaceToken(FaultLoggerServiceStub::GetDescriptor());
+    data.WriteString("test_process");
+    data.WriteBool(true);
+    data.WriteDouble(0);
+    data.WriteDouble(1000);
+    data.WriteInt32(5);
+    int ret = faultLoggerServiceStub.OnRemoteRequest(TestFaultLoggerServiceStub::Code::ENABLE_GWP_ASAN_INNER,
+        data, reply, option);
+    ASSERT_EQ(ret, 3);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
