@@ -58,11 +58,8 @@ auto GetDightStrArr(const std::string& target)
 }
 }
 
-void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie) const
+std::list<std::string> FaultLogFreeze::BuildExternalLogList(const FaultLogInfo& info) const
 {
-    HIVIEW_LOGI("Start to report freezeJson !!!");
-
-    FreezeJsonUtil::FreezeJsonCollector collector = GetFreezeJsonCollector(info);
     std::list<std::string> externalLogList;
     externalLogList.push_back(info.logPath);
     std::string freezeExtPath = GetStrValFromMap(info.sectionMap, FaultKey::FREEZE_INFO_PATH);
@@ -76,6 +73,13 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
             externalLogList.push_back(mergedFile);
         }
     }
+    return externalLogList;
+}
+
+void FaultLogFreeze::PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHicollie,
+    const std::list<std::string>& externalLogList) const
+{
+    FreezeJsonUtil::FreezeJsonCollector collector = GetFreezeJsonCollector(info);
     std::string externalLog = FreezeJsonUtil::GetStrByList(externalLogList);
     std::string lifeTime = GetStrValFromMap(info.sectionMap, FaultKey::PROCESS_LIFETIME);
     uint64_t processLifeTime = strtoull(GetDightStrArr(lifeTime).front().c_str(), nullptr, DECIMAL_BASE);
@@ -106,21 +110,37 @@ void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool is
         .InitMemory(collector.memory)
         .InitThermalLevel(collector.thermal_Level)
         .InitExternalCallbackLog(collector.external_callback_log);
-        if (freezeType == "AppFreezeWarning") {
-            builder.InitBundleVersionCode(collector.version_code);
-        } else {
-            builder.InitExternalLog(externalLog);
-        }
-        FreezeJsonParams freezeJsonParams = builder.Build();
+    if (freezeType == "AppFreezeWarning") {
+        builder.InitBundleVersionCode(collector.version_code);
+    } else {
+        builder.InitExternalLog(externalLog);
+    }
+    FreezeJsonParams freezeJsonParams = builder.Build();
     EventPublish::GetInstance().PushEvent(info.id, eventType,
         HiSysEvent::EventType::FAULT, freezeJsonParams.JsonStr());
-    if (enableMainThreadSample != "1" && !freezeExtPath.empty()) {
-        std::string mergedFile = externalLogList.size() == 1 ? externalLogList.front() : "";
-        if (!mergedFile.empty() && mergedFile != info.logPath) {
-            FileUtil::RemoveFile(mergedFile);
-            HIVIEW_LOGI("removed merged temp file: %{public}s", mergedFile.c_str());
-        }
+}
+
+void FaultLogFreeze::RemoveMergedTempIfNeeded(const FaultLogInfo& info,
+    const std::list<std::string>& externalLogList) const
+{
+    std::string enableMainThreadSample = GetStrValFromMap(info.sectionMap, FaultKey::ENABLE_MAINTHREAD_SAMPLE);
+    std::string freezeExtPath = GetStrValFromMap(info.sectionMap, FaultKey::FREEZE_INFO_PATH);
+    if (enableMainThreadSample == "1" || freezeExtPath.empty()) {
+        return;
     }
+    std::string mergedFile = externalLogList.size() == 1 ? externalLogList.front() : "";
+    if (!mergedFile.empty() && mergedFile != info.logPath) {
+        FileUtil::RemoveFile(mergedFile);
+        HIVIEW_LOGI("removed merged temp file: %{public}s", mergedFile.c_str());
+    }
+}
+
+void FaultLogFreeze::ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie) const
+{
+    HIVIEW_LOGI("Start to report freezeJson !!!");
+    std::list<std::string> externalLogList = BuildExternalLogList(info);
+    PublishAppFreezeJson(info, isAppHicollie, externalLogList);
+    RemoveMergedTempIfNeeded(info, externalLogList);
     HIVIEW_LOGI("Report FreezeJson Successfully!");
 }
 
@@ -282,7 +302,7 @@ std::string FaultLogFreeze::MergeFreezeExtToLog(const std::string& logPath,
     }
     std::string tmpFileName = "appfreeze-merged-" + std::to_string(pid) + "-" +
         std::to_string(id) + "-" + std::to_string(TimeUtil::GetMilliseconds());
-    std::string tmpPath = "/data/log/eventlog/" + tmpFileName;
+    std::string tmpPath = std::string(FAULTLOG_TEMP_FOLDER) + tmpFileName;
     std::string mergedContent = logContent + "\n==========FREEZE_EXT_INFO==========\n" + freezeExtContent;
     if (!FileUtil::SaveStringToFile(tmpPath, mergedContent)) {
         HIVIEW_LOGE("failed to write merged file: %{public}s", tmpPath.c_str());

@@ -15,6 +15,8 @@
 #ifndef FAULTLOG_FREEZE_H
 #define FAULTLOG_FREEZE_H
 
+#include <list>
+
 #include "faultlog_event_ipc.h"
 #include "freeze_json_util.h"
 
@@ -29,6 +31,11 @@ private:
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
     std::string GetMemoryStrByPid(const std::map<std::string, std::string>& sectionMap, bool includePss) const;
     void ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie = false) const;
+    std::list<std::string> BuildExternalLogList(const FaultLogInfo& info) const;
+    void PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHicollie,
+        const std::list<std::string>& externalLogList) const;
+    void RemoveMergedTempIfNeeded(const FaultLogInfo& info,
+        const std::list<std::string>& externalLogList) const;
     void UpdateTerminalThreadStack();
     std::string MergeFreezeExtToLog(const std::string& logPath, const std::string& freezeExtPath,
         int32_t pid, int32_t id) const;
