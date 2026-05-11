@@ -51,8 +51,6 @@ constexpr char COLUMN_THREAD_CNT[] = "thread_cnt";
 constexpr char COLUMN_VERSION_NAME[] = "name";
 constexpr uint32_t DEFAULT_PRECISION_OF_DECIMAL = 6; // 0.123456
 constexpr int32_t MEM_CG_PROCESS_FLAG = 100;
-constexpr char LIBUCOLLECTION_UTILITY_EX_NAME[] = "libucollection_utility_ex.z.so";
-constexpr char GET_MEM_CG_PROCESSES_FUNC_NAME[] = "GetMemCgProcesses";
 
 std::string CreateDbFileName()
 {
@@ -361,12 +359,12 @@ void CpuStorage::ReportDbRecords()
 
 void CpuStorage::InitMemCgHandle()
 {
-    memCgHandle_ = dlopen(LIBUCOLLECTION_UTILITY_EX_NAME, RTLD_LAZY);
+    memCgHandle_ = dlopen("libprocess_utility_ex.z.so", RTLD_LAZY);
     if (memCgHandle_ == nullptr) {
-        HIVIEW_LOGW("dlopen libucollection_utility_ex.z.so failed, error: %{public}s", dlerror());
+        HIVIEW_LOGW("dlopen process_utility_ex so failed, error: %{public}s", dlerror());
         return;
     }
-    getMemCgProcess_ = reinterpret_cast<GetMemCgProcessFunc>(dlsym(memCgHandle_, GET_MEM_CG_PROCESSES_FUNC_NAME));
+    getMemCgProcess_ = reinterpret_cast<GetMemCgProcessFunc>(dlsym(memCgHandle_, "GetMemCgProcesses"));
     if (getMemCgProcess_ == nullptr) {
         HIVIEW_LOGW("dlsym GetMemCgProcesses failed, %{public}s.", dlerror());
         dlclose(memCgHandle_);
