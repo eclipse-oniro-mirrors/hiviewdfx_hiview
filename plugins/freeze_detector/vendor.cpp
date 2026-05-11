@@ -143,8 +143,9 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoi
     info.sectionMaps[FreezeCommon::TRACE_NAME] = FreezeManager::GetInstance()->GetTraceName(faultTime);
     std::string procStatm = watchPoint.GetProcStatm();
     info.sectionMaps[FreezeCommon::PROC_STATM] = procStatm;
-    info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetEnabelMainThreadSample() ?
-        watchPoint.GetFreezeExtFile() : info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH];
+    info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
+    info.sectionMaps[FreezeCommon::EVENT_ENABLE_MAINTHREAD_SAMPLE] =
+        watchPoint.GetEnabelMainThreadSample() ? "1" : "0";
     info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
