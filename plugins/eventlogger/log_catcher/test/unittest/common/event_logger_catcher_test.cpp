@@ -1720,5 +1720,91 @@ HWTEST_F(EventloggerCatcherTest, LightHilogCatcherTest_001, TestSize.Level1)
     EXPECT_TRUE(pid > 0);
 }
 #endif // HILOG_CATCHER_ENABLE
+
+/**
+ * @tc.name: GetHicollieBinderPosTest
+ * @tc.desc: test GetHicollieBinderPos function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, GetHicollieBinderPosTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "syncPids:123 asyncPids:456 terminalBinder:789,101";
+    size_t syncPos, asyncPos, terminalPos;
+    peerBinderCatcher->GetHicollieBinderPos(hicollieBinderInfo, syncPos, asyncPos, terminalPos);
+    EXPECT_EQ(syncPos, 0);
+    EXPECT_TRUE(asyncPos > 0);
+    EXPECT_TRUE(terminalPos > 0);
+}
+ 
+/**
+ * @tc.name: ParseBinderInfoFromHicollieTest
+ * @tc.desc: test ParseBinderInfoFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseBinderInfoFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    auto fd = open("/data/test/ParseBinderInfoFromHicollieTest", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create test file. errno: %d\n", errno);
+        FAIL();
+    }
+    std::string hicollieBinderInfo = "syncPids:123(abc) asyncPids:456,789 terminalBinder:111,222";
+    std::set<int> syncPids;
+    std::set<int> asyncPids;
+    peerBinderCatcher->ParseBinderInfoFromHicollie(fd, hicollieBinderInfo, syncPids, asyncPids);
+    EXPECT_GT(syncPids.size(), 0);
+    EXPECT_GT(asyncPids.size(), 0);
+    close(fd);
+}
+ 
+/**
+ * @tc.name: ParseSyncPidsFromHicollieTest
+ * @tc.desc: test ParseSyncPidsFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseSyncPidsFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "syncPids:100(test1);200(test2);300(test3)";
+    std::set<int> syncPids;
+    peerBinderCatcher->ParseSyncPidsFromHicollie(hicollieBinderInfo, 0, 50, syncPids);
+    EXPECT_EQ(syncPids.size(), 3);
+    EXPECT_TRUE(syncPids.find(100) != syncPids.end());
+    EXPECT_TRUE(syncPids.find(200) != syncPids.end());
+    EXPECT_TRUE(syncPids.find(300) != syncPids.end());
+}
+ 
+/**
+ * @tc.name: ParseAsyncPidsFromHicollieTest
+ * @tc.desc: test ParseAsyncPidsFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseAsyncPidsFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "asyncPids:100,200,300";
+    std::set<int> asyncPids;
+    peerBinderCatcher->ParseAsyncPidsFromHicollie(hicollieBinderInfo, 10, std::string::npos, asyncPids);
+    EXPECT_EQ(asyncPids.size(), 3);
+    EXPECT_TRUE(asyncPids.find(100) != asyncPids.end());
+    EXPECT_TRUE(asyncPids.find(200) != asyncPids.end());
+    EXPECT_TRUE(asyncPids.find(300) != asyncPids.end());
+}
+ 
+/**
+ * @tc.name: ParseTerminalFromHicollieTest
+ * @tc.desc: test ParseTerminalFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseTerminalFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "terminalBinder:12345,6789";
+    peerBinderCatcher->ParseTerminalFromHicollie(hicollieBinderInfo, 15);
+    EXPECT_EQ(peerBinderCatcher->terminalBinder_.pid, 12345);
+    EXPECT_EQ(peerBinderCatcher->terminalBinder_.tid, 6789);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

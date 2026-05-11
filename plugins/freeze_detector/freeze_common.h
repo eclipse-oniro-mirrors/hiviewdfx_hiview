@@ -43,7 +43,7 @@ public:
     static constexpr const char* FREEZE_HALF_HIVIEW_SUCCESS = "FREEZE_HALF_HIVIEW_LOG write success";
     static constexpr const char* PB_EVENTS[] = {
         "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT",
-        "LIFECYCLE_HALF_TIMEOUT_WARNING"
+        "LIFECYCLE_HALF_TIMEOUT_WARNING", "SERVICE_WARNING"
     };
     static constexpr const char* EVENT_TRACE_ID = "HITRACE_ID";
     static constexpr const char* PROC_STATM = "PROC_STATM";
