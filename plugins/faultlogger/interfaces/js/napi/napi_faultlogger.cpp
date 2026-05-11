@@ -171,7 +171,7 @@ static bool CreateFaultLogAsyncWork(napi_env env, FaultLogInfoContext* faultLogI
     napi_value resourceName = nullptr;
     napi_create_string_utf8(env, "QuerySelfFaultLog", NAPI_AUTO_LENGTH, &resourceName);
     napi_status status = napi_create_async_work(env, resource, resourceName, FaultLogExecuteCallback,
-        FaultLogCompleteCallback, (void *)faultLogInfoContext, &faultLogInfoContext->work);
+        FaultLogCompleteCallback, static_cast<void *>(faultLogInfoContext), &faultLogInfoContext->work);
     if (status != napi_ok) {
         HIVIEW_LOGE("napi_create_async_work failed");
         GET_AND_THROW_LAST_ERROR(env);
