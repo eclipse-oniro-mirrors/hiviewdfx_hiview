@@ -77,7 +77,7 @@ std::list<std::string> FaultLogFreeze::BuildExternalLogList(const FaultLogInfo& 
 }
 
 void FaultLogFreeze::PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHicollie,
-    const std::list<std::string>& externalLogList) const
+    std::list<std::string>& externalLogList) const
 {
     FreezeJsonUtil::FreezeJsonCollector collector = GetFreezeJsonCollector(info);
     std::string externalLog = FreezeJsonUtil::GetStrByList(externalLogList);

@@ -33,7 +33,7 @@ private:
     void ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie = false) const;
     std::list<std::string> BuildExternalLogList(const FaultLogInfo& info) const;
     void PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHicollie,
-        const std::list<std::string>& externalLogList) const;
+        std::list<std::string>& externalLogList) const;
     void RemoveMergedTempIfNeeded(const FaultLogInfo& info,
         const std::list<std::string>& externalLogList) const;
     void UpdateTerminalThreadStack();
