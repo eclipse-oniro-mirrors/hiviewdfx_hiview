@@ -30,6 +30,8 @@ private:
     std::string GetMemoryStrByPid(const std::map<std::string, std::string>& sectionMap, bool includePss) const;
     void ReportAppFreezeToAppEvent(const FaultLogInfo& info, bool isAppHicollie = false) const;
     void UpdateTerminalThreadStack();
+    std::string MergeFreezeExtToLog(const std::string& logPath, const std::string& freezeExtPath,
+        int32_t pid, int32_t id) const;
     static std::string GetException(const std::string& name, const std::string& message);
 
     uint64_t rss_ = 0;

@@ -47,6 +47,7 @@ constexpr const char * const DEVICE_DEBUGABLE = "DEVICE_DEBUGABLE";
 constexpr const char * const DEVICE_INFO = "DEVICE_INFO";
 constexpr const char * const DEVICE_MEMINFO = "DEVICE_MEMINFO";
 constexpr const char * const ENABLED_APP_LOG_CONFIG = "ENABLED_APP_LOG_CONFIG";
+constexpr const char * const ENABLE_MAINTHREAD_SAMPLE = "ENABLE_MAINTHREAD_SAMPLE";
 constexpr const char * const ENABLE_MINIDUMP = "ENABLE_MINIDUMP";
 constexpr const char * const ENABLE_MINIDUMP_LOG = "ENABLE_MINIDUMP_LOG";
 constexpr const char * const ERRORMANAGER_CAPTURE = "ERRORMANAGER_CAPTURE";
