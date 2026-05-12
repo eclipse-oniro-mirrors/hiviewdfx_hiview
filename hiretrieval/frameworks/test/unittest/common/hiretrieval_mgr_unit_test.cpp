@@ -37,7 +37,18 @@ bool IsSameCfg(const HiRetrievalMgr::Config& src, const HiRetrievalMgr::Config& 
         std::string(src.deviceType) == std::string(dest.deviceType) &&
         std::string(src.deviceModel) == std::string(dest.deviceModel);
 }
+
+void RebuildConfigMemToSpecifiedLen(HiRetrievalMgr::Config& cfg, const size_t cnt)
+{
+    cfg.userType = "";
+    cfg.userType.append(cnt, '0');
+    cfg.deviceType = "";
+    cfg.deviceType.append(cnt, '0');
+    cfg.deviceModel = "";
+    cfg.deviceModel.append(cnt, '0');
 }
+}
+
 void HiRetrievalMgrUnitTest::SetUpTestCase()
 {
 }
@@ -172,6 +183,46 @@ HWTEST_F(HiRetrievalMgrUnitTest, HiRetrievalMgrUnitTest004, testing::ext::TestSi
     ASSERT_TRUE(ret == HiRetrieval::NativeErrorCode::DLL_FAILED || ret == HiRetrieval::NativeErrorCode::SUCC);
     nailCfg = instance.GetCurrentConfig();
     ASSERT_TRUE(IsUnitializedCfg(nailCfg));
+}
+
+/**
+ * @tc.name: HiRetrievalMgrUnitTest005
+ * @tc.desc: test the max length of member of HiRetrievalConfig
+ * @tc.type: FUNC
+ * @tc.require: issue3276
+ */
+HWTEST_F(HiRetrievalMgrUnitTest, HiRetrievalMgrUnitTest005, testing::ext::TestSize.Level3)
+{
+    auto& instance = HiRetrievalMgr::GetInstance();
+    instance.SetWorkDir(PREFERNECE_DIR);
+    instance.Quit();
+    auto ret = instance.Init();
+    ASSERT_TRUE(ret == HiRetrieval::NativeErrorCode::DLL_FAILED || ret == HiRetrieval::NativeErrorCode::SUCC);
+    HiRetrievalMgr::Config cfg;
+    int maxLen = 128; // support max length is 128
+    RebuildConfigMemToSpecifiedLen(cfg, maxLen);
+    ret = instance.Participate(cfg);
+    ASSERT_TRUE(ret == HiRetrieval::NativeErrorCode::DLL_FAILED || ret == HiRetrieval::NativeErrorCode::SUCC);
+    cfg = instance.GetCurrentConfig();
+    ASSERT_EQ(cfg.userType.length(), maxLen);
+    ASSERT_EQ(cfg.deviceType.length(), maxLen);
+    ASSERT_EQ(cfg.deviceType.length(), maxLen);
+    int overLimitLen = 130; // 130 is a test length which is more than limit len
+    RebuildConfigMemToSpecifiedLen(cfg, overLimitLen);
+    ret = instance.Participate(cfg);
+    ASSERT_TRUE(ret == HiRetrieval::NativeErrorCode::DLL_FAILED || ret == HiRetrieval::NativeErrorCode::SUCC);
+    cfg = instance.GetCurrentConfig();
+    ASSERT_EQ(cfg.userType.length(), maxLen);
+    ASSERT_EQ(cfg.deviceType.length(), maxLen);
+    ASSERT_EQ(cfg.deviceType.length(), maxLen);
+    int validLen = 100; // 100 is a test length which is less than limit len
+    RebuildConfigMemToSpecifiedLen(cfg, validLen);
+    ret = instance.Participate(cfg);
+    ASSERT_TRUE(ret == HiRetrieval::NativeErrorCode::DLL_FAILED || ret == HiRetrieval::NativeErrorCode::SUCC);
+    cfg = instance.GetCurrentConfig();
+    ASSERT_EQ(cfg.userType.length(), validLen);
+    ASSERT_EQ(cfg.deviceType.length(), validLen);
+    ASSERT_EQ(cfg.deviceType.length(), validLen);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
