@@ -353,6 +353,15 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     SetEventTerminalBinder(event, threadStack, fd);
     auto end = TimeUtil::GetMilliseconds();
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
+    if (event->eventName_ == "SERVICE_BLOCK") {
+        std::string sampleStack = event->GetEventValue("SAMPLE_STACK");
+        if (!sampleStack.empty()) {
+            FreezeCommon::WriteTimeInfoToFd(fd, "sample stack write start time:", true);
+            sampleStack = StringUtil::UnescapeJsonStringValue(sampleStack);
+            FileUtil::SaveStringToFd(fd, "sample stack content:\n" + sampleStack + "\n");
+            FreezeCommon::WriteTimeInfoToFd(fd, "sample stack write end time:", false);
+        }
+    }
 }
 
 void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask)
