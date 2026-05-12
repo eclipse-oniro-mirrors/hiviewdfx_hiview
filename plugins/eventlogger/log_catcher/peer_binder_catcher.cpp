@@ -275,15 +275,16 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
             if (Parameter::IsOversea()) {
                 return;
             } else if (line.find("free_async_space") == line.npos && strList.size() == ARR_SIZE &&
-                std::atoll(strList[FREE_ASYNC_INDEX].c_str()) < FREE_ASYNC_MAX) {
-                freeAsyncSpacePairs.emplace_back(std::atoi(strList[0].c_str()),
-                    std::atoll(strList[FREE_ASYNC_INDEX].c_str()));
+                std::strtoll(strList[FREE_ASYNC_INDEX].c_str(), nullptr, DECIMAL) < FREE_ASYNC_MAX) {
+                freeAsyncSpacePairs.emplace_back(std::strtol(strList[0].c_str(), nullptr, DECIMAL),
+                    std::strtoll(strList[FREE_ASYNC_INDEX].c_str(), nullptr, DECIMAL));
             }
         } else if (line.find("async\t") != std::string::npos && strList.size() > ARR_SIZE) {
             std::string serverPid = StrSplit(strList[3], 0);
             std::string serverTid = StrSplit(strList[3], 1);
-            if (serverPid != "" && serverTid != "" && std::atoi(serverTid.c_str()) == 0 && !Parameter::IsOversea()) {
-                asyncBinderMap[std::atoi(serverPid.c_str())]++;
+            if (serverPid != "" && serverTid != "" && std::strtol(serverTid.c_str(), nullptr, DECIMAL) == 0 &&
+                !Parameter::IsOversea()) {
+                asyncBinderMap[std::strtol(serverPid.c_str(), nullptr, DECIMAL)]++;
             }
         } else if (strList.size() >= ARR_SIZE) { // 7: valid array size
             // 0: binder local id,
