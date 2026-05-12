@@ -42,7 +42,7 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
 {
     RecordInputEvent(type, sourceType, time, 0, 0);
 }
- 
+
 void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time,
     int32_t xPos, int32_t yPos)
 {
@@ -85,7 +85,7 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
             break;
     }
 }
- 
+
 InputEventInfo InputMonitor::GetInputEventInfo(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
     std::lock_guard<std::mutex> Lock(mMutex);

@@ -75,7 +75,7 @@ void PerfMonitorAdapter::RecordInputEvent(PerfActionType type, PerfSourceType so
 {
     InputMonitor::GetInstance().RecordInputEvent(type, sourceType, time, xPos, yPos);
 }
- 
+
 InputEventInfo PerfMonitorAdapter::GetInputEventInfo(const std::string& sceneId, PerfActionType type,
     const std::string& note)
 {
