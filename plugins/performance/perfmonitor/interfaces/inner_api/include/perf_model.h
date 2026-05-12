@@ -91,6 +91,7 @@ struct DataBase {
     std::vector<int> jankCount {0, 0, 0, 0, 0, 0, 0, 0};
     bool needReportRs {false};
     bool isDisplayAnimator {false};
+    std::string pos;
     PerfSourceType sourceType {UNKNOWN_SOURCE};
     PerfActionType actionType {UNKNOWN_ACTION};
     PerfEventType eventType {UNKNOWN_EVENT};
@@ -153,10 +154,16 @@ struct LoadCompleteInfo {
     bool isLaunch{false};
 };
 
+struct InputEventInfo {
+    int64_t inputTime = 0;
+    int32_t xPos = 0;
+    int32_t yPos = 0;
+};
+
 class AnimatorRecord {
 public:
     void InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType, const std::string& nt,
-        int64_t time);
+        InputEventInfo info);
     void RecordFrame(int64_t vsyncTime, int64_t duration, int32_t skippedFrames);
     void Report(const std::string& sceneId, int64_t vsyncTime, bool isRsRender);
     bool IsTimeOut(int64_t nowTime);
@@ -164,7 +171,7 @@ public:
     bool IsDisplayAnimator(const std::string& sceneId);
     void Reset();
 public:
-    int64_t inputTime {0};
+    InputEventInfo inputEventInfo {0, 0, 0};
     int64_t beginVsyncTime {0};
     int64_t endVsyncTime {0};
     int64_t maxFrameTime {0};

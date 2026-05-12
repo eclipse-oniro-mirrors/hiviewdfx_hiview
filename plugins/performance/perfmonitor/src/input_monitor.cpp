@@ -40,22 +40,31 @@ InputMonitor& InputMonitor::GetInstance()
 
 void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time)
 {
+    RecordInputEvent(type, sourceType, time, 0, 0);
+}
+ 
+void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time,
+    int32_t xPos, int32_t yPos)
+{
     std::lock_guard<std::mutex> Lock(mMutex);
     mSourceType = sourceType;
     if (time <= 0) {
         time = GetCurrentRealTimeNs();
     }
+    InputEventInfo inputEventInfo = {time, xPos, yPos};
     switch (type) {
         case LAST_DOWN:
             {
-                XPERF_TRACE_SCOPED("RecordInputEvent: last_down=%lld(ns)", static_cast<long long>(time));
-                mInputTime[LAST_DOWN] = time;
+                XPERF_TRACE_SCOPED("RecordInputEvent: last_down=%lld(ns), pos=(%d,%d)",
+                    static_cast<long long>(time), xPos, yPos);
+                mInputTime[LAST_DOWN] = inputEventInfo;
                 break;
             }
         case LAST_UP:
             {
-                XPERF_TRACE_SCOPED("RecordInputEvent: last_up=%lld(ns)", static_cast<long long>(time));
-                mInputTime[LAST_UP] = time;
+                XPERF_TRACE_SCOPED("RecordInputEvent: last_up=%lld(ns), pos=(%d,%d)",
+                    static_cast<long long>(time), xPos, yPos);
+                mInputTime[LAST_UP] = inputEventInfo;
                 SceneMonitor::GetInstance().OnLastUpInputEvent();
                 #ifdef NOT_BUILD_FOR_OHOS_SDK
                 ReportInputEvent("LAST_UP", GetCurrentSystimeMs());
@@ -64,8 +73,9 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
             }
         case FIRST_MOVE:
             {
-                XPERF_TRACE_SCOPED("RecordInputEvent: first_move=%lld(ns)", static_cast<long long>(time));
-                mInputTime[FIRST_MOVE] = time;
+                XPERF_TRACE_SCOPED("RecordInputEvent: first_move=%lld(ns), pos=(%d,%d)",
+                    static_cast<long long>(time), xPos, yPos);
+                mInputTime[FIRST_MOVE] = inputEventInfo;
                 #ifdef NOT_BUILD_FOR_OHOS_SDK
                 ReportInputEvent("FIRST_MOVE", GetCurrentSystimeMs());
                 #endif
@@ -75,6 +85,31 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
             break;
     }
 }
+ 
+InputEventInfo InputMonitor::GetInputEventInfo(const std::string& sceneId, PerfActionType type, const std::string& note)
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    InputEventInfo inputEventInfo = {0, 0, 0};
+    switch (type) {
+        case LAST_DOWN:
+            inputEventInfo = mInputTime[LAST_DOWN];
+            break;
+        case LAST_UP:
+            inputEventInfo = mInputTime[LAST_UP];
+            break;
+        case FIRST_MOVE:
+            inputEventInfo = mInputTime[FIRST_MOVE];
+            break;
+        default:
+            break;
+    }
+    int64_t inputTime = inputEventInfo.inputTime;
+    if (inputTime <= 0 || SceneMonitor::GetInstance().IsExceptResponseTime(inputTime, sceneId)) {
+        XPERF_TRACE_SCOPED("GetInputTime: now time");
+        inputEventInfo = {GetCurrentRealTimeNs(), 0, 0};
+    }
+    return inputEventInfo;
+}
 
 int64_t InputMonitor::GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
@@ -82,13 +117,13 @@ int64_t InputMonitor::GetInputTime(const std::string& sceneId, PerfActionType ty
     int64_t inputTime = 0;
     switch (type) {
         case LAST_DOWN:
-            inputTime = mInputTime[LAST_DOWN];
+            inputTime = mInputTime[LAST_DOWN].inputTime;
             break;
         case LAST_UP:
-            inputTime = mInputTime[LAST_UP];
+            inputTime = mInputTime[LAST_UP].inputTime;
             break;
         case FIRST_MOVE:
-            inputTime = mInputTime[FIRST_MOVE];
+            inputTime = mInputTime[FIRST_MOVE].inputTime;
             break;
         default:
             break;

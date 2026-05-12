@@ -28,13 +28,15 @@ class InputMonitor {
 public:
     static InputMonitor& GetInstance();
     void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time);
+    void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time, int32_t xPos, int32_t yPos);
+    InputEventInfo GetInputEventInfo(const std::string& sceneId, PerfActionType type, const std::string& note);
     int64_t GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note);
     PerfSourceType GetSourceType();
     int64_t GetVsyncTime();
     void SetVsyncTime(int64_t val);
 private:
     mutable std::mutex mMutex;
-    std::map<PerfActionType, int64_t> mInputTime;
+    std::map<PerfActionType, InputEventInfo> mInputTime;
     int64_t mVsyncTime {0};
     PerfSourceType mSourceType {UNKNOWN_SOURCE};
 

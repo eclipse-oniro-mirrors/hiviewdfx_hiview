@@ -35,6 +35,8 @@ public:
     void UnregisterSceneCallback(ISceneCallback* cb);
 
     void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time);
+    void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time, int32_t xPos, int32_t yPos);
+    InputEventInfo GetInputEventInfo(const std::string& sceneId, PerfActionType type, const std::string& note);
     int64_t GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note);
 
     void NotifyAppJankStatsBegin();

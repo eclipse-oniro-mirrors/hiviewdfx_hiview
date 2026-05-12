@@ -77,6 +77,8 @@ namespace {
     constexpr char EVENT_KEY_SUBHEALTH_TIME[] = "SUB_HEALTH_TIME";
     constexpr char EVENT_KEY_VSYNC_TIME[] = "VSYNC_TIME";
     constexpr char EVENT_KEY_JANK_COUNT[] = "JANK_COUNT";
+    constexpr char EVENT_KEY_ACTION_TYPE[] = "ACTION_TYPE";
+    constexpr char EVENT_KEY_POS[] = "POS";
     constexpr char STATISTIC_DURATION[] = "DURATION";
     constexpr char KEY_SCROLL_START_TIME[] = "SCROLL_START_TIME";
     constexpr char KEY_SCROLL_END_TIME[] = "SCROLL_END_TIME";
@@ -417,6 +419,8 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
         .Param(EVENT_KEY_SUBHEALTH_REASON, data.baseInfo.subHealthInfo.subHealthReason)
         .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(data.baseInfo.subHealthInfo.subHealthTime))
         .Param(EVENT_KEY_JANK_COUNT, jankStr)
+        .Param(EVENT_KEY_ACTION_TYPE, GetActionTypeName(data.actionType))
+        .Param(EVENT_KEY_POS, data.pos)
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
