@@ -32,7 +32,7 @@ class InitState : public ICollectState {
 public:
     void StartCollectForLaunch() override;
     void StartCollectForAnimation(const std::string& sceneId) override;
-    void AddComponent(int32_t componentId) override;
+    void AddComponent(int32_t componentId, int32_t sourceType) override;
     void DeleteComponent(int32_t componentId) override;
     void CompleteComponent(int32_t componentId) override;
     void StopCollect() override;
@@ -49,7 +49,7 @@ class CollectingState : public ICollectState {
 public:
 void StartCollectForLaunch() override;
     void StartCollectForAnimation(const std::string& sceneId) override;
-    void AddComponent(int32_t componentId) override;
+    void AddComponent(int32_t componentId, int32_t sourceType) override;
     void DeleteComponent(int32_t componentId) override;
     void CompleteComponent(int32_t componentId) override;
     void StopCollect() override;

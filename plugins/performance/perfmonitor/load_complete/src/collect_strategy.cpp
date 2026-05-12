@@ -19,6 +19,7 @@
 #include "perf_utils.h"
 
 namespace {
+constexpr int32_t UNSUPPORTED_SOURCE_TYPE = -1;
 constexpr int32_t MAX_COMPLETE_TIMES = 3;
 constexpr double MAX_UNCOMPLETE_COMPONENT_RATIO = 0.25;
 constexpr double MAX_COMPLETE_RATE = 0.7;
@@ -31,28 +32,29 @@ namespace HiviewDFX {
 
 // ==================== PreloadCollectStrategy 实现 ====================
 
-void PreloadCollectStrategy::AddComponent(int32_t componentId)
+void PreloadCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType)
 {
-    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] AddComponent componentId:%d", componentId);
+    XPERF_TRACE_SCOPED("[LoadCompleteMonitor] AddComponent componentId:%d,sourceType:%d", componentId, sourceType);
     addComponentInfos_.emplace_back(componentId, GetCurrentSystimeMs());
-    completeComponentInfos_[componentId] = {MAX_COMPLETE_TIMES, 0};
+    completeComponentInfos_[componentId] = {0, MAX_COMPLETE_TIMES, sourceType != UNSUPPORTED_SOURCE_TYPE};
 }
 
 void PreloadCollectStrategy::DeleteComponent(int32_t componentId)
 {
     if (completeComponentInfos_.count(componentId)) {
         XPERF_TRACE_SCOPED("[LoadCompleteMonitor] DeleteComponent componentId:%d", componentId);
-        completeComponentInfos_[componentId].first = 0;
+        completeComponentInfos_[componentId].remainCompleteTimes = 0;
     }
 }
 
 void PreloadCollectStrategy::CompleteComponent(int32_t componentId)
 {
     if (completeComponentInfos_.count(componentId)) {
-        if (completeComponentInfos_[componentId].first > 0) {
+        if (completeComponentInfos_[componentId].remainCompleteTimes > 0) {
             XPERF_TRACE_SCOPED("[LoadCompleteMonitor] CompleteComponent componentId:%d", componentId);
-            completeComponentInfos_[componentId].first--;
-            completeComponentInfos_[componentId].second = GetCurrentSystimeMs();
+            completeComponentInfos_[componentId].remainCompleteTimes--;
+            completeComponentInfos_[componentId].completeTimestamp = GetCurrentSystimeMs();
+            completeComponentInfos_[componentId].needComplete = true;
         }
     }
 }
@@ -60,42 +62,52 @@ void PreloadCollectStrategy::CompleteComponent(int32_t componentId)
 CollectResult PreloadCollectStrategy::CalculateResult(int64_t beginTime)
 {
     CollectResult result = {0, 0, 0, false};
-    
-    if (addComponentInfos_.empty()) {
+
+    // sourceType为-1且没有complete的组件不纳入统计
+    std::vector<std::pair<int32_t, int64_t>> needCompleteAddInfos;
+    for (auto addInfo : addComponentInfos_) {
+        if (completeComponentInfos_[addInfo.first].needComplete) {
+            needCompleteAddInfos.push_back(addInfo);
+        }
+    }
+
+    if (needCompleteAddInfos.empty()) {
         result.isCompleted = true;
         return result;
     }
     
-    int maxCompleteIdx = static_cast<int>(addComponentInfos_.size() * MAX_COMPLETE_RATE);
-    int minCompleteIdx = static_cast<int>(addComponentInfos_.size() * MIN_COMPLETE_RATE);
+    int maxCompleteIdx = static_cast<int>(needCompleteAddInfos.size() * MAX_COMPLETE_RATE);
+    int minCompleteIdx = static_cast<int>(needCompleteAddInfos.size() * MIN_COMPLETE_RATE);
     
     // 边界保护
-    maxCompleteIdx = std::min(maxCompleteIdx, static_cast<int>(addComponentInfos_.size()) - 1);
+    maxCompleteIdx = std::min(maxCompleteIdx, static_cast<int>(needCompleteAddInfos.size()) - 1);
     minCompleteIdx = std::min(minCompleteIdx, maxCompleteIdx);
     
-    int64_t postAddTime = addComponentInfos_[maxCompleteIdx].second;
+    int64_t postAddTime = needCompleteAddInfos[maxCompleteIdx].second;
     int endIdx = minCompleteIdx;
     
     for (int i = maxCompleteIdx - 1; i > minCompleteIdx; i--) {
-        if (postAddTime - addComponentInfos_[i].second > MAX_INTRA_GROUP_GAP) {
+        if (postAddTime - needCompleteAddInfos[i].second > MAX_INTRA_GROUP_GAP) {
             endIdx = i;
             break;
         }
-        postAddTime = addComponentInfos_[i].second;
+        postAddTime = needCompleteAddInfos[i].second;
     }
-    
-    for (int i = 0; i <= endIdx; i++) {
-        auto it = completeComponentInfos_.find(addComponentInfos_[i].first);
+    int32_t endComponentId = needCompleteAddInfos[endIdx].first;
+    for (auto needCompleteAddInfo : needCompleteAddInfos) {
+        if (needCompleteAddInfo.first > endComponentId) {
+            continue;
+        }
+        auto it = completeComponentInfos_.find(needCompleteAddInfo.first);
         if (it != completeComponentInfos_.end()) {
             auto completeComponentInfo = it->second;
-            if (completeComponentInfo.first == MAX_COMPLETE_TIMES) {
+            if (completeComponentInfo.remainCompleteTimes == MAX_COMPLETE_TIMES) {
                 result.incompleteNum++;
             } else {
-                result.lastLoadComponent = std::max(result.lastLoadComponent, completeComponentInfo.second);
+                result.lastLoadComponent = std::max(result.lastLoadComponent, completeComponentInfo.completeTimestamp);
             }
         }
     }
-    
     result.monitoredNum = endIdx + 1;
     result.isCompleted = (result.incompleteNum <= static_cast<int32_t>(MAX_UNCOMPLETE_COMPONENT_RATIO *
         result.monitoredNum));
@@ -110,8 +122,11 @@ void PreloadCollectStrategy::Reset()
 
 // ==================== NonPreloadCollectStrategy 实现 ====================
 
-void NonPreloadCollectStrategy::AddComponent(int32_t componentId)
+void NonPreloadCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType)
 {
+    if (sourceType == UNSUPPORTED_SOURCE_TYPE) {
+        return;
+    }
     XPERF_TRACE_SCOPED("[LoadCompleteMonitor] AddComponent componentId:%d", componentId);
     monitoredComponents_[componentId] = MAX_COMPLETE_TIMES;
 }
@@ -162,7 +177,7 @@ void NonPreloadCollectStrategy::Reset()
 
 // ==================== NoDetectCollectStrategy 实现 ====================
 
-void NoDetectCollectStrategy::AddComponent(int32_t componentId)
+void NoDetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType)
 {
     // 不检测策略：不进行任何操作
 }
