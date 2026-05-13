@@ -67,8 +67,9 @@ public:
     /**
      * @brief 添加加载组件（状态模式接口）
      * @param componentId 组件ID
+     * @param sourceType 资源类型
      */
-    void AddLoadComponent(int32_t componentId);
+    void AddLoadComponent(int32_t componentId, int32_t sourceType);
 
     /**
      * @brief 删除加载组件（状态模式接口）
@@ -96,7 +97,7 @@ public:
     void DeleteLoadComponentInternal(int32_t componentId);
     void CompleteLoadComponentInternal(int32_t componentId);
     void StartCollectCommon(bool isLaunch);
-    void AddComponentInternal(int32_t componentId);
+    void AddComponentInternal(int32_t componentId, int32_t sourceType);
  
 private:
     LoadCompleteMonitor();

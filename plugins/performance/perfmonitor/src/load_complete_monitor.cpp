@@ -140,11 +140,11 @@ void LoadCompleteMonitor::FinishCollectTask()
     collectStrategy_->Reset();
 }
 
-void LoadCompleteMonitor::AddLoadComponent(int32_t componentId)
+void LoadCompleteMonitor::AddLoadComponent(int32_t componentId, int32_t sourceType)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     // 委托给当前状态处理
-    currentState_->AddComponent(componentId);
+    currentState_->AddComponent(componentId, sourceType);
 }
 
 void LoadCompleteMonitor::DeleteLoadComponent(int32_t componentId)
@@ -190,10 +190,10 @@ void LoadCompleteMonitor::StartCollectCommon(bool isLaunch)
     PostTimeoutTask();
 }
 
-void LoadCompleteMonitor::AddComponentInternal(int32_t componentId)
+void LoadCompleteMonitor::AddComponentInternal(int32_t componentId, int32_t sourceType)
 {
     if (collectStrategy_) {
-        collectStrategy_->AddComponent(componentId);
+        collectStrategy_->AddComponent(componentId, sourceType);
     }
 }
 }
