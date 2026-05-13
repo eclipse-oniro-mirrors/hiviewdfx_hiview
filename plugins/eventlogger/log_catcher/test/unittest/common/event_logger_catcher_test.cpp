@@ -1316,6 +1316,41 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_008, TestSize.Level1)
         testFile.close();
     }
 }
+
+/**
+ * @tc.name: PeerBinderCatcherTest_009
+ * @tc.desc: test SafeStrToLong function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_009, TestSize.Level1)
+{
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("123"), 123);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("0"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("-456"), -456);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong(""), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("abc"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("123abc"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("abc123"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("9999999999999999999"), 0);
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_010
+ * @tc.desc: test SafeStrToLongLong function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_010, TestSize.Level1)
+{
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("123"), 123LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("0"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("-456"), -456LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("9223372036854775807"), 9223372036854775807LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong(""), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("abc"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("123abc"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("abc123"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("9999999999999999999999999999"), 0LL);
+}
 #endif // BINDER_CATCHER_ENABLE
 
 /**

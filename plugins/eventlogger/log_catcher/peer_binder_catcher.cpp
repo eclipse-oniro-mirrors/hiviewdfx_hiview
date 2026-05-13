@@ -291,16 +291,16 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
             if (Parameter::IsOversea()) {
                 return;
             } else if (line.find("free_async_space") == line.npos && strList.size() == ARR_SIZE &&
-                std::strtoll(strList[FREE_ASYNC_INDEX].c_str(), nullptr, DECIMAL) < FREE_ASYNC_MAX) {
-                freeAsyncSpacePairs.emplace_back(std::strtol(strList[0].c_str(), nullptr, DECIMAL),
-                    std::strtoll(strList[FREE_ASYNC_INDEX].c_str(), nullptr, DECIMAL));
+                PeerBinderCatcher::SafeStrToLongLong(strList[FREE_ASYNC_INDEX]) < FREE_ASYNC_MAX) {
+                freeAsyncSpacePairs.emplace_back(PeerBinderCatcher::SafeStrToLong(strList[0]),
+                    PeerBinderCatcher::SafeStrToLongLong(strList[FREE_ASYNC_INDEX]));
             }
         } else if (line.find("async\t") != std::string::npos && strList.size() > ARR_SIZE) {
             std::string serverPid = StrSplit(strList[3], 0);
             std::string serverTid = StrSplit(strList[3], 1);
-            if (serverPid != "" && serverTid != "" && std::strtol(serverTid.c_str(), nullptr, DECIMAL) == 0 &&
+            if (serverPid != "" && serverTid != "" && PeerBinderCatcher::SafeStrToLong(serverTid) == 0 &&
                 !Parameter::IsOversea()) {
-                asyncBinderMap[std::strtol(serverPid.c_str(), nullptr, DECIMAL)]++;
+                asyncBinderMap[PeerBinderCatcher::SafeStrToLong(serverPid)]++;
             }
         } else if (strList.size() >= ARR_SIZE) { // 7: valid array size
             // 0: binder local id,
@@ -315,9 +315,9 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
                     serverPid.c_str(), clientPid.c_str(), wait.c_str());
                 continue;
             }
-            BinderInfo info = {std::strtol(clientPid.c_str(), nullptr, DECIMAL),
-                std::strtol(clientTid.c_str(), nullptr, DECIMAL), std::strtol(serverPid.c_str(), nullptr, DECIMAL),
-                std::strtol(serverTid.c_str(), nullptr, DECIMAL), std::strtol(wait.c_str(), nullptr, DECIMAL)};
+            BinderInfo info = {PeerBinderCatcher::SafeStrToLong(clientPid),
+                PeerBinderCatcher::SafeStrToLong(clientTid), PeerBinderCatcher::SafeStrToLong(serverPid),
+                PeerBinderCatcher::SafeStrToLong(serverTid), PeerBinderCatcher::SafeStrToLong(wait)};
             HIVIEW_LOGD("server:%{public}d, client:%{public}d, wait:%{public}d", info.serverPid, info.clientPid,
                 info.wait);
             manager[info.clientPid].push_back(info);
@@ -600,6 +600,30 @@ int32_t PeerBinderCatcher::GetUidByPid(const int32_t pid)
         }
     }
     return uid;
+}
+
+long PeerBinderCatcher::SafeStrToLong(const std::string& str)
+{
+    char* endptr;
+    errno = 0;
+    long result = std::strtol(str.c_str(), &endptr, DECIMAL);
+    if (errno == 0 && endptr != str.c_str() && *endptr == '\0') {
+        return result;
+    }
+    HIVIEW_LOGW("SafeStrToLong: invalid string: %{public}s", str.c_str());
+    return 0;
+}
+
+long long PeerBinderCatcher::SafeStrToLongLong(const std::string& str)
+{
+    char* endptr;
+    errno = 0;
+    long long result = std::strtoll(str.c_str(), &endptr, DECIMAL);
+    if (errno == 0 && endptr != str.c_str() && *endptr == '\0') {
+        return result;
+    }
+    HIVIEW_LOGW("SafeStrToLongLong: invalid string: %{public}s", str.c_str());
+    return 0;
 }
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
