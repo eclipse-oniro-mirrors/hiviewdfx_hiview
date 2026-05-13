@@ -535,7 +535,15 @@ void PeerBinderCatcher::ParseSyncPidsFromHicollie(const std::string& hicollieBin
         }
         syncStr = syncStr.substr(pos + 1);
     }
-
+    if (!syncStr.empty()) {
+        size_t nameStart = syncStr.find("(");
+        size_t nameEnd = syncStr.find(")");
+        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart + 1) {
+            int pid = 0;
+            StringUtil::StrToInt(syncStr.substr(0, nameStart), pid);
+            syncPids.insert(pid);
+        }
+    }
 }
  
 void PeerBinderCatcher::ParseAsyncPidsFromHicollie(const std::string& hicollieBinderInfo,
@@ -555,7 +563,11 @@ void PeerBinderCatcher::ParseAsyncPidsFromHicollie(const std::string& hicollieBi
         asyncPids.insert(pid);
         asyncStr = asyncStr.substr(pos + 1);
     }
-
+    if (!asyncStr.empty()) {
+        int pid = 0;
+        StringUtil::StrToInt(asyncStr, pid);
+        asyncPids.insert(pid);
+    }
 }
  
 void PeerBinderCatcher::ParseTerminalFromHicollie(const std::string& hicollieBinderInfo, size_t terminalPos)
