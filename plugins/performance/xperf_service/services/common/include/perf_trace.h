@@ -25,11 +25,11 @@ namespace OHOS {
 namespace HiviewDFX {
 constexpr int TRACE_BUF_LEN = 256;
 void XperfStartTrace(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void FormatTraceName(char *name, size_t size, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+void FormatTraceName(char *name, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 #define XPERF_TRACE_SCOPED(fmt, ...) \
     char traceName[TRACE_BUF_LEN] = {0}; \
-    FormatTraceName(traceName, TRACE_BUF_LEN, fmt, ##__VA_ARGS__); \
+    FormatTraceName(traceName, fmt, ##__VA_ARGS__); \
     HitraceScoped trace(HITRACE_TAG_APP, traceName)
 
 void XperfAsyncTraceBegin(int32_t taskId, const char* name, bool isAnimationTrace = false);
