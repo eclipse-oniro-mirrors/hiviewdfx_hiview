@@ -65,6 +65,7 @@ void FaultLogJsError::UpdateFaultLogInfo()
 void FaultLogJsError::UpdateSysEvent(SysEvent& sysEvent)
 {
     sysEvent.SetEventValue(FaultKey::IS_SYSTEM_APP, info_.sectionMap[FaultKey::IS_SYSTEM_APP]);
+    sysEvent.SetEventValue(FaultKey::HAPPEN_TIME, sysEvent.happenTime_);
     FaultLogEventPipeline::UpdateSysEvent(sysEvent);
 }
 } // namespace HiviewDFX

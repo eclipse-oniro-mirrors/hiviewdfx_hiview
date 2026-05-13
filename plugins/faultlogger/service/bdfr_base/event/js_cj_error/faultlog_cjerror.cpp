@@ -56,5 +56,11 @@ void FaultLogCjError::UpdateFaultLogInfo()
     GetProcMemInfo(info_);
     info_.sectionMap[FaultKey::HILOG] = FaultlogHilogHelper::GetHilogByPid(info_.pid);
 }
+
+void FaultLogCjError::UpdateSysEvent(SysEvent& sysEvent)
+{
+    sysEvent.SetEventValue(FaultKey::HAPPEN_TIME, sysEvent.happenTime_);
+    FaultLogEventPipeline::UpdateSysEvent(sysEvent);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
