@@ -1804,7 +1804,7 @@ HWTEST_F(EventloggerCatcherTest, ParseSyncPidsFromHicollieTest_001, TestSize.Lev
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     std::string hicollieBinderInfo = "syncPids:100(test1);200(test2);300(test3)";
     std::set<int> syncPids;
-    peerBinderCatcher->ParseSyncPidsFromHicollie(hicollieBinderInfo, 0, 50, syncPids);
+    peerBinderCatcher->ParseSyncPidsFromHicollie(hicollieBinderInfo, 0, std::string::npos, syncPids);
     EXPECT_EQ(syncPids.size(), 3);
     EXPECT_TRUE(syncPids.find(100) != syncPids.end());
     EXPECT_TRUE(syncPids.find(200) != syncPids.end());
@@ -1821,7 +1821,7 @@ HWTEST_F(EventloggerCatcherTest, ParseAsyncPidsFromHicollieTest_001, TestSize.Le
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     std::string hicollieBinderInfo = "asyncPids:100,200,300";
     std::set<int> asyncPids;
-    peerBinderCatcher->ParseAsyncPidsFromHicollie(hicollieBinderInfo, 10, std::string::npos, asyncPids);
+    peerBinderCatcher->ParseAsyncPidsFromHicollie(hicollieBinderInfo, 0, std::string::npos, asyncPids);
     EXPECT_EQ(asyncPids.size(), 3);
     EXPECT_TRUE(asyncPids.find(100) != asyncPids.end());
     EXPECT_TRUE(asyncPids.find(200) != asyncPids.end());
@@ -1837,7 +1837,7 @@ HWTEST_F(EventloggerCatcherTest, ParseTerminalFromHicollieTest_001, TestSize.Lev
 {
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     std::string hicollieBinderInfo = "terminalBinder:12345,6789";
-    peerBinderCatcher->ParseTerminalFromHicollie(hicollieBinderInfo, 15);
+    peerBinderCatcher->ParseTerminalFromHicollie(hicollieBinderInfo, 0);
     EXPECT_EQ(peerBinderCatcher->terminalBinder_.pid, 12345);
     EXPECT_EQ(peerBinderCatcher->terminalBinder_.tid, 6789);
 }
