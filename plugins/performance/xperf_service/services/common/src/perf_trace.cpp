@@ -33,21 +33,17 @@ void XperfStartTrace(const char *fmt, ...)
     StartTrace(HITRACE_TAG_APP, std::string(traceName));
 }
 
-void FormatTraceName(char *name, size_t size, const char *fmt, ...)
+void FormatTraceName(char *name, const char *fmt, ...)
 {
-    if (size < 1 || name == nullptr) {
+    if (name == nullptr) {
         return;
     }
     va_list args;
     va_start(args, fmt);
-    int ret = vsnprintf_s(name, size, size - 1, fmt, args);
+    int ret = vsnprintf_s(name, TRACE_BUF_LEN, TRACE_BUF_LEN - 1, fmt, args);
     va_end(args);
-    std::string traceName = "DefaultTraceName";
-    if (ret == -1 && size > traceName.length()) {
-        ret = strcpy_s(name, size, traceName.c_str());
-        if (ret != 0) {
-            return;
-        }
+    if (ret == -1) {
+        return;
     }
 }
 
