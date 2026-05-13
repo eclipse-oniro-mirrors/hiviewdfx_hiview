@@ -556,6 +556,7 @@ void FoldAppUsageDbHelper::CreateDbStore(const std::string& dbPath, const std::s
     FoldDbStoreCallback callback;
     int ret = NativeRdb::E_OK;
 #if FOLD_PC_COUNT_DURATION_ENABLE
+    HIVIEW_LOGI("begin update pc db");
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_3, callback, ret);
 #else
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_2, callback, ret);
@@ -572,9 +573,16 @@ int FoldAppUsageDbHelper::CreateAppEventsTable(const std::string& table)
         HIVIEW_LOGI("dbstore is nullptr");
         return DB_FAILED;
     }
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    HIVIEW_LOGI("generate pc v3 db");
+    if (rdbStore_->ExecuteSql(GenerateCreateV3AppEventsSql()) != NativeRdb::E_OK) {
+        return DB_FAILED;
+    }
+#else
     if (rdbStore_->ExecuteSql(GenerateCreateAppEventsSql()) != NativeRdb::E_OK) {
         return DB_FAILED;
     }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
     return DB_SUCC;
 }
 
@@ -694,7 +702,7 @@ void FoldAppUsageDbHelper::QueryAppEventRecords(int startIndex, int64_t dayStart
     };
     auto resultSet = rdbStore_->Query(predicates, columns);
     if (resultSet == nullptr) {
-        HIVIEW_LOGE("failed to query event event");
+        HIVIEW_LOGI("failed to query event event");
         return;
     }
     while (resultSet->GoToNextRow() == NativeRdb::E_OK) {

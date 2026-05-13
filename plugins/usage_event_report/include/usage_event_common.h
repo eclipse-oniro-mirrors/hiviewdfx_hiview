@@ -116,15 +116,20 @@ namespace FoldDisplayModeChangeEventSpace {
 constexpr char EVENT_NAME[] = "DISPLAY_MODE";
 constexpr char KEY_OF_NEXT_STATUS[] = "FOLD_DISPLAY_MODE";
 }
+
+namespace SuperFoldState {
+constexpr int32_t UNKNOWN = 0;
+constexpr int32_t FOLD_STATE_FOLDED = 1;
+constexpr int32_t FOLD_STATE_HALF_FOLDED = 2;
+constexpr int32_t FOLD_STATE_EXPANDED = 3;
+constexpr int32_t FOLD_STATE_KEYBOARD = 4;
+}
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 
 namespace FoldState {
 constexpr int32_t FOLD_STATE_EXPAND = 1;
 constexpr int32_t FOLD_STATE_FOLDED = 2;
 constexpr int32_t FOLD_STATE_HALF_FOLDED = 3;
-#if FOLD_PC_COUNT_DURATION_ENABLE
-constexpr int32_t FOLD_STATE_WITH_KEYBOARD = 4;
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
 constexpr int32_t FOLD_STATE_EXPAND_WITH_SECOND_EXPAND = 11;
 constexpr int32_t FOLD_STATE_EXPAND_WITH_SECOND_HALF_FOLDED = 21;
 constexpr int32_t FOLD_STATE_FOLDED_WITH_SECOND_EXPAND = 12;

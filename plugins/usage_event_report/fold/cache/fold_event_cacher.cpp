@@ -44,6 +44,7 @@ constexpr int8_t THE_TENS_DIGIT = 10;
 constexpr int8_t MAGNETIC = 4;
 constexpr int8_t FOLD_DISPLAY_MODE_UNKNOWN = 0;
 constexpr int8_t FOLD_DISPLAY_MODE_COORDINATION = 4;
+constexpr int8_t FOLD_PC_INVALID_MODE_FIVE = 5;
 constexpr int8_t FOLD_PC_INVALID_MODE_SIX = 6;
 constexpr int8_t FOLD_PC_INVALID_MODE_SEVEN = 7;
 constexpr int8_t FOLD_PC_INVALID_MODE_EIGHT = 8;
@@ -52,8 +53,16 @@ constexpr int8_t FOLD_PC_INVALID_MODE_EIGHT = 8;
 int8_t ConvertFoldStatus(int32_t foldStatus)
 {
 #if FOLD_PC_COUNT_DURATION_ENABLE
-    if (foldStatus == FOLD_STATE_WITH_KEYBOARD) {
-        return MAGNETIC;
+    switch (foldStatus) {
+        case SuperFoldState::FOLD_STATE_FOLDED:
+        case SuperFoldState::FOLD_STATE_HALF_FOLDED:
+            return FOLD;
+        case SuperFoldState::FOLD_STATE_EXPANDED:
+            return EXPAND;
+        case SuperFoldState::FOLD_STATE_KEYBOARD:
+            return MAGNETIC;
+        default:
+            return UNKNOWN_STATUS;
     }
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     switch (foldStatus) {
@@ -283,8 +292,8 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
 #if FOLD_PC_COUNT_DURATION_ENABLE
         int32_t nextState =
             static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
-        if (nextState == FOLD_PC_INVALID_MODE_SIX || nextState == FOLD_PC_INVALID_MODE_SEVEN ||
-            nextState == FOLD_PC_INVALID_MODE_EIGHT) {
+        if (nextState == FOLD_PC_INVALID_MODE_FIVE || nextState == FOLD_PC_INVALID_MODE_SIX ||
+            nextState == FOLD_PC_INVALID_MODE_SEVEN ||nextState == FOLD_PC_INVALID_MODE_EIGHT) {
             HIVIEW_LOGI("no valid fold status, dont update fold status");
             return;
         }
