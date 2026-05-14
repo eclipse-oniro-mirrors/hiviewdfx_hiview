@@ -149,7 +149,7 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoi
     info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
-    info.sectionMaps[FreezeCommon::LOWERCASE_OF_APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
+    info.sectionMaps[FreezeCommon::APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
     info.sectionMaps[FreezeCommon::CLUSTER_RAW] = watchPoint.GetClusterRaw();
     info.sectionMaps[FreezeCommon::EVENT_EXTERNAL_LOG] = watchPoint.GetExternalLog();

@@ -36,7 +36,7 @@ constexpr const char * const FAULTLOG_FAULT_HILOG_FOLDER = "/data/log/faultlog/h
 
 namespace FaultKey {
 constexpr const char * const APPEND_ORIGIN_LOG = "APPEND_ORIGIN_LOG";
-constexpr const char * const APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
+constexpr const char * const APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
 constexpr const char * const APP_VM_TYPE = "APPVMTYPE";
 constexpr const char * const BINDER_TRANSACTION_INFO = "BINDER_TRANSACTION_INFO";
 constexpr const char * const BUILD_INFO = "BUILD_INFO";
