@@ -332,6 +332,10 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
         LogCatcherUtils::DumpStackFfrt(fd, binderPid);
     });
 
+    if (freezeCommon_ != nullptr && freezeCommon_->IsSystemEvent(event->domain_, event->eventName_)) {
+        event->SetEventValue("EVENT_TYPE", "sys");
+    }
+
     std::shared_ptr<EventLogTask> logTask = std::make_shared<EventLogTask>(fd, jsonFd, event);
     if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN") {
         logTask->SetFocusWindowId(DumpWindowInfo(fd));

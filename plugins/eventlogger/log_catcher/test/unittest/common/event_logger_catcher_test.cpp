@@ -1351,6 +1351,40 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_010, TestSize.Level1)
     EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("abc123"), 0LL);
     EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("9999999999999999999999999999"), 0LL);
 }
+
+/**
+ * @tc.name: PeerBinderCatcherTest_009
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_011, TestSize.Level1)
+{
+    auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create catcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("PeerBinderCatcherTest_009",
+        nullptr, jsonStr);
+    event->eventId_ = 0;
+
+    event->domain_ = "KERNEL_VENDOR";
+    event->eventName_ = "HUNGTASK";
+    std::set<int> catchedPids;
+    peerBinderCatcher->Init(event, "", catchedPids);
+    bool result = peerBinderCatcher->IsSysFreezeEvent();
+    EXPECT_TRUE(result);
+
+    event->domain_ = "ACE";
+    event->eventName_ = "UI_BLOCK_6S";
+    result = peerBinderCatcher->IsSysFreezeEvent();
+    EXPECT_TRUE(!result);
+
+    close(fd);
+}
 #endif // BINDER_CATCHER_ENABLE
 
 /**

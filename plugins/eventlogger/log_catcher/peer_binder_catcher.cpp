@@ -132,8 +132,13 @@ std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPi
 {
     std::string pidStr = "";
     for (auto pidTemp : syncPids) {
-        if (pidTemp == pid_ || IsAncoProc(pidTemp)) {
+        if (pidTemp == pid_) {
             HIVIEW_LOGI("Stack of PeerBinder Pid %{public}d is catched.", pidTemp);
+            continue;
+        }
+        
+        if (IsAncoProc(pidTemp) && !IsSysFreezeEvent()) {
+            HIVIEW_LOGI("PeerBinder Pid %{public}d is anco, event is not sysfreeze", pidTemp);
             continue;
         }
 
@@ -150,14 +155,29 @@ std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPi
             HIVIEW_LOGI("Async stack, skip current pid:%{public}d, uid:%{public}d", pidTemp, uid);
             continue;
         }
-        if (pidTemp == pid_ || IsAncoProc(pidTemp) || syncPids.find(pidTemp) != syncPids.end() ||
+        if (pidTemp == pid_ || syncPids.find(pidTemp) != syncPids.end() ||
             catchedPids_.count(pidTemp) != 0) {
             HIVIEW_LOGI("Stack of AsyncBinder Pid %{public}d is catched.", pidTemp);
             continue;
         }
+
+        if (IsAncoProc(pidTemp) && !IsSysFreezeEvent()) {
+            HIVIEW_LOGI("PeerBinder Pid %{public}d is anco, event is not sysfreeze", pidTemp);
+            continue;
+        }
+
         CatcherStacktrace(fd, pidTemp, false);
     }
     return pidStr;
+}
+
+bool PeerBinderCatcher::IsSysFreezeEvent() const
+{
+    if (event_ != nullptr && event_->GetEventValue("EVENT_TYPE") == "sys") {
+        HIVIEW_LOGI("EventName %{public}s is sysfreeze event", event_->eventName_.c_str());
+        return true;
+    }
+    return false;
 }
 
 void PeerBinderCatcher::AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const
