@@ -1101,6 +1101,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_001, TestSize.Level3)
     }
     FileUtil::SaveStringToFd(fd, "\ntesttest\nPID:12345\nSTRINGID:THREAD_BLOCK_6S\nTest\n");
     StartBootScan();
+    EXPECT_TRUE(fd >= 0);
     close(fd);
 }
 
@@ -1119,7 +1120,23 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartBootScan_002, TestSize.Level3)
     }
     FileUtil::SaveStringToFd(fd, "\ntesttest\nPID:12345\nSTRINGID:THREAD_BLOCK_6S\nTest\n");
     StartBootScan();
+    EXPECT_TRUE(fd >= 0);
     close(fd);
+}
+
+/**
+ * @tc.name: EventLoggerTest_ParseFaultLogInfoFromFile_001
+ * @tc.desc: EventLoggerTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_ParseFaultLogInfoFromFile_001, TestSize.Level3)
+{
+    std::string path = "/data/test/log/test.txt";
+    std::string fileName = "";
+    ParseFaultLogInfoFromFile(path, fileName);
+    path = "..\\1234";
+    ParseFaultLogInfoFromFile(path, fileName);
+    EXPECT_TRUE(!path.empty());
 }
 
 /**
