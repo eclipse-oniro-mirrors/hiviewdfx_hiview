@@ -52,7 +52,7 @@ private:
     void CountCoordinationDuration(AppEventRecord& appEventRecord);
     void UpdateDisplayMode(int32_t displayMode);
     int GetCoordinationStartIndex(const std::string& bundleName);
-    void CalCulateCoordinationDuration(
+    void CalculateCoordinationDuration(
         uint64_t dayStartTime, std::vector<AppEventRecord> &records, std::map<int, uint64_t> &durations);
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 
