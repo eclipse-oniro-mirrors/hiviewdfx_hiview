@@ -556,7 +556,6 @@ void FoldAppUsageDbHelper::CreateDbStore(const std::string& dbPath, const std::s
     FoldDbStoreCallback callback;
     int ret = NativeRdb::E_OK;
 #if FOLD_PC_COUNT_DURATION_ENABLE
-    HIVIEW_LOGI("begin update pc db");
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_3, callback, ret);
 #else
     rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_2, callback, ret);
@@ -574,7 +573,6 @@ int FoldAppUsageDbHelper::CreateAppEventsTable(const std::string& table)
         return DB_FAILED;
     }
 #if FOLD_PC_COUNT_DURATION_ENABLE
-    HIVIEW_LOGI("generate pc v3 db");
     if (rdbStore_->ExecuteSql(GenerateCreateV3AppEventsSql()) != NativeRdb::E_OK) {
         return DB_FAILED;
     }

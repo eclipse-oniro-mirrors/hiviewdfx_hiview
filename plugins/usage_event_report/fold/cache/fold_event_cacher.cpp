@@ -64,7 +64,7 @@ int8_t ConvertFoldStatus(int32_t foldStatus)
         default:
             return UNKNOWN_STATUS;
     }
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
+#else
     switch (foldStatus) {
         case FOLD_STATE_EXPAND:
         case FOLD_STATE_HALF_FOLDED:
@@ -80,6 +80,7 @@ int8_t ConvertFoldStatus(int32_t foldStatus)
         default:
             return UNKNOWN_STATUS;
     }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 }
 
 int8_t ConvertVhMode(int32_t vhMode)
