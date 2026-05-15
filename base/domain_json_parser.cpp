@@ -52,8 +52,8 @@ bool DomainJsonParser::CacheDomainJsonLocation(const std::string& defFilePath)
     for (const auto& key : hiSysEventDef.getMemberNames()) {
         const Json::Value& domainValue = hiSysEventDef[key];
         DomainJsonLocation info;
-        info.startPos = domainValue.getOffsetStart();
-        info.length = domainValue.getOffsetLimit() - info.startPos;
+        info.startPos = static_cast<Json::ArrayIndex>(domainValue.getOffsetStart());
+        info.length = static_cast<Json::ArrayIndex>(domainValue.getOffsetLimit() - info.startPos);
         domainLocationMap_->insert(std::pair<std::string, DomainJsonLocation>(key, info));
     }
     return true;
