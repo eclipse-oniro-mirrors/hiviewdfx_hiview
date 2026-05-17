@@ -94,7 +94,9 @@ CollectResult DetectCollectStrategy::CalculateResult(int64_t beginTime)
         result.isCompleted = true;
         return result;
     }
-    XPERF_TRACE_SCOPED("bkbtest needCompleteAddInfos size:%d notAddComponentInfos_:%d deleteNum_:%d", static_cast<int32_t>(needCompleteAddInfos.size()), static_cast<int32_t>(notAddComponentInfos_.size()), static_cast<int32_t>(deleteNum_));
+    XPERF_TRACE_SCOPED("[loadcompletemonitor] needCompleteAddInfos size:%d notAddComponentInfos_:%d deleteNum_:%d",
+        static_cast<int32_t>(needCompleteAddInfos.size()), static_cast<int32_t>(notAddComponentInfos_.size()),
+        static_cast<int32_t>(deleteNum_));
     if (notAddComponentInfos_.size() > SPECIAL_SIZE && deleteNum_ < SPECIAL_SIZE) {
         return CalculateResultforSpecialCase(needCompleteAddInfos);
     }
