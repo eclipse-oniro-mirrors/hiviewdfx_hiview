@@ -19,13 +19,19 @@
 #include "perf_utils.h"
 
 namespace {
+constexpr int32_t INVALID_ID = -1;
 constexpr int32_t UNSUPPORTED_SOURCE_TYPE = -1;
 constexpr int32_t MAX_COMPLETE_TIMES = 3;
 constexpr double MAX_UNCOMPLETE_COMPONENT_RATIO = 0.25;
 constexpr double MAX_COMPLETE_RATE = 0.7;
 constexpr double MIN_COMPLETE_RATE = 0.5;
-constexpr int64_t MAX_INTRA_GROUP_GAP = 100;
+constexpr int64_t MAX_INTRA_GROUP_GAP = 150;
 constexpr size_t MAX_NO_PRELOAD_ADD_NUM = 60;
+
+constexpr size_t SPECIAL_SIZE = 20;
+constexpr int SPECIAL_MAX_IDX = 60;
+constexpr int SPECIAL_MIN_IDX = 30;
+constexpr size_t SPECIAL_MAX_NO_PRELOAD_ADD_NUM = 45;
 } // namespace
 
 namespace OHOS {
@@ -37,7 +43,7 @@ void DetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType
 {
     XPERF_TRACE_SCOPED("[LoadCompleteMonitor] AddComponent componentId:%d", componentId);
     addComponentInfos_.emplace_back(componentId, GetCurrentSystimeMs());
-    completeComponentInfos_[componentId] = {0, MAX_COMPLETE_TIMES, sourceType != UNSUPPORTED_SOURCE_TYPE};
+    completeComponentInfos_[componentId] = {0, 0, MAX_COMPLETE_TIMES, sourceType != UNSUPPORTED_SOURCE_TYPE};
 }
 
 void DetectCollectStrategy::DeleteComponent(int32_t componentId)
@@ -45,7 +51,9 @@ void DetectCollectStrategy::DeleteComponent(int32_t componentId)
     if (completeComponentInfos_.count(componentId)) {
         XPERF_TRACE_SCOPED("[LoadCompleteMonitor] DeleteComponent componentId:%d", componentId);
         completeComponentInfos_[componentId].remainCompleteTimes = 0;
-        completeComponentInfos_[componentId].completeTimestamp = GetCurrentSystimeMs();
+        completeComponentInfos_[componentId].deleteTimestamp = GetCurrentSystimeMs();
+    } else if (notAddComponentInfos_.count(componentId)) {
+        deleteNum_++;
     }
 }
 
@@ -58,9 +66,15 @@ void DetectCollectStrategy::CompleteComponent(int32_t componentId)
             completeComponentInfos_[componentId].completeTimestamp = GetCurrentSystimeMs();
             completeComponentInfos_[componentId].needComplete = true;
         }
-    } else {
+    } else if (componentId != INVALID_ID) {
         XPERF_TRACE_SCOPED("[LoadCompleteMonitor] CompleteComponent for not add componentId:%d", componentId);
-        completeComponentInfos_[componentId] = {GetCurrentSystimeMs(), MAX_COMPLETE_TIMES, false};
+        if (notAddComponentInfos_.count(componentId)) {
+            notAddComponentInfos_[componentId] = {GetCurrentSystimeMs(), 0, MAX_COMPLETE_TIMES, false};
+        } else {
+            notAddComponentInfos_[componentId].remainCompleteTimes--;
+            notAddComponentInfos_[componentId].completeTimestamp = GetCurrentSystimeMs();
+            notAddComponentInfos_[componentId].needComplete = true;
+        }
     }
 }
 
@@ -79,6 +93,10 @@ CollectResult DetectCollectStrategy::CalculateResult(int64_t beginTime)
     if (needCompleteAddInfos.empty()) {
         result.isCompleted = true;
         return result;
+    }
+    XPERF_TRACE_SCOPED("bkbtest needCompleteAddInfos size:%d notAddComponentInfos_:%d deleteNum_:%d", static_cast<int32_t>(needCompleteAddInfos.size()), static_cast<int32_t>(notAddComponentInfos_.size()), static_cast<int32_t>(deleteNum_));
+    if (notAddComponentInfos_.size() > SPECIAL_SIZE && deleteNum_ < SPECIAL_SIZE) {
+        return CalculateResultforSpecialCase(needCompleteAddInfos);
     }
 
     if (needCompleteAddInfos.size() < MAX_NO_PRELOAD_ADD_NUM) {
@@ -109,24 +127,20 @@ CollectResult DetectCollectStrategy::CalculateResultforPreLoad(
         }
         postAddTime = needCompleteAddInfos[i].second;
     }
-    int32_t endComponentId = needCompleteAddInfos[endIdx].first;
-    for (const auto& needCompleteAddInfo : needCompleteAddInfos) {
-        if (needCompleteAddInfo.first > endComponentId) {
-            continue;
-        }
-        auto it = completeComponentInfos_.find(needCompleteAddInfo.first);
+    int32_t lastid;
+    for (int i = 0; i <= endIdx; i++) {
+        auto it = completeComponentInfos_.find(needCompleteAddInfos[i].first);
         if (it != completeComponentInfos_.end()) {
             auto completeComponentInfo = it->second;
             if (completeComponentInfo.remainCompleteTimes == MAX_COMPLETE_TIMES) {
                 result.incompleteNum++;
+            } else if (completeComponentInfo.completeTimestamp > result.lastLoadComponent) {
+                result.lastLoadComponent = completeComponentInfo.completeTimestamp;
+                lastid = it->first;
             }
         }
     }
-    for (const auto& completeInfo : completeComponentInfos_) {
-        if (completeInfo.first <= endComponentId) {
-            result.lastLoadComponent = std::max(result.lastLoadComponent, completeInfo.second.completeTimestamp);
-        }
-    }
+    XPERF_TRACE_SCOPED("[loadCompleteMonitor] CalculateResultforPreLoad lastid:%d", lastid);
     result.monitoredNum = endIdx + 1;
     result.isCompleted = (result.incompleteNum <= static_cast<int32_t>(MAX_UNCOMPLETE_COMPONENT_RATIO *
         result.monitoredNum));
@@ -146,6 +160,7 @@ CollectResult DetectCollectStrategy::CalculateResultforNoPreLoad(
                 result.incompleteNum++;
             } else {
                 result.lastLoadComponent = std::max(result.lastLoadComponent, completeComponentInfo.completeTimestamp);
+                result.lastLoadComponent = std::max(result.lastLoadComponent, completeComponentInfo.deleteTimestamp);
             }
         }
     }
@@ -157,10 +172,60 @@ CollectResult DetectCollectStrategy::CalculateResultforNoPreLoad(
     return result;
 }
 
+CollectResult DetectCollectStrategy::CalculateResultforSpecialCase(
+    std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos)
+{
+    CollectResult result = {0, 0, 0, false};
+
+    int endIdx;
+    if (needCompleteAddInfos.size() < SPECIAL_MAX_NO_PRELOAD_ADD_NUM) {
+        endIdx = needCompleteAddInfos.size() - 1;
+    } else {
+        int maxCompleteIdx = std::min(SPECIAL_MAX_IDX, static_cast<int>(needCompleteAddInfos.size()) - 1);
+        int minCompleteIdx = std::min(SPECIAL_MIN_IDX, maxCompleteIdx);
+        
+        int64_t postAddTime = needCompleteAddInfos[maxCompleteIdx].second;
+        endIdx = minCompleteIdx;
+        
+        for (int i = maxCompleteIdx - 1; i > minCompleteIdx; i--) {
+            if (postAddTime - needCompleteAddInfos[i].second > MAX_INTRA_GROUP_GAP) {
+                endIdx = i;
+                break;
+            }
+            postAddTime = needCompleteAddInfos[i].second;
+        }
+    }
+    int32_t endComponentId = needCompleteAddInfos[endIdx].first;
+    for (int i = 0; i < endIdx; i++) {
+        endComponentId = std::max(endComponentId, needCompleteAddInfos[i].first);
+        auto it = completeComponentInfos_.find(needCompleteAddInfos[i].first);
+        if (it != completeComponentInfos_.end() && it->second.remainCompleteTimes == MAX_COMPLETE_TIMES) {
+            result.incompleteNum++;
+        }
+    }
+    
+    result.lastLoadComponent = 0;
+    int lastid;
+    for (const auto& info : notAddComponentInfos_) {
+        if (info.first <= endComponentId && info.second.completeTimestamp > result.lastLoadComponent) {
+            lastid = info.first;
+            result.lastLoadComponent = info.second.completeTimestamp;
+        }
+    }
+    XPERF_TRACE_SCOPED("[loadCompleteMonitor] CalculateResultforSpecialCase lastid:%d, endComponentId:%d", lastid,
+        endComponentId);
+    result.monitoredNum = endIdx + 1;
+    result.isCompleted = (result.incompleteNum <= static_cast<int32_t>(MAX_UNCOMPLETE_COMPONENT_RATIO *
+        result.monitoredNum));
+    return result;
+}
+
 void DetectCollectStrategy::Reset()
 {
     addComponentInfos_.clear();
     completeComponentInfos_.clear();
+    notAddComponentInfos_.clear();
+    deleteNum_ = 0;
 }
 
 // ==================== NoDetectCollectStrategy 实现 ====================

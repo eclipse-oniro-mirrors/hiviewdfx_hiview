@@ -36,6 +36,7 @@ struct CollectResult {
 
 struct CompleteComponentInfo {
     int64_t completeTimestamp{0};
+    int64_t deleteTimestamp{0};
     int32_t remainCompleteTimes{0};
     bool needComplete{true};
 };
@@ -101,11 +102,15 @@ public:
 private:
     CollectResult CalculateResultforPreLoad(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
     CollectResult CalculateResultforNoPreLoad(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
+    CollectResult CalculateResultforSpecialCase(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
 
     // 组件添加信息：(componentId, 添加时间戳)
     std::vector<std::pair<int32_t, int64_t>> addComponentInfos_;
     // 组件完成信息：componentId -> (完成时间戳, 剩余完成次数,  是否需要完成)
     std::unordered_map<int32_t, CompleteComponentInfo> completeComponentInfos_;
+    std::unordered_map<int32_t, CompleteComponentInfo> notAddComponentInfos_;
+
+    size_t deleteNum_{0};
 };
 
 /**
