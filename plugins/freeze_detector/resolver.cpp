@@ -45,8 +45,8 @@ bool FreezeResolver::Init()
     if (freezeRuleCluster_ == nullptr) {
         return false;
     }
-    dBHelper_ = std::make_unique<DBHelper>(freezeCommon_);
-    vendor_ = std::make_unique<Vendor>(freezeCommon_);
+    dBHelper_ = std::make_shared<DBHelper>(freezeCommon_);
+    vendor_ = std::make_unique<Vendor>(freezeCommon_, dBHelper_);
     return vendor_->Init();
 }
 

@@ -32,7 +32,8 @@ namespace OHOS {
 namespace HiviewDFX {
 class Vendor {
 public:
-    explicit Vendor(std::shared_ptr<FreezeCommon> fc) : freezeCommon_(fc) {};
+    explicit Vendor(std::shared_ptr<FreezeCommon> fc, std::shared_ptr<DBHelper> dBHelper_ = nullptr)
+        : freezeCommon_(fc), dBHelper_(dBHelper_) {};
     ~Vendor() {};
     Vendor& operator=(const Vendor&) = delete;
     Vendor(const Vendor&) = delete;
@@ -70,7 +71,7 @@ private:
     bool CheckNoteInfo(const WatchPoint& watchPoint) const;
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
-    std::unique_ptr<DBHelper> dBHelper_ = nullptr;
+    std::shared_ptr<DBHelper> dBHelper_ = nullptr;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

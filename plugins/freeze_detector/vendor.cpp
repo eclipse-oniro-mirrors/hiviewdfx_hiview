@@ -170,8 +170,7 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
 
 bool Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
 {
-    if (dBHelper_ == nullptr || freezeCommon_ == nullptr ||
-        !freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId())) {
+    if (dBHelper_ == nullptr || freezeCommon_ == nullptr) {
         return false;
     }
     std::map<std::string, std::vector<std::string>> eventMap;
@@ -531,7 +530,6 @@ bool Vendor::Init()
     if (freezeCommon_ == nullptr) {
         return false;
     }
-    dBHelper_ = std::make_unique<DBHelper>(freezeCommon_);
     return true;
 }
 
