@@ -106,13 +106,11 @@ ohos_unittest("EventLoggerTest") {
     "util/eventlogger_util_test.cpp",
   ]
   deps = [
-    "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_base:hiviewbase_static_lib_for_tdd",
     "$hiview_core:hiview_core",
     "$hiview_eventlogger:eventlogger",
     "$hiview_eventlogger/config:eventlogger_config",
     "$hiview_faultlogger:libfaultlogger",
-    "$hiview_plugin/sysevent_source:sysevent_source",
   ]
 
   external_deps = [
