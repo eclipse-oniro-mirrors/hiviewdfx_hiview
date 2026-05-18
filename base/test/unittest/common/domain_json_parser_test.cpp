@@ -62,7 +62,7 @@ HWTEST_F(DomainJsonParserTest, DomainJsonParserTest001, testing::ext::TestSize.L
 
     auto locationMap = domainJsonParser->GetDomainLocationMap();
     for (auto iter = locationMap->cbegin(); iter!=locationMap->cend(); iter++) {
-        printf("key: %s, start: %d, length: %d \n", iter->first.c_str(), iter->second.startPos, iter->second.length);
+        printf("key: %s, start: %td, length: %zu \n", iter->first.c_str(), iter->second.startPos, iter->second.length);
     }
 
     Json::Value firstDomainJson;

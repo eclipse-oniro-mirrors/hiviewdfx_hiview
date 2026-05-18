@@ -49,11 +49,17 @@ bool DomainJsonParser::CacheDomainJsonLocation(const std::string& defFilePath)
     domainLocationMap_->clear();
 
     defFilePath_ = defFilePath;
+    ptrdiff_t jsonValLen = 0;
     for (const auto& key : hiSysEventDef.getMemberNames()) {
         const Json::Value& domainValue = hiSysEventDef[key];
         DomainJsonLocation info;
-        info.startPos = static_cast<Json::ArrayIndex>(domainValue.getOffsetStart());
-        info.length = static_cast<Json::ArrayIndex>(domainValue.getOffsetLimit() - info.startPos);
+        info.startPos = domainValue.getOffsetStart();
+        jsonValLen = domainValue.getOffsetLimit() - info.startPos;
+        if (jsonValLen < 0) {
+            HIVIEW_LOGE("invalid length of json value with key: %{public}s: %{public}td", key.c_str(), jsonValLen);
+            continue;
+        }
+        info.length = static_cast<size_t>(jsonValLen);
         domainLocationMap_->insert(std::pair<std::string, DomainJsonLocation>(key, info));
     }
     return true;
@@ -75,7 +81,7 @@ bool DomainJsonParser::ParseDomainJsonFromFile(const std::string& domainName,
     }
     file.seekg(domainIter->second.startPos, std::ifstream::beg);
     if (!file) {
-        HIVIEW_LOGE("seekg sysEvent def json file failed, file: %{public}s, statPos: %{public}d",
+        HIVIEW_LOGE("seekg sysEvent def json file failed, file: %{public}s, statPos: %{public}td",
             defFilePath_.c_str(), domainIter->second.startPos);
         return false;
     }
@@ -84,7 +90,7 @@ bool DomainJsonParser::ParseDomainJsonFromFile(const std::string& domainName,
     jsonStr.resize(domainIter->second.length);
     file.read(&jsonStr[0], domainIter->second.length);
     if (!file) {
-        HIVIEW_LOGE("read part of sysEvent file failed, startPos: %{public}d, length: %{public}d",
+        HIVIEW_LOGE("read part of sysEvent file failed, startPos: %{public}td, length: %{public}zu",
             domainIter->second.startPos, domainIter->second.length);
         return false;
     }
@@ -92,8 +98,8 @@ bool DomainJsonParser::ParseDomainJsonFromFile(const std::string& domainName,
     std::string errors;
     std::unique_ptr<Json::CharReader> charReader(reader.newCharReader());
     if (!charReader->parse(jsonStr.c_str(), jsonStr.c_str() + jsonStr.size(), &outDomainJson, &errors)) {
-        HIVIEW_LOGE("parse part of sysEvent file failed, domain: %{public}s, startPos: %{public}d, length: %{public}d",
-            domainName.c_str(), domainIter->second.startPos, domainIter->second.length);
+        HIVIEW_LOGE("parse part of sysEvent file failed, domain: %{public}s, startPos: %{public}td, "
+            "length: %{public}zu", domainName.c_str(), domainIter->second.startPos, domainIter->second.length);
         return false;
     }
     return true;
