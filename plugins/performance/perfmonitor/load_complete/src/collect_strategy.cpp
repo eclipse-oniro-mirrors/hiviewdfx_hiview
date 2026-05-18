@@ -167,7 +167,7 @@ CollectResult DetectCollectStrategy::CalculateResultforNoPreLoad(
         }
     }
 
-    result.monitoredNum = needCompleteAddInfos.size();
+    result.monitoredNum = static_cast<int32_t>(needCompleteAddInfos.size());
     result.isCompleted = (result.incompleteNum <= static_cast<int32_t>(MAX_UNCOMPLETE_COMPONENT_RATIO *
         result.monitoredNum));
     
@@ -181,7 +181,7 @@ CollectResult DetectCollectStrategy::CalculateResultforSpecialCase(
 
     int endIdx;
     if (needCompleteAddInfos.size() < SPECIAL_MAX_NO_PRELOAD_ADD_NUM) {
-        endIdx = needCompleteAddInfos.size() - 1;
+        endIdx = static_cast<int32_t>(needCompleteAddInfos.size()) - 1;
     } else {
         int maxCompleteIdx = std::min(SPECIAL_MAX_IDX, static_cast<int>(needCompleteAddInfos.size()) - 1);
         int minCompleteIdx = std::min(SPECIAL_MIN_IDX, maxCompleteIdx);
