@@ -205,7 +205,7 @@ CollectResult<int32_t> TraceCollectorImpl::OpenAppSystemTrace(uint32_t bufferSiz
         .name = ScenarioName::APP_SYSTEM,
         .level = ScenarioLevel::APP_SYSTEM,
         .args = {
-            .tags = {"ability", "ace", "app", "sched", "window", "ark", "multimodalinput", "binder", "ffrt"},
+            .tags = {"ability", "ace", "app", "schedlt", "window", "ark", "multimodalinput", "binder", "ffrt"},
             .bufferSize = bufferSize,  // app trace buffer size
             .appPid = appInfo.pid,
             .filterPids = { appInfo.pid }
