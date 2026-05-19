@@ -36,6 +36,7 @@ struct CollectResult {
 
 struct CompleteComponentInfo {
     int64_t completeTimestamp{0};
+    int64_t deleteTimestamp{0};
     int32_t remainCompleteTimes{0};
     bool needComplete{true};
 };
@@ -87,10 +88,10 @@ public:
 };
 
 /**
- * @brief 预加载模式策略
+ * @brief 检测模式策略
  * 适用于预加载场景，使用 addComponentInfos_ 和 completeComponentInfos_ 跟踪组件
  */
-class PreloadCollectStrategy : public ComponentCollectStrategy {
+class DetectCollectStrategy : public ComponentCollectStrategy {
 public:
     void AddComponent(int32_t componentId, int32_t sourceType) override;
     void DeleteComponent(int32_t componentId) override;
@@ -99,29 +100,17 @@ public:
     void Reset() override;
 
 private:
+    CollectResult CalculateResultforPreLoad(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
+    CollectResult CalculateResultforNoPreLoad(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
+    CollectResult CalculateResultforSpecialCase(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
+
     // 组件添加信息：(componentId, 添加时间戳)
     std::vector<std::pair<int32_t, int64_t>> addComponentInfos_;
     // 组件完成信息：componentId -> (完成时间戳, 剩余完成次数,  是否需要完成)
     std::unordered_map<int32_t, CompleteComponentInfo> completeComponentInfos_;
-};
+    std::unordered_map<int32_t, CompleteComponentInfo> notAddComponentInfos_;
 
-/**
- * @brief 非预加载模式策略
- * 适用于非预加载场景，使用 monitoredComponents_ 和 lastCompleteTime_ 跟踪组件
- */
-class NonPreloadCollectStrategy : public ComponentCollectStrategy {
-public:
-    void AddComponent(int32_t componentId, int32_t sourceType) override;
-    void DeleteComponent(int32_t componentId) override;
-    void CompleteComponent(int32_t componentId) override;
-    CollectResult CalculateResult(int64_t beginTime) override;
-    void Reset() override;
-
-private:
-    // 监控组件：componentId -> 剩余完成次数
-    std::unordered_map<int32_t, int32_t> monitoredComponents_;
-    // 最后完成时间
-    int64_t lastCompleteTime_{0};
+    size_t deleteNum_{0};
 };
 
 /**
