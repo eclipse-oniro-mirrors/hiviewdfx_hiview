@@ -23,13 +23,13 @@ namespace HiviewDFX {
 constexpr int64_t SCENE_TIMEOUT = 10000000000;
 
 void AnimatorRecord::InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType,
-    const std::string& nt, int64_t time)
+    const std::string& nt, InputEventInfo info)
 {
     sceneId = sId;
     actionType = aType;
     sourceType = sType;
     note = nt;
-    inputTime = time;
+    inputEventInfo = info;
     beginVsyncTime = GetCurrentRealTimeNs();
     isDisplayAnimator = IsDisplayAnimator(sceneId);
 }
