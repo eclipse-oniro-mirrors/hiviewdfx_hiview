@@ -32,6 +32,7 @@ ohos_shared_library("libasan_logger") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "faultloggerd:dfx_signalhandler",
     "faultloggerd:libfaultloggerd",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
