@@ -110,7 +110,7 @@ bool FreezeRuleCluster::ParseRuleFile(const std::string& file)
         if (node->type != XML_ELEMENT_NODE) {
             continue;
         }
-        if (TAG_FREEZE == std::string((char*)(node->name))) {
+        if (TAG_FREEZE == std::string(reinterpret_cast<const char*>(node->name))) {
             ParseTagFreeze(node);
             break;
         }
@@ -124,7 +124,7 @@ bool FreezeRuleCluster::ParseRuleFile(const std::string& file)
 void FreezeRuleCluster::ParseTagFreeze(xmlNode* tag)
 {
     for (xmlNode* node = tag->children; node; node = node->next) {
-        if (TAG_RULES == std::string((char*)(node->name))) {
+        if (TAG_RULES == std::string(reinterpret_cast<const char*>(node->name))) {
             ParseTagRules(node);
         }
     }
@@ -133,7 +133,7 @@ void FreezeRuleCluster::ParseTagFreeze(xmlNode* tag)
 void FreezeRuleCluster::ParseTagRules(xmlNode* tag)
 {
     for (xmlNode* node = tag->children; node; node = node->next) {
-        if (TAG_RULE == std::string((char*)(node->name))) {
+        if (TAG_RULE == std::string(reinterpret_cast<const char*>(node->name))) {
             ParseTagRule(node);
         }
     }
@@ -155,7 +155,7 @@ void FreezeRuleCluster::ParseTagRule(xmlNode* tag)
     FreezeRule rule = FreezeRule(domain, stringId);
 
     for (xmlNode* node = tag->children; node; node = node->next) {
-        if (TAG_LINKS == std::string((char*)(node->name))) {
+        if (TAG_LINKS == std::string(reinterpret_cast<const char*>(node->name))) {
             ParseTagLinks(node, rule);
         }
     }
@@ -171,7 +171,7 @@ void FreezeRuleCluster::ParseTagRule(xmlNode* tag)
 void FreezeRuleCluster::ParseTagLinks(xmlNode* tag, FreezeRule& rule)
 {
     for (xmlNode* node = tag->children; node; node = node->next) {
-        if (TAG_EVENT == std::string((char*)(node->name))) {
+        if (TAG_EVENT == std::string(reinterpret_cast<const char*>(node->name))) {
             std::string domain = GetAttributeValue<std::string>(node, ATTRIBUTE_DOMAIN);
             if (domain == "") {
                 HIVIEW_LOGE("null event attribute:domain.");
@@ -217,7 +217,7 @@ void FreezeRuleCluster::HandleScopePair(const FreezeResult& result,
 void FreezeRuleCluster::ParseTagEvent(xmlNode* tag, FreezeResult& result)
 {
     for (xmlNode* node = tag->children; node; node = node->next) {
-        if (TAG_RESULT == std::string((char*)(node->name))) {
+        if (TAG_RESULT == std::string(reinterpret_cast<const char*>(node->name))) {
             ParseTagResult(node, result);
             break;
         }
@@ -245,7 +245,7 @@ T FreezeRuleCluster::GetAttributeValue(xmlNode* node, const std::string& name)
     xmlChar* prop = xmlGetProp(node, (xmlChar*)(name.c_str()));
     std::string propa = "";
     if (prop != nullptr) {
-        propa = (char*)prop;
+        propa = reinterpret_cast<char*>(prop);
     }
     std::istringstream istr(propa);
     T value;
