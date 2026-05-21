@@ -75,7 +75,6 @@ private:
     static constexpr uint64_t ACVIDEO_JANK_TIME_MS = 300;
     static constexpr uint64_t ACVIDEO_RECORD_TIME_MS = 300;
     static constexpr int ACVIDEO_VECTOR_MAX_LENGTH = 8;
-
     std::atomic<bool> avcodecVideoCollectOpen_ = false;
     std::unordered_map<uint64_t, AvcodecVideoParam> avcodecVideoMap_;
     std::unordered_map<uint64_t, FirstFrameParam> firstFrameMap_;
