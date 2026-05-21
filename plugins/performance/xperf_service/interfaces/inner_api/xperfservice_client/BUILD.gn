@@ -39,7 +39,9 @@ config("xperf_service_client_public_config") {
 ohos_shared_library("xperfservice_client") {
   output_values = get_target_outputs(":xperf_service_interface")
   sources = [
+    "${xperfservice_common}/src/perf_trace.cpp",
     "src/xperf_service_client.cpp",
+    "src/avcodec_video_monitor.cpp",
   ]
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
   sources += filter_include(output_values, [ "*_stub.cpp" ])
@@ -49,7 +51,9 @@ ohos_shared_library("xperfservice_client") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "ipc:ipc_single",

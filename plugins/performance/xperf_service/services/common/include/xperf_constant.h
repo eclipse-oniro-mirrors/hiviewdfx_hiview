@@ -60,6 +60,9 @@ namespace XperfConstants {
     //"#UNIQUEID:7095285973044#HANPPEN_TIME:1720001111";
     const int32_t VIDEO_EXCEPT_STOP = 5002;  //video play exception stop timeout 6s
 
+    //"#UNIQUEID:7095285973044#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111#SURFACE_NAME:surfacename";
+    const int32_t VIDEO_SECOND_FRAME = 5003; //图形上报视频第二帧
+
     //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
     const int32_t PERF_USER_ACTION = 6000;  //perfmonitor上报用户操作事件
 

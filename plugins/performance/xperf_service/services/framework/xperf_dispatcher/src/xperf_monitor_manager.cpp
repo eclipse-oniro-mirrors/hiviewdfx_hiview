@@ -59,6 +59,8 @@ void XperfMonitorManager::InitVideoMonitor()
     RegisterMonitorByLogID(XperfConstants::VIDEO_JANK_FRAME, monitor);
     RegisterMonitorByLogID(XperfConstants::NETWORK_JANK_REPORT, monitor);
     RegisterMonitorByLogID(XperfConstants::AVCODEC_JANK_REPORT, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_SECOND_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_FRAME_STATS, monitor);
 }
 
 void XperfMonitorManager::InitUserActionMonitor()

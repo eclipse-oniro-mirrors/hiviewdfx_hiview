@@ -21,6 +21,7 @@
 #include "xperf_service_log.h"
 #include "xperf_service_action_type.h"
 #include "perf_trace.h"
+#include "load_complete_reporter.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -64,9 +65,34 @@ void VideoXperfMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AVCODEC_JANK_REPORT: //avcodec故障事件
             OnAvcodecJankReceived(event);
             break;
+        case XperfConstants::VIDEO_SECOND_FRAME: //图形上报视频第二帧
+            OnVideoSecondFrame(event);
+            break;
+        case XperfConstants::VIDEO_FRAME_STATS:
+            OnVideoFrameStats(event);
+            break;
         default:
             break;
     }
+}
+
+void VideoXperfMonitor::OnVideoFrameStats(OhosXperfEvent* event)
+{
+    LOGD("VideoXperfMonitor_OnVideoFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
+}
+
+void VideoXperfMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
+{
+    LOGD("VideoXperfMonitor_OnVideoSecondFrame rawMsg:%{public}s", event->rawMsg.c_str());
+    VideoSecondEvent secondFrame = *((VideoSecondEvent*) event);
+
+    SurfaceInfo si = GetSurfaceInfo(secondFrame.uniqueId);
+    LoadCompleteReport report;
+    report.lastComponent = secondFrame.happenTime;
+    report.isLaunch = 1;
+    report.bundleName = si.bundleName;
+    report.abilityName = "";
+    LoadCompleteReporter::ReportLoadComplete(report);
 }
 
 void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)

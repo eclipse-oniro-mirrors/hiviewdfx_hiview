@@ -61,6 +61,7 @@ enum RsEventCode {
     VIDEO_JANK_FRAME,
     VIDEO_FRAME_STATS,
     VIDEO_EXCEPT_STOP,
+    VIDEO_SECOND_FRAME,
 };
 
 enum AvcodecFaultCode {
