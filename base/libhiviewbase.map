@@ -165,8 +165,9 @@
         "OHOS::HiviewDFX::EventLoop::~EventLoop()";
         "OHOS::HiviewDFX::MemoryUtil::DisableThreadCache()";
         "OHOS::HiviewDFX::MemoryUtil::DisableDelayFree()";
-        "OHOS::HiviewDFX::Pipeline::RemoveProcessor(std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>)";..
+        "OHOS::HiviewDFX::Pipeline::RemoveProcessor(std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>)";
         "OHOS::HiviewDFX::StringUtil::StrToInt(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
+        "OHOS::HiviewDFX::StringUtil::StrToInt64(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long&)";
         "OHOS::HiviewDFX::StringUtil::TrimStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, char)";
         "OHOS::HiviewDFX::StringUtil::SplitStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, char)";
         "OHOS::HiviewDFX::StringUtil::EraseString(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -269,6 +270,7 @@
         "OHOS::HiviewDFX::FileUtil::ExtractFileName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::LoadStringFromFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::HiviewDFX::EventPublish::PushEvent(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::HiSysEvent::EventType, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int)";
+        "OHOS::HiviewDFX::StringUtil::StrToInt64(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::SaveStringToFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
         "OHOS::HiviewDFX::SqlUtil::GenerateDropSql(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::EventStore::Cond::And(OHOS::HiviewDFX::EventStore::Cond const&)";
