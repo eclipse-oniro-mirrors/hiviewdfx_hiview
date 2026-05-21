@@ -178,7 +178,7 @@ void AvcodecVideoMonitor::AvcodecVideoJankReport()
             uniqueId, frameTime, now);
         std::stringstream s;
         s << "#UNIQUEID:" << uniqueId << "#FAULT_ID:" << static_cast<int32_t>(DomainId::RS) <<
-            "#FAULT_CODE:" << static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME) << 
+            "#FAULT_CODE:" << static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME) <<
             "#MAX_FRAME_TIME:" << frameTime << "#HAPPEN_TIME:" << now << "#SURFACE_NAME:" << surfaceName;
     
         XperfServiceClient::GetInstance().NotifyToXperf(
