@@ -60,6 +60,8 @@ struct GwpAsanCurrInfo {
     std::string topStack;
     /** telemetryId for gwpasan */
     std::string telemetryId;
+    /** information of appRunningId */
+    std::string appRunningId;
 };
 
 void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath);

@@ -143,7 +143,7 @@ void FaultLoggerServiceProxy::DisableGwpAsanGrayscale()
 
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option {MessageOption::TF_ASYNC};
     if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
         return;
     }

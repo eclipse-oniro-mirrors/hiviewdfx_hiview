@@ -33,6 +33,7 @@
 #include "faultloggerd_client.h"
 #include "tbox.h"
 #include "common_defines.h"
+#include "dfx_signal_handler.h"
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD002D12
@@ -141,6 +142,7 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
         currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
     currInfo.telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
+    currInfo.appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
     // Do upload when data ready
     bool isSendHisysevent = false;
     WriteCollectedData(currInfo, isSendHisysevent);
@@ -160,7 +162,8 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
         ";HAPPEN_TIME:" << currInfo.happenTime <<
         ";FINGERPRINT:" << currInfo.hash <<
         ";FIRST_FRAME:" << currInfo.errType <<
-        ";SECOND_FRAME:" << currInfo.topStack;
+        ";SECOND_FRAME:" << currInfo.topStack <<
+        ";APP_RUNNING_UNIQUE_ID:" << currInfo.appRunningId;
     if (!currInfo.telemetryId.empty()) {
         ssPrefix << ";TELEMETRY_ID:" << currInfo.telemetryId;
     }
