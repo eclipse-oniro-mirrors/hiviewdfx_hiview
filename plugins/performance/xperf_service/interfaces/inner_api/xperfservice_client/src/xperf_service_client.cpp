@@ -15,7 +15,6 @@
 
 #include <unistd.h>
 #include "xperf_service_client.h"
-#include "avcodec_video_monitor.h"
 #include "iservice_registry.h"
 #include "ixperf_service.h"
 #include "xperf_service_log.h"
@@ -161,43 +160,6 @@ int32_t XperfServiceClient::UnregisterAudioJank(const std::string& caller)
         return XPERF_SERVICE_ERR;
     }
     return client->UnregisterAudioJank(caller);
-}
-
-void XperfServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
-    const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime)
-{
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
-}
-
-void XperfServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
-    const std::vector<std::string>& surfaceNameList, const uint32_t fps)
-{
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
-}
-
-void XperfServiceClient::AvcodecVideoExpectionStop(const uint64_t uniqueId)
-{
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoExpectionStop(uniqueId);
-}
-
-void XperfServiceClient::AvcodecVideoCollectFinish()
-{
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoCollectFinish();
-}
-
-void XperfServiceClient::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence)
-{
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoCollect(uniqueId, sequence);
-}
-
-bool XperfServiceClient::AvcodecVideoGet(uint64_t uniqueId)
-{
-    return AvcodecVideoMonitor::GetInstance().AvcodecVideoGet(uniqueId);
-}
-
-bool XperfServiceClient::AvcodecVideoGetRecent()
-{
-    return AvcodecVideoMonitor::GetInstance().AvcodecVideoGetRecent();
 }
 
 } // namespace HiviewDFX
