@@ -289,7 +289,6 @@ void AvcodecVideoMonitor::AvcodecVideoCollect(const uint64_t uniqueId, const uin
                     s.str()
                 );
             });
-
         }
         UpdateVideoStats(videoStats, sequence, now);
     }
