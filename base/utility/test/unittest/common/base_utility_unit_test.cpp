@@ -44,7 +44,7 @@ void InsertTableValue(std::shared_ptr<RestorableDbStore> dbStore, const std::str
 {
     ASSERT_NE(dbStore, nullptr);
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(TEST_COLUMN_KEY_1, column1Val);...
+    bucket.PutString(TEST_COLUMN_KEY_1, column1Val);
     bucket.PutLong(TEST_COLUMN_KEY_2, column2Val);
     int64_t id = 0;
     ASSERT_EQ(dbStore->Insert(id, TEST_TABLE_NAME, bucket), NativeRdb::E_OK);
@@ -183,6 +183,22 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest003, testing::ext::TestSize.Lev
     ASSERT_EQ(intVal1, ret);
     ret = StringUtil::StrToInt(std::to_string(intVal2));
     ASSERT_EQ(intVal2, ret);
+}
+
+/**
+ * @tc.name: BaseUtilityUnitTest004
+ * @tc.desc: Test StrToInt64 defined in namespace StringUtil
+ * @tc.type: FUNC
+ * @tc.require: issueI651IG
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest004, testing::ext::TestSize.Level3)
+{
+    auto int64Val1 = static_cast<int64_t>(-1);
+    auto int64Val2 = static_cast<int64_t>(234);
+    auto ret = StringUtil::StrToInt64(std::to_string(int64Val1));
+    ASSERT_EQ(int64Val1, ret);
+    ret = StringUtil::StrToInt64(std::to_string(int64Val2));
+    ASSERT_EQ(int64Val2, ret);
 }
 
 /**
