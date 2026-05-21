@@ -272,7 +272,7 @@ void FaultLogFreeze::UpdateTerminalThreadStack()
 
 bool FaultLogFreeze::UpdateCommonInfo()
 {
-    FaultLogEventInterface::UpdateCommonInfo();
+    FaultLogEventIpc::UpdateCommonInfo();
     UpdateTerminalThreadStack();
     return true;
 }
