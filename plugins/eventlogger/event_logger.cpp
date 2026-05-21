@@ -717,6 +717,9 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
         headerStream << "QNAME = " << event->GetEventValue(FreezeCommon::QNAME) << std::endl;
         headerStream << "QOS = " << event->GetEventIntValue(FreezeCommon::QOS) << std::endl;
     }
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+        headerStream << "IS_FROZEN = " << event->GetEventIntValue("IS_FROZEN") << std::endl;
+    }
 
     FileUtil::SaveStringToFd(fd, headerStream.str());
     return true;
