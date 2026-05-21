@@ -154,7 +154,7 @@ bool StrToInt64(const string& str, int64_t& value)
 
 int64_t StrToInt64(const string& str)
 {
-    int id = -1;
+    int64_t id = -1;
     StrToInt64(str, id);
     return id;
 }
