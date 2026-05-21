@@ -44,16 +44,6 @@ public:
 
     int32_t UnregisterVideoState(const std::string& caller);
 
-    void AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
-        const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime);
-    void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
-        const std::vector<std::string>& surfaceNameList, const uint32_t fps);
-    void AvcodecVideoExpectionStop(const uint64_t uniqueId);
-    void AvcodecVideoCollectFinish();
-    void AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence);
-    bool AvcodecVideoGet(uint64_t uniqueId);
-    bool AvcodecVideoGetRecent();
-
 private:
     XperfServiceClient();
     ~XperfServiceClient();
