@@ -44,7 +44,7 @@ void InsertTableValue(std::shared_ptr<RestorableDbStore> dbStore, const std::str
 {
     ASSERT_NE(dbStore, nullptr);
     NativeRdb::ValuesBucket bucket;
-    bucket.PutString(TEST_COLUMN_KEY_1, column1Val);
+    bucket.PutString(TEST_COLUMN_KEY_1, column1Val);...
     bucket.PutLong(TEST_COLUMN_KEY_2, column2Val);
     int64_t id = 0;
     ASSERT_EQ(dbStore->Insert(id, TEST_TABLE_NAME, bucket), NativeRdb::E_OK);

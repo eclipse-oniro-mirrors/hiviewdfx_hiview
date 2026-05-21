@@ -95,8 +95,6 @@ private:
     void WriteBinderProcNameToFd(int fd, const std::string& hicollieBinderInfo,
         size_t syncPos, size_t asyncPos, size_t terminalPos);
     bool IsSysFreezeEvent() const;
-    static long SafeStrToLong(const std::string& str);
-    static long long SafeStrToLongLong(const std::string& str);
 };
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
