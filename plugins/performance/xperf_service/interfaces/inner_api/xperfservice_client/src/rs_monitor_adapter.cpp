@@ -17,10 +17,6 @@
 
 #include "avcodec_video_monitor.h"
 
-namespace {
-    OHOS::sptr<OHOS::HiviewDFX::IXperfService> client = nullptr;
-}
-
 namespace OHOS {
 namespace HiviewDFX {
 
@@ -30,8 +26,6 @@ RsMonitorAdapter::RsMonitorAdapter()
 
 RsMonitorAdapter::~RsMonitorAdapter()
 {
-    LOGI("RsMonitorAdapter:~RsMonitorAdapter");
-    ResetClient();
 }
 
 RsMonitorAdapter& RsMonitorAdapter::GetInstance()
