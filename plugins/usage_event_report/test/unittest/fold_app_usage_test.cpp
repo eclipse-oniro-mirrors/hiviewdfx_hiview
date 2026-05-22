@@ -477,7 +477,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest010, TestSize.Level1)
  * @tc.name: FoldAppUsageTest011
  * @tc.desc: test fold pc display mode change event with valid display mode.
  * @tc.type: FUNC
- * @DT:TicketNo=DTS0000000000000&PR-Num=4159&Feature=Feature&BinarySource=gitcode
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest011, TestSize.Level1)
 {
@@ -508,7 +507,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest011, TestSize.Level1)
  * @tc.name: FoldAppUsageTest012
  * @tc.desc: test coordination mode enter and exit events.
  * @tc.type: FUNC
- * @DT:TicketNo=DTS0000000000000&PR-Num=4159&Feature=Feature&BinarySource=gitcode
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest012, TestSize.Level1)
 {
@@ -530,7 +528,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest012, TestSize.Level1)
  * @tc.name: FoldAppUsageTest013
  * @tc.desc: test fold keyboard portrait status duration.
  * @tc.type: FUNC
- * @DT:TicketNo=DTS0000000000000&PR-Num=4159&Feature=Feature&BinarySource=gitcode
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest013, TestSize.Level1)
 {
@@ -554,7 +551,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest013, TestSize.Level1)
  * @tc.name: FoldAppUsageTest014
  * @tc.desc: test query foreground apps with display mode.
  * @tc.type: FUNC
- * @DT:TicketNo=DTS0000000000000&PR-Num=4159&Feature=Feature&BinarySource=gitcode
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest014, TestSize.Level1)
 {
@@ -580,7 +576,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest014, TestSize.Level1)
  * @tc.name: FoldAppUsageTest015
  * @tc.desc: test display mode invalid value (0) handling.
  * @tc.type: FUNC
- * @DT:TicketNo=DTS0000000000000&PR-Num=4159&Feature=Feature&BinarySource=gitcode
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest015, TestSize.Level1)
 {
@@ -611,7 +606,6 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest015, TestSize.Level1)
  * @tc.name: FoldAppUsageTest016
  * @tc.desc: test display mode coordination duration calculation.
  * @tc.type: FUNC
- * @DT:TicketNo=DTS0000000000000&PR-Num=4159&Feature=Feature&BinarySource=gitcode
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest016, TestSize.Level1)
 {
