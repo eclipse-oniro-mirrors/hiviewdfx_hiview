@@ -452,6 +452,8 @@ public:
 
     static constexpr char CUSTOM_ANIMATOR_ROTATE90ACW[] = "CUSTOM_ANIMATOR rotate90Acw";
 
+    static constexpr char CUSTOM_ANIMATOR_MOVINGIMAGEROTATE90ACW[] = "CUSTOM_ANIMATOR MovingImageRotate90Acw";
+
     static constexpr char EXIT_APP_CENTER[] = "EXIT_APP_CENTER";
 
     static constexpr char PC_RESTORE_DESKTOP_GESTURE_OPERATION[] = "PC_RESTORE_DESKTOP_GESTURE_OPERATION";
@@ -489,6 +491,42 @@ public:
     static constexpr char LOCKSCREEN_WIDGET_EXPAND[] = "LOCKSCREEN_WIDGET_EXPAND";
   
     static constexpr char LOCKSCREEN_WIDGET_COLLAPSE[] = "LOCKSCREEN_WIDGET_COLLAPSE";
+
+    static constexpr char STATIC_ENTER_CROP[] = "STATIC_ENTER_CROP";
+
+    static constexpr char MOVING_ENTER_CROP[] = "MOVING_ENTER_CROP";
+
+    static constexpr char STATIC_ADD_TEXT[] = "STATIC_ADD_TEXT";
+
+    static constexpr char STATIC_ADD_STYLUS[] = "STATIC_ADD_STYLUS";
+
+    static constexpr char STATIC_CROP_DRAG[] = "STATIC_CROP_DRAG";
+
+    static constexpr char MOVING_CROP_DRAG[] = "MOVING_CROP_DRAG";
+
+    static constexpr char STATIC_SET_MIRROR[] = "STATIC_SET_MIRROR";
+
+    static constexpr char MOVING_SET_MIRROR[] = "MOVING_SET_MIRROR";
+
+    static constexpr char SEAL_SHEET_OPEN[] = "SEAL_SHEET_OPEN";
+
+    static constexpr char SEAL_SHEET_CLOSE[] = "SEAL_SHEET_CLOSE";
+
+    static constexpr char STATIC_SEAL_SWITCH[] = "STATIC_SEAL_SWITCH";
+
+    static constexpr char MOVING_SEAL_SWITCH[] = "MOVING_SEAL_SWITCH";
+
+    static constexpr char XMAGE_OPEN[] = "XMAGE_OPEN";
+
+    static constexpr char XMAGE_CLOSE[] = "XMAGE_CLOSE";
+
+    static constexpr char ADJUST_XMAGE[] = "ADJUST_XMAGE";
+
+    static constexpr char STATIC_ADJUST_APERTURE[] = "STATIC_ADJUST_APERTURE";
+
+    static constexpr char MOVING_ADJUST_APERTURE[] = "MOVING_ADJUST_APERTURE";
+    
+    static constexpr char CELIA_EXPAND_TO_FULL_SCREEN[] = "CELIA_EXPAND_TO_FULL_SCREEN";
 
     // only for watch
     static constexpr char WATCH_SCROLL_CARD_LIST_ANI[] = "WATCH_SCROLL_CARD_LIST_ANI";
