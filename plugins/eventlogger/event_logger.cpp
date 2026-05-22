@@ -337,7 +337,8 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
 
     std::shared_ptr<EventLogTask> logTask = std::make_shared<EventLogTask>(fd, jsonFd, event);
-    if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN") {
+    if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN" ||
+        event->eventName_ == "HIT_EMPTY_WARNING") {
         logTask->SetFocusWindowId(DumpWindowInfo(fd));
     }
     std::vector<std::string> cmdList;
