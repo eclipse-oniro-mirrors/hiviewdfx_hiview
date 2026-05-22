@@ -169,7 +169,9 @@ if (enable_hiview_usage_event_report_build) {
       external_deps += [ "power_manager:powermgr_client" ]
       defines += [ "POWER_MANAGER_ENABLE" ]
     }
-
+    if (hiview_support_fold_pc_count_duration_enable) {
+        defines += [ "FOLD_PC_COUNT_DURATION_ENABLE" ]
+    }
     part_name = "hiview"
     subsystem_name = "hiviewdfx"
   }
