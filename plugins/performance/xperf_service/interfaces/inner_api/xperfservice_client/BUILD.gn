@@ -40,9 +40,10 @@ ohos_shared_library("xperfservice_client") {
   output_values = get_target_outputs(":xperf_service_interface")
   sources = [
     "${xperfservice_common}/src/perf_trace.cpp",
+    "${xperfservice_common}/src/perf_utils.cpp",
     "src/xperf_service_client.cpp",
     "src/rs_monitor_adapter.cpp",
-    "src/avcodec_video_monitor.cpp",
+    "src/rs_frame_monitor.cpp",
   ]
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
   sources += filter_include(output_values, [ "*_stub.cpp" ])

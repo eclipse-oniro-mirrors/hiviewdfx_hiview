@@ -12,25 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef LOAD_COMPLETE_REPORTER_H
-#define LOAD_COMPLETE_REPORTER_H
 
-#include "load_complete_report.h"
-#include "sys_event.h"
- 
+#ifndef PERF_UTILS_H
+#define PERF_UTILS_H
+
+#include <cstdint>
+
 namespace OHOS {
 namespace HiviewDFX {
- 
-class LoadCompleteReporter {
-public:
-    static void ReportLoadComplete(const LoadCompleteReport& record);
-    static void ReportSurfaceReceived(const std::string& bundleName);
-private:
-    static void ReportToXperfPlugin(std::shared_ptr<SysEvent> sysEvent);
-};
- 
-} // namespace HiviewDFX
-} // namespace OHOS
- 
-#endif
+int64_t GetCurrentSystimeMs();
+
+}
+}
+
+#endif // PERF_UTILS_H

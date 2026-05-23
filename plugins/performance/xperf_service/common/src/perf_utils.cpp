@@ -12,25 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-#ifndef LOAD_COMPLETE_REPORTER_H
-#define LOAD_COMPLETE_REPORTER_H
 
-#include "load_complete_report.h"
-#include "sys_event.h"
- 
+#include "perf_utils.h"
+
+#include <chrono>
+
 namespace OHOS {
 namespace HiviewDFX {
- 
-class LoadCompleteReporter {
-public:
-    static void ReportLoadComplete(const LoadCompleteReport& record);
-    static void ReportSurfaceReceived(const std::string& bundleName);
-private:
-    static void ReportToXperfPlugin(std::shared_ptr<SysEvent> sysEvent);
-};
- 
-} // namespace HiviewDFX
-} // namespace OHOS
- 
-#endif
+
+int64_t GetCurrentSystimeMs()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    int64_t curSysTime = std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+    return curSysTime;
+}
+
+}
+}

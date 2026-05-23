@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,8 @@
  
 #ifndef PASSTHROUGH_MONITOR_H
 #define PASSTHROUGH_MONITOR_H
- 
+
+#include "xperf_constant.h" 
 #include "xperf_monitor.h"
  
 namespace OHOS {
@@ -33,12 +34,24 @@ public:
     void operator=(const PassthroughMonitor&) = delete;
  
     void ProcessEvent(OhosXperfEvent* event) override;
+
+    void OnSurfaceReceived(const std::string& bundleName, int64_t uniqueId);
  
 private:
-    void ProcessLoadCompleteEvent(OhosXperfEvent* event);
+    void OnLoadCompleteEvent(OhosXperfEvent* event);
+    void OnVideoSecondFrame(OhosXperfEvent* event);
+    std::string GetBundleName(int64_t uniqueId);
  
     PassthroughMonitor() = default;
     virtual ~PassthroughMonitor() = default;
+
+    int64_t lastReportSurfaceTime_{0};
+
+    std::unordered_map<std::string, int64_t> bundleNameToUniqueId_ = {
+        {std::string(XperfConstants::APP_NAME_KUAISHOU_HMAPP), 0},
+        {std::string(XperfConstants::APP_NAME_KUAISHOU_HMNEBULA), 0},
+        {std::string(XperfConstants::APP_NAME_SS_HM_UGC_AWEME), 0}
+    };
 };
  
 } // namespace HiviewDFX

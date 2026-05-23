@@ -17,13 +17,13 @@
  
 #include "hisysevent.h"
 #include "hiview_global.h"
-#include "sys_event.h"
 #include "xperf_service_log.h"
  
 namespace OHOS {
 namespace HiviewDFX {
 
 const std::string EVENT_NAME_LOAD_COMPLETE = "LOAD_COMPLETE";
+const std::string EVENT_SURFACE_RECEIVED = "SURFACE_RECEIVED";
  
 void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
 {
@@ -35,6 +35,21 @@ void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
     sysEventCreator.SetKeyValue("ABILITY_NAME", record.abilityName);
 
     auto sysEvent = std::make_shared<SysEvent>(EVENT_NAME_LOAD_COMPLETE, nullptr, sysEventCreator);
+    ReportToXperfPlugin(sysEvent);
+}
+
+void LoadCompleteReporter::ReportSurfaceReceived(const std::string& bundleName)
+{
+    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", EVENT_SURFACE_RECEIVED,
+        OHOS::HiviewDFX::SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("BUNDLE_NAME", bundleName);
+
+    auto sysEvent = std::make_shared<SysEvent>(EVENT_SURFACE_RECEIVED, nullptr, sysEventCreator);
+    ReportToXperfPlugin(sysEvent);
+}
+
+void LoadCompleteReporter::ReportToXperfPlugin(std::shared_ptr<SysEvent> sysEvent)
+{
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
     if (!event) {
         LOGE("[LoadCompleteReporter]ReportLoadComplete dynamic_pointer_cast failed");
