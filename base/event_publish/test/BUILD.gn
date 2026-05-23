@@ -40,6 +40,7 @@ ohos_unittest("EventPublishTest") {
     "unittest/common/app_event_handler_test.cpp",
     "unittest/common/event_publish_test.cpp",
     "unittest/common/event_publish_test_util.cpp",
+    "unittest/common/log_file_name_converter_test.cpp",
   ]
 
   deps = [
