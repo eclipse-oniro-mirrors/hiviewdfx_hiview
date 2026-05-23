@@ -16,12 +16,22 @@
 #include "restorable_db_store.h"
 
 #include "hiview_logger.h"
+#include "hisysevent.h"
 #include "sql_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("HiView-RestorableDbStore");
+
+inline void WriteRdbErrorEvent(int32_t errCode, const std::string& scenario)
+{
+    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "HIVIEW_RDB_ERR", HiSysEvent::EventType::FAULT,
+        "SCENARIO", scenario, "ERR_CODE", errCode);
+    if (ret != SUCCESS) {
+        HIVIEW_LOGW("failed to write HIVIDEW_RDB_ERR event, ret is %{public}d", ret);
+    }
+}
 }
 
 int RestorableDbStore::RestorableDbOpenCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
@@ -64,6 +74,7 @@ int RestorableDbStore::Initialize(OnDbCreatedCallback onDbCreatedCallback,
     if (ret == NativeRdb::E_OK) {
         return ret;
     }
+    WriteRdbErrorEvent(ret, scenario_);
     if (ret == NativeRdb::E_SQLITE_CORRUPT) {
         ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_);
         rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
@@ -190,6 +201,7 @@ int RestorableDbStore::AdaptRdbOpt(std::function<int(std::shared_ptr<NativeRdb::
             return ret;
         }
     }
+    WriteRdbErrorEvent(ret, scenario_);
     if (ret != NativeRdb::E_SQLITE_CORRUPT) {
         HIVIEW_LOGE("db isn't corrupted, ret is %{public}d", ret);
         return ret;

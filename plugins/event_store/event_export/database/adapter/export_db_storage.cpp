@@ -177,7 +177,8 @@ void ExportDbStorage::QueryExportDetailRecord(const std::string& moduleName, Exp
 
 void ExportDbStorage::InitDbStore(const std::string& dbStoreDir)
 {
-    dbStore_ = std::make_shared<RestorableDbStore>(dbStoreDir, std::string(EXPORT_DB_NAME), DB_VERSION);
+    dbStore_ = std::make_shared<RestorableDbStore>(dbStoreDir, std::string(EXPORT_DB_NAME), DB_VERSION,
+        "sys event export");
     dbStore_->Initialize(CreateExportDetailsTable,
         [] (NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) {
             HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d.", oldVersion, newVersion);

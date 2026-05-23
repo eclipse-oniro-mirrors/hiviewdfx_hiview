@@ -267,7 +267,7 @@ void CpuStorage::InitDbStorePath()
 
 void CpuStorage::InitDbStore()
 {
-    dbStore_ = std::make_shared<RestorableDbStore>(dbStorePath_, dbFileName_, DB_VERSION);
+    dbStore_ = std::make_shared<RestorableDbStore>(dbStorePath_, dbFileName_, DB_VERSION, "cpu information storage");
     int ret = dbStore_->Initialize(CreateTables,
         [] (NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion) {
             HIVIEW_LOGD("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);

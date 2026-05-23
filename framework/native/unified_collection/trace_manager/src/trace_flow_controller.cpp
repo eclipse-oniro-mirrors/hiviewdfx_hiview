@@ -40,7 +40,7 @@ constexpr char DEFAULT_CONFIG_PATH[] = "/system/etc/hiview/";
 
 void TraceFlowController::InitTraceDb(const std::string& dbPath)
 {
-    dbStore_ = std::make_shared<RestorableDbStore>(dbPath, DB_NAME, DB_VERSION);
+    dbStore_ = std::make_shared<RestorableDbStore>(dbPath, DB_NAME, DB_VERSION, "trace flow controller");
     int ret = dbStore_->Initialize(TraceDbStoreCallback::OnCreate, TraceDbStoreCallback::OnUpgrade, nullptr);
     if (ret != NativeRdb::E_OK) {
         dbStore_ = nullptr;
