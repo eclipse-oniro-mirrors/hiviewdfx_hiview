@@ -16,7 +16,6 @@
 #include "rs_frame_monitor.h"
 
 #include <sstream>
-// #include <unistd.h>
 #include <cinttypes>
 
 #include "perf_trace.h"
