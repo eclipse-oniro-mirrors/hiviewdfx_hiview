@@ -24,8 +24,6 @@
 #include "xperf_service_client.h"
 #include "xperf_service_log.h"
 
-
-
 namespace OHOS {
 namespace HiviewDFX {
 
