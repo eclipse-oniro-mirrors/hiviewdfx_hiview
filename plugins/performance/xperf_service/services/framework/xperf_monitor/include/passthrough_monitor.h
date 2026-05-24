@@ -16,7 +16,7 @@
 #ifndef PASSTHROUGH_MONITOR_H
 #define PASSTHROUGH_MONITOR_H
 
-#include "xperf_constant.h" 
+#include "xperf_constant.h"
 #include "xperf_monitor.h"
  
 namespace OHOS {
