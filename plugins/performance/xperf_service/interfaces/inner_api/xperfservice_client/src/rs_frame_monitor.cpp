@@ -110,11 +110,8 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
                     "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
                     uniqueId, duration, avgFps, happenTime);
                 std::stringstream s;
-                s << "#UNIQUEID:" << uniqueId <<
-                    "#DURATION:" << duration <<
-                    "#AVG_FPS:" << avgFps <<
-                    "#INTERVAL_COUNT:" << intervalExceedCount <<
-                    "#INTERVAL_LATENCY:" << intervalExceedLatency;
+                s << "#UNIQUEID:" << uniqueId << "#DURATION:" << duration << "#AVG_FPS:" << avgFps <<
+                    "#INTERVAL_COUNT:" << intervalExceedCount << "#INTERVAL_LATENCY:" << intervalExceedLatency;
                 XperfServiceClient::GetInstance().NotifyToXperf(
                     static_cast<int32_t>(DomainId::RS),
                     static_cast<int32_t>(RsEventCode::VIDEO_FRAME_STATS),
