@@ -104,7 +104,8 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
             uint64_t happenTime = it->second.startTime;
             uint32_t intervalExceedCount = it->second.intervalExceedCount;
             uint64_t intervalExceedLatency = it->second.intervalExceedLatency;
-            ffrtHighPriorityQueue_->submit([uniqueId, duration, avgFps, happenTime, intervalExceedCount, intervalExceedLatency]() {
+            ffrtHighPriorityQueue_->submit([uniqueId, duration, avgFps, happenTime, intervalExceedCount,
+                intervalExceedLatency]() {
                 XPERF_TRACE_SCOPED("RSJankStats::VideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG "
                     "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
                     uniqueId, duration, avgFps, happenTime);
