@@ -69,9 +69,8 @@ void PassthroughMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
     report.isLaunch = 1;
     report.bundleName = bundleName;
     report.abilityName = "";
-    ffrt::submit([report]() {
-        LoadCompleteReporter::ReportLoadComplete(report);
-    }, ffrt::task_attr().qos(ffrt::qos_user_initiated));
+    ffrt::submit([report]() { LoadCompleteReporter::ReportLoadComplete(report); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
 
 std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
@@ -92,9 +91,8 @@ void PassthroughMonitor::OnSurfaceReceived(const std::string& bundleName, int64_
         int64_t now = GetCurrentSystimeMs();
         if (now - lastReportSurfaceTime_ > REPORT_GAP_TIME) {
             lastReportSurfaceTime_ = now;
-            ffrt::submit([bundleName]() {
-                LoadCompleteReporter::ReportSurfaceReceived(bundleName);
-            }, ffrt::task_attr().qos(ffrt::qos_user_initiated));
+            ffrt::submit([bundleName]() { LoadCompleteReporter::ReportSurfaceReceived(bundleName); },
+                ffrt::task_attr().qos(ffrt::qos_user_initiated));
         }
     }
 }
@@ -109,9 +107,8 @@ void PassthroughMonitor::OnLoadCompleteEvent(OhosXperfEvent* event)
         .bundleName = loadCompleteEvent->bundleName,
         .abilityName = loadCompleteEvent->abilityName,
     };
-    ffrt::submit([reportInfo]() {
-        LoadCompleteReporter::ReportLoadComplete(reportInfo);
-    }, ffrt::task_attr().qos(ffrt::qos_user_initiated));
+    ffrt::submit([reportInfo]() { LoadCompleteReporter::ReportLoadComplete(reportInfo); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
  
 } // namespace HiviewDFX
