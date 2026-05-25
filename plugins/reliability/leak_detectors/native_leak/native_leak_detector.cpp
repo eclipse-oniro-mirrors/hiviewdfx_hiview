@@ -170,8 +170,8 @@ void NativeLeakDetector::RemoveInvalidUserInfo()
             HIVIEW_LOGI("id %{public}d, process %{public}s already died, remove it from grayList_.",
                 pid, it->second->GetProcessName().c_str());
             time_t now = time(nullptr);
-            if (now == (time_t)(-1)) {
-                now = (time_t)(0);
+            if (now == static_cast<time_t>(-1)) {
+                now = static_cast<time_t>(0);
             }
             processedPids_.insert(make_pair(it->second->GetProcessName(), now));
             it = grayList_.erase(it);

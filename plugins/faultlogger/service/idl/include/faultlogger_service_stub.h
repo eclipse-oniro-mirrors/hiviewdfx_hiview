@@ -30,8 +30,11 @@ public:
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 private:
-    int HandleOtherRemoteRequest(uint32_t code, MessageParcel &data,
-        MessageParcel &reply, MessageOption &option);
+    int HandleOtherRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int HandleEnableGwpAsanGrayscale(MessageParcel &data, MessageParcel &reply);
+    int HandleDisableGwpAsanGrayscale();
+    int HandleGetGwpAsanGrayscaleState(MessageParcel &reply);
+    int HandleEnableGwpAsanInner(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

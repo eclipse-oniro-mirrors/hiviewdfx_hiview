@@ -70,6 +70,18 @@ void PerfMonitorAdapter::RecordInputEvent(PerfActionType type, PerfSourceType so
     InputMonitor::GetInstance().RecordInputEvent(type, sourceType, time);
 }
 
+void PerfMonitorAdapter::RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time,
+    int32_t xPos, int32_t yPos)
+{
+    InputMonitor::GetInstance().RecordInputEvent(type, sourceType, time, xPos, yPos);
+}
+
+InputEventInfo PerfMonitorAdapter::GetInputEventInfo(const std::string& sceneId, PerfActionType type,
+    const std::string& note)
+{
+    return InputMonitor::GetInstance().GetInputEventInfo(sceneId, type, note);
+}
+
 int64_t PerfMonitorAdapter::GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note)
 {
     return InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
@@ -192,9 +204,9 @@ void PerfMonitorAdapter::ReportSurface(const int64_t& uniqueId, const std::strin
     SurfaceMonitor::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
 }
 
-void PerfMonitorAdapter::AddLoadComponent(int32_t componentId)
+void PerfMonitorAdapter::AddLoadComponent(int32_t componentId, int32_t sourceType)
 {
-    LoadCompleteMonitor::GetInstance().AddLoadComponent(componentId);
+    LoadCompleteMonitor::GetInstance().AddLoadComponent(componentId, sourceType);
 }
  
 void PerfMonitorAdapter::DeleteLoadComponent(int32_t componentId)

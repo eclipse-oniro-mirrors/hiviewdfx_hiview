@@ -315,7 +315,7 @@ private:
     void BuildDocQuery(DocQuery &docQuery) const;
     CompareFunc CreateCompareFunc() const;
 
-    int limit_;
+    int limit_ = 0;
     std::pair<std::string, bool> orderCol_;
     Cond cond_;
     SysEventQueryArg queryArg_;

@@ -16,6 +16,7 @@
 
 #include <climits>
 #include <functional>
+#include <sys/resource.h>
 #include <thread>
 
 #if defined(__HIVIEW_OHOS__)
@@ -49,7 +50,8 @@ std::future<bool> GetFalseFuture()
 
 DEFINE_LOG_TAG("HiView-EventLoop");
 
-EventLoop::EventLoop(const std::string &name) : name_(name), nextWakeupTime_(0), currentProcessingEvent_(nullptr)
+EventLoop::EventLoop(const std::string &name, bool isHighPriority)
+    : name_(name), nextWakeupTime_(0), currentProcessingEvent_(nullptr), isHighPriority_(isHighPriority)
 {}
 
 EventLoop::~EventLoop()
@@ -389,6 +391,11 @@ void EventLoop::Run()
 {
     if (MemoryUtil::DisableThreadCache() != 0 || MemoryUtil::DisableDelayFree() != 0) {
         HIVIEW_LOGW("Failed to optimize memory for current thread");
+    }
+
+    if (isHighPriority_) {
+        int ret = setpriority(PRIO_PROCESS, 0, -20); // nice:-20
+        HIVIEW_LOGI("setpriority, name: %{public}s, ret: %{public}d", name_.c_str(), ret);
     }
 
     InitThreadName();

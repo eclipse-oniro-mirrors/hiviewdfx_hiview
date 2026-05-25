@@ -1128,10 +1128,81 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_002, TestSize.Level1)
 
 /**
  * @tc.name: PeerBinderCatcherTest_003
- * @tc.desc: add testcase code coverage
+ * @tc.desc: test Catch with HICOLLIE_BINDER_INFO containing PROCESS_NAME
  * @tc.type: FUNC
  */
 HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
+{
+    auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create catcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    int pid = CommonUtils::GetPidByName("foundation");
+    peerBinderCatcher->Initialize("a", 1, pid);
+    auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("PeerBinderCatcherTest_Hicollie",
+        nullptr, jsonStr);
+    event->eventId_ = 0;
+    event->domain_ = "KERNEL_VENDOR";
+    event->eventName_ = "HUNGTASK";
+    event->SetEventValue("PID", pid);
+    event->SetEventValue("HICOLLIE_BINDER_INFO",
+        "syncPids:100(process1);200(process2) PROCESS_NAME:app1,app2 asyncPids:300,400 terminalBinder:500,600");
+    std::string filePath = "/data/test/catcherFile";
+    std::set<int> catchedPids;
+    peerBinderCatcher->Init(event, filePath, catchedPids);
+    int res = peerBinderCatcher->Catch(fd, 1);
+    if (Parameter::IsOversea()) {
+        EXPECT_EQ(res, 0);
+    } else {
+        EXPECT_GT(res, 0);
+    }
+    close(fd);
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_004
+ * @tc.desc: test Catch with HICOLLIE_BINDER_INFO without PROCESS_NAME
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_004, TestSize.Level1)
+{
+    auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create catcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    int pid = CommonUtils::GetPidByName("foundation");
+    peerBinderCatcher->Initialize("a", 1, pid);
+    auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("PeerBinderCatcherTest_HicollieNoPN",
+        nullptr, jsonStr);
+    event->eventId_ = 0;
+    event->domain_ = "KERNEL_VENDOR";
+    event->eventName_ = "HUNGTASK";
+    event->SetEventValue("PID", pid);
+    event->SetEventValue("HICOLLIE_BINDER_INFO", "syncPids:100(process1);200(process2) asyncPids:300,400");
+    std::string filePath = "/data/test/catcherFile";
+    std::set<int> catchedPids;
+    peerBinderCatcher->Init(event, filePath, catchedPids);
+    int res = peerBinderCatcher->Catch(fd, 1);
+    if (Parameter::IsOversea()) {
+        EXPECT_EQ(res, 0);
+    } else {
+        EXPECT_GT(res, 0);
+    }
+    close(fd);
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_005
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_005, TestSize.Level1)
 {
     std::map<int, std::list<OHOS::HiviewDFX::PeerBinderCatcher::BinderInfo>> manager;
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
@@ -1170,11 +1241,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
 }
 
 /**
- * @tc.name: PeerBinderCatcherTest_004
+ * @tc.name: PeerBinderCatcherTest_006
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_004, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
 {
     auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -1189,11 +1260,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_004, TestSize.Level1)
 }
 
 /**
- * @tc.name: PeerBinderCatcherTest_005
+ * @tc.name: PeerBinderCatcherTest_007
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_005, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_007, TestSize.Level1)
 {
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     std::list<PeerBinderCatcher::OutputBinderInfo> infoList;
@@ -1216,11 +1287,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_005, TestSize.Level1)
 }
 
 /**
- * @tc.name: PeerBinderCatcherTest_006
+ * @tc.name: PeerBinderCatcherTest_008
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_008, TestSize.Level1)
 {
     auto fd = open("/data/test/peerFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -1258,11 +1329,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_006, TestSize.Level1)
 }
 
 /**
- * @tc.name: PeerBinderCatcherTest_007
+ * @tc.name: PeerBinderCatcherTest_009
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_007, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_009, TestSize.Level1)
 {
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     bool ret = peerBinderCatcher->IsAncoProc(getpid());
@@ -1270,11 +1341,11 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_007, TestSize.Level1)
 }
 
 /**
- * @tc.name: PeerBinderCatcherTest_008
+ * @tc.name: PeerBinderCatcherTest_010
  * @tc.desc: add testcase code coverage
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_008, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_010, TestSize.Level1)
 {
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
     std::string str = "123";
@@ -1315,6 +1386,75 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_008, TestSize.Level1)
         }
         testFile.close();
     }
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_011
+ * @tc.desc: test SafeStrToLong function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_011, TestSize.Level1)
+{
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("123"), 123);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("0"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("-456"), -456);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong(""), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("abc"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("123abc"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("abc123"), 0);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLong("9999999999999999999"), 0);
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_012
+ * @tc.desc: test SafeStrToLongLong function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_012, TestSize.Level1)
+{
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("123"), 123LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("0"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("-456"), -456LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("9223372036854775807"), 9223372036854775807LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong(""), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("abc"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("123abc"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("abc123"), 0LL);
+    EXPECT_EQ(PeerBinderCatcher::SafeStrToLongLong("9999999999999999999999999999"), 0LL);
+}
+
+/**
+ * @tc.name: PeerBinderCatcherTest_013
+ * @tc.desc: add testcase code coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_013, TestSize.Level1)
+{
+    auto fd = open("/data/test/catcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create catcherFile. errno: %d\n", errno);
+        FAIL();
+    }
+
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
+    std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("PeerBinderCatcherTest_009",
+        nullptr, jsonStr);
+    event->eventId_ = 0;
+
+    event->domain_ = "KERNEL_VENDOR";
+    event->eventName_ = "HUNGTASK";
+    std::set<int> catchedPids;
+    peerBinderCatcher->Init(event, "", catchedPids);
+    bool result = peerBinderCatcher->IsSysFreezeEvent();
+    EXPECT_TRUE(result);
+
+    event->domain_ = "ACE";
+    event->eventName_ = "UI_BLOCK_6S";
+    result = peerBinderCatcher->IsSysFreezeEvent();
+    EXPECT_TRUE(!result);
+
+    close(fd);
 }
 #endif // BINDER_CATCHER_ENABLE
 
@@ -1720,5 +1860,93 @@ HWTEST_F(EventloggerCatcherTest, LightHilogCatcherTest_001, TestSize.Level1)
     EXPECT_TRUE(pid > 0);
 }
 #endif // HILOG_CATCHER_ENABLE
+
+#ifdef BINDER_CATCHER_ENABLE
+/**
+ * @tc.name: GetHicollieBinderPosTest
+ * @tc.desc: test GetHicollieBinderPos function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, GetHicollieBinderPosTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "syncPids:123 asyncPids:456 terminalBinder:789,101";
+    size_t syncPos, asyncPos, terminalPos;
+    peerBinderCatcher->GetHicollieBinderPos(hicollieBinderInfo, syncPos, asyncPos, terminalPos);
+    EXPECT_EQ(syncPos, 0);
+    EXPECT_TRUE(asyncPos > 0);
+    EXPECT_TRUE(terminalPos > 0);
+}
+ 
+/**
+ * @tc.name: ParseBinderInfoFromHicollieTest
+ * @tc.desc: test ParseBinderInfoFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseBinderInfoFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    auto fd = open("/data/test/ParseBinderInfoFromHicollieTest", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create test file. errno: %d\n", errno);
+        FAIL();
+    }
+    std::string hicollieBinderInfo = "syncPids:123(abc) asyncPids:456,789 terminalBinder:111,222";
+    std::set<int> syncPids;
+    std::set<int> asyncPids;
+    peerBinderCatcher->ParseBinderInfoFromHicollie(fd, hicollieBinderInfo, syncPids, asyncPids);
+    EXPECT_GT(syncPids.size(), 0);
+    EXPECT_GT(asyncPids.size(), 0);
+    close(fd);
+}
+ 
+/**
+ * @tc.name: ParseSyncPidsFromHicollieTest
+ * @tc.desc: test ParseSyncPidsFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseSyncPidsFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "syncPids:100(test1);200(test2);300(test3)";
+    std::set<int> syncPids;
+    peerBinderCatcher->ParseSyncPidsFromHicollie(hicollieBinderInfo, 0, std::string::npos, syncPids);
+    EXPECT_EQ(syncPids.size(), 3);
+    EXPECT_TRUE(syncPids.find(100) != syncPids.end());
+    EXPECT_TRUE(syncPids.find(200) != syncPids.end());
+    EXPECT_TRUE(syncPids.find(300) != syncPids.end());
+}
+ 
+/**
+ * @tc.name: ParseAsyncPidsFromHicollieTest
+ * @tc.desc: test ParseAsyncPidsFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseAsyncPidsFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "asyncPids:100,200,300";
+    std::set<int> asyncPids;
+    peerBinderCatcher->ParseAsyncPidsFromHicollie(hicollieBinderInfo, 0, std::string::npos, asyncPids);
+    EXPECT_EQ(asyncPids.size(), 3);
+    EXPECT_TRUE(asyncPids.find(100) != asyncPids.end());
+    EXPECT_TRUE(asyncPids.find(200) != asyncPids.end());
+    EXPECT_TRUE(asyncPids.find(300) != asyncPids.end());
+}
+ 
+/**
+ * @tc.name: ParseTerminalFromHicollieTest
+ * @tc.desc: test ParseTerminalFromHicollie function
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, ParseTerminalFromHicollieTest_001, TestSize.Level1)
+{
+    auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
+    std::string hicollieBinderInfo = "terminalBinder:12345,6789";
+    peerBinderCatcher->ParseTerminalFromHicollie(hicollieBinderInfo, 0);
+    EXPECT_EQ(peerBinderCatcher->terminalBinder_.pid, 12345);
+    EXPECT_EQ(peerBinderCatcher->terminalBinder_.tid, 6789);
+}
+#endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

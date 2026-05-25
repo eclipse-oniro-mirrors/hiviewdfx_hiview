@@ -49,10 +49,13 @@ bool PluginConfig::StartParse()
                 in.close();
                 return false;
             }
-
+            if (!StringUtil::StrToInt(std::string(result[fieldCountField]), fieldCount)) {
+                HIVIEW_LOGW("convert field count failed.");
+                in.close();
+                return false;
+            }
             field = StringUtil::TrimStr(result[fieldNameField]);
-            fieldCount = atoi(std::string(result[fieldCountField]).c_str());
-            HIVIEW_LOGD("find field:%{public}s.", field.c_str());
+            HIVIEW_LOGD("find field:%{public}s, fieldCount:%{public}d.", field.c_str(), fieldCount);
             continue;
         }
 
@@ -82,25 +85,18 @@ void PluginConfig::ParsePlugin(const std::string& pluginStr)
     const int pluginNameField = 1;
     const int workHandlerTypeField = 2;
     const int workHandlerNameField = 3;
-    const int countOfThreadPoolField = 4;
     const int loadDelayField = 5;
     const int loadTypeField = 6;
     PluginInfo info;
-
+    if (!StringUtil::StrToInt(std::string(result[loadDelayField]), info.loadDelay)) {
+        HIVIEW_LOGW("loadDelay is invalid.");
+        return;
+    }
     info.isStatic = (result[loadTypeField] == "static");
     info.isEventSource = false;
-    info.loadDelay = atoi(std::string(result[loadDelayField]).c_str());
     info.name = result[pluginNameField];
     info.workHandlerType = result[workHandlerTypeField];
     info.workHandlerName = result[workHandlerNameField];
-
-    // EventProcessorExample4[pool:pool-example-4:4]:0 static
-    if (result[workHandlerTypeField] == "pool") {
-        WorkPoolInfo poolInfo;
-        poolInfo.name = result[workHandlerNameField],
-        poolInfo.threadCount = atoi(std::string(result[countOfThreadPoolField]).c_str()),
-        workPoolInfoMap_[poolInfo.name] = std::move(poolInfo);
-    }
     pluginInfoList_.push_back(std::move(info));
 }
 

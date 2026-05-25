@@ -99,3 +99,26 @@ HWTEST_F(PlatformConfigTest, PlatformConfigParse002, TestSize.Level3)
         printf("read pipeline with name:%s \n", pipelineInfo.name.c_str());
     }
 }
+
+/**
+ * @tc.name: PlatformConfigParse003
+ * @tc.desc: parse a config file with invalid plugin number
+ * @tc.type: FUNC
+ */
+HWTEST_F(PlatformConfigTest, PlatformConfigParse003, TestSize.Level3)
+{
+    PluginConfig config("/data/test/test_data/plugin_config_invalid_plugin_number");
+    ASSERT_FALSE(config.StartParse());
+}
+
+/**
+ * @tc.name: PlatformConfigParse004
+ * @tc.desc: parse a config file with invalid delay time
+ * @tc.type: FUNC
+ */
+HWTEST_F(PlatformConfigTest, PlatformConfigParse004, TestSize.Level3)
+{
+    PluginConfig config("/data/test/test_data/plugin_config_invalid_delay_time");
+    ASSERT_TRUE(config.StartParse());
+    ASSERT_TRUE(config.GetPluginInfoList().empty());
+}

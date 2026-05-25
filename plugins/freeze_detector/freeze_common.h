@@ -43,7 +43,7 @@ public:
     static constexpr const char* FREEZE_HALF_HIVIEW_SUCCESS = "FREEZE_HALF_HIVIEW_LOG write success";
     static constexpr const char* PB_EVENTS[] = {
         "UI_BLOCK_3S", "THREAD_BLOCK_3S", "BUSSNESS_THREAD_BLOCK_3S", "LIFECYCLE_HALF_TIMEOUT",
-        "LIFECYCLE_HALF_TIMEOUT_WARNING"
+        "LIFECYCLE_HALF_TIMEOUT_WARNING", "SERVICE_WARNING"
     };
     static constexpr const char* EVENT_TRACE_ID = "HITRACE_ID";
     static constexpr const char* PROC_STATM = "PROC_STATM";
@@ -53,7 +53,6 @@ public:
     static constexpr const char* EVENT_APPLICATION_HEAP_INFO = "APPLICATION_HEAP_INFO";
     static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
     static constexpr const char* APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
-    static constexpr const char* LOWERCASE_OF_APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
     static constexpr const char* FOREGROUND = "FOREGROUND";
     static constexpr const char* EVENT_TASK_NAME = "TASK_NAME";
     static constexpr const char* QNAME = "QNAME";

@@ -39,6 +39,7 @@ ohos_source_set("hiview_event_publish") {
       "app_event_handler.cpp",
       "app_event_publisher_factory.cpp",
       "event_publish.cpp",
+      "log_file_name_converter.cpp",
       "user_data_size_reporter.cpp",
     ]
 

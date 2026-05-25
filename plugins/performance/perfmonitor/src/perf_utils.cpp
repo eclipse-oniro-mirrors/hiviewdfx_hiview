@@ -72,6 +72,26 @@ std::string GetSourceTypeName(PerfSourceType sourceType)
     return type;
 }
 
+std::string GetActionTypeName(PerfActionType actionType)
+{
+    std::string type = "";
+    switch (actionType) {
+        case LAST_DOWN:
+            type = "LAST_DOWN";
+            break;
+        case LAST_UP:
+            type = "LAST_UP";
+            break;
+        case FIRST_MOVE:
+            type = "FIRST_MOVE";
+            break;
+        default :
+            type = "UNKNOWN_ACTION";
+            break;
+    }
+    return type;
+}
+
 std::string TruncatePageName(const std::string& pageName)
 {
     return pageName.length() > MAX_PAGE_NAME_LEN ? pageName.substr(0, MAX_PAGE_NAME_LEN) : pageName;

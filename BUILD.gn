@@ -25,7 +25,7 @@ out_plugin_build_file = "${target_gen_dir}/plugin_build.gni"
 out_plugin_config_file_tmp = "${target_gen_dir}/plugin_config_tmp"
 
 if (build_with_config) {
-  input_build_file = rebase_path(config_path)
+  input_build_file = rebase_path(input_file_config_path)
 }
 
 action("gen_plugin_config") {

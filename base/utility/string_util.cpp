@@ -289,7 +289,7 @@ std::string EscapeJsonStringValue(const std::string &value)
 
 std::string UnescapeJsonStringValue(const std::string &value)
 {
-    bool isEscaped = true;
+    bool isEscaped = false;
     std::string unescapeValue;
     for (auto it = value.begin(); it != value.end(); it++) {
         if (isEscaped) {

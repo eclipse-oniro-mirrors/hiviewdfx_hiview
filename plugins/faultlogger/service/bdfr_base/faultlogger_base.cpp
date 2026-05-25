@@ -15,6 +15,7 @@
 
 #include "faultlogger_base.h"
 
+#include <map>
 #include <memory>
 
 #include "ability_manager_client.h"
@@ -23,11 +24,12 @@
 #include "faultlog_bootscan.h"
 #include "faultlog_bundle_util.h"
 #include "faultlog_dump.h"
-#include "faultlog_util.h"
 #include "faultlog_event_factory.h"
 #include "faultlog_manager.h"
+#include "faultlog_util.h"
 #include "hiview_logger.h"
 #include "if_system_ability_manager.h"
+#include "ipc_skeleton.h"
 #include "parameters.h"
 #include "sanitizer_telemetry.h"
 #include "system_ability_definition.h"
@@ -49,6 +51,8 @@ constexpr int MIN_APP_UID = 10000;
 constexpr int MAX_APPLICATION_ENABLE = 20;
 constexpr uint64_t DEFAULT_DURATION = 7;
 constexpr uint64_t DAYS_TO_MILLISEC = 24 * 60 * 60;
+constexpr const char* DHA_SERVICE_NAME = "dha_service";
+constexpr int32_t DHA_SERVICE_UID = 7780;
 }
 
 FaultloggerBase::FaultloggerBase()
@@ -207,6 +211,63 @@ uint64_t FaultloggerBase::GetExtensionDelayTime()
     constexpr uint64_t maxDelayTimeSeconds = 3 * 60 * 60; // 3h
     return OHOS::system::GetUintParameter("faultloggerd.extension.delay",
         defaultDelayTimeSeconds, maxDelayTimeSeconds);
+}
+
+bool FaultloggerBase::EnableGwpAsanInner(GwpAsanParams gwpAsanParams, const std::string& processName)
+{
+    if (!CheckCallerIsAllowed()) {
+        HIVIEW_LOGE("Enable EnableGwpAsanInner failed, the caller is not permitted");
+        return false;
+    }
+    
+    HIVIEW_LOGD("EnableGwpAsanInner success, process: %{public}s, alwaysEnabled: %{public}d "
+        ", sampleRate: %{public}f, maxSimutaneousAllocations: %{public}f "
+        ", duration: %{public}d, isRecover: %{public}d",
+        processName.c_str(), gwpAsanParams.alwaysEnabled, gwpAsanParams.sampleRate,
+        gwpAsanParams.maxSimutaneousAllocations, gwpAsanParams.duration, gwpAsanParams.isRecover);
+
+    // force sample process in any version
+    system::SetParameter("gwp_asan.sample.service.forcible", "true");
+
+    int sampleRateInt = static_cast<int>(std::ceil(gwpAsanParams.sampleRate));
+    int slotInt = static_cast<int>(std::ceil(gwpAsanParams.maxSimutaneousAllocations));
+    int pid = CommonUtils::GetPidByName(processName);
+    if (pid < 0) {
+        HIVIEW_LOGE("EnableGwpAsanInner failed, get pid failed, process: %{public}s", processName.c_str());
+        return false;
+    }
+    
+    int32_t uid = CommonUtils::GetUidByPid(pid);
+    if (uid < 0) {
+        HIVIEW_LOGE("EnableGwpAsanInner failed, get uid failed, process: %{public}s", processName.c_str());
+        return false;
+    }
+    std::string sample = std::to_string(sampleRateInt) + ":" + std::to_string(slotInt);
+    system::SetParameter("gwp_asan.enable.app." + std::to_string(uid), gwpAsanParams.alwaysEnabled ? "true" : "false");
+    system::SetParameter("gwp_asan.recoverable.app." + std::to_string(uid), gwpAsanParams.isRecover ? "true" : "false");
+    system::SetParameter("gwp_asan.sample.app." + std::to_string(uid), sample);
+
+    uint64_t beginTime = static_cast<uint64_t>(std::time(nullptr));
+    system::SetParameter("gwp_asan.gray_begin.app." + std::to_string(uid), std::to_string(beginTime));
+    system::SetParameter("gwp_asan.gray_days.app." + std::to_string(uid), std::to_string(gwpAsanParams.duration));
+    return true;
+}
+
+bool FaultloggerBase::CheckCallerIsAllowed()
+{
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    std::string processName = CommonUtils::GetProcFullNameByPid(pid);
+    static const std::map<int32_t, std::string> allowedCallerMap = {
+        {DHA_SERVICE_UID, DHA_SERVICE_NAME},
+    };
+    auto it = allowedCallerMap.find(uid);
+    if (it == allowedCallerMap.end() || it->second != processName) {
+        HIVIEW_LOGE("the caller [uid=%{public}d, process=%{public}s] is not permitted", uid, processName.c_str());
+        return false;
+    }
+    
+    return true;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

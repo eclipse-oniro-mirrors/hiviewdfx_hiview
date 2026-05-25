@@ -332,6 +332,10 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
         LogCatcherUtils::DumpStackFfrt(fd, binderPid);
     });
 
+    if (freezeCommon_ != nullptr && freezeCommon_->IsSystemEvent(event->domain_, event->eventName_)) {
+        event->SetEventValue("EVENT_TYPE", "sys");
+    }
+
     std::shared_ptr<EventLogTask> logTask = std::make_shared<EventLogTask>(fd, jsonFd, event);
     if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN") {
         logTask->SetFocusWindowId(DumpWindowInfo(fd));
@@ -353,6 +357,15 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     SetEventTerminalBinder(event, threadStack, fd);
     auto end = TimeUtil::GetMilliseconds();
     FileUtil::SaveStringToFd(fd, "\n\nCatcher log total time is " + std::to_string(end - start) + "ms\n");
+    if (event->eventName_ == "SERVICE_BLOCK") {
+        std::string sampleStack = event->GetEventValue("SAMPLE_STACK");
+        if (!sampleStack.empty()) {
+            FreezeCommon::WriteTimeInfoToFd(fd, "sample stack write start time:", true);
+            sampleStack = StringUtil::UnescapeJsonStringValue(sampleStack);
+            FileUtil::SaveStringToFd(fd, "sample stack content:\n" + sampleStack + "\n");
+            FreezeCommon::WriteTimeInfoToFd(fd, "sample stack write end time:", false);
+        }
+    }
 }
 
 void EventLogger::SubmitTraceTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask)
@@ -704,6 +717,9 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
         headerStream << "QNAME = " << event->GetEventValue(FreezeCommon::QNAME) << std::endl;
         headerStream << "QOS = " << event->GetEventIntValue(FreezeCommon::QOS) << std::endl;
     }
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+        headerStream << "IS_FROZEN = " << event->GetEventIntValue("IS_FROZEN") << std::endl;
+    }
 
     FileUtil::SaveStringToFd(fd, headerStream.str());
     return true;
@@ -829,7 +845,6 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
 
         if (!jsonStack.empty() &&
             (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
-            jsonStack = StringUtil::UnescapeJsonStringValue(jsonStack);
             if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
                 stack = jsonStack;
             }

@@ -684,6 +684,152 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_013, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_014
+ * @tc.desc: Test DumpEventInfo basic functionality
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_014, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Verify that the output contains expected fields
+    EXPECT_NE(result.find("TEST_HEADER"), std::string::npos);
+    EXPECT_NE(result.find("DOMAIN:AAFWK"), std::string::npos);
+    EXPECT_NE(result.find("STRINGID:THREAD_BLOCK_6S"), std::string::npos);
+    EXPECT_NE(result.find("PID:1000"), std::string::npos);
+    EXPECT_NE(result.find("UID:1000"), std::string::npos);
+    EXPECT_NE(result.find("PACKAGE_NAME:com.test.package"), std::string::npos);
+    EXPECT_NE(result.find("PROCESS_NAME:testProcess"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_015
+ * @tc.desc: Test DumpEventInfo with HostResourceWarning
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_015, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .InitHostResourceWarning("TRUE")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Verify that the output contains NOTE info for host resource warning
+    EXPECT_NE(result.find("NOTE:"), std::string::npos);
+    EXPECT_NE(result.find("Current fault may be caused by the system's low memory or thermal throttling"),
+        std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_016
+ * @tc.desc: Test GetNoteInfo returns false when dbHelper is nullptr
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_016, TestSize.Level3)
+{
+    auto vendor = std::make_unique<Vendor>(nullptr, nullptr);
+    // Don't call Init() so dbHelper remains nullptr
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .Build();
+    
+    // GetNoteInfo should return false when dbHelper is nullptr
+    // Since GetNoteInfo is private, we test it indirectly through DumpEventInfo
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Should not contain FD_LEAK_INFO since GetNoteInfo returns false
+    EXPECT_EQ(result.find("fd leak"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_017
+ * @tc.desc: Test DumpEventInfo complete output without FD leak
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_017, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Verify all expected fields are present
+    EXPECT_NE(result.find("TEST_HEADER"), std::string::npos);
+    EXPECT_NE(result.find("DOMAIN:AAFWK"), std::string::npos);
+    EXPECT_NE(result.find("STRINGID:THREAD_BLOCK_6S"), std::string::npos);
+    EXPECT_NE(result.find("TIMESTAMP:"), std::string::npos);
+    EXPECT_NE(result.find("PID:1000"), std::string::npos);
+    EXPECT_NE(result.find("UID:1000"), std::string::npos);
+    EXPECT_NE(result.find("PACKAGE_NAME:com.test.package"), std::string::npos);
+    EXPECT_NE(result.find("PROCESS_NAME:testProcess"), std::string::npos);
+
+    // Verify that no NOTE info is present (no HostResourceWarning, no FD leak)
+    EXPECT_EQ(result.find("NOTE:"), std::string::npos);
+    EXPECT_EQ(result.find("fd leak"), std::string::npos);
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */

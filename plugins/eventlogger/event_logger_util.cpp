@@ -86,8 +86,13 @@ FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName)
 FaultLogInfoInner ParseFaultLogInfoFromFile(const std::string &path, const std::string &fileName)
 {
     FaultLogInfoInner info = ExtractInfoFromFileName(fileName);
-    info.logPath = path;
-    std::ifstream logFile(path);
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(path, realPath)) {
+        HIVIEW_LOGE("realpath failed, file:%{public}s, errno:%{public}d", path.c_str(), errno);
+        return info;
+    }
+    info.logPath = realPath;
+    std::ifstream logFile(realPath);
     std::string line;
     while (std::getline(logFile, line)) {
         if (!logFile.good() || info.sectionMaps.size() == LOG_MAP_SIZE) {

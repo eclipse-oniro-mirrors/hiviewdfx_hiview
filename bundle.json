@@ -59,7 +59,8 @@
             "hiview_unified_collector_low_mem_threshold",
             "hiview_unified_collector_trace_for_cpu_high_load",
             "hiview_eventlogger_kernel_catcher_enable",
-            "hiview_support_local_read_diagnostic_logs"
+            "hiview_support_local_read_diagnostic_logs",
+            "hiview_support_fold_pc_count_duration_enable"
         ],
         "rom": "",
         "ram": "",
@@ -243,7 +244,8 @@
                         "header_base": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/interfaces/inner_api/xperfservice_client/include",
                         "header_files": [
                             "xperf_service_action_type.h",
-                            "xperf_service_client.h"
+                            "xperf_service_client.h",
+                            "rs_monitor_adapter.h"
                         ]
                     }
                 },

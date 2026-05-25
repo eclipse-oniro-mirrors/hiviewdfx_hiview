@@ -83,6 +83,20 @@ private:
 #endif
     int32_t GetUidByPid(const int32_t pid);
     std::string CatchSyncPid(int fd, const std::set<int>& asyncPids, const std::set<int>& syncPids);
+    void ParseBinderInfoFromHicollie(int fd, const std::string& hicollieBinderInfo,
+        std::set<int>& syncPids, std::set<int>& asyncPids);
+    void GetHicollieBinderPos(const std::string& hicollieBinderInfo,
+        size_t& syncPos, size_t& asyncPos, size_t& terminalPos);
+    void ParseSyncPidsFromHicollie(const std::string& hicollieBinderInfo,
+        size_t syncPos, size_t asyncPos, std::set<int>& syncPids);
+    void ParseAsyncPidsFromHicollie(const std::string& hicollieBinderInfo,
+        size_t asyncPos, size_t terminalPos, std::set<int>& asyncPids);
+    void ParseTerminalFromHicollie(const std::string& hicollieBinderInfo, size_t terminalPos);
+    void WriteBinderProcNameToFd(int fd, const std::string& hicollieBinderInfo,
+        size_t syncPos, size_t asyncPos, size_t terminalPos);
+    bool IsSysFreezeEvent() const;
+    static long SafeStrToLong(const std::string& str);
+    static long long SafeStrToLongLong(const std::string& str);
 };
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX

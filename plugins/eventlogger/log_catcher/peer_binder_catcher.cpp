@@ -84,13 +84,29 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
 
     auto originSize = GetFdSize(fd);
 
-    if (!FileUtil::FileExists(binderPath_)) {
-        std::string content = binderPath_ + " : file isn't exists\r\n";
-        FileUtil::SaveStringToFd(fd, content);
-        return -1;
-    }
     std::set<int> asyncPids;
-    std::set<int> syncPids = GetBinderPeerPids(fd, jsonFd, asyncPids);
+    std::set<int> syncPids;
+    std::string hicollieBinderInfo = event_ ? event_->GetEventValue("HICOLLIE_BINDER_INFO") : "";
+    if (!hicollieBinderInfo.empty()) {
+        size_t processNamePos = hicollieBinderInfo.find("PROCESS_NAME:");
+        std::string rawBinderInfo = (processNamePos != std::string::npos) ?
+            hicollieBinderInfo.substr(0, processNamePos) : hicollieBinderInfo;
+        FileUtil::SaveStringToFd(fd, StringUtil::UnescapeJsonStringValue(rawBinderInfo) + "\n");
+        FileUtil::SaveStringToFd(fd, "\n\nPeerBinder Stacktrace --\n\n");
+        HIVIEW_LOGI("Parse binder info from HICOLLIE_BINDER_INFO field");
+        if (processNamePos != std::string::npos) {
+            ParseBinderInfoFromHicollie(fd, hicollieBinderInfo.substr(
+                processNamePos + std::string("PROCESS_NAME:").length()), syncPids, asyncPids);
+        }
+    } else {
+        if (!FileUtil::FileExists(binderPath_)) {
+            std::string content = binderPath_ + " : file isn't exists\r\n";
+            FileUtil::SaveStringToFd(fd, content);
+            return -1;
+        }
+        syncPids = GetBinderPeerPids(fd, jsonFd, asyncPids);
+    }
+
     if (syncPids.empty() && !Parameter::IsOversea()) {
         std::string content = "PeerBinder pids is empty\r\n";
         FileUtil::SaveStringToFd(fd, content);
@@ -116,8 +132,13 @@ std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPi
 {
     std::string pidStr = "";
     for (auto pidTemp : syncPids) {
-        if (pidTemp == pid_ || IsAncoProc(pidTemp)) {
+        if (pidTemp == pid_) {
             HIVIEW_LOGI("Stack of PeerBinder Pid %{public}d is catched.", pidTemp);
+            continue;
+        }
+        
+        if (IsAncoProc(pidTemp) && !IsSysFreezeEvent()) {
+            HIVIEW_LOGI("PeerBinder Pid %{public}d is anco, event is not sysfreeze", pidTemp);
             continue;
         }
 
@@ -134,14 +155,29 @@ std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPi
             HIVIEW_LOGI("Async stack, skip current pid:%{public}d, uid:%{public}d", pidTemp, uid);
             continue;
         }
-        if (pidTemp == pid_ || IsAncoProc(pidTemp) || syncPids.find(pidTemp) != syncPids.end() ||
+        if (pidTemp == pid_ || syncPids.find(pidTemp) != syncPids.end() ||
             catchedPids_.count(pidTemp) != 0) {
             HIVIEW_LOGI("Stack of AsyncBinder Pid %{public}d is catched.", pidTemp);
             continue;
         }
+
+        if (IsAncoProc(pidTemp) && !IsSysFreezeEvent()) {
+            HIVIEW_LOGI("PeerBinder Pid %{public}d is anco, event is not sysfreeze", pidTemp);
+            continue;
+        }
+
         CatcherStacktrace(fd, pidTemp, false);
     }
     return pidStr;
+}
+
+bool PeerBinderCatcher::IsSysFreezeEvent() const
+{
+    if (event_ != nullptr && event_->GetEventValue("EVENT_TYPE") == "sys") {
+        HIVIEW_LOGI("EventName %{public}s is sysfreeze event", event_->eventName_.c_str());
+        return true;
+    }
+    return false;
 }
 
 void PeerBinderCatcher::AddBinderJsonInfo(std::list<OutputBinderInfo> outputBinderInfoList, int jsonFd) const
@@ -275,15 +311,16 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
             if (Parameter::IsOversea()) {
                 return;
             } else if (line.find("free_async_space") == line.npos && strList.size() == ARR_SIZE &&
-                std::atoll(strList[FREE_ASYNC_INDEX].c_str()) < FREE_ASYNC_MAX) {
-                freeAsyncSpacePairs.emplace_back(std::atoi(strList[0].c_str()),
-                    std::atoll(strList[FREE_ASYNC_INDEX].c_str()));
+                PeerBinderCatcher::SafeStrToLongLong(strList[FREE_ASYNC_INDEX]) < FREE_ASYNC_MAX) {
+                freeAsyncSpacePairs.emplace_back(PeerBinderCatcher::SafeStrToLong(strList[0]),
+                    PeerBinderCatcher::SafeStrToLongLong(strList[FREE_ASYNC_INDEX]));
             }
         } else if (line.find("async\t") != std::string::npos && strList.size() > ARR_SIZE) {
             std::string serverPid = StrSplit(strList[3], 0);
             std::string serverTid = StrSplit(strList[3], 1);
-            if (serverPid != "" && serverTid != "" && std::atoi(serverTid.c_str()) == 0 && !Parameter::IsOversea()) {
-                asyncBinderMap[std::atoi(serverPid.c_str())]++;
+            if (serverPid != "" && serverTid != "" && PeerBinderCatcher::SafeStrToLong(serverTid) == 0 &&
+                !Parameter::IsOversea()) {
+                asyncBinderMap[PeerBinderCatcher::SafeStrToLong(serverPid)]++;
             }
         } else if (strList.size() >= ARR_SIZE) { // 7: valid array size
             // 0: binder local id,
@@ -298,9 +335,9 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
                     serverPid.c_str(), clientPid.c_str(), wait.c_str());
                 continue;
             }
-            BinderInfo info = {std::strtol(clientPid.c_str(), nullptr, DECIMAL),
-                std::strtol(clientTid.c_str(), nullptr, DECIMAL), std::strtol(serverPid.c_str(), nullptr, DECIMAL),
-                std::strtol(serverTid.c_str(), nullptr, DECIMAL), std::strtol(wait.c_str(), nullptr, DECIMAL)};
+            BinderInfo info = {PeerBinderCatcher::SafeStrToLong(clientPid),
+                PeerBinderCatcher::SafeStrToLong(clientTid), PeerBinderCatcher::SafeStrToLong(serverPid),
+                PeerBinderCatcher::SafeStrToLong(serverTid), PeerBinderCatcher::SafeStrToLong(wait)};
             HIVIEW_LOGD("server:%{public}d, client:%{public}d, wait:%{public}d", info.serverPid, info.clientPid,
                 info.wait);
             manager[info.clientPid].push_back(info);
@@ -460,6 +497,113 @@ void PeerBinderCatcher::DumpHiperf(const std::set<int>& pids, int processId, con
 }
 #endif
 
+void PeerBinderCatcher::GetHicollieBinderPos(const std::string& hicollieBinderInfo,
+    size_t& syncPos, size_t& asyncPos, size_t& terminalPos)
+{
+    syncPos = hicollieBinderInfo.find("syncPids:");
+    asyncPos = hicollieBinderInfo.find("asyncPids:");
+    terminalPos = hicollieBinderInfo.find("terminalBinder:");
+}
+ 
+void PeerBinderCatcher::WriteBinderProcNameToFd(int fd, const std::string& hicollieBinderInfo,
+    size_t syncPos, size_t asyncPos, size_t terminalPos)
+{
+    if (syncPos == std::string::npos) {
+        return;
+    }
+    size_t start = syncPos + std::string("syncPids:").length();
+    size_t end = hicollieBinderInfo.length();
+    end = (asyncPos != std::string::npos && asyncPos < end) ? asyncPos : end;
+    end = (terminalPos != std::string::npos && terminalPos < end) ? terminalPos : end;
+    std::string binderPidInfo = "BINDER_PROC_NAME: " +
+        StringUtil::UnescapeJsonStringValue(hicollieBinderInfo.substr(start, end - start)) + "\n";
+    FileUtil::SaveStringToFd(fd, binderPidInfo);
+}
+ 
+void PeerBinderCatcher::ParseBinderInfoFromHicollie(int fd, const std::string& hicollieBinderInfo,
+    std::set<int>& syncPids, std::set<int>& asyncPids)
+{
+    size_t syncPos;
+    size_t asyncPos;
+    size_t terminalPos;
+    GetHicollieBinderPos(hicollieBinderInfo, syncPos, asyncPos, terminalPos);
+ 
+    ParseSyncPidsFromHicollie(hicollieBinderInfo, syncPos, asyncPos, syncPids);
+    ParseAsyncPidsFromHicollie(hicollieBinderInfo, asyncPos, terminalPos, asyncPids);
+    ParseTerminalFromHicollie(hicollieBinderInfo, terminalPos);
+    WriteBinderProcNameToFd(fd, hicollieBinderInfo, syncPos, asyncPos, terminalPos);
+}
+ 
+void PeerBinderCatcher::ParseSyncPidsFromHicollie(const std::string& hicollieBinderInfo,
+    size_t syncPos, size_t asyncPos, std::set<int>& syncPids)
+{
+    if (syncPos == std::string::npos) {
+        return;
+    }
+    size_t start = syncPos + std::string("syncPids:").length();
+    size_t end = (asyncPos != std::string::npos) ? asyncPos : hicollieBinderInfo.length();
+    std::string syncStr = hicollieBinderInfo.substr(start, end - start);
+    size_t pos = 0;
+    while ((pos = syncStr.find(";")) != std::string::npos) {
+        std::string item = syncStr.substr(0, pos);
+        size_t nameStart = item.find("(");
+        size_t nameEnd = item.find(")");
+        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart + 1) {
+            int pid = 0;
+            StringUtil::StrToInt(item.substr(0, nameStart), pid);
+            syncPids.insert(pid);
+        }
+        syncStr = syncStr.substr(pos + 1);
+    }
+    if (!syncStr.empty()) {
+        size_t nameStart = syncStr.find("(");
+        size_t nameEnd = syncStr.find(")");
+        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart + 1) {
+            int pid = 0;
+            StringUtil::StrToInt(syncStr.substr(0, nameStart), pid);
+            syncPids.insert(pid);
+        }
+    }
+}
+ 
+void PeerBinderCatcher::ParseAsyncPidsFromHicollie(const std::string& hicollieBinderInfo,
+    size_t asyncPos, size_t terminalPos, std::set<int>& asyncPids)
+{
+    if (asyncPos == std::string::npos) {
+        return;
+    }
+    size_t start = asyncPos + std::string("asyncPids:").length();
+    size_t end = (terminalPos != std::string::npos) ? terminalPos : hicollieBinderInfo.length();
+    std::string asyncStr = hicollieBinderInfo.substr(start, end - start);
+    size_t pos = 0;
+    while ((pos = asyncStr.find(",")) != std::string::npos) {
+        std::string item = asyncStr.substr(0, pos);
+        int pid = 0;
+        StringUtil::StrToInt(item, pid);
+        asyncPids.insert(pid);
+        asyncStr = asyncStr.substr(pos + 1);
+    }
+    if (!asyncStr.empty()) {
+        int pid = 0;
+        StringUtil::StrToInt(asyncStr, pid);
+        asyncPids.insert(pid);
+    }
+}
+ 
+void PeerBinderCatcher::ParseTerminalFromHicollie(const std::string& hicollieBinderInfo, size_t terminalPos)
+{
+    if (terminalPos == std::string::npos) {
+        return;
+    }
+    size_t start = terminalPos + std::string("terminalBinder:").length();
+    std::string terminalStr = hicollieBinderInfo.substr(start);
+    size_t commaPos = terminalStr.find(",");
+    if (commaPos != std::string::npos && commaPos > 0) {
+        StringUtil::StrToInt(terminalStr.substr(0, commaPos), terminalBinder_.pid);
+        StringUtil::StrToInt(terminalStr.substr(commaPos + 1), terminalBinder_.tid);
+    }
+}
+
 int32_t PeerBinderCatcher::GetUidByPid(const int32_t pid)
 {
     int32_t uid = -1;
@@ -490,6 +634,30 @@ int32_t PeerBinderCatcher::GetUidByPid(const int32_t pid)
         }
     }
     return uid;
+}
+
+long PeerBinderCatcher::SafeStrToLong(const std::string& str)
+{
+    char* endptr;
+    errno = 0;
+    long result = std::strtol(str.c_str(), &endptr, DECIMAL);
+    if (errno == 0 && endptr != str.c_str() && *endptr == '\0') {
+        return result;
+    }
+    HIVIEW_LOGW("SafeStrToLong: invalid string: %{public}s", str.c_str());
+    return 0;
+}
+
+long long PeerBinderCatcher::SafeStrToLongLong(const std::string& str)
+{
+    char* endptr;
+    errno = 0;
+    long long result = std::strtoll(str.c_str(), &endptr, DECIMAL);
+    if (errno == 0 && endptr != str.c_str() && *endptr == '\0') {
+        return result;
+    }
+    HIVIEW_LOGW("SafeStrToLongLong: invalid string: %{public}s", str.c_str());
+    return 0;
 }
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX

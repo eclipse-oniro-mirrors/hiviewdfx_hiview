@@ -521,7 +521,8 @@ std::shared_ptr<EventLoop> HiviewPlatform::GetAvailableWorkLoop(const std::strin
         return it->second;
     }
 
-    auto privateLoop = std::make_shared<EventLoop>(name);
+    bool isHighPriority = (name == "sysevent_store" || name == "sysevent_source");
+    auto privateLoop = std::make_shared<EventLoop>(name, isHighPriority);
     if (privateLoop != nullptr) {
         privateWorkLoopMap_.insert(std::make_pair(name, privateLoop));
         privateLoop->StartLoop();
@@ -577,7 +578,7 @@ void HiviewPlatform::StartPlatformDispatchQueue()
     }
 
     if (mainWorkLoop_ == nullptr) {
-        mainWorkLoop_ = std::make_shared<EventLoop>("hiview");
+        mainWorkLoop_ = std::make_shared<EventLoop>("hiview", true);
     }
 }
 

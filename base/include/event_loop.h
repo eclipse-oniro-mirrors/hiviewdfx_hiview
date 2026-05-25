@@ -94,7 +94,7 @@ public:
 };
 class DllExport EventLoop {
 public:
-    explicit EventLoop(const std::string &name);
+    explicit EventLoop(const std::string &name, bool isHighPriority = false);
     virtual ~EventLoop();
     void StartLoop(bool createNewThread = true);
     void StopLoop();
@@ -170,6 +170,7 @@ private:
 #endif
     uint64_t nextWakeupTime_;
     std::atomic<LoopEvent *> currentProcessingEvent_;
+    bool isHighPriority_ = false;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

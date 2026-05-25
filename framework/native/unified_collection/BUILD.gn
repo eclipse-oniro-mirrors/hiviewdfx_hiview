@@ -284,17 +284,6 @@ ohos_source_set("ucollection_source") {
     sources += [ "collector/empty_impl/wm/wm_collector_empty_impl.cpp" ]
   }
 
-  if (hiview_unified_collector_process_enable) {
-    sources += [
-      "collector/impl/process/process_collector_impl.cpp",
-      "decorator/process_decorator.cpp",
-    ]
-    defines += [ "UNIFIED_COLLECTOR_PROCESS_ENABLE" ]
-  } else {
-    sources +=
-        [ "collector/empty_impl/process/process_collector_empty_impl.cpp" ]
-  }
-
   if (hiview_unified_collector_trace_enable) {
     sources += [
       "collector/impl/trace/trace_collector_impl.cpp",

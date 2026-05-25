@@ -20,7 +20,7 @@ declare_args() {
 
   # enable for build with external config
   build_with_config = false
-  config_path = ""
+  input_file_config_path = ""
 }
 
 input_build_file =

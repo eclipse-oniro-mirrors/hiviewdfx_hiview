@@ -358,6 +358,9 @@ void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysE
     if (reason.find("FDSAN") != std::string::npos) {
         params["type"] = "FDSAN";
         HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason FDSAN", reason.c_str());
+    } else if (reason.find("ARKTS_ENVSAN") != std::string::npos) {
+        params["type"] = "ARKTS_ENVSAN";
+        HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason ARKTS_ENVSAN", reason.c_str());
     }
     Json::Value externalLog(Json::arrayValue);
     std::string logPath = sysEvent->GetEventValue(FaultKey::LOG_PATH);
@@ -369,6 +372,7 @@ void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysE
     params["bundle_name"] = sysEvent->GetEventValue(FaultKey::MODULE_NAME);
     params["pid"] = sysEvent->GetPid();
     params["uid"] = sysEvent->GetUid();
+    params["app_running_unique_id"] = sysEvent->GetEventValue("APP_RUNNING_UNIQUE_ID");
     std::string paramsStr = Json::FastWriter().write(params);
     HIVIEW_LOGD("ReportSanitizerAppEvent: uid:%{public}d, json:%{public}s.",
         sysEvent->GetUid(), paramsStr.c_str());
@@ -437,6 +441,12 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.logPath = GetDebugSignalTempLogName(info);
         info.summary = "";
         info.sanitizerType = "FDSAN";
+    } else if (info.reason.find("ARKTS_ENVSAN") != std::string::npos) {
+        info.pid = sysEvent.GetEventIntValue("PID");
+        info.time = sysEvent.GetEventIntValue("HAPPEN_TIME");
+        info.logPath = GetDebugSignalTempLogName(info);
+        info.summary = "";
+        info.sanitizerType = "ARKTS_ENVSAN";
     } else if (info.reason.find("DEBUG SIGNAL") != std::string::npos) {
         info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
         info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
@@ -449,6 +459,7 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
         info.reason = sysEvent.GetEventValue(FaultKey::REASON);
         info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
+        info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
     }
     return info;
@@ -457,6 +468,10 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
 void FaultLogSanitizer::UpdateFaultLogInfo()
 {
     if (info_.reason.find("FDSAN") != std::string::npos) {
+        info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
+        info_.logPath = "";
+    }
+    if (info_.reason.find("ARKTS_ENVSAN") != std::string::npos) {
         info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
         info_.logPath = "";
     }

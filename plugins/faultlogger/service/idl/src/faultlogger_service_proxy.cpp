@@ -143,7 +143,7 @@ void FaultLoggerServiceProxy::DisableGwpAsanGrayscale()
 
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option {MessageOption::TF_ASYNC};
     if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
         return;
     }
@@ -193,6 +193,49 @@ void FaultLoggerServiceProxy::Destroy()
         data, reply, option) != ERR_OK) {
         return;
     }
+}
+
+bool FaultLoggerServiceProxy::EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled,
+    double sampleRate, double maxSimutaneousAllocations, int32_t duration)
+{
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        return false;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(FaultLoggerServiceProxy::GetDescriptor())) {
+        return false;
+    }
+
+    if (!data.WriteString(processName)) {
+        return false;
+    }
+
+    if (!data.WriteBool(alwaysEnabled)) {
+        return false;
+    }
+
+    if (!data.WriteDouble(sampleRate)) {
+        return false;
+    }
+
+    if (!data.WriteDouble(maxSimutaneousAllocations)) {
+        return false;
+    }
+
+    if (!data.WriteInt32(duration)) {
+        return false;
+    }
+
+    if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ENABLE_GWP_ASAN_INNER),
+        data, reply, option) != ERR_OK) {
+        HIVIEW_LOGE("failed to send request for enabling gwp-asan inner.");
+        return false;
+    }
+    return reply.ReadBool();
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -15,8 +15,11 @@
 #include "faultlog_cppcrash.h"
 
 #include <chrono>
+#include <cerrno>
 #include <ctime>
+#include <fcntl.h>
 #include <fstream>
+#include <unistd.h>
 
 #include "constants.h"
 #include "crash_exception.h"
@@ -35,6 +38,12 @@
 
 #include "string_util.h"
 
+// define Fdsan Domain
+#ifdef FDSAN_DOMAIN
+#undef FDSAN_DOMAIN
+#endif
+#define FDSAN_DOMAIN 0xD002D11
+
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
@@ -48,6 +57,56 @@ namespace {
     const int64_t DFX_HILOG_TIMESTAMP_THOUSAND = 1000;
     constexpr uint32_t MINIDUMP_MAX_TIMEOUT_US = 5 * 1000 * 1000;
     constexpr int32_t MAX_MINIDUMP_LOG_PER_HAP = 5;
+
+Json::Value BuildExceptionJson(const Json::Value& root)
+{
+    Json::Value exception;
+    if (root.isMember("KEY_THREAD_INFO")) {
+        const Json::Value& keyThreadInfo = root["KEY_THREAD_INFO"];
+        if (keyThreadInfo.isMember("frames")) {
+            exception["frames"] = keyThreadInfo["frames"];
+        }
+        if (keyThreadInfo.isMember("thread_name")) {
+            exception["thread_name"] = keyThreadInfo["thread_name"];
+        }
+        if (keyThreadInfo.isMember("tid")) {
+            exception["tid"] = keyThreadInfo["tid"];
+        }
+    }
+    exception["message"] = root.isMember("LAST_FATAL_MESSAGE") ? root["LAST_FATAL_MESSAGE"] : "";
+    if (root.isMember("SIGNAL")) {
+        exception["signal"] = root["SIGNAL"];
+    }
+    if (exception.empty()) {
+        HIVIEW_LOGW("BuildExceptionJson result is empty, no valid exception info found");
+    }
+    return exception;
+}
+
+Json::Value BuildHiappeventJson(const Json::Value& root, const FaultLogInfo& info)
+{
+    Json::Value output;
+    if (root.isMember("PID")) {
+        output["pid"] = root["PID"];
+    }
+    if (root.isMember("PNAME")) {
+        output["process_name"] = root["PNAME"];
+    }
+    output["time"] = info.time;
+    if (root.isMember("UID")) {
+        output["uid"] = root["UID"];
+    }
+    auto it = info.sectionMap.find(FaultKey::APP_RUNNING_UNIQUE_ID);
+    if (it != info.sectionMap.end()) {
+        output["app_running_unique_id"] = it->second;
+    }
+    output["crash_type"] = "NativeCrash";
+    output["exception"] = BuildExceptionJson(root);
+    if (root.isMember("OTHER_THREAD_INFO")) {
+        output["threads"] = root["OTHER_THREAD_INFO"];
+    }
+    return output;
+}
 }
 
 int64_t FaultLogCppCrash::GetLastLineHilogTime(const std::string& lastLineHilog)
@@ -120,19 +179,58 @@ void FaultLogCppCrash::CheckHilogTime(FaultLogInfo& info)
     }
 }
 
-std::string FaultLogCppCrash::ReadStackFromPipe(const FaultLogInfo& info)
+bool FaultLogCppCrash::TryOpenJsonFileFd(FaultLogInfo& info)
 {
-    if (info.pipeFd == nullptr || *(info.pipeFd) == -1) {
-        HIVIEW_LOGE("invalid fd");
-        return "";
+    HIVIEW_LOGI("trying to open json file for invalid fd");
+    std::string jsonPath = FaultLogCppCrash::GetCppCrashTempLogName(info, true);
+    if (jsonPath.empty()) {
+        HIVIEW_LOGE("failed to get json path");
+        return false;
     }
-    std::vector<char> buffer(MAX_PIPE_SIZE + 1);
-    ssize_t nread = TEMP_FAILURE_RETRY(read(*info.pipeFd, buffer.data(), MAX_PIPE_SIZE));
-    if (nread <= 0) {
-        HIVIEW_LOGE("read pipe failed errno %{public}d", errno);
-        return "";
+    if (!FileUtil::FileExists(jsonPath)) {
+        HIVIEW_LOGE("json file not exists: %{public}s", jsonPath.c_str());
+        return false;
     }
-    return std::string(buffer.data(), nread);
+    int fd = open(jsonPath.c_str(), O_RDONLY);
+    if (fd == -1) {
+        HIVIEW_LOGE("failed to open json file: %{public}s, errno=%{public}d", jsonPath.c_str(), errno);
+        return false;
+    }
+    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
+    fdsan_exchange_owner_tag(fd, 0, ownerTag);
+    info.pipeFd.reset(new int32_t(fd), [ownerTag](int32_t *ptr) {
+        if (*ptr >= 0) {
+            fdsan_close_with_tag(*ptr, ownerTag);
+        }
+        delete ptr;
+    });
+    HIVIEW_LOGI("successfully opened json file: %{public}s, fd=%{public}d", jsonPath.c_str(), fd);
+    return true;
+}
+
+bool FaultLogCppCrash::ParseCppCrashJson(FaultLogInfo& info)
+{
+    if ((info.pipeFd == nullptr || *(info.pipeFd) == -1) && !TryOpenJsonFileFd(info)) {
+        return false;
+    }
+    std::string dataBuffer;
+    if (!FileUtil::LoadStringFromFd(*info.pipeFd, dataBuffer)) {
+        HIVIEW_LOGE("failed to load string from fd, fd=%{public}d, errno=%{public}d", *info.pipeFd, errno);
+        return false;
+    }
+    if (dataBuffer.empty()) {
+        HIVIEW_LOGE("no data read from fd, fd=%{public}d", *info.pipeFd);
+        return false;
+    }
+    Json::Reader reader(Json::Features::strictMode());
+    Json::Value root;
+    if (!reader.parse(dataBuffer, root)) {
+        HIVIEW_LOGE("Json parse fail");
+        return false;
+    }
+    FaultLogger::FillSectionMapFromJson(root, info.sectionMap);
+    hiappeventJson_ = std::make_shared<Json::Value>(BuildHiappeventJson(root, info));
+    return true;
 }
 
 std::string FaultLogCppCrash::GetMinidumpPath(const FaultLogInfo& info, uint32_t timeOutUs)
@@ -186,54 +284,45 @@ std::string FaultLogCppCrash::DealMiniDumpEvent(const FaultLogInfo& info)
     return "";
 }
 
-Json::Value FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal,
-    std::string& minidumpPath)
+void FaultLogCppCrash::FillStackInfo(const FaultLogInfo& info, std::string& minidumpPath, Json::Value& hiappeventJson)
 {
-    Json::Reader reader;
-    Json::Value stackInfoObj;
-    if (!reader.parse(stackInfoOriginal, stackInfoObj)) {
-        HIVIEW_LOGE("parse stackInfo failed");
-        return stackInfoObj;
-    }
-    stackInfoObj["bundle_name"] = info.module;
+    hiappeventJson["bundle_name"] = info.module;
     Json::Value externalLog;
     externalLog.append(info.logPath);
     if (!minidumpPath.empty()) {
         externalLog.append(minidumpPath);
     }
-    stackInfoObj["external_log"] = externalLog;
+    hiappeventJson["external_log"] = externalLog;
 
-    stackInfoObj["process_life_time"] = GetProcessInfo(info.sectionMap, FaultKey::PROCESS_LIFETIME);
+    hiappeventJson["process_life_time"] = GetProcessInfo(info.sectionMap, FaultKey::PROCESS_LIFETIME);
     auto memory = GetMemoryJsonValue(info.sectionMap);
-    stackInfoObj["memory"] = memory;
-    stackInfoObj["release_type"] = GetStrValFromMap(info.sectionMap, FaultKey::RELEASE_TYPE);
-    stackInfoObj["cpu_abi"] = GetStrValFromMap(info.sectionMap, FaultKey::CPU_ABI);
-    stackInfoObj["bundle_version"] = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
-    stackInfoObj["foreground"] = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
-    stackInfoObj["uuid"] = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
+    hiappeventJson["memory"] = memory;
+    hiappeventJson["release_type"] = GetStrValFromMap(info.sectionMap, FaultKey::RELEASE_TYPE);
+    hiappeventJson["cpu_abi"] = GetStrValFromMap(info.sectionMap, FaultKey::CPU_ABI);
+    hiappeventJson["bundle_version"] = GetStrValFromMap(info.sectionMap, FaultKey::MODULE_VERSION);
+    hiappeventJson["foreground"] = GetStrValFromMap(info.sectionMap, FaultKey::FOREGROUND) == "Yes";
+    hiappeventJson["uuid"] = GetStrValFromMap(info.sectionMap, FaultKey::FINGERPRINT);
     if (info.sectionMap.count(FaultKey::HILOG) == 1) {
-        stackInfoObj["hilog"] = FaultlogHilogHelper::ParseHilogToJson(info.sectionMap.at(FaultKey::HILOG));
+        hiappeventJson["hilog"] = FaultlogHilogHelper::ParseHilogToJson(info.sectionMap.at(FaultKey::HILOG));
     }
-    return stackInfoObj;
 }
 
-std::string FaultLogCppCrash::GetStackInfo(const FaultLogInfo& info)
+std::string FaultLogCppCrash::GetStackInfo(const FaultLogInfo& info, Json::Value& hiappeventJson)
 {
-    std::string stackInfoOriginal = ReadStackFromPipe(info);
     std::string minidumpPath = DealMiniDumpEvent(info); // maybe copy minidump
-    if (stackInfoOriginal.empty()) {
-        HIVIEW_LOGE("read stack from pipe failed");
-        return "";
-    }
 
-    auto stackInfoObj = FillStackInfo(info, stackInfoOriginal, minidumpPath);
-    return Json::FastWriter().write(stackInfoObj);
+    FillStackInfo(info, minidumpPath, hiappeventJson);
+    return Json::FastWriter().write(hiappeventJson);
 }
 
-void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info)
+void FaultLogCppCrash::ReportCppCrashToAppEvent(const FaultLogInfo& info) const
 {
-    auto task = [info]() {
-        std::string stackInfo = GetStackInfo(info);
+    auto task = [info, json = hiappeventJson_]() mutable {
+        if (json == nullptr) {
+            HIVIEW_LOGE("json is nullptr");
+            return;
+        }
+        std::string stackInfo = GetStackInfo(info, *json);
         if (stackInfo.empty()) {
             HIVIEW_LOGE("stackInfo is empty");
             return;
@@ -268,7 +357,10 @@ void FaultLogCppCrash::AddCppCrashInfo(FaultLogInfo& info)
     AddPagesHistory(info, true);
 
     GetProcMemInfo(info);
-    info.sectionMap[FaultKey::APPEND_ORIGIN_LOG] = GetCppCrashTempLogName(info);
+    if (!ParseCppCrashJson(info)) {
+        info.sectionMap[FaultKey::APPEND_ORIGIN_LOG] = FaultLogCppCrash::GetCppCrashTempLogName(info, false);
+    }
+
     std::string path = FAULTLOG_FAULT_HILOG_FOLDER + std::to_string(info.pid) +
         "-" + std::to_string(info.id) + "-" + std::to_string(info.time);
     std::string hilogSnapShot;
@@ -470,5 +562,16 @@ bool FaultLogCppCrash::NeedSkip() const
     }
     return false;
 }
+
+std::string FaultLogCppCrash::GetCppCrashTempLogName(const FaultLogInfo& info, bool isJsonFile)
+{
+    return std::string(FAULTLOG_TEMP_FOLDER) +
+        "cppcrash-" +
+        std::to_string(info.pid) +
+        "-" +
+        std::to_string(info.time) +
+        (isJsonFile ? ".json" : "");
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

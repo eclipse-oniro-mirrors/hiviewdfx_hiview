@@ -60,9 +60,13 @@ namespace {
     constexpr const char* THREAD_STACK_END = "Thread stack end\n";
     constexpr const char* KEY_PROCESS[] = { "foundation", "com.ohos.sceneboard", "render_service" };
     constexpr const char* HITRACE_ID_INFO = "HitraceIdInfo: ";
+    constexpr const char* NOTE_INFO = "NOTE: ";
     constexpr const char* HOST_RESOURCE_WARNING_INFO =
-        "NOTE: Current fault may be caused by the system's low memory or thermal throttling, "
+        "Current fault may be caused by the system's low memory or thermal throttling, "
         "you may ignore it and analysis other faults.";
+    constexpr const char* FD_LEAK_INFO =
+        "Current process has encounted fd leak which may be led to appfreeze, "
+        "you may refer to resource overlimit event from hiAppEvent for further analysis.";
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
     constexpr const char* BACKGROUND_VALUE = "No";
@@ -77,6 +81,7 @@ namespace {
     constexpr const char* MS = "ms";
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
+    constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -138,12 +143,13 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoi
     info.sectionMaps[FreezeCommon::TRACE_NAME] = FreezeManager::GetInstance()->GetTraceName(faultTime);
     std::string procStatm = watchPoint.GetProcStatm();
     info.sectionMaps[FreezeCommon::PROC_STATM] = procStatm;
-    info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetEnabelMainThreadSample() ?
-        watchPoint.GetFreezeExtFile() : info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH];
+    info.sectionMaps[FreezeCommon::FREEZE_INFO_PATH] = watchPoint.GetFreezeExtFile();
+    info.sectionMaps[FreezeCommon::EVENT_ENABLE_MAINTHREAD_SAMPLE] =
+        watchPoint.GetEnabelMainThreadSample() ? "1" : "0";
     info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
-    info.sectionMaps[FreezeCommon::LOWERCASE_OF_APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
+    info.sectionMaps[FreezeCommon::APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
     info.sectionMaps[FreezeCommon::CLUSTER_RAW] = watchPoint.GetClusterRaw();
     info.sectionMaps[FreezeCommon::EVENT_EXTERNAL_LOG] = watchPoint.GetExternalLog();
@@ -162,6 +168,44 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     return logPath;
 }
 
+bool Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
+{
+    if (dBHelper_ == nullptr || freezeCommon_ == nullptr) {
+        return false;
+    }
+    std::map<std::string, std::vector<std::string>> eventMap;
+    eventMap["RELIABILITY"] = {"FD_LEAK"};
+
+    long pid = watchPoint.GetPid();
+    long uid = watchPoint.GetUid();
+    std::string processName = watchPoint.GetProcessName().empty() ?
+        watchPoint.GetPackageName() : watchPoint.GetProcessName();
+    uint64_t endTime = watchPoint.GetTimestamp();
+    uint64_t startTime = (endTime > QUERY_KEY_PROCESS_EVENT_INTERVAL) ?
+        endTime - QUERY_KEY_PROCESS_EVENT_INTERVAL : 0;
+    std::string recordProcessName;
+    long recordPid = 0;
+    long recordUid = 0;
+    for (const auto &pair : eventMap) {
+        std::vector<std::string> eventNames = pair.second;
+        std::vector<SysEvent> records = dBHelper_->SelectRecords(startTime, endTime, pair.first, eventNames);
+        for (auto& record : records) {
+            recordPid = record.GetEventIntValue(FreezeCommon::EVENT_PID);
+            recordUid = record.GetEventIntValue(FreezeCommon::EVENT_UID);
+            recordProcessName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+            recordProcessName = recordProcessName.empty() ?
+                record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : recordProcessName;
+            if (recordPid == pid && recordUid == uid && recordProcessName == processName) {
+                return true;
+            }
+        }
+    }
+    HIVIEW_LOGI("failed to record event, pid:%{public}ld, uid:%{public}ld, processName:%{public}s "
+        " recordPid:%{public}ld, recordUid:%{public}ld, recordProcessName:%{public}s ",
+        pid, uid, processName.c_str(), recordPid, recordUid, recordProcessName.c_str());
+    return false;
+}
+
 void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, const WatchPoint& watchPoint) const
 {
     uint64_t timestamp = watchPoint.GetTimestamp() / TimeUtil::SEC_TO_MILLISEC;
@@ -175,8 +219,15 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     oss << FreezeCommon::EVENT_UID << COLON << watchPoint.GetUid() << std::endl;
     oss << FreezeCommon::EVENT_PACKAGE_NAME << COLON << watchPoint.GetPackageName() << std::endl;
     oss << FreezeCommon::EVENT_PROCESS_NAME << COLON << watchPoint.GetProcessName() << std::endl;
-    if (watchPoint.GetHostResourceWarning() == "TRUE") {
-        oss << HOST_RESOURCE_WARNING_INFO << std::endl;
+    bool isNote = watchPoint.GetHostResourceWarning() == "TRUE";
+    if (isNote) {
+        oss << NOTE_INFO <<  HOST_RESOURCE_WARNING_INFO << std::endl;
+    }
+    if (CheckNoteInfo(watchPoint)) {
+        if (!isNote) {
+            oss << NOTE_INFO;
+        }
+        oss << FD_LEAK_INFO << std::endl;
     }
 }
 

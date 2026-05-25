@@ -83,7 +83,7 @@ void JankFrameMonitor::ProcessJank(int64_t vsyncTime, double jank, const std::st
 {
     // single frame behavior report
     if (jank >= static_cast<double>(DEFAULT_JANK_REPORT_THRESHOLD)) {
-        HIVIEW_LOGI("JankFrameMonitor::ProcessJank jank >= threshold");
+        HIVIEW_LOGD("JankFrameMonitor::ProcessJank jank >= threshold");
         JankInfo jankInfo;
         jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
         jankInfo.windowName = windowName;

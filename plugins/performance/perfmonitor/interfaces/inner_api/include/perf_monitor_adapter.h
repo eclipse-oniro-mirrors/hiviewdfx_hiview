@@ -35,6 +35,8 @@ public:
     void UnregisterSceneCallback(ISceneCallback* cb);
 
     void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time);
+    void RecordInputEvent(PerfActionType type, PerfSourceType sourceType, int64_t time, int32_t xPos, int32_t yPos);
+    InputEventInfo GetInputEventInfo(const std::string& sceneId, PerfActionType type, const std::string& note);
     int64_t GetInputTime(const std::string& sceneId, PerfActionType type, const std::string& note);
 
     void NotifyAppJankStatsBegin();
@@ -67,7 +69,7 @@ public:
     void ReportSurface(const int64_t& uniqueId, const std::string& surfaceName, const std::string& componentName,
         const std::string& bundleName, const int32_t& pid);
     
-    void AddLoadComponent(int32_t componentId);
+    void AddLoadComponent(int32_t componentId, int32_t sourceType = 0);
     void DeleteLoadComponent(int32_t componentId);
     void CompleteLoadComponent(int32_t componentId);
 };

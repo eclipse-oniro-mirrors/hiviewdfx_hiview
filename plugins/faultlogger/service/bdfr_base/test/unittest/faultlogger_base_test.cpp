@@ -115,5 +115,52 @@ HWTEST(FaultloggerBaseTest, FaultlogDumpTest001, testing::ext::TestSize.Level3)
     FileUtil::LoadStringFromFile("/data/test/testFile", result);
     ASSERT_NE(faultloggerBase.GetExtensionDelayTime(), 0);
 }
+
+/**
+ * @tc.name: EnableGwpAsanInner001
+ * @tc.desc: Test calling EnableGwpAsanInner Func
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerBaseTest, EnableGwpAsanInner001, testing::ext::TestSize.Level3)
+{
+    FaultloggerBase faultloggerBase;
+    GwpAsanParams params {
+        .alwaysEnabled = true,
+        .sampleRate = 1000,
+        .maxSimutaneousAllocations = 2000,
+        .duration = 5,
+        .isRecover = false,
+    };
+    ASSERT_TRUE(faultloggerBase.EnableGwpAsanInner(params, "test_process") >= 0);
+}
+
+/**
+ * @tc.name: EnableGwpAsanInner002
+ * @tc.desc: Test calling EnableGwpAsanInner Func
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerBaseTest, EnableGwpAsanInner002, testing::ext::TestSize.Level3)
+{
+    FaultloggerBase faultloggerBase;
+    GwpAsanParams params {
+        .alwaysEnabled = false,
+        .sampleRate = 500,
+        .maxSimutaneousAllocations = 100,
+        .duration = 3,
+        .isRecover = true,
+    };
+    ASSERT_FALSE(faultloggerBase.EnableGwpAsanInner(params, "test_process_not_dha"));
+}
+
+/**
+ * @tc.name: CheckCallerIsDha001
+ * @tc.desc: Test calling CheckCallerIsAllowed Func
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerBaseTest, CheckCallerIsDha001, testing::ext::TestSize.Level3)
+{
+    FaultloggerBase faultloggerBase;
+    ASSERT_FALSE(faultloggerBase.CheckCallerIsAllowed());
+}
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -26,12 +26,14 @@
 #include "smart_parser.h"
 #include "watch_point.h"
 #include "faultlogger_client_msg.h"
+#include "db_helper.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 class Vendor {
 public:
-    explicit Vendor(std::shared_ptr<FreezeCommon> fc) : freezeCommon_(fc) {};
+    explicit Vendor(std::shared_ptr<FreezeCommon> fc, std::shared_ptr<DBHelper> dBHelper_ = nullptr)
+        : freezeCommon_(fc), dBHelper_(dBHelper_) {};
     ~Vendor() {};
     Vendor& operator=(const Vendor&) = delete;
     Vendor(const Vendor&) = delete;
@@ -66,8 +68,10 @@ private:
                          const std::string& type, const std::string& processName) const;
     void FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& isScbPro) const;
     void InitHalfFreezeExtFile(WatchPoint node, const std::string name, std::string& halfFreezeExtFile) const;
+    bool CheckNoteInfo(const WatchPoint& watchPoint) const;
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
+    std::shared_ptr<DBHelper> dBHelper_ = nullptr;
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

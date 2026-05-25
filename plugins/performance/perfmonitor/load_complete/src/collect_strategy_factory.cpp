@@ -27,7 +27,7 @@ std::unique_ptr<ComponentCollectStrategy> CollectStrategyFactory::CreateStrategy
 {
     // 非启动场景使用非预加载模式
     if (!isLaunch) {
-        return std::make_unique<NonPreloadCollectStrategy>();
+        return std::make_unique<DetectCollectStrategy>();
     }
     
     // 不检测的应用（直接结束不上报）
@@ -40,16 +40,7 @@ std::unique_ptr<ComponentCollectStrategy> CollectStrategyFactory::CreateStrategy
         return std::make_unique<NoDetectCollectStrategy>();
     }
     
-    // 启动场景的应用是否预加载
-    static const std::unordered_set<std::string> preLoadApps = {
-        std::string(PerfConstants::APP_NAME_DANMAKU_BILI),
-        std::string(PerfConstants::APP_NAME_XHS),
-        std::string(PerfConstants::APP_NAME_JD_MALL)
-    };
-    if (preLoadApps.find(appName) != preLoadApps.end()) {
-        return std::make_unique<PreloadCollectStrategy>();
-    }
-    return std::make_unique<NonPreloadCollectStrategy>();
+    return std::make_unique<DetectCollectStrategy>();
 }
 } // namespace HiviewDFX
 } // namespace OHOS

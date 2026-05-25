@@ -40,7 +40,7 @@ void InitState::StartCollectForAnimation(const std::string& sceneId)
     }
 }
  
-void InitState::AddComponent(int32_t componentId)
+void InitState::AddComponent(int32_t componentId, int32_t sourceType)
 {
     // INIT 状态下不处理组件操作
 }
@@ -71,10 +71,10 @@ void CollectingState::StartCollectForAnimation(const std::string& sceneId)
     // COLLECTING 状态下不处理应用转场的收集, 通过用户点击事件来打断
 }
  
-void CollectingState::AddComponent(int32_t componentId)
+void CollectingState::AddComponent(int32_t componentId, int32_t sourceType)
 {
     LoadCompleteMonitor& monitor = LoadCompleteMonitor::GetInstance();
-    monitor.AddComponentInternal(componentId);
+    monitor.AddComponentInternal(componentId, sourceType);
 }
 
 void CollectingState::DeleteComponent(int32_t componentId)

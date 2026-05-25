@@ -19,9 +19,11 @@ group("unittest") {
   testonly = true
   deps = [
     ":DispatchRuleParserTest",
+    ":DomainJsonParserTest",
     ":EventBaseTest",
     ":EventJsonParserTest",
     ":EventLoopTest",
+    ":ParseConfigTest",
     ":PluginFactoryTest",
     ":PluginPipelineTest",
     ":PluginTest",
@@ -155,6 +157,23 @@ ohos_unittest("DispatchRuleParserTest") {
   deps = [ "$hiview_base:hiview_base" ]
 
   external_deps = [
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "jsoncpp:jsoncpp",
+  ]
+}
+
+ohos_unittest("ParseConfigTest") {
+  module_out_path = module_output_path
+
+  include_dirs = [ "unittest/common" ]
+
+  sources = [ "unittest/common/version_config_parser_test.cpp" ]
+
+  deps = [ "$hiview_base:hiview_base" ]
+
+  external_deps = [
+    "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
     "jsoncpp:jsoncpp",

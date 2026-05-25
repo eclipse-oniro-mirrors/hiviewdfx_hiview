@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <fcntl.h>
 #include <fstream>
+#include <thread>
+#include <unistd.h>
 
 #include "faultlog_bundle_util.h"
 #include "faultlog_cppcrash.h"
@@ -21,10 +24,125 @@
 #include "file_util.h"
 #include "json/json.h"
 #include "test_utils.h"
+#include "constants.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
+
+constexpr const char * const TEST_JSON_FOR_GEN_CPPCRASH_LOG = R"~({
+  "JSON_VERSION": "1.0",
+  "BUILD_INFO": "OpenHarmony 7.0.0.22",
+  "TIMESTAMP": "2021-01-06 02:43:39.2286486502\n",
+  "PID": 1422,
+  "UID": 10007,
+  "PNAME": "com.ohos.systemui",
+  "PROCESS_LIFETIME": "28406s",
+  "PROCESS_RSS_MEMINFO": "258420(Rss)\n",
+  "REASON": "Signal:SIGSEGV(SI_USER)@0x00001c2c from:7212:0\n",
+  "SIGNAL": {
+    "signo": 11,
+    "code": 0,
+    "address": "0x00001c2c"
+  },
+  "KEY_THREAD_REGISTERS": "r0:fffffffc r1:fff324d0 r2:00000008 r3:00062749\n",
+  "MEMORY_NEAR_REGISTERS": "r1([stack]):\n    fff324c8 000000c5\n    fff324cc f6c04220\n    fff324d0 00000000\n",
+  "FAULT_STACK": "    fff32408 e095c760\nsp0:fff32488 ee66bc60\n    fff3248c fff324d0\n    fff32490 00000016\n",
+  "OPEN_FILES": "0->/dev/null native object of unknown type 0\n1->/dev/null native object of unknown type 0\n",
+  "KEY_THREAD_INFO": {
+    "thread_name": "m.ohos.systemui",
+    "tid": 1422,
+    "frames": [
+      {
+        "pc": "000ae700",
+        "symbol": "epoll_wait",
+        "offset": 28,
+        "file": "/system/lib/ld-musl-arm.so.1",
+        "buildId": "6de69132d2e8b59b93a63dda3285974e"
+      },
+      {
+        "pc": "00013c31",
+        "symbol": "OHOS::AppExecFwk::EpollIoWaiter::WaitFor(OHOS::AppExecFwk::UniqueLockBase&, long long, bool)",
+        "offset": 292,
+        "file": "/system/lib/chipset-sdk-sp/libeventhandler.z.so",
+        "buildId": "66ea5e3e2d130bd46a062a788f9df705"
+      }
+    ]
+  },
+  "OTHER_THREAD_INFO": [
+    {
+      "thread_name": "OS_IPC_0_1423",
+      "tid": 1423,
+      "frames": [
+        {
+          "pc": "000c9e50",
+          "symbol": "ioctl",
+          "offset": 84,
+          "file": "/system/lib/ld-musl-arm.so.1",
+          "buildId": "6de69132d2e8b59b93a63dda3285974e"
+        },
+        {
+          "pc": "0000d8db",
+          "symbol": "OHOS::BinderConnector::WriteBinder(unsigned long, void*)",
+          "offset": 78,
+          "file": "/system/lib/platformsdk/libipc_common.z.so",
+          "buildId": "17dee2ad5ccafa8fc769e5ac07e47cb5"
+        }
+      ]
+    },
+    {
+      "thread_name": "OS_IPC_1_1424",
+      "tid": 1424,
+      "frames": [
+        {
+          "pc": "000c9e50",
+          "symbol": "ioctl",
+          "offset": 84,
+          "file": "/system/lib/ld-musl-arm.so.1",
+          "buildId": "6de69132d2e8b59b93a63dda3285974e"
+        },
+        {
+          "pc": "0000d8db",
+          "symbol": "OHOS::BinderConnector::WriteBinder(unsigned long, void*)",
+          "offset": 78,
+          "file": "/system/lib/platformsdk/libipc_common.z.so",
+          "buildId": "17dee2ad5ccafa8fc769e5ac07e47cb5"
+        }
+      ]
+    }
+  ],
+  "PROCESS_MAPS": "aed000-af6000 r--p 00000000 /system/bin/appspawn\n"
+}
+)~";
+
+constexpr const char * const TEST_JSON_FOR_PARSE_CPPCRASH = R"~({
+    "PID": 7496,
+    "UID": 20010001,
+    "PNAME": "com.example.myapplication",
+    "TIMESTAMP": "2026-04-16 10:00:00",
+    "PROCESS_LIFETIME": "100s",
+    "REASON": "SIGSEGV",
+    "LAST_FATAL_MESSAGE": "test fatal message",
+    "SIGNAL": {"address": "0x1234", "code": 1, "signo": 11},
+    "KEY_THREAD_INFO": {
+        "thread_name": "main",
+        "tid": 7496,
+        "frames": [
+            {"pc": "000ac0a4", "symbol": "func", "offset": 28, "file": "/system/lib/test.so", "buildId": "abc123"},
+            {"symbol": "callback", "packageName": "entry", "file": "Index.ets", "line": 36, "column": 21}
+        ]
+    },
+    "KEY_THREAD_REGISTERS": "r0:00000019 r1:0097cd3c",
+    "OTHER_THREAD_INFO": [
+        {"thread_name": "thread1", "tid": 7497, "frames": [
+            {"pc": "000c80b4", "symbol": "ioctl", "offset": 72, "file": "/system/lib/libc.so", "buildId": ""}
+        ]}
+    ],
+    "MEMORY_NEAR_REGISTERS": "memory content",
+    "FAULT_STACK": "fault stack content",
+    "PROCESS_MAPS": "maps content",
+    "OPEN_FILES": "open files content"
+})~";
 
 static void GenCppCrashLogTestCommon(int32_t uid, bool ifFileExist)
 {
@@ -42,27 +160,11 @@ static void GenCppCrashLogTestCommon(int32_t uid, bool ifFileExist)
     info.sectionMap["KEY_THREAD_INFO"] = "Test Thread Info";
     info.sectionMap["REASON"] = "TestReason";
     info.sectionMap["STACKTRACE"] = "#01 xxxxxx\n#02 xxxxxx\n";
-    info.pipeFd.reset(new int32_t(pipeFd[0]), [] (int32_t *ptr) {
-        if (*ptr > 0) {
-            close(*ptr);
-        }
-            delete ptr;
-        });
-    std::string jsonInfo = R"~({"crash_type":"NativeCrash", "exception":{"frames":
-        [{"buildId":"", "file":"/system/lib/ld-musl-arm.so.1", "offset":28, "pc":"000ac0a4", "symbol":"test_abc"},
-        {"buildId":"12345abcde", "file":"/system/lib/chipset-pub-sdk/libeventhandler.z.so", "offset":278,
-        "pc":"0000bef3", "symbol":"OHOS::AppExecFwk::EpollIoWaiter::WaitFor(std::__h::unique_lock<std::__h::mutex>&,
-        long long)"}], "message":"", "signal":{"code":0, "signo":6}, "thread_name":"e.myapplication", "tid":1605},
-        "pid":1605, "threads":[{"frames":[{"buildId":"", "file":"/system/lib/ld-musl-arm.so.1", "offset":72, "pc":
-        "000c80b4", "symbol":"ioctl"}, {"buildId":"2349d05884359058d3009e1fe27b15fa", "file":
-        "/system/lib/platformsdk/libipc_core.z.so", "offset":26, "pc":"0002cad7",
-        "symbol":"OHOS::BinderConnector::WriteBinder(unsigned long, void*)"}], "thread_name":"OS_IPC_0_1607",
-        "tid":1607}, {"frames":[{"buildId":"", "file":"/system/lib/ld-musl-arm.so.1", "offset":0, "pc":"000fdf4c",
-        "symbol":""}, {"buildId":"", "file":"/system/lib/ld-musl-arm.so.1", "offset":628, "pc":"000ff7f4",
-        "symbol":"__pthread_cond_timedwait_time64"}], "thread_name":"OS_SignalHandle", "tid":1608}],
-        "time":1701863741296, "uid":20010043, "uuid":""})~";
-    TEMP_FAILURE_RETRY(write(pipeFd[1], jsonInfo.c_str(), jsonInfo.size()));
-    close(pipeFd[1]);
+    info.pipeFd = nullptr;
+    std::string tempFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
+        std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
+    FileUtil::SaveStringToFile(tempFilePath, TEST_JSON_FOR_GEN_CPPCRASH_LOG);
+
     FaultLogCppCrash faultlogCppcrash;
     faultlogCppcrash.AddFaultLog(info);
     std::string timeStr = GetFormatedTimeWithMillsec(info.time);
@@ -205,7 +307,8 @@ HWTEST(FaultloggerCppCrashTest, FaultlogLimit001, testing::ext::TestSize.Level3)
     FaultLogInfo info;
     std::string stack = "adad";
     std::string minidumpPath = "";
-    faultCppCrash.FillStackInfo(info, stack, minidumpPath);
+    Json::Value hiappeventJson;
+    faultCppCrash.FillStackInfo(info, minidumpPath, hiappeventJson);
 
     std::string tempCont = "adbc";
     faultCppCrash.TruncateLogIfExceedsLimit(tempCont);
@@ -319,7 +422,7 @@ HWTEST(FaultloggerCppCrashTest, ReportProcessKillEvent002, testing::ext::TestSiz
     FaultLogCppCrash faultCppCrash;
     EXPECT_EQ(FaultLogCppCrash::GetLastLineHilogTime(""), -1);
     FaultLogInfo info;
-    FaultLogCppCrash::ReportCppCrashToAppEvent(info), "";
+    faultCppCrash.ReportCppCrashToAppEvent(info);
     EXPECT_EQ(FaultLogCppCrash::ReadLogFile(""), "");
     EXPECT_EQ(FaultLogCppCrash::ReadLogFile("test"), "");
 }
@@ -389,9 +492,9 @@ HWTEST(FaultloggerCppCrashTest, ReportCppCrashToAppEvent001, testing::ext::TestS
 {
     FaultLogCppCrash faultCppCrash;
     FaultLogInfo info;
-    FaultLogCppCrash::ReportCppCrashToAppEvent(info);
+    faultCppCrash.ReportCppCrashToAppEvent(info);
     info.sectionMap["ENABLE_MINIDUMP"] = "true";
-    FaultLogCppCrash::ReportCppCrashToAppEvent(info);
+    faultCppCrash.ReportCppCrashToAppEvent(info);
     info.pid = 99999999;
     EXPECT_EQ(FaultLogCppCrash::GetMinidumpPath(info, 100), "");
 }
@@ -469,16 +572,12 @@ HWTEST(FaultloggerCppCrashTest, FillStackInfoWithMinidumpPath001, testing::ext::
     info.sectionMap["STACKTRACE"] = "#01 xxxxxx\n#02 xxxxxx\n";
     info.sectionMap["PROCESS_LIFETIME"] = "100";
 
-    std::string stackInfoOriginal = R"~({"crash_type":"NativeCrash", "exception":{"frames":
-        [{"buildId":"", "file":"/system/lib/ld-musl-arm.so.1", "offset":28, "pc":"000ac0a4", "symbol":"test_abc"}],
-        "message":"", "signal":{"code":0, "signo":6}, "thread_name":"e.myapplication", "tid":1605},
-        "pid":1605, "time":1701863741296, "uid":20010043, "uuid":""})~";
-
     std::string minidumpPath = "/data/log/faultlog/faultlogger/minidump-test.dmp";
-    auto result = FaultLogCppCrash::FillStackInfo(info, stackInfoOriginal, minidumpPath);
-    EXPECT_TRUE(result.isMember("external_log"));
-    EXPECT_EQ(result["external_log"].size(), 2u);
-    EXPECT_EQ(result["external_log"][1u].asString(), minidumpPath);
+    Json::Value hiappeventJson;
+    FaultLogCppCrash::FillStackInfo(info, minidumpPath, hiappeventJson);
+    EXPECT_TRUE(hiappeventJson.isMember("external_log"));
+    EXPECT_EQ(hiappeventJson["external_log"].size(), 2u);
+    EXPECT_EQ(hiappeventJson["external_log"][1u].asString(), minidumpPath);
 }
 
 /**
@@ -509,10 +608,198 @@ HWTEST(FaultloggerCppCrashTest, FillStackInfoWithMinidumpPath002, testing::ext::
         "pid":1605, "time":1701863741296, "uid":20010043, "uuid":""})~";
 
     std::string emptyMinidumpPath = "";
-    auto result = FaultLogCppCrash::FillStackInfo(info, stackInfoOriginal, emptyMinidumpPath);
-    EXPECT_TRUE(result.isMember("external_log"));
-    EXPECT_EQ(result["external_log"].size(), 1u);
-    EXPECT_EQ(result["external_log"][0u].asString(), info.logPath);
+    Json::Value hiappeventJson;
+    FaultLogCppCrash::FillStackInfo(info, emptyMinidumpPath, hiappeventJson);
+    EXPECT_TRUE(hiappeventJson.isMember("external_log"));
+    EXPECT_EQ(hiappeventJson["external_log"].size(), 1u);
+    EXPECT_EQ(hiappeventJson["external_log"][0u].asString(), info.logPath);
+}
+
+/**
+ * @tc.name: ParseCppCrashJsonTest001
+ * @tc.desc: Test ParseCppCrashJson with valid json data from fd
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest001, testing::ext::TestSize.Level1)
+{
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    info.pid = 7496;
+    info.time = 1701863741296;
+    info.pipeFd = nullptr;
+
+    std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
+        std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
+    FileUtil::SaveStringToFile(jsonFilePath, TEST_JSON_FOR_PARSE_CPPCRASH);
+
+    bool ret = faultCppCrash.ParseCppCrashJson(info);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(info.sectionMap["PID"], "7496");
+    EXPECT_EQ(info.sectionMap["UID"], "20010001");
+    EXPECT_EQ(info.sectionMap["PNAME"], "com.example.myapplication");
+    EXPECT_TRUE(info.sectionMap.find("KEY_THREAD_INFO") != info.sectionMap.end());
+    EXPECT_TRUE(info.sectionMap["KEY_THREAD_INFO"].find("Tid:7496") != std::string::npos);
+    EXPECT_TRUE(info.sectionMap["KEY_THREAD_INFO"].find("Name:main") != std::string::npos);
+    EXPECT_TRUE(faultCppCrash.hiappeventJson_ != nullptr);
+    EXPECT_TRUE(faultCppCrash.hiappeventJson_->isMember("pid"));
+    EXPECT_EQ((*faultCppCrash.hiappeventJson_)["pid"].asInt(), 7496);
+    EXPECT_TRUE(faultCppCrash.hiappeventJson_->isMember("exception"));
+
+    FileUtil::RemoveFile(jsonFilePath);
+}
+
+/**
+ * @tc.name: ParseCppCrashJsonTest002
+ * @tc.desc: Test ParseCppCrashJson with invalid fd
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest002, testing::ext::TestSize.Level1)
+{
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    info.pid = 7496;
+    info.time = 1701863741296;
+    info.pipeFd.reset(new int32_t(-1), [] (int32_t *ptr) { delete ptr; });
+
+    bool ret = faultCppCrash.ParseCppCrashJson(info);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ParseCppCrashJsonTest003
+ * @tc.desc: Test ParseCppCrashJson with invalid json content
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest003, testing::ext::TestSize.Level1)
+{
+    std::string invalidContent = "not a valid json";
+
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    info.pid = 7496;
+    info.time = 1701863741296;
+    info.pipeFd = nullptr;
+
+    std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
+        std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
+    FileUtil::SaveStringToFile(jsonFilePath, invalidContent);
+
+    bool ret = faultCppCrash.ParseCppCrashJson(info);
+    EXPECT_FALSE(ret);
+
+    FileUtil::RemoveFile(jsonFilePath);
+}
+
+/**
+ * @tc.name: ParseCppCrashJsonTest004
+ * @tc.desc: Test ParseCppCrashJson with empty fd data
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest004, testing::ext::TestSize.Level1)
+{
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    info.pid = 7496;
+    info.time = 1701863741296;
+    info.pipeFd = nullptr;
+
+    std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
+        std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
+    FileUtil::SaveStringToFile(jsonFilePath, "");
+
+    bool ret = faultCppCrash.ParseCppCrashJson(info);
+    EXPECT_FALSE(ret);
+
+    FileUtil::RemoveFile(jsonFilePath);
+}
+
+/**
+ * @tc.name: ParseCppCrashJsonTest005
+ * @tc.desc: Test ParseCppCrashJson with large json data
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest005, testing::ext::TestSize.Level1)
+{
+    std::string jsonInfo = R"~({
+        "PID": 7496,
+        "UID": 20010001,
+        "PNAME": "com.example.myapplication",
+        "KEY_THREAD_INFO": {
+            "thread_name": "main",
+            "tid": 7496,
+            "frames": []
+        },
+        "OTHER_THREAD_INFO": []
+    })~";
+
+    std::string padding(100 * 1024, ' ');
+    jsonInfo.insert(jsonInfo.size() - 3, padding);
+
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    info.pid = 7496;
+    info.time = 1701863741296;
+    info.pipeFd = nullptr;
+
+    std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
+        std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
+    FileUtil::SaveStringToFile(jsonFilePath, jsonInfo);
+
+    bool ret = faultCppCrash.ParseCppCrashJson(info);
+    EXPECT_TRUE(ret);
+
+    FileUtil::RemoveFile(jsonFilePath);
+}
+
+/**
+ * @tc.name: ParseCppCrashJsonTest006
+ * @tc.desc: Test ParseCppCrashJson with valid fd from file
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest006, testing::ext::TestSize.Level1)
+{
+    std::string jsonInfo = R"~({
+        "PID": 7496,
+        "UID": 20010001,
+        "PNAME": "com.example.myapplication",
+        "TIMESTAMP": "2026-04-16 10:00:00",
+        "PROCESS_LIFETIME": "100s",
+        "REASON": "SIGSEGV",
+        "KEY_THREAD_INFO": {
+            "thread_name": "main",
+            "tid": 7496,
+            "frames": [
+                {"pc": "000ac0a4", "symbol": "test_func", "offset": 28, "file": "/system/lib/test.so"}
+            ]
+        }
+    })~";
+
+    FaultLogCppCrash faultCppCrash;
+    FaultLogInfo info;
+    info.pid = 7496;
+    info.time = 1701863741296;
+
+    std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
+        std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
+    FileUtil::SaveStringToFile(jsonFilePath, jsonInfo);
+
+    int fd = open(jsonFilePath.c_str(), O_RDONLY);
+    ASSERT_GE(fd, 0);
+    info.pipeFd.reset(new int32_t(fd), [] (int32_t *ptr) {
+        if (*ptr >= 0) {
+            close(*ptr);
+        }
+        delete ptr;
+    });
+
+    bool ret = faultCppCrash.ParseCppCrashJson(info);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(info.sectionMap["PID"], "7496");
+    EXPECT_EQ(info.sectionMap["UID"], "20010001");
+    EXPECT_EQ(info.sectionMap["PNAME"], "com.example.myapplication");
+    EXPECT_TRUE(info.sectionMap.find("KEY_THREAD_INFO") != info.sectionMap.end());
+
+    FileUtil::RemoveFile(jsonFilePath);
 }
 
 } // namespace HiviewDFX

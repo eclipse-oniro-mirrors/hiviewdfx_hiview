@@ -45,8 +45,9 @@ public:
     /**
      * @brief 添加加载组件
      * @param componentId 组件ID
+     * @param sourceType 资源类型
      */
-    virtual void AddComponent(int32_t componentId) = 0;
+    virtual void AddComponent(int32_t componentId, int32_t sourceType) = 0;
 
     /**
      * @brief 删除加载组件

@@ -123,6 +123,8 @@ std::string GetFaultLogName(const FaultLogInfo& info)
             ret.append("asan");
         } else if (info.sanitizerType.compare("FDSAN") == 0) {
             ret.append("fdsan");
+        } else if (info.sanitizerType.compare("ARKTS_ENVSAN") == 0) {
+            ret.append("arktsenvsan");
         } else {
             ret.append("sanitizer");
         }
@@ -255,15 +257,6 @@ time_t GetFileLastAccessTimeStamp(const std::string& fileName)
         return 0;
     }
     return fileInfo.st_atime;
-}
-
-std::string GetCppCrashTempLogName(const FaultLogInfo& info)
-{
-    return std::string(FAULTLOG_TEMP_FOLDER) +
-        "cppcrash-" +
-        std::to_string(info.pid) +
-        "-" +
-        std::to_string(info.time);
 }
 
 std::string GetDebugSignalTempLogName(const FaultLogInfo& info)

@@ -15,6 +15,7 @@
 #ifndef FAULTLOG_CPPCRASH_H
 #define FAULTLOG_CPPCRASH_H
 
+#include <memory>
 #include <string>
 
 #include "faultlog_info_inner.h"
@@ -29,23 +30,27 @@ private:
     bool ReportEventToAppEvent() const override;
     void DoFaultLogLimit(const std::string& logPath) const override;
     void UpdateFaultLogInfo() override;
-    static Json::Value FillStackInfo(const FaultLogInfo& info, std::string& stackInfoOriginal,
-        std::string& minidumpPath);
+    static void FillStackInfo(const FaultLogInfo& info, std::string& minidumpPath, Json::Value& hiappeventJson);
     static bool CheckFaultLog(const FaultLogInfo& info);
     static bool ReportProcessKillEvent(const FaultLogInfo& info);
     static bool TruncateLogIfExceedsLimit(std::string& readContent);
     static int64_t GetLastLineHilogTime(const std::string& lastLineHilog);
-    static std::string GetStackInfo(const FaultLogInfo& info);
+    static std::string GetStackInfo(const FaultLogInfo& info, Json::Value& hiappeventJson);
     static std::string ReadLogFile(const std::string& logPath);
+    void AddCppCrashInfo(FaultLogInfo& info);
     static std::string ReadStackFromPipe(const FaultLogInfo& info);
-    static void AddCppCrashInfo(FaultLogInfo& info);
+    bool ParseCppCrashJson(FaultLogInfo& info);
+    static bool TryOpenJsonFileFd(FaultLogInfo& info);
     static void CheckHilogTime(FaultLogInfo& info);
-    static void ReportCppCrashToAppEvent(const FaultLogInfo& info);
+    void ReportCppCrashToAppEvent(const FaultLogInfo& info) const;
     static void WriteLogFile(const std::string& logPath, const std::string& content);
     static int TruncateAppCrashLog(const std::string& logPath, const std::string& target);
     static long FindTargetOffset(FILE* fp, const std::string& target);
     static std::string GetMinidumpPath(const FaultLogInfo& info, uint32_t timeOutUs);
     static std::string DealMiniDumpEvent(const FaultLogInfo& info);
+    static std::string GetCppCrashTempLogName(const FaultLogInfo& info, bool isJsonFile);
+
+    std::shared_ptr<Json::Value> hiappeventJson_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

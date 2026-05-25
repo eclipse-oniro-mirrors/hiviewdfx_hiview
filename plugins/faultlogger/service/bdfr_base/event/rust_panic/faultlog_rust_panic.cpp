@@ -38,5 +38,11 @@ bool FaultLogRustPanic::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) con
 {
     return false;
 }
+
+void FaultLogRustPanic::UpdateSysEvent(SysEvent& sysEvent)
+{
+    sysEvent.SetEventValue(FaultKey::HAPPEN_TIME, sysEvent.happenTime_);
+    FaultLogEventPipeline::UpdateSysEvent(sysEvent);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

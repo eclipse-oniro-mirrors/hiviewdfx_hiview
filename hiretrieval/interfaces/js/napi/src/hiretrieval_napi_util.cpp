@@ -53,7 +53,7 @@ std::string ParseStrVal(const napi_env env, const napi_value& value, std::string
 {
     char buf[BUF_SIZE] = {0};
     size_t bufLength = 0;
-    napi_status status = napi_get_value_string_utf8(env, value, buf, BUF_SIZE - 1, &bufLength);
+    napi_status status = napi_get_value_string_utf8(env, value, buf, BUF_SIZE, &bufLength);
     if (status != napi_ok) {
         HILOG_WARN(LOG_CORE, "failed to parse napi value of string type.");
         return defaultValue;

@@ -14,8 +14,7 @@
  */
 #include "cpu_storage.h"
 
-#include <functional>
-#include <map>
+#include <dlfcn.h>
 
 #include "file_util.h"
 #include "hisysevent.h"
@@ -25,7 +24,6 @@
 #ifdef POWER_MANAGER_ENABLE
 #include "power_status_manager.h"
 #endif
-#include "process_collector.h"
 #include "process_status.h"
 #include "rdb_predicates.h"
 #include "sql_util.h"
@@ -241,13 +239,23 @@ int CreateTables(NativeRdb::RdbStore& rdbStore)
 }
 }
 
-CpuStorage::CpuStorage(const std::string& workPath) : workPath_(workPath)
+CpuStorage::CpuStorage(const std::string& workPath) : workPath_(workPath), memCgHandle_(nullptr),
+    getMemCgProcess_(nullptr)
 {
     InitDbStorePath();
     InitDbStore();
+    InitMemCgHandle();
     if (dbStore_!= nullptr && GetStoredSysVersion() != Parameter::GetDisplayVersionStr()) {
         HIVIEW_LOGI("system has been upgaded, report directly");
         ReportDbRecords();
+    }
+}
+
+CpuStorage::~CpuStorage()
+{
+    if (memCgHandle_ != nullptr) {
+        dlclose(memCgHandle_);
+        memCgHandle_ = nullptr;
     }
 }
 
@@ -284,8 +292,8 @@ void CpuStorage::StoreProcessDatas(const std::vector<ProcessCpuStatInfo>& cpuCol
         HIVIEW_LOGW("db store is null, name=%{public}s", dbFileName_.c_str());
         return;
     }
-    auto processCollector = UCollectUtil::ProcessCollector::Create();
-    auto result = processCollector->GetMemCgProcesses();
+    std::unordered_set<int32_t> memCgProcs;
+    GetMemCgProcesses(memCgProcs);
     std::vector<NativeRdb::ValuesBucket> valuesBuckets;
     for (auto& cpuCollectionInfo : cpuCollectionInfos) {
         if (!NeedStoreInDb(cpuCollectionInfo)) {
@@ -295,7 +303,7 @@ void CpuStorage::StoreProcessDatas(const std::vector<ProcessCpuStatInfo>& cpuCol
         bucket.PutLong(COLUMN_START_TIME, static_cast<int64_t>(cpuCollectionInfo.startTime));
         bucket.PutLong(COLUMN_END_TIME, static_cast<int64_t>(cpuCollectionInfo.endTime));
         bucket.PutInt(COLUMN_PID, cpuCollectionInfo.pid);
-        bucket.PutInt(COLUMN_PROC_STATE, GetPowerProcessStateInCollectionPeriod(cpuCollectionInfo, result.data));
+        bucket.PutInt(COLUMN_PROC_STATE, GetPowerProcessStateInCollectionPeriod(cpuCollectionInfo, memCgProcs));
         bucket.PutString(COLUMN_PROC_NAME, cpuCollectionInfo.procName);
         bucket.PutDouble(COLUMN_CPU_LOAD, TruncateDecimalWithNBitPrecision(cpuCollectionInfo.cpuLoad));
         bucket.PutDouble(COLUMN_CPU_USAGE, TruncateDecimalWithNBitPrecision(cpuCollectionInfo.cpuUsage));
@@ -347,6 +355,29 @@ void CpuStorage::ReportDbRecords()
     PrepareOldDbFilesBeforeReport();
     ReportCpuCollectionEvent();
     PrepareNewDbFilesAfterReport();
+}
+
+void CpuStorage::InitMemCgHandle()
+{
+    memCgHandle_ = dlopen("libprocess_utility_ex.z.so", RTLD_LAZY);
+    if (memCgHandle_ == nullptr) {
+        HIVIEW_LOGW("dlopen process_utility_ex so failed, error: %{public}s", dlerror());
+        return;
+    }
+    getMemCgProcess_ = reinterpret_cast<GetMemCgProcessFunc>(dlsym(memCgHandle_, "GetMemCgProcesses"));
+    if (getMemCgProcess_ == nullptr) {
+        HIVIEW_LOGW("dlsym GetMemCgProcesses failed, %{public}s.", dlerror());
+        dlclose(memCgHandle_);
+        memCgHandle_ = nullptr;
+    }
+}
+
+void CpuStorage::GetMemCgProcesses(std::unordered_set<int32_t> &memCgProcs)
+{
+    if (memCgHandle_ == nullptr || getMemCgProcess_ == nullptr) {
+        return;
+    }
+    getMemCgProcess_(memCgProcs);
 }
 
 std::string CpuStorage::GetStoredSysVersion()

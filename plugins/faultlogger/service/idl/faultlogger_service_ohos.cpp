@@ -190,6 +190,28 @@ bool FaultloggerServiceOhos::EnableGwpAsanGrayscale(bool alwaysEnabled, double s
     return result;
 }
 
+bool FaultloggerServiceOhos::EnableGwpAsanInner(const std::string& processName, bool alwaysEnabled, double sampleRate,
+    double maxSimutaneousAllocations, int32_t duration)
+{
+    if (processName.empty() || sampleRate <= 0 || maxSimutaneousAllocations <= 0 || duration <= 0) {
+        HIVIEW_LOGE("failed to enable gwp asan grayscale, processName: %{public}s, sampleRate: %{public}f"
+            ", maxSimutaneousAllocations: %{public}f,  duration: %{public}d.",
+            processName.c_str(), sampleRate, maxSimutaneousAllocations, duration);
+        return false;
+    }
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        return false;
+    }
+    GwpAsanParams gwpAsanParams;
+    gwpAsanParams.alwaysEnabled = alwaysEnabled;
+    gwpAsanParams.maxSimutaneousAllocations = maxSimutaneousAllocations;
+    gwpAsanParams.sampleRate = sampleRate;
+    gwpAsanParams.duration = duration;
+    gwpAsanParams.isRecover = true;
+    return instance->EnableGwpAsanInner(gwpAsanParams, processName);
+}
+
 void FaultloggerServiceOhos::DisableGwpAsanGrayscale()
 {
     auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);

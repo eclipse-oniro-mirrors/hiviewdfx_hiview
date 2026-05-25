@@ -26,6 +26,7 @@
 #include "privacy_manager.h"
 #include "securec.h"
 #include "hisysevent.h"
+#include "version_config_parser.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -94,7 +95,7 @@ void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefM
     int totalEvent = 0;
     for (auto iter = sysEventDefMap->cbegin(); iter != sysEventDefMap->cend(); ++iter) {
         domainEventVec.push_back(std::pair<std::string, int>(iter->first, iter->second.size()));
-        totalEvent += iter->second.size();
+        totalEvent += static_cast<int>(iter->second.size());
     }
     std::sort(domainEventVec.begin(), domainEventVec.end(),
         [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
@@ -282,13 +283,9 @@ BaseInfo EventJsonParser::ParseBaseConfig(const Json::Value& eventNameJson) cons
         baseInfo.keyConfig.privacy = static_cast<uint8_t>(baseJsonInfo[PRIVACY].asUInt());
     }
 
-    if (HasBoolMember(baseJsonInfo, PRESERVE)) {
-        baseInfo.keyConfig.preserve = baseJsonInfo[PRESERVE].asBool() ? 1 : 0;
-    }
-
-    if (HasBoolMember(baseJsonInfo, COLLECT)) {
-        baseInfo.keyConfig.collect = baseJsonInfo[COLLECT].asBool() ? 1 : 0;
-    }
+    VersionConfigParser parser(baseJsonInfo);
+    baseInfo.keyConfig.preserve = parser.ShouldPreserve();
+    baseInfo.keyConfig.collect = parser.ShouldCollect();
 
     return baseInfo;
 }
