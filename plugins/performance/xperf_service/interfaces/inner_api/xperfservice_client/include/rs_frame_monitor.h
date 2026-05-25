@@ -69,6 +69,7 @@ private:
     void ReportSecondFrame(const uint64_t uniqueId, const uint64_t frameTime, const uint64_t now);
     void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, uint64_t now);
     void ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, uint64_t now);
+    void PopFirstFrameMapByLru();
 
     static constexpr uint64_t VALUE_INITIAL = 0;
     static constexpr uint64_t DELAY_TIME_MS = 1000;
