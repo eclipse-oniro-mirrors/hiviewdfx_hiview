@@ -33,6 +33,7 @@ std::unique_ptr<ComponentCollectStrategy> CollectStrategyFactory::CreateStrategy
     // 不检测的应用（直接结束不上报）
     // 这两个应用 采用起播作为加载完成的标志
     static const std::unordered_set<std::string> noDetectApps = {
+        std::string(PerfConstants::APP_NAME_KUAISHOU_HMNEBULA),
         std::string(PerfConstants::APP_NAME_UGC_AWEME),
         std::string(PerfConstants::APP_NAME_KUAISHOU)
     };
