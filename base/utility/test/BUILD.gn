@@ -21,6 +21,7 @@ group("unittest") {
   deps = [
     ":AdapterUtilityOhosTest",
     ":BaseUtilityUnitTest",
+    ":BundleUtilTest",
     ":SystemServiceOhosUnitTest",
   ]
 }
@@ -98,4 +99,22 @@ ohos_unittest("AdapterUtilityOhosTest") {
   ]
 
   resource_config_file = "$hiview_base/utility/test/resource/ohos_test.xml"
+}
+
+ohos_unittest("BundleUtilTest") {
+  module_out_path = module_output_path
+
+  configs = [ ":base_utility_config_test" ]
+
+  sources = [ "unittest/common/bundle_util_test.cpp" ]
+
+  deps = [ "$hiview_base/utility:hiview_utility" ]
+
+  external_deps = [
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
 }
