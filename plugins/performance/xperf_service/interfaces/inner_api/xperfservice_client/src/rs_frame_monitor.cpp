@@ -229,7 +229,13 @@ void RsFrameMonitor::ProcessFrameCollect(const uint64_t uniqueId, const uint32_t
     auto itF = firstFrameMap_.find(uniqueId);
     if (itF == firstFrameMap_.end()) {
         if (firstFrameMap_.size() > ACVIDEO_VECTOR_MAX_LENGTH) {
-            firstFrameMap_.clear();
+            auto oldestIt = firstFrameMap_.begin();
+            for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end(); it++) {
+                if (it->second.frameTime < oldestIt->second.frameTime) {
+                    oldestIt = it;
+                }
+            }
+            firstFrameMap_.erase(oldestIt);
         }
         firstFrameMap_[uniqueId] = {now, sequence, true};
     } else if (itF->second.sequence != sequence && itF->second.isFirstFrame) {
