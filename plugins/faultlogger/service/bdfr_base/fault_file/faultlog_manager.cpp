@@ -148,7 +148,6 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         HIVIEW_LOGI("WriteMergeLogToFile");
     }
     fdsan_close_with_tag(fd, ownerTag);
-    FaultLogger::ForkProcessParseArkTsStackInfo(info.module, info.faultLogType, filePath);
 
     RemoveOldFile(info);
     info.logPath = filePath;
