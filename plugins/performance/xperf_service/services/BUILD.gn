@@ -43,6 +43,7 @@ ohos_shared_library("xperfservice_server") {
   sources = [
     "common/src/xperf_parser.cpp",
     "${xperfservice_common}/src/perf_trace.cpp",
+    "${xperfservice_common}/src/perf_utils.cpp",
     "core/src/xperf_service.cpp",
     "core/src/xperf_register_manager.cpp",
     "framework/xperf_dispatcher/src/xperf_monitor_manager.cpp",

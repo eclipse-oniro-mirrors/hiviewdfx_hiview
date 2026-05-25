@@ -59,7 +59,6 @@ void XperfMonitorManager::InitVideoMonitor()
     RegisterMonitorByLogID(XperfConstants::VIDEO_JANK_FRAME, monitor);
     RegisterMonitorByLogID(XperfConstants::NETWORK_JANK_REPORT, monitor);
     RegisterMonitorByLogID(XperfConstants::AVCODEC_JANK_REPORT, monitor);
-    RegisterMonitorByLogID(XperfConstants::VIDEO_SECOND_FRAME, monitor);
     RegisterMonitorByLogID(XperfConstants::VIDEO_FRAME_STATS, monitor);
 }
 
@@ -73,6 +72,7 @@ void XperfMonitorManager::InitPassthroughMonitor()
 {
     XperfMonitor* monitor = &PassthroughMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::PERF_LOAD_COMPLETE, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_SECOND_FRAME, monitor);
 }
 
 std::vector<XperfMonitor*> XperfMonitorManager::GetMonitors(int32_t logId)

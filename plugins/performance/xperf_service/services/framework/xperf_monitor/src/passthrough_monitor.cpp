@@ -16,15 +16,18 @@
 #include "passthrough_monitor.h"
  
 #include <sstream>
- 
+
+#include "ffrt.h"
 #include "load_complete_reporter.h"
 #include "perf_load_complete_event.h"
+#include "perf_utils.h"
+#include "rs_event.h"
 #include "xperf_service_log.h"
  
 namespace OHOS {
 namespace HiviewDFX {
- 
-const std::string EVENT_LOAD_COMPLETE = "LOAD_COMPLETE";
+
+constexpr int64_t REPORT_GAP_TIME = 10000;
  
 PassthroughMonitor& PassthroughMonitor::GetInstance()
 {
@@ -39,27 +42,73 @@ void PassthroughMonitor::ProcessEvent(OhosXperfEvent* event)
         return;
     }
     LOGD("PassthroughMonitor msg:%{public}s", event->rawMsg.c_str());
-    if (event->eventName == EVENT_LOAD_COMPLETE) {
-        ProcessLoadCompleteEvent(event);
+    switch (event->logId) {
+        case XperfConstants::PERF_LOAD_COMPLETE: // 应用启动加载事件
+            OnLoadCompleteEvent(event);
+            break;
+        case XperfConstants::VIDEO_SECOND_FRAME: //图形上报视频第二帧
+            OnVideoSecondFrame(event);
+            break;
+        default:
+            break;
+    }
+}
+
+void PassthroughMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
+{
+    LOGD("VideoXperfMonitor_OnVideoSecondFrame rawMsg:%{public}s", event->rawMsg.c_str());
+    VideoSecondEvent secondFrame = *((VideoSecondEvent*) event);
+
+    std::string bundleName = GetBundleName(secondFrame.uniqueId);
+    // 第二帧作为应用加载终止点的方案，仅适用于启动即播放视频的应用（抖音、快手、快手极速版）
+    if (bundleName.empty()) {
+        return;
+    }
+    LoadCompleteReport report;
+    report.lastComponent = secondFrame.happenTime;
+    report.isLaunch = 1;
+    report.bundleName = bundleName;
+    report.abilityName = "";
+    ffrt::submit([report]() { LoadCompleteReporter::ReportLoadComplete(report); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
+}
+
+std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
+{
+    for (auto it = bundleNameToUniqueId_.begin(); it != bundleNameToUniqueId_.end(); it++) {
+        if (it->second == uniqueId) {
+            return it->first;
+        }
+    }
+    return "";
+}
+
+void PassthroughMonitor::OnSurfaceReceived(const std::string& bundleName, int64_t uniqueId)
+{
+    auto it = bundleNameToUniqueId_.find(bundleName);
+    if (it != bundleNameToUniqueId_.end()) {
+        it->second = uniqueId;
+        int64_t now = GetCurrentSystimeMs();
+        if (now - lastReportSurfaceTime_ > REPORT_GAP_TIME) {
+            lastReportSurfaceTime_ = now;
+            ffrt::submit([bundleName]() { LoadCompleteReporter::ReportSurfaceReceived(bundleName); },
+                ffrt::task_attr().qos(ffrt::qos_user_initiated));
+        }
     }
 }
  
-void PassthroughMonitor::ProcessLoadCompleteEvent(OhosXperfEvent* event)
+void PassthroughMonitor::OnLoadCompleteEvent(OhosXperfEvent* event)
 {
     PerfLoadCompleteEvent* loadCompleteEvent = (PerfLoadCompleteEvent*) event;
  
-    std::stringstream pageLoadCost;
-    pageLoadCost << "isLaunch:" << loadCompleteEvent->isLaunch << ",lastComponent:" <<
-        loadCompleteEvent->lastComponent << ";";
-    std::vector<std::string> array;
-    array.push_back(pageLoadCost.str());
     LoadCompleteReport reportInfo = {
         .lastComponent = loadCompleteEvent->lastComponent,
         .isLaunch = loadCompleteEvent->isLaunch,
         .bundleName = loadCompleteEvent->bundleName,
         .abilityName = loadCompleteEvent->abilityName,
     };
-    LoadCompleteReporter::ReportLoadComplete(reportInfo);
+    ffrt::submit([reportInfo]() { LoadCompleteReporter::ReportLoadComplete(reportInfo); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
  
 } // namespace HiviewDFX
