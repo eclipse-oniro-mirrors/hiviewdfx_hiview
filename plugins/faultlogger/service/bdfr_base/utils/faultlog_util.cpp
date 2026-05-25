@@ -123,6 +123,8 @@ std::string GetFaultLogName(const FaultLogInfo& info)
             ret.append("asan");
         } else if (info.sanitizerType.compare("FDSAN") == 0) {
             ret.append("fdsan");
+        } else if (info.sanitizerType.compare("ARKTS_ENVSAN") == 0) {
+            ret.append("arktsenvsan");
         } else {
             ret.append("sanitizer");
         }

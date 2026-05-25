@@ -39,6 +39,9 @@ void FaultLogSanitizer::ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysE
     if (reason.find("FDSAN") != std::string::npos) {
         params["type"] = "FDSAN";
         HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason FDSAN", reason.c_str());
+    } else if (reason.find("ARKTS_ENVSAN") != std::string::npos) {
+        params["type"] = "ARKTS_ENVSAN";
+        HIVIEW_LOGI("info reason: %{public}s, set sysEvent reason ARKTS_ENVSAN", reason.c_str());
     }
     Json::Value externalLog(Json::arrayValue);
     std::string logPath = sysEvent->GetEventValue(FaultKey::LOG_PATH);
@@ -119,6 +122,12 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.logPath = GetDebugSignalTempLogName(info);
         info.summary = "";
         info.sanitizerType = "FDSAN";
+    } else if (info.reason.find("ARKTS_ENVSAN") != std::string::npos) {
+        info.pid = sysEvent.GetEventIntValue("PID");
+        info.time = sysEvent.GetEventIntValue("HAPPEN_TIME");
+        info.logPath = GetDebugSignalTempLogName(info);
+        info.summary = "";
+        info.sanitizerType = "ARKTS_ENVSAN";
     } else if (info.reason.find("DEBUG SIGNAL") != std::string::npos) {
         info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
         info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
@@ -140,6 +149,10 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
 void FaultLogSanitizer::UpdateFaultLogInfo()
 {
     if (info_.reason.find("FDSAN") != std::string::npos) {
+        info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
+        info_.logPath = "";
+    }
+    if (info_.reason.find("ARKTS_ENVSAN") != std::string::npos) {
         info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
         info_.logPath = "";
     }
