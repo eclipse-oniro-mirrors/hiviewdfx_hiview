@@ -15,8 +15,8 @@
 
 #include "restorable_db_store.h"
 
-#include "hiview_logger.h"
 #include "hisysevent.h"
+#include "hiview_logger.h"
 #include "sql_util.h"
 
 namespace OHOS {
