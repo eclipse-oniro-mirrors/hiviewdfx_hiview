@@ -20,10 +20,32 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+struct MapInfo {
+    uint64_t start;
+    uint64_t end;
+    std::string fileName;
+};
+
+struct LoadInfo {
+    uint64_t pc;
+    uint64_t relativePc;
+    uint64_t mapBase;
+    std::string fullPath;
+};
 class FaultLogSanitizer final : public FaultLogEventPipeline {
 public:
     FaultLogSanitizer();
 private:
+    bool ShouldParseSandBoxPath(const std::string& line);
+    bool ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix, const std::string& bundleName);
+    bool ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps, const std::string& bundleName,
+                         LoadInfo& info);
+    std::string ProcessArkTsLine(const std::string& line, const std::string& packageName,
+                                 const std::vector<MapInfo>& maps);
+    std::vector<MapInfo> LoadMaps(std::ifstream& file);
+    bool ParserArkTsStackInfo(const std::string& moduleName, const std::string& path);
+    bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, const std::string& path);
+
     FaultLogInfo FillFaultLogInfo(SysEvent& sysEvent) override;
     bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const override;
     std::string GetFaultModule(SysEvent& sysEvent) const override;
