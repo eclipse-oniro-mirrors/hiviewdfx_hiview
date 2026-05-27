@@ -615,6 +615,8 @@ public:
     inline static constexpr char APP_NAME_UGC_AWEME[] = "com.ss.hm.ugc.aweme";
 
     inline static constexpr char APP_NAME_KUAISHOU[] = "com.kuaishou.hmapp";
+
+    inline static constexpr char APP_NAME_KUAISHOU_HMNEBULA[] = "com.kuaishou.hmnebula";
 };
 } // namespace OHOS
 } // namespace HiviewDFX

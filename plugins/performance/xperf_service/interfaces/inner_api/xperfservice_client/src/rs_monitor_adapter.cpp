@@ -15,7 +15,7 @@
 
 #include "rs_monitor_adapter.h"
 
-#include "avcodec_video_monitor.h"
+#include "rs_frame_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -37,38 +37,38 @@ RsMonitorAdapter& RsMonitorAdapter::GetInstance()
 void RsMonitorAdapter::VideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime)
 {
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    RsFrameMonitor::GetInstance().VideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
 }
 
 void RsMonitorAdapter::VideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, const uint32_t fps)
 {
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    RsFrameMonitor::GetInstance().VideoStop(uniqueIdList, surfaceNameList, fps);
 }
 
 void RsMonitorAdapter::VideoExpectionStop(const uint64_t uniqueId)
 {
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoExpectionStop(uniqueId);
+    RsFrameMonitor::GetInstance().VideoExpectionStop(uniqueId);
 }
 
 void RsMonitorAdapter::VideoCollectFinish()
 {
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoCollectFinish();
+    RsFrameMonitor::GetInstance().VideoCollectFinish();
 }
 
 void RsMonitorAdapter::VideoCollect(const uint64_t uniqueId, const uint32_t sequence)
 {
-    AvcodecVideoMonitor::GetInstance().AvcodecVideoCollect(uniqueId, sequence);
+    RsFrameMonitor::GetInstance().VideoCollect(uniqueId, sequence);
 }
 
 bool RsMonitorAdapter::VideoGet(uint64_t uniqueId)
 {
-    return AvcodecVideoMonitor::GetInstance().AvcodecVideoGet(uniqueId);
+    return RsFrameMonitor::GetInstance().VideoGet(uniqueId);
 }
 
 bool RsMonitorAdapter::VideoGetRecent()
 {
-    return AvcodecVideoMonitor::GetInstance().AvcodecVideoGetRecent();
+    return RsFrameMonitor::GetInstance().VideoGetRecent();
 }
 }
 }

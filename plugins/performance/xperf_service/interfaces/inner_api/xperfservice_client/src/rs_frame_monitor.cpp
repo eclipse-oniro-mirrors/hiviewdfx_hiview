@@ -13,57 +13,55 @@
  * limitations under the License.
  */
 
-#include "avcodec_video_monitor.h"
+#include "rs_frame_monitor.h"
+
+#include <sstream>
+#include <cinttypes>
+
+#include "perf_trace.h"
+#include "perf_utils.h"
 #include "xperf_service_action_type.h"
 #include "xperf_service_client.h"
 #include "xperf_service_log.h"
-#include "perf_trace.h"
-#include <sstream>
-#include <chrono>
-#include <sys/time.h>
-#include <unistd.h>
-#include "ffrt.h"
-#include <cinttypes>
 
 namespace OHOS {
 namespace HiviewDFX {
 
-AvcodecVideoMonitor& AvcodecVideoMonitor::GetInstance()
+RsFrameMonitor& RsFrameMonitor::GetInstance()
 {
-    static AvcodecVideoMonitor instance;
+    static RsFrameMonitor instance;
     return instance;
 }
 
-static uint64_t GetCurrentSystimeMs()
+RsFrameMonitor::RsFrameMonitor()
 {
-    auto curTime = std::chrono::system_clock::now().time_since_epoch();
-    int64_t curSysTime = std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
-    return curSysTime;
+    ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
+            "RS_NOTIFY_XPERF_QUEUE", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
 }
 
-void AvcodecVideoMonitor::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+void RsFrameMonitor::VideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime)
 {
-    LOGD("AvcodecVideoStart start, uniqueIdList size=%{public}zu, fps=%{public}u", uniqueIdList.size(), fps);
+    LOGD("VideoStart start, uniqueIdList size=%{public}zu, fps=%{public}u", uniqueIdList.size(), fps);
     if (uniqueIdList.size() != surfaceNameList.size()) {
-        LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size not equal surfaceNameList size");
+        LOGE("RSJankStats::VideoStart uniqueIdList size not equal surfaceNameList size");
         return;
     }
     size_t uniqueIdListSize = uniqueIdList.size();
     if (uniqueIdListSize > ACVIDEO_VECTOR_MAX_LENGTH) {
-        LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size exceeds maxium limit");
+        LOGE("RSJankStats::VideoStart uniqueIdList size exceeds maxium limit");
         return;
     }
 
-    std::lock_guard<std::mutex> lock(avcodecMutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
 
-    avcodecVideoMap_.clear();
+    videoMap_.clear();
     videoReportNum_ = 0;
     recentUniqueId_ = 0;
-    avcodecVideoCollectOpen_.store(true);
+    videoCollectOpen_.store(true);
     for (size_t i = 0; i < uniqueIdListSize; i++) {
         uint64_t uniqueId = uniqueIdList[i];
-        AvcodecVideoParam& info = avcodecVideoMap_[uniqueId];
+        VideoParam& info = videoMap_[uniqueId];
         info.surfaceName = surfaceNameList[i];
         info.fps = fps;
         info.reportTime = reportTime;
@@ -77,27 +75,27 @@ void AvcodecVideoMonitor::AvcodecVideoStart(const std::vector<uint64_t>& uniqueI
     }
 }
 
-void AvcodecVideoMonitor::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, const uint32_t fps)
 {
     if (uniqueIdList.size() != surfaceNameList.size()) {
-        LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size not equal surfaceNameList size");
+        LOGE("RSJankStats::VideoStop uniqueIdList size not equal surfaceNameList size");
         return;
     }
     size_t uniqueIdListSize = uniqueIdList.size();
     if (uniqueIdListSize > ACVIDEO_VECTOR_MAX_LENGTH) {
-        LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size exceeds maxium limit");
+        LOGE("RSJankStats::VideoStop uniqueIdList size exceeds maxium limit");
         return;
     }
-    std::lock_guard<std::mutex> lock(avcodecMutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& uniqueId : uniqueIdList) {
         auto itF = firstFrameMap_.find(uniqueId);
         if (itF != firstFrameMap_.end()) {
             firstFrameMap_.erase(itF);
         }
-        auto it = avcodecVideoMap_.find(uniqueId);
-        if (it == avcodecVideoMap_.end()) {
-            LOGE("RSJankStats::AvcodecVideoStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
+        auto it = videoMap_.find(uniqueId);
+        if (it == videoMap_.end()) {
+            LOGE("RSJankStats::VideoStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
             continue;
         }
         uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
@@ -106,16 +104,14 @@ void AvcodecVideoMonitor::AvcodecVideoStop(const std::vector<uint64_t>& uniqueId
             uint64_t happenTime = it->second.startTime;
             uint32_t intervalExceedCount = it->second.intervalExceedCount;
             uint64_t intervalExceedLatency = it->second.intervalExceedLatency;
-            ffrt::submit([uniqueId, duration, avgFps, happenTime, intervalExceedCount, intervalExceedLatency]() {
-                XPERF_TRACE_SCOPED("RSJankStats::AvcodecVideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG "
+            ffrtHighPriorityQueue_->submit([uniqueId, duration, avgFps, happenTime, intervalExceedCount,
+                intervalExceedLatency]() {
+                XPERF_TRACE_SCOPED("RSJankStats::VideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG "
                     "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
                     uniqueId, duration, avgFps, happenTime);
                 std::stringstream s;
-                s << "#UNIQUEID:" << uniqueId <<
-                    "#DURATION:" << duration <<
-                    "#AVG_FPS:" << avgFps <<
-                    "#INTERVAL_COUNT:" << intervalExceedCount <<
-                    "#INTERVAL_LATENCY:" << intervalExceedLatency;
+                s << "#UNIQUEID:" << uniqueId << "#DURATION:" << duration << "#AVG_FPS:" << avgFps <<
+                    "#INTERVAL_COUNT:" << intervalExceedCount << "#INTERVAL_LATENCY:" << intervalExceedLatency;
                 XperfServiceClient::GetInstance().NotifyToXperf(
                     static_cast<int32_t>(DomainId::RS),
                     static_cast<int32_t>(RsEventCode::VIDEO_FRAME_STATS),
@@ -124,38 +120,38 @@ void AvcodecVideoMonitor::AvcodecVideoStop(const std::vector<uint64_t>& uniqueId
             });
         }
     }
-    avcodecVideoMap_.clear();
-    avcodecVideoCollectOpen_.store(false);
+    videoMap_.clear();
+    videoCollectOpen_.store(false);
     recentUniqueId_ = 0;
     videoReportNum_ = 0;
 }
 
-void AvcodecVideoMonitor::AvcodecVideoExpectionStop(const uint64_t uniqueId)
+void RsFrameMonitor::VideoExpectionStop(const uint64_t uniqueId)
 {
-    LOGD("AvcodecVideoExpectionStop start, uniqueId=%{public}llu", static_cast<unsigned long long>(uniqueId));
-    auto it = avcodecVideoMap_.find(uniqueId);
-    if (it == avcodecVideoMap_.end()) {
-        LOGE("RSJankStats::AvcodecVideoExpectionStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
+    LOGD("VideoExpectionStop start, uniqueId=%{public}llu", static_cast<unsigned long long>(uniqueId));
+    auto it = videoMap_.find(uniqueId);
+    if (it == videoMap_.end()) {
+        LOGE("RSJankStats::VideoExpectionStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
         return;
     }
 
-    avcodecVideoMap_.erase(it);
+    videoMap_.erase(it);
 
-    if (avcodecVideoMap_.empty()) {
-        avcodecVideoCollectOpen_.store(false);
+    if (videoMap_.empty()) {
+        videoCollectOpen_.store(false);
         recentUniqueId_ = 0;
         videoReportNum_ = 0;
     }
 }
 
-void AvcodecVideoMonitor::AvcodecVideoJankReport()
+void RsFrameMonitor::VideoJankReport()
 {
-    std::lock_guard<std::mutex> lock(avcodecMutex_);
-    if (!avcodecVideoCollectOpen_.load()) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!videoCollectOpen_.load()) {
         return;
     }
-    auto it = avcodecVideoMap_.find(recentUniqueId_);
-    if (it == avcodecVideoMap_.end()) {
+    auto it = videoMap_.find(recentUniqueId_);
+    if (it == videoMap_.end()) {
         return;
     }
     uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
@@ -163,7 +159,7 @@ void AvcodecVideoMonitor::AvcodecVideoJankReport()
     uint64_t notifyInterval = now - it->second.previousNotifyTime;
     const std::string surfaceName = it->second.surfaceName;
     if (videoReportNum_ > 0 || notifyInterval < ACVIDEO_NOTIFY_TIME_MS || frameTime < ACVIDEO_JANK_TIME_MS) {
-        LOGD("RSJankStats::AvcodecVideoJankReport notification conditions not met."
+        LOGD("RSJankStats::VideoJankReport notification conditions not met."
                 "uniqueId: %{public}" PRIu64 ", frameTime: %{public}" PRIu64 ", notifyInterval: %{public}" PRIu64
                 ", videoReportNum_: %{public}" PRIu64 "",
             recentUniqueId_, frameTime, notifyInterval, videoReportNum_);
@@ -172,8 +168,8 @@ void AvcodecVideoMonitor::AvcodecVideoJankReport()
     it->second.previousNotifyTime = now;
     videoReportNum_++;
 
-    ffrt::submit([frameTime, now, surfaceName, uniqueId = recentUniqueId_]() {
-        XPERF_TRACE_SCOPED("RSJankStats::AvcodecVideoJankReport RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
+    ffrtHighPriorityQueue_->submit([frameTime, now, surfaceName, uniqueId = recentUniqueId_]() {
+        XPERF_TRACE_SCOPED("RSJankStats::VideoJankReport RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
             "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "",
             uniqueId, frameTime, now);
         std::stringstream s;
@@ -189,11 +185,11 @@ void AvcodecVideoMonitor::AvcodecVideoJankReport()
     });
 }
 
-void AvcodecVideoMonitor::AvcodecVideoCollectFinish()
+void RsFrameMonitor::VideoCollectFinish()
 {
-    LOGD("AvcodecVideoCollectFinish");
-    AvcodecVideoJankReport();
-    std::lock_guard<std::mutex> lock(avcodecMutex_);
+    LOGD("VideoCollectFinish");
+    VideoJankReport();
+    std::lock_guard<std::mutex> lock(mutex_);
     uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
     std::vector<uint64_t> finishedVideos;
     for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end(); it++) {
@@ -205,33 +201,36 @@ void AvcodecVideoMonitor::AvcodecVideoCollectFinish()
         firstFrameMap_.erase(uniqueId);
     }
 
-    if (!avcodecVideoCollectOpen_.load()) {
+    if (!videoCollectOpen_.load()) {
         return;
     }
     
     finishedVideos.clear();
-    for (auto it = avcodecVideoMap_.begin(); it != avcodecVideoMap_.end(); it++) {
+    for (auto it = videoMap_.begin(); it != videoMap_.end(); it++) {
         if (it->second.previousFrameTime != 0 && now - it->second.previousFrameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
-            LOGD("RSJankStats::AvcodecVideoCollectFinish. [uniqueId %" PRIu64 "]", it->first);
+            LOGD("RSJankStats::VideoCollectFinish. [uniqueId %" PRIu64 "]", it->first);
             finishedVideos.push_back(it->first);
         }
     }
     for (auto uniqueId : finishedVideos) {
-        AvcodecVideoExpectionStop(uniqueId);
+        VideoExpectionStop(uniqueId);
     }
 }
 
-void AvcodecVideoMonitor::UpdateVideoStats(AvcodecVideoParam& videoStats, uint32_t sequence, uint64_t now)
+void RsFrameMonitor::UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, uint64_t now)
 {
     videoStats.decodeCount++;
     videoStats.previousSequence = sequence;
     videoStats.previousFrameTime = now;
 }
 
-void AvcodecVideoMonitor::ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, uint64_t now)
+void RsFrameMonitor::ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, uint64_t now)
 {
     auto itF = firstFrameMap_.find(uniqueId);
     if (itF == firstFrameMap_.end()) {
+        if (firstFrameMap_.size() > ACVIDEO_VECTOR_MAX_LENGTH) {
+            PopFirstFrameMapByLru();
+        }
         firstFrameMap_[uniqueId] = {now, sequence, true};
     } else if (itF->second.sequence != sequence && itF->second.isFirstFrame) {
         ReportSecondFrame(uniqueId, now - itF->second.frameTime, now);
@@ -241,16 +240,27 @@ void AvcodecVideoMonitor::ProcessFrameCollect(const uint64_t uniqueId, const uin
     }
 }
 
-void AvcodecVideoMonitor::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence)
+void RsFrameMonitor::PopFirstFrameMapByLru()
 {
-    std::lock_guard<std::mutex> lock(avcodecMutex_);
+    auto oldestIt = firstFrameMap_.begin();
+    for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end(); it++) {
+        if (it->second.frameTime < oldestIt->second.frameTime) {
+            oldestIt = it;
+        }
+    }
+    firstFrameMap_.erase(oldestIt);
+}
+
+void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequence)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
     uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
     ProcessFrameCollect(uniqueId, sequence, now);
-    if (!avcodecVideoCollectOpen_.load()) {
+    if (!videoCollectOpen_.load()) {
         return;
     }
-    auto it = avcodecVideoMap_.find(uniqueId);
-    if (it == avcodecVideoMap_.end()) {
+    auto it = videoMap_.find(uniqueId);
+    if (it == videoMap_.end()) {
         return;
     }
 
@@ -263,7 +273,7 @@ void AvcodecVideoMonitor::AvcodecVideoCollect(const uint64_t uniqueId, const uin
     } else if (videoStats.previousSequence != sequence) {
         uint64_t frameTime = now - videoStats.previousFrameTime;
         if (now - videoStats.previousNotifyTime < ACVIDEO_NOTIFY_TIME_MS) {
-            LOGD("RSJankStats::AvcodecVideoCollect previousNotifyTime not exceeding threshold."
+            LOGD("RSJankStats::VideoCollect previousNotifyTime not exceeding threshold."
                 "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 "", uniqueId, frameTime);
             UpdateVideoStats(videoStats, sequence, now);
             return;
@@ -275,8 +285,8 @@ void AvcodecVideoMonitor::AvcodecVideoCollect(const uint64_t uniqueId, const uin
         if (frameTime > videoStats.reportTime) {
             videoStats.previousNotifyTime = now;
             const std::string surfaceName = videoStats.surfaceName;
-            ffrt::submit([uniqueId, frameTime, now, surfaceName]() {
-                XPERF_TRACE_SCOPED("RSJankStats::AvcodecVideoCollect RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
+            ffrtHighPriorityQueue_->submit([uniqueId, frameTime, now, surfaceName]() {
+                XPERF_TRACE_SCOPED("RSJankStats::VideoCollect RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
                     "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "", uniqueId, frameTime, now);
                 std::stringstream s;
                 s << "#UNIQUEID:" << uniqueId << "#FAULT_ID:" << static_cast<int32_t>(DomainId::RS) <<
@@ -294,9 +304,9 @@ void AvcodecVideoMonitor::AvcodecVideoCollect(const uint64_t uniqueId, const uin
     }
 }
 
-void AvcodecVideoMonitor::ReportSecondFrame(const uint64_t uniqueId, const uint64_t frameTime, const uint64_t now)
+void RsFrameMonitor::ReportSecondFrame(const uint64_t uniqueId, const uint64_t frameTime, const uint64_t now)
 {
-    ffrt::submit([uniqueId, frameTime, now]() {
+    ffrtHighPriorityQueue_->submit([uniqueId, frameTime, now]() {
         XPERF_TRACE_SCOPED("RSJankStats::ReportSecondFrame RS_NOTIFY_XPERF_VIDEO_SECOND_FRAME_MSG "
             "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "", uniqueId, frameTime, now);
         std::stringstream s;
@@ -310,13 +320,13 @@ void AvcodecVideoMonitor::ReportSecondFrame(const uint64_t uniqueId, const uint6
     });
 }
 
-bool AvcodecVideoMonitor::AvcodecVideoGet(uint64_t uniqueId)
+bool RsFrameMonitor::VideoGet(uint64_t uniqueId)
 {
     // 预留接口
     return false;
 }
 
-bool AvcodecVideoMonitor::AvcodecVideoGetRecent()
+bool RsFrameMonitor::VideoGetRecent()
 {
     // 预留接口
     return false;

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef AVCODEC_VIDEO_MONITOR_H
-#define AVCODEC_VIDEO_MONITOR_H
+#ifndef RS_FRAME_MONITOR_H
+#define RS_FRAME_MONITOR_H
 
 #include <atomic>
 #include <cstdint>
@@ -23,10 +23,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ffrt.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 
-struct AvcodecVideoParam {
+struct VideoParam {
     std::string surfaceName;
     uint32_t fps;
     uint64_t reportTime;
@@ -45,28 +47,29 @@ struct FirstFrameParam {
     bool isFirstFrame{false};
 };
 
-class AvcodecVideoMonitor {
+class RsFrameMonitor {
 public:
-    static AvcodecVideoMonitor& GetInstance();
+    static RsFrameMonitor& GetInstance();
 
-    void AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    void VideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime);
-    void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    void VideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, const uint32_t fps);
-    void AvcodecVideoExpectionStop(const uint64_t uniqueId);
-    void AvcodecVideoCollectFinish();
-    void AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence);
-    bool AvcodecVideoGet(uint64_t uniqueId);
-    bool AvcodecVideoGetRecent();
+    void VideoExpectionStop(const uint64_t uniqueId);
+    void VideoCollectFinish();
+    void VideoCollect(const uint64_t uniqueId, const uint32_t sequence);
+    bool VideoGet(uint64_t uniqueId);
+    bool VideoGetRecent();
 
 private:
-    AvcodecVideoMonitor() = default;
-    ~AvcodecVideoMonitor() = default;
+    RsFrameMonitor();
+    ~RsFrameMonitor() = default;
 
-    void AvcodecVideoJankReport();
+    void VideoJankReport();
     void ReportSecondFrame(const uint64_t uniqueId, const uint64_t frameTime, const uint64_t now);
-    void UpdateVideoStats(AvcodecVideoParam& videoStats, uint32_t sequence, uint64_t now);
+    void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, uint64_t now);
     void ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, uint64_t now);
+    void PopFirstFrameMapByLru();
 
     static constexpr uint64_t VALUE_INITIAL = 0;
     static constexpr uint64_t DELAY_TIME_MS = 1000;
@@ -75,10 +78,11 @@ private:
     static constexpr uint64_t ACVIDEO_JANK_TIME_MS = 300;
     static constexpr uint64_t ACVIDEO_RECORD_TIME_MS = 300;
     static constexpr int ACVIDEO_VECTOR_MAX_LENGTH = 8;
-    std::atomic<bool> avcodecVideoCollectOpen_ = false;
-    std::unordered_map<uint64_t, AvcodecVideoParam> avcodecVideoMap_;
+    std::atomic<bool> videoCollectOpen_ = false;
+    std::unordered_map<uint64_t, VideoParam> videoMap_;
     std::unordered_map<uint64_t, FirstFrameParam> firstFrameMap_;
-    std::mutex avcodecMutex_;
+    std::mutex mutex_;
+    std::shared_ptr<ffrt::queue> ffrtHighPriorityQueue_;
     uint64_t recentUniqueId_ = VALUE_INITIAL;
     uint64_t videoReportNum_ = VALUE_INITIAL;
 };
@@ -86,4 +90,4 @@ private:
 } // namespace HiviewDFX
 } // namespace OHOS
 
-#endif // AVCODEC_VIDEO_MONITOR_H
+#endif // RS_FRAME_MONITOR_H

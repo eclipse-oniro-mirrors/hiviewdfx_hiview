@@ -68,6 +68,10 @@ namespace XperfConstants {
 
     //"#LAST_COMPONENT:1720001111#BUNDLE_NAME:com.ohos.sceneboard#IS_LAUNCH:0"
     const int32_t PERF_LOAD_COMPLETE = 6001;  //perfmonitor上报页面加载完成事件
+
+    constexpr const char* const APP_NAME_SS_HM_UGC_AWEME = "com.ss.hm.ugc.aweme";
+    constexpr const char* const APP_NAME_KUAISHOU_HMAPP = "com.kuaishou.hmapp";
+    constexpr const char* const APP_NAME_KUAISHOU_HMNEBULA = "com.kuaishou.hmnebula";
  
 };
 
