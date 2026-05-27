@@ -55,7 +55,7 @@ inline constexpr uint32_t JANK_STATS_SIZE = 8;
 
 inline constexpr int32_t VAILD_JANK_SUB_HEALTH_INTERVAL = 100;
 
-class  {
+class PerfConstants {
 public:
     // start app from launcher icon sceneid
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_ICON[] = "LAUNCHER_APP_LAUNCH_FROM_ICON";
