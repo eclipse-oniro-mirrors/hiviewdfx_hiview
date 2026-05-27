@@ -34,6 +34,10 @@ enum DomainId {
 enum PerfEventCode {
     USER_ACTION = 0,
     LOAD_COMPLETE = 1,
+    COMPONENT_ATTACH = 2,
+    COMPONENT_DETACH = 3,
+    MULTIINPUT_FIRSTMOVE = 4,
+    MULTIINPUT_LASTUP = 5,
 };
 
 enum NetworkEventCode {
