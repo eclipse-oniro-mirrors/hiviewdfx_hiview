@@ -34,8 +34,10 @@ using OnDbUpgradedCallback = std::function<int(NativeRdb::RdbStore&, int, int)>;
 
 class RestorableDbStore {
 public:
-    RestorableDbStore(const std::string& dbDir, const std::string& dbName, int32_t dbVersion)
-        : dbVersion_(dbVersion), dbDir_(FileUtil::IncludeTrailingPathDelimiter(dbDir)), dbName_(dbName) {}
+    RestorableDbStore(const std::string& dbDir, const std::string& dbName, int32_t dbVersion,
+        const std::string& scenario = "")
+        : dbVersion_(dbVersion), dbDir_(FileUtil::IncludeTrailingPathDelimiter(dbDir)), dbName_(dbName),
+        scenario_(scenario) {}
 
     int Initialize(OnDbCreatedCallback onDbCreatedCallback, OnDbUpgradedCallback onDbUpgradedCallback,
         OnRestoreEndCallback onRestoreEndCallback);
@@ -73,6 +75,7 @@ private:
     int32_t dbVersion_ = 0;
     std::string dbDir_;
     std::string dbName_;
+    std::string scenario_;
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     OnDbCreatedCallback onDbCreatedCallback_ = nullptr;
     OnDbUpgradedCallback onDbUpgradedCallback_ = nullptr;
