@@ -48,6 +48,62 @@ public:
         uint64_t totalMem = 0;
     };
 
+    struct DetailGpuInfo {
+        int32_t vulKanDefault{0};
+        int32_t vulKanImage{0};
+        int32_t vulKanBuffer{0};
+        int32_t glesImage{0};
+        int32_t glesBuffer{0};
+        int32_t clImage{0};
+        int32_t clBuffer{0};
+    };
+
+    struct DetailDmaBufInfo {
+        int32_t totalSize{0};
+        int32_t pixelmapSize{0};
+        int32_t xcomSize{0};
+        int32_t webSize{0};
+        int32_t hwVideoSize{0};
+        int32_t swVideoSize{0};
+        int32_t externalSize{0};
+        int32_t othersSize{0};
+    };
+
+    struct DetailCommonMemoryInfo {
+        int nativeHeap = 0;
+        int arktsHeap = 0;
+        int hap = 0;
+        int stack = 0;
+        int db = 0;
+        int so = 0;
+        int dev = 0;
+        int ttf = 0;
+        int ashmem = 0;
+        int arktsStaHeap = 0;
+        int kotlinHeap = 0;
+        int dartHeap = 0;
+        int rnHermesHeap = 0;
+        int jsvmHeap = 0;
+        int arkwebV8 = 0;
+        int arkwebPa = 0;
+        int anonPageOther = 0;
+        int filePageOther = 0;
+        int totalSize = 0;
+        int others = 0;
+    };
+
+    struct DetailSmapsInfo : public DetailCommonMemoryInfo {
+    };
+
+    struct DetailRssInfo : public DetailCommonMemoryInfo {
+    };
+
+    struct DetailExtPssInfo {
+        DetailSmapsInfo detailSmapsInfo;
+        DetailDmaBufInfo detailDmaBufInfo;
+        DetailGpuInfo detailGpuInfo;
+    };
+
     struct AppLaunchInfo : public BundleInfo, public ProcessInfo {
         int32_t startType = 0;
         uint64_t iconInputTime = 0;
@@ -151,6 +207,8 @@ public:
         std::string appRunningUniqueId;
         std::string level;
         std::vector<std::string> logPath;
+        DetailRssInfo rssInfo;
+        DetailExtPssInfo extPssInfo;
     };
 
     struct AppKilledInfo : public BundleInfo, public TimeInfo {
