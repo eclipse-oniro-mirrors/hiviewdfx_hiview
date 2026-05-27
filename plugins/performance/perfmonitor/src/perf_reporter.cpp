@@ -291,6 +291,16 @@ void PerfReporter::ReportSurface(const int64_t& uniqueId, const std::string& sur
     EventReporter::ReportSurfaceInfo(surfaceInfo);
 }
 
+void PerfReporter::ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
+{
+    std::stringstream ss;
+    ss << "#PID:" << pid << "#BUNDLE_NAME:" << bundleName << "#UNIQUE_ID:" << uniqueId
+       << "#SURFACE_NAME:" << surfaceName << "#COMPONENT_NAME:" << componentName;
+ 
+    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::COMPONENT_DETACH, ss.str());
+}
+
 void EventReporter::ReportJankFrameApp(JankInfo& info)
 {
     std::string eventName = "JANK_FRAME_APP";

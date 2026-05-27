@@ -30,5 +30,10 @@ void SurfaceMonitor::ReportSurface(const int64_t& uniqueId, const std::string& s
     PerfReporter::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
 }
  
+void SurfaceMonitor::ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
+{
+    PerfReporter::GetInstance().ReportComponentDetach(uniqueId, surfaceName, componentName, bundleName, pid);
+}
 }
 }
