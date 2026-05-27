@@ -61,7 +61,8 @@ public:
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_ICON[] = "LAUNCHER_APP_LAUNCH_FROM_ICON";
 
     // start app from notificationbar
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR[] = "LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR";
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR[] =
+        "LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR";
 
     // start app from lockscreen
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN[] =
@@ -294,7 +295,8 @@ public:
 
     inline static constexpr char EXPAND_TO_FOLD_AA[] = "EXPAND_TO_FOLD_AA";
 
-    inline static constexpr char FOLD_TO_EXPAND_DOCK_BACKGROUND_SCALE_TWO[] = "FOLD_TO_EXPAND_DOCK_BACKGROUND_SCALE_TWO";
+    inline static constexpr char FOLD_TO_EXPAND_DOCK_BACKGROUND_SCALE_TWO[] =
+        "FOLD_TO_EXPAND_DOCK_BACKGROUND_SCALE_TWO";
 
     inline static constexpr char EXPAND_TO_FOLD_INDICATOR[] = "EXPAND_TO_FOLD_INDICATOR";
 
