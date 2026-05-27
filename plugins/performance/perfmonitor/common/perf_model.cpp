@@ -103,7 +103,9 @@ bool AnimatorRecord::IsDisplayAnimator(const std::string& sceneId)
         || sceneId == PerfConstants::META_BALLS_TURBO_CHARGING_ANIMATION
         || sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH_INTERACTIVE
         || sceneId == PerfConstants::SCROLLER_ANIMATION
-        || sceneId == PerfConstants::LAUNCHER_SPRINGBACK_SCROLL) {
+        || sceneId == PerfConstants::LAUNCHER_SPRINGBACK_SCROLL
+        || sceneId == PerfConstants::STATIC_CROP_DRAG
+        || sceneId == PerfConstants::MOVING_CROP_DRAG) {
         return true;
     }
     return false;
