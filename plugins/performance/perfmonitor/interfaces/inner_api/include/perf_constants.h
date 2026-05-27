@@ -60,9 +60,6 @@ public:
     // start app from launcher icon sceneid
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_ICON[] = "LAUNCHER_APP_LAUNCH_FROM_ICON";
 
-    inline constexpr std::string_view LAUNCHER_APP_LAUNCH_FROM_ICON = "LAUNCHER_APP_LAUNCH_FROM_ICON";
-
-
     // start app from notificationbar
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR[] = "LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR";
 
