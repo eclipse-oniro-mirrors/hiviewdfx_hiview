@@ -43,6 +43,14 @@ struct AvcodecFrame : public OhosXperfEvent {
     std::string surfaceName;
 };
 
+// "#UNIQUEID:"  "#SURFACE_NAME:"  "#LAST_FLUSH_TIME:" "#DURATION:"
+struct AvcodecFaultEvent : public OhosXperfEvent {
+    int64_t uniqueId{0};
+    std::string surfaceName;
+    int64_t lastFlushTime{0};
+    int64_t duration{0};
+};
+
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif

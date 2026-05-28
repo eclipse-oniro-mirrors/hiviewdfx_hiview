@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef AVCODEC_EVENT_PARSER_H
-#define AVCODEC_EVENT_PARSER_H
+#ifndef COMPONENT_EVT_H
+#define COMPONENT_EVT_H
 
 #include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg);
-OhosXperfEvent* ParseVoid(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFault(const std::string& msg);
-
+struct ComponentEvt : public OhosXperfEvent {
+    int32_t pid{0};
+    int64_t uniqueId{0};
+    std::string bundleName;
+    std::string surfaceName;
+    std::string componentName;
+};
 } // namespace HiviewDFX
 } // namespace OHOS
-
 #endif

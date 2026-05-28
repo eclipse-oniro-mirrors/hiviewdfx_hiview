@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 #include "xperf_monitor_manager.h"
- 
+
+#include "xperf_constant.h"
+#include "xperf_service_log.h"
 #include "passthrough_monitor.h"
 #include "user_action_monitor.h"
 #include "video_jank_monitor.h"
 #include "video_xperf_monitor.h"
-#include "xperf_constant.h"
-#include "xperf_service_log.h"
+#include "avcodec_perf_monitor.h"
+#include "video_play_latency_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -29,6 +31,8 @@ XperfMonitorManager::XperfMonitorManager()
     InitVideoMonitor();
     InitUserActionMonitor();
     InitPassthroughMonitor();
+    InitAvcodecPerfMonitor();
+    InitPlayLatencyMonitor();
 }
 
 void XperfMonitorManager::RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor)
@@ -41,6 +45,16 @@ void XperfMonitorManager::RegisterMonitorByLogID(int32_t logId, XperfMonitor* mo
         std::vector<XperfMonitor*>& monitors = dispatchers.at(logId);
         monitors.push_back(monitor);
     }
+}
+
+std::vector<XperfMonitor*> XperfMonitorManager::GetMonitors(int32_t logId)
+{
+    auto monitors = dispatchers.find(logId);
+    if (monitors == dispatchers.end()) {
+        std::vector<XperfMonitor*> empty;
+        return empty;
+    }
+    return monitors->second;
 }
 
 void XperfMonitorManager::InitPlayStateMonitor()
@@ -75,14 +89,22 @@ void XperfMonitorManager::InitPassthroughMonitor()
     RegisterMonitorByLogID(XperfConstants::VIDEO_SECOND_FRAME, monitor);
 }
 
-std::vector<XperfMonitor*> XperfMonitorManager::GetMonitors(int32_t logId)
+void XperfMonitorManager::InitAvcodecPerfMonitor()
 {
-    auto monitors = dispatchers.find(logId);
-    if (monitors == dispatchers.end()) {
-        std::vector<XperfMonitor*> empty;
-        return empty;
-    }
-    return monitors->second;
+    XperfMonitor *monitor = &AvcodecPerfMonitor::GetInstance();
+    RegisterMonitorByLogID(XperfConstants::AVCODEC_INIT, monitor);
+    RegisterMonitorByLogID(XperfConstants::AVCODEC_RELEASE, monitor);
+    RegisterMonitorByLogID(XperfConstants::AVCODEC_JANK_FAULT, monitor);
+    RegisterMonitorByLogID(XperfConstants::AVCODEC_FRAME_STATS, monitor);
+}
+
+void XperfMonitorManager::InitPlayLatencyMonitor()
+{
+    XperfMonitor* monitor = &VideoPlayLatencyMonitor::GetInstance();
+    RegisterMonitorByLogID(XperfConstants::PERF_USER_ACTION, monitor);
+    RegisterMonitorByLogID(XperfConstants::PERF_COMPONENT_DETACH, monitor);
+    RegisterMonitorByLogID(XperfConstants::AVCODEC_SECOND_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::AVCODEC_FRAME_STATS, monitor);
 }
 
 } // namespace HiviewDFX
