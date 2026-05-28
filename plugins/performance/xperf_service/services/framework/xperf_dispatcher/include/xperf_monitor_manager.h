@@ -38,6 +38,8 @@ private:
      * @brief 初始化透传事件的monitor，并订阅需要透传的事件
      */
     void InitPassthroughMonitor();
+    void InitAvcodecPerfMonitor();
+    void InitPlayLatencyMonitor();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

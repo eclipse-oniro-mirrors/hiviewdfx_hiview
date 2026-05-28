@@ -51,5 +51,21 @@ OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg)
     return event;
 }
 
+OhosXperfEvent* ParseVoid(const std::string& msg)
+{
+    OhosXperfEvent* event = new OhosXperfEvent();
+    return event;
+}
+
+OhosXperfEvent* ParseAvcodecFault(const std::string& msg)
+{
+    AvcodecFaultEvent* event = new AvcodecFaultEvent();
+    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_SURFACE_NAME, 0);
+    ExtractStrToStr(msg, event->surfaceName, TAG_SURFACE_NAME, "#LAST_FLUSH_TIME:", "");
+    ExtractStrToLong(msg, event->lastFlushTime, "#LAST_FLUSH_TIME:", "#DURATION:", 0);
+    ExtractStrToLong(msg, event->duration, "#DURATION:", "", 0);
+    return event;
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

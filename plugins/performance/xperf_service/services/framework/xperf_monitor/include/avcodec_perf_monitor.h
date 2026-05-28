@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,19 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef AVCODEC_EVENT_PARSER_H
-#define AVCODEC_EVENT_PARSER_H
+#ifndef AVCODEC_PERF_MONITOR_H
+#define AVCODEC_PERF_MONITOR_H
 
-#include "xperf_event.h"
+#include "xperf_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg);
-OhosXperfEvent* ParseVoid(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFault(const std::string& msg);
+class AvcodecPerfMonitor : public XperfMonitor {
+public:
+    static AvcodecPerfMonitor& GetInstance();
+    AvcodecPerfMonitor(const AvcodecPerfMonitor&) = delete;
+    void operator=(const AvcodecPerfMonitor&) = delete;
 
+    void ProcessEvent(OhosXperfEvent* event) override;
+
+private:
+    AvcodecPerfMonitor() = default;
+    ~AvcodecPerfMonitor() = default;
+
+    void OnFault(OhosXperfEvent* event);
+};
 } // namespace HiviewDFX
 } // namespace OHOS
 

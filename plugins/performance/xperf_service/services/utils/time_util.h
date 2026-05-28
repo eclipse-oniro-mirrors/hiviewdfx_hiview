@@ -12,21 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OHOS_HIVIEWDFX_XPERF_TIME_UTIL_H
+#define OHOS_HIVIEWDFX_XPERF_TIME_UTIL_H
 
-#ifndef AVCODEC_EVENT_PARSER_H
-#define AVCODEC_EVENT_PARSER_H
-
-#include "xperf_event.h"
+#include <chrono>
 
 namespace OHOS {
-namespace HiviewDFX {
+    namespace HiviewDFX {
 
-OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg);
-OhosXperfEvent* ParseVoid(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFault(const std::string& msg);
-
-} // namespace HiviewDFX
+        class TimeUtil {
+        public:
+            static int64_t GetCurrTimeMs()
+            {
+                return std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count();
+            }
+        };
+    } // namespace HiviewDFX
 } // namespace OHOS
 
 #endif

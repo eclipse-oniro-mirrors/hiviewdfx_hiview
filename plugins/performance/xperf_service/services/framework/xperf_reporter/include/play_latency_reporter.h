@@ -13,18 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef AVCODEC_EVENT_PARSER_H
-#define AVCODEC_EVENT_PARSER_H
+#ifndef PLAY_LATENCY_REPORTER_H
+#define PLAY_LATENCY_REPORTER_H
 
-#include "xperf_event.h"
+#include "xperf_service_log.h"
+#include "video_record.h"
+#include "video_jank_report.h"
+#include "video_start_fault_report.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg);
-OhosXperfEvent* ParseVoid(const std::string& msg);
-OhosXperfEvent* ParseAvcodecFault(const std::string& msg);
+class PlayLatencyReporter {
+public:
+    static void ReportStartFault(const VideoStartFaultReport& report);
+    static void ReportFault(const std::string& eventName, const std::string& eventData);
+};
 
 } // namespace HiviewDFX
 } // namespace OHOS

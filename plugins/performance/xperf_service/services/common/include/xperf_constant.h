@@ -42,14 +42,22 @@ namespace XperfConstants {
     // #REPORT_INTERVAL:100";
     const int32_t AVCODEC_FIRST_FRAME_START = 4000; //avcodec上报首帧
 
-    const int32_t AVCODEC_SECOND_FRAME = 4004; //avcodec上报第二帧
-
-    const int32_t AVCODEC_FRAME_STATS = 4005; //avcodec上报解码统计信息
-
     // "#UNIQUEID:6670084210789#PID:11283#BUNDLE_NAME:com.kuaishou.hmapp"
     // "#SURFACE_NAME:be89e1dc-7cc0-4b79-8023-b2d63bb75f78Surface#FAULT_ID:4#FAULT_CODE:3"
     // "#JANK_REASON:omx hold input too more";
     const int32_t AVCODEC_JANK_REPORT = 4001; //avcodec上报卡顿原因
+
+    const int32_t AVCODEC_INIT = 4002; //解码器创建
+
+    const int32_t AVCODEC_RELEASE = 4003; //解码器销毁
+
+    const int32_t AVCODEC_JANK_FAULT = 4004; //解码器超300ms
+
+    //"#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
+    // #REPORT_INTERVAL:100";
+    const int32_t AVCODEC_SECOND_FRAME = 4005; //avcodec上报第二帧
+
+    const int32_t AVCODEC_FRAME_STATS = 4006; //avcodec上报解码统计信息
 
     // "#UNIQUEID:7095285973044#FAULT_ID:0#FAULT_CODE:0#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111";
     const int32_t VIDEO_JANK_FRAME = 5000;  //图形上报视频卡顿
@@ -68,6 +76,16 @@ namespace XperfConstants {
 
     //"#LAST_COMPONENT:1720001111#BUNDLE_NAME:com.ohos.sceneboard#IS_LAUNCH:0"
     const int32_t PERF_LOAD_COMPLETE = 6001;  //perfmonitor上报页面加载完成事件
+
+    //"#PID:123#BUNDLE_NAME:abc#UNIQUE_ID:123#SURFACE_NAME:abc#COMPONENT_NAME:abc"
+    const int32_t PERF_COMPONENT_ATTACH = 6002;  //OnAttachToMainTree
+
+    //"#PID:123#BUNDLE_NAME:abc#UNIQUE_ID:123#SURFACE_NAME:abc#COMPONENT_NAME:abc"
+    const int32_t PERF_COMPONENT_DETACH = 6003;  //OnDetachFromMainTree
+
+    //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
+    const int32_t PERF_MULTIINPUT_FIRSTMOVE = 6004;  // first move
+    const int32_t PERF_MULTIINPUT_LASTUP = 6005;  // last up
 
     constexpr const char* const APP_NAME_SS_HM_UGC_AWEME = "com.ss.hm.ugc.aweme";
     constexpr const char* const APP_NAME_KUAISHOU_HMAPP = "com.kuaishou.hmapp";
