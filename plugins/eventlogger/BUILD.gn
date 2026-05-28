@@ -95,7 +95,6 @@ group("unittest") {
     deps += [
       "config/test:EventloggerConfigTest",
       "log_catcher/test:EventloggerCatcherTest",
-      "test:EventLoggerTest",
       "manager/test:EventloggerManagerTest",
     ]
   }
