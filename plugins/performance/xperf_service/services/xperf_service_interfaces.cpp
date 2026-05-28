@@ -34,7 +34,7 @@ void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& b
     VideoJankMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
     VideoXperfMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
     PassthroughMonitor::GetInstance().OnSurfaceReceived(bundleName, uniqueId);
-	VideoPlayLatencyMonitor::GetInstance().OnComponentAttach(pid, bundleName, uniqueId, surfaceName);
+    VideoPlayLatencyMonitor::GetInstance().OnComponentAttach(pid, bundleName, uniqueId, surfaceName);
 }
 
 }
