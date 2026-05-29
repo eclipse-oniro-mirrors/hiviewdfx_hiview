@@ -37,6 +37,7 @@
 #include "freeze_common.h"
 #include "event_logger_util.h"
 #include "event_log_task.h"
+#include "parameter_ex.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -1396,7 +1397,15 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_004, TestSize.Level3)
     sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
     sysEvent->SetEventValue("MSG", "foreground timeout");
     std::string result = eventLogger->GetBlockedTime(sysEvent);
-    float blockedTime = 5000 * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+    int lifcycleBlock = 10000;
+    int lifcycleHalf = 5000;
+    float radio = FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+    int timeout = Parameter::IsBetaVersion() ? lifcycleBlock : lifcycleHalf;
+    float blockedTime = timeout * radio;
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
+    OHOS::system::SetParameter("const.logsystem.versiontype", "test");
+    timeout = Parameter::IsBetaVersion() ? lifcycleBlock : lifcycleHalf;
+    blockedTime = timeout * radio;
     EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
@@ -1452,7 +1461,15 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_007, TestSize.Level3)
     sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT";
     sysEvent->SetEventValue("MSG", "foreground timeout");
     std::string result = eventLogger->GetBlockedTime(sysEvent);
-    float blockedTime = 2500 * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+    int lifcycleBlock = 5000;
+    int lifcycleHalf = 2500;
+    float radio = FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+    int timeout = Parameter::IsBetaVersion() ? lifcycleBlock : lifcycleHalf;
+    float blockedTime = timeout * radio;
+    EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
+    OHOS::system::SetParameter("const.logsystem.versiontype", "test");
+    timeout = Parameter::IsBetaVersion() ? lifcycleBlock : lifcycleHalf;
+    blockedTime = timeout * radio;
     EXPECT_EQ(std::to_string(static_cast<int>(blockedTime)), result);
 }
  
