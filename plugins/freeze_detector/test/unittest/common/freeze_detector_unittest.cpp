@@ -288,7 +288,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_004, TestSize.Level3)
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret1 = freezeCommon->Init();
     ASSERT_EQ(ret1, true);
-    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
     ASSERT_EQ(vendor->Init(), true);
 
     std::ostringstream oss;
@@ -346,10 +347,12 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_005, TestSize.Level3)
 
     std::vector<FreezeResult> result;
 
+
     auto freezeCommon = std::make_shared<FreezeCommon>();
     bool ret1 = freezeCommon->Init();
     ASSERT_EQ(ret1, true);
-    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
     ASSERT_EQ(vendor->Init(), true);
     vendor->MergeEventLog(watchPoint, list, result);
 }

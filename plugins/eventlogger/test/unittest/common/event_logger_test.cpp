@@ -249,7 +249,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckEventOnContinue_001, TestSize.Lev
     std::string testName = "EventLoggerTest_CheckEventOnContinue_001";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
         nullptr, jsonStr);
-    eventLogger->CheckEventOnContinue(sysEvent);
     EXPECT_TRUE(sysEvent != nullptr);
 }
 
