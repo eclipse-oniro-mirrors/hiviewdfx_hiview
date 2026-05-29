@@ -100,6 +100,7 @@ namespace {
     constexpr int DFX_APP_INPUT_BLOCK_8S = 8000;
     constexpr int DFX_FOREGROUND_TIMEOUT_2S5 = 2500;
     constexpr int DFX_FOREGROUND_TIMEOUT_5S = 5000;
+    constexpr int DFX_FOREGROUND_TIMEOUT_10S = 10000;
     constexpr int DFX_LOAD_TIMEOUT_5S = 5000;
     constexpr int DFX_LOAD_TIMEOUT_10S = 10000;
     constexpr float FLOAT_EPSILON = 0.01f;
@@ -996,7 +997,9 @@ std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
         blockedTime = DFX_APP_INPUT_BLOCK_8S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "LIFECYCLE_TIMEOUT") {
         if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
-            blockedTime = DFX_FOREGROUND_TIMEOUT_5S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+            bool isBeta = Parameter::IsBetaVersion();
+            int timeout = isBeta ? DFX_FOREGROUND_TIMEOUT_10S : DFX_FOREGROUND_TIMEOUT_5S;
+            blockedTime = timeout * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
             blockedTime = DFX_LOAD_TIMEOUT_10S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else {
@@ -1004,7 +1007,9 @@ std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
         }
     } else if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT") {
         if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
-            blockedTime = DFX_FOREGROUND_TIMEOUT_2S5 * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+            bool isBeta = Parameter::IsBetaVersion();
+            int timeout = isBeta ? DFX_FOREGROUND_TIMEOUT_5S : DFX_FOREGROUND_TIMEOUT_2S5;
+            blockedTime = timeout * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
             blockedTime = DFX_LOAD_TIMEOUT_5S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else {
