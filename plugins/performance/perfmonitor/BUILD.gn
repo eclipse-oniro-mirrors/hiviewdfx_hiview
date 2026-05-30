@@ -28,9 +28,21 @@ if (hiview_enable_xperf_perfmonitor) {
 
     cflags_cc = [
       "-DENABLE_SCREEM",
-      "-fexceptions",
       "-fvisibility-inlines-hidden",
       "-fvisibility=hidden",
+      "-fdata-sections",
+      "-ffunction-sections",
+      "-fno-asynchronous-unwind-tables",
+      "-fno-unwind-tables",
+      "-fstack-protector-strong",
+      "-fno-exceptions",
+      "-fno-rtti",
+      "-Os"
+    ]
+
+    ldflags = [
+    "-flto",
+    "-Wl,--gc-sections",
     ]
   }
 
@@ -50,6 +62,9 @@ ohos_shared_library("libperfmonitor") {
       cfi = true
       cfi_cross_dso = true
       debug = false
+      cfi_vcall_icall_only = true
+      boundary_sanitize = false
+      integer_overflow = false
     }
 
     sources = [

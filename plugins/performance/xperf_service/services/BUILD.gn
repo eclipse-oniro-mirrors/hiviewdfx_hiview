@@ -101,11 +101,28 @@ ohos_shared_library("xperfservice_server") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    cfi_vcall_icall_only = true
+    boundary_sanitize = false
+    integer_overflow = false
   }
 
   asmflags = [ "-Wl,-z,relro,-z,now" ]
 
-  cflags_cc = [ "-fstack-protector-strong" ]
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fstack-protector-strong",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Os"
+  ]
+ 
+  ldflags = [
+  "-flto",
+  "-Wl,--gc-sections",
+  ]
 }
 
 ohos_static_library("xperfservice_server_static") {
@@ -141,5 +158,24 @@ ohos_static_library("xperfservice_server_static") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    cfi_vcall_icall_only = true
+    boundary_sanitize = false
+    integer_overflow = false
   }
+
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fstack-protector-strong",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Os"
+  ]
+ 
+  ldflags = [
+  "-flto",
+  "-Wl,--gc-sections",
+  ]
 }
