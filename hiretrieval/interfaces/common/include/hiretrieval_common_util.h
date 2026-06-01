@@ -34,6 +34,7 @@ static constexpr char GET_CUR_CFG[] = "getCurrentConfig";
 namespace CommonErrorCode {
 static constexpr int32_t ERR_PARAM_CHECK = 401;
 static constexpr int32_t ERR_NOT_INIT = 36000001;
+static constexpr int32_t ERR_MULTI_INSTANCE = 36000002;
 }
 
 class CommonUtil {
