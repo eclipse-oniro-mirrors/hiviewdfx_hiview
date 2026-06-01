@@ -23,12 +23,15 @@ namespace OHOS::HiviewDFX::HiRetrieval {
 namespace {
 constexpr char NOT_INIT_DES[] = "Initialization error. Possibly caused by invoking this function "
     "before invoking init function.";
+constexpr char MULTI_INSTANCE_DES[] = "Multi-instance applications not supported error. "
+    "Possibly caused by invoking this function in a multi-instance application.";
 }
 
 std::pair<int32_t, std::string> CommonUtil::GetErrorDetailByRet(const int32_t retCode)
 {
     static std::unordered_map<int32_t, std::pair<int32_t, std::string>> errMap = {
         {NativeErrorCode::NOT_INIT, {CommonErrorCode::ERR_NOT_INIT, NOT_INIT_DES}},
+        {NativeErrorCode::MULTI_INSTANCE, {CommonErrorCode::ERR_MULTI_INSTANCE, MULTI_INSTANCE_DES}}
     };
     auto ret = errMap.find(retCode);
     if (ret == errMap.end()) {
