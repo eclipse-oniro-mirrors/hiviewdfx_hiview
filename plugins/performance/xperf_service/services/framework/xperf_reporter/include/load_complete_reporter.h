@@ -25,7 +25,6 @@ namespace HiviewDFX {
 class LoadCompleteReporter {
 public:
     static void ReportLoadComplete(const LoadCompleteReport& record);
-    static void ReportSurfaceReceived(const std::string& bundleName);
 private:
     static void ReportToXperfPlugin(std::shared_ptr<SysEvent> sysEvent);
 };

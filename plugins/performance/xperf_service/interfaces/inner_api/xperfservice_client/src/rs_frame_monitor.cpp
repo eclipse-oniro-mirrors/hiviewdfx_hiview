@@ -104,14 +104,16 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
             uint64_t happenTime = it->second.startTime;
             uint32_t intervalExceedCount = it->second.intervalExceedCount;
             uint64_t intervalExceedLatency = it->second.intervalExceedLatency;
+            uint64_t startTime = it->second.startTime;
             ffrtHighPriorityQueue_->submit([uniqueId, duration, avgFps, happenTime, intervalExceedCount,
-                intervalExceedLatency]() {
+                intervalExceedLatency, startTime]() {
                 XPERF_TRACE_SCOPED("RSJankStats::VideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG "
                     "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
                     uniqueId, duration, avgFps, happenTime);
                 std::stringstream s;
                 s << "#UNIQUEID:" << uniqueId << "#DURATION:" << duration << "#AVG_FPS:" << avgFps <<
-                    "#INTERVAL_COUNT:" << intervalExceedCount << "#INTERVAL_LATENCY:" << intervalExceedLatency;
+                    "#INTERVAL_COUNT:" << intervalExceedCount << "#INTERVAL_LATENCY:" << intervalExceedLatency <<
+                    "#START_TIME:" << startTime;
                 XperfServiceClient::GetInstance().NotifyToXperf(
                     static_cast<int32_t>(DomainId::RS),
                     static_cast<int32_t>(RsEventCode::VIDEO_FRAME_STATS),
