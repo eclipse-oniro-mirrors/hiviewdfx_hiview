@@ -92,6 +92,16 @@ inline bool IsSameConfig(HiRetrievalMgr::Config& src, HiRetrievalMgr::Config& de
     return src.userType == dest.userType && src.deviceType == dest.deviceType &&
         src.deviceModel == dest.deviceModel;
 }
+
+bool IsMultiInstanceApp()
+{
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        HILOG_ERROR(LOG_CORE, "get bundle info failed.");
+        return false;
+    }
+    return context->GetCurrentAppMode() == static_cast<int32_t>(AppExecFwk::MultiAppModeType::MULTI_INSTANCE);
+}
 }
 
 HiRetrievalMgr& HiRetrievalMgr::GetInstance()
@@ -107,6 +117,11 @@ HiRetrievalMgr::HiRetrievalMgr()
 
 int32_t HiRetrievalMgr::Init()
 {
+    if (IsMultiInstanceApp()) {
+        HILOG_ERROR(LOG_CORE, "multi instance app is not supported");
+        return HiRetrieval::NativeErrorCode::MULTI_INSTANCE;
+    }
+
     std::lock_guard<std::mutex> lock(mgrMutex_);
     if (isInit_) {
         HILOG_INFO(LOG_CORE, "hiretrieval module has been initialized");

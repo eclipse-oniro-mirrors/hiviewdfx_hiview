@@ -29,6 +29,7 @@ namespace NativeErrorCode {
 static constexpr int32_t SUCC = 0;
 static constexpr int32_t NOT_INIT = -1;
 static constexpr int32_t DLL_FAILED = -1000;
+static constexpr int32_t MULTI_INSTANCE = -1001;
 }
 
 namespace CommonDef {
