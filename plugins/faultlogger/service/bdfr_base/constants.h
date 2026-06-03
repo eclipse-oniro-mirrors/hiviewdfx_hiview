@@ -53,6 +53,7 @@ constexpr const char * const ENABLE_MINIDUMP_LOG = "ENABLE_MINIDUMP_LOG";
 constexpr const char * const ERRORMANAGER_CAPTURE = "ERRORMANAGER_CAPTURE";
 constexpr const char * const EXTEND_PC_LR_PRINTING = "EXTEND_PC_LR_PRINTING";
 constexpr const char * const EXTERNAL_CALLBACK_LOG = "EXTERNAL_LOG";
+constexpr const char * const EXTRA_CRASH_INFO = "EXTRA_CRASH_INFO";
 constexpr const char * const FAULT_MESSAGE = "FAULT_MESSAGE";
 constexpr const char * const FAULT_STACK = "FAULT_STACK";
 constexpr const char * const FAULT_TYPE = "FAULT_TYPE";
