@@ -22,9 +22,10 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
+    appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false)
 {
 }
 
@@ -51,6 +52,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     freezeExtFile_(builder.freezeExtFile_),
     enableMainThreadSample_(builder.enableMainThreadSample_),
     applicationInfo_(builder.applicationInfo_),
+    applicationGCInfo_(builder.applicationGCInfo_),
+    applicationIOInfo_(builder.applicationIOInfo_),
     appRunningUniqueId_(builder.appRunningUniqueId_),
     taskName_(builder.taskName_),
     clusterRaw_(builder.clusterRaw_),
@@ -61,16 +64,18 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     thermalLevel_(builder.thermalLevel_),
     externalLog_(builder.externalLog_),
     isHicollie_(builder.isHicollie_),
-    reportLifecycleToFreeze_(builder.reportLifecycleToFreeze_)
+    reportLifecycleToFreeze_(builder.reportLifecycleToFreeze_),
+    isBlockInGC_(builder.isBlockInGC_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
+    appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false)
 {
 }
 
@@ -208,6 +213,18 @@ WatchPoint::Builder& WatchPoint::Builder::InitApplicationInfo(const std::string&
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitApplicationGCInfo(const std::string& applicationGCInfo)
+{
+    applicationGCInfo_ = applicationGCInfo;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitApplicationIOInfo(const std::string& applicationIOInfo)
+{
+    applicationIOInfo_ = applicationIOInfo;
+    return *this;
+}
+
 WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::string& appRunningUniqueId)
 {
     appRunningUniqueId_ = appRunningUniqueId;
@@ -270,6 +287,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitIsHicollie(bool isHicollie)
 WatchPoint::Builder& WatchPoint::Builder::InitReportLifecycleAsAppfreeze(bool reportLifecycleToFreeze)
 {
     reportLifecycleToFreeze_ = reportLifecycleToFreeze;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitIsBlockInGC(bool isBlockInGC)
+{
+    isBlockInGC_ = isBlockInGC;
     return *this;
 }
 
@@ -383,6 +406,17 @@ std::string WatchPoint::GetApplicationInfo() const
 {
     return applicationInfo_;
 }
+
+std::string WatchPoint::GetApplicationGCInfo() const
+{
+    return applicationGCInfo_;
+}
+
+std::string WatchPoint::GetApplicationIOInfo() const
+{
+    return applicationIOInfo_;
+}
+
 std::string WatchPoint::GetAppRunningUniqueId() const
 {
     return appRunningUniqueId_;
@@ -435,6 +469,11 @@ bool WatchPoint::GetIsHicollie() const
 bool WatchPoint::GetReportLifeCycleAsAppfreeze() const
 {
     return reportLifecycleToFreeze_;
+}
+
+bool WatchPoint::GetIsBlockInGC() const
+{
+    return isBlockInGC_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)

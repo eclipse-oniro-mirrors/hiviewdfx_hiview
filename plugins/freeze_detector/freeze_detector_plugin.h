@@ -46,6 +46,8 @@ struct WatchPointParams {
     std::string hostResourceWarning;
     std::string freezeExtFile;
     std::string applicationInfo;
+    std::string applicationGCInfo;
+    std::string applicationIOInfo;
     std::string taskName;
     std::string clusterRaw;
     std::string timeoutEventId;
@@ -60,6 +62,7 @@ struct WatchPointParams {
     bool enableMainThreadSample;
     bool isHicollie;
     bool reportLifecycleToFreeze;
+    bool isBlockInGC;
 };
 class FreezeDetectorPlugin : public Plugin {
 public:

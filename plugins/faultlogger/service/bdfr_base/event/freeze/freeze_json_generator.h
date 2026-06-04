@@ -63,6 +63,7 @@ public:
         Builder& InitSysTotalMem(uint64_t sysTotalMem);
         Builder& InitVmHeapTotalSize(uint64_t vmHeapTotalSize);
         Builder& InitVmHeapUsedSize(uint64_t vmHeapUsedSize);
+        Builder& InitVmHeapSharedSize(uint64_t vmHeapSharedSize);
         FreezeJsonMemory Build() const;
 
     private:
@@ -74,6 +75,7 @@ public:
         uint64_t sysTotalMem_ = 0;
         uint64_t vmHeapTotalSize_ = 0;
         uint64_t vmHeapUsedSize_ = 0;
+        uint64_t vmHeapSharedSize_ = 0;
         friend class FreezeJsonMemory;
     };
 
@@ -90,6 +92,7 @@ private:
     static constexpr const char* const jsonMemorySysTotalMem = "sys_total_mem";
     static constexpr const char* const jsonMemoryVmHeapTotalSize = "vm_heap_total_size";
     static constexpr const char* const jsonMemoryVmHeapUsedSize = "vm_heap_used_size";
+    static constexpr const char* const jsonMemoryVmHeapSharedSize = "vm_heap_shared_size";
     uint64_t rss_;
     uint64_t vss_;
     uint64_t pss_;
@@ -98,6 +101,7 @@ private:
     uint64_t sysTotalMem_;
     uint64_t vmHeapTotalSize_;
     uint64_t vmHeapUsedSize_;
+    uint64_t vmHeapSharedSize_;
 };
 
 class FreezeJsonParams {
@@ -131,6 +135,8 @@ public:
         Builder& InitMemory(const std::string& memory);
         Builder& InitThermalLevel(const std::string& thermalLevel);
         Builder& InitExternalCallbackLog(const std::string& externalCallbackLog);
+        Builder& InitApplicationGCInfo(const std::string& applicationGCInfo);
+        Builder& InitApplicationIOInfo(const std::string& applicationIOInfo);
         FreezeJsonParams Build() const;
 
     private:
@@ -159,6 +165,8 @@ public:
         std::string memory_ = "{}";
         std::string thermalLevel_ = "";
         std::string externalCallbackLog_ = "";
+        std::string applicationGCInfo_ = "";
+        std::string applicationIOInfo_ = "";
         friend class FreezeJsonParams;
     };
 
@@ -192,6 +200,8 @@ private:
     static constexpr const char* const jsonParamsMemory = "memory";
     static constexpr const char* const jsonParamsThermalLevel = "thermal_Level";
     static constexpr const char* const jsonParamsExternalCallbackLog = "external_callback_log";
+    static constexpr const char* const jsonParamsApplicationGCInfo = "application_gc_info";
+    static constexpr const char* const jsonParamsApplicationIOInfo = "application_io_info";
 
     unsigned long long time_;
     std::string uuid_;
@@ -218,6 +228,8 @@ private:
     std::string memory_;
     std::string thermalLevel_;
     std::string externalCallbackLog_;
+    std::string applicationGCInfo_ = "";
+    std::string applicationIOInfo_ = "";
 };
 } // namespace HiviewDFX
 } // namespace OHOS
