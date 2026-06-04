@@ -79,6 +79,7 @@ ohos_unittest("LoglibraryAgentTest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "icu:shared_icuuc",
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",
