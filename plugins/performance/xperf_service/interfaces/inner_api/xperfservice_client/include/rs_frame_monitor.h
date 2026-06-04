@@ -29,16 +29,16 @@ namespace OHOS {
 namespace HiviewDFX {
 
 struct VideoParam {
-    std::string surfaceName;
-    uint32_t fps;
-    uint64_t reportTime;
-    uint64_t startTime;
-    uint64_t decodeCount;
-    uint64_t intervalExceedLatency = 0;
-    uint32_t intervalExceedCount = 0;
+    int64_t reportTime = 0;
+    int64_t startTime = 0;
+    int64_t decodeCount = 0;
+    int64_t intervalExceedLatency = 0;
+    int64_t previousFrameTime = 0;
+    int64_t previousNotifyTime = 0;
+    int32_t intervalExceedCount = 0;
     uint32_t previousSequence = 0;
-    uint64_t previousFrameTime = 0;
-    uint64_t previousNotifyTime = 0;
+    uint32_t fps = 0;
+    std::string surfaceName;
 };
 
 struct FirstFrameParam {
@@ -66,25 +66,18 @@ private:
     ~RsFrameMonitor() = default;
 
     void VideoJankReport();
-    void ReportSecondFrame(const uint64_t uniqueId, const uint64_t frameTime, const uint64_t now);
-    void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, uint64_t now);
-    void ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, uint64_t now);
+    void ReportSecondFrame(const uint64_t uniqueId, const int64_t frameTime, const int64_t now);
+    void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, int64_t now);
+    void ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, int64_t now);
     void PopFirstFrameMapByLru();
 
-    static constexpr uint64_t VALUE_INITIAL = 0;
-    static constexpr uint64_t DELAY_TIME_MS = 1000;
-    static constexpr uint64_t ACVIDEO_EXPECTION_QUIT_TIME_MS = 6000;
-    static constexpr uint64_t ACVIDEO_NOTIFY_TIME_MS = 1000;
-    static constexpr uint64_t ACVIDEO_JANK_TIME_MS = 300;
-    static constexpr uint64_t ACVIDEO_RECORD_TIME_MS = 300;
-    static constexpr int ACVIDEO_VECTOR_MAX_LENGTH = 8;
     std::atomic<bool> videoCollectOpen_ = false;
     std::unordered_map<uint64_t, VideoParam> videoMap_;
     std::unordered_map<uint64_t, FirstFrameParam> firstFrameMap_;
     std::mutex mutex_;
     std::shared_ptr<ffrt::queue> ffrtHighPriorityQueue_;
-    uint64_t recentUniqueId_ = VALUE_INITIAL;
-    uint64_t videoReportNum_ = VALUE_INITIAL;
+    uint64_t recentUniqueId_ = 0;
+    uint64_t videoReportNum_ = 0;
 };
 
 } // namespace HiviewDFX

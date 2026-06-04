@@ -24,6 +24,15 @@
 #include "xperf_service_client.h"
 #include "xperf_service_log.h"
 
+namespace {
+constexpr int64_t DELAY_TIME_MS = 1000;
+constexpr int64_t ACVIDEO_EXPECTION_QUIT_TIME_MS = 6000;
+constexpr int64_t ACVIDEO_NOTIFY_TIME_MS = 1000;
+constexpr int64_t ACVIDEO_JANK_TIME_MS = 300;
+constexpr int64_t ACVIDEO_RECORD_TIME_MS = 300;
+constexpr size_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
+}
+
 namespace OHOS {
 namespace HiviewDFX {
 
@@ -64,8 +73,8 @@ void RsFrameMonitor::VideoStart(const std::vector<uint64_t>& uniqueIdList,
         VideoParam& info = videoMap_[uniqueId];
         info.surfaceName = surfaceNameList[i];
         info.fps = fps;
-        info.reportTime = reportTime;
-        info.startTime = static_cast<uint64_t>(GetCurrentSystimeMs());
+        info.reportTime = static_cast<int64_t>(reportTime);
+        info.startTime = GetCurrentSystimeMs();
         info.decodeCount = 0;
         info.intervalExceedLatency = 0;
         info.intervalExceedCount = 0;
@@ -98,18 +107,17 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
             LOGE("RSJankStats::VideoStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
             continue;
         }
-        uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
+        int64_t duration = GetCurrentSystimeMs() - it->second.startTime;
         if (duration > ACVIDEO_NOTIFY_TIME_MS) {
-            uint64_t avgFps = (duration > 0) ? (it->second.decodeCount * DELAY_TIME_MS / duration) : 0;
-            uint64_t happenTime = it->second.startTime;
-            uint32_t intervalExceedCount = it->second.intervalExceedCount;
-            uint64_t intervalExceedLatency = it->second.intervalExceedLatency;
-            uint64_t startTime = it->second.startTime;
-            ffrtHighPriorityQueue_->submit([uniqueId, duration, avgFps, happenTime, intervalExceedCount,
+            int64_t avgFps = (duration > 0) ? (it->second.decodeCount * DELAY_TIME_MS / duration) : 0;
+            int32_t intervalExceedCount = it->second.intervalExceedCount;
+            int64_t intervalExceedLatency = it->second.intervalExceedLatency;
+            int64_t startTime = it->second.startTime;
+            ffrtHighPriorityQueue_->submit([uniqueId, duration, avgFps, intervalExceedCount,
                 intervalExceedLatency, startTime]() {
                 XPERF_TRACE_SCOPED("RSJankStats::VideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG "
-                    "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
-                    uniqueId, duration, avgFps, happenTime);
+                    "uniqueId: %" PRIu64 ", duration: %" PRId64 ", avgFps: %" PRId64 ", startTime: %" PRId64 "",
+                    uniqueId, duration, avgFps, startTime);
                 std::stringstream s;
                 s << "#UNIQUEID:" << uniqueId << "#DURATION:" << duration << "#AVG_FPS:" << avgFps <<
                     "#INTERVAL_COUNT:" << intervalExceedCount << "#INTERVAL_LATENCY:" << intervalExceedLatency <<
@@ -156,13 +164,13 @@ void RsFrameMonitor::VideoJankReport()
     if (it == videoMap_.end()) {
         return;
     }
-    uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
-    uint64_t frameTime = now - it->second.previousFrameTime;
-    uint64_t notifyInterval = now - it->second.previousNotifyTime;
+    int64_t now = GetCurrentSystimeMs();
+    int64_t frameTime = now - it->second.previousFrameTime;
+    int64_t notifyInterval = now - it->second.previousNotifyTime;
     const std::string surfaceName = it->second.surfaceName;
     if (videoReportNum_ > 0 || notifyInterval < ACVIDEO_NOTIFY_TIME_MS || frameTime < ACVIDEO_JANK_TIME_MS) {
         LOGD("RSJankStats::VideoJankReport notification conditions not met."
-                "uniqueId: %{public}" PRIu64 ", frameTime: %{public}" PRIu64 ", notifyInterval: %{public}" PRIu64
+                "uniqueId: %{public}" PRIu64 ", frameTime: %{public}" PRId64 ", notifyInterval: %{public}" PRId64
                 ", videoReportNum_: %{public}" PRIu64 "",
             recentUniqueId_, frameTime, notifyInterval, videoReportNum_);
         return;
@@ -172,7 +180,7 @@ void RsFrameMonitor::VideoJankReport()
 
     ffrtHighPriorityQueue_->submit([frameTime, now, surfaceName, uniqueId = recentUniqueId_]() {
         XPERF_TRACE_SCOPED("RSJankStats::VideoJankReport RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
-            "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "",
+            "uniqueId: %" PRIu64 ", frameTime: %" PRId64 ", now: %" PRId64 "",
             uniqueId, frameTime, now);
         std::stringstream s;
         s << "#UNIQUEID:" << uniqueId << "#FAULT_ID:" << static_cast<int32_t>(DomainId::RS) <<
@@ -189,10 +197,9 @@ void RsFrameMonitor::VideoJankReport()
 
 void RsFrameMonitor::VideoCollectFinish()
 {
-    LOGD("VideoCollectFinish");
     VideoJankReport();
     std::lock_guard<std::mutex> lock(mutex_);
-    uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
+    int64_t now = GetCurrentSystimeMs();
     std::vector<uint64_t> finishedVideos;
     for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end(); it++) {
         if (now - it->second.frameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
@@ -219,14 +226,14 @@ void RsFrameMonitor::VideoCollectFinish()
     }
 }
 
-void RsFrameMonitor::UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, uint64_t now)
+void RsFrameMonitor::UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, int64_t now)
 {
     videoStats.decodeCount++;
     videoStats.previousSequence = sequence;
     videoStats.previousFrameTime = now;
 }
 
-void RsFrameMonitor::ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, uint64_t now)
+void RsFrameMonitor::ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, int64_t now)
 {
     auto itF = firstFrameMap_.find(uniqueId);
     if (itF == firstFrameMap_.end()) {
@@ -256,7 +263,7 @@ void RsFrameMonitor::PopFirstFrameMapByLru()
 void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequence)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
+    int64_t now = GetCurrentSystimeMs();
     ProcessFrameCollect(uniqueId, sequence, now);
     if (!videoCollectOpen_.load()) {
         return;
@@ -273,10 +280,10 @@ void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequen
     if (videoStats.previousSequence == 0) {
         UpdateVideoStats(videoStats, sequence, now);
     } else if (videoStats.previousSequence != sequence) {
-        uint64_t frameTime = now - videoStats.previousFrameTime;
+        int64_t frameTime = now - videoStats.previousFrameTime;
         if (now - videoStats.previousNotifyTime < ACVIDEO_NOTIFY_TIME_MS) {
             LOGD("RSJankStats::VideoCollect previousNotifyTime not exceeding threshold."
-                "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 "", uniqueId, frameTime);
+                "uniqueId: %" PRIu64 ", frameTime: %" PRId64 "", uniqueId, frameTime);
             UpdateVideoStats(videoStats, sequence, now);
             return;
         }
@@ -289,7 +296,7 @@ void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequen
             const std::string surfaceName = videoStats.surfaceName;
             ffrtHighPriorityQueue_->submit([uniqueId, frameTime, now, surfaceName]() {
                 XPERF_TRACE_SCOPED("RSJankStats::VideoCollect RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
-                    "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "", uniqueId, frameTime, now);
+                    "uniqueId: %" PRIu64 ", frameTime: %" PRId64 ", now: %" PRId64 "", uniqueId, frameTime, now);
                 std::stringstream s;
                 s << "#UNIQUEID:" << uniqueId << "#FAULT_ID:" << static_cast<int32_t>(DomainId::RS) <<
                     "#FAULT_CODE:" << static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME) <<
@@ -306,11 +313,11 @@ void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequen
     }
 }
 
-void RsFrameMonitor::ReportSecondFrame(const uint64_t uniqueId, const uint64_t frameTime, const uint64_t now)
+void RsFrameMonitor::ReportSecondFrame(const uint64_t uniqueId, const int64_t frameTime, const int64_t now)
 {
     ffrtHighPriorityQueue_->submit([uniqueId, frameTime, now]() {
         XPERF_TRACE_SCOPED("RSJankStats::ReportSecondFrame RS_NOTIFY_XPERF_VIDEO_SECOND_FRAME_MSG "
-            "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "", uniqueId, frameTime, now);
+            "uniqueId: %" PRIu64 ", frameTime: %" PRId64 ", now: %" PRId64 "", uniqueId, frameTime, now);
         std::stringstream s;
         s << "#UNIQUEID:" << uniqueId << "#MAX_FRAME_TIME:" << frameTime << "#HAPPEN_TIME:" << now;
 
