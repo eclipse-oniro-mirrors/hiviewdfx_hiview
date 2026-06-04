@@ -340,6 +340,7 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     AddValueToJsonString("reason", event.reason, jsonStr);
     AddValueToJsonString("foreground", event.isForeground, jsonStr);
     AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
+    AddValueToJsonString("process_name", event.processName, jsonStr);
     AddValueToJsonString("bundle_version", event.bundleVersion, jsonStr, true);
 
     jsonStr << std::endl;
