@@ -43,7 +43,8 @@ OhosXperfEvent* ParseRsVideoFrameStatsMsg(const std::string& msg)
     ExtractStrToInt(msg, event->duration, TAG_DURATION, TAG_AVG_FPS, 0);
     ExtractStrToInt16(msg, event->avgFPS, TAG_AVG_FPS, TAG_INTERVAL_COUNT, 0);
     ExtractStrToInt(msg, event->intervalExceedCount, TAG_INTERVAL_COUNT, TAG_INTERVAL_LATENCY, 0);
-    ExtractStrToLong(msg, event->intervalExceedLatency, TAG_INTERVAL_LATENCY, TAG_END, 0);
+    ExtractStrToLong(msg, event->intervalExceedLatency, TAG_INTERVAL_LATENCY, TAG_START_TIME, 0);
+    ExtractStrToLong(msg, event->intervalExceedLatency, TAG_START_TIME, TAG_END, 0);
     return event;
 }
 

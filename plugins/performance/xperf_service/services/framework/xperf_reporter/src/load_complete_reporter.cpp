@@ -38,16 +38,6 @@ void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
     ReportToXperfPlugin(sysEvent);
 }
 
-void LoadCompleteReporter::ReportSurfaceReceived(const std::string& bundleName)
-{
-    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", EVENT_SURFACE_RECEIVED,
-        OHOS::HiviewDFX::SysEventCreator::BEHAVIOR);
-    sysEventCreator.SetKeyValue("BUNDLE_NAME", bundleName);
-
-    auto sysEvent = std::make_shared<SysEvent>(EVENT_SURFACE_RECEIVED, nullptr, sysEventCreator);
-    ReportToXperfPlugin(sysEvent);
-}
-
 void LoadCompleteReporter::ReportToXperfPlugin(std::shared_ptr<SysEvent> sysEvent)
 {
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);

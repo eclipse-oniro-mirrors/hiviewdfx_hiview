@@ -43,6 +43,7 @@ const std::string TAG_TYPE = "#TYPE:";
 const std::string TAG_TIME = "#TIME:";
 const std::string TAG_LAST_COMPONENT = "#LAST_COMPONENT:";
 const std::string TAG_IS_LAUNCH = "#IS_LAUNCH:";
+const std::string TAG_START_TIME = "#START_TIME:";
 const std::string TAG_END = "";
 
 bool ExtractSubTag(const std::string& msg, std::string &value, const std::string& preTag,

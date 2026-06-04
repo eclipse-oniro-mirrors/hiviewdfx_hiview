@@ -14,8 +14,6 @@
  */
  
 #include "passthrough_monitor.h"
- 
-#include <sstream>
 
 #include "ffrt.h"
 #include "load_complete_reporter.h"
@@ -75,6 +73,7 @@ void PassthroughMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
 
 std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
 {
+    std::lock_guard<std::mutex> lock(sourceMutex_);
     for (auto it = bundleNameToUniqueId_.begin(); it != bundleNameToUniqueId_.end(); it++) {
         if (it->second == uniqueId) {
             return it->first;
@@ -85,15 +84,10 @@ std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
 
 void PassthroughMonitor::OnSurfaceReceived(const std::string& bundleName, int64_t uniqueId)
 {
+    std::lock_guard<std::mutex> lock(sourceMutex_);
     auto it = bundleNameToUniqueId_.find(bundleName);
     if (it != bundleNameToUniqueId_.end()) {
         it->second = uniqueId;
-        int64_t now = GetCurrentSystimeMs();
-        if (now - lastReportSurfaceTime_ > REPORT_GAP_TIME) {
-            lastReportSurfaceTime_ = now;
-            ffrt::submit([bundleName]() { LoadCompleteReporter::ReportSurfaceReceived(bundleName); },
-                ffrt::task_attr().qos(ffrt::qos_user_initiated));
-        }
     }
 }
  
