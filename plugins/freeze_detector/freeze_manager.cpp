@@ -44,6 +44,7 @@ namespace {
     constexpr const char* PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
     constexpr const char* PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
     constexpr const char* TRACE_GET_ERROR_MESSAGE = "Trace not needed, already dumping, or not found";
+    constexpr const char* APPFREEZEWARNING = "appfreezewarning";
     constexpr size_t TRACE_NAME_MAP_CAPACITY = 6;
 }
 
@@ -198,15 +199,21 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
 }
 
 std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
-    const std::string& stackFile, const std::string& cpuFile) const
+    const std::string& stackFile, const std::string& cpuFile, const std::string& type) const
 {
     int userId = uid / VALUE_MOD;
     std::string stackPath = APPFREEZE_LOG_PREFIX + std::to_string(userId) + "/log/" + bundleName +
         APPFREEZE_LOG_SUFFIX + stackFile;
     std::string stackInfo = GetAppFreezeFile(stackPath, true);
     std::string cpuInfo = GetAppFreezeFile(cpuFile);
-    if (stackInfo.empty() && cpuInfo.empty()) {
-        HIVIEW_LOGE("freeze sample cpu and stack content is empty.");
+
+    if (stackInfo.empty()) {
+        HIVIEW_LOGE("freeze sample stack content is empty.");
+        return "";
+    }
+
+    if (cpuInfo.empty() && type != APPFREEZEWARNING) {
+        HIVIEW_LOGE("freeze sample cpu content is empty.");
         return "";
     }
 

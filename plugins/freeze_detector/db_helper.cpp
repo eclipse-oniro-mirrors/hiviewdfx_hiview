@@ -39,7 +39,7 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
         long pid = record->GetEventIntValue(FreezeCommon::EVENT_PID);
         pid = pid ? pid : record->GetPid();
         long tid = record->GetEventIntValue(FreezeCommon::EVENT_TID);
-        if (result.GetSamePackage() == "true" && (watchParams.packageName != packageName || watchParams.pid != pid ||
+        if (result.GetSamePackage() == "true" && (watchParams.pid != pid ||
             (watchParams.tid > 0 && tid > 0 && watchParams.tid != tid))) {
             HIVIEW_LOGE("failed to match query result, watchPoint = [%{public}s, %{public}ld, %{public}ld], "
                 "record = [%{public}s, %{public}ld, %{public}ld]",

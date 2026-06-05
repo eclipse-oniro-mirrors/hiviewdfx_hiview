@@ -214,6 +214,10 @@ HWTEST(FaultLogManagerTest, GetFaultLogFileFdTest001, testing::ext::TestSize.Lev
     faultLogFileFd = faultLogManager.GetFaultLogFileFd(FaultLogType::APPFREEZE_WARNING, fileName);
     ASSERT_TRUE(faultLogFileFd > 0);
     close(faultLogFileFd);
+
+    faultLogFileFd = faultLogManager.GetFaultLogFileFd(FaultLogType::APPFREEZE_WARNING, fileName, true);
+    ASSERT_TRUE(faultLogFileFd > 0);
+    close(faultLogFileFd);
 }
 
 /**
