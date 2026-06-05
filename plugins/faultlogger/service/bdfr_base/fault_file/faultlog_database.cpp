@@ -285,6 +285,22 @@ int32_t FaultLogDatabase::UpdateFGParam(FaultLogInfo& info)
     return fgNum;
 }
 
+int64_t StrToInt64(const string& str)
+{
+    if (str.empty() || (!isdigit(str.front()) && (str.front() != '-'))) {
+        return -1;
+    }
+    char* end = nullptr;
+    const int base = 10;
+    errno = 0;
+    auto addr = str.c_str();
+    auto result = strtoll(addr, &end, base);
+    if (end == addr || errno == ERANGE) {
+        return -1;
+    }
+    return static_cast<int64_t>(result);
+}
+
 void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
 {
     std::string eventName = GetFaultNameByType(info.faultLogType, false);
@@ -325,6 +341,8 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("FREEZE_INFO_PATH", HISYSEVENT_STRING, s,
             info.sectionMap[FaultKey::FREEZE_INFO_PATH].data(), 0),
         EVENT_PARAM_CTOR("LOG_SOURCE", HISYSEVENT_STRING, s, info.sectionMap["LOG_SOURCE"].data(), 0),
+        EVENT_PARAM_CTOR("LIFETIME", HISYSEVENT_INT64, i64,
+            StrToInt64(info.sectionMap[FaultKey::PROCESS_LIFETIME]), 0),
     };
     int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
         params, sizeof(params) / sizeof(HiSysEventParam));
