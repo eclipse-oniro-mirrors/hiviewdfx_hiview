@@ -16,6 +16,7 @@
 #include "vendor.h"
 
 #include <regex>
+#include <algorithm>
 
 #include "faultlogger_client.h"
 #include "file_util.h"
@@ -64,7 +65,7 @@ namespace {
     constexpr const char* HOST_RESOURCE_WARNING_INFO =
         "Current fault may be caused by the system's low memory or thermal throttling, "
         "you may ignore it and analysis other faults.";
-    constexpr const char* FD_LEAK_INFO =
+    constexpr const char* LEAK_INFO =
         "Current process has encounted fd leak which may be led to appfreeze, "
         "you may refer to resource overlimit event from hiAppEvent for further analysis.";
     constexpr const char* GC_INFO =
@@ -172,42 +173,46 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     return logPath;
 }
 
-bool Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
+std::string Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
 {
     if (dBHelper_ == nullptr || freezeCommon_ == nullptr) {
-        return false;
+        return "";
     }
     std::map<std::string, std::vector<std::string>> eventMap;
-    eventMap["RELIABILITY"] = {"FD_LEAK"};
+    eventMap["RELIABILITY"] = {"FD_LEAK", "MEMORY_LEAK", "THREAD_LEAK"};
 
     long pid = watchPoint.GetPid();
     long uid = watchPoint.GetUid();
     std::string processName = watchPoint.GetProcessName().empty() ?
         watchPoint.GetPackageName() : watchPoint.GetProcessName();
-    uint64_t endTime = watchPoint.GetTimestamp();
-    uint64_t startTime = (endTime > QUERY_KEY_PROCESS_EVENT_INTERVAL) ?
-        endTime - QUERY_KEY_PROCESS_EVENT_INTERVAL : 0;
     std::string recordProcessName;
-    long recordPid = 0;
-    long recordUid = 0;
+    uint64_t nearestTime = 0;
+    std::string nearestEventName = "";
+
     for (const auto &pair : eventMap) {
         std::vector<std::string> eventNames = pair.second;
-        std::vector<SysEvent> records = dBHelper_->SelectRecords(startTime, endTime, pair.first, eventNames);
-        for (auto& record : records) {
-            recordPid = record.GetEventIntValue(FreezeCommon::EVENT_PID);
-            recordUid = record.GetEventIntValue(FreezeCommon::EVENT_UID);
-            recordProcessName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
-            recordProcessName = recordProcessName.empty() ?
-                record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : recordProcessName;
-            if (recordPid == pid && recordUid == uid && recordProcessName == processName) {
-                return true;
+        std::vector<SysEvent> records = dBHelper_->SelectRecordsByPidUid(pid, uid, pair.first, eventNames);
+        if (records.empty()) {
+            continue;
+        }
+        auto& record = records[0];
+        recordProcessName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+        recordProcessName = recordProcessName.empty() ?
+            record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : recordProcessName;
+        if (recordProcessName == processName) {
+            std::string eventName = record.GetEventName();
+            HIVIEW_LOGI("record event, pid:%{public}ld, uid:%{public}ld, processName:%{public}s "
+                "recordProcessName:%{public}s, eventName:%{public}s, happenTime:%{public}" PRIu64,
+                pid, uid, processName.c_str(), recordProcessName.c_str(), eventName.c_str(), record.happenTime_);
+            if (record.happenTime_ > nearestTime) {
+                nearestTime = record.happenTime_;
+                nearestEventName = eventName;
             }
         }
     }
-    HIVIEW_LOGI("failed to record event, pid:%{public}ld, uid:%{public}ld, processName:%{public}s "
-        " recordPid:%{public}ld, recordUid:%{public}ld, recordProcessName:%{public}s ",
-        pid, uid, processName.c_str(), recordPid, recordUid, recordProcessName.c_str());
-    return false;
+    HIVIEW_LOGD("leak event pid=%{public}ld, uid=%{public}ld, time=%{public}" PRIu64 " eventName=%{public}s.",
+        pid, uid, nearestTime, nearestEventName.c_str());
+    return nearestEventName;
 }
 
 void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, const WatchPoint& watchPoint) const
@@ -225,14 +230,19 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     oss << FreezeCommon::EVENT_PROCESS_NAME << COLON << watchPoint.GetProcessName() << std::endl;
     bool isNote = watchPoint.GetHostResourceWarning() == "TRUE";
     if (isNote) {
-        oss << NOTE_INFO <<  HOST_RESOURCE_WARNING_INFO << std::endl;
+        oss << NOTE_INFO <<  HOST_RESOURCE_WARNING_INFO;
     }
-    if (CheckNoteInfo(watchPoint)) {
+    std::string leakEvent = CheckNoteInfo(watchPoint);
+    if (!leakEvent.empty()) {
         if (!isNote) {
             oss << NOTE_INFO;
             isNote = true;
         }
-        oss << FD_LEAK_INFO;
+        std::transform(leakEvent.begin(), leakEvent.end(), leakEvent.begin(), ::tolower);
+        leakEvent = StringUtil::ReplaceStr(leakEvent, "_", " ");
+        std::string leakInfo = LEAK_INFO;
+        leakInfo = StringUtil::ReplaceStr(leakInfo, "leak", leakEvent);
+        oss << leakInfo;
     }
     if (watchPoint.GetIsBlockInGC()) {
         if (!isNote) {
