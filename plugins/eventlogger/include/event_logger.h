@@ -135,6 +135,11 @@ private:
     void SubmitEventlogTask(const std::string& cmd, std::shared_ptr<EventLogTask>& logTask);
     void InitQueue();
     std::string GetBlockedTime(std::shared_ptr<SysEvent> event);
+    bool GetKeyValueByStr(const std::string& tokens, std::string& key, std::string& value,
+        bool isRemoveSpace = true, std::string flag = FreezeCommon::COLON_SEPARATOR);
+    void WriteHeapSize(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream);
+    void WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream);
+    void WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

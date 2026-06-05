@@ -50,15 +50,22 @@ HWTEST(FreezeJsonGeneratorTest, FreezeJsonGeneratorTest_002, testing::ext::TestS
     unsigned long long sysFreeMem = 0; // test value
     unsigned long long sysAvailMem = 0; // test value
     unsigned long long sysTotalMem = 0; // test value
+    unsigned long long vmHeapTotalSize = 512; // test value
+    unsigned long long vmHeapUsedSize = 256; // test value
+    unsigned long long vmHeapSharedSize = 128; // test value
     FreezeJsonMemory freezeJsonMemory = FreezeJsonMemory::Builder()
         .InitRss(rss)
         .InitVss(vss)
         .InitSysFreeMem(sysFreeMem)
         .InitSysAvailMem(sysAvailMem)
         .InitSysTotalMem(sysTotalMem)
+        .InitVmHeapTotalSize(vmHeapTotalSize)
+        .InitVmHeapUsedSize(vmHeapUsedSize)
+        .InitVmHeapSharedSize(vmHeapSharedSize)
         .Build();
     std::string result = freezeJsonMemory.JsonStr();
     EXPECT_TRUE(!result.empty());
+    EXPECT_NE(result.find("vm_heap_shared_size"), std::string::npos);
 }
 
 /**
@@ -114,6 +121,29 @@ HWTEST(FreezeJsonGeneratorTest, FreezeJsonGeneratorTest_003, testing::ext::TestS
         .Build();
     std::string result = freezeJsonParams.JsonStr();
     EXPECT_TRUE(!result.empty());
+}
+
+/**
+ * @tc.name: FreezeJsonGeneratorTest_004
+ * @tc.desc: test FreezeJsonParams with applicationGCInfo and applicationIOInfo
+ * @tc.type: FUNC
+ */
+HWTEST(FreezeJsonGeneratorTest, FreezeJsonGeneratorTest_004, testing::ext::TestSize.Level3)
+{
+    unsigned long long timestamp = 1234567890;
+    std::string applicationGCInfo = "{\"count\":100,\"maxPause\":50.5}";
+    std::string applicationIOInfo = "{\"rchar\":1024,\"wchar\":512}";
+    FreezeJsonParams freezeJsonParams = FreezeJsonParams::Builder()
+        .InitTime(timestamp)
+        .InitFreezeType("AppFreeze")
+        .InitForeground(true)
+        .InitApplicationGCInfo(applicationGCInfo)
+        .InitApplicationIOInfo(applicationIOInfo)
+        .Build();
+    std::string result = freezeJsonParams.JsonStr();
+    EXPECT_TRUE(!result.empty());
+    EXPECT_NE(result.find("application_gc_info"), std::string::npos);
+    EXPECT_NE(result.find("application_io_info"), std::string::npos);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

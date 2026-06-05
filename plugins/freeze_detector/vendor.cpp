@@ -67,6 +67,8 @@ namespace {
     constexpr const char* FD_LEAK_INFO =
         "Current process has encounted fd leak which may be led to appfreeze, "
         "you may refer to resource overlimit event from hiAppEvent for further analysis.";
+    constexpr const char* GC_INFO =
+        "Main thread is blocked by GC, which may be caused by high memory usage or system resource overload.";
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
     constexpr const char* BACKGROUND_VALUE = "No";
@@ -148,6 +150,8 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoi
         watchPoint.GetEnabelMainThreadSample() ? "1" : "0";
     info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
+    FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationGCInfo(), info.sectionMaps);
+    FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationIOInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
     info.sectionMaps[FreezeCommon::APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
@@ -226,9 +230,18 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     if (CheckNoteInfo(watchPoint)) {
         if (!isNote) {
             oss << NOTE_INFO;
+            isNote = true;
         }
-        oss << FD_LEAK_INFO << std::endl;
+        oss << FD_LEAK_INFO;
     }
+    if (watchPoint.GetIsBlockInGC()) {
+        if (!isNote) {
+            oss << NOTE_INFO;
+            isNote = true;
+        }
+        oss << GC_INFO;
+    }
+    oss << std::endl;
 }
 
 std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::string& halfFreezeExtFile) const

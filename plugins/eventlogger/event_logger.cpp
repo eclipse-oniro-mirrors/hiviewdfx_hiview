@@ -106,6 +106,10 @@ namespace {
     constexpr float FLOAT_EPSILON = 0.01f;
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
+    constexpr uint64_t HEAP_INFO_SIZE = 3;
+    constexpr int HEAP_TOTAL_INDEX = 0;
+    constexpr int HEAP_USED_INDEX = 1;
+    constexpr int HEAP_SHARED_INDEX = 2;
 }
 
 REGISTER(EventLogger);
@@ -721,9 +725,118 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
     if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         headerStream << "IS_FROZEN = " << event->GetEventIntValue("IS_FROZEN") << std::endl;
     }
+    WriteHeapSize(event, headerStream);
+    WriteGCStr(event, headerStream);
+    WriteIOStr(event, headerStream);
 
     FileUtil::SaveStringToFd(fd, headerStream.str());
     return true;
+}
+
+bool EventLogger::GetKeyValueByStr(const std::string& tokens, std::string& key, std::string& value,
+    bool isRemoveSpace, std::string flag)
+{
+    size_t colonPos = tokens.find(flag);
+    if (colonPos == std::string::npos) {
+        return false;
+    }
+    key = tokens.substr(0, colonPos);
+    value = tokens.substr(colonPos + 1);
+    if (key.empty() || value.empty()) {
+        return false;
+    }
+    if (isRemoveSpace) {
+        value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+    }
+    return true;
+}
+
+void EventLogger::WriteHeapSize(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
+{
+    std::string heapInfo = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO);
+    if (heapInfo.empty()) {
+        HIVIEW_LOGE("heapInfo is empty.");
+        return;
+    }
+    std::vector<std::string> heapInfoList;
+    StringUtil::SplitStr(heapInfo, FreezeCommon::COMMA_SEPARATOR, heapInfoList);
+    std::string heapTotalSize;
+    std::string heapUsedSize;
+    std::string heapSharedSize;
+    if (heapInfoList.size() < HEAP_INFO_SIZE) {
+        HIVIEW_LOGE("heapInfo size: %{public}zu.", heapInfoList.size());
+        return;
+    }
+    std::string key;
+    if (!GetKeyValueByStr(heapInfoList[HEAP_TOTAL_INDEX], key, heapTotalSize) ||
+        !GetKeyValueByStr(heapInfoList[HEAP_USED_INDEX], key, heapUsedSize) ||
+        !GetKeyValueByStr(heapInfoList[HEAP_SHARED_INDEX], key, heapSharedSize)) {
+        return;
+    }
+    headerStream << FreezeCommon::MAIN_HEAP << FreezeCommon::USED_HEAP << heapUsedSize <<
+        FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
+    headerStream << FreezeCommon::SHARED_HEAP << FreezeCommon::USED_HEAP << heapSharedSize <<
+        FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
+}
+
+void EventLogger::WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
+{
+    std::string gcStr = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_GC_INFO);
+    if (gcStr.empty()) {
+        HIVIEW_LOGE("gcStr is empty.");
+        return;
+    }
+    std::istringstream iss(gcStr);
+    std::string line;
+    std::vector<std::pair<std::string, std::string>> kvList;
+
+    std::string key;
+    std::string value;
+    bool first = true;
+    while (std::getline(iss, line, ',')) {
+        if (!GetKeyValueByStr(line, key, value, false)) {
+            continue;
+        }
+        kvList.push_back({key, value});
+    }
+    std::ostringstream oss;
+    for (const auto &item : kvList) {
+        key = item.first;
+        value = item.second;
+        if (!first) {
+            oss << FreezeCommon::COMMA_SEPARATOR << FreezeCommon::SPACE_SEPARATOR;
+        } else {
+            first = false;
+        }
+        if (key == FreezeCommon::GC_LAST_START_TIME || key == FreezeCommon::GC_LAST_END_TIME) {
+            uint64_t timestamp = StringUtil::StringToUl(value);
+            std::string formatTime = FormatTimeStamp(timestamp);
+            oss << key << FreezeCommon::SPACE_SEPARATOR << formatTime;
+        } else {
+            oss << key << FreezeCommon::SPACE_SEPARATOR << value;
+            if (key == FreezeCommon::GC_MAX_PAUSE || key == FreezeCommon::GC_MIN_PAUSE ||
+                key == FreezeCommon::GC_AVERAGE_PAUSE) {
+                oss << FreezeCommon::GC_PAUSE_UNIT;
+            }
+        }
+    }
+    if (!oss.str().empty()) {
+        headerStream<< FreezeCommon::GC_STATUS << oss.str() << std::endl;
+    }
+}
+
+void EventLogger::WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
+{
+    std::string ioStr = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO);
+    if (ioStr.empty()) {
+        HIVIEW_LOGE("ioStr is empty.");
+        return;
+    }
+
+    headerStream<< FreezeCommon::IO_STATUS;
+    ioStr = StringUtil::ReplaceStr(ioStr, FreezeCommon::COLON_SEPARATOR, FreezeCommon::SPACE_SEPARATOR);
+    ioStr = StringUtil::ReplaceStr(ioStr, FreezeCommon::COMMA_SEPARATOR, FreezeCommon::FORMAT_COMMA_SEPARATOR);
+    headerStream<< ioStr << std::endl;
 }
 
 void EventLogger::WriteCallStack(std::shared_ptr<SysEvent> event, int fd)

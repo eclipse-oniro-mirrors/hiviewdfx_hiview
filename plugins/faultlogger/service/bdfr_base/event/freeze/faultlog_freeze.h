@@ -44,6 +44,8 @@ private:
     uint64_t rss_ = 0;
     std::string GetEventType(FaultLogType faultLogType, bool isAppHicollie) const;
     std::string GetFreezeType(FaultLogType faultLogType, bool isAppHicollie) const;
+    std::string GetGCJsonValue(const std::map<std::string, std::string>& sectionMap) const;
+    std::string GetIOJsonValue(const std::map<std::string, std::string>& sectionMap) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
