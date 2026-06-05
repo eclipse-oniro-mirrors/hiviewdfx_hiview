@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,12 @@
  */
 #ifndef HIVIEW_OAL_SYSTEM_PROPERTY_H
 #define HIVIEW_OAL_SYSTEM_PROPERTY_H
+
 #include <cstdint>
 #include <string>
+
 namespace OHOS {
 namespace HiviewDFX {
-constexpr char KEY_BUILD_CHARACTER[] = "ro.build.characteristics";
 constexpr char KEY_HIVIEW_VERSION_TYPE[] = "const.logsystem.versiontype";
 constexpr char KEY_DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
@@ -49,7 +50,6 @@ bool IsOversea();
 UserType GetUserType();
 bool IsUCollectionSwitchOn();
 bool IsTraceCollectionSwitchOn();
-bool IsTestAppTraceOn();
 bool IsLeakStateMode();
 bool IsUserMode();
 std::string GetDeviceTypeStr();
