@@ -41,6 +41,10 @@ struct RsJankEvent : public OhosXperfEvent {
     std::string surfaceName;
 };
 
+struct VideoFirstEvent : public OhosXperfEvent {
+    int64_t uniqueId{0};
+};
+
 struct VideoSecondEvent : public OhosXperfEvent {
     int32_t maxFrameTime{0};
     int64_t uniqueId{0};

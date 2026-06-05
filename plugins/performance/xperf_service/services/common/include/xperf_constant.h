@@ -65,11 +65,14 @@ namespace XperfConstants {
     //"#UNIQUEID:7095285973044#DURATION:20000#AVG_FPS:56";
     const int32_t VIDEO_FRAME_STATS = 5001;  //图形上报视频统计信息
 
-    //"#UNIQUEID:7095285973044#HANPPEN_TIME:1720001111";
+    //"#UNIQUEID:7095285973044#HAPPEN_TIME:1720001111";
     const int32_t VIDEO_EXCEPT_STOP = 5002;  //video play exception stop timeout 6s
 
+    //"#UNIQUEID:7095285973044#HAPPEN_TIME:1720001111";
+    const int32_t VIDEO_FIRST_FRAME = 5003; //图形上报视频第一帧
+
     //"#UNIQUEID:7095285973044#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111#SURFACE_NAME:surfacename";
-    const int32_t VIDEO_SECOND_FRAME = 5003; //图形上报视频第二帧
+    const int32_t VIDEO_SECOND_FRAME = 5004; //图形上报视频第二帧
 
     //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
     const int32_t PERF_USER_ACTION = 6000;  //perfmonitor上报用户操作事件
@@ -86,6 +89,9 @@ namespace XperfConstants {
     //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
     const int32_t PERF_MULTIINPUT_FIRSTMOVE = 6004;  // first move
     const int32_t PERF_MULTIINPUT_LASTUP = 6005;  // last up
+
+    //#BUNDLE_NAME:com.ohos.sceneboard#HAPPEN_TIME:1720001111"
+    const int32_t PERF_APP_FOREGROUND = 6006;
 
     constexpr const char* const APP_NAME_SS_HM_UGC_AWEME = "com.ss.hm.ugc.aweme";
     constexpr const char* const APP_NAME_KUAISHOU_HMAPP = "com.kuaishou.hmapp";

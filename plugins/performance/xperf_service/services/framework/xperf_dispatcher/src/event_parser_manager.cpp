@@ -52,7 +52,8 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::VIDEO_JANK_FRAME, &ParseRsVideoJankEventMsg); //5000
     RegisterParserByLogID(XperfConstants::VIDEO_FRAME_STATS, &ParseRsVideoFrameStatsMsg); //5001
     RegisterParserByLogID(XperfConstants::VIDEO_EXCEPT_STOP, &ParseRsVideoExceptStopMsg); //5002
-    RegisterParserByLogID(XperfConstants::VIDEO_SECOND_FRAME, &ParseRsVideoSecondFrameMsg); //5003
+    RegisterParserByLogID(XperfConstants::VIDEO_FIRST_FRAME, &ParseRsVideoFirstFrameMsg); //5003
+    RegisterParserByLogID(XperfConstants::VIDEO_SECOND_FRAME, &ParseRsVideoSecondFrameMsg); //5004
 
     RegisterParserByLogID(XperfConstants::PERF_USER_ACTION, &ParserPerfUserAction); // 6000
     RegisterParserByLogID(XperfConstants::PERF_LOAD_COMPLETE, &ParserLoadComplete); // 6001
@@ -60,6 +61,7 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::PERF_COMPONENT_DETACH, &ParserLoadComplete); // 6003
     RegisterParserByLogID(XperfConstants::PERF_MULTIINPUT_FIRSTMOVE, &ParserPerfUserAction); // 6004
     RegisterParserByLogID(XperfConstants::PERF_MULTIINPUT_LASTUP, &ParserPerfUserAction); // 6005
+    RegisterParserByLogID(XperfConstants::PERF_APP_FOREGROUND, &ParserAppForeground); // 6006
 }
 
 ParserXperfFunc EventParserManager::GetEventParser(int32_t logId)

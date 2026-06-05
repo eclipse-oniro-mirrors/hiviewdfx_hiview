@@ -38,6 +38,7 @@ enum PerfEventCode {
     COMPONENT_DETACH = 3,
     MULTIINPUT_FIRSTMOVE = 4,
     MULTIINPUT_LASTUP = 5,
+    APP_FOREGROUND_ONSHOW = 6,
 };
 
 enum NetworkEventCode {
@@ -65,6 +66,7 @@ enum RsEventCode {
     VIDEO_JANK_FRAME,
     VIDEO_FRAME_STATS,
     VIDEO_EXCEPT_STOP,
+    VIDEO_FIRST_FRAME,
     VIDEO_SECOND_FRAME,
 };
 

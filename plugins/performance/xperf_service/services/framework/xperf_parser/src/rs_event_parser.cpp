@@ -57,6 +57,15 @@ OhosXperfEvent* ParseRsVideoExceptStopMsg(const std::string& msg)
     return event;
 }
 
+//"#UNIQUEID:7095285973044#HAPPEN_TIME:1720001111";
+OhosXperfEvent* ParseRsVideoFirstFrameMsg(const std::string& msg)
+{
+    VideoFirstEvent* event = new VideoFirstEvent();
+    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_HAPPEN_TIME, 0);
+    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_END, 0);
+    return event;
+}
+
 //"#UNIQUEID:7095285973044#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111#SURFACE_NAME:surfacename";
 OhosXperfEvent* ParseRsVideoSecondFrameMsg(const std::string& msg)
 {

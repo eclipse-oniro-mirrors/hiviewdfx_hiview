@@ -294,11 +294,9 @@ void PerfReporter::ReportSurface(const int64_t& uniqueId, const std::string& sur
 void PerfReporter::ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName,
     const std::string& componentName, const std::string& bundleName, int32_t pid)
 {
-    std::stringstream ss;
-    ss << "#PID:" << pid << "#BUNDLE_NAME:" << bundleName << "#UNIQUE_ID:" << uniqueId
-       << "#SURFACE_NAME:" << surfaceName << "#COMPONENT_NAME:" << componentName;
- 
-    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::COMPONENT_DETACH, ss.str());
+    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::COMPONENT_DETACH,
+        "#PID:" + std::to_string(pid) + "#BUNDLE_NAME:" + bundleName + "#UNIQUE_ID:" + std::to_string(uniqueId) +
+        "#SURFACE_NAME:" + surfaceName + "#COMPONENT_NAME:" + componentName);
 }
 
 void EventReporter::ReportJankFrameApp(JankInfo& info)
@@ -599,19 +597,23 @@ void EventReporter::ReportSurfaceInfo(const SurfaceInfo& surface)
 
 void EventReporter::ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo)
 {
-    // 构建消息字符串
-    std::stringstream ss;
-    ss << "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" << std::to_string(eventInfo.lastComponent)
-        << "#BUNDLE_NAME:" << eventInfo.bundleName
-        << "#ABILITY_NAME:" << eventInfo.abilityName
-        << "#IS_LAUNCH:" << std::to_string(eventInfo.isLaunch);
- 
-    // 通过 XperfService 发送消息
-    // 使用 eventId 6001 (PERF_LOAD_COMPLETE)
     XperfServiceClient::GetInstance().NotifyToXperf(
         static_cast<int32_t>(DomainId::PERFMONITOR),
         static_cast<int32_t>(PerfEventCode::LOAD_COMPLETE),
-        ss.str()
+        "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" + std::to_string(eventInfo.lastComponent) +
+        "#BUNDLE_NAME:" + eventInfo.bundleName +
+        "#ABILITY_NAME:" + eventInfo.abilityName +
+        "#IS_LAUNCH:" + std::to_string(eventInfo.isLaunch)
+    );
+}
+
+// 上报应用前台事件到Xperf性能监控系统
+void EventReporter::ReportAppForegroundEvent(const std::string& bundleName)
+{
+    XperfServiceClient::GetInstance().NotifyToXperf(
+        static_cast<int32_t>(DomainId::PERFMONITOR),
+        static_cast<int32_t>(PerfEventCode::APP_FOREGROUND_ONSHOW),
+        "#BUNDLE_NAME:" + bundleName + "#HAPPEN_TIME:" + std::to_string(GetCurrentSystimeMs())
     );
 }
 

@@ -41,7 +41,11 @@ public:
  
 private:
     void OnLoadCompleteEvent(OhosXperfEvent* event);
+    void OnVideoFirstFrame(OhosXperfEvent* event);
     void OnVideoSecondFrame(OhosXperfEvent* event);
+    void OnAppForeground(OhosXperfEvent* event);
+    void OnTouchAction(OhosXperfEvent* event);
+    void OnAudioStart(OhosXperfEvent* event);
     std::string GetBundleName(int64_t uniqueId);
  
     PassthroughMonitor() = default;
@@ -55,6 +59,11 @@ private:
         {std::string(XperfConstants::APP_NAME_KUAISHOU_HMNEBULA), 0},
         {std::string(XperfConstants::APP_NAME_SS_HM_UGC_AWEME), 0}
     };
+
+    //----点击操作----
+    std::mutex touchActionMutex_;
+    std::string bundleName_;
+    int64_t appForegroundTime_ = 0;
 };
  
 } // namespace HiviewDFX

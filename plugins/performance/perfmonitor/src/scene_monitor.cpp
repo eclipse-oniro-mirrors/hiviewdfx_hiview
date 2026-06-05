@@ -314,6 +314,7 @@ void SceneMonitor::SetAppForeground(bool isShow)
 {
     if (isShow) {
         LoadCompleteMonitor::GetInstance().StartCollectForLaunch();
+        EventReporter::ReportAppForegroundEvent(GetBaseInfo().bundleName);
     } else {
         LoadCompleteMonitor::GetInstance().StopCollect();
     }

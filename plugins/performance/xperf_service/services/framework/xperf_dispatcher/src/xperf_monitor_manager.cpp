@@ -86,7 +86,11 @@ void XperfMonitorManager::InitPassthroughMonitor()
 {
     XperfMonitor* monitor = &PassthroughMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::PERF_LOAD_COMPLETE, monitor);
+    RegisterMonitorByLogID(XperfConstants::PERF_APP_FOREGROUND, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_FIRST_FRAME, monitor);
     RegisterMonitorByLogID(XperfConstants::VIDEO_SECOND_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::PERF_USER_ACTION, monitor);
+    RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_START, monitor);
 }
 
 void XperfMonitorManager::InitAvcodecPerfMonitor()

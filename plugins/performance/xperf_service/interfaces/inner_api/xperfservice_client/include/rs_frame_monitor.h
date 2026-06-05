@@ -66,6 +66,8 @@ private:
     ~RsFrameMonitor() = default;
 
     void VideoJankReport();
+    void ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime, int64_t now, const std::string& surfaceName);
+    void ReportFirstFrame(const uint64_t uniqueId, const int64_t now);
     void ReportSecondFrame(const uint64_t uniqueId, const int64_t frameTime, const int64_t now);
     void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, int64_t now);
     void ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, int64_t now);

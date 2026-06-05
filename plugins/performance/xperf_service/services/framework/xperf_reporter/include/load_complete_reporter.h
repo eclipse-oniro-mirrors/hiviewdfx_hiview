@@ -25,8 +25,13 @@ namespace HiviewDFX {
 class LoadCompleteReporter {
 public:
     static void ReportLoadComplete(const LoadCompleteReport& record);
+    static void ReportVideoFirstFrame(const std::string& bundleName, int64_t happenTime);
+    static void ReportVideoSecondFrame(const std::string& bundleName, int64_t happenTime);
+    static void ReportTouchAction(const std::string& bundleName, int64_t happenTime);
+    static void ReportAudioStart(const std::string& bundleName, int64_t happenTime);
 private:
     static void ReportToXperfPlugin(std::shared_ptr<SysEvent> sysEvent);
+    static void ReportSimpleEvent(const std::string& eventName, const std::string& bundleName, int64_t happenTime);
 };
  
 } // namespace HiviewDFX
