@@ -207,6 +207,12 @@ void SceneMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType ty
         BaseInfo baseInfo = GetBaseInfo();
         WhiteBlockMonitor::GetInstance().StartScroll(baseInfo);
     }
+    // 折叠开合场景，使能vsync优先
+    if (sceneId == PerfConstants::FOLD_AND_EXPAND_RAISE_PRIO) {
+        HIVIEW_LOGI("fold and expand scene, SetVsyncLazyMode 0");
+        XPERF_TRACE_SCOPED("fold and expand scene, SetVsyncLazyMode 0");
+        OHOS::AppExecFwk::EventHandler::SetVsyncLazyMode(0);
+    }
     SetAppGCStatus(sceneId, 0);
     NotifyScbJankStatsEnd(sceneId);
 }

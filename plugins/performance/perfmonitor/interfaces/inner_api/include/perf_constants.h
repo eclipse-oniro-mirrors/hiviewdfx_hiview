@@ -611,6 +611,8 @@ public:
 
     inline static constexpr char START_COMBINATION[] = "START_COMBINATION";
 
+    inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
+
     inline static constexpr char APP_NAME_UGC_AWEME[] = "com.ss.hm.ugc.aweme";
 
     inline static constexpr char APP_NAME_KUAISHOU[] = "com.kuaishou.hmapp";
