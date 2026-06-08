@@ -115,11 +115,10 @@ void FaultLogFreeze::PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHi
         .InitThermalLevel(collector.thermal_Level)
         .InitExternalCallbackLog(collector.external_callback_log)
         .InitApplicationGCInfo(applicationGCInfo)
-        .InitApplicationIOInfo(applicationIOInfo);
+        .InitApplicationIOInfo(applicationIOInfo)
+        .InitExternalLog(externalLog);
     if (freezeType == "AppFreezeWarning") {
         builder.InitBundleVersionCode(collector.version_code);
-    } else {
-        builder.InitExternalLog(externalLog);
     }
     FreezeJsonParams freezeJsonParams = builder.Build();
     EventPublish::GetInstance().PushEvent(info.id, eventType,
