@@ -102,8 +102,8 @@ void PassthroughMonitor::OnTouchAction(OhosXperfEvent* event)
         ffrt::submit([bundleName = bundleName_,
             happenTime = luEvt->time]() { LoadCompleteReporter::ReportTouchAction(bundleName, happenTime); },
             ffrt::task_attr().qos(ffrt::qos_user_initiated));
+        appForegroundTime_ = 0;
     }
-    appForegroundTime_ = 0;
 }
 
 void PassthroughMonitor::OnVideoFirstFrame(OhosXperfEvent* event)
