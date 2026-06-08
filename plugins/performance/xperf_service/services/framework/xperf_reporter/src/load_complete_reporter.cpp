@@ -69,9 +69,11 @@ void LoadCompleteReporter::ReportTouchAction(const std::string& bundleName, int6
 }
 
 // 通用简单事件上报方法
-void LoadCompleteReporter::ReportSimpleEvent(const std::string& eventName, const std::string& bundleName, int64_t happenTime)
+void LoadCompleteReporter::ReportSimpleEvent(const std::string& eventName,
+    const std::string& bundleName, int64_t happenTime)
 {
-    LOGD("[LoadCompleteReporter]%{public}s %{public}s, %{public}" PRId64, eventName.c_str(), bundleName.c_str(), happenTime);
+    LOGD("[LoadCompleteReporter]%{public}s %{public}s, %{public}" PRId64,
+        eventName.c_str(), bundleName.c_str(), happenTime);
     OHOS::HiviewDFX::SysEventCreator sysEventCreator(DOMAIN_PERFORMANCE, eventName,
         OHOS::HiviewDFX::SysEventCreator::BEHAVIOR);
     sysEventCreator.SetKeyValue("BUNDLE_NAME", bundleName);

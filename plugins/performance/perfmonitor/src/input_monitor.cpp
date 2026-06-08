@@ -157,7 +157,8 @@ int64_t InputMonitor::GetVsyncTime()
 void InputMonitor::ReportInputEvent(std::string type, int64_t time)
 {
     auto bi = SceneMonitor::GetInstance().GetBaseInfo();
-    std::string msg = "#TYPE:" + type + "#TIME:" + std::to_string(time) + "#BUNDLE_NAME:" + bi.bundleName + "#PID:" + std::to_string(bi.pid);
+    std::string msg = "#TYPE:" + type + "#TIME:" + std::to_string(time) +
+        "#BUNDLE_NAME:" + bi.bundleName + "#PID:" + std::to_string(bi.pid);
     HIVIEW_LOGD("InputMonitor::ReportInputEvent msg:%{public}s", msg.c_str());
     XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::USER_ACTION, msg);
 }

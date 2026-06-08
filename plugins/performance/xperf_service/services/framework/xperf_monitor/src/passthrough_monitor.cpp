@@ -76,8 +76,8 @@ void PassthroughMonitor::OnAudioStart(OhosXperfEvent* event)
     LOGD("PassthroughMonitor::OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
         static_cast<long long>(audioEvent->uniqueId));
 
-    ffrt::submit([bundleName = audioEvent->bundleName, happenTime = audioEvent->happenTime]() {
-        LoadCompleteReporter::ReportAudioStart(bundleName, happenTime); },
+    ffrt::submit([bundleName = audioEvent->bundleName,
+        happenTime = audioEvent->happenTime]() { LoadCompleteReporter::ReportAudioStart(bundleName, happenTime); },
         ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
 
@@ -99,9 +99,9 @@ void PassthroughMonitor::OnTouchAction(OhosXperfEvent* event)
     // 若应用切前台5s内有点击操作，影响加载时延判断，上报至xperfPlugin
     if (appForegroundTime_ > 0 && luEvt->time > appForegroundTime_ &&
         luEvt->time - appForegroundTime_ < USER_ACTION_MONITOR_DURATION) {
-        ffrt::submit([bundleName = bundleName_, happenTime = luEvt->time]() { 
-            LoadCompleteReporter::ReportTouchAction(bundleName, happenTime); 
-        }, ffrt::task_attr().qos(ffrt::qos_user_initiated));
+        ffrt::submit([bundleName = bundleName_,
+            happenTime = luEvt->time]() { LoadCompleteReporter::ReportTouchAction(bundleName, happenTime); },
+            ffrt::task_attr().qos(ffrt::qos_user_initiated));
     }
     appForegroundTime_ = 0;
 }
@@ -130,8 +130,8 @@ void PassthroughMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
     if (bundleName.empty()) {
         return;
     }
-    ffrt::submit([bundleName, happenTime = secondFrame.happenTime]() {
-        LoadCompleteReporter::ReportVideoSecondFrame(bundleName, happenTime); },
+    ffrt::submit([bundleName, happenTime =
+        secondFrame.happenTime]() { LoadCompleteReporter::ReportVideoSecondFrame(bundleName, happenTime); },
         ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
 

@@ -130,7 +130,8 @@ void RsFrameMonitor::VideoExpectionStop(const uint64_t uniqueId)
 }
 
 // 上报视频卡顿帧事件到Xperf性能监控系统
-void RsFrameMonitor::ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime, int64_t now, const std::string& surfaceName)
+void RsFrameMonitor::ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime,
+    int64_t now, const std::string& surfaceName)
 {
     ffrtHighPriorityQueue_->submit([uniqueId, frameTime, now, surfaceName]() {
         XPERF_TRACE_SCOPED("RSJankStats::ReportVideoJankFrame RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
@@ -139,11 +140,11 @@ void RsFrameMonitor::ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime, 
         XperfServiceClient::GetInstance().NotifyToXperf(
             static_cast<int32_t>(DomainId::RS),
             static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME),
-            "#UNIQUEID:" + std::to_string(uniqueId) + "#FAULT_ID:" + std::to_string(static_cast<int32_t>(DomainId::RS)) +
+            "#UNIQUEID:" + std::to_string(uniqueId) +
+            "#FAULT_ID:" +std::to_string(static_cast<int32_t>(DomainId::RS)) +
             "#FAULT_CODE:" + std::to_string(static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME)) +
             "#MAX_FRAME_TIME:" + std::to_string(frameTime) + "#HAPPEN_TIME:" + std::to_string(now) +
-            "#SURFACE_NAME:" + surfaceName
-        );
+            "#SURFACE_NAME:" + surfaceName);
     });
 }
 
@@ -178,7 +179,7 @@ void RsFrameMonitor::VideoCollectFinish()
     std::lock_guard<std::mutex> lock(mutex_);
     int64_t now = GetCurrentSystimeMs();
 
-    for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end(); ) {
+    for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end();) {
         if (now - it->second.frameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
             it = firstFrameMap_.erase(it);
         } else {
