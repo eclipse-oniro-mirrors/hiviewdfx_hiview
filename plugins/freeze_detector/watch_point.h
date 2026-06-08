@@ -63,6 +63,8 @@ public:
         Builder& InitIsHicollie(bool isHicollie);
         Builder& InitReportLifecycleAsAppfreeze(bool reportLifecycleToFreeze);
         Builder& InitIsBlockInGC(bool isBlockInGC);
+        Builder& InitRenderPid(long renderPid);
+        Builder& InitRenderUid(long renderUid);
         WatchPoint Build() const;
 
     private:
@@ -102,6 +104,8 @@ public:
         bool isHicollie_;
         bool reportLifecycleToFreeze_;
         bool isBlockInGC_;
+        long renderPid_;
+        long renderUid_;
         friend class WatchPoint;
     };
 
@@ -145,6 +149,8 @@ public:
     bool GetIsHicollie() const;
     bool GetReportLifeCycleAsAppfreeze() const;
     bool GetIsBlockInGC() const;
+    long GetRenderPid() const;
+    long GetRenderUid() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -196,6 +202,8 @@ private:
     bool isHicollie_;
     bool reportLifecycleToFreeze_;
     bool isBlockInGC_;
+    long renderPid_;
+    long renderUid_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
