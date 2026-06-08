@@ -110,24 +110,6 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
     videoReportNum_ = 0;
 }
 
-void RsFrameMonitor::VideoExpectionStop(const uint64_t uniqueId)
-{
-    LOGD("VideoExpectionStop start, uniqueId=%{public}llu", static_cast<unsigned long long>(uniqueId));
-    auto it = videoMap_.find(uniqueId);
-    if (it == videoMap_.end()) {
-        LOGE("RSJankStats::VideoExpectionStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
-        return;
-    }
-
-    videoMap_.erase(it);
-
-    if (videoMap_.empty()) {
-        videoCollectOpen_.store(false);
-        recentUniqueId_ = 0;
-        videoReportNum_ = 0;
-    }
-}
-
 // 上报视频卡顿帧事件到Xperf性能监控系统
 void RsFrameMonitor::ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime,
     int64_t now, const std::string& surfaceName)
@@ -190,11 +172,18 @@ void RsFrameMonitor::VideoCollectFinish()
         return;
     }
     
-    for (auto it = videoMap_.begin(); it != videoMap_.end(); ++it) {
+    for (auto it = videoMap_.begin(); it != videoMap_.end();) {
         if (it->second.previousFrameTime != 0 && now - it->second.previousFrameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
             LOGD("RSJankStats::VideoCollectFinish. [uniqueId %" PRIu64 "]", it->first);
-            VideoExpectionStop(it->first);
+            it = videoMap_.erase(it);
+        } else {
+            ++it;
         }
+    }
+    if (videoMap_.empty()) {
+        videoCollectOpen_.store(false);
+        recentUniqueId_ = 0;
+        videoReportNum_ = 0;
     }
 }
 

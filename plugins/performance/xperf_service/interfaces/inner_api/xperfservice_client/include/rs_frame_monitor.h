@@ -55,7 +55,6 @@ public:
         const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime);
     void VideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, const uint32_t fps);
-    void VideoExpectionStop(const uint64_t uniqueId);
     void VideoCollectFinish();
     void VideoCollect(const uint64_t uniqueId, const uint32_t sequence);
     bool VideoGet(uint64_t uniqueId);
