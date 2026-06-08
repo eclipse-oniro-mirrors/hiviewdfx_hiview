@@ -100,8 +100,7 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
                     "#UNIQUEID:" + std::to_string(uniqueId) + "#DURATION:" + std::to_string(duration) +
                     "#AVG_FPS:" + std::to_string(avgFps) + "#INTERVAL_COUNT:" + std::to_string(intervalExceedCount) +
                     "#INTERVAL_LATENCY:" + std::to_string(intervalExceedLatency) +
-                    "#START_TIME:" + std::to_string(startTime);
-                );
+                    "#START_TIME:" + std::to_string(startTime));
             });
         }
     }
