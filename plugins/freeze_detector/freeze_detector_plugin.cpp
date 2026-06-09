@@ -154,6 +154,8 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.isHicollie = (isHicollieValue == 1);
     params.reportLifecycleToFreeze = sysEvent.GetEventIntValue(FreezeCommon::EVENT_REPORT_LIFECYCLE_AS_APPFREEZE);
     params.isBlockInGC = sysEvent.GetEventIntValue(FreezeCommon::EVENT_IS_BLOCK_IN_GC);
+    params.renderPid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_RENDER_PID);
+    params.renderUid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_RENDER_UID);
 }
 
 WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
@@ -176,6 +178,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitLastProcessEventId(params.lastProcessEventId).InitLastMarkedEventId(params.lastMarkedEventId)
         .InitThermalLevel(params.thermalLevel).InitExternalLog(params.externalLog).InitIsHicollie(params.isHicollie)
         .InitReportLifecycleAsAppfreeze(params.reportLifecycleToFreeze).InitIsBlockInGC(params.isBlockInGC)
+        .InitRenderPid(params.renderPid).InitRenderUid(params.renderUid)
         .Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
@@ -184,7 +187,8 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         " applicationInfo=%{public}s, applicationGCInfo=%{public}s, applicationIOInfo=%{public}s, taskName=%{public}s,"
         " timeoutEventId=%{public}s, lastDispatchEventId=%{public}s,"
         " lastProcessEventId=%{public}s,lastMarkedEventId=%{public}s, thermalLevel=%{public}s, externalLog size:"
-        "%{public}zu, isHicollie=%{public}d, reportLifecycleToFreeze=%{public}d, isBlockInGC=%{public}d",
+        "%{public}zu, isHicollie=%{public}d, reportLifecycleToFreeze=%{public}d, isBlockInGC=%{public}d, "
+        "renderPid=%{public}ld, renderUid=%{public}ld",
         event.domain_.c_str(), event.eventName_.c_str(), params.pid, params.uid, params.seq,
         params.packageName.c_str(), params.processName.c_str(), params.logFile.c_str(), params.hitraceIdInfo.c_str(),
         params.procStatm.c_str(), params.hostResourceWarning.c_str(), params.freezeExtFile.c_str(),
@@ -193,7 +197,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         params.taskName.c_str(), params.timeoutEventId.c_str(),
         params.lastDispatchEventId.c_str(), params.lastProcessEventId.c_str(), params.lastMarkedEventId.c_str(),
         params.thermalLevel.c_str(), params.externalLog.size(), params.isHicollie, params.reportLifecycleToFreeze,
-        params.isBlockInGC);
+        params.isBlockInGC, params.renderPid, params.renderUid);
     return watchPoint;
 }
 

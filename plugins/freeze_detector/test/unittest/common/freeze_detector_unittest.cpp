@@ -847,6 +847,72 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_017, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_018
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_018, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("WEBVIEW")
+        .InitStringId("RENDER_JS_FREEZE")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.package.name")
+        .InitPid(12345)
+        .InitUid(23456)
+        .InitRenderPid(123)
+        .InitRenderUid(23451)
+        .Build();
+    auto wp1 = std::make_unique<WatchPoint>(watchPoint);
+    ASSERT_EQ(wp1->GetPid(), 12345);
+    ASSERT_EQ(wp1->GetUid(), 23456);
+    ASSERT_EQ(wp1->GetRenderPid(), 123);
+    ASSERT_EQ(wp1->GetRenderUid(), 23451);
+
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+    vendor->SendFaultLog(watchPoint, "test", "appfreezewarning", "processName", "No");
+
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    vendor->MergeFreezeJsonFile(watchPoint, list);
+}
+
+/**
+ * @tc.name: FreezeVender_019
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_019, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("WEBVIEW")
+        .InitStringId("FreezeVender_019")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.package.name")
+        .InitPid(12345)
+        .InitUid(23456)
+        .InitRenderPid(123)
+        .InitRenderUid(23451)
+        .Build();
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+    vendor->SendFaultLog(watchPoint, "test", "appfreezewarning", "processName", "No");
+
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    vendor->MergeFreezeJsonFile(watchPoint, list);
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */

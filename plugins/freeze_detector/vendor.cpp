@@ -85,6 +85,7 @@ namespace {
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
     constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
+    constexpr const char* EVENT_RENDER_JS_FREEZE = "RENDER_JS_FREEZE";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -109,8 +110,13 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoi
     }
 
     info.time = watchPoint.GetTimestamp();
-    info.id = static_cast<uint32_t>(watchPoint.GetUid());
-    info.pid = watchPoint.GetPid();
+    if (stringId == EVENT_RENDER_JS_FREEZE) {
+        info.id = static_cast<uint32_t>(watchPoint.GetRenderUid());
+        info.pid = watchPoint.GetRenderPid();
+    } else {
+        info.id = static_cast<uint32_t>(watchPoint.GetUid());
+        info.pid = watchPoint.GetPid();
+    }
     info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : (type == SYSFREEZE) ?
         FaultLogType::SYS_FREEZE : (type == SYSWARNING) ? FaultLogType::SYS_WARNING : FaultLogType::APPFREEZE_WARNING;
     info.module = processName;
@@ -304,8 +310,10 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
         FreezeJsonUtil::DelFile(realPath);
     }
 
-    std::string mergeFilePath = FreezeJsonUtil::GetFilePath(watchPoint.GetPid(),
-        watchPoint.GetUid(), watchPoint.GetTimestamp());
+    bool isRenderJsFreeze = watchPoint.GetStringId() == EVENT_RENDER_JS_FREEZE;
+    long jsonPid = isRenderJsFreeze ? watchPoint.GetRenderPid() : watchPoint.GetPid();
+    long jsonUid = isRenderJsFreeze ? watchPoint.GetRenderUid() : watchPoint.GetUid();
+    std::string mergeFilePath = FreezeJsonUtil::GetFilePath(jsonPid, jsonUid, watchPoint.GetTimestamp());
     int jsonFd = FreezeJsonUtil::GetFd(mergeFilePath);
     if (jsonFd < 0) {
         HIVIEW_LOGE("fail to open FreezeJsonFile! jsonFd: %{public}d", jsonFd);
@@ -318,8 +326,8 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     FreezeJsonUtil::WriteKeyValue(jsonFd, "domain", watchPoint.GetDomain());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "stringId", watchPoint.GetStringId());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "timestamp", watchPoint.GetTimestamp());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "pid", watchPoint.GetPid());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "uid", watchPoint.GetUid());
+    FreezeJsonUtil::WriteKeyValue(jsonFd, "pid", jsonPid);
+    FreezeJsonUtil::WriteKeyValue(jsonFd, "uid", jsonUid);
     FreezeJsonUtil::WriteKeyValue(jsonFd, "package_name", watchPoint.GetPackageName());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "process_name", watchPoint.GetProcessName());
     close(jsonFd);

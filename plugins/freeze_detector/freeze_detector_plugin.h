@@ -33,6 +33,8 @@ struct WatchPointParams {
     long pid;
     long tid;
     long uid;
+    long renderPid;
+    long renderUid;
     std::string appRunningUniqueId;
     std::string packageName;
     std::string processName;

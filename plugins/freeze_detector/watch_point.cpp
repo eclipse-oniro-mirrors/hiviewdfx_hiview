@@ -25,7 +25,8 @@ WatchPoint::WatchPoint()
     enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
     appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false),
+    renderPid_(0), renderUid_(0)
 {
 }
 
@@ -65,7 +66,9 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     externalLog_(builder.externalLog_),
     isHicollie_(builder.isHicollie_),
     reportLifecycleToFreeze_(builder.reportLifecycleToFreeze_),
-    isBlockInGC_(builder.isBlockInGC_)
+    isBlockInGC_(builder.isBlockInGC_),
+    renderPid_(builder.renderPid_),
+    renderUid_(builder.renderUid_)
 {
 }
 
@@ -75,7 +78,8 @@ WatchPoint::Builder::Builder()
     enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
     appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false),
+    renderPid_(0), renderUid_(0)
 {
 }
 
@@ -293,6 +297,18 @@ WatchPoint::Builder& WatchPoint::Builder::InitReportLifecycleAsAppfreeze(bool re
 WatchPoint::Builder& WatchPoint::Builder::InitIsBlockInGC(bool isBlockInGC)
 {
     isBlockInGC_ = isBlockInGC;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitRenderPid(long renderPid)
+{
+    renderPid_ = renderPid;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitRenderUid(long renderUid)
+{
+    renderUid_ = renderUid;
     return *this;
 }
 
@@ -534,6 +550,16 @@ void WatchPoint::SetExternalLog(const std::string& externalLog)
 void WatchPoint::SetIsHicollie(bool isHicollie)
 {
     isHicollie_ = isHicollie;
+}
+
+long WatchPoint::GetRenderPid() const
+{
+    return renderPid_;
+}
+
+long WatchPoint::GetRenderUid() const
+{
+    return renderUid_;
 }
 
 bool WatchPoint::operator<(const WatchPoint& node) const
