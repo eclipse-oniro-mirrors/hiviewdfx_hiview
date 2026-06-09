@@ -55,7 +55,6 @@ public:
         const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime);
     void VideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, const uint32_t fps);
-    void VideoExpectionStop(const uint64_t uniqueId);
     void VideoCollectFinish();
     void VideoCollect(const uint64_t uniqueId, const uint32_t sequence);
     bool VideoGet(uint64_t uniqueId);
@@ -66,6 +65,8 @@ private:
     ~RsFrameMonitor() = default;
 
     void VideoJankReport();
+    void ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime, int64_t now, const std::string& surfaceName);
+    void ReportFirstFrame(const uint64_t uniqueId, const int64_t now);
     void ReportSecondFrame(const uint64_t uniqueId, const int64_t frameTime, const int64_t now);
     void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, int64_t now);
     void ProcessFrameCollect(const uint64_t uniqueId, const uint32_t sequence, int64_t now);

@@ -34,6 +34,16 @@ OhosXperfEvent* ParserPerfUserAction(const std::string& msg)
     return event;
 }
 
+//#BUNDLE_NAME:com.ohos.sceneboard#HAPPEN_TIME:1720001111"
+OhosXperfEvent* ParserAppForeground(const std::string& msg)
+{
+    OhosXperfEvent* event = new OhosXperfEvent();
+    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_HAPPEN_TIME, "");
+    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_END, 0);
+
+    return event;
+}
+
 // "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:1720001111
 // #BUNDLE_NAME:com.ohos.sceneboard#ABILITY_NAME:"EntryAbility"#IS_LAUNCH:0"
 OhosXperfEvent* ParserLoadComplete(const std::string& msg)

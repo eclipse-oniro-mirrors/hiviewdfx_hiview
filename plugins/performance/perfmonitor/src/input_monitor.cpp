@@ -21,7 +21,6 @@
 #include "hiview_logger.h"
 
 #ifdef NOT_BUILD_FOR_OHOS_SDK
-#include <sstream>
 #include <string>
 #include "xperf_service_client.h"
 #include "xperf_service_action_type.h"
@@ -158,10 +157,10 @@ int64_t InputMonitor::GetVsyncTime()
 void InputMonitor::ReportInputEvent(std::string type, int64_t time)
 {
     auto bi = SceneMonitor::GetInstance().GetBaseInfo();
-    std::stringstream ss;
-    ss << "#TYPE:" << type << "#TIME:" << time << "#BUNDLE_NAME:" << bi.bundleName << "#PID:" << bi.pid;
-    HIVIEW_LOGD("InputMonitor::ReportInputEvent msg:%{public}s", ss.str().c_str());
-    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::USER_ACTION, ss.str());
+    std::string msg = "#TYPE:" + type + "#TIME:" + std::to_string(time) +
+        "#BUNDLE_NAME:" + bi.bundleName + "#PID:" + std::to_string(bi.pid);
+    HIVIEW_LOGD("InputMonitor::ReportInputEvent msg:%{public}s", msg.c_str());
+    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::USER_ACTION, msg);
 }
 #endif
 

@@ -46,11 +46,6 @@ void RsMonitorAdapter::VideoStop(const std::vector<uint64_t>& uniqueIdList,
     RsFrameMonitor::GetInstance().VideoStop(uniqueIdList, surfaceNameList, fps);
 }
 
-void RsMonitorAdapter::VideoExpectionStop(const uint64_t uniqueId)
-{
-    RsFrameMonitor::GetInstance().VideoExpectionStop(uniqueId);
-}
-
 void RsMonitorAdapter::VideoCollectFinish()
 {
     RsFrameMonitor::GetInstance().VideoCollectFinish();
