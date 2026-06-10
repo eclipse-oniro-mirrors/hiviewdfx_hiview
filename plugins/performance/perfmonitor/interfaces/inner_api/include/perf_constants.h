@@ -561,12 +561,6 @@ public:
 
     inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
 
-    inline static constexpr char APP_NAME_UGC_AWEME[] = "com.ss.hm.ugc.aweme";
-
-    inline static constexpr char APP_NAME_KUAISHOU[] = "com.kuaishou.hmapp";
-
-    inline static constexpr char APP_NAME_KUAISHOU_HMNEBULA[] = "com.kuaishou.hmnebula";
-
     // only for test
     inline static constexpr char ENTER_ONE_STEP_SPLIT[] = "ENTER_ONE_STEP_SPLIT";
 
@@ -691,6 +685,12 @@ public:
     inline static constexpr char DESKTOP_N_TO_LM[] = "DESKTOP_N_TO_LM";
     
     inline static constexpr char DESKTOP_LM_TO_N[] = "DESKTOP_LM_TO_N";
+
+    inline static constexpr char APP_NAME_UGC_AWEME[] = "com.ss.hm.ugc.aweme";
+
+    inline static constexpr char APP_NAME_KUAISHOU[] = "com.kuaishou.hmapp";
+
+    inline static constexpr char APP_NAME_KUAISHOU_HMNEBULA[] = "com.kuaishou.hmnebula";
 };
 } // namespace OHOS
 } // namespace HiviewDFX
