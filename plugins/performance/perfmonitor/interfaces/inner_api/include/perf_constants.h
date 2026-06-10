@@ -530,6 +530,78 @@ public:
     
     inline static constexpr char CELIA_EXPAND_TO_FULL_SCREEN[] = "CELIA_EXPAND_TO_FULL_SCREEN";
 
+    inline static constexpr char F_TO_M_WINDOWS[] = "F_TO_M_WINDOWS";
+
+    inline static constexpr char F_TO_G_WINDOWS[] = "F_TO_G_WINDOWS";
+
+    inline static constexpr char M_TO_F_WINDOWS[] = "M_TO_F_WINDOWS";
+
+    inline static constexpr char M_TO_G_WINDOWS[] = "M_TO_G_WINDOWS";
+
+    inline static constexpr char G_TO_F_WINDOWS[] = "G_TO_F_WINDOWS";
+
+    inline static constexpr char G_TO_M_WINDOWS[] = "G_TO_M_WINDOWS";
+
+    inline static constexpr char F_TO_N_WINDOWS[] = "F_TO_N_WINDOWS";
+
+    inline static constexpr char N_TO_F_WINDOWS[] = "N_TO_F_WINDOWS";
+
+    inline static constexpr char G_TO_LM_WINDOWS[] = "G_TO_LM_WINDOWS";
+
+    inline static constexpr char LM_TO_G_WINDOWS[] = "LM_TO_G_WINDOWS";
+
+    inline static constexpr char N_TO_G_WINDOWS[] = "N_TO_G_WINDOWS";
+
+    inline static constexpr char G_TO_N_WINDOWS[] = "G_TO_N_WINDOWS";
+
+    inline static constexpr char M_TO_V_WINDOWS[] = "M_TO_V_WINDOWS";
+
+    inline static constexpr char V_TO_M_WINDOWS[] = "V_TO_M_WINDOWS";
+
+    inline static constexpr char G_TO_V_WINDOWS[] = "G_TO_V_WINDOWS";
+
+    inline static constexpr char V_TO_G_WINDOWS[] = "V_TO_G_WINDOWS";
+
+    inline static constexpr char N_TO_LM_WINDOWS[] = "N_TO_LM_WINDOWS";
+
+    inline static constexpr char LM_TO_N_WINDOWS[] = "LM_TO_N_WINDOWS";
+
+    inline static constexpr char DESKTOP_F_TO_M[] = "DESKTOP_F_TO_M";
+
+    inline static constexpr char DESKTOP_M_TO_F[] = "DESKTOP_M_TO_F";
+
+    inline static constexpr char DESKTOP_M_TO_G[] = "DESKTOP_M_TO_G";
+
+    inline static constexpr char DESKTOP_G_TO_M[] = "DESKTOP_G_TO_M";
+
+    inline static constexpr char DESKTOP_F_TO_G[] = "DESKTOP_F_TO_G";
+
+    inline static constexpr char DESKTOP_G_TO_F[] = "DESKTOP_G_TO_F";
+
+    inline static constexpr char DESKTOP_F_TO_N[] = "DESKTOP_F_TO_N";
+
+    inline static constexpr char DESKTOP_N_TO_F[] = "DESKTOP_N_TO_F";
+
+    inline static constexpr char DESKTOP_G_TO_LM[] = "DESKTOP_G_TO_LM";
+
+    inline static constexpr char DESKTOP_LM_TO_G[] = "DESKTOP_LM_TO_G";
+
+    inline static constexpr char DESKTOP_N_TO_G[] = "DESKTOP_N_TO_G";
+
+    inline static constexpr char DESKTOP_G_TO_N[] = "DESKTOP_G_TO_N";
+
+    inline static constexpr char DESKTOP_M_TO_V[] = "DESKTOP_M_TO_V";
+
+    inline static constexpr char DESKTOP_V_TO_M[] = "DESKTOP_V_TO_M";
+
+    inline static constexpr char DESKTOP_G_TO_V[] = "DESKTOP_G_TO_V";
+
+    inline static constexpr char DESKTOP_V_TO_G[] = "DESKTOP_V_TO_G";
+
+    inline static constexpr char DESKTOP_N_TO_LM[] = "DESKTOP_N_TO_LM";
+    
+    inline static constexpr char DESKTOP_LM_TO_N[] = "DESKTOP_LM_TO_N";
+
     // only for watch
     inline static constexpr char WATCH_SCROLL_CARD_LIST_ANI[] = "WATCH_SCROLL_CARD_LIST_ANI";
 
