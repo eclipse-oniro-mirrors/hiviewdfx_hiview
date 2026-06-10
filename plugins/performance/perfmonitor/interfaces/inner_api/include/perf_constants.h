@@ -530,6 +530,96 @@ public:
     
     inline static constexpr char CELIA_EXPAND_TO_FULL_SCREEN[] = "CELIA_EXPAND_TO_FULL_SCREEN";
 
+    // only for watch
+    inline static constexpr char WATCH_SCROLL_CARD_LIST_ANI[] = "WATCH_SCROLL_CARD_LIST_ANI";
+
+    inline static constexpr char WATCH_WATCHFACE_LONGPRESS_TO_LIST[] = "WATCH_WATCHFACE_LONGPRESS_TO_LIST";
+
+    inline static constexpr char WATCH_WATCHFACELIST_CLICK_TO_EDIT[] = "WATCH_WATCHFACELIST_CLICK_TO_EDIT";
+
+    inline static constexpr char WATCH_WATCHFACESELECT_TO_WATCHFACE[] = "WATCH_WATCHFACESELECT_TO_WATCHFACE";
+
+    inline static constexpr char WATCH_WATCHFACE_STYLE_SWIPE[] = "WATCH_WATCHFACE_STYLE_SWIPE";
+
+    inline static constexpr char WATCH_POWER_DOUBLE_CLICK_TO_RECENTS[] = "WATCH_POWER_DOUBLE_CLICK_TO_RECENTS";
+
+    inline static constexpr char WATCH_INTO_CARD_ANI[] = "WATCH_INTO_CARD_ANI";
+
+    inline static constexpr char WATCH_EXIT_CARD_ANI[] = "WATCH_EXIT_CARD_ANI";
+
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY[] = "LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY";
+
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_CONTROLCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_CONTROLCENTER";
+
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_WATCHFACE[] = "LAUNCHER_APP_LAUNCH_FROM_WATCHFACE";
+
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_NEGATIVESCREEN[] = "LAUNCHER_APP_LAUNCH_FROM_NEGATIVESCREEN";
+
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_CARD[] = "LAUNCHER_APP_LAUNCH_FROM_CARD";
+
+    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_APPCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_APPCENTER";
+
+    inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
+
+    inline static constexpr char APP_NAME_UGC_AWEME[] = "com.ss.hm.ugc.aweme";
+
+    inline static constexpr char APP_NAME_KUAISHOU[] = "com.kuaishou.hmapp";
+
+    inline static constexpr char APP_NAME_KUAISHOU_HMNEBULA[] = "com.kuaishou.hmnebula";
+
+    // only for test
+    inline static constexpr char ENTER_ONE_STEP_SPLIT[] = "ENTER_ONE_STEP_SPLIT";
+
+    inline static constexpr char ENTER_SPLIT[] = "ENTER_SPLIT";
+
+    inline static constexpr char SPLIT_TO_FLOAT[] = "SPLIT_TO_FLOAT";
+
+    inline static constexpr char ADJUST_SPLIT_RATIO[] = "ADJUST_SPLIT_RATIO";
+
+    inline static constexpr char SPLIT_SWAP_ANIMATION[] = "SPLIT_SWAP_ANIMATION";
+
+    inline static constexpr char SPLIT_BACK_SEC[] = "SPLIT_BACK_SEC";
+
+    inline static constexpr char SPLIT_DRAG_EXIT[] = "SPLIT_DRAG_EXIT";
+    
+    inline static constexpr char ENTER_ONE_STEP_FLOAT[] = "ENTER_ONE_STEP_FLOAT";
+
+    inline static constexpr char FLOAT_START_FROM_DOCK[] = "FLOAT_START_FROM_DOCK";
+
+    inline static constexpr char FLOAT_START_FROM_SIDEBAR[] = "FLOAT_START_FROM_SIDEBAR";
+
+    inline static constexpr char EXIT_FLOAT_BY_CLICK[] = "EXIT_FLOAT_BY_CLICK";
+
+    inline static constexpr char FLOAT_TO_FULL[] = "FLOAT_TO_FULL";
+
+    inline static constexpr char MINIMIZE_FLOAT_BY_CLICK[] = "MINIMIZE_FLOAT_BY_CLICK";
+
+    inline static constexpr char DRAG_FLOAT[] = "DRAG_FLOAT";
+
+    inline static constexpr char MINI_FLOAT_TO_DEFAULT[] = "MINI_FLOAT_TO_DEFAULT";
+
+    inline static constexpr char SPLIT_STYLE_EXCHANGE[] = "SPLIT_STYLE_EXCHANGE";
+
+    inline static constexpr char ENTER_ONE_STEP_MIDSCENE[] = "ENTER_ONE_STEP_MIDSCENE";
+
+    inline static constexpr char ENTER_MIDSCENE[] = "ENTER_MIDSCENE";
+
+    inline static constexpr char MIDSCENE_REPLACE[] = "MIDSCENE_REPLACE";
+
+    inline static constexpr char MIDSCENE_TO_FULL[] = "MIDSCENE_TO_FULL";
+
+    inline static constexpr char MIDSCENE_TO_SPLIT[] = "MIDSCENE_TO_SPLIT";
+
+    inline static constexpr char MIDSCENE_FOCUS_TRANSFER[] = "MIDSCENE_FOCUS_TRANSFER";
+
+    inline static constexpr char MIDSCENE_ROTATION[] = "MIDSCENE_ROTATION";
+
+    inline static constexpr char MIDSCENE_TO_RECENT[] = "MIDSCENE_TO_RECENT";
+
+    inline static constexpr char SAVE_COMBINATION[] = "SAVE_COMBINATION";
+
+    inline static constexpr char START_COMBINATION[] = "START_COMBINATION";
+
     inline static constexpr char F_TO_M_WINDOWS[] = "F_TO_M_WINDOWS";
 
     inline static constexpr char F_TO_G_WINDOWS[] = "F_TO_G_WINDOWS";
@@ -601,95 +691,6 @@ public:
     inline static constexpr char DESKTOP_N_TO_LM[] = "DESKTOP_N_TO_LM";
     
     inline static constexpr char DESKTOP_LM_TO_N[] = "DESKTOP_LM_TO_N";
-
-    // only for watch
-    inline static constexpr char WATCH_SCROLL_CARD_LIST_ANI[] = "WATCH_SCROLL_CARD_LIST_ANI";
-
-    inline static constexpr char WATCH_WATCHFACE_LONGPRESS_TO_LIST[] = "WATCH_WATCHFACE_LONGPRESS_TO_LIST";
-
-    inline static constexpr char WATCH_WATCHFACELIST_CLICK_TO_EDIT[] = "WATCH_WATCHFACELIST_CLICK_TO_EDIT";
-
-    inline static constexpr char WATCH_WATCHFACESELECT_TO_WATCHFACE[] = "WATCH_WATCHFACESELECT_TO_WATCHFACE";
-
-    inline static constexpr char WATCH_WATCHFACE_STYLE_SWIPE[] = "WATCH_WATCHFACE_STYLE_SWIPE";
-
-    inline static constexpr char WATCH_POWER_DOUBLE_CLICK_TO_RECENTS[] = "WATCH_POWER_DOUBLE_CLICK_TO_RECENTS";
-
-    inline static constexpr char WATCH_INTO_CARD_ANI[] = "WATCH_INTO_CARD_ANI";
-
-    inline static constexpr char WATCH_EXIT_CARD_ANI[] = "WATCH_EXIT_CARD_ANI";
-
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY[] = "LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY";
-
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_CONTROLCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_CONTROLCENTER";
-
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_WATCHFACE[] = "LAUNCHER_APP_LAUNCH_FROM_WATCHFACE";
-
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_NEGATIVESCREEN[] = "LAUNCHER_APP_LAUNCH_FROM_NEGATIVESCREEN";
-
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_CARD[] = "LAUNCHER_APP_LAUNCH_FROM_CARD";
-
-    inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_APPCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_APPCENTER";
-    
-    inline static constexpr char ENTER_ONE_STEP_SPLIT[] = "ENTER_ONE_STEP_SPLIT";
-
-    inline static constexpr char ENTER_SPLIT[] = "ENTER_SPLIT";
-
-    inline static constexpr char SPLIT_TO_FLOAT[] = "SPLIT_TO_FLOAT";
-
-    inline static constexpr char ADJUST_SPLIT_RATIO[] = "ADJUST_SPLIT_RATIO";
-
-    inline static constexpr char SPLIT_SWAP_ANIMATION[] = "SPLIT_SWAP_ANIMATION";
-
-    inline static constexpr char SPLIT_BACK_SEC[] = "SPLIT_BACK_SEC";
-
-    inline static constexpr char SPLIT_DRAG_EXIT[] = "SPLIT_DRAG_EXIT";
-    
-    inline static constexpr char ENTER_ONE_STEP_FLOAT[] = "ENTER_ONE_STEP_FLOAT";
-
-    inline static constexpr char FLOAT_START_FROM_DOCK[] = "FLOAT_START_FROM_DOCK";
-
-    inline static constexpr char FLOAT_START_FROM_SIDEBAR[] = "FLOAT_START_FROM_SIDEBAR";
-
-    inline static constexpr char EXIT_FLOAT_BY_CLICK[] = "EXIT_FLOAT_BY_CLICK";
-
-    inline static constexpr char FLOAT_TO_FULL[] = "FLOAT_TO_FULL";
-
-    inline static constexpr char MINIMIZE_FLOAT_BY_CLICK[] = "MINIMIZE_FLOAT_BY_CLICK";
-
-    inline static constexpr char DRAG_FLOAT[] = "DRAG_FLOAT";
-
-    inline static constexpr char MINI_FLOAT_TO_DEFAULT[] = "MINI_FLOAT_TO_DEFAULT";
-
-    inline static constexpr char SPLIT_STYLE_EXCHANGE[] = "SPLIT_STYLE_EXCHANGE";
-
-    inline static constexpr char ENTER_ONE_STEP_MIDSCENE[] = "ENTER_ONE_STEP_MIDSCENE";
-
-    inline static constexpr char ENTER_MIDSCENE[] = "ENTER_MIDSCENE";
-
-    inline static constexpr char MIDSCENE_REPLACE[] = "MIDSCENE_REPLACE";
-
-    inline static constexpr char MIDSCENE_TO_FULL[] = "MIDSCENE_TO_FULL";
-
-    inline static constexpr char MIDSCENE_TO_SPLIT[] = "MIDSCENE_TO_SPLIT";
-
-    inline static constexpr char MIDSCENE_FOCUS_TRANSFER[] = "MIDSCENE_FOCUS_TRANSFER";
-
-    inline static constexpr char MIDSCENE_ROTATION[] = "MIDSCENE_ROTATION";
-
-    inline static constexpr char MIDSCENE_TO_RECENT[] = "MIDSCENE_TO_RECENT";
-
-    inline static constexpr char SAVE_COMBINATION[] = "SAVE_COMBINATION";
-
-    inline static constexpr char START_COMBINATION[] = "START_COMBINATION";
-
-    inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
-
-    inline static constexpr char APP_NAME_UGC_AWEME[] = "com.ss.hm.ugc.aweme";
-
-    inline static constexpr char APP_NAME_KUAISHOU[] = "com.kuaishou.hmapp";
-
-    inline static constexpr char APP_NAME_KUAISHOU_HMNEBULA[] = "com.kuaishou.hmnebula";
 };
 } // namespace OHOS
 } // namespace HiviewDFX
