@@ -34,10 +34,7 @@ ohos_shared_library("cj_faultlogger_ffi") {
     sources = []
   }
 
-  deps = [
-    "$hiview_base/utility:hiview_utility",
-    "$hiview_plugin/faultlogger/interfaces/cpp/innerkits:faultlogger_client_impl_with_cfi",
-  ]
+  deps = [ "$hiview_plugin/faultlogger:libfaultlogger" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
