@@ -43,6 +43,8 @@ public:
         const struct WatchParams& watchParams, const FreezeResult& result);
     std::vector<SysEvent> SelectRecords(unsigned long long start, unsigned long long end, const std::string& domain,
         const std::vector<std::string>& eventNames);
+    std::vector<SysEvent> SelectRecordsByPidUid(long pid, long uid, const std::string& domain,
+        const std::vector<std::string>& eventNames);
 private:
     std::shared_ptr<FreezeCommon> freezeCommon_;
 };

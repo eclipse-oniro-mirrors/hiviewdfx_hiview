@@ -132,7 +132,35 @@ std::vector<SysEvent> DBHelper::SelectRecords(unsigned long long start, unsigned
             records.emplace_back(*record);
         }
     }
-    HIVIEW_LOGI("select records, size =%{public}zu.", records.size());
+    HIVIEW_LOGD("select records, size =%{public}zu.", records.size());
+    return records;
+}
+
+std::vector<SysEvent> DBHelper::SelectRecordsByPidUid(long pid, long uid,
+    const std::string& domain, const std::vector<std::string>& eventNames)
+{
+    std::vector<SysEvent> records;
+    if (freezeCommon_ == nullptr) {
+        return records;
+    }
+    auto eventQuery = EventStore::SysEventDao::BuildQuery(domain, eventNames);
+    if (!eventQuery) {
+        return records;
+    }
+    eventQuery->Select({ EventStore::EventCol::TS })
+        .Where("PID", EventStore::Op::EQ, static_cast<int64_t>(pid))
+        .And("UID", EventStore::Op::EQ, static_cast<int64_t>(uid))
+        .Order(EventStore::EventCol::TS, false);
+    
+    EventStore::ResultSet set = eventQuery->Execute();
+    if (set.GetErrCode() == 0) {
+        while (set.HasNext()) {
+            auto record = set.Next();
+            records.emplace_back(*record);
+        }
+    }
+    HIVIEW_LOGD("select records by pid=%{public}ld uid=%{public}ld, size =%{public}zu.",
+        pid, uid, records.size());
     return records;
 }
 } // namespace HiviewDFX
