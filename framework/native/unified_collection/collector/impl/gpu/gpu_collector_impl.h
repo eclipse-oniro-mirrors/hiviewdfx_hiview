@@ -17,6 +17,7 @@
 #define HIVIEW_FRAMEWORK_NATIVE_UNIFIED_COLLECTION_GPU_COLLECTOR_IMPL_H
 
 #include "gpu_collector.h"
+#include <string>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -29,6 +30,10 @@ public:
 public:
     virtual CollectResult<GpuFreq> CollectGpuFrequency() override;
     virtual CollectResult<SysGpuLoad> CollectSysGpuLoad() override;
+private:
+    void DetectGpuDevfreqPath();           // 检测 GPU devfreq 路径
+    std::string gpuDevfreqPath_;           // 存储检测到的路径
+    bool pathDetected_ = false;            // 是否已完成检测
 };
 } // namespace UCollectUtil
 } // namespace HiviewDFX
