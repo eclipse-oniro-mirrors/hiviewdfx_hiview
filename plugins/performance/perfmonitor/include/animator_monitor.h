@@ -305,7 +305,7 @@ private:
         PerfConstants::MIDSCENE_ROTATION,
         PerfConstants::MIDSCENE_TO_RECENT,
         PerfConstants::SAVE_COMBINATION,
-        PerfConstants::START_COMBINATION
+        PerfConstants::START_COMBINATION,
         PerfConstants::F_TO_M_WINDOWS,
         PerfConstants::F_TO_G_WINDOWS,
         PerfConstants::M_TO_F_WINDOWS,
@@ -341,7 +341,7 @@ private:
         PerfConstants::DESKTOP_G_TO_V,
         PerfConstants::DESKTOP_V_TO_G,
         PerfConstants::DESKTOP_N_TO_LM,
-        PerfConstants::DESKTOP_LM_TO_N,
+        PerfConstants::DESKTOP_LM_TO_N
     };
 };
 
