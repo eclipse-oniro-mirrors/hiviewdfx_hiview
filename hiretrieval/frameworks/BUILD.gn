@@ -40,6 +40,7 @@ ohos_shared_library("libhiretrieval") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_runtime:app_context",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
