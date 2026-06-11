@@ -67,7 +67,7 @@ namespace {
         "Current fault may be caused by the system's low memory or thermal throttling, "
         "you may ignore it and analysis other faults.";
     constexpr const char* LEAK_INFO =
-        "Current process has encounted fd leak which may be led to appfreeze, "
+        "Current process has encountered leak which may lead to appfreeze, "
         "you may refer to resource overlimit event from hiAppEvent for further analysis.";
     constexpr const char* GC_INFO =
         "Main thread is blocked by GC, which may be caused by high memory usage or system resource overload.";
