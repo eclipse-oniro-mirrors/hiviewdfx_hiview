@@ -21,12 +21,12 @@
 #include <mutex>
 #include "faultlog_query_result.h"
 #include "faultlog_info.h"
-#include "common_utils.h"
 
 using namespace OHOS::HiviewDFX;
 
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger-cj");
 std::mutex g_mutex;
+constexpr uint32_t BUF_SIZE_512 = 512;
 
 char* MallocCString(const std::string& origin)
 {
