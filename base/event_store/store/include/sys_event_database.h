@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,7 +50,7 @@ private:
     // <eventType, <totalFileSize, fileQueue that is normal, fileQueue that is over limit>>
     using ClearFilesMap = std::unordered_map<int, std::tuple<uint64_t, FileQueue, FileQueue>>;
 
-    void UpdateClearMap();
+    void GetClearMap(ClearFilesMap& clearMap);
     void ClearCache();
     uint32_t GetMaxFileNum(int type);
     uint64_t GetMaxSize(int type);
@@ -61,7 +61,6 @@ private:
     int QueryByFiles(SysEventQuery& query, EntryQueue& entries, FileQueue& queryFiles);
 
     EventQuotaMap quotaMap_;
-    ClearFilesMap clearMap_;
     std::unique_ptr<SysEventDocLruCache> lruCache_;
     mutable std::shared_mutex mutex_;
 }; // SysEventDatabase
