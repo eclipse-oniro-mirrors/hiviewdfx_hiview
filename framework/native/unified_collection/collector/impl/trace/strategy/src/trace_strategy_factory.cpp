@@ -27,7 +27,7 @@ const uint32_t OTHER = 5;
 const uint32_t SCREEN = 2;
 const uint32_t ZIP_FILE = 20;
 const uint32_t TELE_ZIP_FILE = 20;
-const uint32_t APP_FILE = 40;
+const uint32_t APP_FILE = 3;
 }
 }
 
