@@ -46,6 +46,7 @@ ohos_shared_library("libhiretrieval") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "icu:shared_icuuc",
     "init:libbegetutil",
     "preferences:native_preferences",
   ]

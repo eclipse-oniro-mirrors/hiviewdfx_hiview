@@ -95,6 +95,7 @@
                 "hilog",
                 "hiprofiler",
                 "hisysevent",
+                "icu",
                 "init",
                 "input",
                 "ipc",

@@ -40,6 +40,7 @@ ohos_shared_library("loglibrary_napi") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "icu:shared_icuuc",
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
