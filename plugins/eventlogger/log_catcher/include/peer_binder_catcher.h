@@ -94,6 +94,7 @@ private:
     void ParseTerminalFromHicollie(const std::string& hicollieBinderInfo, size_t terminalPos);
     void WriteBinderProcNameToFd(int fd, const std::string& hicollieBinderInfo,
         size_t syncPos, size_t asyncPos, size_t terminalPos);
+    int64_t StrToInt64(const std::string& str) const;
     bool IsSysFreezeEvent() const;
 };
 #endif // BINDER_CATCHER_ENABLE

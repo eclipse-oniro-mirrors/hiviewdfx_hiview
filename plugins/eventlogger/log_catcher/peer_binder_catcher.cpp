@@ -311,9 +311,9 @@ void PeerBinderCatcher::BinderInfoLineParser(std::ifstream& fin, int fd,
             if (Parameter::IsOversea()) {
                 return;
             } else if (line.find("free_async_space") == line.npos && strList.size() == ARR_SIZE &&
-                StringUtil::StrToInt64(strList[FREE_ASYNC_INDEX]) < FREE_ASYNC_MAX) {
+                StrToInt64(strList[FREE_ASYNC_INDEX]) < FREE_ASYNC_MAX) {
                 freeAsyncSpacePairs.emplace_back(StringUtil::StrToInt(strList[0]),
-                    StringUtil::StrToInt64(strList[FREE_ASYNC_INDEX]));
+                    StrToInt64(strList[FREE_ASYNC_INDEX]));
             }
         } else if (line.find("async\t") != std::string::npos && strList.size() > ARR_SIZE) {
             std::string serverPid = StrSplit(strList[3], 0);
@@ -634,6 +634,13 @@ int32_t PeerBinderCatcher::GetUidByPid(const int32_t pid)
         }
     }
     return uid;
+}
+
+int64_t PeerBinderCatcher::StrToInt64(const std::string& str) const
+{
+    int64_t id = 0;
+    StringUtil::StrToInt64(str, id);
+    return id;
 }
 #endif // BINDER_CATCHER_ENABLE
 } // namespace HiviewDFX
