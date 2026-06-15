@@ -167,6 +167,7 @@
         "OHOS::HiviewDFX::MemoryUtil::DisableDelayFree()";
         "OHOS::HiviewDFX::Pipeline::RemoveProcessor(std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>)";
         "OHOS::HiviewDFX::StringUtil::StrToInt(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
+        "OHOS::HiviewDFX::StringUtil::StrToInt64(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long&)";
         "OHOS::HiviewDFX::StringUtil::StrToInt64(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long&)";
         "OHOS::HiviewDFX::StringUtil::TrimStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, char)";
         "OHOS::HiviewDFX::StringUtil::SplitStr(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, char)";
