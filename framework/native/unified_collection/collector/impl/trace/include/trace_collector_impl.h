@@ -48,7 +48,7 @@ private:
     void RecoverTmpTrace();
     void ClearInvalidLinkTrace();
     CollectResult<std::string> HandAppSystemTrace(const std::string& srcName, const std::string &prefix,
-        const std::string &sandBoxPath);
+        const std::string &sandBoxPath, int32_t uid);
 
     std::unique_ptr<ffrt::queue> ffrtQueue_;
     ffrt::task_handle handle_;
