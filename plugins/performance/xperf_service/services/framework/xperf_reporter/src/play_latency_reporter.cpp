@@ -12,8 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iostream>
-#include <sstream>
 #include <string>
 #include "xperf_service_log.h"
 #include "play_latency_reporter.h"
@@ -21,25 +19,24 @@
 #include "hiview_global.h"
 #include "sys_event.h"
 
-
 namespace OHOS {
 namespace HiviewDFX {
 
 void PlayLatencyReporter::ReportStartFault(const VideoStartFaultReport& report)
 {
-    std::ostringstream oss;
-    oss << "#PID:" << report.pid
-        << "#BUNDLE_NAME:" << report.bundleName
-        << "#UNIQUE_ID:" << report.uniqueId
-        << "#SURFACE_NAME:" << report.surfaceName
-        << "#LASTUP_TIME:" << report.lastUpTime
-        << "#START_LATENCY:" << report.startLatency
-        << "#TYPE:" << report.type;
+    std::string s;
+    s.append("#PID:").append(std::to_string(report.pid))
+        .append("#BUNDLE_NAME:").append(report.bundleName)
+        .append("#UNIQUE_ID:").append(std::to_string(report.uniqueId))
+        .append("#SURFACE_NAME:").append(report.surfaceName)
+        .append("#LASTUP_TIME:").append(std::to_string(report.lastUpTime))
+        .append("#START_LATENCY:").append(std::to_string(report.startLatency))
+        .append("#TYPE:").append(std::to_string(report.type));
 
     std::string eventName = "VIDEO_START_FAULT";
 
     OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", eventName, OHOS::HiviewDFX::SysEventCreator::FAULT);
-    sysEventCreator.SetKeyValue("EVENT_DATA", oss.str());
+    sysEventCreator.SetKeyValue("EVENT_DATA", s);
 
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
