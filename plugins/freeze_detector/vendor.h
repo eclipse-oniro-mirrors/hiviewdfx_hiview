@@ -62,11 +62,12 @@ private:
     static void CheckProcessName(std::string& processName, std::string& isScbPro);
     void CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
         const std::string& stringId) const;
-    void CovertSysfreezeToAppfreeze(std::string& type, const WatchPoint& watchPoint) const;
+    void CovertSysfreezeToAppfreeze(const std::vector<WatchPoint>& list,
+        std::string& type, const WatchPoint& watchPoint) const;
     bool GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, std::ostringstream& body,
-                               WatchPoint& node) const;
+        const WatchPoint& node) const;
     void FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& logPath,
-                         const std::string& type, const std::string& processName) const;
+        const std::string& type, const std::string& processName) const;
     void FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& isScbPro) const;
     void InitHalfFreezeExtFile(WatchPoint node, const std::string name, std::string& halfFreezeExtFile) const;
     std::string CheckNoteInfo(const WatchPoint& watchPoint) const;

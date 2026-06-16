@@ -913,6 +913,50 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_019, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_020
+ * @tc.desc: Test InitLogBody with reportLifecycleToFreeze
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_020, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitLogPath("nolog")
+        .Build();
+    std::string type;
+    std::vector<WatchPoint> list;
+    vendor->CovertSysfreezeToAppfreeze(list, type, watchPoint);
+    ASSERT_EQ(type, "");
+
+    WatchPoint node1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_TIMEOUT")
+        .InitLogPath("nolog")
+        .InitReportLifecycleAsAppfreeze(true)
+        .Build();
+    list.push_back(node1);
+    vendor->CovertSysfreezeToAppfreeze(list, type, node1);
+    ASSERT_EQ(type, "");
+
+    WatchPoint node2 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_HALF_TIMEOUT")
+        .InitLogPath("nolog")
+        .InitReportLifecycleAsAppfreeze(false)
+        .Build();
+    list.push_back(node2);
+    ASSERT_EQ(list.size(), 2); // 2: size
+    vendor->CovertSysfreezeToAppfreeze(list, type, node1);
+    ASSERT_EQ(type, "appfreeze");
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
