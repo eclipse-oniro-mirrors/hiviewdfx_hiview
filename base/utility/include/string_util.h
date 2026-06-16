@@ -93,7 +93,6 @@ int StrToInt(const std::string& str);
  * The StrToInt64 function convert str to int64_t.
  */
 bool StrToInt64(const std::string& str, int64_t& value);
-int64_t StrToInt64(const std::string& str);
 
 /**
  * Append the strings in list with specific delimiter

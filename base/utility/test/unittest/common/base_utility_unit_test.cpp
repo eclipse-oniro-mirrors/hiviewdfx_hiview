@@ -195,10 +195,21 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest004, testing::ext::TestSize.Lev
 {
     auto int64Val1 = static_cast<int64_t>(-1);
     auto int64Val2 = static_cast<int64_t>(234);
-    auto ret = StringUtil::StrToInt64(std::to_string(int64Val1));
-    ASSERT_EQ(int64Val1, ret);
-    ret = StringUtil::StrToInt64(std::to_string(int64Val2));
-    ASSERT_EQ(int64Val2, ret);
+    int64_t value = 0;
+
+    auto ret = StringUtil::StrToInt64(std::to_string(int64Val1), value);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(int64Val1, value);
+
+    value = 0;
+    ret = StringUtil::StrToInt64(std::to_string(int64Val2), value);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(int64Val2, value);
+
+    value = 0;
+    ret = StringUtil::StrToInt64("a66", value);
+    ASSERT_EQ(ret, false);
+    ASSERT_EQ(0, value);
 }
 
 /**

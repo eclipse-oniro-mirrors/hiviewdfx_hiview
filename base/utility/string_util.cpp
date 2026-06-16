@@ -152,13 +152,6 @@ bool StrToInt64(const string& str, int64_t& value)
     return true;
 }
 
-int64_t StrToInt64(const string& str)
-{
-    int64_t id = -1;
-    StrToInt64(str, id);
-    return id;
-}
-
 std::list<std::string> SplitStr(const std::string& str, char delimiter)
 {
     std::list<std::string> tokens;
