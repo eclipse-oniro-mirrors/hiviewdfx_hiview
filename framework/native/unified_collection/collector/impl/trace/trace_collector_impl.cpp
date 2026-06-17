@@ -255,12 +255,12 @@ CollectResult<std::string> TraceCollectorImpl::DumpAppSystemTrace(const std::str
     if (traceInfo.outputFiles.empty() || traceInfo.outputFiles.back().empty()) {
         return {UcError::SYSTEM_ERROR};
     }
-    return HandAppSystemTrace(traceInfo.outputFiles.back(), prefix, appInfo.sandBoxPath);
+    return HandAppSystemTrace(traceInfo.outputFiles.back(), prefix, appInfo.sandBoxPath, appInfo.uid);
 }
 
 
 CollectResult<std::string> TraceCollectorImpl::HandAppSystemTrace(const std::string& srcName,
-    const std::string& prefix, const std::string &sandBoxPath)
+    const std::string& prefix, const std::string &sandBoxPath, int32_t uid)
 {
     CollectResult<std::string> result;
     std::string traceName = FileUtil::ExtractFileName(srcName);
@@ -269,6 +269,9 @@ CollectResult<std::string> TraceCollectorImpl::HandAppSystemTrace(const std::str
     }
     std::string appTraceFullName = sandBoxPath + "/" + traceName;
     if (FileUtil::CopyFileFast(srcName, appTraceFullName) == 0) {
+        if (chown(appTraceFullName.c_str(), uid, uid) != 0) {
+            HIVIEW_LOGW("chown trace file %{public}s to uid %{public}d failed", appTraceFullName.c_str(), uid);
+        }
         result.data = traceName;
         result.retCode = UcError::SUCCESS;
     } else {
