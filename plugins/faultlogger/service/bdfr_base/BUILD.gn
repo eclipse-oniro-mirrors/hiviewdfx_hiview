@@ -77,6 +77,7 @@ ohos_shared_library("bdfr_base") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  cflags_cc = [ "-Os" ]
 
   configs = [
     "$hiview_root/utility/smart_parser:smart_parser_config",
