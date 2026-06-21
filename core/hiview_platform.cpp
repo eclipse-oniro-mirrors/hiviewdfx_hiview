@@ -601,10 +601,6 @@ void HiviewPlatform::PostUnorderedEvent(std::shared_ptr<Plugin> plugin, std::sha
         return;
     }
 
-    if (plugin == nullptr) {
-        HIVIEW_LOGI("maybe platform send event");
-    }
-
     if (unorderQueue_ != nullptr && event != nullptr) {
         event->processType_ = Event::ManageType::UNORDERED;
         unorderQueue_->Enqueue(event);
@@ -679,7 +675,6 @@ void HiviewPlatform::PostAsyncEventToTarget(std::shared_ptr<Plugin> caller, cons
     } else {
         workLoop->AddEvent(callee, event);
     }
-    HIVIEW_LOGI("Post async event to %{public}s successfully", calleeName.c_str());
 }
 
 std::shared_ptr<EventLoop> HiviewPlatform::GetSharedWorkLoop()
