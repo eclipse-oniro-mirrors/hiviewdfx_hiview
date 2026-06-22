@@ -234,6 +234,20 @@ void FoldEventCacher::CalculateCoordinationDuration(uint64_t dayStartTime,
 }
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 
+int FoldEventCacher::AdjustFoldStatusByDisplayMode(int originalFoldStatus) const
+{
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    if (FoldCommonUtils::GetFoldDisplayMode() == FOLD_DISPLAY_MODE_MAIN) {
+        return ScreenFoldStatus::FOLD_LANDSCAPE_FULL_STATUS;
+    }
+    if (FoldCommonUtils::GetFoldDisplayMode() == FOLD_DISPLAY_MODE_FULL && originalFoldStatus ==
+        ScreenFoldStatus::FOLD_LANDSCAPE_FULL_STATUS) {
+        return ScreenFoldStatus::EXPAND_LANDSCAPE_FULL_STATUS;
+    }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
+    return originalFoldStatus;
+}
+
 void FoldEventCacher::ProcessFocusWindowEvent(std::shared_ptr<SysEvent> event)
 {
     if (focusedAppPair_.second) {
@@ -256,7 +270,7 @@ void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.bundleName = focusedAppPair_.first;
     int combineScreenStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
     appEventRecord.preFoldStatus = combineScreenStatus;
-    appEventRecord.foldStatus = combineScreenStatus;
+    appEventRecord.foldStatus = AdjustFoldStatusByDisplayMode(combineScreenStatus);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 #if FOLD_PC_COUNT_DURATION_ENABLE
     appEventRecord.preDisplayMode = predisplayMode_;
@@ -276,7 +290,7 @@ void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.bundleName = focusedAppPair_.first;
     int combineScreenStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
     appEventRecord.preFoldStatus = combineScreenStatus;
-    appEventRecord.foldStatus = combineScreenStatus;
+    appEventRecord.foldStatus = AdjustFoldStatusByDisplayMode(combineScreenStatus);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 
     if (combineScreenStatus != UNKNOWN_STATUS) {
@@ -315,7 +329,8 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = focusedAppPair_.first;
     appEventRecord.preFoldStatus = preFoldStatus;
-    appEventRecord.foldStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
+    int rawStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
+    appEventRecord.foldStatus = AdjustFoldStatusByDisplayMode(rawStatus);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
     if ((appEventRecord.foldStatus != UNKNOWN_STATUS)
         && appEventRecord.preFoldStatus != appEventRecord.foldStatus) {
@@ -330,7 +345,7 @@ void FoldEventCacher::ProcessCountDurationEvent(AppEventRecord& appEventRecord, 
     newRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     newRecord.bundleName = appEventRecord.bundleName;
     newRecord.preFoldStatus = appEventRecord.preFoldStatus;
-    newRecord.foldStatus = appEventRecord.foldStatus;
+    newRecord.foldStatus = AdjustFoldStatusByDisplayMode(appEventRecord.foldStatus);
     newRecord.happenTime = static_cast<int64_t>(TimeUtil::GenerateTimestamp()) / MILLISEC_TO_MICROSEC;
     dbHelper_->AddAppEvent(newRecord, durations);
 }
