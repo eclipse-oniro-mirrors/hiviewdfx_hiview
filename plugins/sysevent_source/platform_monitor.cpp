@@ -91,7 +91,7 @@ void PlatformMonitor::CollectCostTime(PipelineEvent *event)
 
 void PlatformMonitor::CollectPerfProfiler()
 {
-    HIVIEW_LOGI("collect performance profiler");
+    HIVIEW_LOGD("collect performance profiler");
     // collect data every 5 minute
     // collect event max size and max count
     if (maxTotalCount_ < SysEvent::totalCount_) {

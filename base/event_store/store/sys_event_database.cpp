@@ -45,7 +45,7 @@ int64_t GetFileSeq(const std::string& file)
     std::string fileName(FileUtil::ExtractFileName(file));
     SplitedEventInfo eventInfo;
     if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, SEQ_ONLY)) {
-        HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
+        HIVIEW_LOGD("failed to parse event info from: %{public}s", fileName.c_str());
         return 0;
     }
     return eventInfo.seq;
@@ -73,7 +73,7 @@ uint8_t GetEventTypeFromFileName(const std::string& fileName)
 {
     SplitedEventInfo eventInfo;
     if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, TYPE_ONLY)) {
-        HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
+        HIVIEW_LOGD("failed to parse event info from: %{public}s", fileName.c_str());
         return 0;
     }
     return eventInfo.type;
@@ -275,7 +275,7 @@ void SysEventDatabase::GetClearMap(ClearFilesMap& clearMap)
         std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for skipping '/'
         SplitedEventInfo eventInfo;
         if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY)) {
-            HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
+            HIVIEW_LOGD("failed to parse event info from %{public}s", fileName.c_str());
             continue;
         }
 
@@ -360,7 +360,7 @@ bool SysEventDatabase::IsContainQueryArg(const std::string& file, const SysEvent
     SplitedEventInfo eventInfo;
     if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo,
         NAME_ONLY | TYPE_ONLY | SEQ_ONLY | REPORT_INTERVAL_ONLY)) {
-        HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
+        HIVIEW_LOGD("failed to parse event info from %{public}s", fileName.c_str());
         return false;
     }
 
