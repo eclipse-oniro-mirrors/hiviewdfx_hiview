@@ -276,7 +276,6 @@ void UsageEventReport::SaveSysUsageEvent()
 
 void UsageEventReport::StartServiceByOption(const std::string& opt)
 {
-    HIVIEW_LOGI("start service, opt=%{public}s", opt.c_str());
     if (pid_t pid = fork(); pid < 0) {
         HIVIEW_LOGE("failed to fork child process");
         return;
