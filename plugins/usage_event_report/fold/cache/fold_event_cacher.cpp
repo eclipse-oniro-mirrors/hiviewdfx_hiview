@@ -240,10 +240,6 @@ int FoldEventCacher::AdjustFoldStatusByDisplayMode(int originalFoldStatus) const
     if (FoldCommonUtils::GetFoldDisplayMode() == FOLD_DISPLAY_MODE_MAIN) {
         return ScreenFoldStatus::FOLD_LANDSCAPE_FULL_STATUS;
     }
-    if (FoldCommonUtils::GetFoldDisplayMode() == FOLD_DISPLAY_MODE_FULL && originalFoldStatus ==
-        ScreenFoldStatus::FOLD_LANDSCAPE_FULL_STATUS) {
-        return ScreenFoldStatus::EXPAND_LANDSCAPE_FULL_STATUS;
-    }
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     return originalFoldStatus;
 }
