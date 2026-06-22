@@ -37,7 +37,6 @@ void GetExpiredFileNames(std::vector<std::string>& dest, const std::string& scan
     std::vector<std::string> scannedFiles;
     FileUtil::GetDirFiles(scanDir, scannedFiles);
     if (scannedFiles.empty()) {
-        HIVIEW_LOGW("no packaged export event file found.");
         return;
     }
     std::regex reg { ".*/HSE_.*\\.zip$" };
@@ -70,7 +69,6 @@ bool EventScanHandler::Scan(const std::string& moduleName, const std::string& sc
     delReq->moduleName = moduleName;
     GetExpiredFileNames(delReq->files, scanDir, storedDayCnt);
     if (delReq->files.empty()) {
-        HIVIEW_LOGI("no expired event file found");
         return true;
     }
     HIVIEW_LOGI("count of export event zip file is %{public}zu", delReq->files.size());
