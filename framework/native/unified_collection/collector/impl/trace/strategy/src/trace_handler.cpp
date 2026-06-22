@@ -62,7 +62,7 @@ void DoClean(const std::string tracePath, uint32_t cleanThreshold)
     std::vector<std::pair<std::string, struct stat>> fileInfos;
     FileUtil::GetDirFileInfos(tracePath, fileInfos);
     if (fileInfos.size() <= cleanThreshold) {
-        HIVIEW_LOGI("no need clean, file count:%{public}zu, threshold:%{public}u.", fileInfos.size(), cleanThreshold);
+        HIVIEW_LOGD("no need clean, file count:%{public}zu, threshold:%{public}u.", fileInfos.size(), cleanThreshold);
         return;
     }
 

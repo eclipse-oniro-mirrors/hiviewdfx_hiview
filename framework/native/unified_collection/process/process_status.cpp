@@ -141,7 +141,6 @@ void ProcessStatus::UpdateProcessState(int32_t pid, ProcessState procState)
 
 void ProcessStatus::UpdateProcessForegroundState(int32_t pid)
 {
-    HIVIEW_LOGI("pid=%{public}d state=FOREGROUND", pid);
     uint64_t nowTime = TimeUtil::GetMilliseconds();
     if (processInfos_.find(pid) != processInfos_.end()) {
         processInfos_[pid].state = FOREGROUND;
@@ -157,7 +156,6 @@ void ProcessStatus::UpdateProcessForegroundState(int32_t pid)
 
 void ProcessStatus::UpdateProcessBackgroundState(int32_t pid)
 {
-    HIVIEW_LOGI("pid=%{public}d state=BACKGROUND", pid);
     if (processInfos_.find(pid) != processInfos_.end()) {
         // last foreground time needs to be updated when the foreground status is switched to the background
         if (processInfos_[pid].state == FOREGROUND) {
