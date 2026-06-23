@@ -93,6 +93,7 @@ constexpr const char * const LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
 constexpr const char * const LIFETIME = "LIFETIME";
 constexpr const char * const LOG_CUT_OFF_SIZE = "LOG_CUT_OFF_SIZE";
 constexpr const char * const LOG_PATH = "LOG_PATH";
+constexpr const char * const LOG_SOURCE = "LOG_SOURCE";
 constexpr const char * const MEMORY_NEAR_REGISTERS = "MEMORY_NEAR_REGISTERS";
 constexpr const char * const MEMORY_USAGE = "MEM_USAGE";
 constexpr const char * const MERGE_APP_LOG_PRINTING = "MERGE_APP_LOG_PRINTING";
