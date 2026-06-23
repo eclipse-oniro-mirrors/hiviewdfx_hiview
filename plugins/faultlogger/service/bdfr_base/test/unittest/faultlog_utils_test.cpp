@@ -331,5 +331,43 @@ HWTEST(FaultloggerUtilsUnittest, ExtractSubMoudleNameTest003, testing::ext::Test
     std::string endName = "test";
     ASSERT_EQ(endName, moduleName2);
 }
+
+/**
+ * @tc.name: GetLogTypeByEventNameTest001
+ * @tc.desc: Test calling GetLogTypeByEventName Func
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerUtilsUnittest, GetLogTypeByEventNameTest001, testing::ext::TestSize.Level3)
+{
+    std::array<std::string, 10> eventList1 = {
+        "JS_ERROR",
+        "CPP_CRASH",
+        "APP_FREEZE",
+        "SYS_FREEZE",
+        "SYS_WARNING",
+        "APPFREEZE_WARNING",
+        "ADDR_SANITIZER",
+        "CJ_ERROR",
+        "RUST_PANIC",
+        "PROCESS_PAGE_INFO"
+    };
+    std::array<FaultLogType, 10> expectedTypes = {
+        FaultLogType::JS_CRASH,
+        FaultLogType::CPP_CRASH,
+        FaultLogType::APP_FREEZE,
+        FaultLogType::SYS_FREEZE,
+        FaultLogType::SYS_WARNING,
+        FaultLogType::APPFREEZE_WARNING,
+        FaultLogType::ADDR_SANITIZER,
+        FaultLogType::CJ_ERROR,
+        FaultLogType::RUST_PANIC,
+        FaultLogType::PROCESS_PAGE_INFO
+    };
+    for (size_t i = 0; i < eventList1.size(); ++i) {
+        ASSERT_EQ(GetLogTypeByEventName(eventList1[i]), expectedTypes[i])
+            << "GetLogTypeByEventName(" << eventList1[i] << ")";
+    }
+    ASSERT_EQ(GetLogTypeByEventName("UNKNOWN_EVENT"), FaultLogType::ALL);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

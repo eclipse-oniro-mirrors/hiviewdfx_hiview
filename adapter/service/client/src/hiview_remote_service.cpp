@@ -60,7 +60,6 @@ sptr<IRemoteObject> GetHiViewRemoteService()
     if (g_hiviewServiceAbilityProxy != nullptr) {
         return g_hiviewServiceAbilityProxy;
     }
-    HIVIEW_LOGI("refresh remote service instance.");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
         return nullptr;

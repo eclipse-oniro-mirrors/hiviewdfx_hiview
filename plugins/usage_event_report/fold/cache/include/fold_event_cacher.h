@@ -45,6 +45,7 @@ private:
     bool CanCalcDuration(uint32_t preId, uint32_t id);
     void Accumulative(int foldStatus, uint64_t duration, std::map<int, uint64_t>& durations);
     void ProcessCountDurationEvent(AppEventRecord& appEventRecord, std::map<int, uint64_t>& durations);
+    int AdjustFoldStatusByDisplayMode(int originalFoldStatus) const;
     void UpdateMultiWindowInfos(uint8_t multiNum, const std::string& multiWindow);
     int32_t GetWindowModeOfFocusedApp();
 #if FOLD_PC_COUNT_DURATION_ENABLE

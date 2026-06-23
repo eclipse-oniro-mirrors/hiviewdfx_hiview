@@ -53,10 +53,10 @@ static napi_value List(napi_env env, napi_callback_info info)
     }
     std::vector<HiviewFileInfo> fileInfos;
     int32_t retCode = HiviewServiceAgent::GetInstance().List(logType, fileInfos);
-    HIVIEW_LOGI("retCode: %{public}u.", retCode);
     if (retCode == 0) {
         return HiviewNapiUtil::GenerateFileInfoResult(env, fileInfos);
     } else {
+        HIVIEW_LOGW("list failed, retCode: %{public}u.", retCode);
         HiviewNapiUtil::ThrowErrorByCode(env, retCode);
         return result;
     }

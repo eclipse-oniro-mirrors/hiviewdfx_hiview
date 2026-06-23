@@ -91,7 +91,7 @@ void PlatformMonitor::CollectCostTime(PipelineEvent *event)
 
 void PlatformMonitor::CollectPerfProfiler()
 {
-    HIVIEW_LOGI("collect performance profiler");
+    HIVIEW_LOGD("collect performance profiler");
     // collect data every 5 minute
     // collect event max size and max count
     if (maxTotalCount_ < SysEvent::totalCount_) {
@@ -245,7 +245,6 @@ void PlatformMonitor::ReportProfile(const PerfMeasure& perfMeasure)
 
 void PlatformMonitor::ReportCycleProfile()
 {
-    HIVIEW_LOGD("report performance profile");
     PerfMeasure perfMeasure;
     // report max event size and count
     GetMaxTotalMeasure(perfMeasure);
@@ -266,7 +265,6 @@ void PlatformMonitor::ReportCycleProfile()
     CalcOverBenckMarkPct(perfMeasure);
 
     ReportProfile(perfMeasure);
-    HIVIEW_LOGI("report performance profile have done");
 }
 
 void PlatformMonitor::GetTopDomains(std::vector<std::string> &domains, std::vector<uint32_t> &counts)

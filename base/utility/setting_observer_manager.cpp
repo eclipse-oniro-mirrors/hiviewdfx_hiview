@@ -86,6 +86,7 @@ bool QueryStringValueByKey(const std::string& paramKey, std::string& value)
         HIVIEW_LOGE("no result found with key %{public}s, ret is %{public}d", paramKey.c_str(), ret);
         return false;
     }
+    HIVIEW_LOGD("setting value is %{public}s, key is %{public}s", value.c_str(), paramKey.c_str());
     return true;
 }
 }
