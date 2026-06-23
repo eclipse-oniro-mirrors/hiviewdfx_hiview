@@ -503,7 +503,6 @@ CollectResult<std::vector<ProcessIoStats>> IoCollectorImpl::CollectAllProcIoStat
 {
     CollectResult<std::vector<ProcessIoStats>> result;
     GetProcIoStats(result.data, isUpdate);
-    HIVIEW_LOGI("size=%{public}zu, isUpdate=%{public}d", result.data.size(), isUpdate);
     result.retCode = UcError::SUCCESS;
     return result;
 }

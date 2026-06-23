@@ -135,7 +135,6 @@ TraceRet TraceStrategy::DumpTrace(DumpEvent &dumpEvent, TraceRetInfo &traceRetIn
 TraceRet TraceDevStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
     if (traceFlowController_->IsIoOverFlow()) {
-        HIVIEW_LOGI("io over flow, can not dump.");
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     DumpEvent dumpEvent;
@@ -250,7 +249,6 @@ TraceRet TelemetryStrategy::DoDump(std::vector<std::string> &outputFiles, TraceR
 TraceRet TraceAsyncStrategy::DoDump(std::vector<std::string> &outputFiles, TraceRetInfo &traceRetInfo)
 {
     if (traceFlowController_->IsIoOverFlow()) {
-        HIVIEW_LOGI("io over flow, can not dump.");
         return TraceRet(TraceFlowCode::TRACE_DUMP_DENY);
     }
     DumpEvent dumpEvent;
