@@ -111,8 +111,7 @@ private:
     std::string abilityName_;
     bool isLaunch_ {false};
 
-    // 策略模式相关
-    std::unique_ptr<ComponentCollectStrategy> collectStrategy_;
+    std::unique_ptr<DetectCollectStrategy> collectStrategy_;
 
     // 状态模式相关
     std::unique_ptr<ICollectState> currentState_;

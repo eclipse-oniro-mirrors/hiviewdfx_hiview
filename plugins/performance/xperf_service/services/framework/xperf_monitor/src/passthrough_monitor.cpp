@@ -28,6 +28,7 @@
 
 namespace {
     constexpr int64_t USER_ACTION_MONITOR_DURATION = 5000;
+    constexpr size_t MAX_CACHE_SIZE = 10;
 }
  
 namespace OHOS {
@@ -138,9 +139,9 @@ void PassthroughMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
 std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
 {
     std::lock_guard<std::mutex> lock(sourceMutex_);
-    for (auto it = bundleNameToUniqueId_.begin(); it != bundleNameToUniqueId_.end(); it++) {
-        if (it->second == uniqueId) {
-            return it->first;
+    for (const auto& [name, id] : lruList_) {
+        if (id == uniqueId) {
+            return name;
         }
     }
     return "";
@@ -149,10 +150,17 @@ std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
 void PassthroughMonitor::OnSurfaceReceived(const std::string& bundleName, int64_t uniqueId)
 {
     std::lock_guard<std::mutex> lock(sourceMutex_);
-    auto it = bundleNameToUniqueId_.find(bundleName);
-    if (it != bundleNameToUniqueId_.end()) {
-        it->second = uniqueId;
+    for (auto it = lruList_.begin(); it != lruList_.end(); ++it) {
+        if (it->first == bundleName) {
+            it->second = uniqueId;
+            lruList_.splice(lruList_.begin(), lruList_, it);
+            return;
+        }
     }
+    if (lruList_.size() >= MAX_CACHE_SIZE) {
+        lruList_.pop_back();
+    }
+    lruList_.emplace_front(bundleName, uniqueId);
 }
  
 void PassthroughMonitor::OnLoadCompleteEvent(OhosXperfEvent* event)
