@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-// "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
+// "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:xxx.com#FAULT_ID:0#FAULT_CODE:0";
 OhosXperfEvent* ParseNetworkFaultMsg(const std::string& msg)
 {
     NetworkJankEvent* event = new NetworkJankEvent();

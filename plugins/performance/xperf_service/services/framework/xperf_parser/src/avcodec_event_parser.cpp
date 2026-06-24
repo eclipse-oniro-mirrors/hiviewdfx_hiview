@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-//#UNIQUEID:6670084210789#PID:11283#BUNDLE_NAME:com.kuaishou.hmapp
+//#UNIQUEID:6670084210789#PID:11283#BUNDLE_NAME:com.xxx.hmapp
 //#SURFACE_NAME:be89e1dc-7cc0-4b79-8023-b2d63bb75f78Surface#FAULT_ID:4#FAULT_CODE:3
 //#JANK_REASON:omx hold input too more
 OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg)
@@ -37,7 +37,7 @@ OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg)
     return event;
 }
 
-//4000 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
+//4000 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:xxx.com#SURFACE_NAME:399542385184Surface#FPS:60
 //#REPORT_INTERVAL:100";
 OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg)
 {

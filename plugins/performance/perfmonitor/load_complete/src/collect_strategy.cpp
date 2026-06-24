@@ -37,8 +37,6 @@ constexpr size_t SPECIAL_MAX_NO_PRELOAD_ADD_NUM = 45;
 namespace OHOS {
 namespace HiviewDFX {
 
-// ==================== DetectCollectStrategy 实现 ====================
-
 void DetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType)
 {
     XPERF_TRACE_SCOPED("[LoadCompleteMonitor] AddComponent componentId:%d", componentId);
@@ -228,35 +226,6 @@ void DetectCollectStrategy::Reset()
     completeComponentInfos_.clear();
     notAddComponentInfos_.clear();
     deleteNum_ = 0;
-}
-
-// ==================== NoDetectCollectStrategy 实现 ====================
-
-void NoDetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType)
-{
-    // 不检测策略：不进行任何操作
-}
-
-void NoDetectCollectStrategy::DeleteComponent(int32_t componentId)
-{
-    // 不检测策略：不进行任何操作
-}
-
-void NoDetectCollectStrategy::CompleteComponent(int32_t componentId)
-{
-    // 不检测策略：不进行任何操作
-}
-
-CollectResult NoDetectCollectStrategy::CalculateResult(int64_t beginTime)
-{
-    // 不检测策略：返回不完成的结果，不会上报
-    CollectResult result = {0, 0, 0, false};
-    return result;
-}
-
-void NoDetectCollectStrategy::Reset()
-{
-    // 不检测策略：不进行任何操作
 }
 
 } // namespace HiviewDFX

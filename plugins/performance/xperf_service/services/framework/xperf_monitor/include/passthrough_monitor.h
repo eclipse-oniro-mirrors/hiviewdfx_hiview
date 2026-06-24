@@ -16,6 +16,7 @@
 #ifndef PASSTHROUGH_MONITOR_H
 #define PASSTHROUGH_MONITOR_H
 
+#include <list>
 #include <mutex>
 
 #include "xperf_constant.h"
@@ -54,11 +55,7 @@ private:
     int64_t lastReportSurfaceTime_{0};
 
     std::mutex sourceMutex_;
-    std::unordered_map<std::string, int64_t> bundleNameToUniqueId_ = {
-        {std::string(XperfConstants::APP_NAME_KUAISHOU_HMAPP), 0},
-        {std::string(XperfConstants::APP_NAME_KUAISHOU_HMNEBULA), 0},
-        {std::string(XperfConstants::APP_NAME_SS_HM_UGC_AWEME), 0}
-    };
+    std::list<std::pair<std::string, int64_t>> lruList_;
 
     //----点击操作----
     std::mutex touchActionMutex_;

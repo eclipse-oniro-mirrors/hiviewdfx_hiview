@@ -84,7 +84,6 @@ ohos_shared_library("libperfmonitor") {
       "src/load_complete_monitor.cpp",
       "load_complete/src/collect_states.cpp",
       "load_complete/src/collect_strategy.cpp",
-      "load_complete/src/collect_strategy_factory.cpp",
     ]
 
     configs = [ ":xperf_perfmonitor_config" ]

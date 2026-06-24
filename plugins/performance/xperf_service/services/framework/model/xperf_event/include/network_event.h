@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-//1000  "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
+//1000  "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:xxx.com#FAULT_ID:0#FAULT_CODE:0";
 struct NetworkJankEvent : public OhosXperfEvent {
     int16_t faultId{0};
     int16_t faultCode{0};

@@ -18,7 +18,7 @@
 #include <cinttypes>
 #include <thread>
 
-#include "collect_strategy_factory.h"
+#include "collect_strategy.h"
 #include "perf_model.h"
 #include "perf_reporter.h"
 #include "perf_trace.h"
@@ -113,11 +113,6 @@ void LoadCompleteMonitor::FinishCollectTask()
         return;
     }
 
-    // 不检测策略直接结束，不上报
-    if (!collectStrategy_->ShouldReport()) {
-        return;
-    }
-
     // 使用策略计算结果
     auto result = collectStrategy_->CalculateResult(beginTime_);
 
@@ -182,8 +177,7 @@ void LoadCompleteMonitor::StartCollectCommon(bool isLaunch)
     bundleName_ = baseInfo.bundleName;
     abilityName_ = baseInfo.abilityName;
 
-    // 使用工厂创建策略
-    collectStrategy_ = CollectStrategyFactory::CreateStrategy(bundleName_, isLaunch_);
+    collectStrategy_ = std::make_unique<DetectCollectStrategy>();
 
     beginTime_ = GetCurrentSystimeMs();
 
