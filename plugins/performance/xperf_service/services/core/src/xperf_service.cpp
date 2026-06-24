@@ -45,9 +45,11 @@ void XperfService::DispatchMsg(int32_t domainId, int32_t eventId, const std::str
 {
     if (domainId != DomainId::PERFMONITOR) {
         OHOS::Security::AccessToken::AccessTokenID callerToken = OHOS::IPCSkeleton::GetCallingTokenID();
-        Security::AccessToken::ATokenTypeEnum tokenType = OHOS::Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
+        Security::AccessToken::ATokenTypeEnum tokenType = OHOS::Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(
+            callerToken);
         if (tokenType != OHOS::Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-            LOGW("XperfService_DispatchMsg caller is not a SA. domainId:%{public}d, eventId:%{public}d", domainId, eventId);
+            LOGW("XperfService_DispatchMsg caller is not a SA. domainId:%{public}d, eventId:%{public}d", domainId,
+                eventId);
             return;
         }
     }
