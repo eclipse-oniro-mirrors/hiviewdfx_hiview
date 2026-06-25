@@ -234,6 +234,7 @@ WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::stri
     appRunningUniqueId_ = appRunningUniqueId;
     return *this;
 }
+
 WatchPoint::Builder& WatchPoint::Builder::InitTaskName(const std::string& taskName)
 {
     taskName_ = taskName;
@@ -447,6 +448,7 @@ std::string WatchPoint::GetClusterRaw() const
 {
     return clusterRaw_;
 }
+
 std::string WatchPoint::GetTimeoutEventId() const
 {
     return timeoutEventId_;

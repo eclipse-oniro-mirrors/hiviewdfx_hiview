@@ -30,8 +30,8 @@ namespace {
     constexpr const char* KEY_ABILITYMS_TIMEOUT_RATIO = "persist.sys.abilityms.timeout_unit_time_ratio";
     constexpr float FLOAT_EPSILON = 0.01f;
     constexpr int32_t TIME_CONVERT_RATIO = 1000;
-    constexpr int32_t MAX_APPFREEZE_RATIO_SIZE = 4;
-    constexpr int32_t MAX_ABILITYMS_RATIO_SIZE = 2;
+    constexpr uint32_t MAX_APPFREEZE_RATIO_SIZE = 4;
+    constexpr uint32_t MAX_ABILITYMS_RATIO_SIZE = 2;
 }
  
 float FreezeGetRatio::gAppfreezeTimeoutRatio = 0.0f;
@@ -78,7 +78,7 @@ float FreezeGetRatio::GetAbilitymsRatio()
     return GetRatio(KEY_ABILITYMS_TIMEOUT_RATIO, "1", MAX_ABILITYMS_RATIO_SIZE, 1.0f, 1.0f);
 }
  
-float FreezeGetRatio::GetRatio(const std::string& key, const std::string& defaultVal, int maxSize,
+float FreezeGetRatio::GetRatio(const std::string& key, const std::string& defaultVal, uint32_t maxSize,
     float convertRatio = 1.0f, float defaultRatio = 1.0f)
 {
     std::string ratioStr = OHOS::system::GetParameter(key, defaultVal);

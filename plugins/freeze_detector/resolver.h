@@ -51,7 +51,7 @@ private:
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     bool IsReportWarning(const WatchPoint& watchPoint,
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
-    bool IsAppFreezeWarningForBetaVersion(const WatchPoint& watchPoint,
+    bool IsAppFreezeWarning(const WatchPoint& watchPoint,
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     unsigned long startTime_;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;

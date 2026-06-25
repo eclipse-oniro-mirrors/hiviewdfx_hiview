@@ -111,7 +111,7 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
         return true;
     }
 
-    if (IsAppFreezeWarningForBetaVersion(watchPoint, list, result)) {
+    if (IsAppFreezeWarning(watchPoint, list, result)) {
         return true;
     }
 
@@ -142,13 +142,12 @@ bool FreezeResolver::IsSysWarning(const WatchPoint& watchPoint,
         (list.size() == result.size() - SYS_MATCH_NUM);
 }
 
-bool FreezeResolver::IsAppFreezeWarningForBetaVersion(const WatchPoint& watchPoint,
+bool FreezeResolver::IsAppFreezeWarning(const WatchPoint& watchPoint,
     const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
 {
     return (watchPoint.GetStringId() == "THREAD_BLOCK_3S" ||
             watchPoint.GetStringId() == "LIFECYCLE_HALF_TIMEOUT") &&
-            (list.size() == result.size() - APP_MATCH_NUM) &&
-            Parameter::IsBetaVersion();
+            (list.size() == result.size() - APP_MATCH_NUM);
 }
 int FreezeResolver::ProcessEvent(const WatchPoint &watchPoint) const
 {

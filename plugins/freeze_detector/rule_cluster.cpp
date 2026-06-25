@@ -177,14 +177,13 @@ void FreezeRuleCluster::ParseTagLinks(xmlNode* tag, FreezeRule& rule)
                 HIVIEW_LOGE("null event attribute:domain.");
                 return;
             }
+
             std::string stringId = GetAttributeValue<std::string>(node, ATTRIBUTE_STRINGID);
             if (stringId == "") {
                 HIVIEW_LOGE("null event attribute:stringid.");
                 return;
             }
-
             long window = GetAttributeValue<long>(node, ATTRIBUTE_WINDOW);
-
             FreezeResult result = FreezeResult(window, domain, stringId);
             ParseTagEvent(node, result);
             rule.AddResult(domain, stringId, result);

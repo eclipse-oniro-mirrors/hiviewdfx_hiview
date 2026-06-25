@@ -309,7 +309,7 @@ std::string FaultLogFreeze::MergeFreezeExtToLog(const std::string& logPath,
     }
     std::string tmpFileName = "appfreeze-merged-" + std::to_string(pid) + "-" +
         std::to_string(id) + "-" + std::to_string(TimeUtil::GetMilliseconds());
-    std::string tmpPath = std::string(FAULTLOG_TEMP_FOLDER) + tmpFileName;
+    std::string tmpPath = std::string(FAULTLOG_FREEZE_FOLDER) + tmpFileName;
     std::string mergedContent = logContent + "\n==========FREEZE_EXT_INFO==========\n" + freezeExtContent;
     if (!FileUtil::SaveStringToFile(tmpPath, mergedContent)) {
         HIVIEW_LOGE("failed to write merged file: %{public}s", tmpPath.c_str());
