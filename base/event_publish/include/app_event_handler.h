@@ -211,12 +211,24 @@ public:
         DetailExtPssInfo extPssInfo;
     };
 
+    struct LastExitDetailInfo {
+        std::string pid;
+        std::string uid;
+        std::string rss;
+        std::string pss;
+        std::string processState;
+        std::string timestamp;
+        std::string processName;
+        std::string exitMsg;
+        std::string killReason;
+    };
+
     struct AppKilledInfo : public BundleInfo, public TimeInfo {
         std::string reason;
         std::string appRunningUniqueId;
-        std::string processName;
         int32_t uid = 0;
         bool isForeground = false;
+        LastExitDetailInfo lastExitDetailInfo = {};
     };
 
     struct AudioJankFrameInfo : public BundleInfo {

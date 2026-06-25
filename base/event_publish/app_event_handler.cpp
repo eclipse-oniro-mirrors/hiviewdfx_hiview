@@ -340,9 +340,19 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     AddValueToJsonString("reason", event.reason, jsonStr);
     AddValueToJsonString("foreground", event.isForeground, jsonStr);
     AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
-    AddValueToJsonString("process_name", event.processName, jsonStr);
-    AddValueToJsonString("bundle_version", event.bundleVersion, jsonStr, true);
+    AddValueToJsonString("bundle_version", event.bundleVersion, jsonStr);
 
+    jsonStr << "\"last_exit_detail_info\":{";
+    AddValueToJsonString("pid", event.lastExitDetailInfo.pid, jsonStr);
+    AddValueToJsonString("uid", event.lastExitDetailInfo.uid, jsonStr);
+    AddValueToJsonString("rss", event.lastExitDetailInfo.rss, jsonStr);
+    AddValueToJsonString("pss", event.lastExitDetailInfo.pss, jsonStr);
+    AddValueToJsonString("process_state", event.lastExitDetailInfo.processState, jsonStr);
+    AddValueToJsonString("timestamp", event.lastExitDetailInfo.timestamp, jsonStr);
+    AddValueToJsonString("process_name", event.lastExitDetailInfo.processName, jsonStr);
+    AddValueToJsonString("exit_msg", event.lastExitDetailInfo.exitMsg, jsonStr);
+    AddValueToJsonString("kill_reason", event.lastExitDetailInfo.killReason, jsonStr, true);
+    jsonStr << "}";
     jsonStr << std::endl;
     EventPublish::GetInstance().PushEvent(uid, "APP_KILLED", HiSysEvent::EventType::STATISTIC, jsonStr.str());
     return 0;
