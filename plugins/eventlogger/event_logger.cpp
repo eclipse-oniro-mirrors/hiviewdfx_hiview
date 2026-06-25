@@ -94,6 +94,8 @@ namespace {
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+    constexpr int ARKWEB_UID_START = 20100000;
+    constexpr int ARKWEB_UID_END = 20109999;
     /* AppFreeze blocked time */
     constexpr int DFX_THREAD_BLOCK_3S = 3000;
     constexpr int DFX_THREAD_BLOCK_6S = 6000;
@@ -104,8 +106,6 @@ namespace {
     constexpr int DFX_LOAD_TIMEOUT_5S = 5000;
     constexpr int DFX_LOAD_TIMEOUT_10S = 10000;
     constexpr float FLOAT_EPSILON = 0.01f;
-    constexpr int ARKWEB_UID_START = 20100000;
-    constexpr int ARKWEB_UID_END = 20109999;
     constexpr uint64_t HEAP_INFO_SIZE = 3;
     constexpr int HEAP_TOTAL_INDEX = 0;
     constexpr int HEAP_USED_INDEX = 1;
@@ -891,19 +891,19 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
     stack = kernelStackStart + stack;
 }
 
-void EventLogger::FormatHicollieStack(std::string& jsonstack, std::string& textStack, int pid,
-                                      std::string& bundleName, int errcode)
+void EventLogger::FormatHicollieStack(std::string& jsonStack, std::string& textStack, int pid,
+    std::string& bundleName, int errCode)
 {
     bool ret = false;
-    if (errcode == 0) {
-        ret = DfxJsonFormatter::FormatJsonStack(jsonstack, textStack, true, bundleName);
+    if (errCode == 0) {
+        ret = DfxJsonFormatter::FormatJsonStack(jsonStack, textStack, true, bundleName);
         if (!ret) {
             HIVIEW_LOGE("format stack failed, pid:%{public}d", pid);
         }
-    } else if (errcode == 1) {
-        ret = DfxJsonFormatter::FormatKernelStack(jsonstack, textStack, false, true, bundleName);
+    } else if (errCode == 1) {
+        ret = DfxJsonFormatter::FormatKernelStack(jsonStack, textStack, false, true, bundleName);
         if (!ret) {
-            HIVIEW_LOGE("format kernel stack failed, pid:%{public}d", pid);
+            HIVIEW_LOGE("FormatKernelStackformat stack failed, pid:%{public}d", pid);
         }
     } else {
         HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
@@ -929,9 +929,12 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
             int pidOfApp = CommonUtils::GetPidByName(appName);
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
+            if (ret != 0) {
+                HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
+            }
             std::string stackApp;
             FormatHicollieStack(appStackStr, stackApp, pidOfApp, appName, ret);
-            allStack += "\nApp Process:\n";
+            allStack += "\nstackApp:\n";
             allStack += stackApp;
         }
     }
@@ -953,19 +956,23 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
     if (isHicollie) {
         GetHicollieStack(event, jsonStack, stack);
     } else {
-        HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
+        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
+            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
+        };
+        if (!stackQueue_) {
+            return;
+        }
         if (FileUtil::FileExists(jsonStack)) {
             jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
         }
-
         if (!jsonStack.empty() &&
             (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
             if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
                 stack = jsonStack;
             }
         } else {
-            auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
-                this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
+            auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd]() {
+                this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName);
             };
             if (!stackQueue_) {
                 return;
@@ -974,7 +981,6 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
             stackQueue_->wait(handle);
         }
     }
-
     GetFailedDumpStackMsg(stack, event);
 
     if (jsonFd >= 0) {
@@ -1044,6 +1050,40 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     binderInfo = oss.str();
 }
 
+void EventLogger::WriteExternalLog(int fd, std::shared_ptr<SysEvent>& event)
+{
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+        return;
+    }
+    int pid = event->GetEventIntValue("PID");
+    int uid = event->GetEventIntValue("UID");
+    std::string callbackLog = StringUtil::UnescapeJsonStringValue(event->GetEventValue("EXTERNAL_LOG"));
+    if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
+        FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback Start Time:", true);
+        FileUtil::SaveStringToFd(fd, callbackLog + "\n");
+        FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback End Time:", true);
+    }
+    if (Parameter::IsBetaVersion()) {
+        if (callbackLog.empty()) {
+            return;
+        }
+        uint64_t logTime = event->happenTime_ / TimeUtil::SEC_TO_MILLISEC;
+        std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+        std::string logFile = event->eventName_ + "_logcallback-" + std::to_string(pid) + "-" + std::to_string(uid) +
+            "-" + formatTime + ".log";
+        int fdLog = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::EVENTLOG, logFile);
+        if (fdLog < 0) {
+            HIVIEW_LOGE("generate callback log failed, pid=%{public}d", pid);
+            return;
+        }
+        fdsan_exchange_owner_tag(fdLog, 0, FREEZE_DOMAIN);
+        FileUtil::SaveStringToFd(fdLog, callbackLog);
+        if (fdsan_close_with_tag(fdLog, FREEZE_DOMAIN) != 0) {
+            HIVIEW_LOGE("ExternalLog log fdsan close failed, errno:%{public}d", errno);
+        }
+    }
+}
+
 bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEvent> event,
     std::vector<std::string>& binderPids, std::string& threadStack)
 {
@@ -1092,17 +1132,18 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     }
     FileUtil::SaveStringToFd(fd, oss.str());
     WriteCallStack(event, fd);
+    WriteExternalLog(fd, event);
     return true;
 }
 
 std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
 {
     float blockedTime = 0.0f;
- 
+
     if (event->eventName_.empty()) {
         return "";
     }
- 
+
     if (event->eventName_ == "THREAD_BLOCK_3S") {
         blockedTime = DFX_THREAD_BLOCK_3S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "THREAD_BLOCK_6S") {

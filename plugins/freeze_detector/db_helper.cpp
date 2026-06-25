@@ -151,7 +151,7 @@ std::vector<SysEvent> DBHelper::SelectRecordsByPidUid(long pid, long uid,
         .Where("PID", EventStore::Op::EQ, static_cast<int64_t>(pid))
         .And("UID", EventStore::Op::EQ, static_cast<int64_t>(uid))
         .Order(EventStore::EventCol::TS, false);
-    
+
     EventStore::ResultSet set = eventQuery->Execute();
     if (set.GetErrCode() == 0) {
         while (set.HasNext()) {
@@ -159,7 +159,7 @@ std::vector<SysEvent> DBHelper::SelectRecordsByPidUid(long pid, long uid,
             records.emplace_back(*record);
         }
     }
-    HIVIEW_LOGD("select records by pid=%{public}ld uid=%{public}ld, size =%{public}zu.",
+    HIVIEW_LOGD("select records by pid=%{public}ld, uid=%{public}ld, size =%{public}zu.",
         pid, uid, records.size());
     return records;
 }

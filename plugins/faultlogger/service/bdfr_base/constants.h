@@ -29,6 +29,7 @@ constexpr int HEX_BASE = 16;
 
 constexpr const char * const FAULTLOG_BASE_FOLDER = "/data/log/faultlog/";
 constexpr const char * const FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
+constexpr const char * const FAULTLOG_FREEZE_FOLDER = "/data/log/faultlog/freeze/";
 constexpr const char * const FAULTLOG_WARNING_LOG_FOLDER = "/data/log/warninglog/";
 constexpr const char * const FAULTLOG_FAULT_LOGGER_FOLDER = "/data/log/faultlog/faultlogger/";
 constexpr const char * const FAULTLOG_FAULT_HILOG_FOLDER = "/data/log/faultlog/hilog/";
@@ -36,6 +37,7 @@ constexpr const char * const FAULTLOG_FAULT_HILOG_FOLDER = "/data/log/faultlog/h
 
 namespace FaultKey {
 constexpr const char * const APPEND_ORIGIN_LOG = "APPEND_ORIGIN_LOG";
+constexpr const char * const ENABLE_MAINTHREAD_SAMPLE = "ENABLE_MAINTHREAD_SAMPLE";
 constexpr const char * const APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
 constexpr const char * const APP_VM_TYPE = "APPVMTYPE";
 constexpr const char * const BINDER_TRANSACTION_INFO = "BINDER_TRANSACTION_INFO";
@@ -47,7 +49,6 @@ constexpr const char * const DEVICE_DEBUGABLE = "DEVICE_DEBUGABLE";
 constexpr const char * const DEVICE_INFO = "DEVICE_INFO";
 constexpr const char * const DEVICE_MEMINFO = "DEVICE_MEMINFO";
 constexpr const char * const ENABLED_APP_LOG_CONFIG = "ENABLED_APP_LOG_CONFIG";
-constexpr const char * const ENABLE_MAINTHREAD_SAMPLE = "ENABLE_MAINTHREAD_SAMPLE";
 constexpr const char * const ENABLE_MINIDUMP = "ENABLE_MINIDUMP";
 constexpr const char * const ENABLE_MINIDUMP_LOG = "ENABLE_MINIDUMP_LOG";
 constexpr const char * const ERRORMANAGER_CAPTURE = "ERRORMANAGER_CAPTURE";

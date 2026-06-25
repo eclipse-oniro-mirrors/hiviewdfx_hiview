@@ -229,6 +229,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return "";
     }
+    fdsan_exchange_owner_tag(fd, 0, FREEZE_DOMAIN);
     std::string logFile;
     if (FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo)) {
         logFile = FREEZE_EXT_LOG_PATH + freezeFile;
@@ -236,7 +237,9 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
     } else {
         HIVIEW_LOGE("failed to cpu and stack info to file.");
     }
-    close(fd);
+    if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("SaveFreezeExtInfoToFile fdsan close failed, errno:%{public}d", errno);
+    }
     ClearFreezeExtIfNeed(FREEZE_EXT_MAX_FILE_NUM);
     ClearSameFreezeExtIfNeed(uid, MAX_FREEZE_PER_HAP);
     return logFile;

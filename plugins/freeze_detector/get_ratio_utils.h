@@ -31,7 +31,7 @@ public:
 private:
     static float GetAppfreezeRatio();
     static float GetAbilitymsRatio();
-    static float GetRatio(const std::string& key, const std::string& defaultVal, int maxSize, float convertRatio,
+    static float GetRatio(const std::string& key, const std::string& defaultVal, uint32_t maxSize, float convertRatio,
         float defaultRatio);
     static float gAppfreezeTimeoutRatio;
     static float gAbilitymsTimeoutRatio;

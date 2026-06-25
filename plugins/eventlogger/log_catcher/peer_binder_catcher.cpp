@@ -548,7 +548,7 @@ void PeerBinderCatcher::ParseSyncPidsFromHicollie(const std::string& hicollieBin
         std::string item = syncStr.substr(0, pos);
         size_t nameStart = item.find("(");
         size_t nameEnd = item.find(")");
-        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart + 1) {
+        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart) {
             int pid = 0;
             StringUtil::StrToInt(item.substr(0, nameStart), pid);
             syncPids.insert(pid);
@@ -558,7 +558,7 @@ void PeerBinderCatcher::ParseSyncPidsFromHicollie(const std::string& hicollieBin
     if (!syncStr.empty()) {
         size_t nameStart = syncStr.find("(");
         size_t nameEnd = syncStr.find(")");
-        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart + 1) {
+        if (nameStart != std::string::npos && nameEnd != std::string::npos && nameEnd > nameStart) {
             int pid = 0;
             StringUtil::StrToInt(syncStr.substr(0, nameStart), pid);
             syncPids.insert(pid);

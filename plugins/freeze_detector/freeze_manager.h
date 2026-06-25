@@ -69,7 +69,6 @@ private:
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeExtLogStore_ = nullptr;
-
     std::map<int64_t, std::string> traceNameMap_;
     mutable std::shared_mutex traceNameMapMutex_;
 };
