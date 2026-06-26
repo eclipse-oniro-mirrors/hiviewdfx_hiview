@@ -85,8 +85,6 @@ private:
     void OnRsSecondFrame(OhosXperfEvent* event);
     void OnRsFirstFrame(OhosXperfEvent* event);
     void OnAudioStart(OhosXperfEvent* event);
-    void OnCodecFrameStats(OhosXperfEvent* event);
-    void OnRsFrameStats(OhosXperfEvent* event);
     void OffScreen(int64_t currTime);
     void OnScreen(int64_t currTime);
     void DelayCheck(int64_t uniqueId);
