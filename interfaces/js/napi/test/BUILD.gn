@@ -50,7 +50,9 @@ ohos_unittest("InterfaceJsNapiTest") {
     "access_token:libtokenid_sdk",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 }
 

@@ -110,6 +110,7 @@ ohos_unittest("EventExportMgrTest") {
 
   external_deps = [
     "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "cJSON:cjson",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
@@ -139,6 +140,7 @@ ohos_unittest("EventExportWriteTest") {
 
   external_deps = [
     "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "cJSON:cjson",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
@@ -165,6 +167,7 @@ ohos_unittest("TriggerExportTest") {
 
   external_deps = [
     "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "cJSON:cjson",
     "data_share:datashare_consumer",
     "ffrt:libffrt",

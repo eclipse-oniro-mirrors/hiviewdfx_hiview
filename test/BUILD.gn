@@ -110,7 +110,9 @@ if (!defined(ohos_lite)) {
       "c_utils:utils",
       "ets_runtime:libark_jsruntime",
       "init:libbegetutil",
+      "libuv:uv",
       "napi:ace_napi",
+      "node:node_header_notice",
     ]
 
     external_deps += [ "hilog:libhilog" ]
