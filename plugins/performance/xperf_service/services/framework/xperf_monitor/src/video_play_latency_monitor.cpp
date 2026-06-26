@@ -244,7 +244,7 @@ void VideoPlayLatencyMonitor::OffScreen(int64_t currTime)
             node->lastUpTime = node->attachTime;
             StashLatency(node);
             if (node->latency > JANK_THRESHOLD) {
-                ReportStartFault(node, 10); // 8: 下树(2)+无首帧+有音频(8)
+                ReportStartFault(node, 10); // 10: 下树(2)+无首帧+有音频(8)
             }
         } else { // 起播失败
             StashLatency(node);
