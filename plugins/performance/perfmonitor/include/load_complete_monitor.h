@@ -18,13 +18,13 @@
  
 #include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <unordered_map>
  
 #include "collect_state.h"
 #include "collect_states.h"
 #include "collect_strategy.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -118,7 +118,7 @@ private:
 
     // 多线程任务相关
     std::shared_ptr<std::atomic<bool>> currentTaskFlag_;
-    mutable std::mutex mutex_;
+    mutable ffrt::mutex mutex_;
 };
 }
 }
