@@ -56,57 +56,9 @@ void VideoPlayLatencyMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AUDIO_RENDER_START: // 音频开始
             OnAudioStart(event);
             break;
-        case XperfConstants::AVCODEC_FRAME_STATS: // 解码器帧统计
-            OnCodecFrameStats(event);
-            break;
-        case XperfConstants::VIDEO_FRAME_STATS: // RS帧统计
-            OnRsFrameStats(event);
-            break;
         default:
             break;
     }
-}
-
-void VideoPlayLatencyMonitor::OnCodecFrameStats(OhosXperfEvent* event)
-{
-    LOGD("VideoPlayLatencyMonitor_OnCodecFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
-    AvcodecFrameStats* afsEvt = (AvcodecFrameStats*) event;
-    auto item = latencyMap.find(afsEvt->uniqueId);
-    if (item == latencyMap.end()) {
-        return;
-    }
-    VideoJankStatsReport report;
-    report.pid = item->second.pid;
-    report.uniqueId = item->second.uniqueId;
-    report.bundleName = item->second.bundleName;
-    report.surfaceName = item->second.surfaceName;
-    report.lastUpTime = item->second.lastUpTime;
-    report.latency = item->second.latency;
-    report.codecDur = afsEvt->endTime - afsEvt->beginTime;
-    report.codecJankTimes = afsEvt->times;
-    report.codecJankDur = afsEvt->totalDur;
-    PlayLatencyReporter::ReportJankStats(report);
-}
-
-void VideoPlayLatencyMonitor::OnRsFrameStats(OhosXperfEvent* event)
-{
-    LOGD("VideoPlayLatencyMonitor_OnRsFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
-    RsVideoFrameStatsEvent* rfsEvt = (RsVideoFrameStatsEvent*) event;
-    auto item = latencyMap.find(rfsEvt->uniqueId);
-    if (item == latencyMap.end()) {
-        return;
-    }
-    VideoJankStatsReport report;
-    report.pid = item->second.pid;
-    report.uniqueId = item->second.uniqueId;
-    report.bundleName = item->second.bundleName;
-    report.surfaceName = item->second.surfaceName;
-    report.lastUpTime = item->second.lastUpTime;
-    report.latency = item->second.latency;
-    report.rsDur = rfsEvt->duration;
-    report.rsJankTimes = rfsEvt->intervalExceedCount;
-    report.rsJankDur = rfsEvt->intervalExceedLatency;
-    PlayLatencyReporter::ReportJankStats(report);
 }
 
 void VideoPlayLatencyMonitor::OnRsFirstFrame(OhosXperfEvent* event)
