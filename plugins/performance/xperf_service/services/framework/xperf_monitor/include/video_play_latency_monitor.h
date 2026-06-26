@@ -64,8 +64,8 @@ public:
         std::string surfaceName;
         int64_t lastUpTime{0};
         int64_t latency{0};
-    };   
-
+    };
+    
     void OnComponentAttach(int32_t pid, const std::string& bundleName, int64_t uniqueId,
         const std::string& surfaceName);
 
