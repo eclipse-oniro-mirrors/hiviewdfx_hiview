@@ -107,8 +107,11 @@ void XperfMonitorManager::InitPlayLatencyMonitor()
     XperfMonitor* monitor = &VideoPlayLatencyMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::PERF_USER_ACTION, monitor);
     RegisterMonitorByLogID(XperfConstants::PERF_COMPONENT_DETACH, monitor);
-    RegisterMonitorByLogID(XperfConstants::AVCODEC_SECOND_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_FIRST_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_SECOND_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_START, monitor);
     RegisterMonitorByLogID(XperfConstants::AVCODEC_FRAME_STATS, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_FRAME_STATS, monitor);
 }
 
 } // namespace HiviewDFX
