@@ -58,8 +58,7 @@ void LoadCompleteMonitor::PostTimeoutTask()
     currentTaskFlag_ = std::make_shared<std::atomic<bool>>(true);
     auto taskFlag = currentTaskFlag_; // 保存副本供lambda使用
     
-    ffrt::submit([taskFlag] {
-        if (taskFlag && *taskFlag) { LoadCompleteMonitor::GetInstance().StopCollect(); }},
+    ffrt::submit([taskFlag] { if (taskFlag && *taskFlag) { LoadCompleteMonitor::GetInstance().StopCollect(); } },
         ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(LOAD_COMPLETE_MONITOR_DURATION));
 }
 
