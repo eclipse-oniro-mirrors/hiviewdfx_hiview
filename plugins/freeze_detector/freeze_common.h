@@ -81,8 +81,8 @@ public:
     static constexpr const char *const SPACE_SEPARATOR = " ";
     static constexpr const char *const MAIN_HEAP = "MainHeap(bytes): ";
     static constexpr const char *const SHARED_HEAP = "SharedHeap(bytes): ";
-    static constexpr const char *const USED_HEAP = "Used: ";
-    static constexpr const char *const TOTAL_HEAP = ", Total: ";
+    static constexpr const char *const USED_HEAP = "Used ";
+    static constexpr const char *const TOTAL_HEAP = ", Total ";
     static constexpr const char *const GC_MAX_PAUSE = "maxPause";
     static constexpr const char *const GC_MIN_PAUSE = "minPause";
     static constexpr const char *const GC_AVERAGE_PAUSE = "averagePause";
