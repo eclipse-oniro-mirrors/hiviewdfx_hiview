@@ -59,10 +59,8 @@ void LoadCompleteMonitor::PostTimeoutTask()
     auto taskFlag = currentTaskFlag_; // 保存副本供lambda使用
     
     ffrt::submit([taskFlag] {
-        if (taskFlag && *taskFlag) {
-            LoadCompleteMonitor::GetInstance().StopCollect();
-        }
-    }, ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(LOAD_COMPLETE_MONITOR_DURATION));
+        if (taskFlag && *taskFlag) { LoadCompleteMonitor::GetInstance().StopCollect(); }},
+        ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(LOAD_COMPLETE_MONITOR_DURATION));
 }
 
 void LoadCompleteMonitor::StartCollectForAnimation(const std::string& sceneId)

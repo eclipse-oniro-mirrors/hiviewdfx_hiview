@@ -62,9 +62,8 @@ void WhiteBlockMonitor::EndScroll()
         scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
         scrolling = false;
     }
-    ffrt::submit([] {
-        WhiteBlockMonitor::GetInstance().ReportWhiteBlockStat();
-    }, ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(DELAY_US));
+    ffrt::submit([] { WhiteBlockMonitor::GetInstance().ReportWhiteBlockStat(); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(DELAY_US));
 }
  
 void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
