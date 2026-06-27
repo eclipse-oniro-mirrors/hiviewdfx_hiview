@@ -62,6 +62,7 @@ private:
     std::pair<std::string, bool> focusedAppPair_;
     std::unordered_map<std::string, int32_t> multiWindowInfos_;
     int32_t foldStatus_ = 0;
+    bool isTentStatus_ = false;
     int32_t vhMode_ = 0;
     uint64_t timelyStart_ = 0;
 #if FOLD_PC_COUNT_DURATION_ENABLE

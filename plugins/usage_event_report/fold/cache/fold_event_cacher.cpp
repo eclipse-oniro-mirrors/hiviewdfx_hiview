@@ -21,24 +21,16 @@
 #include "time_util.h"
 #include "usage_event_common.h"
 
-using namespace OHOS::HiviewDFX::FoldState;
-using namespace OHOS::HiviewDFX::MultiWindowMode;
-
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("FoldEventCacher");
 namespace {
-constexpr int8_t UNKNOWN_STATUS = -1;
+using namespace OHOS::HiviewDFX::FoldStatusBase;
+using namespace OHOS::HiviewDFX::FoldStateChangeEventSpace;
+using namespace OHOS::HiviewDFX::MultiWindowMode;
+
+constexpr int8_t UNKNOWN_STATUS = 9;
 constexpr uint32_t MILLISEC_TO_MICROSEC = 1000;
-constexpr int8_t EXPAND = 1;
-constexpr int8_t FOLD = 2;
-constexpr int8_t G = 3;
-constexpr int8_t LANDSCAPE = 1;
-constexpr int8_t PORTRAIT = 2;
-constexpr int8_t FULL = 0;
-constexpr int8_t SPLIT = 1;
-constexpr int8_t FLOATING = 2;
-constexpr int8_t MIDSCENE = 3;
 constexpr int8_t THE_TENS_DIGIT = 10;
 #if FOLD_PC_COUNT_DURATION_ENABLE
 constexpr int8_t MAGNETIC = 4;
@@ -50,7 +42,7 @@ constexpr int8_t FOLD_PC_INVALID_MODE_SEVEN = 7;
 constexpr int8_t FOLD_PC_INVALID_MODE_EIGHT = 8;
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 
-int8_t ConvertFoldStatus(int32_t foldStatus)
+int8_t ConvertFoldStatus(int32_t foldStatus, bool isTent)
 {
 #if FOLD_PC_COUNT_DURATION_ENABLE
     switch (foldStatus) {
@@ -65,18 +57,20 @@ int8_t ConvertFoldStatus(int32_t foldStatus)
             return UNKNOWN_STATUS;
     }
 #else
+    if (isTent) {
+        return TENT;
+    }
     switch (foldStatus) {
-        case FOLD_STATE_EXPAND:
-        case FOLD_STATE_HALF_FOLDED:
+        case DISPLAY_MODE_EXPAND:
             return EXPAND;
-        case FOLD_STATE_FOLDED:
-        case FOLD_STATE_FOLDED_WITH_SECOND_HALF_FOLDED:
+        case DISPLAY_MODE_FOLD:
             return FOLD;
-        case FOLD_STATE_EXPAND_WITH_SECOND_EXPAND:
-        case FOLD_STATE_EXPAND_WITH_SECOND_HALF_FOLDED:
-        case FOLD_STATE_HALF_FOLDED_WITH_SECOND_EXPAND:
-        case FOLD_STATE_HALF_FOLDED_WITH_SECOND_HALF_FOLDED:
+        case DISPLAY_MODE_G:
             return G;
+        case DISPLAY_MODE_N:
+            return N;
+        case DISPLAY_MODE_LM:
+            return LM;
         default:
             return UNKNOWN_STATUS;
     }
@@ -86,9 +80,9 @@ int8_t ConvertFoldStatus(int32_t foldStatus)
 int8_t ConvertVhMode(int32_t vhMode)
 {
     switch (vhMode) {
-        case 0: // 0-Portrait
+        case VhModeChangeEventSpace::VH_MODE_PORTRAIT:
             return PORTRAIT;
-        case 1: // 1-landscape
+        case VhModeChangeEventSpace::VH_MODE_LANDSCAPE:
             return LANDSCAPE;
         default:
             return UNKNOWN_STATUS;
@@ -112,14 +106,11 @@ int8_t ConvertWindowMode(int32_t windowMode)
     }
 }
 
-int GetScreenFoldStatus(int32_t foldStatus, int32_t vhMode, int32_t windowMode)
+int GetScreenFoldStatus(int32_t foldStatus, bool isTent, int32_t vhMode, int32_t windowMode)
 {
-    int8_t combineFoldStatus = ConvertFoldStatus(foldStatus);
-    int8_t combineVhMode = ConvertVhMode(vhMode);
+    int8_t combineFoldStatus = ConvertFoldStatus(foldStatus, isTent);
+    int8_t combineVhMode = combineFoldStatus == TENT ? LANDSCAPE : ConvertVhMode(vhMode);
     int8_t combineWindowMode = ConvertWindowMode(windowMode);
-    if (combineFoldStatus == UNKNOWN_STATUS || combineVhMode == UNKNOWN_STATUS || combineWindowMode == UNKNOWN_STATUS) {
-        return UNKNOWN_STATUS;
-    }
     // for example ScreenFoldStatus = 110 means foldStatus = 1, vhMode = 1 and windowMode = 0
     return ((combineFoldStatus * THE_TENS_DIGIT) + combineVhMode) * THE_TENS_DIGIT + combineWindowMode;
 }
@@ -129,10 +120,12 @@ FoldEventCacher::FoldEventCacher(const std::string& workPath)
 {
     timelyStart_ = TimeUtil::GetBootTimeMs();
     dbHelper_ = std::make_unique<FoldAppUsageDbHelper>(workPath);
-    foldStatus_ = FoldCommonUtils::GetFoldStatus();
 #if FOLD_PC_COUNT_DURATION_ENABLE
+    foldStatus_ = FoldCommonUtils::GetFoldStatus();
     displayMode_ = FoldCommonUtils::GetFoldDisplayMode();
     predisplayMode_ = displayMode_;
+#else
+    foldStatus_ = FoldCommonUtils::GetFoldDisplayMode();
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     vhMode_ = FoldCommonUtils::GetVhMode();
     FoldCommonUtils::GetFocusedAppAndWindowInfos(focusedAppPair_, multiWindowInfos_);
@@ -157,7 +150,7 @@ void FoldEventCacher::ProcessEvent(std::shared_ptr<SysEvent> event)
         ProcessFocusWindowEvent(event);
     }
     if ((eventName == FoldStateChangeEventSpace::EVENT_NAME) || (eventName == VhModeChangeEventSpace::EVENT_NAME) ||
-        (eventName == MultiWindowChangeEventSpace::EVENT_NAME)) {
+        (eventName == MultiWindowChangeEventSpace::EVENT_NAME) || (eventName == FoldTentModeEventSpace::EVENT_NAME)) {
         ProcessSceenStatusChangedEvent(event);
     }
 }
@@ -264,7 +257,7 @@ void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.rawid = FoldEventId::EVENT_APP_START;
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = focusedAppPair_.first;
-    int combineScreenStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
+    int combineScreenStatus = GetScreenFoldStatus(foldStatus_, isTentStatus_, vhMode_, GetWindowModeOfFocusedApp());
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = AdjustFoldStatusByDisplayMode(combineScreenStatus);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
@@ -273,9 +266,7 @@ void FoldEventCacher::ProcessForegroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.displayMode= displayMode_;
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 
-    if (combineScreenStatus != UNKNOWN_STATUS) {
-        dbHelper_->AddAppEvent(appEventRecord);
-    }
+    dbHelper_->AddAppEvent(appEventRecord);
 }
 
 void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event)
@@ -284,32 +275,33 @@ void FoldEventCacher::ProcessBackgroundEvent(std::shared_ptr<SysEvent> event)
     appEventRecord.rawid = FoldEventId::EVENT_APP_EXIT;
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = focusedAppPair_.first;
-    int combineScreenStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
+    int combineScreenStatus = GetScreenFoldStatus(foldStatus_, isTentStatus_, vhMode_, GetWindowModeOfFocusedApp());
     appEventRecord.preFoldStatus = combineScreenStatus;
     appEventRecord.foldStatus = AdjustFoldStatusByDisplayMode(combineScreenStatus);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
 
-    if (combineScreenStatus != UNKNOWN_STATUS) {
-        dbHelper_->AddAppEvent(appEventRecord);
-        CountLifeCycleDuration(appEventRecord);
-    }
+    dbHelper_->AddAppEvent(appEventRecord);
+    CountLifeCycleDuration(appEventRecord);
 }
 
 void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> event)
 {
-    int preFoldStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
+    int preFoldStatus = GetScreenFoldStatus(foldStatus_, isTentStatus_, vhMode_, GetWindowModeOfFocusedApp());
     std::string eventName = event->eventName_;
     if (eventName == FoldStateChangeEventSpace::EVENT_NAME) {
-#if FOLD_PC_COUNT_DURATION_ENABLE
         int32_t nextState =
             static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
+#if FOLD_PC_COUNT_DURATION_ENABLE
         if (nextState == FOLD_PC_INVALID_MODE_FIVE || nextState == FOLD_PC_INVALID_MODE_SIX ||
-            nextState == FOLD_PC_INVALID_MODE_SEVEN ||nextState == FOLD_PC_INVALID_MODE_EIGHT) {
+            nextState == FOLD_PC_INVALID_MODE_SEVEN || nextState == FOLD_PC_INVALID_MODE_EIGHT) {
             HIVIEW_LOGI("no valid fold status, dont update fold status");
             return;
         }
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
-        UpdateFoldStatus(static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS)));
+        UpdateFoldStatus(nextState);
+    } else if (eventName == FoldTentModeEventSpace::EVENT_NAME) {
+        int32_t tentValue = static_cast<int32_t>(event->GetEventIntValue(FoldTentModeEventSpace::KEY_OF_TENT_STATUS));
+        isTentStatus_ = (tentValue == FoldTentModeEventSpace::TENT_MODE);
     } else if (eventName == VhModeChangeEventSpace::EVENT_NAME) {
         UpdateVhMode(static_cast<int32_t>(event->GetEventIntValue(VhModeChangeEventSpace::KEY_OF_MODE)));
     } else {
@@ -325,11 +317,10 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     appEventRecord.ts = static_cast<int64_t>(TimeUtil::GetBootTimeMs());
     appEventRecord.bundleName = focusedAppPair_.first;
     appEventRecord.preFoldStatus = preFoldStatus;
-    int rawStatus = GetScreenFoldStatus(foldStatus_, vhMode_, GetWindowModeOfFocusedApp());
+    int rawStatus = GetScreenFoldStatus(foldStatus_, isTentStatus_, vhMode_, GetWindowModeOfFocusedApp());
     appEventRecord.foldStatus = AdjustFoldStatusByDisplayMode(rawStatus);
     appEventRecord.happenTime = static_cast<int64_t>(event->happenTime_);
-    if ((appEventRecord.foldStatus != UNKNOWN_STATUS)
-        && appEventRecord.preFoldStatus != appEventRecord.foldStatus) {
+    if (appEventRecord.preFoldStatus != appEventRecord.foldStatus) {
         dbHelper_->AddAppEvent(appEventRecord);
     }
 }

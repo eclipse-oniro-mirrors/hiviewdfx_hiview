@@ -24,13 +24,13 @@ namespace HiviewDFX {
 namespace FoldCommonUtils {
 constexpr int SYSTEM_WINDOW_BASE = 2000;
 
+#if FOLD_PC_COUNT_DURATION_ENABLE
 int32_t GetFoldStatus();
+#endif
 int32_t GetVhMode();
 void GetFocusedAppAndWindowInfos(std::pair<std::string, bool>& focusedAppPair,
     std::unordered_map<std::string, int32_t>& multiWindowInfos);
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    int32_t GetFoldDisplayMode();
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
+int32_t GetFoldDisplayMode();
 } // namespace FoldCommonUtils
 } // namespace HiviewDFX
 } // namespace OHOS
