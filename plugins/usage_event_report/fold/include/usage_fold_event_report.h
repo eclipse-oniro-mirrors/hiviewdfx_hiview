@@ -36,6 +36,11 @@ public:
     void ReportEvent();
 
 private:
+    void Load(const std::string& workPath);
+    static void OnBootCompletedChange(const char *key, const char *value, void *context);
+
+private:
+    std::string workPath_;
     std::unique_ptr<FoldEventCacher> foldEventCacher_;
     std::unique_ptr<FoldAppUsageEventFactory> foldAppUsageFactory_;
 };

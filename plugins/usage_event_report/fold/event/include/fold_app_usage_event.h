@@ -24,6 +24,10 @@ class FoldAppUsageEvent : public LoggerEvent {
 public:
     FoldAppUsageEvent(const std::string &name, HiSysEvent::EventType type);
     void Report() override;
+
+private:
+    void InitBaseParam();
+    void ReportFullEvent();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

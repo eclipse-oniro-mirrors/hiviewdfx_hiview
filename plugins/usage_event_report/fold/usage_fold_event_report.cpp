@@ -17,20 +17,55 @@
 #include "display_manager_lite.h"
 #include "hiview_logger.h"
 #include "logger_event.h"
+#include "parameter_ex.h"
 #include "sys_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("UsageFoldEventReport");
+namespace {
+constexpr char BOOT_COMPLETED_KEY[] = "bootevent.boot.completed";
+}
 
 void UsageFoldEventReport::Init(const std::string& workPath)
 {
-    if (!OHOS::Rosen::DisplayManagerLite::GetInstance().IsFoldable()) {
-        HIVIEW_LOGI("non-foldable device");
+    workPath_ = workPath;
+    Parameter::WatchParamChange(BOOT_COMPLETED_KEY, OnBootCompletedChange, this);
+    std::string bootCompleted = Parameter::GetString(BOOT_COMPLETED_KEY, "");
+    if (bootCompleted == "true") {
+        Load(workPath);
+    }
+}
+
+void UsageFoldEventReport::OnBootCompletedChange(const char *key, const char *value, void *context)
+{
+    if (context == nullptr || key == nullptr || value == nullptr) {
+        HIVIEW_LOGE("invalid param.");
         return;
     }
-    foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath);
-    foldAppUsageFactory_ = std::make_unique<FoldAppUsageEventFactory>(workPath);
+    if (strcmp(value, "true") != 0) {
+        return;
+    }
+    UsageFoldEventReport *report = static_cast<UsageFoldEventReport *>(context);
+    if (report == nullptr) {
+        HIVIEW_LOGE("invalid param.");
+        return;
+    }
+    report->Load(report->workPath_);
+}
+
+void UsageFoldEventReport::Load(const std::string& workPath)
+{
+    static std::once_flag initFlag;
+    std::call_once(initFlag, [this, &workPath]() {
+        if (!OHOS::Rosen::DisplayManagerLite::GetInstance().IsFoldable()) {
+            HIVIEW_LOGI("non-foldable device");
+            return;
+        }
+        foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath);
+        foldAppUsageFactory_ = std::make_unique<FoldAppUsageEventFactory>(workPath);
+        Parameter::RemoveParameterWatcherEx(BOOT_COMPLETED_KEY, OnBootCompletedChange, nullptr);
+    });
 }
 
 void UsageFoldEventReport::ProcessEvent(std::shared_ptr<Event> event)

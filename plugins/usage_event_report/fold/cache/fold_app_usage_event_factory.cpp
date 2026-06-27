@@ -46,6 +46,15 @@ std::string GetAppVersion(const std::string& bundleName)
     return info.versionName;
 }
 
+void UpdatePCEvent(const FoldAppUsageInfo& info, std::unique_ptr<LoggerEvent>& event)
+{
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    event->Update(KEY_OF_FOLD_KB_VER_USAGE, info.foldKbVer);
+    event->Update(KEY_OF_FOLD_DISPLAY_OUTER_USAGE, info.foldHor);
+    event->Update(KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE, info.foldDisplayCoordination);
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
+}
+
 void UpdateEventFromFoldAppUsageInfo(const FoldAppUsageInfo& info, const std::string& dateStr,
     std::unique_ptr<LoggerEvent>& event)
 {
@@ -75,14 +84,27 @@ void UpdateEventFromFoldAppUsageInfo(const FoldAppUsageInfo& info, const std::st
     event->Update(KEY_OF_G_HOR_SPLIT_USAGE, info.gHorSplit);
     event->Update(KEY_OF_G_HOR_FLOATING_USAGE, info.gHorFloating);
     event->Update(KEY_OF_G_HOR_MIDSCENE_USAGE, info.gHorMidscene);
+    event->Update(KEY_OF_N_VER_USAGE, info.nVer);
+    event->Update(KEY_OF_N_VER_SPLIT_USAGE, info.nVerSplit);
+    event->Update(KEY_OF_N_VER_FLOATING_USAGE, info.nVerFloating);
+    event->Update(KEY_OF_N_HOR_USAGE, info.nHor);
+    event->Update(KEY_OF_N_HOR_SPLIT_USAGE, info.nHorSplit);
+    event->Update(KEY_OF_N_HOR_FLOATING_USAGE, info.nHorFloating);
+    event->Update(KEY_OF_LM_VER_USAGE, info.lmVer);
+    event->Update(KEY_OF_LM_VER_SPLIT_USAGE, info.lmVerSplit);
+    event->Update(KEY_OF_LM_VER_FLOATING_USAGE, info.lmVerFloating);
+    event->Update(KEY_OF_LM_VER_MIDSCENE_USAGE, info.lmVerMidscene);
+    event->Update(KEY_OF_LM_HOR_USAGE, info.lmHor);
+    event->Update(KEY_OF_LM_HOR_SPLIT_USAGE, info.lmHorSplit);
+    event->Update(KEY_OF_LM_HOR_FLOATING_USAGE, info.lmHorFloating);
+    event->Update(KEY_OF_LM_HOR_MIDSCENE_USAGE, info.lmHorMidscene);
+    event->Update(KEY_OF_T_FULL_USAGE, info.tFull);
+    event->Update(KEY_OF_T_SPLIT_USAGE, info.tSplit);
+    event->Update(KEY_OF_T_FLOATING_USAGE, info.tFloating);
     event->Update(KEY_OF_DATE, dateStr);
     event->Update(KEY_OF_START_NUM, info.startNum);
     event->Update(KEY_OF_USAGE, info.usage);
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    event->Update(KEY_OF_FOLD_KB_VER_USAGE, info.foldKbVer);
-    event->Update(KEY_OF_FOLD_DISPLAY_OUTER_USAGE, info.foldHor);
-    event->Update(KEY_OF_FOLD_DISPLAY_COORDINATION_USAGE, info.foldDisplayCoordination);
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
+    UpdatePCEvent(info, event);
 }
 }
 

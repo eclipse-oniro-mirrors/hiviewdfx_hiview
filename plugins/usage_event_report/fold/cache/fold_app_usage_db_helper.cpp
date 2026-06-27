@@ -32,12 +32,21 @@ namespace {
 constexpr char LOG_DB_PATH[] = "sys_event_logger/";
 constexpr char LOG_DB_NAME[] = "log.db";
 constexpr char LOG_DB_TABLE_NAME[] = "app_events";
-constexpr char LOG_DB_APP_EVENTS_TMP[] = "app_events_tmp";
-constexpr int DB_VERSION_1 = 1;
-constexpr int DB_VERSION_2 = 2;
+constexpr int V1 = 1;
+constexpr int V2 = 2;
+constexpr int V4 = 4;
 #if FOLD_PC_COUNT_DURATION_ENABLE
-constexpr int DB_VERSION_3 = 3;
+constexpr int V3 = 3;
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
+
+struct DbFieldInfo {
+    DbFieldInfo(int version, std::string fieldName, std::string fieldType, int foldStatus = -1)
+        : version(version), fieldName(fieldName), fieldType(fieldType), foldStatus(foldStatus) {}
+    int version = 0;
+    std::string fieldName;
+    std::string fieldType;
+    int foldStatus = -1;
+};
 
 constexpr char SQL_TYPE_INTEGER_NOT_NULL[] = "INTEGER NOT NULL";
 constexpr char SQL_TYPE_INTEGER_DEFAULT_0[] = "INTEGER DEFAULT 0";
@@ -48,39 +57,63 @@ constexpr char SQL_TYPE_TEXT[] = "TEXT";
 constexpr int DB_SUCC = 0;
 constexpr int DB_FAILED = -1;
 
-const std::vector<std::pair<std::string, std::string>> BASE_FIELDS = {
-    {FIELD_UID, SQL_TYPE_INTEGER_NOT_NULL},
-    {FIELD_EVENT_ID, SQL_TYPE_INTEGER_NOT_NULL},
-    {FIELD_TS, SQL_TYPE_INTEGER_NOT_NULL},
-    {FIELD_FOLD_STATUS, SQL_TYPE_INTEGER},
-    {FIELD_PRE_FOLD_STATUS, SQL_TYPE_INTEGER},
-    {FIELD_VERSION_NAME, SQL_TYPE_TEXT},
-    {FIELD_HAPPEN_TIME, SQL_TYPE_INTEGER},
-    {FIELD_FOLD_PORTRAIT_DURATION, SQL_TYPE_INTEGER},
-    {FIELD_FOLD_LANDSCAPE_DURATION, SQL_TYPE_INTEGER},
-    {FIELD_EXPAND_PORTRAIT_DURATION, SQL_TYPE_INTEGER},
-    {FIELD_EXPAND_LANDSCAPE_DURATION, SQL_TYPE_INTEGER},
-    {FIELD_BUNDLE_NAME, SQL_TYPE_TEXT_NOT_NULL},
-    {FIELD_FOLD_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_FOLD_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_FOLD_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_FOLD_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_FOLD_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_EXPAND_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_EXPAND_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_EXPAND_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_EXPAND_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_EXPAND_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_EXPAND_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_PORTRAIT_FULL_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_LANDSCAPE_FULL_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0},
-    {FIELD_G_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0}
+const std::vector<DbFieldInfo> BASE_FIELDS = {
+    {V1, FIELD_UID, SQL_TYPE_INTEGER_NOT_NULL},
+    {V1, FIELD_EVENT_ID, SQL_TYPE_INTEGER_NOT_NULL},
+    {V1, FIELD_TS, SQL_TYPE_INTEGER_NOT_NULL},
+    {V1, FIELD_FOLD_STATUS, SQL_TYPE_INTEGER},
+    {V1, FIELD_PRE_FOLD_STATUS, SQL_TYPE_INTEGER},
+    {V1, FIELD_VERSION_NAME, SQL_TYPE_TEXT},
+    {V1, FIELD_HAPPEN_TIME, SQL_TYPE_INTEGER},
+    {V1, FIELD_BUNDLE_NAME, SQL_TYPE_TEXT_NOT_NULL},
+    {V2, FIELD_FOLD_PORTRAIT_DURATION, SQL_TYPE_INTEGER, FOLD_PORTRAIT_FULL_STATUS},
+    {V2, FIELD_FOLD_LANDSCAPE_DURATION, SQL_TYPE_INTEGER, FOLD_LANDSCAPE_FULL_STATUS},
+    {V2, FIELD_EXPAND_PORTRAIT_DURATION, SQL_TYPE_INTEGER, EXPAND_PORTRAIT_FULL_STATUS},
+    {V2, FIELD_EXPAND_LANDSCAPE_DURATION, SQL_TYPE_INTEGER, EXPAND_LANDSCAPE_FULL_STATUS},
+    {V2, FIELD_FOLD_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_PORTRAIT_SPLIT_STATUS},
+    {V2, FIELD_FOLD_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_PORTRAIT_FLOATING_STATUS},
+    {V2, FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_PORTRAIT_MIDSCENE_STATUS},
+    {V2, FIELD_FOLD_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_LANDSCAPE_SPLIT_STATUS},
+    {V2, FIELD_FOLD_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_LANDSCAPE_FLOATING_STATUS},
+    {V2, FIELD_FOLD_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_LANDSCAPE_MIDSCENE_STATUS},
+    {V2, FIELD_EXPAND_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, EXPAND_PORTRAIT_SPLIT_STATUS},
+    {V2, FIELD_EXPAND_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, EXPAND_PORTRAIT_FLOATING_STATUS},
+    {V2, FIELD_EXPAND_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, EXPAND_PORTRAIT_MIDSCENE_STATUS},
+    {V2, FIELD_EXPAND_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, EXPAND_LANDSCAPE_SPLIT_STATUS},
+    {V2, FIELD_EXPAND_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, EXPAND_LANDSCAPE_FLOATING_STATUS},
+    {V2, FIELD_EXPAND_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, EXPAND_LANDSCAPE_MIDSCENE_STATUS},
+    {V2, FIELD_G_PORTRAIT_FULL_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_PORTRAIT_FULL_STATUS},
+    {V2, FIELD_G_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_PORTRAIT_SPLIT_STATUS},
+    {V2, FIELD_G_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_PORTRAIT_FLOATING_STATUS},
+    {V2, FIELD_G_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_PORTRAIT_MIDSCENE_STATUS},
+    {V2, FIELD_G_LANDSCAPE_FULL_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_LANDSCAPE_FULL_STATUS},
+    {V2, FIELD_G_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_LANDSCAPE_SPLIT_STATUS},
+    {V2, FIELD_G_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_LANDSCAPE_FLOATING_STATUS},
+    {V2, FIELD_G_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, G_LANDSCAPE_MIDSCENE_STATUS},
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    {V3, FIELD_DISPLAY_MODE, SQL_TYPE_INTEGER},
+    {V3, FIELD_PRE_DISPLAY_MODE, SQL_TYPE_INTEGER},
+    {V3, FIELD_FOLD_KB_PORTRAIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, FOLD_KB_PORTRAIT_STATUS},
+    {V3, FIELD_FOLD_DISPLAY_COORDINATION_DURATION, SQL_TYPE_INTEGER_DEFAULT_0,
+        FOLD_DISPLAY_MODE_COORDINATION_STATUS},
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
+    {V4, FIELD_N_PORTRAIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, N_PORTRAIT_FULL_STATUS},
+    {V4, FIELD_N_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, N_PORTRAIT_SPLIT_STATUS},
+    {V4, FIELD_N_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, N_PORTRAIT_FLOATING_STATUS},
+    {V4, FIELD_N_LANDSCAPE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, N_LANDSCAPE_FULL_STATUS},
+    {V4, FIELD_N_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, N_LANDSCAPE_SPLIT_STATUS},
+    {V4, FIELD_N_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, N_LANDSCAPE_FLOATING_STATUS},
+    {V4, FIELD_LM_PORTRAIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_PORTRAIT_FULL_STATUS},
+    {V4, FIELD_LM_PORTRAIT_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_PORTRAIT_SPLIT_STATUS},
+    {V4, FIELD_LM_PORTRAIT_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_PORTRAIT_FLOATING_STATUS},
+    {V4, FIELD_LM_PORTRAIT_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_PORTRAIT_MIDSCENE_STATUS},
+    {V4, FIELD_LM_LANDSCAPE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_LANDSCAPE_FULL_STATUS},
+    {V4, FIELD_LM_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_LANDSCAPE_SPLIT_STATUS},
+    {V4, FIELD_LM_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_LANDSCAPE_FLOATING_STATUS},
+    {V4, FIELD_LM_LANDSCAPE_MIDSCENE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, LM_LANDSCAPE_MIDSCENE_STATUS},
+    {V4, FIELD_T_LANDSCAPE_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, T_LANDSCAPE_FULL_STATUS},
+    {V4, FIELD_T_LANDSCAPE_SPLIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, T_LANDSCAPE_SPLIT_STATUS},
+    {V4, FIELD_T_LANDSCAPE_FLOATING_DURATION, SQL_TYPE_INTEGER_DEFAULT_0, T_LANDSCAPE_FLOATING_STATUS},
 };
  
 const std::vector<std::string> BASE_DURATION_COLUMNS = {
@@ -94,14 +127,20 @@ const std::vector<std::string> BASE_DURATION_COLUMNS = {
     FIELD_G_PORTRAIT_FULL_DURATION, FIELD_G_PORTRAIT_SPLIT_DURATION, FIELD_G_PORTRAIT_FLOATING_DURATION,
     FIELD_G_PORTRAIT_MIDSCENE_DURATION, FIELD_G_LANDSCAPE_FULL_DURATION, FIELD_G_LANDSCAPE_SPLIT_DURATION,
     FIELD_G_LANDSCAPE_FLOATING_DURATION, FIELD_G_LANDSCAPE_MIDSCENE_DURATION,
+    FIELD_N_PORTRAIT_DURATION, FIELD_N_PORTRAIT_SPLIT_DURATION, FIELD_N_PORTRAIT_FLOATING_DURATION,
+    FIELD_N_LANDSCAPE_DURATION, FIELD_N_LANDSCAPE_SPLIT_DURATION, FIELD_N_LANDSCAPE_FLOATING_DURATION,
+    FIELD_LM_PORTRAIT_DURATION, FIELD_LM_PORTRAIT_SPLIT_DURATION, FIELD_LM_PORTRAIT_FLOATING_DURATION,
+    FIELD_LM_PORTRAIT_MIDSCENE_DURATION, FIELD_LM_LANDSCAPE_DURATION, FIELD_LM_LANDSCAPE_SPLIT_DURATION,
+    FIELD_LM_LANDSCAPE_FLOATING_DURATION, FIELD_LM_LANDSCAPE_MIDSCENE_DURATION,
+    FIELD_T_LANDSCAPE_DURATION, FIELD_T_LANDSCAPE_SPLIT_DURATION, FIELD_T_LANDSCAPE_FLOATING_DURATION,
 #if FOLD_PC_COUNT_DURATION_ENABLE
     FIELD_FOLD_KB_PORTRAIT_DURATION, FIELD_FOLD_DISPLAY_COORDINATION_DURATION,
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 };
 
-void UpdateScreenStatInfo(FoldAppUsageInfo &info, uint32_t time, int screenStatus)
+void InitUpdateHandlersMap(std::map<int, std::function<void(FoldAppUsageInfo&, uint32_t)>>& updateHandlers)
 {
-    std::map<int, std::function<void(FoldAppUsageInfo&, uint32_t)>> updateHandlers = {
+    updateHandlers = {
         {EXPAND_PORTRAIT_FULL_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.expdVer += time;} },
         {EXPAND_PORTRAIT_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.expdVerSplit += time;} },
         {EXPAND_PORTRAIT_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.expdVerFloating += time;} },
@@ -126,12 +165,35 @@ void UpdateScreenStatInfo(FoldAppUsageInfo &info, uint32_t time, int screenStatu
         {G_LANDSCAPE_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.gHorSplit += time;} },
         {G_LANDSCAPE_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.gHorFloating += time;} },
         {G_LANDSCAPE_MIDSCENE_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.gHorMidscene += time;} },
+        {N_PORTRAIT_FULL_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.nVer += time;} },
+        {N_PORTRAIT_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.nVerSplit += time;} },
+        {N_PORTRAIT_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.nVerFloating += time;} },
+        {N_LANDSCAPE_FULL_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.nHor += time;} },
+        {N_LANDSCAPE_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.nHorSplit += time;} },
+        {N_LANDSCAPE_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.nHorFloating += time;} },
+        {LM_PORTRAIT_FULL_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmVer += time;} },
+        {LM_PORTRAIT_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmVerSplit += time;} },
+        {LM_PORTRAIT_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmVerFloating += time;} },
+        {LM_PORTRAIT_MIDSCENE_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmVerMidscene += time;} },
+        {LM_LANDSCAPE_FULL_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmHor += time;} },
+        {LM_LANDSCAPE_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmHorSplit += time;} },
+        {LM_LANDSCAPE_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmHorFloating += time;} },
+        {LM_LANDSCAPE_MIDSCENE_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.lmHorMidscene += time;} },
+        {T_LANDSCAPE_FULL_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.tFull += time;} },
+        {T_LANDSCAPE_SPLIT_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.tSplit += time;} },
+        {T_LANDSCAPE_FLOATING_STATUS, [] (FoldAppUsageInfo& info, uint32_t time) {info.tFloating += time;} },
 #if FOLD_PC_COUNT_DURATION_ENABLE
         {FOLD_KB_PORTRAIT_STATUS, [](FoldAppUsageInfo& info, uint32_t time) { info.foldKbVer += time; }},
         {FOLD_DISPLAY_MODE_COORDINATION_STATUS,
             [](FoldAppUsageInfo& info, uint32_t time) { info.foldDisplayCoordination += time; }},
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     };
+}
+
+void UpdateScreenStatInfo(FoldAppUsageInfo &info, uint32_t time, int screenStatus)
+{
+    std::map<int, std::function<void(FoldAppUsageInfo&, uint32_t)>> updateHandlers;
+    InitUpdateHandlersMap(updateHandlers);
     if (updateHandlers.find(screenStatus) != updateHandlers.end()) {
         updateHandlers[screenStatus](info, time);
     }
@@ -224,138 +286,58 @@ bool GetLongFromResultSet(std::shared_ptr<NativeRdb::AbsSharedResultSet> resultS
     return true;
 }
 
-std::string GenerateRenameTableSql(const std::string& oldTable, const std::string& newTable)
-{
-    std::string sql = "ALTER TABLE " + oldTable + " RENAME TO " + newTable;
-    return sql;
-}
-
 std::string GenerateCreateAppEventsSql()
 {
-    return SqlUtil::GenerateCreateSql(LOG_DB_TABLE_NAME, BASE_FIELDS);
-}
-
-#if FOLD_PC_COUNT_DURATION_ENABLE
-std::string GenerateCreateV3AppEventsSql()
-{
-    std::vector<std::pair<std::string, std::string>> tmpFields = BASE_FIELDS;
-    tmpFields.emplace_back(std::make_pair(FIELD_DISPLAY_MODE, SQL_TYPE_INTEGER));
-    tmpFields.emplace_back(std::make_pair(FIELD_PRE_DISPLAY_MODE, SQL_TYPE_INTEGER));
-    tmpFields.emplace_back(std::make_pair(FIELD_FOLD_KB_PORTRAIT_DURATION, SQL_TYPE_INTEGER_DEFAULT_0));
-    tmpFields.emplace_back(std::make_pair(FIELD_FOLD_DISPLAY_COORDINATION_DURATION, SQL_TYPE_INTEGER_DEFAULT_0));
-    return SqlUtil::GenerateCreateSql(LOG_DB_TABLE_NAME, tmpFields);
-}
- 
-std::string GenerateV2ToV3InsertSql(const std::string& newTable, const std::string& oldTable)
-{
-    std::vector<std::string> fields = {
-        FIELD_UID, FIELD_EVENT_ID, FIELD_TS, FIELD_FOLD_STATUS, FIELD_PRE_FOLD_STATUS, FIELD_VERSION_NAME,
-        FIELD_HAPPEN_TIME, FIELD_FOLD_PORTRAIT_DURATION, FIELD_FOLD_LANDSCAPE_DURATION, FIELD_EXPAND_PORTRAIT_DURATION,
-        FIELD_EXPAND_LANDSCAPE_DURATION, FIELD_BUNDLE_NAME, FIELD_FOLD_PORTRAIT_SPLIT_DURATION,
-        FIELD_FOLD_PORTRAIT_FLOATING_DURATION, FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION,
-        FIELD_FOLD_LANDSCAPE_SPLIT_DURATION, FIELD_FOLD_LANDSCAPE_FLOATING_DURATION,
-        FIELD_FOLD_LANDSCAPE_MIDSCENE_DURATION, FIELD_EXPAND_PORTRAIT_SPLIT_DURATION,
-        FIELD_EXPAND_PORTRAIT_FLOATING_DURATION, FIELD_EXPAND_PORTRAIT_MIDSCENE_DURATION,
-        FIELD_EXPAND_LANDSCAPE_SPLIT_DURATION, FIELD_EXPAND_LANDSCAPE_FLOATING_DURATION,
-        FIELD_EXPAND_LANDSCAPE_MIDSCENE_DURATION, FIELD_G_PORTRAIT_FULL_DURATION,
-        FIELD_G_PORTRAIT_SPLIT_DURATION, FIELD_G_PORTRAIT_FLOATING_DURATION, FIELD_G_PORTRAIT_MIDSCENE_DURATION,
-        FIELD_G_LANDSCAPE_FULL_DURATION, FIELD_G_LANDSCAPE_SPLIT_DURATION,
-        FIELD_G_LANDSCAPE_FLOATING_DURATION, FIELD_G_LANDSCAPE_MIDSCENE_DURATION
-    };
-    size_t fieldsSize = fields.size();
-    std::string insertSql = "INSERT INTO ";
-    insertSql.append(newTable).append("(");
-    std::string values = "";
-    for (size_t i = 0; i < fieldsSize; ++i) {
-        const std::string& field = fields[i];
-        insertSql.append(field);
-        values.append(field);
-        if (i != (fieldsSize - 1)) {
-            insertSql.append(", ");
-            values.append(", ");
-        }
+    std::vector<std::pair<std::string, std::string>> fields;
+    for (const auto& field : BASE_FIELDS) {
+        fields.emplace_back(std::make_pair(field.fieldName, field.fieldType));
     }
-    insertSql.append(") SELECT ").append(values).append(" FROM ").append(oldTable);
-    return insertSql;
+    return SqlUtil::GenerateCreateSql(LOG_DB_TABLE_NAME, fields);
 }
 
-int UpgradeDbFromV2ToV3(NativeRdb::RdbStore& rdbStore)
+std::string GenerateAddColumnSql(const std::string& tableName, const DbFieldInfo& field)
 {
-    std::vector<std::string> sqls = {
-        GenerateRenameTableSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
-        GenerateCreateV3AppEventsSql(), GenerateV2ToV3InsertSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
-        SqlUtil::GenerateDropSql(LOG_DB_APP_EVENTS_TMP)
-    };
+    return "ALTER TABLE " + tableName + " ADD COLUMN " + field.fieldName + " " + field.fieldType;
+}
+
+std::string GenerateUpdateFoldStatusSql(const std::string& tableName)
+{
+    // ScreenFoldStatus: change the historical status value from two digits to three digits
+    return "UPDATE " + tableName + " SET " +
+        FIELD_FOLD_STATUS + " = " + FIELD_FOLD_STATUS + " * 10, " +
+        FIELD_PRE_FOLD_STATUS + " = " + FIELD_PRE_FOLD_STATUS + " * 10";
+}
+
+int UpgradeTable(NativeRdb::RdbStore& rdbStore, const std::string& tableName,
+    int oldVersion, int newVersion)
+{
     if (int ret = rdbStore.BeginTransaction(); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to begin transaction, ret=%{public}d", ret);
+        HIVIEW_LOGE("failed to begin transaction for adding columns, ret=%{public}d", ret);
         return ret;
     }
-    for (const auto& sql : sqls) {
-        if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to upgrade db version from 2 to 3, ret=%{public}d", ret);
+    
+    if (oldVersion <= V1) {
+        std::string updateSql = GenerateUpdateFoldStatusSql(tableName);
+        HIVIEW_LOGD("update fold status sql: %{public}s", updateSql.c_str());
+        if (int ret = rdbStore.ExecuteSql(updateSql); ret != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to update fold status data, ret=%{public}d", ret);
             rdbStore.RollBack();
             return ret;
         }
     }
-    return rdbStore.Commit();
-}
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
-
-std::string GenerateInsertSql(const std::string& newTable, const std::string& oldTable)
-{
-    std::vector<std::string> fields = {
-        FIELD_ID, FIELD_UID, FIELD_EVENT_ID,
-        FIELD_TS, FIELD_FOLD_STATUS, FIELD_PRE_FOLD_STATUS,
-        FIELD_VERSION_NAME, FIELD_HAPPEN_TIME,
-        FIELD_FOLD_PORTRAIT_DURATION, FIELD_FOLD_LANDSCAPE_DURATION,
-        FIELD_EXPAND_PORTRAIT_DURATION, FIELD_EXPAND_LANDSCAPE_DURATION,
-        FIELD_BUNDLE_NAME
-    };
-    size_t fieldsSize = fields.size();
-    std::string insertSql = "INSERT INTO ";
-    insertSql.append(newTable).append("(");
-    std::string values = "";
-    for (size_t i = 0; i < fieldsSize; ++i) {
-        insertSql.append(fields[i]);
-        values.append(fields[i]);
-        if (fields[i] == FIELD_FOLD_STATUS || fields[i] == FIELD_PRE_FOLD_STATUS) {
-            // ScreenFoldStatus: change the historical status value from two digits to three digits
-            values.append(" * 10 AS ").append(fields[i]);
+    
+    for (const auto& field : BASE_FIELDS) {
+        if (field.version <= oldVersion || field.version > newVersion) {
+            continue;
         }
-        if (i != (fieldsSize - 1)) { // -1 for last field
-            insertSql.append(", ");
-            values.append(", ");
-        }
-    }
-    insertSql.append(") SELECT ").append(values).append(" FROM ").append(oldTable);
-    return insertSql;
-}
-
-/*
- * step1. rename app_events to app_events_tmp
- * step2. create new table app_events
- * step3. insert into app_events from app_events_tmp
- * step4. drop table app_events_tmp
- */
-int UpgradeDbFromV1ToV2(NativeRdb::RdbStore& rdbStore)
-{
-    std::vector<std::string> sqls = {
-        GenerateRenameTableSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
-        GenerateCreateAppEventsSql(),
-        GenerateInsertSql(LOG_DB_TABLE_NAME, LOG_DB_APP_EVENTS_TMP),
-        SqlUtil::GenerateDropSql(LOG_DB_APP_EVENTS_TMP)
-    };
-    if (int ret = rdbStore.BeginTransaction(); ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("failed to begin transaction, ret=%{public}d", ret);
-        return ret;
-    }
-    for (const auto& sql : sqls) {
+        std::string sql = GenerateAddColumnSql(tableName, field);
         if (int ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to upgrade db version from 1 to 2, ret=%{public}d", ret);
+            HIVIEW_LOGE("failed to add column %{public}s, ret=%{public}d", field.fieldName.c_str(), ret);
             rdbStore.RollBack();
             return ret;
         }
     }
+    
     return rdbStore.Commit();
 }
 
@@ -370,30 +352,12 @@ int64_t GetDuration(const int foldStatus, const std::map<int, uint64_t>& duratio
 
 void SetValuesBucket(NativeRdb::ValuesBucket& bucket, const std::map<int, uint64_t>& durations)
 {
-    bucket.PutLong(FIELD_FOLD_PORTRAIT_DURATION, GetDuration(FOLD_PORTRAIT_FULL_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_LANDSCAPE_DURATION, GetDuration(FOLD_LANDSCAPE_FULL_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_PORTRAIT_DURATION, GetDuration(EXPAND_PORTRAIT_FULL_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_LANDSCAPE_DURATION, GetDuration(EXPAND_LANDSCAPE_FULL_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_PORTRAIT_SPLIT_DURATION, GetDuration(FOLD_PORTRAIT_SPLIT_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_PORTRAIT_FLOATING_DURATION, GetDuration(FOLD_PORTRAIT_FLOATING_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_PORTRAIT_MIDSCENE_DURATION, GetDuration(FOLD_PORTRAIT_MIDSCENE_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_LANDSCAPE_SPLIT_DURATION, GetDuration(FOLD_LANDSCAPE_SPLIT_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_LANDSCAPE_FLOATING_DURATION, GetDuration(FOLD_LANDSCAPE_FLOATING_STATUS, durations));
-    bucket.PutLong(FIELD_FOLD_LANDSCAPE_MIDSCENE_DURATION, GetDuration(FOLD_LANDSCAPE_MIDSCENE_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_PORTRAIT_SPLIT_DURATION, GetDuration(EXPAND_PORTRAIT_SPLIT_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_PORTRAIT_FLOATING_DURATION, GetDuration(EXPAND_PORTRAIT_FLOATING_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_PORTRAIT_MIDSCENE_DURATION, GetDuration(EXPAND_PORTRAIT_MIDSCENE_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_LANDSCAPE_SPLIT_DURATION, GetDuration(EXPAND_LANDSCAPE_SPLIT_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_LANDSCAPE_FLOATING_DURATION, GetDuration(EXPAND_LANDSCAPE_FLOATING_STATUS, durations));
-    bucket.PutLong(FIELD_EXPAND_LANDSCAPE_MIDSCENE_DURATION, GetDuration(EXPAND_LANDSCAPE_MIDSCENE_STATUS, durations));
-    bucket.PutLong(FIELD_G_PORTRAIT_FULL_DURATION, GetDuration(G_PORTRAIT_FULL_STATUS, durations));
-    bucket.PutLong(FIELD_G_PORTRAIT_SPLIT_DURATION, GetDuration(G_PORTRAIT_SPLIT_STATUS, durations));
-    bucket.PutLong(FIELD_G_PORTRAIT_FLOATING_DURATION, GetDuration(G_PORTRAIT_FLOATING_STATUS, durations));
-    bucket.PutLong(FIELD_G_PORTRAIT_MIDSCENE_DURATION, GetDuration(G_PORTRAIT_MIDSCENE_STATUS, durations));
-    bucket.PutLong(FIELD_G_LANDSCAPE_FULL_DURATION, GetDuration(G_LANDSCAPE_FULL_STATUS, durations));
-    bucket.PutLong(FIELD_G_LANDSCAPE_SPLIT_DURATION, GetDuration(G_LANDSCAPE_SPLIT_STATUS, durations));
-    bucket.PutLong(FIELD_G_LANDSCAPE_FLOATING_DURATION, GetDuration(G_LANDSCAPE_FLOATING_STATUS, durations));
-    bucket.PutLong(FIELD_G_LANDSCAPE_MIDSCENE_DURATION, GetDuration(G_LANDSCAPE_MIDSCENE_STATUS, durations));
+    for (const auto& field : BASE_FIELDS) {
+        if (field.foldStatus == -1) {
+            continue;
+        }
+        bucket.PutLong(field.fieldName, GetDuration(field.foldStatus, durations));
+    }
 }
 
 void ParseEntity(NativeRdb::RowEntity& entity, AppEventRecord& record)
@@ -438,6 +402,23 @@ bool GetUsageDurationFromResultSet(std::shared_ptr<NativeRdb::AbsSharedResultSet
     res &= GetUIntFromResultSet(resultSet, FIELD_G_LANDSCAPE_SPLIT_DURATION, usageInfo.gHorSplit);
     res &= GetUIntFromResultSet(resultSet, FIELD_G_LANDSCAPE_FLOATING_DURATION, usageInfo.gHorFloating);
     res &= GetUIntFromResultSet(resultSet, FIELD_G_LANDSCAPE_MIDSCENE_DURATION, usageInfo.gHorMidscene);
+    res &= GetUIntFromResultSet(resultSet, FIELD_N_PORTRAIT_DURATION, usageInfo.nVer);
+    res &= GetUIntFromResultSet(resultSet, FIELD_N_PORTRAIT_SPLIT_DURATION, usageInfo.nVerSplit);
+    res &= GetUIntFromResultSet(resultSet, FIELD_N_PORTRAIT_FLOATING_DURATION, usageInfo.nVerFloating);
+    res &= GetUIntFromResultSet(resultSet, FIELD_N_LANDSCAPE_DURATION, usageInfo.nHor);
+    res &= GetUIntFromResultSet(resultSet, FIELD_N_LANDSCAPE_SPLIT_DURATION, usageInfo.nHorSplit);
+    res &= GetUIntFromResultSet(resultSet, FIELD_N_LANDSCAPE_FLOATING_DURATION, usageInfo.nHorFloating);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_PORTRAIT_DURATION, usageInfo.lmVer);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_PORTRAIT_SPLIT_DURATION, usageInfo.lmVerSplit);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_PORTRAIT_FLOATING_DURATION, usageInfo.lmVerFloating);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_PORTRAIT_MIDSCENE_DURATION, usageInfo.lmVerMidscene);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_LANDSCAPE_DURATION, usageInfo.lmHor);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_LANDSCAPE_SPLIT_DURATION, usageInfo.lmHorSplit);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_LANDSCAPE_FLOATING_DURATION, usageInfo.lmHorFloating);
+    res &= GetUIntFromResultSet(resultSet, FIELD_LM_LANDSCAPE_MIDSCENE_DURATION, usageInfo.lmHorMidscene);
+    res &= GetUIntFromResultSet(resultSet, FIELD_T_LANDSCAPE_DURATION, usageInfo.tFull);
+    res &= GetUIntFromResultSet(resultSet, FIELD_T_LANDSCAPE_SPLIT_DURATION, usageInfo.tSplit);
+    res &= GetUIntFromResultSet(resultSet, FIELD_T_LANDSCAPE_FLOATING_DURATION, usageInfo.tFloating);
 #if FOLD_PC_COUNT_DURATION_ENABLE
     res &= GetUIntFromResultSet(resultSet, FIELD_FOLD_KB_PORTRAIT_DURATION, usageInfo.foldKbVer);
     res &= GetUIntFromResultSet(resultSet, FIELD_FOLD_DISPLAY_COORDINATION_DURATION,
@@ -479,6 +460,23 @@ FoldAppUsageInfo& FoldAppUsageInfo::operator+=(const FoldAppUsageInfo& info)
     foldDisplayOuter += info.foldDisplayOuter;
     foldDisplayCoordination += info.foldDisplayCoordination;
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
+    nVer += info.nVer;
+    nVerSplit += info.nVerSplit;
+    nVerFloating += info.nVerFloating;
+    nHor += info.nHor;
+    nHorSplit += info.nHorSplit;
+    nHorFloating += info.nHorFloating;
+    lmVer += info.lmVer;
+    lmVerSplit += info.lmVerSplit;
+    lmVerFloating += info.lmVerFloating;
+    lmVerMidscene += info.lmVerMidscene;
+    lmHor += info.lmHor;
+    lmHorSplit += info.lmHorSplit;
+    lmHorFloating += info.lmHorFloating;
+    lmHorMidscene += info.lmHorMidscene;
+    tFull += info.tFull;
+    tSplit += info.tSplit;
+    tFloating += info.tFloating;
     return *this;
 }
 
@@ -487,7 +485,9 @@ uint32_t FoldAppUsageInfo::GetAppUsage() const
     auto tmp = foldVer + foldHor + expdVer + expdHor + gVer + gHor + foldVerSplit + foldVerFloating + foldVerMidscene +
         foldHorSplit + foldHorFloating + foldHorMidscene + expdVerSplit + expdVerFloating + expdVerMidscene +
         expdHorSplit + expdHorFloating + expdHorMidscene + gVerSplit + gVerFloating + gVerMidscene +
-        gHorSplit + gHorFloating + gHorMidscene;
+        gHorSplit + gHorFloating + gHorMidscene + nVerSplit + nVerFloating + nHorSplit + nHorFloating + tSplit +
+        tFloating + lmVerSplit + lmVerFloating + lmVerMidscene + lmHorSplit + lmHorFloating + lmHorMidscene +
+        nVer + nHor + tFull + lmVer + lmHor;
 #if FOLD_PC_COUNT_DURATION_ENABLE
     tmp += foldKbVer;
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
@@ -509,22 +509,19 @@ int FoldDbStoreCallback::OnCreate(NativeRdb::RdbStore& rdbStore)
 int FoldDbStoreCallback::OnUpgrade(NativeRdb::RdbStore& rdbStore, int oldVersion, int newVersion)
 {
     HIVIEW_LOGI("oldVersion = %{public}d, newVersion = %{public}d", oldVersion, newVersion);
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    if (oldVersion == DB_VERSION_2 && newVersion == DB_VERSION_3) {
-        return UpgradeDbFromV2ToV3(rdbStore);
+    
+    if (oldVersion >= newVersion) {
+        HIVIEW_LOGD("no need to upgrade, oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
+        return NativeRdb::E_OK;
     }
-    if (oldVersion == DB_VERSION_1 && newVersion == DB_VERSION_3) {
-        int ret = UpgradeDbFromV1ToV2(rdbStore);
-        if (ret != NativeRdb::E_OK) {
-            return ret;
-        }
-        return UpgradeDbFromV2ToV3(rdbStore);
+    
+    int ret = UpgradeTable(rdbStore, LOG_DB_TABLE_NAME, oldVersion, newVersion);
+    if (ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to upgrade db from %{public}d to %{public}d, ret=%{public}d", oldVersion, newVersion, ret);
+        return ret;
     }
-#else
-    if (oldVersion == DB_VERSION_1 && newVersion == DB_VERSION_2) {
-        return UpgradeDbFromV1ToV2(rdbStore);
-    }
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
+    
+    HIVIEW_LOGI("db upgrade completed successfully");
     return NativeRdb::E_OK;
 }
 
@@ -555,11 +552,7 @@ void FoldAppUsageDbHelper::CreateDbStore(const std::string& dbPath, const std::s
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
     FoldDbStoreCallback callback;
     int ret = NativeRdb::E_OK;
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_3, callback, ret);
-#else
-    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, DB_VERSION_2, callback, ret);
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
+    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, V4, callback, ret);
     if (ret != NativeRdb::E_OK || rdbStore_ == nullptr) {
         HIVIEW_LOGI("failed to create db store, dbFile = %{public}s, ret = %{public}d", dbFile.c_str(), ret);
     }
@@ -572,15 +565,9 @@ int FoldAppUsageDbHelper::CreateAppEventsTable(const std::string& table)
         HIVIEW_LOGI("dbstore is nullptr");
         return DB_FAILED;
     }
-#if FOLD_PC_COUNT_DURATION_ENABLE
-    if (rdbStore_->ExecuteSql(GenerateCreateV3AppEventsSql()) != NativeRdb::E_OK) {
-        return DB_FAILED;
-    }
-#else
     if (rdbStore_->ExecuteSql(GenerateCreateAppEventsSql()) != NativeRdb::E_OK) {
         return DB_FAILED;
     }
-#endif // FOLD_PC_COUNT_DURATION_ENABLE
     return DB_SUCC;
 }
 

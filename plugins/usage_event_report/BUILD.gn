@@ -56,6 +56,8 @@ if (enable_hiview_usage_event_report_build) {
       "usage_event_report.cpp",
     ]
 
+    cflags_cc = [ "-Os" ]
+
     if (power_manager_enable) {
       sources += [ "idl/hiview_shutdown_callback.cpp" ]
     }
