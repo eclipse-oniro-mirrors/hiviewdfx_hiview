@@ -13,19 +13,15 @@
  * limitations under the License.
  */
 #include "video_play_latency_monitor.h"
-
 #include <thread>
 #include "xperf_service_log.h"
 #include "xperf_constant.h"
 #include "avcodec_event.h"
-#include "xperf_register_manager.h"
-#include "perf_trace.h"
-#include "xperf_monitor_manager.h"
-#include "component_attach_evt.h"
+#include "rs_event.h"
 #include "component_detach_evt.h"
 #include "perf_action_event.h"
-#include "time_util.h"
 #include "video_start_fault_report.h"
+#include "time_util.h"
 #include "play_latency_reporter.h"
 
 namespace OHOS {
@@ -34,6 +30,7 @@ namespace HiviewDFX {
 static constexpr int FIRST_NODE = 1;
 static constexpr int SECOND_NODE = 2;
 static constexpr int TIMEOUT_THRESHOLD = 1000 * 10; // 10秒
+static constexpr int JANK_THRESHOLD = 1000 * 2; // 2秒
 
 VideoPlayLatencyMonitor& VideoPlayLatencyMonitor::GetInstance()
 {
@@ -47,16 +44,55 @@ void VideoPlayLatencyMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::PERF_USER_ACTION: // last_up
             OnLastUp(event);
             break;
-        case XperfConstants::PERF_COMPONENT_DETACH: // 组件下屏
+        case XperfConstants::PERF_COMPONENT_DETACH: // 组件下树
             OnComponentDetach(event);
             break;
-        case XperfConstants::AVCODEC_SECOND_FRAME: // 换成图形第二帧
-            OnSecondFrame(event);
+        case XperfConstants::VIDEO_FIRST_FRAME: // RS首帧
+            OnRsFirstFrame(event);
             break;
-        case XperfConstants::AVCODEC_FRAME_STATS: //解码统计
+        case XperfConstants::VIDEO_SECOND_FRAME: // RS第二帧
+            OnRsSecondFrame(event);
+            break;
+        case XperfConstants::AUDIO_RENDER_START: // 音频开始
+            OnAudioStart(event);
             break;
         default:
             break;
+    }
+}
+
+void VideoPlayLatencyMonitor::OnRsFirstFrame(OhosXperfEvent* event)
+{
+    LOGD("VideoPlayLatencyMonitor_OnRsFirstFrame rawMsg:%{public}s", event->rawMsg.c_str());
+    VideoFirstEvent* firstFrame = (VideoFirstEvent*) event;
+    int64_t currTime = TimeUtil::GetCurrTimeMs();
+    std::lock_guard<std::mutex> Lock(mMutex);
+    if (waitNode && waitNode->uniqueId == firstFrame->uniqueId) {
+        waitNode->firstFrameTime = currTime;
+        return;
+    }
+    for (auto node : onTreeNodes) {
+        if (node->uniqueId == firstFrame->uniqueId) {
+            node->firstFrameTime = currTime;
+            return;
+        }
+    }
+}
+
+void VideoPlayLatencyMonitor::OnAudioStart(OhosXperfEvent* event)
+{
+    LOGD("VideoPlayLatencyMonitor_OnAudioStart msg:%{public}s", event->rawMsg.c_str());
+    int64_t currTime = TimeUtil::GetCurrTimeMs();
+    std::lock_guard<std::mutex> Lock(mMutex);
+    if (waitNode && waitNode->audioStartTime == 0) {
+        waitNode->audioStartTime = currTime;
+        return;
+    }
+    if (!onTreeNodes.empty()) {
+        auto node = onTreeNodes.back();
+        if (node->audioStartTime == 0) { // 未设置过audioStartTime
+            node->audioStartTime = currTime;
+        }
     }
 }
 
@@ -68,11 +104,14 @@ void VideoPlayLatencyMonitor::OnLastUp(OhosXperfEvent* event)
     }
     LOGD("VideoPlayLatencyMonitor_OnLastUp pid:%{public}d, bundle:%{public}s, time:%{public}s", luEvt->pid,
          luEvt->bundleName.c_str(), std::to_string(luEvt->time).c_str());
-
     std::lock_guard<std::mutex> Lock(mMutex);
     this->lastUpTime = luEvt->time;
-    if (nodeList.size() > 1) {
-        auto node = nodeList.back();
+    if (waitNode && waitNode->attachLastUpTime == waitNode->attachTime) {
+        waitNode->attachLastUpTime = this->lastUpTime;
+        return;
+    }
+    if (onTreeNodes.size() > 1) {
+        auto node = onTreeNodes.back();
         if (node->attachLastUpTime == node->attachTime) { // 未设置过lastUpTime
             node->attachLastUpTime = lastUpTime;
         }
@@ -84,167 +123,185 @@ void VideoPlayLatencyMonitor::OnComponentAttach(int32_t pid, const std::string& 
 {
     LOGD("VideoPlayLatencyMonitor_OnComponentAttach pid:%{public}d, uniqueId:%{public}s, bundle:%{public}s, "
          "surface:%{public}s", pid, std::to_string(uniqueId).c_str(), bundleName.c_str(), surfaceName.c_str());
-
     int64_t currTime = TimeUtil::GetCurrTimeMs();
     std::lock_guard<std::mutex> Lock(mMutex);
-    if (nodeList.size() == 0) { // 第一个视频
-        std::shared_ptr<Node> node = std::make_shared<Node>();
-        node->number = FIRST_NODE;
-        node->uniqueId = uniqueId;
-        node->pid = pid;
-        node->bundleName = bundleName;
-        node->surfaceName = surfaceName;
-        node->attachTime = node->attachLastUpTime = currTime; // 应用启动后的第一个视频离手时间不是其上屏事件
-        node->expireTime = currTime + TIMEOUT_THRESHOLD;
-        nodeList.push_back(node);
-        DelayCheck(currTime, node->uniqueId); // 延迟10s检查是否起播成功
+    if (waitNode && (currTime - waitNode->attachLastUpTime < 300)) { // 300: 手动切换时间阈值，过滤同时多个上树的情况
         return;
     }
-
-    if (currTime - nodeList.back()->attachTime < 300) { // 300: 手动切换时间阈值，数值再斟酌?
-        return;
-    }
-
-    std::shared_ptr<Node> node = std::make_shared<Node>();
-    node->uniqueId = uniqueId;
-    node->attachTime = node->attachLastUpTime = currTime; // 由last_up事件再更新attachLastUpTime
-
-    if (nodeList.size() == 3) { // 3:
-        nodeList.pop_back();
-        nodeList.push_back(node); // 替换备选节点
-        return;
-    }
-    if (nodeList.size() == 2) { // 2:
-        nodeList.push_back(node);
-        return;
-    }
-    if (nodeList.size() == 1) { //
-        node->number = SECOND_NODE; // 2:
-        node->expireTime = currTime + TIMEOUT_THRESHOLD;
-        nodeList.push_back(node);
-        DelayCheck(currTime, node->uniqueId); // 延迟10s检查是否起播成功
+    waitNode = std::make_shared<Node>();
+    waitNode->uniqueId = uniqueId;
+    waitNode->pid = pid;
+    waitNode->bundleName = bundleName;
+    waitNode->surfaceName = surfaceName;
+    waitNode->attachTime = waitNode->attachLastUpTime = currTime; // 非第一个视频，由last_up事件再更新attachLastUpTime
+    waitNode->number = onTreeNodes.size() + 1;
+    if (onTreeNodes.size() < 2) { // 2: 组件树容量
+        waitNode->timer = currTime;
+        DelayCheck(waitNode->uniqueId); // 延迟10s检查是否起播成功
+        onTreeNodes.push_back(waitNode);
+        waitNode = nullptr;
     }
 }
 
 void VideoPlayLatencyMonitor::OnComponentDetach(OhosXperfEvent* event)
 {
+    LOGD("VideoPlayLatencyMonitor_OnComponentDetach msg:%{public}s",  event->rawMsg.c_str());
     ComponentDetachEvt* dtEvt = (ComponentDetachEvt*) event;
-    LOGD("VideoPlayLatencyMonitor_OnComponentDetach bundle:%{public}s, surface:%{public}s, component:%{public}s,"
-         "pid:%{public}d, unique:%{public}s", dtEvt->bundleName.c_str(), dtEvt->surfaceName.c_str(),
-         dtEvt->componentName.c_str(), dtEvt->pid, std::to_string(dtEvt->uniqueId).c_str());
     int64_t currTime = TimeUtil::GetCurrTimeMs();
     std::lock_guard<std::mutex> Lock(mMutex);
-    for (auto it = nodeList.begin(); it != nodeList.end(); ++it) {
-        auto node = *it;
-        if (node->uniqueId != dtEvt->uniqueId) {
-            continue;
-        }
-        // 未计算出起播时延且有定时器且定时器未到期
-        if ((node->latency == 0) && (node->expireTime > 0) && (currTime < node->expireTime)) {
-            // 结算4 上报起播失败, 结算时机：下树
-            node->latency = currTime + TIMEOUT_THRESHOLD - node->expireTime;
-
-            LOGI("fzzzzzz_VideoPlayLatencyMonitor_latency4 uniqueId:%{public}s, surface:%{public}s, latency:%{public}s",
-                 std::to_string(node->uniqueId).c_str(), node->surfaceName.c_str(),
-                 std::to_string(node->latency).c_str());
-
-            ReportStartFault(node, node->latency, 2); // 2:组件下树
-        }
-        nodeList.erase(it);
-        break;
+    if (waitNode && waitNode->uniqueId == dtEvt->uniqueId) {
+        waitNode = nullptr;
+        return;
     }
-
-    for (auto it = nodeList.rbegin(); it != nodeList.rend(); ++it) {
-        auto node = *it;
-        if (node->detachLastUpTime == 0) {
-            node->detachLastUpTime = lastUpTime;
+    bool detached = false;
+    for (auto it = onTreeNodes.begin(); it != onTreeNodes.end(); ++it) {
+        if ((*it)->uniqueId == dtEvt->uniqueId) {
+            onTreeNodes.erase(it);
+            detached = true;
+            break;
         }
-        if (node->latency != 0) { // 已计算出起播时延
-            continue;
+    }
+    if (detached) {
+        OffScreen(currTime);
+        OnScreen(currTime);
+    } else {
+        LOGW("VideoPlayLatencyMonitor_OnComponentDetach failed");
+    }
+    for (auto it = onTreeNodes.begin(); it != onTreeNodes.end();) { // 防止数据异常导致节点一直不下树，兜底恢复
+        if (++(*it)->age > 10) { // 10 age limit
+            it = onTreeNodes.erase(it);
+        } else {
+            ++it;
         }
-        if (node->secondFrameTime > 0) {
-            node->latency = node->secondFrameTime - lastUpTime;
-            if (node->latency <= 0) { // 游戏直播只上树不上屏也会有第二帧
-                node->latency = node->secondFrameTime - node->attachTime; // td 这样处理是否会引起其他问题？
-            }
-            // 结算5 td 正常起播，结算起播时延
-            LOGI("fzzzzzz_VideoPlayLatencyMonitor_latency5 uniqueId:%{public}s, surface:%{public}s, latency:%{public}s",
-                 std::to_string(node->uniqueId).c_str(), node->surfaceName.c_str(),
-                 std::to_string(node->latency).c_str());
-
-            if (node->latency > 2000) { // 2000:2秒
-                ReportStartFault(node, lastUpTime, 1); // 1:起播成功
-            }
-            return;
-        }
-        node->expireTime = currTime + TIMEOUT_THRESHOLD;
-        DelayCheck(currTime, node->uniqueId); // 延迟10s检查是否起播成功
     }
 }
 
-/**
-*  说明：收到第二帧，表明组件确实上屏了，但上屏时间是否真实需要分情况讨论
-*/
-void VideoPlayLatencyMonitor::OnSecondFrame(OhosXperfEvent* event)
+void VideoPlayLatencyMonitor::OffScreen(int64_t currTime)
 {
-    AvcodecFrame* secondFrame = (AvcodecFrame*) event;
-    LOGD("VideoPlayLatencyMonitor_OnSecondFrame");
+    if (onTreeNodes.size() != 1) { // 1:one node
+        return;
+    }
+    auto node = onTreeNodes.front();
+    if (node->latency > 0) {
+        return;
+    }
+    node->latency = currTime - node->timer;
+    node->lastUpTime = node->timer;
+    if (node->firstFrameTime > 0) { // 有首帧 认为是视频，报起播失败
+        StashLatency(node);
+        ReportStartFault(node, 6); // 6: 下树(2)+有首帧(4)
+    } else { // 图片或视频无首帧
+        if (node->audioStartTime > 0) { // 有音频，已音频结算
+            node->latency = node->audioStartTime - node->attachTime;
+            node->lastUpTime = node->attachTime;
+            StashLatency(node);
+            if (node->latency > JANK_THRESHOLD) {
+                ReportStartFault(node, 10); // 10: 下树(2)+无首帧+有音频(8)
+            }
+        } else { // 起播失败
+            StashLatency(node);
+            ReportStartFault(node, 2); // 2: 下树(2)+无首帧+无音频
+        }
+    }
+}
+
+void VideoPlayLatencyMonitor::OnScreen(int64_t currTime)
+{
+    if (waitNode == nullptr) {
+        return;
+    }
+    if (waitNode->detachLastUpTime == 0) {
+        waitNode->detachLastUpTime = lastUpTime;
+    }
+    if (waitNode->latency > 0) {
+        onTreeNodes.push_back(waitNode);
+        waitNode = nullptr;
+        return;
+    }
+    if (waitNode->secondFrameTime > 0) {  // 有第二帧，正常起播，结算起播时延
+        waitNode->latency = waitNode->secondFrameTime - waitNode->detachLastUpTime;
+        waitNode->lastUpTime = waitNode->detachLastUpTime;
+        if (waitNode->latency <= 0) { // 直播只上树不上屏也会有第二帧
+            waitNode->latency = waitNode->secondFrameTime - waitNode->attachTime;
+            waitNode->lastUpTime = waitNode->attachTime;
+        }
+        StashLatency(waitNode); // 保存起播时延数据
+        if (waitNode->latency > JANK_THRESHOLD) {
+            ReportStartFault(waitNode, 1); // 1: 二帧结算
+        }
+    } else {
+        waitNode->timer = currTime;
+        DelayCheck(waitNode->uniqueId); // 延迟10s检查是否起播成功
+    }
+
+    onTreeNodes.push_back(waitNode);
+    waitNode = nullptr;
+}
+
+void VideoPlayLatencyMonitor::OnRsSecondFrame(OhosXperfEvent* event)
+{
+    VideoSecondEvent* secondFrame = (VideoSecondEvent*) event;
     int64_t currTime = TimeUtil::GetCurrTimeMs();
     std::lock_guard<std::mutex> Lock(mMutex);
-    for (auto it = nodeList.rbegin(); it != nodeList.rend(); ++it) {
-        auto node = *it;
+    if (waitNode && waitNode->uniqueId == secondFrame->uniqueId) { // 第二帧事件在组件下树事件之前到来，waitNode还未上树
+        if (waitNode->latency > 0) { // 已结算
+            return;
+        }
+        waitNode->secondFrameTime = currTime;
+        if (currTime - waitNode->attachTime < JANK_THRESHOLD) { // 第二帧距离组件上树时间很近，认为具有关联性。
+            waitNode->latency = currTime - waitNode->attachLastUpTime; // 结算1 正常起播，计算起播时延
+            waitNode->lastUpTime = waitNode->attachLastUpTime;
+            StashLatency(waitNode); // 保存起播时延数据
+        }
+        return;
+    }
+    for (auto node : onTreeNodes) { // 组件下树事件先来第二帧事件后到，waitNode已上树
         if (node->uniqueId != secondFrame->uniqueId) {
             continue;
         }
-        if (node->latency > 0) { // 已结算，td 暂未想到什么场景，后续感觉多余可删除
-            LOGW("");
+        if (node->latency > 0) { // 已结算
             return;
         }
-        if (currTime - node->attachTime < 1000) { // 1000: 1秒 td 阈值再确定?
-            node->latency = currTime - node->attachLastUpTime; // 结算1 todo 正常起播，计算起播时延
-            LOGI("fzzzzzz_VideoPlayLatencyMonitor_latency1 uniqueId:%{public}s, surface:%{public}s, latency:%{public}s,"
-                 "currTime:%{public}s, attachLastUpTime:%{public}s", std::to_string(node->uniqueId).c_str(),
-                 node->surfaceName.c_str(), std::to_string(node->latency).c_str(), std::to_string(currTime).c_str(),
-                 std::to_string(node->attachLastUpTime).c_str());
+        if (currTime - node->attachTime < JANK_THRESHOLD) { // 第二帧距离组件上树时间很近，认为具有关联性。
+            node->latency = currTime - node->attachLastUpTime; // 正常起播，计算起播时延
+            node->lastUpTime = node->attachLastUpTime;
+            StashLatency(node); // 保存起播时延数据
             return;
         }
-        if (node->number == FIRST_NODE || node->number == SECOND_NODE) { // 第二个视频这样计算有误报的可能性
-            node->latency = currTime - node->attachLastUpTime; // 结算2 todo 正常起播，计算起播时延
-            LOGI("fzzzzzz_VideoPlayLatencyMonitor_latency2 uniqueId:%{public}s, surface:%{public}s, latency:%{public}s",
-                 std::to_string(node->uniqueId).c_str(), node->surfaceName.c_str(),
-                 std::to_string(node->latency).c_str());
-            if (node->latency > 2000) { // 2000:2秒
-                ReportStartFault(node, node->attachLastUpTime, 1); // 1:起播成功
+        if (node->number == FIRST_NODE || node->number == SECOND_NODE) {
+            node->latency = currTime - node->attachLastUpTime; // 正常起播，计算起播时延
+            node->lastUpTime = node->attachLastUpTime;
+            StashLatency(node); // 保存起播时延数据
+            if (node->latency > JANK_THRESHOLD && node->number != FIRST_NODE) {
+                ReportStartFault(node, 1); // 1: 二帧结算
             }
             return;
         }
-        if (node->detachLastUpTime > 0) {
-            node->latency = currTime - node->detachLastUpTime; // 结算3 todo 正常起播，计算起播时延
-            LOGI("fzzzzzz_VideoPlayLatencyMonitor_latency3 uniqueId:%{public}s, surface:%{public}s, latency:%{public}s",
-                 std::to_string(node->uniqueId).c_str(), node->surfaceName.c_str(),
-                 std::to_string(node->latency).c_str());
-            if (node->latency > 2000) { // 2000:2秒
-                ReportStartFault(node, node->detachLastUpTime, 1); // 1:起播成功
+        if (node->detachLastUpTime > 0) { // 第二帧到来前有其他组件下树
+            node->latency = currTime - node->detachLastUpTime; // 正常起播，计算起播时延
+            node->lastUpTime = node->detachLastUpTime;
+            StashLatency(node);
+            if (node->latency > JANK_THRESHOLD) {
+                ReportStartFault(node, 1); // 1:起播成功但超时了，上报起播故障事件
             }
             return;
         }
-        node->secondFrameTime = currTime;
+        node->secondFrameTime = currTime; // 下树事件到来时再计算
     }
 }
 
-void VideoPlayLatencyMonitor::DelayCheck(int64_t time, int64_t uniqueId)
+void VideoPlayLatencyMonitor::DelayCheck(int64_t uniqueId)
 {
-    std::thread delayThread([this, time, uniqueId] { this->PlayStateCheck(time, uniqueId); });
+    std::thread delayThread([this, uniqueId] { this->PlayStateCheck(uniqueId); });
     delayThread.detach();
 }
 
-void VideoPlayLatencyMonitor::PlayStateCheck(int64_t time, int64_t uniqueId)
+void VideoPlayLatencyMonitor::PlayStateCheck(int64_t uniqueId)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(TIMEOUT_THRESHOLD));
     LOGD("VideoPlayLatencyMonitor_PlayStateCheck uniqueId:%{public}s", std::to_string(uniqueId).c_str());
     std::lock_guard<std::mutex> Lock(mMutex);
-    for (auto it = nodeList.begin(); it != nodeList.end(); ++it) {
-        auto node = *it;
+    for (auto node : onTreeNodes) {
         if (node->uniqueId != uniqueId) {
             continue;
         }
@@ -252,27 +309,56 @@ void VideoPlayLatencyMonitor::PlayStateCheck(int64_t time, int64_t uniqueId)
             return;
         }
         node->latency = TIMEOUT_THRESHOLD;
-        // 结算6 上报起播失败, 结算时机：超时
-        LOGI("fzzzzzz_VideoPlayLatencyMonitor_latency6 uniqueId:%{public}s, surface:%{public}s, latency:%{public}s",
-             std::to_string(node->uniqueId).c_str(), node->surfaceName.c_str(), std::to_string(node->latency).c_str());
-
-        ReportStartFault(node, time, 3); // 3:超时
+        node->lastUpTime = node->timer;
+        if (node->firstFrameTime > 0) { // 有首帧 认为是视频，报起播失败
+            StashLatency(node);
+            ReportStartFault(node, 7); // 7: 超时(3)+有首帧(4)
+            return;
+        }
+        if (node->audioStartTime > 0) { // 有音频起播
+            node->latency = node->audioStartTime - node->attachTime;
+            node->lastUpTime = node->attachTime;
+            StashLatency(node);
+            if (node->latency > JANK_THRESHOLD) {
+                ReportStartFault(node, 11); // 11: 超时(3)+无首帧+有音频(8)
+            }
+            return;
+        }
+        StashLatency(node);
+        ReportStartFault(node, 3); // 3: 超时(3)+无首帧+无音频
         break;
     }
 }
 
-void VideoPlayLatencyMonitor::ReportStartFault(const std::shared_ptr<Node>& node, int64_t time, int32_t type)
+void VideoPlayLatencyMonitor::ReportStartFault(const std::shared_ptr<Node>& node, int32_t type)
 {
     VideoStartFaultReport report;
     report.pid = node->pid;
     report.bundleName = node->bundleName;
     report.uniqueId = node->uniqueId;
     report.surfaceName = node->surfaceName;
-    report.lastUpTime = time;
+    report.lastUpTime = node->lastUpTime;
     report.startLatency = node->latency;
     report.type = type;
-    PlayLatencyReporter::ReportStartFault(report); //打点上报
+    PlayLatencyReporter::ReportStartFault(report); // 打点上报
 }
 
+void VideoPlayLatencyMonitor::StashLatency(const std::shared_ptr<Node>& node)
+{
+    Latency latency;
+    latency.pid = node->pid;
+    latency.uniqueId = node->uniqueId;
+    latency.bundleName = node->bundleName;
+    latency.surfaceName = node->surfaceName;
+    latency.lastUpTime = node->lastUpTime;
+    latency.latency = node->latency;
+    if (latencyList.size() >= 10) { // 10:limit of list
+        int64_t id = latencyList.front();
+        latencyList.pop_front();
+        latencyMap.erase(id);
+    }
+    latencyList.push_back(latency.uniqueId);
+    latencyMap[latency.uniqueId] = latency;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

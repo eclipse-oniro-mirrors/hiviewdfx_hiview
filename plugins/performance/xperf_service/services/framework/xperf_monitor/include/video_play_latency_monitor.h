@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef VIDEO_PLAY_LATENCY_MONITOR_H
 #define VIDEO_PLAY_LATENCY_MONITOR_H
 
 #include <list>
 #include <mutex>
+#include <vector>
+#include <map>
 #include "xperf_monitor.h"
 
 namespace OHOS {
@@ -38,6 +39,7 @@ public:
     void ProcessEvent(OhosXperfEvent* event) override;
 
     struct Node {
+        int age{0};
         int number{3};
         int32_t pid{0};
         int64_t uniqueId{0};
@@ -45,16 +47,25 @@ public:
         std::string surfaceName;
         int64_t attachTime{0};
         int64_t attachLastUpTime{0};  // 取后一个LastUpTime
-
         int64_t detachTime{0};
         int64_t detachLastUpTime{0}; // 取前一个LastUpTime
-
-        int64_t secondFrameTime{0}; // 第二帧时间
-
-        int64_t latency{0};
-        int64_t expireTime{0};
+        int64_t secondFrameTime{0}; // RS第二帧时间
+        int64_t firstFrameTime{0}; // RS首帧时间
+        int64_t audioStartTime{0}; // 音频开始时间
+        int64_t timer{0}; // 计时器时间
+        int64_t lastUpTime{0}; // 最终确定的起播起点时间
+        int64_t latency{0}; // 起播时延
     };
 
+    struct Latency {
+        int32_t pid{0};
+        int64_t uniqueId{0};
+        std::string bundleName;
+        std::string surfaceName;
+        int64_t lastUpTime{0};
+        int64_t latency{0};
+    };
+    
     void OnComponentAttach(int32_t pid, const std::string& bundleName, int64_t uniqueId,
         const std::string& surfaceName);
 
@@ -63,16 +74,23 @@ private:
 
 private:
     mutable std::mutex mMutex;
-    std::list<std::shared_ptr<Node>> nodeList;
     int64_t lastUpTime = 0;
-
+    std::list<int64_t> latencyList;
+    std::map<int64_t, Latency> latencyMap;
+    std::list<std::shared_ptr<Node>> onTreeNodes;
+    std::shared_ptr<Node> waitNode;
+ 
     void OnLastUp(OhosXperfEvent* event);
     void OnComponentDetach(OhosXperfEvent* event);
-    void OnSecondFrame(OhosXperfEvent* event);
-
-    void DelayCheck(int64_t time, int64_t uniqueId);
-    void PlayStateCheck(int64_t time, int64_t uniqueId);
-    void ReportStartFault(const std::shared_ptr<Node>& node, int64_t time, int32_t type);
+    void OnRsSecondFrame(OhosXperfEvent* event);
+    void OnRsFirstFrame(OhosXperfEvent* event);
+    void OnAudioStart(OhosXperfEvent* event);
+    void OffScreen(int64_t currTime);
+    void OnScreen(int64_t currTime);
+    void DelayCheck(int64_t uniqueId);
+    void PlayStateCheck(int64_t uniqueId);
+    void ReportStartFault(const std::shared_ptr<Node>& node, int32_t type);
+    void StashLatency(const std::shared_ptr<Node>& node);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
