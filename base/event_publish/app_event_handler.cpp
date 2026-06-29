@@ -235,9 +235,7 @@ int AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
     AddValueToJsonString("level", event.level, jsonStr);
 
     std::unordered_set<std::string> validResourceTypes = { "pss_memory", "ion_memory",
-        "gpu_memory",
-        "rss_memory",
-        "ashmem_memory" };
+        "gpu_memory", "rss_memory", "ashmem_memory" };
     if (validResourceTypes.find(event.resourceType) != validResourceTypes.end()) {
         HandleMemoryResourceType(jsonStr, event);
     } else if (event.resourceType == "js_heap") {
