@@ -24,5 +24,8 @@ group("hiretrieval_packages") {
 
 group("unittest") {
   testonly = true
-  deps = [ "frameworks/test:unittest" ]
+  deps = [
+    "frameworks/test:unittest",
+    "interfaces/test/unittest/common:unittest",
+  ]
 }

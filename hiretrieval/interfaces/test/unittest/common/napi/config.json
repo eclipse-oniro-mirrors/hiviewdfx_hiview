@@ -1,0 +1,64 @@
+{
+    "app": {
+      "bundleName": "com.ohos.hiRetrievalJsUnitTest",
+      "vendor": "ohos",
+      "version": {
+        "code": 2,
+        "name": "2.0.0"
+      },
+      "apiVersion": {
+        "compatible": 4,
+        "target": 7
+      }
+    },
+    "deviceConfig": {},
+    "module": {
+      "package": "com.ohos.hiRetrievalJsUnitTest",
+      "name": ".MyApplication",
+      "deviceType": [
+        "default",
+        "tablet",
+        "2in1"
+      ],
+      "distro": {
+        "deliveryWithInstall": true,
+        "moduleName": "entry",
+        "moduleType": "entry"
+      },
+      "reqPermissions": [
+      ],
+      "abilities": [
+        {
+          "visible": true,
+          "skills": [
+            {
+              "entities": [
+                "entity.system.home"
+              ],
+              "actions": [
+                "action.system.home"
+              ]
+            }
+          ],
+          "name": "com.ohos.hiRetrievalJsUnitTest.MainAbility",
+          "icon": "$media:icon",
+          "description": "$string:mainability_description",
+          "label": "MyApplication",
+          "type": "page",
+          "launchType": "standard"
+        }
+      ],
+      "js": [
+        {
+          "pages": [
+            "pages/index/index"
+          ],
+          "name": "default",
+          "window": {
+            "designWidth": 720,
+            "autoDesignWidth": false
+          }
+        }
+      ]
+    }
+  }
