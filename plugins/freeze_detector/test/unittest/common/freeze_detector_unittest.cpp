@@ -574,7 +574,12 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
     std::string halfFreezeExtFile = "";
     std::string name = "";
     vendor->InitHalfFreezeExtFile(watchPoint1, name, halfFreezeExtFile);
-    std::string ret = vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile);
+    std::string type = "appfreeze";
+    std::string ret = vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile, type);
+    EXPECT_EQ(ret, "");
+
+    type = "appfreezewarning";
+    ret = vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile, type);
     EXPECT_EQ(ret, "");
 
     std::string freezeExtFile = "/data/test";
@@ -589,9 +594,18 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
         .Build();
     name = "THREAD_BLOCK_3S";
     vendor->InitHalfFreezeExtFile(watchPoint2, name, halfFreezeExtFile);
-    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     name = "LIFECYCLE_TIMEOUT";
     vendor->InitHalfFreezeExtFile(watchPoint2, name, halfFreezeExtFile);
+    type = "appfreezewarning";
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
+    halfFreezeExtFile = "test";
+    watchPoint2.SetFreezeExtFile(";");
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
+    type = "appfreeze";
+    watchPoint2.SetFreezeExtFile("test;");
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
+    watchPoint2.SetFreezeExtFile("test;test");
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
 }
 
 /**
@@ -681,6 +695,261 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_013, TestSize.Level3)
     std::string isScbPro;
     vendor->InitLogInfo(watchPoint1, type, pubLogPathName, processName, isScbPro);
     EXPECT_EQ(type, "appfreeze");
+}
+
+/**
+ * @tc.name: FreezeVender_014
+ * @tc.desc: Test DumpEventInfo basic functionality
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_014, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Verify that the output contains expected fields
+    EXPECT_NE(result.find("TEST_HEADER"), std::string::npos);
+    EXPECT_NE(result.find("DOMAIN:AAFWK"), std::string::npos);
+    EXPECT_NE(result.find("STRINGID:THREAD_BLOCK_6S"), std::string::npos);
+    EXPECT_NE(result.find("PID:1000"), std::string::npos);
+    EXPECT_NE(result.find("UID:1000"), std::string::npos);
+    EXPECT_NE(result.find("PACKAGE_NAME:com.test.package"), std::string::npos);
+    EXPECT_NE(result.find("PROCESS_NAME:testProcess"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_015
+ * @tc.desc: Test DumpEventInfo with HostResourceWarning
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_015, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .InitHostResourceWarning("TRUE")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Verify that the output contains NOTE info for host resource warning
+    EXPECT_NE(result.find("NOTE:"), std::string::npos);
+    EXPECT_NE(result.find("Current fault may be caused by the system's low memory or thermal throttling"),
+        std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_016
+ * @tc.desc: Test GetNoteInfo returns false when dbHelper is nullptr
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_016, TestSize.Level3)
+{
+    auto vendor = std::make_unique<Vendor>(nullptr, nullptr);
+    // Don't call Init() so dbHelper remains nullptr
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .Build();
+    
+    // GetNoteInfo should return false when dbHelper is nullptr
+    // Since GetNoteInfo is private, we test it indirectly through DumpEventInfo
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Should not contain FD_LEAK_INFO since GetNoteInfo returns false
+    EXPECT_EQ(result.find("fd leak"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_017
+ * @tc.desc: Test DumpEventInfo complete output without FD leak
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_017, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1687859103947)
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // Verify all expected fields are present
+    EXPECT_NE(result.find("TEST_HEADER"), std::string::npos);
+    EXPECT_NE(result.find("DOMAIN:AAFWK"), std::string::npos);
+    EXPECT_NE(result.find("STRINGID:THREAD_BLOCK_6S"), std::string::npos);
+    EXPECT_NE(result.find("TIMESTAMP:"), std::string::npos);
+    EXPECT_NE(result.find("PID:1000"), std::string::npos);
+    EXPECT_NE(result.find("UID:1000"), std::string::npos);
+    EXPECT_NE(result.find("PACKAGE_NAME:com.test.package"), std::string::npos);
+    EXPECT_NE(result.find("PROCESS_NAME:testProcess"), std::string::npos);
+
+    // Verify that no NOTE info is present (no HostResourceWarning, no FD leak)
+    EXPECT_EQ(result.find("fd leak"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_018
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_018, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("WEBVIEW")
+        .InitStringId("RENDER_JS_FREEZE")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.package.name")
+        .InitPid(12345)
+        .InitUid(23456)
+        .InitRenderPid(123)
+        .InitRenderUid(23451)
+        .Build();
+    auto wp1 = std::make_unique<WatchPoint>(watchPoint);
+    ASSERT_EQ(wp1->GetPid(), 12345);
+    ASSERT_EQ(wp1->GetUid(), 23456);
+    ASSERT_EQ(wp1->GetRenderPid(), 123);
+    ASSERT_EQ(wp1->GetRenderUid(), 23451);
+
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+    vendor->SendFaultLog(watchPoint, "test", "appfreezewarning", "processName", "No");
+
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    vendor->MergeFreezeJsonFile(watchPoint, list);
+}
+
+/**
+ * @tc.name: FreezeVender_019
+ * @tc.desc: FreezeDetector
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_019, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("WEBVIEW")
+        .InitStringId("FreezeVender_019")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.package.name")
+        .InitPid(12345)
+        .InitUid(23456)
+        .InitRenderPid(123)
+        .InitRenderUid(23451)
+        .Build();
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+    vendor->SendFaultLog(watchPoint, "test", "appfreezewarning", "processName", "No");
+
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    vendor->MergeFreezeJsonFile(watchPoint, list);
+}
+
+/**
+ * @tc.name: FreezeVender_020
+ * @tc.desc: Test InitLogBody with reportLifecycleToFreeze
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_020, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("KERNEL_VENDOR")
+        .InitStringId("SCREEN_ON")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitLogPath("nolog")
+        .Build();
+    std::string type;
+    std::vector<WatchPoint> list;
+    vendor->CovertFreezeType(type, watchPoint, list);
+    ASSERT_EQ(type, "");
+
+    WatchPoint node1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_TIMEOUT")
+        .InitLogPath("nolog")
+        .InitReportLifecycleAsAppfreeze(true)
+        .Build();
+    list.push_back(node1);
+    vendor->CovertFreezeType(type, node1, list);
+    ASSERT_EQ(type, "syswarning");
+
+    WatchPoint node2 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_HALF_TIMEOUT")
+        .InitLogPath("nolog")
+        .InitReportLifecycleAsAppfreeze(false)
+        .Build();
+    list.push_back(node2);
+    ASSERT_EQ(list.size(), 2); // 2: size
+    vendor->CovertFreezeType(type, node1, list);
+    ASSERT_EQ(type, "appfreeze");
 }
 
 /**
@@ -1297,6 +1566,311 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_004, TestSize.Level3)
     eventNames.push_back("THREAD_BLOCK_6S");
     std::vector<SysEvent> result = db->SelectRecords(start, end, domain, eventNames);
     ASSERT_TRUE(result.size() > 0);
+}
+
+/**
+ * @tc.name: FreezeResolver_IsAppFreezeWarning_001
+ * @tc.desc: Test IsAppFreezeWarning with THREAD_BLOCK_3S event
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_IsAppFreezeWarning_001, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto freezeResolver = std::make_unique<FreezeResolver>(freezeCommon);
+    ASSERT_EQ(freezeResolver->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::vector<WatchPoint> list;
+    std::vector<FreezeResult> result;
+    FreezeResult result1;
+    FreezeResult result2;
+    result.push_back(result1);
+    result.push_back(result2);
+    list.push_back(watchPoint);
+
+    EXPECT_TRUE(freezeResolver->JudgmentResult(watchPoint, list, result));
+}
+
+/**
+ * @tc.name: FreezeResolver_IsAppFreezeWarning_002
+ * @tc.desc: Test IsAppFreezeWarning with LIFECYCLE_HALF_TIMEOUT event
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_IsAppFreezeWarning_002, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto freezeResolver = std::make_unique<FreezeResolver>(freezeCommon);
+    ASSERT_EQ(freezeResolver->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_HALF_TIMEOUT")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::vector<WatchPoint> list;
+    std::vector<FreezeResult> result;
+    FreezeResult result1;
+    FreezeResult result2;
+    result.push_back(result1);
+    result.push_back(result2);
+    list.push_back(watchPoint);
+
+    EXPECT_TRUE(freezeResolver->JudgmentResult(watchPoint, list, result));
+}
+
+/**
+ * @tc.name: FreezeResolver_IsAppFreezeWarning_003
+ * @tc.desc: Test IsAppFreezeWarning with THREAD_BLOCK_3S but insufficient list size
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_IsAppFreezeWarning_003, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto freezeResolver = std::make_unique<FreezeResolver>(freezeCommon);
+    ASSERT_EQ(freezeResolver->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::vector<WatchPoint> list;
+    std::vector<FreezeResult> result;
+    FreezeResult result1;
+    FreezeResult result2;
+    result.push_back(result1);
+    result.push_back(result2);
+
+    EXPECT_FALSE(freezeResolver->JudgmentResult(watchPoint, list, result));
+}
+
+/**
+ * @tc.name: FreezeResolver_IsAppFreezeWarning_004
+ * @tc.desc: Test IsAppFreezeWarning with non-matching event type
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_IsAppFreezeWarning_004, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto freezeResolver = std::make_unique<FreezeResolver>(freezeCommon);
+    ASSERT_EQ(freezeResolver->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::vector<WatchPoint> list;
+    std::vector<FreezeResult> result;
+    FreezeResult result1;
+    FreezeResult result2;
+    result.push_back(result1);
+    result.push_back(result2);
+    list.push_back(watchPoint);
+
+    EXPECT_TRUE(freezeResolver->JudgmentResult(watchPoint, list, result));
+}
+
+/**
+ * @tc.name: FreezeResolver_IsAppFreezeWarning_005
+ * @tc.desc: Test IsAppFreezeWarning with LIFECYCLE_HALF_TIMEOUT but insufficient list size
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeResolver_IsAppFreezeWarning_005, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto freezeResolver = std::make_unique<FreezeResolver>(freezeCommon);
+    ASSERT_EQ(freezeResolver->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("LIFECYCLE_HALF_TIMEOUT")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::vector<WatchPoint> list;
+    std::vector<FreezeResult> result;
+    FreezeResult result1;
+    FreezeResult result2;
+    result.push_back(result1);
+    result.push_back(result2);
+
+    EXPECT_FALSE(freezeResolver->JudgmentResult(watchPoint, list, result));
+}
+
+/**
+ * @tc.name: FreezeVender_CovertHighLoadToWarning_001
+ * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning() == "TRUE" and THREAD_BLOCK_3S
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_001, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitHostResourceWarning("TRUE")
+        .Build();
+    std::string type = "appfreezewarning";
+    bool result = vendor->CovertHighLoadToWarning(type, watchPoint);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: FreezeVender_CovertHighLoadToWarning_002
+ * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning() == "TRUE" and syswarning
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_002, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("SERVICE_WARNING")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitHostResourceWarning("TRUE")
+        .Build();
+    std::string type = "syswarning";
+    bool result = vendor->CovertHighLoadToWarning(type, watchPoint);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_IsBlockInGC_001
+ * @tc.desc: Test InitIsBlockInGC and GetIsBlockInGC with true value
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_IsBlockInGC_001, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitIsBlockInGC(true)
+        .Build();
+    ASSERT_EQ(watchPoint.GetIsBlockInGC(), true);
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_IsBlockInGC_002
+ * @tc.desc: Test InitIsBlockInGC and GetIsBlockInGC with false value
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_IsBlockInGC_002, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitIsBlockInGC(false)
+        .Build();
+    ASSERT_EQ(watchPoint.GetIsBlockInGC(), false);
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_ApplicationGCInfo_001
+ * @tc.desc: Test InitApplicationGCInfo and GetApplicationGCInfo with valid value
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_ApplicationGCInfo_001, TestSize.Level3)
+{
+    std::string gcInfo = "GC_REASON:Alloc;GC_TIME:123456;GC_DURATION:100";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitApplicationGCInfo(gcInfo)
+        .Build();
+    ASSERT_EQ(watchPoint.GetApplicationGCInfo(), gcInfo);
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_ApplicationGCInfo_002
+ * @tc.desc: Test InitApplicationGCInfo and GetApplicationGCInfo with empty value
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_ApplicationGCInfo_002, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitApplicationGCInfo("")
+        .Build();
+    ASSERT_EQ(watchPoint.GetApplicationGCInfo(), "");
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_ApplicationIOInfo_001
+ * @tc.desc: Test InitApplicationIOInfo and GetApplicationIOInfo with valid value
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_ApplicationIOInfo_001, TestSize.Level3)
+{
+    std::string ioInfo = "READ_BYTES:1024000;WRITE_BYTES:2048000;READ_COUNT:100;WRITE_COUNT:50";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitApplicationIOInfo(ioInfo)
+        .Build();
+    ASSERT_EQ(watchPoint.GetApplicationIOInfo(), ioInfo);
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_ApplicationIOInfo_002
+ * @tc.desc: Test InitApplicationIOInfo and GetApplicationIOInfo with empty value
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_ApplicationIOInfo_002, TestSize.Level3)
+{
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitApplicationIOInfo("")
+        .Build();
+    ASSERT_EQ(watchPoint.GetApplicationIOInfo(), "");
+}
+
+/**
+ * @tc.name: FreezeWatchPoint_AllNewVariables_001
+ * @tc.desc: Test all new variables (isBlockInGC, applicationGCInfo, applicationIOInfo) together
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_AllNewVariables_001, TestSize.Level3)
+{
+    std::string gcInfo = "GC_REASON:Alloc;GC_TIME:123456;GC_DURATION:100";
+    std::string ioInfo = "READ_BYTES:1024000;WRITE_BYTES:2048000;READ_COUNT:100;WRITE_COUNT:50";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitPid(1000)
+        .InitUid(1000)
+        .InitProcessName("testProcess")
+        .InitPackageName("com.test.package")
+        .InitIsBlockInGC(true)
+        .InitApplicationGCInfo(gcInfo)
+        .InitApplicationIOInfo(ioInfo)
+        .Build();
+    ASSERT_EQ(watchPoint.GetIsBlockInGC(), true);
+    ASSERT_EQ(watchPoint.GetApplicationGCInfo(), gcInfo);
+    ASSERT_EQ(watchPoint.GetApplicationIOInfo(), ioInfo);
+    ASSERT_EQ(watchPoint.GetPid(), 1000);
+    ASSERT_EQ(watchPoint.GetUid(), 1000);
+    ASSERT_EQ(watchPoint.GetProcessName(), "testProcess");
+    ASSERT_EQ(watchPoint.GetPackageName(), "com.test.package");
 }
 }
 }

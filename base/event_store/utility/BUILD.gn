@@ -46,6 +46,7 @@ ohos_source_set("event_store_utility_source") {
   deps = [ "../config:event_store_config_source" ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

@@ -19,6 +19,7 @@ group("unittest") {
   testonly = true
   deps = [
     ":DispatchRuleParserTest",
+    ":DomainJsonParserTest",
     ":EventBaseTest",
     ":EventJsonParserTest",
     ":EventLoopTest",

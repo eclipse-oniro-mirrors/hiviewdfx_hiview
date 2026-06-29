@@ -54,6 +54,7 @@ ohos_source_set("hiview_reliability_common_utils_with_cfi") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  cflags_cc = [ "-Os" ]
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   public_configs = [ ":hiview_reliability_common_utils_config" ]

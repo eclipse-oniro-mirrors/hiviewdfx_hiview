@@ -26,8 +26,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 struct DomainJsonLocation  {
-    Json::ArrayIndex startPos;
-    Json::ArrayIndex length;
+    ptrdiff_t startPos;
+    size_t length;
 };
 using DOMAIN_LOCATION_MAP = std::unordered_map<std::string, DomainJsonLocation>;
 

@@ -49,6 +49,8 @@ public:
         Builder& InitFreezeExtFile(const std::string& freezeExtFile);
         Builder& InitEnabelMainThreadSample(bool enableMainThreadSample);
         Builder& InitApplicationInfo(const std::string& applicationInfo);
+        Builder& InitApplicationGCInfo(const std::string& applicationGCInfo);
+        Builder& InitApplicationIOInfo(const std::string& applicationIOInfo);
         Builder& InitAppRunningUniqueId(const std::string& appRunningUniqueId);
         Builder& InitTaskName(const std::string& taskName);
         Builder& InitClusterRaw(const std::string& clusterRaw);
@@ -60,6 +62,9 @@ public:
         Builder& InitExternalLog(const std::string& externalLog);
         Builder& InitIsHicollie(bool isHicollie);
         Builder& InitReportLifecycleAsAppfreeze(bool reportLifecycleToFreeze);
+        Builder& InitIsBlockInGC(bool isBlockInGC);
+        Builder& InitRenderPid(long renderPid);
+        Builder& InitRenderUid(long renderUid);
         WatchPoint Build() const;
 
     private:
@@ -85,6 +90,8 @@ public:
         std::string freezeExtFile_;
         bool enableMainThreadSample_;
         std::string applicationInfo_;
+        std::string applicationGCInfo_;
+        std::string applicationIOInfo_;
         std::string appRunningUniqueId_;
         std::string taskName_;
         std::string clusterRaw_;
@@ -96,6 +103,9 @@ public:
         std::string externalLog_;
         bool isHicollie_;
         bool reportLifecycleToFreeze_;
+        bool isBlockInGC_;
+        long renderPid_;
+        long renderUid_;
         friend class WatchPoint;
     };
 
@@ -125,6 +135,8 @@ public:
     std::string GetFreezeExtFile() const;
     bool GetEnabelMainThreadSample() const;
     std::string GetApplicationInfo() const;
+    std::string GetApplicationGCInfo() const;
+    std::string GetApplicationIOInfo() const;
     std::string GetAppRunningUniqueId() const;
     std::string GetTaskName() const;
     std::string GetClusterRaw() const;
@@ -136,6 +148,9 @@ public:
     std::string GetExternalLog() const;
     bool GetIsHicollie() const;
     bool GetReportLifeCycleAsAppfreeze() const;
+    bool GetIsBlockInGC() const;
+    long GetRenderPid() const;
+    long GetRenderUid() const;
     void SetLogPath(const std::string& logPath);
     void SetTerminalThreadStack(const std::string& terminalThreadStack);
     void SetSeq(long seq);
@@ -173,6 +188,8 @@ private:
     std::string freezeExtFile_;
     bool enableMainThreadSample_;
     std::string applicationInfo_;
+    std::string applicationGCInfo_;
+    std::string applicationIOInfo_;
     std::string appRunningUniqueId_;
     std::string taskName_;
     std::string clusterRaw_;
@@ -184,6 +201,9 @@ private:
     std::string externalLog_;
     bool isHicollie_;
     bool reportLifecycleToFreeze_;
+    bool isBlockInGC_;
+    long renderPid_;
+    long renderUid_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -18,13 +18,13 @@
  
 #include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <unordered_map>
  
 #include "collect_state.h"
 #include "collect_states.h"
 #include "collect_strategy.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -111,15 +111,14 @@ private:
     std::string abilityName_;
     bool isLaunch_ {false};
 
-    // 策略模式相关
-    std::unique_ptr<ComponentCollectStrategy> collectStrategy_;
+    std::unique_ptr<DetectCollectStrategy> collectStrategy_;
 
     // 状态模式相关
     std::unique_ptr<ICollectState> currentState_;
 
     // 多线程任务相关
     std::shared_ptr<std::atomic<bool>> currentTaskFlag_;
-    mutable std::mutex mutex_;
+    mutable ffrt::mutex mutex_;
 };
 }
 }

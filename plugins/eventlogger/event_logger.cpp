@@ -94,17 +94,22 @@ namespace {
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+    constexpr int ARKWEB_UID_START = 20100000;
+    constexpr int ARKWEB_UID_END = 20109999;
     /* AppFreeze blocked time */
     constexpr int DFX_THREAD_BLOCK_3S = 3000;
     constexpr int DFX_THREAD_BLOCK_6S = 6000;
     constexpr int DFX_APP_INPUT_BLOCK_8S = 8000;
     constexpr int DFX_FOREGROUND_TIMEOUT_2S5 = 2500;
     constexpr int DFX_FOREGROUND_TIMEOUT_5S = 5000;
+    constexpr int DFX_FOREGROUND_TIMEOUT_10S = 10000;
     constexpr int DFX_LOAD_TIMEOUT_5S = 5000;
     constexpr int DFX_LOAD_TIMEOUT_10S = 10000;
     constexpr float FLOAT_EPSILON = 0.01f;
-    constexpr int ARKWEB_UID_START = 20100000;
-    constexpr int ARKWEB_UID_END = 20109999;
+    constexpr uint64_t HEAP_INFO_SIZE = 3;
+    constexpr int HEAP_TOTAL_INDEX = 0;
+    constexpr int HEAP_USED_INDEX = 1;
+    constexpr int HEAP_SHARED_INDEX = 2;
 }
 
 REGISTER(EventLogger);
@@ -332,8 +337,13 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
         LogCatcherUtils::DumpStackFfrt(fd, binderPid);
     });
 
+    if (freezeCommon_ != nullptr && freezeCommon_->IsSystemEvent(event->domain_, event->eventName_)) {
+        event->SetEventValue("EVENT_TYPE", "sys");
+    }
+
     std::shared_ptr<EventLogTask> logTask = std::make_shared<EventLogTask>(fd, jsonFd, event);
-    if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN") {
+    if (event->eventName_ == "GET_DISPLAY_SNAPSHOT" || event->eventName_ == "CREATE_VIRTUAL_SCREEN" ||
+        event->eventName_ == "HIT_EMPTY_WARNING") {
         logTask->SetFocusWindowId(DumpWindowInfo(fd));
     }
     std::vector<std::string> cmdList;
@@ -713,9 +723,121 @@ bool EventLogger::WriteCommonHead(int fd, std::shared_ptr<SysEvent> event)
         headerStream << "QNAME = " << event->GetEventValue(FreezeCommon::QNAME) << std::endl;
         headerStream << "QOS = " << event->GetEventIntValue(FreezeCommon::QOS) << std::endl;
     }
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+        headerStream << "IS_FROZEN = " << event->GetEventIntValue("IS_FROZEN") << std::endl;
+    }
+    WriteHeapSize(event, headerStream);
+    WriteGCStr(event, headerStream);
+    WriteIOStr(event, headerStream);
 
     FileUtil::SaveStringToFd(fd, headerStream.str());
     return true;
+}
+
+bool EventLogger::GetKeyValueByStr(const std::string& tokens, std::string& key, std::string& value,
+    bool isRemoveSpace, std::string flag)
+{
+    size_t colonPos = tokens.find(flag);
+    if (colonPos == std::string::npos) {
+        return false;
+    }
+    key = tokens.substr(0, colonPos);
+    value = tokens.substr(colonPos + 1);
+    if (key.empty() || value.empty()) {
+        return false;
+    }
+    if (isRemoveSpace) {
+        value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+    }
+    return true;
+}
+
+void EventLogger::WriteHeapSize(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
+{
+    std::string heapInfo = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO);
+    if (heapInfo.empty()) {
+        HIVIEW_LOGE("heapInfo is empty.");
+        return;
+    }
+    std::vector<std::string> heapInfoList;
+    StringUtil::SplitStr(heapInfo, FreezeCommon::COMMA_SEPARATOR, heapInfoList);
+    std::string heapTotalSize;
+    std::string heapUsedSize;
+    std::string heapSharedSize;
+    if (heapInfoList.size() < HEAP_INFO_SIZE) {
+        HIVIEW_LOGE("heapInfo size: %{public}zu.", heapInfoList.size());
+        return;
+    }
+    std::string key;
+    if (!GetKeyValueByStr(heapInfoList[HEAP_TOTAL_INDEX], key, heapTotalSize) ||
+        !GetKeyValueByStr(heapInfoList[HEAP_USED_INDEX], key, heapUsedSize) ||
+        !GetKeyValueByStr(heapInfoList[HEAP_SHARED_INDEX], key, heapSharedSize)) {
+        return;
+    }
+    headerStream << FreezeCommon::MAIN_HEAP << FreezeCommon::USED_HEAP << heapUsedSize <<
+        FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
+    headerStream << FreezeCommon::SHARED_HEAP << FreezeCommon::USED_HEAP << heapSharedSize <<
+        FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
+}
+
+void EventLogger::WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
+{
+    std::string gcStr = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_GC_INFO);
+    if (gcStr.empty()) {
+        HIVIEW_LOGE("gcStr is empty.");
+        return;
+    }
+    std::istringstream iss(gcStr);
+    std::string line;
+    std::vector<std::pair<std::string, std::string>> kvList;
+
+    std::string key;
+    std::string value;
+    bool first = true;
+    while (std::getline(iss, line, ',')) {
+        if (!GetKeyValueByStr(line, key, value, false)) {
+            continue;
+        }
+        kvList.push_back({key, value});
+    }
+    std::ostringstream oss;
+    for (const auto &item : kvList) {
+        key = item.first;
+        value = item.second;
+        if (!first) {
+            oss << FreezeCommon::COMMA_SEPARATOR << FreezeCommon::SPACE_SEPARATOR;
+        } else {
+            first = false;
+        }
+        if (key == FreezeCommon::GC_LAST_START_TIME || key == FreezeCommon::GC_LAST_END_TIME) {
+            uint64_t timestamp = StringUtil::StringToUl(value);
+            std::string formatTime = FormatTimeStamp(timestamp);
+            oss << key << FreezeCommon::SPACE_SEPARATOR << formatTime;
+        } else {
+            oss << key << FreezeCommon::SPACE_SEPARATOR << value;
+            if (key == FreezeCommon::GC_MAX_PAUSE || key == FreezeCommon::GC_MIN_PAUSE ||
+                key == FreezeCommon::GC_AVERAGE_PAUSE) {
+                oss << FreezeCommon::GC_PAUSE_UNIT;
+            }
+        }
+    }
+    if (!oss.str().empty()) {
+        headerStream<< FreezeCommon::GC_STATUS << oss.str() << std::endl;
+    }
+}
+
+void EventLogger::WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
+{
+    std::string ioStr = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO);
+    if (ioStr.empty()) {
+        HIVIEW_LOGE("ioStr is empty.");
+        return;
+    }
+
+    headerStream<< FreezeCommon::IO_STATUS;
+    ioStr = StringUtil::ReplaceStr(ioStr, FreezeCommon::COLON_SEPARATOR, FreezeCommon::SPACE_SEPARATOR);
+    ioStr = StringUtil::ReplaceStr(ioStr, FreezeCommon::COMMA_SEPARATOR, FreezeCommon::FORMAT_COMMA_SEPARATOR);
+    headerStream<< ioStr << std::endl;
 }
 
 void EventLogger::WriteCallStack(std::shared_ptr<SysEvent> event, int fd)
@@ -769,19 +891,19 @@ void EventLogger::GetNoJsonStack(std::string& stack, std::string& contentStack,
     stack = kernelStackStart + stack;
 }
 
-void EventLogger::FormatHicollieStack(std::string& jsonstack, std::string& textStack, int pid,
-                                      std::string& bundleName, int errcode)
+void EventLogger::FormatHicollieStack(std::string& jsonStack, std::string& textStack, int pid,
+    std::string& bundleName, int errCode)
 {
     bool ret = false;
-    if (errcode == 0) {
-        ret = DfxJsonFormatter::FormatJsonStack(jsonstack, textStack, true, bundleName);
+    if (errCode == 0) {
+        ret = DfxJsonFormatter::FormatJsonStack(jsonStack, textStack, true, bundleName);
         if (!ret) {
             HIVIEW_LOGE("format stack failed, pid:%{public}d", pid);
         }
-    } else if (errcode == 1) {
-        ret = DfxJsonFormatter::FormatKernelStack(jsonstack, textStack, false, true, bundleName);
+    } else if (errCode == 1) {
+        ret = DfxJsonFormatter::FormatKernelStack(jsonStack, textStack, false, true, bundleName);
         if (!ret) {
-            HIVIEW_LOGE("format kernel stack failed, pid:%{public}d", pid);
+            HIVIEW_LOGE("FormatKernelStackformat stack failed, pid:%{public}d", pid);
         }
     } else {
         HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
@@ -807,9 +929,12 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
             int pidOfApp = CommonUtils::GetPidByName(appName);
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
+            if (ret != 0) {
+                HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
+            }
             std::string stackApp;
             FormatHicollieStack(appStackStr, stackApp, pidOfApp, appName, ret);
-            allStack += "\nApp Process:\n";
+            allStack += "\nstackApp:\n";
             allStack += stackApp;
         }
     }
@@ -831,19 +956,23 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
     if (isHicollie) {
         GetHicollieStack(event, jsonStack, stack);
     } else {
-        HIVIEW_LOGI("Current jsonStack is? jsonStack:%{public}s", jsonStack.c_str());
+        auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
+            this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
+        };
+        if (!stackQueue_) {
+            return;
+        }
         if (FileUtil::FileExists(jsonStack)) {
             jsonStack = FreezeManager::GetAppFreezeFile(jsonStack);
         }
-
         if (!jsonStack.empty() &&
             (jsonStack[0] == '{' || jsonStack[0] == '[')) { // json stack info should start with '{' or '['
             if (!DfxJsonFormatter::FormatJsonStack(jsonStack, stack, true, bundleName)) {
                 stack = jsonStack;
             }
         } else {
-            auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd, &mainStack]() {
-                this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName, mainStack);
+            auto task = [this, &stack, &jsonStack, &kernelStack, bundleName, jsonFd]() {
+                this->GetNoJsonStack(stack, jsonStack, kernelStack, true, bundleName);
             };
             if (!stackQueue_) {
                 return;
@@ -852,7 +981,6 @@ void EventLogger::GetAppFreezeStack(int jsonFd, std::shared_ptr<SysEvent> event,
             stackQueue_->wait(handle);
         }
     }
-
     GetFailedDumpStackMsg(stack, event);
 
     if (jsonFd >= 0) {
@@ -922,6 +1050,40 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
     binderInfo = oss.str();
 }
 
+void EventLogger::WriteExternalLog(int fd, std::shared_ptr<SysEvent>& event)
+{
+    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+        return;
+    }
+    int pid = event->GetEventIntValue("PID");
+    int uid = event->GetEventIntValue("UID");
+    std::string callbackLog = StringUtil::UnescapeJsonStringValue(event->GetEventValue("EXTERNAL_LOG"));
+    if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
+        FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback Start Time:", true);
+        FileUtil::SaveStringToFd(fd, callbackLog + "\n");
+        FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback End Time:", true);
+    }
+    if (Parameter::IsBetaVersion()) {
+        if (callbackLog.empty()) {
+            return;
+        }
+        uint64_t logTime = event->happenTime_ / TimeUtil::SEC_TO_MILLISEC;
+        std::string formatTime = TimeUtil::TimestampFormatToDate(logTime, "%Y%m%d%H%M%S");
+        std::string logFile = event->eventName_ + "_logcallback-" + std::to_string(pid) + "-" + std::to_string(uid) +
+            "-" + formatTime + ".log";
+        int fdLog = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::EVENTLOG, logFile);
+        if (fdLog < 0) {
+            HIVIEW_LOGE("generate callback log failed, pid=%{public}d", pid);
+            return;
+        }
+        fdsan_exchange_owner_tag(fdLog, 0, FREEZE_DOMAIN);
+        FileUtil::SaveStringToFd(fdLog, callbackLog);
+        if (fdsan_close_with_tag(fdLog, FREEZE_DOMAIN) != 0) {
+            HIVIEW_LOGE("ExternalLog log fdsan close failed, errno:%{public}d", errno);
+        }
+    }
+}
+
 bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEvent> event,
     std::vector<std::string>& binderPids, std::string& threadStack)
 {
@@ -970,17 +1132,18 @@ bool EventLogger::WriteFreezeJsonInfo(int fd, int jsonFd, std::shared_ptr<SysEve
     }
     FileUtil::SaveStringToFd(fd, oss.str());
     WriteCallStack(event, fd);
+    WriteExternalLog(fd, event);
     return true;
 }
 
 std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
 {
     float blockedTime = 0.0f;
- 
+
     if (event->eventName_.empty()) {
         return "";
     }
- 
+
     if (event->eventName_ == "THREAD_BLOCK_3S") {
         blockedTime = DFX_THREAD_BLOCK_3S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "THREAD_BLOCK_6S") {
@@ -989,7 +1152,9 @@ std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
         blockedTime = DFX_APP_INPUT_BLOCK_8S * FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio();
     } else if (event->eventName_ == "LIFECYCLE_TIMEOUT") {
         if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
-            blockedTime = DFX_FOREGROUND_TIMEOUT_5S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+            bool isBeta = Parameter::IsBetaVersion();
+            int timeout = isBeta ? DFX_FOREGROUND_TIMEOUT_10S : DFX_FOREGROUND_TIMEOUT_5S;
+            blockedTime = timeout * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
             blockedTime = DFX_LOAD_TIMEOUT_10S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else {
@@ -997,7 +1162,9 @@ std::string EventLogger::GetBlockedTime(std::shared_ptr<SysEvent> event)
         }
     } else if (event->eventName_ == "LIFECYCLE_HALF_TIMEOUT") {
         if (event->GetEventValue("MSG").find("foreground timeout") != std::string::npos) {
-            blockedTime = DFX_FOREGROUND_TIMEOUT_2S5 * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
+            bool isBeta = Parameter::IsBetaVersion();
+            int timeout = isBeta ? DFX_FOREGROUND_TIMEOUT_5S : DFX_FOREGROUND_TIMEOUT_2S5;
+            blockedTime = timeout * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else if (event->GetEventValue("MSG").find("load timeout") != std::string::npos) {
             blockedTime = DFX_LOAD_TIMEOUT_5S * FreezeGetRatio::GetInstance()->GetAbilitymsTimeoutRatio();
         } else {

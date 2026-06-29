@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 #include "xperf_service_interfaces.h"
-#include "xperf_service_log.h"
+
+#include "passthrough_monitor.h"
 #include "video_jank_monitor.h"
 #include "video_xperf_monitor.h"
+#include "video_play_latency_monitor.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,6 +33,8 @@ void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& b
 {
     VideoJankMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
     VideoXperfMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
+    PassthroughMonitor::GetInstance().OnSurfaceReceived(bundleName, uniqueId);
+    VideoPlayLatencyMonitor::GetInstance().OnComponentAttach(pid, bundleName, uniqueId, surfaceName);
 }
 
 }

@@ -46,6 +46,7 @@ FaultLogInfo FaultLogEventPipeline::FillFaultLogInfo(SysEvent& sysEvent)
     info.summary = StringUtil::UnescapeJsonStringValue(sysEvent.GetEventValue(FaultKey::SUMMARY));
     info.sectionMap = sysEvent.GetKeyValuePairs();
     FillTimestampInfo(sysEvent, info);
+    info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue(FaultKey::APP_RUNNING_UNIQUE_ID);
     return info;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-SettingObserverManager");
 namespace {
+constexpr int INVALID_DATA_SHARE_HELPER = -1;
 constexpr char SETTINGS_DATA_BASE_URI[] =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true";
 
@@ -45,6 +46,48 @@ std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper()
         return nullptr;
     }
     return DataShare::DataShareHelper::Creator(remoteObj, SETTINGS_DATA_BASE_URI);
+}
+
+Uri AssembleUri(const std::string& paramKey)
+{
+    return Uri(std::string(SETTINGS_DATA_BASE_URI) + "&key=" + paramKey);
+}
+
+bool QueryStringValueByKey(const std::string& paramKey, std::string& value)
+{
+    auto helper = CreateDataShareHelper();
+    if (helper == nullptr) {
+        HIVIEW_LOGE("DataShareHelper is null with key %{public}s", paramKey.c_str());
+        return false;
+    }
+    DataShare::DataSharePredicates predicates;
+    predicates.EqualTo("KEYWORD", paramKey);
+    std::vector<std::string> columns = { "VALUE" };
+    Uri uri = AssembleUri(paramKey);
+    auto resultSet = helper->Query(uri, predicates, columns);
+    if (resultSet == nullptr) {
+        HIVIEW_LOGE("result set is null with key %{public}s", paramKey.c_str());
+        helper->Release();
+        return false;
+    }
+    int32_t rowCount = 0;
+    resultSet->GetRowCount(rowCount);
+    if (rowCount == 0) {
+        HIVIEW_LOGE("count of result set is zero with key %{public}s", paramKey.c_str());
+        resultSet->Close();
+        helper->Release();
+        return false;
+    }
+    resultSet->GoToRow(0);
+    auto ret = resultSet->GetString(0, value); // get first column for setting value
+    resultSet->Close();
+    helper->Release();
+    if (ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("no result found with key %{public}s, ret is %{public}d", paramKey.c_str(), ret);
+        return false;
+    }
+    HIVIEW_LOGD("setting value is %{public}s, key is %{public}s", value.c_str(), paramKey.c_str());
+    return true;
 }
 }
 
@@ -108,47 +151,39 @@ bool SettingObserverManager::UnregisterObserver(const std::string& paramKey)
 
 std::string SettingObserverManager::GetStringValue(const std::string& paramKey, const std::string& defaultVal)
 {
+    std::string readStr;
+    if (!QueryStringValueByKey(paramKey, readStr)) {
+        return defaultVal;
+    }
+    return readStr;
+}
+
+int SettingObserverManager::SetStringValue(const std::string& paramKey, const std::string& paramVal)
+{
     auto helper = CreateDataShareHelper();
     if (helper == nullptr) {
         HIVIEW_LOGE("DataShareHelper is null with key %{public}s", paramKey.c_str());
-        return defaultVal;
+        return INVALID_DATA_SHARE_HELPER;
     }
-    DataShare::DataSharePredicates predicates;
-    predicates.EqualTo("KEYWORD", paramKey);
-    std::vector<std::string> columns = { "VALUE" };
-    Uri uri = AssembleUri(paramKey);
-    auto resultSet = helper->Query(uri, predicates, columns);
-    if (resultSet == nullptr) {
-        HIVIEW_LOGE("result set is null with key %{public}s", paramKey.c_str());
-        helper->Release();
-        return defaultVal;
+    DataShare::DataShareValueObject keyObj(paramKey);
+    DataShare::DataShareValueObject valObj(paramVal);
+    DataShare::DataShareValuesBucket valuesBucket;
+    valuesBucket.Put("KEYWORD", keyObj);
+    valuesBucket.Put("VALUE", valObj);
+    Uri uri(SETTINGS_DATA_BASE_URI);
+    int32_t ret = 0;
+    std::string readStr;
+    if (QueryStringValueByKey(paramKey, readStr)) {
+        DataShare::DataSharePredicates predicates;
+        predicates.EqualTo("KEYWORD", paramKey);
+        ret = helper->Update(uri, predicates, valuesBucket);
+    } else {
+        ret = helper->Insert(uri, valuesBucket);
     }
-    int32_t rowCount = 0;
-    resultSet->GetRowCount(rowCount);
-    if (rowCount == 0) {
-        HIVIEW_LOGE("count of result set is zero with key %{public}s", paramKey.c_str());
-        resultSet->Close();
-        helper->Release();
-        return defaultVal;
+    if (ret < 0) {
+        HIVIEW_LOGE("failed to insert %{public}s:%{public}s", paramKey.c_str(), paramVal.c_str());
     }
-    resultSet->GoToRow(0);
-    std::string valueResult;
-    auto ret = resultSet->GetString(0, valueResult); // get first column for setting value
-    if (ret != NativeRdb::E_OK) {
-        HIVIEW_LOGE("no result found with key %{public}s, ret is %{public}d", paramKey.c_str(), ret);
-        resultSet->Close();
-        helper->Release();
-        return defaultVal;
-    }
-    resultSet->Close();
-    helper->Release();
-    HIVIEW_LOGI("setting value is %{public}s, ret is %{public}s", valueResult.c_str(), paramKey.c_str());
-    return valueResult;
-}
-
-Uri SettingObserverManager::AssembleUri(const std::string& paramKey)
-{
-    return Uri(std::string(SETTINGS_DATA_BASE_URI) + "&key=" + paramKey);
+    return ret;
 }
 
 sptr<SettingObserver> SettingObserverManager::GetSettingObserver(const std::string& paramKey)

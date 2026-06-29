@@ -28,6 +28,8 @@ ohos_source_set("eventlogger_manager") {
     debug = false
   }
 
+  cflags_cc = [  "-Os" ]
+
   defines = []
   deps = []
   external_deps = []

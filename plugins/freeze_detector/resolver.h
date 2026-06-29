@@ -51,12 +51,12 @@ private:
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     bool IsReportWarning(const WatchPoint& watchPoint,
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
-    bool IsAppFreezeWarningForBetaVersion(const WatchPoint& watchPoint,
+    bool IsAppFreezeWarning(const WatchPoint& watchPoint,
         const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
     unsigned long startTime_;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::shared_ptr<FreezeRuleCluster> freezeRuleCluster_ = nullptr;
-    std::unique_ptr<DBHelper> dBHelper_ = nullptr;
+    std::shared_ptr<DBHelper> dBHelper_ = nullptr;
     std::unique_ptr<Vendor> vendor_ = nullptr;
 };
 }  // namespace HiviewDFX

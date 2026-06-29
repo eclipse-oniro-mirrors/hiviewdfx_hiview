@@ -236,10 +236,9 @@ void TraceStorage::InitTraceQuota()
 bool TraceStorage::IsDateChange()
 {
     std::string nowDays = GetDate();
-    HIVIEW_LOGI("start to dump, nowDays = %{public}s, systemTime = %{public}s.",
-                nowDays.c_str(), traceFlowRecord_.systemTime.c_str());
     if (nowDays != traceFlowRecord_.systemTime) {
-        HIVIEW_LOGD("date changes");
+        HIVIEW_LOGI("date changes nowDays = %{public}s, systemTime = %{public}s.",
+            nowDays.c_str(), traceFlowRecord_.systemTime.c_str());
         traceFlowRecord_.systemTime = nowDays;
         traceFlowRecord_.usedIoSize = 0;
         traceFlowRecord_.usedZipSize = 0;

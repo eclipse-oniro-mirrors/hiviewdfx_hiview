@@ -186,6 +186,33 @@ HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest003, testing::ext::TestSize.Lev
 }
 
 /**
+ * @tc.name: BaseUtilityUnitTest004
+ * @tc.desc: Test StrToInt64 defined in namespace StringUtil
+ * @tc.type: FUNC
+ * @tc.require: issueI651IG
+ */
+HWTEST_F(BaseUtilityUnitTest, BaseUtilityUnitTest004, testing::ext::TestSize.Level3)
+{
+    auto int64Val1 = static_cast<int64_t>(-1);
+    auto int64Val2 = static_cast<int64_t>(234);
+    int64_t value = 0;
+
+    auto ret = StringUtil::StrToInt64(std::to_string(int64Val1), value);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(int64Val1, value);
+
+    value = 0;
+    ret = StringUtil::StrToInt64(std::to_string(int64Val2), value);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(int64Val2, value);
+
+    value = 0;
+    ret = StringUtil::StrToInt64("a66", value);
+    ASSERT_EQ(ret, false);
+    ASSERT_EQ(0, value);
+}
+
+/**
  * @tc.name: BaseUtilityUnitTest007
  * @tc.desc: Test GetLeft/RightSubstr defined in namespace StringUtil
  * @tc.type: FUNC

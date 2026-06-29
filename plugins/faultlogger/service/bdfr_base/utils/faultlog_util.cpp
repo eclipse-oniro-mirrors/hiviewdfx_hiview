@@ -123,6 +123,8 @@ std::string GetFaultLogName(const FaultLogInfo& info)
             ret.append("asan");
         } else if (info.sanitizerType.compare("FDSAN") == 0) {
             ret.append("fdsan");
+        } else if (info.sanitizerType.compare("ARKTS_ENVSAN") == 0) {
+            ret.append("arktsenvsan");
         } else {
             ret.append("sanitizer");
         }
@@ -172,7 +174,7 @@ FaultLogType GetLogTypeByEventName(const std::string& eventName)
         const char* const name;
         FaultLogType type;
     };
-    constexpr const size_t eventCnt = 9;
+    constexpr const size_t eventCnt = 10;
     std::array<EventBond, eventCnt> list = {{
         { "JS_ERROR", FaultLogType::JS_CRASH },
         { "CPP_CRASH", FaultLogType::CPP_CRASH },
@@ -182,7 +184,8 @@ FaultLogType GetLogTypeByEventName(const std::string& eventName)
         { "APPFREEZE_WARNING", FaultLogType::APPFREEZE_WARNING },
         { "ADDR_SANITIZER", FaultLogType::ADDR_SANITIZER },
         { "CJ_ERROR", FaultLogType::CJ_ERROR },
-        { "RUST_PANIC", FaultLogType::RUST_PANIC }
+        { "RUST_PANIC", FaultLogType::RUST_PANIC },
+        { "PROCESS_PAGE_INFO", FaultLogType::PROCESS_PAGE_INFO }
     }};
     for (const auto& bond : list) {
         if (eventName == bond.name) {

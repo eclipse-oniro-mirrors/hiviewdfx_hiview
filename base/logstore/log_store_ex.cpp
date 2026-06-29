@@ -130,7 +130,6 @@ void LogStoreEx::DoDeleteLogFiles(const std::vector<LogFile> &fileList, uint32_t
         }
         deleteCount++;
     }
-    HIVIEW_LOGI("Remove %d Files.", deleteCount);
 }
 
 void LogStoreEx::ClearOldestFilesIfNeeded()

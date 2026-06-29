@@ -37,6 +37,8 @@ public:
                               const std::map<int64_t, ImageLoadInfo*>& mRecords, const AppWhiteInfo& appWhiteInfo);
     void ReportSurface(const int64_t& uniqueId, const std::string& surfaceName, const std::string& componentName,
         const std::string& bundleName, const int32_t& pid);
+    void ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName, const std::string& componentName,
+        const std::string& bundleName, int32_t pid);
 
 private:
     void ConvertToRsData(OHOS::Rosen::DataBaseRs &dataRs, DataBase& data);
@@ -64,6 +66,7 @@ public:
     static void ReportImageLoadStat(const ImageLoadStat& stat);
     static void ReportSurfaceInfo(const SurfaceInfo& surface);
     static void ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo);
+    static void ReportAppForegroundEvent(const std::string& bundleName);
 };
 }
 }

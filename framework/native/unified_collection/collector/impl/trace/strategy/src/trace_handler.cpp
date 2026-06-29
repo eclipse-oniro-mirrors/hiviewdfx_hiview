@@ -62,14 +62,17 @@ void DoClean(const std::string tracePath, uint32_t cleanThreshold)
     std::vector<std::pair<std::string, struct stat>> fileInfos;
     FileUtil::GetDirFileInfos(tracePath, fileInfos);
     if (fileInfos.size() <= cleanThreshold) {
-        HIVIEW_LOGI("no need clean, file count:%{public}zu, threshold:%{public}u.", fileInfos.size(), cleanThreshold);
+        HIVIEW_LOGD("no need clean, file count:%{public}zu, threshold:%{public}u.", fileInfos.size(), cleanThreshold);
         return;
     }
 
     // Filter files that belong to me
     std::sort(fileInfos.begin(), fileInfos.end(), [](const std::pair<std::string, struct stat>& a,
         const std::pair<std::string, struct stat>& b) {
-        return a.second.st_mtim.tv_nsec > b.second.st_mtim.tv_nsec;
+        if (a.second.st_mtim.tv_sec == b.second.st_mtim.tv_sec) {
+            return a.second.st_mtim.tv_nsec > b.second.st_mtim.tv_nsec;
+        }
+        return a.second.st_mtim.tv_sec > b.second.st_mtim.tv_sec;
     });
 
     while (fileInfos.size() > cleanThreshold) {

@@ -16,9 +16,9 @@
 #include "load_complete_monitor.h"
 
 #include <cinttypes>
-#include <thread>
+#include <mutex>
 
-#include "collect_strategy_factory.h"
+#include "collect_strategy.h"
 #include "perf_model.h"
 #include "perf_reporter.h"
 #include "perf_trace.h"
@@ -26,9 +26,8 @@
 #include "scene_monitor.h"
 
 namespace {
-constexpr int64_t LOAD_COMPLETE_MONITOR_DURATION = 3000;
+constexpr int64_t LOAD_COMPLETE_MONITOR_DURATION = 3000000;
 constexpr int64_t PAGE_LOAD_TIME_THRESHOLD = 100;
-constexpr int CYCLE_INTERVAL_TIME = 500;
 } // namespace
  
 namespace OHOS::HiviewDFX {
@@ -59,30 +58,20 @@ void LoadCompleteMonitor::PostTimeoutTask()
     currentTaskFlag_ = std::make_shared<std::atomic<bool>>(true);
     auto taskFlag = currentTaskFlag_; // 保存副本供lambda使用
     
-    std::thread([taskFlag] {
-        auto startTime = std::chrono::steady_clock::now();
-        while (taskFlag && *taskFlag) {
-            auto currentTime = std::chrono::steady_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
-            if (elapsed >= LOAD_COMPLETE_MONITOR_DURATION) {
-                LoadCompleteMonitor::GetInstance().StopCollect();
-                break;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(CYCLE_INTERVAL_TIME));
-        }
-    }).detach();
+    ffrt::submit([taskFlag] { if (taskFlag && *taskFlag) { LoadCompleteMonitor::GetInstance().StopCollect(); } },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(LOAD_COMPLETE_MONITOR_DURATION));
 }
 
 void LoadCompleteMonitor::StartCollectForAnimation(const std::string& sceneId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     // 委托给当前状态处理
     currentState_->StartCollectForAnimation(sceneId);
 }
  
 void LoadCompleteMonitor::StartCollectForLaunch()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     currentState_->StartCollectForLaunch();
 }
  
@@ -98,7 +87,7 @@ void LoadCompleteMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRe
  
 void LoadCompleteMonitor::StopCollect()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     currentState_->StopCollect();
 }
  
@@ -110,11 +99,6 @@ void LoadCompleteMonitor::FinishCollectTask()
     currentTaskFlag_ = nullptr;
 
     if (!collectStrategy_) {
-        return;
-    }
-
-    // 不检测策略直接结束，不上报
-    if (!collectStrategy_->ShouldReport()) {
         return;
     }
 
@@ -134,7 +118,8 @@ void LoadCompleteMonitor::FinishCollectTask()
             .abilityName = std::string(abilityName_),
             .isLaunch = isLaunch_,
         };
-        std::thread([eventInfo] { EventReporter::ReportLoadCompleteEvent(eventInfo); }).detach();
+        ffrt::submit([eventInfo] { EventReporter::ReportLoadCompleteEvent(eventInfo); },
+            ffrt::task_attr().qos(ffrt::qos_user_initiated));
     }
 
     collectStrategy_->Reset();
@@ -142,21 +127,21 @@ void LoadCompleteMonitor::FinishCollectTask()
 
 void LoadCompleteMonitor::AddLoadComponent(int32_t componentId, int32_t sourceType)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     // 委托给当前状态处理
     currentState_->AddComponent(componentId, sourceType);
 }
 
 void LoadCompleteMonitor::DeleteLoadComponent(int32_t componentId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     // 委托给当前状态处理
     currentState_->DeleteComponent(componentId);
 }
 
 void LoadCompleteMonitor::CompleteLoadComponent(int32_t componentId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<ffrt::mutex> lock(mutex_);
     // 委托给当前状态处理
     currentState_->CompleteComponent(componentId);
 }
@@ -182,8 +167,7 @@ void LoadCompleteMonitor::StartCollectCommon(bool isLaunch)
     bundleName_ = baseInfo.bundleName;
     abilityName_ = baseInfo.abilityName;
 
-    // 使用工厂创建策略
-    collectStrategy_ = CollectStrategyFactory::CreateStrategy(bundleName_, isLaunch_);
+    collectStrategy_ = std::make_unique<DetectCollectStrategy>();
 
     beginTime_ = GetCurrentSystimeMs();
 

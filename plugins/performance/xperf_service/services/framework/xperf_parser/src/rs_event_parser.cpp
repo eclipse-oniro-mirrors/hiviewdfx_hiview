@@ -41,7 +41,10 @@ OhosXperfEvent* ParseRsVideoFrameStatsMsg(const std::string& msg)
     RsVideoFrameStatsEvent* event = new RsVideoFrameStatsEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_DURATION, 0);
     ExtractStrToInt(msg, event->duration, TAG_DURATION, TAG_AVG_FPS, 0);
-    ExtractStrToInt16(msg, event->avgFPS, TAG_AVG_FPS, "", 0);
+    ExtractStrToInt16(msg, event->avgFPS, TAG_AVG_FPS, TAG_INTERVAL_COUNT, 0);
+    ExtractStrToInt(msg, event->intervalExceedCount, TAG_INTERVAL_COUNT, TAG_INTERVAL_LATENCY, 0);
+    ExtractStrToLong(msg, event->intervalExceedLatency, TAG_INTERVAL_LATENCY, TAG_START_TIME, 0);
+    ExtractStrToLong(msg, event->intervalExceedLatency, TAG_START_TIME, TAG_END, 0);
     return event;
 }
 
@@ -51,6 +54,25 @@ OhosXperfEvent* ParseRsVideoExceptStopMsg(const std::string& msg)
     RsVideoExceptStopEvent* event = new RsVideoExceptStopEvent();
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_HAPPEN_TIME, 0);
     ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, "", 0);
+    return event;
+}
+
+//"#UNIQUEID:7095285973044#HAPPEN_TIME:1720001111";
+OhosXperfEvent* ParseRsVideoFirstFrameMsg(const std::string& msg)
+{
+    VideoFirstEvent* event = new VideoFirstEvent();
+    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_HAPPEN_TIME, 0);
+    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_END, 0);
+    return event;
+}
+
+//"#UNIQUEID:7095285973044#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111#SURFACE_NAME:surfacename";
+OhosXperfEvent* ParseRsVideoSecondFrameMsg(const std::string& msg)
+{
+    VideoSecondEvent* event = new VideoSecondEvent();
+    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_MAX_FRAME_TIME, 0);
+    ExtractStrToInt(msg, event->maxFrameTime, TAG_MAX_FRAME_TIME, TAG_HAPPEN_TIME, 0);
+    ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_END, 0);
     return event;
 }
 

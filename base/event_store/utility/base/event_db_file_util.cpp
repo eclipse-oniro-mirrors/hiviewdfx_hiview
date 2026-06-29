@@ -153,7 +153,6 @@ bool EventDbFileUtil::ParseEventInfoFromDbFileName(const std::string& fileName, 
 
     auto dbFileNameParser = GetEventDbFileNameParser(eventInfoList);
     if (dbFileNameParser == nullptr) {
-        HIVIEW_LOGW("invalid size=%{public}zu of event info list", eventInfoList.size());
         return false;
     }
     return dbFileNameParser(eventInfoList, info, parseType);

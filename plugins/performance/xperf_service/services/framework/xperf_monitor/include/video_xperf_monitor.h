@@ -54,6 +54,7 @@ private:
     void OnVideoJankReceived(OhosXperfEvent* event);
     void OnNetworkJankReceived(OhosXperfEvent* event);
     void OnAvcodecJankReceived(OhosXperfEvent* event);
+    void OnVideoFrameStats(OhosXperfEvent* event);
     void WaitForDomainReport(int64_t uniqueId);
     void FaultJudgment(int64_t uniqueId);
     SurfaceInfo GetSurfaceInfo(int64_t uniqueId);

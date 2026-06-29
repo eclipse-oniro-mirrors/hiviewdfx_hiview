@@ -285,6 +285,23 @@ int32_t FaultLogDatabase::UpdateFGParam(FaultLogInfo& info)
     return fgNum;
 }
 
+int64_t FaultLogDatabase::GetLifeTimeValue(const FaultLogInfo& info)
+{
+    auto it = info.sectionMap.find(FaultKey::PROCESS_LIFETIME);
+    if (it == info.sectionMap.end()) {
+        return -1;
+    }
+    std::string lifeTimeStr = it->second;
+    if (!lifeTimeStr.empty() && lifeTimeStr.back() == 's') {
+        lifeTimeStr.pop_back();
+    }
+    int64_t lifeTimeValue = -1;
+    if (!StringUtil::StrToInt64(lifeTimeStr, lifeTimeValue)) {
+        HIVIEW_LOGW("StrToInt64 failed for PROCESS_LIFETIME: %{public}s", lifeTimeStr.c_str());
+    }
+    return lifeTimeValue;
+}
+
 void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
 {
     std::string eventName = GetFaultNameByType(info.faultLogType, false);
@@ -325,6 +342,7 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("FREEZE_INFO_PATH", HISYSEVENT_STRING, s,
             info.sectionMap[FaultKey::FREEZE_INFO_PATH].data(), 0),
         EVENT_PARAM_CTOR("LOG_SOURCE", HISYSEVENT_STRING, s, info.sectionMap["LOG_SOURCE"].data(), 0),
+        EVENT_PARAM_CTOR("LIFETIME", HISYSEVENT_INT64, i64, GetLifeTimeValue(info), 0),
     };
     int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
         params, sizeof(params) / sizeof(HiSysEventParam));

@@ -73,7 +73,6 @@ void UsageEventReportService::InitWorkPath(const char* path)
 
 void UsageEventReportService::ReportAppUsage()
 {
-    HIVIEW_LOGD("start to report app usage event");
     auto factory = std::make_unique<AppUsageEventFactory>(lastReportTime_);
     std::vector<std::unique_ptr<LoggerEvent>> events;
     factory->Create(events);
@@ -126,7 +125,6 @@ int UsageEventReportService::UpdateLastSysUsage(std::shared_ptr<LoggerEvent>& no
 
 void UsageEventReportService::SaveSysUsage()
 {
-    HIVIEW_LOGI("start to save sys usage event to db");
     UsageEventCacher cacher(workPath_);
     int ret = 0;
     auto cacheUsage = cacher.GetSysUsageEvent();

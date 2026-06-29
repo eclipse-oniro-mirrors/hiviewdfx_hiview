@@ -19,6 +19,7 @@
 #include <mutex>
 #include <thread>
 
+#include "log_file_name_converter.h"
 #include "user_data_size_reporter.h"
 #include "app_event_elapsed_time.h"
 #include "bundle_mgr_client.h"
@@ -285,14 +286,14 @@ bool VerifyPathSecurity(const std::string& path)
     return false;
 }
 
-void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson, uint32_t maxFileSizeBytes)
+void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson, uint32_t maxFileSizeBytes,
+                      bool needRefined = false)
 {
     if (!eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) || !eventJson[PARAM_PROPERTY][EXTERNAL_LOG].isArray() ||
         eventJson[PARAM_PROPERTY][EXTERNAL_LOG].empty()) {
         HIVIEW_LOGE("no external log need to copy.");
         return;
     }
-
     ExternalLogInfo externalLogInfo;
     GetExternalLogInfo(eventJson[NAME_PROPERTY].asString(), externalLogInfo, uid, pathHolder);
     std::string sandBoxLogPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, externalLogInfo.subPath);
@@ -315,11 +316,12 @@ void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& e
         if (dirSize + fileSize <= externalLogInfo.maxFileSize) {
             std::string desFileName = GetDesFileName(eventJson[PARAM_PROPERTY], eventJson[NAME_PROPERTY].asString(),
                 externalLogInfo);
+            RefineLogFilePaths(eventJson, curLogPath, desFileName, needRefined);
             if (IsDmpFile(curLogPath)) {
                 desFileName = StringUtil::ReplaceStr(desFileName, ".log", ".dmp");
             }
             std::string destPath = sandBoxLogPath + "/" + desFileName;
-            if (CopyExternalLog(uid, curLogPath, destPath, maxFileSizeBytes)) {
+            if (desFileName != "" && CopyExternalLog(uid, curLogPath, destPath, maxFileSizeBytes)) {
                 dirSize += fileSize;
                 externalLogJson.append("/data/storage/el2/log/" + externalLogInfo.subPath + "/" + desFileName);
                 HIVIEW_LOGI("move log file to sandBoxLogPath successful.");
@@ -525,7 +527,8 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::str
     std::string sandBoxLogPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, "resourcelimit");
     CreateSandBox(sandBoxLogPath);
     SetSandBoxAccess(uid, sandBoxLogPath);
-    SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
+    bool needRefined = ShouldRefinedLogFileName(uid, pathHolder);
+    SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes, needRefined);
     SaveEventToSandBox(uid, pathHolder, eventJson);
     UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, EVENT_RESOURCE_OVERLIMIT);
     sendingOverlimitThread_.reset();

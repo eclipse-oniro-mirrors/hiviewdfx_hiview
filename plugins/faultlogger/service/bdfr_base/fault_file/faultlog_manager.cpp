@@ -40,6 +40,7 @@ constexpr int32_t MAX_FAULT_LOG_PER_HAP = 10;
 constexpr uint32_t WARNING_LOG_MAX_SIZE = 3 * 1024 * 1024;
 constexpr uint32_t WARNING_LOG_MIN_KEEP_NUM = 15;
 constexpr uint32_t FAULT_LOG_MAX_SIZE = 20 * 1024 * 1024;
+constexpr const char* RENDER_JS_FREEZE = "RENDER_JS_FREEZE";
 }
 
 DEFINE_LOG_LABEL(0xD002D11, "FaultLogManager");
@@ -115,14 +116,16 @@ void FaultLogManager::InitWarningLogStore()
 std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
 {
     std::string fileName = GetFaultLogName(info);
-    std::string filePath = GetFaultLogFilePath(info.faultLogType, fileName);
+    bool isRenderJsFreeze = info.reason == RENDER_JS_FREEZE;
+    std::string filePath = GetFaultLogFilePath(info.faultLogType, fileName, isRenderJsFreeze);
     if (FileUtil::FileExists(filePath)) {
         HIVIEW_LOGI("logfile %{public}s already exist.", filePath.c_str());
         return "";
     }
-    int fd = GetFaultLogFileFd(info.faultLogType, fileName);
+    int fd = GetFaultLogFileFd(info.faultLogType, fileName, isRenderJsFreeze);
     if (fd < 0) {
-        if (info.faultLogType == FaultLogType::SYS_WARNING || info.faultLogType == FaultLogType::APPFREEZE_WARNING) {
+        if (info.faultLogType == FaultLogType::SYS_WARNING ||
+            (info.faultLogType == FaultLogType::APPFREEZE_WARNING && !isRenderJsFreeze)) {
             if (access(FAULTLOG_WARNING_LOG_FOLDER, F_OK) != 0) {
                 HIVIEW_LOGE("%{public}s does not exist!!!", FAULTLOG_WARNING_LOG_FOLDER);
             }
@@ -148,7 +151,6 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         HIVIEW_LOGI("WriteMergeLogToFile");
     }
     fdsan_close_with_tag(fd, ownerTag);
-    FaultLogger::ForkProcessParseArkTsStackInfo(info.module, info.faultLogType, filePath);
 
     RemoveOldFile(info);
     info.logPath = filePath;
@@ -156,15 +158,19 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
     return fileName;
 }
 
-std::string FaultLogManager::GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName) const
+std::string FaultLogManager::GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName,
+    bool isRenderJsFreeze) const
 {
-    return (faultLogType == FaultLogType::SYS_WARNING || faultLogType == FaultLogType::APPFREEZE_WARNING) ?
+    return (faultLogType == FaultLogType::SYS_WARNING ||
+        (faultLogType == FaultLogType::APPFREEZE_WARNING && !isRenderJsFreeze)) ?
         std::string(FAULTLOG_WARNING_LOG_FOLDER) + fileName : std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
 }
 
-int FaultLogManager::GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName) const
+int FaultLogManager::GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName,
+    bool isRenderJsFreeze) const
 {
-    return (faultLogType == FaultLogType::SYS_WARNING || faultLogType == FaultLogType::APPFREEZE_WARNING) ?
+    return (faultLogType == FaultLogType::SYS_WARNING ||
+        (faultLogType == FaultLogType::APPFREEZE_WARNING && !isRenderJsFreeze)) ?
         warningLogStore_->CreateLogFile(fileName): store_->CreateLogFile(fileName);
 }
 

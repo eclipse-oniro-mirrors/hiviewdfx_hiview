@@ -103,7 +103,8 @@ void ExportDbManager::HandleExportSwitchChanged(const std::string& moduleName, i
         moduleName.c_str(), curSeq);
     std::unique_lock<ffrt::mutex> lock(dbMutex_);
     auto storage = std::make_shared<ExportDbStorage>(dbStoreDir_);
-    if (GetExportDetailRecord(storage, moduleName).moduleName.empty()) {
+    ExportDetailRecord record = GetExportDetailRecord(storage, moduleName);
+    if (record.moduleName.empty()) {
         HIVIEW_LOGW("no export details record found of %{public}s module in db", moduleName.c_str());
         ExportDetailRecord record = {
             .moduleName = moduleName,
@@ -113,10 +114,12 @@ void ExportDbManager::HandleExportSwitchChanged(const std::string& moduleName, i
         storage->InsertExportDetailRecord(record);
         return;
     }
-    ExportDetailRecord record {
-        .moduleName = moduleName,
-        .exportEnabledSeq = curSeq,
-    };
+    if ((record.exportEnabledSeq != INVALID_SEQ_VAL && curSeq != INVALID_SEQ_VAL) ||
+        (record.exportEnabledSeq == INVALID_SEQ_VAL && curSeq == INVALID_SEQ_VAL)) {
+        HIVIEW_LOGI("avoid the repeat writing with same value for switch key");
+        return;
+    }
+    record.exportEnabledSeq = curSeq;
     storage->UpdateExportEnabledSeq(record);
 }
 

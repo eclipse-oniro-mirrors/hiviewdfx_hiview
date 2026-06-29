@@ -471,5 +471,158 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest010, TestSize.Level1)
     FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
     ASSERT_TRUE(!FileUtil::FileExists("/data/test/sys_event_logger/"));
 }
+
+#if FOLD_PC_COUNT_DURATION_ENABLE
+/**
+ * @tc.name: FoldAppUsageTest011
+ * @tc.desc: test fold pc display mode change event with valid display mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest011, TestSize.Level1)
+{
+    SysEventCreator sysEventCreator1("WINDOWMANAGER", "FOCUS_WINDOW", SysEventCreator::BEHAVIOR);
+    sysEventCreator1.SetKeyValue("PID", 1111);
+    sysEventCreator1.SetKeyValue("UID", 20020019);
+    sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_display_app");
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 1);
+    sysEventCreator1.SetKeyValue("time_", 100);
+    auto sysEvent1 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
+
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("FOLD_DISPLAY_MODE", 4);
+    sysEventCreator.SetKeyValue("time_", 111);
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+
+    FoldEventCacher cacher("/data/test/");
+    cacher.ProcessEvent(sysEvent1);
+    cacher.ProcessEvent(sysEvent);
+
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    int index = dbHelper.QueryRawEventIndex("test_display_app", FoldEventId::EVENT_ENTER_COORDINATION_MODE);
+    ASSERT_TRUE(index != 0);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest012
+ * @tc.desc: test coordination mode enter and exit events.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest012, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    AppEventRecord recordCoord1{1105, 1000, "coord_app", 110, 4, 1, 4, "1", g_startTime};
+    AppEventRecord recordCoord2{1106, 2000, "coord_app", 110, 4, 4, 1, "1", g_startTime + g_hourGapTime};
+
+    EXPECT_EQ(dbHelper.AddAppEvent(recordCoord1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(recordCoord2), 0);
+
+    std::vector<AppEventRecord> records;
+    dbHelper.QueryDisplayModeEventRecords(1, -1, "coord_app", records);
+    EXPECT_EQ(records.size(), 2);
+
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest013
+ * @tc.desc: test fold keyboard portrait status duration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest013, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    AppEventRecord recordKb{1104, 1000, "kb_app", 420, 420, 0, 0, "1", g_startTime};
+    std::map<int, uint64_t> durations1 = {{FOLD_KB_PORTRAIT_STATUS, 1000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(recordKb, durations1), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    std::cout<<"g_startTime = " << g_startTime << "; g_endTime = " << g_endTime<<std::endl;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_TRUE(infos.find("kb_app1") != infos.end());
+    if (infos.find("kb_app1") != infos.end()) {
+        std::cout<<"foldKbVer"<<infos["kb_app1"].foldKbVer<<std::endl;
+        EXPECT_EQ(infos["kb_app1"].foldKbVer, 1000);
+    }
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest014
+ * @tc.desc: test query foreground apps with display mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest014, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    AppEventRecord record1{1101, 1000, "app_test", 110, 120, 1, 4, "55", g_startTime};
+    AppEventRecord record2{1103, 2000, "app_test", 120, 220, 1, 4, "55", g_startTime + g_hourGapTime};
+    AppEventRecord record3{1103, 3000, "app_test", 220, 4, 1, 4, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record4{1103, 4000, "app_test", 4, 310, 1, 4, "55", g_startTime + 3 * g_hourGapTime};
+
+    EXPECT_EQ(dbHelper.AddAppEvent(record1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record4), 0);
+
+    FoldAppUsageInfo info;
+    info.package = "app_test";
+    dbHelper.QueryForegroundAppsInfo(g_startTime, g_endTime, g_screenStat, info);
+    EXPECT_EQ(info.package, "app_test");
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest015
+ * @tc.desc: test display mode invalid value (0) handling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest015, TestSize.Level1)
+{
+    SysEventCreator sysEventCreator1("WINDOWMANAGER", "FOCUS_WINDOW", SysEventCreator::BEHAVIOR);
+    sysEventCreator1.SetKeyValue("PID", 1111);
+    sysEventCreator1.SetKeyValue("UID", 20020019);
+    sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_app");
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 1);
+    sysEventCreator1.SetKeyValue("time_", 100);
+    auto sysEvent1 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
+
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("FOLD_DISPLAY_MODE", 0);
+    sysEventCreator.SetKeyValue("time_", 111);
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+
+    FoldEventCacher cacher("/data/test/");
+    cacher.ProcessEvent(sysEvent1);
+    cacher.ProcessEvent(sysEvent);
+
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    int index = dbHelper.QueryRawEventIndex("test_app", FoldEventId::EVENT_ENTER_COORDINATION_MODE);
+    ASSERT_TRUE(index == 0);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest016
+ * @tc.desc: test display mode coordination duration calculation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest016, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    AppEventRecord record1{1107, 1000, "coord_test", 120, 120, 0, 0, "1", g_startTime};
+    std::map<int, uint64_t> durations1 = {{FOLD_DISPLAY_MODE_COORDINATION_STATUS, 1000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_TRUE(infos.find("coord_test1") != infos.end());
+    if (infos.find("coord_test1") != infos.end()) {
+        std::cout<<"coordination"<<infos["coord_test1"].foldDisplayCoordination<<std::endl;
+        EXPECT_EQ(infos["coord_test1"].foldDisplayCoordination, 1000);
+    }
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 } // namespace HiviewDFX
 } // namespace OHOS

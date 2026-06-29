@@ -52,6 +52,18 @@ FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitExternalCallbackLog(co
     return *this;
 }
 
+FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitApplicationGCInfo(const std::string& applicationGCInfo)
+{
+    applicationGCInfo_ = applicationGCInfo;
+    return *this;
+}
+
+FreezeJsonParams::Builder& FreezeJsonParams::Builder::InitApplicationIOInfo(const std::string& applicationIOInfo)
+{
+    applicationIOInfo_ = applicationIOInfo;
+    return *this;
+}
+
 FreezeJsonException FreezeJsonException::Builder::Build() const
 {
     FreezeJsonException freezeJsonException = FreezeJsonException(*this);
@@ -75,7 +87,8 @@ FreezeJsonMemory::FreezeJsonMemory(const FreezeJsonMemory::Builder& builder)
     sysAvailMem_(builder.sysAvailMem_),
     sysTotalMem_(builder.sysTotalMem_),
     vmHeapTotalSize_(builder.vmHeapTotalSize_),
-    vmHeapUsedSize_(builder.vmHeapUsedSize_)
+    vmHeapUsedSize_(builder.vmHeapUsedSize_),
+    vmHeapSharedSize_(builder.vmHeapSharedSize_)
 {
 }
 
@@ -127,6 +140,12 @@ FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitVmHeapUsedSize(uint64_
     return *this;
 }
 
+FreezeJsonMemory::Builder& FreezeJsonMemory::Builder::InitVmHeapSharedSize(uint64_t vmHeapSharedSize)
+{
+    vmHeapSharedSize_ = vmHeapSharedSize;
+    return *this;
+}
+
 FreezeJsonMemory FreezeJsonMemory::Builder::Build() const
 {
     FreezeJsonMemory freezeJsonMemory = FreezeJsonMemory(*this);
@@ -142,7 +161,8 @@ std::string FreezeJsonMemory::JsonStr() const
         {jsonMemorySysAvailMem, sysAvailMem_},
         {jsonMemorySysTotalMem, sysTotalMem_},
         {jsonMemoryVmHeapTotalSize, vmHeapTotalSize_},
-        {jsonMemoryVmHeapUsedSize, vmHeapUsedSize_}
+        {jsonMemoryVmHeapUsedSize, vmHeapUsedSize_},
+        {jsonMemoryVmHeapSharedSize, vmHeapSharedSize_}
     };
     if (pss_ != UINT64_MAX) {
         memoryMap[jsonMemoryPss] = pss_;
@@ -175,7 +195,9 @@ FreezeJsonParams::FreezeJsonParams(const FreezeJsonParams::Builder& builder)
     threads_(builder.threads_),
     memory_(builder.memory_),
     thermalLevel_(builder.thermalLevel_),
-    externalCallbackLog_(builder.externalCallbackLog_)
+    externalCallbackLog_(builder.externalCallbackLog_),
+    applicationGCInfo_(builder.applicationGCInfo_),
+    applicationIOInfo_(builder.applicationIOInfo_)
 {
 }
 
@@ -353,7 +375,9 @@ std::string FreezeJsonParams::JsonStr() const
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsThreads, threads_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsMemory, memory_),
         FreezeJsonUtil::GetStrByKeyValue(jsonParamsThermalLevel, thermalLevel_),
-        FreezeJsonUtil::GetStrByKeyValue(jsonParamsExternalCallbackLog, externalCallbackLog_)
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsExternalCallbackLog, externalCallbackLog_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsApplicationGCInfo, applicationGCInfo_),
+        FreezeJsonUtil::GetStrByKeyValue(jsonParamsApplicationIOInfo, applicationIOInfo_)
     };
     return FreezeJsonUtil::MergeKeyValueList(list);
 }

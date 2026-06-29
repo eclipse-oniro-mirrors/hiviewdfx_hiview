@@ -133,6 +133,25 @@ int StrToInt(const string& str)
     return id;
 }
 
+bool StrToInt64(const string& str, int64_t& value)
+{
+    if (str.empty() || (!isdigit(str.front()) && (str.front() != '-'))) {
+        return false;
+    }
+
+    char* end = nullptr;
+    const int base = 10;
+    errno = 0;
+    auto addr = str.c_str();
+    auto result = strtoll(addr, &end, base);
+    if (end == addr || end[0] != '\0' || errno == ERANGE) {
+        return false;
+    }
+
+    value = static_cast<int64_t>(result);
+    return true;
+}
+
 std::list<std::string> SplitStr(const std::string& str, char delimiter)
 {
     std::list<std::string> tokens;
@@ -289,7 +308,7 @@ std::string EscapeJsonStringValue(const std::string &value)
 
 std::string UnescapeJsonStringValue(const std::string &value)
 {
-    bool isEscaped = true;
+    bool isEscaped = false;
     std::string unescapeValue;
     for (auto it = value.begin(); it != value.end(); it++) {
         if (isEscaped) {

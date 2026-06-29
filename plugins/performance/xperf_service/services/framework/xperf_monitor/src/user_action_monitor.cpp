@@ -19,7 +19,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-UserActionMonitor &UserActionMonitor::GetInstance()
+UserActionMonitor& UserActionMonitor::GetInstance()
 {
     static UserActionMonitor instance;
     return instance;

@@ -24,6 +24,8 @@ namespace HiviewDFX {
 OhosXperfEvent* ParseRsVideoJankEventMsg(const std::string& msg);
 OhosXperfEvent* ParseRsVideoFrameStatsMsg(const std::string& msg);
 OhosXperfEvent* ParseRsVideoExceptStopMsg(const std::string& msg);
+OhosXperfEvent* ParseRsVideoFirstFrameMsg(const std::string& msg);
+OhosXperfEvent* ParseRsVideoSecondFrameMsg(const std::string& msg);
 
 } // namespace HiviewDFX
 } // namespace OHOS

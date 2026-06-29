@@ -36,7 +36,7 @@ namespace {
     static constexpr const char* const APPFREEZE = "appfreeze";
     static constexpr const char* const SYSFREEZE = "sysfreeze";
     static constexpr const char* const SYSWARNING = "syswarning";
-    static constexpr const char* const APPFREEZEWARNING = "appfreezewarning";
+    static constexpr const char* const APPFREEZEWARNING  = "appfreezewarning";
     static constexpr const char* const EVENT_PID = "PID";
     static constexpr const char* const EVENT_REASON = "STRINGID";
     static constexpr const char* const EVENT_TIMESTAMP = "TIMESTAMP";
@@ -47,6 +47,9 @@ namespace {
         EVENT_PID, EVENT_REASON
     };
     static constexpr const char* const FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
+    static constexpr uint64_t MICROSEC_PER_MSEC = 1000;
+    static constexpr int FORMAT_TIME_LEN = 20;
+    static constexpr int MSEC_LEN = 3;
 } // namespace
 
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-EventLoggerUtil");
@@ -71,8 +74,8 @@ FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName)
     if (splitStr.size() == FREEZE_VECTOR_SIZE) {
         std::string type = splitStr[INDEX_OF_TYPE];
         info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : (type == SYSFREEZE) ?
-                            FaultLogType::SYS_FREEZE : (type == SYSWARNING) ?
-                            FaultLogType::SYS_WARNING : FaultLogType::APPFREEZE_WARNING;
+            FaultLogType::SYS_FREEZE : (type == SYSWARNING) ?
+            FaultLogType::SYS_WARNING : FaultLogType::APPFREEZE_WARNING;
         info.summary = type + ": ";
         info.module = splitStr[INDEX_OF_MOUDLE];
         StringUtil::ConvertStringTo<uint32_t>(splitStr[INDEX_OF_UID], info.id);
@@ -143,6 +146,23 @@ void StartBootScan()
         HIVIEW_LOGI("Boot scan file: %{public}s.", file.c_str());
         AddFaultLog(info);
     }
+}
+
+std::string FormatTimeStamp(uint64_t timestamp)
+{
+    time_t sec = static_cast<time_t>(timestamp / MICROSEC_PER_MSEC);
+    uint64_t msec = timestamp % MICROSEC_PER_MSEC;
+    char timeChars[FORMAT_TIME_LEN] = {0};
+    struct tm localTime;
+    localtime_r(&sec, &localTime);
+    (void)strftime(timeChars, FORMAT_TIME_LEN, "%Y/%m/%d-%H:%M:%S", &localTime);
+    std::string s = timeChars;
+    std::string msecStr = std::to_string(msec);
+    while (msecStr.size() < MSEC_LEN) {
+        msecStr = "0" + msecStr;
+    }
+    s = s + "." + msecStr;
+    return s;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

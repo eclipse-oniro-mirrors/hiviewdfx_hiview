@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,7 +45,7 @@ int64_t GetFileSeq(const std::string& file)
     std::string fileName(FileUtil::ExtractFileName(file));
     SplitedEventInfo eventInfo;
     if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, SEQ_ONLY)) {
-        HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
+        HIVIEW_LOGD("failed to parse event info from: %{public}s", fileName.c_str());
         return 0;
     }
     return eventInfo.seq;
@@ -73,7 +73,7 @@ uint8_t GetEventTypeFromFileName(const std::string& fileName)
 {
     SplitedEventInfo eventInfo;
     if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, TYPE_ONLY)) {
-        HIVIEW_LOGW("failed to parse event info from: %{public}s", fileName.c_str());
+        HIVIEW_LOGD("failed to parse event info from: %{public}s", fileName.c_str());
         return 0;
     }
     return eventInfo.type;
@@ -204,11 +204,12 @@ bool SysEventDatabase::Restore(const std::string& zipFilePath, const std::string
 void SysEventDatabase::Clear()
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
-    UpdateClearMap();
-    if (!clearMap_.empty()) {
+    ClearFilesMap clearMap;
+    GetClearMap(clearMap);
+    if (!clearMap.empty()) {
         ClearCache(); // need to close the open files before clear
     }
-    for (auto it = clearMap_.begin(); it != clearMap_.end(); ++it) {
+    for (auto it = clearMap.begin(); it != clearMap.end(); ++it) {
         const double delPct = 0.1;
         uint64_t maxSize = GetMaxSize(it->first);
         uint64_t totalFileSize = std::get<INDEX_FILE_SIZE>(it->second);
@@ -260,11 +261,8 @@ int SysEventDatabase::Query(SysEventQuery& sysEventQuery, EntryQueue& entries)
     return QueryByFiles(sysEventQuery, entries, queryFiles);
 }
 
-void SysEventDatabase::UpdateClearMap()
+void SysEventDatabase::GetClearMap(ClearFilesMap& clearMap)
 {
-    // clear the map
-    clearMap_.clear();
-
     // get all event files
     FileQueue files(CompareFileLessFunc);
     GetQueryFiles(SysEventQueryArg(), files);
@@ -277,7 +275,7 @@ void SysEventDatabase::UpdateClearMap()
         std::string fileName = file.substr(file.rfind(FILE_DELIMIT_STR) + 1); // 1 for skipping '/'
         SplitedEventInfo eventInfo;
         if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo, NAME_ONLY | TYPE_ONLY)) {
-            HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
+            HIVIEW_LOGD("failed to parse event info from %{public}s", fileName.c_str());
             continue;
         }
 
@@ -285,14 +283,14 @@ void SysEventDatabase::UpdateClearMap()
         uint64_t type = eventInfo.type;
         nameLimitMap[domainNameStr]++;
         uint64_t fileSize = FileUtil::GetFileSize(file);
-        if (clearMap_.find(type) == clearMap_.end()) {
+        if (clearMap.find(type) == clearMap.end()) {
             FileQueue fileQueue(CompareFileGreaterFunc);
             fileQueue.emplace(file);
-            clearMap_.insert({type, std::make_tuple(fileSize, fileQueue, FileQueue(CompareFileGreaterFunc))});
+            clearMap.insert({type, std::make_tuple(fileSize, fileQueue, FileQueue(CompareFileGreaterFunc))});
             continue;
         }
 
-        auto& clearTuple = clearMap_.at(type);
+        auto& clearTuple = clearMap.at(type);
         std::get<INDEX_FILE_SIZE>(clearTuple) += fileSize;
         if (nameLimitMap[domainNameStr] > GetMaxFileNum(type)) {
             std::get<INDEX_LIMIT_QUEUE>(clearTuple).emplace(file);
@@ -362,7 +360,7 @@ bool SysEventDatabase::IsContainQueryArg(const std::string& file, const SysEvent
     SplitedEventInfo eventInfo;
     if (!EventDbFileUtil::ParseEventInfoFromDbFileName(fileName, eventInfo,
         NAME_ONLY | TYPE_ONLY | SEQ_ONLY | REPORT_INTERVAL_ONLY)) {
-        HIVIEW_LOGW("failed to parse event info from %{public}s", fileName.c_str());
+        HIVIEW_LOGD("failed to parse event info from %{public}s", fileName.c_str());
         return false;
     }
 

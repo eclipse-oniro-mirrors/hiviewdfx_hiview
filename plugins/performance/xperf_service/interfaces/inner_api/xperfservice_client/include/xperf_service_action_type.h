@@ -34,6 +34,11 @@ enum DomainId {
 enum PerfEventCode {
     USER_ACTION = 0,
     LOAD_COMPLETE = 1,
+    COMPONENT_ATTACH = 2,
+    COMPONENT_DETACH = 3,
+    MULTIINPUT_FIRSTMOVE = 4,
+    MULTIINPUT_LASTUP = 5,
+    APP_FOREGROUND_ONSHOW = 6,
 };
 
 enum NetworkEventCode {
@@ -61,6 +66,8 @@ enum RsEventCode {
     VIDEO_JANK_FRAME,
     VIDEO_FRAME_STATS,
     VIDEO_EXCEPT_STOP,
+    VIDEO_FIRST_FRAME,
+    VIDEO_SECOND_FRAME,
 };
 
 enum AvcodecFaultCode {

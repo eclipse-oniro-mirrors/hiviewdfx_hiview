@@ -35,7 +35,7 @@ TraceRet CommonState::DumpTrace(const std::string& scenarioName, uint32_t maxDur
 {
     if (scenarioName == ScenarioName::COMMON_BETA || scenarioName == ScenarioName::COMMAND) {
         info = Hitrace::DumpTrace(maxDuration, happenTime, outputPath);
-        HIVIEW_LOGI("CommonState, DumpTrace result:%{public}d", info.errorCode);
+        HIVIEW_LOGD("CommonState, DumpTrace result:%{public}d", info.errorCode);
         return TraceRet(info.errorCode);
     }
     HIVIEW_LOGW("CommonState scenario:%{public}s is fail", scenarioName.c_str());

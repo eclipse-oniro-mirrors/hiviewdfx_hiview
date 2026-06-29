@@ -122,7 +122,12 @@ HWTEST_F(EventExportDbMgrTest, EventExportDbMgrTest002, testing::ext::TestSize.L
     // export switch on at 10
     manager.HandleExportSwitchChanged(TEST_MODULE_NAME2, FIRST_ENABLED_SEQ);
     ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME2), FIRST_ENABLED_SEQ);
+    // not response for the same status switch
+    manager.HandleExportSwitchChanged(TEST_MODULE_NAME2, SECOND_ENABLED_SEQ);
+    ASSERT_NE(manager.GetExportBeginSeq(TEST_MODULE_NAME2), SECOND_ENABLED_SEQ);
+    ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME2), FIRST_ENABLED_SEQ);
     // export switch on at 100
+    manager.HandleExportSwitchChanged(TEST_MODULE_NAME2, INVALID_SEQ_VAL);
     manager.HandleExportSwitchChanged(TEST_MODULE_NAME2, SECOND_ENABLED_SEQ);
     ASSERT_EQ(manager.GetExportBeginSeq(TEST_MODULE_NAME2), SECOND_ENABLED_SEQ);
 }

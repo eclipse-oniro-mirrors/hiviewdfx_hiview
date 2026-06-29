@@ -16,6 +16,7 @@
 
 #include <fstream>
 #include <string>
+#include <sstream>
 
 #include "constants.h"
 #include "event_publish.h"
@@ -28,6 +29,7 @@
 #include "log_analyzer.h"
 #include "string_util.h"
 #include "time_util.h"
+#include "json/json.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -86,6 +88,8 @@ void FaultLogFreeze::PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHi
     FaultLogType faultLogType = static_cast<FaultLogType>(info.faultLogType);
     std::string freezeType = GetFreezeType(faultLogType, isAppHicollie);
     std::string eventType = GetEventType(faultLogType, isAppHicollie);
+    std::string applicationGCInfo = GetGCJsonValue(info.sectionMap);
+    std::string applicationIOInfo = GetIOJsonValue(info.sectionMap);
     FreezeJsonParams::Builder builder = FreezeJsonParams::Builder()
         .InitTime(collector.timestamp)
         .InitUuid(collector.uuid)
@@ -109,11 +113,12 @@ void FaultLogFreeze::PublishAppFreezeJson(const FaultLogInfo& info, bool isAppHi
         .InitThreads(collector.stack)
         .InitMemory(collector.memory)
         .InitThermalLevel(collector.thermal_Level)
-        .InitExternalCallbackLog(collector.external_callback_log);
+        .InitExternalCallbackLog(collector.external_callback_log)
+        .InitApplicationGCInfo(applicationGCInfo)
+        .InitApplicationIOInfo(applicationIOInfo)
+        .InitExternalLog(externalLog);
     if (freezeType == "AppFreezeWarning") {
         builder.InitBundleVersionCode(collector.version_code);
-    } else {
-        builder.InitExternalLog(externalLog);
     }
     FreezeJsonParams freezeJsonParams = builder.Build();
     EventPublish::GetInstance().PushEvent(info.id, eventType,
@@ -215,6 +220,7 @@ std::string FaultLogFreeze::GetMemoryStrByPid(
     uint64_t sysAvailMem = GetProcessInfo(sectionMap, FaultKey::SYS_AVAIL_MEM);
     uint64_t vmHeapTotalSize = GetProcessInfo(sectionMap, FaultKey::HEAP_TOTAL_SIZE);
     uint64_t vmHeapUsedSize = GetProcessInfo(sectionMap, FaultKey::HEAP_OBJECT_SIZE);
+    uint64_t vmHeapSharedSize = GetProcessInfo(sectionMap, FaultKey::HEAP_SHARED_SIZE);
 
     auto builder = FreezeJsonMemory::Builder()
         .InitRss(rss)
@@ -223,7 +229,8 @@ std::string FaultLogFreeze::GetMemoryStrByPid(
         .InitSysAvailMem(sysAvailMem)
         .InitSysTotalMem(sysTotalMem)
         .InitVmHeapTotalSize(vmHeapTotalSize)
-        .InitVmHeapUsedSize(vmHeapUsedSize);
+        .InitVmHeapUsedSize(vmHeapUsedSize)
+        .InitVmHeapSharedSize(vmHeapSharedSize);
     if (!includePss) {
         builder.InitPss(UINT64_MAX);
     }
@@ -272,7 +279,7 @@ void FaultLogFreeze::UpdateTerminalThreadStack()
 
 bool FaultLogFreeze::UpdateCommonInfo()
 {
-    FaultLogEventInterface::UpdateCommonInfo();
+    FaultLogEventIpc::UpdateCommonInfo();
     UpdateTerminalThreadStack();
     return true;
 }
@@ -302,7 +309,7 @@ std::string FaultLogFreeze::MergeFreezeExtToLog(const std::string& logPath,
     }
     std::string tmpFileName = "appfreeze-merged-" + std::to_string(pid) + "-" +
         std::to_string(id) + "-" + std::to_string(TimeUtil::GetMilliseconds());
-    std::string tmpPath = std::string(FAULTLOG_TEMP_FOLDER) + tmpFileName;
+    std::string tmpPath = std::string(FAULTLOG_FREEZE_FOLDER) + tmpFileName;
     std::string mergedContent = logContent + "\n==========FREEZE_EXT_INFO==========\n" + freezeExtContent;
     if (!FileUtil::SaveStringToFile(tmpPath, mergedContent)) {
         HIVIEW_LOGE("failed to write merged file: %{public}s", tmpPath.c_str());
@@ -310,6 +317,56 @@ std::string FaultLogFreeze::MergeFreezeExtToLog(const std::string& logPath,
     }
     HIVIEW_LOGI("merged freeze-ext into temp file: %{public}s", tmpPath.c_str());
     return tmpPath;
+}
+
+std::string FaultLogFreeze::GetGCJsonValue(const std::map<std::string, std::string>& sectionMap) const
+{
+    // Init GC
+    uint64_t gcCount = GetProcessInfo(sectionMap, FaultKey::GC_COUNT);
+    std::string gcMaxPause = GetStrValFromMap(sectionMap, FaultKey::GC_MAX_PAUSE);
+    std::string gcMinPause = GetStrValFromMap(sectionMap, FaultKey::GC_MIN_PAUSE);
+    std::string gcAveragePause = GetStrValFromMap(sectionMap, FaultKey::GC_AVERAGE_PAUSE);
+    uint64_t gcLastStartTime = GetProcessInfo(sectionMap, FaultKey::GC_LAST_START_TIME);
+    uint64_t gcLastEndTime = GetProcessInfo(sectionMap, FaultKey::GC_LAST_END_TIME);
+    std::string gcLastType = GetStrValFromMap(sectionMap, FaultKey::GC_LAST_TYPE);
+
+    Json::Value gcJson;
+    gcJson[FaultKey::GC_COUNT] = gcCount;
+    gcJson[FaultKey::GC_MAX_PAUSE] = StringUtil::StringToDouble(gcMaxPause);
+    gcJson[FaultKey::GC_MIN_PAUSE] = StringUtil::StringToDouble(gcMinPause);
+    gcJson[FaultKey::GC_AVERAGE_PAUSE] = StringUtil::StringToDouble(gcAveragePause);
+    gcJson[FaultKey::GC_LAST_START_TIME] = gcLastStartTime;
+    gcJson[FaultKey::GC_LAST_END_TIME] = gcLastEndTime;
+    gcJson[FaultKey::GC_LAST_TYPE] = gcLastType;
+
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    return Json::writeString(builder, gcJson);
+}
+
+std::string FaultLogFreeze::GetIOJsonValue(const std::map<std::string, std::string>& sectionMap) const
+{
+    // Init IO
+    uint64_t ioRchar = GetProcessInfo(sectionMap, FaultKey::IO_RCHAR);
+    uint64_t ioWchar = GetProcessInfo(sectionMap, FaultKey::IO_WCHAR);
+    uint64_t ioSyscr = GetProcessInfo(sectionMap, FaultKey::IO_SYSCR);
+    uint64_t ioSyscw = GetProcessInfo(sectionMap, FaultKey::IO_SYSCW);
+    uint64_t ioReadBytes = GetProcessInfo(sectionMap, FaultKey::IO_READ_BYTES);
+    uint64_t ioWriteBytes = GetProcessInfo(sectionMap, FaultKey::IO_WRITE_BYTES);
+    uint64_t ioCancelledWriteBytes = GetProcessInfo(sectionMap, FaultKey::IO_CANCELLED_WRITE_BYTES);
+
+    Json::Value ioJson;
+    ioJson[FaultKey::IO_RCHAR] = ioRchar;
+    ioJson[FaultKey::IO_WCHAR] = ioWchar;
+    ioJson[FaultKey::IO_SYSCR] = ioSyscr;
+    ioJson[FaultKey::IO_SYSCW] = ioSyscw;
+    ioJson[FaultKey::IO_READ_BYTES] = ioReadBytes;
+    ioJson[FaultKey::IO_WRITE_BYTES] = ioWriteBytes;
+    ioJson[FaultKey::IO_CANCELLED_WRITE_BYTES] = ioCancelledWriteBytes;
+
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    return Json::writeString(builder, ioJson);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

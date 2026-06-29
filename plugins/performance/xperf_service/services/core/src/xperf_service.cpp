@@ -16,6 +16,9 @@
 #include "xperf_service.h"
 #include "xperf_dispatcher.h"
 #include "xperf_service_log.h"
+#include "xperf_service_action_type.h"
+#include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -40,6 +43,16 @@ XperfService& XperfService::GetInstance()
 
 void XperfService::DispatchMsg(int32_t domainId, int32_t eventId, const std::string& msg)
 {
+    if (domainId != DomainId::PERFMONITOR) {
+        OHOS::Security::AccessToken::AccessTokenID callerToken = OHOS::IPCSkeleton::GetCallingTokenID();
+        Security::AccessToken::ATokenTypeEnum tokenType = OHOS::Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(
+            callerToken);
+        if (tokenType != OHOS::Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+            LOGW("XperfService_DispatchMsg caller is not a SA. domainId:%{public}d, eventId:%{public}d", domainId,
+                eventId);
+            return;
+        }
+    }
     if (dispatcher == nullptr) {
         LOGE("XperfService dispatcher is nullptr");
         return;

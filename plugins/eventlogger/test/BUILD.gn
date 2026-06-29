@@ -56,45 +56,9 @@ ohos_unittest("EventloggerPluginTest") {
   ]
 
   defines = []
-  if (multimodalinput_input_enable) {
-    external_deps += [ "input:libmmi-client" ]
-    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
-  }
 
   resource_config_file =
       "//base/hiviewdfx/hiview/plugins/eventlogger/test/resource/ohos_test.xml"
-}
-
-ohos_unittest("ActiveKeyEventTest") {
-  module_out_path = module_output_path
-  configs = [ ":unittest_config" ]
-
-  sources = [ "unittest/common/active_key_event_test.cpp" ]
-
-  deps = [
-    "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
-    "$hiview_core:hiview_core",
-    "$hiview_eventlogger:eventlogger",
-    "$hiview_eventlogger/config:eventlogger_config",
-    "$hiview_plugin/sysevent_source:sysevent_source",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "init:libbegetutil",
-    "ipc:ipc_single",
-    "jsoncpp:jsoncpp",
-  ]
-
-  defines = []
-  if (multimodalinput_input_enable) {
-    external_deps += [ "input:libmmi-client" ]
-    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
-  }
 }
 
 ohos_unittest("EventLoggerTest") {
@@ -106,13 +70,11 @@ ohos_unittest("EventLoggerTest") {
     "util/eventlogger_util_test.cpp",
   ]
   deps = [
-    "$hiview_adapter/plugins/eventservice/service:sys_event_service_adapter",
     "$hiview_base:hiviewbase_static_lib_for_tdd",
     "$hiview_core:hiview_core",
     "$hiview_eventlogger:eventlogger",
     "$hiview_eventlogger/config:eventlogger_config",
     "$hiview_faultlogger:libfaultlogger",
-    "$hiview_plugin/sysevent_source:sysevent_source",
   ]
 
   external_deps = [
@@ -131,10 +93,6 @@ ohos_unittest("EventLoggerTest") {
   if (window_manager_enable) {
     external_deps += [ "window_manager:libwm" ]
     defines += [ "WINDOW_MANAGER_ENABLE" ]
-  }
-  if (multimodalinput_input_enable) {
-    external_deps += [ "input:libmmi-client" ]
-    defines += [ "MULTIMODALINPUT_INPUT_ENABLE" ]
   }
   if (hiview_eventlogger_hitrace_catcher_enable) {
     defines += [ "HITRACE_CATCHER_ENABLE" ]

@@ -47,7 +47,9 @@ ohos_shared_library("libhiretrieval_napi") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 
   relative_install_dir = "module/hiviewdfx"

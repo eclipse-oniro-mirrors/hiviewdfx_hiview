@@ -29,7 +29,7 @@ namespace HiviewDFX {
  
 DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 
-static constexpr int DELAY_MS = 200;
+static constexpr int DELAY_US = 200000;
  
 WhiteBlockMonitor& WhiteBlockMonitor::GetInstance()
 {
@@ -42,7 +42,7 @@ void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
     if (!IsBetaVersion()) {
         return;
     }
-    std::lock_guard<std::mutex> Lock(mMutex);
+    std::lock_guard<ffrt::mutex> Lock(mMutex);
     scrollStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     appWhiteInfo.bundleName = baseInfo.bundleName;
     appWhiteInfo.abilityName = baseInfo.abilityName;
@@ -57,11 +57,13 @@ void WhiteBlockMonitor::EndScroll()
         return;
     }
     XPERF_TRACE_SCOPED("WhiteBlockMonitor::EndScroll");
-    std::lock_guard<std::mutex> Lock(mMutex);
-    scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
-    scrolling = false;
-    std::thread delayThread([this] { this->ReportWhiteBlockStat(); });
-    delayThread.detach();
+    {
+        std::lock_guard<ffrt::mutex> Lock(mMutex);
+        scrollEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
+        scrolling = false;
+    }
+    ffrt::submit([] { WhiteBlockMonitor::GetInstance().ReportWhiteBlockStat(); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated).delay(DELAY_US));
 }
  
 void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
@@ -69,7 +71,7 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
     if (!IsBetaVersion()) {
         return;
     }
-    std::lock_guard<std::mutex> Lock(mMutex);
+    std::lock_guard<ffrt::mutex> Lock(mMutex);
     if (!scrolling) {
         HIVIEW_LOGD("not scrolling");
         return;
@@ -89,7 +91,7 @@ void WhiteBlockMonitor::EndRecordImageLoadStat(int64_t id, std::pair<int, int> s
     if (!IsBetaVersion()) {
         return;
     }
-    std::lock_guard<std::mutex> Lock(mMutex);
+    std::lock_guard<ffrt::mutex> Lock(mMutex);
     ImageLoadInfo* record = GetRecord(id);
     if (record == nullptr) {
         HIVIEW_LOGD("record not exists");
@@ -119,8 +121,7 @@ ImageLoadInfo* WhiteBlockMonitor::GetRecord(int64_t id)
  
 void WhiteBlockMonitor::ReportWhiteBlockStat()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_MS));
-    std::lock_guard<std::mutex> Lock(mMutex);
+    std::lock_guard<ffrt::mutex> Lock(mMutex);
     PerfReporter::GetInstance().ReportWhiteBlockStat(scrollStartTime, scrollEndTime, mRecords, appWhiteInfo);
     CleanUpRecords();
 }

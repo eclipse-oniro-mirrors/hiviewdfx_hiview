@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-//4001 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#FAULT_ID:0#FAULT_CODE:0";
+//4001 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:xxx.com#FAULT_ID:0#FAULT_CODE:0";
 struct AvcodecJankEvent : public OhosXperfEvent {
     int16_t faultId{0};
     int16_t faultCode{0};
@@ -33,7 +33,7 @@ struct AvcodecJankEvent : public OhosXperfEvent {
     std::string surfaceName;
 };
 
-//4000 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:douyin.com#SURFACE_NAME:399542385184Surface#FPS:60
+//4000 "#UNIQUEID:7095285973044#PID:1453#BUNDLE_NAME:xxx.com#SURFACE_NAME:399542385184Surface#FPS:60
 // #REPORT_INTERVAL:100";
 struct AvcodecFrame : public OhosXperfEvent {
     int32_t pid{0};
@@ -41,6 +41,14 @@ struct AvcodecFrame : public OhosXperfEvent {
     int32_t reportInterval{0};
     int64_t uniqueId{0};
     std::string surfaceName;
+};
+
+// "#UNIQUEID:"  "#SURFACE_NAME:"  "#LAST_FLUSH_TIME:" "#DURATION:"
+struct AvcodecFaultEvent : public OhosXperfEvent {
+    int64_t uniqueId{0};
+    std::string surfaceName;
+    int64_t lastFlushTime{0};
+    int64_t duration{0};
 };
 
 } // namespace HiviewDFX

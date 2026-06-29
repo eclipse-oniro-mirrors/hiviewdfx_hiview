@@ -143,6 +143,81 @@ int AppEventHandler::PostEvent(const ScrollJankInfo& event)
     return 0;
 }
 
+static void AddMemoryDetailToJsonString(std::stringstream& jsonStr, const AppEventHandler::DetailCommonMemoryInfo& info)
+{
+    AddValueToJsonString("ark ts heap", info.arktsHeap, jsonStr);
+    AddValueToJsonString("arkts-static heap", info.arktsStaHeap, jsonStr);
+    AddValueToJsonString(".db", info.db, jsonStr);
+    AddValueToJsonString("dev", info.dev, jsonStr);
+    AddValueToJsonString(".hap", info.hap, jsonStr);
+    AddValueToJsonString("native heap", info.nativeHeap, jsonStr);
+    AddValueToJsonString(".so", info.so, jsonStr);
+    AddValueToJsonString("stack", info.stack, jsonStr);
+    AddValueToJsonString(".ttf", info.ttf, jsonStr);
+    AddValueToJsonString("jsvm heap", info.jsvmHeap, jsonStr);
+    AddValueToJsonString("arkweb-js heap", info.arkwebV8, jsonStr);
+    AddValueToJsonString("arkweb-pa heap", info.arkwebPa, jsonStr);
+    AddValueToJsonString("kotlin heap", info.kotlinHeap, jsonStr);
+    AddValueToJsonString("rn-hermes heap", info.rnHermesHeap, jsonStr);
+    AddValueToJsonString("dart heap", info.dartHeap, jsonStr);
+    AddValueToJsonString("other", info.others, jsonStr);
+    // not in MEMORY_CLASS_VEC
+    AddValueToJsonString("anon_page_other", info.anonPageOther, jsonStr);
+    AddValueToJsonString("file_page_other", info.filePageOther, jsonStr, true);
+}
+
+static void AddExtraFiledByResourceType(std::stringstream& jsonStr, const AppEventHandler::ResourceOverLimitInfo& event)
+{
+    if (event.resourceType == "pss_memory") {
+        AddObjectToJsonString("pss_detail", jsonStr);
+        AddMemoryDetailToJsonString(jsonStr, event.extPssInfo.detailSmapsInfo);
+        jsonStr << ",";
+    } else if (event.resourceType == "rss_memory") {
+        AddObjectToJsonString("rss_detail", jsonStr);
+        AddMemoryDetailToJsonString(jsonStr, event.rssInfo);
+        jsonStr << ",";
+    }
+}
+
+static void HandleMemoryResourceType(std::stringstream& jsonStr, const AppEventHandler::ResourceOverLimitInfo& event)
+{
+    AddObjectToJsonString("memory", jsonStr);
+    AddValueToJsonString("pss", event.pss, jsonStr);
+    AddExtraFiledByResourceType(jsonStr, event);
+    AddValueToJsonString("gpu", event.gpu, jsonStr);
+    AddValueToJsonString("ion", event.ion, jsonStr);
+    AddValueToJsonString("rss", event.rss, jsonStr);
+    AddValueToJsonString("sys_avail_mem", event.avaliableMem, jsonStr);
+    AddValueToJsonString("sys_free_mem", event.freeMem, jsonStr);
+    AddValueToJsonString("sys_total_mem", event.totalMem, jsonStr);
+    AddValueToJsonString("vss", 0, jsonStr, true);
+    jsonStr << "," << std::endl;
+}
+
+static void HandleJsHeapResourceType(std::stringstream& jsonStr, const AppEventHandler::ResourceOverLimitInfo& event)
+{
+    AddObjectToJsonString("memory", jsonStr);
+    AddValueToJsonString("limit_size", event.limitSize, jsonStr);
+    AddValueToJsonString("live_object_size", event.liveobjectSize, jsonStr, true);
+    jsonStr << "," << std::endl;
+}
+
+static void HandleFdResourceType(std::stringstream& jsonStr, const AppEventHandler::ResourceOverLimitInfo& event)
+{
+    AddObjectToJsonString("fd", jsonStr);
+    AddValueToJsonString("num", event.fdNum, jsonStr);
+    AddValueToJsonString("top_fd_type", event.topFdType, jsonStr);
+    AddValueToJsonString("top_fd_num", event.topFdNum, jsonStr, true);
+    jsonStr << "," << std::endl;
+}
+
+static void HandleThreadResourceType(std::stringstream& jsonStr, const AppEventHandler::ResourceOverLimitInfo& event)
+{
+    AddObjectToJsonString("thread", jsonStr);
+    AddValueToJsonString("num", event.threadNum, jsonStr, true);
+    jsonStr << "," << std::endl;
+}
+
 int AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
 {
     if (event.bundleName.empty()) {
@@ -158,41 +233,24 @@ int AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
     AddValueToJsonString("resource_type", event.resourceType, jsonStr);
     AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
     AddValueToJsonString("level", event.level, jsonStr);
+
     std::unordered_set<std::string> validResourceTypes = { "pss_memory", "ion_memory",
         "gpu_memory",
         "rss_memory",
         "ashmem_memory" };
     if (validResourceTypes.find(event.resourceType) != validResourceTypes.end()) {
-        AddObjectToJsonString("memory", jsonStr);
-        AddValueToJsonString("pss", event.pss, jsonStr);
-        AddValueToJsonString("rss", event.rss, jsonStr);
-        AddValueToJsonString("vss", event.vss, jsonStr);
-        AddValueToJsonString("gpu", event.gpu, jsonStr);
-        AddValueToJsonString("ion", event.ion, jsonStr);
-        AddValueToJsonString("sys_avail_mem", event.avaliableMem, jsonStr);
-        AddValueToJsonString("sys_free_mem", event.freeMem, jsonStr);
-        AddValueToJsonString("sys_total_mem", event.totalMem, jsonStr, true);
-        jsonStr << "," << std::endl;
+        HandleMemoryResourceType(jsonStr, event);
     } else if (event.resourceType == "js_heap") {
-        AddObjectToJsonString("memory", jsonStr);
-        AddValueToJsonString("limit_size", event.limitSize, jsonStr);
-        AddValueToJsonString("live_object_size", event.liveobjectSize, jsonStr, true);
-        jsonStr << "," << std::endl;
+        HandleJsHeapResourceType(jsonStr, event);
     } else if (event.resourceType == "fd") {
-        AddObjectToJsonString("fd", jsonStr);
-        AddValueToJsonString("num", event.fdNum, jsonStr);
-        AddValueToJsonString("top_fd_type", event.topFdType, jsonStr);
-        AddValueToJsonString("top_fd_num", event.topFdNum, jsonStr, true);
-        jsonStr << "," << std::endl;
+        HandleFdResourceType(jsonStr, event);
     } else if (event.resourceType == "thread") {
-        AddObjectToJsonString("thread", jsonStr);
-        AddValueToJsonString("num", event.threadNum, jsonStr, true);
-        jsonStr << "," << std::endl;
+        HandleThreadResourceType(jsonStr, event);
     } else {
         return -1;
     }
-    AddVectorToJsonString("external_log", event.logPath, jsonStr, true);
 
+    AddVectorToJsonString("external_log", event.logPath, jsonStr, true);
     EventPublish::GetInstance().PushEvent(event.uid, "RESOURCE_OVERLIMIT", HiSysEvent::EventType::FAULT, jsonStr.str());
     return 0;
 }
@@ -284,6 +342,7 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     AddValueToJsonString("reason", event.reason, jsonStr);
     AddValueToJsonString("foreground", event.isForeground, jsonStr);
     AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
+    AddValueToJsonString("process_name", event.processName, jsonStr);
     AddValueToJsonString("bundle_version", event.bundleVersion, jsonStr, true);
 
     jsonStr << std::endl;

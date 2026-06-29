@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-//#UNIQUEID:100003#PID:8565#BUNDLE_NAME:20020048#HANPPEN_TIME:1753233970222#STATUS:2
+//#UNIQUEID:100003#PID:8565#BUNDLE_NAME:20020048#HAPPEN_TIME:1753233970222#STATUS:2
 OhosXperfEvent* ParseAudioState(const std::string& msg)
 {
     AudioStateEvent* event = new AudioStateEvent();

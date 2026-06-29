@@ -51,6 +51,23 @@ struct FoldAppUsageInfo {
     uint32_t gHorSplit = 0; // usage duration when screen in g-horizon status and split-screen window
     uint32_t gHorFloating = 0; // usage duration when screen in g-horizon status and floating window
     uint32_t gHorMidscene = 0; // usage duration when screen in g-horizon status and midscene window
+    uint32_t nVer = 0;
+    uint32_t nVerSplit = 0;
+    uint32_t nVerFloating = 0;
+    uint32_t nHor = 0;
+    uint32_t nHorSplit = 0;
+    uint32_t nHorFloating = 0;
+    uint32_t lmVer = 0;
+    uint32_t lmVerSplit = 0;
+    uint32_t lmVerFloating = 0;
+    uint32_t lmVerMidscene = 0;
+    uint32_t lmHor = 0;
+    uint32_t lmHorSplit = 0;
+    uint32_t lmHorFloating = 0;
+    uint32_t lmHorMidscene = 0;
+    uint32_t tFull = 0;
+    uint32_t tSplit = 0;
+    uint32_t tFloating = 0;
 #if FOLD_PC_COUNT_DURATION_ENABLE
     uint32_t foldKbVer = 0;
     uint32_t foldDisplayOuter = 0;

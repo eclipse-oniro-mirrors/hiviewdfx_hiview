@@ -25,6 +25,7 @@ void StartBootScan();
 time_t GetFileLastAccessTimeStamp(const std::string& fileName);
 FaultLogInfoInner ParseFaultLogInfoFromFile(const std::string &path, const std::string &fileName);
 FaultLogInfoInner ExtractInfoFromFileName(const std::string& fileName);
+std::string FormatTimeStamp(uint64_t timestamp);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEWDFX_HIVIEW_FAULTLOGGER_UTIL_H

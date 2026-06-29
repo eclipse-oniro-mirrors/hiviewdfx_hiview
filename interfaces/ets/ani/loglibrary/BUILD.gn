@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -41,11 +41,13 @@ ohos_shared_library("loglibrary_ani") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_runtime:app_context",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "icu:shared_icuuc",
     "hilog:libhilog",
     "ipc:ipc_single",
     "runtime_core:ani",

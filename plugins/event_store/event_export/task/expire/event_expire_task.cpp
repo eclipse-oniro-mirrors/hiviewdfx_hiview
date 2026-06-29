@@ -55,9 +55,7 @@ void EventExpireTask::OnTaskRun()
     scanReq->storedDayCnt = static_cast<uint8_t>(config_->dayCnt);
     if (!scanHandler->HandleRequest(scanReq)) {
         HIVIEW_LOGE("some error occured during event expring");
-        return;
     }
-    HIVIEW_LOGI("task of expiring events finished");
 }
 } // HiviewDFX
 } // OHOS

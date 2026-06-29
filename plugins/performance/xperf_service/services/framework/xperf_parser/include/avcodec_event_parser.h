@@ -23,6 +23,8 @@ namespace HiviewDFX {
 
 OhosXperfEvent* ParseAvcodecVideoJankEventMsg(const std::string& msg);
 OhosXperfEvent* ParseAvcodecFirstFrame(const std::string& msg);
+OhosXperfEvent* ParseVoid(const std::string& msg);
+OhosXperfEvent* ParseAvcodecFault(const std::string& msg);
 
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -64,9 +64,17 @@ void VideoXperfMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AVCODEC_JANK_REPORT: //avcodec故障事件
             OnAvcodecJankReceived(event);
             break;
+        case XperfConstants::VIDEO_FRAME_STATS:
+            OnVideoFrameStats(event);
+            break;
         default:
             break;
     }
+}
+
+void VideoXperfMonitor::OnVideoFrameStats(OhosXperfEvent* event)
+{
+    LOGD("VideoXperfMonitor_OnVideoFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
 }
 
 void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)

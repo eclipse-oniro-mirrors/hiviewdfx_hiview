@@ -54,6 +54,7 @@ struct SectionLog {
 };
 
 const SectionLog APPEND_ORIGIN_LOG = {FaultKey::APPEND_ORIGIN_LOG, ""};
+const SectionLog APP_RUNNING_UNIQUE_ID = {FaultKey::APP_RUNNING_UNIQUE_ID, "App running unique id:"};
 const SectionLog APP_VM_TYPE = {FaultKey::APP_VM_TYPE, "APPVMTYPE:"};
 const SectionLog BINDER_TRANSACTION_INFO = { FaultKey::BINDER_TRANSACTION_INFO, "Binder transaction info:\n" };
 const SectionLog BUILD_INFO = {FaultKey::BUILD_INFO, "Build info:"};
@@ -65,6 +66,7 @@ const SectionLog DEVICE_MEMINFO = {FaultKey::DEVICE_MEMINFO, ""};
 const SectionLog ENABLED_APP_LOG_CONFIG = {FaultKey::ENABLED_APP_LOG_CONFIG, "Enabled app log configs:\n"};
 const SectionLog ENABLE_MINIDUMP_LOG = {FaultKey::ENABLE_MINIDUMP_LOG, "Enable minidump log:"};
 const SectionLog EXTEND_PC_LR_PRINTING = {FaultKey::EXTEND_PC_LR_PRINTING, "Extend pc lr printing:"};
+const SectionLog EXTRA_CRASH_INFO = {FaultKey::EXTRA_CRASH_INFO, ""};
 const SectionLog FAULT_MESSAGE = {FaultKey::FAULT_MESSAGE, "Fault message:"};
 const SectionLog FAULT_STACK = {FaultKey::FAULT_STACK, "FaultStack:\n"};
 const SectionLog FAULT_TYPE = {FaultKey::FAULT_TYPE, "Fault type:"};
@@ -77,6 +79,7 @@ const SectionLog KEY_THREAD_REGISTERS = {FaultKey::KEY_THREAD_REGISTERS, "Regist
 const SectionLog LAST_FATAL_MESSAGE = {FaultKey::LAST_FATAL_MESSAGE, "LastFatalMessage:"};
 const SectionLog LIFETIME = {FaultKey::LIFETIME, "Up time:"};
 const SectionLog LOG_CUT_OFF_SIZE = {FaultKey::LOG_CUT_OFF_SIZE, "Log cut off size:"};
+const SectionLog LOG_SOURCE = {FaultKey::LOG_SOURCE, "Log source:"};
 const SectionLog MEMORY_NEAR_REGISTERS = {FaultKey::MEMORY_NEAR_REGISTERS, "Memory near registers:\n"};
 const SectionLog MEMORY_USAGE = {FaultKey::MEMORY_USAGE, "Memory Usage:\n"};
 const SectionLog MERGE_APP_LOG_PRINTING = {FaultKey::MERGE_APP_LOG_PRINTING, "Merge app log printing:"};
@@ -119,9 +122,9 @@ std::vector<SectionLog> GetCppCrashSectionLogs()
         DEVICE_INFO, BUILD_INFO, DEVICE_DEBUGABLE, FINGERPRINT, MODULE_NAME, RELEASE_TYPE, CPU_ABI, MODULE_VERSION,
         VERSION_CODE, IS_SYSTEM_APP, PRE_INSTALL, FOREGROUND, PAGE_SWITCH_HISTORY, APPEND_ORIGIN_LOG,
         ENABLED_APP_LOG_CONFIG, TIMESTAMP, MODULE_PID, MODULE_UID, HITRACEID, PROCESS_NAME, FAULT_TYPE, SYS_VM_TYPE,
-        APP_VM_TYPE, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON, FAULT_MESSAGE, LAST_FATAL_MESSAGE,
-        TRACE_ID, KEY_THREAD_INFO, SUBMITTER_STACKTRACE, KEY_THREAD_REGISTERS, OTHER_THREAD_INFO,
-        MEMORY_NEAR_REGISTERS, FAULT_STACK, PROCESS_MAPS, OPEN_FILES
+        APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, LOG_SOURCE, REASON,
+        FAULT_MESSAGE, LAST_FATAL_MESSAGE, TRACE_ID, KEY_THREAD_INFO, SUBMITTER_STACKTRACE, KEY_THREAD_REGISTERS,
+        EXTRA_CRASH_INFO, OTHER_THREAD_INFO, MEMORY_NEAR_REGISTERS, FAULT_STACK, PROCESS_MAPS, OPEN_FILES
     };
     return info;
 }
@@ -131,8 +134,8 @@ std::vector<SectionLog> GetJsCrashSectionLogs()
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, DEVICE_DEBUGABLE, FINGERPRINT, TIMESTAMP, MODULE_NAME, RELEASE_TYPE, CPU_ABI,
         MODULE_VERSION, VERSION_CODE, IS_SYSTEM_APP, PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, PROCESS_NAME,
-        FAULT_TYPE, FAULT_MESSAGE, SYS_VM_TYPE, APP_VM_TYPE, LIFETIME, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO,
-        DEVICE_MEMINFO, PAGE_SWITCH_HISTORY, REASON, TRACE_ID, SUMMARY
+        FAULT_TYPE, FAULT_MESSAGE, SYS_VM_TYPE, APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, LIFETIME, PROCESS_LIFETIME,
+        PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, PAGE_SWITCH_HISTORY, REASON, TRACE_ID, SUMMARY
     };
     return info;
 }
@@ -142,7 +145,7 @@ std::vector<SectionLog> GetCjCrashSectionLogs()
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, VERSION_CODE,
         PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, SYS_VM_TYPE,
-        APP_VM_TYPE, LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON, TRACE_ID, SUMMARY
+        APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON, TRACE_ID, SUMMARY
     };
     return info;
 }
@@ -152,8 +155,8 @@ std::vector<SectionLog> GetAppFreezeSectionLogs()
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, DEVICE_DEBUGABLE, FINGERPRINT, TIMESTAMP, MODULE_NAME, RELEASE_TYPE, CPU_ABI,
         MODULE_VERSION, VERSION_CODE, IS_SYSTEM_APP, PRE_INSTALL, FOREGROUND, MODULE_PID, MODULE_UID,
-        FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON,
-        TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE, MSG_QUEUE_INFO,
+        FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO,
+        DEVICE_MEMINFO, REASON, TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE, MSG_QUEUE_INFO,
         BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY, PAGE_SWITCH_HISTORY
     };
     return info;
@@ -163,7 +166,7 @@ std::vector<SectionLog> GetSysFreezeSectionLogs()
 {
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
-        MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, REASON,
+        MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, REASON,
         TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
         MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
     };
@@ -205,8 +208,8 @@ std::vector<SectionLog> GetAddrSanitizerSectionLogs()
 {
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, FINGERPRINT, APPEND_ORIGIN_LOG, TIMESTAMP, MODULE_NAME,
-        MODULE_VERSION, MODULE_PID, MODULE_UID, FAULT_TYPE, FAULT_MESSAGE, APP_VM_TYPE, REASON,
-        SUMMARY
+        MODULE_VERSION, MODULE_PID, MODULE_UID, APP_RUNNING_UNIQUE_ID, FAULT_TYPE, FAULT_MESSAGE,
+        APP_VM_TYPE, REASON, SUMMARY
     };
     return info;
 }
@@ -249,42 +252,44 @@ std::string FormatFrameIndex(int index)
 
 std::string FormatThreadInfo(const Json::Value& threadInfo)
 {
-    if (!threadInfo.isMember("tid") ||
-        !threadInfo.isMember("thread_name") ||
-        !threadInfo.isMember("frames") ||
-        !threadInfo["frames"].isArray() ||
-        threadInfo["frames"].size() == 0) {
+    if (!threadInfo["tid"].isInt() || !threadInfo["thread_name"].isString() ||
+        !threadInfo["frames"].isArray() || threadInfo["frames"].size() == 0) {
+        HIVIEW_LOGW("FormatThreadInfo failed: invalid thread info structure");
         return {};
     }
-    std::string result = "Tid:" + std::to_string(threadInfo["tid"].asInt()) +
-             ", Name:" + threadInfo["thread_name"].asString() + "\n";
-
     const Json::Value& frames = threadInfo["frames"];
+    std::string frameResult;
     for (Json::ArrayIndex i = 0; i < frames.size(); ++i) {
         const Json::Value& frame = frames[i];
-        if (frame.isMember("packageName") && frame.isMember("symbol") &&
-            frame.isMember("file") && frame.isMember("line") && frame.isMember("column")) {
-            result += "#" + FormatFrameIndex(i) + " at " + frame["symbol"].asString() +
+        if (frame["packageName"].isString() && frame["symbol"].isString() &&
+            frame["file"].isString() && frame["line"].isInt() && frame["column"].isInt()) {
+            frameResult += "#" + FormatFrameIndex(i) + " at " + frame["symbol"].asString() +
                       " " + frame["packageName"].asString() +
                       " (" + frame["file"].asString() + ":" +
                       std::to_string(frame["line"].asInt()) + ":" +
                       std::to_string(frame["column"].asInt()) + ")\n";
-        } else if (frame.isMember("pc") && frame.isMember("file")) {
-            result += "#" + FormatFrameIndex(i) + " pc " + frame["pc"].asString() +
+        } else if (frame["pc"].isString() && frame["file"].isString()) {
+            frameResult += "#" + FormatFrameIndex(i) + " pc " + frame["pc"].asString() +
                       " " + frame["file"].asString();
             std::string symbolPart;
-            if (frame.isMember("symbol") && !frame["symbol"].asString().empty() && frame.isMember("offset")) {
-                symbolPart = "(" + frame["symbol"].asString() + "+" +
-                             std::to_string(frame["offset"].asInt()) + ")";
+            std::string symbolStr = frame["symbol"].isString() ? frame["symbol"].asString() : "";
+            if (!symbolStr.empty() && frame["offset"].isInt()) {
+                symbolPart = "(" + symbolStr + "+" + std::to_string(frame["offset"].asInt()) + ")";
             }
-            result += symbolPart;
-            if (frame.isMember("buildId") && !frame["buildId"].asString().empty()) {
-                result += "(" + frame["buildId"].asString() + ")";
+            frameResult += symbolPart;
+            std::string buildIdStr = frame["buildId"].isString() ? frame["buildId"].asString() : "";
+            if (!buildIdStr.empty()) {
+                frameResult += "(" + buildIdStr + ")";
             }
-            result += "\n";
+            frameResult += "\n";
         }
     }
-    return result;
+    if (frameResult.empty()) {
+        HIVIEW_LOGW("FormatThreadInfo failed: no valid frame output");
+        return {};
+    }
+    return "Tid:" + std::to_string(threadInfo["tid"].asInt()) +
+           ", Name:" + threadInfo["thread_name"].asString() + "\n" + frameResult;
 }
 
 std::string FormatOtherThreadInfo(const Json::Value& otherThreadInfo)
@@ -453,180 +458,6 @@ void WriteDfxLogToFile(int32_t fd)
     std::string sepStr = std::string("================================================================\n");
     FileUtil::SaveStringToFd(fd, dfxStr);
     FileUtil::SaveStringToFd(fd, sepStr);
-}
-
-bool ShouldParseSandBoxPath(const std::string& line)
-{
-    return line.find(".hap+") != std::string::npos ||
-           line.find(".hsp+") != std::string::npos ||
-           line.find(".hqf+") != std::string::npos ||
-           line.find(".abc+") != std::string::npos ||
-           line.find("[anon:ArkTS Code:/") != std::string::npos;
-}
-
-uintptr_t ExtractPcAddr(const std::string& line)
-{
-    size_t pos = line.find("0x");
-    if (pos == std::string::npos) {
-        return 0;
-    }
-
-    std::string hexStr;
-    for (size_t i = pos; i < line.size(); ++i) {
-        char c = line[i];
-        if (std::isxdigit(c) || c == 'x' || c == 'X') {
-            hexStr.push_back(c);
-        } else {
-            break;
-        }
-    }
-    uintptr_t pcAddr = static_cast<uintptr_t>(std::strtoull(hexStr.c_str(), nullptr, HEX_BASE) - OFFSET_HAP);
-    return pcAddr;
-}
-
-bool ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix, const std::string& bundleName)
-{
-    size_t leftParentPos = line.find('(');
-    if (leftParentPos == std::string::npos) {
-        return false;
-    }
-
-    size_t plusPos = line.find('+', leftParentPos);
-    if (plusPos == std::string::npos) {
-        return false;
-    }
-
-    std::string fullPath = line.substr(leftParentPos + 1, plusPos - leftParentPos - 1);
-
-    size_t lastSlashPos = fullPath.rfind('/');
-    if (lastSlashPos == std::string::npos) {
-        return false;
-    }
-
-    pathPrefix = fullPath.substr(0, lastSlashPos + 1);
-    std::string fileName = fullPath.substr(lastSlashPos + 1);
-
-    // pathPrefix mean full sandbox path
-    if (pathPrefix.find(APP_SANDBOX_PREFIX) != std::string::npos) {
-        pathPrefix = "/data/app/el1/bundle/public/" + bundleName + "/" + fileName;
-    } else {
-        pathPrefix = fullPath;
-    }
-    HIVIEW_LOGI("line: %{public}s, pathPrefix: %{public}s", line.c_str(), pathPrefix.c_str());
-    return true;
-}
-
-std::string ProcessArkTsLine(const std::string& line, const std::string& packageName)
-{
-    size_t pos;
-    std::string fullPath;
-    uintptr_t offsetPtr;
-
-    size_t stackFrameStart = line.find('#');
-    if (stackFrameStart == std::string::npos) {
-        return line;
-    }
-    size_t stackFrameEnd = line.find_first_of(' ', stackFrameStart);
-    std::string stackFrame = line.substr(stackFrameStart, stackFrameEnd - stackFrameStart);
-    if (!ConvertPathFromOriginLine(line, fullPath, packageName)) {
-        return line;
-    }
-    pos = line.rfind('+');
-    if (pos != std::string::npos) {
-        std::string offset = line.substr(pos + 1);
-        if (!offset.empty() && offset.back() == ')') {
-            offset.pop_back();
-        }
-        if ((pos = line.find(".hap+")) != std::string::npos) {
-            offsetPtr = static_cast<uintptr_t>(std::strtoull(offset.c_str(), nullptr, HEX_BASE) - OFFSET_HAP +
-                                                OFFSET_HEAD);
-        } else {
-            offsetPtr = static_cast<uintptr_t>(std::strtoull(offset.c_str(), nullptr, HEX_BASE) + OFFSET_HEAD);
-        }
-        // mapBase and offset default use 0
-        std::uintptr_t arkExtractorPtr;
-        DfxArk::Instance().ArkCreateJsSymbolExtractor(&arkExtractorPtr);
-        JsFunction jsFunc;
-        DfxArk::Instance().ParseArkFileInfo(offsetPtr, 0, 0, fullPath.c_str(), arkExtractorPtr, &jsFunc, true);
-        DfxArk::Instance().ArkDestoryJsSymbolExtractor(arkExtractorPtr);
-        HIVIEW_LOGI("functionName: %{public}s, packageName: %{public}s, url: %{public}s, line: %{public}d,"
-            "column: %{public}d", jsFunc.functionName, jsFunc.packageName, jsFunc.url, jsFunc.line, jsFunc.column);
-        std::string result = STACK_FRAME_PREFIX + stackFrame;
-        if (jsFunc.functionName[0] != '\0') {
-            result += " " + std::string(jsFunc.functionName);
-        }
-        if (jsFunc.packageName[0] != '\0') {
-            result += " " + std::string(jsFunc.packageName);
-        }
-        result += " (" + std::string(jsFunc.url)+ ":" + std::to_string(jsFunc.line) +
-                  ":" + std::to_string(jsFunc.column) + ")";
-        return result;
-    }
-    return line;
-}
-
-bool ParserArkTsStackInfo(const std::string& moduleName, int32_t logType, const std::string& path)
-{
-    std::ifstream srcLogFile(path);
-    if (!srcLogFile.is_open()) {
-        HIVIEW_LOGE("Failed to open src file: %{public}s", path.c_str());
-        return false;
-    }
-
-    std::string tempPath = path + ".tmp";
-    int tempFileFd = open(tempPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_LOG_FILE_MODE);
-    if (tempFileFd == -1) {
-        HIVIEW_LOGE("Failed to open temp file: %{public}s", tempPath.c_str());
-        srcLogFile.close();
-        return false;
-    }
-
-    std::string line;
-    while (std::getline(srcLogFile, line)) {
-        if (srcLogFile.eof()) {
-            break;
-        }
-        if (!srcLogFile.good()) {
-            break;
-        }
-        if (ShouldParseSandBoxPath(line)) {
-            line = ProcessArkTsLine(line, moduleName);
-        }
-        FileUtil::SaveStringToFd(tempFileFd, line);
-        FileUtil::SaveStringToFd(tempFileFd, "\n");
-    }
-    srcLogFile.close();
-    fsync(tempFileFd);
-    close(tempFileFd);
-    return FileUtil::RenameFile(tempPath.c_str(), path.c_str());
-}
-
-bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, int32_t logType, const std::string& path)
-{
-    if (moduleName.empty() || logType != FaultLogType::ADDR_SANITIZER || path.empty()) {
-        return false;
-    }
-    pid_t childPid = fork();
-    if (childPid < 0) {
-        HIVIEW_LOGE("failed to fork process, err: %{public}s", strerror(errno));
-        return false;
-    }
-    if (childPid == 0) {
-        bool ret = ParserArkTsStackInfo(moduleName, logType, path);
-        if (!ret) {
-            HIVIEW_LOGE("moduleName: %{public}s, logType: %{public}d, err: %{public}s",
-                        moduleName.c_str(), logType, strerror(errno));
-            _exit(-1);
-        }
-        _exit(0);
-    } else {
-        if (waitpid(childPid, nullptr, 0) != childPid) {
-            HIVIEW_LOGE("waitpid fail, pid: %{public}d, err: %{public}s", childPid, strerror(errno));
-            return false;
-        }
-        HIVIEW_LOGI("waitpid %{public}d success", childPid);
-    }
-    return true;
 }
 
 void WriteFaultLogToFile(int32_t fd, int32_t logType, const std::map<std::string, std::string>& sections)

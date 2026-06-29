@@ -95,6 +95,7 @@
                 "hilog",
                 "hiprofiler",
                 "hisysevent",
+                "icu",
                 "init",
                 "input",
                 "ipc",
@@ -109,7 +110,9 @@
                 "samgr",
                 "storage_service",
                 "thermal_manager",
+                "libuv",
                 "napi",
+                "node",
                 "hiperf",
                 "hitrace",
                 "wifi",
@@ -244,7 +247,8 @@
                         "header_base": "//base/hiviewdfx/hiview/plugins/performance/xperf_service/interfaces/inner_api/xperfservice_client/include",
                         "header_files": [
                             "xperf_service_action_type.h",
-                            "xperf_service_client.h"
+                            "xperf_service_client.h",
+                            "rs_monitor_adapter.h"
                         ]
                     }
                 },

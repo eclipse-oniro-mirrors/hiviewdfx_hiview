@@ -14,17 +14,25 @@
  */
  
 #include "passthrough_monitor.h"
- 
-#include <sstream>
- 
+
+#include <cinttypes>
+
+#include "audio_event.h"
+#include "ffrt.h"
 #include "load_complete_reporter.h"
+#include "perf_action_event.h"
 #include "perf_load_complete_event.h"
+#include "perf_utils.h"
+#include "rs_event.h"
 #include "xperf_service_log.h"
+
+namespace {
+    constexpr int64_t USER_ACTION_MONITOR_DURATION = 5000;
+    constexpr size_t MAX_CACHE_SIZE = 10;
+}
  
 namespace OHOS {
 namespace HiviewDFX {
- 
-const std::string EVENT_LOAD_COMPLETE = "LOAD_COMPLETE";
  
 PassthroughMonitor& PassthroughMonitor::GetInstance()
 {
@@ -39,27 +47,134 @@ void PassthroughMonitor::ProcessEvent(OhosXperfEvent* event)
         return;
     }
     LOGD("PassthroughMonitor msg:%{public}s", event->rawMsg.c_str());
-    if (event->eventName == EVENT_LOAD_COMPLETE) {
-        ProcessLoadCompleteEvent(event);
+    switch (event->logId) {
+        case XperfConstants::PERF_LOAD_COMPLETE: // 应用启动加载事件
+            OnLoadCompleteEvent(event);
+            break;
+        case XperfConstants::VIDEO_FIRST_FRAME: //图形上报视频第一帧
+            OnVideoFirstFrame(event);
+            break;
+        case XperfConstants::VIDEO_SECOND_FRAME: //图形上报视频第二帧
+            OnVideoSecondFrame(event);
+            break;
+        case XperfConstants::PERF_APP_FOREGROUND: // 应用切前台
+            OnAppForeground(event);
+            break;
+        case XperfConstants::PERF_USER_ACTION:
+            OnTouchAction(event);
+            break;
+        case XperfConstants::AUDIO_RENDER_START:
+            OnAudioStart(event);
+            break;
+        default:
+            break;
     }
 }
+
+void PassthroughMonitor::OnAudioStart(OhosXperfEvent* event)
+{
+    AudioStateEvent* audioEvent = (AudioStateEvent*) event;
+    LOGD("PassthroughMonitor::OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
+        static_cast<long long>(audioEvent->uniqueId));
+
+    ffrt::submit([bundleName = audioEvent->bundleName,
+        happenTime = audioEvent->happenTime]() { LoadCompleteReporter::ReportAudioStart(bundleName, happenTime); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
+}
+
+void PassthroughMonitor::OnAppForeground(OhosXperfEvent* event)
+{
+    std::lock_guard<std::mutex> lock(touchActionMutex_);
+    bundleName_ = event->bundleName;
+    appForegroundTime_ = event->happenTime;
+    LOGD("PassthroughMonitor::OnAppForeground bundleName:%{public}s, happenTime:%{public}" PRId64 ".",
+        event->bundleName.c_str(), event->happenTime);
+}
+
+void PassthroughMonitor::OnTouchAction(OhosXperfEvent* event)
+{
+    PerfActionEvent* luEvt = (PerfActionEvent*) event;
+    std::lock_guard<std::mutex> lock(touchActionMutex_);
+    LOGD("PassthroughMonitor::OnTouchAction time:%{public}" PRId64 ". appForegroundTime_:%{public}" PRId64,
+        luEvt->time, appForegroundTime_);
+    // 若应用切前台5s内有点击操作，影响加载时延判断，上报至xperfPlugin
+    if (appForegroundTime_ > 0 && luEvt->time > appForegroundTime_ &&
+        luEvt->time - appForegroundTime_ < USER_ACTION_MONITOR_DURATION) {
+        ffrt::submit([bundleName = bundleName_,
+            happenTime = luEvt->time]() { LoadCompleteReporter::ReportTouchAction(bundleName, happenTime); },
+            ffrt::task_attr().qos(ffrt::qos_user_initiated));
+        appForegroundTime_ = 0;
+    }
+}
+
+void PassthroughMonitor::OnVideoFirstFrame(OhosXperfEvent* event)
+{
+    LOGD("PassthroughMonitor::OnVideoFirstFrame rawMsg:%{public}s", event->rawMsg.c_str());
+    VideoFirstEvent firstFrame = *((VideoFirstEvent*) event);
+
+    std::string bundleName = GetBundleName(firstFrame.uniqueId);
+    if (bundleName.empty()) {
+        return;
+    }
+    int64_t happenTime = firstFrame.happenTime;
+    ffrt::submit([bundleName, happenTime]() { LoadCompleteReporter::ReportVideoFirstFrame(bundleName, happenTime); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
+}
+
+void PassthroughMonitor::OnVideoSecondFrame(OhosXperfEvent* event)
+{
+    LOGD("PassthroughMonitor::OnVideoSecondFrame rawMsg:%{public}s", event->rawMsg.c_str());
+    VideoSecondEvent secondFrame = *((VideoSecondEvent*) event);
+
+    std::string bundleName = GetBundleName(secondFrame.uniqueId);
+    // 第二帧作为应用加载终止点的方案，仅适用于启动即播放视频的应用（抖音、快手、快手极速版）
+    if (bundleName.empty()) {
+        return;
+    }
+    ffrt::submit([bundleName, happenTime =
+        secondFrame.happenTime]() { LoadCompleteReporter::ReportVideoSecondFrame(bundleName, happenTime); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
+}
+
+std::string PassthroughMonitor::GetBundleName(int64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lock(sourceMutex_);
+    for (const auto& [name, id] : lruList_) {
+        if (id == uniqueId) {
+            return name;
+        }
+    }
+    return "";
+}
+
+void PassthroughMonitor::OnSurfaceReceived(const std::string& bundleName, int64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lock(sourceMutex_);
+    for (auto it = lruList_.begin(); it != lruList_.end(); ++it) {
+        if (it->first == bundleName) {
+            it->second = uniqueId;
+            lruList_.splice(lruList_.begin(), lruList_, it);
+            return;
+        }
+    }
+    if (lruList_.size() >= MAX_CACHE_SIZE) {
+        lruList_.pop_back();
+    }
+    lruList_.emplace_front(bundleName, uniqueId);
+}
  
-void PassthroughMonitor::ProcessLoadCompleteEvent(OhosXperfEvent* event)
+void PassthroughMonitor::OnLoadCompleteEvent(OhosXperfEvent* event)
 {
     PerfLoadCompleteEvent* loadCompleteEvent = (PerfLoadCompleteEvent*) event;
  
-    std::stringstream pageLoadCost;
-    pageLoadCost << "isLaunch:" << loadCompleteEvent->isLaunch << ",lastComponent:" <<
-        loadCompleteEvent->lastComponent << ";";
-    std::vector<std::string> array;
-    array.push_back(pageLoadCost.str());
     LoadCompleteReport reportInfo = {
         .lastComponent = loadCompleteEvent->lastComponent,
         .isLaunch = loadCompleteEvent->isLaunch,
         .bundleName = loadCompleteEvent->bundleName,
         .abilityName = loadCompleteEvent->abilityName,
     };
-    LoadCompleteReporter::ReportLoadComplete(reportInfo);
+    ffrt::submit([reportInfo]() { LoadCompleteReporter::ReportLoadComplete(reportInfo); },
+        ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
  
 } // namespace HiviewDFX

@@ -95,9 +95,9 @@ void AnimatorMonitor::OnAnimatorStart(const std::string& sceneId, PerfActionType
         HIVIEW_LOGD("Animation has already started, sceneId: %{public}s", sceneId.c_str());
     }
     record = new AnimatorRecord();
-    int64_t inputTime = InputMonitor::GetInstance().GetInputTime(sceneId, type, note);
+    InputEventInfo inputEventInfo = InputMonitor::GetInstance().GetInputEventInfo(sceneId, type, note);
     PerfSourceType sourceType = InputMonitor::GetInstance().GetSourceType();
-    record->InitRecord(sceneId, type, sourceType, note, inputTime);
+    record->InitRecord(sceneId, type, sourceType, note, inputEventInfo);
     mRecords.insert(std::pair<std::string, AnimatorRecord*> (sceneId, record));
     XperfAsyncTraceBegin(0, sceneId.c_str());
 }
@@ -193,7 +193,10 @@ void AnimatorMonitor::FlushDataBase(AnimatorRecord* record, DataBase& data)
         return;
     }
     data.sceneId = record->sceneId;
-    data.inputTime = record->inputTime;
+    if (data.sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH) {
+        data.pos = std::to_string(record->inputEventInfo.xPos) + "," + std::to_string(record->inputEventInfo.yPos);
+    }
+    data.inputTime = record->inputEventInfo.inputTime;
     data.beginVsyncTime = record->beginVsyncTime;
     if (data.beginVsyncTime < data.inputTime) {
         data.inputTime = data.beginVsyncTime;

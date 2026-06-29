@@ -134,6 +134,8 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.freezeExtFile = sysEvent.GetEventValue(FreezeCommon::FREEZE_INFO_PATH);
     params.applicationInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO) + COMMA_SEPARATOR +
         sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_LIFECYCLE_INFO);
+    params.applicationGCInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_GC_INFO);
+    params.applicationIOInfo = sysEvent.GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO);
     params.taskName = sysEvent.GetEventValue(FreezeCommon::EVENT_TASK_NAME);
     params.clusterRaw = sysEvent.GetEventValue(FreezeCommon::QNAME)
         + std::to_string(sysEvent.GetEventIntValue(FreezeCommon::QOS));
@@ -151,6 +153,9 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     int isHicollieValue = sysEvent.GetEventIntValue(FreezeCommon::EVENT_IS_HICOLLIE);
     params.isHicollie = (isHicollieValue == 1);
     params.reportLifecycleToFreeze = sysEvent.GetEventIntValue(FreezeCommon::EVENT_REPORT_LIFECYCLE_AS_APPFREEZE);
+    params.isBlockInGC = sysEvent.GetEventIntValue(FreezeCommon::EVENT_IS_BLOCK_IN_GC);
+    params.renderPid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_RENDER_PID);
+    params.renderUid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_RENDER_UID);
 }
 
 WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
@@ -167,26 +172,32 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitSysrqTime(params.sysrqTime).InitHitraceIdInfo(params.hitraceIdInfo).InitProcStatm(params.procStatm)
         .InitHostResourceWarning(params.hostResourceWarning).InitFreezeExtFile(params.freezeExtFile)
         .InitEnabelMainThreadSample(params.enableMainThreadSample).InitAppRunningUniqueId(params.appRunningUniqueId)
-        .InitApplicationInfo(params.applicationInfo).InitTaskName(params.taskName).InitClusterRaw(params.clusterRaw)
+        .InitApplicationInfo(params.applicationInfo).InitApplicationGCInfo(params.applicationGCInfo)
+        .InitApplicationIOInfo(params.applicationIOInfo).InitTaskName(params.taskName).InitClusterRaw(params.clusterRaw)
         .InitTimeoutEventId(params.timeoutEventId).InitLastDispatchEventId(params.lastDispatchEventId)
         .InitLastProcessEventId(params.lastProcessEventId).InitLastMarkedEventId(params.lastMarkedEventId)
         .InitThermalLevel(params.thermalLevel).InitExternalLog(params.externalLog).InitIsHicollie(params.isHicollie)
-        .InitReportLifecycleAsAppfreeze(params.reportLifecycleToFreeze)
+        .InitReportLifecycleAsAppfreeze(params.reportLifecycleToFreeze).InitIsBlockInGC(params.isBlockInGC)
+        .InitRenderPid(params.renderPid).InitRenderUid(params.renderUid)
         .Build();
     HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
         " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
         " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
         " enableMainThreadSample=%{public}d, appRunningUniqueId=%{public}s, foreGround=%{public}s,"
-        " applicationInfo=%{public}s, taskName=%{public}s, timeoutEventId=%{public}s, lastDispatchEventId=%{public}s,"
+        " applicationInfo=%{public}s, applicationGCInfo=%{public}s, applicationIOInfo=%{public}s, taskName=%{public}s,"
+        " timeoutEventId=%{public}s, lastDispatchEventId=%{public}s,"
         " lastProcessEventId=%{public}s,lastMarkedEventId=%{public}s, thermalLevel=%{public}s, externalLog size:"
-        "%{public}zu, isHicollie=%{public}d, reportLifecycleToFreeze=%{public}d",
+        "%{public}zu, isHicollie=%{public}d, reportLifecycleToFreeze=%{public}d, isBlockInGC=%{public}d, "
+        "renderPid=%{public}ld, renderUid=%{public}ld",
         event.domain_.c_str(), event.eventName_.c_str(), params.pid, params.uid, params.seq,
         params.packageName.c_str(), params.processName.c_str(), params.logFile.c_str(), params.hitraceIdInfo.c_str(),
         params.procStatm.c_str(), params.hostResourceWarning.c_str(), params.freezeExtFile.c_str(),
         params.enableMainThreadSample, params.appRunningUniqueId.c_str(), params.foreGround.c_str(),
-        params.applicationInfo.c_str(), params.taskName.c_str(), params.timeoutEventId.c_str(),
+        params.applicationInfo.c_str(), params.applicationGCInfo.c_str(), params.applicationIOInfo.c_str(),
+        params.taskName.c_str(), params.timeoutEventId.c_str(),
         params.lastDispatchEventId.c_str(), params.lastProcessEventId.c_str(), params.lastMarkedEventId.c_str(),
-        params.thermalLevel.c_str(), params.externalLog.size(), params.isHicollie, params.reportLifecycleToFreeze);
+        params.thermalLevel.c_str(), params.externalLog.size(), params.isHicollie, params.reportLifecycleToFreeze,
+        params.isBlockInGC, params.renderPid, params.renderUid);
     return watchPoint;
 }
 

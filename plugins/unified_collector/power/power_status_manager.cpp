@@ -26,7 +26,6 @@ DEFINE_LOG_TAG("UCollectUtil-PowerState");
 void PowerStateSubscriber::OnReceiveEvent(const CommonEventData &data)
 {
     std::string action = data.GetWant().GetAction();
-    HIVIEW_LOGI("action=%{public}s", action.c_str());
     if (action == CommonEventSupport::COMMON_EVENT_SCREEN_ON) {
         PowerStatusManager::GetInstance().SetPowerState(SCREEN_ON);
     } else if (action == CommonEventSupport::COMMON_EVENT_SCREEN_OFF) {

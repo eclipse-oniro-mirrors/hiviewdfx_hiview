@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,23 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef HIVIEW_ACTIVE_KEY_EVENT_TEST_H
-#define HIVIEW_ACTIVE_KEY_EVENT_TEST_H
-#include <string>
-#include <sys/types.h>
 
-#include <gtest/gtest.h>
+#include "perf_utils.h"
+
+#include <chrono>
+
 namespace OHOS {
 namespace HiviewDFX {
-class ActiveKeyEventTest : public testing::Test {
-public:
-    void SetUp();
-    void TearDown();
-    static void SetUpTestCase();
-    static void TearDownTestCase();
 
-private:
-};
-} // namespace HiviewDFX
-} // namespace OHOS
-#endif // ACTIVE_KEY_EVENT_TEST_H
+int64_t GetCurrentSystimeMs()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    int64_t curSysTime = std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+    return curSysTime;
+}
+
+}
+}

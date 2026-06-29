@@ -125,7 +125,7 @@ EventDbHelper::~EventDbHelper()
 void EventDbHelper::InitDbStore()
 {
     rdbStore_ = std::make_shared<RestorableDbStore>(
-        FileUtil::IncludeTrailingPathDelimiter(dbPath_) + DB_DIR, DB_NAME, DB_VERSION);
+        FileUtil::IncludeTrailingPathDelimiter(dbPath_) + DB_DIR, DB_NAME, DB_VERSION, "usage event report");
     rdbStore_->Initialize(EventDbStoreOnCreate, EventDbStoreOnUpgrade, EventDbStoreOnRestore);
 }
 

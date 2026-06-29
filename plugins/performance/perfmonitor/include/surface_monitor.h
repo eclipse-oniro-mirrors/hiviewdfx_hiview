@@ -24,6 +24,9 @@ public:
  
     void ReportSurface(const int64_t& uniqueId, const std::string& surfaceName, const std::string& componentName,
                        const std::string& bundleName, const int32_t& pid);
+
+    void ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName, const std::string& componentName,
+        const std::string& bundleName, int32_t pid);
 };
  
 }

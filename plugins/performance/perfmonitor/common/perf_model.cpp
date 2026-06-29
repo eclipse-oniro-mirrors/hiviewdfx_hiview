@@ -23,13 +23,13 @@ namespace HiviewDFX {
 constexpr int64_t SCENE_TIMEOUT = 10000000000;
 
 void AnimatorRecord::InitRecord(const std::string& sId, PerfActionType aType, PerfSourceType sType,
-    const std::string& nt, int64_t time)
+    const std::string& nt, InputEventInfo info)
 {
     sceneId = sId;
     actionType = aType;
     sourceType = sType;
     note = nt;
-    inputTime = time;
+    inputEventInfo = info;
     beginVsyncTime = GetCurrentRealTimeNs();
     isDisplayAnimator = IsDisplayAnimator(sceneId);
 }
@@ -73,8 +73,8 @@ void AnimatorRecord::RecordFrame(int64_t vsyncTime, int64_t duration, int32_t sk
     }
     totalFrames++;
     // 统计直方图
-    size_t jankIndex = std::min(static_cast<size_t>(skippedFrames), jankCount.size()) - 1;
-    if (skippedFrames >= 1 && !isFirstFrame) {
+    if (skippedFrames >= 1 && !isFirstFrame && jankCount.size() >= 1) {
+        size_t jankIndex = std::min(static_cast<size_t>(skippedFrames), jankCount.size()) - 1;
         jankCount[jankIndex]++;
     }
 }
@@ -103,7 +103,9 @@ bool AnimatorRecord::IsDisplayAnimator(const std::string& sceneId)
         || sceneId == PerfConstants::META_BALLS_TURBO_CHARGING_ANIMATION
         || sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH_INTERACTIVE
         || sceneId == PerfConstants::SCROLLER_ANIMATION
-        || sceneId == PerfConstants::LAUNCHER_SPRINGBACK_SCROLL) {
+        || sceneId == PerfConstants::LAUNCHER_SPRINGBACK_SCROLL
+        || sceneId == PerfConstants::STATIC_CROP_DRAG
+        || sceneId == PerfConstants::MOVING_CROP_DRAG) {
         return true;
     }
     return false;

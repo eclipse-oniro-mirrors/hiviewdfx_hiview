@@ -28,7 +28,7 @@ using namespace OHOS::HiviewDFX::HiRetrieval;
 
 namespace OHOS::HiviewDFX {
 namespace {
-constexpr char CLASS_NAME_HIRETRIEVAL_CONFIG[] = "@ohos.hiviewdfx.hiRetrieval.hiRetrieval.HiRetrievalConfig";
+constexpr char CLASS_NAME_HIRETRIEVAL_CONFIG[] = "@ohos.hiviewdfx.hiRetrieval.HiRetrievalConfigAni";
 constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos.base.BusinessError";
 constexpr char FUNC_NAME_CTOR[] = "<ctor>";
 

@@ -187,5 +187,53 @@ HWTEST(FaultLogFreezeTest, AppFreezeCrashLogTest003, testing::ext::TestSize.Leve
     ASSERT_TRUE(faultAppFreeze.info_.sectionMap["SECOND_FRAME"].empty());
     ASSERT_TRUE(faultAppFreeze.info_.sectionMap["LAST_FRAME"].empty());
 }
+
+/**
+ * @tc.name: GetGCJsonValue001
+ * @tc.desc: test GetGCJsonValue with empty sectionMap
+ * @tc.type: FUNC
+ */
+HWTEST(FaultLogFreezeTest, GetGCJsonValue001, testing::ext::TestSize.Level3)
+{
+    std::map<std::string, std::string> sectionMap;
+    FaultLogFreeze faultLogFreeze;
+    std::string result = faultLogFreeze.GetGCJsonValue(sectionMap);
+    ASSERT_FALSE(result.empty());
+    sectionMap["count"] = "100";
+    sectionMap["maxPause"] = "50.5";
+    sectionMap["minPause"] = "10.2";
+    sectionMap["averagePause"] = "25.3";
+    sectionMap["lastStartTime"] = "1234567890";
+    sectionMap["lastEndTime"] = "1234567900";
+    sectionMap["lastType"] = "major";
+    result = faultLogFreeze.GetGCJsonValue(sectionMap);
+    ASSERT_FALSE(result.empty());
+    ASSERT_NE(result.find("count"), std::string::npos);
+    ASSERT_NE(result.find("maxPause"), std::string::npos);
+}
+
+/**
+ * @tc.name: GetIOJsonValue001
+ * @tc.desc: test GetIOJsonValue with empty sectionMap
+ * @tc.type: FUNC
+ */
+HWTEST(FaultLogFreezeTest, GetIOJsonValue001, testing::ext::TestSize.Level3)
+{
+    std::map<std::string, std::string> sectionMap;
+    FaultLogFreeze faultLogFreeze;
+    std::string result = faultLogFreeze.GetIOJsonValue(sectionMap);
+    ASSERT_FALSE(result.empty());
+    sectionMap["rchar"] = "1024";
+    sectionMap["wchar"] = "512";
+    sectionMap["syscr"] = "100";
+    sectionMap["syscw"] = "50";
+    sectionMap["read_bytes"] = "2048";
+    sectionMap["write_bytes"] = "1024";
+    sectionMap["cancelled_write_bytes"] = "256";
+    result = faultLogFreeze.GetIOJsonValue(sectionMap);
+    ASSERT_FALSE(result.empty());
+    ASSERT_NE(result.find("rchar"), std::string::npos);
+    ASSERT_NE(result.find("wchar"), std::string::npos);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -22,6 +22,7 @@ config("xperfservice_server_config") {
     "core/include",
     "common/include",
     "server/include",
+    "utils",
     ".",
     "framework/task_manager/include",
     "framework/xperf_parser/include",
@@ -42,14 +43,17 @@ ohos_shared_library("xperfservice_server") {
 
   sources = [
     "common/src/xperf_parser.cpp",
-    "common/src/perf_trace.cpp",
+    "${xperfservice_common}/src/perf_trace.cpp",
+    "${xperfservice_common}/src/perf_utils.cpp",
     "core/src/xperf_service.cpp",
     "core/src/xperf_register_manager.cpp",
     "framework/xperf_dispatcher/src/xperf_monitor_manager.cpp",
     "framework/xperf_dispatcher/src/event_parser_manager.cpp",
     "framework/xperf_dispatcher/src/xperf_dispatcher.cpp",
+    "framework/xperf_monitor/src/avcodec_perf_monitor.cpp",
     "framework/xperf_monitor/src/user_action_monitor.cpp",
     "framework/xperf_monitor/src/video_jank_monitor.cpp",
+    "framework/xperf_monitor/src/video_play_latency_monitor.cpp",
     "framework/xperf_monitor/src/video_xperf_monitor.cpp",
     "framework/xperf_monitor/src/passthrough_monitor.cpp",
     "framework/xperf_parser/src/audio_event_parser.cpp",
@@ -58,6 +62,7 @@ ohos_shared_library("xperfservice_server") {
     "framework/xperf_parser/src/perf_event_parser.cpp",
     "framework/xperf_parser/src/rs_event_parser.cpp",
     "framework/xperf_reporter/src/video_reporter.cpp",
+    "framework/xperf_reporter/src/play_latency_reporter.cpp",
     "framework/xperf_reporter/src/load_complete_reporter.cpp",
     "framework/xperf_storage/src/user_action_storage.cpp",
     "server/src/xperf_service_server.cpp",
@@ -96,11 +101,28 @@ ohos_shared_library("xperfservice_server") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    cfi_vcall_icall_only = true
+    boundary_sanitize = false
+    integer_overflow = false
   }
 
   asmflags = [ "-Wl,-z,relro,-z,now" ]
 
-  cflags_cc = [ "-fstack-protector-strong" ]
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fstack-protector-strong",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Os"
+  ]
+ 
+  ldflags = [
+  "-flto",
+  "-Wl,--gc-sections",
+  ]
 }
 
 ohos_static_library("xperfservice_server_static") {
@@ -136,5 +158,24 @@ ohos_static_library("xperfservice_server_static") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    cfi_vcall_icall_only = true
+    boundary_sanitize = false
+    integer_overflow = false
   }
+
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fstack-protector-strong",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Os"
+  ]
+ 
+  ldflags = [
+  "-flto",
+  "-Wl,--gc-sections",
+  ]
 }

@@ -90,6 +90,11 @@ bool StrToInt(const std::string& str, int& value);
 int StrToInt(const std::string& str);
 
 /**
+ * The StrToInt64 function convert str to int64_t.
+ */
+bool StrToInt64(const std::string& str, int64_t& value);
+
+/**
  * Append the strings in list with specific delimiter
  */
 std::string ConvertVectorToStr(const std::vector<std::string> &listStr, const std::string &split);

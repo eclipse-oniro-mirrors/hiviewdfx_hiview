@@ -77,6 +77,8 @@ namespace {
     constexpr char EVENT_KEY_SUBHEALTH_TIME[] = "SUB_HEALTH_TIME";
     constexpr char EVENT_KEY_VSYNC_TIME[] = "VSYNC_TIME";
     constexpr char EVENT_KEY_JANK_COUNT[] = "JANK_COUNT";
+    constexpr char EVENT_KEY_ACTION_TYPE[] = "ACTION_TYPE";
+    constexpr char EVENT_KEY_POS[] = "POS";
     constexpr char STATISTIC_DURATION[] = "DURATION";
     constexpr char KEY_SCROLL_START_TIME[] = "SCROLL_START_TIME";
     constexpr char KEY_SCROLL_END_TIME[] = "SCROLL_END_TIME";
@@ -289,6 +291,14 @@ void PerfReporter::ReportSurface(const int64_t& uniqueId, const std::string& sur
     EventReporter::ReportSurfaceInfo(surfaceInfo);
 }
 
+void PerfReporter::ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
+{
+    XperfServiceClient::GetInstance().NotifyToXperf(DomainId::PERFMONITOR, PerfEventCode::COMPONENT_DETACH,
+        "#PID:" + std::to_string(pid) + "#BUNDLE_NAME:" + bundleName + "#UNIQUE_ID:" + std::to_string(uniqueId) +
+        "#SURFACE_NAME:" + surfaceName + "#COMPONENT_NAME:" + componentName);
+}
+
 void EventReporter::ReportJankFrameApp(JankInfo& info)
 {
     std::string eventName = "JANK_FRAME_APP";
@@ -417,6 +427,8 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
         .Param(EVENT_KEY_SUBHEALTH_REASON, data.baseInfo.subHealthInfo.subHealthReason)
         .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(data.baseInfo.subHealthInfo.subHealthTime))
         .Param(EVENT_KEY_JANK_COUNT, jankStr)
+        .Param(EVENT_KEY_ACTION_TYPE, GetActionTypeName(data.actionType))
+        .Param(EVENT_KEY_POS, data.pos)
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
@@ -585,19 +597,23 @@ void EventReporter::ReportSurfaceInfo(const SurfaceInfo& surface)
 
 void EventReporter::ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo)
 {
-    // 构建消息字符串
-    std::stringstream ss;
-    ss << "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" << std::to_string(eventInfo.lastComponent)
-        << "#BUNDLE_NAME:" << eventInfo.bundleName
-        << "#ABILITY_NAME:" << eventInfo.abilityName
-        << "#IS_LAUNCH:" << std::to_string(eventInfo.isLaunch);
- 
-    // 通过 XperfService 发送消息
-    // 使用 eventId 6001 (PERF_LOAD_COMPLETE)
     XperfServiceClient::GetInstance().NotifyToXperf(
         static_cast<int32_t>(DomainId::PERFMONITOR),
         static_cast<int32_t>(PerfEventCode::LOAD_COMPLETE),
-        ss.str()
+        "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" + std::to_string(eventInfo.lastComponent) +
+        "#BUNDLE_NAME:" + eventInfo.bundleName +
+        "#ABILITY_NAME:" + eventInfo.abilityName +
+        "#IS_LAUNCH:" + std::to_string(eventInfo.isLaunch)
+    );
+}
+
+// 上报应用前台事件到Xperf性能监控系统
+void EventReporter::ReportAppForegroundEvent(const std::string& bundleName)
+{
+    XperfServiceClient::GetInstance().NotifyToXperf(
+        static_cast<int32_t>(DomainId::PERFMONITOR),
+        static_cast<int32_t>(PerfEventCode::APP_FOREGROUND_ONSHOW),
+        "#BUNDLE_NAME:" + bundleName + "#HAPPEN_TIME:" + std::to_string(GetCurrentSystimeMs())
     );
 }
 

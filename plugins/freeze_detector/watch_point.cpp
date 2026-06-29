@@ -22,9 +22,11 @@ namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
+    appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false),
+    renderPid_(0), renderUid_(0)
 {
 }
 
@@ -51,6 +53,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     freezeExtFile_(builder.freezeExtFile_),
     enableMainThreadSample_(builder.enableMainThreadSample_),
     applicationInfo_(builder.applicationInfo_),
+    applicationGCInfo_(builder.applicationGCInfo_),
+    applicationIOInfo_(builder.applicationIOInfo_),
     appRunningUniqueId_(builder.appRunningUniqueId_),
     taskName_(builder.taskName_),
     clusterRaw_(builder.clusterRaw_),
@@ -61,16 +65,21 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     thermalLevel_(builder.thermalLevel_),
     externalLog_(builder.externalLog_),
     isHicollie_(builder.isHicollie_),
-    reportLifecycleToFreeze_(builder.reportLifecycleToFreeze_)
+    reportLifecycleToFreeze_(builder.reportLifecycleToFreeze_),
+    isBlockInGC_(builder.isBlockInGC_),
+    renderPid_(builder.renderPid_),
+    renderUid_(builder.renderUid_)
 {
 }
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
     stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    enableMainThreadSample_(false), applicationInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
+    appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
-    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false)
+    externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false),
+    renderPid_(0), renderUid_(0)
 {
 }
 
@@ -208,11 +217,24 @@ WatchPoint::Builder& WatchPoint::Builder::InitApplicationInfo(const std::string&
     return *this;
 }
 
+WatchPoint::Builder& WatchPoint::Builder::InitApplicationGCInfo(const std::string& applicationGCInfo)
+{
+    applicationGCInfo_ = applicationGCInfo;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitApplicationIOInfo(const std::string& applicationIOInfo)
+{
+    applicationIOInfo_ = applicationIOInfo;
+    return *this;
+}
+
 WatchPoint::Builder& WatchPoint::Builder::InitAppRunningUniqueId(const std::string& appRunningUniqueId)
 {
     appRunningUniqueId_ = appRunningUniqueId;
     return *this;
 }
+
 WatchPoint::Builder& WatchPoint::Builder::InitTaskName(const std::string& taskName)
 {
     taskName_ = taskName;
@@ -270,6 +292,24 @@ WatchPoint::Builder& WatchPoint::Builder::InitIsHicollie(bool isHicollie)
 WatchPoint::Builder& WatchPoint::Builder::InitReportLifecycleAsAppfreeze(bool reportLifecycleToFreeze)
 {
     reportLifecycleToFreeze_ = reportLifecycleToFreeze;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitIsBlockInGC(bool isBlockInGC)
+{
+    isBlockInGC_ = isBlockInGC;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitRenderPid(long renderPid)
+{
+    renderPid_ = renderPid;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitRenderUid(long renderUid)
+{
+    renderUid_ = renderUid;
     return *this;
 }
 
@@ -383,6 +423,17 @@ std::string WatchPoint::GetApplicationInfo() const
 {
     return applicationInfo_;
 }
+
+std::string WatchPoint::GetApplicationGCInfo() const
+{
+    return applicationGCInfo_;
+}
+
+std::string WatchPoint::GetApplicationIOInfo() const
+{
+    return applicationIOInfo_;
+}
+
 std::string WatchPoint::GetAppRunningUniqueId() const
 {
     return appRunningUniqueId_;
@@ -397,6 +448,7 @@ std::string WatchPoint::GetClusterRaw() const
 {
     return clusterRaw_;
 }
+
 std::string WatchPoint::GetTimeoutEventId() const
 {
     return timeoutEventId_;
@@ -435,6 +487,11 @@ bool WatchPoint::GetIsHicollie() const
 bool WatchPoint::GetReportLifeCycleAsAppfreeze() const
 {
     return reportLifecycleToFreeze_;
+}
+
+bool WatchPoint::GetIsBlockInGC() const
+{
+    return isBlockInGC_;
 }
 
 void WatchPoint::SetLogPath(const std::string& logPath)
@@ -495,6 +552,16 @@ void WatchPoint::SetExternalLog(const std::string& externalLog)
 void WatchPoint::SetIsHicollie(bool isHicollie)
 {
     isHicollie_ = isHicollie;
+}
+
+long WatchPoint::GetRenderPid() const
+{
+    return renderPid_;
+}
+
+long WatchPoint::GetRenderUid() const
+{
+    return renderUid_;
 }
 
 bool WatchPoint::operator<(const WatchPoint& node) const

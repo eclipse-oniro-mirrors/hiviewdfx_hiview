@@ -39,7 +39,11 @@ config("xperf_service_client_public_config") {
 ohos_shared_library("xperfservice_client") {
   output_values = get_target_outputs(":xperf_service_interface")
   sources = [
+    "${xperfservice_common}/src/perf_trace.cpp",
+    "${xperfservice_common}/src/perf_utils.cpp",
     "src/xperf_service_client.cpp",
+    "src/rs_monitor_adapter.cpp",
+    "src/rs_frame_monitor.cpp",
   ]
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
   sources += filter_include(output_values, [ "*_stub.cpp" ])
@@ -49,7 +53,9 @@ ohos_shared_library("xperfservice_client") {
 
   external_deps = [
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "ipc:ipc_single",
@@ -69,11 +75,28 @@ ohos_shared_library("xperfservice_client") {
     cfi = true
     cfi_cross_dso = true
     debug = false
+    cfi_vcall_icall_only = true
+    boundary_sanitize = false
+    integer_overflow = false
   }
 
   asmflags = [ "-Wl,-z,relro,-z,now" ]
 
-  cflags_cc = [ "-fstack-protector-strong" ]
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fstack-protector-strong",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Os"
+  ]
+ 
+  ldflags = [
+  "-flto",
+  "-Wl,--gc-sections",
+  ]
 }
 
 ohos_source_set("xperfservice_stub") {

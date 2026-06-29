@@ -51,9 +51,11 @@ public:
     static constexpr const char* FREEZE_INFO_PATH = "FREEZE_INFO_PATH";
     static constexpr const char* EVENT_ENABLE_MAINTHREAD_SAMPLE = "ENABLE_MAINTHREAD_SAMPLE";
     static constexpr const char* EVENT_APPLICATION_HEAP_INFO = "APPLICATION_HEAP_INFO";
+    static constexpr const char* EVENT_APPLICATION_GC_INFO = "APPLICATION_GC_INFO";
+    static constexpr const char* EVENT_APPLICATION_IO_INFO = "APPLICATION_IO_INFO";
+    static constexpr const char* EVENT_IS_BLOCK_IN_GC = "IS_BLOCK_IN_GC";
     static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
     static constexpr const char* APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
-    static constexpr const char* LOWERCASE_OF_APP_RUNNING_UNIQUE_ID = "app_running_unique_id";
     static constexpr const char* FOREGROUND = "FOREGROUND";
     static constexpr const char* EVENT_TASK_NAME = "TASK_NAME";
     static constexpr const char* QNAME = "QNAME";
@@ -67,10 +69,28 @@ public:
     static constexpr const char* EVENT_EXTERNAL_LOG = "EXTERNAL_LOG";
     static constexpr const char* EVENT_IS_HICOLLIE = "IS_HICOLLIE";
     static constexpr const char* EVENT_REPORT_LIFECYCLE_AS_APPFREEZE = "report_lifecycle_as_appfreeze";
+    static constexpr const char* EVENT_RENDER_PID = "pid_";
+    static constexpr const char* EVENT_RENDER_UID = "uid_";
     static constexpr const char* WARNING_EVENTS[] = {
         "THREAD_BLOCK_6S",
         "LIFECYCLE_TIMEOUT",
     };
+    static constexpr const char *const COLON_SEPARATOR = ":";
+    static constexpr const char *const COMMA_SEPARATOR = ",";
+    static constexpr const char *const FORMAT_COMMA_SEPARATOR = ", ";
+    static constexpr const char *const SPACE_SEPARATOR = " ";
+    static constexpr const char *const MAIN_HEAP = "MainHeap(bytes): ";
+    static constexpr const char *const SHARED_HEAP = "SharedHeap(bytes): ";
+    static constexpr const char *const USED_HEAP = "Used ";
+    static constexpr const char *const TOTAL_HEAP = ", Total ";
+    static constexpr const char *const GC_MAX_PAUSE = "maxPause";
+    static constexpr const char *const GC_MIN_PAUSE = "minPause";
+    static constexpr const char *const GC_AVERAGE_PAUSE = "averagePause";
+    static constexpr const char *const GC_LAST_START_TIME = "lastStartTime";
+    static constexpr const char *const GC_LAST_END_TIME = "lastEndTime";
+    static constexpr const char *const GC_PAUSE_UNIT = "ms";
+    static constexpr const char *const GC_STATUS = "GC Status: ";
+    static constexpr const char *const IO_STATUS = "I/O(bytes): ";
 
     FreezeCommon();
     ~FreezeCommon();

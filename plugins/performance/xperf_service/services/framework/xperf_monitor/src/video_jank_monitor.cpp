@@ -14,7 +14,6 @@
  */
 #include <thread>
 #include <string>
-#include <sstream>
 #include "xperf_service_log.h"
 #include "video_jank_monitor.h"
 #include "xperf_constant.h"
@@ -173,10 +172,10 @@ void VideoJankMonitor::MonitorStart()
     XPERF_TRACE_SCOPED("AvcodecVideoStart");
 
     if (!secondFrame.rawMsg.empty()) {
-        std::stringstream s;
-        s << "#UNIQUEID:" << secondFrame.uniqueId <<
-          "#BUNDLE_NAME:" << secondFrame.bundleName;
-        BroadcastVideoStart(s.str());
+        std::string s;
+        s.append("#UNIQUEID:").append(std::to_string(secondFrame.uniqueId))
+            .append("#BUNDLE_NAME:").append(secondFrame.bundleName);
+        BroadcastVideoStart(s);
     }
 }
 
@@ -200,10 +199,10 @@ void VideoJankMonitor::MonitorStop()
     XPERF_TRACE_SCOPED("AvcodecVideoStop");
 
     if (!secondFrame.rawMsg.empty()) {
-        std::stringstream s;
-        s << "#UNIQUEID:" << secondFrame.uniqueId <<
-          "#BUNDLE_NAME:" << secondFrame.bundleName;
-        BroadcastVideoStop(s.str());
+        std::string s;
+        s.append("#UNIQUEID:").append(std::to_string(secondFrame.uniqueId))
+            .append("#BUNDLE_NAME:").append(secondFrame.bundleName);
+        BroadcastVideoStop(s);
     }
 }
 

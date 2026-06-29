@@ -19,6 +19,7 @@
 #include "event_json_parser.h"
 #include "export_db_manager.h"
 #include "file_util.h"
+#include "hisysevent.h"
 #include "hiview_logger.h"
 #include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
@@ -40,6 +41,15 @@ std::shared_ptr<ExportEventListParser> GetParser(ExportEventListParsers& parsers
         return parsers[path];
     }
     return iter->second;
+}
+
+inline void WriteExportRangeEvent(int64_t beginSeq, int64_t endSeq, int64_t maxSeq)
+{
+    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "EXPORT_RANGE_DETAIL", HiSysEvent::EventType::STATISTIC,
+        "BEGIN_SEQ", beginSeq, "END_SEQ", endSeq, "MAX_SEQ", maxSeq);
+    if (ret != SUCCESS) {
+        HIVIEW_LOGW("failed to write EXPORT_RANGE_DETAIL event, ret is %{public}d", ret);
+    }
 }
 }
 
@@ -128,20 +138,23 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
         HIVIEW_LOGE("invalid export: begin sequence:%{public}" PRId64, readReq->beginSeq);
         return false;
     }
-    readReq->endSeq = GetExportRangeEndSeq();
-    if (readReq->beginSeq >= readReq->endSeq) {
+    int64_t maxSeq = GetExportRangeEndSeq();
+    if (maxSeq < readReq->beginSeq) {
         HIVIEW_LOGE("invalid export range: [%{public}" PRId64 ",%{public}" PRId64 ")",
-            readReq->beginSeq, readReq->endSeq);
+            readReq->beginSeq, maxSeq);
         return false;
     }
-    if (readReq->endSeq - readReq->beginSeq > EXPORT_MAX_CNT) {
+    if (maxSeq - readReq->beginSeq > EXPORT_MAX_CNT) {
         HIVIEW_LOGW("export range exceed limit");
         readReq->endSeq = readReq->beginSeq + EXPORT_MAX_CNT;
+    } else {
+        readReq->endSeq = maxSeq;
     }
     if (!ParseExportEventList(readReq->eventList) || readReq->eventList.empty()) {
         HIVIEW_LOGE("failed to get a valid event export list");
         return false;
     }
+    WriteExportRangeEvent(readReq->beginSeq, readReq->endSeq, maxSeq);
     HIVIEW_LOGI("export range: [%{public}" PRId64 ",%{public}" PRId64 ") for module: %{public}s",
         readReq->beginSeq, readReq->endSeq, config_->moduleName.c_str());
     readReq->moduleName = config_->moduleName;

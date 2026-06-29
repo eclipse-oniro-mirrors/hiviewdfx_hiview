@@ -16,6 +16,7 @@
 #include "vendor.h"
 
 #include <regex>
+#include <algorithm>
 
 #include "faultlogger_client.h"
 #include "file_util.h"
@@ -31,6 +32,7 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
     const size_t FREEZE_EXT_FILE_SIZE = 2;
+    const size_t FREEZE_EXT_STACK_FILE_SIZE = 1;
     const size_t FREEZE_CPU_INDEX = 1;
     const int SYS_MATCH_NUM = 1;
     const int APP_MATCH_NUM = 1;
@@ -64,9 +66,11 @@ namespace {
     constexpr const char* HOST_RESOURCE_WARNING_INFO =
         "Current fault may be caused by the system's low memory or thermal throttling, "
         "you may ignore it and analysis other faults.";
-    constexpr const char* FD_LEAK_INFO =
-        "Current process has encounted fd leak which may be led to appfreeze, "
+    constexpr const char* LEAK_INFO =
+        "Current process has encountered leak which may lead to appfreeze, "
         "you may refer to resource overlimit event from hiAppEvent for further analysis.";
+    constexpr const char* GC_INFO =
+        "Main thread is blocked by GC, which may be caused by high memory usage or system resource overload.";
     constexpr const char* THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
     constexpr const char* BACKGROUND_VALUE = "No";
@@ -82,6 +86,7 @@ namespace {
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
     constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
+    constexpr const char* EVENT_RENDER_JS_FREEZE = "RENDER_JS_FREEZE";
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -96,7 +101,7 @@ std::string Vendor::GetTimeString(unsigned long long timestamp) const
     return std::string(buf, strlen(buf));
 }
 
-void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& logPath,
+void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint &watchPoint, const std::string& logPath,
     const std::string& type, const std::string& processName) const
 {
     std::string stringId = watchPoint.GetStringId();
@@ -106,15 +111,20 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoi
     }
 
     info.time = watchPoint.GetTimestamp();
-    info.id = static_cast<uint32_t>(watchPoint.GetUid());
-    info.pid = watchPoint.GetPid();
+    if (stringId == EVENT_RENDER_JS_FREEZE) {
+        info.id = static_cast<uint32_t>(watchPoint.GetRenderUid());
+        info.pid = watchPoint.GetRenderPid();
+    } else {
+        info.id = static_cast<uint32_t>(watchPoint.GetUid());
+        info.pid = watchPoint.GetPid();
+    }
     info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : (type == SYSFREEZE) ?
         FaultLogType::SYS_FREEZE : (type == SYSWARNING) ? FaultLogType::SYS_WARNING : FaultLogType::APPFREEZE_WARNING;
     info.module = processName;
     info.reason = stringId;
     std::string disPlayPowerInfo = GetDisPlayPowerInfo();
     info.summary = type + ": " + processName + " " + stringId +
-                   " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
+        " at " + GetTimeString(watchPoint.GetTimestamp()) + "\n";
     int timeoutThresholdNormal = static_cast<int>(TIMEOUT_THRESHOLD_NORMAL *
         FreezeGetRatio::GetInstance()->GetAppfreezeTimeoutRatio());
     if (stringId == "APP_INPUT_BLOCK") {
@@ -131,7 +141,7 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint& watchPoi
     info.logPath = logPath;
 }
 
-void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& isScbPro) const
+void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint &watchPoint, const std::string& isScbPro) const
 {
     info.sectionMaps[FreezeCommon::HITRACE_TIME] = watchPoint.GetHitraceTime();
     info.sectionMaps[FreezeCommon::SYSRQ_TIME] = watchPoint.GetSysrqTime();
@@ -148,8 +158,10 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoi
         watchPoint.GetEnabelMainThreadSample() ? "1" : "0";
     info.sectionMaps[FreezeCommon::EVENT_THERMAL_LEVEL] = watchPoint.GetThermalLevel();
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationInfo(), info.sectionMaps);
+    FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationGCInfo(), info.sectionMaps);
+    FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationIOInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
-    info.sectionMaps[FreezeCommon::LOWERCASE_OF_APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
+    info.sectionMaps[FreezeCommon::APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
     info.sectionMaps[FreezeCommon::CLUSTER_RAW] = watchPoint.GetClusterRaw();
     info.sectionMaps[FreezeCommon::EVENT_EXTERNAL_LOG] = watchPoint.GetExternalLog();
@@ -168,43 +180,46 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
     return logPath;
 }
 
-bool Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
+std::string Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
 {
-    if (dBHelper_ == nullptr || freezeCommon_ == nullptr ||
-        !freezeCommon_->IsApplicationEvent(watchPoint.GetDomain(), watchPoint.GetStringId())) {
-        return false;
+    if (dBHelper_ == nullptr || freezeCommon_ == nullptr) {
+        return "";
     }
     std::map<std::string, std::vector<std::string>> eventMap;
-    eventMap["RELIABILITY"] = {"FD_LEAK"};
+    eventMap["RELIABILITY"] = {"FD_LEAK", "MEMORY_LEAK", "THREAD_LEAK"};
 
     long pid = watchPoint.GetPid();
     long uid = watchPoint.GetUid();
     std::string processName = watchPoint.GetProcessName().empty() ?
         watchPoint.GetPackageName() : watchPoint.GetProcessName();
-    uint64_t endTime = watchPoint.GetTimestamp();
-    uint64_t startTime = (endTime > QUERY_KEY_PROCESS_EVENT_INTERVAL) ?
-        endTime - QUERY_KEY_PROCESS_EVENT_INTERVAL : 0;
     std::string recordProcessName;
-    long recordPid = 0;
-    long recordUid = 0;
+    uint64_t nearestTime = 0;
+    std::string nearestEventName = "";
+
     for (const auto &pair : eventMap) {
         std::vector<std::string> eventNames = pair.second;
-        std::vector<SysEvent> records = dBHelper_->SelectRecords(startTime, endTime, pair.first, eventNames);
-        for (auto& record : records) {
-            recordPid = record.GetEventIntValue(FreezeCommon::EVENT_PID);
-            recordUid = record.GetEventIntValue(FreezeCommon::EVENT_UID);
-            recordProcessName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
-            recordProcessName = recordProcessName.empty() ?
-                record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : recordProcessName;
-            if (recordPid == pid && recordUid == uid && recordProcessName == processName) {
-                return true;
+        std::vector<SysEvent> records = dBHelper_->SelectRecordsByPidUid(pid, uid, pair.first, eventNames);
+        if (records.empty()) {
+            continue;
+        }
+        auto& record = records[0];
+        recordProcessName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+        recordProcessName = recordProcessName.empty() ?
+            record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : recordProcessName;
+        if (recordProcessName == processName) {
+            std::string eventName = record.GetEventName();
+            HIVIEW_LOGI("record event, pid:%{public}ld, uid:%{public}ld, processName:%{public}s "
+                "recordProcessName:%{public}s, eventName:%{public}s, happenTime:%{public}" PRIu64,
+                pid, uid, processName.c_str(), recordProcessName.c_str(), eventName.c_str(), record.happenTime_);
+            if (record.happenTime_ > nearestTime) {
+                nearestTime = record.happenTime_;
+                nearestEventName = eventName;
             }
         }
     }
-    HIVIEW_LOGI("failed to record event, pid:%{public}ld, uid:%{public}ld, processName:%{public}s "
-        " recordPid:%{public}ld, recordUid:%{public}ld, recordProcessName:%{public}s ",
-        pid, uid, processName.c_str(), recordPid, recordUid, recordProcessName.c_str());
-    return false;
+    HIVIEW_LOGD("leak event pid=%{public}ld uid=%{public}ld time=%{public}" PRIu64" eventName=%{public}s.",
+        pid, uid, nearestTime, nearestEventName.c_str());
+    return nearestEventName;
 }
 
 void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, const WatchPoint& watchPoint) const
@@ -222,17 +237,32 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     oss << FreezeCommon::EVENT_PROCESS_NAME << COLON << watchPoint.GetProcessName() << std::endl;
     bool isNote = watchPoint.GetHostResourceWarning() == "TRUE";
     if (isNote) {
-        oss << NOTE_INFO <<  HOST_RESOURCE_WARNING_INFO << std::endl;
+        oss << NOTE_INFO <<  HOST_RESOURCE_WARNING_INFO;
     }
-    if (CheckNoteInfo(watchPoint)) {
+    std::string leakEvent = CheckNoteInfo(watchPoint);
+    if (!leakEvent.empty()) {
         if (!isNote) {
             oss << NOTE_INFO;
+            isNote = true;
         }
-        oss << FD_LEAK_INFO << std::endl;
+        std::transform(leakEvent.begin(), leakEvent.end(), leakEvent.begin(), ::tolower);
+        leakEvent = StringUtil::ReplaceStr(leakEvent, "_", " ");
+        std::string leakInfo = LEAK_INFO;
+        leakInfo = StringUtil::ReplaceStr(leakInfo, "leak", leakEvent);
+        oss << leakInfo;
     }
+    if (watchPoint.GetIsBlockInGC()) {
+        if (!isNote) {
+            oss << NOTE_INFO;
+            isNote = true;
+        }
+        oss << GC_INFO;
+    }
+    oss << std::endl;
 }
 
-std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::string& halfFreezeExtFile) const
+std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::string& halfFreezeExtFile,
+    const std::string& type) const
 {
     std::string stackFile;
     std::string cpuFile;
@@ -241,14 +271,25 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
-    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
-    if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
+    size_t fileSize = fileList.size();
+    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileSize);
+    bool warningType = type == APPFREEZEWARNING;
+    if (warningType && fileSize == FREEZE_EXT_STACK_FILE_SIZE) {
+        std::string freezeExtFile = fileList[0];
+        stackFile = freezeExtFile.empty() ? halfFreezeExtFile : freezeExtFile;
+    }
+    if (fileSize == FREEZE_EXT_FILE_SIZE) {
         std::string freezeExtFile = fileList[0];
         stackFile = freezeExtFile.empty() ? halfFreezeExtFile : freezeExtFile;
         cpuFile = fileList[FREEZE_CPU_INDEX];
     }
-    if (stackFile.empty() && cpuFile.empty()) {
-        HIVIEW_LOGI("failed to get freeze cpu and stack file, eventName:%{public}s.",
+    if (stackFile.empty()) {
+        HIVIEW_LOGI("failed to get freeze stack file, eventName:%{public}s.",
+            watchPoint.GetStringId().c_str());
+        return "";
+    }
+    if (cpuFile.empty() && !warningType) {
+        HIVIEW_LOGI("failed to get freeze cpu file, eventName:%{public}s.",
             watchPoint.GetStringId().c_str());
         return "";
     }
@@ -256,7 +297,7 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     long uid = watchPoint.GetUid();
     std::string bundleName = watchPoint.GetPackageName().empty() ?
         watchPoint.GetProcessName() : watchPoint.GetPackageName();
-    return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile);
+    return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile, type);
 }
 
 void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const
@@ -279,13 +320,16 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
         FreezeJsonUtil::DelFile(realPath);
     }
 
-    std::string mergeFilePath = FreezeJsonUtil::GetFilePath(watchPoint.GetPid(),
-        watchPoint.GetUid(), watchPoint.GetTimestamp());
+    bool isRenderJsFreeze = watchPoint.GetStringId() == EVENT_RENDER_JS_FREEZE;
+    long jsonPid = isRenderJsFreeze ? watchPoint.GetRenderPid() : watchPoint.GetPid();
+    long jsonUid = isRenderJsFreeze ? watchPoint.GetRenderUid() : watchPoint.GetUid();
+    std::string mergeFilePath = FreezeJsonUtil::GetFilePath(jsonPid, jsonUid, watchPoint.GetTimestamp());
     int jsonFd = FreezeJsonUtil::GetFd(mergeFilePath);
     if (jsonFd < 0) {
         HIVIEW_LOGE("fail to open FreezeJsonFile! jsonFd: %{public}d", jsonFd);
         return;
     } else {
+        fdsan_exchange_owner_tag(jsonFd, 0, FREEZE_DOMAIN);
         HIVIEW_LOGI("success to open FreezeJsonFile! jsonFd: %{public}d", jsonFd);
     }
     HIVIEW_LOGI("MergeFreezeJsonFile oss size: %{public}zu.", oss.str().size());
@@ -293,11 +337,13 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     FreezeJsonUtil::WriteKeyValue(jsonFd, "domain", watchPoint.GetDomain());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "stringId", watchPoint.GetStringId());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "timestamp", watchPoint.GetTimestamp());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "pid", watchPoint.GetPid());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "uid", watchPoint.GetUid());
+    FreezeJsonUtil::WriteKeyValue(jsonFd, "pid", jsonPid);
+    FreezeJsonUtil::WriteKeyValue(jsonFd, "uid", jsonUid);
     FreezeJsonUtil::WriteKeyValue(jsonFd, "package_name", watchPoint.GetPackageName());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "process_name", watchPoint.GetProcessName());
-    close(jsonFd);
+    if (fdsan_close_with_tag(jsonFd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("MergeFreezeJsonFile fdsan close failed, errno=%{public}d", errno);
+    }
     HIVIEW_LOGI("success to merge FreezeJsonFiles!");
 }
 
@@ -333,7 +379,7 @@ void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::s
 }
 
 bool Vendor::GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, std::ostringstream& body,
-    WatchPoint& node) const
+    const WatchPoint& node) const
 {
     HIVIEW_LOGI("merging file:%{public}s.", filePath.c_str());
     std::string realPath;
@@ -350,9 +396,26 @@ bool Vendor::GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, st
     return true;
 }
 
+bool Vendor::ValidateAndInitType(FreezeContext& context) const
+{
+    InitLogInfo(context.watchPoint, context.type, context.pubLogPathName, context.processName, context.isScbPro);
+    if (!JudgeSysWarningEvent(context.watchPoint.GetStringId(),
+        context.type,
+        context.processName,
+        context.watchPointList,
+        context.freezeResults)) {
+        return false;
+    }
+    if (!CovertHighLoadToWarning(context.type, context.watchPoint)) {
+        return false;
+    }
+    CovertFreezeType(context.type, context.watchPoint, context.watchPointList);
+    return true;
+}
+
 void Vendor::InitHalfFreezeExtFile(WatchPoint node, const std::string name, std::string& halfFreezeExtFile) const
 {
-    if (name != "THREAD_BLOCK_3S" && name != "LIFECYCLE_TIMEOUT") {
+    if (name != "THREAD_BLOCK_3S" && name != "LIFECYCLE_HALF_TIMEOUT") {
         return;
     }
     halfFreezeExtFile = node.GetFreezeExtFile();
@@ -363,16 +426,15 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
     bool& isFileExists, WatchPoint &watchPoint, std::string& halfFreezeExtFile) const
 {
     HIVIEW_LOGI("merging list size %{public}zu", list.size());
-    std::string mergedLog;
+    std::string mergedLogPath;
     for (auto node : list) {
         std::string log = node.GetExternalLog();
         std::string name = node.GetStringId();
-        mergedLog = mergedLog + name + ":" + log + "\n";
+        mergedLogPath = mergedLogPath + name + ":" + log + "\n";
         InitHalfFreezeExtFile(node, name, halfFreezeExtFile);
         std::string filePath = node.GetLogPath();
         if (filePath == "nolog" || filePath == "") {
-            HIVIEW_LOGI("only header, no content:[%{public}s, %{public}s]",
-                node.GetDomain().c_str(), node.GetStringId().c_str());
+            HIVIEW_LOGI("only header, no content:[%{public}s, %{public}s]", node.GetDomain().c_str(), name.c_str());
             DumpEventInfo(body, HEADER, node);
             continue;
         }
@@ -380,15 +442,17 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
         if (FileUtil::FileExists(filePath) == false) {
             isFileExists = false;
             HIVIEW_LOGE("[%{public}s, %{public}s] File:%{public}s does not exist",
-                node.GetDomain().c_str(), node.GetStringId().c_str(), filePath.c_str());
+                node.GetDomain().c_str(), name.c_str(), filePath.c_str());
             return;
         }
+
         std::ifstream ifs;
         if (!GetIfStreamByFilePath(filePath, ifs, body, node)) {
             continue;
         }
+
         body << std::string(HEADER) << std::endl;
-        if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), node.GetStringId()) !=
+        if (std::find(std::begin(FreezeCommon::PB_EVENTS), std::end(FreezeCommon::PB_EVENTS), name) !=
             std::end(FreezeCommon::PB_EVENTS) && watchPoint.GetTerminalThreadStack().empty()) {
             std::stringstream ss;
             ss << ifs.rdbuf();
@@ -407,7 +471,7 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
         }
         ifs.close();
     }
-    watchPoint.SetExternalLog(mergedLog);
+    watchPoint.SetExternalLog(mergedLogPath);
 }
 
 bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
@@ -419,7 +483,7 @@ bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type
         return true;
     }
 
-    if (list.size() != SYS_MATCH_NUM) {
+    if (list.size() != APP_MATCH_NUM) {
         HIVIEW_LOGW("Not meeting the requirements for syswarning reporting.");
         return false;
     }
@@ -432,6 +496,7 @@ bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type
     if (std::find(std::begin(KEY_PROCESS), std::end(KEY_PROCESS), processName) == std::end(KEY_PROCESS)) {
         return false;
     }
+
     type = SYSWARNING;
     return true;
 }
@@ -443,20 +508,14 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
         return "";
     }
 
-    std::string type;
-    std::string pubLogPathName;
-    std::string processName;
-    std::string isScbPro;
-    InitLogInfo(watchPoint, type, pubLogPathName, processName, isScbPro);
-    if (!JudgeSysWarningEvent(watchPoint.GetStringId(), type, processName, list, result)) {
+    FreezeContext context(watchPoint, list, result);
+    if (!ValidateAndInitType(context)) {
         return "";
     }
-    CovertSysfreezeToAppfreeze(type, watchPoint);
-    CovertHighLoadToWarning(type, watchPoint);
-    CovertFreezeToWarning(type, list, watchPoint.GetStringId());
-    pubLogPathName = type + std::string(HYPHEN) + pubLogPathName;
-    std::string retPath = std::string(FAULT_LOGGER_PATH) + pubLogPathName;
-    std::string tmpLogName = pubLogPathName + std::string(POSTFIX);
+
+    context.pubLogPathName = context.type + std::string(HYPHEN) + context.pubLogPathName;
+    std::string retPath = std::string(FAULT_LOGGER_PATH) + context.pubLogPathName;
+    std::string tmpLogName = context.pubLogPathName + std::string(POSTFIX);
     std::string tmpLogPath = std::string(FreezeManager::FREEZE_DETECTOR_PATH) + tmpLogName;
 
     if (FileUtil::FileExists(retPath)) {
@@ -470,17 +529,18 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     std::ostringstream body;
     bool isFileExists = true;
     std::string halfFreezeExtFile = "";
-    InitLogBody(list, body, isFileExists, watchPoint, halfFreezeExtFile);
+    InitLogBody(context.watchPointList, body, isFileExists, context.watchPoint, halfFreezeExtFile);
     HIVIEW_LOGI("After Init --body size: %{public}zu, pid: %{public}ld, processName: %{public}s ",
-        body.str().size(), watchPoint.GetPid(), processName.c_str());
+        body.str().size(), context.watchPoint.GetPid(), context.processName.c_str());
 
     if (!isFileExists) {
         HIVIEW_LOGE("Failed to open the body file.");
         return "";
     }
 
-    if (type == APPFREEZE || FreezeJsonUtil::IsAppHicollie(watchPoint.GetStringId()) || type == APPFREEZEWARNING) {
-        MergeFreezeJsonFile(watchPoint, list);
+    if (context.type == APPFREEZE || FreezeJsonUtil::IsAppHicollie(context.watchPoint.GetStringId()) ||
+        context.type == APPFREEZEWARNING) {
+        MergeFreezeJsonFile(context.watchPoint, context.watchPointList);
     }
 
     int fd = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::FREEZE_DETECTOR, tmpLogName);
@@ -488,42 +548,55 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
         HIVIEW_LOGE("failed to create tmp log file %{public}s, errno:%{public}d.", tmpLogPath.c_str(), errno);
         return "";
     }
+    fdsan_exchange_owner_tag(fd, 0, FREEZE_DOMAIN);
 
     FileUtil::SaveStringToFd(fd, header.str());
     FileUtil::SaveStringToFd(fd, body.str());
-    close(fd);
-
-    watchPoint.SetFreezeExtFile(MergeFreezeExtFile(watchPoint, halfFreezeExtFile));
-    return SendFaultLog(watchPoint, tmpLogPath, type, processName, isScbPro);
-}
-
-void Vendor::CovertSysfreezeToAppfreeze(std::string& type, const WatchPoint& watchPoint) const
-{
-    if (watchPoint.GetStringId() == LIFECYCLE_TIMEOUT && watchPoint.GetReportLifeCycleAsAppfreeze()) {
-        type = APPFREEZE;
+    if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("MergeEventLog fdsan close failed, errno=%{public}d", errno);
     }
+    context.watchPoint.SetFreezeExtFile(MergeFreezeExtFile(context.watchPoint, halfFreezeExtFile, context.type));
+    return SendFaultLog(context.watchPoint, tmpLogPath, context.type, context.processName, context.isScbPro);
 }
 
-void Vendor::CovertFreezeToWarning(std::string& type, const std::vector<WatchPoint>& list,
-    const std::string& stringId) const
+void Vendor::CovertFreezeType(std::string& type, const WatchPoint& watchPoint,
+    const std::vector<WatchPoint>& list) const
 {
+    std::string stringId = watchPoint.GetStringId();
     if (freezeCommon_->IsReportAppFreezeEvent(stringId) && (list.size() == APP_MATCH_NUM)) {
         type = SYSWARNING;
     }
+    if (stringId != LIFECYCLE_TIMEOUT) {
+        return;
+    }
+    if (list.size() <= APP_MATCH_NUM) {
+        HIVIEW_LOGW("freeze list size %{public}zu", list.size());
+        return;
+    }
+    for (auto node : list) {
+        if (node.GetReportLifeCycleAsAppfreeze()) {
+            type = APPFREEZE;
+            return;
+        }
+    }
 }
 
-void Vendor::CovertHighLoadToWarning(std::string& type, WatchPoint& watchPoint) const
+bool Vendor::CovertHighLoadToWarning(std::string &type, const WatchPoint &watchPoint) const
 {
-    std::string hostResourceWarning = watchPoint.GetHostResourceWarning();
     std::string stringId = watchPoint.GetStringId();
-    if (hostResourceWarning == "TRUE") {
-        type = (stringId == "THREAD_BLOCK_3S" || stringId == "THREAD_BLOCK_6S" ||
-        stringId == "LIFECYCLE_HALF_TIMEOUT" || stringId == "LIFECYCLE_TIMEOUT") ?
-        APPFREEZEWARNING : SYSWARNING;
+    bool isHostResourceWarning = (watchPoint.GetHostResourceWarning() == "TRUE");
+    bool isHicollie = watchPoint.GetIsHicollie();
+    if (isHostResourceWarning) {
+        if (type == APPFREEZEWARNING) {
+            return false;
+        }
+        type = (type == SYSWARNING) ? SYSWARNING : SYSFREEZE;
+        return true;
     }
-    if (watchPoint.GetIsHicollie()) {
+    if (isHicollie) {
         type = SYSWARNING;
     }
+    return true;
 }
 
 bool Vendor::Init()

@@ -37,6 +37,7 @@ private:
     static void FillInfoDefault(FaultLogInfo& info);
     static void WriteEvent(FaultLogInfo& info);
     static int32_t UpdateFGParam(FaultLogInfo& info);
+    static int64_t GetLifeTimeValue(const FaultLogInfo& info);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

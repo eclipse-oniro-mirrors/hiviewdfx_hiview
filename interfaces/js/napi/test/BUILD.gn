@@ -50,7 +50,9 @@ ohos_unittest("InterfaceJsNapiTest") {
     "access_token:libtokenid_sdk",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
   ]
 }
 
@@ -79,6 +81,7 @@ ohos_unittest("LoglibraryAgentTest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "icu:shared_icuuc",
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_single",

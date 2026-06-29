@@ -189,6 +189,8 @@ HWTEST(FaultLogManagerTest, GetFaultLogFilePathTest001, testing::ext::TestSize.L
     ASSERT_EQ(faultLogFilePath, "/data/log/warninglog/com.freeze.test001-202506023.log");
     faultLogFilePath = faultLogManager.GetFaultLogFilePath(FaultLogType::APPFREEZE_WARNING, fileName);
     ASSERT_EQ(faultLogFilePath, "/data/log/warninglog/com.freeze.test001-202506023.log");
+    faultLogFilePath = faultLogManager.GetFaultLogFilePath(FaultLogType::APPFREEZE_WARNING, fileName, true);
+    ASSERT_EQ(faultLogFilePath, "/data/log/faultlog/faultlogger/com.freeze.test001-202506023.log");
 }
 
 /**
@@ -212,6 +214,10 @@ HWTEST(FaultLogManagerTest, GetFaultLogFileFdTest001, testing::ext::TestSize.Lev
     close(faultLogFileFd);
 
     faultLogFileFd = faultLogManager.GetFaultLogFileFd(FaultLogType::APPFREEZE_WARNING, fileName);
+    ASSERT_TRUE(faultLogFileFd > 0);
+    close(faultLogFileFd);
+
+    faultLogFileFd = faultLogManager.GetFaultLogFileFd(FaultLogType::APPFREEZE_WARNING, fileName, true);
     ASSERT_TRUE(faultLogFileFd > 0);
     close(faultLogFileFd);
 }

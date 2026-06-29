@@ -44,6 +44,7 @@ namespace {
     constexpr const char* PROCESS_RSS_MEMINFO = "PROCESS_RSS_MEMINFO";
     constexpr const char* PROCESS_VSS_MEMINFO = "PROCESS_VSS_MEMINFO";
     constexpr const char* TRACE_GET_ERROR_MESSAGE = "Trace not needed, already dumping, or not found";
+    constexpr const char* APPFREEZEWARNING = "appfreezewarning";
     constexpr size_t TRACE_NAME_MAP_CAPACITY = 6;
 }
 
@@ -198,15 +199,21 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
 }
 
 std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
-    const std::string& stackFile, const std::string& cpuFile) const
+    const std::string& stackFile, const std::string& cpuFile, const std::string& type) const
 {
     int userId = uid / VALUE_MOD;
     std::string stackPath = APPFREEZE_LOG_PREFIX + std::to_string(userId) + "/log/" + bundleName +
         APPFREEZE_LOG_SUFFIX + stackFile;
     std::string stackInfo = GetAppFreezeFile(stackPath, true);
     std::string cpuInfo = GetAppFreezeFile(cpuFile);
-    if (stackInfo.empty() && cpuInfo.empty()) {
-        HIVIEW_LOGE("freeze sample cpu and stack content is empty.");
+
+    if (stackInfo.empty()) {
+        HIVIEW_LOGE("freeze sample stack content is empty.");
+        return "";
+    }
+
+    if (cpuInfo.empty() && type != APPFREEZEWARNING) {
+        HIVIEW_LOGE("freeze sample cpu content is empty.");
         return "";
     }
 
@@ -222,6 +229,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
         return "";
     }
+    fdsan_exchange_owner_tag(fd, 0, FREEZE_DOMAIN);
     std::string logFile;
     if (FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo)) {
         logFile = FREEZE_EXT_LOG_PATH + freezeFile;
@@ -229,7 +237,9 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
     } else {
         HIVIEW_LOGE("failed to cpu and stack info to file.");
     }
-    close(fd);
+    if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
+        HIVIEW_LOGE("SaveFreezeExtInfoToFile fdsan close failed, errno:%{public}d", errno);
+    }
     ClearFreezeExtIfNeed(FREEZE_EXT_MAX_FILE_NUM);
     ClearSameFreezeExtIfNeed(uid, MAX_FREEZE_PER_HAP);
     return logFile;

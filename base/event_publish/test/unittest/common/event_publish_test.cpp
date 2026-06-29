@@ -36,7 +36,7 @@ const std::string TEST_HAP_PATH = "/data/EventPublishJsTest.hap";
 const std::string TEST_SANDBOX_BASE_PATH = "/data/app/el2/100/base/" + TEST_BUNDLE_NAME;
 const std::string APPEVENT_DB_WAL_PATH = "/files/hiappevent/databases/appevent.db-wal";
 const std::string PATH_DIR = "/data/log/hiview/system_event_db/events/temp";
-constexpr int DISPLAY_OFF_TIME_KEEP_AWAKE = 120000;  // 2 minutes in milliseconds for keep awake
+constexpr int DISPLAY_OFF_TIME_KEEP_AWAKE = 120000;  // 2 minutes in milliseconds for keeping awake
 static int32_t g_testPid = -1;
 
 class EventPublishTest : public testing::Test {

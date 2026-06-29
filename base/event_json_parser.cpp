@@ -95,7 +95,7 @@ void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefM
     int totalEvent = 0;
     for (auto iter = sysEventDefMap->cbegin(); iter != sysEventDefMap->cend(); ++iter) {
         domainEventVec.push_back(std::pair<std::string, int>(iter->first, iter->second.size()));
-        totalEvent += iter->second.size();
+        totalEvent += static_cast<int>(iter->second.size());
     }
     std::sort(domainEventVec.begin(), domainEventVec.end(),
         [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {

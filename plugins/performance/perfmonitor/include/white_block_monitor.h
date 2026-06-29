@@ -17,7 +17,8 @@
 #define WHITE_BLOCK_MONITOR_H
  
 #include <map>
-#include <mutex>
+
+#include "ffrt.h"
 #include "perf_constants.h"
 #include "perf_model.h"
  
@@ -41,7 +42,7 @@ private:
     bool IsBetaVersion();
  
 private:
-    mutable std::mutex mMutex;
+    mutable ffrt::mutex mMutex;
     uint64_t scrollStartTime{0};
     uint64_t scrollEndTime{0};
     bool scrolling{false};
