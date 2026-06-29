@@ -511,7 +511,7 @@ HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest013, testing::ext::TestSiz
     ASSERT_TRUE(reader.parse(jsonStr, root));
 
     std::string result = FaultLogger::FormatThreadInfo(root);
-    EXPECT_TRUE(result.find("callback") == std::string::npos);
+    EXPECT_TRUE(result.empty());
 }
 
 HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest014, testing::ext::TestSize.Level1)
@@ -528,7 +528,7 @@ HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest014, testing::ext::TestSiz
     ASSERT_TRUE(reader.parse(jsonStr, root));
 
     std::string result = FaultLogger::FormatThreadInfo(root);
-    EXPECT_TRUE(result.find("callback") == std::string::npos);
+    EXPECT_TRUE(result.empty());
 }
 
 HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest015, testing::ext::TestSize.Level1)
@@ -545,8 +545,7 @@ HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest015, testing::ext::TestSiz
     ASSERT_TRUE(reader.parse(jsonStr, root));
 
     std::string result = FaultLogger::FormatThreadInfo(root);
-    EXPECT_TRUE(result.find("Tid:1234") != std::string::npos);
-    EXPECT_TRUE(result.find("0000001a") == std::string::npos);
+    EXPECT_TRUE(result.empty());
 }
 
 HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest016, testing::ext::TestSize.Level1)
@@ -563,8 +562,7 @@ HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest016, testing::ext::TestSiz
     ASSERT_TRUE(reader.parse(jsonStr, root));
 
     std::string result = FaultLogger::FormatThreadInfo(root);
-    EXPECT_TRUE(result.find("Tid:1234") != std::string::npos);
-    EXPECT_TRUE(result.find("/lib/test.so") == std::string::npos);
+    EXPECT_TRUE(result.empty());
 }
 
 HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest017, testing::ext::TestSize.Level1)
@@ -602,8 +600,300 @@ HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest018, testing::ext::TestSiz
     ASSERT_TRUE(reader.parse(jsonStr, root));
 
     std::string result = FaultLogger::FormatThreadInfo(root);
-    EXPECT_TRUE(result.find("Tid:1234") != std::string::npos);
-    EXPECT_TRUE(result.find("#00") == std::string::npos);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest019, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = "not_an_int";
+    root["thread_name"] = "main";
+    root["frames"] = Json::Value(Json::arrayValue);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest020, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = 999;
+    root["frames"] = Json::Value(Json::arrayValue);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest021, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["pc"] = 123;
+    frame["file"] = "/lib/test.so";
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest022, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["pc"] = "0000001a";
+    frame["file"] = 100;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest023, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["pc"] = "0000001a";
+    frame["file"] = "/lib/test.so";
+    frame["symbol"] = 100;
+    frame["offset"] = 50;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.find("#00 pc 0000001a /lib/test.so") != std::string::npos);
+    EXPECT_TRUE(result.find("+50") == std::string::npos);
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest024, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["pc"] = "0000001a";
+    frame["file"] = "/lib/test.so";
+    frame["symbol"] = "test_func";
+    frame["offset"] = "not_an_int";
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.find("#00 pc 0000001a /lib/test.so") != std::string::npos);
+    EXPECT_TRUE(result.find("test_func") == std::string::npos);
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest025, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["pc"] = "0000001a";
+    frame["file"] = "/lib/test.so";
+    frame["buildId"] = 100;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.find("#00 pc 0000001a /lib/test.so") != std::string::npos);
+    EXPECT_TRUE(result.find("100") == std::string::npos);
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest026, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = "callback";
+    frame["packageName"] = 100;
+    frame["file"] = "test.ets";
+    frame["line"] = 10;
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest027, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = "callback";
+    frame["packageName"] = "com.test.app";
+    frame["file"] = "test.ets";
+    frame["line"] = "not_an_int";
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest028, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = "callback";
+    frame["packageName"] = "com.test.app";
+    frame["file"] = "test.ets";
+    frame["line"] = 10;
+    frame["column"] = "not_an_int";
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest029, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame1;
+    frame1["pc"] = "0000001a";
+    frame1["file"] = "/lib/test.so";
+    frame1["symbol"] = "test_func";
+    frame1["offset"] = 100;
+    frame1["buildId"] = "abc123";
+    Json::Value frame2;
+    frame2["symbol"] = "callback";
+    frame2["packageName"] = 999;
+    frame2["file"] = "test.ets";
+    frame2["line"] = 10;
+    frame2["column"] = 5;
+    root["frames"].append(frame1);
+    root["frames"].append(frame2);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.find("#00 pc 0000001a /lib/test.so(test_func+100)(abc123)") != std::string::npos);
+    EXPECT_TRUE(result.find("callback") == std::string::npos);
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest030, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = "callback";
+    frame["file"] = "test.ets";
+    frame["line"] = 10;
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest031, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["packageName"] = "com.test.app";
+    frame["file"] = "test.ets";
+    frame["line"] = 10;
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest032, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = "callback";
+    frame["packageName"] = "com.test.app";
+    frame["line"] = 10;
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest033, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = 100;
+    frame["packageName"] = "com.test.app";
+    frame["file"] = "test.ets";
+    frame["line"] = 10;
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest034, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = "callback";
+    frame["packageName"] = "com.test.app";
+    frame["file"] = 200;
+    frame["line"] = 10;
+    frame["column"] = 5;
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.empty());
+}
+
+HWTEST(FaultlogFormatterUnittest, FormatThreadInfoTest035, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["tid"] = 1234;
+    root["thread_name"] = "main";
+    Json::Value frame;
+    frame["symbol"] = 100;
+    frame["packageName"] = "com.test.app";
+    frame["file"] = "/lib/test.so";
+    frame["line"] = 10;
+    frame["column"] = 5;
+    frame["pc"] = "0000001a";
+    root["frames"].append(frame);
+    std::string result = FaultLogger::FormatThreadInfo(root);
+    EXPECT_TRUE(result.find("#00 pc 0000001a /lib/test.so") != std::string::npos);
+    EXPECT_TRUE(result.find("callback") == std::string::npos);
+}
+
+HWTEST(FaultlogFormatterUnittest, FillSectionMapFromJsonTest003, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["PID"] = "not_an_int";
+    root["PNAME"] = 12345;
+    root["REASON"] = true;
+    std::map<std::string, std::string> sectionMap;
+    FaultLogger::FillSectionMapFromJson(root, sectionMap);
+    EXPECT_EQ(sectionMap["PID"], "not_an_int");
+    EXPECT_EQ(sectionMap["PNAME"], "12345");
+    EXPECT_TRUE(sectionMap.find("REASON") == sectionMap.end());
+}
+
+HWTEST(FaultlogFormatterUnittest, FillSectionMapFromJsonTest004, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["PNAME"] = "";
+    std::map<std::string, std::string> sectionMap;
+    FaultLogger::FillSectionMapFromJson(root, sectionMap);
+    EXPECT_EQ(sectionMap["PNAME"], "\n");
+}
+
+HWTEST(FaultlogFormatterUnittest, FillSectionMapFromJsonTest005, testing::ext::TestSize.Level1)
+{
+    Json::Value root;
+    root["PID"] = Json::Value(Json::objectValue);
+    root["REASON"] = Json::Value(Json::arrayValue);
+    std::map<std::string, std::string> sectionMap;
+    FaultLogger::FillSectionMapFromJson(root, sectionMap);
+    EXPECT_TRUE(sectionMap.find("PID") == sectionMap.end());
+    EXPECT_TRUE(sectionMap.find("REASON") == sectionMap.end());
 }
 
 HWTEST(FaultlogFormatterUnittest, FormatOtherThreadInfoTest001, testing::ext::TestSize.Level1)

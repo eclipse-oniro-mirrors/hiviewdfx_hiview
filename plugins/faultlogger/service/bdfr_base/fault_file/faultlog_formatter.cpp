@@ -252,42 +252,44 @@ std::string FormatFrameIndex(int index)
 
 std::string FormatThreadInfo(const Json::Value& threadInfo)
 {
-    if (!threadInfo.isMember("tid") ||
-        !threadInfo.isMember("thread_name") ||
-        !threadInfo.isMember("frames") ||
-        !threadInfo["frames"].isArray() ||
-        threadInfo["frames"].size() == 0) {
+    if (!threadInfo["tid"].isInt() || !threadInfo["thread_name"].isString() ||
+        !threadInfo["frames"].isArray() || threadInfo["frames"].size() == 0) {
+        HIVIEW_LOGW("FormatThreadInfo failed: invalid thread info structure");
         return {};
     }
-    std::string result = "Tid:" + std::to_string(threadInfo["tid"].asInt()) +
-             ", Name:" + threadInfo["thread_name"].asString() + "\n";
-
     const Json::Value& frames = threadInfo["frames"];
+    std::string frameResult;
     for (Json::ArrayIndex i = 0; i < frames.size(); ++i) {
         const Json::Value& frame = frames[i];
-        if (frame.isMember("packageName") && frame.isMember("symbol") &&
-            frame.isMember("file") && frame.isMember("line") && frame.isMember("column")) {
-            result += "#" + FormatFrameIndex(i) + " at " + frame["symbol"].asString() +
+        if (frame["packageName"].isString() && frame["symbol"].isString() &&
+            frame["file"].isString() && frame["line"].isInt() && frame["column"].isInt()) {
+            frameResult += "#" + FormatFrameIndex(i) + " at " + frame["symbol"].asString() +
                       " " + frame["packageName"].asString() +
                       " (" + frame["file"].asString() + ":" +
                       std::to_string(frame["line"].asInt()) + ":" +
                       std::to_string(frame["column"].asInt()) + ")\n";
-        } else if (frame.isMember("pc") && frame.isMember("file")) {
-            result += "#" + FormatFrameIndex(i) + " pc " + frame["pc"].asString() +
+        } else if (frame["pc"].isString() && frame["file"].isString()) {
+            frameResult += "#" + FormatFrameIndex(i) + " pc " + frame["pc"].asString() +
                       " " + frame["file"].asString();
             std::string symbolPart;
-            if (frame.isMember("symbol") && !frame["symbol"].asString().empty() && frame.isMember("offset")) {
-                symbolPart = "(" + frame["symbol"].asString() + "+" +
-                             std::to_string(frame["offset"].asInt()) + ")";
+            std::string symbolStr = frame["symbol"].isString() ? frame["symbol"].asString() : "";
+            if (!symbolStr.empty() && frame["offset"].isInt()) {
+                symbolPart = "(" + symbolStr + "+" + std::to_string(frame["offset"].asInt()) + ")";
             }
-            result += symbolPart;
-            if (frame.isMember("buildId") && !frame["buildId"].asString().empty()) {
-                result += "(" + frame["buildId"].asString() + ")";
+            frameResult += symbolPart;
+            std::string buildIdStr = frame["buildId"].isString() ? frame["buildId"].asString() : "";
+            if (!buildIdStr.empty()) {
+                frameResult += "(" + buildIdStr + ")";
             }
-            result += "\n";
+            frameResult += "\n";
         }
     }
-    return result;
+    if (frameResult.empty()) {
+        HIVIEW_LOGW("FormatThreadInfo failed: no valid frame output");
+        return {};
+    }
+    return "Tid:" + std::to_string(threadInfo["tid"].asInt()) +
+           ", Name:" + threadInfo["thread_name"].asString() + "\n" + frameResult;
 }
 
 std::string FormatOtherThreadInfo(const Json::Value& otherThreadInfo)
