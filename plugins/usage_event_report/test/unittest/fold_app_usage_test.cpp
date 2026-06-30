@@ -72,7 +72,7 @@ void FoldAppUsageTest::TearDown(void) {}
  * @tc.desc: check fold app usage func get 1103, 1101 data from db.
  * @tc.type: FUNC
  */
-HWTEST_F(FoldAppUsageTest, FoldAppUsageTest002, TestSize.Level1)
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest001, TestSize.Level1)
 {
     FoldAppUsageDbHelper dbHelper("/data/test/");
     AppEventRecord record6{1101, 4000, "app3", 110, 120, 0, 0, "55", g_startTime + 10 * g_hourGapTime};
@@ -251,10 +251,8 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest003, TestSize.Level1)
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
 {
-    SysEventCreator sysEventCreator("WINDOWMANAGER", "NOTIFY_FOLD_STATE_CHANGE", SysEventCreator::BEHAVIOR);
-    sysEventCreator.SetKeyValue("CURRENT_FOLD_STATUS", 0);
-    sysEventCreator.SetKeyValue("NEXT_FOLD_STATUS", 1);
-    sysEventCreator.SetKeyValue("time_", 111);
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("FOLD_DISPLAY_MODE", 1);
 
     auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     FoldEventCacher cacher("/data/test/");
@@ -274,10 +272,8 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
     int index1 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_APP_START);
     ASSERT_TRUE(index1 != 0);
 
-    SysEventCreator sysEventCreator2("WINDOWMANAGER", "NOTIFY_FOLD_STATE_CHANGE", SysEventCreator::BEHAVIOR);
-    sysEventCreator2.SetKeyValue("CURRENT_FOLD_STATUS", 1);
-    sysEventCreator2.SetKeyValue("NEXT_FOLD_STATUS", 2);
-    sysEventCreator2.SetKeyValue("time_", 333);
+    SysEventCreator sysEventCreator2("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+    sysEventCreator2.SetKeyValue("FOLD_DISPLAY_MODE", 2);
     auto sysEvent2 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator2);
     cacher.ProcessEvent(sysEvent2);
     int index2 = dbHelper.QueryRawEventIndex("test_bundle", FoldEventId::EVENT_SCREEN_STATUS_CHANGED);
@@ -311,10 +307,8 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest004, TestSize.Level1)
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest005, TestSize.Level1)
 {
-    SysEventCreator sysEventCreator("WINDOWMANAGER", "NOTIFY_FOLD_STATE_CHANGE", SysEventCreator::BEHAVIOR);
-    sysEventCreator.SetKeyValue("CURRENT_FOLD_STATUS", 0);
-    sysEventCreator.SetKeyValue("NEXT_FOLD_STATUS", 1);
-    sysEventCreator.SetKeyValue("time_", 111);
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("FOLD_DISPLAY_MODE", 1);
 
     auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     FoldEventCacher cacher("/data/test/");
@@ -439,10 +433,8 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest009, TestSize.Level1)
  */
 HWTEST_F(FoldAppUsageTest, FoldAppUsageTest010, TestSize.Level1)
 {
-    SysEventCreator sysEventCreator("WINDOWMANAGER", "NOTIFY_FOLD_STATE_CHANGE", SysEventCreator::BEHAVIOR);
-    sysEventCreator.SetKeyValue("CURRENT_FOLD_STATUS", 0);
-    sysEventCreator.SetKeyValue("NEXT_FOLD_STATUS", 1);
-    sysEventCreator.SetKeyValue("time_", 111);
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+    sysEventCreator.SetKeyValue("FOLD_DISPLAY_MODE", 1);
     auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
     FoldEventCacher cacher("/data/test/");
     cacher.ProcessEvent(sysEvent);
@@ -624,5 +616,687 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest016, TestSize.Level1)
     FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
 }
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
+
+/**
+ * @tc.name: FoldAppUsageTest017
+ * @tc.desc: check N status portrait and landscape full screen app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest017, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "n_app1", 520, 520, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_app1", 510, 510, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "n_app1", 520, 520, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_app1", 510, 510, "55", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{N_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{N_LANDSCAPE_FULL_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["n_app155"].nVer, 1000);
+    EXPECT_EQ(infos["n_app155"].nHor, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest018
+ * @tc.desc: check N status split and floating window app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest018, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "n_app2", 521, 521, 0, 0, "55", g_startTime + 3 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_app2", 522, 522, 0, 0, "55", g_startTime + 4 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "n_app2", 511, 511, 0, 0, "55", g_startTime + 5 * g_hourGapTime};
+    AppEventRecord record4{1104, 4000, "n_app2", 512, 512, 0, 0, "55", g_startTime + 6 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "n_app2", 521, 521, "55", g_startTime + 3 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_app2", 522, 522, "55", g_startTime + 4 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "n_app2", 511, 511, "55", g_startTime + 5 * g_hourGapTime};
+    AppEventRecord record4{1104, 4000, "n_app2", 512, 512, "55", g_startTime + 6 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{N_PORTRAIT_SPLIT_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{N_PORTRAIT_FLOATING_STATUS, 2000}};
+    std::map<int, uint64_t> durations3 = {{N_LANDSCAPE_SPLIT_STATUS, 3000}};
+    std::map<int, uint64_t> durations4 = {{N_LANDSCAPE_FLOATING_STATUS, 4000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3, durations3), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record4, durations4), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["n_app255"].nVerSplit, 1000);
+    EXPECT_EQ(infos["n_app255"].nVerFloating, 2000);
+    EXPECT_EQ(infos["n_app255"].nHorSplit, 3000);
+    EXPECT_EQ(infos["n_app255"].nHorFloating, 4000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest019
+ * @tc.desc: check LM status portrait and landscape full screen app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest019, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "lm_app1", 620, 620, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_app1", 610, 610, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "lm_app1", 620, 620, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_app1", 610, 610, "55", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{LM_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{LM_LANDSCAPE_FULL_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["lm_app155"].lmVer, 1000);
+    EXPECT_EQ(infos["lm_app155"].lmHor, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest020
+ * @tc.desc: check LM status split and floating window app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest020, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "lm_app2", 621, 621, 0, 0, "55", g_startTime + 3 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_app2", 622, 622, 0, 0, "55", g_startTime + 4 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "lm_app2", 611, 611, 0, 0, "55", g_startTime + 5 * g_hourGapTime};
+    AppEventRecord record4{1104, 4000, "lm_app2", 612, 612, 0, 0, "55", g_startTime + 6 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "lm_app2", 621, 621, "55", g_startTime + 3 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_app2", 622, 622, "55", g_startTime + 4 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "lm_app2", 611, 611, "55", g_startTime + 5 * g_hourGapTime};
+    AppEventRecord record4{1104, 4000, "lm_app2", 612, 612, "55", g_startTime + 6 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{LM_PORTRAIT_SPLIT_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{LM_PORTRAIT_FLOATING_STATUS, 2000}};
+    std::map<int, uint64_t> durations3 = {{LM_LANDSCAPE_SPLIT_STATUS, 3000}};
+    std::map<int, uint64_t> durations4 = {{LM_LANDSCAPE_FLOATING_STATUS, 4000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3, durations3), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record4, durations4), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["lm_app255"].lmVerSplit, 1000);
+    EXPECT_EQ(infos["lm_app255"].lmVerFloating, 2000);
+    EXPECT_EQ(infos["lm_app255"].lmHorSplit, 3000);
+    EXPECT_EQ(infos["lm_app255"].lmHorFloating, 4000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest021
+ * @tc.desc: check LM status midscene window app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest021, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "lm_app3", 623, 623, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_app3", 613, 613, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "lm_app3", 623, 623, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_app3", 613, 613, "55", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{LM_PORTRAIT_MIDSCENE_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{LM_LANDSCAPE_MIDSCENE_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["lm_app355"].lmVerMidscene, 1000);
+    EXPECT_EQ(infos["lm_app355"].lmHorMidscene, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest022
+ * @tc.desc: check T status landscape full screen app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest022, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "t_app1", 710, 710, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "t_app1", 710, 710, "55", g_startTime + 1 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{T_LANDSCAPE_FULL_STATUS, 1000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["t_app155"].tFull, 1000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest023
+ * @tc.desc: check T status landscape split and floating window app usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest023, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "t_app2", 711, 711, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "t_app2", 712, 712, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "t_app2", 711, 711, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "t_app2", 712, 712, "55", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{T_LANDSCAPE_SPLIT_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{T_LANDSCAPE_FLOATING_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["t_app255"].tSplit, 1000);
+    EXPECT_EQ(infos["t_app255"].tFloating, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest024
+ * @tc.desc: check N status app foreground duration calculation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest024, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1101, 4000, "n_fg_app", 520, 520, 0, 0, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record2{1103, 5000, "n_fg_app", 520, 510, 0, 0, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record3{1103, 6000, "n_fg_app", 510, 521, 0, 0, "55", g_startTime + 12 * g_hourGapTime};
+#else
+    AppEventRecord record1{1101, 4000, "n_fg_app", 520, 520, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record2{1103, 5000, "n_fg_app", 520, 510, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record3{1103, 6000, "n_fg_app", 510, 521, "55", g_startTime + 12 * g_hourGapTime};
+#endif
+
+    EXPECT_EQ(dbHelper.AddAppEvent(record1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3), 0);
+
+    FoldAppUsageInfo info;
+    info.package = "n_fg_app";
+    dbHelper.QueryForegroundAppsInfo(g_startTime, g_endTime, g_screenStat, info);
+    EXPECT_EQ(info.nVer, 1000);
+    EXPECT_EQ(info.nHor, 1000);
+    EXPECT_EQ(info.nVerSplit, 43199999);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest025
+ * @tc.desc: check LM status app foreground duration calculation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest025, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1101, 4000, "lm_fg_app", 620, 620, 0, 0, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record2{1103, 5000, "lm_fg_app", 620, 610, 0, 0, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record3{1103, 6000, "lm_fg_app", 610, 621, 0, 0, "55", g_startTime + 12 * g_hourGapTime};
+    AppEventRecord record4{1103, 7000, "lm_fg_app", 621, 623, 0, 0, "55", g_startTime + 13 * g_hourGapTime};
+#else
+    AppEventRecord record1{1101, 4000, "lm_fg_app", 620, 620, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record2{1103, 5000, "lm_fg_app", 620, 610, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record3{1103, 6000, "lm_fg_app", 610, 621, "55", g_startTime + 12 * g_hourGapTime};
+    AppEventRecord record4{1103, 7000, "lm_fg_app", 621, 623, "55", g_startTime + 13 * g_hourGapTime};
+#endif
+
+    EXPECT_EQ(dbHelper.AddAppEvent(record1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record4), 0);
+
+    FoldAppUsageInfo info;
+    info.package = "lm_fg_app";
+    dbHelper.QueryForegroundAppsInfo(g_startTime, g_endTime, g_screenStat, info);
+    EXPECT_EQ(info.lmVer, 1000);
+    EXPECT_EQ(info.lmHor, 1000);
+    EXPECT_EQ(info.lmVerSplit, 1000);
+    EXPECT_EQ(info.lmVerMidscene, 39599999);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest026
+ * @tc.desc: check T status app foreground duration calculation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest026, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1101, 4000, "t_fg_app", 710, 710, 0, 0, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record2{1103, 5000, "t_fg_app", 710, 711, 0, 0, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record3{1103, 6000, "t_fg_app", 711, 712, 0, 0, "55", g_startTime + 12 * g_hourGapTime};
+#else
+    AppEventRecord record1{1101, 4000, "t_fg_app", 710, 710, "55", g_startTime + 10 * g_hourGapTime};
+    AppEventRecord record2{1103, 5000, "t_fg_app", 710, 711, "55", g_startTime + 11 * g_hourGapTime};
+    AppEventRecord record3{1103, 6000, "t_fg_app", 711, 712, "55", g_startTime + 12 * g_hourGapTime};
+#endif
+
+    EXPECT_EQ(dbHelper.AddAppEvent(record1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3), 0);
+
+    FoldAppUsageInfo info;
+    info.package = "t_fg_app";
+    dbHelper.QueryForegroundAppsInfo(g_startTime, g_endTime, g_screenStat, info);
+    EXPECT_EQ(info.tFull, 1000);
+    EXPECT_EQ(info.tSplit, 1000);
+    EXPECT_EQ(info.tFloating, 43199999);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest027
+ * @tc.desc: check multiple N status duration accumulation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest027, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "n_multi", 520, 520, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_multi", 520, 520, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "n_multi", 510, 510, 0, 0, "55", g_startTime + 3 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "n_multi", 520, 520, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_multi", 520, 520, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "n_multi", 510, 510, "55", g_startTime + 3 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{N_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{N_PORTRAIT_FULL_STATUS, 2000}};
+    std::map<int, uint64_t> durations3 = {{N_LANDSCAPE_FULL_STATUS, 3000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3, durations3), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["n_multi55"].nVer, 3000);
+    EXPECT_EQ(infos["n_multi55"].nHor, 3000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest028
+ * @tc.desc: check multiple LM status duration accumulation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest028, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "lm_multi", 620, 620, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_multi", 623, 623, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "lm_multi", 610, 610, 0, 0, "55", g_startTime + 3 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "lm_multi", 620, 620, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_multi", 623, 623, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "lm_multi", 610, 610, "55", g_startTime + 3 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{LM_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{LM_PORTRAIT_MIDSCENE_STATUS, 2000}};
+    std::map<int, uint64_t> durations3 = {{LM_LANDSCAPE_FULL_STATUS, 3000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3, durations3), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["lm_multi55"].lmVer, 1000);
+    EXPECT_EQ(infos["lm_multi55"].lmVerMidscene, 2000);
+    EXPECT_EQ(infos["lm_multi55"].lmHor, 3000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest029
+ * @tc.desc: check N, LM, T status mixed usage scenarios.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest029, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "mixed_app", 520, 520, 0, 0, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "mixed_app", 620, 620, 0, 0, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "mixed_app", 710, 710, 0, 0, "55", g_startTime + 3 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "mixed_app", 520, 520, "55", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "mixed_app", 620, 620, "55", g_startTime + 2 * g_hourGapTime};
+    AppEventRecord record3{1104, 3000, "mixed_app", 710, 710, "55", g_startTime + 3 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{N_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{LM_PORTRAIT_FULL_STATUS, 2000}};
+    std::map<int, uint64_t> durations3 = {{T_LANDSCAPE_FULL_STATUS, 3000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record3, durations3), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["mixed_app55"].nVer, 1000);
+    EXPECT_EQ(infos["mixed_app55"].lmVer, 2000);
+    EXPECT_EQ(infos["mixed_app55"].tFull, 3000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest030
+ * @tc.desc: check all N status window modes in one app.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest030, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record{1104, 1000, "n_all_mode", 520, 520, 0, 0, "55", g_startTime};
+#else
+    AppEventRecord record{1104, 1000, "n_all_mode", 520, 520, "55", g_startTime};
+#endif
+
+    std::map<int, uint64_t> durations = {
+        {N_PORTRAIT_FULL_STATUS, 1000},
+        {N_PORTRAIT_SPLIT_STATUS, 2000},
+        {N_PORTRAIT_FLOATING_STATUS, 3000},
+        {N_LANDSCAPE_FULL_STATUS, 4000},
+        {N_LANDSCAPE_SPLIT_STATUS, 5000},
+        {N_LANDSCAPE_FLOATING_STATUS, 6000}
+    };
+    EXPECT_EQ(dbHelper.AddAppEvent(record, durations), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["n_all_mode55"].nVer, 1000);
+    EXPECT_EQ(infos["n_all_mode55"].nVerSplit, 2000);
+    EXPECT_EQ(infos["n_all_mode55"].nVerFloating, 3000);
+    EXPECT_EQ(infos["n_all_mode55"].nHor, 4000);
+    EXPECT_EQ(infos["n_all_mode55"].nHorSplit, 5000);
+    EXPECT_EQ(infos["n_all_mode55"].nHorFloating, 6000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest031
+ * @tc.desc: check all LM status window modes in one app.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest031, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record{1104, 1000, "lm_all_mode", 620, 620, 0, 0, "55", g_startTime};
+#else
+    AppEventRecord record{1104, 1000, "lm_all_mode", 620, 620, "55", g_startTime};
+#endif
+
+    std::map<int, uint64_t> durations = {
+        {LM_PORTRAIT_FULL_STATUS, 1000},
+        {LM_PORTRAIT_SPLIT_STATUS, 2000},
+        {LM_PORTRAIT_FLOATING_STATUS, 3000},
+        {LM_PORTRAIT_MIDSCENE_STATUS, 4000},
+        {LM_LANDSCAPE_FULL_STATUS, 5000},
+        {LM_LANDSCAPE_SPLIT_STATUS, 6000},
+        {LM_LANDSCAPE_FLOATING_STATUS, 7000},
+        {LM_LANDSCAPE_MIDSCENE_STATUS, 8000}
+    };
+    EXPECT_EQ(dbHelper.AddAppEvent(record, durations), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["lm_all_mode55"].lmVer, 1000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmVerSplit, 2000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmVerFloating, 3000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmVerMidscene, 4000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmHor, 5000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmHorSplit, 6000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmHorFloating, 7000);
+    EXPECT_EQ(infos["lm_all_mode55"].lmHorMidscene, 8000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest032
+ * @tc.desc: check all T status window modes in one app.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest032, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record{1104, 1000, "t_all_mode", 710, 710, 0, 0, "55", g_startTime};
+#else
+    AppEventRecord record{1104, 1000, "t_all_mode", 710, 710, "55", g_startTime};
+#endif
+
+    std::map<int, uint64_t> durations = {
+        {T_LANDSCAPE_FULL_STATUS, 1000},
+        {T_LANDSCAPE_SPLIT_STATUS, 2000},
+        {T_LANDSCAPE_FLOATING_STATUS, 3000}
+    };
+    EXPECT_EQ(dbHelper.AddAppEvent(record, durations), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos["t_all_mode55"].tFull, 1000);
+    EXPECT_EQ(infos["t_all_mode55"].tSplit, 2000);
+    EXPECT_EQ(infos["t_all_mode55"].tFloating, 3000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest033
+ * @tc.desc: check GetAppUsage calculation with N, LM, T status.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest033, TestSize.Level1)
+{
+    FoldAppUsageInfo info;
+    info.nVer = 1000;
+    info.nVerSplit = 2000;
+    info.nVerFloating = 3000;
+    info.nHor = 4000;
+    info.nHorSplit = 5000;
+    info.nHorFloating = 6000;
+    info.lmVer = 7000;
+    info.lmVerSplit = 8000;
+    info.lmVerFloating = 9000;
+    info.lmVerMidscene = 10000;
+    info.lmHor = 11000;
+    info.lmHorSplit = 12000;
+    info.lmHorFloating = 13000;
+    info.lmHorMidscene = 14000;
+    info.tFull = 15000;
+    info.tSplit = 16000;
+    info.tFloating = 17000;
+    
+    uint32_t expectedUsage = 1000 + 2000 + 3000 + 4000 + 5000 + 6000 +
+        7000 + 8000 + 9000 + 10000 + 11000 + 12000 + 13000 + 14000 +
+        15000 + 16000 + 17000;
+    EXPECT_EQ(info.GetAppUsage(), expectedUsage);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest034
+ * @tc.desc: check FoldAppUsageInfo operator+= with N, LM, T status.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest034, TestSize.Level1)
+{
+    FoldAppUsageInfo info1;
+    info1.nVer = 1000;
+    info1.nHor = 2000;
+    info1.lmVer = 3000;
+    info1.lmHor = 4000;
+    info1.lmVerMidscene = 5000;
+    info1.lmHorMidscene = 6000;
+    info1.tFull = 7000;
+    info1.tSplit = 8000;
+    info1.tFloating = 9000;
+
+    FoldAppUsageInfo info2;
+    info2.nVer = 1000;
+    info2.nHor = 2000;
+    info2.lmVer = 3000;
+    info2.lmHor = 4000;
+    info2.lmVerMidscene = 5000;
+    info2.lmHorMidscene = 6000;
+    info2.tFull = 7000;
+    info2.tSplit = 8000;
+    info2.tFloating = 9000;
+
+    info1 += info2;
+    EXPECT_EQ(info1.nVer, 2000);
+    EXPECT_EQ(info1.nHor, 4000);
+    EXPECT_EQ(info1.lmVer, 6000);
+    EXPECT_EQ(info1.lmHor, 8000);
+    EXPECT_EQ(info1.lmVerMidscene, 10000);
+    EXPECT_EQ(info1.lmHorMidscene, 12000);
+    EXPECT_EQ(info1.tFull, 14000);
+    EXPECT_EQ(info1.tSplit, 16000);
+    EXPECT_EQ(info1.tFloating, 18000);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest035
+ * @tc.desc: check N status with version update scenario.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest035, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "n_ver_app", 520, 520, 0, 0, "v1", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_ver_app", 510, 510, 0, 0, "v2", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "n_ver_app", 520, 520, "v1", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "n_ver_app", 510, 510, "v2", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{N_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{N_LANDSCAPE_FULL_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 2);
+    EXPECT_EQ(infos["n_ver_appv1"].nVer, 1000);
+    EXPECT_EQ(infos["n_ver_appv2"].nHor, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest036
+ * @tc.desc: check LM status with version update scenario.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest036, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "lm_ver_app", 620, 620, 0, 0, "v1", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_ver_app", 623, 623, 0, 0, "v2", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "lm_ver_app", 620, 620, "v1", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "lm_ver_app", 623, 623, "v2", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{LM_PORTRAIT_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{LM_PORTRAIT_MIDSCENE_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 2);
+    EXPECT_EQ(infos["lm_ver_appv1"].lmVer, 1000);
+    EXPECT_EQ(infos["lm_ver_appv2"].lmVerMidscene, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest037
+ * @tc.desc: check T status with version update scenario.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest037, TestSize.Level1)
+{
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "t_ver_app", 710, 710, 0, 0, "v1", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "t_ver_app", 712, 712, 0, 0, "v2", g_startTime + 2 * g_hourGapTime};
+#else
+    AppEventRecord record1{1104, 1000, "t_ver_app", 710, 710, "v1", g_startTime + 1 * g_hourGapTime};
+    AppEventRecord record2{1104, 2000, "t_ver_app", 712, 712, "v2", g_startTime + 2 * g_hourGapTime};
+#endif
+
+    std::map<int, uint64_t> durations1 = {{T_LANDSCAPE_FULL_STATUS, 1000}};
+    std::map<int, uint64_t> durations2 = {{T_LANDSCAPE_FLOATING_STATUS, 2000}};
+    EXPECT_EQ(dbHelper.AddAppEvent(record1, durations1), 0);
+    EXPECT_EQ(dbHelper.AddAppEvent(record2, durations2), 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    EXPECT_EQ(infos.size(), 2);
+    EXPECT_EQ(infos["t_ver_appv1"].tFull, 1000);
+    EXPECT_EQ(infos["t_ver_appv2"].tFloating, 2000);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
