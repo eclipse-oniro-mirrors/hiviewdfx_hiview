@@ -38,6 +38,7 @@ public:
 private:
     bool ShouldParseSandBoxPath(const std::string& line);
     bool ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix, const std::string& bundleName);
+    bool SafeStoull(const std::string& str, uint64_t& value, int base);
     bool ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps, const std::string& bundleName,
                          LoadInfo& info);
     std::string ProcessArkTsLine(const std::string& line, const std::string& packageName,
