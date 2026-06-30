@@ -84,6 +84,7 @@ private:
     WatchPoint MakeWatchPoint(const Event& event);
     void ProcessEvent(WatchPoint watchPoint);
     void ExtractWatchPointParams(SysEvent& sysEvent, const Event& event, WatchPointParams& params);
+    void SearchLogFile(const std::string& info, std::string& logFile);
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::unique_ptr<FreezeResolver> freezeResolver_ = nullptr;

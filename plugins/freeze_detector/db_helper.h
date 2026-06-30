@@ -45,6 +45,7 @@ public:
         const std::vector<std::string>& eventNames);
     std::vector<SysEvent> SelectRecordsByPidUid(long pid, long uid, const std::string& domain,
         const std::vector<std::string>& eventNames);
+    std::string SearchLogFile(const std::string& info);
 private:
     std::shared_ptr<FreezeCommon> freezeCommon_;
 };

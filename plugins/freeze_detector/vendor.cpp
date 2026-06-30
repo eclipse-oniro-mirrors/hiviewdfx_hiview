@@ -15,7 +15,6 @@
 
 #include "vendor.h"
 
-#include <regex>
 #include <algorithm>
 
 #include "faultlogger_client.h"

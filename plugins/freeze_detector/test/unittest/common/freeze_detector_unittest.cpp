@@ -1872,5 +1872,46 @@ HWTEST_F(FreezeDetectorUnittest, FreezeWatchPoint_AllNewVariables_001, TestSize.
     ASSERT_EQ(watchPoint.GetProcessName(), "testProcess");
     ASSERT_EQ(watchPoint.GetPackageName(), "com.test.package");
 }
+
+
+/**
+ * @tc.name: DBHelper_SearchLogFile_001
+ * @tc.desc: DBHelper_SearchLogFile
+ */
+HWTEST_F(FreezeDetectorUnittest, DBHelper_SearchLogFile_001, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_TRUE(freezeCommon->Init());
+    auto db = std::make_unique<DBHelper>(freezeCommon);
+    ASSERT_NE(db, nullptr);
+    std::string info = "logPath:/data/log/test.log,other_field=value";
+    std::string result = db->SearchLogFile(info);
+    EXPECT_EQ(result, "/data/log/test.log");
+}
+
+/**
+ * @tc.name: FreezeDetectorPlugin_SearchLogFile_001
+ * @tc.desc: FreezeDetectorPlugin_SearchLogFile_001
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_SearchLogFile_001, TestSize.Level3)
+{
+    auto plugin = std::make_shared<FreezeDetectorPlugin>();
+    std::string info = "logPath:/data/log/test.log,other_field=value";
+    std::string logFile;
+    plugin->SearchLogFile(info, logFile);
+    EXPECT_EQ(logFile, "/data/log/test.log");
+
+    info = "logPath:/data/log/test.log";
+    plugin->SearchLogFile(info, logFile);
+    EXPECT_EQ(logFile, "/data/log/test.log");
+
+    info = "logPath:,other_field=value";
+    plugin->SearchLogFile(info, logFile);
+    EXPECT_EQ(logFile, info);
+    
+    info = "no_log_path_field";
+    plugin->SearchLogFile(info, logFile);
+    EXPECT_EQ(logFile, info);
+}
 }
 }

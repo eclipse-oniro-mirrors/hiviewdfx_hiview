@@ -110,6 +110,26 @@ std::string FreezeDetectorPlugin::RemoveRedundantNewline(const std::string& cont
     return outContent;
 }
 
+void FreezeDetectorPlugin::SearchLogFile(const std::string& info, std::string& logFile)
+{
+    const char* prefix = "logPath:";
+    size_t pos = info.find(prefix);
+    if (pos != std::string::npos) {
+        size_t start = pos + strlen(prefix);
+        size_t end = info.find(',', start);
+        if (end == std::string::npos) {
+            end = info.length();
+        }
+        if (end > start) {
+            logFile = info.substr(start, end - start);
+        } else {
+            logFile = info;
+        }
+    } else {
+        logFile = info;
+    }
+}
+
 void FreezeDetectorPlugin::ExtractWatchPointParams(
     SysEvent& sysEvent, const Event& event, WatchPointParams& params)
 {
@@ -144,9 +164,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.lastProcessEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_PROCESS_EVENT_ID);
     params.lastMarkedEventId = sysEvent.GetEventValue(FreezeCommon::EVENT_LAST_MARKED_EVENT_ID);
     params.thermalLevel = sysEvent.GetEventValue(FreezeCommon::EVENT_THERMAL_LEVEL);
-    std::regex reg("logPath:([^,]+)");
-    std::smatch result;
-    params.logFile = std::regex_search(params.info, result, reg) ? result[1].str() : params.info;
+    SearchLogFile(params.info, params.logFile);
     params.foreGround = sysEvent.GetEventIntValue(FreezeCommon::FOREGROUND) ? "Yes" : "No";
     params.msg = sysEvent.GetEventValue(FreezeCommon::EVENT_MSG);
     params.externalLog = sysEvent.GetEventValue(FreezeCommon::EVENT_EXTERNAL_LOG);

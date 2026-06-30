@@ -15,6 +15,7 @@
 #ifndef HIVIEW_PLUGIN_EVENT_LOGGER_CONFIG_H
 #define HIVIEW_PLUGIN_EVENT_LOGGER_CONFIG_H
 #include <fstream>
+#include <functional>
 #include <string>
 #include <unordered_map>
 namespace OHOS {
@@ -48,6 +49,11 @@ private:
     void CloseConfig();
     bool FindConfigVersion();
     bool ParseConfigData(std::function<bool(EventLoggerConfigData&)> func);
+    bool ExtractFieldValue(const std::string& buf, size_t& pos, const std::string& field, std::string& value);
+    bool ParseId(const std::string& buf, size_t& pos, int& id);
+    bool ParseName(const std::string& buf, size_t& pos, std::string& name);
+    bool ParseAction(const std::string& buf, size_t& pos, std::string& action);
+    bool ParseInterval(const std::string& buf, size_t& pos, int& interval);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

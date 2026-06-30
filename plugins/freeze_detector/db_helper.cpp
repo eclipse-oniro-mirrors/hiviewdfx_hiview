@@ -15,7 +15,6 @@
 
 #include "db_helper.h"
 
-#include <regex>
 #include <map>
 
 #include "hiview_logger.h"
@@ -25,6 +24,24 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
+std::string DBHelper::SearchLogFile(const std::string& info)
+{
+    const char* prefix = "logPath:";
+    std::string logFile;
+    size_t pos = info.find(prefix);
+    if (pos != std::string::npos) {
+        size_t start = pos + strlen(prefix);
+        size_t end = info.find(',', start);
+        if (end == std::string::npos) {
+            end = info.length();
+        }
+        if (end > start) {
+            logFile = info.substr(start, end - start);
+        }
+    }
+    return logFile;
+}
+
 void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const FreezeResult& result,
     EventStore::ResultSet& set, WatchPoint& resultWatchPoint)
 {
@@ -68,10 +85,9 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
             .InitFreezeExtFile(record->GetEventValue(FreezeCommon::FREEZE_INFO_PATH))
             .InitExternalLog(record->GetEventValue(FreezeCommon::EVENT_EXTERNAL_LOG)).Build();
         std::string info = record->GetEventValue(EventStore::EventCol::INFO);
-        std::regex reg("logPath:([^,]+)");
-        std::smatch smatchResult;
-        if (std::regex_search(info, smatchResult, reg)) {
-            resultWatchPoint.SetLogPath(smatchResult[1].str());
+        std::string logPath = SearchLogFile(info);
+        if (!logPath.empty()) {
+            resultWatchPoint.SetLogPath(logPath);
         }
     }
 }
