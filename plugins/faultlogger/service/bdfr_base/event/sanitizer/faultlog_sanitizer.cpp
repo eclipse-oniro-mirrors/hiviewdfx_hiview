@@ -111,6 +111,31 @@ bool IsHexString(const std::string& s)
     return true;
 }
 
+bool FaultLogSanitizer::SafeStoull(const std::string& str, uint64_t& value, int base)
+{
+    if (str.empty()) {
+        HIVIEW_LOGE("str is empty.");
+        return false;
+    }
+
+    char* pEnd = nullptr;
+    errno = 0;
+    value = strtoull(str.c_str(), &pEnd, base);
+
+    if (errno == ERANGE) {
+        HIVIEW_LOGE("out of range, str: %{public}s", str.c_str());
+        return false;
+    }
+
+    if (pEnd == str.c_str() || *pEnd != '\0') {
+        HIVIEW_LOGE("conversion failed, str: %{public}s", str.c_str());
+        return false;
+    }
+
+    HIVIEW_LOGD("success, str: %{public}s, result: %{public}" PRIu64, str.c_str(), value);
+    return true;
+}
+
 bool FaultLogSanitizer::ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps,
     const std::string& bundleName, LoadInfo& info)
 {
@@ -150,8 +175,14 @@ bool FaultLogSanitizer::ExtractLoadInfo(const std::string& line, const std::vect
         return false;
     }
 
-    info.pc = std::stoull(pcStr, nullptr, FaultLogger::HEX_BASE);
-    info.relativePc = std::stoull(relStr, nullptr, FaultLogger::HEX_BASE);
+    if (!SafeStoull(pcStr, info.pc, FaultLogger::HEX_BASE)) {
+        HIVIEW_LOGE("failed to parse pc, pcStr: %{public}s", pcStr.c_str());
+        return false;
+    }
+    if (!SafeStoull(relStr, info.relativePc, FaultLogger::HEX_BASE)) {
+        HIVIEW_LOGE("failed to parse relativePc, relStr: %{public}s", relStr.c_str());
+        return false;
+    }
 
     for (const auto& m : maps) {
         if (info.pc >= m.start && info.pc < m.end) {
