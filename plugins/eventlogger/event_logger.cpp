@@ -19,7 +19,6 @@
 #include <cinttypes>
 #include <list>
 #include <map>
-#include <regex>
 #include <sstream>
 #include <unistd.h>
 #include <vector>
@@ -72,6 +71,10 @@ namespace {
     constexpr const char* FFRT_REPORT_EVENT_TYPE[] = {
         "Trigger_Escape", "Serial_Queue_Timeout", "Task_Sch_Timeout"
     };
+
+    constexpr const char* PRIORITY_KEYWORDS[] = {
+        "VIP", "Immediate", "High", "Low", "Idle"
+    };
     constexpr const char* TASK_TIMEOUT = "CONGESTION";
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
@@ -110,6 +113,7 @@ namespace {
     constexpr int HEAP_TOTAL_INDEX = 0;
     constexpr int HEAP_USED_INDEX = 1;
     constexpr int HEAP_SHARED_INDEX = 2;
+    constexpr int WINDOW_ID_BUFF = 32;
 }
 
 REGISTER(EventLogger);
@@ -504,46 +508,87 @@ void EventLogger::HandleFreezeHalfHiview(std::shared_ptr<SysEvent> event, bool i
 }
 #endif
 
-bool ParseMsgForMessageAndEventHandler(const std::string& msg, std::string& message, std::string& eventHandlerStr)
+bool EventLogger::ContainsPriorityKeyword(const std::string& line)
+{
+    for (const auto& keyword : PRIORITY_KEYWORDS) {
+        if (line.find(keyword) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EventLogger::MatchEventStartFlag(const std::string& line)
+{
+    size_t suffixPos = line.find(" priority event queue information:");
+    if (suffixPos == std::string::npos) {
+        return false;
+    }
+    for (const auto& keyword : PRIORITY_KEYWORDS) {
+        size_t keywordPos = line.find(keyword);
+        if (keywordPos != std::string::npos && keywordPos < suffixPos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EventLogger::MatchEventEndFlag(const std::string& line)
+{
+    size_t startPos = line.find("Total size of ");
+    if (startPos == std::string::npos) {
+        return false;
+    }
+    size_t endPos = line.find(" events :");
+    if (endPos == std::string::npos) {
+        return false;
+    }
+    size_t keywordStart = startPos + 14;
+    for (const auto& keyword : PRIORITY_KEYWORDS) {
+        if (line.compare(keywordStart, strlen(keyword), keyword) == 0 && keywordStart + strlen(keyword) <= endPos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EventLogger::ParseMsgForMessageAndEventHandler(const std::string& msg,
+    std::string& message, std::string& eventHandlerStr)
 {
     std::vector<std::string> lines;
     StringUtil::SplitStr(msg, "\n", lines, false, true);
     bool isGetMessage = false;
-    std::string messageStartFlag = "Fault time:";
-    std::string messageEndFlag = "mainHandler dump is:";
-    std::string eventFlag = "Event {";
     bool isGetEvent = false;
-    std::regex eventStartFlag(".*((VIP)|(Immediate)|(High)|(Low)|(Idle)) priority event queue information:.*");
-    std::regex eventEndFlag(".*Total size of ((VIP)|(Immediate)|(High)|(Low)|(Idle)) events :.*");
+    std::string eventFlag = "Event {";
     std::list<std::string> eventHandlerList;
-    for (auto line = lines.begin(); line != lines.end(); line++) {
-        if ((*line).find(messageStartFlag) != std::string::npos) {
+    for (const auto& line : lines) {
+        if (line.find("Fault time:") != std::string::npos) {
             isGetMessage = true;
             continue;
         }
         if (isGetMessage) {
-            if ((*line).find(messageEndFlag) != std::string::npos) {
+            if (line.find("mainHandler dump is:") != std::string::npos) {
                 isGetMessage = false;
                 HIVIEW_LOGD("Get FreezeJson message jsonStr: %{public}s", message.c_str());
                 continue;
             }
-            message += StringUtil::TrimStr(*line);
+            message += StringUtil::TrimStr(line);
             continue;
         }
-        if (regex_match(*line, eventStartFlag)) {
+        if (MatchEventStartFlag(line)) {
             isGetEvent = true;
             continue;
         }
         if (isGetEvent) {
-            if (regex_match(*line, eventEndFlag)) {
+            if (MatchEventEndFlag(line)) {
                 isGetEvent = false;
                 continue;
             }
-            std::string::size_type pos = (*line).find(eventFlag);
+            std::string::size_type pos = line.find(eventFlag);
             if (pos == std::string::npos) {
                 continue;
             }
-            std::string handlerStr = StringUtil::TrimStr(*line).substr(pos);
+            std::string handlerStr = StringUtil::TrimStr(line).substr(pos);
             HIVIEW_LOGD("Get EventHandler str: %{public}s.", handlerStr.c_str());
             eventHandlerList.push_back(handlerStr);
         }
@@ -614,36 +659,39 @@ WindowIdInfo EventLogger::DumpWindowInfo(int fd)
         HIVIEW_LOGE("parse focus window id error");
         return windowIdInfo;
     }
-    FileUtil::SaveStringToFd(fd, std::string("\ncatcher cmd: hidumper -s WindowManagerService -a -a\n"));
-
-    std::smatch result;
-    std::string line = "";
-    auto windowIdRegex = std::regex("Focus window: ([0-9]+)");
+    FileUtil::SaveStringToFd(fd, "\ncatcher cmd: hidumper -s WindowManagerService -a -a\n");
 
     bool inScreenGroup = false;
     char* buffer = nullptr;
     size_t length = 0;
     while (getline(&buffer, &length, file) != -1) {
-        line = buffer;
-        // Check whether the current line has entered the ScreenGroup area.
-        if (line.find("ScreenGroup") != std::string::npos) {
+        if (strstr(buffer, "ScreenGroup") != nullptr) {
             inScreenGroup = true;
-        } else if (line.find("-----------------------") != std::string::npos && inScreenGroup) {
+        } else if (strstr(buffer, "-----------------------") != nullptr && inScreenGroup) {
             inScreenGroup = false;
         }
-        if (inScreenGroup && line.find("SCBStatusBar") != std::string::npos) {
-            windowIdInfo.statusBarWindowId = GetWindowIdFromLine(line);
+        if (inScreenGroup && strstr(buffer, "SCBStatusBar") != nullptr) {
+            windowIdInfo.statusBarWindowId = GetWindowIdFromLine(buffer);
         }
-        if (inScreenGroup && line.find("SCBScreenLock") != std::string::npos) {
-            windowIdInfo.screenLockWindowId = GetWindowIdFromLine(line);
+        if (inScreenGroup && strstr(buffer, "SCBScreenLock") != nullptr) {
+            windowIdInfo.screenLockWindowId = GetWindowIdFromLine(buffer);
         }
-        if (inScreenGroup && line.find("softKeyboard") != std::string::npos) {
-            windowIdInfo.softKeyboardWindowId = GetWindowIdFromLine(line);
+        if (inScreenGroup && strstr(buffer, "softKeyboard") != nullptr) {
+            windowIdInfo.softKeyboardWindowId = GetWindowIdFromLine(buffer);
         }
-        if (regex_search(line, result, windowIdRegex)) {
-            windowIdInfo.focusWindowId = result[1];
+        const char* focusPos = strstr(buffer, "Focus window: ");
+        if (focusPos != nullptr) {
+            focusPos += strlen("Focus window: ");
+            while (*focusPos == ' ') focusPos++;
+            char windowIdBuf[WINDOW_ID_BUFF] = {0};
+            int i = 0;
+            while (i < WINDOW_ID_BUFF - 1 && focusPos[i] >= '0' && focusPos[i] <= '9') {
+                windowIdBuf[i] = focusPos[i];
+                i++;
+            }
+            windowIdInfo.focusWindowId = windowIdBuf;
         }
-        FileUtil::SaveStringToFd(fd, line);
+        write(fd, buffer, strlen(buffer));
     }
     if (buffer != nullptr) {
         free(buffer);
@@ -1618,24 +1666,54 @@ void EventLogger::GetRebootReasonConfig()
 
 bool EventLogger::GetMatchRebootString(const std::string& src, std::string& dst) const
 {
-    std::regex reg("reboot_reason\\s*=\\s*([^ \\n]*)");
-    std::smatch result;
-    if (std::regex_search(src, result, reg)) {
-        dst = StringUtil::TrimStr(result[1], '\n');
-        return true;
+    const char* pos = strstr(src.c_str(), "reboot_reason");
+    if (pos == nullptr) {
+        return false;
     }
-    return false;
+    pos += strlen("reboot_reason");
+    while (*pos == ' ' || *pos == '\t') {
+        pos++;
+    }
+    if (*pos != '=') {
+        return false;
+    }
+    pos++;
+    while (*pos == ' ' || *pos == '\t') {
+        pos++;
+    }
+    const char* end = pos;
+    while (*end != ' ' && *end != '\n' && *end != '\0') {
+        end++;
+    }
+    dst = std::string(pos, end - pos);
+    dst = StringUtil::TrimStr(dst, '\n');
+    return true;
 }
 
 bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) const
 {
-    std::regex reg("normal_reset_type\\s*=\\s*([^ \\n]*)");
-    std::smatch result;
-    if (std::regex_search(src, result, reg)) {
-        dst = StringUtil::TrimStr(result[1], '\n');
-        return true;
+    const char* pos = strstr(src.c_str(), "normal_reset_type");
+    if (pos == nullptr) {
+        return false;
     }
-    return false;
+    pos += strlen("normal_reset_type");
+    while (*pos == ' ' || *pos == '\t') {
+        pos++;
+    }
+    if (*pos != '=') {
+        return false;
+    }
+    pos++;
+    while (*pos == ' ' || *pos == '\t') {
+        pos++;
+    }
+    const char* end = pos;
+    while (*end != ' ' && *end != '\n' && *end != '\0') {
+        end++;
+    }
+    dst = std::string(pos, end - pos);
+    dst = StringUtil::TrimStr(dst, '\n');
+    return true;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

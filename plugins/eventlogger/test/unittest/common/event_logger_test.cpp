@@ -893,7 +893,8 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_RegisterFocusListener_001, TestSize.Le
     EventFocusListener::RegisterFocusListener();
     EventFocusListener::registerState_ = EventFocusListener::REGISTERED;
     eventLogger->OnUnload();
-    EXPECT_EQ(EventFocusListener::registerState_, EventFocusListener::UNREGISTERED);
+    auto ret = Parameter::IsBetaVersion() ? EventFocusListener::UNREGISTERED : EventFocusListener::REGISTERED;
+    EXPECT_EQ(EventFocusListener::registerState_, ret);
 #else
     eventLogger->OnUnload();
 #endif
@@ -1346,6 +1347,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_002, TestSize.Lev
 {
     auto eventLogger = std::make_shared<EventLogger>();
     std::string cmd = "tr";
+    EXPECT_TRUE(eventLogger != nullptr);
     auto fd = open(TEST_PATH.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
         printf("Fail to create File. errno: %d\n", errno);
@@ -1370,6 +1372,51 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_HandleEventLoggerCmd_002, TestSize.Lev
     eventLogger->HandleEventLoggerCmd(cmd, sysEvent, fd, logTask);
     close(fd);
     EXPECT_TRUE(eventLogger);
+}
+
+/**
+ * @tc.name: EventLoggerTest_MatchEventStartFlag_001
+ * @tc.desc: MatchEventStartFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_MatchEventStartFlag_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    // desc: test MatchEventStartFlag with correct format
+    EXPECT_TRUE(eventLogger->MatchEventStartFlag("VIP priority event queue information:"));
+    EXPECT_TRUE(eventLogger->MatchEventStartFlag("Immediate priority event queue information:"));
+    EXPECT_TRUE(eventLogger->MatchEventStartFlag("High priority event queue information:"));
+    EXPECT_TRUE(eventLogger->MatchEventStartFlag("Low priority event queue information:"));
+    EXPECT_TRUE(eventLogger->MatchEventStartFlag("Idle priority event queue information:"));
+    // desc: test MatchEventStartFlag with wrong keyword position
+    EXPECT_FALSE(eventLogger->MatchEventStartFlag("priority event queue information: VIP"));
+    EXPECT_FALSE(eventLogger->MatchEventStartFlag("priority event queue information: High"));
+    // desc: test MatchEventStartFlag without required string
+    EXPECT_FALSE(eventLogger->MatchEventStartFlag("VIP event queue"));
+    EXPECT_FALSE(eventLogger->MatchEventStartFlag("Total size of VIP events"));
+}
+
+/**
+ * @tc.name: EventLoggerTest_MatchEventEndFlag_001
+ * @tc.desc: test MatchEventEndFlag with correct format
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_MatchEventEndFlag_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    // desc: test MatchEventEndFlag with correct format
+    EXPECT_TRUE(eventLogger->MatchEventEndFlag("Total size of VIP events :"));
+    EXPECT_TRUE(eventLogger->MatchEventEndFlag("Total size of Immediate events :"));
+    EXPECT_TRUE(eventLogger->MatchEventEndFlag("Total size of High events :"));
+    EXPECT_TRUE(eventLogger->MatchEventEndFlag("Total size of Low events :"));
+    EXPECT_TRUE(eventLogger->MatchEventEndFlag("Total size of Idle events :"));
+    // desc: test MatchEventEndFlag with wrong keyword position
+    EXPECT_FALSE(eventLogger->MatchEventEndFlag("VIP Total size of  events :"));
+    EXPECT_FALSE(eventLogger->MatchEventEndFlag("Total size of events : VIP"));
+    // desc: test MatchEventEndFlag without required string
+    EXPECT_FALSE(eventLogger->MatchEventEndFlag("VIP priority event queue information:"));
+    EXPECT_FALSE(eventLogger->MatchEventEndFlag("Total size VIP events"));
+    EXPECT_FALSE(eventLogger->MatchEventEndFlag("Total size of VIP"));
 }
 
 /**
@@ -1989,6 +2036,45 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteIOStr_003, TestSize.Level3)
     std::string result = headerStream.str();
     EXPECT_FALSE(result.empty());
     EXPECT_NE(result.find("I/O(bytes): "), std::string::npos);
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetMatchRebootString_001
+ * @tc.desc: Test GetMatchRebootString
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetMatchRebootString_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string src = "reboot_reason=TEST_VALUE";
+    std::string dst;
+    bool ret = eventLogger->GetMatchRebootString(src, dst);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(dst, "TEST_VALUE");
+
+    src = "reboot_reason  =  TEST_VALUE\n";
+    ret = eventLogger->GetMatchRebootString(src, dst);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(dst, "TEST_VALUE");
+}
+
+/**
+ * @tc.name: EventLoggerTest_GetMatchResetString_001
+ * @tc.desc: Test GetMatchResetString
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_GetMatchResetString_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string src = "normal_reset_type=RESET_VALUE";
+    std::string dst;
+    bool ret = eventLogger->GetMatchResetString(src, dst);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(dst, "RESET_VALUE");
+
+    src = "no_match_field";
+    ret = eventLogger->GetMatchResetString(src, dst);
+    EXPECT_FALSE(ret);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

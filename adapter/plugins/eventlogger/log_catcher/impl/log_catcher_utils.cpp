@@ -40,6 +40,15 @@ constexpr int DUMP_STACK_FAILED = -1;
 constexpr int MAX_RETRY_COUNT = 20;
 constexpr int WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000;
 constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
+constexpr int THREAD_INFO_LENGTH = 11;
+constexpr const char* THREAD_INFO_STR = "ThreadInfo:";
+constexpr const char* THREAD_TID_STR = "Tid:";
+constexpr const char* THREAD_NAME_STR = ", Name:";
+constexpr size_t THREAD_NAME_LIMIT = 32;
+constexpr size_t THREAD_STACKLINE_LIMIT = 1024;
+constexpr size_t THREAD_FIRST_INDEX = 1;
+constexpr size_t THREAD_THIRD_INDEX = 3;
+constexpr size_t THREAD_FOURTH_INDEX = 4;
 
 bool GetDump(int pid, std::string& msg)
 {
@@ -158,6 +167,34 @@ int DumpStacktrace(int fd, int pid, std::string& terminalBinderStack, TerminalBi
     FileUtil::SaveStringToFd(fd, msg);
     return 0;
 }
+
+bool CompareStackLine(const std::string& line)
+{
+    size_t pos = THREAD_FIRST_INDEX;
+    while (pos < line.size() && line[pos] >= '0' && line[pos] <= '9') {
+        pos++;
+    }
+    if (pos < THREAD_THIRD_INDEX || pos > THREAD_FOURTH_INDEX) {
+        return false;
+    }
+    if (pos >= line.size() || line[pos] != ' ') {
+        return false;
+    }
+    pos++;
+    if (pos + THREAD_THIRD_INDEX > line.size()) {
+        return false;
+    }
+    if (line.compare(pos, THREAD_THIRD_INDEX, "pc ") != 0 &&
+        line.compare(pos, THREAD_THIRD_INDEX, "at ") != 0) {
+        return false;
+    }
+    pos += THREAD_THIRD_INDEX;
+    if (line.size() - pos > THREAD_STACKLINE_LIMIT) {
+        return false;
+    }
+    return true;
+}
+
 void GetThreadStack(const std::string& processStack, std::string& stack, int tid)
 {
     if (tid <= 0) {
@@ -168,31 +205,43 @@ void GetThreadStack(const std::string& processStack, std::string& stack, int tid
     if (issStack.fail()) {
         return;
     }
-    std::string regTidString = "^Tid:" + std::to_string(tid) + ", Name:(.{0,32})$";
-    std::regex regTid(regTidString);
-    std::regex regStack(R"(^#\d{2,3} (pc|at) .{0,1024}$)");
-    std::regex regSkip(R"(^ThreadInfo:.*$)");
+
+    std::string tidPrefix = THREAD_TID_STR + std::to_string(tid) + THREAD_NAME_STR;
     std::string line;
+
     while (std::getline(issStack, line)) {
         if (!issStack.good()) {
             break;
         }
 
-        if (!std::regex_match(line, regTid)) {
+        size_t tidPrefixSize = tidPrefix.size();
+        if (line.compare(0, tidPrefixSize, tidPrefix) != 0) {
+            continue;
+        }
+        if (line.size() - tidPrefixSize > THREAD_NAME_LIMIT) {
             continue;
         }
 
         while (std::getline(issStack, line)) {
-            if (std::regex_match(line, regSkip)) {
+            if (line.compare(0, THREAD_INFO_LENGTH, THREAD_INFO_STR) == 0) {
                 continue;
-            } else if (!std::regex_match(line, regStack)) {
+            }
+
+            if (line.empty() || line[0] != '#') {
                 break;
             }
-            stack.append(line + "\n");
+
+            if (!CompareStackLine(line)) {
+                break;
+            }
+
+            stack += line;
+            stack.push_back('\n');
+
             if (!issStack.good()) {
                 break;
             }
-        };
+        }
         break;
     }
 }

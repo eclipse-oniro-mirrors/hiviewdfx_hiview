@@ -18,7 +18,6 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <regex>
 
 #include <fcntl.h>
 #include <sys/prctl.h>
@@ -1644,10 +1643,70 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_002, TestSize.Level1)
 
 /**
  * @tc.name: LogCatcherUtilsTest_003
- * @tc.desc: add test
+ * @tc.desc: test GetThreadStack with name limit
  * @tc.type: FUNC
  */
 HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_003, TestSize.Level1)
+{
+    constexpr int testTid = 1234;
+    std::string stack;
+    std::string processStack = "Tid:1234, Name: TestThreadNameOverThirtyTwoCharactersLimit\n"
+        "#00 pc 0017888c /system/lib/libark_jsruntime.so\n";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_TRUE(stack.empty());
+}
+
+/**
+ * @tc.name: LogCatcherUtilsTest_004
+ * @tc.desc: test GetThreadStack with invalid stack line
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_004, TestSize.Level1)
+{
+    constexpr int testTid = 1234;
+    std::string stack;
+    std::string processStack = "Tid:1234, Name: TestThread\n"
+        "#0 pc 0017888c /system/lib/libark_jsruntime.so\n";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_TRUE(stack.empty());
+
+    stack.clear();
+    processStack = "Tid:1234, Name: TestThread\n"
+        "#00000 pc 0017888c /system/lib/libark_jsruntime.so\n";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_TRUE(stack.empty());
+
+    stack.clear();
+    processStack = "Tid:1234, Name: TestThread\n"
+        "#00 invalid 0017888c /system/lib/libark_jsruntime.so\n";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_TRUE(stack.empty());
+}
+
+/**
+ * @tc.name: LogCatcherUtilsTest_005
+ * @tc.desc: test GetThreadStack with at keyword
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_005, TestSize.Level1)
+{
+    constexpr int testTid = 1234;
+    std::string stack;
+    std::string processStack = "Tid:1234, Name: TestThread\n"
+        "#00 at com.test.MainActivity(MainActivity.java:10)\n"
+        "#01 at com.test.TestClass(TestClass.java:20)\n";
+    LogCatcherUtils::GetThreadStack(processStack, stack, testTid);
+    EXPECT_FALSE(stack.empty());
+    EXPECT_TRUE(stack.find("#00 at") != std::string::npos);
+    EXPECT_TRUE(stack.find("#01 at") != std::string::npos);
+}
+
+/**
+ * @tc.name: LogCatcherUtilsTest_006
+ * @tc.desc: add test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_006, TestSize.Level1)
 {
     auto fd = open("/data/test/logCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
@@ -1660,11 +1719,11 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_003, TestSize.Level1)
 }
 
 /**
- * @tc.name: LogCatcherUtilsTest_004
+ * @tc.name: LogCatcherUtilsTest_007
  * @tc.desc: add test
  * @tc.type: FUNC
  */
-HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_004, TestSize.Level1)
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtilsTest_007, TestSize.Level1)
 {
     auto fd = open("/data/test/logCatcherFile", O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
     if (fd < 0) {
