@@ -114,6 +114,7 @@ namespace {
     constexpr int HEAP_USED_INDEX = 1;
     constexpr int HEAP_SHARED_INDEX = 2;
     constexpr int WINDOW_ID_BUFF = 32;
+    constexpr int HEAP_SHARED_TOTAL_SIZE = 815792128;
 }
 
 REGISTER(EventLogger);
@@ -825,7 +826,7 @@ void EventLogger::WriteHeapSize(std::shared_ptr<SysEvent> event, std::ostringstr
     headerStream << FreezeCommon::MAIN_HEAP << FreezeCommon::USED_HEAP << heapUsedSize <<
         FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
     headerStream << FreezeCommon::SHARED_HEAP << FreezeCommon::USED_HEAP << heapSharedSize <<
-        FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
+        FreezeCommon::TOTAL_HEAP << HEAP_SHARED_TOTAL_SIZE << std::endl;
 }
 
 void EventLogger::WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
