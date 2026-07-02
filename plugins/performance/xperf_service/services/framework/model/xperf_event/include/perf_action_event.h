@@ -16,8 +16,6 @@
 #ifndef PERF_ACTION_EVENT_H
 #define PERF_ACTION_EVENT_H
 
-#include <string>
-#include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {

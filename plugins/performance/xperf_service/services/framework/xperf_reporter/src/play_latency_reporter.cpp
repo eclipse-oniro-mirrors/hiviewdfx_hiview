@@ -12,61 +12,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
-#include "xperf_service_log.h"
 #include "play_latency_reporter.h"
-#include "hisysevent.h"
-#include "hiview_global.h"
-#include "sys_event.h"
+#include "event_reporter.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
 void PlayLatencyReporter::ReportStartFault(const VideoStartFaultReport& report)
 {
-    std::string s;
-    s.append("#PID:").append(std::to_string(report.pid))
-        .append("#BUNDLE_NAME:").append(report.bundleName)
-        .append("#UNIQUE_ID:").append(std::to_string(report.uniqueId))
-        .append("#SURFACE_NAME:").append(report.surfaceName)
-        .append("#LASTUP_TIME:").append(std::to_string(report.lastUpTime))
-        .append("#START_LATENCY:").append(std::to_string(report.startLatency))
-        .append("#TYPE:").append(std::to_string(report.type));
+    std::string data;
+    data.append("PID:").append(std::to_string(report.pid)).append("\n")
+        .append("BUNDLE_NAME:").append(report.bundleName).append("\n")
+        .append("UNIQUE_ID:").append(std::to_string(report.uniqueId)).append("\n")
+        .append("SURFACE_NAME:").append(report.surfaceName).append("\n")
+        .append("LASTUP_TIME:").append(std::to_string(report.lastUpTime)).append("\n")
+        .append("START_LATENCY:").append(std::to_string(report.startLatency)).append("\n")
+        .append("TYPE:").append(std::to_string(report.type));
 
-    std::string eventName = "VIDEO_START_FAULT";
-
-    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", eventName, OHOS::HiviewDFX::SysEventCreator::FAULT);
-    sysEventCreator.SetKeyValue("EVENT_DATA", s);
-
-    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-
-    auto& hiviewInstance = OHOS::HiviewDFX::HiviewGlobal::GetInstance();
-    if (!hiviewInstance) {
-        LOGE("HiviewGlobal::GetInstance failed");
-        return;
-    }
-    if (!hiviewInstance->PostSyncEventToTarget("XperfPlugin", event)) {
-        LOGE("hiviewInstance->PostSyncEventToTarget failed");
-    }
+    EventReporter::GetInstance().ReportEvent("VIDEO_START_FAULT_INNER", data);
 }
 
 void PlayLatencyReporter::ReportFault(const std::string& eventName, const std::string& eventData)
 {
-    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", eventName, OHOS::HiviewDFX::SysEventCreator::FAULT);
-    sysEventCreator.SetKeyValue("EVENT_DATA", eventData);
+    std::string data;
+    data.append("EVENT_DATA:").append(eventData);
 
-    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    EventReporter::GetInstance().ReportEvent(eventName, data);
+}
 
-    auto& hiviewInstance = OHOS::HiviewDFX::HiviewGlobal::GetInstance();
-    if (!hiviewInstance) {
-        LOGE("HiviewGlobal::GetInstance failed");
-        return;
-    }
-    if (!hiviewInstance->PostSyncEventToTarget("XperfPlugin", event)) {
-        LOGE("hiviewInstance->PostSyncEventToTarget failed");
-    }
+void PlayLatencyReporter::ReportJankStats(const VideoJankStatsReport& report)
+{
+    std::string data;
+    data.append("EVENT_DATA:")
+        .append(std::to_string(report.pid)).append("|")
+        .append(report.bundleName).append("|")
+        .append(std::to_string(report.uniqueId)).append("|")
+        .append(report.surfaceName).append("|")
+        .append(std::to_string(report.lastUpTime)).append("|")
+        .append(std::to_string(report.latency)).append("|")
+        .append(std::to_string(report.rsDur)).append("|")
+        .append(std::to_string(report.rsJankTimes)).append("|")
+        .append(std::to_string(report.rsJankDur)).append("|")
+        .append(std::to_string(report.codecDur)).append("|")
+        .append(std::to_string(report.codecJankTimes)).append("|")
+        .append(std::to_string(report.codecJankDur));
+
+    EventReporter::GetInstance().ReportEvent("VIDEO_JANK_STATS_INNER", data);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

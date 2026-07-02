@@ -12,12 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "xperf_event.h"
 #include "xperf_parser.h"
 #include "video_xperf_event.h"
 #include "rs_event.h"
-#include "xperf_service_log.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -35,7 +33,7 @@ OhosXperfEvent* ParseRsVideoJankEventMsg(const std::string& msg)
     return event;
 }
 
-//"#UNIQUEID:7095285973044#DURATION:20000#AVG_FPS:56";
+//#UNIQUEID:6944962117705#DURATION:5343#AVG_FPS:29#INTERVAL_COUNT:0#INTERVAL_LATENCY:0
 OhosXperfEvent* ParseRsVideoFrameStatsMsg(const std::string& msg)
 {
     RsVideoFrameStatsEvent* event = new RsVideoFrameStatsEvent();
@@ -75,6 +73,5 @@ OhosXperfEvent* ParseRsVideoSecondFrameMsg(const std::string& msg)
     ExtractStrToLong(msg, event->happenTime, TAG_HAPPEN_TIME, TAG_END, 0);
     return event;
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS

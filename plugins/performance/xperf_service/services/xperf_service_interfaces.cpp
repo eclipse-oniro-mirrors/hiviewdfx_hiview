@@ -18,6 +18,7 @@
 #include "video_jank_monitor.h"
 #include "video_xperf_monitor.h"
 #include "video_play_latency_monitor.h"
+#include "event_reporter.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -37,5 +38,10 @@ void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& b
     VideoPlayLatencyMonitor::GetInstance().OnComponentAttach(pid, bundleName, uniqueId, surfaceName);
 }
 
+void XperfServiceInterfaces::RegEventListener(std::function<void(const std::string&, const std::string&,
+    const std::string&)> listener)
+{
+    EventReporter::GetInstance().RegEventListener(listener);
+}
 }
 }

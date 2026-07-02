@@ -47,7 +47,7 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::AVCODEC_RELEASE, &ParseVoid); //4003
     RegisterParserByLogID(XperfConstants::AVCODEC_JANK_FAULT, &ParseAvcodecFault); //4004
     RegisterParserByLogID(XperfConstants::AVCODEC_SECOND_FRAME, &ParseAvcodecFirstFrame); //4005
-    RegisterParserByLogID(XperfConstants::AVCODEC_FRAME_STATS, &ParseVoid); //4006
+    RegisterParserByLogID(XperfConstants::AVCODEC_FRAME_STATS, &ParseAvcodecFrameStats); //4006
 
     RegisterParserByLogID(XperfConstants::VIDEO_JANK_FRAME, &ParseRsVideoJankEventMsg); //5000
     RegisterParserByLogID(XperfConstants::VIDEO_FRAME_STATS, &ParseRsVideoFrameStatsMsg); //5001

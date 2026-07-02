@@ -16,7 +16,6 @@
 #ifndef OHOS_HIVIEW_DFX_VIDEO_JANK_RECORD_H
 #define OHOS_HIVIEW_DFX_VIDEO_JANK_RECORD_H
 
-#include "xperf_service_log.h"
 #include "network_event.h"
 #include "avcodec_event.h"
 #include "rs_event.h"

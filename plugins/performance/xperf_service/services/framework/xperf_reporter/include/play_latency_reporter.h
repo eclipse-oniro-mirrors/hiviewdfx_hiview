@@ -16,10 +16,10 @@
 #ifndef PLAY_LATENCY_REPORTER_H
 #define PLAY_LATENCY_REPORTER_H
 
-#include "xperf_service_log.h"
 #include "video_record.h"
 #include "video_jank_report.h"
 #include "video_start_fault_report.h"
+#include "video_jank_stats_report.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -28,8 +28,8 @@ class PlayLatencyReporter {
 public:
     static void ReportStartFault(const VideoStartFaultReport& report);
     static void ReportFault(const std::string& eventName, const std::string& eventData);
+    static void ReportJankStats(const VideoJankStatsReport& report);
 };
-
 } // namespace HiviewDFX
 } // namespace OHOS
 

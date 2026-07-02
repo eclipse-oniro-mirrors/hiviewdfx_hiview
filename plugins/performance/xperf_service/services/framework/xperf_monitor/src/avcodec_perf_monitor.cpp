@@ -61,7 +61,7 @@ void AvcodecPerfMonitor::OnFault(OhosXperfEvent* event)
 {
     LOGI("AVCODEC_JANK_FAULT msg:%{public}s", event->rawMsg.c_str());
     XPERF_TRACE_SCOPED("AVCODEC_JANK_FAULT msg:%s", event->rawMsg.c_str());
-    PlayLatencyReporter::ReportFault("AVCODEC_JANK_FAULT", event->rawMsg);
+    PlayLatencyReporter::ReportFault("AVCODEC_JANK_FAULT_INNER", event->rawMsg);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

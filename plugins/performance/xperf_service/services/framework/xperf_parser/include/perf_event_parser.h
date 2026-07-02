@@ -23,7 +23,6 @@ namespace HiviewDFX {
 
 OhosXperfEvent* ParserPerfUserAction(const std::string& msg);
 OhosXperfEvent* ParserLoadComplete(const std::string& msg);
-OhosXperfEvent* ParserComponentAttach(const std::string& msg);
 OhosXperfEvent* ParserComponentDetach(const std::string& msg);
 OhosXperfEvent* ParserAppForeground(const std::string& msg);
 } // namespace HiviewDFX

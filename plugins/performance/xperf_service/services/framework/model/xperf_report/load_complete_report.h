@@ -17,8 +17,7 @@
 #define LOAD_COMPLETE_REPORT_H
  
 #include <string>
-#include <vector>
- 
+
 namespace OHOS {
 namespace HiviewDFX {
  

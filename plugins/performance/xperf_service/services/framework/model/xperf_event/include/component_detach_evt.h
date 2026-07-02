@@ -17,12 +17,17 @@
 #ifndef COMPONENT_DETACH_EVT_H
 #define COMPONENT_DETACH_EVT_H
 
-#include "component_evt.h"
+#include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-struct ComponentDetachEvt : public ComponentEvt {
+struct ComponentDetachEvt : public OhosXperfEvent {
+    int32_t pid{0};
+    int64_t uniqueId{0};
+    std::string bundleName;
+    std::string surfaceName;
+    std::string componentName;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

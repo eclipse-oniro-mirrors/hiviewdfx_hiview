@@ -16,7 +16,6 @@
 #ifndef VIDEO_JANK_REPORT_H
 #define VIDEO_JANK_REPORT_H
 
-#include "xperf_service_log.h"
 #include <string>
 
 namespace OHOS {

@@ -16,7 +16,6 @@
 #ifndef NETWORK_XPERF_EVENT_H
 #define NETWORK_XPERF_EVENT_H
 
-#include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {

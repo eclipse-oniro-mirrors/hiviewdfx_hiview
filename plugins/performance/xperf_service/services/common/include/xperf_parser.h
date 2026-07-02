@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 
-inline const char TAG_EVENT_NAME[] = "#EVENT_NAME:";
+inline constexpr const char TAG_EVENT_NAME[] = "#EVENT_NAME:";
 inline constexpr const char TAG_UNIQUE_ID[] = "#UNIQUEID:";
 inline constexpr const char TAG_PID[] = "#PID:";
 inline constexpr const char TAG_BUNDLE_NAME[] = "#BUNDLE_NAME:";

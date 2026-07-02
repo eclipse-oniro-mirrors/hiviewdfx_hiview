@@ -16,7 +16,6 @@
 #ifndef OHOS_HIVIEW_DFX_AVCODEC_EVENT_H
 #define OHOS_HIVIEW_DFX_AVCODEC_EVENT_H
 
-#include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {
@@ -49,6 +48,18 @@ struct AvcodecFaultEvent : public OhosXperfEvent {
     std::string surfaceName;
     int64_t lastFlushTime{0};
     int64_t duration{0};
+};
+
+// #UNIQUEID:#PID:#BUNDLE_NAME:#SURFACE_NAME:#BEGIN_TIME:#END_TIME:#TIMES:#TOTAL_DUR:
+struct AvcodecFrameStats : public OhosXperfEvent {
+    int64_t uniqueId{0};
+    int32_t pid{0};
+    std::string bundleName;
+    std::string surfaceName;
+    int64_t beginTime{0};
+    int64_t endTime{0};
+    int32_t times{0};
+    int64_t totalDur{0};
 };
 
 } // namespace HiviewDFX

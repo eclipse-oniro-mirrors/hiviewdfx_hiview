@@ -33,6 +33,7 @@ public:
 private:
     EventParserManager* parserManager{nullptr};
     XperfMonitorManager* monitorManager{nullptr};
+
 };
 } // namespace HiviewDFX
 } // namespace OHOS

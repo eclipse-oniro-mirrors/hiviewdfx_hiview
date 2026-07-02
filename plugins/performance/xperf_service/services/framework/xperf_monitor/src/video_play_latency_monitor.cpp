@@ -56,9 +56,57 @@ void VideoPlayLatencyMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AUDIO_RENDER_START: // 音频开始
             OnAudioStart(event);
             break;
+        case XperfConstants::AVCODEC_FRAME_STATS: // 解码器帧统计
+            OnCodecFrameStats(event);
+            break;
+        case XperfConstants::VIDEO_FRAME_STATS: // RS帧统计
+            OnRsFrameStats(event);
+            break;
         default:
             break;
     }
+}
+
+void VideoPlayLatencyMonitor::OnCodecFrameStats(OhosXperfEvent* event)
+{
+    LOGD("VideoPlayLatencyMonitor_OnCodecFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
+    AvcodecFrameStats* afsEvt = (AvcodecFrameStats*) event;
+    auto item = latencyMap.find(afsEvt->uniqueId);
+    if (item == latencyMap.end()) {
+        return;
+    }
+    VideoJankStatsReport report;
+    report.pid = item->second.pid;
+    report.uniqueId = item->second.uniqueId;
+    report.bundleName = item->second.bundleName;
+    report.surfaceName = item->second.surfaceName;
+    report.lastUpTime = item->second.lastUpTime;
+    report.latency = item->second.latency;
+    report.codecDur = afsEvt->endTime - afsEvt->beginTime;
+    report.codecJankTimes = afsEvt->times;
+    report.codecJankDur = afsEvt->totalDur;
+    PlayLatencyReporter::ReportJankStats(report);
+}
+
+void VideoPlayLatencyMonitor::OnRsFrameStats(OhosXperfEvent* event)
+{
+    LOGD("VideoPlayLatencyMonitor_OnRsFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
+    RsVideoFrameStatsEvent* rfsEvt = (RsVideoFrameStatsEvent*) event;
+    auto item = latencyMap.find(rfsEvt->uniqueId);
+    if (item == latencyMap.end()) {
+        return;
+    }
+    VideoJankStatsReport report;
+    report.pid = item->second.pid;
+    report.uniqueId = item->second.uniqueId;
+    report.bundleName = item->second.bundleName;
+    report.surfaceName = item->second.surfaceName;
+    report.lastUpTime = item->second.lastUpTime;
+    report.latency = item->second.latency;
+    report.rsDur = rfsEvt->duration;
+    report.rsJankTimes = rfsEvt->intervalExceedCount;
+    report.rsJankDur = rfsEvt->intervalExceedLatency;
+    PlayLatencyReporter::ReportJankStats(report);
 }
 
 void VideoPlayLatencyMonitor::OnRsFirstFrame(OhosXperfEvent* event)
@@ -71,7 +119,7 @@ void VideoPlayLatencyMonitor::OnRsFirstFrame(OhosXperfEvent* event)
         waitNode->firstFrameTime = currTime;
         return;
     }
-    for (auto node : onTreeNodes) {
+    for (auto& node : onTreeNodes) {
         if (node->uniqueId == firstFrame->uniqueId) {
             node->firstFrameTime = currTime;
             return;
@@ -134,7 +182,7 @@ void VideoPlayLatencyMonitor::OnComponentAttach(int32_t pid, const std::string& 
     waitNode->bundleName = bundleName;
     waitNode->surfaceName = surfaceName;
     waitNode->attachTime = waitNode->attachLastUpTime = currTime; // 非第一个视频，由last_up事件再更新attachLastUpTime
-    waitNode->number = onTreeNodes.size() + 1;
+    waitNode->number = static_cast<int>(onTreeNodes.size() + 1);
     if (onTreeNodes.size() < 2) { // 2: 组件树容量
         waitNode->timer = currTime;
         DelayCheck(waitNode->uniqueId); // 延迟10s检查是否起播成功
@@ -255,7 +303,7 @@ void VideoPlayLatencyMonitor::OnRsSecondFrame(OhosXperfEvent* event)
         }
         return;
     }
-    for (auto node : onTreeNodes) { // 组件下树事件先来第二帧事件后到，waitNode已上树
+    for (auto& node : onTreeNodes) { // 组件下树事件先来第二帧事件后到，waitNode已上树
         if (node->uniqueId != secondFrame->uniqueId) {
             continue;
         }
@@ -301,7 +349,7 @@ void VideoPlayLatencyMonitor::PlayStateCheck(int64_t uniqueId)
     std::this_thread::sleep_for(std::chrono::milliseconds(TIMEOUT_THRESHOLD));
     LOGD("VideoPlayLatencyMonitor_PlayStateCheck uniqueId:%{public}s", std::to_string(uniqueId).c_str());
     std::lock_guard<std::mutex> Lock(mMutex);
-    for (auto node : onTreeNodes) {
+    for (auto& node : onTreeNodes) {
         if (node->uniqueId != uniqueId) {
             continue;
         }
