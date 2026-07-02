@@ -216,6 +216,30 @@ void FuzzServiceInterfaceGwpAsanGrayscale(const uint8_t* data, size_t size)
     serviceOhos.GetGwpAsanGrayscaleState();
 }
 
+void FuzzServiceInterfaceGwpAsanInner(const uint8_t* data, size_t size)
+{
+    FaultloggerServiceOhos serviceOhos;
+    FaultloggerServiceOhos::StartService();
+    bool alwaysEnabled;
+    double sampleRate;
+    double maxSimutaneousAllocations;
+    int32_t duration;
+    auto offsetTotalLength = FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH + sizeof(alwaysEnabled) + sizeof(sampleRate) +
+        sizeof(maxSimutaneousAllocations) + sizeof(duration);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, alwaysEnabled);
+    STREAM_TO_VALUEINFO(data, sampleRate);
+    STREAM_TO_VALUEINFO(data, maxSimutaneousAllocations);
+    STREAM_TO_VALUEINFO(data, duration);
+    std::string processName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+
+    serviceOhos.EnableGwpAsanInner(processName, alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration);
+}
+
 void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
 {
     FuzzServiceInterfaceDump(data, size);
@@ -223,6 +247,7 @@ void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
     FuzzServiceInterfaceAddFaultLog(data, size);
     FuzzServiceInterfaceOnEvent(data, size);
     FuzzServiceInterfaceGwpAsanGrayscale(data, size);
+    FuzzServiceInterfaceGwpAsanInner(data, size);
     usleep(10000); // 10000 : pause for 10000 microseconds to avoid resource depletion
 }
 }
