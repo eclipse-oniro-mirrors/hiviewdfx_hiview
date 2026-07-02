@@ -18,17 +18,17 @@
 #include <chrono>
 
 namespace OHOS {
-    namespace HiviewDFX {
+namespace HiviewDFX {
 
-        class TimeUtil {
-        public:
-            static int64_t GetCurrTimeMs()
-            {
-                return std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::system_clock::now().time_since_epoch()).count();
-            }
-        };
-    } // namespace HiviewDFX
+class TimeUtil {
+public:
+    static int64_t GetCurrTimeMs()
+    {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+};
+} // namespace HiviewDFX
 } // namespace OHOS
 
 #endif

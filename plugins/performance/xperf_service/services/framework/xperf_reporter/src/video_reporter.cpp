@@ -12,40 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "xperf_service_log.h"
 #include "video_reporter.h"
-#include "hisysevent.h"
-#include "hiview_global.h"
-#include "sys_event.h"
+#include "event_reporter.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
 void VideoReporter::ReportVideoJankFrame(const VideoJankReport& record)
 {
-    std::string eventName = "VIDEO_JANK_INNER";
-    OHOS::HiviewDFX::SysEventCreator sysEventCreator("PERFORMANCE", eventName, OHOS::HiviewDFX::SysEventCreator::FAULT);
-    sysEventCreator.SetKeyValue("APP_PID", record.appPid);
-    sysEventCreator.SetKeyValue("BUNDLE_NAME", record.bundleName);
-    sysEventCreator.SetKeyValue("SURFACE_NAME", record.surfaceName);
-    sysEventCreator.SetKeyValue("MAX_FRAME_TIME", record.maxFrameTime);
-    sysEventCreator.SetKeyValue("HAPPEN_TIME", record.happenTime);
-    sysEventCreator.SetKeyValue("FAULT_ID", record.faultId);
-    sysEventCreator.SetKeyValue("FAULT_CODE", record.faultCode);
-    sysEventCreator.SetKeyValue("DETAILS", record.details);
+    std::string data;
+    data.append("APP_PID:").append(std::to_string(record.appPid)).append("\n")
+        .append("BUNDLE_NAME:").append(record.bundleName).append("\n")
+        .append("SURFACE_NAME:").append(record.surfaceName).append("\n")
+        .append("MAX_FRAME_TIME:").append(std::to_string(record.maxFrameTime)).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(record.happenTime)).append("\n")
+        .append("FAULT_ID:").append(std::to_string(record.faultId)).append("\n")
+        .append("FAULT_CODE:").append(std::to_string(record.faultCode)).append("\n")
+        .append("DETAILS:").append(record.details);
 
-    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-
-    auto& hiviewInstance = OHOS::HiviewDFX::HiviewGlobal::GetInstance();
-    if (!hiviewInstance) {
-        LOGE("HiviewGlobal::GetInstance failed");
-        return;
-    }
-    if (!hiviewInstance->PostSyncEventToTarget("XperfPlugin", event)) {
-        LOGE("hiviewInstance->PostSyncEventToTarget failed");
-    }
+    EventReporter::GetInstance().ReportEvent("VIDEO_JANK_INNER", data);
 }
 
 } // namespace HiviewDFX

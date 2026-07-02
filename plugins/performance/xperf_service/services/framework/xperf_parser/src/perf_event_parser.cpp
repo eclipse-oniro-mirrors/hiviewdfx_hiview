@@ -18,6 +18,7 @@
 #include "perf_action_event.h"
 #include "perf_load_complete_event.h"
 #include "xperf_parser.h"
+#include "component_detach_evt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -59,32 +60,15 @@ OhosXperfEvent* ParserLoadComplete(const std::string& msg)
     return event;
 }
 
-// "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:1720001111
-// #BUNDLE_NAME:com.ohos.sceneboard#ABILITY_NAME:"EntryAbility"#IS_LAUNCH:0"
-OhosXperfEvent* ParserComponentAttach(const std::string& msg)
-{
-    PerfLoadCompleteEvent* event = new PerfLoadCompleteEvent();
-    event->rawMsg = msg;
-    ExtractStrToStr(msg, event->eventName, TAG_EVENT_NAME, TAG_LAST_COMPONENT, "");
-    ExtractStrToLong(msg, event->lastComponent, TAG_LAST_COMPONENT, TAG_BUNDLE_NAME, -1);
-    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_ABILITY_NAME, "");
-    ExtractStrToStr(msg, event->abilityName, TAG_ABILITY_NAME, TAG_IS_LAUNCH, "");
-    ExtractStrToInt16(msg, event->isLaunch, TAG_IS_LAUNCH, TAG_END, 0);
-
-    return event;
-}
-
-// "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:1720001111
-// #BUNDLE_NAME:com.ohos.sceneboard#ABILITY_NAME:"EntryAbility"#IS_LAUNCH:0"
+// "#PID:#BUNDLE_NAME:#UNIQUE_ID:#SURFACE_NAME:#COMPONENT_NAME:"
 OhosXperfEvent* ParserComponentDetach(const std::string& msg)
 {
-    PerfLoadCompleteEvent* event = new PerfLoadCompleteEvent();
-    event->rawMsg = msg;
-    ExtractStrToStr(msg, event->eventName, TAG_EVENT_NAME, TAG_LAST_COMPONENT, "");
-    ExtractStrToLong(msg, event->lastComponent, TAG_LAST_COMPONENT, TAG_BUNDLE_NAME, -1);
-    ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_ABILITY_NAME, "");
-    ExtractStrToStr(msg, event->abilityName, TAG_ABILITY_NAME, TAG_IS_LAUNCH, "");
-    ExtractStrToInt16(msg, event->isLaunch, TAG_IS_LAUNCH, TAG_END, 0);
+    ComponentDetachEvt* event = new ComponentDetachEvt();
+    ExtractStrToInt(msg, event->pid, "#PID:", "#BUNDLE_NAME:", 0);
+    ExtractStrToStr(msg, event->bundleName, "#BUNDLE_NAME:", "#UNIQUE_ID:", "");
+    ExtractStrToLong(msg, event->uniqueId, "#UNIQUE_ID:", "#SURFACE_NAME:", 0);
+    ExtractStrToStr(msg, event->surfaceName, "#SURFACE_NAME:", "#COMPONENT_NAME:", "");
+    ExtractStrToStr(msg, event->componentName, "#COMPONENT_NAME:", TAG_END, "");
 
     return event;
 }

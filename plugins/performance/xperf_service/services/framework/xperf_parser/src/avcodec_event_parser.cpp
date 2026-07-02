@@ -67,5 +67,20 @@ OhosXperfEvent* ParseAvcodecFault(const std::string& msg)
     return event;
 }
 
+// #UNIQUEID:#PID:#BUNDLE_NAME:#SURFACE_NAME:#BEGIN_TIME:#END_TIME:#TIMES:#TOTAL_DUR:
+OhosXperfEvent* ParseAvcodecFrameStats(const std::string& msg)
+{
+    AvcodecFrameStats* event = new AvcodecFrameStats();
+    ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, "#PID:", 0);
+    ExtractStrToInt(msg, event->pid, "#PID:", "#BUNDLE_NAME:", 0);
+    ExtractStrToStr(msg, event->bundleName, "#BUNDLE_NAME:", "#SURFACE_NAME:", "");
+    ExtractStrToStr(msg, event->surfaceName, "#SURFACE_NAME:", "#BEGIN_TIME:", "");
+    ExtractStrToLong(msg, event->beginTime, "#BEGIN_TIME:", "#END_TIME:", 0);
+    ExtractStrToLong(msg, event->endTime, "#END_TIME:", "#TIMES:", 0);
+    ExtractStrToInt(msg, event->times, "#TIMES:", "#TOTAL_DUR", 0);
+    ExtractStrToLong(msg, event->totalDur, "#TOTAL_DUR:", "", 0);
+    return event;
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

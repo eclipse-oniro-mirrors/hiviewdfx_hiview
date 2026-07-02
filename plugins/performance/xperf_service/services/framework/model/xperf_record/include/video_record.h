@@ -16,7 +16,6 @@
 #ifndef VIDEO_RECORD_H
 #define VIDEO_RECORD_H
 
-#include "xperf_service_log.h"
 #include <string>
 
 namespace OHOS {

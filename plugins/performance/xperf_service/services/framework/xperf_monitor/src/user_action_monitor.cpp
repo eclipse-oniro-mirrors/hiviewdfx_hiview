@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "xperf_service_log.h"
 #include "perf_action_event.h"
 #include "user_action_storage.h"
 #include "user_action_monitor.h"

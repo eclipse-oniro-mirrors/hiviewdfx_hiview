@@ -3,6 +3,7 @@
     extern "C++" {
      "OHOS::HiviewDFX::XperfServiceInterfaces::GetInstance()";
      "OHOS::HiviewDFX::XperfServiceInterfaces::ReportSurfaceInfo(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&) const";
+     "OHOS::HiviewDFX::XperfServiceInterfaces::RegEventListener(std::__h::function<void (std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)>)";
      "OHOS::HiviewDFX::LoadXperfService()";
     };
   local:

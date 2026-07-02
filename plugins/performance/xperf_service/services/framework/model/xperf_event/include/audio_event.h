@@ -16,9 +16,7 @@
 #ifndef AUDIO_XPERF_EVENT_H
 #define AUDIO_XPERF_EVENT_H
 
-#include "xperf_service_log.h"
 #include "xperf_event.h"
-#include <string>
 
 namespace OHOS {
 namespace HiviewDFX {

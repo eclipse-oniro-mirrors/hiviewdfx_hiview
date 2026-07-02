@@ -45,10 +45,10 @@ public:
         int64_t uniqueId{0};
         std::string bundleName;
         std::string surfaceName;
-        int64_t attachTime{0};
-        int64_t attachLastUpTime{0};  // 取后一个LastUpTime
-        int64_t detachTime{0};
-        int64_t detachLastUpTime{0}; // 取前一个LastUpTime
+        int64_t attachTime{0}; // 本component上树时间
+        int64_t attachLastUpTime{0};  // 本component上树后第一个LastUpTime
+        int64_t detachTime{0}; // 其他组件下树时间
+        int64_t detachLastUpTime{0}; // 其他组件下树前最后一个LastUpTime
         int64_t secondFrameTime{0}; // RS第二帧时间
         int64_t firstFrameTime{0}; // RS首帧时间
         int64_t audioStartTime{0}; // 音频开始时间
@@ -85,6 +85,8 @@ private:
     void OnRsSecondFrame(OhosXperfEvent* event);
     void OnRsFirstFrame(OhosXperfEvent* event);
     void OnAudioStart(OhosXperfEvent* event);
+    void OnCodecFrameStats(OhosXperfEvent* event);
+    void OnRsFrameStats(OhosXperfEvent* event);
     void OffScreen(int64_t currTime);
     void OnScreen(int64_t currTime);
     void DelayCheck(int64_t uniqueId);

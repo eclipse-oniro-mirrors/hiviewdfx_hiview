@@ -61,6 +61,7 @@ ohos_shared_library("xperfservice_server") {
     "framework/xperf_parser/src/network_event_parser.cpp",
     "framework/xperf_parser/src/perf_event_parser.cpp",
     "framework/xperf_parser/src/rs_event_parser.cpp",
+    "framework/xperf_reporter/src/event_reporter.cpp",
     "framework/xperf_reporter/src/video_reporter.cpp",
     "framework/xperf_reporter/src/play_latency_reporter.cpp",
     "framework/xperf_reporter/src/load_complete_reporter.cpp",
@@ -86,7 +87,6 @@ ohos_shared_library("xperfservice_server") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "hisysevent:libhisysevent",
     "hicollie:libhicollie",
   ]
 
@@ -145,7 +145,6 @@ ohos_static_library("xperfservice_server_static") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "hisysevent:libhisysevent",
   ]
 
   defines = []

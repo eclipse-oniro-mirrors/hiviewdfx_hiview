@@ -16,7 +16,6 @@
 #ifndef SURFACE_INFO_H
 #define SURFACE_INFO_H
 
-#include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {

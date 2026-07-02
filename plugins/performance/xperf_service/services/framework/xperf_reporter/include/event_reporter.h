@@ -12,31 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OHOS_HIVIEWDFX_XPERF_SERVICE_INTERFACES_H
-#define OHOS_HIVIEWDFX_XPERF_SERVICE_INTERFACES_H
+#ifndef EVENT_REPORTER_H
+#define EVENT_REPORTER_H
 
-#include <cstdint>
 #include <string>
+#include <vector>
 #include <functional>
 
 namespace OHOS {
 namespace HiviewDFX {
 
-class __attribute__((visibility("default"))) XperfServiceInterfaces {
+class EventReporter {
 public:
-    static XperfServiceInterfaces &GetInstance();
-    XperfServiceInterfaces(const XperfServiceInterfaces &) = delete;
-    void operator=(const XperfServiceInterfaces &) = delete;
+    static EventReporter& GetInstance();
+    EventReporter(const EventReporter&) = delete;
+    void operator=(const EventReporter&) = delete;
 
-    void ReportSurfaceInfo(int32_t pid, const std::string& bundleName, int64_t uniqueId,
-        const std::string& surfaceName) const;
+    void ReportEvent(const std::string& domain, const std::string& event, const std::string& data);
+    void ReportEvent(const std::string& event, const std::string& data);
 
     void RegEventListener(std::function<void(const std::string&, const std::string&, const std::string&)> listener);
 
 private:
-    XperfServiceInterfaces() = default;
-};
+    EventReporter() = default;
+    ~EventReporter() = default;
 
-}
-}
+    std::vector<std::function<void(const std::string&, const std::string&, const std::string&)>> listeners;
+};
+} // namespace HiviewDFX
+} // namespace OHOS
+
 #endif

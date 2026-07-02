@@ -16,7 +16,6 @@
 #ifndef RENDER_XPERF_EVENT_H
 #define RENDER_XPERF_EVENT_H
 
-#include "xperf_service_log.h"
 #include "xperf_event.h"
 
 namespace OHOS {
