@@ -77,10 +77,56 @@ void FuzzInterfaceQuerySelfFaultLog(const uint8_t* data, size_t size)
     }
 }
 
+void FuzzInterfaceGwpAsanGrayscale(const uint8_t* data, size_t size)
+{
+    bool alwaysEnabled;
+    double sampleRate;
+    double maxSimutaneousAllocations;
+    int32_t duration;
+    auto offsetTotalLength = sizeof(alwaysEnabled) + sizeof(sampleRate) +
+        sizeof(maxSimutaneousAllocations) + sizeof(duration);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, alwaysEnabled);
+    STREAM_TO_VALUEINFO(data, sampleRate);
+    STREAM_TO_VALUEINFO(data, maxSimutaneousAllocations);
+    STREAM_TO_VALUEINFO(data, duration);
+
+    HiviewDFX::EnableGwpAsanGrayscale(alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration, true);
+    HiviewDFX::DisableGwpAsanGrayscale();
+    HiviewDFX::GetGwpAsanGrayscaleState();
+}
+
+void FuzzInterfaceGwpAsanInner(const uint8_t* data, size_t size)
+{
+    std::string processName;
+    bool alwaysEnabled;
+    double sampleRate;
+    double maxSimutaneousAllocations;
+    int32_t duration;
+    auto offsetTotalLength = FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH + sizeof(alwaysEnabled) + sizeof(sampleRate) +
+        sizeof(maxSimutaneousAllocations) + sizeof(duration);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, processName);
+    STREAM_TO_VALUEINFO(data, alwaysEnabled);
+    STREAM_TO_VALUEINFO(data, sampleRate);
+    STREAM_TO_VALUEINFO(data, maxSimutaneousAllocations);
+    STREAM_TO_VALUEINFO(data, duration);
+
+    HiviewDFX::EnableGwpAsanInner(processName, alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration);
+}
+
 void FuzzFaultloggerClientInterface(const uint8_t* data, size_t size)
 {
     FuzzInterfaceAddFaultLog(data, size);
     FuzzInterfaceQuerySelfFaultLog(data, size);
+    FuzzInterfaceGwpAsanGrayscale(data, size);
+    FuzzInterfaceGwpAsanInner(data, size);
 }
 }
 
