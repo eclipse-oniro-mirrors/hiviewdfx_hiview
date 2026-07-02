@@ -116,7 +116,7 @@ void UserDataSizeReporter::ClearOverTimeRecord()
             break;
         }
     }
-    HIVIEW_LOGI("remove reportLimitRecords_ cnt: %{public}zu", index);
+    HIVIEW_LOGD("remove reportLimitRecords_ cnt: %{public}zu", index);
     reportLimitRecords_.erase(reportLimitRecords_.begin(), reportLimitRecords_.begin() + index);
 }
 
@@ -133,7 +133,7 @@ void UserDataSizeReporter::ReportUserDataSize(int32_t uid, const std::string& pa
     std::string pathLimmitKey = pathHolder + "_" + eventName;
     ClearOverTimeRecord();
     if (!ShouldReport(pathLimmitKey)) {
-        HIVIEW_LOGI("should not report, pathLimmitKey: %{public}s", pathLimmitKey.c_str());
+        HIVIEW_LOGD("should not report, pathLimmitKey: %{public}s", pathLimmitKey.c_str());
         return;
     }
     HIVIEW_LOGI("should report, pathLimmitKey: %{public}s", pathLimmitKey.c_str());
