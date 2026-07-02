@@ -101,7 +101,6 @@ void FuzzInterfaceGwpAsanGrayscale(const uint8_t* data, size_t size)
 
 void FuzzInterfaceGwpAsanInner(const uint8_t* data, size_t size)
 {
-    std::string processName;
     bool alwaysEnabled;
     double sampleRate;
     double maxSimutaneousAllocations;
@@ -112,11 +111,12 @@ void FuzzInterfaceGwpAsanInner(const uint8_t* data, size_t size)
         return;
     }
 
-    STREAM_TO_VALUEINFO(data, processName);
     STREAM_TO_VALUEINFO(data, alwaysEnabled);
     STREAM_TO_VALUEINFO(data, sampleRate);
     STREAM_TO_VALUEINFO(data, maxSimutaneousAllocations);
     STREAM_TO_VALUEINFO(data, duration);
+    std::string processName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
 
     HiviewDFX::EnableGwpAsanInner(processName, alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration);
 }
