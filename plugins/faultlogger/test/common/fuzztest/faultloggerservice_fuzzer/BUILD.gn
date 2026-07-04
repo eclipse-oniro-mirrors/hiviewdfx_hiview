@@ -24,6 +24,7 @@ ohos_fuzztest("FaultloggerServiceFuzzTest") {
     "../common/include",
     "$hiview_core",
     "$hiview_faultlogger/service/",
+    "$hiview_faultlogger/service/bdfr_base/",
     "$hiview_faultlogger/service/bdfr_base/public_include",
     "$hiview_faultlogger/service/dynamic_library_management/include",
     "$hiview_faultlogger/service/fault_file/",

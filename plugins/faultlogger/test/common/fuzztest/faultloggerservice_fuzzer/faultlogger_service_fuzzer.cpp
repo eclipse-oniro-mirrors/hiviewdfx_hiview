@@ -20,6 +20,9 @@
 #include "faultlogger.h"
 #include "faultlogger_service_ohos.h"
 #include "faultlogger_service_fuzzer.h"
+#include "constants.h"
+#include "export_faultlogger_interface.h"
+#include "faultlog_info_inner.h"
 #include "faultlogger_fuzzertest_common.h"
 #include "hiview_global.h"
 #include "hiview_platform.h"
@@ -240,6 +243,354 @@ void FuzzServiceInterfaceGwpAsanInner(const uint8_t* data, size_t size)
     serviceOhos.EnableGwpAsanInner(processName, alwaysEnabled, sampleRate, maxSimutaneousAllocations, duration);
 }
 
+void FuzzServiceInterfacePageInfo(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    int32_t pid;
+    int32_t uid;
+    auto offsetTotalLength = sizeof(pid) + sizeof(uid) +
+                            (5 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    std::string domain(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string eventName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    SysEventCreator sysEventCreator(domain, eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("name_", "PROCESS_PAGE_INFO");
+    sysEventCreator.SetKeyValue("pid_", pid);
+    sysEventCreator.SetKeyValue("uid_", uid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_PID, pid);
+    std::string processName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    sysEventCreator.SetKeyValue("PROCESS_NAME", processName);
+    std::string moduleName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_NAME, moduleName);
+    std::string desc(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    auto sysEvent = std::make_shared<SysEvent>(desc, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    service->OnEvent(event);
+}
+
+void FuzzServiceInterfaceRustPanic(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    int32_t pid;
+    int32_t uid;
+    int32_t tid;
+    auto offsetTotalLength = sizeof(pid) + sizeof(uid) + sizeof(tid) +
+                            (7 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    STREAM_TO_VALUEINFO(data, tid);
+    std::string domain(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string eventName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    SysEventCreator sysEventCreator(domain, eventName, SysEventCreator::FAULT);
+    std::map<std::string, std::string> bundle;
+    std::string hilog(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    bundle["HILOG"] = hilog;
+    std::string keyLogFile(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    bundle["KEYLOGFILE"] = keyLogFile;
+    std::string summary(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string moduleName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    sysEventCreator.SetKeyValue("name_", "RUST_PANIC");
+    sysEventCreator.SetKeyValue("pid_", pid);
+    sysEventCreator.SetKeyValue("uid_", uid);
+    sysEventCreator.SetKeyValue("tid_", tid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_PID, pid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_NAME, moduleName);
+    sysEventCreator.SetKeyValue(FaultKey::SUMMARY, summary);
+    sysEventCreator.SetKeyValue("bundle_", bundle);
+    std::string desc(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    auto sysEvent = std::make_shared<SysEvent>(desc, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    service->OnEvent(event);
+}
+
+void FuzzServiceInterfaceCppCrash(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    int32_t pid;
+    int32_t uid;
+    int32_t tid;
+    auto offsetTotalLength = sizeof(pid) + sizeof(uid) + sizeof(tid) +
+                            (7 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    STREAM_TO_VALUEINFO(data, tid);
+    std::string domain(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string eventName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    SysEventCreator sysEventCreator(domain, eventName, SysEventCreator::FAULT);
+    std::map<std::string, std::string> bundle;
+    std::string hilog(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    bundle["HILOG"] = hilog;
+    std::string keyLogFile(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    bundle["KEYLOGFILE"] = keyLogFile;
+    std::string summary(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string moduleName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    sysEventCreator.SetKeyValue("name_", "CPP_CRASH");
+    sysEventCreator.SetKeyValue("pid_", pid);
+    sysEventCreator.SetKeyValue("uid_", uid);
+    sysEventCreator.SetKeyValue("tid_", tid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_PID, pid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_NAME, moduleName);
+    sysEventCreator.SetKeyValue(FaultKey::SUMMARY, summary);
+    sysEventCreator.SetKeyValue("bundle_", bundle);
+    std::string desc(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    auto sysEvent = std::make_shared<SysEvent>(desc, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    service->OnEvent(event);
+}
+
+void FuzzServiceInterfaceFreeze(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    int32_t pid;
+    int32_t uid;
+    int32_t tid;
+    auto offsetTotalLength = sizeof(pid) + sizeof(uid) + sizeof(tid) +
+                            (7 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    STREAM_TO_VALUEINFO(data, tid);
+    std::string domain(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string eventName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    SysEventCreator sysEventCreator(domain, eventName, SysEventCreator::FAULT);
+    std::map<std::string, std::string> bundle;
+    std::string hilog(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    bundle["HILOG"] = hilog;
+    std::string keyLogFile(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    bundle["KEYLOGFILE"] = keyLogFile;
+    std::string summary(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string moduleName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    sysEventCreator.SetKeyValue("name_", "APP_FREEZE");
+    sysEventCreator.SetKeyValue("pid_", pid);
+    sysEventCreator.SetKeyValue("uid_", uid);
+    sysEventCreator.SetKeyValue("tid_", tid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_PID, pid);
+    sysEventCreator.SetKeyValue(FaultKey::MODULE_NAME, moduleName);
+    sysEventCreator.SetKeyValue(FaultKey::SUMMARY, summary);
+    sysEventCreator.SetKeyValue("bundle_", bundle);
+    std::string desc(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    auto sysEvent = std::make_shared<SysEvent>(desc, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    service->OnEvent(event);
+}
+
+void FuzzServiceInterfaceDumpByPlugin(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    constexpr int maxLen = 20;
+    int32_t fd;
+    if (size <= (sizeof(fd) + maxLen)) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, fd);
+    std::vector<std::string> args;
+    char arg[maxLen] = {0};
+    errno_t err = strncpy_s(reinterpret_cast<char*>(arg), sizeof(arg),
+        reinterpret_cast<const char*>(data), maxLen);
+    if (err != EOK) {
+        return;
+    }
+    args.push_back(arg);
+    service->Dump(fd, args);
+}
+
+void FuzzServiceInterfaceOnEventListeningCallback(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    int32_t pid;
+    int32_t uid;
+    int32_t tid;
+    auto offsetTotalLength = sizeof(pid) + sizeof(uid) + sizeof(tid) +
+                            (3 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    STREAM_TO_VALUEINFO(data, tid);
+    std::string domain(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string eventName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    SysEventCreator sysEventCreator(domain, eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("pid_", pid);
+    sysEventCreator.SetKeyValue("uid_", uid);
+    sysEventCreator.SetKeyValue("tid_", tid);
+    std::string desc(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    auto sysEvent = std::make_shared<SysEvent>(desc, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    service->OnEventListeningCallback(*event);
+}
+
+void FuzzServiceInterfaceIsInterestedPipelineEvent(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    auto service = CreateFaultloggerInstance();
+
+    int32_t pid;
+    int32_t uid;
+    int32_t tid;
+    auto offsetTotalLength = sizeof(pid) + sizeof(uid) + sizeof(tid) +
+                            (3 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    STREAM_TO_VALUEINFO(data, tid);
+    std::string domain(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    std::string eventName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    SysEventCreator sysEventCreator(domain, eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("pid_", pid);
+    sysEventCreator.SetKeyValue("uid_", uid);
+    sysEventCreator.SetKeyValue("tid_", tid);
+    std::string desc(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    auto sysEvent = std::make_shared<SysEvent>(desc, nullptr, sysEventCreator);
+    auto event = std::dynamic_pointer_cast<Event>(sysEvent);
+    service->IsInterestedPipelineEvent(event);
+}
+
+void FuzzServiceInterfaceAddFaultLogCppCrash(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    CreateFaultloggerInstance();
+
+    FaultLogInfo info;
+    int32_t pid;
+    int32_t uid;
+    auto offsetTotalLength = sizeof(info.time) + sizeof(pid) + sizeof(uid) +
+                            (4 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, info.time);
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    info.pid = pid;
+    info.id = uid;
+
+    std::string module(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    info.module = module;
+    std::string reason(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    info.reason = reason;
+    std::string summary(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    info.summary = summary;
+    std::string processName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    info.sectionMap["PROCESS_NAME"] = processName;
+
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        return;
+    }
+    instance->AddFaultLog(FaultLogType::CPP_CRASH, info);
+}
+
+void FuzzServiceInterfaceAddFaultLogFreeze(const uint8_t* data, size_t size)
+{
+    HiviewTestContext hiviewTestContext;
+    HiviewGlobal::CreateInstance(hiviewTestContext);
+    CreateFaultloggerInstance();
+
+    FaultLogInfo info;
+    int32_t pid;
+    int32_t uid;
+    auto offsetTotalLength = sizeof(info.time) + sizeof(pid) + sizeof(uid) +
+                            (4 * FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    if (offsetTotalLength > size) {
+        return;
+    }
+
+    STREAM_TO_VALUEINFO(data, info.time);
+    STREAM_TO_VALUEINFO(data, pid);
+    STREAM_TO_VALUEINFO(data, uid);
+    info.pid = pid;
+    info.id = uid;
+
+    std::string module(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    info.module = module;
+    std::string reason(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    info.reason = reason;
+    std::string summary(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
+    info.summary = summary;
+    std::string processName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
+    info.sectionMap["PROCESS_NAME"] = processName;
+
+    auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
+    if (instance == nullptr) {
+        return;
+    }
+    instance->AddFaultLog(FaultLogType::APP_FREEZE, info);
+}
+
 void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
 {
     FuzzServiceInterfaceDump(data, size);
@@ -248,6 +599,15 @@ void FuzzFaultloggerServiceInterface(const uint8_t* data, size_t size)
     FuzzServiceInterfaceOnEvent(data, size);
     FuzzServiceInterfaceGwpAsanGrayscale(data, size);
     FuzzServiceInterfaceGwpAsanInner(data, size);
+    FuzzServiceInterfacePageInfo(data, size);
+    FuzzServiceInterfaceRustPanic(data, size);
+    FuzzServiceInterfaceCppCrash(data, size);
+    FuzzServiceInterfaceFreeze(data, size);
+    FuzzServiceInterfaceDumpByPlugin(data, size);
+    FuzzServiceInterfaceAddFaultLogCppCrash(data, size);
+    FuzzServiceInterfaceAddFaultLogFreeze(data, size);
+    FuzzServiceInterfaceOnEventListeningCallback(data, size);
+    FuzzServiceInterfaceIsInterestedPipelineEvent(data, size);
     usleep(10000); // 10000 : pause for 10000 microseconds to avoid resource depletion
 }
 }
