@@ -508,16 +508,6 @@ void EventLogger::HandleFreezeHalfHiview(std::shared_ptr<SysEvent> event, bool i
 }
 #endif
 
-bool EventLogger::ContainsPriorityKeyword(const std::string& line)
-{
-    for (const auto& keyword : PRIORITY_KEYWORDS) {
-        if (line.find(keyword) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool EventLogger::MatchEventStartFlag(const std::string& line)
 {
     size_t suffixPos = line.find(" priority event queue information:");

@@ -574,12 +574,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
     std::string halfFreezeExtFile = "";
     std::string name = "";
     vendor->InitHalfFreezeExtFile(watchPoint1, name, halfFreezeExtFile);
-    std::string type = "appfreeze";
-    std::string ret = vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile, type);
-    EXPECT_EQ(ret, "");
-
-    type = "appfreezewarning";
-    ret = vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile, type);
+    std::string ret = vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile);
     EXPECT_EQ(ret, "");
 
     std::string freezeExtFile = "/data/test";
@@ -596,16 +591,14 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
     vendor->InitHalfFreezeExtFile(watchPoint2, name, halfFreezeExtFile);
     name = "LIFECYCLE_TIMEOUT";
     vendor->InitHalfFreezeExtFile(watchPoint2, name, halfFreezeExtFile);
-    type = "appfreezewarning";
-    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     halfFreezeExtFile = "test";
     watchPoint2.SetFreezeExtFile(";");
-    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
-    type = "appfreeze";
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     watchPoint2.SetFreezeExtFile("test;");
-    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     watchPoint2.SetFreezeExtFile("test;test");
-    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile, type);
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
 }
 
 /**
