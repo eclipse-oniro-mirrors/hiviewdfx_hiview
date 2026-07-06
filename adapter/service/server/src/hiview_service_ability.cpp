@@ -119,6 +119,16 @@ void CheckAndReplaceTraceParam(std::string& prefix, uint32_t& bufferSize, uint32
         prefix = "";
     }
 }
+
+bool SetFileUid(const int32_t uid, const std::string& filePath)
+{
+    if (chown(filePath.c_str(), uid, uid) != 0) {
+        HIVIEW_LOGE("fail to change file owner and group:%{public}d, uid:%{public}d", errno, uid);
+        FileUtil::RemoveFile(filePath);
+        return false;
+    }
+    return true;
+}
 }
 
 int HiviewServiceAbility::Dump(int32_t fd, const std::vector<std::u16string> &args)
@@ -297,7 +307,11 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
         return HiviewNapiErrCode::ERR_DEFAULT;
     }
     std::string fullPath = ComposeFilePath(sandboxPath, dest, logName);
-    return isMove ? service->Move(sourceFile, fullPath) : service->Copy(sourceFile, fullPath);
+    ErrCode ret = isMove ? service->Move(sourceFile, fullPath) : service->Copy(sourceFile, fullPath);
+    if (ret == 0 && !SetFileUid(uid, fullPath)) {
+        return HiviewNapiErrCode::ERR_DEFAULT;
+    }
+    return ret;
 }
 
 ErrCode HiviewServiceAbility::Remove(const std::string& logType, const std::string& logName)
