@@ -34,8 +34,8 @@ interface IHiviewServiceAbility {
     void RecordingTraceOn([in] String outputPath, [out] int errNo, [out] int ret);
     void RecordingTraceOff([out] int errNo, [out] String[] files);
     void CloseTrace([out] int errNo, [out] int ret);
-    void CaptureDurationTrace([in] AppCallerParcelable appCaller, [out] int errNo, [out] int ret);
-    void GetSysCpuUsage([out] int errNo, [out] double ret);
+    [customMsgOption flags=MessageOption::TF_IMAGE] void CaptureDurationTrace([in] AppCallerParcelable appCaller, [out] int errNo, [out] int ret);
+    [customMsgOption flags=MessageOption::TF_IMAGE] void GetSysCpuUsage([out] int errNo, [out] double ret);
     void SetAppResourceLimit([in] MemoryCallerParcelable memoryCallerParcelable, [out] int errNo, [out] int ret);
     void GetGraphicUsage([out] int errNo, [out] GraphicUsageParcelable graphicUsageParcelable);
     void SetSplitMemoryValue([in] MemoryCallerParcelable[] memCallerParcelableList, [out] int errNo, [out] int ret);
