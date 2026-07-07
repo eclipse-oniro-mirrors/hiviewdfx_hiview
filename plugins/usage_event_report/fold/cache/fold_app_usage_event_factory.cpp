@@ -129,6 +129,9 @@ void FoldAppUsageEventFactory::Create(std::vector<std::unique_ptr<LoggerEvent>> 
     std::vector<FoldAppUsageInfo> foldAppUsageInfos;
     GetAppUsageInfo(foldAppUsageInfos);
     for (const auto &info : foldAppUsageInfos) {
+        if (info.usage == 0) {
+            continue;
+        }
         std::unique_ptr<LoggerEvent> event = Create();
         UpdateEventFromFoldAppUsageInfo(info, dateStr, event);
         events.emplace_back(std::move(event));

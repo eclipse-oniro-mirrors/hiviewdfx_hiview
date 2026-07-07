@@ -352,8 +352,9 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest006, TestSize.Level1)
     AppEventRecord record2{1101, 2000, "test_bundle", 110, 110, "1", g_endTime};
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     FoldAppUsageDbHelper dbHelper("/data/test/");
-    ASSERT_TRUE(dbHelper.AddAppEvent(record1) == 0);
-    ASSERT_TRUE(dbHelper.AddAppEvent(record2) == 0);
+    std::map<int, uint64_t> durations = {{N_PORTRAIT_FULL_STATUS, 1000}};
+    ASSERT_TRUE(dbHelper.AddAppEvent(record1, durations) == 0);
+    ASSERT_TRUE(dbHelper.AddAppEvent(record2, durations) == 0);
 
     std::vector<std::unique_ptr<LoggerEvent>> foldAppUsageEvents;
     FoldAppUsageEventFactory factory("/data/test/");
@@ -1297,6 +1298,77 @@ HWTEST_F(FoldAppUsageTest, FoldAppUsageTest037, TestSize.Level1)
     EXPECT_EQ(infos["t_ver_appv1"].tFull, 1000);
     EXPECT_EQ(infos["t_ver_appv2"].tFloating, 2000);
     FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest038
+ * @tc.desc: test fold state change event without KEY_OF_NEXT_STATUS parameter.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest038, TestSize.Level1)
+{
+    SysEventCreator sysEventCreator1("WINDOWMANAGER", "FOCUS_WINDOW", SysEventCreator::BEHAVIOR);
+    sysEventCreator1.SetKeyValue("PID", 1111);
+    sysEventCreator1.SetKeyValue("UID", 20020019);
+    sysEventCreator1.SetKeyValue("BUNDLE_NAME", "test_invalid_event");
+    sysEventCreator1.SetKeyValue("WINDOW_TYPE", 1);
+    sysEventCreator1.SetKeyValue("time_", 100);
+    auto sysEvent1 = std::make_shared<SysEvent>("test", nullptr, sysEventCreator1);
+
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "NOTIFY_FOLD_STATE_CHANGE", SysEventCreator::BEHAVIOR);
+#else
+    SysEventCreator sysEventCreator("WINDOWMANAGER", "DISPLAY_MODE", SysEventCreator::BEHAVIOR);
+#endif
+    sysEventCreator.SetKeyValue("time_", 111);
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, sysEventCreator);
+
+    FoldEventCacher cacher("/data/test/");
+    cacher.ProcessEvent(sysEvent1);
+    cacher.ProcessEvent(sysEvent);
+
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    int index = dbHelper.QueryRawEventIndex("test_invalid_event", FoldEventId::EVENT_ENTER_COORDINATION_MODE);
+#else
+    int index = dbHelper.QueryRawEventIndex("test_invalid_event", FoldEventId::EVENT_SCREEN_STATUS_CHANGED);
+#endif
+    ASSERT_TRUE(index == 0);
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+}
+
+/**
+ * @tc.name: FoldAppUsageTest039
+ * @tc.desc: test fold app usage event factory skip zero usage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FoldAppUsageTest, FoldAppUsageTest039, TestSize.Level1)
+{
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    AppEventRecord record1{1104, 1000, "test_zero_usage", 110, 110, 0, 0, "1", g_endTime - g_hourGapTime};
+    AppEventRecord record2{1101, 2000, "test_zero_usage", 110, 110, 0, 0, "1", g_endTime};
+#else
+    AppEventRecord record1{1104, 1000, "test_zero_usage", 110, 110, "1", g_endTime - g_hourGapTime};
+    AppEventRecord record2{1101, 2000, "test_zero_usage", 110, 110, "1", g_endTime};
+#endif
+    FoldAppUsageDbHelper dbHelper("/data/test/");
+    ASSERT_TRUE(dbHelper.AddAppEvent(record1) == 0);
+    ASSERT_TRUE(dbHelper.AddAppEvent(record2) == 0);
+
+    std::unordered_map<std::string, FoldAppUsageInfo> infos;
+    dbHelper.QueryStatisticEventsInPeriod(g_startTime, g_endTime, infos);
+    ASSERT_TRUE(infos.find("test_zero_usage1") != infos.end());
+    if (infos.find("test_zero_usage1") != infos.end()) {
+        ASSERT_EQ(infos["test_zero_usage1"].usage, 0);
+    }
+
+    std::vector<std::unique_ptr<LoggerEvent>> foldAppUsageEvents;
+    FoldAppUsageEventFactory factory("/data/test/");
+    factory.Create(foldAppUsageEvents);
+    ASSERT_EQ(foldAppUsageEvents.size(), 0);
+
+    FileUtil::ForceRemoveDirectory("/data/test/sys_event_logger/", true);
+    ASSERT_TRUE(!FileUtil::FileExists("/data/test/sys_event_logger/"));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

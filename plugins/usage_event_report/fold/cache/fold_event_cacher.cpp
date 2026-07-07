@@ -289,6 +289,10 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     int preFoldStatus = GetScreenFoldStatus(foldStatus_, isTentStatus_, vhMode_, GetWindowModeOfFocusedApp());
     std::string eventName = event->eventName_;
     if (eventName == FoldStateChangeEventSpace::EVENT_NAME) {
+        if (!event->IsParamExist(KEY_OF_NEXT_STATUS)) {
+            HIVIEW_LOGI("invalid event.");
+            return;
+        }
         int32_t nextState =
             static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
 #if FOLD_PC_COUNT_DURATION_ENABLE
