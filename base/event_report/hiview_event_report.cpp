@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 #include "hiview_event_report.h"
 
+#include "hisysevent_util.h"
 #include "hiview_event_common.h"
 #include "hiview_event_cacher.h"
 #include "hiview_logger.h"
@@ -81,10 +82,14 @@ void HiviewEventReport::ReportCpuScene(const std::string &sceneId)
         HIVIEW_LOGD("no need to report cpu scene event");
         return;
     }
-    auto ret = HiSysEventWrite(CpuSceneEvent::DOMAIN, "CPU_SCENE_ENTRY", HiSysEvent::BEHAVIOR,
-        "PACKAGE_NAME", "hiview",
-        "SCENE_ID", sceneId,
-        "HAPPEN_TIME", TimeUtil::GetMilliseconds());
+    std::string packageName = "hiview";
+    HiSysEventParam params[] = {
+        BUILD_PARAM("PACKAGE_NAME", HISYSEVENT_STRING, s, PARAM_STR(packageName)),
+        BUILD_PARAM("SCENE_ID", HISYSEVENT_STRING, s, PARAM_STR(sceneId)),
+        BUILD_PARAM("HAPPEN_TIME", HISYSEVENT_UINT64, ui64, TimeUtil::GetMilliseconds()),
+    };
+    int ret = OH_HiSysEvent_Write(CpuSceneEvent::DOMAIN, "CPU_SCENE_ENTRY", HISYSEVENT_BEHAVIOR,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != 0) {
         HIVIEW_LOGW("failed to report cpu scene event, sceneId=%{public}s, ret=%{public}d", sceneId.c_str(), ret);
     } else {

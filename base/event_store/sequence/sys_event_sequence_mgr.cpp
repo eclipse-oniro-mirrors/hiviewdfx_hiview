@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 
 #include "event_db_file_util.h"
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "running_status_logger.h"
@@ -33,7 +33,6 @@ namespace EventStore {
 namespace {
 DEFINE_LOG_TAG("HiView-SysEventSeqMgr");
 constexpr int64_t SEQ_INCREMENT = 100; // increment of seq each time it is read from the file
-static constexpr char READ_UNEXPECTED_SEQ[] = "READ_UNEXPECTED_SEQ";
 
 bool SaveStringToFile(const std::string& filePath, const std::string& content)
 {
@@ -86,10 +85,15 @@ void LogEventSeqReadException(int64_t seq, int64_t backupSeq)
 void WriteSeqReadExceptionEvent(bool isSeqFileExist, int64_t seq, bool isSeqBackupFileExist, int64_t seqBackup,
     int64_t maxSeqReadFromFile)
 {
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, READ_UNEXPECTED_SEQ, HiSysEvent::EventType::FAULT,
-        "IS_SEQ_FILE_EXIST", isSeqFileExist, "SEQ", seq,
-        "IS_SEQ_BACKUP_FILE_EXIST", isSeqBackupFileExist, "SEQ_BACKUP", seqBackup,
-        "MAX_SEQ_FROM_DB_FILE", maxSeqReadFromFile);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("IS_SEQ_FILE_EXIST", HISYSEVENT_BOOL, b, isSeqFileExist),
+        BUILD_PARAM("SEQ", HISYSEVENT_INT64, i64, seq),
+        BUILD_PARAM("IS_SEQ_BACKUP_FILE_EXIST", HISYSEVENT_BOOL, b, isSeqBackupFileExist),
+        BUILD_PARAM("SEQ_BACKUP", HISYSEVENT_INT64, i64, seqBackup),
+        BUILD_PARAM("MAX_SEQ_FROM_DB_FILE", HISYSEVENT_INT64, i64, maxSeqReadFromFile),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "READ_UNEXPECTED_SEQ", HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret < 0) {
         HIVIEW_LOGI("failed to write seq read event, ret is %{public}d", ret);
     }

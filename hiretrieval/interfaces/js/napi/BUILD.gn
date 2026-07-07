@@ -30,6 +30,8 @@ ohos_shared_library("libhiretrieval_napi") {
     debug = false
   }
 
+  cflags_cc = [ "-Os" ]
+
   configs = [ ":hiretrieval_napi_config" ]
 
   public_configs = [ ":hiretrieval_napi_config" ]

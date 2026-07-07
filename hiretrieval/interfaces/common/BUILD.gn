@@ -33,6 +33,8 @@ ohos_source_set("hiretrieval_common_set") {
     debug = false
   }
 
+  cflags_cc = [ "-Os" ]
+
   public_configs = [ ":hiretrieval_common_config" ]
 
   sources = [ "src/hiretrieval_common_util.cpp" ]

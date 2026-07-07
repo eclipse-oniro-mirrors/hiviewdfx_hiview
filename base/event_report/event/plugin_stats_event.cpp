@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 #include "plugin_stats_event.h"
 
+#include "hisysevent_util.h"
 #include "hiview_event_common.h"
 
 namespace OHOS {
@@ -89,12 +90,20 @@ void PluginStatsEvent::InnerUpdate(const std::string &name, const ParamValue& va
 
 void PluginStatsEvent::Report()
 {
-    HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, eventName_, eventType_,
-        KEY_OF_PLUGIN_NAME, paramMap_[KEY_OF_PLUGIN_NAME].GetString(),
-        KEY_OF_AVG_TIME, paramMap_[KEY_OF_AVG_TIME].GetUint32(),
-        KEY_OF_TOP_K_TIME,  paramMap_[KEY_OF_TOP_K_TIME].GetUint32Vec(),
-        KEY_OF_TOP_K_EVENT, paramMap_[KEY_OF_TOP_K_EVENT].GetStringVec(),
-        KEY_OF_TOTAL, paramMap_[KEY_OF_TOTAL].GetUint32());
+    std::string pluginName = paramMap_[KEY_OF_PLUGIN_NAME].GetString();
+    std::vector<std::string> topKEvents = paramMap_[KEY_OF_TOP_K_EVENT].GetStringVec();
+    std::vector<char*> translatedTopKEvents;
+    TranslateStrVector(topKEvents, translatedTopKEvents);
+    HiSysEventParam params[] = {
+        BUILD_PARAM(PLUGIN_NAME_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(pluginName)),
+        BUILD_PARAM(AVG_TIME_LITERAL, HISYSEVENT_UINT32, ui32, paramMap_[KEY_OF_AVG_TIME].GetUint32()),
+        BUILD_ARRAY_PARAM(TOP_K_TIME_LITERAL, HISYSEVENT_UINT32_ARRAY, uint32_t,
+            paramMap_[KEY_OF_TOP_K_TIME].GetUint32Vec()),
+        BUILD_ARRAY_PARAM(TOP_K_EVENT_LITERAL, HISYSEVENT_STRING_ARRAY, char*, translatedTopKEvents),
+        BUILD_PARAM(TOTAL_LITERAL, HISYSEVENT_UINT32, ui32, paramMap_[KEY_OF_TOTAL].GetUint32()),
+    };
+    (void)OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, eventName_.c_str(),
+        TranslateEventType(eventType_), params, sizeof(params) / sizeof(HiSysEventParam));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 #include "event_json_parser.h"
 #include "export_db_manager.h"
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
@@ -45,8 +45,13 @@ std::shared_ptr<ExportEventListParser> GetParser(ExportEventListParsers& parsers
 
 inline void WriteExportRangeEvent(int64_t beginSeq, int64_t endSeq, int64_t maxSeq)
 {
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "EXPORT_RANGE_DETAIL", HiSysEvent::EventType::STATISTIC,
-        "BEGIN_SEQ", beginSeq, "END_SEQ", endSeq, "MAX_SEQ", maxSeq);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("BEGIN_SEQ", HISYSEVENT_INT64, i64, beginSeq),
+        BUILD_PARAM("END_SEQ", HISYSEVENT_INT64, i64, endSeq),
+        BUILD_PARAM("MAX_SEQ", HISYSEVENT_INT64, i64, maxSeq),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "EXPORT_RANGE_DETAIL", HISYSEVENT_STATISTIC,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != SUCCESS) {
         HIVIEW_LOGW("failed to write EXPORT_RANGE_DETAIL event, ret is %{public}d", ret);
     }

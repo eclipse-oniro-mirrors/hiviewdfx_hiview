@@ -16,6 +16,7 @@
 #include "restorable_db_store.h"
 
 #include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "sql_util.h"
 
@@ -26,8 +27,12 @@ DEFINE_LOG_TAG("HiView-RestorableDbStore");
 
 inline void WriteRdbErrorEvent(int32_t errCode, const std::string& scenario)
 {
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "HIVIEW_RDB_ERR", HiSysEvent::EventType::FAULT,
-        "SCENARIO", scenario, "ERR_CODE", errCode);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("SCENARIO", HISYSEVENT_STRING, s, PARAM_STR(scenario)),
+        BUILD_PARAM("ERR_CODE", HISYSEVENT_INT32, i32, errCode),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "HIVIEW_RDB_ERR",
+        HISYSEVENT_FAULT, params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != SUCCESS) {
         HIVIEW_LOGW("failed to write HIVIDEW_RDB_ERR event, ret is %{public}d", ret);
     }

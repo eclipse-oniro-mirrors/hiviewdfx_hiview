@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@
 #include <mutex>
 #include <vector>
 
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
 #include "pipeline.h"
@@ -228,16 +228,30 @@ void PlatformMonitor::GetMaxSpeed(PerfMeasure &perfMeasure) const
 
 void PlatformMonitor::ReportProfile(const PerfMeasure& perfMeasure)
 {
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "PROFILE_STAT", HiSysEvent::EventType::STATISTIC,
-        "MAX_TOTAL_COUNT", perfMeasure.maxTotalCount, "MAX_TOTAL_SIZE", perfMeasure.maxTotalSize,
-        "DOMAINS", perfMeasure.domains, "DOMAIN_DETAIL", perfMeasure.domainCounts,
-        "TOTAL_COUNT", perfMeasure.totalCount, "TOTAL_SIZE", perfMeasure.totalSize,
-        "BREAK_COUNT", perfMeasure.breakCount, "BREAK_DURATION", perfMeasure.breakDuration,
-        "MIN_SPEED", perfMeasure.minSpeed, "MAX_SPEED", perfMeasure.maxSpeed, "REAL_COUNT", perfMeasure.realCounts,
-        "PROCESS_COUNT", perfMeasure.processCounts, "WAIT_COUNT", perfMeasure.waitCounts,
-        "FINISHED_COUNT", perfMeasure.finishedCount, "OVER_REAL_COUNT", perfMeasure.overRealTotalCount,
-        "OVER_REAL_PCT", perfMeasure.realPercent, "OVER_PROC_COUNT", perfMeasure.overProcessTotalCount,
-        "OVER_PROC_PCT", perfMeasure.processpercent);
+    std::vector<char*> translatedDomains;
+    TranslateStrVector(perfMeasure.domains, translatedDomains);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("MAX_TOTAL_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.maxTotalCount),
+        BUILD_PARAM("MAX_TOTAL_SIZE", HISYSEVENT_UINT32, ui32, perfMeasure.maxTotalSize),
+        BUILD_ARRAY_PARAM("DOMAINS", HISYSEVENT_STRING_ARRAY, char*, translatedDomains),
+        BUILD_ARRAY_PARAM("DOMAIN_DETAIL", HISYSEVENT_UINT32_ARRAY, uint32_t, perfMeasure.domainCounts),
+        BUILD_PARAM("TOTAL_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.totalCount),
+        BUILD_PARAM("TOTAL_SIZE", HISYSEVENT_UINT32, ui32, perfMeasure.totalSize),
+        BUILD_PARAM("BREAK_COUNT", HISYSEVENT_UINT8, ui8, perfMeasure.breakCount),
+        BUILD_PARAM("BREAK_DURATION", HISYSEVENT_UINT64, ui64, perfMeasure.breakDuration),
+        BUILD_PARAM("MIN_SPEED", HISYSEVENT_UINT32, ui32, perfMeasure.minSpeed),
+        BUILD_PARAM("MAX_SPEED", HISYSEVENT_UINT32, ui32, perfMeasure.maxSpeed),
+        BUILD_ARRAY_PARAM("REAL_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, perfMeasure.realCounts),
+        BUILD_ARRAY_PARAM("PROCESS_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, perfMeasure.processCounts),
+        BUILD_ARRAY_PARAM("WAIT_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, perfMeasure.waitCounts),
+        BUILD_PARAM("FINISHED_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.finishedCount),
+        BUILD_PARAM("OVER_REAL_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.overRealTotalCount),
+        BUILD_PARAM("OVER_REAL_PCT", HISYSEVENT_UINT32, ui32, perfMeasure.realPercent),
+        BUILD_PARAM("OVER_PROC_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.overProcessTotalCount),
+        BUILD_PARAM("OVER_PROC_PCT", HISYSEVENT_UINT32, ui32, perfMeasure.processpercent),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "PROFILE_STAT", HISYSEVENT_STATISTIC,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != SUCCESS) {
         HIVIEW_LOGE("failed to write PROFILE_STAT event, ret is %{public}d", ret);
     }
@@ -347,11 +361,26 @@ void PlatformMonitor::ReportBreakProfile()
     std::vector<std::string> domains;
     std::vector<uint32_t> domainCounts;
     GetTopDomains(domains, domainCounts);
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "BREAK", HiSysEvent::EventType::BEHAVIOR,
-        "TOTAL_COUNT", curTotalCount_, "TOTAL_SIZE", curTotalSize_, "REAL_SPEED", curRealSpeed,
-        "PROC_SPEED", curProcessSpeed, "AVG_REAL_TIME", avgRealTime, "AVG_PROC_TIME", avgProcessTime,
-        "AVG_WAIT_TIME", avgWaitTime, "TOP_EVENT", events, "TOP_EVENT_COUNT", eventCounts, "TOP_DOMAIN", domains,
-        "TOP_DOMAIN_COUNT", domainCounts);
+
+    std::vector<char*> translatedEvents;
+    TranslateStrVector(events, translatedEvents);
+    std::vector<char*> translatedDomains;
+    TranslateStrVector(domains, translatedDomains);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("TOTAL_COUNT", HISYSEVENT_UINT32, ui32, curTotalCount_),
+        BUILD_PARAM("TOTAL_SIZE", HISYSEVENT_UINT32, ui32, curTotalSize_),
+        BUILD_PARAM("REAL_SPEED", HISYSEVENT_UINT32, ui32, curRealSpeed),
+        BUILD_PARAM("PROC_SPEED", HISYSEVENT_UINT32, ui32, curProcessSpeed),
+        BUILD_PARAM("AVG_REAL_TIME", HISYSEVENT_DOUBLE, d, avgRealTime),
+        BUILD_PARAM("AVG_PROC_TIME", HISYSEVENT_DOUBLE, d, avgProcessTime),
+        BUILD_PARAM("AVG_WAIT_TIME", HISYSEVENT_DOUBLE, d, avgWaitTime),
+        BUILD_ARRAY_PARAM("TOP_EVENT", HISYSEVENT_STRING_ARRAY, char*, translatedEvents),
+        BUILD_ARRAY_PARAM("TOP_EVENT_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, eventCounts),
+        BUILD_ARRAY_PARAM("TOP_DOMAIN", HISYSEVENT_STRING_ARRAY, char*, translatedDomains),
+        BUILD_ARRAY_PARAM("TOP_DOMAIN_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, domainCounts),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "BREAK", HISYSEVENT_BEHAVIOR,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != SUCCESS) {
         HIVIEW_LOGE("failed to write BREAK event, ret is %{public}d", ret);
     }
@@ -361,8 +390,11 @@ void PlatformMonitor::ReportRecoverProfile()
 {
     // report break duration when recovery
     int64_t duration = static_cast<int64_t>(recoverTimestamp_ - breakTimestamp_);
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "RECOVER", HiSysEvent::EventType::BEHAVIOR,
-        "DURATION", duration);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("DURATION", HISYSEVENT_INT64, i64, duration),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "RECOVER", HISYSEVENT_BEHAVIOR,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != SUCCESS) {
         HIVIEW_LOGE("failed to write RECOVER event, ret is %{public}d", ret);
     }

@@ -29,6 +29,8 @@ ohos_shared_library("libhiretrieval") {
     debug = false
   }
 
+  cflags_cc = [ "-Os" ]
+
   configs = [ ":hiretrieval_config" ]
 
   public_configs = [ ":hiretrieval_config" ]

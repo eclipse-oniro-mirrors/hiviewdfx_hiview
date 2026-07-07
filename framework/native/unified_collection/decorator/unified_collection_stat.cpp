@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 #include "unified_collection_stat.h"
 
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "decorator_util.h"
 
@@ -146,12 +146,11 @@ void UnifiedCollectionStat::SaveAllStatInfo()
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::SaveStatSpecialInfo();
 #endif
-
-    int32_t ret = HiSysEventWrite(
-        HiSysEvent::Domain::HIVIEWDFX,
-        "UC_API_STAT",
-        HiSysEvent::EventType::FAULT,
-        "STAT_DATE", date_);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("STAT_DATE", HISYSEVENT_STRING, s, PARAM_STR(date_)),
+    };
+    int32_t ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "UC_API_STAT", HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != 0) {
         HIVIEW_LOGW("report collection stat event fail, ret=%{public}d", ret);
     }

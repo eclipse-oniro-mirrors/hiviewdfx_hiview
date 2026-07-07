@@ -31,6 +31,8 @@ ohos_shared_library("libhiretrieval_ani") {
     debug = false
   }
 
+  cflags_cc = [ "-Os" ]
+
   configs = [ ":libhiretrieval_ani_config" ]
 
   public_configs = [ ":libhiretrieval_ani_config" ]

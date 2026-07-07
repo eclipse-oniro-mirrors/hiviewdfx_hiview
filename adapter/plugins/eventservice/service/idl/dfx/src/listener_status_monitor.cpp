@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 
 #include "listener_status_monitor.h"
 
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "time_util.h"
 
@@ -78,14 +78,17 @@ void ListenerStatusMonitor::ReportEvent()
 {
     HIVIEW_LOGI("report event size=%{public}zu", listenerCallers_.size());
     for (const auto& [caller, status] : listenerCallers_) {
-        auto ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "SYSEVENT_LISTENER_ANALYSIS", HiSysEvent::STATISTIC,
-            "USER_ID", caller.listenerUid,
-            "LISTENER_NAME", caller.listenerName,
-            "EVENT_RULE", caller.eventRule,
-            "LISTENER_MATCH_COUNT", status.addSuccCount - status.removeSuccCount,
-            "ADDLISTENER_SUCC_COUNT", status.addSuccCount,
-            "ADDLISTENER_FAULT_COUNT", status.addFaultCount,
-            "REMOVELISTENER_FAULT_COUNT", status.removeFaultCount);
+        HiSysEventParam params[] = {
+            BUILD_PARAM("USER_ID", HISYSEVENT_INT32, i32, caller.listenerUid),
+            BUILD_PARAM("LISTENER_NAME", HISYSEVENT_STRING, s, PARAM_STR(caller.listenerName)),
+            BUILD_PARAM("EVENT_RULE", HISYSEVENT_STRING, s, PARAM_STR(caller.eventRule)),
+            BUILD_PARAM("LISTENER_MATCH_COUNT", HISYSEVENT_INT32, i32, status.addSuccCount - status.removeSuccCount),
+            BUILD_PARAM("ADDLISTENER_SUCC_COUNT", HISYSEVENT_INT32, i32, status.addSuccCount),
+            BUILD_PARAM("ADDLISTENER_FAULT_COUNT", HISYSEVENT_INT32, i32, status.addFaultCount),
+            BUILD_PARAM("REMOVELISTENER_FAULT_COUNT", HISYSEVENT_INT32, i32, status.removeFaultCount),
+        };
+        int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "SYSEVENT_LISTENER_ANALYSIS",
+            HISYSEVENT_STATISTIC, params, sizeof(params) / sizeof(HiSysEventParam));
         if (ret != 0) {
             HIVIEW_LOGW("failed to report event, uid=%{public}d, name=%{public}s, ret=%{public}d",
                 caller.listenerUid, caller.listenerName.c_str(), ret);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,20 +24,30 @@ namespace OHOS {
 namespace HiviewDFX {
 inline constexpr size_t MAX_APP_USAGE_SIZE = 100;
 
+#define KEY_OF_PACKAGE_LITERAL "PACKAGE"
+#define KEY_OF_VERSION_LITERAL "VERSION"
+#define KEY_OF_USAGE_LITERAL "USAGE"
+#define KEY_OF_DATE_LITERAL "DATE"
+#define KEY_OF_START_NUM_LITERAL "TOTAL_START_NUM"
+#define KEY_OF_START_LITERAL "START"
+#define KEY_OF_END_LITERAL "END"
+#define KEY_OF_POWER_LITERAL "POWER"
+#define KEY_OF_RUNNING_LITERAL "RUNNING"
+
 namespace AppUsageEventSpace {
 inline constexpr char EVENT_NAME[] = "APP_USAGE";
-inline constexpr char KEY_OF_PACKAGE[] = "PACKAGE";
-inline constexpr char KEY_OF_VERSION[] = "VERSION";
-inline constexpr char KEY_OF_USAGE[] = "USAGE";
-inline constexpr char KEY_OF_DATE[] = "DATE";
-inline constexpr char KEY_OF_START_NUM[] = "TOTAL_START_NUM";
+inline constexpr char KEY_OF_PACKAGE[] = KEY_OF_PACKAGE_LITERAL;
+inline constexpr char KEY_OF_VERSION[] = KEY_OF_VERSION_LITERAL;
+inline constexpr char KEY_OF_USAGE[] = KEY_OF_USAGE_LITERAL;
+inline constexpr char KEY_OF_DATE[] = KEY_OF_DATE_LITERAL;
+inline constexpr char KEY_OF_START_NUM[] = KEY_OF_START_NUM_LITERAL;
 }
 
 namespace FoldAppUsageEventSpace {
 inline constexpr char EVENT_NAME[] = "FOLD_APP_USAGE";
-inline constexpr char KEY_OF_PACKAGE[] = "PACKAGE";
-inline constexpr char KEY_OF_VERSION[] = "VERSION";
-inline constexpr char KEY_OF_USAGE[] = "USAGE";
+inline constexpr char KEY_OF_PACKAGE[] = KEY_OF_PACKAGE_LITERAL;
+inline constexpr char KEY_OF_VERSION[] = KEY_OF_VERSION_LITERAL;
+inline constexpr char KEY_OF_USAGE[] = KEY_OF_USAGE_LITERAL;
 #if FOLD_PC_COUNT_DURATION_ENABLE
 inline constexpr char KEY_OF_FOLD_KB_VER_USAGE[] = "FOLD_KB_V";
 inline constexpr char KEY_OF_FOLD_DISPLAY_OUTER_USAGE[] = "FOLD_DISPLAY_OUTER_V";
@@ -84,17 +94,17 @@ inline constexpr char KEY_OF_LM_HOR_MIDSCENE_USAGE[] = "LM_H_MIDSCENE";
 inline constexpr char KEY_OF_T_FULL_USAGE[] = "T_FULL";
 inline constexpr char KEY_OF_T_SPLIT_USAGE[] = "T_SPLIT";
 inline constexpr char KEY_OF_T_FLOATING_USAGE[] = "T_FLOATING";
-inline constexpr char KEY_OF_DATE[] = "DATE";
-inline constexpr char KEY_OF_START_NUM[] = "TOTAL_START_NUM";
+inline constexpr char KEY_OF_DATE[] = KEY_OF_DATE_LITERAL;
+inline constexpr char KEY_OF_START_NUM[] = KEY_OF_START_NUM_LITERAL;
 inline constexpr char SCENEBOARD_BUNDLE_NAME[] = "com.ohos.sceneboard"; // NOT include sceneboard
 }
 
 namespace SysUsageEventSpace {
 inline constexpr char EVENT_NAME[] = "SYS_USAGE";
-inline constexpr char KEY_OF_START[] = "START";
-inline constexpr char KEY_OF_END[] = "END";
-inline constexpr char KEY_OF_POWER[] = "POWER";
-inline constexpr char KEY_OF_RUNNING[] = "RUNNING";
+inline constexpr char KEY_OF_START[] = KEY_OF_START_LITERAL;
+inline constexpr char KEY_OF_END[] = KEY_OF_END_LITERAL;
+inline constexpr char KEY_OF_POWER[] = KEY_OF_POWER_LITERAL;
+inline constexpr char KEY_OF_RUNNING[] = KEY_OF_RUNNING_LITERAL;
 }
 
 namespace SysUsageDbSpace {

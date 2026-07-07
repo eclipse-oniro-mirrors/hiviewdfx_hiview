@@ -39,6 +39,9 @@ ohos_source_set("unified_collector") {
     cfi_vcall_icall_only = true
     debug = false
   }
+
+  cflags_cc = [ "-Os" ]
+
   configs = [ ":unified_collector_config" ]
 
   sources = [

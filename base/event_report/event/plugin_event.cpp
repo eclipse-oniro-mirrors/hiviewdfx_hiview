@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 #include "plugin_event.h"
 
+#include "hisysevent_util.h"
 #include "hiview_event_common.h"
 
 namespace OHOS {
@@ -32,10 +33,15 @@ PluginEvent::PluginEvent(const std::string &name, HiSysEvent::EventType type)
 
 void PluginEvent::Report()
 {
-    HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, this->eventName_, this->eventType_,
-        KEY_OF_PLUGIN_NAME, this->paramMap_[KEY_OF_PLUGIN_NAME].GetString(),
-        KEY_OF_RESULT, this->paramMap_[KEY_OF_RESULT].GetUint32(),
-        KEY_OF_DURATION, this->paramMap_[KEY_OF_DURATION].GetUint32());
+    std::string pluginName = paramMap_[KEY_OF_PLUGIN_NAME].GetString();
+    HiSysEventParam params[] = {
+        BUILD_PARAM(PLUGIN_NAME_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(pluginName)),
+        BUILD_PARAM(RESULT_LITERAL, HISYSEVENT_UINT32, ui32, this->paramMap_[KEY_OF_RESULT].GetUint32()),
+        BUILD_PARAM(DURATION_LITERAL, HISYSEVENT_UINT32, ui32, this->paramMap_[KEY_OF_DURATION].GetUint32()),
+    };
+    (void)OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, this->eventName_.c_str(),
+        TranslateEventType(this->eventType_),
+        params, sizeof(params) / sizeof(HiSysEventParam));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

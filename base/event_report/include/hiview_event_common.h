@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,15 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+#define PLUGIN_NAME_LITERAL "NAME"
+#define REASON_LITERAL "REASON"
+#define RESULT_LITERAL "RESULT"
+#define DURATION_LITERAL "DURATION"
+#define AVG_TIME_LITERAL "AVG_TIME"
+#define TOP_K_TIME_LITERAL "TOP_K_TIME"
+#define TOP_K_EVENT_LITERAL "TOP_K_EVENT"
+#define TOTAL_LITERAL "TOTAL"
+
 constexpr unsigned int LABEL_DOMAIN = 0xD002D10;
 inline constexpr char EVENT_DOMAIN[] = "HIVIEWDFX";
 
@@ -32,9 +41,9 @@ inline constexpr char KEY_OF_TYPE[] = "type_";
 namespace PluginEventSpace {
 inline constexpr char LOAD_EVENT_NAME[] = "PLUGIN_LOAD";
 inline constexpr char UNLOAD_EVENT_NAME[] = "PLUGIN_UNLOAD";
-inline constexpr char KEY_OF_PLUGIN_NAME[] = "NAME";
-inline constexpr char KEY_OF_RESULT[] = "RESULT";
-inline constexpr char KEY_OF_DURATION[] = "DURATION";
+inline constexpr char KEY_OF_PLUGIN_NAME[] = PLUGIN_NAME_LITERAL;
+inline constexpr char KEY_OF_RESULT[] = RESULT_LITERAL;
+inline constexpr char KEY_OF_DURATION[] = DURATION_LITERAL;
 constexpr uint32_t LOAD_SUCCESS = 0;
 constexpr uint32_t LOAD_DUPLICATE_NAME = 1;
 constexpr uint32_t LOAD_UNREGISTERED = 2;
@@ -46,17 +55,17 @@ constexpr uint32_t UNLOAD_IN_USE = 3;
 
 namespace PluginFaultEventSpace {
 inline constexpr char EVENT_NAME[] = "PLUGIN_FAULT";
-inline constexpr char KEY_OF_PLUGIN_NAME[] = "NAME";
-inline constexpr char KEY_OF_REASON[] = "REASON";
+inline constexpr char KEY_OF_PLUGIN_NAME[] = PLUGIN_NAME_LITERAL;
+inline constexpr char KEY_OF_REASON[] = REASON_LITERAL;
 }
 
 namespace PluginStatsEventSpace {
 inline constexpr char EVENT_NAME[] = "PLUGIN_STATS";
-inline constexpr char KEY_OF_PLUGIN_NAME[] = "NAME";
-inline constexpr char KEY_OF_AVG_TIME[] = "AVG_TIME";
-inline constexpr char KEY_OF_TOP_K_TIME[] = "TOP_K_TIME";
-inline constexpr char KEY_OF_TOP_K_EVENT[] = "TOP_K_EVENT";
-inline constexpr char KEY_OF_TOTAL[] = "TOTAL";
+inline constexpr char KEY_OF_PLUGIN_NAME[] = PLUGIN_NAME_LITERAL;
+inline constexpr char KEY_OF_AVG_TIME[] = AVG_TIME_LITERAL;
+inline constexpr char KEY_OF_TOP_K_TIME[] = TOP_K_TIME_LITERAL;
+inline constexpr char KEY_OF_TOP_K_EVENT[] = TOP_K_EVENT_LITERAL;
+inline constexpr char KEY_OF_TOTAL[] = TOTAL_LITERAL;
 inline constexpr char KEY_OF_PROC_NAME[] = "PROC_NAME";
 inline constexpr char KEY_OF_PROC_TIME[] = "PROC_TIME";
 inline constexpr char KEY_OF_TOTAL_TIME[] = "TOTAL_TIME";
