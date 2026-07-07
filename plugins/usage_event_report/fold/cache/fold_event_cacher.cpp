@@ -35,6 +35,7 @@ constexpr int8_t THE_TENS_DIGIT = 10;
 #if FOLD_PC_COUNT_DURATION_ENABLE
 constexpr int8_t MAGNETIC = 4;
 constexpr int8_t FOLD_DISPLAY_MODE_UNKNOWN = 0;
+constexpr int8_t FOLD_DISPLAY_MODE_MAIN = 2;
 constexpr int8_t FOLD_DISPLAY_MODE_COORDINATION = 4;
 constexpr int8_t FOLD_PC_INVALID_MODE_FIVE = 5;
 constexpr int8_t FOLD_PC_INVALID_MODE_SIX = 6;
