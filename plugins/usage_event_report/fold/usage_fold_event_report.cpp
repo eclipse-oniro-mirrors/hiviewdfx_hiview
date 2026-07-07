@@ -30,11 +30,15 @@ constexpr char BOOT_COMPLETED_KEY[] = "bootevent.boot.completed";
 void UsageFoldEventReport::Init(const std::string& workPath)
 {
     workPath_ = workPath;
+#if FOLD_PC_COUNT_DURATION_ENABLE
+    Load(workPath);
+#else
     Parameter::WatchParamChange(BOOT_COMPLETED_KEY, OnBootCompletedChange, this);
     std::string bootCompleted = Parameter::GetString(BOOT_COMPLETED_KEY, "");
     if (bootCompleted == "true") {
         Load(workPath);
     }
+#endif // FOLD_PC_COUNT_DURATION_ENABLE
 }
 
 void UsageFoldEventReport::OnBootCompletedChange(const char *key, const char *value, void *context)
