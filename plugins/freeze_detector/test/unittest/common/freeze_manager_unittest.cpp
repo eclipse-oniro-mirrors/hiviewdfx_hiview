@@ -138,18 +138,9 @@ HWTEST_F(FreezeManagerTest, SaveFreezeExtInfoToFile_001, TestSize.Level3)
     std::string bundleName = "FreezeManagerTest";
     std::string stackFile = "FreezeManagerTest";
     std::string cpuFile = "FreezeManagerTest";
-    std::string type = "appfreeze";
-    auto ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile, type);
-    EXPECT_TRUE(ret.empty());
-    cpuFile = "";
-    ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile, type);
-    EXPECT_TRUE(ret.empty());
-    type = "appfreezewarning";
-    ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile, type);
-    EXPECT_TRUE(ret.empty());
-    stackFile = "";
-    ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile, type);
-    EXPECT_TRUE(ret.empty());
+    auto ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName,
+        stackFile, cpuFile);
+    EXPECT_TRUE(!ret.empty());
 }
 
 /**

@@ -31,7 +31,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
     const size_t FREEZE_EXT_FILE_SIZE = 2;
-    const size_t FREEZE_EXT_STACK_FILE_SIZE = 1;
     const size_t FREEZE_CPU_INDEX = 1;
     const int SYS_MATCH_NUM = 1;
     const int APP_MATCH_NUM = 1;
@@ -260,8 +259,7 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
     oss << std::endl;
 }
 
-std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::string& halfFreezeExtFile,
-    const std::string& type) const
+std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::string& halfFreezeExtFile) const
 {
     std::string stackFile;
     std::string cpuFile;
@@ -271,24 +269,14 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
     size_t fileSize = fileList.size();
-    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileSize);
-    bool warningType = type == APPFREEZEWARNING;
-    if (warningType && fileSize == FREEZE_EXT_STACK_FILE_SIZE) {
-        std::string freezeExtFile = fileList[0];
-        stackFile = freezeExtFile.empty() ? halfFreezeExtFile : freezeExtFile;
-    }
-    if (fileSize == FREEZE_EXT_FILE_SIZE) {
+    HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
+    if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
         std::string freezeExtFile = fileList[0];
         stackFile = freezeExtFile.empty() ? halfFreezeExtFile : freezeExtFile;
         cpuFile = fileList[FREEZE_CPU_INDEX];
     }
-    if (stackFile.empty()) {
-        HIVIEW_LOGI("failed to get freeze stack file, eventName:%{public}s.",
-            watchPoint.GetStringId().c_str());
-        return "";
-    }
-    if (cpuFile.empty() && !warningType) {
-        HIVIEW_LOGI("failed to get freeze cpu file, eventName:%{public}s.",
+    if (stackFile.empty() && cpuFile.empty()) {
+        HIVIEW_LOGI("failed to get freeze cpu and stack file, eventName:%{public}s.",
             watchPoint.GetStringId().c_str());
         return "";
     }
@@ -296,7 +284,7 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     long uid = watchPoint.GetUid();
     std::string bundleName = watchPoint.GetPackageName().empty() ?
         watchPoint.GetProcessName() : watchPoint.GetPackageName();
-    return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile, type);
+    return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile);
 }
 
 void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const
@@ -554,7 +542,7 @@ std::string Vendor::MergeEventLog(WatchPoint &watchPoint, const std::vector<Watc
     if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
         HIVIEW_LOGE("MergeEventLog fdsan close failed, errno=%{public}d", errno);
     }
-    context.watchPoint.SetFreezeExtFile(MergeFreezeExtFile(context.watchPoint, halfFreezeExtFile, context.type));
+    context.watchPoint.SetFreezeExtFile(MergeFreezeExtFile(context.watchPoint, halfFreezeExtFile));
     return SendFaultLog(context.watchPoint, tmpLogPath, context.type, context.processName, context.isScbPro);
 }
 
