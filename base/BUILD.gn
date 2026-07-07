@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -40,6 +40,8 @@ config("logger_config") {
 }
 
 ohos_source_set("logger") {
+  cflags_cc = [ "-Os" ]
+
   public_configs = [ ":logger_config" ]
 
   external_deps = [ "hilog:libhilog" ]
@@ -49,7 +51,10 @@ ohos_source_set("logger") {
 }
 
 ohos_source_set("hiview_base") {
+  cflags_cc = [ "-Os" ]
+
   public_configs = [ ":hiview_base_config" ]
+
   sources = [
     "dispatch_rule_parser.cpp",
     "event.cpp",
@@ -96,6 +101,8 @@ ohos_source_set("hiview_base") {
 }
 
 ohos_shared_library("hiviewbase") {
+  cflags_cc = [ "-Os" ]
+
   public_configs = [ ":hiview_base_config" ]
   public_configs += [ "event_report:hiview_event_report_config" ]
 

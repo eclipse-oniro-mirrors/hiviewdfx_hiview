@@ -35,6 +35,8 @@ ohos_shared_library("loglibrary_ani") {
     debug = false
   }
 
+  cflags_cc = [ "-Os" ]
+
   deps = [
     "$hiview_adapter/service/client:hiview_service_proxy",
     "$hiview_base:hiviewbase",

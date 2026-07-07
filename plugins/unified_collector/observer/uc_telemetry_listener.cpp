@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #include "cjson_util.h"
 #include "hiview_logger.h"
 #include "time_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "uc_telemetry_callback.h"
 
 namespace OHOS::HiviewDFX {
@@ -32,7 +32,6 @@ const int64_t DEFAULT_XPERF_SIZE = 20 * 1024 * 1024;
 const int64_t DEFAULT_XPOWER_SIZE = 20 * 1024 * 1024;
 const int64_t DEFAULT_RELIABILITY_SIZE = 20 * 1024 * 1024;
 const int64_t DEFAULT_TOTAL_SIZE = 50 * 1024 * 1024;
-constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
 constexpr char TAGS[] = "tags";
 constexpr char BUFFER_SIZE[] = "bufferSize";
 
@@ -258,10 +257,14 @@ void TelemetryListener::HandleStop()
 void TelemetryListener::WriteErrorEvent(const std::string &error, const TelemetryParams &params)
 {
     HIVIEW_LOGE("%{public}s", error.c_str());
-    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-        "ID", params.telemetryId,
-        "STAGE", "TRACE_BEGIN",
-        "ERROR", error);
+    std::string stage {"TRACE_BEGIN"};
+    HiSysEventParam eventParams[] = {
+        BUILD_PARAM("ID", HISYSEVENT_STRING, s, PARAM_STR(params.telemetryId)),
+        BUILD_PARAM("STAGE", HISYSEVENT_STRING, s, PARAM_STR(stage)),
+        BUILD_PARAM("ERROR", HISYSEVENT_STRING, s, PARAM_STR(error)),
+    };
+    (void)OH_HiSysEvent_Write("TELEMETRY", "TASK_INFO", HISYSEVENT_STATISTIC,
+        eventParams, sizeof(eventParams) / sizeof(HiSysEventParam));
 }
 
 bool TelemetryListener::ProcessTraceTag(const std::string &traceTag, std::vector<std::string> &traceTags,

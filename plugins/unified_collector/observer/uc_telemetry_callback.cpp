@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #include <chrono>
 
 #include "ffrt.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "parameter_ex.h"
 #include "time_util.h"
 #include "trace_flow_controller.h"
@@ -29,9 +29,6 @@ namespace OHOS::HiviewDFX {
 DEFINE_LOG_TAG("UcTelemetryCallback");
 using namespace UCollectUtil;
 namespace {
-constexpr char TELEMETRY_DOMAIN[] = "TELEMETRY";
-constexpr char LISTENER_KEY[] = "TelemetryCallback";
-
 void OnSaParamChanged(const char *key, const char *value, void *context)
 {
     if (key == nullptr || value == nullptr) {
@@ -58,9 +55,13 @@ void HandTimeout()
 
 void UcTelemetryCallback::OnTelemetryStart()
 {
-    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-        "ID", telemetryId_,
-        "STAGE", "TRACE_BEGIN");
+    std::string stage {"TRACE_BEGIN"};
+    HiSysEventParam params[] = {
+        BUILD_PARAM("ID", HISYSEVENT_STRING, s, PARAM_STR(telemetryId_)),
+        BUILD_PARAM("STAGE", HISYSEVENT_STRING, s, PARAM_STR(stage)),
+    };
+    (void)OH_HiSysEvent_Write("TELEMETRY", "TASK_INFO", HISYSEVENT_STATISTIC,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     HIVIEW_LOGI("telemetry start isNewTask:%{public}d", isNewTask_);
     if (isNewTask_) {
         flowController_->ClearTelemetryData();
@@ -81,9 +82,13 @@ void UcTelemetryCallback::OnTelemetryStart()
 void UcTelemetryCallback::OnTelemetryFinish()
 {
     HIVIEW_LOGI("telemetry finish");
-    HiSysEventWrite(TELEMETRY_DOMAIN, "TASK_INFO", HiSysEvent::EventType::STATISTIC,
-        "ID", telemetryId_,
-        "STAGE", "TRACE_END");
+    std::string stage {"TRACE_END"};
+    HiSysEventParam params[] = {
+        BUILD_PARAM("ID", HISYSEVENT_STRING, s, PARAM_STR(telemetryId_)),
+        BUILD_PARAM("STAGE", HISYSEVENT_STRING, s, PARAM_STR(stage)),
+    };
+    (void)OH_HiSysEvent_Write("TELEMETRY", "TASK_INFO", HISYSEVENT_STATISTIC,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (saParameters_.empty()) {
         return;
     }
@@ -199,7 +204,7 @@ void UcTelemetryCallback::OnTelemetryTraceOff()
 void PowerCallback::OnTelemetryStart()
 {
     UcTelemetryCallback::OnTelemetryStart();
-    PowerStatusManager::GetInstance().AddPowerListener(LISTENER_KEY, powerListener_);
+    PowerStatusManager::GetInstance().AddPowerListener("TelemetryCallback", powerListener_);
     bool isStatusOn = PowerStatusManager::GetInstance().GetPowerState() == UCollectUtil::SCREEN_ON;
     TraceStateMachine::GetInstance().InitTelemetryStatus(isStatusOn);
 }
@@ -207,7 +212,7 @@ void PowerCallback::OnTelemetryStart()
 void PowerCallback::OnTelemetryFinish()
 {
     UcTelemetryCallback::OnTelemetryFinish();
-    PowerStatusManager::GetInstance().RemovePowerListener(LISTENER_KEY);
+    PowerStatusManager::GetInstance().RemovePowerListener("TelemetryCallback");
 }
 
 void PowerTelemetryListener::OnScreenOn()

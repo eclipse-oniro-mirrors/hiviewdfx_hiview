@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #include <cinttypes>
 
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "sys_event_backup.h"
@@ -92,9 +92,13 @@ void SysEventDao::Restore()
 void SysEventDao::ClearDirtyEventFiles()
 {
     if (!FileUtil::FileExists(LOG_HIVIEW_DIR)) {
-        int writeEventRet = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
-            HiSysEvent::EventType::STATISTIC, "CLEAR_RESULT", "no hiview dir");
-        HIVIEW_LOGW("no hiview dir in log partition, writeEventRet: %{public}d.", writeEventRet);
+        std::string clearResult {"no hiview dir"};
+        HiSysEventParam params[] = {
+            BUILD_PARAM("CLEAR_RESULT", HISYSEVENT_STRING, s, PARAM_STR(clearResult)),
+        };
+        int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
+            HISYSEVENT_STATISTIC, params, sizeof(params) / sizeof(HiSysEventParam));
+        HIVIEW_LOGW("no hiview dir in log partition, writeEventRet: %{public}d.", ret);
         return;
     }
     if (FileUtil::FileExists(DIRTY_EVENT_CLEAR_FLAG_PATH)) {
@@ -106,9 +110,13 @@ void SysEventDao::ClearDirtyEventFiles()
     std::string clearResult = backup.ClearDirtyEventFiles(GetDatabaseDir());
     int createFlagRet = FileUtil::CreateFile(DIRTY_EVENT_CLEAR_FLAG_PATH);
     Parameter::SetProperty(DIRTY_EVENT_CLEARED_PROP, "true");
-    int writeEventRet = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
-        HiSysEvent::EventType::STATISTIC, "CLEAR_RESULT", clearResult, "FLAG_CREATE_RESULT", createFlagRet);
-    HIVIEW_LOGI("clear event, createFlagRet: %{public}d, writeEventRet: %{public}d", createFlagRet, writeEventRet);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("CLEAR_RESULT", HISYSEVENT_STRING, s, PARAM_STR(clearResult)),
+        BUILD_PARAM("FLAG_CREATE_RESULT", HISYSEVENT_INT32, i32, createFlagRet),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "DIRTY_EVENT_CLEAR_RESULT",
+        HISYSEVENT_STATISTIC, params, sizeof(params) / sizeof(HiSysEventParam));
+    HIVIEW_LOGI("clear event, createFlagRet: %{public}d, writeEventRet: %{public}d", createFlagRet, ret);
 }
 
 void SysEventDao::Clear()

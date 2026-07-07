@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 #include "sys_usage_event.h"
 
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "usage_event_common.h"
 
@@ -39,23 +40,30 @@ void SysUsageEvent::Report()
 
 void SysUsageEvent::ReportDFX()
 {
-    auto ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, this->eventName_, this->eventType_,
-        KEY_OF_START, this->paramMap_[KEY_OF_START].GetUint64(),
-        KEY_OF_END, this->paramMap_[KEY_OF_END].GetUint64(),
-        KEY_OF_POWER, this->paramMap_[KEY_OF_POWER].GetUint64(),
-        KEY_OF_RUNNING, this->paramMap_[KEY_OF_RUNNING].GetUint64());
-    if (ret != 0) {
-        HIVIEW_LOGW("failed to report sys usage event, ret=%{public}d", ret);
-    }
+    ReportEvent(false);
 }
 
 void SysUsageEvent::ReportDFXUE()
 {
-    auto ret = HiSysEventWrite(DomainSpace::HIVIEWDFX_UE_DOMAIN, this->eventName_, this->eventType_,
-        KEY_OF_START, this->paramMap_[KEY_OF_START].GetUint64(),
-        KEY_OF_END, this->paramMap_[KEY_OF_END].GetUint64(),
-        KEY_OF_POWER, this->paramMap_[KEY_OF_POWER].GetUint64(),
-        KEY_OF_RUNNING, this->paramMap_[KEY_OF_RUNNING].GetUint64());
+    ReportEvent(true);
+}
+
+void SysUsageEvent::ReportEvent(bool isReportUeEvent)
+{
+    HiSysEventParam params[] = {
+        BUILD_PARAM(KEY_OF_START_LITERAL, HISYSEVENT_UINT64, ui64, this->paramMap_[KEY_OF_START].GetUint64()),
+        BUILD_PARAM(KEY_OF_END_LITERAL, HISYSEVENT_UINT64, ui64, this->paramMap_[KEY_OF_END].GetUint64()),
+        BUILD_PARAM(KEY_OF_POWER_LITERAL, HISYSEVENT_UINT64, ui64, this->paramMap_[KEY_OF_POWER].GetUint64()),
+        BUILD_PARAM(KEY_OF_RUNNING_LITERAL, HISYSEVENT_UINT64, ui64, this->paramMap_[KEY_OF_RUNNING].GetUint64()),
+    };
+    int ret = 0;
+    if (isReportUeEvent) {
+        ret = OH_HiSysEvent_Write(DomainSpace::HIVIEWDFX_UE_DOMAIN, this->eventName_.c_str(),
+            TranslateEventType(this->eventType_), params, sizeof(params) / sizeof(HiSysEventParam));
+    } else {
+        ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, this->eventName_.c_str(),
+            TranslateEventType(this->eventType_), params, sizeof(params) / sizeof(HiSysEventParam));
+    }
     if (ret != 0) {
         HIVIEW_LOGW("failed to report sys usage event, ret=%{public}d", ret);
     }

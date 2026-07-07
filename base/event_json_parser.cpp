@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,12 +20,12 @@
 #include <fstream>
 #include <map>
 
+#include "hisysevent_util.h"
 #include "hiview_config_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
 #include "privacy_manager.h"
 #include "securec.h"
-#include "hisysevent.h"
 #include "version_config_parser.h"
 
 namespace OHOS {
@@ -113,9 +113,15 @@ void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefM
         eventNum.push_back(p.second);
     }
 
-    int ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD,
-        HiSysEvent::EventType::STATISTIC, "TOP5_DOMAIN_NAME", domainName, "TOP5_DOMAIN_EVENT_NUM", eventNum,
-        "TOTAL_CACHED_EVENTS", totalEvent);
+    std::vector<char*> translatedDomainName;
+    TranslateStrVector(domainName, translatedDomainName);
+    HiSysEventParam params[] = {
+        BUILD_ARRAY_PARAM("TOP5_DOMAIN_NAME", HISYSEVENT_STRING_ARRAY, char*, translatedDomainName),
+        BUILD_ARRAY_PARAM("TOP5_DOMAIN_EVENT_NUM", HISYSEVENT_INT32_ARRAY, int32_t, eventNum),
+        BUILD_PARAM("TOTAL_CACHED_EVENTS", HISYSEVENT_INT32, i32, totalEvent),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, EVENT_COUNT_OVER_THRESHOLD,
+        HISYSEVENT_STATISTIC, params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret < 0) {
         HIVIEW_LOGW("failed to write over threshold event, ret is %{public}d", ret);
     }

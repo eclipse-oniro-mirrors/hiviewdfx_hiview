@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 #include "daily_db_helper.h"
 
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_db_util.h"
 #include "hiview_logger.h"
 #include "rdb_predicates.h"
@@ -233,8 +233,12 @@ void DailyDbHelper::CloseDbStore()
 
 void DailyDbHelper::ReportDailyEvent()
 {
-    int32_t ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "EVENTS_DAILY",
-        HiSysEvent::EventType::FAULT, "DATE", HiviewDbUtil::GetDateFromDbFile(dbPath_));
+    std::string date = HiviewDbUtil::GetDateFromDbFile(dbPath_);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("DATE", HISYSEVENT_STRING, s, PARAM_STR(date)),
+    };
+    int32_t ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "EVENTS_DAILY", HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != 0) {
         HIVIEW_LOGW("failed to report event, ret=%{public}d", ret);
     }

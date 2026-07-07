@@ -17,7 +17,7 @@
 #include <dlfcn.h>
 
 #include "file_util.h"
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_db_util.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
@@ -438,7 +438,8 @@ void CpuStorage::ResetDbStore()
 
 void CpuStorage::ReportCpuCollectionEvent()
 {
-    int32_t ret = HiSysEventWrite(HiSysEvent::Domain::HIVIEWDFX, "CPU_COLLECTION", HiSysEvent::EventType::FAULT);
+    int32_t ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "CPU_COLLECTION", HISYSEVENT_FAULT,
+        nullptr, 0);
     if (ret != 0) {
         HIVIEW_LOGW("failed to report cpu collection event, ret=%{public}d", ret);
     }

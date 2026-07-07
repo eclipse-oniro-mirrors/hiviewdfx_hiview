@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 #include "collect_event.h"
 #include "event_publish.h"
 #include "file_util.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "hiview_platform.h"
 #include "hiview_service_adapter.h"
@@ -71,16 +72,19 @@ void ShareAppEvent(const UCollectClient::AppCaller &appCaller, const std::string
 void ReportMainThreadJankForTrace(const UCollectClient::AppCaller &appCaller, int32_t dumpCode,
     const std::string& externalLog)
 {
-    HiSysEventWrite(HiSysEvent::Domain::FRAMEWORK, UCollectUtil::MAIN_THREAD_JANK, HiSysEvent::EventType::FAULT,
-        UCollectUtil::SYS_EVENT_PARAM_BUNDLE_NAME, appCaller.bundleName,
-        UCollectUtil::SYS_EVENT_PARAM_BUNDLE_VERSION, appCaller.bundleVersion,
-        UCollectUtil::SYS_EVENT_PARAM_BEGIN_TIME, appCaller.beginTime,
-        UCollectUtil::SYS_EVENT_PARAM_END_TIME, appCaller.endTime,
-        UCollectUtil::SYS_EVENT_PARAM_THREAD_NAME, appCaller.threadName,
-        UCollectUtil::SYS_EVENT_PARAM_FOREGROUND, appCaller.foreground,
-        UCollectUtil::SYS_EVENT_TRACE_DUMP_CODE, dumpCode,
-        UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG, externalLog,
-        UCollectUtil::SYS_EVENT_PARAM_JANK_LEVEL, 1); // 1: over 450ms
+    HiSysEventParam params[] = {
+        BUILD_PARAM(PARAM_BUNDLE_NAME_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(appCaller.bundleName)),
+        BUILD_PARAM(PARAM_BUNDLE_VERSION_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(appCaller.bundleVersion)),
+        BUILD_PARAM(PARAM_BEGIN_TIME_LITERAL, HISYSEVENT_INT64, i64, appCaller.beginTime),
+        BUILD_PARAM(PARAM_END_TIME_LITERAL, HISYSEVENT_INT64, i64, appCaller.endTime),
+        BUILD_PARAM(PARAM_THREAD_NAME_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(appCaller.threadName)),
+        BUILD_PARAM(PARAM_FOREGROUND_LITERAL, HISYSEVENT_INT32, i32, appCaller.foreground),
+        BUILD_PARAM(TRACE_DUMP_CODE_LITERAL, HISYSEVENT_INT32, i32, dumpCode),
+        BUILD_PARAM(PARAM_EXTERNAL_LOG_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(externalLog)),
+        BUILD_PARAM(PARAM_JANK_LEVEL_LITERAL, HISYSEVENT_INT32, i32, 1), // 1: over 450ms
+    };
+    (void)OH_HiSysEvent_Write(HiSysEvent::Domain::FRAMEWORK, UCollectUtil::MAIN_THREAD_JANK, HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
 }
 }
 

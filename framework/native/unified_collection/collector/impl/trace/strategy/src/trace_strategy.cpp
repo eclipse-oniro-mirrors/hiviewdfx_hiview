@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 
 #include <charconv>
 
-#include "hisysevent.h"
+#include "hisysevent_util.h"
 #include "hiview_logger.h"
 #include "time_util.h"
 #include "trace_utils.h"
@@ -67,24 +67,28 @@ void WriteDumpTraceHisysevent(DumpEvent &dumpEvent)
 {
 #ifndef TRACE_STRATEGY_UNITTEST
     LoadMemoryInfo(dumpEvent);
-    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::PROFILER, "DUMP_TRACE",
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
-        "CALLER", dumpEvent.caller,
-        "ERROR_CODE", dumpEvent.errorCode,
-        "IPC_TIME", dumpEvent.ipcTime,
-        "REQ_TIME", dumpEvent.reqTime,
-        "REQ_DURATION", dumpEvent.reqDuration,
-        "EXEC_TIME", dumpEvent.execTime,
-        "EXEC_DURATION", dumpEvent.execDuration,
-        "COVER_DURATION", dumpEvent.coverDuration,
-        "COVER_RATIO", dumpEvent.coverRatio,
-        "TAGS", dumpEvent.tags,
-        "FILE_SIZE", dumpEvent.fileSize,
-        "SYS_MEM_TOTAL", dumpEvent.sysMemTotal,
-        "SYS_MEM_FREE", dumpEvent.sysMemFree,
-        "SYS_MEM_AVAIL", dumpEvent.sysMemAvail,
-        "SYS_CPU", dumpEvent.sysCpu,
-        "TRACE_MODE", dumpEvent.traceMode);
+    std::vector<char*> translatedTags;
+    TranslateStrVector(dumpEvent.tags, translatedTags);
+    HiSysEventParam params[] = {
+        BUILD_PARAM("CALLER", HISYSEVENT_STRING, s, PARAM_STR(dumpEvent.caller)),
+        BUILD_PARAM("ERROR_CODE", HISYSEVENT_INT32, i32, dumpEvent.errorCode),
+        BUILD_PARAM("IPC_TIME", HISYSEVENT_UINT64, ui64, dumpEvent.ipcTime),
+        BUILD_PARAM("REQ_TIME", HISYSEVENT_UINT64, ui64, dumpEvent.reqTime),
+        BUILD_PARAM("REQ_DURATION", HISYSEVENT_INT32, i32, dumpEvent.reqDuration),
+        BUILD_PARAM("EXEC_TIME", HISYSEVENT_UINT64, ui64, dumpEvent.execTime),
+        BUILD_PARAM("EXEC_DURATION", HISYSEVENT_INT32, i32, dumpEvent.execDuration),
+        BUILD_PARAM("COVER_DURATION", HISYSEVENT_INT32, i32, dumpEvent.coverDuration),
+        BUILD_PARAM("COVER_RATIO", HISYSEVENT_INT32, i32, dumpEvent.coverRatio),
+        BUILD_ARRAY_PARAM("TAGS", HISYSEVENT_STRING_ARRAY, char*, translatedTags),
+        BUILD_PARAM("FILE_SIZE", HISYSEVENT_INT64, i64, dumpEvent.fileSize),
+        BUILD_PARAM("SYS_MEM_TOTAL", HISYSEVENT_INT32, i32, dumpEvent.sysMemTotal),
+        BUILD_PARAM("SYS_MEM_FREE", HISYSEVENT_INT32, i32, dumpEvent.sysMemFree),
+        BUILD_PARAM("SYS_MEM_AVAIL", HISYSEVENT_INT32, i32, dumpEvent.sysMemAvail),
+        BUILD_PARAM("SYS_CPU", HISYSEVENT_INT32, i32, dumpEvent.sysCpu),
+        BUILD_PARAM("TRACE_MODE", HISYSEVENT_UINT8, ui8, dumpEvent.traceMode),
+    };
+    int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::PROFILER, "DUMP_TRACE", HISYSEVENT_BEHAVIOR,
+        params, sizeof(params) / sizeof(HiSysEventParam));
     if (ret != 0) {
         HIVIEW_LOGE("HiSysEventWrite failed, ret is %{public}d", ret);
     }
