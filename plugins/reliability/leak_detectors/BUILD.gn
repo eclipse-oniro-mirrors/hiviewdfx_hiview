@@ -36,6 +36,14 @@ if (hiview_enable_leak_detector) {
 }
 
 ohos_source_set("leak_detector") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  cflags_cc = [ "-0s" ]
   if (hiview_enable_leak_detector) {
     part_name = "hiview"
     subsystem_name = "hiviewdfx"
