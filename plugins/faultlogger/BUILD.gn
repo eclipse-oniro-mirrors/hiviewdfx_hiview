@@ -57,8 +57,25 @@ ohos_source_set("faultlogger") {
 group("fuzztest") {
   testonly = true
   deps = [
-    "test/common/fuzztest/faultloggerclient_fuzzer:fuzztest",
-    "test/common/fuzztest/faultloggerservice_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerclientaddfaultlog_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerclientgwpasangrayscale_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerclientgwpasaninner_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerclientqueryselffaultlog_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerserviceaddfaultlog_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerserviceaddfaultlogcppcrash_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerserviceaddfaultlogfreeze_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicecppcrash_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicedump_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicedumpbyplugin_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicefreeze_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicegwpasangrayscale_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicegwpasaninner_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerserviceisinterestedpipelineevent_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerserviceonevent_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerserviceoneventlisteningcallback_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicepageinfo_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicequeryselffaultlog_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicerustpanic_fuzzer:fuzztest",
     "test/common/fuzztest/faultloggerservicestub_fuzzer:fuzztest",
   ]
 }
