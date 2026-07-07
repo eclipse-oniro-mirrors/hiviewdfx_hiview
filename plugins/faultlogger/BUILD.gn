@@ -59,6 +59,7 @@ group("fuzztest") {
   deps = [
     "test/common/fuzztest/faultloggerclient_fuzzer:fuzztest",
     "test/common/fuzztest/faultloggerservice_fuzzer:fuzztest",
+    "test/common/fuzztest/faultloggerservicestub_fuzzer:fuzztest",
   ]
 }
 
