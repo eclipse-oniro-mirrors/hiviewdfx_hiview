@@ -24,6 +24,7 @@ config("hiview_reliability_common_utils_config") {
 }
 
 ohos_source_set("hiview_reliability_common_utils") {
+  branch_protector_ret = "pac_ret"
   cflags_cc = [ "-Os" ]
 
   part_name = "hiview"
@@ -50,6 +51,7 @@ ohos_source_set("hiview_reliability_common_utils") {
 }
 
 ohos_source_set("hiview_reliability_common_utils_with_cfi") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

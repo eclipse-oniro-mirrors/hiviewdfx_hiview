@@ -22,6 +22,7 @@ config("bbox_detector_config") {
 }
 
 ohos_source_set("bbox_detector_with_cfi") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

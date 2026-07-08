@@ -27,6 +27,7 @@ config("smart_parser_config") {
 }
 
 ohos_source_set("smart_parser") {
+  branch_protector_ret = "pac_ret"
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
   sources = [
@@ -53,6 +54,7 @@ ohos_source_set("smart_parser") {
 }
 
 ohos_source_set("smart_parser_with_cfi") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
