@@ -28,6 +28,7 @@ ohos_source_set("eventlogger") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   cflags_cc = [  "-Os" ]
 
@@ -78,6 +79,7 @@ ohos_shared_library("eventloggerso") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
