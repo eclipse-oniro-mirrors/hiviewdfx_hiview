@@ -108,5 +108,16 @@ int32_t XperfServiceServer::UnregisterVideoState(const std::string& caller)
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
     return XPERF_SERVICE_OK;
 }
+
+int32_t XperfServiceServer::RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
+    const std::vector<int>& eventCodes)
+{
+    LOGD("XperfServiceServer_RegisterEventListener caller:%{public}s", caller.c_str());
+    auto timerId = HiviewDFX::XCollie::GetInstance().SetTimer("XPerfIPC_RegisterEventListener",
+        XPERF_IPC_XCOLLIE_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+    int32_t res = XperfRegisterManager::GetInstance().RegisterEventListener(caller, cb, eventCodes);
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+    return res;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

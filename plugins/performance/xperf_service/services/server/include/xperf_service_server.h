@@ -43,6 +43,9 @@ public:
 
     int32_t RegisterVideoState(const std::string& caller, const sptr<IVideoStateCallback>& cb) override;
     int32_t UnregisterVideoState(const std::string& caller) override;
+
+    int32_t RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
+        const std::vector<int>& eventCodes) override;
 };
 }
 }

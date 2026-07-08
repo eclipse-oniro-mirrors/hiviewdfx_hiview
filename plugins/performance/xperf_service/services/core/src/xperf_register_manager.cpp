@@ -121,6 +121,38 @@ void XperfRegisterManager::UnregisterAudioJank(const std::string &caller)
     }
 }
 
+int32_t XperfRegisterManager::RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
+    const std::vector<int>& eventCodes)
+{
+    if (cb == nullptr) {
+        return XPERF_SERVICE_ERR; // failed
+    }
+    std::unique_lock<std::shared_timed_mutex> lock(mMutex);
+    for (auto code: eventCodes) {
+        auto cbs = evtCallbackMap.find(code);
+        if (cbs == evtCallbackMap.end()) {
+            std::vector<sptr<IEventCallback>> vtr = {cb};
+            evtCallbackMap[code] = vtr;
+        } else {
+            cbs->second.push_back(cb);
+        }
+    }
+    return XPERF_SERVICE_OK;
+}
+
+void XperfRegisterManager::PostEvent(int eventCode, const std::string& eventData)
+{
+    std::unique_lock<std::shared_timed_mutex> lock(mMutex);
+    auto it = evtCallbackMap.find(eventCode);
+    if (it == evtCallbackMap.end()) {
+        LOGW("no listener for event:%{public}d", eventCode);
+        return;
+    }
+    for (auto& cb: it->second) {
+        cb->OnXperfEvent(eventCode, eventData);
+    }
+}
+
 void XperfRegisterManager::NotifyVideoJankEvent(const std::string &msg)
 {
     {
