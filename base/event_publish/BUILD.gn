@@ -21,6 +21,7 @@ config("hiview_event_publish_config") {
 }
 
 ohos_source_set("hiview_event_publish") {
+  branch_protector_ret = "pac_ret"
   cflags_cc = [ "-Os" ]
 
   public_configs = [ ":hiview_event_publish_config" ]
