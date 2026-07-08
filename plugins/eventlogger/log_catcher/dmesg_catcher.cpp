@@ -144,7 +144,7 @@ void DmesgCatcher::GetHungTask(const std::string& dataStr, std::string& hungtask
     size_t lineStart = 0;
     size_t lineEnd = dataStr.size();
     size_t seekPos = 0;
-    while (lineStart < lineEnd) {
+    while (lineStart < dataStr.size()) {
         seekPos = dataStr.find(HGUARD_WORKER, lineStart);
         if (seekPos == std::string::npos) {
             seekPos = dataStr.find(LMK_DEBUG, lineStart);
