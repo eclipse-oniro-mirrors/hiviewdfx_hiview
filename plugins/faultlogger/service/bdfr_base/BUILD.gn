@@ -71,6 +71,7 @@ faultlogger_base_sources = [
 ]
 
 ohos_shared_library("bdfr_base") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -128,6 +129,7 @@ ohos_shared_library("bdfr_base") {
 }
 
 ohos_static_library("export_bdfr_base") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

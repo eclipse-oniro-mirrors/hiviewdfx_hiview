@@ -15,6 +15,7 @@ import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
 ohos_executable("analysis_faultlog") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
@@ -30,8 +31,8 @@ ohos_executable("analysis_faultlog") {
 
   deps = [
     "$hiview_base:hiviewbase",
-    "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
-    "$hiview_root/utility/smart_parser:smart_parser",
+    "$hiview_root/utility/common_utils:hiview_reliability_common_utils_with_cfi",
+    "$hiview_root/utility/smart_parser:smart_parser_with_cfi",
   ]
 
   external_deps = [
