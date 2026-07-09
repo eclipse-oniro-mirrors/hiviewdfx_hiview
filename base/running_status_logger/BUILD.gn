@@ -36,6 +36,7 @@ config("running_status_logger_private_config") {
 
 ohos_source_set("running_status_logger_source") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"

@@ -22,6 +22,7 @@ config("hiview_event_raw_base_config") {
 
 ohos_source_set("hiview_event_raw_base") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   sources = [
     "base/raw_data.cpp",
@@ -50,6 +51,7 @@ config("hiview_event_raw_decode_config") {
 
 ohos_source_set("hiview_event_raw_decode") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   sources = [
     "decoded/decoded_event.cpp",
@@ -81,6 +83,8 @@ config("hiview_event_raw_encode_config") {
 }
 
 ohos_source_set("hiview_event_raw_encode") {
+  branch_protector_ret = "pac_ret"
+
   sources = [
     "encoded/encoded_param.cpp",
     "encoded/raw_data_builder.cpp",

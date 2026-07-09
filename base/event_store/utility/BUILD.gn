@@ -29,6 +29,8 @@ config("event_store_utility_config") {
 }
 
 ohos_source_set("event_store_utility_source") {
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":event_store_utility_config" ]
 
   sources = [

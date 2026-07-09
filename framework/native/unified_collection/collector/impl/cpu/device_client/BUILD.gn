@@ -23,6 +23,8 @@ config("collect_device_client_config") {
 }
 
 ohos_source_set("collect_device_client") {
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":collect_device_client_config" ]
 
   sources = [
