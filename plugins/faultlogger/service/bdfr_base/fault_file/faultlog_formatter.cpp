@@ -252,6 +252,10 @@ std::string FormatFrameIndex(int index)
 
 std::string FormatThreadInfo(const Json::Value& threadInfo)
 {
+    if (!threadInfo.isObject()) {
+        HIVIEW_LOGW("FormatThreadInfo failed: not an object");
+        return {};
+    }
     if (!threadInfo["tid"].isInt() || !threadInfo["thread_name"].isString() ||
         !threadInfo["frames"].isArray() || threadInfo["frames"].size() == 0) {
         HIVIEW_LOGW("FormatThreadInfo failed: invalid thread info structure");

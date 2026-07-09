@@ -78,6 +78,18 @@ group("fuzztest") {
     "test/common/fuzztest/faultloggerservicequeryselffaultlog_fuzzer:fuzztest",
     "test/common/fuzztest/faultloggerservicerustpanic_fuzzer:fuzztest",
     "test/common/fuzztest/faultloggerservicestub_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogsanitizerconvertpathfromoriginline_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogsanitizereasyevent_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogsanitizerextractloadinfo_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogsanitizerfillfaultloginfo_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogsanitizershouldparsesandboxpath_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogdatabasefillinfo_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogdumpbycommands_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogformatterformatframeindex_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogformatterformatjson_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogcppcrashutils_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogfreezeutils_fuzzer:fuzztest",
+    "test/common/fuzztest/freezejsongenerator_fuzzer:fuzztest",
   ]
 }
 

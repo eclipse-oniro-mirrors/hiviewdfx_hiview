@@ -115,4 +115,76 @@
             <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
         </preparer>
     </target>
+    <target name="FaultlogSanitizerShouldParseSandBoxPathFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogSanitizerConvertPathFromOriginLineFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogSanitizerExtractLoadInfoFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogSanitizerEasyEventFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogSanitizerFillFaultLogInfoFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogFormatterFormatFrameIndexFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogFormatterFormatJsonFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogDumpByCommandsFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogDatabaseFillInfoFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogCppCrashUtilsFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogFreezeUtilsFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FreezeJsonGeneratorFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
 </configuration>
