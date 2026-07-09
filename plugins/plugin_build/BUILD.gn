@@ -63,6 +63,7 @@ ohos_shared_library("adft") {
 }
 
 ohos_shared_library("bdfr") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

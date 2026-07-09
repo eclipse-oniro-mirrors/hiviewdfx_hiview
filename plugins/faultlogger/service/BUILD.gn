@@ -24,6 +24,7 @@ config("bdfr_public_include") {
 }
 
 ohos_source_set("faultlogger_service_with_cfi") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

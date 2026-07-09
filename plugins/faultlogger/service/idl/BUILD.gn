@@ -121,6 +121,7 @@ ohos_source_set("faultlogger_service_impl") {
 }
 
 ohos_source_set("faultlogger_service_impl_with_cfi") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
