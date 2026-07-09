@@ -187,4 +187,22 @@
             <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
         </preparer>
     </target>
+    <target name="FaultlogBaseInterfaceFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogSanitizerUtilsFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
+    <target name="FaultlogFileUtilsFuzzTest">
+        <preparer>
+            <option name="push" value="faultlogger/plugin_config -> /data/test/test_faultlogger_data/" src="res"/>
+            <option name="push" value="faultlogger/hiview_platform_config -> /data/test/test_faultlogger_data/" src="res"/>
+        </preparer>
+    </target>
 </configuration>

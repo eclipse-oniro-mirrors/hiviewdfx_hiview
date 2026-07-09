@@ -83,6 +83,8 @@ group("fuzztest") {
     "test/common/fuzztest/faultlogsanitizerextractloadinfo_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogsanitizerfillfaultloginfo_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogsanitizershouldparsesandboxpath_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogsanitizerutils_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogfileutils_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogdatabasefillinfo_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogdumpbycommands_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogformatterformatframeindex_fuzzer:fuzztest",
@@ -90,6 +92,7 @@ group("fuzztest") {
     "test/common/fuzztest/faultlogcppcrashutils_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogfreezeutils_fuzzer:fuzztest",
     "test/common/fuzztest/freezejsongenerator_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogbaseinterface_fuzzer:fuzztest",
   ]
 }
 
