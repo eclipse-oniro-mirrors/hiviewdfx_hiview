@@ -17,8 +17,9 @@
 
 #include <mutex>
 #include <shared_mutex>
-#include <unordered_map>
 #include <string>
+#include <vector>
+#include <unordered_map>
 #include "ixperf_service.h"
 
 namespace OHOS {
@@ -40,15 +41,21 @@ public:
     void NotifyVideoStart(const std::string& msg);
     void NotifyVideoStop(const std::string& msg);
 
+    int32_t RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
+        const std::vector<int>& eventCodes);
+    void PostEvent(int eventCode, const std::string& eventData);
+
 private:
     XperfRegisterManager() = default;
 
     std::shared_timed_mutex vjMutex{};
     std::shared_timed_mutex ajMutex{};
     std::shared_timed_mutex vsMutex{};
+    std::shared_timed_mutex mMutex{};
     std::unordered_map<std::string, sptr<IVideoJankCallback>> vjCallbackMap;
     std::unordered_map<std::string, sptr<IAudioJankCallback>> ajCallbackMap;
     std::unordered_map<std::string, sptr<IVideoStateCallback>> vsCbMap;
+    std::unordered_map<int, std::vector<sptr<IEventCallback>>> evtCallbackMap;
 };
 }
 }

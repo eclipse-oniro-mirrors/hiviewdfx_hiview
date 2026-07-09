@@ -31,6 +31,36 @@ enum DomainId {
     PERFMONITOR = 6,
 };
 
+class EventCode {
+public:
+    static const int XPERF_VIDEO_START = 1;
+    static const int XPERF_VIDEO_STOP = 2;
+    static const int NETWORK_JANK_REPORT = 1000;
+    static const int AUDIO_START = 3000;
+    static const int AUDIO_PAUSE_STOP = 3001;
+    static const int AUDIO_RELEASE = 3002;
+    static const int AUDIO_JANK_FRAME = 3003;
+    static const int AVCODEC_FIRST_FRAME = 4000;
+    static const int AVCODEC_JANK_REPORT = 4001;
+    static const int AVCODEC_INIT = 4002;
+    static const int AVCODEC_RELEASE = 4003;
+    static const int AVCODEC_JANK = 4004;
+    static const int AVCODEC_SECOND_FRAME = 4005;
+    static const int AVCODEC_FRAME_STATS = 4006;
+    static const int RS_JANK_FRAME = 5000;
+    static const int RS_FRAME_STATS = 5001;
+    static const int RS_EXCEPT_STOP = 5002;
+    static const int RS_FIRST_FRAME = 5003;
+    static const int RS_SECOND_FRAME = 5004;
+    static const int PERFMONITOR_USER_ACTION = 6000;
+    static const int PERFMONITOR_LOAD_COMPLETE = 6001;
+    static const int PERFMONITOR_COMPONENT_ATTACH = 6002;
+    static const int PERFMONITOR_COMPONENT_DETACH = 6003;
+    static const int PERFMONITOR_MULTIINPUT_FIRSTMOVE = 6004;
+    static const int PERFMONITOR_MULTIINPUT_LASTUP = 6005;
+    static const int PERFMONITOR_APP_FOREGROUND_ONSHOW = 6006;
+};
+
 enum PerfEventCode {
     USER_ACTION = 0,
     LOAD_COMPLETE = 1,

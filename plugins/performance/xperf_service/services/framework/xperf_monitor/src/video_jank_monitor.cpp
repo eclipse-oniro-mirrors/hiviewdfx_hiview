@@ -17,10 +17,12 @@
 #include "xperf_service_log.h"
 #include "video_jank_monitor.h"
 #include "xperf_constant.h"
+#include "xperf_service_action_type.h"
 #include "avcodec_event.h"
 #include "xperf_register_manager.h"
 #include "perf_trace.h"
 #include "user_action_storage.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -184,6 +186,8 @@ void VideoJankMonitor::BroadcastVideoStart(const std::string& msg)
     LOGD("VideoJankMonitor_BroadcastVideoStart");
     std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoStart(msg); });
     delayThread.detach();
+    ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::XPERF_VIDEO_START, msg); },
+        ffrt::task_attr().name("BroadcastVideoStart").qos(ffrt::qos_default));
 }
 
 void VideoJankMonitor::MonitorStop()
@@ -211,6 +215,8 @@ void VideoJankMonitor::BroadcastVideoStop(const std::string& msg)
     LOGD("VideoJankMonitor_BroadcastVideoStop");
     std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoStop(msg); });
     delayThread.detach();
+    ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::XPERF_VIDEO_STOP, msg); },
+        ffrt::task_attr().name("BroadcastVideoStop").qos(ffrt::qos_default));
 }
 
 bool VideoJankMonitor::IsUserAction(const AudioStateEvent& audioStop)

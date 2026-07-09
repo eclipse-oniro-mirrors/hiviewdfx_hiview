@@ -162,5 +162,15 @@ int32_t XperfServiceClient::UnregisterAudioJank(const std::string& caller)
     return client->UnregisterAudioJank(caller);
 }
 
+int32_t XperfServiceClient::RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
+    const std::vector<int>& eventCodes)
+{
+    std::lock_guard<std::mutex> lock(mutex);
+    if (!CheckClientValid()) {
+        return XPERF_SERVICE_ERR;
+    }
+    return client->RegisterEventListener(caller, cb, eventCodes);
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

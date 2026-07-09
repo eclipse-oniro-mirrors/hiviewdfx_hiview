@@ -18,6 +18,7 @@ import("../../../xperf_service.gni")
 idl_gen_interface("xperf_service_interface") {
   sources = [
     "IAudioJankCallback.idl",
+    "IEventCallback.idl",
     "IVideoJankCallback.idl",
     "IVideoStateCallback.idl",
     "IXperfService.idl",

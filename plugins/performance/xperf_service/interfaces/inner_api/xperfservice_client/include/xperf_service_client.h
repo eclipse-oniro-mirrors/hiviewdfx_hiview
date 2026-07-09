@@ -44,6 +44,9 @@ public:
 
     int32_t UnregisterVideoState(const std::string& caller);
 
+    int32_t RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
+        const std::vector<int>& eventCodes);
+
 private:
     XperfServiceClient();
     ~XperfServiceClient();

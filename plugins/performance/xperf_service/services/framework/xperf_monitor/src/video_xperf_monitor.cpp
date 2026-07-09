@@ -21,6 +21,7 @@
 #include "xperf_service_log.h"
 #include "xperf_service_action_type.h"
 #include "perf_trace.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -136,6 +137,8 @@ void VideoXperfMonitor::BroadcastVideoJank(const std::string& msg)
     LOGD("VideoXperfMonitor::BroadcastVideoJank");
     std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoJankEvent(msg); });
     delayThread.detach();
+    ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::RS_JANK_FRAME, msg); },
+        ffrt::task_attr().name("BroadcastVideoJank").qos(ffrt::qos_default));
 }
 
 void VideoXperfMonitor::WaitForDomainReport(int64_t uniqueId)
