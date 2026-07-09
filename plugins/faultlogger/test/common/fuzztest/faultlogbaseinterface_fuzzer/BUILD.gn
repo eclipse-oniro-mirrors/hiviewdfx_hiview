@@ -14,10 +14,10 @@ import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/config/features.gni")
 import("//build/test.gni")
 
-ohos_fuzztest("FaultlogSanitizerConvertPathFromOriginLineFuzzTest") {
+ohos_fuzztest("FaultlogBaseInterfaceFuzzTest") {
   module_out_path = "hiview/hiview/faultlogger"
 
-  fuzz_config_file = "//base/hiviewdfx/hiview/plugins/faultlogger/test/common/fuzztest/faultlogsanitizerconvertpathfromoriginline_fuzzer"
+  fuzz_config_file = "//base/hiviewdfx/hiview/plugins/faultlogger/test/common/fuzztest/faultlogbaseinterface_fuzzer"
 
   include_dirs = [
     ".",
@@ -27,6 +27,8 @@ ohos_fuzztest("FaultlogSanitizerConvertPathFromOriginLineFuzzTest") {
     "$hiview_faultlogger/service/bdfr_base/",
     "$hiview_faultlogger/service/bdfr_base/base",
     "$hiview_faultlogger/service/bdfr_base/event",
+    "$hiview_faultlogger/service/bdfr_base/event/cpp_crash",
+    "$hiview_faultlogger/service/bdfr_base/event/freeze",
     "$hiview_faultlogger/service/bdfr_base/event/sanitizer",
     "$hiview_faultlogger/service/bdfr_base/fault_file",
     "$hiview_faultlogger/service/bdfr_base/utils",
@@ -55,15 +57,21 @@ ohos_fuzztest("FaultlogSanitizerConvertPathFromOriginLineFuzzTest") {
     "UNITTEST",
   ]
 
-  cflags = [ "-Dprivate=public" ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   cflags_cc = [ "-DUNITTEST" ]
 
   sources = [
-    "faultlogsanitizerconvertpathfromoriginline_fuzzer.cpp",
+    "faultlogbaseinterface_fuzzer.cpp",
     "$hiview_faultlogger/service/bdfr_base/base/faultlog_event_factory.cpp",
     "$hiview_faultlogger/service/bdfr_base/base/faultlog_event_interface.cpp",
     "$hiview_faultlogger/service/bdfr_base/base/faultlog_event_ipc.cpp",
     "$hiview_faultlogger/service/bdfr_base/base/faultlog_event_pipeline.cpp",
+    "$hiview_faultlogger/service/bdfr_base/event/cpp_crash/faultlog_cppcrash.cpp",
+    "$hiview_faultlogger/service/bdfr_base/event/freeze/faultlog_freeze.cpp",
+    "$hiview_faultlogger/service/bdfr_base/event/freeze/freeze_json_generator.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/sanitizer/faultlog_sanitizer.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/js_cj_error/faultlog_jserror.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/js_cj_error/faultlog_cjerror.cpp",
@@ -135,5 +143,5 @@ ohos_fuzztest("FaultlogSanitizerConvertPathFromOriginLineFuzzTest") {
 
 group("fuzztest") {
   testonly = true
-  deps = [ ":FaultlogSanitizerConvertPathFromOriginLineFuzzTest" ]
+  deps = [ ":FaultlogBaseInterfaceFuzzTest" ]
 }
