@@ -16,6 +16,8 @@ import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 
 ohos_shared_library("loglibrary_ani") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "./include/",
     "$hiview_interfaces/inner_api/unified_collection",

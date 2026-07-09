@@ -126,6 +126,8 @@ config("hiview_service_ability_config") {
 }
 
 ohos_source_set("hiview_service_impl_for_unified_collection") {
+  branch_protector_ret = "pac_ret"
+
   public_configs = [ ":hiview_service_ability_config" ]
 
   include_dirs = [

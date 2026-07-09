@@ -25,6 +25,7 @@ config("ucolletciton_utility_config") {
 
 ohos_shared_library("libucollection_utility") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   public_configs = [ ":ucolletciton_utility_config" ]
   sources = []

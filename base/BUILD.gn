@@ -41,6 +41,7 @@ config("logger_config") {
 
 ohos_source_set("logger") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   public_configs = [ ":logger_config" ]
 
@@ -52,6 +53,7 @@ ohos_source_set("logger") {
 
 ohos_source_set("hiview_base") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   public_configs = [ ":hiview_base_config" ]
 
@@ -102,6 +104,7 @@ ohos_source_set("hiview_base") {
 
 ohos_shared_library("hiviewbase") {
   cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
 
   public_configs = [ ":hiview_base_config" ]
   public_configs += [ "event_report:hiview_event_report_config" ]
