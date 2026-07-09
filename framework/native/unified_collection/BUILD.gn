@@ -300,7 +300,7 @@ ohos_source_set("ucollection_source") {
     external_deps += [
       "cJSON:cjson",
       "jsoncpp:jsoncpp",
-      "zlib:libz",
+      "zlib:shared_libz",
       "hitrace:hitrace_dump",
       "relational_store:native_rdb",
     ]
