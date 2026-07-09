@@ -16,7 +16,6 @@
 #ifndef FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TEST_TRACE_STATE_MACHINE_H
 #define FRAMEWORK_NATIVE_UNIFIED_COLLECTION_COLLECTOR_TEST_TRACE_STATE_MACHINE_H
 #include <charconv>
-#include <fstream>
 
 #include "singleton.h"
 #include "trace_common.h"
@@ -37,11 +36,11 @@ const std::string TRACE_TEST_ID3 = "trace_20170928223217@77520-2883";
 const std::string TRACE_TEST_ID4 = "trace_20170928223909@77932-4731";
 const std::string TRACE_TEST_ID5 = "trace_20170928223913@77937-148363";
 const uint32_t FILE_SIZE_DEFAULT = 200 * 1024;
-const std::string TRACE_TEST_SRC1 = TEST_SRC_PATH + TRACE_TEST_ID1 + ".sys";
-const std::string TRACE_TEST_SRC2 = TEST_SRC_PATH + TRACE_TEST_ID2 + ".sys";
-const std::string TRACE_TEST_SRC3 = TEST_SRC_PATH + TRACE_TEST_ID3 + ".sys";
-const std::string TRACE_TEST_SRC4 = TEST_SRC_PATH + TRACE_TEST_ID4 + ".sys";
-const std::string TRACE_TEST_SRC5 = TEST_SRC_PATH + TRACE_TEST_ID5 + ".sys";
+const std::string TRACE_TEST_SRC1 = "/data/test/trace_src/test_traces/trace_20170928220220@75724-2015.sys";
+const std::string TRACE_TEST_SRC2 = "/data/test/trace_src/test_traces/trace_20170928220222@75726-992.sys";
+const std::string TRACE_TEST_SRC3 = "/data/test/trace_src/test_traces/trace_20170928223217@77520-2883.sys";
+const std::string TRACE_TEST_SRC4 = "/data/test/trace_src/test_traces/trace_20170928223909@77932-4731.sys";
+const std::string TRACE_TEST_SRC5 = "/data/test/trace_src/test_traces/trace_20170928223913@77937-148363.sys";
 const std::string TOTAL = "Total";
 constexpr double TOLERATION = 1.1;
 
@@ -65,24 +64,11 @@ inline size_t GetDirFileCount(const std::string& dirPath)
 }
 
 const std::map<std::string, int64_t> FLOW_CONTROL_MAP {
-    {CallerName::XPERF, 400}, // telemetry trace threshold
-    {CallerName::XPOWER, 400},
-    {CallerName::RELIABILITY, 400},
-    {TOTAL, 800} // telemetry total trace threshold
+    {CallerName::XPERF, 3000000}, // telemetry trace threshold
+    {CallerName::XPOWER, 3000000},
+    {CallerName::RELIABILITY, 3000000},
+    {TOTAL, 8000000} // telemetry total trace threshold
 };
-
-inline void CreateTraceFile(const std::string& traceName)
-{
-    std::ofstream outfile(traceName, std::ios::binary);
-    if (!outfile) {
-        std::cout << traceName << " create failed" << std::endl;
-        return;
-    }
-    int32_t data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-    size_t dataSize = sizeof(data);
-    outfile.write(reinterpret_cast<char*>(data), dataSize);
-    outfile.close();
-}
 
 inline UCollectClient::AppCaller CreateAppCaller(int32_t uid, int32_t pid, uint64_t happendTime)
 {

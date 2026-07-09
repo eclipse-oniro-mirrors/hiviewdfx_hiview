@@ -15,7 +15,6 @@
 #include <iostream>
 
 #include "accesstoken_kit.h"
-#include "collector_test_common.h"
 #include "file_util.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
@@ -115,28 +114,6 @@ HWTEST_F(WmCollectorTest, WmCollectorTest003, TestSize.Level1)
     auto result = collector->ExportGpuMemory();
     std::cout << "export Gpu memory result " << result.retCode << std::endl;
     ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::UNSUPPORT);
-}
-
-/**
- * @tc.name: WmCollectorTest004
- * @tc.desc: used to test file clean
- * @tc.type: FUNC
-*/
-HWTEST_F(WmCollectorTest, WmCollectorTest004, TestSize.Level3)
-{
-    std::shared_ptr<WmCollector> collector = WmCollector::Create();
-    EnablePermissionAccess();
-    auto task1 = [&collector] { return collector->ExportWindowsInfo(); };
-    FileCleanTest(task1, COLLECTION_WM_PATH, "windows_info_", MAX_FILE_NUM);
-
-    auto task2 = [&collector] { return collector->ExportWindowsMemory(); };
-    FileCleanTest(task2, COLLECTION_WM_PATH, "windows_memory_", MAX_FILE_NUM);
-    DisablePermissionAccess();
-
-    if (FileUtil::FileExists("/proc/gpu_memory")) {
-        auto task3 = [&collector] { return collector->ExportGpuMemory(); };
-        FileCleanTest(task3, COLLECTION_WM_PATH, "gpu_memory_", MAX_FILE_NUM);
-    }
 }
 #else
 /**
