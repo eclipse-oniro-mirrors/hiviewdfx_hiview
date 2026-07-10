@@ -133,6 +133,6 @@ ohos_source_set("faultlogger_service_fuzz_src") {
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 }

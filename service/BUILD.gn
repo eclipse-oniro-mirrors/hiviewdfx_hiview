@@ -82,7 +82,7 @@ ohos_source_set("hiview_service") {
     "hisysevent:libhisysevent",
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
-    "zlib:libz",
+    "zlib:shared_libz",
     "hitrace:hitrace_dump",
     "relational_store:native_rdb",
   ]

@@ -41,7 +41,7 @@ ohos_shared_library("libasan_logger") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "openssl:libcrypto_shared",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 
   deps = [
