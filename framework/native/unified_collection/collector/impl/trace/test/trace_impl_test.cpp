@@ -28,57 +28,12 @@ class TraceImplTest : public testing::Test {
 public:
     void SetUp() override
     {
-        if (!FileUtil::FileExists(TEST_SAND_BOX_PATH)) {
-            FileUtil::ForceCreateDirectory(TEST_SAND_BOX_PATH);
-        }
         setuid(HIVIEW_UID); // hiview uid
     }
 
-    void TearDown() override
-    {
-        if (FileUtil::FileExists(TEST_SAND_BOX_PATH)) {
-            FileUtil::ForceRemoveDirectory(TEST_SAND_BOX_PATH);
-        }
-    }
-
-    static void SetUpTestCase()
-    {
-        if (!FileUtil::FileExists(TEST_DB_PATH)) {
-            if (!FileUtil::ForceCreateDirectory(TEST_DB_PATH)) {
-                std::cout << "failed create dir:" << TEST_DB_PATH <<std::endl;
-            }
-        }
-        if (!FileUtil::FileExists(TEST_SRC_PATH)) {
-            if (!FileUtil::ForceCreateDirectory(TEST_SRC_PATH)) {
-                std::cout << "failed create dir:" << TEST_SRC_PATH <<std::endl;
-            }
-        }
-        if (!FileUtil::FileExists(TEST_CONFIG_PATH)) {
-            if (!FileUtil::ForceCreateDirectory(TEST_CONFIG_PATH)) {
-                std::cout << "failed create dir:" << TEST_CONFIG_PATH <<std::endl;
-            }
-        }
-        CreateTraceFile(TRACE_TEST_SRC1);
-    }
-
-    static void TearDownTestCase()
-    {
-        if (FileUtil::FileExists(TEST_DB_PATH)) {
-            if (!FileUtil::ForceRemoveDirectory(TEST_DB_PATH)) {
-                std::cout << "remove dir:" << TEST_DB_PATH << " failed" << std::endl;
-            }
-        }
-        if (FileUtil::FileExists(TEST_SRC_PATH)) {
-            if (!FileUtil::ForceRemoveDirectory(TEST_SRC_PATH)) {
-                std::cout << "remove dir:" << TEST_SRC_PATH << " failed" << std::endl;
-            }
-        }
-        if (FileUtil::FileExists(TEST_CONFIG_PATH)) {
-            if (!FileUtil::ForceRemoveDirectory(TEST_CONFIG_PATH)) {
-                std::cout << "remove dir:" << TEST_CONFIG_PATH << " failed" << std::endl;
-            }
-        }
-    }
+    void TearDown() override {}
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
 };
 
 /**
