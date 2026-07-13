@@ -186,40 +186,41 @@ bool CheckContent(const std::string& fileName, const std::vector<std::regex>& re
 
 class DecoratorTest : public testing::Test {
 public:
-    void SetUp() {};
-    void TearDown() {};
-    static void SetUpTestCase()
-    {
+void SetUp() {};
+void TearDown() {};
+static void SetUpTestCase()
+{
 #ifdef HAS_HIPERF
-        g_collector_names.insert("PerfCollector");
+    g_collector_names.insert("PerfCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_CPU_ENABLE
-        g_collector_names.insert("CpuCollector");
+    g_collector_names.insert("CpuCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_GPU_ENABLE
-        g_collector_names.insert("GpuCollector");
+    g_collector_names.insert("GpuCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
-        g_collector_names.insert("HilogCollector");
+    g_collector_names.insert("HilogCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
-        g_collector_names.insert("IoCollector");
+    g_collector_names.insert("IoCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
-        g_collector_names.insert("MemoryCollector");
+    g_collector_names.insert("MemoryCollector");
 #endif
 
-        system("param set hiviewdfx.ucollection.switchon true");
-    };
-    static void TearDownTestCase()
-    {
-        system("param set hiviewdfx.ucollection.switchon false");
-    };
+    system("param set hiviewdfx.ucollection.switchon true");
+};
+
+static void TearDownTestCase()
+{
+    system("param set hiviewdfx.ucollection.switchon false");
+};
 };
 
 /**

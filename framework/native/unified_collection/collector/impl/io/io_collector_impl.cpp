@@ -115,12 +115,6 @@ CollectResult<ProcessIo> IoCollectorImpl::CollectProcessIo(int32_t pid)
     return result;
 }
 
-std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
-{
-    std::unique_lock<std::mutex> lock(exportFileMutex_);
-    return CommonUtils::CreateExportFile(COLLECTION_IO_PATH, MAX_FILE_NUM, filePrefix, EXPORT_FILE_SUFFIX);
-}
-
 CollectResult<std::vector<DiskStats>> IoCollectorImpl::CollectDiskStats(DiskStatsFilter filter, bool isUpdate)
 {
     CollectResult<std::vector<DiskStats>> result;

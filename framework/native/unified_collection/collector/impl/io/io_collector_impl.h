@@ -50,7 +50,6 @@ private:
     void CalculateProcIoStats(const ProcessIo& currData, int32_t pid, uint64_t period);
     bool ProcIoStatsFilter(const ProcessIoStats& stats);
     int32_t GetProcStateInCollectionPeriod(int32_t pid);
-    std::string CreateExportFileName(const std::string& filePrefix);
 
 private:
     std::mutex collectDiskMutex_;
