@@ -45,12 +45,6 @@ constexpr int PROC_IO_STATS_PERIOD = 2;
 constexpr int EMMC_INFO_SIZE_RATIO = 2 * 1024 * 1024;
 constexpr int32_t MAX_FILE_NUM = 10;
 constexpr char MMC[] = "mmc";
-constexpr char EXPORT_FILE_SUFFIX[] = ".txt";
-constexpr char RAW_DISK_STATS_FILE_PREFIX[] = "proc_diskstats_";
-constexpr char DISK_STATS_FILE_PREFIX[] = "proc_diskstats_statistics_";
-constexpr char EMMC_INFO_FILE_PREFIX[] = "emmc_info_";
-constexpr char PROC_IO_STATS_FILE_PREFIX[] = "proc_io_stats_";
-constexpr char SYS_IO_STATS_FILE_PREFIX[] = "sys_io_stats_";
 constexpr char PROC_DISKSTATS[] = "/proc/diskstats";
 constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io";
 constexpr char IO[] = "/io";
@@ -125,26 +119,6 @@ std::string IoCollectorImpl::CreateExportFileName(const std::string& filePrefix)
 {
     std::unique_lock<std::mutex> lock(exportFileMutex_);
     return CommonUtils::CreateExportFile(COLLECTION_IO_PATH, MAX_FILE_NUM, filePrefix, EXPORT_FILE_SUFFIX);
-}
-
-CollectResult<std::string> IoCollectorImpl::CollectRawDiskStats()
-{
-    CollectResult<std::string> result;
-    result.retCode = UcError::UNSUPPORT;
-
-    std::string fileName = CreateExportFileName(RAW_DISK_STATS_FILE_PREFIX);
-    if (fileName.empty()) {
-        return result;
-    }
-    int ret = FileUtil::CopyFile(PROC_DISKSTATS, fileName);
-    if (ret != 0) {
-        HIVIEW_LOGE("copy /proc/diskstats to file=%{public}s failed.", fileName.c_str());
-        return result;
-    }
-
-    result.data = fileName;
-    result.retCode = UcError::SUCCESS;
-    return result;
 }
 
 CollectResult<std::vector<DiskStats>> IoCollectorImpl::CollectDiskStats(DiskStatsFilter filter, bool isUpdate)
@@ -241,40 +215,6 @@ void IoCollectorImpl::CalculateDeviceDiskStats(const DiskData& currData, const s
     }
 }
 
-CollectResult<std::string> IoCollectorImpl::ExportDiskStats(DiskStatsFilter filter)
-{
-    CollectResult<std::string> result;
-    result.retCode = UcError::UNSUPPORT;
-
-    std::vector<DiskStats> diskStats;
-    GetDiskStats(filter, false, diskStats);
-    std::sort(diskStats.begin(), diskStats.end(), [](const DiskStats &leftStats, const DiskStats &rightStats) {
-        return leftStats.deviceName < rightStats.deviceName;
-    });
-
-    std::string fileName = CreateExportFileName(DISK_STATS_FILE_PREFIX);
-    if (fileName.empty()) {
-        return result;
-    }
-    FILE *filePtr = fopen(fileName.c_str(), "w");
-    if (filePtr == nullptr) {
-        HIVIEW_LOGE("create fileName=%{public}s failed.", fileName.c_str());
-        return result;
-    }
-    fprintf(filePtr, "%-13s\t%20s\t%20s\t%20s\t%20s\t%12s\t%12s\t%12s\n", "device", "sectorReadRate/s",
-        "sectorWriteRate/s", "operReadRate/s", "operWriteRate/s", "readTime", "writeTime", "ioWait");
-    for (auto &stats : diskStats) {
-        fprintf(filePtr, "%-13s\t%12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.4f\t%12.4f\t%12" PRIu64 "\n",
-            stats.deviceName.c_str(), stats.sectorReadRate, stats.sectorWriteRate, stats.operReadRate,
-            stats.operWriteRate, stats.readTimeRate, stats.writeTimeRate, stats.ioWait);
-    }
-    fclose(filePtr);
-
-    result.retCode = UcError::SUCCESS;
-    result.data = fileName;
-    return result;
-}
-
 void IoCollectorImpl::ReadEMMCInfo(const std::string& path, std::vector<EMMCInfo>& mmcInfos)
 {
     EMMCInfo mmcInfo;
@@ -369,38 +309,6 @@ CollectResult<std::vector<EMMCInfo>> IoCollectorImpl::CollectEMMCInfo()
     CalculateEMMCInfo(result.data);
     HIVIEW_LOGI("collect emmc info size=%{public}zu", result.data.size());
     result.retCode = UcError::SUCCESS;
-    return result;
-}
-
-CollectResult<std::string> IoCollectorImpl::ExportEMMCInfo()
-{
-    CollectResult<std::string> result;
-    result.retCode = UcError::UNSUPPORT;
-
-    std::vector<EMMCInfo> mmcInfos;
-    CalculateEMMCInfo(mmcInfos);
-    std::sort(mmcInfos.begin(), mmcInfos.end(), [](const EMMCInfo &leftInfo, const EMMCInfo &rightInfo) {
-        return leftInfo.name < rightInfo.name;
-    });
-
-    std::string fileName = CreateExportFileName(EMMC_INFO_FILE_PREFIX);
-    if (fileName.empty()) {
-        return result;
-    }
-    FILE *filePtr = fopen(fileName.c_str(), "w");
-    if (filePtr == nullptr) {
-        HIVIEW_LOGE("open file=%{public}s failed.", fileName.c_str());
-        return result;
-    }
-    fprintf(filePtr, "%-15s\t%15s\t%15s\t%15s\t%15s\n", "name", "manfid", "csd", "type", "capacity(GB)");
-    for (auto &mmcInfo : mmcInfos) {
-        fprintf(filePtr, "%-15s\t%-12s\t%-35s\t%-12s\t%12.2f\n", mmcInfo.name.c_str(), mmcInfo.manfid.c_str(),
-            mmcInfo.csd.c_str(), mmcInfo.type.c_str(), static_cast<double>(mmcInfo.size) / EMMC_INFO_SIZE_RATIO);
-    }
-    fclose(filePtr);
-
-    result.retCode = UcError::SUCCESS;
-    result.data = fileName;
     return result;
 }
 
@@ -507,41 +415,6 @@ CollectResult<std::vector<ProcessIoStats>> IoCollectorImpl::CollectAllProcIoStat
     return result;
 }
 
-CollectResult<std::string> IoCollectorImpl::ExportAllProcIoStats()
-{
-    CollectResult<std::string> result;
-    result.retCode = UcError::UNSUPPORT;
-
-    std::vector<ProcessIoStats> allProcIoStats;
-    GetProcIoStats(allProcIoStats, false);
-    std::sort(allProcIoStats.begin(), allProcIoStats.end(),
-        [](const ProcessIoStats &leftStats, const ProcessIoStats &rightStats) {
-            return leftStats.name < rightStats.name;
-        });
-
-    std::string fileName = CreateExportFileName(PROC_IO_STATS_FILE_PREFIX);
-    if (fileName.empty()) {
-        return result;
-    }
-    FILE *filePtr = fopen(fileName.c_str(), "w");
-    if (filePtr == nullptr) {
-        HIVIEW_LOGE("open file=%{public}s failed.", fileName.c_str());
-        return result;
-    }
-    fprintf(filePtr, "%-13s\t%12s\t%12s\t%12s\t%12s\t%12s\t%12s\t%20s\t%20s\n", "pid", "pname", "fg/bg",
-        "rchar/s", "wchar/s", "syscr/s", "syscw/s", "readBytes/s", "writeBytes/s");
-    for (auto &procIoStats : allProcIoStats) {
-        fprintf(filePtr, "%-12d\t%12s\t%12d\t%12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.2f\n",
-            procIoStats.pid, procIoStats.name.c_str(), procIoStats.ground, procIoStats.rcharRate, procIoStats.wcharRate,
-            procIoStats.syscrRate, procIoStats.syscwRate, procIoStats.readBytesRate, procIoStats.writeBytesRate);
-    }
-    fclose(filePtr);
-
-    result.retCode = UcError::SUCCESS;
-    result.data = fileName;
-    return result;
-}
-
 CollectResult<SysIoStats> IoCollectorImpl::CollectSysIoStats()
 {
     CollectResult<SysIoStats> result;
@@ -558,36 +431,6 @@ CollectResult<SysIoStats> IoCollectorImpl::CollectSysIoStats()
         sysIoStats.writeBytesRate += procIoStats.writeBytesRate;
     }
     result.retCode = UcError::SUCCESS;
-    return result;
-}
-
-CollectResult<std::string> IoCollectorImpl::ExportSysIoStats()
-{
-    CollectResult<std::string> result;
-    result.retCode = UcError::UNSUPPORT;
-    auto collectSysIoStatsResult = CollectSysIoStats();
-    if (collectSysIoStatsResult.retCode != UcError::SUCCESS) {
-        return result;
-    }
-
-    std::string fileName = CreateExportFileName(SYS_IO_STATS_FILE_PREFIX);
-    if (fileName.empty()) {
-        return result;
-    }
-    FILE *filePtr = fopen(fileName.c_str(), "w");
-    if (filePtr == nullptr) {
-        HIVIEW_LOGE("open file=%{public}s failed.", fileName.c_str());
-        return result;
-    }
-    fprintf(filePtr, "%-12s\t%12s\t%12s\t%12s\t%20s\t%20s\n",
-        "rchar/s", "wchar/s", "syscr/s", "syscw/s", "readBytes/s", "writeBytes/s");
-    auto &sysIoStats = collectSysIoStatsResult.data;
-    fprintf(filePtr, "%-12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.2f\t%12.2f\n", sysIoStats.rcharRate, sysIoStats.wcharRate,
-        sysIoStats.syscrRate, sysIoStats.syscwRate, sysIoStats.readBytesRate, sysIoStats.writeBytesRate);
-    fclose(filePtr);
-
-    result.retCode = UcError::SUCCESS;
-    result.data = fileName;
     return result;
 }
 } // UCollectUtil

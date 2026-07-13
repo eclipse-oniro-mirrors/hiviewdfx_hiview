@@ -32,12 +32,6 @@ config("ucollection_source_config") {
     include_dirs += [ "collector/empty_impl/hiebpf" ]
   }
 
-  if (hiview_unified_collector_network_enable) {
-    include_dirs += [ "collector/impl/network" ]
-  } else {
-    include_dirs += [ "collector/empty_impl/network" ]
-  }
-
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     include_dirs += [
       "collector/impl/perf",
@@ -181,32 +175,6 @@ ohos_source_set("ucollection_source") {
 
   defines = []
 
-  if (hiview_unified_collector_ebpf_enable) {
-    sources += [
-      "collector/impl/hiebpf/hiebpf_collector_impl.cpp",
-      "decorator/hiebpf_decorator.cpp",
-    ]
-    defines += [ "UNIFIED_COLLECTOR_EBPF_ENABLE" ]
-  } else {
-    sources += [ "collector/empty_impl/hiebpf/hiebpf_collector_empty_impl.cpp" ]
-  }
-
-  if (hiview_unified_collector_network_enable) {
-    sources += [
-      "collector/impl/network/network_collector_impl.cpp",
-      "decorator/network_decorator.cpp",
-    ]
-    defines += [ "UNIFIED_COLLECTOR_NETWORK_ENABLE" ]
-
-    if (is_wifi_enable) {
-      external_deps += [ "wifi:wifi_sdk" ]
-      defines += [ "COMMUNICATION_WIFI_ENABLE" ]
-    }
-  } else {
-    sources +=
-        [ "collector/empty_impl/network/network_collector_empty_impl.cpp" ]
-  }
-
   if (hiview_unified_collector_graphic_enable) {
     sources += [
       "collector/impl/graphic/graphic_memory_collector_impl.cpp",
@@ -275,16 +243,6 @@ ohos_source_set("ucollection_source") {
     defines += [ "UNIFIED_COLLECTOR_HILOG_ENABLE" ]
   } else {
     sources += [ "collector/empty_impl/hilog/hilog_collector_empty_impl.cpp" ]
-  }
-
-  if (hiview_unified_collector_wm_enable) {
-    sources += [
-      "collector/impl/wm/wm_collector_impl.cpp",
-      "decorator/wm_decorator.cpp",
-    ]
-    defines += [ "UNIFIED_COLLECTOR_WM_ENABLE" ]
-  } else {
-    sources += [ "collector/empty_impl/wm/wm_collector_empty_impl.cpp" ]
   }
 
   if (hiview_unified_collector_trace_enable) {

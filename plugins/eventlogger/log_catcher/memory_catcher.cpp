@@ -18,7 +18,6 @@
 #include "file_util.h"
 #include "freeze_common.h"
 #include "hiview_logger.h"
-#include "memory_collector.h"
 #include "string_util.h"
 
 namespace OHOS {
@@ -96,9 +95,6 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
 void MemoryCatcher::CollectMemInfo()
 {
     HIVIEW_LOGI("CollectMemInfo start");
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    collector->CollectRawMemInfo();
-    collector->ExportMemView();
     HIVIEW_LOGI("CollectMemInfo end");
 }
 

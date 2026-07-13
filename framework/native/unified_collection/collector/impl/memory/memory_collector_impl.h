@@ -21,13 +21,6 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace UCollectUtil {
-struct IHiaiInfra {
-    int32_t (*QueryAllUserAllocatedMemInfo)(struct IHiaiInfra* self, struct AIProcessMem* memInfos,
-        uint32_t* memInfosLen, int32_t* realSize);
-
-    int32_t (*GetVersion)(struct IHiaiInfra* self, uint32_t* majorVer, uint32_t* minorVer);
-};
-
 class MemoryCollectorImpl : public MemoryCollector {
 public:
     MemoryCollectorImpl() = default;
@@ -36,19 +29,9 @@ public:
 public:
     virtual CollectResult<ProcessMemory> CollectProcessMemory(int32_t pid) override;
     virtual CollectResult<SysMemory> CollectSysMemory() override;
-    virtual CollectResult<std::string> CollectRawMemInfo() override;
-    virtual CollectResult<std::string> ExportMemView() override;
     virtual CollectResult<std::vector<ProcessMemory>> CollectAllProcessMemory() override;
-    virtual CollectResult<std::string> CollectRawSlabInfo() override;
-    virtual CollectResult<std::string> CollectRawPageTypeInfo() override;
-    virtual CollectResult<std::string> CollectRawDMA() override;
-    virtual CollectResult<std::vector<AIProcessMem>> CollectAllAIProcess() override;
-    virtual CollectResult<std::string> ExportAllAIProcess() override;
-    virtual CollectResult<std::string> CollectRawSmaps(int32_t pid) override;
-    virtual CollectResult<std::string> CollectHprof(int32_t pid) override;
     virtual CollectResult<uint64_t> CollectProcessVss(int32_t pid) override;
     virtual CollectResult<MemoryLimit> CollectMemoryLimit() override;
-    virtual CollectResult<uint32_t> CollectDdrFreq() override;
     virtual CollectResult<ProcessMemoryDetail> CollectProcessMemoryDetail(int32_t pid,
         GraphicMemOption option) override;
 };

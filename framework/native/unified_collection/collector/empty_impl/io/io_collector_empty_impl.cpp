@@ -28,19 +28,9 @@ CollectResult<ProcessIo> IoCollectorEmptyImpl::CollectProcessIo(int32_t pid)
     return CollectResult<ProcessIo>(UCollect::UcError::FEATURE_CLOSED);
 }
 
-CollectResult<std::string> IoCollectorEmptyImpl::CollectRawDiskStats()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
 CollectResult<std::vector<DiskStats>> IoCollectorEmptyImpl::CollectDiskStats(DiskStatsFilter filter, bool isUpdate)
 {
     return CollectResult<std::vector<DiskStats>>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> IoCollectorEmptyImpl::ExportDiskStats(DiskStatsFilter filter)
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
 }
 
 CollectResult<std::vector<EMMCInfo>> IoCollectorEmptyImpl::CollectEMMCInfo()
@@ -48,29 +38,14 @@ CollectResult<std::vector<EMMCInfo>> IoCollectorEmptyImpl::CollectEMMCInfo()
     return CollectResult<std::vector<EMMCInfo>>(UCollect::UcError::FEATURE_CLOSED);
 }
 
-CollectResult<std::string> IoCollectorEmptyImpl::ExportEMMCInfo()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
 CollectResult<std::vector<ProcessIoStats>> IoCollectorEmptyImpl::CollectAllProcIoStats(bool isUpdate)
 {
     return CollectResult<std::vector<ProcessIoStats>>(UCollect::UcError::FEATURE_CLOSED);
 }
 
-CollectResult<std::string> IoCollectorEmptyImpl::ExportAllProcIoStats()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
 CollectResult<SysIoStats> IoCollectorEmptyImpl::CollectSysIoStats()
 {
     return CollectResult<SysIoStats>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> IoCollectorEmptyImpl::ExportSysIoStats()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
 }
 } // UCollectUtil
 } // HiViewDFX

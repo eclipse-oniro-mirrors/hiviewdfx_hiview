@@ -31,19 +31,9 @@ public:
     virtual CollectResult<ProcessMemory> CollectProcessMemory(int32_t pid) = 0;
     virtual CollectResult<SysMemory> CollectSysMemory() = 0;
     static std::shared_ptr<MemoryCollector> Create();
-    virtual CollectResult<std::string> CollectRawMemInfo() = 0;
-    virtual CollectResult<std::string> ExportMemView() = 0;
     virtual CollectResult<std::vector<ProcessMemory>> CollectAllProcessMemory() = 0;
-    virtual CollectResult<std::string> CollectRawSlabInfo() = 0;
-    virtual CollectResult<std::string> CollectRawPageTypeInfo() = 0;
-    virtual CollectResult<std::string> CollectRawDMA() = 0;
-    virtual CollectResult<std::vector<AIProcessMem>> CollectAllAIProcess() = 0;
-    virtual CollectResult<std::string> ExportAllAIProcess() = 0;
-    virtual CollectResult<std::string> CollectRawSmaps(int32_t pid) = 0;
-    virtual CollectResult<std::string> CollectHprof(int32_t pid) = 0;
     virtual CollectResult<uint64_t> CollectProcessVss(int32_t pid) = 0;
     virtual CollectResult<MemoryLimit> CollectMemoryLimit() = 0;
-    virtual CollectResult<uint32_t> CollectDdrFreq() = 0;
     virtual CollectResult<ProcessMemoryDetail> CollectProcessMemoryDetail(int32_t pid, GraphicMemOption option) = 0;
 
     static MemoryItemType MapNameToMemoryType(const std::string& name);

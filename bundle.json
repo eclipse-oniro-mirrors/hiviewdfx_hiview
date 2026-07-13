@@ -211,10 +211,9 @@
                             "utility/gpu_collector.h",
                             "utility/io_collector.h",
                             "utility/memory_collector.h",
-                            "utility/network_collector.h",
                             "utility/thermal_collector.h",
                             "utility/trace_collector.h",
-                            "utility/wm_collector.h"
+
                         ]
                     }
                 },

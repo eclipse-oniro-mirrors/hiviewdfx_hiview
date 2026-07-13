@@ -214,15 +214,6 @@ struct ProcessMemoryDetail {
     uint64_t totalSwapPss = 0;
     std::vector<MemoryDetail> details;
 };
-
-extern "C" {
-const uint32_t HIAI_MAX_QUERIED_USER_MEMINFO_LIMIT = 256;
-
-using AIProcessMem = struct AIProcessMem {
-    int pid = 0;                 // process id
-    int size = 0;                // byte
-};
-};
 } // HiviewDFX
 } // OHOS
 #endif // INTERFACES_INNER_API_UNIFIED_COLLECTION_RESOURCE_MEMORY_H
