@@ -97,11 +97,17 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
     HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d", info.uid, uid, info.pid);
     if ((uid != static_cast<int32_t>(getuid())) && uid != info.uid && uid != UID_FAULTLOGGERD) {
         HIVIEW_LOGW("Fail to add fault log, mismatch uid:%{public}d(%{public}d)", uid, info.uid);
+        if (info.pipeFd > 0) {
+            close(info.pipeFd);
+        }
         return;
     }
 
     auto instance = GetFaultloggerInterface(FAULTLOGGER_LIB_DELAY_RELEASE_TIME);
     if (instance == nullptr) {
+        if (info.pipeFd > 0) {
+            close(info.pipeFd);
+        }
         return;
     }
     FaultLogInfo outInfo;
