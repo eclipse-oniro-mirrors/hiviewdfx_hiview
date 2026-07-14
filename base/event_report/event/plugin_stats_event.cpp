@@ -94,11 +94,11 @@ void PluginStatsEvent::Report()
     std::vector<std::string> topKEvents = paramMap_[KEY_OF_TOP_K_EVENT].GetStringVec();
     std::vector<char*> translatedTopKEvents;
     TranslateStrVector(topKEvents, translatedTopKEvents);
+    std::vector<uint32_t> topKeyTimes = paramMap_[KEY_OF_TOP_K_TIME].GetUint32Vec();
     HiSysEventParam params[] = {
         BUILD_PARAM(PLUGIN_NAME_LITERAL, HISYSEVENT_STRING, s, PARAM_STR(pluginName)),
         BUILD_PARAM(AVG_TIME_LITERAL, HISYSEVENT_UINT32, ui32, paramMap_[KEY_OF_AVG_TIME].GetUint32()),
-        BUILD_ARRAY_PARAM(TOP_K_TIME_LITERAL, HISYSEVENT_UINT32_ARRAY, uint32_t,
-            paramMap_[KEY_OF_TOP_K_TIME].GetUint32Vec()),
+        BUILD_ARRAY_PARAM(TOP_K_TIME_LITERAL, HISYSEVENT_UINT32_ARRAY, uint32_t, topKeyTimes),
         BUILD_ARRAY_PARAM(TOP_K_EVENT_LITERAL, HISYSEVENT_STRING_ARRAY, char*, translatedTopKEvents),
         BUILD_PARAM(TOTAL_LITERAL, HISYSEVENT_UINT32, ui32, paramMap_[KEY_OF_TOTAL].GetUint32()),
     };
