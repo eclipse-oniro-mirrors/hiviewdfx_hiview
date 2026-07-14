@@ -1,0 +1,65 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/config/features.gni")
+import("//build/test.gni")
+
+ohos_fuzztest("GwpAsanWriteSanitizerLogFuzzTest") {
+  module_out_path = "hiview/hiview/faultlogger"
+
+  fuzz_config_file = "//base/hiviewdfx/hiview/plugins/faultlogger/test/common/fuzztest/gwpasanwritesanitizerlog_fuzzer"
+
+  include_dirs = [
+    ".",
+    "../common/include",
+    "$hiview_core",
+    "$hiview_faultlogger/service/bdfr_base/sanitizer_collector/gwp_asan",
+  ]
+
+  defines = [
+    "UNIT_TEST",
+    "UNITTEST",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  cflags_cc = [ "-DUNITTEST" ]
+
+  sources = [
+    "gwpasanwritesanitizerlog_fuzzer.cpp",
+  ]
+
+  deps = [
+    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_faultlogger/service/bdfr_base/sanitizer_collector/gwp_asan:libasan_logger",
+  ]
+
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "faultloggerd:libfaultloggerd",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent_easy",
+    "init:libbegetutil",
+    "openssl:libcrypto_shared",
+  ]
+
+  resource_config_file =
+      "$hiview_faultlogger/test/common/resource/ohos_test.xml"
+}
+
+group("fuzztest") {
+  testonly = true
+  deps = [ ":GwpAsanWriteSanitizerLogFuzzTest" ]
+}

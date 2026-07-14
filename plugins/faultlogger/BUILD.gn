@@ -93,6 +93,16 @@ group("fuzztest") {
     "test/common/fuzztest/faultlogfreezeutils_fuzzer:fuzztest",
     "test/common/fuzztest/freezejsongenerator_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogbaseinterface_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogcjerrorfillfaultloginfo_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogerrorreporter_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogeventpipelineaddfaultlog_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogfreezereportapp_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogjserrorfillfaultloginfo_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogpageinfoaddfaultlog_fuzzer:fuzztest",
+    "test/common/fuzztest/faultlogrustpanicfillfaultloginfo_fuzzer:fuzztest",
+    "test/common/fuzztest/freezejsonparamsextra_fuzzer:fuzztest",
+    "test/common/fuzztest/gwpasanwritesanitizerlog_fuzzer:fuzztest",
+    "test/common/fuzztest/sanitizertelemetryonevent_fuzzer:fuzztest",
   ]
 }
 

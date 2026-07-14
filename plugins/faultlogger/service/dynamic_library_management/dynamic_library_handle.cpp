@@ -47,6 +47,9 @@ void* DynamicLibraryHandle::GetSymbol(const char* symbol)
 void DynamicLibraryHandle::UpdateTimeout(uint64_t timeOut)
 {
     std::lock_guard<std::recursive_mutex> lock(mtx_);
+#ifdef UNITTEST
+    timeOut = 0;
+#endif
     auto newReleaseTime = std::chrono::steady_clock::now() + std::chrono::seconds(timeOut);
     if (releaseTime_ >= newReleaseTime) {
         return;
