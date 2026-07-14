@@ -129,8 +129,8 @@ void TraceWorker::HandleUcollectionTask(UcollectionTask ucollectionTask)
 auto TraceZipHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
     -> std::vector<std::string>
 {
-    if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
-        HIVIEW_LOGE("failed to create multidirectory.");
+    if (!FileUtil::FileExists(tracePath_)) {
+        HIVIEW_LOGE("directory not exist");
         return {};
     }
     std::vector<std::string> files;
@@ -224,8 +224,8 @@ void TraceLinkHandler::LinkTraceFile(const std::string &src, const std::string &
 auto TraceLinkHandler::HandleTrace(const std::vector<std::string>& outputFiles, HandleCallback callback)
     -> std::vector<std::string>
 {
-    if (!FileUtil::FileExists(tracePath_) && !FileUtil::CreateMultiDirectory(tracePath_)) {
-        HIVIEW_LOGE("create dir %{public}s fail", tracePath_.c_str());
+    if (!FileUtil::FileExists(tracePath_)) {
+        HIVIEW_LOGE("directory not exist");
         return {};
     }
     std::vector<std::string> files;

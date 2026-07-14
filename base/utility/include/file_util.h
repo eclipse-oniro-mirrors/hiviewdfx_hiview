@@ -102,9 +102,6 @@ bool GetDirXattr(const std::string& dir, const std::string& name, std::string& v
 int64_t GetLastModifiedTimeStamp(const std::string& filePath);
 bool IsSymlink(const std::string& path);
 std::string ReadSymlink(const std::string& path);
-
-// for report
-bool CreateMultiDirectory(const std::string &dirPath);
 } // namespace FileUtil
 } // namespace HiviewDFX
 } // namespace OHOS
