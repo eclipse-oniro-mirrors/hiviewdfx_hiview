@@ -223,7 +223,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         return "";
     }
     fdsan_exchange_owner_tag(fd, 0, FREEZE_DOMAIN);
-    std::string logFile;
+    std::string logFile = "";
     if (FileUtil::SaveStringToFd(fd, cpuInfo + stackInfo)) {
         logFile = FREEZE_EXT_LOG_PATH + freezeFile;
         HIVIEW_LOGW("create freezeExt file=%{public}s success.", logFile.c_str());
