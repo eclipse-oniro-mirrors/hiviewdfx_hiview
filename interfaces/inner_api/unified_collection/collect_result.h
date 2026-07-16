@@ -59,6 +59,9 @@ enum UcError {
     PERF_COLLECT_FAILED = 2001,
     PERF_CALLER_NOT_FIND = 2003,
     PERF_MEMORY_NOT_ALLOW = 2004,
+
+    // ui tree call
+    UI_TREE_FORK_FAIL = 3000,
 };
 } // UCollect
 

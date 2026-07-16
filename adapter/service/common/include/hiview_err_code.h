@@ -42,6 +42,12 @@ constexpr int32_t ERR_WRITE_INTERFACE_TOKEN = -13;
 constexpr int32_t ERR_SEND_REQUEST = -14;
 constexpr int32_t ERR_INVALID_HANDLER = -15;
 }
+
+namespace UiTreeErrCode {
+constexpr int32_t ERR_OK = 0;
+constexpr int32_t ERR_RENDER_SERIVICE_CHECK = 201;
+constexpr int32_t ERR_GET_HIVIEW_SERVICE = -10;
+}
 } // namespace HiviewDFX
 } // namespace OHOS
 #endif

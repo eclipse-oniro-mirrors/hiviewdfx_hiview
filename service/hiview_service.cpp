@@ -29,6 +29,7 @@
 #include "hiview_platform.h"
 #include "hiview_service_adapter.h"
 #include "sys_event.h"
+#include "obj_sys_event.h"
 #include "sys_event_dao.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -459,6 +460,24 @@ CollectResult<int32_t> HiviewService::SetForkDumpService(
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
     HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
     std::this_thread::sleep_for(std::chrono::milliseconds(OOM_FORK_SLEEP_TIME));
+    return {UCollect::UcError::SUCCESS};
+}
+
+CollectResult<int32_t> HiviewService::RequestUiTree(int32_t pid, const sptr<IRequestUiTreeCallback> &callback)
+{
+    if (callback == nullptr) {
+        return {UCollect::UcError::SYSTEM_ERROR};
+    }
+    SysEventCreator sysEventCreator("HIVIEWDFX", "UI_TREE", SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("UITREE_PID", pid);
+    auto objSysEvent = std::make_shared<ObjSysEvent>("UI_TREE", nullptr, sysEventCreator);
+    auto remoteObj = callback->AsObject();
+    if (remoteObj == nullptr) {
+        return {UCollect::UcError::SYSTEM_ERROR};
+    }
+    objSysEvent->SetEventObjValue(remoteObj);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(objSysEvent);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
     return {UCollect::UcError::SUCCESS};
 }
 }  // namespace HiviewDFX
