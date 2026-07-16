@@ -227,5 +227,20 @@ HWTEST(FaultLogBootScanTest, FaultloggerTest004, testing::ext::TestSize.Level3)
     sleep(1);
 }
 
+/**
+ * @tc.name: IsReportedTest001
+ * @tc.desc: Test IsReported with render uid
+ * @tc.type: FUNC
+ */
+HWTEST(FaultLogBootScanTest, IsReportedTest001, testing::ext::TestSize.Level3)
+{
+    FaultLogInfo info;
+    info.pid = 987654;
+    info.id = 100100; // render uid: 100100 % 200000 = 100100, in range [100000, 109999]
+    info.module = "OriginalModule";
+    info.faultLogType = FaultLogType::CPP_CRASH;
+    EXPECT_FALSE(FaultLogBootScan::IsReported(info));
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

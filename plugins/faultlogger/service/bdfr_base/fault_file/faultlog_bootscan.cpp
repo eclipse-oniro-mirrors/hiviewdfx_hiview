@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,14 @@
 #include "faultlog_bootscan.h"
 
 #include "constants.h"
+#include "faultlog_bundle_util.h"
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
 #include "faultlog_event_factory.h"
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -89,8 +91,17 @@ bool FaultLogBootScan::IsEmptyStack(const std::string& file, const FaultLogInfo&
     return false;
 }
 
-bool FaultLogBootScan::IsReported(const FaultLogInfo& info)
+bool FaultLogBootScan::IsReported(FaultLogInfo& info)
 {
+    if (IsRenderUid(info.id)) {
+        info.module = Parameter::GetString("persist.arkwebcore.package_name", "Unknown");
+        DfxBundleInfo bundleInfo;
+        if (info.module.find("arkwebcore") != std::string::npos && GetDfxBundleInfo(info.module, bundleInfo)) {
+            info.id = bundleInfo.uid;
+            HIVIEW_LOGI("update uid%{public}d to %{public}d ", info.id, bundleInfo.uid);
+        }
+    }
+
     if (FaultLogDatabase::IsFaultExist(info.pid, info.id, info.faultLogType)) {
         HIVIEW_LOGI("Skip processed fault.(%{public}d:%{public}d) ", info.pid, info.id);
         return true;
