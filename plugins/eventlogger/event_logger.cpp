@@ -115,6 +115,7 @@ namespace {
     constexpr int HEAP_SHARED_INDEX = 2;
     constexpr int WINDOW_ID_BUFF = 32;
     constexpr int HEAP_SHARED_TOTAL_SIZE = 815792128;
+    constexpr size_t END_FLAG_SIZE = 14;
 }
 
 REGISTER(EventLogger);
@@ -534,7 +535,10 @@ bool EventLogger::MatchEventEndFlag(const std::string& line)
     if (endPos == std::string::npos) {
         return false;
     }
-    size_t keywordStart = startPos + 14;
+    if (startPos >= endPos) {
+        return false;
+    }
+    size_t keywordStart = startPos + END_FLAG_SIZE;
     for (const auto& keyword : PRIORITY_KEYWORDS) {
         if (line.compare(keywordStart, strlen(keyword), keyword) == 0 && keywordStart + strlen(keyword) <= endPos) {
             return true;
@@ -673,10 +677,10 @@ WindowIdInfo EventLogger::DumpWindowInfo(int fd)
         const char* focusPos = strstr(buffer, "Focus window: ");
         if (focusPos != nullptr) {
             focusPos += strlen("Focus window: ");
-            while (*focusPos == ' ') focusPos++;
+            while (*focusPos == ' ' && *focusPos != '\0') focusPos++;
             char windowIdBuf[WINDOW_ID_BUFF] = {0};
             int i = 0;
-            while (i < WINDOW_ID_BUFF - 1 && focusPos[i] >= '0' && focusPos[i] <= '9') {
+            while (i < WINDOW_ID_BUFF - 1 && focusPos[i] != '\0' && focusPos[i] >= '0' && focusPos[i] <= '9') {
                 windowIdBuf[i] = focusPos[i];
                 i++;
             }
@@ -867,6 +871,10 @@ void EventLogger::WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream
 
 void EventLogger::WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
 {
+    if (event == nullptr) {
+        HIVIEW_LOGW("event is null.");
+        return;
+    }
     std::string ioStr = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO);
     if (ioStr.empty()) {
         HIVIEW_LOGE("ioStr is empty.");
@@ -955,6 +963,10 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
     int uid = event->GetEventIntValue("UID");
     std::string allStack;
     std::string bundleName = CommonUtils::GetProcFullNameByPid(pid);
+    if (bundleName.empty()) {
+        HIVIEW_LOGE("catch stack failed, bundleName is empty, pid:%{public}d", pid);
+        return false;
+    }
     std::string stackStr;
     int ret = LogCatcherUtils::DumpStacktraceJsonFast(pid, jsonStack);
     std::string jsonStack1 = jsonStack;
@@ -963,9 +975,12 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
     if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
         std::string procName = CommonUtils::GetProcFullNameByPid(pid);
         size_t len = std::char_traits<char>::length(":render");
-        if (procName.find(":render") != std::string::npos) {
+        if (procName.find(":render") != std::string::npos && procName.size() > len) {
             std::string appName = procName.substr(0, procName.size() - len);
             int pidOfApp = CommonUtils::GetPidByName(appName);
+            if (pidOfApp < 0) {
+                HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
+            }
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
             if (ret != 0) {

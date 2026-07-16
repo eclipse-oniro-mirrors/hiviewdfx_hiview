@@ -61,7 +61,7 @@ public:
     void InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream& body,
         bool& isFileExists, WatchPoint &watchPoint, std::string& halfFreezeExtFile) const;
     bool JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
-        const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const;
+        const std::vector<WatchPoint>& list) const;
     bool CovertHighLoadToWarning(std::string &type, const WatchPoint& watchPoint) const;
     std::string MergeEventLog(WatchPoint &watchPoint, const std::vector<WatchPoint>& list,
         const std::vector<FreezeResult>& result) const;

@@ -12,7 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "event_logger_config.h"
+
+#include <charconv>
+
 #include "hiview_logger.h"
 #include "file_util.h"
 namespace OHOS {
@@ -145,7 +149,11 @@ bool EventLoggerConfig::ParseId(const std::string& buf, size_t& pos, int& id)
             return false;
         }
     }
-    id = std::stoi(idStr, nullptr, 0);
+    auto result = std::from_chars(idStr.c_str(), idStr.c_str() + idStr.size(), id);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGE("parse id error");
+        return false;
+    }
     return true;
 }
 
@@ -192,7 +200,11 @@ bool EventLoggerConfig::ParseInterval(const std::string& buf, size_t& pos, int& 
             return false;
         }
     }
-    interval = std::stoi(intervalStr);
+    auto result = std::from_chars(intervalStr.c_str(), intervalStr.c_str() + intervalStr.size(), interval);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGE("parse interval error");
+        return false;
+    }
     return true;
 }
 
@@ -257,7 +269,7 @@ bool EventLoggerConfig::FindConfigLine(int eventId, std::string eventName, Event
             configOut.action = configDate.action;
             HIVIEW_LOGI("configDate-> id: 0x%{public}x, name: %{public}s, action: %{public}s, interval: %{public}d",
                 configOut.id, configOut.name.c_str(), configOut.action.c_str(), configOut.interval);
-        return false;
+            return false;
         }
         return true;
     });
