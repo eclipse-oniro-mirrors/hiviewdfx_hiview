@@ -32,6 +32,7 @@ public:
     CollectResult<UCollectClient::GraphicUsage> GetGraphicUsage() override;
     CollectResult<int32_t> IsolateSubProcess(
         const std::string& packageName, int32_t mainProcPid, int32_t subProcPid) override;
+    CollectResult<int32_t> RequestUiTree(pid_t pid, std::shared_ptr<RequestUiTreeCallback> callback) override;
 };
 
 std::shared_ptr<MemoryCollector> MemoryCollector::Create()
@@ -58,6 +59,11 @@ CollectResult<int32_t> MemoryCollectorImpl::IsolateSubProcess(
     const std::string& packageName, int32_t mainProcPid, int32_t subProcPid)
 {
     return HiViewServiceMemoryDelegate::IsolateSubProcess(packageName, mainProcPid, subProcPid);
+}
+
+CollectResult<int32_t> MemoryCollectorImpl::RequestUiTree(pid_t pid, std::shared_ptr<RequestUiTreeCallback> callback)
+{
+    return HiViewServiceMemoryDelegate::RequestUiTree(pid, callback);
 }
 }
 }

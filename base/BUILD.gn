@@ -74,6 +74,7 @@ ohos_source_set("hiview_base") {
     "privacy_manager.cpp",
     "sys_event.cpp",
     "version_config_parser.cpp",
+    "obj_sys_event.cpp",
   ]
 
   deps = [
@@ -95,6 +96,7 @@ ohos_source_set("hiview_base") {
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ipc:ipc_single",
     "jsoncpp:jsoncpp",
   ]
 

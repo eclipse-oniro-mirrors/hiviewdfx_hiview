@@ -66,6 +66,7 @@ public:
     ErrCode GetGraphicUsage(int32_t& errNo, GraphicUsageParcelable& graphicUsageParcelable) override;
     ErrCode IsolateSubProcess(const std::string& packageName, int32_t mainProcPid, int32_t subProcPid,
                               int32_t& errNo, int32_t& ret) override;
+    ErrCode RequestUiTree(int32_t pid, const sptr<IRequestUiTreeCallback> &callback) override;
 
 protected:
     void OnDump() override;
