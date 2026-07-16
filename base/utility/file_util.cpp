@@ -44,14 +44,6 @@ namespace FileUtil {
 using namespace std;
 namespace {
 DEFINE_LOG_TAG("FileUtil");
-
-bool CheckAndCreateDirectory(const std::string &tmpDirPath)
-{
-    if (!FileExists(tmpDirPath)) {
-        return ForceCreateDirectory(tmpDirPath, FILE_PERM_775);
-    }
-    return true;
-}
 }
 
 bool LoadStringFromFile(const std::string& filePath, std::string& content)
@@ -444,24 +436,6 @@ int64_t GetLastModifiedTimeStamp(const std::string& filePath)
         return 0;
     }
     return fileInfo.st_mtime;
-}
-
-bool CreateMultiDirectory(const std::string &dirPath)
-{
-    uint32_t dirPathLen = dirPath.length();
-    if (dirPathLen > PATH_MAX) {
-        return false;
-    }
-    char tmpDirPath[PATH_MAX] = { 0 };
-    for (uint32_t i = 0; i < dirPathLen; ++i) {
-        tmpDirPath[i] = dirPath[i];
-        if (tmpDirPath[i] == '/') {
-            if (!CheckAndCreateDirectory(tmpDirPath)) {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 bool IsSymlink(const std::string& path)

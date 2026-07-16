@@ -373,18 +373,6 @@ HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest013, testing::ext::TestSize.Lev
 }
 
 /**
- * @tc.name: FileUtilOhosTest014
- * @tc.desc: Test create multi dir in namespace FileUtil
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(AdapterUtilityOhosTest, FileUtilOhosTest014, testing::ext::TestSize.Level3)
-{
-    FileUtil::CreateMultiDirectory("/data/test/temp/");
-    ASSERT_TRUE(FileUtil::FileExists("/data/test/temp/"));
-}
-
-/**
  * @tc.name: FileUtilOhosTest015
  * @tc.desc: Test ForceCreateDirectory in namespace FileUtil
  * @tc.type: FUNC

@@ -34,7 +34,6 @@
       "OHOS::HiviewDFX::TraceStrategyFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, unsigned int, unsigned long long)";
       "OHOS::HiviewDFX::TraceStrategyFactory::CreateTraceStrategy(OHOS::HiviewDFX::UCollect::TraceClient, unsigned int, unsigned long)";
       "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
-      "OHOS::HiviewDFX::CreateMultiDirectory(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::ZipTraceFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetConfigPath()";
       "OHOS::HiviewDFX::UCollectUtil::PerfCollectConfig::GetPerfCount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
