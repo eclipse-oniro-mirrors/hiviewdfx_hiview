@@ -34,10 +34,6 @@ void UsageFoldEventReport::Init(const std::string& workPath)
     Load(workPath);
 #else
     Parameter::WatchParamChange(BOOT_COMPLETED_KEY, OnBootCompletedChange, this);
-    std::string bootCompleted = Parameter::GetString(BOOT_COMPLETED_KEY, "");
-    if (bootCompleted == "true") {
-        Load(workPath);
-    }
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
 }
 
@@ -68,7 +64,6 @@ void UsageFoldEventReport::Load(const std::string& workPath)
         }
         foldEventCacher_ = std::make_unique<FoldEventCacher>(workPath);
         foldAppUsageFactory_ = std::make_unique<FoldAppUsageEventFactory>(workPath);
-        Parameter::RemoveParameterWatcherEx(BOOT_COMPLETED_KEY, OnBootCompletedChange, nullptr);
     });
 }
 
