@@ -126,11 +126,11 @@ HWTEST_F(EventLoggerConfigTest, ParseIdTest001, TestSize.Level3)
 HWTEST_F(EventLoggerConfigTest, ParseIdTest002, TestSize.Level3)
 {
     auto config = std::make_unique<EventLoggerConfig>();
-    std::string buf = "id=\"0x10\"";
+    std::string buf = "id=\"10000\"";
     int id = 0;
     size_t pos = 0;
     EXPECT_TRUE(config->ParseId(buf, pos, id));
-    EXPECT_EQ(id, 16);
+    EXPECT_EQ(id, 10000);
 }
 
 /**
