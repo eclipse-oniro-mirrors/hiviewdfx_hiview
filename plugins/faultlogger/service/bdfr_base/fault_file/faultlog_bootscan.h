@@ -29,7 +29,7 @@ private:
     static bool IsCrashType(const std::string& file);
     static bool IsInValidTime(const std::string& file, const time_t& now);
     static bool IsEmptyStack(const std::string& file, const FaultLogInfo& info);
-    static bool IsReported(const FaultLogInfo& info);
+    static bool IsReported(FaultLogInfo& info);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
