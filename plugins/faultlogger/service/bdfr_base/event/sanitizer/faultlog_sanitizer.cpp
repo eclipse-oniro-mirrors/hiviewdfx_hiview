@@ -50,6 +50,7 @@ const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
 }
 
+// Only support stack parsing for these 5 type formats
 bool FaultLogSanitizer::ShouldParseSandBoxPath(const std::string& line)
 {
     return line.find(".hap+") != std::string::npos ||
@@ -206,6 +207,8 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
     if (ret < 0) {
         return line;
     }
+    // For non-anon:ArkTS Code and .abc types, we use the first parameter format; for .hap, .hsp, .hqf
+    // we use the second parameter format, which is required by the interface
     JsFunction jsFunc;
     if (info.fullPath.find("anon:ArkTS Code") == std::string::npos &&
         info.fullPath.find(".abc") == std::string::npos) {
@@ -243,7 +246,7 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
 
 std::vector<MapInfo> FaultLogSanitizer::LoadMaps(std::ifstream& file)
 {
-    // 0xmapbaseStart-0xmapbaseStartend	xxx
+    // format line: 0xmapbaseStart-0xmapbaseStartend    xxx need to save maps
     std::vector<MapInfo> maps;
     std::string line;
     bool inMapSection = false;
@@ -284,6 +287,7 @@ std::vector<MapInfo> FaultLogSanitizer::LoadMaps(std::ifstream& file)
 
 bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, const std::string& path)
 {
+    // If the file size is too large, stack unwinding during faultlog processing may encounter issues
     auto fileSize = FileUtil::GetFileSize(path);
     if (fileSize > ARKTS_STACK_MAX_FILE_SIZE) {
         HIVIEW_LOGE("File size exceeds limit, path: %{public}s, size: %{public}" PRIu64,
@@ -296,13 +300,17 @@ bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, cons
         return false;
     }
     std::string tempPath = path + ".tmp";
+    // If open is used, it needs to be used with fdsAN_CLOSE_WITH_TAG. Changed to fopen
     FILE* fp = fopen(tempPath.c_str(), "w");
     if (fp == nullptr) {
         HIVIEW_LOGE("Failed to open temp file: %{public}s", tempPath.c_str());
         srcLogFile.close();
         return false;
     }
+    // Restrict fopen-created file permissions to 0644
     chmod(tempPath.c_str(), DEFAULT_LOG_FILE_MODE);
+
+    // First traversal to read maps intervals, find address intervals corresponding to .hap and other formats
     std::vector<MapInfo> maps = LoadMaps(srcLogFile);
 
     int tempFileFd = fileno(fp);
@@ -311,6 +319,7 @@ bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, cons
     srcLogFile.clear();
     srcLogFile.seekg(0, std::ios::beg);
 
+    // Second traversal is to read .hap and other stacks from stack frames, and directly replace them after parsing
     while (std::getline(srcLogFile, line)) {
         if (srcLogFile.eof()) {
             break;
@@ -498,11 +507,8 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
 
 void FaultLogSanitizer::UpdateFaultLogInfo()
 {
-    if (info_.reason.find("FDSAN") != std::string::npos) {
-        info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
-        info_.logPath = "";
-    }
-    if (info_.reason.find("ARKTS_ENVSAN") != std::string::npos) {
+    if (info_.reason.find("FDSAN") != std::string::npos
+        || info_.reason.find("ARKTS_ENVSAN") != std::string::npos) {
         info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
         info_.logPath = "";
     }

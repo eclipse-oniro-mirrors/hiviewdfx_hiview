@@ -19,16 +19,12 @@
 #include <fcntl.h>
 #include <fstream>
 #include <string>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <unordered_map>
+#include <securec.h>
 
 #include "parameters.h"
 
 #include "constants.h"
-#include "dfx_ark.h"
 #include "faultlog_info_inner.h"
 #include "faultlog_util.h"
 #include "file_util.h"
@@ -79,7 +75,6 @@ const SectionLog KEY_THREAD_REGISTERS = {FaultKey::KEY_THREAD_REGISTERS, "Regist
 const SectionLog LAST_FATAL_MESSAGE = {FaultKey::LAST_FATAL_MESSAGE, "LastFatalMessage:"};
 const SectionLog LIFETIME = {FaultKey::LIFETIME, "Up time:"};
 const SectionLog LOG_CUT_OFF_SIZE = {FaultKey::LOG_CUT_OFF_SIZE, "Log cut off size:"};
-const SectionLog LOG_SOURCE = {FaultKey::LOG_SOURCE, "Log source:"};
 const SectionLog MEMORY_NEAR_REGISTERS = {FaultKey::MEMORY_NEAR_REGISTERS, "Memory near registers:\n"};
 const SectionLog MEMORY_USAGE = {FaultKey::MEMORY_USAGE, "Memory Usage:\n"};
 const SectionLog MERGE_APP_LOG_PRINTING = {FaultKey::MERGE_APP_LOG_PRINTING, "Merge app log printing:"};
@@ -109,20 +104,13 @@ const SectionLog TIMESTAMP = {FaultKey::TIMESTAMP, "Timestamp:"};
 const SectionLog TRACE_ID = {FaultKey::TRACE_ID, "Trace-Id:"};
 const SectionLog VERSION_CODE = {FaultKey::VERSION_CODE, "VersionCode:"};
 
-constexpr uintptr_t OFFSET_HAP = 0x1000; // default hap offset
-constexpr uintptr_t OFFSET_HEAD = 0x4; // head offset
-constexpr mode_t DEFAULT_LOG_FILE_MODE = 0664; // parse arkts info temp file mode
-
-const std::string APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
-const std::string STACK_FRAME_PREFIX = " ";
-
 std::vector<SectionLog> GetCppCrashSectionLogs()
 {
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, DEVICE_DEBUGABLE, FINGERPRINT, MODULE_NAME, RELEASE_TYPE, CPU_ABI, MODULE_VERSION,
         VERSION_CODE, IS_SYSTEM_APP, PRE_INSTALL, FOREGROUND, PAGE_SWITCH_HISTORY, APPEND_ORIGIN_LOG,
         ENABLED_APP_LOG_CONFIG, TIMESTAMP, MODULE_PID, MODULE_UID, HITRACEID, PROCESS_NAME, FAULT_TYPE, SYS_VM_TYPE,
-        APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, LOG_SOURCE, REASON,
+        APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, PROCESS_LIFETIME, PROCESS_RSS_MEMINFO, DEVICE_MEMINFO, REASON,
         FAULT_MESSAGE, LAST_FATAL_MESSAGE, TRACE_ID, KEY_THREAD_INFO, SUBMITTER_STACKTRACE, KEY_THREAD_REGISTERS,
         EXTRA_CRASH_INFO, OTHER_THREAD_INFO, MEMORY_NEAR_REGISTERS, FAULT_STACK, PROCESS_MAPS, OPEN_FILES
     };

@@ -42,15 +42,19 @@
 #define LOG_TAG "Sanitizer"
 
 namespace {
-constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
-constexpr unsigned BUF_SIZE = 128;
-constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
-constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
-constexpr mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
 constexpr char ADDR_SANITIZER_EVENT[] = "ADDR_SANITIZER";
-static std::stringstream g_asanlog;
-constexpr uint64_t TIME_RATIO = 1000;
 constexpr int DEFAULT_BUFFER_SIZE = 64;
+constexpr unsigned BUF_SIZE = 128;
+constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
+constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
+constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
+constexpr unsigned MAX_EXTRACT_FRAME_NUM = 3;
+constexpr unsigned FIRST_FRAME_IDX = 0;
+constexpr unsigned SECOND_FRAME_IDX = 1;
+constexpr unsigned LAST_FRAME_IDX = 2;
+constexpr mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
+constexpr uint64_t TIME_RATIO = 1000;
+std::stringstream g_asanlog;
 }
 
 static std::string GetFormatedTime(uint64_t target)
@@ -138,9 +142,10 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     constexpr int decimalBase = 10;
     std::string timeStr = GetFormatedTime(timeTmp);
     currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, decimalBase));
-    currInfo.topStack = GetTopStackWithoutCommonLib(currInfo.description);
+    currInfo.topStacks = GetTopStackWithoutCommonLib(currInfo.description);
+    std::string firstFrame = currInfo.topStacks[FIRST_FRAME_IDX];
     currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
-        currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
+        firstFrame + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
     currInfo.telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
     currInfo.appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
     // Do upload when data ready
@@ -161,8 +166,9 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
         ";UID:" << currInfo.uid <<
         ";HAPPEN_TIME:" << currInfo.happenTime <<
         ";FINGERPRINT:" << currInfo.hash <<
-        ";FIRST_FRAME:" << currInfo.errType <<
-        ";SECOND_FRAME:" << currInfo.topStack <<
+        ";FIRST_FRAME:" << currInfo.topStacks[FIRST_FRAME_IDX] <<
+        ";SECOND_FRAME:" << currInfo.topStacks[SECOND_FRAME_IDX] <<
+        ";LAST_FRAME:" << currInfo.topStacks[LAST_FRAME_IDX] <<
         ";APP_RUNNING_UNIQUE_ID:" << currInfo.appRunningId;
     if (!currInfo.telemetryId.empty()) {
         ssPrefix << ";TELEMETRY_ID:" << currInfo.telemetryId;
@@ -278,8 +284,12 @@ bool IsIgnoreStack(const std::string& stack)
     const std::unordered_set<std::string> ignoreList = {
         "libclang_rt.hwasan.so",
         "libclang_rt.asan.so",
+        "libclang_rt.tsan.so",
+        "libclang_rt.ubsan_standalone.so",
         "ld-musl-aarch64.so",
-        "ld-musl-aarch64-asan.so"
+        "ld-musl-aarch64-asan.so",
+        "libc++.so",
+        "libc++_shared.so"
     };
     for (const auto& str : ignoreList) {
         if (stack.find(str, 0) != std::string::npos) {
@@ -289,28 +299,56 @@ bool IsIgnoreStack(const std::string& stack)
     return false;
 }
 
-std::string GetTopStackWithoutCommonLib(const std::string& description)
+std::vector<std::string> GetTopStackWithoutCommonLib(const std::string& description)
 {
-    std::string topstack;
-    std::string record = description;
+    std::vector<std::string> topStacks;
+    std::vector<std::string> fallbackStacks;
     std::smatch stackCaptured;
-    std::string stackRecord =
-        std::string("#[\\d+] ") +
-        "0[xX][0-9a-fA-F]+" +
-        "[\\s\\?(]+" +
-        "[^\\+ ]+/([a-zA-Z0-9_.-]+)(\\.z)?(\\.so)?\\+" +
-        "0[xX][0-9a-fA-F]+";
-    static const std::regex STACK_RE(stackRecord);
 
-    while (std::regex_search(record, stackCaptured, STACK_RE)) {
-        std::string current = stackCaptured[1].str();
-        if (!IsIgnoreStack(current)) {
-            return current;
+    std::string stackRecord = R"(#\d+\s+0[xX][0-9a-fA-F]+[\s\(]+([^\s\)]+?\+0[xX][0-9a-fA-F]+))";
+    const std::regex stackRegex(stackRecord);
+    if (!std::regex_search(description, stackCaptured, stackRegex)) {
+        topStacks.assign(MAX_EXTRACT_FRAME_NUM, "/");
+        return topStacks;
+    }
+    size_t firstStackPos = static_cast<size_t>(stackCaptured.position());
+
+    const char* boundaries[] = {
+        "\n\n", "\r\n\r\n", "allocated by:", "Allocated By",
+        "Previous write", "Previous read", "Location is", "Mutex"
+    };
+    size_t minPos = std::string::npos;
+    for (const char* b : boundaries) {
+        size_t pos = description.find(b, firstStackPos);
+        if (pos != std::string::npos && pos < minPos) {
+            minPos = pos;
         }
-        topstack = current;
+    }
+    std::string record = (minPos == std::string::npos) ?
+        description : description.substr(0, minPos);
+
+    while (std::regex_search(record, stackCaptured, stackRegex)) {
+        if (topStacks.size() >= MAX_EXTRACT_FRAME_NUM) {
+            break;
+        }
+
+        std::string current = stackCaptured[1].str();
+        if (fallbackStacks.size() < MAX_EXTRACT_FRAME_NUM) {
+            fallbackStacks.push_back(current);
+        }
+        if (!IsIgnoreStack(current)) {
+            topStacks.push_back(current);
+        }
         record = stackCaptured.suffix().str();
     }
-    return topstack;
+
+    if (topStacks.empty() && !fallbackStacks.empty()) {
+        topStacks = fallbackStacks;
+    }
+    while (topStacks.size() < MAX_EXTRACT_FRAME_NUM) {
+        topStacks.push_back("/");
+    }
+    return topStacks;
 }
 
 std::string GetNameByPid(int32_t pid)
