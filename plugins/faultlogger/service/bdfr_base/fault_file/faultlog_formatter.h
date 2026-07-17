@@ -15,7 +15,6 @@
 #ifndef FAULTLOG_FORMATTER_H
 #define FAULTLOG_FORMATTER_H
 #include <string>
-#include <cstdint>
 #include <vector>
 #include "faultlog_info_inner.h"
 #include "json/json.h"
@@ -31,7 +30,6 @@ void FillSectionMapFromJson(const Json::Value& root, std::map<std::string, std::
 bool WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
 bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string>& sections);
 bool IsFaultLogLimit();
-
 std::string FormatFrameIndex(int index);
 std::string FormatThreadInfo(const Json::Value& threadInfo);
 std::string FormatOtherThreadInfo(const Json::Value& otherThreadInfo);

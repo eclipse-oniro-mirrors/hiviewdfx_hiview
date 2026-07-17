@@ -56,8 +56,8 @@ struct GwpAsanCurrInfo {
     std::map<std::string, std::string> sectionMaps;
     /** hash value used for clustering */
     std::string hash;
-    /** top stack */
-    std::string topStack;
+    /** top three stacks */
+    std::vector<std::string> topStacks;
     /** telemetryId for gwpasan */
     std::string telemetryId;
     /** information of appRunningId */
@@ -67,7 +67,7 @@ struct GwpAsanCurrInfo {
 void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath);
 std::string GetNameByPid(int32_t pid);
 std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType);
-std::string GetTopStackWithoutCommonLib(const std::string& description);
+std::vector<std::string> GetTopStackWithoutCommonLib(const std::string& description);
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo, bool& isSendHisysevent);
 void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo);
 bool WriteToSandbox(const GwpAsanCurrInfo& currInfo);
