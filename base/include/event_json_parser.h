@@ -75,7 +75,7 @@ struct BaseInfo {
     KeyConfig keyConfig;
     PARAM_INFO_MAP_PTR disallowParams;
     int16_t reportInterval = DEFAULT_REPORT_INTERVAL;
-    char* tag = nullptr;
+    std::shared_ptr<std::string> tag = nullptr;
 };
 #pragma pack(pop)
 
