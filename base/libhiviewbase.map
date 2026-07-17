@@ -191,6 +191,10 @@
         vtable?for?OHOS::HiviewDFX::PluginProxy;
         vtable?for?OHOS::HiviewDFX::EventSource;
         vtable?for?OHOS::HiviewDFX::SysEvent;
+        vtable?for?OHOS::HiviewDFX::ObjSysEvent;
+        "OHOS::HiviewDFX::ObjSysEvent::ObjSysEvent(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::PipelineEventProducer*, OHOS::HiviewDFX::SysEventCreator&)";
+        "OHOS::HiviewDFX::ObjSysEvent::SetEventObjValue(OHOS::sptr<OHOS::IRemoteObject>)";
+        "OHOS::HiviewDFX::ObjSysEvent::GetEventObjValue()";
         vtable?for?OHOS::HiviewDFX::PipelineEvent;
         vtable?for?OHOS::HiviewDFX::PipelineEvent;
         vtable?for?OHOS::HiviewDFX::PluginStatsEventFactory;

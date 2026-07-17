@@ -36,6 +36,12 @@ struct GraphicUsage {
     int32_t graph = 0;
 };
 
+class RequestUiTreeCallback {
+    public:
+    virtual ~RequestUiTreeCallback() = default;
+    virtual void OnUiTreeResponse(uint32_t retCode) = 0;
+};
+
 class MemoryCollector {
 public:
     MemoryCollector() = default;
@@ -48,6 +54,7 @@ public:
     static std::shared_ptr<MemoryCollector> Create();
     virtual CollectResult<int32_t> IsolateSubProcess(
         const std::string& packageName, int32_t mainProcPid, int32_t subProcPid) = 0;
+    virtual CollectResult<int32_t> RequestUiTree(pid_t pid, std::shared_ptr<RequestUiTreeCallback> callback) = 0;
 }; // MemoryCollector
 } // UCollectClient
 } // HiviewDFX

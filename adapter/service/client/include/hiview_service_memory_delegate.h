@@ -18,9 +18,25 @@
 
 #include "client/memory_collector_client.h"
 #include "collect_result.h"
+#include "request_ui_tree_callback_stub.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+class UiTreeCallbackStub : public RequestUiTreeCallbackStub {
+public:
+    UiTreeCallbackStub(std::shared_ptr<UCollectClient::RequestUiTreeCallback> callback) : callback_(callback) {}
+    ErrCode OnUiTreeResponse(uint32_t retCode) override
+    {
+        if (callback_ != nullptr) {
+            callback_->OnUiTreeResponse(retCode);
+        }
+        return 0;
+    }
+
+private:
+    std::shared_ptr<UCollectClient::RequestUiTreeCallback> callback_;
+};
+
 class HiViewServiceMemoryDelegate {
 public:
     static CollectResult<int32_t> SetAppResourceLimit(UCollectClient::MemoryCaller& memoryCaller);
@@ -28,6 +44,8 @@ public:
     static CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
     static CollectResult<int32_t> IsolateSubProcess(const std::string& packageName,
         int32_t mainProcPid, int32_t subProcPid);
+    static CollectResult<int32_t> RequestUiTree(int32_t pid,
+        std::shared_ptr<UCollectClient::RequestUiTreeCallback> callback);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

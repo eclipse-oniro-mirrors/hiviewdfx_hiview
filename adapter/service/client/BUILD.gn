@@ -19,6 +19,7 @@ idl_gen_interface("hiview_service_idl_interface") {
   sources = [
     "IHiviewServiceAbility.idl",
     "IRequestTraceCallback.idl",
+    "IRequestUiTreeCallback.idl",
   ]
 
   log_domainid = "0xD002D10"
@@ -53,7 +54,7 @@ ohos_source_set("hiview_service_stub_inner") {
   ]
 
   output_values = get_target_outputs(":hiview_service_idl_interface")
-  sources = filter_include(output_values, [ "*hiview_service_ability_stub.cpp", "*request_trace_callback_proxy.cpp" ])
+  sources = filter_include(output_values, [ "*hiview_service_ability_stub.cpp", "*request_trace_callback_proxy.cpp", "*request_ui_tree_callback_proxy.cpp" ])
 
   deps = [ ":hiview_service_idl_interface" ]
 
@@ -136,7 +137,7 @@ ohos_source_set("hiview_service_impl_for_unified_collection") {
   ]
 
   output_values = get_target_outputs(":hiview_service_idl_interface")
-  sources = filter_include(output_values, [ "*request_trace_callback_stub.cpp" ])
+  sources = filter_include(output_values, [ "*request_trace_callback_stub.cpp", "*request_ui_tree_callback_stub.cpp" ])
   sources += [
     "src/hiview_remote_service.cpp",
     "src/hiview_service_cpu_delegate.cpp",

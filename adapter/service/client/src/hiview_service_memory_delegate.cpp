@@ -86,6 +86,31 @@ CollectResult<int32_t> HiViewServiceMemoryDelegate::IsolateSubProcess(
     if (HiviewServiceAbilityProxy(service).IsolateSubProcess(packageName, mainProcPid, subProcPid,
                                                              errNo, ret.data) == 0) {
         ret.retCode = static_cast<UCollect::UcError>(errNo);
+    } else {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+    }
+    return ret;
+}
+
+CollectResult<int32_t> HiViewServiceMemoryDelegate::RequestUiTree(int32_t pid,
+    std::shared_ptr<UCollectClient::RequestUiTreeCallback> callback)
+{
+    CollectResult<int32_t> ret;
+    auto remote = RemoteService::GetHiViewRemoteService();
+    if (remote == nullptr) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    sptr<UiTreeCallbackStub> callbackStub = new UiTreeCallbackStub(callback);
+    if (callbackStub == nullptr) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    int32_t proxyRet = HiviewServiceAbilityProxy(remote).RequestUiTree(pid, callbackStub);
+    if (proxyRet == 0) {
+        ret.retCode = UCollect::UcError::SUCCESS;
+    } else {
+        ret.retCode = UCollect::UcError::SYSTEM_ERROR;
     }
     return ret;
 }
