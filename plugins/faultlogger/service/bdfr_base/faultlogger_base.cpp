@@ -33,6 +33,7 @@
 #include "parameters.h"
 #include "sanitizer_telemetry.h"
 #include "system_ability_definition.h"
+#include "accesstoken_kit.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -51,8 +52,7 @@ constexpr int MIN_APP_UID = 10000;
 constexpr int MAX_APPLICATION_ENABLE = 20;
 constexpr uint64_t DEFAULT_DURATION = 7;
 constexpr uint64_t DAYS_TO_MILLISEC = 24 * 60 * 60;
-constexpr const char* DHA_SERVICE_NAME = "dha_service";
-constexpr int32_t DHA_SERVICE_UID = 7780;
+constexpr const char* const PERMISSION_ENABLE_GWPASAN_INNER = "ohos.permission.ENABLE_GWPASAN_INNER";
 }
 
 FaultloggerBase::FaultloggerBase()
@@ -255,19 +255,9 @@ bool FaultloggerBase::EnableGwpAsanInner(GwpAsanParams gwpAsanParams, const std:
 
 bool FaultloggerBase::CheckCallerIsAllowed()
 {
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    std::string processName = CommonUtils::GetProcFullNameByPid(pid);
-    static const std::map<int32_t, std::string> allowedCallerMap = {
-        {DHA_SERVICE_UID, DHA_SERVICE_NAME},
-    };
-    auto it = allowedCallerMap.find(uid);
-    if (it == allowedCallerMap.end() || it->second != processName) {
-        HIVIEW_LOGE("the caller [uid=%{public}d, process=%{public}s] is not permitted", uid, processName.c_str());
-        return false;
-    }
-    
-    return true;
+    using namespace Security::AccessToken;
+    return AccessTokenKit::VerifyAccessToken(IPCSkeleton::GetCallingTokenID(), PERMISSION_ENABLE_GWPASAN_INNER) ==
+        PermissionState::PERMISSION_GRANTED;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
