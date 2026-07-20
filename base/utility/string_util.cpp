@@ -434,6 +434,18 @@ bool IsValidRegex(const std::string& regStr)
     regfree(&reg);
     return (status == REG_OK);
 }
+
+bool ContainsPathTraversal(const std::string& path)
+{
+    if (path.empty()) {
+        return false;
+    }
+    constexpr size_t doubleDotLength = 2;
+    return path.find("../") != std::string::npos ||
+           path.find("..\\") != std::string::npos ||
+           path.find("..") == 0 ||
+           path.rfind("..") == path.length() - doubleDotLength;
+}
 } // namespace StringUtil
 } // namespace HiviewDFX
 } // namespace OHOS

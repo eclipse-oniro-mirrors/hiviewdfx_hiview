@@ -152,6 +152,11 @@ bool StartWith(const std::string& str, const std::string& sub);
 bool EndWith(const std::string& str, const std::string& sub);
 
 bool IsValidRegex(const std::string& regStr);
+
+/**
+ * Check if the path contains path traversal sequences
+ */
+bool ContainsPathTraversal(const std::string& path);
 } // namespace StringUtil
 } // namespace HiviewDFX
 } // namespace OHOS

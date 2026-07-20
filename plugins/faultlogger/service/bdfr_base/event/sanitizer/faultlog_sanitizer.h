@@ -44,6 +44,9 @@ private:
     std::string ProcessArkTsLine(const std::string& line, const std::string& packageName,
                                  const std::vector<MapInfo>& maps);
     std::vector<MapInfo> LoadMaps(std::ifstream& file);
+    bool OpenTempFile(const std::string& tempPath, FILE*& fp, int& tempFileFd);
+    bool WriteStackInfo(const std::string& moduleName, const std::string& path,
+                        const std::string& tempPath, std::ifstream& srcLogFile, int tempFileFd);
     bool ParserArkTsStackInfo(const std::string& moduleName, const std::string& path);
     bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, const std::string& path);
 
