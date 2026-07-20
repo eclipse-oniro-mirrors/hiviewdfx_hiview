@@ -236,11 +236,31 @@ HWTEST(FaultLogBootScanTest, IsReportedTest001, testing::ext::TestSize.Level3)
 {
     FaultLogInfo info;
     info.pid = 987654;
-    info.id = 100100; // render uid: 100100 % 200000 = 100100, in range [100000, 109999]
+    uint32_t tmpUid = 100100; // render uid: 100100 % 200000 = 100100, in range [100000, 109999]
+    info.id = tmpUid;
     info.module = "OriginalModule";
     info.faultLogType = FaultLogType::CPP_CRASH;
     EXPECT_FALSE(FaultLogBootScan::IsReported(info));
+    EXPECT_TRUE(info.module.find("arkwebcore") != std::string::npos);
+    EXPECT_NE(info.id, tmpUid);
 }
 
+/**
+ * @tc.name: IsReportedTest002
+ * @tc.desc: Test IsReported with common uid
+ * @tc.type: FUNC
+ */
+HWTEST(FaultLogBootScanTest, IsReportedTest002, testing::ext::TestSize.Level3)
+{
+    FaultLogInfo info;
+    info.pid = 987654;
+    uint32_t tmpUid = 1001;
+    info.id = tmpUid;
+    info.module = "OriginalModule";
+    info.faultLogType = FaultLogType::CPP_CRASH;
+    EXPECT_FALSE(FaultLogBootScan::IsReported(info));
+    EXPECT_FALSE(info.module.find("arkwebcore") != std::string::npos);
+    EXPECT_EQ(info.id, tmpUid);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
