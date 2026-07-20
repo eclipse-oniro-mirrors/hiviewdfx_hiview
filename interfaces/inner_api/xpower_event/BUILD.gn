@@ -58,6 +58,8 @@ ohos_shared_library("libxpower_event_js") {
     "ets_runtime:libark_jsruntime",
     "hisysevent:libhisysevent",
     "init:libbegetutil",
+    "node:node_header_notice",
+    "libuv:uv",
     "napi:ace_napi",
   ]
 
