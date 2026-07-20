@@ -29,10 +29,6 @@
 #include "gpu_decorator.h"
 #endif
 
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-#include "hiebpf_decorator.h"
-#endif
-
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
 #include "hilog_decorator.h"
 #endif
@@ -45,16 +41,8 @@
 #include "memory_decorator.h"
 #endif
 
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-#include "network_decorator.h"
-#endif
-
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_decorator.h"
-#endif
-
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-#include "wm_decorator.h"
 #endif
 
 #ifdef HAS_HIPERF
@@ -93,11 +81,6 @@ void CallCollectorFuncs()
     (void)gpuCollector->CollectSysGpuLoad();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-    auto hiebpfCollector = HiebpfCollector::Create();
-    (void)hiebpfCollector->StartHiebpf(5, "com.ohos.launcher", "/data/local/tmp/ebpf.txt"); // 5 : test duration
-#endif
-
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
     constexpr uint32_t TEST_LINE_NUM = 100;
     auto hilogCollector = HilogCollector::Create();
@@ -106,17 +89,12 @@ void CallCollectorFuncs()
 
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
     auto ioCollector = IoCollector::Create();
-    (void)ioCollector->CollectRawDiskStats();
+    (void)ioCollector->CollectDiskStats();
 #endif
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     auto memCollector = MemoryCollector::Create();
     (void)memCollector->CollectSysMemory();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-    auto networkCollector = NetworkCollector::Create();
-    (void)networkCollector->CollectRate();
 #endif
 
 #ifdef HAS_HIPERF
@@ -126,11 +104,6 @@ void CallCollectorFuncs()
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceCollector::Create()->DumpTrace(UCollect::TraceCaller::HIVIEW);
-#endif
-
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-    auto wmCollector = WmCollector::Create();
-    (void)wmCollector->ExportWindowsInfo();
 #endif
 }
 
@@ -144,14 +117,6 @@ void CallStatFuncs()
     GpuDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-    HiebpfDecorator::SaveStatCommonInfo();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
-    HilogDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
     IoDecorator::SaveStatCommonInfo();
 #endif
@@ -160,16 +125,8 @@ void CallStatFuncs()
     MemoryDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-    NetworkDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef HAS_HIPERF
     PerfDecorator::SaveStatCommonInfo();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-    WmDecorator::SaveStatCommonInfo();
 #endif
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
@@ -229,51 +186,41 @@ bool CheckContent(const std::string& fileName, const std::vector<std::regex>& re
 
 class DecoratorTest : public testing::Test {
 public:
-    void SetUp() {};
-    void TearDown() {};
-    static void SetUpTestCase()
-    {
+void SetUp() {};
+void TearDown() {};
+static void SetUpTestCase()
+{
 #ifdef HAS_HIPERF
-        g_collector_names.insert("PerfCollector");
-#endif
-
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-        g_collector_names.insert("NetworkCollector");
-#endif
-
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-        g_collector_names.insert("HiebpfCollector");
+    g_collector_names.insert("PerfCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_CPU_ENABLE
-        g_collector_names.insert("CpuCollector");
+    g_collector_names.insert("CpuCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_GPU_ENABLE
-        g_collector_names.insert("GpuCollector");
+    g_collector_names.insert("GpuCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
-        g_collector_names.insert("HilogCollector");
+    g_collector_names.insert("HilogCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
-        g_collector_names.insert("IoCollector");
+    g_collector_names.insert("IoCollector");
 #endif
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
-        g_collector_names.insert("MemoryCollector");
+    g_collector_names.insert("MemoryCollector");
 #endif
 
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-        g_collector_names.insert("WmCollector");
-#endif
-        system("param set hiviewdfx.ucollection.switchon true");
-    };
-    static void TearDownTestCase()
-    {
-        system("param set hiviewdfx.ucollection.switchon false");
-    };
+    system("param set hiviewdfx.ucollection.switchon true");
+};
+
+static void TearDownTestCase()
+{
+    system("param set hiviewdfx.ucollection.switchon false");
+};
 };
 
 /**

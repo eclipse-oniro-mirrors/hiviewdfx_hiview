@@ -32,9 +32,6 @@
 #include "graphic_memory_decorator.h"
 #endif
 
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-#include "hiebpf_decorator.h"
-#endif
 
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
 #include "hilog_decorator.h"
@@ -46,10 +43,6 @@
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
 #include "memory_decorator.h"
-#endif
-
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-#include "network_decorator.h"
 #endif
 
 #ifdef HAS_HIPERF
@@ -68,9 +61,6 @@
 #include "trace_decorator.h"
 #endif
 
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-#include "wm_decorator.h"
-#endif
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -107,10 +97,6 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     GraphicMemoryDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-    HiebpfDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
     HilogDecorator::SaveStatCommonInfo();
 #endif
@@ -123,10 +109,6 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     MemoryDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-    NetworkDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
     ProcessDecorator::SaveStatCommonInfo();
 #endif
@@ -137,10 +119,6 @@ void UnifiedCollectionStat::SaveAllStatInfo()
 
 #ifdef HAS_HIPERF
     PerfDecorator::SaveStatCommonInfo();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-    WmDecorator::SaveStatCommonInfo();
 #endif
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
@@ -170,10 +148,6 @@ void UnifiedCollectionStat::ResetAllStatInfo()
     GraphicMemoryDecorator::ResetStatInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_EBPF_ENABLE
-    HiebpfDecorator::ResetStatInfo();
-#endif
-
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
     HilogDecorator::ResetStatInfo();
 #endif
@@ -186,10 +160,6 @@ void UnifiedCollectionStat::ResetAllStatInfo()
     MemoryDecorator::ResetStatInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_NETWORK_ENABLE
-    NetworkDecorator::ResetStatInfo();
-#endif
-
 #ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
     ProcessDecorator::ResetStatInfo();
 #endif
@@ -200,10 +170,6 @@ void UnifiedCollectionStat::ResetAllStatInfo()
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     TraceDecorator::ResetStatInfo();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_WM_ENABLE
-    WmDecorator::ResetStatInfo();
 #endif
 
 #ifdef HAS_HIPERF

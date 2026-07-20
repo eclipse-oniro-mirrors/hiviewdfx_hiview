@@ -28,22 +28,10 @@ CollectResult<ProcessIo> IoDecorator::CollectProcessIo(int32_t pid)
     return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
-CollectResult<std::string> IoDecorator::CollectRawDiskStats()
-{
-    auto task = [this] { return ioCollector_->CollectRawDiskStats(); };
-    return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
-}
-
 CollectResult<std::vector<DiskStats>> IoDecorator::CollectDiskStats(
     DiskStatsFilter filter, bool isUpdate)
 {
     auto task = [this, &filter, &isUpdate] { return ioCollector_->CollectDiskStats(filter, isUpdate); };
-    return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
-}
-
-CollectResult<std::string> IoDecorator::ExportDiskStats(DiskStatsFilter filter)
-{
-    auto task = [this, &filter] { return ioCollector_->ExportDiskStats(filter); };
     return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
@@ -53,33 +41,15 @@ CollectResult<std::vector<EMMCInfo>> IoDecorator::CollectEMMCInfo()
     return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
-CollectResult<std::string> IoDecorator::ExportEMMCInfo()
-{
-    auto task = [this] { return ioCollector_->ExportEMMCInfo(); };
-    return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
-}
-
 CollectResult<std::vector<ProcessIoStats>> IoDecorator::CollectAllProcIoStats(bool isUpdate)
 {
     auto task = [this, &isUpdate] { return ioCollector_->CollectAllProcIoStats(isUpdate); };
     return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 
-CollectResult<std::string> IoDecorator::ExportAllProcIoStats()
-{
-    auto task = [this] { return ioCollector_->ExportAllProcIoStats(); };
-    return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
-}
-
 CollectResult<SysIoStats> IoDecorator::CollectSysIoStats()
 {
     auto task = [this] { return ioCollector_->CollectSysIoStats(); };
-    return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
-}
-
-CollectResult<std::string> IoDecorator::ExportSysIoStats()
-{
-    auto task = [this] { return ioCollector_->ExportSysIoStats(); };
     return Invoke(task, statInfoWrapper_, std::string(IO_COLLECTOR_NAME) + UC_SEPARATOR + __func__);
 }
 

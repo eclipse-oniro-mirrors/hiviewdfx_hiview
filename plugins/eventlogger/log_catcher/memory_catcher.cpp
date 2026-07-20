@@ -18,30 +18,52 @@
 #include "file_util.h"
 #include "freeze_common.h"
 #include "hiview_logger.h"
-#include "memory_collector.h"
 #include "string_util.h"
+#include "common_utils.h"
 
 namespace OHOS {
 namespace HiviewDFX {
-namespace {
-    constexpr const char* ASHMEM_PATH = "/proc/ashmem_process_info";
-    constexpr const char* DMAHEAP_PATH = "/proc/dmaheap_process_info";
-    constexpr const char* GPUMEM_PATH = "/proc/gpumem_process_info";
-    constexpr const char* ASHMEM = "AshmemUsed";
-    constexpr const char* DMAHEAP = "DmaHeapTotalUsed";
-    constexpr const char* GPUMEM = "GpuTotalUsed";
-    constexpr const char* RECLAIM = "ReclaimAvailBuffer";
-    constexpr const char* PROC_PRESSURE_MEMORY = "/proc/pressure/memory";
-    constexpr const char* PROC_MEMORYVIEW = "/proc/memview";
-    constexpr const char* PROC_MEMORYINFO = "/proc/meminfo";
-    constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
-    constexpr int BELOW_MEM_SIZE = 500 * 1024;
-    constexpr int DECIMAL = 10;
-}
 #ifdef USAGE_CATCHER_ENABLE
+namespace {
 using namespace UCollect;
-using namespace UCollectUtil;
 DEFINE_LOG_LABEL(0xD002D01, "EventLogger-MemoryCatcher");
+constexpr const char* ASHMEM_PATH = "/proc/ashmem_process_info";
+constexpr const char* DMAHEAP_PATH = "/proc/dmaheap_process_info";
+constexpr const char* GPUMEM_PATH = "/proc/gpumem_process_info";
+constexpr const char* ASHMEM = "AshmemUsed";
+constexpr const char* DMAHEAP = "DmaHeapTotalUsed";
+constexpr const char* GPUMEM = "GpuTotalUsed";
+constexpr const char* RECLAIM = "ReclaimAvailBuffer";
+constexpr const char* PROC_PRESSURE_MEMORY = "/proc/pressure/memory";
+constexpr const char* PROC_MEMORYVIEW = "/proc/memview";
+constexpr const char* PROC_MEMORYINFO = "/proc/meminfo";
+constexpr char MEMINFO_SAVE_DIR[] = "/data/log/hiview/unified_collection/memory";
+const std::size_t MAX_FILE_SAVE_SIZE = 10;
+constexpr int OVER_MEM_SIZE = 2 * 1024 * 1024;
+constexpr int BELOW_MEM_SIZE = 500 * 1024;
+constexpr int DECIMAL = 10;
+std::mutex g_memMutex;
+
+std::string ExportRawInfo(const std::string& filePath, const std::string& preFix, const std::string& pidStr = "")
+{
+    std::lock_guard<std::mutex> lock(g_memMutex);
+    std::string content;
+    if (!FileUtil::LoadStringFromFile(filePath, content)) {
+        HIVIEW_LOGE("Load content failed");
+        return "";
+    }
+    std::string logPath = CommonUtils::CreateExportFile(MEMINFO_SAVE_DIR, MAX_FILE_SAVE_SIZE, preFix, ".txt", pidStr);
+    if (logPath.empty()) {
+        return "";
+    }
+    if (!FileUtil::SaveStringToFile(logPath, content)) {
+        HIVIEW_LOGE("save to logPath failed");
+        return "";
+    }
+    return logPath;
+}
+}
+
 MemoryCatcher::MemoryCatcher() : EventLogCatcher()
 {
     name_ = "MemoryCatcher";
@@ -95,11 +117,12 @@ int MemoryCatcher::Catch(int fd, int jsonFd)
 
 void MemoryCatcher::CollectMemInfo()
 {
-    HIVIEW_LOGI("CollectMemInfo start");
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    collector->CollectRawMemInfo();
-    collector->ExportMemView();
-    HIVIEW_LOGI("CollectMemInfo end");
+    if (ExportRawInfo(PROC_MEMORYVIEW, "proc_memview_").empty()) {
+        HIVIEW_LOGE("export memview failed");
+    }
+    if (ExportRawInfo(PROC_MEMORYINFO, "proc_meminfo_").empty()) {
+        HIVIEW_LOGI("export memInfo end");
+    }
 }
 
 void MemoryCatcher::SetEvent(std::shared_ptr<SysEvent> event)

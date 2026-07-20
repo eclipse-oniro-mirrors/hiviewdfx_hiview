@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <dlfcn.h>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -39,14 +38,6 @@ public:
 };
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
-namespace {
-bool HasValidAILibrary()
-{
-    const std::string libName = "libhiai_infra_proxy_1.0.z.so";
-    void* handle = dlopen(libName.c_str(), RTLD_LAZY);
-    return handle != nullptr;
-}
-}
 
 /**
  * @tc.name: MemoryCollectorTest001
@@ -78,19 +69,6 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MemoryCollectorTest003
- * @tc.desc: used to test MemoryCollector.CollectRawMemInfo
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest003, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->CollectRawMemInfo();
-    std::cout << "collect raw memory info result" << data.retCode << std::endl;
-    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-}
-
-/**
  * @tc.name: MemoryCollectorTest004
  * @tc.desc: used to test MemoryCollector.CollectAllProcessMemory
  * @tc.type: FUNC
@@ -100,105 +78,6 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest004, TestSize.Level1)
     std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
     CollectResult<std::vector<ProcessMemory>> data = collector->CollectAllProcessMemory();
     std::cout << "collect all process memory result" << data.retCode << std::endl;
-    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-}
-
-/**
- * @tc.name: MemoryCollectorTest006
- * @tc.desc: used to test MemoryCollector.CollectRawSlabInfo
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest006, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->CollectRawSlabInfo();
-    std::cout << "collect raw slab info result" << data.retCode << std::endl;
-    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-}
-
-/**
- * @tc.name: MemoryCollectorTest007
- * @tc.desc: used to test MemoryCollector.CollectRawPageTypeInfo
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest007, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->CollectRawPageTypeInfo();
-    std::cout << "collect raw pagetype info result" << data.retCode << std::endl;
-    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-}
-
-/**
- * @tc.name: MemoryCollectorTest008
- * @tc.desc: used to test MemoryCollector.CollectRawDMA
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest008, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->CollectRawDMA();
-    std::cout << "collect raw DMA result" << data.retCode << std::endl;
-    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-}
-
-/**
- * @tc.name: MemoryCollectorTest009
- * @tc.desc: used to test MemoryCollector.CollectAllAIProcess
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest009, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::vector<AIProcessMem>> data = collector->CollectAllAIProcess();
-    std::cout << "collect all AI process result" << data.retCode << std::endl;
-    if (HasValidAILibrary()) {
-        ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-    } else {
-        ASSERT_TRUE(data.retCode == UcError::READ_FAILED);
-    }
-}
-
-/**
- * @tc.name: MemoryCollectorTest010
- * @tc.desc: used to test MemoryCollector.ExportAllAIProcess
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest010, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->ExportAllAIProcess();
-    std::cout << "export all AI process result" << data.retCode << std::endl;
-    if (HasValidAILibrary()) {
-        ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-    } else {
-        ASSERT_TRUE(data.retCode == UcError::READ_FAILED);
-    }
-}
-
-/**
- * @tc.name: MemoryCollectorTest011
- * @tc.desc: used to test MemoryCollector.CollectRawSmaps
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest011, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->CollectRawSmaps(1);
-    std::cout << "collect raw smaps info result" << data.retCode << std::endl;
-    ASSERT_TRUE(data.retCode == UcError::SUCCESS);
-}
-
-/**
- * @tc.name: MemoryCollectorTest012
- * @tc.desc: used to test MemoryCollector.CollectHprof
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest012, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->CollectHprof(1);
-    std::cout << "collect heap snapshot result" << data.retCode << std::endl;
     ASSERT_TRUE(data.retCode == UcError::SUCCESS);
 }
 
@@ -229,43 +108,8 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest014, TestSize.Level1)
 }
 
 /**
- * @tc.name: MemoryCollectorTest015
- * @tc.desc: used to test MemoryCollector.ExportMemView
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest015, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<std::string> data = collector->ExportMemView();
-    std::cout << "collect raw memory view info result" << data.retCode << std::endl;
-    if (FileUtil::FileExists("/proc/memview")) {
-        ASSERT_EQ(data.retCode, UcError::SUCCESS);
-    } else {
-        ASSERT_EQ(data.retCode, UcError::UNSUPPORT);
-    }
-}
-
-/**
- * @tc.name: MemoryCollectorTest016
- * @tc.desc: used to test MemoryCollector.CollectDdrFreq
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest016, TestSize.Level1)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<uint32_t> data = collector->CollectDdrFreq();
-    std::cout << "collect DDR current frequency info result" << data.retCode << std::endl;
-    if (!FileUtil::FileExists("/sys/class/devfreq/ddrfreq/cur_freq")) {
-        ASSERT_EQ(data.retCode, UcError::UNSUPPORT);
-    } else {
-        ASSERT_EQ(data.retCode, UcError::SUCCESS);
-        ASSERT_GT(data.data, 0);
-    }
-}
-
-/**
  * @tc.name: MemoryCollectorTest017
- * @tc.desc: used to test MemoryCollector.CollectDdrFreq
+ * @tc.desc: used to test MemoryCollector.CollectProcessMemoryDetail
  * @tc.type: FUNC
 */
 HWTEST_F(MemoryCollectorTest, MemoryCollectorTest017, TestSize.Level1)
@@ -318,44 +162,14 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest001, TestSize.Level1)
     auto ret2 = collector->CollectSysMemory();
     ASSERT_EQ(ret2.retCode, UcError::FEATURE_CLOSED);
 
-    auto ret3 = collector->CollectRawMemInfo();
-    ASSERT_EQ(ret3.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret4 = collector->ExportMemView();
-    ASSERT_EQ(ret4.retCode, UcError::FEATURE_CLOSED);
-
     auto ret5 = collector->CollectAllProcessMemory();
     ASSERT_EQ(ret5.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret7 = collector->CollectRawSlabInfo();
-    ASSERT_EQ(ret7.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret8 = collector->CollectRawPageTypeInfo();
-    ASSERT_EQ(ret8.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret9 = collector->CollectRawDMA();
-    ASSERT_EQ(ret9.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret10 = collector->CollectAllAIProcess();
-    ASSERT_EQ(ret10.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret11 = collector->ExportAllAIProcess();
-    ASSERT_EQ(ret11.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret12 = collector->CollectRawSmaps(0);
-    ASSERT_EQ(ret12.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret13 = collector->CollectHprof(0);
-    ASSERT_EQ(ret13.retCode, UcError::FEATURE_CLOSED);
 
     auto ret14 = collector->CollectProcessVss(0);
     ASSERT_EQ(ret14.retCode, UcError::FEATURE_CLOSED);
 
     auto ret15 = collector->CollectMemoryLimit();
     ASSERT_EQ(ret15.retCode, UcError::FEATURE_CLOSED);
-
-    auto ret16 = collector->CollectDdrFreq();
-    ASSERT_EQ(ret16.retCode, UcError::FEATURE_CLOSED);
 
     auto ret17 = collector->CollectProcessMemoryDetail(0, GraphicMemOption::NONE);
     ASSERT_EQ(ret17.retCode, UcError::FEATURE_CLOSED);

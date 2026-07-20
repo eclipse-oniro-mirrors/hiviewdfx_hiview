@@ -59,9 +59,6 @@ ohos_unittest("DecoratorUnitTest") {
     defines += [ "UNIFIED_COLLECTOR_GPU_ENABLE" ]
   }
 
-  if (hiview_unified_collector_ebpf_enable) {
-    defines += [ "UNIFIED_COLLECTOR_EBPF_ENABLE" ]
-  }
 
   if (hiview_unified_collector_hilog_enable) {
     defines += [ "UNIFIED_COLLECTOR_HILOG_ENABLE" ]
@@ -75,10 +72,6 @@ ohos_unittest("DecoratorUnitTest") {
     defines += [ "UNIFIED_COLLECTOR_MEMORY_ENABLE" ]
   }
 
-  if (hiview_unified_collector_network_enable) {
-    defines += [ "UNIFIED_COLLECTOR_NETWORK_ENABLE" ]
-  }
-
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     defines += [ "HAS_HIPERF" ]
   }
@@ -87,7 +80,4 @@ ohos_unittest("DecoratorUnitTest") {
     defines += [ "UNIFIED_COLLECTOR_TRACE_ENABLE" ]
   }
 
-  if (hiview_unified_collector_wm_enable) {
-    defines += [ "UNIFIED_COLLECTOR_WM_ENABLE" ]
-  }
 }

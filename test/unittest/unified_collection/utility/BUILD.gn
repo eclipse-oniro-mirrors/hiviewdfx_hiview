@@ -34,14 +34,12 @@ ohos_unittest("UCollectionUtilityUnitTest") {
     "cpu_collector_test.cpp",
     "gpu_collector_test.cpp",
     "graphic_memory_collector_test.cpp",
-    "hiebpf_collector_test.cpp",
     "hilog_collector_test.cpp",
     "io_collector_test.cpp",
     "memory_collector_test.cpp",
-    "network_collector_test.cpp",
     "perf_collector_test.cpp",
     "thermal_collector_test.cpp",
-    "wm_collector_test.cpp",
+
   ]
 
   deps = [
@@ -68,14 +66,6 @@ ohos_unittest("UCollectionUtilityUnitTest") {
   ]
 
   defines = []
-  if (hiview_unified_collector_ebpf_enable) {
-    defines += [ "UNIFIED_COLLECTOR_EBPF_ENABLE" ]
-  }
-
-  if (hiview_unified_collector_network_enable) {
-    defines += [ "UNIFIED_COLLECTOR_NETWORK_ENABLE" ]
-  }
-
   if (hiview_unified_collector_graphic_enable) {
     defines += [ "UNIFIED_COLLECTOR_GRAPHIC_ENABLE" ]
   }
@@ -98,10 +88,6 @@ ohos_unittest("UCollectionUtilityUnitTest") {
 
   if (hiview_unified_collector_hilog_enable) {
     defines += [ "UNIFIED_COLLECTOR_HILOG_ENABLE" ]
-  }
-
-  if (hiview_unified_collector_wm_enable) {
-    defines += [ "UNIFIED_COLLECTOR_WM_ENABLE" ]
   }
 
   if (hiview_unified_collector_process_enable) {

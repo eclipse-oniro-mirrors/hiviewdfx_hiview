@@ -33,54 +33,9 @@ CollectResult<SysMemory> MemoryCollectorEmptyImpl::CollectSysMemory()
     return CollectResult<SysMemory>(UCollect::UcError::FEATURE_CLOSED);
 }
 
-CollectResult<std::string> MemoryCollectorEmptyImpl::CollectRawMemInfo()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::ExportMemView()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
 CollectResult<std::vector<ProcessMemory>> MemoryCollectorEmptyImpl::CollectAllProcessMemory()
 {
     return CollectResult<std::vector<ProcessMemory>>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::CollectRawSlabInfo()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::CollectRawPageTypeInfo()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::CollectRawDMA()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::vector<AIProcessMem>> MemoryCollectorEmptyImpl::CollectAllAIProcess()
-{
-    return CollectResult<std::vector<AIProcessMem>>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::ExportAllAIProcess()
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::CollectRawSmaps(int32_t pid)
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<std::string> MemoryCollectorEmptyImpl::CollectHprof(int32_t pid)
-{
-    return CollectResult<std::string>(UCollect::UcError::FEATURE_CLOSED);
 }
 
 CollectResult<uint64_t> MemoryCollectorEmptyImpl::CollectProcessVss(int32_t pid)
@@ -91,11 +46,6 @@ CollectResult<uint64_t> MemoryCollectorEmptyImpl::CollectProcessVss(int32_t pid)
 CollectResult<MemoryLimit> MemoryCollectorEmptyImpl::CollectMemoryLimit()
 {
     return CollectResult<MemoryLimit>(UCollect::UcError::FEATURE_CLOSED);
-}
-
-CollectResult<uint32_t> MemoryCollectorEmptyImpl::CollectDdrFreq()
-{
-    return CollectResult<uint32_t>(UCollect::UcError::FEATURE_CLOSED);
 }
 
 CollectResult<ProcessMemoryDetail> MemoryCollectorEmptyImpl::CollectProcessMemoryDetail(int32_t pid,
