@@ -567,6 +567,17 @@ public:
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_CARD[] = "LAUNCHER_APP_LAUNCH_FROM_CARD";
 
     inline static constexpr char LAUNCHER_APP_LAUNCH_FROM_APPCENTER[] = "LAUNCHER_APP_LAUNCH_FROM_APPCENTER";
+    
+    // only for car
+    inline static constexpr char SCREEN_LOCK_WALLPAPER_CHANGE[] = "SCREEN_LOCK_WALLPAPER_CHANGE";
+    
+    inline static constexpr char CAR_WALLPAPER_LIBRARY_LOAD_ANI[] = "CAR_WALLPAPER_LIBRARY_LOAD_ANI";
+    
+    inline static constexpr char CAR_THEME_APPLY_ANI[] = "CAR_THEME_APPLY_ANI";
+
+    inline static constexpr char CAR_GALLERY_LOAD_ANI[] = "CAR_GALLERY_LOAD_ANI";
+    
+    inline static constexpr char CAR_THEME_LIBRARY_LOAD_ANI[] = "CAR_THEME_LIBRARY_LOAD_ANI";
 
     inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
 

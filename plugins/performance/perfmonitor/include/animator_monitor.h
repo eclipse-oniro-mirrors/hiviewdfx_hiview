@@ -279,6 +279,12 @@ private:
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_NEGATIVESCREEN,
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_CARD,
         PerfConstants::LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY,
+        //only for car
+        PerfConstants::SCREEN_LOCK_WALLPAPER_CHANGE,
+        PerfConstants::CAR_WALLPAPER_LIBRARY_LOAD_ANI,
+        PerfConstants::CAR_THEME_APPLY_ANI,
+        PerfConstants::CAR_GALLERY_LOAD_ANI,
+        PerfConstants::CAR_THEME_LIBRARY_LOAD_ANI,
         //only for test
         PerfConstants::ENTER_ONE_STEP_SPLIT,
         PerfConstants::ENTER_SPLIT,
