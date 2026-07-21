@@ -341,7 +341,10 @@ private:
         PerfConstants::DESKTOP_G_TO_V,
         PerfConstants::DESKTOP_V_TO_G,
         PerfConstants::DESKTOP_N_TO_LM,
-        PerfConstants::DESKTOP_LM_TO_N
+        PerfConstants::DESKTOP_LM_TO_N,
+        PerfConstants::MENU_LIGHT_SENSE_ANIMATION,
+        PerfConstants::DIALOG_LIGHT_SENSE_ANIMATION,
+        PerfConstants::BINDSHEET_LIGHT_SENSE_ANIMATION
     };
 };
 
