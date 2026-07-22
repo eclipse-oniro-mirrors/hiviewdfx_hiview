@@ -211,7 +211,6 @@ private:
         PerfConstants::SMARTDOCK_RECENTANIM_FIRSTOPEN,
         PerfConstants::PC_SHORTCUT_GLOBAL_SEARCH,
         PerfConstants::SWITCH_DESKTOP,
-        PerfConstants::LAUNCHER_APP_LAUNCH_FROM_WATCHFUNCKEY,
         PerfConstants::APP_ASSOCIATED_START,
         PerfConstants::CONTACTS_DIALER_BUTTON_PRESS,
         PerfConstants::LAUNCHER_CARD_TEMP_SHOW,
