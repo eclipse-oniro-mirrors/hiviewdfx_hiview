@@ -12,8 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <thread>
-#include <string>
 #include "xperf_service_log.h"
 #include "video_jank_monitor.h"
 #include "xperf_constant.h"

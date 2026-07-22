@@ -87,6 +87,7 @@ ohos_shared_library("xperfservice_server") {
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "graphic_2d:librender_service_client",
     "hicollie:libhicollie",
   ]
 

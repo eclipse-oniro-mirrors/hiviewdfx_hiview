@@ -57,37 +57,37 @@ void XperfRegisterManager::UnregisterVideoJank(const std::string &caller)
     }
 }
 
-    int32_t XperfRegisterManager::RegisterVideoState(const std::string &caller, const sptr<IVideoStateCallback> &cb)
-    {
-        if (cb == nullptr) {
-            return XPERF_SERVICE_ERR; //failed
-        }
-        std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-        auto iter = vsCbMap.find(caller);
-        if (iter == vsCbMap.end()) {
-            vsCbMap[caller] = cb;
-            return XPERF_SERVICE_OK; //success
-        }
-
-        if (iter->second == nullptr) {
-            iter->second = cb;
-            return XPERF_SERVICE_OK; //success
-        }
-
-        LOGE("XperfRegisterManager VideoStateCallback:%{public}s exists", caller.c_str());
+int32_t XperfRegisterManager::RegisterVideoState(const std::string &caller, const sptr<IVideoStateCallback> &cb)
+{
+    if (cb == nullptr) {
         return XPERF_SERVICE_ERR; //failed
     }
-
-    void XperfRegisterManager::UnregisterVideoState(const std::string &caller)
-    {
-        std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-        auto iter = vsCbMap.find(caller);
-        if (iter != vsCbMap.end()) {
-            vsCbMap.erase(iter);
-        } else {
-            LOGE("UnregisterVideoState caller:%{public}s callback not existed", caller.c_str());
-        }
+    std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
+    auto iter = vsCbMap.find(caller);
+    if (iter == vsCbMap.end()) {
+        vsCbMap[caller] = cb;
+        return XPERF_SERVICE_OK; //success
     }
+
+    if (iter->second == nullptr) {
+        iter->second = cb;
+        return XPERF_SERVICE_OK; //success
+    }
+
+    LOGE("XperfRegisterManager VideoStateCallback:%{public}s exists", caller.c_str());
+    return XPERF_SERVICE_ERR; //failed
+}
+
+void XperfRegisterManager::UnregisterVideoState(const std::string &caller)
+{
+    std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
+    auto iter = vsCbMap.find(caller);
+    if (iter != vsCbMap.end()) {
+        vsCbMap.erase(iter);
+    } else {
+        LOGE("UnregisterVideoState caller:%{public}s callback not existed", caller.c_str());
+    }
+}
 
 int32_t XperfRegisterManager::RegisterAudioJank(const std::string &caller, const sptr<IAudioJankCallback> &cb)
 {
