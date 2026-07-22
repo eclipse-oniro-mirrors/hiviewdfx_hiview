@@ -47,6 +47,7 @@ constexpr int MAXRETRYTIMEOUT = 10;
 constexpr int32_t MAX_SPLIT_MEMORY_SIZE = 256;
 constexpr int32_t MEDIA_UID = 1013;
 constexpr int32_t MEMMGR_UID = 1111;
+constexpr int32_t RENDER_SERVICE_UID = 1003;
 const int64_t MS_TO_US = 1000;
 constexpr char READ_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.READ_HIVIEW_SYSTEM";
 constexpr char WRITE_HIVIEW_SYSTEM_PERMISSION[] = "ohos.permission.WRITE_HIVIEW_SYSTEM";
@@ -510,6 +511,25 @@ ErrCode HiviewServiceAbility::RequestAppTrace(const TraceConfigParcelable &trace
     ffrt::submit(dumpTask, {}, {},
         ffrt::task_attr().name("app_system_trace_task").delay(paramConfig.duration * MS_TO_US));
     return 0;
+}
+
+ErrCode HiviewServiceAbility::RequestUiTree(int32_t pid, const sptr<IRequestUiTreeCallback> &callback)
+{
+    auto service = GetOrSetHiviewService();
+    if (service == nullptr) {
+        return UiTreeErrCode::ERR_GET_HIVIEW_SERVICE;
+    }
+    if (IsCallbackNull<IRequestUiTreeCallback>(callback)) {
+        HIVIEW_LOGE("callback is null");
+        return UiTreeErrCode::ERR_GET_HIVIEW_SERVICE;
+    }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if (uid != RENDER_SERVICE_UID) {
+        HIVIEW_LOGE("calling uid is not render_service, uid: %{public}d", uid);
+        return UiTreeErrCode::ERR_RENDER_SERIVICE_CHECK;
+    }
+    auto result = service->RequestUiTree(pid, callback);
+    return result.retCode;
 }
 
 ErrCode HiviewServiceAbility::GetSysCpuUsage(int32_t& errNo, double& ret)

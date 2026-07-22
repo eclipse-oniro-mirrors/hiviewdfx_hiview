@@ -43,5 +43,6 @@ ohos_fuzztest("HiviewLogConfigManagerFuzzTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "ipc:ipc_single",
   ]
 }
