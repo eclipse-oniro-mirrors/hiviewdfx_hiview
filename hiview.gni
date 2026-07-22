@@ -96,6 +96,8 @@ declare_args() {
 
   hiview_enable_crash_validator = true
 
+  hiview_p7885_device = false
+
   # hiview dfr feature
   hiview_feature_bbox_userspace = false
   hiview_enable_leak_detector = false
