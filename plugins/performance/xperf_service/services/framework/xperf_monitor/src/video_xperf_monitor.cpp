@@ -135,8 +135,6 @@ void VideoXperfMonitor::OnAvcodecJankReceived(OhosXperfEvent* event)
 void VideoXperfMonitor::BroadcastVideoJank(const std::string& msg)
 {
     LOGD("VideoXperfMonitor::BroadcastVideoJank");
-    std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoJankEvent(msg); });
-    delayThread.detach();
     ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::RS_JANK_FRAME, msg); },
         ffrt::task_attr().name("BroadcastVideoJank").qos(ffrt::qos_default));
 }

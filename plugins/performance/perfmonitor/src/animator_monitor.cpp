@@ -222,9 +222,7 @@ void AnimatorMonitor::FlushDataBase(AnimatorRecord* record, DataBase& data)
     // In the pageSwitch sences, note is the pageName before and after the pageSwitch.
     if (data.sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH ||
         data.sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH_INTERACTIVE) {
-        std::string prePageName = TruncatePageName(data.baseInfo.prePageName);
-        std::string pageName = TruncatePageName(data.baseInfo.pageName);
-        data.baseInfo.note = prePageName + "->" + pageName;
+        data.baseInfo.note = data.baseInfo.prePageName + "->" + data.baseInfo.pageName;
     }
 }
 

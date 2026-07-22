@@ -17,10 +17,7 @@ import("../../../xperf_service.gni")
 
 idl_gen_interface("xperf_service_interface") {
   sources = [
-    "IAudioJankCallback.idl",
     "IEventCallback.idl",
-    "IVideoJankCallback.idl",
-    "IVideoStateCallback.idl",
     "IXperfService.idl",
   ]
   log_domainid = "0xD002D66"
@@ -60,6 +57,7 @@ ohos_shared_library("xperfservice_client") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "ipc:ipc_single",
+    "bounds_checking_function:libsec_shared",
   ]
 
   innerapi_tags = [

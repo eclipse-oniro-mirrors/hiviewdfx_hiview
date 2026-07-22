@@ -37,7 +37,7 @@ WhiteBlockMonitor& WhiteBlockMonitor::GetInstance()
     return instance;
 }
  
-void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
+void WhiteBlockMonitor::StartScroll(const BaseInfo& baseInfo)
 {
     if (!IsBetaVersion()) {
         return;
@@ -81,6 +81,10 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
         return;
     }
     ImageLoadInfo* record = new ImageLoadInfo();
+    if (record == nullptr) {
+        HIVIEW_LOGW("create ImageLoadInfo failed");
+        return;
+    }
     record->id = id;
     record->loadStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
     mRecords.emplace(id, record);

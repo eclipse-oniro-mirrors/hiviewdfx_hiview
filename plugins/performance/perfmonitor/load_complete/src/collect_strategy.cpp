@@ -67,11 +67,13 @@ void DetectCollectStrategy::CompleteComponent(int32_t componentId)
     } else if (componentId != INVALID_ID) {
         XPERF_TRACE_SCOPED("[LoadCompleteMonitor] CompleteComponent for not add componentId:%d", componentId);
         if (notAddComponentInfos_.count(componentId)) {
-            notAddComponentInfos_[componentId] = {GetCurrentSystimeMs(), 0, MAX_COMPLETE_TIMES, false};
+            if (notAddComponentInfos_[componentId].remainCompleteTimes > 0) {
+                notAddComponentInfos_[componentId].remainCompleteTimes--;
+                notAddComponentInfos_[componentId].completeTimestamp = GetCurrentSystimeMs();
+                notAddComponentInfos_[componentId].needComplete = true;
+            }
         } else {
-            notAddComponentInfos_[componentId].remainCompleteTimes--;
-            notAddComponentInfos_[componentId].completeTimestamp = GetCurrentSystimeMs();
-            notAddComponentInfos_[componentId].needComplete = true;
+            notAddComponentInfos_[componentId] = {GetCurrentSystimeMs(), 0, MAX_COMPLETE_TIMES, false};
         }
     }
 }

@@ -12,8 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <thread>
-#include <string>
 #include "xperf_service_log.h"
 #include "video_jank_monitor.h"
 #include "xperf_constant.h"
@@ -184,8 +182,6 @@ void VideoJankMonitor::MonitorStart()
 void VideoJankMonitor::BroadcastVideoStart(const std::string& msg)
 {
     LOGD("VideoJankMonitor_BroadcastVideoStart");
-    std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoStart(msg); });
-    delayThread.detach();
     ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::XPERF_VIDEO_START, msg); },
         ffrt::task_attr().name("BroadcastVideoStart").qos(ffrt::qos_default));
 }
@@ -213,8 +209,6 @@ void VideoJankMonitor::MonitorStop()
 void VideoJankMonitor::BroadcastVideoStop(const std::string& msg)
 {
     LOGD("VideoJankMonitor_BroadcastVideoStop");
-    std::thread delayThread([msg] { XperfRegisterManager::GetInstance().NotifyVideoStop(msg); });
-    delayThread.detach();
     ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::XPERF_VIDEO_STOP, msg); },
         ffrt::task_attr().name("BroadcastVideoStop").qos(ffrt::qos_default));
 }

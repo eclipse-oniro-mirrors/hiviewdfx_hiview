@@ -88,6 +88,7 @@ ohos_shared_library("xperfservice_server") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "hicollie:libhicollie",
+    "bounds_checking_function:libsec_shared",
   ]
 
   defines = []
