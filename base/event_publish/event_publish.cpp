@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -313,7 +313,7 @@ void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& e
             continue;
         }
         uint64_t fileSize = FileUtil::GetFileSize(curLogPath);
-        if (dirSize + fileSize <= externalLogInfo.maxFileSize) {
+        if (fileSize <= externalLogInfo.maxFileSize - dirSize) {
             std::string desFileName = GetDesFileName(eventJson[PARAM_PROPERTY], eventJson[NAME_PROPERTY].asString(),
                 externalLogInfo);
             RefineLogFilePaths(eventJson, curLogPath, desFileName, needRefined);
