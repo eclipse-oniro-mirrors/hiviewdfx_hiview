@@ -363,7 +363,7 @@ ohos_source_set("ucollection_source") {
   }
 
   if (hiview_support_wukong_collect_gpu_info) {
-    cflags += [ "-DP7885_DEVICE" ]
+    cflags += [ "-DWUKONG_COLLECT_GPU_INFO" ]
   }
 
   part_name = "hiview"
