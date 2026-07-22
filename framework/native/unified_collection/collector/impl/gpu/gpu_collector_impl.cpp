@@ -66,13 +66,12 @@ CollectResult<SysGpuLoad> GpuCollectorImpl::CollectSysGpuLoad()
     SysGpuLoad& sysGpuLoad = result.data;
 #ifdef P7885_DEVICE
     std::string content;
-    if (!FileUtil::LoadStringFromFile(GPU_LOAD, content)){
+    if (!FileUtil::LoadStringFromFile(GPU_LOAD, content)) {
         HIVIEW_LOGW("ReadNodeWithString failed");
         sysGpuLoad.gpuLoad = 0;
-    }
-    else {
+    } else {
         size_t atpos = content.find('@');
-        if(atpos != std::string::npos) {
+        if (atpos != std::string::npos) {
             content = content.substr(0, atpos);
         }
         while (!content.empty() && (content.back() == '\n' || content.back() == '\r')) {
