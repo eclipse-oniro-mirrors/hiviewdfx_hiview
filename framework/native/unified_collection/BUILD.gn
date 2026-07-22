@@ -362,6 +362,10 @@ ohos_source_set("ucollection_source") {
         [ "collector/empty_impl/thermal/thermal_collector_empty_impl.cpp" ]
   }
 
+  if (hiview_support_wukong_collect_gpu_info) {
+    cflags += [ "-DWUKONG_COLLECT_GPU_INFO" ]
+  }
+
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
 }

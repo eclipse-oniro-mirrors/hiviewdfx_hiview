@@ -58,7 +58,8 @@
             "hiview_unified_collector_low_mem_threshold",
             "hiview_unified_collector_trace_for_cpu_high_load",
             "hiview_eventlogger_kernel_catcher_enable",
-            "hiview_support_local_read_diagnostic_logs"
+            "hiview_support_local_read_diagnostic_logs",
+            "hiview_support_wukong_collect_gpu_info"
         ],
         "rom": "",
         "ram": "",
