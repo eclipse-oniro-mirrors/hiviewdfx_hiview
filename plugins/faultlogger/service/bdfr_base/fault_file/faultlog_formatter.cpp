@@ -594,6 +594,11 @@ void ParseCppCrashFromTextFile(const std::string& path, FaultLogInfo& info)
 
 bool ParseJsonFromFile(const std::string& path, Json::Value& root)
 {
+    constexpr uint64_t maxFileSize = 50 * 1024 * 1024; // limit cppcrash json file size in temp dir to 50M
+    if (FileUtil::GetFileSize(path) > maxFileSize) {
+        HIVIEW_LOGW("File size exceeds 50M, path: %{public}s", path.c_str());
+        return false;
+    }
     std::ifstream logFile(path, std::ifstream::binary);
     if (!logFile.is_open()) {
         HIVIEW_LOGW("Failed to open file, path: %{public}s", path.c_str());

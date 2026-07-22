@@ -15,6 +15,7 @@
 #include "napi_faultlogger.h"
 
 #include <cinttypes>
+#include <memory>
 #include <sstream>
 #include <unistd.h>
 
@@ -154,7 +155,7 @@ static void FaultLogCompleteCallback(napi_env env, napi_status status, void *dat
 }
 
 static bool ProcessCallbackRef(napi_env env, napi_value callback,
-    FaultLogInfoContext* faultLogInfoContext)
+    const std::unique_ptr<FaultLogInfoContext>& faultLogInfoContext)
 {
     napi_status status = napi_create_reference(env, callback, 1, &faultLogInfoContext->callbackRef);
     if (status != napi_ok) {
@@ -165,19 +166,20 @@ static bool ProcessCallbackRef(napi_env env, napi_value callback,
     return true;
 }
 
-static bool CreateFaultLogAsyncWork(napi_env env, FaultLogInfoContext* faultLogInfoContext)
+static bool CreateFaultLogAsyncWork(napi_env env, std::unique_ptr<FaultLogInfoContext> faultLogInfoContext)
 {
     napi_value resource = NapiUtil::CreateUndefined(env);
     napi_value resourceName = nullptr;
     napi_create_string_utf8(env, "QuerySelfFaultLog", NAPI_AUTO_LENGTH, &resourceName);
     napi_status status = napi_create_async_work(env, resource, resourceName, FaultLogExecuteCallback,
-        FaultLogCompleteCallback, static_cast<void *>(faultLogInfoContext), &faultLogInfoContext->work);
+        FaultLogCompleteCallback, static_cast<void *>(faultLogInfoContext.get()), &faultLogInfoContext->work);
     if (status != napi_ok) {
         HIVIEW_LOGE("napi_create_async_work failed");
         GET_AND_THROW_LAST_ERROR(env);
         return false;
     }
     napi_queue_async_work_with_qos(env, faultLogInfoContext->work, napi_qos_default);
+    faultLogInfoContext.release();
     return true;
 }
 
@@ -200,24 +202,21 @@ static napi_value QuerySelfFaultLog(napi_env env, napi_callback_info info)
         return result;
     }
 
-    auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>().release();
+    auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>();
     napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType);
     if (parameterCount == ONE_PARAMETER) {
         napi_create_promise(env, &faultLogInfoContext->deferred, &result);
     } else if (parameterCount == TWO_PARAMETER) {
         if (!NapiUtil::IsMatchType(env, parameters[TWO_PARAMETER - 1], napi_function)) {
             HIVIEW_LOGE("parameters[1] type isn't function");
-            delete faultLogInfoContext;
             return result;
         }
         if (!ProcessCallbackRef(env, parameters[TWO_PARAMETER - 1], faultLogInfoContext)) {
-            delete faultLogInfoContext;
             return result;
         }
     }
 
-    if (!CreateFaultLogAsyncWork(env, faultLogInfoContext)) {
-        delete faultLogInfoContext;
+    if (!CreateFaultLogAsyncWork(env, std::move(faultLogInfoContext))) {
         return result;
     }
     return result;
@@ -262,8 +261,8 @@ static napi_value AddFaultLog(napi_env env, napi_callback_info info)
     napi_get_value_string_utf8(env, parameters[THREE_PARAMETER - 1], module, BUF_SIZE_64, &resultString);
     char summary[BUF_SIZE_64];
     napi_get_value_string_utf8(env, parameters[FOUR_PARAMETER - 1], summary, BUF_SIZE_64, &resultString);
-    constexpr int64_t SEC_TO_MILLISEC = 1000;
-    AddFaultLog(now * SEC_TO_MILLISEC, logType, module, summary);
+    constexpr int64_t secToMillisec = 1000;
+    AddFaultLog(now * secToMillisec, logType, module, summary);
     return result;
 }
 
@@ -292,26 +291,23 @@ static napi_value Query(napi_env env, napi_callback_info info)
         return result;
     }
 
-    auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>().release();
+    auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>();
     napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType);
     if (parameterCount == ONE_PARAMETER) {
         napi_create_promise(env, &faultLogInfoContext->deferred, &result);
     } else if (parameterCount == TWO_PARAMETER) {
         if (!NapiUtil::IsMatchType(env, parameters[TWO_PARAMETER - 1], napi_function)) {
             HIVIEW_LOGE("parameters[1] type isn't function");
-            delete faultLogInfoContext;
             NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM,
                 NapiUtil::CreateErrMsg("callback", napi_function), true);
             return result;
         }
         if (!ProcessCallbackRef(env, parameters[TWO_PARAMETER - 1], faultLogInfoContext)) {
-            delete faultLogInfoContext;
             return result;
         }
     }
 
-    if (!CreateFaultLogAsyncWork(env, faultLogInfoContext)) {
-        delete faultLogInfoContext;
+    if (!CreateFaultLogAsyncWork(env, std::move(faultLogInfoContext))) {
         return result;
     }
     return result;

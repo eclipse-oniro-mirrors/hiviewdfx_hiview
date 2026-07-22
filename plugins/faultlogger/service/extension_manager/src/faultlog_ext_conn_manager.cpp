@@ -170,19 +170,19 @@ std::string FaultLogExtConnManager::GetExtName(const std::string& bundleName, in
     return "";
 }
 
-bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
+void FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
 {
     static std::mutex mtx;
     std::lock_guard<std::mutex> lock(mtx);
     if (IsExtension(info) || IsExistList(info.module, info.id)) {
         HIVIEW_LOGE("%{public}s is extension or exist list", info.module.c_str());
-        return false;
+        return;
     }
     auto userId = info.id / VALUE_MOD;
     std::string extensionName = GetExtName(info.module, userId);
     if (extensionName.empty()) {
         HIVIEW_LOGI("%{public}s Unsupported faultlog abily", info.module.c_str());
-        return false;
+        return;
     }
     auto task = [this, bundleName = info.module, extensionName, uid = info.id, userId]() {
         HIVIEW_LOGI("connect bundle:%{public}s(%{public}s), uid %{public}" PRIi32,
@@ -220,7 +220,6 @@ bool FaultLogExtConnManager::OnFault(const FaultLogInfo& info)
     HIVIEW_LOGI("add to List : %{public}s, uid %{public}" PRIi32, info.module.c_str(), info.id);
     ffrt::submit(task, ffrt::task_attr().name("FaultlogExtensionStart").delay(GetDelayTimeout()));
     AddToList(info.module, info.id);
-    return true;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -124,7 +124,9 @@ void LogStoreEx::DoDeleteLogFiles(const std::vector<LogFile> &fileList, uint32_t
             break;
         }
 
-        FileUtil::RemoveFile(it->path_);
+        if (!FileUtil::RemoveFile(it->path_)) {
+            HIVIEW_LOGW("Failed to remove file: %{public}s, errno: %{public}d", it->path_.c_str(), errno);
+        }
         if (it->path_.find("/data/log/faultlog/faultlogger") != std::string::npos) {
             HIVIEW_LOGI("Remove file:%{public}s.", it->path_.c_str());
         }
