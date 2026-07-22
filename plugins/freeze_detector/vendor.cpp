@@ -268,6 +268,10 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
+    if (fileList.size() > FREEZE_EXT_FILE_SIZE) {
+        HIVIEW_LOGW("fileList size exceeds limit, size:%{public}zu.", fileList.size());
+        return "";
+    }
     size_t fileSize = fileList.size();
     HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
     if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
