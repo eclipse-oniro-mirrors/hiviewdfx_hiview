@@ -104,8 +104,9 @@ bool AnimatorRecord::IsDisplayAnimator(const std::string& sceneId)
         || sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH_INTERACTIVE
         || sceneId == PerfConstants::SCROLLER_ANIMATION
         || sceneId == PerfConstants::LAUNCHER_SPRINGBACK_SCROLL
-        || sceneId == PerfConstants::STATIC_CROP_DRAG
-        || sceneId == PerfConstants::MOVING_CROP_DRAG) {
+ 	    || sceneId == PerfConstants::STATIC_CROP_DRAG
+ 	    || sceneId == PerfConstants::MOVING_CROP_DRAG
+        || sceneId == PerfConstants::ADJUST_XMAGE) {
         return true;
     }
     return false;
@@ -271,6 +272,19 @@ bool NonExperienceAppStart::IsInStartAppStatus()
     } else {
         return true;
     }
+}
+
+void NonExperienceResponse::StartRecord(const SceneType& sType, const std::string& sId)
+{
+    type = sType;
+    sceneId = sId;
+    status = !IsNonExperienceWhiteList(sId);
+}
+
+bool NonExperienceResponse::IsNonExperienceWhiteList(const std::string& sceneId)
+{
+    // app list fling response is experience jank
+    return (sceneId == PerfConstants::APP_LIST_FLING);
 }
 
 }

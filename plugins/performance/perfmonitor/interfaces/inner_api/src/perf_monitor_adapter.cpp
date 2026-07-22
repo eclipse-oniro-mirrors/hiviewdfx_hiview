@@ -109,7 +109,7 @@ std::string PerfMonitorAdapter::GetPageUrl()
 
 void PerfMonitorAdapter::SetPageName(const std::string& pageName)
 {
-    SceneMonitor::GetInstance().SetPageName(pageName);
+    SceneMonitor::GetInstance().SetPageName(TruncatePageName(pageName));
 }
 
 std::string PerfMonitorAdapter::GetPageName()
@@ -179,7 +179,7 @@ void PerfMonitorAdapter::ReportJankFrameApp(double jank, int32_t jankThreshold)
 void PerfMonitorAdapter::ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,
     const std::string& pageName)
 {
-    PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, pageName);
+    PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, TruncatePageName(pageName));
 }
 
 void PerfMonitorAdapter::StartRecordImageLoadStat(int64_t id)
@@ -198,8 +198,8 @@ void PerfMonitorAdapter::OnSceneChanged(const SceneType& type, bool status)
     SceneMonitor::GetInstance().OnSceneChanged(type, status);
 }
 
-void PerfMonitorAdapter::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
-    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+void PerfMonitorAdapter::ReportSurface(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
 {
     SurfaceMonitor::GetInstance().ReportSurface(uniqueId, surfaceName, componentName, bundleName, pid);
 }

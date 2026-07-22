@@ -35,15 +35,6 @@ public:
 
     ErrCode NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg) override;
 
-    int32_t RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb) override;
-    int32_t UnregisterVideoJank(const std::string& caller) override;
-
-    int32_t RegisterAudioJank(const std::string& caller, const sptr<IAudioJankCallback>& cb) override;
-    int32_t UnregisterAudioJank(const std::string& caller) override;
-
-    int32_t RegisterVideoState(const std::string& caller, const sptr<IVideoStateCallback>& cb) override;
-    int32_t UnregisterVideoState(const std::string& caller) override;
-
     int32_t RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
         const std::vector<int>& eventCodes) override;
 };

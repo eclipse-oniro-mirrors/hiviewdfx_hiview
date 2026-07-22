@@ -28,19 +28,6 @@ class XperfRegisterManager {
 public:
     static XperfRegisterManager& GetInstance();
 
-    int32_t RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb);
-    void UnregisterVideoJank(const std::string& caller);
-    void NotifyVideoJankEvent(const std::string& msg);
-
-    int32_t RegisterAudioJank(const std::string& caller, const sptr<IAudioJankCallback>& cb);
-    void UnregisterAudioJank(const std::string& caller);
-    void NotifyAudioJankEvent(const std::string& msg);
-
-    int32_t RegisterVideoState(const std::string& caller, const sptr<IVideoStateCallback>& cb);
-    void UnregisterVideoState(const std::string& caller);
-    void NotifyVideoStart(const std::string& msg);
-    void NotifyVideoStop(const std::string& msg);
-
     int32_t RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
         const std::vector<int>& eventCodes);
     void PostEvent(int eventCode, const std::string& eventData);
@@ -48,13 +35,7 @@ public:
 private:
     XperfRegisterManager() = default;
 
-    std::shared_timed_mutex vjMutex{};
-    std::shared_timed_mutex ajMutex{};
-    std::shared_timed_mutex vsMutex{};
     std::shared_timed_mutex mMutex{};
-    std::unordered_map<std::string, sptr<IVideoJankCallback>> vjCallbackMap;
-    std::unordered_map<std::string, sptr<IAudioJankCallback>> ajCallbackMap;
-    std::unordered_map<std::string, sptr<IVideoStateCallback>> vsCbMap;
     std::unordered_map<int, std::vector<sptr<IEventCallback>>> evtCallbackMap;
 };
 }

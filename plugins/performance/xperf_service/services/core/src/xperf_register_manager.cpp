@@ -25,102 +25,6 @@ XperfRegisterManager &XperfRegisterManager::GetInstance()
     return instance;
 }
 
-int32_t XperfRegisterManager::RegisterVideoJank(const std::string &caller, const sptr<IVideoJankCallback> &cb)
-{
-    if (cb == nullptr) {
-        return XPERF_SERVICE_ERR; //failed
-    }
-    std::unique_lock<std::shared_timed_mutex> lock(vjMutex);
-    auto iter = vjCallbackMap.find(caller);
-    if (iter == vjCallbackMap.end()) {
-        vjCallbackMap[caller] = cb;
-        return XPERF_SERVICE_OK; //success
-    }
-
-    if (iter->second == nullptr) {
-        iter->second = cb;
-        return XPERF_SERVICE_OK; //success
-    }
-
-    LOGE("XperfRegisterManager VideoJankCallback:%{public}s exists", caller.c_str());
-    return XPERF_SERVICE_ERR; //failed
-}
-
-void XperfRegisterManager::UnregisterVideoJank(const std::string &caller)
-{
-    std::unique_lock<std::shared_timed_mutex> lock(vjMutex);
-    auto iter = vjCallbackMap.find(caller);
-    if (iter != vjCallbackMap.end()) {
-        vjCallbackMap.erase(iter);
-    } else {
-        LOGE("UnregisterVideoJank caller:%{public}s callback not existed", caller.c_str());
-    }
-}
-
-    int32_t XperfRegisterManager::RegisterVideoState(const std::string &caller, const sptr<IVideoStateCallback> &cb)
-    {
-        if (cb == nullptr) {
-            return XPERF_SERVICE_ERR; //failed
-        }
-        std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-        auto iter = vsCbMap.find(caller);
-        if (iter == vsCbMap.end()) {
-            vsCbMap[caller] = cb;
-            return XPERF_SERVICE_OK; //success
-        }
-
-        if (iter->second == nullptr) {
-            iter->second = cb;
-            return XPERF_SERVICE_OK; //success
-        }
-
-        LOGE("XperfRegisterManager VideoStateCallback:%{public}s exists", caller.c_str());
-        return XPERF_SERVICE_ERR; //failed
-    }
-
-    void XperfRegisterManager::UnregisterVideoState(const std::string &caller)
-    {
-        std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-        auto iter = vsCbMap.find(caller);
-        if (iter != vsCbMap.end()) {
-            vsCbMap.erase(iter);
-        } else {
-            LOGE("UnregisterVideoState caller:%{public}s callback not existed", caller.c_str());
-        }
-    }
-
-int32_t XperfRegisterManager::RegisterAudioJank(const std::string &caller, const sptr<IAudioJankCallback> &cb)
-{
-    if (cb == nullptr) {
-        return XPERF_SERVICE_ERR; //failed
-    }
-    std::unique_lock<std::shared_timed_mutex> lock(ajMutex);
-    auto iter = ajCallbackMap.find(caller);
-    if (iter == ajCallbackMap.end()) {
-        ajCallbackMap[caller] = cb;
-        return XPERF_SERVICE_OK; //success
-    }
-
-    if (iter->second == nullptr) {
-        iter->second = cb;
-        return XPERF_SERVICE_OK; //success
-    }
-
-    LOGE("XperfRegisterManager RegisterAudioJank:%{public}s exists", caller.c_str());
-    return XPERF_SERVICE_ERR; //failed
-}
-
-void XperfRegisterManager::UnregisterAudioJank(const std::string &caller)
-{
-    std::unique_lock<std::shared_timed_mutex> lock(ajMutex);
-    auto iter = ajCallbackMap.find(caller);
-    if (iter != ajCallbackMap.end()) {
-        ajCallbackMap.erase(iter);
-    } else {
-        LOGE("UnregisterAudioJank caller:%{public}s callback not existed", caller.c_str());
-    }
-}
-
 int32_t XperfRegisterManager::RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
     const std::vector<int>& eventCodes)
 {
@@ -149,47 +53,9 @@ void XperfRegisterManager::PostEvent(int eventCode, const std::string& eventData
         return;
     }
     for (auto& cb: it->second) {
-        cb->OnXperfEvent(eventCode, eventData);
-    }
-}
-
-void XperfRegisterManager::NotifyVideoJankEvent(const std::string &msg)
-{
-    {
-        std::unique_lock<std::shared_timed_mutex> lock(vjMutex);
-        for (const auto &[_, callback] : vjCallbackMap) {
-            callback->OnVideoJankEvent(msg);
+        if (cb != nullptr) {
+            cb->OnXperfEvent(eventCode, eventData);
         }
-    }
-    {
-        std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-        for (const auto &[_, callback] : vsCbMap) {
-            callback->OnVideoJankEvent(msg);
-        }
-    }
-}
-
-void XperfRegisterManager::NotifyAudioJankEvent(const std::string &msg)
-{
-    std::unique_lock<std::shared_timed_mutex> lock(ajMutex);
-    for (auto &[_, callback] : ajCallbackMap) {
-        callback->OnAudioJankEvent(msg);
-    }
-}
-
-void XperfRegisterManager::NotifyVideoStart(const std::string &msg)
-{
-    std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-    for (const auto &[_, callback] : vsCbMap) {
-        callback->OnVideoResumed(msg);
-    }
-}
-
-void XperfRegisterManager::NotifyVideoStop(const std::string &msg)
-{
-    std::unique_lock<std::shared_timed_mutex> lock(vsMutex);
-    for (const auto &[_, callback] : vsCbMap) {
-        callback->OnVideoPaused(msg);
     }
 }
 }

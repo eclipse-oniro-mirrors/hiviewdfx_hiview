@@ -284,8 +284,8 @@ void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrol
     EventReporter::ReportImageLoadStat(stat);
 }
 
-void PerfReporter::ReportSurface(const int64_t& uniqueId, const std::string& surfaceName,
-    const std::string& componentName, const std::string& bundleName, const int32_t& pid)
+void PerfReporter::ReportSurface(uint64_t uniqueId, const std::string& surfaceName,
+    const std::string& componentName, const std::string& bundleName, int32_t pid)
 {
     SurfaceInfo surfaceInfo = {uniqueId, surfaceName, componentName, bundleName, pid};
     EventReporter::ReportSurfaceInfo(surfaceInfo);
@@ -584,13 +584,13 @@ void EventReporter::ReportSurfaceInfo(const SurfaceInfo& surface)
 {
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName("SURFACE_ATTACH")
-            .EventType(HISYSEVENT_BEHAVIOR)
-            .Param(KEY_PID, surface.pid)
-            .Param(EVENT_KEY_BUNDLE_NAME, surface.bundleName)
-            .Param(EVENT_KEY_UNIQUE_ID, surface.uniqueId)
-            .Param(KEY_SURFACE_NAME, surface.surfaceName)
-            .Param(KEY_COMPONENT_NAME, surface.componentName)
-            .Build();
+        .EventType(HISYSEVENT_BEHAVIOR)
+        .Param(KEY_PID, surface.pid)
+        .Param(EVENT_KEY_BUNDLE_NAME, surface.bundleName)
+        .Param(EVENT_KEY_UNIQUE_ID, surface.uniqueId)
+        .Param(KEY_SURFACE_NAME, surface.surfaceName)
+        .Param(KEY_COMPONENT_NAME, surface.componentName)
+        .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
 }

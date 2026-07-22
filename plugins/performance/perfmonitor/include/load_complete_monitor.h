@@ -46,15 +46,11 @@ public:
  
     /**
      * @brief 启动应用启动场景的收集（状态模式接口）
-     * @param pageUrl 页面URL
-     * @param bundleName 应用包名
      */
     void StartCollectForLaunch();
  
     /**
      * @brief 启动动效场景的收集（状态模式接口）
-     * @param pageUrl 页面URL
-     * @param bundleName 应用包名
      * @param sceneId 场景ID
      */
     void StartCollectForAnimation(const std::string& sceneId);

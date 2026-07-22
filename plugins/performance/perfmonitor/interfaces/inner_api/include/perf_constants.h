@@ -41,7 +41,7 @@ inline constexpr uint32_t DEFAULT_VSYNC = 16;
 // Obtain the last three digits of the full path
 inline constexpr uint32_t PATH_DEPTH = 3;
 
-inline constexpr size_t MAX_PAGE_NAME_LEN = 128;
+inline constexpr size_t MAX_PAGE_NAME_LEN = 100;
 
 inline constexpr uint32_t JANK_FRAME_6_LIMIT = 0;
 inline constexpr uint32_t JANK_FRAME_15_LIMIT = 1;
@@ -443,8 +443,6 @@ public:
 
     inline static constexpr char GESTURE_TO_RECENTS[] = "GESTURE_TO_RECENTS";
 
-    inline static constexpr char SWIPER_FROM_BOTTOM[] = "SWIPER_FROM_BOTTOM";
-
     inline static constexpr char START_APP_ANI_AG[] = "START_APP_ANI_AG";
 
     inline static constexpr char CORE_METHOD_DESKTOP_SHOW[] = "CORE_METHOD_DESKTOP_SHOW";
@@ -482,14 +480,6 @@ public:
     inline static constexpr char WINDOW_DO_SCALE_ANIMATION[] = "WINDOW_DO_SCALE_ANIMATION";
 
     inline static constexpr char AUTO_APP_SWIPER_FLING[] = "AUTO_APP_SWIPER_FLING";
-
-    inline static constexpr char GESTURE_NETER_TO_SWITCH[] = "GESTURE_NETER_TO_SWITCH";
-  
-    inline static constexpr char FORM_MANAGER_CREATE_FORM[] = "FORM_MANAGER_CREATE_FORM";
-  
-    inline static constexpr char FORM_MANAGER_DELETE_FORM[] = "FORM_MANAGER_DELETE_FORM";
-  
-    inline static constexpr char FORM_STACK_DELETE_FORM[] = "FORM_STACK_DELETE_FORM";
   
     inline static constexpr char LOCKSCREEN_WIDGET_LAUNCH[] = "LOCKSCREEN_WIDGET_LAUNCH";
   
@@ -502,6 +492,14 @@ public:
     inline static constexpr char LOCKSCREEN_WIDGET_EXPAND[] = "LOCKSCREEN_WIDGET_EXPAND";
   
     inline static constexpr char LOCKSCREEN_WIDGET_COLLAPSE[] = "LOCKSCREEN_WIDGET_COLLAPSE";
+
+    inline static constexpr char GESTURE_ENTER_TO_SWITCH[] = "GESTURE_ENTER_TO_SWITCH";
+  
+    inline static constexpr char FORM_MANAGER_CREATE_FORM[] = "FORM_MANAGER_CREATE_FORM";
+  
+    inline static constexpr char FORM_MANAGER_DELETE_FORM[] = "FORM_MANAGER_DELETE_FORM";
+  
+    inline static constexpr char FORM_STACK_DELETE_FORM[] = "FORM_STACK_DELETE_FORM";
 
     inline static constexpr char STATIC_ENTER_CROP[] = "STATIC_ENTER_CROP";
 
@@ -527,9 +525,9 @@ public:
 
     inline static constexpr char MOVING_SEAL_SWITCH[] = "MOVING_SEAL_SWITCH";
 
-    inline static constexpr char XMAGE_OPEN[] = "XMAGE_OPEN";
+    inline static constexpr char XMAGE_SHEET_OPEN[] = "XMAGE_SHEET_OPEN";
 
-    inline static constexpr char XMAGE_CLOSE[] = "XMAGE_CLOSE";
+    inline static constexpr char XMAGE_SHEET_CLOSE[] = "XMAGE_SHEET_CLOSE";
 
     inline static constexpr char ADJUST_XMAGE[] = "ADJUST_XMAGE";
 
@@ -578,8 +576,6 @@ public:
     inline static constexpr char CAR_GALLERY_LOAD_ANI[] = "CAR_GALLERY_LOAD_ANI";
     
     inline static constexpr char CAR_THEME_LIBRARY_LOAD_ANI[] = "CAR_THEME_LIBRARY_LOAD_ANI";
-
-    inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
 
     // only for test
     inline static constexpr char ENTER_ONE_STEP_SPLIT[] = "ENTER_ONE_STEP_SPLIT";
@@ -705,6 +701,8 @@ public:
     inline static constexpr char DESKTOP_N_TO_LM[] = "DESKTOP_N_TO_LM";
     
     inline static constexpr char DESKTOP_LM_TO_N[] = "DESKTOP_LM_TO_N";
+
+    inline static constexpr char FOLD_AND_EXPAND_RAISE_PRIO[] = "FOLD_AND_EXPAND_RAISE_PRIO";
 };
 } // namespace OHOS
 } // namespace HiviewDFX
