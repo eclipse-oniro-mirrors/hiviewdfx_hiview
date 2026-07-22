@@ -96,7 +96,7 @@ declare_args() {
 
   hiview_enable_crash_validator = true
 
-  hiview_p7885_device = false
+  hiview_support_wukong_collect_gpu_info = false
 
   # hiview dfr feature
   hiview_feature_bbox_userspace = false

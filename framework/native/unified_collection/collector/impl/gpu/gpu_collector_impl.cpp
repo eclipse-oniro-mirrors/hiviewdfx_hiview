@@ -29,7 +29,7 @@ namespace HiviewDFX {
 namespace UCollectUtil {
 namespace {
 DEFINE_LOG_TAG("UCollectUtil");
-#ifdef P7885_DEVICE
+#ifdef WUKONG_COLLECT_GPU_INFO
 constexpr char GPU_CUR_FREQ[] = "/sys/class/devfreq/23140000.gpu/cur_freq";
 constexpr char GPU_MAX_FREQ[] = "/sys/class/devfreq/23140000.gpu/max_freq";
 constexpr char GPU_MIN_FREQ[] = "/sys/class/devfreq/23140000.gpu/min_freq";
@@ -64,22 +64,22 @@ CollectResult<SysGpuLoad> GpuCollectorImpl::CollectSysGpuLoad()
 {
     CollectResult<SysGpuLoad> result;
     SysGpuLoad& sysGpuLoad = result.data;
-#ifdef P7885_DEVICE
+#ifdef WUKONG_COLLECT_GPU_INFO
     std::string content;
     if (!FileUtil::LoadStringFromFile(GPU_LOAD, content)) {
-        HIVIEW_LOGW("ReadNodeWithString failed");
-        sysGpuLoad.gpuLoad = 0;
-    } else {
-        size_t atpos = content.find('@');
-        if (atpos != std::string::npos) {
-            content = content.substr(0, atpos);
-        }
-        while (!content.empty() && (content.back() == '\n' || content.back() == '\r')) {
-            content.pop_back();
-        }
-        std::stringstream ss(content);
-        ss >> sysGpuLoad.gpuLoad;
+        HIVIEW_LOGW("Failed to read Gpu load node");
+        result.retCode = UcError::READ_FAILED;
+        return result;
     }
+    size_t atpos = content.find('@');
+    if (atpos != std::string::npos) {
+        content = content.substr(0, atpos);
+    }
+    while (!content.empty() && (content.back() == '\n' || content.back() == '\r')) {
+        content.pop_back();
+    }
+    std::stringstream ss(content);
+    ss >> sysGpuLoad.gpuLoad;
 #else
     sysGpuLoad.gpuLoad = CommonUtil::ReadNodeWithOnlyNumber(GPU_LOAD);
 #endif
