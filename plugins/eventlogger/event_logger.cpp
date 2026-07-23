@@ -979,7 +979,7 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
             std::string appName = procName.substr(0, procName.size() - len);
             int pidOfApp = CommonUtils::GetPidByName(appName);
             if (pidOfApp < 0) {
-                HIVIEW_LOGE("catch stack failed, pid:%{public}d", pid);
+                HIVIEW_LOGE("invalid pid:%{public}d", pid);
             }
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);

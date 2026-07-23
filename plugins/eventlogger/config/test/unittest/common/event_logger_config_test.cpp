@@ -163,6 +163,93 @@ HWTEST_F(EventLoggerConfigTest, ParseIdTest004, TestSize.Level3)
 }
 
 /**
+ * @tc.name: ParseIdTest005
+ * @tc.desc: Test ParseId with hexadecimal id (lowercase x)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerConfigTest, ParseIdTest005, TestSize.Level3)
+{
+    auto config = std::make_unique<EventLoggerConfig>();
+    std::string buf = "id=\"0x10\"";
+    int id = 0;
+    size_t pos = 0;
+    EXPECT_TRUE(config->ParseId(buf, pos, id));
+    EXPECT_EQ(id, 16);
+}
+
+/**
+ * @tc.name: ParseIdTest006
+ * @tc.desc: Test ParseId with hexadecimal id (uppercase X)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerConfigTest, ParseIdTest006, TestSize.Level3)
+{
+    auto config = std::make_unique<EventLoggerConfig>();
+    std::string buf = "id=\"0XFF\"";
+    int id = 0;
+    size_t pos = 0;
+    EXPECT_TRUE(config->ParseId(buf, pos, id));
+    EXPECT_EQ(id, 255);
+}
+
+/**
+ * @tc.name: ParseIdTest007
+ * @tc.desc: Test ParseId with hexadecimal id (mixed case letters)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerConfigTest, ParseIdTest007, TestSize.Level3)
+{
+    auto config = std::make_unique<EventLoggerConfig>();
+    std::string buf = "id=\"0xAbC\"";
+    int id = 0;
+    size_t pos = 0;
+    EXPECT_TRUE(config->ParseId(buf, pos, id));
+    EXPECT_EQ(id, 0xABC);
+}
+
+/**
+ * @tc.name: ParseIdTest008
+ * @tc.desc: Test ParseId with invalid hexadecimal id (no digits after 0x)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerConfigTest, ParseIdTest008, TestSize.Level3)
+{
+    auto config = std::make_unique<EventLoggerConfig>();
+    std::string buf = "id=\"0x\"";
+    int id = 0;
+    size_t pos = 0;
+    EXPECT_FALSE(config->ParseId(buf, pos, id));
+}
+
+/**
+ * @tc.name: ParseIdTest009
+ * @tc.desc: Test ParseId with invalid hexadecimal id (invalid hex chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerConfigTest, ParseIdTest009, TestSize.Level3)
+{
+    auto config = std::make_unique<EventLoggerConfig>();
+    std::string buf = "id=\"0xGHI\"";
+    int id = 0;
+    size_t pos = 0;
+    EXPECT_FALSE(config->ParseId(buf, pos, id));
+}
+
+/**
+ * @tc.name: ParseIdTest010
+ * @tc.desc: Test ParseId with invalid decimal id (contains x in middle)
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerConfigTest, ParseIdTest010, TestSize.Level3)
+{
+    auto config = std::make_unique<EventLoggerConfig>();
+    std::string buf = "id=\"12x34\"";
+    int id = 0;
+    size_t pos = 0;
+    EXPECT_FALSE(config->ParseId(buf, pos, id));
+}
+
+/**
  * @tc.name: ParseNameTest001
  * @tc.desc: Test ParseName with valid name
  * @tc.type: FUNC
