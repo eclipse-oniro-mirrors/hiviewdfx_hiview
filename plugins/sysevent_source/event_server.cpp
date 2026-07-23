@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -358,11 +358,14 @@ void EventServer::Start()
     int pollFd = epoll_create1(EPOLL_CLOEXEC);
     if (pollFd < 0) {
         HIVIEW_LOGE("create poll failed, error=%{public}d, msg=%{public}s", errno, strerror(errno));
+        CloseDevs();
         return;
     }
 
     struct epoll_event pollEvents[devs_.size()];
     if (AddToMonitor(pollFd, pollEvents) < 0) {
+        close(pollFd);
+        CloseDevs();
         return;
     }
 
@@ -376,10 +379,12 @@ void EventServer::Start()
             continue;
         }
         for (int ii = 0; ii < eventCount; ii++) {
-            auto it = devs_.find(chkPollEvents[ii].data.fd);
-            it->second->ReceiveMsg(receivers_);
+            if (auto it = devs_.find(chkPollEvents[ii].data.fd); it != devs_.end()) {
+                it->second->ReceiveMsg(receivers_);
+            }
         }
     }
+    close(pollFd);
     CloseDevs();
 }
 

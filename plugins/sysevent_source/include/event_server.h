@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef COER_EVENT_SERVER_H
 #define COER_EVENT_SERVER_H
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
@@ -80,7 +81,7 @@ private:
     int AddToMonitor(int pollFd, struct epoll_event pollEvents[]);
     std::map<int, std::shared_ptr<DeviceNode>> devs_;
     std::vector<std::shared_ptr<EventReceiver>> receivers_;
-    bool isStart_;
+    std::atomic<bool> isStart_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
