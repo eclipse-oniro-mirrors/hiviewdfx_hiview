@@ -75,9 +75,9 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
         LOGE("RsFrameMonitor::VideoStop invalid input");
         return;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
 
     int64_t now = GetCurrentSystimeMs();
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& uniqueId : uniqueIdList) {
         firstFrameMap_.erase(uniqueId);
         auto it = videoMap_.find(uniqueId);
@@ -157,9 +157,9 @@ void RsFrameMonitor::VideoJankReport()
 void RsFrameMonitor::VideoCollectFinish()
 {
     VideoJankReport();
-    std::lock_guard<std::mutex> lock(mutex_);
+    
     int64_t now = GetCurrentSystimeMs();
-
+    std::lock_guard<std::mutex> lock(mutex_);
     for (auto it = firstFrameMap_.begin(); it != firstFrameMap_.end();) {
         if (now - it->second.frameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
             it = firstFrameMap_.erase(it);
@@ -224,8 +224,8 @@ void RsFrameMonitor::PopFirstFrameMapByLru()
 
 void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequence)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     int64_t now = GetCurrentSystimeMs();
+    std::lock_guard<std::mutex> lock(mutex_);
     ProcessFrameCollect(uniqueId, sequence, now);
     if (!videoCollectOpen_.load()) {
         return;

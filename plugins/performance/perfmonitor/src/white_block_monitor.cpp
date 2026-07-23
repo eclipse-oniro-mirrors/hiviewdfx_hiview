@@ -37,7 +37,7 @@ WhiteBlockMonitor& WhiteBlockMonitor::GetInstance()
     return instance;
 }
  
-void WhiteBlockMonitor::StartScroll(BaseInfo baseInfo)
+void WhiteBlockMonitor::StartScroll(const BaseInfo& baseInfo)
 {
     if (!IsBetaVersion()) {
         return;
