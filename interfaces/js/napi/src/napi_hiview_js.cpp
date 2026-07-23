@@ -56,7 +56,7 @@ static napi_value List(napi_env env, napi_callback_info info)
     if (retCode == 0) {
         return HiviewNapiUtil::GenerateFileInfoResult(env, fileInfos);
     } else {
-        HIVIEW_LOGW("list failed, retCode: %{public}u.", retCode);
+        HIVIEW_LOGW("list failed, retCode: %{public}d.", retCode);
         HiviewNapiUtil::ThrowErrorByCode(env, retCode);
         return result;
     }
