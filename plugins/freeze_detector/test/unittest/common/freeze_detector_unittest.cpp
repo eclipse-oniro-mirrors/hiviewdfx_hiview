@@ -946,6 +946,83 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_020, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_021
+ * @tc.desc: Test ValidateAndInitType normal case
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_021, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitForeGround("Yes")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    std::vector<FreezeResult> results;
+    FreezeContext context(watchPoint, list, results);
+    EXPECT_TRUE(vendor->ValidateAndInitType(context));
+    EXPECT_EQ(context.type, "syswarning");
+}
+
+/**
+ * @tc.name: FreezeVender_022
+ * @tc.desc: Test ValidateAndInitType with THREAD_BLOCK_3S invalid list size
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_022, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    list.push_back(watchPoint);
+    std::vector<FreezeResult> results;
+    FreezeContext context(watchPoint, list, results);
+    EXPECT_FALSE(vendor->ValidateAndInitType(context));
+}
+
+/**
+ * @tc.name: FreezeVender_023
+ * @tc.desc: Test ValidateAndInitType with HostResourceWarning
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_023, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitHostResourceWarning("TRUE")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    std::vector<FreezeResult> results;
+    FreezeContext context(watchPoint, list, results);
+    EXPECT_FALSE(vendor->ValidateAndInitType(context));
+    EXPECT_EQ(context.type, "appfreezewarning");
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
@@ -1743,6 +1820,78 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_002, TestS
     std::string type = "syswarning";
     bool result = vendor->CovertHighLoadToWarning(type, watchPoint);
     EXPECT_TRUE(result);
+    EXPECT_EQ(type, "syswarning");
+}
+
+/**
+ * @tc.name: FreezeVender_CovertHighLoadToWarning_003
+ * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning() == "TRUE" and appfreeze
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_003, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitHostResourceWarning("TRUE")
+        .Build();
+    std::string type = "appfreeze";
+    bool result = vendor->CovertHighLoadToWarning(type, watchPoint);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(type, "sysfreeze");
+}
+
+/**
+ * @tc.name: FreezeVender_CovertHighLoadToWarning_004
+ * @tc.desc: Test CovertHighLoadToWarning with isHicollie == true
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_004, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitIsHicollie(true)
+        .Build();
+    std::string type = "appfreeze";
+    bool result = vendor->CovertHighLoadToWarning(type, watchPoint);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(type, "syswarning");
+}
+
+/**
+ * @tc.name: FreezeVender_CovertHighLoadToWarning_005
+ * @tc.desc: Test CovertHighLoadToWarning with no warning conditions
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_005, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    bool ret1 = freezeCommon->Init();
+    ASSERT_EQ(ret1, true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .Build();
+    std::string type = "appfreeze";
+    bool result = vendor->CovertHighLoadToWarning(type, watchPoint);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(type, "appfreeze");
 }
 
 /**

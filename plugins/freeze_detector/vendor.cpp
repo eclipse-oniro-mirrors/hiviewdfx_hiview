@@ -390,10 +390,10 @@ bool Vendor::ValidateAndInitType(FreezeContext& context) const
         context.watchPointList)) {
         return false;
     }
+    CovertFreezeType(context.type, context.watchPoint, context.watchPointList);
     if (!CovertHighLoadToWarning(context.type, context.watchPoint)) {
         return false;
     }
-    CovertFreezeType(context.type, context.watchPoint, context.watchPointList);
     return true;
 }
 
