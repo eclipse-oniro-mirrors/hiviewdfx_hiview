@@ -89,7 +89,6 @@ ohos_source_set("hiview_base") {
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "ipc:ipc_single",
     "jsoncpp:jsoncpp",
   ]
 
