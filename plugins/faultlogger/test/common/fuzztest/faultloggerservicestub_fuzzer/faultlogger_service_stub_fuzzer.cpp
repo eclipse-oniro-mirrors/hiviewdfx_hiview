@@ -26,6 +26,7 @@
 #include "faultlogger_fuzzertest_common.h"
 #include "hiview_global.h"
 #include "hiview_platform.h"
+#include "ffrt.h"
 #include "sys_event.h"
 
 using namespace OHOS::HiviewDFX;
@@ -100,4 +101,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     OHOS::FuzzFaultloggerServiceStubInterface(data, size);
     return 0;
+}
+
+__attribute__((destructor)) static void FuzzWaitFfrt()
+{
+    ffrt::wait();
 }

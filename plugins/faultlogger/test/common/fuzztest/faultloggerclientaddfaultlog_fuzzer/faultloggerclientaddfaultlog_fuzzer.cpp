@@ -18,6 +18,7 @@
 #include "faultlogger_client.h"
 #include "faultloggerclientaddfaultlog_fuzzer.h"
 #include "faultlogger_fuzzertest_common.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace {
@@ -65,4 +66,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     OHOS::FuzzInterfaceAddFaultLog(data, size);
     return 0;
+}
+
+__attribute__((destructor)) static void FuzzWaitFfrt()
+{
+    ffrt::wait();
 }
