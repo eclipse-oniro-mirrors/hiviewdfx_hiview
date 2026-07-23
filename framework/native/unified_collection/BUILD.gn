@@ -366,4 +366,8 @@ group("unittest") {
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     deps += [ "collector/config/test/unittest:PerfCollectConfigUnitTest" ]
   }
+
+  if (hiview_support_wukong_collect_gpu_info) {
+    cflags += [ "-DWUKONG_COLLECT_GPU_INFO" ]
+  }
 }
