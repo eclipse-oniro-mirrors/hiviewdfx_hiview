@@ -24,6 +24,7 @@
 #include "faultlog_sanitizer.h"
 #include "faultlog_info_inner.h"
 #include "faultlogsanitizerutils_fuzzer.h"
+#include "ffrt.h"
 #include "fuzz_data_source.h"
 #include "sys_event.h"
 
@@ -141,4 +142,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     OHOS::FuzzSanitizerUtils(data, size);
     return 0;
+}
+
+__attribute__((destructor)) static void FuzzWaitFfrt()
+{
+    ffrt::wait();
 }

@@ -21,6 +21,7 @@
 #include "faultlog_cppcrash.h"
 #include "faultlog_info_inner.h"
 #include "faultlogcppcrashutils_fuzzer.h"
+#include "ffrt.h"
 #include "fuzz_data_source.h"
 #include "json/json.h"
 
@@ -128,4 +129,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     OHOS::FuzzCppCrashUtils(data, size);
     return 0;
+}
+
+__attribute__((destructor)) static void FuzzWaitFfrt()
+{
+    ffrt::wait();
 }

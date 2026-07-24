@@ -21,6 +21,7 @@
 #include "faultlog_freeze.h"
 #include "faultlog_info_inner.h"
 #include "faultlogfreezereportapp_fuzzer.h"
+#include "ffrt.h"
 #include "fuzz_data_source.h"
 
 using namespace OHOS::HiviewDFX;
@@ -110,4 +111,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     OHOS::FuzzFreezeReportApp(data, size);
     return 0;
+}
+
+__attribute__((destructor)) static void FuzzWaitFfrt()
+{
+    ffrt::wait();
 }

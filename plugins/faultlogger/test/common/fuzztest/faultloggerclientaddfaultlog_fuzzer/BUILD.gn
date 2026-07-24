@@ -35,7 +35,10 @@ ohos_fuzztest("FaultloggerClientAddFaultLogFuzzTest") {
 
   deps = [ "$hiview_plugin/faultlogger:libfaultlogger" ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+  ]
 }
 
 group("fuzztest") {

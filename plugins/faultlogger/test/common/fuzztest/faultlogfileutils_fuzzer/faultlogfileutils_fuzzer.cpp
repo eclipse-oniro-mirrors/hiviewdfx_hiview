@@ -28,6 +28,7 @@
 #include "faultlog_manager.h"
 #include "faultlog_dump.h"
 #include "faultlogfileutils_fuzzer.h"
+#include "ffrt.h"
 #include "fuzz_data_source.h"
 #include "json/json.h"
 
@@ -164,4 +165,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     OHOS::FuzzFileUtils(data, size);
     return 0;
+}
+
+__attribute__((destructor)) static void FuzzWaitFfrt()
+{
+    ffrt::wait();
 }
