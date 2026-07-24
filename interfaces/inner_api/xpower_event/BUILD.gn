@@ -20,6 +20,13 @@ config("xpower_event_config") {
 }
 
 ohos_shared_library("libxpower_event") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
   public_configs = [ ":xpower_event_config" ]
   sources = [ "src/xpower_event.cpp" ]
 
@@ -37,6 +44,13 @@ ohos_shared_library("libxpower_event") {
 }
 
 ohos_shared_library("libxpower_event_js") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
   public_configs = [ ":xpower_event_config" ]
   sources = [ "src/xpower_event_js.cpp" ]
 
