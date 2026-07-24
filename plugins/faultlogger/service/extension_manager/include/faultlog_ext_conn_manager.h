@@ -36,10 +36,8 @@ public:
     FaultLogExtConnManager &operator=(const FaultLogExtConnManager&) = delete;
     /**
      * @brief on Fault.
-     *
-     * @return True if success, else false.
      */
-    bool OnFault(const FaultLogInfo& info);
+    void OnFault(const FaultLogInfo& info);
 
 private:
     FaultLogExtConnManager() = default;
