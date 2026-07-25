@@ -29,6 +29,7 @@ using namespace OHOS::HiviewDFX::UCollectUtil;
 
 namespace OHOS {
 namespace HiviewDFX {
+DEFINE_LOG_TAG("HiView-UnifiedCollector");
 CpuCollectionTask::CpuCollectionTask(const std::string& workPath) : workPath_(workPath)
 {
     InitCpuCollector();
@@ -98,7 +99,10 @@ void CpuCollectionTask::CollectCpuData()
         }
     }
     // collect the system cpu usage periodically for hidumper
-    cpuCollector_->CollectSysCpuUsage(true);
+    auto sysCpuUsageResult = cpuCollector_->CollectSysCpuUsage(true);
+    if (sysCpuUsageResult.retCode != UCollect::UcError::SUCCESS) {
+        HIVIEW_LOGW("CollectSysCpuUsage failed, retCode=%{public}d", sysCpuUsageResult.retCode);
+    }
 
 #ifdef CATCH_TRACE_FOR_CPU_HIGH_LOAD
     if (Parameter::IsBetaVersion()) {
