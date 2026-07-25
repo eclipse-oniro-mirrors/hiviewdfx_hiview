@@ -20,6 +20,7 @@
 #include "bundle_util.h"
 #include "file_util.h"
 #include "hiview_logger.h"
+#include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -151,6 +152,10 @@ void ConvertLogFileName(const std::string& oldFileName, std::string& newFileName
 bool ShouldRefinedLogFileName(int32_t uid, const std::string& pathHolder)
 {
     std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+    if (StringUtil::ContainsPathTraversal(eventConfigDir)) {
+        HIVIEW_LOGE("pathHolder contains path traversal sequence: %{public}s", pathHolder.c_str());
+        return false;
+    }
     if (eventConfigDir.empty()) {
         HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
         return false;
@@ -183,8 +188,6 @@ void RefineLogFilePaths(Json::Value& eventJson, const std::string& oldLogPath, s
     }
     std::string oldFileName = FileUtil::ExtractFileName(oldLogPath);
     ConvertLogFileName(oldFileName, newFileName, pid, resourceType);
-    HIVIEW_LOGI("use refined file name: %{public}s, curLogName: %{public}s", oldLogPath.c_str(),
-                newFileName.c_str());
 }
 
 } // namespace HiviewDFX

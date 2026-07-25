@@ -341,6 +341,7 @@
         "OHOS::HiviewDFX::FileUtil::LoadLinesFromFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::HiviewDFX::StringUtil::EscapeJsonStringValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::StringUtil::UnescapeJsonStringValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::StringUtil::ContainsPathTraversal(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::FileUtil::SaveStringToFd(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::TimeUtil::GetTimeZone()";
         "OHOS::HiviewDFX::FreezeJsonUtil::GetFilePath(long, long, unsigned long long)";

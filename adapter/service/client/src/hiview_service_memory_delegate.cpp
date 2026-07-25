@@ -111,6 +111,8 @@ CollectResult<int32_t> HiViewServiceMemoryDelegate::RequestUiTree(int32_t pid,
         ret.retCode = UCollect::UcError::SUCCESS;
     } else {
         ret.retCode = UCollect::UcError::SYSTEM_ERROR;
+        // Store the specific error code for caller to diagnose the failure reason
+        ret.data = proxyRet;
     }
     return ret;
 }

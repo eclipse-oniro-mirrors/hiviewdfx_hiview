@@ -86,6 +86,10 @@ bool FaultLogSanitizer::ConvertPathFromOriginLine(const std::string& line, std::
 
     // pathPrefix mean full sandbox path
     if (pathPrefix.find(APP_SANDBOX_PREFIX) != std::string::npos) {
+        if (StringUtil::ContainsPathTraversal(bundleName)) {
+            HIVIEW_LOGE("bundleName contains path traversal sequence: %{public}s", bundleName.c_str());
+            return false;
+        }
         pathPrefix = CONVERT_APP_SANBOPX_PREFIX + bundleName + "/" + fileName;
     } else {
         pathPrefix = fullPath;
@@ -203,7 +207,8 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
     std::uintptr_t arkExtractorPtr = 0;
     int ret = 0;
     ret = DfxArk::Instance().ArkCreateJsSymbolExtractor(&arkExtractorPtr);
-    if (ret < 0) {
+    if (ret < 0 || arkExtractorPtr == 0) {
+        HIVIEW_LOGE("Failed to create Ark JS symbol extractor, ret: %{public}d", ret);
         return line;
     }
     JsFunction jsFunc;
@@ -282,35 +287,41 @@ std::vector<MapInfo> FaultLogSanitizer::LoadMaps(std::ifstream& file)
     return maps;
 }
 
-bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, const std::string& path)
+bool FaultLogSanitizer::OpenTempFile(const std::string& tempPath, FILE*& fp, int& tempFileFd)
 {
-    auto fileSize = FileUtil::GetFileSize(path);
-    if (fileSize > ARKTS_STACK_MAX_FILE_SIZE) {
-        HIVIEW_LOGE("File size exceeds limit, path: %{public}s, size: %{public}" PRIu64,
-                    path.c_str(), fileSize);
-        return false;
-    }
-    std::ifstream srcLogFile(path);
-    if (!srcLogFile.is_open()) {
-        HIVIEW_LOGE("Failed to open src file: %{public}s", path.c_str());
-        return false;
-    }
-    std::string tempPath = path + ".tmp";
-    FILE* fp = fopen(tempPath.c_str(), "w");
+    // If open is used, it needs to be used with fdsAN_CLOSE_WITH_TAG. Changed to fopen
+    fp = fopen(tempPath.c_str(), "w");
     if (fp == nullptr) {
         HIVIEW_LOGE("Failed to open temp file: %{public}s", tempPath.c_str());
-        srcLogFile.close();
         return false;
     }
-    chmod(tempPath.c_str(), DEFAULT_LOG_FILE_MODE);
+    // Restrict fopen-created file permissions to 0644
+    if (chmod(tempPath.c_str(), DEFAULT_LOG_FILE_MODE) != 0) {
+        HIVIEW_LOGE("Failed to chmod temp file: %{public}s, err: %{public}s", tempPath.c_str(), strerror(errno));
+        (void)fclose(fp);
+        return false;
+    }
+    tempFileFd = fileno(fp);
+    if (tempFileFd < 0) {
+        HIVIEW_LOGE("Failed to get file descriptor from FILE pointer, err: %{public}s", strerror(errno));
+        (void)fclose(fp);
+        return false;
+    }
+    return true;
+}
+
+bool FaultLogSanitizer::WriteStackInfo(const std::string& moduleName, const std::string& path,
+                                       const std::string& tempPath, std::ifstream& srcLogFile,
+                                       int tempFileFd)
+{
+    // First traversal to read maps intervals, find address intervals corresponding to .hap and other formats
     std::vector<MapInfo> maps = LoadMaps(srcLogFile);
 
-    int tempFileFd = fileno(fp);
     std::string line;
-
     srcLogFile.clear();
     srcLogFile.seekg(0, std::ios::beg);
 
+    // Second traversal is to read .hap and other stacks from stack frames, and directly replace them after parsing
     while (std::getline(srcLogFile, line)) {
         if (srcLogFile.eof()) {
             break;
@@ -325,10 +336,39 @@ bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, cons
         FileUtil::SaveStringToFd(tempFileFd, "\n");
     }
     srcLogFile.close();
-    fsync(tempFileFd);
-    (void)fclose(fp);
-    fp = nullptr;
+    if (fsync(tempFileFd) != 0) {
+        HIVIEW_LOGE("Failed to sync temp file: %{public}s, err: %{public}s", tempPath.c_str(), strerror(errno));
+        return false;
+    }
+    return true;
+}
 
+bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, const std::string& path)
+{
+    // If the file size is too large, stack unwinding during faultlog processing may encounter issues
+    auto fileSize = FileUtil::GetFileSize(path);
+    if (fileSize > ARKTS_STACK_MAX_FILE_SIZE) {
+        HIVIEW_LOGE("File size exceeds limit, path: %{public}s, size: %{public}" PRIu64,
+                    path.c_str(), fileSize);
+        return false;
+    }
+    std::ifstream srcLogFile(path);
+    if (!srcLogFile.is_open()) {
+        HIVIEW_LOGE("Failed to open src file: %{public}s", path.c_str());
+        return false;
+    }
+    std::string tempPath = path + ".tmp";
+    FILE* fp = nullptr;
+    int tempFileFd = -1;
+    if (!OpenTempFile(tempPath, fp, tempFileFd)) {
+        srcLogFile.close();
+        return false;
+    }
+    if (!WriteStackInfo(moduleName, path, tempPath, srcLogFile, tempFileFd)) {
+        (void)fclose(fp);
+        return false;
+    }
+    (void)fclose(fp);
     return FileUtil::RenameFile(tempPath.c_str(), path.c_str());
 }
 
