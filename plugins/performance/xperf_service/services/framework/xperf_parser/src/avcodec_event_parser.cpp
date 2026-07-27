@@ -63,7 +63,9 @@ OhosXperfEvent* ParseAvcodecFault(const std::string& msg)
     ExtractStrToLong(msg, event->uniqueId, TAG_UNIQUE_ID, TAG_SURFACE_NAME, 0);
     ExtractStrToStr(msg, event->surfaceName, TAG_SURFACE_NAME, "#LAST_FLUSH_TIME:", "");
     ExtractStrToLong(msg, event->lastFlushTime, "#LAST_FLUSH_TIME:", "#DURATION:", 0);
-    ExtractStrToLong(msg, event->duration, "#DURATION:", "", 0);
+    ExtractStrToLong(msg, event->duration, "#DURATION:", "#PID:", 0);
+    ExtractStrToInt(msg, event->pid, "#PID:", "#BUNDLE_NAME:", 0);
+    ExtractStrToStr(msg, event->bundleName, "#BUNDLE_NAME:", "", "");
     return event;
 }
 

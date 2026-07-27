@@ -48,6 +48,8 @@ struct AvcodecFaultEvent : public OhosXperfEvent {
     std::string surfaceName;
     int64_t lastFlushTime{0};
     int64_t duration{0};
+    int32_t pid{0};
+    std::string bundleName;
 };
 
 // #UNIQUEID:#PID:#BUNDLE_NAME:#SURFACE_NAME:#BEGIN_TIME:#END_TIME:#TIMES:#TOTAL_DUR:
