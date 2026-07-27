@@ -35,6 +35,7 @@ constexpr int8_t THE_TENS_DIGIT = 10;
 #if FOLD_PC_COUNT_DURATION_ENABLE
 constexpr int8_t MAGNETIC = 4;
 constexpr int8_t FOLD_DISPLAY_MODE_UNKNOWN = 0;
+constexpr int8_t FOLD_DISPLAY_MODE_MAIN = 2;
 constexpr int8_t FOLD_DISPLAY_MODE_COORDINATION = 4;
 constexpr int8_t FOLD_PC_INVALID_MODE_FIVE = 5;
 constexpr int8_t FOLD_PC_INVALID_MODE_SIX = 6;
@@ -289,6 +290,10 @@ void FoldEventCacher::ProcessSceenStatusChangedEvent(std::shared_ptr<SysEvent> e
     int preFoldStatus = GetScreenFoldStatus(foldStatus_, isTentStatus_, vhMode_, GetWindowModeOfFocusedApp());
     std::string eventName = event->eventName_;
     if (eventName == FoldStateChangeEventSpace::EVENT_NAME) {
+        if (!event->IsParamExist(KEY_OF_NEXT_STATUS)) {
+            HIVIEW_LOGI("invalid event.");
+            return;
+        }
         int32_t nextState =
             static_cast<int32_t>(event->GetEventIntValue(FoldStateChangeEventSpace::KEY_OF_NEXT_STATUS));
 #if FOLD_PC_COUNT_DURATION_ENABLE
