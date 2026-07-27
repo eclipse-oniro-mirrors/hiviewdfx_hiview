@@ -75,6 +75,7 @@ ohos_shared_library("faultlogextension") {
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "node:node_header_notice",
     "runtime_core:ani",
   ]
 
