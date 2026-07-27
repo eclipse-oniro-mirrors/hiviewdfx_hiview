@@ -77,6 +77,7 @@ ohos_shared_library("xperformance") {
     part_name = "hiview"
     subsystem_name = "hiviewdfx"
 
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
