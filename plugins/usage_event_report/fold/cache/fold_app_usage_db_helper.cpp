@@ -490,6 +490,7 @@ uint32_t FoldAppUsageInfo::GetAppUsage() const
         nVer + nHor + tFull + lmVer + lmHor;
 #if FOLD_PC_COUNT_DURATION_ENABLE
     tmp += foldKbVer;
+    tmp += foldDisplayCoordination;
 #endif // FOLD_PC_COUNT_DURATION_ENABLE
     return tmp;
 }
