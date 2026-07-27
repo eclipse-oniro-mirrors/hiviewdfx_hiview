@@ -143,7 +143,6 @@ private:
     void WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream);
     bool ParseMsgForMessageAndEventHandler(const std::string& msg,
         std::string& message, std::string& eventHandlerStr);
-    bool ContainsPriorityKeyword(const std::string& line);
     bool MatchEventStartFlag(const std::string& line);
     bool MatchEventEndFlag(const std::string& line);
 };

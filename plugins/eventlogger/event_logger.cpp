@@ -79,6 +79,7 @@ namespace {
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
     constexpr const char* DUMP_TRACE_FLAG = "trace";
+    constexpr int HEAP_SHARED_TOTAL_SIZE = 815792128;
 #ifdef WINDOW_MANAGER_ENABLE
     constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -508,16 +509,6 @@ void EventLogger::HandleFreezeHalfHiview(std::shared_ptr<SysEvent> event, bool i
 }
 #endif
 
-bool EventLogger::ContainsPriorityKeyword(const std::string& line)
-{
-    for (const auto& keyword : PRIORITY_KEYWORDS) {
-        if (line.find(keyword) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
-
 bool EventLogger::MatchEventStartFlag(const std::string& line)
 {
     size_t suffixPos = line.find(" priority event queue information:");
@@ -825,7 +816,7 @@ void EventLogger::WriteHeapSize(std::shared_ptr<SysEvent> event, std::ostringstr
     headerStream << FreezeCommon::MAIN_HEAP << FreezeCommon::USED_HEAP << heapUsedSize <<
         FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
     headerStream << FreezeCommon::SHARED_HEAP << FreezeCommon::USED_HEAP << heapSharedSize <<
-        FreezeCommon::TOTAL_HEAP << heapTotalSize << std::endl;
+        FreezeCommon::TOTAL_HEAP << HEAP_SHARED_TOTAL_SIZE << std::endl;
 }
 
 void EventLogger::WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)
@@ -1100,7 +1091,7 @@ void EventLogger::ParsePeerStack(std::string& binderInfo, std::string& binderPee
 
 void EventLogger::WriteExternalLog(int fd, std::shared_ptr<SysEvent>& event)
 {
-    if (FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+    if (!FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
         return;
     }
     int pid = event->GetEventIntValue("PID");
@@ -1109,7 +1100,7 @@ void EventLogger::WriteExternalLog(int fd, std::shared_ptr<SysEvent>& event)
     if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
         FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback Start Time:", true);
         FileUtil::SaveStringToFd(fd, callbackLog + "\n");
-        FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback End Time:", true);
+        FreezeCommon::WriteTimeInfoToFd(fd, "Collect Freezelog Callback End Time:", false);
     }
     if (Parameter::IsBetaVersion()) {
         if (callbackLog.empty()) {
@@ -1120,14 +1111,14 @@ void EventLogger::WriteExternalLog(int fd, std::shared_ptr<SysEvent>& event)
         std::string logFile = event->eventName_ + "_logcallback-" + std::to_string(pid) + "-" + std::to_string(uid) +
             "-" + formatTime + ".log";
         int fdLog = FreezeManager::GetInstance()->GetFreezeLogFd(FreezeLogType::EVENTLOG, logFile);
-        if (fdLog < 0) {
-            HIVIEW_LOGE("generate callback log failed, pid=%{public}d", pid);
+        if (fdLog <= 0) {
+            HIVIEW_LOGE("generate callback log failed, pid:%{public}d.", pid);
             return;
         }
         fdsan_exchange_owner_tag(fdLog, 0, FREEZE_DOMAIN);
         FileUtil::SaveStringToFd(fdLog, callbackLog);
         if (fdsan_close_with_tag(fdLog, FREEZE_DOMAIN) != 0) {
-            HIVIEW_LOGE("ExternalLog log fdsan close failed, errno:%{public}d", errno);
+            HIVIEW_LOGE("External log fdsan close failed, errno:%{public}d", errno);
         }
     }
 }

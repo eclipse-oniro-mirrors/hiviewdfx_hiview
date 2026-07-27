@@ -214,7 +214,6 @@ public:
     struct AppKilledInfo : public BundleInfo, public TimeInfo {
         std::string reason;
         std::string appRunningUniqueId;
-        std::string processName;
         int32_t uid = 0;
         bool isForeground = false;
     };

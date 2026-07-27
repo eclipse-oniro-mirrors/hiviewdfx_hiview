@@ -185,7 +185,6 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", logFile.c_str(), errno);
         return;
     }
-    fdsan_exchange_owner_tag(fd, 0, FREEZE_DOMAIN);
 
     auto sysStart = ActiveKeyEvent::SystemTimeMillisecond();
     const uint32_t placeholder = 3;
@@ -211,9 +210,7 @@ void ActiveKeyEvent::CombinationKeyHandle(std::shared_ptr<MMI::KeyEvent> keyEven
     auto end = ActiveKeyEvent::SystemTimeMillisecond();
     std::string totalTime = "\n\nCatcher log total time is " + std::to_string(end - sysStart) + "ms\n";
     FileUtil::SaveStringToFd(fd, totalTime);
-    if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
-        HIVIEW_LOGE("CombinationKeyHandle fdsan closefailed, errno:%{public}d", errno);
-    }
+    close(fd);
     reportLimit_++;
 }
 

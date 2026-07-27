@@ -49,7 +49,7 @@ public:
     void InsertTraceName(int64_t time, std::string traceName);
     std::string GetTraceName(int64_t time) const;
     std::string SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
-        const std::string& stackFile, const std::string& cpuFile, const std::string& type) const;
+        const std::string& stackFile, const std::string& cpuFile) const;
     int GetFreezeLogFd(int32_t freezeLogType, const std::string& fileName) const;
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
     void FillProcMemory(const std::string& procStatm, long pid,

@@ -41,9 +41,8 @@ public:
         const std::string& module);
 private:
     void InitWarningLogStore();
-    std::string GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName,
-        bool isRenderJsFreeze = false) const;
-    int GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName, bool isRenderJsFreeze = false) const;
+    std::string GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName) const;
+    int GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName) const;
     void ReduceLogFileListSize(std::list<std::string>& infoVec, int32_t maxNum) const;
     std::unique_ptr<LogStoreEx> store_;
     std::unique_ptr<LogStoreEx> warningLogStore_;

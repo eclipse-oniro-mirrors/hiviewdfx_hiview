@@ -32,6 +32,7 @@ ohos_source_set("freeze_detector") {
     cfi_vcall_icall_only = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   cflags_cc = [  "-Os" ]
 
