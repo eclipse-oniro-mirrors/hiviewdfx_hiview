@@ -1983,7 +1983,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteGCStr_003, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_WriteIOStr_001
- * @tc.desc: Test EventLogger WriteIOStr with vaild IO info
+ * @tc.desc: Test EventLogger WriteIOStr with valid IO info
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteIOStr_001, TestSize.Level3)
