@@ -87,6 +87,7 @@ sptr<Ashmem> AshMemUtils::WriteBulkData(MessageParcel& parcel, const std::vector
         }
         offset += allSize[i];
         if (offset > ASH_MEM_SIZE) {
+            CloseAshmem(ashmem);
             return nullptr;
         }
     }
