@@ -55,7 +55,11 @@ ohos_shared_library("faultlogextensionability_napi") {
     ":fault_log_extension_ability_js",
   ]
 
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "libuv:uv",
+    "napi:ace_napi",
+    "node:node_header_notice",
+  ]
 
   relative_install_dir = "module/hiviewdfx"
   part_name = "hiview"
