@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -198,8 +198,13 @@ void UsageEventReport::ReportDailyEvent()
     }
     // check whether time step occurs. If yes, update the next report time
     auto nowTime = TimeUtil::GetMilliseconds();
-    if (nowTime > (nextReportTime_ + TimeUtil::MILLISECS_PER_DAY)
-        || nowTime < (nextReportTime_ - TimeUtil::MILLISECS_PER_DAY)) {
+    if (nowTime > (nextReportTime_ + TimeUtil::MILLISECS_PER_DAY)) {
+        // need check report whether time step forward
+        if (lastReportTime_ < static_cast<uint64_t>(TimeUtil::Get0ClockStampMs())) {
+            HIVIEW_LOGI("need to report daily event");
+            InnerReportDailyEvent();
+        }
+    } else if (nowTime < (nextReportTime_ - TimeUtil::MILLISECS_PER_DAY)) {
         HIVIEW_LOGW("start to update the next daily report time");
         lastReportTime_ = nowTime;
         nextReportTime_ = static_cast<uint64_t>(TimeUtil::Get0ClockStampMs()) + TimeUtil::MILLISECS_PER_DAY;
