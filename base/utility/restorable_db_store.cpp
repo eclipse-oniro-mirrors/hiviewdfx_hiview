@@ -61,60 +61,14 @@ int RestorableDbStore::RestorableDbOpenCallback::OnUpgrade(NativeRdb::RdbStore& 
 int RestorableDbStore::Initialize(OnDbCreatedCallback onDbCreatedCallback,
     OnDbUpgradedCallback onDbUpgradedCallback, OnRestoreEndCallback onRestoreEndCallback)
 {
-    if (!FileUtil::IsDirectory(dbDir_) && !FileUtil::ForceCreateDirectory(dbDir_)) {
-        HIVIEW_LOGE("failed to create db stored directory");
-        return NativeRdb::E_ERROR;
-    }
-    onDbCreatedCallback_ = onDbCreatedCallback;
-    onDbUpgradedCallback_ = onDbUpgradedCallback;
-    onRestoreEndCallback_ = onRestoreEndCallback;
-
-    NativeRdb::RdbStoreConfig config(dbDir_ + dbName_);
-    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
-    RestorableDbOpenCallback dbOpenCallback(onDbCreatedCallback_, onDbUpgradedCallback_);
-    auto ret = NativeRdb::E_OK;
-
     std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
-    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
-    if (ret == NativeRdb::E_OK) {
-        return ret;
-    }
-    WriteRdbErrorEvent(ret, scenario_);
-    if (ret == NativeRdb::E_SQLITE_CORRUPT) {
-        ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_);
-        rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
-        if (ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to reinitialize db store %{public}s, ret is %{public}d", dbName_.c_str(), ret);
-        }
-        return ret;
-    }
-    HIVIEW_LOGE("failed to init rdb, ret is %{public}d", ret);
-    return ret;
+    return InitializeRdb(onDbCreatedCallback, onDbUpgradedCallback, onRestoreEndCallback);
 }
 
 int RestorableDbStore::Restore()
 {
-    {
-        std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
-        if (rdbStore_ == nullptr) {
-            HIVIEW_LOGE("rdb store is invalid");
-            return NativeRdb::E_ERROR;
-        }
-        if (int ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_); ret != NativeRdb::E_OK) {
-            HIVIEW_LOGE("failed to delete corrupted db store, ret is %{public}d", ret);
-            return ret;
-        }
-    }
-    auto ret = Initialize(onDbCreatedCallback_, onDbUpgradedCallback_, onRestoreEndCallback_);
-    if (ret != NativeRdb::E_OK) {
-        return ret;
-    }
-    HIVIEW_LOGI("succeed to restore the corrupted db");
     std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
-    if (onRestoreEndCallback_ != nullptr) {
-        ret = onRestoreEndCallback_(rdbStore_);
-    }
-    return ret;
+    return RestoreRdb();
 }
 
 int RestorableDbStore::ExecuteSql(const std::string& sql)
@@ -194,24 +148,74 @@ int RestorableDbStore::Count(int64_t& outValue, const NativeRdb::AbsRdbPredicate
 
 int RestorableDbStore::AdaptRdbOpt(std::function<int(std::shared_ptr<NativeRdb::RdbStore>)> func)
 {
+    std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
     auto ret = NativeRdb::E_OK;
-    {
-        std::unique_lock<ffrt::mutex> lock(dbStoreMtx_);
-        if (rdbStore_ == nullptr) {
-            HIVIEW_LOGE("rdb store or adapt func is invalid");
-            return NativeRdb::E_ERROR;
-        }
-        ret = func(rdbStore_);
-        if (ret == NativeRdb::E_OK) {
-            return ret;
-        }
+    if (rdbStore_ == nullptr) {
+        HIVIEW_LOGE("rdb store or adapt func is invalid");
+        return NativeRdb::E_ERROR;
+    }
+    ret = func(rdbStore_);
+    if (ret == NativeRdb::E_OK) {
+        return ret;
     }
     WriteRdbErrorEvent(ret, scenario_);
     if (ret != NativeRdb::E_SQLITE_CORRUPT) {
         HIVIEW_LOGE("db isn't corrupted, ret is %{public}d", ret);
         return ret;
     }
-    return Restore();
+    return RestoreRdb();
+}
+
+int RestorableDbStore::InitializeRdb(OnDbCreatedCallback onDbCreatedCallback,
+    OnDbUpgradedCallback onDbUpgradedCallback, OnRestoreEndCallback onRestoreEndCallback)
+{
+    if (!FileUtil::IsDirectory(dbDir_) && !FileUtil::ForceCreateDirectory(dbDir_)) {
+        HIVIEW_LOGE("failed to create db stored directory");
+        return NativeRdb::E_ERROR;
+    }
+    onDbCreatedCallback_ = onDbCreatedCallback;
+    onDbUpgradedCallback_ = onDbUpgradedCallback;
+    onRestoreEndCallback_ = onRestoreEndCallback;
+    NativeRdb::RdbStoreConfig config(dbDir_ + dbName_);
+    config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    RestorableDbOpenCallback dbOpenCallback(onDbCreatedCallback_, onDbUpgradedCallback_);
+    auto ret = NativeRdb::E_OK;
+    rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
+    if (ret == NativeRdb::E_OK) {
+        return ret;
+    }
+    WriteRdbErrorEvent(ret, scenario_);
+    if (ret == NativeRdb::E_SQLITE_CORRUPT) {
+        ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_);
+        rdbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion_, dbOpenCallback, ret);
+        if (ret != NativeRdb::E_OK) {
+            HIVIEW_LOGE("failed to reinitialize db store %{public}s, ret is %{public}d", dbName_.c_str(), ret);
+        }
+        return ret;
+    }
+    HIVIEW_LOGE("failed to init rdb, ret is %{public}d", ret);
+    return ret;
+}
+
+int RestorableDbStore::RestoreRdb()
+{
+    if (rdbStore_ == nullptr) {
+        HIVIEW_LOGE("rdb store is invalid");
+        return NativeRdb::E_ERROR;
+    }
+    if (int ret = NativeRdb::RdbHelper::DeleteRdbStore(dbDir_ + dbName_); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGE("failed to delete corrupted db store, ret is %{public}d", ret);
+        return ret;
+    }
+    auto ret = InitializeRdb(onDbCreatedCallback_, onDbUpgradedCallback_, onRestoreEndCallback_);
+    if (ret != NativeRdb::E_OK) {
+        return ret;
+    }
+    HIVIEW_LOGI("succeed to restore the corrupted db");
+    if (onRestoreEndCallback_ != nullptr) {
+        ret = onRestoreEndCallback_(rdbStore_);
+    }
+    return ret;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

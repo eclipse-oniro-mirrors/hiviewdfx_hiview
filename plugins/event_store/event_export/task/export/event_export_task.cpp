@@ -106,6 +106,10 @@ void EventExportTask::OnTaskRun()
 
 bool EventExportTask::ParseExportEventList(ExportEventList& list)
 {
+    if (config_ == nullptr) {
+        HIVIEW_LOGE("export config is invalid");
+        return false;
+    }
     if (config_->eventsConfigFiles.empty()) {
         // if export event list file isn't configured, use export info configured in hisysevent.def
         EventJsonParser::GetInstance()->GetAllCollectEvents(list, config_->taskType);
@@ -135,7 +139,8 @@ int64_t EventExportTask::GetExportRangeEndSeq()
 
 bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
 {
-    if (readReq == nullptr) {
+    if (readReq == nullptr || config_ == nullptr) {
+        HIVIEW_LOGE("invalid request or config");
         return false;
     }
     readReq->beginSeq = ExportDbManager::GetInstance().GetExportBeginSeq(config_->moduleName);
@@ -149,9 +154,10 @@ bool EventExportTask::InitReadRequest(std::shared_ptr<EventReadRequest> readReq)
             readReq->beginSeq, maxSeq);
         return false;
     }
-    if (maxSeq - readReq->beginSeq > EXPORT_MAX_CNT) {
+    int64_t expectEndSeq = readReq->beginSeq + EXPORT_MAX_CNT;
+    if (maxSeq > expectEndSeq) {
         HIVIEW_LOGW("export range exceed limit");
-        readReq->endSeq = readReq->beginSeq + EXPORT_MAX_CNT;
+        readReq->endSeq = expectEndSeq;
     } else {
         readReq->endSeq = maxSeq;
     }

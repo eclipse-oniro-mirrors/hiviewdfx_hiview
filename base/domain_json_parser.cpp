@@ -16,6 +16,7 @@
 
 #include <fstream>
 
+#include "file_util.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -40,6 +41,10 @@ DomainJsonParser::DomainJsonParser() : domainLocationMap_(std::make_shared<DOMAI
 
 bool DomainJsonParser::CacheDomainJsonLocation(const std::string& defFilePath)
 {
+    if (!FileUtil::IsLegalPath(defFilePath)) {
+        HIVIEW_LOGE("invalid json file: %{public}s", defFilePath.c_str());
+        return false;
+    }
     Json::Value hiSysEventDef;
     if (!ReadSysEventDefFromFile(defFilePath, hiSysEventDef)) {
         HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());

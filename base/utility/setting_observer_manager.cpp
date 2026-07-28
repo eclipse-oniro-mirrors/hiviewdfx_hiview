@@ -29,7 +29,9 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-SettingObserverManager");
 namespace {
+constexpr int SUCCEED_TO_OPT_DATA_SHARE = 0;
 constexpr int INVALID_DATA_SHARE_HELPER = -1;
+constexpr int FAILED_TO_OPT_DATA_SHARE = -2;
 constexpr char SETTINGS_DATA_BASE_URI[] =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/SETTINGSDATA?Proxy=true";
 
@@ -181,9 +183,11 @@ int SettingObserverManager::SetStringValue(const std::string& paramKey, const st
         ret = helper->Insert(uri, valuesBucket);
     }
     if (ret < 0) {
-        HIVIEW_LOGE("failed to insert %{public}s:%{public}s", paramKey.c_str(), paramVal.c_str());
+        HIVIEW_LOGE("failed to insert %{public}s:%{public}s, ret is %{public}d", paramKey.c_str(),
+            paramVal.c_str(), ret);
+        return FAILED_TO_OPT_DATA_SHARE;
     }
-    return ret;
+    return SUCCEED_TO_OPT_DATA_SHARE;
 }
 
 sptr<SettingObserver> SettingObserverManager::GetSettingObserver(const std::string& paramKey)

@@ -374,6 +374,10 @@ void EventJsonParser::OnConfigUpdate()
 void EventJsonParser::GetAllCollectEvents(ExportEventList& list, int16_t reportInterval)
 {
     std::shared_ptr<DOMAIN_LOCATION_MAP> domainLocationMap = domainJsonParser_->GetDomainLocationMap();
+    if (domainLocationMap == nullptr) {
+        HIVIEW_LOGE("invalid domain location map");
+        return;
+    }
     for (auto iter = domainLocationMap->cbegin(); iter != domainLocationMap->cend(); ++iter) {
         std::string domainName = iter->first;
         Json::Value domainJson;

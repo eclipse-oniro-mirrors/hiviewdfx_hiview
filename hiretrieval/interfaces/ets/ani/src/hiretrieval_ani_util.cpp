@@ -47,25 +47,21 @@ std::string ParseStrVal(ani_env* env, ani_ref aniStrRef)
         HILOG_ERROR(LOG_CORE, "failed to get string.");
         return "";
     }
+    if (bytesWritten >= buffSize) {
+        HILOG_ERROR(LOG_CORE, "too many bytes has been written.");
+        return "";
+    }
     utf8Buffer[bytesWritten] = '\0';
     std::string content = std::string(utf8Buffer);
     return content;
-}
-
-bool CreateStrVal(ani_env* env, const std::string& strVal, ani_string& strObj)
-{
-    if (env->String_NewUTF8(strVal.c_str(), strVal.size(), &strObj) != ANI_OK) {
-        HILOG_ERROR(LOG_CORE, "failed to create string ani object.");
-        return false;
-    }
-    return true;
 }
 
 bool SetStrPropertyByName(ani_env* env, ani_class& aniClass, ani_object& destObj, const char* propertyName,
     const std::string& strVal)
 {
     ani_string strObj {};
-    if (!CreateStrVal(env, strVal, strObj)) {
+    if (env->String_NewUTF8(strVal.c_str(), strVal.size(), &strObj) != ANI_OK) {
+        HILOG_ERROR(LOG_CORE, "failed to create string ani object.");
         return false;
     }
     if (env->Object_SetPropertyByName_Ref(destObj, propertyName, static_cast<ani_ref>(strObj)) != ANI_OK) {
@@ -113,11 +109,11 @@ void ThrowAniError(ani_env* env, int32_t code, const std::string& msg)
 std::string GetStrTypeAttr(ani_env* env, ani_object& aniVal, const char* attrName,
     const std::string& defaultVal)
 {
-    ani_ref attrRef {};
     if (env == nullptr || attrName == nullptr) {
         HILOG_ERROR(LOG_CORE, "ani environment is invalid.");
         return defaultVal;
     }
+    ani_ref attrRef {};
     if (env->Object_GetPropertyByName_Ref(aniVal, attrName, &attrRef) != ANI_OK) {
         HILOG_ERROR(LOG_CORE, "failed to get attr value of %{public}s.", attrName);
         return defaultVal;
