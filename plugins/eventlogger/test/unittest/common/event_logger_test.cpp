@@ -1695,7 +1695,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_CheckContinueReport_001, TestSize.Leve
 
 /**
  * @tc.name: EventLoggerTest_WriteExternalLog_001
- * @tc.desc: Test WriteExternalLog with non-AppFreeze event (should return early )
+ * @tc.desc: Test WriteExternalLog with non-AppFreeze event (should return early)
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteExternalLog_001, TestSize.Level3)
@@ -1983,7 +1983,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteGCStr_003, TestSize.Level3)
 
 /**
  * @tc.name: EventLoggerTest_WriteIOStr_001
- * @tc.desc: Test EventLogger WriteIOStr with valid IO info
+ * @tc.desc: Test WriteIOStr with valid IO info
  * @tc.type: FUNC
  */
 HWTEST_F(EventLoggerTest, EventLoggerTest_WriteIOStr_001, TestSize.Level3)

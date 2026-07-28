@@ -157,13 +157,13 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
 
 std::string FaultLogManager::GetFaultLogFilePath(int32_t faultLogType, const std::string& fileName) const
 {
-    return (faultLogType == FaultLogType::SYS_WARNING || (faultLogType == FaultLogType::APPFREEZE_WARNING)) ?
+    return (faultLogType == FaultLogType::SYS_WARNING || faultLogType == FaultLogType::APPFREEZE_WARNING) ?
         std::string(FAULTLOG_WARNING_LOG_FOLDER) + fileName : std::string(FAULTLOG_FAULT_LOGGER_FOLDER) + fileName;
 }
 
 int FaultLogManager::GetFaultLogFileFd(int32_t faultLogType, const std::string& fileName) const
 {
-    return (faultLogType == FaultLogType::SYS_WARNING || (faultLogType == FaultLogType::APPFREEZE_WARNING)) ?
+    return (faultLogType == FaultLogType::SYS_WARNING || faultLogType == FaultLogType::APPFREEZE_WARNING) ?
         warningLogStore_->CreateLogFile(fileName): store_->CreateLogFile(fileName);
 }
 
