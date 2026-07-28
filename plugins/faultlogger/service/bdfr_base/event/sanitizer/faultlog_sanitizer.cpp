@@ -230,6 +230,7 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
 
     size_t hashPos = line.find('#');
     size_t stackFrameEnd = line.find(' ', hashPos);
+
     std::string stackFrame = line.substr(0, stackFrameEnd);
     std::string result = stackFrame;
 
@@ -241,12 +242,13 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
     }
     result += " (" + std::string(jsFunc.url) + ":" + std::to_string(jsFunc.line) +
               ":" + std::to_string(jsFunc.column) + ")";
+
     return result;
 }
 
 std::vector<MapInfo> FaultLogSanitizer::LoadMaps(std::ifstream& file)
 {
-    // format line: 0xmapbaseStart-0xmapbaseStartend    xxx need to save maps
+    // format line: 0xmapbaseStart-0xmapbaseStartend	xxx need to save maps
     std::vector<MapInfo> maps;
     std::string line;
     bool inMapSection = false;
