@@ -14,7 +14,7 @@
  */
 #include "cpu_storage.h"
 
-#include <dlfcn.h>
+#include <dirent.h>
 
 #include "file_util.h"
 #include "hisysevent_util.h"
@@ -237,25 +237,52 @@ int CreateTables(NativeRdb::RdbStore& rdbStore)
     }
     return NativeRdb::E_OK;
 }
-}
 
-CpuStorage::CpuStorage(const std::string& workPath) : workPath_(workPath), memCgHandle_(nullptr),
-    getMemCgProcess_(nullptr)
+void LoadPidFromProcs(const std::string &procsFile, std::unordered_set<int32_t> &memCgProcs)
 {
-    InitDbStorePath();
-    InitDbStore();
-    InitMemCgHandle();
-    if (dbStore_!= nullptr && GetStoredSysVersion() != Parameter::GetDisplayVersionStr()) {
-        HIVIEW_LOGI("system has been upgaded, report directly");
-        ReportDbRecords();
+    std::vector<std::string> procsArray;
+    FileUtil::LoadLinesFromFile(procsFile, procsArray);
+    for (auto& proc : procsArray) {
+        int32_t pid = StringUtil::StrToInt(proc);
+        if (pid < 0) {
+            HIVIEW_LOGE("pid %{public}d is invalid", pid);
+            continue;
+        }
+        memCgProcs.insert(pid);
     }
 }
 
-CpuStorage::~CpuStorage()
+void GetMemCgInner(const std::string &path, std::unordered_set<int32_t> &memCgProcs)
 {
-    if (memCgHandle_ != nullptr) {
-        dlclose(memCgHandle_);
-        memCgHandle_ = nullptr;
+    DIR *dir = opendir(path.c_str());
+    if (dir == nullptr) {
+        HIVIEW_LOGD("open dir:%{public}s failed", path.c_str());
+        return;
+    }
+    struct dirent *entry;
+    std::string delimiterDir = FileUtil::IncludeTrailingPathDelimiter(path);
+    while ((entry = readdir(dir)) != nullptr) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+        if (entry->d_type == DT_DIR) {
+            std::string filePath = delimiterDir + std::string(entry->d_name);
+            GetMemCgInner(filePath, memCgProcs);
+        } else if (strcmp(entry->d_name, "procs") == 0) {
+            LoadPidFromProcs(delimiterDir + "procs", memCgProcs);
+        }
+    }
+    closedir(dir);
+}
+}
+
+CpuStorage::CpuStorage(const std::string& workPath) : workPath_(workPath)
+{
+    InitDbStorePath();
+    InitDbStore();
+    if (dbStore_!= nullptr && GetStoredSysVersion() != Parameter::GetDisplayVersionStr()) {
+        HIVIEW_LOGI("system has been upgaded, report directly");
+        ReportDbRecords();
     }
 }
 
@@ -357,27 +384,17 @@ void CpuStorage::ReportDbRecords()
     PrepareNewDbFilesAfterReport();
 }
 
-void CpuStorage::InitMemCgHandle()
-{
-    memCgHandle_ = dlopen("libprocess_utility_ex.z.so", RTLD_LAZY);
-    if (memCgHandle_ == nullptr) {
-        HIVIEW_LOGW("dlopen process_utility_ex so failed, error: %{public}s", dlerror());
-        return;
-    }
-    getMemCgProcess_ = reinterpret_cast<GetMemCgProcessFunc>(dlsym(memCgHandle_, "GetMemCgProcesses"));
-    if (getMemCgProcess_ == nullptr) {
-        HIVIEW_LOGW("dlsym GetMemCgProcesses failed, %{public}s.", dlerror());
-        dlclose(memCgHandle_);
-        memCgHandle_ = nullptr;
-    }
-}
-
 void CpuStorage::GetMemCgProcesses(std::unordered_set<int32_t> &memCgProcs)
 {
-    if (memCgHandle_ == nullptr || getMemCgProcess_ == nullptr) {
+    std::string rgmId = Parameter::GetString("virt_service.rgm_id.rgm_hmos", "");
+    if (rgmId.empty()) {
+        HIVIEW_LOGD("rgm_id is empty");
         return;
     }
-    getMemCgProcess_(memCgProcs);
+    GetMemCgInner("/dev/memcg/isulad/" + rgmId + "/anco_memcg", memCgProcs);
+    GetMemCgInner("/dev/memcg/isulad/" + rgmId + "/anco_union_memcg", memCgProcs);
+    GetMemCgInner("/dev/memcg/isulad/" + rgmId + "/anco_perf_critical", memCgProcs);
+    GetMemCgInner("/dev/memcg/isulad/" + rgmId + "/anco_perf_sensitive", memCgProcs);
 }
 
 std::string CpuStorage::GetStoredSysVersion()
