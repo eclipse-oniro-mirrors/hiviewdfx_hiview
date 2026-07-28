@@ -270,7 +270,7 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
     size_t fileSize = fileList.size();
     HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
-    if (fileSize == FREEZE_EXT_FILE_SIZE) {
+    if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
         std::string freezeExtFile = fileList[0];
         stackFile = freezeExtFile.empty() ? halfFreezeExtFile : freezeExtFile;
         cpuFile = fileList[FREEZE_CPU_INDEX];

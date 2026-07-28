@@ -594,11 +594,11 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
     vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     halfFreezeExtFile = "test";
     watchPoint2.SetFreezeExtFile(";");
-    endor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     watchPoint2.SetFreezeExtFile("test;");
-    endor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     watchPoint2.SetFreezeExtFile("test;test");
-    endor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
 }
 
 /**
@@ -902,9 +902,9 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_019, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeVender_020
- * @tc.desc: Test InitLogBody with reportLifecycleToFreeze
- */
+* @tc.name: FreezeVender_020
+* @tc.desc: Test InitLogBody with reportLifecycleToFreeze
+*/
 HWTEST_F(FreezeDetectorUnittest, FreezeVender_020, TestSize.Level3)
 {
     auto freezeCommon = std::make_shared<FreezeCommon>();
@@ -930,6 +930,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_020, TestSize.Level3)
         .InitReportLifecycleAsAppfreeze(true)
         .Build();
     list.push_back(node1);
+    ASSERT_EQ(list.size(), 1); // 1: size
     vendor->CovertFreezeType(type, node1, list);
     ASSERT_EQ(type, "syswarning");
 
@@ -1701,7 +1702,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeResolver_IsAppFreezeWarning_005, TestSize
 
 /**
  * @tc.name: FreezeVender_CovertHighLoadToWarning_001
- * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning() == "TRUE" and THREAD_BLOCK_3S
+ * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning == "TRUE" and THREAD_BLOCK_3S
  */
 HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_001, TestSize.Level3)
 {
@@ -1724,7 +1725,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_001, TestS
 
 /**
  * @tc.name: FreezeVender_CovertHighLoadToWarning_002
- * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning() == "TRUE" and syswarning
+ * @tc.desc: Test CovertHighLoadToWarning with GetHostResourceWarning == "TRUE" and syswarning
  */
 HWTEST_F(FreezeDetectorUnittest, FreezeVender_CovertHighLoadToWarning_002, TestSize.Level3)
 {
