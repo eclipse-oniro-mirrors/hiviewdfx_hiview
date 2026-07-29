@@ -117,6 +117,10 @@ void CallStatFuncs()
     GpuDecorator::SaveStatCommonInfo();
 #endif
 
+#ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
+    HilogDecorator::SaveStatCommonInfo();
+#endif
+
 #ifdef UNIFIED_COLLECTOR_IO_ENABLE
     IoDecorator::SaveStatCommonInfo();
 #endif
