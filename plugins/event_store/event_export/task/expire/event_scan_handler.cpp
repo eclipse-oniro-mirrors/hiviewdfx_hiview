@@ -41,15 +41,20 @@ void GetExpiredFileNames(std::vector<std::string>& dest, const std::string& scan
     }
     std::regex reg { ".*/HSE_.*\\.zip$" };
     std::smatch match;
+    auto currentTime = static_cast<int64_t>(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC);
+    if (currentTime == 0) {
+        HIVIEW_LOGE("invalid timestamp");
+        return;
+    }
     for (const auto& scannedFile : scannedFiles) {
-        HIVIEW_LOGD("scannedFile is %{public}s", StringUtil::HideDeviceIdInfo(scannedFile).c_str());
         if (!std::regex_match(scannedFile, match, reg)) {
             continue;
         }
         auto fileModifyTime = FileUtil::GetLastModifiedTimeStamp(scannedFile);
-        auto currentTime = static_cast<int64_t>(TimeUtil::GetMilliseconds() / TimeUtil::SEC_TO_MILLISEC);
-        HIVIEW_LOGD("current time: %{public}" PRIu64 ", file last modified time: %{public}" PRIu64 "", currentTime,
-            fileModifyTime);
+        if (fileModifyTime == 0) {
+            HIVIEW_LOGW("file with invalid timestamp: %{public}s", scannedFile.c_str());
+            continue;
+        }
         if (static_cast<uint64_t>(std::abs(fileModifyTime - currentTime)) > storedDayCnt * DAY_TO_SECONDS) {
             dest.emplace_back(scannedFile);
         }

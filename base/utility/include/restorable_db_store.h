@@ -71,6 +71,9 @@ private:
     };
 
     int AdaptRdbOpt(std::function<int(std::shared_ptr<NativeRdb::RdbStore>)> func);
+    int InitializeRdb(OnDbCreatedCallback onDbCreatedCallback,
+        OnDbUpgradedCallback onDbUpgradedCallback, OnRestoreEndCallback onRestoreEndCallback);
+    int RestoreRdb();
 
     int32_t dbVersion_ = 0;
     std::string dbDir_;
