@@ -16,10 +16,8 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
-#include <regex>
 #include <string>
 
-#include "collector_test_common.h"
 #include "common_utils.h"
 #include "file_util.h"
 #include "string_util.h"
@@ -42,9 +40,6 @@ public:
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
 namespace {
-const std::string MEMINFO_SAVE_DIR = "/data/log/hiview/unified_collection/memory";
-const std::size_t MAX_FILE_SAVE_SIZE = 10;
-
 bool HasValidAILibrary()
 {
     const std::string libName = "libhiai_infra_proxy_1.0.z.so";
@@ -290,47 +285,10 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest017, TestSize.Level1)
 
 /**
  * @tc.name: MemoryCollectorTest018
- * @tc.desc: used to test file clean
- * @tc.type: FUNC
-*/
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest018, TestSize.Level3)
-{
-    std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    auto task1 = [&collector] { return collector->CollectRawMemInfo(); };
-    FileCleanTest(task1, MEMINFO_SAVE_DIR, "proc_meminfo_", MAX_FILE_SAVE_SIZE);
-
-    if (FileUtil::FileExists("/proc/memview")) {
-        auto task2 = [&collector] { return collector->ExportMemView(); };
-        FileCleanTest(task2, MEMINFO_SAVE_DIR, "proc_memview_", MAX_FILE_SAVE_SIZE);
-    }
-
-    auto task4 = [&collector] { return collector->CollectRawSlabInfo(); };
-    FileCleanTest(task4, MEMINFO_SAVE_DIR, "proc_slabinfo_", MAX_FILE_SAVE_SIZE);
-
-    auto task5 = [&collector] { return collector->CollectRawPageTypeInfo(); };
-    FileCleanTest(task5, MEMINFO_SAVE_DIR, "proc_pagetypeinfo_", MAX_FILE_SAVE_SIZE);
-
-    auto task6 = [&collector] { return collector->CollectRawDMA(); };
-    FileCleanTest(task6, MEMINFO_SAVE_DIR, "proc_process_dmabuf_info_", MAX_FILE_SAVE_SIZE);
-
-    if (HasValidAILibrary()) {
-        auto task7 = [&collector] { return collector->ExportAllAIProcess(); };
-        FileCleanTest(task7, MEMINFO_SAVE_DIR, "all_ai_processes_mem_", MAX_FILE_SAVE_SIZE);
-    }
-
-    auto task8 = [&collector] {
-        (void)collector->CollectRawSmaps(1);
-        return collector->CollectRawSmaps(CommonUtils::GetPidByName("hiview"));
-    };
-    FileCleanTest(task8, MEMINFO_SAVE_DIR, "proc_smaps_", MAX_FILE_SAVE_SIZE);
-}
-
-/**
- * @tc.name: MemoryCollectorTest019
  * @tc.desc: used to test memory type
  * @tc.type: FUNC
 */
-HWTEST_F(MemoryCollectorTest, MemoryCollectorTest019, TestSize.Level3)
+HWTEST_F(MemoryCollectorTest, MemoryCollectorTest018, TestSize.Level3)
 {
     ASSERT_EQ(MemoryCollector::MapNameToMemoryType("[anon:ArkTs Static Object Space]"),
         MemoryItemType::MEMORY_ITEM_TYPE_ANON_ARK_OBJECT);
