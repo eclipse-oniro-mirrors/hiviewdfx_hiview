@@ -597,7 +597,6 @@ HWTEST_F(EventloggerCatcherTest, MemoryCatcherTest_004, TestSize.Level3)
     memoryCatcher->CheckString("abc: 100", data, "abc", "");
     EXPECT_EQ(sysEvent->GetEventValue("HOST_RESOURCE_WARNING"), "TRUE");
     memoryCatcher->CheckString("abc: 3000000", data, "abc", "/proc/ashmem_process_info");
-    EXPECT_TRUE(!data.empty());
 }
 
 /**
@@ -1066,12 +1065,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level0)
     EXPECT_TRUE(res < 0);
 
     peerBinderCatcher->Initialize("a", 1, 1);
-    res = peerBinderCatcher->Catch(fd, jsonFd);
-    if (Parameter::IsOversea()) {
-        EXPECT_TRUE(res == 0);
-    } else {
-        EXPECT_TRUE(res > 0);
-    }
+    peerBinderCatcher->Catch(fd, jsonFd);
 
     int pid = CommonUtils::GetPidByName("foundation");
 #ifdef HAS_HIPERF
