@@ -28,7 +28,6 @@ using GetMemCgProcessFunc = bool (*)(std::unordered_set<int32_t>&);
 class CpuStorage {
 public:
     CpuStorage(const std::string& workPath);
-    ~CpuStorage();
     void StoreProcessDatas(const std::vector<ProcessCpuStatInfo>& cpuCollections);
     void StoreThreadDatas(const std::vector<ThreadCpuStatInfo>& cpuCollections);
     void Report();
@@ -43,7 +42,6 @@ private:
     void PrepareNewDbFilesAfterReport();
     std::string GetStoredSysVersion();
     void ReportDbRecords();
-    void InitMemCgHandle();
     void GetMemCgProcesses(std::unordered_set<int32_t>& memCgProcs);
 
 private:
@@ -52,8 +50,6 @@ private:
     std::string dbStoreUploadPath_;
     std::string dbFileName_;
     std::shared_ptr<RestorableDbStore> dbStore_;
-    void* memCgHandle_;
-    GetMemCgProcessFunc getMemCgProcess_;
 }; // CpuStorage
 } // namespace HiviewDFX
 } // namespace OHOS
