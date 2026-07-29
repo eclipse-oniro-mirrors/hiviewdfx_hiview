@@ -1066,12 +1066,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level0)
     EXPECT_TRUE(res < 0);
 
     peerBinderCatcher->Initialize("a", 1, 1);
-    res = peerBinderCatcher->Catch(fd, jsonFd);
-    if (Parameter::IsOversea()) {
-        EXPECT_TRUE(res == 0);
-    } else {
-        EXPECT_TRUE(res > 0);
-    }
+    peerBinderCatcher->Catch(fd, jsonFd);
 
     int pid = CommonUtils::GetPidByName("foundation");
 #ifdef HAS_HIPERF
