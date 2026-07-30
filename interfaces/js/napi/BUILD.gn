@@ -15,6 +15,8 @@ import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
 ohos_shared_library("loglibrary_napi") {
+  branch_protector_ret = "pac_ret"
+
   include_dirs = [
     "include/",
     "$hiview_base/include",
