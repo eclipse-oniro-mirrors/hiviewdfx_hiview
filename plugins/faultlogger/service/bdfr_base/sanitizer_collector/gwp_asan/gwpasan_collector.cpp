@@ -83,12 +83,13 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     for (size_t i = 0; i < sz; i++) {
         g_asanlog << buf[i];
     }
-    char *gwpOutput = strstr(buf, "End GWP-ASan report");
-    char *tsanOutput = strstr(buf, "End Tsan report");
-    char *cfiOutput = strstr(buf, "End CFI report");
-    char *ubsanOutput = strstr(buf, "End Ubsan report");
-    char *hwasanOutput = strstr(buf, "End Hwasan report");
-    char *asanOutput = strstr(buf, "End Asan report");
+    std::string logContent(buf, sz);
+    const char *gwpOutput = strstr(logContent.c_str(), "End GWP-ASan report");
+    const char *tsanOutput = strstr(logContent.c_str(), "End Tsan report");
+    const char *cfiOutput = strstr(logContent.c_str(), "End CFI report");
+    const char *ubsanOutput = strstr(logContent.c_str(), "End Ubsan report");
+    const char *hwasanOutput = strstr(logContent.c_str(), "End Hwasan report");
+    const char *asanOutput = strstr(logContent.c_str(), "End Asan report");
     if (gwpOutput) {
         std::string gwpasanlog = g_asanlog.str();
         ReadGwpAsanRecord(gwpasanlog, "GWP-ASAN", path);
