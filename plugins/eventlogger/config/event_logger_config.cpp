@@ -12,13 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "event_logger_config.h"
+
+#include <charconv>
+
 #include "hiview_logger.h"
 #include "file_util.h"
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
     constexpr char EVENT_LOGGER_CONFIG_PATH[] = "/system/etc/hiview/event_logger_config";
+    constexpr int DECIMAL = 10;
+    constexpr int HEX = 16;
+    constexpr int HEX_FLAG_SIZE = 2;
+    constexpr int HEX_FLAG_INDEX = 1;
 }
 
 DEFINE_LOG_TAG("EventLogger-EventLoggerConfig");
@@ -140,12 +148,35 @@ bool EventLoggerConfig::ParseId(const std::string& buf, size_t& pos, int& id)
         return true;
     }
 
-    for (char c : idStr) {
-        if (!((c >= '0' && c <= '9') || c == 'x' || c == 'X')) {
+    int base = DECIMAL;
+    size_t parseOffset = 0;
+    size_t parseLen = idStr.size();
+    if (idStr.size() >= HEX_FLAG_SIZE && idStr[0] == '0' &&
+        (idStr[HEX_FLAG_INDEX] == 'x' || idStr[HEX_FLAG_INDEX] == 'X')) {
+        if (idStr.size() == HEX_FLAG_SIZE) {
             return false;
         }
+        for (size_t i = HEX_FLAG_SIZE; i < idStr.size(); ++i) {
+            char c = idStr[i];
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+                return false;
+            }
+        }
+        base = HEX;
+        parseOffset = HEX_FLAG_SIZE;
+        parseLen -= HEX_FLAG_SIZE;
+    } else {
+        for (char c : idStr) {
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
     }
-    id = std::stoi(idStr, nullptr, 0);
+    auto result = std::from_chars(idStr.data() + parseOffset, idStr.data() + parseOffset + parseLen, id, base);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGE("parse id error");
+        return false;
+    }
     return true;
 }
 
@@ -192,7 +223,11 @@ bool EventLoggerConfig::ParseInterval(const std::string& buf, size_t& pos, int& 
             return false;
         }
     }
-    interval = std::stoi(intervalStr);
+    auto result = std::from_chars(intervalStr.c_str(), intervalStr.c_str() + intervalStr.size(), interval);
+    if (result.ec != std::errc()) {
+        HIVIEW_LOGE("parse interval error");
+        return false;
+    }
     return true;
 }
 
@@ -257,7 +292,7 @@ bool EventLoggerConfig::FindConfigLine(int eventId, std::string eventName, Event
             configOut.action = configDate.action;
             HIVIEW_LOGI("configDate-> id: 0x%{public}x, name: %{public}s, action: %{public}s, interval: %{public}d",
                 configOut.id, configOut.name.c_str(), configOut.action.c_str(), configOut.interval);
-        return false;
+            return false;
         }
         return true;
     });

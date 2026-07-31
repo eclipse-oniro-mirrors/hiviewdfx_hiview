@@ -599,6 +599,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_010, TestSize.Level3)
     vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
     watchPoint2.SetFreezeExtFile("test;test");
     vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
+    watchPoint2.SetFreezeExtFile("test1;test2;;;;;test3;");
+    vendor->MergeFreezeExtFile(watchPoint2, halfFreezeExtFile);
 }
 
 /**

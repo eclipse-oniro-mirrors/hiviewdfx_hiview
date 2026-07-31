@@ -268,6 +268,10 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
+    if (fileList.size() > FREEZE_EXT_FILE_SIZE) {
+        HIVIEW_LOGW("fileList size exceeds limit, size:%{public}zu.", fileList.size());
+        return "";
+    }
     size_t fileSize = fileList.size();
     HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
     if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
@@ -315,11 +319,9 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     if (jsonFd < 0) {
         HIVIEW_LOGE("fail to open FreezeJsonFile! jsonFd: %{public}d", jsonFd);
         return;
-    } else {
-        fdsan_exchange_owner_tag(jsonFd, 0, FREEZE_DOMAIN);
-        HIVIEW_LOGI("success to open FreezeJsonFile! jsonFd: %{public}d", jsonFd);
     }
-    HIVIEW_LOGI("MergeFreezeJsonFile oss size: %{public}zu.", oss.str().size());
+    fdsan_exchange_owner_tag(jsonFd, 0, FREEZE_DOMAIN);
+    HIVIEW_LOGI("success to open FreezeJsonFile! jsonFd: %{public}d, oss size: %{public}zu.", jsonFd, oss.str().size());
     FileUtil::SaveStringToFd(jsonFd, oss.str());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "domain", watchPoint.GetDomain());
     FreezeJsonUtil::WriteKeyValue(jsonFd, "stringId", watchPoint.GetStringId());
@@ -389,8 +391,7 @@ bool Vendor::ValidateAndInitType(FreezeContext& context) const
     if (!JudgeSysWarningEvent(context.watchPoint.GetStringId(),
         context.type,
         context.processName,
-        context.watchPointList,
-        context.freezeResults)) {
+        context.watchPointList)) {
         return false;
     }
     if (!CovertHighLoadToWarning(context.type, context.watchPoint)) {
@@ -462,7 +463,7 @@ void Vendor::InitLogBody(const std::vector<WatchPoint>& list, std::ostringstream
 }
 
 bool Vendor::JudgeSysWarningEvent(const std::string& stringId, std::string& type, const std::string& processName,
-    const std::vector<WatchPoint>& list, const std::vector<FreezeResult>& result) const
+    const std::vector<WatchPoint>& list) const
 {
     bool isAppHalfEvent = (stringId == "THREAD_BLOCK_3S" || stringId == "LIFECYCLE_HALF_TIMEOUT");
     bool isSysHalfEvent = (stringId == "SERVICE_WARNING");
@@ -550,8 +551,13 @@ void Vendor::CovertFreezeType(std::string& type, const WatchPoint& watchPoint,
     const std::vector<WatchPoint>& list) const
 {
     std::string stringId = watchPoint.GetStringId();
-    if (freezeCommon_->IsReportAppFreezeEvent(stringId) && (list.size() == APP_MATCH_NUM)) {
+    if (stringId.empty()) {
+        return;
+    }
+    if (freezeCommon_ != nullptr && freezeCommon_->IsReportAppFreezeEvent(stringId) &&
+        (list.size() == APP_MATCH_NUM)) {
         type = SYSWARNING;
+        return;
     }
     if (stringId != LIFECYCLE_TIMEOUT) {
         return;
