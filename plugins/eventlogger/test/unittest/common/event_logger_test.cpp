@@ -2076,5 +2076,75 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetMatchResetString_001, TestSize.Leve
     ret = eventLogger->GetMatchResetString(src, dst);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: EventLoggerTest_UpdateWindoInfo_001
+ * @tc.desc: Test UpdateWindoInfo not in ScreenGroup
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindoInfo_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    WindowIdInfo windowIdInfo;
+    const char* buffer = "SCBStatusBar 0 100 12345";
+    bool inScreenGroup = false;
+
+    eventLogger->UpdateWindoInfo(windowIdInfo, buffer, inScreenGroup);
+    EXPECT_EQ(windowIdInfo.statusBarWindowId, "");
+    EXPECT_EQ(windowIdInfo.screenLockWindowId, "");
+    EXPECT_EQ(windowIdInfo.softKeyboardWindowId, "");
+}
+
+/**
+ * @tc.name: EventLoggerTest_UpdateWindoInfo_002
+ * @tc.desc: Test UpdateWindoInfo with multiple window types in one call
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindoInfo_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+
+    const char* buffer1 = "SCBStatusBar 0 100 12345";
+    const char* buffer2 = "SCBScreenLock 0 100 67890";
+    const char* buffer3 = "softKeyboard 0 100 11111";
+    bool inScreenGroup = true;
+
+    WindowIdInfo windowIdInfo1;
+    eventLogger->UpdateWindoInfo(windowIdInfo1, buffer1, inScreenGroup);
+    eventLogger->UpdateWindoInfo(windowIdInfo1, buffer2, inScreenGroup);
+    eventLogger->UpdateWindoInfo(windowIdInfo1, buffer3, inScreenGroup);
+
+    EXPECT_EQ(windowIdInfo1.statusBarWindowId, "12345");
+    EXPECT_EQ(windowIdInfo1.screenLockWindowId, "67890");
+    EXPECT_EQ(windowIdInfo1.softKeyboardWindowId, "11111");
+
+    const char* buffer4 = "SomeOtherWindow 0 100 99999";
+    WindowIdInfo windowIdInfo2;
+    eventLogger->UpdateWindoInfo(windowIdInfo2, buffer4, inScreenGroup);
+    EXPECT_EQ(windowIdInfo2.statusBarWindowId, "");
+    EXPECT_EQ(windowIdInfo2.screenLockWindowId, "");
+    EXPECT_EQ(windowIdInfo2.softKeyboardWindowId, "");
+}
+
+/**
+ * @tc.name: EventLoggerTest_DumpWindowInfo_001
+ * @tc.desc: Test DumpWindowInfo handles focus window parsing
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_DumpWindowInfo_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    EXPECT_TRUE(eventLogger != nullptr);
+    std::string testPath = "/data/test/log/test_window_info.log";
+    int fd = open(testPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_MODE);
+    if (fd < 0) {
+        printf("Fail to create File. errno: %d\n", errno);
+        FAIL();
+    }
+
+    WindowIdInfo windowIdInfo1 = eventLogger->DumpWindowInfo(fd);
+    WindowIdInfo windowIdInfo2 = eventLogger->DumpWindowInfo(fd);
+    close(fd);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
