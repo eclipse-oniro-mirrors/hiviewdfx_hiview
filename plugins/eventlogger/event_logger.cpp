@@ -646,6 +646,19 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
     binderInfoJsonStr = FreezeJsonUtil::GetStrByList(infoList);
 }
 
+void EventLogger::UpdateWindoInfo(WindowIdInfo& windowIdInfo, const char* buffer, bool inScreenGroup)
+{
+    if (inScreenGroup && strstr(buffer, "SCBStatusBar") != nullptr) {
+        windowIdInfo.statusBarWindowId = GetWindowIdFromLine(buffer);
+    }
+    if (inScreenGroup && strstr(buffer, "SCBScreenLock") != nullptr) {
+        windowIdInfo.screenLockWindowId = GetWindowIdFromLine(buffer);
+    }
+    if (inScreenGroup && strstr(buffer, "softKeyboard") != nullptr) {
+        windowIdInfo.softKeyboardWindowId = GetWindowIdFromLine(buffer);
+    }
+}
+
 WindowIdInfo EventLogger::DumpWindowInfo(int fd)
 {
     WindowIdInfo windowIdInfo;
@@ -665,15 +678,7 @@ WindowIdInfo EventLogger::DumpWindowInfo(int fd)
         } else if (strstr(buffer, "-----------------------") != nullptr && inScreenGroup) {
             inScreenGroup = false;
         }
-        if (inScreenGroup && strstr(buffer, "SCBStatusBar") != nullptr) {
-            windowIdInfo.statusBarWindowId = GetWindowIdFromLine(buffer);
-        }
-        if (inScreenGroup && strstr(buffer, "SCBScreenLock") != nullptr) {
-            windowIdInfo.screenLockWindowId = GetWindowIdFromLine(buffer);
-        }
-        if (inScreenGroup && strstr(buffer, "softKeyboard") != nullptr) {
-            windowIdInfo.softKeyboardWindowId = GetWindowIdFromLine(buffer);
-        }
+        UpdateWindoInfo(windowIdInfo, buffer, inScreenGroup);
         const char* focusPos = strstr(buffer, "Focus window: ");
         if (focusPos != nullptr) {
             focusPos += strlen("Focus window: ");
@@ -684,7 +689,9 @@ WindowIdInfo EventLogger::DumpWindowInfo(int fd)
                 windowIdBuf[i] = focusPos[i];
                 i++;
             }
-            windowIdInfo.focusWindowId = windowIdBuf;
+            if (i > 0) {
+                windowIdInfo.focusWindowId = windowIdBuf;
+            }
         }
         write(fd, buffer, strlen(buffer));
     }
