@@ -41,7 +41,7 @@ inline constexpr uint32_t DEFAULT_VSYNC = 16;
 // Obtain the last three digits of the full path
 inline constexpr uint32_t PATH_DEPTH = 3;
 
-inline constexpr size_t MAX_PAGE_NAME_LEN = 128;
+inline constexpr size_t MAX_PAGE_NAME_LEN = 100;
 
 inline constexpr uint32_t JANK_FRAME_6_LIMIT = 0;
 inline constexpr uint32_t JANK_FRAME_15_LIMIT = 1;

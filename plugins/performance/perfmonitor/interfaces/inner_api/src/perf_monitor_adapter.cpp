@@ -109,7 +109,7 @@ std::string PerfMonitorAdapter::GetPageUrl()
 
 void PerfMonitorAdapter::SetPageName(const std::string& pageName)
 {
-    SceneMonitor::GetInstance().SetPageName(pageName);
+    SceneMonitor::GetInstance().SetPageName(TruncatePageName(pageName));
 }
 
 std::string PerfMonitorAdapter::GetPageName()
@@ -179,7 +179,7 @@ void PerfMonitorAdapter::ReportJankFrameApp(double jank, int32_t jankThreshold)
 void PerfMonitorAdapter::ReportPageShowMsg(const std::string& pageUrl, const std::string& bundleName,
     const std::string& pageName)
 {
-    PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, pageName);
+    PerfReporter::GetInstance().ReportPageShowMsg(pageUrl, bundleName, TruncatePageName(pageName));
 }
 
 void PerfMonitorAdapter::StartRecordImageLoadStat(int64_t id)
