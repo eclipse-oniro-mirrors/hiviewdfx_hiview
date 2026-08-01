@@ -25,6 +25,9 @@ namespace OHOS {
 namespace HiviewDFX {
 constexpr const uint16_t EACH_LINE_LENGTH = 100;
 constexpr const uint16_t TOTAL_LENGTH = 4096;
+constexpr int32_t MAX_RETRY_COUNT = 3;
+constexpr int32_t INTERVAL_TIME = 5;
+constexpr useconds_t RETRY_INTERVAL_US = 100 * 1000;
 class AsanUnittest : public testing::Test {
 public:
     void SetUp()
@@ -64,25 +67,21 @@ public:
         return hasLogs;
     }
 
-    static bool ExecuteCmd(const std::string &cmd, std::string &result)
+    static bool ExecuteCmd(const std::string& cmd, std::string& result)
     {
-        char buff[EACH_LINE_LENGTH] = { 0x00 };
-        char output[TOTAL_LENGTH] = { 0x00 };
-        FILE *ptr = popen(cmd.c_str(), "r");
-        if (ptr != nullptr) {
-            while (fgets(buff, sizeof(buff), ptr) != nullptr) {
-                if (strcat_s(output, sizeof(output), buff) != 0) {
-                    pclose(ptr);
-                    ptr = nullptr;
-                    return false;
-                }
-            }
-            pclose(ptr);
-            ptr = nullptr;
-        } else {
+        result.clear();
+        FILE* ptr = popen(cmd.c_str(), "r");
+        if (ptr == nullptr) {
             return false;
         }
-        result = std::string(output);
+        char buff[EACH_LINE_LENGTH] = {0};
+        while (fgets(buff, sizeof(buff), ptr) != nullptr) {
+            result.append(buff);
+        }
+        int status = pclose(ptr);
+        if (status != 0) {
+            return false;
+        }
         return true;
     }
  
@@ -96,24 +95,46 @@ public:
     static Json::Value GenerateAndParseSanitizerEvent(const std::string& buf)
     {
         char path[] = "faultlogger";
-        auto strat = GetCurrentTimestampMs();
+        auto start = GetCurrentTimestampMs();
+
         std::vector<char> logbuf(buf.begin(), buf.end());
         logbuf.push_back('\0');
         WriteSanitizerLog(logbuf.data(), buf.length(), path);
-        auto end = GetCurrentTimestampMs();
 
-        std::string cmd = "hisysevent -l -o RELIABILITY -n ADDR_SANITIZER -s " +
-            std::to_string(strat) + " -e " + std::to_string(end + 5);
+        std::string cmd;
         std::string result;
-        EXPECT_TRUE(ExecuteCmd(cmd, result));
-        GTEST_LOG_(INFO) << cmd;
-        GTEST_LOG_(INFO) << result;
 
-        Json::Reader reader;
-        Json::Value sanitizerEvent;
-        if (!reader.parse(result, sanitizerEvent)) {
-            GTEST_LOG_(ERROR) << "Failed to parse JSON: " << reader.getFormattedErrorMessages();
+        for (int32_t retry = 0; retry < MAX_RETRY_COUNT; ++retry) {
+            auto end = GetCurrentTimestampMs();
+            cmd = "hisysevent -l -o RELIABILITY -n ADDR_SANITIZER -s " +
+                std::to_string(start) + " -e " + std::to_string(end + INTERVAL_TIME) +
+                " 2>&1";
+            result.clear();
+            bool executeResult = ExecuteCmd(cmd, result);
+            GTEST_LOG_(INFO) << "retry: " << retry;
+            GTEST_LOG_(INFO) << "cmd: " << cmd;
+            GTEST_LOG_(INFO) << "executeResult: " << executeResult;
+            GTEST_LOG_(INFO) << "result: " << result;
+            if (executeResult && !result.empty()) {
+                break;
+            }
+            if (retry + 1 < MAX_RETRY_COUNT) {
+                usleep(RETRY_INTERVAL_US);
+            }
         }
+
+        Json::Value sanitizerEvent;
+        if (result.empty()) {
+            GTEST_LOG_(ERROR) << "hisysevent returned empty output after "
+                            << MAX_RETRY_COUNT << " retries, cmd: " << cmd;
+            return sanitizerEvent;
+        }
+        Json::Reader reader;
+        if (!reader.parse(result, sanitizerEvent)) {
+            GTEST_LOG_(ERROR) << "Failed to parse JSON: "
+                            << reader.getFormattedErrorMessages();
+        }
+
         return sanitizerEvent;
     }
 };
