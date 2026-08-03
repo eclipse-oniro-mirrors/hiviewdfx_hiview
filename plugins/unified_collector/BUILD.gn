@@ -91,6 +91,7 @@ ohos_source_set("unified_collector") {
     }
     external_deps += [
       "hitrace:hitrace_dump",
+      "hitrace:hitrace_meter",
     ]
   }
 
