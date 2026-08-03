@@ -32,7 +32,6 @@
 #include "graphic_memory_decorator.h"
 #endif
 
-
 #ifdef UNIFIED_COLLECTOR_HILOG_ENABLE
 #include "hilog_decorator.h"
 #endif
@@ -49,10 +48,6 @@
 #include "perf_decorator.h"
 #endif
 
-#ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
-#include "process_decorator.h"
-#endif
-
 #ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
 #include "thermal_decorator.h"
 #endif
@@ -60,7 +55,6 @@
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
 #include "trace_decorator.h"
 #endif
-
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -109,10 +103,6 @@ void UnifiedCollectionStat::SaveAllStatInfo()
     MemoryDecorator::SaveStatCommonInfo();
 #endif
 
-#ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
-    ProcessDecorator::SaveStatCommonInfo();
-#endif
-
 #ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
     ThermalDecorator::SaveStatCommonInfo();
 #endif
@@ -158,10 +148,6 @@ void UnifiedCollectionStat::ResetAllStatInfo()
 
 #ifdef UNIFIED_COLLECTOR_MEMORY_ENABLE
     MemoryDecorator::ResetStatInfo();
-#endif
-
-#ifdef UNIFIED_COLLECTOR_PROCESS_ENABLE
-    ProcessDecorator::ResetStatInfo();
 #endif
 
 #ifdef UNIFIED_COLLECTOR_THERMAL_ENABLE
