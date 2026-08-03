@@ -80,7 +80,9 @@ void CreateTracePath()
     CreateTracePathInner(UNIFIED_SHARE_PATH);
     CreateTracePathInner(UNIFIED_SHARE_TEMP_PATH);
     CreateTracePathInner(UNIFIED_SPECIAL_PATH);
-    CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
+    if (!Parameter::IsBetaVersion()) {
+        CreateTracePathInner(UNIFIED_TELEMETRY_PATH);
+    }
 }
 #endif
 }
