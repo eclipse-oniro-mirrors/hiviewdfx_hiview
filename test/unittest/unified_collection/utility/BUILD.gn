@@ -90,10 +90,6 @@ ohos_unittest("UCollectionUtilityUnitTest") {
     defines += [ "UNIFIED_COLLECTOR_HILOG_ENABLE" ]
   }
 
-  if (hiview_unified_collector_process_enable) {
-    defines += [ "UNIFIED_COLLECTOR_PROCESS_ENABLE" ]
-  }
-
   cflags = []
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     cflags += [ "-DHAS_HIPERF" ]

@@ -26,12 +26,6 @@ config("ucollection_source_config") {
     "$hiview_interfaces/inner_api/unified_collection/resource",
   ]
 
-  if (hiview_unified_collector_ebpf_enable) {
-    include_dirs += [ "collector/impl/hiebpf" ]
-  } else {
-    include_dirs += [ "collector/empty_impl/hiebpf" ]
-  }
-
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     include_dirs += [
       "collector/impl/perf",
@@ -92,18 +86,6 @@ config("ucollection_source_config") {
     include_dirs += [ "collector/impl/hilog" ]
   } else {
     include_dirs += [ "collector/empty_impl/hilog" ]
-  }
-
-  if (hiview_unified_collector_wm_enable) {
-    include_dirs += [ "collector/impl/wm" ]
-  } else {
-    include_dirs += [ "collector/empty_impl/wm" ]
-  }
-
-  if (hiview_unified_collector_process_enable) {
-    include_dirs += [ "collector/impl/process" ]
-  } else {
-    include_dirs += [ "collector/empty_impl/process" ]
   }
 
   if (hiview_unified_collector_trace_enable) {
@@ -193,6 +175,10 @@ ohos_source_set("ucollection_source") {
       "decorator/gpu_decorator.cpp",
     ]
     defines += [ "UNIFIED_COLLECTOR_GPU_ENABLE" ]
+
+    if (hiview_support_wukong_collect_gpu_info) {
+      defines += [ "WUKONG_COLLECT_GPU_INFO" ]
+    }
   } else {
     sources += [ "collector/empty_impl/gpu/gpu_collector_empty_impl.cpp" ]
   }
@@ -298,10 +284,6 @@ ohos_source_set("ucollection_source") {
   } else {
     sources +=
         [ "collector/empty_impl/thermal/thermal_collector_empty_impl.cpp" ]
-  }
-
-  if (hiview_support_wukong_collect_gpu_info) {
-    cflags += [ "-DWUKONG_COLLECT_GPU_INFO" ]
   }
 
   part_name = "hiview"
