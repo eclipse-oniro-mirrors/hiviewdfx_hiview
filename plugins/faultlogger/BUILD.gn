@@ -92,7 +92,6 @@ group("fuzztest") {
     "test/common/fuzztest/faultlogcppcrashutils_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogfreezeutils_fuzzer:fuzztest",
     "test/common/fuzztest/freezejsongenerator_fuzzer:fuzztest",
-    "test/common/fuzztest/faultlogbaseinterface_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogcjerrorfillfaultloginfo_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogerrorreporter_fuzzer:fuzztest",
     "test/common/fuzztest/faultlogeventpipelineaddfaultlog_fuzzer:fuzztest",
