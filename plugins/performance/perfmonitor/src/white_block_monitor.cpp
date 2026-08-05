@@ -80,7 +80,7 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
         HIVIEW_LOGD("record already exists");
         return;
     }
-    ImageLoadInfo* record = new ImageLoadInfo();
+    std::unique_ptr<ImageLoadInfo> record = std::make_unique<ImageLoadInfo>();
     if (record == nullptr) {
         HIVIEW_LOGW("create ImageLoadInfo failed");
         return;
