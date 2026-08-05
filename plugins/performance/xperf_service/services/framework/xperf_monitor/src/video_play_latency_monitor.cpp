@@ -71,6 +71,7 @@ void VideoPlayLatencyMonitor::OnCodecFrameStats(OhosXperfEvent* event)
 {
     LOGD("VideoPlayLatencyMonitor_OnCodecFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
     AvcodecFrameStats* afsEvt = (AvcodecFrameStats*) event;
+    std::lock_guard<std::mutex> Lock(mMutex);
     auto item = latencyMap.find(afsEvt->uniqueId);
     if (item == latencyMap.end()) {
         return;
@@ -92,6 +93,7 @@ void VideoPlayLatencyMonitor::OnRsFrameStats(OhosXperfEvent* event)
 {
     LOGD("VideoPlayLatencyMonitor_OnRsFrameStats rawMsg:%{public}s", event->rawMsg.c_str());
     RsVideoFrameStatsEvent* rfsEvt = (RsVideoFrameStatsEvent*) event;
+    std::lock_guard<std::mutex> Lock(mMutex);
     auto item = latencyMap.find(rfsEvt->uniqueId);
     if (item == latencyMap.end()) {
         return;

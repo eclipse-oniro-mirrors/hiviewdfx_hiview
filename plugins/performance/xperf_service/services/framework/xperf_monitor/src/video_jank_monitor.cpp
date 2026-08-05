@@ -92,6 +92,7 @@ void VideoJankMonitor::OnFirstFrame(OhosXperfEvent* event)
 void VideoJankMonitor::OnSecondFrame(OhosXperfEvent* event)
 {
     LOGD("VideoJankMonitor_OnSecondFrame rawMsg:%{public}s", event->rawMsg.c_str());
+    std::lock_guard<std::mutex> Lock(mMutex);
     secondFrame = *((AvcodecFrame*) event);
 }
 

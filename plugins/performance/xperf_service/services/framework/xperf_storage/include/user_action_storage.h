@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <string>
+#include <mutex>
 #include "perf_action_event.h"
 
 namespace OHOS {
@@ -31,10 +32,12 @@ public:
     void UpdateFirstMove(const PerfActionEvent& fm);
     void UpdateLastUp(const PerfActionEvent& lu);
 
-    const PerfActionEvent& GetFirstMove();
-    const PerfActionEvent& GetLastUp();
+    PerfActionEvent GetFirstMove() const;
+    PerfActionEvent GetLastUp() const;
 
 private:
+    mutable std::mutex fMutex;
+    mutable std::mutex lMutex;
     UserActionStorage() = default;
 
     PerfActionEvent firstMove;
