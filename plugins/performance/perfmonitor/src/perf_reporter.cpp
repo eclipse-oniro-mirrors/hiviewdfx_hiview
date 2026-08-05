@@ -229,7 +229,7 @@ void PerfReporter::ReportStatsJankFrame(int64_t jankFrameRecordBeginTime, int64_
 }
 
 void PerfReporter::ReportWhiteBlockStat(uint64_t scrollStartTime, uint64_t scrollEndTime,
-    const std::map<int64_t, ImageLoadInfo*>& mRecords, const AppWhiteInfo& appWhiteInfo)
+    const std::map<int64_t, std::unique_ptr<ImageLoadInfo>>& mRecords, const AppWhiteInfo& appWhiteInfo)
 {
     if (mRecords.size() == 0) {
         HIVIEW_LOGD("no data to report");
