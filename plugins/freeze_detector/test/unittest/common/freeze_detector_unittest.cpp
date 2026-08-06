@@ -1025,6 +1025,41 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_023, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_024
+ * @tc.desc: Test MergeFreezeExtFile
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_024, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitHostResourceWarning("TRUE")
+        .InitSysUid(1000)
+        .Build();
+    std::string halfFreezeExtFile = "";
+    std::string ret = vendor->MergeFreezeExtFile(watchPoint, halfFreezeExtFile);
+    EXPECT_EQ(ret, "");
+
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitHostResourceWarning("TRUE")
+        .InitSysUid(5523)
+        .Build();
+    EXPECT_EQ(watchPoint1.GetSysUid(), 5523);
+    vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile);
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */

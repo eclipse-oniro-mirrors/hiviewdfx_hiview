@@ -139,6 +139,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.tid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_TID);
     params.uid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_UID);
     params.uid = params.uid ? params.uid : sysEvent.GetUid();
+    params.sysuid = sysEvent.GetEventIntValue(FreezeCommon::EVENT_SYS_UID);
     params.appRunningUniqueId = sysEvent.GetEventValue(FreezeCommon::APP_RUNNING_UNIQUE_ID);
     params.packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     params.processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
@@ -184,7 +185,8 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
 
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder().InitSeq(params.seq).InitDomain(event.domain_)
         .InitStringId(event.eventName_).InitTimestamp(event.happenTime_).InitPid(params.pid).InitTid(params.tid)
-        .InitUid(params.uid).InitTerminalThreadStack(params.terminalThreadStack).InitTelemetryId(params.telemetryId)
+        .InitUid(params.uid).InitSysUid(params.sysuid).InitTerminalThreadStack(params.terminalThreadStack)
+        .InitTelemetryId(params.telemetryId)
         .InitPackageName(params.packageName).InitProcessName(params.processName).InitForeGround(params.foreGround)
         .InitMsg(params.msg).InitLogPath(params.logFile).InitHitraceTime(params.hitraceTime)
         .InitSysrqTime(params.sysrqTime).InitHitraceIdInfo(params.hitraceIdInfo).InitProcStatm(params.procStatm)
@@ -198,8 +200,9 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitReportLifecycleAsAppfreeze(params.reportLifecycleToFreeze).InitIsBlockInGC(params.isBlockInGC)
         .InitRenderPid(params.renderPid).InitRenderUid(params.renderUid)
         .Build();
-    HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, seq=%{public}ld,"
-        " packageName=%{public}s, processName=%{public}s, logFile=%{public}s, hitraceIdInfo=%{public}s,"
+    HIVIEW_LOGI("watchpoint domain=%{public}s, stringid=%{public}s, pid=%{public}ld, uid=%{public}ld, "
+        "sysuid=%{public}ld, seq=%{public}ld, packageName=%{public}s, processName=%{public}s, "
+        "logFile=%{public}s, hitraceIdInfo=%{public}s,"
         " procStatm=%{public}s, hostResourceWarning=%{public}s, freezeExtFile=%{public}s,"
         " enableMainThreadSample=%{public}d, appRunningUniqueId=%{public}s, foreGround=%{public}s,"
         " applicationInfo=%{public}s, applicationGCInfo=%{public}s, applicationIOInfo=%{public}s, taskName=%{public}s,"
@@ -207,7 +210,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         " lastProcessEventId=%{public}s,lastMarkedEventId=%{public}s, thermalLevel=%{public}s, externalLog size:"
         "%{public}zu, isHicollie=%{public}d, reportLifecycleToFreeze=%{public}d, isBlockInGC=%{public}d, "
         "renderPid=%{public}ld, renderUid=%{public}ld",
-        event.domain_.c_str(), event.eventName_.c_str(), params.pid, params.uid, params.seq,
+        event.domain_.c_str(), event.eventName_.c_str(), params.pid, params.uid, params.sysuid, params.seq,
         params.packageName.c_str(), params.processName.c_str(), params.logFile.c_str(), params.hitraceIdInfo.c_str(),
         params.procStatm.c_str(), params.hostResourceWarning.c_str(), params.freezeExtFile.c_str(),
         params.enableMainThreadSample, params.appRunningUniqueId.c_str(), params.foreGround.c_str(),
