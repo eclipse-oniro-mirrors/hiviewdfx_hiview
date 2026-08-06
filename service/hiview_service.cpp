@@ -201,9 +201,9 @@ int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::strin
         fdsan_close_with_tag(srcFd, logLabelDomain);
         return ERR_DEFAULT;
     }
-    int destFd = open(destFilePath.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IROTH);
+    int destFd = open(destFilePath.c_str(), O_WRONLY | O_CREAT | O_NOFOLLOW, S_IRUSR | S_IWUSR | S_IROTH);
     if (destFd == -1) {
-        HIVIEW_LOGE("failed to open destination file");
+        HIVIEW_LOGE("failed to open destination file, errno: %{public}d", errno);
         fdsan_close_with_tag(srcFd, logLabelDomain);
         return ERR_DEFAULT;
     }
