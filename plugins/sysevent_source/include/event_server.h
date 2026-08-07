@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <sys/types.h>
 #include <vector>
 
 #include "device_node.h"
@@ -42,11 +43,11 @@ public:
 
 private:
     void InitSocket(int &socketId);
-    void SetUCredPid(const pid_t pid);
 
 private:
     int socketId_ = UN_INIT_INT_TYPE_VAL;
-    pid_t uCredPid_ = UN_INIT_INT_TYPE_VAL;
+    pid_t uCredPid_ = 0;
+    uid_t uCredUid_ = 0;
     std::string socketName_;
     uint8_t eventCountPerCycle_;
 };
