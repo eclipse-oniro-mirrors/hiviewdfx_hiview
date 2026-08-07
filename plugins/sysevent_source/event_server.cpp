@@ -126,17 +126,19 @@ void InitMsgh(char* buffer, int bufferLen, std::array<char, CMSG_SPACE(sizeof(st
     msgh.msg_flags = 0;
 }
 
-pid_t ReadPidFromMsgh(struct msghdr& msgh)
+bool ReadUcredInfoFromMsgh(struct msghdr& msgh, pid_t& pid, uid_t& uid)
 {
     struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msgh);
     if (cmsg == nullptr) {
-        return UN_INIT_INT_TYPE_VAL;
+        return false;
     }
     struct ucred* uCredRecv = reinterpret_cast<struct ucred*>(CMSG_DATA(cmsg));
     if (uCredRecv == nullptr) {
-        return UN_INIT_INT_TYPE_VAL;
+        return false;
     }
-    return uCredRecv->pid;
+    pid = uCredRecv->pid;
+    uid = uCredRecv->uid;
+    return true;
 }
 }
 
@@ -180,19 +182,22 @@ bool SocketDevice::IsValidMsg(char* msg, int32_t len)
         HIVIEW_LOGW("the data byte count=%{public}d are not equal to read length %{public}d", dataByteCnt, len);
         return false;
     }
-    int32_t pid = *(reinterpret_cast<int32_t*>(msg + sizeof(int32_t) + EventRaw::POS_OF_PID_IN_HEADER));
-    if (uCredPid_ > 0 && pid != uCredPid_) {
+    uid_t uid = static_cast<uid_t>(*(reinterpret_cast<uint32_t*>(msg + sizeof(int32_t) +
+        EventRaw::POS_OF_UID_IN_HEADER)));
+    if (uid != uCredUid_) {
+        HIVIEW_LOGW("failed to verify the consistensy of uid: [%{public}" PRId32
+            ", %{public}" PRId32 "]", uid, uCredUid_);
+        return false;
+    }
+    pid_t pid = static_cast<pid_t>(*(reinterpret_cast<uint32_t*>(msg + sizeof(int32_t) +
+        EventRaw::POS_OF_PID_IN_HEADER)));
+    if (pid != uCredPid_) {
         HIVIEW_LOGW("failed to verify the consistensy of process id: [%{public}" PRId32
             ", %{public}" PRId32 "]", pid, uCredPid_);
         return false;
     }
     msg[len] = '\0';
     return true;
-}
-
-void SocketDevice::SetUCredPid(const pid_t pid)
-{
-    uCredPid_ = pid;
 }
 
 int SocketDevice::ReceiveMsg(std::vector<std::shared_ptr<EventReceiver>> &receivers)
@@ -212,8 +217,10 @@ int SocketDevice::ReceiveMsg(std::vector<std::shared_ptr<EventReceiver>> &receiv
             HIVIEW_LOGD("failed to recv msg from socket");
             break;
         }
-        pid_t uCredPid = ReadPidFromMsgh(msgh);
-        SetUCredPid(uCredPid);
+        if (!ReadUcredInfoFromMsgh(msgh, uCredPid_, uCredUid_)) {
+            HIVIEW_LOGE("failed to read pid & uid from socket header");
+            break;
+        }
         if (!IsValidMsg(buffer, ret)) {
             break;
         }
