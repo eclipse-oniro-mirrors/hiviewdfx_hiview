@@ -38,6 +38,14 @@ APP_FREEZE:
   FIRST_FRAME: {type: STRING, desc: first stack info}
   SECOND_FRAME: {type: STRING, desc: second stack info}
   LAST_FRAME: {type: STRING, desc: last stack info}
+  SAMPLER_COUNT: {type: INT32, desc: successfully processed main-thread sample count}
+  BUSIEST_STACK_COUNT: {type: INT32, desc: selected heaviest stack sample count}
+  BUSIEST_STACK_RATIO_PERMILLE: {type: INT32, desc: selected heaviest stack ratio in permille}
+  STACK_SOURCE: {type: STRING, desc: final stack source}
+  HAS_MAIN_THREAD_STACK: {type: BOOL, desc: whether a main-thread stack is available}
+  HEAVIEST_STACK_STATUS: {type: STRING, desc: heaviest stack summary status}
+  LOG_VALIDITY: {type: STRING, desc: final fault log validity}
+  LOG_INVALID_REASON: {type: STRING, desc: stable fault log invalid reason}
   PRE_INSTALL: {type: STRING, desc: current app pre-installe status(No:not pre-install Yes:pre-install empty:unknown) }
   FOREGROUND: {type: STRING, desc: app running status(No:background Yes:foreground empty:unknown) }
 

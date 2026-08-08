@@ -77,6 +77,24 @@ void FaultLogEventPipeline::UpdateSysEvent(SysEvent& sysEvent)
         sysEvent.SetEventValue(FaultKey::LAST_FRAME, eventInfos[FaultKey::LAST_FRAME].empty() ? "/" :
                                 StringUtil::EscapeJsonStringValue(eventInfos[FaultKey::LAST_FRAME]));
     }
+    if (info_.faultLogType == FaultLogType::APP_FREEZE) {
+        const char* const appFreezeFields[] = {
+            FaultKey::SAMPLER_COUNT,
+            FaultKey::BUSIEST_STACK_COUNT,
+            FaultKey::BUSIEST_STACK_RATIO_PERMILLE,
+            FaultKey::STACK_SOURCE,
+            FaultKey::HAS_MAIN_THREAD_STACK,
+            FaultKey::HEAVIEST_STACK_STATUS,
+            FaultKey::LOG_VALIDITY,
+            FaultKey::LOG_INVALID_REASON,
+        };
+        for (const auto* field : appFreezeFields) {
+            auto fieldIt = eventInfos.find(field);
+            if (fieldIt != eventInfos.end()) {
+                sysEvent.SetEventValue(field, fieldIt->second);
+            }
+        }
+    }
 
     std::string fingerPrint;
     if (info_.faultLogType == FaultLogType::ADDR_SANITIZER) {

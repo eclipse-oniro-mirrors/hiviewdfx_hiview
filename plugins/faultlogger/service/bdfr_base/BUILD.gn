@@ -67,6 +67,7 @@ faultlogger_base_sources = [
   "utils/faultlog_bundle_util.cpp",
   "utils/faultlog_hilog_helper.cpp",
   "utils/faultlog_util.cpp",
+  "utils/freeze_stack_summary.cpp",
   "utils/log_analyzer.cpp",
 ]
 

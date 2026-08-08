@@ -19,6 +19,7 @@
 #include "common_utils.h"
 #include "constants.h"
 #include "faultlog_util.h"
+#include "freeze_stack_summary.h"
 #include "smart_parser.h"
 #include "string_util.h"
 #include "tbox.h"
@@ -58,17 +59,37 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
         needDelete = true;
     }
     std::string binderStack = "";
+    const auto samplerCountIt = info.sectionMap.find(FaultKey::SAMPLER_COUNT);
+    const std::string samplerCount = samplerCountIt == info.sectionMap.end() ? "" : samplerCountIt->second;
+    const auto freezeInfoPathIt = info.sectionMap.find(FaultKey::FREEZE_INFO_PATH);
+    const std::string freezeInfoPath = freezeInfoPathIt == info.sectionMap.end() ? "" : freezeInfoPathIt->second;
     if (eventInfos.count(TERMINAL_THREAD_STACK) > 0 && !eventInfos[TERMINAL_THREAD_STACK].empty()) {
         binderStack = eventInfos[TERMINAL_THREAD_STACK];
     }
 
     eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
+    if (!samplerCount.empty()) {
+        eventInfos[FaultKey::SAMPLER_COUNT] = samplerCount;
+    }
     if (needDelete) {
         FileUtil::RemoveFile(logPath);
     }
     if (eventInfos.empty()) {
-        eventInfos.insert(std::make_pair(FaultKey::FINGERPRINT, Tbox::CalcFingerPrint(info.module + info.reason +
-            info.summary, 0, FP_BUFFER)));
+        bool summaryApplied = false;
+        if (eventType == "APP_FREEZE") {
+            summaryApplied = ApplyFreezeStackSummary(freezeInfoPath, eventInfos);
+        }
+        if (!samplerCount.empty()) {
+            eventInfos[FaultKey::SAMPLER_COUNT] = samplerCount;
+        }
+        if (summaryApplied) {
+            std::string fingerRawString;
+            GetFingerRawString(fingerRawString, info, eventInfos);
+            eventInfos[FaultKey::FINGERPRINT] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
+        } else {
+            eventInfos.insert(std::make_pair(FaultKey::FINGERPRINT, Tbox::CalcFingerPrint(info.module + info.reason +
+                info.summary, 0, FP_BUFFER)));
+        }
         return false;
     }
     if (!binderStack.empty()) {
@@ -76,10 +97,9 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
         eventInfos[PARAMETER_ENDSTACK] = binderStack;
     }
     Tbox::FilterTrace(eventInfos, eventType);
-    std::string fingerRawString;
-    GetFingerRawString(fingerRawString, info, eventInfos);
-    eventInfos[FaultKey::FINGERPRINT] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
-
+    if (eventType == "APP_FREEZE") {
+        ApplyFreezeStackSummary(freezeInfoPath, eventInfos);
+    }
     if ((eventType == "APP_FREEZE" || eventType == "SYS_FREEZE") && eventInfos[FaultKey::FIRST_FRAME].empty()) {
         if (!eventInfos["TRACER_PID"].empty()) {
             int32_t pid = 0;
@@ -92,6 +112,9 @@ bool AnalysisFaultlog(const FaultLogInfo& info, std::map<std::string, std::strin
             eventInfos[FaultKey::LAST_FRAME] += ("(" + eventInfos["NORMAL_STACK_REASON"] + ")");
         }
     }
+    std::string fingerRawString;
+    GetFingerRawString(fingerRawString, info, eventInfos);
+    eventInfos[FaultKey::FINGERPRINT] = Tbox::CalcFingerPrint(fingerRawString, 0, FP_BUFFER);
     return true;
 }
 } // namespace HiviewDFX

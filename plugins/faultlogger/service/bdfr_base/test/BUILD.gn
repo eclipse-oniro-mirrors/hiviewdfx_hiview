@@ -79,6 +79,7 @@ ohos_unittest("FaultloggerBaseUnittest") {
     "$hiview_faultlogger/service/bdfr_base/utils/faultlog_bundle_util.cpp",
     "$hiview_faultlogger/service/bdfr_base/utils/faultlog_hilog_helper.cpp",
     "$hiview_faultlogger/service/bdfr_base/utils/faultlog_util.cpp",
+    "$hiview_faultlogger/service/bdfr_base/utils/freeze_stack_summary.cpp",
     "$hiview_faultlogger/service/bdfr_base/utils/log_analyzer.cpp",
     "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_handle.cpp",
     "$hiview_faultlogger/service/dynamic_library_management/dynamic_library_manager.cpp",
@@ -104,6 +105,7 @@ ohos_unittest("FaultloggerBaseUnittest") {
     "unittest/faultlog_utils_test.cpp",
     "unittest/log_analyzer_test.cpp",
     "unittest/faultlogger_base_test.cpp",
+    "unittest/freeze_stack_summary_test.cpp",
     "unittest/test_utils.cpp",
   ]
 
