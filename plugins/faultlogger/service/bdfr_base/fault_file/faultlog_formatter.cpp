@@ -586,8 +586,7 @@ bool ParseJsonFromFile(const std::string& path, Json::Value& root)
     }
     Json::Reader reader(Json::Features::strictMode());
     if (!reader.parse(logFile, root)) {
-        HIVIEW_LOGE("Json parse fail in %{public}s. %{public}s",
-            path.c_str(), reader.getFormattedErrorMessages().c_str());
+        HIVIEW_LOGE("Json parse fail in %{public}s.", path.c_str());
         return false;
     }
     return true;
