@@ -61,6 +61,10 @@ public:
     inline static const int PERFMONITOR_APP_FOREGROUND_ONSHOW = 6006;
 };
 
+enum AppEventCode {
+    VPE_SURFACE_MAP = 1,
+};
+
 enum PerfEventCode {
     USER_ACTION = 0,
     LOAD_COMPLETE = 1,
