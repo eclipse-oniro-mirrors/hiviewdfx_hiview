@@ -76,14 +76,18 @@ void WhiteBlockMonitor::StartRecordImageLoadStat(int64_t id)
         HIVIEW_LOGD("not scrolling");
         return;
     }
-    if (RecordExist(id)) {
+    if (mRecords.find(id) !=  mRecords.end()) {
         HIVIEW_LOGD("record already exists");
         return;
     }
-    ImageLoadInfo* record = new ImageLoadInfo();
+    std::unique_ptr<ImageLoadInfo> record = std::make_unique<ImageLoadInfo>();
+    if (record == nullptr) {
+        HIVIEW_LOGW("create ImageLoadInfo failed");
+        return;
+    }
     record->id = id;
     record->loadStartTime = static_cast<uint64_t>(GetCurrentSystimeMs());
-    mRecords.emplace(id, record);
+    mRecords.emplace(id, std::move(record));
 }
  
 void WhiteBlockMonitor::EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type, int state)
@@ -92,49 +96,23 @@ void WhiteBlockMonitor::EndRecordImageLoadStat(int64_t id, std::pair<int, int> s
         return;
     }
     std::lock_guard<ffrt::mutex> Lock(mMutex);
-    ImageLoadInfo* record = GetRecord(id);
-    if (record == nullptr) {
+    auto it = mRecords.find(id);
+    if (it == mRecords.end() || it->second == nullptr) {
         HIVIEW_LOGD("record not exists");
         return;
     }
-    record->loadEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
-    record->imageType = type;
-    record->width = size.first;
-    record->height = size.second;
-    record->loadState = state;
-}
- 
-bool WhiteBlockMonitor::RecordExist(int64_t id)
-{
-    return mRecords.count(id);
-}
- 
-ImageLoadInfo* WhiteBlockMonitor::GetRecord(int64_t id)
-{
-    ImageLoadInfo* record = nullptr;
-    auto it = mRecords.find(id);
-    if (it != mRecords.end()) {
-        record = it->second;
-    }
-    return record;
+    it->second->loadEndTime = static_cast<uint64_t>(GetCurrentSystimeMs());
+    it->second->imageType = type;
+    it->second->width = size.first;
+    it->second->height = size.second;
+    it->second->loadState = state;
 }
  
 void WhiteBlockMonitor::ReportWhiteBlockStat()
 {
     std::lock_guard<ffrt::mutex> Lock(mMutex);
     PerfReporter::GetInstance().ReportWhiteBlockStat(scrollStartTime, scrollEndTime, mRecords, appWhiteInfo);
-    CleanUpRecords();
-}
- 
-void WhiteBlockMonitor::CleanUpRecords()
-{
-    for (auto iter = mRecords.begin(); iter != mRecords.end();) {
-        if (iter->second != nullptr) {
-            delete iter->second;
-            iter->second = nullptr;
-        }
-        iter = mRecords.erase(iter);
-    }
+    mRecords.clear();
 }
 
 bool WhiteBlockMonitor::IsBetaVersion()

@@ -35,10 +35,7 @@ public:
     void EndRecordImageLoadStat(int64_t id, std::pair<int, int> size, const std::string& type, int state);
  
 private:
-    bool RecordExist(int64_t id);
-    ImageLoadInfo* GetRecord(int64_t id);
     void ReportWhiteBlockStat();
-    void CleanUpRecords();
     bool IsBetaVersion();
  
 private:
@@ -46,7 +43,7 @@ private:
     uint64_t scrollStartTime{0};
     uint64_t scrollEndTime{0};
     bool scrolling{false};
-    std::map<int64_t, ImageLoadInfo*> mRecords;
+    std::map<int64_t, std::unique_ptr<ImageLoadInfo>> mRecords;
     AppWhiteInfo appWhiteInfo;
 };
  

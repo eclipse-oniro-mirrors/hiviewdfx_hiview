@@ -98,6 +98,15 @@ public:
     // app ablitity page switch
     inline static constexpr char ABILITY_OR_PAGE_SWITCH[] = "ABILITY_OR_PAGE_SWITCH";
 
+    // menu interactive animation
+    inline static constexpr char MENU_LIGHT_SENSE_ANIMATION[] = "MENU_LIGHT_SENSE_ANIMATION";
+
+    // dialog interactive animation
+    inline static constexpr char DIALOG_LIGHT_SENSE_ANIMATION[] = "DIALOG_LIGHT_SENSE_ANIMATION";
+
+    // bindsheet interactive animation
+    inline static constexpr char BINDSHEET_LIGHT_SENSE_ANIMATION[] = "BINDSHEET_LIGHT_SENSE_ANIMATION";
+
     // app exit to home by geturing slide out
     inline static constexpr char LAUNCHER_APP_SWIPE_TO_HOME[] = "LAUNCHER_APP_SWIPE_TO_HOME";
 
