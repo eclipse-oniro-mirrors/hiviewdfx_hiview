@@ -55,7 +55,6 @@ ErrCode XperfServiceServer::NotifyToXperf(int32_t domainId, int32_t eventId, con
 
 int32_t XperfServiceServer::RegisterVideoJank(const std::string& caller, const sptr<IVideoJankCallback>& cb)
 {
-    LOGD("XperfServiceServer_RegisterVideoJank caller:%{public}s", caller.c_str());
     auto timerId = HiviewDFX::XCollie::GetInstance().SetTimer("XPerfIPC_RegisterVideoJank", XPERF_IPC_XCOLLIE_TIMEOUT,
         nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
     int32_t res = XperfRegisterManager::GetInstance().RegisterVideoJank(caller, cb);
@@ -92,7 +91,6 @@ int32_t XperfServiceServer::UnregisterAudioJank(const std::string& caller)
 
 int32_t XperfServiceServer::RegisterVideoState(const std::string& caller, const sptr<IVideoStateCallback>& cb)
 {
-    LOGD("XperfServiceServer_RegisterVideoState caller:%{public}s", caller.c_str());
     auto timerId = HiviewDFX::XCollie::GetInstance().SetTimer("XPerfIPC_RegisterVideoState", XPERF_IPC_XCOLLIE_TIMEOUT,
         nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
     int32_t res = XperfRegisterManager::GetInstance().RegisterVideoState(caller, cb);

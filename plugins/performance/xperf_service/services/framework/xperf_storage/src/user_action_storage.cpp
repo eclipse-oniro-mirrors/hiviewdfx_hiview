@@ -26,23 +26,27 @@ UserActionStorage& UserActionStorage::GetInstance()
 
 void UserActionStorage::UpdateFirstMove(const PerfActionEvent& fm)
 {
+    std::lock_guard<std::mutex> lock(fMutex);
     firstMove = fm;
     LOGD("UpdateFirstMove bundle:%{public}s", firstMove.bundleName.c_str());
 }
 
 void UserActionStorage::UpdateLastUp(const PerfActionEvent& lu)
 {
+    std::lock_guard<std::mutex> lock(lMutex);
     lastUp = lu;
     LOGD("UpdateLastUp bundle:%{public}s", lastUp.bundleName.c_str());
 }
 
-const PerfActionEvent& UserActionStorage::GetFirstMove()
+PerfActionEvent UserActionStorage::GetFirstMove() const
 {
+    std::lock_guard<std::mutex> lock(fMutex);
     return firstMove;
 }
 
-const PerfActionEvent& UserActionStorage::GetLastUp()
+PerfActionEvent UserActionStorage::GetLastUp() const
 {
+    std::lock_guard<std::mutex> lock(lMutex);
     return lastUp;
 }
 }
