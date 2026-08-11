@@ -445,6 +445,7 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
     auto caller = appCallerParcelable.GetAppCaller();
     caller.uid = IPCSkeleton::GetCallingUid();
     caller.pid = IPCSkeleton::GetCallingPid();
+    caller.bundleName = BundleUtil::GetApplicationNameById(caller.uid);
     auto traceRetHandler = [=, &caller] (HiviewService* service) {
         return service->CaptureDurationTrace(caller);
     };
