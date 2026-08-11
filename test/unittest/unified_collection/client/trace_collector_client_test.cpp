@@ -202,31 +202,7 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
     appCaller.beginTime = appCaller.happenTime - 100; // 100: ms
     appCaller.endTime = appCaller.happenTime + 100; // 100: ms
     auto result = traceCollector->CaptureDurationTrace(appCaller);
-    std::cout << "retCode=" << result.retCode << ", data=" << result.data << std::endl;
-
-    /**
-     * Reasonable scenarios
-     * TRACE_OPEN_ERROR : app trace open deny, trace is not in close state
-    */
-    ASSERT_TRUE(result.retCode == UcError::SUCCESS || result.retCode == UcError::TRACE_OPEN_ERROR ||
-        result.retCode == UcError::HAD_CAPTURED_TRACE) << "result.retCode=" << result.retCode;
-    if (result.retCode == UcError::SUCCESS) {
-        sleep(3);
-        AppCaller appCaller2;
-        appCaller2.actionId = ACTION_ID_DUMP_TRACE;
-        appCaller2.bundleName = "com.example.helloworld";
-        appCaller2.bundleVersion = "2.0.1";
-        appCaller2.foreground = 1;
-        appCaller2.threadName = "mainThread";
-        appCaller2.uid = 20020143; // 20020143: user id
-        appCaller2.pid = 100; // 100: pid
-        appCaller2.happenTime = GetMilliseconds();
-        appCaller2.beginTime = appCaller.happenTime - 100; // 100: ms
-        appCaller2.endTime = appCaller.happenTime + 100; // 100: ms
-        auto result2 = traceCollector->CaptureDurationTrace(appCaller2);
-        std::cout << "retCode=" << result2.retCode << ", data=" << result2.data << std::endl;
-        ASSERT_EQ(result2.retCode, SUCCESS);
-    }
+    ASSERT_EQ(result.retCode, UCollect::UcError::PERMISSION_CHECK_FAILED);
 }
 
 class TestCallback : public RequestTraceCallBack {
