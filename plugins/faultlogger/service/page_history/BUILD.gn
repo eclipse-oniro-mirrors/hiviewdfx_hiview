@@ -41,7 +41,8 @@ ohos_source_set("page_history_with_cfi") {
   ]
 
   external_deps = [
-    "hilog:libhilog",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
+    "hilog:libhilog",
   ]
 }

@@ -76,6 +76,7 @@ ohos_source_set("hiview_utility") {
     "zlib:shared_libz",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "bounds_checking_function:libsec_shared",
   ]
 
   part_name = "hiview"

@@ -99,6 +99,7 @@ ohos_shared_library("libperfmonitor") {
     ]
 
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "eventhandler:libeventhandler",
       "ffrt:libffrt",
       "graphic_2d:librender_service_client",
