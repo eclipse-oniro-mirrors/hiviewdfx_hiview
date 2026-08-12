@@ -445,7 +445,16 @@ ErrCode HiviewServiceAbility::CaptureDurationTrace(
     auto caller = appCallerParcelable.GetAppCaller();
     caller.uid = IPCSkeleton::GetCallingUid();
     caller.pid = IPCSkeleton::GetCallingPid();
+    auto token_type = Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
+    if (token_type != Security::AccessToken::TOKEN_HAP) {
+        HIVIEW_LOGE("token type is not hap");
+        return TraceErrCode::ERR_PERMISSION_CHECK;
+    }
     caller.bundleName = BundleUtil::GetApplicationNameById(caller.uid);
+    if (caller.bundleName.empty()) {
+        HIVIEW_LOGE("app packageName is empty");
+        return TraceErrCode::ERR_PERMISSION_CHECK;
+    }
     auto traceRetHandler = [=, &caller] (HiviewService* service) {
         return service->CaptureDurationTrace(caller);
     };
