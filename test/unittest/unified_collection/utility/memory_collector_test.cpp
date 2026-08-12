@@ -16,9 +16,9 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 #include "common_utils.h"
-#include "file_util.h"
 #include "string_util.h"
 #include "memory_collector.h"
 
@@ -89,7 +89,7 @@ HWTEST_F(MemoryCollectorTest, MemoryCollectorTest004, TestSize.Level1)
 HWTEST_F(MemoryCollectorTest, MemoryCollectorTest013, TestSize.Level1)
 {
     std::shared_ptr<MemoryCollector> collector = MemoryCollector::Create();
-    CollectResult<uint64_t> data = collector->CollectProcessVss(1000);
+    CollectResult<uint64_t> data = collector->CollectProcessVss(getpid());
     std::cout << "collect processvss result" << data.retCode << std::endl;
     ASSERT_TRUE(data.retCode == UcError::SUCCESS);
 }

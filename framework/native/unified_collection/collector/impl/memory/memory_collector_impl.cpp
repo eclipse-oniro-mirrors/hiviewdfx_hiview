@@ -183,7 +183,9 @@ CollectResult<SysMemory> MemoryCollectorImpl::CollectSysMemory()
 {
     CollectResult<SysMemory> result;
     std::string content;
-    FileUtil::LoadStringFromFile(MEM_INFO, content);
+    if (!FileUtil::LoadStringFromFile(MEM_INFO, content)) {
+        return {UcError::READ_FAILED};
+    }
     std::vector<std::string> vec;
     OHOS::SplitStr(content, "\n", vec);
     SysMemory& sysmemory = result.data;
@@ -227,7 +229,9 @@ CollectResult<uint64_t> MemoryCollectorImpl::CollectProcessVss(int32_t pid)
     CollectResult<uint64_t> result;
     std::string filename = PROC + std::to_string(pid) + STATM;
     std::string content;
-    FileUtil::LoadStringFromFile(filename, content);
+    if (!FileUtil::LoadStringFromFile(filename, content)) {
+        return {UcError::READ_FAILED};
+    }
     uint64_t& vssValue = result.data;
     if (!content.empty()) {
         uint64_t tempValue = 0;
