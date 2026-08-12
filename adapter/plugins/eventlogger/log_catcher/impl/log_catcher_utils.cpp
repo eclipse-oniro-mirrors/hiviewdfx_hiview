@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <sys/wait.h>
+#include <charconv>
 
 #include "common_utils.h"
 #include "dfx_dump_catcher.h"
@@ -28,6 +29,7 @@
 #include "iservice_registry.h"
 #include "string_util.h"
 #include "time_util.h"
+#include "hiview_logger.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -50,6 +52,7 @@ constexpr size_t THREAD_FIRST_INDEX = 1;
 constexpr size_t THREAD_THIRD_INDEX = 3;
 constexpr size_t THREAD_FOURTH_INDEX = 4;
 
+DEFINE_LOG_LABEL(0xD002D01, "EventLogger-LogCatcherUtils");
 bool GetDump(int pid, std::string& msg)
 {
     std::unique_lock lock(dumpMutex);
@@ -297,6 +300,46 @@ void ReadShellToFile(int fd, const std::string& serviceName, const std::string& 
             retryCount--;
         }
     }
+}
+
+pid_t GetPidByProcessName(const std::string &procName)
+{
+    if (procName.empty()) {
+        HIVIEW_LOGE("procName.empty");
+        return -1;
+    }
+    DIR *procDir = opendir("/proc");
+    if (procDir == nullptr) {
+        perror("opendir /proc");
+        HIVIEW_LOGE("opendir proc failed");
+        return -1;
+    }
+
+    pid_t pid = -1;
+    struct dirent *entry;
+    while ((entry = readdir(procDir)) != nullptr) {
+        if (entry->d_type != DT_DIR) {
+            continue;
+        }
+
+        std::string dirName(entry->d_name);
+        if (!std::all_of(dirName.begin(), dirName.end(), ::isdigit)) {
+            continue;
+        }
+        int tempPid = 0;
+        auto [ptr, ec] = std::from_chars(dirName.data(), dirName.data() + dirName.size(), tempPid);
+        if (ec != std::errc() || ptr != dirName.data() + dirName.size()) {
+            HIVIEW_LOGE("failed to parse str: %{public}s", dirName.c_str());
+            continue;
+        }
+        std::string name = CommonUtils::GetProcFullNameByPid(tempPid);
+        if (name == procName) {
+            pid = static_cast<pid_t>(tempPid);
+            break;
+        }
+    }
+    closedir(procDir);
+    return pid;
 }
 }
 } // namespace HiviewDFX

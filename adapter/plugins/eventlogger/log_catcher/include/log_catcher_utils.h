@@ -34,6 +34,7 @@ int DumpStackFfrt(int fd, const std::string& pid);
 int WriteKernelStackToFd(int originFd, const std::string& msg, int pid);
 void ReadShellToFile(int fd, const std::string& serviceName, const std::string& cmd, int& count);
 bool CompareStackLine(const std::string& line);
+pid_t GetPidByProcessName(const std::string &procName);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

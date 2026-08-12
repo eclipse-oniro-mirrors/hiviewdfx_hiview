@@ -20,10 +20,10 @@
 namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
-    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
-    stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
-    appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), sysuid_(0), terminalThreadStack_(""), telemetryId_(""),
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    freezeExtFile_(""), enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""),
+    applicationIOInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
     externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false),
     renderPid_(0), renderUid_(0)
@@ -36,6 +36,7 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     pid_(builder.pid_),
     tid_(builder.tid_),
     uid_(builder.uid_),
+    sysuid_(builder.sysuid_),
     terminalThreadStack_(builder.terminalThreadStack_),
     telemetryId_(builder.telemetryId_),
     domain_(builder.domain_),
@@ -73,10 +74,10 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
 }
 
 WatchPoint::Builder::Builder()
-    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), terminalThreadStack_(""), telemetryId_(""), domain_(""),
-    stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""), freezeExtFile_(""),
-    enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""), applicationIOInfo_(""),
-    appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
+    : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), sysuid_(0), terminalThreadStack_(""), telemetryId_(""),
+    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    freezeExtFile_(""), enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""),
+    applicationIOInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
     externalLog_(""), isHicollie_(false), reportLifecycleToFreeze_(false), isBlockInGC_(false),
     renderPid_(0), renderUid_(0)
@@ -112,6 +113,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitTid(long tid)
 WatchPoint::Builder& WatchPoint::Builder::InitUid(long uid)
 {
     uid_ = uid;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitSysUid(long sysuid)
+{
+    sysuid_ = sysuid;
     return *this;
 }
 
@@ -342,6 +349,11 @@ long WatchPoint::GetTid() const
 long WatchPoint::GetUid() const
 {
     return uid_;
+}
+
+long WatchPoint::GetSysUid() const
+{
+    return sysuid_;
 }
 
 std::string WatchPoint::GetTerminalThreadStack() const

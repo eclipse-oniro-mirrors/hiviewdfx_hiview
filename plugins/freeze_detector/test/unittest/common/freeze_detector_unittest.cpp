@@ -949,6 +949,117 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_020, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_021
+ * @tc.desc: Test ValidateAndInitType normal case
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_021, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitForeGround("Yes")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    std::vector<FreezeResult> results;
+    FreezeContext context(watchPoint, list, results);
+    EXPECT_TRUE(vendor->ValidateAndInitType(context));
+    EXPECT_EQ(context.type, "syswarning");
+}
+
+/**
+ * @tc.name: FreezeVender_022
+ * @tc.desc: Test ValidateAndInitType with THREAD_BLOCK_3S invalid list size
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_022, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    list.push_back(watchPoint);
+    std::vector<FreezeResult> results;
+    FreezeContext context(watchPoint, list, results);
+    EXPECT_FALSE(vendor->ValidateAndInitType(context));
+}
+
+/**
+ * @tc.name: FreezeVender_023
+ * @tc.desc: Test ValidateAndInitType with HostResourceWarning
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_023, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitHostResourceWarning("TRUE")
+        .Build();
+    std::vector<WatchPoint> list;
+    list.push_back(watchPoint);
+    std::vector<FreezeResult> results;
+    FreezeContext context(watchPoint, list, results);
+    EXPECT_FALSE(vendor->ValidateAndInitType(context));
+    EXPECT_EQ(context.type, "appfreezewarning");
+}
+
+/**
+ * @tc.name: FreezeVender_024
+ * @tc.desc: Test MergeFreezeExtFile
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_024, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitHostResourceWarning("TRUE")
+        .InitSysUid(1000)
+        .Build();
+    std::string halfFreezeExtFile = "";
+    std::string ret = vendor->MergeFreezeExtFile(watchPoint, halfFreezeExtFile);
+    EXPECT_EQ(ret, "");
+    WatchPoint watchPoint1 = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("testProcess")
+        .InitHostResourceWarning("TRUE")
+        .InitSysUid(5523)
+        .Build();
+    EXPECT_EQ(watchPoint1.GetSysUid(), 5523);
+    vendor->MergeFreezeExtFile(watchPoint1, halfFreezeExtFile);
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */

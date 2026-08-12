@@ -148,7 +148,8 @@ long EventLogger::GetEventPid(std::shared_ptr<SysEvent> &sysEvent)
 {
     long pid = sysEvent->GetEventIntValue("PID");
     if (pid <= 0) {
-        pid = CommonUtils::GetPidByName(sysEvent->GetEventValue("PACKAGE_NAME"));
+        std::string name = sysEvent->GetEventValue("PACKAGE_NAME");
+        pid = LogCatcherUtils::GetPidByProcessName(name);
         pid = (pid > 0) ? pid : sysEvent->GetPid();
         sysEvent->SetEventValue("PID", pid);
     }
@@ -354,7 +355,8 @@ void EventLogger::WriteInfoToLog(std::shared_ptr<SysEvent> event, int fd, int js
     }
     std::vector<std::string> cmdList;
     StringUtil::SplitStr(event->GetValue("eventLog_action"), ",", cmdList);
-    if (event->GetEventValue("MSG").find(EXCEPTION_FLAG) != std::string::npos) {
+    if (event->GetEventIntValue(FreezeCommon::EVENT_SYS_UID) == FreezeCommon::FOUNDATION_UID &&
+        event->GetEventValue("MSG").find(EXCEPTION_FLAG) != std::string::npos) {
         logTask->AddLog("S");
     }
     for (const std::string& cmd : cmdList) {

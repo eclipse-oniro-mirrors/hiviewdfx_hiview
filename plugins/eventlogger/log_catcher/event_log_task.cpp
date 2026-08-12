@@ -24,6 +24,7 @@
 #include "string_util.h"
 #include "time_util.h"
 #include "freeze_common.h"
+#include "log_catcher_utils.h"
 
 #ifdef STACKTRACE_CATCHER_ENABLE
 #include "open_stacktrace_catcher.h"
@@ -320,7 +321,7 @@ void EventLogTask::AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher
 
 void EventLogTask::RecordCatchedPids(const std::string& packageName)
 {
-    int pid = CommonUtils::GetPidByName(packageName);
+    int pid = LogCatcherUtils::GetPidByProcessName(packageName);
     if (pid > 0) {
         catchedPids_.insert(pid);
     }
@@ -365,8 +366,7 @@ void EventLogTask::RemoteStackCapture()
 void EventLogTask::GetProcessStack(const std::string& processName)
 {
     auto capture = std::make_shared<OpenStacktraceCatcher>();
-    int pid = CommonUtils::GetPidByName(processName);
-    HIVIEW_LOGI("get pid of %{public}s: %{public}d.", processName.c_str(), pid);
+    int pid = LogCatcherUtils::GetPidByProcessName(processName);
     if (pid != -1) {
         capture->Initialize(processName, pid, 0);
         tasks_.push_back(capture);
