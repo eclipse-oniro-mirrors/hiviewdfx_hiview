@@ -1538,7 +1538,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_001, TestSize.Level0)
     unsigned long long start = TimeUtil::GetMilliseconds() - 5L;
     unsigned long long end = TimeUtil::GetMilliseconds();
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
-    DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName()};
+    DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName(),
+        watchPoint.GetStringId()};
     db->SelectEventFromDB(start, end, list, params, result);
     std::vector<std::string> eventNames;
     eventNames.push_back("UI_BLOCK_3S");
@@ -1576,7 +1577,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_002, TestSize.Level3)
     unsigned long long start = TimeUtil::GetMilliseconds() + 1000L;
     unsigned long long end = TimeUtil::GetMilliseconds();
     auto result = FreezeResult(5, "ACE", "UI_BLOCK_3S");
-    DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName()};
+    DBHelper::WatchParams params = {watchPoint.GetPid(), 0, watchPoint.GetTimestamp(), watchPoint.GetPackageName(),
+        watchPoint.GetStringId()};
     db->SelectEventFromDB(start, end, list, params, result);
 }
 
@@ -1606,12 +1608,12 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_003, TestSize.Level3)
     std::vector <WatchPoint> list;
     unsigned long long start = 1501973701070;
     unsigned long long end = 1501973701170;
-    DBHelper::WatchParams params = {12000, 0, start, "FreezeDetectorUnittest"};
+    DBHelper::WatchParams params = {12000, 0, start, "FreezeDetectorUnittest", "THREAD_BLOCK_6S"};
     auto result = FreezeResult(-14, "AAFWK", "THREAD_BLOCK_3S");
     db->SelectEventFromDB(start, end, list, params, result);
     auto result1 = FreezeResult(-6, "ACE", "UI_BLOCK_3S");
     db->SelectEventFromDB(start, end, list, params, result1);
-    params = {10000, 10000, start, "FreezeDetectorUnittest"};
+    params = {10000, 10000, start, "FreezeDetectorUnittest", "THREAD_BLOCK_6S"};
     auto result2 = FreezeResult(-10, "AAFWK", "THREAD_BLOCK_3S");
     result2.SetSamePackage("true");
     db->SelectEventFromDB(start, end, list, params, result2);
