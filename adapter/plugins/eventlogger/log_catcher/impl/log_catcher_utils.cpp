@@ -326,7 +326,7 @@ pid_t GetPidByProcessName(const std::string &procName)
         if (!std::all_of(dirName.begin(), dirName.end(), ::isdigit)) {
             continue;
         }
-        int tempPid = 0;
+        int32_t tempPid = 0;
         auto [ptr, ec] = std::from_chars(dirName.data(), dirName.data() + dirName.size(), tempPid);
         if (ec != std::errc() || ptr != dirName.data() + dirName.size()) {
             HIVIEW_LOGE("failed to parse str: %{public}s", dirName.c_str());

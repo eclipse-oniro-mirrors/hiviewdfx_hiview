@@ -179,7 +179,7 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
     std::string result = "";
     std::string filePath = stackPath;
     if (isNeedRealPath && !FileUtil::PathToRealPath(stackPath, realPath)) {
-        HIVIEW_LOGE("RealPath failed, logFile=%{public}s errno: %{public}d", stackPath.c_str(), errno);
+        HIVIEW_LOGE("realpath failed, logFile=%{public}s errno: %{public}d", stackPath.c_str(), errno);
         return result;
     }
     if (isNeedRealPath) {
@@ -204,7 +204,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
     const std::string& stackFile, const std::string& cpuFile) const
 {
     std::string stackInfo = GetStackInfo(uid, bundleName, stackFile);
-    std::string cpuInfo = GetStackInfo(uid, bundleName, cpuFile);
+    std::string cpuInfo = GetCpuInfo(cpuFile);
     if (stackInfo.empty() && cpuInfo.empty()) {
         HIVIEW_LOGE("freeze sample cpu and stack content is empty.");
         return "";
@@ -216,7 +216,6 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGI("logfile %{public}s already exist.", freezeFile.c_str());
         return "";
     }
-
     int fd = GetFreezeLogFd(FreezeLogType::FREEZE_EXT, freezeFile);
     if (fd < 0) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
@@ -255,7 +254,7 @@ std::string FreezeManager::GetStackInfo(long uid, const std::string& bundleName,
     return realStackPath.empty() ? "" : GetAppFreezeFile(realStackPath, true, false);
 }
 
-std::string FreezeManager::GetCpuInfo(long uid, const std::string& bundleName, const std::string& cpuFile) const
+std::string FreezeManager::GetCpuInfo(const std::string& cpuFile) const
 {
     if (cpuFile.empty()) {
         return "";
@@ -268,10 +267,10 @@ std::string FreezeManager::GetCpuInfo(long uid, const std::string& bundleName, c
     return realCpuPath.empty() ? "" : GetAppFreezeFile(realCpuPath, false, false);
 }
 
-bool FreezeManager::ContainPathTraversal(const std::string& name) const
+bool FreezeManager::ContainPathTraversal(const std::string& path) const
 {
-    return name.find("..") != std::string::npos ||
-        name.find('\\') != std::string::npos;
+    return path.find("..") != std::string::npos ||
+        path.find('\\') != std::string::npos;
 }
 
 void FreezeManager::ClearFreezeExtIfNeed(int32_t maxNum) const
