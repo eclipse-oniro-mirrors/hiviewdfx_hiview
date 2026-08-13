@@ -50,7 +50,7 @@ bool OpenStacktraceCatcher::Initialize(const std::string& packageNam, int pid, i
     if (pid > 0) {
         pid_ = pid;
     } else {
-        pid_ = CommonUtils::GetPidByName(packageNam);
+        pid_ = LogCatcherUtils::GetPidByProcessName(packageNam);
     }
 
     if (pid_ <= 0) {

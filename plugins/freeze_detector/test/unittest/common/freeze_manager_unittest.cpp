@@ -140,7 +140,7 @@ HWTEST_F(FreezeManagerTest, SaveFreezeExtInfoToFile_001, TestSize.Level3)
     std::string cpuFile = "FreezeManagerTest";
     auto ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName,
         stackFile, cpuFile);
-    EXPECT_TRUE(!ret.empty());
+    EXPECT_TRUE(ret.empty());
 }
 
 /**

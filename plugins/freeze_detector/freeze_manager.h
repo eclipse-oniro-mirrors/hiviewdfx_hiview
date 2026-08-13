@@ -44,7 +44,8 @@ public:
     ~FreezeManager();
     static FreezeManager &GetInStance();
     void InitLogStore();
-    static std::string GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove = false);
+    static std::string GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove = false,
+        bool isNeedRealPath = true);
 
     void InsertTraceName(int64_t time, std::string traceName);
     std::string GetTraceName(int64_t time) const;
@@ -65,6 +66,10 @@ private:
     void ClearSameFreezeExtIfNeed(int32_t uid, int32_t maxNum) const;
     void ClearFreezeExtIfNeed(int32_t maxNum) const;
     std::vector<std::string> GetDightStrArr(const std::string& target) const;
+    std::string CheckFreezePathPrefix(const std::string& path, const std::string& prefix) const;
+    std::string GetStackInfo(long uid, const std::string& bundleName, const std::string& stackFile) const;
+    std::string GetCpuInfo(long uid, const std::string& bundleName, const std::string& cpuFile) const;
+    bool ContainPathTraversal(const std::string& name) const;
 
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;

@@ -1038,6 +1038,62 @@ HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_002, TestSize.Level1)
     EXPECT_EQ(openStackCatcher->ForkAndDumpStackTrace(fd), 0);
     close(fd);
 }
+
+/**
+ * @tc.name: LogCatcherUtils_GetPidByProcessName_001
+ * @tc.desc: test GetPidByProcessName with non-existing process name
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_001, TestSize.Level1)
+{
+    pid_t pid = LogCatcherUtils::GetPidByProcessName("nonexistent_process_name_xyz");
+    EXPECT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: LogCatcherUtils_GetPidByProcessName_002
+ * @tc.desc: test GetPidByProcessName with empty process name
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_002, TestSize.Level1)
+{
+    pid_t pid = LogCatcherUtils::GetPidByProcessName("");
+    EXPECT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: LogCatcherUtils_GetPidByProcessName_003
+ * @tc.desc: test GetPidByProcessName with system process
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_003, TestSize.Level1)
+{
+    int foundationPid = CommonUtils::GetPidByName("foundation");
+    if (foundationPid > 0) {
+        pid_t pid = LogCatcherUtils::GetPidByProcessName("foundation");
+        printf("foundationPid: %d\n", foundationPid);
+        printf("pid: %d\n", pid);
+        EXPECT_GT(pid, 0);
+        EXPECT_EQ(pid, foundationPid);
+    }
+}
+
+/**
+ * @tc.name: LogCatcherUtils_GetPidByProcessName_004
+ * @tc.desc: test GetPidByProcessName with system process
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_004, TestSize.Level1)
+{
+    int abilityPid = CommonUtils::GetPidByName("com.ohos.sceneboard.MainAbility");
+    if (abilityPid > 0) {
+        pid_t pid = LogCatcherUtils::GetPidByProcessName("com.ohos.sceneboard.MainAbility");
+        printf("abilityPid: %d\n", abilityPid);
+        printf("pid: %d\n", pid);
+        EXPECT_GT(pid, 0);
+        EXPECT_EQ(pid, abilityPid);
+    }
+}
 #endif // STACKTRACE_CATCHER_ENABLE
 
 #ifdef BINDER_CATCHER_ENABLE

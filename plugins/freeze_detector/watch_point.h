@@ -32,6 +32,7 @@ public:
         Builder& InitPid(long pid);
         Builder& InitTid(long tid);
         Builder& InitUid(long uid);
+        Builder& InitSysUid(long sysuid);
         Builder& InitTerminalThreadStack(const std::string& terminalThreadStack);
         Builder& InitTelemetryId(const std::string& telemetryId);
         Builder& InitDomain(const std::string& domain);
@@ -73,6 +74,7 @@ public:
         long pid_;
         long tid_;
         long uid_;
+        long sysuid_;
         std::string terminalThreadStack_;
         std::string telemetryId_;
         std::string domain_;
@@ -118,6 +120,7 @@ public:
     long GetPid() const;
     long GetTid() const;
     long GetUid() const;
+    long GetSysUid() const;
     std::string GetTerminalThreadStack() const;
     std::string GetTelemetryId() const;
     std::string GetDomain() const;
@@ -171,6 +174,7 @@ private:
     long pid_;
     long tid_;
     long uid_;
+    long sysuid_;
     std::string terminalThreadStack_;
     std::string telemetryId_;
     std::string domain_;
