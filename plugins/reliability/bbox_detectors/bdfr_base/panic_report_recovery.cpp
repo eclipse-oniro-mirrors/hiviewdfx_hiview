@@ -201,6 +201,9 @@ void AddFileToZip(HiviewZipUnit& hiviewZipUnit, const std::string& path)
 
 void CompressAndCopyLogFiles(const std::string& srcPath, const std::string& timeStr)
 {
+    if (timeStr.find("./") != std::string::npos) {
+        return;
+    }
     if (!FileUtil::FileExists(PANIC_LOG_PATH)) {
         HIVIEW_LOGE("The path of target file: %{public}s is not existed", PANIC_LOG_PATH);
         return;
