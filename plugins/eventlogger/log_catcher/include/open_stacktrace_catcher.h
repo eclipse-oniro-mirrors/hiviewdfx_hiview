@@ -31,6 +31,7 @@ public:
 private:
     int32_t ForkAndDumpStackTrace(int32_t fd);
     static void WaitChildPid(pid_t pid);
+    pid_t GetPidByProcessName(const std::string &procName);
     int32_t pid_ = -1;
     std::string packageName_ = "";
 };

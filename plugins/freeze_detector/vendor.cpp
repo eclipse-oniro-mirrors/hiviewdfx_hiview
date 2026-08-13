@@ -261,6 +261,10 @@ void Vendor::DumpEventInfo(std::ostringstream& oss, const std::string& header, c
 
 std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::string& halfFreezeExtFile) const
 {
+    if (watchPoint.GetSysUid() != FreezeCommon::FOUNDATION_UID) {
+        HIVIEW_LOGE("invalid uid:%{public}ld.", watchPoint.GetSysUid());
+        return "";
+    }
     std::string stackFile;
     std::string cpuFile;
     std::string eventName;
@@ -285,9 +289,9 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
         return "";
     }
 
-    long uid = watchPoint.GetUid();
     std::string bundleName = watchPoint.GetPackageName().empty() ?
         watchPoint.GetProcessName() : watchPoint.GetPackageName();
+    long uid = watchPoint.GetUid();
     return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile);
 }
 

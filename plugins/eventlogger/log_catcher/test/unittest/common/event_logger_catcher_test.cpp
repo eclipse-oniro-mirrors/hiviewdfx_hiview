@@ -1039,6 +1039,70 @@ HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_002, TestSize.Level1)
     EXPECT_EQ(openStackCatcher->ForkAndDumpStackTrace(fd), 0);
     close(fd);
 }
+
+/**
+ * @tc.name: OpenStacktraceCatcherTest_GetPidByProcessName_001
+ * @tc.desc: test GetPidByProcessName with non-existing process name
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_GetPidByProcessName_001, TestSize.Level1)
+{
+    auto openStackCatcher = std::make_shared<OpenStacktraceCatcher>();
+    EXPECT_TRUE(openStackCatcher != nullptr);
+    
+    pid_t pid = openStackCatcher->GetPidByProcessName("nonexistent_process_name_xyz");
+    EXPECT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: OpenStacktraceCatcherTest_GetPidByProcessName_002
+ * @tc.desc: test GetPidByProcessName with empty process name
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_GetPidByProcessName_002, TestSize.Level1)
+{
+    auto openStackCatcher = std::make_shared<OpenStacktraceCatcher>();
+    EXPECT_TRUE(openStackCatcher != nullptr);
+    
+    pid_t pid = openStackCatcher->GetPidByProcessName("");
+    EXPECT_EQ(pid, -1);
+}
+
+/**
+ * @tc.name: OpenStacktraceCatcherTest_GetPidByProcessName_003
+ * @tc.desc: test GetPidByProcessName with system process
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_GetPidByProcessName_003, TestSize.Level1)
+{
+    auto openStackCatcher = std::make_shared<OpenStacktraceCatcher>();
+    EXPECT_TRUE(openStackCatcher != nullptr);
+    
+    int foundationPid = CommonUtils::GetPidByName("foundation");
+    if (foundationPid > 0) {
+        pid_t pid = openStackCatcher->GetPidByProcessName("foundation");
+        EXPECT_GT(pid, 0);
+        EXPECT_EQ(pid, foundationPid);
+    }
+}
+
+/**
+ * @tc.name: OpenStacktraceCatcherTest_GetPidByProcessName_004
+ * @tc.desc: test GetPidByProcessName with system process
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventloggerCatcherTest, OpenStacktraceCatcherTest_GetPidByProcessName_004, TestSize.Level1)
+{
+    auto openStackCatcher = std::make_shared<OpenStacktraceCatcher>();
+    EXPECT_TRUE(openStackCatcher != nullptr);
+    
+    int abilityPid = CommonUtils::GetPidByName("com.ohos.sceneboard.MainAbility");
+    if (abilityPid > 0) {
+        pid_t pid = openStackCatcher->GetPidByProcessName("com.ohos.sceneboard.MainAbility");
+        EXPECT_GT(pid, 0);
+        EXPECT_EQ(pid, abilityPid);
+    }
+}
 #endif // STACKTRACE_CATCHER_ENABLE
 
 #ifdef BINDER_CATCHER_ENABLE

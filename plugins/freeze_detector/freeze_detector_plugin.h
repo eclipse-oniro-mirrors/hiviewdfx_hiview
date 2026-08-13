@@ -33,6 +33,7 @@ struct WatchPointParams {
     long pid;
     long tid;
     long uid;
+    long sysuid;
     long renderPid;
     long renderUid;
     std::string appRunningUniqueId;

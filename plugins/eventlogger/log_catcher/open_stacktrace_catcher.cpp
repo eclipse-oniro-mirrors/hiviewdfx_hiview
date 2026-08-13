@@ -16,6 +16,8 @@
 
 #include <ctime>
 #include <string>
+#include <fstream>
+#include <charconv>
 
 #include "common_utils.h"
 #include "file_util.h"
@@ -40,6 +42,45 @@ OpenStacktraceCatcher::OpenStacktraceCatcher() : EventLogCatcher()
     name_ = "OpenStacktraceCatcher";
 }
 
+pid_t OpenStacktraceCatcher::GetPidByProcessName(const std::string &procName)
+{
+    if (procName.empty()) {
+        return -1;
+    }
+    DIR *procDir = opendir("/proc");
+    if (procDir == nullptr) {
+        perror("opendir /proc");
+        return -1;
+    }
+
+    pid_t pid = -1;
+    struct dirent *entry;
+    while ((entry = readdir(procDir)) != nullptr) {
+        if (entry->d_type != DT_DIR) {
+            continue;
+        }
+
+        std::string dirName(entry->d_name);
+        if (!std::all_of(dirName.begin(), dirName.end(), ::isdigit)) {
+            continue;
+        }
+        int tempPid = 0;
+        auto [ptr, ec] = std::from_chars(dirName.data(), dirName.data() + dirName.size(), tempPid);
+        if (ec != std::errc() || ptr != dirName.data() + dirName.size()) {
+            HIVIEW_LOGE("parse pid from dirName failed: %{public}s", dirName.c_str());
+            closedir(procDir);
+            return -1;
+        }
+        std::string name = CommonUtils::GetProcFullNameByPid(tempPid);
+        if (name == procName) {
+            pid = static_cast<pid_t>(tempPid);
+            break;
+        }
+    }
+    closedir(procDir);
+    return pid;
+}
+
 bool OpenStacktraceCatcher::Initialize(const std::string& packageNam, int pid, int intParam)
 {
     if (pid <= 0 && packageNam.length() == 0) {
@@ -50,7 +91,7 @@ bool OpenStacktraceCatcher::Initialize(const std::string& packageNam, int pid, i
     if (pid > 0) {
         pid_ = pid;
     } else {
-        pid_ = CommonUtils::GetPidByName(packageNam);
+        pid_ = GetPidByProcessName(packageNam);
     }
 
     if (pid_ <= 0) {

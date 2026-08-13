@@ -32,6 +32,7 @@ public:
     static constexpr const char* EVENT_PID = "PID";
     static constexpr const char* EVENT_TID = "TID";
     static constexpr const char* EVENT_UID = "UID";
+    static constexpr const char* EVENT_SYS_UID = "uid_";
     static constexpr const char* EVENT_PACKAGE_NAME = "PACKAGE_NAME";
     static constexpr const char* EVENT_PROCESS_NAME = "PROCESS_NAME";
     static constexpr const char* EVENT_MSG = "MSG";
@@ -91,6 +92,7 @@ public:
     static constexpr const char *const GC_PAUSE_UNIT = "ms";
     static constexpr const char *const GC_STATUS = "GC Status: ";
     static constexpr const char *const IO_STATUS = "I/O(bytes): ";
+    static constexpr int32_t FOUNDATION_UID = 5523;
 
     FreezeCommon();
     ~FreezeCommon();
