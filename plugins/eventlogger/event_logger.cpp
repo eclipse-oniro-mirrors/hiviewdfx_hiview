@@ -648,7 +648,7 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
     binderInfoJsonStr = FreezeJsonUtil::GetStrByList(infoList);
 }
 
-void EventLogger::UpdateWindoInfo(WindowIdInfo& windowIdInfo, const char* buffer, bool inScreenGroup)
+void EventLogger::UpdateWindowInfo(WindowIdInfo& windowIdInfo, const char* buffer, bool inScreenGroup)
 {
     if (inScreenGroup && strstr(buffer, "SCBStatusBar") != nullptr) {
         windowIdInfo.statusBarWindowId = GetWindowIdFromLine(buffer);
@@ -680,7 +680,7 @@ WindowIdInfo EventLogger::DumpWindowInfo(int fd)
         } else if (strstr(buffer, "-----------------------") != nullptr && inScreenGroup) {
             inScreenGroup = false;
         }
-        UpdateWindoInfo(windowIdInfo, buffer, inScreenGroup);
+        UpdateWindowInfo(windowIdInfo, buffer, inScreenGroup);
         const char* focusPos = strstr(buffer, "Focus window: ");
         if (focusPos != nullptr) {
             focusPos += strlen("Focus window: ");

@@ -68,8 +68,8 @@ private:
     std::vector<std::string> GetDightStrArr(const std::string& target) const;
     std::string CheckFreezePathPrefix(const std::string& path, const std::string& prefix) const;
     std::string GetStackInfo(long uid, const std::string& bundleName, const std::string& stackFile) const;
-    std::string GetCpuInfo(long uid, const std::string& bundleName, const std::string& cpuFile) const;
-    bool ContainPathTraversal(const std::string& name) const;
+    std::string GetCpuInfo(const std::string& cpuFile) const;
+    bool ContainPathTraversal(const std::string& path) const;
 
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;

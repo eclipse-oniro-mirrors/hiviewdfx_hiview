@@ -2078,29 +2078,29 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetMatchResetString_001, TestSize.Leve
 }
 
 /**
- * @tc.name: EventLoggerTest_UpdateWindoInfo_001
- * @tc.desc: Test UpdateWindoInfo not in ScreenGroup
+ * @tc.name: EventLoggerTest_UpdateWindowInfo_001
+ * @tc.desc: Test UpdateWindowInfo not in ScreenGroup
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindoInfo_001, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindowInfo_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     WindowIdInfo windowIdInfo;
     const char* buffer = "SCBStatusBar 0 100 12345";
     bool inScreenGroup = false;
 
-    eventLogger->UpdateWindoInfo(windowIdInfo, buffer, inScreenGroup);
+    eventLogger->UpdateWindowInfo(windowIdInfo, buffer, inScreenGroup);
     EXPECT_EQ(windowIdInfo.statusBarWindowId, "");
     EXPECT_EQ(windowIdInfo.screenLockWindowId, "");
     EXPECT_EQ(windowIdInfo.softKeyboardWindowId, "");
 }
 
 /**
- * @tc.name: EventLoggerTest_UpdateWindoInfo_002
- * @tc.desc: Test UpdateWindoInfo with multiple window types in one call
+ * @tc.name: EventLoggerTest_UpdateWindowInfo_002
+ * @tc.desc: Test UpdateWindowInfo with multiple window types in one call
  * @tc.type: FUNC
  */
-HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindoInfo_002, TestSize.Level3)
+HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindowInfo_002, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
 
@@ -2110,9 +2110,9 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindoInfo_002, TestSize.Level3)
     bool inScreenGroup = true;
 
     WindowIdInfo windowIdInfo1;
-    eventLogger->UpdateWindoInfo(windowIdInfo1, buffer1, inScreenGroup);
-    eventLogger->UpdateWindoInfo(windowIdInfo1, buffer2, inScreenGroup);
-    eventLogger->UpdateWindoInfo(windowIdInfo1, buffer3, inScreenGroup);
+    eventLogger->UpdateWindowInfo(windowIdInfo1, buffer1, inScreenGroup);
+    eventLogger->UpdateWindowInfo(windowIdInfo1, buffer2, inScreenGroup);
+    eventLogger->UpdateWindowInfo(windowIdInfo1, buffer3, inScreenGroup);
 
     EXPECT_EQ(windowIdInfo1.statusBarWindowId, "12345");
     EXPECT_EQ(windowIdInfo1.screenLockWindowId, "67890");
@@ -2120,7 +2120,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_UpdateWindoInfo_002, TestSize.Level3)
 
     const char* buffer4 = "SomeOtherWindow 0 100 99999";
     WindowIdInfo windowIdInfo2;
-    eventLogger->UpdateWindoInfo(windowIdInfo2, buffer4, inScreenGroup);
+    eventLogger->UpdateWindowInfo(windowIdInfo2, buffer4, inScreenGroup);
     EXPECT_EQ(windowIdInfo2.statusBarWindowId, "");
     EXPECT_EQ(windowIdInfo2.screenLockWindowId, "");
     EXPECT_EQ(windowIdInfo2.softKeyboardWindowId, "");
@@ -2142,7 +2142,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_DumpWindowInfo_001, TestSize.Level3)
         FAIL();
     }
 
-    WindowIdInfo windowIdInfo1 = eventLogger->DumpWindowInfo(fd);
+    WindowIdInfo windowIdInfo1 = eventLogger->DumpWindowInfo(-1);
     WindowIdInfo windowIdInfo2 = eventLogger->DumpWindowInfo(fd);
     close(fd);
 }

@@ -91,7 +91,7 @@ private:
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
     bool WriteStartTime(int fd, uint64_t start);
-    void UpdateWindoInfo(WindowIdInfo& windowIdInfo, const char* buffer, bool inScreenGroup);
+    void UpdateWindowInfo(WindowIdInfo& windowIdInfo, const char* buffer, bool inScreenGroup);
     WindowIdInfo DumpWindowInfo(int fd);
     std::string GetWindowIdFromLine(const std::string& line);
     bool WriteCommonHead(int fd, std::shared_ptr<SysEvent> event);
