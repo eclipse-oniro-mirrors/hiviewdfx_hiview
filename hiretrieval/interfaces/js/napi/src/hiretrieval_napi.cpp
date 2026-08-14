@@ -69,7 +69,9 @@ static napi_value Quit(napi_env env, napi_callback_info info)
 {
     int ret = HiRetrievalMgr::GetInstance().Quit();
     HiRetrievalNapiUtil::CheckRetAndThrowError(env, ret);
-    return nullptr;
+    napi_value val = nullptr;
+    HiRetrievalNapiUtil::CreateJsUndefinedValue(env, val);
+    return val;
 }
 
 static napi_value IsParticipant(napi_env env, napi_callback_info info)
@@ -92,7 +94,9 @@ static napi_value Run(napi_env env, napi_callback_info info)
 {
     int32_t ret = HiRetrievalMgr::GetInstance().Run();
     HiRetrievalNapiUtil::CheckRetAndThrowError(env, ret);
-    return nullptr;
+    napi_value val = nullptr;
+    HiRetrievalNapiUtil::CreateJsUndefinedValue(env, val);
+    return val;
 }
 
 static napi_value GetCurrentConfig(napi_env env, napi_callback_info info)

@@ -184,4 +184,12 @@ void HiRetrievalNapiUtil::CreateJsLongLongValue(const napi_env env, long long ll
         HILOG_ERROR(LOG_CORE, "failed to create napi value of long long type.");
     }
 }
+
+void HiRetrievalNapiUtil::CreateJsUndefinedValue(const napi_env env, napi_value& jsVal)
+{
+    napi_status status = napi_get_undefined(env, &jsVal);
+    if (status != napi_ok) {
+        HILOG_ERROR(LOG_CORE, "failed to create napi value of undefined type.");
+    }
+}
 } // namespace OHOS::HiviewDFX
