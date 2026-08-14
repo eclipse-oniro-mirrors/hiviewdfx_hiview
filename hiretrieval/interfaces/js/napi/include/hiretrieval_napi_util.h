@@ -33,6 +33,7 @@ public:
     static void CreateJsBoolValue(const napi_env env, bool boolVal, napi_value& jsVal);
     static void CreateJsHiRetrievalConfig(const napi_env env, const HiRetrievalMgr::Config& cfg, napi_value& jsVal);
     static void CreateJsLongLongValue(const napi_env env, long long lldVal, napi_value& jsVal);
+    static void CreateJsUndefinedValue(const napi_env env, napi_value& jsVal);
 };
 } // namespace OHOS::HiviewDFX
 
