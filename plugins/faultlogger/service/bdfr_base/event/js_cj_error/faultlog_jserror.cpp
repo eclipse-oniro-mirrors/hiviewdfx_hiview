@@ -31,10 +31,7 @@ bool FaultLogJsError::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const
         return false;
     }
 
-    if (sysEvent->GetEventIntValue(FaultKey::ERRORMANAGER_CAPTURE) == 0 ||
-        sysEvent->GetEventIntValue(FaultKey::IS_UNCATCH_FAULT)) {
-        FaultLogErrorReporter::ReportErrorToAppEvent(sysEvent, "JsError", "/data/test_jsError_info", info_.sectionMap);
-    }
+    FaultLogErrorReporter::ReportErrorToAppEvent(sysEvent, "JsError", "/data/test_jsError_info", info_.sectionMap);
     FaultLogExtConnManager::GetInstance().OnFault(info_);
     return true;
 }
