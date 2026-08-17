@@ -204,25 +204,8 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
 std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
     const std::string& stackFile, const std::string& cpuFile) const
 {
-    if (!CheckFreezePathTraversal(stackFile)) {
-        HIVIEW_LOGE("invalid file:%{public}s.", stackFile.c_str());
-        return "";
-    }
-    int userId = uid / VALUE_MOD;
-    std::string expectedPrefix = APPFREEZE_LOG_PREFIX + std::to_string(userId) + "/log/" + bundleName +
-        APPFREEZE_LOG_SUFFIX;
-    std::string stackPath = expectedPrefix + stackFile;
-    std::string realPath;
-    if (!FileUtil::PathToRealPath(stackPath, realPath)) {
-        HIVIEW_LOGE("PathToRealPath failed, stackPath=%{public}s errno: %{public}d", stackPath.c_str(), errno);
-        return "";
-    }
-    if (realPath.find(expectedPrefix) != 0) {
-        HIVIEW_LOGE("invalid realPath prefix, realPath=%{public}s", realPath.c_str());
-        return "";
-    }
-    std::string stackInfo = GetAppFreezeFile(realPath, true, false);
-    std::string cpuInfo = GetAppFreezeFile(cpuFile);
+    std::string stackInfo = GetStackInfo(uid, bundleName, stackFile);
+    std::string cpuInfo = GetCpuInfo(cpuFile);
     if (stackInfo.empty() && cpuInfo.empty()) {
         HIVIEW_LOGE("freeze sample cpu and stack content is empty.");
         return "";
@@ -234,7 +217,6 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGI("logfile %{public}s already exist.", freezeFile.c_str());
         return "";
     }
-
     int fd = GetFreezeLogFd(FreezeLogType::FREEZE_EXT, freezeFile);
     if (fd < 0) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", freezeFile.c_str(), errno);
@@ -249,11 +231,48 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
         HIVIEW_LOGE("failed to cpu and stack info to file.");
     }
     if (fdsan_close_with_tag(fd, FREEZE_DOMAIN) != 0) {
-        HIVIEW_LOGE("SaveFreezeExtInfoToFile fdsan close failed, errno:%{public}d", errno);
+        HIVIEW_LOGE("SaveFreezeExtInfoToFile fdsan close failed, errno=%{public}d", errno);
     }
     ClearFreezeExtIfNeed(FREEZE_EXT_MAX_FILE_NUM);
     ClearSameFreezeExtIfNeed(uid, MAX_FREEZE_PER_HAP);
     return logFile;
+}
+
+std::string FreezeManager::GetStackInfo(long uid, const std::string& bundleName, const std::string& stackFile) const
+{
+    if (stackFile.empty()) {
+        return "";
+    }
+    if (stackFile.find('/') != std::string::npos || ContainPathTraversal(stackFile)) {
+        HIVIEW_LOGE("invalid file:%{public}s.", stackFile.c_str());
+        return "";
+    }
+    int userId = uid / VALUE_MOD;
+    std::string stackPrefix = APPFREEZE_LOG_PREFIX + std::to_string(userId) + "/log/" + bundleName +
+        APPFREEZE_LOG_SUFFIX;
+    std::string stackPath = stackPrefix + stackFile;
+    std::string realStackPath = CheckFreezePathPrefix(stackPath, stackPrefix);
+    return realStackPath.empty() ? "" : GetAppFreezeFile(realStackPath, true, false);
+}
+ 
+std::string FreezeManager::GetCpuInfo(const std::string& cpuFile) const
+{
+    if (cpuFile.empty()) {
+        return "";
+    }
+    if (ContainPathTraversal(cpuFile)) {
+        HIVIEW_LOGE("invalid file:%{public}s.", cpuFile.c_str());
+        return "";
+    }
+    std::string realCpuPath = CheckFreezePathPrefix(cpuFile, std::string(LOGGER_EVENT_LOG_PATH) + "/");
+    return realCpuPath.empty() ? "" : GetAppFreezeFile(realCpuPath, false, false);
+}
+ 
+bool FreezeManager::ContainPathTraversal(const std::string& path) const
+{
+    return path.find("..") != std::string::npos ||
+        path.find('\\') != std::string::npos ||
+        path.find('\0') != std::string::npos;
 }
 
 void FreezeManager::ClearFreezeExtIfNeed(int32_t maxNum) const
@@ -367,14 +386,18 @@ void FreezeManager::FillProcMemory(const std::string& procStatm, long pid,
     HIVIEW_LOGI("Get FreezeJson rss=%{public}" PRIu64", vss=%{public}" PRIu64".", rss, vss);
 }
 
-bool FreezeManager::CheckFreezePathTraversal(const std::string& name) const
+std::string FreezeManager::CheckFreezePathPrefix(const std::string& path, const std::string& prefix) const
 {
-    if (StringUtil::ContainsPathTraversal(name) || name.find('/') != std::string::npos ||
-        name.find('\\') != std::string::npos) {
-        HIVIEW_LOGE("Invalid name: %{public}s", name.c_str());
-        return false;
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(path, realPath)) {
+        HIVIEW_LOGE("real path failed, path=%{public}s errno: %{public}d", path.c_str(), errno);
+        return "";
     }
-    return true;
+    if (realPath.find(prefix) != 0) {
+        HIVIEW_LOGE("invalid path=%{public}s", path.c_str());
+        return "";
+    }
+    return realPath;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

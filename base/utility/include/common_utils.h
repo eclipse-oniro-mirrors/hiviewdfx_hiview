@@ -49,6 +49,7 @@ std::string CreateExportFile(const std::string& path, int32_t maxFileNum, const 
     const std::string& ext, const std::string& pidStr = "");
 void GetDirRegexFiles(const std::string& path, const std::string& prefix, std::vector<std::string>& files,
     const std::string& pidStr = "");
+pid_t GetPidByProcessName(const std::string &procName);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

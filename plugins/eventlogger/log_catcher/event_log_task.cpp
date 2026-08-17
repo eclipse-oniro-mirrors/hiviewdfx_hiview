@@ -320,7 +320,7 @@ void EventLogTask::AddSeparator(int fd, std::shared_ptr<EventLogCatcher> catcher
 
 void EventLogTask::RecordCatchedPids(const std::string& packageName)
 {
-    int pid = CommonUtils::GetPidByName(packageName);
+    int pid = CommonUtils::GetPidByProcessName(packageName);
     if (pid > 0) {
         catchedPids_.insert(pid);
     }
@@ -365,7 +365,7 @@ void EventLogTask::RemoteStackCapture()
 void EventLogTask::GetProcessStack(const std::string& processName)
 {
     auto capture = std::make_shared<OpenStacktraceCatcher>();
-    int pid = CommonUtils::GetPidByName(processName);
+    int pid = CommonUtils::GetPidByProcessName(processName);
     HIVIEW_LOGI("get pid of %{public}s: %{public}d.", processName.c_str(), pid);
     if (pid != -1) {
         capture->Initialize(processName, pid, 0);
@@ -440,7 +440,7 @@ void EventLogTask::DmesgCapture(bool writeNewFile, int type, bool extraFile)
     if (type == DmesgCatcher::SYS_RQ) {
         std::string processName = event_->GetEventValue("SPECIFICSTACK_NAME");
         if (!processName.empty()) {
-            pid = CommonUtils::GetPidByName(processName);
+            pid = CommonUtils::GetPidByProcessName(processName);
             HIVIEW_LOGI("processName:%{public}s, pid:%{public}d.", processName.c_str(), pid);
         }
     }
