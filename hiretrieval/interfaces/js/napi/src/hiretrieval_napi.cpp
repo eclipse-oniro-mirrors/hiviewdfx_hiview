@@ -40,7 +40,7 @@ static napi_value Init(napi_env env, napi_callback_info info)
 {
     int ret = HiRetrievalMgr::GetInstance().Init();
     HiRetrievalNapiUtil::CheckRetAndThrowError(env, ret);
-    return nullptr;napi_value val = nullptr;
+    napi_value val = nullptr;
     HiRetrievalNapiUtil::CreateJsUndefinedValue(env, val);
     return val;
 }
