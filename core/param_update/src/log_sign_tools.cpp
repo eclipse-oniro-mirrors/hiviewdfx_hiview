@@ -57,6 +57,7 @@ bool LogSignTools::VerifyFileSign(const std::string &pubKeyPath, const std::stri
         BIO *bio = BIO_new_file(pubKeyPath.c_str(), "r");
         if (PEM_read_bio_RSA_PUBKEY(bio, &pubKey, nullptr, nullptr) == nullptr) {
             HIVIEW_LOGE("get pubKey is failed.");
+            RSA_free(pubKey);
             BIO_free(bio);
             return false;
         }
