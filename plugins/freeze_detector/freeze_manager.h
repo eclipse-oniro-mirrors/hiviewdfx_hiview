@@ -55,6 +55,8 @@ public:
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
     void FillProcMemory(const std::string& procStatm, long pid,
         std::map<std::string, std::string> &sectionMaps) const;
+    bool ContainPathTraversal(const std::string& path) const;
+    std::string CheckFreezePathPrefix(const std::string& path, const std::string& prefix) const;
 
 private:
     void InitEventLogStore();
@@ -66,7 +68,8 @@ private:
     void ClearSameFreezeExtIfNeed(int32_t uid, int32_t maxNum) const;
     void ClearFreezeExtIfNeed(int32_t maxNum) const;
     std::vector<std::string> GetDightStrArr(const std::string& target) const;
-    bool CheckFreezePathTraversal(const std::string& name) const;
+    std::string GetStackInfo(long uid, const std::string& bundleName, const std::string& stackFile) const;
+    std::string GetCpuInfo(const std::string& cpuFile) const;
 
     std::shared_ptr<LogStoreEx> eventLogStore_ = nullptr;
     std::shared_ptr<LogStoreEx> freezeDetectorLogStore_ = nullptr;

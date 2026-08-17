@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <charconv>
 #include <dirent.h>
 #include <fcntl.h>
 #include <regex>
@@ -44,6 +45,7 @@ constexpr int32_t WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000; // 5ms
 constexpr char EXPORT_FILE_REGEX[] = "[0-9]{1,}(.*)";
 constexpr char UNDERLINE[] = "_";
 constexpr size_t FORMAT_DATE_LEN = 14;
+constexpr int DECIMAL = 10;
 
 std::string GetProcessNameFromProcCmdline(int32_t pid)
 {
@@ -338,6 +340,37 @@ std::string CreateExportFile(const std::string& path, int32_t maxFileNum, const 
     (void)FileUtil::CreateFile(fileName);
     HIVIEW_LOGI("create file=%{public}s", FileUtil::ExtractFileName(fileName).c_str());
     return fileName;
+}
+
+pid_t GetPidByProcessName(const std::string &procName)
+{
+    if (procName.empty()) {
+        return -1;
+    }
+    DIR *procDir = opendir("/proc");
+    if (procDir == nullptr) {
+        HIVIEW_LOGE("opendir proc failed");
+        return -1;
+    }
+
+    pid_t pid = -1;
+    struct dirent *entry;
+    while ((entry = readdir(procDir)) != nullptr) {
+        if (entry->d_type != DT_DIR) {
+            continue;
+        }
+        int32_t tempPid = 0;
+        if (!StringUtil::StrToInt(entry->d_name, tempPid)) {
+            continue;
+        }
+        std::string name = CommonUtils::GetProcFullNameByPid(tempPid);
+        if (name == procName) {
+            pid = static_cast<pid_t>(tempPid);
+            break;
+        }
+    }
+    closedir(procDir);
+    return pid;
 }
 }
 } // namespace HiviewDFX

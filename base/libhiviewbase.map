@@ -538,6 +538,7 @@
         "OHOS::HiviewDFX::RestorableDbStore::Count(long long&, OHOS::NativeRdb::AbsRdbPredicates const&)";
         "OHOS::HiviewDFX::TranslateStrVector(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::vector<char*, std::__h::allocator<char*>>&)";
         "OHOS::HiviewDFX::TranslateEventType(OHOS::HiviewDFX::HiSysEvent::EventType)";
+        "OHOS::HiviewDFX::CommonUtils::GetPidByProcessName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;
