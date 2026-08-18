@@ -76,6 +76,9 @@ namespace {
         "VIP", "Immediate", "High", "Low", "Idle"
     };
     constexpr const char* TASK_TIMEOUT = "CONGESTION";
+    constexpr const char* PROCESS_IDENTITY_KEYS[] = {
+        "PACKAGE_NAME", "PROCESS_NAME", "MODULE_NAME", "PNAMEID", "SPECIFICSTACK_NAME"
+    };
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
     constexpr const char* DUMP_TRACE_FLAG = "trace";
@@ -213,6 +216,11 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
         return false;
     }
 
+    if (!IsValidEventParam(sysEvent)) {
+        sysEvent->OnFinish();
+        return false;
+    }
+
     long pid = GetEventPid(sysEvent);
     std::string eventName = sysEvent->eventName_;
 
@@ -258,7 +266,7 @@ int EventLogger::GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, 
         logFile = "ffrt_" + std::to_string(pid) + "_" + formatTime;
     }
 
-    if (FileUtil::FileExists(std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" + logFile)) {
+    if (FileUtil::FileExists(FreezeManager::EVENTLOG_PATH_PREFIX + logFile)) {
         HIVIEW_LOGW("filename: %{public}s is existed, direct use.", logFile.c_str());
         if (!isFfrt) {
             UpdateDB(event, logFile);
@@ -309,7 +317,7 @@ void EventLogger::StartFfrtDump(std::shared_ptr<SysEvent> event)
 
 void EventLogger::SaveDbToFile(const std::shared_ptr<SysEvent>& event)
 {
-    std::string historyFile = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" + "history.log";
+    std::string historyFile = std::string(FreezeManager::EVENTLOG_PATH_PREFIX) + "history.log";
     if (FileUtil::CreateFile(historyFile, DEFAULT_LOG_FILE_MODE) != 0 && !FileUtil::FileExists(historyFile)) {
         HIVIEW_LOGE("failed to create file=%{public}s, errno=%{public}d", historyFile.c_str(), errno);
         return;
@@ -419,7 +427,7 @@ void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<S
         } else {
             std::string fileType = (cmd == "k:SysRqFile") ? "sysrq" : "hungtask";
             std::string catcher = (fileType == "sysrq") ? "\nSysrqCatcher" : "\nHungTaskCatcher";
-            fileInfo = catcher + " -- fullPath:" + std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" +
+            fileInfo = catcher + " -- fullPath:" + FreezeManager::EVENTLOG_PATH_PREFIX +
                 fileType + "-" + fileTime + ".log\n";
             std::string fileTimeKey = (fileType == "sysrq") ? "SYSRQ_TIME" : "HUNGTASK_TIME";
             event->SetEventValue(fileTimeKey, fileTime);
@@ -1067,7 +1075,7 @@ void EventLogger::WriteKernelStackToFile(std::shared_ptr<SysEvent> event, int or
     std::string idStr = event->eventName_.empty() ? std::to_string(event->eventId_) : event->eventName_;
     std::string logFile = idStr + "-" + std::to_string(pid) + "-" + formatTime + "-KernelStack-" +
         std::to_string(originFd) + ".log";
-    std::string path = std::string(FreezeManager::LOGGER_EVENT_LOG_PATH) + "/" + logFile;
+    std::string path = FreezeManager::EVENTLOG_PATH_PREFIX + logFile;
     if (FileUtil::FileExists(path)) {
         HIVIEW_LOGI("Filename: %{public}s is existed.", logFile.c_str());
         return;
@@ -1358,8 +1366,8 @@ bool EventLogger::UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile)
         HIVIEW_LOGI("set info_ with nolog into db.");
         event->SetEventValue(EventStore::EventCol::INFO, "nolog", false);
     } else {
-        auto logPath = R"~(logPath:)~" + std::string(FreezeManager::LOGGER_EVENT_LOG_PATH)  + "/" + logFile;
-        event->SetEventValue(EventStore::EventCol::INFO, logPath, true);
+        auto logPath = R"~(logPath:)~" + std::string(FreezeManager::EVENTLOG_PATH_PREFIX) + logFile;
+        event->SetEventValue(EventStore::EventCol::INFO, logPath, false);
     }
     return true;
 }
@@ -1728,6 +1736,41 @@ bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) 
     }
     dst = std::string(pos, end - pos);
     dst = StringUtil::TrimStr(dst, '\n');
+    return true;
+}
+
+bool EventLogger::IsValidEventParam(const std::shared_ptr<SysEvent>& event) const
+{
+    for (const auto& key : PROCESS_IDENTITY_KEYS) {
+        if (!FreezeManager::GetInstance()->IsValidEventStringParam(event->GetEventValue(key))) {
+            HIVIEW_LOGE("invalid process identity param: %{public}s", key);
+            return false;
+        }
+    }
+    std::string appRunningUniqueId = event->GetEventValue("APP_RUNNING_UNIQUE_ID");
+    if (!FreezeManager::IsAllDigits(appRunningUniqueId)) {
+        HIVIEW_LOGE("invalid app running id: %{public}s", appRunningUniqueId.c_str());
+        return false;
+    }
+    int32_t uid = event->GetEventIntValue(FreezeCommon::EVENT_SYS_UID);
+    std::string stack = event->GetEventValue("STACK");
+    if (!stack.empty() && !FreezeManager::GetInstance()->IsValidFreezePath(stack,
+        FreezeManager::EVENTLOG_PATH_PREFIX, uid)) {
+        HIVIEW_LOGE("invalid stack info: %{public}s", stack.c_str());
+        return false;
+    }
+    std::string binderInfo = event->GetEventValue("BINDER_INFO");
+    if (!binderInfo.empty()) {
+        size_t commaPos = binderInfo.find(',');
+        if (commaPos != std::string::npos) {
+            std::string binderPath = binderInfo.substr(0, commaPos);
+            if (!FreezeManager::GetInstance()->IsValidFreezePath(binderPath,
+                FreezeManager::EVENTLOG_PATH_PREFIX, uid)) {
+                HIVIEW_LOGE("invalid binder info: %{public}s", binderPath.c_str());
+                return false;
+            }
+        }
+    }
     return true;
 }
 } // namespace HiviewDFX

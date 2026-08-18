@@ -556,14 +556,14 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_ClearOldFile_001, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     sleep(1);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove");
     sleep(3);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
         "HOST_RESOURCE_WARNING", "TRUE");
     sleep(3);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove");
     std::vector<LogFile> logFileList = FreezeManager::GetInstance()->eventLogStore_->GetLogFiles();
     auto beforeSize = static_cast<long>(logFileList.size());
@@ -615,7 +615,7 @@ HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_002, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     sleep(1);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove");
     sleep(3);
     HiSysEventWrite(HiSysEvent::Domain::AAFWK, "APP_INPUT_BLOCK", HiSysEvent::EventType::FAULT,
@@ -634,10 +634,10 @@ HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_003, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     sleep(1);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HOST_RESOURCE_WARNING", "TRUE", "FOREGROUND", true);
     sleep(3);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HOST_RESOURCE_WARNING", "TRUE", "FOREGROUND", true);
     EXPECT_TRUE(eventLogger != nullptr);
     eventLogger->OnUnload();
@@ -666,10 +666,10 @@ HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_005, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     sleep(1);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HOST_RESOURCE_WARNING", "TRUE");
     sleep(3);
-    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_TIMEOUT", HiSysEvent::EventType::FAULT,
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_TIMEOUT", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HOST_RESOURCE_WARNING", "TRUE");
     EXPECT_TRUE(eventLogger != nullptr);
     eventLogger->OnUnload();
@@ -1635,24 +1635,24 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_GetBlockedTime_009, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_TestLogMerge001, TestSize.Level3)
 {
     int ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
-        "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
+        "uid_", 5523, "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
         "HOST_RESOURCE_WARNING", "TRUE");
     EXPECT_EQ(ret, 0);
     sleep(2);
-    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_TIMEOUT", HiSysEvent::EventType::FAULT,
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_TIMEOUT", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove");
     sleep(2);
     EXPECT_EQ(ret, 0);
     ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "LIFECYCLE_HALF_TIMEOUT", HiSysEvent::EventType::FAULT,
-        "MODULE", "foundation", "MSG", "test remove");
+        "uid_", 5523, "MODULE", "foundation", "MSG", "test remove");
     sleep(2);
     EXPECT_EQ(ret, 0);
-    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
         "HOST_RESOURCE_WARNING", "TRUE");
     EXPECT_EQ(ret, 0);
     sleep(2);
-    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
+    ret = HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT, "uid_", 5523,
         "MODULE", "foundation", "MSG", "test remove", "HITRACE_ID", "1234", "SPAN_ID", "34",
         "HOST_RESOURCE_WARNING", "TRUE");
     EXPECT_EQ(ret, 0);
@@ -2145,6 +2145,117 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_DumpWindowInfo_001, TestSize.Level3)
     WindowIdInfo windowIdInfo1 = eventLogger->DumpWindowInfo(fd);
     WindowIdInfo windowIdInfo2 = eventLogger->DumpWindowInfo(fd);
     close(fd);
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_001
+ * @tc.desc: test IsValidEventParam with valid params
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("PACKAGE_NAME", "com.ohos.test");
+    sysEvent->SetEventValue("PROCESS_NAME", "test_process");
+    sysEvent->SetEventValue("MODULE_NAME", "test_module");
+    sysEvent->SetEventValue("PNAMEID", "com.test.pnameid");
+    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "test_stack");
+    sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "12345");
+    sysEvent->SetEventValue("STACK", "json_stack_content");
+    sysEvent->SetEventValue("BINDER_INFO", "binder_content");
+    EXPECT_TRUE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_002
+ * @tc.desc: test IsValidEventParam with path traversal in PACKAGE_NAME
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("PACKAGE_NAME", "../etc/passwd");
+    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_003
+ * @tc.desc: test IsValidEventParam with invalid APP_RUNNING_UNIQUE_ID
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_003, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "abc123");
+    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_004
+ * @tc.desc: test IsValidEventParam with empty APP_RUNNING_UNIQUE_ID
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_004, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "");
+    EXPECT_TRUE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_005
+ * @tc.desc: test IsValidEventParam with path traversal in PROCESS_NAME
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_005, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("PROCESS_NAME", "test\\process");
+    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_006
+ * @tc.desc: test IsValidEventParam with path traversal in MODULE_NAME
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_006, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("MODULE_NAME", "../malicious");
+    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_007
+ * @tc.desc: test IsValidEventParam with path traversal in PNAMEID
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_007, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("PNAMEID", "../etc/shadow");
+    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsValidEventParam_008
+ * @tc.desc: test IsValidEventParam with path traversal in SPECIFICSTACK_NAME
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_008, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "../evil");
+    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
 }
 } // namespace HiviewDFX
 } // namespace OHOS
