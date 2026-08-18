@@ -92,7 +92,9 @@ std::pair<int32_t, std::string> HiviewNapiUtil::GetErrorDetailByRet(napi_env env
 bool HiviewNapiUtil::IsMatchType(napi_env env, const napi_value& value, napi_valuetype type)
 {
     napi_valuetype paramType;
-    napi_typeof(env, value, &paramType);
+    if (napi_typeof(env, value, &paramType) != napi_ok) {
+        return false;
+    }
     return paramType == type;
 }
 
