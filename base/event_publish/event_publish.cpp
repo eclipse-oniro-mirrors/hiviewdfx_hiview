@@ -277,29 +277,11 @@ std::string GetDesFileName(Json::Value& params, const std::string& eventName, co
     return desFileName;
 }
 
-// Check whether the external log path belongs to the target uid.
-// Per-app crash logs under /data/log/faultlog/faultlogger/ follow the naming
-// pattern <prefix>-<module>-<uid>-<timestamp>.log where <uid> is a
-// dash-delimited segment. If the path is in that directory but the target uid
-// does not appear as a segment, the file belongs to a different uid and must
-// not be copied into the caller's sandbox (cross-uid information leakage).
-bool IsExternalLogBelongToUid(const std::string& path, int32_t uid)
-{
-    if (path.find("/data/log/faultlog/faultlogger/") == std::string::npos) {
-        return true; // not a per-app crash log directory, defer to prefix check
-    }
-    std::string uidSegment = "-" + std::to_string(uid) + "-";
-    return path.find(uidSegment) != std::string::npos;
-}
-
-bool VerifyPathSecurity(const std::string& path, int32_t uid)
+bool VerifyPathSecurity(const std::string& path)
 {
     std::string realPath;
     if (FileUtil::PathToRealPath(path, realPath)) {
-        if (strncmp(realPath.c_str(), LOG_PATH_PREFIX, strlen(LOG_PATH_PREFIX)) != 0) {
-            return false;
-        }
-        return IsExternalLogBelongToUid(realPath, uid);
+        return strncmp(realPath.c_str(), LOG_PATH_PREFIX, strlen(LOG_PATH_PREFIX)) == 0;
     }
     return false;
 }
@@ -326,7 +308,7 @@ void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& e
         if (CheckInSandBoxLog(curLogPath, sandBoxLogPath, externalLogJson, logOverLimit)) {
             continue;
         }
-        if (curLogPath.empty() || !VerifyPathSecurity(curLogPath, uid)) {
+        if (curLogPath.empty() || !VerifyPathSecurity(curLogPath)) {
             HIVIEW_LOGI("curLogPath is empty or invalid. curLogPath=%{public}s", curLogPath.c_str());
             continue;
         }
