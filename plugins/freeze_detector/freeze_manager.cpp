@@ -19,6 +19,7 @@
 #include "file_util.h"
 #include "time_util.h"
 #include "string_util.h"
+#include "freeze_common.h"
 #include "ffrt.h"
 
 namespace OHOS {
@@ -264,7 +265,7 @@ std::string FreezeManager::GetCpuInfo(const std::string& cpuFile) const
         HIVIEW_LOGE("invalid file:%{public}s.", cpuFile.c_str());
         return "";
     }
-    std::string realCpuPath = CheckFreezePathPrefix(cpuFile, std::string(LOGGER_EVENT_LOG_PATH) + "/");
+    std::string realCpuPath = CheckFreezePathPrefix(cpuFile, EVENTLOG_PATH_PREFIX);
     return realCpuPath.empty() ? "" : GetAppFreezeFile(realCpuPath, false, false);
 }
  
@@ -398,6 +399,52 @@ std::string FreezeManager::CheckFreezePathPrefix(const std::string& path, const 
         return "";
     }
     return realPath;
+}
+
+bool FreezeManager::IsAllDigits(const std::string& str)
+{
+    if (str.empty()) {
+        return true;
+    }
+    for (char c : str) {
+        if (!isdigit(c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool FreezeManager::IsValidFreezePath(const std::string& path, const std::string& prefix, int32_t uid) const
+{
+    if (!FileUtil::FileExists(path)) {
+        return true;
+    }
+    if (path.empty() || ContainPathTraversal(path)) {
+        HIVIEW_LOGE("invalid path:%{public}s", path.c_str());
+        return false;
+    }
+    if (uid >= 0 && uid != FreezeCommon::FOUNDATION_UID) {
+        HIVIEW_LOGE("uid=%{public}d is not foundation, path=%{public}s", uid, path.c_str());
+        return false;
+    }
+    std::string realPath = CheckFreezePathPrefix(path, prefix);
+    if (realPath.empty()) {
+        HIVIEW_LOGE("invalid path:%{public}s", path.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool FreezeManager::IsValidEventStringParam(const std::string& param) const
+{
+    if (param.empty()) {
+        return true;
+    }
+    if (ContainPathTraversal(param)) {
+        HIVIEW_LOGE("param contains path traversal, param=%{public}s", param.c_str());
+        return false;
+    }
+    return true;
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

@@ -147,6 +147,7 @@ private:
     bool ContainsPriorityKeyword(const std::string& line);
     bool MatchEventStartFlag(const std::string& line);
     bool MatchEventEndFlag(const std::string& line);
+    bool IsValidEventParam(const std::shared_ptr<SysEvent>& event) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
