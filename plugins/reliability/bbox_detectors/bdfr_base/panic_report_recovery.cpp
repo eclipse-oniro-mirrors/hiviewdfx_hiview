@@ -61,6 +61,19 @@ constexpr const char* REGEX_FORMAT = R"(=((".*?")|(\S*)))";
 constexpr int COMPRESSION_RATION = 9;
 constexpr int ZIP_FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
 
+bool CheckTimeStr(const std::string& timeStr)
+{
+    for (const auto& c : timeStr) {
+        if (c >= '0' && c <= '9') {
+            continue;
+        }
+        if (c != '-') {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool InitPanicConfigFile(bool& isLastStartUpShort)
 {
     if (FileUtil::CreateFile(BBOX_PARAM_PATH, FileUtil::FILE_PERM_640) != 0) {
@@ -201,7 +214,7 @@ void AddFileToZip(HiviewZipUnit& hiviewZipUnit, const std::string& path)
 
 void CompressAndCopyLogFiles(const std::string& srcPath, const std::string& timeStr)
 {
-    if (timeStr.find("./") != std::string::npos) {
+    if (!CheckTimeStr(timeStr)) {
         return;
     }
     if (!FileUtil::FileExists(PANIC_LOG_PATH)) {
