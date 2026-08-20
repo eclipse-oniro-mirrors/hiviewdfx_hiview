@@ -56,11 +56,7 @@ public:
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
     void FillProcMemory(const std::string& procStatm, long pid,
         std::map<std::string, std::string> &sectionMaps) const;
-    bool ContainPathTraversal(const std::string& path) const;
     std::string CheckFreezePathPrefix(const std::string& path, const std::string& prefix) const;
-    static bool IsAllDigits(const std::string& str);
-    bool IsValidFreezePath(const std::string& path, const std::string& prefix, int32_t uid = -1) const;
-    bool IsValidEventStringParam(const std::string& param) const;
 
 private:
     void InitEventLogStore();

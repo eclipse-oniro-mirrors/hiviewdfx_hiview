@@ -20,6 +20,7 @@
 #include "time_util.h"
 #include "log_store_ex.h"
 #include "log_file.h"
+#include "event_field_validator.h"
 
 #define private public
 #include "freeze_manager.h"
@@ -295,70 +296,17 @@ HWTEST_F(FreezeManagerTest, FreezeManagerTest_001, TestSize.Level3)
 
 /**
  * @tc.name: ContainPathTraversal_001
- * @tc.desc: FreezeManager
+ * @tc.desc: EventFieldValidator
  */
 HWTEST_F(FreezeManagerTest, ContainPathTraversal_001, TestSize.Level3)
 {
-    EXPECT_TRUE(freezeManager->ContainPathTraversal("../etc/passwd"));
-    EXPECT_TRUE(freezeManager->ContainPathTraversal("/data/log/../etc"));
-    EXPECT_TRUE(freezeManager->ContainPathTraversal("test\\path"));
-    EXPECT_TRUE(freezeManager->ContainPathTraversal(std::string("test\0path", 9)));
-    EXPECT_FALSE(freezeManager->ContainPathTraversal("/data/log/eventlog"));
-    EXPECT_FALSE(freezeManager->ContainPathTraversal("normal_path"));
-    EXPECT_FALSE(freezeManager->ContainPathTraversal(""));
-}
-
-/**
- * @tc.name: IsAllDigits_001
- * @tc.desc: FreezeManager
- */
-HWTEST_F(FreezeManagerTest, IsAllDigits_001, TestSize.Level3)
-{
-    EXPECT_TRUE(FreezeManager::IsAllDigits(""));
-    EXPECT_TRUE(FreezeManager::IsAllDigits("12345"));
-    EXPECT_TRUE(FreezeManager::IsAllDigits("0"));
-    EXPECT_FALSE(FreezeManager::IsAllDigits("12a34"));
-    EXPECT_FALSE(FreezeManager::IsAllDigits("abc"));
-    EXPECT_FALSE(FreezeManager::IsAllDigits("12 34"));
-    EXPECT_FALSE(FreezeManager::IsAllDigits("-1"));
-}
-
-/**
- * @tc.name: IsValidEventStringParam_001
- * @tc.desc: FreezeManager
- */
-HWTEST_F(FreezeManagerTest, IsValidEventStringParam_001, TestSize.Level3)
-{
-    EXPECT_TRUE(freezeManager->IsValidEventStringParam(""));
-    EXPECT_TRUE(freezeManager->IsValidEventStringParam("com.ohos.test"));
-    EXPECT_TRUE(freezeManager->IsValidEventStringParam("normal_text"));
-    EXPECT_FALSE(freezeManager->IsValidEventStringParam("../etc/passwd"));
-    EXPECT_FALSE(freezeManager->IsValidEventStringParam("test\\path"));
-    EXPECT_FALSE(freezeManager->IsValidEventStringParam(std::string("test\0path", 9)));
-}
-
-/**
- * @tc.name: IsValidFreezePath_001
- * @tc.desc: FreezeManager
- */
-HWTEST_F(FreezeManagerTest, IsValidFreezePath_001, TestSize.Level3)
-{
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("", FreezeManager::EVENTLOG_PATH_PREFIX));
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("test\\path", FreezeManager::EVENTLOG_PATH_PREFIX));
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("/not/exist/path", FreezeManager::EVENTLOG_PATH_PREFIX));
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("normal_content", FreezeManager::EVENTLOG_PATH_PREFIX));
-}
-
-/**
- * @tc.name: IsValidFreezePath_002
- * @tc.desc: FreezeManager uid check
- */
-HWTEST_F(FreezeManagerTest, IsValidFreezePath_002, TestSize.Level3)
-{
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("content", FreezeManager::EVENTLOG_PATH_PREFIX, -1));
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("content", FreezeManager::EVENTLOG_PATH_PREFIX, 5523));
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("content", FreezeManager::EVENTLOG_PATH_PREFIX, 1000));
-    EXPECT_TRUE(freezeManager->IsValidFreezePath("", FreezeManager::EVENTLOG_PATH_PREFIX, 1000));
+    EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("../etc/passwd"));
+    EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("/data/log/../etc"));
+    EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("test\\path"));
+    EXPECT_TRUE(EventFieldValidator::ContainPathTraversal(std::string("test\0path", 9)));
+    EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("/data/log/eventlog"));
+    EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("normal_path"));
+    EXPECT_FALSE(EventFieldValidator::ContainPathTraversal(""));
 }
 }
 }
