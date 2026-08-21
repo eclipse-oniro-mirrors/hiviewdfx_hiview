@@ -94,9 +94,15 @@ void FaultloggerServiceOhos::StartService()
 void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
-    HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d", info.uid, uid, info.pid);
-    if ((uid != static_cast<int32_t>(getuid())) && uid != info.uid && uid != UID_FAULTLOGGERD) {
-        HIVIEW_LOGW("Fail to add fault log, mismatch uid:%{public}d(%{public}d)", uid, info.uid);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d pid:%{public}d", info.uid, uid, info.pid, pid);
+    // System callers (hiview itself or faultloggerd) are allowed directly.
+    // Non-system callers must match both uid and pid to prevent cross-uid pid injection
+    // via raw SendRequest that bypasses the libfaultlogger client API.
+    bool isSystemCaller = (uid == static_cast<int32_t>(getuid())) || (uid == UID_FAULTLOGGERD);
+    if (!isSystemCaller && (uid != info.uid || pid != info.pid)) {
+        HIVIEW_LOGW("Fail to add fault log, mismatch uid:%{public}d(%{public}d) or pid:%{public}d(%{public}d)",
+            uid, info.uid, pid, info.pid);
         if (info.pipeFd > 0) {
             close(info.pipeFd);
         }
