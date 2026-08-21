@@ -15,6 +15,8 @@
 #include "faultlogger_service_ohos.h"
 
 #include <cstdint>
+#include <cstdlib>
+#include <fstream>
 #include <functional>
 #include <string>
 #include <vector>
@@ -40,6 +42,26 @@ constexpr int32_t UID_ROOT = 0;
 constexpr int32_t UID_HIDUMPER = 1212;
 constexpr int32_t UID_HIVIEW = 1201;
 constexpr int32_t UID_FAULTLOGGERD = 1202;
+
+// Get the parent PID of a process by reading /proc/<pid>/status.
+// Returns -1 if the process does not exist or PPid cannot be parsed.
+int32_t GetParentPid(int32_t pid)
+{
+    std::ifstream file("/proc/" + std::to_string(pid) + "/status");
+    if (!file.is_open()) {
+        return -1;
+    }
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.compare(0, 5, "PPid") == 0) {
+            size_t pos = line.find_first_not_of(" \t", 5);
+            if (pos != std::string::npos) {
+                return atoi(line.c_str() + pos);
+            }
+        }
+    }
+    return -1;
+}
 }
 void FaultloggerServiceOhos::ClearQueryStub(int32_t uid)
 {
@@ -97,10 +119,11 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
     int32_t pid = IPCSkeleton::GetCallingPid();
     HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d pid:%{public}d", info.uid, uid, info.pid, pid);
     // System callers (hiview itself or faultloggerd) are allowed directly.
-    // Non-system callers must match both uid and pid to prevent cross-uid pid injection
-    // via raw SendRequest that bypasses the libfaultlogger client API.
+    // Non-system callers must match uid, and pid must be either the caller's own pid
+    // (self-report) or the caller's parent pid (processdump pattern: processdump is
+    // forked from the crashed process, so its parent pid == info.pid).
     bool isSystemCaller = (uid == static_cast<int32_t>(getuid())) || (uid == UID_FAULTLOGGERD);
-    if (!isSystemCaller && (uid != info.uid || pid != info.pid)) {
+    if (!isSystemCaller && (uid != info.uid || (pid != info.pid && GetParentPid(pid) != info.pid))) {
         HIVIEW_LOGW("Fail to add fault log, mismatch uid:%{public}d(%{public}d) or pid:%{public}d(%{public}d)",
             uid, info.uid, pid, info.pid);
         if (info.pipeFd > 0) {
