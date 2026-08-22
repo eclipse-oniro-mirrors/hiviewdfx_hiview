@@ -85,6 +85,10 @@ std::shared_ptr<EventRaw::RawData> ConverRawData(char* source)
         return nullptr;
     }
     uint32_t sourceLen = *(reinterpret_cast<uint32_t*>(source));
+    if (sourceLen > BUFFER_SIZE) {
+        HIVIEW_LOGE("invalid event source data").;
+        return nullptr;
+    }
     uint32_t desLen = sourceLen + sizeof(uint8_t);
     uint8_t* des = reinterpret_cast<uint8_t*>(malloc(desLen));
     if (des == nullptr) {
