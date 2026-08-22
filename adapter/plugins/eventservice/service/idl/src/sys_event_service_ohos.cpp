@@ -63,7 +63,7 @@ bool IsMatchedWithRegex(const string& rule, const string& match)
         return false;
     }
     smatch result;
-    const regex pattern(rule);
+    const regex pattern(rule, std::regex::extended);
     return regex_search(match, result, pattern);
 }
 
