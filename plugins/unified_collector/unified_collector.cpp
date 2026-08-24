@@ -62,6 +62,7 @@ constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/tra
 constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
 constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
 constexpr char UNIFIED_SHARE_PATH[] = "/data/log/hiview/unified_collection/trace/share";
+constexpr char EXTERNAL_LOG_PATH_PREFIX[] = "/data/storage/el2/log/watchdog";
 constexpr int32_t LOG_GID = 1007;
 
 void CreateTracePathInner(const std::string &filePath)
@@ -163,6 +164,12 @@ void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
 {
     if (sysEvent.GetEventIntValue(UCollectUtil::SYS_EVENT_PARAM_JANK_LEVEL) <
         UCollectUtil::SYS_EVENT_JANK_LEVEL_VALUE_TRACE) {
+        std::string externalLogPath = sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG);
+        if (externalLogPath.find(EXTERNAL_LOG_PATH_PREFIX) != 0) {
+            HIVIEW_LOGE("invalid external log path:%{public}s", externalLogPath.c_str());
+            return;
+        }
+
         // hicollie capture stack in application process, only need to share app event to application by hiview
         Json::Value eventJson;
         eventJson[UCollectUtil::APP_EVENT_PARAM_UID] = sysEvent.GetUid();
@@ -181,7 +188,7 @@ void UnifiedCollector::OnMainThreadJank(SysEvent& sysEvent)
         eventJson[UCollectUtil::APP_EVENT_PARAM_HEAVIEST_STACK] = sysEvent.GetEventValue(
             UCollectUtil::SYS_EVENT_PARAM_HEAVIEST_STACK);
         Json::Value externalLog;
-        externalLog.append(sysEvent.GetEventValue(UCollectUtil::SYS_EVENT_PARAM_EXTERNAL_LOG));
+        externalLog.append(externalLogPath);
         eventJson[UCollectUtil::APP_EVENT_PARAM_EXTERNAL_LOG] = externalLog;
         std::string param = Json::FastWriter().write(eventJson);
 
