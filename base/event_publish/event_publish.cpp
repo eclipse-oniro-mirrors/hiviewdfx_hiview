@@ -301,9 +301,9 @@ bool IsDmpFile(const std::string& dmpPath)
 }
 
 bool CheckInSandBoxLog(const std::string& curLogPath, const std::string& sandBoxLogPath, Json::Value& externalLogJson,
-    bool& logOverLimit, const std::string& eventName)
+    bool& logOverLimit)
 {
-    if (eventName == EVENT_MAIN_THREAD_JANK || curLogPath.find(SANDBOX_DIR) == 0) {
+    if (curLogPath.find(SANDBOX_DIR) == 0) {
         HIVIEW_LOGI("File in sandbox path not copy.");
         std::string fileName = FileUtil::ExtractFileName(curLogPath);
         if (FileUtil::FileExists(sandBoxLogPath + "/" + fileName)) {
@@ -371,8 +371,7 @@ void CopyExternalLogsToSandBox(int32_t uid, const ExternalLogInfo& externalLogIn
         if (externalLogArr[i].isString()) {
             curLogPath = externalLogArr[i].asString();
         }
-        if (CheckInSandBoxLog(curLogPath, externalLogInfo.sandBoxLogPath, externalLogJson,
-            logOverLimit, eventJson[NAME_PROPERTY].asString())) {
+        if (CheckInSandBoxLog(curLogPath, externalLogInfo.sandBoxLogPath, externalLogJson, logOverLimit)) {
             continue;
         }
         if (curLogPath.empty() || !VerifyPathSecurity(curLogPath)) {
