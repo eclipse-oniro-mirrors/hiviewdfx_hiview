@@ -989,15 +989,16 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
     std::string jsonStack1 = jsonStack;
     FormatHicollieStack(jsonStack1, stackStr, pid, bundleName, ret);
     allStack += stackStr;
-    if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
-        std::string procName = CommonUtils::GetProcFullNameByPid(pid);
-        size_t len = std::char_traits<char>::length(":render");
-        if (procName.find(":render") != std::string::npos && procName.size() > len) {
-            std::string appName = procName.substr(0, procName.size() - len);
-            int pidOfApp = CommonUtils::GetPidByName(appName);
-            if (pidOfApp < 0) {
-                HIVIEW_LOGE("invalid pid:%{public}d", pid);
-            }
+    if (uid < ARKWEB_UID_START || uid > ARKWEB_UID_END) {
+        stack = allStack;
+        return true;
+    }
+    std::string procName = CommonUtils::GetProcFullNameByPid(pid);
+    size_t len = std::char_traits<char>::length(":render");
+    if (procName.find(":render") != std::string::npos && procName.size() > len) {
+        std::string appName = procName.substr(0, procName.size() - len);
+        int pidOfApp = CommonUtils::GetPidByName(appName);
+        if (pidOfApp > 0) {
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
             if (ret != 0) {
@@ -1007,6 +1008,8 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
             FormatHicollieStack(appStackStr, stackApp, pidOfApp, appName, ret);
             allStack += "\nstackApp:\n";
             allStack += stackApp;
+        } else {
+            HIVIEW_LOGE("invalid pid:%{public}d", pid);
         }
     }
     stack = allStack;
@@ -1305,7 +1308,7 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
         std::vector<WatchPoint> list;
         FreezeResult freezeResult(0, "FRAMEWORK", "PROCESS_KILL");
         freezeResult.SetSamePackage("true");
-        DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName};
+        DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName, event->eventName_};
         dbHelper_->SelectEventFromDB(event->happenTime_ - QUERY_PROCESS_KILL_INTERVAL, event->happenTime_, list,
             params, freezeResult);
         std::string appendStack = "";
