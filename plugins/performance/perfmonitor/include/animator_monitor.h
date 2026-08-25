@@ -136,6 +136,7 @@ private:
         PerfConstants::INTO_NC_ANI,
         PerfConstants::INTO_NC_FROM_CC,
         PerfConstants::CLEAR_NT_ANI,
+        PerfConstants::CLEAR_ALL_NTF_ANIMATION,
         PerfConstants::SCROLL_NC_LIST_ANI,
         PerfConstants::EXIT_NC_ANI,
         PerfConstants::VOLUME_BAR_CHANGE_ON,
