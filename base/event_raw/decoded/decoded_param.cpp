@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -92,6 +92,9 @@ bool UnsignedVarintDecodedArrayParam::DecodeValue()
 {
     uint64_t size = 0;
     auto ret = RawDataDecoder::UnsignedVarintDecoded(rawData_, maxLen_, pos_, size);
+    if (size > MAX_ARRAY_SIZE) {
+        return false;
+    }
     while (size > 0) {
         uint64_t val = 0;
         ret = ret && RawDataDecoder::UnsignedVarintDecoded(rawData_, maxLen_, pos_, val);
@@ -135,6 +138,9 @@ bool SignedVarintDecodedArrayParam::DecodeValue()
 {
     uint64_t size = 0;
     auto ret = RawDataDecoder::UnsignedVarintDecoded(rawData_, maxLen_, pos_, size);
+    if (size > MAX_ARRAY_SIZE) {
+        return false;
+    }
     while (size > 0) {
         int64_t val = 0;
         ret = ret && RawDataDecoder::SignedVarintDecoded(rawData_, maxLen_, pos_, val);
@@ -178,6 +184,9 @@ bool FloatingNumberDecodedArrayParam::DecodeValue()
 {
     uint64_t size = 0;
     auto ret = RawDataDecoder::UnsignedVarintDecoded(rawData_, maxLen_, pos_, size);
+    if (size > MAX_ARRAY_SIZE) {
+        return false;
+    }
     while (size > 0) {
         double val = 0;
         ret = ret && RawDataDecoder::FloatingNumberDecoded(rawData_, maxLen_, pos_, val);
@@ -221,6 +230,9 @@ bool StringDecodedArrayParam::DecodeValue()
 {
     uint64_t size = 0;
     auto ret = RawDataDecoder::UnsignedVarintDecoded(rawData_, maxLen_, pos_, size);
+    if (size > MAX_ARRAY_SIZE) {
+        return false;
+    }
     while (size > 0) {
         std::string val;
         ret = ret && RawDataDecoder::StringValueDecoded(rawData_, maxLen_, pos_, val);
