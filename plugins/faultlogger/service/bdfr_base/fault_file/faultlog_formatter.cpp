@@ -488,13 +488,6 @@ void WriteFaultLogToFile(int32_t fd, int32_t logType, const std::map<std::string
         }
         FileUtil::SaveStringToFd(fd, value);
     }
-
-    if (auto logIter = sections.find("KEYLOGFILE"); logIter != sections.end() && !logIter->second.empty()) {
-        if (auto pidIter = sections.find(FaultKey::MODULE_PID); pidIter != sections.end()) {
-            FileUtil::SaveStringToFd(fd, "Additional Logs:\n");
-            WriteStackTraceFromLog(fd, pidIter->second, logIter->second);
-        }
-    }
 }
 
 static void UpdateFaultLogInfoFromTempFile(FaultLogInfo& info)
