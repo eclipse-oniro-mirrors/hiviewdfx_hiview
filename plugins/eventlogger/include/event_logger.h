@@ -148,6 +148,8 @@ private:
     bool MatchEventStartFlag(const std::string& line);
     bool MatchEventEndFlag(const std::string& line);
     bool IsValidEventParam(const std::shared_ptr<SysEvent>& event) const;
+    bool IsInvalidEventSource(const std::shared_ptr<SysEvent>& event) const;
+    bool IsFoundationRequiredEvent(const std::string& eventName) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
