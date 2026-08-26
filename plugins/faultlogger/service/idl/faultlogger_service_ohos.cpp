@@ -15,8 +15,11 @@
 #include "faultlogger_service_ohos.h"
 
 #include <cstdint>
+#include <cstring>
 #include <functional>
+#include <climits>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 #include "export_faultlogger_interface.h"
@@ -39,7 +42,23 @@ constexpr int32_t UID_SHELL = 2000;
 constexpr int32_t UID_ROOT = 0;
 constexpr int32_t UID_HIDUMPER = 1212;
 constexpr int32_t UID_HIVIEW = 1201;
-constexpr int32_t UID_FAULTLOGGERD = 1202;
+constexpr const char* const PROCESSDUMP_PATH = "/system/bin/processdump";
+
+bool IsCallerProcessDump(int32_t pid)
+{
+    char exe[PATH_MAX] = {0};
+    std::string link = "/proc/" + std::to_string(pid) + "/exe";
+    ssize_t len = readlink(link.c_str(), exe, sizeof(exe) - 1);
+    if (len <= 0) {
+        HIVIEW_LOGW("IsCallerProcessDump: readlink failed, pid:%{public}d errno:%{public}d", pid, errno);
+        return false;
+    }
+    if (strcmp(exe, PROCESSDUMP_PATH) != 0) {
+        HIVIEW_LOGW("IsCallerProcessDump: not processdump, pid:%{public}d exe:%{public}s", pid, exe);
+        return false;
+    }
+    return true;
+}
 }
 void FaultloggerServiceOhos::ClearQueryStub(int32_t uid)
 {
@@ -94,9 +113,11 @@ void FaultloggerServiceOhos::StartService()
 void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
-    HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d", info.uid, uid, info.pid);
-    if ((uid != static_cast<int32_t>(getuid())) && uid != info.uid && uid != UID_FAULTLOGGERD) {
-        HIVIEW_LOGW("Fail to add fault log, mismatch uid:%{public}d(%{public}d)", uid, info.uid);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d pid:%{public}d", info.uid, uid, info.pid, pid);
+    if ((uid != static_cast<int32_t>(getuid())) && !IsCallerProcessDump(pid)) {
+        HIVIEW_LOGW("Fail to add fault log, caller uid:%{public}d is not hiview and pid:%{public}d is not processdump",
+            uid, pid);
         if (info.pipeFd > 0) {
             close(info.pipeFd);
         }
