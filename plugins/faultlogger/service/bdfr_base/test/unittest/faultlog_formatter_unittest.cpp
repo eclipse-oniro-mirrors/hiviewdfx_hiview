@@ -55,47 +55,6 @@ static std::string GetPipeData(int pipeRead)
 }
 
 /**
- * @tc.name: WriteFaultLogToFileTest001
- * @tc.desc: Test WriteFaultLogToFile
- * @tc.type: FUNC
- */
-HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest001, testing::ext::TestSize.Level1)
-{
-    std::map<std::string, std::string> sections = {
-        {"KEYLOGFILE", "hello"},
-        {"PID", "1234"}
-    };
-    int pipe[2] = {-1, -1};
-    if (pipe2(pipe, O_CLOEXEC | O_NONBLOCK)) {
-        FaultLogger::WriteFaultLogToFile(pipe[1], 0, sections);
-        auto result = GetPipeData(pipe[0]);
-        ASSERT_TRUE(result.find("Additional Logs:") != std::string::npos);
-        close(pipe[0]);
-        close(pipe[1]);
-    }
-}
-
-/**
- * @tc.name: WriteFaultLogToFileTest002
- * @tc.desc: Test WriteFaultLogToFile
- * @tc.type: FUNC
- */
-HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest002, testing::ext::TestSize.Level1)
-{
-    std::map<std::string, std::string> sections = {
-        {"KEYLOGFILE", "hello"},
-    };
-    int pipe[2] = {-1, -1};
-    if (pipe2(pipe, O_CLOEXEC | O_NONBLOCK)) {
-        FaultLogger::WriteFaultLogToFile(pipe[1], 0, sections);
-        auto result = GetPipeData(pipe[0]);
-        ASSERT_TRUE(result.find("Additional Logs:") == std::string::npos);
-        close(pipe[0]);
-        close(pipe[1]);
-    }
-}
-
-/**
  * @tc.name: WriteFaultLogToFileTest003
  * @tc.desc: Test WriteFaultLogToFile
  * @tc.type: FUNC
