@@ -244,6 +244,10 @@ std::string FreezeManager::GetStackInfo(long uid, const std::string& bundleName,
     if (stackFile.empty()) {
         return "";
     }
+    if (ContainPathTraversal(bundleName)) {
+        HIVIEW_LOGE("invalid bundleName:%{public}s.", bundleName.c_str());
+        return "";
+    }
     if (stackFile.find('/') != std::string::npos || ContainPathTraversal(stackFile)) {
         HIVIEW_LOGE("invalid file:%{public}s.", stackFile.c_str());
         return "";
