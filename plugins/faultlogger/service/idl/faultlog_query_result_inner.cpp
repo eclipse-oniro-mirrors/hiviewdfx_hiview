@@ -15,6 +15,7 @@
 #include "faultlog_query_result_inner.h"
 
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "faultlog_info_inner.h"
@@ -24,6 +25,7 @@ namespace OHOS {
 namespace HiviewDFX {
 std::unique_ptr<FaultLogInfo> FaultLogQueryResultInner::GetNext()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (iter_ != logList_.end()) {
         auto ret = std::make_unique<FaultLogInfo>(*iter_);
         ++iter_;
@@ -34,6 +36,7 @@ std::unique_ptr<FaultLogInfo> FaultLogQueryResultInner::GetNext()
 
 bool FaultLogQueryResultInner::HasNext()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return iter_ != logList_.end();
 }
 }  // namespace HiviewDFX
