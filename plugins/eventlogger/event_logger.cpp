@@ -119,6 +119,29 @@ namespace {
     constexpr int WINDOW_ID_BUFF = 32;
     constexpr int HEAP_SHARED_TOTAL_SIZE = 815792128;
     constexpr size_t END_FLAG_SIZE = 14;
+    constexpr const char* EVENT_LIFECYCLE_HALF_TIMEOUT = "LIFECYCLE_HALF_TIMEOUT";
+    constexpr const char* EVENT_LIFECYCLE_HALF_TIMEOUT_WARNING = "LIFECYCLE_HALF_TIMEOUT_WARNING";
+    constexpr const char* EVENT_LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
+    constexpr const char* EVENT_LIFECYCLE_TIMEOUT_WARNING = "LIFECYCLE_TIMEOUT_WARNING";
+    constexpr const char* EVENT_APP_LIFECYCLE_TIMEOUT = "APP_LIFECYCLE_TIMEOUT";
+    constexpr const char* EVENT_THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
+    constexpr const char* EVENT_THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
+    constexpr const char* EVENT_APP_INPUT_BLOCK = "APP_INPUT_BLOCK";
+    constexpr const char* EVENT_BUSSINESS_THREAD_BLOCK_3S = "BUSSINESS_THREAD_BLOCK_3S";
+    constexpr const char* EVENT_BUSSINESS_THREAD_BLOCK_6S = "BUSSINESS_THREAD_BLOCK_6S";
+    constexpr const char* EVENT_BUSINESS_INPUT_BLOCK = "BUSINESS_INPUT_BLOCK";
+    constexpr const char* EVENT_APP_HICOLLIE = "APP_HICOLLIE";
+    constexpr const char* FOUNDATION_REQUIRED_EVENTS[] = {
+        EVENT_LIFECYCLE_HALF_TIMEOUT,
+        EVENT_LIFECYCLE_HALF_TIMEOUT_WARNING,
+        EVENT_LIFECYCLE_TIMEOUT,
+        EVENT_LIFECYCLE_TIMEOUT_WARNING,
+        EVENT_APP_LIFECYCLE_TIMEOUT,
+        EVENT_THREAD_BLOCK_3S,
+        EVENT_THREAD_BLOCK_6S,
+        EVENT_APP_INPUT_BLOCK,
+        EVENT_BUSINESS_INPUT_BLOCK
+    };
 }
 
 REGISTER(EventLogger);
@@ -216,7 +239,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
         return false;
     }
 
-    if (!IsValidEventParam(sysEvent)) {
+    if (IsInvalidEventSource(sysEvent) || !IsValidEventParam(sysEvent)) {
         sysEvent->OnFinish();
         return false;
     }
@@ -1740,6 +1763,45 @@ bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) 
     dst = std::string(pos, end - pos);
     dst = StringUtil::TrimStr(dst, '\n');
     return true;
+}
+
+bool EventLogger::IsFoundationRequiredEvent(const std::string& eventName) const
+{
+    return std::find(std::begin(FOUNDATION_REQUIRED_EVENTS), std::end(FOUNDATION_REQUIRED_EVENTS),
+        eventName) != std::end(FOUNDATION_REQUIRED_EVENTS);
+}
+
+bool EventLogger::IsInvalidEventSource(const std::shared_ptr<SysEvent>& event) const
+{
+    const std::string& eventName = event->eventName_;
+    int32_t eventUid = event->GetUid();
+    if (IsFoundationRequiredEvent(eventName)) {
+        if (eventUid == FreezeCommon::FOUNDATION_UID) {
+            return false;
+        }
+        HIVIEW_LOGE("invalid event source, eventName=%{public}s, uid=%{public}d",
+            eventName.c_str(), eventUid);
+        return true;
+    }
+    int32_t uid = static_cast<int32_t>(event->GetEventIntValue("UID"));
+    if (eventName == EVENT_BUSSINESS_THREAD_BLOCK_3S ||
+        eventName == EVENT_BUSSINESS_THREAD_BLOCK_6S) {
+        if (eventUid == FreezeCommon::FOUNDATION_UID || eventUid == uid) {
+            return false;
+        }
+        HIVIEW_LOGE("invalid bussiness thread block source, eventName=%{public}s, uid=%{public}d",
+            eventName.c_str(), eventUid);
+        return true;
+    }
+    if (eventName == EVENT_APP_HICOLLIE) {
+        if (eventUid == uid) {
+            return false;
+        }
+        HIVIEW_LOGE("invalid APP_HICOLLIE source, uid_=%{public}d, uid=%{public}d",
+            eventUid, uid);
+        return true;
+    }
+    return false;
 }
 
 bool EventLogger::IsValidEventParam(const std::shared_ptr<SysEvent>& event) const

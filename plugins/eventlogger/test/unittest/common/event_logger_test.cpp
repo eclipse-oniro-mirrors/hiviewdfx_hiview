@@ -109,6 +109,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_002, TestSize.Level3)
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_003, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
+    eventLogger->InitQueue();
     auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
     std::string testName = "EventLoggerTest_OnEvent_003";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
@@ -122,6 +123,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_003, TestSize.Level3)
     sysEvent->eventName_ = "THREAD_BLOCK_6S";
     event = std::static_pointer_cast<Event>(sysEvent);
     sysEvent->SetValue("eventLog_action", "pb:1");
+    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
     EXPECT_EQ(eventLogger->OnEvent(event), true);
     OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", testName);
     EXPECT_FALSE(eventLogger->IsHandleAppfreeze(sysEvent));
@@ -2256,6 +2258,222 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_008, TestSize.Level3
     auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
     sysEvent->SetEventValue("SPECIFICSTACK_NAME", "../evil");
     EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_001
+ * @tc.desc: test IsInvalidEventSource with non-restricted event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "GESTURE_NAVIGATION_BACK";
+    sysEvent->uid_ = 1000;
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_002
+ * @tc.desc: test IsInvalidEventSource with foundation-required event from foundation
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "THREAD_BLOCK_6S";
+    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_003
+ * @tc.desc: test IsInvalidEventSource with foundation-required event from non-foundation
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_003, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "THREAD_BLOCK_6S";
+    sysEvent->uid_ = 1000;
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_004
+ * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_3S from non-foundation but UID matches
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_004, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_3S";
+    sysEvent->uid_ = 1000;
+    sysEvent->SetEventValue("UID", 1000);
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_005
+ * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_3S from non-foundation and UID mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_005, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_3S";
+    sysEvent->uid_ = 1000;
+    sysEvent->SetEventValue("UID", 2000);
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_006
+ * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_6S from foundation
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_006, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_6S";
+    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_007
+ * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_6S from non-foundation but UID matches
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_007, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_6S";
+    sysEvent->uid_ = 2000;
+    sysEvent->SetEventValue("UID", 2000);
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_008
+ * @tc.desc: test IsInvalidEventSource with APP_HICOLLIE where UID matches
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_008, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "APP_HICOLLIE";
+    sysEvent->uid_ = 3000;
+    sysEvent->SetEventValue("UID", 3000);
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_009
+ * @tc.desc: test IsInvalidEventSource with APP_HICOLLIE where UID mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_009, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->eventName_ = "APP_HICOLLIE";
+    sysEvent->uid_ = 3000;
+    sysEvent->SetEventValue("UID", 4000);
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_010
+ * @tc.desc: test IsInvalidEventSource with multiple foundation-required events from non-foundation
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_010, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->uid_ = 1000;
+    sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT_WARNING";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "LIFECYCLE_TIMEOUT_WARNING";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "APP_LIFECYCLE_TIMEOUT";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "THREAD_BLOCK_3S";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "APP_INPUT_BLOCK";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "BUSINESS_INPUT_BLOCK";
+    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_011
+ * @tc.desc: test IsInvalidEventSource with multiple foundation-required events from foundation
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_011, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
+    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
+    sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT";
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "THREAD_BLOCK_3S";
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+    sysEvent->eventName_ = "APP_INPUT_BLOCK";
+    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_012
+ * @tc.desc: test OnEvent with restricted event from non-foundation rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_012, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, jsonStr);
+    sysEvent->eventName_ = "THREAD_BLOCK_3S";
+    sysEvent->uid_ = 1000;
+    sysEvent->SetEventValue("PACKAGE_NAME", "com.test");
+    sysEvent->SetEventValue("PID", 100);
+    std::shared_ptr<Event> event = std::static_pointer_cast<Event>(sysEvent);
+    EXPECT_FALSE(eventLogger->OnEvent(event));
+}
+
+/**
+ * @tc.name: EventLoggerTest_IsInvalidEventSource_013
+ * @tc.desc: test OnEvent with APP_HICOLLIE where UID mismatch rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_013, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, jsonStr);
+    sysEvent->eventName_ = "APP_HICOLLIE";
+    sysEvent->uid_ = 1000;
+    sysEvent->SetEventValue("UID", 2000);
+    sysEvent->SetEventValue("PACKAGE_NAME", "com.test");
+    sysEvent->SetEventValue("PID", 100);
+    std::shared_ptr<Event> event = std::static_pointer_cast<Event>(sysEvent);
+    EXPECT_FALSE(eventLogger->OnEvent(event));
 }
 } // namespace HiviewDFX
 } // namespace OHOS
