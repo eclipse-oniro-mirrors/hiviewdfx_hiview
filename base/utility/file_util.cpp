@@ -219,19 +219,7 @@ bool RemoveFile(const std::string& fileName)
 
 uint64_t GetFolderSize(const std::string& path)
 {
-    std::vector<std::string> files;
-    struct stat statbuf = {0};
-    OHOS::GetDirFiles(path, files);
-    uint64_t totalSize = 0;
-    std::unordered_set<uint64_t> uniqueInodes;
-    for (auto& file : files) {
-        if (stat(file.c_str(), &statbuf) == 0 && uniqueInodes.count(statbuf.st_ino) == 0) {
-            totalSize += statbuf.st_size;
-            uniqueInodes.insert(statbuf.st_ino);
-        }
-    }
-
-    return totalSize;
+    return OHOS::GetFolderSize(path);
 }
 
 double GetDeviceValidSize(const std::string& partitionName)

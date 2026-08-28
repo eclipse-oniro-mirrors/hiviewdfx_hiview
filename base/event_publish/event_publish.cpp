@@ -60,7 +60,8 @@ constexpr const char* const BUNDLE_VERSION = "bundle_version";
 constexpr const char* const CRASH_TYPE = "crash_type";
 constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
-constexpr int32_t MAX_LINK_FILE_NUM = 10;
+constexpr int32_t DEFAULT_LINK_FILE_NUM = 10;
+constexpr int32_t MAX_LINK_FILE_NUM = 100;
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
 constexpr uint64_t DMP_MAX_FILE_SIZE = 35 * 1024 * 1024; // 35M
 constexpr uint64_t WATCHDOG_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M
@@ -89,7 +90,7 @@ struct ExternalLogInfo {
     std::string subPath;
     std::string sandBoxLogPath;
     uint64_t maxFileSize;
-    int32_t observerNum = MAX_LINK_FILE_NUM;
+    int32_t observerNum = DEFAULT_LINK_FILE_NUM;
 };
 
 void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &externalLogInfo, int32_t uid,
@@ -107,7 +108,7 @@ void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &external
         HIVIEW_LOGW("failed to get dir cfg xattr about %{public}s.", eventName.c_str());
         return;
     }
-    externalLogInfo.observerNum = StringUtil::StrToInt(value);
+    externalLogInfo.observerNum = std::min(StringUtil::StrToInt(value), MAX_LINK_FILE_NUM);
     HIVIEW_LOGI("%{public}s has %{public}d observers", eventName.c_str(), externalLogInfo.observerNum);
 }
 
@@ -344,6 +345,23 @@ bool VerifyPathSecurity(const std::string& path)
     return false;
 }
 
+uint64_t GetFolderSize(const std::string& path)
+{
+    std::vector<std::string> files;
+    struct stat statbuf = {0};
+    FileUtil::GetDirFiles(path, files);
+    uint64_t totalSize = 0;
+    std::unordered_set<uint64_t> uniqueInodes;
+    for (auto& file : files) {
+        if (stat(file.c_str(), &statbuf) == 0 && uniqueInodes.count(statbuf.st_ino) == 0) {
+            totalSize += static_cast<uint64_t>(statbuf.st_size);
+            uniqueInodes.insert(statbuf.st_ino);
+        }
+    }
+
+    return totalSize;
+}
+
 void SaveLinkExternalLog(Json::Value& eventJson, const std::string& path, const std::string& sandBoxLogPath,
     std::vector<std::string>& linkExternalLogs)
 {
@@ -361,7 +379,7 @@ void SaveLinkExternalLog(Json::Value& eventJson, const std::string& path, const 
 void CopyExternalLogsToSandBox(int32_t uid, const ExternalLogInfo& externalLogInfo, Json::Value& eventJson,
     uint32_t maxFileSizeBytes, bool needRefined)
 {
-    uint64_t dirSize = FileUtil::GetFolderSize(externalLogInfo.sandBoxLogPath);
+    uint64_t dirSize = GetFolderSize(externalLogInfo.sandBoxLogPath);
     bool logOverLimit = false;
     Json::Value externalLogJson(Json::arrayValue);
     const Json::Value& externalLogArr = eventJson[PARAM_PROPERTY][EXTERNAL_LOG];
