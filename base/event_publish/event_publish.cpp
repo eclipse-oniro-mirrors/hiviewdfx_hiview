@@ -279,9 +279,9 @@ bool CopyExternalLog(int32_t uid, const std::string& curLogPath, const std::stri
 {
     if (FileUtil::CopyFileFast(curLogPath, destPath, maxFileSizeByte) == 0) {
         CreateLinkFile(destPath, linkExternalLogs);
-        if (chown(destPath.c_str(), uid, uid) != 0) {
-            HIVIEW_LOGE("failed to change the owner and group of log file %{public}s, err: %{public}d",
-                destPath.c_str(), errno);
+        std::string entryTxt = "u:" + std::to_string(uid) + ":rwx";
+        if (OHOS::StorageDaemon::AclSetAccess(destPath, entryTxt) != 0) {
+            HIVIEW_LOGE("failed to set acl access dir");
             FileUtil::RemoveFile(destPath);
             std::string linkPath = destPath.substr(0, destPath.rfind("/"));
             for (const auto& linkFile : linkExternalLogs) {
