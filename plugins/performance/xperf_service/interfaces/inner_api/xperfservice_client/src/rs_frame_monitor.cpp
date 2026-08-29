@@ -30,6 +30,7 @@ constexpr int64_t ACVIDEO_NOTIFY_TIME_MS = 1000;
 constexpr int64_t ACVIDEO_JANK_TIME_MS = 300;
 constexpr int64_t ACVIDEO_RECORD_TIME_MS = 300;
 constexpr size_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
+constexpr size_t MAX_SURFACE_NAME_LENGTH = 10000;
 }
 
 namespace OHOS {
@@ -64,7 +65,14 @@ void RsFrameMonitor::VideoStart(const std::vector<uint64_t>& uniqueIdList,
 
     int64_t now = GetCurrentSystimeMs();
     for (size_t i = 0; i < uniqueIdList.size(); i++) {
-        videoMap_[uniqueIdList[i]] = {static_cast<int64_t>(reportTime), now, 0, 0, 0, 0, 0, 0, fps, surfaceNameList[i]};
+        if (surfaceNameList[i].length() > MAX_SURFACE_NAME_LENGTH) {
+            LOGW("surface name too long, truncating");
+            std::string truncatedName = surfaceNameList[i].substr(0, MAX_SURFACE_NAME_LENGTH);
+            videoMap_[uniqueIdList[i]] = {static_cast<int64_t>(reportTime), now, 0, 0, 0, 0, 0, 0, fps, truncatedName};
+        } else {
+            videoMap_[uniqueIdList[i]] = {static_cast<int64_t>(reportTime), now, 0, 0, 0, 0, 0, 0, fps,
+                                          surfaceNameList[i]};
+        }
     }
 }
 
