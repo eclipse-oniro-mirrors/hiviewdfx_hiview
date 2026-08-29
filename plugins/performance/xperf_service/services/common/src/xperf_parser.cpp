@@ -18,7 +18,7 @@
 #include "xperf_service_log.h"
 
 namespace {
-    constexpr size_t MAX_ALLOWED_LENGTH = 10000;
+    constexpr size_t MAX_ALLOWED_LENGTH = 500;
 }
 
 namespace OHOS {
