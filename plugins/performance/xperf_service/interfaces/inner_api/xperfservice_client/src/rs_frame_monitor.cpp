@@ -30,7 +30,7 @@ constexpr int64_t ACVIDEO_NOTIFY_TIME_MS = 1000;
 constexpr int64_t ACVIDEO_JANK_TIME_MS = 300;
 constexpr int64_t ACVIDEO_RECORD_TIME_MS = 300;
 constexpr size_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
-constexpr size_t MAX_SURFACE_NAME_LENGTH = 10000;
+constexpr size_t MAX_SURFACE_NAME_LENGTH = 200;
 }
 
 namespace OHOS {
