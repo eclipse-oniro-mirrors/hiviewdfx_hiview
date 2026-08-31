@@ -117,6 +117,15 @@ namespace {
     constexpr int WINDOW_ID_BUFF = 32;
     constexpr int HEAP_SHARED_TOTAL_SIZE = 815792128;
     constexpr size_t END_FLAG_SIZE = 14;
+    constexpr const char* EVENT_LIFECYCLE_HALF_TIMEOUT = "LIFECYCLE_HALF_TIMEOUT";
+    constexpr const char* EVENT_LIFECYCLE_HALF_TIMEOUT_WARNING = "LIFECYCLE_HALF_TIMEOUT_WARNING";
+    constexpr const char* EVENT_LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
+    constexpr const char* EVENT_LIFECYCLE_TIMEOUT_WARNING = "LIFECYCLE_TIMEOUT_WARNING";
+    constexpr const char* EVENT_APP_LIFECYCLE_TIMEOUT = "APP_LIFECYCLE_TIMEOUT";
+    constexpr const char* EVENT_THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
+    constexpr const char* EVENT_THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
+    constexpr const char* EVENT_APP_INPUT_BLOCK = "APP_INPUT_BLOCK";
+    constexpr const char* EVENT_BUSINESS_INPUT_BLOCK = "BUSINESS_INPUT_BLOCK";
 }
 
 REGISTER(EventLogger);
@@ -987,15 +996,16 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
     std::string jsonStack1 = jsonStack;
     FormatHicollieStack(jsonStack1, stackStr, pid, bundleName, ret);
     allStack += stackStr;
-    if (uid >= ARKWEB_UID_START && uid <= ARKWEB_UID_END) {
-        std::string procName = CommonUtils::GetProcFullNameByPid(pid);
-        size_t len = std::char_traits<char>::length(":render");
-        if (procName.find(":render") != std::string::npos && procName.size() > len) {
-            std::string appName = procName.substr(0, procName.size() - len);
-            int pidOfApp = CommonUtils::GetPidByName(appName);
-            if (pidOfApp < 0) {
-                HIVIEW_LOGE("invalid pid:%{public}d", pid);
-            }
+    if (uid < ARKWEB_UID_START || uid > ARKWEB_UID_END) {
+        stack = allStack;
+        return true;
+    }
+    std::string procName = CommonUtils::GetProcFullNameByPid(pid);
+    size_t len = std::char_traits<char>::length(":render");
+    if (procName.find(":render") != std::string::npos && procName.size() > len) {
+        std::string appName = procName.substr(0, procName.size() - len);
+        int pidOfApp = CommonUtils::GetPidByName(appName);
+        if (pidOfApp > 0) {
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
             if (ret != 0) {
@@ -1005,6 +1015,8 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
             FormatHicollieStack(appStackStr, stackApp, pidOfApp, appName, ret);
             allStack += "\nstackApp:\n";
             allStack += stackApp;
+        } else {
+            HIVIEW_LOGE("invalid pid:%{public}d", pid);
         }
     }
     stack = allStack;
@@ -1303,7 +1315,7 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
         std::vector<WatchPoint> list;
         FreezeResult freezeResult(0, "FRAMEWORK", "PROCESS_KILL");
         freezeResult.SetSamePackage("true");
-        DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName};
+        DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName, event->eventName_};
         dbHelper_->SelectEventFromDB(event->happenTime_ - QUERY_PROCESS_KILL_INTERVAL, event->happenTime_, list,
             params, freezeResult);
         std::string appendStack = "";
@@ -1771,6 +1783,5 @@ bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) 
     dst = StringUtil::TrimStr(dst, '\n');
     return true;
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS

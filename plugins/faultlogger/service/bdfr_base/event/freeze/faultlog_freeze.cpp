@@ -36,6 +36,22 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 using namespace FaultLogger;
 namespace {
+// Validate the freezeExtPath: resolve realpath, check /data/log/faultlog/ prefix,
+// and verify the uid appears as a dash-delimited segment in the filename.
+// Pattern follows IsValidPath (realpath + FAULTLOG_BASE_FOLDER prefix).
+bool IsValidExtPath(const std::string& path, int32_t uid)
+{
+    std::string realPath;
+    if (!FileUtil::PathToRealPath(path, realPath)) {
+        return false;
+    }
+    if (strncmp(realPath.c_str(), FAULTLOG_BASE_FOLDER, strlen(FAULTLOG_BASE_FOLDER)) != 0) {
+        return false;
+    }
+    std::string uidSegment = "-" + std::to_string(uid) + "-";
+    return realPath.find(uidSegment) != std::string::npos;
+}
+
 auto GetDightStrArr(const std::string& target)
 {
     std::vector<std::string> dightStrArr;
@@ -66,7 +82,10 @@ std::list<std::string> FaultLogFreeze::BuildExternalLogList(const FaultLogInfo& 
     externalLogList.push_back(info.logPath);
     std::string freezeExtPath = GetStrValFromMap(info.sectionMap, FaultKey::FREEZE_INFO_PATH);
     std::string enableMainThreadSample = GetStrValFromMap(info.sectionMap, FaultKey::ENABLE_MAINTHREAD_SAMPLE);
-    if (enableMainThreadSample == "1" && !freezeExtPath.empty()) {
+    if (!freezeExtPath.empty() && !IsValidExtPath(freezeExtPath, info.id)) {
+        HIVIEW_LOGW("freezeExtPath does not belong to uid %{public}d, skip: %{public}s",
+            info.id, freezeExtPath.c_str());
+    } else if (enableMainThreadSample == "1" && !freezeExtPath.empty()) {
         externalLogList.push_back(freezeExtPath);
     } else if (!freezeExtPath.empty()) {
         std::string mergedFile = MergeFreezeExtToLog(info.logPath, freezeExtPath, info.pid, info.id);

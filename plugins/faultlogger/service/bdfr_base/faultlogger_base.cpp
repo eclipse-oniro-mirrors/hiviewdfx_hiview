@@ -231,7 +231,7 @@ bool FaultloggerBase::EnableGwpAsanInner(GwpAsanParams gwpAsanParams, const std:
 
     int sampleRateInt = static_cast<int>(std::ceil(gwpAsanParams.sampleRate));
     int slotInt = static_cast<int>(std::ceil(gwpAsanParams.maxSimutaneousAllocations));
-    int pid = CommonUtils::GetPidByName(processName);
+    int pid = CommonUtils::GetPidByProcessName(processName);
     if (pid < 0) {
         HIVIEW_LOGE("EnableGwpAsanInner failed, get pid failed, process: %{public}s", processName.c_str());
         return false;

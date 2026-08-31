@@ -284,6 +284,8 @@ public:
 
     inline static constexpr char CLEAR_NT_ANI[] = "CLEAR_NT_ANI";
 
+    inline static constexpr char CLEAR_ALL_NTF_ANIMATION[] = "CLEAR_ALL_NTF_ANIMATION";
+
     inline static constexpr char SCROLL_NC_LIST_ANI[] = "SCROLL_NC_LIST_ANI";
 
     inline static constexpr char EXIT_NC_ANI[] = "EXIT_NC_ANI";

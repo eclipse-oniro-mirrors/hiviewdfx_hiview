@@ -54,11 +54,13 @@ constexpr const char* const EVENT_TYPE_PROPERTY = "eventType";
 constexpr const char* const PARAM_PROPERTY = "params";
 constexpr const char* const LOG_OVER_LIMIT = "log_over_limit";
 constexpr const char* const EXTERNAL_LOG = "external_log";
+constexpr const char* const LINK_EXTERNAL_LOG = "link_external_log";
 constexpr const char* const BUNDLE_NAME = "bundle_name";
 constexpr const char* const BUNDLE_VERSION = "bundle_version";
 constexpr const char* const CRASH_TYPE = "crash_type";
 constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
+constexpr int32_t MAX_LINK_FILE_NUM = 10;
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
 constexpr uint64_t DMP_MAX_FILE_SIZE = 35 * 1024 * 1024; // 35M
 constexpr uint64_t WATCHDOG_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M
@@ -85,12 +87,34 @@ const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
 struct ExternalLogInfo {
     std::string extensionType;
     std::string subPath;
+    std::string sandBoxLogPath;
     uint64_t maxFileSize;
+    int32_t observerNum = MAX_LINK_FILE_NUM;
 };
+
+void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &externalLogInfo, int32_t uid,
+    const std::string& pathHolder)
+{
+    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+    if (eventConfigDir.empty()) {
+        HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
+        return;
+    }
+
+    std::string property = std::string("user.event_config.") + eventName;
+    std::string value;
+    if (!FileUtil::GetDirXattr(eventConfigDir, property, value)) {
+        HIVIEW_LOGW("failed to get dir cfg xattr about %{public}s.", eventName.c_str());
+        return;
+    }
+    externalLogInfo.observerNum = StringUtil::StrToInt(value);
+    HIVIEW_LOGI("%{public}s has %{public}d observers", eventName.c_str(), externalLogInfo.observerNum);
+}
 
 void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalLogInfo, int32_t uid,
     const std::string& pathHolder)
 {
+    GetEventObserverNum(eventName, externalLogInfo, uid, pathHolder);
     if (eventName == EVENT_MAIN_THREAD_JANK) {
         externalLogInfo.extensionType = ".trace";
         externalLogInfo.subPath = "watchdog";
@@ -222,13 +246,47 @@ std::string GetPathPlaceHolder(int32_t uid)
     return bundleName;
 }
 
-bool CopyExternalLog(int32_t uid, const std::string& curLogPath, const std::string& destPath, uint32_t maxFileSizeByte)
+void GetLinkFileName(const std::string& desFileName, int32_t observerNum, std::vector<std::string>& linkExternalLogs)
+{
+    auto pos = desFileName.rfind(".");
+    std::string name;
+    std::string ext;
+    if (pos != std::string::npos) {
+        name = desFileName.substr(0, pos);
+        ext = desFileName.substr(pos);
+    } else {
+        name = desFileName;
+    }
+    
+    for (int i = 0; i < observerNum; ++i) {
+        linkExternalLogs.push_back(name + "_" + std::to_string(i) + ext);
+    }
+}
+
+void CreateLinkFile(const std::string& destPath, std::vector<std::string>& linkExternalLogs)
+{
+    std::string path = destPath.substr(0, destPath.rfind("/"));
+    for (size_t i = 0; i < linkExternalLogs.size(); ++i) {
+        std::string linkFile = path + "/" + linkExternalLogs[i];
+        if (link(destPath.c_str(), linkFile.c_str()) != 0) {
+            HIVIEW_LOGE("link %{public}s failed, errno %{public}d", linkFile.c_str(), errno);
+        }
+    }
+}
+
+bool CopyExternalLog(int32_t uid, const std::string& curLogPath, const std::string& destPath, uint32_t maxFileSizeByte,
+    std::vector<std::string>& linkExternalLogs)
 {
     if (FileUtil::CopyFileFast(curLogPath, destPath, maxFileSizeByte) == 0) {
-        if (chown(destPath.c_str(), uid, uid) != 0) {
-            HIVIEW_LOGE("failed to change the owner and group of log file %{public}s, err: %{public}d",
-                destPath.c_str(), errno);
+        CreateLinkFile(destPath, linkExternalLogs);
+        std::string entryTxt = "u:" + std::to_string(uid) + ":rwx";
+        if (OHOS::StorageDaemon::AclSetAccess(destPath, entryTxt) != 0) {
+            HIVIEW_LOGE("failed to set acl access dir");
             FileUtil::RemoveFile(destPath);
+            std::string linkPath = destPath.substr(0, destPath.rfind("/"));
+            for (const auto& linkFile : linkExternalLogs) {
+                FileUtil::RemoveFile(linkPath + "/" + linkFile);
+            }
             return false;
         }
         return true;
@@ -242,8 +300,8 @@ bool IsDmpFile(const std::string& dmpPath)
     return StringUtil::EndWith(dmpPath, ".dmp");
 }
 
-bool CheckInSandBoxLog(const std::string& curLogPath, const std::string& sandBoxLogPath,
-    Json::Value& externalLogJson, bool& logOverLimit)
+bool CheckInSandBoxLog(const std::string& curLogPath, const std::string& sandBoxLogPath, Json::Value& externalLogJson,
+    bool& logOverLimit)
 {
     if (curLogPath.find(SANDBOX_DIR) == 0) {
         HIVIEW_LOGI("File in sandbox path not copy.");
@@ -286,26 +344,34 @@ bool VerifyPathSecurity(const std::string& path)
     return false;
 }
 
-void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson, uint32_t maxFileSizeBytes,
-                      bool needRefined = false)
+void SaveLinkExternalLog(Json::Value& eventJson, const std::string& path, const std::string& sandBoxLogPath,
+    std::vector<std::string>& linkExternalLogs)
 {
-    if (!eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) || !eventJson[PARAM_PROPERTY][EXTERNAL_LOG].isArray() ||
-        eventJson[PARAM_PROPERTY][EXTERNAL_LOG].empty()) {
-        HIVIEW_LOGE("no external log need to copy.");
-        return;
+    Json::Value linkExternalLogJson(Json::arrayValue);
+    for (const auto& log : linkExternalLogs) {
+        std::string sanBoxFile = sandBoxLogPath + "/" + log;
+        std::string file = path + "/" + log;
+        if (FileUtil::FileExists(sanBoxFile)) {
+            linkExternalLogJson.append(file);
+        }
     }
-    ExternalLogInfo externalLogInfo;
-    GetExternalLogInfo(eventJson[NAME_PROPERTY].asString(), externalLogInfo, uid, pathHolder);
-    std::string sandBoxLogPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, externalLogInfo.subPath);
-    uint64_t dirSize = FileUtil::GetFolderSize(sandBoxLogPath);
+    eventJson[LINK_EXTERNAL_LOG].append(linkExternalLogJson);
+}
+
+void CopyExternalLogsToSandBox(int32_t uid, const ExternalLogInfo& externalLogInfo, Json::Value& eventJson,
+    uint32_t maxFileSizeBytes, bool needRefined)
+{
+    uint64_t dirSize = FileUtil::GetFolderSize(externalLogInfo.sandBoxLogPath);
     bool logOverLimit = false;
     Json::Value externalLogJson(Json::arrayValue);
-    for (Json::ArrayIndex i = 0; i < eventJson[PARAM_PROPERTY][EXTERNAL_LOG].size(); ++i) {
+    const Json::Value& externalLogArr = eventJson[PARAM_PROPERTY][EXTERNAL_LOG];
+    std::vector<std::vector<std::string>> linkExternalLogs(externalLogArr.size());
+    for (Json::ArrayIndex i = 0; i < externalLogArr.size(); ++i) {
         std::string curLogPath;
-        if (eventJson[PARAM_PROPERTY][EXTERNAL_LOG][i].isString()) {
-            curLogPath = eventJson[PARAM_PROPERTY][EXTERNAL_LOG][i].asString();
+        if (externalLogArr[i].isString()) {
+            curLogPath = externalLogArr[i].asString();
         }
-        if (CheckInSandBoxLog(curLogPath, sandBoxLogPath, externalLogJson, logOverLimit)) {
+        if (CheckInSandBoxLog(curLogPath, externalLogInfo.sandBoxLogPath, externalLogJson, logOverLimit)) {
             continue;
         }
         if (curLogPath.empty() || !VerifyPathSecurity(curLogPath)) {
@@ -314,16 +380,20 @@ void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& e
         }
         uint64_t fileSize = FileUtil::GetFileSize(curLogPath);
         if (fileSize <= externalLogInfo.maxFileSize - dirSize) {
-            std::string desFileName = GetDesFileName(eventJson[PARAM_PROPERTY], eventJson[NAME_PROPERTY].asString(),
-                externalLogInfo);
+            std::string desFileName = GetDesFileName(eventJson[PARAM_PROPERTY],
+                eventJson[NAME_PROPERTY].asString(), externalLogInfo);
             RefineLogFilePaths(eventJson, curLogPath, desFileName, needRefined);
             if (IsDmpFile(curLogPath)) {
                 desFileName = StringUtil::ReplaceStr(desFileName, ".log", ".dmp");
             }
-            std::string destPath = sandBoxLogPath + "/" + desFileName;
-            if (desFileName != "" && CopyExternalLog(uid, curLogPath, destPath, maxFileSizeBytes)) {
+            std::string destPath = externalLogInfo.sandBoxLogPath + "/" + desFileName;
+            GetLinkFileName(desFileName, externalLogInfo.observerNum, linkExternalLogs[i]);
+            if (desFileName != "" &&
+                CopyExternalLog(uid, curLogPath, destPath, maxFileSizeBytes, linkExternalLogs[i])) {
                 dirSize += fileSize;
-                externalLogJson.append("/data/storage/el2/log/" + externalLogInfo.subPath + "/" + desFileName);
+                std::string path = "/data/storage/el2/log/" + externalLogInfo.subPath;
+                externalLogJson.append(path + "/" + desFileName);
+                SaveLinkExternalLog(eventJson, path, externalLogInfo.sandBoxLogPath, linkExternalLogs[i]);
                 HIVIEW_LOGI("move log file to sandBoxLogPath successful.");
             }
         } else {
@@ -335,6 +405,20 @@ void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& e
     }
     eventJson[PARAM_PROPERTY][LOG_OVER_LIMIT] = logOverLimit;
     eventJson[PARAM_PROPERTY][EXTERNAL_LOG] = externalLogJson;
+}
+
+void SaveLogToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson, uint32_t maxFileSizeBytes,
+                      bool needRefined = false)
+{
+    if (!eventJson[PARAM_PROPERTY].isMember(EXTERNAL_LOG) || !eventJson[PARAM_PROPERTY][EXTERNAL_LOG].isArray() ||
+        eventJson[PARAM_PROPERTY][EXTERNAL_LOG].empty()) {
+        HIVIEW_LOGE("no external log need to copy.");
+        return;
+    }
+    ExternalLogInfo externalLogInfo;
+    GetExternalLogInfo(eventJson[NAME_PROPERTY].asString(), externalLogInfo, uid, pathHolder);
+    externalLogInfo.sandBoxLogPath = BundleUtil::GetSandBoxPath(uid, "log", pathHolder, externalLogInfo.subPath);
+    CopyExternalLogsToSandBox(uid, externalLogInfo, eventJson, maxFileSizeBytes, needRefined);
 }
 
 void RemoveEventInternalField(Json::Value& eventJson)

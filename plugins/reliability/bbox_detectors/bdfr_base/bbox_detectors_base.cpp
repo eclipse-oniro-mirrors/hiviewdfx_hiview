@@ -146,7 +146,7 @@ void BBoxDetectorsBase::StartBootScan(std::unique_ptr<BboxEventRecorder> &eventR
                 continue;
             }
             if ((name == "DPACRASH" || name == "MODEMCRASH" || name == "MODEM_REBOOTSYS") &&
-                HisysEventUtil::IsEventProcessed(name, "subLogPath", historyMap["subLogPath"])) {
+                HisysEventUtil::IsEventProcessed(name, "SUB_LOG_PATH", historyMap["subLogPath"])) {
                 HIVIEW_LOGI("Skip (%{public}s:%{public}" PRIu64 ")", name.c_str(), happenTime);
                 continue;
             }

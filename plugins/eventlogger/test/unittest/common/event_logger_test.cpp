@@ -129,6 +129,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_003, TestSize.Level3)
     sysEvent->eventName_ = "THREAD_BLOCK_6S";
     event = std::static_pointer_cast<Event>(sysEvent);
     sysEvent->SetValue("eventLog_action", "pb:1");
+    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
     EXPECT_EQ(eventLogger->OnEvent(event), true);
     OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", testName);
     EXPECT_FALSE(eventLogger->IsHandleAppfreeze(sysEvent));
@@ -2352,6 +2353,5 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_DumpWindowInfo_001, TestSize.Level3)
     WindowIdInfo windowIdInfo2 = eventLogger->DumpWindowInfo(fd);
     close(fd);
 }
-
 } // namespace HiviewDFX
 } // namespace OHOS
