@@ -62,9 +62,6 @@ void FuzzServiceInterfaceFreeze(const uint8_t* data, size_t size)
     std::string hilog(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
     data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
     bundle["HILOG"] = hilog;
-    std::string keyLogFile(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
-    data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
-    bundle["KEYLOGFILE"] = keyLogFile;
     std::string summary(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);
     data += FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH;
     std::string moduleName(reinterpret_cast<const char*>(data), FAULTLOGGER_FUZZTEST_MAX_STRING_LENGTH);

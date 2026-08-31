@@ -33,6 +33,7 @@ public:
         long tid;
         unsigned long long timestamp;
         std::string packageName;
+        std::string stringId;
     };
 
     explicit DBHelper(std::shared_ptr<FreezeCommon> fc) : freezeCommon_(fc) {};

@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <list>
 #include <regex>
+#include <regex.h>
 #include <string>
 #include <vector>
 
@@ -32,6 +33,22 @@ DEFINE_LOG_TAG("FeatureAnalysis");
 
 namespace {
     constexpr const char *PARAMETER_REASON = "REASON";
+    constexpr size_t MAX_REGEX_LENGTH = 1024;
+    std::string EscapeRegexChars(const std::string& input)
+    {
+        static const std::string specialChars = R"(\.^$*+?{}[]|())";
+        std::string escaped;
+        constexpr size_t expansion = 2;
+        escaped.reserve(input.length() * expansion);
+
+        for (char c : input) {
+            if (specialChars.find(c) != std::string::npos) {
+                escaped += '\\';
+            }
+            escaped += c;
+        }
+        return escaped;
+    }
 }
 
 FeatureAnalysis::~FeatureAnalysis()
@@ -138,7 +155,7 @@ bool FeatureAnalysis::IsSourceMatch(const string& line, const FeatureRule& rule)
     // if startwith "@R@"
     if (L3_REGULAR_DESCRIPTOR == cmdSrc.substr(0, strlen(L3_REGULAR_DESCRIPTOR))) {
         cmdSrc = cmdSrc.substr(strlen(L3_REGULAR_DESCRIPTOR));
-        return regex_search(line, regex(cmdSrc));
+        return (cmdSrc.length() <= MAX_REGEX_LENGTH) && regex_search(line, regex(cmdSrc));
     }
 
     // handle OR or AND expression
@@ -271,11 +288,14 @@ bool FeatureAnalysis::ReplaceVariable(const string& src, const string& param,
 {
     des = src;
     size_t pos = src.find(param);
+    if (value.length() > MAX_REGEX_LENGTH) {
+        return false;
+    }
     if (pos != string::npos) {
-        des.replace(pos, param.length(), value, 0, value.length());
+        string escapedValue = EscapeRegexChars(value);
+        des.replace(pos, param.length(), escapedValue, 0, escapedValue.length());
         return true;
     }
-
     return false;
 }
 

@@ -43,6 +43,7 @@ ohos_source_set("freeze_detector") {
 
   sources = [
     "db_helper.cpp",
+    "event_field_validator.cpp",
     "freeze_common.cpp",
     "freeze_detector_plugin.cpp",
     "resolver.cpp",

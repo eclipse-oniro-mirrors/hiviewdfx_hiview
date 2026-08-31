@@ -38,6 +38,7 @@ namespace {
     constexpr size_t FOUR_PARAMETER = 4;
     constexpr uint32_t BUF_SIZE_64 = 64;
     constexpr uint32_t BUF_SIZE_512 = 512;
+    constexpr size_t MAX_FILE_SIZE_10M = 10 * 1024 * 1024;
     std::mutex g_mutex;
 }
 static FaultLogNapiInfo ConversionInform(std::unique_ptr<FaultLogInfo> faultLogInfo)
@@ -57,7 +58,8 @@ static FaultLogNapiInfo ConversionInform(std::unique_ptr<FaultLogInfo> faultLogI
         ret.fullLog = "Fail to get log, fd is " + std::to_string(fd);
         return ret;
     }
-    while (true) {
+    size_t totalRead = 0;
+    while (totalRead < MAX_FILE_SIZE_10M) {
         char buf[BUF_SIZE_512] = {0};
         int nread = TEMP_FAILURE_RETRY(read((fd), buf, BUF_SIZE_512 - 1));
         if (nread == -1) {
@@ -70,6 +72,7 @@ static FaultLogNapiInfo ConversionInform(std::unique_ptr<FaultLogInfo> faultLogI
             break;
         }
         ret.fullLog += buf;
+        totalRead += static_cast<size_t>(nread);
     }
 
     return ret;
@@ -175,6 +178,13 @@ static bool CreateFaultLogAsyncWork(napi_env env, std::unique_ptr<FaultLogInfoCo
         FaultLogCompleteCallback, static_cast<void *>(faultLogInfoContext.get()), &faultLogInfoContext->work);
     if (status != napi_ok) {
         HIVIEW_LOGE("napi_create_async_work failed");
+        if (faultLogInfoContext->callbackRef != nullptr) {
+            napi_status refStatus = napi_delete_reference(env, faultLogInfoContext->callbackRef);
+            faultLogInfoContext->callbackRef = nullptr;
+            if (refStatus != napi_ok) {
+                HIVIEW_LOGE("napi_delete_reference failed");
+            }
+        }
         GET_AND_THROW_LAST_ERROR(env);
         return false;
     }

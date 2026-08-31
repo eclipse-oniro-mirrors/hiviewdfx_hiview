@@ -61,7 +61,7 @@ bool FreezeResolver::ResolveEvent(const WatchPoint& watchPoint,
     long tid = watchPoint.GetTid();
     std::string packageName = watchPoint.GetPackageName().empty() ?
         watchPoint.GetProcessName() : watchPoint.GetPackageName();
-    DBHelper::WatchParams params = {pid, tid, timestamp, packageName};
+    DBHelper::WatchParams params = {pid, tid, timestamp, packageName, watchPoint.GetStringId()};
     for (auto& i : result) {
         long window = i.GetWindow();
         if (window == 0) {

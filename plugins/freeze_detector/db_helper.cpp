@@ -56,14 +56,17 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
         long pid = record->GetEventIntValue(FreezeCommon::EVENT_PID);
         pid = pid ? pid : record->GetPid();
         long tid = record->GetEventIntValue(FreezeCommon::EVENT_TID);
-        if (result.GetSamePackage() == "true" && (watchParams.pid != pid ||
-            (watchParams.tid > 0 && tid > 0 && watchParams.tid != tid))) {
-            HIVIEW_LOGE("failed to match query result, watchPoint = [%{public}s, %{public}ld, %{public}ld], "
-                "record = [%{public}s, %{public}ld, %{public}ld]",
-                watchParams.packageName.c_str(), watchParams.pid, watchParams.tid, packageName.c_str(), pid, tid);
-            continue;
+        if (result.GetSamePackage() == "true") {
+            bool packageNameSame = (watchParams.stringId == "RENDER_JS_FREEZE") ? true :
+                (watchParams.packageName == packageName);
+            if (!packageNameSame || watchParams.pid != pid ||
+                (watchParams.tid > 0 && tid > 0 && watchParams.tid != tid)) {
+                HIVIEW_LOGE("failed to match query result, watchPoint = [%{public}s, %{public}ld, %{public}ld], "
+                    "record = [%{public}s, %{public}ld, %{public}ld]",
+                    watchParams.packageName.c_str(), watchParams.pid, watchParams.tid, packageName.c_str(), pid, tid);
+                continue;
+            }
         }
-
         if (record->happenTime_ < timestamp && timestamp - record->happenTime_ < frontInterval) {
             frontInterval = timestamp - record->happenTime_;
         } else if (frontInterval == UINT64_MAX) {
@@ -74,7 +77,6 @@ void DBHelper::GetResultWatchPoint(const struct WatchParams& watchParams, const 
         } else {
             continue;
         }
-
         long uid = record->GetEventIntValue(FreezeCommon::EVENT_UID);
         uid = uid ? uid : record->GetUid();
         resultWatchPoint = WatchPoint::Builder()
