@@ -26,6 +26,8 @@
 
 #include "decoded/decoded_event.h"
 
+#include "event_field_validator.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -241,6 +243,16 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
 
     if (!freezeCommon_->IsFreezeEvent(event.domain_, event.eventName_)) {
         HIVIEW_LOGE("not freeze event.");
+        return;
+    }
+
+    // source-first validation: untrusted senders (app side) must pass per-field
+    // checks and the capture quota before the watch point is built
+    SysEvent& sysEventRef = static_cast<SysEvent&>(const_cast<Event&>(event));
+    std::shared_ptr<SysEvent> sysEvent(&sysEventRef, [](SysEvent*) {});
+    if (!EventFieldValidator::ValidateEvent(sysEvent)) {
+        HIVIEW_LOGW("event rejected by source/field validation, domain:%{public}s name:%{public}s",
+            event.domain_.c_str(), event.eventName_.c_str());
         return;
     }
 

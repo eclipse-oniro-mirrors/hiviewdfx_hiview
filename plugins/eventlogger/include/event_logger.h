@@ -18,6 +18,7 @@
 #include <ctime>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <mutex>
@@ -62,6 +63,7 @@ private:
     long lastPid_ = 0;
     uint64_t startTime_;
     std::unordered_map<std::string, std::time_t> eventTagTime_;
+    std::unordered_map<std::string, std::pair<std::time_t, std::set<int64_t>>> uidPidCountMap_;
     std::unordered_map<int, std::string> fileMap_;
     std::unordered_map<std::string, EventLoggerConfig::EventLoggerConfigData> eventLoggerConfig_;
     std::shared_ptr<EventLoop> threadLoop_ = nullptr;
@@ -90,6 +92,9 @@ private:
 #endif
     int GetFile(std::shared_ptr<SysEvent> event, std::string& logFile, bool isFfrt);
     bool JudgmentRateLimiting(std::shared_ptr<SysEvent> event);
+    bool CheckDistinctPidLimit(const std::string& eventName, int64_t pid, int32_t uid, int32_t interval);
+    bool CheckEventInterval(const std::string& eventName, const std::string& eventPid,
+        int32_t interval);
     bool WriteStartTime(int fd, uint64_t start);
     void UpdateWindoInfo(WindowIdInfo& windowIdInfo, const char* buffer, bool inScreenGroup);
     WindowIdInfo DumpWindowInfo(int fd);
@@ -147,9 +152,6 @@ private:
     bool ContainsPriorityKeyword(const std::string& line);
     bool MatchEventStartFlag(const std::string& line);
     bool MatchEventEndFlag(const std::string& line);
-    bool IsValidEventParam(const std::shared_ptr<SysEvent>& event) const;
-    bool IsInvalidEventSource(const std::shared_ptr<SysEvent>& event) const;
-    bool IsFoundationRequiredEvent(const std::string& eventName) const;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -47,6 +47,7 @@
 #include "wm_common.h"
 #endif
 
+#include "event_field_validator.h"
 #include "event_log_task.h"
 #include "event_logger_config.h"
 #include "event_logger_util.h"
@@ -76,9 +77,6 @@ namespace {
         "VIP", "Immediate", "High", "Low", "Idle"
     };
     constexpr const char* TASK_TIMEOUT = "CONGESTION";
-    constexpr const char* PROCESS_IDENTITY_KEYS[] = {
-        "PACKAGE_NAME", "PROCESS_NAME", "MODULE_NAME", "PNAMEID", "SPECIFICSTACK_NAME"
-    };
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
     constexpr const char* DUMP_TRACE_FLAG = "trace";
@@ -127,21 +125,7 @@ namespace {
     constexpr const char* EVENT_THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
     constexpr const char* EVENT_THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* EVENT_APP_INPUT_BLOCK = "APP_INPUT_BLOCK";
-    constexpr const char* EVENT_BUSSINESS_THREAD_BLOCK_3S = "BUSSINESS_THREAD_BLOCK_3S";
-    constexpr const char* EVENT_BUSSINESS_THREAD_BLOCK_6S = "BUSSINESS_THREAD_BLOCK_6S";
     constexpr const char* EVENT_BUSINESS_INPUT_BLOCK = "BUSINESS_INPUT_BLOCK";
-    constexpr const char* EVENT_APP_HICOLLIE = "APP_HICOLLIE";
-    constexpr const char* FOUNDATION_REQUIRED_EVENTS[] = {
-        EVENT_LIFECYCLE_HALF_TIMEOUT,
-        EVENT_LIFECYCLE_HALF_TIMEOUT_WARNING,
-        EVENT_LIFECYCLE_TIMEOUT,
-        EVENT_LIFECYCLE_TIMEOUT_WARNING,
-        EVENT_APP_LIFECYCLE_TIMEOUT,
-        EVENT_THREAD_BLOCK_3S,
-        EVENT_THREAD_BLOCK_6S,
-        EVENT_APP_INPUT_BLOCK,
-        EVENT_BUSINESS_INPUT_BLOCK
-    };
 }
 
 REGISTER(EventLogger);
@@ -239,7 +223,7 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
         return false;
     }
 
-    if (IsInvalidEventSource(sysEvent) || !IsValidEventParam(sysEvent)) {
+    if (!EventFieldValidator::ValidateEvent(sysEvent)) {
         sysEvent->OnFinish();
         return false;
     }
@@ -1343,6 +1327,57 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
     }
 }
 
+bool EventLogger::CheckDistinctPidLimit(const std::string& eventName, int64_t pid, int32_t uid, int32_t interval)
+{
+    constexpr size_t MAX_DISTINCT_PID_PER_UID = 5;
+    std::string uidTag = eventName + "-uid" + std::to_string(uid);
+    std::time_t now = std::time(0);
+    for (auto it = uidPidCountMap_.begin(); it != uidPidCountMap_.end();) {
+        if ((now - it->second.first) >= interval) {
+            it = uidPidCountMap_.erase(it);
+            continue;
+        }
+        ++it;
+    }
+    auto uidIt = uidPidCountMap_.find(uidTag);
+    if (uidIt != uidPidCountMap_.end()) {
+        uidIt->second.second.insert(pid);
+        if (uidIt->second.second.size() > MAX_DISTINCT_PID_PER_UID) {
+            HIVIEW_LOGE("event: eventName:%{public}s uid:%{public}d distinct pid count:%{public}zu exceeds limit",
+                eventName.c_str(), uid, uidIt->second.second.size());
+            return false;
+        }
+    } else {
+        uidPidCountMap_[uidTag] = {now, {pid}};
+    }
+    return true;
+}
+
+bool EventLogger::CheckEventInterval(const std::string& eventName, const std::string& eventPid, int32_t interval)
+{
+    std::time_t now = std::time(0);
+    for (auto it = eventTagTime_.begin(); it != eventTagTime_.end();) {
+        if (it->first.find(eventName) != it->first.npos) {
+            if ((now - it->second) >= interval) {
+                it = eventTagTime_.erase(it);
+                continue;
+            }
+        }
+        ++it;
+    }
+    std::string tagTimeName = eventName + eventPid;
+    auto it = eventTagTime_.find(tagTimeName);
+    if (it != eventTagTime_.end()) {
+        if ((now - it->second) < interval) {
+            HIVIEW_LOGE("event: eventName:%{public}s pid:%{public}s interval:%{public}" PRId32 " not enough",
+                eventName.c_str(), eventPid.c_str(), interval);
+            return false;
+        }
+    }
+    eventTagTime_[tagTimeName] = now;
+    return true;
+}
+
 bool EventLogger::JudgmentRateLimiting(std::shared_ptr<SysEvent> event)
 {
     int32_t interval = event->GetIntValue("eventLog_interval");
@@ -1356,32 +1391,16 @@ bool EventLogger::JudgmentRateLimiting(std::shared_ptr<SysEvent> event)
     std::string eventPid = std::to_string(pid);
 
     intervalMutex_.lock();
-    std::time_t now = std::time(0);
-    for (auto it = eventTagTime_.begin(); it != eventTagTime_.end();) {
-        if (it->first.find(eventName) != it->first.npos) {
-            if ((now - it->second) >= interval) {
-                it = eventTagTime_.erase(it);
-                continue;
-            }
-        }
-        ++it;
+    if (!CheckDistinctPidLimit(eventName, pid, event->GetUid(), interval)) {
+        intervalMutex_.unlock();
+        return false;
     }
-
-    std::string tagTimeName = eventName + eventPid;
-    auto it = eventTagTime_.find(tagTimeName);
-    if (it != eventTagTime_.end()) {
-        if ((now - it->second) < interval) {
-            HIVIEW_LOGE("event: id:0x%{public}d, eventName:%{public}s pid:%{public}s. \
-                interval:%{public}" PRId32 " There's not enough interval",
-                event->eventId_, eventName.c_str(), eventPid.c_str(), interval);
-            intervalMutex_.unlock();
-            return false;
-        }
+    if (!CheckEventInterval(eventName, eventPid, interval)) {
+        intervalMutex_.unlock();
+        return false;
     }
-    eventTagTime_[tagTimeName] = now;
-    HIVIEW_LOGD("event: id:0x%{public}d, eventName:%{public}s pid:%{public}s. \
-        interval:%{public}" PRId32 " normal interval",
-        event->eventId_, eventName.c_str(), eventPid.c_str(), interval);
+    HIVIEW_LOGD("event: eventName:%{public}s pid:%{public}s interval:%{public}" PRId32 " normal",
+        eventName.c_str(), eventPid.c_str(), interval);
     intervalMutex_.unlock();
     return true;
 }
@@ -1762,80 +1781,6 @@ bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) 
     }
     dst = std::string(pos, end - pos);
     dst = StringUtil::TrimStr(dst, '\n');
-    return true;
-}
-
-bool EventLogger::IsFoundationRequiredEvent(const std::string& eventName) const
-{
-    return std::find(std::begin(FOUNDATION_REQUIRED_EVENTS), std::end(FOUNDATION_REQUIRED_EVENTS),
-        eventName) != std::end(FOUNDATION_REQUIRED_EVENTS);
-}
-
-bool EventLogger::IsInvalidEventSource(const std::shared_ptr<SysEvent>& event) const
-{
-    const std::string& eventName = event->eventName_;
-    int32_t eventUid = event->GetUid();
-    if (IsFoundationRequiredEvent(eventName)) {
-        if (eventUid == FreezeCommon::FOUNDATION_UID) {
-            return false;
-        }
-        HIVIEW_LOGE("invalid event source, eventName=%{public}s, uid=%{public}d",
-            eventName.c_str(), eventUid);
-        return true;
-    }
-    int32_t uid = static_cast<int32_t>(event->GetEventIntValue("UID"));
-    if (eventName == EVENT_BUSSINESS_THREAD_BLOCK_3S ||
-        eventName == EVENT_BUSSINESS_THREAD_BLOCK_6S) {
-        if (eventUid == FreezeCommon::FOUNDATION_UID || eventUid == uid) {
-            return false;
-        }
-        HIVIEW_LOGE("invalid bussiness thread block source, eventName=%{public}s, uid=%{public}d",
-            eventName.c_str(), eventUid);
-        return true;
-    }
-    if (eventName == EVENT_APP_HICOLLIE) {
-        if (eventUid == uid) {
-            return false;
-        }
-        HIVIEW_LOGE("invalid APP_HICOLLIE source, uid_=%{public}d, uid=%{public}d",
-            eventUid, uid);
-        return true;
-    }
-    return false;
-}
-
-bool EventLogger::IsValidEventParam(const std::shared_ptr<SysEvent>& event) const
-{
-    for (const auto& key : PROCESS_IDENTITY_KEYS) {
-        if (!FreezeManager::GetInstance()->IsValidEventStringParam(event->GetEventValue(key))) {
-            HIVIEW_LOGE("invalid process identity param: %{public}s", key);
-            return false;
-        }
-    }
-    std::string appRunningUniqueId = event->GetEventValue("APP_RUNNING_UNIQUE_ID");
-    if (!FreezeManager::IsAllDigits(appRunningUniqueId)) {
-        HIVIEW_LOGE("invalid app running id: %{public}s", appRunningUniqueId.c_str());
-        return false;
-    }
-    int32_t uid = event->GetEventIntValue(FreezeCommon::EVENT_SYS_UID);
-    std::string stack = event->GetEventValue("STACK");
-    if (!stack.empty() && !FreezeManager::GetInstance()->IsValidFreezePath(stack,
-        FreezeManager::EVENTLOG_PATH_PREFIX, uid)) {
-        HIVIEW_LOGE("invalid stack info: %{public}s", stack.c_str());
-        return false;
-    }
-    std::string binderInfo = event->GetEventValue("BINDER_INFO");
-    if (!binderInfo.empty()) {
-        size_t commaPos = binderInfo.find(',');
-        if (commaPos != std::string::npos) {
-            std::string binderPath = binderInfo.substr(0, commaPos);
-            if (!FreezeManager::GetInstance()->IsValidFreezePath(binderPath,
-                FreezeManager::EVENTLOG_PATH_PREFIX, uid)) {
-                HIVIEW_LOGE("invalid binder info: %{public}s", binderPath.c_str());
-                return false;
-            }
-        }
-    }
     return true;
 }
 } // namespace HiviewDFX

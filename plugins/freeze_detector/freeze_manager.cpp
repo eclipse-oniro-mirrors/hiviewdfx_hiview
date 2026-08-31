@@ -22,6 +22,8 @@
 #include "freeze_common.h"
 #include "ffrt.h"
 
+#include "event_field_validator.h"
+
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -180,12 +182,22 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
     std::string realPath;
     std::string result = "";
     std::string filePath = stackPath;
+    // read+delete use point: keep the path inside the freeze log roots no matter
+    // which caller (live event, eventlogger binder path or DB replay) supplied it
+    if (!EventFieldValidator::IsAcceptedReadPath(filePath)) {
+        HIVIEW_LOGW("reject unsafe freeze file path");
+        return result;
+    }
     if (isNeedRealPath && !FileUtil::PathToRealPath(stackPath, realPath)) {
         HIVIEW_LOGE("RealPath failed, logFile=%{public}s errno: %{public}d", stackPath.c_str(), errno);
         return result;
     }
     if (isNeedRealPath) {
         filePath = realPath;
+        if (!EventFieldValidator::IsAcceptedReadPath(filePath)) { // symlink escaped the roots
+            HIVIEW_LOGW("reject freeze file path after realpath");
+            return result;
+        }
     }
     FileUtil::LoadStringFromFile(filePath, result);
     bool isRemove = false;
@@ -244,7 +256,7 @@ std::string FreezeManager::GetStackInfo(long uid, const std::string& bundleName,
     if (stackFile.empty()) {
         return "";
     }
-    if (stackFile.find('/') != std::string::npos || ContainPathTraversal(stackFile)) {
+    if (stackFile.find('/') != std::string::npos || EventFieldValidator::ContainPathTraversal(stackFile)) {
         HIVIEW_LOGE("invalid file:%{public}s.", stackFile.c_str());
         return "";
     }
@@ -261,19 +273,12 @@ std::string FreezeManager::GetCpuInfo(const std::string& cpuFile) const
     if (cpuFile.empty()) {
         return "";
     }
-    if (ContainPathTraversal(cpuFile)) {
+    if (EventFieldValidator::ContainPathTraversal(cpuFile)) {
         HIVIEW_LOGE("invalid file:%{public}s.", cpuFile.c_str());
         return "";
     }
     std::string realCpuPath = CheckFreezePathPrefix(cpuFile, EVENTLOG_PATH_PREFIX);
     return realCpuPath.empty() ? "" : GetAppFreezeFile(realCpuPath, false, false);
-}
- 
-bool FreezeManager::ContainPathTraversal(const std::string& path) const
-{
-    return path.find("..") != std::string::npos ||
-        path.find('\\') != std::string::npos ||
-        path.find('\0') != std::string::npos;
 }
 
 void FreezeManager::ClearFreezeExtIfNeed(int32_t maxNum) const
@@ -401,50 +406,5 @@ std::string FreezeManager::CheckFreezePathPrefix(const std::string& path, const 
     return realPath;
 }
 
-bool FreezeManager::IsAllDigits(const std::string& str)
-{
-    if (str.empty()) {
-        return true;
-    }
-    for (char c : str) {
-        if (!isdigit(c)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool FreezeManager::IsValidFreezePath(const std::string& path, const std::string& prefix, int32_t uid) const
-{
-    if (!FileUtil::FileExists(path)) {
-        return true;
-    }
-    if (path.empty() || ContainPathTraversal(path)) {
-        HIVIEW_LOGE("invalid path:%{public}s", path.c_str());
-        return false;
-    }
-    if (uid >= 0 && uid != FreezeCommon::FOUNDATION_UID) {
-        HIVIEW_LOGE("uid=%{public}d is not foundation, path=%{public}s", uid, path.c_str());
-        return false;
-    }
-    std::string realPath = CheckFreezePathPrefix(path, prefix);
-    if (realPath.empty()) {
-        HIVIEW_LOGE("invalid path:%{public}s", path.c_str());
-        return false;
-    }
-    return true;
-}
-
-bool FreezeManager::IsValidEventStringParam(const std::string& param) const
-{
-    if (param.empty()) {
-        return true;
-    }
-    if (ContainPathTraversal(param)) {
-        HIVIEW_LOGE("param contains path traversal, param=%{public}s", param.c_str());
-        return false;
-    }
-    return true;
-}
 }  // namespace HiviewDFX
 }  // namespace OHOS
