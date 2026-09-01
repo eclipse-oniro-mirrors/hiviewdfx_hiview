@@ -155,8 +155,9 @@ bool FaultloggerBase::EnableGwpAsanGrayscale(GwpAsanParams gwpAsanParams,
     system::SetParameter("gwp_asan.enable.app." + bundleName, gwpAsanParams.alwaysEnabled ? "true" : "false");
     system::SetParameter("gwp_asan.recoverable.app." + bundleName, gwpAsanParams.isRecover ? "true" : "false");
     system::SetParameter("gwp_asan.sample.app." + bundleName, sample);
-    const std::string beginTime = system::GetParameter("gwp_asan.gray_begin.app." + bundleName, "");
-    if (beginTime.empty()) {
+
+    const std::string beginTimeStr = system::GetParameter("gwp_asan.gray_begin.app." + bundleName, "");
+    if (beginTimeStr.empty()) {
         HIVIEW_LOGI("First enable third-party telemetry, update begin time");
         uint64_t beginTime = static_cast<uint64_t>(std::time(nullptr));
         system::SetParameter("gwp_asan.gray_begin.app." + bundleName, std::to_string(beginTime));
