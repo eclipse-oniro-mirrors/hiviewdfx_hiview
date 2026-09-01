@@ -14,6 +14,7 @@
  */
 #include "faultlogger_service_proxy.h"
 
+#include <chrono>
 #include <unistd.h>
 #include "ipc_types.h"
 #include "message_parcel.h"
@@ -48,12 +49,22 @@ void FaultLoggerServiceProxy::AddFaultLog(const FaultLogInfoOhos& info)
         }
     }
 
+    constexpr int32_t timeoutSec = 10;
     MessageParcel reply;
-    MessageOption option;
-    auto flags = option.GetFlags();
-    option.SetFlags(flags | 0x01); // 0X01 return immediately
-    if (remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ADD_FAULTLOG),
-        data, reply, option) != ERR_OK) {
+    MessageOption option(MessageOption::TF_SYNC, timeoutSec);
+    auto beginTime = std::chrono::steady_clock::now();
+    int ret = remote->SendRequest(static_cast<uint32_t>(FaultLoggerServiceInterfaceCode::ADD_FAULTLOG),
+        data, reply, option);
+    if (ret != ERR_OK) {
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - beginTime).count();
+        if (elapsed >= timeoutSec) {
+            HIVIEW_LOGW("AddFaultLog SendRequest timeout, ret:%{public}d, elapsed:%{public}llds",
+                ret, static_cast<long long>(elapsed));
+        } else {
+            HIVIEW_LOGW("AddFaultLog SendRequest failed, ret:%{public}d, elapsed:%{public}llds",
+                ret, static_cast<long long>(elapsed));
+        }
         return;
     }
 }
