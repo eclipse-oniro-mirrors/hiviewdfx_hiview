@@ -14,7 +14,11 @@
  */
 #include <cstddef>
 #include <cstdint>
+#include <list>
+#include <mutex>
+#include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <fcntl.h>
@@ -333,6 +337,57 @@ HWTEST_F(FaultloggerUnittest, FaultLogQueryResultStubTest001, testing::ext::Test
     data.WriteInterfaceToken(FaultLogQueryResultStub::GetDescriptor());
     ret = faultLogQueryResultStub.OnRemoteRequest(TestFaultLogQueryResultStub::Code::DEFAULT, data, reply, option);
     ASSERT_EQ(ret, 305); // 305 : method not exist
+}
+
+static void ConsumeFaultLogConcurrently(FaultLogQueryResultInner *innerPtr,
+    std::vector<int32_t> *collectedPtr, std::mutex *collectMutexPtr)
+{
+    while (innerPtr->HasNext()) {
+        auto info = innerPtr->GetNext();
+        if (info == nullptr) {
+            continue;
+        }
+        std::lock_guard<std::mutex> lock(*collectMutexPtr);
+        collectedPtr->push_back(info->pid);
+    }
+}
+
+/**
+ * @tc.name: FaultLogQueryResultInnerConcurrentTest001
+ * @tc.desc: GetNext/HasNext must be safe under concurrent access; every item consumed exactly once
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogQueryResultInnerConcurrentTest001, testing::ext::TestSize.Level3)
+{
+    constexpr int32_t total = 500;
+    constexpr int32_t threadCount = 8;
+    std::list<FaultLogInfo> faultLogList;
+    for (int32_t i = 0; i < total; ++i) {
+        FaultLogInfo info;
+        info.pid = i;
+        faultLogList.push_back(info);
+    }
+    FaultLogQueryResultInner inner(faultLogList);
+
+    std::vector<int32_t> collected;
+    collected.reserve(total);
+    std::mutex collectMutex;
+    FaultLogQueryResultInner *innerPtr = &inner;
+    std::vector<int32_t> *collectedPtr = &collected;
+    std::mutex *collectMutexPtr = &collectMutex;
+    std::vector<std::thread> workers;
+    workers.reserve(threadCount);
+    for (int32_t t = 0; t < threadCount; ++t) {
+        workers.emplace_back([innerPtr, collectedPtr, collectMutexPtr]() {
+            ConsumeFaultLogConcurrently(innerPtr, collectedPtr, collectMutexPtr);
+        });
+    }
+    for (auto &worker : workers) {
+        worker.join();
+    }
+    EXPECT_EQ(collected.size(), static_cast<size_t>(total));
+    std::set<int32_t> uniqueIds(collected.begin(), collected.end());
+    EXPECT_EQ(uniqueIds.size(), static_cast<size_t>(total));
 }
 
 class TestFaultLoggerServiceStub : public FaultLoggerServiceStub {
