@@ -15,6 +15,7 @@
 #ifndef FAULTLOG_SANITIZER_H
 #define FAULTLOG_SANITIZER_H
 
+#include "dfx_ark.h"
 #include "faultlog_event_pipeline.h"
 #include "sys_event.h"
 
@@ -43,13 +44,18 @@ private:
                          LoadInfo& info);
     std::string ProcessArkTsLine(const std::string& line, const std::string& packageName,
                                  const std::vector<MapInfo>& maps);
+    bool NeedTranslate(const std::string& packageName) const;
+    int ParseArkFile(const LoadInfo& info, bool needTranslate,
+                     std::uintptr_t arkExtractorPtr, JsFunction& jsFunc) const;
+    std::string FormatResult(const std::string& line, const JsFunction& jsFunc) const;
     std::vector<MapInfo> LoadMaps(std::ifstream& file);
     bool OpenTempFile(const std::string& tempPath, FILE*& fp, int& tempFileFd);
     bool WriteStackInfo(const std::string& moduleName, const std::string& path,
                         const std::string& tempPath, std::ifstream& srcLogFile, int tempFileFd);
     bool ParserArkTsStackInfo(const std::string& moduleName, const std::string& path);
     bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, const std::string& path);
-
+    bool IsValidSanitizerEvent(SysEvent& sysEvent);
+    bool AddFaultLog(std::shared_ptr<Event>& event) override;
     FaultLogInfo FillFaultLogInfo(SysEvent& sysEvent) override;
     bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const override;
     std::string GetFaultModule(SysEvent& sysEvent) const override;

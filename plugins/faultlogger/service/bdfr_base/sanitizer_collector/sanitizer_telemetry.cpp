@@ -43,6 +43,7 @@ namespace {
     constexpr const char* const PARAM_GWP_ASAN_APP_BEGIN_TIME = "gwp_asan.gray_begin.app.";
     constexpr const char* const PARAM_GWP_ASAN_APP_DAYS = "gwp_asan.gray_days.app.";
     constexpr const char* const PARAM_GWP_ASAN_APP_NUM = "gwp_asan.app_num";
+    constexpr const char* const PARAM_NOT_EXIST = "GWP_ASAN_PARAM_NOT_EXIST";
     constexpr uint32_t TELEMETRY_SANITIZER_TYPE = 0x800;
     constexpr int DECIMAL_BASE = 10;
     constexpr int MAX_APP_NUM = 20;
@@ -110,7 +111,7 @@ void SanitizerTelemetry::HandleTelemetryStart(const Event& msg)
         return;
     }
     gwpTelemetryEvent.bundleName = valuePairs[TELEMETRY_KEY_BUNDLE_NAME];
-    if (IsOverTelemetryAppNum(gwpTelemetryEvent.bundleName)) {
+    if (IsOverTelemetryAppNum()) {
         return;
     }
 
@@ -133,15 +134,13 @@ void SanitizerTelemetry::HandleTelemetryStart(const Event& msg)
     SetTelemetryParam(gwpTelemetryEvent);
 }
 
-bool SanitizerTelemetry::IsOverTelemetryAppNum(const std::string& bundleName)
+bool SanitizerTelemetry::IsOverTelemetryAppNum()
 {
     uint64_t currentAppNum = GetTelemetryAppNum();
-    std::string enable = OHOS::system::GetParameter(PARAM_GWP_ASAN_ENABLE + bundleName, "");
-    if (enable.empty() && currentAppNum >= MAX_APP_NUM) {
+    if (currentAppNum >= MAX_APP_NUM) {
         HILOG_ERROR(LOG_CORE, "the num of telemetry app exceeds max limit %{public}d", MAX_APP_NUM);
         return true;
     }
-    OHOS::system::SetParameter(PARAM_GWP_ASAN_APP_NUM, std::to_string(currentAppNum + 1));
     return false;
 }
 
@@ -189,6 +188,14 @@ void SanitizerTelemetry::SetTelemetryParam(const GwpTelemetryEvent& gwpTelemetry
         sample += ":" + gwpTelemetryEvent.gwpMaxSlots;
     }
     std::string bundleName = gwpTelemetryEvent.bundleName;
+    std::string enable = OHOS::system::GetParameter(PARAM_GWP_ASAN_ENABLE + bundleName, PARAM_NOT_EXIST);
+    if (enable == PARAM_NOT_EXIST) {
+        if (IsOverTelemetryAppNum()) {
+            return;
+        }
+        uint64_t currentAppNum = GetTelemetryAppNum();
+        OHOS::system::SetParameter(PARAM_GWP_ASAN_APP_NUM, std::to_string(currentAppNum + 1));
+    }
     SetIfTelemetryExist(PARAM_GWP_ASAN_ENABLE + bundleName, gwpTelemetryEvent.gwpEnable);
     SetIfTelemetryExist(PARAM_GWP_ASAN_SAMPLE + bundleName, sample);
     SetIfTelemetryExist(PARAM_GWP_ASAN_MIN_SIZE + bundleName, gwpTelemetryEvent.minSampleSize);
