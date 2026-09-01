@@ -14,6 +14,11 @@
  */
 #include "faultlogger_service_stub.h"
 
+#include <climits>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "ipc_types.h"
 #include "message_parcel.h"
 
@@ -26,6 +31,38 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultLoggerServiceStub");
+
+constexpr const char * const FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
+
+static int32_t ValidatePipeFd(int32_t fd)
+{
+    if (fd < 0 || fcntl(fd, F_GETFD) == -1) {
+        HIVIEW_LOGE("invalid pipe fd, fd=%{public}d", fd);
+        return -1;
+    }
+    struct stat st = {};
+    if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode)) {
+        HIVIEW_LOGE("fd is not a regular file, fd=%{public}d", fd);
+        close(fd);
+        return -1;
+    }
+    char buf[PATH_MAX] = {0};
+    std::string fdLink = "/proc/self/fd/" + std::to_string(fd);
+    ssize_t len = readlink(fdLink.c_str(), buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        HIVIEW_LOGE("failed to read fd link, fd=%{public}d", fd);
+        close(fd);
+        return -1;
+    }
+    std::string fdPath(buf, len);
+    if (fdPath.find(FAULTLOG_TEMP_FOLDER) != 0) {
+        HIVIEW_LOGE("fd path not in faultlog temp, fd=%{public}d, path=%{public}s", fd, fdPath.c_str());
+        close(fd);
+        return -1;
+    }
+    return fd;
+}
+
 int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -125,7 +162,7 @@ int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return ERR_FLATTEN_OBJECT;
             }
             if (data.ContainFileDescriptors()) {
-                ohosInfo->pipeFd = data.ReadFileDescriptor();
+                ohosInfo->pipeFd = ValidatePipeFd(data.ReadFileDescriptor());
             }
             FaultLogInfoOhos info(*ohosInfo);
             AddFaultLog(info);

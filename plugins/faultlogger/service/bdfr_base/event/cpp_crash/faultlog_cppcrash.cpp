@@ -191,7 +191,7 @@ bool FaultLogCppCrash::TryOpenJsonFileFd(FaultLogInfo& info)
         HIVIEW_LOGE("json file not exists: %{public}s", jsonPath.c_str());
         return false;
     }
-    int fd = open(jsonPath.c_str(), O_RDONLY);
+    int fd = open(jsonPath.c_str(), O_RDONLY | O_NOFOLLOW);
     if (fd == -1) {
         HIVIEW_LOGE("failed to open json file: %{public}s, errno=%{public}d", jsonPath.c_str(), errno);
         return false;

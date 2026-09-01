@@ -251,7 +251,7 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
     std::string logFilePath = realPath + "/" + fileName + "." +
         std::to_string(currInfo.pid) + "." +
         std::to_string(currInfo.happenTime);
-    int fd = open(logFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
+    int fd = open(logFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC | O_NOFOLLOW, DEFAULT_SANITIZER_LOG_MODE);
     if (fd < 0) {
         return false;
     }
