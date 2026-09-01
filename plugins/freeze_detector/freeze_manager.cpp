@@ -199,7 +199,10 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
             return result;
         }
     }
-    FileUtil::LoadStringFromFile(filePath, result);
+    if (!FileUtil::LoadStringFromFile(filePath, result)) {
+        HIVIEW_LOGE("read file failed, logFile=%{public}s errno: %{public}d", filePath.c_str(), errno);
+        return result;
+    }
     bool isRemove = false;
     if (isDelayRemove) {
         auto task = [filePath] {
@@ -217,6 +220,11 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
 std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& bundleName,
     const std::string& stackFile, const std::string& cpuFile) const
 {
+    if ((!bundleName.empty() && bundleName.front() == '/') ||
+        EventFieldValidator::ContainPathTraversal(bundleName)) {
+        HIVIEW_LOGE("invalid bundleName:%{public}s.", bundleName.c_str());
+        return "";
+    }
     std::string stackInfo = GetStackInfo(uid, bundleName, stackFile);
     std::string cpuInfo = GetCpuInfo(cpuFile);
     if (stackInfo.empty() && cpuInfo.empty()) {
