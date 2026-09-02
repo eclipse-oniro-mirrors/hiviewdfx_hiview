@@ -527,7 +527,7 @@ static void UpdateFaultLogInfoFromTempFile(FaultLogInfo& info)
 
 static void SetPipeFdFromFile(FaultLogInfo& info, const std::string& path)
 {
-    int fd = open(path.c_str(), O_RDONLY);
+    int fd = open(path.c_str(), O_RDONLY | O_NOFOLLOW);
     if (fd == -1) {
         return;
     }
