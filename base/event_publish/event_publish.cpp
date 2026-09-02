@@ -16,6 +16,7 @@
 #include "event_publish.h"
 
 #include <cerrno>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -68,6 +69,7 @@ constexpr uint64_t RESOURCE_OVERLIMIT_MAX_FILE_SIZE = 2048uLL * 1024 * 1024; // 
 constexpr const char* const XATTR_NAME = "user.appevent";
 constexpr uint64_t BIT_MASK = 1;
 constexpr uint64_t LIMIT_COST_MILLISECOND = 5;
+constexpr int MAX_JSON_DEPTH = 64;
 const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
     { EVENT_APP_CRASH, 0 },
     { EVENT_APP_FREEZE, 1 },
@@ -537,6 +539,24 @@ bool CheckAppListenedEvents(const std::string& path, const std::string& eventNam
     }
     return true;
 }
+
+bool ParseParamJson(const std::string& paramJson, Json::Value& params)
+{
+    Json::CharReaderBuilder builder;
+    Json::CharReaderBuilder::strictMode(&builder.settings_);
+    builder.settings_["stackLimit"] = MAX_JSON_DEPTH;
+    std::string errs;
+    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    if (!reader->parse(paramJson.data(), paramJson.data() + paramJson.size(), &params, &errs)) {
+        HIVIEW_LOGE("failed to parse paramJson, err=%{public}s.", errs.c_str());
+        return false;
+    }
+    if (!params.isObject()) {
+        HIVIEW_LOGE("paramJson is not a json object.");
+        return false;
+    }
+    return true;
+}
 }
 
 class EventPublish::Impl {
@@ -678,9 +698,8 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     }
 
     Json::Value params;
-    Json::Reader reader;
-    if (!reader.parse(paramJson, params)) {
-        HIVIEW_LOGE("failed to parse paramJson bundleName, eventName=%{public}s.", eventName.c_str());
+    if (!ParseParamJson(paramJson, params)) {
+        HIVIEW_LOGE("failed to parse paramJson, eventName=%{public}s.", eventName.c_str());
         return;
     }
     Json::Value eventJson;
