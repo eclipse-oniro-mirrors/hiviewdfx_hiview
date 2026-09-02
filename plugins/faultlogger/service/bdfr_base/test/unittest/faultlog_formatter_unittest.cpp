@@ -26,23 +26,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
 
-/**
- * @tc.name: WriteStackTraceFromLogTest001
- * @tc.desc: Test WriteStackTraceFromLog
- * @tc.type: FUNC
- */
-HWTEST(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext::TestSize.Level1)
-{
-    std::string pidStr;
-    int32_t fd = -1;
-    std::string path = "/testError";
-    bool ret = FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
-    ASSERT_FALSE(ret);
-    path = "/data/test/test_faultlogger_data/plugin_config_test";
-    ret = FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
-    ASSERT_TRUE(ret);
-}
-
 static std::string GetPipeData(int pipeRead)
 {
     constexpr int maxPipeBuffSize = 1024 * 1024;

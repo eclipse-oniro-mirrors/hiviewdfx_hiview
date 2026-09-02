@@ -125,6 +125,8 @@ std::string FaultlogHilogHelper::GetHilogByPid(int32_t pid)
     int childPid = fork();
     if (childPid < 0) {
         HIVIEW_LOGE("fork fail");
+        fdsan_close_with_tag(fds[0], ownerTag);
+        fdsan_close_with_tag(fds[1], ownerTag);
         return "";
     } else if (childPid == 0) {
         syscall(SYS_close, fds[0]);

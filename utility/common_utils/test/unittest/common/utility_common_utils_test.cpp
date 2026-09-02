@@ -63,32 +63,6 @@ void UtilityCommonUtilsTest::TearDown()
 }
 
 /**
- * @tc.name: CalcFingerprintTest001
- * @tc.desc: Test CalcFileSha interface method of class CalcFingerprint
- * @tc.type: FUNC
- * @tc.require: issueI65DUW
- */
-HWTEST_F(UtilityCommonUtilsTest, CalcFingerprintTest001, testing::ext::TestSize.Level3)
-{
-    (void)FileUtil::ForceRemoveDirectory(LOG_FILE_PATH);
-    std::string caseName = "CalcFingerprintTest001";
-    CalcFingerprint calcFingerprint;
-    char hash[SHA256_DIGEST_LENGTH] = {0};
-    auto ret = calcFingerprint.CalcFileSha("", hash, SHA256_DIGEST_LENGTH);
-    ASSERT_EQ(EINVAL, ret);
-    ret = calcFingerprint.CalcFileSha(GenerateLogFileName(caseName, SUFFIX_0), hash, SHA256_DIGEST_LENGTH);
-    ASSERT_EQ(ENOENT, ret);
-    ret = calcFingerprint.CalcFileSha("//....../asdsa", hash, SHA256_DIGEST_LENGTH);
-    ASSERT_EQ(EINVAL, ret);
-    FileUtil::SaveStringToFile(GenerateLogFileName(caseName, SUFFIX_0), "test");
-    ret = calcFingerprint.CalcFileSha(GenerateLogFileName(caseName, SUFFIX_0), nullptr, SHA256_DIGEST_LENGTH);
-    ASSERT_EQ(EINVAL, ret);
-    int invalidLen = 2;
-    ret = calcFingerprint.CalcFileSha(GenerateLogFileName(caseName, SUFFIX_0), hash, invalidLen);
-    ASSERT_EQ(ENOMEM, ret);
-}
-
-/**
  * @tc.name: CalcFingerprintTest002
  * @tc.desc: Test CalcBufferSha interface method of class CalcFingerprint
  * @tc.type: FUNC
@@ -173,11 +147,8 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest001, testing::ext::TestSize.Level3)
     auto tboxSp = make_shared<Tbox>(); // trigger con/destrcutor
     std::string val = "123";
     size_t mask = 1;
-    int mode1 = FP_FILE;
-    auto ret = Tbox::CalcFingerPrint(val, mask, mode1);
-    ASSERT_TRUE(!ret.empty());
     int mode2 = FP_BUFFER;
-    ret = Tbox::CalcFingerPrint(val, mask, mode2);
+    auto ret = Tbox::CalcFingerPrint(val, mask, mode2);
     ASSERT_TRUE(!ret.empty());
     int invalidMode = -1;
     ret = Tbox::CalcFingerPrint(val, mask, invalidMode);

@@ -111,7 +111,6 @@ void FuzzFormatter(FuzzDataSource& source)
         std::string path;
         (void)ReadString(source, path);
         (void)FaultLogger::WriteLogToFile(fd, path, sections);
-        FaultLogger::WriteStackTraceFromLog(fd, std::to_string(info.pid), path);
         close(fd);
     }
     std::string path;

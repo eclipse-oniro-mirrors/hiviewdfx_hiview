@@ -42,9 +42,6 @@ string Tbox::CalcFingerPrint(const string& val, size_t mask, int mode)
     char hash[HAS_LEN] = {'0'};
     int err = -1;
     switch (mode) {
-        case FP_FILE:
-            err = CalcFingerprint::CalcFileSha(val, hash, sizeof(hash));
-            break;
         case FP_BUFFER:
             err = CalcFingerprint::CalcBufferSha(val, val.size(), hash, sizeof(hash));
             break;

@@ -67,6 +67,11 @@ void ExtractRule::ParseSegStatusCfg(const Json::Value& json)
     }
 
     Json::Value arrayObj = json[L1_SEG_STATUS];
+    if (!arrayObj.isArray()) {
+        HIVIEW_LOGE("failed to get json array %{public}s.", L1_SEG_STATUS);
+        return;
+    }
+
     int arrayObjSize = static_cast<int>(arrayObj.size());
     if (arrayObjSize > JSON_ARRAY_THRESHOLD) {
         arrayObjSize = JSON_ARRAY_THRESHOLD;

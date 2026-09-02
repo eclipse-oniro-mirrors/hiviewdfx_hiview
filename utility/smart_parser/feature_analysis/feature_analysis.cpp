@@ -212,8 +212,15 @@ bool FeatureAnalysis::ParseElementForParam(const string& src, FeatureRule& rule)
         smatch result;
         int seekType = GetSeekInfo(iter->second, reg);
         hasContinue = (seekType == LAST_MATCH) ? true : hasContinue;
-        if (reg.find(L3_VARIABLE_TRACE_BLOCK) != string::npos || regex_search(src, result, regex(reg))) {
-            string value = result.str(1).empty() ? "" : string(result.str(1));
+        bool matched = false;
+        string value;
+        if (reg.find(L3_VARIABLE_TRACE_BLOCK) != string::npos) {
+            matched = true;
+        } else if (regex_search(src, result, regex(reg))) {
+            matched = true;
+            value = result.str(1).empty() ? "" : string(result.str(1));
+        }
+        if (matched) {
             SetParamRecord(rule.name + "." + iter->first, FormatLineFeature(value, reg), seekType);
             SetStackRegex(rule.name + "." + iter->first, reg);
             if (seekType == FIRST_MATCH && rule.cmdType == L2_RULES) {

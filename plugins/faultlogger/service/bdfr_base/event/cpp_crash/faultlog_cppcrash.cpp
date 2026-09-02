@@ -19,6 +19,7 @@
 #include <ctime>
 #include <fcntl.h>
 #include <fstream>
+#include <new>
 #include <unistd.h>
 
 #include "constants.h"
@@ -57,6 +58,7 @@ namespace {
     const int64_t DFX_HILOG_TIMESTAMP_THOUSAND = 1000;
     constexpr uint32_t MINIDUMP_MAX_TIMEOUT_US = 5 * 1000 * 1000;
     constexpr int32_t MAX_MINIDUMP_LOG_PER_HAP = 5;
+    constexpr long MAX_FILE_READ_SIZE = 10 * 1024 * 1024; // 10M
 
 Json::Value BuildExceptionJson(const Json::Value& root)
 {
@@ -198,7 +200,13 @@ bool FaultLogCppCrash::TryOpenJsonFileFd(FaultLogInfo& info)
     }
     uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
     fdsan_exchange_owner_tag(fd, 0, ownerTag);
-    info.pipeFd.reset(new int32_t(fd), [ownerTag](int32_t *ptr) {
+    int32_t* fdPtr = new (std::nothrow) int32_t(fd);
+    if (fdPtr == nullptr) {
+        fdsan_close_with_tag(fd, ownerTag);
+        HIVIEW_LOGE("failed to allocate memory for fd");
+        return false;
+    }
+    info.pipeFd.reset(fdPtr, [ownerTag](int32_t *ptr) {
         if (*ptr >= 0) {
             fdsan_close_with_tag(*ptr, ownerTag);
         }
@@ -450,6 +458,11 @@ long FaultLogCppCrash::FindTargetOffset(FILE* fp, const std::string& target)
 
     if (fileSize <= 0) {
         return -1;
+    }
+
+    if (fileSize > MAX_FILE_READ_SIZE) {
+        HIVIEW_LOGW("File size exceeds max read size, truncating to %{public}ld", MAX_FILE_READ_SIZE);
+        fileSize = MAX_FILE_READ_SIZE;
     }
 
     std::string content(static_cast<size_t>(fileSize), '\0');

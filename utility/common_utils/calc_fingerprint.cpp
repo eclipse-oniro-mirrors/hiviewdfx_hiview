@@ -18,7 +18,6 @@
 #include <securec.h>
 
 #include "common_defines.h"
-#include "file_util.h"
 
 using namespace std;
 namespace OHOS {
@@ -33,7 +32,6 @@ struct DlCloseDeleter {
     }
 };
 }
-DEFINE_LOG_TAG("CalcFingerprint");
 int CalcFingerprint::ConvertToString(const unsigned char hash[SHA256_DIGEST_LENGTH], char *outstr, size_t len)
 {
     uint32_t i;
@@ -54,65 +52,6 @@ int CalcFingerprint::ConvertToString(const unsigned char hash[SHA256_DIGEST_LENG
         outHash += charsEachHex;
     }
     *outHash = '\0';
-    return 0;
-}
-
-/*
- * API name : calc_file_sha1
- * Description : calculate a file sha1 hash for given file
- * Input parameters
- * filePath : path of the file to be calculated
- * hash      : buffer to store output sha1 string
- * Return
- * 0 : successful
- * x : fail
- */
-int CalcFingerprint::CalcFileSha(const string& filePath, char *hash, size_t len)
-{
-    if (filePath.empty() || hash == nullptr || !FileUtil::IsLegalPath(filePath)) {
-        HIVIEW_LOGE("invalid param.");
-        return EINVAL;
-    }
-    unsigned char value[SHA256_DIGEST_LENGTH] = {0};
-    int ret = CalcFileShaOriginal(filePath, value, len);
-    if (ret != 0) {
-        HIVIEW_LOGE("CalcFileShaOriginal failed.");
-        return ret;
-    }
-    return ConvertToString(value, hash, len);
-}
-
-int CalcFingerprint::CalcFileShaOriginal(const string& filePath, unsigned char *hash, size_t len)
-{
-    if (filePath.empty() || hash == nullptr || !FileUtil::IsLegalPath(filePath)) {
-        HIVIEW_LOGE("file is invalid.");
-        return EINVAL;
-    }
-
-    if (len < SHA256_DIGEST_LENGTH) {
-        HIVIEW_LOGE("hash buf len error.");
-        return ENOMEM;
-    }
-
-    FILE *fp = nullptr;
-    fp = fopen(filePath.c_str(), "rb");
-    if (fp == nullptr) {
-        HIVIEW_LOGE("open file failed.");
-        return errno; // if file not exist, errno will be ENOENT
-    }
-
-    size_t n;
-    char buffer[HASH_BUFFER_SIZE] = {0};
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
-    while ((n = fread(buffer, 1, sizeof(buffer), fp))) {
-        SHA256_Update(&ctx, (unsigned char *)buffer, n);
-    }
-    if (fclose(fp)) {
-        HIVIEW_LOGE("fclose is failed");
-    }
-    fp = nullptr;
-    SHA256_Final(hash, &ctx);
     return 0;
 }
 
