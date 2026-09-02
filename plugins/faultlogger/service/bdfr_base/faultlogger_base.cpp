@@ -53,6 +53,7 @@ constexpr int MAX_APPLICATION_ENABLE = 20;
 constexpr uint64_t DEFAULT_DURATION = 7;
 constexpr uint64_t DAYS_TO_MILLISEC = 24 * 60 * 60;
 constexpr const char* const PERMISSION_ENABLE_GWPASAN_INNER = "ohos.permission.ENABLE_GWPASAN_INNER";
+constexpr const char* const PARAM_NOT_EXIST = "GWP_ASAN_PARAM_NOT_EXIST";
 }
 
 FaultloggerBase::FaultloggerBase()
@@ -132,7 +133,7 @@ bool FaultloggerBase::EnableGwpAsanGrayscale(GwpAsanParams gwpAsanParams,
         ", duration: %{public}d, isRecover: %{public}d",
         bundleName.c_str(), gwpAsanParams.alwaysEnabled, gwpAsanParams.sampleRate,
         gwpAsanParams.maxSimutaneousAllocations, gwpAsanParams.duration, gwpAsanParams.isRecover);
-    std::string isEnable = system::GetParameter("gwp_asan.enable.app." + bundleName, "");
+    std::string isEnable = system::GetParameter("gwp_asan.enable.app." + bundleName, PARAM_NOT_EXIST);
     std::string appNumStr = system::GetParameter("gwp_asan.app_num", "0");
     int appNum = 0;
     std::stringstream ss(appNumStr);
@@ -140,13 +141,14 @@ bool FaultloggerBase::EnableGwpAsanGrayscale(GwpAsanParams gwpAsanParams,
         HIVIEW_LOGE("Invalid appNum value: %{public}s", appNumStr.c_str());
         appNum = 0;
     }
-    if (isEnable.empty() && appNum >= MAX_APPLICATION_ENABLE) {
-        HIVIEW_LOGE("Enable gwpAsanGrayscale failed, the maximum quantity exceeds 20");
-        return false;
-    }
-    if (isEnable.empty()) {
+    if (isEnable == PARAM_NOT_EXIST) {
+        if (appNum >= MAX_APPLICATION_ENABLE) {
+            HIVIEW_LOGE("Enable gwpAsanGrayscale failed, the maximum quantity exceeds 20");
+            return false;
+        }
         system::SetParameter("gwp_asan.app_num", std::to_string(appNum + 1));
     }
+
     int sampleRateInt = static_cast<int>(std::ceil(gwpAsanParams.sampleRate));
     int slotInt = static_cast<int>(std::ceil(gwpAsanParams.maxSimutaneousAllocations));
     std::string sample = std::to_string(sampleRateInt) + ":" + std::to_string(slotInt);
@@ -154,8 +156,12 @@ bool FaultloggerBase::EnableGwpAsanGrayscale(GwpAsanParams gwpAsanParams,
     system::SetParameter("gwp_asan.recoverable.app." + bundleName, gwpAsanParams.isRecover ? "true" : "false");
     system::SetParameter("gwp_asan.sample.app." + bundleName, sample);
 
-    uint64_t beginTime = static_cast<uint64_t>(std::time(nullptr));
-    system::SetParameter("gwp_asan.gray_begin.app." + bundleName, std::to_string(beginTime));
+    const std::string beginTimeStr = system::GetParameter("gwp_asan.gray_begin.app." + bundleName, "");
+    if (beginTimeStr.empty()) {
+        HIVIEW_LOGI("First enable third-party telemetry, update begin time");
+        uint64_t beginTime = static_cast<uint64_t>(std::time(nullptr));
+        system::SetParameter("gwp_asan.gray_begin.app." + bundleName, std::to_string(beginTime));
+    }
     system::SetParameter("gwp_asan.gray_days.app." + bundleName, std::to_string(gwpAsanParams.duration));
     return true;
 }
@@ -165,6 +171,12 @@ void FaultloggerBase::DisableGwpAsanGrayscale(int32_t uid)
     std::string bundleName = GetApplicationNameById(uid);
     if (bundleName.empty()) {
         HIVIEW_LOGE("Disable gwpAsanGrayscale failed, the bundleName is not exist");
+        return;
+    }
+    const std::string beginTime = system::GetParameter("gwp_asan.gray_begin.app." + bundleName, "");
+    if (beginTime.empty()) {
+        HIVIEW_LOGI(
+            "Disable gwpAsanGrayscale ignored, third-party grayscale is not enabled");
         return;
     }
     system::SetParameter("gwp_asan.gray_begin.app." + bundleName, "");

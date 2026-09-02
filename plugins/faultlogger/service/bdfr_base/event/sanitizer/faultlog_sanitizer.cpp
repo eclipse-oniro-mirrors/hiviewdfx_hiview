@@ -26,12 +26,14 @@
 #include "constants.h"
 #include "dfx_ark.h"
 #include "event_publish.h"
+#include "faultlog_bundle_util.h"
 #include "faultlog_util.h"
 #include "ffrt.h"
 #include "file_util.h"
 #include "hisysevent.h"
 #include "hiview_logger.h"
 #include "json/json.h"
+#include "parameter_ex.h"
 #include "string_util.h"
 
 namespace OHOS {
@@ -50,6 +52,7 @@ const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
 }
 
+// Only support stack parsing for these 5 type formats
 bool FaultLogSanitizer::ShouldParseSandBoxPath(const std::string& line)
 {
     return line.find(".hap+") != std::string::npos ||
@@ -197,44 +200,38 @@ bool FaultLogSanitizer::ExtractLoadInfo(const std::string& line, const std::vect
     return true;
 }
 
-std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const std::string& packageName,
-                                                const std::vector<MapInfo>& maps)
+bool FaultLogSanitizer::NeedTranslate(const std::string& packageName) const
 {
-    LoadInfo info = {0, 0, 0, ""};
-    if (!ExtractLoadInfo(line, maps, packageName, info)) {
-        return line;
+    if (!Parameter::IsDeveloperMode()) {
+        return false;
     }
-    std::uintptr_t arkExtractorPtr = 0;
-    int ret = 0;
-    ret = DfxArk::Instance().ArkCreateJsSymbolExtractor(&arkExtractorPtr);
-    if (ret < 0 || arkExtractorPtr == 0) {
-        HIVIEW_LOGE("Failed to create Ark JS symbol extractor, ret: %{public}d", ret);
-        return line;
+    DfxBundleInfo bundleInfo;
+    if (GetDfxBundleInfo(packageName, bundleInfo)) {
+        return bundleInfo.releaseType == "debug";
     }
-    JsFunction jsFunc;
+    return false;
+}
+
+int FaultLogSanitizer::ParseArkFile(const LoadInfo& info, bool needTranslate,
+                                    std::uintptr_t arkExtractorPtr, JsFunction& jsFunc) const
+{
     if (info.fullPath.find("anon:ArkTS Code") == std::string::npos &&
         info.fullPath.find(".abc") == std::string::npos) {
-        ret = DfxArk::Instance().ParseArkFileInfo(static_cast<uintptr_t>(info.pc - info.mapBase + OFFSET_HEAD),
-                                                  0,
-                                                  static_cast<uintptr_t>(info.relativePc - (info.pc - info.mapBase)),
-                                                  info.fullPath.c_str(),
-                                                  arkExtractorPtr, &jsFunc, true);
-    } else {
-        ret = DfxArk::Instance().ParseArkFileInfo(static_cast<uintptr_t>(info.relativePc + OFFSET_HEAD), 0, 0,
-                                                  info.fullPath.c_str(), arkExtractorPtr, &jsFunc, true);
+        return DfxArk::Instance().ParseArkFileInfo(
+            static_cast<uintptr_t>(info.pc - info.mapBase + OFFSET_HEAD), 0,
+            static_cast<uintptr_t>(info.relativePc - (info.pc - info.mapBase)),
+            info.fullPath.c_str(), arkExtractorPtr, &jsFunc, needTranslate);
     }
-    DfxArk::Instance().ArkDestoryJsSymbolExtractor(arkExtractorPtr);
+    return DfxArk::Instance().ParseArkFileInfo(
+        static_cast<uintptr_t>(info.relativePc + OFFSET_HEAD), 0, 0,
+        info.fullPath.c_str(), arkExtractorPtr, &jsFunc, needTranslate);
+}
 
-    if (ret == -1) {
-        HIVIEW_LOGE("original line: %{public}s", line.c_str());
-        return line;
-    }
-
+std::string FaultLogSanitizer::FormatResult(const std::string& line, const JsFunction& jsFunc) const
+{
     size_t hashPos = line.find('#');
     size_t stackFrameEnd = line.find(' ', hashPos);
-    std::string stackFrame = line.substr(0, stackFrameEnd);
-    std::string result = stackFrame;
-
+    std::string result = line.substr(0, stackFrameEnd);
     if (jsFunc.functionName[0] != '\0') {
         result += " " + std::string(jsFunc.functionName);
     }
@@ -246,9 +243,33 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
     return result;
 }
 
+std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const std::string& packageName,
+                                                const std::vector<MapInfo>& maps)
+{
+    LoadInfo info = {0, 0, 0, ""};
+    if (!ExtractLoadInfo(line, maps, packageName, info)) {
+        return line;
+    }
+    std::uintptr_t arkExtractorPtr = 0;
+    int ret = DfxArk::Instance().ArkCreateJsSymbolExtractor(&arkExtractorPtr);
+    if (ret < 0 || arkExtractorPtr == 0) {
+        HIVIEW_LOGE("Failed to create Ark JS symbol extractor, ret: %{public}d", ret);
+        return line;
+    }
+    bool needTranslate = NeedTranslate(packageName);
+    JsFunction jsFunc;
+    ret = ParseArkFile(info, needTranslate, arkExtractorPtr, jsFunc);
+    DfxArk::Instance().ArkDestoryJsSymbolExtractor(arkExtractorPtr);
+    if (ret == -1) {
+        HIVIEW_LOGE("original line: %{public}s", line.c_str());
+        return line;
+    }
+    return FormatResult(line, jsFunc);
+}
+
 std::vector<MapInfo> FaultLogSanitizer::LoadMaps(std::ifstream& file)
 {
-    // 0xmapbaseStart-0xmapbaseStartend	xxx
+    // format line: 0xmapbaseStart-0xmapbaseStartend	xxx need to save maps
     std::vector<MapInfo> maps;
     std::string line;
     bool inMapSection = false;
@@ -503,6 +524,45 @@ void FaultLogSanitizer::ParseSanitizerEasyEvent(SysEvent& sysEvent)
     sysEvent.SetEventValue("DATA", "");
 }
 
+bool FaultLogSanitizer::IsValidSanitizerEvent(SysEvent& sysEvent)
+{
+    const std::string reason = sysEvent.GetEventValue(FaultKey::REASON);
+    if (reason.find("DEBUG SIGNAL") != std::string::npos) {
+        const int64_t uid = static_cast<int64_t>(sysEvent.GetUid());
+        const int64_t eventUid = sysEvent.GetEventIntValue(FaultKey::MODULE_UID);
+        const int64_t eventPid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
+        if (uid != eventUid) {
+            HIVIEW_LOGE("Invalid sanitizer event, uid is mismatch");
+            return false;
+        }
+
+        FaultLogInfo info;
+        info.pid = eventPid;
+        info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
+        const std::string logPath = GetDebugSignalTempLogName(info);
+        if (!FileUtil::FileExists(logPath)) {
+            HIVIEW_LOGE(
+                "Invalid debug signal event, processdump log does not exist, path=%{public}s", logPath.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool FaultLogSanitizer::AddFaultLog(std::shared_ptr<Event>& event)
+{
+    if (event == nullptr) {
+        HIVIEW_LOGE("Sanitizer event is null");
+        return false;
+    }
+    auto sysEvent = std::static_pointer_cast<SysEvent>(event);
+    if (!IsValidSanitizerEvent(*sysEvent)) {
+        HIVIEW_LOGE("Reject invalid sanitizer event");
+        return false;
+    }
+    return FaultLogEventPipeline::AddFaultLog(event);
+}
+
 FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
 {
     auto info = FaultLogEventPipeline::FillFaultLogInfo(sysEvent);
@@ -529,7 +589,7 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.module = sysEvent.GetEventValue(FaultKey::MODULE_NAME);
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
         info.reason = sysEvent.GetEventValue(FaultKey::REASON);
-        info.logPath = GetSanitizerTempLogName(info.pid, sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
+        info.logPath = GetSanitizerTempLogName(sysEvent.GetPid(), sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
     }
@@ -538,11 +598,8 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
 
 void FaultLogSanitizer::UpdateFaultLogInfo()
 {
-    if (info_.reason.find("FDSAN") != std::string::npos) {
-        info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
-        info_.logPath = "";
-    }
-    if (info_.reason.find("ARKTS_ENVSAN") != std::string::npos) {
+    if (info_.reason.find("FDSAN") != std::string::npos
+        || info_.reason.find("ARKTS_ENVSAN") != std::string::npos) {
         info_.sectionMap["APPEND_ORIGIN_LOG"] = info_.logPath;
         info_.logPath = "";
     }
@@ -550,10 +607,9 @@ void FaultLogSanitizer::UpdateFaultLogInfo()
 
 void FaultLogSanitizer::UpdateSysEvent(SysEvent& sysEvent)
 {
-    // after log file create, parse arkTs stack
-    ForkProcessParseArkTsStackInfo(info_.module, info_.logPath);
     // DEBUG SIGNAL does not need to update HAPPEN_TIME
     if (info_.reason.find("DEBUG SIGNAL") == std::string::npos) {
+        ForkProcessParseArkTsStackInfo(info_.module, info_.logPath);
         sysEvent.SetEventValue(FaultKey::HAPPEN_TIME, sysEvent.happenTime_);
     }
     FaultLogEventPipeline::UpdateSysEvent(sysEvent);
