@@ -380,6 +380,12 @@ bool Vendor::GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, st
         HIVIEW_LOGE("PathToRealPath Failed:%{public}s.", filePath.c_str());
         return false;
     }
+
+    if (realPath.find(FreezeManager::EVENTLOG_PATH_PREFIX) != 0) {
+        HIVIEW_LOGE("path traversal detected, realPath:%{public}s.", realPath.c_str());
+        return false;
+    }
+
     ifs.open(realPath, std::ios::in);
     if (!ifs.is_open()) {
         HIVIEW_LOGE("cannot open log file for reading:%{public}s.", realPath.c_str());
