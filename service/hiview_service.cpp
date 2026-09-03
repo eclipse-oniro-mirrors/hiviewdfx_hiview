@@ -337,7 +337,7 @@ bool HiviewService::InnerHasCallAppTrace(int32_t uid, int64_t happenTime)
 
 CollectResult<int32_t> HiviewService::InnerResponseStartAppTrace(const UCollectClient::AppCaller &appCaller)
 {
-    if (InnerHasCallAppTrace(appCaller.uid, appCaller.happenTime)) {
+    if (InnerHasCallAppTrace(appCaller.uid, TimeUtil::GetMilliseconds())) {
         HIVIEW_LOGW("deny: already capture trace uid=%{public}d pid=%{public}d", appCaller.uid, appCaller.pid);
         return {UCollect::UcError::HAD_CAPTURED_TRACE};
     }
