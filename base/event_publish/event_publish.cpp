@@ -559,7 +559,7 @@ bool ParseParamJson(const std::string& paramJson, Json::Value& params)
 }
 }
 
-class EventPublish::Impl {
+class EventPublish::Impl : public std::enable_shared_from_this<Impl> {
 public:
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
         const std::string& paramJson, uint32_t maxFileSizeBytes = 0);
@@ -618,9 +618,10 @@ void EventPublish::Impl::StartOverLimitThread(int32_t uid, const std::string& pa
         return;
     }
     HIVIEW_LOGI("start send overlimit thread.");
+    auto self = shared_from_this();
     sendingOverlimitThread_ = std::make_unique<std::thread>(
-        [this, uid, pathHolder, eventJson, maxFileSizeBytes] () mutable {
-        this->SendOverLimitEventToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
+        [self, uid, pathHolder, eventJson, maxFileSizeBytes] () mutable {
+        self->SendOverLimitEventToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
     });
     sendingOverlimitThread_->detach();
 }
@@ -635,6 +636,7 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::str
     SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes, needRefined);
     SaveEventToSandBox(uid, pathHolder, eventJson);
     UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, EVENT_RESOURCE_OVERLIMIT);
+    std::lock_guard<std::mutex> lock(mutex_);
     sendingOverlimitThread_.reset();
 }
 
@@ -642,7 +644,8 @@ void EventPublish::Impl::StartSendingThread()
 {
     if (sendingThread_ == nullptr) {
         HIVIEW_LOGI("start send thread.");
-        sendingThread_ = std::make_unique<std::thread>([this] { this->SendEventToSandBox(); });
+        auto self = shared_from_this();
+        sendingThread_ = std::make_unique<std::thread>([self] { self->SendEventToSandBox(); });
         sendingThread_->detach();
     }
 }
