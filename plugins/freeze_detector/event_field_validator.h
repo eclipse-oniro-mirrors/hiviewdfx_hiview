@@ -29,6 +29,7 @@ public:
     static bool ValidateEvent(const std::shared_ptr<SysEvent>& event);
     static bool IsAcceptedReadPath(const std::string& path);
     static bool ContainPathTraversal(const std::string& path);
+    static bool IsDecimalValue(const std::string& value);
 
 private:
     static bool ValidateUntrustedEvent(const std::shared_ptr<SysEvent>& event);
@@ -43,7 +44,6 @@ private:
     // such events is collected by hiview itself (BinderCatcher reads
     // /proc/transaction_proc) instead of being taken from the event
     static bool StripUntrustedBinderInfo(const std::shared_ptr<SysEvent>& event);
-    static bool IsDecimalValue(const std::string& value);
     static bool ToInt32Value(const std::string& value, int32_t& out);
     static bool IsSafeName(const std::string& value);
     static bool IsAcceptedPath(const std::string& path, int32_t senderUid);

@@ -35,6 +35,9 @@ bool FfrtCatcher::Initialize(const std::string& strParam1, int intParam1, int in
 int FfrtCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     FileUtil::SaveStringToFd(fd, "ffrt fump pid=" + std::to_string(pid_) + ":\n");
     LogCatcherUtils::DumpStackFfrt(fd, std::to_string(pid_));
 

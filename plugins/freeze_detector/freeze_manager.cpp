@@ -16,6 +16,7 @@
 #include "freeze_manager.h"
 
 #include "hiview_logger.h"
+#include "common_utils.h"
 #include "file_util.h"
 #include "time_util.h"
 #include "string_util.h"
@@ -177,6 +178,24 @@ int FreezeManager::GetFreezeLogFd(int32_t freezeLogType, const std::string& file
     return fd;
 }
 
+bool FreezeManager::IsValidDumpTarget(int32_t targetPid, int32_t writerUid)
+{
+    if (targetPid <= 0) {
+        return false;
+    }
+    if (writerUid >= 0 && writerUid < MIN_APP_UID) {
+        return true;
+    }
+    // app-writable events may only target processes of their own uid: peer
+    // binder context for such events is collected by hiview itself, never
+    // taken from event-supplied binder fields
+    int32_t targetUid = CommonUtils::GetUidByPid(targetPid);
+    if (targetUid < 0) {
+        return false;
+    }
+    return targetUid == writerUid;
+}
+
 std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove, bool isNeedRealPath)
 {
     std::string realPath;
@@ -203,7 +222,12 @@ std::string FreezeManager::GetAppFreezeFile(const std::string& stackPath, bool i
     bool isRemove = false;
     if (isDelayRemove) {
         auto task = [filePath] {
-            bool ret = FileUtil::RemoveFile(filePath.c_str());
+            std::string realPath;
+            if (!FileUtil::PathToRealPath(filePath, realPath)) {
+                HIVIEW_LOGE("failed realPath, logFile=%{public}s errno: %{public}d", filePath.c_str(), errno);
+                return;
+            }
+            bool ret = FileUtil::RemoveFile(realPath.c_str());
             HIVIEW_LOGI("Remove file:%{public}d", ret);
         };
         ffrt::submit(task, {}, {}, ffrt::task_attr().name("freeze_delay_delete").delay(DELAY_DELETE_TIME));
@@ -226,7 +250,7 @@ std::string FreezeManager::SaveFreezeExtInfoToFile(long uid, const std::string& 
 
     std::string freezeFile = FREEZE_CPUINFO_PREFIX + bundleName + "-" +
         std::to_string(uid) + "-" + TimeUtil::GetFormattedTimestampEndWithMilli();
-    if (FileUtil::FileExists(freezeFile)) {
+    if (FileUtil::FileExists(FREEZE_EXT_LOG_PATH + freezeFile)) {
         HIVIEW_LOGI("logfile %{public}s already exist.", freezeFile.c_str());
         return "";
     }

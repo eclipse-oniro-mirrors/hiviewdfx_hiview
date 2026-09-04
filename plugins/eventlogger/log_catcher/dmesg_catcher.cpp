@@ -241,6 +241,9 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
         event_->SetEventValue(fileTimeKey, fileTime);
     }
     auto originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     DumpDmesgLog(fd, extraFd);
     logSize_ = GetFdSize(fd) - originSize;
 

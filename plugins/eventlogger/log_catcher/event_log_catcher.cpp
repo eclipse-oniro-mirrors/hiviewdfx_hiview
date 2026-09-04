@@ -27,6 +27,9 @@
 #include "common_utils.h"
 #include "defines.h"
 #include "file_util.h"
+#include "hiview_logger.h"
+
+DEFINE_LOG_LABEL(0xD002D01, "EventLogger-EventLogCatcher");
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -74,7 +77,8 @@ int EventLogCatcher::GetFdSize(int32_t fd)
 {
     struct stat fileStat;
     if (fstat(fd, &fileStat) == -1) {
-        return 0;
+        HIVIEW_LOGE("GetFdSize failed, errno=%{public}d", errno);
+        return -1;
     }
     return fileStat.st_size;
 }
