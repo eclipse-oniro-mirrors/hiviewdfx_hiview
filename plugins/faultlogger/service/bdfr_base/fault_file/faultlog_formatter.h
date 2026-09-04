@@ -28,7 +28,6 @@ FaultLogInfo ParseCppCrashFromFile(const std::string& path);
 void ParseCppCrashFromTextFile(const std::string& path, FaultLogInfo& info);
 bool ParseJsonFromFile(const std::string& path, Json::Value& root);
 void FillSectionMapFromJson(const Json::Value& root, std::map<std::string, std::string>& sectionMap);
-bool WriteStackTraceFromLog(int32_t fd, const std::string& pidStr, const std::string& path);
 bool WriteLogToFile(int32_t fd, const std::string& path, const std::map<std::string, std::string>& sections);
 bool IsFaultLogLimit();
 
