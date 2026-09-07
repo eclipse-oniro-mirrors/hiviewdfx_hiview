@@ -37,6 +37,7 @@ ohos_shared_library("faultlogger_napi") {
     "napi:ace_napi",
     "node:node_header_notice",
   ]
+  version_script = "libfaultlogger_napi.map"
 
   relative_install_dir = "module"
   part_name = "hiview"
