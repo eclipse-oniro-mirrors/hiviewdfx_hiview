@@ -110,7 +110,7 @@ void EventVerifyUtil::DecorateSysEvent(const std::shared_ptr<SysEvent> event, co
 {
     event->SetLevel(baseInfo.keyConfig.GetLevel());
     if (baseInfo.tag != nullptr) {
-        event->SetTag(baseInfo.tag);
+        event->SetTag(*(baseInfo.tag));
     }
     event->SetPrivacy(baseInfo.keyConfig.privacy);
     std::string testType = paramWatcher_.GetTestType();
