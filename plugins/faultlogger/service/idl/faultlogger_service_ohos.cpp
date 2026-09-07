@@ -115,8 +115,7 @@ void FaultloggerServiceOhos::AddFaultLog(const FaultLogInfoOhos& info)
     int32_t uid = IPCSkeleton::GetCallingUid();
     int32_t pid = IPCSkeleton::GetCallingPid();
     HIVIEW_LOGD("info.uid:%{public}d uid:%{public}d info.pid:%{public}d pid:%{public}d", info.uid, uid, info.pid, pid);
-    if ((uid != static_cast<int32_t>(getuid())) && (uid != 0) &&
-        (uid != info.uid) && !IsCallerProcessDump(pid)) {
+    if ((uid != static_cast<int32_t>(getuid())) && (uid != 0) && !IsCallerProcessDump(pid)) {
         HIVIEW_LOGW("Fail to add fault log, caller uid:%{public}d is not hiview and pid:%{public}d is not processdump",
             uid, pid);
         if (info.pipeFd > 0) {
