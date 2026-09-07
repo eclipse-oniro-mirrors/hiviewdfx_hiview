@@ -77,16 +77,7 @@ void SetTagOfBaseInfo(BaseInfo& baseInfo, const std::string& tag)
         HIVIEW_LOGW("tag len=%{public}zu is too long", tagLen);
         return;
     }
-    baseInfo.tag = new(std::nothrow) char[tagLen + 1];
-    if (baseInfo.tag == nullptr) {
-        HIVIEW_LOGW("baseInfo.tag is null");
-        return;
-    }
-    if (strcpy_s(baseInfo.tag, tagLen + 1, tag.c_str()) != EOK) {
-        HIVIEW_LOGW("failed to copy tag=%{public}s", tag.c_str());
-        delete[] baseInfo.tag;
-        baseInfo.tag = nullptr;
-    }
+    baseInfo.tag = std::make_shared<std::string>(tag);
 }
 
 void WriteCountOverThresholdEvent(std::shared_ptr<DOMAIN_INFO_MAP>& sysEventDefMap)
@@ -156,7 +147,7 @@ EventJsonParser::~EventJsonParser()
 std::string EventJsonParser::GetTagByDomainAndName(const std::string& domain, const std::string& name)
 {
     auto baseInfo = GetDefinedBaseInfoByDomainName(domain, name);
-    return baseInfo.has_value() ? (baseInfo->tag == nullptr ? "" :  baseInfo->tag) : "";
+    return baseInfo.has_value() ? (baseInfo->tag == nullptr ? "" :  *(baseInfo->tag)) : "";
 }
 
 uint8_t EventJsonParser::GetTypeByDomainAndName(const std::string& domain, const std::string& name)
