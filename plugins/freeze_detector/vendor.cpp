@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "event_field_validator.h"
 #include "faultlogger_client.h"
 #include "file_util.h"
 #include "freeze_json_util.h"
@@ -38,6 +39,7 @@ namespace {
     const int TIME_STRING_LEN = 16;
     const int MIN_KEEP_FILE_NUM = 5;
     const int MAX_FOLDER_SIZE = 10 * 1024 * 1024;
+    const uint64_t MAX_MERGE_FILE_SIZE = 10 * 1024 * 1024; // single merged file stays within the folder budget
     const int TIMEOUT_THRESHOLD_NORMAL = 8000; // ms
     constexpr const char* TRIGGER_HEADER = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
     constexpr const char* HEADER = "*******************************************";
@@ -113,7 +115,9 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint &watchPoi
         info.id = static_cast<uint32_t>(watchPoint.GetRenderUid());
         info.pid = watchPoint.GetRenderPid();
     } else {
-        info.id = static_cast<uint32_t>(watchPoint.GetUid());
+        if (uid >= 0) {
+            info.id = static_cast<uint32_t>(uid);
+        }
         info.pid = watchPoint.GetPid();
     }
     info.faultLogType = (type == APPFREEZE) ? FaultLogType::APP_FREEZE : (type == SYSFREEZE) ?
@@ -295,6 +299,16 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     return FreezeManager::GetInstance()->SaveFreezeExtInfoToFile(uid, bundleName, stackFile, cpuFile);
 }
 
+template<typename T>
+bool Vendor::WriteJsonValue(int fd, const char* key, const T& value) const
+{
+    if (!FreezeJsonUtil::WriteKeyValue(fd, key, value)) {
+        HIVIEW_LOGI("failed to write json value, key:%{public}s.", key);
+        return false;
+    }
+    return true;
+}
+
 void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector<WatchPoint>& list) const
 {
     std::ostringstream oss;
@@ -326,18 +340,20 @@ void Vendor::MergeFreezeJsonFile(const WatchPoint &watchPoint, const std::vector
     }
     fdsan_exchange_owner_tag(jsonFd, 0, FREEZE_DOMAIN);
     HIVIEW_LOGI("success to open FreezeJsonFile! jsonFd: %{public}d, oss size: %{public}zu.", jsonFd, oss.str().size());
-    FileUtil::SaveStringToFd(jsonFd, oss.str());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "domain", watchPoint.GetDomain());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "stringId", watchPoint.GetStringId());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "timestamp", watchPoint.GetTimestamp());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "pid", jsonPid);
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "uid", jsonUid);
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "package_name", watchPoint.GetPackageName());
-    FreezeJsonUtil::WriteKeyValue(jsonFd, "process_name", watchPoint.GetProcessName());
+    bool writeRet = FileUtil::SaveStringToFd(jsonFd, oss.str());
+    writeRet &= WriteJsonValue(jsonFd, "domain", watchPoint.GetDomain());
+    writeRet &= WriteJsonValue(jsonFd, "stringId", watchPoint.GetStringId());
+    writeRet &= WriteJsonValue(jsonFd, "timestamp", watchPoint.GetTimestamp());
+    writeRet &= WriteJsonValue(jsonFd, "pid", jsonPid);
+    writeRet &= WriteJsonValue(jsonFd, "uid", jsonUid);
+    writeRet &= WriteJsonValue(jsonFd, "package_name", watchPoint.GetPackageName());
+    writeRet &= WriteJsonValue(jsonFd, "process_name", watchPoint.GetProcessName());
     if (fdsan_close_with_tag(jsonFd, FREEZE_DOMAIN) != 0) {
         HIVIEW_LOGE("MergeFreezeJsonFile fdsan close failed, errno=%{public}d", errno);
     }
-    HIVIEW_LOGI("success to merge FreezeJsonFiles!");
+    if (writeRet) {
+        HIVIEW_LOGI("success to merge FreezeJsonFiles!");
+    }
 }
 
 void Vendor::InitLogInfo(const WatchPoint& watchPoint, std::string& type, std::string& pubLogPathName,
@@ -380,9 +396,15 @@ bool Vendor::GetIfStreamByFilePath(std::string& filePath, std::ifstream& ifs, st
         HIVIEW_LOGE("PathToRealPath Failed:%{public}s.", filePath.c_str());
         return false;
     }
-
-    if (realPath.find(FreezeManager::EVENTLOG_PATH_PREFIX) != 0) {
-        HIVIEW_LOGE("path traversal detected, realPath:%{public}s.", realPath.c_str());
+    // the logPath of a watch point may originate from the event info field and is
+    // only guarded at write time; re-check the resolved path at this read point so
+    // a forged or replayed record cannot make hiview merge an arbitrary file
+    if (!EventFieldValidator::IsAcceptedReadPath(realPath)) {
+        HIVIEW_LOGE("reject merge of file outside the log roots:%{public}s.", realPath.c_str());
+        return false;
+    }
+    if (FileUtil::GetFileSize(realPath) > MAX_MERGE_FILE_SIZE) {
+        HIVIEW_LOGE("reject merge of oversized file:%{public}s.", realPath.c_str());
         return false;
     }
 

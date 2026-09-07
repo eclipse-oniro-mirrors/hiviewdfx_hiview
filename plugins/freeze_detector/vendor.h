@@ -83,6 +83,8 @@ private:
     void FillSectionMaps(FaultLogInfoInner &info, const WatchPoint& watchPoint, const std::string& isScbPro) const;
     void InitHalfFreezeExtFile(WatchPoint node, const std::string name, std::string& halfFreezeExtFile) const;
     std::string CheckNoteInfo(const WatchPoint& watchPoint) const;
+    template<typename T>
+    bool WriteJsonValue(int fd, const char* key, const T& value) const;
 
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     std::shared_ptr<DBHelper> dBHelper_ = nullptr;

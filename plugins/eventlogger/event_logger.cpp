@@ -76,6 +76,7 @@ namespace {
     constexpr const char* PRIORITY_KEYWORDS[] = {
         "VIP", "Immediate", "High", "Low", "Idle"
     };
+    constexpr size_t CMD_PREFIX_LEN = 2; // length of "k:" prefix
     constexpr const char* TASK_TIMEOUT = "CONGESTION";
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
@@ -97,6 +98,8 @@ namespace {
     constexpr int DFX_TASK_SERIAL_EXECUTION_NUM = 1;
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
+    /* seconds; fallback rate-limit interval for app writers whose event carries no valid interval */
+    constexpr int32_t DEFAULT_APP_WRITER_INTERVAL = 1;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
@@ -229,6 +232,14 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
     }
 
     long pid = GetEventPid(sysEvent);
+    // re-check the effective dump target after GetEventPid may have resolved it
+    // from PACKAGE_NAME: the resolved pid must belong to the event writer
+    if (!IsDumpTargetPermitted(sysEvent)) {
+        HIVIEW_LOGE("dump target not permitted, eventName=%{public}s, writerUid=%{public}d, pid=%{public}ld",
+            sysEvent->eventName_.c_str(), sysEvent->GetUid(), pid);
+        sysEvent->OnFinish();
+        return false;
+    }
     std::string eventName = sysEvent->eventName_;
 
     if (!CheckContinueReport(sysEvent, pid, eventName) || !CheckFfrtEvent(sysEvent) || !IsHandleAppfreeze(sysEvent) ||
@@ -415,6 +426,11 @@ void EventLogger::SubmitEventlogTask(const std::string& cmd, std::shared_ptr<Eve
 void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<SysEvent> event, int fd,
     std::shared_ptr<EventLogTask> logTask)
 {
+    if (cmd.compare(0, CMD_PREFIX_LEN, "k:") == 0 && event->GetUid() >= FreezeManager::MIN_APP_UID) {
+        HIVIEW_LOGW("skip sysrq/hungtask catcher for app-writable event, writerUid=%{public}d, cmd=%{public}s",
+            event->GetUid(), cmd.c_str());
+        return;
+    }
     if (cmd == "tr") {
         if (!Parameter::IsBetaVersion() || event->GetEventValue("NOT_DUMP_TRACE") != "Yes") {
             SubmitTraceTask(cmd, logTask);
@@ -637,7 +653,7 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
         }
         // 2: binder peer id
         std::string pidStr = strList[2].substr(0, strList[2].find(":"));
-        if (pidStr == "") {
+        if (!EventFieldValidator::IsDecimalValue(pidStr)) {
             continue;
         }
         if (processNameMap.find(pidStr) == processNameMap.end()) {
@@ -1004,7 +1020,7 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
     size_t len = std::char_traits<char>::length(":render");
     if (procName.find(":render") != std::string::npos && procName.size() > len) {
         std::string appName = procName.substr(0, procName.size() - len);
-        int pidOfApp = CommonUtils::GetPidByName(appName);
+        int pidOfApp = CommonUtils::GetPidByProcessName(appName);
         if (pidOfApp > 0) {
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
@@ -1277,7 +1293,13 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
     size_t indexTwo = binderInfo.rfind(",");
     if (indexOne != std::string::npos && indexTwo != std::string::npos && indexTwo > indexOne) {
         HIVIEW_LOGI("Current binderInfo is? binderInfo:%{public}s", binderInfo.c_str());
-        StringUtil::SplitStr(binderInfo.substr(indexOne + 1, indexTwo - indexOne - 1), " ", binderPids);
+        std::vector<std::string> parsedPids;
+        StringUtil::SplitStr(binderInfo.substr(indexOne + 1, indexTwo - indexOne - 1), " ", parsedPids);
+        for (const auto& parsedPid : parsedPids) {
+            if (EventFieldValidator::IsDecimalValue(parsedPid)) {
+                binderPids.push_back(parsedPid);
+            }
+        }
         int terminalBinderTid = std::atoi(binderInfo.substr(indexTwo + 1).c_str());
         std::string binderPath = binderInfo.substr(0, indexOne);
         if (FileUtil::FileExists(binderPath)) {
@@ -1381,12 +1403,23 @@ bool EventLogger::CheckEventInterval(const std::string& eventName, const std::st
 bool EventLogger::JudgmentRateLimiting(std::shared_ptr<SysEvent> event)
 {
     int32_t interval = event->GetIntValue("eventLog_interval");
-    if (interval == 0) {
-        return true;
+    if (interval <= 0) {
+        if (event->GetUid() < FreezeManager::MIN_APP_UID) {
+            // system writers keep the legacy behavior of no self-imposed interval
+            return true;
+        }
+        // app writers must not opt out of rate limiting with a missing/invalid
+        // interval; fall back to a default interval for their events
+        interval = DEFAULT_APP_WRITER_INTERVAL;
     }
 
-    int64_t pid = event->GetEventIntValue("PID");
-    pid = pid ? pid : event->GetPid();
+    int64_t pid = event->GetPid();
+    if (event->GetUid() < FreezeManager::MIN_APP_UID) {
+        // system writers keep the per-frozen-process key; app-writable events
+        // must not influence the rate-limit key through the event payload
+        pid = event->GetEventIntValue("PID");
+        pid = pid ? pid : event->GetPid();
+    }
     std::string eventName = event->eventName_;
     std::string eventPid = std::to_string(pid);
 
@@ -1781,6 +1814,23 @@ bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) 
     }
     dst = std::string(pos, end - pos);
     dst = StringUtil::TrimStr(dst, '\n');
+    return true;
+}
+
+bool EventLogger::IsDumpTargetPermitted(const std::shared_ptr<SysEvent>& event) const
+{
+    int32_t writerUid = event->GetUid();
+    if (writerUid >= 0 && writerUid < FreezeManager::MIN_APP_UID) {
+        return true;
+    }
+    int32_t pid = event->GetEventIntValue("PID");
+    if (pid > 0 && !FreezeManager::IsValidDumpTarget(pid, writerUid)) {
+        return false;
+    }
+    int32_t remotePid = event->GetEventIntValue("REMOTE_PID");
+    if (remotePid > 0 && remotePid != pid && !FreezeManager::IsValidDumpTarget(remotePid, writerUid)) {
+        return false;
+    }
     return true;
 }
 } // namespace HiviewDFX

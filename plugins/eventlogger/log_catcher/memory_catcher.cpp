@@ -79,6 +79,9 @@ bool MemoryCatcher::Initialize(const std::string& strParam1, int intParam1, int 
 int MemoryCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     std::string freezeMemory;
     std::string content;
     if (event_) {

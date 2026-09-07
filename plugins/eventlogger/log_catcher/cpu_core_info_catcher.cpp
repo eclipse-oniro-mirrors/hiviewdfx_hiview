@@ -58,6 +58,9 @@ bool CpuCoreInfoCatcher::Initialize(const std::string& strParam1, int intParam1,
 int CpuCoreInfoCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     GetCpuCoreFreqInfo(fd);
     FreezeCommon::WriteTimeInfoToFd(fd, "collect StabilityGetTempFreqInfo start time: ");
     StabilityGetTempFreqInfo(fd);

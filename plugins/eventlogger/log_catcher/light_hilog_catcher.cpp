@@ -60,6 +60,9 @@ int LightHilogCatcher::Catch(int fd, int jsonFd)
 
     std::string lightHiLogStr = result.data;
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     if (lightHiLogStr.empty()) {
         HIVIEW_LOGE("light hilog is empty!");
         return 0;
