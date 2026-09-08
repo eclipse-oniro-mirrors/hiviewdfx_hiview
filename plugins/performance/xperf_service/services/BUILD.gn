@@ -67,6 +67,7 @@ ohos_shared_library("xperfservice_server") {
     "framework/xperf_reporter/src/load_complete_reporter.cpp",
     "framework/xperf_storage/src/user_action_storage.cpp",
     "server/src/xperf_service_server.cpp",
+    "server/src/xperf_collie_timer.cpp",
     "xperf_service_main.cpp",
     "xperf_service_interfaces.cpp",
   ]
