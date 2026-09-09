@@ -702,7 +702,7 @@ HWTEST_F(EventloggerCatcherTest, FfrtCatcherTest_001, TestSize.Level0)
     }
 
     auto ffrtCatcher = std::make_shared<FfrtCatcher>();
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
     if (pid > 0) {
         bool res = ffrtCatcher->Initialize("", pid, 0);
         EXPECT_TRUE(res);
@@ -1069,7 +1069,7 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_002, TestSi
  */
 HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_003, TestSize.Level1)
 {
-    int foundationPid = CommonUtils::GetPidByName("foundation");
+    int foundationPid = CommonUtils::GetPidByProcessName("foundation");
     if (foundationPid > 0) {
         pid_t pid = CommonUtils::GetPidByProcessName("foundation");
         printf("foundationPid: %d\n", foundationPid);
@@ -1086,7 +1086,7 @@ HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_003, TestSi
  */
 HWTEST_F(EventloggerCatcherTest, LogCatcherUtils_GetPidByProcessName_004, TestSize.Level1)
 {
-    int abilityPid = CommonUtils::GetPidByName("com.ohos.sceneboard.MainAbility");
+    int abilityPid = CommonUtils::GetPidByProcessName("com.ohos.sceneboard.MainAbility");
     if (abilityPid > 0) {
         pid_t pid = CommonUtils::GetPidByProcessName("com.ohos.sceneboard.MainAbility");
         printf("abilityPid: %d\n", abilityPid);
@@ -1129,7 +1129,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_001, TestSize.Level0)
         EXPECT_TRUE(res > 0);
     }
 
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
 #ifdef HAS_HIPERF
     std::set<int> pids;
     pids.insert(pid);
@@ -1168,7 +1168,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_002, TestSize.Level1)
     std::set<int> catchedPids;
     catchedPids.insert(0);
     catchedPids.insert(1);
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
     catchedPids.insert(pid);
     peerBinderCatcher->Init(event, filePath, catchedPids);
     peerBinderCatcher->Initialize("foundation", 1, pid);
@@ -1194,7 +1194,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_003, TestSize.Level1)
         FAIL();
     }
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
     peerBinderCatcher->Initialize("a", 1, pid);
     auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("PeerBinderCatcherTest_Hicollie",
@@ -1230,7 +1230,7 @@ HWTEST_F(EventloggerCatcherTest, PeerBinderCatcherTest_004, TestSize.Level1)
         FAIL();
     }
     auto peerBinderCatcher = std::make_shared<PeerBinderCatcher>();
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
     peerBinderCatcher->Initialize("a", 1, pid);
     auto jsonStr = "{\"domain_\":\"KERNEL_VENDOR\"}";
     std::shared_ptr<SysEvent> event = std::make_shared<SysEvent>("PeerBinderCatcherTest_HicollieNoPN",
@@ -1490,7 +1490,7 @@ HWTEST_F(EventloggerCatcherTest, ShellCatcherTest_001, TestSize.Level0)
     }
 
     auto shellCatcher = std::make_shared<ShellCatcher>();
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
 
 #ifdef USAGE_CATCHER_ENABLE
     bool res = shellCatcher->Initialize("", ShellCatcher::CATCHER_WMS, pid);
@@ -1881,9 +1881,9 @@ HWTEST_F(EventloggerCatcherTest, CatchSyncPidTest_001, TestSize.Level1)
     int pid = getpid();
     peerBinderCatcher->Initialize("test", 1, pid);
     std::set<int> asyncPids;
-    auto systemuiPid = CommonUtils::GetPidByName("com.ohos.systemui");
-    auto launcherPid = CommonUtils::GetPidByName("com.ohos.sceneboard");
-    auto hiviewPid = CommonUtils::GetPidByName("hiview");
+    auto systemuiPid = CommonUtils::GetPidByProcessName("com.ohos.systemui");
+    auto launcherPid = CommonUtils::GetPidByProcessName("com.ohos.sceneboard");
+    auto hiviewPid = CommonUtils::GetPidByProcessName("hiview");
     asyncPids.insert(systemuiPid);
     asyncPids.insert(launcherPid);
     asyncPids.insert(hiviewPid);
@@ -1929,7 +1929,7 @@ HWTEST_F(EventloggerCatcherTest, LightHilogCatcherTest_001, TestSize.Level1)
     lightHilogCatcher->Initialize("testLightHilogCatcher", 0, 0);
     lightHilogCatcher->Catch(fd, jsFd);
 
-    int pid = CommonUtils::GetPidByName("foundation");
+    int pid = CommonUtils::GetPidByProcessName("foundation");
     lightHilogCatcher->Initialize("testLightHilogCatcher", 0, pid);
     lightHilogCatcher->Initialize("testLightHilogCatcher", 1, pid);
     lightHilogCatcher->Catch(fd, jsFd);

@@ -30,8 +30,8 @@ public:
 
 int32_t GetTestPid()
 {
-    auto systemuiPid = CommonUtils::GetPidByName("com.ohos.systemui");
-    auto launcherPid = CommonUtils::GetPidByName("com.ohos.sceneboard");
+    auto systemuiPid = CommonUtils::GetPidByProcessName("com.ohos.systemui");
+    auto launcherPid = CommonUtils::GetPidByProcessName("com.ohos.sceneboard");
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     return pid;
 }

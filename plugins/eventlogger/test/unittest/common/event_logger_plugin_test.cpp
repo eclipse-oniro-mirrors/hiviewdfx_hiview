@@ -138,7 +138,7 @@ HWTEST_F(EventloggerPluginTest, EventloggerPluginTest005, TestSize.Level3)
     event->eventId_ = 0;
     event->domain_ = "FRAMEWORK";
     event->eventName_ = "SERVICE_BLOCK";
-    event->SetEventValue("PID", CommonUtils::GetPidByName("foundation"));
+    event->SetEventValue("PID", CommonUtils::GetPidByProcessName("foundation"));
     ASSERT_EQ(eventLogger.IsInterestedPipelineEvent(event), false);
 }
 

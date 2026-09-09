@@ -105,8 +105,8 @@ HWTEST_F(HiviewSATest, CommonTest003, testing::ext::TestSize.Level3)
     sptr<IRemoteObject> abilityObjext = GetHiviewRemoteObject();
     ASSERT_NE(abilityObjext, nullptr);
     auto hiviewSAProxy = new HiviewServiceAbilityProxy(abilityObjext);
-    auto systemuiPid = CommonUtils::GetPidByName("com.ohos.systemui");
-    auto launcherPid = CommonUtils::GetPidByName("com.ohos.sceneboard");
+    auto systemuiPid = CommonUtils::GetPidByProcessName("com.ohos.systemui");
+    auto launcherPid = CommonUtils::GetPidByProcessName("com.ohos.sceneboard");
     auto pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     ASSERT_GT(pid, 0);
     int32_t errNo = UCollect::UcError::UNSUPPORT;
