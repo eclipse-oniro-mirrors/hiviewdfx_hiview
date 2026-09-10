@@ -35,6 +35,7 @@
 #include "json/json.h"
 #include "parameter_ex.h"
 #include "string_util.h"
+#include "tbox.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -592,6 +593,11 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.logPath = GetSanitizerTempLogName(sysEvent.GetPid(), sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
+        std::string fingerPrint  = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
+            sysEvent.GetEventValue(FaultKey::FIRST_FRAME) + info.reason + info.module,
+            0,
+            OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
+        SysEvent.SetEventValue(FaultKey::FINGERPRINT, fingerPrint);
     }
     return info;
 }
