@@ -31,7 +31,7 @@
 #include "hisysevent.h"
 #include "hisysevent_easy.h"
 #include "faultloggerd_client.h"
-#include "tbox.h"
+#include "file_util.h"
 #include "common_defines.h"
 #include "dfx_signal_handler.h"
 
@@ -140,8 +140,6 @@ void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faul
     std::string timeStr = GetFormatedTime(timeTmp);
     currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, decimalBase));
     currInfo.topStack = GetTopStackWithoutCommonLib(currInfo.description);
-    currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
-        currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
     currInfo.telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
     currInfo.appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
     // Do upload when data ready
@@ -161,7 +159,6 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
         ";PID:" << currInfo.pid <<
         ";UID:" << currInfo.uid <<
         ";HAPPEN_TIME:" << currInfo.happenTime <<
-        ";FINGERPRINT:" << currInfo.hash <<
         ";FIRST_FRAME:" << currInfo.errType <<
         ";SECOND_FRAME:" << currInfo.topStack <<
         ";APP_RUNNING_UNIQUE_ID:" << currInfo.appRunningId;
