@@ -54,8 +54,6 @@ struct GwpAsanCurrInfo {
     std::string summary;
     /** information about faultlog using <key,value> */
     std::map<std::string, std::string> sectionMaps;
-    /** hash value used for clustering */
-    std::string hash;
     /** top stack */
     std::string topStack;
     /** telemetryId for gwpasan */
