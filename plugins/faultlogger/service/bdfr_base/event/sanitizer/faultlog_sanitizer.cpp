@@ -597,7 +597,7 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
             sysEvent.GetEventValue(FaultKey::FIRST_FRAME) + info.reason + info.module,
             0,
             OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
-        SysEvent.SetEventValue(FaultKey::FINGERPRINT, fingerPrint);
+        sysEvent.SetEventValue(FaultKey::FINGERPRINT, fingerPrint);
     }
     return info;
 }
