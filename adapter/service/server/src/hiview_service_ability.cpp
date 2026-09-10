@@ -94,6 +94,8 @@ bool IsSafePath(const std::string& basePath, const std::string& fullPath)
         HIVIEW_LOGE("real fullPath failed.");
         return false;
     }
+
+    realBasePath = FileUtil::IncludeTrailingPathDelimiter(realBasePath);
     return realFullPath.find(realBasePath) == 0;
 }
 
@@ -299,7 +301,7 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
     }
     std::string fullPath = ComposeFilePath(sandboxPath, dest, logName);
     ErrCode ret = isMove ? service->Move(sourceFile, fullPath) : service->Copy(sourceFile, fullPath);
-    if (ret == 0 && chown(fullPath.c_str(), uid, uid) != 0) {
+    if (ret == 0 && lchown(fullPath.c_str(), uid, uid) != 0) {
         HIVIEW_LOGW("fail to change file owner and group:%{public}d, uid:%{public}d", errno, uid);
     }
     return ret;
