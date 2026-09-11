@@ -168,7 +168,6 @@ void PerfMonitorAdapter::SetSubHealthInfo(const std::string& info, const std::st
     subHealthInfo.info = info;
     subHealthInfo.subHealthReason = reason;
     subHealthInfo.subHealthTime = duration;
-    AnimatorMonitor::GetInstance().SetSubHealthInfo(subHealthInfo);
 }
 
 void PerfMonitorAdapter::ReportJankFrameApp(double jank, int32_t jankThreshold)

@@ -71,9 +71,6 @@ void JankFrameMonitor::OnFrameEnd(int64_t vsyncTime, int64_t duration, double ja
 void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double jank, const std::string& windowName)
 {
     SceneMonitor::GetInstance().OnSceneChanged(SceneType::NON_EXPERIENCE_WINDOW, true, windowName);
-    if (AnimatorMonitor::GetInstance().IsSubHealthScene()) {
-        SceneMonitor::GetInstance().FlushSubHealthInfo();
-    }
     ProcessJank(vsyncTime, jank, windowName);
     JankFrameStatsRecord(jank);
     SceneMonitor::GetInstance().SingleFrameSceneStop(windowName);
