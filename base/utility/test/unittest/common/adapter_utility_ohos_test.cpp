@@ -126,14 +126,14 @@ void AdapterUtilityOhosTest::TearDown()
 
 /**
  * @tc.name: CommonUtilsOhosTest001
- * @tc.desc: Test GetPidByName defined in namespace CommonUtils
+ * @tc.desc: Test GetPidByProcessName defined in namespace CommonUtils
  * @tc.type: FUNC
  * @tc.require: issueI65DUW
  */
 HWTEST_F(AdapterUtilityOhosTest, CommonUtilsOhosTest001, testing::ext::TestSize.Level3)
 {
     std::vector<std::string> cmdRet;
-    auto hiviewProcessId = CommonUtils::GetPidByName("hiview");
+    auto hiviewProcessId = CommonUtils::GetPidByProcessName("hiview");
     ASSERT_TRUE(hiviewProcessId > 0);
 }
 
