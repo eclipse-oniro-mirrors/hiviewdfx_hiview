@@ -62,6 +62,7 @@ ohos_shared_library("loglibrary_ani") {
   subsystem_name = "hiviewdfx"
   part_name = "hiview"
   output_extension = "so"
+  version_script = "loglibrary_ani.map"
 }
 
 generate_static_abc("loglibrary") {
