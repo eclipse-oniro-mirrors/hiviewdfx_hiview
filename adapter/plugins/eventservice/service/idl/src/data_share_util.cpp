@@ -54,7 +54,7 @@ int DataShareUtil::CopyFile(const char *src, const char *des)
         return -1;
     }
 
-    int dest_fd = open(des, O_WRONLY | O_CREAT, S_IWUSR);
+    int dest_fd = open(des, O_WRONLY | O_CREAT | O_NOFOLLOW, S_IWUSR);
     if (dest_fd == -1) {
         perror("open");
         HIVIEW_LOGE("failed to open destination file, des=%{public}s", des);
