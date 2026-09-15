@@ -16,6 +16,7 @@
 #ifndef FREEZE_DETECTOR_PLUGIN_H
 #define FREEZE_DETECTOR_PLUGIN_H
 
+#include <cstdint>
 #include <memory>
 
 #include "event.h"
@@ -36,6 +37,7 @@ struct WatchPointParams {
     long sysuid;
     long renderPid;
     long renderUid;
+    int64_t processLifetime;
     std::string appRunningUniqueId;
     std::string packageName;
     std::string processName;

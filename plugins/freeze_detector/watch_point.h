@@ -40,6 +40,7 @@ public:
         Builder& InitMsg(const std::string& msg);
         Builder& InitPackageName(const std::string& packageName);
         Builder& InitProcessName(const std::string& processName);
+        Builder& InitProcessLifeTime(int64_t processLifeTime);
         Builder& InitForeGround(const std::string& foreGround);
         Builder& InitLogPath(const std::string& logPath);
         Builder& InitHitraceTime(const std::string& hitraceTime);
@@ -82,6 +83,7 @@ public:
         std::string msg_;
         std::string packageName_;
         std::string processName_;
+        int64_t processLifetime_;
         std::string foreGround_;
         std::string logPath_;
         std::string hitraceTime_;
@@ -128,6 +130,7 @@ public:
     std::string GetMsg() const;
     std::string GetPackageName() const;
     std::string GetProcessName() const;
+    int64_t GetProcessLifeTime() const;
     std::string GetForeGround() const;
     std::string GetLogPath() const;
     std::string GetHitraceTime() const;
@@ -182,6 +185,7 @@ private:
     std::string msg_;
     std::string packageName_;
     std::string processName_;
+    int64_t processLifetime_;
     std::string foreGround_;
     std::string logPath_;
     std::string hitraceTime_;

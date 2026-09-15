@@ -63,6 +63,7 @@ const SectionLog CPU_USAGE = {FaultKey::CPU_USAGE, "CPU Usage:"};
 const SectionLog DEVICE_DEBUGABLE = {FaultKey::DEVICE_DEBUGABLE, "DeviceDebuggable:"};
 const SectionLog DEVICE_INFO = {FaultKey::DEVICE_INFO, "Device info:"};
 const SectionLog DEVICE_MEMINFO = {FaultKey::DEVICE_MEMINFO, ""};
+const SectionLog DEVICE_RUNNING_TIME = {FaultKey::DEVICE_RUNNING_TIME, "Device running time:"};
 const SectionLog ENABLED_APP_LOG_CONFIG = {FaultKey::ENABLED_APP_LOG_CONFIG, "Enabled app log configs:\n"};
 const SectionLog ENABLE_MINIDUMP_LOG = {FaultKey::ENABLE_MINIDUMP_LOG, "Enable minidump log:"};
 const SectionLog EXTEND_PC_LR_PRINTING = {FaultKey::EXTEND_PC_LR_PRINTING, "Extend pc lr printing:"};
@@ -166,7 +167,8 @@ std::vector<SectionLog> GetSysFreezeSectionLogs()
 {
     std::vector<SectionLog> info = {
         DEVICE_INFO, BUILD_INFO, FINGERPRINT, TIMESTAMP, MODULE_NAME, MODULE_VERSION, FOREGROUND,
-        MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, APP_RUNNING_UNIQUE_ID, REASON,
+        MODULE_PID, MODULE_UID, FAULT_TYPE, SYS_VM_TYPE, APP_VM_TYPE, APP_RUNNING_UNIQUE_ID,
+        PROCESS_LIFETIME, DEVICE_RUNNING_TIME, REASON,
         TRACE_ID, CPU_USAGE, MEMORY_USAGE, ROOT_CAUSE, STACKTRACE,
         MSG_QUEUE_INFO, BINDER_TRANSACTION_INFO, PROCESS_STACKTRACE, SUMMARY
     };

@@ -15,8 +15,11 @@
 #ifndef FAULTLOG_DATABASE_H
 #define FAULTLOG_DATABASE_H
 
+#include <vector>
+
 #include "event_loop.h"
 #include "faultlog_info_inner.h"
+#include "hisysevent.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -38,6 +41,9 @@ private:
     static void WriteEvent(FaultLogInfo& info);
     static int32_t UpdateFGParam(FaultLogInfo& info);
     static int64_t GetLifeTimeValue(const FaultLogInfo& info);
+    static int64_t GetInt64Value(const FaultLogInfo& info, const char* key);
+    static size_t BuildSysEventParams(FaultLogInfo& info, std::string& faultLogType,
+        HiSysEventParam* params);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS
