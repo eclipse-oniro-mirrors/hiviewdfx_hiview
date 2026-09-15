@@ -200,13 +200,12 @@ bool SocketDevice::IsValidMsg(char* msg, int32_t len)
             ", %{public}" PRId32 "]", pid, uCredPid_);
         return false;
     }
-    msg[len] = '\0';
     return true;
 }
 
 int SocketDevice::ReceiveMsg(std::vector<std::shared_ptr<EventReceiver>> &receivers)
 {
-    char* buffer = new char[BUFFER_SIZE + 1]();
+    char* buffer = new char[BUFFER_SIZE]();
     std::array<char, CMSG_SPACE(sizeof(struct ucred))> control = {0};
     struct msghdr msgh = {0};
     struct iovec iov = {
@@ -289,7 +288,6 @@ bool BBoxDevice::IsValidMsg(char* msg, int32_t len)
         HIVIEW_LOGW("the data lengths=%{public}d are not equal", len);
         return false;
     }
-    msg[EVENT_READ_BUFFER - 1] = '\0';
     return true;
 }
 
