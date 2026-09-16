@@ -341,6 +341,8 @@ int AppEventHandler::PostEvent(const AppKilledInfo& event)
     AddValueToJsonString("foreground", event.isForeground, jsonStr);
     AddValueToJsonString("app_running_unique_id", event.appRunningUniqueId, jsonStr);
     AddValueToJsonString("bundle_version", event.bundleVersion, jsonStr);
+    AddValueToJsonString("calling_pid", event.callingPid, jsonStr);
+    AddValueToJsonString("calling_process_name", event.callingProcessName, jsonStr);
 
     jsonStr << "\"last_exit_detail_info\":{";
     AddValueToJsonString("pid", event.lastExitDetailInfo.pid, jsonStr);

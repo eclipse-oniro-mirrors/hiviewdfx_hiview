@@ -227,7 +227,9 @@ public:
         std::string reason;
         std::string appRunningUniqueId;
         int32_t uid = 0;
+        int32_t callingPid = 0;
         bool isForeground = false;
+        std::string callingProcessName;
         LastExitDetailInfo lastExitDetailInfo = {};
     };
 
