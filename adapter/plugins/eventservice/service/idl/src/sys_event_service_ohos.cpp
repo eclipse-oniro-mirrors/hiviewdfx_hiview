@@ -16,7 +16,7 @@
 #include "sys_event_service_ohos.h"
 
 #include <codecvt>
-#include <regex>
+#include <regex.h>
 #include <set>
 
 #include "accesstoken_kit.h"
@@ -34,7 +34,6 @@
 #include "ret_code.h"
 #include "running_status_log_util.h"
 #include "string_ex.h"
-#include "string_util.h"
 #include "system_ability_definition.h"
 #include "sys_event_sequence_mgr.h"
 #include "time_util.h"
@@ -59,12 +58,18 @@ bool IsMatchedWithRegex(const string& rule, const string& match)
     if (rule.empty()) {
         return true;
     }
-    if ((rule.length() > REGEX_LEN_LIMIT) || !StringUtil::IsValidRegex(rule)) {
+    if ((rule.length() > REGEX_LEN_LIMIT)) {
         return false;
     }
-    smatch result;
-    const regex pattern(rule);
-    return regex_search(match, result, pattern);
+    regex_t regex;
+    int ret = regcomp(&regex, rule.c_str(), REG_EXTENDED);
+    if (ret != REG_OK) {
+        regfree(&regex);
+        return false;
+    }
+    ret = regexec(&regex, match.c_str(), 0, nullptr, 0);
+    regfree(&regex);
+    return (ret == REG_OK);
 }
 
 bool MatchContent(int type, const string& rule, const string& match)
