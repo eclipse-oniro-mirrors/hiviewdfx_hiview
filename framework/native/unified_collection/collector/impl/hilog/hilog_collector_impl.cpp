@@ -33,10 +33,9 @@ void HilogCollectorImpl::ExecuteHilog(int32_t pid, uint32_t lineCount, int write
         HIVIEW_LOGE("dup2 writeFd fail");
         _exit(EXIT_FAILURE);
     }
-
     int ret = execl("/system/bin/hilog", "hilog", "-z", std::to_string(lineCount).c_str(),
         "-P", std::to_string(pid).c_str(), nullptr);
-    close(writeFd);
+    fdsan_close_with_tag(writeFd, logLabelDomain);
     if (ret < 0) {
         HIVIEW_LOGE("execl %{public}d, errno: %{public}d", ret, errno);
         _exit(EXIT_FAILURE);
@@ -56,7 +55,7 @@ void HilogCollectorImpl::ReadHilog(int readFd, std::string& log) const
         }
         log.append(buffer);
     }
-    close(readFd);
+    fdsan_close_with_tag(readFd, logLabelDomain);
 }
 
 CollectResult<std::string> HilogCollectorImpl::CollectLastLog(uint32_t pid, uint32_t lineNum)
@@ -68,7 +67,8 @@ CollectResult<std::string> HilogCollectorImpl::CollectLastLog(uint32_t pid, uint
         HIVIEW_LOGE("pipe fail.");
         return result;
     }
-
+    fdsan_exchange_owner_tag(fds[0], 0, logLabelDomain);
+    fdsan_exchange_owner_tag(fds[1], 0, logLabelDomain);
     int childPid = fork();
     if (childPid < 0) {
         HIVIEW_LOGE("fork fail.");
@@ -76,11 +76,11 @@ CollectResult<std::string> HilogCollectorImpl::CollectLastLog(uint32_t pid, uint
     }
 
     if (childPid == 0) {
-        close(fds[0]);
+        fdsan_close_with_tag(fds[0], logLabelDomain);
         constexpr uint32_t MAX_LINE_NUM = 10000;
         ExecuteHilog(pid, lineNum > MAX_LINE_NUM ? MAX_LINE_NUM : lineNum, fds[1]);
     } else {
-        close(fds[1]);
+        fdsan_close_with_tag(fds[1], logLabelDomain);
         ReadHilog(fds[0], result.data);
         result.retCode = UCollect::SUCCESS;
         if (waitpid(childPid, nullptr, 0) != childPid) {
