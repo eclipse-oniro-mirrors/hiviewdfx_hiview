@@ -383,7 +383,7 @@ bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, cons
         srcLogFile.close();
         return false;
     }
-    WriteStackInfoParams params = {moduleName, path, tempPath, srcLogFile, tempFileFd, NeedTranslate};
+    WriteStackInfoParams params = {moduleName, path, tempPath, srcLogFile, tempFileFd, needTranslate};
     if (!WriteStackInfo(params)) {
         (void)fclose(fp);
         return false;
