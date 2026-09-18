@@ -356,7 +356,7 @@ bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
     }
     params.srcLogFile.close();
     if (fsync(params.tempFileFd) != 0) {
-        HIVIEW_LOGE("Failed to sync temp file: %{public}s, err: %{public}s", tempPath.c_str(), strerror(errno));
+        HIVIEW_LOGE("Failed to sync temp file: %{public}s, err: %{public}s", params.tempPath.c_str(), strerror(errno));
         return false;
     }
     return true;
