@@ -558,7 +558,10 @@ void SysEventServiceOhos::SetWorkLoop(std::shared_ptr<EventLoop> looper)
         HIVIEW_LOGW("SetWorkLoop failed, looper is null.");
         return;
     }
-    dataPublisher_->SetWorkLoop(looper);
+    {
+        lock_guard<mutex> lock(publisherMutex_);
+        dataPublisher_->SetWorkLoop(looper);
+    }
     statusMonitor_->SetWorkLoop(looper);
 }
 }  // namespace HiviewDFX

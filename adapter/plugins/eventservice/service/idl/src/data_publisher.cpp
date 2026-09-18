@@ -147,6 +147,7 @@ void DataPublisher::OnSysEvent(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event
     if (eventRelationMap_.find(event->eventName_) == eventRelationMap_.end()) {
         return;
     }
+    std::set<int> uidSet = eventRelationMap_[event->eventName_];
     if (!CreateHiviewTempDir()) {
         HIVIEW_LOGE("failed to create resourceFile.");
         return;
@@ -155,23 +156,22 @@ void DataPublisher::OnSysEvent(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event
     std::string timeStr = std::to_string(timestamp);
     std::string srcPath = TEMP_SRC_DIR;
     if (looper_ != nullptr) {
-        auto task = std::bind(&DataPublisher::HandleSubscribeTask, this, event, srcPath, timeStr);
+        auto task = std::bind(&DataPublisher::HandleSubscribeTask, this, event, srcPath, timeStr, uidSet);
         looper_->AddTimerEvent(nullptr, nullptr, task, DELAY_TIME, false);
     } else {
         HIVIEW_LOGW("looper_ is null, call the subscribe function directly.");
-        HandleSubscribeTask(event, srcPath, timeStr);
+        HandleSubscribeTask(event, srcPath, timeStr, uidSet);
     }
 }
 
 void DataPublisher::HandleSubscribeTask(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event,
-    std::string srcPath, std::string timeStr)
+    std::string srcPath, std::string timeStr, std::set<int> &uidSet)
 {
     std::string eventJson = event->AsJsonStr();
     if (!FileUtil::SaveStringToFile(srcPath, eventJson + ",", true)) {
         HIVIEW_LOGE("failed to persist eventJson to file.");
         return;
     }
-    std::set<int> uidSet = eventRelationMap_[event->eventName_];
     std::string desPath;
     for (auto uid : uidSet) {
         desPath = OHOS::HiviewDFX::DataShareUtil::GetSandBoxPathByUid(uid);
