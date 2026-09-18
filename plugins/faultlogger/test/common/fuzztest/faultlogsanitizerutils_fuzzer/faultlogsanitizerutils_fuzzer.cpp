@@ -75,7 +75,7 @@ void FuzzProcessArkTsLine(FuzzDataSource& source)
     }
     auto maps = ReadMaps(source);
     FaultLogSanitizer sanitizer;
-    (void)sanitizer.ProcessArkTsLine(line, packageName, maps);
+    (void)sanitizer.ProcessArkTsLine(line, packageName, maps, false);
 }
 
 void FuzzLoadMaps(FuzzDataSource& source)
