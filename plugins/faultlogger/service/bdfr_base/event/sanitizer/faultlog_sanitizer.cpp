@@ -245,7 +245,7 @@ std::string FaultLogSanitizer::FormatResult(const std::string& line, const JsFun
 }
 
 std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const std::string& packageName,
-                                                const std::vector<MapInfo>& maps)
+                                                const std::vector<MapInfo>& maps, bool needTranslate)
 {
     LoadInfo info = {0, 0, 0, ""};
     if (!ExtractLoadInfo(line, maps, packageName, info)) {
@@ -257,7 +257,6 @@ std::string FaultLogSanitizer::ProcessArkTsLine(const std::string& line, const s
         HIVIEW_LOGE("Failed to create Ark JS symbol extractor, ret: %{public}d", ret);
         return line;
     }
-    bool needTranslate = NeedTranslate(packageName);
     JsFunction jsFunc;
     ret = ParseArkFile(info, needTranslate, arkExtractorPtr, jsFunc);
     DfxArk::Instance().ArkDestoryJsSymbolExtractor(arkExtractorPtr);
@@ -332,40 +331,38 @@ bool FaultLogSanitizer::OpenTempFile(const std::string& tempPath, FILE*& fp, int
     return true;
 }
 
-bool FaultLogSanitizer::WriteStackInfo(const std::string& moduleName, const std::string& path,
-                                       const std::string& tempPath, std::ifstream& srcLogFile,
-                                       int tempFileFd)
+bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
 {
     // First traversal to read maps intervals, find address intervals corresponding to .hap and other formats
-    std::vector<MapInfo> maps = LoadMaps(srcLogFile);
+    std::vector<MapInfo> maps = LoadMaps(params.srcLogFile);
 
     std::string line;
-    srcLogFile.clear();
-    srcLogFile.seekg(0, std::ios::beg);
+    params.srcLogFile.clear();
+    params.srcLogFile.seekg(0, std::ios::beg);
 
     // Second traversal is to read .hap and other stacks from stack frames, and directly replace them after parsing
-    while (std::getline(srcLogFile, line)) {
-        if (srcLogFile.eof()) {
+    while (std::getline(params.srcLogFile, line)) {
+        if (params.srcLogFile.eof()) {
             break;
         }
-        if (!srcLogFile.good()) {
+        if (!params.srcLogFile.good()) {
             break;
         }
         if (ShouldParseSandBoxPath(line)) {
-            line = ProcessArkTsLine(line, moduleName, maps);
+            line = ProcessArkTsLine(line, params.moduleName, maps, params.needTranslate);
         }
-        FileUtil::SaveStringToFd(tempFileFd, line);
-        FileUtil::SaveStringToFd(tempFileFd, "\n");
+        FileUtil::SaveStringToFd(params.tempFileFd, line);
+        FileUtil::SaveStringToFd(params.tempFileFd, "\n");
     }
-    srcLogFile.close();
-    if (fsync(tempFileFd) != 0) {
+    params.srcLogFile.close();
+    if (fsync(params.tempFileFd) != 0) {
         HIVIEW_LOGE("Failed to sync temp file: %{public}s, err: %{public}s", tempPath.c_str(), strerror(errno));
         return false;
     }
     return true;
 }
 
-bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, const std::string& path)
+bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, const std::string& path, bool needTranslate)
 {
     // If the file size is too large, stack unwinding during faultlog processing may encounter issues
     auto fileSize = FileUtil::GetFileSize(path);
@@ -386,7 +383,8 @@ bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, cons
         srcLogFile.close();
         return false;
     }
-    if (!WriteStackInfo(moduleName, path, tempPath, srcLogFile, tempFileFd)) {
+    WriteStackInfoParams params = {moduleName, path, tempPath, srcLogFile, tempFileFd, NeedTranslate};
+    if (!WriteStackInfo(params)) {
         (void)fclose(fp);
         return false;
     }
@@ -399,13 +397,14 @@ bool FaultLogSanitizer::ForkProcessParseArkTsStackInfo(const std::string& module
     if (moduleName.empty() || path.empty()) {
         return false;
     }
+    bool needTranslate = NeedTranslate(moduleName);
     pid_t childPid = fork();
     if (childPid < 0) {
         HIVIEW_LOGE("failed to fork process, err: %{public}s", strerror(errno));
         return false;
     }
     if (childPid == 0) {
-        bool ret = ParserArkTsStackInfo(moduleName, path);
+        bool ret = ParserArkTsStackInfo(moduleName, path, needTranslate);
         if (!ret) {
             HIVIEW_LOGE("moduleName: %{public}s, err: %{public}s", moduleName.c_str(), strerror(errno));
             _exit(-1);
