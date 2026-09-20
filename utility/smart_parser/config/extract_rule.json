@@ -87,7 +87,7 @@
     },
     "Rule7":{
         "DirOrFile":"/data/hisi_logs/",
-        "Subcatalog":"\\d{14}-\\d{8}/ap_log/fastboot_log",
+        "Subcatalog":"\\d{14}-\\d{8}/ap_log/hiboot_log",
         "featureId":"04_HWWATCHDOG_00",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"RebootReasonGetExcType", "v_first":"get pmu reg is (0x[0-9a-fA-F]+)"},
@@ -265,7 +265,7 @@
     },
     "Rule24":{
         "DirOrFile":"/data/hisi_logs/",
-        "Subcatalog":"\\d{14}-\\d{8}/ap_log/fastboot_log",
+        "Subcatalog":"\\d{14}-\\d{8}/ap_log/hiboot_log",
         "featureId":"04_LPM3EXCEPTION_00",
         "rules":[
             {"namespace":"BasicParam", "matchKey":"RebootReasonGetExcType", "v_first":"get pmu reg is (0x[0-9a-fA-F]+)"},
