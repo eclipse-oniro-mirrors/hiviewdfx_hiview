@@ -1,6 +1,6 @@
 # EventLogger Catcher 机制知识
 
-本文只记录 eventlogger 的 catcher 编排、条件编译、采集大小/超时限制。故障日志管理见 `faultlog-management.md`，事件流水线见 `event-pipeline.md`。
+本文只记录 eventlogger 的 catcher 编排、条件编译、采集大小/超时限制。故障日志管理见 `faultlogger-management.md`，事件流水线见 `event-pipeline.md`。
 
 ## 主链路
 

@@ -82,11 +82,12 @@
 | --- | --- | --- |
 | 事件流转、流水线分发、事件源、订阅、无序事件、dispatch rule 匹配 | `core/`, `plugins/sysevent_source/`, `base/` | `docs/knowledge/event-pipeline.md` |
 | 插件注册、生命周期、代理加载/卸载、线程模型、插件包 bundle、命名约束 | `base/include/`, `core/`, 各插件 | `docs/knowledge/plugin-lifecycle.md` |
-| 故障日志写入/查询、cppcrash/jserror/appfreeze/rustpanic、文件配额、GWP-ASan、FaultLogType | `plugins/faultlogger/` | `docs/knowledge/faultlog-management.md` |
+| 故障日志写入/查询、cppcrash/jserror/appfreeze/rustpanic、文件配额、GWP-ASan、FaultLogType | `plugins/faultlogger/` | `docs/knowledge/faultlogger-management.md` |
 | eventlogger catcher 编排、各 catcher 条件编译、采集大小/超时、event_logger_config | `plugins/eventlogger/` | `docs/knowledge/eventlogger-catcher.md` |
 | trace 采集、状态机切换、配额、zip/io/app overflow、telemetry quota | `framework/native/unified_collection/trace_manager/`, `plugins/unified_collector/` | `docs/knowledge/trace-flow-control.md` |
 | 统一采集器、utility/client 接口、impl/empty_impl 二选一、decorator | `interfaces/inner_api/unified_collection/`, `framework/native/unified_collection/` | `docs/knowledge/unified-collection.md` |
 | 路径校验、IPC 权限、SA ID、接口码、隐私脱敏、allowList | `adapter/service/`, `plugins/faultlogger/service/idl/`, `plugins/privacy_controller/` | `docs/knowledge/path-and-ipc-safety.md` |
+| 黑盒故障（panic/watchdog/modem crash）、history.log 启动扫描、panic 恢复补报、动态库加载、KERNEL_VENDOR 事件 | `plugins/reliability/bbox_detectors/` | `docs/knowledge/bbox-detectors.md` |
 | 构建、板侧测试、PR 证据、共享库重构建、配置行为验证 | 任何构建/测试相关改动 | `docs/knowledge/board-verification.md` |
 
 ### 开始编辑前

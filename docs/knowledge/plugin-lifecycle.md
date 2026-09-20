@@ -1,6 +1,6 @@
 # 插件生命周期知识
 
-本文只记录插件注册、加载、卸载、线程模型和插件包 bundle 的边界。事件流转见 `event-pipeline.md`，故障日志处理见 `faultlog-management.md`。
+本文只记录插件注册、加载、卸载、线程模型和插件包 bundle 的边界。事件流转见 `event-pipeline.md`，故障日志处理见 `faultlogger-management.md`。
 
 ## 注册方式三选一（互斥）
 
