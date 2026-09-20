@@ -1,6 +1,6 @@
 # 应用事件发布知识
 
-本文记录 `base/event_publish` 模块的权威模型。该模块负责把 OS 域 HiSysEvent（如 `APP_CRASH`、`APP_FREEZE`、`RESOURCE_OVERLIMIT`）投递到应用沙箱，供注册为观察者的应用接收。编译开关见 `hiview.gni` 的 `hiview_appevent_publish_enable`，编译产物随 `hiviewbase` 一起构建（见 `base/BUILD.gn` 的 `ohos_shared_library("hiviewbase")`）。
+本文记录 `base/event_publish` 模块的主要功能。该模块负责把观察者已订阅的事件（如 `APP_CRASH`、`APP_FREEZE`、`RESOURCE_OVERLIMIT`等）发送到应用沙箱（如果事件存在external_log日志文件，则external_log日志文件也要发送），供观察者所在的应用回调接收。
 
 ## 核心类与职责
 
