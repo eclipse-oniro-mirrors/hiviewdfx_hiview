@@ -36,7 +36,7 @@ HWTEST(SmartParserHwWatchdogTest, SmartParserHwWatchdogTest001, testing::ext::Te
      * @tc.steps: step1. parser log
      */
     const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
-        "/SmartParserHwWatchdogTest001/19700101000000-00000007/ap_log/fastboot_log";
+        "/SmartParserHwWatchdogTest001/19700101000000-00000007/ap_log/hiboot_log";
     const std::string eventType = "HWWATCHDOG";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
 
@@ -59,7 +59,7 @@ HWTEST(SmartParserHwWatchdogTest, SmartParserHwWatchdogTest002, testing::ext::Te
      * @tc.steps: step1. parser log
      */
     const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
-        "/SmartParserHwWatchdogTest002/19700101000000-00000007/ap_log/fastboot_log";
+        "/SmartParserHwWatchdogTest002/19700101000000-00000007/ap_log/hiboot_log";
     const std::string eventType = "HWWATCHDOG";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
 
