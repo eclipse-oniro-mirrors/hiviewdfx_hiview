@@ -152,7 +152,7 @@
 <4>[  155.828542] Hardware name: rockchip,rk3568-toybrick-dev-linux-x0 (DT)
 <4>[  155.829135] [PANIC][exception:628]KERNEL CALL STACK
 <4>[  155.829403] [PANIC] do_panic+0x98/0x9c
-<4>[  155.829754] [PANIC] __bug_impl_0x2c/0x30
+<4>[  155.829754] [PANIC] __bug_impl_+0x2c/0x30
 <4>[  155.830088] [PANIC] syscall_entry+0x4708/0xb61c
 <4>[  155.830420] [PANIC] __el0_sync+0x2a4/0x2b0
 <2>[  155.834767] SMP: stopping secondary CPUs
