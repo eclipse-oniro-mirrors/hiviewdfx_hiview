@@ -271,6 +271,22 @@ HWTEST(FaultloggerUtilsUnittest, GetDebugSignalTempLogNameTest002, testing::ext:
 }
 
 /**
+ * @tc.name: GetUndeletableTempLogNameTest001
+ * @tc.desc: test GetUndeletableTempLogName and undeletable type mapping
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerUtilsUnittest, GetUndeletableTempLogNameTest001, testing::ext::TestSize.Level3)
+{
+    auto fileName = GetUndeletableTempLogName(123, 123456789);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-undeletable-123-123456789");
+    fileName = GetUndeletableTempLogName(0, 0);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-undeletable-0-0");
+    ASSERT_EQ(GetLogTypeByName("stacktrace-undeletable"), FaultLogType::UNDELETEABLE_FILE);
+    ASSERT_EQ(GetLogTypeByEventName("FILE_UNDELETEABLE"), FaultLogType::UNDELETEABLE_FILE);
+    ASSERT_EQ(GetLogTypeByEventName("UNKNOWN_EVENT"), FaultLogType::ALL);
+}
+
+/**
  * @tc.name: GetThreadStackTest001
  * @tc.desc: test GetThreadStack
  * @tc.type: FUNC

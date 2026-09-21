@@ -27,7 +27,7 @@
 | Rust Panic | `RUST_PANIC=8` | `FaultLogRustPanic` | `service/bdfr_base/event/rust_panic/faultlog_rust_panic.h:22` |
 | CJ Error | `CJ_ERROR=9` | cppcrash 或独立 | — |
 
-另有内部枚举 `ADDR_SANITIZER=10`（`faultlog_info_inner.h:46`），`MAX_TYPE` 作为哨兵值用于 fuzz 取模。
+另有内部枚举 `ADDR_SANITIZER=10`、`UNDELETEABLE_FILE=13`（`faultlog_info_inner.h:46`），`MAX_TYPE` 作为哨兵值用于 fuzz 取模。`UNDELETEABLE_FILE` 由 `FaultLogUndeletable`（`service/bdfr_base/event/undeletable/faultlog_undeletable.h`）处理：消费 faultloggerd 上报的 `FILE_UNDELETEABLE` 事件（sig42/si_code=-5 触发），校验并关联 temp 目录 `stacktrace-undeletable-{pid}-{time}` 栈文件，仅补充 FINGERPRINT/FIRST_FRAME/LOG_PATH 等事件参数入事件存储，不生成正式日志（`dumpLogToFaultlogger=false`）。
 
 ## 写入路径约束
 

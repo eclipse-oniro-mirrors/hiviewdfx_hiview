@@ -182,6 +182,21 @@ ADDR_SANITIZER:
   HAPPEN_TIME: {type: INT64, desc: fault trigger time}
   FIRST_FRAME: {type: STRING, desc: first stack info}
 
+FILE_UNDELETEABLE:
+  __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: UndeletableFileDeleteStacktrace}
+  MODULE: {type: STRING, desc: module name}
+  VERSION: {type: STRING, desc: module version}
+  REASON: {type: STRING, desc: fault reason with inode_id}
+  PID: {type: INT32, desc: pid}
+  UID: {type: INT32, desc: uid}
+  INODE_ID: {type: INT32, desc: inode id of the undeletable file}
+  SUMMARY: {type: STRING, desc: key thread stack summary}
+  FAULT_TYPE: {type: STRING, desc: fault type}
+  LOG_NAME: {type: STRING, desc: fault log name}
+  FINGERPRINT: {type: STRING, desc: unique id for grouping same fault}
+  HAPPEN_TIME: {type: INT64, desc: fault trigger time}
+  FIRST_FRAME: {type: STRING, desc: first stack info}
+
 CPP_CRASH_EXCEPTION:
   __BASE: {type: FAULT, level: CRITICAL, tag: STABILITY, desc: encounter exception when crash dump}
   PROCESS_NAME: {type: STRING, desc: process name}
