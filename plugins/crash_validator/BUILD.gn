@@ -36,6 +36,7 @@ ohos_shared_library("libcrashvalidator") {
   subsystem_name = "hiviewdfx"
   public_configs = [ ":crash_validator_config" ]
 
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
