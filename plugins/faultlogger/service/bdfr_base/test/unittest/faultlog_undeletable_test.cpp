@@ -55,15 +55,16 @@ HWTEST(FaultLogUndeletableTest, FaultLogUndeletable002, testing::ext::TestSize.L
     creator.SetKeyValue("PID", testPid);
     creator.SetKeyValue("HAPPEN_TIME", testTime);
     creator.SetKeyValue("INODE_ID", testInodeId);
+    creator.SetKeyValue("SUMMARY", "Thread name:test\n#00 pc 00001234 /system/lib/test.so");
     auto sysEvent = std::make_shared<SysEvent>("test", nullptr, creator);
 
     auto info = handler.FillFaultLogInfo(*sysEvent);
     EXPECT_EQ(info.pid, testPid);
     EXPECT_EQ(info.time, testTime);
     EXPECT_EQ(info.logPath, "/data/log/faultlog/temp/undeletable-4321-1607161345");
-    EXPECT_TRUE(info.summary.empty());
-    EXPECT_EQ(info.sanitizerType, "UNDELETEABLE");
-    EXPECT_EQ(info.sectionMap["INODE_ID"], std::to_string(static_cast<uint32_t>(testInodeId)));
+    // INODE_ID is carried by sectionMap automatically from event key-value pairs
+    EXPECT_EQ(info.sectionMap["INODE_ID"], std::to_string(testInodeId));
+    EXPECT_FALSE(info.summary.empty());
     EXPECT_FALSE(info.dumpLogToFaultlogger);
     EXPECT_FALSE(info.reportToAppEvent);
     EXPECT_EQ(handler.GetFaultModule(*sysEvent), "test_undeletable");

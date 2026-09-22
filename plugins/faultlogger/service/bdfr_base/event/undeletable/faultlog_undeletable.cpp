@@ -24,10 +24,6 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 
-namespace {
-constexpr const char *const INODE_ID_KEY = "INODE_ID";
-}
-
 FaultLogUndeletable::FaultLogUndeletable()
 {
     faultType_ = FaultLogType::UNDELETEABLE_FILE;
@@ -47,13 +43,7 @@ FaultLogInfo FaultLogUndeletable::FillFaultLogInfo(SysEvent& sysEvent)
     info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
     info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
     info.logPath = GetUndeletableTempLogName(info);
-    info.summary = "";
-    info.sanitizerType = "UNDELETEABLE";
-    // extract INODE_ID reported by processdump
-    uint32_t inodeId = static_cast<uint32_t>(sysEvent.GetEventIntValue(INODE_ID_KEY));
-    info.sectionMap[INODE_ID_KEY] = std::to_string(inodeId);
-    // the stacktrace temp file stays in the temp directory, no formal faultlog file is generated;
-    // the pipeline only enriches the event (FINGERPRINT/FIRST_FRAME/LOG_PATH etc.) for event store
+    // the stacktrace temp file stays in the temp directory, no formal faultlog file is generated
     info.dumpLogToFaultlogger = false;
     info.reportToAppEvent = false;
     return info;
