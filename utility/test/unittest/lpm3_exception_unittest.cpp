@@ -36,7 +36,7 @@ HWTEST(SmartParserLpm3ExceptionTest, SmartParserLpm3ExceptionTest001, testing::e
      * @tc.steps: step1. parser log
      */
     const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
-        "/SmartParserLpm3ExceptionTest001/19700101000000-00000007/ap_log/fastboot_log";
+        "/SmartParserLpm3ExceptionTest001/19700101000000-00000007/ap_log/hiboot_log";
     const std::string eventType = "LPM3EXCEPTION";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
 
@@ -59,7 +59,7 @@ HWTEST(SmartParserLpm3ExceptionTest, SmartParserLpm3ExceptionTest002, testing::e
      * @tc.steps: step1. parser log
      */
     const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
-        "/SmartParserLpm3ExceptionTest002/19700101000000-00000007/ap_log/fastboot_log";
+        "/SmartParserLpm3ExceptionTest002/19700101000000-00000007/ap_log/hiboot_log";
     const std::string eventType = "LPM3EXCEPTION";
     auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
 

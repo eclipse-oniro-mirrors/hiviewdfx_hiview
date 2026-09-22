@@ -20,10 +20,13 @@
             <option name="push" value="SmartParserPanicTest001/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest001/19700101000000-00000007/ap_log" src="res"/>
             <option name="push" value="SmartParserPanicTest002/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest002/19700101000000-00000007/ap_log" src="res"/>
             <option name="push" value="SmartParserPanicTest003/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest003/19700101000000-00000007/ap_log" src="res"/>
-            <option name="push" value="SmartParserHwWatchdogTest001/fastboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest001/19700101000000-00000007/ap_log" src="res"/>
-            <option name="push" value="SmartParserHwWatchdogTest002/fastboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest002/19700101000000-00000007/ap_log" src="res"/>
-            <option name="push" value="SmartParserLpm3ExceptionTest001/fastboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest001/19700101000000-00000007/ap_log" src="res"/>
-            <option name="push" value="SmartParserLpm3ExceptionTest002/fastboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest002/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserPanicTest004/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest004/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserPanicTest005/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest005/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserPanicTest006/dmesg-ramoops-0 -> /data/test/test_data/SmartParser/SmartParserPanicTest006/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserHwWatchdogTest001/hiboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest001/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserHwWatchdogTest002/hiboot_log -> /data/test/test_data/SmartParser/SmartParserHwWatchdogTest002/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserLpm3ExceptionTest001/hiboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest001/19700101000000-00000007/ap_log" src="res"/>
+            <option name="push" value="SmartParserLpm3ExceptionTest002/hiboot_log -> /data/test/test_data/SmartParser/SmartParserLpm3ExceptionTest002/19700101000000-00000007/ap_log" src="res"/>
             <option name="push" value="SmartParserIOM3ExceptionTest001/history.log -> /data/test/test_data/SmartParser/SmartParserIOM3ExceptionTest001" src="res"/>
             <option name="push" value="SmartParserRgmManagerSysfreezeTest001/sysfreeze-rgm_manager-5002-20250710185758-1752145078457.tmp -> /data/test/test_data/SmartParser/SmartParserRgmManagerSysfreezeTest001" src="res"/>
             <option name="push" value="SmartParserRgmManagerSysfreezeTest002/sysfreeze-rgm_manager-5002-20250710185758-1752145078457.tmp -> /data/test/test_data/SmartParser/SmartParserRgmManagerSysfreezeTest002" src="res"/>
