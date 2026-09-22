@@ -35,15 +35,10 @@
 #include "hiview_logger.h"
 #include "log_analyzer.h"
 #include "parameter_ex.h"
+#include "smart_fd.h"
 #include <filesystem>
 
 #include "string_util.h"
-
-// define Fdsan Domain
-#ifdef FDSAN_DOMAIN
-#undef FDSAN_DOMAIN
-#endif
-#define FDSAN_DOMAIN 0xD002D11
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -198,36 +193,23 @@ bool FaultLogCppCrash::TryOpenJsonFileFd(FaultLogInfo& info)
         HIVIEW_LOGE("failed to open json file: %{public}s, errno=%{public}d", jsonPath.c_str(), errno);
         return false;
     }
-    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
-    fdsan_exchange_owner_tag(fd, 0, ownerTag);
-    int32_t* fdPtr = new (std::nothrow) int32_t(fd);
-    if (fdPtr == nullptr) {
-        fdsan_close_with_tag(fd, ownerTag);
-        HIVIEW_LOGE("failed to allocate memory for fd");
-        return false;
-    }
-    info.pipeFd.reset(fdPtr, [ownerTag](int32_t *ptr) {
-        if (*ptr >= 0) {
-            fdsan_close_with_tag(*ptr, ownerTag);
-        }
-        delete ptr;
-    });
+    info.tempFileFd = std::make_shared<SmartFd>(fd);
     HIVIEW_LOGI("successfully opened json file: %{public}s, fd=%{public}d", jsonPath.c_str(), fd);
     return true;
 }
 
 bool FaultLogCppCrash::ParseCppCrashJson(FaultLogInfo& info)
 {
-    if ((info.pipeFd == nullptr || *(info.pipeFd) == -1) && !TryOpenJsonFileFd(info)) {
+    if ((info.tempFileFd == nullptr || info.tempFileFd->GetFd() == -1) && !TryOpenJsonFileFd(info)) {
         return false;
     }
     std::string dataBuffer;
-    if (!FileUtil::LoadStringFromFd(*info.pipeFd, dataBuffer)) {
-        HIVIEW_LOGE("failed to load string from fd, fd=%{public}d, errno=%{public}d", *info.pipeFd, errno);
+    if (!FileUtil::LoadStringFromFd(info.tempFileFd->GetFd(), dataBuffer)) {
+        HIVIEW_LOGE("failed to load string from fd, fd=%{public}d, errno=%{public}d", info.tempFileFd->GetFd(), errno);
         return false;
     }
     if (dataBuffer.empty()) {
-        HIVIEW_LOGE("no data read from fd, fd=%{public}d", *info.pipeFd);
+        HIVIEW_LOGE("no data read from fd, fd=%{public}d", info.tempFileFd->GetFd());
         return false;
     }
     Json::Reader reader(Json::Features::strictMode());

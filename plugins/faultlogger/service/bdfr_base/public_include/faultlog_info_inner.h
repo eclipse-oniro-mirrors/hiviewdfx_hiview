@@ -17,7 +17,10 @@
 #include <cinttypes>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
+
+#include "smart_fd.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -25,7 +28,7 @@ struct FaultLogInfo {
     int64_t time {0};
     int32_t id {0};
     int32_t pid {0};
-    std::shared_ptr<int32_t> pipeFd;
+    std::shared_ptr<SmartFd> tempFileFd;
     int32_t faultLogType {0};
     int32_t fd = {-1};
     uint32_t logFileCutoffSizeBytes {0};
