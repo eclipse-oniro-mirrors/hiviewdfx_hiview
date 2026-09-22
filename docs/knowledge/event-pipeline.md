@@ -1,6 +1,6 @@
 # 事件流水线知识
 
-本文只记录事件从 HiSysEvent 桩点到插件处理的主链路中容易被改错的边界。插件注册、生命周期见 `plugin-lifecycle.md`，故障日志处理见 `faultlog-management.md`，路径与权限见 `path-and-ipc-safety.md`。
+本文只记录事件从 HiSysEvent 桩点到插件处理的主链路中容易被改错的边界。插件注册、生命周期见 `plugin-lifecycle.md`，故障日志处理见 `faultlogger-management.md`，路径与权限见 `path-and-ipc-safety.md`。
 
 ## 主链路
 

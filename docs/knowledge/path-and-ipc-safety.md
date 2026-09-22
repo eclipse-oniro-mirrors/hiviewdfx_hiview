@@ -1,6 +1,6 @@
 # 路径与 IPC 安全知识
 
-本文只记录路径校验、IPC 权限、SA ID、接口码保护、隐私脱敏的边界。故障日志 IPC 见 `faultlog-management.md`，统一采集见 `unified-collection.md`。
+本文只记录路径校验、IPC 权限、SA ID、接口码保护、隐私脱敏的边界。故障日志 IPC 见 `faultlogger-management.md`，统一采集见 `unified-collection.md`。
 
 ## IsSafePath 路径校验
 

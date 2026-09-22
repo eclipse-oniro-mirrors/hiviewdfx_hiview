@@ -10,24 +10,28 @@
 2. 通过 `faultlogger_client.h` 的 `AddFaultLog` 或 HiSysEvent 上报 `CPP_CRASH`/`APP_FREEZE` 等事件。
 3. `Faultlogger` 插件 `OnEvent` 接收流水线事件或 `AddFaultLog` IPC 调用。
 4. `FaultloggerBase` 按 eventName 分发到对应 `FaultLogEventPipeline`/`FaultLogEventIpc` 子类。
-5. 子类执行 `FillFaultLogInfo`→`UpdateSysEvent`→`ReportToAppEvent`→`WriteFaultLogToFile`。
+5. 子类按入口分两条：
+   - **Pipeline 入口**（`FaultLogEventPipeline`，`faultlog_event_pipeline.cpp:27-34`）：`FillFaultLogInfo`→`FaultLogEventInterface::AddFaultLog`（内含 `UpdateCommonInfo`→`Analysis`→`UpdateFaultLogInfo`→`SaveFaultLogToFile`）→`UpdateSysEvent`→`ReportToAppEvent`。
+   - **IPC 入口**（`FaultLogEventIpc`，`faultlog_event_ipc.cpp:19-29`）：先调公共 `FaultLogEventInterface::AddFaultLog`，失败返回；成功后再 `SaveFaultInfoToRawDb`→`ReportEventToAppEvent`→`DoFaultLogLimit`，**没有** `FillFaultLogInfo`/`UpdateSysEvent`。
+   其中 `SaveFaultLogToFile`（`faultlog_event_interface.cpp:48`）经 `FaultLogManager` 调用底层 `WriteFaultLogToFile`（`faultlog_formatter.cpp:429`）。CPP_CRASH/APP_FREEZE 走 IPC 入口，按上述顺序定位调用链。
 6. `FaultLogManager` 管理文件存储、配额清理、查询。
 
 策略决策（故障类型路由、日志格式化、配额清理）不要下沉到 IPC Stub 或事件接收代码。
 
 ## 故障类型与处理类
 
-`FaultLogType` 枚举（`plugins/faultlogger/interfaces/cpp/innerkits/include/faultlogger_client.h:51`）：
+`FaultLogType` 枚举（公共 `plugins/faultlogger/interfaces/cpp/innerkits/include/faultlogger_client.h:51`；内部 `faultlog_info_inner.h` 额外含 `ALL=0`/`ADDR_SANITIZER=10`/`MAX_TYPE`）：
 
 | 类型 | 枚举值 | 处理类 | 路径 |
 | --- | --- | --- | --- |
 | C/C++ Crash | `CPP_CRASH=2` | `FaultLogCppCrash` | `service/bdfr_base/event/cpp_crash/faultlog_cppcrash.h:27` |
-| JS Error | `JS_CRASH=3` | sanitizer 体系 | `service/bdfr_base/event/sanitizer/faultlog_sanitizer.h:36` |
+| JS Error | `JS_CRASH=3` | `FaultLogJsError` | `service/bdfr_base/event/js_cj_error/faultlog_jserror.h:22` |
 | App Freeze | `APP_FREEZE=4` | `FaultLogFreeze` | `service/bdfr_base/event/freeze/faultlog_freeze.h:25` |
 | Rust Panic | `RUST_PANIC=8` | `FaultLogRustPanic` | `service/bdfr_base/event/rust_panic/faultlog_rust_panic.h:22` |
-| CJ Error | `CJ_ERROR=9` | cppcrash 或独立 | — |
+| CJ Error | `CJ_ERROR=9` | `FaultLogCjError` | `service/bdfr_base/event/js_cj_error/faultlog_cjerror.h:23` |
+| Addr Sanitizer | `ADDR_SANITIZER=10` | `FaultLogSanitizer` | `service/bdfr_base/event/sanitizer/faultlog_sanitizer.h:46` |
 
-另有内部枚举 `ADDR_SANITIZER=10`（`faultlog_info_inner.h:46`），`MAX_TYPE` 作为哨兵值用于 fuzz 取模。
+`MAX_TYPE`（`faultlog_info_inner.h:59`）作为哨兵值用于 fuzz 取模（如 `faultLogType % FaultLogType::MAX_TYPE`）。
 
 ## 写入路径约束
 
@@ -57,7 +61,7 @@
 - `RemoveOldFile`（`faultlog_manager.cpp:180`）调用 `ClearSameLogFilesIfNeeded` 按 `MAX_FAULT_LOG_PER_HAP` 清理。
 - `faultlog_formatter.cpp:552`：temp 目录 cppcrash json 文件上限 50MB。
 - `faultlog_cppcrash.cpp:535`：读取 cppcrash 日志内容上限 2MB。
-- `freeze_manager.cpp:34`：`FREEZE_EXT_MAX_FILE_NUM = 20`（freeze_ext 目录上限）。
+- `plugins/freeze_detector/freeze_manager.cpp:34`：`FREEZE_EXT_MAX_FILE_NUM = 20`（freeze_ext 目录上限）。
 
 ## 查询权限边界
 
@@ -93,7 +97,7 @@
 | `FaultLogCppCrash` | `FaultLogEventIpc` | `ParseCppCrashJson`/`ReadStackFromPipe`/`DealMiniDumpEvent`/`TruncateAppCrashLog`/`CheckHilogTime` |
 | `FaultLogFreeze` | `FaultLogEventIpc` | `GetFreezeJsonCollector`/`ReportAppFreezeToAppEvent`/`MergeFreezeExtToLog`/`GetFreezeType` |
 | `FaultLogRustPanic` | `FaultLogEventPipeline` | Rust panic 栈处理 |
-| `FaultLogSanitizer` | `FaultLogEventPipeline` | `ParseArkTsStackInfo`/`ProcessArkTsLine`（调用 `dfx_ark`） |
+| `FaultLogSanitizer` | `FaultLogEventPipeline` | `ParserArkTsStackInfo`/`ProcessArkTsLine`（调用 `dfx_ark`） |
 
 `FaultLogEventPipeline`（流水线事件处理）和 `FaultLogEventIpc`（IPC 事件处理）是两条不同入口，前者经 `Faultlogger::OnEvent`，后者经 `IFaultLoggerService::AddFaultLog`。
 
