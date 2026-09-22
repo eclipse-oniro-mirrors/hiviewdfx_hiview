@@ -170,7 +170,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest004, testing::ext::TestSize.Lev
      * @tc.steps: step2. check result
      */
     std::string endStack = "do_panic+0x98/0x9c\n";
-    endStack += "__bug_impl_0x2c/0x30\n";
+    endStack += "__bug_impl_+0x2c/0x30\n";
     endStack += "syscall_entry+0x4708/0xb61c\n";
     endStack += "__el0_sync+0x2a4/0x2b0\n";
 
@@ -222,6 +222,37 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest005, testing::ext::TestSize.Lev
     ASSERT_EQ(eventInfos["FIRST_FRAME"], "sysrq_handle_term+0x0/0x38");
     ASSERT_EQ(eventInfos["SECOND_FRAME"], "__handle_sysrq+0x170/0x1b8");
     ASSERT_EQ(eventInfos["LAST_FRAME"], "el0_sync_compat+0x184/0x1c0");
+}
+
+/**
+ * @tc.name: SmartParserPanicTest006
+ * @tc.desc: Smart parser hm kernel panic log.
+ * @tc.type: FUNC
+ */
+HWTEST(SmartParserPanicTest, SmartParserPanicTest006, testing::ext::TestSize.Level3)
+{
+    /**
+     * @tc.steps: step1. parser log
+     */
+    const std::string logPath = std::string{LogUtil::SMART_PARSER_TEST_DIR}  +
+        "/SmartParserPanicTest006/19700101000000-00000007/ap_log/dmesg-ramoops-0";
+    const std::string eventType = "PANIC";
+    auto eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, eventType);
+
+    /**
+     * @tc.steps: step2. check result
+     */
+    std::string endStack = "do_panic+0x98/0x9c\n";
+    endStack += "__bug_impl_+0x2c/0x30\n";
+    endStack += "syscall_entry+0x4708/0xb61c\n";
+    endStack += "__el0_sync+0x2a4/0x2b0\n";
+
+    ASSERT_EQ(eventInfos["END_STACK"], endStack);
+
+    Tbox::FilterTrace(eventInfos, eventType);
+    ASSERT_EQ(eventInfos["FIRST_FRAME"], "__bug_impl_0x2c/0x30");
+    ASSERT_EQ(eventInfos["SECOND_FRAME"], "syscall_entry+0x4708/0xb61c");
+    ASSERT_EQ(eventInfos["LAST_FRAME"], "__el0_sync+0x2a4/0x2b0");
 }
 } // namespace HiviewDFX
 } // namespace OHOS

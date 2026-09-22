@@ -55,7 +55,7 @@
         "04_PANIC_01":{
             "FIRST_FRAME": "NocTrace.v_errcode+NocTrace.v_master+NocTrace.v_slave+NocTrace.v_address+NocTrace.v_user_signal+NocTrace.v_security",
             "LAST_FRAME": "BasicParam.v_noc",
-            "END_STACK": "MainCallTrace.v_trace+MainCallTrace.v_trace_kernel"
+            "END_STACK": "MainCallTrace.v_trace"
         },
         "04_PANIC_00":{
             "FIRST_FRAME": "BasicParam.v_first",
