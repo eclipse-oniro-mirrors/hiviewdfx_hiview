@@ -236,38 +236,25 @@ void SanitizerTelemetry::ClearIfParameterSet(const std::string& key)
 
 bool SanitizerTelemetry::SafeStoll(const std::string& str, long long& value)
 {
-    value = 0;
-    size_t start = 0;
-    bool isNegative = false;
-
+    // Simplified implementation using strtoll
     if (str.empty()) {
         HILOG_ERROR(LOG_CORE, "str is empty.");
         return false;
     }
 
-    if (str[0] == '-') {
-        isNegative = true;
-        start = 1;
-    } else if (str[0] == '+') {
-        start = 1;
+    char* end = nullptr;
+    errno = 0;
+    value = strtoll(str.c_str(), &end, DECIMAL_BASE);
+
+    // Check for conversion errors
+    if (end == nullptr || *end != '\0') {
+        HILOG_ERROR(LOG_CORE, "conversion failed, str: %{public}s", str.c_str());
+        return false;
     }
 
-    size_t index = start;
-    for (const char c :str.substr(start)) {
-        if (!isdigit(c)) {
-            HILOG_ERROR(LOG_CORE, "digit check failed. str: %{public}s, index: %{public}zu", str.c_str(), index);
-            return false;
-        }
-        if (value > (LLONG_MAX - (c - '0')) / DECIMAL_BASE) {
-            HILOG_ERROR(LOG_CORE, "out of range, str: %{public}s", str.c_str());
-            return false;
-        }
-        value = value * DECIMAL_BASE + (c - '0');
-        index++;
-    }
-
-    if (isNegative) {
-        value = -value;
+    if (errno == ERANGE) {
+        HILOG_ERROR(LOG_CORE, "out of range, str: %{public}s", str.c_str());
+        return false;
     }
 
     HILOG_DEBUG(LOG_CORE, "success, str: %{public}s, result: %{public}lld", str.c_str(), value);

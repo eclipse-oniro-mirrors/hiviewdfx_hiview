@@ -28,24 +28,20 @@ ohos_shared_library("libasan_logger") {
   version_script = "asan.map"
 
   external_deps = [
-    "ability_base:want",
     "bounds_checking_function:libsec_shared",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "faultloggerd:dfx_signalhandler",
     "faultloggerd:libfaultloggerd",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hisysevent:libhisysevent_easy",
-    "init:libbegetutil",
-    "ipc:ipc_single",
     "zlib:shared_libz",
+    "init:libbeget_proxy",
   ]
 
   deps = [
-    "$hiview_base:hiviewbase",
-    "$hiview_base/event_raw:hiview_event_raw_decode",
+    "$hiview_root/base:logger",
+    "$hiview_root/base/utility:hiview_utility",
     "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
   ]
 
