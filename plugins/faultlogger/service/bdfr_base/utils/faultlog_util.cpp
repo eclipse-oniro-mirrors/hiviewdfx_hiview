@@ -155,7 +155,7 @@ int32_t GetLogTypeByName(const std::string& type)
         return FaultLogType::SYS_WARNING;
     } else if (type == "appfreezewarning") {
         return FaultLogType::APPFREEZE_WARNING;
-    } else if (type == "stacktrace-undeletable") {
+    } else if (type == "undeletable") {
         return FaultLogType::UNDELETEABLE_FILE;
     } else if (type.find("san") != std::string::npos) {
         return FaultLogType::ADDR_SANITIZER;
@@ -272,13 +272,13 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
         std::to_string(info.time);
 }
 
-std::string GetUndeletableTempLogName(int32_t pid, int64_t happenTime)
+std::string GetUndeletableTempLogName(const FaultLogInfo& info)
 {
     return std::string(FAULTLOG_TEMP_FOLDER) +
-        "stacktrace-undeletable-" +
-        std::to_string(pid) +
+        "undeletable-" +
+        std::to_string(info.pid) +
         "-" +
-        std::to_string(happenTime);
+        std::to_string(info.time);
 }
 
 std::string GetSanitizerTempLogName(int32_t pid, const std::string& happenTime)

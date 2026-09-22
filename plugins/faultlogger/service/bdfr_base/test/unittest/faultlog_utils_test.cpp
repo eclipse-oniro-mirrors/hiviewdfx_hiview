@@ -277,11 +277,12 @@ HWTEST(FaultloggerUtilsUnittest, GetDebugSignalTempLogNameTest002, testing::ext:
  */
 HWTEST(FaultloggerUtilsUnittest, GetUndeletableTempLogNameTest001, testing::ext::TestSize.Level3)
 {
-    auto fileName = GetUndeletableTempLogName(123, 123456789);
-    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-undeletable-123-123456789");
-    fileName = GetUndeletableTempLogName(0, 0);
-    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-undeletable-0-0");
-    ASSERT_EQ(GetLogTypeByName("stacktrace-undeletable"), FaultLogType::UNDELETEABLE_FILE);
+    FaultLogInfo info;
+    info.pid = 123;
+    info.time = 123456789;
+    auto fileName = GetUndeletableTempLogName(info);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/undeletable-123-123456789");
+    ASSERT_EQ(GetLogTypeByName("undeletable"), FaultLogType::UNDELETEABLE_FILE);
     ASSERT_EQ(GetLogTypeByEventName("FILE_UNDELETEABLE"), FaultLogType::UNDELETEABLE_FILE);
     ASSERT_EQ(GetLogTypeByEventName("UNKNOWN_EVENT"), FaultLogType::ALL);
 }

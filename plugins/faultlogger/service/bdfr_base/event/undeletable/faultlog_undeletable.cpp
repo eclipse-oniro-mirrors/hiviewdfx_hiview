@@ -14,12 +14,10 @@
  */
 #include "faultlog_undeletable.h"
 
-#include <memory>
 #include <string>
 
 #include "constants.h"
 #include "faultlog_util.h"
-#include "file_util.h"
 #include "hiview_logger.h"
 
 namespace OHOS {
@@ -27,7 +25,7 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 
 namespace {
-constexpr const char *const UNDELETEABLE_REASON_KEY = "UNDELETEABLE";
+constexpr const char *const INODE_ID_KEY = "INODE_ID";
 }
 
 FaultLogUndeletable::FaultLogUndeletable()
@@ -40,50 +38,20 @@ std::string FaultLogUndeletable::GetFaultModule(SysEvent& sysEvent) const
     return sysEvent.GetEventValue(FaultKey::MODULE_NAME);
 }
 
-bool FaultLogUndeletable::IsValidUndeletableEvent(SysEvent& sysEvent)
-{
-    const std::string reason = sysEvent.GetEventValue(FaultKey::REASON);
-    if (reason.find(UNDELETEABLE_REASON_KEY) == std::string::npos) {
-        HIVIEW_LOGE("Invalid undeletable event, reason mismatch");
-        return false;
-    }
-    const int64_t uid = static_cast<int64_t>(sysEvent.GetUid());
-    const int64_t eventUid = sysEvent.GetEventIntValue(FaultKey::MODULE_UID);
-    if (uid != eventUid) {
-        HIVIEW_LOGE("Invalid undeletable event, uid is mismatch");
-        return false;
-    }
-    int32_t pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
-    int64_t happenTime = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
-    const std::string logPath = GetUndeletableTempLogName(pid, happenTime);
-    if (!FileUtil::FileExists(logPath)) {
-        HIVIEW_LOGE("Invalid undeletable event, processdump log does not exist, path=%{public}s", logPath.c_str());
-        return false;
-    }
-    return true;
-}
-
-bool FaultLogUndeletable::AddFaultLog(std::shared_ptr<Event>& event)
-{
-    if (event == nullptr) {
-        HIVIEW_LOGE("Undeletable event is null");
-        return false;
-    }
-    auto sysEvent = std::static_pointer_cast<SysEvent>(event);
-    if (!IsValidUndeletableEvent(*sysEvent)) {
-        HIVIEW_LOGE("Reject invalid undeletable event");
-        return false;
-    }
-    return FaultLogEventPipeline::AddFaultLog(event);
-}
-
 FaultLogInfo FaultLogUndeletable::FillFaultLogInfo(SysEvent& sysEvent)
 {
+    // base class fills common fields (time, uid, pid, module, reason, summary, sectionMap)
     auto info = FaultLogEventPipeline::FillFaultLogInfo(sysEvent);
+    // read PID and HAPPEN_TIME from event fields to locate the temp stack file,
+    // independent prefix "undeletable-" distinguishes it from the FDSAN "stacktrace-" files
     info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
     info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
-    info.logPath = GetUndeletableTempLogName(info.pid, info.time);
+    info.logPath = GetUndeletableTempLogName(info);
     info.summary = "";
+    info.sanitizerType = "UNDELETEABLE";
+    // extract INODE_ID reported by processdump
+    uint32_t inodeId = static_cast<uint32_t>(sysEvent.GetEventIntValue(INODE_ID_KEY));
+    info.sectionMap[INODE_ID_KEY] = std::to_string(inodeId);
     // the stacktrace temp file stays in the temp directory, no formal faultlog file is generated;
     // the pipeline only enriches the event (FINGERPRINT/FIRST_FRAME/LOG_PATH etc.) for event store
     info.dumpLogToFaultlogger = false;

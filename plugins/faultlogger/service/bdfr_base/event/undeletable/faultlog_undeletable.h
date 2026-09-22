@@ -15,6 +15,9 @@
 #ifndef FAULTLOG_UNDELETEABLE_H
 #define FAULTLOG_UNDELETEABLE_H
 
+#include <memory>
+#include <string>
+
 #include "faultlog_event_pipeline.h"
 #include "sys_event.h"
 
@@ -24,8 +27,6 @@ class FaultLogUndeletable final : public FaultLogEventPipeline {
 public:
     FaultLogUndeletable();
 private:
-    bool IsValidUndeletableEvent(SysEvent& sysEvent);
-    bool AddFaultLog(std::shared_ptr<Event>& event) override;
     FaultLogInfo FillFaultLogInfo(SysEvent& sysEvent) override;
     bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const override;
     std::string GetFaultModule(SysEvent& sysEvent) const override;

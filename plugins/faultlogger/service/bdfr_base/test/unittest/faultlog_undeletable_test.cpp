@@ -14,8 +14,6 @@
  */
 #include <gtest/gtest.h>
 
-#include <cstdio>
-#include <fstream>
 #include <memory>
 #include <string>
 
@@ -42,61 +40,33 @@ HWTEST(FaultLogUndeletableTest, FaultLogUndeletable001, testing::ext::TestSize.L
 
 /**
  * @tc.name: FaultLogUndeletable002
- * @tc.desc: Test IsValidUndeletableEvent reject branches: reason mismatch and uid mismatch
+ * @tc.desc: Test FillFaultLogInfo fields of FaultLogUndeletable
  * @tc.type: FUNC
  */
 HWTEST(FaultLogUndeletableTest, FaultLogUndeletable002, testing::ext::TestSize.Level3)
 {
-    FaultLogUndeletable handler;
-    SysEventCreator reasonCreator("RELIABILITY", "FILE_UNDELETEABLE", SysEventCreator::FAULT);
-    reasonCreator.SetKeyValue("REASON", "Signal:DEBUG SIGNAL(FDSAN)");
-    auto reasonEvent = std::make_shared<SysEvent>("test", nullptr, reasonCreator);
-    EXPECT_FALSE(handler.IsValidUndeletableEvent(*reasonEvent));
-
-    constexpr int32_t mismatchUid = 456; // 456 : simulated uid mismatch value
-    SysEventCreator uidCreator("RELIABILITY", "FILE_UNDELETEABLE", SysEventCreator::FAULT);
-    uidCreator.SetKeyValue("REASON", "Signal:DEBUG SIGNAL(UNDELETEABLE) inode_id:12345");
-    uidCreator.SetKeyValue("UID", mismatchUid);
-    auto uidEvent = std::make_shared<SysEvent>("test", nullptr, uidCreator);
-    EXPECT_FALSE(handler.IsValidUndeletableEvent(*uidEvent));
-}
-
-/**
- * @tc.name: FaultLogUndeletable003
- * @tc.desc: Test IsValidUndeletableEvent with temp file and FillFaultLogInfo fields
- * @tc.type: FUNC
- */
-HWTEST(FaultLogUndeletableTest, FaultLogUndeletable003, testing::ext::TestSize.Level3)
-{
     constexpr int32_t testPid = 4321;          // 4321 : simulated pid
     constexpr int64_t testTime = 1607161345;   // 1607161345 : simulated happen time
-    constexpr int32_t testInodeId = 12345;     // 12345 : simulated inode id
+    constexpr int32_t testInodeId = 88888;     // 88888 : simulated inode id
     FaultLogUndeletable handler;
     SysEventCreator creator("RELIABILITY", "FILE_UNDELETEABLE", SysEventCreator::FAULT);
-    creator.SetKeyValue("REASON", "Signal:DEBUG SIGNAL(UNDELETEABLE) inode_id:12345");
+    creator.SetKeyValue("REASON", "Signal:DEBUG SIGNAL(UNDELETEABLE) inode_id:88888");
     creator.SetKeyValue("MODULE", "test_undeletable");
     creator.SetKeyValue("PID", testPid);
     creator.SetKeyValue("HAPPEN_TIME", testTime);
     creator.SetKeyValue("INODE_ID", testInodeId);
     auto sysEvent = std::make_shared<SysEvent>("test", nullptr, creator);
 
-    std::string tempPath = GetUndeletableTempLogName(testPid, testTime);
-    EXPECT_FALSE(handler.IsValidUndeletableEvent(*sysEvent));
-
-    std::ofstream outFile(tempPath);
-    outFile << "Reason:Signal:DEBUG SIGNAL(UNDELETEABLE) inode_id:12345\n";
-    outFile.close();
-    EXPECT_TRUE(handler.IsValidUndeletableEvent(*sysEvent));
-
     auto info = handler.FillFaultLogInfo(*sysEvent);
     EXPECT_EQ(info.pid, testPid);
     EXPECT_EQ(info.time, testTime);
-    EXPECT_EQ(info.logPath, tempPath);
+    EXPECT_EQ(info.logPath, "/data/log/faultlog/temp/undeletable-4321-1607161345");
     EXPECT_TRUE(info.summary.empty());
+    EXPECT_EQ(info.sanitizerType, "UNDELETEABLE");
+    EXPECT_EQ(info.sectionMap["INODE_ID"], std::to_string(static_cast<uint32_t>(testInodeId)));
     EXPECT_FALSE(info.dumpLogToFaultlogger);
     EXPECT_FALSE(info.reportToAppEvent);
     EXPECT_EQ(handler.GetFaultModule(*sysEvent), "test_undeletable");
-    (void)std::remove(tempPath.c_str());
 }
 } // namespace HiviewDFX
 } // namespace OHOS
