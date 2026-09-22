@@ -177,7 +177,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest004, testing::ext::TestSize.Lev
     ASSERT_EQ(eventInfos["END_STACK"], endStack);
 
     Tbox::FilterTrace(eventInfos, eventType);
-    ASSERT_EQ(eventInfos["FIRST_FRAME"], "__bug_impl_0x2c/0x30");
+    ASSERT_EQ(eventInfos["FIRST_FRAME"], "__bug_impl_+0x2c/0x30");
     ASSERT_EQ(eventInfos["SECOND_FRAME"], "syscall_entry+0x4708/0xb61c");
     ASSERT_EQ(eventInfos["LAST_FRAME"], "__el0_sync+0x2a4/0x2b0");
 }
@@ -250,7 +250,7 @@ HWTEST(SmartParserPanicTest, SmartParserPanicTest006, testing::ext::TestSize.Lev
     ASSERT_EQ(eventInfos["END_STACK"], endStack);
 
     Tbox::FilterTrace(eventInfos, eventType);
-    ASSERT_EQ(eventInfos["FIRST_FRAME"], "__bug_impl_0x2c/0x30");
+    ASSERT_EQ(eventInfos["FIRST_FRAME"], "__bug_impl_+0x2c/0x30");
     ASSERT_EQ(eventInfos["SECOND_FRAME"], "syscall_entry+0x4708/0xb61c");
     ASSERT_EQ(eventInfos["LAST_FRAME"], "__el0_sync+0x2a4/0x2b0");
 }
