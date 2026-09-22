@@ -69,6 +69,7 @@ ohos_fuzztest("FaultlogEventPipelineAddFaultLogFuzzTest") {
     "$hiview_faultlogger/service/bdfr_base/base/faultlog_event_ipc.cpp",
     "$hiview_faultlogger/service/bdfr_base/base/faultlog_event_pipeline.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/sanitizer/faultlog_sanitizer.cpp",
+    "$hiview_faultlogger/service/bdfr_base/event/undeletable/faultlog_undeletable.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/js_cj_error/faultlog_jserror.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/js_cj_error/faultlog_cjerror.cpp",
     "$hiview_faultlogger/service/bdfr_base/event/js_cj_error/faultlog_error_reporter.cpp",
