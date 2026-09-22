@@ -68,7 +68,7 @@ constexpr uint64_t WATCHDOG_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M
 constexpr uint64_t RESOURCE_OVERLIMIT_MAX_FILE_SIZE = 2048uLL * 1024 * 1024; // 2G
 constexpr const char* const XATTR_NAME = "user.appevent";
 constexpr uint64_t BIT_MASK = 1;
-constexpr uint64_t LIMIT_COST_MILLISECOND = 5;
+constexpr uint64_t LIMIT_COST_MILLISECOND = 50;
 constexpr int MAX_JSON_DEPTH = 64;
 const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
     { EVENT_APP_CRASH, 0 },
