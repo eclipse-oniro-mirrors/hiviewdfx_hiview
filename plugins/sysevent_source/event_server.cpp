@@ -15,6 +15,7 @@
 
 #include "event_server.h"
 
+#include <cstdio>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -371,9 +372,11 @@ void EventServer::Start()
         return;
     }
 
+    uint64_t fdsanTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_DEFAULT, logLabelDomain);
+    fdsan_exchange_owner_tag(pollFd, 0, fdsanTag);
     struct epoll_event pollEvents[devs_.size()];
     if (AddToMonitor(pollFd, pollEvents) < 0) {
-        close(pollFd);
+        fdsan_close_with_tag(pollFd, fdsanTag);
         CloseDevs();
         return;
     }
@@ -393,7 +396,7 @@ void EventServer::Start()
             }
         }
     }
-    close(pollFd);
+    fdsan_close_with_tag(pollFd, fdsanTag);
     CloseDevs();
 }
 
