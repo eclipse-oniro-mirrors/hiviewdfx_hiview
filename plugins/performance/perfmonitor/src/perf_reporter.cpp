@@ -72,9 +72,6 @@ namespace {
     constexpr char EVENT_KEY_REAL_SKIPPED_FRAME_TIME[] = "REAL_SKIPPED_FRAME_TIME";
     constexpr char EVENT_KEY_FILTER_TYPE[] = "FILTER_TYPE";
     constexpr char EVENT_KEY_STARTTIME[] = "STARTTIME";
-    constexpr char EVENT_KEY_SUBHEALTH_INFO[] = "SUB_HEALTH_INFO";
-    constexpr char EVENT_KEY_SUBHEALTH_REASON[] = "SUB_HEALTH_REASON";
-    constexpr char EVENT_KEY_SUBHEALTH_TIME[] = "SUB_HEALTH_TIME";
     constexpr char EVENT_KEY_VSYNC_TIME[] = "VSYNC_TIME";
     constexpr char EVENT_KEY_JANK_COUNT[] = "JANK_COUNT";
     constexpr char EVENT_KEY_ACTION_TYPE[] = "ACTION_TYPE";
@@ -364,9 +361,6 @@ void EventReporter::ReportEventComplete(DataBase& data)
     const auto& animationEndLantency = (data.endVsyncTime - data.beginVsyncTime) / NS_TO_MS;
     const auto& e2eLatency = animationStartLantency + animationEndLantency;
     const auto& note = data.baseInfo.note;
-    const auto& extend = data.baseInfo.subHealthInfo.info;
-    const auto& reason = data.baseInfo.subHealthInfo.subHealthReason;
-    const auto& subHealthTime = data.baseInfo.subHealthInfo.subHealthTime;
     XperfEventBuilder builder;
     XperfEvent event = builder.EventName(eventName)
         .EventType(HISYSEVENT_BEHAVIOR)
@@ -383,9 +377,6 @@ void EventReporter::ReportEventComplete(DataBase& data)
         .Param(EVENT_KEY_ANIMATION_END_LATENCY, static_cast<uint64_t>(animationEndLantency))
         .Param(EVENT_KEY_E2E_LATENCY, static_cast<uint64_t>(e2eLatency))
         .Param(EVENT_KEY_NOTE, note)
-        .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
-        .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
-        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(subHealthTime))
         .Build();
     XperfEventReporter reporter;
     reporter.Report(ACE_DOMAIN, event);
@@ -422,9 +413,6 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
         .Param(EVENT_KEY_MAX_HITCH_TIME_SINCE_START, static_cast<uint64_t>(data.maxHitchTimeSinceStart))
         .Param(EVENT_KEY_MAX_SEQ_MISSED_FRAMES, data.maxSuccessiveFrames)
         .Param(EVENT_KEY_NOTE, data.baseInfo.note).Param(EVENT_KEY_DISPLAY_ANIMATOR, data.isDisplayAnimator)
-        .Param(EVENT_KEY_SUBHEALTH_INFO, data.baseInfo.subHealthInfo.info)
-        .Param(EVENT_KEY_SUBHEALTH_REASON, data.baseInfo.subHealthInfo.subHealthReason)
-        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(data.baseInfo.subHealthInfo.subHealthTime))
         .Param(EVENT_KEY_JANK_COUNT, jankStr)
         .Param(EVENT_KEY_ACTION_TYPE, GetActionTypeName(data.actionType))
         .Param(EVENT_KEY_POS, data.pos)
@@ -511,9 +499,6 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
     const auto& realSkippedFrameTime = info.realSkippedFrameTime;
     const auto& windowName = info.windowName;
     const auto& sceneId = info.sceneId;
-    const auto& extend = info.baseInfo.subHealthInfo.info;
-    const auto& reason = info.baseInfo.subHealthInfo.subHealthReason;
-    const auto& subHealthTime = info.baseInfo.subHealthInfo.subHealthTime;
     const auto& sceneTag = info.sceneTag;
     const auto& vsyncTime = info.vsyncTime;
     XperfEventBuilder builder;
@@ -530,9 +515,6 @@ void EventReporter::ReportJankFrameUnFiltered(JankInfo& info)
         .Param(EVENT_KEY_SCENE_ID, sceneId)
         .Param(EVENT_KEY_REAL_SKIPPED_FRAME_TIME, static_cast<uint64_t>(realSkippedFrameTime))
         .Param(EVENT_KEY_SKIPPED_FRAME_TIME, static_cast<uint64_t>(skippedFrameTime))
-        .Param(EVENT_KEY_SUBHEALTH_INFO, extend)
-        .Param(EVENT_KEY_SUBHEALTH_REASON, reason)
-        .Param(EVENT_KEY_SUBHEALTH_TIME, static_cast<int32_t>(subHealthTime))
         .Param(EVENT_KEY_VSYNC_TIME, static_cast<uint64_t>(vsyncTime))
         .Build();
     XperfEventReporter reporter;

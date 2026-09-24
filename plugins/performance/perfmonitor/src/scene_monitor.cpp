@@ -545,20 +545,6 @@ bool SceneMonitor::IsSetAppGCStatus(int64_t value)
     return false;
 }
 
-void SceneMonitor::SetSubHealthInfo(const SubHealthInfo& info)
-{
-    subHealthInfo = info;
-    isSubHealthScene = true;
-}
-
-void SceneMonitor::FlushSubHealthInfo()
-{
-    if (isSubHealthScene) {
-        baseInfo.subHealthInfo = subHealthInfo;
-        isSubHealthScene = false;
-    }
-}
-
 void SceneMonitor::OnLastUpInputEvent()
 {
     OnSceneChanged(SceneType::APP_RESPONSE, true, GetCurrentSceneId());
