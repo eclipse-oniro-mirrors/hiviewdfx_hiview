@@ -14,6 +14,7 @@
  */
 #include "faultlog_database.h"
 
+#include <algorithm>
 #include <list>
 #include <string>
 
@@ -49,6 +50,8 @@ static const std::vector<std::string> QUERY_ITEMS = {
 const int64_t KILO = 1000;
 const int64_t MAX_DIFF_TIME = 10000;
 const int QUERY_LIMIT_MAX = 100;
+const size_t SYS_FREEZE_PARAM_COUNT = 2;
+const size_t MAX_PARAM_COUNT = 35;
 }
 
 std::string FaultLogDatabase::GetAppFreezeExtInfoFromFileName(const std::string& fileName)
@@ -302,13 +305,23 @@ int64_t FaultLogDatabase::GetLifeTimeValue(const FaultLogInfo& info)
     return lifeTimeValue;
 }
 
-void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
+int64_t FaultLogDatabase::GetInt64Value(const FaultLogInfo& info, const char* key)
 {
-    std::string eventName = GetFaultNameByType(info.faultLogType, false);
-    auto faultLogType = std::to_string(info.faultLogType);
-    FaultLogDatabase::FillInfoDefault(info);
+    auto iter = info.sectionMap.find(key);
+    if (iter == info.sectionMap.end()) {
+        return 0;
+    }
+    int64_t value = 0;
+    if (!StringUtil::StrToInt64(iter->second, value)) {
+        HIVIEW_LOGW("StrToInt64 failed for %{public}s: %{public}s", key, iter->second.c_str());
+    }
+    return value;
+}
 
-    HiSysEventParam params[] = {
+size_t FaultLogDatabase::BuildSysEventParams(FaultLogInfo& info,
+    std::string& faultLogType, HiSysEventParam* params)
+{
+    HiSysEventParam baseParams[] = {
         EVENT_PARAM_CTOR("FAULT_TYPE", HISYSEVENT_STRING, s, faultLogType.data(), 0),
         EVENT_PARAM_CTOR("PID", HISYSEVENT_INT32, i32, info.pid, 0),
         EVENT_PARAM_CTOR("UID", HISYSEVENT_INT32, i32, info.id, 0),
@@ -344,8 +357,27 @@ void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
         EVENT_PARAM_CTOR("LOG_SOURCE", HISYSEVENT_STRING, s, info.sectionMap["LOG_SOURCE"].data(), 0),
         EVENT_PARAM_CTOR("LIFETIME", HISYSEVENT_INT64, i64, GetLifeTimeValue(info), 0),
     };
+    static_assert(sizeof(baseParams) / sizeof(baseParams[0]) + SYS_FREEZE_PARAM_COUNT <= MAX_PARAM_COUNT, "overflow");
+    size_t count = sizeof(baseParams) / sizeof(HiSysEventParam);
+    std::copy(baseParams, baseParams + count, params);
+    if (info.faultLogType == FaultLogType::SYS_FREEZE) {
+        params[count++] = EVENT_PARAM_CTOR("DEVICE_RUNNING_TIME", HISYSEVENT_INT64, i64,
+            GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME), 0);
+        params[count++] = EVENT_PARAM_CTOR("HOST_RESOURCE_WARNING", HISYSEVENT_STRING, s,
+            info.sectionMap[FaultKey::HOST_RESOURCE_WARNING].data(), 0);
+    }
+    return count;
+}
+
+void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
+{
+    std::string eventName = GetFaultNameByType(info.faultLogType, false);
+    auto faultLogType = std::to_string(info.faultLogType);
+    FaultLogDatabase::FillInfoDefault(info);
+    HiSysEventParam params[MAX_PARAM_COUNT];
+    size_t paramCount = BuildSysEventParams(info, faultLogType, params);
     int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
-        params, sizeof(params) / sizeof(HiSysEventParam));
+        params, paramCount);
     HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
 }
 }  // namespace HiviewDFX

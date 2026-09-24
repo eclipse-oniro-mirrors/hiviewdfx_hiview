@@ -21,7 +21,8 @@ namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), sysuid_(0), terminalThreadStack_(""), telemetryId_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    domain_(""), stringId_(""), msg_(""), processLifetime_(0), hitraceIdInfo_(""), procStatm_(""),
+    hostResourceWarning_(""),
     freezeExtFile_(""), enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""),
     applicationIOInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
@@ -44,6 +45,7 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     msg_(builder.msg_),
     packageName_(builder.packageName_),
     processName_(builder.processName_),
+    processLifetime_(builder.processLifetime_),
     foreGround_(builder.foreGround_),
     logPath_(builder.logPath_),
     hitraceTime_(builder.hitraceTime_),
@@ -75,7 +77,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), sysuid_(0), terminalThreadStack_(""), telemetryId_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    domain_(""), stringId_(""), msg_(""), processLifetime_(0), hitraceIdInfo_(""), procStatm_(""),
+    hostResourceWarning_(""),
     freezeExtFile_(""), enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""),
     applicationIOInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
@@ -155,6 +158,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitMsg(const std::string& msg)
 WatchPoint::Builder& WatchPoint::Builder::InitProcessName(const std::string& processName)
 {
     processName_ = processName;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitProcessLifeTime(int64_t processLifeTime)
+{
+    processLifetime_ = processLifeTime;
     return *this;
 }
 
@@ -389,6 +398,11 @@ std::string WatchPoint::GetPackageName() const
 std::string WatchPoint::GetProcessName() const
 {
     return processName_;
+}
+
+int64_t WatchPoint::GetProcessLifeTime() const
+{
+    return processLifetime_;
 }
 
 std::string WatchPoint::GetForeGround() const

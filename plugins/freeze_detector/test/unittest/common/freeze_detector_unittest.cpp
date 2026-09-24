@@ -1214,6 +1214,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_005, TestSize.Level3)
  */
 HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_007, TestSize.Level3)
 {
+    constexpr int64_t processLifetime = 123456;
     auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
     std::string testName = "FreezeDetectorPlugin_007";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
@@ -1226,15 +1227,41 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_007, TestSize.Level3)
     sysEvent->SetEventValue(FreezeCommon::EVENT_UID, getuid());
     sysEvent->SetEventValue(FreezeCommon::EVENT_PACKAGE_NAME, testName);
     sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_LIFETIME, processLifetime);
     sysEvent->SetEventValue(FreezeCommon::HITRACE_TIME, "12453");
     sysEvent->SetEventValue(FreezeCommon::SYSRQ_TIME, "12453");
     sysEvent->SetEventValue(FreezeCommon::TERMINAL_THREAD_STACK, testName);
     sysEvent->SetEventValue(EventStore::EventCol::INFO, testName);
     auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
-    freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    WatchPoint watchPoint = freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    EXPECT_EQ(watchPoint.GetProcessLifeTime(), processLifetime);
     sysEvent->SetEventValue(FreezeCommon::EVENT_TRACE_ID, "12345;123456");
     freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
     ASSERT_TRUE(freezeDetectorPlugin != nullptr);
+}
+
+/**
+ * @tc.name: FreezeVendor_FillStartTimeInfo_001
+ * @tc.desc: Verify raw process and device start times are added to sysfreeze sections
+ * @tc.type: FUNC
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVendor_FillStartTimeInfo_001, TestSize.Level1)
+{
+    constexpr int64_t processLifetime = 123456;
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    WatchPoint watchPoint = WatchPoint::Builder().InitProcessLifeTime(processLifetime).Build();
+    FaultLogInfoInner info;
+    uint64_t deviceRunningTimeBefore = TimeUtil::GetBootTimeMs();
+
+    vendor->FillSectionMaps(info, watchPoint, "No");
+
+    uint64_t deviceRunningTimeAfter = TimeUtil::GetBootTimeMs();
+    EXPECT_EQ(info.sectionMaps["PROCESS_LIFETIME"], std::to_string(processLifetime));
+    EXPECT_EQ(info.sectionMaps[FreezeCommon::HOST_RESOURCE_WARNING], "");
+    uint64_t deviceRunningTime = std::stoull(info.sectionMaps[FreezeCommon::EVENT_DEVICE_RUNNING_TIME]);
+    EXPECT_GE(deviceRunningTime, deviceRunningTimeBefore);
+    EXPECT_LE(deviceRunningTime, deviceRunningTimeAfter);
 }
 
 /**

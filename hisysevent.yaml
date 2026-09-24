@@ -57,6 +57,9 @@ SYS_FREEZE:
   UID: {type: INT32, desc: sys_freeze uid}
   PACKAGE_NAME: {type: STRING, desc: package name}
   PROCESS_NAME: {type: STRING, desc: process name}
+  LIFETIME: {type: INT64, desc: process life time}
+  DEVICE_RUNNING_TIME: {type: INT64, desc: elapsed milliseconds since device boot}
+  HOST_RESOURCE_WARNING: {type: STRING, desc: host resource warning flag}
   MSG: {type: STRING, desc: application event message}
   FINGERPRINT: {type: STRING, desc: unique id for grouping same fault}
   PANME: {type: STRING, desc: process name}

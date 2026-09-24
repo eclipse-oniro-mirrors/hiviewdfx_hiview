@@ -35,6 +35,8 @@ public:
     static constexpr const char* EVENT_SYS_UID = "uid_";
     static constexpr const char* EVENT_PACKAGE_NAME = "PACKAGE_NAME";
     static constexpr const char* EVENT_PROCESS_NAME = "PROCESS_NAME";
+    static constexpr const char* EVENT_PROCESS_LIFETIME = "PROCESS_LIFETIME";
+    static constexpr const char* EVENT_DEVICE_RUNNING_TIME = "DEVICE_RUNNING_TIME";
     static constexpr const char* EVENT_MSG = "MSG";
     static constexpr const char* HITRACE_TIME = "HITRACE_TIME";
     static constexpr const char* SYSRQ_TIME = "SYSRQ_TIME";

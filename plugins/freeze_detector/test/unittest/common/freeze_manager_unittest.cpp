@@ -241,6 +241,20 @@ HWTEST_F(FreezeManagerTest, ParseLogEntry_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: ParseLogEntry_002
+ * @tc.desc: Test ParseLogEntry with empty input does not modify sectionMaps
+ */
+HWTEST_F(FreezeManagerTest, ParseLogEntry_002, TestSize.Level3)
+{
+    EXPECT_TRUE(freezeManager != nullptr);
+    std::map<std::string, std::string> sectionMaps;
+    sectionMaps["existing_key"] = "existing_value";
+    freezeManager->ParseLogEntry("", sectionMaps);
+    EXPECT_EQ(sectionMaps.size(), static_cast<size_t>(1));
+    EXPECT_EQ(sectionMaps["existing_key"], "existing_value");
+}
+
+/**
  * @tc.name: FillProcMemory Test
  * @tc.desc: FreezeManager
  */

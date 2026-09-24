@@ -145,6 +145,9 @@ void Vendor::FillSummaryInfo(FaultLogInfoInner &info, const WatchPoint &watchPoi
 
 void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint &watchPoint, const std::string& isScbPro) const
 {
+    info.sectionMaps[FreezeCommon::EVENT_PROCESS_LIFETIME] = std::to_string(watchPoint.GetProcessLifeTime());
+    info.sectionMaps[FreezeCommon::EVENT_DEVICE_RUNNING_TIME] = std::to_string(TimeUtil::GetBootTimeMs());
+    info.sectionMaps[FreezeCommon::HOST_RESOURCE_WARNING] = watchPoint.GetHostResourceWarning();
     info.sectionMaps[FreezeCommon::HITRACE_TIME] = watchPoint.GetHitraceTime();
     info.sectionMaps[FreezeCommon::SYSRQ_TIME] = watchPoint.GetSysrqTime();
     info.sectionMaps[FORE_GROUND] = watchPoint.GetForeGround();

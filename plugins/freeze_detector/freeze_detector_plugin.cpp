@@ -145,6 +145,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.appRunningUniqueId = sysEvent.GetEventValue(FreezeCommon::APP_RUNNING_UNIQUE_ID);
     params.packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     params.processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+    params.processLifetime = sysEvent.GetEventIntValue(FreezeCommon::EVENT_PROCESS_LIFETIME);
     params.hitraceTime = sysEvent.GetEventValue(FreezeCommon::HITRACE_TIME);
     params.sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     params.terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
@@ -190,6 +191,7 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
         .InitUid(params.uid).InitSysUid(params.sysuid).InitTerminalThreadStack(params.terminalThreadStack)
         .InitTelemetryId(params.telemetryId)
         .InitPackageName(params.packageName).InitProcessName(params.processName).InitForeGround(params.foreGround)
+        .InitProcessLifeTime(params.processLifetime)
         .InitMsg(params.msg).InitLogPath(params.logFile).InitHitraceTime(params.hitraceTime)
         .InitSysrqTime(params.sysrqTime).InitHitraceIdInfo(params.hitraceIdInfo).InitProcStatm(params.procStatm)
         .InitHostResourceWarning(params.hostResourceWarning).InitFreezeExtFile(params.freezeExtFile)

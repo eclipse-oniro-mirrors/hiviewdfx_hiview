@@ -342,6 +342,9 @@ void FreezeManager::ReduceLogFileListSize(const std::vector<LogFile> &fileList, 
 
 void FreezeManager::ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps)
 {
+    if (input.empty()) {
+        return;
+    }
     // input: HEAP_TOTAL_SIZE,HEAP_OBJECT_SIZE,PROCESS_LIFETIME
     std::istringstream iss(input);
     std::string content;
