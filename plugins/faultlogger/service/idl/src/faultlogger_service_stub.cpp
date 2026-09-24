@@ -26,6 +26,7 @@
 #include "faultlog_info_ohos.h"
 #include "hiviewfaultlogger_ipc_interface_code.h"
 #include "hiview_logger.h"
+#include "smart_fd.h"
 #include "xcollie_detection.h"
 
 namespace OHOS {
@@ -34,33 +35,33 @@ DEFINE_LOG_LABEL(0xD002D11, "FaultLoggerServiceStub");
 
 constexpr const char * const FAULTLOG_TEMP_FOLDER = "/data/log/faultlog/temp/";
 
-static int32_t ValidatePipeFd(int32_t fd)
+static int32_t ValidatePipeFd(SmartFd& smartFd)
 {
-    if (fd < 0 || fcntl(fd, F_GETFD) == -1) {
-        HIVIEW_LOGE("invalid pipe fd, fd=%{public}d", fd);
+    if (smartFd.GetFd() < 0 || fcntl(smartFd.GetFd(), F_GETFD) == -1) {
+        HIVIEW_LOGE("invalid pipe fd, fd=%{public}d", smartFd.GetFd());
         return -1;
     }
     struct stat st = {};
-    if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode)) {
-        HIVIEW_LOGE("fd is not a regular file, fd=%{public}d", fd);
-        close(fd);
+    if (fstat(smartFd.GetFd(), &st) != 0 || !S_ISREG(st.st_mode)) {
+        HIVIEW_LOGE("fd is not a regular file, fd=%{public}d", smartFd.GetFd());
+        smartFd.Reset();
         return -1;
     }
     char buf[PATH_MAX] = {0};
-    std::string fdLink = "/proc/self/fd/" + std::to_string(fd);
+    std::string fdLink = "/proc/self/fd/" + std::to_string(smartFd.GetFd());
     ssize_t len = readlink(fdLink.c_str(), buf, sizeof(buf) - 1);
     if (len <= 0) {
-        HIVIEW_LOGE("failed to read fd link, fd=%{public}d", fd);
-        close(fd);
+        HIVIEW_LOGE("failed to read fd link, fd=%{public}d", smartFd.GetFd());
+        smartFd.Reset();
         return -1;
     }
     std::string fdPath(buf, len);
     if (fdPath.find(FAULTLOG_TEMP_FOLDER) != 0) {
-        HIVIEW_LOGE("fd path not in faultlog temp, fd=%{public}d, path=%{public}s", fd, fdPath.c_str());
-        close(fd);
+        HIVIEW_LOGE("fd path not in faultlog temp, fd=%{public}d, path=%{public}s", smartFd.GetFd(), fdPath.c_str());
+        smartFd.Reset();
         return -1;
     }
-    return fd;
+    return smartFd.Release();
 }
 
 int FaultLoggerServiceStub::HandleOtherRemoteRequest(uint32_t code, MessageParcel &data,
@@ -162,7 +163,8 @@ int FaultLoggerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return ERR_FLATTEN_OBJECT;
             }
             if (data.ContainFileDescriptors()) {
-                ohosInfo->pipeFd = ValidatePipeFd(data.ReadFileDescriptor());
+                SmartFd smartFd(data.ReadFileDescriptor());
+                ohosInfo->pipeFd = ValidatePipeFd(smartFd);
             }
             FaultLogInfoOhos info(*ohosInfo);
             AddFaultLog(info);

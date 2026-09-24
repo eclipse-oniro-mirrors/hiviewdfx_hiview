@@ -33,12 +33,8 @@
 #include "faultlog_util.h"
 #include "file_util.h"
 #include "hiview_logger.h"
+#include "smart_fd.h"
 
-// define Fdsan Domain
-#ifdef FDSAN_DOMAIN
-#undef FDSAN_DOMAIN
-#endif
-#define FDSAN_DOMAIN 0xD002D11
 #include "string_util.h"
 #include "json/json.h"
 
@@ -493,15 +489,7 @@ static void SetPipeFdFromFile(FaultLogInfo& info, const std::string& path)
     if (fd == -1) {
         return;
     }
-    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
-    fdsan_exchange_owner_tag(fd, 0, ownerTag);
-    auto fdDeleter = [ownerTag](int32_t *ptr) {
-        if (*ptr >= 0) {
-            fdsan_close_with_tag(*ptr, ownerTag);
-        }
-        delete ptr;
-    };
-    info.pipeFd.reset(new int32_t(fd), fdDeleter);
+    info.tempFileFd = std::make_shared<SmartFd>(fd);
 }
 
 FaultLogInfo ParseCppCrashFromFile(const std::string& path)

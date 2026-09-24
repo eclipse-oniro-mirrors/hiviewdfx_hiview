@@ -19,18 +19,12 @@
 #include <queue>
 #include <unistd.h>
 
-#include <sys/syscall.h>
 #include <sys/wait.h>
 
 #include "constants.h"
 #include "hiview_logger.h"
 #include "parameter_ex.h"
-
-// define Fdsan Domain
-#ifndef FDSAN_DOMAIN
-#undef FDSAN_DOMAIN
-#endif
-#define FDSAN_DOMAIN 0xD002D11
+#include "smart_fd.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -113,31 +107,28 @@ std::string FaultlogHilogHelper::GetHilogByPid(int32_t pid)
         HIVIEW_LOGI("Do not get hilog in oversea commercial version.");
         return "";
     }
-    int fds[2] = {-1, -1}; // 2: one read pipe, one write pipe
-    if (pipe2(fds, O_NONBLOCK) != 0) {
+    int rawFds[2] = {-1, -1}; // 2: one read pipe, one write pipe
+    if (pipe2(rawFds, O_NONBLOCK) != 0) {
         HIVIEW_LOGE("Failed to create pipe for get log.");
         return "";
     }
-    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
-    fdsan_exchange_owner_tag(fds[0], 0, ownerTag);
-    fdsan_exchange_owner_tag(fds[1], 0, ownerTag);
+    SmartFd readFd(rawFds[0]);
+    SmartFd writeFd(rawFds[1]);
 
     int childPid = fork();
     if (childPid < 0) {
         HIVIEW_LOGE("fork fail");
-        fdsan_close_with_tag(fds[0], ownerTag);
-        fdsan_close_with_tag(fds[1], ownerTag);
         return "";
     } else if (childPid == 0) {
-        syscall(SYS_close, fds[0]);
-        int rc = DoGetHilogProcess(pid, fds[1]);
-        fdsan_close_with_tag(fds[1], ownerTag);
+        readFd.Reset();
+        int rc = DoGetHilogProcess(pid, writeFd.GetFd());
+        writeFd.Reset();
         _exit(rc);
     } else {
-        fdsan_close_with_tag(fds[1], ownerTag);
+        writeFd.Reset();
         HIVIEW_LOGI("read hilog start");
-        std::string log = ReadHilogTimeout(fds[0]);
-        fdsan_close_with_tag(fds[0], ownerTag);
+        std::string log = ReadHilogTimeout(readFd.GetFd());
+        readFd.Reset();
 
         if (TEMP_FAILURE_RETRY(waitpid(childPid, nullptr, 0)) != childPid) {
             HIVIEW_LOGE("waitpid fail, pid: %{public}d, errno: %{public}d", childPid, errno);
