@@ -334,7 +334,7 @@ bool IsValidSandboxPath(const std::string& realPath)
 
 bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
 {
-    uint64_t new_tag = (static_cast<uint64_t>(LOG_DOMAIN) << 32) | FDSAN_TAG_A;
+    uint64_t newTag = (static_cast<uint64_t>(LOG_DOMAIN) << 32) | FDSAN_TAG_A;
     auto pos = currInfo.logPath.find_last_of('/');
     if (pos == std::string::npos || pos == currInfo.logPath.length() - 1) {
         return false;
@@ -363,7 +363,7 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
     if (fd < 0) {
         return false;
     }
-    fdsan_exchange_owner_tag(fd, 0, new_tag);
+    fdsan_exchange_owner_tag(fd, 0, newTag);
     char content[4096];
     std::string productName = OHOS::system::GetParameter("const.product.name", "Unknown");
     std::string displayVersion = OHOS::system::GetParameter("const.display.version", "Unknown");
@@ -385,7 +385,7 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
         OHOS::HiviewDFX::FileUtil::SaveStringToFd(fd, std::string(content, len));
     }
     OHOS::HiviewDFX::FileUtil::SaveStringToFd(fd, currInfo.description);
-    fdsan_close_with_tag(fd, new_tag);
+    fdsan_close_with_tag(fd, newTag);
     return true;
 }
 
