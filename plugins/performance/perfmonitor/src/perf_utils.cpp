@@ -48,48 +48,12 @@ void ConvertRealtimeToSystime(int64_t realTime, int64_t& sysTime)
 
 std::string GetSourceTypeName(PerfSourceType sourceType)
 {
-    std::string type = "";
-    switch (sourceType) {
-        case PERF_TOUCH_EVENT:
-            type = "TOUCHSCREEN";
-            break;
-        case PERF_MOUSE_EVENT:
-            type = "MOUSE";
-            break;
-        case PERF_TOUCH_PAD:
-            type = "TOUCHPAD";
-            break;
-        case PERF_JOY_STICK:
-            type = "JOYSTICK";
-            break;
-        case PERF_KEY_EVENT:
-            type = "KEY_EVENT";
-            break;
-        default :
-            type = "UNKNOWN_SOURCE";
-            break;
-    }
-    return type;
+    return std::to_string(static_cast<int>(sourceType));
 }
 
 std::string GetActionTypeName(PerfActionType actionType)
 {
-    std::string type = "";
-    switch (actionType) {
-        case LAST_DOWN:
-            type = "LAST_DOWN";
-            break;
-        case LAST_UP:
-            type = "LAST_UP";
-            break;
-        case FIRST_MOVE:
-            type = "FIRST_MOVE";
-            break;
-        default :
-            type = "UNKNOWN_ACTION";
-            break;
-    }
-    return type;
+    return std::to_string(static_cast<int>(actionType));
 }
 
 std::string TruncatePageName(const std::string& pageName)
