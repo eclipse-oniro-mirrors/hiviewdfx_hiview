@@ -24,9 +24,9 @@ namespace HiviewDFX {
 class SmartFd {
 public:
     SmartFd() = default;
-    explicit SmartFd(int fd, bool fdsan = true) : fd_(fd), fdsan_(fdsan)
+    explicit SmartFd(int fd) : fd_(fd)
     {
-        if (fd_ >= 0 && fdsan_) {
+        if (fd_ >= 0) {
             fdsan_exchange_owner_tag(fd_, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
         }
     }
@@ -40,10 +40,9 @@ public:
 
     SmartFd &operator=(const SmartFd&) = delete;
 
-    SmartFd(SmartFd&& rhs) noexcept : fd_(rhs.fd_), fdsan_(rhs.fdsan_)
+    SmartFd(SmartFd&& rhs) noexcept : fd_(rhs.fd_)
     {
         rhs.fd_ = -1;
-        rhs.fdsan_ = false;
     }
 
     SmartFd& operator=(SmartFd&& rhs) noexcept
@@ -51,9 +50,7 @@ public:
         if (this != &rhs) {
             CloseFd();
             fd_ = rhs.fd_;
-            fdsan_ = rhs.fdsan_;
             rhs.fd_ = -1;
-            rhs.fdsan_ = false;
         }
         return *this;
     }
@@ -71,18 +68,16 @@ public:
     int Release()
     {
         int fd = fd_;
-        if (fd_ >= 0 && fdsan_) {
+        if (fd_ >= 0) {
             fdsan_exchange_owner_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN), 0);
         }
         fd_ = -1;
-        fdsan_ = false;
         return fd;
     }
 
     void Reset()
     {
         CloseFd();
-        fdsan_ = false;
     }
 
 private:
@@ -91,17 +86,12 @@ private:
         if (fd_ < 0) {
             return;
         }
-        if (fdsan_) {
-            fdsan_close_with_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
-        } else {
-            close(fd_);
-        }
+        fdsan_close_with_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
         fd_ = -1;
     }
 
     static constexpr uint64_t DFX_FDSAN_DOMAIN = 0xD002D11;
     int fd_{-1};
-    bool fdsan_{false};
 };
 }
 }
