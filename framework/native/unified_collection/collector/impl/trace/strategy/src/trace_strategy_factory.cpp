@@ -70,6 +70,9 @@ auto TraceStrategyFactory::CreateTraceStrategy(const std::string& callName, uint
 {
     StrategyParam strategyParam {maxDuration, happenTime, callName, DB_PATH, CONFIG_PATH, outputPath};
     if (callName == CallerName::COMMAND) {
+        if (outputPath.empty()) {
+            strategyParam.outputPath = "/data/log/hitrace"; // make a mark that filter deletion action
+        }
         return std::make_shared<TraceStrategy>(strategyParam, ScenarioName::COMMAND);
     }
     if (isNeedFlowControl) {

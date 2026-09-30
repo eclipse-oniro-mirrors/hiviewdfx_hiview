@@ -26,6 +26,7 @@
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
+using namespace Hitrace;
 const uint32_t FILE_SIZE_LITMIT = 100 * 1024;
 
 const Scenario SCENARIO_COMMON_DROP_INFO {

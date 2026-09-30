@@ -96,7 +96,7 @@ inline AppEventTask CreateAppEventTask(int32_t uid, int32_t pid, uint64_t happen
 class MockTraceStateMachine : public DelayedRefSingleton<MockTraceStateMachine> {
 public:
     TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
-        TraceRetInfo &info, const DumpTraceCallback &callback)
+        Hitrace::TraceRetInfo &info, const DumpTraceCallback &callback)
     {
         info = info_;
         if (info_.fileSize > static_cast<int64_t>(static_cast<double>(fileSizeLimit) * TOLERATION)) {
@@ -116,7 +116,7 @@ public:
         return callback_;
     }
 
-    void SetTraceInfo(const TraceRetInfo &info)
+    void SetTraceInfo(const Hitrace::TraceRetInfo &info)
     {
         info_ = info;
     }
@@ -132,18 +132,18 @@ public:
         taskBeginTime_ = TimeUtil::GetMilliseconds();
     }
 
-    void SetTraceRet(TraceStateCode stateError, TraceErrorCode codeError)
+    void SetTraceRet(TraceStateCode stateError, Hitrace::TraceErrorCode codeError)
     {
         traceRet_.stateError_ = stateError;
         traceRet_.codeError_ = codeError;
     }
 
-    void SetTraceRet(const TraceRetInfo& info)
+    void SetTraceRet(const Hitrace::TraceRetInfo& info)
     {
         info_ = info;
     }
 
-    TraceRet DumpTrace(TraceRetInfo& info) const
+    TraceRet DumpTrace(Hitrace::TraceRetInfo& info) const
     {
         info = info_;
         return traceRet_;
@@ -151,7 +151,7 @@ public:
 
 private:
     DumpTraceCallback callback_;
-    TraceRetInfo info_ = {};
+    Hitrace::TraceRetInfo info_ = {};
     int32_t appid_ = 0;
     uint64_t taskBeginTime_ = 0;
     TraceRet traceRet_;

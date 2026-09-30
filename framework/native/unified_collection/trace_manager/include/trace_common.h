@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-using namespace Hitrace;
 
 namespace FlowControlName {
 inline constexpr char XPERF[] = "Xperf";
@@ -91,7 +90,7 @@ enum class TelemetryPolicy {
 struct Scenario {
     std::string name;
     uint8_t level = 0;
-    TraceArgs args;
+    Hitrace::TraceArgs args;
     TelemetryPolicy tracePolicy = TelemetryPolicy::DEFAULT;
     std::string outputPath;
 };
@@ -102,7 +101,7 @@ struct DumpTraceArgs {
     uint64_t happenTime = 0;
 };
 
-using DumpTraceCallback = std::function<void(TraceRetInfo)>;
+using DumpTraceCallback = std::function<void(Hitrace::TraceRetInfo)>;
 
 enum class TraceStateCode : uint8_t {
     SUCCESS,
@@ -125,7 +124,7 @@ struct TraceRet {
 
     explicit TraceRet(TraceStateCode stateError) : stateError_(stateError) {}
 
-    explicit TraceRet(TraceErrorCode codeError) : codeError_(codeError) {}
+    explicit TraceRet(Hitrace::TraceErrorCode codeError) : codeError_(codeError) {}
 
     explicit TraceRet(TraceFlowCode codeError) : flowError_(codeError) {}
 
@@ -134,7 +133,7 @@ struct TraceRet {
         return stateError_;
     }
 
-    TraceErrorCode GetCodeError()
+    Hitrace::TraceErrorCode GetCodeError()
     {
         return codeError_;
     }
@@ -148,11 +147,12 @@ struct TraceRet {
     {
         bool isStateSuccess = stateError_ == TraceStateCode::SUCCESS || stateError_ == TraceStateCode::NO_TRIGGER ||
             stateError_ == TraceStateCode::UPDATE_TIME;
-        return isStateSuccess && codeError_ == TraceErrorCode::SUCCESS && flowError_ == TraceFlowCode::TRACE_ALLOW;
+        return isStateSuccess && codeError_ == Hitrace::TraceErrorCode::SUCCESS
+            && flowError_ == TraceFlowCode::TRACE_ALLOW;
     }
 
     TraceStateCode stateError_ = TraceStateCode::SUCCESS;
-    TraceErrorCode codeError_ = TraceErrorCode::SUCCESS;
+    Hitrace::TraceErrorCode codeError_ = Hitrace::TraceErrorCode::SUCCESS;
     TraceFlowCode flowError_ = TraceFlowCode::TRACE_ALLOW;
 };
 

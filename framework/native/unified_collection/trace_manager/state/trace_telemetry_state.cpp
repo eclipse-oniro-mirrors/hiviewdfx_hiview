@@ -36,7 +36,7 @@ bool TelemetryState::RegisterTelemetryCallback(std::shared_ptr<TelemetryCallback
     return true;
 }
 
-TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info,
+TraceRet TelemetryState::DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, Hitrace::TraceRetInfo &info,
     const std::string& outputPath)
 {
     if (policy_ != TelemetryPolicy::DEFAULT) {

@@ -21,6 +21,7 @@
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
+using namespace Hitrace;
 }
 CommonState::CommonState(bool isCachOn, int32_t totalFileSize, int32_t sliceMaxDuration)
     : totalFileSize_(totalFileSize), sliceMaxDuration_(sliceMaxDuration)
