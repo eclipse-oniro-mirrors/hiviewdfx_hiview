@@ -242,6 +242,7 @@ int DmesgCatcher::Catch(int fd, int jsonFd)
     }
     auto originSize = GetFdSize(fd);
     if (originSize < 0) {
+        CloseFp(extraFp);
         return 0;
     }
     DumpDmesgLog(fd, extraFd);
