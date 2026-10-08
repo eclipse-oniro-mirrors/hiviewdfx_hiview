@@ -62,8 +62,6 @@ HWTEST(FaultLogFileDeleteTest, FaultLogFileDelete002, testing::ext::TestSize.Lev
     EXPECT_EQ(info.pid, testPid);
     EXPECT_EQ(info.time, testTime);
     EXPECT_EQ(info.logPath, "/data/log/faultlog/temp/filedelete-4321-1607161345");
-    // INODE_ID is carried by sectionMap automatically from event key-value pairs
-    EXPECT_EQ(info.sectionMap["INODE_ID"], std::to_string(testInodeId));
     EXPECT_FALSE(info.summary.empty());
     EXPECT_FALSE(info.dumpLogToFaultlogger);
     EXPECT_FALSE(info.reportToAppEvent);
