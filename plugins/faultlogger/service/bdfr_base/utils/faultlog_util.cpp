@@ -155,8 +155,8 @@ int32_t GetLogTypeByName(const std::string& type)
         return FaultLogType::SYS_WARNING;
     } else if (type == "appfreezewarning") {
         return FaultLogType::APPFREEZE_WARNING;
-    } else if (type == "undeletable") {
-        return FaultLogType::UNDELETEABLE_FILE;
+    } else if (type == "filedelete") {
+        return FaultLogType::FILE_DELETE;
     } else if (type.find("san") != std::string::npos) {
         return FaultLogType::ADDR_SANITIZER;
     } else if (type == "cjerror") {
@@ -188,7 +188,7 @@ FaultLogType GetLogTypeByEventName(const std::string& eventName)
         { "CJ_ERROR", FaultLogType::CJ_ERROR },
         { "RUST_PANIC", FaultLogType::RUST_PANIC },
         { "PROCESS_PAGE_INFO", FaultLogType::PROCESS_PAGE_INFO },
-        { "FILE_UNDELETEABLE", FaultLogType::UNDELETEABLE_FILE }
+        { "FILE_DELETED", FaultLogType::FILE_DELETE }
     }};
     for (const auto& bond : list) {
         if (eventName == bond.name) {
@@ -272,10 +272,10 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
         std::to_string(info.time);
 }
 
-std::string GetUndeletableTempLogName(const FaultLogInfo& info)
+std::string GetFileDeleteTempLogName(const FaultLogInfo& info)
 {
     return std::string(FAULTLOG_TEMP_FOLDER) +
-        "undeletable-" +
+        "filedelete-" +
         std::to_string(info.pid) +
         "-" +
         std::to_string(info.time);

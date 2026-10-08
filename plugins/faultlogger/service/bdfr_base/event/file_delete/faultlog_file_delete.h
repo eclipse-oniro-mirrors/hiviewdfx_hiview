@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef FAULTLOG_UNDELETEABLE_H
-#define FAULTLOG_UNDELETEABLE_H
+#ifndef FAULTLOG_FILE_DELETE_H
+#define FAULTLOG_FILE_DELETE_H
 
 #include <memory>
 #include <string>
@@ -23,9 +23,9 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-class FaultLogUndeletable final : public FaultLogEventPipeline {
+class FaultLogFileDelete final : public FaultLogEventPipeline {
 public:
-    FaultLogUndeletable();
+    FaultLogFileDelete();
 private:
     FaultLogInfo FillFaultLogInfo(SysEvent& sysEvent) override;
     bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const override;
@@ -34,4 +34,4 @@ private:
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // FAULTLOG_UNDELETEABLE_H
+#endif // FAULTLOG_FILE_DELETE_H

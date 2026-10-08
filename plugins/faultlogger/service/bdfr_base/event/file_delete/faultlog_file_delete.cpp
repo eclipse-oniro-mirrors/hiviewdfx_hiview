@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "faultlog_undeletable.h"
+#include "faultlog_file_delete.h"
 
 #include <string>
 
@@ -24,34 +24,34 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "Faultlogger");
 
-FaultLogUndeletable::FaultLogUndeletable()
+FaultLogFileDelete::FaultLogFileDelete()
 {
-    faultType_ = FaultLogType::UNDELETEABLE_FILE;
+    faultType_ = FaultLogType::FILE_DELETE;
 }
 
-std::string FaultLogUndeletable::GetFaultModule(SysEvent& sysEvent) const
+std::string FaultLogFileDelete::GetFaultModule(SysEvent& sysEvent) const
 {
     return sysEvent.GetEventValue(FaultKey::MODULE_NAME);
 }
 
-FaultLogInfo FaultLogUndeletable::FillFaultLogInfo(SysEvent& sysEvent)
+FaultLogInfo FaultLogFileDelete::FillFaultLogInfo(SysEvent& sysEvent)
 {
     // base class fills common fields (time, uid, pid, module, reason, summary, sectionMap)
     auto info = FaultLogEventPipeline::FillFaultLogInfo(sysEvent);
     // read PID and HAPPEN_TIME from event fields to locate the temp stack file,
-    // independent prefix "undeletable-" distinguishes it from the FDSAN "stacktrace-" files
+    // independent prefix "filedelete-" distinguishes it from the FDSAN "stacktrace-" files
     info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
     info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
-    info.logPath = GetUndeletableTempLogName(info);
+    info.logPath = GetFileDeleteTempLogName(info);
     // the stacktrace temp file stays in the temp directory, no formal faultlog file is generated
     info.dumpLogToFaultlogger = false;
     info.reportToAppEvent = false;
     return info;
 }
 
-void FaultLogUndeletable::UpdateFaultLogInfo() {}
+void FaultLogFileDelete::UpdateFaultLogInfo() {}
 
-bool FaultLogUndeletable::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const
+bool FaultLogFileDelete::ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const
 {
     (void)sysEvent;
     return false;

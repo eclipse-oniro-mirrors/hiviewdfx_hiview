@@ -56,7 +56,7 @@ enum FaultLogType {
     ADDR_SANITIZER = 10,
     PROCESS_PAGE_INFO = 11,
     MINIDUMP = 12,
-    UNDELETEABLE_FILE = 13,
+    FILE_DELETE = 13,
     MAX_TYPE,
 };
 

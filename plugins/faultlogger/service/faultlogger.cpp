@@ -45,7 +45,7 @@ bool Faultlogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
         "CJ_ERROR",
         "RUST_PANIC",
         "ADDR_SANITIZER",
-        "FILE_UNDELETEABLE"
+        "FILE_DELETED"
     };
 
     return std::find(eventNames.begin(), eventNames.end(), event->eventName_) != eventNames.end();

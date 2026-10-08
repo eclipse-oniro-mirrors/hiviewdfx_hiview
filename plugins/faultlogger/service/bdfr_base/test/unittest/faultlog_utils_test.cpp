@@ -271,19 +271,19 @@ HWTEST(FaultloggerUtilsUnittest, GetDebugSignalTempLogNameTest002, testing::ext:
 }
 
 /**
- * @tc.name: GetUndeletableTempLogNameTest001
- * @tc.desc: test GetUndeletableTempLogName and undeletable type mapping
+ * @tc.name: GetFileDeleteTempLogNameTest001
+ * @tc.desc: test GetFileDeleteTempLogName and filedelete type mapping
  * @tc.type: FUNC
  */
-HWTEST(FaultloggerUtilsUnittest, GetUndeletableTempLogNameTest001, testing::ext::TestSize.Level3)
+HWTEST(FaultloggerUtilsUnittest, GetFileDeleteTempLogNameTest001, testing::ext::TestSize.Level3)
 {
     FaultLogInfo info;
     info.pid = 123;
     info.time = 123456789;
-    auto fileName = GetUndeletableTempLogName(info);
-    ASSERT_EQ(fileName, "/data/log/faultlog/temp/undeletable-123-123456789");
-    ASSERT_EQ(GetLogTypeByName("undeletable"), FaultLogType::UNDELETEABLE_FILE);
-    ASSERT_EQ(GetLogTypeByEventName("FILE_UNDELETEABLE"), FaultLogType::UNDELETEABLE_FILE);
+    auto fileName = GetFileDeleteTempLogName(info);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/filedelete-123-123456789");
+    ASSERT_EQ(GetLogTypeByName("filedelete"), FaultLogType::FILE_DELETE);
+    ASSERT_EQ(GetLogTypeByEventName("FILE_DELETED"), FaultLogType::FILE_DELETE);
     ASSERT_EQ(GetLogTypeByEventName("UNKNOWN_EVENT"), FaultLogType::ALL);
 }
 

@@ -38,7 +38,7 @@ HWTEST(FaultLogEventFactoryTest, EventHandlerStrategyFactory001, testing::ext::T
         FaultLogType::APPFREEZE_WARNING,
         FaultLogType::SYS_FREEZE,
         FaultLogType::SYS_WARNING,
-        FaultLogType::UNDELETEABLE_FILE,
+        FaultLogType::FILE_DELETE,
     };
     for (auto type : typeList1) {
         auto fault = FaultLogEventFactory::CreateFaultLogEvent(type);

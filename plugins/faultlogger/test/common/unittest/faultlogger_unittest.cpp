@@ -238,7 +238,7 @@ HWTEST_F(FaultloggerUnittest, IsInterestedPipelineEvent, testing::ext::TestSize.
     EXPECT_TRUE(testPlugin->IsInterestedPipelineEvent(event));
     event->SetEventName("ADDR_SANITIZER");
     EXPECT_TRUE(testPlugin->IsInterestedPipelineEvent(event));
-    event->SetEventName("FILE_UNDELETEABLE");
+    event->SetEventName("FILE_DELETED");
     EXPECT_TRUE(testPlugin->IsInterestedPipelineEvent(event));
     event->SetEventName("OTHERS");
     EXPECT_FALSE(testPlugin->IsInterestedPipelineEvent(event));

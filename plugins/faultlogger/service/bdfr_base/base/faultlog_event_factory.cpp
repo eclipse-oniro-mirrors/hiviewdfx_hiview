@@ -18,7 +18,7 @@
 #include "faultlog_cjerror.h"
 #include "faultlog_jserror.h"
 #include "faultlog_sanitizer.h"
-#include "faultlog_undeletable.h"
+#include "faultlog_file_delete.h"
 #include "faultlog_rust_panic.h"
 #include "faultlog_page_info.h"
 #include "faultlog_cppcrash.h"
@@ -40,8 +40,8 @@ std::unique_ptr<FaultLogEventInterface> FaultLogEventFactory::CreateFaultLogEven
             return std::make_unique<FaultLogRustPanic>();
         case FaultLogType::ADDR_SANITIZER:
             return std::make_unique<FaultLogSanitizer>();
-        case FaultLogType::UNDELETEABLE_FILE:
-            return std::make_unique<FaultLogUndeletable>();
+        case FaultLogType::FILE_DELETE:
+            return std::make_unique<FaultLogFileDelete>();
         case FaultLogType::CPP_CRASH:
             return std::make_unique<FaultLogCppCrash>();
         case FaultLogType::PROCESS_PAGE_INFO:
