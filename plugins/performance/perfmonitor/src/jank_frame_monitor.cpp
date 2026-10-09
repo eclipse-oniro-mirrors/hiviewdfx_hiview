@@ -16,6 +16,7 @@
 #include <set>
 
 #include "jank_frame_monitor.h"
+#include "parameters.h"
 #include "perf_reporter.h"
 #include "perf_trace.h"
 #include "perf_utils.h"
@@ -26,6 +27,10 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D66, "Hiview-PerfMonitor");
 
+namespace {
+constexpr const char* ENABLE_JANK50_PARAM = "persist.hiview.xperf.perfmonitor_enable_jank50";
+}
+
 JankFrameMonitor& JankFrameMonitor::GetInstance()
 {
     static JankFrameMonitor instance;
@@ -35,6 +40,7 @@ JankFrameMonitor& JankFrameMonitor::GetInstance()
 JankFrameMonitor::JankFrameMonitor()
 {
     InitJankFrameRecord();
+    LoadJankReportThreshold();
     RegisterFrameCallback(this);
 }
 
@@ -79,7 +85,7 @@ void JankFrameMonitor::OnVsyncEvent(int64_t vsyncTime, int64_t duration, double 
 void JankFrameMonitor::ProcessJank(int64_t vsyncTime, double jank, const std::string& windowName)
 {
     // single frame behavior report
-    if (jank >= static_cast<double>(DEFAULT_JANK_REPORT_THRESHOLD)) {
+    if (jank >= static_cast<double>(jankReportThreshold)) {
         HIVIEW_LOGD("JankFrameMonitor::ProcessJank jank >= threshold");
         JankInfo jankInfo;
         jankInfo.skippedFrameTime = static_cast<int64_t>(jank * SINGLE_FRAME_TIME);
@@ -109,6 +115,15 @@ void JankFrameMonitor::JankFrameStatsRecord(double jank)
 void JankFrameMonitor::InitJankFrameRecord()
 {
     jankFrameRecord = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
+}
+
+void JankFrameMonitor::LoadJankReportThreshold()
+{
+    jankReportThreshold = DEFAULT_JANK_REPORT_THRESHOLD;
+    std::string value = OHOS::system::GetParameter(ENABLE_JANK50_PARAM, "false");
+    if (value == "true") {
+        jankReportThreshold = JANK50_REPORT_THRESHOLD;
+    }
 }
 
 void JankFrameMonitor::ClearJankFrameRecord()

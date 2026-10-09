@@ -36,7 +36,8 @@ inline constexpr float SINGLE_FRAME_TIME = 16600000;
 inline constexpr int64_t MIN_GC_INTERVAL = 1000000000;
 inline constexpr int DEFAULT_THRESHOLD_JANK = 15;
 inline constexpr int32_t JANK_SKIPPED_THRESHOLD = DEFAULT_THRESHOLD_JANK;
-inline constexpr int32_t DEFAULT_JANK_REPORT_THRESHOLD = 3;
+inline constexpr int32_t DEFAULT_JANK_REPORT_THRESHOLD = 6;
+inline constexpr int32_t JANK50_REPORT_THRESHOLD = 3;
 inline constexpr uint32_t DEFAULT_VSYNC = 16;
 // Obtain the last three digits of the full path
 inline constexpr uint32_t PATH_DEPTH = 3;
