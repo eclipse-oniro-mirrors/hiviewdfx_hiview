@@ -281,8 +281,8 @@ HWTEST(FaultloggerUtilsUnittest, GetFileDeleteTempLogNameTest001, testing::ext::
     info.pid = 123;
     info.time = 123456789;
     auto fileName = GetFileDeleteTempLogName(info);
-    ASSERT_EQ(fileName, "/data/log/faultlog/temp/filedelete-123-123456789");
-    ASSERT_EQ(GetLogTypeByName("filedelete"), FaultLogType::FILE_DELETE);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-filedelete-123-123456789");
+    ASSERT_EQ(GetLogTypeByName("stacktrace-filedelete"), FaultLogType::FILE_DELETE);
     ASSERT_EQ(GetLogTypeByEventName("FILE_DELETED"), FaultLogType::FILE_DELETE);
     ASSERT_EQ(GetLogTypeByEventName("UNKNOWN_EVENT"), FaultLogType::ALL);
 }

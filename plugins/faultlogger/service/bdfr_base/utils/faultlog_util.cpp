@@ -155,7 +155,7 @@ int32_t GetLogTypeByName(const std::string& type)
         return FaultLogType::SYS_WARNING;
     } else if (type == "appfreezewarning") {
         return FaultLogType::APPFREEZE_WARNING;
-    } else if (type == "filedelete") {
+    } else if (type == "stacktrace-filedelete") {
         return FaultLogType::FILE_DELETE;
     } else if (type.find("san") != std::string::npos) {
         return FaultLogType::ADDR_SANITIZER;
@@ -275,7 +275,7 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
 std::string GetFileDeleteTempLogName(const FaultLogInfo& info)
 {
     return std::string(FAULTLOG_TEMP_FOLDER) +
-        "filedelete-" +
+        "stacktrace-filedelete-" +
         std::to_string(info.pid) +
         "-" +
         std::to_string(info.time);

@@ -61,7 +61,7 @@ HWTEST(FaultLogFileDeleteTest, FaultLogFileDelete002, testing::ext::TestSize.Lev
     auto info = handler.FillFaultLogInfo(*sysEvent);
     EXPECT_EQ(info.pid, testPid);
     EXPECT_EQ(info.time, testTime);
-    EXPECT_EQ(info.logPath, "/data/log/faultlog/temp/filedelete-4321-1607161345");
+    EXPECT_EQ(info.logPath, "/data/log/faultlog/temp/stacktrace-filedelete-4321-1607161345");
     EXPECT_FALSE(info.summary.empty());
     EXPECT_FALSE(info.dumpLogToFaultlogger);
     EXPECT_FALSE(info.reportToAppEvent);

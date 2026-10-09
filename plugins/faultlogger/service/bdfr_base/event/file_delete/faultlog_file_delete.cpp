@@ -38,8 +38,9 @@ FaultLogInfo FaultLogFileDelete::FillFaultLogInfo(SysEvent& sysEvent)
 {
     // base class fills common fields (time, uid, pid, module, reason, summary, sectionMap)
     auto info = FaultLogEventPipeline::FillFaultLogInfo(sysEvent);
-    // read PID and HAPPEN_TIME from event fields to locate the temp stack file,
-    // independent prefix "filedelete-" distinguishes it from the FDSAN "stacktrace-" files
+    // read PID and HAPPEN_TIME from event fields to locate the temp stack file;
+    // prefix "stacktrace-filedelete-" belongs to the stacktrace family,
+    // distinguished from FDSAN "stacktrace-" files by the second segment
     info.pid = sysEvent.GetEventIntValue(FaultKey::MODULE_PID);
     info.time = sysEvent.GetEventIntValue(FaultKey::HAPPEN_TIME);
     info.logPath = GetFileDeleteTempLogName(info);
