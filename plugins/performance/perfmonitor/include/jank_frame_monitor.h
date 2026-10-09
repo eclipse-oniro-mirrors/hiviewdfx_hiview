@@ -51,12 +51,14 @@ public:
 
 private:
     uint32_t GetJankLimit(double jank);
+    void LoadJankReportThreshold();
 private:
     mutable std::mutex mMutex;
     std::vector<IFrameCallback*> frameCallbacks;
     std::vector<uint16_t> jankFrameRecord;
     int64_t jankFrameRecordBeginTime {0};
     int32_t jankFrameTotalCount {0};
+    int32_t jankReportThreshold {DEFAULT_JANK_REPORT_THRESHOLD};
 };
 
 }
