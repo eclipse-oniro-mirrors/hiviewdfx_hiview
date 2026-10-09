@@ -174,6 +174,10 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest002, testing::ext::TestSize.Level3)
     ASSERT_EQ("unknown", ret);
     ret = Tbox::GetStackName("   - DE+S(");
     ASSERT_EQ("DE)", ret);
+    ret = Tbox::GetStackName("#05 at (wait15)");
+    ASSERT_EQ("(wait15)", ret);
+    ret = Tbox::GetStackName("#05 at wait15");
+    ASSERT_EQ("wait15", ret);
 }
 
 /* @tc.name: TboxTest003

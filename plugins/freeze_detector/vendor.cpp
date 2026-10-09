@@ -87,6 +87,7 @@ namespace {
     constexpr int ARKWEB_UID_END = 20109999;
     constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     constexpr const char* EVENT_RENDER_JS_FREEZE = "RENDER_JS_FREEZE";
+    constexpr size_t MAX_HEAVY_STACK_SIZE = 128 * 1024;
 }
 
 DEFINE_LOG_LABEL(0xD002D01, "FreezeDetector");
@@ -152,7 +153,16 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint &watchPoi
     info.sectionMaps[FreezeCommon::SYSRQ_TIME] = watchPoint.GetSysrqTime();
     info.sectionMaps[FORE_GROUND] = watchPoint.GetForeGround();
     info.sectionMaps[SCB_PROCESS] = isScbPro;
-    info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK] = watchPoint.GetTerminalThreadStack();
+    std::string terminalStack = watchPoint.GetTerminalThreadStack();
+    if (terminalStack.empty()) {
+        terminalStack = ParseHeaviestFrames(watchPoint.GetHeaviestStack());
+        if (!terminalStack.empty()) {
+            HIVIEW_LOGD("TERMINAL_THREAD_STACK source: HEAVIEST_STACK");
+        }
+    } else {
+        HIVIEW_LOGD("TERMINAL_THREAD_STACK source: binderStack");
+    }
+    info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK] = terminalStack;
     info.sectionMaps[FreezeCommon::TELEMETRY_ID] = watchPoint.GetTelemetryId();
     int64_t faultTime = static_cast<int64_t>(FreezeCommon::GetFaultTime(watchPoint.GetMsg()));
     info.sectionMaps[FreezeCommon::TRACE_NAME] = FreezeManager::GetInstance()->GetTraceName(faultTime);
@@ -166,6 +176,8 @@ void Vendor::FillSectionMaps(FaultLogInfoInner &info, const WatchPoint &watchPoi
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationGCInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->ParseLogEntry(watchPoint.GetApplicationIOInfo(), info.sectionMaps);
     FreezeManager::GetInstance()->FillProcMemory(procStatm, info.pid, info.sectionMaps);
+    info.sectionMaps["LOG_VALIDITY"] = watchPoint.GetLogValidity();
+    info.sectionMaps["SAMPLER_COUNT"] = std::to_string(watchPoint.GetSamplerCount());
     info.sectionMaps[FreezeCommon::APP_RUNNING_UNIQUE_ID] = watchPoint.GetAppRunningUniqueId();
     info.sectionMaps[FreezeCommon::EVENT_TASK_NAME] = watchPoint.GetTaskName();
     info.sectionMaps[FreezeCommon::CLUSTER_RAW] = watchPoint.GetClusterRaw();
@@ -690,6 +702,27 @@ void Vendor::CheckProcessName(std::string& processName, std::string& isScbPro)
     }
     processName = processName.substr(firstAlphaIndex, lastAlphaIndex - firstAlphaIndex + 1);
     StringUtil::FormatProcessName(processName);
+}
+
+std::string Vendor::ParseHeaviestFrames(const std::string& heaviestStack)
+{
+    if (heaviestStack.empty() || heaviestStack.size() > MAX_HEAVY_STACK_SIZE ||
+        heaviestStack.find('\0') != std::string::npos) {
+        return "";
+    }
+    std::string content = heaviestStack;
+    if (content.find('\n') == std::string::npos) {
+        content = StringUtil::ReplaceStr(content, "\\n", "\n");
+    }
+    size_t firstNewline = content.find('\n');
+    if (firstNewline == std::string::npos) {
+        return "";
+    }
+    size_t secondNewline = content.find('\n', firstNewline + 1);
+    if (secondNewline == std::string::npos) {
+        return "";
+    }
+    return content.substr(secondNewline + 1);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

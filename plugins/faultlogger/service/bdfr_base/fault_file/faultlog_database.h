@@ -42,6 +42,8 @@ private:
     static int32_t UpdateFGParam(FaultLogInfo& info);
     static int64_t GetLifeTimeValue(const FaultLogInfo& info);
     static int64_t GetInt64Value(const FaultLogInfo& info, const char* key);
+    static void AppendSysFreezeParams(FaultLogInfo& info, HiSysEventParam* params, size_t& count);
+    static void AppendAppFreezeParams(FaultLogInfo& info, HiSysEventParam* params, size_t& count);
     static size_t BuildSysEventParams(FaultLogInfo& info, std::string& faultLogType,
         HiSysEventParam* params);
 };

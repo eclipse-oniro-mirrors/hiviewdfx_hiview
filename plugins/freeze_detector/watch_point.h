@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+constexpr int32_t INVALID_SAMPLER_COUNT = -1;
 class WatchPoint {
 public:
     class Builder {
@@ -34,6 +35,8 @@ public:
         Builder& InitUid(long uid);
         Builder& InitSysUid(long sysuid);
         Builder& InitTerminalThreadStack(const std::string& terminalThreadStack);
+        Builder& InitFreezeLogInfo(const std::string& heaviestStack,
+            const std::string& logValidity, int32_t samplerCount);
         Builder& InitTelemetryId(const std::string& telemetryId);
         Builder& InitDomain(const std::string& domain);
         Builder& InitStringId(const std::string& stringId);
@@ -77,6 +80,9 @@ public:
         long uid_;
         long sysuid_;
         std::string terminalThreadStack_;
+        std::string heaviestStack_;
+        std::string logValidity_;
+        int32_t samplerCount_ = INVALID_SAMPLER_COUNT;
         std::string telemetryId_;
         std::string domain_;
         std::string stringId_;
@@ -124,6 +130,9 @@ public:
     long GetUid() const;
     long GetSysUid() const;
     std::string GetTerminalThreadStack() const;
+    std::string GetHeaviestStack() const;
+    std::string GetLogValidity() const;
+    int32_t GetSamplerCount() const;
     std::string GetTelemetryId() const;
     std::string GetDomain() const;
     std::string GetStringId() const;
@@ -179,6 +188,9 @@ private:
     long uid_;
     long sysuid_;
     std::string terminalThreadStack_;
+    std::string heaviestStack_;
+    std::string logValidity_;
+    int32_t samplerCount_ = INVALID_SAMPLER_COUNT;
     std::string telemetryId_;
     std::string domain_;
     std::string stringId_;
