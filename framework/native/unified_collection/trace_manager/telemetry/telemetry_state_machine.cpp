@@ -20,6 +20,7 @@
 namespace OHOS::HiviewDFX::Telemetry {
 namespace {
 DEFINE_LOG_TAG("TeleMetryStateMachine");
+using namespace Hitrace;
 }
 
 bool InitState::IsTraceOn()

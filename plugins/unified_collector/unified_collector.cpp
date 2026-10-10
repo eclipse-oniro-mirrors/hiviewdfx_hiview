@@ -14,12 +14,14 @@
  */
 #include "unified_collector.h"
 
+#include <chrono>
 #include <ctime>
 #include <memory>
 #include <sys/file.h>
 
 #include "collect_event.h"
 #include "ffrt.h"
+#include "ffrt_util.h"
 #include "file_util.h"
 #include "hiview_logger.h"
 #include "io_collector.h"
@@ -40,6 +42,7 @@
 #include "trace_state_machine.h"
 #include "uc_telemetry_listener.h"
 #include "trace_collector.h"
+#include "hitrace_dump.h"
 #endif
 
 namespace OHOS {
@@ -54,16 +57,40 @@ constexpr char COLLECTION_IO_PATH[] = "/data/log/hiview/unified_collection/io/";
 constexpr char HIVIEW_UCOLLECTION_STATE_TRUE[] = "true";
 constexpr char HIVIEW_UCOLLECTION_STATE_FALSE[] = "false";
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+constexpr int32_t ONE_DAYS_SEC = 24 * 3600;
+constexpr int32_t DAILY_LOG_HOUR = 4;
+constexpr int32_t SEVEN_DAYS_SEC = 7 * ONE_DAYS_SEC;
 constexpr char DEVELOP_TRACE_RECORDER_FALSE[] = "false";
 constexpr char KEY_FREEZE_DETECTOR_STATE[] = "persist.hiview.freeze_detector";
 constexpr char OTHER[] = "Other";
-using namespace OHOS::HiviewDFX::Hitrace;
 constexpr char UNIFIED_SPECIAL_PATH[] = "/data/log/hiview/unified_collection/trace/special/";
 constexpr char UNIFIED_TELEMETRY_PATH[] = "/data/log/hiview/unified_collection/trace/telemetry/";
 constexpr char UNIFIED_SHARE_TEMP_PATH[] = "/data/log/hiview/unified_collection/trace/share/temp/";
 constexpr char UNIFIED_SHARE_PATH[] = "/data/log/hiview/unified_collection/trace/share";
 constexpr char EXTERNAL_LOG_PATH_PREFIX[] = "/data/storage/el2/log/watchdog";
 constexpr int32_t LOG_GID = 1007;
+std::chrono::seconds GetSecondsToNextTraceClean()
+{
+    auto now = std::chrono::system_clock::now();
+    std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
+    std::tm nowTm;
+    if (localtime_r(&nowTime, &nowTm) == nullptr) {
+        HIVIEW_LOGW("failed to get localtime, retry after 24h");
+        return std::chrono::seconds(ONE_DAYS_SEC);
+    }
+    nowTm.tm_sec = 0;
+    nowTm.tm_min = 0;
+    nowTm.tm_hour = DAILY_LOG_HOUR;
+    std::time_t targetTime = std::mktime(&nowTm);
+    if (targetTime < 0) {
+        HIVIEW_LOGW("failed to get mktime, retry after 24h");
+        return std::chrono::seconds(ONE_DAYS_SEC);
+    }
+    if (targetTime <= nowTime) {
+        targetTime += ONE_DAYS_SEC; // next day
+    }
+    return std::chrono::seconds(targetTime - nowTime);
+}
 
 void CreateTracePathInner(const std::string &filePath)
 {
@@ -101,6 +128,20 @@ void UnifiedCollector::OnUnload()
 }
 
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
+void UnifiedCollector::RunDailyLogTask()
+{
+    auto task = [this] { this->DailyTraceCleanTask(); };
+    ffrt::submit(task, {}, {}, ffrt::task_attr().name("dft_uc_daily_log").qos(ffrt::qos_default));
+}
+
+void UnifiedCollector::DailyTraceCleanTask()
+{
+    while (true) {
+        FfrtUtil::Sleep(static_cast<uint32_t>(GetSecondsToNextTraceClean().count()));
+        HIVIEW_LOGI("daily trace clean task executed");
+        Hitrace::AgeTraceFile(SEVEN_DAYS_SEC);
+    }
+}
 void UnifiedCollector::OnFreezeDetectorParamChanged(const char* key, const char* value, void* context)
 {
     if (key == nullptr || value == nullptr) {
@@ -270,6 +311,7 @@ void UnifiedCollector::Init()
     context->AddListenerInfo(Event::MessageType::TELEMETRY_EVENT, telemetryListener_->GetListenerName());
     context->RegisterUnorderedEventListener(telemetryListener_);
     TraceCollector::Create()->PrepareTrace();
+    RunDailyLogTask();
 #endif
     if (Parameter::IsBetaVersion() || Parameter::IsUCollectionSwitchOn()) {
         RunIoCollectionTask();

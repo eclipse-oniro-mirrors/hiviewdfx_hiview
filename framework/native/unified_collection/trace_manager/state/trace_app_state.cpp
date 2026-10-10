@@ -18,11 +18,11 @@
 
 namespace OHOS::HiviewDFX {
 namespace {
-    DEFINE_LOG_TAG("TraceStateMachine");
+DEFINE_LOG_TAG("TraceStateMachine");
 }
 
 TraceRet AppSystemState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
-    TraceRetInfo &info, const std::string& outputPath)
+    Hitrace::TraceRetInfo &info, const std::string& outputPath)
 {
     if (scenarioName != ScenarioName::APP_SYSTEM) {
         HIVIEW_LOGW("AppSystemState scenario:%{public}s is fail", scenarioName.c_str());

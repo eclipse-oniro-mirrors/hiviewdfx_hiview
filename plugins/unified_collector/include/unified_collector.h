@@ -46,6 +46,8 @@ private:
     void RunUCollectionStatTask();
     void IoCollectionTask();
     void UCollectionStatTask();
+    void RunDailyLogTask();
+    void DailyTraceCleanTask();
 #ifdef UNIFIED_COLLECTOR_TRACE_ENABLE
     void LoadTraceSwitch();
     static void OnFreezeDetectorParamChanged(const char* key, const char* value, void* context);
