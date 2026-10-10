@@ -38,6 +38,7 @@ struct DmaInfo {
 };
 
 const int BYTE_PER_KB = 1024;
+const std::string RS_PROCESS_PREFIX = "rs_process:";
 
 int32_t MemoryTrackerGetGLByPid(int32_t pid)
 {
@@ -71,9 +72,9 @@ int32_t RsGetGLByPid(int32_t pid)
     return memGraphic->GetGpuMemorySize() / BYTE_PER_KB;
 }
 
-int32_t GetSumAppGLFromRenderService()
+int32_t GetSumAppGLFromRenderService(int32_t renderPid)
 {
-    auto memGraphicVec = Rosen::RSInterfaces::GetInstance().GetMemoryGraphics();
+    auto memGraphicVec = Rosen::RSInterfaces::GetInstance().GetMemoryGraphicsByRenderPid(renderPid);
     int64_t sumPidsMemGL = 0;
 
     for (const auto &memGraphic : memGraphicVec) {
@@ -96,8 +97,10 @@ std::string GetCommByPid(int32_t pid)
 
 int32_t GetGLByPid(int32_t pid)
 {
-    if (GetCommByPid(pid) == "render_service") {
-        return MemoryTrackerGetGLByPid(pid) - GetSumAppGLFromRenderService();
+    std::string comm = GetCommByPid(pid);
+    bool isRsProcess = comm.compare(0, RS_PROCESS_PREFIX.size(), RS_PROCESS_PREFIX) == 0;
+    if (comm == "render_service" || isRsProcess) {
+        return MemoryTrackerGetGLByPid(pid) - GetSumAppGLFromRenderService(pid);
     }
     return MemoryTrackerGetGLByPid(pid) + RsGetGLByPid(pid);
 }
@@ -112,11 +115,13 @@ void CreateDmaInfo(const std::string &line, std::map<uint64_t, DmaInfo> &dmaInfo
     }
     dmaInfo.name = name;
     dmaInfo.size /= BYTE_PER_KB;
+    bool isRsProcess = dmaInfo.name.compare(0, RS_PROCESS_PREFIX.size(), RS_PROCESS_PREFIX) == 0;
     auto it = dmaInfoMap.find(dmaInfo.ino);
     if (it == dmaInfoMap.end()) {
         dmaInfoMap.insert(std::pair<uint64_t, DmaInfo>(dmaInfo.ino, dmaInfo));
-    } else if ((dmaInfo.name != "composer_host" && dmaInfo.name != "render_service") ||
-               (dmaInfo.name == "render_service" && it->second.name == "composer_host")) {
+    } else if ((dmaInfo.name != "composer_host" && dmaInfo.name != "render_service" && !isRsProcess) ||
+               ((dmaInfo.name == "render_service" || isRsProcess) && it->second.name == "composer_host") ||
+               (isRsProcess && it->second.name == "render_service")) {
         it->second.pid = dmaInfo.pid;
     }
 }
