@@ -31,6 +31,7 @@ namespace {
 DEFINE_LOG_TAG("HiView-EventExportUtil");
 constexpr int REGISTER_RETRY_CNT = 100;
 constexpr int REGISTER_LOOP_DURATION = 6;
+constexpr int QUICK_EVENT_TASK_TYPE = 1800; // task type for 30 mins event
 
 std::string GenerateDeviceId()
 {
@@ -51,16 +52,19 @@ bool IsExportDirEmpty(const std::string& exportDir)
     });
 }
 
-void PostExportEvent(const std::string& moduleName, int16_t taskType)
+void PostExportEvent(const std::shared_ptr<ExportConfig> config)
 {
     auto event = std::make_shared<Event>("post_export_type_event");
     event->messageType_ = Event::MessageType::EVENT_EXPORT_TYPE;
-    event->SetValue("taskType", std::to_string(taskType));
-    event->SetValue("reportModule", moduleName);
-    if (taskType == ALL_EVENT_TASK_TYPE) {
+    event->SetValue("taskType", std::to_string(config->taskType));
+    event->SetValue("reportModule", config->moduleName);
+    if (config->taskType == QUICK_EVENT_TASK_TYPE) {
+        event->SetValue("exportDir", config->exportDir);
+    }
+    if (config->taskType == ALL_EVENT_TASK_TYPE) {
         event->SetValue("reportInterval", "0");
     } else {
-        event->SetValue("reportInterval", std::to_string(taskType));
+        event->SetValue("reportInterval", std::to_string(config->taskType));
     }
 
     auto& context = HiviewGlobal::GetInstance();
@@ -77,7 +81,7 @@ bool IsNeedPostEvent(std::shared_ptr<ExportConfig> config)
         HIVIEW_LOGW("no need to post event");
         return false;
     }
-    if (IsExportDirEmpty(config->exportDir)) {
+    if ((config->taskType != QUICK_EVENT_TASK_TYPE) && IsExportDirEmpty(config->exportDir)) {
         HIVIEW_LOGW("no event zip file found");
         return false;
     }
@@ -139,7 +143,7 @@ bool EventExportUtil::CheckAndPostExportEvent(std::shared_ptr<ExportConfig> conf
     if (!IsNeedPostEvent(config)) {
         return false;
     }
-    PostExportEvent(config->moduleName, config->taskType);
+    PostExportEvent(config);
     return true;
 }
 
