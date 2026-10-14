@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 ohos_shared_library("libasan_logger") {
   branch_protector_ret = "pac_ret"
   sources = [
+    "gwpasan_collector_utils.cpp",
     "gwpasan_collector.cpp",
   ]
 
@@ -28,22 +29,13 @@ ohos_shared_library("libasan_logger") {
   version_script = "asan.map"
 
   external_deps = [
-    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "faultloggerd:dfx_signalhandler",
     "faultloggerd:libfaultloggerd",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
     "hisysevent:libhisysevent_easy",
-    "zlib:shared_libz",
-    "init:libbeget_proxy",
   ]
 
-  deps = [
-    "$hiview_root/base:logger",
-    "$hiview_root/base/utility:hiview_utility",
-    "$hiview_root/utility/common_utils:hiview_reliability_common_utils",
-  ]
+  deps = []
 
   install_enable = true
 

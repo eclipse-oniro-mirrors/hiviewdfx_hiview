@@ -14,9 +14,12 @@
  */
 #include "faultlog_sanitizer.h"
 
+#include <chrono>
 #include <cstdlib>
 #include <fcntl.h>
 #include <fstream>
+#include <map>
+#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -33,7 +36,9 @@
 #include "hisysevent.h"
 #include "hiview_logger.h"
 #include "json/json.h"
+#include "log_analyzer.h"
 #include "parameter_ex.h"
+#include "smart_parser.h"
 #include "string_util.h"
 #include "tbox.h"
 
@@ -48,9 +53,14 @@ constexpr uint64_t ARKTS_STACK_MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 constexpr int WAIT_CHILD_PROCESS_INTERVAL = 5 * 1000;           // 5ms
 constexpr int MAX_RETRY_COUNT = 4000;
 constexpr int MIN_HEX_STR_SIZE = 2;
+constexpr unsigned FIRST_FRAME_IDX = 0;
+constexpr unsigned SECOND_FRAME_IDX = 1;
+constexpr unsigned LAST_FRAME_IDX = 2;
 
 const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
+
+std::vector<std::string> g_topStacks {"/", "/", "/"};
 }
 
 // Only support stack parsing for these 5 type formats
@@ -331,6 +341,47 @@ bool FaultLogSanitizer::OpenTempFile(const std::string& tempPath, FILE*& fp, int
     return true;
 }
 
+void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string& errType,
+                      std::vector<std::string>& topStacks)
+{
+    std::map<std::string, std::string> eventInfos;
+    eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, "ADDR_SANITIZER");
+    if (eventInfos.empty()) {
+        return;
+    }
+    Tbox::FilterTrace(eventInfos, "ADDR_SANITIZER");
+    errorType = eventInfos["Reason"];
+    std::vector<std::string> frames;
+    std::string line;
+    std::istringstream iss(eventInfos["END_STACK"]);
+    while (std::getline(iss, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (line.empty()) {
+            continue;
+        }
+        if (line.find("ARRAY :") == 0) {
+            line = line.substr(strlen("ARRAY :"));
+        }
+        if (line.empty()) {
+            continue;
+        }
+        frames.push_back(line);
+    }
+    if (frames.size() >= 3) {
+        topStacks[FIRST_FRAME_IDX] = frames.back();
+        topStacks[SECOND_FRAME_IDX] = frames[frames.size() - 2];
+        topStacks[LAST_FRAME_IDX] = frames[frames.size() - 3];
+    } else if(frames.size() == 2) {
+        topStacks[FIRST_FRAME_IDX] = frames[1];
+        topStacks[SECOND_FRAME_IDX] = frames[0];
+    } else if(frames.size() == 1) {
+        topStacks[FIRST_FRAME_IDX] = frames[0];
+    }
+}
+
+                      
 bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
 {
     // First traversal to read maps intervals, find address intervals corresponding to .hap and other formats
@@ -585,11 +636,13 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.dumpLogToFaultlogger = false;
         info.logPath = GetDebugSignalTempLogName(info);
     } else {
+        g_topStacks = {"/", "/", "/"};
         ParseSanitizerEasyEvent(sysEvent);
         info.module = sysEvent.GetEventValue(FaultKey::MODULE_NAME);
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
         info.reason = sysEvent.GetEventValue(FaultKey::REASON);
         info.logPath = GetSanitizerTempLogName(sysEvent.GetPid(), sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
+        ExtractStackInfo(info.logPath, info.reason, g_topStacks);
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
         std::string fingerPrint  = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
@@ -597,6 +650,10 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
             0,
             OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
         sysEvent.SetEventValue(FaultKey::FINGERPRINT, fingerPrint);
+        sysEvent.SetEventValue(FaultKey::FIRST_FRAME, g_topStacks[FIRST_FRAME_IDX]);
+        sysEvent.SetEventValue(FaultKey::SECOND_FRAME, g_topStacks[SECOND_FRAME_IDX]);
+        sysEvent.SetEventValue(FaultKey::LAST_FRAME, g_topStacks[LAST_FRAME_IDX]);
+        sysEvent.SetEventValue(FaultKey::Reason, info.reason);
     }
     return info;
 }
