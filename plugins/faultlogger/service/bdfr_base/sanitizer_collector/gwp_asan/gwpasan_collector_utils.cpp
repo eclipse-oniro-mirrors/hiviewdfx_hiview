@@ -54,7 +54,7 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     (void)clock_gettime(CLOCK_REALTIME, &ts);
     time_t now = static_cast<time_t>(ts.tv_sec);
     uint64_t millsec = 0;
-    if(target > static_cast<uint64_t>(now) * TIME_RATIO) {
+    if (target > static_cast<uint64_t>(now) * TIME_RATIO) {
         millsec = target % TIME_RATIO;
         target = target / TIME_RATIO;
     }
@@ -74,7 +74,6 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
         static_cast<unsigned long long>(millsec));
 
 }
-
 
 bool ToAbsolutePath(const char* path, char* output, size_t outSize)
 {
@@ -98,7 +97,7 @@ bool ToAbsolutePath(const char* path, char* output, size_t outSize)
         return false;
     }
     output[cwdLen] = '/';
-    memcpy(output + cwdLen + 1, path, pathLen + 1);
+    memcpy_s(output + cwdLen + 1, path, pathLen + 1);
     return true;
 }
 
@@ -141,7 +140,7 @@ bool ContainsSymlink(const char* path)
     }
     memcpy(buf, path, len + 1);
     size_t i = 1;
-    while(i < len) {
+    while (i < len) {
         while (i < len && buf[i] != '/') {
             i++;
         }
@@ -161,7 +160,7 @@ bool ContainsSymlink(const char* path)
     return false;
 }
 
-bool realpath_async_safe(const char* path, char* resolved, size_t bufsize) 
+bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize) 
 {
     if (path == nullptr || resolved == nullptr || bufSize < 2) {
         return false;
@@ -196,7 +195,7 @@ void GetNameByPid(int32_t pid, char* buf, size_t bufSize)
         return;
     }
     int fd = open(path, O_RDONLY);
-    if(fd < 0) {
+    if (fd < 0) {
         return;
     }
     size_t i = 0;

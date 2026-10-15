@@ -22,5 +22,5 @@
 void GetFormatedTime(uint64_t target, char* buf, size_t bufSize);
 void GetNameByPid(int32_t pid, char* buf, size_t bufSize);
 bool ToAbsolutePath(const char* path, char* output, size_t outSize);
-bool realpath_async_safe(const char* path, char* resolved, size_t bufsize);
+bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize);
 #endif

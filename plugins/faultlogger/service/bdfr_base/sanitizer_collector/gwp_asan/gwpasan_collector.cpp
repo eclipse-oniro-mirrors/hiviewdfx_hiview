@@ -42,7 +42,7 @@ constexpr int DEFAULT_BUFFER_SIZE = 64;
 constexpr int DECIMAL_BASE = 10;
 constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
 constexpr unsigned MILLISECONDS_PER_SECOND = 1000;
-constexpr unsigned MANOSECONDS_PER_MILLISECOND = 1000*1000;
+constexpr unsigned MANOSECONDS_PER_MILLISECOND = 1000 * 1000;
 constexpr mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
 const unsigned MIN_SUMMARY_SPACE = 10;
 
@@ -61,10 +61,10 @@ constexpr char FAULT_TYPE_HWASAN[] = "HWASAN";
 constexpr char FAULT_TYPE_ASAN[] = "ASAN";
 
 constexpr char FAULTLOGGER_PATH[] = "faultlogger";
-constexpr unsigned G_ASAN_LOG_SIZE = 1 * 1024 *1024;
+constexpr unsigned G_ASAN_LOG_SIZE = 1 * 1024 * 1024;
 char g_asanlog[G_ASAN_LOG_SIZE];
-std::atomic<size_t> g_asanlog_len;
-std::atomic_flag g_asanlog_lock = ATOMIC_FLAG_INIT;
+std::atomic<size_t> g_asanlogLen;
+std::atomic_flag g_asanlogLock = ATOMIC_FLAG_INIT;
 static GwpAsanCurrInfo g_currInfo;
 }
 
@@ -94,21 +94,21 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     if (buf == nullptr || sz == 0) {
         return;
     }
-    if (g_asanlog_lock.test_and_set(std::memory_order_acquire)) {
+    if (g_asanlogLock.test_and_set(std::memory_order_acquire)) {
         return;
     }
-    size_t logLen = g_asanlog_len.load(std::memory_order_relaxed);
+    size_t logLen = g_asanlogLen.load(std::memory_order_relaxed);
     size_t copyLen = (sz < G_ASAN_LOG_SIZE - 1 - logLen) ? sz : (G_ASAN_LOG_SIZE - 1 - logLen);
     if (copyLen > 0) {
         errno_t err = memcpy_s(g_asanlog + logLen, G_ASAN_LOG_SIZE - logLen, buf, copyLen);
         if (err != EOK) {
-            g_asanlog_lock.clear(std::memory_order_release);
+            g_asanlogLock.clear(std::memory_order_release);
             return;
         }
     }
     logLen += copyLen;
     g_asanlog[logLen] = '\0';
-    g_asanlog_len.store(logLen, std::memory_order_relaxed);
+    g_asanlogLen.store(logLen, std::memory_order_relaxed);
     const char* faultType = nullptr;
     if (strstr(g_asanlog, END_GWP_ASAN_REPORT) != nullptr) {
         faultType = FAULT_TYPE_GWP_ASAN;
@@ -123,20 +123,20 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     }
     if (faultType != nullptr) {
         ReadGwpAsanRecordFromBuffer(faultType, path);
-        g_asanlog_len.store(0, std::memory_order_relaxed);
+        g_asanlogLen.store(0, std::memory_order_relaxed);
     }
-    g_asanlog_lock.clear(std::memory_order_release);
+    g_asanlogLock.clear(std::memory_order_release);
 }
 
 void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
 {
     (void)memset_s(&g_currInfo, sizeof(g_currInfo), 0, sizeof(g_currInfo));
-    size_t logLen = g_asanlog_len.load(std::memory_order_relaxed);
-    size_t descLen = (logLen < sizeof(g_currInfo.description) - 1) ? logLen : 
-        (sizeof(g_currInfo.description) - 1); 
+    size_t logLen = g_asanlogLen.load(std::memory_order_relaxed);
+    size_t descLen = (logLen < sizeof(g_currInfo.description) - 1) ? logLen :
+        (sizeof(g_currInfo.description) - 1);
     if (descLen > 0) {
         (void)memcpy_s(g_currInfo.description, sizeof(g_currInfo.description), g_asanlog, descLen);
-    } 
+    }
     g_asanlog.description[descLen] = '\0';
     g_currInfo.descriptionLen = descLen;
     const bool isAsanType = (strcmp(faultType, FAULT_TYPE_ASAN) == 0 || strcmp(faultType, FAULT_TYPE_HWASAN) == 0);
@@ -150,7 +150,7 @@ void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
         errno_t err = strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath),
             logPath, sizeof(g_currInfo.logPath) - 1);
         if (err != EOK) {
-            strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath), 
+            strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath),
                 FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
         }
     }
@@ -205,7 +205,7 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
         if (err == EOK) {
             len += static_cast<int>(copyLen);
             params[len] = '\0';
-        }  
+        }
     }
     HiSysEventEasyWrite(ADDR_SANITIZER_DOMAIN,
         ADDR_SANITIZER_EVENT, HiSysEventEasyType::EASY_EVENT_TYPE_FAULT, params);
@@ -232,7 +232,7 @@ void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo)
     if (fd < 0) {
         return;
     }
-    if(!WriteDescriptionToFd(fd, currInfo.description, currInfo.descriptionLen)) {
+    if (!WriteDescriptionToFd(fd, currInfo.description, currInfo.descriptionLen)) {
         close(fd);
         return;
     }
@@ -287,7 +287,7 @@ bool BuildSandboxFilePath(const GwpAsanCurrInfo& currInfo, char* outPath, size_t
     strncpy_s(logDir, sizeof(logDir), currInfo.logPath, dirLen);
     strncpy_s(fileName, sizeof(fileName), currInfo.logPath + pos + 1, fileLen);
     char realPath[256] = {0};
-    if (!realpath_async_safe(logDir, realPath, sizeof(realPath))) {
+    if (!RealpathAsyncSafe(logDir, realPath, sizeof(realPath))) {
         return false;
     }
     if (!IsValidSandboxPath(realPath)) {
@@ -321,5 +321,3 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
     fdsan_close_with_tag(fd, newTag);
     return true;
 }
-
-

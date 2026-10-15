@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <algorithm>
 
 #include "constants.h"
 #include "dfx_ark.h"
@@ -59,8 +60,6 @@ constexpr unsigned LAST_FRAME_IDX = 2;
 
 const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
-
-std::vector<std::string> g_topStacks {"/", "/", "/"};
 }
 
 // Only support stack parsing for these 5 type formats
@@ -342,7 +341,7 @@ bool FaultLogSanitizer::OpenTempFile(const std::string& tempPath, FILE*& fp, int
 }
 
 void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string& errType,
-                      std::vector<std::string>& topStacks)
+                                         std::vector<std::string>& topStacks)
 {
     std::map<std::string, std::string> eventInfos;
     eventInfos = SmartParser::Analysis(logPath, SMART_PARSER_PATH, "ADDR_SANITIZER");
@@ -369,14 +368,15 @@ void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string
         }
         frames.push_back(line);
     }
+    std::reverse(frames.begin(), frames.end());
     if (frames.size() >= 3) {
-        topStacks[FIRST_FRAME_IDX] = frames.back();
-        topStacks[SECOND_FRAME_IDX] = frames[frames.size() - 2];
-        topStacks[LAST_FRAME_IDX] = frames[frames.size() - 3];
-    } else if(frames.size() == 2) {
-        topStacks[FIRST_FRAME_IDX] = frames[1];
-        topStacks[SECOND_FRAME_IDX] = frames[0];
-    } else if(frames.size() == 1) {
+        topStacks[FIRST_FRAME_IDX] = frames[0];
+        topStacks[SECOND_FRAME_IDX] = frames[1];
+        topStacks[LAST_FRAME_IDX] = frames[2];
+    } else if (frames.size() == 2) {
+        topStacks[FIRST_FRAME_IDX] = frames[0];
+        topStacks[SECOND_FRAME_IDX] = frames[1];
+    } else if (frames.size() == 1) {
         topStacks[FIRST_FRAME_IDX] = frames[0];
     }
 }
@@ -636,13 +636,13 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.dumpLogToFaultlogger = false;
         info.logPath = GetDebugSignalTempLogName(info);
     } else {
-        g_topStacks = {"/", "/", "/"};
+        std::vector<std::string> g_topStacks {"/", "/", "/"};
         ParseSanitizerEasyEvent(sysEvent);
         info.module = sysEvent.GetEventValue(FaultKey::MODULE_NAME);
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
-        info.reason = sysEvent.GetEventValue(FaultKey::REASON);
         info.logPath = GetSanitizerTempLogName(sysEvent.GetPid(), sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
         ExtractStackInfo(info.logPath, info.reason, g_topStacks);
+        info.reason = info.reason == "" ? sysEvent.GetEventValue(FaultKey::FAULT_TYPE) : info.reason;
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
         std::string fingerPrint  = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
