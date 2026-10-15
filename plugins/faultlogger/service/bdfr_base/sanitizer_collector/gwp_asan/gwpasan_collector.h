@@ -15,10 +15,7 @@
 #ifndef GWPASAN_COLLECTOR_H
 #define GWPASAN_COLLECTOR_H
 
-#include <cstdint>
-#include <map>
-#include <string>
-#include <vector>
+#include "gwpasan_collector_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,9 +25,16 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path);
 }
 #endif
 
+constexpr unsigned GWPASAN_MAX_FAULTTYPE_LEN = 32;
+constexpr unsigned GWPASAN_MAX_MODULE_LEN = 128;
+constexpr unsigned GWPASAN_MAX_LOGPATH_LEN = 256;
+constexpr unsigned GWPASAN_MAX_ERRTYPE_LEN = 64;
+constexpr unsigned GWPASAN_MAX_TELEMETRY_LEN = 64;
+constexpr unsigned GWPASAN_MAX_APPRUNNINGIID_LEN = 64;
+constexpr unsigned GWPASAN_MAX_DESCRIPT_LEN = 1 * 1024 * 1024;
 struct GwpAsanCurrInfo {
     /** type of sanitizer */
-    std::string faultType;
+    char faultType[GWPASAN_MAX_FAULTTYPE_LEN];
     /** the time of happening fault */
     uint64_t happenTime;
     /** the id of current user when fault happened  */
@@ -38,33 +42,28 @@ struct GwpAsanCurrInfo {
     /** the id of process which fault happened*/
     int32_t pid;
     /** type of fault */
-    std::string moduleName;
+    char moduleName[GWPASAN_MAX_MODULE_LEN];
     /** name of module which fault occurred */
-    std::string logPath;
+    char logPath[GWPASAN_MAX_LOGPATH_LEN];
     /** logPath of module which fault occurred */
-    std::string appVersion;
+    char appVersion[GWPASAN_MAX_MODULE_LEN];
     /** the reason why fault occurred */
-    std::string errType;
+    char errType[GWPASAN_MAX_ERRTYPE_LEN];
     /** the detail of fault information */
-    std::string description;
-    /** the summary of fault information */
-    std::string summary;
-    /** information about faultlog using <key,value> */
-    std::map<std::string, std::string> sectionMaps;
-    /** top three stacks */
-    std::vector<std::string> topStacks;
+    char description[GWPASAN_MAX_DESCRIPT_LEN];
+    size_t descriptionLen;
     /** telemetryId for gwpasan */
-    std::string telemetryId;
+    char telemetryId[GWPASAN_MAX_TELEMETRY_LEN];
     /** information of appRunningId */
-    std::string appRunningId;
+    char appRunningId[GWPASAN_MAX_APPRUNNINGIID_LEN];
 };
 
-void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath);
-std::string GetNameByPid(int32_t pid);
-std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType);
-std::vector<std::string> GetTopStackWithoutCommonLib(const std::string& description);
+bool WriteDescriptionToFd(int fd, const char* desc, size_t descLen);
+bool BuildSandboxFilePath(const GwpAsanCurrInfo& currInfo, char* outPath, size_t outPathSize);
+void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath);
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo, bool& isSendHisysevent);
 void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo);
 bool WriteToSandbox(const GwpAsanCurrInfo& currInfo);
 void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo);
+bool IsValidSandboxPath(const char* realPath);
 #endif // GWPASAN_COLLECTOR_H
