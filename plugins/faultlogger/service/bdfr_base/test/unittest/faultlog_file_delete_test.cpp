@@ -65,6 +65,8 @@ HWTEST(FaultLogFileDeleteTest, FaultLogFileDelete002, testing::ext::TestSize.Lev
     EXPECT_FALSE(info.summary.empty());
     EXPECT_FALSE(info.dumpLogToFaultlogger);
     EXPECT_FALSE(info.reportToAppEvent);
+    // file delete events rely on the base UpdateSysEvent enrichment, the override is a no-op
+    handler.UpdateFaultLogInfo();
     EXPECT_EQ(handler.GetFaultModule(*sysEvent), "test_filedelete");
 }
 } // namespace HiviewDFX
