@@ -14,6 +14,7 @@
  */
 #include "log_util.h"
 
+#include <chrono>
 #include <cstring>
 #include <fcntl.h>
 #include <fstream>
@@ -47,20 +48,24 @@ namespace {
  * result : all trace line will be spliced by "\n"
  * startReg : start place when regex is match, default empty string
  */
-void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, string& result, string startReg)
+void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, string& result, string startReg, int skipNum)
 {
+    int totalSkip = TOTAL_SKIP_NUM;
+    if (skipNum > TOTAL_SKIP_NUM) {
+        totalSkip = (skipNum > TOTAL_LINE_NUM) ? TOTAL_LINE_NUM : skipNum;
+    }
     buffer.seekg(cursor, ios::beg);
     string line;
     bool start = false;
     int num = 0;
-    int skipNum = 0;
+    int missCount = 0;
     startReg = startReg.empty() ? reg : startReg;
 
     while (getline(buffer, line) && num++ < TOTAL_LINE_NUM) {
         if (line.length() > BUF_LEN_2048) {
             continue;
         }
-        if (line.size() == 0 || skipNum >= TOTAL_SKIP_NUM) {
+        if (line.size() == 0 || missCount >= totalSkip) {
             break; // blank line
         }
         if (!start) {
@@ -72,7 +77,7 @@ void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, stri
 
         smatch matches;
         if (regex_search(line, matches, regex(reg))) {
-            skipNum = 0;
+            missCount = 0;
             result += matches.str(0) + LogUtil::SPLIT_PATTERN;
             continue;
         }
@@ -81,7 +86,7 @@ void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, stri
             break; // match new thread break
         }
 
-        skipNum++;
+        missCount++;
     }
 }
 

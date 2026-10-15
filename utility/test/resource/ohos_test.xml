@@ -35,6 +35,10 @@
             <option name="push" value="SmartParserRgmManagerSysfreezeTest005/sysfreeze-rgm_manager-5002-20250710185758-1752145078457.tmp -> /data/test/test_data/SmartParser/SmartParserRgmManagerSysfreezeTest005" src="res"/>
             <option name="push" value="SmartParserRgmManagerSysfreezeTest006/sysfreeze-rgm_manager-5002-20250710185758-1752145078457.tmp -> /data/test/test_data/SmartParser/SmartParserRgmManagerSysfreezeTest006" src="res"/>
             <option name="push" value="SmartParserRgmManagerSysfreezeTest007/sysfreeze-rgm_manager-5002-20250710185758-1752145078457.tmp -> /data/test/test_data/SmartParser/SmartParserRgmManagerSysfreezeTest007" src="res"/>
+            <option name="push" value="SmartParserSanitizerTest001/sanitizer-12345-12345678910121234 -> /data/test/test_data/SmartParser/SmartParserSanitizerTest001" src="res"/>
+            <option name="push" value="SmartParserSanitizerTest002/sanitizer-12345-12345678910121234 -> /data/test/test_data/SmartParser/SmartParserSanitizerTest002" src="res"/>
+            <option name="push" value="SmartParserSanitizerTest003/sanitizer-12345-12345678910121234 -> /data/test/test_data/SmartParser/SmartParserSanitizerTest003" src="res"/>
+            <option name="push" value="SmartParserSanitizerTest004/sanitizer-12345-12345678910121234 -> /data/test/test_data/SmartParser/SmartParserSanitizerTest004" src="res"/>
         </preparer>
     </target>
 </configuration>

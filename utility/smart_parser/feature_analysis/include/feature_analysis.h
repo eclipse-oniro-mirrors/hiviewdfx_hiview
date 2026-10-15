@@ -31,6 +31,11 @@ enum SeekType {
     LAST_MATCH,
 };
 
+struct StackRegexInfo {
+    std::string regex;
+    int skipNum {0};
+}
+
 class FeatureAnalysis {
     enum ErrorCode {
         DEFAULT = -1,
@@ -79,13 +84,13 @@ private:
     LineFeature FormatLineFeature(const std::string& value, const std::string& regex) const;
     void Compose();
     std::string ComposeTrace(const std::string& filePath, const std::string& param,
-        const std::vector<std::pair<std::string, LineFeature>>& lineFeatures, const std::string& regex) const;
+        const std::vector<std::pair<std::string, LineFeature>>& lineFeatures, const std::string& regex, int skipNum) const;
     std::string ComposeParam(const std::string& param) const;
     std::vector<std::string> SplitParam(const std::string& param) const;
     void ProcessReason(std::map<std::string, std::string>& info);
     bool IsMatchOrExpression(const std::string& line, const std::string& src) const;
     bool IsMatchAndExpression(const std::string& line, const std::string& src) const;
-    void SetStackRegex(const std::string& key, const std::string& regex);
+    void SetStackRegex(const std::string& key, const std::string& regex, int skipNum);
     void SetParamRecord(const std::string& key, const LineFeature& value, const int type);
 
 private:
@@ -99,7 +104,7 @@ private:
     std::string line_;
     std::vector<std::string> deletePath_;
     FeatureSet featureSet_;
-    std::map<std::string, std::string> stackRegex_;
+    std::map<std::string, StackRegexInfo> stackRegex_;
     std::vector<std::pair<std::string, LineFeature>> paramSeekRecord_;
     std::map<std::string, std::string> composeRule_;
     std::map<std::string, std::string> eventInfo_;
