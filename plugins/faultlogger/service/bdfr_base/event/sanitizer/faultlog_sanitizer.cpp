@@ -350,7 +350,7 @@ void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string
         return;
     }
     Tbox::FilterTrace(eventInfos, "ADDR_SANITIZER");
-    errorType = eventInfos["Reason"];
+    errType = eventInfos["Reason"];
     std::vector<std::string> frames;
     std::string line;
     std::istringstream iss(eventInfos["END_STACK"]);
@@ -654,7 +654,7 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         sysEvent.SetEventValue(FaultKey::FIRST_FRAME, topStacks[FIRST_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::SECOND_FRAME, topStacks[SECOND_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::LAST_FRAME, topStacks[LAST_FRAME_IDX]);
-        sysEvent.SetEventValue(FaultKey::Reason, info.reason);
+        sysEvent.SetEventValue(FaultKey::REASON, info.reason);
     }
     return info;
 }

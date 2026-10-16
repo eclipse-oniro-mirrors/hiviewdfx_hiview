@@ -37,30 +37,30 @@
 
 namespace {
 const char ADDR_SANITIZER_DOMAIN[] = "RELIABILITY";
-constexpr char ADDR_SANITIZER_EVENT[] = "ADDR_SANITIZER";
+const char ADDR_SANITIZER_EVENT[] = "ADDR_SANITIZER";
 constexpr int DEFAULT_BUFFER_SIZE = 64;
 constexpr int DECIMAL_BASE = 10;
 constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
-constexpr unsigned MILLISECONDS_PER_SECOND = 1000;
-constexpr unsigned MANOSECONDS_PER_MILLISECOND = 1000 * 1000;
-constexpr mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
+constexpr int MILLISECONDS_PER_SECOND = 1000;
+constexpr int MANOSECONDS_PER_MILLISECOND = 1000 * 1000;
+const mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
 const unsigned MIN_SUMMARY_SPACE = 10;
 
 // Fault type strings
-constexpr char END_GWP_ASAN_REPORT[] = "End GWP-ASan report";
-constexpr char END_TSAN_REPORT[] = "End Tsan report";
-constexpr char END_CFI_REPORT[] = "End CFI report";
-constexpr char END_UBSAN_REPORT[] = "End Ubsan report";
-constexpr char END_HWASAN_REPORT[] = "End Hwasan report";
-constexpr char END_ASAN_REPORT[] = "End Asan report";
+const char END_GWP_ASAN_REPORT[] = "End GWP-ASan report";
+const char END_TSAN_REPORT[] = "End Tsan report";
+const char END_CFI_REPORT[] = "End CFI report";
+const char END_UBSAN_REPORT[] = "End Ubsan report";
+const char END_HWASAN_REPORT[] = "End Hwasan report";
+const char END_ASAN_REPORT[] = "End Asan report";
 
-constexpr char FAULT_TYPE_GWP_ASAN[] = "GWP-ASAN";
-constexpr char FAULT_TYPE_TSAN[] = "TSAN";
-constexpr char FAULT_TYPE_UBSAN[] = "UBSAN";
-constexpr char FAULT_TYPE_HWASAN[] = "HWASAN";
-constexpr char FAULT_TYPE_ASAN[] = "ASAN";
+const char FAULT_TYPE_GWP_ASAN[] = "GWP-ASAN";
+const char FAULT_TYPE_TSAN[] = "TSAN";
+const char FAULT_TYPE_UBSAN[] = "UBSAN";
+const char FAULT_TYPE_HWASAN[] = "HWASAN";
+const char FAULT_TYPE_ASAN[] = "ASAN";
 
-constexpr char FAULTLOGGER_PATH[] = "faultlogger";
+const char FAULTLOGGER_PATH[] = "faultlogger";
 constexpr unsigned G_ASAN_LOG_SIZE = 1 * 1024 * 1024;
 char g_asanlog[G_ASAN_LOG_SIZE];
 std::atomic<size_t> g_asanlogLen;
@@ -73,7 +73,7 @@ uint64_t GetTimeMilliseconds()
     struct timespec ts;
     (void)clock_gettime(CLOCK_REALTIME, &ts);
     return (static_cast<uint64_t>(ts.tv_sec) * MILLISECONDS_PER_SECOND) +
-        (static_cast<uint64_t>(ts.tv_nsec) / NANOSECONDS_PER_MILLISECOND);
+        (static_cast<uint64_t>(ts.tv_nsec) / MANOSECONDS_PER_MILLISECOND);
 }
 
 bool WriteDescriptionToFd(int fd, const char* desc, size_t descLen)
@@ -114,7 +114,7 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
         faultType = FAULT_TYPE_GWP_ASAN;
     } else if (strstr(g_asanlog, END_TSAN_REPORT) != nullptr) {
         faultType = FAULT_TYPE_TSAN;
-    } else if (strstr(g_asanlog, END_CFI_REPORT) != nullptr || strstr(buf, END_UBSAN_REPORT) != nullptr) {
+    } else if (strstr(g_asanlog, END_CFI_REPORT) != nullptr || strstr(g_asanlog, END_UBSAN_REPORT) != nullptr) {
         faultType = FAULT_TYPE_UBSAN;
     } else if (strstr(g_asanlog, END_HWASAN_REPORT) != nullptr) {
         faultType = FAULT_TYPE_HWASAN;
@@ -154,14 +154,14 @@ void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
                 FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
         }
     }
-    currInfo.pid = getprocpid();
-    currInfo.uid = static_cast<int32_t>(getuid());
+    g_currInfo.pid = getprocpid();
+    g_currInfo.uid = static_cast<int32_t>(getuid());
     strncpy_s(g_currInfo.faultType, sizeof(g_currInfo.faultType), faultType, strlen(faultType));
     GetNameByPid(g_currInfo.pid, g_currInfo.moduleName, sizeof(g_currInfo.moduleName));
-    uint64_t timeTmp = static_cast<uint64_t>(timeNow);
+    uint64_t timeTmp = GetTimeMilliseconds();
     char timeBuf[DEFAULT_BUFFER_SIZE] = {0};
     GetFormatedTime(timeTmp, timeBuf, sizeof(timeBuf));
-    currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, DECIMAL_BASE));
+    g_currInfo.happenTime = static_cast<uint64_t>(strtoull(timeBuf, nullptr, DECIMAL_BASE));
     const char* appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
     strncpy_s(g_currInfo.appRunningId, sizeof(g_currInfo.appRunningId), appRunningId, strlen(appRunningId));
     bool isSendHisysevent = false;
@@ -190,15 +190,15 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
         return;
     }
     int addLen = snprintf_s(params + len, remaining, remaining - 1, ";SUMMARY:");
-    if (addLen <= 0) {
+    if (addLen < 0) {
         HiSysEventEasyWrite(ADDR_SANITIZER_DOMAIN,
             ADDR_SANITIZER_EVENT, HiSysEventEasyType::EASY_EVENT_TYPE_FAULT, params);
         return;
     }
     len += addLen;
     remaining -= addLen;
-    if (remaining > 1 && currInfo.description > 0) {
-        size_t copyLen = (static_cast<size_t>(remaining - 1) < currInfo.description) ?
+    if (remaining > 1 && currInfo.descriptionLen > 0) {
+        size_t copyLen = (static_cast<size_t>(remaining - 1) < currInfo.descriptionLen) ?
             (static_cast<size_t>(remaining - 1)) : currInfo.descriptionLen;
         errno_t err = memcpy_s(params + len, static_cast<size_t>(remaining),
             currInfo.description, copyLen);
@@ -213,7 +213,7 @@ void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
 
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo, bool& isSendHisysevent)
 {
-    if (currInfo.logPath != FAULTLOGGER_PATH && WriteToSandbox(currInfo)) {
+    if (strcmp(currInfo.logPath, FAULTLOGGER_PATH) != 0 && WriteToSandbox(currInfo)) {
         return;
     }
 
@@ -239,25 +239,25 @@ void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo)
     close(fd);
 }
 
-bool IsValidSandboxPath(const std::string& realPath)
+bool IsValidSandboxPath(const char* realPath)
 {
     const char* prefix = "/data/storage/el";
     size_t prefixLen = strlen(prefix);
-    size_t pathLen = strLen(realPath);
+    size_t pathLen = strlen(realPath);
     if (pathLen < prefixLen || strncmp(realPath, prefix, prefixLen) != 0) {
         return false;
     }
     size_t numStart = prefixLen;
-    if (numStart >= realPath.length()) {
+    if (numStart >= pathLen) {
         return false;
     }
 
     size_t p = numStart;
-    while (p < realPath.length() && isdigit(realPath[p])) {
+    while (p < pathLen && isdigit(realPath[p])) {
         p++;
     }
 
-    if (p < realPath.length() && realPath[p] != '/') {
+    if (p < pathLen && realPath[p] != '/') {
         return false;
     }
 

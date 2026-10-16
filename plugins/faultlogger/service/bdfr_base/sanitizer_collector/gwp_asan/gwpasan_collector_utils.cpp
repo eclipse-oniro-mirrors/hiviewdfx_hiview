@@ -16,7 +16,7 @@
 
 #include <cerrno>
 #include <cstdlib>
-#include <ctring>
+#include <cstring>
 #include <ctime>
 #include <fcntl.h>
 #include <securec.h>
@@ -27,7 +27,7 @@
 #include "faultloggerd_client.h"
 #include "hisysevent_easy.h"
 
-#include LOG_DOMAIN
+#undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD002D12
 
 #undef LOG_TAG
@@ -40,7 +40,7 @@ constexpr size_t TIME_FORMAT_LEN = 17;
 constexpr char ZERO_TIME_FORMAT[TIME_FORMAT_LEN + 1] = "00000000000000000";
 constexpr size_t MAX_INPUT_PATH_LEN = 512;
 constexpr size_t ABS_PATH_BUF_SIZE = 512;
-constexpr size_t SYMLINK_CHECK_BUF_SIZE = 256;
+constexpr size_t SYMLINK_CHECK_BUF_SIZE = 512;
 constexpr size_t MIN_RESOLVED_BUF_SIZE = 2;
 constexpr size_t CURRENT_DIR_BUF_SIZE = 1;
 constexpr size_t PARENT_DIR_BUF_SIZE = 2;
@@ -72,7 +72,7 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     }
     (void)strftime(buf, bufSize, "%Y%m%d%H%M%S", timeInfo);
     size_t used = strlen(buf);
-    int err = snprintf_s(buf + strlen(buf), bufSize - strlen(buf), bufSize - strlen(buf) - 1, "%03llu",
+    int err = snprintf_s(buf + used, bufSize - used, bufSize - used - 1, "%03llu",
         static_cast<unsigned long long>(millsec));
     if (err < 0) {
         buf[used] = '\0';
@@ -85,7 +85,7 @@ bool ToAbsolutePath(const char* path, char* output, size_t outSize)
     if (path == nullptr || output == nullptr || outSize == 0) {
         return false;
     }
-    if (patrh[0] == '/') {
+    if (path[0] == '/') {
         size_t len = strlen(path);
         if (len >= outSize) {
             return false;
@@ -183,7 +183,7 @@ bool ContainsSymlink(const char* path)
     return false;
 }
 
-bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize)
+bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufSize)
 {
     if (path == nullptr || resolved == nullptr || bufSize < MIN_RESOLVED_BUF_SIZE) {
         return false;
@@ -202,7 +202,7 @@ bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize)
     if (len >= bufSize) {
         return false;
     }
-    errno_t err = memcpy_s(resolved, bufsize, absPath, len + 1);
+    errno_t err = memcpy_s(resolved, bufSize, absPath, len + 1);
     if (err != EOK) {
         return false;
     }
@@ -215,7 +215,7 @@ void GetNameByPid(int32_t pid, char* buf, size_t bufSize)
         return;
     }
     buf[0] = '\0';
-    char path[BUF_SIZE] = { 0 };
+    char path[BUF_SIZE] = {0};
     int err = snprintf_s(path, sizeof(path), sizeof(path) - 1, "/proc/%d/cmdline", pid);
     if (err <= 0) {
         return;
@@ -227,11 +227,11 @@ void GetNameByPid(int32_t pid, char* buf, size_t bufSize)
     size_t i = 0;
     char chunk[BUF_SIZE] = {0};
     ssize_t bytesRead;
-    while (i < (BUF_SIZE - 1)) {
+    while (i < (bufSize - 1)) {
         size_t want = (bufSize - 1 - i) < sizeof(chunk) ? (bufSize - 1 - i) : sizeof(chunk);
         bytesRead = read(fd, chunk, want);
         if (bytesRead <= 0) {
-            return;
+            break;
         }
         size_t j = 0;
         while (j < static_cast<size_t>(bytesRead) && i < bufSize - 1) {
