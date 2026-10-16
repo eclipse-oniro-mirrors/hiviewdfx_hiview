@@ -57,6 +57,7 @@ constexpr int MIN_HEX_STR_SIZE = 2;
 constexpr unsigned FIRST_FRAME_IDX = 0;
 constexpr unsigned SECOND_FRAME_IDX = 1;
 constexpr unsigned LAST_FRAME_IDX = 2;
+constexpr size_t MAX_TOP_STACK_FRAMES = 3;
 
 const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
@@ -369,14 +370,14 @@ void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string
         frames.push_back(line);
     }
     std::reverse(frames.begin(), frames.end());
-    if (frames.size() >= 3) {
+    if (frames.size() >= MAX_TOP_STACK_FRAMES) {
         topStacks[FIRST_FRAME_IDX] = frames[0];
         topStacks[SECOND_FRAME_IDX] = frames[1];
         topStacks[LAST_FRAME_IDX] = frames[2];
-    } else if (frames.size() == 2) {
+    } else if (frames.size() == SECOND_FRAME_IDX + 1) {
         topStacks[FIRST_FRAME_IDX] = frames[0];
         topStacks[SECOND_FRAME_IDX] = frames[1];
-    } else if (frames.size() == 1) {
+    } else if (frames.size() == FIRST_FRAME_IDX + 1) {
         topStacks[FIRST_FRAME_IDX] = frames[0];
     }
 }

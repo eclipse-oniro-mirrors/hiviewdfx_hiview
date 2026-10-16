@@ -84,7 +84,8 @@ private:
     LineFeature FormatLineFeature(const std::string& value, const std::string& regex) const;
     void Compose();
     std::string ComposeTrace(const std::string& filePath, const std::string& param,
-        const std::vector<std::pair<std::string, LineFeature>>& lineFeatures, const std::string& regex, int skipNum) const;
+        const std::vector<std::pair<std::string, LineFeature>>& lineFeatures,
+        const std::string& regex, int skipNum) const;
     std::string ComposeParam(const std::string& param) const;
     std::vector<std::string> SplitParam(const std::string& param) const;
     void ProcessReason(std::map<std::string, std::string>& info);

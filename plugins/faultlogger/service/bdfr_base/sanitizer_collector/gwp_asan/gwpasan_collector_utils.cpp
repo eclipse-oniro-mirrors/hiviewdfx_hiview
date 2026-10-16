@@ -41,9 +41,10 @@ constexpr char ZERO_TIME_FORMAT[TIME_FORMAT_LEN + 1] = "00000000000000000";
 constexpr size_t MAX_INPUT_PATH_LEN = 512;
 constexpr size_t ABS_PATH_BUF_SIZE = 512;
 constexpr size_t SYMLINK_CHECK_BUF_SIZE = 256;
+constexpr size_t MIN_RESOLVED_BUF_SIZE = 2;
+constexpr size_t CURRENT_DIR_BUF_SIZE = 1;
+constexpr size_t PARENT_DIR_BUF_SIZE = 2;
 }
-
-
 
 void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
 {
@@ -70,9 +71,13 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
         return;
     }
     (void)strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%Y%m%d%H%M%S", timeInfo);
-    snprintf_s(buf + strlen(buf), buffSize - strlen(buf), buffSize - sizeof(buf) - 1, "%03llu",
+    size_t used = strlen(buf);
+    int err = snprintf_s(buf + strlen(buf), buffSize - strlen(buf), buffSize - sizeof(buf) - 1, "%03llu",
         static_cast<unsigned long long>(millsec));
-
+    if (err < 0) {
+        buf[used] = '\0';
+        return;
+    }
 }
 
 bool ToAbsolutePath(const char* path, char* output, size_t outSize)
@@ -85,7 +90,7 @@ bool ToAbsolutePath(const char* path, char* output, size_t outSize)
         if (len >= outSize) {
             return false;
         }
-        memcpy(output, path, len + 1);
+        memcpy_s(output, outSize, path, len + 1);
         return true;
     }
     if (getcwd(output, outSize) == nullptr) {
@@ -93,11 +98,11 @@ bool ToAbsolutePath(const char* path, char* output, size_t outSize)
     }
     size_t cwdLen = strlen(output);
     size_t pathLen = strlen(path);
-    if(cwdLen + 1 + pathLen + 1 >= outSize) {
+    if (cwdLen + 1 + pathLen + 1 >= outSize) {
         return false;
     }
     output[cwdLen] = '/';
-    memcpy_s(output + cwdLen + 1, path, pathLen + 1);
+    memcpy_s(output + cwdLen + 1, outSize - (cwdLen + 1), path, pathLen + 1);
     return true;
 }
 
@@ -123,8 +128,8 @@ bool IsValidInputPath(const char* path)
             i++;
         }
         size_t segLen = i - segStart;
-        if ((segLen == 1 && path[segStart] == '.') ||
-           (segLen == 2 && path[segStart] == '.' && path[segStart + 1] == '.')) {
+        if ((segLen == CURRENT_DIR_BUF_SIZE && path[segStart] == '.') ||
+           (segLen == PARENT_DIR_BUF_SIZE && path[segStart] == '.' && path[segStart + 1] == '.')) {
             return false;
            }
     }
@@ -138,7 +143,7 @@ bool ContainsSymlink(const char* path)
     if (len == 0 || len >= sizeof(buf)) {
         return true;
     }
-    memcpy(buf, path, len + 1);
+    memcpy_s(buf, sizeof(buf), path, len + 1);
     size_t i = 1;
     while (i < len) {
         while (i < len && buf[i] != '/') {
@@ -160,9 +165,9 @@ bool ContainsSymlink(const char* path)
     return false;
 }
 
-bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize) 
+bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize)
 {
-    if (path == nullptr || resolved == nullptr || bufSize < 2) {
+    if (path == nullptr || resolved == nullptr || bufSize < MIN_RESOLVED_BUF_SIZE) {
         return false;
     }
     if (!IsValidInputPath(path)) {
@@ -179,7 +184,7 @@ bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize)
     if (len >= bufSize) {
         return false;
     }
-    memcpy(resolved, absPath, len + 1);
+    memcpy_s(resolved, bufsize, absPath, len + 1);
     return true;
 }
 

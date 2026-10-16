@@ -145,7 +145,7 @@ void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
             FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
         if (err != EOK) {
             g_asanlog.logPath[0] = '\0';
-        }  
+        }
     } else {
         errno_t err = strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath),
             logPath, sizeof(g_currInfo.logPath) - 1);

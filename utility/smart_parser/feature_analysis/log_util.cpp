@@ -48,7 +48,8 @@ namespace {
  * result : all trace line will be spliced by "\n"
  * startReg : start place when regex is match, default empty string
  */
-void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, string& result, string startReg, int skipNum)
+void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, string& result,
+                       string startReg, int skipNum)
 {
     int totalSkip = TOTAL_SKIP_NUM;
     if (skipNum > TOTAL_SKIP_NUM) {
