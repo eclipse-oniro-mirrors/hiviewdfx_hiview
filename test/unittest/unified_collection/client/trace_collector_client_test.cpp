@@ -125,6 +125,29 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
     }
 }
 
+/**
+ * @tc.name: TraceCollectorTest0031
+ * @tc.desc: dump trace in common state.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest0031, TestSize.Level1)
+{
+    auto traceCollector = TraceCollector::Create();
+    ASSERT_TRUE(traceCollector != nullptr);
+    auto ret = traceCollector->DumpSnapshot(TraceClient::COMMON_RELIABILITY);
+
+    /**
+     * Reasonable scenarios
+     * TRACE_STATE_ERROR : trace not in beta state
+     * TRACE_DUMP_OVER_FLOW : io over limits of "Other" caller
+    */
+    ASSERT_TRUE(ret.retCode == UcError::SUCCESS || ret.retCode == UcError::TRACE_STATE_ERROR ||
+        ret.retCode == UcError::TRACE_DUMP_OVER_FLOW || ret.retCode == UcError::TRACE_OVER_FLOW);
+    if (ret.retCode == UcError::SUCCESS) {
+        ASSERT_TRUE(ret.data.size() > 0);
+    }
+}
+
 static uint64_t GetMilliseconds()
 {
     auto now = std::chrono::system_clock::now();
