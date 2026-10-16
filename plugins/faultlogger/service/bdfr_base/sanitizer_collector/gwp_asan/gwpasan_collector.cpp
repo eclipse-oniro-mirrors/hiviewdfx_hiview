@@ -137,20 +137,20 @@ void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
     if (descLen > 0) {
         (void)memcpy_s(g_currInfo.description, sizeof(g_currInfo.description), g_asanlog, descLen);
     }
-    g_asanlog.description[descLen] = '\0';
+    g_currInfo.description[descLen] = '\0';
     g_currInfo.descriptionLen = descLen;
     const bool isAsanType = (strcmp(faultType, FAULT_TYPE_ASAN) == 0 || strcmp(faultType, FAULT_TYPE_HWASAN) == 0);
     if (logPath == nullptr || strlen(logPath) == 0 || !isAsanType) {
-        errno_t err = strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath),
+        errno_t err = strncpy_s(g_currInfo.logPath, sizeof(g_currInfo.logPath),
             FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
         if (err != EOK) {
-            g_asanlog.logPath[0] = '\0';
+            g_currInfo.logPath[0] = '\0';
         }
     } else {
-        errno_t err = strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath),
+        errno_t err = strncpy_s(g_currInfo.logPath, sizeof(g_currInfo.logPath),
             logPath, sizeof(g_currInfo.logPath) - 1);
         if (err != EOK) {
-            strncpy_s(g_asanlog.logPath, sizeof(g_asanlog.logPath),
+            strncpy_s(g_currInfo.logPath, sizeof(g_currInfo.logPath),
                 FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
         }
     }
@@ -163,7 +163,7 @@ void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
     GetFormatedTime(timeTmp, timeBuf, sizeof(timeBuf));
     currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, DECIMAL_BASE));
     const char* appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
-    strncpy_s(g_asanlog.appRunningId, sizeof(g_asanlog.appRunningId), appRunningId, strlen(appRunningId));
+    strncpy_s(g_currInfo.appRunningId, sizeof(g_currInfo.appRunningId), appRunningId, strlen(appRunningId));
     bool isSendHisysevent = false;
     WriteCollectedData(g_currInfo, isSendHisysevent);
     if (isSendHisysevent) {
