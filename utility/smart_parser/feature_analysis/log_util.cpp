@@ -52,7 +52,7 @@ void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, stri
                        string startReg, int skipNum)
 {
     int totalSkip = TOTAL_SKIP_NUM;
-    if (skipNum > TOTAL_SKIP_NUM) {
+    if (skipNum > 0) {
         totalSkip = (skipNum > TOTAL_LINE_NUM) ? TOTAL_LINE_NUM : skipNum;
     }
     buffer.seekg(cursor, ios::beg);
