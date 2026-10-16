@@ -319,7 +319,7 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest008, testing::ext::TestSize.Level1)
     char hwasanBuf[] =
         "\"==appspawn==26514==ERROR: HWAddressSanitizer: tag-mismatch on address 0x00040099b0c0 at pc 0x0066e33a7ed4\n"
         "WRITE of size 4 at 0x00040099b0c0 tags: c6/7c (ptr/mem) in thread 27406\n"
-        "    #0 0x66e33a7ed4  (/data/storage/el1/bundle/libs/arm64/libentry.so+0x491dc) (BuildId: 9d85a942843298c4acb116342082d68b)\n"
+        "    #0 0x66e33a7ed4  (/data/storage/el1/bundle/libs/arm64/libentry.so+0x491dc) (BuildId: 9d8582d68b)\n"
         "    #1 0x66e4c3dca8  (/system/lib64/platformsdk/libace_napi.z.so+0xfdca8) (BuildId: c85af68)\n"
         "    #2 0x711c275d98  (/system/lib64/module/arkcompiler/stub.an+0xe771f4) (BuildId: df0882)\n"
         "\n"

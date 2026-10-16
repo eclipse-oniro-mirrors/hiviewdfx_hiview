@@ -371,14 +371,14 @@ void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string
     }
     std::reverse(frames.begin(), frames.end());
     if (frames.size() >= MAX_TOP_STACK_FRAMES) {
-        topStacks[FIRST_FRAME_IDX] = frames[0];
-        topStacks[SECOND_FRAME_IDX] = frames[1];
-        topStacks[LAST_FRAME_IDX] = frames[2];
+        topStacks[FIRST_FRAME_IDX] = frames[FIRST_FRAME_IDX];
+        topStacks[SECOND_FRAME_IDX] = frames[SECOND_FRAME_IDX];
+        topStacks[LAST_FRAME_IDX] = frames[LAST_FRAME_IDX];
     } else if (frames.size() == SECOND_FRAME_IDX + 1) {
-        topStacks[FIRST_FRAME_IDX] = frames[0];
-        topStacks[SECOND_FRAME_IDX] = frames[1];
+        topStacks[FIRST_FRAME_IDX] = frames[FIRST_FRAME_IDX];
+        topStacks[SECOND_FRAME_IDX] = frames[SECOND_FRAME_IDX];
     } else if (frames.size() == FIRST_FRAME_IDX + 1) {
-        topStacks[FIRST_FRAME_IDX] = frames[0];
+        topStacks[FIRST_FRAME_IDX] = frames[FIRST_FRAME_IDX];
     }
 }
 

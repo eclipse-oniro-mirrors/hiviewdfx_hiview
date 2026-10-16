@@ -72,7 +72,7 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     }
     (void)strftime(buf, bufSize, "%Y%m%d%H%M%S", timeInfo);
     size_t used = strlen(buf);
-    int err = snprintf_s(buf + strlen(buf), bufSize - strlen(buf), bufSize - sizeof(buf) - 1, "%03llu",
+    int err = snprintf_s(buf + strlen(buf), bufSize - strlen(buf), bufSize - strlen(buf) - 1, "%03llu",
         static_cast<unsigned long long>(millsec));
     if (err < 0) {
         buf[used] = '\0';
@@ -90,7 +90,10 @@ bool ToAbsolutePath(const char* path, char* output, size_t outSize)
         if (len >= outSize) {
             return false;
         }
-        memcpy_s(output, outSize, path, len + 1);
+        errno_t err = memcpy_s(output, outSize, path, len + 1);
+        if (err != EOK) {
+            return false;
+        }
         return true;
     }
     if (getcwd(output, outSize) == nullptr) {
@@ -102,7 +105,10 @@ bool ToAbsolutePath(const char* path, char* output, size_t outSize)
         return false;
     }
     output[cwdLen] = '/';
-    memcpy_s(output + cwdLen + 1, outSize - (cwdLen + 1), path, pathLen + 1);
+    errno_t err = memcpy_s(output + cwdLen + 1, outSize - (cwdLen + 1), path, pathLen + 1);
+    if (err != EOK) {
+        return false;
+    }
     return true;
 }
 
@@ -131,7 +137,7 @@ bool IsValidInputPath(const char* path)
         if ((segLen == CURRENT_DIR_BUF_SIZE && path[segStart] == '.') ||
            (segLen == PARENT_DIR_BUF_SIZE && path[segStart] == '.' && path[segStart + 1] == '.')) {
             return false;
-           }
+            }
     }
     return true;
 }
@@ -143,7 +149,10 @@ bool ContainsSymlink(const char* path)
     if (len == 0 || len >= sizeof(buf)) {
         return true;
     }
-    memcpy_s(buf, sizeof(buf), path, len + 1);
+    errno_t err = memcpy_s(buf, sizeof(buf), path, len + 1);
+    if (err != EOK) {
+        return false;
+    }
     size_t i = 1;
     while (i < len) {
         while (i < len && buf[i] != '/') {
@@ -193,7 +202,10 @@ bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize)
     if (len >= bufSize) {
         return false;
     }
-    memcpy_s(resolved, bufsize, absPath, len + 1);
+    errno_t err = memcpy_s(resolved, bufsize, absPath, len + 1);
+    if (err != EOK) {
+        return false;
+    }
     return true;
 }
 
