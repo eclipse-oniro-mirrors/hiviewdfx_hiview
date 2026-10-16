@@ -637,12 +637,12 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.dumpLogToFaultlogger = false;
         info.logPath = GetDebugSignalTempLogName(info);
     } else {
-        std::vector<std::string> g_topStacks {"/", "/", "/"};
+        std::vector<std::string> topStacks {"/", "/", "/"};
         ParseSanitizerEasyEvent(sysEvent);
         info.module = sysEvent.GetEventValue(FaultKey::MODULE_NAME);
         info.sanitizerType = sysEvent.GetEventValue(FaultKey::FAULT_TYPE);
         info.logPath = GetSanitizerTempLogName(sysEvent.GetPid(), sysEvent.GetEventValue(FaultKey::HAPPEN_TIME));
-        ExtractStackInfo(info.logPath, info.reason, g_topStacks);
+        ExtractStackInfo(info.logPath, info.reason, topStacks);
         info.reason = info.reason == "" ? sysEvent.GetEventValue(FaultKey::FAULT_TYPE) : info.reason;
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
@@ -651,9 +651,9 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
             0,
             OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
         sysEvent.SetEventValue(FaultKey::FINGERPRINT, fingerPrint);
-        sysEvent.SetEventValue(FaultKey::FIRST_FRAME, g_topStacks[FIRST_FRAME_IDX]);
-        sysEvent.SetEventValue(FaultKey::SECOND_FRAME, g_topStacks[SECOND_FRAME_IDX]);
-        sysEvent.SetEventValue(FaultKey::LAST_FRAME, g_topStacks[LAST_FRAME_IDX]);
+        sysEvent.SetEventValue(FaultKey::FIRST_FRAME, topStacks[FIRST_FRAME_IDX]);
+        sysEvent.SetEventValue(FaultKey::SECOND_FRAME, topStacks[SECOND_FRAME_IDX]);
+        sysEvent.SetEventValue(FaultKey::LAST_FRAME, topStacks[LAST_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::Reason, info.reason);
     }
     return info;
