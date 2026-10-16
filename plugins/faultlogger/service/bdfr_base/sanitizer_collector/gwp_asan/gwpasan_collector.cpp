@@ -280,21 +280,32 @@ bool BuildSandboxFilePath(const GwpAsanCurrInfo& currInfo, char* outPath, size_t
     char logDir[256] = {0};
     char fileName[128] = {0};
     size_t dirLen = pos;
-    size_t fileLen = logPathLen - pos - 1;
+    size_t fileLen = logPathLen - pos;
     if (dirLen >= sizeof(logDir) || fileLen >= sizeof(fileName)) {
         return false;
     }
-    strncpy_s(logDir, sizeof(logDir), currInfo.logPath, dirLen);
-    strncpy_s(fileName, sizeof(fileName), currInfo.logPath + pos + 1, fileLen);
-    char realPath[256] = {0};
-    if (!RealpathAsyncSafe(logDir, realPath, sizeof(realPath))) {
+    errno_t err = strncpy_s(logDir, sizeof(logDir), currInfo.logPath, dirLen);
+    if (err != EOK) {
+        return false;
+    }
+    errno_t errName = strncpy_s(fileName, sizeof(fileName), currInfo.logPath + pos, fileLen);
+    if (errName != EOK) {
+        return false;
+    }
+    char fullPath[512] = {0};
+    int fullLen = snprintf_s(fullPath, sizeof(fullPath), sizeof(fullPath) - 1, "%s%s", logDir, fileName);
+    if (fullLen <= 0 || fullLen >= static_cast<int>(sizeof(fullPath))) {
+        return false;
+    }
+    char realPath[512] = {0};
+    if (!RealpathAsyncSafe(fullPath, realPath, sizeof(realPath))) {
         return false;
     }
     if (!IsValidSandboxPath(realPath)) {
         return false;
     }
     int pathLen = snprintf_s(outPath, outPathSize, outPathSize - 1,
-        "%s/%s.%d.%llu", realPath, fileName,
+        "%s.%d.%llu", realPath,
         currInfo.pid, static_cast<unsigned long long>(currInfo.happenTime));
     if (pathLen <= 0 || pathLen >= static_cast<int>(outPathSize)) {
         return false;
