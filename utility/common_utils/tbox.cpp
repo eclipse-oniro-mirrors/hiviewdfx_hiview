@@ -97,6 +97,7 @@ string Tbox::GetStackName(const string& line)
     string str;
     if (GetPartial(line, "^\\s+at (.*)\\).*", str) ||
         GetPartial(line, "^\\s*at (.*)", str) || // for jsCrash
+        GetPartial(line, "#\\d+ at (.*)", str) ||
         GetPartial(line, "#\\d+ pc [0-9a-f]+ (.*\\+\\d+)\\)", str) ||
         GetPartial(line, "#\\d+ pc ([0-9a-f]+ .*)", str) ||
         GetPartial(line, "([0-9a-zA-Z_]+\\+0x[0-9a-f]+/0x[0-9a-f]+)", str)) {

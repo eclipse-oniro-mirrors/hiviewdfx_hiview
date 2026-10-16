@@ -20,6 +20,8 @@ APP_FREEZE:
   MODULE: {type: STRING, desc: module name}
   PNAME: {type: STRING, desc: process name}
   REASON: {type: STRING, desc: app_freeze reason}
+  SAMPLER_COUNT: {type: INT32, desc: processed samples or -1 when unavailable}
+  LOG_VALIDITY: {type: STRING, desc: checkpoint delay and dump result and dump latency and feedback latency in ms}
   DIAG_INFO: {type: STRING, desc: diagnostic info}
   STACK: {type: STRING, desc: app_freeze stack}
   HIVIEW_LOG_FILE_PATHS: {type: STRING, arrsize: 10, desc: log paths}

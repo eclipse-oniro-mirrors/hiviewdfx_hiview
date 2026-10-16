@@ -39,6 +39,9 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     uid_(builder.uid_),
     sysuid_(builder.sysuid_),
     terminalThreadStack_(builder.terminalThreadStack_),
+    heaviestStack_(builder.heaviestStack_),
+    logValidity_(builder.logValidity_),
+    samplerCount_(builder.samplerCount_),
     telemetryId_(builder.telemetryId_),
     domain_(builder.domain_),
     stringId_(builder.stringId_),
@@ -88,6 +91,30 @@ WatchPoint::Builder::Builder()
 }
 
 WatchPoint::Builder::~Builder() {}
+
+WatchPoint::Builder& WatchPoint::Builder::InitFreezeLogInfo(
+    const std::string& heaviestStack, const std::string& logValidity, int32_t samplerCount)
+{
+    heaviestStack_ = heaviestStack;
+    logValidity_ = logValidity;
+    samplerCount_ = samplerCount;
+    return *this;
+}
+
+std::string WatchPoint::GetHeaviestStack() const
+{
+    return heaviestStack_;
+}
+
+std::string WatchPoint::GetLogValidity() const
+{
+    return logValidity_;
+}
+
+int32_t WatchPoint::GetSamplerCount() const
+{
+    return samplerCount_;
+}
 
 WatchPoint::Builder& WatchPoint::Builder::InitSeq(long seq)
 {

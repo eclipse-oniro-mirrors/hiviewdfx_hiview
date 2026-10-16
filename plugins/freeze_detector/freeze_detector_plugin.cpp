@@ -16,6 +16,7 @@
 #include "freeze_detector_plugin.h"
 
 #include <algorithm>
+#include <limits>
 
 #include "ffrt.h"
 #include "hiview_logger.h"
@@ -185,11 +186,17 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     SysEvent& sysEvent = static_cast<SysEvent&>(const_cast<Event&>(event));
     WatchPointParams params;
     ExtractWatchPointParams(sysEvent, event, params);
+    const int64_t sampleValue = sysEvent.IsParamExist("SAMPLER_COUNT") ?
+        sysEvent.GetEventIntValue("SAMPLER_COUNT") : INVALID_SAMPLER_COUNT;
+    const int32_t samplerCount = sampleValue >= 0 && sampleValue <= std::numeric_limits<int32_t>::max() ?
+        static_cast<int32_t>(sampleValue) : INVALID_SAMPLER_COUNT;
 
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder().InitSeq(params.seq).InitDomain(event.domain_)
         .InitStringId(event.eventName_).InitTimestamp(event.happenTime_).InitPid(params.pid).InitTid(params.tid)
         .InitUid(params.uid).InitSysUid(params.sysuid).InitTerminalThreadStack(params.terminalThreadStack)
         .InitTelemetryId(params.telemetryId)
+        .InitFreezeLogInfo(sysEvent.GetEventValue("HEAVIEST_STACK"),
+            sysEvent.GetEventValue("LOG_VALIDITY"), samplerCount)
         .InitPackageName(params.packageName).InitProcessName(params.processName).InitForeGround(params.foreGround)
         .InitProcessLifeTime(params.processLifetime)
         .InitMsg(params.msg).InitLogPath(params.logFile).InitHitraceTime(params.hitraceTime)
