@@ -152,12 +152,21 @@ bool ContainsSymlink(const char* path)
         char saved = buf[i];
         buf[i] = '\0';
         struct stat st;
-        bool isSymlinkOrInvalid = (lstat(buf, &st) != 0 || S_ISLNK(st.st_mode));
+        bool isLast = (saved == '\0');
+        bool lstatFailed = (lstat(buf, &st) != 0);
         buf[i] = saved;
-        if (isSymlinkOrInvalid) {
+        if (lstatFailed) {
+            // Last component may be a log file to be created; ENOENT is allowed.
+            // All non-last components must exist and must not be a symlink.
+            if (isLast && errno == ENOENT) {
+                return false;
+            }
             return true;
         }
-        if (saved == '\0') {
+        if (S_ISLNK(st.st_mode)) {
+            return true;
+        }
+        if (isLast) {
             break;
         }
         i++;
