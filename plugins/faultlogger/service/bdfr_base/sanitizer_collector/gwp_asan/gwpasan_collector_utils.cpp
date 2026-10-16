@@ -63,16 +63,16 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     struct tm tmStruct {0};
     struct tm* timeInfo = localtime_r(&out, &tmStruct);
     if (timeInfo == nullptr) {
-        strncpy_s(buf, buffSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
+        strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
         return;
     }
     if (bufSize < TIME_FORMAT_LEN) {
-        strncpy_s(buf, buffSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
+        strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
         return;
     }
-    (void)strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%Y%m%d%H%M%S", timeInfo);
+    (void)strftime(buf, bufSize, "%Y%m%d%H%M%S", timeInfo);
     size_t used = strlen(buf);
-    int err = snprintf_s(buf + strlen(buf), buffSize - strlen(buf), buffSize - sizeof(buf) - 1, "%03llu",
+    int err = snprintf_s(buf + strlen(buf), bufSize - strlen(buf), bufSize - sizeof(buf) - 1, "%03llu",
         static_cast<unsigned long long>(millsec));
     if (err < 0) {
         buf[used] = '\0';
@@ -207,7 +207,7 @@ void GetNameByPid(int32_t pid, char* buf, size_t bufSize)
     char chunk[BUF_SIZE] = {0};
     ssize_t bytesRead;
     while (i < (BUF_SIZE - 1)) {
-        size_t want = (buffSize - 1 - i) < sizeof(chunk) ? (bufSize - 1 - i) : sizeof(chunk);
+        size_t want = (bufSize - 1 - i) < sizeof(chunk) ? (bufSize - 1 - i) : sizeof(chunk);
         bytesRead = read(fd, chunk, want);
         if (bytesRead <= 0) {
             return;
