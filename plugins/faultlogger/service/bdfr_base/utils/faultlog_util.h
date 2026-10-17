@@ -37,6 +37,7 @@ int32_t GetRawEventIdByType(int32_t logType);
 std::string RegulateModuleNameIfNeed(const std::string& name);
 time_t GetFileLastAccessTimeStamp(const std::string& fileName);
 std::string GetDebugSignalTempLogName(const FaultLogInfo& info);
+std::string GetFileDeleteTempLogName(const FaultLogInfo& info);
 std::string GetSanitizerTempLogName(int32_t pid, const std::string& happenTime);
 std::string GetThreadStack(const std::string& path, int32_t threadId);
 bool IsValidPath(const std::string& path);

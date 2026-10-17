@@ -271,6 +271,23 @@ HWTEST(FaultloggerUtilsUnittest, GetDebugSignalTempLogNameTest002, testing::ext:
 }
 
 /**
+ * @tc.name: GetFileDeleteTempLogNameTest001
+ * @tc.desc: test GetFileDeleteTempLogName and filedelete type mapping
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerUtilsUnittest, GetFileDeleteTempLogNameTest001, testing::ext::TestSize.Level3)
+{
+    FaultLogInfo info;
+    info.pid = 123;
+    info.time = 123456789;
+    auto fileName = GetFileDeleteTempLogName(info);
+    ASSERT_EQ(fileName, "/data/log/faultlog/temp/stacktrace-filedelete-123-123456789");
+    ASSERT_EQ(GetLogTypeByName("stacktrace-filedelete"), FaultLogType::FILE_DELETE);
+    ASSERT_EQ(GetLogTypeByEventName("FILE_DELETED"), FaultLogType::FILE_DELETE);
+    ASSERT_EQ(GetLogTypeByEventName("UNKNOWN_EVENT"), FaultLogType::ALL);
+}
+
+/**
  * @tc.name: GetThreadStackTest001
  * @tc.desc: test GetThreadStack
  * @tc.type: FUNC

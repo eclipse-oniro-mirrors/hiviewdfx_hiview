@@ -155,6 +155,8 @@ int32_t GetLogTypeByName(const std::string& type)
         return FaultLogType::SYS_WARNING;
     } else if (type == "appfreezewarning") {
         return FaultLogType::APPFREEZE_WARNING;
+    } else if (type == "stacktrace-filedelete") {
+        return FaultLogType::FILE_DELETE;
     } else if (type.find("san") != std::string::npos) {
         return FaultLogType::ADDR_SANITIZER;
     } else if (type == "cjerror") {
@@ -174,7 +176,7 @@ FaultLogType GetLogTypeByEventName(const std::string& eventName)
         const char* const name;
         FaultLogType type;
     };
-    constexpr const size_t eventCnt = 10;
+    constexpr const size_t eventCnt = 11;
     std::array<EventBond, eventCnt> list = {{
         { "JS_ERROR", FaultLogType::JS_CRASH },
         { "CPP_CRASH", FaultLogType::CPP_CRASH },
@@ -185,7 +187,8 @@ FaultLogType GetLogTypeByEventName(const std::string& eventName)
         { "ADDR_SANITIZER", FaultLogType::ADDR_SANITIZER },
         { "CJ_ERROR", FaultLogType::CJ_ERROR },
         { "RUST_PANIC", FaultLogType::RUST_PANIC },
-        { "PROCESS_PAGE_INFO", FaultLogType::PROCESS_PAGE_INFO }
+        { "PROCESS_PAGE_INFO", FaultLogType::PROCESS_PAGE_INFO },
+        { "FILE_DELETED", FaultLogType::FILE_DELETE }
     }};
     for (const auto& bond : list) {
         if (eventName == bond.name) {
@@ -264,6 +267,15 @@ std::string GetDebugSignalTempLogName(const FaultLogInfo& info)
 {
     return std::string(FAULTLOG_TEMP_FOLDER) +
         "stacktrace-" +
+        std::to_string(info.pid) +
+        "-" +
+        std::to_string(info.time);
+}
+
+std::string GetFileDeleteTempLogName(const FaultLogInfo& info)
+{
+    return std::string(FAULTLOG_TEMP_FOLDER) +
+        "stacktrace-filedelete-" +
         std::to_string(info.pid) +
         "-" +
         std::to_string(info.time);
