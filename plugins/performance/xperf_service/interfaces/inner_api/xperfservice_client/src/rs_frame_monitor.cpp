@@ -166,7 +166,7 @@ void RsFrameMonitor::VideoJankReport()
     }
     int64_t now = GetCurrentSystimeMs();
     int64_t frameTime = now - it->second.previousFrameTime;
-     if (frameTime < ACVIDEO_JANK_TIME_MS) {
+    if (frameTime < ACVIDEO_JANK_TIME_MS) {
         return;
     }
     if (it->second.previousFrameTime == it->second.lastJankTime) { // 本次卡顿已报过
