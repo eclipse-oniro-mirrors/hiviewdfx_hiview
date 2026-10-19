@@ -34,7 +34,7 @@ enum SeekType {
 struct StackRegexInfo {
     std::string regex;
     int skipNum {0};
-}
+};
 
 class FeatureAnalysis {
     enum ErrorCode {
