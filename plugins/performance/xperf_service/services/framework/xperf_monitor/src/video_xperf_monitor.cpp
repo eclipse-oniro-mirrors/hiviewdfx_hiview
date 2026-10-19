@@ -244,7 +244,7 @@ void VideoXperfMonitor::DelayBroadcastJankDur(int64_t uniqueId, int64_t happenTi
             if (item.durBroadcasted) { // 卡顿时长已广播
                 LOGW("Stutter duration has been broadcasted");
             } else {
-                BroadcastJankDur(GenJankDurMsg(item, DUR_NOTIFY_DELAY, 3)); // 广播卡顿时长
+                BroadcastJankDur(GenJankDurMsg(item, DUR_NOTIFY_DELAY, 3)); // 3 超时 广播卡顿时长
                 item.durBroadcasted = true;
             }
             return;
