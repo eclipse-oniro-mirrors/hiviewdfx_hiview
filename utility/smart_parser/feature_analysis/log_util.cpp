@@ -49,7 +49,7 @@ namespace {
  * startReg : start place when regex is match, default empty string
  */
 void LogUtil::GetTrace(stringstream& buffer, int cursor, const string& reg, string& result,
-                       string startReg, int skipNum)
+                       int skipNum, string startReg)
 {
     int totalSkip = TOTAL_SKIP_NUM;
     if (skipNum > 0) {

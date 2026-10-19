@@ -373,7 +373,7 @@ string FeatureAnalysis::ComposeTrace(const string& filePath, const string& param
     if (iter != lineFeatures.end()) {
         stringstream buffer("");
         if (LogUtil::ReadFileBuff(filePath, buffer)) {
-            LogUtil::GetTrace(buffer, iter->second.lineCursor, regex, result, " ", skipNum);
+            LogUtil::GetTrace(buffer, iter->second.lineCursor, regex, result, skipNum);
         }
     }
     return result;
