@@ -980,7 +980,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest025, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buff, line) && num < trace.size()) {
+    while (getline(buf, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
@@ -1013,7 +1013,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest026, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buff, line) && num < trace.size()) {
+    while (getline(buf, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
@@ -1046,7 +1046,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest027, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buff, line) && num < trace.size()) {
+    while (getline(buf, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
@@ -1079,7 +1079,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest028, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buff, line) && num < trace.size()) {
+    while (getline(buf, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
