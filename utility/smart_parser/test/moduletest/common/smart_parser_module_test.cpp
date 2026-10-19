@@ -969,6 +969,8 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest025, TestSize.Level1)
     std::string trustStack = std::string{LogUtil::SMART_PARSER_TEST_DIR}  + "/SmartParserTest019/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(trustStack), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
 
     /**
      * @tc.steps: step2. smart parser process sanitizer fault log
@@ -980,7 +982,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest025, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buf, line) && num < trace.size()) {
+    while (getline(buff, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
@@ -1002,6 +1004,8 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest026, TestSize.Level1)
     std::string trustStack = std::string{LogUtil::SMART_PARSER_TEST_DIR}  + "/SmartParserTest020/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(trustStack), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
 
     /**
      * @tc.steps: step2. smart parser process sanitizer fault log
@@ -1013,7 +1017,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest026, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buf, line) && num < trace.size()) {
+    while (getline(buff, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
@@ -1035,6 +1039,8 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest027, TestSize.Level1)
     std::string trustStack = std::string{LogUtil::SMART_PARSER_TEST_DIR}  + "/SmartParserTest021/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(trustStack), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
 
     /**
      * @tc.steps: step2. smart parser process sanitizer fault log
@@ -1046,7 +1052,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest027, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buf, line) && num < trace.size()) {
+    while (getline(buff, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
@@ -1068,6 +1074,8 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest028, TestSize.Level1)
     std::string trustStack = std::string{LogUtil::SMART_PARSER_TEST_DIR}  + "/SmartParserTest022/trace.txt";
     ASSERT_EQ(FileUtil::FileExists(faultFile), true);
     ASSERT_EQ(FileUtil::FileExists(trustStack), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
 
     /**
      * @tc.steps: step2. smart parser process sanitizer fault log
@@ -1079,7 +1087,7 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest028, TestSize.Level1)
     StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
     std::string line;
     size_t num = 0;
-    while (getline(buf, line) && num < trace.size()) {
+    while (getline(buff, line) && num < trace.size()) {
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
