@@ -1,0 +1,55 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/config/features.gni")
+import("//build/test.gni")
+
+ohos_fuzztest("LogFileConverterFuzzTest") {
+  module_out_path = "hiview/event_publish"
+
+  fuzz_config_file = "//base/hiviewdfx/hiview/base/event_publish/test/fuzztest/logfileconverter_fuzzer"
+
+  include_dirs = [
+    "./",
+    "//base/hiviewdfx/hiview/base/event_publish/include",
+  ]
+
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+
+  sources = [ "logfileconverter_fuzzer.cpp" ]
+
+  deps = [
+    "$hiview_base/event_publish:hiview_event_publish",
+    "$hiview_base:logger",
+    "$hiview_base/utility:hiview_utility",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bounds_checking_function:libsec_shared",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "ipc:ipc_single",
+    "jsoncpp:jsoncpp",
+    "samgr:samgr_proxy",
+    "storage_service:storage_manager_acl",
+  ]
+}
