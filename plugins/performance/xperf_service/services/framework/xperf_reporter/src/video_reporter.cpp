@@ -21,8 +21,6 @@ namespace HiviewDFX {
 
 void VideoReporter::ReportVideoJankFrame(const VideoJankReport& record)
 {
-    LOGD("VideoReporter_ReportVideoJankFrame uniqueId:%{public}ld happenTime:%{public}ld duration:%{public}ld "
-         "type:%{public}d", record.uniqueId, record.happenTime, record.maxFrameTime, record.type);
     std::string data;
     data.append("UNIQUEID:").append(std::to_string(record.uniqueId)).append("\n")
         .append("HAPPEN_TIME:").append(std::to_string(record.happenTime)).append("\n")
