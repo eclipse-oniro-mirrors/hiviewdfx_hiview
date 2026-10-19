@@ -233,24 +233,24 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest005, testing::ext::TestSize.Level1)
 {
     ClearAllLogs("/data/log/faultlog/faultlogger/");
     char hwasanBuf[] =
-        "Potential Cause: use-after-free\n"
-        "ptrBeg was re-written after free 0x000c00036f80[0],"
-        "0x000c00036f80 0000000000000000:5555555555555555, freed by:\n"
-        "    #0 0x5a94feb2fc  (/system/asan/lib64/libclang_rt.hwasan.so+0x2b2fc) (BuildId: 123456abcd)\n"
-        "    #1 0x5a9b860678  (/system/lib64/chipset-sdk-sp/libc++.so+0xcd630) (BuildId: 123456abcd)\n"
-        "    #2 0x5a9b85ed9c  (/system/lib64/platformsdk/libeventhandler.z.so+0x1ed9c) (BuildId: 123456abcd)\n"
-        "    #3 0x56934ca940  (/system/bin/appspawn+0xb940) (BuildId: 123456abcd)\n"
+        "==appspawn==26863==ERROR: memory_debug: use-after-free on address 0x0002015e2980\n"
+        "memory was re-written after free at 0x0002015e2980[0]: 0x0002015e2980 freed by:\n"
+        "#0 0x5a4ee6c83c (/system/lib64/libclang_rt.hwasan.so+0x2c83c) (BuildId: 15)\n"
+        "#1 0x5afcebe09c (/data/storage/el1/bundle/libs/arm64/libentry.so+0x3e09c) (BuildId: bc)\n"
+        "#2 0x5ae2033844 (/system/lib64/platformsdk/libace_napi.z.so+0x73844) (BuildId: a39)\n"
+        "#3 0x5af70bc600 (/system/lib64/module/arkcompiler/stub.an+0xe91600)\n"
         "\n"
+        "Potential Cause: use-after-free\n"
         "allocated by:\n"
-        "    #0 0x5a94feb1a8  (/system/asan/lib64/libclang_rt.hwasan.so+0x2b1a8) (BuildId: 123456abcd)\n"
-        "    #1 0x5a9b87e268  (/system/lib64/platformsdk/libeventhandler.z.so+0x3e268) (BuildId: 123456abcd)\n"
+        " #0 0x5a94feb1a8 (/system/asan/lib64/libclang_rt.hwasan.so+0x2b1a8) (BuildId: 123456abcd)\n"
+        " #1 0x5a9b87e268 (/system/lib64/platformsdk/libeventhandler.z.so+0x3e268) (BuildId: 123456abcd)\n"
         "==appspawn==7133==End Hwasan report\n";
     Json::Value sanitizerEvent = GenerateAndParseSanitizerEvent(hwasanBuf);
     EXPECT_EQ(sanitizerEvent["MODULE"], "AsanUnittest");
     EXPECT_EQ(sanitizerEvent["REASON"], "use-after-free");
-    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/system/lib64/platformsdk/libeventhandler.z.so+0x1ed9c");
-    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/system/bin/appspawn+0xb940");
-    EXPECT_EQ(sanitizerEvent["LAST_FRAME"], "/");
+    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/data/storage/el1/bundle/libs/arm64/libentry.so+0x3e09c");
+    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/system/lib64/platformsdk/libace_napi.z.so+0x73844");
+    EXPECT_EQ(sanitizerEvent["LAST_FRAME"], "/system/lib64/module/arkcompiler/stub.an+0xe91600");
 }
 
 /**
