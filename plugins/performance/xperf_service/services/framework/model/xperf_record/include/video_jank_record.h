@@ -27,6 +27,11 @@ struct VideoJankRecord {
     int32_t appPid{0};
     std::string bundleName;
     std::string surfaceName;
+    int64_t uniqueId{0};
+    int64_t happenTime{0};
+    int64_t duration{0};
+    int32_t type{0};
+    bool durBroadcasted{false};
     RsJankEvent rsJankEvent;
     NetworkJankEvent nwJankEvent;
     AvcodecJankEvent avcodecJankEvent;

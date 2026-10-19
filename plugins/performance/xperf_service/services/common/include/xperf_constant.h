@@ -62,7 +62,7 @@ namespace XperfConstants {
     const int32_t AVCODEC_FRAME_STATS = 4006; // avcodec上报解码统计信息
 
     // "#UNIQUEID:7095285973044#FAULT_ID:0#FAULT_CODE:0#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111";
-    const int32_t VIDEO_JANK_FRAME = 5000;  //图形上报视频卡顿
+    const int32_t VIDEO_JANK_FRAME = 5000;  //图形上报视频卡顿（超300ms即上报）
 
     //#UNIQUEID:6944962117705#DURATION:5343#AVG_FPS:29#INTERVAL_COUNT:0#INTERVAL_LATENCY:0
     const int32_t VIDEO_FRAME_STATS = 5001;  // 图形上报视频统计信息
@@ -76,6 +76,9 @@ namespace XperfConstants {
     //"#UNIQUEID:7095285973044#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111#SURFACE_NAME:surfacename";
     const int32_t VIDEO_SECOND_FRAME = 5004; //图形上报视频第二帧
 
+    // "#UNIQUEID:7095285973044#FAULT_ID:0#FAULT_CODE:0#MAX_FRAME_TIME:125#HAPPEN_TIME:1720001111";
+    const int32_t VIDEO_JANK_DUR = 5005;  //图形上报视频卡顿时长（恢复时上报）
+    
     //"#TYPE:FIRST_MOVE#TIME:1720001111#BUNDLE_NAME:com.ohos.sceneboard";
     const int32_t PERF_USER_ACTION = 6000;  //perfmonitor上报用户操作事件
 

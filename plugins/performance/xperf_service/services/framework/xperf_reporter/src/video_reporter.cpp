@@ -14,18 +14,23 @@
  */
 #include "video_reporter.h"
 #include "event_reporter.h"
+#include "xperf_service_log.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
 void VideoReporter::ReportVideoJankFrame(const VideoJankReport& record)
 {
+    LOGD("VideoReporter_ReportVideoJankFrame uniqueId:%{public}ld happenTime:%{public}ld duration:%{public}ld "
+         "type:%{public}d", record.uniqueId, record.happenTime, record.maxFrameTime, record.type);
     std::string data;
-    data.append("APP_PID:").append(std::to_string(record.appPid)).append("\n")
+    data.append("UNIQUEID:").append(std::to_string(record.uniqueId)).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(record.happenTime)).append("\n")
+        .append("MAX_FRAME_TIME:").append(std::to_string(record.maxFrameTime)).append("\n")
+        .append("TYPE:").append(std::to_string(record.type)).append("\n")
+        .append("APP_PID:").append(std::to_string(record.appPid)).append("\n")
         .append("BUNDLE_NAME:").append(record.bundleName).append("\n")
         .append("SURFACE_NAME:").append(record.surfaceName).append("\n")
-        .append("MAX_FRAME_TIME:").append(std::to_string(record.maxFrameTime)).append("\n")
-        .append("HAPPEN_TIME:").append(std::to_string(record.happenTime)).append("\n")
         .append("FAULT_ID:").append(std::to_string(record.faultId)).append("\n")
         .append("FAULT_CODE:").append(std::to_string(record.faultCode)).append("\n")
         .append("DETAILS:").append(record.details);
