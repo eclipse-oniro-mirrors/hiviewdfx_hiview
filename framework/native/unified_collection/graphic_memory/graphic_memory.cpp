@@ -100,7 +100,12 @@ int32_t GetGLByPid(int32_t pid)
     std::string comm = GetCommByPid(pid);
     bool isRsProcess = comm.compare(0, RS_PROCESS_PREFIX.size(), RS_PROCESS_PREFIX) == 0;
     if (comm == "render_service" || isRsProcess) {
-        return MemoryTrackerGetGLByPid(pid) - GetSumAppGLFromRenderService(pid);
+        int32_t memoryTrackerGL = MemoryTrackerGetGLByPid(pid);
+        int32_t sumAppGL = GetSumAppGLFromRenderService(pid);
+        if (memoryTrackerGL - sumAppGL < 0) {
+            HILOG_ERROR(LOG_CORE, "pid=%{public}d,gl=%{public}d-%{public}d", pid, memoryTrackerGL, sumAppGL);
+        }
+        return memoryTrackerGL - sumAppGL;
     }
     return MemoryTrackerGetGLByPid(pid) + RsGetGLByPid(pid);
 }
