@@ -151,6 +151,7 @@ group("hiview_test_package") {
     "adapter/service:fuzztest",
     "adapter/service:unittest",
     "base/test:unittest",
+    "base/test:fuzztest",
     "core/test:unittest",
     "framework/native/unified_collection:unittest",
     "hiretrieval:unittest",

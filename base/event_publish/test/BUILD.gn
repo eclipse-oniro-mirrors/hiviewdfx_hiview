@@ -21,6 +21,19 @@ group("unittest") {
   deps = [ ":EventPublishTest" ]
 }
 
+group("fuzztest") {
+  testonly = true
+  deps = [
+    "fuzztest/appeventelapsedtime_fuzzer:AppEventElapsedTimeFuzzTest",
+    "fuzztest/appeventhandlerpostevent_fuzzer:AppEventHandlerPostEventFuzzTest",
+    "fuzztest/appeventpublisherfactory_fuzzer:AppEventPublisherFactoryFuzzTest",
+    "fuzztest/eventpublishisapplistenedevent_fuzzer:EventPublishIsAppListenedEventFuzzTest",
+    "fuzztest/eventpublishpushevent_fuzzer:EventPublishPushEventFuzzTest",
+    "fuzztest/logfileconverter_fuzzer:LogFileConverterFuzzTest",
+    "fuzztest/userdatasizereporter_fuzzer:UserDataSizeReporterFuzzTest",
+  ]
+}
+
 config("hiview_event_publish_config_test") {
   visibility = [ "*:*" ]
 

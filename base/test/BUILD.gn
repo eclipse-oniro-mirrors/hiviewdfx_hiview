@@ -38,6 +38,11 @@ group("unittest") {
   ]
 }
 
+group("fuzztest") {
+  testonly = true
+  deps = [ "$hiview_base/event_publish/test:fuzztest" ]
+}
+
 config("unittest_config") {
   include_dirs = [ "unittest/common" ]
 
