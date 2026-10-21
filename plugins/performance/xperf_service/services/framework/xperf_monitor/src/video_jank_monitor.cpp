@@ -27,6 +27,7 @@ namespace HiviewDFX {
 
 static constexpr uint32_t MAX_FRAME_NUM = 4;
 static constexpr int64_t MANUAL_THRESHOLD = 650;
+static constexpr int64_t AUDIO_START_RESPONSE_THRESHOLD = 400;
 static constexpr int STOP_DELAY_MS = 150;
 static constexpr const char* const WECHAT = "com.tencent.wechat";
 
@@ -134,7 +135,16 @@ void VideoJankMonitor::OnAudioStart(OhosXperfEvent* event)
         LOGW("VideoJankMonitor_OnAudioStart PID mismatch");
         return;
     }
-    MonitorStart();
+    if (audioEvent->uniqueId != audioUniqueId) { // 切换视频
+        audioUniqueId = audioEvent->uniqueId;
+        MonitorStart(); // 通知开始检测
+    } else {
+        if (!IsUserStart(*audioEvent)) { // 非用户操作开始播放
+            LOGD("VideoJankMonitor_OnAudioStart non-user start");
+            return;
+        }
+        MonitorStart(); //通知开始检测
+    }
 }
 
 void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
@@ -145,7 +155,7 @@ void VideoJankMonitor::OnAudioStop(OhosXperfEvent* event)
         LOGE("VideoJankMonitor_OnAudioStop Audio uniqueId mismatch");
         return;
     }
-    if (!IsUserAction(*audioEvent)) { //非用户主动暂停
+    if (!IsUserStop(*audioEvent)) { //非用户操作暂停播放
         LOGI("VideoJankMonitor_OnAudioStop non-user stop");
         return;
     }
@@ -214,7 +224,7 @@ void VideoJankMonitor::BroadcastVideoStop(const std::string& msg)
         ffrt::task_attr().name("BroadcastVideoStop").qos(ffrt::qos_default));
 }
 
-bool VideoJankMonitor::IsUserAction(const AudioStateEvent& audioStop)
+bool VideoJankMonitor::IsUserStop(const AudioStateEvent& audioStop)
 {
     PerfActionEvent lastUp = UserActionStorage::GetInstance().GetLastUp();
     bool upApp = ((lastUp.pid == audioStop.pid)
@@ -239,6 +249,14 @@ bool VideoJankMonitor::IsUserAction(const AudioStateEvent& audioStop)
             && (audioStop.happenTime - firstMove.time) < MANUAL_THRESHOLD);
 
     return swipeSB;
+}
+
+bool VideoJankMonitor::IsUserStart(const AudioStateEvent& audioStop)
+{
+    PerfActionEvent lastUp = UserActionStorage::GetInstance().GetLastUp();
+    bool upApp = ((lastUp.pid == audioStop.pid) && (lastUp.time < audioStop.happenTime) &&
+        (audioStop.happenTime - lastUp.time) < AUDIO_START_RESPONSE_THRESHOLD);
+    return upApp;
 }
 
 } // namespace HiviewDFX

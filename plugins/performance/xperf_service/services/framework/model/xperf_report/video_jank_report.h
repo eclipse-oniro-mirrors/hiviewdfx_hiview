@@ -22,11 +22,13 @@ namespace OHOS {
 namespace HiviewDFX {
 
 struct VideoJankReport {
+    int64_t uniqueId{0};
+    int64_t happenTime{0};
+    int64_t maxFrameTime{0}; // 卡顿时长
+    int16_t type{0}; // 卡顿时长结算方式 1.图形上报 2.用户操作 3.5s超时
     int16_t faultId{0};
     int16_t faultCode{0};
     int32_t appPid{0};
-    int32_t maxFrameTime{0};
-    int64_t happenTime{0};
     std::string bundleName;
     std::string surfaceName;
     std::string details;

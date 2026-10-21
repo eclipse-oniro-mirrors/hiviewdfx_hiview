@@ -3,3 +3,4 @@ plugins/hiviewext/
 .vscode/
 tags
 .codemate
+.fixbot-mcp-server/

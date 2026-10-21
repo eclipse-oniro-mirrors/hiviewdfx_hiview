@@ -39,6 +39,7 @@ struct VideoParam {
     uint32_t previousSequence = 0;
     uint32_t fps = 0;
     std::string surfaceName;
+    int64_t lastJankTime = 0;
 };
 
 struct FirstFrameParam {
@@ -65,7 +66,8 @@ private:
     ~RsFrameMonitor() = default;
 
     void VideoJankReport();
-    void ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime, int64_t now, const std::string& surfaceName);
+    void ReportVideoJank(uint64_t uniqueId, int64_t happenTime, int64_t duration, const std::string& surfaceName);
+    void ReportVideoJankDur(uint64_t uniqueId, int64_t happenTime, int64_t duration, const std::string& surfaceName);
     void ReportFirstFrame(const uint64_t uniqueId, const int64_t now);
     void ReportSecondFrame(const uint64_t uniqueId, const int64_t frameTime, const int64_t now);
     void UpdateVideoStats(VideoParam& videoStats, uint32_t sequence, int64_t now);

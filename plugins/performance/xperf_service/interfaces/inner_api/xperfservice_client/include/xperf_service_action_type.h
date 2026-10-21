@@ -35,6 +35,7 @@ class EventCode {
 public:
     inline static const int XPERF_VIDEO_START = 1;
     inline static const int XPERF_VIDEO_STOP = 2;
+    inline static const int XPERF_VIDEO_JANK_DUR = 3;
     inline static const int NETWORK_JANK_REPORT = 1000;
     inline static const int AUDIO_START = 3000;
     inline static const int AUDIO_PAUSE_STOP = 3001;
@@ -102,6 +103,7 @@ enum RsEventCode {
     VIDEO_EXCEPT_STOP,
     VIDEO_FIRST_FRAME,
     VIDEO_SECOND_FRAME,
+    VIDEO_JANK_DUR,
 };
 
 enum AvcodecFaultCode {

@@ -28,7 +28,7 @@ namespace HiviewDFX {
 XperfMonitorManager::XperfMonitorManager()
 {
     InitPlayStateMonitor();
-    InitVideoMonitor();
+    InitVideoJankMonitor();
     InitUserActionMonitor();
     InitPassthroughMonitor();
     InitAvcodecPerfMonitor();
@@ -67,10 +67,12 @@ void XperfMonitorManager::InitPlayStateMonitor()
     RegisterMonitorByLogID(XperfConstants::AVCODEC_SECOND_FRAME, monitor);
 }
 
-void XperfMonitorManager::InitVideoMonitor()
+void XperfMonitorManager::InitVideoJankMonitor()
 {
     XperfMonitor* monitor = &VideoXperfMonitor::GetInstance();
-    RegisterMonitorByLogID(XperfConstants::VIDEO_JANK_FRAME, monitor);
+    RegisterMonitorByLogID(XperfConstants::VIDEO_JANK_FRAME, monitor); // 卡顿事件
+    RegisterMonitorByLogID(XperfConstants::VIDEO_JANK_DUR, monitor); // 卡顿时长
+    RegisterMonitorByLogID(XperfConstants::PERF_USER_ACTION, monitor); // 用户手势
     RegisterMonitorByLogID(XperfConstants::NETWORK_JANK_REPORT, monitor);
     RegisterMonitorByLogID(XperfConstants::AVCODEC_JANK_REPORT, monitor);
     RegisterMonitorByLogID(XperfConstants::VIDEO_FRAME_STATS, monitor);

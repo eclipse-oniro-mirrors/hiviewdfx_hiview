@@ -31,7 +31,7 @@ private:
 
     void RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor);
     void InitPlayStateMonitor();
-    void InitVideoMonitor();
+    void InitVideoJankMonitor();
     void InitUserActionMonitor();
     /**
      * @brief 初始化透传事件的monitor，并订阅需要透传的事件
