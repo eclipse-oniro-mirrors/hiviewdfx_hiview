@@ -30,6 +30,7 @@
 
 
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+#include "nlohmann/json.hpp"
 #include "res_sched_client.h"
 #include "res_type.h"
 #endif // RESOURCE_SCHEDULE_SERVICE_ENABLE
