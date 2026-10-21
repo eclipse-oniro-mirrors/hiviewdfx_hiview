@@ -30,7 +30,6 @@
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD002D12
-#define FDSAN_TAG_A 1
 
 #undef LOG_TAG
 #define LOG_TAG "Sanitizer"
@@ -315,7 +314,6 @@ bool BuildSandboxFilePath(const GwpAsanCurrInfo& currInfo, char* outPath, size_t
 
 bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
 {
-    uint64_t newTag = (static_cast<uint64_t>(LOG_DOMAIN) << 32) | FDSAN_TAG_A;
     char logFilePath[512];
     if (!BuildSandboxFilePath(currInfo, logFilePath, sizeof(logFilePath))) {
         return false;
@@ -324,11 +322,10 @@ bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
     if (fd < 0) {
         return false;
     }
-    fdsan_exchange_owner_tag(fd, 0, newTag);
     if (!WriteDescriptionToFd(fd, currInfo.description, currInfo.descriptionLen)) {
-        fdsan_close_with_tag(fd, newTag);
+        close(fd);
         return false;
     }
-    fdsan_close_with_tag(fd, newTag);
+    close(fd);
     return true;
 }
