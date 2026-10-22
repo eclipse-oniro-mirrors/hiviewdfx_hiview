@@ -59,11 +59,8 @@ void PostExportEvent(const std::shared_ptr<ExportConfig> config)
     event->SetValue("taskType", std::to_string(config->taskType));
     event->SetValue("reportModule", config->moduleName);
     event->SetValue("exportDir", config->exportDir);
-    if (config->taskType == ALL_EVENT_TASK_TYPE) {
-        event->SetValue("reportInterval", "0");
-    } else {
-        event->SetValue("reportInterval", std::to_string(config->taskType));
-    }
+    event->SetValue("reportInterval",
+        ((config->taskType == ALL_EVENT_TASK_TYPE) ? "0" : std::to_string(config->taskType)));
 
     auto& context = HiviewGlobal::GetInstance();
     if (context == nullptr) {
