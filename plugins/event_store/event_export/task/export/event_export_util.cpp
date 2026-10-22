@@ -58,9 +58,7 @@ void PostExportEvent(const std::shared_ptr<ExportConfig> config)
     event->messageType_ = Event::MessageType::EVENT_EXPORT_TYPE;
     event->SetValue("taskType", std::to_string(config->taskType));
     event->SetValue("reportModule", config->moduleName);
-    if (config->taskType == QUICK_EVENT_TASK_TYPE) {
-        event->SetValue("exportDir", config->exportDir);
-    }
+    event->SetValue("exportDir", config->exportDir);
     if (config->taskType == ALL_EVENT_TASK_TYPE) {
         event->SetValue("reportInterval", "0");
     } else {
@@ -81,7 +79,10 @@ bool IsNeedPostEvent(std::shared_ptr<ExportConfig> config)
         HIVIEW_LOGW("no need to post event");
         return false;
     }
-    if ((config->taskType != QUICK_EVENT_TASK_TYPE) && IsExportDirEmpty(config->exportDir)) {
+    if (config->taskType == QUICK_EVENT_TASK_TYPE) {
+        return true;
+    }
+    if ( && IsExportDirEmpty(config->exportDir)) {
         HIVIEW_LOGW("no event zip file found");
         return false;
     }
