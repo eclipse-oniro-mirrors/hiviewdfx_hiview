@@ -646,15 +646,17 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.reason = info.reason == "" ? sysEvent.GetEventValue(FaultKey::FAULT_TYPE) : info.reason;
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
-        std::string fingerPrint  = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
-            sysEvent.GetEventValue(FaultKey::FIRST_FRAME) + info.reason + info.module,
-            0,
-            OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
+        string telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
         sysEvent.SetEventValue(FaultKey::FINGERPRINT, fingerPrint);
         sysEvent.SetEventValue(FaultKey::FIRST_FRAME, topStacks[FIRST_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::SECOND_FRAME, topStacks[SECOND_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::LAST_FRAME, topStacks[LAST_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::REASON, info.reason);
+        sysEvent.SetEventValue(FaultKey::TELEMETRY_ID, telemetryId);
+        std::string fingerPrint = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
+            sysEvent.GetEventValue(FaultKey::FIRST_FRAME) + info.reason + info.module,
+            0,
+            OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
     }
     return info;
 }
