@@ -44,6 +44,7 @@ constexpr size_t SYMLINK_CHECK_BUF_SIZE = 512;
 constexpr size_t MIN_RESOLVED_BUF_SIZE = 2;
 constexpr size_t CURRENT_DIR_BUF_SIZE = 1;
 constexpr size_t PARENT_DIR_BUF_SIZE = 2;
+constexpr int TIMEZONE_OFFSET_SECONDS = 8 * 3600;  // UTC+8
 }
 
 void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
@@ -52,7 +53,7 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
         return;
     }
     uint64_t millsec = target % TIME_RATIO;
-    time_t out = static_cast<time_t>(target / TIME_RATIO) + 8 * 3600;
+    time_t out = static_cast<time_t>(target / TIME_RATIO) + TIMEZONE_OFFSET_SECONDS;
 
     struct tm tmStruct {0};
     struct tm* timeInfo = gmtime_r(&out, &tmStruct);
