@@ -31,7 +31,7 @@ constexpr unsigned GWPASAN_MAX_LOGPATH_LEN = 256;
 constexpr unsigned GWPASAN_MAX_ERRTYPE_LEN = 64;
 constexpr unsigned GWPASAN_MAX_TELEMETRY_LEN = 64;
 constexpr unsigned GWPASAN_MAX_APPRUNNINGIID_LEN = 64;
-constexpr unsigned GWPASAN_MAX_DESCRIPT_LEN = 1 * 1024 * 1024;
+constexpr unsigned GWPASAN_MAX_DESCRIPT_LEN = 10 * 1024 * 1024;
 struct GwpAsanCurrInfo {
     /** type of sanitizer */
     char faultType[GWPASAN_MAX_FAULTTYPE_LEN];

@@ -51,17 +51,11 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     if (buf == nullptr || bufSize == 0) {
         return;
     }
-    struct timespec ts;
-    (void)clock_gettime(CLOCK_REALTIME, &ts);
-    time_t now = static_cast<time_t>(ts.tv_sec);
-    uint64_t millsec = 0;
-    if (target > static_cast<uint64_t>(now) * TIME_RATIO) {
-        millsec = target % TIME_RATIO;
-        target = target / TIME_RATIO;
-    }
-    time_t out = static_cast<time_t>(target);
+    uint64_t millsec = target % TIME_RATIO;
+    time_t out = static_cast<time_t>(target / TIME_RATIO) + 8 * 3600;
+
     struct tm tmStruct {0};
-    struct tm* timeInfo = localtime_r(&out, &tmStruct);
+    struct tm* timeInfo = gmtime_r(&out, &tmStruct);
     if (timeInfo == nullptr) {
         strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
         return;
