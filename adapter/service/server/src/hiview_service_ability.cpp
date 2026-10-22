@@ -376,23 +376,35 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, const std::strin
         !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
+
+    auto traceClient = static_cast<UCollect::TraceClient>(client);
     auto token_type = Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
     std::string caller;
-    auto traceClient = static_cast<UCollect::TraceClient>(client);
     bool isNeedFlowControl = false;
-    if (traceClient == UCollect::TraceClient::COMMAND) {
-        caller = "traceCommand";
-    } else if (token_type == Security::AccessToken::TOKEN_HAP) {
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        caller = BundleUtil::GetApplicationNameById(uid);
-    } else {
-        int32_t pid = IPCSkeleton::GetCallingPid();
-        caller = CommonUtils::GetProcNameByPid(pid);
-        isNeedFlowControl = true;
-    }
-    if (caller.empty()) {
-        HIVIEW_LOGE("Get callName failed.");
-        return UCollect::UcError::SYSTEM_ERROR;
+    switch (traceClient) {
+        case UCollect::TraceClient::COMMAND:
+        case UCollect::COMMON_RELIABILITY:
+            if (token_type == Security::AccessToken::TOKEN_HAP) {
+                HIVIEW_LOGE("Get callName failed.");
+                return UCollect::UcError::SYSTEM_ERROR;
+            }
+            caller = (traceClient == UCollect::TraceClient::COMMAND) ? "traceCommand" : "Reliability";
+            break;
+        case UCollect::COMMON_DEV:
+            if (token_type == Security::AccessToken::TOKEN_HAP) {
+                caller = BundleUtil::GetApplicationNameById(IPCSkeleton::GetCallingUid());
+            } else {
+                caller = CommonUtils::GetProcNameByPid(IPCSkeleton::GetCallingPid());
+                isNeedFlowControl = true;
+            }
+            if (caller.empty()) {
+                HIVIEW_LOGE("Get callName failed.");
+                return UCollect::UcError::SYSTEM_ERROR;
+            }
+            break;
+        default:
+            HIVIEW_LOGE("invalid client");
+            return UCollect::UcError::SYSTEM_ERROR;
     }
     auto traceRetHandler = [caller, isNeedFlowControl, &outputPath](HiviewService* service) {
         return service->DumpSnapshotTrace(caller, isNeedFlowControl, outputPath);

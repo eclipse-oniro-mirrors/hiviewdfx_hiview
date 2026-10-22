@@ -49,6 +49,7 @@ enum TraceCaller {
 enum TraceClient {
     COMMAND,
     COMMON_DEV,
+    COMMON_RELIABILITY
 };
 
 // Used for telemetry interface param
