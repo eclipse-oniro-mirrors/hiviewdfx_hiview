@@ -64,6 +64,14 @@
             <option name="push" value="SmartParserTest016/history.log -> /data/test/test_data/SmartParser/SmartParserTest016" src="res"/>
             <option name="push" value="SmartParserTest017/reset.log -> /data/test/test_data/SmartParser/SmartParserTest017" src="res"/>
             <option name="push" value="SmartParserTest018/last_kmsg -> /data/test/test_data/SmartParser/SmartParserTest018" src="res"/>
+            <option name="push" value="SmartParserTest019/sanitizer-12345-12345678910111234 -> /data/test/test_data/SmartParser/SmartParserTest019" src="res"/>
+            <option name="push" value="SmartParserTest019/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest019" src="res"/>
+            <option name="push" value="SmartParserTest020/sanitizer-12345-12345678910111234 -> /data/test/test_data/SmartParser/SmartParserTest020" src="res"/>
+            <option name="push" value="SmartParserTest020/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest020" src="res"/>
+            <option name="push" value="SmartParserTest021/sanitizer-12345-12345678910111234 -> /data/test/test_data/SmartParser/SmartParserTest021" src="res"/>
+            <option name="push" value="SmartParserTest021/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest021" src="res"/>
+            <option name="push" value="SmartParserTest022/sanitizer-12345-12345678910111234 -> /data/test/test_data/SmartParser/SmartParserTest022" src="res"/>
+            <option name="push" value="SmartParserTest022/trace.txt -> /data/test/test_data/SmartParser/SmartParserTest022" src="res"/>
         </preparer>
     </target>
 </configuration>

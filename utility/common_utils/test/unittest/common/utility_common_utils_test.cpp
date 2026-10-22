@@ -137,6 +137,21 @@ HWTEST_F(UtilityCommonUtilsTest, LogParseTest003, testing::ext::TestSize.Level3)
     }
 }
 
+/* @tc.name: LogParseTest004
+ * @tc.desc: Test IsIgnoreLibrary interface method of class LogParse
+ * @tc.type: FUNC
+ * @tc.require: issueI65DUW
+ */
+HWTEST_F(UtilityCommonUtilsTest, LogParseTest004, testing::ext::TestSize.Level3)
+{
+    LogParse logParse("ADDR_SANITIZER");
+    ASSERT_TRUE(logParse.IsIgnoreLibrary("libclang_rt.hwasan.so"));
+    ASSERT_TRUE(logParse.IsIgnoreLibrary("libclang_rt.asan.so"));
+    ASSERT_TRUE(logParse.IsIgnoreLibrary("libclang_rt.tsan.so"));
+    ASSERT_TRUE(logParse.IsIgnoreLibrary("libclang_rt.ubsan_standalone.so"));
+    ASSERT_TRUE(logParse.IsIgnoreLibrary("ld-musl-aarch64-asan.so"));
+}
+
 /* @tc.name: TboxTest001
  * @tc.desc: Test interfaces method of class Tbox
  * @tc.type: FUNC

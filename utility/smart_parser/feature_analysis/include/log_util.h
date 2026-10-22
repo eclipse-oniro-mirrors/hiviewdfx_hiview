@@ -43,7 +43,7 @@ public:
     LogUtil(const LogUtil&) = delete;
     LogUtil& operator=(const LogUtil&) = delete;
     static void GetTrace(std::stringstream& buffer, int cursor, const std::string& reg, std::string& result,
-        std::string startReg = "");
+        int skipNum = 0, std::string startReg = "");
     static bool ReadFileBuff(const std::string& file, std::stringstream& buffer);
     static bool IsTestModel(const std::string& sourceFile, const std::string& name,
         const std::string& pattern, std::string& desPath);

@@ -105,6 +105,10 @@
     "ADDR_SANITIZER": {
         "64_ADDR_SANITIZER_01":{
             "END_STACK": "MainCallTrace.v_trace"
+        },
+        "64_ADDR_SANITIZER_02":{
+            "Reason":"BasicParam.v_reason",
+            "END_STACK": "MainCallTrace.v_trace+MainCallTrace.v_trace_mutex"
         }
     },
     "DPACRASH": {

@@ -36,6 +36,7 @@ constexpr const char *L2_SEGMENT_STACK = "segStack";
 constexpr const char *L3_NAMESPACE = "namespace";
 constexpr const char *L3_MATCH_KEY = "matchKey";
 constexpr const char *L3_NUM = "num";
+constexpr const char *L3_SKIP_NUM = "skipNum";
 constexpr const char *L3_PARAM = "v_";
 constexpr const char *L3_DEPEND = "depend";
 constexpr const char *L3_DESCRIPTOR_LEFT = "@{";
@@ -48,6 +49,7 @@ constexpr const char *L3_REGULAR_DESCRIPTOR = "@R@";
 
 struct FeatureRule {
     int num {0};
+    int skipNum {0};
     std::string name;
     std::string source;
     std::string depend;

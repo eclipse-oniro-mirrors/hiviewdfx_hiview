@@ -284,5 +284,25 @@
             {"namespace":"BasicParam", "matchKey":"Module name:", "v_process":"^Module name:(\\S{1,32})"},
             {"namespace":"BasicParam", "matchKey":"MSG = CONTAINER_START FAIL,", "v_first":"^MSG = CONTAINER_START FAIL, phase = (\\d{1,4})"}
         ]
+    },
+    "Rule26":{
+        "DirOrFile":"/data/log/faultlog/temp/",
+        "Subcatalog":"sanitizer-\\d+-\\d+",
+        "featureId":"64_ADDR_SANITIZER_02",
+        "rules":[
+        {"namespace":"BasicParam", "matchKey":"SUMMARY", "v_reason":"SUMMARY: AddressSanitizer: ([-a-zA-Z]{1,30})"},
+        {"namespace":"BasicParam", "matchKey":"SUMMARY", "v_reason":"SUMMARY: HWAddressSanitizer: ([-a-zA-Z]{1,30})"},
+        {"namespace":"BasicParam", "matchKey":"Cause:", "v_reason":"Cause: ([-a-zA-Z ]{1,30})"},
+        {"namespace":"BasicParam", "matchKey":"Sanitizer:", "v_process":"(Sanitizer:)"},
+        {"namespace":"MainCallTrace", "depend":"BasicParam.v_process", "v_trace":"@T@([+-_./0-9a-zA-Z]{1,50}\\+0x[0-9a-zA-Z]{1,15})", "skipNum":10},
+        {"namespace":"BasicParam", "matchKey":"GWP-ASAN:", "v_gwp_process":"(GWP-ASAN)"},
+        {"namespace":"MainCallTrace", "depend":"BasicParam.v_gwp_process", "v_trace":"@T@([+-_./0-9a-zA-Z]{1,50}\\+0x[0-9a-zA-Z]{1,15})", "skipNum":10},
+        {"namespace":"BasicParam", "matchKey":"memory_debug:", "v_memory_process":"(memory_debug)"},
+        {"namespace":"MainCallTrace", "depend":"BasicParam.v_memory_process", "v_trace":"@T@([+-_./0-9a-zA-Z]{1,50}\\+0x[0-9a-zA-Z]{1,15})", "skipNum":10},
+        {"namespace":"BasicParam", "matchKey":"runtime error:", "v_error_process":"(runtime error:)"},
+        {"namespace":"MainCallTrace", "depend":"BasicParam.v_error_process", "v_trace":"@T@([+-_./0-9a-zA-Z]{1,50}\\+0x[0-9a-zA-Z]{1,15})", "skipNum":10},
+        {"namespace":"BasicParam", "matchKey":"Mutex", "v_mutex_process":"(Mutex)"},
+        {"namespace":"MainCallTrace", "depend":"BasicParam.v_mutex_process", "v_trace_mutex":"@T@([+-_./0-9a-zA-Z]{1,50}\\+0x[0-9a-zA-Z]{1,15})"}
+        ]
     }
 }

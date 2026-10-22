@@ -58,6 +58,12 @@ LogParse::LogParse(const std::string& eventName)
         ignoreList_["Level1"].emplace("libipc_core.z.so");
         ignoreList_["Level1"].emplace("libipc_single.z.so");
         ignoreList_["Level1"].emplace("stub.an");
+    } else if (eventName == "ADDR_SANITIZER") {
+        ignoreList_["Level1"].emplace("libclang_rt.hwasan.so");
+        ignoreList_["Level1"].emplace("libclang_rt.asan.so");
+        ignoreList_["Level1"].emplace("libclang_rt.tsan.so");
+        ignoreList_["Level1"].emplace("libclang_rt.ubsan_standalone.so");
+        ignoreList_["Level1"].emplace("ld-musl-aarch64-asan.so");
     }
 }
 
