@@ -46,7 +46,7 @@ std::string GenerateDeviceId()
 bool IsExportDirEmpty(const std::string& exportDir)
 {
     std::vector<std::string> eventZipFiles;
-    FileUtil::GetDirFiles(exportDir, eventZipFiles);
+    FileUtil::GetDirFiles(exportDir, eventZipFiles, false);
     return !any_of(eventZipFiles.begin(), eventZipFiles.end(), [] (const std::string& file) {
         return !FileUtil::IsDirectory(file);
     });
