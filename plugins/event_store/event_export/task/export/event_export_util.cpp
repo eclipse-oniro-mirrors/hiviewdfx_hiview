@@ -43,7 +43,7 @@ std::string GenerateDeviceId()
     return "";
 }
 
-bool IsExportDirEmpty(const std::string& exportDir)
+bool HasNoZipFile(const std::string& exportDir)
 {
     std::vector<std::string> eventZipFiles;
     FileUtil::GetDirFiles(exportDir, eventZipFiles, false);
@@ -82,7 +82,7 @@ bool IsNeedPostEvent(std::shared_ptr<ExportConfig> config)
     if (config->taskType == QUICK_EVENT_TASK_TYPE) {
         return true;
     }
-    if ( && IsExportDirEmpty(config->exportDir)) {
+    if (HasNoZipFile(config->exportDir)) {
         HIVIEW_LOGW("no event zip file found");
         return false;
     }
