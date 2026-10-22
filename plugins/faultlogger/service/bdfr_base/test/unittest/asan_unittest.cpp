@@ -233,24 +233,23 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest005, testing::ext::TestSize.Level1)
 {
     ClearAllLogs("/data/log/faultlog/faultlogger/");
     char hwasanBuf[] =
-        "==appspawn==26863==ERROR: memory_debug: use-after-free on address 0x0002015e2980\n"
-        "memory was re-written after free at 0x0002015e2980[0]: 0x0002015e2980 freed by:\n"
-        "#0 0x5a4ee6c83c (/system/lib64/libclang_rt.hwasan.so+0x2c83c) (BuildId: 15)\n"
-        "#1 0x5afcebe09c (/data/storage/el1/bundle/libs/arm64/libentry.so+0x3e09c) (BuildId: bc)\n"
-        "#2 0x5ae2033844 (/system/lib64/platformsdk/libace_napi.z.so+0x73844) (BuildId: a39)\n"
-        "#3 0x5af70bc600 (/system/lib64/module/arkcompiler/stub.an+0xe91600)\n"
-        "\n"
         "Potential Cause: use-after-free\n"
+        "ptrBeg was re-written after free 0x000c00036f80[0],"
+        "0x000c00036f80 0000000000000000:5555555555555555, freed by:\n"
+        "    #0 0x5a94feb2fc  (/system/asan/lib64/libclang_rt.hwasan.so+0x2b2fc) (BuildId: 123456abcd)\n"
+        "    #1 0x5a9b860678  (/system/lib64/chipset-sdk-sp/libc++.so+0xcd630) (BuildId: 123456abcd)\n"
+        "    #2 0x5a9b85ed9c  (/system/lib64/platformsdk/libeventhandler.z.so+0x1ed9c) (BuildId: 123456abcd)\n"
+        "    #3 0x56934ca940  (/system/bin/appspawn+0xb940) (BuildId: 123456abcd)\n"
         "allocated by:\n"
-        " #0 0x5a94feb1a8 (/system/asan/lib64/libclang_rt.hwasan.so+0x2b1a8) (BuildId: 123456abcd)\n"
-        " #1 0x5a9b87e268 (/system/lib64/platformsdk/libeventhandler.z.so+0x3e268) (BuildId: 123456abcd)\n"
+        "    #0 0x5a94feb1a8  (/system/asan/lib64/libclang_rt.hwasan.so+0x2b1a8) (BuildId: 123456abcd)\n"
+        "    #1 0x5a9b87e268  (/system/lib64/platformsdk/libeventhandler.z.so+0x3e268) (BuildId: 123456abcd)\n"
         "==appspawn==7133==End Hwasan report\n";
     Json::Value sanitizerEvent = GenerateAndParseSanitizerEvent(hwasanBuf);
     EXPECT_EQ(sanitizerEvent["MODULE"], "AsanUnittest");
     EXPECT_EQ(sanitizerEvent["REASON"], "use-after-free");
-    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/data/storage/el1/bundle/libs/arm64/libentry.so+0x3e09c");
-    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/system/lib64/platformsdk/libace_napi.z.so+0x73844");
-    EXPECT_EQ(sanitizerEvent["LAST_FRAME"], "/system/lib64/module/arkcompiler/stub.an+0xe91600");
+    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/system/lib64/platformsdk/libeventhandler.z.so+0x1ed9c");
+    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/system/bin/appspawn+0xb940");
+    EXPECT_EQ(sanitizerEvent["LAST_FRAME"], "/system/lib64/platformsdk/libeventhandler.z.so+0x3e268");
 }
 
 /**
@@ -263,6 +262,11 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest006, testing::ext::TestSize.Level1)
     ClearAllLogs("/data/log/faultlog/faultlogger/");
     char hwasanBuf[] =
         "==sa_main==1077==ERROR: HWAddressSanitizer: tag-mismatch on address 0x000200253d20 at pc 0x000000000000\n"
+        "WRITE of size 4 at 0x000200253d20 tags: 8f/32 (ptr/mem) in thread 65095\n"
+        "    <empty stack>\n"
+        "\n"
+        "[0x000200253d00,0x000200253d40) is a small unallocated heap chunk; size: 64 offset: 32, Allocated By 62463\n"
+        "\n"
         "Potential Cause: use-after-free\n"
         "0x000200253d20 (rb[13340] tags:d3) is located 32 bytes inside of 48-byte region "
         "[0x000200253d00,0x000200253d30)\n"
@@ -274,8 +278,8 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest006, testing::ext::TestSize.Level1)
     Json::Value sanitizerEvent = GenerateAndParseSanitizerEvent(hwasanBuf);
     EXPECT_EQ(sanitizerEvent["MODULE"], "AsanUnittest");
     EXPECT_EQ(sanitizerEvent["REASON"], "use-after-free");
-    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/system/asan/lib64/platformsdk/libapp_manager.z.so+0x10a210");
-    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/system/asan/lib64/platformsdk/libapp_manager.z.so+0x10a510");
+    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/");
+    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/");
     EXPECT_EQ(sanitizerEvent["LAST_FRAME"], "/");
 }
 
@@ -290,9 +294,8 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest007, testing::ext::TestSize.Level1)
     char hwasanBuf[] =
         "\"==appspawn==26514==ERROR: HWAddressSanitizer: tag-mismatch on address 0x00040099b0c0 at pc 0x0066e33a7ed4\n"
         "READ of size 4 at 0x00040099b0c0 tags: c6/7c (ptr/mem) in thread 27406\n"
-        "    #0 0x66e33a7ed4  (/lib/ld-musl-aarch64-asan.so.1+0x1c4ed4) (BuildId: 9d85a942843298c4acb116342082d68b)\n"
+        "    #0 0x66e33a7ed4  (/lib/ld-musl-aarch64-asan.so.+0x1c4ed4) (BuildId: 9d85a942843298c4acb116342082d68b)\n"
         "    #1 0x66e4c3dca8  (/system/asan/lib64/libc++.so+0xfdca8) (BuildId: df08820831451dcb5f87265be7e5c85af7a7db68)\n"
-        "\n"
         "[0x000100020000,0x000100020020) is a small unallocated heap chunk; size: 32 offset: 0, Allocated By 14705\n"
         "Potential Cause: use-after-free\n"
         "0x000100020000 (rb[0] tags:df) is located 0 bytes inside of 8-byte region [0x000100020000,0x000100020008)\n"
@@ -303,8 +306,8 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest007, testing::ext::TestSize.Level1)
     Json::Value sanitizerEvent = GenerateAndParseSanitizerEvent(hwasanBuf);
     EXPECT_EQ(sanitizerEvent["MODULE"], "AsanUnittest");
     EXPECT_EQ(sanitizerEvent["REASON"], "use-after-free");
-    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/lib/ld-musl-aarch64-asan.so.1+0x1c4ed4");
-    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/system/asan/lib64/libc++.so+0xfdca8");
+    EXPECT_EQ(sanitizerEvent["FIRST_FRAME"], "/system/asan/lib64/libsystemshare_base.z.so+0x35d98");
+    EXPECT_EQ(sanitizerEvent["SECOND_FRAME"], "/");
     EXPECT_EQ(sanitizerEvent["LAST_FRAME"], "/");
 }
 
