@@ -61,6 +61,8 @@ constexpr const char* const BUNDLE_VERSION = "bundle_version";
 constexpr const char* const CRASH_TYPE = "crash_type";
 constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
+constexpr const char* WATCHER_CONFIG_DIR = "files/watcherConfig";
+constexpr const char* EVENT_CONFIG_DIR = "files/eventConfig";
 constexpr int32_t MAX_LINK_FILE_NUM = 10;
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
 constexpr uint64_t DMP_MAX_FILE_SIZE = 35 * 1024 * 1024; // 35M
@@ -97,7 +99,7 @@ struct ExternalLogInfo {
 void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &externalLogInfo, int32_t uid,
     const std::string& pathHolder)
 {
-    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, EVENT_CONFIG_DIR);
     if (eventConfigDir.empty()) {
         HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
         return;
@@ -129,7 +131,7 @@ void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalL
         externalLogInfo.extensionType = ".log";
         externalLogInfo.subPath = "hiappevent";
         externalLogInfo.maxFileSize = MAX_FILE_SIZE;
-        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, EVENT_CONFIG_DIR);
         if (eventConfigDir.empty()) {
             HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
             return;
@@ -192,7 +194,7 @@ ErrCode GetBundleNameAndAppIndex(int32_t uid, std::string& bundleName, int32_t& 
 std::string GetInputMethodPathHolder(const std::string& bundleName, int32_t uid)
 {
     std::string tmpHolder = "+extension-entry-InputMethodExtensionAbility+" + bundleName;
-    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, "cache/hiappevent"))) {
+    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, WATCHER_CONFIG_DIR))) {
         HIVIEW_LOGW("The sandbox of inputMethod extensions does not exist. return common sandbox.");
         return bundleName;
     }
@@ -502,7 +504,7 @@ void SetSandBoxAccess(int32_t uid, const std::string& dirPath)
 
 void SaveEventToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson)
 {
-    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventJson, desPath);
@@ -604,7 +606,7 @@ bool EventPublish::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 bool EventPublish::Impl::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 {
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     if (!FileUtil::FileExists(basePath)) {
         return false;
     }
@@ -664,7 +666,7 @@ void EventPublish::Impl::SendEventToSandBox()
         }
         int32_t uid = StringUtil::StrToInt(uidStr);
         std::string pathHolder = GetPathPlaceHolder(uid);
-        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
         if (!FileUtil::FileExists(desPath)) {
             HIVIEW_LOGE("SendEventToSandBox not exit.");
             (void)FileUtil::RemoveFile(srcPath);
@@ -690,7 +692,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     }
 
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     if (!FileUtil::FileExists(basePath)) {
         HIVIEW_LOGE("Current sandbox base path is not exist.");
         (void)FileUtil::RemoveFile(GetTempFilePath(uid));
