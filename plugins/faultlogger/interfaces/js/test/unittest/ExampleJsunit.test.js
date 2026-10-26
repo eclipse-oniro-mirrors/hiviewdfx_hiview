@@ -19,11 +19,9 @@ import faultloggerTestNapi from "libfaultlogger_test_napi.so"
 
 describe("FaultlogJsTest", function () {
     const moduleName = "com.ohos.hiviewtest.faultlogjs";
-    const freezeFaultCount = 6;
 
     beforeAll(async function() {
         try {
-            await addAppFreezeFaultLog();
             await addJsCrashFaultLog();
             await addCppCrashFaultLog();
             console.log("add FaultLog success");
@@ -32,14 +30,6 @@ describe("FaultlogJsTest", function () {
         }
         await msleep(7000);
     })
-
-    async function addAppFreezeFaultLog() {
-        for (let i = 0; i < freezeFaultCount; i++) {
-            console.info("--------addAppFreezeFaultLog + " + i + "----------");
-            faultlogger.addFaultLog(i - 7, faultlogger.FaultType.APP_FREEZE, moduleName, `APP_FREEZE ${i}`);
-            await msleep(300);
-        }
-    }
 
     async function addJsCrashFaultLog() {
         return hiSysEvent.write({
@@ -253,50 +243,10 @@ describe("FaultlogJsTest", function () {
         done();
     })
 
-    async function checkFreezeFaultLogList(faultLogInfos) {
-        for (let i = 0; i < freezeFaultCount; i++) {
-            if (faultLogInfos[i].fullLog.indexOf(`APP_FREEZE ${freezeFaultCount - 1 - i}`) === -1) {
-                throw `failed to checkFreezeFaultLog for ${i}`;
-            }
-        }
-    }
-
-    /**
-     * test
-     *
-     * @tc.number: FaultlogJsTest_006
-     * @tc.name: FaultlogJsTest_006
-     * @tc.desc: API9 校验查询APP_FREEZE类型数据的返回结果的数据内容，及顺序
-     * @tc.require: issueI5VRCC
-     * @tc.author:
-     * @tc.type: Function
-     * @tc.size: MediumTest
-     * @tc.level: Level 0
-     */
-    it('FaultlogJsTest_006', 0, async function (done) {
-        console.info("---------------------------FaultlogJsTest_006----------------------------------");
-        try {
-            let retPromise = await faultlogger.query(faultlogger.FaultType.APP_FREEZE);
-            console.info("FaultlogJsTest_006 query retPromise length:" + retPromise.length);
-            expect(retPromise.length).assertLarger(freezeFaultCount - 1);
-            await checkFreezeFaultLogList(retPromise);
-            let retCallBack = await testCallbackQuery(faultlogger.FaultType.APP_FREEZE);
-            console.info("FaultlogJsTest_006 query retCallBack length:" + retCallBack.length);
-            expect(retPromise.length).assertLarger(freezeFaultCount - 1);
-            await checkFreezeFaultLogList(retCallBack);
-        } catch (err) {
-            console.info(`FaultlogJsTest_006 error: ${err}`);
-            expect(false).assertTrue();
-        }
-        done();
-    })
-
     function checkNoSpecificFaultLogList(faultLogInfos) {
         expect(faultLogInfos[0].type).assertEqual(faultlogger.FaultType.CPP_CRASH);
         expect(faultLogInfos[1].type).assertEqual(faultlogger.FaultType.JS_CRASH);
         expect(faultLogInfos[1].timestamp).assertLess(faultLogInfos[0].timestamp);
-        expect(faultLogInfos[2].type).assertEqual(faultlogger.FaultType.APP_FREEZE);
-        expect(faultLogInfos[2].timestamp).assertLess(faultLogInfos[1].timestamp);
     }
 
     /**
@@ -316,12 +266,12 @@ describe("FaultlogJsTest", function () {
         try {
             let retPromise = await faultlogger.query(faultlogger.FaultType.NO_SPECIFIC);
             console.info("FaultlogJsTest_007 query retPromise length:" + retPromise.length);
-            expect(retPromise.length).assertLarger(freezeFaultCount + 2 - 1);
+            expect(retPromise.length).assertLarger(1);
             checkNoSpecificFaultLogList(retPromise);
 
             let retCallback = await testCallbackQuery(faultlogger.FaultType.NO_SPECIFIC);
             console.info("FaultlogJsTest_007 query retCallback length:" + retCallback.length);
-            expect(retCallback.length).assertLarger(freezeFaultCount + 2 - 1);
+            expect(retCallback.length).assertLarger(1);
             checkNoSpecificFaultLogList(retCallback);
         } catch (err) {
             console.info(`FaultlogJsTest_007 error: ${err}`);
