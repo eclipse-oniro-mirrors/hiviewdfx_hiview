@@ -57,6 +57,7 @@ private:
     PlayState playState{PlayState::INIT};
     std::list<AvcodecFrame> firstFrameList;
     AvcodecFrame secondFrame;
+    int64_t audioUniqueId{0};
 
     void AddToList(const AvcodecFrame& firstFrame);
 
@@ -68,7 +69,8 @@ private:
     void OnFirstFrame(OhosXperfEvent* event);
     void OnSecondFrame(OhosXperfEvent* event);
 
-    bool IsUserAction(const AudioStateEvent& audioStop);
+    bool IsUserStop(const AudioStateEvent& audioStop);
+    bool IsUserStart(const AudioStateEvent& audioStart);
 
     void BroadcastVideoStart(const std::string& msg);
     void BroadcastVideoStop(const std::string& msg);

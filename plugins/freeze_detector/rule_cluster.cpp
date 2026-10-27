@@ -241,6 +241,9 @@ void FreezeRuleCluster::ParseTagResult(xmlNode* tag, FreezeResult& result)
 template<typename T>
 T FreezeRuleCluster::GetAttributeValue(xmlNode* node, const std::string& name)
 {
+    if (node == nullptr) {
+        return T{};
+    }
     xmlChar* prop = xmlGetProp(node, (xmlChar*)(name.c_str()));
     std::string propa = "";
     if (prop != nullptr) {
@@ -249,6 +252,10 @@ T FreezeRuleCluster::GetAttributeValue(xmlNode* node, const std::string& name)
     std::istringstream istr(propa);
     T value;
     istr >> value;
+    if (istr.fail()) {
+        xmlFree(prop);
+        return T{};
+    }
     xmlFree(prop);
     return value;
 }

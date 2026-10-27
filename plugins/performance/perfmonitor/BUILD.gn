@@ -57,6 +57,7 @@ ohos_shared_library("libperfmonitor") {
   if (hiview_enable_xperf_perfmonitor) {
     part_name = "hiview"
     subsystem_name = "hiviewdfx"
+    version_script = "libperfmonito.version_script.map"
 
     branch_protector_ret = "pac_ret"
     sanitize = {

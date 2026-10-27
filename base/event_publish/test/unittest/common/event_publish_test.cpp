@@ -402,6 +402,41 @@ HWTEST_F(EventPublishTest, EventPublishTest010, TestSize.Level1)
 }
 
 /**
+ * @tc.name: EventPublishTest011
+ * @tc.desc: used to test PushEvent rejects oversized and non-object JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventPublishTest, EventPublishTest011, TestSize.Level1)
+{
+    bool isSuccess = g_testPid != -1;
+    if (!isSuccess) {
+        ASSERT_FALSE(isSuccess);
+        GTEST_LOG_(ERROR) << "Failed to launch target hap.";
+    } else {
+        uint32_t testUid = GetUidByPid(GetPidByBundleName(TEST_BUNDLE_NAME));
+        EXPECT_GT(testUid, 0);
+
+        std::string testDatabaseWALPath = TEST_SANDBOX_BASE_PATH + APPEVENT_DB_WAL_PATH;
+        bool existRes = FileExists(testDatabaseWALPath);
+        EXPECT_TRUE(existRes);
+        std::string beginMd5Sum = GetFileMd5Sum(testDatabaseWALPath);
+
+        // non-object JSON should be rejected
+        EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH",
+            HiSysEvent::EventType::FAULT, "[1, 2, 3]");
+        // non-object JSON (string) should be rejected
+        EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH",
+            HiSysEvent::EventType::FAULT, "\"malicious_string\"");
+        // non-object JSON (number) should be rejected
+        EventPublish::GetInstance().PushEvent(testUid, "APP_CRASH",
+            HiSysEvent::EventType::FAULT, "12345");
+
+        std::string endMd5Sum = GetFileMd5Sum(testDatabaseWALPath, DELAY_TIME_FOR_WRITE);
+        EXPECT_EQ(beginMd5Sum, endMd5Sum);
+    }
+}
+
+/**
 @tc.name: AppEventPublisherFactoryTest001
 @tc.desc: used to test class AppEventPublisherFactory
 @tc.type: FUNC

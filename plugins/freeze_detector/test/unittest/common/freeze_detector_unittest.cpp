@@ -16,6 +16,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <set>
 #include <unistd.h>
@@ -1214,6 +1215,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_005, TestSize.Level3)
  */
 HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_007, TestSize.Level3)
 {
+    constexpr int64_t processLifetime = 123456;
     auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
     std::string testName = "FreezeDetectorPlugin_007";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
@@ -1226,15 +1228,158 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDetectorPlugin_007, TestSize.Level3)
     sysEvent->SetEventValue(FreezeCommon::EVENT_UID, getuid());
     sysEvent->SetEventValue(FreezeCommon::EVENT_PACKAGE_NAME, testName);
     sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_NAME, testName);
+    sysEvent->SetEventValue(FreezeCommon::EVENT_PROCESS_LIFETIME, processLifetime);
     sysEvent->SetEventValue(FreezeCommon::HITRACE_TIME, "12453");
     sysEvent->SetEventValue(FreezeCommon::SYSRQ_TIME, "12453");
     sysEvent->SetEventValue(FreezeCommon::TERMINAL_THREAD_STACK, testName);
     sysEvent->SetEventValue(EventStore::EventCol::INFO, testName);
     auto freezeDetectorPlugin = std::make_unique<FreezeDetectorPlugin>();
-    freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    WatchPoint watchPoint = freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
+    EXPECT_EQ(watchPoint.GetProcessLifeTime(), processLifetime);
     sysEvent->SetEventValue(FreezeCommon::EVENT_TRACE_ID, "12345;123456");
     freezeDetectorPlugin->MakeWatchPoint(*(sysEvent.get()));
     ASSERT_TRUE(freezeDetectorPlugin != nullptr);
+}
+
+/**
+ * @tc.name: Req1NumericSamplerCountAndMetadata
+ * @tc.desc: Preserve the INT32 event value, including zero, and distinguish missing diagnostics.
+ */
+HWTEST_F(FreezeDetectorUnittest, Req1NumericSamplerCountAndMetadata, TestSize.Level1)
+{
+    SysEvent event("Req1NumericSamplerCountAndMetadata", nullptr, "{\"domain_\":\"AAFWK\"}");
+    event.eventName_ = "THREAD_BLOCK_6S";
+    event.SetEventValue("HEAVIEST_STACK", "heaviest stack:\nstack counts: 2\n");
+    event.SetEventValue("LOG_VALIDITY", "20:0:15:0|30:0:18:0");
+    event.SetEventValue(FreezeCommon::EVENT_APPLICATION_HEAP_INFO, "SAMPLER_COUNT:77,HEAVIEST_STACK:heap");
+    event.SetEventValue(FreezeCommon::EVENT_APPLICATION_GC_INFO, "LOG_VALIDITY:1:2:3:4");
+    event.SetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO, "SAMPLER_COUNT:88");
+    FreezeDetectorPlugin plugin;
+    EXPECT_EQ(plugin.MakeWatchPoint(event).GetSamplerCount(), INVALID_SAMPLER_COUNT);
+    for (const int64_t value : {int64_t(10), int64_t(0), int64_t(-1), int64_t(-2),
+        int64_t(std::numeric_limits<int32_t>::max()) + 1}) {
+        event.SetEventValue("SAMPLER_COUNT", value);
+        EXPECT_TRUE(event.GetEventValue("SAMPLER_COUNT").empty());
+        const WatchPoint copy(plugin.MakeWatchPoint(event));
+        const int32_t expected = value >= 0 && value <= std::numeric_limits<int32_t>::max() ?
+            static_cast<int32_t>(value) : INVALID_SAMPLER_COUNT;
+        EXPECT_EQ(copy.GetSamplerCount(), expected);
+        EXPECT_EQ(copy.GetHeaviestStack(), "heaviest stack:\nstack counts: 2\n");
+        EXPECT_EQ(copy.GetLogValidity(), "20:0:15:0|30:0:18:0");
+        FaultLogInfoInner info;
+        Vendor vendor(nullptr);
+        vendor.FillSectionMaps(info, copy, "false");
+        EXPECT_EQ(info.sectionMaps["SAMPLER_COUNT"], std::to_string(expected));
+        EXPECT_EQ(info.sectionMaps["LOG_VALIDITY"], copy.GetLogValidity());
+    }
+}
+
+/**
+ * @tc.name: Req1TerminalStackSourceSelection
+ * @tc.desc: Verify TERMINAL_THREAD_STACK source priority: binderStack > HEAVIEST_STACK
+ */
+HWTEST_F(FreezeDetectorUnittest, Req1TerminalStackSourceSelection, TestSize.Level1)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    FaultLogInfoInner info;
+
+    // Case 1: binderStack non-empty → use binderStack, HEAVIEST_STACK ignored
+    std::string binderStack = "#00 pc 0000000000000010 /system/lib64/libc.so(func+0x10)\n";
+    std::string heaviestStack = "heaviest stack: \nstack counts: 8\n"
+        "#01 pc 0000000000000020 /data/lib.so(main+0x40)\n";
+    WatchPoint wp = WatchPoint::Builder()
+        .InitTerminalThreadStack(binderStack)
+        .InitFreezeLogInfo(heaviestStack, "10:0:20:0", 8)
+        .Build();
+    vendor->FillSectionMaps(info, wp, "false");
+    EXPECT_EQ(info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK], binderStack);
+
+    // Case 2: binderStack empty, HEAVIEST_STACK valid → use parsed heaviest frames
+    heaviestStack = "heaviest stack: \nstack counts: 8\n"
+        "#01 pc 0000000000000020 /data/lib.so(main+0x40)\n";
+    wp = WatchPoint::Builder()
+        .InitTerminalThreadStack("")
+        .InitFreezeLogInfo(heaviestStack, "10:0:20:0", 8)
+        .Build();
+    info.sectionMaps.clear();
+    vendor->FillSectionMaps(info, wp, "false");
+    EXPECT_EQ(info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK],
+        "#01 pc 0000000000000020 /data/lib.so(main+0x40)\n");
+
+    // Case 3: binderStack empty, HEAVIEST_STACK has literal \n → convert and use
+    heaviestStack = "heaviest stack: \\nstack counts: 8\\n"
+        "#01 pc 0000000000000020 /data/lib.so(main+0x40)\\n";
+    wp = WatchPoint::Builder()
+        .InitTerminalThreadStack("")
+        .InitFreezeLogInfo(heaviestStack, "10:0:20:0", 8)
+        .Build();
+    info.sectionMaps.clear();
+    vendor->FillSectionMaps(info, wp, "false");
+    EXPECT_EQ(info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK],
+        "#01 pc 0000000000000020 /data/lib.so(main+0x40)\n");
+
+    // Case 4: both empty → TERMINAL_THREAD_STACK empty
+    wp = WatchPoint::Builder()
+        .InitTerminalThreadStack("")
+        .InitFreezeLogInfo("", "", INVALID_SAMPLER_COUNT)
+        .Build();
+    info.sectionMaps.clear();
+    vendor->FillSectionMaps(info, wp, "false");
+    EXPECT_TRUE(info.sectionMaps[FreezeCommon::TERMINAL_THREAD_STACK].empty());
+}
+
+/**
+ * @tc.name: Req1ParseHeaviestFramesEdgeCases
+ * @tc.desc: Verify ParseHeaviestFrames handles oversized, NUL, no-newline, single-newline inputs
+ */
+HWTEST_F(FreezeDetectorUnittest, Req1ParseHeaviestFramesEdgeCases, TestSize.Level1)
+{
+    // oversized input → empty
+    std::string oversized(128 * 1024 + 1, 'x');
+    EXPECT_TRUE(Vendor::ParseHeaviestFrames(oversized).empty());
+
+    // contains NUL → empty
+    std::string withNul = std::string("heaviest") + '\0' + "stack";
+    EXPECT_TRUE(Vendor::ParseHeaviestFrames(withNul).empty());
+
+    // no newline at all → empty
+    EXPECT_TRUE(Vendor::ParseHeaviestFrames("heaviest stack: no newlines here").empty());
+
+    // only one newline → empty
+    EXPECT_TRUE(Vendor::ParseHeaviestFrames("heaviest stack:\nno second line").empty());
+
+    // valid input, pc without func+offset → frames returned as-is
+    std::string valid = "heaviest stack: \nstack counts: 8\n#01 pc 0000000000000010 /data/lib.so\n";
+    EXPECT_EQ(Vendor::ParseHeaviestFrames(valid), "#01 pc 0000000000000010 /data/lib.so\n");
+
+    // valid input, pc with func+offset → frames returned as-is
+    std::string withFunc = "heaviest stack: \nstack counts: 8\n#01 pc 0000000000000010 /data/lib.so(main+0x40)\n";
+    EXPECT_EQ(Vendor::ParseHeaviestFrames(withFunc), "#01 pc 0000000000000010 /data/lib.so(main+0x40)\n");
+}
+
+/**
+ * @tc.name: FreezeVendor_FillStartTimeInfo_001
+ * @tc.desc: Verify raw process and device start times are added to sysfreeze sections
+ * @tc.type: FUNC
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVendor_FillStartTimeInfo_001, TestSize.Level1)
+{
+    constexpr int64_t processLifetime = 123456;
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    WatchPoint watchPoint = WatchPoint::Builder().InitProcessLifeTime(processLifetime).Build();
+    FaultLogInfoInner info;
+    uint64_t deviceRunningTimeBefore = TimeUtil::GetBootTimeMs();
+
+    vendor->FillSectionMaps(info, watchPoint, "No");
+
+    uint64_t deviceRunningTimeAfter = TimeUtil::GetBootTimeMs();
+    EXPECT_EQ(info.sectionMaps["PROCESS_LIFETIME"], std::to_string(processLifetime));
+    EXPECT_EQ(info.sectionMaps[FreezeCommon::HOST_RESOURCE_WARNING], "");
+    uint64_t deviceRunningTime = std::stoull(info.sectionMaps[FreezeCommon::EVENT_DEVICE_RUNNING_TIME]);
+    EXPECT_GE(deviceRunningTime, deviceRunningTimeBefore);
+    EXPECT_LE(deviceRunningTime, deviceRunningTimeAfter);
 }
 
 /**

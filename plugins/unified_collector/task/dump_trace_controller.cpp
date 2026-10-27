@@ -47,7 +47,7 @@ bool DumpTraceController::IsTimeOver(const CpuThresholdItem& item)
 // only when cpu load restore form high to normal, meet the condition for capturing trace
 bool DumpTraceController::IsCpuLoadBackToNormal(CpuThresholdItem& item)
 {
-    int32_t pid = CommonUtils::GetPidByName(item.processName);
+    int32_t pid = CommonUtils::GetPidByProcessName(item.processName);
     if (pid <= 0) {
         HIVIEW_LOGW("get pid failed, process:%{public}s", item.processName.c_str());
         return false;

@@ -15,6 +15,8 @@
 #include "xperf_register_manager.h"
 #include "xperf_service_log.h"
 #include "xperf_service_action_type.h"
+#include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -29,6 +31,14 @@ int32_t XperfRegisterManager::RegisterEventListener(const std::string& caller, c
     const std::vector<int>& eventCodes)
 {
     if (cb == nullptr) {
+        LOGW("invalid data, cb is nullptr");
+        return XPERF_SERVICE_ERR; // failed
+    }
+    OHOS::Security::AccessToken::AccessTokenID callerToken = OHOS::IPCSkeleton::GetCallingTokenID();
+    Security::AccessToken::ATokenTypeEnum tokenType = OHOS::Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(
+        callerToken);
+    if (tokenType != OHOS::Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        LOGW("XperfRegisterManager_RegisterEventListener only SA can register");
         return XPERF_SERVICE_ERR; // failed
     }
     std::unique_lock<std::shared_timed_mutex> lock(mMutex);

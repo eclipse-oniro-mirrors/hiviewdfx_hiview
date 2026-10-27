@@ -17,6 +17,10 @@
 #include <cstring>
 #include "xperf_service_log.h"
 
+namespace {
+    constexpr size_t MAX_ALLOWED_LENGTH = 500;
+}
+
 namespace OHOS {
 namespace HiviewDFX {
 
@@ -42,7 +46,10 @@ bool ExtractSubTag(const std::string& msg, std::string &value, const char* preTa
     if (tagEnd == nullptr || tagEnd == tagBegin) {
         return false;
     }
-
+    size_t len = tagEnd - tagBegin;
+    if (len > MAX_ALLOWED_LENGTH) {
+        return false;
+    };
     value = std::string(tagBegin, tagEnd - tagBegin);
     return true;
 }

@@ -24,13 +24,13 @@ public:
     virtual ~TraceBaseState() = default;
     virtual TraceRet OpenTrace(const Scenario& scenario);
     virtual TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
-        TraceRetInfo &info, const std::string& outputPath = "");
+        Hitrace::TraceRetInfo &info, const std::string& outputPath = "");
     virtual TraceRet DumpTraceAsync(const DumpTraceArgs &args, int64_t fileSizeLimit,
-        TraceRetInfo &info, DumpTraceCallback callback);
-    virtual TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, TraceRetInfo &info,
+        Hitrace::TraceRetInfo &info, DumpTraceCallback callback);
+    virtual TraceRet DumpTraceWithFilter(uint32_t maxDuration, uint64_t happenTime, Hitrace::TraceRetInfo &info,
         const std::string& outputPath = "");
     virtual TraceRet TraceDropOn(const std::string& scenarioName, const std::string& outputPath = "");
-    virtual TraceRet TraceDropOff(const std::string& scenarioName, TraceRetInfo &info);
+    virtual TraceRet TraceDropOff(const std::string& scenarioName, Hitrace::TraceRetInfo &info);
     virtual TraceRet TraceCacheOn();
     virtual TraceRet SetCacheParams(int32_t totalFileSize, int32_t sliceMaxDuration);
     virtual TraceRet TraceCacheOff();

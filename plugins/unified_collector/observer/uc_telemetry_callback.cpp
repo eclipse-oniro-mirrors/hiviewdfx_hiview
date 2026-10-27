@@ -103,7 +103,7 @@ void UcTelemetryCallback::OnTelemetryFinish()
 void UcTelemetryCallback::SetAppFilterInfo()
 {
     for (const auto &appBundleName : appFilterNames_) {
-        auto pid = CommonUtils::GetPidByName(appBundleName);
+        auto pid = CommonUtils::GetPidByProcessName(appBundleName);
         if (pid <= 0) {
             HIVIEW_LOGI("get pid failed, app name:%{public}s", appBundleName.c_str());
             continue;

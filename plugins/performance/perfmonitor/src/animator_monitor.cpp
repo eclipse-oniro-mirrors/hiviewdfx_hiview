@@ -108,7 +108,6 @@ void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender
     XPERF_TRACE_SCOPED("Animation end and current sceneId=%s", sceneId.c_str());
     HIVIEW_LOGD("Animation stop and current sceneId: %{public}s", sceneId.c_str());
     if (record != nullptr) {
-        SceneMonitor::GetInstance().FlushSubHealthInfo();
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
         record->Report(sceneId, mVsyncTime, isRsRender);
         ReportAnimateEnd(sceneId, record);
@@ -155,17 +154,6 @@ AnimatorRecord* AnimatorMonitor::GetRecord(const std::string& sceneId)
         return iter->second;
     }
     return nullptr;
-}
-
-void AnimatorMonitor::SetSubHealthInfo(const SubHealthInfo& info)
-{
-    subHealthRecordTime = GetCurrentSystimeMs();
-    SceneMonitor::GetInstance().SetSubHealthInfo(info);
-}
-
-bool AnimatorMonitor::IsSubHealthScene()
-{
-    return (GetCurrentSystimeMs() - subHealthRecordTime < VAILD_JANK_SUB_HEALTH_INTERVAL);
 }
 
 void AnimatorMonitor::RemoveRecord(const std::string& sceneId)

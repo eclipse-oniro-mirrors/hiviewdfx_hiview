@@ -94,6 +94,8 @@ bool IsSafePath(const std::string& basePath, const std::string& fullPath)
         HIVIEW_LOGE("real fullPath failed.");
         return false;
     }
+
+    realBasePath = FileUtil::IncludeTrailingPathDelimiter(realBasePath);
     return realFullPath.find(realBasePath) == 0;
 }
 
@@ -299,7 +301,7 @@ ErrCode HiviewServiceAbility::CopyOrMoveFile(
     }
     std::string fullPath = ComposeFilePath(sandboxPath, dest, logName);
     ErrCode ret = isMove ? service->Move(sourceFile, fullPath) : service->Copy(sourceFile, fullPath);
-    if (ret == 0 && chown(fullPath.c_str(), uid, uid) != 0) {
+    if (ret == 0 && lchown(fullPath.c_str(), uid, uid) != 0) {
         HIVIEW_LOGW("fail to change file owner and group:%{public}d, uid:%{public}d", errno, uid);
     }
     return ret;
@@ -374,23 +376,35 @@ ErrCode HiviewServiceAbility::DumpSnapshotTrace(int32_t client, const std::strin
         !HasAccessPermission(READ_HIVIEW_SYSTEM_PERMISSION)) {
         return HiviewNapiErrCode::ERR_PERMISSION_CHECK;
     }
+
+    auto traceClient = static_cast<UCollect::TraceClient>(client);
     auto token_type = Security::AccessToken::AccessTokenKit::GetTokenType(IPCSkeleton::GetCallingTokenID());
     std::string caller;
-    auto traceClient = static_cast<UCollect::TraceClient>(client);
     bool isNeedFlowControl = false;
-    if (traceClient == UCollect::TraceClient::COMMAND) {
-        caller = "traceCommand";
-    } else if (token_type == Security::AccessToken::TOKEN_HAP) {
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        caller = BundleUtil::GetApplicationNameById(uid);
-    } else {
-        int32_t pid = IPCSkeleton::GetCallingPid();
-        caller = CommonUtils::GetProcNameByPid(pid);
-        isNeedFlowControl = true;
-    }
-    if (caller.empty()) {
-        HIVIEW_LOGE("Get callName failed.");
-        return UCollect::UcError::SYSTEM_ERROR;
+    switch (traceClient) {
+        case UCollect::TraceClient::COMMAND:
+        case UCollect::COMMON_RELIABILITY:
+            if (token_type == Security::AccessToken::TOKEN_HAP) {
+                HIVIEW_LOGE("Get callName failed.");
+                return UCollect::UcError::SYSTEM_ERROR;
+            }
+            caller = (traceClient == UCollect::TraceClient::COMMAND) ? "traceCommand" : "Reliability";
+            break;
+        case UCollect::COMMON_DEV:
+            if (token_type == Security::AccessToken::TOKEN_HAP) {
+                caller = BundleUtil::GetApplicationNameById(IPCSkeleton::GetCallingUid());
+            } else {
+                caller = CommonUtils::GetProcNameByPid(IPCSkeleton::GetCallingPid());
+                isNeedFlowControl = true;
+            }
+            if (caller.empty()) {
+                HIVIEW_LOGE("Get callName failed.");
+                return UCollect::UcError::SYSTEM_ERROR;
+            }
+            break;
+        default:
+            HIVIEW_LOGE("invalid client");
+            return UCollect::UcError::SYSTEM_ERROR;
     }
     auto traceRetHandler = [caller, isNeedFlowControl, &outputPath](HiviewService* service) {
         return service->DumpSnapshotTrace(caller, isNeedFlowControl, outputPath);

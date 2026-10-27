@@ -22,10 +22,14 @@
 #include "faultlogger_client.h"
 namespace OHOS {
 namespace HiviewDFX {
+namespace {
+constexpr uint64_t DFX_FDSAN_DOMAIN = 0xD002D11;
+}
+
 FaultLogInfo::~FaultLogInfo()
 {
     if (fd_ >= 0) {
-        close(fd_);
+        fdsan_close_with_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
         fd_ = -1;
     }
 }
@@ -87,6 +91,12 @@ void FaultLogInfo::SetFaultType(int32_t faultType)
 
 void FaultLogInfo::SetRawFileDescriptor(int32_t fd)
 {
+    if (fd_ >= 0) {
+        fdsan_close_with_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
+    }
+    if (fd >= 0) {
+        fdsan_exchange_owner_tag(fd, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
+    }
     fd_ = fd;
 }
 

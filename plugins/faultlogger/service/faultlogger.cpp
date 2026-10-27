@@ -39,12 +39,13 @@ bool Faultlogger::IsInterestedPipelineEvent(std::shared_ptr<Event> event)
         return false;
     }
 
-    const int eventCount = 4;
+    const int eventCount = 5;
     std::array<const char* const, eventCount> eventNames = {
         "JS_ERROR",
         "CJ_ERROR",
         "RUST_PANIC",
-        "ADDR_SANITIZER"
+        "ADDR_SANITIZER",
+        "FILE_DELETED"
     };
 
     return std::find(eventNames.begin(), eventNames.end(), event->eventName_) != eventNames.end();

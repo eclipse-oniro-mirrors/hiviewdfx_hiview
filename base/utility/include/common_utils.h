@@ -39,7 +39,6 @@ static constexpr uint32_t MAX_LINE_LEN = 1024;
 namespace CommonUtils {
 std::string GetProcNameByPid(int32_t pid);
 std::string GetProcFullNameByPid(int32_t pid);
-pid_t GetPidByName(const std::string& processName);
 int32_t GetUidByPid(const int32_t pid);
 bool IsSpecificCmdExist(const std::string& fullPath);
 bool IsPidExist(pid_t pid);

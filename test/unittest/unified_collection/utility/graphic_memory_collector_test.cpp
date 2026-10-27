@@ -38,8 +38,8 @@ void GetTestProcNameAndPid(std::string& procName, int32_t& pid)
 {
     const std::string systemuiProcName = "com.ohos.systemui";
     const std::string sceneBoardProcName = "com.ohos.sceneboard";
-    auto systemuiPid = CommonUtils::GetPidByName(systemuiProcName);
-    auto launcherPid = CommonUtils::GetPidByName(sceneBoardProcName);
+    auto systemuiPid = CommonUtils::GetPidByProcessName(systemuiProcName);
+    auto launcherPid = CommonUtils::GetPidByProcessName(sceneBoardProcName);
     pid = static_cast<int32_t>(systemuiPid > 0 ? systemuiPid : launcherPid);
     procName = systemuiPid > 0 ? systemuiProcName : sceneBoardProcName;
 }

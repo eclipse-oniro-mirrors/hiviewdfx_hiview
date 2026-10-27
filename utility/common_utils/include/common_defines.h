@@ -32,9 +32,8 @@ static const int MAX_BUFFER_SIZE = 8 * 1024 * 1024; // 8:8M
 static const int HAPPEN_TIME_DEFAULT = 0;
 
 enum FingerPrintMode {
-    FP_FILE = 0,
-    FP_BUFFER,
-    FP_ATTR
+    FP_BUFFER = 1,
+    FP_ATTR = 2
 };
 } // namespace HiviewDFX
 } // namespace OHOS

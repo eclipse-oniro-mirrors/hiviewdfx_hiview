@@ -67,6 +67,11 @@ void ExtractRule::ParseSegStatusCfg(const Json::Value& json)
     }
 
     Json::Value arrayObj = json[L1_SEG_STATUS];
+    if (!arrayObj.isArray()) {
+        HIVIEW_LOGE("failed to get json array %{public}s.", L1_SEG_STATUS);
+        return;
+    }
+
     int arrayObjSize = static_cast<int>(arrayObj.size());
     if (arrayObjSize > JSON_ARRAY_THRESHOLD) {
         arrayObjSize = JSON_ARRAY_THRESHOLD;
@@ -238,6 +243,7 @@ void ExtractRule::ParseRuleParam(const Json::Value& object, list<FeatureRule>& f
         command.depend = object[i][L3_DEPEND].asString();
         GetExtractParam(object[i], command.param, L3_PARAM);
         command.num = object[i][L3_NUM].asInt();
+        command.skipNum = object[i][L3_SKIP_NUM].asInt();
         if (command.num > 0 && type == L2_RULES) {
             HIVIEW_LOGE("rule command can't have num.\n");
             continue;

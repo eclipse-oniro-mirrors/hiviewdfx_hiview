@@ -39,6 +39,9 @@ bool ThermalInfoCatcher::Initialize(const std::string& strParam1, int intParam1,
 int ThermalInfoCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     PowerMgr::ThermalLevel temp = PowerMgr::ThermalMgrClient::GetInstance().GetThermalLevel();
     int tempNum = static_cast<int>(temp);
     FileUtil::SaveStringToFd(fd, "\nThermalLevel info: " + std::to_string(tempNum) + "\n");

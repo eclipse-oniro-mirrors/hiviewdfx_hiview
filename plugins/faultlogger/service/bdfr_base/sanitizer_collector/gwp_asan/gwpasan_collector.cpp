@@ -19,20 +19,13 @@
 #include <cstring>
 #include <ctime>
 #include <fcntl.h>
-#include <mutex>
 #include <securec.h>
 #include <sys/time.h>
-#include <time_util.h>
 #include <unistd.h>
-#include <parameter.h>
-#include <parameters.h>
+#include <atomic>
 
-#include "bundle_mgr_client.h"
-#include "hisysevent.h"
 #include "hisysevent_easy.h"
 #include "faultloggerd_client.h"
-#include "tbox.h"
-#include "common_defines.h"
 #include "dfx_signal_handler.h"
 
 #undef LOG_DOMAIN
@@ -42,34 +35,57 @@
 #define LOG_TAG "Sanitizer"
 
 namespace {
-constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
-constexpr unsigned BUF_SIZE = 128;
-constexpr unsigned HWASAN_ERRTYPE_FIELD = 2;
-constexpr unsigned ASAN_ERRTYPE_FIELD = 2;
-constexpr mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
-constexpr char ADDR_SANITIZER_EVENT[] = "ADDR_SANITIZER";
-static std::stringstream g_asanlog;
-constexpr uint64_t TIME_RATIO = 1000;
+const char ADDR_SANITIZER_DOMAIN[] = "RELIABILITY";
+const char ADDR_SANITIZER_EVENT[] = "ADDR_SANITIZER";
 constexpr int DEFAULT_BUFFER_SIZE = 64;
+constexpr int DECIMAL_BASE = 10;
+constexpr unsigned MAX_HISYSEVENT_SIZE = 1000;
+constexpr int MILLISECONDS_PER_SECOND = 1000;
+constexpr int MANOSECONDS_PER_MILLISECOND = 1000 * 1000;
+const mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
+const unsigned MIN_SUMMARY_SPACE = 10;
+
+// Fault type strings
+const char END_GWP_ASAN_REPORT[] = "End GWP-ASan report";
+const char END_TSAN_REPORT[] = "End Tsan report";
+const char END_CFI_REPORT[] = "End CFI report";
+const char END_UBSAN_REPORT[] = "End Ubsan report";
+const char END_HWASAN_REPORT[] = "End Hwasan report";
+const char END_ASAN_REPORT[] = "End Asan report";
+
+const char FAULT_TYPE_GWP_ASAN[] = "GWP-ASAN";
+const char FAULT_TYPE_TSAN[] = "TSAN";
+const char FAULT_TYPE_UBSAN[] = "UBSAN";
+const char FAULT_TYPE_HWASAN[] = "HWASAN";
+const char FAULT_TYPE_ASAN[] = "ASAN";
+
+const char FAULTLOGGER_PATH[] = "faultlogger";
+constexpr unsigned G_ASAN_LOG_SIZE = 1 * 1024 * 1024;
+char g_asanlog[G_ASAN_LOG_SIZE];
+std::atomic<size_t> g_asanlogLen;
+std::atomic_flag g_asanlogLock = ATOMIC_FLAG_INIT;
+static GwpAsanCurrInfo g_currInfo;
 }
 
-static std::string GetFormatedTime(uint64_t target)
+uint64_t GetTimeMilliseconds()
 {
-    time_t now = time(nullptr);
-    if (target > static_cast<uint64_t>(now)) {
-        target = target / TIME_RATIO; // 1000 : convert millisecond to seconds
-    }
+    struct timespec ts;
+    (void)clock_gettime(CLOCK_REALTIME, &ts);
+    return (static_cast<uint64_t>(ts.tv_sec) * MILLISECONDS_PER_SECOND) +
+        (static_cast<uint64_t>(ts.tv_nsec) / MANOSECONDS_PER_MILLISECOND);
+}
 
-    time_t out = static_cast<time_t>(target);
-    struct tm tmStruct {0};
-    struct tm* timeInfo = localtime_r(&out, &tmStruct);
-    if (timeInfo == nullptr) {
-        return "00000000000000";
+bool WriteDescriptionToFd(int fd, const char* desc, size_t descLen)
+{
+    ssize_t written = 0;
+    while (written < static_cast<ssize_t>(descLen)) {
+        ssize_t w = write(fd, desc + written, descLen - written);
+        if (w <= 0) {
+            return false;
+        }
+        written += w;
     }
-
-    char buf[DEFAULT_BUFFER_SIZE] = {0};
-    (void)strftime(buf, DEFAULT_BUFFER_SIZE - 1, "%Y%m%d%H%M%S", timeInfo);
-    return std::string(buf, strlen(buf));
+    return true;
 }
 
 void WriteSanitizerLog(char* buf, size_t sz, char* path)
@@ -77,135 +93,126 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     if (buf == nullptr || sz == 0) {
         return;
     }
-    static std::mutex sMutex;
-    std::lock_guard<std::mutex> lock(sMutex);
-    // append to buffer
-    for (size_t i = 0; i < sz; i++) {
-        g_asanlog << buf[i];
+    if (g_asanlogLock.test_and_set(std::memory_order_acquire)) {
+        return;
     }
-    std::string logContent(buf, sz);
-    const char *gwpOutput = strstr(logContent.c_str(), "End GWP-ASan report");
-    const char *tsanOutput = strstr(logContent.c_str(), "End Tsan report");
-    const char *cfiOutput = strstr(logContent.c_str(), "End CFI report");
-    const char *ubsanOutput = strstr(logContent.c_str(), "End Ubsan report");
-    const char *hwasanOutput = strstr(logContent.c_str(), "End Hwasan report");
-    const char *asanOutput = strstr(logContent.c_str(), "End Asan report");
-    if (gwpOutput) {
-        std::string gwpasanlog = g_asanlog.str();
-        ReadGwpAsanRecord(gwpasanlog, "GWP-ASAN", path);
-        // clear buffer
-        g_asanlog.str("");
-    } else if (tsanOutput) {
-        std::string tsanlog = g_asanlog.str();
-        ReadGwpAsanRecord(tsanlog, "TSAN", path);
-        // clear buffer
-        g_asanlog.str("");
-    } else if (cfiOutput || ubsanOutput) {
-        std::string ubsanlog = g_asanlog.str();
-        ReadGwpAsanRecord(ubsanlog, "UBSAN", path);
-        // clear buffer
-        g_asanlog.str("");
-    } else if (hwasanOutput) {
-        std::string hwasanlog = g_asanlog.str();
-        ReadGwpAsanRecord(hwasanlog, "HWASAN", path);
-        // clear buffer
-        g_asanlog.str("");
-    } else if (asanOutput) {
-        std::string asanlog = g_asanlog.str();
-        ReadGwpAsanRecord(asanlog, "ASAN", path);
-        // clear buffer
-        g_asanlog.str("");
+    size_t logLen = g_asanlogLen.load(std::memory_order_relaxed);
+    size_t copyLen = (sz < G_ASAN_LOG_SIZE - 1 - logLen) ? sz : (G_ASAN_LOG_SIZE - 1 - logLen);
+    if (copyLen > 0) {
+        errno_t err = memcpy_s(g_asanlog + logLen, G_ASAN_LOG_SIZE - logLen, buf, copyLen);
+        if (err != EOK) {
+            g_asanlogLock.clear(std::memory_order_release);
+            return;
+        }
     }
+    logLen += copyLen;
+    g_asanlog[logLen] = '\0';
+    g_asanlogLen.store(logLen, std::memory_order_relaxed);
+    const char* faultType = nullptr;
+    if (strstr(g_asanlog, END_GWP_ASAN_REPORT) != nullptr) {
+        faultType = FAULT_TYPE_GWP_ASAN;
+    } else if (strstr(g_asanlog, END_TSAN_REPORT) != nullptr) {
+        faultType = FAULT_TYPE_TSAN;
+    } else if (strstr(g_asanlog, END_CFI_REPORT) != nullptr || strstr(g_asanlog, END_UBSAN_REPORT) != nullptr) {
+        faultType = FAULT_TYPE_UBSAN;
+    } else if (strstr(g_asanlog, END_HWASAN_REPORT) != nullptr) {
+        faultType = FAULT_TYPE_HWASAN;
+    } else if (strstr(g_asanlog, END_ASAN_REPORT) != nullptr) {
+        faultType = FAULT_TYPE_ASAN;
+    }
+    if (faultType != nullptr) {
+        ReadGwpAsanRecordFromBuffer(faultType, path);
+        g_asanlogLen.store(0, std::memory_order_relaxed);
+    }
+    g_asanlogLock.clear(std::memory_order_release);
 }
 
-void ReadGwpAsanRecord(const std::string& gwpAsanBuffer, const std::string& faultType, char* logPath)
+void ReadGwpAsanRecordFromBuffer(const char* faultType, char* logPath)
 {
-    const std::unordered_set<std::string> setAsanOptionTypeList = {"ASAN", "HWASAN"};
-    GwpAsanCurrInfo currInfo;
-    currInfo.description = gwpAsanBuffer;
-    if (logPath == nullptr || strlen(logPath) == 0 ||
-        setAsanOptionTypeList.find(faultType) == setAsanOptionTypeList.end()) {
-        currInfo.logPath = "faultlogger";
-    } else {
-        currInfo.logPath = std::string(logPath);
+    (void)memset_s(&g_currInfo, sizeof(g_currInfo), 0, sizeof(g_currInfo));
+    size_t logLen = g_asanlogLen.load(std::memory_order_relaxed);
+    size_t descLen = (logLen < sizeof(g_currInfo.description) - 1) ? logLen :
+        (sizeof(g_currInfo.description) - 1);
+    if (descLen > 0) {
+        (void)memcpy_s(g_currInfo.description, sizeof(g_currInfo.description), g_asanlog, descLen);
     }
-    currInfo.pid = getprocpid();
-    currInfo.uid = static_cast<int32_t>(getuid());
-    currInfo.faultType = faultType;
-    currInfo.errType = GetErrorTypeFromBuffer(gwpAsanBuffer, faultType);
-    currInfo.moduleName = GetNameByPid(currInfo.pid);
-    time_t timeNow = time(nullptr);
-    uint64_t timeTmp = static_cast<uint64_t>(timeNow);
-    constexpr int decimalBase = 10;
-    std::string timeStr = GetFormatedTime(timeTmp);
-    currInfo.happenTime = static_cast<uint64_t>(strtoull(timeStr.c_str(), nullptr, decimalBase));
-    currInfo.topStack = GetTopStackWithoutCommonLib(currInfo.description);
-    currInfo.hash = OHOS::HiviewDFX::Tbox::CalcFingerPrint(
-        currInfo.topStack + currInfo.errType + currInfo.moduleName, 0, OHOS::HiviewDFX::FingerPrintMode::FP_BUFFER);
-    currInfo.telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
-    currInfo.appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
-    // Do upload when data ready
+    g_currInfo.description[descLen] = '\0';
+    g_currInfo.descriptionLen = descLen;
+    const bool isAsanType = (strcmp(faultType, FAULT_TYPE_ASAN) == 0 || strcmp(faultType, FAULT_TYPE_HWASAN) == 0);
+    if (logPath == nullptr || strlen(logPath) == 0 || !isAsanType) {
+        errno_t err = strncpy_s(g_currInfo.logPath, sizeof(g_currInfo.logPath),
+            FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
+        if (err != EOK) {
+            g_currInfo.logPath[0] = '\0';
+        }
+    } else {
+        errno_t err = strncpy_s(g_currInfo.logPath, sizeof(g_currInfo.logPath),
+            logPath, sizeof(g_currInfo.logPath) - 1);
+        if (err != EOK) {
+            strncpy_s(g_currInfo.logPath, sizeof(g_currInfo.logPath),
+                FAULTLOGGER_PATH, sizeof(g_currInfo.logPath) - 1);
+        }
+    }
+    g_currInfo.pid = getprocpid();
+    g_currInfo.uid = static_cast<int32_t>(getuid());
+    strncpy_s(g_currInfo.faultType, sizeof(g_currInfo.faultType), faultType, strlen(faultType));
+    GetNameByPid(g_currInfo.pid, g_currInfo.moduleName, sizeof(g_currInfo.moduleName));
+    uint64_t timeTmp = GetTimeMilliseconds();
+    char timeBuf[DEFAULT_BUFFER_SIZE] = {0};
+    GetFormatedTime(timeTmp, timeBuf, sizeof(timeBuf));
+    g_currInfo.happenTime = static_cast<uint64_t>(strtoull(timeBuf, nullptr, DECIMAL_BASE));
+    const char* appRunningId = &DFX_GetAppRunningUniqueId == nullptr ? "" : DFX_GetAppRunningUniqueId();
+    strncpy_s(g_currInfo.appRunningId, sizeof(g_currInfo.appRunningId), appRunningId, strlen(appRunningId));
     bool isSendHisysevent = false;
-    WriteCollectedData(currInfo, isSendHisysevent);
+    WriteCollectedData(g_currInfo, isSendHisysevent);
     if (isSendHisysevent) {
-        SendSanitizerHisysevent(currInfo);
+        SendSanitizerHisysevent(g_currInfo);
     }
 }
 
 void SendSanitizerHisysevent(const GwpAsanCurrInfo& currInfo)
 {
-    std::stringstream ssPrefix;
-    ssPrefix << "FAULT_TYPE:" << currInfo.faultType <<
-        ";MODULE:" << currInfo.moduleName <<
-        ";REASON:" << currInfo.errType <<
-        ";PID:" << currInfo.pid <<
-        ";UID:" << currInfo.uid <<
-        ";HAPPEN_TIME:" << currInfo.happenTime <<
-        ";FINGERPRINT:" << currInfo.hash <<
-        ";FIRST_FRAME:" << currInfo.errType <<
-        ";SECOND_FRAME:" << currInfo.topStack <<
-        ";APP_RUNNING_UNIQUE_ID:" << currInfo.appRunningId;
-    if (!currInfo.telemetryId.empty()) {
-        ssPrefix << ";TELEMETRY_ID:" << currInfo.telemetryId;
+    char params[MAX_HISYSEVENT_SIZE] = {0};
+    int len = snprintf_s(params, sizeof(params), sizeof(params) - 1,
+        "FAULT_TYPE:%s;MODULE:%s;PID:%d;UID:%d;HAPPEN_TIME:%llu;"
+        "APP_RUNNING_UNIQUE_ID:%s",
+        currInfo.faultType, currInfo.moduleName,
+        currInfo.pid, currInfo.uid, static_cast<unsigned long long>(currInfo.happenTime),
+        currInfo.appRunningId);
+    if (len < 0) {
+        return;
     }
-
-    std::string prefixStr = ssPrefix.str();
-    size_t maxSummaryLen = 0;
-    const std::string summaryPrefix = ";SUMMARY:";
-    if (prefixStr.size() + summaryPrefix.size() < MAX_HISYSEVENT_SIZE) {
-        maxSummaryLen = MAX_HISYSEVENT_SIZE - prefixStr.size() - summaryPrefix.size();
+    int remaining = static_cast<int>(sizeof(params)) - len;
+    if (remaining <= static_cast<int>(MIN_SUMMARY_SPACE)) {
+        HiSysEventEasyWrite(ADDR_SANITIZER_DOMAIN,
+            ADDR_SANITIZER_EVENT, HiSysEventEasyType::EASY_EVENT_TYPE_FAULT, params);
+        return;
     }
-    std::string summary = currInfo.description.substr(0, maxSummaryLen);
-
-    std::stringstream ssParams;
-    ssParams << prefixStr << summaryPrefix << summary;
-    std::string params = ssParams.str();
-    HiSysEventEasyWrite(
-        OHOS::HiviewDFX::HiSysEvent::Domain::RELIABILITY,
-        ADDR_SANITIZER_EVENT,
-        HiSysEventEasyType::EASY_EVENT_TYPE_FAULT,
-        params.c_str()
-    );
-}
-
-std::string GetErrorTypeFromBuffer(const std::string& buffer, const std::string& faultType)
-{
-    const std::regex asanRegex("SUMMARY: (AddressSanitizer|LeakSanitizer): (\\S+)");
-    const std::regex hwasanRegex("(Potential Cause|Cause): ([\\w -]+)");
-
-    std::smatch match;
-    if (std::regex_search(buffer, match, asanRegex)) {
-        return match[ASAN_ERRTYPE_FIELD].str();
+    int addLen = snprintf_s(params + len, remaining, remaining - 1, ";SUMMARY:");
+    if (addLen < 0) {
+        HiSysEventEasyWrite(ADDR_SANITIZER_DOMAIN,
+            ADDR_SANITIZER_EVENT, HiSysEventEasyType::EASY_EVENT_TYPE_FAULT, params);
+        return;
     }
-    if (std::regex_search(buffer, match, hwasanRegex)) {
-        return match[HWASAN_ERRTYPE_FIELD].str();
+    len += addLen;
+    remaining -= addLen;
+    if (remaining > 1 && currInfo.descriptionLen > 0) {
+        size_t copyLen = (static_cast<size_t>(remaining - 1) < currInfo.descriptionLen) ?
+            (static_cast<size_t>(remaining - 1)) : currInfo.descriptionLen;
+        errno_t err = memcpy_s(params + len, static_cast<size_t>(remaining),
+            currInfo.description, copyLen);
+        if (err == EOK) {
+            len += static_cast<int>(copyLen);
+            params[len] = '\0';
+        }
     }
-    return faultType;
+    HiSysEventEasyWrite(ADDR_SANITIZER_DOMAIN,
+        ADDR_SANITIZER_EVENT, HiSysEventEasyType::EASY_EVENT_TYPE_FAULT, params);
 }
 
 void WriteCollectedData(const GwpAsanCurrInfo& currInfo, bool& isSendHisysevent)
 {
-    if (currInfo.logPath != "faultlogger" && WriteToSandbox(currInfo)) {
+    if (strcmp(currInfo.logPath, FAULTLOGGER_PATH) != 0 && WriteToSandbox(currInfo)) {
         return;
     }
 
@@ -224,119 +231,101 @@ void WriteToFaultLogger(const GwpAsanCurrInfo& currInfo)
     if (fd < 0) {
         return;
     }
-
-    OHOS::HiviewDFX::FileUtil::SaveStringToFd(fd, currInfo.description);
+    if (!WriteDescriptionToFd(fd, currInfo.description, currInfo.descriptionLen)) {
+        close(fd);
+        return;
+    }
     close(fd);
+}
+
+bool IsValidSandboxPath(const char* realPath)
+{
+    const char* prefix = "/data/storage/el";
+    size_t prefixLen = strlen(prefix);
+    size_t pathLen = strlen(realPath);
+    if (pathLen < prefixLen || strncmp(realPath, prefix, prefixLen) != 0) {
+        return false;
+    }
+    size_t numStart = prefixLen;
+    if (numStart >= pathLen) {
+        return false;
+    }
+
+    size_t p = numStart;
+    while (p < pathLen && isdigit(realPath[p])) {
+        p++;
+    }
+
+    if (p < pathLen && realPath[p] != '/') {
+        return false;
+    }
+
+    return (p != numStart);
+}
+
+bool BuildSandboxFilePath(const GwpAsanCurrInfo& currInfo, char* outPath, size_t outPathSize)
+{
+    size_t logPathLen = strlen(currInfo.logPath);
+    if (logPathLen == 0) {
+        return false;
+    }
+    size_t pos = logPathLen;
+    while (pos > 0 && currInfo.logPath[pos - 1] != '/') {
+        pos--;
+    }
+    if (pos == 0 || pos == logPathLen) {
+        return false;
+    }
+    char logDir[256] = {0};
+    char fileName[128] = {0};
+    size_t dirLen = pos;
+    size_t fileLen = logPathLen - pos;
+    if (dirLen >= sizeof(logDir) || fileLen >= sizeof(fileName)) {
+        return false;
+    }
+    errno_t err = strncpy_s(logDir, sizeof(logDir), currInfo.logPath, dirLen);
+    if (err != EOK) {
+        return false;
+    }
+    errno_t errName = strncpy_s(fileName, sizeof(fileName), currInfo.logPath + pos, fileLen);
+    if (errName != EOK) {
+        return false;
+    }
+    char fullPath[512] = {0};
+    int fullLen = snprintf_s(fullPath, sizeof(fullPath), sizeof(fullPath) - 1, "%s%s", logDir, fileName);
+    if (fullLen <= 0 || fullLen >= static_cast<int>(sizeof(fullPath))) {
+        return false;
+    }
+    char realPath[512] = {0};
+    if (!RealpathAsyncSafe(fullPath, realPath, sizeof(realPath))) {
+        return false;
+    }
+    if (!IsValidSandboxPath(realPath)) {
+        return false;
+    }
+    int pathLen = snprintf_s(outPath, outPathSize, outPathSize - 1,
+        "%s.%d.%llu", realPath,
+        currInfo.pid, static_cast<unsigned long long>(currInfo.happenTime));
+    if (pathLen <= 0 || pathLen >= static_cast<int>(outPathSize)) {
+        return false;
+    }
+    return true;
 }
 
 bool WriteToSandbox(const GwpAsanCurrInfo& currInfo)
 {
-    auto pos = currInfo.logPath.find_last_of('/');
-    if (pos == std::string::npos || pos == currInfo.logPath.length() - 1) {
+    char logFilePath[512];
+    if (!BuildSandboxFilePath(currInfo, logFilePath, sizeof(logFilePath))) {
         return false;
     }
-
-    std::string logDir = currInfo.logPath.substr(0, pos);
-    std::string fileName = currInfo.logPath.substr(pos + 1);
-    std::string realPath;
-    if (!OHOS::HiviewDFX::FileUtil::PathToRealPath(logDir, realPath)) {
-        return false;
-    }
-
-    const std::regex sandboxRegex("^/data/storage/el[0-9]+(?:/|$)");
-    if (!std::regex_search(realPath, sandboxRegex)) {
-        return false;
-    }
-
-    std::string logFilePath = realPath + "/" + fileName + "." +
-        std::to_string(currInfo.pid) + "." +
-        std::to_string(currInfo.happenTime);
-    int fd = open(logFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_SANITIZER_LOG_MODE);
+    int fd = open(logFilePath, O_CREAT | O_WRONLY | O_TRUNC | O_NOFOLLOW, DEFAULT_SANITIZER_LOG_MODE);
     if (fd < 0) {
         return false;
     }
-
-    std::ostringstream content;
-    content << "Generated by HiviewDFX @OpenHarmony\n"
-            << "===============================================================\n"
-            << "Device info:"
-            << OHOS::system::GetParameter("const.product.name", "Unknown") << "\n"
-            << "Build info:"
-            << (GetDisplayVersion() != nullptr ? GetDisplayVersion() : "Unknown") << "\n"
-            << "Timestamp:" << currInfo.happenTime << "\n"
-            << "Module name:" << currInfo.moduleName << "\n"
-            << "Pid:" << std::to_string(currInfo.pid) << "\n"
-            << "Uid:" << std::to_string(currInfo.uid) << "\n"
-            << "Reason:" << currInfo.errType << "\n"
-            << currInfo.description;
-    OHOS::HiviewDFX::FileUtil::SaveStringToFd(fd, content.str());
+    if (!WriteDescriptionToFd(fd, currInfo.description, currInfo.descriptionLen)) {
+        close(fd);
+        return false;
+    }
     close(fd);
     return true;
-}
-
-bool IsIgnoreStack(const std::string& stack)
-{
-    const std::unordered_set<std::string> ignoreList = {
-        "libclang_rt.hwasan.so",
-        "libclang_rt.asan.so",
-        "ld-musl-aarch64.so",
-        "ld-musl-aarch64-asan.so"
-    };
-    for (const auto& str : ignoreList) {
-        if (stack.find(str, 0) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::string GetTopStackWithoutCommonLib(const std::string& description)
-{
-    std::string topstack;
-    std::string record = description;
-    std::smatch stackCaptured;
-    std::string stackRecord =
-        std::string("#[\\d+] ") +
-        "0[xX][0-9a-fA-F]+" +
-        "[\\s\\?(]+" +
-        "[^\\+ ]+/([a-zA-Z0-9_.-]+)(\\.z)?(\\.so)?\\+" +
-        "0[xX][0-9a-fA-F]+";
-    static const std::regex STACK_RE(stackRecord);
-
-    while (std::regex_search(record, stackCaptured, STACK_RE)) {
-        std::string current = stackCaptured[1].str();
-        if (!IsIgnoreStack(current)) {
-            return current;
-        }
-        topstack = current;
-        record = stackCaptured.suffix().str();
-    }
-    return topstack;
-}
-
-std::string GetNameByPid(int32_t pid)
-{
-    char path[BUF_SIZE] = { 0 };
-    int err = snprintf_s(path, sizeof(path), sizeof(path) - 1, "/proc/%d/cmdline", pid);
-    if (err <= 0) {
-        return "";
-    }
-    char cmdline[BUF_SIZE] = { 0 };
-    size_t i = 0;
-    FILE *fp = fopen(path, "r");
-    if (fp == nullptr) {
-        return "";
-    }
-    while (i < (BUF_SIZE - 1)) {
-        char c = static_cast<char>(fgetc(fp));
-        // 0. don't need args of cmdline
-        // 1. ignore unvisible character
-        if (!isgraph(c)) {
-            break;
-        }
-        cmdline[i] = c;
-        i++;
-    }
-    (void)fclose(fp);
-    return cmdline;
 }

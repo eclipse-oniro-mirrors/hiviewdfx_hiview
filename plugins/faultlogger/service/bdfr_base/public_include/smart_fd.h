@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef SMART_FD_H
+#define SMART_FD_H
+
+#include <cstdint>
+#include <unistd.h>
+
+namespace OHOS {
+namespace HiviewDFX {
+class SmartFd {
+public:
+    SmartFd() = default;
+    explicit SmartFd(int fd) : fd_(fd)
+    {
+        if (fd_ >= 0) {
+            fdsan_exchange_owner_tag(fd_, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
+        }
+    }
+
+    ~SmartFd()
+    {
+        Reset();
+    }
+
+    SmartFd(const SmartFd&) = delete;
+
+    SmartFd &operator=(const SmartFd&) = delete;
+
+    SmartFd(SmartFd&& rhs) noexcept : fd_(rhs.fd_)
+    {
+        rhs.fd_ = -1;
+    }
+
+    SmartFd& operator=(SmartFd&& rhs) noexcept
+    {
+        if (this != &rhs) {
+            CloseFd();
+            fd_ = rhs.fd_;
+            rhs.fd_ = -1;
+        }
+        return *this;
+    }
+
+    explicit operator bool() const
+    {
+        return fd_ >= 0;
+    }
+
+    int GetFd() const
+    {
+        return fd_;
+    }
+
+    int Release()
+    {
+        int fd = fd_;
+        if (fd_ >= 0) {
+            fdsan_exchange_owner_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN), 0);
+        }
+        fd_ = -1;
+        return fd;
+    }
+
+    void Reset()
+    {
+        CloseFd();
+    }
+
+private:
+    void CloseFd()
+    {
+        if (fd_ < 0) {
+            return;
+        }
+        fdsan_close_with_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
+        fd_ = -1;
+    }
+
+    static constexpr uint64_t DFX_FDSAN_DOMAIN = 0xD002D11;
+    int fd_{-1};
+};
+}
+}
+#endif // SMART_FD_H

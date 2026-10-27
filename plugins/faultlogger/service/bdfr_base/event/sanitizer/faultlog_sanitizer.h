@@ -15,6 +15,7 @@
 #ifndef FAULTLOG_SANITIZER_H
 #define FAULTLOG_SANITIZER_H
 
+#include "dfx_ark.h"
 #include "faultlog_event_pipeline.h"
 #include "sys_event.h"
 
@@ -32,6 +33,16 @@ struct LoadInfo {
     uint64_t mapBase;
     std::string fullPath;
 };
+
+struct WriteStackInfoParams {
+    std::string moduleName;
+    std::string path;
+    std::string tempPath;
+    std::ifstream& srcLogFile;
+    int tempFileFd;
+    bool needTranslate;
+};
+
 class FaultLogSanitizer final : public FaultLogEventPipeline {
 public:
     FaultLogSanitizer();
@@ -41,15 +52,21 @@ private:
     bool SafeStoull(const std::string& str, uint64_t& value, int base);
     bool ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps, const std::string& bundleName,
                          LoadInfo& info);
+    void ExtractStackInfo(const std::string& logPath, std::string& errType,
+                      std::vector<std::string>& topStacks);
     std::string ProcessArkTsLine(const std::string& line, const std::string& packageName,
-                                 const std::vector<MapInfo>& maps);
+                                 const std::vector<MapInfo>& maps, bool needTranslate);
+    bool NeedTranslate(const std::string& packageName) const;
+    int ParseArkFile(const LoadInfo& info, bool needTranslate,
+                     std::uintptr_t arkExtractorPtr, JsFunction& jsFunc) const;
+    std::string FormatResult(const std::string& line, const JsFunction& jsFunc) const;
     std::vector<MapInfo> LoadMaps(std::ifstream& file);
     bool OpenTempFile(const std::string& tempPath, FILE*& fp, int& tempFileFd);
-    bool WriteStackInfo(const std::string& moduleName, const std::string& path,
-                        const std::string& tempPath, std::ifstream& srcLogFile, int tempFileFd);
-    bool ParserArkTsStackInfo(const std::string& moduleName, const std::string& path);
+    bool WriteStackInfo(const WriteStackInfoParams& params);
+    bool ParserArkTsStackInfo(const std::string& moduleName, const std::string& path, bool needTranslate);
     bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, const std::string& path);
-
+    bool IsValidSanitizerEvent(SysEvent& sysEvent);
+    bool AddFaultLog(std::shared_ptr<Event>& event) override;
     FaultLogInfo FillFaultLogInfo(SysEvent& sysEvent) override;
     bool ReportToAppEvent(std::shared_ptr<SysEvent> sysEvent) const override;
     std::string GetFaultModule(SysEvent& sysEvent) const override;

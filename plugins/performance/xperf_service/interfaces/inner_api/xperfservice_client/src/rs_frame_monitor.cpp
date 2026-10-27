@@ -30,6 +30,7 @@ constexpr int64_t ACVIDEO_NOTIFY_TIME_MS = 1000;
 constexpr int64_t ACVIDEO_JANK_TIME_MS = 300;
 constexpr int64_t ACVIDEO_RECORD_TIME_MS = 300;
 constexpr size_t ACVIDEO_VECTOR_MAX_LENGTH = 8;
+constexpr size_t MAX_SURFACE_NAME_LENGTH = 200;
 }
 
 namespace OHOS {
@@ -44,7 +45,7 @@ RsFrameMonitor& RsFrameMonitor::GetInstance()
 RsFrameMonitor::RsFrameMonitor()
 {
     ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
-            "RS_NOTIFY_XPERF_QUEUE", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+        "RS_NOTIFY_XPERF_QUEUE", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
 }
 
 void RsFrameMonitor::VideoStart(const std::vector<uint64_t>& uniqueIdList,
@@ -55,7 +56,6 @@ void RsFrameMonitor::VideoStart(const std::vector<uint64_t>& uniqueIdList,
         LOGE("RsFrameMonitor::VideoStart invalid input");
         return;
     }
-
     std::lock_guard<std::mutex> lock(mutex_);
     videoMap_.clear();
     videoReportNum_ = 0;
@@ -64,7 +64,15 @@ void RsFrameMonitor::VideoStart(const std::vector<uint64_t>& uniqueIdList,
 
     int64_t now = GetCurrentSystimeMs();
     for (size_t i = 0; i < uniqueIdList.size(); i++) {
-        videoMap_[uniqueIdList[i]] = {static_cast<int64_t>(reportTime), now, 0, 0, 0, 0, 0, 0, fps, surfaceNameList[i]};
+        if (surfaceNameList[i].length() > MAX_SURFACE_NAME_LENGTH) {
+            LOGW("surface name too long, truncating");
+            std::string truncatedName = surfaceNameList[i].substr(0, MAX_SURFACE_NAME_LENGTH);
+            videoMap_[uniqueIdList[i]] = {static_cast<int64_t>(reportTime), now, 0, 0, 0, 0, 0, 0, fps, truncatedName,
+                0};
+        } else {
+            videoMap_[uniqueIdList[i]] = {static_cast<int64_t>(reportTime), now, 0, 0, 0, 0, 0, 0, fps,
+                surfaceNameList[i], 0};
+        }
     }
 }
 
@@ -75,7 +83,6 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
         LOGE("RsFrameMonitor::VideoStop invalid input");
         return;
     }
-
     int64_t now = GetCurrentSystimeMs();
     std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& uniqueId : uniqueIdList) {
@@ -110,21 +117,39 @@ void RsFrameMonitor::VideoStop(const std::vector<uint64_t>& uniqueIdList,
     videoReportNum_ = 0;
 }
 
-// 上报视频卡顿帧事件到Xperf性能监控系统
-void RsFrameMonitor::ReportVideoJankFrame(uint64_t uniqueId, int64_t frameTime,
-    int64_t now, const std::string& surfaceName)
+// 上报视频卡顿事件（超300ms即上报）
+void RsFrameMonitor::ReportVideoJank(uint64_t uniqueId, int64_t happenTime, int64_t duration,
+    const std::string& surfaceName)
 {
-    ffrtHighPriorityQueue_->submit([uniqueId, frameTime, now, surfaceName]() {
-        XPERF_TRACE_SCOPED("RSJankStats::ReportVideoJankFrame RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
-            "uniqueId: %" PRIu64 ", frameTime: %" PRId64 ", now: %" PRId64 "",
-            uniqueId, frameTime, now);
+    ffrtHighPriorityQueue_->submit([uniqueId, happenTime, duration, surfaceName]() {
+        XPERF_TRACE_SCOPED("RSJankStats::ReportVideoJank RS_NOTIFY_XPERF_VIDEO_JANK "
+            "uniqueId: %" PRIu64 ", happenTime: %" PRId64 ", duration: %" PRId64 "", uniqueId, happenTime, duration);
         XperfServiceClient::GetInstance().NotifyToXperf(
             static_cast<int32_t>(DomainId::RS),
             static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME),
             "#UNIQUEID:" + std::to_string(uniqueId) +
             "#FAULT_ID:" +std::to_string(static_cast<int32_t>(DomainId::RS)) +
             "#FAULT_CODE:" + std::to_string(static_cast<int32_t>(RsEventCode::VIDEO_JANK_FRAME)) +
-            "#MAX_FRAME_TIME:" + std::to_string(frameTime) + "#HAPPEN_TIME:" + std::to_string(now) +
+            "#MAX_FRAME_TIME:" + std::to_string(duration) + "#HAPPEN_TIME:" + std::to_string(happenTime) +
+            "#SURFACE_NAME:" + surfaceName);
+    });
+}
+
+// 上报视频卡顿时长（恢复播放时上报）
+void RsFrameMonitor::ReportVideoJankDur(uint64_t uniqueId, int64_t happenTime, int64_t duration,
+    const std::string& surfaceName)
+{
+    ffrtHighPriorityQueue_->submit([uniqueId, happenTime, duration, surfaceName]() {
+        XPERF_TRACE_SCOPED("RSJankStats::ReportVideoJankDur RS_NOTIFY_XPERF_VIDEO_JANK_DUR "
+            "uniqueId: %" PRIu64 ", happenTime: %" PRId64 ", duration: %" PRId64 "", uniqueId, happenTime, duration);
+        XperfServiceClient::GetInstance().NotifyToXperf(
+            static_cast<int32_t>(DomainId::RS),
+            static_cast<int32_t>(RsEventCode::VIDEO_JANK_DUR),
+            "#UNIQUEID:" + std::to_string(uniqueId) +
+            "#FAULT_ID:" +std::to_string(static_cast<int32_t>(DomainId::RS)) +
+            "#FAULT_CODE:" + std::to_string(static_cast<int32_t>(RsEventCode::VIDEO_JANK_DUR)) +
+            "#MAX_FRAME_TIME:" + std::to_string(duration)+
+            "#HAPPEN_TIME:" + std::to_string(happenTime) +
             "#SURFACE_NAME:" + surfaceName);
     });
 }
@@ -141,17 +166,14 @@ void RsFrameMonitor::VideoJankReport()
     }
     int64_t now = GetCurrentSystimeMs();
     int64_t frameTime = now - it->second.previousFrameTime;
-    int64_t notifyInterval = now - it->second.previousNotifyTime;
-    if (videoReportNum_ > 0 || notifyInterval < ACVIDEO_NOTIFY_TIME_MS || frameTime < ACVIDEO_JANK_TIME_MS) {
-        LOGD("RSJankStats::VideoJankReport notification conditions not met."
-                "uniqueId: %{public}" PRIu64 ", frameTime: %{public}" PRId64 ", notifyInterval: %{public}" PRId64
-                ", videoReportNum_: %{public}" PRIu64 "",
-            recentUniqueId_, frameTime, notifyInterval, videoReportNum_);
+    if (frameTime < ACVIDEO_JANK_TIME_MS) {
         return;
     }
-    it->second.previousNotifyTime = now;
-    videoReportNum_++;
-    ReportVideoJankFrame(recentUniqueId_, frameTime, now, it->second.surfaceName);
+    if (it->second.previousFrameTime == it->second.lastJankTime) { // 本次卡顿已报过
+        return;
+    }
+    it->second.lastJankTime = it->second.previousFrameTime; // 卡顿发生时间
+    ReportVideoJank(recentUniqueId_, it->second.previousFrameTime, frameTime, it->second.surfaceName);
 }
 
 void RsFrameMonitor::VideoCollectFinish()
@@ -166,24 +188,6 @@ void RsFrameMonitor::VideoCollectFinish()
         } else {
             ++it;
         }
-    }
-
-    if (!videoCollectOpen_.load()) {
-        return;
-    }
-    
-    for (auto it = videoMap_.begin(); it != videoMap_.end();) {
-        if (it->second.previousFrameTime != 0 && now - it->second.previousFrameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
-            LOGD("RSJankStats::VideoCollectFinish. [uniqueId %" PRIu64 "]", it->first);
-            it = videoMap_.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    if (videoMap_.empty()) {
-        videoCollectOpen_.store(false);
-        recentUniqueId_ = 0;
-        videoReportNum_ = 0;
     }
 }
 
@@ -234,28 +238,20 @@ void RsFrameMonitor::VideoCollect(const uint64_t uniqueId, const uint32_t sequen
     if (it == videoMap_.end()) {
         return;
     }
-
     recentUniqueId_ = uniqueId;
-    videoReportNum_ = 0;
     auto& videoStats = it->second;
 
     if (videoStats.previousSequence == 0) {
         UpdateVideoStats(videoStats, sequence, now);
     } else if (videoStats.previousSequence != sequence) {
         int64_t frameTime = now - videoStats.previousFrameTime;
-        if (now - videoStats.previousNotifyTime < ACVIDEO_NOTIFY_TIME_MS) {
-            LOGD("RSJankStats::VideoCollect previousNotifyTime not exceeding threshold."
-                "uniqueId: %" PRIu64 ", frameTime: %" PRId64 "", uniqueId, frameTime);
-            UpdateVideoStats(videoStats, sequence, now);
-            return;
-        }
         if (frameTime > ACVIDEO_RECORD_TIME_MS) {
             videoStats.intervalExceedCount++;
             videoStats.intervalExceedLatency += frameTime;
-        }
-        if (frameTime > videoStats.reportTime) {
-            videoStats.previousNotifyTime = now;
-            ReportVideoJankFrame(uniqueId, frameTime, now, videoStats.surfaceName);
+            videoStats.lastJankTime = videoStats.previousFrameTime; // 卡顿发生时间
+            LOGD("RsFrameMonitor_VideoCollect ReportVideoJankDur "
+                 "uniqueId:%{public}" PRIu64 ", frameTime:%{public}" PRId64 "", uniqueId, frameTime);
+            ReportVideoJankDur(uniqueId, videoStats.previousFrameTime, frameTime, videoStats.surfaceName);
         }
         UpdateVideoStats(videoStats, sequence, now);
     }

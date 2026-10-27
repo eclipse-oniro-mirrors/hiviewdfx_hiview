@@ -335,7 +335,8 @@ TraceRet TraceAppStrategy::DoDump(const UCollectClient::AppCaller& appCaller, Tr
             " traceTaskOpenTime:%{public}" PRId64 "", appPid, appCaller.pid, traceOpenTime);
         return TraceRet(TraceStateCode::FAIL);
     }
-    if (traceFlowController_->HasCallOnceToday(appCaller.uid, appCaller.happenTime)) {
+    int64_t traceDumpTime = static_cast<int64_t>(TimeUtil::GetMilliseconds());
+    if (traceFlowController_->HasCallOnceToday(appCaller.uid, traceDumpTime)) {
         HIVIEW_LOGE("already capture trace uid=%{public}d pid==%{public}d", appCaller.uid, appCaller.pid);
         return TraceRet(TraceFlowCode::TRACE_HAS_CAPTURED_TRACE);
     }
@@ -344,7 +345,6 @@ TraceRet TraceAppStrategy::DoDump(const UCollectClient::AppCaller& appCaller, Tr
 #else
     TraceRet ret(traceRetInfo.errorCode);
 #endif
-    int64_t traceDumpTime = static_cast<int64_t>(TimeUtil::GetMilliseconds());
     if (!ret.IsSuccess()) {
         HIVIEW_LOGE("TraceAppStrategy dump failed code:%{public}d", ret.codeError_);
         return ret;

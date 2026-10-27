@@ -23,6 +23,7 @@ using namespace OHOS::HiviewDFX;
 namespace {
 const std::string TEST_SAND_BOX_PATH = "/data/test/test_sand_box";
 constexpr int32_t HIVIEW_UID = 1201;
+using namespace Hitrace;
 }
 class TraceImplTest : public testing::Test {
 public:

@@ -41,12 +41,14 @@ public:
     static constexpr const char* const LOGGER_EVENT_LOG_PATH = "/data/log/eventlog";
     static constexpr const char* const EVENTLOG_PATH_PREFIX = "/data/log/eventlog/";
     static constexpr const char* FREEZE_DETECTOR_PATH = "/data/log/faultlog/freeze/";
+    static constexpr int32_t MIN_APP_UID = 10000;
     FreezeManager();
     ~FreezeManager();
     static FreezeManager &GetInStance();
     void InitLogStore();
     static std::string GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove = false,
         bool isNeedRealPath = true);
+    static bool IsValidDumpTarget(int32_t targetPid, int32_t writerUid);
 
     void InsertTraceName(int64_t time, std::string traceName);
     std::string GetTraceName(int64_t time) const;
@@ -56,11 +58,7 @@ public:
     void ParseLogEntry(const std::string& input, std::map<std::string, std::string> &sectionMaps);
     void FillProcMemory(const std::string& procStatm, long pid,
         std::map<std::string, std::string> &sectionMaps) const;
-    bool ContainPathTraversal(const std::string& path) const;
     std::string CheckFreezePathPrefix(const std::string& path, const std::string& prefix) const;
-    static bool IsAllDigits(const std::string& str);
-    bool IsValidFreezePath(const std::string& path, const std::string& prefix, int32_t uid = -1) const;
-    bool IsValidEventStringParam(const std::string& param) const;
 
 private:
     void InitEventLogStore();

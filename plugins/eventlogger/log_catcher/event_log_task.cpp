@@ -24,6 +24,7 @@
 #include "string_util.h"
 #include "time_util.h"
 #include "freeze_common.h"
+#include "freeze_manager.h"
 
 #ifdef STACKTRACE_CATCHER_ENABLE
 #include "open_stacktrace_catcher.h"
@@ -470,6 +471,11 @@ void EventLogTask::HilogTagCapture()
 
 void EventLogTask::LightHilogCapture()
 {
+    if (event_ != nullptr && event_->GetUid() >= FreezeManager::MIN_APP_UID) {
+        // the global hilog tail must not be merged into logs that an app-writable event can reach
+        HIVIEW_LOGI("skip light hilog for app-writable event, writerUid=%{public}d", event_->GetUid());
+        return;
+    }
     auto capture = std::make_shared<LightHilogCatcher>();
     capture->Initialize("hilog -z 1000 -P", true, pid_);
     tasks_.push_back(capture);

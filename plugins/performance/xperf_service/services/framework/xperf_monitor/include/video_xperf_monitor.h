@@ -47,17 +47,23 @@ private:
 
 private:
     mutable std::mutex mMutex;
-    std::map<int64_t, VideoJankRecord> videoJankRecordMap;
     std::list<SurfaceInfo> surfaceInfoList;
-
+    std::map<int64_t, std::list<VideoJankRecord>> videoJankRecordMap;
+    int64_t currUniqueId{0};
+ 
+    SurfaceInfo GetSurfaceInfo(int64_t uniqueId);
     void BroadcastVideoJank(const std::string& msg);
+    void BroadcastJankDur(const std::string& msg);
     void OnVideoJankReceived(OhosXperfEvent* event);
     void OnNetworkJankReceived(OhosXperfEvent* event);
     void OnAvcodecJankReceived(OhosXperfEvent* event);
     void OnVideoFrameStats(OhosXperfEvent* event);
-    void WaitForDomainReport(int64_t uniqueId);
-    void FaultJudgment(int64_t uniqueId);
-    SurfaceInfo GetSurfaceInfo(int64_t uniqueId);
+    void OnVideoJankDur(OhosXperfEvent* event);
+    void OnUserAction(OhosXperfEvent* event);
+ 
+    void DelayReportJankEvent(int64_t uniqueId, int64_t happenTime);
+    void DelayBroadcastJankDur(int64_t uniqueId, int64_t happenTime);
+    std::string GenJankDurMsg(const VideoJankRecord& jankRecord, int64_t duration, int64_t type);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -68,6 +68,9 @@ bool BBoxDetectorPlugin::OnEvent(std::shared_ptr<Event> &event)
         return false;
     }
     auto sysEvent = Event::DownCastTo<SysEvent>(event);
+    if (sysEvent == nullptr) {
+        return false;
+    }
     auto instance = GetBBoxDetectorsInterface(BBOX_LIB_DELAY_RELEASE_TIME);
     if (instance == nullptr) {
         return false;

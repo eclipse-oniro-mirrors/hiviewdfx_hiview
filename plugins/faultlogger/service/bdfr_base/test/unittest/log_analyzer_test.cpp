@@ -15,7 +15,6 @@
 #include <gtest/gtest.h>
 
 #include "log_analyzer.h"
-
 using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {

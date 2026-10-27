@@ -83,6 +83,9 @@ int PeerBinderCatcher::Catch(int fd, int jsonFd)
     }
 
     auto originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
 
     std::set<int> asyncPids;
     std::set<int> syncPids;
@@ -136,7 +139,7 @@ std::string PeerBinderCatcher::CatchSyncPid(int fd, const std::set<int>& asyncPi
             HIVIEW_LOGI("Stack of PeerBinder Pid %{public}d is catched.", pidTemp);
             continue;
         }
-        
+
         if (IsAncoProc(pidTemp) && !IsSysFreezeEvent()) {
             HIVIEW_LOGI("PeerBinder Pid %{public}d is anco, event is not sysfreeze", pidTemp);
             continue;

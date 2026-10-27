@@ -41,6 +41,9 @@ bool BinderCatcher::Initialize(const std::string& strParam1, int intParam1, int 
 int BinderCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     if (Parameter::IsOversea()) {
         FileUtil::SaveStringToFd(fd, "binder info is not saved in oversea version\n");
     } else {

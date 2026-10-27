@@ -20,6 +20,7 @@
 #include "faultlog_info_ohos.h"
 #include "hiviewfaultlogger_ipc_interface_code.h"
 #include "hiview_logger.h"
+#include "smart_fd.h"
 #include "xcollie_detection.h"
 
 namespace OHOS {
@@ -52,23 +53,15 @@ int FaultLogQueryResultStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 return -1;
             }
 
+            SmartFd smartFd(result->fd);
             if (!result->Marshalling(reply)) {
                 HIVIEW_LOGE("failed to write query result.");
-                if (result->fd > 0) {
-                    close(result->fd);
-                }
                 return ERR_FLATTEN_OBJECT;
             }
 
-            if (!reply.WriteFileDescriptor(result->fd)) {
+            if (!reply.WriteFileDescriptor(smartFd.GetFd())) {
                 HIVIEW_LOGE("failed to write file descriptor.");
-                if (result->fd > 0) {
-                    close(result->fd);
-                }
                 return ERR_FLATTEN_OBJECT;
-            }
-            if (result->fd > 0) {
-                close(result->fd);
             }
             return 0;
         }

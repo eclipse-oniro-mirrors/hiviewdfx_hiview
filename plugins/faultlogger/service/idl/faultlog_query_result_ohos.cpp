@@ -45,7 +45,7 @@ sptr<FaultLogInfoOhos> FaultLogQueryResultOhos::GetNext()
         ret->sectionMaps = info->sectionMap;
         std::string realPath;
         if ((!info->logPath.empty()) && OHOS::HiviewDFX::FileUtil::PathToRealPath(info->logPath, realPath)) {
-            ret->fd = TEMP_FAILURE_RETRY(open(realPath.c_str(), O_RDONLY));
+            ret->fd = TEMP_FAILURE_RETRY(open(realPath.c_str(), O_RDONLY | O_NOFOLLOW));
         } else {
             ret->fd = -1;
         }

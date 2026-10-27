@@ -29,67 +29,81 @@ const uint32_t ZIP_FILE = 20;
 const uint32_t TELE_ZIP_FILE = 20;
 const uint32_t APP_FILE = 3;
 }
+
+std::shared_ptr<TraceLinkHandler> CreateLinkHandler(const std::string& prefix, uint32_t threshold,
+    const std::string& caller)
+{
+    return std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, prefix, threshold, caller);
+}
+
+std::shared_ptr<TraceZipHandler> CreateZipHandler(const std::string& caller)
+{
+    return std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, CleanThreshold::ZIP_FILE, caller);
+}
 }
 
 auto TraceStrategyFactory::CreateTraceStrategy(UCollect::TraceCaller caller, uint32_t maxDuration, uint64_t happenTime)
-    ->std::shared_ptr<TraceStrategy>
+    -> std::shared_ptr<TraceStrategy>
 {
     StrategyParam strategyParam {maxDuration, happenTime, EnumToString(caller), DB_PATH, CONFIG_PATH};
     switch (caller) {
         case UCollect::TraceCaller::XPERF:
             return std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::XPERF,
-                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, PrefixName::XPERF, CleanThreshold::XPERF,
-                    strategyParam.caller), std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH,
-                        CleanThreshold::ZIP_FILE, strategyParam.caller));
+                CreateLinkHandler(PrefixName::XPERF, CleanThreshold::XPERF, strategyParam.caller),
+                CreateZipHandler(strategyParam.caller));
         case UCollect::TraceCaller::RELIABILITY:
             return std::make_shared<TraceAsyncStrategy>(strategyParam, FlowControlName::RELIABILITY,
-                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, PrefixName::RELIABILITY,
-                   CleanThreshold::RELIABILITY, strategyParam.caller),
-                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, CleanThreshold::ZIP_FILE, strategyParam.caller));
+                CreateLinkHandler(PrefixName::RELIABILITY, CleanThreshold::RELIABILITY, strategyParam.caller),
+                CreateZipHandler(strategyParam.caller));
         case UCollect::TraceCaller::XPOWER:
             return std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::XPOWER,
-                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, CleanThreshold::ZIP_FILE, strategyParam.caller));
+                CreateZipHandler(strategyParam.caller));
         case UCollect::TraceCaller::HIVIEW:
             return std::make_shared<TraceFlowControlStrategy>(strategyParam, FlowControlName::HIVIEW,
-                std::make_shared<TraceZipHandler>(UNIFIED_SHARE_PATH, CleanThreshold::ZIP_FILE, strategyParam.caller));
+                CreateZipHandler(strategyParam.caller));
         case UCollect::TraceCaller::XPERF_EX:
             return std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::XPERF,
-                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, PrefixName::XPERF, CleanThreshold::XPERF,
-                    strategyParam.caller), nullptr);
+                CreateLinkHandler(PrefixName::XPERF, CleanThreshold::XPERF, strategyParam.caller), nullptr);
         case UCollect::TraceCaller::SCREEN:
             return std::make_shared<TraceStrategy>(strategyParam,
-                std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, PrefixName::SCREEN, CleanThreshold::SCREEN,
-                    strategyParam.caller));
+                CreateLinkHandler(PrefixName::SCREEN, CleanThreshold::SCREEN, strategyParam.caller));
         default:
             return nullptr;
     }
 }
 
 auto TraceStrategyFactory::CreateTraceStrategy(const std::string& callName, uint32_t maxDuration, uint64_t happenTime,
-    bool isNeedFlowControl, const std::string& outputPath)->std::shared_ptr<TraceStrategy>
+    bool isNeedFlowControl, const std::string& outputPath) -> std::shared_ptr<TraceStrategy>
 {
     StrategyParam strategyParam {maxDuration, happenTime, callName, DB_PATH, CONFIG_PATH, outputPath};
     if (callName == CallerName::COMMAND) {
+        if (outputPath.empty()) {
+            strategyParam.outputPath = "/data/log/hitrace"; // make a mark that filter deletion action
+        }
         return std::make_shared<TraceStrategy>(strategyParam, ScenarioName::COMMAND);
+    }
+    if (callName == CallerName::RELIABILITY) {
+        return std::make_shared<TraceAsyncStrategy>(strategyParam, FlowControlName::RELIABILITY,
+            CreateLinkHandler(PrefixName::RELIABILITY, CleanThreshold::RELIABILITY, strategyParam.caller),
+            CreateZipHandler(strategyParam.caller));
     }
     if (isNeedFlowControl) {
         return std::make_shared<TraceDevStrategy>(strategyParam, FlowControlName::OTHER,
-            std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, PrefixName::OTHER, CleanThreshold::OTHER,
-                callName), nullptr);
+            CreateLinkHandler(PrefixName::OTHER, CleanThreshold::OTHER, strategyParam.caller), nullptr);
     }
     return std::make_shared<TraceStrategy>(strategyParam,
-        std::make_shared<TraceLinkHandler>(UNIFIED_SPECIAL_PATH, PrefixName::OTHER, CleanThreshold::OTHER, callName));
+        CreateLinkHandler(PrefixName::OTHER, CleanThreshold::OTHER, strategyParam.caller));
 }
 
 auto TraceStrategyFactory::CreateStrategy(UCollect::TeleModule module, uint32_t maxDuration, uint64_t happenTime)
-    ->std::shared_ptr<TelemetryStrategy>
+    -> std::shared_ptr<TelemetryStrategy>
 {
     StrategyParam strategyParam {maxDuration, happenTime, ModuleToString(module), DB_PATH, CONFIG_PATH};
     return std::make_shared<TelemetryStrategy>(strategyParam,
         std::make_shared<TraceZipHandler>(UNIFIED_TELEMETRY_PATH, CleanThreshold::TELE_ZIP_FILE, ""));
 }
 
-auto TraceStrategyFactory::CreateAppStrategy()->std::shared_ptr<TraceAppStrategy>
+auto TraceStrategyFactory::CreateAppStrategy() -> std::shared_ptr<TraceAppStrategy>
 {
     return std::make_shared<TraceAppStrategy>(std::make_shared<TraceAppHandler>(UNIFIED_SHARE_PATH,
         CleanThreshold::APP_FILE), DB_PATH);

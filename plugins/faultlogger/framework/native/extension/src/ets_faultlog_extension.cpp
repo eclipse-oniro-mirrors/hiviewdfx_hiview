@@ -94,6 +94,9 @@ void EtsFaultLogExtension::BindContext(ani_env* env, std::shared_ptr<AAFwk::Want
 
     if ((status = env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef)) != ANI_OK) {
         HIVIEW_LOGE("Object_SetField_Ref failed, status: %{public}d", status);
+        if (env->GlobalReference_Delete(contextRef) != ANI_OK) {
+            HIVIEW_LOGE("GlobalReference_Delete contextRef failed");
+        }
         return;
     }
     shellContextRef_ = std::make_shared<AppExecFwk::ETSNativeReference>();

@@ -267,6 +267,9 @@ bool ShellCatcher::ReadShellToFile(int writeFd, const std::string& cmd)
 int ShellCatcher::Catch(int fd, int jsonFd)
 {
     auto originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
     if (catcherCmd_.empty()) {
         HIVIEW_LOGE("catcherCmd empty");
         return -1;

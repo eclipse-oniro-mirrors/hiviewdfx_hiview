@@ -72,10 +72,10 @@ struct KeyConfig {
 
 #pragma pack(push, 1)
 struct BaseInfo {
+    std::shared_ptr<std::string> tag = nullptr;
     KeyConfig keyConfig;
     PARAM_INFO_MAP_PTR disallowParams;
     int16_t reportInterval = DEFAULT_REPORT_INTERVAL;
-    char* tag = nullptr;
 };
 #pragma pack(pop)
 

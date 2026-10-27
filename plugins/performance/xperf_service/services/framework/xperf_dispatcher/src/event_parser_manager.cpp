@@ -54,6 +54,7 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::VIDEO_EXCEPT_STOP, &ParseRsVideoExceptStopMsg); //5002
     RegisterParserByLogID(XperfConstants::VIDEO_FIRST_FRAME, &ParseRsVideoFirstFrameMsg); //5003
     RegisterParserByLogID(XperfConstants::VIDEO_SECOND_FRAME, &ParseRsVideoSecondFrameMsg); //5004
+    RegisterParserByLogID(XperfConstants::VIDEO_JANK_DUR, &ParseRsVideoJankEventMsg); //5005
 
     RegisterParserByLogID(XperfConstants::PERF_USER_ACTION, &ParserPerfUserAction); // 6000
     RegisterParserByLogID(XperfConstants::PERF_LOAD_COMPLETE, &ParserLoadComplete); // 6001

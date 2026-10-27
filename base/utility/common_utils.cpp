@@ -162,22 +162,6 @@ std::string GetProcFullNameByPid(pid_t pid)
     return procName;
 }
 
-pid_t GetPidByName(const std::string& processName)
-{
-    pid_t pid = -1;
-    std::string cmd = "pidof " + processName;
-
-    FILE* fp = popen(cmd.c_str(), "r");
-    if (fp != nullptr) {
-        char buffer[BUF_SIZE_256] = {'\0'};
-        while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {}
-        std::istringstream istr(buffer);
-        istr >> pid;
-        pclose(fp);
-    }
-    return pid;
-}
-
 int32_t GetUidByPid(const int32_t pid)
 {
     int32_t uid = -1;

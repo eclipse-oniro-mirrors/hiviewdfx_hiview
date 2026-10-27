@@ -21,16 +21,11 @@
 #include "file_util.h"
 #include "log_store_ex.h"
 #include "hiview_logger.h"
+#include "smart_fd.h"
 
 #include "faultlog_database.h"
 #include "faultlog_formatter.h"
 #include "faultlog_util.h"
-
-// define Fdsan Domain
-#ifndef FDSAN_DOMAIN
-#undef FDSAN_DOMAIN
-#endif
-#define FDSAN_DOMAIN 0xD002D11
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -131,23 +126,22 @@ std::string FaultLogManager::SaveFaultLogToFile(FaultLogInfo& info) const
         }
         return "";
     }
-    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
-    fdsan_exchange_owner_tag(fd, 0, ownerTag);
+    SmartFd smartFd(fd);
 
-    FaultLogger::WriteDfxLogToFile(fd);
-    FaultLogger::WriteFaultLogToFile(fd, info.faultLogType, info.sectionMap);
-    FaultLogger::WriteLogToFile(fd, info.logPath, info.sectionMap);
+    FaultLogger::WriteDfxLogToFile(smartFd.GetFd());
+    FaultLogger::WriteFaultLogToFile(smartFd.GetFd(), info.faultLogType, info.sectionMap);
+    FaultLogger::WriteLogToFile(smartFd.GetFd(), info.logPath, info.sectionMap);
     if (info.sectionMap.count(FaultKey::HILOG) == 1) {
-        FileUtil::SaveStringToFd(fd, "\nHiLog:\n");
-        FileUtil::SaveStringToFd(fd, info.sectionMap[FaultKey::HILOG]);
+        FileUtil::SaveStringToFd(smartFd.GetFd(), "\nHiLog:\n");
+        FileUtil::SaveStringToFd(smartFd.GetFd(), info.sectionMap[FaultKey::HILOG]);
     }
 
     if (info.sectionMap.count("MERGE_LOG") == 1) {
-        FileUtil::SaveStringToFd(fd, "\nMergeLog:\n");
-        FileUtil::SaveStringToFd(fd, info.sectionMap["MERGE_LOG"]);
+        FileUtil::SaveStringToFd(smartFd.GetFd(), "\nMergeLog:\n");
+        FileUtil::SaveStringToFd(smartFd.GetFd(), info.sectionMap["MERGE_LOG"]);
         HIVIEW_LOGI("WriteMergeLogToFile");
     }
-    fdsan_close_with_tag(fd, ownerTag);
+    smartFd.Reset();
 
     RemoveOldFile(info);
     info.logPath = filePath;

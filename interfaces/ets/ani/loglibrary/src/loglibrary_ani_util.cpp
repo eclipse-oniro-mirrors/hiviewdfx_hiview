@@ -59,6 +59,10 @@ bool LogLibraryAniUtil::CreateLogEntryArray(ani_env *env,
             return false;
         }
         ani_object logEntryObj = LogLibraryAniUtil::CreateLogEntryObject(env);
+        if (logEntryObj == nullptr) {
+            HIVIEW_LOGE("CreateLogEntryObject failed, logEntryObj is nullptr.");
+            return false;
+        }
         if (ANI_OK != env->Object_SetPropertyByName_Ref(logEntryObj, "name", name_string)) {
             HIVIEW_LOGE("Set LogEntry name Fail: %{public}s", CLASS_NAME_LOGENTRY);
             return false;

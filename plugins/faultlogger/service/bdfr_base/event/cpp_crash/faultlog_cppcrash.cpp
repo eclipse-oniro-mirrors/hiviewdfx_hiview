@@ -19,6 +19,7 @@
 #include <ctime>
 #include <fcntl.h>
 #include <fstream>
+#include <new>
 #include <unistd.h>
 
 #include "constants.h"
@@ -34,15 +35,10 @@
 #include "hiview_logger.h"
 #include "log_analyzer.h"
 #include "parameter_ex.h"
+#include "smart_fd.h"
 #include <filesystem>
 
 #include "string_util.h"
-
-// define Fdsan Domain
-#ifdef FDSAN_DOMAIN
-#undef FDSAN_DOMAIN
-#endif
-#define FDSAN_DOMAIN 0xD002D11
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -57,6 +53,7 @@ namespace {
     const int64_t DFX_HILOG_TIMESTAMP_THOUSAND = 1000;
     constexpr uint32_t MINIDUMP_MAX_TIMEOUT_US = 5 * 1000 * 1000;
     constexpr int32_t MAX_MINIDUMP_LOG_PER_HAP = 5;
+    constexpr long MAX_FILE_READ_SIZE = 10 * 1024 * 1024; // 10M
 
 Json::Value BuildExceptionJson(const Json::Value& root)
 {
@@ -191,35 +188,28 @@ bool FaultLogCppCrash::TryOpenJsonFileFd(FaultLogInfo& info)
         HIVIEW_LOGE("json file not exists: %{public}s", jsonPath.c_str());
         return false;
     }
-    int fd = open(jsonPath.c_str(), O_RDONLY);
+    int fd = open(jsonPath.c_str(), O_RDONLY | O_NOFOLLOW);
     if (fd == -1) {
         HIVIEW_LOGE("failed to open json file: %{public}s, errno=%{public}d", jsonPath.c_str(), errno);
         return false;
     }
-    uint64_t ownerTag = fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN);
-    fdsan_exchange_owner_tag(fd, 0, ownerTag);
-    info.pipeFd.reset(new int32_t(fd), [ownerTag](int32_t *ptr) {
-        if (*ptr >= 0) {
-            fdsan_close_with_tag(*ptr, ownerTag);
-        }
-        delete ptr;
-    });
+    info.tempFileFd = std::make_shared<SmartFd>(fd);
     HIVIEW_LOGI("successfully opened json file: %{public}s, fd=%{public}d", jsonPath.c_str(), fd);
     return true;
 }
 
 bool FaultLogCppCrash::ParseCppCrashJson(FaultLogInfo& info)
 {
-    if ((info.pipeFd == nullptr || *(info.pipeFd) == -1) && !TryOpenJsonFileFd(info)) {
+    if ((info.tempFileFd == nullptr || info.tempFileFd->GetFd() == -1) && !TryOpenJsonFileFd(info)) {
         return false;
     }
     std::string dataBuffer;
-    if (!FileUtil::LoadStringFromFd(*info.pipeFd, dataBuffer)) {
-        HIVIEW_LOGE("failed to load string from fd, fd=%{public}d, errno=%{public}d", *info.pipeFd, errno);
+    if (!FileUtil::LoadStringFromFd(info.tempFileFd->GetFd(), dataBuffer)) {
+        HIVIEW_LOGE("failed to load string from fd, fd=%{public}d, errno=%{public}d", info.tempFileFd->GetFd(), errno);
         return false;
     }
     if (dataBuffer.empty()) {
-        HIVIEW_LOGE("no data read from fd, fd=%{public}d", *info.pipeFd);
+        HIVIEW_LOGE("no data read from fd, fd=%{public}d", info.tempFileFd->GetFd());
         return false;
     }
     Json::Reader reader(Json::Features::strictMode());
@@ -450,6 +440,11 @@ long FaultLogCppCrash::FindTargetOffset(FILE* fp, const std::string& target)
 
     if (fileSize <= 0) {
         return -1;
+    }
+
+    if (fileSize > MAX_FILE_READ_SIZE) {
+        HIVIEW_LOGW("File size exceeds max read size, truncating to %{public}ld", MAX_FILE_READ_SIZE);
+        fileSize = MAX_FILE_READ_SIZE;
     }
 
     std::string content(static_cast<size_t>(fileSize), '\0');

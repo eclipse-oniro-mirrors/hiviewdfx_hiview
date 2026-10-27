@@ -70,7 +70,7 @@ void FuzzProcessArkTsLine(const uint8_t* data, size_t size)
     }
     auto maps = ReadMaps(source);
     FaultLogSanitizer sanitizer;
-    (void)sanitizer.ProcessArkTsLine(line, packageName, maps);
+    (void)sanitizer.ProcessArkTsLine(line, packageName, maps, false);
 }
 }
 

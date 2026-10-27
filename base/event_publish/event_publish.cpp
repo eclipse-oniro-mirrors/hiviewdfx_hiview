@@ -16,6 +16,7 @@
 #include "event_publish.h"
 
 #include <cerrno>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -62,13 +63,16 @@ constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
 constexpr int32_t DEFAULT_LINK_FILE_NUM = 10;
 constexpr int32_t MAX_LINK_FILE_NUM = 100;
+constexpr const char* WATCHER_CONFIG_DIR = "files/watcherConfig";
+constexpr const char* EVENT_CONFIG_DIR = "files/eventConfig";
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
 constexpr uint64_t DMP_MAX_FILE_SIZE = 35 * 1024 * 1024; // 35M
 constexpr uint64_t WATCHDOG_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M
 constexpr uint64_t RESOURCE_OVERLIMIT_MAX_FILE_SIZE = 2048uLL * 1024 * 1024; // 2G
 constexpr const char* const XATTR_NAME = "user.appevent";
 constexpr uint64_t BIT_MASK = 1;
-constexpr uint64_t LIMIT_COST_MILLISECOND = 5;
+constexpr uint64_t LIMIT_COST_MILLISECOND = 50;
+constexpr int MAX_JSON_DEPTH = 64;
 const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
     { EVENT_APP_CRASH, 0 },
     { EVENT_APP_FREEZE, 1 },
@@ -96,7 +100,7 @@ struct ExternalLogInfo {
 void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &externalLogInfo, int32_t uid,
     const std::string& pathHolder)
 {
-    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, EVENT_CONFIG_DIR);
     if (eventConfigDir.empty()) {
         HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
         return;
@@ -128,7 +132,7 @@ void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalL
         externalLogInfo.extensionType = ".log";
         externalLogInfo.subPath = "hiappevent";
         externalLogInfo.maxFileSize = MAX_FILE_SIZE;
-        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, EVENT_CONFIG_DIR);
         if (eventConfigDir.empty()) {
             HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
             return;
@@ -191,7 +195,7 @@ ErrCode GetBundleNameAndAppIndex(int32_t uid, std::string& bundleName, int32_t& 
 std::string GetInputMethodPathHolder(const std::string& bundleName, int32_t uid)
 {
     std::string tmpHolder = "+extension-entry-InputMethodExtensionAbility+" + bundleName;
-    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, "cache/hiappevent"))) {
+    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, WATCHER_CONFIG_DIR))) {
         HIVIEW_LOGW("The sandbox of inputMethod extensions does not exist. return common sandbox.");
         return bundleName;
     }
@@ -518,7 +522,7 @@ void SetSandBoxAccess(int32_t uid, const std::string& dirPath)
 
 void SaveEventToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson)
 {
-    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventJson, desPath);
@@ -555,9 +559,27 @@ bool CheckAppListenedEvents(const std::string& path, const std::string& eventNam
     }
     return true;
 }
+
+bool ParseParamJson(const std::string& paramJson, Json::Value& params)
+{
+    Json::CharReaderBuilder builder;
+    Json::CharReaderBuilder::strictMode(&builder.settings_);
+    builder.settings_["stackLimit"] = MAX_JSON_DEPTH;
+    std::string errs;
+    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    if (!reader->parse(paramJson.data(), paramJson.data() + paramJson.size(), &params, &errs)) {
+        HIVIEW_LOGE("failed to parse paramJson, err=%{public}s.", errs.c_str());
+        return false;
+    }
+    if (!params.isObject()) {
+        HIVIEW_LOGE("paramJson is not a json object.");
+        return false;
+    }
+    return true;
+}
 }
 
-class EventPublish::Impl {
+class EventPublish::Impl : public std::enable_shared_from_this<Impl> {
 public:
     void PushEvent(int32_t uid, const std::string& eventName, HiSysEvent::EventType eventType,
         const std::string& paramJson, uint32_t maxFileSizeBytes = 0);
@@ -602,7 +624,7 @@ bool EventPublish::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 bool EventPublish::Impl::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 {
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     if (!FileUtil::FileExists(basePath)) {
         return false;
     }
@@ -616,9 +638,10 @@ void EventPublish::Impl::StartOverLimitThread(int32_t uid, const std::string& pa
         return;
     }
     HIVIEW_LOGI("start send overlimit thread.");
+    auto self = shared_from_this();
     sendingOverlimitThread_ = std::make_unique<std::thread>(
-        [this, uid, pathHolder, eventJson, maxFileSizeBytes] () mutable {
-        this->SendOverLimitEventToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
+        [self, uid, pathHolder, eventJson, maxFileSizeBytes] () mutable {
+        self->SendOverLimitEventToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
     });
     sendingOverlimitThread_->detach();
 }
@@ -633,6 +656,7 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::str
     SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes, needRefined);
     SaveEventToSandBox(uid, pathHolder, eventJson);
     UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, EVENT_RESOURCE_OVERLIMIT);
+    std::lock_guard<std::mutex> lock(mutex_);
     sendingOverlimitThread_.reset();
 }
 
@@ -640,7 +664,8 @@ void EventPublish::Impl::StartSendingThread()
 {
     if (sendingThread_ == nullptr) {
         HIVIEW_LOGI("start send thread.");
-        sendingThread_ = std::make_unique<std::thread>([this] { this->SendEventToSandBox(); });
+        auto self = shared_from_this();
+        sendingThread_ = std::make_unique<std::thread>([self] { self->SendEventToSandBox(); });
         sendingThread_->detach();
     }
 }
@@ -659,7 +684,7 @@ void EventPublish::Impl::SendEventToSandBox()
         }
         int32_t uid = StringUtil::StrToInt(uidStr);
         std::string pathHolder = GetPathPlaceHolder(uid);
-        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
         if (!FileUtil::FileExists(desPath)) {
             HIVIEW_LOGE("SendEventToSandBox not exit.");
             (void)FileUtil::RemoveFile(srcPath);
@@ -685,7 +710,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     }
 
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     if (!FileUtil::FileExists(basePath)) {
         HIVIEW_LOGE("Current sandbox base path is not exist.");
         (void)FileUtil::RemoveFile(GetTempFilePath(uid));
@@ -696,9 +721,8 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     }
 
     Json::Value params;
-    Json::Reader reader;
-    if (!reader.parse(paramJson, params)) {
-        HIVIEW_LOGE("failed to parse paramJson bundleName, eventName=%{public}s.", eventName.c_str());
+    if (!ParseParamJson(paramJson, params)) {
+        HIVIEW_LOGE("failed to parse paramJson, eventName=%{public}s.", eventName.c_str());
         return;
     }
     Json::Value eventJson;

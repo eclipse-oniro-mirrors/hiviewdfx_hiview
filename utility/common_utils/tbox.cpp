@@ -42,9 +42,6 @@ string Tbox::CalcFingerPrint(const string& val, size_t mask, int mode)
     char hash[HAS_LEN] = {'0'};
     int err = -1;
     switch (mode) {
-        case FP_FILE:
-            err = CalcFingerprint::CalcFileSha(val, hash, sizeof(hash));
-            break;
         case FP_BUFFER:
             err = CalcFingerprint::CalcBufferSha(val, val.size(), hash, sizeof(hash));
             break;
@@ -100,6 +97,7 @@ string Tbox::GetStackName(const string& line)
     string str;
     if (GetPartial(line, "^\\s+at (.*)\\).*", str) ||
         GetPartial(line, "^\\s*at (.*)", str) || // for jsCrash
+        GetPartial(line, "#\\d+ at (.*)", str) ||
         GetPartial(line, "#\\d+ pc [0-9a-f]+ (.*\\+\\d+)\\)", str) ||
         GetPartial(line, "#\\d+ pc ([0-9a-f]+ .*)", str) ||
         GetPartial(line, "([0-9a-zA-Z_]+\\+0x[0-9a-f]+/0x[0-9a-f]+)", str)) {

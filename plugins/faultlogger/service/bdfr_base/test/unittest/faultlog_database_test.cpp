@@ -14,6 +14,7 @@
  */
 #include <gtest/gtest.h>
 
+#include "constants.h"
 #include "faultevent_listener.h"
 #include "faultlog_database.h"
 #include "hisysevent_manager.h"
@@ -23,6 +24,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
+constexpr size_t MAX_PARAM_COUNT = 35;
 /**
  * @tc.name: GetFaultInfoListTest001
  * @tc.desc: Test calling GetFaultInfoList Func
@@ -149,6 +151,64 @@ HWTEST(FaultlogDatabaseTest, IsFaultExist001, testing::ext::TestSize.Level3)
 }
 
 /**
+ * @tc.name: SaveSysFreezeStartTimeInfoTest001
+ * @tc.desc: Verify sysfreeze HiSysEvent contains raw process and device start times
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, SaveSysFreezeStartTimeInfoTest001, testing::ext::TestSize.Level1)
+{
+    constexpr int64_t processLifetime = 123456;
+    constexpr int64_t deviceRunningTime = 654321;
+    StartHisyseventListen("RELIABILITY", "SYS_FREEZE");
+    std::vector<std::string> keyWords = {
+        "LIFETIME", std::to_string(processLifetime),
+        "DEVICE_RUNNING_TIME", std::to_string(deviceRunningTime),
+    };
+    faultEventListener->SetKeyWords(keyWords);
+    FaultLogInfo info;
+    info.time = std::time(nullptr);
+    info.pid = getpid();
+    info.id = getuid();
+    info.faultLogType = FaultLogType::SYS_FREEZE;
+    info.module = "FaultloggerUnittest";
+    info.reason = "unit test";
+    info.summary = "unit test";
+    info.sectionMap[FaultKey::PROCESS_LIFETIME] = std::to_string(processLifetime);
+    info.sectionMap[FaultKey::DEVICE_RUNNING_TIME] = std::to_string(deviceRunningTime);
+
+    FaultLogDatabase::SaveFaultLogInfo(info);
+
+    ASSERT_TRUE(faultEventListener->CheckKeyWords());
+}
+
+/**
+ * @tc.name: SaveSysFreezeHostResourceWarningTest001
+ * @tc.desc: Verify sysfreeze HiSysEvent contains HOST_RESOURCE_WARNING when set to TRUE
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, SaveSysFreezeHostResourceWarningTest001, testing::ext::TestSize.Level1)
+{
+    StartHisyseventListen("RELIABILITY", "SYS_FREEZE");
+    std::vector<std::string> keyWords = {
+        "HOST_RESOURCE_WARNING", "TRUE",
+    };
+    faultEventListener->SetKeyWords(keyWords);
+    FaultLogInfo info;
+    info.time = std::time(nullptr);
+    info.pid = getpid();
+    info.id = getuid();
+    info.faultLogType = FaultLogType::SYS_FREEZE;
+    info.module = "FaultloggerUnittest";
+    info.reason = "unit test";
+    info.summary = "unit test";
+    info.sectionMap[FaultKey::HOST_RESOURCE_WARNING] = "TRUE";
+
+    FaultLogDatabase::SaveFaultLogInfo(info);
+
+    ASSERT_TRUE(faultEventListener->CheckKeyWords());
+}
+
+/**
  * @tc.name: FaultLogDatabase::SaveFaultInfoToRawDb
  * @tc.desc: Test calling SaveFaultInfoToRawDb Func
  * @tc.type: FUNC
@@ -243,6 +303,160 @@ HWTEST(FaultlogDatabaseTest, GetAppFreezeExtInfoFromFileName001, testing::ext::T
     std::string filename3 = "appfreeze-com.example.jsinject-20010039-20260212135713914.log";
     auto extPath3 = FaultLogDatabase::GetAppFreezeExtInfoFromFileName(filename3);
     ASSERT_EQ(extPath3, "");
+}
+
+static HiSysEventParam* FindParamByName(HiSysEventParam* params, size_t count, const std::string& name)
+{
+    for (size_t i = 0; i < count; ++i) {
+        if (std::string(params[i].name) == name) {
+            return &params[i];
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * @tc.name: GetInt64Value001
+ * @tc.desc: Test GetInt64Value with a valid numeric string
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, GetInt64Value001, testing::ext::TestSize.Level1)
+{
+    FaultLogInfo info;
+    info.sectionMap[FaultKey::DEVICE_RUNNING_TIME] = "123456";
+    EXPECT_EQ(FaultLogDatabase::GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME), 123456);
+}
+
+/**
+ * @tc.name: GetInt64Value002
+ * @tc.desc: Test GetInt64Value when the key does not exist
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, GetInt64Value002, testing::ext::TestSize.Level2)
+{
+    FaultLogInfo info;
+    EXPECT_EQ(FaultLogDatabase::GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME), 0);
+}
+
+/**
+ * @tc.name: GetInt64Value003
+ * @tc.desc: Test GetInt64Value with a non-numeric string
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, GetInt64Value003, testing::ext::TestSize.Level2)
+{
+    FaultLogInfo info;
+    info.sectionMap[FaultKey::DEVICE_RUNNING_TIME] = "invalid";
+    EXPECT_EQ(FaultLogDatabase::GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME), 0);
+}
+
+/**
+ * @tc.name: GetInt64Value004
+ * @tc.desc: Test GetInt64Value with a negative value
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, GetInt64Value004, testing::ext::TestSize.Level2)
+{
+    FaultLogInfo info;
+    info.sectionMap[FaultKey::DEVICE_RUNNING_TIME] = "-999999";
+    EXPECT_EQ(FaultLogDatabase::GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME), -999999);
+}
+
+/**
+ * @tc.name: BuildSysEventParams001
+ * @tc.desc: Test BuildSysEventParams for CPP_CRASH drops sysfreeze-only params
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, BuildSysEventParams001, testing::ext::TestSize.Level1)
+{
+    FaultLogInfo info;
+    info.faultLogType = FaultLogType::CPP_CRASH;
+    info.pid = 1854;
+    info.id = 0;
+    info.module = "FaultloggerUnittest";
+    info.reason = "SIGSEGV";
+    info.summary = "summary for test";
+    auto faultLogType = std::to_string(info.faultLogType);
+    HiSysEventParam params[MAX_PARAM_COUNT];
+    size_t paramCount = FaultLogDatabase::BuildSysEventParams(info, faultLogType, params);
+    EXPECT_EQ(paramCount, static_cast<size_t>(31));
+    auto* faultTypeParam = FindParamByName(params, paramCount, "FAULT_TYPE");
+    ASSERT_NE(faultTypeParam, nullptr);
+    EXPECT_EQ(std::string(faultTypeParam->v.s), faultLogType);
+    auto* pidParam = FindParamByName(params, paramCount, "PID");
+    ASSERT_NE(pidParam, nullptr);
+    EXPECT_EQ(pidParam->v.i32, info.pid);
+    EXPECT_EQ(FindParamByName(params, paramCount, "DEVICE_RUNNING_TIME"), nullptr);
+    EXPECT_EQ(FindParamByName(params, paramCount, "HOST_RESOURCE_WARNING"), nullptr);
+}
+
+/**
+ * @tc.name: BuildSysEventParams002
+ * @tc.desc: Test BuildSysEventParams for SYS_FREEZE keeps start time params
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, BuildSysEventParams002, testing::ext::TestSize.Level1)
+{
+    FaultLogInfo info;
+    info.faultLogType = FaultLogType::SYS_FREEZE;
+    info.sectionMap[FaultKey::PROCESS_LIFETIME] = "123456";
+    info.sectionMap[FaultKey::DEVICE_RUNNING_TIME] = "654321";
+    info.sectionMap[FaultKey::HOST_RESOURCE_WARNING] = "TRUE";
+    auto faultLogType = std::to_string(info.faultLogType);
+    HiSysEventParam params[MAX_PARAM_COUNT];
+    size_t paramCount = FaultLogDatabase::BuildSysEventParams(info, faultLogType, params);
+    EXPECT_EQ(paramCount, static_cast<size_t>(33));
+    auto* lifeTimeParam = FindParamByName(params, paramCount, "LIFETIME");
+    ASSERT_NE(lifeTimeParam, nullptr);
+    EXPECT_EQ(lifeTimeParam->v.i64, 123456);
+    auto* deviceRunningParam = FindParamByName(params, paramCount, "DEVICE_RUNNING_TIME");
+    ASSERT_NE(deviceRunningParam, nullptr);
+    EXPECT_EQ(deviceRunningParam->v.i64, 654321);
+    auto* hostResourceWarningParam = FindParamByName(params, paramCount, "HOST_RESOURCE_WARNING");
+    ASSERT_NE(hostResourceWarningParam, nullptr);
+    EXPECT_EQ(std::string(hostResourceWarningParam->v.s), "TRUE");
+}
+
+/**
+ * @tc.name: BuildSysEventParams003
+ * @tc.desc: Test FG param value is 3 for cppcrash with SIGABRT and LastFatalMessage
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, BuildSysEventParams003, testing::ext::TestSize.Level1)
+{
+    FaultLogInfo info;
+    info.faultLogType = FaultLogType::CPP_CRASH;
+    info.reason = "SIGABRT";
+    info.summary = "LastFatalMessage: crash detail";
+    info.sectionMap[FaultKey::IS_SIG_ACTION] = "Yes";
+    auto faultLogType = std::to_string(info.faultLogType);
+    HiSysEventParam params[MAX_PARAM_COUNT];
+    size_t paramCount = FaultLogDatabase::BuildSysEventParams(info, faultLogType, params);
+    auto* fgParam = FindParamByName(params, paramCount, "FG");
+    ASSERT_NE(fgParam, nullptr);
+    // IS_SIG_ACTION=Yes contributes 1, SIGABRT + LastFatalMessage contributes 2
+    EXPECT_EQ(fgParam->v.i32, 3);
+}
+
+/**
+ * @tc.name: BuildSysEventParams004
+ * @tc.desc: Test FG param value is 1 for non-cppcrash with IS_SIG_ACTION=Yes
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogDatabaseTest, BuildSysEventParams004, testing::ext::TestSize.Level2)
+{
+    FaultLogInfo info;
+    info.faultLogType = FaultLogType::APP_FREEZE;
+    info.reason = "WATCH";
+    info.summary = "freeze summary";
+    info.sectionMap[FaultKey::IS_SIG_ACTION] = "Yes";
+    auto faultLogType = std::to_string(info.faultLogType);
+    HiSysEventParam params[MAX_PARAM_COUNT];
+    size_t paramCount = FaultLogDatabase::BuildSysEventParams(info, faultLogType, params);
+    auto* fgParam = FindParamByName(params, paramCount, "FG");
+    ASSERT_NE(fgParam, nullptr);
+    // not CPP_CRASH, so only IS_SIG_ACTION contributes
+    EXPECT_EQ(fgParam->v.i32, 1);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

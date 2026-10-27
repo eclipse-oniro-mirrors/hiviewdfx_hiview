@@ -23,6 +23,7 @@
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
+using namespace Hitrace;
 }
 
 TraceRet TraceBaseState::OpenTrace(const Scenario& scenario)

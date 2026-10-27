@@ -98,9 +98,6 @@ public:
     // inner interface when non-experience scene
     void SetVsyncLazyMode(uint64_t sceneTag);
 
-    void SetSubHealthInfo(const SubHealthInfo& info);
-    void FlushSubHealthInfo();
-
     void OnLastUpInputEvent();
  
 private:
@@ -115,8 +112,6 @@ private:
     SceneManager mNonexpManager;
     std::vector<ISceneCallback*> sceneCallbacks;
 
-    SubHealthInfo subHealthInfo;
-    bool isSubHealthScene = false;
     uint32_t countStart = 0;
     int64_t preStartTime = 0;
 };

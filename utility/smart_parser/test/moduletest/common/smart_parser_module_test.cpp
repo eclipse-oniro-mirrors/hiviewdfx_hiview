@@ -951,5 +951,138 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest024, TestSize.Level1)
     auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "DPACRASH");
     ASSERT_EQ(eventInfos.empty(), false);
 }
+
+HWTEST_F(SmartParserModuleTest, SmartParserTest025, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Set taskSheet fault log path and eventid.
+     */
+    std::string faultFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest019/sanitizer-12345-12345678910111234";
+    std::string traceFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest019/trace.txt";
+    ASSERT_EQ(FileUtil::FileExists(faultFile), true);
+    ASSERT_EQ(FileUtil::FileExists(traceFile), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
+
+    /**
+     * @tc.steps: step2. smart parser process crash fault log
+     */
+    auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "ADDR_SANITIZER");
+
+    std::vector<std::string> trace;
+    StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
+    std::string line;
+    size_t num = 0;
+    while (getline(buff, line) && num < trace.size()) {
+        EXPECT_STREQ(trace[num++].c_str(), line.c_str());
+    }
+}
+
+/**
+ * @tc.name: SmartParserTest026
+ * @tc.desc: process sanitizer fault, this case match compose_rule.json and extract_rule.json.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: liuwei
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest026, TestSize.Level1)
+{
+    /**
+    * @tc.steps: step1. Set taskSheet fault log path and eventid.
+    */
+    std::string faultFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest020/sanitizer-12345-12345678910111234";
+    std::string traceFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest020/trace.txt";
+    ASSERT_EQ(FileUtil::FileExists(faultFile), true);
+    ASSERT_EQ(FileUtil::FileExists(traceFile), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
+
+    /**
+     * @tc.steps: step2. smart parser process crash fault log
+     */
+    auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "ADDR_SANITIZER");
+
+    std::vector<std::string> trace;
+    StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
+    std::string line;
+    size_t num = 0;
+    while (getline(buff, line) && num < trace.size()) {
+        EXPECT_STREQ(trace[num++].c_str(), line.c_str());
+    }
+}
+
+/**
+ * @tc.name: SmartParserTest027
+ * @tc.desc: process sanitizer fault, this case match compose_rule.json and extract_rule.json.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: liuwei
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest027, TestSize.Level1)
+{
+    /**
+    * @tc.steps: step1. Set taskSheet fault log path and eventid.
+    */
+    std::string faultFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest021/sanitizer-12345-12345678910111234";
+    std::string traceFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest021/trace.txt";
+    ASSERT_EQ(FileUtil::FileExists(faultFile), true);
+    ASSERT_EQ(FileUtil::FileExists(traceFile), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
+
+    /**
+     * @tc.steps: step2. smart parser process crash fault log
+     */
+    auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "ADDR_SANITIZER");
+
+    std::vector<std::string> trace;
+    StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
+    std::string line;
+    size_t num = 0;
+    while (getline(buff, line) && num < trace.size()) {
+        EXPECT_STREQ(trace[num++].c_str(), line.c_str());
+    }
+}
+
+/**
+ * @tc.name: SmartParserTest028
+ * @tc.desc: process sanitizer fault, this case match compose_rule.json and extract_rule.json.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: liuwei
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest028, TestSize.Level1)
+{
+    /**
+    * @tc.steps: step1. Set taskSheet fault log path and eventid.
+    */
+    std::string faultFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest022/sanitizer-12345-12345678910111234";
+    std::string traceFile = std::string{LogUtil::SMART_PARSER_TEST_DIR} +
+    "/SmartParserTest022/trace.txt";
+    ASSERT_EQ(FileUtil::FileExists(faultFile), true);
+    ASSERT_EQ(FileUtil::FileExists(traceFile), true);
+    std::stringstream buff;
+    LogUtil::ReadFileBuff(traceFile, buff);
+
+    /**
+     * @tc.steps: step2. smart parser process crash fault log
+     */
+    auto eventInfos = SmartParser::Analysis(faultFile, TEST_CONFIG, "ADDR_SANITIZER");
+
+    std::vector<std::string> trace;
+    StringUtil::SplitStr(eventInfos["END_STACK"], LogUtil::SPLIT_PATTERN, trace, false, false);
+    std::string line;
+    size_t num = 0;
+    while (getline(buff, line) && num < trace.size()) {
+        EXPECT_STREQ(trace[num++].c_str(), line.c_str());
+    }
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

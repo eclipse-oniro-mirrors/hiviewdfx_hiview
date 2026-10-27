@@ -47,6 +47,7 @@
 #include "wm_common.h"
 #endif
 
+#include "event_field_validator.h"
 #include "event_log_task.h"
 #include "event_logger_config.h"
 #include "event_logger_util.h"
@@ -75,10 +76,8 @@ namespace {
     constexpr const char* PRIORITY_KEYWORDS[] = {
         "VIP", "Immediate", "High", "Low", "Idle"
     };
+    constexpr size_t CMD_PREFIX_LEN = 2; // length of "k:" prefix
     constexpr const char* TASK_TIMEOUT = "CONGESTION";
-    constexpr const char* PROCESS_IDENTITY_KEYS[] = {
-        "PACKAGE_NAME", "PROCESS_NAME", "MODULE_NAME", "PNAMEID", "SPECIFICSTACK_NAME"
-    };
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
     constexpr const char* DUMP_TRACE_FLAG = "trace";
@@ -99,6 +98,8 @@ namespace {
     constexpr int DFX_TASK_SERIAL_EXECUTION_NUM = 1;
     constexpr int DFX_SUBMIT_TRACE_TASK_MAX_CONCURRENCY_NUM = 2;
     constexpr int BOOT_SCAN_SECONDS = 60;
+    /* seconds; fallback rate-limit interval for app writers whose event carries no valid interval */
+    constexpr int32_t DEFAULT_APP_WRITER_INTERVAL = 1;
     constexpr mode_t DEFAULT_LOG_FILE_MODE = 0644;
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
@@ -127,21 +128,7 @@ namespace {
     constexpr const char* EVENT_THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
     constexpr const char* EVENT_THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
     constexpr const char* EVENT_APP_INPUT_BLOCK = "APP_INPUT_BLOCK";
-    constexpr const char* EVENT_BUSSINESS_THREAD_BLOCK_3S = "BUSSINESS_THREAD_BLOCK_3S";
-    constexpr const char* EVENT_BUSSINESS_THREAD_BLOCK_6S = "BUSSINESS_THREAD_BLOCK_6S";
     constexpr const char* EVENT_BUSINESS_INPUT_BLOCK = "BUSINESS_INPUT_BLOCK";
-    constexpr const char* EVENT_APP_HICOLLIE = "APP_HICOLLIE";
-    constexpr const char* FOUNDATION_REQUIRED_EVENTS[] = {
-        EVENT_LIFECYCLE_HALF_TIMEOUT,
-        EVENT_LIFECYCLE_HALF_TIMEOUT_WARNING,
-        EVENT_LIFECYCLE_TIMEOUT,
-        EVENT_LIFECYCLE_TIMEOUT_WARNING,
-        EVENT_APP_LIFECYCLE_TIMEOUT,
-        EVENT_THREAD_BLOCK_3S,
-        EVENT_THREAD_BLOCK_6S,
-        EVENT_APP_INPUT_BLOCK,
-        EVENT_BUSINESS_INPUT_BLOCK
-    };
 }
 
 REGISTER(EventLogger);
@@ -239,12 +226,20 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
         return false;
     }
 
-    if (IsInvalidEventSource(sysEvent) || !IsValidEventParam(sysEvent)) {
+    if (!EventFieldValidator::ValidateEvent(sysEvent)) {
         sysEvent->OnFinish();
         return false;
     }
 
     long pid = GetEventPid(sysEvent);
+    // re-check the effective dump target after GetEventPid may have resolved it
+    // from PACKAGE_NAME: the resolved pid must belong to the event writer
+    if (!IsDumpTargetPermitted(sysEvent)) {
+        HIVIEW_LOGE("dump target not permitted, eventName=%{public}s, writerUid=%{public}d, pid=%{public}ld",
+            sysEvent->eventName_.c_str(), sysEvent->GetUid(), pid);
+        sysEvent->OnFinish();
+        return false;
+    }
     std::string eventName = sysEvent->eventName_;
 
     if (!CheckContinueReport(sysEvent, pid, eventName) || !CheckFfrtEvent(sysEvent) || !IsHandleAppfreeze(sysEvent) ||
@@ -431,6 +426,11 @@ void EventLogger::SubmitEventlogTask(const std::string& cmd, std::shared_ptr<Eve
 void EventLogger::HandleEventLoggerCmd(const std::string& cmd, std::shared_ptr<SysEvent> event, int fd,
     std::shared_ptr<EventLogTask> logTask)
 {
+    if (cmd.compare(0, CMD_PREFIX_LEN, "k:") == 0 && event->GetUid() >= FreezeManager::MIN_APP_UID) {
+        HIVIEW_LOGW("skip sysrq/hungtask catcher for app-writable event, writerUid=%{public}d, cmd=%{public}s",
+            event->GetUid(), cmd.c_str());
+        return;
+    }
     if (cmd == "tr") {
         if (!Parameter::IsBetaVersion() || event->GetEventValue("NOT_DUMP_TRACE") != "Yes") {
             SubmitTraceTask(cmd, logTask);
@@ -653,7 +653,7 @@ void ParsePeerBinder(const std::string& binderInfo, std::string& binderInfoJsonS
         }
         // 2: binder peer id
         std::string pidStr = strList[2].substr(0, strList[2].find(":"));
-        if (pidStr == "") {
+        if (!EventFieldValidator::IsDecimalValue(pidStr)) {
             continue;
         }
         if (processNameMap.find(pidStr) == processNameMap.end()) {
@@ -1020,7 +1020,7 @@ bool EventLogger::GetHicollieStack(std::shared_ptr<SysEvent> event, std::string&
     size_t len = std::char_traits<char>::length(":render");
     if (procName.find(":render") != std::string::npos && procName.size() > len) {
         std::string appName = procName.substr(0, procName.size() - len);
-        int pidOfApp = CommonUtils::GetPidByName(appName);
+        int pidOfApp = CommonUtils::GetPidByProcessName(appName);
         if (pidOfApp > 0) {
             std::string appStackStr;
             ret = LogCatcherUtils::DumpStacktraceJsonFast(pidOfApp, appStackStr);
@@ -1293,7 +1293,13 @@ void EventLogger::WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vect
     size_t indexTwo = binderInfo.rfind(",");
     if (indexOne != std::string::npos && indexTwo != std::string::npos && indexTwo > indexOne) {
         HIVIEW_LOGI("Current binderInfo is? binderInfo:%{public}s", binderInfo.c_str());
-        StringUtil::SplitStr(binderInfo.substr(indexOne + 1, indexTwo - indexOne - 1), " ", binderPids);
+        std::vector<std::string> parsedPids;
+        StringUtil::SplitStr(binderInfo.substr(indexOne + 1, indexTwo - indexOne - 1), " ", parsedPids);
+        for (const auto& parsedPid : parsedPids) {
+            if (EventFieldValidator::IsDecimalValue(parsedPid)) {
+                binderPids.push_back(parsedPid);
+            }
+        }
         int terminalBinderTid = std::atoi(binderInfo.substr(indexTwo + 1).c_str());
         std::string binderPath = binderInfo.substr(0, indexOne);
         if (FileUtil::FileExists(binderPath)) {
@@ -1343,19 +1349,34 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
     }
 }
 
-bool EventLogger::JudgmentRateLimiting(std::shared_ptr<SysEvent> event)
+bool EventLogger::CheckDistinctPidLimit(const std::string& eventName, int64_t pid, int32_t uid, int32_t interval)
 {
-    int32_t interval = event->GetIntValue("eventLog_interval");
-    if (interval == 0) {
-        return true;
+    constexpr size_t MAX_DISTINCT_PID_PER_UID = 5;
+    std::string uidTag = eventName + "-uid" + std::to_string(uid);
+    std::time_t now = std::time(0);
+    for (auto it = uidPidCountMap_.begin(); it != uidPidCountMap_.end();) {
+        if ((now - it->second.first) >= interval) {
+            it = uidPidCountMap_.erase(it);
+            continue;
+        }
+        ++it;
     }
+    auto uidIt = uidPidCountMap_.find(uidTag);
+    if (uidIt != uidPidCountMap_.end()) {
+        uidIt->second.second.insert(pid);
+        if (uidIt->second.second.size() > MAX_DISTINCT_PID_PER_UID) {
+            HIVIEW_LOGE("event: eventName:%{public}s uid:%{public}d distinct pid count:%{public}zu exceeds limit",
+                eventName.c_str(), uid, uidIt->second.second.size());
+            return false;
+        }
+    } else {
+        uidPidCountMap_[uidTag] = {now, {pid}};
+    }
+    return true;
+}
 
-    int64_t pid = event->GetEventIntValue("PID");
-    pid = pid ? pid : event->GetPid();
-    std::string eventName = event->eventName_;
-    std::string eventPid = std::to_string(pid);
-
-    intervalMutex_.lock();
+bool EventLogger::CheckEventInterval(const std::string& eventName, const std::string& eventPid, int32_t interval)
+{
     std::time_t now = std::time(0);
     for (auto it = eventTagTime_.begin(); it != eventTagTime_.end();) {
         if (it->first.find(eventName) != it->first.npos) {
@@ -1366,22 +1387,53 @@ bool EventLogger::JudgmentRateLimiting(std::shared_ptr<SysEvent> event)
         }
         ++it;
     }
-
     std::string tagTimeName = eventName + eventPid;
     auto it = eventTagTime_.find(tagTimeName);
     if (it != eventTagTime_.end()) {
         if ((now - it->second) < interval) {
-            HIVIEW_LOGE("event: id:0x%{public}d, eventName:%{public}s pid:%{public}s. \
-                interval:%{public}" PRId32 " There's not enough interval",
-                event->eventId_, eventName.c_str(), eventPid.c_str(), interval);
-            intervalMutex_.unlock();
+            HIVIEW_LOGE("event: eventName:%{public}s pid:%{public}s interval:%{public}" PRId32 " not enough",
+                eventName.c_str(), eventPid.c_str(), interval);
             return false;
         }
     }
     eventTagTime_[tagTimeName] = now;
-    HIVIEW_LOGD("event: id:0x%{public}d, eventName:%{public}s pid:%{public}s. \
-        interval:%{public}" PRId32 " normal interval",
-        event->eventId_, eventName.c_str(), eventPid.c_str(), interval);
+    return true;
+}
+
+bool EventLogger::JudgmentRateLimiting(std::shared_ptr<SysEvent> event)
+{
+    int32_t interval = event->GetIntValue("eventLog_interval");
+    if (interval <= 0) {
+        if (event->GetUid() < FreezeManager::MIN_APP_UID) {
+            // system writers keep the legacy behavior of no self-imposed interval
+            return true;
+        }
+        // app writers must not opt out of rate limiting with a missing/invalid
+        // interval; fall back to a default interval for their events
+        interval = DEFAULT_APP_WRITER_INTERVAL;
+    }
+
+    int64_t pid = event->GetPid();
+    if (event->GetUid() < FreezeManager::MIN_APP_UID) {
+        // system writers keep the per-frozen-process key; app-writable events
+        // must not influence the rate-limit key through the event payload
+        pid = event->GetEventIntValue("PID");
+        pid = pid ? pid : event->GetPid();
+    }
+    std::string eventName = event->eventName_;
+    std::string eventPid = std::to_string(pid);
+
+    intervalMutex_.lock();
+    if (!CheckDistinctPidLimit(eventName, pid, event->GetUid(), interval)) {
+        intervalMutex_.unlock();
+        return false;
+    }
+    if (!CheckEventInterval(eventName, eventPid, interval)) {
+        intervalMutex_.unlock();
+        return false;
+    }
+    HIVIEW_LOGD("event: eventName:%{public}s pid:%{public}s interval:%{public}" PRId32 " normal",
+        eventName.c_str(), eventPid.c_str(), interval);
     intervalMutex_.unlock();
     return true;
 }
@@ -1765,76 +1817,19 @@ bool EventLogger::GetMatchResetString(const std::string& src, std::string& dst) 
     return true;
 }
 
-bool EventLogger::IsFoundationRequiredEvent(const std::string& eventName) const
+bool EventLogger::IsDumpTargetPermitted(const std::shared_ptr<SysEvent>& event) const
 {
-    return std::find(std::begin(FOUNDATION_REQUIRED_EVENTS), std::end(FOUNDATION_REQUIRED_EVENTS),
-        eventName) != std::end(FOUNDATION_REQUIRED_EVENTS);
-}
-
-bool EventLogger::IsInvalidEventSource(const std::shared_ptr<SysEvent>& event) const
-{
-    const std::string& eventName = event->eventName_;
-    int32_t eventUid = event->GetUid();
-    if (IsFoundationRequiredEvent(eventName)) {
-        if (eventUid == FreezeCommon::FOUNDATION_UID) {
-            return false;
-        }
-        HIVIEW_LOGE("invalid event source, eventName=%{public}s, uid=%{public}d",
-            eventName.c_str(), eventUid);
+    int32_t writerUid = event->GetUid();
+    if (writerUid >= 0 && writerUid < FreezeManager::MIN_APP_UID) {
         return true;
     }
-    int32_t uid = static_cast<int32_t>(event->GetEventIntValue("UID"));
-    if (eventName == EVENT_BUSSINESS_THREAD_BLOCK_3S ||
-        eventName == EVENT_BUSSINESS_THREAD_BLOCK_6S) {
-        if (eventUid == FreezeCommon::FOUNDATION_UID || eventUid == uid) {
-            return false;
-        }
-        HIVIEW_LOGE("invalid bussiness thread block source, eventName=%{public}s, uid=%{public}d",
-            eventName.c_str(), eventUid);
-        return true;
-    }
-    if (eventName == EVENT_APP_HICOLLIE) {
-        if (eventUid == uid) {
-            return false;
-        }
-        HIVIEW_LOGE("invalid APP_HICOLLIE source, uid_=%{public}d, uid=%{public}d",
-            eventUid, uid);
-        return true;
-    }
-    return false;
-}
-
-bool EventLogger::IsValidEventParam(const std::shared_ptr<SysEvent>& event) const
-{
-    for (const auto& key : PROCESS_IDENTITY_KEYS) {
-        if (!FreezeManager::GetInstance()->IsValidEventStringParam(event->GetEventValue(key))) {
-            HIVIEW_LOGE("invalid process identity param: %{public}s", key);
-            return false;
-        }
-    }
-    std::string appRunningUniqueId = event->GetEventValue("APP_RUNNING_UNIQUE_ID");
-    if (!FreezeManager::IsAllDigits(appRunningUniqueId)) {
-        HIVIEW_LOGE("invalid app running id: %{public}s", appRunningUniqueId.c_str());
+    int32_t pid = event->GetEventIntValue("PID");
+    if (pid > 0 && !FreezeManager::IsValidDumpTarget(pid, writerUid)) {
         return false;
     }
-    int32_t uid = event->GetEventIntValue(FreezeCommon::EVENT_SYS_UID);
-    std::string stack = event->GetEventValue("STACK");
-    if (!stack.empty() && !FreezeManager::GetInstance()->IsValidFreezePath(stack,
-        FreezeManager::EVENTLOG_PATH_PREFIX, uid)) {
-        HIVIEW_LOGE("invalid stack info: %{public}s", stack.c_str());
+    int32_t remotePid = event->GetEventIntValue("REMOTE_PID");
+    if (remotePid > 0 && remotePid != pid && !FreezeManager::IsValidDumpTarget(remotePid, writerUid)) {
         return false;
-    }
-    std::string binderInfo = event->GetEventValue("BINDER_INFO");
-    if (!binderInfo.empty()) {
-        size_t commaPos = binderInfo.find(',');
-        if (commaPos != std::string::npos) {
-            std::string binderPath = binderInfo.substr(0, commaPos);
-            if (!FreezeManager::GetInstance()->IsValidFreezePath(binderPath,
-                FreezeManager::EVENTLOG_PATH_PREFIX, uid)) {
-                HIVIEW_LOGE("invalid binder info: %{public}s", binderPath.c_str());
-                return false;
-            }
-        }
     }
     return true;
 }

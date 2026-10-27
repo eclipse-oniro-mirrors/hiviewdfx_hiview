@@ -212,10 +212,17 @@ bool FeatureAnalysis::ParseElementForParam(const string& src, FeatureRule& rule)
         smatch result;
         int seekType = GetSeekInfo(iter->second, reg);
         hasContinue = (seekType == LAST_MATCH) ? true : hasContinue;
-        if (reg.find(L3_VARIABLE_TRACE_BLOCK) != string::npos || regex_search(src, result, regex(reg))) {
-            string value = result.str(1).empty() ? "" : string(result.str(1));
+        bool matched = false;
+        string value;
+        if (reg.find(L3_VARIABLE_TRACE_BLOCK) != string::npos) {
+            matched = true;
+        } else if (regex_search(src, result, regex(reg))) {
+            matched = true;
+            value = result.str(1).empty() ? "" : string(result.str(1));
+        }
+        if (matched) {
             SetParamRecord(rule.name + "." + iter->first, FormatLineFeature(value, reg), seekType);
-            SetStackRegex(rule.name + "." + iter->first, reg);
+            SetStackRegex(rule.name + "." + iter->first, reg, rule.skipNum);
             if (seekType == FIRST_MATCH && rule.cmdType == L2_RULES) {
                 iter = rule.param.erase(iter);
             } else {
@@ -358,7 +365,7 @@ void FeatureAnalysis::Compose()
 }
 
 string FeatureAnalysis::ComposeTrace(const string& filePath, const string& param,
-    const vector<pair<string, LineFeature>>& lineFeatures, const string& regex) const
+    const vector<pair<string, LineFeature>>& lineFeatures, const string& regex, int skipNum) const
 {
     string result;
     auto iter = find_if(lineFeatures.begin(), lineFeatures.end(),
@@ -366,7 +373,7 @@ string FeatureAnalysis::ComposeTrace(const string& filePath, const string& param
     if (iter != lineFeatures.end()) {
         stringstream buffer("");
         if (LogUtil::ReadFileBuff(filePath, buffer)) {
-            LogUtil::GetTrace(buffer, iter->second.lineCursor, regex, result);
+            LogUtil::GetTrace(buffer, iter->second.lineCursor, regex, result, skipNum);
         }
     }
     return result;
@@ -383,7 +390,8 @@ string FeatureAnalysis::ComposeParam(const string& param) const
         if (iter != lineFeatures.end()) {
             auto regexIter = stackRegex_.find(key);
             if (regexIter != stackRegex_.end()) {
-                auto value = ComposeTrace(featureSet_.fullPath, key, lineFeatures, regexIter->second);
+                auto value = ComposeTrace(featureSet_.fullPath, key, lineFeatures,
+                    regexIter->second.regex, regexIter->second.skipNum);
                 results.emplace_back(value);
             } else {
                 results.emplace_back(iter->second.value);
@@ -440,10 +448,13 @@ void FeatureAnalysis::SetParamRecord(const std::string& key, const LineFeature& 
     paramSeekRecord_.emplace_back(pair<string, LineFeature>(key, value));
 }
 
-void FeatureAnalysis::SetStackRegex(const std::string& key, const std::string& regex)
+void FeatureAnalysis::SetStackRegex(const std::string& key, const std::string& regex, int skipNum)
 {
     if (regex.find(L3_VARIABLE_TRACE_BLOCK) != string::npos) {
-        stackRegex_.emplace(pair(key, StringUtil::EraseString(regex, L3_VARIABLE_TRACE_BLOCK)));
+        StackRegexInfo info;
+        info.regex = StringUtil::EraseString(regex, L3_VARIABLE_TRACE_BLOCK);
+        info.skipNum = skipNum;
+        stackRegex_.emplace(pair(key, info));
     }
 }
 } // namespace HiviewDFX

@@ -48,4 +48,5 @@ ohos_shared_library("libgraphic_memory") {
 
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
+  version_script = "libgraphic_memory.map"
 }

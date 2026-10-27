@@ -27,7 +27,7 @@ namespace HiviewDFX {
  */
 HWTEST(FaultLogEventFactoryTest, EventHandlerStrategyFactory001, testing::ext::TestSize.Level3)
 {
-    std::array<FaultLogType, 10> typeList1 = {
+    std::array<FaultLogType, 11> typeList1 = {
         FaultLogType::JS_CRASH,
         FaultLogType::CJ_ERROR,
         FaultLogType::RUST_PANIC,
@@ -38,6 +38,7 @@ HWTEST(FaultLogEventFactoryTest, EventHandlerStrategyFactory001, testing::ext::T
         FaultLogType::APPFREEZE_WARNING,
         FaultLogType::SYS_FREEZE,
         FaultLogType::SYS_WARNING,
+        FaultLogType::FILE_DELETE,
     };
     for (auto type : typeList1) {
         auto fault = FaultLogEventFactory::CreateFaultLogEvent(type);

@@ -16,6 +16,7 @@
 #include "freeze_detector_plugin.h"
 
 #include <algorithm>
+#include <limits>
 
 #include "ffrt.h"
 #include "hiview_logger.h"
@@ -25,6 +26,8 @@
 #include "sys_event_dao.h"
 
 #include "decoded/decoded_event.h"
+
+#include "event_field_validator.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -143,6 +146,7 @@ void FreezeDetectorPlugin::ExtractWatchPointParams(
     params.appRunningUniqueId = sysEvent.GetEventValue(FreezeCommon::APP_RUNNING_UNIQUE_ID);
     params.packageName = sysEvent.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME);
     params.processName = sysEvent.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
+    params.processLifetime = sysEvent.GetEventIntValue(FreezeCommon::EVENT_PROCESS_LIFETIME);
     params.hitraceTime = sysEvent.GetEventValue(FreezeCommon::HITRACE_TIME);
     params.sysrqTime = sysEvent.GetEventValue(FreezeCommon::SYSRQ_TIME);
     params.terminalThreadStack = sysEvent.GetEventValue(FreezeCommon::TERMINAL_THREAD_STACK);
@@ -182,12 +186,19 @@ WatchPoint FreezeDetectorPlugin::MakeWatchPoint(const Event& event)
     SysEvent& sysEvent = static_cast<SysEvent&>(const_cast<Event&>(event));
     WatchPointParams params;
     ExtractWatchPointParams(sysEvent, event, params);
+    const int64_t sampleValue = sysEvent.IsParamExist("SAMPLER_COUNT") ?
+        sysEvent.GetEventIntValue("SAMPLER_COUNT") : INVALID_SAMPLER_COUNT;
+    const int32_t samplerCount = sampleValue >= 0 && sampleValue <= std::numeric_limits<int32_t>::max() ?
+        static_cast<int32_t>(sampleValue) : INVALID_SAMPLER_COUNT;
 
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder().InitSeq(params.seq).InitDomain(event.domain_)
         .InitStringId(event.eventName_).InitTimestamp(event.happenTime_).InitPid(params.pid).InitTid(params.tid)
         .InitUid(params.uid).InitSysUid(params.sysuid).InitTerminalThreadStack(params.terminalThreadStack)
         .InitTelemetryId(params.telemetryId)
+        .InitFreezeLogInfo(sysEvent.GetEventValue("HEAVIEST_STACK"),
+            sysEvent.GetEventValue("LOG_VALIDITY"), samplerCount)
         .InitPackageName(params.packageName).InitProcessName(params.processName).InitForeGround(params.foreGround)
+        .InitProcessLifeTime(params.processLifetime)
         .InitMsg(params.msg).InitLogPath(params.logFile).InitHitraceTime(params.hitraceTime)
         .InitSysrqTime(params.sysrqTime).InitHitraceIdInfo(params.hitraceIdInfo).InitProcStatm(params.procStatm)
         .InitHostResourceWarning(params.hostResourceWarning).InitFreezeExtFile(params.freezeExtFile)
@@ -241,6 +252,16 @@ void FreezeDetectorPlugin::OnEventListeningCallback(const Event& event)
 
     if (!freezeCommon_->IsFreezeEvent(event.domain_, event.eventName_)) {
         HIVIEW_LOGE("not freeze event.");
+        return;
+    }
+
+    // source-first validation: untrusted senders (app side) must pass per-field
+    // checks and the capture quota before the watch point is built
+    SysEvent& sysEventRef = static_cast<SysEvent&>(const_cast<Event&>(event));
+    std::shared_ptr<SysEvent> sysEvent(&sysEventRef, [](SysEvent*) {});
+    if (!EventFieldValidator::ValidateEvent(sysEvent)) {
+        HIVIEW_LOGW("event rejected by source/field validation, domain:%{public}s name:%{public}s",
+            event.domain_.c_str(), event.eventName_.c_str());
         return;
     }
 

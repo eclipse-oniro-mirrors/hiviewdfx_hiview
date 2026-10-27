@@ -16,6 +16,7 @@
 #define HIVIEWDFX_HIVIEW_FAULTLOGGER_FAULT_QUERY_RESULT_INNER_H
 #include <list>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "faultlog_info_inner.h"
@@ -41,6 +42,7 @@ public:
 private:
     std::list<FaultLogInfo> logList_;
     std::list<FaultLogInfo>::iterator iter_;
+    std::mutex mutex_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

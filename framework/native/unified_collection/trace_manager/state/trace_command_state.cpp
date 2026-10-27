@@ -21,6 +21,7 @@
 namespace OHOS::HiviewDFX {
 namespace {
 DEFINE_LOG_TAG("TraceStateMachine");
+using namespace Hitrace;
 }
 
 TraceRet CommandState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,

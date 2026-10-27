@@ -21,7 +21,8 @@ namespace OHOS {
 namespace HiviewDFX {
 WatchPoint::WatchPoint()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), sysuid_(0), terminalThreadStack_(""), telemetryId_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    domain_(""), stringId_(""), msg_(""), processLifetime_(0), hitraceIdInfo_(""), procStatm_(""),
+    hostResourceWarning_(""),
     freezeExtFile_(""), enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""),
     applicationIOInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
@@ -38,12 +39,16 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
     uid_(builder.uid_),
     sysuid_(builder.sysuid_),
     terminalThreadStack_(builder.terminalThreadStack_),
+    heaviestStack_(builder.heaviestStack_),
+    logValidity_(builder.logValidity_),
+    samplerCount_(builder.samplerCount_),
     telemetryId_(builder.telemetryId_),
     domain_(builder.domain_),
     stringId_(builder.stringId_),
     msg_(builder.msg_),
     packageName_(builder.packageName_),
     processName_(builder.processName_),
+    processLifetime_(builder.processLifetime_),
     foreGround_(builder.foreGround_),
     logPath_(builder.logPath_),
     hitraceTime_(builder.hitraceTime_),
@@ -75,7 +80,8 @@ WatchPoint::WatchPoint(const WatchPoint::Builder& builder)
 
 WatchPoint::Builder::Builder()
     : seq_(0), timestamp_(0), pid_(0), tid_(0), uid_(0), sysuid_(0), terminalThreadStack_(""), telemetryId_(""),
-    domain_(""), stringId_(""), msg_(""), hitraceIdInfo_(""), procStatm_(""), hostResourceWarning_(""),
+    domain_(""), stringId_(""), msg_(""), processLifetime_(0), hitraceIdInfo_(""), procStatm_(""),
+    hostResourceWarning_(""),
     freezeExtFile_(""), enableMainThreadSample_(false), applicationInfo_(""), applicationGCInfo_(""),
     applicationIOInfo_(""), appRunningUniqueId_(""), taskName_(""), clusterRaw_(""),
     timeoutEventId_(""), lastDispatchEventId_(""), lastProcessEventId_(""), lastMarkedEventId_(""), thermalLevel_(""),
@@ -85,6 +91,30 @@ WatchPoint::Builder::Builder()
 }
 
 WatchPoint::Builder::~Builder() {}
+
+WatchPoint::Builder& WatchPoint::Builder::InitFreezeLogInfo(
+    const std::string& heaviestStack, const std::string& logValidity, int32_t samplerCount)
+{
+    heaviestStack_ = heaviestStack;
+    logValidity_ = logValidity;
+    samplerCount_ = samplerCount;
+    return *this;
+}
+
+std::string WatchPoint::GetHeaviestStack() const
+{
+    return heaviestStack_;
+}
+
+std::string WatchPoint::GetLogValidity() const
+{
+    return logValidity_;
+}
+
+int32_t WatchPoint::GetSamplerCount() const
+{
+    return samplerCount_;
+}
 
 WatchPoint::Builder& WatchPoint::Builder::InitSeq(long seq)
 {
@@ -155,6 +185,12 @@ WatchPoint::Builder& WatchPoint::Builder::InitMsg(const std::string& msg)
 WatchPoint::Builder& WatchPoint::Builder::InitProcessName(const std::string& processName)
 {
     processName_ = processName;
+    return *this;
+}
+
+WatchPoint::Builder& WatchPoint::Builder::InitProcessLifeTime(int64_t processLifeTime)
+{
+    processLifetime_ = processLifeTime;
     return *this;
 }
 
@@ -389,6 +425,11 @@ std::string WatchPoint::GetPackageName() const
 std::string WatchPoint::GetProcessName() const
 {
     return processName_;
+}
+
+int64_t WatchPoint::GetProcessLifeTime() const
+{
+    return processLifetime_;
 }
 
 std::string WatchPoint::GetForeGround() const

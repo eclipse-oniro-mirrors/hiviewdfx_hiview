@@ -26,23 +26,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace HiviewDFX {
 
-/**
- * @tc.name: WriteStackTraceFromLogTest001
- * @tc.desc: Test WriteStackTraceFromLog
- * @tc.type: FUNC
- */
-HWTEST(FaultlogFormatterUnittest, WriteStackTraceFromLogTest001, testing::ext::TestSize.Level1)
-{
-    std::string pidStr;
-    int32_t fd = -1;
-    std::string path = "/testError";
-    bool ret = FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
-    ASSERT_FALSE(ret);
-    path = "/data/test/test_faultlogger_data/plugin_config_test";
-    ret = FaultLogger::WriteStackTraceFromLog(fd, pidStr, path);
-    ASSERT_TRUE(ret);
-}
-
 static std::string GetPipeData(int pipeRead)
 {
     constexpr int maxPipeBuffSize = 1024 * 1024;
@@ -70,6 +53,29 @@ HWTEST(FaultlogFormatterUnittest, WriteFaultLogToFileTest003, testing::ext::Test
         close(pipe[0]);
         close(pipe[1]);
     }
+}
+
+/**
+ * @tc.name: WriteSysFreezeStartTimeRawValuesTest001
+ * @tc.desc: Test raw process and device start times are written to sysfreeze log
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogFormatterUnittest, WriteSysFreezeStartTimeRawValuesTest001, testing::ext::TestSize.Level1)
+{
+    std::map<std::string, std::string> sections = {
+        {"PROCESS_LIFETIME", "123456"},
+        {"DEVICE_RUNNING_TIME", "654321"},
+    };
+    int pipeFd[2] = {-1, -1};
+    ASSERT_EQ(pipe2(pipeFd, O_CLOEXEC | O_NONBLOCK), 0);
+
+    FaultLogger::WriteFaultLogToFile(pipeFd[1], FaultLogType::SYS_FREEZE, sections);
+    close(pipeFd[1]);
+    auto result = GetPipeData(pipeFd[0]);
+    close(pipeFd[0]);
+
+    EXPECT_NE(result.find("Process life time:123456"), std::string::npos);
+    EXPECT_NE(result.find("Device running time:654321"), std::string::npos);
 }
 
 /**

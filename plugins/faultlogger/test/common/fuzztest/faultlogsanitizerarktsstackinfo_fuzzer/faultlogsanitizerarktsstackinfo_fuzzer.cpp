@@ -65,7 +65,7 @@ void FuzzParserArkTsStackInfo(FuzzDataSource& source)
         return;
     }
     FaultLogSanitizer sanitizer;
-    (void)sanitizer.ParserArkTsStackInfo(moduleName, tmpPath);
+    (void)sanitizer.ParserArkTsStackInfo(moduleName, tmpPath, false);
     CleanupTempFile(tmpPath);
 }
 

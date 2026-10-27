@@ -36,7 +36,8 @@ inline constexpr float SINGLE_FRAME_TIME = 16600000;
 inline constexpr int64_t MIN_GC_INTERVAL = 1000000000;
 inline constexpr int DEFAULT_THRESHOLD_JANK = 15;
 inline constexpr int32_t JANK_SKIPPED_THRESHOLD = DEFAULT_THRESHOLD_JANK;
-inline constexpr int32_t DEFAULT_JANK_REPORT_THRESHOLD = 3;
+inline constexpr int32_t DEFAULT_JANK_REPORT_THRESHOLD = 6;
+inline constexpr int32_t JANK50_REPORT_THRESHOLD = 3;
 inline constexpr uint32_t DEFAULT_VSYNC = 16;
 // Obtain the last three digits of the full path
 inline constexpr uint32_t PATH_DEPTH = 3;
@@ -52,8 +53,6 @@ inline constexpr uint32_t JANK_FRAME_60_LIMIT = 5;
 inline constexpr uint32_t JANK_FRAME_120_LIMIT = 6;
 inline constexpr uint32_t JANK_FRAME_180_LIMIT = 7;
 inline constexpr uint32_t JANK_STATS_SIZE = 8;
-
-inline constexpr int32_t VAILD_JANK_SUB_HEALTH_INTERVAL = 100;
 
 class PerfConstants {
 public:

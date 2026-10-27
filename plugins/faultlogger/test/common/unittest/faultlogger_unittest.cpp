@@ -14,7 +14,11 @@
  */
 #include <cstddef>
 #include <cstdint>
+#include <list>
+#include <mutex>
+#include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <fcntl.h>
@@ -234,6 +238,8 @@ HWTEST_F(FaultloggerUnittest, IsInterestedPipelineEvent, testing::ext::TestSize.
     EXPECT_TRUE(testPlugin->IsInterestedPipelineEvent(event));
     event->SetEventName("ADDR_SANITIZER");
     EXPECT_TRUE(testPlugin->IsInterestedPipelineEvent(event));
+    event->SetEventName("FILE_DELETED");
+    EXPECT_TRUE(testPlugin->IsInterestedPipelineEvent(event));
     event->SetEventName("OTHERS");
     EXPECT_FALSE(testPlugin->IsInterestedPipelineEvent(event));
 };
@@ -335,13 +341,66 @@ HWTEST_F(FaultloggerUnittest, FaultLogQueryResultStubTest001, testing::ext::Test
     ASSERT_EQ(ret, 305); // 305 : method not exist
 }
 
+static void ConsumeFaultLogConcurrently(FaultLogQueryResultInner *innerPtr,
+    std::vector<int32_t> *collectedPtr, std::mutex *collectMutexPtr)
+{
+    while (innerPtr->HasNext()) {
+        auto info = innerPtr->GetNext();
+        if (info == nullptr) {
+            continue;
+        }
+        std::lock_guard<std::mutex> lock(*collectMutexPtr);
+        collectedPtr->push_back(info->pid);
+    }
+}
+
+/**
+ * @tc.name: FaultLogQueryResultInnerConcurrentTest001
+ * @tc.desc: GetNext/HasNext must be safe under concurrent access; every item consumed exactly once
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLogQueryResultInnerConcurrentTest001, testing::ext::TestSize.Level3)
+{
+    constexpr int32_t total = 500;
+    constexpr int32_t threadCount = 8;
+    std::list<FaultLogInfo> faultLogList;
+    for (int32_t i = 0; i < total; ++i) {
+        FaultLogInfo info;
+        info.pid = i;
+        faultLogList.push_back(info);
+    }
+    FaultLogQueryResultInner inner(faultLogList);
+
+    std::vector<int32_t> collected;
+    collected.reserve(total);
+    std::mutex collectMutex;
+    FaultLogQueryResultInner *innerPtr = &inner;
+    std::vector<int32_t> *collectedPtr = &collected;
+    std::mutex *collectMutexPtr = &collectMutex;
+    std::vector<std::thread> workers;
+    workers.reserve(threadCount);
+    for (int32_t t = 0; t < threadCount; ++t) {
+        workers.emplace_back([innerPtr, collectedPtr, collectMutexPtr]() {
+            ConsumeFaultLogConcurrently(innerPtr, collectedPtr, collectMutexPtr);
+        });
+    }
+    for (auto &worker : workers) {
+        worker.join();
+    }
+    EXPECT_EQ(collected.size(), static_cast<size_t>(total));
+    std::set<int32_t> uniqueIds(collected.begin(), collected.end());
+    EXPECT_EQ(uniqueIds.size(), static_cast<size_t>(total));
+}
+
 class TestFaultLoggerServiceStub : public FaultLoggerServiceStub {
 public:
     TestFaultLoggerServiceStub() {}
     virtual ~TestFaultLoggerServiceStub() {}
 
+    int32_t lastPipeFd {-2};
     void AddFaultLog(const FaultLogInfoOhos& info)
     {
+        lastPipeFd = info.pipeFd;
     }
 
     sptr<IRemoteObject> QuerySelfFaultLog(int32_t faultType, int32_t maxNum)
@@ -664,6 +723,123 @@ HWTEST_F(FaultloggerUnittest, FaultLoggerServiceStubTest002, testing::ext::TestS
     int ret = faultLoggerServiceStub.OnRemoteRequest(TestFaultLoggerServiceStub::Code::ENABLE_GWP_ASAN_INNER,
         data, reply, option);
     ASSERT_EQ(ret, 3);
+}
+
+/**
+ * @tc.name: FaultLoggerServiceStubFdValidation001
+ * @tc.desc: test ValidatePipeFd with valid fd from faultlog temp directory
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLoggerServiceStubFdValidation001, testing::ext::TestSize.Level3)
+{
+    std::string tempPath = "/data/log/faultlog/temp/test_validate_fd_001";
+    int createFd = open(tempPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    ASSERT_GE(createFd, 0);
+    close(createFd);
+    int fd = open(tempPath.c_str(), O_RDONLY);
+    ASSERT_GE(fd, 0);
+
+    FaultLogInfoOhos info;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(FaultLoggerServiceStub::GetDescriptor());
+    info.Marshalling(data);
+    data.WriteFileDescriptor(fd);
+
+    TestFaultLoggerServiceStub stub;
+    int ret = stub.OnRemoteRequest(TestFaultLoggerServiceStub::Code::ADD_FAULTLOG, data, reply, option);
+    ASSERT_EQ(ret, 0);
+    ASSERT_GE(stub.lastPipeFd, 0);
+    if (stub.lastPipeFd >= 0 && stub.lastPipeFd != fd) {
+        close(stub.lastPipeFd);
+    }
+    if (fcntl(fd, F_GETFD) != -1) {
+        close(fd);
+    }
+    unlink(tempPath.c_str());
+}
+
+/**
+ * @tc.name: FaultLoggerServiceStubFdValidation002
+ * @tc.desc: test ValidatePipeFd with pipe fd (should be rejected)
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLoggerServiceStubFdValidation002, testing::ext::TestSize.Level3)
+{
+    int pipeFd[2] = {-1, -1};
+    ASSERT_EQ(pipe(pipeFd), 0);
+
+    FaultLogInfoOhos info;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(FaultLoggerServiceStub::GetDescriptor());
+    info.Marshalling(data);
+    data.WriteFileDescriptor(pipeFd[0]);
+
+    TestFaultLoggerServiceStub stub;
+    int ret = stub.OnRemoteRequest(TestFaultLoggerServiceStub::Code::ADD_FAULTLOG, data, reply, option);
+    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(stub.lastPipeFd, -1);
+    if (pipeFd[0] >= 0 && fcntl(pipeFd[0], F_GETFD) != -1) {
+        close(pipeFd[0]);
+    }
+    if (pipeFd[1] >= 0) {
+        close(pipeFd[1]);
+    }
+}
+
+/**
+ * @tc.name: FaultLoggerServiceStubFdValidation003
+ * @tc.desc: test ValidatePipeFd with file outside faultlog temp (should be rejected)
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLoggerServiceStubFdValidation003, testing::ext::TestSize.Level3)
+{
+    std::string testPath = "/data/test/test_validate_fd_003";
+    int createFd = open(testPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    ASSERT_GE(createFd, 0);
+    close(createFd);
+    int fd = open(testPath.c_str(), O_RDONLY);
+    ASSERT_GE(fd, 0);
+
+    FaultLogInfoOhos info;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(FaultLoggerServiceStub::GetDescriptor());
+    info.Marshalling(data);
+    data.WriteFileDescriptor(fd);
+
+    TestFaultLoggerServiceStub stub;
+    int ret = stub.OnRemoteRequest(TestFaultLoggerServiceStub::Code::ADD_FAULTLOG, data, reply, option);
+    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(stub.lastPipeFd, -1);
+    if (fcntl(fd, F_GETFD) != -1) {
+        close(fd);
+    }
+    unlink(testPath.c_str());
+}
+
+/**
+ * @tc.name: FaultLoggerServiceStubFdValidation004
+ * @tc.desc: test ValidatePipeFd without file descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(FaultloggerUnittest, FaultLoggerServiceStubFdValidation004, testing::ext::TestSize.Level3)
+{
+    FaultLogInfoOhos info;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(FaultLoggerServiceStub::GetDescriptor());
+    info.Marshalling(data);
+
+    TestFaultLoggerServiceStub stub;
+    int ret = stub.OnRemoteRequest(TestFaultLoggerServiceStub::Code::ADD_FAULTLOG, data, reply, option);
+    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(stub.lastPipeFd, -1);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -22,7 +22,7 @@ DEFINE_LOG_TAG("TraceStateMachine");
 }
 
 TraceRet DynamicState::DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
-    TraceRetInfo &info, const std::string& outputPath)
+    Hitrace::TraceRetInfo &info, const std::string& outputPath)
 {
     if (scenarioName != ScenarioName::APP_DYNAMIC) {
         HIVIEW_LOGW("DynamicState scenario:%{public}s is fail", scenarioName.c_str());

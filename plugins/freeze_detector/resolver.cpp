@@ -89,7 +89,7 @@ bool FreezeResolver::JudgmentResult(const WatchPoint& watchPoint,
             return false;
         }
 
-        if (list.size() != (result.size() - 1)) {
+        if (list.size() + 1 != result.size()) {
             return false;
         }
 

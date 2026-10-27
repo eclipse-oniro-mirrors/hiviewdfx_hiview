@@ -20,6 +20,7 @@
 #include "xperf_register_manager.h"
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
+#include "xperf_collie_timer.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -46,10 +47,8 @@ ErrCode XperfServiceServer::NotifyToXperf(int32_t domainId, int32_t eventId, con
 {
     LOGD("XperfServiceServer_NotifyToXperf domainId:%{public}d eventId:%{public}d msg:%{public}s", domainId, eventId,
          msg.c_str());
-    auto timerId = HiviewDFX::XCollie::GetInstance().SetTimer("XPerfIPC_NotifyToXperf", XPERF_IPC_XCOLLIE_TIMEOUT,
-        nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+    XperfCollieTimer timer("XPerfIPC_NotifyToXperf", XPERF_IPC_XCOLLIE_TIMEOUT);
     XperfService::GetInstance().DispatchMsg(domainId, eventId, msg);
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
     return ERR_OK;
 }
 
@@ -57,10 +56,8 @@ int32_t XperfServiceServer::RegisterEventListener(const std::string& caller, con
     const std::vector<int>& eventCodes)
 {
     LOGD("XperfServiceServer_RegisterEventListener caller:%{private}s", caller.c_str());
-    auto timerId = HiviewDFX::XCollie::GetInstance().SetTimer("XPerfIPC_RegisterEventListener",
-        XPERF_IPC_XCOLLIE_TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG | HiviewDFX::XCOLLIE_FLAG_RECOVERY);
+    XperfCollieTimer timer("XPerfIPC_RegisterEventListener", XPERF_IPC_XCOLLIE_TIMEOUT);
     int32_t res = XperfRegisterManager::GetInstance().RegisterEventListener(caller, cb, eventCodes);
-    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
     return res;
 }
 } // namespace HiviewDFX

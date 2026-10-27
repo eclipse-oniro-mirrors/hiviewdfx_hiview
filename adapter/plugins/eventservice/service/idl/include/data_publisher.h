@@ -51,7 +51,7 @@ private:
     bool CreateHiviewTempDir();
     void HandleAppUninstallEvent(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event);
     void HandleSubscribeTask(std::shared_ptr<OHOS::HiviewDFX::SysEvent> &event,
-        std::string srcPath, std::string timeStr);
+        std::string srcPath, std::string timeStr, std::set<int> &uidSet);
     std::shared_ptr<DataShareDao> GetDataShareDao();
 
 private:

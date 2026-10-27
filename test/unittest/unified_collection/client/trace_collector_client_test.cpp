@@ -18,54 +18,12 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "accesstoken_kit.h"
-#include "file_util.h"
-#include "nativetoken_kit.h"
-#include "parameter_ex.h"
-#include "token_setproc.h"
 #include "trace_collector_client.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 using namespace OHOS::HiviewDFX::UCollectClient;
 using namespace OHOS::HiviewDFX::UCollect;
-
-namespace {
-
-void NativeTokenGet(const char* perms[], int size)
-{
-    uint64_t tokenId;
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = size,
-        .aclsNum = 0,
-        .dcaps = nullptr,
-        .perms = perms,
-        .acls = nullptr,
-        .aplStr = "system_basic",
-    };
-
-    infoInstance.processName = "UCollectionClientUnitTest";
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-}
-
-void EnablePermissionAccess()
-{
-    const char* perms[] = {
-        "ohos.permission.WRITE_HIVIEW_SYSTEM",
-        "ohos.permission.READ_HIVIEW_SYSTEM",
-        "ohos.permission.HIVIEW_TRACE_MANAGE",
-    };
-    NativeTokenGet(perms, 3); // 3 is the size of the array which consists of required permissions.
-}
-
-void DisablePermissionAccess()
-{
-    NativeTokenGet(nullptr, 0); // empty permission array.
-}
-}
 
 class TraceCollectorTest : public testing::Test {
 public:
@@ -84,7 +42,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
 {
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
-    EnablePermissionAccess();
     std::vector<std::string> tags {
         "net", "dsched", "graphic", "multimodalinput", "dinput", "ark", "ace", "window", "zaudio", "daudio",
         "zmedia", "dcamera", "zcamera", "dhfwk", "app", "gresource", "ability", "power", "samgr", "ffrt", "nweb",
@@ -110,7 +67,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest001, TestSize.Level1)
         auto closeRet = traceCollector->Close();
         ASSERT_EQ(closeRet.retCode, UcError::SUCCESS);
     }
-    DisablePermissionAccess();
 }
 
 /**
@@ -122,7 +78,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
 {
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
-    EnablePermissionAccess();
     std::vector<std::string> tags {"sched"};
     const TraceParam params {
         .bufferSize = 1024,
@@ -145,7 +100,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest002, TestSize.Level1)
         auto closeRet = traceCollector->Close();
         ASSERT_EQ(closeRet.retCode, UcError::SUCCESS);
     }
-    DisablePermissionAccess();
 }
 
 /**
@@ -157,7 +111,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
 {
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
-    EnablePermissionAccess();
     auto ret = traceCollector->DumpSnapshot();
 
     /**
@@ -170,7 +123,29 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest003, TestSize.Level1)
     if (ret.retCode == UcError::SUCCESS) {
         ASSERT_TRUE(ret.data.size() > 0);
     }
-    DisablePermissionAccess();
+}
+
+/**
+ * @tc.name: TraceCollectorTest0031
+ * @tc.desc: dump trace in common state.
+ * @tc.type: FUNC
+*/
+HWTEST_F(TraceCollectorTest, TraceCollectorTest0031, TestSize.Level1)
+{
+    auto traceCollector = TraceCollector::Create();
+    ASSERT_TRUE(traceCollector != nullptr);
+    auto ret = traceCollector->DumpSnapshot(TraceClient::COMMON_RELIABILITY);
+
+    /**
+     * Reasonable scenarios
+     * TRACE_STATE_ERROR : trace not in beta state
+     * TRACE_DUMP_OVER_FLOW : io over limits of "Other" caller
+    */
+    ASSERT_TRUE(ret.retCode == UcError::SUCCESS || ret.retCode == UcError::TRACE_STATE_ERROR ||
+        ret.retCode == UcError::TRACE_DUMP_OVER_FLOW || ret.retCode == UcError::TRACE_OVER_FLOW);
+    if (ret.retCode == UcError::SUCCESS) {
+        ASSERT_TRUE(ret.data.size() > 0);
+    }
 }
 
 static uint64_t GetMilliseconds()
@@ -189,7 +164,6 @@ HWTEST_F(TraceCollectorTest, TraceCollectorTest004, TestSize.Level1)
 {
     auto traceCollector = TraceCollector::Create();
     ASSERT_TRUE(traceCollector != nullptr);
-    EnablePermissionAccess();
     AppCaller appCaller;
     appCaller.actionId = ACTION_ID_START_TRACE;
     appCaller.bundleName = "com.example.helloworld";

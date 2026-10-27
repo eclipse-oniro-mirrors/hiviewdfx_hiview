@@ -375,7 +375,6 @@
         "OHOS::HiviewDFX::StringUtil::FormatCmdLine(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::StringUtil::FormatProcessName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::HiviewDFX::CommonUtils::IsSpecificCmdExist(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::HiviewDFX::CommonUtils::GetPidByName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::SysEvent::SysEvent(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::HiviewDFX::PipelineEventProducer*, std::__h::shared_ptr<OHOS::HiviewDFX::EventRaw::RawData>, long, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::EventRaw::EncodedParam::AsUint64(unsigned long long&)";
         "OHOS::HiviewDFX::EventRaw::EncodedParam::AsUint64Vec(std::__h::vector<unsigned long long, std::__h::allocator<unsigned long long>>&)";

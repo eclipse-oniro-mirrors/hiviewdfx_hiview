@@ -64,6 +64,7 @@ DecodedEvent::DecodedEvent(uint8_t* data, size_t len)
     if (ret != EOK) {
         HIVIEW_LOGE("Decode memory copy failed, ret is %{public}d.", ret);
         delete[] rawData_;
+        rawData_ = nullptr;
         return;
     }
     Parse();

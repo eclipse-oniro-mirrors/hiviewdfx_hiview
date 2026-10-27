@@ -66,7 +66,10 @@ void SummaryLogInfoCatcher::SetFaultTime(int64_t faultTime)
 int SummaryLogInfoCatcher::Catch(int fd, int jsonFd)
 {
     int originSize = GetFdSize(fd);
-    
+    if (originSize < 0) {
+        return 0;
+    }
+
     int sysLoadFd = open("/dev/sysload", O_RDWR);
     if (sysLoadFd < 0) {
         HIVIEW_LOGE("open /dev/sysload failed!");

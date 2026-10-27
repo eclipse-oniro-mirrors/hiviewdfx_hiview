@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ ==30281==AddressSanitizer: WARNING: unexpected
+tags: 5f/96 (ptr/mem)
+    #0 0x7b3b214174 (/data/storage/el1/bundle/libs/arm64/libentry.so+0x54174) (BuildId: kedrgpf049ey8905urytrhhj90r5euyh905jh)
+    #1 0x7a1eeb3b24 (/system/lib64/platformsdk/libace_napi.z.so+0x73b24) (BuildId: e89sg79rsyg7er8g6t4wete87g)
+    #2 0x7f9196b600 (/system/lib64/module/arkcompiler/stub.an+0xe91600)
+    #3 0x7f91810dc8 (/system/lib64/module/arkcompiler/stub.an+0xed36dc8)
+Potential Cause: use-after-free

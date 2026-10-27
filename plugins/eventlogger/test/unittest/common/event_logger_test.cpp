@@ -44,6 +44,8 @@ using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace HiviewDFX {
 static std::string TEST_PATH = "/data/test/log/test.txt";
+constexpr int32_t TRUSTED_UID = 5523;
+constexpr const char* LOG_INTERVAL = "eventLog_interval";
 void EventLoggerTest::SetUp()
 {
     printf("SetUp.\n");
@@ -84,7 +86,9 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_001, TestSize.Level0)
 HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_002, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string jsonStr = "{\"domain_\":\"RELIABILITY\",\"name_\":\"GESTURE_NAVIGATION_BACK\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" +
+        std::to_string(getpid()) + ",\"uid_\":1201}";
     std::shared_ptr<SysEvent> sysEvent1 = std::make_shared<SysEvent>("GESTURE_NAVIGATION_BACK",
         nullptr, jsonStr);
     sysEvent1->eventName_ = "GESTURE_NAVIGATION_BACK";
@@ -110,7 +114,9 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_003, TestSize.Level3)
 {
     auto eventLogger = std::make_shared<EventLogger>();
     eventLogger->InitQueue();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
+    std::string jsonStr = "{\"domain_\":\"RELIABILITY\",\"name_\":\"EventLoggerTest_OnEvent_003\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" +
+        std::to_string(getpid()) + ",\"uid_\":1201}";
     std::string testName = "EventLoggerTest_OnEvent_003";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
         nullptr, jsonStr);
@@ -143,7 +149,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
     eventLogger->OnLoad();
     sleep(1);
 
-    auto jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
+    std::string jsonStr = "{\"domain_\":\"FORM_MANAGER\"}";
     long pid = getpid();
 #ifdef WINDOW_MANAGER_ENABLE
     EventFocusListener::RegisterFocusListener();
@@ -167,7 +173,9 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_OnEvent_004, TestSize.Level3)
     std::shared_ptr<OHOS::HiviewDFX::Event> event2 = std::static_pointer_cast<Event>(sysEvent2);
     EXPECT_EQ(eventLogger->OnEvent(event2), true);
 
-    jsonStr = "{\"domain_\":\"AAFWK\"}";
+    jsonStr = "{\"domain_\":\"AAFWK\",\"name_\":\"HIVIEW_HALF_FREEZE_LOG\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(pid) + ",\"tid_\":" +
+        std::to_string(pid) + ",\"uid_\":5523}";
     std::shared_ptr<SysEvent> sysEvent3 = std::make_shared<SysEvent>("HIVIEW_HALF_FREEZE_LOG",
         nullptr, jsonStr);
     sysEvent3->SetEventValue("PID", pid);
@@ -232,7 +240,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteCommonHead_001, TestSize.Level3)
     sysEvent->SetEventValue("PACKAGE_NAME", testName);
     sysEvent->SetEventValue("PROCESS_NAME", testName);
     sysEvent->SetEventValue("eventLog_action", "pb:1");
-    sysEvent->SetEventValue("eventLog_interval", 1);
+    sysEvent->SetValue(LOG_INTERVAL, 1);
     sysEvent->SetEventValue("STACK", "TEST\\nTEST\\nTEST");
     sysEvent->SetEventValue("MSG", "TEST\\nTEST\\nTEST");
     EXPECT_EQ(eventLogger->WriteCommonHead(1, sysEvent), true);
@@ -273,7 +281,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_WriteFreezeJsonInfo_001, TestSize.Leve
     sysEvent->SetEventValue("PACKAGE_NAME", testName);
     sysEvent->SetEventValue("PROCESS_NAME", testName);
     sysEvent->SetEventValue("eventLog_action", "pb:1");
-    sysEvent->SetEventValue("eventLog_interval", 1);
+    sysEvent->SetValue(LOG_INTERVAL, 1);
     sysEvent->SetEventValue("STACK", "TEST\\nTEST\\nTEST");
     sysEvent->SetEventValue("MSG", "TEST\\nTEST\\nTEST");
     sysEvent->eventName_ = "UI_BLOCK_6S";
@@ -366,22 +374,219 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_001, TestSize.Lev
     std::string testName = "EventLoggerTest_JudgmentRateLimiting_001";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
         nullptr, jsonStr);
-    sysEvent->SetEventValue("eventLog_interval", 0);
+    sysEvent->SetValue(LOG_INTERVAL, 0);
     auto eventLogger = std::make_shared<EventLogger>();
     bool ret = eventLogger->JudgmentRateLimiting(sysEvent);
     EXPECT_EQ(ret, true);
-    sysEvent->SetEventValue("eventLog_interval", 1);
+    sysEvent->SetValue(LOG_INTERVAL, 1);
     sysEvent->SetEventValue("PID", getpid());
     sysEvent->SetEventValue("NAME", testName);
     eventLogger->eventTagTime_["NAME"] = 100;
     eventLogger->eventTagTime_[testName] = 100;
     ret = eventLogger->JudgmentRateLimiting(sysEvent);
     EXPECT_EQ(ret, true);
-    sysEvent->SetValue("eventLog_interval", 0);
+    sysEvent->SetValue(LOG_INTERVAL, 0);
     ret = eventLogger->JudgmentRateLimiting(sysEvent);
     EXPECT_EQ(ret, true);
-    int32_t interval = sysEvent->GetIntValue("eventLog_interval");
+    int32_t interval = sysEvent->GetIntValue(LOG_INTERVAL);
     EXPECT_EQ(interval, 0);
+}
+
+/**
+ * @tc.name: EventLoggerTest_JudgmentRateLimiting_002
+ * @tc.desc: same uid, same event, distinct PIDs within limit pass through
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_002, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string jsonStr = "{\"domain_\":\"FRAMEWORK\",\"name_\":\"HIT_EMPTY_WARNING\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" + std::to_string(getpid()) +
+        ",\"uid_\":" + std::to_string(TRUSTED_UID) + "}";
+    std::string testName = "HIT_EMPTY_WARNING";
+
+    auto event1 = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event1->eventName_ = testName;
+    event1->SetValue(LOG_INTERVAL, 30);
+    event1->SetEventValue("PID", 10001);
+    bool ret = eventLogger->JudgmentRateLimiting(event1);
+    EXPECT_TRUE(ret);
+
+    auto event2 = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event2->eventName_ = testName;
+    event2->SetValue(LOG_INTERVAL, 30);
+    event2->SetEventValue("PID", 10002);
+    ret = eventLogger->JudgmentRateLimiting(event2);
+    EXPECT_TRUE(ret);
+
+    auto event3 = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event3->eventName_ = testName;
+    event3->SetValue(LOG_INTERVAL, 30);
+    event3->SetEventValue("PID", 10003);
+    ret = eventLogger->JudgmentRateLimiting(event3);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: EventLoggerTest_JudgmentRateLimiting_003
+ * @tc.desc: same uid, same event, forging more than MAX distinct PIDs is blocked
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_003, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string jsonStr = "{\"domain_\":\"FRAMEWORK\",\"name_\":\"HIT_EMPTY_WARNING\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" + std::to_string(getpid()) +
+        ",\"uid_\":" + std::to_string(TRUSTED_UID) + "}";
+    std::string testName = "HIT_EMPTY_WARNING";
+
+    for (int i = 1; i <= 5; i++) {
+        auto event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+        event->eventName_ = testName;
+        event->SetValue(LOG_INTERVAL, 30);
+        event->SetEventValue("PID", 10000 + i);
+        bool ret = eventLogger->JudgmentRateLimiting(event);
+        EXPECT_TRUE(ret);
+    }
+
+    auto attackEvent = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    attackEvent->eventName_ = testName;
+    attackEvent->SetValue(LOG_INTERVAL, 30);
+    attackEvent->SetEventValue("PID", 99999);
+    bool ret = eventLogger->JudgmentRateLimiting(attackEvent);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: EventLoggerTest_JudgmentRateLimiting_004
+ * @tc.desc: same uid, same event, same PID repeated does not increase distinct count
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_004, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string jsonStr = "{\"domain_\":\"FRAMEWORK\",\"name_\":\"HIT_EMPTY_WARNING\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" + std::to_string(getpid()) +
+        ",\"uid_\":" + std::to_string(TRUSTED_UID) + "}";
+    std::string testName = "HIT_EMPTY_WARNING";
+
+    auto event1 = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event1->eventName_ = testName;
+    event1->SetValue(LOG_INTERVAL, 30);
+    event1->SetEventValue("PID", 10001);
+    bool ret = eventLogger->JudgmentRateLimiting(event1);
+    EXPECT_TRUE(ret);
+
+    auto event2 = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    event2->eventName_ = testName;
+    event2->SetValue(LOG_INTERVAL, 30);
+    event2->SetEventValue("PID", 10001);
+    ret = eventLogger->JudgmentRateLimiting(event2);
+    EXPECT_FALSE(ret);
+
+    for (int i = 2; i <= 5; i++) {
+        auto event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+        event->eventName_ = testName;
+        event->SetValue(LOG_INTERVAL, 30);
+        event->SetEventValue("PID", 10000 + i);
+        ret = eventLogger->JudgmentRateLimiting(event);
+        EXPECT_TRUE(ret);
+    }
+
+    auto attackEvent = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    attackEvent->eventName_ = testName;
+    attackEvent->SetValue(LOG_INTERVAL, 30);
+    attackEvent->SetEventValue("PID", 99999);
+    ret = eventLogger->JudgmentRateLimiting(attackEvent);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: EventLoggerTest_JudgmentRateLimiting_005
+ * @tc.desc: different uids have independent distinct PID count
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_005, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string testName = "HIT_EMPTY_WARNING";
+
+    std::string jsonA = "{\"domain_\":\"FRAMEWORK\",\"name_\":\"HIT_EMPTY_WARNING\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" + std::to_string(getpid()) +
+        ",\"uid_\":5523}";
+    for (int i = 1; i <= 5; i++) {
+        auto event = std::make_shared<SysEvent>(testName, nullptr, jsonA);
+        event->eventName_ = testName;
+        event->SetValue(LOG_INTERVAL, 30);
+        event->SetEventValue("PID", 10000 + i);
+        bool ret = eventLogger->JudgmentRateLimiting(event);
+        EXPECT_TRUE(ret);
+    }
+
+    std::string jsonB = "{\"domain_\":\"FRAMEWORK\",\"name_\":\"HIT_EMPTY_WARNING\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" + std::to_string(getpid()) +
+        ",\"uid_\":1201}";
+    for (int i = 1; i <= 5; i++) {
+        auto event = std::make_shared<SysEvent>(testName, nullptr, jsonB);
+        event->eventName_ = testName;
+        event->SetValue(LOG_INTERVAL, 30);
+        event->SetEventValue("PID", 20000 + i);
+        bool ret = eventLogger->JudgmentRateLimiting(event);
+        EXPECT_TRUE(ret);
+    }
+
+    auto overflowA = std::make_shared<SysEvent>(testName, nullptr, jsonA);
+    overflowA->eventName_ = testName;
+    overflowA->SetValue(LOG_INTERVAL, 30);
+    overflowA->SetEventValue("PID", 99998);
+    bool ret = eventLogger->JudgmentRateLimiting(overflowA);
+    EXPECT_FALSE(ret);
+
+    auto overflowB = std::make_shared<SysEvent>(testName, nullptr, jsonB);
+    overflowB->eventName_ = testName;
+    overflowB->SetValue(LOG_INTERVAL, 30);
+    overflowB->SetEventValue("PID", 99999);
+    ret = eventLogger->JudgmentRateLimiting(overflowB);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: EventLoggerTest_JudgmentRateLimiting_006
+ * @tc.desc: expired uid entries are cleaned up after interval
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, EventLoggerTest_JudgmentRateLimiting_006, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    std::string jsonStr = "{\"domain_\":\"FRAMEWORK\",\"name_\":\"HIT_EMPTY_WARNING\",\"type_\":1,"
+        "\"time_\":1620271291188,\"pid_\":" + std::to_string(getpid()) + ",\"tid_\":" + std::to_string(getpid()) +
+        ",\"uid_\":" + std::to_string(TRUSTED_UID) + "}";
+    std::string testName = "HIT_EMPTY_WARNING";
+
+    for (int i = 1; i <= 5; i++) {
+        auto event = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+        event->eventName_ = testName;
+        event->SetValue(LOG_INTERVAL, 1);
+        event->SetEventValue("PID", 10000 + i);
+        bool ret = eventLogger->JudgmentRateLimiting(event);
+        EXPECT_TRUE(ret);
+    }
+
+    auto attackEvent = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    attackEvent->eventName_ = testName;
+    attackEvent->SetValue(LOG_INTERVAL, 1);
+    attackEvent->SetEventValue("PID", 99999);
+    bool ret = eventLogger->JudgmentRateLimiting(attackEvent);
+    EXPECT_FALSE(ret);
+
+    sleep(2);
+
+    auto recoveredEvent = std::make_shared<SysEvent>(testName, nullptr, jsonStr);
+    recoveredEvent->eventName_ = testName;
+    recoveredEvent->SetValue(LOG_INTERVAL, 1);
+    recoveredEvent->SetEventValue("PID", 30001);
+    ret = eventLogger->JudgmentRateLimiting(recoveredEvent);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -396,7 +601,7 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_StartLogCollect_001, TestSize.Level3)
     std::string testName = "EventLoggerTest_StartLogCollect_001";
     std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>(testName,
         nullptr, jsonStr);
-    sysEvent->SetEventValue("eventLog_interval", 1);
+    sysEvent->SetValue(LOG_INTERVAL, 1);
     sysEvent->eventName_ = "GET_DISPLAY_SNAPSHOT";
     sysEvent->SetEventValue("PID", getpid());
     sysEvent->happenTime_ = TimeUtil::GetMilliseconds();
@@ -2147,333 +2352,6 @@ HWTEST_F(EventLoggerTest, EventLoggerTest_DumpWindowInfo_001, TestSize.Level3)
     WindowIdInfo windowIdInfo1 = eventLogger->DumpWindowInfo(fd);
     WindowIdInfo windowIdInfo2 = eventLogger->DumpWindowInfo(fd);
     close(fd);
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_001
- * @tc.desc: test IsValidEventParam with valid params
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("PACKAGE_NAME", "com.ohos.test");
-    sysEvent->SetEventValue("PROCESS_NAME", "test_process");
-    sysEvent->SetEventValue("MODULE_NAME", "test_module");
-    sysEvent->SetEventValue("PNAMEID", "com.test.pnameid");
-    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "test_stack");
-    sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "12345");
-    sysEvent->SetEventValue("STACK", "json_stack_content");
-    sysEvent->SetEventValue("BINDER_INFO", "binder_content");
-    EXPECT_TRUE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_002
- * @tc.desc: test IsValidEventParam with path traversal in PACKAGE_NAME
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_002, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("PACKAGE_NAME", "../etc/passwd");
-    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_003
- * @tc.desc: test IsValidEventParam with invalid APP_RUNNING_UNIQUE_ID
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_003, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "abc123");
-    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_004
- * @tc.desc: test IsValidEventParam with empty APP_RUNNING_UNIQUE_ID
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_004, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("APP_RUNNING_UNIQUE_ID", "");
-    EXPECT_TRUE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_005
- * @tc.desc: test IsValidEventParam with path traversal in PROCESS_NAME
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_005, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("PROCESS_NAME", "test\\process");
-    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_006
- * @tc.desc: test IsValidEventParam with path traversal in MODULE_NAME
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_006, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("MODULE_NAME", "../malicious");
-    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_007
- * @tc.desc: test IsValidEventParam with path traversal in PNAMEID
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_007, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("PNAMEID", "../etc/shadow");
-    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsValidEventParam_008
- * @tc.desc: test IsValidEventParam with path traversal in SPECIFICSTACK_NAME
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsValidEventParam_008, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->SetEventValue("SPECIFICSTACK_NAME", "../evil");
-    EXPECT_FALSE(eventLogger->IsValidEventParam(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_001
- * @tc.desc: test IsInvalidEventSource with non-restricted event
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_001, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "GESTURE_NAVIGATION_BACK";
-    sysEvent->uid_ = 1000;
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_002
- * @tc.desc: test IsInvalidEventSource with foundation-required event from foundation
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_002, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "THREAD_BLOCK_6S";
-    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_003
- * @tc.desc: test IsInvalidEventSource with foundation-required event from non-foundation
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_003, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "THREAD_BLOCK_6S";
-    sysEvent->uid_ = 1000;
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_004
- * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_3S from non-foundation but UID matches
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_004, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_3S";
-    sysEvent->uid_ = 1000;
-    sysEvent->SetEventValue("UID", 1000);
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_005
- * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_3S from non-foundation and UID mismatch
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_005, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_3S";
-    sysEvent->uid_ = 1000;
-    sysEvent->SetEventValue("UID", 2000);
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_006
- * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_6S from foundation
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_006, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_6S";
-    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_007
- * @tc.desc: test IsInvalidEventSource with BUSSINESS_THREAD_BLOCK_6S from non-foundation but UID matches
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_007, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "BUSSINESS_THREAD_BLOCK_6S";
-    sysEvent->uid_ = 2000;
-    sysEvent->SetEventValue("UID", 2000);
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_008
- * @tc.desc: test IsInvalidEventSource with APP_HICOLLIE where UID matches
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_008, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "APP_HICOLLIE";
-    sysEvent->uid_ = 3000;
-    sysEvent->SetEventValue("UID", 3000);
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_009
- * @tc.desc: test IsInvalidEventSource with APP_HICOLLIE where UID mismatch
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_009, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->eventName_ = "APP_HICOLLIE";
-    sysEvent->uid_ = 3000;
-    sysEvent->SetEventValue("UID", 4000);
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_010
- * @tc.desc: test IsInvalidEventSource with multiple foundation-required events from non-foundation
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_010, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->uid_ = 1000;
-    sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT_WARNING";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "LIFECYCLE_TIMEOUT_WARNING";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "APP_LIFECYCLE_TIMEOUT";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "THREAD_BLOCK_3S";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "APP_INPUT_BLOCK";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "BUSINESS_INPUT_BLOCK";
-    EXPECT_TRUE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_011
- * @tc.desc: test IsInvalidEventSource with multiple foundation-required events from foundation
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_011, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, "");
-    sysEvent->uid_ = FreezeCommon::FOUNDATION_UID;
-    sysEvent->eventName_ = "LIFECYCLE_HALF_TIMEOUT";
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "LIFECYCLE_TIMEOUT";
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "THREAD_BLOCK_3S";
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-    sysEvent->eventName_ = "APP_INPUT_BLOCK";
-    EXPECT_FALSE(eventLogger->IsInvalidEventSource(sysEvent));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_012
- * @tc.desc: test OnEvent with restricted event from non-foundation rejected
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_012, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, jsonStr);
-    sysEvent->eventName_ = "THREAD_BLOCK_3S";
-    sysEvent->uid_ = 1000;
-    sysEvent->SetEventValue("PACKAGE_NAME", "com.test");
-    sysEvent->SetEventValue("PID", 100);
-    std::shared_ptr<Event> event = std::static_pointer_cast<Event>(sysEvent);
-    EXPECT_FALSE(eventLogger->OnEvent(event));
-}
-
-/**
- * @tc.name: EventLoggerTest_IsInvalidEventSource_013
- * @tc.desc: test OnEvent with APP_HICOLLIE where UID mismatch rejected
- * @tc.type: FUNC
- */
-HWTEST_F(EventLoggerTest, EventLoggerTest_IsInvalidEventSource_013, TestSize.Level3)
-{
-    auto eventLogger = std::make_shared<EventLogger>();
-    auto jsonStr = "{\"domain_\":\"RELIABILITY\"}";
-    std::shared_ptr<SysEvent> sysEvent = std::make_shared<SysEvent>("EventLoggerTest", nullptr, jsonStr);
-    sysEvent->eventName_ = "APP_HICOLLIE";
-    sysEvent->uid_ = 1000;
-    sysEvent->SetEventValue("UID", 2000);
-    sysEvent->SetEventValue("PACKAGE_NAME", "com.test");
-    sysEvent->SetEventValue("PID", 100);
-    std::shared_ptr<Event> event = std::static_pointer_cast<Event>(sysEvent);
-    EXPECT_FALSE(eventLogger->OnEvent(event));
 }
 } // namespace HiviewDFX
 } // namespace OHOS

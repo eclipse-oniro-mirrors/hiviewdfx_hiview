@@ -23,7 +23,7 @@ public:
     explicit AppSystemState(int32_t appPid) : appPid_(appPid) {}
 
     TraceRet DumpTrace(const std::string& scenarioName, uint32_t maxDuration, uint64_t happenTime,
-        TraceRetInfo &info, const std::string& outputPath) override;
+        Hitrace::TraceRetInfo &info, const std::string& outputPath) override;
 
     std::pair<int32_t, uint64_t> GetCurrentAppInfo() override
     {

@@ -160,7 +160,7 @@ static void GenCppCrashLogTestCommon(int32_t uid, bool ifFileExist)
     info.sectionMap["KEY_THREAD_INFO"] = "Test Thread Info";
     info.sectionMap["REASON"] = "TestReason";
     info.sectionMap["STACKTRACE"] = "#01 xxxxxx\n#02 xxxxxx\n";
-    info.pipeFd = nullptr;
+    info.tempFileFd = nullptr;
     std::string tempFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
         std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
     FileUtil::SaveStringToFile(tempFilePath, TEST_JSON_FOR_GEN_CPPCRASH_LOG);
@@ -626,7 +626,7 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest001, testing::ext::TestSize
     FaultLogInfo info;
     info.pid = 7496;
     info.time = 1701863741296;
-    info.pipeFd = nullptr;
+    info.tempFileFd = nullptr;
 
     std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
         std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
@@ -659,7 +659,7 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest002, testing::ext::TestSize
     FaultLogInfo info;
     info.pid = 7496;
     info.time = 1701863741296;
-    info.pipeFd.reset(new int32_t(-1), [] (int32_t *ptr) { delete ptr; });
+    info.tempFileFd = std::make_shared<SmartFd>(-1);
 
     bool ret = faultCppCrash.ParseCppCrashJson(info);
     EXPECT_FALSE(ret);
@@ -678,7 +678,7 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest003, testing::ext::TestSize
     FaultLogInfo info;
     info.pid = 7496;
     info.time = 1701863741296;
-    info.pipeFd = nullptr;
+    info.tempFileFd = nullptr;
 
     std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
         std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
@@ -701,7 +701,7 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest004, testing::ext::TestSize
     FaultLogInfo info;
     info.pid = 7496;
     info.time = 1701863741296;
-    info.pipeFd = nullptr;
+    info.tempFileFd = nullptr;
 
     std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
         std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
@@ -739,7 +739,7 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest005, testing::ext::TestSize
     FaultLogInfo info;
     info.pid = 7496;
     info.time = 1701863741296;
-    info.pipeFd = nullptr;
+    info.tempFileFd = nullptr;
 
     std::string jsonFilePath = std::string(FaultLogger::FAULTLOG_TEMP_FOLDER) + "cppcrash-" +
         std::to_string(info.pid) + "-" + std::to_string(info.time) + ".json";
@@ -785,12 +785,7 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest006, testing::ext::TestSize
 
     int fd = open(jsonFilePath.c_str(), O_RDONLY);
     ASSERT_GE(fd, 0);
-    info.pipeFd.reset(new int32_t(fd), [] (int32_t *ptr) {
-        if (*ptr >= 0) {
-            close(*ptr);
-        }
-        delete ptr;
-    });
+    info.tempFileFd = std::make_shared<SmartFd>(fd);
 
     bool ret = faultCppCrash.ParseCppCrashJson(info);
     EXPECT_TRUE(ret);

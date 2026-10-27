@@ -37,8 +37,6 @@ public:
     void UnregisterAnimatorCallback(IAnimatorCallback* cb);
     void Start(const std::string& sceneId, PerfActionType type, const std::string& note);
     void End(const std::string& sceneId, bool isRsRender);
-    void SetSubHealthInfo(const SubHealthInfo& info);
-    bool IsSubHealthScene();
 
     // inner interface for animator
     void OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note) override;
@@ -55,7 +53,6 @@ private:
     bool isValidSceneId(const std::string& sceneId);
 
     mutable std::mutex mMutex;
-    int64_t subHealthRecordTime = 0;
     std::vector<IAnimatorCallback*> animatorCallbacks;
     std::map<std::string, AnimatorRecord*> mRecords;
     std::set<std::string> validSceneIds = {

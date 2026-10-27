@@ -174,26 +174,26 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer008, testing::ext::TestSize.Level
 
     // Test normal ArkTS stack frame line
     std::string line = "    #00 pc 00012345  (/data/storage/el1/bundle/com.example.app/module.hap+0x1234)";
-    std::string result = sanitizer.ProcessArkTsLine(line, packageName, maps);
+    std::string result = sanitizer.ProcessArkTsLine(line, packageName, maps, false);
     // The result should be processed (actual content depends on DfxArk::Instance())
     EXPECT_TRUE(!result.empty());
 
     // Test line without # (return as-is)
     line = "no stack frame here";
-    result = sanitizer.ProcessArkTsLine(line, packageName, maps);
+    result = sanitizer.ProcessArkTsLine(line, packageName, maps, false);
     EXPECT_EQ(result, line);
 
     // Test empty line
     line = "";
-    result = sanitizer.ProcessArkTsLine(line, packageName, maps);
+    result = sanitizer.ProcessArkTsLine(line, packageName, maps, false);
     EXPECT_EQ(result, line);
 
     line = "    #05 0x6500002845  (/system/etc/abc/framework/stageMgmt.abc+0x38000)";
-    result = sanitizer.ProcessArkTsLine(line, packageName, maps);
+    result = sanitizer.ProcessArkTsLine(line, packageName, maps, false);
     EXPECT_TRUE(!result.empty());
 
     line = "    #06 0x6500002845  ([anon:ArkTS Code:/system/etc/abc/arkui/components/arkmarquee.abc]+0x2000)";
-    result = sanitizer.ProcessArkTsLine(line, packageName, maps);
+    result = sanitizer.ProcessArkTsLine(line, packageName, maps, false);
     EXPECT_TRUE(!result.empty());
 }
 
@@ -210,7 +210,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer009, testing::ext::TestSize.Level
     time_t now = time(nullptr);
 
     // Test non-existent file
-    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, "/non/existent/path/file.log");
+    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, "/non/existent/path/file.log", false);
     EXPECT_FALSE(ret);
 
     // Test with a valid small file
@@ -219,13 +219,13 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer009, testing::ext::TestSize.Level
         "#00 pc 00012345  /data/storage/el1/bundle/com.example.app/module.hap+0x1234\n"
         "#01 pc 00023456  /system/lib/libc.so+0x2345\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath);
+    ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath, false);
     EXPECT_TRUE(ret);
 
     // Test with empty file
     std::string emptyPath = "/data/log/faultlog/temp/sanitizer-212-" + std::to_string(now);
     ASSERT_TRUE(FileUtil::SaveStringToFile(emptyPath, ""));
-    ret = sanitizer.ParserArkTsStackInfo(moduleName, emptyPath);
+    ret = sanitizer.ParserArkTsStackInfo(moduleName, emptyPath, false);
     EXPECT_FALSE(ret);
 }
 
@@ -382,7 +382,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer016, testing::ext::TestSize.Level
     std::string content = "Pid:101\nUid:0\nProcess name:Test\n"
         "#00 pc 00012345  /data/storage/el1/bundle/com.example.app/module.hap+0x1234\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath);
+    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath, false);
     EXPECT_TRUE(ret);
 }
 
@@ -406,7 +406,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer017, testing::ext::TestSize.Level
         "#01 pc 00023456  [anon:ArkTS Code:/abc123]\n"
         "#02 pc 00034567  /system/lib/libc.so+0x3456\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath);
+    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath, false);
     EXPECT_TRUE(ret);
 }
 

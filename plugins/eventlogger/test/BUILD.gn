@@ -98,3 +98,43 @@ ohos_unittest("EventLoggerTest") {
     defines += [ "HITRACE_CATCHER_ENABLE" ]
   }
 }
+
+ohos_unittest("EventFieldValidatorTest") {
+  module_out_path = module_output_path
+  configs = [ ":unittest_config" ]
+
+  sources = [ "unittest/common/event_field_validator_test.cpp" ]
+  deps = [
+    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_core:hiview_core",
+    "$hiview_eventlogger:eventlogger",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+
+  defines = []
+}
+
+ohos_unittest("EventLoggerConfigValidateTest") {
+  module_out_path = module_output_path
+  configs = [ ":unittest_config" ]
+
+  sources = [ "unittest/common/event_logger_config_validate_test.cpp" ]
+  deps = [
+    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_core:hiview_core",
+    "$hiview_eventlogger:eventlogger",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+
+  defines = []
+}

@@ -189,6 +189,35 @@ HWTEST(FaultLogFreezeTest, AppFreezeCrashLogTest003, testing::ext::TestSize.Leve
 }
 
 /**
+ * @tc.name: AppFreezeCrashLogTest004
+ * @tc.desc: test AddFaultLog with HEAVIEST_STACK frames including #NN at format, check F1/F2/F3
+ * @tc.type: FUNC
+ */
+HWTEST(FaultLogFreezeTest, AppFreezeCrashLogTest004, testing::ext::TestSize.Level3)
+{
+    FaultLogInfo info;
+    info.time = 1607161163;
+    info.id = 20010039;
+    info.pid = 7497;
+    info.faultLogType = FaultLogType::APP_FREEZE;
+    info.module = "com.example.heaviest";
+    info.logPath = APPFREEZE_FAULT_FILE + "AppFreezeCrashLogTest003/" +
+        "appfreeze-com.example.jsinject-20010039-19700326211815.tmp";
+    std::string heaviestStack = "#00 pc 0000000000000010 /system/lib64/libc.so(IgnoredFunc+0x10)\\n"
+        "#01 pc 000ecdbb /system/lib/platformsdk/libark_jsruntime.so\\n"
+        "#02 at (wait15)\\n"
+        "#03 pc 0000000000000030 /system/bin/appswan(12334856984adf)";
+    info.sectionMap["TERMINAL_THREAD_STACK"] = heaviestStack;
+    FaultLogFreeze faultAppFreeze;
+    faultAppFreeze.AddFaultLog(info);
+    ASSERT_EQ(faultAppFreeze.info_.sectionMap["FIRST_FRAME"],
+        "000ecdbb /system/lib/platformsdk/libark_jsruntime.so");
+    ASSERT_EQ(faultAppFreeze.info_.sectionMap["SECOND_FRAME"], "(wait15)");
+    ASSERT_EQ(faultAppFreeze.info_.sectionMap["LAST_FRAME"],
+        "0000000000000030 /system/bin/appswan(12334856984adf)");
+}
+
+/**
  * @tc.name: GetGCJsonValue001
  * @tc.desc: test GetGCJsonValue with empty sectionMap
  * @tc.type: FUNC

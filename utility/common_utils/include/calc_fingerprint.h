@@ -28,24 +28,6 @@ public:
 
 public:
     /*
-    * CalcFileSha: calculate a file sha1 hash for given file
-    *
-    * This function read the file and calc the sha1 value ,
-    * The caller can pass a char hash_str[41] to get the hash string
-    * The return value: 0 means successful,others mean failed.
-    */
-    static int CalcFileSha(const std::string& filePath, char *hash, size_t len);
-
-    /*
-    * CalcFileSha: calculate a file sha1 hash for given file
-    *
-    * This function read the file and calc the sha1 value ,
-    * The caller can pass a char hash[41] to get the hash
-    * The return value: 0 means successful,others mean failed.
-    */
-    static int CalcFileShaOriginal(const std::string& filePath, unsigned char *hash, size_t len);
-
-    /*
     * CalcBufferSha: calculate a buffer sha1 hash for given buffer
     *
     * This function read the buffer and calc the sha1 value ,
@@ -65,9 +47,6 @@ public:
 
 private:
     static int ConvertToString(const unsigned char hash[SHA256_DIGEST_LENGTH], char *outstr, size_t len);
-
-private:
-    static const int HASH_BUFFER_SIZE = 4096;
 };
 }
 }

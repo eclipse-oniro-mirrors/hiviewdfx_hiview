@@ -75,6 +75,9 @@ int OpenStacktraceCatcher::Catch(int fd, int jsonFd)
         return 0;
     }
     int originSize = GetFdSize(fd);
+    if (originSize < 0) {
+        return 0;
+    }
 
 #ifdef DUMP_STACK_IN_PROCESS
     std::string threadStack;

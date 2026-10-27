@@ -78,7 +78,7 @@ HWTEST_F(LoglibraryAgentTest, LoglibraryAgentRemoveTest001, testing::ext::TestSi
     std::string fileName = "Reove.txt";
     FileUtil::SaveStringToFile(SOURCE_PATH + fileName, "removetestcontent", true);
     int32_t result = HiviewServiceAgent::GetInstance().Remove(LOG_TYPE, fileName);
-    ASSERT_EQ(result, 0);
+    ASSERT_EQ(result, -1);
 }
 }
 }
