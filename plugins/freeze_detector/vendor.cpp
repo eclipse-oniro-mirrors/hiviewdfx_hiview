@@ -27,6 +27,7 @@
 #include "time_util.h"
 #include "freeze_manager.h"
 #include "parameter_ex.h"
+#include "bundle_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -189,6 +190,16 @@ std::string Vendor::SendFaultLog(const WatchPoint &watchPoint, const std::string
 {
     if (freezeCommon_ == nullptr) {
         return "";
+    }
+    if (type == APPFREEZE) {
+        std::string bundleName = BundleUtil::GetApplicationNameById(watchPoint.GetUid());
+        std::string packageName = watchPoint.GetPackageName();
+        if (!bundleName.empty() && !packageName.empty() && bundleName != packageName) {
+            HIVIEW_LOGE("appfreeze identity mismatch, bundleName:%{public}s, uid:%{public}ld, "
+                "keep system log and skip app delivery", bundleName.c_str(), watchPoint.GetUid());
+            FileUtil::RemoveFile(logPath);
+            return "";
+        }
     }
     FaultLogInfoInner info;
     FillSummaryInfo(info, watchPoint, logPath, type, processName);
