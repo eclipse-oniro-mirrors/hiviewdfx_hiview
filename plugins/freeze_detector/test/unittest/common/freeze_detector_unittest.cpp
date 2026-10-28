@@ -1061,6 +1061,103 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_024, TestSize.Level3)
 }
 
 /**
+ * @tc.name: FreezeVender_025
+ * @tc.desc: Test SendFaultLog with appfreeze type and null freezeCommon
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_025, TestSize.Level3)
+{
+    auto vendor = std::make_unique<Vendor>(nullptr);
+    EXPECT_EQ(vendor->Init(), false);
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.test.app")
+        .InitUid(10000)
+        .InitMsg("msg")
+        .Build();
+    std::string ret = vendor->SendFaultLog(watchPoint, "test", "appfreeze", "processName", "No");
+    EXPECT_EQ(ret, "");
+}
+
+/**
+ * @tc.name: FreezeVender_026
+ * @tc.desc: Test SendFaultLog with appfreeze type, bundle name unavailable, file not removed
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_026, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::string logPath = "/data/test/test_data/appfreeze_identity_test.log";
+    FileUtil::CreateFile(logPath);
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.test.app")
+        .InitUid(10000)
+        .InitMsg("msg")
+        .Build();
+    std::string ret = vendor->SendFaultLog(watchPoint, logPath, "appfreeze", "processName", "No");
+    EXPECT_EQ(ret, logPath);
+    FileUtil::RemoveFile(logPath);
+}
+ 
+/**
+ * @tc.name: FreezeVender_027
+ * @tc.desc: Test SendFaultLog with appfreeze type and empty packageName
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_027, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitUid(10000)
+        .InitMsg("msg")
+        .Build();
+    std::string ret = vendor->SendFaultLog(watchPoint, "test", "appfreeze", "processName", "No");
+    EXPECT_EQ(ret, "test");
+}
+
+/**
+ * @tc.name: FreezeVender_028
+ * @tc.desc: Test SendFaultLog with non-appfreeze type skips identity check
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_028, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto vendor = std::make_unique<Vendor>(freezeCommon);
+    ASSERT_EQ(vendor->Init(), true);
+
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_3S")
+        .InitTimestamp(TimeUtil::GetMilliseconds())
+        .InitProcessName("processName")
+        .InitPackageName("com.test.app")
+        .InitUid(10000)
+        .InitMsg("msg")
+        .Build();
+    std::string ret = vendor->SendFaultLog(watchPoint, "test", "sysfreeze", "processName", "No");
+    EXPECT_EQ(ret, "test");
+    ret = vendor->SendFaultLog(watchPoint, "test", "appfreezewarning", "processName", "No");
+    EXPECT_EQ(ret, "test");
+}
+
+/**
  * @tc.name: FreezeRuleCluster_001
  * @tc.desc: FreezeDetector
  */
