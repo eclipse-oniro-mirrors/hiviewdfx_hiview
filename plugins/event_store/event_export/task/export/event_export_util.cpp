@@ -43,11 +43,11 @@ std::string GenerateDeviceId()
     return "";
 }
 
-bool HasNoZipFile(const std::string& exportDir)
+bool HasExportZipFile(const std::string& exportDir)
 {
     std::vector<std::string> eventZipFiles;
     FileUtil::GetDirFiles(exportDir, eventZipFiles, false);
-    return !any_of(eventZipFiles.begin(), eventZipFiles.end(), [] (const std::string& file) {
+    return any_of(eventZipFiles.begin(), eventZipFiles.end(), [] (const std::string& file) {
         return !FileUtil::IsDirectory(file);
     });
 }
@@ -79,11 +79,11 @@ bool IsNeedPostEvent(std::shared_ptr<ExportConfig> config)
     if (config->taskType == QUICK_EVENT_TASK_TYPE) {
         return true;
     }
-    if (HasNoZipFile(config->exportDir)) {
-        HIVIEW_LOGW("no event zip file found");
-        return false;
+    if (HasExportZipFile(config->exportDir)) {
+        return true;
     }
-    return true;
+    HIVIEW_LOGW("no event zip file found");
+    return false;
 }
 
 void HandleExportSwitchOn(const std::string& moduleName)
