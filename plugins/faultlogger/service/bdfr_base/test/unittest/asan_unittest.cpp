@@ -235,15 +235,15 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest005, testing::ext::TestSize.Level1)
     char hwasanBuf[] =
         "==appspawn==26863==ERROR: memory_debug: use-after-free on address 0x0002015e2980\n"
         "memory was re-written after free at 0x0002015e2980[0]: 0x0002015e2980 freed by:\n"
-        "#0 0x5a4ee6c83c  (/system/lib64/libclang_rt.hwasan.so+0x2c83c) (BuildId: 15)\n"
-        "#1 0x5afcebe09c  (/data/storage/el1/bundle/libs/arm64/libentry.so+0x3e09c) (BuildId: bc)\n"
-        "#2 0x5ae2033844  (/system/lib64/platformsdk/libace_napi.z.so+0x73844) (BuildId: a39)\n"
-        "#3 0x5af70bc600  (/system/lib64/module/arkcompiler/stub.an+0xe91600)\n"
+        "#0 0x5a4ee6c83c (/system/lib64/libclang_rt.hwasan.so+0x2c83c) (BuildId: 15)\n"
+        "#1 0x5afcebe09c (/data/storage/el1/bundle/libs/arm64/libentry.so+0x3e09c) (BuildId: bc)\n"
+        "#2 0x5ae2033844 (/system/lib64/platformsdk/libace_napi.z.so+0x73844) (BuildId: a39)\n"
+        "#3 0x5af70bc600 (/system/lib64/module/arkcompiler/stub.an+0xe91600)\n"
         "\n"
         "Potential Cause: use-after-free\n"
         "allocated by:\n"
-        "    #0 0x5a94feb1a8  (/system/asan/lib64/libclang_rt.hwasan.so+0x2b1a8) (BuildId: 123456abcd)\n"
-        "    #1 0x5a9b87e268  (/system/lib64/platformsdk/libeventhandler.z.so+0x3e268) (BuildId: 123456abcd)\n"
+        " #0 0x5a94feb1a8 (/system/asan/lib64/libclang_rt.hwasan.so+0x2b1a8) (BuildId: 123456abcd)\n"
+        " #1 0x5a9b87e268 (/system/lib64/platformsdk/libeventhandler.z.so+0x3e268) (BuildId: 123456abcd)\n"
         "==appspawn==7133==End Hwasan report\n";
     Json::Value sanitizerEvent = GenerateAndParseSanitizerEvent(hwasanBuf);
     EXPECT_EQ(sanitizerEvent["MODULE"], "AsanUnittest");
@@ -295,7 +295,7 @@ HWTEST_F(AsanUnittest, WriteSanitizerLogTest007, testing::ext::TestSize.Level1)
     char hwasanBuf[] =
         "\"==appspawn==26514==ERROR: HWAddressSanitizer: tag-mismatch on address 0x00040099b0c0 at pc 0x0066e33a7ed4\n"
         "READ of size 4 at 0x00040099b0c0 tags: c6/7c (ptr/mem) in thread 27406\n"
-        "    #0 0x66e33a7ed4  (/lib/ld-musl-aarch64-asan.so.+0x1c4ed4) (BuildId: 9d85a942843298c4acb116342082d68b)\n"
+        "    #0 0x66e33a7ed4  (/lib/ld-musl-aarch64-asan.so.1+0x1c4ed4) (BuildId: 9d85a942843298c4acb116342082d68b)\n"
         "    #1 0x66e4c3dca8  (/system/asan/lib64/libc++.so+0xfdca8) (BuildId: df08820831451dcb5f87265be7e5c85af7a7db68)\n"
         "[0x000100020000,0x000100020020) is a small unallocated heap chunk; size: 32 offset: 0, Allocated By 14705\n"
         "Potential Cause: use-after-free\n"
