@@ -19,7 +19,7 @@
 
 #include "ace_interaction_event.h"
 #include "audio_event.h"
-#include "event_bridge.h"
+#include "event_reporter.h"
 #include "ffrt.h"
 #include "graphic_interaction_event.h"
 #include "load_complete_reporter.h"
@@ -119,7 +119,7 @@ void PassthroughMonitor::ForwardInteractionEvent(OhosXperfEvent* event)
             LOGW("PassthroughMonitor::ForwardInteractionEvent unknown logId:%{public}d", event->logId);
             return;
     }
-    EventBridge::GetInstance().OnEvent(domain, eventName, data);
+    EventReporter::GetInstance().ReportEvent(domain, eventName, data);
 }
  
 void PassthroughMonitor::BuildAceInteractionCompletedLatencyData(OhosXperfEvent* event, std::string& data)
