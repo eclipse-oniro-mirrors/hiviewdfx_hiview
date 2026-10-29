@@ -140,7 +140,7 @@ bool IsStackFrameLine(const std::string& line)
         return false;
     }
     pos++;
-    if (pos >= line.size() || !std::isdigit(static_cast(line[pos]))) {
+    if (pos >= line.size() || !std::isdigit(static_cast<unsigned char>(line[pos]))) {
         return false;
     }
     return true;
@@ -153,7 +153,7 @@ std::string RenumberStackFrame(const std::string& line, unsigned frameIdx)
         return line;
     }
     size_t idxEnd = hashPos + 1;
-    while (idxEnd < line.size() && std::isdigit(static_cast(line[idxEnd]))) {
+    while (idxEnd < line.size() && std::isdigit(static_cast<unsigned char>(line[idxEnd]))) {
         idxEnd++;
     }
     return line.substr(0, hashPos + 1) + std::to_string(frameIdx) + line.substr(idxEnd);
