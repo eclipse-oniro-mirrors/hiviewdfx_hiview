@@ -689,7 +689,7 @@ FaultLogInfo FaultLogSanitizer::FillFaultLogInfo(SysEvent& sysEvent)
         info.reason = info.reason == "" ? sysEvent.GetEventValue(FaultKey::FAULT_TYPE) : info.reason;
         info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID] = sysEvent.GetEventValue("APP_RUNNING_UNIQUE_ID");
         info.summary = "";
-        string telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
+        std::string telemetryId = OHOS::system::GetParameter("persist.hiviewdfx.priv.diagnosis.time.taskId", "");
         sysEvent.SetEventValue(FaultKey::FIRST_FRAME, topStacks[FIRST_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::SECOND_FRAME, topStacks[SECOND_FRAME_IDX]);
         sysEvent.SetEventValue(FaultKey::LAST_FRAME, topStacks[LAST_FRAME_IDX]);
