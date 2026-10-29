@@ -17,8 +17,11 @@
 
 #include <cinttypes>
 
+#include "ace_interaction_event.h"
 #include "audio_event.h"
+#include "event_bridge.h"
 #include "ffrt.h"
+#include "graphic_interaction_event.h"
 #include "load_complete_reporter.h"
 #include "perf_action_event.h"
 #include "perf_load_complete_event.h"
@@ -66,9 +69,185 @@ void PassthroughMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AUDIO_RENDER_START:
             OnAudioStart(event);
             break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY:
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY:
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK:
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY:
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_APP_JANK:
+            ForwardInteractionEvent(event);
+            break;
         default:
             break;
     }
+}
+
+void PassthroughMonitor::ForwardInteractionEvent(OhosXperfEvent* event)
+{
+    if (event == nullptr) {
+        return;
+    }
+    std::string domain;
+    std::string eventName;
+    std::string data;
+    switch (event->logId) {
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY:
+            domain = "ACE";
+            eventName = "INTERACTION_COMPLETED_LATENCY";
+            BuildAceInteractionCompletedLatencyData(event, data);
+            break;
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_APP_JANK:
+            domain = "ACE";
+            eventName = "INTERACTION_APP_JANK";
+            BuildAceInteractionAppJankData(event, data);
+            break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY:
+            domain = "GRAPHIC";
+            eventName = "INTERACTION_COMPLETED_LATENCY";
+            BuildGraphicInteractionCompletedLatencyData(event, data);
+            break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY:
+            domain = "GRAPHIC";
+            eventName = "INTERACTION_RESPONSE_LATENCY";
+            BuildGraphicInteractionResponseLatencyData(event, data);
+            break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK:
+            domain = "GRAPHIC";
+            eventName = "INTERACTION_RENDER_JANK";
+            BuildGraphicInteractionRenderJankData(event, data);
+            break;
+        default:
+            LOGW("PassthroughMonitor::ForwardInteractionEvent unknown logId:%{public}d", event->logId);
+            return;
+    }
+    EventBridge::GetInstance().OnEvent(domain, eventName, data);
+}
+ 
+void PassthroughMonitor::BuildAceInteractionCompletedLatencyData(OhosXperfEvent* event, std::string& data)
+{
+    auto* e = static_cast<AceInteractionCompletedLatencyEvent*>(event);
+    data.append("UNIQUE_ID:").append(std::to_string(e->uniqueId)).append("\n")
+        .append("APP_PID:").append(std::to_string(e->appPid)).append("\n")
+        .append("BUNDLE_NAME:").append(e->bundleName).append("\n")
+        .append("PROCESS_NAME:").append(e->processName).append("\n")
+        .append("ABILITY_NAME:").append(e->abilityName).append("\n")
+        .append("PAGE_URL:").append(e->pageUrl).append("\n")
+        .append("VERSION_CODE:").append(std::to_string(e->versionCode)).append("\n")
+        .append("VERSION_NAME:").append(e->versionName).append("\n")
+        .append("PAGE_NAME:").append(e->pageName).append("\n")
+        .append("SCENE_ID:").append(e->sceneId).append("\n")
+        .append("SOURCE_TYPE:").append(e->sourceType).append("\n")
+        .append("INPUT_TIME:").append(std::to_string(e->inputTime)).append("\n")
+        .append("ANIMATION_START_LATENCY:").append(std::to_string(e->animationStartLatency)).append("\n")
+        .append("ANIMATION_END_LATENCY:").append(std::to_string(e->animationEndLatency)).append("\n")
+        .append("E2E_LATENCY:").append(std::to_string(e->e2eLatency)).append("\n")
+        .append("NOTE:").append(e->note).append("\n")
+        .append("SUBHEALTH_INFO:").append(e->subhealthInfo).append("\n")
+        .append("SUBHEALTH_REASON:").append(e->subhealthReason).append("\n")
+        .append("SUBHEALTH_TIME:").append(std::to_string(e->subhealthTime)).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(event->happenTime));
+}
+ 
+void PassthroughMonitor::BuildAceInteractionAppJankData(OhosXperfEvent* event, std::string& data)
+{
+    auto* e = static_cast<AceInteractionAppJankEvent*>(event);
+    data.append("UNIQUE_ID:").append(std::to_string(e->uniqueId)).append("\n")
+        .append("SCENE_ID:").append(e->sceneId).append("\n")
+        .append("PROCESS_NAME:").append(e->processName).append("\n")
+        .append("MODULE_NAME:").append(e->moduleName).append("\n")
+        .append("ABILITY_NAME:").append(e->abilityName).append("\n")
+        .append("PAGE_URL:").append(e->pageUrl).append("\n")
+        .append("VERSION_CODE:").append(std::to_string(e->versionCode)).append("\n")
+        .append("VERSION_NAME:").append(e->versionName).append("\n")
+        .append("PAGE_NAME:").append(e->pageName).append("\n")
+        .append("APP_PID:").append(std::to_string(e->appPid)).append("\n")
+        .append("STARTTIME:").append(std::to_string(e->starttime)).append("\n")
+        .append("DURITION:").append(std::to_string(e->duration)).append("\n")
+        .append("TOTAL_FRAMES:").append(std::to_string(e->totalFrames)).append("\n")
+        .append("TOTAL_MISSED_FRAMES:").append(std::to_string(e->totalMissedFrames)).append("\n")
+        .append("MAX_FRAMETIME:").append(std::to_string(e->maxFrametime)).append("\n")
+        .append("MAX_FRAMETIME_SINCE_START:").append(std::to_string(e->maxFrametimeSinceStart)).append("\n")
+        .append("MAX_HITCH_TIME:").append(std::to_string(e->maxHitchTime)).append("\n")
+        .append("MAX_HITCH_TIME_SINCE_START:").append(std::to_string(e->maxHitchTimeSinceStart)).append("\n")
+        .append("MAX_SEQ_MISSED_FRAMES:").append(std::to_string(e->maxSeqMissedFrames)).append("\n")
+        .append("NOTE:").append(e->note).append("\n")
+        .append("DISPLAY_ANIMATOR:").append(std::to_string(e->displayAnimator)).append("\n")
+        .append("SUBHEALTH_INFO:").append(e->subhealthInfo).append("\n")
+        .append("SUBHEALTH_REASON:").append(e->subhealthReason).append("\n")
+        .append("SUBHEALTH_TIME:").append(std::to_string(e->subhealthTime)).append("\n")
+        .append("JANK_COUNT:").append(e->jankCount).append("\n")
+        .append("ACTION_TYPE:").append(e->actionType).append("\n")
+        .append("POS:").append(std::to_string(e->pos)).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(event->happenTime));
+}
+ 
+void PassthroughMonitor::BuildGraphicInteractionCompletedLatencyData(OhosXperfEvent* event, std::string& data)
+{
+    auto* e = static_cast<GraphicInteractionCompletedLatencyEvent*>(event);
+    data.append("UNIQUE_ID:").append(std::to_string(e->uniqueId)).append("\n")
+        .append("APP_PID:").append(std::to_string(e->appPid)).append("\n")
+        .append("VERSION_CODE:").append(std::to_string(e->versionCode)).append("\n")
+        .append("VERSION_NAME:").append(e->versionName).append("\n")
+        .append("BUNDLE_NAME:").append(e->bundleName).append("\n")
+        .append("ABILITY_NAME:").append(e->abilityName).append("\n")
+        .append("PROCESS_NAME:").append(e->processName).append("\n")
+        .append("PAGE_URL:").append(e->pageUrl).append("\n")
+        .append("SCENE_ID:").append(e->sceneId).append("\n")
+        .append("SOURCE_TYPE:").append(e->sourceType).append("\n")
+        .append("NOTE:").append(e->note).append("\n")
+        .append("INPUT_TIME:").append(std::to_string(e->inputTime)).append("\n")
+        .append("ANIMATION_START_LATENCY:").append(std::to_string(e->animationStartLatency)).append("\n")
+        .append("ANIMATION_END_LATENCY:").append(std::to_string(e->animationEndLatency)).append("\n")
+        .append("E2E_LATENCY:").append(std::to_string(e->e2eLatency)).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(event->happenTime));
+}
+ 
+void PassthroughMonitor::BuildGraphicInteractionResponseLatencyData(OhosXperfEvent* event, std::string& data)
+{
+    auto* e = static_cast<GraphicInteractionResponseLatencyEvent*>(event);
+    data.append("UNIQUE_ID:").append(std::to_string(e->uniqueId)).append("\n")
+        .append("SCENE_ID:").append(e->sceneId).append("\n")
+        .append("APP_PID:").append(std::to_string(e->appPid)).append("\n")
+        .append("VERSION_CODE:").append(std::to_string(e->versionCode)).append("\n")
+        .append("VERSION_NAME:").append(e->versionName).append("\n")
+        .append("BUNDLE_NAME:").append(e->bundleName).append("\n")
+        .append("ABILITY_NAME:").append(e->abilityName).append("\n")
+        .append("PROCESS_NAME:").append(e->processName).append("\n")
+        .append("PAGE_URL:").append(e->pageUrl).append("\n")
+        .append("SOURCE_TYPE:").append(e->sourceType).append("\n")
+        .append("NOTE:").append(e->note).append("\n")
+        .append("INPUT_TIME:").append(std::to_string(e->inputTime)).append("\n")
+        .append("ANIMATION_START_TIME:").append(std::to_string(e->animationStartTime)).append("\n")
+        .append("RENDER_TIME:").append(std::to_string(e->renderTime)).append("\n")
+        .append("RESPONSE_LATENCY:").append(std::to_string(e->responseLatency)).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(event->happenTime));
+}
+ 
+void PassthroughMonitor::BuildGraphicInteractionRenderJankData(OhosXperfEvent* event, std::string& data)
+{
+    auto* e = static_cast<GraphicInteractionRenderJankEvent*>(event);
+    data.append("UNIQUE_ID:").append(std::to_string(e->uniqueId)).append("\n")
+        .append("SCENE_ID:").append(e->sceneId).append("\n")
+        .append("PROCESS_NAME:").append(e->processName).append("\n")
+        .append("MODULE_NAME:").append(e->moduleName).append("\n")
+        .append("ABILITY_NAME:").append(e->abilityName).append("\n")
+        .append("PAGE_URL:").append(e->pageUrl).append("\n")
+        .append("TOTAL_FRAMES:").append(std::to_string(e->totalFrames)).append("\n")
+        .append("TOTAL_MISSED_FRAMES:").append(std::to_string(e->totalMissedFrames)).append("\n")
+        .append("MAX_FRAMETIME:").append(std::to_string(e->maxFrametime)).append("\n")
+        .append("MAX_TECH_FRAMETIME:").append(std::to_string(e->maxTechFrametime)).append("\n")
+        .append("MAX_REAL_FRAMETIME:").append(std::to_string(e->maxRealFrametime)).append("\n")
+        .append("MAX_FRAMETIME_SINCE_START:").append(std::to_string(e->maxFrametimeSinceStart)).append("\n")
+        .append("AVERAGE_FRAMETIME:").append(std::to_string(e->averageFrametime)).append("\n")
+        .append("MAX_SEQ_MISSED_FRAMES:").append(std::to_string(e->maxSeqMissedFrames)).append("\n")
+        .append("IS_FOLD_DISP:").append(std::to_string(e->isFoldDisp)).append("\n")
+        .append("BUNDLE_NAME_EX:").append(e->bundleNameEx).append("\n")
+        .append("MAX_HITCH_TIME:").append(std::to_string(e->maxHitchTime)).append("\n")
+        .append("MAX_HITCH_TIME_SINCE_START:").append(std::to_string(e->maxHitchTimeSinceStart)).append("\n")
+        .append("DURITION:").append(std::to_string(e->duration)).append("\n")
+        .append("MAX_FRAME_REFRESH_RATE:").append(std::to_string(e->maxFrameRefreshRate)).append("\n")
+        .append("SHADER_TIME:").append(e->shaderTime).append("\n")
+        .append("JANK_COUNT:").append(e->jankCount).append("\n")
+        .append("HAPPEN_TIME:").append(std::to_string(event->happenTime));
 }
 
 void PassthroughMonitor::OnAudioStart(OhosXperfEvent* event)

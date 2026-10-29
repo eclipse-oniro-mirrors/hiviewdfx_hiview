@@ -61,6 +61,18 @@ void ExtractStrToInt16(const std::string &msg, int16_t &result, const char* preT
 void ExtractStrToStr(const std::string &msg, std::string &result,
     const char* preTag, const char* nextTag, const std::string& defaultValue);
 
+bool ExtractSubTagByKey(const std::string& msg, std::string& value, const std::string& preTag);
+void ExtractByKeyToStr(const std::string& msg, std::string& result, const std::string& preTag,
+    const std::string& defaultValue);
+void ExtractByKeyToInt(const std::string& msg, int32_t& result, const std::string& preTag,
+    int32_t defaultValue);
+void ExtractByKeyToLong(const std::string& msg, int64_t& result, const std::string& preTag,
+    int64_t defaultValue);
+void ExtractByKeyToFloat(const std::string& msg, float& result, const std::string& preTag,
+    float defaultValue);
+void ExtractByKeyToBool(const std::string& msg, bool& result, const std::string& preTag,
+    bool defaultValue);
+
 } // namespace HiviewDFX
 } // namespace OHOS
 
