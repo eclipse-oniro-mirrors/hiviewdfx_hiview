@@ -64,7 +64,7 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::PERF_COMPONENT_DETACH, &ParserComponentDetach); // 6003
     RegisterParserByLogID(XperfConstants::PERF_MULTIINPUT_FIRSTMOVE, &ParserPerfUserAction); // 6004
     RegisterParserByLogID(XperfConstants::PERF_MULTIINPUT_LASTUP, &ParserPerfUserAction); // 6005
-    RegisterParserByLogID(XperfConstants::PERF_APP_FOREGROUND, &ParserAppForeground); // 6006 
+    RegisterParserByLogID(XperfConstants::PERF_APP_FOREGROUND, &ParserAppForeground); // 6006
 
     RegisterParserByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY,
         &ParserGraphicInteractionCompletedLatency); // 5005
