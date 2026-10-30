@@ -148,6 +148,7 @@ ohos_unittest("FaultloggerBaseUnittest") {
     "ipc:ipc_single",
     "jsoncpp:jsoncpp",
     "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   resource_config_file = "$hiview_faultlogger/service/bdfr_base/test/resource/ohos_test.xml"
