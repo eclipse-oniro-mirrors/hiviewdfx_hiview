@@ -127,6 +127,7 @@
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/js/napi:faultlogger_napi",
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/cj:cj_faultlogger_ffi",
                 "//base/hiviewdfx/hiview/interfaces/js/napi:loglibrary_napi",
+                "//base/hiviewdfx/hiview/plugins/reliability/boot_detector:boot_detector_hiview",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/client:libucollection_client",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
@@ -254,6 +255,15 @@
                         "header_files": [
                             "xperf_service_main.h",
                             "xperf_service_interfaces.h"
+                        ]
+                    }
+                },
+                {
+                    "name": "//base/hiviewdfx/hiview/plugins/reliability/boot_detector:boot_detector_hiview",
+                    "header": {
+                        "header_base": "//base/hiviewdfx/hiview/plugins/reliability/boot_detector/include",
+                        "header_files": [
+                            "boot_detector_hiview.h"
                         ]
                     }
                 }

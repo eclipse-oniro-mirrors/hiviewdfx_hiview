@@ -1,0 +1,36 @@
+# Copyright (c) 2026. Licensed under the Apache License, Version 2.0.
+
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+
+config("boot_detector_hiview_config") {
+  visibility = [ "*:*" ]
+  include_dirs = [ "include" ]
+}
+
+ohos_shared_library("boot_detector_hiview") {
+  cflags_cc = [ "-Os" ]
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  public_configs = [ ":boot_detector_hiview_config" ]
+
+  sources = [ "boot_detector_hiview.cpp" ]
+
+  version_script = "libboot_detector_hiview.map"
+
+  innerapi_tags = [ "platformsdk" ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ "test:BootDetectorHiviewUnitTest" ]
+}

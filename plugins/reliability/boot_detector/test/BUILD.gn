@@ -1,0 +1,20 @@
+# Copyright (c) 2026. Licensed under the Apache License, Version 2.0.
+
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+module_output_path = "hiview/hiview/boot_detector"
+
+ohos_unittest("BootDetectorHiviewUnitTest") {
+  module_out_path = module_output_path
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+
+  sources = [ "unittest/boot_detector_hiview_test.cpp" ]
+
+  deps = [ "$hiview_plugin/reliability/boot_detector:boot_detector_hiview" ]
+
+  external_deps = [ "googletest:gtest_main" ]
+}
