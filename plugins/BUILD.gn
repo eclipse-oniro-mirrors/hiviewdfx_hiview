@@ -23,6 +23,7 @@ group("unittest") {
     "faultlogger:unittest",
     "freeze_detector:unittest",
     "reliability/bbox_detectors:unittest",
+    "reliability/boot_detector:unittest",
     "sysevent_source:unittest",
     "unified_collector:unittest",
     "usage_event_report:unittest",
