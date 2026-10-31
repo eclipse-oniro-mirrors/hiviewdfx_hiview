@@ -63,8 +63,6 @@ constexpr size_t MAX_TOP_STACK_FRAMES = 3;
 
 const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
-const char *const SUBMITTER_STACK_HEADER = "========SubmitterStacktrace========";
-const char *const UNKNOWN_PC = "0xffffffff";
 }
 
 // Only support stack parsing for these 5 type formats
@@ -131,32 +129,6 @@ bool IsHexString(const std::string& s)
         }
     }
     return true;
-}
-
-bool IsStackFrameLine(const std::string& line)
-{
-    size_t pos = line.find_first_not_of(' ');
-    if (pos == std::string::npos || line[pos] != '#') {
-        return false;
-    }
-    pos++;
-    if (pos >= line.size() || !std::isdigit(static_cast<unsigned char>(line[pos]))) {
-        return false;
-    }
-    return true;
-}
-
-std::string RenumberStackFrame(const std::string& line, unsigned frameIdx)
-{
-    size_t hashPos = line.find('#');
-    if (hashPos == std::string::npos) {
-        return line;
-    }
-    size_t idxEnd = hashPos + 1;
-    while (idxEnd < line.size() && std::isdigit(static_cast<unsigned char>(line[idxEnd]))) {
-        idxEnd++;
-    }
-    return line.substr(0, hashPos + 1) + std::to_string(frameIdx) + line.substr(idxEnd);
 }
 
 bool FaultLogSanitizer::SafeStoull(const std::string& str, uint64_t& value, int base)
@@ -422,30 +394,11 @@ bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
     params.srcLogFile.clear();
     params.srcLogFile.seekg(0, std::ios::beg);
 
-    bool inSubmitterStack = false;
-    unsigned submitterFrameIdx = 0;
     // Second traversal is to read .hap and other stacks from stack frames, and directly replace them after parsing
     while (std::getline(params.srcLogFile, line)) {
-        if (params.srcLogFile.eof()) {
-            break;
+        if (ShouldParseSandBoxPath(line)) {
+            line = ProcessArkTsLine(line, params.moduleName, maps, params.needTranslate);
         }
-        if (!params.srcLogFile.good()) {
-            break;
-        }
-        if (line.find(UNKNOWN_PC) != std::string::npos) {
-            line = SUBMITTER_STACK_HEADER;
-            inSubmitterStack = true;
-            submitterFrameIdx = 0;
-            } else if (inSubmitterStack) {
-                if (IsStackFrameLine(line)) {
-                    line = RenumberStackFrame(line, submitterFrameIdx++);
-                } else {
-                    inSubmitterStack = false;
-                }
-            }
-            if (ShouldParseSandBoxPath(line)) {
-                line = ProcessArkTsLine(line, params.moduleName, maps, params.needTranslate);
-            }
         FileUtil::SaveStringToFd(params.tempFileFd, line);
         FileUtil::SaveStringToFd(params.tempFileFd, "\n");
     }
