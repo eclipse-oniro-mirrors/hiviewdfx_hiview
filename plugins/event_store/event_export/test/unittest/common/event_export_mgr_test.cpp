@@ -22,6 +22,7 @@
 #include "export_dir_creator.h"
 #include "file_util.h"
 #include "hiview_global.h"
+#include "parameter_ex.h"
 #include "setting_observer_manager.h"
 #include "time_util.h"
 
@@ -160,7 +161,11 @@ HWTEST_F(EventExportMgrTest, EventExportUtilTest001, testing::ext::TestSize.Leve
     ASSERT_FALSE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
     exportConfig->needPostEvent = true;
     exportConfig->exportDir = "/data/test/test_data/no_exist_dir/";
-    ASSERT_FALSE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    if (Parameter::IsBetaVersion()) {
+        ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    } else {
+        ASSERT_FALSE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
+    }
     exportConfig->exportDir = "/data/test/test_data/cfg/sys_event_export/";
     exportConfig->taskType = ALL_EVENT_TASK_TYPE;
     ASSERT_TRUE(EventExportUtil::CheckAndPostExportEvent(exportConfig));
