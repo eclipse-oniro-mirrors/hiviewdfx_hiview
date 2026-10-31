@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,14 +11,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * Author: zhengkaijie
+ * Create: 2023-11-16
  */
-#ifndef NATIVE_LEAK_STATE_CONTEXT_H
-#define NATIVE_LEAK_STATE_CONTEXT_H
 
-#include "fault_common_base.h"
-#include "fault_state_base.h"
+#ifndef DFR_NATIVE_LEAK_STATE_CONTEXT_H
+#define DFR_NATIVE_LEAK_STATE_CONTEXT_H
+
+#include "native_leak_judge_state.h"
+#include "native_leak_dump_state.h"
+#include "native_leak_report_state.h"
+#include "native_leak_appreport_state.h"
+#include "native_leak_removal_state.h"
 #include "fault_state_context_base.h"
-#include "native_leak_state.h"
+#include "fault_common.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -30,12 +36,13 @@ public:
     FaultStateBase* GetStateObj(FaultStateType state) override;
 
 private:
-    NativeLeakSampleState sampleState_;
     NativeLeakJudgeState judgeState_;
     NativeLeakDumpState dumpState_;
     NativeLeakReportState reportState_;
+    NativeLeakAppReportState appReportState_;
     NativeLeakRemovalState removalState_;
 };
+
 } // namespace HiviewDFX
 } // namespace OHOS
-#endif // NATIVE_LEAK_STATE_CONTEXT_H
+#endif // DFR_NATIVE_LEAK_STATE_CONTEXT_H
