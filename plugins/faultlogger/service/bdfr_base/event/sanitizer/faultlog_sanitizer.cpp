@@ -396,6 +396,12 @@ bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
 
     // Second traversal is to read .hap and other stacks from stack frames, and directly replace them after parsing
     while (std::getline(params.srcLogFile, line)) {
+        if (params.srcLogFile.eof()) {
+            break;
+        }
+        if (!params.srcLogFile.good()) {
+            break;
+        }
         if (ShouldParseSandBoxPath(line)) {
             line = ProcessArkTsLine(line, params.moduleName, maps, params.needTranslate);
         }
