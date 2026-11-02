@@ -24,6 +24,7 @@
 #include "kernel_leak_info.h"
 #include "ffrt.h"
 #include "dfr_profiler_manager.h"
+#include "thread_stack_leak_callback.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -46,6 +47,9 @@ private:
     void DumpGpuInfo(std::shared_ptr<KernelLeakInfo> &kernelInfo, std::ofstream &fout) const;
     void DumpVmaLeak(std::shared_ptr<KernelLeakInfo> &kernelInfo);
     void DumpVmaLeakProfiler(std::shared_ptr<KernelLeakInfo> &kernelInfo);
+    void DumpThreadStackLeakInfo(std::shared_ptr<KernelLeakInfo> &kernelInfo);
+    bool RequestThreadStackLeak(pid_t pid, std::string &dumpResult);
+    void WriteThreadStackLeakLog(const std::string &dumpResult, std::shared_ptr<KernelLeakInfo> &kernelInfo);
     bool DumpKernelLeakProfiler(std::shared_ptr<KernelLeakInfo> &kernelInfo);
     bool ShouldDumpProfiler(std::shared_ptr<KernelLeakInfo> &kernelInfo);
     void DumpGpuRsInfo(std::ofstream &fout, std::shared_ptr<KernelLeakInfo> &kernelInfo) const;

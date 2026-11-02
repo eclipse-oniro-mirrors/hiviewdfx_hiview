@@ -27,6 +27,7 @@
 #include "hitrace_meter.h"
 #include "old_log_cleaner.h"
 #include "i_telemetry.h"
+#include "dfr_util.h"
 
 using namespace std;
 
@@ -75,6 +76,7 @@ ErrCode KernelLeakDumpState::StateProcess(shared_ptr<FaultInfoBase> &faultInfo, 
     }
     if (eventName == NAME_VMA_LEAK) {
         DumpVmaLeak(kernelInfo);
+        DumpThreadStackLeakInfo(kernelInfo);
         DumpVmaLeakProfiler(kernelInfo);
         return ChangeNextState(faultInfo, detectorObj);
     }
@@ -350,6 +352,89 @@ void KernelLeakDumpState::DumpVmaLeak(shared_ptr<KernelLeakInfo> &kernelInfo)
     } else {
         fout.close();
     }
+}
+
+void KernelLeakDumpState::DumpThreadStackLeakInfo(shared_ptr<KernelLeakInfo> &kernelInfo)
+{
+    if (kernelInfo == nullptr || kernelInfo->IsDied()) {
+        HIVIEW_LOGI("process died or null info, skip thread stack leak detection");
+        return;
+    }
+    pid_t pid = kernelInfo->GetProcessPidForReport();
+    HIVIEW_LOGI("trigger thread stack leak detection for pid: %{public}d", pid);
+
+    std::string dumpResult;
+    if (!RequestThreadStackLeak(pid, dumpResult)) {
+        return;
+    }
+    if (dumpResult.empty()) {
+        HIVIEW_LOGI("thread stack leak result is empty for pid: %{public}d", pid);
+        return;
+    }
+    WriteThreadStackLeakLog(dumpResult, kernelInfo);
+}
+
+bool KernelLeakDumpState::RequestThreadStackLeak(pid_t pid, std::string &dumpResult)
+{
+    OHOS::sptr<OHOS::ISystemAbilityManager> sam =
+        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (sam == nullptr) {
+        HIVIEW_LOGE("failed to get SystemAbilityManager");
+        return false;
+    }
+    OHOS::sptr<OHOS::AppExecFwk::IAppMgr> appMgr =
+        OHOS::iface_cast<OHOS::AppExecFwk::IAppMgr>(sam->GetSystemAbility(OHOS::APP_MGR_SERVICE_ID));
+    if (appMgr == nullptr) {
+        HIVIEW_LOGE("failed to get IAppMgr");
+        return false;
+    }
+
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = static_cast<uint32_t>(pid);
+    info.dumpType = OHOS::AppExecFwk::MemDumpType::THREAD_STACK_LEAK;
+    info.isSync = true;
+
+    sptr<ThreadStackLeakCallback> callback = new (std::nothrow) ThreadStackLeakCallback();
+    if (callback == nullptr) {
+        HIVIEW_LOGE("failed to create ThreadStackLeakCallback");
+        return false;
+    }
+
+    int32_t ret = appMgr->DumpMem(info, callback);
+    if (ret != ERR_OK) {
+        HIVIEW_LOGE("DumpMem failed, ret: %{public}d", ret);
+        return false;
+    }
+
+    constexpr int32_t waitTimeoutMs = 10000; // 10s
+    if (!callback->WaitForResult(dumpResult, waitTimeoutMs)) {
+        HIVIEW_LOGE("wait thread stack leak result timeout for pid: %{public}d", pid);
+        return false;
+    }
+    return true;
+}
+
+void KernelLeakDumpState::WriteThreadStackLeakLog(const std::string &dumpResult,
+    shared_ptr<KernelLeakInfo> &kernelInfo)
+{
+    std::string logPath = kernelInfo->GetLogPath();
+    std::string realPath = DfrUtil::GetInstance().RealPath(logPath);
+    if (realPath.empty()) {
+        HIVIEW_LOGE("failed to get real path: %{public}s", logPath.c_str());
+        return;
+    }
+    std::ofstream fout(realPath, std::ios::out | std::ios::app);
+    if (!fout.is_open()) {
+        HIVIEW_LOGE("failed to open log file: %{public}s", realPath.c_str());
+        return;
+    }
+    fout << endl;
+    fout << "******************************" << endl;
+    fout << "LOGGER_MEMCHECK_THREAD_STACK_LEAK" << endl;
+    fout << "get info realtime:\t" << DfrUtil::GetInstance().GetRealTime() << endl;
+    fout << dumpResult << endl;
+    fout.close();
+    HIVIEW_LOGI("thread stack leak info written for pid: %{public}d", kernelInfo->GetProcessPidForReport());
 }
 
 void KernelLeakDumpState::DumpVmaLeakProfiler(shared_ptr<KernelLeakInfo> &kernelInfo)
