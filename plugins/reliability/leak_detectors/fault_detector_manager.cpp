@@ -356,6 +356,10 @@ void FaultDetectorManager::HandleProcessKill(SysEvent &sysEvent)
     HandleProcessKillTelemetry(sysEvent);
     HandleHisysevent(sysEvent);
     HandleProcessKillEvent(sysEvent);
+    if (callingUid == MEMMGR_UID) {
+        HIVIEW_LOGE("Calling UID is MEMMGR_UID, do not handle %{public}s", sysEvent.eventName_.c_str());
+        return;
+    }
     ReportKillReason(sysEvent);
 }
 
