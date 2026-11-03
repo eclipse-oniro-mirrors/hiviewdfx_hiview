@@ -53,6 +53,7 @@ struct AceInteractionAppJankEvent : public OhosXperfEvent {
     int32_t versionCode{0};
     std::string versionName;
     std::string pageName;
+    int32_t appPid{0};
     int64_t starttime{0};
     int64_t duration{0};
     int32_t totalFrames{0};
@@ -69,7 +70,7 @@ struct AceInteractionAppJankEvent : public OhosXperfEvent {
     int32_t subhealthTime{0};
     std::string jankCount;
     std::string actionType;
-    int32_t pos{0};
+    std::string pos;
 };
  
 } // namespace HiviewDFX

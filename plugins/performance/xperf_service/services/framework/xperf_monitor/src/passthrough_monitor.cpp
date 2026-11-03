@@ -176,7 +176,7 @@ void PassthroughMonitor::BuildAceInteractionAppJankData(OhosXperfEvent* event, s
         .append("SUBHEALTH_TIME:").append(std::to_string(e->subhealthTime)).append("\n")
         .append("JANK_COUNT:").append(e->jankCount).append("\n")
         .append("ACTION_TYPE:").append(e->actionType).append("\n")
-        .append("POS:").append(std::to_string(e->pos)).append("\n")
+        .append("POS:").append(e->pos).append("\n")
         .append("HAPPEN_TIME:").append(std::to_string(event->happenTime));
 }
  

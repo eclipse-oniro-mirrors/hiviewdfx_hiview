@@ -407,6 +407,7 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
         "#VERSION_CODE:" + std::to_string(data.baseInfo.versionCode) +
         "#VERSION_NAME:" + data.baseInfo.versionName +
         "#PAGE_NAME:" + data.baseInfo.pageName +
+        "#APP_PID:" + std::to_string(data.baseInfo.pid) +
         "#STARTTIME:" + std::to_string(startTime) +
         "#DURITION:" + std::to_string(durition) +
         "#TOTAL_FRAMES:" + std::to_string(data.totalFrames) +

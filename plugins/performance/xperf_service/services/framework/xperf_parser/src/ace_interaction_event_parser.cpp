@@ -60,6 +60,7 @@ OhosXperfEvent* ParserAceInteractionAppJank(const std::string& msg)
     ExtractByKeyToInt(msg, event->versionCode, "#VERSION_CODE:", 0);
     ExtractByKeyToStr(msg, event->versionName, "#VERSION_NAME:", "");
     ExtractByKeyToStr(msg, event->pageName, "#PAGE_NAME:", "");
+    ExtractByKeyToInt(msg, event->appPid, "#APP_PID:", 0);
     ExtractByKeyToLong(msg, event->starttime, "#STARTTIME:", 0);
     ExtractByKeyToLong(msg, event->duration, "#DURITION:", 0);
     ExtractByKeyToInt(msg, event->totalFrames, "#TOTAL_FRAMES:", 0);
@@ -76,7 +77,7 @@ OhosXperfEvent* ParserAceInteractionAppJank(const std::string& msg)
     ExtractByKeyToInt(msg, event->subhealthTime, "#SUBHEALTH_TIME:", 0);
     ExtractByKeyToStr(msg, event->jankCount, "#JANK_COUNT:", "");
     ExtractByKeyToStr(msg, event->actionType, "#ACTION_TYPE:", "");
-    ExtractByKeyToInt(msg, event->pos, "#POS:", 0);
+    ExtractByKeyToStr(msg, event->pos, "#POS:", "");
     return event;
 }
  
