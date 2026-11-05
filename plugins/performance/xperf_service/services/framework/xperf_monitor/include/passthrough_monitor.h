@@ -48,11 +48,6 @@ private:
     void OnTouchAction(OhosXperfEvent* event);
     void OnAudioStart(OhosXperfEvent* event);
     void ForwardInteractionEvent(OhosXperfEvent* event);
-    void BuildAceInteractionCompletedLatencyData(OhosXperfEvent* event, std::string& data);
-    void BuildAceInteractionAppJankData(OhosXperfEvent* event, std::string& data);
-    void BuildGraphicInteractionCompletedLatencyData(OhosXperfEvent* event, std::string& data);
-    void BuildGraphicInteractionResponseLatencyData(OhosXperfEvent* event, std::string& data);
-    void BuildGraphicInteractionRenderJankData(OhosXperfEvent* event, std::string& data);
     std::string GetBundleName(int64_t uniqueId);
  
     PassthroughMonitor() = default;
