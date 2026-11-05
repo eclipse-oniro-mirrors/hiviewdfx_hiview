@@ -118,6 +118,9 @@ ohos_shared_library("libperfmonitor") {
       defines += [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
       external_deps += [ "resource_schedule_service:ressched_client" ]
     }
+    if (hiview_libxperfmonitor_notify_xperf_enable) {
+      defines += [ "NOTIFY_XPERF_INPUT_EVENT_ENABLE" ]
+    }
   }
 }
 
