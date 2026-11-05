@@ -31,10 +31,16 @@ ohos_fuzztest("AppEventElapsedTimeFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "appeventelapsedtime_fuzzer.cpp" ]
+  sources = [
+    "appeventelapsedtime_fuzzer.cpp",
+    "//base/hiviewdfx/hiview/base/event_publish/app_event_elapsed_time.cpp",
+    "//base/hiviewdfx/hiview/base/event_publish/app_event_publisher_factory.cpp",
+    "//base/hiviewdfx/hiview/base/event_publish/event_publish.cpp",
+    "//base/hiviewdfx/hiview/base/event_publish/log_file_name_converter.cpp",
+    "//base/hiviewdfx/hiview/base/event_publish/user_data_size_reporter.cpp",
+  ]
 
   deps = [
-    "$hiview_base/event_publish:hiview_event_publish",
     "$hiview_base:logger",
     "$hiview_base/utility:hiview_utility",
   ]

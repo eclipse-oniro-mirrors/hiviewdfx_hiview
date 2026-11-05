@@ -36,7 +36,6 @@
 #include "string_util.h"
 #include "time_util.h"
 
-using namespace OHOS::HiviewDFX::HiAppEvent;
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -74,19 +73,19 @@ constexpr uint64_t BIT_MASK = 1;
 constexpr uint64_t LIMIT_COST_MILLISECOND = 50;
 constexpr int MAX_JSON_DEPTH = 64;
 const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
-    { EVENT_APP_CRASH, 0 },
-    { EVENT_APP_FREEZE, 1 },
-    { EVENT_APP_LAUNCH, 2 },
-    { EVENT_SCROLL_JANK, 3 },
-    { EVENT_CPU_USAGE_HIGH, 4 },
-    { EVENT_BATTERY_USAGE, 5 },
-    { EVENT_RESOURCE_OVERLIMIT, 6 },
-    { EVENT_ADDRESS_SANITIZER, 7 },
-    { EVENT_MAIN_THREAD_JANK, 8 },
-    { EVENT_APP_HICOLLIE, 10 },
-    { EVENT_APP_KILLED, 11 },
-    { EVENT_AUDIO_JANK_FRAME, 12 },
-    { EVENT_APP_FREEZE_WARNING, 14 }
+    { HiAppEvent::EVENT_APP_CRASH, 0 },
+    { HiAppEvent::EVENT_APP_FREEZE, 1 },
+    { HiAppEvent::EVENT_APP_LAUNCH, 2 },
+    { HiAppEvent::EVENT_SCROLL_JANK, 3 },
+    { HiAppEvent::EVENT_CPU_USAGE_HIGH, 4 },
+    { HiAppEvent::EVENT_BATTERY_USAGE, 5 },
+    { HiAppEvent::EVENT_RESOURCE_OVERLIMIT, 6 },
+    { HiAppEvent::EVENT_ADDRESS_SANITIZER, 7 },
+    { HiAppEvent::EVENT_MAIN_THREAD_JANK, 8 },
+    { HiAppEvent::EVENT_APP_HICOLLIE, 10 },
+    { HiAppEvent::EVENT_APP_KILLED, 11 },
+    { HiAppEvent::EVENT_AUDIO_JANK_FRAME, 12 },
+    { HiAppEvent::EVENT_APP_FREEZE_WARNING, 14 }
 };
 
 struct ExternalLogInfo {
@@ -120,11 +119,11 @@ void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalL
     const std::string& pathHolder)
 {
     GetEventObserverNum(eventName, externalLogInfo, uid, pathHolder);
-    if (eventName == EVENT_MAIN_THREAD_JANK) {
+    if (eventName == HiAppEvent::EVENT_MAIN_THREAD_JANK) {
         externalLogInfo.extensionType = ".trace";
         externalLogInfo.subPath = "watchdog";
         externalLogInfo.maxFileSize = WATCHDOG_MAX_FILE_SIZE;
-    } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
+    } else if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {
         externalLogInfo.extensionType = ".log";
         externalLogInfo.subPath = "resourcelimit";
         externalLogInfo.maxFileSize = RESOURCE_OVERLIMIT_MAX_FILE_SIZE;
@@ -308,7 +307,7 @@ bool IsDmpFile(const std::string& dmpPath)
 bool CheckInSandBoxLog(const std::string& curLogPath, const std::string& sandBoxLogPath, Json::Value& externalLogJson,
     bool& logOverLimit, const std::string& eventName)
 {
-    if (curLogPath.find(SANDBOX_DIR) == 0 || eventName == EVENT_SCROLL_JANK) {
+    if (curLogPath.find(SANDBOX_DIR) == 0 || eventName == HiAppEvent::EVENT_SCROLL_JANK) {
         HIVIEW_LOGI("File in sandbox path not copy.");
         std::string fileName = FileUtil::ExtractFileName(curLogPath);
         if (FileUtil::FileExists(sandBoxLogPath + "/" + fileName)) {
@@ -656,7 +655,7 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::str
     bool needRefined = ShouldRefinedLogFileName(uid, pathHolder);
     SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes, needRefined);
     SaveEventToSandBox(uid, pathHolder, eventJson);
-    UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, EVENT_RESOURCE_OVERLIMIT);
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, HiAppEvent::EVENT_RESOURCE_OVERLIMIT);
     std::lock_guard<std::mutex> lock(mutex_);
     sendingOverlimitThread_.reset();
 }
@@ -727,7 +726,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         return;
     }
     Json::Value eventJson;
-    eventJson[DOMAIN_PROPERTY] = DOMAIN_OS;
+    eventJson[DOMAIN_PROPERTY] = HiAppEvent::DOMAIN_OS;
     eventJson[NAME_PROPERTY] = eventName;
     eventJson[EVENT_TYPE_PROPERTY] = eventType;
     eventJson[PARAM_PROPERTY] = std::move(params);
@@ -737,12 +736,13 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         HIVIEW_LOGE("failed to create resourceDir.");
         return;
     }
-    const std::set<std::string> specialEvents = {EVENT_RESOURCE_OVERLIMIT, EVENT_SCROLL_JANK, EVENT_BATTERY_USAGE};
+    const std::set<std::string> specialEvents = {HiAppEvent::EVENT_RESOURCE_OVERLIMIT, HiAppEvent::EVENT_SCROLL_JANK,
+        HiAppEvent::EVENT_BATTERY_USAGE};
     if (specialEvents.find(eventName) == specialEvents.end()) {  // immediate report
         SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
         SaveEventToSandBox(uid, pathHolder, eventJson);
         UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, eventName);
-    } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
+    } else if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {
         StartOverLimitThread(uid, pathHolder, eventJson, maxFileSizeBytes);
     } else {  // delay report
         SaveEventToTempFile(uid, eventJson);

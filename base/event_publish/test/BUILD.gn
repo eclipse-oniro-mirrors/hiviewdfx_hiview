@@ -28,6 +28,7 @@ group("fuzztest") {
     "fuzztest/appeventhandlerpostevent_fuzzer:AppEventHandlerPostEventFuzzTest",
     "fuzztest/appeventpublisherfactory_fuzzer:AppEventPublisherFactoryFuzzTest",
     "fuzztest/eventpublishisapplistenedevent_fuzzer:EventPublishIsAppListenedEventFuzzTest",
+    "fuzztest/eventpublishinternal_fuzzer:EventPublishInternalFuzzTest",
     "fuzztest/eventpublishpushevent_fuzzer:EventPublishPushEventFuzzTest",
     "fuzztest/logfileconverter_fuzzer:LogFileConverterFuzzTest",
     "fuzztest/userdatasizereporter_fuzzer:UserDataSizeReporterFuzzTest",
