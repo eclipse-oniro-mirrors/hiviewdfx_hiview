@@ -362,25 +362,25 @@ void EventReporter::ReportEventComplete(DataBase& data)
     const auto& animationEndLantency = (data.endVsyncTime - data.beginVsyncTime) / NS_TO_MS;
     const auto& e2eLatency = animationStartLantency + animationEndLantency;
     const auto& note = data.baseInfo.note;
-    XperfEventBuilder builder;
-    XperfEvent event = builder.EventName(eventName)
-        .EventType(HISYSEVENT_BEHAVIOR)
-        .Param(EVENT_KEY_UNIQUE_ID, static_cast<int32_t>(uniqueId)).Param(EVENT_KEY_APP_PID, appPid)
-        .Param(EVENT_KEY_BUNDLE_NAME, bundleName).Param(EVENT_KEY_PROCESS_NAME, processName)
-        .Param(EVENT_KEY_ABILITY_NAME, abilityName).Param(EVENT_KEY_PAGE_URL, pageUrl)
-        .Param(EVENT_KEY_VERSION_CODE, versionCode)
-        .Param(EVENT_KEY_VERSION_NAME, versionName)
-        .Param(EVENT_KEY_PAGE_NAME, pageName)
-        .Param(EVENT_KEY_SCENE_ID, sceneId)
-        .Param(EVENT_KEY_SOURCE_TYPE, sourceType)
-        .Param(EVENT_KEY_INPUT_TIME, static_cast<uint64_t>(inputTime))
-        .Param(EVENT_KEY_ANIMATION_START_LATENCY, static_cast<uint64_t>(animationStartLantency))
-        .Param(EVENT_KEY_ANIMATION_END_LATENCY, static_cast<uint64_t>(animationEndLantency))
-        .Param(EVENT_KEY_E2E_LATENCY, static_cast<uint64_t>(e2eLatency))
-        .Param(EVENT_KEY_NOTE, note)
-        .Build();
-    XperfEventReporter reporter;
-    reporter.Report(ACE_DOMAIN, event);
+    XperfServiceClient::GetInstance().NotifyToXperf(
+        static_cast<int32_t>(DomainId::PERFMONITOR),
+        static_cast<int32_t>(PerfEventCode::ACE_INTERACTION_COMPLETED_LATENCY),
+        "#UNIQUE_ID:" + std::to_string(uniqueId) +
+        "#APP_PID:" + std::to_string(appPid) +
+        "#BUNDLE_NAME:" + bundleName +
+        "#PROCESS_NAME:" + processName +
+        "#ABILITY_NAME:" + abilityName +
+        "#PAGE_URL:" + pageUrl +
+        "#VERSION_CODE:" + std::to_string(versionCode) +
+        "#VERSION_NAME:" + versionName +
+        "#PAGE_NAME:" + pageName +
+        "#SCENE_ID:" + sceneId +
+        "#SOURCE_TYPE:" + sourceType +
+        "#INPUT_TIME:" + std::to_string(inputTime) +
+        "#ANIMATION_START_LATENCY:" + std::to_string(animationStartLantency) +
+        "#ANIMATION_END_LATENCY:" + std::to_string(animationEndLantency) +
+        "#E2E_LATENCY:" + std::to_string(e2eLatency) +
+        "#NOTE:" + note);
     XPERF_TRACE_SCOPED("INTERACTION_COMPLETED_LATENCY: sceneId =%s, inputTime=%lld(ms),"
         "e2eLatency=%lld(ms)", sceneId.c_str(),
         static_cast<long long>(inputTime), static_cast<long long>(e2eLatency));
@@ -395,31 +395,33 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
     const auto& durition = (data.endVsyncTime - data.beginVsyncTime) / NS_TO_MS;
     const auto& maxFrameTime = data.maxFrameTime / NS_TO_MS;
     std::string jankStr = nlohmann::json(data.jankCount).dump();
-    XperfEventBuilder builder;
-    XperfEvent event = builder.EventName(eventName)
-        .EventType(HISYSEVENT_BEHAVIOR)
-        .Param(EVENT_KEY_UNIQUE_ID, static_cast<int32_t>(uniqueId)).Param(EVENT_KEY_SCENE_ID, data.sceneId)
-        .Param(EVENT_KEY_PROCESS_NAME, data.baseInfo.processName)
-        .Param(EVENT_KEY_MODULE_NAME, data.baseInfo.bundleName)
-        .Param(EVENT_KEY_ABILITY_NAME, data.baseInfo.abilityName).Param(EVENT_KEY_PAGE_URL, data.baseInfo.pageUrl)
-        .Param(EVENT_KEY_VERSION_CODE, data.baseInfo.versionCode)
-        .Param(EVENT_KEY_VERSION_NAME, data.baseInfo.versionName)
-        .Param(EVENT_KEY_PAGE_NAME, data.baseInfo.pageName)
-        .Param(EVENT_KEY_STARTTIME, static_cast<uint64_t>(startTime))
-        .Param(EVENT_KEY_DURITION, static_cast<uint64_t>(durition))
-        .Param(EVENT_KEY_TOTAL_FRAMES, data.totalFrames).Param(EVENT_KEY_TOTAL_MISSED_FRAMES, data.totalMissed)
-        .Param(EVENT_KEY_MAX_FRAMETIME, static_cast<uint64_t>(maxFrameTime))
-        .Param(EVENT_KEY_MAX_FRAMETIME_SINCE_START, static_cast<uint64_t>(data.maxFrameTimeSinceStart))
-        .Param(EVENT_KEY_MAX_HITCH_TIME, static_cast<uint64_t>(data.maxHitchTime))
-        .Param(EVENT_KEY_MAX_HITCH_TIME_SINCE_START, static_cast<uint64_t>(data.maxHitchTimeSinceStart))
-        .Param(EVENT_KEY_MAX_SEQ_MISSED_FRAMES, data.maxSuccessiveFrames)
-        .Param(EVENT_KEY_NOTE, data.baseInfo.note).Param(EVENT_KEY_DISPLAY_ANIMATOR, data.isDisplayAnimator)
-        .Param(EVENT_KEY_JANK_COUNT, jankStr)
-        .Param(EVENT_KEY_ACTION_TYPE, GetActionTypeName(data.actionType))
-        .Param(EVENT_KEY_POS, data.pos)
-        .Build();
-    XperfEventReporter reporter;
-    reporter.Report(ACE_DOMAIN, event);
+    XperfServiceClient::GetInstance().NotifyToXperf(
+        static_cast<int32_t>(DomainId::PERFMONITOR),
+        static_cast<int32_t>(PerfEventCode::ACE_INTERACTION_APP_JANK),
+        "#UNIQUE_ID:" + std::to_string(uniqueId) +
+        "#SCENE_ID:" + data.sceneId +
+        "#PROCESS_NAME:" + data.baseInfo.processName +
+        "#MODULE_NAME:" + data.baseInfo.bundleName +
+        "#ABILITY_NAME:" + data.baseInfo.abilityName +
+        "#PAGE_URL:" + data.baseInfo.pageUrl +
+        "#VERSION_CODE:" + std::to_string(data.baseInfo.versionCode) +
+        "#VERSION_NAME:" + data.baseInfo.versionName +
+        "#PAGE_NAME:" + data.baseInfo.pageName +
+        "#APP_PID:" + std::to_string(data.baseInfo.pid) +
+        "#STARTTIME:" + std::to_string(startTime) +
+        "#DURITION:" + std::to_string(durition) +
+        "#TOTAL_FRAMES:" + std::to_string(data.totalFrames) +
+        "#TOTAL_MISSED_FRAMES:" + std::to_string(data.totalMissed) +
+        "#MAX_FRAMETIME:" + std::to_string(maxFrameTime) +
+        "#MAX_FRAMETIME_SINCE_START:" + std::to_string(data.maxFrameTimeSinceStart) +
+        "#MAX_HITCH_TIME:" + std::to_string(data.maxHitchTime) +
+        "#MAX_HITCH_TIME_SINCE_START:" + std::to_string(data.maxHitchTimeSinceStart) +
+        "#MAX_SEQ_MISSED_FRAMES:" + std::to_string(data.maxSuccessiveFrames) +
+        "#NOTE:" + data.baseInfo.note +
+        "#DISPLAY_ANIMATOR:" + std::to_string(data.isDisplayAnimator) +
+        "#JANK_COUNT:" + jankStr +
+        "#ACTION_TYPE:" + GetActionTypeName(data.actionType) +
+        "#POS:" + data.pos);
     XPERF_TRACE_SCOPED("INTERACTION_APP_JANK: sceneId =%s, startTime=%lld(ms),"
         "maxFrameTime=%lld(ms), pageName=%s, jankCount=%s", data.sceneId.c_str(), static_cast<long long>(startTime),
         static_cast<long long>(maxFrameTime), data.baseInfo.pageName.c_str(), jankStr.c_str());

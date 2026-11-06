@@ -39,6 +39,7 @@ private:
     void InitPassthroughMonitor();
     void InitAvcodecPerfMonitor();
     void InitPlayLatencyMonitor();
+    void InitInteractionMonitor();
 };
 } // namespace HiviewDFX
 } // namespace OHOS

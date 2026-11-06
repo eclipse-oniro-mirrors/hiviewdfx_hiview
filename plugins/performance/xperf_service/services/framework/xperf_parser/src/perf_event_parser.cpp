@@ -73,5 +73,10 @@ OhosXperfEvent* ParserComponentDetach(const std::string& msg)
     return event;
 }
 
+OhosXperfEvent* ParserPassthroughEvent(const std::string& msg)
+{
+    return new OhosXperfEvent();
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS
