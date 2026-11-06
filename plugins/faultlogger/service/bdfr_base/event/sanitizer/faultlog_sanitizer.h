@@ -50,6 +50,7 @@ public:
 private:
     bool ShouldParseSandBoxPath(const std::string& line);
     bool IsStackFrameLine(const std::string& line);
+    bool IsAsyncMarker(const std::string& line);
     bool ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix, const std::string& bundleName);
     bool SafeStoull(const std::string& str, uint64_t& value, int base);
     bool ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps, const std::string& bundleName,
