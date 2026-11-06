@@ -16,7 +16,6 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
-#include <cerrno>
 #include "xperf_service_log.h"
 
 namespace {
@@ -97,93 +96,6 @@ void ExtractStrToStr(const std::string &msg, std::string &result,
 {
     if (!ExtractSubTag(msg, result, preTag, nextTag)) {
         LOGD("ExtractStrToStr error, preTag:%{public}s, nextTag:%{public}s", preTag, nextTag);
-        result = defaultValue;
-    }
-}
-
-bool ExtractSubTagByKey(const std::string& msg, std::string& value, const std::string& preTag)
-{
-    if (msg.empty() || preTag.empty()) {
-        return false;
-    }
-    size_t pos = msg.find(preTag);
-    if (pos == std::string::npos) {
-        return false;
-    }
-    pos += preTag.length();
-    size_t end = msg.find('#', pos);
-    if (end == std::string::npos) {
-        end = msg.length();
-    }
-    size_t len = end - pos;
-    if (len > MAX_ALLOWED_LENGTH) {
-        return false;
-    }
-    value = msg.substr(pos, len);
-    return true;
-}
- 
-void ExtractByKeyToStr(const std::string& msg, std::string& result, const std::string& preTag,
-    const std::string& defaultValue)
-{
-    if (!ExtractSubTagByKey(msg, result, preTag)) {
-        LOGD("ExtractByKeyToStr error, preTag:%{public}s", preTag.c_str());
-        result = defaultValue;
-    }
-}
- 
-void ExtractByKeyToInt(const std::string& msg, int32_t& result, const std::string& preTag,
-    int32_t defaultValue)
-{
-    std::string value;
-    if (ExtractSubTagByKey(msg, value, preTag)) {
-        result = atoi(value.c_str());
-    } else {
-        LOGD("ExtractByKeyToInt error, preTag:%{public}s", preTag.c_str());
-        result = defaultValue;
-    }
-}
- 
-void ExtractByKeyToLong(const std::string& msg, int64_t& result, const std::string& preTag,
-    int64_t defaultValue)
-{
-    std::string value;
-    if (ExtractSubTagByKey(msg, value, preTag)) {
-        result = atoll(value.c_str());
-    } else {
-        LOGD("ExtractByKeyToLong error, preTag:%{public}s", preTag.c_str());
-        result = defaultValue;
-    }
-}
- 
-void ExtractByKeyToFloat(const std::string& msg, float& result, const std::string& preTag,
-    float defaultValue)
-{
-    std::string value;
-    if (ExtractSubTagByKey(msg, value, preTag)) {
-        errno = 0;
-        char* endPtr = nullptr;
-        float parsedValue = strtof(value.c_str(), &endPtr);
-        if (errno == 0 && endPtr != value.c_str() && *endPtr == '\0') {
-            result = parsedValue;
-        } else {
-            LOGD("ExtractByKeyToFloat parse error, preTag:%{public}s", preTag.c_str());
-            result = defaultValue;
-        }
-    } else {
-        LOGD("ExtractByKeyToFloat error, preTag:%{public}s", preTag.c_str());
-        result = defaultValue;
-    }
-}
- 
-void ExtractByKeyToBool(const std::string& msg, bool& result, const std::string& preTag,
-    bool defaultValue)
-{
-    std::string value;
-    if (ExtractSubTagByKey(msg, value, preTag)) {
-        result = (value == "1" || value == "true");
-    } else {
-        LOGD("ExtractByKeyToBool error, preTag:%{public}s", preTag.c_str());
         result = defaultValue;
     }
 }

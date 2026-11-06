@@ -14,10 +14,8 @@
  */
 #include "event_parser_manager.h"
 
-#include "ace_interaction_event_parser.h"
 #include "audio_event_parser.h"
 #include "avcodec_event_parser.h"
-#include "graphic_interaction_event_parser.h"
 #include "network_event_parser.h"
 #include "perf_event_parser.h"
 #include "rs_event_parser.h"
@@ -67,15 +65,15 @@ void EventParserManager::InitParser()
     RegisterParserByLogID(XperfConstants::PERF_APP_FOREGROUND, &ParserAppForeground); // 6006
 
     RegisterParserByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY,
-        &ParserGraphicInteractionCompletedLatency); // 5005
+        &ParserPassthroughEvent); // 5006
     RegisterParserByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY,
-        &ParserGraphicInteractionResponseLatency); // 5006
+        &ParserPassthroughEvent); // 5007
     RegisterParserByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK,
-        &ParserGraphicInteractionRenderJank); // 5007
+        &ParserPassthroughEvent); // 5008
     RegisterParserByLogID(XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY,
-        &ParserAceInteractionCompletedLatency); // 6007
+        &ParserPassthroughEvent); // 6007
     RegisterParserByLogID(XperfConstants::PERFMONITOR_ACE_INTERACTION_APP_JANK,
-        &ParserAceInteractionAppJank); // 6008
+        &ParserPassthroughEvent); // 6008
 }
 
 ParserXperfFunc EventParserManager::GetEventParser(int32_t logId)

@@ -19,7 +19,7 @@
 
 #include "ace_interaction_event.h"
 #include "audio_event.h"
-#include "event_reporter.h"
+#include "common_reporter.h"
 #include "ffrt.h"
 #include "graphic_interaction_event.h"
 #include "load_complete_reporter.h"

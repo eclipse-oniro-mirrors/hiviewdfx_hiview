@@ -28,8 +28,7 @@ struct GraphicInteractionResponseLatencyEvent : public OhosXperfEvent {
     int32_t versionCode{0};
     std::string versionName;
     std::string bundleName;
-    std::string abilityName;
-    std::string processName;
+    std::string abilityName;    std::string processName;
     std::string pageUrl;
     std::string sourceType;
     std::string note;
