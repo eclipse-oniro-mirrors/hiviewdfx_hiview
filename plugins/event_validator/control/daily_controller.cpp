@@ -184,6 +184,7 @@ void DailyController::UpdateDb(const CacheKey& cachekey, int32_t count, int64_t 
             .domain = cachekey.first,
             .name = cachekey.second,
             .count = count,
+            .storeCount = count > cachekey.threshold ? cachekey.threshold : count,
             .exceedTime = exceedTime,
         };
         if (dbHelper_->InsertEventInfo(eventInfo) < 0) {

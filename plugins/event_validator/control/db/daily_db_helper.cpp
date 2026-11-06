@@ -30,24 +30,27 @@ constexpr char EVENTS_TABLE[] = "events_count";
 constexpr char EVENTS_COLUMN_DOMAIN[] = "domain";
 constexpr char EVENTS_COLUMN_NAME[] = "name";
 constexpr char EVENTS_COLUMN_COUNT[] = "count";
+constexpr char EVENTS_COLUMN_STORE_COUNT[] = "store_count";
 constexpr char EVENTS_COLUMN_EXCEED_TIME[] = "exceed_time";
+constexpr char CHECKPOINT_SQL[] = "PRAGMA wal_checkpoint(TRUNCATE);";
 
 int32_t CreateEventsTable(NativeRdb::RdbStore& dbStore)
 {
     /**
      * table: events_count
      *
-     * |-----|-----------|---------|-------|-------------|
-     * |  id |  domain   |  name   | count | exceed_time |
-     * |-----|-----------|---------|-------|-------------|
-     * | INT |  VARCHAR  | VARCHAR |  INT  |     INT     |
-     * |-----|-----------|---------|-------|-------------|
+     * |-----|-----------|---------|-------|-------------|-------------|
+     * |  id |  domain   |  name   | count | exceed_time | store_count |
+     * |-----|-----------|---------|-------|-------------|-------------|
+     * | INT |  VARCHAR  | VARCHAR |  INT  |     INT     |     INT     |
+     * |-----|-----------|---------|-------|-------------|-------------|
      */
     const std::vector<std::pair<std::string, std::string>> fields = {
         {EVENTS_COLUMN_DOMAIN, SqlUtil::COLUMN_TYPE_STR},
         {EVENTS_COLUMN_NAME, SqlUtil::COLUMN_TYPE_STR},
         {EVENTS_COLUMN_COUNT, SqlUtil::COLUMN_TYPE_INT},
         {EVENTS_COLUMN_EXCEED_TIME, SqlUtil::COLUMN_TYPE_INT},
+        {EVENTS_COLUMN_STORE_COUNT, SqlUtil::COLUMN_TYPE_INT},
     };
     std::string sql = SqlUtil::GenerateCreateSql(EVENTS_TABLE, fields);
     if (auto ret = dbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
@@ -67,6 +70,18 @@ int32_t DailyDbHelper::DailyDbOpenCallback::OnUpgrade(NativeRdb::RdbStore& rdbSt
     int32_t oldVersion, int32_t newVersion)
 {
     HIVIEW_LOGI("oldVersion=%{public}d, newVersion=%{public}d", oldVersion, newVersion);
+    if (oldVersion >= newVersion) {
+        return NativeRdb::E_OK;
+    }
+
+    // upgrade from version 1 to 2: add the store_count column to record the number of
+    // events that are actually stored to the disk before exceeding the threshold
+    std::string sql = std::string("ALTER TABLE ") + EVENTS_TABLE + " ADD COLUMN " +
+        EVENTS_COLUMN_STORE_COUNT + " " + SqlUtil::COLUMN_TYPE_INT;
+    if (auto ret = rdbStore.ExecuteSql(sql); ret != NativeRdb::E_OK) {
+        HIVIEW_LOGW("failed to add column=%{public}s, ret=%{public}d", EVENTS_COLUMN_STORE_COUNT, ret);
+        return ret;
+    }
     return NativeRdb::E_OK;
 }
 
@@ -106,7 +121,7 @@ void DailyDbHelper::InitDbStore()
 {
     NativeRdb::RdbStoreConfig config(dbPath_);
     config.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
-    constexpr int32_t dbVersion = 1;
+    constexpr int32_t dbVersion = 2;
     DailyDbOpenCallback callback;
     auto ret = NativeRdb::E_OK;
     dbStore_ = NativeRdb::RdbHelper::GetRdbStore(config, dbVersion, callback, ret);
@@ -125,6 +140,7 @@ int32_t DailyDbHelper::InsertEventInfo(const EventInfo& info)
     bucket.PutString(EVENTS_COLUMN_DOMAIN, info.domain);
     bucket.PutString(EVENTS_COLUMN_NAME, info.name);
     bucket.PutInt(EVENTS_COLUMN_COUNT, info.count);
+    bucket.PutInt(EVENTS_COLUMN_STORE_COUNT, info.storeCount);
     bucket.PutLong(EVENTS_COLUMN_EXCEED_TIME, info.exceedTime);
     int64_t seq = 0;
     if (auto ret = dbStore_->Insert(seq, EVENTS_TABLE, bucket); ret != NativeRdb::E_OK) {
@@ -145,6 +161,7 @@ int32_t DailyDbHelper::UpdateEventInfo(const EventInfo& info)
 
     NativeRdb::ValuesBucket bucket;
     bucket.PutInt(EVENTS_COLUMN_COUNT, info.count);
+    bucket.PutInt(EVENTS_COLUMN_STORE_COUNT, info.storeCount);
     if (info.exceedTime != 0) {
         bucket.PutLong(EVENTS_COLUMN_EXCEED_TIME, info.exceedTime);
     }
@@ -169,7 +186,7 @@ int32_t DailyDbHelper::QueryEventInfo(EventInfo& info)
     NativeRdb::AbsRdbPredicates predicates(EVENTS_TABLE);
     predicates.EqualTo(EVENTS_COLUMN_DOMAIN, info.domain);
     predicates.EqualTo(EVENTS_COLUMN_NAME, info.name);
-    auto resultSet = dbStore_->Query(predicates, {EVENTS_COLUMN_COUNT});
+    auto resultSet = dbStore_->Query(predicates, {EVENTS_COLUMN_COUNT, EVENTS_COLUMN_STORE_COUNT});
     if (resultSet == nullptr) {
         HIVIEW_LOGW("failed to query table, domain=%{public}s, name=%{public}s",
             info.domain.c_str(), info.name.c_str());
@@ -188,9 +205,13 @@ int32_t DailyDbHelper::QueryEventInfo(EventInfo& info)
         resultSet->Close();
         return -1;
     }
+    if (resultSet->GetInt(1, info.storeCount) != NativeRdb::E_OK || info.storeCount < 0) {
+        // compatible with the old version table without the store_count column
+        info.storeCount = info.count;
+    }
     resultSet->Close();
-    HIVIEW_LOGD("succ to query event, domain=%{public}s, name=%{public}s, count=%{public}d",
-        info.domain.c_str(), info.name.c_str(), info.count);
+    HIVIEW_LOGD("succ to query event, domain=%{public}s, name=%{public}s, count=%{public}d, storeCount=%{public}d",
+        info.domain.c_str(), info.name.c_str(), info.count, info.storeCount);
     return 0;
 }
 
@@ -228,6 +249,9 @@ void DailyDbHelper::PrepareOldDbFilesBeforeReport()
 
 void DailyDbHelper::CloseDbStore()
 {
+    if (dbStore_ != nullptr && dbStore_->ExecuteSql(CHECKPOINT_SQL) != NativeRdb::E_OK) {
+        HIVIEW_LOGW("failed to checkpoint wal before cloing db.");
+    }
     dbStore_ = nullptr;
 }
 
