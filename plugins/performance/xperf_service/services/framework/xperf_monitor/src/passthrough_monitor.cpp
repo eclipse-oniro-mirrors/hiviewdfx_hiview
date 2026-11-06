@@ -17,11 +17,9 @@
 
 #include <cinttypes>
 
-#include "ace_interaction_event.h"
 #include "audio_event.h"
 #include "common_reporter.h"
 #include "ffrt.h"
-#include "graphic_interaction_event.h"
 #include "load_complete_reporter.h"
 #include "perf_action_event.h"
 #include "perf_load_complete_event.h"
@@ -88,7 +86,6 @@ void PassthroughMonitor::ForwardInteractionEvent(OhosXperfEvent* event)
     }
     std::string domain;
     std::string eventName;
-    std::string data;
     switch (event->logId) {
         case XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY:
             domain = "ACE";

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "common_reporter.h"
-#include "event_bridge.h"
+#include "event_reporter.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -24,7 +24,7 @@ void CommonReporter::ReportInteractionEvent(const std::string& domain, const std
     std::string data;
     data.append("EVENT_DATA:").append(eventData);
 
-    EventBridge::GetInstance().OnEvent(domain, event, data);
+    EventReporter::GetInstance().ReportEvent(domain, eventName, data);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

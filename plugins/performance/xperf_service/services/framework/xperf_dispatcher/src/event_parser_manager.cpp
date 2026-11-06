@@ -20,6 +20,7 @@
 #include "perf_event_parser.h"
 #include "rs_event_parser.h"
 #include "xperf_constant.h"
+#include "xperf_event.h"
 
 namespace OHOS {
 namespace HiviewDFX {
