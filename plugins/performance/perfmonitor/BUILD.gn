@@ -110,7 +110,8 @@ ohos_shared_library("libperfmonitor") {
       "hilog:libhilog",
       "ipc:ipc_single",
       "init:libbegetutil",
-      "samgr:samgr_proxy"
+      "samgr:samgr_proxy",
+      "json:nlohmann_json_static"
     ]
 
     if (defined(global_parts_info) &&
