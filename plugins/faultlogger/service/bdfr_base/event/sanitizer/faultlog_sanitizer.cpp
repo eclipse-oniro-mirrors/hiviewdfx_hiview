@@ -80,10 +80,10 @@ bool FaultLogSanitizer::ShouldParseSandBoxPath(const std::string& line)
 
 bool FaultLogSanitizer::IsAsyncMarker(const std::string& line)
 {
-    bool isAyncMarker =
+    bool isAsyncMarker =
         line.find(GWPASAN_ASYNC_MARKER) != std::string::npos ||
         line.find(XSAN_ASYNC_MARKER) != std::string::npos;
-    return isAyncMarker;
+    return isAsyncMarker;
 }
  
 bool FaultLogSanitizer::IsStackFrameLine(const std::string& line)
