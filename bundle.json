@@ -96,6 +96,7 @@
                 "input",
                 "ipc",
                 "jsoncpp",
+                "json",
                 "libxml2",
                 "openssl",
                 "os_account",
