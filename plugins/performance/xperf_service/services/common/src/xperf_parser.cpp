@@ -15,7 +15,6 @@
 
 #include <string>
 #include <cstring>
-#include <cstdlib>
 #include "xperf_service_log.h"
 
 namespace {

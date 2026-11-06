@@ -14,6 +14,7 @@
  */
 #include "common_reporter.h"
 #include "event_reporter.h"
+#include "perf_utils.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -22,7 +23,8 @@ void CommonReporter::ReportInteractionEvent(const std::string& domain, const std
     const std::string& eventData)
 {
     std::string data;
-    data.append("EVENT_DATA:").append(eventData);
+    data.append("EVENT_DATA:").append(eventData)
+        .append("#HAPPEN_TIME:").append(std::to_string(GetCurrentSystimeMs()));
 
     EventReporter::GetInstance().ReportEvent(domain, event, data);
 }

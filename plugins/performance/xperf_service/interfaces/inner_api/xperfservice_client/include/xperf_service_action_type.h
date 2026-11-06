@@ -53,6 +53,9 @@ public:
     inline static const int RS_EXCEPT_STOP = 5002;
     inline static const int RS_FIRST_FRAME = 5003;
     inline static const int RS_SECOND_FRAME = 5004;
+    inline static const int RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY = 5006;
+    inline static const int RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY = 5007;
+    inline static const int RS_GRAPHIC_INTERACTION_RENDER_JANK = 5008;
     inline static const int PERFMONITOR_USER_ACTION = 6000;
     inline static const int PERFMONITOR_LOAD_COMPLETE = 6001;
     inline static const int PERFMONITOR_COMPONENT_ATTACH = 6002;
@@ -60,9 +63,6 @@ public:
     inline static const int PERFMONITOR_MULTIINPUT_FIRSTMOVE = 6004;
     inline static const int PERFMONITOR_MULTIINPUT_LASTUP = 6005;
     inline static const int PERFMONITOR_APP_FOREGROUND_ONSHOW = 6006;
-    inline static const int RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY = 5006;
-    inline static const int RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY = 5007;
-    inline static const int RS_GRAPHIC_INTERACTION_RENDER_JANK = 5008;
     inline static const int PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY = 6007;
     inline static const int PERFMONITOR_ACE_INTERACTION_APP_JANK = 6008;
 };
