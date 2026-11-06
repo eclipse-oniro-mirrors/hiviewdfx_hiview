@@ -24,7 +24,7 @@ void CommonReporter::ReportInteractionEvent(const std::string& domain, const std
     std::string data;
     data.append("EVENT_DATA:").append(eventData);
 
-    EventReporter::GetInstance().ReportEvent(domain, eventName, data);
+    EventReporter::GetInstance().ReportEvent(domain, event, data);
 }
 } // namespace HiviewDFX
 } // namespace OHOS
