@@ -13,30 +13,23 @@
  * limitations under the License.
  */
 
-#include <cstddef>
 #include <cstdint>
+#include <cstddef>
+#include <sstream>
 #include <string>
-#include <vector>
 
-#include "app_event_handler.h"
+#define private public
+#define protected public
+#include "app_event_handler.cpp"
+#undef private
+#undef protected
 #include "appeventhandler_postevent_fuzzer.h"
 #include "securec.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 constexpr int FUZZTEST_MAX_STR_LEN = 32;
-constexpr int POST_EVENT_OVERLOAD_COUNT = 7;
 constexpr int FUZZ_SELECTOR_BYTES = 1;
-
-enum PostEventSelector {
-    SELECTOR_APP_LAUNCH = 0,
-    SELECTOR_SCROLL_JANK = 1,
-    SELECTOR_RESOURCE_OVERLIMIT = 2,
-    SELECTOR_CPU_USAGE_HIGH = 3,
-    SELECTOR_BATTERY_USAGE = 4,
-    SELECTOR_APP_KILLED = 5,
-    SELECTOR_AUDIO_JANK_FRAME = 6,
-};
 
 std::string MakeStr(const uint8_t*& data, size_t& remain)
 {
@@ -179,40 +172,98 @@ void FuzzPostAudioJankFrame(const uint8_t*& data, size_t& remain, AppEventHandle
     handler.PostEvent(info);
 }
 
+void FuzzAddMemoryDetail(const uint8_t*& data, size_t& remain, AppEventHandler& handler)
+{
+    AppEventHandler::DetailCommonMemoryInfo info;
+    ReadValue(data, remain, info.nativeHeap);
+    ReadValue(data, remain, info.arktsHeap);
+    ReadValue(data, remain, info.anonPageOther);
+    ReadValue(data, remain, info.filePageOther);
+    std::stringstream jsonStr;
+    AddMemoryDetailToJsonString(jsonStr, info);
+}
+
+void FuzzAddExtraFiledByResourceType(const uint8_t*& data, size_t& remain, AppEventHandler& handler)
+{
+    AppEventHandler::ResourceOverLimitInfo info;
+    info.resourceType = MakeStr(data, remain);
+    ReadValue(data, remain, info.extPssInfo.detailSmapsInfo.nativeHeap);
+    ReadValue(data, remain, info.rssInfo.nativeHeap);
+    std::stringstream jsonStr;
+    AddExtraFiledByResourceType(jsonStr, info);
+}
+
+void FuzzHandleMemoryResourceType(const uint8_t*& data, size_t& remain, AppEventHandler& handler)
+{
+    AppEventHandler::ResourceOverLimitInfo info;
+    info.resourceType = MakeStr(data, remain);
+    ReadValue(data, remain, info.pss);
+    ReadValue(data, remain, info.gpu);
+    ReadValue(data, remain, info.ion);
+    ReadValue(data, remain, info.rss);
+    ReadValue(data, remain, info.avaliableMem);
+    ReadValue(data, remain, info.freeMem);
+    ReadValue(data, remain, info.totalMem);
+    std::stringstream jsonStr;
+    HandleMemoryResourceType(jsonStr, info);
+}
+
+void FuzzHandleJsHeapResourceType(const uint8_t*& data, size_t& remain, AppEventHandler& handler)
+{
+    AppEventHandler::ResourceOverLimitInfo info;
+    ReadValue(data, remain, info.limitSize);
+    ReadValue(data, remain, info.liveobjectSize);
+    std::stringstream jsonStr;
+    HandleJsHeapResourceType(jsonStr, info);
+}
+
+void FuzzHandleFdResourceType(const uint8_t*& data, size_t& remain, AppEventHandler& handler)
+{
+    AppEventHandler::ResourceOverLimitInfo info;
+    ReadValue(data, remain, info.fdNum);
+    info.topFdType = MakeStr(data, remain);
+    ReadValue(data, remain, info.topFdNum);
+    std::stringstream jsonStr;
+    HandleFdResourceType(jsonStr, info);
+}
+
+void FuzzHandleThreadResourceType(const uint8_t*& data, size_t& remain, AppEventHandler& handler)
+{
+    AppEventHandler::ResourceOverLimitInfo info;
+    ReadValue(data, remain, info.threadNum);
+    std::stringstream jsonStr;
+    HandleThreadResourceType(jsonStr, info);
+}
+
+using FuzzFunc = void(*)(const uint8_t*&, size_t&, AppEventHandler&);
+
+const FuzzFunc FUZZ_FUNCS[] = {
+    FuzzPostAppLaunch,
+    FuzzPostScrollJank,
+    FuzzPostResourceOverLimit,
+    FuzzPostCpuUsageHigh,
+    FuzzPostBatteryUsage,
+    FuzzPostAppKilled,
+    FuzzPostAudioJankFrame,
+    FuzzAddMemoryDetail,
+    FuzzAddExtraFiledByResourceType,
+    FuzzHandleMemoryResourceType,
+    FuzzHandleJsHeapResourceType,
+    FuzzHandleFdResourceType,
+    FuzzHandleThreadResourceType,
+};
+
 void FuzzAppEventHandlerPostEvent(const uint8_t* data, size_t size)
 {
     if (size < FUZZ_SELECTOR_BYTES) {
         return;
     }
-    uint8_t selector = data[0] % POST_EVENT_OVERLOAD_COUNT;
+    constexpr size_t funcCount = sizeof(FUZZ_FUNCS) / sizeof(FUZZ_FUNCS[0]);
+    uint8_t selector = data[0] % funcCount;
     data += FUZZ_SELECTOR_BYTES;
     size_t remain = size - FUZZ_SELECTOR_BYTES;
     AppEventHandler handler;
-    switch (selector) {
-        case SELECTOR_APP_LAUNCH:
-            FuzzPostAppLaunch(data, remain, handler);
-            break;
-        case SELECTOR_SCROLL_JANK:
-            FuzzPostScrollJank(data, remain, handler);
-            break;
-        case SELECTOR_RESOURCE_OVERLIMIT:
-            FuzzPostResourceOverLimit(data, remain, handler);
-            break;
-        case SELECTOR_CPU_USAGE_HIGH:
-            FuzzPostCpuUsageHigh(data, remain, handler);
-            break;
-        case SELECTOR_BATTERY_USAGE:
-            FuzzPostBatteryUsage(data, remain, handler);
-            break;
-        case SELECTOR_APP_KILLED:
-            FuzzPostAppKilled(data, remain, handler);
-            break;
-        case SELECTOR_AUDIO_JANK_FRAME:
-            FuzzPostAudioJankFrame(data, remain, handler);
-            break;
-        default:
-            break;
-    }
+    FUZZ_FUNCS[selector](data, remain, handler);
 }
 } // namespace
 } // namespace OHOS
