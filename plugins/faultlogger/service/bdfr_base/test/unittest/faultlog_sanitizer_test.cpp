@@ -199,7 +199,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer008, testing::ext::TestSize.Level
 
 /**
  * @tc.name: FaultLogSanitizer009
- * @tc.desc: Test ParserArkTsStackInfo Func
+ * @tc.desc: Test ParseSanitizerStackInfo Func
  * @tc.type: FUNC
  */
 HWTEST(FaultLogSanitizerTest, FaultLogSanitizer009, testing::ext::TestSize.Level3)
@@ -210,7 +210,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer009, testing::ext::TestSize.Level
     time_t now = time(nullptr);
 
     // Test non-existent file
-    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, "/non/existent/path/file.log", false);
+    bool ret = sanitizer.ParseSanitizerStackInfo(moduleName, "/non/existent/path/file.log", false);
     EXPECT_FALSE(ret);
 
     // Test with a valid small file
@@ -219,19 +219,19 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer009, testing::ext::TestSize.Level
         "#00 pc 00012345  /data/storage/el1/bundle/com.example.app/module.hap+0x1234\n"
         "#01 pc 00023456  /system/lib/libc.so+0x2345\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath, false);
+    ret = sanitizer.ParseSanitizerStackInfo(moduleName, testPath, false);
     EXPECT_TRUE(ret);
 
     // Test with empty file
     std::string emptyPath = "/data/log/faultlog/temp/sanitizer-212-" + std::to_string(now);
     ASSERT_TRUE(FileUtil::SaveStringToFile(emptyPath, ""));
-    ret = sanitizer.ParserArkTsStackInfo(moduleName, emptyPath, false);
+    ret = sanitizer.ParseSanitizerStackInfo(moduleName, emptyPath, false);
     EXPECT_FALSE(ret);
 }
 
 /**
  * @tc.name: FaultLogSanitizer010
- * @tc.desc: Test ForkProcessParseArkTsStackInfo Func
+ * @tc.desc: Test ForkProcessParseStackInfo Func
  * @tc.type: FUNC
  */
 HWTEST(FaultLogSanitizerTest, FaultLogSanitizer010, testing::ext::TestSize.Level3)
@@ -240,12 +240,12 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer010, testing::ext::TestSize.Level
     time_t now = time(nullptr);
 
     // Test with empty module name
-    bool ret = sanitizer.ForkProcessParseArkTsStackInfo("",
+    bool ret = sanitizer.ForkProcessParseStackInfo("",
         "/data/log/faultlog/temp/sanitizer-213-" + std::to_string(now));
     EXPECT_FALSE(ret);
 
     // Test with empty path
-    ret = sanitizer.ForkProcessParseArkTsStackInfo("com.example.app", "");
+    ret = sanitizer.ForkProcessParseStackInfo("com.example.app", "");
     EXPECT_FALSE(ret);
 
     // Test with valid parameters
@@ -253,13 +253,13 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer010, testing::ext::TestSize.Level
     std::string content = "Pid:101\nUid:0\nProcess name:Test\n"
         "#00 pc 00012345  /data/storage/el1/bundle/com.example.app/module.hap+0x1234\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    ret = sanitizer.ForkProcessParseArkTsStackInfo("com.example.app", testPath);
+    ret = sanitizer.ForkProcessParseStackInfo("com.example.app", testPath);
     EXPECT_TRUE(ret);
 }
 
 /**
  * @tc.name: FaultLogSanitizer012
- * @tc.desc: Test ForkProcessParseArkTsStackInfo without ArkTS stack info
+ * @tc.desc: Test ForkProcessParseStackInfo without ArkTS stack info
  * @tc.type: FUNC
  */
 HWTEST(FaultLogSanitizerTest, FaultLogSanitizer012, testing::ext::TestSize.Level3)
@@ -273,13 +273,13 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer012, testing::ext::TestSize.Level
         "#00 pc 00012345  /system/lib/libc.so+0x1234\n"
         "#01 pc 00023456  /system/lib/libm.so+0x2345\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    bool ret = sanitizer.ForkProcessParseArkTsStackInfo("com.example.app", testPath);
+    bool ret = sanitizer.ForkProcessParseStackInfo("com.example.app", testPath);
     EXPECT_TRUE(ret);
 }
 
 /**
  * @tc.name: FaultLogSanitizer013
- * @tc.desc: Test ForkProcessParseArkTsStackInfo with various ArkTS path formats
+ * @tc.desc: Test ForkProcessParseStackInfo with various ArkTS path formats
  * @tc.type: FUNC
  */
 HWTEST(FaultLogSanitizerTest, FaultLogSanitizer013, testing::ext::TestSize.Level3)
@@ -299,7 +299,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer013, testing::ext::TestSize.Level
         "#02 pc 00034567  /data/storage/el1/bundle/com.example.app/module.hqf+0x3456\n"
         "#03 pc 00045678  [anon:ArkTS Code:/abc123]\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    bool ret = sanitizer.ForkProcessParseArkTsStackInfo("com.example.app", testPath);
+    bool ret = sanitizer.ForkProcessParseStackInfo("com.example.app", testPath);
     EXPECT_TRUE(ret);
 }
 
@@ -368,7 +368,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer015, testing::ext::TestSize.Level
 
 /**
  * @tc.name: FaultLogSanitizer016
- * @tc.desc: Test ParserArkTsStackInfo with empty maps
+ * @tc.desc: Test ParseSanitizerStackInfo with empty maps
  * @tc.type: FUNC
  */
 HWTEST(FaultLogSanitizerTest, FaultLogSanitizer016, testing::ext::TestSize.Level3)
@@ -382,13 +382,13 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer016, testing::ext::TestSize.Level
     std::string content = "Pid:101\nUid:0\nProcess name:Test\n"
         "#00 pc 00012345  /data/storage/el1/bundle/com.example.app/module.hap+0x1234\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath, false);
+    bool ret = sanitizer.ParseSanitizerStackInfo(moduleName, testPath, false);
     EXPECT_TRUE(ret);
 }
 
 /**
  * @tc.name: FaultLogSanitizer017
- * @tc.desc: Test ParserArkTsStackInfo with [anon:ArkTS Code:/] format
+ * @tc.desc: Test ParseSanitizerStackInfo with [anon:ArkTS Code:/] format
  * @tc.type: FUNC
  */
 HWTEST(FaultLogSanitizerTest, FaultLogSanitizer017, testing::ext::TestSize.Level3)
@@ -406,7 +406,7 @@ HWTEST(FaultLogSanitizerTest, FaultLogSanitizer017, testing::ext::TestSize.Level
         "#01 pc 00023456  [anon:ArkTS Code:/abc123]\n"
         "#02 pc 00034567  /system/lib/libc.so+0x3456\n";
     ASSERT_TRUE(FileUtil::SaveStringToFile(testPath, content));
-    bool ret = sanitizer.ParserArkTsStackInfo(moduleName, testPath, false);
+    bool ret = sanitizer.ParseSanitizerStackInfo(moduleName, testPath, false);
     EXPECT_TRUE(ret);
 }
 
