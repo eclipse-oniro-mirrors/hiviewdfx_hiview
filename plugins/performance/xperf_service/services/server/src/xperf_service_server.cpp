@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "ipc_skeleton.h"
-#include <chrono>
 #include "perf_trace.h"
 #include "system_ability_definition.h"
 #include "xperf_service_action_type.h"
@@ -49,10 +48,7 @@ ErrCode XperfServiceServer::NotifyToXperf(int32_t domainId, int32_t eventId, con
     LOGD("XperfServiceServer_NotifyToXperf domainId:%{public}d eventId:%{public}d msg:%{public}s", domainId, eventId,
          msg.c_str());
     XperfCollieTimer timer("XPerfIPC_NotifyToXperf", XPERF_IPC_XCOLLIE_TIMEOUT);
-    uint64_t happenTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-    std::string enrichedMsg = msg + "#HAPPEN_TIME:" + std::to_string(happenTime);
-    XperfService::GetInstance().DispatchMsg(domainId, eventId, enrichedMsg);
+    XperfService::GetInstance().DispatchMsg(domainId, eventId, msg);
     return ERR_OK;
 }
 
