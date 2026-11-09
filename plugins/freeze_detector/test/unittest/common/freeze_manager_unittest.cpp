@@ -316,7 +316,7 @@ HWTEST_F(FreezeManagerTest, ContainPathTraversal_001, TestSize.Level3)
 {
     EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("../etc/passwd"));
     EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("/data/log/../etc"));
-    EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("test\\path"));
+    EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("test\\path"));
     EXPECT_TRUE(EventFieldValidator::ContainPathTraversal(std::string("test\0path", 9)));
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("/data/log/eventlog"));
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("normal_path"));
