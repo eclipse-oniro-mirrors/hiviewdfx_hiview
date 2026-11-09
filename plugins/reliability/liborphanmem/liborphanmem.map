@@ -1,0 +1,11 @@
+LIBORPHANMEM {
+  global:
+    OHOS_GetMemLeakString*;
+    OHOS_GetMemLeak*;
+    OHOS_GetErrorMessage*;
+    extern "C++" {
+      OHOS::GetMemLeakString*;
+    };
+  local:
+    *;
+};
