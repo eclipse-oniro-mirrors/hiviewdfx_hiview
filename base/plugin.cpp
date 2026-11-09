@@ -62,13 +62,13 @@ bool Plugin::OnEventProxy(std::shared_ptr<Event> event)
     auto processorSize = dupEvent->GetPendingProcessorSize();
     dupEvent->ResetPendingStatus();
     bool ret = false;
-    auto timePtr = std::make_shared<uint64_t>(0);
+    uint64_t time = 0;
     {
-        TimeUtil::TimeCalculator tc(timePtr);
+        TimeUtil::TimeCalculator tc(time);
         ret = OnEvent(dupEvent);
     }
-    HiviewEventReport::UpdatePluginStats(this->name_, event->eventName_, *timePtr);
-    event->realtime_ +=  *timePtr;
+    HiviewEventReport::UpdatePluginStats(this->name_, event->eventName_, time);
+    event->realtime_ += time;
 
     if (!dupEvent->IsPipelineEvent()) {
         return ret;

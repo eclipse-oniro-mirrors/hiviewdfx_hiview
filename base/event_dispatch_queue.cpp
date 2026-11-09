@@ -36,15 +36,15 @@ void EventDispatchQueue::ProcessUnorderedEvent(const Event& event)
     auto listeners = context_->GetListenerInfo(event.messageType_, event.eventName_, event.domain_);
     for (auto& listener : listeners) {
         auto ptr = listener.lock();
-        auto timePtr = std::make_shared<uint64_t>(0);
+        if (ptr == nullptr) {
+            continue;
+        }
+        uint64_t time = 0;
         {
-            TimeUtil::TimeCalculator tc(timePtr);
-            if (ptr == nullptr) {
-                continue;
-            }
+            TimeUtil::TimeCalculator tc(time);
             ptr->OnUnorderedEvent(event);
         }
-        HiviewEventReport::UpdatePluginStats(ptr->GetListenerName(), event.eventName_, *timePtr);
+        HiviewEventReport::UpdatePluginStats(ptr->GetListenerName(), event.eventName_, time);
     }
 }
 
