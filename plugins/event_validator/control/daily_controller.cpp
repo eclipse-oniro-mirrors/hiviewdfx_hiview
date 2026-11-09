@@ -97,6 +97,7 @@ void DailyController::UpdateCacheToDb()
             .domain = key.first,
             .name = key.second,
             .count = value.count,
+            .storeCount = value.count > value.threshold ? value.threshold : value.count,
             .exceedTime = value.exceedTime,
         };
         if (dbHelper_->UpdateEventInfo(eventInfo) < 0) {

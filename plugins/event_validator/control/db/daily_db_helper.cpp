@@ -186,7 +186,7 @@ int32_t DailyDbHelper::QueryEventInfo(EventInfo& info)
     NativeRdb::AbsRdbPredicates predicates(EVENTS_TABLE);
     predicates.EqualTo(EVENTS_COLUMN_DOMAIN, info.domain);
     predicates.EqualTo(EVENTS_COLUMN_NAME, info.name);
-    auto resultSet = dbStore_->Query(predicates, {EVENTS_COLUMN_COUNT, EVENTS_COLUMN_STORE_COUNT});
+    auto resultSet = dbStore_->Query(predicates, {EVENTS_COLUMN_COUNT});
     if (resultSet == nullptr) {
         HIVIEW_LOGW("failed to query table, domain=%{public}s, name=%{public}s",
             info.domain.c_str(), info.name.c_str());
@@ -205,13 +205,10 @@ int32_t DailyDbHelper::QueryEventInfo(EventInfo& info)
         resultSet->Close();
         return -1;
     }
-    if (resultSet->GetInt(1, info.storeCount) != NativeRdb::E_OK || info.storeCount < 0) {
-        // compatible with the old version table without the store_count column
-        info.storeCount = info.count;
-    }
+
     resultSet->Close();
-    HIVIEW_LOGD("succ to query event, domain=%{public}s, name=%{public}s, count=%{public}d, storeCount=%{public}d",
-        info.domain.c_str(), info.name.c_str(), info.count, info.storeCount);
+    HIVIEW_LOGD("succ to query event, domain=%{public}s, name=%{public}s, count=%{public}d",
+        info.domain.c_str(), info.name.c_str(), info.count);
     return 0;
 }
 
