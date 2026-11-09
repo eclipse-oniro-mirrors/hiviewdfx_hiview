@@ -238,7 +238,8 @@ int AppEventHandler::PostEvent(const ResourceOverLimitInfo& event)
         "gpu_memory", "rss_memory", "ashmem_memory" };
     if (validResourceTypes.find(event.resourceType) != validResourceTypes.end()) {
         HandleMemoryResourceType(jsonStr, event);
-    } else if (event.resourceType == "js_heap") {
+    } else if (event.resourceType == "js_heap" || event.resourceType == "jsvm_heap" ||
+        event.resourceType == "arkweb_v8_heap") {
         HandleJsHeapResourceType(jsonStr, event);
     } else if (event.resourceType == "fd") {
         HandleFdResourceType(jsonStr, event);
