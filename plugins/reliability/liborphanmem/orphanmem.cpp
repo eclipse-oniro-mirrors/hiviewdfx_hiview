@@ -82,7 +82,7 @@ void *SnapshotWorkerThread(void *arg)
         const Range &range = *it;
 
         uintptr_t addr = range.begin;
-        size_t size = range.size();
+        size_t size = range.Size();
         size_t writeOffset = ctx->headerSize + i * entrySize;
 
         errno_t ret = memcpy_s(ctx->buffer + writeOffset, ctx->totalSize - writeOffset, &addr, sizeof(addr));
@@ -464,7 +464,7 @@ int64_t GetUnreachableMemory(LeakInfo &info, size_t limit, int format)
 
     size_t tidsSize = 0;
     ThreadInspector threadInspector(parentPid, parentTid, Allocator<ThreadInspector>(heap));
-    MAP_ALLOCATOR::vector<ThreadInfo> threadInfo(Allocator<ThreadInfo>(heap));
+    MAP_ALLOCATOR::vector<ThreadInfo> threadInfo((Allocator<ThreadInfo>(heap)));
     threadInspector.SetThreadInfo(threadInfo);
     ThreadCollectorContext ctx{heap, parentPid, parentTid, mallocSem, format, pipe, startTime, limit,
                                tidsSize,  threadInspector, threadInfo};
