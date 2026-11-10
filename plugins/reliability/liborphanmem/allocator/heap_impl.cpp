@@ -193,6 +193,6 @@ void HeapImpl::MoveToList(Chunk *chunk, LinkedList<Chunk *> *head)
         node = node->next_;
     }
 
-    node->insert(chunk->node_);
+    node->Insert(chunk->node_);
 }
 }
