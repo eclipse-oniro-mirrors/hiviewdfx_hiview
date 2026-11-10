@@ -130,6 +130,7 @@
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/cj:cj_faultlogger_ffi",
                 "//base/hiviewdfx/hiview/interfaces/js/napi:loglibrary_napi",
                 "//base/hiviewdfx/hiview/plugins/reliability/boot_detector:boot_detector_hiview",
+                "//base/hiviewdfx/hiview/plugins/reliability/liborphanmem:liborphanmem",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/client:libucollection_client",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
