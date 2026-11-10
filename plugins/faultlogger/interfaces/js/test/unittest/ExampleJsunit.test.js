@@ -204,6 +204,118 @@ describe("FaultlogJsTest", function () {
         }
     })
 
+    function checkQueryErrorMsg(queryFunc, expectedMsg) {
+        try {
+            queryFunc();
+            console.info("call query success, no exception thrown");
+            return false;
+        } catch (err) {
+            console.info(err.code);
+            console.info(err.message);
+            expect(err.code == 401).assertTrue();
+            expect(err.message == expectedMsg).assertTrue();
+            return true;
+        }
+    }
+
+    /**
+     * test
+     *
+     * @tc.number: FaultlogJsMsg_001
+     * @tc.name: FaultlogJsMsg_001
+     * @tc.desc: API9 校验query无参调用时抛出401且错误信息符合必填参数缺失模板
+     * @tc.require: issueI5VRCC
+     * @tc.author:
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     * @tc.level: Level 0
+     */
+    it('FaultlogJsMsg_001', 0, function () {
+        console.info("---------------------------FaultlogJsMsg_001----------------------------------");
+        let hasErr = checkQueryErrorMsg(() => faultlogger.query(),
+            "Parameter error. Parm[0] is required, cannot be null or undefined.");
+        expect(hasErr).assertTrue();
+    })
+
+    /**
+     * test
+     *
+     * @tc.number: FaultlogJsMsg_002
+     * @tc.name: FaultlogJsMsg_002
+     * @tc.desc: API9 校验query首参为null或undefined时抛出401且错误信息符合必填参数缺失模板
+     * @tc.require: issueI5VRCC
+     * @tc.author:
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     * @tc.level: Level 0
+     */
+    it('FaultlogJsMsg_002', 0, function () {
+        console.info("---------------------------FaultlogJsMsg_002----------------------------------");
+        const requiredMsg = "Parameter error. Parm[0] is required, cannot be null or undefined.";
+        let undefinedErr = checkQueryErrorMsg(() => faultlogger.query(undefined), requiredMsg);
+        let nullErr = checkQueryErrorMsg(() => faultlogger.query(null), requiredMsg);
+        expect(undefinedErr && nullErr).assertTrue();
+    })
+
+    /**
+     * test
+     *
+     * @tc.number: FaultlogJsMsg_003
+     * @tc.name: FaultlogJsMsg_003
+     * @tc.desc: API9 校验query首参类型不匹配时抛出401且错误信息符合参数类型不匹配模板
+     * @tc.require: issueI5VRCC
+     * @tc.author:
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     * @tc.level: Level 0
+     */
+    it('FaultlogJsMsg_003', 0, function () {
+        console.info("---------------------------FaultlogJsMsg_003----------------------------------");
+        let hasErr = checkQueryErrorMsg(() => faultlogger.query("faultloggertestmsg03"),
+            "Parameter error. Parm[0] type mismatch. Expected: number, Actual: string.");
+        expect(hasErr).assertTrue();
+    })
+
+    /**
+     * test
+     *
+     * @tc.number: FaultlogJsMsg_004
+     * @tc.name: FaultlogJsMsg_004
+     * @tc.desc: API9 校验query第二参数类型不匹配时抛出401且错误信息符合参数类型不匹配模板
+     * @tc.require: issueI5VRCC
+     * @tc.author:
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     * @tc.level: Level 0
+     */
+    it('FaultlogJsMsg_004', 0, function () {
+        console.info("---------------------------FaultlogJsMsg_004----------------------------------");
+        let stringErr = checkQueryErrorMsg(() => faultlogger.query(faultlogger.FaultType.JS_CRASH, "str"),
+            "Parameter error. Parm[1] type mismatch. Expected: function, Actual: string.");
+        let numberErr = checkQueryErrorMsg(() => faultlogger.query(faultlogger.FaultType.JS_CRASH, 123),
+            "Parameter error. Parm[1] type mismatch. Expected: function, Actual: number.");
+        expect(stringErr && numberErr).assertTrue();
+    })
+
+    /**
+     * test
+     *
+     * @tc.number: FaultlogJsMsg_005
+     * @tc.name: FaultlogJsMsg_005
+     * @tc.desc: API9 校验query参数总数超限时抛出401且错误信息符合参数总数不匹配模板
+     * @tc.require: issueI5VRCC
+     * @tc.author:
+     * @tc.type: Function
+     * @tc.size: MediumTest
+     * @tc.level: Level 0
+     */
+    it('FaultlogJsMsg_005', 0, function () {
+        console.info("---------------------------FaultlogJsMsg_005----------------------------------");
+        let hasErr = checkQueryErrorMsg(() => faultlogger.query("aaa", "bbb", "ccc"),
+            "Parameter error. Incorrect parameter count. Expected: 1-2, Actual: 3.");
+        expect(hasErr).assertTrue();
+    })
+
     async function checkCppCrashFaultLogInfo(faultLogInfo) {
         if (faultLogInfo.reason.indexOf("Signal:SIGABRT") === -1) {
             throw "Can not find \"Signal:SIGABRT\"";

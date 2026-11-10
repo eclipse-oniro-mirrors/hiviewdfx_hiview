@@ -33,14 +33,15 @@ public:
     static void SetPropertyInt64(napi_env env, napi_value object, std::string name, int64_t value);
     static void SetPropertyStringUtf8(napi_env env, napi_value object, std::string name, std::string value);
     static bool IsMatchType(napi_env env, napi_value value, napi_valuetype type);
-    
+
     static napi_value CreateString(const napi_env env, const std::string& str);
     static void ThrowError(napi_env env, int code, const std::string& msg, bool isThrow = true);
     static std::string CreateServiceErrMsg();
-    static std::string CreateParamCntErrMsg();
-    static std::string CreateErrMsg(const std::string name);
-    static std::string CreateErrMsg(const std::string name, const std::string& type);
-    static std::string CreateErrMsg(const std::string name, const napi_valuetype type);
+    static std::string CreateParamCntErrMsg(size_t expectedMinCount, size_t expectedMaxCount, size_t actualCount);
+    static std::string CreateParamTypeErrMsg(size_t index, const std::string& expectedType,
+        const std::string& actualType);
+    static std::string CreateParamRequiredErrMsg(size_t index);
+    static std::string GetTypeName(napi_env env, napi_value value);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS
