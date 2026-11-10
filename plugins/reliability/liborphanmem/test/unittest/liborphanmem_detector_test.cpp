@@ -401,7 +401,7 @@ HWTEST_F(ProcessMappingsTest, Mapping_Constructor, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_InvalidPid, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     EXPECT_FALSE(MappingHelper::ProcessMappings(-1, mappings));
 }
 
@@ -412,7 +412,7 @@ HWTEST_F(ProcessMappingsTest, ProcessMappings_InvalidPid, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_CurrentPid, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     bool result = MappingHelper::ProcessMappings(pid, mappings);
     EXPECT_TRUE(result);
@@ -453,7 +453,7 @@ HWTEST_F(ProcessMappingsTest, Mapping_LongName, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_CheckReadable, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     if (!MappingHelper::ProcessMappings(pid, mappings)) {
         return;
@@ -472,7 +472,7 @@ HWTEST_F(ProcessMappingsTest, ProcessMappings_CheckReadable, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_CheckExecutable, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     if (!MappingHelper::ProcessMappings(pid, mappings)) {
         return;
@@ -491,7 +491,7 @@ HWTEST_F(ProcessMappingsTest, ProcessMappings_CheckExecutable, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_PidZero, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     EXPECT_FALSE(MappingHelper::ProcessMappings(0, mappings));
 }
 
@@ -502,8 +502,8 @@ HWTEST_F(ProcessMappingsTest, ProcessMappings_PidZero, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_Consistent, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings1(Allocator<Mapping>(heap));
-    MAP_ALLOCATOR::vector<Mapping> mappings2(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings1((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings2((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     MappingHelper::ProcessMappings(pid, mappings1);
     MappingHelper::ProcessMappings(pid, mappings2);
@@ -518,7 +518,7 @@ HWTEST_F(ProcessMappingsTest, ProcessMappings_Consistent, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, Mapping_BeginLessThanEnd, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     if (!MappingHelper::ProcessMappings(pid, mappings)) {
         return;
@@ -561,7 +561,7 @@ HWTEST_F(ProcessMappingsTest, Mapping_NoPermissions, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_CheckWritable, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     if (!MappingHelper::ProcessMappings(pid, mappings)) {
         return;
@@ -580,7 +580,7 @@ HWTEST_F(ProcessMappingsTest, ProcessMappings_CheckWritable, TestSize.Level1)
  */
 HWTEST_F(ProcessMappingsTest, ProcessMappings_ValidNames, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<Mapping> mappings(Allocator<Mapping>(heap));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
     pid_t pid = getpid();
     if (!MappingHelper::ProcessMappings(pid, mappings)) {
         return;
@@ -830,7 +830,7 @@ HWTEST_F(HeapScannerTest, RootRange, TestSize.Level1)
  */
 HWTEST_F(HeapScannerTest, RootVector, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<uintptr_t> vals(Allocator<uintptr_t>(heap));
+    MAP_ALLOCATOR::vector<uintptr_t> vals((Allocator<uintptr_t>(heap)));
     vals.push_back(T(0x11000));
     vals.push_back(T(0x11008));
     scanner->Root(vals);
@@ -843,7 +843,7 @@ HWTEST_F(HeapScannerTest, RootVector, TestSize.Level1)
  */
 HWTEST_F(HeapScannerTest, RootEmptyVector, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<uintptr_t> vals(Allocator<uintptr_t>(heap));
+    MAP_ALLOCATOR::vector<uintptr_t> vals((Allocator<uintptr_t>(heap)));
     scanner->Root(vals);
 }
 
@@ -997,7 +997,7 @@ HWTEST_F(HeapScannerTest, DetectLeaks_RootedNoLeak, TestSize.Level1)
     scanner->Allocation(allocAddr, allocAddr + 64);
     scanner->Root(rootAddr, rootAddr + 4096);
     EXPECT_TRUE(scanner->DetectLeaks());
-    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked(Allocator<Range>(heap));
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
     size_t leakCnt = 0, leakBytes = 0;
     scanner->Leaked(leaked, nullptr, SIZE_MAX, &leakCnt, &leakBytes);
     EXPECT_EQ(leaked.find(Range{allocAddr, allocAddr + 64}), leaked.end());
@@ -1017,7 +1017,7 @@ HWTEST_F(HeapScannerTest, DetectLeaks_Unreachable, TestSize.Level1)
     scanner->Root(rootAddr, rootAddr + 4096);
     EXPECT_TRUE(scanner->DetectLeaks());
     size_t leakCnt = 0;
-    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked(Allocator<Range>(heap));
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
     scanner->Leaked(leaked, nullptr, SIZE_MAX, &leakCnt, nullptr);
     EXPECT_NE(leaked.find(Range{allocAddr, allocAddr + 64}), leaked.end());
 }
@@ -1038,7 +1038,7 @@ HWTEST_F(HeapScannerTest, Leaked_WithLimit, TestSize.Level1)
     scanner->Root(rootAddr, rootAddr + 4096);
     scanner->DetectLeaks();
     size_t leakCnt = 0;
-    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked(Allocator<Range>(heap));
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
     scanner->Leaked(leaked, nullptr, 1, &leakCnt, nullptr);
     EXPECT_GE(leakCnt, 2u);
     EXPECT_EQ(leaked.size(), 1u);
@@ -1052,7 +1052,7 @@ HWTEST_F(HeapScannerTest, Leaked_WithLimit, TestSize.Level1)
 HWTEST_F(HeapScannerTest, Leaked_NullOutputParams, TestSize.Level1)
 {
     scanner->DetectLeaks();
-    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked(Allocator<Range>(heap));
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
     scanner->Leaked(leaked, nullptr, SIZE_MAX, nullptr, nullptr);
 }
 
@@ -1069,8 +1069,8 @@ HWTEST_F(HeapScannerTest, Leaked_WithLeakGraph, TestSize.Level1)
     scanner->Allocation(allocAddr, allocAddr + 64);
     scanner->Root(rootAddr, rootAddr + 4096);
     scanner->DetectLeaks();
-    LeakGraphALC leakGraph(Allocator<LeakGraphALC::value_type>(heap));
-    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked(Allocator<Range>(heap));
+    LeakGraphALC leakGraph((Allocator<LeakGraphALC::value_type>(heap)));
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
     scanner->Leaked(leaked, &leakGraph, SIZE_MAX, nullptr, nullptr);
     EXPECT_GE(leakGraph.size(), 1u);
 }
