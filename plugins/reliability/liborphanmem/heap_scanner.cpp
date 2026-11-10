@@ -263,7 +263,7 @@ bool HeapScanner::DetectLeaks()
     std::vector<std::thread> threads;
     threads.reserve(numThreads);
 
-    MAP_ALLOCATOR::queue<Range> taskQueue(Allocator<Range>(allocator_));
+    MAP_ALLOCATOR::queue<Range> taskQueue((Allocator<Range>(allocator_)));
     std::mutex queueMutex;
     std::condition_variable cv;
     bool done = false;
@@ -297,7 +297,7 @@ void HeapScanner::MakeGraph(MAP_ALLOCATOR::unordered_set<Range, RangeHash> &leak
     tracer.Mark("start");
     for (auto range : leaked) {
         uintptr_t begin = (range.begin + (sizeof(uintptr_t) - 1)) & ~(sizeof(uintptr_t) - 1);
-        NodeALC node(Allocator<NodeALC>(allocator_));
+        NodeALC node((Allocator<NodeALC>(allocator_)));
         node.capacity = range.end - range.begin;
         leakGraph.try_emplace(begin, node);
         for (uintptr_t i = begin; i < range.end; i += sizeof(uintptr_t)) {
