@@ -612,7 +612,7 @@ HWTEST_F(AllocatorTest, MapAllocatorUnorderedMap, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorUnorderedSet, TestSize.Level1)
 {
-    MMAP_ALLOCATOR::unordered_set<int> s((Allocator<int>(heap)));
+    MAP_ALLOCATOR::unordered_set<int> s((Allocator<int>(heap)));
     s.insert(1);
     s.insert(2);
     s.insert(1);
