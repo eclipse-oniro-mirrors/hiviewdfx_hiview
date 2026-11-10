@@ -553,7 +553,7 @@ HWTEST_F(AllocatorTest, AllocatorDeallocateVoidPtr, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorVector, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<int> vec(Allocator<int>(heap));
+    MAP_ALLOCATOR::vector<int> vecvec((Allocator<int>(heap)));
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -569,7 +569,7 @@ HWTEST_F(AllocatorTest, MapAllocatorVector, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorString, TestSize.Level1)
 {
-    MAP_ALLOCATOR::String str(Allocator<char>(heap));
+    MAP_ALLOCATOR::String strvec((Allocator<char>(heap)));
     str = "hello";
     EXPECT_EQ(str, "hello");
     str += " world";
@@ -583,7 +583,7 @@ HWTEST_F(AllocatorTest, MapAllocatorString, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorMap, TestSize.Level1)
 {
-    MAP_ALLOCATOR::map<int, int> m(Allocator<MAP_ALLOCATOR::map<int, int>::value_type>(heap));
+    MAP_ALLOCATOR::map<int, int> m((Allocator<MAP_ALLOCATOR::map<int, int>::value_type>(heap)));
     m[1] = 10;
     m[2] = 20;
     EXPECT_EQ(m[1], 10);
@@ -598,7 +598,7 @@ HWTEST_F(AllocatorTest, MapAllocatorMap, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorUnorderedMap, TestSize.Level1)
 {
-    MAP_ALLOCATOR::unordered_map<int, int> m(Allocator<MAP_ALLOCATOR::unordered_map<int, int>::value_type>(heap));
+    MAP_ALLOCATOR::unordered_map<int, int> m((Allocator<MAP_ALLOCATOR::unordered_map<int, int>::value_type>(heap)));
     m[1] = 10;
     m[2] = 20;
     EXPECT_EQ(m[1], 10);
@@ -612,7 +612,7 @@ HWTEST_F(AllocatorTest, MapAllocatorUnorderedMap, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorUnorderedSet, TestSize.Level1)
 {
-    MAP_ALLOCATOR::unordered_set<int> s(Allocator<int>(heap));
+    MAP_ALLOCATOR::unordered_set<int> svec((Allocator<int>(heap)));
     s.insert(1);
     s.insert(2);
     s.insert(1);
@@ -2291,8 +2291,8 @@ HWTEST_F(ProcessPipeTest, SendAndReceiveLeakGraphOneNode, TestSize.Level1)
         return;
     }
     Heap heap;
-    LeakGraphALC graph(Allocator<LeakGraphALC::value_type>(heap));
-    NodeALC node1(Allocator<NodeALC>(heap));
+    LeakGraphALC graph((Allocator<LeakGraphALC::value_type>(heap)));
+    NodeALC node1((Allocator<NodeALC>(heap)));
     node1.capacity = 128;
     node1.references[0] = 0x1000;
     graph.insert({0x2000, node1});
@@ -2317,7 +2317,7 @@ HWTEST_F(ProcessPipeTest, SendLeakGraphEmpty, TestSize.Level1)
         return;
     }
     Heap heap;
-    LeakGraphALC graph(Allocator<LeakGraphALC::value_type>(heap));
+    LeakGraphALC graph((Allocator<LeakGraphALC::value_type>(heap)));
     EXPECT_TRUE(pipe.SendLeakGraph(graph));
 
     LeakGraphSTL received;
@@ -2337,10 +2337,10 @@ HWTEST_F(ProcessPipeTest, SendLeakGraphMultipleNodes, TestSize.Level1)
         return;
     }
     Heap heap;
-    LeakGraphALC graph(Allocator<LeakGraphALC::value_type>(heap));
-    NodeALC node1(Allocator<NodeALC>(heap));
+    LeakGraphALC graph((Allocator<LeakGraphALC::value_type>(heap)));
+    NodeALC node1((Allocator<NodeALC>(heap)));
     node1.capacity = 64;
-    NodeALC node2(Allocator<NodeALC>(heap));
+    NodeALC node2((Allocator<NodeALC>(heap)));
     node2.capacity = 128;
     node2.references[8] = 0x2000;
     node2.references[16] = 0x3000;
@@ -2409,8 +2409,8 @@ HWTEST_F(ProcessPipeTest, SendLeakGraphNodeNoReferences, TestSize.Level1)
         return;
     }
     Heap heap;
-    LeakGraphALC graph(Allocator<LeakGraphALC::value_type>(heap));
-    NodeALC node1(Allocator<NodeALC>(heap));
+    LeakGraphALC graph((Allocator<LeakGraphALC::value_type>(heap)));
+    NodeALC node1((Allocator<NodeALC>(heap)));
     node1.capacity = 32;
     graph.insert({0x5000, node1});
     EXPECT_TRUE(pipe.SendLeakGraph(graph));
