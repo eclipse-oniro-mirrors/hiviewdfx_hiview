@@ -39,7 +39,6 @@ constexpr size_t PID_BUF_SIZE = 11;
 constexpr size_t PROC_PATH_SIZE = 256;
 constexpr size_t DIRENT_BUF_SIZE = 4096;
 constexpr int LOCALDUMP_TIMEOUT_MS = 500;  // Reduced from 1000ms to limit malloc_disable duration
-constexpr long FUTEX_WAIT_TIMEOUT_NS = 500000000;
 constexpr long NANOSECONDS_PER_MILLISECOND = 1000000;
 constexpr size_t INITIAL_THREAD_INFO_CAPACITY = 10000;
 
@@ -109,10 +108,11 @@ void ThreadCaptureSignalHandler(int sig, siginfo_t *si, void *context)
         // CaptureThreadInfo and keeping malloc_disable active for 15+ seconds.
         // Futex wait blocks the thread in the kernel without consuming CPU,
         // avoiding both the deadlock and CPU starvation.
+        constexpr long FUTEX_WAIT_TIMEOUT_NS = 500000000;  // 500ms timeout
         if (sigCtx->forkDone.load(std::memory_order_acquire) == 0) {
             struct timespec ts;
             ts.tv_sec = 1;   // 1s timeout
-            ts.tv_nsec = FUTEX_WAIT_TIMEOUT_NS;  // 500ms timeout
+            ts.tv_nsec = FUTEX_WAIT_TIMEOUT_NS;
             syscall(SYS_futex, &sigCtx->forkDone, FUTEX_WAIT_PRIVATE, 0, &ts, nullptr, 0);
         }
     }
