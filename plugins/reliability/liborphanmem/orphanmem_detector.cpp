@@ -193,7 +193,7 @@ bool OrphanMemDetector::CollectAllocations(const MAP_ALLOCATOR::vector<ThreadInf
         numThreads = DEFAULT_WORKER_THREADS;
     }
 
-    MAP_ALLOCATOR::vector<size_t> heapIndices(Allocator<size_t>(allocator_));
+    MAP_ALLOCATOR::vector<size_t> heapIndices((Allocator<size_t>(allocator_)));
     SetupHeapIndices(categories.heapMappings, heapIndices);
 
     size_t heapSize = categories.heapMappings.size();
