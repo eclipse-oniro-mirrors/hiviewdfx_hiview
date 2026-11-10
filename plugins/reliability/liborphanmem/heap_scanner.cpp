@@ -33,7 +33,7 @@
 #include "performance_tracer.h"
 
 namespace {
-constexpr uintptr_t UNTAG_MASK = (static_cast<uintptr_t>(1) << 56) - 1;
+constexpr uintptr_t UNTAG_MASK = static_cast<uintptr_t>(UINT64_MAX >> 8);
 inline uintptr_t Untag(uintptr_t addr)
 {
     return addr & UNTAG_MASK;
