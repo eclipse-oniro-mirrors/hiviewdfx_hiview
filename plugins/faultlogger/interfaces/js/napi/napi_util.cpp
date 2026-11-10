@@ -112,37 +112,55 @@ std::string NapiUtil::CreateServiceErrMsg()
     return "FaultLogger service is not running or broken.";
 }
 
-std::string NapiUtil::CreateParamCntErrMsg()
+std::string NapiUtil::CreateParamCntErrMsg(size_t expectedMinCount, size_t expectedMaxCount, size_t actualCount)
 {
-    return "The count of input parameters is incorrect.";
+    return "Parameter error. Incorrect parameter count. Expected: " + std::to_string(expectedMinCount) + "-" +
+        std::to_string(expectedMaxCount) + ", Actual: " + std::to_string(actualCount) + ".";
 }
 
-std::string NapiUtil::CreateErrMsg(const std::string name)
+std::string NapiUtil::CreateParamTypeErrMsg(size_t index, const std::string& expectedType,
+    const std::string& actualType)
 {
-    return "Parameter error. The " + name + " parameter is mandatory.";
+    return "Parameter error. Parm[" + std::to_string(index) + "] type mismatch. Expected: " + expectedType +
+        ", Actual: " + actualType + ".";
 }
 
-std::string NapiUtil::CreateErrMsg(const std::string name, const std::string& type)
+std::string NapiUtil::CreateParamRequiredErrMsg(size_t index)
 {
-    return "Parameter error. The type of " + name + " must be " + type + ".";
+    return "Parameter error. Parm[" + std::to_string(index) + "] is required, cannot be null or undefined.";
 }
-std::string NapiUtil::CreateErrMsg(const std::string name, const napi_valuetype type)
+
+std::string NapiUtil::GetTypeName(napi_env env, napi_value value)
 {
-    std::string typeStr = "";
-    switch (type) {
-        case napi_number:
-            typeStr = "number";
-            break;
-        case napi_string:
-            typeStr = "string";
-            break;
-        case napi_function:
-            typeStr = "function";
-            break;
-        default:
-            break;
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, value, &valueType) != napi_ok) {
+        HIVIEW_LOGE("failed to get value type");
+        return "unknown";
     }
-    return CreateErrMsg(name, typeStr);
+    switch (valueType) {
+        case napi_undefined:
+            return "undefined";
+        case napi_null:
+            return "null";
+        case napi_boolean:
+            return "boolean";
+        case napi_number:
+            return "number";
+        case napi_string:
+            return "string";
+        case napi_symbol:
+            return "symbol";
+        case napi_object:
+            return "object";
+        case napi_function:
+            return "function";
+        case napi_external:
+            return "external";
+        case napi_bigint:
+            return "bigint";
+        default:
+            return "unknown";
+    }
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS
