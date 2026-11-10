@@ -1,0 +1,13 @@
+{
+    "NON_OBJECT_EVENT_DOMAIN": {
+        "VALID_EVENT": {
+            "__BASE": {
+                "type": "BEHAVIOR",
+                "level": "CRITICAL",
+                "tag": "NON_OBJECT_TEST_CASE",
+                "desc": "test"
+            }
+        },
+        "INVALID_NON_OBJECT_EVENT": "not an object"
+    }
+}
