@@ -553,7 +553,7 @@ HWTEST_F(AllocatorTest, AllocatorDeallocateVoidPtr, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorVector, TestSize.Level1)
 {
-    MAP_ALLOCATOR::vector<int> vecvec((Allocator<int>(heap)));
+    MAP_ALLOCATOR::vector<int> vec((Allocator<int>(heap)));
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -569,7 +569,7 @@ HWTEST_F(AllocatorTest, MapAllocatorVector, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorString, TestSize.Level1)
 {
-    MAP_ALLOCATOR::String strvec((Allocator<char>(heap)));
+    MAP_ALLOCATOR::String str((Allocator<char>(heap)));
     str = "hello";
     EXPECT_EQ(str, "hello");
     str += " world";
@@ -612,7 +612,7 @@ HWTEST_F(AllocatorTest, MapAllocatorUnorderedMap, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, MapAllocatorUnorderedSet, TestSize.Level1)
 {
-    MAP_ALLOCATOR::unordered_set<int> svec((Allocator<int>(heap)));
+    MMAP_ALLOCATOR::unordered_set<int> s((Allocator<int>(heap)));
     s.insert(1);
     s.insert(2);
     s.insert(1);
