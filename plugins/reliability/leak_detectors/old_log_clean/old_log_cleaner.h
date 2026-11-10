@@ -26,6 +26,7 @@
 #include <ctime>
 #include <atomic>
 #include <unistd.h>
+#include <cJSON.h>
 #include "ffrt.h"
 #include "singleton.h"
 #include "log_file.h"
@@ -112,7 +113,9 @@ public:
         const std::string &fileName);
     void GetFileParams(LogType logtype, FaultInfoBase *faultInfo, FileParams &fileParams);
     void CheckAndAgingRawheapFiles();
+    void CheckAndAgingFolderSize();
     void DeleteLogFile(const std::string &filePath);
+    std::string GetFolderAgingLogPath() const;
 
     template <typename OutputType>
     void GetLogFile(LogType logtype, FaultInfoBase *faultInfo, OutputType& file, bool isAppend = false)
@@ -184,7 +187,7 @@ private:
     bool IsOlderTriggerType(const LogType &type);
     void GetLogFileList(const std::vector<std::string> &filePathList, std::vector<LogFile> &fileList);
     void GetSortedFileListInResourceLeakDir(std::vector<LogFile> &fileList);
-    bool RemoveFolderAgingFile(LogFile &logFile, LogType fileType, uint64_t &removedSize);
+    bool RemoveFolderAgingFile(const LogFile &logFile, LogType fileType, uint64_t &removedSize);
     uint64_t CalcFolderSizeExcludingRawheap();
 
 private:
@@ -198,7 +201,23 @@ private:
     OldLogCategory oldLogCategory_;
     int rawheapAgingThresholdSec_ = INT_MAX;
     std::vector<LogType> TimeAgingTypes_;
+    std::atomic<time_t> lastFolderSizeAgingTime_ { 0 };
     void TimeAgingForRawheapType(LogType logType);
+    void DoFolderSizeAging(uint64_t currentSize, uint64_t currentSizeMB,
+                           const std::vector<LogFile> &fileList);
+    void WriteFolderAgingLog(uint64_t totalSizeBytes, uint64_t nonRawheapSizeBytes,
+                             bool agingTriggered, const std::vector<LogFile> &fileList);
+    void AgingFolderAgingLog();
+    int ExecuteFolderAging(uint64_t currentSize, uint64_t sizeLimitMB,
+                           const std::vector<LogFile> &fileList);
+    void CollectAllFilesInLeakDirs(std::vector<LogFile> &allFiles);
+    uint64_t CalcNonRawheapSize(const std::vector<LogFile> &allFiles);
+    cJSON *CreateFileAgingJsonObj(const LogFile &lf);
+    void AddFilesToAgingLogJson(cJSON *root, const std::vector<LogFile> &fileList);
+    bool WriteJsonToAgingLogFile(const char *jsonStr);
+    bool ReadAgingLogLines(const std::string &fullLogPath, std::vector<std::string> &lines);
+    void TruncateAgingLogFile(const std::string &fullLogPath,
+                              std::vector<std::string> &lines, uint64_t maxBytes);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

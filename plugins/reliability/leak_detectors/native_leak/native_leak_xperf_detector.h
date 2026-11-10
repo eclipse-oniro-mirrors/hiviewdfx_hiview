@@ -38,9 +38,14 @@ public:
     void ApplyDumpConfig(std::shared_ptr<FaultInfoBase> &faultInfo, const ProcessMemory &pm,
                          std::unordered_map<std::string, DumpConfig> &overThresholdDumpMap,
                          const std::string &faultEventId, std::vector<int32_t> &sendPids);
+    void XperfReport();
+    std::string CollectProcessInfo(const std::shared_ptr<NativeLeakInfo> &nlInfo, bool isAppProcess);
+    void SendSummaryToXperf(const std::string &appinfo, int appCount);
 
 private:
+    void CollectAllProcessInfo(bool includeService, std::string &appinfo, int &appCount);
     time_t lastReviceXperfTime_ = 0;
+    time_t lastServiceReportTime_ { 0 };
 };
 
 } // namespace HiviewDFX

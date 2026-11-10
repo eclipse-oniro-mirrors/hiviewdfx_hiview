@@ -45,8 +45,7 @@
 #include "waiting_kill_list.h"
 #include "leak_event_handler_factory.h"
 #include "xcollie/process_kill_reason.h"
-#include "rss_leak/rss_leak_detector.h"
-#include "rss_leak/rss_random_telemetry_detector.h"
+#include "rss_leak/rss_leak_dispatcher.h"
 #include "lite_profiler/lite_profiler.h"
 
 using namespace std;
@@ -207,9 +206,6 @@ void FaultDetectorManager::PrepareFaultDetectorEnv()
         KernelLeakDetector::GetInstance().PrepareKernelLeakEnv();
         detectorList_.push_back(KERNEL_LEAK_DETECTOR);
         detectorList_.push_back(NATIVE_LEAK_DETECTOR);
-        if (!DfrUtil::GetInstance().IsBetaVersion()) {
-            detectorList_.push_back(RSS_LEAK_DETECTOR);
-        }
         detectorList_.push_back(NOTIFY_LEAK_DETECTOR);
         commonStatusListener_ = make_shared<CommonStatusListener>();
         commonStatusListener_->Start();
@@ -225,8 +221,7 @@ void FaultDetectorManager::NotifyProcessDied(const std::string &procName, pid_t 
         if (DfrUtil::GetInstance().IsMemLeakEnable()) {
             KernelLeakDetector::GetInstance().NotifyProcessDied(pid);
             NativeLeakDetector::GetInstance().NotifyProcessDied(pid);
-            RssLeakDetector::GetInstance().NotifyProcessDied(pid);
-            RssRandomTelemetryDetector::GetInstance().NotifyProcessDied(pid);
+            RssLeakDispatcher::GetInstance().NotifyProcessDied(pid);
             LiteProfiler::GetInstance().NotifyProcessDied(pid);
         }
         if (DfrUtil::GetInstance().IsFdLeakEnable()) {
@@ -253,9 +248,6 @@ void FaultDetectorManager::MonitorProcess()
                 break;
             case NOTIFY_LEAK_DETECTOR:
                 NotifyLeakDetector::GetInstance().HandleDetector(taskInterval_);
-                break;
-            case RSS_LEAK_DETECTOR:
-                RssLeakDetector::GetInstance().HandleDetector(taskInterval_);
                 break;
             default:
                 break;
@@ -324,14 +316,15 @@ void FaultDetectorManager::OnEventListeningCallback(const Event &msg)
         HandleKernelEvent(sysEvent);
     } else if (sysEvent.eventName_ == EVENT_NAME_LOWMEM) {
         HandleLowmemEvent(sysEvent);
-    } else if (sysEvent.eventName_ == EVENT_NAME_VMA_LEAK) {
-        HandleVmaEvent(sysEvent);
-    } else if (sysEvent.eventName_ == EVENT_NAME_ARK_STATS) {
-        HandleArkStats(sysEvent);
+    } else if (HandleOomRelatedEvent(sysEvent)) {
+        // OOM-related events (VMA_LEAK/ARK_STATS/JSVM_OOM/ARK_WEB_JS_OOM) handled in helper
     } else if (sysEvent.eventName_ == EVENT_NAME_SET_MEMORY) { // for VM set threshold on pc
         HandleSetMemory(sysEvent);
-    } else if (sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_WARNING ||
-        sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_ERROR) {
+    } else if (sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_WARNING &&
+               sysEvent.GetEventValue("TYPE") != TYPE_FD_WARNING) {
+        // FD_WARNING type falls through to HandleHisysevent below, others go via GpuMemoryOverReport
+        GpuMemoryOverReport(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_ERROR) {
         GpuMemoryOverReport(sysEvent);
     } else if (sysEvent.eventName_ == EVENT_NAME_ASHMEM_OVER_LIMIT) {
         HandleAshmemEvent(sysEvent);
@@ -344,6 +337,22 @@ void FaultDetectorManager::OnEventListeningCallback(const Event &msg)
     } else {
         HandleHisysevent(sysEvent);
     }
+}
+
+bool FaultDetectorManager::HandleOomRelatedEvent(SysEvent &sysEvent)
+{
+    if (sysEvent.eventName_ == EVENT_NAME_VMA_LEAK) {
+        HandleVmaEvent(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_ARK_STATS) {
+        HandleArkStats(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_JSVM_OOM) {
+        HandleJsvmOomEvent(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_ARK_WEB_JS_OOM) {
+        HandleV8OomEvent(sysEvent);
+    } else {
+        return false;
+    }
+    return true;
 }
 
 void FaultDetectorManager::HandleProcessKill(SysEvent &sysEvent)
@@ -427,6 +436,7 @@ void FaultDetectorManager::GetNotifyProcessInfo(SysEvent &sysEvent, NotifyProces
     notifyProcessInfo.willReportAppeventImmediately =
         (notifyProcessInfo.heapdumpType == "OOMDump" && notifyProcessInfo.eventConfig == "event");
     notifyProcessInfo.arktsType = sysEvent.GetEventValue("ARKTS_TYPE");
+    notifyProcessInfo.resourceType = "js_heap";
 }
 
 void FaultDetectorManager::HandleArkStats(SysEvent &sysEvent)
@@ -436,7 +446,7 @@ void FaultDetectorManager::HandleArkStats(SysEvent &sysEvent)
     string eventPidStr = to_string(eventPid);
     int callingPid = sysEvent.GetEventIntValue("pid_");
     int callingUid = sysEvent.GetEventIntValue("uid_");
-    // pid_: hidumper_service pid, PID: app pid, uid_: hidumper_service uid, hiview(for jsvm and arkweb_v8 oom)
+    // pid_: hidumper_service pid, PID: app pid, uid_: hidumper_service uid, hiview(for jsvm and arkweb js oom)
     if (callingUid != HIDUMPER_SERVICE_UID && callingPid != eventPid && callingUid != HIVIEW_UID) {
         HIVIEW_LOGE("pid check failed, do not handle %{public}s, pid: %{public}s, uid: %{public}d",
                     sysEvent.eventName_.c_str(), eventPidStr.c_str(), callingUid);
@@ -450,6 +460,78 @@ void FaultDetectorManager::HandleArkStats(SysEvent &sysEvent)
     ffrt::submit([=] {
         NotifyLeakDetector::GetInstance().ProcessEventListenening(type, eventPidStr, notifyProcessInfo);
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_ProcessEventListenening")});
+}
+
+void FaultDetectorManager::HandleJsvmOomEvent(SysEvent &sysEvent)
+{
+    // PID is jsvmheap-pid-tid-timestamp file pid
+    int oomProcessPid = sysEvent.GetEventIntValue("PID");
+    HandleHisysevent(sysEvent);
+    string eventConfig = sysEvent.GetEventValue("EVENT_CONFIG");
+    NotifyProcessInfo notifyProcessInfo;
+    notifyProcessInfo.pid = oomProcessPid;
+    // TID is jsvmheap-pid-tid-timestamp file tid
+    notifyProcessInfo.tid = sysEvent.GetEventIntValue("TID");
+    notifyProcessInfo.processName = sysEvent.GetEventValue("PROCESS_NAME");
+    notifyProcessInfo.heapdumpType = "OOMDump";
+    notifyProcessInfo.uid = sysEvent.GetEventIntValue("uid_");
+    notifyProcessInfo.appRunningId = sysEvent.GetEventValue("APP_RUNNING_ID");
+    notifyProcessInfo.resourceType = "jsvm_heap";
+    // EVENT_CONFIG=="1": engine requests rawheap file, hiview waits for rawheap and reports hiappevent with log path
+    // otherwise: engine does not need rawheap, hiview reports hiappevent immediately without log path
+    if (eventConfig == "1") {
+        notifyProcessInfo.eventConfig = "event_rawheap";
+    } else {
+        notifyProcessInfo.willReportAppeventImmediately = true;
+        notifyProcessInfo.eventConfig = "event";
+    }
+
+    string oomProcessPidStr = to_string(oomProcessPid);
+    ffrt::submit([=] {
+        NotifyLeakDetector::GetInstance().ProcessEventListenening("OOMDump", oomProcessPidStr, notifyProcessInfo);
+        }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_ProcessEventListenening_JsvmOom")});
+}
+
+void FaultDetectorManager::HandleV8OomEvent(SysEvent &sysEvent)
+{
+    // PID is arkweb_jsheap-pid-tid-timestamp file pid
+    int oomProcessPid = 0;
+    if (!DfrUtil::GetInstance().SafeStoi(sysEvent.GetEventValue("PID"), oomProcessPid)) {
+        HIVIEW_LOGE("SafeStoi failed. V8OomEvent pid: %{public}s", sysEvent.GetEventValue("PID").c_str());
+        return;
+    }
+
+    HandleHisysevent(sysEvent);
+    string eventConfig = sysEvent.GetEventValue("EVENT_CONFIG");
+    NotifyProcessInfo notifyProcessInfo;
+    notifyProcessInfo.pid = oomProcessPid;
+    // TID is arkweb_jsheap-pid-tid-timestam file tid
+    // TID is render process pid
+    int tid = 0;
+    if (!DfrUtil::GetInstance().SafeStoi(sysEvent.GetEventValue("TID"), tid)) {
+        HIVIEW_LOGE("SafeStoi failed. V8OomEvent tid: %{public}s", sysEvent.GetEventValue("TID").c_str());
+        return;
+    }
+    notifyProcessInfo.tid = tid;
+    notifyProcessInfo.processName = sysEvent.GetEventValue("BUNDLE_NAME");
+    notifyProcessInfo.heapdumpType = "OOMDump";
+    notifyProcessInfo.uid = sysEvent.GetEventIntValue("uid_");
+    notifyProcessInfo.appRunningId = sysEvent.GetEventValue("APP_RUNNING_ID");
+    notifyProcessInfo.resourceType = RES_TYPE_ARKWEB_HEAP;
+
+    // EVENT_CONFIG=="1": engine requests rawheap file, hiview waits for rawheap and reports hiappevent with log path
+    // otherwise: engine does not need rawheap, hiview reports hiappevent immediately without log path
+    if (eventConfig == "1") {
+        notifyProcessInfo.eventConfig = "event_rawheap";
+    } else {
+        notifyProcessInfo.willReportAppeventImmediately = true;
+        notifyProcessInfo.eventConfig = "event";
+    }
+
+    string oomProcessPidStr = to_string(oomProcessPid);
+    ffrt::submit([=] {
+        NotifyLeakDetector::GetInstance().ProcessEventListenening("OOMDump", oomProcessPidStr, notifyProcessInfo);
+        }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_ProcessEventListenening_V8Oom")});
 }
 
 void FaultDetectorManager::HandleSetMemory(SysEvent &sysEvent)
@@ -624,7 +706,7 @@ void FaultDetectorManager::HandleLowmemEvent(SysEvent &sysEvent)
     }
     if (reason == "RSS_THRESHOLD_WARNING") {
         ffrt::submit([=] {
-            RssRandomTelemetryDetector::GetInstance().HandleRssThresholdWarningEvent(pid);
+            RssLeakDispatcher::GetInstance().HandleRssThresholdWarningEvent(pid);
             }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_HandleRssThresholdWarningEvent")});
         return;
     }
@@ -918,7 +1000,6 @@ void FaultDetectorManager::NotifyProcessCreate(const string &procName, pid_t pid
     if (DfrUtil::GetInstance().IsMemLeakEnable()) {
         NativeLeakDetector::GetInstance().NotifyProcessCreate(pid);
         KernelLeakDetector::GetInstance().NotifyProcessCreate(procName, pid);
-        RssLeakDetector::GetInstance().NotifyProcessCreate(pid);
         LiteProfiler::GetInstance().NotifyProcessCreate(pid);
     }
 }

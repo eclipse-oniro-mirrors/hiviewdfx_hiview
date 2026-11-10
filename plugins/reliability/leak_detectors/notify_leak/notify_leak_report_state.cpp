@@ -100,7 +100,11 @@ ErrCode NotifyLeakReportState::ChangeNextState(shared_ptr<FaultInfoBase> &faultI
     LeakGrade leakGrade = notifyInfo->GetLeakGrade();
     if (curState == PROC_REPORT_OVERLIMIT_STATE) {
         nextState = PROC_FINISHED_STATE;
-    } else if (faultInfo->IsApp() && notifyInfo->GetNotifyType() == JS_LEAK && leakGrade == LEAK_CONTROL) {
+    } else if (faultInfo->IsApp() &&
+               (notifyInfo->GetNotifyType() == JS_LEAK ||
+                notifyInfo->GetNotifyType() == ARKWEB_LEAK ||
+                notifyInfo->GetNotifyType() == JSVM_LEAK) &&
+               leakGrade == LEAK_CONTROL) {
         nextState = PROC_APP_REPORT_STATE;
     } else {
         nextState = PROC_FINISHED_STATE;

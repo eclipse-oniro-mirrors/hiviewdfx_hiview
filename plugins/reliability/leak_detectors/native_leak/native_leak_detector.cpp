@@ -17,6 +17,8 @@
 
 #include "native_leak_detector.h"
 #include <algorithm>
+#include <atomic>
+#include "native_leak_xperf_detector.h"
 #include "native_leak_config.h"
 #include "native_leak_growth_analyser.h"
 #include "dfr_util.h"
@@ -28,8 +30,6 @@
 #include "app_mgr_client.h"
 #include "common_utils.h"
 #include "waiting_kill_list.h"
-#include "rss_leak/rss_leak_detector.h"
-#include <atomic>
 
 using namespace std;
 
@@ -214,6 +214,9 @@ ErrCode NativeLeakDetector::MainProcess()
         memGrowthAnalyser.DoMemGrowthAnalyze(allList_);
     }
 
+    // Xperf report is merged into sampling flow, only report this round updated samples
+    NativeLeakXperfDetector::GetInstance().XperfReport();
+
     DumpLeakingList();
     mainProcessMtx_.unlock();
     return SUCCESSED;
@@ -348,16 +351,14 @@ void NativeLeakDetector::SampleAllList()
             continue;
         }
         auto nlInfo = static_pointer_cast<NativeLeakInfo>(faultInfo);
+        nlInfo->SetSampleUpdated(false);
         if (!nlInfo->ShouldSample(now)) {
             continue;
         }
         sampleCnt++;
         if (nlInfo->GetFakePss()) {
             succCnt++;
-            // 哪些应用需要灰度再进判决
-            if (JudgeFakePssOverLimit(faultInfo)) {
-                RssLeakDetector::GetInstance().DoRssLeak(faultInfo, APP_TELEMETRY);
-            }
+            // RSS leak detection is now event-driven via RssLeakDispatcher (RSS_THRESHOLD_WARNING)
         } else {
             deadList.push_back(pid);
         }

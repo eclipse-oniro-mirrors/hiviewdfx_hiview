@@ -20,9 +20,12 @@
 #include <string>
 #include <singleton.h>
 #include <cJSON.h>
+#include "fault_common.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+
+constexpr uint64_t FOLDER_AGING_LOG_MAX_BYTES = BYTE_PER_MB; // 1 MB
 
 struct LogFileNums {
     int fileKeepNums {3};
@@ -40,6 +43,8 @@ struct OldLogCategory {
     FolderOldLog folderOldLog;
     int rawheapBetaAgingHours {168};
     int rawheapNonbetaAgingHours {15};
+    int folderSizeAgingIntervalSec {SEC_PER_DAY}; // 默认1天
+    int folderAgingLogMaxBytes {FOLDER_AGING_LOG_MAX_BYTES}; // 默认1MB
 };
 
 class OldLogParamConfig : public Singleton<OldLogParamConfig> {

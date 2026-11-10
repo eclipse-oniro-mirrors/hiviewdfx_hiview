@@ -73,7 +73,10 @@ private:
     void HandleForkDumpEvent(std::shared_ptr<Event> &event);
     void HandelXperfEvent(std::shared_ptr<Event> &event);
     void HandleAshmemEvent(SysEvent &sysEvent);
+    bool HandleOomRelatedEvent(SysEvent &sysEvent);
     void HandleArkStats(SysEvent &sysEvent);
+    void HandleJsvmOomEvent(SysEvent &sysEvent);
+    void HandleV8OomEvent(SysEvent &sysEvent);
     void HandleSetMemory(SysEvent &sysEvent);
     void GetNotifyProcessInfo(SysEvent &sysEvent, NotifyProcessInfo &notifyProcessInfo);
     void HandleKernelZoneEvent(SysEvent &sysEvent);

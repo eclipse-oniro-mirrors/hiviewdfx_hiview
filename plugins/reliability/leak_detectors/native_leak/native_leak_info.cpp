@@ -1140,6 +1140,7 @@ bool NativeLeakInfo::GetPss()
     newSR.gpu = DfrUtil::GetInstance().GetProcessGpuMemory(pid_);
     newSR.ion = GetLatestIon();
     AddRealMemoryRecord(newSR);
+    sampleUpdated_ = true;
     return true;
 }
 
@@ -1223,6 +1224,7 @@ bool NativeLeakInfo::GetFakePss()
     newSR.time = DfrUtil::GetInstance().GetRunningMonotonicTime();
     newSR.realTime = DfrUtil::GetInstance().GetRealTime();
     AddMemoryRecord(newSR);
+    sampleUpdated_ = true;
     UpdateSampleInterval();
     return true;
 }

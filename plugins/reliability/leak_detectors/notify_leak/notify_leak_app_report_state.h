@@ -32,6 +32,9 @@ public:
 
 private:
     void PostEvent(std::shared_ptr<FaultInfoBase> &faultInfo);
+    void FillLogPathByNotifyType(const std::shared_ptr<NotifyLeakInfo> &notifyInfo,
+                                 std::vector<std::string> &logPath);
+    std::string FillResourceTypeByNotifyType(const std::shared_ptr<NotifyLeakInfo> &notifyInfo);
 };
 
 } // namespace HiviewDFX

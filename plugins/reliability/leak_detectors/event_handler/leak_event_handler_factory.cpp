@@ -42,7 +42,7 @@ shared_ptr<LeakEventHandlerBase> LeakEventHandlerFactory::ProcessLeakEvent(const
         shared_ptr<LeakEventHandlerBase> eventHandler = make_shared<ServiceLeakEventHandler>();
         return eventHandler;
     }
-    if (eventName == EVENT_NAME_ARK_WEB_V8_OOM) { // only report OOM event
+    if (eventName == EVENT_NAME_ARK_WEB_JS_OOM) { // only report OOM event
         shared_ptr<LeakEventHandlerBase> eventHandler = make_shared<ArkWebV8OomEventHandler>();
         return eventHandler;
     }
@@ -52,6 +52,10 @@ shared_ptr<LeakEventHandlerBase> LeakEventHandlerFactory::ProcessLeakEvent(const
     }
     if (eventName == EVENT_NAME_JSVM_OOM) { // only report OOM event
         shared_ptr<LeakEventHandlerBase> eventHandler = make_shared<JsvmOomEventHandler>();
+        return eventHandler;
+    }
+    if (eventName == EVENT_NAME_MEMORY_OVER_WARNING) {
+        shared_ptr<LeakEventHandlerBase> eventHandler = make_shared<RsFdWarningEventHandler>();
         return eventHandler;
     }
     return nullptr;

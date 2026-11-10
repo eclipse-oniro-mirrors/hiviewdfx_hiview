@@ -37,6 +37,9 @@ public:
     ErrCode ChangeNextState(std::shared_ptr<FaultInfoBase> &faultInfo, FaultDetectorBase &detectorObj) override;
     ErrCode StateProcess(std::shared_ptr<FaultInfoBase> &faultInfo, FaultDetectorBase &detectorObj) override;
 
+    // Bridge entry for RS FD warning: dumps basic info and profiler
+    void DumpWarningInfo(std::shared_ptr<FdLeakInfo> &fdInfo);
+
 private:
     void RecordCommonFdInfo(std::shared_ptr<FdLeakInfo> &fdInfo, std::ofstream &fout);
     void RecordDetailFdInfo(std::string &detailFdInfo, std::ofstream &fout);
@@ -44,11 +47,14 @@ private:
     void RecordProcInfo(std::ofstream &fout, std::string procFilePath);
     bool RecordEachTypeFdInfo(std::ofstream &fout, std::shared_ptr<FdLeakInfo> &fdInfo);
     void RecordHead(std::ofstream &fout);
-    void RecordLeakedProcessInfo(std::shared_ptr<FdLeakInfo> &fdInfo, uint32_t fdNums, std::string &detailFdInfo);
+    void RecordLeakedProcessInfo(std::shared_ptr<FdLeakInfo> &fdInfo, uint32_t fdNums,
+        std::string &detailFdInfo);
     void DumpStackInfo(std::shared_ptr<FdLeakInfo> &fdInfo);
     bool SuccessToSendCmd(std::shared_ptr<FdLeakInfo> &fdInfo, MemCmd cmdType);
     void LaunchFdLeakDebug(std::shared_ptr<FdLeakInfo> &fdInfo);
     void DumpProfiler(std::shared_ptr<FaultInfoBase> &faultInfo);
+    void DumpProfiler(std::shared_ptr<FaultInfoBase> &faultInfo, uint64_t resType);
+    void RemoveEmptyProfiler(std::shared_ptr<FdLeakInfo> &fdInfo);
     void DumpRsInfo(std::shared_ptr<FdLeakInfo> &fdInfo);
     uint64_t MatchDumpProfilerType(std::string leakType);
 

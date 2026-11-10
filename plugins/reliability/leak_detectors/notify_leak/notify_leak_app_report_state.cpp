@@ -68,18 +68,42 @@ void NotifyLeakAppReportState::PostEvent(shared_ptr<FaultInfoBase> &faultInfo)
     info.appRunningUniqueId = notifyInfo->GetAppRunningId();
     info.bundleName = notifyInfo->GetProcessName();
     info.bundleVersion = notifyInfo->GetHapVersion();
-    info.resourceType = "js_heap";
+    info.resourceType = FillResourceTypeByNotifyType(notifyInfo);
     info.limitSize = static_cast<uint64_t>(notifyInfo->GetLimitSize());
     info.liveobjectSize = static_cast<uint64_t>(notifyInfo->GetLiveObjectSize());
-    info.logPath.push_back("\"" + notifyInfo->GetJsLeakFilePath() + "\"");
-    if (notifyInfo->HasStaticJsHeap()) {
-        info.logPath.push_back("\"" + notifyInfo->GetStaticJsLeakFilePath() + "\"");
-    }
+    FillLogPathByNotifyType(notifyInfo, info.logPath);
     if (notifyInfo->GetHeapdumpType() == "OOMDump") {
         info.level = "kill";
     }
     DfrUtil::GetInstance().PostAppEvent(info);
     HIVIEW_LOGI("js_heap postFaultEvent end");
+}
+
+void NotifyLeakAppReportState::FillLogPathByNotifyType(const shared_ptr<NotifyLeakInfo> &notifyInfo,
+                                                       vector<string> &logPath)
+{
+    NotifyType notifyType = notifyInfo->GetNotifyType();
+    if (notifyType == ARKWEB_LEAK) {
+        logPath.push_back("\"" + notifyInfo->GetArkWebLeakFilePath() + "\"");
+    } else if (notifyType == JSVM_LEAK) {
+        logPath.push_back("\"" + notifyInfo->GetJSVMLeakFilePath() + "\"");
+    } else {
+        logPath.push_back("\"" + notifyInfo->GetJsLeakFilePath() + "\"");
+        if (notifyInfo->HasStaticJsHeap()) {
+            logPath.push_back("\"" + notifyInfo->GetStaticJsLeakFilePath() + "\"");
+        }
+    }
+}
+std::string NotifyLeakAppReportState::FillResourceTypeByNotifyType(const shared_ptr<NotifyLeakInfo> &notifyInfo)
+{
+    NotifyType notifyType = notifyInfo->GetNotifyType();
+    if (notifyType == ARKWEB_LEAK) {
+        return RES_TYPE_ARKWEB_HEAP;
+    } else if (notifyType == JSVM_LEAK) {
+        return "jsvm_heap";
+    } else {
+        return "js_heap";
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS
