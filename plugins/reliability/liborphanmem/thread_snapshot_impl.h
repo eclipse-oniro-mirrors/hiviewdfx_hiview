@@ -56,7 +56,7 @@ public:
     void SetForkDone();
 
 private:
-    bool GetLocalRegs(uint64_t *regs);
+    bool GetLocalRegs(uintptr_t *regs);
     int WaitTimeout(int timeoutMs);
     int CaptureThread(pid_t tid);
     bool ClearCapturedThreads();

@@ -501,7 +501,7 @@ int64_t GetMemLeak(int format, std::string &leakStr, size_t limit)
     LeakInfo info;
     int64_t errCode = GetUnreachableMemory(info, limit, format);
     if (errCode != EC_SUCCESS) {
-        HILOGE("failed to GetUnreachableMemory, errCode: 0x%{public}lx", errCode);
+        HILOGE("failed to GetUnreachableMemory, errCode: 0x%{public}llx", static_cast<unsigned long long>(errCode));
         return errCode;
     }
 

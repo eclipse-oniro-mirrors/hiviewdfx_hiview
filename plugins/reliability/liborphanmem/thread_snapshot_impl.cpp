@@ -354,7 +354,7 @@ void ThreadSnapshotImpl::SetForkDone()
     syscall(SYS_futex, &captureContext.forkDone, FUTEX_WAKE_PRIVATE, INT_MAX, nullptr, nullptr, 0);
 }
 
-bool ThreadSnapshotImpl::GetLocalRegs(uint64_t *regs)
+bool ThreadSnapshotImpl::GetLocalRegs(uintptr_t *regs)
 {
 #if defined(__aarch64__)
     asm volatile("stp x0, x1, [%[base], #0]\n"
