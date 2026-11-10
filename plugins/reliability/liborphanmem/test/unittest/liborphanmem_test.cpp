@@ -423,7 +423,7 @@ HWTEST_F(AllocatorTest, HeapOperatorNotEqualDifferentHeaps, TestSize.Level1)
  */
 HWTEST_F(AllocatorTest, HeapAllocateTemplateType, TestSize.Level1)
 {
-    int *ptr = heap.allocate<int>();
+    int *ptr = heap.Allocate<int>();
     ASSERT_NE(ptr, nullptr);
     heap.Deallocate(ptr);
 }
