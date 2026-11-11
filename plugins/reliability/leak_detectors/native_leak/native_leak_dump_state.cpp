@@ -59,6 +59,7 @@ enum {
     PSSSUB_PROFILER = 1 << 8,
     KOTLIN_RAWHEAP = 1 << 9,
     ARKTS_STA_RAWHEAP = 1 << 10,
+    ANON_PAGE_PROFILER = 1 << 11,
 };
 
 const char* const DUMP_LOG_TYPE_STRING[] {
@@ -149,6 +150,9 @@ void NativeLeakDumpState::GetMemoryLeakLog(shared_ptr<NativeLeakInfo> &nlInfo, u
     }
     if (flag & ARKTS_STA_RAWHEAP) {
         nlInfo->DumpArkTsRawHeapInfo("EXT_PSS_SYSTEM_TELEMETRY");
+    }
+    if (flag & ANON_PAGE_PROFILER) {
+        DumpAnonPageInfo(nlInfo);
     }
 }
 
@@ -300,10 +304,10 @@ void NativeLeakDumpState::GetProfilerAndNmd(shared_ptr<NativeLeakInfo> &nlInfo)
         if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_JSVM_LEAK) {
             profilerType = JSVM_RAWHEAP;
         }
-        if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_ARKWEB_V8_LEAK) {
+        if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_ARKWEB_JS_LEAK) {
             profilerType = ARKWEB_V8_RAWHEAP;
         }
-        if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_KOTLIN_LEAK) {
+        if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_KMP_LEAK) {
             profilerType = KOTLIN_RAWHEAP;
         }
         if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_ARKTS_STA_LEAK) {
@@ -314,6 +318,8 @@ void NativeLeakDumpState::GetProfilerAndNmd(shared_ptr<NativeLeakInfo> &nlInfo)
     } else if (nlInfo->GetEventName() == RSS_LEAK_STR) {
         if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_NATIVE_HEAP_LEAK) {
             profilerType = SIMPLIFY_PROFILER;
+        } else if (nlInfo->GetTelemetrySubLeakType() == SubLeakType::SUB_ANON_LEAK) {
+            profilerType = ANON_PAGE_PROFILER;
         } else {
             profilerType = PSSSUB_PROFILER;
         }
@@ -450,6 +456,46 @@ void NativeLeakDumpState::DumpProcInfo(const string &procPath, ofstream &fout, c
     fout << procInfo << endl;
     fout << "************ endl ************" << endl;
     fout << endl;
+}
+
+void NativeLeakDumpState::DumpAnonPageInfo(shared_ptr<NativeLeakInfo> &nlInfo)
+{
+    if (nlInfo == nullptr) {
+        HIVIEW_LOGE("nlInfo is nullptr.");
+        return;
+    }
+    if (nlInfo->IsDied()) {
+        HIVIEW_LOGE("process %{public}s is died, stop get profiler", nlInfo->GetProcessName().c_str());
+        return;
+    }
+    int fd = -1;
+    OldLogCleaner::GetInstance().GetLogFile(NATIVE_PROFILER, nlInfo.get(), fd);
+    if (fd < 0) {
+        HIVIEW_LOGE("failed to open %{public}s, err: %{public}s", nlInfo->GetProfilerPath().c_str(), strerror(errno));
+        return;
+    }
+    fdsan_exchange_owner_tag(fd, 0, FDSAN_TAG);
+    MemSaConfig saConfig;
+    saConfig.mmapAnonymousOnly = true;
+
+    MemProfilerParam profilerParam = {
+        .duration = GetActuralStopCommandTime(nlInfo),
+        .resType = NO_RES_TYPE,
+        .profilerType = ANON_PAGE,
+        .faultInfo = static_pointer_cast<FaultInfoBase>(nlInfo),
+        .waitProfilerTime = GetActuralProfilerTimeout(nlInfo),
+        .fd = fd,
+        .memStats = {},
+        .nativeDaemonConfig = {},
+        .saConfig = saConfig,
+        .gwpAsanConfig = {}
+    };
+
+    bool ret = DfrProfilerManager::GetInstance().DoProfiler(profilerParam);
+    if (!ret) {
+        HIVIEW_LOGW("DoProfiler failed for process %{public}s", nlInfo->GetProcessName().c_str());
+    }
+    fdsan_close_with_tag(fd, FDSAN_TAG);
 }
 
 bool NativeLeakDumpState::StartDumpSimplifiedProfiler(shared_ptr<NativeLeakInfo> &nlInfo,

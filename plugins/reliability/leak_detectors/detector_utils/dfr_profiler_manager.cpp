@@ -32,7 +32,7 @@ namespace {
 constexpr int POS_USED_SUMMARY = 2;
 
 static const std::unordered_set<ProfilerType> ASYNC_CALLBACK_PROFILERS = {
-    GPU, THREAD, FD, VMA, ION, ASHMEM, SIMPLIFIED_PROFILER, LITE_PROFILER
+    GPU, THREAD, FD, VMA, ION, ASHMEM, SIMPLIFIED_PROFILER, LITE_PROFILER, ANON_PAGE
 };
 constexpr int GPU_PROFILER_NUM = 3;
 constexpr int POS_GPU_TOTAL_MEM = 3;
@@ -195,6 +195,9 @@ bool DfrProfilerManager::StartProfiler(MemProfilerParam &param)
         case ASHMEM:
             param.saConfig.mask = param.resType;
             break;
+        case ANON_PAGE:
+            param.saConfig.mmapAnonymousOnly = true;
+            break;
         default:
             HIVIEW_LOGE("unsupported profiler type");
             return false;
@@ -233,6 +236,7 @@ bool DfrProfilerManager::HandlerProfilerStart(MemProfilerParam& param)
         case VMA:
         case ION:
         case ASHMEM:
+        case ANON_PAGE:
             startProfilerRet = StartProfiler(param);
             break;
         case DETAIL_NMD:

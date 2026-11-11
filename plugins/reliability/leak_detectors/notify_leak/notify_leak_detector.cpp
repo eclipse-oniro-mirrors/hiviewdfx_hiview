@@ -50,6 +50,7 @@ constexpr int REACH_THRESHOLD_DELAY = 30 * US_PER_SECOND;
 constexpr int WAIT_RAWHEAP_DELAY = 30 * US_PER_SECOND;
 constexpr int TIME_FOR_WAIT_EVENT = 3 * US_PER_SECOND;
 constexpr int MAX_RETRY_CNT = 3;
+constexpr int PENDING_RAWHEAP_WAIT = 30 * US_PER_SECOND; // wait for 2nd arkweb_jsheap rawheap file
 
 const string JSHEAP_PREFIX = "jsheap";
 const string HYBRID_JSHEAP_PREFIX = "hybrid_jsheap";
@@ -90,6 +91,7 @@ void NotifyLeakDetector::HandleDetector(int interval)
         return;
     }
     OldLogCleaner::GetInstance().CheckAndAgingRawheapFiles();
+    OldLogCleaner::GetInstance().CheckAndAgingFolderSize();
     string lastTimeStr = system::GetParameter("persist.hiview.oomdump.lasttime", "");
     if (lastTimeStr.empty()) {
         HIVIEW_LOGI("there is no parameter for omm, create");
@@ -427,9 +429,16 @@ void NotifyLeakDetector::DumpLeak(shared_ptr<NotifyLeakInfo> notifyInfo, int wai
             }
             return;
         }
-        // Re-read static_jsheap info that may have arrived between MakeNotifyInfo and now
+        // Re-read rawheap/static_jsheap info that may have been updated between MakeNotifyInfo and now
+        // (e.g. ArkWeb JS engine OOM 2nd rawheap replaced the 1st one via TryReplaceArkwebRawheap)
         auto &infos = processInfoList_[key];
         for (size_t i = 0; i < infos.size(); i++) {
+            if (IsArkwebJsHeapFile(infos[i].rawheapFile) &&
+                infos[i].rawheapFile != notifyInfo->GetNotifyFileName()) {
+                notifyInfo->SetNotifyFileName(infos[i].rawheapFile);
+                HIVIEW_LOGI("arkweb_jsheap %{public}s found in processInfoList_ at dump time, replaced old file",
+                    infos[i].rawheapFile.c_str());
+            }
             if (!infos[i].staticRawheapFile.empty() && !notifyInfo->HasStaticJsHeap()) {
                 notifyInfo->SetStaticJsLeakNotifyFileName(infos[i].staticRawheapFile);
                 HIVIEW_LOGI("static_jsheap %{public}s found in processInfoList_ at dump time",
@@ -470,22 +479,79 @@ void NotifyLeakDetector::HandleThirdPartyLeak(pid_t pid, pid_t tid, const string
         }
     }
     if (targetIndex == -1) {
+        // ArkWeb JS engine OOM generates 2 rawheap files but only 1 sysevent.
+        // When the 2nd file arrives, the entry is already associated; try replacing with the newer file
+        if (IsArkwebJsHeapFile(filename) && TryReplaceArkwebRawheap(notifyDir, filename, infos)) {
+            return;
+        }
         HIVIEW_LOGE("%{public}s lost some sysevent, maybe send hisysevent too many times", filename.c_str());
         return;
     }
 
     int waitTime;
-    if (infos[targetIndex].heapdumpType == "EXT_PSS_SYSTEM_TELEMETRY" ||
+    // not have threshold dump event, js engine not relevant
+    if (infos[targetIndex].heapdumpType == OOM_TYPE ||
+        infos[targetIndex].heapdumpType == "EXT_PSS_SYSTEM_TELEMETRY" ||
         infos[targetIndex].heapdumpType == "RSS_SYSTEM_TELEMETRY") {
         waitTime = 0;
     } else {
         HIVIEW_LOGE("%{public}s unknown heapdumpType", filename.c_str());
         return;
     }
+
+    waitTime = AdjustArkwebWaitTime(filename, waitTime);
     HIVIEW_LOGI("%{public}s will dump after %{public}d milliseconds", filename.c_str(), waitTime);
 
     auto notifyInfo = MakeNotifyInfo(pid, tid, notifyDir, filename, infos[targetIndex]);
     DumpLeak(notifyInfo, waitTime);
+}
+
+bool NotifyLeakDetector::TryReplaceArkwebRawheap(const string &notifyDir, const string &filename,
+                                                 vector<NotifyProcessInfo> &infos)
+{
+    for (size_t i = 0; i < infos.size(); i++) {
+        if (infos[i].hasGotRawheap && IsArkwebJsHeapFile(infos[i].rawheapFile)) {
+            // filename format: arkweb_jsheap-{pid}-{tid}-{timestamp}.rawheap, compare by the last timestamp segment
+            string oldTs = ExtractRawheapTimestamp(infos[i].rawheapFile);
+            string newTs = ExtractRawheapTimestamp(filename);
+            if (newTs > oldTs) {
+                string oldPath = notifyDir + "/" + infos[i].rawheapFile;
+                DfrUtil::GetInstance().RemoveFile(oldPath);
+                infos[i].rawheapFile = filename;
+                HIVIEW_LOGI("arkweb_jsheap replaced with newer: %{public}s", filename.c_str());
+            } else {
+                string curPath = notifyDir + "/" + filename;
+                DfrUtil::GetInstance().RemoveFile(curPath);
+                HIVIEW_LOGW("arkweb_jsheap current file is older, discarded: %{public}s", filename.c_str());
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+string NotifyLeakDetector::ExtractRawheapTimestamp(const string &filename)
+{
+    // arkweb_jsheap-{pid}-{tid}-{timestamp}.rawheap → take the last segment (timestamp.rawheap) and strip .rawheap
+    vector<string> parts = DfrUtil::GetInstance().Split(filename, '-');
+    if (parts.empty()) {
+        return "";
+    }
+    string last = parts.back();
+    size_t dotPos = last.find('.');
+    if (dotPos != string::npos) {
+        last = last.substr(0, dotPos);
+    }
+    return last;
+}
+
+int NotifyLeakDetector::AdjustArkwebWaitTime(const string &filename, int waitTime)
+{
+    // ArkWeb JS engine OOM generates 2 rawheap files (85% + 95% threshold), delay 30s to wait for the 2nd file
+    if (IsArkwebJsHeapFile(filename)) {
+        return max(waitTime, PENDING_RAWHEAP_WAIT);
+    }
+    return waitTime;
 }
 
 bool NotifyLeakDetector::GetNotifyState(string notifyDir, string fileName, pid_t &pid)
@@ -563,7 +629,7 @@ void NotifyLeakDetector::ReportAppeventImmediately(const struct NotifyProcessInf
     info.appRunningUniqueId = processInfo.appRunningId;
     info.bundleName = processInfo.processName;
     info.bundleVersion = processInfo.hapVersion;
-    info.resourceType = "js_heap";
+    info.resourceType = processInfo.resourceType.empty() ? "js_heap" : processInfo.resourceType;
     info.limitSize = static_cast<uint64_t>(processInfo.limitSize);
     info.liveobjectSize = static_cast<uint64_t>(processInfo.liveObjectSize);
     DfrUtil::GetInstance().PostAppEvent(info);
@@ -705,7 +771,9 @@ ErrCode NotifyLeakDetector::ExeNextStateProcess(shared_ptr<FaultInfoBase> faultI
         notifyDetectorMtx_.lock();
         auto notifyInfo = static_pointer_cast<NotifyLeakInfo>(faultInfo);
         string processInfoKey = GetProcessInfoKey(pid, notifyInfo->GetTid());
-        if (notifyInfo->GetNotifyType() == JS_LEAK &&
+        if ((notifyInfo->GetNotifyType() == JS_LEAK ||
+             notifyInfo->GetNotifyType() == ARKWEB_LEAK ||
+             notifyInfo->GetNotifyType() == JSVM_LEAK) &&
             processInfoList_.find(processInfoKey) != processInfoList_.end()) {
             processInfoList_.erase(processInfoKey);
         }

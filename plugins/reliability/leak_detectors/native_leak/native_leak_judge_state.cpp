@@ -243,11 +243,11 @@ void NativeLeakJudgeState::SystemTelemetry(shared_ptr<NativeLeakInfo> &nlInfo, D
             {SubLeakType::SUB_NATIVE_HEAP_LEAK, detailSmapsInfo.nativeHeap},
             {SubLeakType::SUB_ARKTS_LEAK, detailSmapsInfo.arktsHeap},
             {SubLeakType::SUB_JSVM_LEAK, detailSmapsInfo.jsvmHeap},
-            {SubLeakType::SUB_ARKWEB_V8_LEAK, detailSmapsInfo.arkwebV8},
+            {SubLeakType::SUB_ARKWEB_JS_LEAK, detailSmapsInfo.arkwebV8},
             {SubLeakType::SUB_ASHMEM_LEAK, detailSmapsInfo.ashmem},
             {SubLeakType::SUB_GPU_LEAK, nlInfo->GetLastSampleRecord().gpu},
             {SubLeakType::SUB_ION_LEAK, nlInfo->GetLastSampleRecord().ion},
-            {SubLeakType::SUB_KOTLIN_LEAK, detailSmapsInfo.kotlinHeap},
+            {SubLeakType::SUB_KMP_LEAK, detailSmapsInfo.kotlinHeap},
             {SubLeakType::SUB_ARKTS_STA_LEAK, detailSmapsInfo.arktsStaHeap}
         };
         SubLeakType leakType = static_cast<SubLeakType>(eq.subLeakType);

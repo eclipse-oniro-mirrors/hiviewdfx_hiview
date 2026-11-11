@@ -51,17 +51,25 @@ void OldLogParamConfig::ParseConfig(const cJSON *node)
     if (parser.IsKeyExist("rawheap_commercial_aging_hours", node)) {
         oldLogCategory_.rawheapNonbetaAgingHours = parser.GetIntValue("rawheap_commercial_aging_hours", node);
     }
+    if (parser.IsKeyExist("folder_size_aging_interval_sec", node)) {
+        oldLogCategory_.folderSizeAgingIntervalSec = parser.GetIntValue("folder_size_aging_interval_sec", node);
+    }
+    if (parser.IsKeyExist("folder_aging_log_max_bytes", node)) {
+        oldLogCategory_.folderAgingLogMaxBytes = parser.GetIntValue("folder_aging_log_max_bytes", node);
+    }
 }
 
 void OldLogParamConfig::Print()
 {
     HIVIEW_LOGI("directCleanType: %{public}s", oldLogCategory_.directCleanType.c_str());
     for (const auto &[name, logFileNums] : oldLogCategory_.oldLogStandard) {
-        HIVIEW_LOGI("logType: %{public}s, file_keep_nums: %{public}d, file_exceed_nums: %{public}d",
+        HIVIEW_LOGD("logType: %{public}s, file_keep_nums: %{public}d, file_exceed_nums: %{public}d",
                     name.c_str(), logFileNums.fileKeepNums, logFileNums.fileExceedNums);
     }
-    HIVIEW_LOGI("folderOldLog.resourceLeakDirMaxSizeMB: %{public}d, folderOldLog.enable: %{public}d",
-                oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB, oldLogCategory_.folderOldLog.enable);
+    HIVIEW_LOGI("folderOldLog.resourceLeakDirMaxSizeMB: %{public}d, folderOldLog.enable: %{public}d,"
+                "folderSizeAgingIntervalSec: %{public}d, folderAgingLogMaxBytes: %{public}d",
+                oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB, oldLogCategory_.folderOldLog.enable,
+                oldLogCategory_.folderSizeAgingIntervalSec, oldLogCategory_.folderAgingLogMaxBytes);
 }
 
 void OldLogParamConfig::UpdateOldLogStandard(const cJSON *node)

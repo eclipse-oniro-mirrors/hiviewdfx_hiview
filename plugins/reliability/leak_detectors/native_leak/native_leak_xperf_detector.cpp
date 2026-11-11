@@ -19,6 +19,7 @@
 #include "fault_detector_manager.h"
 #include "sys_event.h"
 #include "hiview_global.h"
+#include <sstream>
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,6 +33,7 @@ namespace {
 constexpr int XPERF_EVENT_DETECT_INTERVAL = SEC_PER_HOUR;
 constexpr int XPERF_REPEAT_REPORT_INTERVAL = 2 * 24 * SEC_PER_HOUR; // two days
 constexpr int MAX_SEND_PID_NUM = 10;
+constexpr int XPERF_SERVICE_REPORT_INTERVAL = 4 * SEC_PER_HOUR; // 4 hours
 }
 
 using namespace std;
@@ -167,6 +169,117 @@ void NativeLeakXperfDetector::SetLogTypeByLeakGrade(const shared_ptr<NativeLeakI
         nlInfo->SetDumpLogType(static_cast<DumpLogType>(BASIC_LOG));
         nlInfo->SetAllDumpLogType(static_cast<DumpLogType>(PSS_LOG | GPU_LOG | ION_LOG));
     }
+}
+
+string NativeLeakXperfDetector::CollectProcessInfo(const shared_ptr<NativeLeakInfo> &nlInfo, bool isAppProcess)
+{
+    pid_t pid = nlInfo->GetPid();
+    const string &processName = nlInfo->GetProcessName();
+    SampleRecord sr = nlInfo->GetLastSampleRecord();
+    // Format: processname,pid,pss,gpu,ion,type (type: app=application, system=system service)
+    string procType = isAppProcess ? "app" : "service";
+    HIVIEW_LOGD("pid=%{public}d, name=%{public}s, pss=%{public}d, gpu=%{public}d, "
+        "ion=%{public}d, type=%{public}s", pid, processName.c_str(),
+        sr.totalPss, sr.gpu, sr.ion, procType.c_str());
+    return processName + "," + to_string(pid) + "," + to_string(sr.totalPss) + "," +
+           to_string(sr.gpu) + "," + to_string(sr.ion) + "," + procType;
+}
+
+void NativeLeakXperfDetector::SendSummaryToXperf(const string &appinfo, int appCount)
+{
+    string eventName = "MEMORY_RESOURCE_USAGE";
+    SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::STATISTIC);
+    sysEventCreator.SetKeyValue("APP_COUNT", to_string(appCount));
+    sysEventCreator.SetKeyValue("APPINFO", appinfo);
+
+    auto sysEvent = make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    shared_ptr<Event> event = dynamic_pointer_cast<Event>(sysEvent);
+
+    HIVIEW_LOGD("APP_COUNT=%{public}d, APPINFO=%{public}s", appCount, appinfo.c_str());
+    // Use ffrt to implement async sending, log sending result
+    ffrt::submit([=] {
+        auto &hiviewInstance = HiviewGlobal::GetInstance();
+        if (!hiviewInstance) {
+            HIVIEW_LOGE("HiviewGlobal instance is null");
+            return;
+        }
+        bool sendResult = hiviewInstance->PostSyncEventToTarget("XperfPlugin", event);
+        if (!sendResult) {
+            HIVIEW_LOGE("failed, appCount=%{public}d", appCount);
+        } else {
+            HIVIEW_LOGI("success, appCount=%{public}d", appCount);
+        }
+        }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_XperfSendSummary")});
+}
+
+void NativeLeakXperfDetector::XperfReport()
+{
+    HIVIEW_LOGI("=== start Xperf Report ===");
+    string appinfo;
+    int appCount = 0;
+    // System service info is only reported every 4 hours, judge by real time
+    time_t now = time(nullptr);
+    bool includeService = (lastServiceReportTime_ == 0) ||
+        (now - lastServiceReportTime_ >= XPERF_SERVICE_REPORT_INTERVAL);
+    if (includeService) {
+        lastServiceReportTime_ = now;
+    }
+
+    CollectAllProcessInfo(includeService, appinfo, appCount);
+
+    HIVIEW_LOGI("collected %{public}d processes", appCount);
+    if (appCount == 0) {
+        HIVIEW_LOGI("=== end, no process ===");
+        return;
+    }
+
+    SendSummaryToXperf(appinfo, appCount);
+    HIVIEW_LOGI("=== end ===");
+}
+
+void NativeLeakXperfDetector::CollectAllProcessInfo(bool includeService, string &appinfo, int &appCount)
+{
+    constexpr int systemServiceReportThreshold = 10 * KB_PER_MB; // 10MB in KB
+    lock_guard<ffrt::mutex> lock(NativeLeakDetector::GetInstance().GetAllListMtx());
+    stringstream appInfoStream;
+    for (auto &elem : NativeLeakDetector::GetInstance().allList_) {
+        auto nlInfo = static_pointer_cast<NativeLeakInfo>(elem.second);
+
+        // Data validation: skip if processName is empty or pid <= 0
+        pid_t pid = nlInfo->GetPid();
+        const string &processName = nlInfo->GetProcessName();
+        if (processName.empty() || pid <= 0) {
+            HIVIEW_LOGW("invalid process info, skip, pid=%{public}d, name=%{public}s",
+                pid, processName.c_str());
+            continue;
+        }
+
+        bool isApp = DfrUtil::GetInstance().IsApp(pid);
+        SampleRecord sr = nlInfo->GetLastSampleRecord();
+        // App process: only report this round updated samples
+        if (isApp && !nlInfo->IsSampleUpdated()) {
+            HIVIEW_LOGW("app process %{public}s, not updated this round, skip", processName.c_str());
+            continue;
+        }
+        // System service process: only report every 4 hours, and only when total memory > 10MB
+        if (!isApp && !includeService) {
+            HIVIEW_LOGI("system service %{public}s, not in service report cycle, skip",
+                processName.c_str());
+            continue;
+        }
+        if (!isApp && sr.totalMem <= systemServiceReportThreshold) {
+            HIVIEW_LOGI("system service %{public}s totalMem=%{public}d, skip",
+                processName.c_str(), sr.totalMem);
+            continue;
+        }
+
+        if (appCount > 0) {
+            appInfoStream << ";";
+        }
+        appInfoStream << CollectProcessInfo(nlInfo, isApp);
+        appCount++;
+    }
+    appinfo = appInfoStream.str();
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -43,7 +43,6 @@ enum DetectorType {
     NOTIFY_LEAK_DETECTOR,
     KERNEL_LEAK_DETECTOR,
     NATIVE_LEAK_DETECTOR,
-    RSS_LEAK_DETECTOR,
     DETECTOR_SIZE,
 };
 
@@ -97,12 +96,6 @@ struct ProcessSourceInfo {
         return "";
     }
 };
-
-constexpr int SEC_PER_MIN = 60;
-constexpr int MIN_PER_HOUR = 60;
-constexpr int HOUR_PER_DAY = 24;
-constexpr int SEC_PER_HOUR = SEC_PER_MIN * MIN_PER_HOUR;
-constexpr int SEC_PER_DAY = HOUR_PER_DAY * SEC_PER_HOUR;
 
 struct DumperInfo {
     DetectorType detectorType { NONE_LEAK_DETECTOR };

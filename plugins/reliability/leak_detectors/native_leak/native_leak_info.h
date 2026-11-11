@@ -150,6 +150,8 @@ public:
     std::string GetEventName();
     bool ShouldSample(time_t now);
     SampleRecord GetLastSampleRecord();
+    bool IsSampleUpdated() const { return sampleUpdated_; }
+    void SetSampleUpdated(bool updated) { sampleUpdated_ = updated; }
     bool GetPss();
     void AddRealMemoryRecord(SampleRecord &newSR);
     bool GetFakePss();
@@ -259,6 +261,7 @@ private:
     std::string eventName_ { "PSS_MEMORY" };
     time_t sampleInterval_ { 30 };
     time_t lastSampleStamp_ { 0 };
+    bool sampleUpdated_ { false };
     SampleRecord lastSR_;
     bool isEverPrintSample_ { false };
     std::string fileSamplePath_ { "" };
