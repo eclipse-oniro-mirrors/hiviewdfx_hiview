@@ -92,6 +92,9 @@ constexpr int EXCEED_AVC_LOG_NUM = 5;
 constexpr int KEEP_VNODE_LOG_FILES = 10;
 constexpr int EXCEED_VNODE_LOG_NUM = 5;
 
+constexpr int KEEP_STABILITY_CHECK_FILES = 10;
+constexpr int EXCEED_STABILITY_CHECK_NUM = 5;
+
 constexpr int PATH_FOLDER_OLD_SIZE = 300;
 constexpr int FOLDER_SIZE_LIMIT_MB = 300;
 const std::string FOLDER_AGING_LOG_NAME = "folder_aging_log.json";
@@ -139,6 +142,7 @@ const std::map<LogType, LogTypeStru> logTypeStruMap = {
     {LogType::RS_TREE, {"rsTreeLog", MEMORY_LEAK_PATH, "rstree", "memleak-kernel"}},
     {LogType::MEDIA, {"mediaLog", MEMORY_LEAK_PATH, "media", "memleak"}},
     {LogType::AVC, {"avcLog", MEMORY_LEAK_PATH, "avc", "memleak"}},
+    {LogType::STABILITY_CHECK, {"stabilityCheckLog", MEMORY_LEAK_PATH, "stabilitycheck", "memleak-stabilitycheck"}}
     {LogType::VNODE_LOG, {"vnodeLog", FILE_DESCRIPTOR_LEAK_PATH, "orphanvnode", "orphanvnode"}}
 };
 
@@ -511,7 +515,8 @@ void OldLogCleaner::OldlogParamCheck(OldLogCategory &category)
         {"rsTreeLog",           {KEEP_RS_TREE_LOG_FILES, EXCEED_RS_TREE_LOG_NUM}},
         {"mediaLog",            {KEEP_MEDIA_LOG_FILES, EXCEED_MEDIA_LOG_NUM}},
         {"avcLog",              {KEEP_AVC_LOG_FILES, EXCEED_AVC_LOG_NUM}},
-        {"vnodeLog",             {KEEP_VNODE_LOG_FILES, EXCEED_VNODE_LOG_NUM}}
+        {"vnodeLog",             {KEEP_VNODE_LOG_FILES, EXCEED_VNODE_LOG_NUM}},
+        {"stabilityCheckLog",    {KEEP_STABILITY_CHECK_FILES, EXCEED_STABILITY_CHECK_NUM}}
     };
     HIVIEW_LOGI("use default old log param!");
 }
@@ -931,6 +936,58 @@ void OldLogCleaner::CheckAndAgingRawheapFiles()
     for (auto logType : TimeAgingTypes_) {
         TimeAgingForRawheapType(logType);
     }
+}
+
+void OldLogCleaner::CheckAndAgingMetaInfoFiles()
+{
+    time_t now = time(nullptr);
+    time_t lastAgingTime = lastMetaInfoAgingTime_.load();
+    if (lastAgingTime != 0 && now - lastAgingTime < SECONDS_IN_A_WEEK) {
+        return;
+    }
+    if (!lastMetaInfoAgingTime_.compare_exchange_strong(lastAgingTime, now)) {
+        return;
+    }
+ 
+    static const char* const searchPaths[] = {
+        MEMORY_LEAK_PATH,
+        FILE_DESCRIPTOR_LEAK_PATH,
+        THREAD_LEAK_PATH,
+    };
+ 
+    int deletedCount = 0;
+    for (const auto& searchPath : searchPaths) {
+        deletedCount += RemoveMetaInfoFilesInDir(searchPath);
+    }
+ 
+    if (deletedCount > 0) {
+        HIVIEW_LOGI("aging completed for META_INFO, removed %{public}d files", deletedCount);
+    }
+}
+ 
+int OldLogCleaner::RemoveMetaInfoFilesInDir(const std::string &dirPath)
+{
+    int deletedCount = 0;
+    auto dir = opendir(dirPath.c_str());
+    if (dir == nullptr) {
+        return deletedCount;
+    }
+    for (struct dirent *ent = readdir(dir); ent != nullptr; ent = readdir(dir)) {
+        string childNode = ent->d_name;
+        if (childNode.find("-metainfo-") == string::npos) {
+            continue;
+        }
+        string fullName = dirPath + "/" + childNode;
+        if (remove(fullName.c_str()) == 0) {
+            HIVIEW_LOGI("aging remove metainfo file: %{public}s", fullName.c_str());
+            deletedCount++;
+        } else {
+            HIVIEW_LOGE("failed to remove metainfo file: %{public}s, err: %{public}s", 
+                fullName.c_str(), strerror(errno));
+        }
+    }
+    closedir(dir);
+    return deletedCount;
 }
 
 void OldLogCleaner::DeleteLogFile(const std::string &filePath)
