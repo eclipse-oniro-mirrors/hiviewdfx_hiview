@@ -24,17 +24,56 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <map>
+#include <memory>
+#include <string>
+#include "errors.h"
+#include "singleton.h"
 #include "fault_common.h"
 #include "dfr_util.h"
-#include "suspend_manager_client.h"
 #include "bundle_mgr_client.h"
 #include "ffrt.h"
-#include "process_anomaly_info.h"
-#include "resource_quota_policy_info.h"
-#include <atomic>
+#include "suspend_manager_client.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+
+// Data carrier for quota configuration received via JSON from efficiency_manager_ext.
+struct ProcessResDetails {
+    int64_t duration{0};
+    int64_t resource{0};
+    int32_t id;
+    std::vector<uint32_t> condition;
+    std::string action;
+    std::string resType;
+    std::string preCleanProcess;
+};
+
+// Data carrier for process anomaly reports sent to efficiency_manager_ext via IPC.
+// Serialized as JSON through ResourceQuotaControlClient::ReportAbnormalProcess.
+struct ProcessAnomalyInfo {
+public:
+    int64_t duration { 0 };
+    int64_t resource { 0 };
+    int32_t uid { -1 };
+    int32_t pid { -1 };
+    int32_t id { 0 };
+    uint32_t type { 0 };
+    std::string action;
+    std::string resType;
+    std::string processName;
+    std::string processVersion;
+    std::string pids;
+    std::vector<uint32_t> condition;
+    bool isMemcgReport { false };
+    int32_t totalMem { 0 };
+    int32_t totalPss { 0 };
+    int32_t ion { 0 };
+    int32_t gpu { 0 };
+    int64_t start { -1 };
+    int64_t end { -1 };
+    bool isDefaultBaseline { false };
+};
 
 enum DetectorType {
     NONE_LEAK_DETECTOR = 0,

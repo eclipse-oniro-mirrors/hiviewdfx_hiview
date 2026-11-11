@@ -21,7 +21,10 @@
 #include "plugin.h"
 #include "plugin_factory.h"
 #include "app_event_publisher.h"
+#include "event.h"
+#include "event_loop.h"
 #include "sys_event.h"
+#include <sys/inotify.h>
 #include "fault_common.h"
 #include "native_leak_detector.h"
 #include "native_leak_xperf_detector.h"
@@ -31,29 +34,37 @@
 #include "thread_leak_detector.h"
 #include "fd_leak_detector.h"
 #include "common_status_listener.h"
-#include "singleton.h"
+#include "app_state_observer.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-class FaultDetectorManager : public Singleton<FaultDetectorManager> {
-    DECLARE_SINGLETON(FaultDetectorManager);
+class FaultDetectorManager : public EventListener,
+                            public AppEventPublisher,
+                            public FileDescriptorEventCallback {
 public:
-    bool OnEvent(std::shared_ptr<Event> &event);
-    bool ReadyToLoad();
-    void OnLoad();
-    void OnUnload();
-    void OnEventListeningCallback(const Event &msg);
-    void AddAppEventHandler(std::shared_ptr<AppEventHandler> handler);
-    bool OnFileDescriptorEvent(int fd, int type);
-    int32_t GetPollFd();
-    int32_t GetPollType();
-    void Dump(int fd, const std::vector<std::string> &cmds);
-    void UpdateQuota();
+    FaultDetectorManager();
+    ~FaultDetectorManager() override;
+
+    bool CanProcessEvent(std::shared_ptr<Event> event) override;
+    bool OnEvent(std::shared_ptr<Event> &event) override;
+    bool ReadyToLoad() override;
+    void OnLoad() override;
+    void OnUnload() override;
+    bool OnOrderedEvent(const Event &msg) override;
+    void OnUnorderedEvent(const Event &msg) override;
+    std::string GetListenerName() override;
+    void OnEventListeningCallback(const Event &msg) override;
+    void AddAppEventHandler(std::shared_ptr<AppEventHandler> handler) override;
+    bool OnFileDescriptorEvent(int fd, int type) override;
+    int32_t GetPollFd() override;
+    int32_t GetPollType() override;
+    void Dump(int fd, const std::vector<std::string> &cmds) override;
+    void UpdateQuota(const std::string& quotaData = "");
     void NotifyProcessCreate(const std::string &procName, pid_t pid, uint32_t subProcessType);
     void NotifyProcessDied(const std::string &procName, pid_t pid);
 
-    static void OnForegroundChanged(const Dubai::ForegroundAttr &attr);
+    static void OnForegroundChanged(const std::vector<std::string> &foregrounds);
     static bool CheckIfAppForeGround(const std::string &name);
 
 private:
@@ -61,7 +72,6 @@ private:
     void DumpFileList(int fd, const std::string &path, const std::string &type);
     void PrepareFaultDetectorEnv();
     void MonitorProcess();
-    void HandleHidumperEventListening();
     void GpuMemoryOverReport(SysEvent &sysEvent);
     void HandleLowmemEvent(SysEvent &sysEvent);
     void HandleProcessKillEvent(SysEvent &sysEvent);
@@ -91,7 +101,12 @@ private:
     std::string GetInfoFromString(const std::string &procMsg, size_t &start, const std::string &sig);
     void HandleProcessKill(SysEvent &sysEvent);
     bool ValidatePathPrefix(const std::string &path, std::string &realPath);
+    void HandleTelemetryEvent(const Event &msg);
+    void RegisterAppStateObserver();
 private:
+    static constexpr const char * const pluginName = "LeakDetectors";
+    static constexpr const char * const pluginVersion = "FaultDetectorManager 1.0";
+
     std::vector<DetectorType> detectorList_;
 
     int inotifyFd_ { -1 };
@@ -103,6 +118,7 @@ private:
     static ffrt::mutex foregroundMtx_;
     static std::vector<std::string> foregroundApps_;
     std::shared_ptr<CommonStatusListener> commonStatusListener_;
+    sptr<AppStateObserver> appStateObserver_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

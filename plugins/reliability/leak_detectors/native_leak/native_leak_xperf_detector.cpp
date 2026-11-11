@@ -96,7 +96,7 @@ void NativeLeakXperfDetector::SendPidsToXperf(const vector<int32_t> &sendPids)
         "RELIABILITY", eventName, OHOS::HiviewDFX::SysEventCreator::FAULT);
     sysEventCreator.SetKeyValue("PROCESS_MEMORY_EXCEED_BASELINE", jsonString);
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    std::shared_ptr<Event> event = std::static_pointer_cast<Event>(sysEvent);
     auto &hiviewInstance = HiviewGlobal::GetInstance();
     if (!hiviewInstance) {
         HIVIEW_LOGE("HiviewGlobal instance is null");

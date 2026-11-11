@@ -1,0 +1,239 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//base/hiviewdfx/hiview/hiview.gni")
+import("//build/ohos.gni")
+
+config("leak_detector_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    ".",
+    "base",
+    "config",
+    "detector_utils",
+    "detector_utils/detail_info_parser",
+    "event_handler",
+    "event_handler/arkweb_v8_oom_event_handler",
+    "event_handler/cj_oom_event_handler",
+    "event_handler/jsvm_oom_event_handler",
+    "event_handler/oomdump_event_handler",
+    "event_handler/process_kill_event_handler",
+    "event_handler/rs_fd_warning_event_handler",
+    "event_handler/service_leak_event_handler",
+    "event_handler/third_party_framework_event_handler",
+    "fd_leak",
+    "kernel_leak",
+    "lite_profiler",
+    "native_leak",
+    "notify_leak",
+    "old_log_clean",
+    "process_kill",
+    "resource_overload",
+    "rss_leak",
+    "telemetry",
+    "thread_leak",
+    "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection",
+    "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility",
+    "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/resource",
+  ]
+}
+
+config("leak_detector_telemetry_config") {
+  visibility = [ "*:*" ]
+  include_dirs = [ "telemetry" ]
+}
+
+ohos_shared_library("libleakdetectors") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  cflags_cc = [ "-Os" ]
+
+  public_configs = [ ":leak_detector_telemetry_config" ]
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+
+  sources = [
+    "app_killed_reporter.cpp",
+    "app_state_observer.cpp",
+    "base/fault_dump_state_base.cpp",
+    "base/fault_info_base.cpp",
+    "base/fault_state_removal_base.cpp",
+    "base/thread_stack_leak_callback.cpp",
+    "common_status_listener.cpp",
+    "config/fault_config_manager.cpp",
+    "config/fd_leak_config.cpp",
+    "config/kernel_leak_config.cpp",
+    "config/leak_json_parser.cpp",
+    "config/native_leak_config.cpp",
+    "config/old_log_param_config.cpp",
+    "config/sysload_config_parser.cpp",
+    "config/third_party_config.cpp",
+    "config/thread_leak_config.cpp",
+    "detector_utils/detail_info_parser/detail_info_parser.cpp",
+    "detector_utils/dfr_log_filter.cpp",
+    "detector_utils/dfr_profiler_manager.cpp",
+    "detector_utils/dfr_util.cpp",
+    "detector_utils/dfr_util_dump.cpp",
+    "detector_utils/dfr_zip_util.cpp",
+    "detector_utils/waiting_kill_list.cpp",
+    "event_handler/arkweb_v8_oom_event_handler/arkweb_v8_oom_event_handler.cpp",
+    "event_handler/cj_oom_event_handler/cj_oom_event_handler.cpp",
+    "event_handler/cred_event_handler.cpp",
+    "event_handler/jsvm_oom_event_handler/jsvm_oom_event_handler.cpp",
+    "event_handler/leak_event_handler_base.cpp",
+    "event_handler/leak_event_handler_factory.cpp",
+    "event_handler/oomdump_event_handler/oomdump_event_handler.cpp",
+    "event_handler/process_kill_event_handler/ashmem_kill_leak_info.cpp",
+    "event_handler/process_kill_event_handler/dma_kill_leak_info.cpp",
+    "event_handler/process_kill_event_handler/gpu_kill_leak_info.cpp",
+    "event_handler/process_kill_event_handler/kernel_thread_kill_leak_info.cpp",
+    "event_handler/process_kill_event_handler/process_kill_event_handler.cpp",
+    "event_handler/process_kill_event_handler/rss_kill_leak_info.cpp",
+    "event_handler/process_kill_event_handler/stability_check_kill_leak_info.cpp",
+    "event_handler/rs_fd_warning_event_handler/rs_fd_warning_event_handler.cpp",
+    "event_handler/service_leak_event_handler/service_leak_event_handler.cpp",
+    "event_handler/third_party_framework_event_handler/third_party_framework_event_handler.cpp",
+    "fault_detector_manager.cpp",
+    "fd_leak/fd_leak_app_report_state.cpp",
+    "fd_leak/fd_leak_detector.cpp",
+    "fd_leak/fd_leak_dump_client.cpp",
+    "fd_leak/fd_leak_dump_on_demand_load.cpp",
+    "fd_leak/fd_leak_dump_state.cpp",
+    "fd_leak/fd_leak_info.cpp",
+    "fd_leak/fd_leak_judge_state.cpp",
+    "fd_leak/fd_leak_removal_state.cpp",
+    "fd_leak/fd_leak_report_state.cpp",
+    "fd_leak/fd_leak_state_context.cpp",
+    "fd_leak/fd_orphan_vnode_scan.cpp",
+    "kernel_leak/kernel_leak_appreport_state.cpp",
+    "kernel_leak/kernel_leak_detector.cpp",
+    "kernel_leak/kernel_leak_dump_state.cpp",
+    "kernel_leak/kernel_leak_info.cpp",
+    "kernel_leak/kernel_leak_judge_state.cpp",
+    "kernel_leak/kernel_leak_removal_state.cpp",
+    "kernel_leak/kernel_leak_report_state.cpp",
+    "kernel_leak/kernel_leak_sample_state.cpp",
+    "kernel_leak/kernel_leak_state_context.cpp",
+    "lite_profiler/lite_profiler.cpp",
+    "native_leak/native_leak_appreport_state.cpp",
+    "native_leak/native_leak_detector.cpp",
+    "native_leak/native_leak_dump_state.cpp",
+    "native_leak/native_leak_growth_analyser.cpp",
+    "native_leak/native_leak_info.cpp",
+    "native_leak/native_leak_judge_state.cpp",
+    "native_leak/native_leak_removal_state.cpp",
+    "native_leak/native_leak_report_state.cpp",
+    "native_leak/native_leak_state_context.cpp",
+    "native_leak/native_leak_xperf_detector.cpp",
+    "notify_leak/notify_leak_app_report_state.cpp",
+    "notify_leak/notify_leak_compress_common.cpp",
+    "notify_leak/notify_leak_compress_manager.cpp",
+    "notify_leak/notify_leak_deal_fork_process.cpp",
+    "notify_leak/notify_leak_detector.cpp",
+    "notify_leak/notify_leak_dump_state.cpp",
+    "notify_leak/notify_leak_info.cpp",
+    "notify_leak/notify_leak_removal_state.cpp",
+    "notify_leak/notify_leak_report_state.cpp",
+    "notify_leak/notify_leak_state_context.cpp",
+    "old_log_clean/log_file.cpp",
+    "old_log_clean/old_log_cleaner.cpp",
+    "process_kill/process_kill_manager.cpp",
+    "resource_overload/sysload_manager.cpp",
+    "rss_leak/rss_leak_common.cpp",
+    "rss_leak/rss_leak_dispatcher.cpp",
+    "rss_leak/rss_leak_tracker.cpp",
+    "rss_leak/rss_app_telemetry_handler.cpp",
+    "rss_leak/rss_random_telemetry_handler.cpp",
+    "rss_leak/rss_system_telemetry_handler.cpp",
+    "telemetry/i_telemetry.cpp",
+    "telemetry/leak_anomaly_reporter.cpp",
+    "thread_leak/thread_leak_detector.cpp",
+    "thread_leak/thread_leak_info.cpp",
+    "thread_leak/thread_leak_judge_state.cpp",
+    "thread_leak/thread_leak_state.cpp",
+    "thread_leak/thread_leak_state_context.cpp",
+  ]
+
+  configs = [ ":leak_detector_config" ]
+
+  deps = [
+    "$hiview_base:hiviewbase",
+    "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
+    ":LeakDetectorsPipeline",
+    ":LeakDetectorsListenerRule",
+  ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:ability_manager",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "bounds_checking_function:libsec_shared",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "efficiency_manager:suspend_manager_client",
+    "eventhandler:libeventhandler",
+    "faultloggerd:libdfx_dumpcatcher",
+    "faultloggerd:libjson_stack_formatter",
+    "faultloggerd:libbacktrace_local",
+    "ffrt:libffrt",
+    "hicollie:libhicollie",
+    "hidumper:hidumper_client",
+    "hilog:libhilog",
+    "hiprofiler:libnative_daemon_client",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "libxml2:libxml2",
+    "os_account:os_account_innerkits",
+    "resource_schedule_service:ressched_client",
+    "samgr:samgr_proxy",
+    "selinux:libselinux",
+    "openssl:libcrypto_shared",
+    "zlib:shared_libz",
+  ]
+
+  version_script = "libleakdetectors.map"
+
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_prebuilt_etc("LeakDetectorsPipeline") {
+  source = "etc/LeakDetectorsPipeline"
+  relative_install_dir = "hiview/dispatch_rule"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+ohos_prebuilt_etc("LeakDetectorsListenerRule") {
+  source = "etc/LeakDetectors"
+  relative_install_dir = "hiview/listener_rule"
+  part_name = "hiview"
+  subsystem_name = "hiviewdfx"
+}
+
+group("leak_detector") {
+  public_configs = [ ":leak_detector_telemetry_config" ]
+  if (hiview_enable_leak_detector) {
+    deps = [ ":libleakdetectors" ]
+  }
+}

@@ -19,12 +19,10 @@
 #include "hiview_logger.h"
 #include "fault_common.h"
 #include "fault_detector_manager.h"
-#include "process_manager.h"
 #include "thread_leak_config.h"
 #include "waiting_kill_list.h"
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -123,20 +121,14 @@ KillingState ThreadLeakInfo::ShouldBeKilled()
 ProcessAnomalyInfo ThreadLeakInfo::GetProcessInfoToKill()
 {
     ProcessAnomalyInfo processInfoForKill;
-    OHOS::XPowerManager::ProcessInfo procInfo;
-    if (ProcessMgr::Instance().GetProcessInfoByName(processName_, procInfo) && procInfo.pid == pid_) {
-        processInfoForKill.type = procInfo.subProcessType;
-    } else {
-        HIVIEW_LOGE("cannot get process info by name: %{public}s, continue", processName_.c_str());
-        processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
-    }
+    processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
     processInfoForKill.processName = processName_;
     processInfoForKill.resource = static_cast<int64_t>(threadNums_);
     processInfoForKill.uid = DfrUtil::GetInstance().GetProcessUid(pid_);
     processInfoForKill.pid = pid_;
     processInfoForKill.resType = "thread";
     processInfoForKill.action = "kill";
-    processInfoForKill.condition.emplace_back(ResourceQuotaCtl::CONDITION_BACKGROUND);
+    processInfoForKill.condition.emplace_back(CONDITION_BACKGROUND);
     return processInfoForKill;
 }
 

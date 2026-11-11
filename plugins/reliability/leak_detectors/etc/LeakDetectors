@@ -1,0 +1,28 @@
+{
+    "domains": [
+        {
+            "domain": "KERNEL_VENDOR"
+        },
+        {
+            "domain": "FRAMEWORK"
+        },
+        {
+            "domain": "VM_SERVICE"
+        },
+        {
+            "domain": "GRAPHIC"
+        },
+        {
+            "domain": "AAFWK"
+        },
+        {
+            "domain": "HIVIEWDFX"
+        },
+        {
+            "domain": "WEBVIEW"
+        },
+        {
+            "domain": "JSVM_RUNTIME"
+        }
+    ]
+}

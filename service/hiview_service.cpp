@@ -486,5 +486,49 @@ CollectResult<int32_t> HiviewService::RequestUiTree(int32_t pid, const sptr<IReq
     HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
     return {UCollect::UcError::SUCCESS};
 }
+
+CollectResult<int32_t> HiviewService::UpdateLeakDetectorQuota(
+    const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList)
+{
+    auto plugin = HiviewPlatform::GetInstance().GetPluginByName("LeakDetectors");
+    if (plugin == nullptr) {
+        HIVIEW_LOGW("LeakDetectors plugin not loaded, skip UpdateLeakDetectorQuota");
+        return {UCollect::UcError::SUCCESS};
+    }
+    // Serialize the Parcelable list back to JSON for the plugin's existing cJSON parser.
+    // The plugin's NativeLeakInfo::UpdateQuota / KernelLeakInfo::UpdateQuota expect a
+    // JSON array string in the QUOTA_DATA field of the UPDATE_QUOTA SysEvent.
+    std::string jsonData = "[";
+    bool first = true;
+    for (const auto& info : quotaList) {
+        if (!first) {
+            jsonData += ",";
+        }
+        first = false;
+        jsonData += "{";
+        jsonData += "\"processName\":\"" + info.processName + "\"";
+        jsonData += ",\"resType\":\"" + info.resType + "\"";
+        jsonData += ",\"resource\":" + std::to_string(info.resource);
+        jsonData += ",\"duration\":" + std::to_string(info.duration);
+        jsonData += ",\"action\":\"" + info.action + "\"";
+        jsonData += ",\"preCleanProcess\":\"" + info.preCleanProcess + "\"";
+        jsonData += ",\"condition\":[";
+        for (size_t i = 0; i < info.condition.size(); i++) {
+            if (i > 0) {
+                jsonData += ",";
+            }
+            jsonData += std::to_string(info.condition[i]);
+        }
+        jsonData += "]}";
+    }
+    jsonData += "]";
+    std::string eventName = "UPDATE_QUOTA";
+    SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("QUOTA_DATA", jsonData);
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
+    return {UCollect::UcError::SUCCESS};
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

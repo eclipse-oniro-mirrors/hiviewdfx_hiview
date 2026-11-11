@@ -20,12 +20,11 @@
 #include "hiview_logger.h"
 #include "ability_state.h"
 #include "ability_manager_client.h"
-#include "process_manager.h"
 #include "fault_detector_manager.h"
 #include "waiting_kill_list.h"
+#include "parameters.h"
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -108,7 +107,7 @@ void NativeLeakRemovalState::HandleKillProcess(shared_ptr<NativeLeakInfo>& nlInf
 
 void NativeLeakRemovalState::HandleDependentKill(shared_ptr<NativeLeakInfo> &nlInfo, const string &waitProcessName)
 {
-    vector<OHOS::XPowerManager::ProcessAnomalyInfo> killList;
+    vector<ProcessAnomalyInfo> killList;
 
     if (TryMatchAndBuildKillList(nlInfo, waitProcessName, killList)) {
         KillProcess(killList);
@@ -118,7 +117,7 @@ void NativeLeakRemovalState::HandleDependentKill(shared_ptr<NativeLeakInfo> &nlI
 }
 
 bool NativeLeakRemovalState::TryMatchAndBuildKillList(const shared_ptr<NativeLeakInfo> &nlInfo,
-    const string &waitProcessName, vector<OHOS::XPowerManager::ProcessAnomalyInfo> &killList)
+    const string &waitProcessName, vector<ProcessAnomalyInfo> &killList)
 {
     const string selfProcessName = nlInfo->GetProcessName();
     lock_guard<ffrt::mutex> lock(waitingKillMapMtx_);
@@ -155,7 +154,7 @@ void NativeLeakRemovalState::HandleWaitTimeout(const shared_ptr<NativeLeakInfo> 
         waitingKillMap_.erase(iter);
     }
     HIVIEW_LOGI("timeout KillProcess self %{public}s", selfProcessName.c_str());
-    vector<OHOS::XPowerManager::ProcessAnomalyInfo> killList;
+    vector<ProcessAnomalyInfo> killList;
     killList.push_back(nlInfo->GetProcessInfoToKill());
     KillProcess(killList);
 }

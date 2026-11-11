@@ -20,7 +20,6 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-#include "suspend_manager_client.h"
 #include "bundle_mgr_client.h"
 #include "ffrt.h"
 #include "fault_common.h"

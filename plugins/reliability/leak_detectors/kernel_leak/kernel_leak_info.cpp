@@ -21,9 +21,9 @@
 #include "kernel_leak_config.h"
 #include "hitrace_meter.h"
 #include "telemetry_manager.h"
+#include "cJSON.h"
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 namespace {
 enum {
@@ -114,12 +114,97 @@ KernelLeakInfo::KernelLeakInfo(pid_t pid, string name)
 
 KernelLeakInfo::~KernelLeakInfo() {}
 
-void KernelLeakInfo::UpdateQuota(const string &processType)
+namespace {
+void ParseQuotaCommonFields(cJSON* item, ProcessResDetails &detail)
+{
+    cJSON* resourceObj = cJSON_GetObjectItem(item, "resource");
+    if (resourceObj != nullptr && cJSON_IsNumber(resourceObj)) {
+        detail.resource = static_cast<int64_t>(resourceObj->valuedouble);
+    }
+    cJSON* durationObj = cJSON_GetObjectItem(item, "duration");
+    if (durationObj != nullptr && cJSON_IsNumber(durationObj)) {
+        detail.duration = static_cast<int64_t>(durationObj->valuedouble);
+    }
+    cJSON* actionObj = cJSON_GetObjectItem(item, "action");
+    if (actionObj != nullptr && cJSON_IsString(actionObj)) {
+        detail.action = actionObj->valuestring;
+    }
+    cJSON* preCleanObj = cJSON_GetObjectItem(item, "preCleanProcess");
+    if (preCleanObj != nullptr && cJSON_IsString(preCleanObj)) {
+        detail.preCleanProcess = preCleanObj->valuestring;
+    }
+    cJSON* conditionArr = cJSON_GetObjectItem(item, "condition");
+    if (conditionArr != nullptr && cJSON_IsArray(conditionArr)) {
+        int condSize = cJSON_GetArraySize(conditionArr);
+        for (int j = 0; j < condSize; j++) {
+            cJSON* condItem = cJSON_GetArrayItem(conditionArr, j);
+            if (condItem != nullptr && cJSON_IsNumber(condItem)) {
+                detail.condition.push_back(static_cast<uint32_t>(condItem->valuedouble));
+            }
+        }
+    }
+}
+
+bool ParseQuotaItem(cJSON* item, const string &expectedResType, string &processName,
+    ProcessResDetails &detail)
+{
+    cJSON* resTypeObj = cJSON_GetObjectItem(item, "resType");
+    if (resTypeObj == nullptr || !cJSON_IsString(resTypeObj)) {
+        return false;
+    }
+    detail.resType = resTypeObj->valuestring;
+    if (detail.resType != expectedResType) {
+        return false;
+    }
+    cJSON* processNameObj = cJSON_GetObjectItem(item, "processName");
+    if (processNameObj == nullptr || !cJSON_IsString(processNameObj)) {
+        return false;
+    }
+    processName = processNameObj->valuestring;
+    ParseQuotaCommonFields(item, detail);
+    return true;
+}
+
+void ParseProcessQuota(const string &expectedResType, const string &quotaData,
+    map<string, vector<ProcessResDetails>> &processQuota)
+{
+    if (quotaData.empty()) {
+        HIVIEW_LOGW("quotaData is empty, skip update for %{public}s", expectedResType.c_str());
+        return;
+    }
+    cJSON* root = cJSON_Parse(quotaData.c_str());
+    if (root == nullptr || !cJSON_IsArray(root)) {
+        HIVIEW_LOGE("failed to parse quotaData JSON for %{public}s", expectedResType.c_str());
+        if (root != nullptr) {
+            cJSON_Delete(root);
+        }
+        return;
+    }
+    int arraySize = cJSON_GetArraySize(root);
+    for (int i = 0; i < arraySize; i++) {
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (item == nullptr || !cJSON_IsObject(item)) {
+            continue;
+        }
+        string processName;
+        ProcessResDetails detail;
+        if (ParseQuotaItem(item, expectedResType, processName, detail)) {
+            processQuota[processName].push_back(std::move(detail));
+        }
+    }
+    cJSON_Delete(root);
+}
+}
+
+void KernelLeakInfo::UpdateQuota(const string &processType, const std::string& quotaData)
 {
     map<string, vector<ProcessResDetails>> processQuota;
-    ResourceQuotaManager::Instance().GetProcessQuota(processType, processQuota);
+    ParseProcessQuota(processType, quotaData, processQuota);
+    if (processQuota.empty()) {
+        return;
+    }
     const size_t len = processQuota.size();
-    HIVIEW_LOGD("processQuota size is %{public}zu", len);
+    HIVIEW_LOGD("processQuota size is %{public}zu for %{public}s", len, processType.c_str());
     for (const auto &elem : processQuota) {
         string name = elem.first;
         if (name != APP_DEFAULT && name != NATIVE_DEFAULT) {
@@ -169,10 +254,10 @@ bool KernelLeakInfo::PasteToQuota(Quota &quota, const ProcessResDetails &detail)
         return false;
     }
     // kill on foreground || kill on background
-    if (count(detail.condition.begin(), detail.condition.end(), ResourceQuotaCtl::CONDITION_FOREGROUND) != 0) {
+    if (count(detail.condition.begin(), detail.condition.end(), CONDITION_FOREGROUND) != 0) {
         quota.conditions |= CONDITION_FOREGROUND;
     }
-    if (count(detail.condition.begin(), detail.condition.end(), ResourceQuotaCtl::CONDITION_BACKGROUND) != 0) {
+    if (count(detail.condition.begin(), detail.condition.end(), CONDITION_BACKGROUND) != 0) {
         quota.conditions |= CONDITION_BACKGROUND;
     }
     return true;
@@ -1027,15 +1112,7 @@ void KernelLeakInfo::PrintSampleHead(ofstream &fout)
 ProcessAnomalyInfo KernelLeakInfo::GetProcessInfoToKill()
 {
     ProcessAnomalyInfo processInfoForKill;
-    OHOS::XPowerManager::ProcessInfo procInfo;
-    if (ProcessMgr::Instance().GetProcessInfoByName(maxProcessForKill_.processName, procInfo) &&
-        procInfo.pid == maxProcessForKill_.pid) {
-        processInfoForKill.type = procInfo.subProcessType;
-    } else {
-        HIVIEW_LOGE("cannot get process info by name: %{public}s, continue",
-                    maxProcessForKill_.processName.c_str());
-        processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
-    }
+    processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
     processInfoForKill.resType = processName_;
     processInfoForKill.processName = maxProcessForKill_.processName;
     processInfoForKill.resource = static_cast<int64_t>(maxProcessForKill_.virtualSize);
@@ -1051,7 +1128,7 @@ ProcessAnomalyInfo KernelLeakInfo::GetProcessInfoToKill()
         processInfoForKill.condition.emplace_back(0);
     } else {
         HIVIEW_LOGI("Current leak : %{public}s should be killed on background!", processName_.c_str());
-        processInfoForKill.condition.emplace_back(ResourceQuotaCtl::CONDITION_BACKGROUND);
+        processInfoForKill.condition.emplace_back(CONDITION_BACKGROUND);
     }
     return processInfoForKill;
 }

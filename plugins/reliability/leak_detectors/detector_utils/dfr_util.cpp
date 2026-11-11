@@ -34,14 +34,13 @@
 #include <thread>
 #include <chrono>
 #include <csignal>
-#include <ability_mgr_helper.h>
 #include "dfr_util.h"
 #include "file_util.h"
 #include "fault_common.h"
+#include "fault_info_base.h"
 #include "hiview_logger.h"
 #include "bundle_mgr_client.h"
 #include "dirent.h"
-#include "suspend_manager_client.h"
 #include "ffrt.h"
 #include "native_leak_detector.h"
 #include "hitrace_meter.h"

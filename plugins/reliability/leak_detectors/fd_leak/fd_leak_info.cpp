@@ -20,12 +20,10 @@
 #include "fault_common.h"
 #include "hiview_logger.h"
 #include "fault_detector_manager.h"
-#include "process_manager.h"
 #include "fd_leak_config.h"
 #include "waiting_kill_list.h"
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -176,19 +174,13 @@ KillingState FdLeakInfo::ShouldBeKilled()
 ProcessAnomalyInfo FdLeakInfo::GetProcessInfoToKill()
 {
     ProcessAnomalyInfo processInfoForKill;
-    OHOS::XPowerManager::ProcessInfo procInfo;
-    if (ProcessMgr::Instance().GetProcessInfoByName(processName_, procInfo) && procInfo.pid == pid_) {
-        processInfoForKill.type = procInfo.subProcessType;
-    } else {
-        HIVIEW_LOGE("cannot get process info by name: %{public}s, continue", processName_.c_str());
-        processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
-    }
+    processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
     processInfoForKill.processName = processName_;
     if (fdNums_ > static_cast<uint32_t>(FdLeakConfig::GetInstance().GetKillConfigForegroundKillThreshold()) &&
         FdLeakConfig::GetInstance().GetKillConfigProcessListForKill().find(processName_)!= string::npos) {
         processInfoForKill.condition.emplace_back(0);
     } else {
-        processInfoForKill.condition.emplace_back(ResourceQuotaCtl::CONDITION_BACKGROUND);
+        processInfoForKill.condition.emplace_back(CONDITION_BACKGROUND);
     }
     processInfoForKill.resource = static_cast<int64_t>(fdNums_);
     processInfoForKill.uid = DfrUtil::GetInstance().GetProcessUid(pid_);

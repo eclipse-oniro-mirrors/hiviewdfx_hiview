@@ -19,6 +19,7 @@
 
 using namespace std;
 
+#ifdef MEMORY_GROWTH_ANALYSER_ENABLE
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002DA0, "NativeLeakGrowthAnalyser");
@@ -176,3 +177,4 @@ void NativeLeakGrowthAnalyser::DecideLeakName(const SampleRecord &newSR)
 
 } // namespace HiviewDFX
 } // namespace OHOS
+#endif // MEMORY_GROWTH_ANALYSER_ENABLE
