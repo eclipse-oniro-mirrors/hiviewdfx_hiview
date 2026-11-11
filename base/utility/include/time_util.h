@@ -17,7 +17,6 @@
 #define UTILITY_TIME_UTIL_H
 
 #include <cstdint>
-#include <memory>
 #include <string>
 
 namespace OHOS {
@@ -36,13 +35,12 @@ constexpr int MAX_TIME_BUFF = 64; // 64 : for example 2021-05-27-01-01-01
 constexpr int MAX_BUFFER_SIZE = 80;
 class TimeCalculator {
 public:
-    TimeCalculator(std::shared_ptr<uint64_t>& timePtr);
+    TimeCalculator(uint64_t& time);
     ~TimeCalculator();
 
 private:
-    std::shared_ptr<uint64_t> time_;
+    uint64_t& time_;
     uint64_t startTime_;
-    uint64_t endTime_;
 };
 
 uint64_t GetNanoTime();

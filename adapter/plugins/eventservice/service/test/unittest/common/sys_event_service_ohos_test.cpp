@@ -513,15 +513,13 @@ HWTEST_F(SysEventServiceOhosTest, CompliantEventChecker001, testing::ext::TestSi
 {
     int secureEnabledVal = 1;
     bool isSecureEnabeled = (Parameter::GetInteger("const.secure", secureEnabledVal) == secureEnabledVal);
-
-    CompliantEventChecker checker;
     if (!isSecureEnabeled) {
-        ASSERT_TRUE(checker.IsCompliantEvent("NO_CFG_DOMAIN", "NO_CFG_NAME"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("NO_CFG_DOMAIN", "NO_CFG_NAME"));
     } else {
-        ASSERT_FALSE(checker.IsCompliantEvent("NO_CFG_DOMAIN", "NO_CFG_NAME"));
-        ASSERT_FALSE(checker.IsCompliantEvent("AAFWK", "NO_CFG_NAME"));
-        ASSERT_TRUE(checker.IsCompliantEvent("AAFWK", "ABILITY_ONACTIVE"));
-        ASSERT_TRUE(checker.IsCompliantEvent("PERFORMANCE", "NO_CFG_NAME"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("NO_CFG_DOMAIN", "NO_CFG_NAME"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("AAFWK", "NO_CFG_NAME"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AAFWK", "ABILITY_ONACTIVE"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("PERFORMANCE", "NO_CFG_NAME"));
     }
 }
 
