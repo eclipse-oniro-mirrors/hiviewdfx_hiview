@@ -67,7 +67,7 @@ void PassthroughMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AUDIO_RENDER_START:
             OnAudioStart(event);
             break;
-        case XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY:
+case XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY:
         case XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY:
         case XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK:
         case XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY:
@@ -213,6 +213,7 @@ void PassthroughMonitor::OnLoadCompleteEvent(OhosXperfEvent* event)
     LoadCompleteReport reportInfo = {
         .lastComponent = loadCompleteEvent->lastComponent,
         .isLaunch = loadCompleteEvent->isLaunch,
+        .componentInfo = loadCompleteEvent->componentInfo,
         .bundleName = loadCompleteEvent->bundleName,
         .abilityName = loadCompleteEvent->abilityName,
     };

@@ -24,6 +24,7 @@ namespace HiviewDFX {
 struct LoadCompleteReport {
     int64_t lastComponent{0};
     int16_t isLaunch{0};
+    uint32_t componentInfo{0};
     std::string bundleName;
     std::string abilityName;
 };

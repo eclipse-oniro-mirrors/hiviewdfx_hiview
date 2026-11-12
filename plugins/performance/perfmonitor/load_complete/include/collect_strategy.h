@@ -30,39 +30,114 @@ struct CollectResult {
     int32_t monitoredNum{0};
     int32_t incompleteNum{0};
     int64_t lastLoadComponent{0};
-    bool isCompleted{true};
+    bool isAllStopDetect{false};
+    int32_t lastImageId{-1};
+    int64_t lastWebId{-1};
+    bool isIncludeWeb{false};
+    bool hasWebLCP{false};      // Web 组件是否有非零的 firstContentPaintTime
+    bool imageTimeout{false};
+    bool webTimeout{false};
+    uint32_t componentInfo{0};
+    uint32_t deletedVisibleNum{0};
 };
 
+/**
+ * @brief 组件完成信息
+ */
 struct CompleteComponentInfo {
-    int64_t completeTimestamp{0};
-    int64_t deleteTimestamp{0};
-    int32_t remainCompleteTimes{0};
-    bool needComplete{true};
+    bool isVisible{false};
+    struct imageInfo {
+        int32_t sourceType{-1};
+        int64_t completeTime{0};
+    } lastImageInfo;
+    int64_t attachTime{0};
+    int64_t deleteTime{0};
+    bool isDeleted{false};
+    bool isStopDetect{false};
+};
+
+/**
+ * @brief Web组件完成信息
+ */
+struct WebComponentInfo {
+    int64_t firstContentPaintTime{0};   // 3s 定时器期间的 LCP 时间
+    int64_t secondContentPaintTime{0};  // 2s 定时器期间的 LCP 时间
+};
+
+/**
+ * @brief attach 信息, 用来判断当前和上一次差是否超过500ms阈值
+ */
+struct AttachInfo {
+    int64_t lastAttachTime{0};
+    bool isAllStopDetect{false};
+    int32_t attachCount{0};
+};
+extern AttachInfo attachInfo_;
+
+/**
+ * @brief 图片统计的过滤条件
+ */
+struct ImageStatsFilter {
+    int64_t deadline{0};                  // 0 表示不过滤 attachTime
+    bool filterDeletedVisibleBySrc{false}; // true 时对可见删除组件额外过滤网络图片
+};
+
+/**
+ * @brief 图片组件统计结果
+ */
+struct ImageStatsResult {
+    int32_t monitoredNum{0};
+    int32_t incompleteNum{0};
+    uint32_t deletedVisibleNum{0};
+    int64_t lastLoadComponent{0};
+    int32_t lastImageId{-1};
+};
+
+/**
+ * @brief Web 组件统计结果
+ */
+struct WebStatsResult {
+    int64_t lastWebComponent{0};
+    bool hasIncompleteWeb{false};
+    bool hasWebLCP{false};
+    int64_t lastWebId{-1};
 };
 
 /**
  * @brief 检测模式策略
- * 适用于预加载场景，使用 addComponentInfos_ 和 completeComponentInfos_ 跟踪组件
+ * 使用 imageInfoMap_ 跟踪每个组件的状态
  */
 class DetectCollectStrategy {
 public:
-    void AddComponent(int32_t componentId, int32_t sourceType);
+    void AddComponent(int32_t componentId, int32_t sourceType, bool isVisible);
+    void AttachComponent(int32_t componentId, int64_t Threshold, int32_t exemptCount);
     void DeleteComponent(int32_t componentId);
-    void CompleteComponent(int32_t componentId);
+    void CompleteComponent(int32_t componentId, bool isVisible);
     CollectResult CalculateResult(int64_t beginTime);
+    bool NeedSecondTimeout(const CollectResult& result) const;
+    void SetLaunchMode(bool isLaunch) { isLaunch_ = isLaunch; }
+    void WebComponentLoad(int64_t navigationId);
+    void WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime);
+    void SetFirstTimeOut(bool isFirstTimeOut) { isFirstTimeOut_ = isFirstTimeOut; }
+    bool HasSecondContentPaintTime() const;
     void Reset();
 
 private:
-    CollectResult CalculateResultforPreLoad(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
-    CollectResult CalculateResultforNoPreLoad(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
-    CollectResult CalculateResultforSpecialCase(std::vector<std::pair<int32_t, int64_t>>& needCompleteAddInfos);
-
-    // 组件添加信息：(componentId, 添加时间戳)
-    std::vector<std::pair<int32_t, int64_t>> addComponentInfos_;
-    // 组件完成信息：componentId -> (完成时间戳, 剩余完成次数,  是否需要完成)
-    std::unordered_map<int32_t, CompleteComponentInfo> completeComponentInfos_;
-    std::unordered_map<int32_t, CompleteComponentInfo> notAddComponentInfos_;
-    size_t deleteNum_{0};
+    CollectResult CalculateResultForTransition(int64_t beginTime);
+    CollectResult CalculateResultForLaunch(int64_t beginTime);
+    int64_t CalcTransitionDeadline() const;
+    ImageStatsResult CollectImageStats(const ImageStatsFilter& filter) const;
+    WebStatsResult CollectWebStats() const;
+    static uint32_t BuildComponentInfoBitmask(bool isIncludeWeb, bool imageTimeout, bool webTimeout);
+    static bool ShouldCountDeletedVisible(const CompleteComponentInfo& info, const ImageStatsFilter& filter);
+    static void UpdateLastLoad(const CompleteComponentInfo& info, int32_t imageId,
+                               int64_t& lastLoadComponent, int32_t& lastImageId);
+    // map格式：{id1, componentInfo1}
+    std::unordered_map<int32_t, CompleteComponentInfo> imageInfoMap_;
+    std::unordered_map<int64_t, WebComponentInfo> webComponentInfos_;
+    bool isFirstTimeOut_{false};
+    // 是否启动场景
+    bool isLaunch_{false};
 };
 
 } // namespace HiviewDFX

@@ -209,9 +209,9 @@ void PerfMonitorAdapter::ReportComponentDetach(uint64_t uniqueId, const std::str
     SurfaceMonitor::GetInstance().ReportComponentDetach(uniqueId, surfaceName, componentName, bundleName, pid);
 }
 
-void PerfMonitorAdapter::AddLoadComponent(int32_t componentId, int32_t sourceType)
+void PerfMonitorAdapter::AddLoadComponent(int32_t componentId, int32_t sourceType, bool isVisible)
 {
-    LoadCompleteMonitor::GetInstance().AddLoadComponent(componentId, sourceType);
+    LoadCompleteMonitor::GetInstance().AddLoadComponent(componentId, sourceType, isVisible);
 }
  
 void PerfMonitorAdapter::DeleteLoadComponent(int32_t componentId)
@@ -219,9 +219,24 @@ void PerfMonitorAdapter::DeleteLoadComponent(int32_t componentId)
     LoadCompleteMonitor::GetInstance().DeleteLoadComponent(componentId);
 }
  
-void PerfMonitorAdapter::CompleteLoadComponent(int32_t componentId)
+void PerfMonitorAdapter::CompleteLoadComponent(int32_t componentId, bool isVisible)
 {
-    LoadCompleteMonitor::GetInstance().CompleteLoadComponent(componentId);
+    LoadCompleteMonitor::GetInstance().CompleteLoadComponent(componentId, isVisible);
+}
+
+void PerfMonitorAdapter::AttachComponent(int32_t componentId)
+{
+    LoadCompleteMonitor::GetInstance().AttachComponent(componentId);
+}
+
+void PerfMonitorAdapter::WebComponentLoad(int64_t navigationId)
+{
+    LoadCompleteMonitor::GetInstance().WebComponentLoad(navigationId);
+}
+
+void PerfMonitorAdapter::WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime)
+{
+    LoadCompleteMonitor::GetInstance().WebContentPaintComplete(navigationId, largestContentPaintTime);
 }
 
 }

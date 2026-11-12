@@ -71,9 +71,13 @@ public:
     void ReportComponentDetach(uint64_t uniqueId, const std::string& surfaceName, const std::string& componentName,
         const std::string& bundleName, int32_t pid);
     
-    void AddLoadComponent(int32_t componentId, int32_t sourceType = 0);
+    void AddLoadComponent(int32_t componentId, int32_t sourceType = 0, bool isVisible = false);
     void DeleteLoadComponent(int32_t componentId);
-    void CompleteLoadComponent(int32_t componentId);
+    void CompleteLoadComponent(int32_t componentId, bool isVisible = false);
+    void AttachComponent(int32_t componentId);
+
+    void WebComponentLoad(int64_t navigationId);
+    void WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime);
 };
 }
 }
