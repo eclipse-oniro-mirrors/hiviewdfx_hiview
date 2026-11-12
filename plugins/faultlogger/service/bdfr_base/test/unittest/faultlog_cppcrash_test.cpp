@@ -797,5 +797,57 @@ HWTEST(FaultloggerCppCrashTest, ParseCppCrashJsonTest006, testing::ext::TestSize
     FileUtil::RemoveFile(jsonFilePath);
 }
 
+/**
+ * @tc.name: UpdateFGParam001
+ * @tc.desc: Test FG param value is 1 when IS_SIG_ACTION is Yes
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, UpdateFGParam001, testing::ext::TestSize.Level1)
+{
+    FaultLogInfo info;
+    info.sectionMap[FaultKey::IS_SIG_ACTION] = "Yes";
+    EXPECT_EQ(FaultLogCppCrash::UpdateFGParam(info), 1);
+}
+
+/**
+ * @tc.name: UpdateFGParam002
+ * @tc.desc: Test FG param value is 0 when IS_SIG_ACTION is not Yes
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, UpdateFGParam002, testing::ext::TestSize.Level2)
+{
+    FaultLogInfo info;
+    info.sectionMap[FaultKey::IS_SIG_ACTION] = "No";
+    EXPECT_EQ(FaultLogCppCrash::UpdateFGParam(info), 0);
+}
+
+/**
+ * @tc.name: UpdateFGParam003
+ * @tc.desc: Test FG param value is 3 for SIGABRT with LastFatalMessage and IS_SIG_ACTION=Yes
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, UpdateFGParam003, testing::ext::TestSize.Level1)
+{
+    FaultLogInfo info;
+    info.reason = "SIGABRT";
+    info.summary = "LastFatalMessage: crash detail";
+    info.sectionMap[FaultKey::IS_SIG_ACTION] = "Yes";
+    EXPECT_EQ(FaultLogCppCrash::UpdateFGParam(info), 3);
+}
+
+/**
+ * @tc.name: UpdateFGParam004
+ * @tc.desc: Test FG param value is 1 for SIGABRT without LastFatalMessage
+ * @tc.type: FUNC
+ */
+HWTEST(FaultloggerCppCrashTest, UpdateFGParam004, testing::ext::TestSize.Level2)
+{
+    FaultLogInfo info;
+    info.reason = "SIGABRT";
+    info.summary = "crash detail without fatal message";
+    info.sectionMap[FaultKey::IS_SIG_ACTION] = "Yes";
+    EXPECT_EQ(FaultLogCppCrash::UpdateFGParam(info), 1);
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -15,11 +15,8 @@
 #ifndef FAULTLOG_DATABASE_H
 #define FAULTLOG_DATABASE_H
 
-#include <vector>
-
 #include "event_loop.h"
 #include "faultlog_info_inner.h"
-#include "hisysevent.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -30,22 +27,12 @@ typedef struct {
 
 class FaultLogDatabase {
 public:
-    static void SaveFaultLogInfo(FaultLogInfo& info);
     static std::list<FaultLogInfo> GetFaultInfoList(
         const std::string& module, int32_t id, int32_t faultType, int32_t maxNum);
     static bool IsFaultExist(int32_t pid, int32_t uid, int32_t faultType);
     static std::string GetAppFreezeExtInfoFromFileName(const std::string& fileName);
 private:
     static bool ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawData> rawData, FaultLogInfo& info);
-    static void FillInfoDefault(FaultLogInfo& info);
-    static void WriteEvent(FaultLogInfo& info);
-    static int32_t UpdateFGParam(FaultLogInfo& info);
-    static int64_t GetLifeTimeValue(const FaultLogInfo& info);
-    static int64_t GetInt64Value(const FaultLogInfo& info, const char* key);
-    static void AppendSysFreezeParams(FaultLogInfo& info, HiSysEventParam* params, size_t& count);
-    static void AppendAppFreezeParams(FaultLogInfo& info, HiSysEventParam* params, size_t& count);
-    static size_t BuildSysEventParams(FaultLogInfo& info, std::string& faultLogType,
-        HiSysEventParam* params);
 };
 }  // namespace HiviewDFX
 }  // namespace OHOS

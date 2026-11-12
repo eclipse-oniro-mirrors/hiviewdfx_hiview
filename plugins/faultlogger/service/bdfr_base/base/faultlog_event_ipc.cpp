@@ -22,16 +22,11 @@ bool FaultLogEventIpc::AddFaultLog(FaultLogInfo info)
         return false;
     }
 
-    SaveFaultInfoToRawDb();
+    ReportEventToHiSysEvent();
     ReportEventToAppEvent();
     DoFaultLogLimit(info_.logPath);
 
     return true;
-}
-
-void FaultLogEventIpc::SaveFaultInfoToRawDb()
-{
-    FaultLogDatabase::SaveFaultLogInfo(info_);
 }
 
 } // namespace HiviewDFX

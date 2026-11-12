@@ -27,6 +27,7 @@
 #include "faultlog_info_inner.h"
 #include "faultlog_manager.h"
 #include "faultlog_dump.h"
+#include "faultlog_util.h"
 #include "faultlogfileutils_fuzzer.h"
 #include "ffrt.h"
 #include "fuzz_data_source.h"
@@ -88,7 +89,7 @@ void FuzzDatabase(FuzzDataSource& source)
     (void)FaultLogDatabase::IsFaultExist(pid, uid, faultType % FaultLogType::MAX_TYPE);
     FaultLogInfo info;
     FillFaultLogInfo(source, info);
-    (void)FaultLogDatabase::GetLifeTimeValue(info);
+    (void)GetLifeTimeValue(info);
 }
 
 void FuzzFormatter(FuzzDataSource& source)

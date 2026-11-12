@@ -53,6 +53,9 @@ void AddForegroundInfo(FaultLogInfo& info);
 std::list<std::string> GetDigtStrArr(const std::string &target);
 void AddPagesHistory(FaultLogInfo& info, bool onlyReportApp);
 void GetProcMemInfo(FaultLogInfo& info);
+void FillInfoDefault(FaultLogInfo& info);
+int64_t GetLifeTimeValue(const FaultLogInfo& info);
+int64_t GetInt64Value(const FaultLogInfo& info, const char* key);
 }  // namespace HiviewDFX
 }  // namespace OHOS
 #endif  // HIVIEWDFX_HIVIEW_FAULTLOGGER_UTIL_H

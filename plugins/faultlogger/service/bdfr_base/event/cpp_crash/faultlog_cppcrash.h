@@ -26,10 +26,13 @@ namespace OHOS {
 namespace HiviewDFX {
 class FaultLogCppCrash final : public FaultLogEventIpc {
 private:
+    static void WriteEvent(FaultLogInfo& info);
+    static int32_t UpdateFGParam(FaultLogInfo& info);
     bool NeedSkip() const override;
     bool ReportEventToAppEvent() const override;
     void DoFaultLogLimit(const std::string& logPath) const override;
     void UpdateFaultLogInfo() override;
+    void ReportEventToHiSysEvent() override;
     static void FillStackInfo(const FaultLogInfo& info, std::string& minidumpPath, Json::Value& hiappeventJson);
     static bool CheckFaultLog(const FaultLogInfo& info);
     static bool ReportProcessKillEvent(const FaultLogInfo& info);

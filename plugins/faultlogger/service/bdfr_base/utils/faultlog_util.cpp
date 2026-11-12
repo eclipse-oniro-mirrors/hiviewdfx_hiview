@@ -528,5 +528,49 @@ void GetProcMemInfo(FaultLogInfo& info)
         HIVIEW_LOGE("Fail to open /proc/meminfo");
     }
 }
+
+void FillInfoDefault(FaultLogInfo& info)
+{
+    auto setDefault = [&info](const char* key) {
+        if (info.sectionMap[key].empty()) {
+            info.sectionMap[key] = "/";
+        }
+    };
+    setDefault("PROCESS_NAME");
+    setDefault(FaultKey::FIRST_FRAME);
+    setDefault(FaultKey::SECOND_FRAME);
+    setDefault(FaultKey::LAST_FRAME);
+    setDefault(FaultKey::FINGERPRINT);
+}
+
+int64_t GetLifeTimeValue(const FaultLogInfo& info)
+{
+    auto it = info.sectionMap.find(FaultKey::PROCESS_LIFETIME);
+    if (it == info.sectionMap.end()) {
+        return -1;
+    }
+    std::string lifeTimeStr = it->second;
+    if (!lifeTimeStr.empty() && lifeTimeStr.back() == 's') {
+        lifeTimeStr.pop_back();
+    }
+    int64_t lifeTimeValue = -1;
+    if (!StringUtil::StrToInt64(lifeTimeStr, lifeTimeValue)) {
+        HIVIEW_LOGW("StrToInt64 failed for PROCESS_LIFETIME: %{public}s", lifeTimeStr.c_str());
+    }
+    return lifeTimeValue;
+}
+
+int64_t GetInt64Value(const FaultLogInfo& info, const char* key)
+{
+    auto iter = info.sectionMap.find(key);
+    if (iter == info.sectionMap.end()) {
+        return 0;
+    }
+    int64_t value = 0;
+    if (!StringUtil::StrToInt64(iter->second, value)) {
+        HIVIEW_LOGW("StrToInt64 failed for %{public}s: %{public}s", key, iter->second.c_str());
+    }
+    return value;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -31,7 +31,9 @@
 #include "faultlog_util.h"
 #include "ffrt.h"
 #include "file_util.h"
+#include "hisysevent.h"
 #include "hisysevent_c.h"
+#include "hitrace/hitracechainc.h"
 #include "hiview_logger.h"
 #include "log_analyzer.h"
 #include "parameter_ex.h"
@@ -566,6 +568,71 @@ std::string FaultLogCppCrash::GetCppCrashTempLogName(const FaultLogInfo& info, b
         "-" +
         std::to_string(info.time) +
         (isJsonFile ? ".json" : "");
+}
+
+void FaultLogCppCrash::WriteEvent(FaultLogInfo& info)
+{
+    std::string eventName = GetFaultNameByType(info.faultLogType, false);
+    auto faultLogType = std::to_string(info.faultLogType);
+    FillInfoDefault(info);
+
+    HiSysEventParam params[] = {
+        EVENT_PARAM_STRING("MODULE", info.module.data()),
+        EVENT_PARAM_STRING("VERSION", info.sectionMap[FaultKey::MODULE_VERSION].data()),
+        EVENT_PARAM_STRING("VERSION_CODE", info.sectionMap[FaultKey::VERSION_CODE].data()),
+        EVENT_PARAM_STRING("REASON", info.reason.data()),
+        EVENT_PARAM_INT32("PID", info.pid),
+        EVENT_PARAM_INT32("UID", info.id),
+        EVENT_PARAM_STRING("SUMMARY", info.summary.data()),
+        EVENT_PARAM_STRING("FAULT_TYPE", faultLogType.data()),
+        EVENT_PARAM_STRING("LOG_PATH", info.logPath.data()),
+        EVENT_PARAM_STRING("FINGERPRINT", info.sectionMap[FaultKey::FINGERPRINT].data()),
+        EVENT_PARAM_INT64("HAPPEN_TIME", info.time),
+        EVENT_PARAM_INT64("LIFETIME", GetLifeTimeValue(info)),
+        EVENT_PARAM_STRING("PNAME", info.sectionMap["PROCESS_NAME"].data()),
+        EVENT_PARAM_STRING("FIRST_FRAME", info.sectionMap[FaultKey::FIRST_FRAME].data()),
+        EVENT_PARAM_STRING("SECOND_FRAME", info.sectionMap[FaultKey::SECOND_FRAME].data()),
+        EVENT_PARAM_STRING("LAST_FRAME", info.sectionMap[FaultKey::LAST_FRAME].data()),
+        EVENT_PARAM_STRING("PRE_INSTALL", info.sectionMap[FaultKey::PRE_INSTALL].data()),
+        EVENT_PARAM_STRING("FOREGROUND", info.sectionMap[FaultKey::FOREGROUND].data()),
+        EVENT_PARAM_INT32("FOCUS_MODE", strtol(info.sectionMap[FaultKey::FOCUS_MODE].c_str(), nullptr, DECIMAL_BASE)),
+        EVENT_PARAM_STRING("APP_RUNNING_UNIQUE_ID", info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID].data()),
+        EVENT_PARAM_STRING("IS_SYSTEM_APP", info.sectionMap[FaultKey::IS_SYSTEM_APP].data()),
+        EVENT_PARAM_INT32("FG", FaultLogCppCrash::UpdateFGParam(info)),
+        EVENT_PARAM_STRING("LOG_SOURCE", info.sectionMap["LOG_SOURCE"].data()),
+    };
+    int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
+        params, sizeof(params) / sizeof(HiSysEventParam));
+    HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
+}
+
+int32_t FaultLogCppCrash::UpdateFGParam(FaultLogInfo& info)
+{
+    int32_t fgNum = info.sectionMap[FaultKey::IS_SIG_ACTION] == "Yes" ? 1 : 0;
+    if (info.reason.find("SIGABRT") != std::string::npos) {
+        bool hasLastFatalMsg = (!info.summary.empty() && info.summary.find("LastFatalMessage") != std::string::npos);
+        HIVIEW_LOGI("WriteEvent abort cppcrash(pid=%{public}d) has lastfatalmessage in summary: %{public}s",
+            info.pid, hasLastFatalMsg ? "true" : "false");
+        if (hasLastFatalMsg) {
+            fgNum += (1 << 1); // second bit use for mark fatalmessage existence, 2 means fatalmessage exists.
+        }
+    }
+    return fgNum;
+}
+
+void FaultLogCppCrash::ReportEventToHiSysEvent()
+{
+    HiTraceIdStruct hitraceId = HiTraceChainGetId();
+    constexpr uint64_t delayTime = 2 * 1000 * 1000; // Delay for 2 seconds to wait for ffrt log generation
+    // Capture info by value: AddFaultLog continues with ReportEventToAppEvent/DoFaultLogLimit
+    // after this returns, which may modify info_; the ffrt task runs 2s later and needs a stable snapshot
+    ffrt::submit(
+        [info = info_, hitraceId]() mutable {
+            HiTraceChainSetId(&hitraceId);
+            WriteEvent(info);
+            HiTraceChainClearId();
+        },
+        ffrt::task_attr().name("cppcrash_wait_ffrt").delay(delayTime));
 }
 
 } // namespace HiviewDFX

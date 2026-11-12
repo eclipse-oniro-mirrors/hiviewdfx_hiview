@@ -14,17 +14,14 @@
  */
 #include "faultlog_database.h"
 
-#include <algorithm>
 #include <list>
 #include <string>
 
 #include "constants.h"
 #include "faultlog_info_inner.h"
 #include "faultlog_util.h"
-#include "ffrt.h"
 #include "file_util.h"
 #include "hisysevent.h"
-#include "hitrace/hitracechainc.h"
 #include "hiview_logger.h"
 #include "string_util.h"
 #include "sys_event_dao.h"
@@ -35,14 +32,6 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002D11, "FaultLogDatabase");
 using namespace FaultLogger;
 namespace {
-#define EVENT_PARAM_CTOR(pName, pType, uType, pVal, pSize) \
-    { \
-        .name = (pName), \
-        .t = (pType), \
-        .v = {.uType = (pVal)}, \
-        .arraySize = (pSize) \
-    }
-
 static const std::vector<std::string> QUERY_ITEMS = {
     "time_", "name_", "uid_", "pid_", FaultKey::MODULE_NAME, FaultKey::REASON, FaultKey::SUMMARY, FaultKey::LOG_PATH,
     FaultKey::FAULT_TYPE
@@ -50,10 +39,6 @@ static const std::vector<std::string> QUERY_ITEMS = {
 const int64_t KILO = 1000;
 const int64_t MAX_DIFF_TIME = 10000;
 const int QUERY_LIMIT_MAX = 100;
-const size_t SYS_FREEZE_PARAM_COUNT = 2;
-const size_t APP_FREEZE_PARAM_COUNT = 2;
-const size_t MAX_PARAM_COUNT = 35;
-const int32_t INVALID_SAMPLER_COUNT = -1;
 }
 
 std::string FaultLogDatabase::GetAppFreezeExtInfoFromFileName(const std::string& fileName)
@@ -139,24 +124,6 @@ bool FaultLogDatabase::ParseFaultLogInfoFromJson(std::shared_ptr<EventRaw::RawDa
                 sysEvent->eventName_.c_str(), info.time, info.id, info.pid,
                 info.module.c_str(), info.reason.c_str());
     return true;
-}
-
-void FaultLogDatabase::SaveFaultLogInfo(FaultLogInfo& info)
-{
-    // Get hitrace id which from processdump
-    HiTraceIdStruct hitraceId = HiTraceChainGetId();
-    auto task = [info, hitraceId] () mutable {
-        // Need set hitrace again in async task
-        HiTraceChainSetId(&hitraceId);
-        FaultLogDatabase::WriteEvent(info);
-        HiTraceChainClearId();
-    };
-    if (info.faultLogType == FaultLogType::CPP_CRASH) {
-        constexpr uint64_t delayTime = 2 * 1000 * 1000; // Delay for 2 seconds to wait for ffrt log generation
-        ffrt::submit(task, ffrt::task_attr().name("cppcrash_wait_ffrt").delay(delayTime));
-    } else {
-        task();
-    }
 }
 
 std::list<std::shared_ptr<EventStore::SysEventQuery>> CreateJsQueries(int32_t faultType, EventStore::Cond upperCaseCond,
@@ -260,156 +227,6 @@ bool FaultLogDatabase::IsFaultExist(int32_t pid, int32_t uid, int32_t faultType)
         }
     }
     return false;
-}
-
-void FaultLogDatabase::FillInfoDefault(FaultLogInfo& info)
-{
-    auto setDefault = [&info](const char* key) {
-        if (info.sectionMap[key].empty()) {
-            info.sectionMap[key] = "/";
-        }
-    };
-    setDefault("PROCESS_NAME");
-    setDefault(FaultKey::FIRST_FRAME);
-    setDefault(FaultKey::SECOND_FRAME);
-    setDefault(FaultKey::LAST_FRAME);
-    setDefault(FaultKey::FINGERPRINT);
-}
-
-int32_t FaultLogDatabase::UpdateFGParam(FaultLogInfo& info)
-{
-    int32_t fgNum = info.sectionMap[FaultKey::IS_SIG_ACTION] == "Yes" ? 1 : 0;
-    if (info.faultLogType == FaultLogType::CPP_CRASH && info.reason.find("SIGABRT") != std::string::npos) {
-        bool hasLastFatalMsg = (!info.summary.empty() && info.summary.find("LastFatalMessage") != std::string::npos);
-        HIVIEW_LOGI("WriteEvent abort cppcrash(pid=%{public}d) has lastfatalmessage in summary: %{public}s", info.pid,
-            hasLastFatalMsg ? "true" : "false");
-        if (hasLastFatalMsg) {
-            fgNum += (1 << 1); // second bit use for mark fatalmessage existence, 2 means fatalmessage exists.
-        }
-    }
-    return fgNum;
-}
-
-int64_t FaultLogDatabase::GetLifeTimeValue(const FaultLogInfo& info)
-{
-    auto it = info.sectionMap.find(FaultKey::PROCESS_LIFETIME);
-    if (it == info.sectionMap.end()) {
-        return -1;
-    }
-    std::string lifeTimeStr = it->second;
-    if (!lifeTimeStr.empty() && lifeTimeStr.back() == 's') {
-        lifeTimeStr.pop_back();
-    }
-    int64_t lifeTimeValue = -1;
-    if (!StringUtil::StrToInt64(lifeTimeStr, lifeTimeValue)) {
-        HIVIEW_LOGW("StrToInt64 failed for PROCESS_LIFETIME: %{public}s", lifeTimeStr.c_str());
-    }
-    return lifeTimeValue;
-}
-
-int64_t FaultLogDatabase::GetInt64Value(const FaultLogInfo& info, const char* key)
-{
-    auto iter = info.sectionMap.find(key);
-    if (iter == info.sectionMap.end()) {
-        return 0;
-    }
-    int64_t value = 0;
-    if (!StringUtil::StrToInt64(iter->second, value)) {
-        HIVIEW_LOGW("StrToInt64 failed for %{public}s: %{public}s", key, iter->second.c_str());
-    }
-    return value;
-}
-
-void FaultLogDatabase::AppendSysFreezeParams(FaultLogInfo& info,
-    HiSysEventParam* params, size_t& count)
-{
-    if (params == nullptr) {
-        return;
-    }
-    params[count++] = EVENT_PARAM_CTOR("DEVICE_RUNNING_TIME", HISYSEVENT_INT64, i64,
-        GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME), 0);
-    params[count++] = EVENT_PARAM_CTOR("HOST_RESOURCE_WARNING", HISYSEVENT_STRING, s,
-        info.sectionMap[FaultKey::HOST_RESOURCE_WARNING].data(), 0);
-}
-
-void FaultLogDatabase::AppendAppFreezeParams(FaultLogInfo& info,
-    HiSysEventParam* params, size_t& count)
-{
-    if (params == nullptr) {
-        return;
-    }
-    int32_t samplerCount = INVALID_SAMPLER_COUNT;
-    if (!StringUtil::StrToInt(info.sectionMap["SAMPLER_COUNT"], samplerCount) ||
-        samplerCount < INVALID_SAMPLER_COUNT) {
-        samplerCount = INVALID_SAMPLER_COUNT;
-    }
-    params[count++] = EVENT_PARAM_CTOR("SAMPLER_COUNT", HISYSEVENT_INT32, i32,
-        samplerCount, 0);
-    params[count++] = EVENT_PARAM_CTOR("LOG_VALIDITY", HISYSEVENT_STRING, s,
-        info.sectionMap["LOG_VALIDITY"].data(), 0);
-}
-
-size_t FaultLogDatabase::BuildSysEventParams(FaultLogInfo& info,
-    std::string& faultLogType, HiSysEventParam* params)
-{
-    HiSysEventParam baseParams[] = {
-        EVENT_PARAM_CTOR("FAULT_TYPE", HISYSEVENT_STRING, s, faultLogType.data(), 0),
-        EVENT_PARAM_CTOR("PID", HISYSEVENT_INT32, i32, info.pid, 0),
-        EVENT_PARAM_CTOR("UID", HISYSEVENT_INT32, i32, info.id, 0),
-        EVENT_PARAM_CTOR("MODULE", HISYSEVENT_STRING, s, info.module.data(), 0),
-        EVENT_PARAM_CTOR("REASON", HISYSEVENT_STRING, s, info.reason.data(), 0),
-        EVENT_PARAM_CTOR("SUMMARY", HISYSEVENT_STRING, s, info.summary.data(), 0),
-        EVENT_PARAM_CTOR("LOG_PATH", HISYSEVENT_STRING, s, info.logPath.data(), 0),
-        EVENT_PARAM_CTOR("VERSION", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::MODULE_VERSION].data(), 0),
-        EVENT_PARAM_CTOR("VERSION_CODE", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::VERSION_CODE].data(), 0),
-        EVENT_PARAM_CTOR("IS_SYSTEM_APP", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::IS_SYSTEM_APP].data(), 0),
-        EVENT_PARAM_CTOR("PRE_INSTALL", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::PRE_INSTALL].data(), 0),
-        EVENT_PARAM_CTOR("FOREGROUND", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FOREGROUND].data(), 0),
-        EVENT_PARAM_CTOR("HAPPEN_TIME", HISYSEVENT_INT64, i64, info.time, 0),
-        EVENT_PARAM_CTOR("HITRACE_TIME", HISYSEVENT_STRING, s, info.sectionMap["HITRACE_TIME"].data(), 0),
-        EVENT_PARAM_CTOR("SYSRQ_TIME", HISYSEVENT_STRING, s, info.sectionMap["SYSRQ_TIME"].data(), 0),
-        EVENT_PARAM_CTOR("FG", HISYSEVENT_INT32, i32, UpdateFGParam(info), 0),
-        EVENT_PARAM_CTOR("PNAME", HISYSEVENT_STRING, s, info.sectionMap["PROCESS_NAME"].data(), 0),
-        EVENT_PARAM_CTOR("FIRST_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FIRST_FRAME].data(), 0),
-        EVENT_PARAM_CTOR("SECOND_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::SECOND_FRAME].data(), 0),
-        EVENT_PARAM_CTOR("LAST_FRAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::LAST_FRAME].data(), 0),
-        EVENT_PARAM_CTOR("FINGERPRINT", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::FINGERPRINT].data(), 0),
-        EVENT_PARAM_CTOR("STACK", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::STACK].data(), 0),
-        EVENT_PARAM_CTOR("TELEMETRY_ID", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TELEMETRY_ID].data(), 0),
-        EVENT_PARAM_CTOR("TRACE_NAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TRACE_NAME].data(), 0),
-        EVENT_PARAM_CTOR("FOCUS_MODE", HISYSEVENT_INT32, i32,
-            strtol(info.sectionMap[FaultKey::FOCUS_MODE].c_str(), nullptr, DECIMAL_BASE), 0),
-        EVENT_PARAM_CTOR("APP_RUNNING_UNIQUE_ID", HISYSEVENT_STRING, s,
-            info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID].data(), 0),
-        EVENT_PARAM_CTOR("TASK_NAME", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::TASK_NAME].data(), 0),
-        EVENT_PARAM_CTOR("THERMAL_LEVEL", HISYSEVENT_STRING, s, info.sectionMap[FaultKey::THERMAL_LEVEL].data(), 0),
-        EVENT_PARAM_CTOR("FREEZE_INFO_PATH", HISYSEVENT_STRING, s,
-            info.sectionMap[FaultKey::FREEZE_INFO_PATH].data(), 0),
-        EVENT_PARAM_CTOR("LOG_SOURCE", HISYSEVENT_STRING, s, info.sectionMap["LOG_SOURCE"].data(), 0),
-        EVENT_PARAM_CTOR("LIFETIME", HISYSEVENT_INT64, i64, GetLifeTimeValue(info), 0),
-    };
-    static_assert(sizeof(baseParams) / sizeof(baseParams[0]) + SYS_FREEZE_PARAM_COUNT +
-        APP_FREEZE_PARAM_COUNT <= MAX_PARAM_COUNT, "overflow");
-    size_t count = sizeof(baseParams) / sizeof(HiSysEventParam);
-    std::copy(baseParams, baseParams + count, params);
-    if (info.faultLogType == FaultLogType::SYS_FREEZE) {
-        AppendSysFreezeParams(info, params, count);
-    } else if (info.faultLogType == FaultLogType::APP_FREEZE) {
-        AppendAppFreezeParams(info, params, count);
-    }
-    return count;
-}
-
-void FaultLogDatabase::WriteEvent(FaultLogInfo& info)
-{
-    std::string eventName = GetFaultNameByType(info.faultLogType, false);
-    auto faultLogType = std::to_string(info.faultLogType);
-    FaultLogDatabase::FillInfoDefault(info);
-    HiSysEventParam params[MAX_PARAM_COUNT];
-    size_t paramCount = BuildSysEventParams(info, faultLogType, params);
-    int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
-        params, paramCount);
-    HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
 }
 }  // namespace HiviewDFX
 }  // namespace OHOS

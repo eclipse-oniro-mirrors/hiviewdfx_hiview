@@ -18,8 +18,9 @@
 #include <string>
 
 #include "constants.h"
-#include "faultlog_database.h"
+#include "faultlog_cppcrash.h"
 #include "faultlog_info_inner.h"
+#include "faultlog_util.h"
 #include "faultlogdatabasefillinfo_fuzzer.h"
 #include "fuzz_data_source.h"
 
@@ -56,8 +57,8 @@ void FuzzDatabaseFillInfo(const uint8_t* data, size_t size)
     if (ReadString(source, sectionValue)) {
         info.sectionMap[FaultKey::IS_SIG_ACTION] = sectionValue;
     }
-    FaultLogDatabase::FillInfoDefault(info);
-    (void)FaultLogDatabase::UpdateFGParam(info);
+    FillInfoDefault(info);
+    (void)FaultLogCppCrash::UpdateFGParam(info);
 }
 }
 
