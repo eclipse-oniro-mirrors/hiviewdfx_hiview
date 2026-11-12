@@ -77,6 +77,7 @@ void SysEventServerSocketFuzzTest(const uint8_t* data, size_t size)
         return;
     }
     receiver->HandlerEvent(ConverRawData(buffer));
+    delete[] buffer;
 }
 } // namespace HiviewDFX
 } // namespace OHOS
