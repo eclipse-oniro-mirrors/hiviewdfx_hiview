@@ -38,6 +38,7 @@
 #include "file_util.h"
 #include "fault_common.h"
 #include "fault_info_base.h"
+#include "leak_unfreezer.h"
 #include "hiview_logger.h"
 #include "bundle_mgr_client.h"
 #include "dirent.h"
@@ -1734,9 +1735,9 @@ bool DfrUtil::ShouldDetectAfterInterval(time_t lastDetectorTime, int intervalTim
 
 void DfrUtil::UnfreezingProcess(pid_t pid)
 {
-    int uid = GetProcessUid(pid);
+    int32_t uid = GetProcessUid(pid);
     string bundleName = GetApplicationNameByUid(uid);
-    SuspendManager::SuspendManagerClient::GetInstance().ThawOneApplication(uid, bundleName, "ACTIVE_BY_DUMP_STACK");
+    UnfreezeLeakProcessByExt(uid, bundleName, "ACTIVE_BY_DUMP_STACK");
     ffrt::this_task::sleep_for(chrono::microseconds(WAIT_TO_UNFREEZE_PROCESS * US_PER_SECOND));
 }
 
