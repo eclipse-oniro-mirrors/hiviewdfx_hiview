@@ -33,7 +33,6 @@
 #include "dfr_util.h"
 #include "bundle_mgr_client.h"
 #include "ffrt.h"
-#include "suspend_manager_client.h"
 
 namespace OHOS {
 namespace HiviewDFX {
