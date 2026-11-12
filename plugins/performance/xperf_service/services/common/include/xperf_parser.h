@@ -59,9 +59,6 @@ void ExtractStrToInt(const std::string &msg, int32_t &result, const char* preTag
 void ExtractStrToInt16(const std::string &msg, int16_t &result, const char* preTag,
     const char* nextTag, int16_t defaultValue);
 
-void ExtractStrToUint32(const std::string &msg, uint32_t &result, const char* preTag,
-    const char* nextTag, uint32_t defaultValue);
- 
 void ExtractStrToStr(const std::string &msg, std::string &result,
     const char* preTag, const char* nextTag, const std::string& defaultValue);
 

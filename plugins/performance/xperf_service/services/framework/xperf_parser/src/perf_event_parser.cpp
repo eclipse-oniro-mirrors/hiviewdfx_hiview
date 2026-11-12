@@ -56,7 +56,9 @@ OhosXperfEvent* ParserLoadComplete(const std::string& msg)
     ExtractStrToStr(msg, event->bundleName, TAG_BUNDLE_NAME, TAG_ABILITY_NAME, "");
     ExtractStrToStr(msg, event->abilityName, TAG_ABILITY_NAME, TAG_IS_LAUNCH, "");
     ExtractStrToInt16(msg, event->isLaunch, TAG_IS_LAUNCH, TAG_COMPONENT_INFO, 0);
-    ExtractStrToUint32(msg, event->componentInfo, TAG_COMPONENT_INFO, TAG_END, 0);
+    int32_t componentInfoTmp = 0;
+    ExtractStrToInt(msg, componentInfoTmp, TAG_COMPONENT_INFO, TAG_END, 0);
+    event->componentInfo = static_cast<uint32_t>(componentInfoTmp);
 
     return event;
 }

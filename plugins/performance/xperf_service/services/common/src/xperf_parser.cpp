@@ -90,18 +90,6 @@ void ExtractStrToInt16(const std::string &msg, int16_t &result, const char* preT
     }
 }
 
-void ExtractStrToUint32(const std::string &msg, uint32_t &result, const char* preTag,
-    const char* nextTag, uint32_t defaultValue)
-{
-    std::string value;
-    if (ExtractSubTag(msg, value, preTag, nextTag)) {
-        result = static_cast<uint32_t>(strtoul(value.c_str(), nullptr, 10));
-    } else {
-        LOGD("ExtractStrToUint32 error, preTag:%{public}s, nextTag:%{public}s", preTag, nextTag);
-        result = defaultValue;
-    }
-}
- 
 void ExtractStrToStr(const std::string &msg, std::string &result,
     const char* preTag, const char* nextTag, const std::string& defaultValue)
 {
