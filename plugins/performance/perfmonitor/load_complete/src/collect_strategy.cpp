@@ -338,7 +338,7 @@ int64_t DetectCollectStrategy::CalcTransitionDeadline() const
 // 跳过 isDeleted / isStopDetect / !isVisible / sourceType == 网络图片
 // attachTime == 0（从未 attach）的组件不纳入统计
 // deadline != 0 时，attachTime > deadline 的组件不纳入统计
-DetectCollectStrategy::ImageStatsResult DetectCollectStrategy::CollectImageStats(
+ImageStatsResult DetectCollectStrategy::CollectImageStats(
     const ImageStatsFilter &filter) const
 {
     ImageStatsResult stats;
@@ -389,7 +389,7 @@ void DetectCollectStrategy::UpdateLastLoad(
     }
 }
 
-DetectCollectStrategy::WebStatsResult DetectCollectStrategy::CollectWebStats() const
+WebStatsResult DetectCollectStrategy::CollectWebStats() const
 {
     WebStatsResult stats;
     for (const auto &pair : webComponentInfos_) {
