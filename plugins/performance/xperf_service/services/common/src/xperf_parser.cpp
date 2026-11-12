@@ -89,7 +89,7 @@ void ExtractStrToInt16(const std::string &msg, int16_t &result, const char* preT
         result = defaultValue;
     }
 }
-
+ 
 void ExtractStrToStr(const std::string &msg, std::string &result,
     const char* preTag, const char* nextTag, const std::string& defaultValue)
 {
