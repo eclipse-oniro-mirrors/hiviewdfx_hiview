@@ -53,7 +53,7 @@ private:
     bool ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps, const std::string& bundleName,
                          LoadInfo& info);
     void ExtractStackInfo(const std::string& logPath, std::string& errType,
-                      std::vector<std::string>& topStacks);
+                          std::vector<std::string>& topStacks);
     std::string ProcessArkTsLine(const std::string& line, const std::string& packageName,
                                  const std::vector<MapInfo>& maps, bool needTranslate);
     bool NeedTranslate(const std::string& packageName) const;

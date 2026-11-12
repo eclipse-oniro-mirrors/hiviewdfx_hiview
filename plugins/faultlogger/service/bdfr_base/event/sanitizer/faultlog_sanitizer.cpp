@@ -60,7 +60,6 @@ constexpr unsigned FIRST_FRAME_IDX = 0;
 constexpr unsigned SECOND_FRAME_IDX = 1;
 constexpr unsigned LAST_FRAME_IDX = 2;
 constexpr size_t MAX_TOP_STACK_FRAMES = 3;
-
 const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
 }
