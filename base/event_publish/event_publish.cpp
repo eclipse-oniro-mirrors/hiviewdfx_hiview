@@ -515,6 +515,9 @@ void CreateSandBox(const std::string& dirPath)
 
 void SetSandBoxAccess(int32_t uid, const std::string& dirPath)
 {
+    // AclSetAccess is not thread-safe, lock is needed to protect concurrent calls.
+    static std::mutex mutex;
+    std::lock_guard<std::mutex> lock(mutex);
     if (OHOS::StorageDaemon::AclSetAccess(dirPath, "u:" + std::to_string(uid) + ":rwx") != 0) {
         HIVIEW_LOGE("failed to set acl access dir=%{public}s", dirPath.c_str());
     }
