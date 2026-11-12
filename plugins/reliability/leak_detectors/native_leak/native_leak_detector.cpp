@@ -933,7 +933,7 @@ void NativeLeakDetector::SysloadDetectionMem(const std::vector<ProcessMemory> &p
         if (totalMem <= static_cast<uint64_t>(threshold)) {
             continue;
         }
-        HIVIEW_LOGI("totalMem: %{public}ld, threshold: %{public}d", totalMem, threshold);
+        HIVIEW_LOGI("totalMem: %{public}" PRIu64 ", threshold: %{public}d", totalMem, threshold);
         nlInfo->IsOverSoftKillThreshold();
         FaultStateBase* obj = GetStateObj(PROC_JUDGE_STATE);
         if (obj == nullptr) {

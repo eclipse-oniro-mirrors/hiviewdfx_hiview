@@ -1177,7 +1177,7 @@ void DfrUtil::GetStatm(int32_t pid, uint64_t &vss, uint64_t &rss)
         return;
     }
     rss = multiples * value;
-    HIVIEW_LOGI("GET rss=%{public}lu, vss=%{public}lu.", rss, vss);
+    HIVIEW_LOGI("GET rss=%{public}" PRIu64 ", vss=%{public}" PRIu64 ".", rss, vss);
 }
 
 void DfrUtil::GetMeminfo(uint64_t &avaliableMem, uint64_t &freeMem, uint64_t &totalMem)
@@ -1204,8 +1204,8 @@ void DfrUtil::GetMeminfo(uint64_t &avaliableMem, uint64_t &freeMem, uint64_t &to
         return;
     }
     meminfoStream.close();
-    HIVIEW_LOGI("GET freeMem=%{public}lu, avaliableMem=%{public}lu, totalMem=%{public}lu.", freeMem, avaliableMem,
-                totalMem);
+    HIVIEW_LOGI("GET freeMem=%{public}" PRIu64 ", avaliableMem=%{public}" PRIu64 ", totalMem=%{public}" PRIu64 ".",
+                freeMem, avaliableMem, totalMem);
 }
 
 list<string> DfrUtil::GetDightStrArr(const string &target)

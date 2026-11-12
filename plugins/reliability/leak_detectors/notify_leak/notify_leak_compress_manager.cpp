@@ -89,7 +89,7 @@ bool NotifyLeakCompressManager::CommonCompress(uint64_t faultType, const string 
             ret = HaveEnoughQuota(bundleName);
             break;
         default:
-            HIVIEW_LOGE("unknown type: %{public}lu", faultType);
+            HIVIEW_LOGE("unknown type: %{public}" PRIu64, faultType);
             break;
     }
     HIVIEW_LOGI("ret: %{public}d, faultType: %{public}" PRIu64 ", bundleName: %{public}s",

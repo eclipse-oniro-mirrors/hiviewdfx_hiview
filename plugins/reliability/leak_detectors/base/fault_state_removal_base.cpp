@@ -17,6 +17,7 @@
 
 #include "fault_state_removal_base.h"
 #include <cJSON.h>
+#include <cinttypes>
 #include "hiview_logger.h"
 #include "ability_state.h"
 #include "ability_manager_client.h"
@@ -126,7 +127,7 @@ void FaultStateRemovalBase::KillProcess(const ProcessAnomalyInfo &processInfoFor
     vector<ProcessAnomalyInfo> killList;
     killList.emplace_back(processInfoForKill);
     ReportAbnormalProcessList(killList);
-    HIVIEW_LOGI("process info-----name: %{public}s, uid: %{public}d, pid: %{public}d, resource: %{public}ld, "
+    HIVIEW_LOGI("process info-----name: %{public}s, uid: %{public}d, pid: %{public}d, resource: %{public}" PRId64 ", "
                 "action: %{public}s.", processInfoForKill.processName.c_str(), processInfoForKill.uid,
                 processInfoForKill.pid, processInfoForKill.resource, processInfoForKill.action.c_str());
 }
@@ -135,9 +136,10 @@ void FaultStateRemovalBase::KillProcess(const std::vector<ProcessAnomalyInfo>& p
 {
     ReportAbnormalProcessList(processInfoList);
     for (const auto& processInfoForKill : processInfoList) {
-        HIVIEW_LOGI("process info-----name: %{public}s, uid: %{public}d, pid: %{public}d, resource: %{public}ld, "
-            "action: %{public}s.", processInfoForKill.processName.c_str(), processInfoForKill.uid,
-            processInfoForKill.pid, processInfoForKill.resource, processInfoForKill.action.c_str());
+        HIVIEW_LOGI("process info-----name: %{public}s, uid: %{public}d, pid: %{public}d, "
+            "resource: %{public}" PRId64 ", action: %{public}s.", processInfoForKill.processName.c_str(),
+            processInfoForKill.uid, processInfoForKill.pid, processInfoForKill.resource,
+            processInfoForKill.action.c_str());
     }
 }
 

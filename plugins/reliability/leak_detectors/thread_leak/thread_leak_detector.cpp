@@ -286,7 +286,7 @@ void ThreadLeakDetector::CacheKernelThreadMsg(pid_t pid, int64_t threadCount, co
 {
     std::lock_guard<ffrt::mutex> lock(cacheMutex_);
     kernelThreadMsgCache_ = std::make_tuple(pid, threadCount, msg);
-    HIVIEW_LOGI("Cache kernel thread msg for pid: %{public}d, threadCount: %{public}ld", pid, threadCount);
+    HIVIEW_LOGI("Cache kernel thread msg for pid: %{public}d, threadCount: %{public}" PRId64, pid, threadCount);
 }
 
 std::pair<int64_t, std::string> ThreadLeakDetector::GetCachedKernelThreadMsg(pid_t pid)

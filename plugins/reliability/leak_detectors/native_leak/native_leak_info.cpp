@@ -16,6 +16,7 @@
  */
 
 #include "native_leak_info.h"
+#include <cinttypes>
 #include "hiview_logger.h"
 #include "fault_common.h"
 #include "fault_detector_manager.h"
@@ -1570,7 +1571,7 @@ bool NativeLeakInfo::ServiceLeakCheck(int threshold)
     if (totalMem <= static_cast<uint64_t>(threshold)) {
         return false;
     }
-    HIVIEW_LOGI("processName: %{public}s, pid: %{public}d, totalMem: %{public}ld, threshold: %{public}d",
+    HIVIEW_LOGI("processName: %{public}s, pid: %{public}d, totalMem: %{public}" PRIu64 ", threshold: %{public}d",
         processName_.c_str(), pid_, totalMem, threshold);
     // Quota mem->condition contain standby, action actually is clean, but send the ability manager service
     // a kill action
@@ -1629,7 +1630,7 @@ bool NativeLeakInfo::CheckProfilerFinish()
         HIVIEW_LOGE("get snapShot file stat failed");
         return false;
     }
-    HIVIEW_LOGI("profilerFile size: %{public}ld", profilerFileInfo.st_size);
+    HIVIEW_LOGI("profilerFile size: %{public}" PRId64, static_cast<int64_t>(profilerFileInfo.st_size));
     if (profilerFileInfo.st_size < PROFILER_SIZE_BASELINE) {
         return false;
     }

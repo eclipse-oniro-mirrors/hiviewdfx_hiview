@@ -16,6 +16,7 @@
  */
 
 #include "kernel_leak_info.h"
+#include <cinttypes>
 #include "fault_common.h"
 #include "fault_detector_manager.h"
 #include "kernel_leak_config.h"
@@ -915,7 +916,7 @@ void KernelLeakInfo::MayAddFreeStateProcess(vector<OverBaseProcesses> &processLi
         totalVirtualSize += itor->virtualSize;
     }
     int64_t lastSampleSize = DfrUtil::GetInstance().GetSizeInProcNode(MEM_INFO_PATH, meminfoName_);
-    HIVIEW_LOGI("totalVirtualSize: %{public}lu, lastSampleSize: %{public}ld, meminfoName_: %{public}s",
+    HIVIEW_LOGI("totalVirtualSize: %{public}" PRIu64 ", lastSampleSize: %{public}" PRId64 ", meminfoName_: %{public}s",
         totalVirtualSize, lastSampleSize, meminfoName_.c_str());
     if (totalVirtualSize > static_cast<uint64_t>(INT64_MAX)) {
         HIVIEW_LOGE("TotalVirtualSize is over limit!");
@@ -932,7 +933,7 @@ void KernelLeakInfo::MayAddFreeStateProcess(vector<OverBaseProcesses> &processLi
     int ionUsageThreshold = KernelLeakConfig::GetInstance().GetCommonKeyValue("ion_usage_threshold").intValue;
     if (diffValueKb / KB_PER_MB >= static_cast<int64_t>(ionUsageThreshold)) {
         existFreeState_ = true;
-        HIVIEW_LOGI("diffValueKb: %{public}ld, will dump memtrack", diffValueKb);
+        HIVIEW_LOGI("diffValueKb: %{public}" PRId64 ", will dump memtrack", diffValueKb);
     }
     OverBaseProcesses freeStateProcess;
     // if the sum of virtualSize less than tailMemory, exist freeState
@@ -950,7 +951,7 @@ void KernelLeakInfo::DecideReportType()
     if (reportTypeByCountVirtualSize.count(processName_) != 0) {
         uint64_t virtualSize = maxProcessForReport_.virtualSize;
         uint32_t maxProcessForReportType = GetMaxProcessForReportType();
-        HIVIEW_LOGI("virtualSize: %{public}lu, maxProcessForReport_.processType: %{public}u",
+        HIVIEW_LOGI("virtualSize: %{public}" PRIu64 ", maxProcessForReport_.processType: %{public}u",
             virtualSize, maxProcessForReportType);
         if (maxProcessForReportType != ABNORMAL_PROCESS && virtualSize / BYTE_PER_KB < REPORT_MEMORY_LEAK_LIMIT) {
             ReportMemoryLeakWpEvent();

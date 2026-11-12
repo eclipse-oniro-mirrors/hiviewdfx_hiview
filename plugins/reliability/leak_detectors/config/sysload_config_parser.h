@@ -60,8 +60,8 @@ struct MonitorParams {
     int logTopThread {0};
     int checkInterval {120};
     int isSave {0};
-    long upperThreshold {70};
-    long lowerThreshold {0};
+    int32_t upperThreshold {70};
+    int32_t lowerThreshold {0};
     int onlySummaryLog {0};
     int enableKmsg {0};
 };

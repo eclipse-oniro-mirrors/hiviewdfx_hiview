@@ -352,8 +352,8 @@ void DfrUtil::GetAppTelemetryThresholdAndType(const string &bundleName, uint64_t
         thresholdTmp = ReadAppTelemetryThreshold(bundleName, AppExecFwk::ATLT_RSS_KMP_DUMP);
         type = AppExecFwk::ATLT_RSS_KMP_DUMP;
     }
-    HIVIEW_LOGD("app telemetry bundleName: %{public}s, threshold: %{public}d, type: %{public}lu", bundleName.c_str(),
-                thresholdTmp, type);
+    HIVIEW_LOGD("app telemetry bundleName: %{public}s, threshold: %{public}d, type: %{public}" PRIu64,
+                bundleName.c_str(), thresholdTmp, static_cast<uint64_t>(type));
     if (threshold != nullptr) {
         *threshold = thresholdTmp;
     }
