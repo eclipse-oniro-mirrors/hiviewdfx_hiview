@@ -173,8 +173,7 @@ string FaultInfoBase::GetBundleName()
 void FaultInfoBase::UnfreezingProcess()
 {
     const string &bundleName = GetBundleName();
-    SuspendManager::SuspendManagerClient::GetInstance().ThawOneApplication(
-        GetUid(), bundleName, "ACTIVE_BY_DUMP_STACK");
+    UnfreezeLeakProcessByExt(GetUid(), bundleName, "ACTIVE_BY_DUMP_STACK");
     ffrt::this_task::sleep_for(chrono::microseconds(WAIT_TO_UNFREEZE_PROCESS * US_PER_SECOND));
 }
 
