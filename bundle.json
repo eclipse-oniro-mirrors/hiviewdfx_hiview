@@ -56,7 +56,8 @@
             "hiview_eventlogger_kernel_catcher_enable",
             "hiview_support_local_read_diagnostic_logs",
             "hiview_support_fold_pc_count_duration_enable",
-            "hiview_support_wukong_collect_gpu_info"
+            "hiview_support_wukong_collect_gpu_info",
+            "hiview_xperf_video_jank_detect_enable"
         ],
         "rom": "",
         "ram": "",
@@ -96,6 +97,7 @@
                 "input",
                 "ipc",
                 "jsoncpp",
+                "json",
                 "libxml2",
                 "openssl",
                 "os_account",
@@ -127,6 +129,8 @@
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/js/napi:faultlogger_napi",
                 "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/cj:cj_faultlogger_ffi",
                 "//base/hiviewdfx/hiview/interfaces/js/napi:loglibrary_napi",
+                "//base/hiviewdfx/hiview/plugins/reliability/boot_detector:boot_detector_hiview",
+                "//base/hiviewdfx/hiview/plugins/reliability/liborphanmem:liborphanmem",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/client:libucollection_client",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_graphic",
                 "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection/utility:libucollection_utility",
@@ -254,6 +258,15 @@
                         "header_files": [
                             "xperf_service_main.h",
                             "xperf_service_interfaces.h"
+                        ]
+                    }
+                },
+                {
+                    "name": "//base/hiviewdfx/hiview/plugins/reliability/boot_detector:boot_detector_hiview",
+                    "header": {
+                        "header_base": "//base/hiviewdfx/hiview/plugins/reliability/boot_detector/include",
+                        "header_files": [
+                            "boot_detector_hiview.h"
                         ]
                     }
                 }

@@ -89,21 +89,21 @@ HiRetrievalDynamicLoader::~HiRetrievalDynamicLoader()
 
 int32_t HiRetrievalDynamicLoader::Init()
 {
-    return CallDllFunc(loadModule_, "Init");
+    return CallDllFunc(loadModule_, "HiRetrieval_Init");
 }
 
 int32_t HiRetrievalDynamicLoader::Participate()
 {
-    return CallDllFunc(loadModule_, "Participate");
+    return CallDllFunc(loadModule_, "HiRetrieval_Participate");
 }
 
 int32_t HiRetrievalDynamicLoader::Quit()
 {
-    return CallDllFunc(loadModule_, "Quit");
+    return CallDllFunc(loadModule_, "HiRetrieval_Quit");
 }
 
 int32_t HiRetrievalDynamicLoader::Run()
 {
-    return CallDllFunc(loadModule_, "Run");
+    return CallDllFunc(loadModule_, "HiRetrieval_Run");
 }
 } // namespace OHOS::HiviewDFX

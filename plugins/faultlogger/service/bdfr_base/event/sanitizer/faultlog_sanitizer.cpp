@@ -29,7 +29,8 @@
 #include <algorithm>
 
 #include "constants.h"
-#include "dfx_ark.h"
+#include "dfx_symbols.h"
+#include "elf_factory.h"
 #include "event_publish.h"
 #include "faultlog_bundle_util.h"
 #include "faultlog_util.h"
@@ -43,7 +44,7 @@
 #include "smart_parser.h"
 #include "string_util.h"
 #include "tbox.h"
-#include "parameters.h"
+#include "unwinder_config.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -62,6 +63,9 @@ constexpr unsigned LAST_FRAME_IDX = 2;
 constexpr size_t MAX_TOP_STACK_FRAMES = 3;
 const char *const APP_SANDBOX_PREFIX = "/data/storage/el1/bundle/";
 const char *const CONVERT_APP_SANBOPX_PREFIX = "/data/app/el1/bundle/public/";
+const char *const SUBMITTER_STACK_HEADER = "========SubmitterStacktrace========";
+const char *const GWPASAN_ASYNC_MARKER = " 0xffffffff ";
+const char *const XSAN_ASYNC_MARKER = " 0xfffffffb ";
 }
 
 // Only support stack parsing for these 5 type formats
@@ -72,6 +76,37 @@ bool FaultLogSanitizer::ShouldParseSandBoxPath(const std::string& line)
            line.find(".hqf+") != std::string::npos ||
            line.find(".abc+") != std::string::npos ||
            line.find("[anon:ArkTS Code:/") != std::string::npos;
+}
+
+bool FaultLogSanitizer::IsAsyncMarker(const std::string& line)
+{
+    bool isAsyncMarker =
+        line.find(GWPASAN_ASYNC_MARKER) != std::string::npos ||
+        line.find(XSAN_ASYNC_MARKER) != std::string::npos;
+    return isAsyncMarker;
+}
+ 
+bool FaultLogSanitizer::IsStackFrameLine(const std::string& line)
+{
+    size_t firstNonSpace = line.find_first_not_of(" \t");
+    if (firstNonSpace == std::string::npos || line[firstNonSpace] != '#') {
+        return false;
+    }
+    return firstNonSpace + 1 < line.size() &&
+           std::isdigit(static_cast<unsigned char>(line[firstNonSpace + 1]));
+}
+ 
+std::string RenumberStackFrame(const std::string& line, unsigned frameIdx)
+{
+    size_t hashPos = line.find('#');
+    if (hashPos == std::string::npos) {
+        return line;
+    }
+    size_t idxEnd = hashPos + 1;
+    while (idxEnd < line.size() && std::isdigit(static_cast<unsigned char>(line[idxEnd]))) {
+        idxEnd++;
+    }
+    return line.substr(0, hashPos + 1) + std::to_string(frameIdx) + line.substr(idxEnd);
 }
 
 bool FaultLogSanitizer::ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix,
@@ -383,13 +418,95 @@ void FaultLogSanitizer::ExtractStackInfo(const std::string& logPath, std::string
     }
 }
 
-                      
+bool ExtractNativeSoInfo(const std::string& line, std::string& soPath, uint64_t& relPc, size_t& insertPos)
+{
+    size_t firstParen = line.find('(');
+    if (firstParen == std::string::npos) {
+        return false;
+    }
+    size_t plusPos = line.find('+', firstParen);
+    if (plusPos == std::string::npos) {
+        return false;
+    }
+    size_t endParen = line.find(')', plusPos);
+    if (endParen == std::string::npos) {
+        return false;
+    }
+    soPath = line.substr(firstParen + 1, plusPos - firstParen - 1);
+    std::string relStr = line.substr(plusPos + 1, endParen - plusPos - 1);
+    if (relStr.size() <= MIN_HEX_STR_SIZE || relStr[0] != '0' || (relStr[1] != 'x' && relStr[1] != 'X')) {
+        return false;
+    }
+    char* pEnd = nullptr;
+    errno = 0;
+    uint64_t parsedRelPc = std::strtoull(relStr.c_str(), &pEnd, FaultLogger::HEX_BASE);
+    if (errno != 0 || pEnd == relStr.c_str()) {
+        return false;
+    }
+    relPc = parsedRelPc;
+    insertPos = endParen + 1;
+    return true;
+}
+ 
+std::string FormatNativeLine(const std::string& origLine, size_t insertPos,
+                             const std::string& funcName, uint64_t funcOffset)
+{
+    if (funcName.empty()) {
+        return origLine;
+    }
+    std::string insert = "(" + funcName + "+" + std::to_string(funcOffset) + ")";
+    return origLine.substr(0, insertPos) + insert + origLine.substr(insertPos);
+}
+ 
+std::string FaultLogSanitizer::ProcessNativeLine(const std::string& line, const std::string& bundleName)
+{
+    std::string soPath;
+    uint64_t relPc = 0;
+    size_t insertPos = 0;
+    if (!ExtractNativeSoInfo(line, soPath, relPc, insertPos)) {
+        return line;
+    }
+    // Sandbox so path → real filesystem path (consistent with DfxOfflineParser::GetBundlePath).
+    std::string realPath = soPath;
+    if (soPath.find(APP_SANDBOX_PREFIX) == 0) {
+        if (StringUtil::ContainsPathTraversal(bundleName)) {
+            HIVIEW_LOGE("bundleName contains path traversal sequence: %{public}s", bundleName.c_str());
+            return line;
+        }
+        realPath = CONVERT_APP_SANBOPX_PREFIX + bundleName + "/" + soPath.substr(strlen(APP_SANDBOX_PREFIX));
+    }
+    // ELF cache: load each so at most once across all native lines.
+    auto it = elfCache_.find(realPath);
+    if (it == elfCache_.end()) {
+        RegularElfFactory factory(realPath);
+        auto elf = factory.Create();
+        if (elf == nullptr || !elf->IsValid()) {
+            elfCache_[realPath] = nullptr; // cache failure to avoid retrying
+            return line;
+        }
+        it = elfCache_.emplace(realPath, std::move(elf)).first;
+    }
+    auto& elf = it->second;
+    if (elf == nullptr) {
+        return line;
+    }
+    std::string funcName;
+    uint64_t funcOffset = 0;
+    if (!DfxSymbols::GetFuncNameAndOffsetByPc(relPc, elf, funcName, funcOffset)) {
+        HIVIEW_LOGW("GetFuncNameAndOffsetByPc failed");
+        return line;
+    }
+    return FormatNativeLine(line, insertPos, funcName, funcOffset);
+}
+
 bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
 {
     // First traversal to read maps intervals, find address intervals corresponding to .hap and other formats
     std::vector<MapInfo> maps = LoadMaps(params.srcLogFile);
-
     std::string line;
+    bool inSubmitterStack = false;
+    unsigned submitterFrameIdx = 0;
+
     params.srcLogFile.clear();
     params.srcLogFile.seekg(0, std::ios::beg);
 
@@ -401,8 +518,21 @@ bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
         if (!params.srcLogFile.good()) {
             break;
         }
+        if (IsAsyncMarker(line)) {
+            line = SUBMITTER_STACK_HEADER;
+            inSubmitterStack = true;
+            submitterFrameIdx = 0;
+        } else if (inSubmitterStack) {
+            if (IsStackFrameLine(line)) {
+                line = RenumberStackFrame(line, submitterFrameIdx++);
+            } else {
+                inSubmitterStack = false;
+            }
+        }
         if (ShouldParseSandBoxPath(line)) {
             line = ProcessArkTsLine(line, params.moduleName, maps, params.needTranslate);
+        } else if (IsStackFrameLine(line)) {
+            line = ProcessNativeLine(line, params.moduleName);
         }
         FileUtil::SaveStringToFd(params.tempFileFd, line);
         FileUtil::SaveStringToFd(params.tempFileFd, "\n");
@@ -415,7 +545,8 @@ bool FaultLogSanitizer::WriteStackInfo(const WriteStackInfoParams& params)
     return true;
 }
 
-bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, const std::string& path, bool needTranslate)
+bool FaultLogSanitizer::ParseSanitizerStackInfo(const std::string& moduleName,
+    const std::string& path, bool needTranslate)
 {
     // If the file size is too large, stack unwinding during faultlog processing may encounter issues
     auto fileSize = FileUtil::GetFileSize(path);
@@ -445,7 +576,7 @@ bool FaultLogSanitizer::ParserArkTsStackInfo(const std::string& moduleName, cons
     return FileUtil::RenameFile(tempPath.c_str(), path.c_str());
 }
 
-bool FaultLogSanitizer::ForkProcessParseArkTsStackInfo(const std::string& moduleName, const std::string& path)
+bool FaultLogSanitizer::ForkProcessParseStackInfo(const std::string& moduleName, const std::string& path)
 {
     if (moduleName.empty() || path.empty()) {
         return false;
@@ -457,7 +588,8 @@ bool FaultLogSanitizer::ForkProcessParseArkTsStackInfo(const std::string& module
         return false;
     }
     if (childPid == 0) {
-        bool ret = ParserArkTsStackInfo(moduleName, path, needTranslate);
+        UnwinderConfig::SetEnableMiniDebugInfo(true);
+        bool ret = ParseSanitizerStackInfo(moduleName, path, needTranslate);
         if (!ret) {
             HIVIEW_LOGE("moduleName: %{public}s, err: %{public}s", moduleName.c_str(), strerror(errno));
             _exit(-1);
@@ -675,7 +807,7 @@ void FaultLogSanitizer::UpdateSysEvent(SysEvent& sysEvent)
 {
     // DEBUG SIGNAL does not need to update HAPPEN_TIME
     if (info_.reason.find("DEBUG SIGNAL") == std::string::npos) {
-        ForkProcessParseArkTsStackInfo(info_.module, info_.logPath);
+        ForkProcessParseStackInfo(info_.module, info_.logPath);
         sysEvent.SetEventValue(FaultKey::HAPPEN_TIME, sysEvent.happenTime_);
     }
     FaultLogEventPipeline::UpdateSysEvent(sysEvent);

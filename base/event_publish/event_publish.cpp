@@ -36,7 +36,6 @@
 #include "string_util.h"
 #include "time_util.h"
 
-using namespace OHOS::HiviewDFX::HiAppEvent;
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
@@ -61,7 +60,10 @@ constexpr const char* const BUNDLE_VERSION = "bundle_version";
 constexpr const char* const CRASH_TYPE = "crash_type";
 constexpr const char* const PID = "pid";
 constexpr const char* const IS_BUSINESS_JANK = "is_business_jank";
-constexpr int32_t MAX_LINK_FILE_NUM = 10;
+constexpr int32_t DEFAULT_LINK_FILE_NUM = 10;
+constexpr int32_t MAX_LINK_FILE_NUM = 100;
+constexpr const char* WATCHER_CONFIG_DIR = "files/watcherConfig";
+constexpr const char* EVENT_CONFIG_DIR = "files/eventConfig";
 constexpr uint64_t MAX_FILE_SIZE = 5 * 1024 * 1024; // 5M
 constexpr uint64_t DMP_MAX_FILE_SIZE = 35 * 1024 * 1024; // 35M
 constexpr uint64_t WATCHDOG_MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M
@@ -71,19 +73,19 @@ constexpr uint64_t BIT_MASK = 1;
 constexpr uint64_t LIMIT_COST_MILLISECOND = 50;
 constexpr int MAX_JSON_DEPTH = 64;
 const std::map<std::string, uint8_t> OS_EVENT_POS_INFOS = {
-    { EVENT_APP_CRASH, 0 },
-    { EVENT_APP_FREEZE, 1 },
-    { EVENT_APP_LAUNCH, 2 },
-    { EVENT_SCROLL_JANK, 3 },
-    { EVENT_CPU_USAGE_HIGH, 4 },
-    { EVENT_BATTERY_USAGE, 5 },
-    { EVENT_RESOURCE_OVERLIMIT, 6 },
-    { EVENT_ADDRESS_SANITIZER, 7 },
-    { EVENT_MAIN_THREAD_JANK, 8 },
-    { EVENT_APP_HICOLLIE, 10 },
-    { EVENT_APP_KILLED, 11 },
-    { EVENT_AUDIO_JANK_FRAME, 12 },
-    { EVENT_APP_FREEZE_WARNING, 14 }
+    { HiAppEvent::EVENT_APP_CRASH, 0 },
+    { HiAppEvent::EVENT_APP_FREEZE, 1 },
+    { HiAppEvent::EVENT_APP_LAUNCH, 2 },
+    { HiAppEvent::EVENT_SCROLL_JANK, 3 },
+    { HiAppEvent::EVENT_CPU_USAGE_HIGH, 4 },
+    { HiAppEvent::EVENT_BATTERY_USAGE, 5 },
+    { HiAppEvent::EVENT_RESOURCE_OVERLIMIT, 6 },
+    { HiAppEvent::EVENT_ADDRESS_SANITIZER, 7 },
+    { HiAppEvent::EVENT_MAIN_THREAD_JANK, 8 },
+    { HiAppEvent::EVENT_APP_HICOLLIE, 10 },
+    { HiAppEvent::EVENT_APP_KILLED, 11 },
+    { HiAppEvent::EVENT_AUDIO_JANK_FRAME, 12 },
+    { HiAppEvent::EVENT_APP_FREEZE_WARNING, 14 }
 };
 
 struct ExternalLogInfo {
@@ -91,13 +93,13 @@ struct ExternalLogInfo {
     std::string subPath;
     std::string sandBoxLogPath;
     uint64_t maxFileSize;
-    int32_t observerNum = MAX_LINK_FILE_NUM;
+    int32_t observerNum = DEFAULT_LINK_FILE_NUM;
 };
 
 void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &externalLogInfo, int32_t uid,
     const std::string& pathHolder)
 {
-    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, EVENT_CONFIG_DIR);
     if (eventConfigDir.empty()) {
         HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
         return;
@@ -109,7 +111,7 @@ void GetEventObserverNum(const std::string &eventName, ExternalLogInfo &external
         HIVIEW_LOGW("failed to get dir cfg xattr about %{public}s.", eventName.c_str());
         return;
     }
-    externalLogInfo.observerNum = StringUtil::StrToInt(value);
+    externalLogInfo.observerNum = std::min(StringUtil::StrToInt(value), MAX_LINK_FILE_NUM);
     HIVIEW_LOGI("%{public}s has %{public}d observers", eventName.c_str(), externalLogInfo.observerNum);
 }
 
@@ -117,11 +119,11 @@ void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalL
     const std::string& pathHolder)
 {
     GetEventObserverNum(eventName, externalLogInfo, uid, pathHolder);
-    if (eventName == EVENT_MAIN_THREAD_JANK) {
+    if (eventName == HiAppEvent::EVENT_MAIN_THREAD_JANK) {
         externalLogInfo.extensionType = ".trace";
         externalLogInfo.subPath = "watchdog";
         externalLogInfo.maxFileSize = WATCHDOG_MAX_FILE_SIZE;
-    } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
+    } else if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {
         externalLogInfo.extensionType = ".log";
         externalLogInfo.subPath = "resourcelimit";
         externalLogInfo.maxFileSize = RESOURCE_OVERLIMIT_MAX_FILE_SIZE;
@@ -129,7 +131,7 @@ void GetExternalLogInfo(const std::string &eventName, ExternalLogInfo &externalL
         externalLogInfo.extensionType = ".log";
         externalLogInfo.subPath = "hiappevent";
         externalLogInfo.maxFileSize = MAX_FILE_SIZE;
-        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+        std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, EVENT_CONFIG_DIR);
         if (eventConfigDir.empty()) {
             HIVIEW_LOGE("Current sandbox eventConfig path is not exist.");
             return;
@@ -192,7 +194,7 @@ ErrCode GetBundleNameAndAppIndex(int32_t uid, std::string& bundleName, int32_t& 
 std::string GetInputMethodPathHolder(const std::string& bundleName, int32_t uid)
 {
     std::string tmpHolder = "+extension-entry-InputMethodExtensionAbility+" + bundleName;
-    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, "cache/hiappevent"))) {
+    if (!FileUtil::FileExists(BundleUtil::GetSandBoxPath(uid, "base", tmpHolder, WATCHER_CONFIG_DIR))) {
         HIVIEW_LOGW("The sandbox of inputMethod extensions does not exist. return common sandbox.");
         return bundleName;
     }
@@ -303,9 +305,9 @@ bool IsDmpFile(const std::string& dmpPath)
 }
 
 bool CheckInSandBoxLog(const std::string& curLogPath, const std::string& sandBoxLogPath, Json::Value& externalLogJson,
-    bool& logOverLimit)
+    bool& logOverLimit, const std::string& eventName)
 {
-    if (curLogPath.find(SANDBOX_DIR) == 0) {
+    if (curLogPath.find(SANDBOX_DIR) == 0 || eventName == HiAppEvent::EVENT_SCROLL_JANK) {
         HIVIEW_LOGI("File in sandbox path not copy.");
         std::string fileName = FileUtil::ExtractFileName(curLogPath);
         if (FileUtil::FileExists(sandBoxLogPath + "/" + fileName)) {
@@ -346,6 +348,23 @@ bool VerifyPathSecurity(const std::string& path)
     return false;
 }
 
+uint64_t GetFolderSize(const std::string& path)
+{
+    std::vector<std::string> files;
+    struct stat statbuf = {0};
+    FileUtil::GetDirFiles(path, files);
+    uint64_t totalSize = 0;
+    std::unordered_set<uint64_t> uniqueInodes;
+    for (auto& file : files) {
+        if (stat(file.c_str(), &statbuf) == 0 && uniqueInodes.count(statbuf.st_ino) == 0) {
+            totalSize += static_cast<uint64_t>(statbuf.st_size);
+            uniqueInodes.insert(statbuf.st_ino);
+        }
+    }
+
+    return totalSize;
+}
+
 void SaveLinkExternalLog(Json::Value& eventJson, const std::string& path, const std::string& sandBoxLogPath,
     std::vector<std::string>& linkExternalLogs)
 {
@@ -363,7 +382,7 @@ void SaveLinkExternalLog(Json::Value& eventJson, const std::string& path, const 
 void CopyExternalLogsToSandBox(int32_t uid, const ExternalLogInfo& externalLogInfo, Json::Value& eventJson,
     uint32_t maxFileSizeBytes, bool needRefined)
 {
-    uint64_t dirSize = FileUtil::GetFolderSize(externalLogInfo.sandBoxLogPath);
+    uint64_t dirSize = GetFolderSize(externalLogInfo.sandBoxLogPath);
     bool logOverLimit = false;
     Json::Value externalLogJson(Json::arrayValue);
     const Json::Value& externalLogArr = eventJson[PARAM_PROPERTY][EXTERNAL_LOG];
@@ -373,7 +392,8 @@ void CopyExternalLogsToSandBox(int32_t uid, const ExternalLogInfo& externalLogIn
         if (externalLogArr[i].isString()) {
             curLogPath = externalLogArr[i].asString();
         }
-        if (CheckInSandBoxLog(curLogPath, externalLogInfo.sandBoxLogPath, externalLogJson, logOverLimit)) {
+        if (CheckInSandBoxLog(curLogPath, externalLogInfo.sandBoxLogPath, externalLogJson, logOverLimit,
+            eventJson[NAME_PROPERTY].asString())) {
             continue;
         }
         if (curLogPath.empty() || !VerifyPathSecurity(curLogPath)) {
@@ -502,7 +522,7 @@ void SetSandBoxAccess(int32_t uid, const std::string& dirPath)
 
 void SaveEventToSandBox(int32_t uid, const std::string& pathHolder, Json::Value& eventJson)
 {
-    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     std::string timeStr = std::to_string(TimeUtil::GetMilliseconds());
     desPath.append(FILE_PREFIX).append(timeStr).append(".txt");
     WriteEventJson(eventJson, desPath);
@@ -604,7 +624,7 @@ bool EventPublish::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 bool EventPublish::Impl::IsAppListenedEvent(int32_t uid, const std::string& eventName)
 {
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     if (!FileUtil::FileExists(basePath)) {
         return false;
     }
@@ -635,7 +655,7 @@ void EventPublish::Impl::SendOverLimitEventToSandBox(int32_t uid, const std::str
     bool needRefined = ShouldRefinedLogFileName(uid, pathHolder);
     SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes, needRefined);
     SaveEventToSandBox(uid, pathHolder, eventJson);
-    UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, EVENT_RESOURCE_OVERLIMIT);
+    UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, HiAppEvent::EVENT_RESOURCE_OVERLIMIT);
     std::lock_guard<std::mutex> lock(mutex_);
     sendingOverlimitThread_.reset();
 }
@@ -664,7 +684,7 @@ void EventPublish::Impl::SendEventToSandBox()
         }
         int32_t uid = StringUtil::StrToInt(uidStr);
         std::string pathHolder = GetPathPlaceHolder(uid);
-        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+        std::string desPath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
         if (!FileUtil::FileExists(desPath)) {
             HIVIEW_LOGE("SendEventToSandBox not exit.");
             (void)FileUtil::RemoveFile(srcPath);
@@ -690,7 +710,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
     }
 
     std::string pathHolder = GetPathPlaceHolder(uid);
-    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/hiappevent");
+    std::string basePath = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, WATCHER_CONFIG_DIR);
     if (!FileUtil::FileExists(basePath)) {
         HIVIEW_LOGE("Current sandbox base path is not exist.");
         (void)FileUtil::RemoveFile(GetTempFilePath(uid));
@@ -706,7 +726,7 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         return;
     }
     Json::Value eventJson;
-    eventJson[DOMAIN_PROPERTY] = DOMAIN_OS;
+    eventJson[DOMAIN_PROPERTY] = HiAppEvent::DOMAIN_OS;
     eventJson[NAME_PROPERTY] = eventName;
     eventJson[EVENT_TYPE_PROPERTY] = eventType;
     eventJson[PARAM_PROPERTY] = std::move(params);
@@ -716,12 +736,13 @@ void EventPublish::Impl::PushEvent(int32_t uid, const std::string& eventName, Hi
         HIVIEW_LOGE("failed to create resourceDir.");
         return;
     }
-    const std::set<std::string> specialEvents = {EVENT_RESOURCE_OVERLIMIT, EVENT_SCROLL_JANK, EVENT_BATTERY_USAGE};
+    const std::set<std::string> specialEvents = {HiAppEvent::EVENT_RESOURCE_OVERLIMIT, HiAppEvent::EVENT_SCROLL_JANK,
+        HiAppEvent::EVENT_BATTERY_USAGE};
     if (specialEvents.find(eventName) == specialEvents.end()) {  // immediate report
         SaveLogToSandBox(uid, pathHolder, eventJson, maxFileSizeBytes);
         SaveEventToSandBox(uid, pathHolder, eventJson);
         UserDataSizeReporter::GetInstance().ReportUserDataSize(uid, pathHolder, eventName);
-    } else if (eventName == EVENT_RESOURCE_OVERLIMIT) {
+    } else if (eventName == HiAppEvent::EVENT_RESOURCE_OVERLIMIT) {
         StartOverLimitThread(uid, pathHolder, eventJson, maxFileSizeBytes);
     } else {  // delay report
         SaveEventToTempFile(uid, eventJson);

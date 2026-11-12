@@ -110,13 +110,17 @@ ohos_shared_library("libperfmonitor") {
       "hilog:libhilog",
       "ipc:ipc_single",
       "init:libbegetutil",
-      "samgr:samgr_proxy"
+      "samgr:samgr_proxy",
+      "json:nlohmann_json_static"
     ]
 
     if (defined(global_parts_info) &&
         defined(global_parts_info.resourceschedule_resource_schedule_service)) {
       defines += [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
       external_deps += [ "resource_schedule_service:ressched_client" ]
+    }
+    if (hiview_xperf_video_jank_detect_enable) {
+      defines += [ "NOTIFY_XPERF_INPUT_EVENT_ENABLE" ]
     }
   }
 }

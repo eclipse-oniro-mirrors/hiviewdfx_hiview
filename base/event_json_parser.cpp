@@ -307,6 +307,9 @@ NAME_INFO_MAP EventJsonParser::ParseEventNameConfig(const std::string& domain, c
 PARAM_INFO_MAP_PTR EventJsonParser::ParseEventParamInfo(const Json::Value& eventContent) const
 {
     PARAM_INFO_MAP_PTR paramMaps = nullptr;
+    if (!eventContent.isObject()) {
+        return paramMaps;
+    }
     auto attrList = eventContent.getMemberNames();
     if (attrList.empty()) {
         return paramMaps;

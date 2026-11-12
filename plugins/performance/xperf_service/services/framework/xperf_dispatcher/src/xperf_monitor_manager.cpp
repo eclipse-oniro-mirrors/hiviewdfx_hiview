@@ -33,6 +33,7 @@ XperfMonitorManager::XperfMonitorManager()
     InitPassthroughMonitor();
     InitAvcodecPerfMonitor();
     InitPlayLatencyMonitor();
+    InitInteractionMonitor();
 }
 
 void XperfMonitorManager::RegisterMonitorByLogID(int32_t logId, XperfMonitor* monitor)
@@ -114,6 +115,16 @@ void XperfMonitorManager::InitPlayLatencyMonitor()
     RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_START, monitor);
     RegisterMonitorByLogID(XperfConstants::AVCODEC_FRAME_STATS, monitor);
     RegisterMonitorByLogID(XperfConstants::VIDEO_FRAME_STATS, monitor);
+}
+
+void XperfMonitorManager::InitInteractionMonitor()
+{
+    XperfMonitor* monitor = &PassthroughMonitor::GetInstance();
+    RegisterMonitorByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY, monitor);
+    RegisterMonitorByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY, monitor);
+    RegisterMonitorByLogID(XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK, monitor);
+    RegisterMonitorByLogID(XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY, monitor);
+    RegisterMonitorByLogID(XperfConstants::PERFMONITOR_ACE_INTERACTION_APP_JANK, monitor);
 }
 
 } // namespace HiviewDFX

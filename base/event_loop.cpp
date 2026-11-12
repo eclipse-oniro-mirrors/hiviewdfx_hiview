@@ -548,9 +548,16 @@ void EventLoop::WaitNextEvent(uint64_t leftTimeMill)
             return;
         } else {
             // process data source callbacks
-            auto it = eventSourceMap_.find(fd);
-            if (it != eventSourceMap_.end()) {
-                it->second->OnFileDescriptorEvent(fd, events);
+            std::shared_ptr<FileDescriptorEventCallback> source = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(queueMutex_);
+                auto it = eventSourceMap_.find(fd);
+                if (it != eventSourceMap_.end()) {
+                    source = it->second;
+                }
+            }
+            if (source != nullptr) {
+                source->OnFileDescriptorEvent(fd, events);
             }
         }
     }

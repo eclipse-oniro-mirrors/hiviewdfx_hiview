@@ -901,6 +901,33 @@ HWTEST_F(EventLoggerTest, OnEventListeningCallbackTest_006, TestSize.Level3)
 }
 
 /**
+ * @tc.name: Test_AppfreezeEvent_001
+ * @tc.desc: Verify THREAD_BLOCK_3S, THREAD_BLOCK_6S and APP_INPUT_BLOCK events .
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventLoggerTest, Test_AppfreezeEvent_001, TestSize.Level3)
+{
+    auto eventLogger = std::make_shared<EventLogger>();
+    setuid(5523); // 5523: uid
+    sleep(1);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_3S", HiSysEvent::EventType::FAULT,
+        "uid_", 5523, "pid_", getpid(), "PID", getpid(), "UID", 5523,
+        "MODULE", "foundation", "MSG", "test remove",
+        "PACKAGE_NAME", "EventLoggerTest1111", "PROCESS_NAME", "EventLoggerTest1111");
+    sleep(3);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "THREAD_BLOCK_6S", HiSysEvent::EventType::FAULT,
+        "uid_", 5523, "pid_", getpid(), "PID", getpid(), "UID", 5523,
+        "MODULE", "foundation", "MSG", "test remove",
+        "PACKAGE_NAME", "EventLoggerTest1111", "PROCESS_NAME", "EventLoggerTest1111");
+    sleep(3);
+    HiSysEventWrite(HiSysEvent::Domain::AAFWK, "APP_INPUT_BLOCK", HiSysEvent::EventType::FAULT,
+        "uid_", 5523, "pid_", getpid(), "PID", getpid(), "UID", 5523,
+        "MODULE", "foundation", "MSG", "test remove",
+        "PACKAGE_NAME", "EventLoggerTest1111", "PROCESS_NAME", "EventLoggerTest1111");
+    EXPECT_TRUE(eventLogger != nullptr);
+}
+
+/**
  * @tc.name: EventLoggerTest_GetFile_001
  * @tc.desc: EventLoggerTest
  * @tc.type: FUNC

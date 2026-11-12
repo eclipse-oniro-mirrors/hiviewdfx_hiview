@@ -16,6 +16,7 @@
 #define FAULTLOG_SANITIZER_H
 
 #include "dfx_ark.h"
+#include "dfx_elf.h"
 #include "faultlog_event_pipeline.h"
 #include "sys_event.h"
 
@@ -48,6 +49,8 @@ public:
     FaultLogSanitizer();
 private:
     bool ShouldParseSandBoxPath(const std::string& line);
+    bool IsStackFrameLine(const std::string& line);
+    bool IsAsyncMarker(const std::string& line);
     bool ConvertPathFromOriginLine(const std::string& line, std::string& pathPrefix, const std::string& bundleName);
     bool SafeStoull(const std::string& str, uint64_t& value, int base);
     bool ExtractLoadInfo(const std::string& line, const std::vector<MapInfo>& maps, const std::string& bundleName,
@@ -63,8 +66,9 @@ private:
     std::vector<MapInfo> LoadMaps(std::ifstream& file);
     bool OpenTempFile(const std::string& tempPath, FILE*& fp, int& tempFileFd);
     bool WriteStackInfo(const WriteStackInfoParams& params);
-    bool ParserArkTsStackInfo(const std::string& moduleName, const std::string& path, bool needTranslate);
-    bool ForkProcessParseArkTsStackInfo(const std::string& moduleName, const std::string& path);
+    std::string ProcessNativeLine(const std::string& line, const std::string& bundleName);
+    bool ParseSanitizerStackInfo(const std::string& moduleName, const std::string& path, bool needTranslate);
+    bool ForkProcessParseStackInfo(const std::string& moduleName, const std::string& path);
     bool IsValidSanitizerEvent(SysEvent& sysEvent);
     bool AddFaultLog(std::shared_ptr<Event>& event) override;
     FaultLogInfo FillFaultLogInfo(SysEvent& sysEvent) override;
@@ -74,6 +78,8 @@ private:
     void UpdateSysEvent(SysEvent& sysEvent) override;
     static void ParseSanitizerEasyEvent(SysEvent& sysEvent);
     static void ReportSanitizerToAppEvent(std::shared_ptr<SysEvent> sysEvent);
+
+    std::unordered_map<std::string, std::shared_ptr<DfxElf>> elfCache_;
 };
 } // namespace HiviewDFX
 } // namespace OHOS

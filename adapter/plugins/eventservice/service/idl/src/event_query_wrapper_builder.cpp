@@ -258,7 +258,6 @@ void BaseEventQueryWrapper::TransportSysEvent(OHOS::HiviewDFX::EventStore::Resul
     const OHOS::sptr<OHOS::HiviewDFX::IQueryBaseCallback>& callback, std::pair<int64_t, int32_t>& details)
 {
     OHOS::HiviewDFX::EventStore::ResultSet::RecordIter iter;
-    CompliantEventChecker compliantEventChecker;
     while (result.HasNext() && argument_.maxEvents > 0) {
         iter = result.Next();
         auto eventJsonStr = iter->AsJsonStr();
@@ -266,7 +265,7 @@ void BaseEventQueryWrapper::TransportSysEvent(OHOS::HiviewDFX::EventStore::Resul
             continue;
         }
         if ((querierInfo_.uid == HID_SHELL) &&
-            !compliantEventChecker.IsCompliantEvent(iter->domain_, iter->eventName_)) {
+            !CompliantEventChecker::IsCompliantEvent(iter->domain_, iter->eventName_)) {
             HIVIEW_LOGD("event [%{public}s|%{public}s] isn't compliant for the process with uid %{public}d",
                 iter->domain_.c_str(), iter->eventName_.c_str(), querierInfo_.uid);
             continue;

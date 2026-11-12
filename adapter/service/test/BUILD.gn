@@ -80,7 +80,7 @@ ohos_unittest("AdapterLoglibraryAbilityTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
+    "access_token:libnativetoken_shared",
     "access_token:libtoken_setproc",
     "ffrt:libffrt",
     "googletest:gtest_main",

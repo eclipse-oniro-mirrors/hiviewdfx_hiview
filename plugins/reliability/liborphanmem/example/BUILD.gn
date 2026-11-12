@@ -1,0 +1,62 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+ohos_shared_library("orphanmem_example") {
+  sources = [
+    "orphanmem_example.cpp",
+  ]
+  cflags = [
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    # "-Wno-error=unused-variable",
+    # "-Wno-error=unused-function",
+    "-frtti",
+  ]
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags_cc = [ "-Os" ]
+  install_enable = false
+  subsystem_name = "hiviewdfx"
+  part_name = "hiview"
+}
+
+ohos_executable("orphanmem_example_main") {
+  sources = [
+    "main.cpp",
+  ]
+  cflags = [
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+  ]
+  deps = [
+    ":orphanmem_example",
+  ]
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags_cc = [ "-Os" ]
+  install_enable = false
+  subsystem_name = "hiviewdfx"
+  part_name = "hiview"
+}

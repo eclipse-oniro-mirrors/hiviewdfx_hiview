@@ -151,7 +151,7 @@ void ConvertLogFileName(const std::string& oldFileName, std::string& newFileName
 
 bool ShouldRefinedLogFileName(int32_t uid, const std::string& pathHolder)
 {
-    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "cache/eventConfig");
+    std::string eventConfigDir = BundleUtil::GetSandBoxPath(uid, "base", pathHolder, "files/eventConfig");
     if (StringUtil::ContainsPathTraversal(eventConfigDir)) {
         HIVIEW_LOGE("pathHolder contains path traversal sequence: %{public}s", pathHolder.c_str());
         return false;
