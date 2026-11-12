@@ -26,6 +26,7 @@
 #include "dfr_util.h"
 #include "old_log_cleaner.h"
 #include "hiview_logger.h"
+#include "leak_unfreezer.h"
 
 using namespace std;
 
