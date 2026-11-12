@@ -44,6 +44,7 @@
 #include "smart_parser.h"
 #include "string_util.h"
 #include "tbox.h"
+#include "parameters.h"
 #include "unwinder_config.h"
 
 namespace OHOS {
