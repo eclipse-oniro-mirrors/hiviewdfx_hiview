@@ -982,7 +982,7 @@ int OldLogCleaner::RemoveMetaInfoFilesInDir(const std::string &dirPath)
             HIVIEW_LOGI("aging remove metainfo file: %{public}s", fullName.c_str());
             deletedCount++;
         } else {
-            HIVIEW_LOGE("failed to remove metainfo file: %{public}s, err: %{public}s", 
+            HIVIEW_LOGE("failed to remove metainfo file: %{public}s, err: %{public}s",
                 fullName.c_str(), strerror(errno));
         }
     }

@@ -221,7 +221,6 @@ private:
     bool ReadAgingLogLines(const std::string &fullLogPath, std::vector<std::string> &lines);
     void TruncateAgingLogFile(const std::string &fullLogPath,
                               std::vector<std::string> &lines, uint64_t maxBytes);
-                                  std::vector<std::string> &lines, uint64_t maxBytes);
     std::atomic<time_t> lastMetaInfoAgingTime_ { 0 };
     int RemoveMetaInfoFilesInDir(const std::string &dirPath);
 };
