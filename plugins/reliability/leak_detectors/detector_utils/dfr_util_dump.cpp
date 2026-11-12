@@ -33,14 +33,12 @@
 #include <thread>
 #include <chrono>
 #include <csignal>
-#include <ability_mgr_helper.h>
 #include "dfr_util.h"
 #include "file_util.h"
 #include "fault_common.h"
 #include "hiview_logger.h"
 #include "bundle_mgr_client.h"
 #include "dirent.h"
-#include "suspend_manager_client.h"
 #include "ffrt.h"
 #include "native_leak_detector.h"
 #include "hitrace_meter.h"
@@ -106,13 +104,6 @@ string DfrUtil::GetExtensionSubtype(AppExecFwk::ExtensionAbilityType type)
 
 string DfrUtil::GetSubtype(pid_t pid, pid_t ppid)
 {
-#ifdef DUBAI_CONFIG_FEATURE_RES_QUOTA
-    AAFwk::ExtensionRunningInfo info;
-    bool ret = XPowerManager::AbilityMgrHelper::Instance().GetPidInfo(pid, info);
-    if (ret) {
-        return GetExtensionSubtype(info.type);
-    }
-#endif
     return GetSubtypeByPpid(ppid);
 }
 
@@ -361,8 +352,8 @@ void DfrUtil::GetAppTelemetryThresholdAndType(const string &bundleName, uint64_t
         thresholdTmp = ReadAppTelemetryThreshold(bundleName, AppExecFwk::ATLT_RSS_KMP_DUMP);
         type = AppExecFwk::ATLT_RSS_KMP_DUMP;
     }
-    HIVIEW_LOGD("app telemetry bundleName: %{public}s, threshold: %{public}d, type: %{public}lu", bundleName.c_str(),
-                thresholdTmp, type);
+    HIVIEW_LOGD("app telemetry bundleName: %{public}s, threshold: %{public}d, type: %{public}" PRIu64,
+                bundleName.c_str(), thresholdTmp, static_cast<uint64_t>(type));
     if (threshold != nullptr) {
         *threshold = thresholdTmp;
     }
@@ -796,7 +787,7 @@ void DfrUtil::DumpAppPageInfo(pid_t pid, const std::string &processName, std::of
     sysEventCreator.SetKeyValue("PROCESS_NAME", processName);
 
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    std::shared_ptr<Event> event = std::static_pointer_cast<Event>(sysEvent);
 
     auto &hiviewInstance = HiviewGlobal::GetInstance();
     if (!hiviewInstance) {

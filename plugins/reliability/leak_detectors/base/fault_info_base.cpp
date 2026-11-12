@@ -20,13 +20,13 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-#include "suspend_manager_client.h"
 #include "bundle_mgr_client.h"
 #include "ffrt.h"
 #include "fault_common.h"
 #include "dfr_util.h"
 #include "old_log_cleaner.h"
 #include "hiview_logger.h"
+#include "leak_unfreezer.h"
 
 using namespace std;
 
@@ -174,8 +174,7 @@ string FaultInfoBase::GetBundleName()
 void FaultInfoBase::UnfreezingProcess()
 {
     const string &bundleName = GetBundleName();
-    SuspendManager::SuspendManagerClient::GetInstance().ThawOneApplication(
-        GetUid(), bundleName, "ACTIVE_BY_DUMP_STACK");
+    UnfreezeLeakProcessByExt(GetUid(), bundleName, "ACTIVE_BY_DUMP_STACK");
     ffrt::this_task::sleep_for(chrono::microseconds(WAIT_TO_UNFREEZE_PROCESS * US_PER_SECOND));
 }
 

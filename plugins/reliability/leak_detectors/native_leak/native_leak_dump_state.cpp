@@ -476,7 +476,6 @@ void NativeLeakDumpState::DumpAnonPageInfo(shared_ptr<NativeLeakInfo> &nlInfo)
     }
     fdsan_exchange_owner_tag(fd, 0, FDSAN_TAG);
     MemSaConfig saConfig;
-    saConfig.mmapAnonymousOnly = true;
 
     MemProfilerParam profilerParam = {
         .duration = GetActuralStopCommandTime(nlInfo),
@@ -563,7 +562,7 @@ void NativeLeakDumpState::ConfigureSimplifiedMemConfig(SimplifiedMemConfig &memC
     memConfig.largestSize = ts1_ > 0 ? static_cast<size_t>(ts1_) : memConfig.largestSize;
     memConfig.secondLargestSize = ts2_ > 0 ? static_cast<size_t>(ts2_) : memConfig.secondLargestSize;
     memConfig.targetSoName = targetSoNames_;
-    HIVIEW_LOGI("sampleSize: %{public}ld, largestSize: %{public}ld, secondLargestSize: %{public}ld",
+    HIVIEW_LOGI("sampleSize: %{public}zu, largestSize: %{public}zu, secondLargestSize: %{public}zu",
         memConfig.sampleSize, memConfig.largestSize, memConfig.secondLargestSize);
     HIVIEW_LOGI("dump so names %{public}s", memConfig.targetSoName.c_str());
 }

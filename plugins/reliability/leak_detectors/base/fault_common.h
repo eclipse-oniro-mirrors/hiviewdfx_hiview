@@ -96,6 +96,7 @@ inline constexpr const char* const NAME_FILE_STRUCT = "file-struct";
 inline constexpr const char* const EVENT_MEMMGR = "memmgrservice";
 inline constexpr const char* const EVENT_FORK_DUMP = "FORK_DUMP_SERVICE";
 inline constexpr const char* const EVENT_UI_TREE = "UI_TREE";
+inline constexpr const char* const EVENT_UPDATE_QUOTA = "UPDATE_QUOTA";
 // Telemetry path and property constants are now in telemetry_types.h
 inline constexpr const char* const BBOX_PATH = "/dev/bbox";
 inline constexpr const char* const MEMORY_LEAK_ENABLE_PROPERTY = "hiview.memleakcheck";

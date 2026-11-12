@@ -28,6 +28,7 @@
 #include "hiview_service.h"
 #include "hiview_service_ability_stub.h"
 #include "hiview_logger.h"
+#include "leak_detector_quota_parcelable.h"
 #include "memory_caller_parcelable.h"
 #include "singleton.h"
 #include "system_ability.h"
@@ -67,6 +68,8 @@ public:
     ErrCode IsolateSubProcess(const std::string& packageName, int32_t mainProcPid, int32_t subProcPid,
                               int32_t& errNo, int32_t& ret) override;
     ErrCode RequestUiTree(int32_t pid, const sptr<IRequestUiTreeCallback> &callback) override;
+    ErrCode UpdateLeakDetectorQuota(
+        const std::vector<LeakDetectorQuotaParcelable>& quotaList, int32_t& errNo, int32_t& ret) override;
 
 protected:
     void OnDump() override;

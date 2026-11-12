@@ -14,6 +14,7 @@
  */
 #include "kernel_leak_config.h"
 
+#include <cinttypes>
 #include <fstream>
 #include "fault_common.h"
 #include "dfr_util.h"
@@ -81,9 +82,10 @@ void KernelLeakConfig::UpdatePolicy(const cJSON *node)
 
 void KernelLeakConfig::Print()
 {
-    HIVIEW_LOGI("enable: %{public}d, uploadInterval: %{public}ld, ionUsageThreshold: %{public}d, "
+    HIVIEW_LOGI("enable: %{public}d, uploadInterval: %{public}" PRId64 ", ionUsageThreshold: %{public}d, "
                 "slabObjThresholdMb: %{public}d",
-                kernelParam_.enable, kernelParam_.uploadInterval, GetCommonKeyValue("ion_usage_threshold").intValue,
+                kernelParam_.enable, static_cast<int64_t>(kernelParam_.uploadInterval),
+                GetCommonKeyValue("ion_usage_threshold").intValue,
                 GetCommonKeyValue("slab_obj_threshold_MB").intValue);
     HIVIEW_LOGI("rsWatchPoint, warn: %{public}d, cpu: %{public}d, gpu: %{public}d, total: %{public}d",
                 kernelParam_.rsWatchpoint.processWarningThreshold, kernelParam_.rsWatchpoint.processCpuControlThreshold,

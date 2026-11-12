@@ -78,6 +78,10 @@ ohos_shared_library("bdfr") {
     "$hiview_plugin/reliability/bbox_detectors:bbox_detector_with_cfi",
   ]
 
+  if (hiview_enable_leak_detector) {
+    deps += [ "$hiview_plugin/reliability/leak_detectors:libleakdetectors" ]
+  }
+
   external_deps = [
     "hilog:libhilog",
   ]

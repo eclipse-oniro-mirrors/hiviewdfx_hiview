@@ -15,6 +15,7 @@
  * Create: 2024-8-21
  */
 
+#include <cinttypes>
 #include <climits>
 #include <sys/sendfile.h>
 #include <cJSON.h>
@@ -821,7 +822,7 @@ bool OldLogCleaner::MayOverFolderSize(uint64_t &currentSize, uint64_t &currentSi
     currentSize = CalcFolderSizeExcludingRawheap();
     currentSizeMB = currentSize / BYTE_PER_MB;
     if (currentSizeMB <= static_cast<uint64_t>(oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB)) {
-        HIVIEW_LOGD("Resource leak dir size (excl. RAWHEAP): %{public}lu MB, below limit: %{public}d MB",
+        HIVIEW_LOGD("Resource leak dir size (excl. RAWHEAP): %{public}" PRIu64 " MB, below limit: %{public}d MB",
                     currentSizeMB, oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB);
         return false;
     }
@@ -852,7 +853,7 @@ bool OldLogCleaner::RemoveFolderAgingFile(const LogFile &logFile, LogType fileTy
     }
     removedSize += static_cast<uint64_t>(statBuf.st_size);
     SubFileLeakNums(fileType);
-    HIVIEW_LOGD("folder-aging Removed old file: %{public}s, size: %{public}lu",
+    HIVIEW_LOGD("folder-aging Removed old file: %{public}s, size: %{public}" PRIu64,
                 logFile.path_.c_str(), static_cast<uint64_t>(statBuf.st_size));
     return true;
 }
@@ -864,7 +865,7 @@ void OldLogCleaner::MayRemoveOldLogByFolderSize(const LogType &triggerType)
     if (!MayOverFolderSize(currentSize, currentSizeMB)) {
         return;
     }
-    HIVIEW_LOGI("Resource leak dir size: %{public}lu MB, exceeds limit: %{public}d MB, start aging",
+    HIVIEW_LOGI("Resource leak dir size: %{public}" PRIu64 " MB, exceeds limit: %{public}d MB, start aging",
                 currentSizeMB, oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB);
 
     vector<LogFile> fileList;
@@ -874,7 +875,7 @@ void OldLogCleaner::MayRemoveOldLogByFolderSize(const LogType &triggerType)
     int removedCount = ExecuteFolderAging(currentSize, sizeLimitMB, fileList);
 
     uint64_t remainSizeMB = currentSize / BYTE_PER_MB; // size after aging already logged inside ExecuteFolderAging
-    HIVIEW_LOGI("folder-aging completed, removed %{public}d files, current size: %{public}lu MB",
+    HIVIEW_LOGI("folder-aging completed, removed %{public}d files, current size: %{public}" PRIu64 " MB",
                 removedCount, remainSizeMB);
 }
 
@@ -1001,7 +1002,8 @@ void OldLogCleaner::CheckAndAgingFolderSize()
     uint64_t nonRawheapSizeMB = nonRawheapSize / BYTE_PER_MB;
     uint64_t totalSizeMB = totalSize / BYTE_PER_MB;
 
-    HIVIEW_LOGI("Folder size check: total=%{public}lu MB, non-rawheap=%{public}lu MB, limit=%{public}d MB",
+    HIVIEW_LOGI("Folder size check: total=%{public}" PRIu64 " MB, non-rawheap=%{public}" PRIu64 " MB, "
+                "limit=%{public}d MB",
                 totalSizeMB, nonRawheapSizeMB, FOLDER_SIZE_LIMIT_MB);
 
     bool needAging = nonRawheapSizeMB > static_cast<uint64_t>(FOLDER_SIZE_LIMIT_MB);
@@ -1019,7 +1021,7 @@ void OldLogCleaner::CheckAndAgingFolderSize()
 void OldLogCleaner::DoFolderSizeAging(uint64_t currentSize, uint64_t currentSizeMB,
                                       const std::vector<LogFile> &fileList)
 {
-    HIVIEW_LOGI("Start folder-size aging: non-rawheap size=%{public}lu MB, limit=%{public}d MB",
+    HIVIEW_LOGI("Start folder-size aging: non-rawheap size=%{public}" PRIu64 " MB, limit=%{public}d MB",
                 currentSizeMB, FOLDER_SIZE_LIMIT_MB);
     ExecuteFolderAging(currentSize, static_cast<uint64_t>(FOLDER_SIZE_LIMIT_MB), fileList);
 }
@@ -1054,8 +1056,8 @@ int OldLogCleaner::ExecuteFolderAging(uint64_t currentSize, uint64_t sizeLimitMB
     }
 
     uint64_t remainSizeMB = (currentSize - removedSize) / BYTE_PER_MB;
-    HIVIEW_LOGI("Folder aging executed: removed %{public}d files, %{public}lu bytes,"
-                "remaining: %{public}lu MB, removed %{public}d files",
+    HIVIEW_LOGI("Folder aging executed: removed %{public}d files, %{public}" PRIu64 " bytes,"
+                "remaining: %{public}" PRIu64 " MB, removed %{public}d files",
                 removedCount, removedSize, remainSizeMB, removedCount);
     return removedCount;
 }
@@ -1228,7 +1230,7 @@ void OldLogCleaner::AgingFolderAgingLog()
     if (static_cast<uint64_t>(statBuf.st_size) <= maxBytes) {
         return;
     }
-    HIVIEW_LOGI("Folder aging log exceeds %{public}lu bytes (current: %{public}lu), truncating",
+    HIVIEW_LOGI("Folder aging log exceeds %{public}" PRIu64 " bytes (current: %{public}" PRIu64 "), truncating",
                 maxBytes, static_cast<uint64_t>(statBuf.st_size));
 
     std::vector<std::string> lines;

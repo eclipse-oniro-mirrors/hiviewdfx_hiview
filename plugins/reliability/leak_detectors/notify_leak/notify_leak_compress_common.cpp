@@ -14,6 +14,7 @@
  */
 
 #include "notify_leak_compress_common.h"
+#include <cinttypes>
 #include "notify_leak_compress_manager.h"
 #include "telemetry_manager.h"
 #include "fault_info_base.h"
@@ -161,7 +162,8 @@ string NotifyLeakCompressCommon::GetLeakFileZipPath(const shared_ptr<NotifyLeakI
 void NotifyLeakCompressCommon::DoScheduleKill()
 {
     time_t curTime = time(nullptr);
-    HIVIEW_LOGI("curTime is %{public}ld,lastKillTime is %{public}ld", curTime, lastKillTime);
+    HIVIEW_LOGI("curTime is %{public}" PRId64 ",lastKillTime is %{public}" PRId64,
+        static_cast<int64_t>(curTime), static_cast<int64_t>(lastKillTime));
     if (difftime(curTime, lastKillTime) < KILL_REPEAT_INTERVAL_S) {
         return;
     } else {

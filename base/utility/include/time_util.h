@@ -17,6 +17,7 @@
 #define UTILITY_TIME_UTIL_H
 
 #include <cstdint>
+#include <ctime>
 #include <string>
 
 namespace OHOS {
@@ -30,6 +31,7 @@ constexpr int64_t MICROSEC_TO_NANOSEC = 1000;
 constexpr int SECONDS_PER_MINUTE = 60; // 60 seconds
 constexpr int SECONDS_PER_HOUR = 3600; // 60 * 60
 constexpr int SECONDS_PER_DAY = 86400; // 60 * 60 * 24
+constexpr int SECONDS_PER_WEEK = 604800; // 7 * 24 * 60 * 60
 constexpr uint64_t MILLISECS_PER_DAY = 60 * 60 * 24 * 1000;
 constexpr int MAX_TIME_BUFF = 64; // 64 : for example 2021-05-27-01-01-01
 constexpr int MAX_BUFFER_SIZE = 80;
@@ -56,6 +58,7 @@ int64_t Get0ClockStampMs(time_t timeStamp = std::time(nullptr));
 uint64_t GetSteadyClockTimeMs();
 uint64_t GetBootTimeMs();
 uint64_t GetMonotonicTimeMs();
+bool LongerThanAWeek(time_t t1, time_t t2);
 
 // time format as YYYYmmddHHMMSSxxx
 // eg. 202404222319765

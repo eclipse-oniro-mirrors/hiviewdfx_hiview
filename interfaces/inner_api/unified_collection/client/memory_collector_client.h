@@ -36,6 +36,17 @@ struct GraphicUsage {
     int32_t graph = 0;
 };
 
+struct LeakDetectorQuotaInfo {
+    std::string processName;
+    std::string resType;
+    int32_t processType = 0;
+    int64_t resource = 0;
+    int64_t duration = 0;
+    std::string action;
+    std::string preCleanProcess;
+    std::vector<uint32_t> condition;
+};
+
 class RequestUiTreeCallback {
     public:
     virtual ~RequestUiTreeCallback() = default;
@@ -55,6 +66,8 @@ public:
     virtual CollectResult<int32_t> IsolateSubProcess(
         const std::string& packageName, int32_t mainProcPid, int32_t subProcPid) = 0;
     virtual CollectResult<int32_t> RequestUiTree(pid_t pid, std::shared_ptr<RequestUiTreeCallback> callback) = 0;
+    virtual CollectResult<int32_t> UpdateLeakDetectorQuota(
+        const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList = {}) = 0;
 }; // MemoryCollector
 } // UCollectClient
 } // HiviewDFX

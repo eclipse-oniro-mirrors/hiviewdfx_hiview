@@ -37,7 +37,6 @@
 #include "app_event_handler.h"
 #include "app_event_publisher.h"
 #include "ffrt.h"
-#include "operators/handlers/display/ForegroundAttr.h"
 #include "app_mgr_client.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"

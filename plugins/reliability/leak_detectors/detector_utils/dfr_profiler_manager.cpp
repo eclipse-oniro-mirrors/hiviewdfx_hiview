@@ -196,7 +196,6 @@ bool DfrProfilerManager::StartProfiler(MemProfilerParam &param)
             param.saConfig.mask = param.resType;
             break;
         case ANON_PAGE:
-            param.saConfig.mmapAnonymousOnly = true;
             break;
         default:
             HIVIEW_LOGE("unsupported profiler type");

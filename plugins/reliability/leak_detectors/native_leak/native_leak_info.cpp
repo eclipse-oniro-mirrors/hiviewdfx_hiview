@@ -16,18 +16,19 @@
  */
 
 #include "native_leak_info.h"
+#include <cinttypes>
 #include "hiview_logger.h"
 #include "fault_common.h"
 #include "fault_detector_manager.h"
 #include "hitrace_meter.h"
 #include "third_party_config.h"
-#include "xpower_manager_client.h"
 #include "telemetry_manager.h"
 #include "old_log_cleaner.h"
 #include "hisysevent.h"
+#include "parameters.h"
+#include "cJSON.h"
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -83,10 +84,10 @@ const std::map<std::string, QuotaAction> ACTION_MAP = {
     { "kill",     ACTION_KILL },
     { "clean",     ACTION_CLEAN },
 };
-const std::unordered_map<ResourceQuotaCtl::ConditionInfo, QuotaCondition> CONDITION_MAP = {
-    { ResourceQuotaCtl::CONDITION_FOREGROUND, CONDITION_FOREGROUND },
-    { ResourceQuotaCtl::CONDITION_BACKGROUND, CONDITION_BACKGROUND },
-    { ResourceQuotaCtl::CONDITION_STANDBY,    CONDITION_STANDBY }
+const std::unordered_map<uint32_t, QuotaCondition> CONDITION_MAP = {
+    { CONDITION_FOREGROUND, CONDITION_FOREGROUND },
+    { CONDITION_BACKGROUND, CONDITION_BACKGROUND },
+    { CONDITION_STANDBY,    CONDITION_STANDBY }
 };
 const map<string, string> KILL_TYPE_MAP = {
     {"PSS_MEMORY", "mem"},
@@ -157,10 +158,94 @@ void NativeLeakInfo::FillQuotaInfo(Quota &quota, const ProcessResDetails &detail
     }
 }
 
-void NativeLeakInfo::UpdateQuota()
+namespace {
+void ParseQuotaCommonFields(cJSON* item, ProcessResDetails &detail)
+{
+    cJSON* resourceObj = cJSON_GetObjectItem(item, "resource");
+    if (resourceObj != nullptr && cJSON_IsNumber(resourceObj)) {
+        detail.resource = static_cast<int64_t>(resourceObj->valuedouble);
+    }
+    cJSON* durationObj = cJSON_GetObjectItem(item, "duration");
+    if (durationObj != nullptr && cJSON_IsNumber(durationObj)) {
+        detail.duration = static_cast<int64_t>(durationObj->valuedouble);
+    }
+    cJSON* actionObj = cJSON_GetObjectItem(item, "action");
+    if (actionObj != nullptr && cJSON_IsString(actionObj)) {
+        detail.action = actionObj->valuestring;
+    }
+    cJSON* preCleanObj = cJSON_GetObjectItem(item, "preCleanProcess");
+    if (preCleanObj != nullptr && cJSON_IsString(preCleanObj)) {
+        detail.preCleanProcess = preCleanObj->valuestring;
+    }
+    cJSON* conditionArr = cJSON_GetObjectItem(item, "condition");
+    if (conditionArr != nullptr && cJSON_IsArray(conditionArr)) {
+        int condSize = cJSON_GetArraySize(conditionArr);
+        for (int j = 0; j < condSize; j++) {
+            cJSON* condItem = cJSON_GetArrayItem(conditionArr, j);
+            if (condItem != nullptr && cJSON_IsNumber(condItem)) {
+                detail.condition.push_back(static_cast<uint32_t>(condItem->valuedouble));
+            }
+        }
+    }
+}
+
+bool ParseQuotaItem(cJSON* item, string &processName, ProcessResDetails &detail)
+{
+    cJSON* resTypeObj = cJSON_GetObjectItem(item, "resType");
+    if (resTypeObj == nullptr || !cJSON_IsString(resTypeObj)) {
+        return false;
+    }
+    detail.resType = resTypeObj->valuestring;
+    if (detail.resType != "mem") {
+        return false;
+    }
+    cJSON* processNameObj = cJSON_GetObjectItem(item, "processName");
+    if (processNameObj == nullptr || !cJSON_IsString(processNameObj)) {
+        return false;
+    }
+    processName = processNameObj->valuestring;
+    ParseQuotaCommonFields(item, detail);
+    return true;
+}
+
+bool ParseProcessQuota(const string &quotaData, map<string, vector<ProcessResDetails>> &processQuota)
+{
+    if (quotaData.empty()) {
+        HIVIEW_LOGW("quotaData is empty, skip update");
+        return false;
+    }
+    cJSON* root = cJSON_Parse(quotaData.c_str());
+    if (root == nullptr || !cJSON_IsArray(root)) {
+        HIVIEW_LOGE("failed to parse quotaData JSON");
+        if (root != nullptr) {
+            cJSON_Delete(root);
+        }
+        return false;
+    }
+    int arraySize = cJSON_GetArraySize(root);
+    for (int i = 0; i < arraySize; i++) {
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (item == nullptr || !cJSON_IsObject(item)) {
+            continue;
+        }
+        string processName;
+        ProcessResDetails detail;
+        if (ParseQuotaItem(item, processName, detail)) {
+            processQuota[processName].push_back(std::move(detail));
+        }
+    }
+    cJSON_Delete(root);
+    return true;
+}
+}
+
+void NativeLeakInfo::UpdateQuota(const std::string& quotaData)
 {
     map<string, vector<ProcessResDetails>> processQuota;
-    ResourceQuotaManager::Instance().GetProcessQuota(RESTYPE_MEM_STR, processQuota);
+    if (!ParseProcessQuota(quotaData, processQuota)) {
+        return;
+    }
+    HIVIEW_LOGI("parsed quotaData, process count: %{public}zu", processQuota.size());
     localMtx_.lock();
     for (const auto &elem : processQuota) {
         const string &name = elem.first;
@@ -823,13 +908,7 @@ void NativeLeakInfo::SetTotalMem(int32_t totalMem)
 ProcessAnomalyInfo NativeLeakInfo::GetProcessInfoToKill()
 {
     ProcessAnomalyInfo processInfoForKill;
-    OHOS::XPowerManager::ProcessInfo procInfo;
-    if (ProcessMgr::Instance().GetProcessInfoByName(processName_, procInfo) && procInfo.pid == pid_) {
-        processInfoForKill.type = procInfo.subProcessType;
-    } else {
-        HIVIEW_LOGE("cannot get process info by name: %{public}s, continue", processName_.c_str());
-        processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
-    }
+    processInfoForKill.type = UNSPECIFIED_PROCESS_TYPE;
     unordered_set<string> invalidNameList = { "appspawn", "apppool" };
     processInfoForKill.processName = invalidNameList.count(processName_) != 0 ?
         DfrUtil::GetInstance().GetProcessName(pid_) : processName_;
@@ -841,7 +920,7 @@ ProcessAnomalyInfo NativeLeakInfo::GetProcessInfoToKill()
     processInfoForKill.pid = pid_;
     if (processSourceInfo_.type == STANDBY_DETECT) {
         processInfoForKill.resType = "standby_clean";
-        processInfoForKill.condition.emplace_back(ResourceQuotaCtl::CONDITION_STANDBY);
+        processInfoForKill.condition.emplace_back(CONDITION_STANDBY);
     } else if (KILL_TYPE_MAP.count(GetEventName()) != 0) {
         processInfoForKill.resType = KILL_TYPE_MAP.at(GetEventName());
     } else {
@@ -864,9 +943,9 @@ ProcessAnomalyInfo NativeLeakInfo::GetProcessInfoToKill()
         return processInfoForKill;
     }
     if (localThresholds_[temp][action].conditions & CONDITION_FOREGROUND) {
-        processInfoForKill.condition.emplace_back(ResourceQuotaCtl::CONDITION_FOREGROUND);
+        processInfoForKill.condition.emplace_back(CONDITION_FOREGROUND);
     } else if (localThresholds_[temp][action].conditions & CONDITION_BACKGROUND) {
-        processInfoForKill.condition.emplace_back(ResourceQuotaCtl::CONDITION_BACKGROUND);
+        processInfoForKill.condition.emplace_back(CONDITION_BACKGROUND);
     }
     localMtx_.unlock();
     return processInfoForKill;
@@ -1492,7 +1571,7 @@ bool NativeLeakInfo::ServiceLeakCheck(int threshold)
     if (totalMem <= static_cast<uint64_t>(threshold)) {
         return false;
     }
-    HIVIEW_LOGI("processName: %{public}s, pid: %{public}d, totalMem: %{public}ld, threshold: %{public}d",
+    HIVIEW_LOGI("processName: %{public}s, pid: %{public}d, totalMem: %{public}" PRIu64 ", threshold: %{public}d",
         processName_.c_str(), pid_, totalMem, threshold);
     // Quota mem->condition contain standby, action actually is clean, but send the ability manager service
     // a kill action
@@ -1551,7 +1630,7 @@ bool NativeLeakInfo::CheckProfilerFinish()
         HIVIEW_LOGE("get snapShot file stat failed");
         return false;
     }
-    HIVIEW_LOGI("profilerFile size: %{public}ld", profilerFileInfo.st_size);
+    HIVIEW_LOGI("profilerFile size: %{public}" PRId64, static_cast<int64_t>(profilerFileInfo.st_size));
     if (profilerFileInfo.st_size < PROFILER_SIZE_BASELINE) {
         return false;
     }

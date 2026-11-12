@@ -1,8 +1,10 @@
-plugins:2
+plugins:3
 Faultlogger[]:0 static
 BBoxDetectorPlugin[thread:bbox_detector]:0 static
-pipelines:2
+LeakDetectors[thread:leak_detectors]:0 dynamic
+pipelines:3
 faultloggerPipeline:EventValidator PrivacyController Faultlogger FaultloggerFilter SysEventDispatcher SysEventStore
 BBoxDetectorPipeline:EventValidator PrivacyController BBoxDetectorPlugin SysEventDispatcher SysEventStore
+LeakDetectorsPipeline:EventValidator PrivacyController LeakDetectors SysEventDispatcher SysEventStore
 pipelinegroups:1
-SysEventSource:faultloggerPipeline BBoxDetectorPipeline
+SysEventSource:faultloggerPipeline BBoxDetectorPipeline LeakDetectorsPipeline

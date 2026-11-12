@@ -162,6 +162,11 @@ std::string GetFormattedTimestampEndWithMilli()
     ss << std::setfill('0') << std::setw(MILLISECONDS_LENGTH) << milliSeconds;
     return ss.str();
 }
+
+bool LongerThanAWeek(time_t t1, time_t t2)
+{
+    return difftime(t1, t2) > SECONDS_PER_WEEK;
+}
 } // namespace TimeUtil
 } // namespace HiviewDFX
 } // namespace OHOS

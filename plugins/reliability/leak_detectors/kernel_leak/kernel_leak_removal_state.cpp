@@ -35,7 +35,6 @@
 #include "waiting_kill_list.h"
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 using namespace OHOS;
 
 namespace {

@@ -15,6 +15,7 @@
 
 #include "cred_event_handler.h"
 
+#include <cinttypes>
 #include <fcntl.h>
 #include <fstream>
 #include <mutex>
@@ -191,8 +192,8 @@ std::shared_ptr<LeakEventInfoBase> CredEventHandler::HandleMessage(SysEvent sysE
     }
     auto credInfo = static_pointer_cast<CredLeakInfo>(eventInfo);
     if (credInfo->IsEverReported()) {
-        HIVIEW_LOGE("Event: %{public}s has Reported at %{public}ld",
-            credInfo->GetEventName().c_str(), credInfo->GetLastReportRecord());
+        HIVIEW_LOGE("Event: %{public}s has Reported at %{public}" PRId64,
+            credInfo->GetEventName().c_str(), static_cast<int64_t>(credInfo->GetLastReportRecord()));
         return nullptr;
     }
     credInfo->SetLeakedTime();
