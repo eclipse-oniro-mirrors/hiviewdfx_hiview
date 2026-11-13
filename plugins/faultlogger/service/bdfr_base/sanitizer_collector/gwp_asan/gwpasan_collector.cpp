@@ -46,7 +46,7 @@ const mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
 const unsigned MIN_SUMMARY_SPACE = 10;
 
 const char FAULTLOGGER_PATH[] = "faultlogger";
-constexpr unsigned G_ASAN_LOG_SIZE = 2.5 * 1024 * 1024;
+constexpr unsigned G_ASAN_LOG_SIZE = 1 * 1024 * 1024;
 char g_asanlog[G_ASAN_LOG_SIZE];
 std::atomic<size_t> g_asanlogLen;
 std::atomic_flag g_asanlogLock = ATOMIC_FLAG_INIT;
