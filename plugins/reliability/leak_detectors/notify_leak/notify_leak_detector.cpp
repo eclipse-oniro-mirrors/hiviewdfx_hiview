@@ -92,6 +92,7 @@ void NotifyLeakDetector::HandleDetector(int interval)
     }
     OldLogCleaner::GetInstance().CheckAndAgingRawheapFiles();
     OldLogCleaner::GetInstance().CheckAndAgingFolderSize();
+    OldLogCleaner::GetInstance().CheckAndAgingMetaInfoFiles();
     string lastTimeStr = system::GetParameter("persist.hiview.oomdump.lasttime", "");
     if (lastTimeStr.empty()) {
         HIVIEW_LOGI("there is no parameter for omm, create");

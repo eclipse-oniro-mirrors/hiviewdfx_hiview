@@ -62,6 +62,7 @@ enum LogType {
     UI_TREE,
     RS_TREE,
     VNODE_LOG,
+    STABILITY_CHECK,
     UNKNOWN_LOG_TYPE,
     COUNT
 };
@@ -91,6 +92,7 @@ inline constexpr const char* const LOG_TYPE_NAME[] = {
     "uiTreeLog",
     "rsTreeLog",
     "vnodeLog",
+    "stabilityCheckLog",
     "unknowLog"
 };
 
@@ -114,6 +116,7 @@ public:
     void GetFileParams(LogType logtype, FaultInfoBase *faultInfo, FileParams &fileParams);
     void CheckAndAgingRawheapFiles();
     void CheckAndAgingFolderSize();
+    void CheckAndAgingMetaInfoFiles();
     void DeleteLogFile(const std::string &filePath);
     std::string GetFolderAgingLogPath() const;
 
@@ -218,6 +221,8 @@ private:
     bool ReadAgingLogLines(const std::string &fullLogPath, std::vector<std::string> &lines);
     void TruncateAgingLogFile(const std::string &fullLogPath,
                               std::vector<std::string> &lines, uint64_t maxBytes);
+    std::atomic<time_t> lastMetaInfoAgingTime_ { 0 };
+    int RemoveMetaInfoFilesInDir(const std::string &dirPath);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
