@@ -19,8 +19,16 @@
 #include <cstddef>
 #include <sys/stat.h>
 
+constexpr size_t MAX_END_MARKER_LEN = 32;
+constexpr char FAULT_TYPE_GWP_ASAN[] = "GWP-ASAN";
+constexpr char FAULT_TYPE_TSAN[] = "TSAN";
+constexpr char FAULT_TYPE_UBSAN[] = "UBSAN";
+constexpr char FAULT_TYPE_HWASAN[] = "HWASAN";
+constexpr char FAULT_TYPE_ASAN[] = "ASAN";
+
 void GetFormatedTime(uint64_t target, char* buf, size_t bufSize);
 void GetNameByPid(int32_t pid, char* buf, size_t bufSize);
 bool ToAbsolutePath(const char* path, char* output, size_t outSize);
 bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize);
+const char* DetectFaultType(const char* tail, size_t tailLen, const char* data, size_t len);
 #endif

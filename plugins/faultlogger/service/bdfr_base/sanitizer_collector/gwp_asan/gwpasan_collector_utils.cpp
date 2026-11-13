@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved.
+ * Copyright (c) 2026 Huawei Device Co., Ltd. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,77 @@ constexpr size_t SYMLINK_CHECK_BUF_SIZE = 512;
 constexpr size_t MIN_RESOLVED_BUF_SIZE = 2;
 constexpr size_t CURRENT_DIR_BUF_SIZE = 1;
 constexpr size_t PARENT_DIR_BUF_SIZE = 2;
+constexpr int TIMEZONE_OFFSET_SECONDS = 8 * 3600;  // UTC+8
+constexpr char END_GWP_ASAN_REPORT[] = "End GWP-ASan report";
+constexpr char END_TSAN_REPORT[] = "End Tsan report";
+constexpr char END_CFI_REPORT[] = "End CFI report";
+constexpr char END_UBSAN_REPORT[] = "End Ubsan report";
+constexpr char END_HWASAN_REPORT[] = "End Hwasan report";
+constexpr char END_ASAN_REPORT[] = "End Asan report";
+}
+
+const char* FindEndMarker(const char* data, size_t len, const char* marker)
+{
+    size_t markerLen = strlen(marker);
+    if (markerLen == 0 || len < markerLen) {
+        return nullptr;
+    }
+    const char* cur = data;
+    size_t remain = len;
+    while (remain >= markerLen) {
+        const char* pos = static_cast<const char*>(memchr(cur, marker[0], remain - markerLen + 1));
+        if (pos == nullptr) {
+            return nullptr;
+        }
+        if (memcmp(pos, marker, markerLen) == 0) {
+            return pos;
+        }
+        remain -= static_cast<size_t>(pos - cur) + 1;
+        cur = pos + 1;
+    }
+    return nullptr;
+}
+
+bool IsMarkerCrossBoundary(const char* tail, size_t tailLen, const char* data, size_t len, const char* marker)
+{
+    size_t markerLen = strlen(marker);
+    for (size_t k = 1; k < markerLen && k <= tailLen; ++k) {
+        size_t need = markerLen - k;
+        if (need > len) {
+            continue;
+        }
+        if (memcmp(tail + tailLen - k, marker, k) == 0 && memcmp(data, marker + k, need) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const char* DetectFaultType(const char* tail, size_t tailLen, const char* data, size_t len)
+{
+    if (FindEndMarker(data, len, END_GWP_ASAN_REPORT) != nullptr ||
+        IsMarkerCrossBoundary(tail, tailLen, data, len, END_GWP_ASAN_REPORT)) {
+        return FAULT_TYPE_GWP_ASAN;
+    }
+    if (FindEndMarker(data, len, END_TSAN_REPORT) != nullptr ||
+        IsMarkerCrossBoundary(tail, tailLen, data, len, END_TSAN_REPORT)) {
+        return FAULT_TYPE_TSAN;
+    }
+    if (FindEndMarker(data, len, END_CFI_REPORT) != nullptr ||
+        IsMarkerCrossBoundary(tail, tailLen, data, len, END_CFI_REPORT) ||
+        FindEndMarker(data, len, END_UBSAN_REPORT) != nullptr ||
+        IsMarkerCrossBoundary(tail, tailLen, data, len, END_UBSAN_REPORT)) {
+        return FAULT_TYPE_UBSAN;
+    }
+    if (FindEndMarker(data, len, END_HWASAN_REPORT) != nullptr ||
+        IsMarkerCrossBoundary(tail, tailLen, data, len, END_HWASAN_REPORT)) {
+        return FAULT_TYPE_HWASAN;
+    }
+    if (FindEndMarker(data, len, END_ASAN_REPORT) != nullptr ||
+        IsMarkerCrossBoundary(tail, tailLen, data, len, END_ASAN_REPORT)) {
+        return FAULT_TYPE_ASAN;
+    }
+    return nullptr;
 }
 
 void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
@@ -51,17 +122,10 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     if (buf == nullptr || bufSize == 0) {
         return;
     }
-    struct timespec ts;
-    (void)clock_gettime(CLOCK_REALTIME, &ts);
-    time_t now = static_cast<time_t>(ts.tv_sec);
-    uint64_t millsec = 0;
-    if (target > static_cast<uint64_t>(now) * TIME_RATIO) {
-        millsec = target % TIME_RATIO;
-        target = target / TIME_RATIO;
-    }
-    time_t out = static_cast<time_t>(target);
+    uint64_t millsec = target % TIME_RATIO;
+    time_t out = static_cast<time_t>(target / TIME_RATIO) + TIMEZONE_OFFSET_SECONDS;
     struct tm tmStruct {0};
-    struct tm* timeInfo = localtime_r(&out, &tmStruct);
+    struct tm* timeInfo = gmtime_r(&out, &tmStruct);
     if (timeInfo == nullptr) {
         strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
         return;
@@ -137,7 +201,7 @@ bool IsValidInputPath(const char* path)
         if ((segLen == CURRENT_DIR_BUF_SIZE && path[segStart] == '.') ||
            (segLen == PARENT_DIR_BUF_SIZE && path[segStart] == '.' && path[segStart + 1] == '.')) {
             return false;
-            }
+        }
     }
     return true;
 }
