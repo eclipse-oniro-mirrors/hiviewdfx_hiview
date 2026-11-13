@@ -65,5 +65,14 @@ group("fuzztest") {
   deps = [
     "test/fuzztest/hiviewlogconfigmanager_fuzzer:HiviewLogConfigManagerFuzzTest",
     "test/fuzztest/hiviewserviceabilitystub_fuzzer:HiviewServiceAbilityStubFuzzTest",
+    "test/fuzztest/opentrace_fuzzer:OpenTraceFuzzTest",
+    "test/fuzztest/dumpsnapshottrace_fuzzer:DumpSnapshotTraceFuzzTest",
+    "test/fuzztest/recordingtraceon_fuzzer:RecordingTraceOnFuzzTest",
+    "test/fuzztest/recordingtraceoff_fuzzer:RecordingTraceOffFuzzTest",
+    "test/fuzztest/closetrace_fuzzer:CloseTraceFuzzTest",
+    "test/fuzztest/capturedurationtrace_fuzzer:CaptureDurationTraceFuzzTest",
+    "test/fuzztest/requestapptrace_fuzzer:RequestAppTraceFuzzTest",
+    "test/fuzztest/getsyscpuusage_fuzzer:GetSysCpuUsageFuzzTest",
+    "test/fuzztest/getgraphicusage_fuzzer:GetGraphicUsageFuzzTest",
   ]
 }
