@@ -142,8 +142,8 @@ const std::map<LogType, LogTypeStru> logTypeStruMap = {
     {LogType::RS_TREE, {"rsTreeLog", MEMORY_LEAK_PATH, "rstree", "memleak-kernel"}},
     {LogType::MEDIA, {"mediaLog", MEMORY_LEAK_PATH, "media", "memleak"}},
     {LogType::AVC, {"avcLog", MEMORY_LEAK_PATH, "avc", "memleak"}},
+    {LogType::VNODE_LOG, {"vnodeLog", FILE_DESCRIPTOR_LEAK_PATH, "orphanvnode", "orphanvnode"}},
     {LogType::STABILITY_CHECK, {"stabilityCheckLog", MEMORY_LEAK_PATH, "stabilitycheck", "memleak-stabilitycheck"}}
-    {LogType::VNODE_LOG, {"vnodeLog", FILE_DESCRIPTOR_LEAK_PATH, "orphanvnode", "orphanvnode"}}
 };
 
 void OldLogCleaner::GetOldLogFilesByLogType(const LogTypeStru &logTypeStru, vector<LogFile> &fileList)
