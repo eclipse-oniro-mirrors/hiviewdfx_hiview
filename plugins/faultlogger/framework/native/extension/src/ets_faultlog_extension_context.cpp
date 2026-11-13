@@ -57,11 +57,12 @@ ani_object CreateEtsFaultLogExtensionContext(ani_env* env, std::shared_ptr<Fault
         return nullptr;
     }
     std::unique_ptr<EtsFaultLogExtensionContext> etsContext = std::make_unique<EtsFaultLogExtensionContext>(context);
-    if ((status = env->Object_New(cls, method, &contextObj, reinterpret_cast<ani_long>(etsContext.release()))) !=
+    if ((status = env->Object_New(cls, method, &contextObj, reinterpret_cast<ani_long>(etsContext.get()))) !=
             ANI_OK) {
         HIVIEW_LOGE("status: %{public}d", status);
         return nullptr;
     }
+    etsContext.release();
     if ((status = env->Object_SetFieldByName_Long(contextObj, "nativeContext", (ani_long)context.get())) != ANI_OK) {
         HIVIEW_LOGE("status: %{public}d", status);
         return nullptr;

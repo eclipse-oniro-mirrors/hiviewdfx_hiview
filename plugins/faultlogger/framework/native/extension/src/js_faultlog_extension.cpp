@@ -93,7 +93,7 @@ napi_value AttachFaultLogExtensionContext(napi_env env, void *value, void *)
         extensionContext = nullptr;
         return nullptr;
     }
-    
+
     return contextObj;
 }
 
@@ -129,7 +129,7 @@ void JsFaultLogExtension::Init(const std::shared_ptr<AppExecFwk::AbilityLocalRec
         return;
     }
     BindContext(env, obj);
-    
+
     HIVIEW_LOGD("end Init.");
 }
 
@@ -200,10 +200,10 @@ bool CallFuncation(napi_env env, std::unique_ptr<NativeReference> &jsObj_, const
         return false;
     }
 
-    napi_value method;
-    napi_get_named_property(env, value, functionName, &method);
-    if (method == nullptr) {
-        HIVIEW_LOGE("FaultLogExtension call function %{public}s error, method name is nullptr", functionName);
+    napi_value method = nullptr;
+    napi_status status = napi_get_named_property(env, value, functionName, &method);
+    if (status != napi_ok || method == nullptr) {
+        HIVIEW_LOGE("FaultLogExtension call function %{public}s error, status: %{public}d", functionName, status);
         return false;
     }
 
@@ -230,16 +230,7 @@ sptr<IRemoteObject> JsFaultLogExtension::OnConnect(const AAFwk::Want& want)
     if (handler_ == nullptr) {
         return remoteObject->AsObject();
     }
-    auto task = [=]() {
-        AbilityRuntime::HandleScope handleScope(jsRuntime_);
-        napi_env env = jsRuntime_.GetNapiEnv();
-
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "JsFaultLogExtension::onConnect");
-        if (!CallFuncation(env, jsObj_, "onConnect")) {
-            return;
-        }
-    };
-    handler_->PostTask(task);
+    PostCallFuncTask("onConnect");
     return remoteObject->AsObject();
 }
 
@@ -251,16 +242,7 @@ void JsFaultLogExtension::OnDisconnect(const AAFwk::Want& want)
     if (handler_ == nullptr) {
         return;
     }
-    auto task = [=]() {
-        AbilityRuntime::HandleScope handleScope(jsRuntime_);
-        napi_env env = jsRuntime_.GetNapiEnv();
-
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "JsFaultLogExtension::onDisconnect");
-        if (!CallFuncation(env, jsObj_, "onDisconnect")) {
-            return;
-        }
-    };
-    handler_->PostTask(task);
+    PostCallFuncTask("onDisconnect");
 }
 
 void JsFaultLogExtension::OnFaultReportReady()
@@ -269,12 +251,22 @@ void JsFaultLogExtension::OnFaultReportReady()
         return;
     }
     HIVIEW_LOGD("begin OnFaultReportReady.");
-    auto task = [=]() {
-        AbilityRuntime::HandleScope handleScope(jsRuntime_);
-        napi_env env = jsRuntime_.GetNapiEnv();
+    PostCallFuncTask("onFaultReportReady");
+}
 
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "JsFaultLogExtension::onFaultReportReady");
-        if (!CallFuncation(env, jsObj_, "onFaultReportReady")) {
+void JsFaultLogExtension::PostCallFuncTask(const std::string &methodName)
+{
+    std::weak_ptr<JsFaultLogExtension> weakThis = std::static_pointer_cast<JsFaultLogExtension>(shared_from_this());
+    auto task = [weakThis, methodName]() {
+        auto self = weakThis.lock();
+        if (self == nullptr) {
+            return;
+        }
+        AbilityRuntime::HandleScope handleScope(self->jsRuntime_);
+        napi_env env = self->jsRuntime_.GetNapiEnv();
+
+        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "JsFaultLogExtension::" + methodName);
+        if (!CallFuncation(env, self->jsObj_, methodName.c_str())) {
             return;
         }
     };

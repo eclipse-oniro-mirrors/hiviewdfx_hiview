@@ -34,6 +34,7 @@ public:
     ~DynamicLibraryHandle();
 
     void* GetSymbol(const char* symbol);
+    bool IsOpen() const;
     void UpdateTimeout(uint64_t timeOut);
 
 private:
