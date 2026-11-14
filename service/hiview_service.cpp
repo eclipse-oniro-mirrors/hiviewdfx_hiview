@@ -245,9 +245,9 @@ int32_t HiviewService::CopyFile(const std::string& srcFilePath, const std::strin
         close(srcFd);
         return ERR_DEFAULT;
     }
-    int destFd = open(destFilePath.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IROTH);
+    int destFd = open(destFilePath.c_str(), O_WRONLY | O_CREAT | O_NOFOLLOW, S_IRUSR | S_IWUSR | S_IROTH);
     if (destFd == -1) {
-        HIVIEW_LOGE("failed to open destination file, des=%{public}s", StringUtil::HideSnInfo(destFilePath).c_str());
+        HIVIEW_LOGE("failed to open destination file, errno: %{public}d", errno);
         close(srcFd);
         return ERR_DEFAULT;
     }
