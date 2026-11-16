@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <atomic>
 #include "scene_monitor.h"
 #include "jank_frame_monitor.h"
 #include "load_complete_monitor.h"
@@ -35,6 +36,8 @@ static constexpr uint32_t SENSITIVE_SCENE_RESTYPE = 72;
 static constexpr const char* const SENSITIVE_SCENE_EXTTYPE = "10000";
 static constexpr int64_t APP_LIST_FLING_EXIT_GC = 2;
 static constexpr const char* const BUNDLE_NAME_SCENE_BOARD = "com.ohos.sceneboard";
+static constexpr size_t MAX_UI_CONTEXT_MESSAGE_RECORD_COUNT = 5;
+std::atomic<int64_t> g_uiContextMessageReceivedTime {0};
 
 void SceneManager::OnSceneStart(const SceneType& type)
 {
@@ -140,12 +143,52 @@ SceneMonitor::SceneMonitor()
 {
     RegisterSceneCallback(this);
     AnimatorMonitor::GetInstance().RegisterAnimatorCallback(this);
+    Rosen::RSInterfaces::GetInstance().RegisterUIContextMessageCallbacks(
+        [this](uint32_t messageId) { OnUIContextMessageReceived(messageId); },
+        [this](uint32_t messageId) { OnUIContextMessageProcessed(messageId); });
 }
 
 SceneMonitor::~SceneMonitor()
 {
+    Rosen::RSInterfaces::GetInstance().UnRegisterUIContextMessageCallbacks();
     UnregisterSceneCallback(this);
     AnimatorMonitor::GetInstance().UnregisterAnimatorCallback(this);
+}
+
+void SceneMonitor::OnUIContextMessageReceived(uint32_t messageId)
+{
+    std::lock_guard<std::mutex> lock(uiContextMessageMutex_);
+    int64_t receivedTime = GetCurrentRealTimeNs();
+    XPERF_TRACE_SCOPED("OnUIContextMessageReceived messageId is %u, receivedTime is %ld",
+        messageId, receivedTime);
+    auto it = uiContextMessageReceivedTime_.find(messageId);
+    if (it != uiContextMessageReceivedTime_.end()) {
+        it->second = receivedTime;
+        return;
+    }
+    if (uiContextMessageReceivedTime_.size() > MAX_UI_CONTEXT_MESSAGE_RECORD_COUNT) {
+        uiContextMessageReceivedTime_.erase(uiContextMessageReceivedTime_.begin());
+    }
+    uiContextMessageReceivedTime_.emplace(messageId, receivedTime);
+}
+
+void SceneMonitor::OnUIContextMessageProcessed(uint32_t messageId)
+{
+    XPERF_TRACE_SCOPED("OnUIContextMessageProcessed messageId is %u", messageId);
+    std::lock_guard<std::mutex> lock(uiContextMessageMutex_);
+    auto it = uiContextMessageReceivedTime_.find(messageId);
+    if (it == uiContextMessageReceivedTime_.end()) {
+        g_uiContextMessageReceivedTime.store(-1);
+        HIVIEW_LOGE("no find messageId %ld", it->second);
+        return;
+    }
+    g_uiContextMessageReceivedTime.store(it->second);
+    uiContextMessageReceivedTime_.erase(it);
+}
+
+int64_t SceneMonitor::GetUIContextMessageReceivedTime() const
+{
+    return g_uiContextMessageReceivedTime.load();
 }
 
 void SceneMonitor::RegisterSceneCallback(ISceneCallback* cb)

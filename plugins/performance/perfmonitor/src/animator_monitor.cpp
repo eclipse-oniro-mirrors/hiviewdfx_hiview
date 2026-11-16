@@ -110,6 +110,10 @@ void AnimatorMonitor::OnAnimatorStop(const std::string& sceneId, bool isRsRender
     if (record != nullptr) {
         int64_t mVsyncTime = InputMonitor::GetInstance().GetVsyncTime();
         record->Report(sceneId, mVsyncTime, isRsRender);
+        int64_t animEndTime = SceneMonitor::GetInstance().GetUIContextMessageReceivedTime();
+        if (sceneId == PerfConstants::ABILITY_OR_PAGE_SWITCH && animEndTime > 0) {
+            record->endVsyncTime = animEndTime;
+        }
         ReportAnimateEnd(sceneId, record);
         RemoveRecord(sceneId);
         XperfAsyncTraceEnd(0, sceneId.c_str());

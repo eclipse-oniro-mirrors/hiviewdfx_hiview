@@ -99,6 +99,11 @@ public:
     void SetVsyncLazyMode(uint64_t sceneTag);
 
     void OnLastUpInputEvent();
+
+    // callbacks for UI context message lifecycle
+    void OnUIContextMessageReceived(uint32_t messageId);
+    void OnUIContextMessageProcessed(uint32_t messageId);
+    int64_t GetUIContextMessageReceivedTime() const;
  
 private:
     void NotifyRsJankStatsBegin();
@@ -111,6 +116,9 @@ private:
     mutable std::mutex mMutex;
     SceneManager mNonexpManager;
     std::vector<ISceneCallback*> sceneCallbacks;
+
+    std::map<uint32_t, int64_t> uiContextMessageReceivedTime_;
+    std::mutex uiContextMessageMutex_;
 
     uint32_t countStart = 0;
     int64_t preStartTime = 0;
