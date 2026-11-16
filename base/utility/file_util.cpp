@@ -458,6 +458,10 @@ std::string ReadSymlink(const std::string &path)
     }
     return "";
 }
+
+std::string RealPath(const std::string &path)
+{
+}
 } // namespace FileUtil
 } // namespace HiviewDFX
 } // namespace OHOS
