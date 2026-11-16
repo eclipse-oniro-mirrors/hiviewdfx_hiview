@@ -59,6 +59,8 @@ public:
     static constexpr const char* EVENT_IS_BLOCK_IN_GC = "IS_BLOCK_IN_GC";
     static constexpr const char* EVENT_PROCESS_LIFECYCLE_INFO = "PROCESS_LIFECYCLE_INFO";
     static constexpr const char* APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
+    static constexpr const char* EVENT_MODULE = "MODULE";
+    static constexpr const char* APP_RUNNING_ID = "APP_RUNNING_ID";
     static constexpr const char* FOREGROUND = "FOREGROUND";
     static constexpr const char* EVENT_TASK_NAME = "TASK_NAME";
     static constexpr const char* QNAME = "QNAME";
