@@ -34,6 +34,7 @@ class FdLeakStateContext : public FaultStateContextBase, public DelayedRefSingle
 
 public:
     FaultStateBase* GetStateObj(FaultStateType state) override;
+    FdLeakDumpState* GetDumpState() { return &dumpState_; }
 
 private:
     FdLeakDumpState dumpState_;

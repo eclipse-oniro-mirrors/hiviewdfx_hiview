@@ -50,6 +50,10 @@ bool DomainJsonParser::CacheDomainJsonLocation(const std::string& defFilePath)
         HIVIEW_LOGE("parse json file failed, please check the style of json file: %{public}s", defFilePath.c_str());
         return false;
     }
+    if (!hiSysEventDef.isObject()) {
+        HIVIEW_LOGE("invalid json content, root is not an object: %{public}s", defFilePath.c_str());
+        return false;
+    }
     std::unique_lock<ffrt::mutex> uniqueLock(domainMtx_);
     domainLocationMap_->clear();
 

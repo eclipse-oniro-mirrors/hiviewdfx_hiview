@@ -107,6 +107,7 @@
         "OHOS::HiviewDFX::LogStoreEx::SetMinKeepingFileNumber(unsigned int)";
         "OHOS::HiviewDFX::LogStoreEx::Init(bool)";
         "OHOS::HiviewDFX::EventLoop::AddFileDescriptorEventCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::HiviewDFX::FileDescriptorEventCallback>)";
+        "OHOS::HiviewDFX::EventLoop::RemoveFileDescriptorEventCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::SysEvent::SetEventValue(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
         "OHOS::HiviewDFX::PipelineEvent::SetPipelineInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::list<std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>, std::__h::allocator<std::__h::weak_ptr<OHOS::HiviewDFX::Plugin>>>&)";
         "OHOS::HiviewDFX::LogStoreEx::LogStoreEx(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool)";
@@ -538,6 +539,9 @@
         "OHOS::HiviewDFX::TranslateStrVector(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::vector<char*, std::__h::allocator<char*>>&)";
         "OHOS::HiviewDFX::TranslateEventType(OHOS::HiviewDFX::HiSysEvent::EventType)";
         "OHOS::HiviewDFX::CommonUtils::GetPidByProcessName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::CommonUtils::GetBundleQuotaPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+        "OHOS::HiviewDFX::CommonUtils::GetFreeRomMb()";
+        "OHOS::HiviewDFX::TimeUtil::LongerThanAWeek(long, long)";
     };
   local:
     *;

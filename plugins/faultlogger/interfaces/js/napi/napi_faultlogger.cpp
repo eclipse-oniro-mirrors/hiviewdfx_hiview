@@ -276,6 +276,34 @@ static napi_value AddFaultLog(napi_env env, napi_callback_info info)
     return result;
 }
 
+static bool CheckQueryParams(napi_env env, size_t parameterCount, napi_value* parameters)
+{
+    if (parameterCount < ONE_PARAMETER) {
+        HIVIEW_LOGE("parameterCount Incorrect %{public}zu", parameterCount);
+        NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM, NapiUtil::CreateParamRequiredErrMsg(0));
+        return false;
+    }
+    if (parameterCount > TWO_PARAMETER) {
+        HIVIEW_LOGE("parameterCount Incorrect %{public}zu", parameterCount);
+        NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM,
+            NapiUtil::CreateParamCntErrMsg(ONE_PARAMETER, TWO_PARAMETER, parameterCount));
+        return false;
+    }
+    if (NapiUtil::IsMatchType(env, parameters[ONE_PARAMETER - 1], napi_undefined) ||
+        NapiUtil::IsMatchType(env, parameters[ONE_PARAMETER - 1], napi_null)) {
+        HIVIEW_LOGE("parameters[0] is null or undefined");
+        NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM, NapiUtil::CreateParamRequiredErrMsg(0));
+        return false;
+    }
+    if (!NapiUtil::IsMatchType(env, parameters[ONE_PARAMETER - 1], napi_number)) {
+        HIVIEW_LOGE("parameters[0] type isn't number");
+        NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM, NapiUtil::CreateParamTypeErrMsg(0,
+            "number", NapiUtil::GetTypeName(env, parameters[ONE_PARAMETER - 1])));
+        return false;
+    }
+    return true;
+}
+
 static napi_value Query(napi_env env, napi_callback_info info)
 {
     size_t parameterCount = 2;
@@ -285,15 +313,7 @@ static napi_value Query(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &parameterCount, parameters, &thisVar, &data));
 
     napi_value result = NapiUtil::CreateUndefined(env);
-    if (parameterCount < ONE_PARAMETER || parameterCount > TWO_PARAMETER) {
-        HIVIEW_LOGE("parameterCount Incorrect %{public}zu", parameterCount);
-        NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM, NapiUtil::CreateParamCntErrMsg());
-        return result;
-    }
-
-    if (!NapiUtil::IsMatchType(env, parameters[ONE_PARAMETER - 1], napi_number)) {
-        HIVIEW_LOGE("parameters[0] type isn't number");
-        NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM, NapiUtil::CreateErrMsg("type", napi_number));
+    if (!CheckQueryParams(env, parameterCount, parameters)) {
         return result;
     }
     if (!CheckFaultloggerStatus()) {
@@ -308,8 +328,8 @@ static napi_value Query(napi_env env, napi_callback_info info)
     } else if (parameterCount == TWO_PARAMETER) {
         if (!NapiUtil::IsMatchType(env, parameters[TWO_PARAMETER - 1], napi_function)) {
             HIVIEW_LOGE("parameters[1] type isn't function");
-            NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM,
-                NapiUtil::CreateErrMsg("callback", napi_function), true);
+            NapiUtil::ThrowError(env, NapiError::ERR_INPUT_PARAM, NapiUtil::CreateParamTypeErrMsg(1,
+                "function", NapiUtil::GetTypeName(env, parameters[TWO_PARAMETER - 1])));
             return result;
         }
         if (!ProcessCallbackRef(env, parameters[TWO_PARAMETER - 1], faultLogInfoContext)) {

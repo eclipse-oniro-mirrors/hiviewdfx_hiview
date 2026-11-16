@@ -154,11 +154,12 @@ std::vector<SysEvent> DBHelper::SelectRecords(unsigned long long start, unsigned
     return records;
 }
 
-std::vector<SysEvent> DBHelper::SelectRecordsByPidUid(long pid, long uid,
-    const std::string& domain, const std::vector<std::string>& eventNames)
+std::vector<SysEvent> DBHelper::SelectRecordsByModuleAppRunningId(const std::string& module,
+    const std::string& appRunningId, const std::string& domain,
+    const std::vector<std::string>& eventNames)
 {
     std::vector<SysEvent> records;
-    if (freezeCommon_ == nullptr) {
+    if (freezeCommon_ == nullptr || module.empty() || appRunningId.empty()) {
         return records;
     }
     auto eventQuery = EventStore::SysEventDao::BuildQuery(domain, eventNames);
@@ -166,8 +167,8 @@ std::vector<SysEvent> DBHelper::SelectRecordsByPidUid(long pid, long uid,
         return records;
     }
     eventQuery->Select({ EventStore::EventCol::TS })
-        .Where("PID", EventStore::Op::EQ, static_cast<int64_t>(pid))
-        .And("UID", EventStore::Op::EQ, static_cast<int64_t>(uid))
+        .Where(FreezeCommon::EVENT_MODULE, EventStore::Op::EQ, module)
+        .And(FreezeCommon::APP_RUNNING_ID, EventStore::Op::EQ, appRunningId)
         .Order(EventStore::EventCol::TS, false);
 
     EventStore::ResultSet set = eventQuery->Execute();
@@ -177,8 +178,8 @@ std::vector<SysEvent> DBHelper::SelectRecordsByPidUid(long pid, long uid,
             records.emplace_back(*record);
         }
     }
-    HIVIEW_LOGD("select records by pid=%{public}ld, uid=%{public}ld, size =%{public}zu.",
-        pid, uid, records.size());
+    HIVIEW_LOGD("select records by module=%{public}s, appRunningId=%{public}s, size =%{public}zu.",
+        module.c_str(), appRunningId.c_str(), records.size());
     return records;
 }
 } // namespace HiviewDFX

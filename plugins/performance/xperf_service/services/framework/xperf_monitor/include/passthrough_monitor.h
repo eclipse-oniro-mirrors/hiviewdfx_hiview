@@ -47,6 +47,7 @@ private:
     void OnAppForeground(OhosXperfEvent* event);
     void OnTouchAction(OhosXperfEvent* event);
     void OnAudioStart(OhosXperfEvent* event);
+    void ForwardInteractionEvent(OhosXperfEvent* event);
     std::string GetBundleName(int64_t uniqueId);
  
     PassthroughMonitor() = default;

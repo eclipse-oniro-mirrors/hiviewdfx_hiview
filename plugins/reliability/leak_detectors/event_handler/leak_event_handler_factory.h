@@ -24,6 +24,7 @@
 #include "arkweb_v8_oom_event_handler.h"
 #include "cj_oom_event_handler.h"
 #include "jsvm_oom_event_handler.h"
+#include "rs_fd_warning_event_handler.h"
 #include <string>
 
 namespace OHOS {

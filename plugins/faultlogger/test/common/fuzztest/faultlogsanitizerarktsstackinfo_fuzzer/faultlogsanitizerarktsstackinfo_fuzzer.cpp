@@ -50,7 +50,7 @@ void CleanupTempFile(const std::string& tmpPath)
     std::remove((tmpPath + ".tmp").c_str());
 }
 
-void FuzzParserArkTsStackInfo(FuzzDataSource& source)
+void FuzzParseSanitizerStackInfo(FuzzDataSource& source)
 {
     std::string moduleName;
     if (!ReadString(source, moduleName)) {
@@ -65,11 +65,11 @@ void FuzzParserArkTsStackInfo(FuzzDataSource& source)
         return;
     }
     FaultLogSanitizer sanitizer;
-    (void)sanitizer.ParserArkTsStackInfo(moduleName, tmpPath, false);
+    (void)sanitizer.ParseSanitizerStackInfo(moduleName, tmpPath, false);
     CleanupTempFile(tmpPath);
 }
 
-void FuzzForkProcessParseArkTsStackInfo(FuzzDataSource& source)
+void FuzzForkProcessParseStackInfo(FuzzDataSource& source)
 {
     std::string moduleName;
     if (!ReadString(source, moduleName)) {
@@ -84,7 +84,7 @@ void FuzzForkProcessParseArkTsStackInfo(FuzzDataSource& source)
         return;
     }
     FaultLogSanitizer sanitizer;
-    (void)sanitizer.ForkProcessParseArkTsStackInfo(moduleName, tmpPath);
+    (void)sanitizer.ForkProcessParseStackInfo(moduleName, tmpPath);
     CleanupTempFile(tmpPath);
 }
 }
@@ -92,8 +92,8 @@ void FuzzForkProcessParseArkTsStackInfo(FuzzDataSource& source)
 void FuzzArkTsStackInfo(const uint8_t* data, size_t size)
 {
     FuzzDataSource source(data, size);
-    FuzzParserArkTsStackInfo(source);
-    FuzzForkProcessParseArkTsStackInfo(source);
+    FuzzParseSanitizerStackInfo(source);
+    FuzzForkProcessParseStackInfo(source);
 }
 }
 

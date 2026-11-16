@@ -44,6 +44,231 @@ using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace HiviewDFX {
 static std::string TEST_PATH = "/data/test/log/test.txt";
+// These tests must not change SELinux mode: IO permission is part of the contract.
+class EventLoggerProcessIOTest : public testing::Test {};
+
+static std::shared_ptr<SysEvent> MakeProcessIOEvent(const std::string& name)
+{
+    auto event = std::make_shared<SysEvent>("ProcessIOTest", nullptr, "{\"domain_\":\"AAFWK\"}");
+    event->eventName_ = name;
+    event->happenTime_ = TimeUtil::GetMilliseconds();
+    event->SetEventValue("PID", getpid());
+    event->SetEventValue("UID", static_cast<int32_t>(getuid()));
+    event->SetEventValue("PACKAGE_NAME", "ProcessIOTest");
+    return event;
+}
+
+HWTEST_F(EventLoggerProcessIOTest, HalfAndFreeze, TestSize.Level1)
+{
+    EventLogger logger;
+    auto half = MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG");
+    logger.CollectProcessIO(half);
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    const auto halfIO = logger.halfProcessIO_.at(getpid()).io;
+    EXPECT_EQ(halfIO.find("rchar:"), 0u);
+    auto halfLog = MakeProcessIOEvent("THREAD_BLOCK_3S");
+    logger.CollectProcessIO(halfLog);
+    EXPECT_EQ(halfLog->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), halfIO);
+    auto freeze = MakeProcessIOEvent("THREAD_BLOCK_6S");
+    logger.CollectProcessIO(freeze);
+    EXPECT_FALSE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+    EXPECT_TRUE(logger.halfProcessIO_.empty());
+    std::ostringstream log;
+    logger.WriteIOStr(halfLog, log);
+    logger.WriteIOStr(freeze, log);
+    auto first = log.str().find("I/O(bytes): ");
+    ASSERT_NE(first, std::string::npos);
+    auto second = log.str().find("I/O(bytes): ", first + 1);
+    ASSERT_NE(second, std::string::npos);
+    EXPECT_EQ(log.str().find("I/O(bytes): ", second + 1), std::string::npos);
+}
+
+HWTEST_F(EventLoggerProcessIOTest, IdentityMismatch, TestSize.Level1)
+{
+    EventLogger logger;
+    auto half = MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG");
+    logger.CollectProcessIO(half);
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    logger.halfProcessIO_.at(getpid()).startTime = "different-process";
+    logger.halfProcessIO_.at(getpid()).io = "stale";
+    auto freeze = MakeProcessIOEvent("THREAD_BLOCK_3S");
+    logger.CollectProcessIO(freeze);
+    EXPECT_NE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), "stale");
+    EXPECT_FALSE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+
+    logger.CollectProcessIO(half);
+    freeze->SetEventValue("UID", static_cast<int32_t>(getuid()) + 1);
+    freeze->SetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO, "");
+    logger.CollectProcessIO(freeze);
+    EXPECT_TRUE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+}
+
+HWTEST_F(EventLoggerProcessIOTest, ExpirationAndLimit, TestSize.Level1)
+{
+    EventLogger logger;
+    auto half = MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG");
+    logger.CollectProcessIO(half);
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    auto snapshot = logger.halfProcessIO_.at(getpid());
+    logger.halfProcessIO_.at(getpid()).collectedTime = TimeUtil::GetMonotonicTimeMs() - 60001;
+    logger.halfProcessIO_.at(getpid()).io = "stale";
+    auto freeze = MakeProcessIOEvent("LIFECYCLE_HALF_TIMEOUT");
+    logger.CollectProcessIO(freeze);
+    EXPECT_NE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), "stale");
+    for (int32_t pid = 1000000; pid < 1000064; ++pid) {
+        logger.halfProcessIO_[pid] = snapshot;
+    }
+    logger.CollectProcessIO(half);
+    EXPECT_EQ(logger.halfProcessIO_.size(), 64u);
+    EXPECT_EQ(logger.halfProcessIO_.count(getpid()), 1u);
+}
+
+HWTEST_F(EventLoggerProcessIOTest, InvalidAndUnrelatedEvents, TestSize.Level1)
+{
+    EventLogger logger;
+    logger.CollectProcessIO(nullptr);
+    EXPECT_TRUE(logger.ReadProcessIO(-1).empty());
+    auto event = MakeProcessIOEvent("THREAD_BLOCK_6S");
+    event->SetEventValue("PID", -1);
+    logger.CollectProcessIO(event);
+    EXPECT_TRUE(event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+    event = MakeProcessIOEvent("UNRELATED");
+    logger.CollectProcessIO(event);
+    EXPECT_TRUE(event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+}
+
+HWTEST_F(EventLoggerProcessIOTest, OriginalFormat, TestSize.Level1)
+{
+    EventLogger logger;
+    auto event = MakeProcessIOEvent("THREAD_BLOCK_6S");
+    event->SetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO, "rchar:3,wchar:4");
+    std::ostringstream log;
+    logger.WriteIOStr(event, log);
+    EXPECT_EQ(log.str(), "I/O(bytes): rchar 3, wchar 4\n");
+}
+
+HWTEST_F(EventLoggerProcessIOTest, ExistingHalfLogDoesNotDuplicateIO, TestSize.Level1)
+{
+    EventLogger logger;
+    logger.CollectProcessIO(MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG"));
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    auto halfIO = logger.halfProcessIO_.at(getpid()).io;
+    auto halfLog = MakeProcessIOEvent("THREAD_BLOCK_3S");
+    logger.CollectProcessIO(halfLog);
+    EXPECT_EQ(halfLog->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), halfIO);
+    auto freeze = MakeProcessIOEvent("THREAD_BLOCK_6S");
+    logger.CollectProcessIO(freeze);
+    std::ostringstream mergedLog;
+    logger.WriteIOStr(halfLog, mergedLog);
+    logger.WriteIOStr(freeze, mergedLog);
+    auto first = mergedLog.str().find("I/O(bytes): ");
+    ASSERT_NE(first, std::string::npos);
+    auto second = mergedLog.str().find("I/O(bytes): ", first + 1);
+    ASSERT_NE(second, std::string::npos);
+    EXPECT_EQ(mergedLog.str().find("I/O(bytes): ", second + 1), std::string::npos);
+}
+
+HWTEST_F(EventLoggerProcessIOTest, ExitedProcessKeepsHalfInOriginalSection, TestSize.Level1)
+{
+    EventLogger logger;
+    auto half = MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG");
+    logger.CollectProcessIO(half);
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    auto snapshot = logger.halfProcessIO_.at(getpid());
+    constexpr int32_t exitedPid = 2147483647;
+    logger.halfProcessIO_.clear();
+    logger.halfProcessIO_[exitedPid] = snapshot;
+    auto halfLog = MakeProcessIOEvent("THREAD_BLOCK_3S");
+    halfLog->SetEventValue("PID", exitedPid);
+    logger.CollectProcessIO(halfLog);
+    EXPECT_EQ(halfLog->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), snapshot.io);
+}
+
+HWTEST_F(EventLoggerProcessIOTest, PackageAndEventTimeMismatch, TestSize.Level1)
+{
+    EventLogger logger;
+    auto half = MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG");
+    logger.CollectProcessIO(half);
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    logger.halfProcessIO_.at(getpid()).io = "stale";
+    auto freeze = MakeProcessIOEvent("THREAD_BLOCK_3S");
+    freeze->SetEventValue("PACKAGE_NAME", "different-package");
+    logger.CollectProcessIO(freeze);
+    EXPECT_NE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), "stale");
+    logger.CollectProcessIO(half);
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    logger.halfProcessIO_.at(getpid()).io = "stale";
+    freeze = MakeProcessIOEvent("THREAD_BLOCK_3S");
+    freeze->happenTime_ = half->happenTime_ - 1;
+    logger.CollectProcessIO(freeze);
+    EXPECT_NE(freeze->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), "stale");
+}
+
+HWTEST_F(EventLoggerProcessIOTest, LiveProcessEventScenarios, TestSize.Level1)
+{
+    // Event-level coverage: this is not a real lifecycle or input timeout.
+    for (const auto& name : {"THREAD_BLOCK_3S", "THREAD_BLOCK_6S", "LIFECYCLE_HALF_TIMEOUT",
+        "LIFECYCLE_TIMEOUT", "APP_INPUT_BLOCK"}) {
+        SCOPED_TRACE(name);
+        EventLogger logger;
+        auto event = MakeProcessIOEvent(name);
+        logger.CollectProcessIO(event);
+        auto io = event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO);
+        for (const auto& key : {"rchar:", "wchar:", "syscr:", "syscw:", "read_bytes:",
+            "write_bytes:", "cancelled_write_bytes:"}) {
+            EXPECT_NE(io.find(key), std::string::npos);
+        }
+    }
+}
+
+HWTEST_F(EventLoggerProcessIOTest, LifecycleHalfAndFull, TestSize.Level1)
+{
+    EventLogger logger;
+    logger.CollectProcessIO(MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG"));
+    ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+    auto halfIO = logger.halfProcessIO_.at(getpid()).io;
+    auto half = MakeProcessIOEvent("LIFECYCLE_HALF_TIMEOUT");
+    logger.CollectProcessIO(half);
+    EXPECT_EQ(half->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO), halfIO);
+    auto full = MakeProcessIOEvent("LIFECYCLE_TIMEOUT");
+    logger.CollectProcessIO(full);
+    EXPECT_FALSE(full->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+}
+
+HWTEST_F(EventLoggerProcessIOTest, ControlAtFullDoesNotReplaceFreshIO, TestSize.Level1)
+{
+    for (const auto& name : {"THREAD_BLOCK_6S", "LIFECYCLE_TIMEOUT", "APP_INPUT_BLOCK"}) {
+        SCOPED_TRACE(name);
+        EventLogger logger;
+        logger.CollectProcessIO(MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG"));
+        ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+        logger.halfProcessIO_.at(getpid()).io = "cached-control-sample";
+        auto full = MakeProcessIOEvent(name);
+        logger.CollectProcessIO(full);
+        auto io = full->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO);
+        EXPECT_FALSE(io.empty());
+        EXPECT_NE(io, "cached-control-sample");
+    }
+}
+
+HWTEST_F(EventLoggerProcessIOTest, ExitedProcessCannotProvideFullIO, TestSize.Level1)
+{
+    for (const auto& name : {"THREAD_BLOCK_6S", "LIFECYCLE_TIMEOUT", "APP_INPUT_BLOCK"}) {
+        SCOPED_TRACE(name);
+        EventLogger logger;
+        logger.CollectProcessIO(MakeProcessIOEvent("FREEZE_HALF_HIVIEW_LOG"));
+        ASSERT_EQ(logger.halfProcessIO_.size(), 1u);
+        auto snapshot = logger.halfProcessIO_.at(getpid());
+        constexpr int32_t exitedPid = 2147483647;
+        logger.halfProcessIO_.clear();
+        logger.halfProcessIO_[exitedPid] = snapshot;
+        auto full = MakeProcessIOEvent(name);
+        full->SetEventValue("PID", exitedPid);
+        logger.CollectProcessIO(full);
+        EXPECT_TRUE(full->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty());
+    }
+}
+
 constexpr int32_t TRUSTED_UID = 5523;
 constexpr const char* LOG_INTERVAL = "eventLog_interval";
 void EventLoggerTest::SetUp()

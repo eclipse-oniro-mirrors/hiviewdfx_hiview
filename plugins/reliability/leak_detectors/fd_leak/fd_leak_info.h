@@ -77,7 +77,7 @@ public:
     std::string GetCopyProfilerPath() const;
     std::string GetCopyProfilerName() const;
     KillingState ShouldBeKilled();
-    XPowerManager::ProcessAnomalyInfo GetProcessInfoToKill();
+    ProcessAnomalyInfo GetProcessInfoToKill();
     void JudgeFdLeakGrade(uint32_t fdNums);
     bool IsEverReported();
     void RecordReport();

@@ -44,7 +44,8 @@ public:
         const struct WatchParams& watchParams, const FreezeResult& result);
     std::vector<SysEvent> SelectRecords(unsigned long long start, unsigned long long end, const std::string& domain,
         const std::vector<std::string>& eventNames);
-    std::vector<SysEvent> SelectRecordsByPidUid(long pid, long uid, const std::string& domain,
+    std::vector<SysEvent> SelectRecordsByModuleAppRunningId(const std::string& module,
+        const std::string& appRunningId, const std::string& domain,
         const std::vector<std::string>& eventNames);
     std::string SearchLogFile(const std::string& info);
 private:

@@ -661,5 +661,20 @@ ErrCode HiviewServiceAbility::IsolateSubProcess(const std::string& packageName, 
     TraceCalling<int32_t>(handler, errNo, ret);
     return 0;
 }
+
+ErrCode HiviewServiceAbility::UpdateLeakDetectorQuota(
+    const std::vector<LeakDetectorQuotaParcelable>& quotaList, int32_t& errNo, int32_t& ret)
+{
+    HiviewXCollieTimer timer("UpdateLeakDetectorQuota", SYS_CALLING_TIMEOUT);
+    std::vector<UCollectClient::LeakDetectorQuotaInfo> infoList;
+    for (const auto& parcelable : quotaList) {
+        infoList.emplace_back(parcelable.GetInfo());
+    }
+    auto handler = [&infoList] (HiviewService* service) {
+        return service->UpdateLeakDetectorQuota(infoList);
+    };
+    TraceCalling<int32_t>(handler, errNo, ret);
+    return 0;
+}
 } // namespace HiviewDFX
 } // namespace OHOS

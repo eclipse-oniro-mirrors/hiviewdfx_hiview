@@ -37,11 +37,10 @@ void EventCheckerTest::TearDown() {}
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest001, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("AAFWK", ""));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AAFWK", ""));
     } else {
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("AAFWK", ""));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AAFWK", ""));
     }
 }
 
@@ -53,11 +52,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest001, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest002, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("AAFWK", "START_ABILITY"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AAFWK", "START_ABILITY"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("AAFWK", "START_ABILITY"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("AAFWK", "START_ABILITY"));
     }
 }
 
@@ -69,11 +67,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest002, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest003, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("ACE", "INTERACTION_COMPLETED_LATENCY"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("ACE", "INTERACTION_COMPLETED_LATENCY"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("ACE", "INTERACTION_COMPLETED_LATENCY"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("ACE", "INTERACTION_COMPLETED_LATENCY"));
     }
 }
 
@@ -85,11 +82,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest003, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest004, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("AV_CODEC", "CODEC_START_INFO"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AV_CODEC", "CODEC_START_INFO"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("AV_CODEC", "CODEC_START_INFO"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("AV_CODEC", "CODEC_START_INFO"));
     }
 }
 
@@ -101,11 +97,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest004, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest005, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("GRAPHIC", "INTERACTION_COMPLETED_LATENCY"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("GRAPHIC", "INTERACTION_COMPLETED_LATENCY"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("GRAPHIC", "INTERACTION_COMPLETED_LATENCY"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("GRAPHIC", "INTERACTION_COMPLETED_LATENCY"));
     }
 }
 
@@ -117,11 +112,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest005, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest006, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("LOCATION", "GNSS_STATE"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("LOCATION", "GNSS_STATE"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("LOCATION", "GNSS_STATE"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("LOCATION", "GNSS_STATE"));
     }
 }
 
@@ -133,11 +127,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest006, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest007, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("PERFORMANCE", ""));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("PERFORMANCE", ""));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("PERFORMANCE", ""));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("PERFORMANCE", ""));
     }
 }
 
@@ -149,11 +142,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest007, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest008, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("RELIBILITY", ""));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("RELIBILITY", ""));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("RELIBILITY", ""));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("RELIBILITY", ""));
     }
 }
 
@@ -165,11 +157,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest008, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest009, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("STABILITY", "JS_ERROR"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("STABILITY", "JS_ERROR"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("STABILITY", "JS_ERROR"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("STABILITY", "JS_ERROR"));
     }
 }
 
@@ -181,11 +172,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest009, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest010, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("STABILITY", "JS_ERROR_INVALID"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("STABILITY", "JS_ERROR_INVALID"));
     } else {
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("STABILITY", "JS_ERROR_INVALID"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("STABILITY", "JS_ERROR_INVALID"));
     }
 }
 
@@ -197,11 +187,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest010, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest011, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
     } else {
-        ASSERT_FALSE(eventChecker.IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
     }
 }
 
@@ -213,11 +202,10 @@ HWTEST_F(EventCheckerTest, EventCheckerTest011, testing::ext::TestSize.Level3)
  */
 HWTEST_F(EventCheckerTest, EventCheckerTest012, testing::ext::TestSize.Level3)
 {
-    CompliantEventChecker eventChecker;
     if (Parameter::GetInteger("const.secure", 1) == 0) { // 1 and 0 is test value
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("STABILITY", "WORK_ADD_INVALID"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("STABILITY", "WORK_ADD_INVALID"));
     } else {
-        ASSERT_TRUE(eventChecker.IsCompliantEvent("STABILITY", "WORK_ADD_INVALID"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("STABILITY", "WORK_ADD_INVALID"));
     }
 }
 } //

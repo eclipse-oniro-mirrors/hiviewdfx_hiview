@@ -55,7 +55,9 @@ void EventStoreConfig::Init()
     if (!parseFromStream(jsonRBuilder, fin, &root, &errs)) {
         return;
     }
-
+    if (!root.isObject()) {
+        return;
+    }
     std::vector<std::string> members = root.getMemberNames();
     for (auto iter = members.begin(); iter != members.end(); ++iter) {
         if (EVENT_TYPE_MAP.find(*iter) == EVENT_TYPE_MAP.end()) {

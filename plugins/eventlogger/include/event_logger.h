@@ -55,6 +55,26 @@ public:
     void OnUnorderedEvent(const Event& msg) override;
 
 private:
+    struct ProcessIOSnapshot {
+        std::string io;
+        std::string startTime;
+        std::string packageName;
+        int32_t uid;
+        uint64_t collectedTime;
+        uint64_t eventTime;
+    };
+    std::map<int32_t, ProcessIOSnapshot> halfProcessIO_;
+    std::mutex processIOMutex_;
+    void CollectProcessIO(const std::shared_ptr<SysEvent>& event);
+    void CleanExpiredProcessIO(uint64_t now);
+    std::string ReadAndVerifyProcessIO(int32_t pid, const std::string& startTime);
+    void CacheHalfProcessIO(const std::shared_ptr<SysEvent>& event, int32_t pid,
+        const std::string& startTime, int32_t uid, uint64_t now);
+    std::string ResolveFreezeProcessIO(const std::shared_ptr<SysEvent>& event, int32_t pid,
+        const std::string& startTime, int32_t uid);
+    std::string ReadProcessIO(int32_t pid);
+    std::string GetProcessStartTime(int32_t pid);
+
 #ifdef WINDOW_MANAGER_ENABLE
     std::vector<uint64_t> backTimes_;
 #endif

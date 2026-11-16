@@ -46,6 +46,8 @@ public:
         int32_t mainProcPid, int32_t subProcPid);
     static CollectResult<int32_t> RequestUiTree(int32_t pid,
         std::shared_ptr<UCollectClient::RequestUiTreeCallback> callback);
+    static CollectResult<int32_t> UpdateLeakDetectorQuota(
+        const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList = {});
 };
 } // namespace HiviewDFX
 } // namespace OHOS

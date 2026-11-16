@@ -216,37 +216,34 @@ std::string Vendor::CheckNoteInfo(const WatchPoint& watchPoint) const
     std::map<std::string, std::vector<std::string>> eventMap;
     eventMap["RELIABILITY"] = {"FD_LEAK", "MEMORY_LEAK", "THREAD_LEAK"};
 
-    long pid = watchPoint.GetPid();
-    long uid = watchPoint.GetUid();
-    std::string processName = watchPoint.GetProcessName().empty() ?
+    std::string module = watchPoint.GetProcessName().empty() ?
         watchPoint.GetPackageName() : watchPoint.GetProcessName();
-    std::string recordProcessName;
+    std::string appRunningId = watchPoint.GetAppRunningUniqueId();
+    if (module.empty() || appRunningId.empty()) {
+        return "";
+    }
     uint64_t nearestTime = 0;
     std::string nearestEventName = "";
 
     for (const auto &pair : eventMap) {
         std::vector<std::string> eventNames = pair.second;
-        std::vector<SysEvent> records = dBHelper_->SelectRecordsByPidUid(pid, uid, pair.first, eventNames);
+        std::vector<SysEvent> records = dBHelper_->SelectRecordsByModuleAppRunningId(
+            module, appRunningId, pair.first, eventNames);
         if (records.empty()) {
             continue;
         }
         auto& record = records[0];
-        recordProcessName = record.GetEventValue(FreezeCommon::EVENT_PROCESS_NAME);
-        recordProcessName = recordProcessName.empty() ?
-            record.GetEventValue(FreezeCommon::EVENT_PACKAGE_NAME) : recordProcessName;
-        if (recordProcessName == processName) {
-            std::string eventName = record.GetEventName();
-            HIVIEW_LOGI("record event, pid:%{public}ld, uid:%{public}ld, processName:%{public}s "
-                "recordProcessName:%{public}s, eventName:%{public}s, happenTime:%{public}" PRIu64,
-                pid, uid, processName.c_str(), recordProcessName.c_str(), eventName.c_str(), record.happenTime_);
-            if (record.happenTime_ > nearestTime) {
-                nearestTime = record.happenTime_;
-                nearestEventName = eventName;
-            }
+        std::string recordModule = record.GetEventValue(FreezeCommon::EVENT_MODULE);
+        std::string recordAppRunningId = record.GetEventValue(FreezeCommon::APP_RUNNING_ID);
+        if (recordModule == module && recordAppRunningId == appRunningId &&
+            record.happenTime_ > nearestTime) {
+            nearestTime = record.happenTime_;
+            nearestEventName = record.GetEventName();
         }
     }
-    HIVIEW_LOGD("leak event pid=%{public}ld uid=%{public}ld time=%{public}" PRIu64" eventName=%{public}s.",
-        pid, uid, nearestTime, nearestEventName.c_str());
+    HIVIEW_LOGD("leak event module=%{public}s appRunningId=%{public}s time=%{public}" PRIu64
+        " eventName=%{public}s.", module.c_str(), appRunningId.c_str(),
+        nearestTime, nearestEventName.c_str());
     return nearestEventName;
 }
 

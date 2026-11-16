@@ -37,7 +37,7 @@ private:
     std::shared_ptr<AppExecFwk::AppMgrClient> appMgrClient_{nullptr};
     void HandleDependentKill(std::shared_ptr<NativeLeakInfo> &nlInfo, const std::string &waitProcessName);
     bool TryMatchAndBuildKillList(const std::shared_ptr<NativeLeakInfo> &nlInfo,
-        const std::string &waitProcessName, std::vector<OHOS::XPowerManager::ProcessAnomalyInfo> &killList);
+        const std::string &waitProcessName, std::vector<ProcessAnomalyInfo> &killList);
     void HandleWaitTimeout(const std::shared_ptr<NativeLeakInfo> &nlInfo, const std::string &waitProcessName);
     void HandleKillProcess(std::shared_ptr<NativeLeakInfo> &nlInfo);
 

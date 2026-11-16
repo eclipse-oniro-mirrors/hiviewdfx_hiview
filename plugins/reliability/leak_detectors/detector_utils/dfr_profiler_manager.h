@@ -52,6 +52,7 @@ enum ProfilerType {
     ASHMEM,
     GWP_ASAN,
     LITE_PROFILER,
+    ANON_PAGE,
     NO_PROFILER_TYPE
 };
 
@@ -67,6 +68,7 @@ inline constexpr const char* const PROFILER_TYPE_STR[] = {
     "ASHMEM",
     "GWP_ASAN",
     "LITE_PROFILER",
+    "ANON_PAGE",
     "NO_PROFILER_TYPE"
 };
 

@@ -47,6 +47,13 @@ inline constexpr int REQ_DMA_INFO_SIZE = 4096;
 inline constexpr int HMCAP_THREAD_NAME_SIZE = 16;
 inline constexpr int ION_INFO_SIZE = 4096;
 
+// time
+constexpr int SEC_PER_MIN = 60;
+constexpr int MIN_PER_HOUR = 60;
+constexpr int HOUR_PER_DAY = 24;
+constexpr int SEC_PER_HOUR = SEC_PER_MIN * MIN_PER_HOUR;
+constexpr int SEC_PER_DAY = HOUR_PER_DAY * SEC_PER_HOUR;
+
 //  not open temporary
 inline constexpr const char* const STR_SYSTEM_CAMERA_QUICK_KILL = "SystemCameraQuickKill";
 inline constexpr const char* const STR_OTHER_CAMERA_QUICK_KILL = "OtherCameraQuickKill";
@@ -78,7 +85,7 @@ inline constexpr const char* const EVENT_NAME_KERNEL_ZONE = "KERN_ZONE_FREE_LOW"
 inline constexpr const char* const KILL_EXCESSIVE_PROCESS = "KILL_EXCESSIVE_PROCESS";
 inline constexpr const char* const EVENT_NAME_COOBJ_STATUS = "COOBJ_STATUS";
 inline constexpr const char* const EVENT_NAME_FW_MEM_ANOMALY = "FW_MEM_ANOMALY";
-inline constexpr const char* const EVENT_NAME_ARK_WEB_V8_OOM = "PAGE_MEM_LEAK";
+inline constexpr const char* const EVENT_NAME_ARK_WEB_JS_OOM = "PAGE_MEM_LEAK";
 inline constexpr const char* const EVENT_NAME_CJ_OOM = "CJ_OOM";
 inline constexpr const char* const EVENT_NAME_JSVM_OOM = "JSVM_OOM";
 inline constexpr const char* const NAME_AV_CODEC = "AVCodec";
@@ -89,6 +96,7 @@ inline constexpr const char* const NAME_FILE_STRUCT = "file-struct";
 inline constexpr const char* const EVENT_MEMMGR = "memmgrservice";
 inline constexpr const char* const EVENT_FORK_DUMP = "FORK_DUMP_SERVICE";
 inline constexpr const char* const EVENT_UI_TREE = "UI_TREE";
+inline constexpr const char* const EVENT_UPDATE_QUOTA = "UPDATE_QUOTA";
 // Telemetry path and property constants are now in telemetry_types.h
 inline constexpr const char* const BBOX_PATH = "/dev/bbox";
 inline constexpr const char* const MEMORY_LEAK_ENABLE_PROPERTY = "hiview.memleakcheck";
@@ -121,6 +129,11 @@ inline constexpr const char* const SYSLOAD_DETECTOR_SUMMARY_PATH = "/data/log/sy
 inline constexpr const char* const SYSLOAD_DETECTOR_SYSLOG_PATH = "/data/log/sysres/syslog";
 inline constexpr const char* const EVENT_NAME_MEMORY_OVER_WARNING = "RENDER_MEMORY_OVER_WARNING";
 inline constexpr const char* const EVENT_NAME_MEMORY_OVER_ERROR = "RENDER_MEMORY_OVER_ERROR";
+// fd warning type of RENDER_MEMORY_OVER_WARNING event
+inline constexpr const char* const TYPE_FD_WARNING = "FD_WARNING";
+inline constexpr int32_t FD_WARNING_THRESHOLD_DEFAULT = 20000;
+inline constexpr int32_t FD_WARNING_THRESHOLD_MAX = 32768;
+inline constexpr const char* const RES_TYPE_ARKWEB_HEAP = "arkweb_v" "8_heap";
 inline constexpr const char* const NAME_VMA_LEAK = "vma_leak";
 inline constexpr const char* const NAME_KERNEL_ZONE = "kernel_zone";
 inline constexpr const char* const NAME_GPU_RS_LEAK = "gpu_rs";
@@ -325,6 +338,7 @@ struct NotifyProcessInfo {
     bool hasGotRawheap { false };
     bool hasGotStaticRawheap { false };
     std::string arktsType; // "dynamic" for dynamic app, "static" for static app
+    std::string resourceType; // js heap / jsvm heap / arkweb js heap
 };
 
 // use for commonKey

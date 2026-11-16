@@ -37,7 +37,6 @@
 #include "app_event_handler.h"
 #include "app_event_publisher.h"
 #include "ffrt.h"
-#include "operators/handlers/display/ForegroundAttr.h"
 #include "app_mgr_client.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
@@ -191,9 +190,9 @@ inline const std::map<int, std::string> SubLeakTypeStr{
     {SUB_NATIVE_HEAP_LEAK, "NATIVE_HEAP_LEAK"},
     {SUB_ARKTS_LEAK, "ARKTS_HEAP_LEAK"},
     {SUB_ARKTS_STA_LEAK, "ARKTS_STA_HEAP_LEAK"},
-    {SUB_KOTLIN_LEAK, "KOTLIN_HEAP_LEAK"},
+    {SUB_KMP_LEAK, "KMP_HEAP_LEAK"},
     {SUB_JSVM_LEAK, "JSVM_HEAP_LEAK"},
-    {SUB_ARKWEB_V8_LEAK, "ARKWEB_V8_LEAK"},
+    {SUB_ARKWEB_JS_LEAK, "ARKWEB_JS_LEAK"},
     {SUB_ASHMEM_LEAK, "ASHMEM_LEAK"},
     {SUB_GPU_LEAK, "GPU_LEAK"},
     {SUB_ION_LEAK, "ION_LEAK"},

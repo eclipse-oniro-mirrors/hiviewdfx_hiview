@@ -94,6 +94,7 @@ void FaultConfigManager::ParseConfigFile()
     FdLeakConfig::GetInstance().Print();
     KernelLeakConfig::GetInstance().Print();
     ThreadLeakConfig::GetInstance().Print();
+    OldLogParamConfig::GetInstance().Print();
 }
 
 void FaultConfigManager::ParseQuota(const cJSON *node)

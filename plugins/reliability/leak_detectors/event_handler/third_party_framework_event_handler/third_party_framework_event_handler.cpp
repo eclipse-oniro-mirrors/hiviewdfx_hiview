@@ -15,6 +15,7 @@
 
 #include "third_party_framework_event_handler.h"
 
+#include <cinttypes>
 #include <fcntl.h>
 #include <fstream>
 #include <mutex>
@@ -124,8 +125,8 @@ std::shared_ptr<LeakEventInfoBase> ThirdPartyFrameworkEventHandler::HandleMessag
         return nullptr;
     }
     if (fwLeakInfo->IsEverReported(processName)) {
-        HIVIEW_LOGE("Event: %{public}s has Reported at %{public}ld", fwLeakInfo->GetEventName().c_str(),
-            fwLeakInfo->GetLastReportRecord(processName));
+        HIVIEW_LOGE("Event: %{public}s has Reported at %{public}" PRId64, fwLeakInfo->GetEventName().c_str(),
+            static_cast<int64_t>(fwLeakInfo->GetLastReportRecord(processName)));
         return nullptr;
     }
     fwLeakInfo->SetLeakedTime();

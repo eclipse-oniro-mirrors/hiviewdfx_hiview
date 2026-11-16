@@ -14,6 +14,7 @@
  */
 
 #include "service_leak_event_handler.h"
+#include <cinttypes>
 #include "native_leak_detector.h"
 #include "native_leak_config.h"
 #include "dfr_util.h"
@@ -92,7 +93,7 @@ bool ServiceLeakEventHandler::ShouldSkipProcess(pid_t pid, const std::shared_ptr
         return true;
     }
     string processName = nlInfo->GetProcessName();
-    HIVIEW_LOGI("process: %{public}s totalMemKb %{public}lu over service leak RAM ratio", processName.c_str(),
+    HIVIEW_LOGI("process: %{public}s totalMemKb %{public}" PRIu64 " over service leak RAM ratio", processName.c_str(),
                 totalMemKb);
     return false;
 }

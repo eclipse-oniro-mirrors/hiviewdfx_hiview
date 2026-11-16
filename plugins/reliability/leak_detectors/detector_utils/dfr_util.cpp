@@ -34,14 +34,14 @@
 #include <thread>
 #include <chrono>
 #include <csignal>
-#include <ability_mgr_helper.h>
 #include "dfr_util.h"
 #include "file_util.h"
 #include "fault_common.h"
+#include "fault_info_base.h"
+#include "leak_unfreezer.h"
 #include "hiview_logger.h"
 #include "bundle_mgr_client.h"
 #include "dirent.h"
-#include "suspend_manager_client.h"
 #include "ffrt.h"
 #include "native_leak_detector.h"
 #include "hitrace_meter.h"
@@ -1177,7 +1177,7 @@ void DfrUtil::GetStatm(int32_t pid, uint64_t &vss, uint64_t &rss)
         return;
     }
     rss = multiples * value;
-    HIVIEW_LOGI("GET rss=%{public}lu, vss=%{public}lu.", rss, vss);
+    HIVIEW_LOGI("GET rss=%{public}" PRIu64 ", vss=%{public}" PRIu64 ".", rss, vss);
 }
 
 void DfrUtil::GetMeminfo(uint64_t &avaliableMem, uint64_t &freeMem, uint64_t &totalMem)
@@ -1204,8 +1204,8 @@ void DfrUtil::GetMeminfo(uint64_t &avaliableMem, uint64_t &freeMem, uint64_t &to
         return;
     }
     meminfoStream.close();
-    HIVIEW_LOGI("GET freeMem=%{public}lu, avaliableMem=%{public}lu, totalMem=%{public}lu.", freeMem, avaliableMem,
-                totalMem);
+    HIVIEW_LOGI("GET freeMem=%{public}" PRIu64 ", avaliableMem=%{public}" PRIu64 ", totalMem=%{public}" PRIu64 ".",
+                freeMem, avaliableMem, totalMem);
 }
 
 list<string> DfrUtil::GetDightStrArr(const string &target)
@@ -1735,9 +1735,9 @@ bool DfrUtil::ShouldDetectAfterInterval(time_t lastDetectorTime, int intervalTim
 
 void DfrUtil::UnfreezingProcess(pid_t pid)
 {
-    int uid = GetProcessUid(pid);
+    int32_t uid = GetProcessUid(pid);
     string bundleName = GetApplicationNameByUid(uid);
-    SuspendManager::SuspendManagerClient::GetInstance().ThawOneApplication(uid, bundleName, "ACTIVE_BY_DUMP_STACK");
+    UnfreezeLeakProcessByExt(uid, bundleName, "ACTIVE_BY_DUMP_STACK");
     ffrt::this_task::sleep_for(chrono::microseconds(WAIT_TO_UNFREEZE_PROCESS * US_PER_SECOND));
 }
 

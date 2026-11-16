@@ -716,6 +716,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_014, TestSize.Level3)
         .InitUid(1000)
         .InitProcessName("testProcess")
         .InitPackageName("com.test.package")
+        .InitAppRunningUniqueId("9876543210")
         .Build();
 
     vendor->DumpEventInfo(oss, header, watchPoint);
@@ -729,6 +730,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_014, TestSize.Level3)
     EXPECT_NE(result.find("UID:1000"), std::string::npos);
     EXPECT_NE(result.find("PACKAGE_NAME:com.test.package"), std::string::npos);
     EXPECT_NE(result.find("PROCESS_NAME:testProcess"), std::string::npos);
+    // No leak event in DB matches, so no leak info should be present
+    EXPECT_EQ(result.find("memory leak"), std::string::npos);
 }
 
 /**
@@ -764,16 +767,17 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_015, TestSize.Level3)
     EXPECT_NE(result.find("NOTE:"), std::string::npos);
     EXPECT_NE(result.find("Current fault may be caused by the system's low memory or thermal throttling"),
         std::string::npos);
+    // appRunningId is empty, CheckNoteInfo returns early, no leak info
+    EXPECT_EQ(result.find("memory leak"), std::string::npos);
 }
 
 /**
  * @tc.name: FreezeVender_016
- * @tc.desc: Test GetNoteInfo returns false when dbHelper is nullptr
+ * @tc.desc: Test CheckNoteInfo returns empty when dbHelper is nullptr
  */
 HWTEST_F(FreezeDetectorUnittest, FreezeVender_016, TestSize.Level3)
 {
     auto vendor = std::make_unique<Vendor>(nullptr, nullptr);
-    // Don't call Init() so dbHelper remains nullptr
 
     WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
         .InitDomain("AAFWK")
@@ -783,16 +787,19 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_016, TestSize.Level3)
         .InitUid(1000)
         .InitProcessName("testProcess")
         .InitPackageName("com.test.package")
+        .InitAppRunningUniqueId("9876543210")
         .Build();
-    
-    // GetNoteInfo should return false when dbHelper is nullptr
-    // Since GetNoteInfo is private, we test it indirectly through DumpEventInfo
+
+    // CheckNoteInfo should return "" when dbHelper is nullptr
+    // Since CheckNoteInfo is private, we test it indirectly through DumpEventInfo
     std::ostringstream oss;
     std::string header = "TEST_HEADER";
     vendor->DumpEventInfo(oss, header, watchPoint);
     std::string result = oss.str();
 
-    // Should not contain FD_LEAK_INFO since GetNoteInfo returns false
+    // Should not contain leak info since CheckNoteInfo returns ""
+    EXPECT_EQ(result.find("memory leak"), std::string::npos);
+    EXPECT_EQ(result.find("thread leak"), std::string::npos);
     EXPECT_EQ(result.find("fd leak"), std::string::npos);
 }
 
@@ -819,6 +826,7 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_017, TestSize.Level3)
         .InitUid(1000)
         .InitProcessName("testProcess")
         .InitPackageName("com.test.package")
+        .InitAppRunningUniqueId("9876543210")
         .Build();
 
     vendor->DumpEventInfo(oss, header, watchPoint);
@@ -834,8 +842,8 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_017, TestSize.Level3)
     EXPECT_NE(result.find("PACKAGE_NAME:com.test.package"), std::string::npos);
     EXPECT_NE(result.find("PROCESS_NAME:testProcess"), std::string::npos);
 
-    // Verify that no NOTE info is present (no HostResourceWarning, no FD leak)
-    EXPECT_EQ(result.find("fd leak"), std::string::npos);
+    // Verify that no NOTE info is present (no HostResourceWarning, no leak event matched)
+    EXPECT_EQ(result.find("memory leak"), std::string::npos);
 }
 
 /**
@@ -1155,6 +1163,122 @@ HWTEST_F(FreezeDetectorUnittest, FreezeVender_028, TestSize.Level3)
     EXPECT_EQ(ret, "test");
     ret = vendor->SendFaultLog(watchPoint, "test", "appfreezewarning", "processName", "No");
     EXPECT_EQ(ret, "test");
+}
+
+/**
+ * @tc.name: FreezeVender_029
+ * @tc.desc: Test CheckNoteInfo finds leak event by MODULE and APP_RUNNING_ID
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_029, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"RELIABILITY", "name_":"MEMORY_LEAK", "type_":1, "time_":1700000001000,
+    "tz_":"+0800", "pid_":6000, "tid_":6000, "uid_":0, "MODULE":"com.test.leakvendor",
+    "APP_RUNNING_ID":"5555666677", "SUMMARY":"test memory leak", "FINGERPRINT":"abcdef654321",
+    "LOG_PATH":"/data/log/test", "HAPPEN_TIME":"1700000001", "level_":"CRITICAL", "tag_":"STABILITY",
+    "id_":"12345678901234567891", "info_":""})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, jsonStr);
+    sysEvent->SetLevel("CRITICAL");
+    sysEvent->SetEventSeq(600); // 600: test seq
+    EventStore::SysEventDao::Insert(sysEvent);
+
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1700000002000)
+        .InitPid(6000)
+        .InitUid(6000)
+        .InitProcessName("com.test.leakvendor")
+        .InitPackageName("com.test.leakvendor")
+        .InitAppRunningUniqueId("5555666677")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    EXPECT_NE(result.find("memory leak"), std::string::npos);
+    EXPECT_NE(result.find("NOTE:"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_030
+ * @tc.desc: Test CheckNoteInfo returns empty when module is empty
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_030, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1700000003000)
+        .InitPid(7000)
+        .InitUid(7000)
+        .InitAppRunningUniqueId("7777888899")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // module is empty (processName and packageName both empty), CheckNoteInfo returns ""
+    EXPECT_EQ(result.find("memory leak"), std::string::npos);
+    EXPECT_EQ(result.find("thread leak"), std::string::npos);
+    EXPECT_EQ(result.find("fd leak"), std::string::npos);
+}
+
+/**
+ * @tc.name: FreezeVender_031
+ * @tc.desc: Test CheckNoteInfo uses packageName as module when processName is empty
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeVender_031, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"RELIABILITY", "name_":"FD_LEAK", "type_":1, "time_":1700000004000,
+    "tz_":"+0800", "pid_":8000, "tid_":8000, "uid_":0, "MODULE":"com.test.pkgleak",
+    "APP_RUNNING_ID":"3333444455", "SUMMARY":"test fd leak", "FINGERPRINT":"fedcba654321",
+    "LOG_PATH":"/data/log/test", "HAPPEN_TIME":"1700000004", "level_":"CRITICAL", "tag_":"STABILITY",
+    "id_":"12345678901234567892", "info_":""})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, jsonStr);
+    sysEvent->SetLevel("CRITICAL");
+    sysEvent->SetEventSeq(800); // 800: test seq
+    EventStore::SysEventDao::Insert(sysEvent);
+
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto dbHelper = std::make_shared<DBHelper>(freezeCommon);
+    auto vendor = std::make_unique<Vendor>(freezeCommon, dbHelper);
+    ASSERT_EQ(vendor->Init(), true);
+
+    std::ostringstream oss;
+    std::string header = "TEST_HEADER";
+    WatchPoint watchPoint = OHOS::HiviewDFX::WatchPoint::Builder()
+        .InitDomain("AAFWK")
+        .InitStringId("THREAD_BLOCK_6S")
+        .InitTimestamp(1700000005000)
+        .InitPid(8000)
+        .InitUid(8000)
+        .InitPackageName("com.test.pkgleak")
+        .InitAppRunningUniqueId("3333444455")
+        .Build();
+
+    vendor->DumpEventInfo(oss, header, watchPoint);
+    std::string result = oss.str();
+
+    // module from packageName matches MODULE in FD_LEAK event
+    EXPECT_NE(result.find("fd leak"), std::string::npos);
+    EXPECT_NE(result.find("NOTE:"), std::string::npos);
 }
 
 /**
@@ -1917,6 +2041,70 @@ HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_004, TestSize.Level3)
     eventNames.push_back("THREAD_BLOCK_6S");
     std::vector<SysEvent> result = db->SelectRecords(start, end, domain, eventNames);
     ASSERT_TRUE(result.size() > 0);
+}
+
+/**
+ * @tc.name: FreezeDBHelper_005
+ * @tc.desc: Test SelectRecordsByModuleAppRunningId with a MEMORY_LEAK event
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_005, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"RELIABILITY", "name_":"MEMORY_LEAK", "type_":1, "time_":1700000000000,
+    "tz_":"+0800", "pid_":5000, "tid_":5000, "uid_":0, "MODULE":"com.test.leakapp",
+    "APP_RUNNING_ID":"1111222233", "SUMMARY":"test memory leak", "FINGERPRINT":"abcdef123456",
+    "LOG_PATH":"/data/log/test", "HAPPEN_TIME":"1700000000", "level_":"CRITICAL", "tag_":"STABILITY",
+    "id_":"12345678901234567890", "info_":""})~";
+    auto sysEvent = std::make_shared<SysEvent>("SysEventSource", nullptr, jsonStr);
+    sysEvent->SetLevel("CRITICAL");
+    sysEvent->SetEventSeq(500); // 500: test seq
+    EventStore::SysEventDao::Insert(sysEvent);
+
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto db = std::make_unique<DBHelper>(freezeCommon);
+    ASSERT_NE(db, nullptr);
+    std::vector<std::string> eventNames = {"MEMORY_LEAK"};
+    std::vector<SysEvent> records = db->SelectRecordsByModuleAppRunningId(
+        "com.test.leakapp", "1111222233", "RELIABILITY", eventNames);
+    ASSERT_TRUE(records.size() > 0);
+    ASSERT_EQ(records[0].GetEventName(), "MEMORY_LEAK");
+    ASSERT_EQ(records[0].GetEventValue(FreezeCommon::EVENT_MODULE), "com.test.leakapp");
+    ASSERT_EQ(records[0].GetEventValue(FreezeCommon::APP_RUNNING_ID), "1111222233");
+}
+
+/**
+ * @tc.name: FreezeDBHelper_006
+ * @tc.desc: Test SelectRecordsByModuleAppRunningId edge cases
+ */
+HWTEST_F(FreezeDetectorUnittest, FreezeDBHelper_006, TestSize.Level3)
+{
+    auto freezeCommon = std::make_shared<FreezeCommon>();
+    ASSERT_EQ(freezeCommon->Init(), true);
+    auto db = std::make_unique<DBHelper>(freezeCommon);
+    ASSERT_NE(db, nullptr);
+    std::vector<std::string> eventNames = {"MEMORY_LEAK"};
+
+    std::vector<SysEvent> records = db->SelectRecordsByModuleAppRunningId(
+        "", "1111222233", "RELIABILITY", eventNames);
+    EXPECT_EQ(records.size(), 0);
+
+    records = db->SelectRecordsByModuleAppRunningId(
+        "com.test.leakapp", "", "RELIABILITY", eventNames);
+    EXPECT_EQ(records.size(), 0);
+
+    records = db->SelectRecordsByModuleAppRunningId(
+        "com.test.nonexist", "1111222233", "RELIABILITY", eventNames);
+    EXPECT_EQ(records.size(), 0);
+
+    records = db->SelectRecordsByModuleAppRunningId(
+        "com.test.leakapp", "9999999999", "RELIABILITY", eventNames);
+    EXPECT_EQ(records.size(), 0);
+
+    auto dbNull = std::make_unique<DBHelper>(nullptr);
+    ASSERT_NE(dbNull, nullptr);
+    records = dbNull->SelectRecordsByModuleAppRunningId(
+        "com.test.leakapp", "1111222233", "RELIABILITY", eventNames);
+    EXPECT_EQ(records.size(), 0);
 }
 
 /**

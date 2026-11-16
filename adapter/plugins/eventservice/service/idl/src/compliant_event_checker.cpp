@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,14 +18,11 @@
 #include <list>
 #include <unordered_map>
 
-#include "hiview_logger.h"
 #include "parameter_ex.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-DEFINE_LOG_TAG("CompliantEventChecker");
-
 constexpr int64_t SECURE_ENABALED_VAL = 1;
 
 std::unordered_map<std::string, std::list<std::string>> COMPLIANT_EVENT_CONFIGS {
@@ -42,15 +39,10 @@ std::unordered_map<std::string, std::list<std::string>> COMPLIANT_EVENT_CONFIGS 
 };
 }
 
-CompliantEventChecker::CompliantEventChecker()
-{
-    isSecureEnabeled_ = (Parameter::GetInteger("const.secure", SECURE_ENABALED_VAL) == SECURE_ENABALED_VAL);
-    HIVIEW_LOGD("value of const.secure is %{public}d", isSecureEnabeled_);
-}
-
 bool CompliantEventChecker::IsCompliantEvent(const std::string& domain, const std::string& eventName)
 {
-    if (!isSecureEnabeled_) {
+    static bool isSecureEnabeled = (Parameter::GetInteger("const.secure", SECURE_ENABALED_VAL) == SECURE_ENABALED_VAL);
+    if (!isSecureEnabeled) {
         return true;
     }
     auto iter = COMPLIANT_EVENT_CONFIGS.find(domain);
@@ -58,15 +50,9 @@ bool CompliantEventChecker::IsCompliantEvent(const std::string& domain, const st
         return false;
     }
     if (iter->second.empty()) {
-        HIVIEW_LOGD("event with domain [%{public}s] is compliant", domain.c_str());
         return true;
     }
-    auto findRet = std::find(iter->second.begin(), iter->second.end(), eventName);
-    if (findRet != iter->second.end()) {
-        HIVIEW_LOGD("event [%{public}s|%{public}s] is compliant", domain.c_str(), eventName.c_str());
-        return true;
-    }
-    return false;
+    return std::find(iter->second.begin(), iter->second.end(), eventName) != iter->second.end();
 }
 } // namespace HiviewDFX
 } // namespace OHOS

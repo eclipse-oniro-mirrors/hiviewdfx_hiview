@@ -56,7 +56,8 @@
             "hiview_eventlogger_kernel_catcher_enable",
             "hiview_support_local_read_diagnostic_logs",
             "hiview_support_fold_pc_count_duration_enable",
-            "hiview_support_wukong_collect_gpu_info"
+            "hiview_support_wukong_collect_gpu_info",
+            "hiview_xperf_video_jank_detect_enable"
         ],
         "rom": "",
         "ram": "",
@@ -81,6 +82,8 @@
                 "data_share",
                 "device_usage_statistics",
                 "drivers_interface_memorytracker",
+                "efficiency_manager",
+                "efficiency_manager_ext",
                 "ets_frontend",
                 "ets_runtime",
                 "faultloggerd",
@@ -96,6 +99,7 @@
                 "input",
                 "ipc",
                 "jsoncpp",
+                "json",
                 "libxml2",
                 "openssl",
                 "os_account",
@@ -117,6 +121,7 @@
                 "resource_schedule_service",
                 "eventhandler",
                 "selinux_adapter",
+                "selinux",
                 "runtime_core"
             ]
         },
@@ -196,6 +201,7 @@
                         "header_base": "//base/hiviewdfx/hiview/interfaces/inner_api/unified_collection",
                         "header_files": [
                             "client/cpu_collector_client.h",
+                            "client/memory_collector_client.h",
                             "client/trace_collector_client.h"
                         ]
                     }
@@ -217,6 +223,15 @@
                 },
                 {
                     "name": "//base/hiviewdfx/hiview/plugins/faultlogger/interfaces/cj:cj_faultlogger_ffi"
+                },
+                {
+                    "name": "//base/hiviewdfx/hiview/plugins/reliability/leak_detectors:libleakdetectors",
+                    "header": {
+                        "header_base": "//base/hiviewdfx/hiview/plugins/reliability/leak_detectors/telemetry",
+                        "header_files": [
+                            "telemetry_types.h"
+                        ]
+                    }
                 },
                 {
                     "name": "//base/hiviewdfx/hiview/plugins/faultlogger/service/bdfr_base/sanitizer_collector/gwp_asan:libasan_logger",

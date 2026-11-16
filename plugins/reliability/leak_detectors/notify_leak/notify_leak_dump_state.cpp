@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include <iostream>
 #include <fstream>
 #include <cstdio>
@@ -197,7 +198,7 @@ bool NotifyLeakDumpState::IsValidFile(const string &filePath, shared_ptr<NotifyL
         return false;
     }
     notifyInfo->AddLeakStack("JS_LEAK, rawheap is valid, size: " + to_string(rawheapInfo.st_size));
-    HIVIEW_LOGI("rawheap size: %{public}ld", rawheapInfo.st_size);
+    HIVIEW_LOGI("rawheap size: %{public}" PRId64, static_cast<int64_t>(rawheapInfo.st_size));
     return rawheapInfo.st_size > RAWHEAP_SIZE_BASELINE;
 }
 

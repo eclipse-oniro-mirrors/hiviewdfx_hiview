@@ -33,7 +33,6 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002DA0, "FdLeakRemovalState");
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 ErrCode FdLeakRemovalState::StateProcess(shared_ptr<FaultInfoBase> &faultInfo, FaultDetectorBase &faultObj)
 {

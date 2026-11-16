@@ -17,6 +17,8 @@
 #include "securec.h"
 
 #include <cinttypes>
+#include <algorithm>
+#include <climits>
 #include <list>
 #include <map>
 #include <sstream>
@@ -81,6 +83,8 @@ namespace {
     constexpr const char* SCENARIO = "SCENARIO";
     constexpr const char* TRIGGER_ESCAPE = "Trigger_Escape";
     constexpr const char* DUMP_TRACE_FLAG = "trace";
+    constexpr uint64_t PROCESS_IO_CACHE_TIME_MS = 60000;
+    constexpr size_t PROCESS_IO_CACHE_LIMIT = 64;
 #ifdef WINDOW_MANAGER_ENABLE
     constexpr int BACK_FREEZE_TIME_LIMIT = 2000;
     constexpr int BACK_FREEZE_COUNT_LIMIT = 5;
@@ -241,6 +245,9 @@ bool EventLogger::OnEvent(std::shared_ptr<Event> &onEvent)
         return false;
     }
     std::string eventName = sysEvent->eventName_;
+
+    // Capture before trace-only handling or asynchronous log collection can delay us.
+    CollectProcessIO(sysEvent);
 
     if (!CheckContinueReport(sysEvent, pid, eventName) || !CheckFfrtEvent(sysEvent) || !IsHandleAppfreeze(sysEvent) ||
         CheckProcessRepeatFreeze(eventName, pid) || CheckScreenOnRepeat(sysEvent)) {
@@ -907,6 +914,152 @@ void EventLogger::WriteGCStr(std::shared_ptr<SysEvent> event, std::ostringstream
     if (!oss.str().empty()) {
         headerStream<< FreezeCommon::GC_STATUS << oss.str() << std::endl;
     }
+}
+
+std::string EventLogger::GetProcessStartTime(int32_t pid)
+{
+    std::string stat;
+    if (!FileUtil::LoadStringFromFile("/proc/" + std::to_string(pid) + "/stat", stat)) {
+        return "";
+    }
+    auto end = stat.rfind(')');
+    if (end == std::string::npos) {
+        return "";
+    }
+    std::istringstream fields(stat.substr(end + 1));
+    std::string value;
+    // The command in parentheses may contain spaces; starttime is field 22.
+    for (int field = 3; field <= 22; ++field) {
+        if (!(fields >> value)) {
+            return "";
+        }
+    }
+    return value;
+}
+
+std::string EventLogger::ReadProcessIO(int32_t pid)
+{
+    if (pid <= 0) {
+        return "";
+    }
+    std::string content;
+    if (!FileUtil::LoadStringFromFile("/proc/" + std::to_string(pid) + "/io", content)) {
+        HIVIEW_LOGW("read process IO failed, pid=%{public}d, errno=%{public}d", pid, errno);
+        return "";
+    }
+    std::istringstream input(content);
+    std::string key;
+    std::string value;
+    std::string result;
+    while (input >> key >> value) {
+        if (key.empty() || key.back() != ':' || value.find_first_not_of("0123456789") != std::string::npos) {
+            return "";
+        }
+        if (!result.empty()) {
+            result += FreezeCommon::COMMA_SEPARATOR;
+        }
+        result += key + value;
+    }
+    return result;
+}
+
+void EventLogger::CleanExpiredProcessIO(uint64_t now)
+{
+    for (auto it = halfProcessIO_.begin(); it != halfProcessIO_.end();) {
+        if (now - it->second.collectedTime > PROCESS_IO_CACHE_TIME_MS) {
+            it = halfProcessIO_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+std::string EventLogger::ReadAndVerifyProcessIO(int32_t pid, const std::string& startTime)
+{
+    if (startTime.empty()) {
+        return "";
+    }
+    std::string io = ReadProcessIO(pid);
+    if (GetProcessStartTime(pid) != startTime) {
+        io.clear();
+    }
+    return io;
+}
+
+void EventLogger::CacheHalfProcessIO(const std::shared_ptr<SysEvent>& event, int32_t pid,
+    const std::string& startTime, int32_t uid, uint64_t now)
+{
+    std::string io = (uid >= 0) ? ReadAndVerifyProcessIO(pid, startTime) : "";
+    halfProcessIO_.erase(pid);
+    if (io.empty()) {
+        return;
+    }
+    if (halfProcessIO_.size() >= PROCESS_IO_CACHE_LIMIT) {
+        halfProcessIO_.erase(std::min_element(halfProcessIO_.begin(), halfProcessIO_.end(),
+            [](const auto& left, const auto& right) {
+                return left.second.collectedTime < right.second.collectedTime;
+            }));
+    }
+    halfProcessIO_[pid] = {io, startTime, event->GetEventValue("PACKAGE_NAME"), uid, now, event->happenTime_};
+    HIVIEW_LOGI("cached half process IO, pid=%{public}d", pid);
+}
+
+std::string EventLogger::ResolveFreezeProcessIO(const std::shared_ptr<SysEvent>& event, int32_t pid,
+    const std::string& startTime, int32_t uid)
+{
+    std::string io;
+    if (uid >= 0 && event->GetEventIntValue("UID") == uid) {
+        io = ReadAndVerifyProcessIO(pid, startTime);
+    }
+    auto half = halfProcessIO_.find(pid);
+    if (half == halfProcessIO_.end()) {
+        return io;
+    }
+    const auto& snapshot = half->second;
+    std::string packageName = event->GetEventValue("PACKAGE_NAME");
+    bool identityMatch = snapshot.uid == event->GetEventIntValue("UID") &&
+        (snapshot.packageName.empty() || snapshot.packageName == packageName) &&
+        event->happenTime_ >= snapshot.eventTime &&
+        (startTime.empty() || startTime == snapshot.startTime);
+    bool isHalfLog = event->eventName_ == "THREAD_BLOCK_3S" ||
+        event->eventName_ == "BUSSINESS_THREAD_BLOCK_3S" ||
+        event->eventName_ == "LIFECYCLE_HALF_TIMEOUT";
+    if (identityMatch && isHalfLog) {
+        io = snapshot.io;
+        HIVIEW_LOGI("use half process IO for %{public}s, pid=%{public}d", event->eventName_.c_str(), pid);
+    }
+    halfProcessIO_.erase(half);
+    return io;
+}
+
+void EventLogger::CollectProcessIO(const std::shared_ptr<SysEvent>& event)
+{
+    if (event == nullptr || event->domain_ != "AAFWK") {
+        return;
+    }
+    if (!event->GetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO).empty()) {
+        return;
+    }
+    bool isHalf = event->eventName_ == "FREEZE_HALF_HIVIEW_LOG";
+    if (!isHalf && !FreezeJsonUtil::IsAppFreeze(event->eventName_)) {
+        return;
+    }
+    auto eventPid = event->GetEventIntValue("PID");
+    if (eventPid <= 0 || eventPid > INT_MAX) {
+        return;
+    }
+    int32_t pid = static_cast<int32_t>(eventPid);
+    std::lock_guard<std::mutex> lock(processIOMutex_);
+    uint64_t now = TimeUtil::GetMonotonicTimeMs();
+    CleanExpiredProcessIO(now);
+    std::string startTime = GetProcessStartTime(pid);
+    int32_t uid = CommonUtils::GetUidByPid(pid);
+    if (isHalf) {
+        CacheHalfProcessIO(event, pid, startTime, uid, now);
+        return;
+    }
+    event->SetEventValue(FreezeCommon::EVENT_APPLICATION_IO_INFO,
+        ResolveFreezeProcessIO(event, pid, startTime, uid));
 }
 
 void EventLogger::WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream)

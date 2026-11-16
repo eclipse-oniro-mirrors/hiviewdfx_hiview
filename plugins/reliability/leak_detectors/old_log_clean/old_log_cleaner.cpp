@@ -15,8 +15,11 @@
  * Create: 2024-8-21
  */
 
+#include <cinttypes>
 #include <climits>
 #include <sys/sendfile.h>
+#include <cJSON.h>
+#include <fstream>
 #include "old_log_cleaner.h"
 #include "dfr_util.h"
 #include "hiview_logger.h"
@@ -90,7 +93,12 @@ constexpr int EXCEED_AVC_LOG_NUM = 5;
 constexpr int KEEP_VNODE_LOG_FILES = 10;
 constexpr int EXCEED_VNODE_LOG_NUM = 5;
 
+constexpr int KEEP_STABILITY_CHECK_FILES = 10;
+constexpr int EXCEED_STABILITY_CHECK_NUM = 5;
+
 constexpr int PATH_FOLDER_OLD_SIZE = 300;
+constexpr int FOLDER_SIZE_LIMIT_MB = 300;
+const std::string FOLDER_AGING_LOG_NAME = "folder_aging_log.json";
 }
 
 namespace OHOS {
@@ -135,7 +143,8 @@ const std::map<LogType, LogTypeStru> logTypeStruMap = {
     {LogType::RS_TREE, {"rsTreeLog", MEMORY_LEAK_PATH, "rstree", "memleak-kernel"}},
     {LogType::MEDIA, {"mediaLog", MEMORY_LEAK_PATH, "media", "memleak"}},
     {LogType::AVC, {"avcLog", MEMORY_LEAK_PATH, "avc", "memleak"}},
-    {LogType::VNODE_LOG, {"vnodeLog", FILE_DESCRIPTOR_LEAK_PATH, "orphanvnode", "orphanvnode"}}
+    {LogType::VNODE_LOG, {"vnodeLog", FILE_DESCRIPTOR_LEAK_PATH, "orphanvnode", "orphanvnode"}},
+    {LogType::STABILITY_CHECK, {"stabilityCheckLog", MEMORY_LEAK_PATH, "stabilitycheck", "memleak-stabilitycheck"}}
 };
 
 void OldLogCleaner::GetOldLogFilesByLogType(const LogTypeStru &logTypeStru, vector<LogFile> &fileList)
@@ -343,6 +352,7 @@ void OldLogCleaner::GetMatchingFileCount(const string &path, bool firstCharMustD
             continue;
         }
         LogType type = GetLogType(childNode, path);
+        HIVIEW_LOGD("AddFileLeakNums , file type: %{public}d", static_cast<int>(type));
         AddFileLeakNums(type);
     }
     closedir(dir);
@@ -506,7 +516,8 @@ void OldLogCleaner::OldlogParamCheck(OldLogCategory &category)
         {"rsTreeLog",           {KEEP_RS_TREE_LOG_FILES, EXCEED_RS_TREE_LOG_NUM}},
         {"mediaLog",            {KEEP_MEDIA_LOG_FILES, EXCEED_MEDIA_LOG_NUM}},
         {"avcLog",              {KEEP_AVC_LOG_FILES, EXCEED_AVC_LOG_NUM}},
-        {"vnodeLog",             {KEEP_VNODE_LOG_FILES, EXCEED_VNODE_LOG_NUM}}
+        {"vnodeLog",             {KEEP_VNODE_LOG_FILES, EXCEED_VNODE_LOG_NUM}},
+        {"stabilityCheckLog",    {KEEP_STABILITY_CHECK_FILES, EXCEED_STABILITY_CHECK_NUM}}
     };
     HIVIEW_LOGI("use default old log param!");
 }
@@ -816,7 +827,7 @@ bool OldLogCleaner::MayOverFolderSize(uint64_t &currentSize, uint64_t &currentSi
     currentSize = CalcFolderSizeExcludingRawheap();
     currentSizeMB = currentSize / BYTE_PER_MB;
     if (currentSizeMB <= static_cast<uint64_t>(oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB)) {
-        HIVIEW_LOGD("Resource leak dir size (excl. RAWHEAP): %{public}lu MB, below limit: %{public}d MB",
+        HIVIEW_LOGD("Resource leak dir size (excl. RAWHEAP): %{public}" PRIu64 " MB, below limit: %{public}d MB",
                     currentSizeMB, oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB);
         return false;
     }
@@ -834,7 +845,7 @@ void OldLogCleaner::GetSortedFileListInResourceLeakDir(std::vector<LogFile> &fil
     std::sort(fileList.begin(), fileList.end(), comparator);
 }
 
-bool OldLogCleaner::RemoveFolderAgingFile(LogFile &logFile, LogType fileType, uint64_t &removedSize)
+bool OldLogCleaner::RemoveFolderAgingFile(const LogFile &logFile, LogType fileType, uint64_t &removedSize)
 {
     struct stat statBuf {};
     if (stat(logFile.path_.c_str(), &statBuf) != 0) {
@@ -847,7 +858,7 @@ bool OldLogCleaner::RemoveFolderAgingFile(LogFile &logFile, LogType fileType, ui
     }
     removedSize += static_cast<uint64_t>(statBuf.st_size);
     SubFileLeakNums(fileType);
-    HIVIEW_LOGD("folder-aging Removed old file: %{public}s, size: %{public}lu",
+    HIVIEW_LOGD("folder-aging Removed old file: %{public}s, size: %{public}" PRIu64,
                 logFile.path_.c_str(), static_cast<uint64_t>(statBuf.st_size));
     return true;
 }
@@ -859,36 +870,18 @@ void OldLogCleaner::MayRemoveOldLogByFolderSize(const LogType &triggerType)
     if (!MayOverFolderSize(currentSize, currentSizeMB)) {
         return;
     }
-    HIVIEW_LOGI("Resource leak dir size: %{public}lu MB, exceeds limit: %{public}d MB, start aging",
+    HIVIEW_LOGI("Resource leak dir size: %{public}" PRIu64 " MB, exceeds limit: %{public}d MB, start aging",
                 currentSizeMB, oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB);
 
     vector<LogFile> fileList;
     GetSortedFileListInResourceLeakDir(fileList);
 
-    uint64_t removedSize = 0;
-    int removedCount = 0;
+    uint64_t sizeLimitMB = static_cast<uint64_t>(oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB);
+    int removedCount = ExecuteFolderAging(currentSize, sizeLimitMB, fileList);
 
-    for (auto it = fileList.rbegin(); it != fileList.rend(); ++it) {
-        uint64_t remainingSizeMB = (currentSize - removedSize) / BYTE_PER_MB;
-        if (remainingSizeMB <= static_cast<uint64_t>(oldLogCategory_.folderOldLog.resourceLeakDirMaxSizeMB)) {
-            break;
-        }
-
-        LogType fileType = GetLogType(it->fileName_, it->dirPath_);
-        if (fileType == LogType::RAWHEAP || fileType == LogType::HIDUMPER_RAWHEAP) {
-            HIVIEW_LOGD("Skip %{public}s file in folder-based aging: %{public}s",
-                        LOG_TYPE_NAME[fileType], it->path_.c_str());
-            continue;
-        }
-
-        if (RemoveFolderAgingFile(*it, fileType, removedSize)) {
-            removedCount++;
-        }
-    }
-
-    uint64_t remainSizeMB = (currentSize - removedSize) / BYTE_PER_MB;
-    HIVIEW_LOGI("folder-aging completed, removed %{public}d files, %{public}lu bytes, current size: %{public}lu MB",
-                removedCount, removedSize, remainSizeMB);
+    uint64_t remainSizeMB = currentSize / BYTE_PER_MB; // size after aging already logged inside ExecuteFolderAging
+    HIVIEW_LOGI("folder-aging completed, removed %{public}d files, current size: %{public}" PRIu64 " MB",
+                removedCount, remainSizeMB);
 }
 
 void OldLogCleaner::TimeAgingForRawheapType(LogType logType)
@@ -900,6 +893,7 @@ void OldLogCleaner::TimeAgingForRawheapType(LogType logType)
     }
 
     if (fileNums_[logType].load() <= 0) {
+        HIVIEW_LOGE("there is few file about %{public}d", static_cast<int>(logType));
         return;
     }
 
@@ -945,6 +939,58 @@ void OldLogCleaner::CheckAndAgingRawheapFiles()
     }
 }
 
+void OldLogCleaner::CheckAndAgingMetaInfoFiles()
+{
+    time_t now = time(nullptr);
+    time_t lastAgingTime = lastMetaInfoAgingTime_.load();
+    if (lastAgingTime != 0 && now - lastAgingTime < SECONDS_IN_A_WEEK) {
+        return;
+    }
+    if (!lastMetaInfoAgingTime_.compare_exchange_strong(lastAgingTime, now)) {
+        return;
+    }
+ 
+    static const char* const searchPaths[] = {
+        MEMORY_LEAK_PATH,
+        FILE_DESCRIPTOR_LEAK_PATH,
+        THREAD_LEAK_PATH,
+    };
+ 
+    int deletedCount = 0;
+    for (const auto& searchPath : searchPaths) {
+        deletedCount += RemoveMetaInfoFilesInDir(searchPath);
+    }
+ 
+    if (deletedCount > 0) {
+        HIVIEW_LOGI("aging completed for META_INFO, removed %{public}d files", deletedCount);
+    }
+}
+ 
+int OldLogCleaner::RemoveMetaInfoFilesInDir(const std::string &dirPath)
+{
+    int deletedCount = 0;
+    auto dir = opendir(dirPath.c_str());
+    if (dir == nullptr) {
+        return deletedCount;
+    }
+    for (struct dirent *ent = readdir(dir); ent != nullptr; ent = readdir(dir)) {
+        string childNode = ent->d_name;
+        if (childNode.find("-metainfo-") == string::npos) {
+            continue;
+        }
+        string fullName = dirPath + "/" + childNode;
+        if (remove(fullName.c_str()) == 0) {
+            HIVIEW_LOGI("aging remove metainfo file: %{public}s", fullName.c_str());
+            deletedCount++;
+        } else {
+            HIVIEW_LOGE("failed to remove metainfo file: %{public}s, err: %{public}s",
+                fullName.c_str(), strerror(errno));
+        }
+    }
+    closedir(dir);
+    return deletedCount;
+}
+
 void OldLogCleaner::DeleteLogFile(const std::string &filePath)
 {
     if (filePath.empty() || access(filePath.c_str(), F_OK) != 0) {
@@ -960,6 +1006,295 @@ void OldLogCleaner::DeleteLogFile(const std::string &filePath)
         HIVIEW_LOGE("Send-then-delete: failed to remove %{public}s file: %{public}s, err: %{public}s",
                     LOG_TYPE_NAME[logType], filePath.c_str(), strerror(errno));
     }
+}
+
+std::string OldLogCleaner::GetFolderAgingLogPath() const
+{
+    return std::string(MEMORY_LEAK_PATH) + "/" + FOLDER_AGING_LOG_NAME;
+}
+
+void OldLogCleaner::CollectAllFilesInLeakDirs(std::vector<LogFile> &allFiles)
+{
+    std::vector<std::string> filePathList;
+    if (DfrUtil::GetInstance().GetFilesInDir(RESOURCE_LEAK_PATH, filePathList)) {
+        for (const auto &fp : filePathList) {
+            allFiles.emplace_back(LogFile(fp));
+        }
+    }
+}
+
+uint64_t OldLogCleaner::CalcNonRawheapSize(const std::vector<LogFile> &allFiles)
+{
+    uint64_t nonRawheapSize = 0;
+    for (const auto &lf : allFiles) {
+        LogType fileType = GetLogType(lf.fileName_, lf.dirPath_);
+        if (fileType == LogType::RAWHEAP || fileType == LogType::HIDUMPER_RAWHEAP) {
+            continue;
+        }
+        struct stat statBuf {};
+        if (stat(lf.path_.c_str(), &statBuf) == 0) {
+            nonRawheapSize += static_cast<uint64_t>(statBuf.st_size);
+        }
+    }
+    return nonRawheapSize;
+}
+
+void OldLogCleaner::CheckAndAgingFolderSize()
+{
+    time_t now = time(nullptr);
+    time_t lastAgingTime = lastFolderSizeAgingTime_.load();
+    int intervalSec = oldLogCategory_.folderSizeAgingIntervalSec > 0 ?
+        oldLogCategory_.folderSizeAgingIntervalSec : SEC_PER_DAY;
+    if (lastAgingTime != 0 && now - lastAgingTime < intervalSec) {
+        return;
+    }
+    if (!lastFolderSizeAgingTime_.compare_exchange_strong(lastAgingTime, now)) {
+        return;
+    }
+
+    uint64_t totalSize = DfrUtil::GetInstance().GetDirSize(RESOURCE_LEAK_PATH);
+    std::vector<LogFile> allFiles;
+    CollectAllFilesInLeakDirs(allFiles);
+    uint64_t nonRawheapSize = CalcNonRawheapSize(allFiles);
+    uint64_t nonRawheapSizeMB = nonRawheapSize / BYTE_PER_MB;
+    uint64_t totalSizeMB = totalSize / BYTE_PER_MB;
+
+    HIVIEW_LOGI("Folder size check: total=%{public}" PRIu64 " MB, non-rawheap=%{public}" PRIu64 " MB, "
+                "limit=%{public}d MB",
+                totalSizeMB, nonRawheapSizeMB, FOLDER_SIZE_LIMIT_MB);
+
+    bool needAging = nonRawheapSizeMB > static_cast<uint64_t>(FOLDER_SIZE_LIMIT_MB);
+    WriteFolderAgingLog(totalSize, nonRawheapSize, needAging, allFiles);
+    AgingFolderAgingLog();
+
+    if (!needAging) {
+        return;
+    }
+    std::sort(allFiles.begin(), allFiles.end(), comparator);
+    DoFolderSizeAging(nonRawheapSize, nonRawheapSizeMB, allFiles);
+}
+
+// Aging directories when the number of directories exceeds the upper limit.
+void OldLogCleaner::DoFolderSizeAging(uint64_t currentSize, uint64_t currentSizeMB,
+                                      const std::vector<LogFile> &fileList)
+{
+    HIVIEW_LOGI("Start folder-size aging: non-rawheap size=%{public}" PRIu64 " MB, limit=%{public}d MB",
+                currentSizeMB, FOLDER_SIZE_LIMIT_MB);
+    ExecuteFolderAging(currentSize, static_cast<uint64_t>(FOLDER_SIZE_LIMIT_MB), fileList);
+}
+
+int OldLogCleaner::ExecuteFolderAging(uint64_t currentSize, uint64_t sizeLimitMB,
+                                      const std::vector<LogFile> &fileList)
+{
+    uint64_t removedSize = 0;
+    int removedCount = 0;
+
+    for (auto it = fileList.rbegin(); it != fileList.rend(); ++it) {
+        uint64_t remainingSizeMB = (currentSize - removedSize) / BYTE_PER_MB;
+        if (remainingSizeMB <= sizeLimitMB) {
+            break;
+        }
+
+        LogType fileType = GetLogType(it->fileName_, it->dirPath_);
+        if (fileType == LogType::RAWHEAP || fileType == LogType::HIDUMPER_RAWHEAP) {
+            HIVIEW_LOGD("Skip %{public}s file in folder-based aging: %{public}s",
+                        LOG_TYPE_NAME[fileType], it->path_.c_str());
+            continue;
+        }
+
+        if (IsInBlackList(it->path_)) {
+            HIVIEW_LOGI("path is in blockList, skip: %{public}s", it->path_.c_str());
+            continue;
+        }
+
+        if (RemoveFolderAgingFile(*it, fileType, removedSize)) {
+            removedCount++;
+        }
+    }
+
+    uint64_t remainSizeMB = (currentSize - removedSize) / BYTE_PER_MB;
+    HIVIEW_LOGI("Folder aging executed: removed %{public}d files, %{public}" PRIu64 " bytes,"
+                "remaining: %{public}" PRIu64 " MB, removed %{public}d files",
+                removedCount, removedSize, remainSizeMB, removedCount);
+    return removedCount;
+}
+
+// Creating a File Aging Log File
+cJSON *OldLogCleaner::CreateFileAgingJsonObj(const LogFile &lf)
+{
+    cJSON *fileObj = cJSON_CreateObject();
+    if (fileObj == nullptr) {
+        return nullptr;
+    }
+    cJSON_AddStringToObject(fileObj, "file_name", lf.fileName_.c_str());
+    struct stat statBuf {};
+    if (stat(lf.path_.c_str(), &statBuf) == 0) {
+        cJSON_AddNumberToObject(fileObj, "size_bytes", static_cast<double>(statBuf.st_size));
+    } else {
+        cJSON_AddNumberToObject(fileObj, "size_bytes", 0);
+    }
+    return fileObj;
+}
+
+// Add file records to the JSON of aging logs.
+void OldLogCleaner::AddFilesToAgingLogJson(cJSON *root, const std::vector<LogFile> &fileList)
+{
+    cJSON *fdLeakFiles = cJSON_CreateArray();
+    cJSON *memoryLeakFiles = cJSON_CreateArray();
+    cJSON *threadFiles = cJSON_CreateArray();
+    if (fdLeakFiles == nullptr || memoryLeakFiles == nullptr || threadFiles == nullptr) {
+        HIVIEW_LOGE("failed to create file arrays");
+        if (fdLeakFiles != nullptr) { cJSON_Delete(fdLeakFiles); }
+        if (memoryLeakFiles != nullptr) { cJSON_Delete(memoryLeakFiles); }
+        if (threadFiles != nullptr) { cJSON_Delete(threadFiles); }
+        return;
+    }
+    std::string fdLeakPath(FILE_DESCRIPTOR_LEAK_PATH);
+    if (!fdLeakPath.empty() && fdLeakPath.back() == '/') {
+        fdLeakPath.pop_back();
+    }
+    for (const auto &lf : fileList) {
+        cJSON *fileObj = CreateFileAgingJsonObj(lf);
+        if (fileObj == nullptr) {
+            continue;
+        }
+        if (lf.dirPath_.find(fdLeakPath) != std::string::npos) {
+            cJSON_AddItemToArray(fdLeakFiles, fileObj);
+        } else if (lf.dirPath_.find(THREAD_LEAK_PATH) != std::string::npos) {
+            cJSON_AddItemToArray(threadFiles, fileObj);
+        } else {
+            cJSON_AddItemToArray(memoryLeakFiles, fileObj);
+        }
+    }
+    cJSON_AddItemToObject(root, "fd_leak_files", fdLeakFiles);
+    cJSON_AddItemToObject(root, "memory_leak_files", memoryLeakFiles);
+    cJSON_AddItemToObject(root, "thread_files", threadFiles);
+}
+
+// Appending Json to the aging log file.
+bool OldLogCleaner::WriteJsonToAgingLogFile(const char *jsonStr)
+{
+    std::string realPath = DfrUtil::GetInstance().RealPath(std::string(MEMORY_LEAK_PATH));
+    if (realPath.empty()) {
+        HIVIEW_LOGE("failed to get real path for %{public}s", MEMORY_LEAK_PATH);
+        return false;
+    }
+    std::string fullLogPath = realPath + "/" + FOLDER_AGING_LOG_NAME;
+    std::ofstream ofs(fullLogPath, std::ios::out | std::ios::app);
+    if (!ofs.is_open()) {
+        HIVIEW_LOGE("failed to open folder aging log: %{public}s", fullLogPath.c_str());
+        return false;
+    }
+    ofs << jsonStr << std::endl;
+    ofs.close();
+    return true;
+}
+
+// Appending records to the aging log file.
+void OldLogCleaner::WriteFolderAgingLog(uint64_t totalSizeBytes, uint64_t nonRawheapSizeBytes,
+                                        bool agingTriggered, const std::vector<LogFile> &fileList)
+{
+    cJSON *root = cJSON_CreateObject();
+    if (root == nullptr) {
+        HIVIEW_LOGE("failed to create cJSON root");
+        return;
+    }
+    time_t now = time(nullptr);
+    cJSON_AddStringToObject(root, "timestamp", DfrUtil::GetInstance().TimeStampToStr(now).c_str());
+    cJSON_AddNumberToObject(root, "total_size_bytes", static_cast<double>(totalSizeBytes));
+    cJSON_AddNumberToObject(root, "non_rawheap_size_bytes", static_cast<double>(nonRawheapSizeBytes));
+    cJSON_AddBoolToObject(root, "aging_triggered", agingTriggered);
+    cJSON_AddNumberToObject(root, "size_limit_mb", FOLDER_SIZE_LIMIT_MB);
+    cJSON_AddBoolToObject(root, "is_beta_version", DfrUtil::GetInstance().IsBetaVersion());
+    cJSON_AddBoolToObject(root, "is_develop_mode", DfrUtil::GetInstance().IsDevelopMode());
+    AddFilesToAgingLogJson(root, fileList);
+
+    char *jsonStr = cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
+    if (jsonStr == nullptr) {
+        HIVIEW_LOGE("failed to print cJSON");
+        return;
+    }
+    bool written = WriteJsonToAgingLogFile(jsonStr);
+    free(jsonStr);
+    if (written) {
+        HIVIEW_LOGI("Folder aging log written, aging_triggered=%{public}d", agingTriggered);
+    }
+}
+
+// Reads the contents in the aging log line by line.
+bool OldLogCleaner::ReadAgingLogLines(const std::string &fullLogPath, std::vector<std::string> &lines)
+{
+    std::ifstream ifs(fullLogPath, std::ios::in);
+    if (!ifs.is_open()) {
+        HIVIEW_LOGE("Failed to open folder aging log for reading: %{public}s", fullLogPath.c_str());
+        return false;
+    }
+    std::string line;
+    while (std::getline(ifs, line)) {
+        if (!line.empty()) {
+            lines.push_back(line);
+        }
+    }
+    ifs.close();
+    return true;
+}
+
+// Removing expired content from the aging log file.
+void OldLogCleaner::TruncateAgingLogFile(const std::string &fullLogPath,
+                                         std::vector<std::string> &lines, uint64_t maxBytes)
+{
+    constexpr uint64_t halfDivisor = 2;
+    uint64_t keepBytes = 0;
+    size_t keepStart = lines.size();
+    for (size_t i = lines.size(); i > 0; --i) {
+        uint64_t lineBytes = lines[i - 1].size() + 1; // +1 for newline
+        if (keepBytes + lineBytes > maxBytes / halfDivisor) {
+            break;
+        }
+        keepBytes += lineBytes;
+        keepStart = i - 1;
+    }
+    std::ofstream ofs(fullLogPath, std::ios::out | std::ios::trunc);
+    if (!ofs.is_open()) {
+        HIVIEW_LOGE("Failed to open folder aging log for writing: %{public}s", fullLogPath.c_str());
+        return;
+    }
+    for (size_t i = keepStart; i < lines.size(); ++i) {
+        ofs << lines[i] << std::endl;
+    }
+    ofs.close();
+    HIVIEW_LOGI("Folder aging log truncated: kept %{public}zu entries (from %{public}zu)",
+                lines.size() - keepStart, lines.size());
+}
+
+
+// aging old file cleaner
+void OldLogCleaner::AgingFolderAgingLog()
+{
+    std::string realPath = DfrUtil::GetInstance().RealPath(std::string(MEMORY_LEAK_PATH));
+    if (realPath.empty()) {
+        return;
+    }
+    std::string fullLogPath = realPath + "/" + FOLDER_AGING_LOG_NAME;
+
+    struct stat statBuf {};
+    if (stat(fullLogPath.c_str(), &statBuf) != 0) {
+        return;
+    }
+    uint64_t maxBytes = oldLogCategory_.folderAgingLogMaxBytes > 0 ?
+        static_cast<uint64_t>(oldLogCategory_.folderAgingLogMaxBytes) : FOLDER_AGING_LOG_MAX_BYTES;
+    if (static_cast<uint64_t>(statBuf.st_size) <= maxBytes) {
+        return;
+    }
+    HIVIEW_LOGI("Folder aging log exceeds %{public}" PRIu64 " bytes (current: %{public}" PRIu64 "), truncating",
+                maxBytes, static_cast<uint64_t>(statBuf.st_size));
+
+    std::vector<std::string> lines;
+    if (!ReadAgingLogLines(fullLogPath, lines)) {
+        return;
+    }
+    TruncateAgingLogFile(fullLogPath, lines, maxBytes);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

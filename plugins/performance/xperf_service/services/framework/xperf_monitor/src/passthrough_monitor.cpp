@@ -18,6 +18,7 @@
 #include <cinttypes>
 
 #include "audio_event.h"
+#include "common_reporter.h"
 #include "ffrt.h"
 #include "load_complete_reporter.h"
 #include "perf_action_event.h"
@@ -66,9 +67,51 @@ void PassthroughMonitor::ProcessEvent(OhosXperfEvent* event)
         case XperfConstants::AUDIO_RENDER_START:
             OnAudioStart(event);
             break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY:
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY:
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK:
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY:
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_APP_JANK:
+            ForwardInteractionEvent(event);
+            break;
         default:
             break;
     }
+}
+
+void PassthroughMonitor::ForwardInteractionEvent(OhosXperfEvent* event)
+{
+    if (event == nullptr) {
+        return;
+    }
+    std::string domain;
+    std::string eventName;
+    switch (event->logId) {
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_COMPLETED_LATENCY:
+            domain = "ACE";
+            eventName = "INTERACTION_COMPLETED_LATENCY";
+            break;
+        case XperfConstants::PERFMONITOR_ACE_INTERACTION_APP_JANK:
+            domain = "ACE";
+            eventName = "INTERACTION_APP_JANK";
+            break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_COMPLETED_LATENCY:
+            domain = "GRAPHIC";
+            eventName = "INTERACTION_COMPLETED_LATENCY";
+            break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RESPONSE_LATENCY:
+            domain = "GRAPHIC";
+            eventName = "INTERACTION_RESPONSE_LATENCY";
+            break;
+        case XperfConstants::RS_GRAPHIC_INTERACTION_RENDER_JANK:
+            domain = "GRAPHIC";
+            eventName = "INTERACTION_RENDER_JANK";
+            break;
+        default:
+            LOGW("PassthroughMonitor::ForwardInteractionEvent unknown logId:%{public}d", event->logId);
+            return;
+    }
+    CommonReporter::ReportInteractionEvent(domain, eventName, event->rawMsg);
 }
 
 void PassthroughMonitor::OnAudioStart(OhosXperfEvent* event)

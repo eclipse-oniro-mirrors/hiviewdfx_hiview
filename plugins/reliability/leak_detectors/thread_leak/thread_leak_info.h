@@ -44,7 +44,7 @@ public:
     std::string GetSummaryInfo() const;
     void AppendToSummary(std::string info);
     KillingState ShouldBeKilled();
-    XPowerManager::ProcessAnomalyInfo GetProcessInfoToKill();
+    ProcessAnomalyInfo GetProcessInfoToKill();
     bool IsEverReported();
     void RecordReport();
     bool CouldTelemetry();

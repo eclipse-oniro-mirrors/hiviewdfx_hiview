@@ -148,32 +148,31 @@ HWTEST_F(EventServiceAdapterUtilsTest, EventServiceAdapterUtilsTest002, TestSize
 HWTEST_F(EventServiceAdapterUtilsTest, EventServiceAdapterUtilsTest003, TestSize.Level1)
 {
     bool enabled = (Parameter::GetInteger("const.secure", TEST_SECURE_ENABALED_VAL) == TEST_SECURE_ENABALED_VAL);
-    CompliantEventChecker compliantEventChecker;
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("AAFWK", "ABILITY_ONACTIVE"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("ACE", "INTERACTION_COMPLETED_LATENCY"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("AV_CODEC", "CODEC_START_INFO"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("GRAPHIC", "INTERACTION_COMPLETED_LATENCY"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("LOCATION", "GNSS_STATE"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("PERFORMANCE", "ANY_EVENT"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("RELIABILITY", "ANY_EVENT"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("SANITIZER", "ADDR_SANITIZER"));
-    ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AAFWK", "ABILITY_ONACTIVE"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("ACE", "INTERACTION_COMPLETED_LATENCY"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AV_CODEC", "CODEC_START_INFO"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("GRAPHIC", "INTERACTION_COMPLETED_LATENCY"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("LOCATION", "GNSS_STATE"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("PERFORMANCE", "ANY_EVENT"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("RELIABILITY", "ANY_EVENT"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("SANITIZER", "ADDR_SANITIZER"));
+    ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
     if (enabled) {
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("AAFWK", "ANY_EVENT"));
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("ACE", "ANY_EVENT"));
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("AV_CODEC", "ANY_EVENT"));
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("GRAPHIC", "ANY_EVENT"));
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("LOCATION", "ANY_EVENT"));
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("SANITIZER", "ANY_EVENT"));
-        ASSERT_FALSE(compliantEventChecker.IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("AAFWK", "ANY_EVENT"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("ACE", "ANY_EVENT"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("AV_CODEC", "ANY_EVENT"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("GRAPHIC", "ANY_EVENT"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("LOCATION", "ANY_EVENT"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("SANITIZER", "ANY_EVENT"));
+        ASSERT_FALSE(CompliantEventChecker::IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
     } else {
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("AAFWK", "ANY_EVENT"));
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("ACE", "ANY_EVENT"));
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("AV_CODEC", "ANY_EVENT"));
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("GRAPHIC", "ANY_EVENT"));
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("LOCATION", "ANY_EVENT"));
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("SANITIZER", "ANY_EVENT"));
-        ASSERT_TRUE(compliantEventChecker.IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AAFWK", "ANY_EVENT"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("ACE", "ANY_EVENT"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("AV_CODEC", "ANY_EVENT"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("GRAPHIC", "ANY_EVENT"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("LOCATION", "ANY_EVENT"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("SANITIZER", "ANY_EVENT"));
+        ASSERT_TRUE(CompliantEventChecker::IsCompliantEvent("WORKSCHEDULER", "WORK_ADD"));
     }
 }
 

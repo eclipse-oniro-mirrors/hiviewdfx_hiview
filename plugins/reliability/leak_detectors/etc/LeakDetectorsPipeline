@@ -1,0 +1,53 @@
+{
+    "domains": [
+        {
+            "domain": "KERNEL_VENDOR",
+            "include": [
+                "PROCESS_KILL", "CMA", "SLUB_OBJ", "LDK_SLUB_OBJ",
+                "FILE_STRUCT_OVER_LIMIT", "KERN_ZONE_FREE_LOW",
+                "KILL_EXCESSIVE_PROCESS", "VMA_LEAK"
+            ]
+        },
+        {
+            "domain": "FRAMEWORK",
+            "include": [
+                "PROCESS_KILL", "FW_MEM_ANOMALY",
+                "SERVICE_WARNING", "THREAD_BLOCK_3S"
+            ]
+        },
+        {
+            "domain": "VM_SERVICE",
+            "include": ["SA_VM_SET_MEMORY"]
+        },
+        {
+            "domain": "GRAPHIC",
+            "include": ["RENDER_MEMORY_OVER_WARNING", "RENDER_MEMORY_OVER_ERROR"]
+        },
+        {
+            "domain": "AAFWK",
+            "include": ["PROCESS_KILL", "COOBJ_STATUS"]
+        },
+        {
+            "domain": "HIVIEWDFX",
+            "include": [
+                "SYSLOAD_DETECTOR_INFO", "ASHMEM_PHYSICAL_SIZE_OVER_LIMIT",
+                "LOWMEM", "ARK_STATS_DUMP", "UPDATE_QUOTA",
+                "FORK_DUMP_SERVICE", "UI_TREE"
+            ]
+        },
+        {
+            "domain": "WEBVIEW",
+            "include": ["PAGE_MEM_LEAK"]
+        },
+        {
+            "domain": "JSVM_RUNTIME",
+            "include": ["JSVM_OOM"]
+        },
+        {
+            "domain": "RELIABILITY",
+            "include": [
+                "PROCESS_MEMORY_REPORT", "AVCodec", "media_service"
+            ]
+        }
+    ]
+}

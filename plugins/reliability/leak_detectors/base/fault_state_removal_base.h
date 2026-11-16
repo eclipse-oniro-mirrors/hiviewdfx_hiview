@@ -19,9 +19,10 @@
 #define DFR_FAULT_STATE_REMOVAL_BASE_H
 
 #include <string>
+#include <vector>
 #include "fault_state_base.h"
 
-#include "process_anomaly_info.h"
+#include "fault_info_base.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,8 +32,8 @@ constexpr int WAIT_KILL_TIME_OUT = 30;
 class FaultStateRemovalBase : public FaultStateBase {
 public:
     bool RecordExitReason(const pid_t pid, const std::string &leakType);
-    void KillProcess(const XPowerManager::ProcessAnomalyInfo &processInfoForKill);
-    void KillProcess(const std::vector<XPowerManager::ProcessAnomalyInfo> &processInfoList);
+    void KillProcess(const ProcessAnomalyInfo &processInfoForKill);
+    void KillProcess(const std::vector<ProcessAnomalyInfo> &processInfoList);
 };
 
 } // namespace HiviewDFX

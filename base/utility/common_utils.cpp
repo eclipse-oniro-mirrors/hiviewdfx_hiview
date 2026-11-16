@@ -15,6 +15,7 @@
 
 #include "common_utils.h"
 
+#include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <charconv>
@@ -23,6 +24,8 @@
 #include <regex>
 #include <sstream>
 #include <string>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <sys/wait.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -355,6 +358,59 @@ pid_t GetPidByProcessName(const std::string &procName)
     }
     closedir(procDir);
     return pid;
+}
+
+std::string GetBundleQuotaPath(const std::string &bundleName)
+{
+    if (bundleName.empty() || bundleName.find("..") != std::string::npos ||
+        bundleName.find('/') != std::string::npos || bundleName.find('\\') != std::string::npos) {
+        HIVIEW_LOGE("invalid bundleName: %{public}s", bundleName.c_str());
+        return "";
+    }
+
+    std::string basePath = "/data/app/el2";
+    DIR *dir = opendir(basePath.c_str());
+    if (dir == nullptr) {
+        HIVIEW_LOGE("failed to open %{public}s", basePath.c_str());
+        return "";
+    }
+
+    struct dirent *entry;
+    std::string result;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') {
+            continue;
+        }
+        std::string accountPath = basePath + "/" + entry->d_name + "/base/" + bundleName + "/cache";
+        struct stat st;
+        if (stat(accountPath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+            result = accountPath + "/rawheap";
+            break;
+        }
+    }
+    closedir(dir);
+
+    if (result.empty()) {
+        HIVIEW_LOGE("bundle quota path not found for %{public}s", bundleName.c_str());
+    }
+    return result;
+}
+
+int GetFreeRomMb()
+{
+    struct statvfs st;
+    if (statvfs("/data/storage/", &st) != 0) {
+        HIVIEW_LOGE("failed to statvfs, errno: %{public}d", errno);
+        return -1;
+    }
+
+    unsigned long long freeSize = static_cast<unsigned long long>(st.f_bsize) * st.f_bfree;
+    unsigned long long freeSizeMb = freeSize / 1024 / 1024; // KB_PER_MB * BYTE_PER_KB
+    if (freeSizeMb > static_cast<unsigned long long>(INT_MAX)) {
+        HIVIEW_LOGE("freeSize is too big, freeSizeMb: %{public}llu", freeSizeMb);
+        return -1;
+    }
+    return static_cast<int>(freeSizeMb);
 }
 }
 } // namespace HiviewDFX

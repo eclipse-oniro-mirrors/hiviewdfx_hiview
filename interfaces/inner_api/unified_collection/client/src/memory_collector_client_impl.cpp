@@ -33,6 +33,8 @@ public:
     CollectResult<int32_t> IsolateSubProcess(
         const std::string& packageName, int32_t mainProcPid, int32_t subProcPid) override;
     CollectResult<int32_t> RequestUiTree(pid_t pid, std::shared_ptr<RequestUiTreeCallback> callback) override;
+    CollectResult<int32_t> UpdateLeakDetectorQuota(
+        const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList = {}) override;
 };
 
 std::shared_ptr<MemoryCollector> MemoryCollector::Create()
@@ -64,6 +66,12 @@ CollectResult<int32_t> MemoryCollectorImpl::IsolateSubProcess(
 CollectResult<int32_t> MemoryCollectorImpl::RequestUiTree(pid_t pid, std::shared_ptr<RequestUiTreeCallback> callback)
 {
     return HiViewServiceMemoryDelegate::RequestUiTree(pid, callback);
+}
+
+CollectResult<int32_t> MemoryCollectorImpl::UpdateLeakDetectorQuota(
+    const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList)
+{
+    return HiViewServiceMemoryDelegate::UpdateLeakDetectorQuota(quotaList);
 }
 }
 }

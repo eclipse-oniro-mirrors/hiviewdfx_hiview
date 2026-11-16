@@ -42,6 +42,7 @@ private:
     void GetProfilerAndNmd(std::shared_ptr<NativeLeakInfo> &nlInfo);
     bool StopDumpStackInfo(std::shared_ptr<NativeLeakInfo> &nlInfo);
     void DumpMallocInfo(std::shared_ptr<NativeLeakInfo> &nlInfo);
+    void DumpAnonPageInfo(std::shared_ptr<NativeLeakInfo> &nlInfo);
     bool StartDumpSimplifiedProfiler(std::shared_ptr<NativeLeakInfo> &nlInfo, SimplifiedMemConfig &memConfig);
     void ConfigureSimplifiedMemConfig(SimplifiedMemConfig &memConfig);
     void DumpProcInfo(const std::string &procPath, std::ofstream &fout, const std::string &title) const;

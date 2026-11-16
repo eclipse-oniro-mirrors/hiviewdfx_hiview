@@ -15,6 +15,7 @@
  * Create: 2023-11-16
  */
 
+#include <cinttypes>
 #include <cstdlib>
 #include "kernel_leak_detector.h"
 #include "dfr_util.h"
@@ -112,7 +113,8 @@ void KernelLeakDetector::UpdateKernelInfo()
             typeParam.appKillThreshold, typeParam.appKillHardThreshold, typeParam.nativeKillThreshold);
         shared_ptr<FaultInfoBase> faultInfo = make_shared<KernelLeakInfo>(name);
         auto kernelInfo = static_pointer_cast<KernelLeakInfo>(faultInfo);
-        HIVIEW_LOGI("uploadInterval: %{public}ld.", KernelLeakConfig::GetInstance().GetKernelConfig().uploadInterval);
+        HIVIEW_LOGI("uploadInterval: %{public}" PRId64 ".",
+            static_cast<int64_t>(KernelLeakConfig::GetInstance().GetKernelConfig().uploadInterval));
         kernelInfo->SetReportInterval(KernelLeakConfig::GetInstance().GetKernelConfig().uploadInterval);
         kernelInfo->SetMeminfoName(typeParam.meminfoName);
         HIVIEW_LOGD("kernel meminfo name: %{public}s.", typeParam.meminfoName.c_str());

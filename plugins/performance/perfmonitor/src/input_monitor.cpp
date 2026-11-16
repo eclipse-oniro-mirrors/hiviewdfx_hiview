@@ -20,7 +20,7 @@
 #include "scene_monitor.h"
 #include "hiview_logger.h"
 
-#ifdef NOT_BUILD_FOR_OHOS_SDK
+#if defined(NOT_BUILD_FOR_OHOS_SDK) && defined(NOTIFY_XPERF_INPUT_EVENT_ENABLE)
 #include <string>
 #include "xperf_service_client.h"
 #include "xperf_service_action_type.h"
@@ -65,7 +65,7 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
                     static_cast<long long>(time), xPos, yPos);
                 mInputTime[LAST_UP] = inputEventInfo;
                 SceneMonitor::GetInstance().OnLastUpInputEvent();
-                #ifdef NOT_BUILD_FOR_OHOS_SDK
+                #if defined(NOT_BUILD_FOR_OHOS_SDK) && defined(NOTIFY_XPERF_INPUT_EVENT_ENABLE)
                 ReportInputEvent("LAST_UP", GetCurrentSystimeMs());
                 #endif
                 break;
@@ -75,7 +75,7 @@ void InputMonitor::RecordInputEvent(PerfActionType type, PerfSourceType sourceTy
                 XPERF_TRACE_SCOPED("RecordInputEvent: first_move=%lld(ns), pos=(%d,%d)",
                     static_cast<long long>(time), xPos, yPos);
                 mInputTime[FIRST_MOVE] = inputEventInfo;
-                #ifdef NOT_BUILD_FOR_OHOS_SDK
+                #if defined(NOT_BUILD_FOR_OHOS_SDK) && defined(NOTIFY_XPERF_INPUT_EVENT_ENABLE)
                 ReportInputEvent("FIRST_MOVE", GetCurrentSystimeMs());
                 #endif
                 break;
@@ -153,7 +153,7 @@ int64_t InputMonitor::GetVsyncTime()
     return mVsyncTime;
 }
 
-#ifdef NOT_BUILD_FOR_OHOS_SDK
+#if defined(NOT_BUILD_FOR_OHOS_SDK) && defined(NOTIFY_XPERF_INPUT_EVENT_ENABLE)
 void InputMonitor::ReportInputEvent(std::string type, int64_t time)
 {
     auto bi = SceneMonitor::GetInstance().GetBaseInfo();

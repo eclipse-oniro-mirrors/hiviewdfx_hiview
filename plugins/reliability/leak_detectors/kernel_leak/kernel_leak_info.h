@@ -24,7 +24,6 @@
 #include <sstream>
 #include <regex>
 #include "fault_info_base.h"
-#include "process_manager.h"
 #include "fault_common.h"
 #include "detail_info_parser.h"
 #include "telemetry_manager.h"
@@ -99,7 +98,7 @@ public:
     OverBaseProcesses GetProcessForReport();
     uint64_t GetProcessSizeForReport();
     void PrintSampleHead(std::ofstream &fout);
-    XPowerManager::ProcessAnomalyInfo GetProcessInfoToKill();
+    ProcessAnomalyInfo GetProcessInfoToKill();
     KillingState ShouldBeKilled();
     int GetTopMemory() const;
     int GetLastSample();
@@ -142,7 +141,7 @@ public:
     bool ExistFreeState();
     void GetLogPath(std::vector<std::string> &logPath);
     std::string GetLogFileToApp();
-    static void UpdateQuota(const std::string &processType);
+    static void UpdateQuota(const std::string &processType, const std::string& quotaData = "");
     static void TryPrintQuotas();
     void SetFirstFrame(const std::string &firstFrame);
     std::string GetFirstFrame() const;
@@ -188,7 +187,7 @@ private:
     void HandleProcessList(std::vector<OverBaseProcesses> &overBaseProcessList);
     void HandleOverBaseProcessList(std::vector<OverBaseProcesses> &overBaseProcessList);
     void MayAddFreeStateProcess(std::vector<OverBaseProcesses> &processList);
-    static bool PasteToQuota(Quota &quota, const XPowerManager::ProcessResDetails &detail);
+    static bool PasteToQuota(Quota &quota, const ProcessResDetails &detail);
     void HandleIonOverBaseProcessesList();
     static void UpdateThresholds(const std::string &name, const std::string &resType, Quota &quota);
     void SaveDmabufReportInfo();

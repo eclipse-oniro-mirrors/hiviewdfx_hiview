@@ -57,6 +57,8 @@ public:
     CollectResult<int32_t> SetSplitMemoryValue(std::vector<UCollectClient::MemoryCaller>& memList);
     CollectResult<int32_t> SetForkDumpService(const std::string& packageName, int32_t mainProcPid, int32_t subProcPid);
     CollectResult<int32_t> RequestUiTree(pid_t pid, const sptr<IRequestUiTreeCallback> &callback);
+    CollectResult<int32_t> UpdateLeakDetectorQuota(
+        const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList = {});
 private:
     void DumpPluginInfo(int fd, const std::vector<std::string>& cmds) const;
     void DumpLoadedPluginInfo(int fd) const;

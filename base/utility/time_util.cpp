@@ -114,18 +114,16 @@ uint64_t GetSteadyClockTimeMs()
     return millisecs.count();
 }
 
-TimeCalculator::TimeCalculator(std::shared_ptr<uint64_t>& timePtr)
+TimeCalculator::TimeCalculator(uint64_t& time) : time_(time)
 {
-    this->time_ = timePtr;
-    this->startTime_ = GenerateTimestamp();
-    this->endTime_ = 0;
+    startTime_ = GenerateTimestamp();
 }
 
 TimeCalculator::~TimeCalculator()
 {
-    this->endTime_ = GenerateTimestamp();
-    if (this->time_ != nullptr && this->endTime_ > this->startTime_) {
-        *(this->time_) += this->endTime_ - this->startTime_;
+    uint64_t endTime = GenerateTimestamp();
+    if (endTime > startTime_) {
+        time_ += endTime - startTime_;
     }
 }
 
@@ -163,6 +161,11 @@ std::string GetFormattedTimestampEndWithMilli()
     milliSeconds = milliSeconds % SEC_TO_MILLISEC;
     ss << std::setfill('0') << std::setw(MILLISECONDS_LENGTH) << milliSeconds;
     return ss.str();
+}
+
+bool LongerThanAWeek(time_t t1, time_t t2)
+{
+    return difftime(t1, t2) > SECONDS_PER_WEEK;
 }
 } // namespace TimeUtil
 } // namespace HiviewDFX

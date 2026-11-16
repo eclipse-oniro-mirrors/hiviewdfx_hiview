@@ -14,6 +14,7 @@
  */
 
 #include "gpu_kill_leak_info.h"
+#include <cinttypes>
 #include "dfr_util.h"
 #include "hisysevent.h"
 
@@ -30,7 +31,7 @@ GpuKillLeakInfo::GpuKillLeakInfo(const ProcesssKillEventParam &eventParam) : Pro
 {
     infoType_ = GPU_KILL_REPORT_DETAIL;
     if (eventParam.eventParam1 < 0) {
-        HIVIEW_LOGE("eventParam.eventParam1: %{public}ld less than 0!", eventParam.eventParam1);
+        HIVIEW_LOGE("eventParam.eventParam1: %{public}" PRId64 " less than 0!", eventParam.eventParam1);
     } else {
         gpuKB_ = eventParam.eventParam1;
     }

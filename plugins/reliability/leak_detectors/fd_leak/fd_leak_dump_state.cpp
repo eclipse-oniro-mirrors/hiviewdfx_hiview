@@ -362,13 +362,55 @@ ErrCode FdLeakDumpState::StateProcess(shared_ptr<FaultInfoBase> &faultInfo, Faul
                             fdInfo->GetCopyProfilerPath().c_str());
             }
         }
+        RemoveEmptyProfiler(fdInfo);
     }
     return ChangeNextState(faultInfo, detectorObj);
+}
+
+void FdLeakDumpState::DumpWarningInfo(shared_ptr<FdLeakInfo> &fdInfo)
+{
+    // Collect fd details, keep the fd num from the event when the query fails
+    uint32_t fdNums = fdInfo->GetFdNums();
+    string detailFdInfo;
+    vector<string> dumpLeakedTypeList;
+    int32_t ret = FdLeakDumpClient::GetInstance().SendCountFdNumsRequest(
+        fdInfo->GetPid(), fdNums, detailFdInfo, dumpLeakedTypeList);
+    if (ret != SUCCESSED) {
+        HIVIEW_LOGW("SendCountFdNumsRequest failed, pid:%{public}d, ret:%{public}d",
+            fdInfo->GetPid(), ret);
+        fdNums = fdInfo->GetFdNums();
+    }
+    fdInfo->SetFdNums(fdNums);
+    fdInfo->SetDetailFdInfo(detailFdInfo);
+    fdInfo->SetDmpLeakedTypeList(dumpLeakedTypeList);
+    fdInfo->SetTopFdTypeList(dumpLeakedTypeList);
+    RecordLeakedProcessInfo(fdInfo, fdInfo->GetFdNums(), detailFdInfo);
+    DumpRsInfo(fdInfo);
+    if (DfrUtil::GetInstance().IsBetaOrDevelopMode()) {
+        // RS FD warning covers both dmabuf and ashmem, dump them together
+        uint64_t resType = RES_FD_DMABUF | RES_DMABUF_MASK | RES_FD_ASHMEM | RES_ASHMEM_MASK;
+        shared_ptr<FaultInfoBase> baseInfo = fdInfo;
+        DumpProfiler(baseInfo, resType);
+        RemoveEmptyProfiler(fdInfo);
+    }
+    HIVIEW_LOGI("dump rs fd warning info finished, pid:%{public}d", fdInfo->GetPid());
 }
 
 void FdLeakDumpState::DumpProfiler(shared_ptr<FaultInfoBase> &faultInfo)
 {
     auto fdInfo = static_pointer_cast<FdLeakInfo>(faultInfo);
+    vector<string> leakTypeList = fdInfo->GetTopFdTypeList();
+    string leakType = leakTypeList.empty() ? "" : leakTypeList.front();
+    DumpProfiler(faultInfo, MatchDumpProfilerType(leakType));
+}
+
+void FdLeakDumpState::DumpProfiler(shared_ptr<FaultInfoBase> &faultInfo, uint64_t resType)
+{
+    auto fdInfo = static_pointer_cast<FdLeakInfo>(faultInfo);
+    if (resType == RES_FD_NO_HOOK) {
+        HIVIEW_LOGI("resType not support, skip profiler, pid:%{public}d", fdInfo->GetPid());
+        return;
+    }
     int fd = -1;
     OldLogCleaner::GetInstance().GetLogFile(FD_PROFILER, fdInfo.get(), fd);
     if (fd < 0) {
@@ -376,14 +418,6 @@ void FdLeakDumpState::DumpProfiler(shared_ptr<FaultInfoBase> &faultInfo)
         return;
     }
     fdsan_exchange_owner_tag(fd, 0, FDSAN_TAG);
-    vector<string> leakTypeList = fdInfo->GetTopFdTypeList();
-    string leakType = leakTypeList.empty() ? "" : leakTypeList.front();
-    uint64_t resType = MatchDumpProfilerType(leakType);
-    if (resType == RES_FD_NO_HOOK) {
-        HIVIEW_LOGI("leakType: %{public}s not support", leakType.c_str());
-        fdsan_close_with_tag(fd, FDSAN_TAG);
-        return;
-    }
     MemSaConfig saConfig;
     saConfig.asyncStackEnable = asyncStackEnable_;
 
@@ -401,6 +435,16 @@ void FdLeakDumpState::DumpProfiler(shared_ptr<FaultInfoBase> &faultInfo)
 
     DfrProfilerManager::GetInstance().DoProfiler(profilerParam);
     fdsan_close_with_tag(fd, FDSAN_TAG);
+}
+
+void FdLeakDumpState::RemoveEmptyProfiler(shared_ptr<FdLeakInfo> &fdInfo)
+{
+    // GetLogFile creates the file before profiler starts, remove it if nothing was written
+    if (!DfrUtil::GetInstance().IsFileEmpty(fdInfo->GetProfilerPath())) {
+        return;
+    }
+    HIVIEW_LOGD("profiler is empty, remove it, pid:%{public}d", fdInfo->GetPid());
+    DfrUtil::GetInstance().RemoveFile(fdInfo->GetProfilerPath());
 }
 
 uint64_t FdLeakDumpState::MatchDumpProfilerType(string leakType)

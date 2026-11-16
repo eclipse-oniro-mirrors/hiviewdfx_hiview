@@ -29,24 +29,26 @@
 #include <algorithm>
 #include "app_event_publisher.h"
 #include "app_event_publisher_factory.h"
+#include "app_mgr_client.h"
 #include "dfr_util.h"
 #include "plugin_factory.h"
 #include "hiview_logger.h"
 #include "hisysevent.h"
+#include "i_telemetry.h"
 #include "process_kill/process_kill_manager.h"
 #include "ffrt.h"
 #include "file_util.h"
 #include "kernel_leak_info.h"
 #include "fault_config_manager.h"
 #include "telemetry_manager.h"
+#include "telemetry_event.h"
 #include "old_log_cleaner.h"
 #include "app_killed_reporter.h"
 #include "sysload_manager.h"
 #include "waiting_kill_list.h"
 #include "leak_event_handler_factory.h"
 #include "xcollie/process_kill_reason.h"
-#include "rss_leak/rss_leak_detector.h"
-#include "rss_leak/rss_random_telemetry_detector.h"
+#include "rss_leak/rss_leak_dispatcher.h"
 #include "lite_profiler/lite_profiler.h"
 
 using namespace std;
@@ -81,6 +83,22 @@ namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002DA0, "FaultLeakDetectorManager");
 
+namespace {
+class RegisterLeakDetectors {
+public:
+    static std::shared_ptr<Plugin> GetObject()
+    {
+        return std::make_shared<FaultDetectorManager>();
+    }
+private:
+    static const PluginRegister g_staticPluginRegister;
+    static const PublisherRegister g_staticPublisherRegister;
+};
+const PluginRegister RegisterLeakDetectors::g_staticPluginRegister("LeakDetectors",
+    std::make_shared<PluginRegistInfo>(RegisterLeakDetectors::GetObject, false, true));
+const PublisherRegister RegisterLeakDetectors::g_staticPublisherRegister("LeakDetectors");
+}
+
 vector<string> FaultDetectorManager::foregroundApps_;
 ffrt::mutex FaultDetectorManager::foregroundMtx_;
 
@@ -95,6 +113,50 @@ FaultDetectorManager::FaultDetectorManager()
 
 FaultDetectorManager::~FaultDetectorManager() {}
 
+bool FaultDetectorManager::CanProcessEvent(shared_ptr<Event> event)
+{
+    return true;
+}
+
+bool FaultDetectorManager::OnOrderedEvent(const Event &msg)
+{
+    return true;
+}
+
+string FaultDetectorManager::GetListenerName()
+{
+    return pluginName;
+}
+
+void FaultDetectorManager::HandleTelemetryEvent(const Event &msg)
+{
+    auto valuePairs = msg.GetKeyValuePairs();
+    SysloadManager::GetInstance().OnUnorderedEvent(valuePairs);
+    ProcessKillManager::GetInstance().OnUnorderedEvent(valuePairs);
+    GetTelemetry().OnUnorderedEvent(
+        TelemetryEvent{
+            static_cast<int>(TelemetryMessageType::TELEMETRY_MSG_EVENT),
+            msg.eventName_,
+            msg.sender_,
+            valuePairs});
+}
+
+void FaultDetectorManager::OnUnorderedEvent(const Event &msg)
+{
+    switch (msg.messageType_) {
+        case Event::ENGINE_SYSEVENT_DEBUG_MODE:
+            HIVIEW_LOGI("get message type ENGINE_SYSEVENT_DEBUG_MODE: %{public}d", msg.messageType_);
+            break;
+        case Event::TELEMETRY_EVENT:
+            HIVIEW_LOGI("get message type TELEMETRY_EVENT: %{public}d", msg.messageType_);
+            HandleTelemetryEvent(msg);
+            break;
+        default:
+            HIVIEW_LOGE("Unknown message type: %{public}d", msg.messageType_);
+            break;
+    }
+}
+
 bool FaultDetectorManager::OnEvent(shared_ptr<Event> &event)
 {
     if (event == nullptr) {
@@ -102,6 +164,11 @@ bool FaultDetectorManager::OnEvent(shared_ptr<Event> &event)
         return false;
     }
     auto sysEvent = Event::DownCastTo<SysEvent>(event);
+    if (sysEvent->eventName_ == EVENT_UPDATE_QUOTA) {
+        std::string quotaData = sysEvent->GetEventValue("QUOTA_DATA");
+        UpdateQuota(quotaData);
+        return true;
+    }
     if (sysEvent->eventName_ == PROCESS_MEMORY_REPORT) {
         HandelXperfEvent(event);
         return true;
@@ -207,9 +274,6 @@ void FaultDetectorManager::PrepareFaultDetectorEnv()
         KernelLeakDetector::GetInstance().PrepareKernelLeakEnv();
         detectorList_.push_back(KERNEL_LEAK_DETECTOR);
         detectorList_.push_back(NATIVE_LEAK_DETECTOR);
-        if (!DfrUtil::GetInstance().IsBetaVersion()) {
-            detectorList_.push_back(RSS_LEAK_DETECTOR);
-        }
         detectorList_.push_back(NOTIFY_LEAK_DETECTOR);
         commonStatusListener_ = make_shared<CommonStatusListener>();
         commonStatusListener_->Start();
@@ -225,8 +289,7 @@ void FaultDetectorManager::NotifyProcessDied(const std::string &procName, pid_t 
         if (DfrUtil::GetInstance().IsMemLeakEnable()) {
             KernelLeakDetector::GetInstance().NotifyProcessDied(pid);
             NativeLeakDetector::GetInstance().NotifyProcessDied(pid);
-            RssLeakDetector::GetInstance().NotifyProcessDied(pid);
-            RssRandomTelemetryDetector::GetInstance().NotifyProcessDied(pid);
+            RssLeakDispatcher::GetInstance().NotifyProcessDied(pid);
             LiteProfiler::GetInstance().NotifyProcessDied(pid);
         }
         if (DfrUtil::GetInstance().IsFdLeakEnable()) {
@@ -254,19 +317,59 @@ void FaultDetectorManager::MonitorProcess()
             case NOTIFY_LEAK_DETECTOR:
                 NotifyLeakDetector::GetInstance().HandleDetector(taskInterval_);
                 break;
-            case RSS_LEAK_DETECTOR:
-                RssLeakDetector::GetInstance().HandleDetector(taskInterval_);
-                break;
             default:
                 break;
         }
     }
 }
 
+void FaultDetectorManager::RegisterAppStateObserver()
+{
+    // Register application state observer for process create/died and foreground changes
+    appStateObserver_ = new(std::nothrow) AppStateObserver();
+    if (appStateObserver_ == nullptr) {
+        return;
+    }
+    appStateObserver_->SetFaultDetectorManager(
+        std::static_pointer_cast<FaultDetectorManager>(shared_from_this()));
+    auto res = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->
+        RegisterApplicationStateObserver(appStateObserver_);
+    if (res != ERR_OK) {
+        HIVIEW_LOGE("RegisterApplicationStateObserver failed, ret=%{public}d", res);
+        return;
+    }
+    HIVIEW_LOGI("RegisterApplicationStateObserver success");
+}
+
 void FaultDetectorManager::OnLoad()
 {
     HIVIEW_LOGI("FaultDetectorManager OnLoad");
+    SetName(pluginName);
+    SetVersion(pluginVersion);
+    // Register as unordered event listener for telemetry events
+    auto context = GetHiviewContext();
+    if (context != nullptr) {
+        context->RegisterUnorderedEventListener(
+            std::static_pointer_cast<FaultDetectorManager>(shared_from_this()));
+    }
+    // Register file descriptor event callback for inotify monitoring
+    if (GetWorkLoop() != nullptr) {
+        GetWorkLoop()->AddFileDescriptorEventCallback(pluginName,
+            std::static_pointer_cast<FaultDetectorManager>(shared_from_this()));
+    }
+
+    if (!ReadyToLoad()) {
+        HIVIEW_LOGI("FaultDetectorManager not ready, skip OnLoad.");
+        return;
+    }
+
     PrepareFaultDetectorEnv();
+
+    // Non-critical initialization in background to avoid blocking OnLoad
+    ffrt::submit([=] {
+        RegisterAppStateObserver();
+        }, {}, {}, {ffrt::task_attr().name("register_app_state_observer")});
+
     ffrt::submit([=] {
         KernelLeakDetector::GetInstance().ShouldUpdateMemtrackTraceTime();
         }, {}, {}, {ffrt::task_attr().name("update_memtrack_trace_time")});
@@ -297,6 +400,22 @@ void FaultDetectorManager::OnUnload()
 {
     isLoopContinue_ = false;
     ffrt::wait({processTaskHandle_});
+
+    // Unregister application state observer
+    if (appStateObserver_ != nullptr) {
+        auto res = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->
+            UnregisterApplicationStateObserver(appStateObserver_);
+        if (res != ERR_OK) {
+            HIVIEW_LOGE("UnregisterApplicationStateObserver failed, ret=%{public}d", res);
+        }
+        appStateObserver_ = nullptr;
+    }
+
+    // Unregister file descriptor event callback
+    if (GetWorkLoop() != nullptr) {
+        GetWorkLoop()->RemoveFileDescriptorEventCallback(pluginName);
+    }
+
     HIVIEW_LOGI("FaultDetectorManager OnUnload");
 }
 
@@ -324,14 +443,15 @@ void FaultDetectorManager::OnEventListeningCallback(const Event &msg)
         HandleKernelEvent(sysEvent);
     } else if (sysEvent.eventName_ == EVENT_NAME_LOWMEM) {
         HandleLowmemEvent(sysEvent);
-    } else if (sysEvent.eventName_ == EVENT_NAME_VMA_LEAK) {
-        HandleVmaEvent(sysEvent);
-    } else if (sysEvent.eventName_ == EVENT_NAME_ARK_STATS) {
-        HandleArkStats(sysEvent);
+    } else if (HandleOomRelatedEvent(sysEvent)) {
+        // OOM-related events (VMA_LEAK/ARK_STATS/JSVM_OOM/ARK_WEB_JS_OOM) handled in helper
     } else if (sysEvent.eventName_ == EVENT_NAME_SET_MEMORY) { // for VM set threshold on pc
         HandleSetMemory(sysEvent);
-    } else if (sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_WARNING ||
-        sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_ERROR) {
+    } else if (sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_WARNING &&
+               sysEvent.GetEventValue("TYPE") != TYPE_FD_WARNING) {
+        // FD_WARNING type falls through to HandleHisysevent below, others go via GpuMemoryOverReport
+        GpuMemoryOverReport(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_MEMORY_OVER_ERROR) {
         GpuMemoryOverReport(sysEvent);
     } else if (sysEvent.eventName_ == EVENT_NAME_ASHMEM_OVER_LIMIT) {
         HandleAshmemEvent(sysEvent);
@@ -346,6 +466,22 @@ void FaultDetectorManager::OnEventListeningCallback(const Event &msg)
     }
 }
 
+bool FaultDetectorManager::HandleOomRelatedEvent(SysEvent &sysEvent)
+{
+    if (sysEvent.eventName_ == EVENT_NAME_VMA_LEAK) {
+        HandleVmaEvent(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_ARK_STATS) {
+        HandleArkStats(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_JSVM_OOM) {
+        HandleJsvmOomEvent(sysEvent);
+    } else if (sysEvent.eventName_ == EVENT_NAME_ARK_WEB_JS_OOM) {
+        HandleV8OomEvent(sysEvent);
+    } else {
+        return false;
+    }
+    return true;
+}
+
 void FaultDetectorManager::HandleProcessKill(SysEvent &sysEvent)
 {
     int callingUid = sysEvent.GetEventIntValue("uid_");
@@ -356,6 +492,10 @@ void FaultDetectorManager::HandleProcessKill(SysEvent &sysEvent)
     HandleProcessKillTelemetry(sysEvent);
     HandleHisysevent(sysEvent);
     HandleProcessKillEvent(sysEvent);
+    if (callingUid == MEMMGR_UID) {
+        HIVIEW_LOGE("Calling UID is MEMMGR_UID, do not handle %{public}s", sysEvent.eventName_.c_str());
+        return;
+    }
     ReportKillReason(sysEvent);
 }
 
@@ -423,6 +563,7 @@ void FaultDetectorManager::GetNotifyProcessInfo(SysEvent &sysEvent, NotifyProces
     notifyProcessInfo.willReportAppeventImmediately =
         (notifyProcessInfo.heapdumpType == "OOMDump" && notifyProcessInfo.eventConfig == "event");
     notifyProcessInfo.arktsType = sysEvent.GetEventValue("ARKTS_TYPE");
+    notifyProcessInfo.resourceType = "js_heap";
 }
 
 void FaultDetectorManager::HandleArkStats(SysEvent &sysEvent)
@@ -432,7 +573,7 @@ void FaultDetectorManager::HandleArkStats(SysEvent &sysEvent)
     string eventPidStr = to_string(eventPid);
     int callingPid = sysEvent.GetEventIntValue("pid_");
     int callingUid = sysEvent.GetEventIntValue("uid_");
-    // pid_: hidumper_service pid, PID: app pid, uid_: hidumper_service uid, hiview(for jsvm and arkweb_v8 oom)
+    // pid_: hidumper_service pid, PID: app pid, uid_: hidumper_service uid, hiview(for jsvm and arkweb js oom)
     if (callingUid != HIDUMPER_SERVICE_UID && callingPid != eventPid && callingUid != HIVIEW_UID) {
         HIVIEW_LOGE("pid check failed, do not handle %{public}s, pid: %{public}s, uid: %{public}d",
                     sysEvent.eventName_.c_str(), eventPidStr.c_str(), callingUid);
@@ -446,6 +587,78 @@ void FaultDetectorManager::HandleArkStats(SysEvent &sysEvent)
     ffrt::submit([=] {
         NotifyLeakDetector::GetInstance().ProcessEventListenening(type, eventPidStr, notifyProcessInfo);
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_ProcessEventListenening")});
+}
+
+void FaultDetectorManager::HandleJsvmOomEvent(SysEvent &sysEvent)
+{
+    // PID is jsvmheap-pid-tid-timestamp file pid
+    int oomProcessPid = sysEvent.GetEventIntValue("PID");
+    HandleHisysevent(sysEvent);
+    string eventConfig = sysEvent.GetEventValue("EVENT_CONFIG");
+    NotifyProcessInfo notifyProcessInfo;
+    notifyProcessInfo.pid = oomProcessPid;
+    // TID is jsvmheap-pid-tid-timestamp file tid
+    notifyProcessInfo.tid = sysEvent.GetEventIntValue("TID");
+    notifyProcessInfo.processName = sysEvent.GetEventValue("PROCESS_NAME");
+    notifyProcessInfo.heapdumpType = "OOMDump";
+    notifyProcessInfo.uid = sysEvent.GetEventIntValue("uid_");
+    notifyProcessInfo.appRunningId = sysEvent.GetEventValue("APP_RUNNING_ID");
+    notifyProcessInfo.resourceType = "jsvm_heap";
+    // EVENT_CONFIG=="1": engine requests rawheap file, hiview waits for rawheap and reports hiappevent with log path
+    // otherwise: engine does not need rawheap, hiview reports hiappevent immediately without log path
+    if (eventConfig == "1") {
+        notifyProcessInfo.eventConfig = "event_rawheap";
+    } else {
+        notifyProcessInfo.willReportAppeventImmediately = true;
+        notifyProcessInfo.eventConfig = "event";
+    }
+
+    string oomProcessPidStr = to_string(oomProcessPid);
+    ffrt::submit([=] {
+        NotifyLeakDetector::GetInstance().ProcessEventListenening("OOMDump", oomProcessPidStr, notifyProcessInfo);
+        }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_ProcessEventListenening_JsvmOom")});
+}
+
+void FaultDetectorManager::HandleV8OomEvent(SysEvent &sysEvent)
+{
+    // PID is arkweb_jsheap-pid-tid-timestamp file pid
+    int oomProcessPid = 0;
+    if (!DfrUtil::GetInstance().SafeStoi(sysEvent.GetEventValue("PID"), oomProcessPid)) {
+        HIVIEW_LOGE("SafeStoi failed. V8OomEvent pid: %{public}s", sysEvent.GetEventValue("PID").c_str());
+        return;
+    }
+
+    HandleHisysevent(sysEvent);
+    string eventConfig = sysEvent.GetEventValue("EVENT_CONFIG");
+    NotifyProcessInfo notifyProcessInfo;
+    notifyProcessInfo.pid = oomProcessPid;
+    // TID is arkweb_jsheap-pid-tid-timestam file tid
+    // TID is render process pid
+    int tid = 0;
+    if (!DfrUtil::GetInstance().SafeStoi(sysEvent.GetEventValue("TID"), tid)) {
+        HIVIEW_LOGE("SafeStoi failed. V8OomEvent tid: %{public}s", sysEvent.GetEventValue("TID").c_str());
+        return;
+    }
+    notifyProcessInfo.tid = tid;
+    notifyProcessInfo.processName = sysEvent.GetEventValue("BUNDLE_NAME");
+    notifyProcessInfo.heapdumpType = "OOMDump";
+    notifyProcessInfo.uid = sysEvent.GetEventIntValue("uid_");
+    notifyProcessInfo.appRunningId = sysEvent.GetEventValue("APP_RUNNING_ID");
+    notifyProcessInfo.resourceType = RES_TYPE_ARKWEB_HEAP;
+
+    // EVENT_CONFIG=="1": engine requests rawheap file, hiview waits for rawheap and reports hiappevent with log path
+    // otherwise: engine does not need rawheap, hiview reports hiappevent immediately without log path
+    if (eventConfig == "1") {
+        notifyProcessInfo.eventConfig = "event_rawheap";
+    } else {
+        notifyProcessInfo.willReportAppeventImmediately = true;
+        notifyProcessInfo.eventConfig = "event";
+    }
+
+    string oomProcessPidStr = to_string(oomProcessPid);
+    ffrt::submit([=] {
+        NotifyLeakDetector::GetInstance().ProcessEventListenening("OOMDump", oomProcessPidStr, notifyProcessInfo);
+        }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_ProcessEventListenening_V8Oom")});
 }
 
 void FaultDetectorManager::HandleSetMemory(SysEvent &sysEvent)
@@ -620,7 +833,7 @@ void FaultDetectorManager::HandleLowmemEvent(SysEvent &sysEvent)
     }
     if (reason == "RSS_THRESHOLD_WARNING") {
         ffrt::submit([=] {
-            RssRandomTelemetryDetector::GetInstance().HandleRssThresholdWarningEvent(pid);
+            RssLeakDispatcher::GetInstance().HandleRssThresholdWarningEvent(pid);
             }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_HandleRssThresholdWarningEvent")});
         return;
     }
@@ -889,20 +1102,20 @@ void FaultDetectorManager::DumpFileList(int fd, const string &path, const string
     dprintf(fd, "******\n");
 }
 
-void FaultDetectorManager::UpdateQuota()
+void FaultDetectorManager::UpdateQuota(const std::string& quotaData)
 {
     if (!DfrUtil::GetInstance().IsMemLeakEnable()) {
         HIVIEW_LOGE("no need to update quota");
         return;
     }
-    ffrt::submit([] {
-        NativeLeakInfo::UpdateQuota();
+    ffrt::submit([quotaData] {
+        NativeLeakInfo::UpdateQuota(quotaData);
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_NativeLeakUpdateQuota")});
 
-    ffrt::submit([] {
-        KernelLeakInfo::UpdateQuota("ashmem");
-        KernelLeakInfo::UpdateQuota("ion");
-        KernelLeakInfo::UpdateQuota("gpu");
+    ffrt::submit([quotaData] {
+        KernelLeakInfo::UpdateQuota("ashmem", quotaData);
+        KernelLeakInfo::UpdateQuota("ion", quotaData);
+        KernelLeakInfo::UpdateQuota("gpu", quotaData);
         KernelLeakDetector::GetInstance().UpdateGrayListThreshold();
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_KernelLeakUpdateQuota")});
 }
@@ -914,27 +1127,24 @@ void FaultDetectorManager::NotifyProcessCreate(const string &procName, pid_t pid
     if (DfrUtil::GetInstance().IsMemLeakEnable()) {
         NativeLeakDetector::GetInstance().NotifyProcessCreate(pid);
         KernelLeakDetector::GetInstance().NotifyProcessCreate(procName, pid);
-        RssLeakDetector::GetInstance().NotifyProcessCreate(pid);
         LiteProfiler::GetInstance().NotifyProcessCreate(pid);
     }
 }
 
-void FaultDetectorManager::OnForegroundChanged(const Dubai::ForegroundAttr &attr)
+void FaultDetectorManager::OnForegroundChanged(const std::vector<std::string> &foregrounds)
 {
     if (!DfrUtil::GetInstance().IsMemLeakEnable()) {
         HIVIEW_LOGD("memleak is disable, don't care foreground changed.");
         return;
     }
-    vector<string> apps;
-    attr.GetForegrounds(apps);
-    size_t len = apps.size();
+    size_t len = foregrounds.size();
     HIVIEW_LOGD("foregroundapps size:%{public}zu", len);
     for (size_t i = 0; i < len; i++) {
-        HIVIEW_LOGI("%{public}zu:%{public}s", i, apps[i].c_str());
+        HIVIEW_LOGI("%{public}zu:%{public}s", i, foregrounds[i].c_str());
     }
 
     foregroundMtx_.lock();
-    foregroundApps_ = apps;
+    foregroundApps_ = foregrounds;
     foregroundMtx_.unlock();
     ffrt::submit([=] {
         WaitingKillList::GetInstance().KillProcessInWaitList();

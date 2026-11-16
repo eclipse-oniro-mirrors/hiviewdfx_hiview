@@ -45,20 +45,6 @@ constexpr int MANOSECONDS_PER_MILLISECOND = 1000 * 1000;
 const mode_t DEFAULT_SANITIZER_LOG_MODE = 0644;
 const unsigned MIN_SUMMARY_SPACE = 10;
 
-// Fault type strings
-const char END_GWP_ASAN_REPORT[] = "End GWP-ASan report";
-const char END_TSAN_REPORT[] = "End Tsan report";
-const char END_CFI_REPORT[] = "End CFI report";
-const char END_UBSAN_REPORT[] = "End Ubsan report";
-const char END_HWASAN_REPORT[] = "End Hwasan report";
-const char END_ASAN_REPORT[] = "End Asan report";
-
-const char FAULT_TYPE_GWP_ASAN[] = "GWP-ASAN";
-const char FAULT_TYPE_TSAN[] = "TSAN";
-const char FAULT_TYPE_UBSAN[] = "UBSAN";
-const char FAULT_TYPE_HWASAN[] = "HWASAN";
-const char FAULT_TYPE_ASAN[] = "ASAN";
-
 const char FAULTLOGGER_PATH[] = "faultlogger";
 constexpr unsigned G_ASAN_LOG_SIZE = 1 * 1024 * 1024;
 char g_asanlog[G_ASAN_LOG_SIZE];
@@ -96,30 +82,24 @@ void WriteSanitizerLog(char* buf, size_t sz, char* path)
     if (g_asanlogLock.test_and_set(std::memory_order_acquire)) {
         return;
     }
-    size_t logLen = g_asanlogLen.load(std::memory_order_relaxed);
-    size_t copyLen = (sz < G_ASAN_LOG_SIZE - 1 - logLen) ? sz : (G_ASAN_LOG_SIZE - 1 - logLen);
+    size_t oldLen = g_asanlogLen.load(std::memory_order_relaxed);
+    char tail[MAX_END_MARKER_LEN] = {0};
+    size_t tailLen = (oldLen < MAX_END_MARKER_LEN - 1) ? oldLen : (MAX_END_MARKER_LEN - 1);
+    if (tailLen > 0) {
+        (void)memcpy_s(tail, sizeof(tail), g_asanlog + oldLen - tailLen, tailLen);
+    }
+    size_t logLen = oldLen;
+    size_t copyLen = (sz < G_ASAN_LOG_SIZE - logLen) ? sz : (G_ASAN_LOG_SIZE - logLen);
     if (copyLen > 0) {
         errno_t err = memcpy_s(g_asanlog + logLen, G_ASAN_LOG_SIZE - logLen, buf, copyLen);
         if (err != EOK) {
             g_asanlogLock.clear(std::memory_order_release);
             return;
         }
+        logLen += copyLen;
+        g_asanlogLen.store(logLen, std::memory_order_relaxed);
     }
-    logLen += copyLen;
-    g_asanlog[logLen] = '\0';
-    g_asanlogLen.store(logLen, std::memory_order_relaxed);
-    const char* faultType = nullptr;
-    if (strstr(g_asanlog, END_GWP_ASAN_REPORT) != nullptr) {
-        faultType = FAULT_TYPE_GWP_ASAN;
-    } else if (strstr(g_asanlog, END_TSAN_REPORT) != nullptr) {
-        faultType = FAULT_TYPE_TSAN;
-    } else if (strstr(g_asanlog, END_CFI_REPORT) != nullptr || strstr(g_asanlog, END_UBSAN_REPORT) != nullptr) {
-        faultType = FAULT_TYPE_UBSAN;
-    } else if (strstr(g_asanlog, END_HWASAN_REPORT) != nullptr) {
-        faultType = FAULT_TYPE_HWASAN;
-    } else if (strstr(g_asanlog, END_ASAN_REPORT) != nullptr) {
-        faultType = FAULT_TYPE_ASAN;
-    }
+    const char* faultType = DetectFaultType(tail, tailLen, buf, sz);
     if (faultType != nullptr) {
         ReadGwpAsanRecordFromBuffer(faultType, path);
         g_asanlogLen.store(0, std::memory_order_relaxed);

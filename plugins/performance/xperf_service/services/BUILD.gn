@@ -61,6 +61,7 @@ ohos_shared_library("xperfservice_server") {
     "framework/xperf_parser/src/network_event_parser.cpp",
     "framework/xperf_parser/src/perf_event_parser.cpp",
     "framework/xperf_parser/src/rs_event_parser.cpp",
+    "framework/xperf_reporter/src/common_reporter.cpp",
     "framework/xperf_reporter/src/event_reporter.cpp",
     "framework/xperf_reporter/src/video_reporter.cpp",
     "framework/xperf_reporter/src/play_latency_reporter.cpp",

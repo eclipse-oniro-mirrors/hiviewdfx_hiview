@@ -201,5 +201,35 @@ HWTEST_F(EventJsonParserTest, EventJsonParserTest003, testing::ext::TestSize.Lev
     EventJsonParser::GetInstance()->GetAllCollectEvents(list4, 1821); // filt event whose report interval is 1821
     ASSERT_TRUE(list4.empty());
 }
+
+/**
+ * @tc.name: EventJsonParserTest004
+ * @tc.desc: parse def file which contains a non-object event content, verify no crash and valid events still parsed
+ * @tc.type: FUNC
+ * @tc.require: IBIY90
+ */
+HWTEST_F(EventJsonParserTest, EventJsonParserTest004, testing::ext::TestSize.Level0)
+{
+    RenameDefFile("hisysevent_non_object_event.def", "hisysevent.def");
+    RemoveConfigVerFile();
+    EventJsonParser::GetInstance()->ReadDefFile(); // init to read def file
+
+    EventJsonParser::GetInstance()->OnConfigUpdate();
+
+    // the valid event in the same domain should be parsed correctly
+    auto validBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(
+        "NON_OBJECT_EVENT_DOMAIN", "VALID_EVENT");
+    ASSERT_TRUE(validBaseInfo.has_value());
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTypeByDomainAndName("NON_OBJECT_EVENT_DOMAIN", "VALID_EVENT"),
+        FIRST_TEST_EVENT_TYPE);
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName("NON_OBJECT_EVENT_DOMAIN", "VALID_EVENT"),
+        "NON_OBJECT_TEST_CASE");
+    // the non-object event should be handled gracefully without crash, getting default empty tag
+    auto invalidBaseInfo = EventJsonParser::GetInstance()->GetDefinedBaseInfoByDomainName(
+        "NON_OBJECT_EVENT_DOMAIN", "INVALID_NON_OBJECT_EVENT");
+    ASSERT_TRUE(invalidBaseInfo.has_value());
+    ASSERT_EQ(EventJsonParser::GetInstance()->GetTagByDomainAndName("NON_OBJECT_EVENT_DOMAIN",
+        "INVALID_NON_OBJECT_EVENT"), "");
+}
 } // namespace HiviewDFX
 } // namespace OHOS

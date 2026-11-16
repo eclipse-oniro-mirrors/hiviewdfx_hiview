@@ -15,7 +15,7 @@ import("//build/config/features.gni")
 import("//build/test.gni")
 
 ohos_fuzztest("EventServerFuzzTest") {
-  module_out_path = "hiview/sys_event_source_fuzz"
+  module_out_path = "hiview/hiview/sysevent_source"
 
   fuzz_config_file = "../eventserver_fuzzer"
 

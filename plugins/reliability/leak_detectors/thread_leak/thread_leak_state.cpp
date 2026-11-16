@@ -40,7 +40,6 @@ namespace HiviewDFX {
 DEFINE_LOG_LABEL(0xD002DA0, "ThreadLeakState");
 
 using namespace std;
-using namespace OHOS::XPowerManager;
 
 namespace {
 constexpr uint32_t THREAD_LOG_NUM = 10;

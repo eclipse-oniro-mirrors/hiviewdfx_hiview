@@ -25,7 +25,6 @@
 #include <vector>
 #include "ffrt.h"
 #include "singleton.h"
-#include "process_anomaly_info.h"
 #include "dfr_util.h"
 #include "fault_info_base.h"
 #include "fault_detector_base.h"

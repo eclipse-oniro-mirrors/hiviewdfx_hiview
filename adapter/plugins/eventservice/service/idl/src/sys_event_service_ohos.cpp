@@ -194,7 +194,6 @@ void SysEventServiceOhos::OnSysEvent(std::shared_ptr<SysEvent>& event)
         dataPublisher_->OnSysEvent(event);
     }
     lock_guard<mutex> lock(listenersMutex_);
-    CompliantEventChecker compliantEventChecker;
     for (auto listener = registeredListeners_.begin(); listener != registeredListeners_.end(); ++listener) {
         OHOS::sptr<ISysEventCallback> callback = iface_cast<ISysEventCallback>(listener->first);
         if (callback == nullptr) {
@@ -202,14 +201,13 @@ void SysEventServiceOhos::OnSysEvent(std::shared_ptr<SysEvent>& event)
             continue;
         }
         if ((listener->second.uid == HID_SHELL) &&
-            !compliantEventChecker.IsCompliantEvent(event->domain_, event->eventName_)) {
+            !CompliantEventChecker::IsCompliantEvent(event->domain_, event->eventName_)) {
             HIVIEW_LOGD("event [%{public}s|%{public}s] isn't compliant for the process with uid %{public}d",
                 event->domain_.c_str(), event->eventName_.c_str(), listener->second.uid);
             continue;
         }
         bool isMatched = MatchRules(listener->second.rules, event->domain_, event->eventName_,
             event->GetTag(), event->eventType_);
-        HIVIEW_LOGD("pid %{public}d rules match %{public}s.", listener->second.pid, isMatched ? "success" : "fail");
         if (isMatched) {
             callback->Handle(event->domain_, event->eventName_,
                 static_cast<uint32_t>(event->eventType_), event->AsJsonStr());

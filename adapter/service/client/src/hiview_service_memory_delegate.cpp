@@ -17,6 +17,9 @@
 
 #include "hiview_remote_service.h"
 #include "hiview_service_ability_proxy.h"
+#include "ihiview_service_ability.h"
+#include "leak_detector_quota_parcelable.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -114,6 +117,62 @@ CollectResult<int32_t> HiViewServiceMemoryDelegate::RequestUiTree(int32_t pid,
         // Store the specific error code for caller to diagnose the failure reason
         ret.data = proxyRet;
     }
+    return ret;
+}
+
+CollectResult<int32_t> HiViewServiceMemoryDelegate::UpdateLeakDetectorQuota(
+    const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList)
+{
+    CollectResult<int32_t> ret;
+    auto service = RemoteService::GetHiViewRemoteService();
+    if (!service) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    // Hand-written IPC instead of code-generated proxy: the generated proxy does not
+    // call SetMaxCapacity, which causes WriteString16 to fail for large quota JSON
+    // (parcel default capacity 200KB < ~800KB quota payload). Mirroring xpower's
+    // SetProcessQuota approach: Parcelable list + explicit SetMaxCapacity.
+    constexpr size_t MAX_QUOTA_PARCEL_CAPACITY = 1024 * 1024; // 1MB
+    constexpr size_t MAX_QUOTA_VECTOR_SIZE = 102400; // IPC parcel vector size guard
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.SetMaxCapacity(MAX_QUOTA_PARCEL_CAPACITY)) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    if (!data.WriteInterfaceToken(IHiviewServiceAbility::GetDescriptor())) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    if (quotaList.size() > MAX_QUOTA_VECTOR_SIZE) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    data.WriteInt32(static_cast<int32_t>(quotaList.size()));
+    for (const auto& info : quotaList) {
+        LeakDetectorQuotaParcelable parcelable(info);
+        if (!data.WriteParcelable(&parcelable)) {
+            ret.retCode = UCollect::SYSTEM_ERROR;
+            return ret;
+        }
+    }
+    int32_t result = service->SendRequest(
+        static_cast<uint32_t>(IHiviewServiceAbilityIpcCode::COMMAND_UPDATE_LEAK_DETECTOR_QUOTA),
+        data, reply, option);
+    if (result != 0) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    ErrCode errCode = reply.ReadInt32();
+    if (errCode != 0) {
+        ret.retCode = UCollect::SYSTEM_ERROR;
+        return ret;
+    }
+    int32_t errNo = reply.ReadInt32();
+    ret.data = reply.ReadInt32();
+    ret.retCode = static_cast<UCollect::UcError>(errNo);
     return ret;
 }
 }

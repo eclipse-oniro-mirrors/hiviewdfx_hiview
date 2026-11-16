@@ -25,7 +25,6 @@
 #include <atomic>
 #include "fault_info_base.h"
 #include "dfr_util.h"
-#include "process_manager.h"
 #include "singleton.h"
 #include "ffrt.h"
 #include "fault_dump_state_base.h"
@@ -88,9 +87,9 @@ struct AnalyzeSample {
 class NativeLeakInfo : public MemoryLeakInfoBase {
 public:
     static void SetVMMemory(int vmExtraThreshold);
-    static void FillQuotaInfo(Quota &quota, const XPowerManager::ProcessResDetails &detail, uint32_t &processActions,
+    static void FillQuotaInfo(Quota &quota, const ProcessResDetails &detail, uint32_t &processActions,
         const std::string name);
-    static void UpdateQuota();
+    static void UpdateQuota(const std::string& quotaData = "");
     static void TryPrintQuotas();
     static void GetThirdAppLimit();
     static uint64_t ZoomThirdAppLimit(uint32_t value);
@@ -145,11 +144,13 @@ public:
     void PrintSample(std::ofstream &fout, const SampleRecord &sr);
     void SetRealMemory(uint64_t memory);
     RealMemoryInfo GetRealMemory() const;
-    OHOS::XPowerManager::ProcessAnomalyInfo GetProcessInfoToKill();
+    ProcessAnomalyInfo GetProcessInfoToKill();
     void SetEventName(std::string eventName);
     std::string GetEventName();
     bool ShouldSample(time_t now);
     SampleRecord GetLastSampleRecord();
+    bool IsSampleUpdated() const { return sampleUpdated_; }
+    void SetSampleUpdated(bool updated) { sampleUpdated_ = updated; }
     bool GetPss();
     void AddRealMemoryRecord(SampleRecord &newSR);
     bool GetFakePss();
@@ -222,7 +223,7 @@ private:
     std::string GetDumpFunction();
     std::string GetSmapsNameToApp() const;
     void DecideReportEvent(SampleRecord &newSR);
-    void FillProcessMemInfo(OHOS::XPowerManager::ProcessAnomalyInfo &processInfoForKill, const SampleRecord &lastSR);
+    void FillProcessMemInfo(ProcessAnomalyInfo &processInfoForKill, const SampleRecord &lastSR);
     FaultStateType MaySwitchToRemovalState();
 
 public:
@@ -259,6 +260,7 @@ private:
     std::string eventName_ { "PSS_MEMORY" };
     time_t sampleInterval_ { 30 };
     time_t lastSampleStamp_ { 0 };
+    bool sampleUpdated_ { false };
     SampleRecord lastSR_;
     bool isEverPrintSample_ { false };
     std::string fileSamplePath_ { "" };

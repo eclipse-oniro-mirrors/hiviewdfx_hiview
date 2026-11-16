@@ -18,21 +18,18 @@
 #include <string>
 
 #include "json/json.h"
-#include "log_file_name_converter.h"
+#define private public
+#define protected public
+#include "log_file_name_converter.cpp"
+#undef private
+#undef protected
 #include "logfileconverter_fuzzer.h"
 #include "securec.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 constexpr int FUZZTEST_MAX_STR_LEN = 128;
-constexpr int CONVERT_INTERFACE_COUNT = 3;
 constexpr int FUZZ_SELECTOR_BYTES = 1;
-
-enum ConvertInterfaceSelector {
-    SELECTOR_CONVERT_LOG_FILE_NAME = 0,
-    SELECTOR_SHOULD_REFINED_LOG_FILE_NAME = 1,
-    SELECTOR_REFINE_LOG_FILE_PATHS = 2,
-};
 
 std::string MakeStr(const uint8_t*& data, size_t& remain)
 {
@@ -94,27 +91,61 @@ void FuzzRefineLogFilePaths(const uint8_t*& data, size_t& remain)
     RefineLogFilePaths(eventJson, oldLogPath, newFileName, rawNeedRefined != 0);
 }
 
+void FuzzExtractTimestampFromFileName(const uint8_t*& data, size_t& remain)
+{
+    std::string fileName = MakeStr(data, remain);
+    ExtractTimestampFromFileName(fileName);
+}
+
+void FuzzMatchLogFileType(const uint8_t*& data, size_t& remain)
+{
+    std::string fileName = MakeStr(data, remain);
+    std::string resourceType = MakeStr(data, remain);
+    MatchLogFileType(fileName, resourceType);
+}
+
+void FuzzConvertTimestampToMilliseconds(const uint8_t*& data, size_t& remain)
+{
+    std::string timestampStr = MakeStr(data, remain);
+    ConvertTimestampToMilliseconds(timestampStr);
+}
+
+void FuzzGenerateNewFileName(const uint8_t*& data, size_t& remain)
+{
+    uint8_t fileTypeRaw = 0;
+    if (!ReadValue(data, remain, fileTypeRaw)) {
+        return;
+    }
+    LogFileType fileType = static_cast<LogFileType>(
+        fileTypeRaw % (static_cast<int>(LogFileType::UNKNOWN) + 1));
+    std::string timestampStr = MakeStr(data, remain);
+    int32_t pid = 0;
+    ReadValue(data, remain, pid);
+    GenerateNewFileName(fileType, timestampStr, pid);
+}
+
+using FuzzFunc = void(*)(const uint8_t*&, size_t&);
+
+const FuzzFunc FUZZ_FUNCS[] = {
+    FuzzConvertLogFileName,
+    FuzzShouldRefinedLogFileName,
+    FuzzRefineLogFilePaths,
+    FuzzExtractTimestampFromFileName,
+    FuzzMatchLogFileType,
+    FuzzConvertTimestampToMilliseconds,
+    FuzzGenerateNewFileName,
+};
+
 void FuzzLogFileConverter(const uint8_t* data, size_t size)
 {
     if (size < FUZZ_SELECTOR_BYTES) {
         return;
     }
-    uint8_t selector = data[0] % CONVERT_INTERFACE_COUNT;
+    constexpr size_t funcCount = sizeof(FUZZ_FUNCS) / sizeof(FUZZ_FUNCS[0]);
+    uint8_t selector = data[0] % funcCount;
     data += FUZZ_SELECTOR_BYTES;
     size_t remain = size - FUZZ_SELECTOR_BYTES;
-    switch (selector) {
-        case SELECTOR_CONVERT_LOG_FILE_NAME:
-            FuzzConvertLogFileName(data, remain);
-            break;
-        case SELECTOR_SHOULD_REFINED_LOG_FILE_NAME:
-            FuzzShouldRefinedLogFileName(data, remain);
-            break;
-        case SELECTOR_REFINE_LOG_FILE_PATHS:
-            FuzzRefineLogFilePaths(data, remain);
-            break;
-        default:
-            break;
-    }
+    FUZZ_FUNCS[selector](data, remain);
 }
 } // namespace
 } // namespace OHOS

@@ -76,5 +76,21 @@ HWTEST_F(DomainJsonParserTest, DomainJsonParserTest001, testing::ext::TestSize.L
     Json::Value domainJson;
     ASSERT_EQ(domainJsonParser->ParseDomainJsonFromFile("INVALID_TEST_DOMAIN", domainJson), false);
 }
+
+/**
+ * @tc.name: DomainJsonParserTest002
+ * @tc.desc: parse def file whose root is not a json object
+ * @tc.type: FUNC
+ * @tc.require: IBIY90
+ */
+HWTEST_F(DomainJsonParserTest, DomainJsonParserTest002, testing::ext::TestSize.Level0)
+{
+    RemoveConfigVerFile();
+    std::unique_ptr<DomainJsonParser> domainJsonParser = std::make_unique<DomainJsonParser>();
+    // root is a json array instead of an object
+    std::string notObjectDefPath = "/data/system/hiview/hisysevent_not_object.def";
+    ASSERT_EQ(domainJsonParser->CacheDomainJsonLocation(notObjectDefPath), false);
+    ASSERT_EQ(domainJsonParser->GetDomainLocationMap()->size(), 0);
+}
 } // namespace HiviewDFX
 } // namespace OHOS

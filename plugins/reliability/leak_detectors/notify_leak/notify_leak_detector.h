@@ -78,6 +78,10 @@ private:
     void DumpLeak(std::shared_ptr<NotifyLeakInfo> notifyInfo, int waitTime);
     void HandleThirdPartyLeak(pid_t pid, pid_t tid, const std::string &notifyDir, const std::string &filename,
                         int retryCnt = 0);
+    bool TryReplaceArkwebRawheap(const std::string &notifyDir, const std::string &filename,
+                                 std::vector<NotifyProcessInfo> &infos);
+    int AdjustArkwebWaitTime(const std::string &filename, int waitTime);
+    std::string ExtractRawheapTimestamp(const std::string &filename);
     void ResetDumpCntAndTime();
     void SetHidebugQuota();
     void ReportAppeventImmediately(const struct NotifyProcessInfo& processInfo);
