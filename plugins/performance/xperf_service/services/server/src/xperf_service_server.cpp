@@ -80,16 +80,14 @@ void XperfServiceServer::RegisterAudioListener()
     if (xperfAudioListener == nullptr) {
         xperfAudioListener = std::make_shared<XperfAudioListener>();
     }
-    /*注册音频输出设备变化回调*/
     AudioStandard::AudioRendererInfo rendererInfo;
     rendererInfo.contentType = AudioStandard::ContentType::CONTENT_TYPE_MUSIC;
     rendererInfo.streamUsage = AudioStandard::StreamUsage::STREAM_USAGE_MUSIC;
     auto odcRet = AudioStandard::AudioRoutingClientManager::GetInstance().SetPreferredOutputDeviceChangeCallback(
-            rendererInfo, xperfAudioListener);
+        rendererInfo, xperfAudioListener);
     if (odcRet != 0) {
         LOGE("SetPreferredOutputDeviceChangeCallback failed");
     }
-    /*注册音频焦点变化回调*/
     auto audioSystemManager = AudioStandard::AudioSystemManager::GetInstance();
     if (audioSystemManager == nullptr) {
         LOGE("audioSystemManager is null");
