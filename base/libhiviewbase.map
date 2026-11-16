@@ -542,6 +542,7 @@
         "OHOS::HiviewDFX::CommonUtils::GetBundleQuotaPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::CommonUtils::GetFreeRomMb()";
         "OHOS::HiviewDFX::TimeUtil::LongerThanAWeek(long, long)";
+        "OHOS::HiviewDFX::FileUtil::RealPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
     };
   local:
     *;

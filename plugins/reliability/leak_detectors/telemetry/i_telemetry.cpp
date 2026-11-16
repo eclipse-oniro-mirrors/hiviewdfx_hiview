@@ -255,9 +255,6 @@ DynamicTelemetryProxy::~DynamicTelemetryProxy()
 
 DynamicTelemetryProxy::ImplGuard DynamicTelemetryProxy::AcquireImpl()
 {
-#ifndef DUBAI_CONFIG_FEATURE_MEM
-    return {};
-#else
     if (!telemetryEnabled_.load(std::memory_order_relaxed)) {
         return {};
     }
@@ -296,7 +293,6 @@ DynamicTelemetryProxy::ImplGuard DynamicTelemetryProxy::AcquireImpl()
     HIVIEW_LOGI("dlopen %{public}s success, telemetry loaded", TELEMETRY_EXT_SO);
     activeCalls_.fetch_add(1, std::memory_order_acquire);
     return ImplGuard(impl_, this);
-#endif
 }
 
 void DynamicTelemetryProxy::UnloadSo()
