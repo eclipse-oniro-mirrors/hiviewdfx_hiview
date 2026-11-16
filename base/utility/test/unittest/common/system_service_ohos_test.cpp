@@ -109,5 +109,36 @@ HWTEST_F(SystemServiceOhosTest, SystemServiceTest004, testing::ext::TestSize.Lev
         ASSERT_FALSE(isFactoryMode);
     }
 }
+
+/**
+ * @tc.name: SystemServiceTest005
+ * @tc.desc: Test Release mode
+ * @tc.type: FUNC
+ * @tc.require: issueICS6LM
+ */
+HWTEST_F(SystemServiceOhosTest, SystemServiceTest005, testing::ext::TestSize.Level3)
+{
+    std::string releaseType = Parameter::GetString("const.product.os.dist.releasetype", "");
+    std::string releaseTypeStr = Parameter::GetReleaseTypeStr();
+    ASSERT_EQ(releaseTypeStr, releaseType);
+}
+
+/**
+ * @tc.name: SystemServiceTest006
+ * @tc.desc: Test Model alias
+ * @tc.type: FUNC
+ * @tc.require: issueICS6LM
+ */
+HWTEST_F(SystemServiceOhosTest, SystemServiceTest006, testing::ext::TestSize.Level3)
+{
+    std::string modelAlias = Parameter::GetString("const.product.model.alias", "");
+    std::string model = Parameter::GetString("const.product.model", "");
+    std::string modelAliasStr = Parameter::GetProductModelAliasStr();
+    if (modelAlias.empty()) {
+        ASSERT_EQ(modelAliasStr, model);
+    } else {
+        ASSERT_FALSE(modelAliasStr.empty());
+    }
+}
 }
 }
