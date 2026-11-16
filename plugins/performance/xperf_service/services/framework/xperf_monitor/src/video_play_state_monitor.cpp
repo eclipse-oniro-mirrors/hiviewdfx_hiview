@@ -19,7 +19,6 @@
 #include "avcodec_event.h"
 #include "xperf_register_manager.h"
 #include "perf_trace.h"
-#include "transaction/rs_interfaces.h"
 #include "user_action_storage.h"
 #include "ffrt.h"
 #include "time_util.h"
