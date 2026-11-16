@@ -28,8 +28,6 @@ namespace OHOS {
 namespace HiviewDFX {
 
 static constexpr uint32_t MAX_FRAME_NUM = 4;
-static constexpr uint32_t fps = 3;
-static constexpr uint64_t interval = 300;
 static constexpr int64_t MANUAL_THRESHOLD = 650;
 /*音频stop与音频打断间隔时间阈值，该阈值不能大于故障阈值，否则RS已判定卡顿，再通知停止已无效*/
 static constexpr int64_t STOP_INTERRUPT_THRESHOLD = 200;
@@ -191,7 +189,6 @@ void VideoPlayStateMonitor::NotifyStartDetection(std::unique_lock<std::mutex>& l
     LOGI("VideoPlayStateMonitor_NotifyStartDetection AvcodecVideoStart");
     XPERF_TRACE_SCOPED("AvcodecVideoStart");
     lock.unlock();
-    OHOS::Rosen::RSInterfaces::GetInstance().AvcodecVideoStart(uniqueIds, surfaceNames, fps, interval); //通知图形开始检测
     if (!surfaceInfo.empty()) {
         BroadcastVideoStart(surfaceInfo);
     }
@@ -220,7 +217,6 @@ void VideoPlayStateMonitor::NotifyStopDetection(std::unique_lock<std::mutex>& lo
     LOGI("VideoPlayStateMonitor_NotifyStopDetection AvcodecVideoStop");
     XPERF_TRACE_SCOPED("AvcodecVideoStop");
     lock.unlock();
-    OHOS::Rosen::RSInterfaces::GetInstance().AvcodecVideoStop(uniqueIds, surfaceNames, fps); //通知图形停止检测
     if (!surfaceInfo.empty()) {
         BroadcastVideoStop(surfaceInfo);
     }
