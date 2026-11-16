@@ -461,6 +461,33 @@ std::string ReadSymlink(const std::string &path)
 
 std::string RealPath(const std::string &path)
 {
+    struct stat st;
+    char rtn[PATH_MAX] = {0};
+    if (stat(path.c_str(), &st) == 0) {
+        if (realpath(path.c_str(), rtn) == nullptr) {
+            HIVIEW_LOGE("failed realpath: %{public}s, err: %{public}s", path.c_str(), strerror(errno));
+            return "";
+        }
+        return rtn;
+    }
+
+    size_t lastSlash = path.find_last_of('/');
+    if (lastSlash == string::npos) {
+        HIVIEW_LOGE("failed realpath: %{public}s, no parent dir", path.c_str());
+        return "";
+    }
+    string parentDir = path.substr(0, lastSlash);
+    if (stat(parentDir.c_str(), &st) != 0) {
+        HIVIEW_LOGE("failed realpath: %{public}s, parent dir not exist", path.c_str());
+        return "";
+    }
+    if (realpath(parentDir.c_str(), rtn) == nullptr) {
+        HIVIEW_LOGE("failed realpath: %{public}s, because parent dir: %{public}s realpath failed", path.c_str(),
+                    parentDir.c_str());
+        return "";
+    }
+
+    return rtn + path.substr(lastSlash);
 }
 } // namespace FileUtil
 } // namespace HiviewDFX
