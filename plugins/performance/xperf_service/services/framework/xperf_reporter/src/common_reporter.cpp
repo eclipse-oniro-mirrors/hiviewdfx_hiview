@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "common_reporter.h"
-#include "event_reporter.h"
+#include "event_bridge.h"
 #include "perf_utils.h"
 
 namespace OHOS {
@@ -25,8 +25,7 @@ void CommonReporter::ReportInteractionEvent(const std::string& domain, const std
     std::string data;
     data.append("EVENT_DATA:").append(eventData)
         .append("#HAPPEN_TIME:").append(std::to_string(GetCurrentSystimeMs()));
-
-    EventReporter::GetInstance().ReportEvent(domain, event, data);
+    EventBridge::GetInstance().OnEvent(domain, event, data);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

@@ -92,7 +92,7 @@ void VideoXperfMonitor::OnVideoJankReceived(OhosXperfEvent* event)
 {
     std::lock_guard<std::mutex> Lock(mMutex);
     RsJankEvent* rsJankEvent = (RsJankEvent*) event;
-    currUniqueId = rsJankEvent->uniqueId; // 记录当前视频的uniqueId
+    currJankId = rsJankEvent->uniqueId; // 记录当前视频的uniqueId
 
     SurfaceInfo si = GetSurfaceInfo(rsJankEvent->uniqueId);
     VideoJankRecord videoJankRecord; // 创建卡顿记录（uniqueId+happenTime唯一标识一次卡顿）
@@ -161,7 +161,7 @@ void VideoXperfMonitor::OnUserAction(OhosXperfEvent* event)
     }
     int64_t currTime = GetCurrentSystimeMs();
     std::lock_guard<std::mutex> Lock(mMutex);
-    auto it = videoJankRecordMap.find(currUniqueId);
+    auto it = videoJankRecordMap.find(currJankId);
     if (it == videoJankRecordMap.end()) { // 没有卡顿事件
         LOGW("No stutter records");
         return;

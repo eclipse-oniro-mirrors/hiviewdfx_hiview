@@ -15,10 +15,10 @@
 #include "xperf_service_interfaces.h"
 
 #include "passthrough_monitor.h"
-#include "video_jank_monitor.h"
+#include "video_play_state_monitor.h"
 #include "video_xperf_monitor.h"
 #include "video_play_latency_monitor.h"
-#include "event_reporter.h"
+#include "event_bridge.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,7 +32,7 @@ XperfServiceInterfaces &XperfServiceInterfaces::GetInstance()
 void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName) const
 {
-    VideoJankMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
+    VideoPlayStateMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
     VideoXperfMonitor::GetInstance().OnSurfaceReceived(pid, bundleName, uniqueId, surfaceName);
     PassthroughMonitor::GetInstance().OnSurfaceReceived(bundleName, uniqueId);
     VideoPlayLatencyMonitor::GetInstance().OnComponentAttach(pid, bundleName, uniqueId, surfaceName);
@@ -41,7 +41,7 @@ void XperfServiceInterfaces::ReportSurfaceInfo(int32_t pid, const std::string& b
 void XperfServiceInterfaces::RegEventListener(std::function<void(const std::string&, const std::string&,
     const std::string&)> listener)
 {
-    EventReporter::GetInstance().RegEventListener(listener);
+    EventBridge::GetInstance().RegEventListener(listener);
 }
 }
 }

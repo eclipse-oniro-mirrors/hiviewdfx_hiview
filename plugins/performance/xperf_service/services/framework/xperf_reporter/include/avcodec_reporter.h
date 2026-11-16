@@ -12,34 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef EVENT_REPORTER_H
-#define EVENT_REPORTER_H
+
+#ifndef AVCODEC_REPORTER_H
+#define AVCODEC_REPORTER_H
 
 #include <string>
-#include <vector>
-#include <functional>
+#include <cstdint>
 
 namespace OHOS {
 namespace HiviewDFX {
 
-class EventReporter {
+class AvcodecReporter {
 public:
-    static EventReporter& GetInstance();
-    EventReporter(const EventReporter&) = delete;
-    void operator=(const EventReporter&) = delete;
-
-    void ReportEvent(const std::string& domain, const std::string& event, const std::string& data);
-    void ReportEvent(const std::string& event, const std::string& data);
-
-    void RegEventListener(std::function<void(const std::string&, const std::string&, const std::string&)> listener);
-
-private:
-    EventReporter() = default;
-    ~EventReporter() = default;
-
-    std::vector<std::function<void(const std::string&, const std::string&, const std::string&)>> listeners;
+    static void ReportAvcodecInit(int64_t time);
+    static void ReportAvcodecRelease(int64_t time);
+    static void ReportAvcodecJank(const std::string& data);
 };
 } // namespace HiviewDFX
 } // namespace OHOS
-
 #endif

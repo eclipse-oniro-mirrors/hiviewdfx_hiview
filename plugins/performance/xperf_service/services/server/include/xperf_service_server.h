@@ -19,6 +19,7 @@
 #include "xperf_service_stub.h"
 #include "xperf_service.h"
 #include "system_ability.h"
+#include "xperf_audio_listener.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -37,6 +38,10 @@ public:
 
     int32_t RegisterEventListener(const std::string& caller, const sptr<IEventCallback>& cb,
         const std::vector<int>& eventCodes) override;
+
+private:
+    std::shared_ptr<XperfAudioListener> xperfAudioListener = std::make_shared<XperfAudioListener>();
+    void RegisterAudioListener();
 };
 }
 }

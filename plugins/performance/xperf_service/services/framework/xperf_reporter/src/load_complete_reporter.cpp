@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "load_complete_reporter.h"
-#include "event_reporter.h"
+#include "event_bridge.h"
  
 namespace OHOS {
 namespace HiviewDFX {
@@ -31,7 +31,7 @@ void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
         .append("BUNDLE_NAME:").append(record.bundleName).append("\n")
         .append("ABILITY_NAME:").append(record.abilityName);
 
-    EventReporter::GetInstance().ReportEvent("LOAD_COMPLETE", data);
+    EventBridge::GetInstance().OnEvent("LOAD_COMPLETE", data);
 }
 
 // 上报音频启动事件
@@ -66,7 +66,7 @@ void LoadCompleteReporter::ReportSimpleEvent(const std::string& eventName,
     data.append("BUNDLE_NAME:").append(bundleName).append("\n")
         .append("HAPPEN_TIME:").append(std::to_string(happenTime));
 
-    EventReporter::GetInstance().ReportEvent(eventName, data);
+    EventBridge::GetInstance().OnEvent(eventName, data);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

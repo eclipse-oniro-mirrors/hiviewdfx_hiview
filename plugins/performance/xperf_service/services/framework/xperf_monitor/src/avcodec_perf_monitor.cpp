@@ -17,6 +17,9 @@
 #include "xperf_service_log.h"
 #include "perf_trace.h"
 #include "play_latency_reporter.h"
+#include "avcodec_reporter.h"
+#include "time_util.h"
+#include "string_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -32,16 +35,10 @@ void AvcodecPerfMonitor::ProcessEvent(OhosXperfEvent* event)
     LOGD("AvcodecPerfMonitor_ProcessEvent logId:%{public}d msg:%{public}s", event->logId, event->rawMsg.c_str());
     switch (event->logId) {
         case XperfConstants::AVCODEC_INIT: //解码器创建
-            {
-                LOGI("AVCODEC_INIT msg:%{public}s", event->rawMsg.c_str());
-                XPERF_TRACE_SCOPED("AVCODEC_INIT msg:%s", event->rawMsg.c_str());
-            }
+            OnInit(event);
             break;
         case XperfConstants::AVCODEC_RELEASE: //解码器销毁
-            {
-                LOGI("AVCODEC_RELEASE msg:%{public}s", event->rawMsg.c_str());
-                XPERF_TRACE_SCOPED("AVCODEC_RELEASE msg:%s", event->rawMsg.c_str());
-            }
+            OnRelease(event);
             break;
         case XperfConstants::AVCODEC_JANK_FAULT: //帧间隔大于300ms
             OnFault(event);
@@ -61,7 +58,24 @@ void AvcodecPerfMonitor::OnFault(OhosXperfEvent* event)
 {
     LOGI("AVCODEC_JANK_FAULT msg:%{public}s", event->rawMsg.c_str());
     XPERF_TRACE_SCOPED("AVCODEC_JANK_FAULT msg:%s", event->rawMsg.c_str());
-    PlayLatencyReporter::ReportFault("AVCODEC_JANK_FAULT_INNER", event->rawMsg);
+
+    AvcodecReporter::ReportAvcodecJank(ConvertToXperfMsg(event->rawMsg));
+}
+
+void AvcodecPerfMonitor::OnInit(OhosXperfEvent* event)
+{
+    LOGI("AVCODEC_INIT msg:%{public}s", event->rawMsg.c_str());
+    XPERF_TRACE_SCOPED("AVCODEC_INIT msg:%s", event->rawMsg.c_str());
+
+    AvcodecReporter::ReportAvcodecInit(TimeUtil::GetCurrTimeMs());
+}
+
+void AvcodecPerfMonitor::OnRelease(OhosXperfEvent* event)
+{
+    LOGI("AVCODEC_RELEASE msg:%{public}s", event->rawMsg.c_str());
+    XPERF_TRACE_SCOPED("AVCODEC_RELEASE msg:%s", event->rawMsg.c_str());
+
+    AvcodecReporter::ReportAvcodecRelease(TimeUtil::GetCurrTimeMs());
 }
 } // namespace HiviewDFX
 } // namespace OHOS

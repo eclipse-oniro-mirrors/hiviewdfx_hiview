@@ -18,7 +18,7 @@
 #include "xperf_service_log.h"
 #include "passthrough_monitor.h"
 #include "user_action_monitor.h"
-#include "video_jank_monitor.h"
+#include "video_play_state_monitor.h"
 #include "video_xperf_monitor.h"
 #include "avcodec_perf_monitor.h"
 #include "video_play_latency_monitor.h"
@@ -60,7 +60,7 @@ std::vector<XperfMonitor*> XperfMonitorManager::GetMonitors(int32_t logId)
 
 void XperfMonitorManager::InitPlayStateMonitor()
 {
-    XperfMonitor* monitor = &VideoJankMonitor::GetInstance();
+    XperfMonitor* monitor = &VideoPlayStateMonitor::GetInstance();
     RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_START, monitor);
     RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_PAUSE_STOP, monitor);
     RegisterMonitorByLogID(XperfConstants::AUDIO_RENDER_RELEASE, monitor);
