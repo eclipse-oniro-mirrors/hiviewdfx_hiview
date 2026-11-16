@@ -178,7 +178,7 @@ void SceneMonitor::OnUIContextMessageProcessed(uint32_t messageId)
     std::lock_guard<std::mutex> lock(uiContextMessageMutex_);
     auto it = uiContextMessageReceivedTime_.find(messageId);
     if (it == uiContextMessageReceivedTime_.end()) {
-        g_uiContextMessageReceivedTime.store(-1);
+        g_uiContextMessageReceivedTime.store(0);
         HIVIEW_LOGE("no find messageId %ld", it->second);
         return;
     }
