@@ -64,8 +64,9 @@ public:
      * @brief 添加加载组件（状态模式接口）
      * @param componentId 组件ID
      * @param sourceType 资源类型
+     * @param isVisible 是否可见（P1）
      */
-    void AddLoadComponent(int32_t componentId, int32_t sourceType);
+    void AddLoadComponent(int32_t componentId, int32_t sourceType, bool isVisible);
 
     /**
      * @brief 删除加载组件（状态模式接口）
@@ -76,30 +77,62 @@ public:
     /**
      * @brief 完成加载组件（状态模式接口）
      * @param componentId 组件ID
+     * @param isVisible 是否可见
      */
-    void CompleteLoadComponent(int32_t componentId);
+    void CompleteLoadComponent(int32_t componentId, bool isVisible);
+
+    /**
+     * @brief 通知组件挂载到主渲染树（状态模式接口）
+     * @param componentId 组件ID
+     */
+    void AttachComponent(int32_t componentId);
+ 
+    /**
+     * @brief Web 组件开始加载（状态模式接口，转场场景专用）
+     * @param navigationId Web 组件导航ID
+     */
+    void WebComponentLoad(int64_t navigationId);
+
+    /**
+     * @brief Web 页面最大区域绘制完成（状态模式接口，转场场景专用）
+     * @param navigationId Web 组件导航ID
+     * @param largestContentPaintTime LCP 时间戳
+     */
+    void WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime);
  
     // ========== 动效开始和结束的回调接口 ==========
     void OnAnimatorStart(const std::string& sceneId, PerfActionType type, const std::string& note) override;
     void OnAnimatorStop(const std::string& sceneId, bool isRsRender) override;
  
     // ========== 状态类需要访问的接口 ==========
-    
+
     // 状态转换方法
     void SetState(std::unique_ptr<ICollectState> newState);
-    
-    // 内部方法
-    void FinishCollectTask();
+
+    // ========== 定时器到期处理（由对应定时器到期后通过 StopCollect 触发）==========
+    // 第一定时器（3s）到期处理：结算或启动第二定时器继续等待 Web 组件
+    void FinishCollectTaskOnFirstTimeout();
+    // 第二定时器（2s）到期处理：直接最终结算
+    void FinishCollectTaskOnSecondTimeout();
+    // 用户打断下以打断时刻作为终止点结算
+    void FinishCollectTaskOnUserInterrupt();
     void DeleteLoadComponentInternal(int32_t componentId);
-    void CompleteLoadComponentInternal(int32_t componentId);
+    void CompleteLoadComponentInternal(int32_t componentId, bool isVisible);
+    // attach 间距阈值与豁免策略由 LoadCompleteMonitor 根据 isLaunch_ 决定后传入
+    void AttachComponentInternal(int32_t componentId);
+    void WebComponentLoadInternal(int64_t navigationId);
+    void WebContentPaintCompleteInternal(int64_t navigationId, int64_t largestContentPaintTime);
     void StartCollectCommon(bool isLaunch);
-    void AddComponentInternal(int32_t componentId, int32_t sourceType);
+    void AddComponentInternal(int32_t componentId, int32_t sourceType, bool isVisible);
  
 private:
     LoadCompleteMonitor();
     ~LoadCompleteMonitor();
 
-    void PostTimeoutTask();
+    void PostFirstTimeoutTask();
+    void PostSecondTimeoutTask();
+    // 公共结算与上报逻辑
+    void SettleAndReport(const CollectResult& result);
 
     // 成员变量
     int64_t beginTime_ = 0;

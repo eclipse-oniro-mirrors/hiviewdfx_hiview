@@ -29,7 +29,8 @@ void LoadCompleteReporter::ReportLoadComplete(const LoadCompleteReport& record)
     data.append("LAST_COMPONENT:").append(std::to_string(record.lastComponent)).append("\n")
         .append("IS_LAUNCH:").append(std::to_string(record.isLaunch)).append("\n")
         .append("BUNDLE_NAME:").append(record.bundleName).append("\n")
-        .append("ABILITY_NAME:").append(record.abilityName);
+        .append("ABILITY_NAME:").append(record.abilityName).append("\n")
+        .append("COMPONENT_INFO:").append(std::to_string(record.componentInfo));
 
     EventReporter::GetInstance().ReportEvent("LOAD_COMPLETE", data);
 }
