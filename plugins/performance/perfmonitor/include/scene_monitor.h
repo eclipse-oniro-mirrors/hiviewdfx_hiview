@@ -25,6 +25,7 @@
 #include "iremote_broker.h"
 
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_interfaces.h"
 
 namespace OHOS {
 namespace HiviewDFX {
