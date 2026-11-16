@@ -122,7 +122,7 @@
                 "eventhandler",
                 "selinux_adapter",
                 "selinux",
-		"audio_framework",
+		        "audio_framework",
                 "runtime_core"
             ]
         },
