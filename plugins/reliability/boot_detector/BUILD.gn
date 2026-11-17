@@ -14,7 +14,7 @@
 import("//base/hiviewdfx/hiview/hiview.gni")
 import("//build/ohos.gni")
 
-ohos_shared_header("boot_detector_hiview") {
+ohos_shared_headers("boot_detector_hiview") {
   include_dirs = [ "include" ]
   part_name = "hiview"
   subsystem_name = "hiviewdfx"
