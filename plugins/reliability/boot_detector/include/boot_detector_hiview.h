@@ -16,6 +16,7 @@
 #ifndef HIVIEW_PLUGINS_RELIABILITY_BOOT_DETECTOR_INCLUDE_BOOT_DETECTOR_HIVIEW_H
 #define HIVIEW_PLUGINS_RELIABILITY_BOOT_DETECTOR_INCLUDE_BOOT_DETECTOR_HIVIEW_H
 
+#include <cstddef>
 #include <string>
 
 namespace OHOS {
@@ -30,7 +31,23 @@ namespace HiviewDFX {
  * @return the rewritten path; a path without the "/data" prefix, including an empty
  *         path, is returned unchanged
  */
-std::string BootDetectorReplaceDataPrefix(const std::string &path);
+std::string BootDetectorReplaceDataPrefix(const std::string &path)
+{
+    constexpr char DATA_PREFIX[] = "/data";
+    constexpr char DATA_MIRROR_PREFIX[] = "/mnt/data_mirror";
+    constexpr size_t DATA_PREFIX_LEN = sizeof(DATA_PREFIX) - 1;
+
+    if (path.size() < DATA_PREFIX_LEN) {
+        return path;
+    }
+    if (path.compare(0, DATA_PREFIX_LEN, DATA_PREFIX) != 0) {
+        return path;
+    }
+    if (path.size() != DATA_PREFIX_LEN && path[DATA_PREFIX_LEN] != '/') {
+        return path;
+    }
+    return DATA_MIRROR_PREFIX + path.substr(DATA_PREFIX_LEN);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
 
