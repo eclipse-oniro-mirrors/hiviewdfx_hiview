@@ -31,7 +31,7 @@ namespace HiviewDFX {
  * @return the rewritten path; a path without the "/data" prefix, including an empty
  *         path, is returned unchanged
  */
-inline std::string BootDetectorReplaceDataPrefix(const std::string &path)
+std::string BootDetectorReplaceDataPrefix(const std::string &path)
 {
     constexpr char DATA_PREFIX[] = "/data";
     constexpr char DATA_MIRROR_PREFIX[] = "/mnt/data_mirror";
