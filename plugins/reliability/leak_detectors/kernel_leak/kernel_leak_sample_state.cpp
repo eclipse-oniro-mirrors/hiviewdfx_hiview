@@ -80,11 +80,11 @@ int KernelLeakSampleState::GetMemSize(const string &infoName, const string &proc
 
     auto it = memInfoMap_.find(infoName);
     if (it == memInfoMap_.end()) {
-        HIVIEW_LOGE("cannot find infoName name: %{public}s", infoName.c_str());
+        HIVIEW_LOGE("GetMemSize failed, infoName not found: %{public}s", infoName.c_str());
         return 0;
     }
     if (!DfrUtil::GetInstance().SafeStoi(it->second, memsize)) {
-        HIVIEW_LOGE("safestoi failed. infoName name: %{public}s", infoName.c_str());
+        HIVIEW_LOGE("SafeStoi failed, infoName: %{public}s", infoName.c_str());
         return 0;
     }
     if (procName == "slab") {

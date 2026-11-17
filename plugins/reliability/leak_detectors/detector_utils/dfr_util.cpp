@@ -1286,7 +1286,12 @@ string DfrUtil::GetCacheProcInfo(const string &procFilePath)
     time_t now = time(nullptr);
     procDumpMtx_.lock();
     if (!procFilePathMap_.count(procFilePath) || now - procFilePathMap_[procFilePath].second > MAP_ELEMT_OLD_TIME) {
-        HIVIEW_LOGI("the procfilepath %{public}s should been changed or inited.", procFilePath.c_str());
+        bool isFirstInit = !procFilePathMap_.count(procFilePath);
+        if (isFirstInit) {
+            HIVIEW_LOGI("procFilePath cache init: %{public}s", procFilePath.c_str());
+        } else {
+            HIVIEW_LOGD("procFilePath cache reload: %{public}s", procFilePath.c_str());
+        }
         if (procFilePath.find(SYSLOAD_PATH) != string::npos) {
             string allIonInfo = GetAllProcessIonInfo();
             procFilePathMap_[procFilePath] = pair<string, time_t>(allIonInfo, now);
@@ -1474,7 +1479,7 @@ int32_t DfrUtil::GetForegroundOsAccountLocalId()
         HIVIEW_LOGE("failed to GetForegroundOsAccountLocalId. ret: %{public}d", getLocalIdRet);
         return 0;
     }
-    HIVIEW_LOGI("localId: %{public}d", localId);
+    HIVIEW_LOGD("GetForegroundOsAccountLocalId: %{public}d", localId);
 
     return localId;
 }

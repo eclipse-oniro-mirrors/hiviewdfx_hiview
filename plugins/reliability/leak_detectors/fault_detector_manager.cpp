@@ -1139,10 +1139,7 @@ void FaultDetectorManager::OnForegroundChanged(const std::vector<std::string> &f
         return;
     }
     size_t len = foregrounds.size();
-    HIVIEW_LOGD("foregroundapps size:%{public}zu", len);
-    for (size_t i = 0; i < len; i++) {
-        HIVIEW_LOGI("%{public}zu:%{public}s", i, foregrounds[i].c_str());
-    }
+    HIVIEW_LOGI("OnForegroundChanged, foregroundApps size:%{public}zu", len);
 
     foregroundMtx_.lock();
     foregroundApps_ = foregrounds;
