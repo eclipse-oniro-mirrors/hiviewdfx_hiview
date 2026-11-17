@@ -18,6 +18,7 @@
 #include <memory_trace.h>
 #include "hiview_logger.h"
 #include "dfr_util.h"
+#include "file_util.h"
 #include "dfr_profiler_manager.h"
 #include "native_leak_config.h"
 
@@ -735,7 +736,7 @@ bool DfrProfilerManager::FetchNmdAndDumpToFile(pid_t pid, const std::string &sma
 
 void DfrProfilerManager::WriteNmdStatsToFile(const string &smapsPath, const vector<SimplifiedMemStats> &nmdStats)
 {
-    string realPath = DfrUtil::GetInstance().RealPath(smapsPath);
+    string realPath = FileUtil::RealPath(smapsPath);
     if (realPath.empty()) {
         HIVIEW_LOGE("invalid smapsPath=%{public}s", smapsPath.c_str());
         return;

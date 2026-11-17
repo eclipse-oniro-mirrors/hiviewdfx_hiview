@@ -32,6 +32,7 @@
 #include "log_file.h"
 #include "old_log_param_config.h"
 #include "dfr_util.h"
+#include "file_util.h"
 #include "fault_info_base.h"
 
 namespace OHOS {
@@ -131,7 +132,7 @@ public:
     template <typename OutputType>
     void CreateFile(FileParams &fileParams, OutputType &output, bool isAppend = false)
     {
-        const std::string &realPath = DfrUtil::GetInstance().RealPath(fileParams.logPath);
+        const std::string &realPath = FileUtil::RealPath(fileParams.logPath);
         if (realPath.empty()) {
             return;
         }

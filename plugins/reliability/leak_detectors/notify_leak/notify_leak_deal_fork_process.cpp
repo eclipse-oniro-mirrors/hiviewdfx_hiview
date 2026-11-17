@@ -14,6 +14,7 @@
  */
 
 #include "notify_leak_deal_fork_process.h"
+#include "file_util.h"
 #include <thread>
 #include <chrono>
 #include <sys/wait.h>
@@ -200,7 +201,7 @@ void NotifyLeakDealForkProcess::ChangeProcGroup(const string &bundleName, pid_t 
         return;
     }
     string path = CGROUP_V2_PATH_PREFIX + bundleName + "/cgroup.procs";
-    const string &realPath = DfrUtil::GetInstance().RealPath(path);
+    const string &realPath = FileUtil::RealPath(path);
     if (realPath.empty() || realPath.find(CGROUP_V2_PATH_PREFIX) != 0) {
         HIVIEW_LOGE("ChangeProcGroup: invalid realPath: %{public}s", realPath.c_str());
         return;

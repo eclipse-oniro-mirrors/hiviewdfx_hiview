@@ -16,6 +16,7 @@
  */
 
 #include "fault_dump_state_base.h"
+#include "file_util.h"
 #include "kernel_leak_config.h"
 #include "fault_common.h"
 #include "hitrace_meter.h"
@@ -362,7 +363,7 @@ bool FaultDumpStateBase::GetWriteFd(DumperInfo &dumperInfo, int &writeFd) const
 {
     string detectorTypeName = DETECTOR_TYPE_NAME[dumperInfo.detectorType];
     const string &filePath = GetPathFromPathMap(dumperInfo);
-    const string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", filePath.c_str());
         return false;

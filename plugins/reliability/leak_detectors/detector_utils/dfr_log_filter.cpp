@@ -17,6 +17,7 @@
 
 #include <fstream>
 #include "dfr_util.h"
+#include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -86,8 +87,8 @@ void DfrLogFilter::FilterMemoryLeakFile(const pair<string, int> &processInfo,
         HIVIEW_LOGE("file not exists: %{public}s", srcPath.c_str());
         return;
     }
-    const string &srcRealPath = DfrUtil::GetInstance().RealPath(srcPath);
-    const string &dstRealPath = DfrUtil::GetInstance().RealPath(destPath);
+    const string &srcRealPath = FileUtil::RealPath(srcPath);
+    const string &dstRealPath = FileUtil::RealPath(destPath);
     if (srcRealPath.empty() || dstRealPath.empty()) {
         HIVIEW_LOGE("invalid srcpath: %{public}s or destPath: %{public}s", srcPath.c_str(), destPath.c_str());
         return;

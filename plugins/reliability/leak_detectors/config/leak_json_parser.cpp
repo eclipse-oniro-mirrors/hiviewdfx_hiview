@@ -19,6 +19,7 @@
 #include "cJSON.h"
 #include "hiview_logger.h"
 #include "dfr_util.h"
+#include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -42,7 +43,7 @@ bool LeakJsonParser::InitJsonFile(const string &path)
         return false;
     }
     ifstream fin;
-    const string &realPath = DfrUtil::GetInstance().RealPath(path);
+    const string &realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", path.c_str());
         return false;

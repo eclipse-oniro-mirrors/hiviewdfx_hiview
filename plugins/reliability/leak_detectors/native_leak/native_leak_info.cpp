@@ -16,6 +16,7 @@
  */
 
 #include "native_leak_info.h"
+#include "file_util.h"
 #include <cinttypes>
 #include "hiview_logger.h"
 #include "fault_common.h"
@@ -1618,9 +1619,9 @@ bool NativeLeakInfo::CheckProfilerFinish()
         return true;
     }
     const string &logFilePath = GetProfilerPath();
-    const string &realLogFile = DfrUtil::GetInstance().RealPath(logFilePath);
+    const string &realLogFile = FileUtil::RealPath(logFilePath);
     const string &logProfilerPath = GetCopyProfilerPath();
-    const string &realProfilerPath = DfrUtil::GetInstance().RealPath(logProfilerPath);
+    const string &realProfilerPath = FileUtil::RealPath(logProfilerPath);
     if (realLogFile.empty()) {
         HIVIEW_LOGE("failed realpath file: %{public}s", logFilePath.c_str());
         return false;

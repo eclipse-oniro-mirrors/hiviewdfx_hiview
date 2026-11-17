@@ -340,7 +340,6 @@ public:
                                                                      bool isTelemetry = false);
     std::string GetTimeStrByEventId(const std::string &eventId);
     void CollectHiperf(const std::string &fileName, const std::vector<pid_t> &pids);
-    std::string RealPath(const std::string &path);
     std::string MaskFilename(const std::string &filename);
     std::string AnonymizePath(const std::string &path);
     std::string AnonymizeInfo(const std::string &detailFdInfo);
