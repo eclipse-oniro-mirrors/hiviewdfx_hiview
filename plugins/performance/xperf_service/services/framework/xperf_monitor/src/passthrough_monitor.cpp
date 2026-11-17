@@ -213,6 +213,7 @@ void PassthroughMonitor::OnLoadCompleteEvent(OhosXperfEvent* event)
     LoadCompleteReport reportInfo = {
         .lastComponent = loadCompleteEvent->lastComponent,
         .isLaunch = loadCompleteEvent->isLaunch,
+        .componentInfo = loadCompleteEvent->componentInfo,
         .bundleName = loadCompleteEvent->bundleName,
         .abilityName = loadCompleteEvent->abilityName,
     };

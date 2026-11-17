@@ -25,7 +25,8 @@ namespace HiviewDFX {
 /**
  * @brief 收集状态接口
  *
- * 定义了收集过程中各个状态的行为接口，使用状态模式管理状态转换
+ * 定义了收集过程中各个状态的行为接口，使用状态模式管理状态转换。
+ * 新增操作类型时只需追加一个带默认实现的虚函数
  */
 class ICollectState {
 public:
@@ -34,37 +35,54 @@ public:
     /**
      * @brief 启动应用启动场景的收集
      */
-    virtual void StartCollectForLaunch() = 0;
+    virtual void StartCollectForLaunch() {}
  
     /**
      * @brief 启动动效场景的收集
      * @param sceneId 场景ID
      */
-    virtual void StartCollectForAnimation(const std::string& sceneId) = 0;
+    virtual void StartCollectForAnimation(const std::string& sceneId) {}
  
     /**
      * @brief 添加加载组件
      * @param componentId 组件ID
      * @param sourceType 资源类型
+     * @param isVisible 是否可见（P1 = IsOnRenderTree || IsPendingOnMainRenderTree）
      */
-    virtual void AddComponent(int32_t componentId, int32_t sourceType) = 0;
+    virtual void AddComponent(int32_t componentId, int32_t sourceType, bool isVisible) {}
 
     /**
      * @brief 删除加载组件
      * @param componentId 组件ID
      */
-    virtual void DeleteComponent(int32_t componentId) = 0;
+    virtual void DeleteComponent(int32_t componentId) {}
 
     /**
      * @brief 完成加载组件
      * @param componentId 组件ID
+     * @param isVisible 是否可见（P=S1||S2）
      */
-    virtual void CompleteComponent(int32_t componentId) = 0;
+    virtual void CompleteComponent(int32_t componentId, bool isVisible) {}
+
+    /**
+     * @brief 通知组件挂载到主渲染树
+     * @param componentId 组件ID
+     */
+    virtual void AttachComponent(int32_t componentId) {}
     
     /**
-     * @brief 停止收集
+     * @brief Web 组件开始加载
+     * @param navigationId Web 组件导航ID，用于区分不同 Web 实例
      */
-    virtual void StopCollect() = 0;
+    virtual void WebComponentLoad(int64_t navigationId) {}
+
+    /**
+     * @brief Web 页面最大区域绘制完成（LCP），可能调用多次，每次更新 LCP 时间
+     * @param navigationId Web 组件导航ID
+     * @param largestContentPaintTime LCP 时间戳
+     */
+    virtual void WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime) {}
+    virtual void StopCollect() {}
     
     /**
      * @brief 获取状态名称（用于调试）

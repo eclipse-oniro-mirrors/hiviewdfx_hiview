@@ -43,6 +43,7 @@ inline constexpr const char TAG_TYPE[] = "#TYPE:";
 inline constexpr const char TAG_TIME[] = "#TIME:";
 inline constexpr const char TAG_LAST_COMPONENT[] = "#LAST_COMPONENT:";
 inline constexpr const char TAG_IS_LAUNCH[] = "#IS_LAUNCH:";
+inline constexpr const char TAG_COMPONENT_INFO[] = "#COMPONENT_INFO:";
 inline constexpr const char TAG_START_TIME[] = "#START_TIME:";
 inline constexpr const char TAG_END[] = "";
 

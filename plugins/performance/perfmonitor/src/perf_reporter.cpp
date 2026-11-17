@@ -587,7 +587,12 @@ void EventReporter::ReportLoadCompleteEvent(const LoadCompleteInfo& eventInfo)
         "#EVENT_NAME:LOAD_COMPLETE#LAST_COMPONENT:" + std::to_string(eventInfo.lastComponent) +
         "#BUNDLE_NAME:" + eventInfo.bundleName +
         "#ABILITY_NAME:" + eventInfo.abilityName +
-        "#IS_LAUNCH:" + std::to_string(eventInfo.isLaunch)
+        "#IS_LAUNCH:" + std::to_string(eventInfo.isLaunch) +
+        "#COMPONENT_INFO:" + std::to_string(eventInfo.componentInfo) +
+        "#IS_INCLUDE_WEB:" + std::to_string(eventInfo.isIncludeWeb) +
+        "#IS_ALL_STOP_DETECT:" + std::to_string(eventInfo.isAllStopDetect) +
+        "#LAST_IMAGE_ID:" + std::to_string(eventInfo.lastImageId) +
+        "#LAST_WEB_ID:" + std::to_string(eventInfo.lastWebId)
     );
 }
 

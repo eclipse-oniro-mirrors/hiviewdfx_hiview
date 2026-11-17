@@ -152,6 +152,11 @@ struct LoadCompleteInfo {
     std::string bundleName;
     std::string abilityName;
     bool isLaunch{false};
+    uint32_t componentInfo{0};
+    bool isIncludeWeb{false};
+    bool isAllStopDetect{false};
+    int32_t lastImageId{-1};
+    int64_t lastWebId{-1};
 };
 
 struct InputEventInfo {

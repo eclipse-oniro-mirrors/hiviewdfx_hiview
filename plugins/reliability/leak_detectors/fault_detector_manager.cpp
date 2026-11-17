@@ -347,6 +347,7 @@ void FaultDetectorManager::OnLoad()
     SetName(pluginName);
     SetVersion(pluginVersion);
     // Register as unordered event listener for telemetry events
+    AddListenerInfo(Event::TELEMETRY_EVENT);
     auto context = GetHiviewContext();
     if (context != nullptr) {
         context->RegisterUnorderedEventListener(
