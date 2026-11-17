@@ -168,7 +168,7 @@ void FdLeakDetector::HandleDetector(int interval)
 ErrCode FdLeakDetector::MainProcess()
 {
     fdDetectorMtx_.lock();
-    HIVIEW_LOGI("=== sample fd status ===");
+    HIVIEW_LOGI("sample fd status start, leakingPids=%{public}zu", leakingPidsInfo_.size());
     // sample and judge
     ProcessAllPids();
 

@@ -308,7 +308,7 @@ ErrCode ProcessKillEventHandler::HandleEvent(SysEvent sysEvent)
 {
     auto eventInfo = HandleMessage(sysEvent);
     if (eventInfo == nullptr) {
-        HIVIEW_LOGE("HandleMessage failed. eventName: %{public}s", sysEvent.eventName_.c_str());
+        HIVIEW_LOGE("HandleMessage failed, eventName: %{public}s", sysEvent.eventName_.c_str());
         return FAILURE;
     }
     if (DumpMessage(eventInfo) == FAILURE) {

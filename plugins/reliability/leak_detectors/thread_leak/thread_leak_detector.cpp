@@ -88,7 +88,7 @@ ErrCode ThreadLeakDetector::MainProcess()
 {
     threadDetectorMtx_.lock();
 
-    HIVIEW_LOGI("=== sample thread status ===");
+    HIVIEW_LOGI("sample thread status start, leakingPids=%{public}zu", leakingPidsInfo_.size());
     ProcessAllPids();
 
     // state change: Collect->Report->Control

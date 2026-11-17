@@ -48,8 +48,8 @@ NotifyLeakCompressCommon::~NotifyLeakCompressCommon()
 
 void NotifyLeakCompressCommon::NotifyCommonEvent(CommonEventType eventName)
 {
-    string nightcleanEable = OHOS::system::GetParameter("const.dfx.nightclean.jsheap", "-1");
-    HIVIEW_LOGI("nightcleanEableis : %{public}s", nightcleanEable.c_str());
+    string nightcleanEnabled = OHOS::system::GetParameter("const.dfx.nightclean.jsheap", "-1");
+    HIVIEW_LOGD("nightcleanEnabled: %{public}s", nightcleanEnabled.c_str());
     switch (eventName) {
         case EVENT_SCREEN_OFF:
             isScreenOn_ = false;
@@ -67,7 +67,7 @@ void NotifyLeakCompressCommon::NotifyCommonEvent(CommonEventType eventName)
             break;
         case EVENT_CHARGE_SLEEP:
             isChargeSleep_ = true;
-            if (nightcleanEable != "-1") {
+            if (nightcleanEnabled != "-1") {
                 DoScheduleKill();
             }
             MayStartCompress();

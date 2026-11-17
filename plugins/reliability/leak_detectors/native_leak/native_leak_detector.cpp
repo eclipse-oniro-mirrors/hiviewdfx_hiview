@@ -191,14 +191,13 @@ ErrCode NativeLeakDetector::MainProcess()
         HIVIEW_LOGW("Do not Do MainProcess secondly");
         return FAILURE;
     }
-    HIVIEW_LOGI("=== sample native status ===");
-
     if (!AllListReady()) {
         HIVIEW_LOGE("Init alllist failed");
         mainProcessMtx_.unlock();
         return FAILURE;
     }
 
+    HIVIEW_LOGI("sample native status start, allListSize=%{public}zu", allList_.size());
     InsertCreatedToAll();
     MoveCreatingToCreated();
     RemoveDiedFromAllList();
@@ -266,7 +265,7 @@ void NativeLeakDetector::RemoveDiedFromAllList()
         pids = deadPids_;
         deadPids_.clear();
     }
-    HIVIEW_LOGI("remove size: %{public}zu", pids.size());
+    HIVIEW_LOGI("remove died process from allList, size: %{public}zu", pids.size());
     std::lock_guard<ffrt::mutex> lock(allListMtx_);
     for (auto pid : pids) {
         if (allList_.count(pid) != 0) {
@@ -672,7 +671,7 @@ void NativeLeakDetector::ParseSplitMemoryLists(const vector<int64_t> &pidList,
         int32_t value = static_cast<int32_t>(resourceList[i]);
         processList[pidTmp] = value;
         allValue -= value;
-        HIVIEW_LOGI("Get split memory from %{public}s. pid: %{public}d, pss value: %{public}d",
+        HIVIEW_LOGD("Get split memory from %{public}s. pid: %{public}d, pss value: %{public}d",
             eventName.c_str(), pidTmp, value);
     }
 }

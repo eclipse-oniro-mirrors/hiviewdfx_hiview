@@ -252,7 +252,7 @@ ErrCode KernelLeakDetector::MainProcess()
     HitraceScoped hitrace(HITRACE_TAG_APP, traceStr);
     std::lock_guard<ffrt::mutex> lock(kernelDetectorMtx_);
 
-    HIVIEW_LOGI("=== sample kernel info status ===");
+    HIVIEW_LOGI("sample kernel info status start");
     // Sample and Decision
     DoProcessKernelLeak();
     if (updateInterval_ <= 0) {

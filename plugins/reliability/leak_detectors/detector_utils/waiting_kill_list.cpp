@@ -73,7 +73,6 @@ void WaitingKillList::KillProcessInWaitList()
     }
     std::lock_guard<ffrt::mutex> lock(waitKillMtx_);
     if (waitKillList_.empty()) {
-        HIVIEW_LOGI("waitKillList is empty");
         return;
     }
     lastKillProcessInWaitList_.store(now);

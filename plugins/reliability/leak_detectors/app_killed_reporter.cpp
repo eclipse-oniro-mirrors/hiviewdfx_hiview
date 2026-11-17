@@ -56,7 +56,7 @@ void AppKilledReporter::Report(const AKReporter &akReporter)
     if (!ret) {
         HIVIEW_LOGE("post app event failed");
     } else {
-        HIVIEW_LOGI("post app event success");
+        HIVIEW_LOGD("post app event success");
     }
 }
 }  // HiviewDFX
