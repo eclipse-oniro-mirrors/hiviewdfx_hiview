@@ -27,6 +27,7 @@
 #include "hiview_logger.h"
 #include "hitrace_meter.h"
 #include "dfr_util.h"
+#include "file_util.h"
 #include "old_log_cleaner.h"
 
 namespace OHOS {
@@ -211,7 +212,7 @@ ErrCode CredEventHandler::DumpMessage(shared_ptr<LeakEventInfoBase> eventInfo)
     std::string traceStr(__func__);
     HitraceScoped hitrace(HITRACE_TAG_APP, traceStr);
     const std::string &filePath = credInfo->GetFilePath() + credInfo->GetFileName();
-    const std::string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const std::string &realPath = FileUtil::RealPath(filePath);
     HIVIEW_LOGD("realpath, path: %{public}s", filePath.c_str());
     std::ofstream fout;
     fout.open(realPath, std::ios::out);

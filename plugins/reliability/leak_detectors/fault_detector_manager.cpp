@@ -845,7 +845,7 @@ void FaultDetectorManager::HandleLowmemEvent(SysEvent &sysEvent)
 
 bool FaultDetectorManager::ValidatePathPrefix(const string &path, string &realPath)
 {
-    realPath = DfrUtil::GetInstance().RealPath(path);
+    realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         return false;
     }

@@ -331,7 +331,7 @@ bool DfrUtil::SafeStoll(const string &str, long long &value)
 
 bool DfrUtil::IsFileEmpty(const string &path)
 {
-    string realPath = RealPath(path);
+    string realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", path.c_str());
         return false;
@@ -350,7 +350,7 @@ bool DfrUtil::IsFileEmpty(const string &path)
 
 bool DfrUtil::RemoveFile(const string &path)
 {
-    string realPath = RealPath(path);
+    string realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", path.c_str());
         return false;
@@ -364,12 +364,12 @@ bool DfrUtil::RemoveFile(const string &path)
 
 bool DfrUtil::CopyFile(const string &path, const string &newPath)
 {
-    string realPath = RealPath(path);
+    string realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", path.c_str());
         return false;
     }
-    string realNewPath = RealPath(newPath);
+    string realNewPath = FileUtil::RealPath(newPath);
     if (realNewPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", newPath.c_str());
         return false;
@@ -1137,7 +1137,7 @@ string DfrUtil::CalcFingerPrint(const string &val, size_t mask)
 void DfrUtil::GetStatm(int32_t pid, uint64_t &vss, uint64_t &rss)
 {
     string path = "/proc/" + to_string(pid) + "/statm";
-    const string &realPath = RealPath(path);
+    const string &realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", path.c_str());
         return;
@@ -1445,7 +1445,7 @@ bool DfrUtil::AppendMetadata(const string &newPath)
     }
 
     ofstream fout;
-    const string &newRealPath = RealPath(newPath);
+    const string &newRealPath = FileUtil::RealPath(newPath);
     if (newRealPath.empty()) {
         HIVIEW_LOGE("fail to realpath: %{public}s", newPath.c_str());
         finMetadata.close();
@@ -1780,37 +1780,6 @@ int DfrUtil::GetSlabNormal()
 
     file.close();
     return 0;
-}
-
-string DfrUtil::RealPath(const string &path)
-{
-    struct stat st;
-    char rtn[PATH_MAX] = {0};
-    if (stat(path.c_str(), &st) == 0) {
-        if (realpath(path.c_str(), rtn) == nullptr) {
-            HIVIEW_LOGE("failed realpath: %{public}s, err: %{public}s", path.c_str(), strerror(errno));
-            return "";
-        }
-        return rtn;
-    }
-
-    size_t lastSlash = path.find_last_of('/');
-    if (lastSlash == string::npos) {
-        HIVIEW_LOGE("failed realpath: %{public}s, no parent dir", path.c_str());
-        return "";
-    }
-    string parentDir = path.substr(0, lastSlash);
-    if (stat(parentDir.c_str(), &st) != 0) {
-        HIVIEW_LOGE("failed realpath: %{public}s, parent dir not exist", path.c_str());
-        return "";
-    }
-    if (realpath(parentDir.c_str(), rtn) == nullptr) {
-        HIVIEW_LOGE("failed realpath: %{public}s, because parent dir: %{public}s realpath failed", path.c_str(),
-                    parentDir.c_str());
-        return "";
-    }
-
-    return rtn + path.substr(lastSlash);
 }
 
 bool DfrUtil::IsProcessRelatedLine(const std::string &line, size_t pos, int pid, char interval)

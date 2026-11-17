@@ -33,6 +33,7 @@
 #include "waiting_kill_list.h"
 #include "dfr_profiler_manager.h"
 #include "dfr_util.h"
+#include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -115,7 +116,7 @@ void KernelLeakJudgeState::GetMaxProcessOfProcInfo(shared_ptr<KernelLeakInfo> &k
     HIVIEW_LOGI("MaxProcess for report is %{public}s, MaxProcess for kill is %{public}s",
         kernelInfo->GetProcessNameForReport().c_str(), kernelInfo->GetProcessNameForKill().c_str());
     if (kernelInfo->IsProcInfoAbnormal() && DfrUtil::GetInstance().IsBetaOrDevelopMode()) {
-        const string &realProcPath = DfrUtil::GetInstance().RealPath(procFilePath);
+        const string &realProcPath = FileUtil::RealPath(procFilePath);
         if (realProcPath.empty()) {
             HIVIEW_LOGE("failed realpath: %{public}s", procFilePath.c_str());
             return;

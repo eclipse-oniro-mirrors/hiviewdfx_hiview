@@ -26,6 +26,7 @@
 #include "hiview_logger.h"
 #include "hitrace_meter.h"
 #include "dfr_util.h"
+#include "file_util.h"
 #include "old_log_cleaner.h"
 #include "ashmem_kill_leak_info.h"
 #include "gpu_kill_leak_info.h"
@@ -226,7 +227,7 @@ ErrCode ProcessKillEventHandler::DumpMessage(shared_ptr<LeakEventInfoBase> event
     std::string traceStr(__func__);
     HitraceScoped hitrace(HITRACE_TAG_APP, traceStr);
     const string &filePath = processKillInfo->GetFilePath() + processKillInfo->GetFileName();
-    const string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         return FAILURE;
     }

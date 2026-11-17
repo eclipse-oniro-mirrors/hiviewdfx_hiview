@@ -22,6 +22,7 @@
 #include <fstream>
 #include "old_log_cleaner.h"
 #include "dfr_util.h"
+#include "file_util.h"
 #include "hiview_logger.h"
 #include "old_log_param_config.h"
 #include "fd_leak_info.h"
@@ -555,12 +556,12 @@ bool OldLogCleaner::CopyFile(const string &src, const string &dst, const string 
 
 bool OldLogCleaner::CopyFileFast(const string &src, const string &dst)
 {
-    const string &realSrc = DfrUtil::GetInstance().RealPath(src);
+    const string &realSrc = FileUtil::RealPath(src);
     if (realSrc.empty()) {
         HIVIEW_LOGE("failed src realpath, path: %{public}s", src.c_str());
         return false;
     }
-    const string &realDst = DfrUtil::GetInstance().RealPath(dst);
+    const string &realDst = FileUtil::RealPath(dst);
     if (realDst.empty()) {
         HIVIEW_LOGE("failed dst realpath, path: %{public}s", dst.c_str());
         return false;
@@ -987,7 +988,9 @@ int OldLogCleaner::RemoveMetaInfoFilesInDir(const std::string &dirPath)
                 fullName.c_str(), strerror(errno));
         }
     }
-    closedir(dir);
+    if (closedir(dir) != 0) {
+        HIVIEW_LOGE("failed to close dir: %{public}s, err: %{public}s", dirPath.c_str(), strerror(errno));
+    }
     return deletedCount;
 }
 
@@ -1174,7 +1177,7 @@ void OldLogCleaner::AddFilesToAgingLogJson(cJSON *root, const std::vector<LogFil
 // Appending Json to the aging log file.
 bool OldLogCleaner::WriteJsonToAgingLogFile(const char *jsonStr)
 {
-    std::string realPath = DfrUtil::GetInstance().RealPath(std::string(MEMORY_LEAK_PATH));
+    std::string realPath = FileUtil::RealPath(std::string(MEMORY_LEAK_PATH));
     if (realPath.empty()) {
         HIVIEW_LOGE("failed to get real path for %{public}s", MEMORY_LEAK_PATH);
         return false;
@@ -1272,7 +1275,7 @@ void OldLogCleaner::TruncateAgingLogFile(const std::string &fullLogPath,
 // aging old file cleaner
 void OldLogCleaner::AgingFolderAgingLog()
 {
-    std::string realPath = DfrUtil::GetInstance().RealPath(std::string(MEMORY_LEAK_PATH));
+    std::string realPath = FileUtil::RealPath(std::string(MEMORY_LEAK_PATH));
     if (realPath.empty()) {
         return;
     }

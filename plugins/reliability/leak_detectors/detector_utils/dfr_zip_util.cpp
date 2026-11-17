@@ -19,6 +19,7 @@
 #include <securec.h>
 #include "fault_common.h"
 #include "dfr_util.h"
+#include "file_util.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -47,7 +48,7 @@ string DfrZipUtil::GetSrcFileName(const string &srcFile, const string &dstFileNa
 
 const FILE* DfrZipUtil::GetFileHanlderDefault(const string &file)
 {
-    const string &realFile = DfrUtil::GetInstance().RealPath(file);
+    const string &realFile = FileUtil::RealPath(file);
     if (realFile.empty()) {
         HIVIEW_LOGE("failed to realpath file: %{public}s", file.c_str());
         return nullptr;
