@@ -81,6 +81,7 @@ public:
 private:
     void BindContext(napi_env env, napi_value obj);
     void GetSrcPath(std::string &srcPath);
+    void PostCallFuncTask(const std::string &methodName);
     AbilityRuntime::JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
     std::shared_ptr<NativeReference> shellContextRef_ = nullptr;

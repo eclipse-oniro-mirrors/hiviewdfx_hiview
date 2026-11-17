@@ -213,7 +213,10 @@ static napi_value QuerySelfFaultLog(napi_env env, napi_callback_info info)
     }
 
     auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>();
-    napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType);
+    if (napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType) != napi_ok) {
+        HIVIEW_LOGE("get int32 value failed");
+        return result;
+    }
     if (parameterCount == ONE_PARAMETER) {
         napi_create_promise(env, &faultLogInfoContext->deferred, &result);
     } else if (parameterCount == TWO_PARAMETER) {
@@ -232,6 +235,57 @@ static napi_value QuerySelfFaultLog(napi_env env, napi_callback_info info)
     return result;
 }
 
+static bool CheckAddLogParams(napi_env env, size_t parameterCount, napi_value* parameters)
+{
+    if (parameterCount != FOUR_PARAMETER) {
+        return false;
+    }
+    if (!NapiUtil::IsMatchType(env, parameters[ONE_PARAMETER - 1], napi_number)) {
+        HIVIEW_LOGE("parameters[0] type isn't number");
+        return false;
+    }
+    if (!NapiUtil::IsMatchType(env, parameters[TWO_PARAMETER - 1], napi_number)) {
+        HIVIEW_LOGE("parameters[1] type isn't number");
+        return false;
+    }
+    if (!NapiUtil::IsMatchType(env, parameters[THREE_PARAMETER - 1], napi_string)) {
+        HIVIEW_LOGE("parameters[2] type isn't napi_string");
+        return false;
+    }
+    if (!NapiUtil::IsMatchType(env, parameters[FOUR_PARAMETER - 1], napi_string)) {
+        HIVIEW_LOGE("parameters[3] type isn't napi_string");
+        return false;
+    }
+    return true;
+}
+
+static bool ConvertIntParams(napi_env env, napi_value* parameters, int32_t& nowTmp, int32_t& logType)
+{
+    if (napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &nowTmp) != napi_ok ||
+            napi_get_value_int32(env, parameters[TWO_PARAMETER - 1], &logType) != napi_ok) {
+        HIVIEW_LOGE("get int32 value failed");
+        return false;
+    }
+    return true;
+}
+
+static bool ConvertStringParams(napi_env env, napi_value* parameters,
+    char (&module)[BUF_SIZE_64], char (&summary)[BUF_SIZE_64])
+{
+    size_t resultString = 0;
+    if (napi_get_value_string_utf8(env, parameters[THREE_PARAMETER - 1], module, BUF_SIZE_64,
+        &resultString) != napi_ok) {
+        HIVIEW_LOGE("get module string failed");
+        return false;
+    }
+    if (napi_get_value_string_utf8(env, parameters[FOUR_PARAMETER - 1], summary, BUF_SIZE_64,
+        &resultString) != napi_ok) {
+        HIVIEW_LOGE("get summary string failed");
+        return false;
+    }
+    return true;
+}
+
 static napi_value AddFaultLog(napi_env env, napi_callback_info info)
 {
     size_t parameterCount = 4;
@@ -241,36 +295,20 @@ static napi_value AddFaultLog(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &parameterCount, parameters, &thisVar, &data));
 
     napi_value result = NapiUtil::CreateUndefined(env);
-    if (parameterCount != FOUR_PARAMETER) {
+    if (!CheckAddLogParams(env, parameterCount, parameters)) {
         return result;
     }
-    if (!NapiUtil::IsMatchType(env, parameters[ONE_PARAMETER - 1], napi_number)) {
-        HIVIEW_LOGE("parameters[0] type isn't number");
+    int32_t nowTmp = 0;
+    int32_t logType = 0;
+    if (!ConvertIntParams(env, parameters, nowTmp, logType)) {
         return result;
     }
-    if (!NapiUtil::IsMatchType(env, parameters[TWO_PARAMETER - 1], napi_number)) {
-        HIVIEW_LOGE("parameters[1] type isn't number");
-        return result;
-    }
-    if (!NapiUtil::IsMatchType(env, parameters[THREE_PARAMETER - 1], napi_string)) {
-        HIVIEW_LOGE("parameters[2] type isn't napi_string");
-        return result;
-    }
-    if (!NapiUtil::IsMatchType(env, parameters[FOUR_PARAMETER - 1], napi_string)) {
-        HIVIEW_LOGE("parameters[3] type isn't napi_string");
-        return result;
-    }
-    int32_t nowTmp;
-    size_t resultString;
-    napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &nowTmp);
-    int64_t now = time(nullptr) + nowTmp;
-    int32_t logType;
-    napi_get_value_int32(env, parameters[TWO_PARAMETER - 1], &logType);
-
     char module[BUF_SIZE_64];
-    napi_get_value_string_utf8(env, parameters[THREE_PARAMETER - 1], module, BUF_SIZE_64, &resultString);
     char summary[BUF_SIZE_64];
-    napi_get_value_string_utf8(env, parameters[FOUR_PARAMETER - 1], summary, BUF_SIZE_64, &resultString);
+    if (!ConvertStringParams(env, parameters, module, summary)) {
+        return result;
+    }
+    int64_t now = time(nullptr) + nowTmp;
     constexpr int64_t secToMillisec = 1000;
     AddFaultLog(now * secToMillisec, logType, module, summary);
     return result;
@@ -322,7 +360,10 @@ static napi_value Query(napi_env env, napi_callback_info info)
     }
 
     auto faultLogInfoContext = std::make_unique<FaultLogInfoContext>();
-    napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType);
+    if (napi_get_value_int32(env, parameters[ONE_PARAMETER - 1], &faultLogInfoContext->faultType) != napi_ok) {
+        HIVIEW_LOGE("get int32 value failed");
+        return result;
+    }
     if (parameterCount == ONE_PARAMETER) {
         napi_create_promise(env, &faultLogInfoContext->deferred, &result);
     } else if (parameterCount == TWO_PARAMETER) {

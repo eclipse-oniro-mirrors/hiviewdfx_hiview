@@ -21,12 +21,20 @@
 #include <dlfcn.h>
 #include <mutex>
 #include "ffrt.h"
+#include "hiview_logger.h"
 
 namespace OHOS {
 namespace HiviewDFX {
+DEFINE_LOG_TAG("DynLibHandle");
+
 DynamicLibraryHandle::DynamicLibraryHandle(const char* filename, int flags)
     : libPtr_(dlopen(filename, flags))
 {
+    if (libPtr_ == nullptr) {
+        auto err = dlerror();
+        HIVIEW_LOGE("dlopen %{public}s failed, err: %{public}s", filename,
+            err == nullptr ? "unknown" : err);
+    }
 }
 
 DynamicLibraryHandle::~DynamicLibraryHandle()
@@ -34,6 +42,11 @@ DynamicLibraryHandle::~DynamicLibraryHandle()
     if (libPtr_ != nullptr) {
         dlclose(libPtr_);
     }
+}
+
+bool DynamicLibraryHandle::IsOpen() const
+{
+    return libPtr_ != nullptr;
 }
 
 void* DynamicLibraryHandle::GetSymbol(const char* symbol)

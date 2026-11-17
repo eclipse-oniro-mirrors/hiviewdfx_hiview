@@ -248,6 +248,10 @@ void ExtractRule::ParseRuleParam(const Json::Value& object, list<FeatureRule>& f
             HIVIEW_LOGE("rule command can't have num.\n");
             continue;
         }
+        if (command.num < 0 && type == L2_SEGMENT_RULE) {
+            HIVIEW_LOGE("segment rule command can't have negative num.\n");
+            continue;
+        }
         features.emplace_back(command);
     }
 }

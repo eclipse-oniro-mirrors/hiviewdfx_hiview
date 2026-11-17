@@ -75,6 +75,10 @@ static int32_t GetAppIndexByUid(int32_t uid)
         return 0;
     }
     auto bundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (bundleMgr == nullptr) {
+        HIVIEW_LOGE("failed to cast bundle manager proxy.");
+        return 0;
+    }
     int32_t appIndex = 0;
     std::string bundleName;
     auto ret = bundleMgr->GetNameAndIndexForUid(uid, bundleName, appIndex);
@@ -151,6 +155,10 @@ std::string FaultLogExtConnManager::GetExtName(const std::string& bundleName, in
     }
 
     auto bms = iface_cast<AppExecFwk::IBundleMgr>(bundleObj);
+    if (bms == nullptr) {
+        HIVIEW_LOGE("Failed to cast bundle manager service");
+        return "";
+    }
     AppExecFwk::BundleInfo bundleInfo;
     auto flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) +
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) +

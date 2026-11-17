@@ -51,12 +51,13 @@ napi_value CreateJsFaultLogExtensionContext(napi_env env,
 
     std::unique_ptr<JsFaultLogExtensionContext> jsContext =
         std::make_unique<JsFaultLogExtensionContext>(context);
-    napi_status status = napi_wrap(env, objValue, jsContext.release(), JsFaultLogExtensionContext::Finalizer,
+    napi_status status = napi_wrap(env, objValue, jsContext.get(), JsFaultLogExtensionContext::Finalizer,
         nullptr, nullptr);
     if (status != napi_ok) {
         HIVIEW_LOGE("JsFaultLogExtensionContext failed to wrap the object");
         return nullptr;
     }
+    jsContext.release();
     return objValue;
 }
 } // namespace FaultLogExt
