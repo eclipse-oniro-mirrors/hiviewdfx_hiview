@@ -214,7 +214,6 @@ bool EventFieldValidator::IsAcceptedReadPath(const std::string& path)
 bool EventFieldValidator::ContainPathTraversal(const std::string& path)
 {
     return path.find("..") != std::string::npos ||
-        path.find('\\') != std::string::npos ||
         path.find('\0') != std::string::npos;
 }
 
