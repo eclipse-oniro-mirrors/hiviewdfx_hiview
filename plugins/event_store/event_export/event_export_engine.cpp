@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,34 +26,12 @@
 #include "file_util.h"
 #include "hiview_global.h"
 #include "hiview_logger.h"
-#include "parameter_ex.h"
 #include "setting_observer_manager.h"
 #include "sys_event_sequence_mgr.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventExportFlow");
-namespace {
-std::string GenerateUuid()
-{
-    std::string uuid;
-    int8_t retryTimes = 3; // max retry 3 times
-    do {
-        FileUtil::LoadStringFromFile("/proc/sys/kernel/random/uuid", uuid);
-        if (!uuid.empty()) {
-            break;
-        }
-        --retryTimes;
-    } while (retryTimes > 0);
-
-    if (!uuid.empty() && uuid.back() == '\n') {
-        // remove line breaks at the end
-        uuid.pop_back();
-    }
-    uuid.erase(std::remove(uuid.begin(), uuid.end(), '-'), uuid.end()); // remove character '-'
-    return uuid;
-}
-}
 
 EventExportEngine& EventExportEngine::GetInstance()
 {
@@ -135,23 +113,6 @@ void EventExportEngine::InitAndRunTask(std::shared_ptr<ExportConfig> config)
         }
         // sleep for a task cycle
         FfrtUtil::Sleep(static_cast<uint32_t>(config->taskCycle));
-    }
-}
-
-void EventExportEngine::InitPackId()
-{
-    if (Parameter::GetUserType() != Parameter::USER_TYPE_OVERSEA_COMMERCIAL) {
-        return;
-    }
-    const std::string packIdProp = "persist.hiviewdfx.priv.packid";
-    if (!Parameter::GetString(packIdProp, "").empty()) {
-        return;
-    }
-    if (std::string packId = GenerateUuid(); packId.empty()) {
-        HIVIEW_LOGW("init packid failed.");
-    } else {
-        HIVIEW_LOGI("init packid success.");
-        Parameter::SetProperty(packIdProp, packId);
     }
 }
 } // HiviewDFX

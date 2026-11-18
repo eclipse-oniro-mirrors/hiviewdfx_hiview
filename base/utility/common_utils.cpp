@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "hiview_logger.h"
+#include "parameter_ex.h"
 #include "securec.h"
 #include "time_util.h"
 #include "string_util.h"
@@ -49,6 +50,7 @@ constexpr char EXPORT_FILE_REGEX[] = "[0-9]{1,}(.*)";
 constexpr char UNDERLINE[] = "_";
 constexpr size_t FORMAT_DATE_LEN = 14;
 constexpr int DECIMAL = 10;
+constexpr char PACK_ID_PROP[] = "persist.hiviewdfx.priv.packid";
 
 std::string GetProcessNameFromProcCmdline(int32_t pid)
 {
@@ -136,6 +138,25 @@ int GetFileNameNum(const std::string& fileName, const std::string& ext)
         return ret;
     }
     return StringUtil::StrToInt(fileName.substr(startPos + 1, endPos - startPos - 1));
+}
+
+std::string GenerateUuid()
+{
+    std::string uuid;
+    int8_t retryTimes = 3; // max retry 3 times
+    do {
+        FileUtil::LoadStringFromFile("/proc/sys/kernel/random/uuid", uuid);
+        if (!uuid.empty()) {
+            break;
+        }
+        --retryTimes;
+    } while (retryTimes > 0);
+
+    if (!uuid.empty() && uuid.back() == '\n') {
+        uuid.pop_back(); // remove line breaks at the end
+    }
+    uuid.erase(std::remove(uuid.begin(), uuid.end(), '-'), uuid.end()); // remove character '-'
+    return uuid;
 }
 }
 
@@ -411,6 +432,17 @@ int GetFreeRomMb()
         return -1;
     }
     return static_cast<int>(freeSizeMb);
+}
+
+void RefreshPackId(bool forceRefresh)
+{
+    if (!forceRefresh && !Parameter::GetString(PACK_ID_PROP, "").empty()) {
+        return;
+    }
+    std::string packId = GenerateUuid();
+    if (packId.empty() || !Parameter::SetProperty(PACK_ID_PROP, packId)) {
+        HIVIEW_LOGW("failed to refresh packid");
+    }
 }
 }
 } // namespace HiviewDFX

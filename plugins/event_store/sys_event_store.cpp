@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <memory>
 
+#include "common_utils.h"
 #include "event.h"
 #include "event_export_engine.h"
 #include "file_util.h"
@@ -70,7 +71,9 @@ void SysEventStore::OnLoad()
 
     lastBackupTime_ = Parameter::GetString(PROP_LAST_BACKUP, "");
     // pack id must be initialized as soon as event store plugin has been loaded
-    EventExportEngine::InitPackId();
+    if (Parameter::GetUserType() == Parameter::USER_TYPE_OVERSEA_COMMERCIAL) {
+        CommonUtils::RefreshPackId();
+    }
     hasLoaded_ = true;
 
     periodFileOpt_ = std::make_unique<PeriodInfoFileOperator>(GetHiviewContext(), "event_store_period_count");
