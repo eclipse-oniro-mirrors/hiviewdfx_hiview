@@ -50,6 +50,7 @@
 #include "xcollie/process_kill_reason.h"
 #include "rss_leak/rss_leak_dispatcher.h"
 #include "lite_profiler/lite_profiler.h"
+#include "string_util.h"
 
 using namespace std;
 
@@ -165,7 +166,8 @@ bool FaultDetectorManager::OnEvent(shared_ptr<Event> &event)
     }
     auto sysEvent = Event::DownCastTo<SysEvent>(event);
     if (sysEvent->eventName_ == EVENT_UPDATE_QUOTA) {
-        std::string quotaData = sysEvent->GetEventValue("QUOTA_DATA");
+        // SysEvent stores string values escaped; unescape before handing the JSON payload to the parsers.
+        std::string quotaData = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("QUOTA_DATA"));
         UpdateQuota(quotaData);
         return true;
     }

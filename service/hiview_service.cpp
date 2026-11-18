@@ -487,14 +487,46 @@ CollectResult<int32_t> HiviewService::RequestUiTree(int32_t pid, const sptr<IReq
     return {UCollect::UcError::SUCCESS};
 }
 
+namespace {
+// The quota config may arrive right after a hiview restart, while the platform is
+// still initializing: PostAsyncEventToTarget silently drops events before the
+// platform is ready. Retry on the shared work loop until delivery succeeds.
+constexpr uint32_t QUOTA_POST_MAX_RETRY = 15; // 15 x 2s = 30s window
+constexpr uint64_t QUOTA_POST_RETRY_INTERVAL_SEC = 2;
+
+void PostQuotaEventWithRetry(const std::string& jsonData, uint32_t retryCount)
+{
+    auto& platform = HiviewPlatform::GetInstance();
+    auto plugin = platform.GetPluginByName("LeakDetectors");
+    if (plugin == nullptr || !platform.IsReady()) {
+        if (retryCount >= QUOTA_POST_MAX_RETRY) {
+            HIVIEW_LOGE("LeakDetectors not ready after %{public}u retries, drop quota update", retryCount);
+            return;
+        }
+        auto workLoop = platform.GetSharedWorkLoop();
+        if (workLoop == nullptr) {
+            HIVIEW_LOGE("shared work loop unavailable, drop quota update");
+            return;
+        }
+        HIVIEW_LOGI("platform not ready, defer quota update, retry: %{public}u", retryCount + 1);
+        workLoop->AddTimerEvent(nullptr, nullptr,
+            [jsonData, retryCount]() { PostQuotaEventWithRetry(jsonData, retryCount + 1); },
+            QUOTA_POST_RETRY_INTERVAL_SEC, false);
+        return;
+    }
+    std::string eventName = "UPDATE_QUOTA";
+    SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
+    sysEventCreator.SetKeyValue("QUOTA_DATA", jsonData);
+    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
+    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
+    platform.PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
+    HIVIEW_LOGI("posted UPDATE_QUOTA to LeakDetectors");
+}
+}
+
 CollectResult<int32_t> HiviewService::UpdateLeakDetectorQuota(
     const std::vector<UCollectClient::LeakDetectorQuotaInfo>& quotaList)
 {
-    auto plugin = HiviewPlatform::GetInstance().GetPluginByName("LeakDetectors");
-    if (plugin == nullptr) {
-        HIVIEW_LOGW("LeakDetectors plugin not loaded, skip UpdateLeakDetectorQuota");
-        return {UCollect::UcError::SUCCESS};
-    }
     // Serialize the Parcelable list back to JSON for the plugin's existing cJSON parser.
     // The plugin's NativeLeakInfo::UpdateQuota / KernelLeakInfo::UpdateQuota expect a
     // JSON array string in the QUOTA_DATA field of the UPDATE_QUOTA SysEvent.
@@ -522,12 +554,7 @@ CollectResult<int32_t> HiviewService::UpdateLeakDetectorQuota(
         jsonData += "]}";
     }
     jsonData += "]";
-    std::string eventName = "UPDATE_QUOTA";
-    SysEventCreator sysEventCreator("HIVIEWDFX", eventName, SysEventCreator::FAULT);
-    sysEventCreator.SetKeyValue("QUOTA_DATA", jsonData);
-    auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
-    std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
+    PostQuotaEventWithRetry(jsonData, 0);
     return {UCollect::UcError::SUCCESS};
 }
 }  // namespace HiviewDFX
