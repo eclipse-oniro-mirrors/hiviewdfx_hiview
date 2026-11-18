@@ -50,6 +50,7 @@
 #include "xcollie/process_kill_reason.h"
 #include "rss_leak/rss_leak_dispatcher.h"
 #include "lite_profiler/lite_profiler.h"
+#include "string_util.h"
 
 using namespace std;
 
