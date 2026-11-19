@@ -225,6 +225,10 @@ ohos_source_set("ucollection_source") {
       "decorator/gpu_decorator.cpp",
     ]
     defines += [ "UNIFIED_COLLECTOR_GPU_ENABLE" ]
+
+    if (hiview_support_wukong_collect_gpu_info) {
+      defines += [ "WUKONG_COLLECT_GPU_INFO" ]
+    }
   } else {
     sources += [ "collector/empty_impl/gpu/gpu_collector_empty_impl.cpp" ]
   }
