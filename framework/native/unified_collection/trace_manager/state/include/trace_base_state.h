@@ -41,10 +41,6 @@ public:
     virtual TraceRet PostTelemetryTimeOut();
     virtual TraceRet PowerTelemetryOn();
     virtual TraceRet PowerTelemetryOff();
-    int32_t SetFilterInfoToAppSwan(const std::vector<std::string>& appFilterNames);
-    int32_t SetFilterPidInfo(pid_t pid);
-    bool AddSymlinkXattr(const std::string& fileName);
-    bool RemoveSymlinkXattr(const std::string& fileName);
 
     virtual void InitTelemetryStatus(bool isStatusOn);
 

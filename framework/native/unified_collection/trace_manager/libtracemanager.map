@@ -2,6 +2,7 @@
   global:
     extern "C++" {
         "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::instance_";
+        "OHOS::DelayedRefSingleton<OHOS::HiviewDFX::TraceStateMachine>::mutex_";
         "OHOS::HiviewDFX::TraceStateMachine::DumpTraceAsync(OHOS::HiviewDFX::DumpTraceArgs const&, long long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&, std::__h::function<void (OHOS::HiviewDFX::Hitrace::TraceRetInfo)>)";
         "OHOS::HiviewDFX::TraceStateMachine::DumpTraceAsync(OHOS::HiviewDFX::DumpTraceArgs const&, long, OHOS::HiviewDFX::Hitrace::TraceRetInfo&, std::__h::function<void (OHOS::HiviewDFX::Hitrace::TraceRetInfo)>)";
         "OHOS::HiviewDFX::TraceStateMachine::TraceStateMachine()";

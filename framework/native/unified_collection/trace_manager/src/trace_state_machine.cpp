@@ -14,6 +14,8 @@
  */
 #include "trace_state_machine.h"
 
+#include <hitrace_option/hitrace_option.h>
+
 #include "trace_command_state.h"
 #include "trace_common_state.h"
 #include "trace_telemetry_state.h"
@@ -211,22 +213,22 @@ TraceRet TraceStateMachine::TraceCacheOff()
 
 int32_t TraceStateMachine::SetFilterInfoToAppSwan(const std::vector<std::string>& appFilterNames)
 {
-    return currentState_->SetFilterInfoToAppSwan(appFilterNames);
+    return Hitrace::SetFilterAppName(appFilterNames);
 }
 
 int32_t TraceStateMachine::SetFilterPidInfo(pid_t pid)
 {
-    return currentState_->SetFilterPidInfo(pid);
+    return Hitrace::AddFilterPid(pid);
 }
 
 bool TraceStateMachine::AddSymlinkXattr(const std::string &fileName)
 {
-    return currentState_->AddSymlinkXattr(fileName);
+    return Hitrace::AddSymlinkXattr(fileName);
 }
 
 bool TraceStateMachine::RemoveSymlinkXattr(const std::string &fileName)
 {
-    return currentState_->RemoveSymlinkXattr(fileName);
+    return Hitrace::RemoveSymlinkXattr(fileName);
 }
 
 TraceRet TraceStateMachine::PowerTelemetryOn()

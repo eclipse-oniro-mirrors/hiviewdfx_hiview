@@ -114,7 +114,7 @@ void DoLinkClean(const std::string &prefix, const std::string tracePath, uint32_
             HIVIEW_LOGE("read link:%{public}s failed", link.c_str());
             continue;
         }
-        if (!TraceStateMachine::GetInstance().RemoveSymlinkXattr(src)) {
+        if (!TraceStateMachine::RemoveSymlinkXattr(src)) {
             HIVIEW_LOGI("remove attr failed file:%{public}s", src.c_str());
         }
     }
@@ -217,7 +217,7 @@ void TraceLinkHandler::LinkTraceFile(const std::string &src, const std::string &
             strerror(errno));
         return;
     }
-    bool result = TraceStateMachine::GetInstance().AddSymlinkXattr(src);
+    bool result = TraceStateMachine::AddSymlinkXattr(src);
     HIVIEW_LOGI("Link, src: %{public}s, dst: %{public}s, result:%{public}d", src.c_str(), dst.c_str(), result);
 }
 

@@ -47,10 +47,10 @@ public:
     TraceRet PostTelemetryTimeOut();
     TraceRet PowerTelemetryOn();
     TraceRet PowerTelemetryOff();
-    int32_t SetFilterInfoToAppSwan(const std::vector<std::string>& appFilterNames);
-    int32_t SetFilterPidInfo(pid_t pid);
-    bool AddSymlinkXattr(const std::string& fileName);
-    bool RemoveSymlinkXattr(const std::string& fileName);
+    static int32_t SetFilterInfoToAppSwan(const std::vector<std::string>& appFilterNames);
+    static int32_t SetFilterPidInfo(pid_t pid);
+    static bool AddSymlinkXattr(const std::string& fileName);
+    static bool RemoveSymlinkXattr(const std::string& fileName);
     void InitTelemetryStatus(bool isStatusOn);
     void TransToCommonState();
     void TransToCommandState();
@@ -70,6 +70,7 @@ public:
 
     std::pair<int32_t, uint64_t> GetCurrentAppInfo()
     {
+        std::lock_guard<ffrt::mutex> lock(traceMutex_);
         return currentState_->GetCurrentAppInfo();
     }
 

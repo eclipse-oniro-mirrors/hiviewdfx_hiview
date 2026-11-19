@@ -41,7 +41,7 @@ void OnSaParamChanged(const char *key, const char *value, void *context)
         return;
     }
     HIVIEW_LOGI("set new pid %{public}d", pid);
-    TraceStateMachine::GetInstance().SetFilterPidInfo(pid);
+    TraceStateMachine::SetFilterPidInfo(pid);
 }
 
 void HandTimeout()
@@ -70,7 +70,7 @@ void UcTelemetryCallback::OnTelemetryStart()
 
     // set app bundle names to kernel
     if (!appFilterNames_.empty()) {
-        int32_t ret = TraceStateMachine::GetInstance().SetFilterInfoToAppSwan(appFilterNames_);
+        int32_t ret = TraceStateMachine::SetFilterInfoToAppSwan(appFilterNames_);
         HIVIEW_LOGI("Set filter infos to app swan ret:%{public}d", ret);
         SetAppFilterInfo();
     }
@@ -108,7 +108,7 @@ void UcTelemetryCallback::SetAppFilterInfo()
             HIVIEW_LOGI("get pid failed, app name:%{public}s", appBundleName.c_str());
             continue;
         }
-        int32_t pidRet = TraceStateMachine::GetInstance().SetFilterPidInfo(pid);
+        int32_t pidRet = TraceStateMachine::SetFilterPidInfo(pid);
         if (pidRet < 0) {
             HIVIEW_LOGE("app started but failed to set app pid:%{public}d ret:%{public}d", pid, pidRet);
         }
@@ -125,7 +125,7 @@ void UcTelemetryCallback::SetSaFilterInfo()
             HIVIEW_LOGE("pid invalid:%{public}s", param.c_str());
             continue;
         }
-        if (int32_t ret = TraceStateMachine::GetInstance().SetFilterPidInfo(pid); ret != 0) {
+        if (int32_t ret = TraceStateMachine::SetFilterPidInfo(pid); ret != 0) {
             HIVIEW_LOGE("SetFilterPidInfo failed %{public}s ret:%{public}d", param.c_str(), ret);
         }
     }

@@ -155,26 +155,6 @@ TraceRet TraceBaseState::TraceTelemetryOff()
     return TraceRet(TraceStateCode::FAIL);
 }
 
-int32_t TraceBaseState::SetFilterInfoToAppSwan(const std::vector<std::string>& appfilterNames)
-{
-    return Hitrace::SetFilterAppName(appfilterNames);
-}
-
-int32_t TraceBaseState::SetFilterPidInfo(pid_t pid)
-{
-    return Hitrace::AddFilterPid(pid);
-}
-
-bool TraceBaseState::AddSymlinkXattr(const std::string &fileName)
-{
-    return Hitrace::AddSymlinkXattr(fileName);
-}
-
-bool TraceBaseState::RemoveSymlinkXattr(const std::string &fileName)
-{
-    return Hitrace::RemoveSymlinkXattr(fileName);
-}
-
 TraceRet TraceBaseState::PowerTelemetryOn()
 {
     HIVIEW_LOGW("state:%{public}s, fail", GetStateScenario().c_str());
