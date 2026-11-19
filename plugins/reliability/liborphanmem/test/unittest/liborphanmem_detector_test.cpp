@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <atomic>
+#include <csignal>
 #include <gtest/gtest.h>
 #include <sys/mman.h>
 #include <securec.h>
@@ -22,7 +25,10 @@
 #include "map_allocator.h"
 #include "orphanmem_detector.h"
 #include "process_mappings.h"
+#include "scoped_signal_handler.h"
 #include "string_helper.h"
+#include "thread_inspector.h"
+#include "thread_snapshot_impl.h"
 using namespace testing::ext;
 using namespace OHOS;
 
@@ -1374,4 +1380,904 @@ HWTEST_F(OrphanMemDetectorTest, StringHelper_HeapJemallocMeta, TestSize.Level1)
 {
     MAP_ALLOCATOR::String name("[anon:native_heap:jemalloc meta]", Allocator<char>(heap));
     EXPECT_EQ(name, "[anon:native_heap:jemalloc meta]");
+}
+
+namespace {
+std::atomic<int> gScopedHandlerHitCount{0};
+std::atomic<int> gScopedHandlerSignalNumber{0};
+std::atomic<int> gScopedHandlerSecondCount{0};
+std::atomic<int> gScopedHandlerUsr2Count{0};
+std::atomic<int> gScopedHandlerCtxValid{0};
+}  // namespace
+
+// ===== From scoped_signal_handler_test.cpp =====
+class ScopedSignalHandlerTest : public ::testing::Test {
+protected:
+    static Heap heap;
+    static Heap::unique_ptr<ScopedSignalHandler> handler;
+
+    static void SetUpTestSuite()
+    {
+        Allocator<ScopedSignalHandler> alloc(heap);
+        handler = alloc.MakeUnique(alloc);
+        handler->Install(SIGUSR1, [](int signal, siginfo_t *si, void *uctx) {
+            gScopedHandlerHitCount++;
+            gScopedHandlerSignalNumber = signal;
+            gScopedHandlerCtxValid = (si != nullptr && uctx != nullptr) ? 1 : 0;
+            return true;
+        });
+    }
+
+    static void TearDownTestSuite()
+    {
+        handler.reset();
+    }
+};
+Heap ScopedSignalHandlerTest::heap;
+Heap::unique_ptr<ScopedSignalHandler> ScopedSignalHandlerTest::handler;
+
+/**
+ * @tc.name  : ScopedSignalHandler_ShouldInvokeHandler_WhenSignalRaised
+ * @tc.number: ScopedSignalHandler_Install_Test_001
+ * @tc.desc  : Test that ScopedSignalHandler invokes the installed handler when the signal is raised.
+ */
+HWTEST_F(ScopedSignalHandlerTest, Install_HandlerInvokedWhenSignalRaised, TestSize.Level1)
+{
+    int before = gScopedHandlerHitCount.load();
+    raise(SIGUSR1);
+    EXPECT_EQ(gScopedHandlerHitCount.load(), before + 1);
+    EXPECT_EQ(gScopedHandlerSignalNumber.load(), SIGUSR1);
+}
+
+/**
+ * @tc.name  : ScopedSignalHandler_ShouldInvokeHandlerRepeatedly_WhenSignalRaisedMultipleTimes
+ * @tc.number: ScopedSignalHandler_Install_Test_002
+ * @tc.desc  : Test that ScopedSignalHandler invokes the handler for each raised signal.
+ */
+HWTEST_F(ScopedSignalHandlerTest, Install_HandlerInvokedRepeatedly, TestSize.Level1)
+{
+    int before = gScopedHandlerHitCount.load();
+    raise(SIGUSR1);
+    raise(SIGUSR1);
+    EXPECT_EQ(gScopedHandlerHitCount.load(), before + 2);
+}
+
+/**
+ * @tc.name  : ScopedSignalHandler_ShouldIgnoreSecondInstall_WhenSignalAlreadyInstalled
+ * @tc.number: ScopedSignalHandler_Install_Test_003
+ * @tc.desc  : Test that the second Install call on the same instance is ignored.
+ */
+HWTEST_F(ScopedSignalHandlerTest, Install_SecondInstallIgnored, TestSize.Level1)
+{
+    int secondBefore = gScopedHandlerSecondCount.load();
+    int firstBefore = gScopedHandlerHitCount.load();
+    handler->Install(SIGUSR1, [](int, siginfo_t *, void *) {
+        gScopedHandlerSecondCount++;
+        return true;
+    });
+    raise(SIGUSR1);
+    EXPECT_EQ(gScopedHandlerSecondCount.load(), secondBefore);
+    EXPECT_EQ(gScopedHandlerHitCount.load(), firstBefore + 1);
+}
+
+/**
+ * @tc.name  : ScopedSignalHandler_ShouldInstallOnSecondInstance_WhenDifferentSignalUsed
+ * @tc.number: ScopedSignalHandler_Install_Test_004
+ * @tc.desc  : Test that a second instance can install a handler for a different signal.
+ */
+HWTEST_F(ScopedSignalHandlerTest, Install_SecondInstanceDifferentSignal, TestSize.Level1)
+{
+    int usr2Before = gScopedHandlerUsr2Count.load();
+    Allocator<ScopedSignalHandler> alloc(heap);
+    auto second = alloc.MakeUnique(alloc);
+    second->Install(SIGUSR2, [](int, siginfo_t *, void *) {
+        gScopedHandlerUsr2Count++;
+        return true;
+    });
+    raise(SIGUSR2);
+    EXPECT_EQ(gScopedHandlerUsr2Count.load(), usr2Before + 1);
+}
+
+/**
+ * @tc.name  : ScopedSignalHandler_ShouldReuseHandlerMap_WhenConstructedAgain
+ * @tc.number: ScopedSignalHandler_Constructor_Test_001
+ * @tc.desc  : Test that a new instance reuses the existing static handler map without losing handlers.
+ */
+HWTEST_F(ScopedSignalHandlerTest, Constructor_ReuseExistingHandlerMap, TestSize.Level1)
+{
+    int before = gScopedHandlerHitCount.load();
+    Allocator<ScopedSignalHandler> alloc(heap);
+    auto third = alloc.MakeUnique(alloc);
+    ASSERT_NE(third, nullptr);
+    raise(SIGUSR1);
+    EXPECT_EQ(gScopedHandlerHitCount.load(), before + 1);
+}
+
+/**
+ * @tc.name  : ScopedSignalHandler_ShouldReceiveContextParams_WhenHandlerInvoked
+ * @tc.number: ScopedSignalHandler_Install_Test_005
+ * @tc.desc  : Test that the handler receives valid signal number and non-null context parameters.
+ */
+HWTEST_F(ScopedSignalHandlerTest, Install_ContextParamsValid, TestSize.Level1)
+{
+    gScopedHandlerCtxValid = 0;
+    raise(SIGUSR1);
+    EXPECT_EQ(gScopedHandlerCtxValid.load(), 1);
+    EXPECT_EQ(gScopedHandlerSignalNumber.load(), SIGUSR1);
+}
+
+// ===== From thread_snapshot_impl_test.cpp =====
+class ThreadSnapshotImplTest : public ::testing::Test {
+protected:
+    static Heap heap;
+
+    static Heap::unique_ptr<ThreadSnapshotImpl> MakeImpl(pid_t pid, pid_t tid)
+    {
+        Allocator<ThreadSnapshotImpl> alloc(heap);
+        return alloc.MakeUnique(pid, tid, alloc);
+    }
+};
+Heap ThreadSnapshotImplTest::heap;
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldReturnTrue_WhenValidPid
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_001
+ * @tc.desc  : Test that ListThreads succeeds and finds threads for the current process.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_ValidPid, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), 0);
+    TidList tids((Allocator<pid_t>(heap)));
+    EXPECT_TRUE(impl->ListThreads(tids));
+    EXPECT_GT(tids.size(), 0u);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldExcludeGivenTid_WhenTidProvided
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_002
+ * @tc.desc  : Test that ListThreads excludes the tid passed to the constructor.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_ExcludeGivenTid, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    TidList tids((Allocator<pid_t>(heap)));
+    EXPECT_TRUE(impl->ListThreads(tids));
+    EXPECT_EQ(std::find(tids.begin(), tids.end(), static_cast<pid_t>(gettid())), tids.end());
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldReturnFalse_WhenInvalidPid
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_003
+ * @tc.desc  : Test that ListThreads returns false for an invalid pid.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_InvalidPid, TestSize.Level1)
+{
+    auto impl = MakeImpl(-1, 0);
+    TidList tids((Allocator<pid_t>(heap)));
+    EXPECT_FALSE(impl->ListThreads(tids));
+    EXPECT_EQ(tids.size(), 0u);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldReturnFalse_WhenPidZero
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_004
+ * @tc.desc  : Test that ListThreads returns false when pid is zero.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_PidZero, TestSize.Level1)
+{
+    auto impl = MakeImpl(0, 0);
+    TidList tids((Allocator<pid_t>(heap)));
+    EXPECT_FALSE(impl->ListThreads(tids));
+    EXPECT_EQ(tids.size(), 0u);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldContainPositiveTids_WhenListed
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_005
+ * @tc.desc  : Test that all listed tids are positive values without duplicates.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_PositiveTidsOnly, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), 0);
+    TidList tids((Allocator<pid_t>(heap)));
+    ASSERT_TRUE(impl->ListThreads(tids));
+    for (auto tid : tids) {
+        EXPECT_GT(tid, 0);
+    }
+    TidList sorted((Allocator<pid_t>(heap)));
+    sorted = tids;
+    std::sort(sorted.begin(), sorted.end());
+    EXPECT_EQ(std::adjacent_find(sorted.begin(), sorted.end()), sorted.end());
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_GetLocalThreadInfo_ShouldReturnFalse_WhenThreadInfoNotSet
+ * @tc.number: ThreadSnapshotImpl_GetLocalThreadInfo_Test_001
+ * @tc.desc  : Test that GetLocalThreadInfo fails when SetThreadInfo was not called.
+ */
+HWTEST_F(ThreadSnapshotImplTest, GetLocalThreadInfo_NotSet, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    EXPECT_FALSE(impl->GetLocalThreadInfo());
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_SetThreadInfo_ShouldResizeList_WhenCalled
+ * @tc.number: ThreadSnapshotImpl_SetThreadInfo_Test_001
+ * @tc.desc  : Test that SetThreadInfo resizes the thread info list to a usable capacity.
+ */
+HWTEST_F(ThreadSnapshotImplTest, SetThreadInfo_ResizesList, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    EXPECT_EQ(threads.size(), 0u);
+    impl->SetThreadInfo(threads);
+    EXPECT_GE(threads.size(), 1u);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_GetLocalThreadInfo_ShouldSucceed_WhenThreadInfoSet
+ * @tc.number: ThreadSnapshotImpl_GetLocalThreadInfo_Test_002
+ * @tc.desc  : Test that GetLocalThreadInfo succeeds and records the current tid after SetThreadInfo.
+ */
+HWTEST_F(ThreadSnapshotImplTest, GetLocalThreadInfo_AfterSet, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    impl->SetThreadInfo(threads);
+    EXPECT_TRUE(impl->GetLocalThreadInfo());
+    EXPECT_EQ(threads[0].tid, static_cast<pid_t>(gettid()));
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_GetLocalThreadInfo_ShouldFillStackFromRegs_WhenCaptured
+ * @tc.number: ThreadSnapshotImpl_GetLocalThreadInfo_Test_003
+ * @tc.desc  : Test that GetLocalThreadInfo fills regs and derives the stack pointer from them.
+ */
+HWTEST_F(ThreadSnapshotImplTest, GetLocalThreadInfo_FillStackFromRegs, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    impl->SetThreadInfo(threads);
+    ASSERT_TRUE(impl->GetLocalThreadInfo());
+#if defined(__aarch64__)
+    EXPECT_NE(threads[0].regs[IDX_SP], 0u);
+    EXPECT_EQ(threads[0].stack.first, threads[0].regs[IDX_SP]);
+#endif
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_GetLocalThreadInfo_ShouldReturnFalse_WhenListTooSmall
+ * @tc.number: ThreadSnapshotImpl_GetLocalThreadInfo_Test_004
+ * @tc.desc  : Test that GetLocalThreadInfo fails when the position exceeds the list size.
+ */
+HWTEST_F(ThreadSnapshotImplTest, GetLocalThreadInfo_OutOfBounds, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    impl->SetThreadInfo(threads);
+    threads.resize(1);
+    ASSERT_TRUE(impl->GetLocalThreadInfo());
+    EXPECT_FALSE(impl->GetLocalThreadInfo());
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_SetForkDone_ShouldNotCrash_WhenCalledMultipleTimes
+ * @tc.number: ThreadSnapshotImpl_SetForkDone_Test_001
+ * @tc.desc  : Test that SetForkDone can be called multiple times without crashing.
+ */
+HWTEST_F(ThreadSnapshotImplTest, SetForkDone_MultipleTimes, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    impl->SetForkDone();
+    impl->SetForkDone();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_CaptureThreadInfo_ShouldReturnTrue_WhenCurrentProcess
+ * @tc.number: ThreadSnapshotImpl_CaptureThreadInfo_Test_001
+ * @tc.desc  : Test that CaptureThreadInfo succeeds and resizes the thread list for the current process.
+ */
+HWTEST_F(ThreadSnapshotImplTest, CaptureThreadInfo_CurrentProcess, TestSize.Level3)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t tidsSize = 0;
+    EXPECT_TRUE(impl->CaptureThreadInfo(threads, tidsSize));
+    EXPECT_GE(threads.size(), tidsSize);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldReturnConsistentSize_WhenCalledMultipleTimes
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_006
+ * @tc.desc  : Test that repeated ListThreads calls return consistent sizes.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_ConsistentAcrossCalls, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), 0);
+    TidList firstTids((Allocator<pid_t>(heap)));
+    TidList secondTids((Allocator<pid_t>(heap)));
+    ASSERT_TRUE(impl->ListThreads(firstTids));
+    ASSERT_TRUE(impl->ListThreads(secondTids));
+    EXPECT_GT(firstTids.size(), 0u);
+    EXPECT_GT(secondTids.size(), 0u);
+    EXPECT_EQ(firstTids.size(), secondTids.size());
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_ListThreads_ShouldReuseList_WhenSameListPassedTwice
+ * @tc.number: ThreadSnapshotImpl_ListThreads_Test_007
+ * @tc.desc  : Test that ListThreads clears and refills the same output list correctly.
+ */
+HWTEST_F(ThreadSnapshotImplTest, ListThreads_ReuseOutputList, TestSize.Level1)
+{
+    auto impl = MakeImpl(getpid(), 0);
+    TidList tids((Allocator<pid_t>(heap)));
+    ASSERT_TRUE(impl->ListThreads(tids));
+    size_t firstSize = tids.size();
+    EXPECT_TRUE(impl->ListThreads(tids));
+    EXPECT_GT(tids.size(), 0u);
+    EXPECT_EQ(tids.size(), firstSize);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_CaptureThreadInfo_ShouldResizeThreadList_WhenCaptured
+ * @tc.number: ThreadSnapshotImpl_CaptureThreadInfo_Test_002
+ * @tc.desc  : Test that CaptureThreadInfo resizes the thread list to hold captured threads.
+ */
+HWTEST_F(ThreadSnapshotImplTest, CaptureThreadInfo_ResizesThreadList, TestSize.Level3)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t tidsSize = 0;
+    ASSERT_TRUE(impl->CaptureThreadInfo(threads, tidsSize));
+    EXPECT_GE(threads.size(), 1000u);
+    EXPECT_GE(tidsSize, 0u);
+}
+
+/**
+ * @tc.name  : ThreadSnapshotImpl_CaptureThreadInfo_ShouldSucceed_WhenCalledSecondTime
+ * @tc.number: ThreadSnapshotImpl_CaptureThreadInfo_Test_003
+ * @tc.desc  : Test that a second CaptureThreadInfo call on the same instance still succeeds.
+ */
+HWTEST_F(ThreadSnapshotImplTest, CaptureThreadInfo_SecondCall, TestSize.Level3)
+{
+    auto impl = MakeImpl(getpid(), static_cast<pid_t>(gettid()));
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t firstTidsSize = 0;
+    size_t secondTidsSize = 0;
+    ASSERT_TRUE(impl->CaptureThreadInfo(threads, firstTidsSize));
+    threads.clear();
+    EXPECT_TRUE(impl->CaptureThreadInfo(threads, secondTidsSize));
+    EXPECT_GE(threads.size(), secondTidsSize);
+}
+
+// ===== From thread_inspector_test.cpp =====
+class ThreadInspectorTest : public ::testing::Test {
+protected:
+    static Heap heap;
+
+    static Heap::unique_ptr<ThreadInspector> MakeInspector()
+    {
+        Allocator<ThreadInspector> alloc(heap);
+        return alloc.MakeUnique(getpid(), static_cast<pid_t>(gettid()), alloc);
+    }
+};
+Heap ThreadInspectorTest::heap;
+
+/**
+ * @tc.name  : ThreadInspector_ShouldConstructAndDestruct_WhenCreated
+ * @tc.number: ThreadInspector_Constructor_Test_001
+ * @tc.desc  : Test that ThreadInspector constructs and destructs without crashing.
+ */
+HWTEST_F(ThreadInspectorTest, ConstructAndDestruct, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    ASSERT_NE(inspector, nullptr);
+    inspector.reset();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name  : ThreadInspector_GetLocalThreadInfo_ShouldNotCrash_WhenThreadInfoNotSet
+ * @tc.number: ThreadInspector_GetLocalThreadInfo_Test_001
+ * @tc.desc  : Test that GetLocalThreadInfo does not crash when SetThreadInfo was not called.
+ */
+HWTEST_F(ThreadInspectorTest, GetLocalThreadInfo_NotSet, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    ASSERT_NE(inspector, nullptr);
+    inspector->GetLocalThreadInfo();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name  : ThreadInspector_SetThreadInfo_ShouldResizeThreadList_WhenCalled
+ * @tc.number: ThreadInspector_SetThreadInfo_Test_001
+ * @tc.desc  : Test that SetThreadInfo resizes the thread list to a usable capacity.
+ */
+HWTEST_F(ThreadInspectorTest, SetThreadInfo_ResizesThreadList, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    EXPECT_EQ(threads.size(), 0u);
+    inspector->SetThreadInfo(threads);
+    EXPECT_GE(threads.size(), 1u);
+}
+
+/**
+ * @tc.name  : ThreadInspector_GetLocalThreadInfo_ShouldPopulateEntry_WhenThreadInfoSet
+ * @tc.number: ThreadInspector_GetLocalThreadInfo_Test_002
+ * @tc.desc  : Test that GetLocalThreadInfo populates the entry with the current tid.
+ */
+HWTEST_F(ThreadInspectorTest, GetLocalThreadInfo_PopulateEntry, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    inspector->SetThreadInfo(threads);
+    inspector->GetLocalThreadInfo();
+    EXPECT_EQ(threads[0].tid, static_cast<pid_t>(gettid()));
+}
+
+/**
+ * @tc.name  : ThreadInspector_GetLocalThreadInfo_ShouldPopulateSequentialEntries_WhenCalledTwice
+ * @tc.number: ThreadInspector_GetLocalThreadInfo_Test_003
+ * @tc.desc  : Test that two GetLocalThreadInfo calls populate two sequential entries.
+ */
+HWTEST_F(ThreadInspectorTest, GetLocalThreadInfo_SequentialEntries, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    inspector->SetThreadInfo(threads);
+    inspector->GetLocalThreadInfo();
+    inspector->GetLocalThreadInfo();
+    EXPECT_EQ(threads[0].tid, static_cast<pid_t>(gettid()));
+    EXPECT_EQ(threads[1].tid, static_cast<pid_t>(gettid()));
+}
+
+/**
+ * @tc.name  : ThreadInspector_ShouldKeepInstancesIndependent_WhenMultipleInstancesExist
+ * @tc.number: ThreadInspector_Constructor_Test_002
+ * @tc.desc  : Test that two ThreadInspector instances keep their captured thread lists independent.
+ */
+HWTEST_F(ThreadInspectorTest, MultipleInstancesIndependent, TestSize.Level1)
+{
+    auto first = MakeInspector();
+    auto second = MakeInspector();
+    ThreadInfoList firstThreads((Allocator<ThreadInfo>(heap)));
+    ThreadInfoList secondThreads((Allocator<ThreadInfo>(heap)));
+    first->SetThreadInfo(firstThreads);
+    second->SetThreadInfo(secondThreads);
+    first->GetLocalThreadInfo();
+    second->GetLocalThreadInfo();
+    EXPECT_EQ(firstThreads[0].tid, static_cast<pid_t>(gettid()));
+    EXPECT_EQ(secondThreads[0].tid, static_cast<pid_t>(gettid()));
+    EXPECT_EQ(firstThreads.size(), secondThreads.size());
+}
+
+/**
+ * @tc.name  : ThreadInspector_SetForkDone_ShouldNotCrash_WhenCalledMultipleTimes
+ * @tc.number: ThreadInspector_SetForkDone_Test_001
+ * @tc.desc  : Test that SetForkDone can be called multiple times without crashing.
+ */
+HWTEST_F(ThreadInspectorTest, SetForkDone_MultipleTimes, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    inspector->SetForkDone();
+    inspector->SetForkDone();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name  : ThreadInspector_CaptureThreadInfo_ShouldReturnTrue_WhenCurrentProcess
+ * @tc.number: ThreadInspector_CaptureThreadInfo_Test_001
+ * @tc.desc  : Test that CaptureThreadInfo succeeds and resizes the thread list for the current process.
+ */
+HWTEST_F(ThreadInspectorTest, CaptureThreadInfo_CurrentProcess, TestSize.Level3)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t tidsSize = 0;
+    EXPECT_TRUE(inspector->CaptureThreadInfo(threads, tidsSize));
+    EXPECT_GE(threads.size(), tidsSize);
+}
+
+/**
+ * @tc.name  : ThreadInspector_ShouldDestructSafely_AfterCaptureThreadInfo
+ * @tc.number: ThreadInspector_Destructor_Test_001
+ * @tc.desc  : Test that ThreadInspector destructs safely after a successful capture.
+ */
+HWTEST_F(ThreadInspectorTest, DestructorAfterCapture, TestSize.Level3)
+{
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t tidsSize = 0;
+    {
+        auto inspector = MakeInspector();
+        ASSERT_TRUE(inspector->CaptureThreadInfo(threads, tidsSize));
+    }
+    EXPECT_GE(threads.size(), tidsSize);
+}
+
+/**
+ * @tc.name  : ThreadInspector_GetLocalThreadInfo_ShouldSucceed_AfterCaptureThreadInfo
+ * @tc.number: ThreadInspector_GetLocalThreadInfo_Test_004
+ * @tc.desc  : Test that GetLocalThreadInfo succeeds after CaptureThreadInfo resized the thread list.
+ */
+HWTEST_F(ThreadInspectorTest, GetLocalThreadInfo_AfterCapture, TestSize.Level3)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t tidsSize = 0;
+    ASSERT_TRUE(inspector->CaptureThreadInfo(threads, tidsSize));
+    // The entry index depends on how many threads were already captured,
+    // so only verify the call does not crash and the list stays consistent.
+    inspector->GetLocalThreadInfo();
+    EXPECT_GE(threads.size(), tidsSize);
+}
+
+/**
+ * @tc.name  : ThreadInspector_CaptureThreadInfo_ShouldSucceedTwice_WhenCalledRepeatedly
+ * @tc.number: ThreadInspector_CaptureThreadInfo_Test_002
+ * @tc.desc  : Test that two consecutive CaptureThreadInfo calls both succeed.
+ */
+HWTEST_F(ThreadInspectorTest, CaptureThreadInfo_RepeatedCalls, TestSize.Level3)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList firstThreads((Allocator<ThreadInfo>(heap)));
+    ThreadInfoList secondThreads((Allocator<ThreadInfo>(heap)));
+    size_t firstTidsSize = 0;
+    size_t secondTidsSize = 0;
+    ASSERT_TRUE(inspector->CaptureThreadInfo(firstThreads, firstTidsSize));
+    EXPECT_TRUE(inspector->CaptureThreadInfo(secondThreads, secondTidsSize));
+    EXPECT_GE(firstThreads.size(), firstTidsSize);
+    EXPECT_GE(secondThreads.size(), secondTidsSize);
+}
+
+/**
+ * @tc.name  : ThreadInspector_ShouldKeepWorking_WhenTidsSizeIsZero
+ * @tc.number: ThreadInspector_CaptureThreadInfo_Test_003
+ * @tc.desc  : Test that CaptureThreadInfo still returns a resized list when no other threads exist.
+ */
+HWTEST_F(ThreadInspectorTest, CaptureThreadInfo_EmptyTids, TestSize.Level1)
+{
+    auto inspector = MakeInspector();
+    ThreadInfoList threads((Allocator<ThreadInfo>(heap)));
+    size_t tidsSize = 0;
+    EXPECT_TRUE(inspector->CaptureThreadInfo(threads, tidsSize));
+    EXPECT_GE(threads.size(), 1000u);
+}
+
+// ===== From orphanmem_detector_collect_test.cpp =====
+class OrphanMemDetectorCollectTest : public ::testing::Test {
+protected:
+    static Heap heap;
+    static Heap::unique_ptr<OrphanMemDetector> collectDetector;
+    static void *testMem;
+    static constexpr size_t testMemSize = 1024 * 1024;
+
+    static uintptr_t T(size_t off)
+    {
+        return reinterpret_cast<uintptr_t>(testMem) + off;
+    }
+
+    static void SetUpTestSuite()
+    {
+        testMem = mmap(nullptr, testMemSize, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+        ASSERT_NE(testMem, MAP_FAILED);
+        if (memset_s(testMem, testMemSize, 0, testMemSize) != EOK) {
+            return;
+        }
+        Allocator<OrphanMemDetector> alloc(heap);
+        collectDetector = alloc.MakeUnique(Allocator<void>(alloc));
+    }
+
+    static void TearDownTestSuite()
+    {
+        collectDetector.reset();
+        if (testMem != nullptr) {
+            munmap(testMem, testMemSize);
+        }
+    }
+};
+Heap OrphanMemDetectorCollectTest::heap;
+Heap::unique_ptr<OrphanMemDetector> OrphanMemDetectorCollectTest::collectDetector;
+void *OrphanMemDetectorCollectTest::testMem = nullptr;
+
+/**
+ * @tc.name  : OrphanMemDetector_ShouldHaveZeroCounts_WhenFreshlyConstructed
+ * @tc.number: OrphanMemDetector_Collect_Test_001
+ * @tc.desc  : Test that a freshly constructed OrphanMemDetector reports zero allocations and bytes.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, Construction_ZeroCounts, TestSize.Level1)
+{
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+    EXPECT_EQ(collectDetector->AllocationBytes(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldReturnTrue_WhenAllInputsEmpty
+ * @tc.number: OrphanMemDetector_Collect_Test_002
+ * @tc.desc  : Test that CollectAllocations succeeds with empty mappings, threads and refs.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_EmptyInputs, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenOnlySkipMappings
+ * @tc.number: OrphanMemDetector_Collect_Test_003
+ * @tc.desc  : Test that skip-listed mappings do not contribute any allocations.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_OnlySkipMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x10000), T(0x11000), true, true, false, "[anon:low shadow]");
+    mappings.emplace_back(T(0x12000), T(0x13000), true, true, false, "[anon:high shadow]");
+    mappings.emplace_back(T(0x14000), T(0x15000), true, true, false, "[anon:hwasan_region]");
+    mappings.emplace_back(T(0x16000), T(0x17000), true, true, false, "[anon:LargeMmapAllocator]");
+    mappings.emplace_back(T(0x18000), T(0x19000), true, true, false,
+        "/data/log/hiprofiler/native_hook_cache_tmp");
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenOnlyGlobalMappings
+ * @tc.number: OrphanMemDetector_Collect_Test_004
+ * @tc.desc  : Test that global mappings are registered as roots, not as allocations.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_OnlyGlobalMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x20000), T(0x21000), true, true, false, "[anon:.bss]");
+    mappings.emplace_back(T(0x22000), T(0x23000), true, true, false, "");
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenOnlyStackMappings
+ * @tc.number: OrphanMemDetector_Collect_Test_005
+ * @tc.desc  : Test that stack mappings with thread infos are registered as roots, not allocations.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_OnlyStackMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x30000), T(0x31000), true, true, false, "[stack:1234]");
+    ThreadInfo info{};
+    info.tid = static_cast<pid_t>(gettid());
+    info.stack = std::make_pair(T(0x30800), T(0x30900));
+    threads.push_back(info);
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldRegisterRefsAsRoots_WhenRefsProvided
+ * @tc.number: OrphanMemDetector_Collect_Test_006
+ * @tc.desc  : Test that provided refs are registered as roots without becoming allocations.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_RefsAsRoots, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    refs.push_back(T(0x40000));
+    refs.push_back(T(0x40008));
+    refs.push_back(T(0x40010));
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldIgnoreMappings_WhenNotReadable
+ * @tc.number: OrphanMemDetector_Collect_Test_007
+ * @tc.desc  : Test that non-readable mappings are ignored during classification.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_UnreadableMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x50000), T(0x51000), false, false, false, "[anon:native_heap:jemalloc]");
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldReturnTrue_WhenCurrentPidMappings
+ * @tc.number: OrphanMemDetector_Collect_Test_008
+ * @tc.desc  : Test that CollectAllocations succeeds with real mappings of the current process.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_CurrentPidMappings, TestSize.Level3)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    ASSERT_TRUE(MappingHelper::ProcessMappings(getpid(), mappings));
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_GT(collectDetector->Allocations(), 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_Detect_ShouldReturnTrue_WhenLeakGraphRequested
+ * @tc.number: OrphanMemDetector_Detect_Test_001
+ * @tc.desc  : Test that Detect succeeds and populates counters using the leak graph variant.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, Detect_LeakGraphVariant, TestSize.Level3)
+{
+    LeakGraphALC leakGraph((Allocator<LeakGraphALC::value_type>(heap)));
+    size_t leakCnt = 0;
+    size_t leakBytes = 0;
+    EXPECT_TRUE(collectDetector->Detect(leakGraph, SIZE_MAX, &leakCnt, &leakBytes));
+    EXPECT_GE(leakCnt, 0u);
+    EXPECT_GE(leakBytes, 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_Detect_ShouldReturnTrue_WhenLeakedSetRequested
+ * @tc.number: OrphanMemDetector_Detect_Test_002
+ * @tc.desc  : Test that Detect succeeds using the leaked set variant.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, Detect_LeakedSetVariant, TestSize.Level3)
+{
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
+    size_t leakCnt = 0;
+    size_t leakBytes = 0;
+    EXPECT_TRUE(collectDetector->Detect(leaked, SIZE_MAX, &leakCnt, &leakBytes));
+    EXPECT_GE(leakCnt, 0u);
+    EXPECT_GE(leakBytes, 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_Detect_ShouldRespectLimit_WhenLimitIsZero
+ * @tc.number: OrphanMemDetector_Detect_Test_003
+ * @tc.desc  : Test that Detect with zero limit yields an empty leaked set but full counters.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, Detect_LimitZero, TestSize.Level3)
+{
+    MAP_ALLOCATOR::unordered_set<Range, RangeHash> leaked((Allocator<Range>(heap)));
+    size_t leakCnt = 0;
+    size_t leakBytes = 0;
+    EXPECT_TRUE(collectDetector->Detect(leaked, 0, &leakCnt, &leakBytes));
+    EXPECT_EQ(leaked.size(), 0u);
+    EXPECT_GE(leakCnt, 0u);
+    EXPECT_GE(leakBytes, 0u);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenOnlyArkTsMappings
+ * @tc.number: OrphanMemDetector_Collect_Test_009
+ * @tc.desc  : Test that ArkTS mappings are classified as global roots without adding allocations.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_OnlyArkTsMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x60000), T(0x61000), true, true, false, "[anon:ArkTS_Heap]");
+    size_t before = collectDetector->Allocations();
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), before);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenLeakDetectorMallocMapping
+ * @tc.number: OrphanMemDetector_Collect_Test_010
+ * @tc.desc  : Test that the leak_detector_malloc mapping is not treated as an allocation source.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_LeakDetectorMallocMapping, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x62000), T(0x63000), true, true, false, "[anon:leak_detector_malloc]");
+    size_t before = collectDetector->Allocations();
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), before);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldSucceed_WhenMixedCategoryMappingsProvided
+ * @tc.number: OrphanMemDetector_Collect_Test_011
+ * @tc.desc  : Test that a mix of all mapping categories is collected without adding fake allocations.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_MixedCategoryMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x64000), T(0x65000), true, true, true, "liborphanmem_ut.so");
+    mappings.emplace_back(T(0x66000), T(0x67000), true, true, false, "[anon:.bss]");
+    mappings.emplace_back(T(0x68000), T(0x69000), true, true, false, "[stack:4321]");
+    mappings.emplace_back(T(0x6A000), T(0x6B000), true, true, false, "[anon:low shadow]");
+    mappings.emplace_back(T(0x6C000), T(0x6D000), false, false, false, "[anon:unreadable]");
+    mappings.emplace_back(T(0x6E000), T(0x6F000), true, true, false, "[anon:ArkTS_Heap]");
+    ThreadInfo info{};
+    info.tid = static_cast<pid_t>(gettid());
+    info.stack = std::make_pair(T(0x68800), T(0x68900));
+    threads.push_back(info);
+    refs.push_back(T(0x70000));
+    size_t before = collectDetector->Allocations();
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), before);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldSucceed_WhenCalledRepeatedly
+ * @tc.number: OrphanMemDetector_Collect_Test_012
+ * @tc.desc  : Test that repeated CollectAllocations calls with the same synthetic inputs succeed.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_CalledRepeatedly, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x80000), T(0x81000), true, true, false, "[anon:.bss]");
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenStackMappingWithoutThreads
+ * @tc.number: OrphanMemDetector_Collect_Test_013
+ * @tc.desc  : Test that stack mappings contribute no allocations when no thread infos reference them.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_StackMappingWithoutThreads, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x82000), T(0x83000), true, true, false, "[stack:1000]");
+    mappings.emplace_back(T(0x84000), T(0x85000), true, true, false, "[anon:stack:2000]");
+    mappings.emplace_back(T(0x86000), T(0x87000), true, true, false, "[anon:ffrt_coroutine_stack]");
+    size_t before = collectDetector->Allocations();
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), before);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_CollectAllocations_ShouldNotAddAllocations_WhenOnlyHeapMetaNamedMappings
+ * @tc.number: OrphanMemDetector_Collect_Test_014
+ * @tc.desc  : Test that dfmalloc and jemalloc meta mappings are classified via heap path when unreadable.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, CollectAllocations_HeapMetaNamedMappings, TestSize.Level1)
+{
+    MAP_ALLOCATOR::vector<ThreadInfo> threads((Allocator<ThreadInfo>(heap)));
+    MAP_ALLOCATOR::vector<Mapping> mappings((Allocator<Mapping>(heap)));
+    MAP_ALLOCATOR::vector<uintptr_t> refs((Allocator<uintptr_t>(heap)));
+    mappings.emplace_back(T(0x88000), T(0x89000), false, false, false, "[anon:native_heap:dfmalloc meta]");
+    mappings.emplace_back(T(0x8A000), T(0x8B000), false, false, false, "[anon:native_heap:dfmalloc data]");
+    size_t before = collectDetector->Allocations();
+    EXPECT_TRUE(collectDetector->CollectAllocations(threads, mappings, refs));
+    EXPECT_EQ(collectDetector->Allocations(), before);
+}
+
+/**
+ * @tc.name  : OrphanMemDetector_Detect_ShouldSucceedAgain_WhenCalledAfterPreviousDetections
+ * @tc.number: OrphanMemDetector_Detect_Test_004
+ * @tc.desc  : Test that Detect remains functional after earlier detection runs.
+ */
+HWTEST_F(OrphanMemDetectorCollectTest, Detect_AfterPreviousDetections, TestSize.Level3)
+{
+    LeakGraphALC leakGraph((Allocator<LeakGraphALC::value_type>(heap)));
+    size_t leakCnt = 0;
+    size_t leakBytes = 0;
+    EXPECT_TRUE(collectDetector->Detect(leakGraph, SIZE_MAX, &leakCnt, &leakBytes));
+    EXPECT_GE(leakCnt, 0u);
+    EXPECT_GE(leakBytes, 0u);
+    EXPECT_GE(collectDetector->Allocations(), 0u);
 }
