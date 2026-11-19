@@ -37,8 +37,8 @@ static constexpr const char* const SENSITIVE_SCENE_EXTTYPE = "10000";
 static constexpr int64_t APP_LIST_FLING_EXIT_GC = 2;
 static constexpr const char* const BUNDLE_NAME_SCENE_BOARD = "com.ohos.sceneboard";
 static constexpr size_t MAX_UI_CONTEXT_MESSAGE_RECORD_COUNT = 5;
-std::atomic<int64_t> uiContextMessageReceivedTime {0};
-std::atomic<int64_t> animtionCallbackTime {0};
+std::atomic<int64_t> g_uiContextMessageReceivedTime {0};
+std::atomic<int64_t> g_animtionCallbackTime {0};
 
 void SceneManager::OnSceneStart(const SceneType& type)
 {
@@ -179,25 +179,25 @@ void SceneMonitor::OnUIContextMessageProcessed(uint32_t messageId)
     int64_t currentRealTimeNs = GetCurrentRealTimeNs();
     XPERF_TRACE_SCOPED("OnUIContextMessageProcessed messageId is %u, currentTime is %ld",
         messageId, currentRealTimeNs);
-    animtionCallbackTime.store(currentRealTimeNs);
+    g_animtionCallbackTime.store(currentRealTimeNs);
     auto it = uiContextMessageReceivedTimeMap.find(messageId);
     if (it == uiContextMessageReceivedTimeMap.end()) {
-        uiContextMessageReceivedTime.store(0);
+        g_uiContextMessageReceivedTime.store(0);
         HIVIEW_LOGE("no find messageId %u", messageId);
         return;
     }
-    uiContextMessageReceivedTime.store(it->second);
+    g_uiContextMessageReceivedTime.store(it->second);
     uiContextMessageReceivedTimeMap.erase(it);
 }
 
 int64_t SceneMonitor::GetUIContextMessageReceivedTime() const
 {
-    return uiContextMessageReceivedTime.load();
+    return g_uiContextMessageReceivedTime.load();
 }
 
 int64_t SceneMonitor::GetAnimationCallbackTime() const
 {
-    return animtionCallbackTime.load();
+    return g_animtionCallbackTime.load();
 }
 
 void SceneMonitor::RegisterSceneCallback(ISceneCallback* cb)
