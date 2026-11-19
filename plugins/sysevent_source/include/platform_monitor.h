@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,8 +33,6 @@ namespace HiviewDFX {
 struct PerfMeasure {
     uint32_t maxTotalCount;
     uint32_t maxTotalSize;
-    std::vector<std::string> domains;
-    std::vector<uint32_t> domainCounts;
     uint32_t totalCount;
     uint32_t totalSize;
     uint8_t breakCount;
@@ -57,24 +55,20 @@ public:
     ~PlatformMonitor() {}
     void Breaking();
     void CollectCostTime(PipelineEvent *event);
-    void CollectEvent(std::shared_ptr<PipelineEvent> event);
+    void StartMonitor(std::shared_ptr<EventLoop> looper);
+
+private:
     void CollectPerfProfiler();
     void ReportBreakProfile();
     void ReportCycleProfile();
     void ReportRecoverProfile();
-    void StartMonitor(std::shared_ptr<EventLoop> looper);
-
-private:
     void AccumulateTimeInterval(uint64_t costTime, std::map<int8_t, uint32_t> &stat);
     void CalcOverBenckMarkPct(PerfMeasure &perfMeasure);
     void ReportProfile(const PerfMeasure& perfMeasure);
     void GetCostTimeInterval(PerfMeasure &perfMeasure);
-    void GetDomainsStat(PerfMeasure &perfMeasure);
     void GetMaxSpeed(PerfMeasure &perfMeasure) const;
     void GetMaxTotalMeasure(PerfMeasure &perfMeasure);
     void GetBreakStat(PerfMeasure &perfMeasure);
-    void GetTopDomains(std::vector<std::string> &domains, std::vector<uint32_t> &counts);
-    void GetTopEvents(std::vector<std::string> &events, std::vector<uint32_t> &counts);
     void InitData();
 
 private:
@@ -126,11 +120,6 @@ private:
     double avgRealTime_ = 0;
     double avgProcessTime_ = 0;
     double avgWaitTime_ = 0;
-
-    // topK event
-    std::mutex topMutex_;
-    std::map<std::string, uint32_t> topEvents_;
-    std::map<std::string, uint32_t> topDomains_;
 
     std::shared_ptr<EventLoop> looper_;
 }; // PlatformMonitor

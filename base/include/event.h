@@ -20,7 +20,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <string>
 #include <sys/types.h>
 #include "defines.h"
 
@@ -32,11 +31,9 @@ class DllExport Event : public std::enable_shared_from_this<Event> {
 public:
     explicit Event(const std::string &sender)
         : messageType_(MessageType::NONE),
-          processType_(ManageType::UNORDERED),
           what_(0),
           eventId_(0),
           happenTime_(0),
-          targetDispatchTime_(0),
           createTime_(0),
           realtime_(0),
           processTime_(0),
@@ -50,7 +47,6 @@ public:
           spanId_(""),
           parentSpanId_(""),
           traceFlag_(""),
-          normalExtraInfo_(""),
           rawData_(nullptr)
     {
         ResetTimestamp();
@@ -58,11 +54,9 @@ public:
 
     explicit Event(const std::string &sender, const std::string &name)
         : messageType_(MessageType::NONE),
-          processType_(ManageType::UNORDERED),
           what_(0),
           eventId_(0),
           happenTime_(0),
-          targetDispatchTime_(0),
           createTime_(0),
           realtime_(0),
           processTime_(0),
@@ -76,7 +70,6 @@ public:
           spanId_(""),
           parentSpanId_(""),
           traceFlag_(""),
-          normalExtraInfo_(""),
           rawData_(nullptr)
     {
         ResetTimestamp();
@@ -128,22 +121,14 @@ public:
         EVENT_EXPORT_TYPE
     };
 
-    enum ManageType {
-        ORDERED,
-        UNORDERED,
-        PROCESS_TYPE_NUM,
-    };
-
     enum EventId {
         PLUGIN_LOADED,
     };
 
     MessageType messageType_;
-    ManageType processType_;
     uint16_t what_;
     uint32_t eventId_;
     uint64_t happenTime_;
-    uint64_t targetDispatchTime_;
     uint64_t createTime_;
     uint64_t realtime_;
     uint64_t processTime_;
@@ -158,7 +143,6 @@ public:
     std::string spanId_;
     std::string parentSpanId_;
     std::string traceFlag_;
-    std::string normalExtraInfo_;
     std::shared_ptr<EventRaw::RawData> rawData_ = nullptr;
     void SetValue(const std::string &name, const std::string &value);
     void SetValue(const std::string &name, int32_t value);

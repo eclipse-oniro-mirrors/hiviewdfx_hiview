@@ -30,7 +30,7 @@ using ExportFileWroteListener = std::function<void(const std::string&, const std
 class ExportFileWriter {
 public:
     void SetExportFileWroteListener(ExportFileWroteListener listener);
-    bool Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder, CachedEventMap events,
+    bool Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder, const CachedEventMap& events,
         WriteStrategyParam& param);
 
 private:

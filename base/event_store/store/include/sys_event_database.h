@@ -45,8 +45,6 @@ public:
 private:
     using FileQueue = std::priority_queue<std::string, std::vector<std::string>,
         bool(*)(const std::string&, const std::string&)>;
-    // <eventType, <maxSize, maxFileNum>>
-    using EventQuotaMap = std::unordered_map<int, std::pair<uint64_t, uint32_t>>;
     // <eventType, <totalFileSize, fileQueue that is normal, fileQueue that is over limit>>
     using ClearFilesMap = std::unordered_map<int, std::tuple<uint64_t, FileQueue, FileQueue>>;
 
@@ -60,7 +58,6 @@ private:
         std::unordered_map<std::string, long long>& nameSeqMap);
     int QueryByFiles(SysEventQuery& query, EntryQueue& entries, FileQueue& queryFiles);
 
-    EventQuotaMap quotaMap_;
     std::unique_ptr<SysEventDocLruCache> lruCache_;
     mutable std::shared_mutex mutex_;
 }; // SysEventDatabase

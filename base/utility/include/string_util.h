@@ -65,24 +65,6 @@ static void ConvertStringTo(const std::string &in, T &out)
     ss >> out;
 }
 
-template<class T>
-bool IsConvertable(const std::string &inValue)
-{
-    std::stringstream stream;
-    stream << inValue;
-    int64_t outValue;
-    stream >> outValue;
-    T value = (T)outValue;
-    stream.clear();
-    stream.str("");
-    stream << (value + 0);
-    std::string tempValue = stream.str();
-    if (tempValue != inValue) {
-        return false;
-    }
-    return true;
-}
-
 /**
  * The StrToInt function convert str to int.
  */

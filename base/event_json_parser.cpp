@@ -219,11 +219,6 @@ bool EventJsonParser::HasStringMember(const Json::Value& jsonObj, const std::str
     return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isString();
 }
 
-bool EventJsonParser::HasBoolMember(const Json::Value& jsonObj, const std::string& name) const
-{
-    return jsonObj.isMember(name.c_str()) && jsonObj[name.c_str()].isBool();
-}
-
 void EventJsonParser::InitEventInfoMapRef(const Json::Value& eventJson, JSON_VALUE_LOOP_HANDLER handler) const
 {
     if (!eventJson.isObject()) {

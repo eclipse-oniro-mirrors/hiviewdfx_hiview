@@ -86,11 +86,6 @@ public:
         return pipelines_;
     }
 
-    const std::map<std::string, std::shared_ptr<EventLoop>>& GetWorkLoopMap()
-    {
-        return privateWorkLoopMap_;
-    }
-
     const std::map<std::string, std::shared_ptr<PluginBundle>>& GetPluginBundleInfoMap()
     {
         return pluginBundleInfos_;

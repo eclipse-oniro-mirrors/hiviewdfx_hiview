@@ -54,7 +54,6 @@ private:
 private:
     std::mutex collectDiskMutex_;
     std::mutex collectProcIoMutex_;
-    std::mutex exportFileMutex_;
     uint64_t preCollectDiskTime_ = 0;
     uint64_t preCollectProcIoTime_ = 0;
     uint64_t currCollectProcIoTime_ = 0;

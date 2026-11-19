@@ -325,16 +325,6 @@ std::vector<SysEventQueryRule>& BaseEventQueryWrapper::GetSysEventQueryRules()
     return queryRules_;
 }
 
-int64_t BaseEventQueryWrapper::GetMaxSequence() const
-{
-    return maxSeq_;
-}
-
-int64_t BaseEventQueryWrapper::GetEventTotalCount() const
-{
-    return totalEventCnt_;
-}
-
 bool BaseEventQueryWrapper::IsValid() const
 {
     return !queryRules_.empty();
