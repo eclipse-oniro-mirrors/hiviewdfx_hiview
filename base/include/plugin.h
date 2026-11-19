@@ -143,11 +143,6 @@ public:
         return !bundle_.empty();
     }
 
-    bool HasLoaded()
-    {
-        return loaded_;
-    }
-
     void SetType(PluginType type)
     {
         type_ = type;
@@ -191,7 +186,6 @@ private:
     // always available in framework callbacks
     HiviewContext* context_;
     std::once_flag contextSetFlag_;
-    std::atomic<bool> loaded_;
     std::atomic<int64_t> useCount_;
 };
 class HiviewContext {

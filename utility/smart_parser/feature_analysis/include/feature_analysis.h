@@ -103,7 +103,6 @@ private:
     static constexpr const char *COMPOSE_PLUS = "+";
     static constexpr const char *COMPOSE_COLON = ":";
     std::string line_;
-    std::vector<std::string> deletePath_;
     FeatureSet featureSet_;
     std::map<std::string, StackRegexInfo> stackRegex_;
     std::vector<std::pair<std::string, LineFeature>> paramSeekRecord_;

@@ -20,8 +20,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventExportFlow");
-bool ExportFileWriter::Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder, CachedEventMap events,
-    WriteStrategyParam& param)
+bool ExportFileWriter::Write(std::shared_ptr<ExportFileBaseBuilder> fileBuilder,
+    const CachedEventMap& events, WriteStrategyParam& param)
 {
     if (fileBuilder == nullptr) {
         HIVIEW_LOGE("invalid export file builder");

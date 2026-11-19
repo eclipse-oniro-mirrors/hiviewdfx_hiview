@@ -25,7 +25,7 @@ namespace OHOS {
 namespace HiviewDFX {
 class EventDispatchQueue : public std::enable_shared_from_this<EventDispatchQueue> {
 public:
-    EventDispatchQueue(const std::string& name, Event::ManageType type, HiviewContext* context_);
+    EventDispatchQueue(const std::string& name, HiviewContext* context_);
     ~EventDispatchQueue();
 
     void Stop();
@@ -42,7 +42,6 @@ private:
 
     bool isRunning_ = false;
     std::string threadName_;
-    Event::ManageType type_;
     HiviewContext* context_;
     mutable ffrt::mutex mutexLock_;
     std::unique_ptr<ffrt::queue> ffrtQueue_;

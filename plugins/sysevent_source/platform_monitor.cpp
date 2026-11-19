@@ -14,7 +14,6 @@
  */
 #include "platform_monitor.h"
 
-#include <algorithm>
 #include <cinttypes>
 #include <map>
 #include <memory>
@@ -48,16 +47,6 @@ void PlatformMonitor::AccumulateTimeInterval(uint64_t costTime, std::map<int8_t,
     }
     int index = it - intervals_;
     stat[index] += 1;
-}
-
-void PlatformMonitor::CollectEvent(std::shared_ptr<PipelineEvent> event)
-{
-    if (event == nullptr) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(topMutex_);
-    topDomains_[event->domain_]++;
-    topEvents_[event->eventName_]++;
 }
 
 void PlatformMonitor::CollectCostTime(PipelineEvent *event)
@@ -147,17 +136,6 @@ void PlatformMonitor::CollectPerfProfiler()
         avgRealTime_, avgProcessTime_, avgWaitTime_);
 }
 
-void PlatformMonitor::GetDomainsStat(PerfMeasure &perfMeasure)
-{
-    std::lock_guard<std::mutex> lock(topMutex_);
-    for (auto it = topDomains_.begin(); it != topDomains_.end(); it++) {
-        perfMeasure.domains.emplace_back(it->first);
-        perfMeasure.domainCounts.emplace_back(it->second);
-    }
-    topDomains_.clear();
-    topEvents_.clear();
-}
-
 void PlatformMonitor::GetCostTimeInterval(PerfMeasure &perfMeasure)
 {
     std::lock_guard<std::mutex> lock(statMutex_);
@@ -228,13 +206,9 @@ void PlatformMonitor::GetMaxSpeed(PerfMeasure &perfMeasure) const
 
 void PlatformMonitor::ReportProfile(const PerfMeasure& perfMeasure)
 {
-    std::vector<char*> translatedDomains;
-    TranslateStrVector(perfMeasure.domains, translatedDomains);
     HiSysEventParam params[] = {
         BUILD_PARAM("MAX_TOTAL_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.maxTotalCount),
         BUILD_PARAM("MAX_TOTAL_SIZE", HISYSEVENT_UINT32, ui32, perfMeasure.maxTotalSize),
-        BUILD_ARRAY_PARAM("DOMAINS", HISYSEVENT_STRING_ARRAY, char*, translatedDomains),
-        BUILD_ARRAY_PARAM("DOMAIN_DETAIL", HISYSEVENT_UINT32_ARRAY, uint32_t, perfMeasure.domainCounts),
         BUILD_PARAM("TOTAL_COUNT", HISYSEVENT_UINT32, ui32, perfMeasure.totalCount),
         BUILD_PARAM("TOTAL_SIZE", HISYSEVENT_UINT32, ui32, perfMeasure.totalSize),
         BUILD_PARAM("BREAK_COUNT", HISYSEVENT_UINT8, ui8, perfMeasure.breakCount),
@@ -263,9 +237,6 @@ void PlatformMonitor::ReportCycleProfile()
     // report max event size and count
     GetMaxTotalMeasure(perfMeasure);
 
-    // report event number of each domain
-    GetDomainsStat(perfMeasure);
-
     // report total number of event, time of break, duration of break
     GetBreakStat(perfMeasure);
 
@@ -279,62 +250,6 @@ void PlatformMonitor::ReportCycleProfile()
     CalcOverBenckMarkPct(perfMeasure);
 
     ReportProfile(perfMeasure);
-}
-
-void PlatformMonitor::GetTopDomains(std::vector<std::string> &domains, std::vector<uint32_t> &counts)
-{
-    std::lock_guard<std::mutex> lock(topMutex_);
-    uint8_t topN = 3; // top n
-    if (topDomains_.size() <= topN) {
-        for (auto it = topDomains_.begin(); it != topDomains_.end(); it++) {
-            domains.emplace_back(it->first);
-            counts.emplace_back(it->second);
-        }
-        return;
-    }
-
-    for (auto it = topDomains_.begin(); it != topDomains_.end(); it++) {
-        counts.emplace_back(it->second);
-    }
-    std::sort(counts.begin(), counts.end(), std::greater<int>());
-    counts.resize(topN);
-    for (auto it = topDomains_.begin(); it != topDomains_.end(); it++) {
-        if (domains.size() >= topN) {
-            break;
-        }
-        if (std::find(counts.begin(), counts.end(), it->second) != counts.end()) {
-            domains.emplace_back(it->first);
-        }
-    }
-    return;
-}
-
-void PlatformMonitor::GetTopEvents(std::vector<std::string> &events, std::vector<uint32_t> &counts)
-{
-    std::lock_guard<std::mutex> lock(topMutex_);
-    uint8_t topN = 3; // top n
-    if (topEvents_.size() <= topN) {
-        for (auto it = topEvents_.begin(); it != topEvents_.end(); it++) {
-            events.emplace_back(it->first);
-            counts.emplace_back(it->second);
-        }
-        return;
-    }
-
-    for (auto it = topEvents_.begin(); it != topEvents_.end(); it++) {
-        counts.emplace_back(it->second);
-    }
-    std::sort(counts.begin(), counts.end(), std::greater<int>());
-    counts.resize(topN);
-    for (auto it = topEvents_.begin(); it != topEvents_.end(); it++) {
-        if (events.size() >= topN) {
-            break;
-        }
-        if (std::find(counts.begin(), counts.end(), it->second) != counts.end()) {
-            events.emplace_back(it->first);
-        }
-    }
-    return;
 }
 
 void PlatformMonitor::ReportBreakProfile()
@@ -351,21 +266,6 @@ void PlatformMonitor::ReportBreakProfile()
     double avgRealTime = avgRealTime_;
     double avgProcessTime = avgProcessTime_;
     double avgWaitTime = avgWaitTime_;
-
-    // report topk cost time event
-    std::vector<std::string> events;
-    std::vector<uint32_t> eventCounts;
-    GetTopEvents(events, eventCounts);
-
-    // report topk event and count
-    std::vector<std::string> domains;
-    std::vector<uint32_t> domainCounts;
-    GetTopDomains(domains, domainCounts);
-
-    std::vector<char*> translatedEvents;
-    TranslateStrVector(events, translatedEvents);
-    std::vector<char*> translatedDomains;
-    TranslateStrVector(domains, translatedDomains);
     HiSysEventParam params[] = {
         BUILD_PARAM("TOTAL_COUNT", HISYSEVENT_UINT32, ui32, curTotalCount_),
         BUILD_PARAM("TOTAL_SIZE", HISYSEVENT_UINT32, ui32, curTotalSize_),
@@ -374,10 +274,6 @@ void PlatformMonitor::ReportBreakProfile()
         BUILD_PARAM("AVG_REAL_TIME", HISYSEVENT_DOUBLE, d, avgRealTime),
         BUILD_PARAM("AVG_PROC_TIME", HISYSEVENT_DOUBLE, d, avgProcessTime),
         BUILD_PARAM("AVG_WAIT_TIME", HISYSEVENT_DOUBLE, d, avgWaitTime),
-        BUILD_ARRAY_PARAM("TOP_EVENT", HISYSEVENT_STRING_ARRAY, char*, translatedEvents),
-        BUILD_ARRAY_PARAM("TOP_EVENT_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, eventCounts),
-        BUILD_ARRAY_PARAM("TOP_DOMAIN", HISYSEVENT_STRING_ARRAY, char*, translatedDomains),
-        BUILD_ARRAY_PARAM("TOP_DOMAIN_COUNT", HISYSEVENT_UINT32_ARRAY, uint32_t, domainCounts),
     };
     int ret = OH_HiSysEvent_Write(HiSysEvent::Domain::HIVIEWDFX, "BREAK", HISYSEVENT_BEHAVIOR,
         params, sizeof(params) / sizeof(HiSysEventParam));

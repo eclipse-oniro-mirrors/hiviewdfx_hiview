@@ -63,7 +63,6 @@ HWTEST_F(PluginTest, PluginTest001, testing::ext::TestSize.Level0)
      */
     printf("PluginTest001 start\n");
     Plugin plugin;
-    ASSERT_FALSE(plugin.HasLoaded());
 
     plugin.OnLoad();
     auto event = plugin.GetEvent(Event::SYS_EVENT);

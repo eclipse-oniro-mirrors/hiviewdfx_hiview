@@ -100,12 +100,10 @@ private:
     bool HasIntMember(const Json::Value& jsonObj, const std::string& name) const;
     bool HasUIntMember(const Json::Value& jsonObj, const std::string& name) const;
     bool HasStringMember(const Json::Value& jsonObj, const std::string& name) const;
-    bool HasBoolMember(const Json::Value& jsonObj, const std::string& name) const;
     void InitEventInfoMapRef(const Json::Value& jsonObj, JSON_VALUE_LOOP_HANDLER handler) const;
     BaseInfo ParseBaseConfig(const Json::Value& eventNameJson) const;
     NAME_INFO_MAP ParseEventNameConfig(const std::string& domain, const Json::Value& domainJson) const;
     PARAM_INFO_MAP_PTR ParseEventParamInfo(const Json::Value& eventContent) const;
-    void WatchTestTypeParameter();
 
 private:
     mutable ffrt::mutex defMtx_;

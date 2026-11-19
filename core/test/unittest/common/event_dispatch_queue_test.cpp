@@ -72,7 +72,7 @@ const std::string TEST_MESSAGE = "test_message";
  */
 HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest001, TestSize.Level3)
 {
-    auto unorderQueue = std::make_shared<EventDispatchQueue>(TEST_QUEUE_NAME, Event::ManageType::UNORDERED, nullptr);
+    auto unorderQueue = std::make_shared<EventDispatchQueue>(TEST_QUEUE_NAME, nullptr);
     ASSERT_EQ(false, unorderQueue->IsRunning());
 
     unorderQueue->Start();
@@ -95,7 +95,7 @@ HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest001, TestSize.Level
 HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest002, TestSize.Level3)
 {
     OHOS::HiviewDFX::HiviewContext context;
-    auto unorderQueue = std::make_shared<EventDispatchQueue>(TEST_QUEUE_NAME, Event::ManageType::UNORDERED, &context);
+    auto unorderQueue = std::make_shared<EventDispatchQueue>(TEST_QUEUE_NAME, &context);
     ASSERT_EQ(false, unorderQueue->IsRunning());
 
     unorderQueue->Start();
@@ -109,28 +109,4 @@ HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest002, TestSize.Level
     unorderQueue->Enqueue(nullptr);
     unorderQueue->Enqueue(event);
     ASSERT_EQ(false, unorderQueue->IsRunning());
-}
-
-/**
- * @tc.name: EventDispatchQueueCreateTest003
- * @tc.desc: create and init an event dispatch queue of order
- * @tc.type: FUNC
- * @tc.require: issueICLD08
- */
-HWTEST_F(EventDispatchQueueTest, EventDispatchQueueCreateTest003, TestSize.Level3)
-{
-    OHOS::HiviewDFX::HiviewContext context;
-    auto orderQueue = std::make_shared<EventDispatchQueue>(TEST_QUEUE_NAME, Event::ManageType::ORDERED, &context);
-    ASSERT_EQ(false, orderQueue->IsRunning());
-
-    orderQueue->Start();
-    ASSERT_EQ(true, orderQueue->IsRunning());
-
-    auto event = CreateEvent(TEST_EVENT_NAME, 0, TEST_MESSAGE, Event::MessageType::SYS_EVENT);
-    orderQueue->Enqueue(event);
-    sleep(1); // 1s
-    ASSERT_EQ(true, orderQueue->IsRunning());
-
-    orderQueue->Stop();
-    ASSERT_EQ(false, orderQueue->IsRunning());
 }

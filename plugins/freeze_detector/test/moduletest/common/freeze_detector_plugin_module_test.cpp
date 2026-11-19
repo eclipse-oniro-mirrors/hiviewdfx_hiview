@@ -55,9 +55,6 @@ std::shared_ptr<SysEvent> FreezeDetectorPluginModuleTest::CreateFreezeEvent(cons
     bool fromKernel, long happenTime, const std::string& domain, const std::string& stringid) const
 {
     auto event = std::make_shared<SysEvent>("SysEvent", nullptr, extraInfo);
-    if (fromKernel) {
-        event->normalExtraInfo_ = extraInfo;
-    }
     event->SetEventValue("domain_", domain);
     event->domain_ = domain;
     event->SetEventValue("name_", stringid);

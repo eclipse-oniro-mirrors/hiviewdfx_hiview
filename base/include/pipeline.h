@@ -41,8 +41,6 @@ public:
 
     PipelineEvent(const PipelineEvent& obj)
         : Event(obj),
-          inputLogfileParamList_(std::move(obj.inputLogfileParamList_)),
-          deleteLogfileParamList_(std::move(obj.deleteLogfileParamList_)),
           handler_(obj.handler_),
           startDeliver_(obj.startDeliver_),
           pipelineName_(obj.pipelineName_),
@@ -55,8 +53,6 @@ public:
         }
 
         Event::operator=(obj);
-        inputLogfileParamList_ = std::move(obj.inputLogfileParamList_);
-        deleteLogfileParamList_ = std::move(obj.deleteLogfileParamList_);
         handler_ = obj.handler_;
         startDeliver_ = obj.startDeliver_;
         pipelineName_ = obj.pipelineName_;
@@ -73,8 +69,6 @@ public:
     uint32_t GetPendingProcessorSize() override;
     void SetPipelineInfo(const std::string& pipelineName, std::list<std::weak_ptr<Plugin>>& processors);
     std::string GetPipelineInfo();
-    std::list<std::string> inputLogfileParamList_;
-    std::list<std::string> deleteLogfileParamList_;
 
     // transform an event into pipeline event
     // fill with pipeline info of given name

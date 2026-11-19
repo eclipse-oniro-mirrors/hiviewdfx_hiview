@@ -26,6 +26,8 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace StringUtil {
 namespace {
+using namespace std;
+
 std::string ReplaceMatchedStrWithAsterisk(const std::string& source, const std::string& patternStr)
 {
     if (source.empty()) {
@@ -42,10 +44,7 @@ std::string ReplaceMatchedStrWithAsterisk(const std::string& source, const std::
     return source;
 }
 }
-using namespace std;
-const char INDICATE_VALUE_CHAR = ':';
-const char KEY_VALUE_END_CHAR = ';';
-constexpr int SKIP_NEXT_INDEX_LENGTH = 2;
+
 std::string ConvertVectorToStr(const std::vector<std::string> &listStr, const std::string &split)
 {
     std::string str("");
