@@ -1383,11 +1383,11 @@ HWTEST_F(OrphanMemDetectorTest, StringHelper_HeapJemallocMeta, TestSize.Level1)
 }
 
 namespace {
-std::atomic<int> gScopedHandlerHitCount{0};
-std::atomic<int> gScopedHandlerSignalNumber{0};
-std::atomic<int> gScopedHandlerSecondCount{0};
-std::atomic<int> gScopedHandlerUsr2Count{0};
-std::atomic<int> gScopedHandlerCtxValid{0};
+std::atomic<int> g_ScopedHandlerHitCount{0};
+std::atomic<int> g_ScopedHandlerSignalNumber{0};
+std::atomic<int> g_ScopedHandlerSecondCount{0};
+std::atomic<int> g_ScopedHandlerUsr2Count{0};
+std::atomic<int> g_ScopedHandlerCtxValid{0};
 }  // namespace
 
 // ===== From scoped_signal_handler_test.cpp =====
@@ -1401,9 +1401,9 @@ protected:
         Allocator<ScopedSignalHandler> alloc(heap);
         handler = alloc.MakeUnique(alloc);
         handler->Install(SIGUSR1, [](int signal, siginfo_t *si, void *uctx) {
-            gScopedHandlerHitCount++;
-            gScopedHandlerSignalNumber = signal;
-            gScopedHandlerCtxValid = (si != nullptr && uctx != nullptr) ? 1 : 0;
+            g_ScopedHandlerHitCount++;
+            g_ScopedHandlerSignalNumber = signal;
+            g_ScopedHandlerCtxValid = (si != nullptr && uctx != nullptr) ? 1 : 0;
             return true;
         });
     }
@@ -1423,10 +1423,10 @@ Heap::unique_ptr<ScopedSignalHandler> ScopedSignalHandlerTest::handler;
  */
 HWTEST_F(ScopedSignalHandlerTest, Install_HandlerInvokedWhenSignalRaised, TestSize.Level1)
 {
-    int before = gScopedHandlerHitCount.load();
+    int before = g_ScopedHandlerHitCount.load();
     raise(SIGUSR1);
-    EXPECT_EQ(gScopedHandlerHitCount.load(), before + 1);
-    EXPECT_EQ(gScopedHandlerSignalNumber.load(), SIGUSR1);
+    EXPECT_EQ(g_ScopedHandlerHitCount.load(), before + 1);
+    EXPECT_EQ(g_ScopedHandlerSignalNumber.load(), SIGUSR1);
 }
 
 /**
@@ -1436,10 +1436,10 @@ HWTEST_F(ScopedSignalHandlerTest, Install_HandlerInvokedWhenSignalRaised, TestSi
  */
 HWTEST_F(ScopedSignalHandlerTest, Install_HandlerInvokedRepeatedly, TestSize.Level1)
 {
-    int before = gScopedHandlerHitCount.load();
+    int before = g_ScopedHandlerHitCount.load();
     raise(SIGUSR1);
     raise(SIGUSR1);
-    EXPECT_EQ(gScopedHandlerHitCount.load(), before + 2);
+    EXPECT_EQ(g_ScopedHandlerHitCount.load(), before + 2);
 }
 
 /**
@@ -1449,15 +1449,15 @@ HWTEST_F(ScopedSignalHandlerTest, Install_HandlerInvokedRepeatedly, TestSize.Lev
  */
 HWTEST_F(ScopedSignalHandlerTest, Install_SecondInstallIgnored, TestSize.Level1)
 {
-    int secondBefore = gScopedHandlerSecondCount.load();
-    int firstBefore = gScopedHandlerHitCount.load();
+    int secondBefore = g_ScopedHandlerSecondCount.load();
+    int firstBefore = g_ScopedHandlerHitCount.load();
     handler->Install(SIGUSR1, [](int, siginfo_t *, void *) {
-        gScopedHandlerSecondCount++;
+        g_ScopedHandlerSecondCount++;
         return true;
     });
     raise(SIGUSR1);
-    EXPECT_EQ(gScopedHandlerSecondCount.load(), secondBefore);
-    EXPECT_EQ(gScopedHandlerHitCount.load(), firstBefore + 1);
+    EXPECT_EQ(g_ScopedHandlerSecondCount.load(), secondBefore);
+    EXPECT_EQ(g_ScopedHandlerHitCount.load(), firstBefore + 1);
 }
 
 /**
@@ -1467,15 +1467,15 @@ HWTEST_F(ScopedSignalHandlerTest, Install_SecondInstallIgnored, TestSize.Level1)
  */
 HWTEST_F(ScopedSignalHandlerTest, Install_SecondInstanceDifferentSignal, TestSize.Level1)
 {
-    int usr2Before = gScopedHandlerUsr2Count.load();
+    int usr2Before = g_ScopedHandlerUsr2Count.load();
     Allocator<ScopedSignalHandler> alloc(heap);
     auto second = alloc.MakeUnique(alloc);
     second->Install(SIGUSR2, [](int, siginfo_t *, void *) {
-        gScopedHandlerUsr2Count++;
+        g_ScopedHandlerUsr2Count++;
         return true;
     });
     raise(SIGUSR2);
-    EXPECT_EQ(gScopedHandlerUsr2Count.load(), usr2Before + 1);
+    EXPECT_EQ(g_ScopedHandlerUsr2Count.load(), usr2Before + 1);
 }
 
 /**
@@ -1485,12 +1485,12 @@ HWTEST_F(ScopedSignalHandlerTest, Install_SecondInstanceDifferentSignal, TestSiz
  */
 HWTEST_F(ScopedSignalHandlerTest, Constructor_ReuseExistingHandlerMap, TestSize.Level1)
 {
-    int before = gScopedHandlerHitCount.load();
+    int before = g_ScopedHandlerHitCount.load();
     Allocator<ScopedSignalHandler> alloc(heap);
     auto third = alloc.MakeUnique(alloc);
     ASSERT_NE(third, nullptr);
     raise(SIGUSR1);
-    EXPECT_EQ(gScopedHandlerHitCount.load(), before + 1);
+    EXPECT_EQ(g_ScopedHandlerHitCount.load(), before + 1);
 }
 
 /**
@@ -1500,10 +1500,10 @@ HWTEST_F(ScopedSignalHandlerTest, Constructor_ReuseExistingHandlerMap, TestSize.
  */
 HWTEST_F(ScopedSignalHandlerTest, Install_ContextParamsValid, TestSize.Level1)
 {
-    gScopedHandlerCtxValid = 0;
+    g_ScopedHandlerCtxValid = 0;
     raise(SIGUSR1);
-    EXPECT_EQ(gScopedHandlerCtxValid.load(), 1);
-    EXPECT_EQ(gScopedHandlerSignalNumber.load(), SIGUSR1);
+    EXPECT_EQ(g_ScopedHandlerCtxValid.load(), 1);
+    EXPECT_EQ(g_ScopedHandlerSignalNumber.load(), SIGUSR1);
 }
 
 // ===== From thread_snapshot_impl_test.cpp =====
