@@ -105,6 +105,7 @@ public:
     void OnUIContextMessageReceived(uint32_t messageId);
     void OnUIContextMessageProcessed(uint32_t messageId);
     int64_t GetUIContextMessageReceivedTime() const;
+    int64_t GetAnimationCallbackTime() const;
  
 private:
     void NotifyRsJankStatsBegin();
@@ -118,7 +119,7 @@ private:
     SceneManager mNonexpManager;
     std::vector<ISceneCallback*> sceneCallbacks;
 
-    std::map<uint32_t, int64_t> uiContextMessageReceivedTime_;
+    std::map<uint32_t, int64_t> uiContextMessageReceivedTimeMap;
     std::mutex uiContextMessageMutex_;
 
     uint32_t countStart = 0;
