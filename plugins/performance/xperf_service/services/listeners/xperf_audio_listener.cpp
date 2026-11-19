@@ -22,7 +22,6 @@ namespace HiviewDFX {
 void XperfAudioListener::OnPreferredOutputDeviceUpdated(
     const std::vector<std::shared_ptr<AudioStandard::AudioDeviceDescriptor>> &deviceDescriptor)
 {
-    LOGD("XperfAudioListener_OnPreferredOutputDeviceUpdated");
     if (deviceDescriptor.size() == 0) {
         return;
     }
@@ -30,12 +29,10 @@ void XperfAudioListener::OnPreferredOutputDeviceUpdated(
         case AudioStandard::DEVICE_TYPE_SPEAKER:
             if (deviceDescriptor[0]->networkId_ == "LocalDevice" &&
                 outputDeviceType_ == AudioStandard::DeviceType::DEVICE_TYPE_BLUETOOTH_A2DP) {
-                LOGD("XperfAudioListener_OnPreferredOutputDeviceUpdated B->S");
                 VideoPlayStateMonitor::GetInstance().OnAudioOutputDeviceChange(B2S);
             }
             break;
         case AudioStandard::DeviceType::DEVICE_TYPE_BLUETOOTH_A2DP:
-            LOGD("XperfAudioListener_OnPreferredOutputDeviceUpdated S->B");
             VideoPlayStateMonitor::GetInstance().OnAudioOutputDeviceChange(S2B);
             break;
         default:
@@ -51,8 +48,6 @@ void XperfAudioListener::OnAudioFocusInfoChange(
 
 void XperfAudioListener::OnAudioFocusRequested(const AudioStandard::AudioInterrupt& requestedFocus)
 {
-    LOGD("XperfAudioFocusInfoChangeCallback_OnAudioFocusRequested bundleName:%{public}s pid:%{public}d",
-        requestedFocus.bundleName.c_str(), requestedFocus.pid);
     VideoPlayStateMonitor::GetInstance().OnAudioFocusInfoChange(requestedFocus.bundleName, requestedFocus.pid);
 }
 
