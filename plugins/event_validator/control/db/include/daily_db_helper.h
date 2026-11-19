@@ -26,6 +26,7 @@ public:
         std::string domain;
         std::string name;
         int32_t count = 0;
+        int32_t storeCount = 0;
         int64_t exceedTime = 0;
     };
 

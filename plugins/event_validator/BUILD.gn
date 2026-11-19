@@ -73,6 +73,7 @@ group("unittest") {
   testonly = true
   deps = [
     "test/unittest/common:DailyControllerTest",
+    "test/unittest/common:DailyDbHelperTest",
     "test/unittest/common:EventValidatorTest",
   ]
 }

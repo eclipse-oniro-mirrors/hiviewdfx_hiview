@@ -97,6 +97,7 @@ void DailyController::UpdateCacheToDb()
             .domain = key.first,
             .name = key.second,
             .count = value.count,
+            .storeCount = value.count > value.threshold ? value.threshold : value.count,
             .exceedTime = value.exceedTime,
         };
         if (dbHelper_->UpdateEventInfo(eventInfo) < 0) {
@@ -156,7 +157,7 @@ void DailyController::UpdateCacheAndDb(const CacheKey& cachekey, int32_t thresho
     }
 
     UpdateCache(cachekey, threshold, count, exceedTime);
-    UpdateDb(cachekey, count, exceedTime);
+    UpdateDb(cachekey, threshold, count, exceedTime);
 }
 
 void DailyController::UpdateCache(const CacheKey& cachekey, int32_t threshold, int32_t count, int64_t exceedTime)
@@ -176,7 +177,7 @@ void DailyController::UpdateCache(const CacheKey& cachekey, int32_t threshold, i
     }
 }
 
-void DailyController::UpdateDb(const CacheKey& cachekey, int32_t count, int64_t exceedTime)
+void DailyController::UpdateDb(const CacheKey& cachekey, int32_t threshold, int32_t count, int64_t exceedTime)
 {
     // the record does not exist in the db, need to init the record
     if (count == COUNT_OF_INIT) {
@@ -184,6 +185,7 @@ void DailyController::UpdateDb(const CacheKey& cachekey, int32_t count, int64_t 
             .domain = cachekey.first,
             .name = cachekey.second,
             .count = count,
+            .storeCount = count > threshold ? threshold : count,
             .exceedTime = exceedTime,
         };
         if (dbHelper_->InsertEventInfo(eventInfo) < 0) {
