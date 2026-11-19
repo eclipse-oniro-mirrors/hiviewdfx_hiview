@@ -410,7 +410,7 @@ CollectResult<int32_t> HiviewService::SetAppResourceLimit(UCollectClient::Memory
     sysEventCreator.SetKeyValue("RESOURCE_DEBUG_ENABLE", memoryCaller.enabledDebugLog ? "true" : "false");
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
     return {UCollect::UcError::SUCCESS};
 }
 
@@ -432,7 +432,7 @@ CollectResult<int32_t> HiviewService::SetSplitMemoryValue(std::vector<UCollectCl
 
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     auto event = std::dynamic_pointer_cast<Event>(sysEvent);
-    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
     return {UCollect::UcError::SUCCESS};
 }
 
@@ -464,7 +464,7 @@ CollectResult<int32_t> HiviewService::SetForkDumpService(
     sysEventCreator.SetKeyValue("SUB_PID", subProcPid);
     auto sysEvent = std::make_shared<SysEvent>(eventName, nullptr, sysEventCreator);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(sysEvent);
-    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
     std::this_thread::sleep_for(std::chrono::milliseconds(OOM_FORK_SLEEP_TIME));
     return {UCollect::UcError::SUCCESS};
 }
@@ -483,7 +483,7 @@ CollectResult<int32_t> HiviewService::RequestUiTree(int32_t pid, const sptr<IReq
     }
     objSysEvent->SetEventObjValue(remoteObj);
     std::shared_ptr<Event> event = std::dynamic_pointer_cast<Event>(objSysEvent);
-    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "XPower", event);
+    HiviewPlatform::GetInstance().PostAsyncEventToTarget(nullptr, "LeakDetectors", event);
     return {UCollect::UcError::SUCCESS};
 }
 
