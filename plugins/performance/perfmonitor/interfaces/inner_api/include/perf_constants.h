@@ -45,8 +45,6 @@ inline constexpr uint32_t PATH_DEPTH = 3;
 inline constexpr size_t MAX_PAGE_NAME_LEN = 100;
 
 inline constexpr int32_t DEFAULT_SCROLL_JANK_THRESHOLD = 50;
-inline constexpr int32_t MIN_SCROLL_JANK_THRESHOLD = 33;
-inline constexpr int32_t MAX_SCROLL_JANK_THRESHOLD = 500;
 
 inline constexpr uint32_t JANK_FRAME_6_LIMIT = 0;
 inline constexpr uint32_t JANK_FRAME_15_LIMIT = 1;
