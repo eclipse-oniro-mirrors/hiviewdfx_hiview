@@ -64,8 +64,6 @@ void VideoPlayStateMonitor::ProcessEvent(OhosXperfEvent* event)
 void VideoPlayStateMonitor::OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
     const std::string& surfaceName)
 {
-    LOGD("VideoPlayStateMonitor_OnSurfaceReceived pid:%{public}d, uniqueId:%{public}s, bundle:%{public}s, "
-        "surface:%{public}s", pid, std::to_string(uniqueId).c_str(), bundleName.c_str(), surfaceName.c_str());
     std::lock_guard<std::mutex> Lock(mMutex);
 
     AvcodecFrame surface;
@@ -80,8 +78,6 @@ void VideoPlayStateMonitor::OnSurfaceReceived(int32_t pid, const std::string& bu
 void VideoPlayStateMonitor::OnFirstFrame(OhosXperfEvent* event)
 {
     AvcodecFrame* audioEvent = (AvcodecFrame*) event;
-    LOGD("VideoPlayStateMonitor::OnFirstFrame pid:%{public}d, bundle:%{public}s, surface:%{public}s",
-         audioEvent->pid, audioEvent->bundleName.c_str(), audioEvent->surfaceName.c_str());
     std::lock_guard<std::mutex> Lock(mMutex);
 
     AddToList(*audioEvent); //保存至列表
@@ -89,7 +85,6 @@ void VideoPlayStateMonitor::OnFirstFrame(OhosXperfEvent* event)
 
 void VideoPlayStateMonitor::OnSecondFrame(OhosXperfEvent* event)
 {
-    LOGD("VideoPlayStateMonitor_OnSecondFrame rawMsg:%{public}s", event->rawMsg.c_str());
     std::lock_guard<std::mutex> Lock(mMutex);
     secondFrame = *((AvcodecFrame*) event); // 为通知解码器开始/停止检测用
 }
@@ -119,15 +114,15 @@ void VideoPlayStateMonitor::AddToList(const AvcodecFrame& surfaceInfo)
 void VideoPlayStateMonitor::OnAudioStart(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoPlayStateMonitor_OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
+    LOGI("OnAudioStart pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
         static_cast<long long>(audioEvent->uniqueId));
     std::unique_lock<std::mutex> lock(mMutex);
     if (surfaceInfoList.empty()) { //没有首帧信息
-        LOGW("VideoPlayStateMonitor_OnAudioStart surfaceInfoList empty");
+        LOGW("OnAudioStart surfaceInfoList empty");
         return;
     }
     if (audioEvent->pid != surfaceInfoList.front().pid) {
-        LOGW("VideoPlayStateMonitor_OnAudioStart PID mismatch");
+        LOGW("OnAudioStart PID mismatch");
         return;
     }
     if (audioEvent->uniqueId != audioUniqueId) { // 切换视频
@@ -135,7 +130,6 @@ void VideoPlayStateMonitor::OnAudioStart(OhosXperfEvent* event)
         NotifyStartDetection(lock); // 通知开始检测
     } else {
         if (!IsUserStart(*audioEvent)) { // 非用户操作开始播放
-            LOGD("VideoPlayStateMonitor_OnAudioStart non-user start");
             return;
         }
         NotifyStartDetection(lock); //通知开始检测
@@ -145,31 +139,30 @@ void VideoPlayStateMonitor::OnAudioStart(OhosXperfEvent* event)
 void VideoPlayStateMonitor::OnAudioStop(OhosXperfEvent* event)
 {
     AudioStateEvent* audioEvent = (AudioStateEvent*) event;
-    LOGI("VideoPlayStateMonitor_OnAudioStop pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
+    LOGI("OnAudioStop pid:%{public}d uniqueId:%{public}lld", audioEvent->pid,
         static_cast<long long>(audioEvent->uniqueId));
     std::unique_lock<std::mutex> lock(mMutex);
     if (audioEvent->uniqueId != audioUniqueId) { //前一个视频的stop可能会晚于新视频的start到来，此时无需通知RS停止检测
-        LOGE("VideoPlayStateMonitor_OnAudioStop Audio uniqueId mismatch");
+        LOGE("OnAudioStop Audio uniqueId mismatch");
         return;
     }
 
     audioStopEvt = *audioEvent; //保存音频结束。音频焦点变化事件可能晚于音频stop，故保存stop事件 以便在音频焦点变化事件到来时做判断
     if (IsUserStop()) { // 用户触发的停止
-        LOGI("VideoPlayStateMonitor_OnAudioStop user-triggered stop");
+        LOGI("OnAudioStop user-triggered stop");
         NotifyStopDetection(lock); //通知停止检测
         return;
     }
     if (IsBluetoothToSpeaker()) { // 蓝牙切扬声器触发的停止
-        LOGI("VideoPlayStateMonitor_OnAudioStop B2S-triggered stop");
+        LOGI("OnAudioStop B2S-triggered stop");
         NotifyStopDetection(lock); //通知停止检测
         return;
     }
     if (IsInterruptedByAnother()) { // 音频抢占（如闹钟、来电...）触发的停止
-        LOGI("VideoPlayStateMonitor_OnAudioStop audio_interrupt-triggered stop");
+        LOGI("OnAudioStop audio_interrupt-triggered stop");
         NotifyStopDetection(lock); //通知停止检测
         return;
     }
-    LOGD("VideoPlayStateMonitor_OnAudioStop Do not notify to stop detection");
 }
 
 void VideoPlayStateMonitor::NotifyStartDetection(std::unique_lock<std::mutex>& lock)
@@ -185,7 +178,7 @@ void VideoPlayStateMonitor::NotifyStartDetection(std::unique_lock<std::mutex>& l
         surfaceInfo.append("#UNIQUEID:").append(std::to_string(secondFrame.uniqueId))
             .append("#BUNDLE_NAME:").append(secondFrame.bundleName);
     }
-    LOGI("VideoPlayStateMonitor_NotifyStartDetection AvcodecVideoStart");
+    LOGI("NotifyStartDetection AvcodecVideoStart");
     XPERF_TRACE_SCOPED("AvcodecVideoStart");
     lock.unlock();
     if (!surfaceInfo.empty()) {
@@ -195,7 +188,6 @@ void VideoPlayStateMonitor::NotifyStartDetection(std::unique_lock<std::mutex>& l
 
 void VideoPlayStateMonitor::BroadcastVideoStart(const std::string& msg)
 {
-    LOGD("VideoPlayStateMonitor_BroadcastVideoStart");
     ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::XPERF_VIDEO_START, msg); },
         ffrt::task_attr().name("BroadcastVideoStart").qos(ffrt::qos_default));
 }
@@ -213,7 +205,7 @@ void VideoPlayStateMonitor::NotifyStopDetection(std::unique_lock<std::mutex>& lo
         surfaceInfo.append("#UNIQUEID:").append(std::to_string(secondFrame.uniqueId))
                 .append("#BUNDLE_NAME:").append(secondFrame.bundleName);
     }
-    LOGI("VideoPlayStateMonitor_NotifyStopDetection AvcodecVideoStop");
+    LOGI("NotifyStopDetection AvcodecVideoStop");
     XPERF_TRACE_SCOPED("AvcodecVideoStop");
     lock.unlock();
     if (!surfaceInfo.empty()) {
@@ -223,7 +215,6 @@ void VideoPlayStateMonitor::NotifyStopDetection(std::unique_lock<std::mutex>& lo
 
 void VideoPlayStateMonitor::BroadcastVideoStop(const std::string& msg)
 {
-    LOGD("VideoPlayStateMonitor_BroadcastVideoStop");
     ffrt::submit([msg] { XperfRegisterManager::GetInstance().PostEvent(EventCode::XPERF_VIDEO_STOP, msg); },
         ffrt::task_attr().name("BroadcastVideoStop").qos(ffrt::qos_default));
 }
@@ -271,10 +262,8 @@ void VideoPlayStateMonitor::OnAudioOutputDeviceChange(ChangeType type)
     std::lock_guard<std::mutex> Lock(mMutex);
     if (type == B2S) {
         b2sTime = TimeUtil::GetCurrTimeMs();
-        LOGI("VideoPlayStateMonitor_OnAudioOutputDeviceChange B->S");
     } else if (type == S2B) {
         s2bTime = TimeUtil::GetCurrTimeMs();
-        LOGI("VideoPlayStateMonitor_OnAudioOutputDeviceChange S->B");
     }
 }
 
@@ -284,7 +273,6 @@ void VideoPlayStateMonitor::OnAudioOutputDeviceChange(ChangeType type)
 void VideoPlayStateMonitor::OnAudioFocusInfoChange(const std::string& bundleName, int32_t pid)
 {
     std::unique_lock<std::mutex> lock(mMutex);
-    LOGD("VideoPlayStateMonitor_OnAudioFocusInfoChange bundleName:%{public}s pid:%{public}d", bundleName.c_str(), pid);
     audioFocusInfo.bundleName = bundleName;
     audioFocusInfo.pid = pid;
     audioFocusInfo.time = TimeUtil::GetCurrTimeMs();
@@ -294,7 +282,7 @@ void VideoPlayStateMonitor::OnAudioFocusInfoChange(const std::string& bundleName
     }
     if ((audioFocusInfo.time >= audioStopEvt.happenTime) &&
         (audioFocusInfo.time - audioStopEvt.happenTime < STOP_INTERRUPT_THRESHOLD)) { // 音频焦点变化事件晚于音频stop事件
-        LOGI("VideoPlayStateMonitor_OnAudioFocusInfoChange audio_interrupt-triggered stop");
+        LOGI("OnAudioFocusInfoChange audio_interrupt-triggered stop");
         NotifyStopDetection(lock); //通知停止检测
     }
 }
