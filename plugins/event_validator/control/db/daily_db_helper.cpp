@@ -205,7 +205,6 @@ int32_t DailyDbHelper::QueryEventInfo(EventInfo& info)
         resultSet->Close();
         return -1;
     }
-
     resultSet->Close();
     HIVIEW_LOGD("succ to query event, domain=%{public}s, name=%{public}s, count=%{public}d",
         info.domain.c_str(), info.name.c_str(), info.count);
