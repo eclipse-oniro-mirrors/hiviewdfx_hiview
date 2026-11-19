@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "play_latency_reporter.h"
-#include "event_reporter.h"
+#include "event_bridge.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -29,15 +29,7 @@ void PlayLatencyReporter::ReportStartFault(const VideoStartFaultReport& report)
         .append("START_LATENCY:").append(std::to_string(report.startLatency)).append("\n")
         .append("TYPE:").append(std::to_string(report.type));
 
-    EventReporter::GetInstance().ReportEvent("VIDEO_START_FAULT_INNER", data);
-}
-
-void PlayLatencyReporter::ReportFault(const std::string& eventName, const std::string& eventData)
-{
-    std::string data;
-    data.append("EVENT_DATA:").append(eventData);
-
-    EventReporter::GetInstance().ReportEvent(eventName, data);
+    EventBridge::GetInstance().OnEvent("VIDEO_START_FAULT_INNER", data);
 }
 
 void PlayLatencyReporter::ReportJankStats(const VideoJankStatsReport& report)
@@ -57,7 +49,7 @@ void PlayLatencyReporter::ReportJankStats(const VideoJankStatsReport& report)
         .append(std::to_string(report.codecJankTimes)).append("|")
         .append(std::to_string(report.codecJankDur));
 
-    EventReporter::GetInstance().ReportEvent("VIDEO_JANK_STATS_INNER", data);
+    EventBridge::GetInstance().OnEvent("VIDEO_JANK_STATS_INNER", data);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

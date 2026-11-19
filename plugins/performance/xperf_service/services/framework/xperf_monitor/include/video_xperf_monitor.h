@@ -49,8 +49,8 @@ private:
     mutable std::mutex mMutex;
     std::list<SurfaceInfo> surfaceInfoList;
     std::map<int64_t, std::list<VideoJankRecord>> videoJankRecordMap;
-    int64_t currUniqueId{0};
- 
+    int64_t currJankId{0};
+
     SurfaceInfo GetSurfaceInfo(int64_t uniqueId);
     void BroadcastVideoJank(const std::string& msg);
     void BroadcastJankDur(const std::string& msg);

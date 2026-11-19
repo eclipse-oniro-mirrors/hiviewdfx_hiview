@@ -12,30 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "event_reporter.h"
+#include "event_bridge.h"
+#include "xperf_service_log.h"
 
 namespace OHOS {
 namespace HiviewDFX {
 
-EventReporter& EventReporter::GetInstance()
+EventBridge& EventBridge::GetInstance()
 {
-    static EventReporter instance;
+    static EventBridge instance;
     return instance;
 }
 
-void EventReporter::ReportEvent(const std::string& domain, const std::string& event, const std::string& data)
+void EventBridge::OnEvent(const std::string& domain, const std::string& event, const std::string& data)
 {
     for (auto& func : listeners) {
         func(domain, event, data);
     }
 }
 
-void EventReporter::ReportEvent(const std::string& event, const std::string& data)
+void EventBridge::OnEvent(const std::string& event, const std::string& data)
 {
-    ReportEvent("PERFORMANCE", event, data);
+    OnEvent("PERFORMANCE", event, data);
 }
 
-void EventReporter::RegEventListener(
+void EventBridge::RegEventListener(
     std::function<void(const std::string&, const std::string&, const std::string&)> listener)
 {
     listeners.push_back(std::move(listener));

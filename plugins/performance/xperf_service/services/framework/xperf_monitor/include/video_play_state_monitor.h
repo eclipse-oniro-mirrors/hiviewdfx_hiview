@@ -35,42 +35,61 @@ enum PlayState {
     STOP
 };
 
-class VideoJankMonitor : public XperfMonitor {
+enum ChangeType {
+    B2S, // bluetooth to speaker
+    S2B  // speaker to bluetooth
+};
+
+struct AudioFocusInfo {
+    std::string bundleName;
+    int32_t pid{0};
+    int64_t time{0};
+};
+
+class VideoPlayStateMonitor : public XperfMonitor {
 public:
-    static VideoJankMonitor &GetInstance();
-    VideoJankMonitor(const VideoJankMonitor &) = delete;
-    void operator=(const VideoJankMonitor &) = delete;
+    static VideoPlayStateMonitor& GetInstance();
 
     void ProcessEvent(OhosXperfEvent* event) override;
 
     void OnSurfaceReceived(int32_t pid, const std::string& bundleName, int64_t uniqueId,
         const std::string& surfaceName);
 
+    void OnAudioOutputDeviceChange(ChangeType type);
+    void OnAudioFocusInfoChange(const std::string& bundleName, int32_t pid);
+
 private:
-    VideoJankMonitor() = default;
-    ~VideoJankMonitor() = default;
+    VideoPlayStateMonitor() = default;
+    ~VideoPlayStateMonitor() = default;
+    VideoPlayStateMonitor(const VideoPlayStateMonitor&) = delete;
+    VideoPlayStateMonitor& operator=(const VideoPlayStateMonitor&) = delete;
 
 private:
     mutable std::mutex mMutex;
 
-    AudioStateEvent audioStateEvt;
+    AudioStateEvent audioStopEvt;
     PlayState playState{PlayState::INIT};
-    std::list<AvcodecFrame> firstFrameList;
+    std::list<AvcodecFrame> surfaceInfoList;
     AvcodecFrame secondFrame;
-    int64_t audioUniqueId{0};
+    int64_t audioUniqueId = 0;
+    int64_t b2sTime = 0; // 蓝牙切扬声器时间
+    int64_t s2bTime = 0; // 扬声器切蓝牙时间
+    AudioFocusInfo audioFocusInfo;
 
-    void AddToList(const AvcodecFrame& firstFrame);
+    void AddToList(const AvcodecFrame& surfaceInfo);
 
-    void MonitorStart();
-    void MonitorStop();
+    void NotifyStartDetection(std::unique_lock<std::mutex>& lock);
+    void NotifyStopDetection(std::unique_lock<std::mutex>& lock);
 
     void OnAudioStart(OhosXperfEvent* event);
     void OnAudioStop(OhosXperfEvent* event);
     void OnFirstFrame(OhosXperfEvent* event);
     void OnSecondFrame(OhosXperfEvent* event);
 
-    bool IsUserStop(const AudioStateEvent& audioStop);
+    bool IsUserStop();
     bool IsUserStart(const AudioStateEvent& audioStart);
+    bool IsBluetoothToSpeaker();
+    bool IsInterruptedByAnother();
 
     void BroadcastVideoStart(const std::string& msg);
     void BroadcastVideoStop(const std::string& msg);
