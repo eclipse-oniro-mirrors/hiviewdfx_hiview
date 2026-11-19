@@ -56,25 +56,19 @@ void AvcodecPerfMonitor::ProcessEvent(OhosXperfEvent* event)
 
 void AvcodecPerfMonitor::OnFault(OhosXperfEvent* event)
 {
-    LOGI("AVCODEC_JANK_FAULT msg:%{public}s", event->rawMsg.c_str());
     XPERF_TRACE_SCOPED("AVCODEC_JANK_FAULT msg:%s", event->rawMsg.c_str());
-
     AvcodecReporter::ReportAvcodecJank(ConvertToXperfMsg(event->rawMsg));
 }
 
 void AvcodecPerfMonitor::OnInit(OhosXperfEvent* event)
 {
-    LOGI("AVCODEC_INIT msg:%{public}s", event->rawMsg.c_str());
     XPERF_TRACE_SCOPED("AVCODEC_INIT msg:%s", event->rawMsg.c_str());
-
     AvcodecReporter::ReportAvcodecInit(TimeUtil::GetCurrTimeMs());
 }
 
 void AvcodecPerfMonitor::OnRelease(OhosXperfEvent* event)
 {
-    LOGI("AVCODEC_RELEASE msg:%{public}s", event->rawMsg.c_str());
     XPERF_TRACE_SCOPED("AVCODEC_RELEASE msg:%s", event->rawMsg.c_str());
-
     AvcodecReporter::ReportAvcodecRelease(TimeUtil::GetCurrTimeMs());
 }
 } // namespace HiviewDFX
