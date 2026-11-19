@@ -306,6 +306,18 @@ void SceneMonitor::SetPageName(const std::string& pageName)
     baseInfo.pageName = pageName;
 }
 
+void SceneMonitor::SetScrollJankThreshold(int32_t threshold)
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    scrollJankThreshold_ = threshold;
+}
+ 
+int32_t SceneMonitor::GetScrollJankThreshold() const
+{
+    std::lock_guard<std::mutex> Lock(mMutex);
+    return scrollJankThreshold_;
+}
+
 std::string SceneMonitor::GetPageName()
 {
     std::lock_guard<std::mutex> Lock(mMutex);

@@ -50,6 +50,8 @@ public:
     void SetAppInfo(AceAppInfo& appInfo);
     void SetSubHealthInfo(const std::string& info, const std::string& reason, const int32_t duration);
     bool IsScrollJank(const std::string& sceneId);
+    void SetScrollJankThreshold(int32_t threshold);
+    int32_t GetScrollJankThreshold() const;
 
     void Start(const std::string& sceneId, PerfActionType type, const std::string& note);
     void End(const std::string& sceneId, bool isRsRender);

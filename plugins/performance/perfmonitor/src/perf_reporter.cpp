@@ -50,33 +50,14 @@ namespace {
     constexpr char EVENT_KEY_BUNDLE_NAME[] = "BUNDLE_NAME";
     constexpr char EVENT_KEY_JANK_STATS[] = "JANK_STATS";
     constexpr char EVENT_KEY_JANK_STATS_VER[] = "JANK_STATS_VER";
-    constexpr char EVENT_KEY_APP_PID[] = "APP_PID";
     constexpr char EVENT_KEY_SCENE_ID[] = "SCENE_ID";
-    constexpr char EVENT_KEY_INPUT_TIME[] = "INPUT_TIME";
-    constexpr char EVENT_KEY_ANIMATION_START_LATENCY[] = "ANIMATION_START_LATENCY";
-    constexpr char EVENT_KEY_ANIMATION_END_LATENCY[] = "ANIMATION_END_LATENCY";
-    constexpr char EVENT_KEY_E2E_LATENCY[] = "E2E_LATENCY";
     constexpr char EVENT_KEY_UNIQUE_ID[] = "UNIQUE_ID";
     constexpr char EVENT_KEY_MODULE_NAME[] = "MODULE_NAME";
-    constexpr char EVENT_KEY_DURITION[] = "DURITION";
-    constexpr char EVENT_KEY_TOTAL_FRAMES[] = "TOTAL_FRAMES";
-    constexpr char EVENT_KEY_TOTAL_MISSED_FRAMES[] = "TOTAL_MISSED_FRAMES";
-    constexpr char EVENT_KEY_MAX_FRAMETIME[] = "MAX_FRAMETIME";
-    constexpr char EVENT_KEY_MAX_FRAMETIME_SINCE_START[] = "MAX_FRAMETIME_SINCE_START";
-    constexpr char EVENT_KEY_MAX_HITCH_TIME[] = "MAX_HITCH_TIME";
-    constexpr char EVENT_KEY_MAX_HITCH_TIME_SINCE_START[] = "MAX_HITCH_TIME_SINCE_START";
-    constexpr char EVENT_KEY_MAX_SEQ_MISSED_FRAMES[] = "MAX_SEQ_MISSED_FRAMES";
-    constexpr char EVENT_KEY_SOURCE_TYPE[] = "SOURCE_TYPE";
-    constexpr char EVENT_KEY_NOTE[] = "NOTE";
-    constexpr char EVENT_KEY_DISPLAY_ANIMATOR[] = "DISPLAY_ANIMATOR";
     constexpr char EVENT_KEY_SKIPPED_FRAME_TIME[] = "SKIPPED_FRAME_TIME";
     constexpr char EVENT_KEY_REAL_SKIPPED_FRAME_TIME[] = "REAL_SKIPPED_FRAME_TIME";
     constexpr char EVENT_KEY_FILTER_TYPE[] = "FILTER_TYPE";
     constexpr char EVENT_KEY_STARTTIME[] = "STARTTIME";
     constexpr char EVENT_KEY_VSYNC_TIME[] = "VSYNC_TIME";
-    constexpr char EVENT_KEY_JANK_COUNT[] = "JANK_COUNT";
-    constexpr char EVENT_KEY_ACTION_TYPE[] = "ACTION_TYPE";
-    constexpr char EVENT_KEY_POS[] = "POS";
     constexpr char STATISTIC_DURATION[] = "DURATION";
     constexpr char KEY_SCROLL_START_TIME[] = "SCROLL_START_TIME";
     constexpr char KEY_SCROLL_END_TIME[] = "SCROLL_END_TIME";
@@ -412,6 +393,7 @@ void EventReporter::ReportEventJankFrame(DataBase& data)
         "#DURITION:" + std::to_string(durition) +
         "#TOTAL_FRAMES:" + std::to_string(data.totalFrames) +
         "#TOTAL_MISSED_FRAMES:" + std::to_string(data.totalMissed) +
+        "#SCROLL_JANK_THRESHOLD:" + std::to_string(SceneMonitor::GetInstance().GetScrollJankThreshold()) +
         "#MAX_FRAMETIME:" + std::to_string(maxFrameTime) +
         "#MAX_FRAMETIME_SINCE_START:" + std::to_string(data.maxFrameTimeSinceStart) +
         "#MAX_HITCH_TIME:" + std::to_string(data.maxHitchTime) +
