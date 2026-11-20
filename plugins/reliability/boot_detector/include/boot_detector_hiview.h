@@ -37,7 +37,6 @@ constexpr size_t DATA_PREFIX_LEN = sizeof(DATA_PREFIX) - 1;
  */
 inline std::string BootDetectorReplaceDataPrefix(const std::string &path)
 {
-
     if (path.size() < DATA_PREFIX_LEN || path.compare(0, DATA_PREFIX_LEN, DATA_PREFIX) != 0) {
         return path;
     }
