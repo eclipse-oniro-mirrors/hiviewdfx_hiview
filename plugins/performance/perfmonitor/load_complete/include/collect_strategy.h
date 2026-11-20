@@ -128,7 +128,7 @@ private:
     bool isFirstTimeOut_{false};
     // 是否启动场景
     bool isLaunch_{false};
-        
+
     /**
     * @brief attach 信息, 用来判断当前和上一次差是否超过500ms阈值
     */
