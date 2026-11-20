@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -127,9 +127,12 @@ int64_t GetModuleExportEnabledSeq(std::shared_ptr<ExportConfig> config)
 
 std::string EventExportUtil::GetDeviceId()
 {
-    static std::string deviceId = Parameter::GetUserType() == Parameter::USER_TYPE_OVERSEA_COMMERCIAL ?
-        Parameter::GetString("persist.hiviewdfx.priv.packid", "") : GenerateDeviceId();
-    return deviceId;
+    if (Parameter::GetUserType() == Parameter::USER_TYPE_OVERSEA_COMMERCIAL) {
+        return Parameter::GetString("persist.hiviewdfx.priv.packid", "");
+    } else {
+        static std::string deviceId = GenerateDeviceId();
+        return deviceId;
+    }
 }
 
 bool EventExportUtil::CheckAndPostExportEvent(std::shared_ptr<ExportConfig> config)
