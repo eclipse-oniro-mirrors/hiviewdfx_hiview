@@ -164,11 +164,6 @@ sptr<SysEventServiceOhos> SysEventServiceOhos::GetInstance()
     return instance_;
 }
 
-SysEventServiceOhos::~SysEventServiceOhos()
-{
-    instance_ = nullptr;
-}
-
 void SysEventServiceOhos::StartService(SysEventServiceBase *service)
 {
     GetSysEventService(service);
