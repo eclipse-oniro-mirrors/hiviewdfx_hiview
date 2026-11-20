@@ -65,7 +65,7 @@ void DetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType
         info.lastImageInfo.sourceType = sourceType;
         info.lastImageInfo.completeTime = 0;
         info.isStopDetect = false;
-        info.isVisible = info.attachTime == 0 ? false : isVisible; 
+        info.isVisible = info.attachTime == 0 ? false : isVisible;
         return;
     }
 
