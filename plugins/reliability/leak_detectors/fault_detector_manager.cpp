@@ -50,6 +50,7 @@
 #include "xcollie/process_kill_reason.h"
 #include "rss_leak/rss_leak_dispatcher.h"
 #include "lite_profiler/lite_profiler.h"
+#include "string_util.h"
 
 using namespace std;
 
@@ -165,7 +166,8 @@ bool FaultDetectorManager::OnEvent(shared_ptr<Event> &event)
     }
     auto sysEvent = Event::DownCastTo<SysEvent>(event);
     if (sysEvent->eventName_ == EVENT_UPDATE_QUOTA) {
-        std::string quotaData = sysEvent->GetEventValue("QUOTA_DATA");
+        // SysEvent stores string values escaped; unescape before handing the JSON payload to the parsers.
+        std::string quotaData = StringUtil::UnescapeJsonStringValue(sysEvent->GetEventValue("QUOTA_DATA"));
         UpdateQuota(quotaData);
         return true;
     }
@@ -845,7 +847,7 @@ void FaultDetectorManager::HandleLowmemEvent(SysEvent &sysEvent)
 
 bool FaultDetectorManager::ValidatePathPrefix(const string &path, string &realPath)
 {
-    realPath = DfrUtil::GetInstance().RealPath(path);
+    realPath = FileUtil::RealPath(path);
     if (realPath.empty()) {
         return false;
     }
@@ -1139,10 +1141,7 @@ void FaultDetectorManager::OnForegroundChanged(const std::vector<std::string> &f
         return;
     }
     size_t len = foregrounds.size();
-    HIVIEW_LOGD("foregroundapps size:%{public}zu", len);
-    for (size_t i = 0; i < len; i++) {
-        HIVIEW_LOGI("%{public}zu:%{public}s", i, foregrounds[i].c_str());
-    }
+    HIVIEW_LOGI("OnForegroundChanged, foregroundApps size:%{public}zu", len);
 
     foregroundMtx_.lock();
     foregroundApps_ = foregrounds;

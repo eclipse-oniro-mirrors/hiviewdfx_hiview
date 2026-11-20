@@ -22,8 +22,8 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-EventDispatchQueue");
-EventDispatchQueue::EventDispatchQueue(const std::string& name, Event::ManageType type, HiviewContext* context)
-    : isRunning_(false), threadName_(name), type_(type), context_(context)
+EventDispatchQueue::EventDispatchQueue(const std::string& name, HiviewContext* context)
+    : isRunning_(false), threadName_(name), context_(context)
 {}
 
 EventDispatchQueue::~EventDispatchQueue()
@@ -83,11 +83,7 @@ void EventDispatchQueue::Enqueue(std::shared_ptr<Event> event)
 
     auto queuePtr = shared_from_this();
     ffrtQueue_->submit([event, queuePtr] {
-        if (queuePtr->type_ == Event::ManageType::UNORDERED) {
-            queuePtr->ProcessUnorderedEvent(*(event.get()));
-        } else {
-            HIVIEW_LOGW("invalid type=%{public}d of queue", queuePtr->type_);
-        }
+        queuePtr->ProcessUnorderedEvent(*(event.get()));
     }, ffrt::task_attr().name("dft_plat_unorder"));
 }
 } // namespace HiviewDFX

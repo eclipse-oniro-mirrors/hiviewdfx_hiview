@@ -82,6 +82,10 @@ ErrCode NotifyLeakDumpState::ProcessLeakTypeFile(shared_ptr<FaultInfoBase> &faul
         {JSVM_LEAK, notifyInfo->GetJSVMLeakFileName()}, {KMP_LEAK, notifyInfo->GetKMPLeakFileName()}
     };
     auto it = leakTypeMap.find(type);
+    if (it == leakTypeMap.end()) {
+        HIVIEW_LOGE("invalid notify leak type: %{public}d", static_cast<int>(type));
+        return FAILURE;
+    }
     string newPath = string(MEMORY_LEAK_PATH) + "/" + it->second;
     if (!IsValidFile(oldPath, notifyInfo) ||
         !OldLogCleaner::GetInstance().CopyFile(oldPath, newPath, notifyInfo->GetProcessName(), it->second) ||

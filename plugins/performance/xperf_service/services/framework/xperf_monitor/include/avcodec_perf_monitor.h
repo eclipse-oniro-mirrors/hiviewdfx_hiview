@@ -34,6 +34,8 @@ private:
     ~AvcodecPerfMonitor() = default;
 
     void OnFault(OhosXperfEvent* event);
+    void OnInit(OhosXperfEvent* event);
+    void OnRelease(OhosXperfEvent* event);
 };
 } // namespace HiviewDFX
 } // namespace OHOS

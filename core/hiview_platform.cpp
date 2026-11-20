@@ -568,7 +568,7 @@ void HiviewPlatform::StartLoop()
 void HiviewPlatform::StartPlatformDispatchQueue()
 {
     if (unorderQueue_ == nullptr) {
-        unorderQueue_ = std::make_shared<EventDispatchQueue>("plat_unorder", Event::ManageType::UNORDERED, this);
+        unorderQueue_ = std::make_shared<EventDispatchQueue>("plat_unorder", this);
         unorderQueue_->Start();
     }
 
@@ -602,7 +602,6 @@ void HiviewPlatform::PostUnorderedEvent(std::shared_ptr<Plugin> plugin, std::sha
     }
 
     if (unorderQueue_ != nullptr && event != nullptr) {
-        event->processType_ = Event::ManageType::UNORDERED;
         unorderQueue_->Enqueue(event);
     }
 }

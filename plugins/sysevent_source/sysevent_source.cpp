@@ -78,7 +78,6 @@ void SysEventSource::PauseDispatch(std::weak_ptr<Plugin> plugin)
 
 bool SysEventSource::PublishPipelineEvent(std::shared_ptr<PipelineEvent> event)
 {
-    platformMonitor_.CollectEvent(event);
     platformMonitor_.Breaking();
 
     auto context = GetHiviewContext();

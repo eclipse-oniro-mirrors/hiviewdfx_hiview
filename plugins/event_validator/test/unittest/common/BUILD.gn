@@ -55,6 +55,38 @@ ohos_unittest("DailyControllerTest") {
       "$hiview_plugin/event_validator/test/resource/ohos_test.xml"
 }
 
+ohos_unittest("DailyDbHelperTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  module_out_path = module_output_path
+  configs = [ ":unittest_config" ]
+
+  sources = [ "daily_db_helper_test.cpp" ]
+
+  deps = [
+    "$hiview_base:hiviewbase",
+    "$hiview_core:hiview_core",
+    "$hiview_plugin/event_validator:event_validator",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "relational_store:native_rdb",
+  ]
+
+  resource_config_file =
+      "$hiview_plugin/event_validator/test/resource/ohos_test.xml"
+}
+
 ohos_unittest("EventValidatorTest") {
   branch_protector_ret = "pac_ret"
 

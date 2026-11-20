@@ -67,7 +67,7 @@ int CalcFingerprint::ConvertToString(const unsigned char hash[SHA256_DIGEST_LENG
  */
 int CalcFingerprint::CalcBufferSha(const string& buffer, size_t bufSize, char *hash, size_t len)
 {
-    if (buffer.empty()) {
+    if (buffer.empty() || bufSize > buffer.size()) {
         return EINVAL;
     }
     return CalcBufferSha((unsigned char *)buffer.c_str(), bufSize, hash, len);

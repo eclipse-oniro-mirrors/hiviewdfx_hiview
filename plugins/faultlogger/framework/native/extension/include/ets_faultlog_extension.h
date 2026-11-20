@@ -72,6 +72,7 @@ public:
 private:
     bool CallObjectMethod(const char* name, const char* signature, ...);
     void BindContext(ani_env* env, std::shared_ptr<AAFwk::Want> want);
+    void PostCallMethodTask(const std::string &methodName);
 
     AbilityRuntime::ETSRuntime &etsRuntime_;
     std::unique_ptr<AppExecFwk::ETSNativeReference> etsObj_;

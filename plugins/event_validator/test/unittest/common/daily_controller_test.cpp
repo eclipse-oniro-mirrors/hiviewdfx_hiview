@@ -18,6 +18,7 @@
 
 #include "daily_controller.h"
 #include "file_util.h"
+#include "hiview_db_util.h"
 #include "hiview_platform.h"
 #include "parameter_ex.h"
 
@@ -62,6 +63,69 @@ void EventWithoutThresholdTest(DailyController& controller, std::shared_ptr<SysE
     for (uint32_t i = 0; i < threshold; i++) {
         ASSERT_TRUE(controller.CheckThreshold(event));
     }
+}
+
+struct EventsCountRecord {
+    bool exist = false;
+    int32_t count = 0;
+    int32_t storeCount = 0;
+    int64_t exceedTime = 0;
+};
+
+// callback used to read the db file directly by the test case itself
+class QueryDbOpenCallback : public OHOS::NativeRdb::RdbOpenCallback {
+public:
+    int32_t OnCreate(OHOS::NativeRdb::RdbStore &rdbStore) override
+    {
+        return rdbStore.ExecuteSql("CREATE TABLE IF NOT EXISTS events_count ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, domain TEXT, name TEXT, "
+            "count INTEGER, store_count INTEGER, exceed_time INTEGER)");
+    }
+
+    int32_t OnUpgrade(OHOS::NativeRdb::RdbStore &rdbStore, int32_t oldVersion, int32_t newVersion) override
+    {
+        return OHOS::NativeRdb::E_OK;
+    }
+};
+
+EventsCountRecord QueryEventsCountRecord(const std::string& domain, const std::string& name)
+{
+    const std::string thresholdDir = "sys_event_threshold/";
+    std::string dbPath = FileUtil::IncludeTrailingPathDelimiter(WORK_PATH).append(thresholdDir)
+        .append(HiviewDbUtil::CreateFileNameByDate("events_"));
+    OHOS::NativeRdb::RdbStoreConfig config(dbPath);
+    config.SetSecurityLevel(OHOS::NativeRdb::SecurityLevel::S1);
+    constexpr int32_t dbVersion = 2;
+    QueryDbOpenCallback callback;
+    auto ret = OHOS::NativeRdb::E_OK;
+    EventsCountRecord record;
+    auto dbStore = OHOS::NativeRdb::RdbHelper::GetRdbStore(config, dbVersion, callback, ret);
+    if (ret != OHOS::NativeRdb::E_OK || dbStore == nullptr) {
+        std::cout << "Failed to open db, ret=" << ret << std::endl;
+        return record;
+    }
+
+    OHOS::NativeRdb::AbsRdbPredicates predicates("events_count");
+    predicates.EqualTo("domain", domain);
+    predicates.EqualTo("name", name);
+    auto resultSet = dbStore->Query(predicates, {"count", "store_count", "exceed_time"});
+    if (resultSet == nullptr) {
+        std::cout << "Failed to query events_count" << std::endl;
+        return record;
+    }
+
+    constexpr int32_t countPos = 0;
+    constexpr int32_t storeCountPos = 1;
+    constexpr int32_t exceedTimePos = 2;
+
+    if (resultSet->GoToNextRow() == OHOS::NativeRdb::E_OK) {
+        record.exist = true;
+        resultSet->GetInt(countPos, record.count);
+        resultSet->GetInt(storeCountPos, record.storeCount);
+        resultSet->GetLong(exceedTimePos, record.exceedTime);
+    }
+    resultSet->Close();
+    return record;
 }
 }
 
@@ -281,4 +345,66 @@ HWTEST_F(DailyControllerTest, DailyControllerTest013, TestSize.Level1)
     thresholdOnCommercial = 19; // 19: from event_threshold2.json, 40 - 20 - 1
     threshold = Parameter::IsBetaVersion() ? thresholdOnBeta : thresholdOnCommercial;
     EventThresholdTest(controller, event, threshold);
+}
+
+/**
+ * @tc.name: DailyControllerTest014
+ * @tc.desc: the store_count of the first stored event is equal to count.
+ * @tc.type: FUNC
+ * @tc.require: issueIBH0SD
+ */
+HWTEST_F(DailyControllerTest, DailyControllerTest014, TestSize.Level0)
+{
+    DailyController controller(WORK_PATH, CONFIG_PATH);
+    const std::string domain = "STORE_DOMAIN1";
+    const std::string name = "STORE_NAME1";
+    auto event = CreateEvent(domain, name, SysEventCreator::FAULT);
+
+    // the first event passes the check and is inserted into the db
+    ASSERT_TRUE(controller.CheckThreshold(event));
+
+    EventsCountRecord record = QueryEventsCountRecord(domain, name);
+    ASSERT_TRUE(record.exist);
+    EXPECT_EQ(record.count, 1);
+    EXPECT_EQ(record.storeCount, 1); // not exceeded, store_count equals count
+}
+
+/**
+ * @tc.name: DailyControllerTest015
+ * @tc.desc: after the threshold is exceeded, the store_count in the db is equal
+ *           to the threshold, and the exceed_time is recorded.
+ * @tc.type: FUNC
+ * @tc.require: issueIBH0SD
+ */
+HWTEST_F(DailyControllerTest, DailyControllerTest015, TestSize.Level0)
+{
+    DailyController controller(WORK_PATH, CONFIG_PATH);
+    constexpr int32_t thresholdOnBeta = 100;
+    constexpr int32_t thresholdOnCommercial = 20;
+    int32_t threshold = Parameter::IsBetaVersion() ? thresholdOnBeta : thresholdOnCommercial;
+    const std::string domain = "STORE_DOMAIN2";
+    const std::string name = "STORE_NAME2";
+    auto event = CreateEvent(domain, name, SysEventCreator::FAULT);
+
+    // exceed the threshold, the exceeded events are counted but not stored
+    for (int32_t i = 0; i < threshold + 2; i++) {
+        controller.CheckThreshold(event);
+    }
+
+    // trigger the cache flush to db by exceeding the max size of the cache
+    constexpr int32_t countOfBulkEvents = 1001;
+    for (int32_t i = 0; i < countOfBulkEvents; i++) {
+        auto bulkEvent = CreateEvent("BULK_DOMAIN", "BULK_NAME_" + std::to_string(i), SysEventCreator::FAULT);
+        controller.CheckThreshold(bulkEvent);
+    }
+
+    // the next check flushes the cache to the db
+    auto flushEvent = CreateEvent("FLUSH_DOMAIN", "FLUSH_NAME", SysEventCreator::FAULT);
+    controller.CheckThreshold(flushEvent);
+
+    EventsCountRecord record = QueryEventsCountRecord(domain, name);
+    ASSERT_TRUE(record.exist);
+    EXPECT_EQ(record.count, threshold + 2); // count keeps increasing after exceeded
+    EXPECT_EQ(record.storeCount, threshold); // exceeded, store_count equals the threshold
+    EXPECT_GT(record.exceedTime, 0); // the time of exceeding the threshold is recorded
 }

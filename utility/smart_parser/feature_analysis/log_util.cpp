@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "file_util.h"
@@ -39,6 +40,7 @@ DEFINE_LOG_TAG("LogUtil");
 namespace {
     const int BUF_LEN_2048 = 2048;
     const int TOTAL_SKIP_NUM = 4;
+    constexpr size_t MAX_FILE_SIZE = 10 * 1024 * 1024; // 10M: max size of log file to read
 }
 
 /* GetTrace function:
@@ -99,6 +101,13 @@ bool LogUtil::ReadFileBuff(const string& file, stringstream& buffer)
         return false;
     }
 
+    struct stat st = {};
+    if (fstat(fd, &st) != 0 || static_cast<uint64_t>(st.st_size) > MAX_FILE_SIZE) {
+        HIVIEW_LOGE("the system file (%{public}s) is too large or get size failed.", file.c_str());
+        fdsan_close_with_tag(fd, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN));
+        return false;
+    }
+
     std::string content;
     if (!FileUtil::LoadStringFromFd(fd, content)) {
         HIVIEW_LOGE("read file: %s failed, fd is %d\n", file.c_str(), fd);
@@ -122,7 +131,7 @@ int LogUtil::GetFileFd(const string& file)
         HIVIEW_LOGE("the system file (%{public}s) is not found.", realFileName.c_str());
         return -1;
     }
-    int fd = open(realFileName.c_str(), O_RDONLY);
+    int fd = open(realFileName.c_str(), O_RDONLY | O_NOFOLLOW);
     if (fd >= 0) {
         fdsan_exchange_owner_tag(fd, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, FDSAN_DOMAIN));
     }

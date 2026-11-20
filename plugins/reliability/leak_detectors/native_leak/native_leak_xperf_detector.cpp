@@ -45,7 +45,7 @@ void NativeLeakXperfDetector::DetectXperfMemoryPeak(shared_ptr<Event> event)
             DfrUtil::GetInstance().TimeStampToStr(lastReviceXperfTime_).c_str());
         return;
     }
-    HIVIEW_LOGI("processMemory xperf PROCESS_MEMORY_REPORT event received.");
+    HIVIEW_LOGI("PROCESS_MEMORY_REPORT event received.");
     auto sysEvent = Event::DownCastTo<SysEvent>(event);
     string memInfoStr = sysEvent->GetEventValue("PROCESS_MEMORY_INFO");
     if (memInfoStr.empty()) {
@@ -205,16 +205,15 @@ void NativeLeakXperfDetector::SendSummaryToXperf(const string &appinfo, int appC
         }
         bool sendResult = hiviewInstance->PostSyncEventToTarget("XperfPlugin", event);
         if (!sendResult) {
-            HIVIEW_LOGE("failed, appCount=%{public}d", appCount);
+            HIVIEW_LOGE("PostSyncEventToTarget failed, appCount=%{public}d", appCount);
         } else {
-            HIVIEW_LOGI("success, appCount=%{public}d", appCount);
+            HIVIEW_LOGI("PostSyncEventToTarget success, appCount=%{public}d", appCount);
         }
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_XperfSendSummary")});
 }
 
 void NativeLeakXperfDetector::XperfReport()
 {
-    HIVIEW_LOGI("=== start Xperf Report ===");
     string appinfo;
     int appCount = 0;
     // System service info is only reported every 4 hours, judge by real time
@@ -227,14 +226,13 @@ void NativeLeakXperfDetector::XperfReport()
 
     CollectAllProcessInfo(includeService, appinfo, appCount);
 
-    HIVIEW_LOGI("collected %{public}d processes", appCount);
+    HIVIEW_LOGI("XperfReport finished, includeService=%{public}d, appCount=%{public}d",
+        static_cast<int>(includeService), appCount);
     if (appCount == 0) {
-        HIVIEW_LOGI("=== end, no process ===");
         return;
     }
 
     SendSummaryToXperf(appinfo, appCount);
-    HIVIEW_LOGI("=== end ===");
 }
 
 void NativeLeakXperfDetector::CollectAllProcessInfo(bool includeService, string &appinfo, int &appCount)
@@ -242,7 +240,13 @@ void NativeLeakXperfDetector::CollectAllProcessInfo(bool includeService, string 
     constexpr int systemServiceReportThreshold = 10 * KB_PER_MB; // 10MB in KB
     lock_guard<ffrt::mutex> lock(NativeLeakDetector::GetInstance().GetAllListMtx());
     stringstream appInfoStream;
+    int totalScanned = 0;
+    int skipInvalid = 0;
+    int skipAppNotUpdated = 0;
+    int skipServiceNotInCycle = 0;
+    int skipServiceLowMem = 0;
     for (auto &elem : NativeLeakDetector::GetInstance().allList_) {
+        totalScanned++;
         auto nlInfo = static_pointer_cast<NativeLeakInfo>(elem.second);
 
         // Data validation: skip if processName is empty or pid <= 0
@@ -251,6 +255,7 @@ void NativeLeakXperfDetector::CollectAllProcessInfo(bool includeService, string 
         if (processName.empty() || pid <= 0) {
             HIVIEW_LOGW("invalid process info, skip, pid=%{public}d, name=%{public}s",
                 pid, processName.c_str());
+            skipInvalid++;
             continue;
         }
 
@@ -258,18 +263,19 @@ void NativeLeakXperfDetector::CollectAllProcessInfo(bool includeService, string 
         SampleRecord sr = nlInfo->GetLastSampleRecord();
         // App process: only report this round updated samples
         if (isApp && !nlInfo->IsSampleUpdated()) {
-            HIVIEW_LOGW("app process %{public}s, not updated this round, skip", processName.c_str());
+            HIVIEW_LOGD("app process %{public}s, not updated this round, skip", processName.c_str());
+            skipAppNotUpdated++;
             continue;
         }
         // System service process: only report every 4 hours, and only when total memory > 10MB
         if (!isApp && !includeService) {
-            HIVIEW_LOGI("system service %{public}s, not in service report cycle, skip",
-                processName.c_str());
+            skipServiceNotInCycle++;
             continue;
         }
         if (!isApp && sr.totalMem <= systemServiceReportThreshold) {
-            HIVIEW_LOGI("system service %{public}s totalMem=%{public}d, skip",
+            HIVIEW_LOGD("system service %{public}s totalMem=%{public}d, skip",
                 processName.c_str(), sr.totalMem);
+            skipServiceLowMem++;
             continue;
         }
 
@@ -280,6 +286,10 @@ void NativeLeakXperfDetector::CollectAllProcessInfo(bool includeService, string 
         appCount++;
     }
     appinfo = appInfoStream.str();
+    HIVIEW_LOGI("CollectAllProcessInfo scanned=%{public}d, reported=%{public}d, "
+        "skipInvalid=%{public}d, skipAppNotUpdated=%{public}d, "
+        "skipServiceNotInCycle=%{public}d, skipServiceLowMem=%{public}d",
+        totalScanned, appCount, skipInvalid, skipAppNotUpdated, skipServiceNotInCycle, skipServiceLowMem);
 }
 } // namespace HiviewDFX
 } // namespace OHOS

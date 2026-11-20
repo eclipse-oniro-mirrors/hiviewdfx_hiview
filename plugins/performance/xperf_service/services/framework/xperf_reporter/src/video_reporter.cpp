@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "video_reporter.h"
-#include "event_reporter.h"
+#include "event_bridge.h"
 #include "xperf_service_log.h"
 
 namespace OHOS {
@@ -33,7 +33,7 @@ void VideoReporter::ReportVideoJankFrame(const VideoJankReport& record)
         .append("FAULT_CODE:").append(std::to_string(record.faultCode)).append("\n")
         .append("DETAILS:").append(record.details);
 
-    EventReporter::GetInstance().ReportEvent("VIDEO_JANK_INNER", data);
+    EventBridge::GetInstance().OnEvent("VIDEO_JANK_INNER", data);
 }
 
 } // namespace HiviewDFX

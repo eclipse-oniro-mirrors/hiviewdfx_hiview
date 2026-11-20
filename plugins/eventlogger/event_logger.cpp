@@ -1487,12 +1487,16 @@ void EventLogger::GetFailedDumpStackMsg(std::string& stack, std::shared_ptr<SysE
         std::string packageName = event->GetEventValue("PACKAGE_NAME").empty() ?
             event->GetEventValue("PROCESS_NAME") : event->GetEventValue("PACKAGE_NAME");
 
+        HIVIEW_LOGI("GetFailedDumpStackMsg: query start, eventName:%{public}s, pid:%{public}ld, "
+            "happenTime=%{public}" PRIu64, event->eventName_.c_str(), pid, event->happenTime_);
         std::vector<WatchPoint> list;
         FreezeResult freezeResult(0, "FRAMEWORK", "PROCESS_KILL");
         freezeResult.SetSamePackage("true");
         DBHelper::WatchParams params = {pid, 0, event->happenTime_, packageName, event->eventName_};
         dbHelper_->SelectEventFromDB(event->happenTime_ - QUERY_PROCESS_KILL_INTERVAL, event->happenTime_, list,
             params, freezeResult);
+        HIVIEW_LOGI("GetFailedDumpStackMsg: query end, result size:%{public}zu", list.size());
+
         std::string appendStack = "";
         std::for_each(list.begin(), list.end(), [&appendStack] (const WatchPoint& watchPoint) {
             appendStack += "\n" + watchPoint.GetMsg();

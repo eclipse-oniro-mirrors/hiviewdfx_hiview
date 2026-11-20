@@ -33,6 +33,19 @@ XperfServiceServer::XperfServiceServer() : SystemAbility(XPERF_SERVICE_SA_ID, tr
 
 XperfServiceServer::~XperfServiceServer()
 {
+    if (xperfAudioListener == nullptr) {
+        return;
+    }
+    AudioStandard::AudioRoutingClientManager::GetInstance()
+        .UnsetPreferredOutputDeviceChangeCallback(xperfAudioListener);
+    auto audioSystemManager = AudioStandard::AudioSystemManager::GetInstance();
+    if (audioSystemManager == nullptr) {
+        LOGE("audioSystemManager is null");
+        xperfAudioListener = nullptr;
+        return;
+    }
+    audioSystemManager->UnregisterFocusInfoChangeCallback(xperfAudioListener);
+    xperfAudioListener = nullptr;
 }
 
 void XperfServiceServer::Start()
@@ -41,12 +54,13 @@ void XperfServiceServer::Start()
         LOGE("Register SystemAbility for XperfService FAILED.");
         return;
     }
+    RegisterAudioListener();
 }
 
 ErrCode XperfServiceServer::NotifyToXperf(int32_t domainId, int32_t eventId, const std::string& msg)
 {
     LOGD("XperfServiceServer_NotifyToXperf domainId:%{public}d eventId:%{public}d msg:%{public}s", domainId, eventId,
-         msg.c_str());
+        msg.c_str());
     XperfCollieTimer timer("XPerfIPC_NotifyToXperf", XPERF_IPC_XCOLLIE_TIMEOUT);
     XperfService::GetInstance().DispatchMsg(domainId, eventId, msg);
     return ERR_OK;
@@ -59,6 +73,30 @@ int32_t XperfServiceServer::RegisterEventListener(const std::string& caller, con
     XperfCollieTimer timer("XPerfIPC_RegisterEventListener", XPERF_IPC_XCOLLIE_TIMEOUT);
     int32_t res = XperfRegisterManager::GetInstance().RegisterEventListener(caller, cb, eventCodes);
     return res;
+}
+
+void XperfServiceServer::RegisterAudioListener()
+{
+    if (xperfAudioListener == nullptr) {
+        xperfAudioListener = std::make_shared<XperfAudioListener>();
+    }
+    AudioStandard::AudioRendererInfo rendererInfo;
+    rendererInfo.contentType = AudioStandard::ContentType::CONTENT_TYPE_MUSIC;
+    rendererInfo.streamUsage = AudioStandard::StreamUsage::STREAM_USAGE_MUSIC;
+    auto odcRet = AudioStandard::AudioRoutingClientManager::GetInstance().SetPreferredOutputDeviceChangeCallback(
+        rendererInfo, xperfAudioListener);
+    if (odcRet != 0) {
+        LOGE("SetPreferredOutputDeviceChangeCallback failed");
+    }
+    auto audioSystemManager = AudioStandard::AudioSystemManager::GetInstance();
+    if (audioSystemManager == nullptr) {
+        LOGE("audioSystemManager is null");
+        return;
+    }
+    auto ficRet = audioSystemManager->RegisterFocusInfoChangeCallback(xperfAudioListener);
+    if (ficRet != 0) {
+        LOGE("RegisterFocusInfoChangeCallback failed");
+    }
 }
 } // namespace HiviewDFX
 } // namespace OHOS

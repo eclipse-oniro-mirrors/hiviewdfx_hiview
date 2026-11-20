@@ -168,7 +168,7 @@ LogStoreEx::FileHandle LogStoreEx::CreateLogFile(const std::string& name)
     }
 
     auto path = path_ + "/" + name;
-    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, DEFAULT_LOG_FILE_MODE);
+    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC | O_NOFOLLOW, DEFAULT_LOG_FILE_MODE);
     if (fd < 0) {
         HIVIEW_LOGI("Fail to create %s.", name.c_str());
     }

@@ -130,6 +130,18 @@ HWTEST_F(FreezeManagerTest, GetAppFreezeFile_001, TestSize.Level3)
 }
 
 /**
+ * @tc.name: GetAppFreezeFile_002
+ * @tc.desc: verify GetAppFreezeFile returns empty when file read fails
+ */
+HWTEST_F(FreezeManagerTest, GetAppFreezeFile_002, TestSize.Level3)
+{
+    // accepted read path prefix but file does not exist -> LoadStringFromFile fails
+    std::string nonExistFile = "/data/log/hiview_nonexistent_read_test.log";
+    auto ret = freezeManager->GetAppFreezeFile(nonExistFile);
+    EXPECT_TRUE(ret.empty());
+}
+
+/**
  * @tc.name: SaveFreezeExtInfoToFile_001
  * @tc.desc: FreezeManager
  */
@@ -141,6 +153,27 @@ HWTEST_F(FreezeManagerTest, SaveFreezeExtInfoToFile_001, TestSize.Level3)
     std::string cpuFile = "FreezeManagerTest";
     auto ret = freezeManager->SaveFreezeExtInfoToFile(uid, bundleName,
         stackFile, cpuFile);
+    EXPECT_TRUE(ret.empty());
+}
+
+/**
+ * @tc.name: SaveFreezeExtInfoToFile_002
+ * @tc.desc: verify SaveFreezeExtInfoToFile rejects bundleName with path traversal
+ */
+HWTEST_F(FreezeManagerTest, SaveFreezeExtInfoToFile_002, TestSize.Level3)
+{
+    long uid = getuid();
+    // bundleName starting with '/' should be rejected
+    std::string ret = freezeManager->SaveFreezeExtInfoToFile(uid, "/evil", "", "");
+    EXPECT_TRUE(ret.empty());
+    // bundleName that is an absolute path should be rejected
+    ret = freezeManager->SaveFreezeExtInfoToFile(uid, "/../etc", "", "");
+    EXPECT_TRUE(ret.empty());
+    // bundleName containing path traversal should still be rejected
+    ret = freezeManager->SaveFreezeExtInfoToFile(uid, "../etc", "", "");
+    EXPECT_TRUE(ret.empty());
+    // bundleName with backslash should still be rejected
+    ret = freezeManager->SaveFreezeExtInfoToFile(uid, "test\\path", "", "");
     EXPECT_TRUE(ret.empty());
 }
 
@@ -316,7 +349,7 @@ HWTEST_F(FreezeManagerTest, ContainPathTraversal_001, TestSize.Level3)
 {
     EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("../etc/passwd"));
     EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("/data/log/../etc"));
-    EXPECT_TRUE(EventFieldValidator::ContainPathTraversal("test\\path"));
+    EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("test\\path"));
     EXPECT_TRUE(EventFieldValidator::ContainPathTraversal(std::string("test\0path", 9)));
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("/data/log/eventlog"));
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("normal_path"));

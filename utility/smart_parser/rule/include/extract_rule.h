@@ -48,7 +48,6 @@ private:
 
 private:
     std::map<std::string, FeatureSet> featureSets_;
-    std::map<std::string, std::string> lockInfoMap_;
     std::vector<std::string> featureIds_;
     std::map<std::string, std::vector<std::string>> segStatusCfgMap_; // key: name  value: [matchKey, desc]
 };

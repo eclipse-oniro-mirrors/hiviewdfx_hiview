@@ -851,7 +851,7 @@ bool DfrUtil::CreateMetaInfoFile(const MetaInfoParams &params)
     std::string metaFileName = params.eventName + "-metainfo-" + params.processName + "-" +
                               to_string(params.pid) + "-" + params.timeStamp + ".txt";
     std::string filePath = params.basePath + "/" + metaFileName;
-    std::string realPath = RealPath(filePath);
+    std::string realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         HIVIEW_LOGE("Failed to get real path: %{public}s", filePath.c_str());
         return false;

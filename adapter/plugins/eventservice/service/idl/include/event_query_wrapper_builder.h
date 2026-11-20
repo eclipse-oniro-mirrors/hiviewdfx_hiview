@@ -62,8 +62,6 @@ public:
     void SetNext(std::shared_ptr<BaseEventQueryWrapper> next);
     QueryArgument& GetQueryArgument();
     std::vector<SysEventQueryRule>& GetSysEventQueryRules();
-    int64_t GetMaxSequence() const;
-    int64_t GetEventTotalCount() const;
     void TransportSysEvent(OHOS::HiviewDFX::EventStore::ResultSet& result,
         const OHOS::sptr<OHOS::HiviewDFX::IQueryBaseCallback>& callback, std::pair<int64_t, int32_t>& details);
     virtual void SetMaxSequence(int64_t maxSeq) = 0;

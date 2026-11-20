@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-constexpr int64_t SECURE_ENABALED_VAL = 1;
+constexpr int64_t SECURE_ENABLED_VAL = 1;
 
 std::unordered_map<std::string, std::list<std::string>> COMPLIANT_EVENT_CONFIGS {
     {"AAFWK", {"ABILITY_ONACTIVE", "ABILITY_ONBACKGROUND", "ABILITY_ONFOREGROUND",
@@ -41,8 +41,8 @@ std::unordered_map<std::string, std::list<std::string>> COMPLIANT_EVENT_CONFIGS 
 
 bool CompliantEventChecker::IsCompliantEvent(const std::string& domain, const std::string& eventName)
 {
-    static bool isSecureEnabeled = (Parameter::GetInteger("const.secure", SECURE_ENABALED_VAL) == SECURE_ENABALED_VAL);
-    if (!isSecureEnabeled) {
+    static bool isSecureEnabled = (Parameter::GetInteger("const.secure", SECURE_ENABLED_VAL) == SECURE_ENABLED_VAL);
+    if (!isSecureEnabled) {
         return true;
     }
     auto iter = COMPLIANT_EVENT_CONFIGS.find(domain);

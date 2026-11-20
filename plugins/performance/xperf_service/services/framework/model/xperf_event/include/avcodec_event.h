@@ -36,6 +36,7 @@ struct AvcodecJankEvent : public OhosXperfEvent {
 // #REPORT_INTERVAL:100";
 struct AvcodecFrame : public OhosXperfEvent {
     int32_t pid{0};
+    std::string bundleName;
     int32_t fps{0};
     int32_t reportInterval{0};
     int64_t uniqueId{0};

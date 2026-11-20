@@ -54,8 +54,7 @@ std::shared_ptr<DynamicLibraryHandle> DynamicLibraryManager::OpenDynamicLibrary(
 {
     std::unique_lock lock(mtx_);
     auto handle = std::make_shared<DynamicLibraryHandle>(libName.c_str());
-    if (handle == nullptr) {
-        HIVIEW_LOGE("open %{public}s failed. errno(%d)", libName.c_str(), errno);
+    if (!handle->IsOpen()) {
         return nullptr;
     }
     libMap_[libName] = handle;

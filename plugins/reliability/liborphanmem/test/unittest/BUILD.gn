@@ -45,6 +45,7 @@ ohos_unittest("LibOrphanMemTest") {
     "$hiview_plugin/reliability/liborphanmem/heap_scanner.cpp",
     "$hiview_plugin/reliability/liborphanmem/scoped_signal_handler.cpp",
     "$hiview_plugin/reliability/liborphanmem/performance_tracer.cpp",
+    "$hiview_plugin/reliability/liborphanmem/orphanmem.cpp",
     "$hiview_plugin/reliability/liborphanmem/orphanmem_detector.cpp",
     "$hiview_plugin/reliability/liborphanmem/collect_thread.cpp",
     "$hiview_plugin/reliability/liborphanmem/thread_inspector.cpp",

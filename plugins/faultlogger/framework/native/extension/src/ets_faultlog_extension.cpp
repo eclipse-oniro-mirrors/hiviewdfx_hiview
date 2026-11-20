@@ -119,13 +119,7 @@ sptr<IRemoteObject> EtsFaultLogExtension::OnConnect(const AAFwk::Want &want)
         return remoteObject->AsObject();
     }
 
-    auto task = [this]() {
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "EtsFaultLogExtension::onConnect");
-        if (!CallObjectMethod("onConnect", ":")) {
-            return;
-        }
-    };
-    handler_->PostTask(task);
+    PostCallMethodTask("onConnect");
     return remoteObject->AsObject();
 }
 
@@ -137,13 +131,7 @@ void EtsFaultLogExtension::OnDisconnect(const AAFwk::Want &want)
     if (handler_ == nullptr) {
         return;
     }
-    auto task = [this]() {
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "EtsFaultLogExtension::onDisconnect");
-        if (!CallObjectMethod("onDisconnect", ":")) {
-            return;
-        }
-    };
-    handler_->PostTask(task);
+    PostCallMethodTask("onDisconnect");
 }
 
 void EtsFaultLogExtension::OnFaultReportReady()
@@ -152,9 +140,19 @@ void EtsFaultLogExtension::OnFaultReportReady()
         return;
     }
     HIVIEW_LOGD("begin OnFaultReportReady.");
-    auto task = [this]() {
-        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "EtsFaultLogExtension::onFaultReportReady");
-        if (!CallObjectMethod("onFaultReportReady", ":")) {
+    PostCallMethodTask("onFaultReportReady");
+}
+
+void EtsFaultLogExtension::PostCallMethodTask(const std::string &methodName)
+{
+    std::weak_ptr<EtsFaultLogExtension> weakThis = std::static_pointer_cast<EtsFaultLogExtension>(shared_from_this());
+    auto task = [weakThis, methodName]() {
+        auto self = weakThis.lock();
+        if (self == nullptr) {
+            return;
+        }
+        HitraceScoped traceScoped(HITRACE_TAG_OHOS, "EtsFaultLogExtension::" + methodName);
+        if (!self->CallObjectMethod(methodName.c_str(), ":")) {
             return;
         }
     };

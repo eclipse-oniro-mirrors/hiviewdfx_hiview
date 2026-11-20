@@ -45,7 +45,7 @@ private:
     int32_t GetCount(const CacheKey& cachekey);
     void UpdateCacheAndDb(const CacheKey& cachekey, int32_t threshold, int32_t count);
     void UpdateCache(const CacheKey& cachekey, int32_t threshold, int32_t count, int64_t exceedTime);
-    void UpdateDb(const CacheKey& cachekey, int32_t count, int64_t exceedTime);
+    void UpdateDb(const CacheKey& cachekey, int32_t threshold, int32_t count, int64_t exceedTime);
 
 private:
     std::unique_ptr<DailyConfig> config_;

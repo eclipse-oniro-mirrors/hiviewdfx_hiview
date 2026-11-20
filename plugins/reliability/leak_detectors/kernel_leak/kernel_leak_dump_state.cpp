@@ -28,6 +28,7 @@
 #include "old_log_cleaner.h"
 #include "i_telemetry.h"
 #include "dfr_util.h"
+#include "file_util.h"
 
 using namespace std;
 
@@ -124,7 +125,7 @@ void KernelLeakDumpState::GetMemoryLeakLog(shared_ptr<KernelLeakInfo> &kernelInf
     HitraceScoped hitrace(HITRACE_TAG_APP, traceStr);
     ifstream fin;
     const string &filePath = kernelInfo->GetLogPath();
-    const string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath, path: %{public}s", filePath.c_str());
         return;
@@ -177,7 +178,7 @@ void KernelLeakDumpState::DumpSmapsInfo(shared_ptr<KernelLeakInfo> &kernelInfo, 
         return;
     }
     const string &filePath = kernelInfo->GetProcessSmapsPath();
-    const string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath, path: %{public}s", filePath.c_str());
         return;
@@ -253,7 +254,7 @@ void KernelLeakDumpState::DumpProcInfo(shared_ptr<KernelLeakInfo> &kernelInfo, o
 void KernelLeakDumpState::DumpGpuRsInfo(ofstream &fout, shared_ptr<KernelLeakInfo> &kernelInfo) const
 {
     const string &filePath = kernelInfo->GetRsMemPathFromEvent();
-    const string &srcRealPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &srcRealPath = FileUtil::RealPath(filePath);
     if (srcRealPath.empty()) {
         HIVIEW_LOGE("failed realpath: %{public}s", filePath.c_str());
         return;
@@ -308,7 +309,7 @@ void KernelLeakDumpState::DumpKernelMemInfo(shared_ptr<FaultInfoBase> faultInfo)
     string traceStr(__func__);
     traceStr.append(":").append(filePath);
     HitraceScoped hitrace(HITRACE_TAG_APP, traceStr);
-    const string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath, path: %{public}s", filePath.c_str());
         return;
@@ -331,7 +332,7 @@ void KernelLeakDumpState::DumpVmaLeak(shared_ptr<KernelLeakInfo> &kernelInfo)
         return;
     }
     const string &filePath = kernelInfo->GetLogPath();
-    const string &realPath = DfrUtil::GetInstance().RealPath(filePath);
+    const string &realPath = FileUtil::RealPath(filePath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath, path: %{public}s", filePath.c_str());
         return;
@@ -418,7 +419,7 @@ void KernelLeakDumpState::WriteThreadStackLeakLog(const std::string &dumpResult,
     shared_ptr<KernelLeakInfo> &kernelInfo)
 {
     std::string logPath = kernelInfo->GetLogPath();
-    std::string realPath = DfrUtil::GetInstance().RealPath(logPath);
+    std::string realPath = FileUtil::RealPath(logPath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed to get real path: %{public}s", logPath.c_str());
         return;
@@ -649,7 +650,7 @@ ErrCode KernelLeakDumpState::ChangeNextState(shared_ptr<FaultInfoBase> &faultInf
 bool KernelLeakDumpState::WriteLdkBuddyTracker(int value)
 {
     string trackerPath = DfrUtil::GetInstance().GetProcPath("LDK_BUDDY", "ldk_buddy_tracker");
-    string realPath = DfrUtil::GetInstance().RealPath(trackerPath);
+    string realPath = FileUtil::RealPath(trackerPath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", trackerPath.c_str());
         return false;
@@ -674,7 +675,7 @@ bool KernelLeakDumpState::WriteLdkBuddyTracker(int value)
 string KernelLeakDumpState::ReadLdkBuddyTrackerContent()
 {
     string trackerPath = DfrUtil::GetInstance().GetProcPath("LDK_BUDDY", "ldk_buddy_tracker");
-    const string &realPath = DfrUtil::GetInstance().RealPath(trackerPath.c_str());
+    const string &realPath = FileUtil::RealPath(trackerPath.c_str());
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath path: %{public}s", trackerPath.c_str());
         return "";
@@ -698,7 +699,7 @@ bool KernelLeakDumpState::SaveLdkBuddyTrackerLog(const string &trackerContent, s
         return false;
     }
     const string &logPath = kernelInfo->GetLogPath();
-    const string &realPath = DfrUtil::GetInstance().RealPath(logPath);
+    const string &realPath = FileUtil::RealPath(logPath);
     if (realPath.empty()) {
         HIVIEW_LOGE("failed realpath, path: %{public}s", logPath.c_str());
         return false;

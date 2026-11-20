@@ -25,6 +25,7 @@
 #include "thread_leak_detector.h"
 #include "thread_leak_config.h"
 #include "dfr_util.h"
+#include "file_util.h"
 #include "hiview_logger.h"
 #include "thread_leak_info.h"
 #include "waiting_kill_list.h"
@@ -87,7 +88,7 @@ ErrCode ThreadLeakDetector::MainProcess()
 {
     threadDetectorMtx_.lock();
 
-    HIVIEW_LOGI("=== sample thread status ===");
+    HIVIEW_LOGI("sample thread status start, leakingPids=%{public}zu", leakingPidsInfo_.size());
     ProcessAllPids();
 
     // state change: Collect->Report->Control
@@ -243,7 +244,7 @@ void ThreadLeakDetector::SetAppResourceLimit(const AppResourceLimtEvent &appReso
 
 void ThreadLeakDetector::WriteToProcFile(const string &path, int64_t value)
 {
-    const string &realPath = DfrUtil::GetInstance().RealPath(path);
+    const string &realPath = FileUtil::RealPath(path);
     ofstream file(realPath);
     if (!file.is_open()) {
         HIVIEW_LOGE("Fail to open thread_threshold.");
