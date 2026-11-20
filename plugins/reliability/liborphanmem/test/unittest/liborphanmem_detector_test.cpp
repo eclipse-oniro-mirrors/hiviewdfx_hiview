@@ -15,14 +15,19 @@
 
 #include <algorithm>
 #include <atomic>
+#include <climits>
 #include <csignal>
+#include <cstring>
+#include <memory>
 #include <gtest/gtest.h>
 #include <sys/mman.h>
 #include <securec.h>
+#include <thread>
 #include <unistd.h>
 
 #include "heap_scanner.h"
 #include "map_allocator.h"
+#include "orphanmem.h"
 #include "orphanmem_detector.h"
 #include "process_mappings.h"
 #include "scoped_signal_handler.h"
@@ -2280,4 +2285,940 @@ HWTEST_F(OrphanMemDetectorCollectTest, Detect_AfterPreviousDetections, TestSize.
     EXPECT_GE(leakCnt, 0u);
     EXPECT_GE(leakBytes, 0u);
     EXPECT_GE(collectDetector->Allocations(), 0u);
+}
+
+// ===== Public API (orphanmem.h / orphanmem.cpp) =====
+
+namespace {
+bool IsSignalBlockedInCurrentThread(int signal)
+{
+    sigset_t currentMask;
+    sigemptyset(&currentMask);
+    if (sigprocmask(SIG_SETMASK, nullptr, &currentMask) != 0) {
+        return false;
+    }
+    return sigismember(&currentMask, signal) == 1;
+}
+}  // namespace
+
+class OrphanMemPublicEnumTest : public ::testing::Test {};
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_ErrorCodeKnownValuesAreStable
+ * @tc.number: OrphanMemApi_Enum_Test_001
+ * @tc.desc  : Test that published ErrorCode enum values keep their wire-compatible values.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, ErrorCode_KnownValuesAreStable, TestSize.Level1)
+{
+    EXPECT_EQ(EC_SUCCESS, 0);
+    EXPECT_EQ(EC_FAILED, -1);
+    EXPECT_EQ(EC_LD_PRELOAD, -2);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_ErrorCodeValuesAreDistinct
+ * @tc.number: OrphanMemApi_Enum_Test_002
+ * @tc.desc  : Test that all documented ErrorCode values differ from each other.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, ErrorCode_ValuesAreDistinct, TestSize.Level1)
+{
+    EXPECT_NE(EC_SUCCESS, EC_FAILED);
+    EXPECT_NE(EC_SUCCESS, EC_LD_PRELOAD);
+    EXPECT_NE(EC_FAILED, EC_LD_PRELOAD);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_ErrorCodeCanConvertToInt64
+ * @tc.number: OrphanMemApi_Enum_Test_003
+ * @tc.desc  : Test that ErrorCode values convert losslessly into the int64_t return channel of GetMemLeak.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, ErrorCode_CanConvertToInt64, TestSize.Level1)
+{
+    int64_t successCode = static_cast<int64_t>(EC_SUCCESS);
+    int64_t failedCode = static_cast<int64_t>(EC_FAILED);
+    int64_t ldPreloadCode = static_cast<int64_t>(EC_LD_PRELOAD);
+    EXPECT_EQ(successCode, 0);
+    EXPECT_EQ(failedCode, -1);
+    EXPECT_EQ(ldPreloadCode, -2);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_MemLeakFormatKnownValuesAreStable
+ * @tc.number: OrphanMemApi_Enum_Test_004
+ * @tc.desc  : Test that MemLeakFormat enum values keep their externally documented values.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, MemLeakFormat_KnownValuesAreStable, TestSize.Level1)
+{
+    EXPECT_EQ(TYPE_TXT, 0);
+    EXPECT_EQ(TYPE_VECTOR, 1);
+    EXPECT_EQ(TYPE_SNAPSHOT, 2);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_MemLeakFormatValuesAreDistinct
+ * @tc.number: OrphanMemApi_Enum_Test_005
+ * @tc.desc  : Test that each MemLeakFormat enumerator selects a unique output format.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, MemLeakFormat_ValuesAreDistinct, TestSize.Level1)
+{
+    EXPECT_NE(TYPE_TXT, TYPE_VECTOR);
+    EXPECT_NE(TYPE_TXT, TYPE_SNAPSHOT);
+    EXPECT_NE(TYPE_VECTOR, TYPE_SNAPSHOT);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_MemLeakFormatCoversTxtVectorSnapshot
+ * @tc.number: OrphanMemApi_Enum_Test_006
+ * @tc.desc  : Test that iterating the MemLeakFormat range yields exactly the three published formats.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, MemLeakFormat_CoversTxtVectorSnapshot, TestSize.Level1)
+{
+    int seenFormats[3] = {0, 0, 0};
+    int formatValues[3] = {TYPE_TXT, TYPE_VECTOR, TYPE_SNAPSHOT};
+    for (int idx = 0; idx < 3; idx++) {
+        int value = formatValues[idx];
+        ASSERT_GE(value, 0);
+        ASSERT_LT(value, 3);
+        seenFormats[value] = 1;
+    }
+    EXPECT_EQ(seenFormats[0], 1);
+    EXPECT_EQ(seenFormats[1], 1);
+    EXPECT_EQ(seenFormats[2], 1);
+}
+
+class OrphanMemErrorMessageTest : public ::testing::Test {};
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsSuccessForSuccessCode
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_001
+ * @tc.desc  : Test that OHOS_GetErrorMessage maps EC_SUCCESS to the success text.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsSuccess_ForSuccessCode, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(EC_SUCCESS);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "Success");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsLdPreloadMessageForLdPreloadCode
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_002
+ * @tc.desc  : Test that OHOS_GetErrorMessage maps EC_LD_PRELOAD to the LD_PRELOAD diagnostic text.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsLdPreloadMessage_ForLdPreloadCode, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(EC_LD_PRELOAD);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "LD_PRELOAD is set");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsOperationFailedForFailedCode
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_003
+ * @tc.desc  : Test that OHOS_GetErrorMessage maps EC_FAILED to the generic failure text.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsOperationFailed_ForFailedCode, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(EC_FAILED);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "Operation failed");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsOperationFailedForUnknownPositiveCode
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_004
+ * @tc.desc  : Test that unknown positive codes fall back to the generic failure text.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsOperationFailed_ForUnknownPositiveCode, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(100);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "Operation failed");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsOperationFailedForUnknownNegativeCode
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_005
+ * @tc.desc  : Test that unknown negative codes fall back to the generic failure text.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsOperationFailed_ForUnknownNegativeCode, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(-100);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "Operation failed");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsOperationFailedForInt64Max
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_006
+ * @tc.desc  : Test that INT64_MAX is not accidentally aliased to a known ErrorCode.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsOperationFailed_ForInt64Max, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(INT64_MAX);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "Operation failed");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsOperationFailedForInt64Min
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_007
+ * @tc.desc  : Test that INT64_MIN is not accidentally aliased to a known ErrorCode.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsOperationFailed_ForInt64Min, TestSize.Level1)
+{
+    const char *message = OHOS_GetErrorMessage(INT64_MIN);
+    ASSERT_NE(message, nullptr);
+    EXPECT_STREQ(message, "Operation failed");
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsStableMessageForRepeatedCalls
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_008
+ * @tc.desc  : Test that repeated queries for the same code return consistent text.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsStableMessage_ForRepeatedCalls, TestSize.Level1)
+{
+    const char *first = OHOS_GetErrorMessage(EC_FAILED);
+    const char *second = OHOS_GetErrorMessage(EC_FAILED);
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(second, nullptr);
+    EXPECT_STREQ(first, second);
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsNonNullForAllKnownCodes
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_009
+ * @tc.desc  : Test that every published ErrorCode yields a non-null static message.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsNonNull_ForAllKnownCodes, TestSize.Level1)
+{
+    int64_t knownCodes[3] = {EC_SUCCESS, EC_FAILED, EC_LD_PRELOAD};
+    for (int64_t code : knownCodes) {
+        EXPECT_NE(OHOS_GetErrorMessage(code), nullptr);
+    }
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_ReturnsConsistentMessageWhenMixedCodesQueried
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_010
+ * @tc.desc  : Test that interleaved queries do not disturb each other's mapping results.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, ReturnsConsistentMessage_WhenMixedCodesQueried, TestSize.Level1)
+{
+    EXPECT_STREQ(OHOS_GetErrorMessage(EC_SUCCESS), "Success");
+    EXPECT_STREQ(OHOS_GetErrorMessage(EC_FAILED), "Operation failed");
+    EXPECT_STREQ(OHOS_GetErrorMessage(EC_SUCCESS), "Success");
+    EXPECT_STREQ(OHOS_GetErrorMessage(EC_LD_PRELOAD), "LD_PRELOAD is set");
+    EXPECT_STREQ(OHOS_GetErrorMessage(EC_SUCCESS), "Success");
+}
+
+class OrphanMemSignalBlockTest : public ::testing::Test {};
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalBlocksTargetSignal
+ * @tc.number: OrphanMemApi_SignalBlock_Test_001
+ * @tc.desc  : Test that BlockSignal adds the target signal to the calling thread's mask.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_BlocksTargetSignal, TestSize.Level1)
+{
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    BlockSignal(SIGUSR1);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    UnblockSignal(SIGUSR1);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_UnblockSignalUnblocksTargetSignal
+ * @tc.number: OrphanMemApi_SignalBlock_Test_002
+ * @tc.desc  : Test that UnblockSignal removes a previously blocked signal from the mask.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, UnblockSignal_UnblocksTargetSignal, TestSize.Level1)
+{
+    BlockSignal(SIGUSR2);
+    ASSERT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(SIGUSR2);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR2));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalIdempotentWhenCalledTwice
+ * @tc.number: OrphanMemApi_SignalBlock_Test_003
+ * @tc.desc  : Test that blocking an already-blocked signal keeps the mask consistent.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_IdempotentWhenCalledTwice, TestSize.Level1)
+{
+    BlockSignal(SIGUSR1);
+    BlockSignal(SIGUSR1);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    UnblockSignal(SIGUSR1);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_UnblockSignalSafeWhenNotBlocked
+ * @tc.number: OrphanMemApi_SignalBlock_Test_004
+ * @tc.desc  : Test that unblocking a signal that is not blocked is a harmless no-op.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, UnblockSignal_SafeWhenNotBlocked, TestSize.Level1)
+{
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(SIGUSR2);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR2));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalCannotBlockSigkill
+ * @tc.number: OrphanMemApi_SignalBlock_Test_005
+ * @tc.desc  : Test that SIGKILL never ends up blocked, as required by POSIX.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_CannotBlockSigkill, TestSize.Level1)
+{
+    BlockSignal(SIGKILL);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGKILL));
+    UnblockSignal(SIGKILL);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalCannotBlockSigstop
+ * @tc.number: OrphanMemApi_SignalBlock_Test_006
+ * @tc.desc  : Test that SIGSTOP never ends up blocked, as required by POSIX.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_CannotBlockSigstop, TestSize.Level1)
+{
+    BlockSignal(SIGSTOP);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGSTOP));
+    UnblockSignal(SIGSTOP);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalInvalidSignalIsNoOp
+ * @tc.number: OrphanMemApi_SignalBlock_Test_007
+ * @tc.desc  : Test that an out-of-range signal number neither crashes nor blocks normal signals.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_InvalidSignalIsNoOp, TestSize.Level1)
+{
+    const int invalidSignal = 999;
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    BlockSignal(invalidSignal);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(invalidSignal);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalDoesNotAffectOtherSignals
+ * @tc.number: OrphanMemApi_SignalBlock_Test_008
+ * @tc.desc  : Test that blocking one signal leaves unrelated signals in the mask untouched.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_DoesNotAffectOtherSignals, TestSize.Level1)
+{
+    BlockSignal(SIGUSR1);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(SIGUSR1);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_MaskInheritedByNewThreads
+ * @tc.number: OrphanMemApi_SignalBlock_Test_009
+ * @tc.desc  : Test that threads spawned while a signal is blocked inherit the blocked mask (POSIX), and threads
+ *             spawned after unblocking run unmasked.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_MaskInheritedByNewThreads, TestSize.Level3)
+{
+    BlockSignal(SIGUSR1);
+    ASSERT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    bool firstChildBlocked = false;
+    std::thread first([&firstChildBlocked]() {
+        firstChildBlocked = IsSignalBlockedInCurrentThread(SIGUSR1);
+    });
+    first.join();
+    EXPECT_TRUE(firstChildBlocked);
+    UnblockSignal(SIGUSR1);
+    ASSERT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    bool secondChildUnblocked = false;
+    std::thread second([&secondChildUnblocked]() {
+        secondChildUnblocked = !IsSignalBlockedInCurrentThread(SIGUSR1);
+    });
+    second.join();
+    EXPECT_TRUE(secondChildUnblocked);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalWorksWithRealtimeSignal
+ * @tc.number: OrphanMemApi_SignalBlock_Test_010
+ * @tc.desc  : Test that the lowest realtime signal can be blocked and unblocked.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_WorksWithRealtimeSignal, TestSize.Level1)
+{
+    const int rtSignal = SIGRTMIN;
+    BlockSignal(rtSignal);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(rtSignal));
+    UnblockSignal(rtSignal);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(rtSignal));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalWorksWithOffsetRealtimeSignal
+ * @tc.number: OrphanMemApi_SignalBlock_Test_011
+ * @tc.desc  : Test that a realtime signal with an offset can be blocked and unblocked.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_WorksWithOffsetRealtimeSignal, TestSize.Level1)
+{
+    const int rtSignal = SIGRTMIN + 1;
+    BlockSignal(rtSignal);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(rtSignal));
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGRTMIN));
+    UnblockSignal(rtSignal);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockUnblockCyclePreservesUnblockedState
+ * @tc.number: OrphanMemApi_SignalBlock_Test_012
+ * @tc.desc  : Test that several block/unblock cycles converge back to the unblocked state.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockUnblock_CyclePreservesUnblockedState, TestSize.Level1)
+{
+    for (int cycle = 0; cycle < 3; cycle++) {
+        BlockSignal(SIGUSR1);
+        EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR1));
+        UnblockSignal(SIGUSR1);
+        EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    }
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalWorksWithSighup
+ * @tc.number: OrphanMemApi_SignalBlock_Test_013
+ * @tc.desc  : Test that SIGHUP can be blocked and unblocked around the check.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_WorksWithSighup, TestSize.Level1)
+{
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGHUP));
+    BlockSignal(SIGHUP);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGHUP));
+    UnblockSignal(SIGHUP);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGHUP));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalWorksWithSigint
+ * @tc.number: OrphanMemApi_SignalBlock_Test_014
+ * @tc.desc  : Test that SIGINT can be blocked and unblocked around the check.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_WorksWithSigint, TestSize.Level1)
+{
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGINT));
+    BlockSignal(SIGINT);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGINT));
+    UnblockSignal(SIGINT);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGINT));
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockMultipleSignalsBothRemainBlocked
+ * @tc.number: OrphanMemApi_SignalBlock_Test_015
+ * @tc.desc  : Test that blocking a second signal keeps the first one blocked as well.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockMultipleSignals_BothRemainBlocked, TestSize.Level1)
+{
+    BlockSignal(SIGUSR1);
+    BlockSignal(SIGUSR2);
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(SIGUSR1);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    EXPECT_TRUE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(SIGUSR2);
+}
+
+/**
+ * @tc.name  : OrphanMemSignalBlock_BlockSignalNegativeSignalIsNoOp
+ * @tc.number: OrphanMemApi_SignalBlock_Test_016
+ * @tc.desc  : Test that a negative signal number neither crashes nor blocks real signals.
+ */
+HWTEST_F(OrphanMemSignalBlockTest, BlockSignal_NegativeSignalIsNoOp, TestSize.Level1)
+{
+    const int negativeSignal = -1;
+    BlockSignal(negativeSignal);
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR1));
+    EXPECT_FALSE(IsSignalBlockedInCurrentThread(SIGUSR2));
+    UnblockSignal(negativeSignal);
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_SuccessAndFailureMessagesDiffer
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_011
+ * @tc.desc  : Test that the success text is distinct from both failure texts.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, SuccessAndFailureMessages_Differ, TestSize.Level1)
+{
+    const char *success = OHOS_GetErrorMessage(EC_SUCCESS);
+    const char *failed = OHOS_GetErrorMessage(EC_FAILED);
+    const char *ldPreload = OHOS_GetErrorMessage(EC_LD_PRELOAD);
+    ASSERT_NE(success, nullptr);
+    ASSERT_NE(failed, nullptr);
+    ASSERT_NE(ldPreload, nullptr);
+    EXPECT_STRNE(success, failed);
+    EXPECT_STRNE(success, ldPreload);
+}
+
+/**
+ * @tc.name  : OrphanMemErrorMessage_FailureMessagesDifferFromEachOther
+ * @tc.number: OrphanMemApi_ErrorMessage_Test_012
+ * @tc.desc  : Test that the two failure texts are not accidentally aliased.
+ */
+HWTEST_F(OrphanMemErrorMessageTest, FailureMessages_DifferFromEachOther, TestSize.Level1)
+{
+    const char *failed = OHOS_GetErrorMessage(EC_FAILED);
+    const char *ldPreload = OHOS_GetErrorMessage(EC_LD_PRELOAD);
+    ASSERT_NE(failed, nullptr);
+    ASSERT_NE(ldPreload, nullptr);
+    EXPECT_STRNE(failed, ldPreload);
+    EXPECT_STRNE(ldPreload, failed);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_MemLeakFormatCanRoundTripThroughInt
+ * @tc.number: OrphanMemApi_Enum_Test_007
+ * @tc.desc  : Test that a MemLeakFormat value survives an int round trip unchanged.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, MemLeakFormat_CanRoundTripThroughInt, TestSize.Level1)
+{
+    MemLeakFormat original = TYPE_SNAPSHOT;
+    int asInt = static_cast<int>(original);
+    MemLeakFormat restored = static_cast<MemLeakFormat>(asInt);
+    EXPECT_EQ(static_cast<int>(restored), asInt);
+    EXPECT_EQ(restored, TYPE_SNAPSHOT);
+}
+
+/**
+ * @tc.name  : OrphanMemPublicEnum_NegativeFormatIsNotPublished
+ * @tc.number: OrphanMemApi_Enum_Test_008
+ * @tc.desc  : Test that a negative format value does not collide with any published format.
+ */
+HWTEST_F(OrphanMemPublicEnumTest, NegativeFormat_IsNotPublished, TestSize.Level1)
+{
+    MemLeakFormat negative = static_cast<MemLeakFormat>(-1);
+    EXPECT_NE(negative, TYPE_TXT);
+    EXPECT_NE(negative, TYPE_VECTOR);
+    EXPECT_NE(negative, TYPE_SNAPSHOT);
+}
+
+class OrphanMemCApiTest : public ::testing::Test {};
+
+/**
+ * @tc.name  : OrphanMemCApi_GetMemLeakReturnsFailedForNullOutput
+ * @tc.number: OrphanMemApi_CApi_Test_001
+ * @tc.desc  : Test that the C API rejects a null output pointer before running any collection.
+ */
+HWTEST_F(OrphanMemCApiTest, OHOS_GetMemLeak_ReturnsFailed_ForNullOutput, TestSize.Level1)
+{
+    int length = -1;
+    int64_t errCode = OHOS_GetMemLeak(TYPE_TXT, nullptr, SIZE_MAX, &length);
+    EXPECT_EQ(errCode, static_cast<int64_t>(EC_FAILED));
+    EXPECT_EQ(length, -1);
+}
+
+/**
+ * @tc.name  : OrphanMemCApi_GetMemLeakToleratesNullLengthForNullOutput
+ * @tc.number: OrphanMemApi_CApi_Test_002
+ * @tc.desc  : Test that the C API also fails fast for a null output when the length pointer is null.
+ */
+HWTEST_F(OrphanMemCApiTest, OHOS_GetMemLeak_ToleratesNullLength_ForNullOutput, TestSize.Level1)
+{
+    int64_t errCode = OHOS_GetMemLeak(TYPE_SNAPSHOT, nullptr, SIZE_MAX, nullptr);
+    EXPECT_EQ(errCode, static_cast<int64_t>(EC_FAILED));
+}
+
+/**
+ * @tc.name  : OrphanMemCApi_GetMemLeakStringReturnsFalseForNullOutput
+ * @tc.number: OrphanMemApi_CApi_Test_003
+ * @tc.desc  : Test that the boolean C wrapper propagates the null-output failure as false.
+ */
+HWTEST_F(OrphanMemCApiTest, OHOS_GetMemLeakString_ReturnsFalse_ForNullOutput, TestSize.Level1)
+{
+    int length = -1;
+    bool ok = OHOS_GetMemLeakString(TYPE_TXT, nullptr, SIZE_MAX, &length);
+    EXPECT_FALSE(ok);
+    EXPECT_EQ(length, -1);
+}
+
+/**
+ * @tc.name  : OrphanMemCApi_GetMemLeakRejectsNullOutputForEveryFormat
+ * @tc.number: OrphanMemApi_CApi_Test_004
+ * @tc.desc  : Test that the null-output guard is independent of the requested output format.
+ */
+HWTEST_F(OrphanMemCApiTest, OHOS_GetMemLeak_RejectsNullOutput_ForEveryFormat, TestSize.Level1)
+{
+    MemLeakFormat formats[3] = {TYPE_TXT, TYPE_VECTOR, TYPE_SNAPSHOT};
+    for (MemLeakFormat format : formats) {
+        int64_t errCode = OHOS_GetMemLeak(format, nullptr, SIZE_MAX, nullptr);
+        EXPECT_EQ(errCode, static_cast<int64_t>(EC_FAILED));
+    }
+}
+
+class LeakTxtRenderTest : public ::testing::Test {
+protected:
+    std::unique_ptr<char[]> buffer{new char[256]()};
+    MemLeakTimeInfo timeInfo = {
+        std::chrono::high_resolution_clock::now(),
+        std::chrono::high_resolution_clock::now(),
+        std::chrono::microseconds(0)
+    };
+
+    NodeSTL MakeDirectNode(size_t capacity)
+    {
+        NodeSTL node;
+        node.isDirect = true;
+        node.capacity = capacity;
+        return node;
+    }
+};
+
+/**
+ * @tc.name  : LeakTxtRender_RendersHexAddressOfLeak
+ * @tc.number: LeakInfo_TxtRender_Test_001
+ * @tc.desc  : Test that ToTxt renders the leaking address in the documented "at 0x..." form.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersHexAddressOfLeak, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(16);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("bytes leak directly at 0x"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersIndirectlyForReferencedNode
+ * @tc.number: LeakInfo_TxtRender_Test_002
+ * @tc.desc  : Test that a node referenced by another leak renders as indirectly leaked.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersIndirectly_ForReferencedNode, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t rootAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    uintptr_t childAddr = reinterpret_cast<uintptr_t>(buffer.get() + 96);
+    NodeSTL root = MakeDirectNode(32);
+    root.references[0] = childAddr;
+    info.leakGraph_[rootAddr] = root;
+    info.leakGraph_[childAddr] = MakeDirectNode(32);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("leak directly at"), std::string::npos);
+    EXPECT_NE(output.find("leak indirectly at"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersReferencedCapacityAndCount
+ * @tc.number: LeakInfo_TxtRender_Test_003
+ * @tc.desc  : Test that the referencing line aggregates the referenced capacities and the reference count.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersReferencedCapacityAndCount, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t rootAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    uintptr_t leftAddr = reinterpret_cast<uintptr_t>(buffer.get() + 96);
+    uintptr_t rightAddr = reinterpret_cast<uintptr_t>(buffer.get() + 160);
+    NodeSTL root = MakeDirectNode(32);
+    root.references[0] = leftAddr;
+    root.references[8] = rightAddr;
+    info.leakGraph_[rootAddr] = root;
+    info.leakGraph_[leftAddr] = MakeDirectNode(32);
+    info.leakGraph_[rightAddr] = MakeDirectNode(32);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("referencing 64 bytes leak in 2 allocations"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersReferencingWhenReferenceToNonExistent
+ * @tc.number: LeakInfo_TxtRender_Test_004
+ * @tc.desc  : Test that a reference to an address outside the graph still renders the referencing line.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersReferencing_WhenReferenceToNonExistent, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t rootAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    NodeSTL root = MakeDirectNode(32);
+    root.references[0] = reinterpret_cast<uintptr_t>(buffer.get() + 4000);
+    info.leakGraph_[rootAddr] = root;
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("referencing 0 bytes leak in 1 allocations"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_SelfReferenceRendersIndirectly
+ * @tc.number: LeakInfo_TxtRender_Test_005
+ * @tc.desc  : Test that a node referencing itself is demoted to an indirect leak.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_SelfReference_RendersIndirectly, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t nodeAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    NodeSTL node = MakeDirectNode(32);
+    node.references[0] = nodeAddr;
+    info.leakGraph_[nodeAddr] = node;
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("leak indirectly at"), std::string::npos);
+    EXPECT_EQ(output.find("bytes leak directly"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersLeakHeaderForZeroCapacity
+ * @tc.number: LeakInfo_TxtRender_Test_006
+ * @tc.desc  : Test that a zero-capacity node still renders its leak header safely.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersLeakHeader_ForZeroCapacity, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(0);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("0 bytes leak directly at 0x"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_CapacityExactlyThresholdUsesSmallPath
+ * @tc.number: LeakInfo_TxtRender_Test_007
+ * @tc.desc  : Test that a 64-byte node (the small allocation threshold) uses the full memory dump path.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_CapacityExactlyThreshold_UsesSmallPath, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(64);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("memory:"), std::string::npos);
+    EXPECT_EQ(output.find("first 32 memory"), std::string::npos);
+    EXPECT_EQ(output.find("last 32 memory"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_CapacityJustAboveThresholdUsesLargePath
+ * @tc.number: LeakInfo_TxtRender_Test_008
+ * @tc.desc  : Test that a 65-byte node switches to the first/last 32 memory preview path.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_CapacityJustAboveThreshold_UsesLargePath, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(65);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("first 32 memory"), std::string::npos);
+    EXPECT_NE(output.find("last 32 memory"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_DirectNodesOrderedByCapacity
+ * @tc.number: LeakInfo_TxtRender_Test_009
+ * @tc.desc  : Test that direct leaks are rendered in descending capacity order.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_DirectNodesOrderedByCapacity, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(16);
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get() + 96)] = MakeDirectNode(64);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    size_t bigPos = output.find("64 bytes leak");
+    size_t smallPos = output.find("16 bytes leak");
+    ASSERT_NE(bigPos, std::string::npos);
+    ASSERT_NE(smallPos, std::string::npos);
+    EXPECT_LT(bigPos, smallPos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_DirectRendersBeforeIndirect
+ * @tc.number: LeakInfo_TxtRender_Test_010
+ * @tc.desc  : Test that directly leaked nodes are rendered before indirectly leaked ones.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_DirectRendersBeforeIndirect, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t rootAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    uintptr_t childAddr = reinterpret_cast<uintptr_t>(buffer.get() + 96);
+    NodeSTL root = MakeDirectNode(32);
+    root.references[0] = childAddr;
+    info.leakGraph_[rootAddr] = root;
+    info.leakGraph_[childAddr] = MakeDirectNode(16);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    size_t directPos = output.find("leak directly at");
+    size_t indirectPos = output.find("leak indirectly at");
+    ASSERT_NE(directPos, std::string::npos);
+    ASSERT_NE(indirectPos, std::string::npos);
+    EXPECT_LT(directPos, indirectPos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersPcHexValue
+ * @tc.number: LeakInfo_TxtRender_Test_011
+ * @tc.desc  : Test that the pc field is rendered as a lowercase hex value on the PC line.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersPcHexValue, TestSize.Level1)
+{
+    LeakInfo info;
+    NodeSTL node = MakeDirectNode(16);
+    node.pc = 0xDEADBEEF;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = node;
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("PC: 0xdeadbeef"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_MultipleRefsSameTargetCountedPerRef
+ * @tc.number: LeakInfo_TxtRender_Test_012
+ * @tc.desc  : Test that two references to the same target count twice in the referencing line.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_MultipleRefsSameTarget_CountedPerRef, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t rootAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    uintptr_t targetAddr = reinterpret_cast<uintptr_t>(buffer.get() + 96);
+    NodeSTL root = MakeDirectNode(32);
+    root.references[0] = targetAddr;
+    root.references[8] = targetAddr;
+    info.leakGraph_[rootAddr] = root;
+    info.leakGraph_[targetAddr] = MakeDirectNode(32);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("referencing 64 bytes leak in 2 allocations"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_IndirectFlagRenderedWithoutReferences
+ * @tc.number: LeakInfo_TxtRender_Test_013
+ * @tc.desc  : Test that a node pre-marked indirect renders indirectly even without incoming references.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_IndirectFlagRendered_WithoutReferences, TestSize.Level1)
+{
+    LeakInfo info;
+    NodeSTL node = MakeDirectNode(16);
+    node.isDirect = false;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = node;
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("leak indirectly at"), std::string::npos);
+    EXPECT_EQ(output.find("bytes leak directly"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersOnlyCostForEmptyGraph
+ * @tc.number: LeakInfo_TxtRender_Test_014
+ * @tc.desc  : Test that an empty leak graph renders only the cost footer without any leak lines.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersOnlyCost_ForEmptyGraph, TestSize.Level1)
+{
+    LeakInfo info;
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_EQ(output.find("bytes leak"), std::string::npos);
+    EXPECT_NE(output.find("cost"), std::string::npos);
+    EXPECT_NE(output.find(" ms"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_NoReferencingLineWithoutReferences
+ * @tc.number: LeakInfo_TxtRender_Test_015
+ * @tc.desc  : Test that nodes without references do not render a referencing line.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_NoReferencingLine_WithoutReferences, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(32);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_EQ(output.find("referencing"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersAllNodeFieldsTogether
+ * @tc.number: LeakInfo_TxtRender_Test_016
+ * @tc.desc  : Test that a fully populated node renders referencing, type, name and pc lines together.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersAllNodeFieldsTogether, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t rootAddr = reinterpret_cast<uintptr_t>(buffer.get());
+    uintptr_t childAddr = reinterpret_cast<uintptr_t>(buffer.get() + 96);
+    NodeSTL root = MakeDirectNode(128);
+    root.references[0] = childAddr;
+    root.type = "std::string";
+    root.name = "leakedText";
+    root.pc = 0x1234;
+    info.leakGraph_[rootAddr] = root;
+    info.leakGraph_[childAddr] = MakeDirectNode(16);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("referencing 16 bytes leak in 1 allocations"), std::string::npos);
+    EXPECT_NE(output.find("Variable Type: std::string"), std::string::npos);
+    EXPECT_NE(output.find("Variable Name: leakedText"), std::string::npos);
+    EXPECT_NE(output.find("PC: 0x1234"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_RendersMemoryDumpForSmallNode
+ * @tc.number: LeakInfo_TxtRender_Test_017
+ * @tc.desc  : Test that a 16-byte node renders a hex dump line starting at the leak address.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_RendersMemoryDump_ForSmallNode, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(16);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("memory:"), std::string::npos);
+    EXPECT_NE(output.find("bytes leak"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_LargeNodeDoesNotUseSmallPath
+ * @tc.number: LeakInfo_TxtRender_Test_018
+ * @tc.desc  : Test that a 128-byte node renders previews instead of the per-16-byte dump loop.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_LargeNodeDoesNotUseSmallPath, TestSize.Level1)
+{
+    LeakInfo info;
+    info.leakGraph_[reinterpret_cast<uintptr_t>(buffer.get())] = MakeDirectNode(128);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("first 32 memory"), std::string::npos);
+    EXPECT_NE(output.find("last 32 memory"), std::string::npos);
+}
+
+/**
+ * @tc.name  : LeakTxtRender_ChainedReferencesRenderIndirectChain
+ * @tc.number: LeakInfo_TxtRender_Test_019
+ * @tc.desc  : Test that a three-node reference chain demotes both downstream nodes to indirect.
+ */
+HWTEST_F(LeakTxtRenderTest, ToTxt_ChainedReferences_RenderIndirectChain, TestSize.Level1)
+{
+    LeakInfo info;
+    uintptr_t first = reinterpret_cast<uintptr_t>(buffer.get());
+    uintptr_t second = reinterpret_cast<uintptr_t>(buffer.get() + 96);
+    uintptr_t third = reinterpret_cast<uintptr_t>(buffer.get() + 160);
+    NodeSTL firstNode = MakeDirectNode(32);
+    firstNode.references[0] = second;
+    NodeSTL secondNode = MakeDirectNode(32);
+    secondNode.references[0] = third;
+    info.leakGraph_[first] = firstNode;
+    info.leakGraph_[second] = secondNode;
+    info.leakGraph_[third] = MakeDirectNode(32);
+    std::string output;
+    EXPECT_TRUE(info.ToTxt(output, timeInfo));
+    EXPECT_NE(output.find("leak directly at"), std::string::npos);
+    size_t indirectCount = 0;
+    size_t pos = output.find("leak indirectly at");
+    while (pos != std::string::npos) {
+        indirectCount++;
+        pos = output.find("leak indirectly at", pos + 1);
+    }
+    EXPECT_EQ(indirectCount, 2u);
 }
