@@ -21,6 +21,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
+constexpr char DATA_PREFIX[] = "/data";
+constexpr char DATA_MIRROR_PREFIX[] = "/mnt/data_mirror";
+constexpr size_t DATA_PREFIX_LEN = sizeof(DATA_PREFIX) - 1;
+
 /**
  * Replace the "/data" prefix of the given path with the "/mnt/data_mirror" prefix.
  *
@@ -31,16 +35,9 @@ namespace HiviewDFX {
  * @return the rewritten path; a path without the "/data" prefix, including an empty
  *         path, is returned unchanged
  */
-std::string BootDetectorReplaceDataPrefix(const std::string &path)
+inline std::string BootDetectorReplaceDataPrefix(const std::string &path)
 {
-    constexpr char DATA_PREFIX[] = "/data";
-    constexpr char DATA_MIRROR_PREFIX[] = "/mnt/data_mirror";
-    constexpr size_t DATA_PREFIX_LEN = sizeof(DATA_PREFIX) - 1;
-
-    if (path.size() < DATA_PREFIX_LEN) {
-        return path;
-    }
-    if (path.compare(0, DATA_PREFIX_LEN, DATA_PREFIX) != 0) {
+    if (path.size() < DATA_PREFIX_LEN || path.compare(0, DATA_PREFIX_LEN, DATA_PREFIX) != 0) {
         return path;
     }
     if (path.size() != DATA_PREFIX_LEN && path[DATA_PREFIX_LEN] != '/') {
