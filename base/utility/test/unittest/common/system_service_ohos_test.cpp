@@ -131,7 +131,7 @@ HWTEST_F(SystemServiceOhosTest, SystemServiceTest005, testing::ext::TestSize.Lev
  */
 HWTEST_F(SystemServiceOhosTest, SystemServiceTest006, testing::ext::TestSize.Level3)
 {
-    std::string modelAlias = Parameter::GetString("const.product.model.alias", "");
+    std::string modelAlias = Parameter::GetString("const.product.model_alias", "");
     std::string model = Parameter::GetString("const.product.model", "");
     std::string modelAliasStr = Parameter::GetProductModelAliasStr();
     if (modelAlias.empty()) {
