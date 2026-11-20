@@ -204,20 +204,16 @@ std::string GetPatchVersionStr()
 
 std::string GetProductModelAliasStr()
 {
-    const char *productModelAlias = GetProductModelAlias();
+    const char* productModelAlias = GetProductModelAlias();
     if (productModelAlias == nullptr) {
-        return GetProductModelStr();
+        return "";
     }
-    std::string productModelAliasStr(productModelAlias);
-    if (std::string(productModelAlias).empty()) {
-        return GetProductModelStr();
-    }
-    return productModelAliasStr;
+    return std::string(productModelAlias);
 }
 
 std::string GetReleaseTypeStr()
 {
-    std::string releaseTypeStr = GetString(KEY_RELEASE_TYPE, "");
+    static std::string releaseTypeStr = GetString(KEY_RELEASE_TYPE, "");
     return releaseTypeStr;
 }
 } // namespace Parameter
