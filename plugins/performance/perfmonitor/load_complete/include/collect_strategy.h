@@ -65,16 +65,6 @@ struct WebComponentInfo {
 };
 
 /**
- * @brief attach 信息, 用来判断当前和上一次差是否超过500ms阈值
- */
-struct AttachInfo {
-    int64_t lastAttachTime{0};
-    bool isAllStopDetect{false};
-    int32_t attachCount{0};
-};
-extern AttachInfo attachInfo_;
-
-/**
  * @brief 图片统计的过滤条件
  */
 struct ImageStatsFilter {
@@ -110,7 +100,7 @@ struct WebStatsResult {
 class DetectCollectStrategy {
 public:
     void AddComponent(int32_t componentId, int32_t sourceType, bool isVisible);
-    void AttachComponent(int32_t componentId, int64_t Threshold, int32_t exemptCount);
+    void AttachComponent(int32_t componentId, int64_t thresHold, int32_t exemptCount);
     void DeleteComponent(int32_t componentId);
     void CompleteComponent(int32_t componentId, bool isVisible);
     CollectResult CalculateResult(int64_t beginTime);
@@ -131,13 +121,23 @@ private:
     static uint32_t BuildComponentInfoBitmask(bool isIncludeWeb, bool imageTimeout, bool webTimeout);
     static bool ShouldCountDeletedVisible(const CompleteComponentInfo& info, const ImageStatsFilter& filter);
     static void UpdateLastLoad(const CompleteComponentInfo& info, int32_t imageId,
-                               int64_t& lastLoadComponent, int32_t& lastImageId);
+        int64_t& lastLoadComponent, int32_t& lastImageId);
     // map格式：{id1, componentInfo1}
     std::unordered_map<int32_t, CompleteComponentInfo> imageInfoMap_;
     std::unordered_map<int64_t, WebComponentInfo> webComponentInfos_;
     bool isFirstTimeOut_{false};
     // 是否启动场景
     bool isLaunch_{false};
+        
+    /**
+    * @brief attach 信息, 用来判断当前和上一次差是否超过500ms阈值
+    */
+    struct AttachInfo {
+        int64_t lastAttachTime{0};
+        bool isAllStopDetect{false};
+        int32_t attachCount{0};
+    };
+    AttachInfo attachInfo_;
 };
 
 } // namespace HiviewDFX

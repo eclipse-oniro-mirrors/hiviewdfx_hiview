@@ -21,15 +21,13 @@
 #include <algorithm>
 
 namespace {
-// 网络图片对应的枚举值 2
-constexpr int32_t NETWORK_SRC_TYPE = 2;
+constexpr int32_t NETWORK_SRC_TYPE = 2; // 网络图片对应的枚举值 2
 constexpr int64_t DELETE_CLUSTER_THRESHOLD_MS = 100;
 } // namespace
 
 namespace OHOS {
 namespace HiviewDFX {
 
-AttachInfo attachInfo_;
 
 void DetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType, bool isVisible)
 {
@@ -67,11 +65,7 @@ void DetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType
         info.lastImageInfo.sourceType = sourceType;
         info.lastImageInfo.completeTime = 0;
         info.isStopDetect = false;
-        if (info.attachTime == 0) {
-            info.isVisible = false;
-        } else {
-            info.isVisible = isVisible;
-        }
+        info.isVisible = info.attachTime == 0 ? false : isVisible; 
         return;
     }
 
@@ -86,16 +80,16 @@ void DetectCollectStrategy::AddComponent(int32_t componentId, int32_t sourceType
 }
 
 // 阈值与豁免由调用方传入
-void DetectCollectStrategy::AttachComponent(int32_t componentId, int64_t Threshold, int32_t exemptCount)
+void DetectCollectStrategy::AttachComponent(int32_t componentId, int64_t threshold, int32_t exemptCount)
 {
     XPERF_TRACE_SCOPED("[LoadCompleteMonitor] AttachComponent componentId:%d, threshold:%lld, exemptCount:%d",
-        componentId, static_cast<long long>(Threshold), exemptCount);
+        componentId, static_cast<long long>(threshold), exemptCount);
     auto now = GetCurrentSystimeMs();
     auto it = imageInfoMap_.find(componentId);
 
     attachInfo_.attachCount++;
     // 阈值判断
-    bool thresholdExceeded = (attachInfo_.lastAttachTime != 0 && (now - attachInfo_.lastAttachTime) > Threshold);
+    bool thresholdExceeded = (attachInfo_.lastAttachTime != 0 && (now - attachInfo_.lastAttachTime) > threshold);
     // 豁免判断
     bool isExempted = (attachInfo_.attachCount <= exemptCount);
     if (attachInfo_.isAllStopDetect || (thresholdExceeded && !isExempted)) {
