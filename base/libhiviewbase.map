@@ -544,6 +544,8 @@
         "OHOS::HiviewDFX::TimeUtil::LongerThanAWeek(long, long)";
         "OHOS::HiviewDFX::FileUtil::RealPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::HiviewDFX::CommonUtils::RefreshPackId(bool)";
+        "OHOS::HiviewDFX::Parameter::GetProductModelAliasStr()";
+        "OHOS::HiviewDFX::Parameter::GetReleaseTypeStr()";
     };
   local:
     *;

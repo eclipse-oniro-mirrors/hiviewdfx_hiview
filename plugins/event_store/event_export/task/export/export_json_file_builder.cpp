@@ -35,6 +35,9 @@ constexpr char H_DEVICE_KEY[] = "DEVICE";
 constexpr char H_ID_KEY[] = "ID";
 constexpr char H_MODEL_KEY[] = "MODEL";
 constexpr char H_CATEGORY_KEY[] = "CATEGORY";
+constexpr char H_MODEL_ALIAS_KEY[] = "MODELALIAS";
+constexpr char H_RELEASE_TYPE_KEY[] = "RELEASE_TYPE";
+constexpr char H_USER_MODE_KEY[] = "USER_MODE";
 constexpr char H_SYSTEM_KEY[] = "SYSTEM";
 constexpr char H_OHOS_VER_KEY[] = "OHOS_VER";
 constexpr char H_PATCH_VER_KEY[] = "PATCH_VER";
@@ -80,6 +83,9 @@ cJSON* CreateDeviceJsonObj()
     cJSON_AddStringToObject(device, H_MODEL_KEY, Parameter::GetProductModelStr().c_str());
     cJSON_AddStringToObject(device, H_NAME_KEY, Parameter::GetMarketNameStr().c_str());
     cJSON_AddStringToObject(device, H_CATEGORY_KEY, Parameter::GetDeviceTypeStr().c_str());
+    cJSON_AddStringToObject(device, H_MODEL_ALIAS_KEY, Parameter::GetProductModelAliasStr().c_str());
+    cJSON_AddStringToObject(device, H_RELEASE_TYPE_KEY, Parameter::GetReleaseTypeStr().c_str());
+    cJSON_AddStringToObject(device, H_USER_MODE_KEY, Parameter::IsUserMode()? "1" : "0");
     return device;
 }
 

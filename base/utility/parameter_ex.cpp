@@ -201,6 +201,21 @@ std::string GetPatchVersionStr()
 {
     return GetString(PATCH_VERSION, "");
 }
+
+std::string GetProductModelAliasStr()
+{
+    const char* productModelAlias = GetProductModelAlias();
+    if (productModelAlias == nullptr) {
+        return "";
+    }
+    return std::string(productModelAlias);
+}
+
+std::string GetReleaseTypeStr()
+{
+    static std::string releaseTypeStr = GetString(KEY_RELEASE_TYPE, "");
+    return releaseTypeStr;
+}
 } // namespace Parameter
 } // namespace HiviewDFX
 } // namespace OHOS

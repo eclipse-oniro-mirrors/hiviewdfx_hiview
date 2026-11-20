@@ -26,6 +26,7 @@ constexpr char HIVIEW_UCOLLECTION_STATE[] = "hiviewdfx.ucollection.switchon";
 constexpr char DEVELOP_HIVIEW_TRACE_RECORDER[] = "persist.hiview.trace_recorder";
 constexpr char KEY_LEAKDECTOR_MODE_STATE[] = "persist.hiview.leak_detector";
 constexpr char KEY_IS_DEBUGGABLE[] = "const.debuggable";
+constexpr char KEY_RELEASE_TYPE[] = "const.product.os.dist.releasetype";
 namespace Parameter {
 enum UserType: uint8_t {
     USER_TYPE_CHINA_COMMERCIAL = 1,
@@ -62,6 +63,8 @@ std::string GetProductModelStr();
 std::string GetSysVersionDetailsStr();
 std::string GetVersionTypeStr();
 std::string GetPatchVersionStr();
+std::string GetProductModelAliasStr();
+std::string GetReleaseTypeStr();
 };
 } // namespace HiviewDFX
 } // namespace OHOS
