@@ -18,18 +18,23 @@
 namespace OHOS {
 namespace HiviewDFX {
 DEFINE_LOG_TAG("HiView-PluginFactory");
+namespace {
+std::mutex& GetRegistryMutex()
+{
+    static std::mutex registryMutex;
+    return registryMutex;
+}
+}
 std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<PluginRegistInfo>>> PluginFactory::GetGlobalPluginRegistryMap()
 {
-    static std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<PluginRegistInfo>>> pluginMap;
-    if (pluginMap == nullptr) {
-        pluginMap = std::make_shared<std::unordered_map<std::string, std::shared_ptr<PluginRegistInfo>>>();
-    }
+    auto static pluginMap = std::make_shared<std::unordered_map<std::string, std::shared_ptr<PluginRegistInfo>>>();
     return pluginMap;
 }
 
 std::shared_ptr<PluginRegistInfo> PluginFactory::GetGlobalPluginInfo(const std::string& name)
 {
     auto map = GetGlobalPluginRegistryMap();
+    std::lock_guard<std::mutex> lock(GetRegistryMutex());
     auto it = map->find(name);
     if (it != map->end()) {
         return it->second;
@@ -54,6 +59,7 @@ void PluginFactory::RegisterPlugin(const std::string& name, std::shared_ptr<Plug
     }
     // force update plugin constructor
     auto pluginMap = GetGlobalPluginRegistryMap();
+    std::lock_guard<std::mutex> lock(GetRegistryMutex());
     if (pluginMap->find(name) == pluginMap->end()) {
         pluginMap->insert(std::pair<std::string, std::shared_ptr<PluginRegistInfo>>(name, func));
     } else {
@@ -70,6 +76,7 @@ void PluginFactory::UnregisterPlugin(const std::string& name)
 {
     HIVIEW_LOGI("Unregister plugin from %{public}s.", name.c_str());
     auto pluginMap = GetGlobalPluginRegistryMap();
+    std::lock_guard<std::mutex> lock(GetRegistryMutex());
     if (pluginMap->find(name) == pluginMap->end()) {
         HIVIEW_LOGW("plugin %{public}s does not exist!", name.c_str());
         return;

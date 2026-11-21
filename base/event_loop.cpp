@@ -129,7 +129,7 @@ void EventLoop::StartLoop(bool createNewThread)
         if (!InitEventQueueNotifier()) {
             return;
         }
-        isRunning_ = true;
+        isRunning_.store(true, std::memory_order_release);
     }
 
     if (createNewThread) {
@@ -142,7 +142,7 @@ void EventLoop::StartLoop(bool createNewThread)
 
 void EventLoop::StopLoop()
 {
-    needQuit_ = true;
+    needQuit_.store(true, std::memory_order_release);
     if (!IsRunning()) {
         return;
     }
@@ -152,7 +152,7 @@ void EventLoop::StopLoop()
         while (!pendingEvents_.empty()) {
             pendingEvents_.pop();
         }
-        isRunning_ = false;
+        isRunning_.store(false, std::memory_order_release);
     }
 
     WakeUp();
@@ -163,7 +163,7 @@ void EventLoop::StopLoop()
 
 uint64_t EventLoop::AddEvent(std::shared_ptr<EventHandler> handler, std::shared_ptr<Event> event, const Task task)
 {
-    if (needQuit_) {
+    if (needQuit_.load(std::memory_order_acquire)) {
         return 0;
     }
 
@@ -180,7 +180,7 @@ uint64_t EventLoop::AddEvent(std::shared_ptr<EventHandler> handler, std::shared_
 
 std::future<bool> EventLoop::AddEventForResult(std::shared_ptr<EventHandler> handler, std::shared_ptr<Event> event)
 {
-    if (needQuit_) {
+    if (needQuit_.load(std::memory_order_acquire)) {
         return GetFalseFuture();
     }
 
@@ -206,7 +206,7 @@ std::future<bool> EventLoop::AddEventForResult(std::shared_ptr<EventHandler> han
 uint64_t EventLoop::AddTimerEvent(std::shared_ptr<EventHandler> handler, std::shared_ptr<Event> event,
     const Task &task, uint64_t interval, bool repeat)
 {
-    if (needQuit_) {
+    if (needQuit_.load(std::memory_order_acquire)) {
         return 0;
     }
 
@@ -264,7 +264,7 @@ void EventLoop::ResetTimerIfNeedLocked()
 bool EventLoop::AddFileDescriptorEventCallback(
     const std::string &name, std::shared_ptr<FileDescriptorEventCallback> source)
 {
-    if (needQuit_) {
+    if (needQuit_.load(std::memory_order_acquire)) {
         return false;
     }
 
@@ -407,7 +407,7 @@ void EventLoop::Run()
             leftTimeMill = (leftTimeNanosecond / static_cast<uint64_t>(TimeUtil::MILLISEC_TO_NANOSEC));
         }
         WaitNextEvent(leftTimeMill);
-        if (needQuit_) {
+        if (needQuit_.load(std::memory_order_acquire)) {
             break;
         }
     }
@@ -460,7 +460,7 @@ uint64_t EventLoop::ProcessQueuedEvent()
 
 bool EventLoop::FetchNextEvent(uint64_t now, uint64_t& leftTimeNanosecond, LoopEvent& out)
 {
-    if (needQuit_) {
+    if (needQuit_.load(std::memory_order_acquire)) {
         return false;
     }
 

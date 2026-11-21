@@ -123,7 +123,7 @@ public:
 
     bool IsRunning() const
     {
-        return isRunning_;
+        return isRunning_.load(std::memory_order_acquire);
     };
 
 private:
@@ -145,8 +145,8 @@ private:
     void ResetTimerIfNeedLocked();
     uint64_t NanoSecondSinceSystemStart();
     volatile bool isWaken_ = false;
-    volatile bool needQuit_ = false;
-    volatile bool isRunning_ = false;
+    std::atomic<bool> needQuit_ = false;
+    std::atomic<bool> isRunning_ = false;
     std::string name_;
     EventPriorityQueue<LoopEvent> pendingEvents_;
     std::unique_ptr<std::thread> thread_;
