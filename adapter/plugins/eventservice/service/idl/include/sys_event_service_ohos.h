@@ -54,7 +54,6 @@ public:
         : deathRecipient_(new CallbackDeathRecipient()),
         dataPublisher_(std::make_shared<DataPublisher>()),
         statusMonitor_(std::make_shared<ListenerStatusMonitor>()) {}
-    virtual ~SysEventServiceOhos();
 
     static sptr<SysEventServiceOhos> GetInstance();
     static void StartService(SysEventServiceBase* service);
