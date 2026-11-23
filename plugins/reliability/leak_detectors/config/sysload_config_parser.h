@@ -60,8 +60,9 @@ struct MonitorParams {
     int logTopThread {0};
     int checkInterval {120};
     int isSave {0};
-    int32_t upperThreshold {70};
-    int32_t lowerThreshold {0};
+    // Keep long to match the kernel module_params ABI; the struct size is encoded in IOCTL_SET_MONITOR_PARAMS.
+    long upperThreshold {70};
+    long lowerThreshold {0};
     int onlySummaryLog {0};
     int enableKmsg {0};
 };
