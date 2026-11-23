@@ -108,27 +108,14 @@ HiRetrievalMgr::HiRetrievalMgr()
 int32_t HiRetrievalMgr::Init()
 {
     std::lock_guard<std::mutex> lock(mgrMutex_);
-    if (isInit_) {
-        HILOG_INFO(LOG_CORE, "hiretrieval module has been initialized");
-        return HiRetrieval::NativeErrorCode::SUCC;
-    }
     auto ret = dllLoader_->Init();
-    if (ret == HiRetrieval::NativeErrorCode::SUCC ||
-        ret == HiRetrieval::NativeErrorCode::DLL_FAILED) {
-        isInit_ = true;
-        return ret;
-    }
-    HILOG_ERROR(LOG_CORE, "failed to init, ret is %{public}d", ret);
+    HILOG_INFO(LOG_CORE, "hiretrieval init ret is %{public}d", ret);
     return ret;
 }
 
 int32_t HiRetrievalMgr::Participate(HiRetrievalMgr::Config& cfg)
 {
     std::lock_guard<std::mutex> lock(mgrMutex_);
-    if (!isInit_) {
-        HILOG_ERROR(LOG_CORE, "module not init");
-        return HiRetrieval::NativeErrorCode::NOT_INIT;
-    }
     if (cfg.deviceType.empty()) {
         cfg.deviceType = HiRetrievalBaseUtil::GetDefaultDeviceType();
     }
@@ -142,34 +129,21 @@ int32_t HiRetrievalMgr::Participate(HiRetrievalMgr::Config& cfg)
     }
     PersistConfig(cfg);
     auto ret = dllLoader_->Participate();
-    if (ret == HiRetrieval::NativeErrorCode::SUCC ||
-        ret == HiRetrieval::NativeErrorCode::DLL_FAILED) {
+    if (ret == HiRetrieval::NativeErrorCode::NOT_INIT) {
+        HILOG_ERROR(LOG_CORE, "module not init");
+        ClearConfigCache();
         return ret;
     }
-    HILOG_ERROR(LOG_CORE, "failed to participate, ret is %{public}d", ret);
+    HILOG_INFO(LOG_CORE, "hiretrieval participate ret is %{public}d", ret);
     return ret;
 }
 
 int32_t HiRetrievalMgr::Quit()
 {
     std::lock_guard<std::mutex> lock(mgrMutex_);
-    if (!isInit_) {
-        HILOG_ERROR(LOG_CORE, "module not init");
-        return HiRetrieval::NativeErrorCode::NOT_INIT;
-    }
-    if (!IsParticipant()) {
-        HILOG_INFO(LOG_CORE, "no need to quit without participation");
-        isInit_ = false;
-        return HiRetrieval::NativeErrorCode::SUCC;
-    }
     auto ret =  dllLoader_->Quit();
-    if (ret == HiRetrieval::NativeErrorCode::SUCC ||
-        ret == HiRetrieval::NativeErrorCode::DLL_FAILED) {
-        ClearConfigCache();
-        isInit_ = false;
-        return ret;
-    }
-    HILOG_ERROR(LOG_CORE, "failed to quit, ret is %{public}d", ret);
+    ClearConfigCache();
+    HILOG_INFO(LOG_CORE, "hiretrieval quit ret is %{public}d", ret);
     return ret;
 }
 
@@ -190,16 +164,8 @@ long long HiRetrievalMgr::GetLastParticipationTs()
 int32_t HiRetrievalMgr::Run()
 {
     std::lock_guard<std::mutex> lock(mgrMutex_);
-    if (!isInit_) {
-        HILOG_ERROR(LOG_CORE, "module not init");
-        return HiRetrieval::NativeErrorCode::NOT_INIT;
-    }
     auto ret = dllLoader_->Run();
-    if (ret == HiRetrieval::NativeErrorCode::SUCC ||
-        ret == HiRetrieval::NativeErrorCode::DLL_FAILED) {
-        return ret;
-    }
-    HILOG_ERROR(LOG_CORE, "failed to run, ret is %{public}d", ret);
+    HILOG_INFO(LOG_CORE, "hiretrieval run ret is %{public}d", ret);
     return ret;
 }
 
