@@ -51,7 +51,6 @@ private:
     void ClearConfigCache();
     void ReadPersistedConfig(Config& cfg);
 
-    bool isInit_ = false;
     std::unique_ptr<HiRetrievalDynamicLoader> dllLoader_;
     std::mutex mgrMutex_;
     std::string workDir_;
