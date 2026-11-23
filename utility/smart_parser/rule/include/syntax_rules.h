@@ -47,6 +47,20 @@ constexpr const char *L3_OR_DESCRIPTOR = "@|@";
 constexpr const char *L3_AND_DESCRIPTOR = "@&@";
 constexpr const char *L3_REGULAR_DESCRIPTOR = "@R@";
 
+constexpr size_t MAX_REGEX_LENGTH = 1024; // 1024 : max length of regex pattern from config
+
+constexpr size_t INVALID_REGEX_DEPTH = static_cast<size_t>(-1); // unbalanced parenthesis
+
+constexpr size_t MAX_REGEX_QUANTIFIER_DEPTH = 1; // 1 : allowed max nesting depth of unbounded quantifiers
+
+size_t GetRegexQuantifierDepth(const std::string& pattern);
+
+inline bool IsRegexPatternSafe(const std::string& pattern)
+{
+    return pattern.size() <= MAX_REGEX_LENGTH &&
+        GetRegexQuantifierDepth(pattern) <= MAX_REGEX_QUANTIFIER_DEPTH;
+}
+
 struct FeatureRule {
     int num {0};
     int skipNum {0};

@@ -1084,5 +1084,170 @@ HWTEST_F(SmartParserModuleTest, SmartParserTest028, TestSize.Level1)
         EXPECT_STREQ(trace[num++].c_str(), line.c_str());
     }
 }
+
+/**
+ * @tc.name: SmartParserTest029
+ * @tc.desc: repeated matches keep param seek record bounded, first match wins and last match updates.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest029, TestSize.Level3)
+{
+    FeatureSet featureSet;
+    featureSet.skipStep = 200; // 200 : more than test line count
+    FeatureRule rule;
+    rule.name = "SegRule";
+    rule.source = "Subject:";
+    rule.param["v_first"] = "Subject: (.*)";
+    rule.param["v_last"] = "@L@Subject: (.*)";
+    featureSet.rules.push_back(rule);
+
+    FeatureAnalysis feature(featureSet, std::map<std::string, std::string>{}, "TEST");
+    std::stringstream buffer;
+    constexpr int lineNum = 100;
+    for (int i = 0; i < lineNum; i++) {
+        buffer << "Subject: line" << i << "\n";
+    }
+    feature.RawInfoPosition(buffer);
+
+    auto records = feature.GetParamSeekRecord();
+    EXPECT_EQ(records.size(), static_cast<size_t>(2)); // 2 : one record for each distinct key
+    for (const auto& record : records) {
+        if (record.first == "SegRule.v_first") {
+            EXPECT_STREQ(record.second.value.c_str(), "line0");
+        }
+        if (record.first == "SegRule.v_last") {
+            EXPECT_STREQ(record.second.value.c_str(), "line99");
+        }
+    }
+}
+
+/**
+ * @tc.name: SmartParserTest030
+ * @tc.desc: IsRegexPatternSafe rejects oversize and nested unbounded quantifier patterns.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest030, TestSize.Level3)
+{
+    EXPECT_FALSE(IsRegexPatternSafe("(a+)+"));
+    EXPECT_FALSE(IsRegexPatternSafe("(a*)*b"));
+    EXPECT_FALSE(IsRegexPatternSafe("((\\d+)*)+"));
+    EXPECT_FALSE(IsRegexPatternSafe("(x{1,})+"));
+    EXPECT_FALSE(IsRegexPatternSafe(std::string(MAX_REGEX_LENGTH + 1, 'a')));
+    EXPECT_TRUE(IsRegexPatternSafe("(.*)"));
+    EXPECT_TRUE(IsRegexPatternSafe("(a|b)*"));
+    EXPECT_TRUE(IsRegexPatternSafe("[a+]+"));
+    EXPECT_TRUE(IsRegexPatternSafe("pid:\\d+,cpu\\d+,.*\\]([A-Za-z].*)"));
+    EXPECT_TRUE(IsRegexPatternSafe(std::string(MAX_REGEX_LENGTH, 'a')));
+}
+
+/**
+ * @tc.name: SmartParserTest031
+ * @tc.desc: unsafe regex params are rejected while safe params still match.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest031, TestSize.Level3)
+{
+    std::string oversize = "(a+)";
+    constexpr int padNum = 260; // 260 : pad to exceed MAX_REGEX_LENGTH
+    for (int i = 0; i < padNum; i++) {
+        oversize.append("b{0}");
+    }
+    FeatureSet featureSet;
+    featureSet.skipStep = 200; // 200 : more than test line count
+    FeatureRule rule;
+    rule.name = "ReDosRule";
+    rule.source = "a";
+    rule.param["v_nested"] = "(a+)+b";
+    rule.param["v_oversize"] = oversize;
+    rule.param["v_safe"] = "(a+)b";
+    rule.param["v_unbalanced"] = "(a+";
+    featureSet.rules.push_back(rule);
+
+    FeatureAnalysis feature(featureSet, std::map<std::string, std::string>{}, "TEST");
+    std::stringstream buffer;
+    buffer << "aaab\n";
+    feature.RawInfoPosition(buffer);
+
+    auto records = feature.GetParamSeekRecord();
+    EXPECT_EQ(records.size(), static_cast<size_t>(1)); // 1 : only safe param is recorded
+    ASSERT_FALSE(records.empty());
+    EXPECT_STREQ(records[0].first.c_str(), "ReDosRule.v_safe");
+    EXPECT_STREQ(records[0].second.value.c_str(), "aaa");
+}
+
+/**
+ * @tc.name: SmartParserTest032
+ * @tc.desc: GetRegexQuantifierDepth returns exact nesting depth, escapes and char classes do not mask depth.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest032, TestSize.Level3)
+{
+    EXPECT_EQ(GetRegexQuantifierDepth("abc"), 0u);
+    EXPECT_EQ(GetRegexQuantifierDepth("a+"), 1u);
+    EXPECT_EQ(GetRegexQuantifierDepth("a*b+"), 1u); // sibling quantifiers do not stack
+    EXPECT_EQ(GetRegexQuantifierDepth("\\d+.*"), 1u);
+    EXPECT_EQ(GetRegexQuantifierDepth("(.*)"), 1u);
+    EXPECT_EQ(GetRegexQuantifierDepth("(a|b)*"), 1u);
+    EXPECT_EQ(GetRegexQuantifierDepth("[a+]+"), 1u); // char class content is masked
+    EXPECT_EQ(GetRegexQuantifierDepth("\\(a+\\)"), 1u); // escaped parens are literals
+    EXPECT_EQ(GetRegexQuantifierDepth("a\\+b+"), 1u); // escaped plus is not a quantifier
+    EXPECT_EQ(GetRegexQuantifierDepth("\\u{1234}a+"), 1u); // unicode escape is not a quantifier
+    EXPECT_EQ(GetRegexQuantifierDepth("\\x{2a}a+"), 1u); // hex escape is not a quantifier
+    EXPECT_EQ(GetRegexQuantifierDepth("(a{2,3}){4,5}"), 0u); // bounded nesting does not stack
+    EXPECT_EQ(GetRegexQuantifierDepth("(a+)+"), 2u);
+    EXPECT_EQ(GetRegexQuantifierDepth("(x{1,})+"), 2u);
+    EXPECT_EQ(GetRegexQuantifierDepth("((\\d+)*)+"), 3u);
+    EXPECT_EQ(GetRegexQuantifierDepth("(x)\\u{1,}"), 0u); // braced escape body is literal
+    EXPECT_GT(GetRegexQuantifierDepth(std::string(33, '(') + "a+"), 1u); // group depth overflow
+    EXPECT_EQ(GetRegexQuantifierDepth("(a+"), INVALID_REGEX_DEPTH);
+    EXPECT_EQ(GetRegexQuantifierDepth("a+)"), INVALID_REGEX_DEPTH);
+    EXPECT_EQ(GetRegexQuantifierDepth(")a+"), INVALID_REGEX_DEPTH);
+    EXPECT_EQ(GetRegexQuantifierDepth("(a\\))"), 0u); // escaped close paren in group
+    EXPECT_EQ(GetRegexQuantifierDepth("[)]+"), 1u); // close paren in char class
+    EXPECT_FALSE(IsRegexPatternSafe("FfrtCallback: task(SERIAL_TASK_TIMEOUT:"));
+    EXPECT_TRUE(IsRegexPatternSafe("FfrtCallback: task\\(SERIAL_TASK_TIMEOUT:.*queue name \\[(sq_\\w+)_\\d+\\]"));
+}
+
+/**
+ * @tc.name: SmartParserTest033
+ * @tc.desc: LAST_MATCH still updates an existing key after record size reaches the upper limit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SmartParserModuleTest, SmartParserTest033, TestSize.Level3)
+{
+    FeatureSet featureSet;
+    featureSet.skipStep = 10; // 10 : more than test line count
+    FeatureRule rule;
+    rule.name = "CapRule";
+    rule.source = "a";
+    constexpr int paramNum = 511; // 511 : fill records to the cap with v_up together
+    for (int i = 0; i < paramNum; i++) {
+        rule.param["v_" + std::to_string(i)] = "a(.*)";
+    }
+    rule.param["v_up"] = "@L@a(.*)";
+    featureSet.rules.push_back(rule);
+
+    FeatureAnalysis feature(featureSet, std::map<std::string, std::string>{}, "TEST");
+    std::stringstream buffer;
+    buffer << "a first\n";
+    buffer << "a second\n";
+    feature.RawInfoPosition(buffer);
+
+    auto records = feature.GetParamSeekRecord();
+    constexpr size_t capSize = 512; // 512 : MAX_PARAM_SEEK_RECORD_SIZE
+    EXPECT_EQ(records.size(), capSize);
+    std::string upValue;
+    for (const auto& record : records) {
+        if (record.first == "CapRule.v_up") {
+            upValue = record.second.value;
+        }
+    }
+    EXPECT_STREQ(upValue.c_str(), " second");
+}
 }  // namespace HiviewDFX
 }  // namespace OHOS

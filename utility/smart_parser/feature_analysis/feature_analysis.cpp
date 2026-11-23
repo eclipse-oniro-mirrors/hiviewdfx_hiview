@@ -33,7 +33,6 @@ DEFINE_LOG_TAG("FeatureAnalysis");
 
 namespace {
     constexpr const char *PARAMETER_REASON = "REASON";
-    constexpr size_t MAX_REGEX_LENGTH = 1024;
     std::string EscapeRegexChars(const std::string& input)
     {
         static const std::string specialChars = R"(\.^$*+?{}[]|())";
@@ -155,7 +154,7 @@ bool FeatureAnalysis::IsSourceMatch(const string& line, const FeatureRule& rule)
     // if startwith "@R@"
     if (L3_REGULAR_DESCRIPTOR == cmdSrc.substr(0, strlen(L3_REGULAR_DESCRIPTOR))) {
         cmdSrc = cmdSrc.substr(strlen(L3_REGULAR_DESCRIPTOR));
-        return (cmdSrc.length() <= MAX_REGEX_LENGTH) && regex_search(line, regex(cmdSrc));
+        return IsRegexPatternSafe(cmdSrc) && regex_search(line, regex(cmdSrc));
     }
 
     // handle OR or AND expression
@@ -216,7 +215,7 @@ bool FeatureAnalysis::ParseElementForParam(const string& src, FeatureRule& rule)
         string value;
         if (reg.find(L3_VARIABLE_TRACE_BLOCK) != string::npos) {
             matched = true;
-        } else if (regex_search(src, result, regex(reg))) {
+        } else if (IsRegexPatternSafe(reg) && regex_search(src, result, regex(reg))) {
             matched = true;
             value = result.str(1).empty() ? "" : string(result.str(1));
         }
@@ -437,13 +436,27 @@ void FeatureAnalysis::ProcessReason(map<string, string>& info)
 
 void FeatureAnalysis::SetParamRecord(const std::string& key, const LineFeature& value, const int type)
 {
-    if (type == LAST_MATCH) {
-        for (auto iter = paramSeekRecord_.begin(); iter != paramSeekRecord_.end(); iter++) {
-            if (iter->first == key) {
-                paramSeekRecord_.erase(iter);
-                break;
-            }
+    bool keyExist = false;
+    for (auto iter = paramSeekRecord_.begin(); iter != paramSeekRecord_.end(); iter++) {
+        if (iter->first != key) {
+            continue;
         }
+        if (type == LAST_MATCH) {
+            paramSeekRecord_.erase(iter);
+        } else {
+            keyExist = true; // FIRST_MATCH: the first record is always used
+        }
+        break;
+    }
+    if (keyExist) {
+        return;
+    }
+    if (paramSeekRecord_.size() >= MAX_PARAM_SEEK_RECORD_SIZE) {
+        if (!paramRecordLimitLogged_) {
+            paramRecordLimitLogged_ = true;
+            HIVIEW_LOGE("<%{public}d> param seek record reaches upper limit.", taskId_);
+        }
+        return;
     }
     paramSeekRecord_.emplace_back(pair<string, LineFeature>(key, value));
 }
@@ -453,6 +466,9 @@ void FeatureAnalysis::SetStackRegex(const std::string& key, const std::string& r
     if (regex.find(L3_VARIABLE_TRACE_BLOCK) != string::npos) {
         StackRegexInfo info;
         info.regex = StringUtil::EraseString(regex, L3_VARIABLE_TRACE_BLOCK);
+        if (!IsRegexPatternSafe(info.regex)) {
+            return;
+        }
         info.skipNum = skipNum;
         stackRegex_.emplace(pair(key, info));
     }

@@ -35,6 +35,7 @@ ohos_source_set("smart_parser") {
     "./feature_analysis/log_util.cpp",
     "./rule/compose_rule.cpp",
     "./rule/extract_rule.cpp",
+    "./rule/regex_validator.cpp",
     "./rule/rule.cpp",
     "smart_parser.cpp",
   ]
@@ -69,6 +70,7 @@ ohos_source_set("smart_parser_with_cfi") {
     "./feature_analysis/log_util.cpp",
     "./rule/compose_rule.cpp",
     "./rule/extract_rule.cpp",
+    "./rule/regex_validator.cpp",
     "./rule/rule.cpp",
     "smart_parser.cpp",
   ]

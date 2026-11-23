@@ -262,7 +262,12 @@ void ExtractRule::GetExtractParam(const Json::Value& rules,
     for (auto iter = rules.begin(); iter != rules.end(); iter++) {
         auto pos = iter.key().asString().find(preKey);
         if (pos == 0) {
-            param.emplace(iter.key().asString(), (*iter).asString());
+            std::string value = (*iter).asString();
+            if (!IsRegexPatternSafe(value)) {
+                HIVIEW_LOGE("regex param (%{public}s) is unsafe.", iter.key().asString().c_str());
+                continue;
+            }
+            param.emplace(iter.key().asString(), value);
         }
     }
 }

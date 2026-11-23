@@ -16,7 +16,9 @@
 
 #include <unistd.h>
 
+#include <climits>
 #include <regex>
+#include <sys/stat.h>
 #include "calc_fingerprint.h"
 #include "file_util.h"
 #include "log_parse.h"
@@ -136,9 +138,14 @@ void Tbox::FilterTrace(std::map<std::string, std::string>& eventInfo, string eve
 
 bool Tbox::WaitForDoneFile(const std::string& file, unsigned int timeout)
 {
+    if (file.empty() || file.length() >= PATH_MAX || !FileUtil::IsLegalPath(file)) {
+        HIVIEW_LOGE("Done file path is illegal: %{public}s", file.c_str());
+        return false;
+    }
     uint64_t remainedTime = timeout * NS_PER_SECOND;
     while (remainedTime > 0) {
-        if (FileUtil::FileExists(file)) {
+        struct stat fileStat = {0};
+        if ((lstat(file.c_str(), &fileStat) == 0) && S_ISREG(fileStat.st_mode)) {
             HIVIEW_LOGD("Done file exist: %{public}s", file.c_str());
             return true;
         }

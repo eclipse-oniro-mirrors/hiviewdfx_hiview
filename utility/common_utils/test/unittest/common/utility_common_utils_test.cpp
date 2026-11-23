@@ -17,6 +17,8 @@
 
 #include <unistd.h>
 
+#include <climits>
+
 #include "calc_fingerprint.h"
 #include "file_util.h"
 #include "log_parse.h"
@@ -492,6 +494,30 @@ HWTEST_F(UtilityCommonUtilsTest, TboxTest013, testing::ext::TestSize.Level3)
         EXPECT_EQ(eventInfos["FIRST_FRAME"], it.f1) << it.eventName << "[" << it.index << "]";
         EXPECT_EQ(eventInfos["SECOND_FRAME"], it.f2) << it.eventName << "[" << it.index << "]";
         EXPECT_EQ(eventInfos["LAST_FRAME"], it.f3) << it.eventName << "[" << it.index << "]";
+    }
+}
+
+/* @tc.name: TboxTest014
+ * @tc.desc: Test WaitForDoneFile with illegal or insecure paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(UtilityCommonUtilsTest, TboxTest014, testing::ext::TestSize.Level3)
+{
+    std::string caseName = "TboxTest014";
+    std::string logDir = GetLogDir(caseName);
+    std::string doneFile = logDir + "testFile0";
+    FileUtil::SaveStringToFile(doneFile, "test");
+
+    ASSERT_TRUE(Tbox::WaitForDoneFile(doneFile, 1));
+    ASSERT_FALSE(Tbox::WaitForDoneFile("", 1));
+    ASSERT_FALSE(Tbox::WaitForDoneFile(std::string(PATH_MAX, 'a'), 1));
+    ASSERT_FALSE(Tbox::WaitForDoneFile(logDir + "../testFile0", 1));
+    ASSERT_FALSE(Tbox::WaitForDoneFile(logDir, 1));
+
+    std::string linkFile = logDir + "linkFile";
+    if (symlink(doneFile.c_str(), linkFile.c_str()) == 0) {
+        ASSERT_FALSE(Tbox::WaitForDoneFile(linkFile, 1));
+        (void)FileUtil::RemoveFile(linkFile);
     }
 }
 }
