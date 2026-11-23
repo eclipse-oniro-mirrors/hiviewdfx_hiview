@@ -17,7 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "event_field_validator.h"
+#undef private
 #include "sys_event.h"
 
 using namespace testing::ext;
@@ -502,4 +504,145 @@ HWTEST_F(EventFieldValidatorTest, EventFieldValidatorTest022, TestSize.Level1)
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("/data/log/eventlog"));
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal("normal_path"));
     EXPECT_FALSE(EventFieldValidator::ContainPathTraversal(""));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_001
+ * @tc.desc: EventFieldValidator - PID and UID match (int-typed body fields)
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_001, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100,
+        "PID":10000, "UID":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    EXPECT_EQ(sysEvent->GetPid(), 10000);
+    EXPECT_EQ(sysEvent->GetUid(), 100);
+    EXPECT_TRUE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_002
+ * @tc.desc: EventFieldValidator - PID mismatch (int-typed) rejected
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_002, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100,
+        "PID":99999, "UID":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    EXPECT_FALSE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_003
+ * @tc.desc: EventFieldValidator - UID mismatch (int-typed) rejected
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_003, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100,
+        "PID":10000, "UID":99999})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    EXPECT_FALSE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_004
+ * @tc.desc: EventFieldValidator - senderPid <= 0 rejected
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_004, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":0, "tid_":0, "uid_":0})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    EXPECT_FALSE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_005
+ * @tc.desc: EventFieldValidator - no body PID/UID fields passes
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_005, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    EXPECT_TRUE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_006
+ * @tc.desc: EventFieldValidator - invalid TID field no longer rejected (TID check removed)
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_006, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100,
+        "PID":10000, "UID":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    sysEvent->SetEventValue("TID", "invalid_tid");
+    EXPECT_TRUE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_007
+ * @tc.desc: EventFieldValidator - string-typed PID match passes
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_007, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    sysEvent->SetEventValue("PID", "10000");
+    EXPECT_TRUE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_008
+ * @tc.desc: EventFieldValidator - string-typed PID mismatch rejected
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_008, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    sysEvent->SetEventValue("PID", "99999");
+    EXPECT_FALSE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_009
+ * @tc.desc: EventFieldValidator - string-typed UID match passes
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_009, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    sysEvent->SetEventValue("UID", "100");
+    EXPECT_TRUE(EventFieldValidator::CheckIdentityFields(sysEvent));
+}
+
+/**
+ * @tc.name: CheckIdentityFields_010
+ * @tc.desc: EventFieldValidator - string-typed UID mismatch rejected
+ */
+HWTEST_F(EventFieldValidatorTest, CheckIdentityFields_010, TestSize.Level3)
+{
+    std::string jsonStr = R"~({"domain_":"AAFWK", "name_":"TEST_EVENT", "type_":1,
+        "time_":1501973701070, "tz_":"+0800", "pid_":10000, "tid_":10000, "uid_":100})~";
+    auto sysEvent = std::make_shared<SysEvent>("test", nullptr, jsonStr);
+    ASSERT_NE(sysEvent, nullptr);
+    sysEvent->SetEventValue("UID", "99999");
+    EXPECT_FALSE(EventFieldValidator::CheckIdentityFields(sysEvent));
 }
