@@ -54,7 +54,7 @@ public:
     {
         static_assert(std::is_same_v<T, bool> || std::is_same_v<T, int> ||
                       std::is_same_v<T, int32_t> || std::is_same_v<T, int64_t> ||
-                      std::is_same_v<T, std::string>,
+                      std::is_same_v<T, long> || std::is_same_v<T, std::string>,
                       "Unsupported type for OverWriteIfExist");
         if (!IsKeyExist(key, node)) {
             return;
@@ -67,8 +67,8 @@ public:
             value = GetIntValue(key, node);
             return;
         }
-        if constexpr (std::is_same_v<T, int64_t>) {
-            value = GetInt64Value(key, node);
+        if constexpr (std::is_same_v<T, int64_t> || std::is_same_v<T, long>) {
+            value = static_cast<T>(GetInt64Value(key, node));
             return;
         }
         if constexpr (std::is_same_v<T, std::string>) {

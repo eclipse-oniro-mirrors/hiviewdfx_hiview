@@ -15,6 +15,7 @@
 
 #include "sysload_manager.h"
 
+#include <cerrno>
 #include <fstream>
 
 #include "fault_common.h"
@@ -201,6 +202,12 @@ bool SysloadManager::SysloadThresholdsIssued(int fd)
 bool SysloadManager::StartSysloadMainWork(int fd)
 {
     if (ioctl(fd, IOCTL_START_RUN_MAIN_WORK) < 0) {
+        if (errno == EPERM) {
+            // The kernel driver returns EPERM when the main work is already running
+            // (e.g. hiview restarted after the first successful start). Treat it as success.
+            HIVIEW_LOGI("sysload main work already started.");
+            return true;
+        }
         HIVIEW_LOGE("sysload issue ioctl failed.");
         return false;
     }
