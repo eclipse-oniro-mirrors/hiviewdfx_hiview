@@ -160,7 +160,7 @@ void SceneMonitor::OnUIContextMessageReceived(uint32_t messageId)
 {
     std::lock_guard<std::mutex> lock(uiContextMessageMutex_);
     int64_t receivedTime = GetCurrentRealTimeNs();
-    XPERF_TRACE_SCOPED("OnUIContextMessageReceived messageId is %u, receivedTime is %ld",
+    XPERF_TRACE_SCOPED("OnUIContextMessageReceived messageId is %u, receivedTime is %" PRId64 "",
         messageId, receivedTime);
     auto it = uiContextMessageReceivedTimeMap.find(messageId);
     if (it != uiContextMessageReceivedTimeMap.end()) {
@@ -177,7 +177,7 @@ void SceneMonitor::OnUIContextMessageProcessed(uint32_t messageId)
 {
     std::lock_guard<std::mutex> lock(uiContextMessageMutex_);
     int64_t currentRealTimeNs = GetCurrentRealTimeNs();
-    XPERF_TRACE_SCOPED("OnUIContextMessageProcessed messageId is %u, currentTime is %ld",
+    XPERF_TRACE_SCOPED("OnUIContextMessageProcessed messageId is %u, currentTime is %" PRId64 "",
         messageId, currentRealTimeNs);
     g_animtionCallbackTime.store(currentRealTimeNs);
     auto it = uiContextMessageReceivedTimeMap.find(messageId);
