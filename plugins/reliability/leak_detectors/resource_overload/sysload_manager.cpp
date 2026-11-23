@@ -15,6 +15,7 @@
 
 #include "sysload_manager.h"
 
+#include <cerrno>
 #include <fstream>
 
 #include "fault_common.h"
