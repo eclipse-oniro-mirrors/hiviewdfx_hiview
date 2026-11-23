@@ -24,9 +24,11 @@ namespace OHOS {
 namespace HiviewDFX {
 class FaultLogFreeze final : public FaultLogEventIpc {
 private:
+    static void WriteEvent(FaultLogInfo& info);
     bool ReportEventToAppEvent() const override;
     bool UpdateCommonInfo() override;
     void UpdateFaultLogInfo() override;
+    void ReportEventToHiSysEvent() override;
 
     FreezeJsonUtil::FreezeJsonCollector GetFreezeJsonCollector(const FaultLogInfo& info) const;
     std::string GetMemoryStrByPid(const std::map<std::string, std::string>& sectionMap, bool includePss) const;

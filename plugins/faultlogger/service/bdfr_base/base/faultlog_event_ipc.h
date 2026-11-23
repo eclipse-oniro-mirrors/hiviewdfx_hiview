@@ -27,8 +27,23 @@ public:
 protected:
     virtual void DoFaultLogLimit(const std::string& logPath) const {}
     virtual bool ReportEventToAppEvent() const { return false; };
-    void SaveFaultInfoToRawDb();
+    virtual void ReportEventToHiSysEvent() = 0;
 };
 } // namespace HiviewDFX
 } // namespace OHOS
+
+#define EVENT_PARAM_CTOR(pName, pType, uType, pVal, pSize) \
+    { \
+        .name = (pName), \
+        .t = (pType), \
+        .v = {.uType = (pVal)}, \
+        .arraySize = (pSize) \
+    }
+
+#define EVENT_PARAM_STRING(pName, pVal) EVENT_PARAM_CTOR(pName, HISYSEVENT_STRING, s, pVal, 0)
+
+#define EVENT_PARAM_INT32(pName, pVal) EVENT_PARAM_CTOR(pName, HISYSEVENT_INT32, i32, pVal, 0)
+
+#define EVENT_PARAM_INT64(pName, pVal) EVENT_PARAM_CTOR(pName, HISYSEVENT_INT64, i64, pVal, 0)
+
 #endif // FAULTLOG_EVENT_IPC_H

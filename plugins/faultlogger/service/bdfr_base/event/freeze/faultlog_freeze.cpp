@@ -17,6 +17,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include "constants.h"
 #include "event_publish.h"
@@ -25,6 +26,8 @@
 #include "file_util.h"
 #include "freeze_json_generator.h"
 #include "hisysevent.h"
+#include "hisysevent_c.h"
+#include "hitrace/hitracechainc.h"
 #include "hiview_logger.h"
 #include "log_analyzer.h"
 #include "string_util.h"
@@ -388,5 +391,127 @@ std::string FaultLogFreeze::GetIOJsonValue(const std::map<std::string, std::stri
     builder["indentation"] = "";
     return Json::writeString(builder, ioJson);
 }
+
+namespace {
+const int32_t INVALID_SAMPLER_COUNT = -1;
+
+std::vector<HiSysEventParam> InitCommonFreezeParams(FaultLogInfo& info)
+{
+    return {
+        EVENT_PARAM_INT32("PID", info.pid),
+        EVENT_PARAM_INT32("UID", info.id),
+        EVENT_PARAM_STRING("MODULE", info.module.data()),
+        EVENT_PARAM_STRING("REASON", info.reason.data()),
+        EVENT_PARAM_STRING("PNAME", info.sectionMap["PROCESS_NAME"].data()),
+        EVENT_PARAM_STRING("VERSION", info.sectionMap[FaultKey::MODULE_VERSION].data()),
+        EVENT_PARAM_STRING("FOREGROUND", info.sectionMap[FaultKey::FOREGROUND].data()),
+        EVENT_PARAM_INT32("FOCUS_MODE", strtol(info.sectionMap[FaultKey::FOCUS_MODE].c_str(), nullptr, DECIMAL_BASE)),
+        EVENT_PARAM_INT64("HAPPEN_TIME", info.time),
+        EVENT_PARAM_STRING("FIRST_FRAME", info.sectionMap[FaultKey::FIRST_FRAME].data()),
+        EVENT_PARAM_STRING("SECOND_FRAME", info.sectionMap[FaultKey::SECOND_FRAME].data()),
+        EVENT_PARAM_STRING("LAST_FRAME", info.sectionMap[FaultKey::LAST_FRAME].data()),
+        EVENT_PARAM_STRING("FINGERPRINT", info.sectionMap[FaultKey::FINGERPRINT].data()),
+        EVENT_PARAM_STRING("STACK", info.sectionMap[FaultKey::STACK].data()),
+        EVENT_PARAM_STRING("LOG_PATH", info.logPath.data()),
+    };
+}
+
+void AppendFreezeBaseParams(std::vector<HiSysEventParam>& params, FaultLogInfo& info)
+{
+    HiSysEventParam baseParams[] = {
+        EVENT_PARAM_STRING("SUB_EVENT_TYPE", info.sectionMap["SUB_EVENT_TYPE"].data()),
+        EVENT_PARAM_STRING("EVENT_TIME", info.sectionMap["EVENT_TIME"].data()),
+        EVENT_PARAM_STRING("DIAG_INFO", info.sectionMap["DIAG_INFO"].data()),
+        EVENT_PARAM_STRING("HIVIEW_LOG_FILE_PATHS", info.sectionMap["HIVIEW_LOG_FILE_PATHS"].data()),
+        EVENT_PARAM_STRING("DOMAIN", info.sectionMap["DOMAIN"].data()),
+        EVENT_PARAM_STRING("STRING_ID", info.sectionMap["STRING_ID"].data()),
+        EVENT_PARAM_STRING("PACKAGE_NAME", info.sectionMap[FaultKey::PACKAGE_NAME].data()),
+        EVENT_PARAM_STRING("PROCESS_NAME", info.sectionMap["PROCESS_NAME"].data()),
+        EVENT_PARAM_STRING("MSG", info.sectionMap["MSG"].data()),
+        EVENT_PARAM_STRING("VERSION_CODE", info.sectionMap[FaultKey::VERSION_CODE].data()),
+        EVENT_PARAM_STRING("APP_RUNNING_UNIQUE_ID", info.sectionMap[FaultKey::APP_RUNNING_UNIQUE_ID].data()),
+    };
+    params.insert(params.end(), baseParams, baseParams + sizeof(baseParams) / sizeof(HiSysEventParam));
+}
+
+void AppendAppFreezeParams(std::vector<HiSysEventParam>& params, FaultLogInfo& info,
+    std::string& faultLogType)
+{
+    int32_t samplerCount = INVALID_SAMPLER_COUNT;
+    if (!StringUtil::StrToInt(info.sectionMap["SAMPLER_COUNT"], samplerCount) ||
+        samplerCount < INVALID_SAMPLER_COUNT) {
+        samplerCount = INVALID_SAMPLER_COUNT;
+    }
+    HiSysEventParam appParams[] = {
+        EVENT_PARAM_STRING("SUMMARY", info.summary.data()),
+        EVENT_PARAM_STRING("FAULT_TYPE", faultLogType.data()),
+        EVENT_PARAM_STRING("IS_SYSTEM_APP", info.sectionMap[FaultKey::IS_SYSTEM_APP].data()),
+        EVENT_PARAM_STRING("PRE_INSTALL", info.sectionMap[FaultKey::PRE_INSTALL].data()),
+        EVENT_PARAM_STRING("TELEMETRY_ID", info.sectionMap[FaultKey::TELEMETRY_ID].data()),
+        EVENT_PARAM_STRING("TRACE_NAME", info.sectionMap[FaultKey::TRACE_NAME].data()),
+        EVENT_PARAM_STRING("THERMAL_LEVEL", info.sectionMap[FaultKey::THERMAL_LEVEL].data()),
+        EVENT_PARAM_INT32("SAMPLER_COUNT", samplerCount),
+        EVENT_PARAM_STRING("LOG_VALIDITY", info.sectionMap["LOG_VALIDITY"].data()),
+        EVENT_PARAM_STRING("FREEZE_INFO_PATH", info.sectionMap[FaultKey::FREEZE_INFO_PATH].data()),
+    };
+    params.insert(params.end(), appParams, appParams + sizeof(appParams) / sizeof(HiSysEventParam));
+}
+
+void AppendSysFreezeParams(std::vector<HiSysEventParam>& params, FaultLogInfo& info)
+{
+    HiSysEventParam sysParams[] = {
+        EVENT_PARAM_STRING("TASK_NAME", info.sectionMap[FaultKey::TASK_NAME].data()),
+        EVENT_PARAM_INT64("LIFETIME", GetLifeTimeValue(info)),
+        EVENT_PARAM_INT64("DEVICE_RUNNING_TIME", GetInt64Value(info, FaultKey::DEVICE_RUNNING_TIME)),
+        EVENT_PARAM_STRING("HOST_RESOURCE_WARNING", info.sectionMap[FaultKey::HOST_RESOURCE_WARNING].data()),
+    };
+    params.insert(params.end(), sysParams, sysParams + sizeof(sysParams) / sizeof(HiSysEventParam));
+}
+
+void AppendFreezeWarningParams(std::vector<HiSysEventParam>& params, FaultLogInfo& info,
+    std::string& faultLogType)
+{
+    HiSysEventParam warningParams[] = {
+        EVENT_PARAM_STRING("FAULT_TYPE", faultLogType.data()),
+        EVENT_PARAM_STRING("SUMMARY", info.summary.data()),
+        EVENT_PARAM_STRING("PRE_INSTALL", info.sectionMap[FaultKey::PRE_INSTALL].data()),
+        EVENT_PARAM_INT64("HITRACE_TIME", GetInt64Value(info, "HITRACE_TIME")),
+        EVENT_PARAM_INT64("SYSRQ_TIME", GetInt64Value(info, "SYSRQ_TIME")),
+        EVENT_PARAM_STRING("TASK_NAME", info.sectionMap[FaultKey::TASK_NAME].data()),
+    };
+    params.insert(params.end(), warningParams,
+        warningParams + sizeof(warningParams) / sizeof(HiSysEventParam));
+}
+}
+
+void FaultLogFreeze::WriteEvent(FaultLogInfo& info)
+{
+    std::string eventName = GetFaultNameByType(info.faultLogType, false);
+    FillInfoDefault(info);
+    auto faultLogType = std::to_string(info.faultLogType);
+    auto params = InitCommonFreezeParams(info);
+    if (info.faultLogType == FaultLogType::APP_FREEZE) {
+        AppendFreezeBaseParams(params, info);
+        AppendAppFreezeParams(params, info, faultLogType);
+    } else if (info.faultLogType == FaultLogType::SYS_FREEZE) {
+        AppendFreezeBaseParams(params, info);
+        AppendSysFreezeParams(params, info);
+    } else {
+        AppendFreezeWarningParams(params, info, faultLogType);
+    }
+    int result = OH_HiSysEvent_Write(HiSysEvent::Domain::RELIABILITY, eventName.data(), HISYSEVENT_FAULT,
+        params.data(), params.size());
+    HIVIEW_LOGI("SaveFaultLogInfo for event: %{public}s, and result = %{public}d", eventName.c_str(), result);
+}
+
+void FaultLogFreeze::ReportEventToHiSysEvent()
+{
+    HiTraceIdStruct hitraceId = HiTraceChainGetId();
+    HiTraceChainSetId(&hitraceId);
+    FaultLogInfo info = info_;
+    WriteEvent(info);
+    HiTraceChainClearId();
+}
+
 } // namespace HiviewDFX
 } // namespace OHOS

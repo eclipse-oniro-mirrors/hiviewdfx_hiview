@@ -113,6 +113,7 @@ group("unittest") {
     "interfaces/js/test/unittest:unittest",
     "service/bdfr_base/test:AsanUnittest",
     "service/bdfr_base/test:FaultloggerBaseUnittest",
+    "service/bdfr_base/test:FaultloggerStrongValidateTest",
     "service/bdfr_base/test:FreezeJsonGeneratorUnittest",
     "test:FaultloggerClientUnittest",
     "test:FaultloggerUnittest",
