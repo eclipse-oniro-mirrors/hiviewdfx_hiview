@@ -124,15 +124,6 @@ namespace {
     constexpr int WINDOW_ID_BUFF = 32;
     constexpr int HEAP_SHARED_TOTAL_SIZE = 815792128;
     constexpr size_t END_FLAG_SIZE = 14;
-    constexpr const char* EVENT_LIFECYCLE_HALF_TIMEOUT = "LIFECYCLE_HALF_TIMEOUT";
-    constexpr const char* EVENT_LIFECYCLE_HALF_TIMEOUT_WARNING = "LIFECYCLE_HALF_TIMEOUT_WARNING";
-    constexpr const char* EVENT_LIFECYCLE_TIMEOUT = "LIFECYCLE_TIMEOUT";
-    constexpr const char* EVENT_LIFECYCLE_TIMEOUT_WARNING = "LIFECYCLE_TIMEOUT_WARNING";
-    constexpr const char* EVENT_APP_LIFECYCLE_TIMEOUT = "APP_LIFECYCLE_TIMEOUT";
-    constexpr const char* EVENT_THREAD_BLOCK_3S = "THREAD_BLOCK_3S";
-    constexpr const char* EVENT_THREAD_BLOCK_6S = "THREAD_BLOCK_6S";
-    constexpr const char* EVENT_APP_INPUT_BLOCK = "APP_INPUT_BLOCK";
-    constexpr const char* EVENT_BUSINESS_INPUT_BLOCK = "BUSINESS_INPUT_BLOCK";
 }
 
 REGISTER(EventLogger);

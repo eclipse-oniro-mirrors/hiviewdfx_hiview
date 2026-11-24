@@ -37,15 +37,10 @@
 
 namespace OHOS {
 namespace HiviewDFX {
-struct BinderInfo {
-    int client;
-    int server;
-    unsigned long wait;
-};
 
 class EventLogger : public EventListener, public Plugin {
 public:
-    EventLogger() : startTime_(time(nullptr)) {};
+    EventLogger() {};
     ~EventLogger() {};
     bool OnEvent(std::shared_ptr<Event> &event) override;
     void OnLoad() override;
@@ -81,13 +76,10 @@ private:
     std::unique_ptr<DBHelper> dbHelper_ = nullptr;
     std::shared_ptr<FreezeCommon> freezeCommon_ = nullptr;
     long lastPid_ = 0;
-    uint64_t startTime_;
     std::unordered_map<std::string, std::time_t> eventTagTime_;
     std::unordered_map<std::string, std::pair<std::time_t, std::set<int64_t>>> uidPidCountMap_;
-    std::unordered_map<int, std::string> fileMap_;
     std::unordered_map<std::string, EventLoggerConfig::EventLoggerConfigData> eventLoggerConfig_;
     std::shared_ptr<EventLoop> threadLoop_ = nullptr;
-    int const maxEventPoolCount = 5;
     ffrt::mutex intervalMutex_;
     std::string cmdlinePath_ = "/proc/cmdline";
     std::string cmdlineContent_ = "";
@@ -138,7 +130,6 @@ private:
     void WriteBinderInfo(int jsonFd, std::string& binderInfo, std::vector<std::string>& binderPids,
         std::string& threadStack, std::string& kernelStack, std::string bundleName);
     bool UpdateDB(std::shared_ptr<SysEvent> event, std::string logFile);
-    void CreateAndPublishEvent(std::string& dirPath, std::string& fileName);
     bool CheckProcessRepeatFreeze(const std::string& eventName, long pid);
     bool CheckScreenOnRepeat(std::shared_ptr<SysEvent> event);
     bool IsHandleAppfreeze(std::shared_ptr<SysEvent> event);
@@ -153,7 +144,6 @@ private:
     bool GetMatchResetString(const std::string& src, std::string& dst) const;
     void WriteCallStack(std::shared_ptr<SysEvent> event, int fd);
     long GetEventPid(std::shared_ptr<SysEvent> &sysEvent);
-    void LogStoreSetting();
     void AddBootScanEvent();
     bool CheckContinueReport(const std::shared_ptr<SysEvent> &sysEvent, long pid,
         const std::string &eventName);
@@ -169,7 +159,6 @@ private:
     void WriteIOStr(std::shared_ptr<SysEvent> event, std::ostringstream& headerStream);
     bool ParseMsgForMessageAndEventHandler(const std::string& msg,
         std::string& message, std::string& eventHandlerStr);
-    bool ContainsPriorityKeyword(const std::string& line);
     bool MatchEventStartFlag(const std::string& line);
     bool MatchEventEndFlag(const std::string& line);
     bool IsDumpTargetPermitted(const std::shared_ptr<SysEvent>& event) const;

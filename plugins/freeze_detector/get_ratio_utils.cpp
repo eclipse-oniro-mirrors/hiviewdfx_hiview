@@ -46,12 +46,6 @@ FreezeGetRatio::FreezeGetRatio()
 FreezeGetRatio::~FreezeGetRatio()
 {}
  
-FreezeGetRatio &FreezeGetRatio::GetInStance()
-{
-    static FreezeGetRatio instance;
-    return instance;
-}
- 
 float FreezeGetRatio::GetAppfreezeTimeoutRatio()
 {
     if (gAppfreezeTimeoutRatio > FLOAT_EPSILON) {

@@ -34,7 +34,6 @@ namespace HiviewDFX {
 namespace {
     const size_t FREEZE_EXT_FILE_SIZE = 2;
     const size_t FREEZE_CPU_INDEX = 1;
-    const int SYS_MATCH_NUM = 1;
     const int APP_MATCH_NUM = 1;
     const int MILLISECOND = 1000;
     const int TIME_STRING_LEN = 16;
@@ -86,7 +85,6 @@ namespace {
     constexpr const char* MS = "ms";
     constexpr int ARKWEB_UID_START = 20100000;
     constexpr int ARKWEB_UID_END = 20109999;
-    constexpr uint64_t QUERY_KEY_PROCESS_EVENT_INTERVAL = 15000;
     constexpr const char* EVENT_RENDER_JS_FREEZE = "RENDER_JS_FREEZE";
     constexpr size_t MAX_HEAVY_STACK_SIZE = 128 * 1024;
 }
@@ -294,8 +292,6 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
     }
     std::string stackFile;
     std::string cpuFile;
-    std::string eventName;
-    std::string path;
     
     std::vector<std::string> fileList;
     StringUtil::SplitStr(watchPoint.GetFreezeExtFile(), ",", fileList);
@@ -303,7 +299,6 @@ std::string Vendor::MergeFreezeExtFile(const WatchPoint &watchPoint, const std::
         HIVIEW_LOGW("fileList size exceeds limit, size:%{public}zu.", fileList.size());
         return "";
     }
-    size_t fileSize = fileList.size();
     HIVIEW_LOGI("start to get freeze cpu and stack file, fileList size:%{public}zu.", fileList.size());
     if (fileList.size() == FREEZE_EXT_FILE_SIZE) {
         std::string freezeExtFile = fileList[0];

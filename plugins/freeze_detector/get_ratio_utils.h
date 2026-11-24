@@ -24,7 +24,6 @@ class FreezeGetRatio : public DelayedSingleton<FreezeGetRatio> {
 public:
     FreezeGetRatio();
     ~FreezeGetRatio();
-    static FreezeGetRatio &GetInStance();
     static float GetAppfreezeTimeoutRatio();
     static float GetAbilitymsTimeoutRatio();
     static bool IsNumeric(const std::string &str);

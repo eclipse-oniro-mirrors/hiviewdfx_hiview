@@ -44,7 +44,6 @@ public:
     static constexpr int32_t MIN_APP_UID = 10000;
     FreezeManager();
     ~FreezeManager();
-    static FreezeManager &GetInStance();
     void InitLogStore();
     static std::string GetAppFreezeFile(const std::string& stackPath, bool isDelayRemove = false,
         bool isNeedRealPath = true);

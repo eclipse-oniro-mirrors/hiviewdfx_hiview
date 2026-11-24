@@ -312,11 +312,6 @@ std::string FreezeResult::GetStringId() const
     return stringId_;
 }
 
-unsigned long FreezeResult::GetId() const
-{
-    return code_;
-}
-
 void FreezeResult::SetId(unsigned long code)
 {
     code_ = code;
@@ -372,19 +367,9 @@ std::string FreezeRule::GetDomain() const
     return domain_;
 }
 
-void FreezeRule::SetDomain(const std::string& domain)
-{
-    domain_ = domain;
-}
-
 std::string FreezeRule::GetStringId() const
 {
     return stringId_;
-}
-
-void FreezeRule::SetStringId(const std::string& stringId)
-{
-    stringId_ = stringId;
 }
 
 std::map<std::string, FreezeResult> FreezeRule::GetMap() const
@@ -400,18 +385,6 @@ void FreezeRule::AddResult(const std::string& domain, const std::string& stringI
     }
 
     results_[domain + stringId] = result;
-}
-
-bool FreezeRule::GetResult(const std::string& domain, const std::string& stringId, FreezeResult& result)
-{
-    if (results_.find(domain + stringId) == results_.end()) {
-        HIVIEW_LOGE("failed to find rule result, domain:%{public}s stringid:%{public}s.",
-            domain.c_str(), stringId.c_str());
-        return false;
-    }
-
-    result = results_[domain + stringId]; // take result back
-    return true;
 }
 } // namespace HiviewDFX
 } // namespace OHOS

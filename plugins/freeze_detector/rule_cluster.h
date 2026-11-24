@@ -33,13 +33,9 @@ public:
     FreezeResult(long window, const std::string& domain, const std::string& stringId)
         : window_(window), delay_(0), code_(0), scope_(""), samePackage_(""), domain_(domain), stringId_(stringId),
         action_("and") {};
-    FreezeResult(unsigned long code, const std::string& scope)
-        : window_(0), delay_(0), code_(code), scope_(scope), samePackage_(""), domain_(""), stringId_(""),
-        action_("and") {};
     ~FreezeResult() {};
     std::string GetDomain() const;
     std::string GetStringId() const;
-    unsigned long GetId() const;
     void SetId(unsigned long code);
     std::string GetScope() const;
     void SetScope(const std::string& scope);
@@ -73,13 +69,10 @@ public:
     }
 
     std::string GetDomain() const;
-    void SetDomain(const std::string& domain);
     std::string GetStringId() const;
-    void SetStringId(const std::string& stringId);
     std::map<std::string, FreezeResult> GetMap() const;
 
     void AddResult(const std::string& domain, const std::string& stringId, const FreezeResult& result);
-    bool GetResult(const std::string& domain, const std::string& stringId, FreezeResult& result);
 
 private:
     std::string domain_;
