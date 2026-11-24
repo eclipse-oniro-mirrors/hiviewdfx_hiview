@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -23,6 +23,7 @@ group("unittest") {
     ":EventBaseTest",
     ":EventJsonParserTest",
     ":EventLoopTest",
+    ":EventSourceTest",
     ":ParseConfigTest",
     ":PluginFactoryTest",
     ":PluginPipelineTest",
@@ -113,6 +114,21 @@ ohos_unittest("SysEventTest") {
   configs = [ ":unittest_config" ]
 
   sources = [ "unittest/common/sys_event_test.cpp" ]
+
+  deps = [ "$hiview_base:hiview_base" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+ohos_unittest("EventSourceTest") {
+  module_out_path = module_output_path
+  configs = [ ":unittest_config" ]
+
+  sources = [ "unittest/common/event_source_test.cpp" ]
 
   deps = [ "$hiview_base:hiview_base" ]
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,6 +22,7 @@ group("unittest") {
     ":AdapterUtilityOhosTest",
     ":BaseUtilityUnitTest",
     ":BundleUtilTest",
+    ":SettingObserverManagerTest",
     ":SystemServiceOhosUnitTest",
   ]
 }
@@ -103,7 +104,6 @@ ohos_unittest("AdapterUtilityOhosTest") {
 
 ohos_unittest("BundleUtilTest") {
   module_out_path = module_output_path
-
   configs = [ ":base_utility_config_test" ]
 
   sources = [ "unittest/common/bundle_util_test.cpp" ]
@@ -117,4 +117,28 @@ ohos_unittest("BundleUtilTest") {
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
+}
+
+ohos_unittest("SettingObserverManagerTest") {
+  module_out_path = module_output_path
+  configs = [ ":base_utility_config_test" ]
+
+  sources = [ "unittest/common/setting_observer_manager_test.cpp" ]
+
+  deps = [ "$hiview_base/utility:hiview_utility" ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
+    "c_utils:utils",
+    "data_share:datashare_consumer",
+    "ffrt:libffrt",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "relational_store:native_rdb",
+    "samgr:samgr_proxy",
+  ]
+
+  resource_config_file = "$hiview_base/utility/test/resource/ohos_test.xml"
 }

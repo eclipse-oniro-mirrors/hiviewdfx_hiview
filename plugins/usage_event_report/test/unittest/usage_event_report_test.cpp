@@ -21,6 +21,14 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace HiviewDFX {
+class TestHiviewContext : public HiviewContext {
+public:
+    std::string GetHiViewDirectory(DirectoryType type) override
+    {
+        return "/data/test/hiview/usage_event_report";
+    }
+};
+
 class UsageEventReportTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
@@ -38,6 +46,8 @@ public:
 HWTEST_F(UsageEventReportTest, UsageEventReportTest001, TestSize.Level1)
 {
     UsageEventReport plugin;
+    TestHiviewContext context;
+    plugin.SetHiviewContext(&context);
     // load plugin
     plugin.OnLoad();
     EXPECT_TRUE(plugin.IsRunning());
