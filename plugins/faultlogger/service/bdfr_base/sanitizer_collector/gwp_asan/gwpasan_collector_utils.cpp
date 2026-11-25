@@ -127,11 +127,15 @@ void GetFormatedTime(uint64_t target, char* buf, size_t bufSize)
     struct tm tmStruct {0};
     struct tm* timeInfo = gmtime_r(&out, &tmStruct);
     if (timeInfo == nullptr) {
-        strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
+        if (strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1) != EOK) {
+            buf[0] = '\0';
+        }
         return;
     }
     if (bufSize < TIME_FORMAT_LEN) {
-        strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1);
+        if (strncpy_s(buf, bufSize, ZERO_TIME_FORMAT, sizeof(ZERO_TIME_FORMAT) - 1) != EOK) {
+            buf[0] = '\0';
+        }
         return;
     }
     (void)strftime(buf, bufSize, "%Y%m%d%H%M%S", timeInfo);

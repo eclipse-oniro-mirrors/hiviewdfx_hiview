@@ -29,6 +29,6 @@ constexpr char FAULT_TYPE_ASAN[] = "ASAN";
 void GetFormatedTime(uint64_t target, char* buf, size_t bufSize);
 void GetNameByPid(int32_t pid, char* buf, size_t bufSize);
 bool ToAbsolutePath(const char* path, char* output, size_t outSize);
-bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufsize);
+bool RealpathAsyncSafe(const char* path, char* resolved, size_t bufSize);
 const char* DetectFaultType(const char* tail, size_t tailLen, const char* data, size_t len);
 #endif
