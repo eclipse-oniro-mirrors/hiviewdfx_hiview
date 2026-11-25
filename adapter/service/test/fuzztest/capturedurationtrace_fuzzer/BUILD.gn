@@ -25,6 +25,7 @@ ohos_fuzztest("CaptureDurationTraceFuzzTest") {
     "capturedurationtrace_fuzzer.h",
     "$hiview_adapter/service/common/include",
     "$hiview_adapter/service/server/include",
+    "$hiview_adapter/service/test/fuzztest/common/include",
   ]
 
   cflags = [
@@ -46,6 +47,7 @@ ohos_fuzztest("CaptureDurationTraceFuzzTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken_shared",
     "access_token:libtoken_setproc",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",

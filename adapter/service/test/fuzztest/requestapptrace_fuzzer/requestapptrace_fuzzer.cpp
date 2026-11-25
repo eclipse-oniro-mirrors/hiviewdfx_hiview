@@ -20,6 +20,7 @@
 #include <string>
 
 #include "accesstoken_kit.h"
+#include "fuzz_data_source.h"
 #include "hiview_platform.h"
 #include "hiview_service_ability.h"
 #include "nativetoken_kit.h"
@@ -33,6 +34,7 @@ namespace {
 HiviewService g_hiviewService;
 auto g_hiviewServiceAbility = std::make_shared<HiviewServiceAbility>();
 bool g_isInit = false;
+constexpr size_t MAX_STR_LEN = 100;
 
 class MockRequestTraceCallback : public RequestTraceCallbackStub {
 public:
@@ -68,12 +70,17 @@ void InitEnv()
 
 static void RequestAppTraceFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     InitEnv();
-    std::string strData(reinterpret_cast<const char*>(data), size);
+    FuzzDataSource source(data, size);
     UCollectClient::TraceConfig traceConfig;
+    (void)source.GetValue(traceConfig.bufferSize);
+    (void)source.GetValue(traceConfig.duration);
+    std::string strData;
+    (void)source.GetString(strData, MAX_STR_LEN);
     traceConfig.prefix = strData;
-    traceConfig.bufferSize = static_cast<uint32_t>(size);
-    traceConfig.duration = static_cast<uint32_t>(size);
     TraceConfigParcelable traceConfigParcelable(traceConfig);
     sptr<IRequestTraceCallback> callback = new MockRequestTraceCallback();
     g_hiviewServiceAbility->RequestAppTrace(traceConfigParcelable, callback);
