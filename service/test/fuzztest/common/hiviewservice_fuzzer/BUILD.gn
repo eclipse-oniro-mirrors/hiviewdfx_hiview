@@ -19,7 +19,10 @@ ohos_fuzztest("HiviewServiceFuzzTest") {
 
   fuzz_config_file = "../hiviewservice_fuzzer"
 
-  include_dirs = [ "hiviewservice_fuzzer.h" ]
+  include_dirs = [
+    "hiviewservice_fuzzer.h",
+    "$hiview_adapter/service/test/fuzztest/common/include",
+  ]
 
   cflags = [
     "-g",
@@ -32,12 +35,13 @@ ohos_fuzztest("HiviewServiceFuzzTest") {
 
   deps = [
     "$hiview_adapter/service:hiview_service_adapter",
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
     "$hiview_service:hiview_service",
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",

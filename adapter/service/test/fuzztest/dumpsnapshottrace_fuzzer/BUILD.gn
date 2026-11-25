@@ -38,7 +38,7 @@ ohos_fuzztest("DumpSnapshotTraceFuzzTest") {
   sources = [ "dumpsnapshottrace_fuzzer.cpp" ]
 
   deps = [
-    "$hiview_base:hiviewbase_static_lib_for_tdd",
+    "$hiview_base:hiviewbase",
     "$hiview_core:hiview_core",
     "$hiview_service:hiview_service",
   ]

@@ -333,7 +333,7 @@ group("unittest") {
   testonly = true
   deps = [
     "decorator/test:DecoratorUnitTest",
-    "collector/test:CommonUtilTest",
+    "collector/test/unittest:CommonUtilTest",
   ]
 
   if (hiview_unified_collector_trace_enable) {
@@ -353,4 +353,15 @@ group("unittest") {
   if (has_hiperf && hiview_unified_collector_perf_enable) {
     deps += [ "collector/config/test/unittest:PerfCollectConfigUnitTest" ]
   }
+}
+
+group("fuzztest") {
+  testonly = true
+  deps = [
+    "collector/test/fuzztest/decorator_fuzzer:DecoratorFuzzTest",
+    "collector/test/fuzztest/cpucollector_fuzzer:CpuCollectorFuzzTest",
+    "collector/test/fuzztest/perfcollector_fuzzer:PerfCollectorFuzzTest",
+    "collector/test/fuzztest/graphicmemorycollector_fuzzer:GraphicMemoryCollectorFuzzTest",
+    "collector/test/fuzztest/tracecollector_fuzzer:TraceCollectorFuzzTest",
+  ]
 }

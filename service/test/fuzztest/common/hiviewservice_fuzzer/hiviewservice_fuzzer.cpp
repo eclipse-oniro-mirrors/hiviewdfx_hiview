@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "fuzz_data_source.h"
 #include "hiview_service.h"
 #include "hiview_platform.h"
 
@@ -31,6 +32,9 @@ namespace HiviewDFX {
 namespace {
 HiviewService g_hiviewService;
 int g_fd = 0;
+constexpr size_t BINARY_MOD = 2;
+constexpr size_t MAX_STR_LEN = 100;
+constexpr int32_t HIVIEW_UID = 1201;
 
 struct Initializer {
     Initializer()
@@ -80,6 +84,87 @@ static void HiViewServiceDumpSnapshotTraceFuzzTest(const uint8_t* data, size_t s
     std::string tag = std::string(reinterpret_cast<const char*>(data), size);
     g_hiviewService.DumpSnapshotTrace("fuzzTest" + tag, false);
 }
+
+static void HiViewServiceFileOperateFuzzTest(const uint8_t* data, size_t size)
+{
+    std::string srcFile = std::string(reinterpret_cast<const char*>(data), size);
+    std::string destFile = srcFile + "_dest";
+    (void)g_hiviewService.Copy(srcFile, destFile);
+    (void)g_hiviewService.Move(srcFile, destFile);
+    (void)g_hiviewService.Remove(destFile);
+    (void)g_hiviewService.Remove(srcFile);
+}
+
+static void HiViewServiceRecordingTraceFuzzTest(const uint8_t* data, size_t size)
+{
+    std::string outputPath = std::string(reinterpret_cast<const char*>(data), size);
+    (void)g_hiviewService.RecordingTraceOn(outputPath);
+    (void)g_hiviewService.RecordingTraceOff();
+    (void)g_hiviewService.CloseTrace();
+}
+
+static void HiViewServiceCaptureDurationTraceFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    FuzzDataSource source(data, size);
+    UCollectClient::AppCaller appCaller;
+    (void)source.GetValue(appCaller.actionId);
+    (void)source.GetValue(appCaller.foreground);
+    (void)source.GetValue(appCaller.uid);
+    (void)source.GetValue(appCaller.pid);
+    (void)source.GetValue(appCaller.happenTime);
+    (void)source.GetValue(appCaller.beginTime);
+    (void)source.GetValue(appCaller.endTime);
+    uint8_t isBusinessJank = 0;
+    (void)source.GetValue(isBusinessJank);
+    appCaller.isBusinessJank = (isBusinessJank % BINARY_MOD == 0);
+    std::string strData;
+    (void)source.GetString(strData, MAX_STR_LEN);
+    appCaller.bundleName = strData;
+    appCaller.bundleVersion = strData;
+    appCaller.threadName = strData;
+    (void)g_hiviewService.CaptureDurationTrace(appCaller);
+}
+
+static void HiViewServiceSysCpuUsageFuzzTest(const uint8_t* data, size_t size)
+{
+    (void)data;
+    (void)size;
+    (void)g_hiviewService.GetSysCpuUsage();
+}
+
+static void HiViewServiceMemoryFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    FuzzDataSource source(data, size);
+    UCollectClient::MemoryCaller memoryCaller;
+    (void)source.GetValue(memoryCaller.pid);
+    (void)source.GetValue(memoryCaller.limitValue);
+    uint8_t enabledDebugLog = 0;
+    (void)source.GetValue(enabledDebugLog);
+    memoryCaller.enabledDebugLog = (enabledDebugLog % BINARY_MOD == 0);
+    std::string strData;
+    (void)source.GetString(strData, MAX_STR_LEN);
+    memoryCaller.resourceType = strData;
+    (void)g_hiviewService.SetAppResourceLimit(memoryCaller);
+    std::vector<UCollectClient::MemoryCaller> memList = {memoryCaller};
+    (void)g_hiviewService.SetSplitMemoryValue(memList);
+    int32_t graphicPid = 0;
+    (void)source.GetValue(graphicPid);
+    (void)g_hiviewService.GetGraphicUsage(graphicPid);
+}
+
+static void HiViewServiceForkDumpFuzzTest(const uint8_t* data, size_t size)
+{
+    std::string packageName = std::string(reinterpret_cast<const char*>(data), size);
+    int32_t mainProcPid = static_cast<int32_t>(getpid());
+    int32_t subProcPid = mainProcPid + 1;
+    (void)g_hiviewService.SetForkDumpService(packageName, mainProcPid, subProcPid);
+}
 } // namespace HiviewDFX
 } // namespace OHOS
 
@@ -91,9 +176,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         printf("failed to init environment, exit\n");
         return 0;
     }
+    setuid(OHOS::HiviewDFX::HIVIEW_UID); // hiview uid
     OHOS::HiviewDFX::HiviewServiceDumpFuzzTest(data, size);
     OHOS::HiviewDFX::HiViewServiceSnapshotTraceFuzzTest(data, size);
     OHOS::HiviewDFX::HiViewServiceDumpSnapshotTraceFuzzTest(data, size);
+    OHOS::HiviewDFX::HiViewServiceFileOperateFuzzTest(data, size);
+    OHOS::HiviewDFX::HiViewServiceRecordingTraceFuzzTest(data, size);
+    OHOS::HiviewDFX::HiViewServiceCaptureDurationTraceFuzzTest(data, size);
+    OHOS::HiviewDFX::HiViewServiceSysCpuUsageFuzzTest(data, size);
+    OHOS::HiviewDFX::HiViewServiceMemoryFuzzTest(data, size);
+    OHOS::HiviewDFX::HiViewServiceForkDumpFuzzTest(data, size);
     return 0;
 }
-

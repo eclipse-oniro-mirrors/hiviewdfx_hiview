@@ -35,6 +35,7 @@ auto g_hiviewServiceAbility = std::make_shared<HiviewServiceAbility>();
 bool g_isInit = false;
 constexpr int32_t TRACE_CLIENT_MOD = 3; // 3: TraceClient enum count
 constexpr size_t MAX_STR_LEN = 100;
+constexpr int32_t HIVIEW_UID = 1201;
 
 void InitEnv()
 {
@@ -57,6 +58,7 @@ void InitEnv()
     SetSelfTokenID(tokenId);
     OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     g_hiviewServiceAbility->GetOrSetHiviewService(&g_hiviewService);
+    setuid(HIVIEW_UID); // hiview uid
     g_isInit = true;
 }
 }
