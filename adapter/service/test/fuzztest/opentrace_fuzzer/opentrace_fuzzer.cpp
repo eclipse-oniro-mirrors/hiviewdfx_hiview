@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "accesstoken_kit.h"
+#include "fuzz_data_source.h"
 #include "hiview_platform.h"
 #include "hiview_service_ability.h"
 #include "nativetoken_kit.h"
@@ -34,6 +35,7 @@ HiviewService g_hiviewService;
 auto g_hiviewServiceAbility = std::make_shared<HiviewServiceAbility>();
 bool g_isInit = false;
 constexpr size_t BINARY_MOD = 2;
+constexpr size_t MAX_STR_LEN = 100;
 
 void InitEnv()
 {
@@ -61,16 +63,29 @@ void InitEnv()
 
 static void OpenTraceFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     InitEnv();
-    std::string strData(reinterpret_cast<const char*>(data), size);
+    FuzzDataSource source(data, size);
+    UCollectClient::TraceParam param;
+    uint32_t bufferSize = 0;
+    (void)source.GetValue(bufferSize);
+    param.bufferSize = bufferSize;
+    uint8_t overWrite = 0;
+    (void)source.GetValue(overWrite);
+    param.isOverWrite = (overWrite % BINARY_MOD == 0);
+    uint32_t fileSizeLimit = 0;
+    (void)source.GetValue(fileSizeLimit);
+    param.fileSizeLimit = fileSizeLimit;
+    int64_t totalSize = 0;
+    (void)source.GetValue(totalSize);
+    param.totalSize = totalSize;
+    std::string strData;
+    (void)source.GetString(strData, MAX_STR_LEN);
+    param.clockType = strData;
     std::vector<std::string> tags;
     tags.push_back(strData);
-    UCollectClient::TraceParam param;
-    param.bufferSize = static_cast<uint32_t>(size);
-    param.clockType = strData;
-    param.isOverWrite = (size % BINARY_MOD == 0);
-    param.fileSizeLimit = static_cast<uint32_t>(size);
-    param.totalSize = static_cast<int64_t>(size);
     TraceParamParcelable traceParam(param);
     std::vector<int32_t> filterPids;
     int32_t errNo = 0;

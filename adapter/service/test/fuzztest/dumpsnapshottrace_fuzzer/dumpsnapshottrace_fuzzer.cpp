@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "accesstoken_kit.h"
+#include "fuzz_data_source.h"
 #include "hiview_platform.h"
 #include "hiview_service_ability.h"
 #include "nativetoken_kit.h"
@@ -32,6 +33,8 @@ namespace {
 HiviewService g_hiviewService;
 auto g_hiviewServiceAbility = std::make_shared<HiviewServiceAbility>();
 bool g_isInit = false;
+constexpr int32_t TRACE_CLIENT_MOD = 3; // 3: TraceClient enum count
+constexpr size_t MAX_STR_LEN = 100;
 
 void InitEnv()
 {
@@ -60,9 +63,16 @@ void InitEnv()
 
 static void DumpSnapshotTraceFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     InitEnv();
-    std::string outputPath(reinterpret_cast<const char*>(data), size);
-    int32_t client = static_cast<int32_t>(size % 3); // 3: TraceClient enum count
+    FuzzDataSource source(data, size);
+    int32_t client = 0;
+    (void)source.GetValue(client);
+    client = client % TRACE_CLIENT_MOD;
+    std::string outputPath;
+    (void)source.GetString(outputPath, MAX_STR_LEN);
     int32_t errNo = 0;
     std::vector<std::string> files;
     g_hiviewServiceAbility->DumpSnapshotTrace(client, outputPath, errNo, files);

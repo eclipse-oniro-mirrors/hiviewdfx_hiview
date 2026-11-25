@@ -21,6 +21,7 @@
 
 #include "accesstoken_kit.h"
 #include "app_caller_parcelable.h"
+#include "fuzz_data_source.h"
 #include "hiview_platform.h"
 #include "hiview_service_ability.h"
 #include "nativetoken_kit.h"
@@ -33,6 +34,7 @@ HiviewService g_hiviewService;
 auto g_hiviewServiceAbility = std::make_shared<HiviewServiceAbility>();
 bool g_isInit = false;
 constexpr size_t BINARY_MOD = 2;
+constexpr size_t MAX_STR_LEN = 100;
 
 void InitEnv()
 {
@@ -60,20 +62,31 @@ void InitEnv()
 
 static void CaptureDurationTraceFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     InitEnv();
-    std::string strData(reinterpret_cast<const char*>(data), size);
+    FuzzDataSource source(data, size);
     UCollectClient::AppCaller appCaller;
-    appCaller.actionId = static_cast<int32_t>(size % BINARY_MOD) + 1; // 1: start trace; 2: dump trace
+    int32_t actionId = 0;
+    (void)source.GetValue(actionId);
+    appCaller.actionId = actionId % BINARY_MOD + 1; // 1: start trace; 2: dump trace
+    int32_t foreground = 0;
+    (void)source.GetValue(foreground);
+    appCaller.foreground = foreground % BINARY_MOD;
+    (void)source.GetValue(appCaller.uid);
+    (void)source.GetValue(appCaller.pid);
+    (void)source.GetValue(appCaller.happenTime);
+    (void)source.GetValue(appCaller.beginTime);
+    (void)source.GetValue(appCaller.endTime);
+    uint8_t isBusinessJank = 0;
+    (void)source.GetValue(isBusinessJank);
+    appCaller.isBusinessJank = (isBusinessJank % BINARY_MOD == 0);
+    std::string strData;
+    (void)source.GetString(strData, MAX_STR_LEN);
     appCaller.bundleName = strData;
     appCaller.bundleVersion = strData;
     appCaller.threadName = strData;
-    appCaller.foreground = static_cast<int32_t>(size % BINARY_MOD);
-    appCaller.uid = static_cast<int32_t>(size);
-    appCaller.pid = static_cast<int32_t>(size);
-    appCaller.happenTime = static_cast<int64_t>(size);
-    appCaller.beginTime = static_cast<int64_t>(size);
-    appCaller.endTime = static_cast<int64_t>(size);
-    appCaller.isBusinessJank = (size % BINARY_MOD == 0);
     AppCallerParcelable appCallerParcelable(appCaller);
     int32_t errNo = 0;
     int32_t ret = 0;
