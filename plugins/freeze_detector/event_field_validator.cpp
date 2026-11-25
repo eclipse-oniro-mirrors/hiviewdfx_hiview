@@ -134,20 +134,6 @@ bool EventFieldValidator::IsDecimalValue(const std::string& value)
     return value.find_first_not_of("0123456789") == std::string::npos;
 }
 
-bool EventFieldValidator::ToInt32Value(const std::string& value, int32_t& out)
-{
-    if (!IsDecimalValue(value)) {
-        return false;
-    }
-    errno = 0;
-    long long result = strtoll(value.c_str(), nullptr, 10);
-    if (errno != 0 || result <= 0 || result > INT_MAX) {
-        return false;
-    }
-    out = static_cast<int32_t>(result);
-    return true;
-}
-
 bool EventFieldValidator::IsSafeName(const std::string& value)
 {
     if (value.empty() || value.size() > MAX_NAME_LEN) {
@@ -284,42 +270,40 @@ bool EventFieldValidator::CheckIdentityFields(const std::shared_ptr<SysEvent>& e
         HIVIEW_LOGW("event:%{public}s has no credible sender pid", event->eventName_.c_str());
         return false;
     }
-    int32_t senderUid = event->GetUid();
     // numeric params do not surface through the string-typed GetEventValue;
     // read both forms so int-typed PID/UID (the common producer case) binds too
     int64_t bodyPid = event->GetEventIntValue("PID");
     std::string pidStr = event->GetEventValue("PID");
     if (bodyPid != 0) {
         if (bodyPid != static_cast<int64_t>(senderPid)) {
-            HIVIEW_LOGW("event:%{public}s rejected: PID field does not match sender pid", event->eventName_.c_str());
+            HIVIEW_LOGW("event:%{public}s rejected: PID field:%{public}" PRId64 " does not match sender pid:%{public}d",
+                event->eventName_.c_str(), bodyPid, senderPid);
             return false;
         }
     } else if (!pidStr.empty()) {
         int32_t parsed = 0;
-        if (!ToInt32Value(pidStr, parsed) || parsed != senderPid) {
-            HIVIEW_LOGW("event:%{public}s rejected: PID field does not match sender pid", event->eventName_.c_str());
+        if (!StringUtil::StrToInt(pidStr, parsed) || parsed != senderPid) {
+            HIVIEW_LOGW("event:%{public}s rejected: PID:%{public}d field does not match sender pid:%{public}d",
+                event->eventName_.c_str(), parsed, senderPid);
             return false;
         }
     }
+    int32_t senderUid = event->GetUid();
     int64_t bodyUid = event->GetEventIntValue("UID");
     std::string uidStr = event->GetEventValue("UID");
     if (bodyUid != 0) {
         if (bodyUid != static_cast<int64_t>(senderUid)) {
-            HIVIEW_LOGW("event:%{public}s rejected: UID field does not match sender uid", event->eventName_.c_str());
+            HIVIEW_LOGW("event:%{public}s rejected: UID:%{public}" PRId64 " field does not match "
+                "sender uid:%{public}d", event->eventName_.c_str(), bodyUid, senderUid);
             return false;
         }
     } else if (!uidStr.empty()) {
         int32_t parsed = 0;
-        if (!ToInt32Value(uidStr, parsed) || parsed != senderUid) {
-            HIVIEW_LOGW("event:%{public}s rejected: UID field does not match sender uid", event->eventName_.c_str());
+        if (!StringUtil::StrToInt(uidStr, parsed) || parsed != senderUid) {
+            HIVIEW_LOGW("event:%{public}s rejected: UID:%{public}d field does not match sender uid:%{public}d",
+                event->eventName_.c_str(), parsed, senderUid);
             return false;
         }
-    }
-    std::string tidStr = event->GetEventValue("TID");
-    int32_t bodyTid = 0;
-    if (!tidStr.empty() && !ToInt32Value(tidStr, bodyTid)) {
-        HIVIEW_LOGW("event:%{public}s rejected: invalid TID field", event->eventName_.c_str());
-        return false;
     }
     return true;
 }
@@ -332,7 +316,7 @@ bool EventFieldValidator::CheckNumericFields(const std::shared_ptr<SysEvent>& ev
             continue;
         }
         int32_t dummy = 0;
-        if (!ToInt32Value(value, dummy)) {
+        if (!StringUtil::StrToInt(value, dummy)) {
             HIVIEW_LOGW("event:%{public}s rejected: invalid numeric field %{public}s",
                 event->eventName_.c_str(), field.c_str());
             return false;
