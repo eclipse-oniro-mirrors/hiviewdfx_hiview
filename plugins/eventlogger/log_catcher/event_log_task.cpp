@@ -41,7 +41,6 @@
 
 #ifdef HITRACE_CATCHER_ENABLE
 #include "event_cache_trace.h"
-#include "freeze_manager.h"
 #endif // HITRACE_CATCHER_ENABLE
 
 #ifdef USAGE_CATCHER_ENABLE

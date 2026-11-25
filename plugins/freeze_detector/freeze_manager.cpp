@@ -60,12 +60,6 @@ FreezeManager::~FreezeManager()
 {
 }
 
-FreezeManager &FreezeManager::GetInStance()
-{
-    static FreezeManager instance;
-    return instance;
-}
-
 void FreezeManager::InsertTraceName(int64_t time, std::string traceName)
 {
     std::unique_lock lock(traceNameMapMutex_);

@@ -23,7 +23,6 @@
 
 #include "event.h"
 #include "ffrt.h"
-#include "singleton.h"
 #include "sys_event.h"
 
 #include "event_log_catcher.h"

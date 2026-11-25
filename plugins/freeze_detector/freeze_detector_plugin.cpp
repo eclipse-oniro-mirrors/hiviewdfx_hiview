@@ -33,7 +33,6 @@ namespace OHOS {
 namespace HiviewDFX {
 namespace {
     constexpr uint64_t TO_NANO_SECOND_MULTPLE = 1000000;
-    constexpr int MIN_APP_UID = 10000;
     constexpr int HALF_EVENT_TIME = 60;
     constexpr int WARNINGLOG_TASK_CNT = 1;
     constexpr long MULTIPLE_DELAY_TIME = 10;

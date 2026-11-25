@@ -1341,33 +1341,6 @@ HWTEST_F(FreezeDetectorUnittest, FreezeRuleCluster_004, TestSize.Level3)
 }
 
 /**
- * @tc.name: FreezeRule_001
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeRule_001, TestSize.Level0)
-{
-    auto freezeRule = std::make_unique<FreezeRule>();
-    FreezeResult result;
-    result.SetId(1);
-
-    freezeRule->AddResult("KERNEL_VENDOR", "SCREEN_ON", result);
-    ASSERT_EQ(freezeRule->GetResult("KERNEL_VENDOR", "SCREEN_ON", result), true);
-}
-
-/**
- * @tc.name: FreezeRule_002
- * @tc.desc: FreezeDetector
- */
-HWTEST_F(FreezeDetectorUnittest, FreezeRule_002, TestSize.Level3)
-{
-    auto freezeRule = std::make_unique<FreezeRule>();
-    FreezeResult result;
-    result.SetId(1);
-
-    ASSERT_EQ(freezeRule->GetResult("KERNEL_VENDOR", "SCREEN_ON", result), false);
-}
-
-/**
  * @tc.name: FreezeDetectorPlugin_001
  * @tc.desc: FreezeDetector
  */

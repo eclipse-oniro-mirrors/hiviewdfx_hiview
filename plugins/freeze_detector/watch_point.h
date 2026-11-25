@@ -176,9 +176,6 @@ public:
     void SetLastMarkedEventId(const std::string& lastMarkedEventId);
     void SetThermalLevel(const std::string& thermalLevel);
     void SetExternalLog(const std::string& externalLog);
-    void SetIsHicollie(bool isHicollie);
-    bool operator<(const WatchPoint& node) const;
-    bool operator==(const WatchPoint& node) const;
 
 private:
     long seq_;

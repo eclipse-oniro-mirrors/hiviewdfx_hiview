@@ -15,9 +15,7 @@
 #ifndef EVENT_LOGGER_SHELL_CATCHER
 #define EVENT_LOGGER_SHELL_CATCHER
 
-#include <map>
 #include <string>
-#include <vector>
 
 #include "event_log_catcher.h"
 #include "sys_event.h"

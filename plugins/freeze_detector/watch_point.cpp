@@ -602,11 +602,6 @@ void WatchPoint::SetExternalLog(const std::string& externalLog)
     externalLog_ = externalLog;
 }
 
-void WatchPoint::SetIsHicollie(bool isHicollie)
-{
-    isHicollie_ = isHicollie;
-}
-
 long WatchPoint::GetRenderPid() const
 {
     return renderPid_;
@@ -615,19 +610,6 @@ long WatchPoint::GetRenderPid() const
 long WatchPoint::GetRenderUid() const
 {
     return renderUid_;
-}
-
-bool WatchPoint::operator<(const WatchPoint& node) const
-{
-    if (timestamp_ == node.timestamp_) {
-        return stringId_.compare(node.GetStringId());
-    }
-    return timestamp_ < node.timestamp_;
-}
-
-bool WatchPoint::operator==(const WatchPoint& node) const
-{
-    return timestamp_ == node.GetTimestamp() && stringId_.compare(node.GetStringId());
 }
 } // namespace HiviewDFX
 } // namespace OHOS
