@@ -102,6 +102,8 @@ private:
     const int MAX_SKIP_LINE = 32000; // 32000 max skip line
     static constexpr const char *COMPOSE_PLUS = "+";
     static constexpr const char *COMPOSE_COLON = ":";
+    static constexpr size_t MAX_PARAM_SEEK_RECORD_SIZE = 512; // 512 : max param seek record count
+    bool paramRecordLimitLogged_{false};
     std::string line_;
     FeatureSet featureSet_;
     std::map<std::string, StackRegexInfo> stackRegex_;

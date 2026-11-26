@@ -15,6 +15,8 @@
 #include <gtest/gtest.h>
 #include <unistd.h>
 
+#include <sys/stat.h>
+
 #include "constants.h"
 #include "faultlog_formatter.h"
 #include "faultlog_info_inner.h"
@@ -199,6 +201,59 @@ HWTEST(FaultlogFormatterUnittest, ParseJsonFromFileTest003, testing::ext::TestSi
     bool ret = FaultLogger::ParseJsonFromFile(filePath, root);
     EXPECT_FALSE(ret);
 
+    FileUtil::RemoveFile(filePath);
+}
+
+/**
+ * @tc.name: ParseJsonFromFileTest004
+ * @tc.desc: Test ParseJsonFromFile with oversize file
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogFormatterUnittest, ParseJsonFromFileTest004, testing::ext::TestSize.Level1)
+{
+    std::string filePath = "/data/test_parse_json_file_004.json";
+    ASSERT_EQ(FileUtil::CreateFile(filePath), 0);
+    constexpr off_t oversize = 50 * 1024 * 1024 + 1; // 1 : exceed the max file size
+    ASSERT_EQ(truncate(filePath.c_str(), oversize), 0);
+
+    Json::Value root;
+    EXPECT_FALSE(FaultLogger::ParseJsonFromFile(filePath, root));
+
+    FileUtil::RemoveFile(filePath);
+}
+
+/**
+ * @tc.name: ParseJsonFromFileTest005
+ * @tc.desc: Test ParseJsonFromFile with fifo file
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogFormatterUnittest, ParseJsonFromFileTest005, testing::ext::TestSize.Level1)
+{
+    std::string fifoPath = "/data/test_parse_json_file_005.fifo";
+    ASSERT_EQ(mkfifo(fifoPath.c_str(), 0666), 0);
+
+    Json::Value root;
+    EXPECT_FALSE(FaultLogger::ParseJsonFromFile(fifoPath, root));
+
+    FileUtil::RemoveFile(fifoPath);
+}
+
+/**
+ * @tc.name: ParseJsonFromFileTest006
+ * @tc.desc: Test ParseJsonFromFile with symlink file
+ * @tc.type: FUNC
+ */
+HWTEST(FaultlogFormatterUnittest, ParseJsonFromFileTest006, testing::ext::TestSize.Level1)
+{
+    std::string filePath = "/data/test_parse_json_file_006.json";
+    std::string linkPath = "/data/test_parse_json_file_006.link";
+    ASSERT_TRUE(FileUtil::SaveStringToFile(filePath, "{\"PID\":1234}"));
+    ASSERT_EQ(symlink(filePath.c_str(), linkPath.c_str()), 0);
+
+    Json::Value root;
+    EXPECT_FALSE(FaultLogger::ParseJsonFromFile(linkPath, root));
+
+    FileUtil::RemoveFile(linkPath);
     FileUtil::RemoveFile(filePath);
 }
 

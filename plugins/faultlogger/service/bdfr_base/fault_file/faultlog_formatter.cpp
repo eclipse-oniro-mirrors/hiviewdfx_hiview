@@ -539,18 +539,24 @@ void ParseCppCrashFromTextFile(const std::string& path, FaultLogInfo& info)
 
 bool ParseJsonFromFile(const std::string& path, Json::Value& root)
 {
-    constexpr uint64_t maxFileSize = 50 * 1024 * 1024; // limit cppcrash json file size in temp dir to 50M
-    if (FileUtil::GetFileSize(path) > maxFileSize) {
-        HIVIEW_LOGW("File size exceeds 50M, path: %{public}s", path.c_str());
-        return false;
-    }
-    std::ifstream logFile(path, std::ifstream::binary);
-    if (!logFile.is_open()) {
+    int fd = open(path.c_str(), O_RDONLY | O_NOFOLLOW | O_NONBLOCK);
+    if (fd < 0) {
         HIVIEW_LOGW("Failed to open file, path: %{public}s", path.c_str());
         return false;
     }
+    SmartFd smartFd(fd);
+    struct stat fileStat = {};
+    if (fstat(fd, &fileStat) != 0 || !S_ISREG(fileStat.st_mode)) {
+        HIVIEW_LOGW("File is invalid, path: %{public}s", path.c_str());
+        return false;
+    }
+    std::string content;
+    if (!FileUtil::LoadStringFromFd(fd, content)) {
+        HIVIEW_LOGW("Failed to read file, path: %{public}s", path.c_str());
+        return false;
+    }
     Json::Reader reader(Json::Features::strictMode());
-    if (!reader.parse(logFile, root)) {
+    if (!reader.parse(content, root)) {
         HIVIEW_LOGE("Json parse fail in %{public}s.", path.c_str());
         return false;
     }
