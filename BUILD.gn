@@ -154,6 +154,7 @@ group("hiview_test_package") {
     "base/test:fuzztest",
     "core/test:unittest",
     "framework/native/unified_collection:unittest",
+    "framework/native/unified_collection:fuzztest",
     "hiretrieval:unittest",
     "interfaces/js/napi/test:unittest",
     "plugins:fuzztest",

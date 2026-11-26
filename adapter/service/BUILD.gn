@@ -74,5 +74,6 @@ group("fuzztest") {
     "test/fuzztest/requestapptrace_fuzzer:RequestAppTraceFuzzTest",
     "test/fuzztest/getsyscpuusage_fuzzer:GetSysCpuUsageFuzzTest",
     "test/fuzztest/getgraphicusage_fuzzer:GetGraphicUsageFuzzTest",
+    "test/fuzztest/common_parcelable_fuzzer:CommonParcelableFuzzTest",
   ]
 }
