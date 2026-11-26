@@ -126,6 +126,7 @@ int AppEventHandler::PostEvent(const ScrollJankInfo& event)
     AddBundleInfoToJsonString(event, jsonStr);
     AddProcessInfoToJsonString(event, jsonStr);
     AddAbilityInfoToJsonString(event, jsonStr);
+    AddValueToJsonString("page_name", event.pageName, jsonStr);
     AddValueToJsonString("begin_time", event.beginTime, jsonStr);
     AddValueToJsonString("duration", event.duration, jsonStr);
     AddValueToJsonString("total_app_frames", event.totalAppFrames, jsonStr);

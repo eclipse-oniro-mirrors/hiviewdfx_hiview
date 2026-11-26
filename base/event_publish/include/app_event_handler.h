@@ -120,6 +120,7 @@ public:
     };
 
     struct ScrollJankInfo : public BundleInfo, public ProcessInfo, public AbilityInfo {
+        std::string pageName;
         uint64_t beginTime = 0;
         uint64_t duration = 0;
         int32_t totalAppFrames = 0;

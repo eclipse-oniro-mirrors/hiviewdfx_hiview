@@ -78,6 +78,10 @@ public:
     std::string GetPageName();
     int32_t GetPid();
     std::string GetCurrentSceneId();
+        
+    // inner interface for scroll jank threshold
+    void SetScrollJankThreshold(int32_t threshold);
+    int32_t GetScrollJankThreshold() const;
 
     // innner interface when scene-change
     bool IsScrollJank(const std::string& sceneId);
@@ -124,6 +128,7 @@ private:
 
     uint32_t countStart = 0;
     int64_t preStartTime = 0;
+    int32_t scrollJankThreshold_ {DEFAULT_SCROLL_JANK_THRESHOLD};
 };
 
 }

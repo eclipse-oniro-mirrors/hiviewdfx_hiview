@@ -170,6 +170,16 @@ void PerfMonitorAdapter::SetSubHealthInfo(const std::string& info, const std::st
     subHealthInfo.subHealthTime = duration;
 }
 
+void PerfMonitorAdapter::SetScrollJankThreshold(int32_t threshold)
+{
+    SceneMonitor::GetInstance().SetScrollJankThreshold(threshold);
+}
+ 
+int32_t PerfMonitorAdapter::GetScrollJankThreshold() const
+{
+    return SceneMonitor::GetInstance().GetScrollJankThreshold();
+}
+
 void PerfMonitorAdapter::ReportJankFrameApp(double jank, int32_t jankThreshold)
 {
     PerfReporter::GetInstance().ReportJankFrameApp(jank, jankThreshold);
