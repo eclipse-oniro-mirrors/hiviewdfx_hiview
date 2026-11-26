@@ -232,14 +232,14 @@ void PerfMonitorAdapter::AttachComponent(int32_t componentId)
 
 void PerfMonitorAdapter::WebComponentLoad(int64_t navigationId)
 {
-    XPERF_TRACE_SCOPED("[PerfMonitorAdapter] WebComponentLoad navigationId:%ld", navigationId);
+    XPERF_TRACE_SCOPED("[PerfMonitorAdapter] WebComponentLoad navigationId:%lld", navigationId);
     LoadCompleteMonitor::GetInstance().WebComponentLoad(navigationId);
 }
 
 void PerfMonitorAdapter::WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime)
 {
     XPERF_TRACE_SCOPED(
-        "[PerfMonitorAdapter] WebContentPaintComplete navigationId:%ld, largestContentPaintTime:%ld",
+        "[PerfMonitorAdapter] WebContentPaintComplete navigationId:%lld, largestContentPaintTime:%ld",
         navigationId, largestContentPaintTime);
     if (largestContentPaintTime <= INVALID_LARGEST_CONTENT_PAINT_TIME) {
         return;
