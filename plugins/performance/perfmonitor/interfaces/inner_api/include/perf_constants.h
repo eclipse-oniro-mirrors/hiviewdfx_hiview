@@ -34,6 +34,7 @@ inline constexpr int64_t ALL_RESPONSE_TIMEOUT = 10000000000LL;
 inline constexpr int64_t STARTAPP_FRAME_TIMEOUT = 1000000000;
 inline constexpr float SINGLE_FRAME_TIME = 16600000;
 inline constexpr int64_t MIN_GC_INTERVAL = 1000000000;
+inline constexpr int64_t INVALID_LARGEST_CONTENT_PAINT_TIME = 0;
 inline constexpr int DEFAULT_THRESHOLD_JANK = 15;
 inline constexpr int32_t JANK_SKIPPED_THRESHOLD = DEFAULT_THRESHOLD_JANK;
 inline constexpr int32_t DEFAULT_JANK_REPORT_THRESHOLD = 6;

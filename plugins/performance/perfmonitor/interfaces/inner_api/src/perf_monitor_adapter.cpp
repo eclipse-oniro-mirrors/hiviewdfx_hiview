@@ -25,6 +25,7 @@
 #include "scene_monitor.h"
 #include "white_block_monitor.h"
 #include "surface_monitor.h"
+#include "perf_trace.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -241,11 +242,20 @@ void PerfMonitorAdapter::AttachComponent(int32_t componentId)
 
 void PerfMonitorAdapter::WebComponentLoad(int64_t navigationId)
 {
+    XPERF_TRACE_SCOPED("[PerfMonitorAdapter] WebComponentLoad navigationId:%" PRId64,
+        static_cast<int64_t>(navigationId));
     LoadCompleteMonitor::GetInstance().WebComponentLoad(navigationId);
 }
 
 void PerfMonitorAdapter::WebContentPaintComplete(int64_t navigationId, int64_t largestContentPaintTime)
 {
+    XPERF_TRACE_SCOPED(
+        "[PerfMonitorAdapter] WebContentPaintComplete navigationId:%" PRId64 ", largestContentPaintTime:%" PRId64,
+        static_cast<int64_t>(navigationId), largestContentPaintTime);
+    if (largestContentPaintTime <= INVALID_LARGEST_CONTENT_PAINT_TIME) {
+        return;
+    }
+    largestContentPaintTime = GetCurrentSystimeMs();
     LoadCompleteMonitor::GetInstance().WebContentPaintComplete(navigationId, largestContentPaintTime);
 }
 
