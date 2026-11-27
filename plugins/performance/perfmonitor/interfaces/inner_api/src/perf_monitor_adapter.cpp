@@ -232,7 +232,8 @@ void PerfMonitorAdapter::AttachComponent(int32_t componentId)
 
 void PerfMonitorAdapter::WebComponentLoad(int64_t navigationId)
 {
-    XPERF_TRACE_SCOPED("[PerfMonitorAdapter] WebComponentLoad navigationId:%" PRId64,static_cast<int64_t>(navigationId));
+    XPERF_TRACE_SCOPED("[PerfMonitorAdapter] WebComponentLoad navigationId:%" PRId64,
+        static_cast<int64_t>(navigationId));
     LoadCompleteMonitor::GetInstance().WebComponentLoad(navigationId);
 }
 
